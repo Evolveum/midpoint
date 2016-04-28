@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,28 +22,34 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatu
 /**
  *  @author shood
  * */
-public enum OperationResultStatusIcon {
+public enum OperationResultStatusPresentationProperties {
 
-    UNKNOWN("fa-fw fa-lg " + GuiStyleConstants.CLASS_OP_RESULT_STATUS_ICON_UNKNOWN_COLORED),
-    SUCCESS("fa-fw fa-lg " + GuiStyleConstants.CLASS_OP_RESULT_STATUS_ICON_SUCCESS_COLORED),
-    WARNING("fa-fw fa-lg " + GuiStyleConstants.CLASS_OP_RESULT_STATUS_ICON_WARNING_COLORED),
-    PARTIAL_ERROR("fa-fw fa-lg " + GuiStyleConstants.CLASS_OP_RESULT_STATUS_ICON_PARTIAL_ERROR_COLORED),
-    FATAL_ERROR("fa-fw fa-lg " + GuiStyleConstants.CLASS_OP_RESULT_STATUS_ICON_FATAL_ERROR_COLORED),
-    HANDLED_ERROR("fa-fw fa-lg " + GuiStyleConstants.CLASS_OP_RESULT_STATUS_ICON_HANDLED_ERROR_COLORED),
-    NOT_APPLICABLE("fa-fw fa-lg " + GuiStyleConstants.CLASS_OP_RESULT_STATUS_ICON_NOT_APPLICABLE_COLORED),
-    IN_PROGRESS("fa-fw fa-lg " + GuiStyleConstants.CLASS_APPROVAL_OUTCOME_ICON_IN_PROGRESS_COLORED);
+    UNKNOWN("fa-fw fa-lg " + GuiStyleConstants.CLASS_OP_RESULT_STATUS_ICON_UNKNOWN_COLORED, "OperationResultStatus.UNKNOWN"),
+    SUCCESS("fa-fw fa-lg " + GuiStyleConstants.CLASS_OP_RESULT_STATUS_ICON_SUCCESS_COLORED, "OperationResultStatus.SUCCESS"),
+    WARNING("fa-fw fa-lg " + GuiStyleConstants.CLASS_OP_RESULT_STATUS_ICON_WARNING_COLORED, "OperationResultStatus.WARNING"),
+    PARTIAL_ERROR("fa-fw fa-lg " + GuiStyleConstants.CLASS_OP_RESULT_STATUS_ICON_PARTIAL_ERROR_COLORED, "OperationResultStatus.PARTIAL_ERROR"),
+    FATAL_ERROR("fa-fw fa-lg " + GuiStyleConstants.CLASS_OP_RESULT_STATUS_ICON_FATAL_ERROR_COLORED, "OperationResultStatus.FATAL_ERROR"),
+    HANDLED_ERROR("fa-fw fa-lg " + GuiStyleConstants.CLASS_OP_RESULT_STATUS_ICON_HANDLED_ERROR_COLORED, "OperationResultStatus.HANDLED_ERROR"),
+    NOT_APPLICABLE("fa-fw fa-lg " + GuiStyleConstants.CLASS_OP_RESULT_STATUS_ICON_NOT_APPLICABLE_COLORED, "OperationResultStatus.NOT_APPLICABLE"),
+    IN_PROGRESS("fa-fw fa-lg " + GuiStyleConstants.CLASS_APPROVAL_OUTCOME_ICON_IN_PROGRESS_COLORED, "OperationResultStatus.IN_PROGRESS");
 
 	private String icon;
+	private String statusLabelKey;
 
-    private OperationResultStatusIcon(String icon){
+    private OperationResultStatusPresentationProperties(String icon, String statusLabelKey) {
         this.icon = icon;
+        this.statusLabelKey = statusLabelKey;
     }
 
-    public String getIcon(){
+    public String getIcon() {
         return icon;
     }
 
-    public static OperationResultStatusIcon parseOperationalResultStatus(OperationResultStatusType statusType){
+    public String getStatusLabelKey() {
+		return statusLabelKey;
+	}
+
+	public static OperationResultStatusPresentationProperties parseOperationalResultStatus(OperationResultStatusType statusType){
         if (statusType == null) {
             return UNKNOWN;
         }
@@ -68,7 +74,7 @@ public enum OperationResultStatusIcon {
         }
     }
 
-    public static OperationResultStatusIcon parseOperationalResultStatus(OperationResultStatus statusType){
+    public static OperationResultStatusPresentationProperties parseOperationalResultStatus(OperationResultStatus statusType){
         if (statusType == null) {
             return UNKNOWN;
         }

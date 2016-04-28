@@ -86,7 +86,7 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
-import com.evolveum.midpoint.web.component.data.ObjectDataProvider2;
+import com.evolveum.midpoint.web.component.data.SelectableBeanObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
 import com.evolveum.midpoint.web.component.data.column.ColumnTypeDto;
 import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
@@ -231,7 +231,7 @@ public abstract class ResourceContentPanel extends Panel {
 			
 			@Override
 			protected BaseSortableDataProvider<SelectableBean<ShadowType>> getProvider() {
-				ObjectDataProvider2<SelectableBean<ShadowType>, ShadowType> provider = (ObjectDataProvider2<SelectableBean<ShadowType>, ShadowType>) super.getProvider();
+				SelectableBeanObjectDataProvider<ShadowType> provider = (SelectableBeanObjectDataProvider<ShadowType>) super.getProvider();
 				provider.setEmptyListOnNullQuery(true);
 				provider.setSort(null);
 				createSearchOptions(provider);			
@@ -439,8 +439,8 @@ public abstract class ResourceContentPanel extends Panel {
 		return tasksForKind;
 	}
 	
-	private ObjectDataProvider2<SelectableBean<ShadowType>, ShadowType> initProvider(){
-		ObjectDataProvider2<SelectableBean<ShadowType>, ShadowType> provider = new ObjectDataProvider2<SelectableBean<ShadowType>, ShadowType>(
+	private SelectableBeanObjectDataProvider<ShadowType> initProvider(){
+		SelectableBeanObjectDataProvider<ShadowType> provider = new SelectableBeanObjectDataProvider<ShadowType>(
 				this, ShadowType.class) {
 			private static final long serialVersionUID = 1L;
 			
@@ -553,7 +553,7 @@ public abstract class ResourceContentPanel extends Panel {
 	protected abstract Search createSearch();
 	
 
-	private void createSearchOptions(ObjectDataProvider2 provider) {
+	private void createSearchOptions(SelectableBeanObjectDataProvider provider) {
 
 		Collection<SelectorOptions<GetOperationOptions>> opts = SelectorOptions.createCollection(
 				ShadowType.F_ASSOCIATION, GetOperationOptions.createRetrieve(RetrieveOption.EXCLUDE));
@@ -608,11 +608,14 @@ public abstract class ResourceContentPanel extends Panel {
 
 				SelectableBean<ShadowType> dto = rowModel.getObject();
 				RepeatingView repeater = new RepeatingView(componentId);
-
-				for (ResourceAttribute<?> attr : ShadowUtil.getAllIdentifiers(dto.getValue())) {
-					repeater.add(new Label(repeater.newChildId(),
-							attr.getElementName().getLocalPart() + ": " + attr.getRealValue()));
-
+				
+				ShadowType value = dto.getValue();
+				if (value != null) {
+					for (ResourceAttribute<?> attr : ShadowUtil.getAllIdentifiers(value)) {
+						repeater.add(new Label(repeater.newChildId(),
+								attr.getElementName().getLocalPart() + ": " + attr.getRealValue()));
+	
+					}
 				}
 				cellItem.add(repeater);
 

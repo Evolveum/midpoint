@@ -99,12 +99,14 @@ import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.task.api.TaskCategory;
 import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -124,6 +126,7 @@ import com.evolveum.midpoint.web.page.admin.reports.PageReport;
 import com.evolveum.midpoint.web.page.admin.resources.PageResource;
 import com.evolveum.midpoint.web.page.admin.roles.PageRole;
 import com.evolveum.midpoint.web.page.admin.server.PageTaskEdit;
+import com.evolveum.midpoint.web.page.admin.server.dto.OperationResultStatusPresentationProperties;
 import com.evolveum.midpoint.web.page.admin.users.PageOrgUnit;
 import com.evolveum.midpoint.web.page.admin.users.PageUser;
 import com.evolveum.midpoint.web.security.MidPointApplication;
@@ -149,6 +152,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ScheduleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ServiceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskBindingType;
@@ -508,9 +512,16 @@ public final class WebComponentUtil {
     	
     	PrismProperty prop = object.findProperty(propertyName);
     	
-    	if (prop!= null && prop.getDefinition().getTypeName().equals(DOMUtil.XSD_STRING)){
-    		return (String) prop.getRealValue();
+    	if (prop!= null){
+    		Object realValue = prop.getRealValue();
+    		if (prop.getDefinition().getTypeName().equals(DOMUtil.XSD_STRING)){
+    			return (String) realValue;
+    		} else if (realValue instanceof PolyString){
+    			return WebComponentUtil.getOrigStringFromPoly((PolyString)realValue);
+    		}
     	}
+    	
+    	
     	
         PolyString name = getValue(object, ObjectType.F_NAME, PolyString.class);
 
@@ -1001,7 +1012,12 @@ public final class WebComponentUtil {
 			return GuiStyleConstants.CLASS_SHADOW_ICON_PROTECTED;
 		}
 		
-		switch (shadow.getKind()){
+		ShadowKindType kind = shadow.getKind();
+		if (kind == null) {
+			return GuiStyleConstants.CLASS_SHADOW_ICON_UNKNOWN;
+		}
+		
+		switch (kind){
 			case ACCOUNT: 
 				return GuiStyleConstants.CLASS_SHADOW_ICON_ACCOUNT;
 			case GENERIC:
@@ -1010,6 +1026,7 @@ public final class WebComponentUtil {
 				return GuiStyleConstants.CLASS_SHADOW_ICON_ENTITLEMENT;
 					
 		}
+		
 		return GuiStyleConstants.CLASS_SHADOW_ICON_UNKNOWN;
 	}
 
@@ -1033,6 +1050,12 @@ public final class WebComponentUtil {
 		}
 
 		return null;
+	}
+	
+	public static String createErrorIcon(OperationResult result) {
+		OperationResultStatus status = result.getStatus();
+		OperationResultStatusPresentationProperties icon = OperationResultStatusPresentationProperties.parseOperationalResultStatus(status);
+		return icon.getIcon();
 	}
 
 	public static double getSystemLoad() {
@@ -1393,4 +1416,20 @@ public final class WebComponentUtil {
 		return helpLabel;
 	}
 
+	public static String debugDumpComponentTree(Component c) {
+		StringBuilder sb = new StringBuilder();
+		debugDumpComponentTree(sb, c, 0);
+		return sb.toString();
+
+	}
+
+	private static void debugDumpComponentTree(StringBuilder sb, Component c, int level) {
+		DebugUtil.indentDebugDump(sb, level);
+		sb.append(c).append("\n");
+		if (c instanceof MarkupContainer) {
+			for (Component sub: (MarkupContainer)c) {
+				debugDumpComponentTree(sb, sub, level + 1);
+			}
+		}
+	}
 }

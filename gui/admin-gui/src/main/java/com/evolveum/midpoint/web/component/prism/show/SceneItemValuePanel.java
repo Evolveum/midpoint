@@ -73,7 +73,7 @@ public class SceneItemValuePanel extends BasePanel<SceneItemValue> {
 		label.add(visibleIfNotReference);
 		add(label);
 
-		final LinkPanel<String> link = new LinkPanel<String>(ID_LINK, new LabelModel()) {
+		final LinkPanel link = new LinkPanel(ID_LINK, new LabelModel()) {
 			@Override
 			public void onClick(AjaxRequestTarget target) {
 				if (!(getModelObject().getSourceValue() instanceof PrismReferenceValue)) {

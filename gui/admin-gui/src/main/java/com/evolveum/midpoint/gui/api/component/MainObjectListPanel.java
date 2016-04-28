@@ -32,6 +32,7 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.web.component.data.Table;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
+import com.evolveum.midpoint.web.component.data.column.ObjectNameColumn;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.configuration.PageImportObject;
 import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
@@ -40,8 +41,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 /**
  * @author katkav
  */
-public abstract class MainObjectListPanel<T extends ObjectType> extends ObjectListPanel<T> {
-
+public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectListPanel<O> {
     private static final long serialVersionUID = 1L;
 
     private static final String ID_REFRESH = "refresh";
@@ -49,31 +49,29 @@ public abstract class MainObjectListPanel<T extends ObjectType> extends ObjectLi
     private static final String ID_IMPORT_OBJECT = "importObject";
     private static final String ID_BUTTON_BAR = "buttonBar";
 
-    public MainObjectListPanel(String id, Class<T> type, TableId tableId, Collection<SelectorOptions<GetOperationOptions>> options, PageBase parentPage) {
+    public MainObjectListPanel(String id, Class<O> type, TableId tableId, Collection<SelectorOptions<GetOperationOptions>> options, PageBase parentPage) {
         super(id, type, tableId, options, parentPage);
     }
 
     @Override
-    protected IColumn<SelectableBean<T>, String> createCheckboxColumn() {
+    protected IColumn<SelectableBean<O>, String> createCheckboxColumn() {
         return new CheckBoxHeaderColumn<>();
     }
 
     @Override
-    protected IColumn<SelectableBean<T>, String> createNameColumn() {
-        return new LinkColumn<SelectableBean<T>>(createStringResource("ObjectType.name"),
-                ObjectType.F_NAME.getLocalPart(), SelectableBean.F_VALUE + ".name") {
-
+    protected IColumn<SelectableBean<O>, String> createNameColumn() {
+        return new ObjectNameColumn<O>(createStringResource("ObjectType.name")) {
             private static final long serialVersionUID = 1L;
 
             @Override
-            public void onClick(AjaxRequestTarget target, IModel<SelectableBean<T>> rowModel) {
-                T object = rowModel.getObject().getValue();
+            public void onClick(AjaxRequestTarget target, IModel<SelectableBean<O>> rowModel) {
+                O object = rowModel.getObject().getValue();
                 MainObjectListPanel.this.objectDetailsPerformed(target, object);
             }
         };
     }
 
-    protected abstract void objectDetailsPerformed(AjaxRequestTarget target, T object);
+    protected abstract void objectDetailsPerformed(AjaxRequestTarget target, O object);
 
     protected abstract void newObjectPerformed(AjaxRequestTarget target);
 

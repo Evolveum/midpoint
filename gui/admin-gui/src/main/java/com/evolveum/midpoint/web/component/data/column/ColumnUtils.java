@@ -213,7 +213,11 @@ public class ColumnUtils {
 					@Override
 					public String getObject() {
 						T shadow = rowModel.getObject().getValue();
-						return WebComponentUtil.createShadowIcon(shadow.asPrismContainer());
+						if (shadow == null) {
+							return WebComponentUtil.createErrorIcon(rowModel.getObject().getResult());
+						} else {
+							return WebComponentUtil.createShadowIcon(shadow.asPrismContainer());
+						}
 					}
 				};
 			}

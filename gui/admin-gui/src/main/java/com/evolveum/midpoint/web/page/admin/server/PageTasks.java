@@ -100,7 +100,7 @@ import com.evolveum.midpoint.web.component.refresh.Refreshable;
 import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
 import com.evolveum.midpoint.web.page.admin.server.dto.NodeDto;
 import com.evolveum.midpoint.web.page.admin.server.dto.NodeDtoProvider;
-import com.evolveum.midpoint.web.page.admin.server.dto.OperationResultStatusIcon;
+import com.evolveum.midpoint.web.page.admin.server.dto.OperationResultStatusPresentationProperties;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoExecutionStatusFilter;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoProvider;
@@ -536,9 +536,9 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
                     @Override
                     public String getObject() {
                         if (rowModel != null && rowModel.getObject() != null && rowModel.getObject().getStatus() != null) {
-                            return OperationResultStatusIcon.parseOperationalResultStatus(rowModel.getObject().getStatus().createStatusType()).getIcon();
+                            return OperationResultStatusPresentationProperties.parseOperationalResultStatus(rowModel.getObject().getStatus().createStatusType()).getIcon();
                         } else
-                            return OperationResultStatusIcon.UNKNOWN.getIcon();
+                            return OperationResultStatusPresentationProperties.UNKNOWN.getIcon();
                     }
                 };
             }
