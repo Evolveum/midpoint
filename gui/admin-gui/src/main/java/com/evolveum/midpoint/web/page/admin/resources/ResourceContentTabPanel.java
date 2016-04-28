@@ -141,7 +141,7 @@ public class ResourceContentTabPanel extends Panel {
 			@Override
 			protected void onUpdate(AjaxRequestTarget target) {
 				mainForm.addOrReplace(initTable(model));
-				target.add(addOrReplace(mainForm));
+				target.add(mainForm);
 
 			}
 		});
