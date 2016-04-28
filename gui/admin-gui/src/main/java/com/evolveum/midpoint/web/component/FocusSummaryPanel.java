@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2015 Evolveum
+ * Copyright (c) 2015-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,7 @@
  */
 package com.evolveum.midpoint.web.component;
 
+import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
@@ -39,8 +40,6 @@ public abstract class FocusSummaryPanel<O extends ObjectType> extends AbstractSu
 	private static final long serialVersionUID = 1L;
 
 	private static final String ID_ACTIVATION_TAG = "activationTag";
-	protected static final String ICON_CLASS_ACTIVATION_ACTIVE = "fa fa-check";
-	protected static final String ICON_CLASS_ACTIVATION_INACTIVE = "fa fa-times";
 
 	private IModel<ObjectWrapper<O>> wrapperModel;
 	
@@ -51,6 +50,8 @@ public abstract class FocusSummaryPanel<O extends ObjectType> extends AbstractSu
 		initLayoutCommon();				// calls getParentOrgModel that depends on wrapperModel
 
 		SummaryTag<O> tagActivation = new SummaryTag<O>(ID_ACTIVATION_TAG, model) {
+			private static final long serialVersionUID = 1L;
+
 			@Override
 			protected void initialize(ObjectWrapper<O> wrapper) {
 				ActivationType activation = null;
@@ -59,21 +60,28 @@ public abstract class FocusSummaryPanel<O extends ObjectType> extends AbstractSu
 					activation = ((FocusType)object).getActivation();
 				}
 				if (activation == null) {
-					setIconCssClass(ICON_CLASS_ACTIVATION_ACTIVE);
-					setLabel("Active");
-					setColor("green");
-				} else if (activation.getEffectiveStatus() == ActivationStatusType.ENABLED) {
-					setIconCssClass(ICON_CLASS_ACTIVATION_ACTIVE);
-					setLabel("Active");
-					setColor("green");
+					setIconCssClass(GuiStyleConstants.CLASS_ICON_ACTIVATION_ACTIVE);
+					setLabel(getString("ActivationStatusType.ENABLED"));
+					
+				} else if (activation.getEffectiveStatus() == ActivationStatusType.DISABLED) {
+					setIconCssClass(GuiStyleConstants.CLASS_ICON_ACTIVATION_INACTIVE);
+					setLabel(getString("ActivationStatusType.DISABLED"));
+					setCssClass(GuiStyleConstants.CLASS_ICON_STYLE_DISABLED);
+					
+				} else if (activation.getEffectiveStatus() == ActivationStatusType.ARCHIVED) {
+					setIconCssClass(GuiStyleConstants.CLASS_ICON_ACTIVATION_INACTIVE);
+					setLabel(getString("ActivationStatusType.ARCHIVED"));
+					setCssClass(GuiStyleConstants.CLASS_ICON_STYLE_ARCHIVED);
+					
 				} else {
-					setIconCssClass(ICON_CLASS_ACTIVATION_INACTIVE);
-					setLabel("Inactive");
-					setColor("red");
+					setIconCssClass(GuiStyleConstants.CLASS_ICON_ACTIVATION_ACTIVE);
+					setLabel(getString("ActivationStatusType.ENABLED"));
 				}
 			}
 		};
 		tagActivation.add(new VisibleEnableBehaviour() {
+			private static final long serialVersionUID = 1L;
+
 			@Override
 			public boolean isVisible() {
 				return isActivationVisible();
@@ -84,6 +92,8 @@ public abstract class FocusSummaryPanel<O extends ObjectType> extends AbstractSu
 
 	protected IModel<String> getParentOrgModel() {
 		return new ReadOnlyWrapperModel<String,O>(wrapperModel) {
+			private static final long serialVersionUID = 1L;
+
 			@Override
 			public String getObject() {
 				Collection<PrismObject<OrgType>> parentOrgs = getWrapper().getParentOrgs();
@@ -107,6 +117,8 @@ public abstract class FocusSummaryPanel<O extends ObjectType> extends AbstractSu
 	@Override
 	protected IModel<AbstractResource> getPhotoModel() {
 		return new AbstractReadOnlyModel<AbstractResource>() {
+			private static final long serialVersionUID = 1L;
+			
 			@Override
 			public AbstractResource getObject() {
 				byte[] jpegPhoto = null;

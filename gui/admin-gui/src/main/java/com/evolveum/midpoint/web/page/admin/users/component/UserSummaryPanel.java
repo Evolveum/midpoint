@@ -25,7 +25,6 @@ import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.web.component.FocusSummaryPanel;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.component.util.SummaryTag;
-import com.evolveum.midpoint.web.model.ReadOnlyWrapperModel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
@@ -39,16 +38,19 @@ public class UserSummaryPanel extends FocusSummaryPanel<UserType> {
 	
 	private static final String ID_TAG_SECURITY = "summaryTagSecurity";
 
-	public UserSummaryPanel(String id, IModel model) {
+	public UserSummaryPanel(String id, IModel<ObjectWrapper<UserType>> model) {
 		super(id, model);
 		
 		SummaryTag<UserType> tagSecurity = new SummaryTag<UserType>(ID_TAG_SECURITY, model) {
+			private static final long serialVersionUID = 1L;
+
 			@Override
 			protected void initialize(ObjectWrapper<UserType> wrapper) {
 				List<AssignmentType> assignments = wrapper.getObject().asObjectable().getAssignment();
 				if (assignments.isEmpty()) {
-					setIconCssClass("fa fa-times");
-					setLabel("No assignments");
+					setIconCssClass(GuiStyleConstants.CLASS_ICON_NO_OBJECTS);
+					setLabel(getString("User.noAssignments"));
+					setCssClass(GuiStyleConstants.CLASS_ICON_STYLE_DISABLED);
 					return;
 				}
 				boolean isSuperuser = false;
@@ -63,13 +65,13 @@ public class UserSummaryPanel extends FocusSummaryPanel<UserType> {
 					}
 				}
 				if (isSuperuser) {
-					setIconCssClass("fa fa-shield");
-					setLabel("Superuser");
-					setColor("red");
+					setIconCssClass(GuiStyleConstants.CLASS_ICON_SUPERUSER);
+					setLabel(getString("User.superuser"));
+					setCssClass(GuiStyleConstants.CLASS_ICON_STYLE_PRIVILEGED);
 				} else if (isEndUser) {
-					setIconCssClass("fa fa-user");
-					setLabel("End User");
-					setColor("green");
+					setIconCssClass(GuiStyleConstants.CLASS_OBJECT_USER_ICON);
+					setLabel(getString("User.enduser"));
+					setCssClass(GuiStyleConstants.CLASS_ICON_STYLE_END_USER);
 				} else {
 					setHideTag(true);
 				}
