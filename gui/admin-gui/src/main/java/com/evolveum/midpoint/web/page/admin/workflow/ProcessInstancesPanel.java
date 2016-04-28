@@ -101,11 +101,11 @@ public class ProcessInstancesPanel extends BasePanel {
 			if (view == FULL_LIST) {
 				columns.add(new CheckBoxHeaderColumn<ProcessInstanceDto>());
 			}
+			columns.add(createNameColumn());
 			columns.add(createTypeIconColumn(true));
 			columns.add(createObjectNameColumn("pageProcessInstances.item.object"));
 			columns.add(createTypeIconColumn(false));
 			columns.add(createTargetNameColumn("pageProcessInstances.item.target"));
-			columns.add(createNameColumn());
 			columns.add(createStateColumn());
 			columns.add(new PropertyColumn<ProcessInstanceDto, String>(createStringResource("pageProcessInstances.item.started"), F_START_FORMATTED));
 			columns.add(createOutcomeColumn());
