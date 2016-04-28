@@ -25,7 +25,7 @@ import javax.servlet.http.HttpServletResponse;
 /**
  * @author Viliam Repan (lazyman)
  */
-public class MidpointAuthenticationSuccessHandler extends SavedRequestAwareAuthenticationSuccessHandler {
+public class MidPointAuthenticationSuccessHandler extends SavedRequestAwareAuthenticationSuccessHandler {
 
     private String defaultTargetUrl;
 

@@ -360,7 +360,7 @@ public class AuthenticationEvaluatorImpl implements AuthenticationEvaluator {
 	}
 	
 	private void recordAuthenticationSuccess(MidPointPrincipal principal, ConnectionEnvironment connEnv) {
-		// TODO
+		securityHelper.auditLoginSuccess(principal.getUsername(), connEnv);
 	}
 	
 	private void recordPasswordAuthenticationFailure(MidPointPrincipal principal, ConnectionEnvironment connEnv,

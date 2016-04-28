@@ -231,6 +231,8 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 		Validate.notNull(taskManager, "Task manager was not injected.");
 		Validate.notNull(reportManager, "Report manager was not injected.");
 
+		MidPointAuthWebSession.getSession().setClientCustomization();
+
 		initializeModel();
 		
 		initLayout();

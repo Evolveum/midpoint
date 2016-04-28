@@ -76,10 +76,14 @@ http://www.springframework.org/schema/security http://www.springframework.org/sc
     </http>
 
     <beans:bean id="authenticationSuccessHandler"
-                class="com.evolveum.midpoint.web.security.MidpointAuthenticationSuccessHandler">
+                class="com.evolveum.midpoint.web.security.MidPointAuthenticationSuccessHandler">
         <!-- After login, return to the last visited page -->
         <beans:property name="useReferer" value="true" />
-        <beans:property name="defaultTargetUrl" value="/self"/>
+        <!--
+            we will redirect back to login to let wicket initialize it's application/session stuff
+            login page will redirect us to proper "home" page if we're already authenticated
+        -->
+        <beans:property name="defaultTargetUrl" value="/login"/>
     </beans:bean>
 
 
@@ -96,7 +100,8 @@ http://www.springframework.org/schema/security http://www.springframework.org/sc
     </beans:bean>
     
     <!-- Following bean is used with pre-authentication based on HTTP headers (e.g. for SSO integration) -->
-    <beans:bean id="requestHeaderAuthenticationFilter" class="org.springframework.security.web.authentication.preauth.RequestHeaderAuthenticationFilter">
+    <beans:bean id="requestHeaderAuthenticationFilter"
+                class="org.springframework.security.web.authentication.preauth.RequestHeaderAuthenticationFilter">
 	    <beans:property name="principalRequestHeader" value="SM_USER"/>
 	    <beans:property name="authenticationManager" ref="authenticationManager" />
 	</beans:bean>

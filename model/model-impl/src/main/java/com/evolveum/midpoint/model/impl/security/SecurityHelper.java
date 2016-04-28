@@ -49,30 +49,40 @@ public class SecurityHelper {
 	
 	private static final Trace LOGGER = TraceManager.getTrace(SecurityHelper.class);
 
-	public static final String CONTEXTUAL_PROPERTY_AUDITED_NAME = SecurityHelper.class.getName()+".audited";
+    public static final String CONTEXTUAL_PROPERTY_AUDITED_NAME = SecurityHelper.class.getName() + ".audited";
 
-	@Autowired(required = true)
-	private TaskManager taskManager;
-	
-	@Autowired(required = true)
-	private AuditService auditService;
+    @Autowired
+    private TaskManager taskManager;
+    @Autowired
+    private AuditService auditService;
 
-	public void auditLoginFailure(String username, ConnectionEnvironment connEnv, String message) {
-		Task task = taskManager.createTaskInstance();
+    public void auditLoginSuccess(String username, ConnectionEnvironment connEnv) {
+        auditLogin(username, connEnv, OperationResultStatus.SUCCESS, null);
+    }
+
+    public void auditLoginFailure(String username, ConnectionEnvironment connEnv, String message) {
+        auditLogin(username, connEnv, OperationResultStatus.FATAL_ERROR, message);
+    }
+
+    private void auditLogin(String username, ConnectionEnvironment connEnv, OperationResultStatus status,
+                            String message) {
+        Task task = taskManager.createTaskInstance();
         task.setChannel(connEnv.getChannel());
 
-        LOGGER.debug("Login failure username={}, channel={}: {}", new Object[]{username, connEnv.getChannel(), message});
-        
+        LOGGER.debug("Login {} username={}, channel={}: {}",
+                new Object[]{status == OperationResultStatus.SUCCESS ? "success" : "failure", username,
+                        connEnv.getChannel(), message});
+
         AuditEventRecord record = new AuditEventRecord(AuditEventType.CREATE_SESSION, AuditEventStage.REQUEST);
         record.setParameter(username);
 
         record.setChannel(connEnv.getChannel());
         record.setTimestamp(System.currentTimeMillis());
-        record.setOutcome(OperationResultStatus.FATAL_ERROR);
+        record.setOutcome(status);
         record.setMessage(message);
 
         auditService.audit(record, task);
-	}
+    }
 
 	public String getUsernameFromMessage(SOAPMessage saajSoapMessage) throws WSSecurityException {
         if (saajSoapMessage == null) {

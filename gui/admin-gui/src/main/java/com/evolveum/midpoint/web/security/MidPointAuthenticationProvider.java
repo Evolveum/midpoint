@@ -16,13 +16,6 @@
 
 package com.evolveum.midpoint.web.security;
 
-import java.net.InetAddress;
-import java.net.UnknownHostException;
-
-import javax.servlet.http.HttpServletRequest;
-
-import org.apache.wicket.request.cycle.RequestCycle;
-import org.apache.wicket.request.http.WebRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.AuthenticationServiceException;
@@ -31,9 +24,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.authentication.WebAuthenticationDetails;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
-import org.springframework.web.context.request.RequestAttributes;
-import org.springframework.web.context.request.RequestContextHolder;
-import org.springframework.web.context.request.ServletRequestAttributes;
 
 import com.evolveum.midpoint.model.api.AuthenticationEvaluator;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -50,7 +40,7 @@ public class MidPointAuthenticationProvider implements AuthenticationProvider {
 
 	private static final Trace LOGGER = TraceManager.getTrace(MidPointAuthenticationProvider.class);
 	
-	@Autowired(required = true)
+	@Autowired
 	private transient AuthenticationEvaluator authenticationEvaluator;
 
 	@Override
