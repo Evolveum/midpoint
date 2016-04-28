@@ -96,6 +96,8 @@ public class PageLogin extends PageBase {
 
         String key = ex.getMessage() != null ? ex.getMessage() : "web.security.provider.unavailable";
         error(getString(key));
+
+        httpSession.removeAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);
     }
 
     @Override
