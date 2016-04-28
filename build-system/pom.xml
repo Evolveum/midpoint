@@ -1132,325 +1132,323 @@
         <system>Atlasian Bamboo</system>
         <url>bamboo.evolveum.com</url>
     </ciManagement>
-    <profiles>
-        <profile>
-            <id>default</id>
-            <activation>
-                <activeByDefault>true</activeByDefault>
-            </activation>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-compiler-plugin</artifactId>
-                        <version>2.3.2</version>
-                        <configuration>
-                            <source>${project.source.version}</source>
-                            <target>${project.source.version}</target>
-                            <fork>true</fork>
-                            <meminitial>128m</meminitial>
-                            <maxmem>768m</maxmem>
-                            <showDeprecation>true</showDeprecation>
-                            <showWarnings>true</showWarnings>
-                            <!--verbose>true</verbose> <showWarnings>false</showWarnings -->
-                        </configuration>
-                    </plugin>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-resources-plugin</artifactId>
-                        <version>2.6</version>
-                        <configuration>
-                            <encoding>${project.build.sourceEncoding}</encoding>
-                        </configuration>
-                    </plugin>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-jar-plugin</artifactId>
-                        <executions>
-                            <execution>
-                                <goals>
-                                    <goal>test-jar</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                        <version>2.4</version>
-                    </plugin>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-source-plugin</artifactId>
-                        <version>2.2.1</version>
-                        <executions>
-                            <execution>
-                                <id>attach-sources</id>
-                                <phase>package</phase>
-                                <goals>
-                                    <goal>jar</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                    </plugin>
-                    <plugin>
-                        <groupId>com.lukegb.mojo</groupId>
-                        <artifactId>gitdescribe-maven-plugin</artifactId>
-                        <version>1.3</version>
-                        <executions>
-                            <execution>
-                                <goals>
-                                    <goal>gitdescribe</goal>
-                                </goals>
-                                <id>git-describe</id>
-                                <phase>initialize</phase>
-                                <configuration>
-                                    <outputPrefix></outputPrefix>
-                                </configuration>
-                            </execution>
-                        </executions>
-                    </plugin>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-jar-plugin</artifactId>
-                        <version>2.4</version>
-                        <configuration>
-                            <archive>
-                                <manifestEntries>
-                                    <Version-Number>${project.version}</Version-Number>
-                                    <SCM-Revision>${git.describe}</SCM-Revision>
-                                    <Organization>Evolveum</Organization>
-                                    <Organization-URL>http://www.evolveum.com</Organization-URL>
-                                    <Bugtracking-System>http://jira.evolveum.com</Bugtracking-System>
-                                    <License>Apache License 2.0</License>
-                                    <License-URL>http://www.apache.org/licenses/LICENSE-2.0.txt</License-URL>
-                                </manifestEntries>
-                            </archive>
-                        </configuration>
-                    </plugin>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-war-plugin</artifactId>
-                        <version>2.4</version>
-                        <configuration>
-                            <archive>
-                                <manifestEntries>
-                                    <Version-Number>${project.version}</Version-Number>
-                                    <SCM-Revision>${git.describe}</SCM-Revision>
-                                    <Organization>Evolveum</Organization>
-                                    <Organization-URL>http://www.evolveum.com</Organization-URL>
-                                    <Bugtracking-System>http://jira.evolveum.com</Bugtracking-System>
-                                    <License>Apache License 2.0</License>
-                                    <License-URL>http://www.apache.org/licenses/LICENSE-2.0.txt</License-URL>
-                                </manifestEntries>
-                            </archive>
-                            <attachClasses>true</attachClasses>
-                        </configuration>
-                    </plugin>
-                    <!--plugin> <groupId>org.apache.maven.plugins</groupId> 
-                        <artifactId>maven-checkstyle-plugin</artifactId>
-                        <version>2.4</version> <configuration> <configLocation>http:///svn/coding-rules/CheckStyle-rules.xml</configLocation>
-                        <includeTestSourceDirectory>false</includeTestSourceDirectory> 
-                        </configuration>
-                        </plugin -->
-                    <plugin>
-                        <groupId>org.mortbay.jetty</groupId>
-                        <artifactId>jetty-maven-plugin</artifactId>
-                        <version>7.0.1.v20091125</version>
-                    </plugin>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-surefire-plugin</artifactId>
-                        <version>${surefire.version}</version>
-                        <executions>
-                        	<execution>
-                        		<id>default-test</id> <!-- unit tests -->
-                        		<phase>test</phase>
-                        		<goals>
-                        			<goal>test</goal>
-                        		</goals>
-                        		<configuration>
-                        			<suiteXmlFiles>
-		                                <suiteXmlFile>testng-unit.xml</suiteXmlFile>
-		                            </suiteXmlFiles>
-		                            <properties>
-			                            <property>
-			                                <name>suitename</name>
-			                                <value>Unit</value>
-			                            </property>
-			                        </properties>
-                        		</configuration>
-                        	</execution>
-                        	<execution>
-                        		<id>integration-test</id>
-                        		<phase>integration-test</phase>
-                        		<goals>
-                        			<goal>test</goal>
-                        		</goals>
-                        		<configuration>
-                        			<suiteXmlFiles>
-		                                <suiteXmlFile>testng-integration.xml</suiteXmlFile>
-		                            </suiteXmlFiles>
-		                            <properties>
-			                            <property>
-			                                <name>suitename</name>
-			                                <value>Integration</value>
-			                            </property>
-			                        </properties>
-                        		</configuration>
-                        	</execution>
-                        </executions>
-                        <configuration>
-                        	<parallel>false</parallel>
-                        	<forkCount>1</forkCount>
-                      		<reuseForks>true</reuseForks>
-                            <!-- 							<runOrder>alphabetical</runOrder> -->
-                            <redirectTestOutputToFile>true</redirectTestOutputToFile>
-                            <!-- 							<threadCount>1</threadCount> -->
-                            <!-- 							<perCoreThreadCount>false</perCoreThreadCount> -->
-                            <!-- 							<reportFormat>plain</reportFormat> -->
-                            <trimStackTrace>false</trimStackTrace>
-                        	<properties>
-								<property>
-									<name>listener</name>
-									<value>com.evolveum.midpoint.tools.testng.TestListener</value>
-								</property>
-            				</properties>
-                            <systemPropertyVariables>
-                            	<javax.net.ssl.trustStore>src/test/resources/truststore.jks</javax.net.ssl.trustStore>
-                                <midpoint.home>target/midpoint-home</midpoint.home>
-                                <java.util.logging.config.file>${project.build.directory}/test-classes/logging.properties</java.util.logging.config.file>
-                            </systemPropertyVariables>
-                            <argLine>-Xms512m -Xmx1024m -XX:MaxPermSize=192m</argLine>
-                            <!--<argLine>-agentpath:/usr/local/yjp-11.0.10/bin/linux-x86-64/libyjpagent.so=alloceach=10,allocsizelimit=1048576,sampling,walltimespec=/home/lazyman/.yjp/config/.walltime,noj2ee,profileruipath=/usr/local/yjp-11.0.10/bin/yjp.sh,onexit=snapshot -Xms512m -Xmx1024m -XX:MaxPermSize=192m</argLine>-->
 
-                            <!-- it's used for bamboo build to load jdbc libraries which can not be installed to public maven repository (MS SQL, ORACLE)-->
-                            <additionalClasspathElements>
-                                <additionalClasspathElement>/opt/Bamboo_db_configs/mssqljdbc4.jar</additionalClasspathElement>
-                                <additionalClasspathElement>/opt/Bamboo_db_configs/ojdbc6.jar</additionalClasspathElement>
-                                <!-- used running tests on windows machines -->
-                                <additionalClasspathElement>c:\Program Files\Microsoft JDBC DRIVER 4.0 for SQL Server\sqljdbc_4.0\enu\sqljdbc4.jar</additionalClasspathElement>
-                            </additionalClasspathElements>
-                        </configuration>
-                        <dependencies>
-                            <dependency>
-                                <groupId>org.apache.maven.surefire</groupId>
-                                <artifactId>surefire-testng</artifactId>
-                                <version>${surefire.version}</version>
-                            </dependency>
-                        </dependencies>
-                    </plugin>
-                    <plugin>
-                        <groupId>org.codehaus.mojo</groupId>
-                        <artifactId>findbugs-maven-plugin</artifactId>
-                        <version>2.3.2</version>
-                        <configuration>
-                            <effort>Max</effort>
-                            <threshold>Low</threshold>
-                            <xmlOutput>true</xmlOutput>
-                            <htmlOutput>true</htmlOutput>
-                            <onlyAnalyze>com.evolveum.midpoint.*</onlyAnalyze>
-                        </configuration>
-                    </plugin>
-                    <plugin>
-                        <groupId>pl.project13.maven</groupId>
-                        <artifactId>git-commit-id-plugin</artifactId>
-                        <version>2.1.11</version>
-                        <executions>
-                            <execution>
-                                <goals>
-                                    <goal>revision</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                    </plugin>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-shade-plugin</artifactId>
-                        <version>2.3</version>
-                    </plugin>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-enforcer-plugin</artifactId>
-                        <version>1.4.1</version>
-						<executions>
-							<execution>
-								<id>enforce</id>
-								<configuration>
-									<rules>
-										<dependencyConvergence />
-									</rules>
-								</configuration>
-								<goals>
-									<goal>enforce</goal>
-								</goals>
-							</execution>
-						</executions>
-                    </plugin>
-                    <plugin>
-                    	<groupId>org.apache.maven.plugins</groupId>
-                    	<artifactId>maven-dependency-plugin</artifactId>
-                    	<version>2.10</version>
-                    	<executions>
-                    		<execution>
-                    			<id>analyze</id>
-                    			<goals>
-                    				<goal>analyze-only</goal>
-                    			</goals>
-                    			<configuration>
-                    				<failOnWarning>true</failOnWarning>
-                    				<ignoreNonCompile>true</ignoreNonCompile>
-									<ignoredUnusedDeclaredDependencies>
-									
-										<!-- There are dependencies in this master POM. So they are projected everywhere, used or unused. -->
-										<ignoredUnusedDeclaredDependency>org.springframework</ignoredUnusedDeclaredDependency>
-										
-										<!-- Common "drill" for all modules. -->
-										<ignoredUnusedDeclaredDependency>com.evolveum.midpoint.tools:test-ng</ignoredUnusedDeclaredDependency>
-										<ignoredUnusedDeclaredDependency>org.testng:testng</ignoredUnusedDeclaredDependency>
-										<ignoredUnusedDeclaredDependency>commons-lang:commons-lang</ignoredUnusedDeclaredDependency>
-										
-										<!-- There is some kind of conflict between these. TODO: clean up -->
-										<ignoredUnusedDeclaredDependency>xml-apis:xml-apis</ignoredUnusedDeclaredDependency>
-										<ignoredUnusedDeclaredDependency>stax:stax-api</ignoredUnusedDeclaredDependency>
-										
-										<!-- We are making this dependency explicit to detect conflicts early -->
-										<ignoredUnusedDeclaredDependency>org.codehaus.woodstox:stax2-api</ignoredUnusedDeclaredDependency>
-									
-										<!-- The xjc-plugin does not compile without dependency on this -->
-										<ignoredUnusedDeclaredDependency>org.apache.cxf:cxf-tools-common</ignoredUnusedDeclaredDependency>
-										
-									</ignoredUnusedDeclaredDependencies>
-									<ignoredUsedUndeclaredDependencies>
-										<!-- There is some kind of conflict between these. TODO: clean up -->
-										<ignoredUsedUndeclaredDependency>xml-apis:xml-apis</ignoredUsedUndeclaredDependency>
-										<ignoredUsedUndeclaredDependency>stax:stax-api</ignoredUsedUndeclaredDependency>
-									</ignoredUsedUndeclaredDependencies>
-                    			</configuration>
-                    		</execution>
-                   		</executions>
-                    </plugin>
-                </plugins>
-            </build>
-            <reporting>
-                <plugins>
-                    <plugin>
-                        <groupId>org.codehaus.mojo</groupId>
-                        <artifactId>findbugs-maven-plugin</artifactId>
-                        <version>2.3.2</version>
-                        <configuration>
-                            <effort>Max</effort>
-                            <threshold>Low</threshold>
-                            <xmlOutput>true</xmlOutput>
-                            <htmlOutput>true</htmlOutput>
-                            <onlyAnalyze>com.evolveum.midpoint.*</onlyAnalyze>
-                        </configuration>
-                    </plugin>
-                    <!--plugin> <groupId>org.apache.maven.plugins</groupId> 
-                        <artifactId>maven-checkstyle-plugin</artifactId>
-                        <version>2.4</version> <configuration> <configLocation>http://svn/coding-rules/CheckStyle-rules.xml</configLocation>
-                        <includeTestSourceDirectory>false</includeTestSourceDirectory> 
-                        </configuration>
-                        </plugin -->
-                </plugins>
-            </reporting>
-        </profile>
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>2.3.2</version>
+				<configuration>
+					<source>${project.source.version}</source>
+					<target>${project.source.version}</target>
+					<fork>true</fork>
+					<meminitial>128m</meminitial>
+					<maxmem>768m</maxmem>
+					<showDeprecation>true</showDeprecation>
+					<showWarnings>true</showWarnings>
+					<!--verbose>true</verbose> <showWarnings>false</showWarnings -->
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-resources-plugin</artifactId>
+				<version>2.6</version>
+				<configuration>
+					<encoding>${project.build.sourceEncoding}</encoding>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jar-plugin</artifactId>
+				<executions>
+					<execution>
+						<goals>
+							<goal>test-jar</goal>
+						</goals>
+					</execution>
+				</executions>
+				<version>2.4</version>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-source-plugin</artifactId>
+				<version>2.2.1</version>
+				<executions>
+					<execution>
+						<id>attach-sources</id>
+						<phase>package</phase>
+						<goals>
+							<goal>jar</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>com.lukegb.mojo</groupId>
+				<artifactId>gitdescribe-maven-plugin</artifactId>
+				<version>1.3</version>
+				<executions>
+					<execution>
+						<goals>
+							<goal>gitdescribe</goal>
+						</goals>
+						<id>git-describe</id>
+						<phase>initialize</phase>
+						<configuration>
+							<outputPrefix></outputPrefix>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jar-plugin</artifactId>
+				<version>2.4</version>
+				<configuration>
+					<archive>
+						<manifestEntries>
+							<Version-Number>${project.version}</Version-Number>
+							<SCM-Revision>${git.describe}</SCM-Revision>
+							<Organization>Evolveum</Organization>
+							<Organization-URL>http://www.evolveum.com</Organization-URL>
+							<Bugtracking-System>http://jira.evolveum.com</Bugtracking-System>
+							<License>Apache License 2.0</License>
+							<License-URL>http://www.apache.org/licenses/LICENSE-2.0.txt</License-URL>
+						</manifestEntries>
+					</archive>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-war-plugin</artifactId>
+				<version>2.4</version>
+				<configuration>
+					<archive>
+						<manifestEntries>
+							<Version-Number>${project.version}</Version-Number>
+							<SCM-Revision>${git.describe}</SCM-Revision>
+							<Organization>Evolveum</Organization>
+							<Organization-URL>http://www.evolveum.com</Organization-URL>
+							<Bugtracking-System>http://jira.evolveum.com</Bugtracking-System>
+							<License>Apache License 2.0</License>
+							<License-URL>http://www.apache.org/licenses/LICENSE-2.0.txt</License-URL>
+						</manifestEntries>
+					</archive>
+					<attachClasses>true</attachClasses>
+				</configuration>
+			</plugin>
+			<!--plugin> <groupId>org.apache.maven.plugins</groupId> <artifactId>maven-checkstyle-plugin</artifactId> 
+				<version>2.4</version> <configuration> <configLocation>http:///svn/coding-rules/CheckStyle-rules.xml</configLocation> 
+				<includeTestSourceDirectory>false</includeTestSourceDirectory> </configuration> 
+				</plugin -->
+			<plugin>
+				<groupId>org.mortbay.jetty</groupId>
+				<artifactId>jetty-maven-plugin</artifactId>
+				<version>7.0.1.v20091125</version>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<version>${surefire.version}</version>
+				<executions>
+					<execution>
+						<id>default-test</id> <!-- unit tests -->
+						<phase>test</phase>
+						<goals>
+							<goal>test</goal>
+						</goals>
+						<configuration>
+							<suiteXmlFiles>
+								<suiteXmlFile>testng-unit.xml</suiteXmlFile>
+							</suiteXmlFiles>
+							<properties>
+								<property>
+									<name>suitename</name>
+									<value>Unit</value>
+								</property>
+							</properties>
+						</configuration>
+					</execution>
+					<execution>
+						<id>integration-test</id>
+						<phase>integration-test</phase>
+						<goals>
+							<goal>test</goal>
+						</goals>
+						<configuration>
+							<suiteXmlFiles>
+								<suiteXmlFile>testng-integration.xml</suiteXmlFile>
+							</suiteXmlFiles>
+							<properties>
+								<property>
+									<name>suitename</name>
+									<value>Integration</value>
+								</property>
+							</properties>
+						</configuration>
+					</execution>
+				</executions>
+				<configuration>
+					<parallel>false</parallel>
+					<forkCount>1</forkCount>
+					<reuseForks>true</reuseForks>
+					<!-- <runOrder>alphabetical</runOrder> -->
+					<redirectTestOutputToFile>true</redirectTestOutputToFile>
+					<!-- <threadCount>1</threadCount> -->
+					<!-- <perCoreThreadCount>false</perCoreThreadCount> -->
+					<!-- <reportFormat>plain</reportFormat> -->
+					<trimStackTrace>false</trimStackTrace>
+					<properties>
+						<property>
+							<name>listener</name>
+							<value>com.evolveum.midpoint.tools.testng.TestListener</value>
+						</property>
+					</properties>
+					<systemPropertyVariables>
+						<javax.net.ssl.trustStore>src/test/resources/truststore.jks</javax.net.ssl.trustStore>
+						<midpoint.home>target/midpoint-home</midpoint.home>
+						<java.util.logging.config.file>${project.build.directory}/test-classes/logging.properties</java.util.logging.config.file>
+					</systemPropertyVariables>
+					<argLine>-Xms512m -Xmx1024m -XX:MaxPermSize=192m</argLine>
+					<!--<argLine>-agentpath:/usr/local/yjp-11.0.10/bin/linux-x86-64/libyjpagent.so=alloceach=10,allocsizelimit=1048576,sampling,walltimespec=/home/lazyman/.yjp/config/.walltime,noj2ee,profileruipath=/usr/local/yjp-11.0.10/bin/yjp.sh,onexit=snapshot 
+						-Xms512m -Xmx1024m -XX:MaxPermSize=192m</argLine> -->
+
+					<!-- it's used for bamboo build to load jdbc libraries which can not 
+						be installed to public maven repository (MS SQL, ORACLE) -->
+					<additionalClasspathElements>
+						<additionalClasspathElement>/opt/Bamboo_db_configs/mssqljdbc4.jar</additionalClasspathElement>
+						<additionalClasspathElement>/opt/Bamboo_db_configs/ojdbc6.jar</additionalClasspathElement>
+						<!-- used running tests on windows machines -->
+						<additionalClasspathElement>c:\Program Files\Microsoft JDBC DRIVER
+							4.0 for SQL Server\sqljdbc_4.0\enu\sqljdbc4.jar</additionalClasspathElement>
+					</additionalClasspathElements>
+				</configuration>
+				<dependencies>
+					<dependency>
+						<groupId>org.apache.maven.surefire</groupId>
+						<artifactId>surefire-testng</artifactId>
+						<version>${surefire.version}</version>
+					</dependency>
+				</dependencies>
+			</plugin>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>findbugs-maven-plugin</artifactId>
+				<version>2.3.2</version>
+				<configuration>
+					<effort>Max</effort>
+					<threshold>Low</threshold>
+					<xmlOutput>true</xmlOutput>
+					<htmlOutput>true</htmlOutput>
+					<onlyAnalyze>com.evolveum.midpoint.*</onlyAnalyze>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>pl.project13.maven</groupId>
+				<artifactId>git-commit-id-plugin</artifactId>
+				<version>2.1.11</version>
+				<executions>
+					<execution>
+						<goals>
+							<goal>revision</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-shade-plugin</artifactId>
+				<version>2.3</version>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-enforcer-plugin</artifactId>
+				<version>1.4.1</version>
+				<executions>
+					<execution>
+						<id>enforce</id>
+						<configuration>
+							<rules>
+								<dependencyConvergence />
+							</rules>
+						</configuration>
+						<goals>
+							<goal>enforce</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-dependency-plugin</artifactId>
+				<version>2.10</version>
+				<executions>
+					<execution>
+						<id>analyze</id>
+						<goals>
+							<goal>analyze-only</goal>
+						</goals>
+						<configuration>
+							<failOnWarning>true</failOnWarning>
+							<ignoreNonCompile>true</ignoreNonCompile>
+							<ignoredUnusedDeclaredDependencies>
+
+								<!-- There are dependencies in this master POM. So they are projected 
+									everywhere, used or unused. -->
+								<ignoredUnusedDeclaredDependency>org.springframework</ignoredUnusedDeclaredDependency>
+
+								<!-- Common "drill" for all modules. -->
+								<ignoredUnusedDeclaredDependency>com.evolveum.midpoint.tools:test-ng</ignoredUnusedDeclaredDependency>
+								<ignoredUnusedDeclaredDependency>org.testng:testng</ignoredUnusedDeclaredDependency>
+								<ignoredUnusedDeclaredDependency>commons-lang:commons-lang</ignoredUnusedDeclaredDependency>
+
+								<!-- There is some kind of conflict between these. TODO: clean up -->
+								<ignoredUnusedDeclaredDependency>xml-apis:xml-apis</ignoredUnusedDeclaredDependency>
+								<ignoredUnusedDeclaredDependency>stax:stax-api</ignoredUnusedDeclaredDependency>
+
+								<!-- We are making this dependency explicit to detect conflicts early -->
+								<ignoredUnusedDeclaredDependency>org.codehaus.woodstox:stax2-api</ignoredUnusedDeclaredDependency>
+
+								<!-- The xjc-plugin does not compile without dependency on this -->
+								<ignoredUnusedDeclaredDependency>org.apache.cxf:cxf-tools-common</ignoredUnusedDeclaredDependency>
+
+							</ignoredUnusedDeclaredDependencies>
+							<ignoredUsedUndeclaredDependencies>
+								<!-- There is some kind of conflict between these. TODO: clean up -->
+								<ignoredUsedUndeclaredDependency>xml-apis:xml-apis</ignoredUsedUndeclaredDependency>
+								<ignoredUsedUndeclaredDependency>stax:stax-api</ignoredUsedUndeclaredDependency>
+							</ignoredUsedUndeclaredDependencies>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
+
+	<reporting>
+		<plugins>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>findbugs-maven-plugin</artifactId>
+				<version>2.3.2</version>
+				<configuration>
+					<effort>Max</effort>
+					<threshold>Low</threshold>
+					<xmlOutput>true</xmlOutput>
+					<htmlOutput>true</htmlOutput>
+					<onlyAnalyze>com.evolveum.midpoint.*</onlyAnalyze>
+				</configuration>
+			</plugin>
+			<!--plugin> <groupId>org.apache.maven.plugins</groupId> <artifactId>maven-checkstyle-plugin</artifactId> 
+				<version>2.4</version> <configuration> <configLocation>http://svn/coding-rules/CheckStyle-rules.xml</configLocation> 
+				<includeTestSourceDirectory>false</includeTestSourceDirectory> </configuration> 
+				</plugin -->
+		</plugins>
+	</reporting>
+    
+    
+    <profiles>
         <profile>
 			<id>extratest</id>
 			<build>
