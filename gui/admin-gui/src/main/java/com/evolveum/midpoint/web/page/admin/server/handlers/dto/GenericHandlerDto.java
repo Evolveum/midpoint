@@ -18,6 +18,7 @@ package com.evolveum.midpoint.web.page.admin.server.handlers.dto;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
@@ -103,7 +104,7 @@ public class GenericHandlerDto extends HandlerDto {
 		}
 		PrismContainerDefinition<?> containerDefinition = new PrismContainerDefinition<>(new QName("test"), ctd, prismContext);
 		container.setDefinition(containerDefinition);
-		containerWrapper = cwf.createContainerWrapper(container, ContainerStatus.MODIFYING, true);
+		containerWrapper = cwf.createContainerWrapper(container, ContainerStatus.MODIFYING, ItemPath.EMPTY_PATH, true);
 	}
 
 	public ContainerWrapper getContainer() {

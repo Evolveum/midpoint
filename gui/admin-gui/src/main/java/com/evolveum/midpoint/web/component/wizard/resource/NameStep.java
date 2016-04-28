@@ -267,14 +267,9 @@ public class NameStep extends WizardStep {
 		return connector;
 	}
 
-	@SuppressWarnings("unchecked")
 	@Nullable
 	private PrismObject<ConnectorType> getExistingConnector() {
-		PrismReference existingConnectorRef = resourceModelRaw.getObject().findReference(ResourceType.F_CONNECTOR_REF);
-		if (existingConnectorRef == null || existingConnectorRef.isEmpty()) {
-			return null;
-		}
-		return (PrismObject<ConnectorType>) existingConnectorRef.getValue().getObject();
+		return ResourceTypeUtil.getConnectorIfPresent(resourceModelRaw.getObject());
 	}
 
 	@Nullable
