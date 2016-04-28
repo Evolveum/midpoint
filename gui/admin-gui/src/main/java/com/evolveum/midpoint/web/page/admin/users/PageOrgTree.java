@@ -99,4 +99,8 @@ public class PageOrgTree extends PageAdminUsers {
         add(tabbedPanel);
     }
 
+    public AbstractOrgTabPanel getTabPanel(){
+        return (AbstractOrgTabPanel)get(ID_ORG_PANEL);
+    }
+
 }
