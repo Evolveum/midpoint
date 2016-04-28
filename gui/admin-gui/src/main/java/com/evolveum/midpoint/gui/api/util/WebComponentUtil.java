@@ -152,6 +152,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ScheduleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ServiceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskBindingType;
@@ -1011,7 +1012,12 @@ public final class WebComponentUtil {
 			return GuiStyleConstants.CLASS_SHADOW_ICON_PROTECTED;
 		}
 		
-		switch (shadow.getKind()){
+		ShadowKindType kind = shadow.getKind();
+		if (kind == null) {
+			return GuiStyleConstants.CLASS_SHADOW_ICON_UNKNOWN;
+		}
+		
+		switch (kind){
 			case ACCOUNT: 
 				return GuiStyleConstants.CLASS_SHADOW_ICON_ACCOUNT;
 			case GENERIC:
@@ -1020,6 +1026,7 @@ public final class WebComponentUtil {
 				return GuiStyleConstants.CLASS_SHADOW_ICON_ENTITLEMENT;
 					
 		}
+		
 		return GuiStyleConstants.CLASS_SHADOW_ICON_UNKNOWN;
 	}
 
