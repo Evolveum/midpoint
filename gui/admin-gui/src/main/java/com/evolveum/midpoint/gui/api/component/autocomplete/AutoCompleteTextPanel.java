@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.web.component.input;
+package com.evolveum.midpoint.gui.api.component.autocomplete;
 
-import com.evolveum.midpoint.web.component.prism.InputPanel;
 import com.evolveum.midpoint.web.model.LookupPropertyModel;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -29,44 +28,50 @@ import org.apache.wicket.model.IModel;
 import java.util.Iterator;
 
 /**
+ * Autocomplete field for Strings.
+ * 
+ * TODO: may need some work to properly support non-string values.
+ * 
  *  @author shood
+ *  @author semancik
  * */
-public abstract class AutoCompleteTextPanel<T> extends InputPanel {
+public abstract class AutoCompleteTextPanel<T> extends AbstractAutoCompletePanel {
+	private static final long serialVersionUID = 1L;
+	
+	private static final String ID_INPUT = "input";
 
-    private static final String ID_INPUT = "input";
+    public AutoCompleteTextPanel(String id, final IModel<T> model, Class<T> type) {
+    	super(id);
 
-    public AutoCompleteTextPanel(String id, IModel<T> model) {
-        this(id, model, String.class);
-    }
-
-    public AutoCompleteTextPanel(String id, final IModel<T> model, Class clazz) {
-        super(id);
-
-        AutoCompleteSettings autoCompleteSettings = new AutoCompleteSettings();
-        autoCompleteSettings.setShowListOnEmptyInput(true);
-        autoCompleteSettings.setShowListOnFocusGain(true);
-        autoCompleteSettings.setMaxHeightInPx(200);
-        autoCompleteSettings.setShowCompleteListOnFocusGain(true);
-        final AutoCompleteTextField<T> input = new AutoCompleteTextField<T>(ID_INPUT, model, autoCompleteSettings) {
+        AutoCompleteSettings autoCompleteSettings = createAutoCompleteSettings();
+        
+        // this has to be copied because the  AutoCompleteTextField dies if renderer=null
+        final AutoCompleteTextField<T> input = new AutoCompleteTextField<T>(ID_INPUT, model, type, autoCompleteSettings) {
+        	private static final long serialVersionUID = 1L;
 
             @Override
             protected Iterator<T> getChoices(String input) {
                 return getIterator(input);
             }
+            
+            
         };
-        input.setType(clazz);
+        
+        input.setType(type);
         if (model instanceof LookupPropertyModel) {
             input.add(new OnChangeAjaxBehavior() {
+            	private static final long serialVersionUID = 1L;
+            	
                 @Override
                 protected void onUpdate(AjaxRequestTarget target) {
-                    checkInputValue(input, target, (LookupPropertyModel)model);
+                    checkInputValue(input, target, (LookupPropertyModel<T>)model);
                 }
             });
         }
         add(input);
     }
 
-    /**
+	/**
      *  This method takes care of retrieving an iterator over all
      *  options that can be completed. The generation of options can be
      *  affected by using current users input in 'input' variable.
@@ -74,8 +79,8 @@ public abstract class AutoCompleteTextPanel<T> extends InputPanel {
     public abstract Iterator<T> getIterator(String input);
 
     @Override
-    public FormComponent getBaseFormComponent() {
-        return (FormComponent) get(ID_INPUT);
+    public FormComponent<T> getBaseFormComponent() {
+        return (FormComponent<T>) get(ID_INPUT);
     }
 
     //by default the method will check if AutoCompleteTextField input is empty

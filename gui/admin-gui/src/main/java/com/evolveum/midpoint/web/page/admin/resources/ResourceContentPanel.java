@@ -117,7 +117,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 /**
  * Implementation classes : ResourceContentResourcePanel, ResourceContentRepositoryPanel
  * @author katkav
- *
+ * @author semancik
  */
 public abstract class ResourceContentPanel extends Panel {
 	private static final long serialVersionUID = 1L;
