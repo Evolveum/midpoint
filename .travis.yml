@@ -1,6 +1,8 @@
 sudo: required
 dist: trusty
 language: java
+addons:
+  hostname: short-hostname
 jdk:
   - openjdk7
   - oraclejdk7
