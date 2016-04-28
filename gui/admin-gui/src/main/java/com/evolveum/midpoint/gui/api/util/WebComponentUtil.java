@@ -511,9 +511,16 @@ public final class WebComponentUtil {
     	
     	PrismProperty prop = object.findProperty(propertyName);
     	
-    	if (prop!= null && prop.getDefinition().getTypeName().equals(DOMUtil.XSD_STRING)){
-    		return (String) prop.getRealValue();
+    	if (prop!= null){
+    		Object realValue = prop.getRealValue();
+    		if (prop.getDefinition().getTypeName().equals(DOMUtil.XSD_STRING)){
+    			return (String) realValue;
+    		} else if (realValue instanceof PolyString){
+    			return WebComponentUtil.getOrigStringFromPoly((PolyString)realValue);
+    		}
     	}
+    	
+    	
     	
         PolyString name = getValue(object, ObjectType.F_NAME, PolyString.class);
 
