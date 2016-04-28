@@ -1,2 +1,5 @@
 language: java
 script: "travis_wait 70 mvn clean install"
+jdk:
+  - openjdk7
+  - oraclejdk7
