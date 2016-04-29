@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.web.page.admin.home.component;
 
+import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -36,8 +37,9 @@ import org.apache.wicket.util.time.Duration;
  * @author lazyman
  */
 public abstract class AsyncDashboardPanel<V, T> extends AsyncUpdatePanel<V, CallableResult<T>> {
+	private static final long serialVersionUID = 1L;
 
-    protected static final String ID_DASHBOARD_PARENT = "dashboardParent";
+	protected static final String ID_DASHBOARD_PARENT = "dashboardParent";
     protected static final String ID_DASHBOARD_TITLE = "dashboardTitle";
     private static final String ID_TITLE = "title";
     private static final String ID_PRELOADER_CONTAINER = "preloaderContainer";
@@ -46,17 +48,17 @@ public abstract class AsyncDashboardPanel<V, T> extends AsyncUpdatePanel<V, Call
     private static final String ID_CONTENT = "content";
     private static final String ID_ICON = "icon";
 
-    public AsyncDashboardPanel(String id, IModel<String> title, String icon, DashboardColor color) {
-        this(id, title, icon, new Model(), color);
+    public AsyncDashboardPanel(String id, IModel<String> title, String icon, String boxCssClasses) {
+        this(id, title, icon, new Model(), boxCssClasses);
     }
 
     public AsyncDashboardPanel(String id, IModel<String> title, String icon, IModel<V> callableParameterModel,
-                               DashboardColor color) {
-        this(id, title, icon, callableParameterModel, Duration.seconds(DEFAULT_TIMER_DURATION), color);
+    		String boxCssClasses) {
+        this(id, title, icon, callableParameterModel, Duration.seconds(DEFAULT_TIMER_DURATION), boxCssClasses);
     }
 
     public AsyncDashboardPanel(String id, IModel<String> title, String icon, IModel<V> callableParameterModel,
-                               Duration durationSecs, DashboardColor color) {
+                               Duration durationSecs, String boxCssClasses) {
         super(id, callableParameterModel, durationSecs);
         
         initLayout();
@@ -67,11 +69,11 @@ public abstract class AsyncDashboardPanel<V, T> extends AsyncUpdatePanel<V, Call
         Label label = (Label) dashboardTitle.get(ID_TITLE);
         label.setDefaultModel(title);
 
-        if (color == null) {
-            color = DashboardColor.GRAY;
+        if (boxCssClasses == null) {
+        	boxCssClasses = GuiStyleConstants.CLASS_BOX_DEFAULT;
         }
         Component dashboardParent = get(ID_DASHBOARD_PARENT);
-        dashboardParent.add(new AttributeAppender("class", " " + color.getCssClass()));
+        dashboardParent.add(new AttributeAppender("class", " " + boxCssClasses));
 
         WebMarkupContainer iconI = new WebMarkupContainer(ID_ICON);
         iconI.add(AttributeModifier.replace("class", icon));
@@ -89,7 +91,6 @@ public abstract class AsyncDashboardPanel<V, T> extends AsyncUpdatePanel<V, Call
         dashboardTitle.add(title);
 
         WebMarkupContainer dashboardContent = new WebMarkupContainer(ID_DASHBOARD_CONTENT);
-        dashboardContent.add(AttributeModifier.append("style", getDashboardBodyCss()));
         dashboardParent.add(dashboardContent);
 
         dashboardContent.add(new Label(ID_CONTENT));
@@ -105,10 +106,6 @@ public abstract class AsyncDashboardPanel<V, T> extends AsyncUpdatePanel<V, Call
         dashboardContent.add(preloaderContainer);
 
         preloaderContainer.add(getLoadingComponent(ID_PRELOADER));
-    }
-
-    public String getDashboardBodyCss() {
-        return "padding: 0px;";
     }
 
     @Override

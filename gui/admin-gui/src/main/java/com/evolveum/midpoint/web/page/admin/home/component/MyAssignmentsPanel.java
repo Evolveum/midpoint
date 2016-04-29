@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,14 @@
 
 package com.evolveum.midpoint.web.page.admin.home.component;
 
+import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.web.component.assignment.AssignmentHeaderPanel;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.IconColumn;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
-import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.page.admin.home.dto.AssignmentItemDto;
+import com.evolveum.midpoint.web.page.admin.server.dto.OperationResultStatusPresentationProperties;
+
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
@@ -37,40 +39,34 @@ import java.util.List;
 /**
  * @author lazyman
  */
-public class MyAssignmentsPanel extends SimplePanel<List<AssignmentItemDto>> {
+public class MyAssignmentsPanel extends BasePanel<List<AssignmentItemDto>> {
+	private static final long serialVersionUID = 1L;
 
     private static final String ID_ASSIGNMETNS_TABLE = "assignmentsTable";
 
     public MyAssignmentsPanel(String id, IModel<List<AssignmentItemDto>> model) {
         super(id, model);
+        initLayout();
     }
 
-    @Override
-    protected void initLayout() {
+    private void initLayout() {
         List<IColumn<AssignmentItemDto, String>> columns = new ArrayList<IColumn<AssignmentItemDto, String>>();
-        columns.add(new IconColumn<AssignmentItemDto>(createStringResource("MyAssignmentsPanel.assignment.type")) {
+        columns.add(new IconColumn<AssignmentItemDto>(null) {
+        	private static final long serialVersionUID = 1L;
 
             @Override
             protected IModel<String> createIconModel(final IModel<AssignmentItemDto> rowModel) {
                 return new AbstractReadOnlyModel<String>() {
+					private static final long serialVersionUID = 1L;
 
-                    @Override
+					@Override
                     public String getObject() {
                         AssignmentItemDto item = rowModel.getObject();
                         if (item.getType() == null) {
-                            return "silk-error";
+                            return OperationResultStatusPresentationProperties.FATAL_ERROR.getIcon();
                         }
 
-                        switch (item.getType()) {
-                            case CONSTRUCTION:
-                                return "silk-drive";
-                            case ORG_UNIT:
-                                return "silk-building";
-                            case ROLE:
-                                return "silk-user_suit";
-                            default:
-                                return "silk-error";
-                        }
+                        return item.getType().getIconCssClass();
                     }
                 };
             }
@@ -78,6 +74,7 @@ public class MyAssignmentsPanel extends SimplePanel<List<AssignmentItemDto>> {
             @Override
             protected IModel<String> createTitleModel(final IModel<AssignmentItemDto> rowModel) {
                 return new AbstractReadOnlyModel<String>() {
+                	private static final long serialVersionUID = 1L;
 
                     @Override
                     public String getObject() {
@@ -103,13 +100,14 @@ public class MyAssignmentsPanel extends SimplePanel<List<AssignmentItemDto>> {
 
         columns.add(new AbstractColumn<AssignmentItemDto, String>(
                 createStringResource("MyAssignmentsPanel.assignment.displayName")) {
+        	private static final long serialVersionUID = 1L;
 
             @Override
             public void populateItem(Item<ICellPopulator<AssignmentItemDto>> cellItem, String componentId,
                                      final IModel<AssignmentItemDto> rowModel) {
 
                 AssignmentHeaderPanel panel = new AssignmentHeaderPanel(componentId, rowModel);
-                panel.add(new AttributeModifier("class", "dashAssignmentHeader"));
+                panel.add(new AttributeModifier("class", "dash-assignment-header"));
                 cellItem.add(panel);
             }
         });

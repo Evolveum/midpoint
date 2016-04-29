@@ -29,22 +29,22 @@ import javax.xml.namespace.QName;
  */
 public enum AssignmentEditorDtoType {
 
-    ORG_UNIT(OrgType.class, OrgType.COMPLEX_TYPE, GuiStyleConstants.CLASS_OBJECT_ORG_ICON_COLORED),
+    ORG_UNIT(OrgType.class, OrgType.COMPLEX_TYPE, GuiStyleConstants.CLASS_OBJECT_ORG_ICON),
 
-    ROLE(RoleType.class, RoleType.COMPLEX_TYPE, GuiStyleConstants.CLASS_OBJECT_ROLE_ICON_COLORED),
+    ROLE(RoleType.class, RoleType.COMPLEX_TYPE, GuiStyleConstants.CLASS_OBJECT_ROLE_ICON),
     
-    SERVICE(ServiceType.class, ServiceType.COMPLEX_TYPE, GuiStyleConstants.CLASS_OBJECT_SERVICE_ICON_COLORED),
+    SERVICE(ServiceType.class, ServiceType.COMPLEX_TYPE, GuiStyleConstants.CLASS_OBJECT_SERVICE_ICON),
 
-    CONSTRUCTION(null, null, GuiStyleConstants.CLASS_OBJECT_RESOURCE_ICON_COLORED);
+    CONSTRUCTION(null, null, GuiStyleConstants.CLASS_OBJECT_RESOURCE_ICON);
 
     private Class<? extends ObjectType> type;
     private QName qname;
-    private String coloredIconCssClass;
+    private String iconCssClass;
 
-    private AssignmentEditorDtoType(Class<? extends ObjectType> type, QName qname, String coloredIconCssClass) {
+    private AssignmentEditorDtoType(Class<? extends ObjectType> type, QName qname, String iconCssClass) {
         this.type = type;
         this.qname = qname;
-        this.coloredIconCssClass = coloredIconCssClass;
+        this.iconCssClass = iconCssClass;
     }
 
     public Class<? extends ObjectType> getType() {
@@ -83,7 +83,7 @@ public enum AssignmentEditorDtoType {
         throw new IllegalArgumentException("Unknown assignment type '" + type + "'.");
     }
 
-	public String getColoredIconCssClass() {
-		return coloredIconCssClass;
+	public String getIconCssClass() {
+		return iconCssClass;
 	}
 }

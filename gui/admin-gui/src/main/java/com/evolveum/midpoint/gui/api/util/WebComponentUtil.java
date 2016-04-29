@@ -550,6 +550,19 @@ public final class WebComponentUtil {
 
 		return name != null ? name.getOrig() : null;
 	}
+	
+	public static String getDisplayNameOrName(PrismObject object) {
+		if (object == null) {
+			return null;
+		}
+		if (object.canRepresent(OrgType.class)) {
+					PolyString displayName = getValue(object, OrgType.F_DISPLAY_NAME, PolyString.class);
+					if (displayName != null && displayName.getOrig() != null) {
+						return displayName.getOrig();
+					}
+		}
+		return getName(object);
+	}
 
 	public static String getIdentification(ObjectType object) {
 		if (object == null) {

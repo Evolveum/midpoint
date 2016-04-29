@@ -800,7 +800,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
                 
                 if (targetObject == null) {
                 	AssignmentEditorDtoType type = assignmentEditorDto.getType();
-                    return type.getColoredIconCssClass();
+                    return type.getIconCssClass();
                 } else {
                 	return WebComponentUtil.createDefaultIcon(targetObject);
                 }                

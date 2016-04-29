@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,9 +22,12 @@ import org.apache.commons.lang.Validate;
 import java.io.Serializable;
 
 /**
+ * TODO: unify with AssignmentEditorDto
+ * 
  * @author lazyman
  */
 public class AssignmentItemDto implements Serializable, Comparable<AssignmentItemDto> {
+	private static final long serialVersionUID = 1L;
 
     public static final String F_TYPE = "type";
     public static final String F_NAME = "name";

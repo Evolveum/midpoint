@@ -22,6 +22,7 @@ package com.evolveum.midpoint.gui.api;
 public class GuiStyleConstants {
 	
 	public static final String CLASS_BOX = "box";
+	public static final String CLASS_BOX_DEFAULT = "box-default";
 	
 	public static final String CLASS_OBJECT_USER_ICON = "fa fa-user";
 	public static final String CLASS_OBJECT_USER_ICON_COLORED = CLASS_OBJECT_USER_ICON + " object-user-color";
@@ -60,6 +61,7 @@ public class GuiStyleConstants {
 
 	public static final String CLASS_OBJECT_WORK_ITEM_ICON = "fa fa-inbox";
 	public static final String CLASS_OBJECT_WORK_ITEM_ICON_COLORED = CLASS_OBJECT_WORK_ITEM_ICON + " object-task-color";		// TODO
+	public static final String CLASS_OBJECT_WORK_ITEM_BOX_CSS_CLASSES = "object-task-box"; // TODO
 
 	public static final String CLASS_OBJECT_CERT_DEF_ICON = "fa fa-certificate";
 	public static final String CLASS_OBJECT_CERT_DEF_ICON_COLORED = CLASS_OBJECT_CERT_DEF_ICON + " object-task-color";		// TODO
@@ -99,6 +101,9 @@ public class GuiStyleConstants {
 	public static final String CLASS_ICON_NO_OBJECTS = "fa fa-times";
 	public static final String CLASS_ICON_ACTIVATION_ACTIVE = "fa fa-check";
 	public static final String CLASS_ICON_ACTIVATION_INACTIVE = "fa fa-times";
+	public static final String CLASS_ICON_ASSIGNMENTS = "fa fa-bank";
+	public static final String CLASS_SHADOW_ICON_REQUEST = "fa fa-pencil-square-o";
+	public static final String CLASS_ICON_TACHOMETER = "fa fa-tachometer";
 
 	public static final String CLASS_OP_RESULT_STATUS_ICON_UNKNOWN_COLORED = "fa fa-question-circle text-warning";
 	public static final String CLASS_OP_RESULT_STATUS_ICON_SUCCESS_COLORED = "fa fa-check-circle text-success";
