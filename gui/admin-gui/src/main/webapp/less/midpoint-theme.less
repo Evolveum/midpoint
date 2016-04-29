@@ -175,6 +175,10 @@ th.cog, td.cog {
 	color: #357ca5;
 }
 
+.icon-style-manager {
+	color: @object-org-color;
+}
+
 .icon-style-warning {
 	color: #8a6d3b;
 }
@@ -557,11 +561,19 @@ th.cog, td.cog {
 }
 
 .summary-tag {
-	display: block;
+	display: block;	
+	padding-left: 10px;
+	padding-right: 10px;
+	margin: 3px;
+	border: 1px solid #e0e0e0;
+	border-radius: 3px;
+	background-color: #fbfbfb;
+	margin-right: 0px;
 }
 
 .summary-tag-icon {
 	width: 20px;
+	margin-right: 2px;
 }
 
 // form input for binary data upload (used e.g. for photo)
@@ -868,6 +880,22 @@ div.dashAssignmentHeader {
 	margin-right: 20px !important;
 }
 
+.org-managers-box {
+	
+	.box-body {
+		padding-top: 13px;
+		padding-bottom: 0px;
+	}
+}
+
+.org-members-box {
+	
+	.box-body {
+		padding-top: 13px;
+	}
+}
+
+
 .manager-tools { // org tree manager buttons: HACK, need to figure out something better
 	float: right;
 	width: 42px;
@@ -879,12 +907,10 @@ div.dashAssignmentHeader {
 	margin: 3px;
 	border-style: solid;
 	border-width: 1px;
-	border-color: #adadad;
 	border-radius: 3px;
 	padding: 3px;
 	width: 23px;
 	text-align: center;
-	background-color: #e7e7e7;
 }
 
 .box-solid > .box-header > .box-tools > .cog > ul > li > a > i {

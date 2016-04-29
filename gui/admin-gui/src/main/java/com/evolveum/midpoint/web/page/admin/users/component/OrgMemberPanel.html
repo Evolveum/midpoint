@@ -19,7 +19,7 @@
 
 	<form class="clearfix form-horizontal" wicket:id="form">
 
-		 <div class="box box-solid object-user-box" wicket:id="managerContainer">
+		 <div class="box box-solid object-user-box org-managers-box" wicket:id="managerContainer">
 		 	<div class="box-header with-border">
 		 		<h3 class="box-title"><wicket:message key="TreeTablePanel.managers"/></h3>
 		 		<div class="box-tools pull-right">
@@ -29,15 +29,15 @@
 			<div class="box-body">
                 <div class="col-md-12" wicket:id="managerTable">
 					<div class="manager-tools">
-						<div wicket:id="editManager" class="manager-btn fa fa-edit"></div>
-						<div wicket:id="removeManager" class="manager-btn fa fa-times"></div>
+						<div wicket:id="editManager" class="manager-btn btn-primary fa fa-edit"></div>
+						<div wicket:id="removeManager" class="manager-btn btn-danger fa fa-times"></div>
 					</div>
 					<div wicket:id="managerSummary" />
 				</div>
 			</div>
 		</div>
 		
-		<div class="box box-solid box-primary">
+		<div class="box box-solid box-primary org-members-box">
 			<div class="box-header with-border">
 				<h3 class="box-title"><wicket:message key="TreeTablePanel.members"/></h3>
 			</div>		
