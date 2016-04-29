@@ -16,11 +16,14 @@
 package com.evolveum.midpoint.web.component.box;
 
 import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.ajax.AjaxEventBehavior;
+import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
+import org.apache.wicket.request.component.IRequestablePage;
 
 import com.evolveum.midpoint.gui.api.component.progressbar.ProgressbarPanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
@@ -43,10 +46,15 @@ public class InfoBoxPanel extends Panel{
 
 	public InfoBoxPanel(String id, IModel<InfoBoxType> model) {
 		super(id, model);
-		initLayout(model);
+		initLayout(model, null);
 	}
 	
-	private void initLayout(final IModel<InfoBoxType> model){
+	public InfoBoxPanel(String id, IModel<InfoBoxType> model, Class<? extends IRequestablePage> linkPage) {
+		super(id, model);
+		initLayout(model, linkPage);
+	}
+	
+	private void initLayout(final IModel<InfoBoxType> model, final Class<? extends IRequestablePage> linkPage) {
 		
 		WebMarkupContainer infoBox = new WebMarkupContainer(ID_INFO_BOX);
 		add(infoBox);
@@ -83,6 +91,16 @@ public class InfoBoxPanel extends Panel{
         Label description = new Label(ID_DESCRIPTION, new PropertyModel<String>(model, InfoBoxType.DESCRIPTION));
         infoBox.add(description);
 
+        if (linkPage != null) {
+	        add(new AjaxEventBehavior("click") {
+				private static final long serialVersionUID = 1L;
+	
+				@Override
+				protected void onEvent(AjaxRequestTarget target) {
+					setResponsePage(linkPage);
+				}
+			});
+        }
 	}
 	
 	

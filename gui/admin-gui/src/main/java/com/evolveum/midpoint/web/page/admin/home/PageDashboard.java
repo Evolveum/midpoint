@@ -29,6 +29,7 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
+import org.apache.wicket.request.component.IRequestablePage;
 import org.springframework.security.core.Authentication;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
@@ -73,6 +74,12 @@ import com.evolveum.midpoint.web.page.admin.home.component.SystemInfoPanel;
 import com.evolveum.midpoint.web.page.admin.home.dto.AccountCallableResult;
 import com.evolveum.midpoint.web.page.admin.home.dto.AssignmentItemDto;
 import com.evolveum.midpoint.web.page.admin.home.dto.SimpleAccountDto;
+import com.evolveum.midpoint.web.page.admin.resources.PageResources;
+import com.evolveum.midpoint.web.page.admin.roles.PageRoles;
+import com.evolveum.midpoint.web.page.admin.server.PageTasks;
+import com.evolveum.midpoint.web.page.admin.services.PageServices;
+import com.evolveum.midpoint.web.page.admin.users.PageOrgTree;
+import com.evolveum.midpoint.web.page.admin.users.PageUsers;
 
 /**
  * @author lazyman
@@ -201,23 +208,28 @@ public class PageDashboard extends PageAdminHome {
     	OperationResult result = task.getResult();
     	
     	add(createFocusInfoBoxPanel(ID_INFO_BOX_USERS, UserType.class, "object-user-bg", 
-    			GuiStyleConstants.CLASS_OBJECT_USER_ICON, "PageDashboard.infobox.users", result, task));
+    			GuiStyleConstants.CLASS_OBJECT_USER_ICON, "PageDashboard.infobox.users", PageUsers.class, 
+    			result, task));
     	
     	add(createFocusInfoBoxPanel(ID_INFO_BOX_ORGS, OrgType.class, "object-org-bg", 
-    			GuiStyleConstants.CLASS_OBJECT_ORG_ICON, "PageDashboard.infobox.orgs", result, task));
+    			GuiStyleConstants.CLASS_OBJECT_ORG_ICON, "PageDashboard.infobox.orgs", PageOrgTree.class, 
+    			result, task));
     	
     	add(createFocusInfoBoxPanel(ID_INFO_BOX_ROLES, RoleType.class, "object-role-bg", 
-    			GuiStyleConstants.CLASS_OBJECT_ROLE_ICON, "PageDashboard.infobox.roles", result, task));
+    			GuiStyleConstants.CLASS_OBJECT_ROLE_ICON, "PageDashboard.infobox.roles", PageRoles.class, 
+    			result, task));
     	
     	add(createFocusInfoBoxPanel(ID_INFO_BOX_SERVICES, ServiceType.class, "object-service-bg", 
-    			GuiStyleConstants.CLASS_OBJECT_SERVICE_ICON, "PageDashboard.infobox.services", result, task));
+    			GuiStyleConstants.CLASS_OBJECT_SERVICE_ICON, "PageDashboard.infobox.services", PageServices.class, 
+    			result, task));
     	
     	add(createResourceInfoBoxPanel(result, task));
     	add(createTaskInfoBoxPanel(result, task));
     	
 	}
 
-	private <F extends FocusType> InfoBoxPanel createFocusInfoBoxPanel(String id, Class<F> type, String bgColor, String icon, String keyPrefix, OperationResult result, Task task) {
+	private <F extends FocusType> InfoBoxPanel createFocusInfoBoxPanel(String id, Class<F> type, String bgColor, 
+			String icon, String keyPrefix, Class<? extends IRequestablePage> linkPage, OperationResult result, Task task) {
     	InfoBoxType infoBoxType = new InfoBoxType(bgColor, icon, getString(keyPrefix + ".label"));
     	Integer allCount;
 		try {
@@ -264,7 +276,7 @@ public class PageDashboard extends PageAdminHome {
 
 		Model<InfoBoxType> boxModel = new Model<InfoBoxType>(infoBoxType);
 
-		return new InfoBoxPanel(id, boxModel);
+		return new InfoBoxPanel(id, boxModel, linkPage);
     }
 	
     private Component createResourceInfoBoxPanel(OperationResult result, Task task) {
@@ -301,7 +313,7 @@ public class PageDashboard extends PageAdminHome {
 
 		Model<InfoBoxType> boxModel = new Model<InfoBoxType>(infoBoxType);
 
-		return new InfoBoxPanel(ID_INFO_BOX_RESOURCES, boxModel);
+		return new InfoBoxPanel(ID_INFO_BOX_RESOURCES, boxModel, PageResources.class);
 	}
     
     private Component createTaskInfoBoxPanel(OperationResult result, Task task) {
@@ -338,7 +350,7 @@ public class PageDashboard extends PageAdminHome {
 
 		Model<InfoBoxType> boxModel = new Model<InfoBoxType>(infoBoxType);
 
-		return new InfoBoxPanel(ID_INFO_BOX_TASKS, boxModel);
+		return new InfoBoxPanel(ID_INFO_BOX_TASKS, boxModel, PageTasks.class);
 	}
 
 
