@@ -146,8 +146,9 @@ public class Wizard extends SimplePanel<IWizardModel> implements IWizardModelLis
 
             if(activeStep != null){
                 OperationResult result = ((WizardStep)activeStep).getResult();
-
-                getPageBase().showResult(result);
+				if (result != null) {
+					getPageBase().showResult(result);
+				}
             }
         }
 
