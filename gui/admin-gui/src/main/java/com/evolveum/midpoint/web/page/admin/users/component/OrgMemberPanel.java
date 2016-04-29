@@ -126,6 +126,7 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 				Model.of(OBJECT_TYPES_DEFAULT), Arrays.asList(ObjectTypes.values()),
 				new EnumChoiceRenderer<ObjectTypes>());
 		objectType.add(new OnChangeAjaxBehavior() {
+			private static final long serialVersionUID = 1L;
 
 			@Override
 			protected void onUpdate(AjaxRequestTarget target) {
@@ -140,6 +141,8 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 				Model.of(SEARCH_SCOPE_SUBTREE), SEARCH_SCOPE_VALUES,
 				new StringResourceChoiceRenderer("TreeTablePanel.search.scope"));
 		seachScrope.add(new OnChangeAjaxBehavior() {
+			private static final long serialVersionUID = 1L;
+			
 			@Override
 			protected void onUpdate(AjaxRequestTarget target) {
 				refreshTable(target);
@@ -176,7 +179,9 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 					ContainerStatus.MODIFYING, getPageBase());
 			WebMarkupContainer managerMarkup = new WebMarkupContainer(view.newChildId());
 
-			AjaxLink link = new AjaxLink(ID_EDIT_MANAGER) {
+			AjaxLink<String> link = new AjaxLink<String>(ID_EDIT_MANAGER) {
+				private static final long serialVersionUID = 1L;
+				
 				@Override
 				public void onClick(AjaxRequestTarget target) {
 					FocusSummaryPanel<FocusType> summary = (FocusSummaryPanel<FocusType>) getParent()
@@ -186,13 +191,17 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 				}
 			};
 			if (manager.getCompileTimeClass().equals(UserType.class)) {
-				managerMarkup.add(new UserSummaryPanel(ID_MANAGER_SUMMARY, new Model(managerWrapper)));
+				managerMarkup.add(new UserSummaryPanel(ID_MANAGER_SUMMARY, new Model<ObjectWrapper<UserType>>(
+						(ObjectWrapper)managerWrapper)));
 			} else if (manager.getCompileTimeClass().equals(RoleType.class)) {
-				managerMarkup.add(new RoleSummaryPanel(ID_MANAGER_SUMMARY, new Model(managerWrapper)));
+				managerMarkup.add(new RoleSummaryPanel(ID_MANAGER_SUMMARY, new Model<ObjectWrapper<RoleType>>(
+						(ObjectWrapper)managerWrapper)));
 			} else if (manager.getCompileTimeClass().equals(OrgType.class)) {
-				managerMarkup.add(new OrgSummaryPanel(ID_MANAGER_SUMMARY, new Model(managerWrapper)));
+				managerMarkup.add(new OrgSummaryPanel(ID_MANAGER_SUMMARY, new Model<ObjectWrapper<OrgType>>(
+						(ObjectWrapper)managerWrapper)));
 			} else if (manager.getCompileTimeClass().equals(ServiceType.class)) {
-				managerMarkup.add(new ServiceSummaryPanel(ID_MANAGER_SUMMARY, new Model(managerWrapper)));
+				managerMarkup.add(new ServiceSummaryPanel(ID_MANAGER_SUMMARY, new Model<ObjectWrapper<ServiceType>>(
+						(ObjectWrapper)managerWrapper)));
 			}
 			link.setOutputMarkupId(true);
 			managerMarkup.setOutputMarkupId(true);
@@ -217,7 +226,7 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 
 		managerContainer.add(view);
 		
-		InlineMenu menupanel = new InlineMenu(ID_MANAGER_MENU, new Model((Serializable)createManagersHeaderInlineMenu()));
+		InlineMenu menupanel = new InlineMenu(ID_MANAGER_MENU, new Model<Serializable>((Serializable)createManagersHeaderInlineMenu()));
 
 	     add(menupanel);
 		menupanel.setOutputMarkupId(true);
@@ -257,6 +266,7 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 
 		headerMenuItems.add(new InlineMenuItem(createStringResource("TreeTablePanel.menu.createManager"),
 				false, new HeaderMenuAction(this) {
+					private static final long serialVersionUID = 1L;
 
 					@Override
 					public void onClick(AjaxRequestTarget target) {
@@ -267,6 +277,7 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 
 		headerMenuItems.add(new InlineMenuItem(createStringResource("TreeTablePanel.menu.addManagers"), false,
 				new HeaderMenuAction(this) {
+					private static final long serialVersionUID = 1L;
 
 					@Override
 					public void onClick(AjaxRequestTarget target) {
@@ -277,6 +288,7 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 
 		headerMenuItems.add(new InlineMenuItem(createStringResource("TreeTablePanel.menu.removeManagersAll"),
 				false, new HeaderMenuAction(this) {
+					private static final long serialVersionUID = 1L;
 
 					@Override
 					public void onClick(AjaxRequestTarget target) {
@@ -287,6 +299,7 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 		headerMenuItems
 				.add(new InlineMenuItem(createStringResource("TreeTablePanel.menu.recomputeManagersAll"),
 						false, new HeaderMenuAction(this) {
+							private static final long serialVersionUID = 1L;
 
 							@Override
 							public void onClick(AjaxRequestTarget target) {
@@ -298,7 +311,7 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 	}
 
 	protected void refreshTable(AjaxRequestTarget target) {
-		DropDownChoice<ObjectTypes> typeChoice = (DropDownChoice) get(
+		DropDownChoice<ObjectTypes> typeChoice = (DropDownChoice<ObjectTypes>) get(
 				createComponentPath(ID_FORM, ID_SEARCH_BY_TYPE));
 		ObjectTypes type = typeChoice.getModelObject();
 		target.add(get(createComponentPath(ID_FORM, ID_SEARCH_SCOPE)));
@@ -312,7 +325,7 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 	}
 
 	private QName getSearchType() {
-		DropDownChoice<ObjectTypes> searchByTypeChoice = (DropDownChoice) get(
+		DropDownChoice<ObjectTypes> searchByTypeChoice = (DropDownChoice<ObjectTypes>) get(
 				createComponentPath(ID_FORM, ID_SEARCH_BY_TYPE));
 		ObjectTypes typeModel = searchByTypeChoice.getModelObject();
 		return typeModel.getTypeQName();
@@ -437,7 +450,7 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 
 		List<ObjectFilter> filters = new ArrayList<>();
 
-		DropDownChoice<String> searchScopeChoice = (DropDownChoice) get(
+		DropDownChoice<String> searchScopeChoice = (DropDownChoice<String>) get(
 				createComponentPath(ID_FORM, ID_SEARCH_SCOPE));
 		String scope = searchScopeChoice.getModelObject();
 
@@ -502,7 +515,7 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 
 	}
 
-	private boolean satisfyConstraints(boolean isFocus, Class type) {
+	private boolean satisfyConstraints(boolean isFocus, Class<? extends ObjectType> type) {
 		if (isFocus && FocusType.class.isAssignableFrom(type)) {
 			return true;
 		}
