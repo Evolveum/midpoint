@@ -278,7 +278,7 @@ public class PageSelfCredentials extends PageSelf {
         mainForm.setDefaultButton(save);
         mainForm.add(save);
 
-        AjaxSubmitButton cancel = new AjaxSubmitButton(ID_CANCEL_BUTTON, createStringResource("PageBase.button.cancel")) {
+        AjaxSubmitButton cancel = new AjaxSubmitButton(ID_CANCEL_BUTTON, createStringResource("PageBase.button.back")) {
 
             @Override
             protected void onError(AjaxRequestTarget target, Form<?> form) {

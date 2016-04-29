@@ -24,6 +24,8 @@ import java.util.Map;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.web.session.SessionStorage;
+import net.sf.jasperreports.web.util.WebUtil;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -127,7 +129,7 @@ public class TreeTablePanel extends BasePanel<String> {
 			@Override
 			protected void selectTreeItemPerformed(SelectableBean<OrgType> selected,
 					AjaxRequestTarget target) {
-				TreeTablePanel.this.selectTreeItemPerformed(selected.getValue(), target);
+				TreeTablePanel.this.selectTreeItemPerformed(selected, target);
 			}
 			
 
@@ -318,8 +320,9 @@ public class TreeTablePanel extends BasePanel<String> {
 	}
 
 
-	private void selectTreeItemPerformed(OrgType selected, AjaxRequestTarget target) {
-		target.add(addOrReplace(createMemberPanel(selected)));
+	private void selectTreeItemPerformed(SelectableBean<OrgType> selected, AjaxRequestTarget target) {
+        getTreePanel().setSelected(selected);
+		target.add(addOrReplace(createMemberPanel(selected.getValue())));
 	}
 
 	private void moveRootPerformed(SelectableBean<OrgType> root, AjaxRequestTarget target) {

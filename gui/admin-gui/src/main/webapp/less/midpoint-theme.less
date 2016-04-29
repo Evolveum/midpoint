@@ -549,7 +549,6 @@ th.cog, td.cog {
 
 .summary-tag-box {
 	float: right;
-	width: 120px;
 }
 
 .summary-tag-box-wide {
@@ -790,6 +789,10 @@ div.dashAssignmentHeader {
 	background-color: #ffcaca;
 }
 
+.options-container {
+	
+}
+
 .option-checkbox {
 	float: left;
 	border: 1px solid @table-divider-color;
@@ -797,6 +800,10 @@ div.dashAssignmentHeader {
 	padding-bottom: 5px;
 	padding-left: 6px;
 	padding-right: 6px;
+}
+
+.main-button-bar {
+
 }
 
 // Badge colors used in object details tabs (and maybe elsewhere)
@@ -848,6 +855,42 @@ div.dashAssignmentHeader {
 		}
 	}
 }
+
+// Orgtree (OrgMemberPanel)
+
+.org-tree-container {
+  overflow-y: auto;
+  margin-bottom: 20px;
+}
+
+.org-members-additional-search {
+	text-align: right;
+	margin-right: 20px !important;
+}
+
+.manager-tools { // org tree manager buttons: HACK, need to figure out something better
+	float: right;
+	width: 42px;
+	padding-left: 10px;
+	padding-top: 7px;
+}
+
+.manager-btn { // org tree manager buttons: HACK, need to figure out something better
+	margin: 3px;
+	border-style: solid;
+	border-width: 1px;
+	border-color: #adadad;
+	border-radius: 3px;
+	padding: 3px;
+	width: 23px;
+	text-align: center;
+	background-color: #e7e7e7;
+}
+
+.box-solid > .box-header > .box-tools > .cog > ul > li > a > i {
+	color: #fff;
+}
+
 
 // Request role page
 

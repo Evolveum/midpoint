@@ -34,6 +34,7 @@ public abstract class SummaryTag<O extends ObjectType> extends Panel {
 	private static final String ID_TAG_LABEL = "summaryTagLabel";
 	
 	private boolean initialized = false;
+	private String cssClass;
 	private String iconCssClass;
 	private String label;
 	private String color = null;
@@ -68,6 +69,13 @@ public abstract class SummaryTag<O extends ObjectType> extends Panel {
 			}
 		}));
 		
+		add(new AttributeModifier("class", new SummaryTagWrapperModel<String>(model) {
+			@Override
+			protected String getValue() {
+				return getCssClass();
+			}
+		}));
+		
 		add(new VisibleEnableBehaviour(){    		
             @Override
             public boolean isVisible(){
@@ -77,6 +85,14 @@ public abstract class SummaryTag<O extends ObjectType> extends Panel {
             	return !isHideTag();
             }
         });
+	}
+	
+	public String getCssClass() {
+		return cssClass;
+	}
+
+	public void setCssClass(String cssClass) {
+		this.cssClass = cssClass;
 	}
 
 	public String getIconCssClass() {

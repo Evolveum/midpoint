@@ -30,6 +30,7 @@ import org.springframework.security.authentication.CredentialsExpiredException;
 import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.LockedException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
 import org.springframework.stereotype.Component;
@@ -118,7 +119,7 @@ public class AuthenticationEvaluatorImpl implements AuthenticationEvaluator {
 		// Authorizations
 		if (!hasAnyAuthorization(principal)) {
 			recordAuthenticationFailure(principal, connEnv, "no authorizations");
-			throw new AccessDeniedException("web.security.provider.access.denied");
+			throw new DisabledException("web.security.provider.access.denied");
 		}
 		
 		// Password age
@@ -360,7 +361,7 @@ public class AuthenticationEvaluatorImpl implements AuthenticationEvaluator {
 	}
 	
 	private void recordAuthenticationSuccess(MidPointPrincipal principal, ConnectionEnvironment connEnv) {
-		// TODO
+		securityHelper.auditLoginSuccess(principal.getUsername(), connEnv);
 	}
 	
 	private void recordPasswordAuthenticationFailure(MidPointPrincipal principal, ConnectionEnvironment connEnv,
