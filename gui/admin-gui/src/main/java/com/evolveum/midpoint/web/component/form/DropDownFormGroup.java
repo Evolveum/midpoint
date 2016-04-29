@@ -45,6 +45,7 @@ public class DropDownFormGroup<T> extends BasePanel<T> {
     private static final String ID_LABEL_CONTAINER = "labelContainer";
     private static final String ID_LABEL = "label";
     private static final String ID_TOOLTIP = "tooltip";
+    private static final String ID_REQUIRED = "required";
     private static final String ID_FEEDBACK = "feedback";
     private static final String ID_ADDITIONAL_INFO = "additionalInfo";
 
@@ -61,7 +62,7 @@ public class DropDownFormGroup<T> extends BasePanel<T> {
     }
 
     private void initLayout(IModel<List<T>> choices, IChoiceRenderer<T> renderer, IModel<String> label, final String tooltipKey,
-                            boolean isTooltipInModal, String labelSize, String textSize, boolean required) {
+                            boolean isTooltipInModal, String labelSize, String textSize, final boolean required) {
         WebMarkupContainer labelContainer = new WebMarkupContainer(ID_LABEL_CONTAINER);
         add(labelContainer);
 
@@ -90,6 +91,15 @@ public class DropDownFormGroup<T> extends BasePanel<T> {
 		tooltipLabel.setOutputMarkupId(true);
 		tooltipLabel.setOutputMarkupPlaceholderTag(true);
 		labelContainer.add(tooltipLabel);
+
+		WebMarkupContainer requiredContainer = new WebMarkupContainer(ID_REQUIRED);
+		requiredContainer.add(new VisibleEnableBehaviour() {
+			@Override
+			public boolean isVisible() {
+				return required;
+			}
+		});
+		labelContainer.add(requiredContainer);
 
         WebMarkupContainer selectWrapper = new WebMarkupContainer(ID_SELECT_WRAPPER);
         if (StringUtils.isNotEmpty(textSize)) {

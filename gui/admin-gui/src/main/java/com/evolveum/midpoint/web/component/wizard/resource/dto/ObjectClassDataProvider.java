@@ -99,4 +99,13 @@ public class ObjectClassDataProvider implements IDataProvider<ObjectClassDto> {
     @Override
     public void detach() {
     }
+
+	public boolean isDisplayed(String name) {
+		for (ObjectClassDto objectClass : getFilteredClasses()) {
+			if (objectClass.getName().equals(name)) {
+				return true;
+			}
+		}
+		return false;
+	}
 }

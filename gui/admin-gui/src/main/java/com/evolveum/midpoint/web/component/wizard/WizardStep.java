@@ -58,16 +58,16 @@ public class WizardStep extends org.apache.wicket.extensions.wizard.WizardStep {
 
     @Override
     public Component getHeader(String id, Component parent, IWizard wizard) {
-        return new Label(id, new AbstractReadOnlyModel<String>() {
-
-            @Override
-            public String getObject() {
-                return getTitle();
-            }
-        });
+		return new Label(id, "");		// we don't want to display step names twice (in upper bar and in page header)
+//        return new Label(id, new AbstractReadOnlyModel<String>() {
+//            @Override
+//            public String getObject() {
+//                return getTitle();
+//            }
+//        });
     }
 
-    public PageBase getPageBase() {
+	public PageBase getPageBase() {
         return pageBase;
     }
 

@@ -178,8 +178,8 @@ public class NameStep extends WizardStep {
 	}
 
 	private void initLayout() {
-        add(new TextFormGroup(ID_NAME, resourceNameModel, createStringResource("NameStep.name"), "col-md-3", "col-md-3", true));
-        add(new TextAreaFormGroup(ID_DESCRIPTION, resourceDescriptionModel, createStringResource("NameStep.description"), "col-md-3", "col-md-3", false, 3));
+        add(new TextFormGroup(ID_NAME, resourceNameModel, createStringResource("NameStep.name"), "col-md-3", "col-md-6", true));
+        add(new TextAreaFormGroup(ID_DESCRIPTION, resourceDescriptionModel, createStringResource("NameStep.description"), "col-md-3", "col-md-6", false, 3));
         add(createHostDropDown());
         add(createConnectorDropDown());
     }
@@ -210,7 +210,7 @@ public class NameStep extends WizardStep {
                     public String getIdValue(PrismObject<ConnectorType> object, int index) {
                         return Integer.toString(index);
                     }
-                }, createStringResource("NameStep.connectorType"), "col-md-3", "col-md-3", true) {
+                }, createStringResource("NameStep.connectorType"), "col-md-3", "col-md-6", true) {
 
             @Override
             protected DropDownChoice<PrismObject<ConnectorType>> createDropDown(String id, IModel<List<PrismObject<ConnectorType>>> choices,
@@ -313,7 +313,7 @@ public class NameStep extends WizardStep {
                 return Integer.toString(index);
             }
         },
-                createStringResource("NameStep.connectorHost"), "col-md-3", "col-md-3", false) {
+                createStringResource("NameStep.connectorHost"), "col-md-3", "col-md-6", false) {
 
             @Override
             protected DropDownChoice<PrismObject<ConnectorHostType>> createDropDown(String id, IModel<List<PrismObject<ConnectorHostType>>> choices,

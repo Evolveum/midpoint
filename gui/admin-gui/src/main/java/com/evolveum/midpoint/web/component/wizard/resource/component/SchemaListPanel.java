@@ -27,11 +27,11 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
-import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxColumn;
 import com.evolveum.midpoint.web.component.data.paging.NavigatorPanel;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.component.wizard.resource.dto.AttributeDto;
 import com.evolveum.midpoint.web.component.wizard.resource.dto.ObjectClassDataProvider;
 import com.evolveum.midpoint.web.component.wizard.resource.dto.ObjectClassDetailsDto;
@@ -59,6 +59,7 @@ import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
+import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
 
 import java.util.ArrayList;
@@ -80,6 +81,8 @@ public class SchemaListPanel extends SimplePanel<PrismObject<ResourceType>> {
     private static final String ID_CLEAR_SEARCH = "clearSearch";
     private static final String ID_ATTRIBUTE_TABLE = "attributeTable";
     private static final String ID_NAVIGATOR = "objectClassNavigator";
+	private static final String ID_OBJECT_CLASS_INFO_CONTAINER = "objectClassInfoContainer";
+	private static final String ID_OBJECT_CLASS_INFO_COLUMN = "objectClassInfoColumn";
     private static final String ID_DETAILS_PANEL = "detailsPanel";
     private static final String ID_DETAILS_DISPLAY_NAME = "displayName";
     private static final String ID_DETAILS_DESCRIPTION = "description";
@@ -187,26 +190,40 @@ public class SchemaListPanel extends SimplePanel<PrismObject<ResourceType>> {
         };
         tableBody.add(objectClassDataView);
 
-        initDetailsPanel();
+		NavigatorPanel objectClassNavigator = new NavigatorPanel(ID_NAVIGATOR, objectClassDataView, true);
+		objectClassNavigator.setOutputMarkupId(true);
+		objectClassNavigator.setOutputMarkupPlaceholderTag(true);
+		add(objectClassNavigator);
+
+		WebMarkupContainer objectClassInfoContainer = new WebMarkupContainer(ID_OBJECT_CLASS_INFO_CONTAINER);
+		objectClassInfoContainer.setOutputMarkupId(true);
+		add(objectClassInfoContainer);
+
+		WebMarkupContainer objectClassInfoColumn = new WebMarkupContainer(ID_OBJECT_CLASS_INFO_COLUMN);
+		objectClassInfoColumn.add(new VisibleEnableBehaviour() {
+			@Override
+			public boolean isVisible() {
+				ObjectClassDto selected = getSelectedObjectClass();
+				return selected != null && dataProvider.isDisplayed(selected.getName());
+			}
+		});
+		objectClassInfoContainer.add(objectClassInfoColumn);
+
+		initDetailsPanel(objectClassInfoColumn);
 
         ISortableDataProvider<AttributeDto, String> attributeProvider = new ListDataProvider<>(this, attributeModel, true);
         BoxedTablePanel<AttributeDto> attributeTable = new BoxedTablePanel<>(ID_ATTRIBUTE_TABLE, attributeProvider, initColumns());
         attributeTable.setOutputMarkupId(true);
         attributeTable.setItemsPerPage(UserProfileStorage.DEFAULT_PAGING_SIZE);
         attributeTable.setShowPaging(true);
-        add(attributeTable);
-
-        NavigatorPanel objectClassNavigator = new NavigatorPanel(ID_NAVIGATOR, objectClassDataView, true);
-        objectClassNavigator.setOutputMarkupId(true);
-        objectClassNavigator.setOutputMarkupPlaceholderTag(true);
-        add(objectClassNavigator);
+        objectClassInfoColumn.add(attributeTable);
     }
 
-    private void initDetailsPanel(){
+    private void initDetailsPanel(WebMarkupContainer parent) {
         WebMarkupContainer detailsContainer = new WebMarkupContainer(ID_DETAILS_PANEL);
         detailsContainer.setOutputMarkupId(true);
         detailsContainer.setOutputMarkupPlaceholderTag(true);
-        add(detailsContainer);
+        parent.add(detailsContainer);
 
         Label displayName = new Label(ID_DETAILS_DISPLAY_NAME, new PropertyModel<String>(detailsModel, ObjectClassDetailsDto.F_DISPLAY_NAME));
         detailsContainer.add(displayName);
@@ -266,8 +283,7 @@ public class SchemaListPanel extends SimplePanel<PrismObject<ResourceType>> {
 
     private void updateSearchPerformed(AjaxRequestTarget target, ObjectClassDataProvider dataProvider) {
         dataProvider.filterClasses(getObjectClassText().getModelObject());
-        target.add(get(ID_TABLE_BODY));
-        target.add(get(ID_NAVIGATOR));
+        target.add(get(ID_TABLE_BODY), get(ID_NAVIGATOR), get(ID_OBJECT_CLASS_INFO_CONTAINER));
     }
 
     private void clearSearchPerformed(AjaxRequestTarget target, ObjectClassDataProvider dataProvider) {
@@ -285,21 +301,13 @@ public class SchemaListPanel extends SimplePanel<PrismObject<ResourceType>> {
 
         attributeModel.reset();
         detailsModel.reset();
-        target.add(get(ID_TABLE_BODY), get(ID_ATTRIBUTE_TABLE), get(ID_DETAILS_PANEL));
+        target.add(get(ID_TABLE_BODY), get(ID_OBJECT_CLASS_INFO_CONTAINER));
     }
 
     private List<AttributeDto> loadAttributes() {
         List<AttributeDto> list = new ArrayList<>();
 
-        List<ObjectClassDto> all = allClasses.getObject();
-        ObjectClassDto selected = null;
-        for (ObjectClassDto o : all) {
-            if (o.isSelected()) {
-                selected = o;
-                break;
-            }
-        }
-
+		ObjectClassDto selected = getSelectedObjectClass();
         if (selected == null) {
             return list;
         }
@@ -307,24 +315,27 @@ public class SchemaListPanel extends SimplePanel<PrismObject<ResourceType>> {
         for (ResourceAttributeDefinition def : selected.getDefinition().getAttributeDefinitions()) {
             list.add(new AttributeDto(def));
         }
-
         return list;
     }
 
-    private ObjectClassDetailsDto loadDetails(){
-        List<ObjectClassDto> all = allClasses.getObject();
-        ObjectClassDto selected = null;
-        for(ObjectClassDto o: all){
-            if(o.isSelected()){
-                selected = o;
-                break;
-            }
-        }
+	@Nullable
+	private ObjectClassDto getSelectedObjectClass() {
+		List<ObjectClassDto> all = allClasses.getObject();
+		ObjectClassDto selected = null;
+		for (ObjectClassDto o : all) {
+			if (o.isSelected()) {
+				selected = o;
+				break;
+			}
+		}
+		return selected;
+	}
 
-        if(selected == null){
+	private ObjectClassDetailsDto loadDetails() {
+        ObjectClassDto selected = getSelectedObjectClass();
+        if (selected == null){
             return new ObjectClassDetailsDto(null);
         }
-
         return new ObjectClassDetailsDto(selected.getDefinition());
     }
 

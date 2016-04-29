@@ -35,7 +35,7 @@ public class QNameChoiceRenderer implements IChoiceRenderer<QName> {
 	private static Map<String, String> prefixMap;
 	
 	static {
-		prefixMap = new HashMap<String, String>();
+		prefixMap = new HashMap<>();
 		prefixMap.put(SchemaConstantsGenerated.NS_ICF_SCHEMA, "icfs:");
 		prefixMap.put(SchemaConstantsGenerated.NS_CAPABILITIES, "cap:");
 		prefixMap.put(SchemaConstantsGenerated.NS_COMMON, "c:");
@@ -56,6 +56,9 @@ public class QNameChoiceRenderer implements IChoiceRenderer<QName> {
 
 	@Override
 	public QName getObject(String id, IModel<? extends List<? extends QName>> choices) {
+		if (StringUtils.isEmpty(id)) {
+			return null;
+		}
 		return choices.getObject().get(Integer.parseInt(id));
 	}
 

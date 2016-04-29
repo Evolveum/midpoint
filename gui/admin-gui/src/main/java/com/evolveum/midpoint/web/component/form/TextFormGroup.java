@@ -41,6 +41,7 @@ public class TextFormGroup extends BasePanel<String> {
     private static final String ID_LABEL_CONTAINER = "labelContainer";
     private static final String ID_LABEL = "label";
     private static final String ID_TOOLTIP = "tooltip";
+	private static final String ID_REQUIRED = "required";
     private static final String ID_FEEDBACK = "feedback";
 
     public TextFormGroup(String id, IModel<String> value, IModel<String> label, String labelSize, String textSize,
@@ -55,7 +56,7 @@ public class TextFormGroup extends BasePanel<String> {
         initLayout(label, tooltipKey, isTooltipInModel, labelSize, textSize, required);
     }
 
-    private void initLayout(IModel<String> label, final String tooltipKey, boolean isTooltipInModal, String labelSize, String textSize, boolean required) {
+    private void initLayout(IModel<String> label, final String tooltipKey, boolean isTooltipInModal, String labelSize, String textSize, final boolean required) {
         WebMarkupContainer labelContainer = new WebMarkupContainer(ID_LABEL_CONTAINER);
         add(labelContainer);
 
@@ -85,7 +86,16 @@ public class TextFormGroup extends BasePanel<String> {
         tooltipLabel.setOutputMarkupPlaceholderTag(true);
         labelContainer.add(tooltipLabel);
 
-        WebMarkupContainer textWrapper = new WebMarkupContainer(ID_TEXT_WRAPPER);
+		WebMarkupContainer requiredContainer = new WebMarkupContainer(ID_REQUIRED);
+		requiredContainer.add(new VisibleEnableBehaviour() {
+			@Override
+			public boolean isVisible() {
+				return required;
+			}
+		});
+		labelContainer.add(requiredContainer);
+
+		WebMarkupContainer textWrapper = new WebMarkupContainer(ID_TEXT_WRAPPER);
         if (StringUtils.isNotEmpty(textSize)) {
             textWrapper.add(AttributeAppender.prepend("class", textSize));
         }

@@ -125,15 +125,10 @@ public class SchemaStep extends WizardStep {
         Task task = getPageBase().createSimpleTask(OPERATION_RELOAD_RESOURCE_SCHEMA);
         OperationResult result = task.getResult();
 
-        try {
-            resource = WebModelServiceUtils.loadObject(ResourceType.class, resource.getOid(), getPageBase(), task, result);
-            getPageBase().getPrismContext().adopt(resource);
-
-            model.getObject().asObjectable().setSchema(resource.asObjectable().getSchema());
-        } catch (SchemaException e) {
-            LOGGER.error(getString("SchemaStep.message.reload.fail", WebComponentUtil.getName(resource)));
-            result.recordFatalError(getString("SchemaStep.message.reload.fail", WebComponentUtil.getName(resource)));
-        }
+		resource = WebModelServiceUtils.loadObject(ResourceType.class, resource.getOid(), getPageBase(), task, result);
+		if (resource != null) {
+			model.getObject().asObjectable().setSchema(resource.asObjectable().getSchema());
+		}
 
         result.computeStatusIfUnknown();
         if(result.isSuccess()){

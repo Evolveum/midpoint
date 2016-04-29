@@ -44,6 +44,7 @@ import com.evolveum.midpoint.web.component.wizard.resource.component.schemahandl
 import com.evolveum.midpoint.web.component.wizard.resource.dto.ResourceObjectTypeDefinitionTypeDto;
 import com.evolveum.midpoint.web.component.wizard.resource.dto.SchemaHandlingDto;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnChangeAjaxFormUpdatingBehavior;
+import com.evolveum.midpoint.web.page.admin.resources.PageResourceWizard;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -126,11 +127,14 @@ public class SchemaHandlingStep extends WizardStep {
     private static final Integer AUTO_COMPLETE_LIST_SIZE = 10;
 
     @NotNull final private IModel<PrismObject<ResourceType>> resourceModel;
+	@NotNull final private PageResourceWizard parentPage;
+
     private IModel<SchemaHandlingDto> model;
 
-    public SchemaHandlingStep(@NotNull final IModel<PrismObject<ResourceType>> resourceModel, PageBase pageBase) {
-        super(pageBase);
+    public SchemaHandlingStep(@NotNull final IModel<PrismObject<ResourceType>> resourceModel, @NotNull PageResourceWizard parentPage) {
+        super(parentPage);
         this.resourceModel = resourceModel;
+		this.parentPage = parentPage;
 
         model = new LoadableModel<SchemaHandlingDto>(false) {
             @Override
@@ -206,7 +210,7 @@ public class SchemaHandlingStep extends WizardStep {
 
 					@Override
 					protected void onError(AjaxRequestTarget target, Form<?> form) {
-						target.add(getPageBase().getFeedbackPanel());
+						target.add(parentPage.getFeedbackPanel());
 					}
 				};
                 item.add(link);
@@ -635,7 +639,7 @@ public class SchemaHandlingStep extends WizardStep {
 						getExpression(ResourceObjectTypeDefinitionType.F_DEPENDENCY)));
         getThirdRowContainer().replaceWith(newContainer);
 
-        target.add(getThirdRowContainer(), get(ID_OBJECT_TYPE_EDITOR), getPageBase().getFeedbackPanel());
+        target.add(getThirdRowContainer(), get(ID_OBJECT_TYPE_EDITOR), parentPage.getFeedbackPanel());
     }
 
     private void iterationEditPerformed(AjaxRequestTarget target){
@@ -644,7 +648,7 @@ public class SchemaHandlingStep extends WizardStep {
 						getExpression(ResourceObjectTypeDefinitionType.F_ITERATION)));
         getThirdRowContainer().replaceWith(newContainer);
 
-        target.add(getThirdRowContainer(), get(ID_OBJECT_TYPE_EDITOR), getPageBase().getFeedbackPanel());
+        target.add(getThirdRowContainer(), get(ID_OBJECT_TYPE_EDITOR), parentPage.getFeedbackPanel());
     }
 
     private void protectedEditPerformed(AjaxRequestTarget target){
@@ -653,7 +657,7 @@ public class SchemaHandlingStep extends WizardStep {
 						getExpression(ResourceObjectTypeDefinitionType.F_PROTECTED)));
         getThirdRowContainer().replaceWith(newContainer);
 
-        target.add(getThirdRowContainer(), get(ID_OBJECT_TYPE_EDITOR), getPageBase().getFeedbackPanel());
+        target.add(getThirdRowContainer(), get(ID_OBJECT_TYPE_EDITOR), parentPage.getFeedbackPanel());
     }
 
     private void activationEditPerformed(AjaxRequestTarget target){
@@ -662,7 +666,7 @@ public class SchemaHandlingStep extends WizardStep {
 						getExpression(ResourceObjectTypeDefinitionType.F_ACTIVATION)));
         getThirdRowContainer().replaceWith(newContainer);
 
-        target.add(getThirdRowContainer(), get(ID_OBJECT_TYPE_EDITOR), getPageBase().getFeedbackPanel());
+        target.add(getThirdRowContainer(), get(ID_OBJECT_TYPE_EDITOR), parentPage.getFeedbackPanel());
     }
 
     private void credentialsEditPerformed(AjaxRequestTarget target){
@@ -671,7 +675,7 @@ public class SchemaHandlingStep extends WizardStep {
 						getExpression(ResourceObjectTypeDefinitionType.F_CREDENTIALS)));
         getThirdRowContainer().replaceWith(newContainer);
 
-        target.add(getThirdRowContainer(), get(ID_OBJECT_TYPE_EDITOR), getPageBase().getFeedbackPanel());
+        target.add(getThirdRowContainer(), get(ID_OBJECT_TYPE_EDITOR), parentPage.getFeedbackPanel());
     }
 
     private void editAttributePerformed(AjaxRequestTarget target, final ResourceAttributeDefinitionType object){
@@ -684,7 +688,7 @@ public class SchemaHandlingStep extends WizardStep {
         } else {
             warn(getString("SchemaHandlingStep.message.selectObjectClassAttr"));
             getThirdRowContainer().replaceWith(new WebMarkupContainer(ID_THIRD_ROW_CONTAINER));
-            target.add(getPageBase().getFeedbackPanel(), get(ID_OBJECT_TYPE_EDITOR), getThirdRowContainer());
+            target.add(parentPage.getFeedbackPanel(), get(ID_OBJECT_TYPE_EDITOR), getThirdRowContainer());
         }
     }
 
@@ -694,11 +698,11 @@ public class SchemaHandlingStep extends WizardStep {
                     model.getObject().getSelected().getObjectType(), resourceModel.getObject());
             getThirdRowContainer().replaceWith(newContainer);
 
-            target.add(getThirdRowContainer(), get(ID_OBJECT_TYPE_EDITOR), getPageBase().getFeedbackPanel());
+            target.add(getThirdRowContainer(), get(ID_OBJECT_TYPE_EDITOR), parentPage.getFeedbackPanel());
         } else {
             warn(getString("SchemaHandlingStep.message.selectObjectClassAss"));
             getThirdRowContainer().replaceWith(new WebMarkupContainer(ID_THIRD_ROW_CONTAINER));
-            target.add(getPageBase().getFeedbackPanel(), get(ID_OBJECT_TYPE_EDITOR), getThirdRowContainer());
+            target.add(parentPage.getFeedbackPanel(), get(ID_OBJECT_TYPE_EDITOR), getThirdRowContainer());
         }
     }
 
@@ -710,15 +714,15 @@ public class SchemaHandlingStep extends WizardStep {
     private void savePerformed() {
         PrismObject<ResourceType> oldResource;
         PrismObject<ResourceType> newResource = resourceModel.getObject();
-        Task task = getPageBase().createSimpleTask(OPERATION_SAVE_SCHEMA_HANDLING);
+        Task task = parentPage.createSimpleTask(OPERATION_SAVE_SCHEMA_HANDLING);
         OperationResult result = task.getResult();
-        ModelService modelService = getPageBase().getModelService();
+        ModelService modelService = parentPage.getModelService();
         ObjectDelta delta;
 
         removeEmptyContainers(newResource);
 
         try {
-            oldResource = WebModelServiceUtils.loadObject(ResourceType.class, newResource.getOid(), getPageBase(), task, result);
+            oldResource = WebModelServiceUtils.loadObject(ResourceType.class, newResource.getOid(), parentPage, task, result);
             if (oldResource == null) {
 				throw new IllegalStateException("No resource to apply schema handling to");
 			}
@@ -730,8 +734,8 @@ public class SchemaHandlingStep extends WizardStep {
 //                }
 
 			Collection<ObjectDelta<? extends ObjectType>> deltas = WebComponentUtil.createDeltaCollection(delta);
-			modelService.executeChanges(deltas, null, getPageBase().createSimpleTask(OPERATION_SAVE_SCHEMA_HANDLING), result);
-
+			modelService.executeChanges(deltas, null, parentPage.createSimpleTask(OPERATION_SAVE_SCHEMA_HANDLING), result);
+			parentPage.resetModels();
         } catch (RuntimeException|CommonException e) {
             LoggingUtils.logException(LOGGER, "Couldn't save schema handling", e);
             result.recordFatalError(getString("SchemaHandlingStep.message.saveError", e));
@@ -741,7 +745,7 @@ public class SchemaHandlingStep extends WizardStep {
 
         setResult(result);
         if (WebComponentUtil.showResultInPage(result)) {
-            getPageBase().showResult(result);
+            parentPage.showResult(result);
         }
     }
 
