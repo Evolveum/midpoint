@@ -35,7 +35,6 @@ import org.apache.wicket.markup.html.form.CheckBox;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.EnumChoiceRenderer;
 import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.markup.html.form.IChoiceRenderer;
 import org.apache.wicket.markup.html.form.TextArea;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.repeater.Item;
@@ -83,32 +82,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationActionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationReactionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationType;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.apache.wicket.AttributeModifier;
-import org.apache.wicket.Component;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.markup.html.AjaxLink;
-import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
-import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.form.*;
-import org.apache.wicket.markup.repeater.Item;
-import org.apache.wicket.markup.repeater.data.DataView;
-import org.apache.wicket.model.AbstractReadOnlyModel;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
-import org.apache.wicket.model.PropertyModel;
-import org.apache.wicket.validation.IValidator;
-
-import javax.xml.namespace.QName;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-
 
 /**
  * @author lazyman
@@ -439,7 +412,7 @@ public class SynchronizationStep extends WizardStep {
         editor.add(opportunistic);
 
         MultiValueTextEditPanel editorCorrelation = new MultiValueTextEditPanel<ConditionalSearchFilterType>(ID_EDITOR_EDITOR_CORRELATION,
-                new PropertyModel<List<ConditionalSearchFilterType>>(model, ObjectSynchronizationTypeDto.F_SELECTED + ".correlation"), false){
+                new PropertyModel<List<ConditionalSearchFilterType>>(model, ObjectSynchronizationTypeDto.F_SELECTED + ".correlation"), false, true){
 
             @Override
             protected IModel<String> createTextModel(final IModel<ConditionalSearchFilterType> model) {
@@ -481,7 +454,7 @@ public class SynchronizationStep extends WizardStep {
         editor.add(editorCorrelation);
 
         MultiValueTextEditPanel editorReaction = new MultiValueTextEditPanel<SynchronizationReactionType>(ID_EDITOR_REACTION,
-                new PropertyModel<List<SynchronizationReactionType>>(model, ObjectSynchronizationTypeDto.F_SELECTED + ".reaction"), false){
+                new PropertyModel<List<SynchronizationReactionType>>(model, ObjectSynchronizationTypeDto.F_SELECTED + ".reaction"), false, true){
 
             @Override
             protected IModel<String> createTextModel(final IModel<SynchronizationReactionType> model) {

@@ -25,24 +25,14 @@ import java.io.Serializable;
  * */
 public class ResourceObjectTypeDefinitionTypeDto implements Serializable{
 
-    public static final String F_SELECTED = "selected";
     public static final String F_OBJECT_TYPE = "objectType";
 
-    private boolean selected = false;
     private ResourceObjectTypeDefinitionType objectType;
 
     public ResourceObjectTypeDefinitionTypeDto(){}
 
     public ResourceObjectTypeDefinitionTypeDto(ResourceObjectTypeDefinitionType objectType){
         this.objectType = objectType;
-    }
-
-    public boolean isSelected() {
-        return selected;
-    }
-
-    public void setSelected(boolean selected) {
-        this.selected = selected;
     }
 
     public ResourceObjectTypeDefinitionType getObjectType() {
@@ -60,7 +50,6 @@ public class ResourceObjectTypeDefinitionTypeDto implements Serializable{
 
         ResourceObjectTypeDefinitionTypeDto that = (ResourceObjectTypeDefinitionTypeDto) o;
 
-        if (selected != that.selected) return false;
         if (objectType != null ? !objectType.equals(that.objectType) : that.objectType != null) return false;
 
         return true;
@@ -68,8 +57,7 @@ public class ResourceObjectTypeDefinitionTypeDto implements Serializable{
 
     @Override
     public int hashCode() {
-        int result = (selected ? 1 : 0);
-        result = 31 * result + (objectType != null ? objectType.hashCode() : 0);
+        int result = 31 + (objectType != null ? objectType.hashCode() : 0);
         return result;
     }
 }

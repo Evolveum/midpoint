@@ -54,14 +54,14 @@ public class MultiValueTextEditPanel<T extends Serializable> extends BasePanel<L
 
     private static final String CSS_DISABLED = " disabled";
 
-    public MultiValueTextEditPanel(String id, IModel<List<T>> model, boolean inputEnabled){
+    public MultiValueTextEditPanel(String id, IModel<List<T>> model, boolean inputEnabled, boolean showPlaceholder){
         super(id, model);
         setOutputMarkupId(true);
 
-        initLayout(inputEnabled);
+        initLayout(inputEnabled, showPlaceholder);
     }
 
-    private void initLayout(final boolean inputEnabled){
+    private void initLayout(final boolean inputEnabled, final boolean showPlaceholder) {
         WebMarkupContainer placeholderContainer = new WebMarkupContainer(ID_PLACEHOLDER_CONTAINER);
         placeholderContainer.setOutputMarkupPlaceholderTag(true);
         placeholderContainer.setOutputMarkupPlaceholderTag(true);
@@ -69,7 +69,7 @@ public class MultiValueTextEditPanel<T extends Serializable> extends BasePanel<L
 
             @Override
             public boolean isVisible() {
-                return getModel().getObject().isEmpty();
+                return showPlaceholder && (getModel().getObject() == null || getModel().getObject().isEmpty());
             }
         });
         add(placeholderContainer);
@@ -124,7 +124,7 @@ public class MultiValueTextEditPanel<T extends Serializable> extends BasePanel<L
 
             @Override
             public boolean isVisible() {
-                return !getModel().getObject().isEmpty();
+                return getModel().getObject() != null && !getModel().getObject().isEmpty();
             }
         });
         add(repeater);

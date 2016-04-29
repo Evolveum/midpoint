@@ -23,203 +23,216 @@
 
     <div class="row capability">
 
-        <div class="col-xs-5 col-sm-4 col-sm-offset-2 col-md-4 col-md-offset-2 col-lg-offset-1 col-lg-2">
-            <h3><wicket:message key="SchemaHandlingStep.label.objectTypes" /></h3>
+        <div class="col-xs-5 col-sm-4 col-md-4 col-lg-2">
+            <div class="box box-solid box-primary">
+                <div class="box-header">
+                    <h3 class="box-title"><wicket:message key="SchemaHandlingStep.label.objectTypes" /></h3>
+                </div>
+                <div class="box-body">
+                    <table class="table table-striped table-condensed" style="margin-bottom: 10px">
+                        <tbody wicket:id="tableRows">
+                        <tr wicket:id="objectTypeRow">
+                            <td class="capability-item" style="padding: 10px;">
+                                <a wicket:id="objectTypeLink">
+                                    <button wicket:id="objectTypeDelete" type="button" class="close">
+                                        <span aria-hidden="true">&times;</span>
+                                        <span class="sr-only">Close</span>
+                                    </button>
+                                    <span class="close">&nbsp;</span>
+                                    <button type="button" class="close"><span aria-hidden="true">&#8627;</span><span class="sr-only">Expand</span></button>
+                                    <span wicket:id="objectTypeName" />
+                                </a>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
 
-            <table class="table table-striped table-condensed" style="margin-bottom: 10px">
-                <tbody wicket:id="tableRows">
-                    <tr wicket:id="objectTypeRow">
-                        <td class="capability-item" style="padding: 10px;">
-                            <a wicket:id="objectTypeLink">
-                                <button wicket:id="objectTypeDelete" type="button" class="close">
-                                    <span aria-hidden="true">&times;</span>
-                                    <span class="sr-only">Close</span>
-                                </button>
-                                <span class="close">&nbsp;</span>
-                                <button type="button" class="close"><span aria-hidden="true">&#8627;</span><span class="sr-only">Expand</span></button>
-                                <span wicket:id="objectTypeName" />
-                            </a>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
+                    <div wicket:id="objectTypePaging" />
 
-            <div wicket:id="objectTypePaging" />
-
-            <div class="main-button-bar" style="margin-top: -25px;">
-                <a wicket:id="objectTypeAddButton" class="btn btn-success">
-                    <span><wicket:message key="SchemaHandlingStep.button.add" /></span>
-                </a>
+                    <div class="main-button-bar" >
+                        <a wicket:id="objectTypeAddButton" class="btn btn-success">
+                            <span><wicket:message key="SchemaHandlingStep.button.add" /></span>
+                        </a>
+                    </div>
+                </div>
             </div>
+
         </div>
 
-        <!-- Second row - object type editor -->
+        <!-- Second column - object type editor -->
         <div wicket:id="objectTypeConfig"  class="col-xs-7 col-sm-6 col-md-4">
-            <h3><span wicket:id="editorName"></span></h3>
 
-            <dl class="dl-horizontal">
-                <dt>
-                    <label><wicket:message key="SchemaHandlingStep.label.kind"/></label>
-                    <i wicket:id="kindTooltip" wicket:message="title:SchemaHandlingStep.tooltip.kind"/>
-                </dt>
-                <dd>
-                    <select wicket:id="editorKind" class="form-control input-sm"></select>
-                </dd>
-            </dl>
-
-            <dl class="dl-horizontal">
-                <dt>
-                    <label><wicket:message key="SchemaHandlingStep.label.intent" /></label>
-                    <i wicket:id="intentTooltip" wicket:message="title:SchemaHandlingStep.tooltip.intent"/>
-                </dt>
-                <dd>
-                    <input wicket:id="editorIntent" type="text" class="form-control input-sm"/>
-                </dd>
-            </dl>
-
-            <dl class="dl-horizontal">
-                <dt>
-                    <label><wicket:message key="SchemaHandlingStep.label.displayName" /></label>
-                </dt>
-                <dd>
-                    <input wicket:id="editorDisplayName" type="text" class="form-control input-sm"/>
-                </dd>
-            </dl>
-
-            <dl class="dl-horizontal">
-                <dt>
-                    <label><wicket:message key="SchemaHandlingStep.label.description" /></label>
-                </dt>
-                <dd>
-                    <textarea wicket:id="editorDescription" class="form-control input-sm" rows="2"></textarea>
-                </dd>
-            </dl>
-
-            <!-- Default and Dependency -->
-            <div class="row">
-                <div class="col-xs-6">
-                    <dl class="dl-horizontal">
-                        <dt>
-                            <label><wicket:message key="SchemaHandlingStep.label.default" /></label>
-                            <i wicket:id="defaultTooltip" wicket:message="title:SchemaHandlingStep.tooltip.default"/>
-                        </dt>
-                        <dd>
-                            <input wicket:id="editorDefault" type="checkbox" value="checked"/>
-                        </dd>
-                    </dl>
+            <div class="box box-solid box-primary">
+                <div class="box-header">
+                    <h3 class="box-title"><span wicket:id="editorName"></span></h3>
                 </div>
-                <div class="col-xs-6">
+                <div class="box-body">
+
                     <dl class="dl-horizontal">
                         <dt>
-                            <label><wicket:message key="SchemaHandlingStep.label.dependency" /></label>
-                            <i wicket:id="dependencyTooltip" wicket:message="title:SchemaHandlingStep.tooltip.dependency"/>
+                            <label><wicket:message key="SchemaHandlingStep.label.kind"/></label>
+                            <i wicket:id="kindTooltip" wicket:message="title:SchemaHandlingStep.tooltip.kind"/>
                         </dt>
                         <dd>
-                            <a wicket:id="editorDependencyButton" class="btn btn-sm btn-primary" title="Edit">
-                                <i class="fa fa-pencil-square-o"/>
-                            </a>
+                            <select wicket:id="editorKind" class="form-control input-sm"></select>
                         </dd>
                     </dl>
-                </div>
-            </div>
 
-            <dl class="dl-horizontal">
-                <dt>
-                    <label><wicket:message key="SchemaHandlingStep.label.objectClass" /></label>
-                    <i wicket:id="objectClassTooltip" wicket:message="title:SchemaHandlingStep.tooltip.objectClass"/>
-                </dt>
-                <dd>
-                    <input wicket:id="editorObjectClass" type="text" class="form-control input-sm"/>
-                </dd>
-            </dl>
-
-            <!-- Attributes -->
-            <dl class="dl-horizontal">
-                <dt>
-                    <label><wicket:message key="SchemaHandlingStep.label.attributes" /></label>
-                    <i wicket:id="attributesTooltip" wicket:message="title:SchemaHandlingStep.tooltip.attributes"/>
-                </dt>
-                <div wicket:id="editorAttributes" />
-            </dl>
-
-            <!--Associations -->
-            <dl class="dl-horizontal">
-                <dt>
-                    <label><wicket:message key="SchemaHandlingStep.label.associations" /></label>
-                    <i wicket:id="associationsTooltip" wicket:message="title:SchemaHandlingStep.tooltip.associations"/>
-                </dt>
-                <div wicket:id="editorAssociations" />
-            </dl>
-
-            <dl class="dl-horizontal">
-                <dt>
-                    <label><wicket:message key="SchemaHandlingStep.label.assignmentPolicyRef" /></label>
-                    <i wicket:id="assignmentPolicyRefTooltip" wicket:message="title:SchemaHandlingStep.tooltip.assignmentPolicyRef"/>
-                </dt>
-                <dd>
-                    <select wicket:id="editorAssignmentPolicyRef" class="form-control input-sm"></select>
-                </dd>
-            </dl>
-
-            <!-- Iteration and Protected -->
-            <div class="row">
-                <div class="col-xs-6">
                     <dl class="dl-horizontal">
                         <dt>
-                            <label><wicket:message key="SchemaHandlingStep.label.iteration" /></label>
-                            <i wicket:id="iterationTooltip" wicket:message="title:SchemaHandlingStep.tooltip.iteration"/>
+                            <label><wicket:message key="SchemaHandlingStep.label.intent" /></label>
+                            <i wicket:id="intentTooltip" wicket:message="title:SchemaHandlingStep.tooltip.intent"/>
                         </dt>
                         <dd>
-                            <a wicket:id="editorIterationButton" class="btn btn-sm btn-primary" title="Edit">
-                                <i class="fa fa-pencil-square-o"/>
-                            </a>
+                            <input wicket:id="editorIntent" type="text" class="form-control input-sm"/>
                         </dd>
                     </dl>
-                </div>
 
-                <div class="col-xs-6">
                     <dl class="dl-horizontal">
                         <dt>
-                            <label><wicket:message key="SchemaHandlingStep.label.protected" /></label>
-                            <i wicket:id="protectedTooltip" wicket:message="title:SchemaHandlingStep.tooltip.protected"/>
+                            <label><wicket:message key="SchemaHandlingStep.label.displayName" /></label>
                         </dt>
                         <dd>
-                            <a wicket:id="editorProtectedButton" class="btn btn-sm btn-primary" title="Edit">
-                                <i class="fa fa-pencil-square-o"/>
-                            </a>
+                            <input wicket:id="editorDisplayName" type="text" class="form-control input-sm"/>
                         </dd>
                     </dl>
-                </div>
-            </div>
 
-            <!-- Iteration and Protected -->
-            <div class="row">
-                <div class="col-xs-6">
                     <dl class="dl-horizontal">
                         <dt>
-                            <label><wicket:message key="SchemaHandlingStep.label.activation" /></label>
-                            <i wicket:id="activationTooltip" wicket:message="title:SchemaHandlingStep.tooltip.activation"/>
+                            <label><wicket:message key="SchemaHandlingStep.label.description" /></label>
                         </dt>
                         <dd>
-                            <a wicket:id="editorActivationButton" class="btn btn-sm btn-primary" title="Edit">
-                                <i class="fa fa-pencil-square-o"/>
-                            </a>
+                            <textarea wicket:id="editorDescription" class="form-control input-sm" rows="2"></textarea>
                         </dd>
                     </dl>
-                </div>
 
-                <div class="col-xs-6">
+                    <!-- Default and Dependency -->
+                    <div class="row">
+                        <div class="col-xs-6">
+                            <dl class="dl-horizontal">
+                                <dt>
+                                    <label><wicket:message key="SchemaHandlingStep.label.default" /></label>
+                                    <i wicket:id="defaultTooltip" wicket:message="title:SchemaHandlingStep.tooltip.default"/>
+                                </dt>
+                                <dd>
+                                    <input wicket:id="editorDefault" type="checkbox" value="checked"/>
+                                </dd>
+                            </dl>
+                        </div>
+                        <div class="col-xs-6">
+                            <dl class="dl-horizontal">
+                                <dt>
+                                    <label><wicket:message key="SchemaHandlingStep.label.dependency" /></label>
+                                    <i wicket:id="dependencyTooltip" wicket:message="title:SchemaHandlingStep.tooltip.dependency"/>
+                                </dt>
+                                <dd>
+                                    <a wicket:id="editorDependencyButton" class="btn btn-sm btn-primary" title="Edit">
+                                        <i class="fa fa-pencil-square-o"/>
+                                    </a>
+                                </dd>
+                            </dl>
+                        </div>
+                    </div>
+
                     <dl class="dl-horizontal">
                         <dt>
-                            <label><wicket:message key="SchemaHandlingStep.label.credentials" /></label>
-                            <i wicket:id="credentialsTooltip" wicket:message="title:SchemaHandlingStep.tooltip.credentials"/>
+                            <label><wicket:message key="SchemaHandlingStep.label.objectClass" /></label>
+                            <i wicket:id="objectClassTooltip" wicket:message="title:SchemaHandlingStep.tooltip.objectClass"/>
                         </dt>
                         <dd>
-                            <a wicket:id="editorCredentialsButton" class="btn btn-sm btn-primary" title="Edit">
-                                <i class="fa fa-pencil-square-o"/>
-                            </a>
+                            <input wicket:id="editorObjectClass" type="text" class="form-control input-sm"/>
                         </dd>
                     </dl>
+
+                    <!-- Attributes -->
+                    <dl class="dl-horizontal">
+                        <dt>
+                            <label><wicket:message key="SchemaHandlingStep.label.attributes" /></label>
+                            <i wicket:id="attributesTooltip" wicket:message="title:SchemaHandlingStep.tooltip.attributes"/>
+                        </dt>
+                        <div wicket:id="editorAttributes" />
+                    </dl>
+
+                    <!--Associations -->
+                    <dl class="dl-horizontal">
+                        <dt>
+                            <label><wicket:message key="SchemaHandlingStep.label.associations" /></label>
+                            <i wicket:id="associationsTooltip" wicket:message="title:SchemaHandlingStep.tooltip.associations"/>
+                        </dt>
+                        <div wicket:id="editorAssociations" />
+                    </dl>
+
+                    <dl class="dl-horizontal">
+                        <dt>
+                            <label><wicket:message key="SchemaHandlingStep.label.assignmentPolicyRef" /></label>
+                            <i wicket:id="assignmentPolicyRefTooltip" wicket:message="title:SchemaHandlingStep.tooltip.assignmentPolicyRef"/>
+                        </dt>
+                        <dd>
+                            <select wicket:id="editorAssignmentPolicyRef" class="form-control input-sm"></select>
+                        </dd>
+                    </dl>
+
+                    <!-- Iteration and Protected -->
+                    <div class="row">
+                        <div class="col-xs-6">
+                            <dl class="dl-horizontal">
+                                <dt>
+                                    <label><wicket:message key="SchemaHandlingStep.label.iteration" /></label>
+                                    <i wicket:id="iterationTooltip" wicket:message="title:SchemaHandlingStep.tooltip.iteration"/>
+                                </dt>
+                                <dd>
+                                    <a wicket:id="editorIterationButton" class="btn btn-sm btn-primary" title="Edit">
+                                        <i class="fa fa-pencil-square-o"/>
+                                    </a>
+                                </dd>
+                            </dl>
+                        </div>
+
+                        <div class="col-xs-6">
+                            <dl class="dl-horizontal">
+                                <dt>
+                                    <label><wicket:message key="SchemaHandlingStep.label.protected" /></label>
+                                    <i wicket:id="protectedTooltip" wicket:message="title:SchemaHandlingStep.tooltip.protected"/>
+                                </dt>
+                                <dd>
+                                    <a wicket:id="editorProtectedButton" class="btn btn-sm btn-primary" title="Edit">
+                                        <i class="fa fa-pencil-square-o"/>
+                                    </a>
+                                </dd>
+                            </dl>
+                        </div>
+                    </div>
+
+                    <!-- Iteration and Protected -->
+                    <div class="row">
+                        <div class="col-xs-6">
+                            <dl class="dl-horizontal">
+                                <dt>
+                                    <label><wicket:message key="SchemaHandlingStep.label.activation" /></label>
+                                    <i wicket:id="activationTooltip" wicket:message="title:SchemaHandlingStep.tooltip.activation"/>
+                                </dt>
+                                <dd>
+                                    <a wicket:id="editorActivationButton" class="btn btn-sm btn-primary" title="Edit">
+                                        <i class="fa fa-pencil-square-o"/>
+                                    </a>
+                                </dd>
+                            </dl>
+                        </div>
+
+                        <div class="col-xs-6">
+                            <dl class="dl-horizontal">
+                                <dt>
+                                    <label><wicket:message key="SchemaHandlingStep.label.credentials" /></label>
+                                    <i wicket:id="credentialsTooltip" wicket:message="title:SchemaHandlingStep.tooltip.credentials"/>
+                                </dt>
+                                <dd>
+                                    <a wicket:id="editorCredentialsButton" class="btn btn-sm btn-primary" title="Edit">
+                                        <i class="fa fa-pencil-square-o"/>
+                                    </a>
+                                </dd>
+                            </dl>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

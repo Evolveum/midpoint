@@ -66,7 +66,12 @@ public class WizardSteps extends SimplePanel<List<WizardStepDto>> {
                     protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
                         changeStepPerformed(target, dto);
                     }
-                };
+
+					@Override
+					protected void onError(AjaxRequestTarget target, Form<?> form) {
+						target.add(getPageBase().getFeedbackPanel());
+					}
+				};
                 item.add(button);
 
                 button.add(new VisibleEnableBehaviour() {

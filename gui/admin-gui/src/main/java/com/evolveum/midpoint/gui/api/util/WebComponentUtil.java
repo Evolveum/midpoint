@@ -18,6 +18,8 @@ package com.evolveum.midpoint.gui.api.util;
 
 import static com.evolveum.midpoint.gui.api.page.PageBase.createStringResourceStatic;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.lang.management.ManagementFactory;
 import java.lang.management.MemoryMXBean;
 import java.lang.management.RuntimeMXBean;
@@ -1431,5 +1433,14 @@ public final class WebComponentUtil {
 				debugDumpComponentTree(sb, sub, level + 1);
 			}
 		}
+	}
+
+	public static String exceptionToString(String message, Exception e) {
+		StringWriter sw = new StringWriter();
+		PrintWriter pw = new PrintWriter(sw);
+		pw.println(message);
+		e.printStackTrace(pw);
+		pw.close();
+		return sw.toString();
 	}
 }

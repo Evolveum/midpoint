@@ -17,15 +17,17 @@
 package com.evolveum.midpoint.web.component.wizard.resource.dto;
 
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+import org.apache.commons.lang.StringUtils;
 
 import java.io.Serializable;
 
 /**
  * @author lazyman
  */
-public class AttributeDto implements Serializable, Comparable<AttributeDto> {
+public class AttributeDto implements Serializable {
 
     public static final String F_NAME = "name";
+    public static final String F_NAME_CASE_INSENSITIVE = "nameCaseInsensitive";
     public static final String F_MIN_MAX_OCCURS = "minMaxOccurs";
     public static final String F_NATIVE_ATTRIBUTE_NAME = "nativeAttributeName";
     public static final String F_DISPLAY_NAME = "displayName";
@@ -40,6 +42,10 @@ public class AttributeDto implements Serializable, Comparable<AttributeDto> {
 
     public String getName() {
         return definition.getName().getLocalPart();
+    }
+
+    public String getfNameCaseInsensitive() {
+        return StringUtils.lowerCase(definition.getName().getLocalPart());
     }
 
     public String getMinMaxOccurs() {
@@ -65,10 +71,5 @@ public class AttributeDto implements Serializable, Comparable<AttributeDto> {
 
     public Boolean getReturnedByDefault() {
         return definition.getReturnedByDefault();
-    }
-
-    @Override
-    public int compareTo(AttributeDto o) {
-        return String.CASE_INSENSITIVE_ORDER.compare(getName(), o.getName());
     }
 }

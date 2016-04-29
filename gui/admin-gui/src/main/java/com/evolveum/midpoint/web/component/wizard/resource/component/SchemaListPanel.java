@@ -26,6 +26,7 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxButton;
+import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxColumn;
 import com.evolveum.midpoint.web.component.data.paging.NavigatorPanel;
@@ -133,7 +134,7 @@ public class SchemaListPanel extends SimplePanel<PrismObject<ResourceType>> {
 
         TextField objectClass = new TextField<>(ID_OBJECT_CLASS, new Model<>());
         objectClass.setOutputMarkupId(true);
-        objectClass.add(new AjaxFormComponentUpdatingBehavior("keyUp") {
+        objectClass.add(new AjaxFormComponentUpdatingBehavior("keyup") {
 
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
@@ -188,8 +189,8 @@ public class SchemaListPanel extends SimplePanel<PrismObject<ResourceType>> {
 
         initDetailsPanel();
 
-        ISortableDataProvider attributeProvider = new ListDataProvider<>(this, attributeModel);
-        TablePanel attributeTable = new TablePanel(ID_ATTRIBUTE_TABLE, attributeProvider, initColumns());
+        ISortableDataProvider<AttributeDto, String> attributeProvider = new ListDataProvider<>(this, attributeModel, true);
+        BoxedTablePanel<AttributeDto> attributeTable = new BoxedTablePanel<>(ID_ATTRIBUTE_TABLE, attributeProvider, initColumns());
         attributeTable.setOutputMarkupId(true);
         attributeTable.setItemsPerPage(UserProfileStorage.DEFAULT_PAGING_SIZE);
         attributeTable.setShowPaging(true);
@@ -243,16 +244,16 @@ public class SchemaListPanel extends SimplePanel<PrismObject<ResourceType>> {
         detailsContainer.add(defaultTooltip);
     }
 
-    private List<IColumn> initColumns() {
-        List<IColumn> columns = new ArrayList<>();
+    private List<IColumn<AttributeDto, String>> initColumns() {
+        List<IColumn<AttributeDto, String>> columns = new ArrayList<>();
 
-        columns.add(new PropertyColumn(createStringResource("SchemaListPanel.name"), AttributeDto.F_NAME));
-        columns.add(new PropertyColumn(createStringResource("SchemaListPanel.displayName"), AttributeDto.F_DISPLAY_NAME));
-        columns.add(new PropertyColumn(createStringResource("SchemaListPanel.nativeAttributeName"), AttributeDto.F_NATIVE_ATTRIBUTE_NAME));
-        columns.add(new PropertyColumn(createStringResource("SchemaListPanel.minMax"), AttributeDto.F_MIN_MAX_OCCURS));
-        columns.add(new PropertyColumn(createStringResource("SchemaListPanel.displayOrder"), AttributeDto.F_DISPLAY_ORDER));
+        columns.add(new PropertyColumn<AttributeDto, String>(createStringResource("SchemaListPanel.name"), AttributeDto.F_NAME, AttributeDto.F_NAME));
+        columns.add(new PropertyColumn<AttributeDto, String>(createStringResource("SchemaListPanel.displayName"), AttributeDto.F_DISPLAY_NAME));
+        columns.add(new PropertyColumn<AttributeDto, String>(createStringResource("SchemaListPanel.nativeAttributeName"), AttributeDto.F_NATIVE_ATTRIBUTE_NAME, AttributeDto.F_NATIVE_ATTRIBUTE_NAME));
+        columns.add(new PropertyColumn<AttributeDto, String>(createStringResource("SchemaListPanel.minMax"), AttributeDto.F_MIN_MAX_OCCURS));
+        columns.add(new PropertyColumn<AttributeDto, String>(createStringResource("SchemaListPanel.displayOrder"), AttributeDto.F_DISPLAY_ORDER, AttributeDto.F_DISPLAY_ORDER));
 
-        CheckBoxColumn check = new CheckBoxColumn(createStringResource("SchemaListPanel.returnedByDefault"), AttributeDto.F_RETURNED_BY_DEFAULT);
+        CheckBoxColumn<AttributeDto> check = new CheckBoxColumn<>(createStringResource("SchemaListPanel.returnedByDefault"), AttributeDto.F_RETURNED_BY_DEFAULT);
         check.setEnabled(false);
         columns.add(check);
 
@@ -266,6 +267,7 @@ public class SchemaListPanel extends SimplePanel<PrismObject<ResourceType>> {
     private void updateSearchPerformed(AjaxRequestTarget target, ObjectClassDataProvider dataProvider) {
         dataProvider.filterClasses(getObjectClassText().getModelObject());
         target.add(get(ID_TABLE_BODY));
+        target.add(get(ID_NAVIGATOR));
     }
 
     private void clearSearchPerformed(AjaxRequestTarget target, ObjectClassDataProvider dataProvider) {
@@ -305,8 +307,6 @@ public class SchemaListPanel extends SimplePanel<PrismObject<ResourceType>> {
         for (ResourceAttributeDefinition def : selected.getDefinition().getAttributeDefinitions()) {
             list.add(new AttributeDto(def));
         }
-
-        Collections.sort(list);
 
         return list;
     }

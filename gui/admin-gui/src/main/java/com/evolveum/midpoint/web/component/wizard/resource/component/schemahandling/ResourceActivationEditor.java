@@ -281,7 +281,7 @@ public class ResourceActivationEditor extends SimplePanel<ResourceActivationDefi
         add(fetchStrategy);
 
         MultiValueTextEditPanel outbound = new MultiValueTextEditPanel<MappingType>(outboundId,
-                new PropertyModel<List<MappingType>>(getModel(), containerValue + ".outbound"), false){
+                new PropertyModel<List<MappingType>>(getModel(), containerValue + ".outbound"), false, true){
 
             @Override
             protected IModel<String> createTextModel(final IModel<MappingType> model) {
@@ -308,7 +308,7 @@ public class ResourceActivationEditor extends SimplePanel<ResourceActivationDefi
         add(outbound);
 
         MultiValueTextEditPanel inbound = new MultiValueTextEditPanel<MappingType>(inboundId,
-                new PropertyModel<List<MappingType>>(getModel(), containerValue + ".inbound"), false){
+                new PropertyModel<List<MappingType>>(getModel(), containerValue + ".inbound"), false, true){
 
             @Override
             protected IModel<String> createTextModel(final IModel<MappingType> model) {

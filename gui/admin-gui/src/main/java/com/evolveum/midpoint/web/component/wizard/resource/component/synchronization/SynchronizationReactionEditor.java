@@ -29,7 +29,6 @@ import com.evolveum.midpoint.web.component.form.multivalue.MultiValueDropDownPan
 import com.evolveum.midpoint.web.component.form.multivalue.MultiValueTextEditPanel;
 import com.evolveum.midpoint.web.component.input.ObjectReferenceChoiceRenderer;
 import com.evolveum.midpoint.web.component.input.StringChoiceRenderer;
-import com.evolveum.midpoint.web.component.input.ThreeStateBooleanPanel;
 import com.evolveum.midpoint.web.component.input.TriStateComboPanel;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
@@ -158,7 +157,7 @@ public class SynchronizationReactionEditor extends SimplePanel<SynchronizationRe
         add(objectTemplateRef);
 
         MultiValueTextEditPanel action = new MultiValueTextEditPanel<SynchronizationActionType>(ID_ACTION,
-                new PropertyModel<List<SynchronizationActionType>>(getModel(), "action"), false){
+                new PropertyModel<List<SynchronizationActionType>>(getModel(), "action"), false, true){
 
             @Override
             protected IModel<String> createTextModel(final IModel<SynchronizationActionType> model) {

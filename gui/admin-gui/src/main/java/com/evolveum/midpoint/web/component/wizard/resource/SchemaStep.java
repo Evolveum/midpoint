@@ -26,6 +26,7 @@ import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AceEditor;
@@ -41,6 +42,7 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.tabs.AbstractTab;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 
 import java.util.ArrayList;
@@ -89,12 +91,10 @@ public class SchemaStep extends WizardStep {
 
     private IModel<String> createStringModel(String resourceKey) {
     	return PageBase.createStringResourceStatic(this, resourceKey);
-//        return new StringResourceModel(resourceKey, this, null, resourceKey);
     }
 
     private IModel<String> createXmlEditorModel() {
-        return new IModel<String>() {
-
+        return new AbstractReadOnlyModel<String>() {
             @Override
             public String getObject() {
                 PrismObject<ResourceType> resource = model.getObject();
@@ -106,32 +106,11 @@ public class SchemaStep extends WizardStep {
                 PageBase page = (PageBase) SchemaStep.this.getPage();
 
                 try {
-                    // probably not correct... test and fix [pm]
                     return page.getPrismContext().serializeContainerValueToString(xmlSchema.getValue(), SchemaConstantsGenerated.C_SCHEMA, PrismContext.LANG_XML);
-//                    Element root = page.getPrismContext().getParserDom().serializeToDom(xmlSchema.getValue(),
-//                            DOMUtil.createElement(SchemaConstantsGenerated.C_SCHEMA));
-//
-//                    Element schema = root != null ? DOMUtil.getFirstChildElement(root) : null;
-//                    if (schema == null) {
-//                        return null;
-//                    }
-//
-//                    return DOMUtil.serializeDOMToString(schema);
-                } catch (Exception ex) {
-                    ex.printStackTrace();
-                    //todo error handling
+                } catch (SchemaException|RuntimeException ex) {
+					LoggingUtils.logUnexpectedException(LOGGER, "Couldn't serialize resource schema", ex);
+					return WebComponentUtil.exceptionToString("Couldn't serialize resource schema", ex);
                 }
-
-                return null;
-            }
-
-            @Override
-            public void setObject(String object) {
-                //To change body of implemented methods use File | Settings | File Templates.
-            }
-
-            @Override
-            public void detach() {
             }
         };
     }

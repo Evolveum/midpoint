@@ -344,6 +344,9 @@ private static <T extends ObjectType> IColumn<SelectableBean<T>, String> getTask
 				@Override
 				public String getObject() {
 					T resource = rowModel.getObject().getValue();
+					if (resource == null) {
+						return "";			// shouldn't occur but sometimes does (e.g. when no connector is present)
+					}
 					return WebComponentUtil.createResourceIcon(resource.asPrismContainer());
 				}
 			};

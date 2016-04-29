@@ -18,16 +18,21 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
     <div class="row">
+
         <!-- First column - Object Class list -->
-        <div class="col-xs-5 col-sm-4 col-sm-offset-1 col-md-4 col-md-offset-1 col-lg-offset-1 col-lg-3">
-            <h3><wicket:message key="SchemaListPanel.objectClass"/></h3>
-            <table class="table table-striped table-condensed">
-                <thead>
-                <tr>
-                    <th>
-                        <div class="input-group">
-                            <input type="text" class="form-control input-sm" wicket:id="objectClass"
-                                   wicket:message="placeholder:SchemaListPanel.objectClass"/>
+        <div class="col-xs-5 col-sm-4 col-md-4 col-lg-3">
+            <div class="box box-solid box-default">
+                <div class="box-header">
+                    <h3 class="box-title"><wicket:message key="SchemaListPanel.objectClass"/></h3>
+                </div>
+                <div class="box-body">
+                    <table class="table table-striped table-condensed">
+                        <thead>
+                        <tr>
+                            <th>
+                                <div class="input-group">
+                                    <input type="text" class="form-control input-sm" wicket:id="objectClass"
+                                           wicket:message="placeholder:SchemaListPanel.objectClass"/>
 
                             <span class="input-group-btn">
                                 <a class="btn btn-danger btn-sm" wicket:id="clearSearch"
@@ -35,89 +40,103 @@
                                     <i class="fa fa-remove"/>
                                 </a>
                             </span>
-                        </div>
-                    </th>
-                </tr>
-                </thead>
-                <tbody wicket:id="tableBody">
-                    <tr wicket:id="objectClassList">
-                        <td><a wicket:id="classLink"><span wicket:id="label"/></a></td>
-                    </tr>
-                </tbody>
-            </table>
-            <div wicket:id="objectClassNavigator" />
+                                </div>
+                            </th>
+                        </tr>
+                        </thead>
+                        <tbody wicket:id="tableBody">
+                        <tr wicket:id="objectClassList">
+                            <td><a wicket:id="classLink"><span wicket:id="label"/></a></td>
+                        </tr>
+                        </tbody>
+                    </table>
+                    <div wicket:id="objectClassNavigator" style="padding-top: 20px" />
+                </div>
+            </div>
         </div>
 
         <!-- Second column - Object Class Details and Attributes -->
-        <div class="col-xs-7 col-sm-6 col-md-8 col-lg-7">
-            <h3><wicket:message key="SchemaListPanel.details"/></h3>
-            <div class="row" wicket:id="detailsPanel" style="margin-bottom: 0;">
-                <div class="col-md-6">
-                    <dl class="dl-horizontal">
-                        <dt>
-                            <label><wicket:message key="SchemaListPanel.details.displayName" /></label>
-                        </dt>
-                        <dd>
-                            <span wicket:id="displayName"/>
-                        </dd>
-                    </dl>
-
-                    <dl class="dl-horizontal">
-                        <dt>
-                            <label><wicket:message key="SchemaListPanel.details.description" /></label>
-                        </dt>
-                        <dd>
-                            <span wicket:id="description"/>
-                        </dd>
-                    </dl>
-
-                    <dl class="dl-horizontal">
-                        <dt>
-                            <label><wicket:message key="SchemaListPanel.details.kind" /></label>
-                            <i wicket:id="kindTooltip" wicket:message="title:SchemaStep.tooltip.kind"/>
-                        </dt>
-                        <dd>
-                            <span wicket:id="kind"/>
-                        </dd>
-                    </dl>
-
-                    <dl class="dl-horizontal">
-                        <dt>
-                            <label><wicket:message key="SchemaListPanel.details.intent" /></label>
-                            <i wicket:id="intentTooltip" wicket:message="title:SchemaStep.tooltip.intent"/>
-                        </dt>
-                        <dd>
-                            <span wicket:id="intent"/>
-                        </dd>
-                    </dl>
+        <div class="col-xs-7 col-sm-8 col-md-8 col-lg-9">
+            <div class="box box-solid box-default">
+                <div class="box-header">
+                    <h3 class="box-title"><wicket:message key="SchemaListPanel.details"/></h3>
                 </div>
+                <div class="box-body">
+                    <div class="row" wicket:id="detailsPanel" style="margin-bottom: 0;">
+                        <div class="col-md-6">
+                            <dl class="dl-horizontal">
+                                <dt>
+                                    <label><wicket:message key="SchemaListPanel.details.displayName" /></label>
+                                </dt>
+                                <dd>
+                                    <span wicket:id="displayName"/>
+                                </dd>
+                            </dl>
 
-                <div class="col-md-6">
-                    <dl class="dl-horizontal">
-                        <dt>
-                            <label><wicket:message key="SchemaListPanel.details.nativeObjectClass" /></label>
-                            <i wicket:id="nativeObjectClassTooltip" wicket:message="title:SchemaStep.tooltip.nativeObjectClass"/>
-                        </dt>
-                        <dd>
-                            <span wicket:id="nativeObjectClass"/>
-                        </dd>
-                    </dl>
+                            <dl class="dl-horizontal">
+                                <dt>
+                                    <label><wicket:message key="SchemaListPanel.details.description" /></label>
+                                </dt>
+                                <dd>
+                                    <span wicket:id="description"/>
+                                </dd>
+                            </dl>
 
-                    <dl class="dl-horizontal">
-                        <dt>
-                            <label><wicket:message key="SchemaListPanel.details.default" /></label>
-                            <i wicket:id="isDefaultTooltip" wicket:message="title:SchemaStep.tooltip.isDefault"/>
-                        </dt>
-                        <dd>
-                            <input wicket:id="isDefault" type="checkbox" />
-                        </dd>
-                    </dl>
+                            <dl class="dl-horizontal">
+                                <dt>
+                                    <label><wicket:message key="SchemaListPanel.details.kind" /></label>
+                                    <i wicket:id="kindTooltip" wicket:message="title:SchemaStep.tooltip.kind"/>
+                                </dt>
+                                <dd>
+                                    <span wicket:id="kind"/>
+                                </dd>
+                            </dl>
 
+                            <dl class="dl-horizontal">
+                                <dt>
+                                    <label><wicket:message key="SchemaListPanel.details.intent" /></label>
+                                    <i wicket:id="intentTooltip" wicket:message="title:SchemaStep.tooltip.intent"/>
+                                </dt>
+                                <dd>
+                                    <span wicket:id="intent"/>
+                                </dd>
+                            </dl>
+                        </div>
+
+                        <div class="col-md-6">
+                            <dl class="dl-horizontal">
+                                <dt>
+                                    <label><wicket:message key="SchemaListPanel.details.nativeObjectClass" /></label>
+                                    <i wicket:id="nativeObjectClassTooltip" wicket:message="title:SchemaStep.tooltip.nativeObjectClass"/>
+                                </dt>
+                                <dd>
+                                    <span wicket:id="nativeObjectClass"/>
+                                </dd>
+                            </dl>
+
+                            <dl class="dl-horizontal">
+                                <dt>
+                                    <label><wicket:message key="SchemaListPanel.details.default" /></label>
+                                    <i wicket:id="isDefaultTooltip" wicket:message="title:SchemaStep.tooltip.isDefault"/>
+                                </dt>
+                                <dd>
+                                    <input wicket:id="isDefault" type="checkbox" />
+                                </dd>
+                            </dl>
+
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <h3><wicket:message key="SchemaListPanel.attributes"/></h3>
-            <div wicket:id="attributeTable"/>
+            <div class="box box-solid box-default">
+                <div class="box-header">
+                    <h3 class="box-title"><wicket:message key="SchemaListPanel.attributes"/></h3>
+                </div>
+                <div class="box-body">
+                    <div wicket:id="attributeTable"/>
+                </div>
+            </div>
         </div>
     </div>
 </wicket:panel>

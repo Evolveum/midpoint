@@ -32,7 +32,7 @@ public class SchemaHandlingDto implements Serializable{
     public static final String F_SELECTED_OBJECT_CLASS = "selectedObjectClass";
 
     private List<ResourceObjectTypeDefinitionTypeDto> objectTypeList = new ArrayList<>();
-    private ResourceObjectTypeDefinitionType selected;
+    private ResourceObjectTypeDefinitionTypeDto selected;
     private String selectedObjectClass;
     private List<QName> objectClassList;
 
@@ -44,18 +44,18 @@ public class SchemaHandlingDto implements Serializable{
         this.objectTypeList = objectTypeList;
     }
 
-    public ResourceObjectTypeDefinitionType getSelected() {
+    public ResourceObjectTypeDefinitionTypeDto getSelected() {
         return selected;
     }
 
-    public void setSelected(ResourceObjectTypeDefinitionType selected) {
+    public void setSelected(ResourceObjectTypeDefinitionTypeDto selected) {
         this.selected = selected;
 
-        if(selected == null){
+        if (selected == null) {
             selectedObjectClass = null;
-        } else if(selected.getObjectClass() != null){
-            selectedObjectClass = selected.getObjectClass().getLocalPart();
-        } else if(selected.getObjectClass() == null){
+        } else if (selected.getObjectType().getObjectClass() != null) {
+            selectedObjectClass = selected.getObjectType().getObjectClass().getLocalPart();
+        } else if (selected.getObjectType().getObjectClass() == null) {
             selectedObjectClass = null;
         }
     }
@@ -74,17 +74,21 @@ public class SchemaHandlingDto implements Serializable{
 
     public void setSelectedObjectClass(String selectedObjectClass) {
         this.selectedObjectClass = selectedObjectClass;
-
-        if(selectedObjectClass == null && selected != null){
-            selected.setObjectClass(null);
-        }
-
-        if(selected != null){
-            for(QName q: objectClassList){
-                if(q.getLocalPart().equals(selectedObjectClass)){
-                    selected.setObjectClass(q);
-                }
-            }
-        }
+		if (selected != null) {
+			selected.getObjectType().setObjectClass(findObjectClassQName(selectedObjectClass));	// update object class in selected objectType container
+		}
     }
+
+	private QName findObjectClassQName(String localName) {
+		if (localName == null) {
+			return null;
+		}
+		for (QName q: objectClassList) {
+			if (localName.equals(q.getLocalPart())) {
+				return q;
+			}
+		}
+		return null;
+		//throw new IllegalStateException("No " + localName + " in object class list: " + objectClassList);
+	}
 }
