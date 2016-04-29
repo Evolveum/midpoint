@@ -552,6 +552,19 @@ public final class WebComponentUtil {
 
 		return name != null ? name.getOrig() : null;
 	}
+	
+	public static String getDisplayNameOrName(PrismObject object) {
+		if (object == null) {
+			return null;
+		}
+		if (object.canRepresent(OrgType.class)) {
+					PolyString displayName = getValue(object, OrgType.F_DISPLAY_NAME, PolyString.class);
+					if (displayName != null && displayName.getOrig() != null) {
+						return displayName.getOrig();
+					}
+		}
+		return getName(object);
+	}
 
 	public static String getIdentification(ObjectType object) {
 		if (object == null) {
@@ -935,11 +948,21 @@ public final class WebComponentUtil {
 				isEndUser = true;
 			}
 		}
+		
+		boolean isManager = false;
+		for (ObjectReferenceType parentOrgRef: user.getParentOrgRef()) {
+			if (SchemaConstants.ORG_MANAGER.equals(parentOrgRef.getRelation())) {
+				isManager = true;
+				break;
+			}
+		}
 
 		String additionalStyle = getIconEnabledDisabled(object);
 		if (additionalStyle == null) {
-			if (isEndUser) {
-				// Set end-user icon only as a last resort. All other colors have priority.
+			// Set manager and end-user icon only as a last resort. All other colors have priority.
+			if (isManager) {
+				additionalStyle = GuiStyleConstants.CLASS_ICON_STYLE_MANAGER;
+			} else if (isEndUser) {
 				additionalStyle = GuiStyleConstants.CLASS_ICON_STYLE_END_USER;
 			} else {
 				additionalStyle = GuiStyleConstants.CLASS_ICON_STYLE_NORMAL;
@@ -1042,13 +1065,17 @@ public final class WebComponentUtil {
 				continue;
 			}
 			if (StringUtils.equals(targetRef.getOid(), SystemObjectsType.ROLE_SUPERUSER.value())) {
-				return "User.superuser";
+				return "user.superuser";
 			}
 		}
 
 		ActivationType activation = user.getActivation();
-		if (activation != null && ActivationStatusType.DISABLED.equals(activation.getEffectiveStatus())) {
-			return "User.disabled";
+		if (activation != null) {
+			if (ActivationStatusType.DISABLED.equals(activation.getEffectiveStatus())) {
+				return "ActivationStatusType.DISABLED";
+			} else if (ActivationStatusType.ARCHIVED.equals(activation.getEffectiveStatus())) {
+				return "ActivationStatusType.ARCHIVED";
+			} 
 		}
 
 		return null;

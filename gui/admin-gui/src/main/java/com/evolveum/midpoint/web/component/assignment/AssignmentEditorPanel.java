@@ -376,7 +376,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
         body.add(relationContainer);
 
         TwoStateBooleanPanel relation = new TwoStateBooleanPanel(ID_RELATION, new PropertyModel<Boolean>(getModel(), AssignmentEditorDto.F_IS_ORG_UNIT_MANAGER),
-                "AssignmentEditorPanel.member", "AssignmentEditorPanel.manager", null);
+                "user.orgMember", "user.orgManager", null);
         relation.setOutputMarkupId(true);
         relation.setOutputMarkupPlaceholderTag(true);
         relation.setPanelEnabled(getModel().getObject().isEditable());
@@ -398,7 +398,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
                 }
 
                 AssignmentEditorDto object = getModel().getObject();
-                return object.isOrgUnitManager() ? getString("AssignmentEditorPanel.manager") : getString("AssignmentEditorPanel.member");
+                return object.isOrgUnitManager() ? getString("user.orgManager") : getString("user.orgMember");
             }
         });
         relationLabel.setOutputMarkupId(true);
@@ -800,7 +800,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
                 
                 if (targetObject == null) {
                 	AssignmentEditorDtoType type = assignmentEditorDto.getType();
-                    return type.getColoredIconCssClass();
+                    return type.getIconCssClass();
                 } else {
                 	return WebComponentUtil.createDefaultIcon(targetObject);
                 }                

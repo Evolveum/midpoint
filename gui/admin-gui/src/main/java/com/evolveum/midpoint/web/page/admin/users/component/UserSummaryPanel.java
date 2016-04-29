@@ -22,10 +22,12 @@ import javax.xml.namespace.QName;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.web.component.FocusSummaryPanel;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.component.util.SummaryTag;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
@@ -37,6 +39,7 @@ public class UserSummaryPanel extends FocusSummaryPanel<UserType> {
 	private static final long serialVersionUID = -5077637168906420769L;
 	
 	private static final String ID_TAG_SECURITY = "summaryTagSecurity";
+	private static final String ID_TAG_ORG = "summaryTagOrg";
 
 	public UserSummaryPanel(String id, IModel<ObjectWrapper<UserType>> model) {
 		super(id, model);
@@ -49,7 +52,7 @@ public class UserSummaryPanel extends FocusSummaryPanel<UserType> {
 				List<AssignmentType> assignments = wrapper.getObject().asObjectable().getAssignment();
 				if (assignments.isEmpty()) {
 					setIconCssClass(GuiStyleConstants.CLASS_ICON_NO_OBJECTS);
-					setLabel(getString("User.noAssignments"));
+					setLabel(getString("user.noAssignments"));
 					setCssClass(GuiStyleConstants.CLASS_ICON_STYLE_DISABLED);
 					return;
 				}
@@ -66,11 +69,11 @@ public class UserSummaryPanel extends FocusSummaryPanel<UserType> {
 				}
 				if (isSuperuser) {
 					setIconCssClass(GuiStyleConstants.CLASS_ICON_SUPERUSER);
-					setLabel(getString("User.superuser"));
+					setLabel(getString("user.superuser"));
 					setCssClass(GuiStyleConstants.CLASS_ICON_STYLE_PRIVILEGED);
 				} else if (isEndUser) {
 					setIconCssClass(GuiStyleConstants.CLASS_OBJECT_USER_ICON);
-					setLabel(getString("User.enduser"));
+					setLabel(getString("user.enduser"));
 					setCssClass(GuiStyleConstants.CLASS_ICON_STYLE_END_USER);
 				} else {
 					setHideTag(true);
@@ -78,6 +81,41 @@ public class UserSummaryPanel extends FocusSummaryPanel<UserType> {
 			}
 		};
 		addTag(tagSecurity);
+		
+		SummaryTag<UserType> tagOrg = new SummaryTag<UserType>(ID_TAG_ORG, model) {
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			protected void initialize(ObjectWrapper<UserType> wrapper) {
+				List<ObjectReferenceType> parentOrgRefs = wrapper.getObject().asObjectable().getParentOrgRef();
+				if (parentOrgRefs.isEmpty()) {
+					setIconCssClass(GuiStyleConstants.CLASS_ICON_NO_OBJECTS);
+					setLabel(getString("user.noOrgs"));
+					setCssClass(GuiStyleConstants.CLASS_ICON_STYLE_DISABLED);
+					return;
+				}
+				boolean isManager = false;
+				boolean isMember = false;
+				for (ObjectReferenceType parentOrgRef: wrapper.getObject().asObjectable().getParentOrgRef()) {
+					if (SchemaConstants.ORG_MANAGER.equals(parentOrgRef.getRelation())) {
+						isManager = true;
+					} else {
+						isMember = true;
+					}
+				}
+				if (isManager) {
+					setIconCssClass(GuiStyleConstants.CLASS_OBJECT_ORG_ICON);
+					setLabel(getString("user.orgManager"));
+					setCssClass(GuiStyleConstants.CLASS_ICON_STYLE_MANAGER);
+				} else if (isMember) {
+					setIconCssClass(GuiStyleConstants.CLASS_OBJECT_ORG_ICON);
+					setLabel(getString("user.orgMember"));
+				} else {
+					setHideTag(true);
+				}
+			}
+		};
+		addTag(tagOrg);
 	}
 
 	@Override

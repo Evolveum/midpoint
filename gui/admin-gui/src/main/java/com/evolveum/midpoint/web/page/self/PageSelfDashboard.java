@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,12 +15,37 @@
  */
 package com.evolveum.midpoint.web.page.self;
 
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType.F_WORK_ITEM_CREATED_TIMESTAMP;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+
+import org.apache.commons.lang.Validate;
+import org.apache.wicket.Application;
+import org.apache.wicket.Component;
+import org.apache.wicket.Session;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
+import org.apache.wicket.model.PropertyModel;
+import org.springframework.security.core.Authentication;
+
+import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismReference;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
@@ -30,14 +55,18 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.SecurityContextAwareCallable;
+import com.evolveum.midpoint.web.component.assignment.AssignmentEditorDtoType;
 import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
 import com.evolveum.midpoint.web.component.util.CallableResult;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.component.wf.WorkItemsPanel;
 import com.evolveum.midpoint.web.page.admin.home.component.AsyncDashboardPanel;
-import com.evolveum.midpoint.web.page.admin.home.component.DashboardColor;
+import com.evolveum.midpoint.web.page.admin.home.component.MyAccountsPanel;
+import com.evolveum.midpoint.web.page.admin.home.component.MyAssignmentsPanel;
 import com.evolveum.midpoint.web.page.admin.home.dto.AccountCallableResult;
+import com.evolveum.midpoint.web.page.admin.home.dto.AssignmentItemDto;
+import com.evolveum.midpoint.web.page.admin.home.dto.SimpleAccountDto;
 import com.evolveum.midpoint.web.page.admin.workflow.ProcessInstancesPanel;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.ProcessInstanceDto;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.ProcessInstanceDtoProvider;
@@ -45,23 +74,18 @@ import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemDto;
 import com.evolveum.midpoint.web.page.self.component.DashboardSearchPanel;
 import com.evolveum.midpoint.web.page.self.component.LinksPanel;
 import com.evolveum.midpoint.web.security.SecurityUtils;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RichHyperlinkType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType;
-import org.apache.commons.lang.Validate;
-import org.apache.wicket.Application;
-import org.apache.wicket.Component;
-import org.apache.wicket.Session;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
-import org.apache.wicket.model.PropertyModel;
-import org.springframework.security.core.Authentication;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType.F_WORK_ITEM_CREATED_TIMESTAMP;
 
 /**
  * @author Viliam Repan (lazyman)
@@ -81,14 +105,21 @@ public class PageSelfDashboard extends PageSelf {
     private static final String ID_WORK_ITEMS_PANEL = "workItemsPanel";
     private static final String ID_SEARCH_PANEL = "searchPanel";
     private static final String ID_REQUESTS_PANEL = "requestPanel";
+    private static final String ID_ACCOUNTS = "accounts";
+    private static final String ID_ASSIGNMENTS = "assignments";
+    
     private static final String DOT_CLASS = PageSelfDashboard.class.getName() + ".";
     private static final String OPERATION_LOAD_WORK_ITEMS = DOT_CLASS + "loadWorkItems";
     private static final String OPERATION_LOAD_REQUESTS = DOT_CLASS + "loadRequests";
-    private static final int MAX_WORK_ITEMS = 1000;
-    private static final int MAX_REQUESTS = 1000;
-    private final Model<PrismObject<UserType>> principalModel = new Model<PrismObject<UserType>>();
+    private static final String OPERATION_LOAD_ACCOUNTS = DOT_CLASS + "loadAccounts";
+    private static final String OPERATION_LOAD_ASSIGNMENTS = DOT_CLASS + "loadAssignments";
     private static final String OPERATION_LOAD_USER = DOT_CLASS + "loadUser";
     private static final String OPERATION_GET_SYSTEM_CONFIG = DOT_CLASS + "getSystemConfiguration";
+    
+    private static final int MAX_WORK_ITEMS = 1000;
+    private static final int MAX_REQUESTS = 1000;
+
+    private final Model<PrismObject<UserType>> principalModel = new Model<PrismObject<UserType>>();
 
     public PageSelfDashboard() {
         principalModel.setObject(loadUser());
@@ -116,6 +147,8 @@ public class PageSelfDashboard extends PageSelf {
             dashboardSearchPanel.setVisible(false);
         }
         LinksPanel linksPanel = new LinksPanel(ID_LINKS_PANEL, new IModel<List<RichHyperlinkType>>() {
+        	private static final long serialVersionUID = 1L;
+        	
             @Override
             public List<RichHyperlinkType> getObject() {
                 return loadLinksList();
@@ -139,14 +172,16 @@ public class PageSelfDashboard extends PageSelf {
 
 		AsyncDashboardPanel<Object, List<WorkItemDto>> workItemsPanel =
                 new AsyncDashboardPanel<Object, List<WorkItemDto>>(ID_WORK_ITEMS_PANEL, createStringResource("PageSelfDashboard.workItems"),
-                        "fa fa-fw fa-tasks", DashboardColor.RED) {
+                        GuiStyleConstants.CLASS_OBJECT_WORK_ITEM_ICON, GuiStyleConstants.CLASS_OBJECT_WORK_ITEM_BOX_CSS_CLASSES) {
+					private static final long serialVersionUID = 1L;
 
-                    @Override
+					@Override
                     protected SecurityContextAwareCallable<CallableResult<List<WorkItemDto>>> createCallable(
                             Authentication auth, IModel callableParameterModel) {
 
                         return new SecurityContextAwareCallable<CallableResult<List<WorkItemDto>>>(
                                 getSecurityEnforcer(), auth) {
+                        	private static final long serialVersionUID = 1L;
 
                             @Override
                             public CallableResult<List<WorkItemDto>> callWithContextPrepared() throws Exception {
@@ -173,7 +208,8 @@ public class PageSelfDashboard extends PageSelf {
 
         AsyncDashboardPanel<Object, List<ProcessInstanceDto>> myRequestsPanel =
                 new AsyncDashboardPanel<Object, List<ProcessInstanceDto>>(ID_REQUESTS_PANEL, createStringResource("PageSelfDashboard.myRequests"),
-                        "fa fa-fw fa-pencil-square-o", DashboardColor.GREEN) {
+                		 GuiStyleConstants.CLASS_SHADOW_ICON_REQUEST, GuiStyleConstants.CLASS_OBJECT_SERVICE_BOX_CSS_CLASSES) {
+        			private static final long serialVersionUID = 1L;
 
                     @Override
                     protected SecurityContextAwareCallable<CallableResult<List<ProcessInstanceDto>>> createCallable(
@@ -181,6 +217,7 @@ public class PageSelfDashboard extends PageSelf {
 
                         return new SecurityContextAwareCallable<CallableResult<List<ProcessInstanceDto>>>(
                                 getSecurityEnforcer(), auth) {
+                        	private static final long serialVersionUID = 1L;
 
                             @Override
                             public CallableResult<List<ProcessInstanceDto>> callWithContextPrepared() throws Exception {
@@ -198,13 +235,17 @@ public class PageSelfDashboard extends PageSelf {
                 };
 
         myRequestsPanel.add(new VisibleEnableBehaviour() {
+        	private static final long serialVersionUID = 1L;
+        	
             @Override
             public boolean isVisible() {
                 return getWorkflowManager().isEnabled();
             }
         });
         add(myRequestsPanel);
-
+        
+        initMyAccounts();
+        initAssignments();
     }
 
     private CallableResult<List<WorkItemDto>> loadWorkItems() {
@@ -299,5 +340,215 @@ public class PageSelfDashboard extends PageSelf {
             return ((PageBase)getPage()).loadAdminGuiConfiguration().getUserDashboardLink();
         }
     }
+    
+    private void initMyAccounts() {
+        AsyncDashboardPanel<Object, List<SimpleAccountDto>> accounts =
+                new AsyncDashboardPanel<Object, List<SimpleAccountDto>>(ID_ACCOUNTS, createStringResource("PageDashboard.accounts"),
+                        GuiStyleConstants.CLASS_SHADOW_ICON_ACCOUNT, GuiStyleConstants.CLASS_OBJECT_SHADOW_BOX_CSS_CLASSES) {
+					private static final long serialVersionUID = 1L;
+
+					@Override
+                    protected SecurityContextAwareCallable<CallableResult<List<SimpleAccountDto>>> createCallable(
+                            Authentication auth, IModel<Object> callableParameterModel) {
+
+                        return new SecurityContextAwareCallable<CallableResult<List<SimpleAccountDto>>>(
+                                getSecurityEnforcer(), auth) {
+
+                            @Override
+                            public AccountCallableResult<List<SimpleAccountDto>> callWithContextPrepared()
+                                    throws Exception {
+                                return loadAccounts();
+                            }
+                        };
+                    }
+
+                    @Override
+                    protected Component getMainComponent(String markupId) {
+                        return new MyAccountsPanel(markupId,
+                                new PropertyModel<List<SimpleAccountDto>>(getModel(), CallableResult.F_VALUE));
+                    }
+
+                    @Override
+                    protected void onPostSuccess(AjaxRequestTarget target) {
+                        showFetchResult();
+                        super.onPostSuccess(target);
+                    }
+
+                    @Override
+                    protected void onUpdateError(AjaxRequestTarget target, Exception ex) {
+                        showFetchResult();
+                        super.onUpdateError(target, ex);
+                    }
+
+                    private void showFetchResult() {
+                        AccountCallableResult<List<SimpleAccountDto>> result =
+                                (AccountCallableResult<List<SimpleAccountDto>>) getModel().getObject();
+
+                        PageBase page = (PageBase) getPage();
+                        for (OperationResult res : result.getFetchResults()) {
+                            if (!WebComponentUtil.isSuccessOrHandledError(res)) {
+                                page.showResult(res);
+                            }
+                        }
+                    }
+                };
+        add(accounts);
+    }
+    
+    private AccountCallableResult<List<SimpleAccountDto>> loadAccounts() throws Exception {
+        LOGGER.debug("Loading accounts.");
+
+        AccountCallableResult callableResult = new AccountCallableResult();
+        List<SimpleAccountDto> list = new ArrayList<SimpleAccountDto>();
+        callableResult.setValue(list);
+        PrismObject<UserType> user = principalModel.getObject();
+        if (user == null) {
+            return callableResult;
+        }
+
+        Task task = createSimpleTask(OPERATION_LOAD_ACCOUNTS);
+        OperationResult result = task.getResult();
+        callableResult.setResult(result);
+        GetOperationOptions getOpts = GetOperationOptions.createResolve();
+        getOpts.setNoFetch(Boolean.TRUE);
+        Collection<SelectorOptions<GetOperationOptions>> options =
+                SelectorOptions.createCollection(ShadowType.F_RESOURCE, getOpts);
+
+        
+        List<ObjectReferenceType> references = user.asObjectable().getLinkRef();
+        for (ObjectReferenceType reference : references) {
+            PrismObject<ShadowType> account = WebModelServiceUtils.loadObject(ShadowType.class, reference.getOid(),
+                    options, this, task, result);
+            if (account == null) {
+                continue;
+            }
+
+            ShadowType accountType = account.asObjectable();
+
+            OperationResultType fetchResult = accountType.getFetchResult();
+
+            if (fetchResult != null) {
+                callableResult.getFetchResults().add(OperationResult.createOperationResult(fetchResult));
+            }
+
+            ResourceType resource = accountType.getResource();
+            String resourceName = WebComponentUtil.getName(resource);
+            list.add(new SimpleAccountDto(WebComponentUtil.getOrigStringFromPoly(accountType.getName()), resourceName));
+        }
+        result.recordSuccessIfUnknown();
+        result.recomputeStatus();
+
+        LOGGER.debug("Finished accounts loading.");
+
+        return callableResult;
+    }
+
+    private void initAssignments() {
+        AsyncDashboardPanel<Object, List<AssignmentItemDto>> assignedOrgUnits =
+                new AsyncDashboardPanel<Object, List<AssignmentItemDto>>(ID_ASSIGNMENTS, createStringResource("PageDashboard.assignments"),
+                        GuiStyleConstants.CLASS_ICON_ASSIGNMENTS, GuiStyleConstants.CLASS_OBJECT_ROLE_BOX_CSS_CLASSES) {
+        			private static final long serialVersionUID = 1L;
+
+                    @Override
+                    protected SecurityContextAwareCallable<CallableResult<List<AssignmentItemDto>>> createCallable(
+                            Authentication auth, IModel callableParameterModel) {
+
+                        return new SecurityContextAwareCallable<CallableResult<List<AssignmentItemDto>>>(
+                                getSecurityEnforcer(), auth) {
+
+                            @Override
+                            public CallableResult<List<AssignmentItemDto>> callWithContextPrepared() throws Exception {
+                                return loadAssignments();
+                            }
+                        };
+                    }
+
+                    @Override
+                    protected Component getMainComponent(String markupId) {
+                        return new MyAssignmentsPanel(markupId,
+                                new PropertyModel<List<AssignmentItemDto>>(getModel(), CallableResult.F_VALUE));
+                    }
+                };
+        add(assignedOrgUnits);
+
+    }
+
+    private CallableResult<List<AssignmentItemDto>> loadAssignments() throws Exception {
+        LOGGER.debug("Loading assignments.");
+        CallableResult callableResult = new CallableResult();
+        List<AssignmentItemDto> list = new ArrayList<AssignmentItemDto>();
+        callableResult.setValue(list);
+
+        PrismObject<UserType> user = principalModel.getObject();
+        if (user == null || user.findContainer(UserType.F_ASSIGNMENT) == null) {
+            return callableResult;
+        }
+
+        Task task = createSimpleTask(OPERATION_LOAD_ASSIGNMENTS);
+        OperationResult result = task.getResult();
+        callableResult.setResult(result);
+
+        PrismContainer assignments = user.findContainer(UserType.F_ASSIGNMENT);
+        List<PrismContainerValue> values = assignments.getValues();
+        for (PrismContainerValue assignment : values) {
+            AssignmentItemDto item = createAssignmentItem(user, assignment, task, result);
+            if (item != null) {
+                list.add(item);
+            }
+        }
+        result.recordSuccessIfUnknown();
+        result.recomputeStatus();
+
+        Collections.sort(list);
+
+        LOGGER.debug("Finished assignments loading.");
+
+        return callableResult;
+    }
+
+	private AssignmentItemDto createAssignmentItem(PrismObject<UserType> user, PrismContainerValue assignment,
+			Task task, OperationResult result) {
+		PrismReference targetRef = assignment.findReference(AssignmentType.F_TARGET_REF);
+		if (targetRef == null || targetRef.isEmpty()) {
+			// account construction
+			PrismContainer construction = assignment.findContainer(AssignmentType.F_CONSTRUCTION);
+			String name = null;
+			if (construction.getValue().asContainerable() != null && !construction.isEmpty()) {
+				ConstructionType constr = (ConstructionType) construction.getValue().asContainerable();
+
+				if (constr.getResourceRef() != null) {
+					ObjectReferenceType resourceRef = constr.getResourceRef();
+
+					PrismObject resource = WebModelServiceUtils.loadObject(ResourceType.class,
+							resourceRef.getOid(), this, task, result);
+					name = WebComponentUtil.getName(resource);
+				}
+			}
+
+			return new AssignmentItemDto(AssignmentEditorDtoType.CONSTRUCTION, name, null, null);
+		}
+
+		PrismReferenceValue refValue = targetRef.getValue();
+		PrismObject value = refValue.getObject();
+		if (value == null) {
+			// resolve reference
+			value = WebModelServiceUtils.loadObject(ObjectType.class, refValue.getOid(), this, task, result);
+		}
+
+		if (value == null) {
+			// we couldn't resolve assignment details
+			return new AssignmentItemDto(null, null, null, null);
+		}
+
+		String name = WebComponentUtil.getDisplayNameOrName(value);
+		AssignmentEditorDtoType type = AssignmentEditorDtoType.getType(value.getCompileTimeClass());
+		String relation = refValue.getRelation() != null ? refValue.getRelation().getLocalPart() : null;
+		String description = null;
+		if (OrgType.class.isAssignableFrom(value.getCompileTimeClass())) {
+			description = (String) value.getPropertyRealValue(OrgType.F_IDENTIFIER, String.class);
+		}
+
+		return new AssignmentItemDto(type, name, description, relation);
+	}
 
 }
