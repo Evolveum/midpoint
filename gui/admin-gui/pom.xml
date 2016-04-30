@@ -583,6 +583,10 @@
 			<groupId>commons-collections</groupId>
 			<artifactId>commons-collections</artifactId>
 		</dependency>
+        <dependency>
+            <groupId>commons-beanutils</groupId>
+            <artifactId>commons-beanutils-core</artifactId>
+        </dependency>
 		<dependency>
 			<groupId>commons-javaflow</groupId>
 			<artifactId>commons-javaflow</artifactId>
