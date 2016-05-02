@@ -1,0 +1,397 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2016 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+ 
+<objects xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+         xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+         xmlns:org='http://midpoint.evolveum.com/xml/ns/public/common/org-3'>
+
+	<!-- Functional organizational structure -->
+
+	<org oid="00000000-ee88-6666-0000-100000001000">
+		<name>F1000</name>
+		<description>Evolveum, s.r.o.</description>
+		<displayName>Evolveum</displayName>
+		<identifier>1000</identifier>
+		<orgType>functional</orgType>
+		<costCenter>10</costCenter>
+		<locality>Bratislava</locality>
+	</org>
+
+	<org oid="00000000-ee88-6666-0000-100000001100">
+		<name>F1100</name>
+		<description>Software development, research, technologies.</description>
+		<parentOrgRef oid="00000000-ee88-6666-0000-100000001000" type="c:OrgType"/>
+		<displayName>Research and Development</displayName>
+		<identifier>1100</identifier>
+		<orgType>functional</orgType>
+		<costCenter>11</costCenter>
+	</org>
+
+	<org oid="00000000-ee88-6666-0000-100000001110">
+		<name>F1110</name>
+		<description>Software development and research</description>
+		<parentOrgRef oid="00000000-ee88-6666-0000-100000001100" type="c:OrgType"/>
+		<displayName>Development</displayName>
+		<identifier>1110</identifier>
+		<orgType>functional</orgType>
+		<costCenter>111</costCenter>
+	</org>
+
+	<org oid="00000000-ee88-6666-0000-100000001120">
+		<name>F1120</name>
+		<description>Testing and quality assurance</description>
+		<parentOrgRef oid="00000000-ee88-6666-0000-100000001100" type="c:OrgType"/>
+		<displayName>QA</displayName>
+		<identifier>1120</identifier>
+		<orgType>functional</orgType>
+		<costCenter>111</costCenter>
+	</org>
+
+	<org oid="00000000-ee88-6666-0000-100000001130">
+		<name>F1130</name>
+		<description>Support and professional services</description>
+		<parentOrgRef oid="00000000-ee88-6666-0000-100000001100" type="c:OrgType"/>
+		<displayName>Services</displayName>
+		<identifier>1130</identifier>
+		<orgType>functional</orgType>
+		<costCenter>113</costCenter>
+	</org>
+
+	<org oid="00000000-ee88-6666-0000-100000001200">
+		<name>F1200</name>
+		<parentOrgRef oid="00000000-ee88-6666-0000-100000001000" type="c:OrgType"/>
+		<displayName>Business</displayName>
+		<identifier>1200</identifier>
+		<orgType>functional</orgType>
+		<costCenter>12</costCenter>
+	</org>
+
+	<org oid="00000000-ee88-6666-0000-100000001210">
+		<name>F1210</name>
+		<description>Marketing and PR</description>
+		<parentOrgRef oid="00000000-ee88-6666-0000-100000001200" type="c:OrgType"/>
+		<displayName>Marketing</displayName>
+		<identifier>1210</identifier>
+		<orgType>functional</orgType>
+		<costCenter>121</costCenter>
+	</org>
+
+	<org oid="00000000-ee88-6666-0000-100000001220">
+		<name>F1220</name>
+		<description>Accounting, bookkeeping and HR</description>
+		<parentOrgRef oid="00000000-ee88-6666-0000-100000001200" type="c:OrgType"/>
+		<displayName>Accounting</displayName>
+		<identifier>1220</identifier>
+		<orgType>functional</orgType>
+		<costCenter>122</costCenter>
+	</org>
+
+	<!-- Project organizational structure -->
+
+	<org oid="00000000-ee88-6666-0000-200000000000">
+		<name>PRoot</name>
+		<description>Project organizational structure root</description>
+		<displayName>Projects</displayName>
+		<orgType>project</orgType>
+	</org>
+
+	<org oid="00000000-ee88-6666-0000-200000000001">
+		<name>P0001</name>
+		<parentOrgRef oid="00000000-ee88-6666-0000-200000000000" type="c:OrgType"/>
+		<displayName>midPoint</displayName>
+		<identifier>0001</identifier>
+		<orgType>project</orgType>
+	</org>
+
+	<org oid="00000000-ee88-6666-0000-200000000002">
+		<name>P0002</name>
+		<parentOrgRef oid="00000000-ee88-6666-0000-200000000000" type="c:OrgType"/>
+		<displayName>ConnId</displayName>
+		<identifier>0002</identifier>
+		<orgType>project</orgType>
+	</org>
+
+	<org oid="00000000-ee88-6666-0000-200000000003">
+		<name>P0003</name>
+		<parentOrgRef oid="00000000-ee88-6666-0000-200000000000" type="c:OrgType"/>
+		<displayName>LDAP Connector</displayName>
+		<identifier>0003</identifier>
+		<orgType>project</orgType>
+	</org>
+
+	<org oid="00000000-ee88-6666-0000-200000000004">
+		<name>P0004</name>
+		<parentOrgRef oid="00000000-ee88-6666-0000-200000000000" type="c:OrgType"/>
+		<displayName>OpenStack Integration</displayName>
+		<identifier>0004</identifier>
+		<orgType>project</orgType>
+	</org>
+	
+	<org oid="00000000-ee88-6666-0000-200000000005">
+		<name>P0005</name>
+		<parentOrgRef oid="00000000-ee88-6666-0000-200000000000" type="c:OrgType"/>
+		<displayName>Website</displayName>
+		<identifier>0005</identifier>
+		<orgType>project</orgType>
+	</org>
+
+	<!-- Users -->
+
+	<user>
+		<name>ifarinic</name>
+		<parentOrgRef oid="00000000-ee88-6666-0000-100000001200" type="c:OrgType"/> <!-- No "relation" in the ref means "member" -->
+		<parentOrgRef oid="00000000-ee88-6666-0000-100000001200" type="c:OrgType" relation="org:manager"/>
+		<parentOrgRef oid="00000000-ee88-6666-0000-100000001000" type="c:OrgType" relation="org:manager"/>
+		<parentOrgRef oid="00000000-ee88-6666-0000-200000000004" type="c:OrgType"/>
+		<parentOrgRef oid="00000000-ee88-6666-0000-200000000005" type="c:OrgType"/>
+		<assignment>
+			<targetRef oid="00000000-ee88-6666-0000-100000001200" type="c:OrgType"/>
+		</assignment>
+		<assignment>
+			<targetRef oid="00000000-ee88-6666-0000-100000001200" type="c:OrgType" relation="org:manager"/>
+		</assignment>
+		<assignment>
+			<targetRef oid="00000000-ee88-6666-0000-100000001000" type="c:OrgType" relation="org:manager"/>
+		</assignment>
+		<assignment>
+			<targetRef oid="00000000-ee88-6666-0000-200000000004" type="c:OrgType"/>
+		</assignment>
+		<assignment>
+			<targetRef oid="00000000-ee88-6666-0000-200000000005" type="c:OrgType"/>
+		</assignment>
+		<fullName>Mgr. Igor Farinič</fullName>
+		<givenName>Igor</givenName>
+		<familyName>Farinič</familyName>
+		<honorificPrefix>Mgr.</honorificPrefix>
+		<locality>Košice</locality>
+		<title>CEO</title>
+	</user>
+
+	<user>
+		<name>semancik</name>
+		<parentOrgRef oid="00000000-ee88-6666-0000-100000001100" type="c:OrgType"/> <!-- No "relation" in the ref means "member" -->
+		<parentOrgRef oid="00000000-ee88-6666-0000-100000001100" type="c:OrgType" relation="org:manager"/>
+		<parentOrgRef oid="00000000-ee88-6666-0000-200000000001" type="c:OrgType"/>
+		<parentOrgRef oid="00000000-ee88-6666-0000-200000000001" type="c:OrgType" relation="org:manager"/>
+		<parentOrgRef oid="00000000-ee88-6666-0000-200000000002" type="c:OrgType"/>
+		<parentOrgRef oid="00000000-ee88-6666-0000-200000000003" type="c:OrgType"/>
+		<parentOrgRef oid="00000000-ee88-6666-0000-200000000003" type="c:OrgType" relation="org:manager"/>
+		<assignment>
+			<targetRef oid="00000000-ee88-6666-0000-100000001100" type="c:OrgType"/>
+		</assignment>
+		<assignment>
+			<targetRef oid="00000000-ee88-6666-0000-100000001100" type="c:OrgType" relation="org:manager"/>
+		</assignment>
+		<assignment>
+			<targetRef oid="00000000-ee88-6666-0000-200000000001" type="c:OrgType"/>
+		</assignment>
+		<assignment>
+			<targetRef oid="00000000-ee88-6666-0000-200000000001" type="c:OrgType" relation="org:manager"/>
+		</assignment>
+		<assignment>
+			<targetRef oid="00000000-ee88-6666-0000-200000000002" type="c:OrgType"/>
+		</assignment>
+		<assignment>
+			<targetRef oid="00000000-ee88-6666-0000-200000000003" type="c:OrgType"/>
+		</assignment>
+		<assignment>
+			<targetRef oid="00000000-ee88-6666-0000-200000000003" type="c:OrgType" relation="org:manager"/>
+		</assignment>
+		<fullName>Ing. Radovan Semančík, PhD</fullName>
+		<givenName>Radovan</givenName>
+		<familyName>Semančík</familyName>
+		<honorificPrefix>Ing.</honorificPrefix>
+		<honorificSuffix>PhD</honorificSuffix>
+		<locality>Lozorno</locality>
+		<title>Software Architect</title>
+	</user>
+
+	<user>
+		<name>katkav</name>
+		<parentOrgRef oid="00000000-ee88-6666-0000-100000001110" type="c:OrgType"/>
+		<parentOrgRef oid="00000000-ee88-6666-0000-200000000001" type="c:OrgType"/>
+		<parentOrgRef oid="00000000-ee88-6666-0000-200000000004" type="c:OrgType"/>
+		<parentOrgRef oid="00000000-ee88-6666-0000-200000000004" type="c:OrgType"  relation="org:manager"/>
+		<assignment>
+			<targetRef oid="00000000-ee88-6666-0000-100000001110" type="c:OrgType"/>
+		</assignment>
+		<assignment>
+			<targetRef oid="00000000-ee88-6666-0000-200000000001" type="c:OrgType"/>
+		</assignment>
+		<assignment>
+			<targetRef oid="00000000-ee88-6666-0000-200000000004" type="c:OrgType"/>
+		</assignment>
+		<assignment>
+			<targetRef oid="00000000-ee88-6666-0000-200000000004" type="c:OrgType" relation="org:manager"/>
+		</assignment>
+		<fullName>Ing. Katarína Valaliková</fullName>
+		<givenName>Katarína</givenName>
+		<familyName>Valaliková</familyName>
+		<honorificPrefix>Ing.</honorificPrefix>
+		<locality>Bratislava</locality>
+		<title>Software Developer</title>
+	</user>
+
+	<user>
+		<name>mederly</name>
+		<parentOrgRef oid="00000000-ee88-6666-0000-100000001110" type="c:OrgType"/>
+		<parentOrgRef oid="00000000-ee88-6666-0000-200000000001" type="c:OrgType"/>
+		<parentOrgRef oid="00000000-ee88-6666-0000-200000000002" type="c:OrgType"/>
+		<assignment>
+			<targetRef oid="00000000-ee88-6666-0000-100000001110" type="c:OrgType"/>
+		</assignment>
+		<assignment>
+			<targetRef oid="00000000-ee88-6666-0000-200000000001" type="c:OrgType"/>
+		</assignment>
+		<assignment>
+			<targetRef oid="00000000-ee88-6666-0000-200000000002" type="c:OrgType"/>
+		</assignment>
+		<fullName>Mgr. Pavol Mederly, PhD</fullName>
+		<givenName>Pavol</givenName>
+		<familyName>Mederly</familyName>
+		<honorificPrefix>Mgr.</honorificPrefix>
+		<honorificSuffix>PhD</honorificSuffix>
+		<locality>Kalná nad Hronom</locality>
+		<title>Software Developer</title>
+	</user>
+	
+	<user>
+		<name>lazyman</name>
+		<parentOrgRef oid="00000000-ee88-6666-0000-100000001110" type="c:OrgType"/>
+		<parentOrgRef oid="00000000-ee88-6666-0000-200000000001" type="c:OrgType"/>
+		<assignment>
+			<targetRef oid="00000000-ee88-6666-0000-100000001110" type="c:OrgType"/>
+		</assignment>
+		<assignment>
+			<targetRef oid="00000000-ee88-6666-0000-200000000001" type="c:OrgType"/>
+		</assignment>
+		<fullName>Ing. Viliam Repáň</fullName>
+		<givenName>Viliam</givenName>
+		<familyName>Repáň</familyName>
+		<honorificPrefix>Ing.</honorificPrefix>
+		<locality>Bratislava</locality>
+		<title>Software Developer</title>
+	</user>
+	
+	<user>
+		<name>honchar</name>
+		<parentOrgRef oid="00000000-ee88-6666-0000-100000001110" type="c:OrgType"/>
+		<parentOrgRef oid="00000000-ee88-6666-0000-200000000001" type="c:OrgType"/>
+		<assignment>
+			<targetRef oid="00000000-ee88-6666-0000-100000001110" type="c:OrgType"/>
+		</assignment>
+		<assignment>
+			<targetRef oid="00000000-ee88-6666-0000-200000000001" type="c:OrgType"/>
+		</assignment>
+		<fullName>Kate Honchar</fullName>
+		<givenName>Kate</givenName>
+		<familyName>Honchar</familyName>
+		<locality>Bratislava</locality>
+		<title>Software Developer</title>
+	</user>
+
+	<user>
+		<name>vix</name>
+		<parentOrgRef oid="00000000-ee88-6666-0000-100000001120" type="c:OrgType"/>
+		<parentOrgRef oid="00000000-ee88-6666-0000-100000001130" type="c:OrgType"/>
+		<parentOrgRef oid="00000000-ee88-6666-0000-100000001130" type="c:OrgType" relation="org:manager"/>
+		<parentOrgRef oid="00000000-ee88-6666-0000-200000000001" type="c:OrgType"/>
+		<assignment>
+			<targetRef oid="00000000-ee88-6666-0000-100000001120" type="c:OrgType"/>
+		</assignment>
+		<assignment>
+			<targetRef oid="00000000-ee88-6666-0000-100000001130" type="c:OrgType"/>
+		</assignment>
+		<assignment>
+			<targetRef oid="00000000-ee88-6666-0000-100000001130" type="c:OrgType" relation="org:manager"/>
+		</assignment>
+		<assignment>
+			<targetRef oid="00000000-ee88-6666-0000-200000000001" type="c:OrgType"/>
+		</assignment>
+		<fullName>Ing. Ivan Noris</fullName>
+		<givenName>Ivan</givenName>
+		<familyName>Noris</familyName>
+		<honorificPrefix>Ing.</honorificPrefix>
+		<locality>Bratislava</locality>
+		<title>IDM Engineer</title>
+	</user>
+	
+	<user>
+		<name>oscar</name>
+		<parentOrgRef oid="00000000-ee88-6666-0000-100000001120" type="c:OrgType"/>
+		<parentOrgRef oid="00000000-ee88-6666-0000-100000001130" type="c:OrgType"/>		
+		<parentOrgRef oid="00000000-ee88-6666-0000-200000000001" type="c:OrgType"/>
+		<assignment>
+			<targetRef oid="00000000-ee88-6666-0000-100000001120" type="c:OrgType"/>
+		</assignment>
+		<assignment>
+			<targetRef oid="00000000-ee88-6666-0000-100000001130" type="c:OrgType"/>
+		</assignment>
+		<assignment>
+			<targetRef oid="00000000-ee88-6666-0000-200000000001" type="c:OrgType"/>
+		</assignment>
+		<fullName>Mgr. Gustáv Pálos</fullName>
+		<givenName>Gustáv</givenName>
+		<familyName>Pálos</familyName>
+		<honorificPrefix>Mgr.</honorificPrefix>
+		<locality>Bratislava</locality>
+		<title>IDM Engineer</title>
+	</user>
+	
+	<user>
+		<name>zibri</name>
+		<parentOrgRef oid="00000000-ee88-6666-0000-100000001220" type="c:OrgType"/>		
+		<parentOrgRef oid="00000000-ee88-6666-0000-100000001220" type="c:OrgType" relation="org:manager"/>
+		<assignment>
+			<targetRef oid="00000000-ee88-6666-0000-100000001220" type="c:OrgType"/>
+		</assignment>
+		<assignment>
+			<targetRef oid="00000000-ee88-6666-0000-100000001220" type="c:OrgType" relation="org:manager"/>
+		</assignment>
+		<fullName>Andrea Žibritovská</fullName>
+		<givenName>Andrea</givenName>
+		<familyName>Žibritovská</familyName>
+		<locality>Bratislava</locality>
+		<title>CFO</title>
+	</user>
+
+	<user>
+		<name>vera</name>
+		<parentOrgRef oid="00000000-ee88-6666-0000-100000001220" type="c:OrgType"/>		
+		<parentOrgRef oid="00000000-ee88-6666-0000-100000001220" type="c:OrgType" relation="org:manager"/>
+		<parentOrgRef oid="00000000-ee88-6666-0000-200000000005" type="c:OrgType"/>		
+		<parentOrgRef oid="00000000-ee88-6666-0000-200000000005" type="c:OrgType" relation="org:manager"/>
+		<assignment>
+			<targetRef oid="00000000-ee88-6666-0000-100000001220" type="c:OrgType"/>
+		</assignment>
+		<assignment>
+			<targetRef oid="00000000-ee88-6666-0000-100000001220" type="c:OrgType" relation="org:manager"/>
+		</assignment>
+		<assignment>
+			<targetRef oid="00000000-ee88-6666-0000-200000000005" type="c:OrgType"/>
+		</assignment>
+		<assignment>
+			<targetRef oid="00000000-ee88-6666-0000-200000000005" type="c:OrgType" relation="org:manager"/>
+		</assignment>
+		<fullName>Veronika Kolpaščikovová</fullName>
+		<givenName>Veronika</givenName>
+		<familyName>Kolpaščikovová</familyName>
+		<locality>Zvolen</locality>
+		<title>Marketing Specialist</title>
+	</user>
+	
+</objects>
