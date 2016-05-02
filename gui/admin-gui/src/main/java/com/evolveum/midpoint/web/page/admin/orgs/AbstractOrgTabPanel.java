@@ -99,6 +99,12 @@ public abstract class AbstractOrgTabPanel extends BasePanel{
         AjaxTabbedPanel<ITab> tabbedPanel = new AjaxTabbedPanel<ITab>(ID_TABS, tabModel.getObject(), new Model<>(selectedTab), null){
 
 			private static final long serialVersionUID = 1L;
+			
+			@Override
+			public TabbedPanel<ITab> setSelectedTab(int index) {
+				changeTabPerformed(index);
+				return super.setSelectedTab(index);
+			}
 //			@Override
 //			public TabbedPanel<ITab> setSelectedTab(int index) {
 //				return super.setSelectedTab(index);
