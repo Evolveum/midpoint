@@ -28,6 +28,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.AjaxTabbedPanel;
 import com.evolveum.midpoint.web.component.TabbedPanel;
 import com.evolveum.midpoint.web.session.SessionStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
@@ -95,11 +96,18 @@ public abstract class AbstractOrgTabPanel extends BasePanel{
             storage.getUsers().setSelectedTabId(0);
             selectedTab = 0;
         }
-        TabbedPanel tabbedPanel = new TabbedPanel(ID_TABS, tabModel, new Model<>(selectedTab), null){
-            @Override
-            protected void onTabChange(int index) {
-                changeTabPerformed(index);
-            }
+        AjaxTabbedPanel<ITab> tabbedPanel = new AjaxTabbedPanel<ITab>(ID_TABS, tabModel.getObject(), new Model<>(selectedTab), null){
+
+			private static final long serialVersionUID = 1L;
+//			@Override
+//			public TabbedPanel<ITab> setSelectedTab(int index) {
+//				return super.setSelectedTab(index);
+//			}
+        	
+//            @Override
+//            protected void onTabChange(int index) {
+//                changeTabPerformed(index);
+//            }
         };
         tabbedPanel.setOutputMarkupId(true);
         
@@ -113,8 +121,8 @@ public abstract class AbstractOrgTabPanel extends BasePanel{
 		return (Panel) get(ID_TABS).get("panel");
 	}
 	
-	public TabbedPanel getTabbedPanel(){
-		return (TabbedPanel) get(ID_TABS);
+	public AjaxTabbedPanel<ITab> getTabbedPanel(){
+		return (AjaxTabbedPanel) get(ID_TABS);
 	}
 
 	protected abstract Panel createTreePanel(String id, Model<String> model, PageBase pageBase);
