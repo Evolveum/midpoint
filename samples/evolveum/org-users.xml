@@ -379,15 +379,15 @@
 
 	<user>
 		<name>vera</name>
-		<parentOrgRef oid="00000000-ee88-6666-0000-100000001220" type="c:OrgType"/>		
-		<parentOrgRef oid="00000000-ee88-6666-0000-100000001220" type="c:OrgType" relation="org:manager"/>
+		<parentOrgRef oid="00000000-ee88-6666-0000-100000001210" type="c:OrgType"/>		
+		<parentOrgRef oid="00000000-ee88-6666-0000-100000001210" type="c:OrgType" relation="org:manager"/>
 		<parentOrgRef oid="00000000-ee88-6666-0000-200000000005" type="c:OrgType"/>		
 		<parentOrgRef oid="00000000-ee88-6666-0000-200000000005" type="c:OrgType" relation="org:manager"/>
 		<assignment>
-			<targetRef oid="00000000-ee88-6666-0000-100000001220" type="c:OrgType"/>
+			<targetRef oid="00000000-ee88-6666-0000-100000001210" type="c:OrgType"/>
 		</assignment>
 		<assignment>
-			<targetRef oid="00000000-ee88-6666-0000-100000001220" type="c:OrgType" relation="org:manager"/>
+			<targetRef oid="00000000-ee88-6666-0000-100000001210" type="c:OrgType" relation="org:manager"/>
 		</assignment>
 		<assignment>
 			<targetRef oid="00000000-ee88-6666-0000-200000000005" type="c:OrgType"/>
