@@ -1426,6 +1426,8 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 	public void redirectBack() {
 		List<Breadcrumb> breadcrumbs = getSessionStorage().getBreadcrumbs();
 		if (breadcrumbs.size() < 2) {
+			getSessionStorage().clearBreadcrumbs();
+
 			if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_DASHBOARD_URL,
 					AuthorizationConstants.AUTZ_UI_HOME_ALL_URL)) {
 				setResponsePage(PageDashboard.class);
