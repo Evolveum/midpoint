@@ -302,36 +302,6 @@ public abstract class ResourceContentPanel extends Panel {
 			}
 		});
 
-		// List<IColumn> columns = initColumns();
-		// ObjectListPanel<ShadowType> table = new
-		// ObjectListPanel<ShadowType>(ID_TABLE, ShadowType.class,
-		// getPageBase()){
-		// @Override
-		// protected List<IColumn<SelectableBean<ShadowType>, String>>
-		// initColumns() {
-		// return (List) ResourceContentPanel.this.initColumns();
-		// }
-		// };
-		// final BoxedTablePanel<SelectableBean<ShadowType>> table = new
-		// BoxedTablePanel(ID_TABLE, provider, columns,
-		// UserProfileStorage.TableId.PAGE_RESOURCE_ACCOUNTS_PANEL, 10) {
-		//
-		// @Override
-		// protected WebMarkupContainer createHeader(String headerId) {
-		// return new SearchFormPanel(headerId, searchModel) {
-		//
-		// @Override
-		// protected void searchPerformed(ObjectQuery query, AjaxRequestTarget
-		// target) {
-		// ResourceContentPanel.this.searchPerformed(query, target);
-		// }
-		// };
-		// }
-		// }; //
-		// parentPage.getItemsPerPage(UserProfileStorage.TableId.PAGE_RESOURCE_ACCOUNTS_PANEL)
-		// table.setOutputMarkupId(true);
-		// add(table);
-
 		OperationResult result = new OperationResult(OPERATION_SEARCH_TASKS_FOR_RESOURCE);
 
 		List<PrismObject<TaskType>> tasks = WebModelServiceUtils
@@ -474,71 +444,19 @@ public abstract class ResourceContentPanel extends Panel {
 			}
 		};
 
-		// try {
-		//
 		ObjectQuery query = createQuery();
-		// provider.setQuery(query);
 
 		if (query == null) {
-			// Label label = new Label(ID_TABLE, "Nothing to show. Select intent
-			// to search");
-			// add(label);
 			initCustomLayout();
 			return provider;
 
 		}
-
-		// } catch (SchemaException e) {
-		// Label label = new Label(ID_TABLE, "Nothing to show. Select intent to
-		// search");
-		// add(label);
-		// initCustomLayout();
-		// return provider;
-		// }
 
 		provider.setEmptyListOnNullQuery(true);
 		provider.setSort(null);
 		createSearchOptions(provider);
 		return provider;
 	}
-
-	// private void searchPerformed(ObjectQuery query, AjaxRequestTarget target)
-	// {
-	// BoxedTablePanel<SelectableBean<ShadowType>> table = getTable();
-	// ObjectDataProvider2<SelectableBean<ShadowType>, ShadowType> provider =
-	// (ObjectDataProvider2<SelectableBean<ShadowType>, ShadowType>) table
-	// .getDataTable().getDataProvider();
-	//// BaseSortableDataProvider<SelectableBean<T>> provider =
-	// getDataProvider();
-	// ObjectQuery baseQuery;
-	//// try {
-	// baseQuery = createQuery();
-	// if (baseQuery == null){
-	// warn("Could not search objects if either kind/intet or object class is
-	// set.");
-	// return;
-	// }
-	//// } catch (SchemaException e) {
-	//// warn("Could not create query.");
-	//// return;
-	//// }
-	//
-	//
-	// ObjectQuery customQuery =
-	// ObjectQuery.createObjectQuery(AndFilter.createAnd(baseQuery.getFilter(),
-	// query.getFilter()));
-	// provider.setQuery(customQuery);
-	//
-	// // RolesStorage storage = getSessionStorage().getRoles();
-	// // storage.setRolesSearch(searchModel.getObject());
-	// // storage.setRolesPaging(null);
-	//
-	// table = getTable();
-	// table.setCurrentPage(null);
-	// target.add((Component) table);
-	// target.add(getPageBase().getFeedbackPanel());
-
-	// }
 
 	protected void initCustomLayout() {
 		// Nothing to do, for subclass extension
@@ -569,8 +487,6 @@ public abstract class ResourceContentPanel extends Panel {
 				}
 			}
 		} catch (SchemaException ex) {
-			// LOGGER.error("Could not crate query for shadows: " +
-			// ex.getMessage(), e);
 			LoggingUtils.logException(LOGGER, "Could not crate query for shadows: " + ex.getMessage(), ex);
 		}
 		return baseQuery;
@@ -584,13 +500,10 @@ public abstract class ResourceContentPanel extends Panel {
 				ShadowType.F_ASSOCIATION, GetOperationOptions.createRetrieve(RetrieveOption.EXCLUDE));
 
 		if (addAdditionalOptions() != null) {
-			opts.add(addAdditionalOptions()); // new
-												// SelectorOptions<GetOperationOptions>(GetOperationOptions.createNoFetch()));
+			opts.add(addAdditionalOptions());
 		}
 		provider.setUseObjectCounting(isUseObjectCounting());
 		provider.setOptions(opts);
-		// return opts;
-
 	}
 
 	private StringResourceModel createStringResource(String key) {
@@ -607,26 +520,6 @@ public abstract class ResourceContentPanel extends Panel {
 						ShadowType.F_INTENT.getLocalPart()));
 
 		List<IColumn<SelectableBean<ShadowType>, String>> columns = new ArrayList<>();
-		// IColumn column = new CheckBoxColumn(new Model<String>(),
-		// SelectableBean.F_SELECTED);
-		// columns.add(column);
-
-		// columns.add(ColumnUtils.getShadowIconColumn());
-		//
-		// column = new
-		// LinkColumn<SelectableBean<ShadowType>>(createStringResource("pageContentAccounts.name"),
-		// SelectableBean.F_VALUE + ".name") {
-		//
-		// @Override
-		// public void onClick(AjaxRequestTarget target,
-		// IModel<SelectableBean<ShadowType>> rowModel) {
-		// SelectableBean<ShadowType> shadow = rowModel.getObject();
-		// ShadowType shadowType = shadow.getValue();
-		// shadowDetailsPerformed(target, WebComponentUtil.getName(shadowType),
-		// shadowType.getOid());
-		// }
-		// };
-		// columns.add(column);
 
 		IColumn column = new AbstractColumn<SelectableBean<ShadowType>, String>(
 				createStringResource("pageContentAccounts.identifiers")) {
@@ -900,29 +793,6 @@ public abstract class ResourceContentPanel extends Panel {
 					}
 				}));
 
-		// items.add(new
-		// InlineMenuItem(createStringResource("pageContentAccounts.menu.changeOwner"),
-		// true,
-		// new HeaderMenuAction(this) {
-		//
-		// @Override
-		// public void onSubmit(AjaxRequestTarget target, Form<?> form) {
-		//
-		// FocusBrowserPanel<UserType> browser = new
-		// FocusBrowserPanel<UserType>(
-		// pageBase.getMainPopupBodyId(), UserType.class,
-		// WebComponentUtil.createFocusTypeList(), false, pageBase) {
-		// protected void onClick(AjaxRequestTarget target, UserType focus) {
-		// changeOwner(null, target, focus, Operation.MODIFY);
-		// }
-		// };
-		//
-		// pageBase.showMainPopup(browser, new Model<String>("ChangeOwner"),
-		// target, 900, 500);
-		//
-		// }
-		// }));
-
 		return items;
 	}
 
@@ -1010,8 +880,6 @@ public abstract class ResourceContentPanel extends Panel {
 	}
 
 	protected void importResourceObject(ShadowType selected, AjaxRequestTarget target) {
-		// List<SelectableBean<ShadowType>> selectedShadow =
-		// WebComponentUtil.getSelectedData(getTable());
 		List<ShadowType> selectedShadow = null;
 		if (selected != null) {
 			selectedShadow = new ArrayList<>();
@@ -1049,8 +917,6 @@ public abstract class ResourceContentPanel extends Panel {
 
 	// TODO: as a task?
 	protected void deleteResourceObjectPerformed(ShadowType selected, AjaxRequestTarget target) {
-		// List<SelectableBean<ShadowType>> selectedShadow =
-		// WebComponentUtil.getSelectedData(getTable());
 		List<ShadowType> selectedShadow = null;
 		if (selected != null) {
 			selectedShadow = new ArrayList<>();
@@ -1157,8 +1023,7 @@ public abstract class ResourceContentPanel extends Panel {
 
 	private void changeOwner(ShadowType selected, AjaxRequestTarget target, FocusType ownerToChange,
 			Operation operation) {
-		// List<SelectableBean<ShadowType>> selectedShadow =
-		// WebComponentUtil.getSelectedData(getTable());
+
 		List<ShadowType> selectedShadow = null;
 		if (selected != null) {
 			selectedShadow = new ArrayList<>();

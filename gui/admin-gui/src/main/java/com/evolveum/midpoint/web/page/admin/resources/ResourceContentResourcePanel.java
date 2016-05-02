@@ -64,34 +64,8 @@ public class ResourceContentResourcePanel extends ResourceContentPanel {
 	protected Search createSearch() {
 		Map<ItemPath, ItemDefinition> availableDefs = new HashMap<>();
 		availableDefs.putAll(createAttributeDefinitionList());
-
-		Search search = new Search(ShadowType.class, availableDefs);
-//		search.setShowAdvanced(true);
-
-//		SchemaRegistry registry = ctx.getSchemaRegistry();
-//		PrismObjectDefinition objDef = registry.findObjectDefinitionByCompileTimeClass(Sh.class);
-//		PrismPropertyDefinition def = objDef.findPropertyDefinition(ObjectType.F_NAME);
-//
-//		search.addItem(def);
-
-		return search;
+		return new Search(ShadowType.class, availableDefs);
 	}
-
-//	private <T extends ObjectType> Search createSearch() {
-//		Map<ItemPath, ItemDefinition> availableDefs = new HashMap<>();
-//		availableDefs.putAll(createAttributeDefinitionList());
-//
-//		Search search = new Search(ShadowType.class, availableDefs);
-//		search.setShowAdvanced(true);
-//
-////		SchemaRegistry registry = ctx.getSchemaRegistry();
-////		PrismObjectDefinition objDef = registry.findObjectDefinitionByCompileTimeClass(Sh.class);
-////		PrismPropertyDefinition def = objDef.findPropertyDefinition(ObjectType.F_NAME);
-////
-////		search.addItem(def);
-//
-//		return search;
-//	}
 
 	private <T extends ObjectType> Map<ItemPath, ItemDefinition> createAttributeDefinitionList() {
 
@@ -113,10 +87,8 @@ public class ResourceContentResourcePanel extends ResourceContentPanel {
 			return map;
 		}
 
-		
 		ItemPath attributePath = new ItemPath(ShadowType.F_ATTRIBUTES);
 
-//		PrismContainerDefinition attrs = objDef.findContainerDefinition(ShadowType.F_ATTRIBUTES);
 		for (ItemDefinition def : (List<ItemDefinition>) ocDef.getDefinitions()) {
 			if (!(def instanceof PrismPropertyDefinition) && !(def instanceof PrismReferenceDefinition)) {
 				continue;
