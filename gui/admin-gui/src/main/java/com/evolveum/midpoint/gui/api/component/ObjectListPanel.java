@@ -153,7 +153,15 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 		Form<O> mainForm = new Form<O>(ID_MAIN_FORM);
 		add(mainForm);
 
-		searchModel = new LoadableModel<Search>(false) {
+		searchModel = createSearchModel();
+
+		BoxedTablePanel<SelectableBean<O>> table = createTable();
+		mainForm.add(table);
+
+	}
+	
+	protected LoadableModel<Search> createSearchModel(){
+		return new LoadableModel<Search>(false) {
 
 			private static final long serialVersionUID = 1L;
 
@@ -173,10 +181,6 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 				return search;
 			}
 		};
-
-		BoxedTablePanel<SelectableBean<O>> table = createTable();
-		mainForm.add(table);
-
 	}
 
 	protected BaseSortableDataProvider<SelectableBean<O>> getProvider() {
