@@ -19,10 +19,14 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang.Validate;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
@@ -122,8 +126,26 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 	@Override
 	protected void initSearch(Form form) {
 
+		/// TODO: move to utils class??
+		List<ObjectTypes> objectTypes = Arrays.asList(ObjectTypes.values());
+		Collections.sort(objectTypes, new Comparator<ObjectTypes>() {
+			
+			@Override
+			public int compare(ObjectTypes o1, ObjectTypes o2) {
+				Validate.notNull(o1);
+				Validate.notNull(o2);
+				
+				String type1 = o1.getValue();
+				String type2 = o2.getValue();
+				
+				return String.CASE_INSENSITIVE_ORDER.compare(type1, type2);
+				
+			}
+		});
+		////////////
+		
 		DropDownChoice<ObjectTypes> objectType = new DropDownChoice<ObjectTypes>(ID_SEARCH_BY_TYPE,
-				Model.of(OBJECT_TYPES_DEFAULT), Arrays.asList(ObjectTypes.values()),
+				Model.of(OBJECT_TYPES_DEFAULT), objectTypes,
 				new EnumChoiceRenderer<ObjectTypes>());
 		objectType.add(new OnChangeAjaxBehavior() {
 			private static final long serialVersionUID = 1L;
