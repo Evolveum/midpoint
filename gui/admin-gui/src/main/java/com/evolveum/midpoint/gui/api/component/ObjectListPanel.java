@@ -304,7 +304,17 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 		
 	private void searchPerformed(ObjectQuery query, AjaxRequestTarget target) {
 		BaseSortableDataProvider<SelectableBean<O>> provider = getDataProvider();
-		provider.setQuery(query);
+		ObjectQuery customQuery = getQuery();
+		
+		if (customQuery == null){
+			customQuery = query;
+		} else {
+			if (query != null){
+				customQuery.addFilter(query.getFilter());
+			}
+			
+		}
+		provider.setQuery(customQuery);
 		String storageKey = getStorageKey();
 		if (StringUtils.isNotEmpty(storageKey)) {
 			PageStorage storage = getPageStorage(storageKey);

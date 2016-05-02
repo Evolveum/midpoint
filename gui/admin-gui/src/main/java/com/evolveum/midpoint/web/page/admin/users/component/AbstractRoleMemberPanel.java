@@ -426,6 +426,8 @@ public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extend
 				} else if (AbstractRoleType.class.isAssignableFrom(object.getClass())) {
 					cellItem.add(new Label(componentId, WebComponentUtil
 							.getOrigStringFromPoly(((AbstractRoleType) object).getDisplayName())));
+				} else {
+					cellItem.add(new Label(componentId, ""));
 				}
 
 			}
