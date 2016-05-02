@@ -119,6 +119,7 @@ import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.link.BookmarkablePageLink;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.AbstractReadOnlyModel;
@@ -173,6 +174,8 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 	private static final String ID_BC_NAME = "bcName";
 	private static final String ID_MAIN_POPUP = "mainPopup";
 	private static final String ID_MAIN_POPUP_BODY = "popupBody";
+	private static final String ID_LOGO = "logo";
+
     private static final String OPERATION_GET_SYSTEM_CONFIG = DOT_CLASS + "getSystemConfiguration";
 
 	private static final Trace LOGGER = TraceManager.getTrace(PageBase.class);
@@ -512,6 +515,19 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 	}
 
 	private void initLayout() {
+		AjaxLink logo = new AjaxLink(ID_LOGO) {
+
+			@Override
+			public void onClick(AjaxRequestTarget target) {
+				SessionStorage storage = MidPointAuthWebSession.getSession().getSessionStorage();
+				storage.clearBreadcrumbs();
+
+				Class<? extends Page> page = MidPointApplication.get().getHomePage();
+				setResponsePage(page);
+			}
+		};
+		add(logo);
+
 		Label title = new Label(ID_TITLE, createPageTitleModel());
 		title.setRenderBodyOnly(true);
 		add(title);
