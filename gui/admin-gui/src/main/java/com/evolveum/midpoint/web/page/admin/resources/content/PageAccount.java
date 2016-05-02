@@ -232,20 +232,11 @@ public class PageAccount extends PageAdminResources {
         } else {
             showResult(result);
 
-            returnToAccountList();
+            redirectBack();
         }
     }
 
     private void cancelPerformed(AjaxRequestTarget target) {
-        returnToAccountList();
-    }
-
-    private void returnToAccountList() {
-        PrismObject<ShadowType> account = accountModel.getObject().getObject();
-        ResourceType resource = account.asObjectable().getResource();
-
-        PageParameters parameters = new PageParameters();
-        parameters.add(OnePageParameterEncoder.PARAMETER, resource.getOid());
-        setResponsePage(PageResource.class, parameters);
+        redirectBack();
     }
 }
