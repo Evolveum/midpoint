@@ -1,0 +1,1 @@
+to dn.subtree="ou=posixgroups,dc=example,dc=com" by dn="cn=idm,ou=Administrators,dc=example,dc=com" write
