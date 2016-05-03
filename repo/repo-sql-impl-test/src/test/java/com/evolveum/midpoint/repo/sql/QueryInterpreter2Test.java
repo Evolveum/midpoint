@@ -2814,13 +2814,11 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
         Session session = open();
         try {
             PrismReferenceValue ownerRef = ObjectTypeUtil.createObjectRef("1234567890", ObjectTypes.USER).asReferenceValue();
-            PrismObjectDefinition<AccessCertificationCampaignType> campaignDef =
-                    prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(AccessCertificationCampaignType.class);
             ObjectQuery query = QueryBuilder.queryFor(AccessCertificationCaseType.class, prismContext)
                     .exists(T_PARENT)
                     .block()
                         .id(123456L)
-                        .or().item(campaignDef, F_OWNER_REF).ref(ownerRef)
+                        .or().item(F_OWNER_REF).ref(ownerRef)
                     .endBlock()
                     .build();
 
@@ -2932,15 +2930,10 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
         Session session = open();
         try {
             PrismReferenceValue reviewerRef = ObjectTypeUtil.createObjectRef("1234567890", ObjectTypes.USER).asReferenceValue();
-            ItemPath statePath = new ItemPath(T_PARENT, F_STATE);
-            PrismPropertyDefinition stateDef =
-                    prismContext.getSchemaRegistry()
-                            .findComplexTypeDefinitionByCompileTimeClass(AccessCertificationCampaignType.class)
-                            .findPropertyDefinition(F_STATE);
             ObjectQuery query = QueryBuilder.queryFor(AccessCertificationCaseType.class, prismContext)
                     .item(F_CURRENT_REVIEWER_REF).ref(reviewerRef)
                     .and().item(F_CURRENT_STAGE_NUMBER).eq().item(T_PARENT, AccessCertificationCampaignType.F_STAGE_NUMBER)
-                    .and().item(statePath, stateDef).eq(IN_REVIEW_STAGE)
+                    .and().item(T_PARENT, F_STATE).eq(IN_REVIEW_STAGE)
                     .desc(F_CURRENT_REVIEW_REQUESTED_TIMESTAMP)
                     .build();
             String real = getInterpretedQuery2(session, AccessCertificationCaseType.class, query, false);

@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<query xmlns="http://prism.evolveum.com/xml/ns/public/query-3">
+    <filter>
+        <org>
+            <orgRef>
+                <oid>111</oid>
+            </orgRef>
+            <scope>SUBTREE</scope>
+        </org>
+    </filter>
+</query>

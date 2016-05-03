@@ -104,14 +104,14 @@ public class R_AtomicFilter implements S_ConditionEntry, S_MatchingRuleEntry, S_
             throw new IllegalStateException("item() call with no filter");
         }
         PropertyValueFilter newFilter = filter.clone();
-        newFilter.setRightSidePath(itemPath);
-        newFilter.setRightSideDefinition(itemDefinition);
+        newFilter.setRightHandSidePath(itemPath);
+        newFilter.setRightHandSideDefinition(itemDefinition);
         return new R_AtomicFilter(this, newFilter);
     }
 
     @Override
-    public S_MatchingRuleEntry eq(Object value) {
-        return new R_AtomicFilter(this, EqualFilter.createEqual(itemPath, propertyDefinition, null, value));
+    public S_MatchingRuleEntry eq(Object... values) {
+        return new R_AtomicFilter(this, EqualFilter.createEqualMultiple(itemPath, propertyDefinition, null, values));
     }
 
     @Override
@@ -165,21 +165,36 @@ public class R_AtomicFilter implements S_ConditionEntry, S_MatchingRuleEntry, S_
     }
 
     @Override
-    public S_MatchingRuleEntry startsWith(String value) {
+    public S_MatchingRuleEntry startsWith(Object value) {
         return new R_AtomicFilter(this, SubstringFilter.createSubstring(itemPath, propertyDefinition, null, value, true, false));
     }
 
-    @Override
-    public S_MatchingRuleEntry endsWith(String value) {
+	@Override
+	public S_MatchingRuleEntry startsWithPoly(String orig, String norm) {
+		return startsWith(new PolyString(orig, norm));
+	}
+
+	@Override
+    public S_MatchingRuleEntry endsWith(Object value) {
         return new R_AtomicFilter(this, SubstringFilter.createSubstring(itemPath, propertyDefinition, null, value, false, true));
     }
 
+	@Override
+	public S_MatchingRuleEntry endsWithPoly(String orig, String norm) {
+		return endsWith(new PolyString(orig, norm));
+	}
+
     @Override
-    public S_MatchingRuleEntry contains(String value) {
+    public S_MatchingRuleEntry contains(Object value) {
         return new R_AtomicFilter(this, SubstringFilter.createSubstring(itemPath, propertyDefinition, null, value, false, false));
     }
 
-    @Override
+	@Override
+	public S_MatchingRuleEntry containsPoly(String orig, String norm) {
+		return contains(new PolyString(orig, norm));
+	}
+
+	@Override
     public S_AtomicFilterExit ref(PrismReferenceValue value) {
         return new R_AtomicFilter(this, RefFilter.createReferenceEqual(itemPath, referenceDefinition, value));
     }

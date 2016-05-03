@@ -106,4 +106,8 @@ public class AndFilter extends NaryLogicalFilter {
 		return true;
 	}
 
+	@Override
+	public boolean equals(Object obj, boolean exact) {
+		return super.equals(obj, exact) && obj instanceof AndFilter;
+	}
 }

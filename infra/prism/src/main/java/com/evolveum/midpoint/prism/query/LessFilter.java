@@ -24,7 +24,6 @@ import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
@@ -34,55 +33,55 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 
 public class LessFilter<T> extends ComparativeFilter<T> {
 
-	LessFilter(ItemPath parentPath, PrismPropertyDefinition definition, PrismPropertyValue<T> value, boolean equals) {
-		super(parentPath, definition, value, equals);
+	LessFilter(ItemPath itemPath, PrismPropertyDefinition definition, PrismPropertyValue<T> value, boolean equals) {
+		super(itemPath, definition, value, equals);
 	}
 
-	LessFilter(ItemPath parentPath, PrismPropertyDefinition<T> definition, ItemPath rightSidePath, ItemDefinition rightSideDefinition, boolean equals) {
-		super(parentPath, definition, rightSidePath, rightSideDefinition, equals);
+	LessFilter(ItemPath itemPath, PrismPropertyDefinition<T> definition, ItemPath rightSidePath, ItemDefinition rightSideDefinition, boolean equals) {
+		super(itemPath, definition, rightSidePath, rightSideDefinition, equals);
 	}
 
 
 	public LessFilter() {
 	}
 	
-	public static <T> LessFilter createLess(QName parentPath, PrismPropertyDefinition definition, PrismPropertyValue<T> value, boolean equals){
-		return new LessFilter(new ItemPath(parentPath), definition, value, equals);
+	public static <T> LessFilter createLess(QName itemPath, PrismPropertyDefinition definition, PrismPropertyValue<T> value, boolean equals){
+		return new LessFilter(new ItemPath(itemPath), definition, value, equals);
 	}
 	
 	
-	public static <T> LessFilter createLess(ItemPath parentPath, PrismPropertyDefinition definition, PrismPropertyValue<T> value, boolean equals){
-		return new LessFilter(parentPath, definition, value, equals);
+	public static <T> LessFilter createLess(ItemPath itemPath, PrismPropertyDefinition definition, PrismPropertyValue<T> value, boolean equals){
+		return new LessFilter(itemPath, definition, value, equals);
 	}
 	
-	public static <T, O extends Containerable> LessFilter createLess(ItemPath parentPath, PrismContainerDefinition<O> containerDef,
+	public static <T, O extends Containerable> LessFilter createLess(ItemPath itemPath, PrismContainerDefinition<O> containerDef,
 			PrismPropertyValue<T> value, boolean equals) throws SchemaException {
-		PrismPropertyDefinition def = (PrismPropertyDefinition) FilterUtils.findItemDefinition(parentPath, containerDef);
-		return createLess(parentPath, def, value, equals);
+		PrismPropertyDefinition def = (PrismPropertyDefinition) FilterUtils.findItemDefinition(itemPath, containerDef);
+		return createLess(itemPath, def, value, equals);
 	}
 
-	public static <T> LessFilter createLess(QName parentPath, PrismPropertyDefinition itemDefinition, T realValue, boolean equals) throws SchemaException{
-		return createLess(new ItemPath(parentPath), itemDefinition, realValue, equals);
+	public static <T> LessFilter createLess(QName itemPath, PrismPropertyDefinition itemDefinition, T realValue, boolean equals) throws SchemaException{
+		return createLess(new ItemPath(itemPath), itemDefinition, realValue, equals);
 	}
 	
-	public static <T> LessFilter createLess(ItemPath parentPath, PrismPropertyDefinition itemDefinition, T realValue, boolean equals) throws SchemaException{
+	public static <T> LessFilter createLess(ItemPath itemPath, PrismPropertyDefinition itemDefinition, T realValue, boolean equals) throws SchemaException{
 		PrismPropertyValue<T> value = createPropertyValue(itemDefinition, realValue);
 		
 		if (value == null){
 			// create null filter
 		}
 		
-		return createLess(parentPath, itemDefinition, value, equals);
+		return createLess(itemPath, itemDefinition, value, equals);
 	}
 
 	public static LessFilter createLessThanItem(ItemPath itemPath, PrismPropertyDefinition propertyDefinition, ItemPath rightSidePath, ItemDefinition rightSideDefinition, boolean equals) {
 		return new LessFilter(itemPath, propertyDefinition, rightSidePath, rightSideDefinition, equals);
 	}
 
-	public static <T, O extends Containerable> LessFilter createLess(ItemPath parentPath, PrismContainerDefinition<O> containerDef,
+	public static <T, O extends Containerable> LessFilter createLess(ItemPath itemPath, PrismContainerDefinition<O> containerDef,
 			T realValue, boolean equals) throws SchemaException {
-		PrismPropertyDefinition def = (PrismPropertyDefinition) FilterUtils.findItemDefinition(parentPath, containerDef);
-		return createLess(parentPath, def, realValue, equals);
+		PrismPropertyDefinition def = (PrismPropertyDefinition) FilterUtils.findItemDefinition(itemPath, containerDef);
+		return createLess(itemPath, def, realValue, equals);
 	}
 
 	public static <T, O extends Objectable> LessFilter createLess(QName propertyName, Class<O> type, PrismContext prismContext, T realValue, boolean equals)
@@ -96,7 +95,12 @@ public class LessFilter<T> extends ComparativeFilter<T> {
 		PrismPropertyDefinition def = (PrismPropertyDefinition) FilterUtils.findItemDefinition(path, type, prismContext);
 		
 		return createLess(path, def, realValue, equals);
-	}	
+	}
+
+	public static <C extends Containerable, T> LessFilter<T> createLess(ItemPath propertyPath, PrismPropertyDefinition propertyDefinition, ItemPath rightSidePath, ItemDefinition rightSideDefinition, boolean equals) {
+		return new LessFilter(propertyPath, propertyDefinition, rightSidePath, rightSideDefinition, equals);
+	}
+
 	@Override
 	public LessFilter clone() {
 		LessFilter clone = new LessFilter(getFullPath(), getDefinition(), getSingleValue(), isEquals());
@@ -148,5 +152,11 @@ public class LessFilter<T> extends ComparativeFilter<T> {
 	public ItemPath getPath() {
 		return getFullPath();
 	}
+
+	@Override
+	public boolean equals(Object obj, boolean exact) {
+		return super.equals(obj, exact) && obj instanceof LessFilter;
+	}
+
 
 }

@@ -237,4 +237,10 @@ public class RefFilter extends PropertyValueFilter<PrismReferenceValue> {
 		// TODO Auto-generated method stub
 		return (PrismReferenceDefinition) super.getDefinition();
 	}
+
+	@Override
+	public boolean equals(Object obj, boolean exact) {
+		return super.equals(obj, exact) && obj instanceof RefFilter;
+	}
+
 }

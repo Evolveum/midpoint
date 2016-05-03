@@ -99,4 +99,10 @@ public class OrFilter extends NaryLogicalFilter {
 		}
 		return false;
 	}
+
+	@Override
+	public boolean equals(Object obj, boolean exact) {
+		return super.equals(obj, exact) && obj instanceof OrFilter;
+	}
+
 }

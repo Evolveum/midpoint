@@ -227,8 +227,14 @@ public class PrismContainerDefinition<C extends Containerable> extends ItemDefin
             } else if (first instanceof IdItemPathSegment) {
                 path = path.rest();
             } else if (first instanceof ParentPathSegment) {
-                ComplexTypeDefinition parent = getSchemaRegistry().determineParentDefinition(getComplexTypeDefinition(), path.rest());
-                return parent.findItemDefinition(path.tail(), clazz);
+				ItemPath rest = path.rest();
+                ComplexTypeDefinition parent = getSchemaRegistry().determineParentDefinition(getComplexTypeDefinition(), rest);
+				if (rest.isEmpty()) {
+					// requires that the parent is defined as an item (container, object)
+					return (ID) getSchemaRegistry().findItemDefinitionByType(parent.getTypeName());
+				} else {
+					return parent.findItemDefinition(rest, clazz);
+				}
             } else if (first instanceof ObjectReferencePathSegment) {
                 throw new IllegalStateException("Couldn't use '@' path segment in this context. PCD=" + getTypeName() + ", path=" + path);
             } else {

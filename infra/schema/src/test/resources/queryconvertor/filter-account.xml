@@ -23,14 +23,14 @@
 		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<and>
 		<equal>
+            <matching>insensitive</matching>
 			<path>c:failedOperationType</path>
 			<value>add</value>
-			<matching>insensitive</matching>
 		</equal>
 		<equal>
+            <matching>norm</matching>
 			<path>c:name</path>
 			<value>someName</value>
-			<matching>norm</matching>
 		</equal>
 	</and>
 </q:filter>

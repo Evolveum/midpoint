@@ -26,7 +26,7 @@ import java.util.Collection;
  * @author mederly
  */
 public interface S_ConditionEntry {
-    S_MatchingRuleEntry eq(Object value);
+    S_MatchingRuleEntry eq(Object... values);
     S_RightHandItemEntry eq();
     S_MatchingRuleEntry eqPoly(String orig, String norm);
     S_MatchingRuleEntry gt(Object value) throws SchemaException;
@@ -37,9 +37,12 @@ public interface S_ConditionEntry {
     S_RightHandItemEntry lt();
     S_MatchingRuleEntry le(Object value) throws SchemaException;
     S_RightHandItemEntry le();
-    S_AtomicFilterExit startsWith(String value);
-    S_AtomicFilterExit endsWith(String value);
-    S_AtomicFilterExit contains(String value);
+	S_MatchingRuleEntry startsWith(Object value);
+	S_MatchingRuleEntry startsWithPoly(String orig, String norm);
+	S_MatchingRuleEntry endsWith(Object value);
+	S_MatchingRuleEntry endsWithPoly(String orig, String norm);
+	S_MatchingRuleEntry contains(Object value);
+	S_MatchingRuleEntry containsPoly(String orig, String norm);
     S_AtomicFilterExit ref(PrismReferenceValue value);
 	S_AtomicFilterExit ref(Collection<PrismReferenceValue> values);			// not supported by repo QueryInterpreter yet
     S_AtomicFilterExit ref(String oid);

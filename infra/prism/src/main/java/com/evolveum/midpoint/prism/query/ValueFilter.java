@@ -149,7 +149,7 @@ public abstract class ValueFilter<T extends PrismValue> extends ObjectFilter {
 	}
 
 	@Override
-	public boolean equals(Object obj) {
+	public boolean equals(Object obj, boolean exact) {
 		if (this == obj)
 			return true;
 		if (obj == null)
@@ -157,15 +157,17 @@ public abstract class ValueFilter<T extends PrismValue> extends ObjectFilter {
 		if (getClass() != obj.getClass())
 			return false;
 		ValueFilter other = (ValueFilter) obj;
-		if (definition == null) {
-			if (other.definition != null)
+		if (exact) {
+			if (definition == null) {
+				if (other.definition != null)
+					return false;
+			} else if (!definition.equals(other.definition))
 				return false;
-		} else if (!definition.equals(other.definition))
-			return false;
+		}
 		if (fullPath == null) {
 			if (other.fullPath != null)
 				return false;
-		} else if (!fullPath.equivalent(other.fullPath))        // TODO: ok?
+		} else if (!fullPath.equals(other.fullPath, exact))
 			return false;
 		if (matchingRule == null) {
 			if (other.matchingRule != null)

@@ -124,28 +124,7 @@ public class ExistsFilter extends ObjectFilter {
         return sb.toString();
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof ExistsFilter)) return false;
-
-        ExistsFilter that = (ExistsFilter) o;
-
-        if (fullPath != null ? !fullPath.equals(that.fullPath) : that.fullPath != null) return false;
-        if (definition != null ? !definition.equals(that.definition) : that.definition != null) return false;
-        return !(filter != null ? !filter.equals(that.filter) : that.filter != null);
-
-    }
-
-    @Override
-    public int hashCode() {
-        int result = fullPath != null ? fullPath.hashCode() : 0;
-        result = 31 * result + (definition != null ? definition.hashCode() : 0);
-        result = 31 * result + (filter != null ? filter.hashCode() : 0);
-        return result;
-    }
-
-    @Override
+	@Override
     public String toString() {
     	StringBuilder sb = new StringBuilder();
 		sb.append("EXISTS(");
@@ -163,4 +142,30 @@ public class ExistsFilter extends ObjectFilter {
             visitor.visit(filter);
         }
     }
+
+	@Override
+	public boolean equals(Object o, boolean exact) {
+		if (this == o)
+			return true;
+		if (o == null || getClass() != o.getClass())
+			return false;
+
+		ExistsFilter that = (ExistsFilter) o;
+
+		if (fullPath != null ? !fullPath.equals(that.fullPath, exact) : that.fullPath != null)
+			return false;
+		if (exact) {
+			if (definition != null ? !definition.equals(that.definition) : that.definition != null)
+				return false;
+		}
+		return filter != null ? filter.equals(that.filter, exact) : that.filter == null;
+	}
+
+	@Override
+	public int hashCode() {
+		int result = 1;
+		result = 31 * result + (definition != null ? definition.hashCode() : 0);
+		result = 31 * result + (filter != null ? filter.hashCode() : 0);
+		return result;
+	}
 }

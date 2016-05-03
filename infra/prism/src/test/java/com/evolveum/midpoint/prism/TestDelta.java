@@ -24,7 +24,6 @@ import java.io.IOException;
 import java.util.Collection;
 
 import com.evolveum.midpoint.prism.delta.*;
-import com.evolveum.prism.xml.ns._public.types_3.ObjectReferenceType;
 
 import org.testng.AssertJUnit;
 import org.testng.annotations.BeforeSuite;

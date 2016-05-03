@@ -208,4 +208,39 @@ public class ObjectQuery implements DebugDumpable, Serializable {
 		}
 		return paging.getMaxSize();
 	}
+
+	public boolean equals(Object o) {
+		return equals(o, true);
+	}
+
+	public boolean equivalent(Object o) {
+		return equals(o, false);
+	}
+
+	public boolean equals(Object o, boolean exact) {
+		if (this == o)
+			return true;
+		if (o == null || getClass() != o.getClass())
+			return false;
+
+		ObjectQuery that = (ObjectQuery) o;
+
+		if (allowPartialResults != that.allowPartialResults)
+			return false;
+		if (useNewQueryInterpreter != that.useNewQueryInterpreter)
+			return false;
+		if (filter != null ? !filter.equals(that.filter, exact) : that.filter != null)
+			return false;
+		return paging != null ? paging.equals(that.paging, exact) : that.paging == null;
+
+	}
+
+	@Override
+	public int hashCode() {
+		int result = filter != null ? filter.hashCode() : 0;
+		result = 31 * result + (paging != null ? paging.hashCode() : 0);
+		result = 31 * result + (allowPartialResults ? 1 : 0);
+		result = 31 * result + (useNewQueryInterpreter ? 1 : 0);
+		return result;
+	}
 }

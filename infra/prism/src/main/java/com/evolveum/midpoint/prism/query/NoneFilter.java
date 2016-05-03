@@ -73,4 +73,15 @@ public class NoneFilter extends ObjectFilter {
 	public boolean match(PrismContainerValue value, MatchingRuleRegistry matchingRuleRegistry) throws SchemaException {
 		return false;
 	}
+
+	@Override
+	public boolean equals(Object obj, boolean exact) {
+		return obj instanceof NoneFilter;
+	}
+
+	@Override
+	public int hashCode() {
+		return 0;
+	}
+
 }
