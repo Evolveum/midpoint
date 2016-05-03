@@ -1,0 +1,4 @@
+dn: ou=posixgroups,dc=example,dc=com
+changetype: add
+objectclass: organizationalUnit
+ou: posixgroups

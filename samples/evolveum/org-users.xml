@@ -178,8 +178,8 @@
 		<givenName>Igor</givenName>
 		<familyName>Farinič</familyName>
 		<honorificPrefix>Mgr.</honorificPrefix>
-		<locality>Košice</locality>
 		<title>CEO</title>
+		<locality>Košice</locality>
 	</user>
 
 	<user>
@@ -218,8 +218,8 @@
 		<familyName>Semančík</familyName>
 		<honorificPrefix>Ing.</honorificPrefix>
 		<honorificSuffix>PhD</honorificSuffix>
-		<locality>Lozorno</locality>
 		<title>Software Architect</title>
+		<locality>Lozorno</locality>
 	</user>
 
 	<user>
@@ -245,8 +245,8 @@
 		<givenName>Katarína</givenName>
 		<familyName>Valaliková</familyName>
 		<honorificPrefix>Ing.</honorificPrefix>
-		<locality>Bratislava</locality>
 		<title>Software Developer</title>
+		<locality>Bratislava</locality>
 	</user>
 
 	<user>
@@ -269,8 +269,8 @@
 		<familyName>Mederly</familyName>
 		<honorificPrefix>Mgr.</honorificPrefix>
 		<honorificSuffix>PhD</honorificSuffix>
-		<locality>Kalná nad Hronom</locality>
 		<title>Software Developer</title>
+		<locality>Kalná nad Hronom</locality>
 	</user>
 	
 	<user>
@@ -288,8 +288,8 @@
 		<givenName>Viliam</givenName>
 		<familyName>Repáň</familyName>
 		<honorificPrefix>Ing.</honorificPrefix>
-		<locality>Bratislava</locality>
 		<title>Software Developer</title>
+		<locality>Bratislava</locality>
 	</user>
 	
 	<user>
@@ -306,8 +306,8 @@
 		<fullName>Kate Honchar</fullName>
 		<givenName>Kate</givenName>
 		<familyName>Honchar</familyName>
-		<locality>Bratislava</locality>
 		<title>Software Developer</title>
+		<locality>Bratislava</locality>
 	</user>
 
 	<user>
@@ -333,8 +333,8 @@
 		<givenName>Ivan</givenName>
 		<familyName>Noris</familyName>
 		<honorificPrefix>Ing.</honorificPrefix>
-		<locality>Bratislava</locality>
 		<title>IDM Engineer</title>
+		<locality>Bratislava</locality>
 	</user>
 	
 	<user>
@@ -356,8 +356,8 @@
 		<givenName>Gustáv</givenName>
 		<familyName>Pálos</familyName>
 		<honorificPrefix>Mgr.</honorificPrefix>
-		<locality>Bratislava</locality>
 		<title>IDM Engineer</title>
+		<locality>Bratislava</locality>
 	</user>
 	
 	<user>
@@ -373,8 +373,8 @@
 		<fullName>Andrea Žibritovská</fullName>
 		<givenName>Andrea</givenName>
 		<familyName>Žibritovská</familyName>
-		<locality>Bratislava</locality>
 		<title>CFO</title>
+		<locality>Bratislava</locality>
 	</user>
 
 	<user>
@@ -399,8 +399,8 @@
 		<fullName>Veronika Kolpaščikovová</fullName>
 		<givenName>Veronika</givenName>
 		<familyName>Kolpaščikovová</familyName>
-		<locality>Zvolen</locality>
 		<title>Marketing Specialist</title>
+		<locality>Zvolen</locality>
 	</user>
 	
 </objects>
