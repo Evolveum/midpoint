@@ -210,7 +210,6 @@ public class ResourceContentTabPanel extends Panel {
 			@Override
 			public void onClick(AjaxRequestTarget target) {
 				resourceSearchModel.setObject(Boolean.FALSE);
-//				mainForm.addOrReplace(initResourceContent(model));
 				mainForm.addOrReplace(initRepoContent(model));
 				target.add(getParent().addOrReplace(mainForm));
 				target.add(this);
@@ -232,7 +231,6 @@ public class ResourceContentTabPanel extends Panel {
 			public void onClick(AjaxRequestTarget target) {
 				resourceSearchModel.setObject(Boolean.TRUE);
 				mainForm.addOrReplace(initResourceContent(model));
-//				mainForm.addOrReplace(initRepoContent(model));
 				target.add(getParent().addOrReplace(mainForm));
 				target.add(this.add(AttributeModifier.append("class", " active")));
 				target.add(getParent().get(ID_REPO_SEARCH).add(AttributeModifier.replace("class", "btn btn-sm btn-default")));

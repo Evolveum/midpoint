@@ -19,10 +19,14 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang.Validate;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
@@ -81,6 +85,7 @@ import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAc
 import com.evolveum.midpoint.web.page.admin.roles.component.RoleSummaryPanel;
 import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
 import com.evolveum.midpoint.web.util.StringResourceChoiceRenderer;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
@@ -122,8 +127,26 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 	@Override
 	protected void initSearch(Form form) {
 
+		/// TODO: move to utils class??
+		List<ObjectTypes> objectTypes = Arrays.asList(ObjectTypes.values());
+		Collections.sort(objectTypes, new Comparator<ObjectTypes>() {
+			
+			@Override
+			public int compare(ObjectTypes o1, ObjectTypes o2) {
+				Validate.notNull(o1);
+				Validate.notNull(o2);
+				
+				String type1 = o1.getValue();
+				String type2 = o2.getValue();
+				
+				return String.CASE_INSENSITIVE_ORDER.compare(type1, type2);
+				
+			}
+		});
+		////////////
+		
 		DropDownChoice<ObjectTypes> objectType = new DropDownChoice<ObjectTypes>(ID_SEARCH_BY_TYPE,
-				Model.of(OBJECT_TYPES_DEFAULT), Arrays.asList(ObjectTypes.values()),
+				Model.of(OBJECT_TYPES_DEFAULT), objectTypes,
 				new EnumChoiceRenderer<ObjectTypes>());
 		objectType.add(new OnChangeAjaxBehavior() {
 			private static final long serialVersionUID = 1L;
@@ -368,7 +391,8 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 
 	@Override
 	protected void addMembersPerformed(QName type, QName relation, List selected, AjaxRequestTarget target) {
-		Task operationalTask = getPageBase().createSimpleTask("Add members");
+//		"Add managers: " + WebComponentUtil.getEffectiveName(getModelObject(), AbstractRoleType.F_DISPLAY_NAME)
+		Task operationalTask = getPageBase().createSimpleTask(getTaskName("Add", null, false));
 		ObjectDelta delta = prepareDelta(MemberOperation.ADD, type, relation, operationalTask.getResult(),
 				target);
 		if (delta == null) {
@@ -380,7 +404,7 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 	}
 
 	protected void addManagersPerformed(QName type, List selected, AjaxRequestTarget target) {
-		Task operationalTask = getPageBase().createSimpleTask("Add members");
+		Task operationalTask = getPageBase().createSimpleTask(getTaskName("Add", null, true));
 		ObjectDelta delta = prepareDelta(MemberOperation.ADD, type, SchemaConstants.ORG_MANAGER,
 				operationalTask.getResult(), target);
 		if (delta == null) {
@@ -393,7 +417,7 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 
 	protected void removeManagersPerformed(QueryScope scope, AjaxRequestTarget target) {
 
-		Task operationalTask = getPageBase().createSimpleTask("Remove managers " + scope.name());
+		Task operationalTask = getPageBase().createSimpleTask(getTaskName("Remove", scope, true));
 		ObjectDelta delta = prepareDelta(MemberOperation.REMOVE, FocusType.COMPLEX_TYPE,
 				SchemaConstants.ORG_MANAGER, operationalTask.getResult(), target);
 		if (delta == null) {
@@ -408,7 +432,7 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 	@Override
 	protected void removeMembersPerformed(QueryScope scope, AjaxRequestTarget target) {
 
-		Task operationalTask = getPageBase().createSimpleTask("Remove members " + scope.name());
+		Task operationalTask = getPageBase().createSimpleTask(getTaskName("Remove", scope, false));
 
 		ObjectDelta delta = prepareDelta(MemberOperation.REMOVE, FocusType.COMPLEX_TYPE, null,
 				operationalTask.getResult(), target);
@@ -430,18 +454,20 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 
 	@Override
 	protected void recomputeMembersPerformed(QueryScope scope, AjaxRequestTarget target) {
-		Task operationalTask = getPageBase().createSimpleTask("Recompute members " + scope.name());
+		Task operationalTask = getPageBase().createSimpleTask(getTaskName("Recompute", scope, false));
 		executeMemberOperation(operationalTask, ObjectType.COMPLEX_TYPE,
 				createQueryForMemberAction(scope, null, true), null, TaskCategory.RECOMPUTATION, target);
 	}
 
 	protected void recomputeManagersPerformed(QueryScope scope, AjaxRequestTarget target) {
-		Task operationalTask = getPageBase().createSimpleTask("Recompute members " + scope.name());
+		Task operationalTask = getPageBase().createSimpleTask(getTaskName("Recompute", scope, true));
 		executeMemberOperation(operationalTask, ObjectType.COMPLEX_TYPE,
 				createQueryForMemberAction(scope, SchemaConstants.ORG_MANAGER, true), null,
 				TaskCategory.RECOMPUTATION, target);
 	}
 
+	
+	
 	@Override
 	protected ObjectQuery createMemberQuery() {
 		ObjectQuery query = null;

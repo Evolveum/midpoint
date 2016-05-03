@@ -26,6 +26,7 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.tabs.AbstractTab;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.model.Model;
 import org.apache.wicket.model.util.ListModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.string.StringValue;
@@ -63,6 +64,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AjaxButton;
+import com.evolveum.midpoint.web.component.AjaxTabbedPanel;
 import com.evolveum.midpoint.web.component.TabbedPanel;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.ColumnTypeDto;
@@ -113,12 +115,16 @@ public class PageResource extends PageAdminResources {
 
 	private LoadableModel<CapabilitiesDto> capabilitiesModel;
 
-	private ListModel testConnectionModel = new ListModel();
+//	private ListModel testConnectionModel = new ListModel();
 
 	private String resourceOid;
 
 	public PageResource(PageParameters parameters) {
 		resourceOid = parameters.get(OnePageParameterEncoder.PARAMETER).toString();
+		initialize();
+	}
+	
+	public PageResource() {
 		initialize();
 	}
 
@@ -160,72 +166,16 @@ public class PageResource extends PageAdminResources {
 			return;
 		}
 
-		ResourceSummaryPanel resourceSummary = new ResourceSummaryPanel(PANEL_RESOURCE_SUMMARY, resourceModel);
-		add(resourceSummary);
+		addOrReplace(createResourceSummaryPanel());
 
-		List<ITab> tabs = new ArrayList<ITab>();
+		addOrReplace(createTabsPanel());
+		
+		
 
-		tabs.add(new PanelTab(createStringResource("PageResource.tab.details")) {
+		AjaxButton test = new AjaxButton(BUTTON_TEST_CONNECTION_ID,
+				createStringResource("pageResource.button.test")) {
 			private static final long serialVersionUID = 1L;
-			
-			@Override
-			public WebMarkupContainer createPanel(String panelId) {
-				return new ResourceDetailsTabPanel(panelId, resourceModel, PageResource.this);
-			}
-		});
-		
-		tabs.add(new PanelTab(createStringResource("PageResource.tab.content.tasks")) {
-			private static final long serialVersionUID = 1L;
-			
-			@Override
-			public WebMarkupContainer createPanel(String panelId) {
-				return new ResourceTasksPanel(panelId, true, resourceModel, PageResource.this);
-			}
-		});
-		
-		tabs.add(new PanelTab(createStringResource("PageResource.tab.content.account")) {
-			private static final long serialVersionUID = 1L;
-			
-			@Override
-			public WebMarkupContainer createPanel(String panelId) {
-				return new ResourceContentTabPanel(panelId, ShadowKindType.ACCOUNT, resourceModel, PageResource.this);
-			}
-		});
-		
-		tabs.add(new PanelTab(createStringResource("PageResource.tab.content.entitlement")) {
-			private static final long serialVersionUID = 1L;
-			
-			@Override
-			public WebMarkupContainer createPanel(String panelId) {
-				return new ResourceContentTabPanel(panelId, ShadowKindType.ENTITLEMENT, resourceModel, PageResource.this);
-			}
-		});
-		
-		tabs.add(new PanelTab(createStringResource("PageResource.tab.content.generic")) {
-			private static final long serialVersionUID = 1L;
-			
-			@Override
-			public WebMarkupContainer createPanel(String panelId) {
-				return new ResourceContentTabPanel(panelId, ShadowKindType.GENERIC, resourceModel, PageResource.this);
-			}
-		});
-		
-		tabs.add(new PanelTab(createStringResource("PageResource.tab.content.others")) {
-			private static final long serialVersionUID = 1L;
-			
-			@Override
-			public WebMarkupContainer createPanel(String panelId) {
-				return new ResourceContentTabPanel(panelId, null, resourceModel, PageResource.this);
-			}
-		});
 
-		TabbedPanel resourceTabs = new TabbedPanel(ID_TAB_PANEL, tabs);
-
-		add(resourceTabs);
-
-		AjaxButton test = new AjaxButton(BUTTON_TEST_CONNECTION_ID, createStringResource("pageResource.button.test")) {
-			private static final long serialVersionUID = 1L;
-			
 			@Override
 			public void onClick(AjaxRequestTarget target) {
 				testConnectionPerformed(target);
@@ -243,7 +193,8 @@ public class PageResource extends PageAdminResources {
 			}
 		};
 		add(refreshSchema);
-		AjaxButton editXml = new AjaxButton(BUTTON_EDIT_XML_ID, createStringResource("pageResource.button.editXml")) {
+		AjaxButton editXml = new AjaxButton(BUTTON_EDIT_XML_ID,
+				createStringResource("pageResource.button.editXml")) {
 			private static final long serialVersionUID = 1L;
 
 			@Override
@@ -255,7 +206,8 @@ public class PageResource extends PageAdminResources {
 			}
 		};
 		add(editXml);
-		AjaxButton wizard = new AjaxButton(BUTTON_WIZARD_ID, createStringResource("pageResource.button.wizard")) {
+		AjaxButton wizard = new AjaxButton(BUTTON_WIZARD_ID,
+				createStringResource("pageResource.button.wizard")) {
 			private static final long serialVersionUID = 1L;
 
 			@Override
@@ -266,47 +218,126 @@ public class PageResource extends PageAdminResources {
 			}
 		};
 		add(wizard);
-		
-		 AjaxButton back = new AjaxButton(ID_BUTTON_BACK, createStringResource("pageResource.button.back")) {
-			 private static final long serialVersionUID = 1L;
 
-	            @Override
-	            public void onClick(AjaxRequestTarget target) {
-	                redirectBack();
-	            }
-	        };
-	        add(back);
+		AjaxButton back = new AjaxButton(ID_BUTTON_BACK, createStringResource("pageResource.button.back")) {
+			private static final long serialVersionUID = 1L;
 
+			@Override
+			public void onClick(AjaxRequestTarget target) {
+				redirectBack();
+			}
+		};
+		add(back);
+
+	}
+	
+	private ResourceSummaryPanel createResourceSummaryPanel(){
+		 ResourceSummaryPanel resourceSummaryPanel = new ResourceSummaryPanel(PANEL_RESOURCE_SUMMARY,
+					resourceModel);
+		 resourceSummaryPanel.setOutputMarkupId(true);
+			return resourceSummaryPanel;
+	}
+	
+	private AjaxTabbedPanel<ITab> createTabsPanel(){
+		List<ITab> tabs = new ArrayList<ITab>();
+
+		tabs.add(new PanelTab(createStringResource("PageResource.tab.details")) {
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public WebMarkupContainer createPanel(String panelId) {
+				return new ResourceDetailsTabPanel(panelId, resourceModel, PageResource.this);
+			}
+		});
+
+		tabs.add(new PanelTab(createStringResource("PageResource.tab.content.tasks")) {
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public WebMarkupContainer createPanel(String panelId) {
+				return new ResourceTasksPanel(panelId, true, resourceModel, PageResource.this);
+			}
+		});
+
+		tabs.add(new PanelTab(createStringResource("PageResource.tab.content.account")) {
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public WebMarkupContainer createPanel(String panelId) {
+				return new ResourceContentTabPanel(panelId, ShadowKindType.ACCOUNT, resourceModel,
+						PageResource.this);
+			}
+		});
+
+		tabs.add(new PanelTab(createStringResource("PageResource.tab.content.entitlement")) {
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public WebMarkupContainer createPanel(String panelId) {
+				return new ResourceContentTabPanel(panelId, ShadowKindType.ENTITLEMENT, resourceModel,
+						PageResource.this);
+			}
+		});
+
+		tabs.add(new PanelTab(createStringResource("PageResource.tab.content.generic")) {
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public WebMarkupContainer createPanel(String panelId) {
+				return new ResourceContentTabPanel(panelId, ShadowKindType.GENERIC, resourceModel,
+						PageResource.this);
+			}
+		});
+
+		tabs.add(new PanelTab(createStringResource("PageResource.tab.content.others")) {
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public WebMarkupContainer createPanel(String panelId) {
+				return new ResourceContentTabPanel(panelId, null, resourceModel, PageResource.this);
+			}
+		});
+
+		AjaxTabbedPanel<ITab> resourceTabs = new AjaxTabbedPanel<>(ID_TAB_PANEL, tabs);
+		resourceTabs.setOutputMarkupId(true);
+		return resourceTabs;
 	}
 
 	private void refreshSchemaPerformed(AjaxRequestTarget target) {
-		
+
 		Task task = createSimpleTask(OPERATION_REFRESH_SCHEMA);
 		OperationResult parentResult = new OperationResult(OPERATION_REFRESH_SCHEMA);
-		
+
 		try {
-			
-			PrismContainer<XmlSchemaType> resourceSchemaContainer = resourceModel.getObject().findContainer(ResourceType.F_SCHEMA);
-			
-			if (resourceSchemaContainer != null && resourceSchemaContainer.getValue() != null){
-				PrismProperty<SchemaDefinitionType> resourceSchemaDefinitionProp = resourceSchemaContainer.findProperty(XmlSchemaType.F_DEFINITION);
-				
-				if (resourceSchemaDefinitionProp != null && !resourceSchemaDefinitionProp.isEmpty()){
-				
-				PrismPropertyValue<SchemaDefinitionType> resourceSchema = resourceSchemaDefinitionProp.getValue().clone();
-				ObjectDelta<ResourceType> deleteSchemaDefinitionDelta = ObjectDelta.createModificationDeleteProperty(ResourceType.class,
-						resourceModel.getObject().getOid(), new ItemPath(ResourceType.F_SCHEMA, XmlSchemaType.F_DEFINITION), getPrismContext(), resourceSchema.getValue()
-						);
-				// delete schema 
-				getModelService().executeChanges((Collection) MiscUtil.createCollection(deleteSchemaDefinitionDelta), null, task, parentResult);
-				
+
+			PrismContainer<XmlSchemaType> resourceSchemaContainer = resourceModel.getObject()
+					.findContainer(ResourceType.F_SCHEMA);
+
+			if (resourceSchemaContainer != null && resourceSchemaContainer.getValue() != null) {
+				PrismProperty<SchemaDefinitionType> resourceSchemaDefinitionProp = resourceSchemaContainer
+						.findProperty(XmlSchemaType.F_DEFINITION);
+
+				if (resourceSchemaDefinitionProp != null && !resourceSchemaDefinitionProp.isEmpty()) {
+
+					PrismPropertyValue<SchemaDefinitionType> resourceSchema = resourceSchemaDefinitionProp
+							.getValue().clone();
+					ObjectDelta<ResourceType> deleteSchemaDefinitionDelta = ObjectDelta
+							.createModificationDeleteProperty(ResourceType.class,
+									resourceModel.getObject().getOid(),
+									new ItemPath(ResourceType.F_SCHEMA, XmlSchemaType.F_DEFINITION),
+									getPrismContext(), resourceSchema.getValue());
+					// delete schema
+					getModelService().executeChanges(
+							(Collection) MiscUtil.createCollection(deleteSchemaDefinitionDelta), null, task,
+							parentResult);
+
 				}
-				
+
 			}
-			
-			//try to load fresh scehma
+
+			// try to load fresh scehma
 			getModelService().testResource(resourceModel.getObject().getOid(), task);
-			
+
 		} catch (ObjectAlreadyExistsException | ObjectNotFoundException | SchemaException
 				| ExpressionEvaluationException | CommunicationException | ConfigurationException
 				| PolicyViolationException | SecurityViolationException e) {
@@ -314,7 +345,7 @@ public class PageResource extends PageAdminResources {
 			LOGGER.error("Error deleting resource schema: " + e.getMessage(), e);
 			parentResult.recordFatalError("Error deleting resource schema", e);
 		}
-		
+
 		parentResult.computeStatus();
 		showResult(parentResult, "pageResource.refreshSchema.failed");
 		target.add(getFeedbackPanel());
@@ -331,8 +362,8 @@ public class PageResource extends PageAdminResources {
 		OperationResult result = new OperationResult(OPERATION_TEST_CONNECTION);
 		PrismObject<ResourceType> resource = null;
 		List<TestConnectionResultDto> resultsDto = new ArrayList<>();
+		// try {
 		try {
-
 			Task task = createSimpleTask(OPERATION_TEST_CONNECTION);
 
 			result = getModelService().testResource(dto.getOid(), task);
@@ -340,16 +371,8 @@ public class PageResource extends PageAdminResources {
 			resultsDto = TestConnectionResultDto.getResultDtoList(result, this);
 
 			resource = getModelService().getObject(ResourceType.class, dto.getOid(), null, task, result);
-
-		} catch (ObjectNotFoundException ex) {
-			result.recordFatalError("Failed to test resource connection", ex);
-		} catch (ConfigurationException e) {
-			result.recordFatalError("Failed to test resource connection", e);
-		} catch (SchemaException e) {
-			result.recordFatalError("Failed to test resource connection", e);
-		} catch (CommunicationException e) {
-			result.recordFatalError("Failed to test resource connection", e);
-		} catch (SecurityViolationException e) {
+		} catch (ObjectNotFoundException | SchemaException | SecurityViolationException
+				| CommunicationException | ConfigurationException e) {
 			result.recordFatalError("Failed to test resource connection", e);
 		}
 
@@ -361,32 +384,28 @@ public class PageResource extends PageAdminResources {
 			result.recomputeStatus();
 		}
 
-		setMainPopupContent(createConnectionResultTable(new ListModel<>(resultsDto)));
-		getMainPopup().setInitialHeight(400);
-		getMainPopup().setInitialWidth(600);
-		showMainPopup(target);
-
-		// this provides some additional tests, namely a test for schema
-		// handling section
-		Component component = get(
-				createComponentPath(ID_TAB_PANEL, "panel", ResourceDetailsTabPanel.ID_LAST_AVAILABILITY_STATUS));
-		if (component != null) {
-			target.add(component);
-		}
-
-		showResult(result, "Test connection failed", false);
+		resourceModel.reset();
+//		showMainPopup(createConnectionResultTable(new ListModel<>(resultsDto)), new Model<String>("Test connection result"), target, 600, 400);
+		target.add(addOrReplace(createResourceSummaryPanel()));
+		target.add(addOrReplace(createTabsPanel()));
+		showResult(result, "Test connection failed");
+		target.add(getFeedbackPanel());
+		
 
 	}
 
 	private TablePanel createConnectionResultTable(ListModel<TestConnectionResultDto> model) {
-		ListDataProvider<TestConnectionResultDto> listprovider = new ListDataProvider<TestConnectionResultDto>(this,
-				model);
-		List<ColumnTypeDto> columns = Arrays.asList(new ColumnTypeDto<String>("Operation Name", "operationName", null),
+		ListDataProvider<TestConnectionResultDto> listprovider = new ListDataProvider<TestConnectionResultDto>(
+				this, model);
+		List<ColumnTypeDto> columns = Arrays.asList(
+				new ColumnTypeDto<String>("Operation Name", "operationName", null),
 				new ColumnTypeDto("Status", "status", null),
 				new ColumnTypeDto<String>("Error Message", "errorMessage", null));
 
-		TablePanel table = new TablePanel(getMainPopupBodyId(), listprovider, ColumnUtils.createColumns(columns));
+		TablePanel table = new TablePanel(getMainPopupBodyId(), listprovider,
+				ColumnUtils.createColumns(columns));
 		table.setOutputMarkupId(true);
+		
 		return table;
 	}
 

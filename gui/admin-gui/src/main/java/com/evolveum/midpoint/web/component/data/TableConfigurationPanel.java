@@ -23,6 +23,7 @@ import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.SearchFormEnterBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
+import org.apache.wicket.feedback.ComponentFeedbackMessageFilter;
 import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -45,7 +46,7 @@ public class TableConfigurationPanel extends BasePanel {
     private static final String ID_INPUT = "input";
     private static final String ID_BUTTON = "button";
     
-    private static final String ID_FEEDBACK = "feedback";
+//    private static final String ID_FEEDBACK = "feedback";
 
     public TableConfigurationPanel(String id) {
         super(id);
@@ -102,7 +103,7 @@ public class TableConfigurationPanel extends BasePanel {
 
             @Override
             protected void onError(AjaxRequestTarget target, Form<?> form) {
-                target.add(TableConfigurationPanel.this.get(createComponentPath(ID_POPOVER, ID_FORM, ID_FEEDBACK)));
+                target.add(TableConfigurationPanel.this.get(createComponentPath(ID_POPOVER, ID_FORM, "inputFeedback")));
             }
 
             @Override
@@ -117,8 +118,9 @@ public class TableConfigurationPanel extends BasePanel {
         input.setLabel(createStringResource("PageSizePopover.title"));
         input.add(new SearchFormEnterBehavior(button));
         input.setType(Integer.class);
+        input.setOutputMarkupId(true);
         
-        FeedbackPanel feedback = new FeedbackPanel(ID_FEEDBACK);
+        FeedbackPanel feedback = new FeedbackPanel("inputFeedback", new ComponentFeedbackMessageFilter(input));
 		feedback.setOutputMarkupId(true);
 		form.add(feedback);
         form.add(input);

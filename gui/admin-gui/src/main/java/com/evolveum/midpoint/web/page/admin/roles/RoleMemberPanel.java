@@ -242,7 +242,7 @@ public class RoleMemberPanel extends AbstractRoleMemberPanel<RoleType> {
 
 	@Override
 	protected void addMembersPerformed(QName type, QName relation, List selected, AjaxRequestTarget target) {
-		Task operationalTask = getPageBase().createSimpleTask("Add members");
+		Task operationalTask = getPageBase().createSimpleTask(getTaskName("Add", null));
 		ObjectDelta delta = prepareDelta(type, MemberOperation.ADD, operationalTask.getResult());
 		executeMemberOperation(operationalTask, type, createQueryForAdd(selected), delta,
 				TaskCategory.EXECUTE_CHANGES, target);
@@ -275,7 +275,7 @@ public class RoleMemberPanel extends AbstractRoleMemberPanel<RoleType> {
 
 	@Override
 	protected void removeMembersPerformed(QueryScope scope, AjaxRequestTarget target) {
-		Task operationalTask = getPageBase().createSimpleTask("Remove members " + scope.name());
+		Task operationalTask = getPageBase().createSimpleTask(getTaskName("Remove", scope));
 		ObjectDelta delta = prepareDelta(FocusType.COMPLEX_TYPE, MemberOperation.REMOVE, operationalTask.getResult());
 		executeMemberOperation(operationalTask, FocusType.COMPLEX_TYPE, getActionQuery(scope), delta,
 				TaskCategory.EXECUTE_CHANGES, target);
@@ -284,7 +284,7 @@ public class RoleMemberPanel extends AbstractRoleMemberPanel<RoleType> {
 
 	@Override
 	protected void recomputeMembersPerformed(QueryScope scope, AjaxRequestTarget target) {
-		Task operationalTask = getPageBase().createSimpleTask("Recompute members " + scope.name());
+		Task operationalTask = getPageBase().createSimpleTask(getTaskName("Recompute", scope));
 		executeMemberOperation(operationalTask, ObjectType.COMPLEX_TYPE, getActionQuery(scope), null,
 				TaskCategory.RECOMPUTATION, target);
 

@@ -63,6 +63,7 @@ import com.evolveum.midpoint.web.page.admin.server.PageTaskEdit;
 import com.evolveum.midpoint.web.page.admin.services.PageService;
 import com.evolveum.midpoint.web.page.admin.users.PageOrgUnit;
 import com.evolveum.midpoint.web.page.admin.users.PageUser;
+import com.evolveum.midpoint.web.page.admin.users.component.AbstractRoleMemberPanel.QueryScope;
 import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
@@ -464,6 +465,26 @@ public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extend
 	
 	protected Class qnameToClass(QName type) {
 		return getPageBase().getPrismContext().getSchemaRegistry().determineCompileTimeClass(type);
+	}
+	
+	protected String getTaskName(String operation, QueryScope scope, boolean managers){
+		StringBuilder nameBuilder = new StringBuilder(operation);
+		nameBuilder.append(" ");
+		if (scope != null){
+			nameBuilder.append(scope.name());
+			nameBuilder.append(" ");
+		}
+		if (managers) {
+			nameBuilder.append("managers: ");
+		} else {
+			nameBuilder.append("members: ");
+		}
+		nameBuilder.append(WebComponentUtil.getEffectiveName(getModelObject(), AbstractRoleType.F_DISPLAY_NAME));
+		return nameBuilder.toString();
+	}
+	
+	protected String getTaskName(String operation, QueryScope scope){
+		return getTaskName(operation, scope, false);
 	}
 
 }

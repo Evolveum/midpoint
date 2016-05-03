@@ -162,52 +162,6 @@ public class TreeTablePanel extends BasePanel<String> {
 
 	private List<InlineMenuItem> createTreeMenu() {
 		List<InlineMenuItem> items = new ArrayList<>();
-
-		// items.add(new InlineMenuItem());
-		// InlineMenuItem item = new
-		// InlineMenuItem(createStringResource("TreeTablePanel.moveRoot"),
-		// new InlineMenuItemAction() {
-		//
-		// @Override
-		// public void onClick(AjaxRequestTarget target) {
-		// moveRootPerformed(null, target);
-		// }
-		// });
-		// items.add(item);
-		//
-		// item = new
-		// InlineMenuItem(createStringResource("TreeTablePanel.deleteRoot"),
-		// new InlineMenuItemAction() {
-		//
-		// @Override
-		// public void onClick(AjaxRequestTarget target) {
-		// deleteRootPerformed(null, target);
-		// }
-		// });
-		// items.add(item);
-		//
-		// item = new
-		// InlineMenuItem(createStringResource("TreeTablePanel.recomputeRoot"),
-		// new InlineMenuItemAction() {
-		//
-		// @Override
-		// public void onClick(AjaxRequestTarget target) {
-		// recomputeRootPerformed(null, target);
-		// }
-		// });
-		// items.add(item);
-		//
-		// item = new
-		// InlineMenuItem(createStringResource("TreeTablePanel.editRoot"),
-		// new InlineMenuItemAction() {
-		//
-		// @Override
-		// public void onClick(AjaxRequestTarget target) {
-		// editRootPerformed(null, target);
-		// }
-		// });
-		// items.add(item);
-
 		return items;
 	}
 
