@@ -111,7 +111,8 @@ public class SearchFactory {
         PrismObjectDefinition objDef = registry.findObjectDefinitionByCompileTimeClass(ObjectType.class);
         PrismPropertyDefinition def = objDef.findPropertyDefinition(ObjectType.F_NAME);
 
-        search.addItem(def);
+        SearchItem item = search.addItem(def);
+        item.setFixed(true);
 
         return search;
     }
