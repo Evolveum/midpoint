@@ -164,7 +164,7 @@ public class MidPointSchemaDefinitionFactory extends SchemaDefinitionFactory {
 		// identifier
 		attrDefinition = getAnnotationReference(annotation, MidPointConstants.RA_IDENTIFIER, ocDef);
 		if (attrDefinition != null) {
-			((Collection<ResourceAttributeDefinition>)ocDef.getIdentifiers()).add(attrDefinition);
+			((Collection<ResourceAttributeDefinition>)ocDef.getPrimaryIdentifiers()).add(attrDefinition);
 		}
 		// secondaryIdentifier
 		attrDefinition = getAnnotationReference(annotation, MidPointConstants.RA_SECONDARY_IDENTIFIER, ocDef);
@@ -185,7 +185,7 @@ public class MidPointSchemaDefinitionFactory extends SchemaDefinitionFactory {
 		processor.addAnnotation(MidPointConstants.RA_RESOURCE_OBJECT, appinfo);
 		
 		// displayName, identifier, secondaryIdentifier
-		for (ResourceAttributeDefinition identifier : definition.getIdentifiers()) {
+		for (ResourceAttributeDefinition identifier : definition.getPrimaryIdentifiers()) {
 			processor.addRefAnnotation(MidPointConstants.RA_IDENTIFIER, identifier.getName(), appinfo);
 		}
 		for (ResourceAttributeDefinition identifier : definition.getSecondaryIdentifiers()) {

@@ -66,7 +66,7 @@ public abstract class Abstract389DsDnTest extends Abstract389DsTest {
         assertTrue("dn modify", dnDef.canModify());
         assertTrue("dn add", dnDef.canAdd());
         
-        assertTrue("Dn is not an identifier", accountObjectClassDefinition.getIdentifiers().contains(dnDef));
+        assertTrue("Dn is not an identifier", accountObjectClassDefinition.getPrimaryIdentifiers().contains(dnDef));
         assertTrue("Secodary identifiers are not empty: "+accountObjectClassDefinition.getSecondaryIdentifiers(), 
         		accountObjectClassDefinition.getSecondaryIdentifiers().isEmpty());
 	}

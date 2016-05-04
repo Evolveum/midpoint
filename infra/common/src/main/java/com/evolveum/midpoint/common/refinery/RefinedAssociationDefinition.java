@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2015 Evolveum
+ * Copyright (c) 2014-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,6 +29,7 @@ import java.io.Serializable;
 import java.util.Collection;
 
 public class RefinedAssociationDefinition implements Serializable {
+	private static final long serialVersionUID = 1L;
 	
 	private ResourceObjectAssociationType resourceObjectAssociationType;
 	private RefinedObjectClassDefinition associationTarget;
@@ -88,6 +89,10 @@ public class RefinedAssociationDefinition implements Serializable {
 
 	public QName getMatchingRule() {
 		return getResourceObjectAssociationType().getMatchingRule();
+	}
+	
+	public String getDisplayName() {
+		return resourceObjectAssociationType.getDisplayName();
 	}
 	
 	public RefinedAssociationDefinition clone() {

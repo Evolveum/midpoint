@@ -1,3 +1,5 @@
+Status: [![Build Status](https://travis-ci.org/Evolveum/midpoint.svg?branch=master)](https://travis-ci.org/Evolveum/midpoint)
+
 midPoint 3.3 "Lincoln"
 -------------------------------
 

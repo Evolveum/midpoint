@@ -24,6 +24,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.AttributeModifier;
@@ -88,6 +89,20 @@ public class SearchItemPanel extends BasePanel<SearchItem> {
         initLayout();
     }
 
+    @Override
+    protected void onConfigure() {
+        super.onConfigure();
+
+        SearchItem item = getModelObject();
+        if (!item.isEditWhenVisible()) {
+            return;
+        }
+
+        item.setEditWhenVisible(false);
+
+        //todo show popover for this item somehow [lazyman]
+    }
+
     private void initLayout() {
         popoverModel = new LoadableModel<SearchItemPopoverDto>(false) {
 
@@ -118,6 +133,13 @@ public class SearchItemPanel extends BasePanel<SearchItem> {
             }
         };
         mainButton.add(deleteButton);
+        deleteButton.add(new VisibleEnableBehaviour() {
+
+            @Override
+            public boolean isVisible() {
+                return !getModelObject().isFixed();
+            }
+        });
 
         initPopover();
         initBrowserPopup();

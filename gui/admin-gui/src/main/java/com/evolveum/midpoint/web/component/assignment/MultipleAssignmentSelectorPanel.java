@@ -83,11 +83,9 @@ public class MultipleAssignmentSelectorPanel<F extends FocusType, H extends Focu
     private static final String OPERATION_LOAD_AVAILABLE_ROLES = DOT_CLASS + "loadAvailableRoles";
     private Class<G> type;
 
-    private BaseSortableDataProvider dataProvider;
     private List<OrgType> tenantEditorObject = new ArrayList<>();
     private List<OrgType> orgEditorObject = new ArrayList<>();
     private PrismObject<F> focus;
-    private ObjectQuery dataProviderQuery;
     private ObjectFilter authorizedRolesFilter = null;
     private IModel<ObjectFilter> filterModel = null;
     private static final Trace LOGGER = TraceManager.getTrace(MultipleAssignmentSelectorPanel.class);
@@ -108,12 +106,10 @@ public class MultipleAssignmentSelectorPanel<F extends FocusType, H extends Focu
     private void initLayout(Class<H> targetFocusClass) {
 
         IModel<List<AssignmentEditorDto>> availableAssignmentModel = createAvailableAssignmentModel();
-        dataProvider = getAvailableAssignmentsDataProvider();
         final MultipleAssignmentSelector availableAssignmentsPanel = new MultipleAssignmentSelector<F, H>(ID_AVAILABLE_ASSIGNMENTS,
-                availableAssignmentModel, dataProvider, targetFocusClass, type, focus);
+                availableAssignmentModel, targetFocusClass, type, focus, filterModel);
         final MultipleAssignmentSelector currentAssignmentsPanel = new MultipleAssignmentSelector<F, H>(ID_CURRENT_ASSIGNMENTS,
-                assignmentsModel,
-                null, targetFocusClass, type, focus){
+                assignmentsModel, targetFocusClass, type, null, null){
             @Override
         protected List<AssignmentEditorDto> getListProviderDataList(){
                 return assignmentsModel.getObject();
@@ -124,13 +120,6 @@ public class MultipleAssignmentSelectorPanel<F extends FocusType, H extends Focu
         AjaxButton add = new AjaxButton(ID_BUTTON_ADD) {
             @Override
             protected void onSubmit(AjaxRequestTarget target, org.apache.wicket.markup.html.form.Form form) {
-                List<AssignmentEditorDto> list = assignmentsModel.getObject();
-                for (AssignmentEditorDto dto : list){
-                    String n = dto.getName();
-                    if (n != null){
-                        String f = "";
-                    }
-                }
                 addToAssignmentsModel(target, availableAssignmentsPanel, currentAssignmentsPanel);
             }
         };
@@ -239,34 +228,6 @@ public class MultipleAssignmentSelectorPanel<F extends FocusType, H extends Focu
         assignmentsList.removeAll(listToBeRemoved);
         target.add(to);
         target.add(from);
-    }
-
-    public ObjectDataProvider getAvailableAssignmentsDataProvider() {
-        ObjectDataProvider<AssignmentEditorDto, G> provider = new ObjectDataProvider<AssignmentEditorDto, G>(this, type) {
-
-            @Override
-            public AssignmentEditorDto createDataObjectWrapper(PrismObject<G> obj) {
-                return AssignmentEditorDto.createDtoFromObject(obj.asObjectable(), UserDtoStatus.MODIFY, getPageBase());
-            }
-
-            @Override
-            public void setQuery(ObjectQuery query) {
-                super.setQuery(query);
-                dataProviderQuery = query;
-            }
-
-            @Override
-            public ObjectQuery getQuery() {
-                if (dataProviderQuery == null){
-                    dataProviderQuery = new ObjectQuery();
-                }
-                if (filterModel != null && filterModel.getObject() != null){
-                    dataProviderQuery.addFilter(filterModel.getObject());
-                }
-                return dataProviderQuery;
-            }
-        };
-        return provider;
     }
 
     private  IModel<ObjectFilter> getFilterModel(){
@@ -442,16 +403,6 @@ public class MultipleAssignmentSelectorPanel<F extends FocusType, H extends Focu
                         target.add(getOrgUnitEditorContainer());
                     }
                 };
-//                OrgTreeAssignablePanel orgPanel = new OrgTreeAssignablePanel(
-//                        getPageBase().getMainPopupBodyId(), false, getPageBase()) {
-//
-//                    @Override
-//                    protected void onItemSelect(SelectableBean<OrgType> selected, AjaxRequestTarget target) {
-//                        closeModalWindow(target);
-//                        tenantEditorObject.clear();
-//                        tenantEditorObject.add(selected.getValue());
-//                        target.add(getTenantEditorContainer());                    }
-//                };
                 getPageBase().showMainPopup(orgPanel, new Model<String>("Select organization"), target);
             }
 

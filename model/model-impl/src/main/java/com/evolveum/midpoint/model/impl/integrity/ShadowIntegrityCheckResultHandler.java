@@ -425,7 +425,7 @@ public class ShadowIntegrityCheckResultHandler extends AbstractSearchIterativeRe
         }
 
         Set<RefinedAttributeDefinition<?>> identifiers = new HashSet<>();
-        Collection<? extends RefinedAttributeDefinition<?>> primaryIdentifiers = context.getObjectClassDefinition().getIdentifiers();
+        Collection<? extends RefinedAttributeDefinition<?>> primaryIdentifiers = context.getObjectClassDefinition().getPrimaryIdentifiers();
         identifiers.addAll(primaryIdentifiers);
         identifiers.addAll(context.getObjectClassDefinition().getSecondaryIdentifiers());
 

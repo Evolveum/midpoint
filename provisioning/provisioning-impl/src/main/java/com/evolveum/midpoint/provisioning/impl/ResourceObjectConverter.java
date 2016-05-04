@@ -262,7 +262,7 @@ public class ResourceObjectConverter {
 
 	private boolean hasAllIdentifiers(Collection<? extends ResourceAttribute<?>> attributes,
 			RefinedObjectClassDefinition objectClassDefinition) {
-		Collection<? extends RefinedAttributeDefinition> identifierDefs = objectClassDefinition.getIdentifiers();
+		Collection<? extends RefinedAttributeDefinition> identifierDefs = objectClassDefinition.getPrimaryIdentifiers();
 		for (RefinedAttributeDefinition identifierDef: identifierDefs) {
 			boolean found = false;
 			for(ResourceAttribute<?> attribute: attributes) {
@@ -369,7 +369,7 @@ public class ResourceObjectConverter {
 		LOGGER.trace("Deleting resource object {}", shadow);
 
 		Collection<? extends ResourceAttribute<?>> identifiers = ShadowUtil
-				.getIdentifiers(shadow);
+				.getPrimaryIdentifiers(shadow);
 
 		if (ProvisioningUtil.isProtectedShadow(ctx.getObjectClassDefinition(), shadow, matchingRuleRegistry)) {
 			LOGGER.error("Attempt to delete protected resource object " + ctx.getObjectClassDefinition() + ": "
@@ -440,7 +440,7 @@ public class ResourceObjectConverter {
 		RefinedObjectClassDefinition objectClassDefinition = ctx.getObjectClassDefinition();
 		Collection<Operation> operations = new ArrayList<Operation>();
 		
-		Collection<? extends ResourceAttribute<?>> identifiers = ShadowUtil.getIdentifiers(repoShadow);
+		Collection<? extends ResourceAttribute<?>> identifiers = ShadowUtil.getPrimaryIdentifiers(repoShadow);
 		
 
 		if (ProvisioningUtil.isProtectedShadow(ctx.getObjectClassDefinition(), repoShadow, matchingRuleRegistry)) {

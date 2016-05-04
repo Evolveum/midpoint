@@ -30,6 +30,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
  * This configuration is supposed to be executed in bamboo (behind firewall).
  *
  */
+@Listeners({com.evolveum.midpoint.tools.testng.AlphabeticalMethodInterceptor.class})
 public class TestEDirDeimos extends AbstractEDirTest {
 
 	@Override

@@ -595,7 +595,7 @@ public class ShadowManager {
 			PrismContext prismContext, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException {
 		ResourceAttributeContainer attributesContainer = ShadowUtil
 				.getAttributesContainer(resourceShadow);
-		PrismProperty identifier = attributesContainer.getIdentifier();
+		PrismProperty identifier = attributesContainer.getPrimaryIdentifier();
 
 		Collection<PrismPropertyValue<Object>> idValues = identifier.getValues();
 		// Only one value is supported for an identifier
@@ -709,7 +709,7 @@ public class ShadowManager {
 		// Clean all repoShadow attributes and add only those that should be
 		// there
 		repoAttributesContainer.clear();
-		Collection<ResourceAttribute<?>> primaryIdentifiers = attributesContainer.getIdentifiers();
+		Collection<ResourceAttribute<?>> primaryIdentifiers = attributesContainer.getPrimaryIdentifiers();
 		for (PrismProperty<?> p : primaryIdentifiers) {
 			repoAttributesContainer.add(p.clone());
 		}

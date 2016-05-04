@@ -249,7 +249,7 @@ public abstract class ShadowCache {
 		try {			
 			
 			// Let's get all the identifiers from the Shadow <attributes> part
-			Collection<? extends ResourceAttribute<?>> identifiers = ShadowUtil.getIdentifiers(repositoryShadow);
+			Collection<? extends ResourceAttribute<?>> identifiers = ShadowUtil.getPrimaryIdentifiers(repositoryShadow);
 			
 			if (identifiers == null || identifiers.isEmpty()) {
 				//check if the account is not only partially created (exist only in repo so far)
@@ -1788,7 +1788,7 @@ public abstract class ShadowCache {
 			identifiersContainer = new ResourceAttributeContainer(ShadowAssociationType.F_IDENTIFIERS, origContainer.getDefinition(), prismContext);
 			association.add(identifiersContainer);
 		}
-		Collection<ResourceAttribute<?>> identifiers = ShadowUtil.getIdentifiers(repoShadow);
+		Collection<ResourceAttribute<?>> identifiers = ShadowUtil.getPrimaryIdentifiers(repoShadow);
 		for (ResourceAttribute<?> identifier: identifiers) {
 			identifiersContainer.add(identifier.clone());
 		}

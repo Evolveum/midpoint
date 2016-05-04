@@ -619,7 +619,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		RefinedResourceSchema rSchema = RefinedResourceSchema.getRefinedSchema(resourceType);
 		ObjectClassComplexTypeDefinition ocDef = rSchema.findObjectClassDefinition(objectClass);
 		if (ocDef.getSecondaryIdentifiers().isEmpty()) {
-			ResourceAttributeDefinition idDef = ocDef.getIdentifiers().iterator().next();
+			ResourceAttributeDefinition idDef = ocDef.getPrimaryIdentifiers().iterator().next();
 			PrismProperty<String> idProp = attributesContainer.findProperty(idDef.getName());
 			assertNotNull("No primary identifier ("+idDef.getName()+") attribute in shadow for "+username, idProp);
 			if (nameMatchingRule == null) {
@@ -941,7 +941,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 	protected ObjectQuery createAccountShadowQuery(String identifier, PrismObject<ResourceType> resource) throws SchemaException {
 		RefinedResourceSchema rSchema = RefinedResourceSchema.getRefinedSchema(resource);
         RefinedObjectClassDefinition rAccount = rSchema.getDefaultRefinedDefinition(ShadowKindType.ACCOUNT);
-        Collection<? extends ResourceAttributeDefinition> identifierDefs = rAccount.getIdentifiers();
+        Collection<? extends ResourceAttributeDefinition> identifierDefs = rAccount.getPrimaryIdentifiers();
         assert identifierDefs.size() == 1 : "Unexpected identifier set in "+resource+" refined schema: "+identifierDefs;
         ResourceAttributeDefinition identifierDef = identifierDefs.iterator().next();
         //TODO: set matching rule instead of null

@@ -52,17 +52,17 @@ import java.util.List;
  */
 public class ShadowUtil {
 	
-	public static Collection<ResourceAttribute<?>> getIdentifiers(ShadowType shadowType) {
-		return getIdentifiers(shadowType.asPrismObject());
+	public static Collection<ResourceAttribute<?>> getPrimaryIdentifiers(ShadowType shadowType) {
+		return getPrimaryIdentifiers(shadowType.asPrismObject());
 	}
 	
 	// TODO: rename to getPrimaryIdentifiers
-	public static Collection<ResourceAttribute<?>> getIdentifiers(PrismObject<? extends ShadowType> shadow) {
+	public static Collection<ResourceAttribute<?>> getPrimaryIdentifiers(PrismObject<? extends ShadowType> shadow) {
 		ResourceAttributeContainer attributesContainer = getAttributesContainer(shadow);
 		if (attributesContainer == null) {
 			return null;
 		}
-		return attributesContainer.getIdentifiers();	
+		return attributesContainer.getPrimaryIdentifiers();	
 	}
 	
 	public static Collection<ResourceAttribute<?>> getSecondaryIdentifiers(ShadowType shadowType) {
@@ -498,7 +498,7 @@ public class ShadowUtil {
 		}
 		sb.append("shadow ");
 		boolean first = true;
-		for(ResourceAttribute iattr: getIdentifiers(shadow)) {
+		for(ResourceAttribute iattr: getPrimaryIdentifiers(shadow)) {
 			if (first) {
 				sb.append("[");
 				first  = false;
@@ -554,7 +554,7 @@ public class ShadowUtil {
 		ResourceAttribute<String> namingAttribute = attributesContainer.getNamingAttribute();
 		if (namingAttribute == null || namingAttribute.isEmpty()) {
 			// No naming attribute defined. Try to fall back to identifiers.
-			Collection<ResourceAttribute<?>> identifiers = attributesContainer.getIdentifiers();
+			Collection<ResourceAttribute<?>> identifiers = attributesContainer.getPrimaryIdentifiers();
 			// We can use only single identifiers (not composite)
 			if (identifiers.size() == 1) {
 				PrismProperty<?> identifier = identifiers.iterator().next();
@@ -597,7 +597,7 @@ public class ShadowUtil {
 	public static ResourceObjectIdentification getResourceObjectIdentification(
 			PrismObject<ShadowType> shadow, ObjectClassComplexTypeDefinition objectClassDefinition) {
 		return new ResourceObjectIdentification(objectClassDefinition, 
-				ShadowUtil.getIdentifiers(shadow), ShadowUtil.getSecondaryIdentifiers(shadow));
+				ShadowUtil.getPrimaryIdentifiers(shadow), ShadowUtil.getSecondaryIdentifiers(shadow));
 	}
 
 	public static boolean matchesAttribute(ItemPath path, QName attributeName) {

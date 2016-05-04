@@ -467,14 +467,18 @@ public class ContainerWrapper<C extends Containerable> implements ItemWrapper, S
 				List<ValueWrapper> assocValueWrappers = associationItemWrapper.getValues();
 				for (ValueWrapper assocValueWrapper : assocValueWrappers) {
 					PrismContainerValue<ShadowAssociationType> assocValue = (PrismContainerValue<ShadowAssociationType>) assocValueWrapper.getValue();
-					if (assocValueWrapper.getStatus() == ValueStatus.DELETED) {
-						associationDelta.addValueToDelete(assocValue.clone());
-					} else if (assocValueWrapper.getStatus().equals(ValueStatus.ADDED)) {
-						associationDelta.addValueToAdd(assocValue.clone());
+					if (!assocValue.isEmpty()) {
+						if (assocValueWrapper.getStatus() == ValueStatus.DELETED) {
+							associationDelta.addValueToDelete(assocValue.clone());
+						} else if (assocValueWrapper.getStatus().equals(ValueStatus.ADDED)) {
+							associationDelta.addValueToAdd(assocValue.clone());
+						}
 					}
 				}
 			}
-			delta.addModification(associationDelta);
+			if (!associationDelta.isEmpty()) {
+				delta.addModification(associationDelta);
+			}
 		} else {
 			if (!hasChanged()) {
 				return;
