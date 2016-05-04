@@ -327,7 +327,7 @@ public class SearchPanel extends BasePanel<Search> {
                 name.setRenderBodyOnly(true);
                 propLink.add(name);
 
-                propLink.add(new VisibleEnableBehaviour() {
+                item.add(new VisibleEnableBehaviour() {
 
                     @Override
                     public boolean isVisible() {
