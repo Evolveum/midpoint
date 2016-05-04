@@ -160,8 +160,8 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 			}
 			
 			if (synchronizationPolicy == null) {
-				String message = "SYNCHRONIZATION no matching policy for " + resourceType
-						+ " ignoring change from channel " + change.getSourceChannel();
+				String message = "SYNCHRONIZATION no matching policy for " + applicableShadow + " (" + applicableShadow.asObjectable().getObjectClass() + ") "
+						+ " on " + resourceType + ", ignoring change from channel " + change.getSourceChannel();
 				LOGGER.debug(message);
 				subResult.recordStatus(OperationResultStatus.NOT_APPLICABLE, message);
 				eventInfo.setNoSynchronizationPolicy();

@@ -86,8 +86,8 @@ public class ResourceAttributeContainerDefinition extends PrismContainerDefiniti
 	 *             if there is no definition for the referenced attributed
 	 */
 	// TODO: rename to getPrimaryIdentifiers
-	public Collection<? extends ResourceAttributeDefinition> getIdentifiers() {
-		return getComplexTypeDefinition().getIdentifiers();
+	public Collection<? extends ResourceAttributeDefinition> getPrimaryIdentifiers() {
+		return getComplexTypeDefinition().getPrimaryIdentifiers();
 	}
 
 	/**

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -60,6 +60,7 @@ import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
@@ -160,15 +161,18 @@ import com.evolveum.prism.xml.ns._public.query_3.QueryType;
  */
 @ContextConfiguration(locations = "classpath:ctx-provisioning-test-main.xml")
 @DirtiesContext
-public class TestOpenDJ extends AbstractOpenDJTest {
+public class TestOpenDj extends AbstractOpenDjTest {
 
-	private static Trace LOGGER = TraceManager.getTrace(TestOpenDJ.class);
+	private static Trace LOGGER = TraceManager.getTrace(TestOpenDj.class);
 	
 	private String groupSailorOid;
 
 	@Autowired
 	TaskManager taskManager;
 	
+	protected int getNumberOfBaseContextShadows() {
+		return 0;
+	}
 	
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -212,7 +216,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		final String TEST_NAME = "test003Connection";
 		TestUtil.displayTestTile(TEST_NAME);
 
-		OperationResult result = new OperationResult(TestOpenDJ.class.getName()+"."+TEST_NAME);
+		OperationResult result = new OperationResult(TestOpenDj.class.getName()+"."+TEST_NAME);
 		ResourceType resourceTypeBefore = repositoryService.getObject(ResourceType.class,RESOURCE_OPENDJ_OID, null, result).asObjectable();
 		assertNotNull("No connector ref",resourceTypeBefore.getConnectorRef());
 		assertNotNull("No connector ref OID",resourceTypeBefore.getConnectorRef().getOid());
@@ -261,7 +265,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 	public void test004ResourceAndConnectorCaching() throws Exception {
 		TestUtil.displayTestTile("test004ResourceAndConnectorCaching");
 
-		OperationResult result = new OperationResult(TestOpenDJ.class.getName()+".test004ResourceAndConnectorCaching");
+		OperationResult result = new OperationResult(TestOpenDj.class.getName()+".test004ResourceAndConnectorCaching");
 		resource = provisioningService.getObject(ResourceType.class,RESOURCE_OPENDJ_OID, null, null, result);
 		resourceType = resource.asObjectable();
 		ConnectorInstance configuredConnectorInstance = connectorManager.getConfiguredConnectorInstance(
@@ -303,7 +307,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		TestUtil.displayTestTile("test005Capabilities");
 
 		// GIVEN
-		OperationResult result = new OperationResult(TestOpenDJ.class.getName()+".test005Capabilities");
+		OperationResult result = new OperationResult(TestOpenDj.class.getName()+".test005Capabilities");
 
 		// WHEN
 		ResourceType resource = provisioningService.getObject(ResourceType.class, RESOURCE_OPENDJ_OID, null, null, result).asObjectable();
@@ -375,8 +379,8 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 
 		ObjectClassComplexTypeDefinition accountDef = resourceSchema.findObjectClassDefinition(RESOURCE_OPENDJ_ACCOUNT_OBJECTCLASS);
 		assertNotNull("Account definition is missing", accountDef);
-		assertNotNull("Null identifiers in account", accountDef.getIdentifiers());
-		assertFalse("Empty identifiers in account", accountDef.getIdentifiers().isEmpty());
+		assertNotNull("Null identifiers in account", accountDef.getPrimaryIdentifiers());
+		assertFalse("Empty identifiers in account", accountDef.getPrimaryIdentifiers().isEmpty());
 		assertNotNull("Null secondary identifiers in account", accountDef.getSecondaryIdentifiers());
 		assertFalse("Empty secondary identifiers in account", accountDef.getSecondaryIdentifiers().isEmpty());
 		assertNotNull("No naming attribute in account", accountDef.getNamingAttribute());
@@ -388,7 +392,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		assertFalse("UID has create", idPrimaryDef.canAdd());
 		assertFalse("UID has update", idPrimaryDef.canModify());
 		assertTrue("No UID read", idPrimaryDef.canRead());
-		assertTrue("UID definition not in identifiers", accountDef.getIdentifiers().contains(idPrimaryDef));
+		assertTrue("UID definition not in identifiers", accountDef.getPrimaryIdentifiers().contains(idPrimaryDef));
 		assertEquals("Wrong "+ProvisioningTestUtil.RESOURCE_OPENDJ_PRIMARY_IDENTIFIER_LOCAL_NAME+" frameworkAttributeName", Uid.NAME, idPrimaryDef.getFrameworkAttributeName());
 		assertEquals("Wrong primary identifier matching rule", UuidMatchingRule.NAME, idPrimaryDef.getMatchingRuleQName());
 
@@ -472,8 +476,8 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 
 		ObjectClassComplexTypeDefinition posixAccountDef = resourceSchema.findObjectClassDefinition(RESOURCE_OPENDJ_POSIX_ACCOUNT_OBJECTCLASS);
 		assertNotNull("posixAccount definition is missing", posixAccountDef);
-		assertNotNull("Null identifiers in posixAccount", posixAccountDef.getIdentifiers());
-		assertFalse("Empty identifiers in posixAccount", posixAccountDef.getIdentifiers().isEmpty());
+		assertNotNull("Null identifiers in posixAccount", posixAccountDef.getPrimaryIdentifiers());
+		assertFalse("Empty identifiers in posixAccount", posixAccountDef.getPrimaryIdentifiers().isEmpty());
 		assertNotNull("Null secondary identifiers in posixAccount", posixAccountDef.getSecondaryIdentifiers());
 		assertFalse("Empty secondary identifiers in posixAccount", posixAccountDef.getSecondaryIdentifiers().isEmpty());
 		assertNotNull("No naming attribute in posixAccount", posixAccountDef.getNamingAttribute());
@@ -486,7 +490,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		assertFalse("UID has create", posixIdPrimaryDef.canAdd());
 		assertFalse("UID has update", posixIdPrimaryDef.canModify());
 		assertTrue("No UID read", posixIdPrimaryDef.canRead());
-		assertTrue("UID definition not in identifiers", accountDef.getIdentifiers().contains(posixIdPrimaryDef));
+		assertTrue("UID definition not in identifiers", accountDef.getPrimaryIdentifiers().contains(posixIdPrimaryDef));
 		assertEquals("Wrong "+ProvisioningTestUtil.RESOURCE_OPENDJ_PRIMARY_IDENTIFIER_LOCAL_NAME+" frameworkAttributeName", Uid.NAME, posixIdPrimaryDef.getFrameworkAttributeName());
 
 		ResourceAttributeDefinition<String> posixIdSecondaryDef = posixAccountDef.findAttributeDefinition(getSecondaryIdentifierQName());
@@ -540,8 +544,8 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 
 		RefinedObjectClassDefinition accountDef = refinedSchema.getDefaultRefinedDefinition(ShadowKindType.ACCOUNT);
 		assertNotNull("Account definition is missing", accountDef);
-		assertNotNull("Null identifiers in account", accountDef.getIdentifiers());
-		assertFalse("Empty identifiers in account", accountDef.getIdentifiers().isEmpty());
+		assertNotNull("Null identifiers in account", accountDef.getPrimaryIdentifiers());
+		assertFalse("Empty identifiers in account", accountDef.getPrimaryIdentifiers().isEmpty());
 		assertNotNull("Null secondary identifiers in account", accountDef.getSecondaryIdentifiers());
 		assertFalse("Empty secondary identifiers in account", accountDef.getSecondaryIdentifiers().isEmpty());
 		assertNotNull("No naming attribute in account", accountDef.getNamingAttribute());
@@ -553,7 +557,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		assertFalse("UID has create", idPrimaryDef.canAdd());
 		assertFalse("UID has update", idPrimaryDef.canModify());
 		assertTrue("No UID read", idPrimaryDef.canRead());
-		assertTrue("UID definition not in identifiers", accountDef.getIdentifiers().contains(idPrimaryDef));
+		assertTrue("UID definition not in identifiers", accountDef.getPrimaryIdentifiers().contains(idPrimaryDef));
 		assertEquals("Wrong "+ProvisioningTestUtil.RESOURCE_OPENDJ_PRIMARY_IDENTIFIER_LOCAL_NAME+" frameworkAttributeName", Uid.NAME, idPrimaryDef.getFrameworkAttributeName());
 
 		RefinedAttributeDefinition<String> idSecondaryDef = accountDef.findAttributeDefinition(getSecondaryIdentifierQName());
@@ -608,8 +612,8 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		
 		RefinedObjectClassDefinition posixAccountDef = refinedSchema.getRefinedDefinition(RESOURCE_OPENDJ_POSIX_ACCOUNT_OBJECTCLASS);
 		assertNotNull("posixAccount definition is missing", posixAccountDef);
-		assertNotNull("Null identifiers in posixAccount", posixAccountDef.getIdentifiers());
-		assertFalse("Empty identifiers in posixAccount", posixAccountDef.getIdentifiers().isEmpty());
+		assertNotNull("Null identifiers in posixAccount", posixAccountDef.getPrimaryIdentifiers());
+		assertFalse("Empty identifiers in posixAccount", posixAccountDef.getPrimaryIdentifiers().isEmpty());
 		assertNotNull("Null secondary identifiers in posixAccount", posixAccountDef.getSecondaryIdentifiers());
 		assertFalse("Empty secondary identifiers in posixAccount", posixAccountDef.getSecondaryIdentifiers().isEmpty());
 		assertNotNull("No naming attribute in posixAccount", posixAccountDef.getNamingAttribute());
@@ -622,7 +626,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		assertFalse("UID has create", posixIdPrimaryDef.canAdd());
 		assertFalse("UID has update", posixIdPrimaryDef.canModify());
 		assertTrue("No UID read", posixIdPrimaryDef.canRead());
-		assertTrue("UID definition not in identifiers", accountDef.getIdentifiers().contains(posixIdPrimaryDef));
+		assertTrue("UID definition not in identifiers", accountDef.getPrimaryIdentifiers().contains(posixIdPrimaryDef));
 		assertEquals("Wrong "+ProvisioningTestUtil.RESOURCE_OPENDJ_PRIMARY_IDENTIFIER_LOCAL_NAME+" frameworkAttributeName", Uid.NAME, posixIdPrimaryDef.getFrameworkAttributeName());
 
 		RefinedAttributeDefinition<String> posixIdSecondaryDef = posixAccountDef.findAttributeDefinition(getSecondaryIdentifierQName());
@@ -643,7 +647,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		final String TEST_NAME = "test020ListResourceObjects";
 		TestUtil.displayTestTile(TEST_NAME);
 		// GIVEN
-		OperationResult result = new OperationResult(TestOpenDJ.class.getName()+"." + TEST_NAME);
+		OperationResult result = new OperationResult(TestOpenDj.class.getName()+"." + TEST_NAME);
 		// WHEN
 		List<PrismObject<? extends ShadowType>> objectList = provisioningService.listResourceObjects(
 				RESOURCE_OPENDJ_OID, RESOURCE_OPENDJ_ACCOUNT_OBJECTCLASS, null, null, result);
@@ -652,15 +656,16 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		assertFalse("Empty list returned",objectList.isEmpty());
 		display("Resource object list "+RESOURCE_OPENDJ_ACCOUNT_OBJECTCLASS,objectList);
 		
-		assertShadows(1);
+		assertShadows(1 + getNumberOfBaseContextShadows());
 	}
+
 
 	@Test
 	public void test110GetObject() throws Exception {
 		final String TEST_NAME = "test110GetObject";
 		TestUtil.displayTestTile(TEST_NAME);
 		
-		OperationResult result = new OperationResult(TestOpenDJ.class.getName()
+		OperationResult result = new OperationResult(TestOpenDj.class.getName()
 				+ "." + TEST_NAME);
 
 		ShadowType objectToAdd = parseObjectType(ACCOUNT1_FILE, ShadowType.class);
@@ -713,7 +718,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
         // must be all lowercase
         assertEquals("Wrong secondary identifier (repo)", "uid=jbond,ou=people,dc=example,dc=com", idSecondaryVal);
 
-        assertShadows(2);        
+        assertShadows(2 + getNumberOfBaseContextShadows());        
 	}
 
 	/**
@@ -724,7 +729,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		final String TEST_NAME = "test111GetObjectNotFoundRepo";
 		TestUtil.displayTestTile(TEST_NAME);
 		
-		OperationResult result = new OperationResult(TestOpenDJ.class.getName()
+		OperationResult result = new OperationResult(TestOpenDj.class.getName()
 				+ "." + TEST_NAME);
 
 		try {
@@ -747,7 +752,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 			Assert.fail("Expected ObjectNotFoundException, but got" + e);
 		}
 
-		assertShadows(2);
+		assertShadows(2 + getNumberOfBaseContextShadows());
 	}
 
 	/**
@@ -759,7 +764,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		final String TEST_NAME = "test112GetObjectNotFoundResource";
 		TestUtil.displayTestTile(TEST_NAME);
 		
-		OperationResult result = new OperationResult(TestOpenDJ.class.getName()
+		OperationResult result = new OperationResult(TestOpenDj.class.getName()
 				+ "." + TEST_NAME);
 
 		try {
@@ -791,7 +796,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 			}
 		}
 
-		assertShadows(0);
+		assertShadows(0 + getNumberOfBaseContextShadows());
 	}
 
 	@Test
@@ -799,7 +804,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		final String TEST_NAME = "test120AddAccountWill";
 		TestUtil.displayTestTile(TEST_NAME);
 		
-		OperationResult result = new OperationResult(TestOpenDJ.class.getName()
+		OperationResult result = new OperationResult(TestOpenDj.class.getName()
 				+ "." + TEST_NAME);
 
 		ShadowType object = parseObjectType(ACCOUNT_WILL_FILE, ShadowType.class);
@@ -820,7 +825,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 				null, task, result).asObjectable();
 		PrismAsserts.assertEqualsPolyString("Name not equal.", "uid=will,ou=People,dc=example,dc=com", provisioningAccountType.getName());
 		
-		assertShadows(1);
+		assertShadows(1 + getNumberOfBaseContextShadows());
 	}
 
 	@Test
@@ -850,7 +855,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		PrismAsserts.assertEqualsPolyString("Name not equal (repo after provisioning)", "uid=will123,ou=People,dc=example,dc=com", repoShadowType.getName());
 		assertAttribute(repoShadowType, getSecondaryIdentifierQName(), "uid=will123,ou=people,dc=example,dc=com");
 		
-		assertShadows(1);
+		assertShadows(1 + getNumberOfBaseContextShadows());
 	}
 	
 	@Test
@@ -858,7 +863,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		final String TEST_NAME = "test125AddObjectNull";
 		TestUtil.displayTestTile(TEST_NAME);
 		
-		OperationResult result = new OperationResult(TestOpenDJ.class.getName()
+		OperationResult result = new OperationResult(TestOpenDj.class.getName()
 				+ "." + TEST_NAME);
 
 		String addedObjectOid = null;
@@ -873,7 +878,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 			assertEquals("Object to add must not be null.", ex.getMessage());
 		}
 		
-		assertShadows(1);
+		assertShadows(1 + getNumberOfBaseContextShadows());
 	}
 	
 	@Test
@@ -881,7 +886,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		final String TEST_NAME = "test130AddDeleteAccountSparrow";
 		TestUtil.displayTestTile(TEST_NAME);
 		
-		OperationResult result = new OperationResult(TestOpenDJ.class.getName()
+		OperationResult result = new OperationResult(TestOpenDj.class.getName()
 				+ "." + TEST_NAME);
 
 	
@@ -929,7 +934,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		final String TEST_NAME = "test140AddAndModifyAccountJack";
 		TestUtil.displayTestTile(TEST_NAME);
 		
-		OperationResult result = new OperationResult(TestOpenDJ.class.getName()
+		OperationResult result = new OperationResult(TestOpenDj.class.getName()
 				+ "." + TEST_NAME);
 
 		ShadowType object = unmarshallValueFromFile(ACCOUNT_JACK_FILE, ShadowType.class);
@@ -1000,7 +1005,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		final String TEST_NAME = "test145ModifyAccountJackJpegPhoto";
 		TestUtil.displayTestTile(TEST_NAME);
 		
-		OperationResult result = new OperationResult(TestOpenDJ.class.getName()
+		OperationResult result = new OperationResult(TestOpenDj.class.getName()
 				+ "." + TEST_NAME);
 		
 		byte[] bytesIn = Files.readAllBytes(Paths.get(ProvisioningTestUtil.DOT_JPG_FILENAME));
@@ -1058,7 +1063,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		final String TEST_NAME = "test147ModifyAccountJackGivenNameDuplicit";
 		TestUtil.displayTestTile(TEST_NAME);
 		
-		OperationResult result = new OperationResult(TestOpenDJ.class.getName()
+		OperationResult result = new OperationResult(TestOpenDj.class.getName()
 				+ "." + TEST_NAME);
 		
 		PropertyDelta<String> givenNameDelta = new PropertyDelta<>(
@@ -1110,7 +1115,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		final String TEST_NAME = "test150ChangePassword";
 		TestUtil.displayTestTile(TEST_NAME);
 		
-		OperationResult result = new OperationResult(TestOpenDJ.class.getName()
+		OperationResult result = new OperationResult(TestOpenDj.class.getName()
 				+ "." + TEST_NAME);
 
 		ShadowType object = parseObjectType(ACCOUNT_MODIFY_PASSWORD_FILE, ShadowType.class);
@@ -1165,7 +1170,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		final String TEST_NAME = "test151AddObjectWithPassword";
 		TestUtil.displayTestTile(TEST_NAME);
 		
-		OperationResult result = new OperationResult(TestOpenDJ.class.getName()
+		OperationResult result = new OperationResult(TestOpenDj.class.getName()
 				+ "." + TEST_NAME);
 
 		ShadowType object = parseObjectTypeFromFile(ACCOUNT_NEW_WITH_PASSWORD_FILENAME, ShadowType.class);
@@ -1215,7 +1220,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		TestUtil.displayTestTile(TEST_NAME);
 		
         // GIVEN
-    	OperationResult result = new OperationResult(TestOpenDJ.class.getName()
+    	OperationResult result = new OperationResult(TestOpenDj.class.getName()
 				+ "." + TEST_NAME);
 
         final String resourceNamespace = ResourceTypeUtil.getResourceNamespace(resource);
@@ -1270,7 +1275,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
     }
 
 	protected void assertShadows(int expectedCount) throws SchemaException {
-		OperationResult result = new OperationResult(TestOpenDJ.class.getName() + ".assertShadows");
+		OperationResult result = new OperationResult(TestOpenDj.class.getName() + ".assertShadows");
 		int actualCount = repositoryService.countObjects(ShadowType.class, null, result);
 		if (actualCount != expectedCount) {
 			ResultHandler<ShadowType> handler = new ResultHandler<ShadowType>() {
@@ -1289,7 +1294,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 	public void test170DisableAccount() throws Exception{
 		final String TEST_NAME = "test170DisableAccount";
 		TestUtil.displayTestTile(TEST_NAME);
-		OperationResult result = new OperationResult(TestOpenDJ.class.getName()+"."+TEST_NAME);
+		OperationResult result = new OperationResult(TestOpenDj.class.getName()+"."+TEST_NAME);
 
 		ShadowType object = parseObjectTypeFromFile(ACCOUNT_DISABLE_SIMULATED_FILENAME, ShadowType.class);
 
@@ -1347,7 +1352,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		final String TEST_NAME = "test175AddDisabledAccount";
 		TestUtil.displayTestTile(TEST_NAME);
 		
-		OperationResult result = new OperationResult(TestOpenDJ.class.getName() + "." + TEST_NAME);
+		OperationResult result = new OperationResult(TestOpenDj.class.getName() + "." + TEST_NAME);
 
 		ShadowType object = parseObjectType(ACCOUNT_NEW_DISABLED_FILE, ShadowType.class);
 
@@ -1398,7 +1403,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		final String TEST_NAME = "test176AddEnabledAccount";
 		TestUtil.displayTestTile(TEST_NAME);
 		
-		OperationResult result = new OperationResult(TestOpenDJ.class.getName() + "." + TEST_NAME);
+		OperationResult result = new OperationResult(TestOpenDj.class.getName() + "." + TEST_NAME);
 
 		ShadowType object = parseObjectType(ACCOUNT_NEW_ENABLED_FILE, ShadowType.class);
 
@@ -1435,7 +1440,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		final String TEST_NAME = "test180GetUnlockedAccount";
 		TestUtil.displayTestTile(TEST_NAME);
 		
-		OperationResult result = new OperationResult(TestOpenDJ.class.getName() + "." + TEST_NAME);
+		OperationResult result = new OperationResult(TestOpenDj.class.getName() + "." + TEST_NAME);
 		Task task = taskManager.createTaskInstance();
 
 		// WHEN
@@ -1455,7 +1460,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		final String TEST_NAME = "test182GetLockedAccount";
 		TestUtil.displayTestTile(TEST_NAME);
 		
-		OperationResult result = new OperationResult(TestOpenDJ.class.getName() + "." + TEST_NAME);
+		OperationResult result = new OperationResult(TestOpenDj.class.getName() + "." + TEST_NAME);
 		Task task = taskManager.createTaskInstance();
 		
 		openDJController.executeLdifChange(
@@ -1481,7 +1486,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 	public void test184UnlockAccount() throws Exception{
 		final String TEST_NAME = "test184UnlockAccount";
 		TestUtil.displayTestTile(TEST_NAME);
-		Task task = taskManager.createTaskInstance(TestOpenDJ.class.getName()+"."+TEST_NAME);
+		Task task = taskManager.createTaskInstance(TestOpenDj.class.getName()+"."+TEST_NAME);
 		OperationResult result = task.getResult();
 
 		ObjectDelta<ShadowType> delta = ObjectDelta.createModificationReplaceProperty(ShadowType.class,
@@ -1520,7 +1525,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 	public void test200SearchObjectsIterative() throws Exception {
 		TestUtil.displayTestTile("test200SearchObjectsIterative");
 
-		OperationResult result = new OperationResult(TestOpenDJ.class.getName()
+		OperationResult result = new OperationResult(TestOpenDj.class.getName()
 				+ ".searchObjectsIterativeTest");
 		ShadowType object = parseObjectTypeFromFile(ACCOUNT_SEARCH_ITERATIVE_FILENAME, ShadowType.class);
 
@@ -1562,7 +1567,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		final String TEST_NAME = "test201SearchObjects";
 		TestUtil.displayTestTile(TEST_NAME);
 
-		OperationResult result = new OperationResult(TestOpenDJ.class.getName() + "." + TEST_NAME);
+		OperationResult result = new OperationResult(TestOpenDj.class.getName() + "." + TEST_NAME);
 
 		ShadowType object = parseObjectTypeFromFile(ACCOUNT_SEARCH_FILENAME, ShadowType.class); 
 
@@ -1586,7 +1591,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		
 		assertEquals("Unexpected number of search results", 14, searchResults.size());
 		
-		assertConnectorOperationIncrement(1);
+		assertConnectorOperationIncrement(1, 29);
 		assertConnectorSimulatedPagingSearchIncrement(0);
 	}
 
@@ -1595,7 +1600,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		final String TEST_NAME = "test202SearchObjectsCompexFilter";
 		TestUtil.displayTestTile(TEST_NAME);
 
-		OperationResult result = new OperationResult(TestOpenDJ.class.getName()
+		OperationResult result = new OperationResult(TestOpenDj.class.getName()
 				+ "." + TEST_NAME);
 
 		QueryType queryType = PrismTestUtil.parseAtomicValue(QUERY_COMPLEX_FILTER_FILE,
@@ -1617,7 +1622,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		
 		assertEquals("Unexpected number of objects found", 1, objListType.size());
 		
-		assertConnectorOperationIncrement(1);
+		assertConnectorOperationIncrement(1, 3);
 		assertConnectorSimulatedPagingSearchIncrement(0);
 	}
 
@@ -1626,7 +1631,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		final String TEST_NAME = "test230SearchObjectsPagedNoOffset";
 		TestUtil.displayTestTile(TEST_NAME);
 
-		OperationResult result = new OperationResult(TestOpenDJ.class.getName() + "." + TEST_NAME);
+		OperationResult result = new OperationResult(TestOpenDj.class.getName() + "." + TEST_NAME);
 
 		QueryType queryType = PrismTestUtil.parseAtomicValue(QUERY_ALL_ACCOUNTS_FILE, QueryType.COMPLEX_TYPE);
 		ObjectQuery query = QueryJaxbConvertor.createObjectQuery(ShadowType.class, queryType, prismContext);
@@ -1650,7 +1655,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		
 		assertSearchResults(searchResults, "cook", "drake", "hbarbossa" );
 		
-		assertConnectorOperationIncrement(1);
+		assertConnectorOperationIncrement(1, 7);
 		assertConnectorSimulatedPagingSearchIncrement(0);
 	}
 	
@@ -1659,7 +1664,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		final String TEST_NAME = "test231SearchObjectsPagedOffsetZero";
 		TestUtil.displayTestTile(TEST_NAME);
 
-		OperationResult result = new OperationResult(TestOpenDJ.class.getName() + "." + TEST_NAME);
+		OperationResult result = new OperationResult(TestOpenDj.class.getName() + "." + TEST_NAME);
 
 		QueryType queryType = PrismTestUtil.parseAtomicValue(QUERY_ALL_ACCOUNTS_FILE, QueryType.COMPLEX_TYPE);
 		ObjectQuery query = QueryJaxbConvertor.createObjectQuery(ShadowType.class, queryType, prismContext);
@@ -1683,7 +1688,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		
 		assertSearchResults(searchResults, "cook", "drake", "hbarbossa", "idm");
 		
-		assertConnectorOperationIncrement(1);
+		assertConnectorOperationIncrement(1, 9);
 		assertConnectorSimulatedPagingSearchIncrement(0);
 	}
 	
@@ -1692,7 +1697,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		final String TEST_NAME = "test232SearchObjectsPagedOffset";
 		TestUtil.displayTestTile(TEST_NAME);
 
-		OperationResult result = new OperationResult(TestOpenDJ.class.getName() + "." + TEST_NAME);
+		OperationResult result = new OperationResult(TestOpenDj.class.getName() + "." + TEST_NAME);
 
 		QueryType queryType = PrismTestUtil.parseAtomicValue(QUERY_ALL_ACCOUNTS_FILE, QueryType.COMPLEX_TYPE);
 		ObjectQuery query = QueryJaxbConvertor.createObjectQuery(ShadowType.class, queryType, prismContext);
@@ -1716,7 +1721,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		// The results should be this:
 		assertSearchResults(searchResults, "hbarbossa", "idm", "jbeckett", "jbond", "jgibbs" );
 		
-		assertConnectorOperationIncrement(1);
+		assertConnectorOperationIncrement(1, 11);
 		assertConnectorSimulatedPagingSearchIncrement(0);
 	}
 	
@@ -1725,7 +1730,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		final String TEST_NAME = "test233SearchObjectsPagedNoOffsetSortSn";
 		TestUtil.displayTestTile(TEST_NAME);
 
-		OperationResult result = new OperationResult(TestOpenDJ.class.getName() + "." + TEST_NAME);
+		OperationResult result = new OperationResult(TestOpenDj.class.getName() + "." + TEST_NAME);
 
 		QueryType queryType = PrismTestUtil.parseAtomicValue(QUERY_ALL_ACCOUNTS_FILE, QueryType.COMPLEX_TYPE);
 		ObjectQuery query = QueryJaxbConvertor.createObjectQuery(ShadowType.class, queryType, prismContext);
@@ -1751,7 +1756,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		
 		assertSearchResults(searchResults, "monk", "hbarbossa", "jbeckett", "jbond" );
 		
-		assertConnectorOperationIncrement(1);
+		assertConnectorOperationIncrement(1, 9);
 		assertConnectorSimulatedPagingSearchIncrement(0);
 	}
 	
@@ -1760,7 +1765,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		final String TEST_NAME = "test234SearchObjectsPagedOffsetSortSn";
 		TestUtil.displayTestTile(TEST_NAME);
 
-		OperationResult result = new OperationResult(TestOpenDJ.class.getName() + "." + TEST_NAME);
+		OperationResult result = new OperationResult(TestOpenDj.class.getName() + "." + TEST_NAME);
 
 		QueryType queryType = PrismTestUtil.parseAtomicValue(QUERY_ALL_ACCOUNTS_FILE, QueryType.COMPLEX_TYPE);
 		ObjectQuery query = QueryJaxbConvertor.createObjectQuery(ShadowType.class, queryType, prismContext);
@@ -1786,7 +1791,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		
 		assertSearchResults(searchResults, "jbeckett", "jbond", "cook", "drake" );
 		
-		assertConnectorOperationIncrement(1);
+		assertConnectorOperationIncrement(1, 9);
 		assertConnectorSimulatedPagingSearchIncrement(0);
 	}
 		
@@ -1808,7 +1813,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		final String TEST_NAME = "test250CountObjects";
 		TestUtil.displayTestTile(TEST_NAME);
 
-		OperationResult result = new OperationResult(TestOpenDJ.class.getName() + "." + TEST_NAME);
+		OperationResult result = new OperationResult(TestOpenDj.class.getName() + "." + TEST_NAME);
 
 		QueryType queryType = PrismTestUtil.parseAtomicValue(QUERY_ALL_ACCOUNTS_FILE, QueryType.COMPLEX_TYPE);
 		ObjectQuery query = QueryJaxbConvertor.createObjectQuery(ShadowType.class, queryType, prismContext);
@@ -1830,7 +1835,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 	public void test300AddObjectObjectAlreadyExistResource() throws Exception{
 		TestUtil.displayTestTile("test300AddObjectObjectAlreadyExistResource");
 		
-		OperationResult result = new OperationResult(TestOpenDJ.class.getName()
+		OperationResult result = new OperationResult(TestOpenDj.class.getName()
 				+ ".test300AddObjectObjectAlreadyExist");
 		
 		PrismObject<ShadowType> account = PrismTestUtil.parseObject(new File(ACCOUNT_SEARCH_FILENAME));
@@ -1858,7 +1863,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 	public void test310AddObjectNoSn() throws Exception{
 		TestUtil.displayTestTile("test310AddObjectNoSn");
 		
-		OperationResult result = new OperationResult(TestOpenDJ.class.getName()
+		OperationResult result = new OperationResult(TestOpenDj.class.getName()
 				+ ".test300AddObjectObjectAlreadyExist");
 
 		PrismObject<ShadowType> account = PrismTestUtil.parseObject(new File(ACCOUNT_NO_SN_FILENAME));
@@ -1890,7 +1895,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		final String TEST_NAME = "test320AddAccountPosix";
 		TestUtil.displayTestTile(TEST_NAME);
 		
-		OperationResult result = new OperationResult(TestOpenDJ.class.getName()
+		OperationResult result = new OperationResult(TestOpenDj.class.getName()
 				+ "." + TEST_NAME);
 
 		ShadowType object = parseObjectType(ACCOUNT_POSIX_MCMUTTON_FILE, ShadowType.class);
@@ -1944,7 +1949,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		final String TEST_NAME = "test322ModifyAccountPosix";
 		TestUtil.displayTestTile(TEST_NAME);
 		
-		OperationResult result = new OperationResult(TestOpenDJ.class.getName()
+		OperationResult result = new OperationResult(TestOpenDj.class.getName()
 				+ "." + TEST_NAME);
 
 		ObjectModificationType objectChange = PrismTestUtil.parseAtomicValue(ACCOUNT_POSIX_MCMUTTON_CHANGE_FILE, ObjectModificationType.COMPLEX_TYPE);
@@ -1990,7 +1995,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		final String TEST_NAME = "test329DeleteAccountPosix";
 		TestUtil.displayTestTile(TEST_NAME);
 		
-		OperationResult result = new OperationResult(TestOpenDJ.class.getName()
+		OperationResult result = new OperationResult(TestOpenDj.class.getName()
 				+ "." + TEST_NAME);
 	
 		Task task = taskManager.createTaskInstance();
@@ -2030,7 +2035,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		final String TEST_NAME = "test330SearchForPosixAccount";
 		TestUtil.displayTestTile(TEST_NAME);
 
-		OperationResult result = new OperationResult(TestOpenDJ.class.getName()
+		OperationResult result = new OperationResult(TestOpenDj.class.getName()
 				+ "." + TEST_NAME);
 
 		QueryType queryType = PrismTestUtil.parseAtomicValue(QUERY_VANHELGEN_FILE,
@@ -2059,7 +2064,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		assertAttribute(provisioningShadow, "homeDirectory", "/home/vanhelgen");
 		assertAttribute(provisioningShadow, "uidNumber", 1002);
 		
-		assertConnectorOperationIncrement(1);
+		assertConnectorOperationIncrement(1, 3);
 		assertConnectorSimulatedPagingSearchIncrement(0);
 		
 		assertShadows(17);
@@ -2074,7 +2079,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		final String TEST_NAME = "test400AddGroupSwashbucklers";
 		TestUtil.displayTestTile(TEST_NAME);
 		
-		OperationResult result = new OperationResult(TestOpenDJ.class.getName()
+		OperationResult result = new OperationResult(TestOpenDj.class.getName()
 				+ "." + TEST_NAME);
 		
 		ShadowType object = parseObjectType(GROUP_SWASHBUCKLERS_FILE, ShadowType.class);
@@ -2117,7 +2122,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		final String TEST_NAME = "test402AddAccountMorganWithAssociation";
 		TestUtil.displayTestTile(TEST_NAME);
 		
-		OperationResult result = new OperationResult(TestOpenDJ.class.getName()
+		OperationResult result = new OperationResult(TestOpenDj.class.getName()
 				+ "." + TEST_NAME);
 
 		ShadowType object = parseObjectType(ACCOUNT_MORGAN_FILE, ShadowType.class);
@@ -2165,7 +2170,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		final String TEST_NAME = "test405GetGroupSwashbucklers";
 		TestUtil.displayTestTile(TEST_NAME);
 		
-		OperationResult result = new OperationResult(TestOpenDJ.class.getName()
+		OperationResult result = new OperationResult(TestOpenDj.class.getName()
 				+ "." + TEST_NAME);
 		
 		// WHEN
@@ -2198,7 +2203,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		final String TEST_NAME = "test410CreateLdapGroupAndSearchGroups";
 		TestUtil.displayTestTile(TEST_NAME);
 		
-		OperationResult result = new OperationResult(TestOpenDJ.class.getName()
+		OperationResult result = new OperationResult(TestOpenDj.class.getName()
 				+ "." + TEST_NAME);
 		
 		openDJController.addEntry("dn: cn=seadogs,ou=groups,dc=EXAMPLE,dc=com\n" +
@@ -2232,7 +2237,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		final String TEST_NAME = "test412CreateLdapGroupWithMemberAndGet";
 		TestUtil.displayTestTile(TEST_NAME);
 		
-		OperationResult result = new OperationResult(TestOpenDJ.class.getName()
+		OperationResult result = new OperationResult(TestOpenDj.class.getName()
 				+ "." + TEST_NAME);
 		
 		openDJController.addEntry("dn: cn=sailor,ou=Groups,dc=example,dc=com\n" +
@@ -2271,7 +2276,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		final String TEST_NAME = "test414AddGroupCorsairsAssociateUser";
 		TestUtil.displayTestTile(TEST_NAME);
 		
-		OperationResult result = new OperationResult(TestOpenDJ.class.getName()
+		OperationResult result = new OperationResult(TestOpenDj.class.getName()
 				+ "." + TEST_NAME);
 		
 		ShadowType object = parseObjectType(GROUP_CORSAIRS_FILE, ShadowType.class);
@@ -2355,7 +2360,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 	public void test429DeleteAccountMorgan() throws Exception {
 		final String TEST_NAME = "test429DeleteAccountMorgan";
 		TestUtil.displayTestTile(TEST_NAME);
-		Task task = taskManager.createTaskInstance(TestOpenDJ.class.getName() + "." + TEST_NAME);
+		Task task = taskManager.createTaskInstance(TestOpenDj.class.getName() + "." + TEST_NAME);
 		OperationResult result = task.getResult();
 	
 		// WHEN
@@ -2396,7 +2401,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		final String TEST_NAME = "test450ListGroupsObjectclass";
 		TestUtil.displayTestTile(TEST_NAME);
 		
-		Task task = taskManager.createTaskInstance(TestOpenDJ.class.getName() + "." + TEST_NAME);
+		Task task = taskManager.createTaskInstance(TestOpenDj.class.getName() + "." + TEST_NAME);
 		OperationResult result = task.getResult();
 		
 		ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(RESOURCE_OPENDJ_OID, 
@@ -2423,7 +2428,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		final String TEST_NAME = "test452ListLdapGroupsKindIntent";
 		TestUtil.displayTestTile(TEST_NAME);
 		
-		Task task = taskManager.createTaskInstance(TestOpenDJ.class.getName() + "." + TEST_NAME);
+		Task task = taskManager.createTaskInstance(TestOpenDj.class.getName() + "." + TEST_NAME);
 		OperationResult result = task.getResult();
 		
 		ObjectQuery query = ObjectQueryUtil.createResourceAndKindIntent(RESOURCE_OPENDJ_OID,
@@ -2450,7 +2455,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		final String TEST_NAME = "test454ListSpecialGroupsKindIntent";
 		TestUtil.displayTestTile(TEST_NAME);
 		
-		Task task = taskManager.createTaskInstance(TestOpenDJ.class.getName() + "." + TEST_NAME);
+		Task task = taskManager.createTaskInstance(TestOpenDj.class.getName() + "." + TEST_NAME);
 		OperationResult result = task.getResult();
 		
 		ObjectQuery query = ObjectQueryUtil.createResourceAndKindIntent(RESOURCE_OPENDJ_OID,
@@ -2479,7 +2484,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		final String TEST_NAME = "test456AddGroupSpecialists";
 		TestUtil.displayTestTile(TEST_NAME);
 		
-		OperationResult result = new OperationResult(TestOpenDJ.class.getName()
+		OperationResult result = new OperationResult(TestOpenDj.class.getName()
 				+ "." + TEST_NAME);
 		
 		ShadowType object = parseObjectType(GROUP_SPECIALISTS_FILE, ShadowType.class);
@@ -2522,7 +2527,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		final String TEST_NAME = "test457ListLdapGroupsKindIntent";
 		TestUtil.displayTestTile(TEST_NAME);
 		
-		Task task = taskManager.createTaskInstance(TestOpenDJ.class.getName() + "." + TEST_NAME);
+		Task task = taskManager.createTaskInstance(TestOpenDj.class.getName() + "." + TEST_NAME);
 		OperationResult result = task.getResult();
 		
 		ObjectQuery query = ObjectQueryUtil.createResourceAndKindIntent(RESOURCE_OPENDJ_OID,
@@ -2549,7 +2554,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		final String TEST_NAME = "test458ListSpecialGroupsKindIntent";
 		TestUtil.displayTestTile(TEST_NAME);
 		
-		Task task = taskManager.createTaskInstance(TestOpenDJ.class.getName() + "." + TEST_NAME);
+		Task task = taskManager.createTaskInstance(TestOpenDj.class.getName() + "." + TEST_NAME);
 		OperationResult result = task.getResult();
 		
 		ObjectQuery query = ObjectQueryUtil.createResourceAndKindIntent(RESOURCE_OPENDJ_OID,
@@ -2584,7 +2589,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		final String TEST_NAME = "test460ListOrganizationalUnitPeopleKindIntent";
 		TestUtil.displayTestTile(TEST_NAME);
 		
-		Task task = taskManager.createTaskInstance(TestOpenDJ.class.getName() + "." + TEST_NAME);
+		Task task = taskManager.createTaskInstance(TestOpenDj.class.getName() + "." + TEST_NAME);
 		OperationResult result = task.getResult();
 		
 		ObjectQuery query = ObjectQueryUtil.createResourceAndKindIntent(RESOURCE_OPENDJ_OID,
@@ -2685,7 +2690,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		final String TEST_NAME = "test710AddResourceOpenDjBadCredentials";
 		TestUtil.displayTestTile(TEST_NAME);
 		// GIVEN
-		OperationResult result = new OperationResult(TestOpenDJNegative.class.getName()
+		OperationResult result = new OperationResult(TestOpenDjNegative.class.getName()
 				+ "." + TEST_NAME);
 
 		PrismObject<ResourceType> resource = prismContext.parseObject(RESOURCE_OPENDJ_BAD_CREDENTIALS_FILE);
@@ -2723,7 +2728,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		final String TEST_NAME = "test720AddResourceOpenDjBadBindDn";
 		TestUtil.displayTestTile(TEST_NAME);
 		// GIVEN
-		OperationResult result = new OperationResult(TestOpenDJNegative.class.getName()
+		OperationResult result = new OperationResult(TestOpenDjNegative.class.getName()
 				+ "." + TEST_NAME);
 
 		PrismObject<ResourceType> resource = prismContext.parseObject(RESOURCE_OPENDJ_BAD_BIND_DN_FILE);
@@ -2757,6 +2762,14 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 	}
 	
 	protected void assertEntitlementGroup(PrismObject<ShadowType> account, String entitlementOid) {
-		IntegrationTestTools.assertAssociation(account, ASSOCIATION_GROUP_NAME, entitlementOid);
+		ShadowAssociationType associationType = IntegrationTestTools.assertAssociation(account, ASSOCIATION_GROUP_NAME, entitlementOid);
+		PrismContainerValue identifiersCVal = associationType.getIdentifiers().asPrismContainerValue();
+		PrismProperty<String> dnProp = identifiersCVal.findProperty(getSecondaryIdentifierQName());
+		assertNotNull("No DN identifier in group association in "+account+", got "+identifiersCVal, dnProp);
+		
+	}
+	
+	protected void assertConnectorOperationIncrement(int expectedIncrementSmart, int expectedIncrementDumb) {
+		super.assertConnectorOperationIncrement(expectedIncrementSmart);
 	}
 }

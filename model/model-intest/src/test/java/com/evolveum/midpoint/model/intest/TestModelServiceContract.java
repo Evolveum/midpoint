@@ -383,7 +383,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         
         ResourceAttributeContainer attributesContainer = ShadowUtil.getAttributesContainer(account);
         assertNotNull("No attribute container from "+account, attributesContainer);
-        Collection<ResourceAttribute<?>> identifiers = attributesContainer.getIdentifiers();
+        Collection<ResourceAttribute<?>> identifiers = attributesContainer.getPrimaryIdentifiers();
         assertNotNull("No identifiers (null) in attributes container in "+accountJackOid, identifiers);
         assertFalse("No identifiers (empty) in attributes container in "+accountJackOid, identifiers.isEmpty());
         

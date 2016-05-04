@@ -107,7 +107,7 @@ public class ProvisioningUtil {
 		ResourceAttributeContainer oldContainer = normalizedContainer.clone();
 
 		normalizedContainer.clear();
-		Collection<ResourceAttribute<?>> identifiers = oldContainer.getIdentifiers();
+		Collection<ResourceAttribute<?>> identifiers = oldContainer.getPrimaryIdentifiers();
 		for (PrismProperty<?> p : identifiers) {
 			normalizedContainer.getValue().add(p.clone());
 		}
@@ -311,7 +311,7 @@ public class ProvisioningUtil {
 	}
 
 	public static boolean shouldStoreAtributeInShadow(RefinedObjectClassDefinition objectClassDefinition, QName attributeName) {
-		if (objectClassDefinition.isIdentifier(attributeName) || objectClassDefinition.isSecondaryIdentifier(attributeName)) {
+		if (objectClassDefinition.isPrimaryIdentifier(attributeName) || objectClassDefinition.isSecondaryIdentifier(attributeName)) {
 			return true;
 		}
 		for (RefinedAssociationDefinition associationDef: objectClassDefinition.getAssociations()) {

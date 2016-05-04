@@ -75,8 +75,8 @@ public class CompositeRefinedObjectClassDefinition extends RefinedObjectClassDef
 		return structuralObjectClassDefinition.isContainerMarker();
 	}
 
-	public boolean isIdentifier(QName attrName) {
-		return structuralObjectClassDefinition.isIdentifier(attrName);
+	public boolean isPrimaryIdentifier(QName attrName) {
+		return structuralObjectClassDefinition.isPrimaryIdentifier(attrName);
 	}
 
 	public boolean isObjectMarker() {
@@ -164,8 +164,8 @@ public class CompositeRefinedObjectClassDefinition extends RefinedObjectClassDef
 	}
 
 	@Override
-	public Collection<? extends RefinedAttributeDefinition<?>> getIdentifiers() {
-		return structuralObjectClassDefinition.getIdentifiers();
+	public Collection<? extends RefinedAttributeDefinition<?>> getPrimaryIdentifiers() {
+		return structuralObjectClassDefinition.getPrimaryIdentifiers();
 	}
 
 	@Override

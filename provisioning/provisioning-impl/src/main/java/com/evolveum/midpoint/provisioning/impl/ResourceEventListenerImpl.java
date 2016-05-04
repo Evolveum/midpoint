@@ -114,7 +114,7 @@ public class ResourceEventListenerImpl implements ResourceEventListener {
 		ProvisioningContext ctx = provisioningContextFactory.create(shadow, task, parentResult);
 		ctx.assertDefinition();
 		
-		Collection<ResourceAttribute<?>> identifiers = ShadowUtil.getIdentifiers(shadow);
+		Collection<ResourceAttribute<?>> identifiers = ShadowUtil.getPrimaryIdentifiers(shadow);
 		
 		Change<ShadowType> change = new Change<ShadowType>(identifiers, eventDescription.getCurrentShadow(), eventDescription.getOldShadow(), eventDescription.getDelta());
 		ObjectClassComplexTypeDefinition objectClassDefinition = ShadowUtil.getObjectClassDefinition(shadow);

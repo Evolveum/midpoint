@@ -302,8 +302,6 @@ public class AssociationValueChoicePanel<C extends ObjectType> extends BasePanel
             		
             		List<PrismProperty<String>> identifiers = (List) identifiersContainer.getValue().getItems();
             		Collection<? extends RefinedAttributeDefinition<?>> secondaryIdentifierDefs = assocTargetDef.getSecondaryIdentifiers();
-            		LOGGER.trace("Identifiers: {}", identifiers);
-            		LOGGER.trace("secondaryIdentifierDefs: {}", secondaryIdentifierDefs);
             		
             		for (RefinedAttributeDefinition<?> secondaryIdentifierDef: secondaryIdentifierDefs) {
             			for (PrismProperty<String> identifier: identifiers) {
@@ -315,7 +313,7 @@ public class AssociationValueChoicePanel<C extends ObjectType> extends BasePanel
             		
             		// fallback
             		PrismProperty<String> identifierProp = identifiers.get(0);
-            		return "(fallback) " + identifierProp.getRealValue();
+            		return identifierProp.getRealValue();
             		
             	} else {
             		return shadowRef.getObject().getName().toString();

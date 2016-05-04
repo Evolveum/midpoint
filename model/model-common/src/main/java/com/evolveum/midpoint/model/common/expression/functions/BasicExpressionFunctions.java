@@ -447,7 +447,7 @@ public class BasicExpressionFunctions {
 		if (shadow == null) {
 			return null;
 		}
-		Collection<ResourceAttribute<?>> identifiers = ShadowUtil.getIdentifiers(shadow);
+		Collection<ResourceAttribute<?>> identifiers = ShadowUtil.getPrimaryIdentifiers(shadow);
 		if (identifiers.size() == 0) {
 			return null;
 		}

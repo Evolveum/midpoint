@@ -99,8 +99,8 @@ public final class ResourceAttributeContainer extends PrismContainer {
 	 * @throws IllegalStateException
 	 *             if resource object has multiple identifiers
 	 */
-	public PrismProperty<?> getIdentifier() {
-		Collection<ResourceAttribute<?>> attrDefs = getIdentifiers();
+	public PrismProperty<?> getPrimaryIdentifier() {
+		Collection<ResourceAttribute<?>> attrDefs = getPrimaryIdentifiers();
 		if (attrDefs.size() > 1){
 			throw new IllegalStateException("Resource object has more than one identifier.");
 		}
@@ -129,9 +129,8 @@ public final class ResourceAttributeContainer extends PrismContainer {
 	 * 
 	 * @return set of identifier properties
 	 */
-	// TODO: rename to getPrimaryIdentifiers
-	public Collection<ResourceAttribute<?>> getIdentifiers() {
-		return extractAttributesByDefinitions(getDefinition().getIdentifiers());
+	public Collection<ResourceAttribute<?>> getPrimaryIdentifiers() {
+		return extractAttributesByDefinitions(getDefinition().getPrimaryIdentifiers());
 	}
 
 	/**

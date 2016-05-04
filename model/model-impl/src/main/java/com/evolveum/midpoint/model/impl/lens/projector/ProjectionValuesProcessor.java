@@ -463,7 +463,7 @@ public class ProjectionValuesProcessor {
 			return false;
 		}
 		RefinedObjectClassDefinition oOcDef = projectionContext.getCompositeObjectClassDefinition();
-		for (RefinedAttributeDefinition identifierDef: oOcDef.getIdentifiers()) {
+		for (RefinedAttributeDefinition identifierDef: oOcDef.getPrimaryIdentifiers()) {
 			ItemPath identifierPath = new ItemPath(ShadowType.F_ATTRIBUTES, identifierDef.getName());
 			if (accountDelta.findPropertyDelta(identifierPath) != null) {
 				return true;
