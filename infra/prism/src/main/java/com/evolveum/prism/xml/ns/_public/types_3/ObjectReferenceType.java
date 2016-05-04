@@ -41,40 +41,8 @@ import com.evolveum.midpoint.util.JAXBUtil;
 
 
 /**
- * 
- *                 Reference to an object. It contains OID of the object that it refers to.
- *             
- * 
- * <p>Java class for ObjectReferenceType complex type.
- * 
- * <p>The following schema fragment specifies the expected content contained within this class.
- * 
- * <pre>
- * &lt;complexType name="ObjectReferenceType">
- *   &lt;complexContent>
- *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType">
- *       &lt;sequence>
- *         &lt;element name="description" type="{http://www.w3.org/2001/XMLSchema}string" minOccurs="0"/>
- *         &lt;element name="filter" minOccurs="0">
- *           &lt;complexType>
- *             &lt;complexContent>
- *               &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType">
- *                 &lt;sequence>
- *                   &lt;any processContents='lax' maxOccurs="unbounded" minOccurs="0"/>
- *                 &lt;/sequence>
- *               &lt;/restriction>
- *             &lt;/complexContent>
- *           &lt;/complexType>
- *         &lt;/element>
- *       &lt;/sequence>
- *       &lt;attribute name="oid" type="{http://www.w3.org/2001/XMLSchema}string" />
- *       &lt;attribute name="type" type="{http://www.w3.org/2001/XMLSchema}QName" />
- *     &lt;/restriction>
- *   &lt;/complexContent>
- * &lt;/complexType>
- * </pre>
- * 
- * 
+ *   TODO update this class by adding missing features (targetName, oid, type, relation).
+ *   However, it's quite unclear if it's really necessary.
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "ObjectReferenceType", propOrder = {

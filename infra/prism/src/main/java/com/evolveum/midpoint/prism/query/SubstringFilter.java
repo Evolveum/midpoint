@@ -124,7 +124,7 @@ public class SubstringFilter<T> extends PropertyValueFilter<PrismPropertyValue<T
 			return createNullSubstring(path, itemDefinition, matchingRule);
 		}
 		List<PrismPropertyValue<T>> pValues = createPropertyList(itemDefinition, realValues);
-		return new SubstringFilter<T>(path, itemDefinition, matchingRule, pValues);
+		return new SubstringFilter<T>(path, itemDefinition, matchingRule, pValues, anchorStart, anchorEnd);
 	}
 	
 	public static <T> SubstringFilter createSubstring(ItemPath path, PrismPropertyDefinition itemDefinition, QName matchingRule, PrismPropertyValue<T> values) {
@@ -236,7 +236,14 @@ public class SubstringFilter<T> extends PropertyValueFilter<PrismPropertyValue<T
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
 		sb.append("SUBSTRING: ");
-		return toString(sb);
+		String rv = toString(sb);
+		if (anchorStart) {
+			rv += ",S";
+		}
+		if (anchorEnd) {
+			rv += ",E";
+		}
+		return rv;
 	}
 
 	@Override
@@ -297,4 +304,28 @@ public class SubstringFilter<T> extends PropertyValueFilter<PrismPropertyValue<T
 		return (PrismPropertyDefinition) super.getDefinition();
 	}
 
+	@Override
+	public boolean equals(Object o, boolean exact) {
+		if (this == o)
+			return true;
+		if (o == null || getClass() != o.getClass())
+			return false;
+		if (!super.equals(o, exact))
+			return false;
+
+		SubstringFilter<?> that = (SubstringFilter<?>) o;
+
+		if (anchorStart != that.anchorStart)
+			return false;
+		return anchorEnd == that.anchorEnd;
+
+	}
+
+	@Override
+	public int hashCode() {
+		int result = super.hashCode();
+		result = 31 * result + (anchorStart ? 1 : 0);
+		result = 31 * result + (anchorEnd ? 1 : 0);
+		return result;
+	}
 }

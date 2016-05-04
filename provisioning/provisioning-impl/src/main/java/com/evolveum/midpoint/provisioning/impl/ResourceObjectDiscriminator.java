@@ -54,7 +54,7 @@ public class ResourceObjectDiscriminator {
 		if (!objectClass.equals(shadowType.getObjectClass())) {
 			return false;
 		}
-		Collection<ResourceAttribute<?>> shadowIdentifiers = ShadowUtil.getIdentifiers(shadow);
+		Collection<ResourceAttribute<?>> shadowIdentifiers = ShadowUtil.getPrimaryIdentifiers(shadow);
 		return PrismProperty.compareCollectionRealValues(identifiers, shadowIdentifiers);
 	}
 

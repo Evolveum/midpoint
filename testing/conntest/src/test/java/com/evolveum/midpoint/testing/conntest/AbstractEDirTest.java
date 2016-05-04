@@ -466,7 +466,7 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
         PrismObject<ShadowType> shadow = getShadowModel(shadowOid);
         display("Shadow (model)", shadow);
         accountBarbossaOid = shadow.getOid();
-        Collection<ResourceAttribute<?>> identifiers = ShadowUtil.getIdentifiers(shadow);
+        Collection<ResourceAttribute<?>> identifiers = ShadowUtil.getPrimaryIdentifiers(shadow);
         String accountBarbossaIcfUid = (String) identifiers.iterator().next().getRealValue();
         assertNotNull("No identifier in "+shadow, accountBarbossaIcfUid);
         

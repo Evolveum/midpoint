@@ -18,16 +18,10 @@ package com.evolveum.midpoint.prism.query;
 
 import javax.xml.namespace.QName;
 
-import org.w3c.dom.Element;
-
-import com.evolveum.midpoint.prism.Objectable;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.parser.QueryConvertor;
 import com.evolveum.midpoint.prism.xnode.MapXNode;
-import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.prism.xml.ns._public.query_3.PagingType;
 import com.evolveum.prism.xml.ns._public.query_3.QueryType;
@@ -54,7 +48,7 @@ public class QueryJaxbConvertor {
 		
 		if (queryType.getFilter().containsFilterClause()){
 			MapXNode mapXnode = queryType.getFilter().getFilterClauseXNode();
-			QName type = mapXnode.getParsedPrimitiveValue(QueryConvertor.KEY_FILTER_TYPE_TYPE, DOMUtil.XSD_QNAME);
+			QName type = mapXnode.getParsedPrimitiveValue(QueryConvertor.ELEMENT_TYPE, DOMUtil.XSD_QNAME);
 			if (type == null){
 				throw new SchemaException("Query does not countain type filter. Cannot by parse.");
 			}
@@ -110,16 +104,16 @@ public class QueryJaxbConvertor {
         }
     }
     
-    public static <O extends Objectable> ObjectQuery createObjectQueryInternal(Class<O> clazz, SearchFilterType filterType, PagingType pagingType, PrismContext prismContext)
+    public static <O extends Containerable> ObjectQuery createObjectQueryInternal(Class<O> clazz, SearchFilterType filterType, PagingType pagingType, PrismContext prismContext)
 			throws SchemaException {
-    	PrismObjectDefinition<O> objDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(clazz);
+    	PrismContainerDefinition<O> objDef = prismContext.getSchemaRegistry().findContainerDefinitionByCompileTimeClass(clazz);
 		if (objDef == null) {
-			throw new SchemaException("cannot find obj definition for class "+clazz);
+			throw new SchemaException("cannot find obj/container definition for class "+clazz);
 		}
 		return createObjectQueryInternal(objDef, filterType, pagingType, prismContext);
     }
 
-    public static <O extends Objectable> ObjectQuery createObjectQueryInternal(PrismObjectDefinition<O> objDef, SearchFilterType filterType, PagingType pagingType, PrismContext prismContext)
+    public static <O extends Containerable> ObjectQuery createObjectQueryInternal(PrismContainerDefinition<O> objDef, SearchFilterType filterType, PagingType pagingType, PrismContext prismContext)
 			throws SchemaException {
 
 		try {

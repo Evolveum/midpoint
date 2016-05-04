@@ -408,14 +408,9 @@ public class CertificationTest extends BaseSQLRepoTest {
         OperationResult result = new OperationResult("test330CurrentUnansweredCases");
 
         // we have to find definition ourselves, as ../state cannot be currently resolved by query builder
-        ItemPath statePath = new ItemPath(T_PARENT, F_STATE);
-        PrismPropertyDefinition stateDef =
-                prismContext.getSchemaRegistry()
-                        .findComplexTypeDefinitionByCompileTimeClass(AccessCertificationCampaignType.class)
-                        .findPropertyDefinition(F_STATE);
         ObjectQuery query = QueryBuilder.queryFor(AccessCertificationCaseType.class, prismContext)
                 .item(F_CURRENT_STAGE_NUMBER).eq().item(T_PARENT, AccessCertificationCampaignType.F_STAGE_NUMBER)
-                .and().item(statePath, stateDef).eq(IN_REVIEW_STAGE)
+                .and().item(T_PARENT, F_STATE).eq(IN_REVIEW_STAGE)
                 .and().exists(F_DECISION).block()
                     .item(F_STAGE_NUMBER).eq().item(T_PARENT, F_CURRENT_STAGE_NUMBER)
                     .and().block()

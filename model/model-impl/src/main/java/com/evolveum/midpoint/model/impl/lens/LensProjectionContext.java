@@ -1110,7 +1110,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 		}
 		if (object.canRepresent(ShadowType.class)) {
 			PrismObject<ShadowType> shadow = (PrismObject<ShadowType>)object;
-			Collection<ResourceAttribute<?>> identifiers = ShadowUtil.getIdentifiers(shadow);
+			Collection<ResourceAttribute<?>> identifiers = ShadowUtil.getPrimaryIdentifiers(shadow);
 			if (identifiers == null) {
 				return null;
 			}

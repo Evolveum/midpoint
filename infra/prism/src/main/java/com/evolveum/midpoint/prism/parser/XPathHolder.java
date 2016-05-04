@@ -29,7 +29,8 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
-import com.evolveum.midpoint.prism.path.IdItemPathSegment;
+import com.evolveum.midpoint.prism.PrismConstants;
+import com.evolveum.midpoint.prism.path.*;
 
 import com.evolveum.midpoint.util.QNameUtil;
 import org.apache.commons.lang.StringUtils;
@@ -38,9 +39,6 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.path.ItemPathSegment;
-import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.xml.GlobalDynamicNamespacePrefixMapper;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SystemException;
@@ -109,7 +107,7 @@ public class XPathHolder {
      */
 	private void parse(String xpath, Node domNode, Map<String, String> namespaceMap) {
 
-		segments = new ArrayList<XPathSegment>();
+		segments = new ArrayList<>();
 		absolute = false;
 
 		if (".".equals(xpath)) {
@@ -168,9 +166,17 @@ public class XPathHolder {
             }
             QName qname;
             if (qnameArray.length == 1 || qnameArray[1] == null || qnameArray[1].isEmpty()) {
-                // default namespace <= empty prefix
-                String namespace = findNamespace(null, domNode, namespaceMap);
-                qname = new QName(namespace, qnameArray[0]);
+				if (ParentPathSegment.SYMBOL.equals(qnameArray[0])) {
+					qname = ParentPathSegment.QNAME;
+				} else if (ObjectReferencePathSegment.SYMBOL.equals(qnameArray[0])) {
+					qname = ObjectReferencePathSegment.QNAME;
+				} else if (IdentifierPathSegment.SYMBOL.equals(qnameArray[0])) {
+					qname = IdentifierPathSegment.QNAME;
+				} else {
+					// default namespace <= empty prefix
+					String namespace = findNamespace(null, domNode, namespaceMap);
+					qname = new QName(namespace, qnameArray[0]);
+				}
             } else {
                 String namespacePrefix = qnameArray[0];
                 String namespace = findNamespace(namespacePrefix, domNode, namespaceMap);
@@ -258,15 +264,23 @@ public class XPathHolder {
     }
 
     public XPathHolder(ItemPath propertyPath) {
-        this.segments = new ArrayList<XPathSegment>();
+        this.segments = new ArrayList<>();
         for (ItemPathSegment segment: propertyPath.getSegments()) {
-            XPathSegment xsegment = null;
+            XPathSegment xsegment;
             if (segment instanceof NameItemPathSegment) {
             	boolean variable = ((NameItemPathSegment) segment).isVariable();
                 xsegment = new XPathSegment(((NameItemPathSegment)segment).getName(), variable);
             } else if (segment instanceof IdItemPathSegment) {
                 xsegment = new XPathSegment(idToString(((IdItemPathSegment) segment).getId()));
-            }
+            } else if (segment instanceof ObjectReferencePathSegment) {
+				xsegment = new XPathSegment(PrismConstants.T_OBJECT_REFERENCE, false);
+			} else if (segment instanceof ParentPathSegment) {
+				xsegment = new XPathSegment(PrismConstants.T_PARENT, false);
+			} else if (segment instanceof IdentifierPathSegment) {
+				xsegment = new XPathSegment(PrismConstants.T_ID, false);
+			} else {
+				throw new IllegalStateException("Unknown segment: " + segment);
+			}
             this.segments.add(xsegment);
         }
         this.explicitNamespaceDeclarations = propertyPath.getNamespaceMap();
@@ -343,7 +357,14 @@ public class XPathHolder {
                     sb.append("$");
                 }
                 QName qname = seg.getQName();
-                if (!StringUtils.isEmpty(qname.getPrefix())) {
+
+				if (ObjectReferencePathSegment.QNAME.equals(qname)) {
+					sb.append(ObjectReferencePathSegment.SYMBOL);
+				} else if (ParentPathSegment.QNAME.equals(qname)) {
+					sb.append(ParentPathSegment.SYMBOL);
+				} else if (IdentifierPathSegment.QNAME.equals(qname)) {
+					sb.append(IdentifierPathSegment.SYMBOL);
+				} else if (!StringUtils.isEmpty(qname.getPrefix())) {
                     sb.append(qname.getPrefix() + ":" + qname.getLocalPart());
                 } else {
                     if (StringUtils.isNotEmpty(qname.getNamespaceURI())) {
@@ -435,7 +456,7 @@ public class XPathHolder {
             } else {
                 QName qName = segment.getQName();
                 boolean variable = segment.isVariable();
-                segments.add(new NameItemPathSegment(qName, variable));
+				segments.add(ItemPath.createSegment(qName, variable));
             }
         }
         ItemPath path = new ItemPath(segments);

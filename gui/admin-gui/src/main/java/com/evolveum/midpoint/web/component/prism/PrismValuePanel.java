@@ -94,30 +94,31 @@ import java.util.List;
  * @author lazyman
  */
 public class PrismValuePanel extends Panel {
+	private static final long serialVersionUID = 1L;
 
-    private static final String ID_FEEDBACK = "feedback";
+	private static final String ID_FEEDBACK = "feedback";
     private static final String ID_INPUT = "input";
+    private static final String ID_ADD_BUTTON = "addButton";
+    private static final String ID_REMOVE_BUTTON = "removeButton";
     private static final String ID_VALUE_CONTAINER = "valueContainer";
-    private static final String DOT_CLASS = PrismValuePanel.class.getName() + ".";
-    private static final String OPERATION_LOAD_ASSOC_SHADOWS =  DOT_CLASS + "loadAssociationShadows";
     
     private static final Trace LOGGER = TraceManager.getTrace(PrismValuePanel.class);
 
-    private IModel<ValueWrapper> model;
+    private IModel<ValueWrapper> valueWrapperModel;
     private PageBase pageBase;
 
-    public PrismValuePanel(String id, IModel<ValueWrapper> model, IModel<String> label, Form form,
+    public PrismValuePanel(String id, IModel<ValueWrapper> valueWrapperModel, IModel<String> labelModel, Form form,
                            String valueCssClass, String inputCssClass, PageBase pageBase){
         super(id);
-        Validate.notNull(model, "Property value model must not be null.");
+        Validate.notNull(valueWrapperModel, "Property value model must not be null.");
         Validate.notNull(pageBase, "The reference to page base must not be null.");
         this.pageBase = pageBase;
-        this.model = model;
+        this.valueWrapperModel = valueWrapperModel;
 
-        initLayout(label, form, valueCssClass, inputCssClass);
+        initLayout(labelModel, form, valueCssClass, inputCssClass);
     }
 
-    private void initLayout(IModel<String> label, Form form, String valueCssClass, String inputCssClass) {
+    private void initLayout(IModel<String> labelModel, Form form, String valueCssClass, String inputCssClass) {
         //container
         WebMarkupContainer valueContainer = new WebMarkupContainer(ID_VALUE_CONTAINER);
         valueContainer.setOutputMarkupId(true);
@@ -130,7 +131,7 @@ public class PrismValuePanel extends Panel {
         add(feedback);
 
         //input
-        Panel input = createInputComponent(ID_INPUT, label, form);
+        Panel input = createInputComponent(ID_INPUT, labelModel, form);
         input.add(new AttributeModifier("class", inputCssClass));
         if (input instanceof InputPanel) {
             initAccessBehaviour((InputPanel) input);
@@ -139,15 +140,16 @@ public class PrismValuePanel extends Panel {
         valueContainer.add(input);
 
         //buttons
-        AjaxLink addButton = new AjaxLink("addButton") {
+        AjaxLink addButton = new AjaxLink(ID_ADD_BUTTON) {
+			private static final long serialVersionUID = 1L;
 
-            @Override
+			@Override
             public void onClick(AjaxRequestTarget target) {
-                Component inputPanel = this.getParent().get(ID_INPUT);
                 addValue(target);
             }
         };
         addButton.add(new VisibleEnableBehaviour() {
+        	private static final long serialVersionUID = 1L;
 
             @Override
             public boolean isVisible() {
@@ -156,7 +158,8 @@ public class PrismValuePanel extends Panel {
         });
         valueContainer.add(addButton);
 
-        AjaxLink removeButton = new AjaxLink("removeButton") {
+        AjaxLink removeButton = new AjaxLink(ID_REMOVE_BUTTON) {
+        	private static final long serialVersionUID = 1L;
 
             @Override
             public void onClick(AjaxRequestTarget target) {
@@ -164,6 +167,7 @@ public class PrismValuePanel extends Panel {
             }
         };
         removeButton.add(new VisibleEnableBehaviour() {
+        	private static final long serialVersionUID = 1L;
 
             @Override
             public boolean isVisible() {
@@ -175,10 +179,11 @@ public class PrismValuePanel extends Panel {
 
     private IModel<String> createHelpModel() {
         return new AbstractReadOnlyModel<String>() {
+        	private static final long serialVersionUID = 1L;
 
             @Override
             public String getObject() {
-                ItemWrapper wrapper = model.getObject().getItem();
+                ItemWrapper wrapper = valueWrapperModel.getObject().getItem();
                 return wrapper.getItem().getHelp();
             }
         };
@@ -205,10 +210,11 @@ public class PrismValuePanel extends Panel {
         List<FormComponent> components = panel.getFormComponents();
         for (FormComponent component : components) {
             component.add(new VisibleEnableBehaviour() {
+            	private static final long serialVersionUID = 1L;
 
                 @Override
                 public boolean isEnabled() {
-                    ValueWrapper wrapper = model.getObject();
+                    ValueWrapper wrapper = valueWrapperModel.getObject();
                     ItemWrapper itemWrapper = wrapper.getItem();
                     if (itemWrapper.getContainer() == null) {
                         return true;        // TODO
@@ -216,7 +222,7 @@ public class PrismValuePanel extends Panel {
                     ObjectWrapper object = itemWrapper.getContainer().getObject();
                     ItemDefinition def = itemWrapper.getItem().getDefinition();
 
-                    return !model.getObject().isReadonly() && (object == null || isAccessible(def, object.getStatus()));
+                    return !valueWrapperModel.getObject().isReadonly() && (object == null || isAccessible(def, object.getStatus()));
                 }
             });
         }
@@ -277,7 +283,7 @@ public class PrismValuePanel extends Panel {
     }
 
     private boolean isRemoveButtonVisible() {
-        ValueWrapper valueWrapper = model.getObject();
+        ValueWrapper valueWrapper = valueWrapperModel.getObject();
 
         if (valueWrapper.isReadonly()){
             return false;
@@ -310,7 +316,7 @@ public class PrismValuePanel extends Panel {
 
 	private boolean isAddButtonVisible() {
         Component inputPanel = this.get(ID_VALUE_CONTAINER).get(ID_INPUT);
-        ValueWrapper valueWrapper = model.getObject();
+        ValueWrapper valueWrapper = valueWrapperModel.getObject();
 
         if (valueWrapper.isReadonly()){
             return false;
@@ -340,8 +346,8 @@ public class PrismValuePanel extends Panel {
         return isAccessible(definition, getContainerStatus(propertyWrapper));
     }
 
-    private Panel createInputComponent(String id, IModel<String> label, Form form) {
-        ValueWrapper valueWrapper = model.getObject();
+    private Panel createInputComponent(String id, IModel<String> labelModel, Form form) {
+        ValueWrapper valueWrapper = valueWrapperModel.getObject();
         ObjectWrapper objectWrapper = null;
         if (valueWrapper.getItem().getContainer() != null) {
             objectWrapper = valueWrapper.getItem().getContainer().getObject();
@@ -365,7 +371,7 @@ public class PrismValuePanel extends Panel {
 
             final List<FormComponent> formComponents = inputPanel.getFormComponents();
             for (FormComponent formComponent : formComponents) {
-                formComponent.setLabel(label);
+                formComponent.setLabel(labelModel);
                 formComponent.setRequired(required);
 
                 if (formComponent instanceof TextField) {
@@ -418,7 +424,7 @@ public class PrismValuePanel extends Panel {
     private Panel createTypedInputComponent(String id) {
 //        ValueWrapper valueWrapper = model.getObject();
 //        ItemWrapper itemWrapper =
-        final Item item = model.getObject().getItem().getItem();
+        final Item item = valueWrapperModel.getObject().getItem().getItem();
         
         Panel panel = null;
         if (item instanceof PrismProperty) {
@@ -431,19 +437,19 @@ public class PrismValuePanel extends Panel {
               //fixing MID-1230, will be improved with some kind of annotation or something like that
               //now it works only in description
               if (ObjectType.F_DESCRIPTION.equals(definition.getName())) {
-                  return new TextAreaPanel(id, new PropertyModel(model, baseExpression), null);
+                  return new TextAreaPanel(id, new PropertyModel(valueWrapperModel, baseExpression), null);
               }
 
               if (ActivationType.F_ADMINISTRATIVE_STATUS.equals(definition.getName())) {
-                  return WebComponentUtil.createEnumPanel(ActivationStatusType.class, id, new PropertyModel<ActivationStatusType>(model, baseExpression), this);
+                  return WebComponentUtil.createEnumPanel(ActivationStatusType.class, id, new PropertyModel<ActivationStatusType>(valueWrapperModel, baseExpression), this);
               } else if(ActivationType.F_LOCKOUT_STATUS.equals(definition.getName())){
-                  return new LockoutStatusPanel(id, new PropertyModel<LockoutStatusType>(model, baseExpression));
+                  return new LockoutStatusPanel(id, new PropertyModel<LockoutStatusType>(valueWrapperModel, baseExpression));
               } else {
               	// nothing to do
               }
               
               if (DOMUtil.XSD_DATETIME.equals(valueType)) {
-                  panel = new DatePanel(id, new PropertyModel<XMLGregorianCalendar>(model, baseExpression));
+                  panel = new DatePanel(id, new PropertyModel<XMLGregorianCalendar>(valueWrapperModel, baseExpression));
                   
               } else if (ProtectedStringType.COMPLEX_TYPE.equals(valueType)) {
                   boolean showRemovePasswordButton = true;
@@ -453,10 +459,10 @@ public class PrismValuePanel extends Panel {
 						  ((PageUser) pageBase).getObjectWrapper().getObject().getOid().equals(SecurityUtils.getPrincipalUser().getOid())) {
                       showRemovePasswordButton = false;
                   }
-                  panel = new PasswordPanel(id, new PropertyModel<ProtectedStringType>(model, baseExpression),
-                          model.getObject().isReadonly(), showRemovePasswordButton);
+                  panel = new PasswordPanel(id, new PropertyModel<ProtectedStringType>(valueWrapperModel, baseExpression),
+                          valueWrapperModel.getObject().isReadonly(), showRemovePasswordButton);
               } else if (DOMUtil.XSD_BOOLEAN.equals(valueType)) {
-                  panel = new TriStateComboPanel(id, new PropertyModel<Boolean>(model, baseExpression));
+                  panel = new TriStateComboPanel(id, new PropertyModel<Boolean>(valueWrapperModel, baseExpression));
                   
               } else if (SchemaConstants.T_POLY_STRING_TYPE.equals(valueType)) {
                   InputPanel inputPanel;
@@ -475,7 +481,7 @@ public class PrismValuePanel extends Panel {
 
                       if (lookupTable != null) {
                     	  
-	                      inputPanel = new AutoCompleteTextPanel<String>(id, new LookupPropertyModel<String>(model, baseExpression + ".orig",
+	                      inputPanel = new AutoCompleteTextPanel<String>(id, new LookupPropertyModel<String>(valueWrapperModel, baseExpression + ".orig",
 	                              lookupTable.asObjectable()), String.class) {
 	
 	                          @Override
@@ -485,12 +491,12 @@ public class PrismValuePanel extends Panel {
 	                      };
 	                      
                       } else {
-                    	  inputPanel = new TextPanel<>(id, new PropertyModel<String>(model, baseExpression + ".orig"), String.class);
+                    	  inputPanel = new TextPanel<>(id, new PropertyModel<String>(valueWrapperModel, baseExpression + ".orig"), String.class);
                       }
 
                   } else {
                 	  
-                      inputPanel = new TextPanel<>(id, new PropertyModel<String>(model, baseExpression + ".orig"), String.class);
+                      inputPanel = new TextPanel<>(id, new PropertyModel<String>(valueWrapperModel, baseExpression + ".orig"), String.class);
                   }
 
                   if (ObjectType.F_NAME.equals(def.getName()) || UserType.F_FULL_NAME.equals(def.getName())) {
@@ -499,19 +505,19 @@ public class PrismValuePanel extends Panel {
                   panel = inputPanel;
                   
               } else if(DOMUtil.XSD_BASE64BINARY.equals(valueType)) {
-                  panel = new UploadDownloadPanel(id, model.getObject().isReadonly()){
+                  panel = new UploadDownloadPanel(id, valueWrapperModel.getObject().isReadonly()){
 
                 	  
                 	  @Override
                 	public InputStream getStream() {
-                          Object object  = ((PrismPropertyValue) model.getObject().getValue()).getValue();
+                          Object object  = ((PrismPropertyValue) valueWrapperModel.getObject().getValue()).getValue();
                 		return object != null ? new ByteArrayInputStream((byte[]) object) : new ByteArrayInputStream(new byte[0]);
 //                		return super.getStream();
                 	}
                 	  
                       @Override
                       public void updateValue(byte[] file) {
-                          ((PrismPropertyValue) model.getObject().getValue()).setValue(file);
+                          ((PrismPropertyValue) valueWrapperModel.getObject().getValue()).setValue(file);
                       }
 
                       @Override
@@ -538,11 +544,11 @@ public class PrismValuePanel extends Panel {
                   panel = new ModificationsPanel(id, new AbstractReadOnlyModel<DeltaDto>() {
                       @Override
                       public DeltaDto getObject() {
-                          if (model.getObject() == null || model.getObject().getValue() == null || ((PrismPropertyValue) model.getObject().getValue()).getValue() == null) {
+                          if (valueWrapperModel.getObject() == null || valueWrapperModel.getObject().getValue() == null || ((PrismPropertyValue) valueWrapperModel.getObject().getValue()).getValue() == null) {
                               return null;
                           }
                           PrismContext prismContext = ((PageBase) getPage()).getPrismContext();
-                          ObjectDeltaType objectDeltaType = (ObjectDeltaType) ((PrismPropertyValue) model.getObject().getValue()).getValue();
+                          ObjectDeltaType objectDeltaType = (ObjectDeltaType) ((PrismPropertyValue) valueWrapperModel.getObject().getValue()).getValue();
                           try {
                               ObjectDelta delta = DeltaConvertor.createObjectDelta(objectDeltaType, prismContext);
                               return new DeltaDto(delta);
@@ -556,10 +562,10 @@ public class PrismValuePanel extends Panel {
 				  return new TextAreaPanel(id, new AbstractReadOnlyModel() {
 					  @Override
 					  public Object getObject() {
-						  if (model.getObject() == null || model.getObject().getValue() == null) {
+						  if (valueWrapperModel.getObject() == null || valueWrapperModel.getObject().getValue() == null) {
 							  return null;
 						  }
-						  PrismPropertyValue ppv = (PrismPropertyValue) model.getObject().getValue();
+						  PrismPropertyValue ppv = (PrismPropertyValue) valueWrapperModel.getObject().getValue();
 						  if (ppv == null || ppv.getValue() == null) {
 							  return null;
 						  }
@@ -586,7 +592,7 @@ public class PrismValuePanel extends Panel {
                   } 
                   
                   if (isEnum(property)) {
-                      return WebComponentUtil.createEnumPanel(definition, id, new PropertyModel<>(model, baseExpression), this);
+                      return WebComponentUtil.createEnumPanel(definition, id, new PropertyModel<>(valueWrapperModel, baseExpression), this);
                   }
 //                  // default QName validation is a bit weird, so let's treat QNames as strings [TODO finish this - at the parsing side]
 //                  if (type == QName.class) {
@@ -608,7 +614,7 @@ public class PrismValuePanel extends Panel {
 
                       if (lookupTable != null) {
                       
-	                      panel = new AutoCompleteTextPanel<String>(id, new LookupPropertyModel<String>(model, baseExpression,
+	                      panel = new AutoCompleteTextPanel<String>(id, new LookupPropertyModel<String>(valueWrapperModel, baseExpression,
 	                              lookupTable == null ? null : lookupTable.asObjectable()), type) {
 	
 	
@@ -648,12 +654,12 @@ public class PrismValuePanel extends Panel {
 	                      
                       } else {
                     	  
-                    	  panel = new TextPanel<>(id, new PropertyModel<String>(model, baseExpression), type);
+                    	  panel = new TextPanel<>(id, new PropertyModel<String>(valueWrapperModel, baseExpression), type);
                     	  
                       }
 
                   } else {
-                      panel = new TextPanel<>(id, new PropertyModel<String>(model, baseExpression), type);
+                      panel = new TextPanel<>(id, new PropertyModel<String>(valueWrapperModel, baseExpression), type);
                   }
               }
         } else if (item instanceof PrismReference) {
@@ -669,10 +675,10 @@ public class PrismValuePanel extends Panel {
         	}
         	final Class typeClass = typeFromName != null ? typeFromName : (item.getDefinition().getTypeClassIfKnown() != null ? item.getDefinition().getTypeClassIfKnown() : FocusType.class);
         	panel = new ValueChoosePanel(id,
-    				new PropertyModel<>(model, "value"), item.getValues(), false, typeClass);
+    				new PropertyModel<>(valueWrapperModel, "value"), item.getValues(), false, typeClass);
         	
         } else if (item instanceof PrismContainer<?>) {
-        	ItemWrapper itemWrapper = model.getObject().getItem();
+        	AssociationWrapper itemWrapper = (AssociationWrapper) valueWrapperModel.getObject().getItem();
         	final PrismContainer container = (PrismContainer) item;
         	PrismContainerDefinition definition = container.getDefinition();
             QName valueType = definition.getTypeName();
@@ -702,14 +708,15 @@ public class PrismValuePanel extends Panel {
 				} catch (SchemaException e) {
 					throw new SystemException(e.getMessage(),e);
 				}
-	            RefinedAssociationDefinition assocDef = rOcDef.findAssociation(itemWrapper.getName());
-	            RefinedObjectClassDefinition assocTarget = assocDef.getAssociationTarget();
+	            RefinedAssociationDefinition assocDef = itemWrapper.getRefinedAssociationDefinition();
+	            RefinedObjectClassDefinition assocTargetDef = assocDef.getAssociationTarget();
 	            
 	            ObjectQuery query = getAssociationsSearchQuery(prismContext, resource,
-	            		assocTarget.getTypeName(), assocTarget.getKind(), assocTarget.getIntent());
+	            		assocTargetDef.getTypeName(), assocTargetDef.getKind(), assocTargetDef.getIntent());
 	
 	            List values = item.getValues();
-	            return new AssociationValueChoicePanel(id, model, values, false, ShadowType.class, query);
+	            return new AssociationValueChoicePanel(id, valueWrapperModel, values, false, ShadowType.class, 
+	            		query, assocTargetDef);
             }
         }
 
@@ -812,7 +819,7 @@ public class PrismValuePanel extends Panel {
 
 	private void addValue(AjaxRequestTarget target) {
         Component inputPanel = this.get(ID_VALUE_CONTAINER).get(ID_INPUT);
-        ValueWrapper wrapper = model.getObject();
+        ValueWrapper wrapper = valueWrapperModel.getObject();
         ItemWrapper propertyWrapper = wrapper.getItem();
         LOGGER.debug("Adding value of {}", propertyWrapper);
         propertyWrapper.addValue();
@@ -821,7 +828,7 @@ public class PrismValuePanel extends Panel {
     }
 
     private void removeValue(AjaxRequestTarget target) {
-        ValueWrapper wrapper = model.getObject();
+        ValueWrapper wrapper = valueWrapperModel.getObject();
         ItemWrapper propertyWrapper = wrapper.getItem();
         LOGGER.debug("Removing value of {}", propertyWrapper);
 

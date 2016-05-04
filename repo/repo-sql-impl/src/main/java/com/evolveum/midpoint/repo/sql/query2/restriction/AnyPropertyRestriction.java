@@ -44,7 +44,7 @@ public class AnyPropertyRestriction extends PropertyRestriction {
 
         String propertyValuePath = getHqlDataInstance().getHqlPath();
 
-        if (filter.getRightSidePath() != null) {
+        if (filter.getRightHandSidePath() != null) {
             return createPropertyVsPropertyCondition(propertyValuePath);
         } else {
             Object value = RAnyConverter.getAggregatedRepoObject(getValue(filter));

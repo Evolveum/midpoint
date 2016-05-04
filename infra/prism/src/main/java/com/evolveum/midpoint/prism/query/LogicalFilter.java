@@ -99,7 +99,7 @@ public abstract class LogicalFilter extends ObjectFilter {
 	}
 
 	@Override
-	public boolean equals(Object obj) {
+	public boolean equals(Object obj, boolean exact) {
 		if (this == obj)
 			return true;
 		if (obj == null)
@@ -107,11 +107,19 @@ public abstract class LogicalFilter extends ObjectFilter {
 		if (getClass() != obj.getClass())
 			return false;
 		LogicalFilter other = (LogicalFilter) obj;
-		if (conditions == null) {
-			if (other.conditions != null)
+
+		if (conditions != null) {
+			if (conditions.size() != other.conditions.size()) {
 				return false;
-		} else if (!conditions.equals(other.conditions))
-			return false;
+			}
+			for (int i = 0; i < conditions.size(); i++) {
+				ObjectFilter of1 = this.conditions.get(i);
+				ObjectFilter of2 = other.conditions.get(i);
+				if (!of1.equals(of2, exact)) {
+					return false;
+				}
+			}
+		}
 		return true;
 	}
 	

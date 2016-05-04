@@ -276,8 +276,9 @@ public class ContainerWrapperFactory {
             }
 
             for (Map.Entry<QName, PrismContainer<ShadowAssociationType>> assocEntry : assocMap.entrySet()) {
-                // HACK HACK HACK, the container wrapper should not parse itself. This code should not be here.
-                AssociationWrapper assocWrapper = new AssociationWrapper(cWrapper, assocEntry.getValue(), cWrapper.isReadonly(), ValueStatus.NOT_CHANGED);
+            	RefinedAssociationDefinition assocRDef = rOcDef.findAssociation(assocEntry.getKey());
+                AssociationWrapper assocWrapper = new AssociationWrapper(cWrapper, assocEntry.getValue(), 
+                		cWrapper.isReadonly(), ValueStatus.NOT_CHANGED, assocRDef);
                 properties.add(assocWrapper);
             }
 

@@ -90,4 +90,10 @@ public class NotFilter extends UnaryLogicalFilter {
 	public boolean match(PrismContainerValue value, MatchingRuleRegistry matchingRuleRegistry) throws SchemaException {
 		return !getFilter().match(value, matchingRuleRegistry);
 	}
+
+	@Override
+	public boolean equals(Object obj, boolean exact) {
+		return super.equals(obj, exact) && obj instanceof NotFilter;
+	}
+
 }

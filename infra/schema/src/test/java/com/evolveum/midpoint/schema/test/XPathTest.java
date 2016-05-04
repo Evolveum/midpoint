@@ -390,6 +390,23 @@ public class XPathTest {
         assertTrue("Paths are not equivalent", xpath1.equivalent(xpath2));
     }
 
+	@Test
+	public void parseSpecial() {
+		final String D = "declare namespace x='http://xyz.com/'; ";
+		AssertJUnit.assertEquals("..", TrivialXPathParser.parse("..").getPureXPathString());
+		AssertJUnit.assertEquals("..", TrivialXPathParser.parse(D+"..").getPureXPathString());
+		AssertJUnit.assertEquals("a/../b", TrivialXPathParser.parse("a/../b").getPureXPathString());
+		AssertJUnit.assertEquals("a/../b", TrivialXPathParser.parse(D+"a/../b").getPureXPathString());
+		AssertJUnit.assertEquals("@", TrivialXPathParser.parse("@").getPureXPathString());
+		AssertJUnit.assertEquals("@", TrivialXPathParser.parse(D+"@").getPureXPathString());
+		AssertJUnit.assertEquals("a/@/b", TrivialXPathParser.parse("a/@/b").getPureXPathString());
+		AssertJUnit.assertEquals("a/@/b", TrivialXPathParser.parse(D+"a/@/b").getPureXPathString());
+		AssertJUnit.assertEquals("#", TrivialXPathParser.parse("#").getPureXPathString());
+		AssertJUnit.assertEquals("#", TrivialXPathParser.parse(D+"#").getPureXPathString());
+		AssertJUnit.assertEquals("a/#/b", TrivialXPathParser.parse("a/#/b").getPureXPathString());
+		AssertJUnit.assertEquals("a/#/b", TrivialXPathParser.parse(D+"a/#/b").getPureXPathString());
+	}
+
     //not actual anymore..we have something like "wildcard" in xpath..there don't need to be prefix specified.we will try to match the local names
     @Test(enabled=false)
     public void testUndefinedPrefix() throws ParserConfigurationException, SAXException, IOException {

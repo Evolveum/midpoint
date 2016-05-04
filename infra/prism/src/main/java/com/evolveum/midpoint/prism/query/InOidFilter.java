@@ -35,15 +35,20 @@ public class InOidFilter extends ObjectFilter {
 	private ExpressionWrapper expression;
 	private boolean considerOwner;				// temporary hack (checks owner OID)
 	
-	InOidFilter(boolean considerOwner, Collection<String> oids) {
+	private InOidFilter(boolean considerOwner, Collection<String> oids) {
 		this.considerOwner = considerOwner;
 		this.oids = oids;
 	}
 	
-	InOidFilter(ExpressionWrapper expression){
+	private InOidFilter(boolean considerOwner, ExpressionWrapper expression){
+		this.considerOwner = considerOwner;
 		this.expression = expression;
 	}
-	
+
+	public static InOidFilter createInOid(boolean considerOwner, Collection<String> oids){
+		return new InOidFilter(considerOwner, oids);
+	}
+
 	public static InOidFilter createInOid(Collection<String> oids){
 		return new InOidFilter(false, oids);
 	}
@@ -60,8 +65,8 @@ public class InOidFilter extends ObjectFilter {
 		return new InOidFilter(true, Arrays.asList(oids));
 	}
 
-	public static InOidFilter createInOid(ExpressionWrapper expression){
-		return new InOidFilter(expression);
+	public static InOidFilter createInOid(boolean considerOwner, ExpressionWrapper expression){
+		return new InOidFilter(considerOwner, expression);
 	}
 		
 	public Collection<String> getOids() {
@@ -183,28 +188,27 @@ public class InOidFilter extends ObjectFilter {
 	}
 
 	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + ((oids == null) ? 0 : oids.hashCode());
-		return result;
+	public boolean equals(Object o, boolean exact) {
+		if (this == o)
+			return true;
+		if (o == null || getClass() != o.getClass())
+			return false;
+
+		InOidFilter that = (InOidFilter) o;
+
+		if (considerOwner != that.considerOwner)
+			return false;
+		if (oids != null ? !oids.equals(that.oids) : that.oids != null)
+			return false;
+		return expression != null ? expression.equals(that.expression) : that.expression == null;
+
 	}
 
 	@Override
-	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
-		InOidFilter other = (InOidFilter) obj;
-		if (oids == null) {
-			if (other.oids != null)
-				return false;
-		} else if (!oids.equals(other.oids))
-			return false;
-		return true;
+	public int hashCode() {
+		int result = oids != null ? oids.hashCode() : 0;
+		result = 31 * result + (expression != null ? expression.hashCode() : 0);
+		result = 31 * result + (considerOwner ? 1 : 0);
+		return result;
 	}
-
 }

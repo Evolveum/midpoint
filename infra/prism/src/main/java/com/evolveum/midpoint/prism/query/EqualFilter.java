@@ -96,6 +96,16 @@ public class EqualFilter<T extends Object> extends PropertyValueFilter<PrismProp
 		List<PrismPropertyValue<T>> pVals = createPropertyList(itemDefinition, realValue);
 		return new EqualFilter(path, itemDefinition, matchingRule, pVals);
 	}
+
+	public static <T> EqualFilter<T> createEqualMultiple(ItemPath path, PrismPropertyDefinition<T> itemDefinition, QName matchingRule, T... realValues) {
+		Validate.notNull(itemDefinition, "Item definition in the filter must not be null");
+		Validate.notNull(path, "Path in the filter must not be null");
+		if (realValues.length == 0 || (realValues.length == 1 && realValues[0] == null)) {
+			return createNullEqual(path, itemDefinition, matchingRule);
+		}
+		List<PrismPropertyValue<T>> pVals = createPropertyListFromArray(itemDefinition, realValues);
+		return new EqualFilter(path, itemDefinition, matchingRule, pVals);
+	}
 	
 	public static <T> EqualFilter<T> createEqual(QName propertyName, PrismPropertyDefinition<T> propertyDefinition, QName matchingRule, T realValue){
 		return createEqual(new ItemPath(propertyName), propertyDefinition, matchingRule, realValue);
@@ -280,6 +290,11 @@ public class EqualFilter<T extends Object> extends PropertyValueFilter<PrismProp
 		// TODO Auto-generated method stub
 		return super.getValues();
 	}
-		
+
+	@Override
+	public boolean equals(Object obj, boolean exact) {
+		return super.equals(obj, exact) && obj instanceof EqualFilter;
+	}
+
 }
 

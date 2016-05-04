@@ -35,6 +35,9 @@
 		<name>F1100</name>
 		<description>Software development, research, technologies.</description>
 		<parentOrgRef oid="00000000-ee88-6666-0000-100000001000" type="c:OrgType"/>
+		<assignment>
+			<targetRef oid="00000000-ee88-6666-0000-100000001000" type="c:OrgType"/>
+		</assignment>
 		<displayName>Research and Development Division</displayName>
 		<identifier>1100</identifier>
 		<orgType>functional</orgType>
@@ -45,6 +48,9 @@
 		<name>F1110</name>
 		<description>Software development and research</description>
 		<parentOrgRef oid="00000000-ee88-6666-0000-100000001100" type="c:OrgType"/>
+		<assignment>
+			<targetRef oid="00000000-ee88-6666-0000-100000001100" type="c:OrgType"/>
+		</assignment>
 		<displayName>Development Section</displayName>
 		<identifier>1110</identifier>
 		<orgType>functional</orgType>
@@ -55,6 +61,9 @@
 		<name>F1120</name>
 		<description>Testing and quality assurance</description>
 		<parentOrgRef oid="00000000-ee88-6666-0000-100000001100" type="c:OrgType"/>
+		<assignment>
+			<targetRef oid="00000000-ee88-6666-0000-100000001100" type="c:OrgType"/>
+		</assignment>
 		<displayName>QA Section</displayName>
 		<identifier>1120</identifier>
 		<orgType>functional</orgType>
@@ -65,6 +74,9 @@
 		<name>F1130</name>
 		<description>Support and professional services</description>
 		<parentOrgRef oid="00000000-ee88-6666-0000-100000001100" type="c:OrgType"/>
+		<assignment>
+			<targetRef oid="00000000-ee88-6666-0000-100000001100" type="c:OrgType"/>
+		</assignment>
 		<displayName>Services Section</displayName>
 		<identifier>1130</identifier>
 		<orgType>functional</orgType>
@@ -74,6 +86,9 @@
 	<org oid="00000000-ee88-6666-0000-100000001200">
 		<name>F1200</name>
 		<parentOrgRef oid="00000000-ee88-6666-0000-100000001000" type="c:OrgType"/>
+		<assignment>
+			<targetRef oid="00000000-ee88-6666-0000-100000001000" type="c:OrgType"/>
+		</assignment>
 		<displayName>Business Division</displayName>
 		<identifier>1200</identifier>
 		<orgType>functional</orgType>
@@ -84,6 +99,9 @@
 		<name>F1210</name>
 		<description>Marketing and PR</description>
 		<parentOrgRef oid="00000000-ee88-6666-0000-100000001200" type="c:OrgType"/>
+		<assignment>
+			<targetRef oid="00000000-ee88-6666-0000-100000001200" type="c:OrgType"/>
+		</assignment>
 		<displayName>Marketing Section</displayName>
 		<identifier>1210</identifier>
 		<orgType>functional</orgType>
@@ -94,6 +112,9 @@
 		<name>F1220</name>
 		<description>Accounting, bookkeeping and HR</description>
 		<parentOrgRef oid="00000000-ee88-6666-0000-100000001200" type="c:OrgType"/>
+		<assignment>
+			<targetRef oid="00000000-ee88-6666-0000-100000001200" type="c:OrgType"/>
+		</assignment>
 		<displayName>Accounting Section</displayName>
 		<identifier>1220</identifier>
 		<orgType>functional</orgType>
@@ -112,6 +133,9 @@
 	<org oid="00000000-ee88-6666-0000-200000000001">
 		<name>P0001</name>
 		<parentOrgRef oid="00000000-ee88-6666-0000-200000000000" type="c:OrgType"/>
+		<assignment>
+			<targetRef oid="00000000-ee88-6666-0000-200000000000" type="c:OrgType"/>
+		</assignment>
 		<displayName>midPoint</displayName>
 		<identifier>0001</identifier>
 		<orgType>project</orgType>
@@ -120,6 +144,9 @@
 	<org oid="00000000-ee88-6666-0000-200000000002">
 		<name>P0002</name>
 		<parentOrgRef oid="00000000-ee88-6666-0000-200000000000" type="c:OrgType"/>
+		<assignment>
+			<targetRef oid="00000000-ee88-6666-0000-200000000000" type="c:OrgType"/>
+		</assignment>
 		<displayName>ConnId</displayName>
 		<identifier>0002</identifier>
 		<orgType>project</orgType>
@@ -128,6 +155,9 @@
 	<org oid="00000000-ee88-6666-0000-200000000003">
 		<name>P0003</name>
 		<parentOrgRef oid="00000000-ee88-6666-0000-200000000000" type="c:OrgType"/>
+		<assignment>
+			<targetRef oid="00000000-ee88-6666-0000-200000000000" type="c:OrgType"/>
+		</assignment>
 		<displayName>LDAP Connector</displayName>
 		<identifier>0003</identifier>
 		<orgType>project</orgType>
@@ -136,6 +166,9 @@
 	<org oid="00000000-ee88-6666-0000-200000000004">
 		<name>P0004</name>
 		<parentOrgRef oid="00000000-ee88-6666-0000-200000000000" type="c:OrgType"/>
+		<assignment>
+			<targetRef oid="00000000-ee88-6666-0000-200000000000" type="c:OrgType"/>
+		</assignment>
 		<displayName>OpenStack Integration</displayName>
 		<identifier>0004</identifier>
 		<orgType>project</orgType>
@@ -144,6 +177,9 @@
 	<org oid="00000000-ee88-6666-0000-200000000005">
 		<name>P0005</name>
 		<parentOrgRef oid="00000000-ee88-6666-0000-200000000000" type="c:OrgType"/>
+		<assignment>
+			<targetRef oid="00000000-ee88-6666-0000-200000000000" type="c:OrgType"/>
+		</assignment>
 		<displayName>Website</displayName>
 		<identifier>0005</identifier>
 		<orgType>project</orgType>

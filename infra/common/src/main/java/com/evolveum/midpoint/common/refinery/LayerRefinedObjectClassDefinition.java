@@ -212,8 +212,8 @@ public class LayerRefinedObjectClassDefinition extends RefinedObjectClassDefinit
 	}
 
     @Override
-	public Collection<? extends LayerRefinedAttributeDefinition<?>> getIdentifiers() {
-        return substituteLayerRefinedAttributeDefinitionCollection(refinedObjectClassDefinition.getIdentifiers());
+	public Collection<? extends LayerRefinedAttributeDefinition<?>> getPrimaryIdentifiers() {
+        return substituteLayerRefinedAttributeDefinitionCollection(refinedObjectClassDefinition.getPrimaryIdentifiers());
 	}
     
     @Override
@@ -439,8 +439,8 @@ public class LayerRefinedObjectClassDefinition extends RefinedObjectClassDefinit
 	}
 
     @Override
-	public boolean isIdentifier(QName attrName) {
-		return refinedObjectClassDefinition.isIdentifier(attrName);
+	public boolean isPrimaryIdentifier(QName attrName) {
+		return refinedObjectClassDefinition.isPrimaryIdentifier(attrName);
 	}
 
     @Override

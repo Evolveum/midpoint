@@ -224,6 +224,16 @@ public class PrismTestUtil {
 		}
 	}
 
+	public static void displayQueryXml(String xml) {
+		LOGGER.trace("object query XML:\n{}", xml);
+		System.out.println("object query XML:\n" + xml);
+	}
+
+	public static void displayText(String text) {
+		LOGGER.trace(text);
+		System.out.println(text);
+	}
+
     public static void displayQueryType(QueryType queryType) throws SchemaException {
         displaySearchFilterType(queryType.getFilter());
     }

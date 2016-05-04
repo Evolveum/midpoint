@@ -171,7 +171,7 @@ public class SchemaProcessorTest {
 		containerDefinition.setNativeObjectClass("ACCOUNT");
 		// ... in it ordinary attribute - an identifier
 		ResourceAttributeDefinition xloginDef = containerDefinition.createAttributeDefinition("login", DOMUtil.XSD_STRING);
-		((Collection)containerDefinition.getIdentifiers()).add(xloginDef);
+		((Collection)containerDefinition.getPrimaryIdentifiers()).add(xloginDef);
 		xloginDef.setNativeAttributeName("LOGIN");
 		containerDefinition.setDisplayNameAttribute(xloginDef.getName());
 		// ... and local property with a type from another schema

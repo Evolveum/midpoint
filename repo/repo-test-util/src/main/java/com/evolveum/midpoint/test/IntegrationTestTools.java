@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -308,7 +308,7 @@ public class IntegrationTestTools {
         ObjectClassComplexTypeDefinition objectClassDef = rAttrsDef.getComplexTypeDefinition();
         assertNotNull("No object class definition in attributes definition", objectClassDef);
         assertEquals("Wrong object class in attributes definition", objectClass, objectClassDef.getTypeName());
-        ResourceAttributeDefinition primaryIdDef = objectClassDef.getIdentifiers().iterator().next();
+        ResourceAttributeDefinition primaryIdDef = objectClassDef.getPrimaryIdentifiers().iterator().next();
         ResourceAttribute<?> primaryIdAttr = rAttributesContainer.findAttribute(primaryIdDef.getName());
         assertNotNull("No primary ID "+primaryIdDef.getName()+" in "+account, primaryIdAttr);
         assertAttributeDefinition(primaryIdAttr, DOMUtil.XSD_STRING, 0, 1, true, false, false, expetcedAttributeDefinitionClass);
@@ -604,7 +604,7 @@ public class IntegrationTestTools {
 		
 		String icfUid = ShadowUtil.getSingleStringAttributeValue(shadowType, SchemaTestConstants.ICFS_UID);
 		if (icfUid == null) {
-			Collection<? extends ResourceAttributeDefinition> identifierDefs = objectClassDef.getIdentifiers();
+			Collection<? extends ResourceAttributeDefinition> identifierDefs = objectClassDef.getPrimaryIdentifiers();
 			assertFalse("No identifiers for "+objectClassDef, identifierDefs == null || identifierDefs.isEmpty());
 			for (ResourceAttributeDefinition idDef: identifierDefs) {
 				String id = ShadowUtil.getSingleStringAttributeValue(shadowType, idDef.getName());
@@ -673,7 +673,7 @@ public class IntegrationTestTools {
 	private static ObjectQuery createShadowQuery(ShadowType resourceShadow, ObjectClassComplexTypeDefinition objectClassDef, MatchingRule<String> uidMatchingRule, PrismContext prismContext) throws SchemaException {
 		
 		PrismContainer<?> attributesContainer = resourceShadow.asPrismObject().findContainer(ShadowType.F_ATTRIBUTES);
-		QName identifierName = objectClassDef.getIdentifiers().iterator().next().getName();
+		QName identifierName = objectClassDef.getPrimaryIdentifiers().iterator().next().getName();
 		PrismProperty<String> identifier = attributesContainer.findProperty(identifierName);
 		if (identifier == null) {
 			throw new SchemaException("No identifier in "+resourceShadow);
@@ -778,7 +778,7 @@ public class IntegrationTestTools {
 		assertFalse("Object class " + objectClassQname + " is empty", accountDefinition.isEmpty());
 		assertFalse("Object class " + objectClassQname + " is empty", accountDefinition.isIgnored());
 		
-		Collection<? extends ResourceAttributeDefinition> identifiers = accountDefinition.getIdentifiers();
+		Collection<? extends ResourceAttributeDefinition> identifiers = accountDefinition.getPrimaryIdentifiers();
 		assertNotNull("Null identifiers for " + objectClassQname, identifiers);
 		assertFalse("Empty identifiers for " + objectClassQname, identifiers.isEmpty());
 
@@ -801,8 +801,8 @@ public class IntegrationTestTools {
 		assertEquals("Wrong displayName for attribute "+SchemaTestConstants.ICFS_NAME, "ConnId Name", nameAttributeDefinition.getDisplayName());
 		assertEquals("Wrong displayOrder for attribute "+SchemaTestConstants.ICFS_NAME, (Integer)110, nameAttributeDefinition.getDisplayOrder());
 
-		assertNotNull("Null identifiers in account", accountDef.getIdentifiers());
-		assertFalse("Empty identifiers in account", accountDef.getIdentifiers().isEmpty());
+		assertNotNull("Null identifiers in account", accountDef.getPrimaryIdentifiers());
+		assertFalse("Empty identifiers in account", accountDef.getPrimaryIdentifiers().isEmpty());
 		assertNotNull("Null secondary identifiers in account", accountDef.getSecondaryIdentifiers());
 		assertFalse("Empty secondary identifiers in account", accountDef.getSecondaryIdentifiers().isEmpty());
 		assertNotNull("No naming attribute in account", accountDef.getNamingAttribute());
@@ -816,7 +816,7 @@ public class IntegrationTestTools {
 		assertFalse("UID has create", uidDef.canAdd());
 		assertFalse("UID has update",uidDef.canModify());
 		assertTrue("No UID read",uidDef.canRead());
-		assertTrue("UID definition not in identifiers", accountDef.getIdentifiers().contains(uidDef));
+		assertTrue("UID definition not in identifiers", accountDef.getPrimaryIdentifiers().contains(uidDef));
 		assertEquals("Wrong refined displayName for attribute "+SchemaTestConstants.ICFS_UID, "ConnId UID", uidDef.getDisplayName());
 		assertEquals("Wrong refined displayOrder for attribute "+SchemaTestConstants.ICFS_UID, (Integer)100, uidDef.getDisplayOrder());
 
@@ -899,7 +899,7 @@ public class IntegrationTestTools {
 		assertTrue("Group "+group.getName()+" has members while not expecting it, members: "+members, members == null || members.isEmpty());
 	}
 	
-	public static void assertAssociation(PrismObject<ShadowType> shadow, QName associationName, String entitlementOid) {
+	public static ShadowAssociationType assertAssociation(PrismObject<ShadowType> shadow, QName associationName, String entitlementOid) {
 		ShadowType accountType = shadow.asObjectable();
 		List<ShadowAssociationType> associations = accountType.getAssociation();
 		assertNotNull("Null associations in "+shadow, associations);
@@ -907,10 +907,11 @@ public class IntegrationTestTools {
 		for (ShadowAssociationType association: associations) {
 			if (associationName.equals(association.getName()) &&
 					entitlementOid.equals(association.getShadowRef().getOid())) {
-				return;
+				return association;
 			}
 		}
 		AssertJUnit.fail("No association for entitlement "+entitlementOid+" in "+shadow);
+		return null; // notreached
 	}
 	
 	public static void assertNoAssociation(PrismObject<ShadowType> shadow, QName associationName, String entitlementOid) {

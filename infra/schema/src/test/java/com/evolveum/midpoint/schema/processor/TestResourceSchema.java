@@ -340,7 +340,7 @@ public class TestResourceSchema {
 		// ... in it ordinary attribute - an identifier
 		ResourceAttributeDefinition icfUidDef = containerDefinition.createAttributeDefinition(
 				SchemaTestConstants.ICFS_UID, DOMUtil.XSD_STRING);
-		((Collection)containerDefinition.getIdentifiers()).add(icfUidDef);
+		((Collection)containerDefinition.getPrimaryIdentifiers()).add(icfUidDef);
 		ResourceAttributeDefinition xloginDef = containerDefinition.createAttributeDefinition("login", DOMUtil.XSD_STRING);
 		xloginDef.setNativeAttributeName("LOGIN");
 		containerDefinition.setDisplayNameAttribute(xloginDef.getName());

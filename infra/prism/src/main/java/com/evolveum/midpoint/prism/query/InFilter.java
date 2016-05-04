@@ -26,6 +26,7 @@ import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DebugUtil;
 
+@Deprecated			// deprecated because of confusing name/semantics; see https://wiki.evolveum.com/display/midPoint/Query+API+Evolution
 public class InFilter<T> extends PropertyValueFilter<PrismPropertyValue> {
 	
 	InFilter(ItemPath path, PrismPropertyDefinition definition, QName matchingRule, List<PrismPropertyValue> values ) {
@@ -104,5 +105,9 @@ public class InFilter<T> extends PropertyValueFilter<PrismPropertyValue> {
 		return (PrismPropertyDefinition) super.getDefinition();
 	}
 
+	@Override
+	public boolean equals(Object obj, boolean exact) {
+		return super.equals(obj, exact) && obj instanceof InFilter;
+	}
 
 }

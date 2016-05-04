@@ -47,6 +47,9 @@ public class SearchItem<T extends Serializable> implements Serializable {
     private ItemDefinition definition;
     private List<DisplayableValue<T>> values;
 
+    private boolean fixed;
+    private boolean editWhenVisible;
+
     public SearchItem(Search search, ItemPath path, ItemDefinition definition) {
         Validate.notNull(path, "Item path must not be null.");
         Validate.notNull(definition, "Item definition must not be null.");
@@ -120,6 +123,22 @@ public class SearchItem<T extends Serializable> implements Serializable {
         list.addAll(def.getAllowedValues());
 
         return list;
+    }
+
+    public boolean isFixed() {
+        return fixed;
+    }
+
+    public void setFixed(boolean fixed) {
+        this.fixed = fixed;
+    }
+
+    public boolean isEditWhenVisible() {
+        return editWhenVisible;
+    }
+
+    public void setEditWhenVisible(boolean editWhenVisible) {
+        this.editWhenVisible = editWhenVisible;
     }
 
     @Override

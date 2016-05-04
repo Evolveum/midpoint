@@ -87,12 +87,12 @@ public class ItemPath implements Serializable, Cloneable {
 
 	private QName stringToQName(String name) {
 		Validate.notNull(name, "name");
-		if ("..".equals(name)) {
-			return PrismConstants.T_PARENT;
-		} else if ("@".equals(name)) {
-			return PrismConstants.T_OBJECT_REFERENCE;
-		} else if ("#".equals(name)) {
-			return PrismConstants.T_ID;
+		if (ParentPathSegment.SYMBOL.equals(name)) {
+			return ParentPathSegment.QNAME;
+		} else if (ObjectReferencePathSegment.SYMBOL.equals(name)) {
+			return ObjectReferencePathSegment.QNAME;
+		} else if (IdentifierPathSegment.SYMBOL.equals(name)) {
+			return IdentifierPathSegment.QNAME;
 		} else {
 			return new QName(name);
 		}
@@ -171,14 +171,18 @@ public class ItemPath implements Serializable, Cloneable {
 	}
 
 	private void add(QName qname) {
-		if (PrismConstants.T_PARENT.equals(qname)) {
-			this.segments.add(new ParentPathSegment());
-		} else if (PrismConstants.T_OBJECT_REFERENCE.equals(qname)) {
-			this.segments.add(new ObjectReferencePathSegment());
-		} else if (PrismConstants.T_ID.equals(qname)) {
-			this.segments.add(new IdentifierPathSegment());
+		this.segments.add(createSegment(qname, false));
+	}
+
+	public static ItemPathSegment createSegment(QName qname, boolean variable) {
+		if (ParentPathSegment.QNAME.equals(qname)) {
+			return new ParentPathSegment();
+		} else if (ObjectReferencePathSegment.QNAME.equals(qname)) {
+			return new ObjectReferencePathSegment();
+		} else if (IdentifierPathSegment.QNAME.equals(qname)) {
+			return new IdentifierPathSegment();
 		} else {
-			this.segments.add(new NameItemPathSegment(qname));
+			return new NameItemPathSegment(qname, variable);
 		}
 	}
 
@@ -584,6 +588,14 @@ public class ItemPath implements Serializable, Cloneable {
 		int result = 1;
 		result = prime * result + ((segments == null) ? 0 : segments.hashCode());
 		return result;
+	}
+
+	public boolean equals(Object obj, boolean exact) {
+		if (exact) {
+			return equals(obj);
+		} else {
+			return obj instanceof ItemPath && equivalent((ItemPath) obj);
+		}
 	}
 
     /**

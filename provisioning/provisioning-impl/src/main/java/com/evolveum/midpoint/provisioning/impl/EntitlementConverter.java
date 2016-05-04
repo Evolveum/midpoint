@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -270,7 +270,7 @@ class EntitlementConverter {
 			public boolean handle(PrismObject<ShadowType> entitlementShadow) {
 				PrismContainerValue<ShadowAssociationType> associationCVal = associationContainer.createNewValue();
 				associationCVal.asContainerable().setName(associationName);
-				Collection<ResourceAttribute<?>> entitlementIdentifiers = ShadowUtil.getIdentifiers(entitlementShadow);
+				Collection<ResourceAttribute<?>> entitlementIdentifiers = ShadowUtil.getAllIdentifiers(entitlementShadow);
 				try {
 					ResourceAttributeContainer identifiersContainer = new ResourceAttributeContainer(
 							ShadowAssociationType.F_IDENTIFIERS, entitlementDef.toResourceAttributeContainerDefinition(), prismContext);
@@ -482,7 +482,7 @@ class EntitlementConverter {
 				ResultHandler<ShadowType> handler = new ResultHandler<ShadowType>() {
 					@Override
 					public boolean handle(PrismObject<ShadowType> entitlementShadow) {
-						Collection<? extends ResourceAttribute<?>> identifiers = ShadowUtil.getIdentifiers(entitlementShadow);
+						Collection<? extends ResourceAttribute<?>> identifiers = ShadowUtil.getPrimaryIdentifiers(entitlementShadow);
 						ResourceObjectDiscriminator disc = new ResourceObjectDiscriminator(entitlementOcDef.getTypeName(), identifiers);
 						ResourceObjectOperations operations = roMap.get(disc);
 						if (operations == null) {
@@ -704,7 +704,7 @@ class EntitlementConverter {
 			ResourceAttribute<TV> valueAttr = ShadowUtil.getAttribute(subjectShadow, valueAttrName);
 			if (valueAttr == null) {
 				if (!ShadowUtil.isFullShadow(subjectShadow)) {
-					Collection<ResourceAttribute<?>> subjectIdentifiers = ShadowUtil.getIdentifiers(subjectShadow);
+					Collection<ResourceAttribute<?>> subjectIdentifiers = ShadowUtil.getPrimaryIdentifiers(subjectShadow);
 					LOGGER.trace("Fetching {} ({})", subjectShadow, subjectIdentifiers);
 					subjectShadow = resourceObjectReferenceResolver.fetchResourceObject(subjectCtx, subjectIdentifiers, null, result);
 					subjectShadowAfter = subjectShadow;

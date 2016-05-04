@@ -511,7 +511,7 @@ public class Main {
         ItemPathType path = new ItemPathType();
         path.setValue("declare namespace c=\"http://midpoint.evolveum.com/xml/ns/public/common/common-3\"; c:name");
         fc.setPath(path);
-        fc.setValue(username);
+        fc.getValue().add(username);
 
         ObjectFactory factory = new ObjectFactory();
         JAXBElement<PropertyComplexValueFilterClauseType> equal = factory.createEqual(fc);

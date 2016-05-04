@@ -536,8 +536,8 @@ public class TestDummy extends AbstractDummyTest {
 
 		RefinedObjectClassDefinition accountDef = refinedSchema.getDefaultRefinedDefinition(ShadowKindType.ACCOUNT);
 		assertNotNull("Account definition is missing", accountDef);
-		assertNotNull("Null identifiers in account", accountDef.getIdentifiers());
-		assertFalse("Empty identifiers in account", accountDef.getIdentifiers().isEmpty());
+		assertNotNull("Null identifiers in account", accountDef.getPrimaryIdentifiers());
+		assertFalse("Empty identifiers in account", accountDef.getPrimaryIdentifiers().isEmpty());
 		assertNotNull("Null secondary identifiers in account", accountDef.getSecondaryIdentifiers());
 		assertFalse("Empty secondary identifiers in account", accountDef.getSecondaryIdentifiers().isEmpty());
 		assertNotNull("No naming attribute in account", accountDef.getNamingAttribute());
@@ -556,7 +556,7 @@ public class TestDummy extends AbstractDummyTest {
 		assertFalse("UID has create", uidDef.canAdd());
 		assertFalse("UID has update", uidDef.canModify());
 		assertTrue("No UID read", uidDef.canRead());
-		assertTrue("UID definition not in identifiers", accountDef.getIdentifiers().contains(uidDef));
+		assertTrue("UID definition not in identifiers", accountDef.getPrimaryIdentifiers().contains(uidDef));
 
 		RefinedAttributeDefinition nameDef = accountDef.findAttributeDefinition(ConnectorFactoryIcfImpl.ICFS_NAME);
 		assertEquals(1, nameDef.getMaxOccurs());
@@ -721,7 +721,7 @@ public class TestDummy extends AbstractDummyTest {
 		TestUtil.displayTestTile("test030ResourceAndConnectorCaching");
 
 		// GIVEN
-		OperationResult result = new OperationResult(TestOpenDJ.class.getName()
+		OperationResult result = new OperationResult(TestOpenDj.class.getName()
 				+ ".test010ResourceAndConnectorCaching");
 		ConnectorInstance configuredConnectorInstance = connectorManager.getConfiguredConnectorInstance(
 				resource, false, result);
@@ -780,7 +780,7 @@ public class TestDummy extends AbstractDummyTest {
 		assertTrue("Connector instance was not cached", configuredConnectorInstance == configuredConnectorInstanceAgain);
 
 		// Check if the connector still works.
-		OperationResult testResult = new OperationResult(TestOpenDJ.class.getName()
+		OperationResult testResult = new OperationResult(TestOpenDj.class.getName()
 				+ ".test010ResourceAndConnectorCaching.test");
 		configuredConnectorInstanceAgain.test(testResult);
 		testResult.computeStatus();
@@ -840,7 +840,7 @@ public class TestDummy extends AbstractDummyTest {
 		assertFalse("Connector instance was not refreshed", configuredConnectorInstance == configuredConnectorInstanceAgain);
 
 		// Check if the connector still works
-		OperationResult testResult = new OperationResult(TestOpenDJ.class.getName()
+		OperationResult testResult = new OperationResult(TestOpenDj.class.getName()
 				+ ".test011ResourceAndConnectorCachingForceFresh.test");
 		configuredConnectorInstanceAgain.test(testResult);
 		testResult.computeStatus();
@@ -859,7 +859,7 @@ public class TestDummy extends AbstractDummyTest {
 		TestUtil.displayTestTile(TEST_NAME);
 
 		// GIVEN
-		OperationResult result = new OperationResult(TestOpenDJ.class.getName()
+		OperationResult result = new OperationResult(TestOpenDj.class.getName()
 				+ "." + TEST_NAME);
 
 		PrismObject<ShadowType> account = PrismTestUtil.parseObject(getAccountWillFile());
@@ -885,7 +885,7 @@ public class TestDummy extends AbstractDummyTest {
 		TestUtil.displayTestTile(TEST_NAME);
 
 		// GIVEN
-		OperationResult result = new OperationResult(TestOpenDJ.class.getName()
+		OperationResult result = new OperationResult(TestOpenDj.class.getName()
 				+ "." + TEST_NAME);
 
 		PrismObject<ShadowType> account = PrismTestUtil.parseObject(getAccountWillFile());
@@ -912,7 +912,7 @@ public class TestDummy extends AbstractDummyTest {
 		TestUtil.displayTestTile(TEST_NAME);
 
 		// GIVEN
-		OperationResult result = new OperationResult(TestOpenDJ.class.getName()
+		OperationResult result = new OperationResult(TestOpenDj.class.getName()
 				+ "." + TEST_NAME);
 
 		PrismObject<ResourceType> resource = PrismTestUtil.parseObject(RESOURCE_DUMMY_FILE);
@@ -942,7 +942,7 @@ public class TestDummy extends AbstractDummyTest {
 		TestUtil.displayTestTile(TEST_NAME);
 
 		// GIVEN
-		OperationResult result = new OperationResult(TestOpenDJ.class.getName()
+		OperationResult result = new OperationResult(TestOpenDj.class.getName()
 				+ "." + TEST_NAME);
 
 		PrismObject<ResourceType> resource = PrismTestUtil.parseObject(RESOURCE_DUMMY_FILE);
@@ -1273,7 +1273,7 @@ public class TestDummy extends AbstractDummyTest {
 		TestUtil.displayTestTile("test105ApplyDefinitionModifyDelta");
 
 		// GIVEN
-		OperationResult result = new OperationResult(TestOpenDJ.class.getName()
+		OperationResult result = new OperationResult(TestOpenDj.class.getName()
 				+ ".test105ApplyDefinitionModifyDelta");
 
 		ObjectModificationType changeAddRoleCaptain = PrismTestUtil.parseAtomicValue(new File(FILENAME_MODIFY_ACCOUNT),
@@ -1673,7 +1673,7 @@ public class TestDummy extends AbstractDummyTest {
 
 		Task syncTask = taskManager.createTaskInstance(TestDummy.class.getName()
 				+ ".test124ModifyObjectAddPirate");
-		OperationResult result = new OperationResult(TestOpenDJ.class.getName()
+		OperationResult result = new OperationResult(TestOpenDj.class.getName()
 				+ ".test124ModifyObjectAddPirate");
 		syncServiceMock.reset();
 
@@ -1709,7 +1709,7 @@ public class TestDummy extends AbstractDummyTest {
 
 		Task syncTask = taskManager.createTaskInstance(TestDummy.class.getName()
 				+ ".test125ModifyObjectAddCaptain");
-		OperationResult result = new OperationResult(TestOpenDJ.class.getName()
+		OperationResult result = new OperationResult(TestOpenDj.class.getName()
 				+ ".test125ModifyObjectAddCaptain");
 		syncServiceMock.reset();
 
@@ -1745,7 +1745,7 @@ public class TestDummy extends AbstractDummyTest {
 
 		Task syncTask = taskManager.createTaskInstance(TestDummy.class.getName()
 				+ ".test126ModifyObjectDeletePirate");
-		OperationResult result = new OperationResult(TestOpenDJ.class.getName()
+		OperationResult result = new OperationResult(TestOpenDj.class.getName()
 				+ ".test126ModifyObjectDeletePirate");
 		syncServiceMock.reset();
 
@@ -3975,7 +3975,7 @@ public class TestDummy extends AbstractDummyTest {
 		
 		delta.checkConsistence();
 		PrismObject<ShadowType> account = provisioningService.getObject(ShadowType.class, ACCOUNT_MORGAN_OID, null, task, result);
-		Collection<ResourceAttribute<?>> identifiers = ShadowUtil.getIdentifiers(account);
+		Collection<ResourceAttribute<?>> identifiers = ShadowUtil.getPrimaryIdentifiers(account);
 		assertNotNull("Identifiers must not be null", identifiers);
 		assertEquals("Expected one identifier", 1, identifiers.size());
 		
