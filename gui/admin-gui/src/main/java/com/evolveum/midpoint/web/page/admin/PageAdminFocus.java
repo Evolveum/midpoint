@@ -15,17 +15,19 @@
  */
 package com.evolveum.midpoint.web.page.admin;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.web.component.prism.show.PagePreviewChanges;
-import com.evolveum.midpoint.web.security.SecurityUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.Session;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
-import org.apache.wicket.model.AbstractReadOnlyModel;
+import org.apache.wicket.protocol.http.WebSession;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
@@ -42,7 +44,6 @@ import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
@@ -70,39 +71,33 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.assignment.AssignmentEditorDto;
-import com.evolveum.midpoint.web.component.assignment.AssignmentEditorDtoType;
-import com.evolveum.midpoint.web.component.dialog.ConfirmationDialog;
 import com.evolveum.midpoint.web.component.prism.ContainerStatus;
-import com.evolveum.midpoint.web.component.prism.ContainerWrapper;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
-import com.evolveum.midpoint.web.component.prism.PropertyWrapper;
-import com.evolveum.midpoint.web.component.prism.ValueWrapper;
+import com.evolveum.midpoint.web.component.prism.show.PagePreviewChanges;
 import com.evolveum.midpoint.web.component.progress.ProgressReportingAwarePage;
 import com.evolveum.midpoint.web.component.util.ObjectWrapperUtil;
 import com.evolveum.midpoint.web.page.admin.users.component.AssignmentPreviewDialog;
 import com.evolveum.midpoint.web.page.admin.users.component.AssignmentsPreviewDto;
 import com.evolveum.midpoint.web.page.admin.users.dto.FocusSubwrapperDto;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
+import com.evolveum.midpoint.web.security.SecurityUtils;
 import com.evolveum.midpoint.web.util.validation.MidpointFormValidator;
 import com.evolveum.midpoint.web.util.validation.SimpleValidationError;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-import org.apache.wicket.protocol.http.WebSession;
 
 public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjectDetails<F>
 		implements ProgressReportingAwarePage {
+	private static final long serialVersionUID = 1L;
 
 	public static final String AUTH_USERS_ALL = AuthorizationConstants.AUTZ_UI_USERS_ALL_URL;
 	public static final String AUTH_USERS_ALL_LABEL = "PageAdminUsers.auth.usersAll.label";
@@ -116,18 +111,9 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 	private LoadableModel<List<AssignmentEditorDto>> assignmentsModel;	
 
 	private static final String DOT_CLASS = PageAdminFocus.class.getName() + ".";
-	private static final String OPERATION_LOAD_FOCUS = DOT_CLASS + "loadFocus";
-	private static final String OPERATION_LOAD_ASSIGNMENTS = DOT_CLASS + "loadAssignments";
-	private static final String OPERATION_LOAD_ASSIGNMENT = DOT_CLASS + "loadAssignment";
 	private static final String OPERATION_RECOMPUTE_ASSIGNMENTS = DOT_CLASS + "recomputeAssignments";
 
 	private static final String OPERATION_LOAD_SHADOW = DOT_CLASS + "loadShadow";
-
-	private static final String ID_SHADOWS = "shadows";
-	private static final String ID_ASSIGNMENTS = "assignments";
-
-	private static final String MODAL_ID_CONFIRM_DELETE_SHADOW = "confirmDeleteShadowPopup";
-	private static final String MODAL_ID_CONFIRM_DELETE_ASSIGNMENT = "confirmDeleteAssignmentPopup";
 
 	private static final Trace LOGGER = TraceManager.getTrace(PageAdminFocus.class);
 
@@ -137,6 +123,7 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 		super.initializeModel(objectToEdit);
 		
 		projectionModel = new LoadableModel<List<FocusSubwrapperDto<ShadowType>>>(false) {
+			private static final long serialVersionUID = 1L;
 
 			@Override
 			protected List<FocusSubwrapperDto<ShadowType>> load() {
@@ -145,6 +132,7 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 		};
 
 		assignmentsModel = new LoadableModel<List<AssignmentEditorDto>>(false) {
+			private static final long serialVersionUID = 1L;
 
 			@Override
 			protected List<AssignmentEditorDto> load() {
@@ -315,6 +303,9 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 
 			PrismObject<S> projection = WebModelServiceUtils.loadObject(type, oid, loadOptions, this,
 					task, subResult);
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("Loaded projection {} ({}):\n{}", oid, loadOptions, projection==null?null:projection.debugDump());
+			}
 			if (projection == null) {
 				// No access or error
 				return null;
@@ -363,9 +354,7 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 	private List<AssignmentEditorDto> loadAssignments() {
 		List<AssignmentEditorDto> list = new ArrayList<AssignmentEditorDto>();
 
-		OperationResult result = new OperationResult(OPERATION_LOAD_ASSIGNMENTS);
-
-		ObjectWrapper focusWrapper = getObjectModel().getObject();
+		ObjectWrapper<F> focusWrapper = getObjectModel().getObject();
 		PrismObject<F> focus = focusWrapper.getObject();
 		List<AssignmentType> assignments = focus.asObjectable().getAssignment();
 		for (AssignmentType assignment : assignments) {
@@ -400,8 +389,8 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 	
 	protected void handleAssignmentForAdd(PrismObject<F> focus, QName containerName,
 			List<AssignmentEditorDto> assignments) throws SchemaException {
-		PrismObjectDefinition userDef = focus.getDefinition();
-		PrismContainerDefinition assignmentDef = userDef.findContainerDefinition(containerName);
+		PrismObjectDefinition<F> userDef = focus.getDefinition();
+		PrismContainerDefinition<AssignmentType> assignmentDef = userDef.findContainerDefinition(containerName);
 
 		// handle added assignments
 		// existing user assignments are not relevant -> delete them
@@ -417,7 +406,7 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 			}
 
 			AssignmentType assignment = new AssignmentType();
-			PrismContainerValue value = assDto.getNewValue(getPrismContext());
+			PrismContainerValue<AssignmentType> value = assDto.getNewValue(getPrismContext());
 			assignment.setupContainerValue(value);
 			value.applyDefinition(assignmentDef, false);
 			assignmentContainer.add(assignment.clone().asPrismContainerValue());
