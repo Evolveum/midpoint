@@ -212,9 +212,7 @@ public class ObjectWrapperFactory {
         ContainerWrapper wrapper = cwf.createContainerWrapper(oWrapper, container, status, new ItemPath(name));
         result.addSubresult(cwf.getResult());
         list.add(wrapper);
-        // list.addAll(createContainerWrapper(container, null, pageBase));
         if (!ShadowType.F_ASSOCIATION.equals(name)) {
-            // [pm] is this OK? "name" is the name of the container itself; originally here was an empty path - that seems more logical
             addContainerWrappers(list, oWrapper, container, new ItemPath(name), result);
         }
 
@@ -371,8 +369,7 @@ public class ObjectWrapperFactory {
                     .addAll(createCustomContainerWrapper(oWrapper, object, objectDefinitionForEditing, ShadowType.F_CREDENTIALS, result));
         }
 
-        PrismContainer<ShadowAssociationType> associationContainer = object
-                .findOrCreateContainer(ShadowType.F_ASSOCIATION);
+        PrismContainer<ShadowAssociationType> associationContainer = object.findOrCreateContainer(ShadowType.F_ASSOCIATION);
         attributesContainerWrapper = cwf.createContainerWrapper(oWrapper, associationContainer, ContainerStatus.MODIFYING,
                 new ItemPath(ShadowType.F_ASSOCIATION));
         result.addSubresult(cwf.getResult());

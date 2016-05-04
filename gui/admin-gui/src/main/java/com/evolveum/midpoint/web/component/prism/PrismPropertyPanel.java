@@ -55,6 +55,7 @@ public class PrismPropertyPanel<IW extends ItemWrapper> extends Panel {
     private static final Trace LOGGER = TraceManager.getTrace(PrismPropertyPanel.class);
     private static final String ID_HAS_PENDING_MODIFICATION = "hasPendingModification";
     private static final String ID_HELP = "help";
+    private static final String ID_LABEL = "label";
     private static final String ID_LABEL_CONTAINER = "labelContainer";
 
     private PageBase pageBase;
@@ -99,7 +100,7 @@ public class PrismPropertyPanel<IW extends ItemWrapper> extends Panel {
         add(labelContainer);
 
         final IModel<String> label = createDisplayName(model);
-        labelContainer.add(new Label("label", label));
+        labelContainer.add(new Label(ID_LABEL, label));
 
         final IModel<String> helpText = new LoadableModel<String>(false) {
 
