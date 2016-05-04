@@ -215,6 +215,10 @@ public class ContainerWrapperFactory {
             }
 
         } else if (isShadowAssociation(cWrapper)) {
+        	
+        	// HACK: this should not be here. Find a better place.
+        	cWrapper.setDisplayName("prismContainer.shadow.associations");
+        	
             PrismContext prismContext = objectWrapper.getObject().getPrismContext();
             Map<QName, PrismContainer<ShadowAssociationType>> assocMap = new HashMap<>();
             PrismContainer<ShadowAssociationType> associationContainer = cWrapper.getItem();
