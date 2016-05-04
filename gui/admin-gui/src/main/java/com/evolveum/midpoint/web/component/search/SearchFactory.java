@@ -52,7 +52,6 @@ public class SearchFactory {
                 new ItemPath(UserType.F_COST_CENTER)));
         SEARCHABLE_OBJECTS.put(RoleType.class, Arrays.asList(
                 new ItemPath(RoleType.F_NAME),
-                new ItemPath(RoleType.F_DISPLAY_NAME),
                 new ItemPath(RoleType.F_ROLE_TYPE)));
         SEARCHABLE_OBJECTS.put(ConnectorHostType.class, Arrays.asList(
                 new ItemPath(ConnectorHostType.F_HOSTNAME)
