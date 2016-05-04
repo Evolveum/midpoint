@@ -391,28 +391,17 @@
 
 	<synchronization>
 		<objectSynchronization>
-			<!-- The synchronization for this resource is enabled. It means that the 
-				synchronization will react to changes detected by the system (live sync task, 
-				discovery or reconciliation) -->
 			<enabled>true</enabled>
+			<objectClass>ri:inetOrgPerson</objectClass>
+			<kind>account</kind>
+			<intent>default</intent>
+			<focusType>UserType</focusType>
 
 			<correlation>
-				<q:description>
-					Correlation expression is a search query.
-					Following search queury will look for users that have "name"
-					equal to the "uid" attribute of the account. Simply speaking,
-					it will look for match in usernames in the IDM and the resource.
-					The correlation rule always looks for users, so it will not match
-					any other object type.
-				</q:description>
 				<q:equal>
 					<q:path>name</q:path>
 					<expression>
-						<path>
-							declare namespace
-							ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3";
-							$account/attributes/ri:uid
-						</path>
+						<path>$account/attributes/uid</path>
 					</expression>
 				</q:equal>
 			</correlation>
@@ -430,7 +419,6 @@
 					</handlerUri>
 				</action>
 			</reaction>
-
 			<reaction>
 				<situation>unlinked</situation>
 				<synchronize>true</synchronize>
@@ -439,16 +427,87 @@
 					</handlerUri>
 				</action>
 			</reaction>
+		</objectSynchronization>
+
+		<objectSynchronization>
+			<enabled>true</enabled>
+			<objectClass>ri:groupOfNames</objectClass>
+			<kind>entitlement</kind>
+			<intent>ldapGroup</intent>
+			<focusType>OrgType</focusType>
+
+			<correlation>
+				<q:equal>
+					<q:path>name</q:path>
+					<expression>
+						<path>$account/attributes/cn</path>
+					</expression>
+				</q:equal>
+			</correlation>
+
+
 			<reaction>
-				<situation>unmatched</situation>
+				<situation>linked</situation>
+				<synchronize>true</synchronize>
+			</reaction>
+			<reaction>
+				<situation>deleted</situation>
 				<synchronize>true</synchronize>
 				<action>
-					<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#addFocus
+					<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#unlink
+					</handlerUri>
+				</action>
+			</reaction>
+			<reaction>
+				<situation>unlinked</situation>
+				<synchronize>true</synchronize>
+				<action>
+					<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#link
 					</handlerUri>
 				</action>
 			</reaction>
 		</objectSynchronization>
-	</synchronization>
 
+		<objectSynchronization>
+			<enabled>true</enabled>
+			<objectClass>ri:posixGroup</objectClass>
+			<kind>entitlement</kind>
+			<intent>posixGroup</intent>
+			<focusType>OrgType</focusType>
+
+			<correlation>
+				<q:equal>
+					<q:path>name</q:path>
+					<expression>
+						<path>$account/attributes/cn</path>
+					</expression>
+				</q:equal>
+			</correlation>
+
+
+			<reaction>
+				<situation>linked</situation>
+				<synchronize>true</synchronize>
+			</reaction>
+			<reaction>
+				<situation>deleted</situation>
+				<synchronize>true</synchronize>
+				<action>
+					<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#unlink
+					</handlerUri>
+				</action>
+			</reaction>
+			<reaction>
+				<situation>unlinked</situation>
+				<synchronize>true</synchronize>
+				<action>
+					<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#link
+					</handlerUri>
+				</action>
+			</reaction>
+		</objectSynchronization>
+
+
+	</synchronization>
 
 </resource>

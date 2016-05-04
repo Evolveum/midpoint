@@ -880,7 +880,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			if (!hasUidDefinition) {
 				ocDef.add(uidDefinition);
 			}
-			((Collection<ResourceAttributeDefinition>)ocDef.getIdentifiers()).add(uidDefinition);
+			((Collection<ResourceAttributeDefinition>)ocDef.getPrimaryIdentifiers()).add(uidDefinition);
 			if (uidDefinition != nameDefinition) {
 				((Collection<ResourceAttributeDefinition>)ocDef.getSecondaryIdentifiers()).add(nameDefinition);
 			}
@@ -1503,7 +1503,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 					+ attributesContainer.getClass());
 		}
 		if (requireUid) {
-			Collection<ResourceAttribute<?>> identifiers = resourceAttributesContainer.getIdentifiers();
+			Collection<ResourceAttribute<?>> identifiers = resourceAttributesContainer.getPrimaryIdentifiers();
 			if (identifiers == null || identifiers.isEmpty()) {
 				throw new IllegalArgumentException("Cannot " + operation + " shadow without identifiers");
 			}
@@ -2566,7 +2566,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			return new Uid((String) identifiers.iterator().next().getRealValue());
 		}
 		for (ResourceAttribute<?> attr : identifiers) {
-			if (objectClass.isIdentifier(attr.getElementName())) {
+			if (objectClass.isPrimaryIdentifier(attr.getElementName())) {
 				return new Uid(((ResourceAttribute<String>) attr).getValue().getValue());
 			}
 		}
@@ -2588,7 +2588,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			return;
 		}
 		for (ResourceAttribute<?> attr : identifiers) {
-			if (objectClass.isIdentifier(attr.getElementName())) {
+			if (objectClass.isPrimaryIdentifier(attr.getElementName())) {
 				((ResourceAttribute<String>) attr).setValue(new PrismPropertyValue(newUid.getUidValue()));
 				return;
 			}
@@ -2611,7 +2611,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			return identifiers.iterator().next().getDefinition();
 		}
 		for (ResourceAttribute<?> attr : identifiers) {
-			if (objectClass.isIdentifier(attr.getElementName())) {
+			if (objectClass.isPrimaryIdentifier(attr.getElementName())) {
 				return ((ResourceAttribute<String>) attr).getDefinition();
 			}
 		}
@@ -2765,7 +2765,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 					LOGGER.trace("Got current shadow: {}", currentShadow.debugDump());
 				}
 
-				Collection<ResourceAttribute<?>> identifiers = ShadowUtil.getIdentifiers(currentShadow);
+				Collection<ResourceAttribute<?>> identifiers = ShadowUtil.getPrimaryIdentifiers(currentShadow);
 				
 				ObjectDelta<ShadowType> objectDelta = new ObjectDelta<ShadowType>(
 						ShadowType.class, ChangeType.ADD, prismContext);
@@ -2789,7 +2789,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 					LOGGER.trace("Got current shadow: {}", currentShadow.debugDump());
 				}
 
-				Collection<ResourceAttribute<?>> identifiers = ShadowUtil.getIdentifiers(currentShadow);
+				Collection<ResourceAttribute<?>> identifiers = ShadowUtil.getPrimaryIdentifiers(currentShadow);
 
 				Change change = new Change(identifiers, currentShadow, getToken(icfDelta.getToken()));
 				change.setObjectClassDefinition(deltaObjClassDefinition);

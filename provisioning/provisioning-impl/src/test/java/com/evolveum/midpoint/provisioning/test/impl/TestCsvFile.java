@@ -260,7 +260,7 @@ public class TestCsvFile extends AbstractIntegrationTest {
 		TestUtil.displayTestTile(TEST_NAME);
 
 		// GIVEN
-		OperationResult result = new OperationResult(TestOpenDJ.class.getName()+"."+TEST_NAME);
+		OperationResult result = new OperationResult(TestOpenDj.class.getName()+"."+TEST_NAME);
 
 		// WHEN
 		ResourceType resource = provisioningService.getObject(ResourceType.class, RESOURCE_CSV_OID, null, null, result).asObjectable();

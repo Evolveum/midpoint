@@ -669,7 +669,7 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
         PrismObject<ShadowType> shadow = getShadowModel(shadowOid);
         display("Shadow (model)", shadow);
         accountBarbossaOid = shadow.getOid();
-        Collection<ResourceAttribute<?>> identifiers = ShadowUtil.getIdentifiers(shadow);
+        Collection<ResourceAttribute<?>> identifiers = ShadowUtil.getPrimaryIdentifiers(shadow);
         accountBarbossaEntryId = (String) identifiers.iterator().next().getRealValue();
         assertNotNull("No identifier in "+shadow, accountBarbossaEntryId);
         

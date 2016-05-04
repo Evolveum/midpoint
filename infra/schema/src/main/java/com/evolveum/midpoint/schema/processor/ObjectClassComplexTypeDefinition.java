@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,7 +36,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
  *
  */
 public class ObjectClassComplexTypeDefinition extends ComplexTypeDefinition {
-	
+	private static final long serialVersionUID = 1L;
+
 	private Collection<ResourceAttributeDefinition> identifiers;
 	private Collection<ResourceAttributeDefinition> secondaryIdentifiers;
 	private ResourceAttributeDefinition descriptionAttribute;
@@ -76,17 +77,15 @@ public class ObjectClassComplexTypeDefinition extends ComplexTypeDefinition {
 	 * @throws IllegalStateException
 	 *             if there is no definition for the referenced attributed
 	 */
-	// TODO: rename to getPrimaryIdentifiers
-	public Collection<? extends ResourceAttributeDefinition> getIdentifiers() {
+	public Collection<? extends ResourceAttributeDefinition> getPrimaryIdentifiers() {
 		if (identifiers == null) {
 			identifiers = new ArrayList<ResourceAttributeDefinition>(1);
 		}
 		return identifiers;
 	}
 	
-	// TODO: rename to isPrimaryIdentifier
-	public boolean isIdentifier(QName attrName) {
-		for (ResourceAttributeDefinition idDef: getIdentifiers()) {
+	public boolean isPrimaryIdentifier(QName attrName) {
+		for (ResourceAttributeDefinition idDef: getPrimaryIdentifiers()) {
 			if (idDef.getName().equals(attrName)) {
 				return true;
 			}
@@ -128,7 +127,7 @@ public class ObjectClassComplexTypeDefinition extends ComplexTypeDefinition {
 	public Collection<? extends ResourceAttributeDefinition> getAllIdentifiers() {
 		Collection<? extends ResourceAttributeDefinition> allIdentifiers = new ArrayList<>();
 		if (identifiers != null) {
-			allIdentifiers.addAll((Collection)getIdentifiers());
+			allIdentifiers.addAll((Collection)getPrimaryIdentifiers());
 		}
 		if (secondaryIdentifiers != null) {
 			allIdentifiers.addAll((Collection)getSecondaryIdentifiers());
@@ -493,7 +492,7 @@ public class ObjectClassComplexTypeDefinition extends ComplexTypeDefinition {
 	@Override
 	protected void extendDumpDefinition(StringBuilder sb, ItemDefinition def) {
 		super.extendDumpDefinition(sb, def);
-		if (getIdentifiers() != null && getIdentifiers().contains(def)) {
+		if (getPrimaryIdentifiers() != null && getPrimaryIdentifiers().contains(def)) {
 			sb.append(",primID");
 		}
 		if (getSecondaryIdentifiers() != null && getSecondaryIdentifiers().contains(def)) {

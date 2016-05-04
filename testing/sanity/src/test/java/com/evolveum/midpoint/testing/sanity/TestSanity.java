@@ -590,7 +590,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         ResourceSchema schema = RefinedResourceSchema.getResourceSchema(resource, prismContext);
         ObjectClassComplexTypeDefinition accountDefinition = schema.findObjectClassDefinition(RESOURCE_OPENDJ_ACCOUNT_OBJECTCLASS);
         assertNotNull("Schema does not define any account (resource from " + source + ")", accountDefinition);
-        Collection<? extends ResourceAttributeDefinition> identifiers = accountDefinition.getIdentifiers();
+        Collection<? extends ResourceAttributeDefinition> identifiers = accountDefinition.getPrimaryIdentifiers();
         assertFalse("No account identifiers (resource from " + source + ")", identifiers == null || identifiers.isEmpty());
         // TODO: check for naming attributes and display names, etc
 
@@ -4154,7 +4154,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
 		
 		String value = getAttributeValue(repoShadow, name);
 		
-		RefinedAttributeDefinition idDef = objClassDef.getIdentifiers().iterator().next();
+		RefinedAttributeDefinition idDef = objClassDef.getPrimaryIdentifiers().iterator().next();
 		if (idDef.getMatchingRuleQName() != null && idDef.getMatchingRuleQName().equals(StringIgnoreCaseMatchingRule.NAME)){
 			return value.toLowerCase();
 		}

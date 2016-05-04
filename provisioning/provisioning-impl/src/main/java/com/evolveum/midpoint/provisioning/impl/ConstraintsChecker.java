@@ -136,7 +136,7 @@ public class ConstraintsChecker {
 			return constraintsCheckingResult;
 		}
 
-		Collection<? extends ResourceAttributeDefinition> uniqueAttributeDefs = MiscUtil.unionExtends(shadowDefinition.getIdentifiers(),
+		Collection<? extends ResourceAttributeDefinition> uniqueAttributeDefs = MiscUtil.unionExtends(shadowDefinition.getPrimaryIdentifiers(),
 				shadowDefinition.getSecondaryIdentifiers());
 		LOGGER.trace("Secondary IDs {}", shadowDefinition.getSecondaryIdentifiers());
 		for (ResourceAttributeDefinition attrDef: uniqueAttributeDefs) {

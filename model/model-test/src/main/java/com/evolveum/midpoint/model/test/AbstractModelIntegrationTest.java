@@ -1065,7 +1065,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         
         RefinedResourceSchema rSchema = RefinedResourceSchema.getRefinedSchema(resource);
         RefinedObjectClassDefinition rAccount = rSchema.getDefaultRefinedDefinition(ShadowKindType.ACCOUNT);
-        Collection<? extends ResourceAttributeDefinition> identifierDefs = rAccount.getIdentifiers();
+        Collection<? extends ResourceAttributeDefinition> identifierDefs = rAccount.getPrimaryIdentifiers();
         assert identifierDefs.size() == 1 : "Unexpected identifier set in "+resource+" refined schema: "+identifierDefs;
         ResourceAttributeDefinition identifierDef = identifierDefs.iterator().next();
         EqualFilter ocFilter = EqualFilter.createEqual(ShadowType.F_OBJECT_CLASS, ShadowType.class, prismContext, null, 
@@ -1140,7 +1140,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	protected ObjectQuery createAccountShadowQuery(String username, PrismObject<ResourceType> resource) throws SchemaException {
 		RefinedResourceSchema rSchema = RefinedResourceSchema.getRefinedSchema(resource);
         RefinedObjectClassDefinition rAccount = rSchema.getDefaultRefinedDefinition(ShadowKindType.ACCOUNT);
-        Collection<? extends ResourceAttributeDefinition> identifierDefs = rAccount.getIdentifiers();
+        Collection<? extends ResourceAttributeDefinition> identifierDefs = rAccount.getPrimaryIdentifiers();
         assert identifierDefs.size() == 1 : "Unexpected identifier set in "+resource+" refined schema: "+identifierDefs;
         ResourceAttributeDefinition identifierDef = identifierDefs.iterator().next();
         //TODO: set matching rule instead of null

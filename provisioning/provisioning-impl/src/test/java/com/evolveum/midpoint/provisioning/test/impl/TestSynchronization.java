@@ -169,7 +169,7 @@ public class TestSynchronization extends AbstractIntegrationTest {
 				addOperation.getResultCode());
 		
 		ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(resourceType.getOid(), 
-				AbstractOpenDJTest.RESOURCE_OPENDJ_ACCOUNT_OBJECTCLASS);
+				AbstractOpenDjTest.RESOURCE_OPENDJ_ACCOUNT_OBJECTCLASS);
 
 		// WHEN
 		provisioningService.synchronize(coords,
@@ -218,7 +218,7 @@ public class TestSynchronization extends AbstractIntegrationTest {
 				addOperation.getResultCode());
 		
 		ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(resourceType.getOid(), 
-				AbstractOpenDJTest.RESOURCE_OPENDJ_ACCOUNT_OBJECTCLASS);
+				AbstractOpenDjTest.RESOURCE_OPENDJ_ACCOUNT_OBJECTCLASS);
 
 		// WHEN
 		provisioningService.synchronize(coords,

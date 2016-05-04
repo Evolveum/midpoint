@@ -495,7 +495,7 @@ class IcfUtil {
 	
 	
 	public static ResourceAttributeDefinition<String> getUidDefinition(ObjectClassComplexTypeDefinition def) {
-		Collection<? extends ResourceAttributeDefinition> identifiers = def.getIdentifiers();
+		Collection<? extends ResourceAttributeDefinition> identifiers = def.getPrimaryIdentifiers();
 		if (identifiers.size() > 1) {
 			throw new UnsupportedOperationException("Multiple primary identifiers are not supported");
 		}

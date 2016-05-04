@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,7 +45,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
  * @author semancik
  *
  */
-public abstract class AbstractOpenDJTest extends AbstractIntegrationTest {
+public abstract class AbstractOpenDjTest extends AbstractIntegrationTest {
 	
 	protected static final String TEST_DIR_NAME = "src/test/resources/impl/opendj";
 	protected static final File TEST_DIR = new File(TEST_DIR_NAME);
@@ -147,7 +147,7 @@ public abstract class AbstractOpenDJTest extends AbstractIntegrationTest {
 	
 	protected static final QName ASSOCIATION_GROUP_NAME = new QName(RESOURCE_OPENDJ_NS, "group");
 	
-	private static final Trace LOGGER = TraceManager.getTrace(AbstractOpenDJTest.class);
+	private static final Trace LOGGER = TraceManager.getTrace(AbstractOpenDjTest.class);
 	
 	protected MatchingRule<String> dnMatchingRule;
 	
@@ -168,6 +168,9 @@ public abstract class AbstractOpenDJTest extends AbstractIntegrationTest {
 	@Autowired(required = true)
 	protected MatchingRuleRegistry matchingRuleRegistry;
 
+	protected File getResourceOpenDjFile() {
+		return RESOURCE_OPENDJ_FILE;
+	}
 	
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -175,7 +178,7 @@ public abstract class AbstractOpenDJTest extends AbstractIntegrationTest {
 		// not have a definition here
 		InternalsConfig.encryptionChecks = false;
 		provisioningService.postInit(initResult);
-		resource = addResourceFromFile(RESOURCE_OPENDJ_FILE, ProvisioningTestUtil.CONNECTOR_LDAP_TYPE, initResult);
+		resource = addResourceFromFile(getResourceOpenDjFile(), ProvisioningTestUtil.CONNECTOR_LDAP_TYPE, initResult);
 		repoAddShadowFromFile(ACCOUNT_BAD_FILE, initResult);
 		
 		dnMatchingRule = matchingRuleRegistry.getMatchingRule(DistinguishedNameMatchingRule.NAME, DOMUtil.XSD_STRING);

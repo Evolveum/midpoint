@@ -81,9 +81,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.XmlSchemaType;
 
 @ContextConfiguration(locations = "classpath:ctx-provisioning-test-main.xml")
 @DirtiesContext
-public class TestOpenDJNegative extends AbstractOpenDJTest {
+public class TestOpenDjNegative extends AbstractOpenDjTest {
 	
-	private static Trace LOGGER = TraceManager.getTrace(TestOpenDJNegative.class);
+	private static Trace LOGGER = TraceManager.getTrace(TestOpenDjNegative.class);
 
 	@Autowired
 	TaskManager taskManager;
@@ -108,7 +108,7 @@ public class TestOpenDJNegative extends AbstractOpenDJTest {
 		final String TEST_NAME = "test003Connection";
 		TestUtil.displayTestTile(TEST_NAME);
 
-		OperationResult result = new OperationResult(TestOpenDJNegative.class.getName()+"."+TEST_NAME);
+		OperationResult result = new OperationResult(TestOpenDjNegative.class.getName()+"."+TEST_NAME);
 		ResourceType resourceTypeBefore = repositoryService.getObject(ResourceType.class, RESOURCE_OPENDJ_OID, null, result).asObjectable();
 		display("Resource before testResource (repository)", resourceTypeBefore);
 		assertNotNull("No connector ref",resourceTypeBefore.getConnectorRef());
@@ -142,7 +142,7 @@ public class TestOpenDJNegative extends AbstractOpenDJTest {
 	public void test004ResourceAndConnectorCaching() throws Exception {
 		TestUtil.displayTestTile("test004ResourceAndConnectorCaching");
 
-		OperationResult result = new OperationResult(TestOpenDJNegative.class.getName()+".test004ResourceAndConnectorCaching");
+		OperationResult result = new OperationResult(TestOpenDjNegative.class.getName()+".test004ResourceAndConnectorCaching");
 
 		Task task = taskManager.createTaskInstance();
 		// WHEN
@@ -190,7 +190,7 @@ public class TestOpenDJNegative extends AbstractOpenDJTest {
 		final String TEST_NAME = "test110GetObjectNoShadow";
 		TestUtil.displayTestTile(TEST_NAME);
 		
-		OperationResult result = new OperationResult(TestOpenDJNegative.class.getName()
+		OperationResult result = new OperationResult(TestOpenDjNegative.class.getName()
 				+ "." + TEST_NAME);
 
 		try {
@@ -217,7 +217,7 @@ public class TestOpenDJNegative extends AbstractOpenDJTest {
 		final String TEST_NAME = "test111GetObjectShadow";
 		TestUtil.displayTestTile(TEST_NAME);
 		
-		OperationResult result = new OperationResult(TestOpenDJNegative.class.getName()
+		OperationResult result = new OperationResult(TestOpenDjNegative.class.getName()
 				+ "." + TEST_NAME);
 				
 		try {
@@ -240,7 +240,7 @@ public class TestOpenDJNegative extends AbstractOpenDJTest {
 		final String TEST_NAME = "test120ListResourceObjects";
 		TestUtil.displayTestTile(TEST_NAME);
 		// GIVEN
-		OperationResult result = new OperationResult(TestOpenDJNegative.class.getName()
+		OperationResult result = new OperationResult(TestOpenDjNegative.class.getName()
 				+ "." + TEST_NAME);
 		
 		try {
@@ -264,7 +264,7 @@ public class TestOpenDJNegative extends AbstractOpenDJTest {
 		final String TEST_NAME = "test121SearchAccounts";
 		TestUtil.displayTestTile(TEST_NAME);
 		// GIVEN
-		OperationResult result = new OperationResult(TestOpenDJNegative.class.getName()
+		OperationResult result = new OperationResult(TestOpenDjNegative.class.getName()
 				+ "." + TEST_NAME);
 
       final String resourceNamespace = ResourceTypeUtil.getResourceNamespace(resource);
@@ -294,7 +294,7 @@ public class TestOpenDJNegative extends AbstractOpenDJTest {
 		final String TEST_NAME = "test122SearchAccountsIterative";
 		TestUtil.displayTestTile(TEST_NAME);
 		// GIVEN
-		OperationResult result = new OperationResult(TestOpenDJNegative.class.getName()
+		OperationResult result = new OperationResult(TestOpenDjNegative.class.getName()
 				+ "." + TEST_NAME);
 
       final String resourceNamespace = ResourceTypeUtil.getResourceNamespace(resource);
@@ -330,7 +330,7 @@ public class TestOpenDJNegative extends AbstractOpenDJTest {
 		final String TEST_NAME = "test130AddAccountWill";
 		TestUtil.displayTestTile(TEST_NAME);
 		// GIVEN
-		OperationResult result = new OperationResult(TestOpenDJNegative.class.getName()
+		OperationResult result = new OperationResult(TestOpenDjNegative.class.getName()
 				+ "." + TEST_NAME);
 
 		ShadowType object = parseObjectType(ACCOUNT_WILL_FILE, ShadowType.class);
@@ -357,7 +357,7 @@ public class TestOpenDJNegative extends AbstractOpenDJTest {
 		final String TEST_NAME = "test140AddDeleteAccountSparrow";
 		TestUtil.displayTestTile(TEST_NAME);
 		// GIVEN
-		OperationResult result = new OperationResult(TestOpenDJNegative.class.getName()
+		OperationResult result = new OperationResult(TestOpenDjNegative.class.getName()
 				+ "." + TEST_NAME);
 
 		try {
@@ -380,7 +380,7 @@ public class TestOpenDJNegative extends AbstractOpenDJTest {
 		final String TEST_NAME = "test150ModifyObject";
 		TestUtil.displayTestTile(TEST_NAME);
 		// GIVEN
-		OperationResult result = new OperationResult(TestOpenDJNegative.class.getName()
+		OperationResult result = new OperationResult(TestOpenDjNegative.class.getName()
 				+ "." + TEST_NAME);
 
 		ObjectModificationType objectChange = PrismTestUtil.parseAtomicValue(ACCOUNT_JACK_CHANGE_FILE, ObjectModificationType.COMPLEX_TYPE);
@@ -407,7 +407,7 @@ public class TestOpenDJNegative extends AbstractOpenDJTest {
 		final String TEST_NAME = "test190Synhronize";
 		TestUtil.displayTestTile(TEST_NAME);
 		// GIVEN
-		Task task = taskManager.createTaskInstance(TestOpenDJNegative.class.getName()
+		Task task = taskManager.createTaskInstance(TestOpenDjNegative.class.getName()
 				+ "." + TEST_NAME);
 		OperationResult result = task.getResult();
 		
@@ -440,7 +440,7 @@ public class TestOpenDJNegative extends AbstractOpenDJTest {
 		final String TEST_NAME = "test500ReplaceResource";
 		TestUtil.displayTestTile(TEST_NAME);
 		
-		OperationResult result = new OperationResult(TestOpenDJNegative.class.getName()
+		OperationResult result = new OperationResult(TestOpenDjNegative.class.getName()
 				+ "." + TEST_NAME);
 
 		// Delete should work fine even though OpenDJ is down
@@ -465,7 +465,7 @@ public class TestOpenDJNegative extends AbstractOpenDJTest {
 		final String TEST_NAME = "test510GetObjectNoShadow";
 		TestUtil.displayTestTile(TEST_NAME);
 		
-		OperationResult result = new OperationResult(TestOpenDJNegative.class.getName()
+		OperationResult result = new OperationResult(TestOpenDjNegative.class.getName()
 				+ "." + TEST_NAME);
 
 		try {
@@ -493,7 +493,7 @@ public class TestOpenDJNegative extends AbstractOpenDJTest {
 		final String TEST_NAME = "test511GetObjectShadow";
 		TestUtil.displayTestTile(TEST_NAME);
 		
-		OperationResult result = new OperationResult(TestOpenDJNegative.class.getName()
+		OperationResult result = new OperationResult(TestOpenDjNegative.class.getName()
 				+ "." + TEST_NAME);
 				
 		PrismObject<ShadowType> acct = provisioningService.getObject(ShadowType.class, ACCOUNT1_OID, null, taskManager.createTaskInstance(), result);
@@ -521,7 +521,7 @@ public class TestOpenDJNegative extends AbstractOpenDJTest {
 		final String TEST_NAME = "test520ListResourceObjects";
 		TestUtil.displayTestTile(TEST_NAME);
 		// GIVEN
-		OperationResult result = new OperationResult(TestOpenDJNegative.class.getName()
+		OperationResult result = new OperationResult(TestOpenDjNegative.class.getName()
 				+ "." + TEST_NAME);
 		
 		try {
@@ -545,7 +545,7 @@ public class TestOpenDJNegative extends AbstractOpenDJTest {
 		final String TEST_NAME = "test521SearchAccounts";
 		TestUtil.displayTestTile(TEST_NAME);
 		// GIVEN
-		OperationResult result = new OperationResult(TestOpenDJNegative.class.getName()
+		OperationResult result = new OperationResult(TestOpenDjNegative.class.getName()
 				+ "." + TEST_NAME);
 
       final String resourceNamespace = ResourceTypeUtil.getResourceNamespace(resource);
@@ -574,7 +574,7 @@ public class TestOpenDJNegative extends AbstractOpenDJTest {
 		final String TEST_NAME = "test522SearchAccountsIterative";
 		TestUtil.displayTestTile(TEST_NAME);
 		// GIVEN
-		OperationResult result = new OperationResult(TestOpenDJNegative.class.getName()
+		OperationResult result = new OperationResult(TestOpenDjNegative.class.getName()
 				+ "." + TEST_NAME);
 
       final String resourceNamespace = ResourceTypeUtil.getResourceNamespace(resource);
@@ -611,7 +611,7 @@ public class TestOpenDJNegative extends AbstractOpenDJTest {
 		final String TEST_NAME = "test530AddAccountWill";
 		TestUtil.displayTestTile(TEST_NAME);
 		// GIVEN
-		OperationResult result = new OperationResult(TestOpenDJNegative.class.getName()
+		OperationResult result = new OperationResult(TestOpenDjNegative.class.getName()
 				+ "." + TEST_NAME);
 
 		ShadowType object = parseObjectType(ACCOUNT_WILL_FILE, ShadowType.class);
@@ -654,7 +654,7 @@ public class TestOpenDJNegative extends AbstractOpenDJTest {
 		final String TEST_NAME = "test540DeleteObject";
 		TestUtil.displayTestTile(TEST_NAME);
 		// GIVEN
-		OperationResult result = new OperationResult(TestOpenDJNegative.class.getName()
+		OperationResult result = new OperationResult(TestOpenDjNegative.class.getName()
 				+ "." + TEST_NAME);
 
 		Task task = taskManager.createTaskInstance();
@@ -689,7 +689,7 @@ public class TestOpenDJNegative extends AbstractOpenDJTest {
 		final String TEST_NAME = "test150ModifyObject";
 		TestUtil.displayTestTile(TEST_NAME);
 		// GIVEN
-		OperationResult result = new OperationResult(TestOpenDJNegative.class.getName()
+		OperationResult result = new OperationResult(TestOpenDjNegative.class.getName()
 				+ "." + TEST_NAME);
 
 		ObjectModificationType objectChange = PrismTestUtil.parseAtomicValue(ACCOUNT_JACK_CHANGE_FILE, ObjectModificationType.COMPLEX_TYPE);
@@ -729,7 +729,7 @@ public class TestOpenDJNegative extends AbstractOpenDJTest {
 		final String TEST_NAME = "test590Synhronize";
 		TestUtil.displayTestTile(TEST_NAME);
 		// GIVEN
-		Task task = taskManager.createTaskInstance(TestOpenDJNegative.class.getName()
+		Task task = taskManager.createTaskInstance(TestOpenDjNegative.class.getName()
 				+ "." + TEST_NAME);
 		OperationResult result = task.getResult();
 		
