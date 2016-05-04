@@ -391,11 +391,11 @@
 
 	<synchronization>
 		<objectSynchronization>
-			<enabled>true</enabled>
 			<objectClass>ri:inetOrgPerson</objectClass>
 			<kind>account</kind>
 			<intent>default</intent>
 			<focusType>UserType</focusType>
+			<enabled>true</enabled>
 
 			<correlation>
 				<q:equal>
@@ -430,11 +430,11 @@
 		</objectSynchronization>
 
 		<objectSynchronization>
-			<enabled>true</enabled>
 			<objectClass>ri:groupOfNames</objectClass>
 			<kind>entitlement</kind>
 			<intent>ldapGroup</intent>
 			<focusType>OrgType</focusType>
+			<enabled>true</enabled>
 
 			<correlation>
 				<q:equal>
@@ -469,11 +469,11 @@
 		</objectSynchronization>
 
 		<objectSynchronization>
-			<enabled>true</enabled>
 			<objectClass>ri:posixGroup</objectClass>
 			<kind>entitlement</kind>
 			<intent>posixGroup</intent>
 			<focusType>OrgType</focusType>
+			<enabled>true</enabled>
 
 			<correlation>
 				<q:equal>
