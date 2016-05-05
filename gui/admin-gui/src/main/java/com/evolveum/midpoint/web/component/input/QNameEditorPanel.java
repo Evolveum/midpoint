@@ -17,22 +17,27 @@
 package com.evolveum.midpoint.web.component.input;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.NameItemPathSegment;
+import com.evolveum.midpoint.schema.constants.MidPointConstants;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
-
+import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.PropertyModel;
 
-import java.util.ArrayList;
+import javax.xml.namespace.QName;
+import java.util.Arrays;
 import java.util.List;
 
 /**
  *  @author shood
  *
+ *  Item paths edited by this component are limited to single segment.
  *  TODO - this component should probably be renamed to ItemPathType editor
  * */
 public class QNameEditorPanel extends BasePanel<ItemPathType>{
@@ -44,26 +49,87 @@ public class QNameEditorPanel extends BasePanel<ItemPathType>{
     private static final String ID_T_LOCAL_PART = "localPartTooltip";
     private static final String ID_T_NAMESPACE = "namespaceTooltip";
 
-    private String namespace;
+	private IModel<ItemPathType> itemPathModel;
+	private IModel<String> localpartModel;
+    private IModel<String> namespaceModel;
 
-    public QNameEditorPanel(String id, IModel<ItemPathType> model){
+    public QNameEditorPanel(String id, IModel<ItemPathType> model) {
         this(id, model, "QNameEditor.label.localPart", "QNameEditor.tooltip.localPart",
                 "QNameEditor.label.namespace", "QNameEditor.tooltip.namespace");
     }
 
     public QNameEditorPanel(String id, IModel<ItemPathType> model, String localPartLabelKey, String localPartTooltipKey,
-                            String namespaceLabelKey, String namespaceTooltipKey){
+                            String namespaceLabelKey, String namespaceTooltipKey) {
         super(id, model);
+		this.itemPathModel = model;
+
+		localpartModel = new IModel<String>() {
+			@Override
+			public String getObject() {
+				QName qName = itemPathToQName();
+				return qName != null ? qName.getLocalPart() : null;
+			}
+
+			@Override
+			public void setObject(String object) {
+				if (object == null) {
+					itemPathModel.setObject(null);
+				} else {
+					itemPathModel.setObject(new ItemPathType(new ItemPath(new QName(namespaceModel.getObject(), object))));
+				}
+			}
+
+			@Override
+			public void detach() {
+			}
+		};
+		namespaceModel = new IModel<String>() {
+			@Override
+			public String getObject() {
+				QName qName = itemPathToQName();
+				return qName != null ? qName.getNamespaceURI() : null;
+			}
+
+			@Override
+			public void setObject(String object) {
+				if (StringUtils.isBlank(localpartModel.getObject())) {
+					itemPathModel.setObject(null);
+				} else {
+					itemPathModel.setObject(new ItemPathType(new ItemPath(new QName(object, localpartModel.getObject()))));
+				}
+			}
+
+			@Override
+			public void detach() {
+			}
+		};
 
         initLayout(localPartLabelKey, localPartTooltipKey, namespaceLabelKey, namespaceTooltipKey);
     }
 
-    @Override
+	private QName itemPathToQName() {
+		if (itemPathModel.getObject() == null) {
+			return null;
+		}
+		ItemPath path = itemPathModel.getObject().getItemPath();
+		if (path.size() == 0) {
+			return null;
+		} else if (path.size() == 1 && path.first() instanceof NameItemPathSegment) {
+			return ((NameItemPathSegment) path.first()).getName();
+		} else {
+			throw new IllegalStateException("Malformed ItemPath: " + path);
+		}
+	}
+
+
+
+	@Override
     public IModel<ItemPathType> getModel() {
         IModel<ItemPathType> model = super.getModel();
         ItemPathType modelObject = model.getObject();
 
-        if(modelObject == null){
+		// TODO consider removing this
+        if (modelObject == null){
             model.setObject(new ItemPathType());
         }
 
@@ -83,14 +149,13 @@ public class QNameEditorPanel extends BasePanel<ItemPathType>{
         namespaceLabel.setOutputMarkupPlaceholderTag(true);
         add(namespaceLabel);
 
-        TextField localPart = new TextField<>(ID_LOCAL_PART, new PropertyModel<String>(getModel(), "itemPath"));
+        TextField localPart = new TextField<>(ID_LOCAL_PART, localpartModel);
         localPart.setOutputMarkupId(true);
         localPart.setOutputMarkupPlaceholderTag(true);
         localPart.setRequired(isLocalPartRequired());
         add(localPart);
 
-        DropDownChoice namespace = new DropDownChoice<>(ID_NAMESPACE, new PropertyModel<String>(this, "namespace"),
-                prepareNamespaceList());
+        DropDownChoice namespace = new DropDownChoice<>(ID_NAMESPACE, namespaceModel, prepareNamespaceList());
         namespace.setOutputMarkupId(true);
         namespace.setOutputMarkupPlaceholderTag(true);
         namespace.setNullValid(false);
@@ -115,14 +180,7 @@ public class QNameEditorPanel extends BasePanel<ItemPathType>{
      *  for QName editor
      * */
     protected List<String> prepareNamespaceList(){
-        List<String> list = new ArrayList<>();
-
-        //icfs
-        list.add("http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3");
-        //ri
-        list.add("http://midpoint.evolveum.com/xml/ns/public/resource/instance-3");
-
-        return list;
+        return Arrays.asList(SchemaConstants.NS_ICF_SCHEMA, MidPointConstants.NS_RI);
     }
 
     /**
