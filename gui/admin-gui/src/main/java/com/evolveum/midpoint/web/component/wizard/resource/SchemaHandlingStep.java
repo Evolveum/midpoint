@@ -761,8 +761,10 @@ public class SchemaHandlingStep extends WizardStep {
     }
 
     private void deleteObjectTypePerformed(AjaxRequestTarget target, ResourceObjectTypeDefinitionTypeDto objectType){
-        ArrayList<ResourceObjectTypeDefinitionTypeDto> list = (ArrayList<ResourceObjectTypeDefinitionTypeDto>) model.getObject().getObjectTypeList();
+		ResourceObjectTypeDefinitionType realObjectType = objectType.getObjectType();
+		resourceModel.getObject().asObjectable().getSchemaHandling().getObjectType().remove(realObjectType);
 
+        ArrayList<ResourceObjectTypeDefinitionTypeDto> list = (ArrayList<ResourceObjectTypeDefinitionTypeDto>) model.getObject().getObjectTypeList();
         list.remove(objectType);
 
         if (isSelected(objectType)) {

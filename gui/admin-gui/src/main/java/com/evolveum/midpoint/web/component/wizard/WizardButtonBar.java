@@ -27,7 +27,7 @@ public class WizardButtonBar extends Panel implements IDefaultButtonProvider {
 
     public WizardButtonBar(String id, IWizard wizard) {
         super(id);
-        add(new PreviousButton("previous", wizard));
+        add(new ResourceWizardPreviousButton("previous", wizard));
         add(new NextButton("next", wizard));
         add(new LastButton("last", wizard));
         add(new CancelButton("cancel", wizard));
