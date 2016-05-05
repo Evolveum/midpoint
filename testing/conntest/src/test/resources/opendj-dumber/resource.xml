@@ -50,8 +50,8 @@
 			<icfcldap:pagingStrategy>auto</icfcldap:pagingStrategy>
 			<icfcldap:vlvSortAttribute>uid</icfcldap:vlvSortAttribute>
  			<icfcldap:operationalAttributes>ds-pwp-account-disabled</icfcldap:operationalAttributes>
- 			<icfcldap:operationalAttributes>isMemberOf</icfcldap:operationalAttributes>
  			<icfcldap:operationalAttributes>createTimestamp</icfcldap:operationalAttributes>
+ 			<icfcldap:usePermissiveModify>never</icfcldap:usePermissiveModify>
 		</icfc:configurationProperties>
 		<icfc:resultsHandlerConfiguration>
 			<icfc:enableNormalizingResultsHandler>false</icfc:enableNormalizingResultsHandler>
@@ -69,6 +69,7 @@
 			<attribute>
 				<ref>ri:dn</ref>
 				<displayName>Distinguished Name</displayName>
+				<matchingRule>mr:distinguishedName</matchingRule>
 				<outbound>
 				    <source>
 				    	<path>$user/name</path>
@@ -85,6 +86,7 @@
 			<attribute>
 				<ref>ri:entryUUID</ref>
 				<displayName>Entry UUID</displayName>
+				<matchingRule>mr:stringIgnoreCase</matchingRule>
 			</attribute>
 			<attribute>
 				<ref>ri:cn</ref>
@@ -134,6 +136,7 @@
 			<attribute>
 				<ref>ri:uid</ref>
 				<displayName>Login Name</displayName>
+				<matchingRule>mr:stringIgnoreCase</matchingRule>
 				<outbound>
 					<strength>weak</strength>
 					<source>
@@ -153,10 +156,6 @@
                     </target>
 				</inbound>
 			</attribute>
-			<attribute>
-				<ref>ri:isMemberOf</ref>
-				<fetchStrategy>explicit</fetchStrategy>
-			</attribute>
 			
 			<association>
             	<ref>ri:group</ref>
@@ -166,8 +165,6 @@
             	<direction>objectToSubject</direction>
             	<associationAttribute>ri:uniqueMember</associationAttribute>
             	<valueAttribute>ri:dn</valueAttribute>
-            	<shortcutAssociationAttribute>ri:isMemberOf</shortcutAssociationAttribute>
-            	<shortcutValueAttribute>ri:dn</shortcutValueAttribute>
             	<explicitReferentialIntegrity>true</explicitReferentialIntegrity>
             </association>
 			
@@ -211,6 +208,7 @@
             <objectClass>ri:groupOfUniqueNames</objectClass>
             <attribute>
 				<ref>ri:dn</ref>
+				<matchingRule>mr:distinguishedName</matchingRule>
 				<outbound>
 					<!-- Name cannot be weak. Changes in name trigger object rename. -->
 					<source>
@@ -232,9 +230,11 @@
 			</attribute>
 			<attribute>
 				<ref>ri:uniqueMember</ref>
+				<matchingRule>mr:distinguishedName</matchingRule>
 			</attribute>
 			<attribute>
 				<ref>ri:cn</ref>
+				<matchingRule>mr:stringIgnoreCase</matchingRule>
 				<outbound>
 					<strength>weak</strength>
 					<source>
@@ -277,7 +277,7 @@
     </capabilities>
     
     <consistency>
-		<avoidDuplicateValues>false</avoidDuplicateValues>
+		<avoidDuplicateValues>true</avoidDuplicateValues>
 	</consistency>
 	
 	<synchronization>
