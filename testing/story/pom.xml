@@ -209,6 +209,11 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-aspects</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
 			<groupId>com.evolveum.midpoint.repo</groupId>
 			<artifactId>system-init</artifactId>
 			<version>3.4-SNAPSHOT</version>

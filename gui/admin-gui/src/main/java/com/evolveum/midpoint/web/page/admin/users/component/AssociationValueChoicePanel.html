@@ -20,13 +20,18 @@
     <div wicket:id="objectSelectionPopup" />
 
      <div wicket:id="textWrapper">
-		<input type="text" class="form-control input-sm" wicket:id="text" />
-		<span class="input-group-btn">
-		    <button wicket:id="edit" class="btn btn-primary" type="button">
-		        <wicket:message key="PageBase.button.edit" />
-		    </button>
-		</span>
+     	<div class="input-group input-group-sm" style="width: 100%;">
+			<input type="text" class="form-control input-sm" wicket:id="text" />
+			<wicket:enclosure >
+				<span class="input-group-btn">
+				    <button wicket:id="edit" class="btn btn-primary" type="button">
+				        <wicket:message key="PageBase.button.edit" />
+				    </button>
+				</span>
+			</wicket:enclosure>
+		</div>
 		<span class="text-danger" wicket:id="feedback" />
-   </div> 
+   </div>
+   
 </wicket:panel>
 </html>

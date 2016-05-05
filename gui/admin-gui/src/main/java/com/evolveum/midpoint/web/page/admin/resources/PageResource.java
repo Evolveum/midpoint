@@ -16,38 +16,32 @@
 package com.evolveum.midpoint.web.page.admin.resources;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
-import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.extensions.markup.html.tabs.AbstractTab;
+import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.util.ListModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.apache.wicket.util.string.StringValue;
 
+import com.evolveum.midpoint.gui.api.component.result.OpResult;
 import com.evolveum.midpoint.gui.api.component.tabs.PanelTab;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
-import com.evolveum.midpoint.schema.constants.ConnectorTestOperation;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
@@ -65,18 +59,11 @@ import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxTabbedPanel;
-import com.evolveum.midpoint.web.component.TabbedPanel;
-import com.evolveum.midpoint.web.component.data.TablePanel;
-import com.evolveum.midpoint.web.component.data.column.ColumnTypeDto;
-import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
-import com.evolveum.midpoint.web.component.util.ListDataProvider;
 import com.evolveum.midpoint.web.page.admin.configuration.PageDebugView;
-import com.evolveum.midpoint.web.page.admin.home.PageDashboard;
-import com.evolveum.midpoint.web.page.admin.resources.dto.TestConnectionResultDto;
+import com.evolveum.midpoint.web.page.admin.resources.component.TestConnectionResultPanel;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.XmlSchemaType;
 import com.evolveum.prism.xml.ns._public.types_3.SchemaDefinitionType;
 
@@ -109,13 +96,7 @@ public class PageResource extends PageAdminResources {
 
 	public static final String TABLE_TEST_CONNECTION_RESULT_ID = "testConņectionResults";
 
-	// private static final String FORM_DETAILS_OD = "details";
-
 	LoadableModel<PrismObject<ResourceType>> resourceModel;
-
-	private LoadableModel<CapabilitiesDto> capabilitiesModel;
-
-//	private ListModel testConnectionModel = new ListModel();
 
 	private String resourceOid;
 
@@ -360,17 +341,15 @@ public class PageResource extends PageAdminResources {
 		}
 
 		OperationResult result = new OperationResult(OPERATION_TEST_CONNECTION);
-		PrismObject<ResourceType> resource = null;
-		List<TestConnectionResultDto> resultsDto = new ArrayList<>();
-		// try {
+		List<OpResult>  resultsDto = new ArrayList<>();
 		try {
 			Task task = createSimpleTask(OPERATION_TEST_CONNECTION);
 
 			result = getModelService().testResource(dto.getOid(), task);
 
-			resultsDto = TestConnectionResultDto.getResultDtoList(result, this);
+			resultsDto = WebComponentUtil.getTestConnectionResults(result, this);
 
-			resource = getModelService().getObject(ResourceType.class, dto.getOid(), null, task, result);
+			getModelService().getObject(ResourceType.class, dto.getOid(), null, task, result);
 		} catch (ObjectNotFoundException | SchemaException | SecurityViolationException
 				| CommunicationException | ConfigurationException e) {
 			result.recordFatalError("Failed to test resource connection", e);
@@ -384,29 +363,30 @@ public class PageResource extends PageAdminResources {
 			result.recomputeStatus();
 		}
 
-		resourceModel.reset();
-//		showMainPopup(createConnectionResultTable(new ListModel<>(resultsDto)), new Model<String>("Test connection result"), target, 600, 400);
+		TestConnectionResultPanel testConnectionPanel = new TestConnectionResultPanel(getMainPopupBodyId(), new ListModel<OpResult>(resultsDto)) {
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			protected void okPerformed(AjaxRequestTarget target) {
+				refreshStatus(target);
+			}
+		};
+		testConnectionPanel.setOutputMarkupId(true);
+		getMainPopup().setCloseButtonCallback(new ModalWindow.CloseButtonCallback() {
+			private static final long serialVersionUID = 1L;
+
+			@Override
+            public boolean onCloseButtonClicked(AjaxRequestTarget target) {
+                return false;
+            }
+        });
+
+		showMainPopup(testConnectionPanel, new Model<String>("Test connection result"), target, 800, 500);
+
+	}
+	
+	private void refreshStatus(AjaxRequestTarget target) {
 		target.add(addOrReplace(createResourceSummaryPanel()));
 		target.add(addOrReplace(createTabsPanel()));
-		showResult(result, "Test connection failed");
-		target.add(getFeedbackPanel());
-		
-
 	}
-
-	private TablePanel createConnectionResultTable(ListModel<TestConnectionResultDto> model) {
-		ListDataProvider<TestConnectionResultDto> listprovider = new ListDataProvider<TestConnectionResultDto>(
-				this, model);
-		List<ColumnTypeDto> columns = Arrays.asList(
-				new ColumnTypeDto<String>("Operation Name", "operationName", null),
-				new ColumnTypeDto("Status", "status", null),
-				new ColumnTypeDto<String>("Error Message", "errorMessage", null));
-
-		TablePanel table = new TablePanel(getMainPopupBodyId(), listprovider,
-				ColumnUtils.createColumns(columns));
-		table.setOutputMarkupId(true);
-		
-		return table;
-	}
-
 }
