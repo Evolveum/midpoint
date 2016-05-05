@@ -69,6 +69,9 @@ public class Resolver {
 
 	public <O extends ObjectType> void resolve(PrismObject<O> object, Task task, OperationResult result) throws SchemaException {
 		/*if (object.getDefinition() == null) */{
+			if (object == null) {
+				return;
+			}
 			Class<O> clazz = object.getCompileTimeClass();
 			if (clazz == null) {
 				warn(result, "Compile time class for " + toShortString(object) + " is not known");
