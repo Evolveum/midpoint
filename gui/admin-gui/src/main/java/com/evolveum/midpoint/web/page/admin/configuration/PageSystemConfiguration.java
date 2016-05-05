@@ -181,7 +181,7 @@ public class PageSystemConfiguration extends PageAdminConfiguration {
 			@Override
 			public WebMarkupContainer getPanel(String panelId) {
 				profilingConfigPanel = new ProfilingConfigPanel(panelId,
-						new PropertyModel<ProfilingDto>(model, "profilingDto"));
+						new PropertyModel<ProfilingDto>(model, "profilingDto"), PageSystemConfiguration.this);
 				return profilingConfigPanel;
 			}
 		});

@@ -56,5 +56,6 @@
             secret key password is by default 'midpoint'
             -->
         </keystore>
+        <!-- <profilingEnabled>true</profilingEnabled> -->
     </midpoint>
 </configuration>

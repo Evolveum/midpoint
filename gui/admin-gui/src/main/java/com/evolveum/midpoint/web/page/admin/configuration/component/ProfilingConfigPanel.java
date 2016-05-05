@@ -16,9 +16,14 @@
 
 package com.evolveum.midpoint.web.page.admin.configuration.component;
 
-import java.util.ArrayList;
-import java.util.List;
-
+import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.web.page.admin.configuration.PageSystemConfiguration;
+import com.evolveum.midpoint.web.page.admin.configuration.dto.AppenderConfiguration;
+import com.evolveum.midpoint.web.page.admin.configuration.dto.ProfilingDto;
+import com.evolveum.midpoint.web.page.admin.configuration.dto.ProfilingLevel;
+import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.CheckBox;
 import org.apache.wicket.markup.html.form.DropDownChoice;
@@ -28,23 +33,20 @@ import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.web.component.util.SimplePanel;
-import com.evolveum.midpoint.web.page.admin.configuration.dto.AppenderConfiguration;
-import com.evolveum.midpoint.web.page.admin.configuration.dto.ProfilingDto;
-import com.evolveum.midpoint.web.page.admin.configuration.dto.ProfilingLevel;
-import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * 
  * @author katkav
  *
  */
-public class ProfilingConfigPanel extends SimplePanel<ProfilingDto> {
+public class ProfilingConfigPanel extends BasePanel<ProfilingDto> {
 
     private static final String DOT_CLASS = LoggingConfigPanel.class.getName() + ".";
     private static final String OPERATION_LOAD_LOGGING_CONFIGURATION = DOT_CLASS + "loadLoggingConfiguration";
 
+    private static final String ID_PROFILING_ENABLED_NOTE = "profilingEnabledNote";
     private static final String ID_LOGGERS_TABLE = "loggersTable";
     private static final String ID_ROOT_LEVEL = "rootLevel";
     private static final String ID_ROOT_APPENDER = "rootAppender";
@@ -55,56 +57,11 @@ public class ProfilingConfigPanel extends SimplePanel<ProfilingDto> {
     private static final String ID_BUTTON_ADD_STANDARD_LOGGER = "addStandardLogger";
     private static final String ID_DUMP_INTERVAL_TOOLTIP = "dumpIntervalTooltip";
 
-    public ProfilingConfigPanel(String id, IModel<ProfilingDto> model) {
+    public ProfilingConfigPanel(String id, IModel<ProfilingDto> model, PageSystemConfiguration parentPage) {
         super(id, model);
+		initLayout(parentPage);
     }
 
-//    @Override
-//    public IModel<LoggingDto> createModel() {
-//        return new LoadableModel<LoggingDto>(false) {
-//
-//            @Override
-//            protected LoggingDto load() {
-//                return initLoggingModel();
-//            }
-//        };
-//    }
-
-//    private LoggingDto initLoggingModel() {
-//        LoggingDto dto = null;
-//        OperationResult result = new OperationResult(OPERATION_LOAD_LOGGING_CONFIGURATION);
-//        try {
-//            Task task = getPageBase().createSimpleTask(OPERATION_LOAD_LOGGING_CONFIGURATION);
-//
-//            PrismObject<SystemConfigurationType> config = getPageBase().getModelService().getObject(
-//                    SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(), null,
-//                    task, result);
-//            SystemConfigurationType systemConfiguration = config.asObjectable();
-//            LoggingConfigurationType logging = systemConfiguration.getLogging();
-//            dto = new LoggingDto(config, logging);
-//
-//            result.recordSuccess();
-//        } catch (Exception ex) {
-//            result.recordFatalError("Couldn't load logging configuration.", ex);
-//        }
-//
-//        if (!result.isSuccess()) {
-//            getPageBase().showResult(result);
-//        }
-//
-//        if (dto == null) {
-//            dto = new LoggingDto();
-//        }
-//
-//        return dto;
-//    }
-
-    @Override
-    protected void initLayout() {
-       initProfiling();
-    }
-
-  
     private IModel<List<String>> createAppendersListModel() {
         return new AbstractReadOnlyModel<List<String>>() {
 
@@ -122,9 +79,12 @@ public class ProfilingConfigPanel extends SimplePanel<ProfilingDto> {
         };
     }
 
+    private void initLayout(PageSystemConfiguration parentPage) {
 
+		WebMarkupContainer profilingEnabledNote = new WebMarkupContainer(ID_PROFILING_ENABLED_NOTE);
+		profilingEnabledNote.setVisible(!parentPage.getMidpointConfiguration().isProfilingEnabled());
+		add(profilingEnabledNote);
 
-    private void initProfiling(){
         //Entry-Exit profiling init
         DropDownChoice<ProfilingLevel> profilingLevel = new DropDownChoice<>("profilingLevel",
                 new PropertyModel<ProfilingLevel>(getModel(), "profilingLevel"),
