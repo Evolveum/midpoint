@@ -757,6 +757,43 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
         assertEquals("Shadows have moved", accountBarbossaOid, shadowOid);
 	}
 	
+	/**
+	 * Make another duplicate modification. Add a title value that is already there,
+	 * but with a different capitalization.
+	 */
+	@Test
+    public void test213ModifyAccountBarbossaAddTitleDuplicateCapitalized() throws Exception {
+		final String TEST_NAME = "test213ModifyAccountBarbossaAddTitleDuplicateCapitalized";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        ObjectDelta<ShadowType> delta = ObjectDelta.createEmptyModifyDelta(ShadowType.class, accountBarbossaOid, prismContext);
+        QName attrQName = new QName(MidPointConstants.NS_RI, "title");
+        ResourceAttributeDefinition<String> attrDef = accountObjectClassDefinition.findAttributeDefinition(attrQName);
+        PropertyDelta<String> attrDelta = PropertyDelta.createModificationAddProperty(
+        		new ItemPath(ShadowType.F_ATTRIBUTES, attrQName), attrDef, "CAPTAIN");
+        delta.addModification(attrDelta);
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        modelService.executeChanges(MiscSchemaUtil.createCollection(delta), null, task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+
+        Entry entry = assertLdapAccount(USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME);
+        assertAttribute(entry, "title", "Captain");
+        
+        PrismObject<UserType> user = getUser(USER_BARBOSSA_OID);
+        String shadowOid = getSingleLinkOid(user);
+        assertEquals("Shadows have moved", accountBarbossaOid, shadowOid);
+	}
+	
 	@Test
     public void test220ModifyUserBarbossaPassword() throws Exception {
 		final String TEST_NAME = "test220ModifyUserBarbossaPassword";
@@ -790,6 +827,84 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
 	}
 	
 	@Test
+    public void test230ModifyUserBarbossaEmployeeType() throws Exception {
+		final String TEST_NAME = "test230ModifyUserBarbossaEmployeeType";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        modifyUserReplace(USER_BARBOSSA_OID, UserType.F_EMPLOYEE_TYPE, task, result, "Pirate");
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+
+        Entry entry = assertLdapAccount(USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME);
+        assertAttribute(entry, "employeeType", "Pirate");
+        
+        PrismObject<UserType> user = getUser(USER_BARBOSSA_OID);
+        String shadowOid = getSingleLinkOid(user);
+        assertEquals("Shadows have moved", accountBarbossaOid, shadowOid);
+	}
+	
+	@Test
+    public void test232ModifyUserBarbossaEmployeeTypeAgain() throws Exception {
+		final String TEST_NAME = "test232ModifyUserBarbossaEmployeeTypeAgain";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        modifyUserReplace(USER_BARBOSSA_OID, UserType.F_EMPLOYEE_TYPE, task, result, "Pirate");
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+
+        Entry entry = assertLdapAccount(USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME);
+        assertAttribute(entry, "employeeType", "Pirate");
+        
+        PrismObject<UserType> user = getUser(USER_BARBOSSA_OID);
+        String shadowOid = getSingleLinkOid(user);
+        assertEquals("Shadows have moved", accountBarbossaOid, shadowOid);
+	}
+
+	@Test
+    public void test234ModifyUserBarbossaEmployeeTypeAgainCapitalized() throws Exception {
+		final String TEST_NAME = "test234ModifyUserBarbossaEmployeeTypeAgainCapitalized";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        modifyUserReplace(USER_BARBOSSA_OID, UserType.F_EMPLOYEE_TYPE, task, result, "PIRATE");
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+
+        Entry entry = assertLdapAccount(USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME);
+        assertAttribute(entry, "employeeType", "Pirate");
+        
+        PrismObject<UserType> user = getUser(USER_BARBOSSA_OID);
+        String shadowOid = getSingleLinkOid(user);
+        assertEquals("Shadows have moved", accountBarbossaOid, shadowOid);
+	}
+	
+	@Test
     public void test290ModifyUserBarbossaRename() throws Exception {
 		final String TEST_NAME = "test290ModifyUserBarbossaRename";
         TestUtil.displayTestTile(this, TEST_NAME);
@@ -808,7 +923,56 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
         TestUtil.assertSuccess(result);
 
         Entry entry = assertLdapAccount(USER_CPTBARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME);
+        display("LDAP entry after", entry);
+        assertEquals("Wrong DN", toAccountDn(USER_CPTBARBOSSA_USERNAME), entry.getDn().toString());
         assertAttribute(entry, "title", "Captain");
+        
+        PrismObject<UserType> user = getUser(USER_BARBOSSA_OID);
+        String shadowOid = getSingleLinkOid(user);
+        assertEquals("Shadows have moved", accountBarbossaOid, shadowOid);
+        
+        PrismObject<ShadowType> repoShadow = repositoryService.getObject(ShadowType.class, shadowOid, null, result);
+        display("Repo shadow after rename", repoShadow);
+        
+        String repoPrimaryIdentifier = ShadowUtil.getAttributeValue(repoShadow, getPrimaryIdentifierAttributeQName());
+        if ("dn".equals(getPrimaryIdentifierAttributeName())) {
+        	assertEquals("Entry DN (primary identifier) was not updated in the shadow", toAccountDn(USER_CPTBARBOSSA_USERNAME), repoPrimaryIdentifier);
+        } else {
+        	assertEquals("Entry ID changed after rename", accountBarbossaEntryId, repoPrimaryIdentifier);
+        }
+	}
+	
+	/**
+	 * Try the rename again. This time just as a capitalization of the original name.
+	 * The DN should not change.
+	 */
+	@Test
+    public void test292ModifyUserBarbossaRenameCapitalized() throws Exception {
+		final String TEST_NAME = "test292ModifyUserBarbossaRenameCapitalized";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        rememberConnectorOperationCount();
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        modifyUserReplace(USER_BARBOSSA_OID, UserType.F_NAME, task, result, 
+        		PrismTestUtil.createPolyString(USER_CPTBARBOSSA_USERNAME.toUpperCase()));
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        Entry entry = assertLdapAccount(USER_CPTBARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME);
+        display("LDAP entry after", entry);
+        assertAttribute(entry, "title", "Captain");
+        assertEquals("Wrong DN", toAccountDn(USER_CPTBARBOSSA_USERNAME), entry.getDn().toString());
+        
+        assertConnectorOperationIncrement(1, 2); // Just account read, no modify
         
         PrismObject<UserType> user = getUser(USER_BARBOSSA_OID);
         String shadowOid = getSingleLinkOid(user);

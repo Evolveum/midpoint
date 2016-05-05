@@ -281,7 +281,7 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
 	}
 	
 	protected String getPeopleLdapSuffix() {
-		return "ou=people,"+getLdapSuffix();
+		return "ou=People,"+getLdapSuffix();
 	}
 
 	protected String getGroupsLdapSuffix() {
@@ -825,7 +825,7 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
 	}
 	
 	protected void assertAccountShadow(PrismObject<ShadowType> shadow, String dn) throws SchemaException {
-		assertShadowCommon(shadow, null, dn, resourceType, getAccountObjectClass(), ciMatchingRule, false);
+		assertShadowCommon(shadow, null, dnMatchingRule.normalize(dn), resourceType, getAccountObjectClass(), ciMatchingRule, false);
 	}
 
 	protected long roundTsDown(long ts) {

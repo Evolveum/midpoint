@@ -246,10 +246,10 @@ public class ProvisioningUtil {
 			matchingRuleQName = ((RefinedAttributeDefinition)propertyDef).getMatchingRuleQName();
 		}
 		MatchingRule<T> matchingRule = null;
-		if (matchingRuleQName != null) {
+		if (matchingRuleQName != null && propertyDef != null) {
 			matchingRule = matchingRuleRegistry.getMatchingRule(matchingRuleQName, propertyDef.getTypeName());
 		}
-		LOGGER.trace("Narrowing attr def={}, matchingRule={}", propertyDef, matchingRule);
+		LOGGER.trace("Narrowing attr def={}, matchingRule={} ({})", propertyDef, matchingRule, matchingRuleQName);
 		PropertyDelta<T> filteredDelta = propertyDelta.narrow(currentShadow, matchingRule);
 		if (LOGGER.isTraceEnabled() && !filteredDelta.equals(propertyDelta)) {
 			LOGGER.trace("Narrowed delta: {}", filteredDelta.debugDump());
