@@ -6,6 +6,8 @@ import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
 
+import com.evolveum.midpoint.gui.api.component.result.OpResult;
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.schema.constants.ConnectorTestOperation;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
@@ -51,14 +53,15 @@ public class TestConnectionResultDto implements Serializable {
 		this.errorMessage = errorMessage;
 	}
 
-	public static List<TestConnectionResultDto> getResultDtoList(OperationResult result, Component component) {
-		List<TestConnectionResultDto> resultsDto = new ArrayList<>();
+	public static List<OpResult> getResultDtoList(OperationResult result, PageBase component) {
+		List<OpResult> resultsDto = new ArrayList<>();
 		for (ConnectorTestOperation connectorOperation : ConnectorTestOperation.values()) {
 			for (OperationResult testResult : result.getSubresults()) {
 				if (connectorOperation.getOperation().equals(testResult.getOperation())) {
-					TestConnectionResultDto resultDto = new TestConnectionResultDto(
-							component.getString("operation." + connectorOperation.getOperation()), testResult.getStatus(),
-							testResult.getMessage());
+					OpResult resultDto = OpResult.getOpResult(component, testResult);
+//					new TestConnectionResultDto(
+//							component.getString("operation." + connectorOperation.getOperation()), testResult.getStatus(),
+//							testResult.getMessage());
 					resultsDto.add(resultDto);
 				}
 			}

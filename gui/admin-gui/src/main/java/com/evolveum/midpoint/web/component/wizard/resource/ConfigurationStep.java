@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.web.component.wizard.resource;
 
+import com.evolveum.midpoint.gui.api.component.result.OpResult;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
@@ -50,6 +51,7 @@ import com.evolveum.midpoint.web.component.prism.PrismContainerPanel;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
 import com.evolveum.midpoint.web.component.wizard.WizardStep;
 import com.evolveum.midpoint.web.page.admin.resources.PageResourceWizard;
+import com.evolveum.midpoint.web.page.admin.resources.component.TestConnectionResultPanel;
 import com.evolveum.midpoint.web.page.admin.resources.dto.TestConnectionResultDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
@@ -228,38 +230,41 @@ public class ConfigurationStep extends WizardStep {
 		ModelService model = page.getModelService();
 
 		OperationResult result = new OperationResult(TEST_CONNECTION);
-		List<TestConnectionResultDto> resultDtoList = new ArrayList<>();
+		List<OpResult> resultDtoList = new ArrayList<>();
 		try {
 			Task task = page.createSimpleTask(TEST_CONNECTION);
 			String oid = resourceModelNoFetch.getObject().getOid();
 			result = model.testResource(oid, task);
-			resultDtoList = TestConnectionResultDto.getResultDtoList(result, this);
+			resultDtoList = TestConnectionResultDto.getResultDtoList(result, page);
 		} catch (ObjectNotFoundException ex) {
 			result.recordFatalError("Failed to test resource connection", ex);
 		}
 
-		page.setMainPopupContent(createConnectionResultTable(new ListModel<>(resultDtoList)));
-		page.getMainPopup().setInitialHeight(400);
-		page.getMainPopup().setInitialWidth(600);
-		page.showMainPopup(target);
+		TestConnectionResultPanel testConnectionPanel = new TestConnectionResultPanel(page.getMainPopupBodyId(), new ListModel<OpResult>(resultDtoList));
+		testConnectionPanel.setOutputMarkupId(true);
+		page.showMainPopup(testConnectionPanel, new Model<String>("Test connection result"), target, 600, 400);
+//		page.setMainPopupContent(createConnectionResultTable(new ListModel<>(resultDtoList)));
+//		page.getMainPopup().setInitialHeight(400);
+//		page.getMainPopup().setInitialWidth(600);
+//		page.showMainPopup(target);
 
 		page.showResult(result, "Test connection failed", false);
 		target.add(page.getFeedbackPanel());
 		target.add(getForm());
 	}
 
-	private TablePanel<TestConnectionResultDto> createConnectionResultTable(ListModel<TestConnectionResultDto> model) {
-		ListDataProvider<TestConnectionResultDto> listprovider = new ListDataProvider<>(this,
-				model);
-		List<ColumnTypeDto> columns = Arrays.asList(new ColumnTypeDto<String>("Operation Name", "operationName", null),
-				new ColumnTypeDto("Status", "status", null),
-				new ColumnTypeDto<String>("Error Message", "errorMessage", null));
-
-		TablePanel<TestConnectionResultDto> table =
-				new TablePanel<>(getPageBase().getMainPopupBodyId(), listprovider, ColumnUtils.<TestConnectionResultDto>createColumns(columns));
-		table.setOutputMarkupId(true);
-		return table;
-	}
+//	private TablePanel<TestConnectionResultDto> createConnectionResultTable(ListModel<TestConnectionResultDto> model) {
+//		ListDataProvider<TestConnectionResultDto> listprovider = new ListDataProvider<>(this,
+//				model);
+//		List<ColumnTypeDto> columns = Arrays.asList(new ColumnTypeDto<String>("Operation Name", "operationName", null),
+//				new ColumnTypeDto("Status", "status", null),
+//				new ColumnTypeDto<String>("Error Message", "errorMessage", null));
+//
+//		TablePanel<TestConnectionResultDto> table =
+//				new TablePanel<>(getPageBase().getMainPopupBodyId(), listprovider, ColumnUtils.<TestConnectionResultDto>createColumns(columns));
+//		table.setOutputMarkupId(true);
+//		return table;
+//	}
 
 
 	@Override

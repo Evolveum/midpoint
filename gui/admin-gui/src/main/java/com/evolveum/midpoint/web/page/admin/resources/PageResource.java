@@ -23,14 +23,18 @@ import java.util.List;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
 import org.apache.wicket.extensions.markup.html.tabs.AbstractTab;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.util.ListModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.string.StringValue;
 
+import com.evolveum.midpoint.gui.api.component.result.OpResult;
+import com.evolveum.midpoint.gui.api.component.result.OperationResultPanel;
 import com.evolveum.midpoint.gui.api.component.tabs.PanelTab;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
@@ -72,6 +76,7 @@ import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
 import com.evolveum.midpoint.web.page.admin.configuration.PageDebugView;
 import com.evolveum.midpoint.web.page.admin.home.PageDashboard;
+import com.evolveum.midpoint.web.page.admin.resources.component.TestConnectionResultPanel;
 import com.evolveum.midpoint.web.page.admin.resources.dto.TestConnectionResultDto;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
@@ -361,7 +366,7 @@ public class PageResource extends PageAdminResources {
 
 		OperationResult result = new OperationResult(OPERATION_TEST_CONNECTION);
 		PrismObject<ResourceType> resource = null;
-		List<TestConnectionResultDto> resultsDto = new ArrayList<>();
+		List<OpResult>  resultsDto = new ArrayList<>();
 		// try {
 		try {
 			Task task = createSimpleTask(OPERATION_TEST_CONNECTION);
@@ -384,29 +389,61 @@ public class PageResource extends PageAdminResources {
 			result.recomputeStatus();
 		}
 
-		resourceModel.reset();
-//		showMainPopup(createConnectionResultTable(new ListModel<>(resultsDto)), new Model<String>("Test connection result"), target, 600, 400);
+//		resourceModel.reset();
+		TestConnectionResultPanel testConnectionPanel = new TestConnectionResultPanel(getMainPopupBodyId(), new ListModel<OpResult>(resultsDto)) {
+			
+			@Override
+			protected void okPerformed(AjaxRequestTarget target) {
+				refreshStatus(target);
+			}
+		};
+		testConnectionPanel.setOutputMarkupId(true);
+		getMainPopup().setCloseButtonCallback(new ModalWindow.CloseButtonCallback() {
+
+            @Override
+            public boolean onCloseButtonClicked(AjaxRequestTarget target) {
+                return false;
+            }
+        });
+
+		showMainPopup(testConnectionPanel, new Model<String>("Test connection result"), target, 800, 500);
+//		showMainPopup(createConnectionResultTable(resultsDto), new Model<String>("Test connection result"), target, 600, 400);
+//		ResourceSummaryPanel resourceSummaryPanel = (ResourceSummaryPanel) get(PANEL_RESOURCE_SUMMARY);
+//		resourceSummaryPanel.getModel().setObject(resource.asObjectable());
+//		target.add(resourceSummaryPanel);
+		
+//		showResult(result, "Test connection failed");
+//		target.add(getFeedbackPanel());
+		
+
+	}
+	
+	private void refreshStatus(AjaxRequestTarget target) {
 		target.add(addOrReplace(createResourceSummaryPanel()));
 		target.add(addOrReplace(createTabsPanel()));
-		showResult(result, "Test connection failed");
-		target.add(getFeedbackPanel());
-		
-
 	}
 
-	private TablePanel createConnectionResultTable(ListModel<TestConnectionResultDto> model) {
-		ListDataProvider<TestConnectionResultDto> listprovider = new ListDataProvider<TestConnectionResultDto>(
-				this, model);
-		List<ColumnTypeDto> columns = Arrays.asList(
-				new ColumnTypeDto<String>("Operation Name", "operationName", null),
-				new ColumnTypeDto("Status", "status", null),
-				new ColumnTypeDto<String>("Error Message", "errorMessage", null));
-
-		TablePanel table = new TablePanel(getMainPopupBodyId(), listprovider,
-				ColumnUtils.createColumns(columns));
-		table.setOutputMarkupId(true);
-		
-		return table;
-	}
+//	private RepeatingView createConnectionResultTable(List<OpResult> testResults) {
+////		ListDataProvider<TestConnectionResultDto> listprovider = new ListDataProvider<TestConnectionResultDto>(
+////				this, model);
+////		List<ColumnTypeDto> columns = Arrays.asList(
+////				new ColumnTypeDto<String>("Operation Name", "operationName", null),
+////				new ColumnTypeDto("Status", "status", null),
+////				new ColumnTypeDto<String>("Error Message", "errorMessage", null));
+////
+////		TablePanel table = new TablePanel(getMainPopupBodyId(), listprovider,
+////				ColumnUtils.createColumns(columns));
+////		table.setOutputMarkupId(true);
+//		
+//		RepeatingView resultView = new RepeatingView(getMainPopupBodyId());
+//		
+//		for (OpResult result : testResults) {
+//			resultView.add(new OperationResultPanel(resultView.newChildId(), new Model<OpResult>(result)));
+//		}
+//		
+//		resultView.setOutputMarkupId(true);
+//		
+//		return resultView;
+//	}
 
 }
