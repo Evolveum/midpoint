@@ -85,7 +85,6 @@ public class OperationResultPanel extends BasePanel<OpResult> {
 
 		initHeader(detailsBox);
 		initDetails(detailsBox);
-		// todo "show more" link only for operation result messages
 	}
 
 	private void initHeader(WebMarkupContainer box) {
@@ -134,6 +133,7 @@ public class OperationResultPanel extends BasePanel<OpResult> {
 			public void onClick(AjaxRequestTarget target) {
 				OpResult result = OperationResultPanel.this.getModelObject();
 				result.setShowMore(!result.isShowMore());
+				result.setAlreadyShown(false);  // hack to be able to expand/collapse OpResult after rendered.
 				target.add(OperationResultPanel.this);
 			}
 		};
@@ -544,6 +544,7 @@ public class OperationResultPanel extends BasePanel<OpResult> {
 
 	private void showHideAll(final boolean show, OpResult opresult, AjaxRequestTarget target) {
 		opresult.setShowMoreAll(show);
+		opresult.setAlreadyShown(false);  // hack to be able to expand/collapse OpResult after rendered.
 		target.add(OperationResultPanel.this);
 	}
 
