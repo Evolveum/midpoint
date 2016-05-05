@@ -70,6 +70,16 @@ public class OpResult implements Serializable, Visitable {
     
     private boolean showMore;
     private boolean showError;
+    
+    private boolean alreadyShown;
+    
+    public boolean isAlreadyShown() {
+		return alreadyShown;
+	}
+    
+    public void setAlreadyShown(boolean alreadyShown) {
+		this.alreadyShown = alreadyShown;
+	}
 
     public static OpResult getOpResult(PageBase page, OperationResult result){
         OpResult opResult = new OpResult();

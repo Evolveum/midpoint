@@ -16,6 +16,52 @@
 
 package com.evolveum.midpoint.gui.api.page;
 
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.TimeZone;
+
+import javax.management.MBeanServer;
+import javax.management.MBeanServerFactory;
+import javax.management.ObjectName;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.Validate;
+import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.Component;
+import org.apache.wicket.Page;
+import org.apache.wicket.RestartResponseException;
+import org.apache.wicket.RuntimeConfigurationType;
+import org.apache.wicket.ajax.AbstractDefaultAjaxBehavior;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.markup.html.AjaxLink;
+import org.apache.wicket.devutils.debugbar.DebugBar;
+import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
+import org.apache.wicket.feedback.FeedbackMessage;
+import org.apache.wicket.feedback.FeedbackMessages;
+import org.apache.wicket.injection.Injector;
+import org.apache.wicket.markup.head.IHeaderResponse;
+import org.apache.wicket.markup.head.JavaScriptHeaderItem;
+import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
+import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.WebPage;
+import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.list.ListItem;
+import org.apache.wicket.markup.html.list.ListView;
+import org.apache.wicket.model.AbstractReadOnlyModel;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
+import org.apache.wicket.model.StringResourceModel;
+import org.apache.wicket.protocol.http.WebSession;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.apache.wicket.resource.CoreLibrariesContributor;
+import org.apache.wicket.spring.injection.annot.SpringBean;
+import org.apache.wicket.util.string.StringValue;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+
 import com.evolveum.midpoint.common.SystemConfigurationHolder;
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.common.validator.EventHandler;
@@ -27,7 +73,13 @@ import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.model.api.*;
+import com.evolveum.midpoint.model.api.AccessCertificationService;
+import com.evolveum.midpoint.model.api.ModelDiagnosticService;
+import com.evolveum.midpoint.model.api.ModelInteractionService;
+import com.evolveum.midpoint.model.api.ModelService;
+import com.evolveum.midpoint.model.api.ScriptingService;
+import com.evolveum.midpoint.model.api.TaskService;
+import com.evolveum.midpoint.model.api.WorkflowService;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -53,7 +105,11 @@ import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
 import com.evolveum.midpoint.web.component.breadcrumbs.BreadcrumbPageClass;
 import com.evolveum.midpoint.web.component.breadcrumbs.BreadcrumbPageInstance;
 import com.evolveum.midpoint.web.component.dialog.MainPopupDialog;
-import com.evolveum.midpoint.web.component.menu.*;
+import com.evolveum.midpoint.web.component.menu.MainMenuItem;
+import com.evolveum.midpoint.web.component.menu.MenuItem;
+import com.evolveum.midpoint.web.component.menu.SideBarMenuItem;
+import com.evolveum.midpoint.web.component.menu.SideBarMenuPanel;
+import com.evolveum.midpoint.web.component.menu.UserMenuPanel;
 import com.evolveum.midpoint.web.component.menu.top.LocalePanel;
 import com.evolveum.midpoint.web.component.message.FeedbackAlerts;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
@@ -63,7 +119,15 @@ import com.evolveum.midpoint.web.page.admin.certification.PageCertCampaigns;
 import com.evolveum.midpoint.web.page.admin.certification.PageCertDecisions;
 import com.evolveum.midpoint.web.page.admin.certification.PageCertDefinition;
 import com.evolveum.midpoint.web.page.admin.certification.PageCertDefinitions;
-import com.evolveum.midpoint.web.page.admin.configuration.*;
+import com.evolveum.midpoint.web.page.admin.configuration.PageAbout;
+import com.evolveum.midpoint.web.page.admin.configuration.PageAccounts;
+import com.evolveum.midpoint.web.page.admin.configuration.PageBulkAction;
+import com.evolveum.midpoint.web.page.admin.configuration.PageDebugList;
+import com.evolveum.midpoint.web.page.admin.configuration.PageDebugView;
+import com.evolveum.midpoint.web.page.admin.configuration.PageImportObject;
+import com.evolveum.midpoint.web.page.admin.configuration.PageInternals;
+import com.evolveum.midpoint.web.page.admin.configuration.PageRepoQuery;
+import com.evolveum.midpoint.web.page.admin.configuration.PageSystemConfiguration;
 import com.evolveum.midpoint.web.page.admin.home.PageDashboard;
 import com.evolveum.midpoint.web.page.admin.reports.PageCreatedReports;
 import com.evolveum.midpoint.web.page.admin.reports.PageNewReport;
@@ -84,7 +148,11 @@ import com.evolveum.midpoint.web.page.admin.users.PageOrgTree;
 import com.evolveum.midpoint.web.page.admin.users.PageOrgUnit;
 import com.evolveum.midpoint.web.page.admin.users.PageUser;
 import com.evolveum.midpoint.web.page.admin.users.PageUsers;
-import com.evolveum.midpoint.web.page.admin.workflow.*;
+import com.evolveum.midpoint.web.page.admin.workflow.PageProcessInstancesAll;
+import com.evolveum.midpoint.web.page.admin.workflow.PageProcessInstancesRequestedBy;
+import com.evolveum.midpoint.web.page.admin.workflow.PageProcessInstancesRequestedFor;
+import com.evolveum.midpoint.web.page.admin.workflow.PageWorkItems;
+import com.evolveum.midpoint.web.page.admin.workflow.PageWorkItemsClaimable;
 import com.evolveum.midpoint.web.page.login.PageLogin;
 import com.evolveum.midpoint.web.page.self.PageRequestRole;
 import com.evolveum.midpoint.web.page.self.PageSelfCredentials;
@@ -102,43 +170,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AdminGuiConfiguratio
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RichHyperlinkType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType;
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.Validate;
-import org.apache.wicket.*;
-import org.apache.wicket.ajax.AbstractDefaultAjaxBehavior;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.markup.html.AjaxLink;
-import org.apache.wicket.devutils.debugbar.DebugBar;
-import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
-import org.apache.wicket.feedback.FeedbackMessage;
-import org.apache.wicket.feedback.FeedbackMessages;
-import org.apache.wicket.injection.Injector;
-import org.apache.wicket.markup.head.IHeaderResponse;
-import org.apache.wicket.markup.head.JavaScriptHeaderItem;
-import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
-import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.WebPage;
-import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.link.BookmarkablePageLink;
-import org.apache.wicket.markup.html.list.ListItem;
-import org.apache.wicket.markup.html.list.ListView;
-import org.apache.wicket.model.AbstractReadOnlyModel;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
-import org.apache.wicket.model.StringResourceModel;
-import org.apache.wicket.protocol.http.WebSession;
-import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.apache.wicket.resource.CoreLibrariesContributor;
-import org.apache.wicket.spring.injection.annot.SpringBean;
-import org.apache.wicket.util.string.StringValue;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-
-import javax.management.MBeanServer;
-import javax.management.MBeanServerFactory;
-import javax.management.ObjectName;
-import java.io.Serializable;
-import java.util.*;
 
 /**
  * @author lazyman
@@ -158,11 +189,8 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 	private static final String ID_VERSION = "version";
 	public static final String ID_FEEDBACK_CONTAINER = "feedbackContainer";
 	private static final String ID_FEEDBACK = "feedback";
-	private static final String ID_TEMP_FEEDBACK = "tempFeedback";
 	private static final String ID_DEBUG_BAR = "debugBar";
 	private static final String ID_CLEAR_CACHE = "clearCssCache";
-	private static final String ID_FEEDBACK_LIST = "feedbackList";
-	private static final String ID_FEEDBACK_DETAILS = "feedbackDetails";
 	private static final String ID_SIDEBAR_MENU = "sidebarMenu";
 	private static final String ID_RIGHT_MENU = "rightMenu";
 	private static final String ID_LOCALE = "locale";
@@ -728,7 +756,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
                 break;
             case IN_PROGRESS:
             case NOT_APPLICABLE:
-                getSession().info(opResult);
+            	getSession().info(opResult);
                 break;
             case SUCCESS:
                 if (!showSuccess) {
@@ -740,7 +768,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
             case UNKNOWN:
             case WARNING:
             default:
-                getSession().warn(opResult);
+            	getSession().warn(opResult);
 
         }
         return opResult;
@@ -1450,7 +1478,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 			} else {
 				setResponsePage(PageSelfDashboard.class);
 			}
-
+			
 			return;
 		}
 

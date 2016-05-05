@@ -31,8 +31,11 @@ import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 
 /**
  * @author lazyman
+ * @author katkav
  */
 public class FeedbackListView extends ListView<FeedbackMessage> {
+
+	private static final long serialVersionUID = 1L;
 
 	public FeedbackListView(String id, Component component) {
 		super(id);
@@ -40,30 +43,47 @@ public class FeedbackListView extends ListView<FeedbackMessage> {
 	}
 
 	@Override
-	protected void populateItem(ListItem<FeedbackMessage> item) {
+	protected void populateItem(final ListItem<FeedbackMessage> item) {
+
 		final FeedbackMessage message = item.getModelObject();
-		// message.markRendered();
 
 		if (message.getMessage() instanceof OpResult) {
 			OperationResultPanel panel = new OperationResultPanel("message",
 					new PropertyModel<OpResult>(item.getModel(), "message")) {
 
+				private static final long serialVersionUID = 1L;
+
 				@Override
 				public void close(AjaxRequestTarget target) {
-					// TODO Auto-generated method stub
 					super.close(target);
 					message.markRendered();
 				}
+
+				protected void onAfterRender() {
+					((OpResult) message.getMessage()).setAlreadyShown(true);
+					super.onAfterRender();
+				};
 			};
+			panel.add(new VisibleEnableBehaviour() {
+
+				private static final long serialVersionUID = 1L;
+
+				public boolean isVisible() {
+					return !((OpResult) item.getModelObject().getMessage()).isAlreadyShown();
+				};
+			});
+
 			panel.setOutputMarkupId(true);
 			item.add(panel);
 		} else if (!(message.getMessage() instanceof OpResult)) {
 
+			message.markRendered();
 			ValidationErrorPanel validationPanel = new ValidationErrorPanel("message", item.getModel()) {
+
+				private static final long serialVersionUID = 1L;
 
 				@Override
 				public void close(AjaxRequestTarget target) {
-					// TODO Auto-generated method stub
 					super.close(target);
 					message.markRendered();
 				}

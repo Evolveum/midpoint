@@ -164,8 +164,14 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
-		<groupId>com.evolveum.midpoint.repo</groupId>
+			<groupId>com.evolveum.midpoint.repo</groupId>
 			<artifactId>repo-sql-impl</artifactId>
+			<version>3.4-SNAPSHOT</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.evolveum.midpoint.repo</groupId>
+			<artifactId>repo-sql-impl-test</artifactId>
 			<version>3.4-SNAPSHOT</version>
 			<scope>test</scope>
 		</dependency>
@@ -178,6 +184,11 @@
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-aspects</artifactId>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
