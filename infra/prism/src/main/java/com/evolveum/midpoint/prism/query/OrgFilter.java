@@ -27,7 +27,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 
 public class OrgFilter extends ObjectFilter {
 
-    public static enum Scope {ONE_LEVEL, SUBTREE}
+    public enum Scope {ONE_LEVEL, SUBTREE}
 
     private PrismReferenceValue baseOrgRef;
     private Scope scope;
@@ -113,7 +113,7 @@ public class OrgFilter extends ObjectFilter {
     }
 
     @Override
-    public boolean equals(Object obj) {
+    public boolean equals(Object obj, boolean exact) {
         if (this == obj)
             return true;
         if (obj == null)

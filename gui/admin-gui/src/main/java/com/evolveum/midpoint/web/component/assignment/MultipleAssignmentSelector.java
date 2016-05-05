@@ -111,19 +111,18 @@ public class MultipleAssignmentSelector<F extends FocusType, H extends FocusType
     private Class<H> targetFocusClass;
     private String labelValue ="";
     private IModel<ObjectFilter> filterModel = null;
-    private ObjectFilter authorizedRolesFilter = null;
     private ObjectQuery searchQuery = null;
     private PrismObject<F> focus;
     private H filterObject = null;
 
-    public MultipleAssignmentSelector(String id, IModel<List<AssignmentEditorDto>> selectorModel, BaseSortableDataProvider provider,
-                                      Class<H> targetFocusClass, Class type, PrismObject<F> focus) {
+    public MultipleAssignmentSelector(String id, IModel<List<AssignmentEditorDto>> selectorModel,
+                                      Class<H> targetFocusClass, Class type, PrismObject<F> focus, IModel<ObjectFilter> filterModel) {
         super(id, selectorModel);
-        this.provider = provider == null ? getListDataProvider(null) : provider;
-        this.type = type;
         this.focus=focus;
+        this.filterModel = filterModel;
+//        this.provider = provider == null ? getListDataProvider(null) : provider;
+        this.type = type;
         this.targetFocusClass = targetFocusClass;
-        filterModel = getFilterModel();
         searchModel = new LoadableModel<Search>(false) {
 
             @Override
@@ -132,6 +131,11 @@ public class MultipleAssignmentSelector<F extends FocusType, H extends FocusType
                 return search;
             }
         };
+        if (focus == null){
+            provider = getListDataProvider(null);
+        } else {
+            provider = getAvailableAssignmentsDataProvider();
+        }
 
         initLayout();
     }
@@ -365,9 +369,6 @@ public class MultipleAssignmentSelector<F extends FocusType, H extends FocusType
 
     public <T extends FocusType> BaseSortableDataProvider getListDataProvider(final FocusType focus) {
         BaseSortableDataProvider provider;
-//        if (filterObject == null){
-//            provider = getAvailableAssignmentsDataProvider();
-//        } else {
             provider = new ListDataProvider<AssignmentEditorDto>(this, new IModel<List<AssignmentEditorDto>>() {
                 @Override
                 public List<AssignmentEditorDto> getObject() {
@@ -383,12 +384,11 @@ public class MultipleAssignmentSelector<F extends FocusType, H extends FocusType
 
                 }
             });
-//        }
         return provider;
     }
 
     private <T extends FocusType> List<AssignmentEditorDto> getAvailableAssignmentsDataList(FocusType focus){
-        ObjectQuery query = provider.getQuery() == null ? new ObjectQuery() : provider.getQuery();
+        ObjectQuery query = provider.getQuery() == null ? (searchQuery == null ? new ObjectQuery() : searchQuery) : provider.getQuery();
 
         List<AssignmentEditorDto> assignmentsList = getListProviderDataList();
         if (assignmentsList == null) {
@@ -436,47 +436,6 @@ public class MultipleAssignmentSelector<F extends FocusType, H extends FocusType
             }
         }
         return displayAssignmentsList;
-    }
-
-    private  IModel<ObjectFilter> getFilterModel(){
-        return new IModel<ObjectFilter>() {
-            @Override
-            public ObjectFilter getObject() {
-                if (authorizedRolesFilter == null){
-                    initRolesFilter();
-                }
-                return authorizedRolesFilter;
-            }
-
-            @Override
-            public void setObject(ObjectFilter objectFilter) {
-
-            }
-
-            @Override
-            public void detach() {
-
-            }
-        };
-    }
-
-    private void initRolesFilter (){
-        LOGGER.debug("Loading roles which the current user has right to assign");
-        OperationResult result = new OperationResult(OPERATION_LOAD_AVAILABLE_ROLES);
-        try {
-            PageBase pb = getPageBase();
-            ModelInteractionService mis = pb.getModelInteractionService();
-            RoleSelectionSpecification roleSpec = mis.getAssignableRoleSpecification(focus, result);
-            authorizedRolesFilter = roleSpec.getFilter();
-        } catch (Exception ex) {
-            LoggingUtils.logException(LOGGER, "Couldn't load available roles", ex);
-            result.recordFatalError("Couldn't load available roles", ex);
-        } finally {
-            result.recomputeStatus();
-        }
-        if (!result.isSuccess() && !result.isHandledError()) {
-            getPageBase().showResult(result);
-        }
     }
 
     private List<AssignmentEditorDto> getAssignmentEditorDtoList(List<AssignmentType> assignmentTypeList){

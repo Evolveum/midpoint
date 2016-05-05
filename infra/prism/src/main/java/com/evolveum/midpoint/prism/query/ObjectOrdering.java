@@ -52,4 +52,30 @@ public class ObjectOrdering implements Serializable {
     public String toString() {
         return orderBy.toString() + " " + direction;
     }
+
+	@Override
+	public boolean equals(Object o) {
+		return equals(o, true);
+	}
+
+	public boolean equals(Object o, boolean exact) {
+		if (this == o)
+			return true;
+		if (o == null || getClass() != o.getClass())
+			return false;
+
+		ObjectOrdering that = (ObjectOrdering) o;
+
+		if (orderBy != null ? !orderBy.equals(that.orderBy, exact) : that.orderBy != null)
+			return false;
+		return direction == that.direction;
+
+	}
+
+	@Override
+	public int hashCode() {
+		int result = 1;
+		result = 31 * result + (direction != null ? direction.hashCode() : 0);
+		return result;
+	}
 }

@@ -215,6 +215,10 @@ public class ContainerWrapperFactory {
             }
 
         } else if (isShadowAssociation(cWrapper)) {
+        	
+        	// HACK: this should not be here. Find a better place.
+        	cWrapper.setDisplayName("prismContainer.shadow.associations");
+        	
             PrismContext prismContext = objectWrapper.getObject().getPrismContext();
             Map<QName, PrismContainer<ShadowAssociationType>> assocMap = new HashMap<>();
             PrismContainer<ShadowAssociationType> associationContainer = cWrapper.getItem();
@@ -276,8 +280,9 @@ public class ContainerWrapperFactory {
             }
 
             for (Map.Entry<QName, PrismContainer<ShadowAssociationType>> assocEntry : assocMap.entrySet()) {
-                // HACK HACK HACK, the container wrapper should not parse itself. This code should not be here.
-                AssociationWrapper assocWrapper = new AssociationWrapper(cWrapper, assocEntry.getValue(), cWrapper.isReadonly(), ValueStatus.NOT_CHANGED);
+            	RefinedAssociationDefinition assocRDef = rOcDef.findAssociation(assocEntry.getKey());
+                AssociationWrapper assocWrapper = new AssociationWrapper(cWrapper, assocEntry.getValue(), 
+                		cWrapper.isReadonly(), ValueStatus.NOT_CHANGED, assocRDef);
                 properties.add(assocWrapper);
             }
 

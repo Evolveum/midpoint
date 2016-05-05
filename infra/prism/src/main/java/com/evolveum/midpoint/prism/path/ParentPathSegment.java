@@ -16,6 +16,10 @@
 
 package com.evolveum.midpoint.prism.path;
 
+import com.evolveum.midpoint.prism.PrismConstants;
+
+import javax.xml.namespace.QName;
+
 /**
  * Denotes parent object or container.
  *
@@ -23,7 +27,10 @@ package com.evolveum.midpoint.prism.path;
  */
 public class ParentPathSegment extends ReferencePathSegment {
 
-    @Override
+	public static final String SYMBOL = "..";
+	public static final QName QNAME = PrismConstants.T_PARENT;
+
+	@Override
     public boolean equivalent(Object obj) {
         return equals(obj);
     }
@@ -35,6 +42,6 @@ public class ParentPathSegment extends ReferencePathSegment {
 
     @Override
     public String toString() {
-        return "..";
+        return SYMBOL;
     }
 }

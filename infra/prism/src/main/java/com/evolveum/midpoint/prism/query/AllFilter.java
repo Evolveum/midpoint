@@ -74,4 +74,13 @@ public class AllFilter extends ObjectFilter {
 		return true;
 	}
 
+	@Override
+	public boolean equals(Object obj, boolean exact) {
+		return obj instanceof AllFilter;
+	}
+
+	@Override
+	public int hashCode() {
+		return 0;
+	}
 }

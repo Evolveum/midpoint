@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2016 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+  
+<objectTemplate oid="c4246978-107e-11e6-8818-8b900a1eb9d9"
+	xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' 
+	xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+	xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+	xmlns:t='http://prism.evolveum.com/xml/ns/public/types-3' 
+	xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
+	
+	<name>Org Template</name>
+
+	<mapping>
+		<name>template-org-meta-project</name>
+		<strength>strong</strength>
+		<source>
+			<path>orgType</path>
+		</source>
+		<expression>
+			<value>
+				<!-- Project Metarole -->
+				<targetRef oid="daa3b69a-107e-11e6-9551-538f491a0753"
+					type="c:RoleType" />
+			</value>
+		</expression>
+		<target>
+			<path>assignment</path>
+		</target>
+		<condition>
+			<script>
+				<code>orgType == 'project'</code>
+			</script>
+		</condition>
+	</mapping>
+	
+	<mapping>
+		<name>template-org-meta-functional</name>
+		<strength>strong</strength>
+		<source>
+			<path>orgType</path>
+		</source>
+		<expression>
+			<value>
+				<!-- Functional Org Metarole -->
+				<targetRef oid="fe29b5c4-107e-11e6-8104-5360200aa6b9"
+					type="c:RoleType" />
+			</value>
+		</expression>
+		<target>
+			<path>assignment</path>
+		</target>
+		<condition>
+			<script>
+				<code>orgType == 'functional'</code>
+			</script>
+		</condition>
+	</mapping>
+	
+</objectTemplate>

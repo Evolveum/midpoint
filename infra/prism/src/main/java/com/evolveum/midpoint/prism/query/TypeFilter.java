@@ -124,13 +124,14 @@ public class TypeFilter extends ObjectFilter {
     }
 
     @Override
-    public boolean equals(Object o) {
+    public boolean equals(Object o, boolean exact) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
         TypeFilter that = (TypeFilter) o;
 
         if (type != null ? !type.equals(that.type) : that.type != null) return false;
+        if (filter != null ? !filter.equals(that.filter, exact) : that.filter != null) return false;
 
         return true;
     }

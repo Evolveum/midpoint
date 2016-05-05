@@ -76,6 +76,7 @@ public class SearchPanel extends BasePanel<Search> {
     private static final String ID_PROPERTIES = "properties";
     private static final String ID_CHECK = "check";
     private static final String ID_PROP_NAME = "propName";
+    private static final String ID_PROP_LINK = "propLink";
     private static final String ID_PROP_LIST = "propList";
     private static final String ID_ADVANCED = "advanced";
     private static final String ID_ADVANCED_GROUP = "advancedGroup";
@@ -313,9 +314,18 @@ public class SearchPanel extends BasePanel<Search> {
                 });
                 item.add(check);
 
+                AjaxLink propLink = new AjaxLink(ID_PROP_LINK) {
+
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        addOneItemPerformed(item.getModelObject(), target);
+                    }
+                };
+                item.add(propLink);
+
                 Label name = new Label(ID_PROP_NAME, new PropertyModel<>(item.getModel(), Property.F_NAME));
                 name.setRenderBodyOnly(true);
-                item.add(name);
+                propLink.add(name);
 
                 item.add(new VisibleEnableBehaviour() {
 
@@ -395,6 +405,15 @@ public class SearchPanel extends BasePanel<Search> {
         Collections.sort(list);
 
         return list;
+    }
+
+    private void addOneItemPerformed(Property property, AjaxRequestTarget target) {
+        Search search = getModelObject();
+        SearchItem item = search.addItem(property.getDefinition());
+        item.setEditWhenVisible(true);
+
+        moreDialogModel.reset();
+        refreshSearchForm(target);
     }
 
     private void addItemPerformed(AjaxRequestTarget target) {

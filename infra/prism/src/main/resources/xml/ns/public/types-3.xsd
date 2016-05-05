@@ -347,6 +347,18 @@
                 </xsd:documentation>
             </xsd:annotation>
         </xsd:attribute>
+        <xsd:attribute name="relation" type="xsd:QName" use="optional">
+            <xsd:annotation>
+                <xsd:documentation>
+                    <p>
+                        The relation or a "role" of this reference. It may further specify
+                        the meaning of the reference. E.g. it may specify whether the objects
+                        linked by the reference are analogous, form a composition, aggregation,
+                        are mebers of the org or managers of the org, etc.
+                    </p>
+                </xsd:documentation>
+            </xsd:annotation>
+        </xsd:attribute>
     </xsd:complexType>
     
     <!--<xsd:complexType name="XPathType" mixed="true">-->

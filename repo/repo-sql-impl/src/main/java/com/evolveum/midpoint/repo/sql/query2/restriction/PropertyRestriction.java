@@ -65,7 +65,7 @@ public class PropertyRestriction extends ItemValueRestriction<PropertyValueFilte
         }
 
         String propertyValuePath = getHqlDataInstance().getHqlPath();
-        if (filter.getRightSidePath() != null) {
+        if (filter.getRightHandSidePath() != null) {
             return createPropertyVsPropertyCondition(propertyValuePath);
         } else {
             Object value = getValueFromFilter(filter);
@@ -75,8 +75,8 @@ public class PropertyRestriction extends ItemValueRestriction<PropertyValueFilte
     }
 
     protected Condition createPropertyVsPropertyCondition(String leftPropertyValuePath) throws QueryException {
-        HqlDataInstance rightItem = getItemPathResolver().resolveItemPath(filter.getRightSidePath(),
-                filter.getRightSideDefinition(), getBaseHqlEntityForChildren(), true);
+        HqlDataInstance rightItem = getItemPathResolver().resolveItemPath(filter.getRightHandSidePath(),
+                filter.getRightHandSideDefinition(), getBaseHqlEntityForChildren(), true);
         String rightHqlPath = rightItem.getHqlPath();
         RootHibernateQuery hibernateQuery = context.getHibernateQuery();
 

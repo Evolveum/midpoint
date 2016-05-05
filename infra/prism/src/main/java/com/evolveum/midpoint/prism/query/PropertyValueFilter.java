@@ -17,7 +17,6 @@
 package com.evolveum.midpoint.prism.query;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
@@ -25,40 +24,26 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.PrismContainerValue;
 
-import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
-import org.w3c.dom.Element;
 
-import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.Itemable;
-import com.evolveum.midpoint.prism.Objectable;
-import com.evolveum.midpoint.prism.PrismConstants;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismUtil;
-import com.evolveum.midpoint.prism.xnode.MapXNode;
-import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SystemException;
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 public abstract class PropertyValueFilter<T extends PrismValue> extends ValueFilter implements Itemable {
 
 	private ExpressionWrapper expression;
 	private List<T> values;
-	private ItemPath rightSidePath;							// alternative to "values"
-	private ItemDefinition rightSideDefinition;				// optional (needed only if path points to extension item)
+	private ItemPath rightHandSidePath;							// alternative to "values"
+	private ItemDefinition rightHandSideDefinition;				// optional (needed only if path points to extension item)
 
 	/*
 	 *  TODO clean up the right side path/definition mess
@@ -68,11 +53,11 @@ public abstract class PropertyValueFilter<T extends PrismValue> extends ValueFil
 		super();
 	}
 
-	PropertyValueFilter(ItemPath path, ItemDefinition definition, QName matchingRule, ItemPath rightSidePath, ItemDefinition rightSideDefinition) {
+	PropertyValueFilter(ItemPath path, ItemDefinition definition, QName matchingRule, ItemPath rightHandSidePath, ItemDefinition rightHandSideDefinition) {
 		super(path, definition, matchingRule);
-		Validate.notNull(rightSidePath, "rightSidePath");
-		this.rightSidePath = rightSidePath;
-		this.rightSideDefinition = rightSideDefinition;
+		Validate.notNull(rightHandSidePath, "rightHandSidePath");
+		this.rightHandSidePath = rightHandSidePath;
+		this.rightHandSideDefinition = rightHandSideDefinition;
 	}
 	
 	PropertyValueFilter(ItemPath path, ItemDefinition definition, QName matchingRule, List<T> values) {
@@ -127,7 +112,22 @@ public abstract class PropertyValueFilter<T extends PrismValue> extends ValueFil
 		
 		return pValues;
 	}
-	
+
+	static <T> List<PrismPropertyValue<T>> createPropertyListFromArray(PrismPropertyDefinition itemDefinition, T... realValues) {
+		List<PrismPropertyValue<T>> pVals = new ArrayList<PrismPropertyValue<T>>();
+
+		for (T realValue : realValues) {
+			if (realValue instanceof PrismPropertyValue) {
+				PrismPropertyValue<T> pVal = (PrismPropertyValue<T>) realValue;
+				PrismUtil.recomputePrismPropertyValue(pVal, itemDefinition.getPrismContext());
+				pVals.add(pVal);
+			} else {
+				pVals.add(new PrismPropertyValue<>(realValue));
+			}
+		}
+		return pVals;
+	}
+
 	 static <T> List<PrismPropertyValue<T>> createPropertyList(PrismPropertyDefinition itemDefinition, T realValue){
 		List<PrismPropertyValue<T>> pVals = new ArrayList<PrismPropertyValue<T>>();
 
@@ -138,6 +138,7 @@ public abstract class PropertyValueFilter<T extends PrismValue> extends ValueFil
 					PrismUtil.recomputePrismPropertyValue(pVal, itemDefinition.getPrismContext());
 					pVals.add(pVal);
 				}else{
+					// TODO what's this???
 					pVals.addAll(PrismPropertyValue.createCollection((Collection<T>) realValue));
 				}
 			}
@@ -214,23 +215,23 @@ public abstract class PropertyValueFilter<T extends PrismValue> extends ValueFil
 		return filterItem;
 	}
 
-	public ItemPath getRightSidePath() {
-		return rightSidePath;
+	public ItemPath getRightHandSidePath() {
+		return rightHandSidePath;
 	}
 
-	public ItemDefinition getRightSideDefinition() {
-		return rightSideDefinition;
+	public ItemDefinition getRightHandSideDefinition() {
+		return rightHandSideDefinition;
 	}
 
-	public void setRightSidePath(ItemPath rightSidePath) {
-		this.rightSidePath = rightSidePath;
-		if (rightSidePath != null) {
+	public void setRightHandSidePath(ItemPath rightHandSidePath) {
+		this.rightHandSidePath = rightHandSidePath;
+		if (rightHandSidePath != null) {
 			values = null;
 		}
 	}
 
-	public void setRightSideDefinition(ItemDefinition rightSideDefinition) {
-		this.rightSideDefinition = rightSideDefinition;
+	public void setRightHandSideDefinition(ItemDefinition rightHandSideDefinition) {
+		this.rightHandSideDefinition = rightHandSideDefinition;
 	}
 
 	public ExpressionWrapper getExpression() {
@@ -286,36 +287,46 @@ public abstract class PropertyValueFilter<T extends PrismValue> extends ValueFil
 		
 		return true;
 	}
-	
+
 	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + ((expression == null) ? 0 : expression.hashCode());
-		result = prime * result + ((values == null) ? 0 : values.hashCode());
-		return result;
+	public boolean equals(Object o) {
+		return equals(o, true);
 	}
 
 	@Override
-	public boolean equals(Object obj) {
-		if (this == obj)
+	public boolean equals(Object o, boolean exact) {
+		if (this == o)
 			return true;
-		if (obj == null)
+		if (o == null || getClass() != o.getClass())
 			return false;
-		if (getClass() != obj.getClass())
+		if (!super.equals(o, exact))
 			return false;
-		PropertyValueFilter other = (PropertyValueFilter) obj;
-		if (expression == null) {
-			if (other.expression != null)
-				return false;
-		} else if (!expression.equals(other.expression))
+
+		PropertyValueFilter<?> that = (PropertyValueFilter<?>) o;
+
+		if (expression != null ? !expression.equals(that.expression) : that.expression != null)
 			return false;
-		if (values == null) {
-			if (other.values != null)
-				return false;
-		} else if (!values.equals(other.values))
+		if (values != null ? !values.equals(that.values) : that.values != null)
 			return false;
-		return true;
+		if (rightHandSidePath != null ? !rightHandSidePath.equals(that.rightHandSidePath, exact) : that.rightHandSidePath != null)
+			return false;
+		if (exact) {
+			return rightHandSideDefinition != null ?
+					rightHandSideDefinition.equals(that.rightHandSideDefinition) :
+					that.rightHandSideDefinition == null;
+		} else {
+			return true;
+		}
+	}
+
+	@Override
+	public int hashCode() {
+		int result = super.hashCode();
+		result = 31 * result + (expression != null ? expression.hashCode() : 0);
+		result = 31 * result + (values != null ? values.hashCode() : 0);
+		result = 31 * result + (rightHandSidePath != null ? rightHandSidePath.hashCode() : 0);
+		result = 31 * result + (rightHandSideDefinition != null ? rightHandSideDefinition.hashCode() : 0);
+		return result;
 	}
 
 	public String debugDump(int indent, StringBuilder sb){
@@ -355,7 +366,7 @@ public abstract class PropertyValueFilter<T extends PrismValue> extends ValueFil
 			sb.append(DebugUtil.debugDump(expression.getExpression(), indent + 2));
 		}
 
-		if (getRightSidePath() != null) {
+		if (getRightHandSidePath() != null) {
 			sb.append("\n");
 			DebugUtil.indentDebugDump(sb, indent+1);
 			sb.append("RIGHT SIDE PATH: ");
@@ -363,8 +374,8 @@ public abstract class PropertyValueFilter<T extends PrismValue> extends ValueFil
 			sb.append("\n");
 			DebugUtil.indentDebugDump(sb, indent+1);
 			sb.append("RIGHT SIDE DEF: ");
-			if (getRightSideDefinition() != null) {
-				sb.append(getRightSideDefinition().toString());
+			if (getRightHandSideDefinition() != null) {
+				sb.append(getRightHandSideDefinition().toString());
 			} else {
 				sb.append("null");
 			}
@@ -399,8 +410,8 @@ public abstract class PropertyValueFilter<T extends PrismValue> extends ValueFil
 				}
 			}
 		}
-		if (rightSidePath != null) {
-			sb.append(getRightSidePath());
+		if (rightHandSidePath != null) {
+			sb.append(getRightHandSidePath());
 		}
 		return sb.toString();
 	}
@@ -410,11 +421,11 @@ public abstract class PropertyValueFilter<T extends PrismValue> extends ValueFil
 	public abstract PropertyValueFilter clone();
 
 	protected void copyRightSideThingsFrom(PropertyValueFilter original) {
-		if (original.getRightSidePath() != null) {
-			setRightSidePath(original.getRightSidePath());
+		if (original.getRightHandSidePath() != null) {
+			setRightHandSidePath(original.getRightHandSidePath());
 		}
-		if (original.getRightSideDefinition() != null) {
-			setRightSideDefinition(original.getRightSideDefinition());
+		if (original.getRightHandSideDefinition() != null) {
+			setRightHandSideDefinition(original.getRightHandSideDefinition());
 		}
 	}
 }

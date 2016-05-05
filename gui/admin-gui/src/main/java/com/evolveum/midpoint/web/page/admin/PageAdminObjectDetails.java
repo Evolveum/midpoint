@@ -78,6 +78,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
  */
 public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageAdmin
 		implements ProgressReportingAwarePage {
+	private static final long serialVersionUID = 1L;
 
 	private static final String DOT_CLASS = PageAdminObjectDetails.class.getName() + ".";
 	
@@ -110,6 +111,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 	@Override
 	protected IModel<String> createPageTitleModel() {
 		return new LoadableModel<String>() {
+			private static final long serialVersionUID = 1L;
 
 			@Override
 			protected String load() {
@@ -176,6 +178,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 
 	protected void initializeModel(final PrismObject<O> objectToEdit) {
 		objectModel = new LoadableModel<ObjectWrapper<O>>(false) {
+			private static final long serialVersionUID = 1L;
 
 			@Override
 			protected ObjectWrapper<O> load() {
@@ -184,6 +187,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 		};
 
 		parentOrgModel = new LoadableModel<List<FocusSubwrapperDto<OrgType>>>(false) {
+			private static final long serialVersionUID = 1L;
 
 			@Override
 			protected List<FocusSubwrapperDto<OrgType>> load() {
@@ -222,6 +226,8 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 		summaryPanel.setOutputMarkupId(true);
 
 		summaryPanel.add(new VisibleEnableBehaviour() {
+			private static final long serialVersionUID = 1L;
+			
 			@Override
 			public boolean isVisible() {
 				return isEditingFocus();

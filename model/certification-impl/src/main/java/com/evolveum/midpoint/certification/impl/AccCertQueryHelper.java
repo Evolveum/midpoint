@@ -178,15 +178,10 @@ public class AccCertQueryHelper {
 
     private ObjectFilter getReviewerAndEnabledFilter(String reviewerOid) throws SchemaException {
         // we have to find definition ourselves, as ../state cannot be currently resolved by query builder
-        ItemPath statePath = new ItemPath(T_PARENT, F_STATE);
-        PrismPropertyDefinition stateDef =
-                prismContext.getSchemaRegistry()
-                        .findComplexTypeDefinitionByCompileTimeClass(AccessCertificationCampaignType.class)
-                        .findPropertyDefinition(F_STATE);
         return QueryBuilder.queryFor(AccessCertificationCaseType.class, prismContext)
                     .item(F_CURRENT_REVIEWER_REF).ref(reviewerOid, UserType.COMPLEX_TYPE)
                     .and().item(F_CURRENT_STAGE_NUMBER).eq().item(T_PARENT, AccessCertificationCampaignType.F_STAGE_NUMBER)
-                    .and().item(statePath, stateDef).eq(IN_REVIEW_STAGE)
+                    .and().item(T_PARENT, F_STATE).eq(IN_REVIEW_STAGE)
                     .buildFilter();
     }
 

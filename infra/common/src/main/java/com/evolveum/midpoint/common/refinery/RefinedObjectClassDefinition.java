@@ -188,7 +188,7 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
     }
     
     @Override
-	public Collection<? extends RefinedAttributeDefinition<?>> getIdentifiers() {
+	public Collection<? extends RefinedAttributeDefinition<?>> getPrimaryIdentifiers() {
 		if (identifiers == null) {
 			identifiers = createIdentifiersCollection();
 		}
@@ -206,7 +206,7 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
 	public Collection<? extends RefinedAttributeDefinition<?>> getAllIdentifiers() {
 		Collection<? extends RefinedAttributeDefinition<?>> allIdentifiers = new ArrayList<>();
 		if (identifiers != null) {
-			allIdentifiers.addAll((Collection)getIdentifiers());
+			allIdentifiers.addAll((Collection)getPrimaryIdentifiers());
 		}
 		if (secondaryIdentifiers != null) {
 			allIdentifiers.addAll((Collection)getSecondaryIdentifiers());
@@ -711,8 +711,8 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
 
 	private void processIdentifiers(RefinedAttributeDefinition rAttrDef, ObjectClassComplexTypeDefinition objectClassDef) {
 		QName attrName = rAttrDef.getName();
-		if (objectClassDef.isIdentifier(attrName)) {
-			((Collection)getIdentifiers()).add(rAttrDef);
+		if (objectClassDef.isPrimaryIdentifier(attrName)) {
+			((Collection)getPrimaryIdentifiers()).add(rAttrDef);
 		}
 		if (objectClassDef.isSecondaryIdentifier(attrName) || rAttrDef.isSecondaryIdentifier()) {
 			((Collection)getSecondaryIdentifiers()).add(rAttrDef);

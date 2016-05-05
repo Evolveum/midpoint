@@ -89,7 +89,7 @@ public class ResourceAttributeDefinition<T> extends PrismPropertyDefinition<T> {
 	}
 		
 	public boolean isIdentifier(ObjectClassComplexTypeDefinition objectDefinition) {
-		for (ResourceAttributeDefinition<T> identifier : objectDefinition.getIdentifiers()) {
+		for (ResourceAttributeDefinition<T> identifier : objectDefinition.getPrimaryIdentifiers()) {
 			if (this == identifier) {
 				return true;
 			}

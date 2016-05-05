@@ -229,7 +229,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 		assertFalse("Object class " + objectClassQname + " is empty", accountDefinition.isEmpty());
 		assertFalse("Object class " + objectClassQname + " is empty", accountDefinition.isIgnored());
 		
-		Collection<? extends ResourceAttributeDefinition> identifiers = accountDefinition.getIdentifiers();
+		Collection<? extends ResourceAttributeDefinition> identifiers = accountDefinition.getPrimaryIdentifiers();
 		assertNotNull("Null identifiers for " + objectClassQname, identifiers);
 		assertFalse("Empty identifiers for " + objectClassQname, identifiers.isEmpty());
 
@@ -554,7 +554,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 		AssertJUnit.assertNotNull(accountDefinition);
 
 		AssertJUnit.assertFalse("No identifiers for account object class ", accountDefinition
-				.getIdentifiers().isEmpty());
+				.getPrimaryIdentifiers().isEmpty());
 
 		PrismPropertyDefinition uidDefinition = accountDefinition.findAttributeDefinition(
 				new QName(ResourceTypeUtil.getResourceNamespace(resourceType), ProvisioningTestUtil.RESOURCE_OPENDJ_PRIMARY_IDENTIFIER_LOCAL_NAME));
@@ -616,7 +616,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 
 		ObjectClassComplexTypeDefinition accountDefinition = resourceObject.getDefinition().getComplexTypeDefinition();
 
-		Collection<ResourceAttribute<?>> identifiers = resourceObject.getIdentifiers();
+		Collection<ResourceAttribute<?>> identifiers = resourceObject.getPrimaryIdentifiers();
 		// Determine object class from the schema
 
 		ResourceObjectIdentification identification = new ResourceObjectIdentification(accountDefinition, identifiers, null);
@@ -689,7 +689,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 
 		// THEN
 
-		String entryUuid = (String) resourceObject.getIdentifier().getValue().getValue();
+		String entryUuid = (String) resourceObject.getPrimaryIdentifier().getValue().getValue();
 		Entry entry = openDJController.searchAndAssertByEntryUuid(entryUuid);
 		display("Entry before change", entry);
 		String passwordAfter = OpenDJController.getAttributeValue(entry, "userPassword");
@@ -715,7 +715,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 		// Add a testing object
 		cc.addObject(shadow, null, null, addResult);
 
-		String entryUuid = (String) resourceObject.getIdentifier().getValue().getValue();
+		String entryUuid = (String) resourceObject.getPrimaryIdentifier().getValue().getValue();
 		Entry entry = openDJController.searchAndAssertByEntryUuid(entryUuid);
 		display("Entry before change", entry);
 		String passwordBefore = OpenDJController.getAttributeValue(entry, "userPassword");
@@ -725,7 +725,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 
 		ObjectClassComplexTypeDefinition accountDefinition = resourceObject.getDefinition().getComplexTypeDefinition();
 
-		Collection<ResourceAttribute<?>> identifiers = resourceObject.getIdentifiers();
+		Collection<ResourceAttribute<?>> identifiers = resourceObject.getPrimaryIdentifiers();
 		// Determine object class from the schema
 
 		OperationResult result = new OperationResult(this.getClass().getName() + ".testFetchObject");

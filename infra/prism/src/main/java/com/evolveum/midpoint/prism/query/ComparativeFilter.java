@@ -74,24 +74,24 @@ public abstract class ComparativeFilter<T extends Object> extends PropertyValueF
 	}
 
 	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + (equals ? 1231 : 1237);
-		return result;
+	public boolean equals(Object o, boolean exact) {
+		if (this == o)
+			return true;
+		if (o == null || getClass() != o.getClass())
+			return false;
+		if (!super.equals(o, exact))
+			return false;
+
+		ComparativeFilter<?> that = (ComparativeFilter<?>) o;
+
+		return equals == that.equals;
+
 	}
 
 	@Override
-	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
-		ComparativeFilter other = (ComparativeFilter) obj;
-		if (equals != other.equals)
-			return false;
-		return true;
+	public int hashCode() {
+		int result = super.hashCode();
+		result = 31 * result + (equals ? 1 : 0);
+		return result;
 	}
 }

@@ -16,6 +16,10 @@
 
 package com.evolveum.midpoint.prism.path;
 
+import com.evolveum.midpoint.prism.PrismConstants;
+
+import javax.xml.namespace.QName;
+
 /**
  * Denotes identifier of the object or container (i.e. OID or container ID).
  * Currently supported only for sorting (not even for filtering!).
@@ -24,7 +28,10 @@ package com.evolveum.midpoint.prism.path;
  */
 public class IdentifierPathSegment extends ItemPathSegment {
 
-    @Override
+	public static final String SYMBOL = "#";
+	public static final QName QNAME = PrismConstants.T_ID;
+
+	@Override
     public boolean equivalent(Object obj) {
         return equals(obj);
     }
@@ -36,6 +43,6 @@ public class IdentifierPathSegment extends ItemPathSegment {
 
     @Override
     public String toString() {
-        return "#";
+        return SYMBOL;
     }
 }

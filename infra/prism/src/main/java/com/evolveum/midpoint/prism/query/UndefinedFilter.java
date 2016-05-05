@@ -49,4 +49,15 @@ public class UndefinedFilter extends ObjectFilter {
 		return true;
 	}
 
+	@Override
+	public boolean equals(Object obj, boolean exact) {
+		return obj instanceof UndefinedFilter;
+	}
+
+	@Override
+	public int hashCode() {
+		return 0;
+	}
+
+
 }

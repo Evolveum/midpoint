@@ -52,4 +52,25 @@ public class ObjectPagingAfterOid extends ObjectPaging {
         super.copyTo(clone);
         clone.oidGreaterThan = this.oidGreaterThan;
     }
+
+	public boolean equals(Object o, boolean exact) {
+		if (this == o)
+			return true;
+		if (o == null || getClass() != o.getClass())
+			return false;
+		if (!super.equals(o, exact))
+			return false;
+
+		ObjectPagingAfterOid that = (ObjectPagingAfterOid) o;
+
+		return oidGreaterThan != null ? oidGreaterThan.equals(that.oidGreaterThan) : that.oidGreaterThan == null;
+
+	}
+
+	@Override
+	public int hashCode() {
+		int result = super.hashCode();
+		result = 31 * result + (oidGreaterThan != null ? oidGreaterThan.hashCode() : 0);
+		return result;
+	}
 }

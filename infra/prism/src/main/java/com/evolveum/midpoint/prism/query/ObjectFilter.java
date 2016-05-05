@@ -52,4 +52,6 @@ public abstract class ObjectFilter implements DebugDumpable, Serializable, Reviv
 	}
 	
 	public abstract void checkConsistence();
+
+	public abstract boolean equals(Object o, boolean exact);
 }

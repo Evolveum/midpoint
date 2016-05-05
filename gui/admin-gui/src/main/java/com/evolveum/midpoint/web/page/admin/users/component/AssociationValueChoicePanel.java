@@ -15,6 +15,8 @@
  */
 package com.evolveum.midpoint.web.page.admin.users.component;
 
+import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
+import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.*;
@@ -64,44 +66,46 @@ import java.util.List;
     // (for now ValueChoosePanel works only with PrismReferenceValue);
     //in future some super class is to be created to union the common
     // functionality of these 2 classes
-public class AssociationValueChoicePanel <C extends ObjectType> extends BasePanel<PrismContainerValue<ShadowAssociationType>> {
 
-    private static final Trace LOGGER = TraceManager.getTrace(AssociationValueChoicePanel.class);
+public class AssociationValueChoicePanel<C extends ObjectType> extends BasePanel<PrismContainerValue<ShadowAssociationType>> {
+	private static final long serialVersionUID = 1L;
 
-    private static final String ID_LABEL = "label";
+	private static final Trace LOGGER = TraceManager.getTrace(AssociationValueChoicePanel.class);
 
     private static final String ID_TEXT_WRAPPER = "textWrapper";
     private static final String ID_TEXT = "text";
     private static final String ID_FEEDBACK = "feedback";
-    private static final String ID_ADD = "add";
-    private static final String ID_REMOVE = "remove";
-    private static final String ID_BUTTON_GROUP = "buttonGroup";
     private static final String ID_EDIT = "edit";
     protected static final String MODAL_ID_OBJECT_SELECTION_POPUP = "objectSelectionPopup";
 
     private IModel<ValueWrapper<PrismContainerValue<ShadowAssociationType>>> model;
     private ObjectQuery query = null;
+    private RefinedObjectClassDefinition assocTargetDef;
 
-    public AssociationValueChoicePanel(String id, IModel<ValueWrapper<PrismContainerValue<ShadowAssociationType>>> model, List<PrismPropertyValue> values, boolean required, Class<C> type,
-                                       ObjectQuery query){
+    public AssociationValueChoicePanel(String id, IModel<ValueWrapper<PrismContainerValue<ShadowAssociationType>>> model, 
+    		List<PrismPropertyValue> values, boolean required, Class<C> type, ObjectQuery query,
+    		RefinedObjectClassDefinition assocTargetDef) {
         super(id, (IModel)new PropertyModel<>(model, "value"));
         this.model = model;
         this.query = query;
+        this.assocTargetDef = assocTargetDef;
         setOutputMarkupId(true);
         initLayout((IModel)new PropertyModel<>(model, "value"), values, required, type);
     }
 
-    private void initLayout(final IModel<PrismContainerValue<ShadowAssociationType>> value, final List<PrismPropertyValue> values,
-                            final boolean required, Class<C> type) {
+    private void initLayout(final IModel<PrismContainerValue<ShadowAssociationType>> value, 
+    		final List<PrismPropertyValue> values, final boolean required, Class<C> type) {
 
 
         WebMarkupContainer textWrapper = new WebMarkupContainer(ID_TEXT_WRAPPER);
 
         textWrapper.setOutputMarkupId(true);
 
-        TextField text = new TextField<>(ID_TEXT, createTextModel(value));
+        TextField<String> text = new TextField<>(ID_TEXT, createTextModel(value));
         text.add(new AjaxFormComponentUpdatingBehavior("blur") {
-            @Override
+			private static final long serialVersionUID = 1L;
+
+			@Override
             protected void onUpdate(AjaxRequestTarget ajaxRequestTarget) {
             }
         });
@@ -113,13 +117,16 @@ public class AssociationValueChoicePanel <C extends ObjectType> extends BasePane
         textWrapper.add(feedback);
 
         AjaxLink edit = new AjaxLink(ID_EDIT) {
+			private static final long serialVersionUID = 1L;
 
-            @Override
+			@Override
             public void onClick(AjaxRequestTarget target) {
                 editValuePerformed(target);
             }
         };
         edit.add(new VisibleEnableBehaviour() {
+        	private static final long serialVersionUID = 1L;
+        	
             @Override
             public boolean isVisible() {
                 return model.getObject().isEmpty();
@@ -164,6 +171,7 @@ public class AssociationValueChoicePanel <C extends ObjectType> extends BasePane
         final ModalWindow dialog = new ModalWindow(MODAL_ID_OBJECT_SELECTION_POPUP);
 
         ObjectSelectionPanel.Context context = new ObjectSelectionPanel.Context(this) {
+        	private static final long serialVersionUID = 1L;
 
             // See analogous discussion in ChooseTypePanel
             public AssociationValueChoicePanel getRealParent() {
@@ -206,6 +214,7 @@ public class AssociationValueChoicePanel <C extends ObjectType> extends BasePane
     private void initUserOrgDialog() {
         final ModalWindow dialog = new ModalWindow(MODAL_ID_OBJECT_SELECTION_POPUP);
         ObjectSelectionPanel.Context context = new ObjectSelectionPanel.Context(this) {
+        	private static final long serialVersionUID = 1L;
 
             // See analogous discussion in ChooseTypePanel
             public AssociationValueChoicePanel getRealParent() {
@@ -279,8 +288,9 @@ public class AssociationValueChoicePanel <C extends ObjectType> extends BasePane
 
     protected IModel<String> createTextModel(final IModel<PrismContainerValue<ShadowAssociationType>> model) {
         return new AbstractReadOnlyModel<String>() {
+			private static final long serialVersionUID = 1L;
 
-            @Override
+			@Override
             public String getObject() {
             	PrismContainerValue<ShadowAssociationType> cval = model.getObject();
             	if (cval == null || cval.isEmpty()) {
@@ -289,8 +299,22 @@ public class AssociationValueChoicePanel <C extends ObjectType> extends BasePane
             	PrismReferenceValue shadowRef = cval.findReference(ShadowAssociationType.F_SHADOW_REF).getValue();
             	if (shadowRef.getObject() == null) {
             		PrismContainer<Containerable> identifiersContainer = cval.findContainer(ShadowAssociationType.F_IDENTIFIERS);
-            		PrismProperty<String> identifierProp = (PrismProperty<String>) identifiersContainer.getValue().getItems().get(0);
+            		
+            		List<PrismProperty<String>> identifiers = (List) identifiersContainer.getValue().getItems();
+            		Collection<? extends RefinedAttributeDefinition<?>> secondaryIdentifierDefs = assocTargetDef.getSecondaryIdentifiers();
+            		
+            		for (RefinedAttributeDefinition<?> secondaryIdentifierDef: secondaryIdentifierDefs) {
+            			for (PrismProperty<String> identifier: identifiers) {
+            				if (identifier.getElementName().equals(secondaryIdentifierDef.getName())) {
+            					return identifier.getRealValue();
+            				}
+            			}
+            		}
+            		
+            		// fallback
+            		PrismProperty<String> identifierProp = identifiers.get(0);
             		return identifierProp.getRealValue();
+            		
             	} else {
             		return shadowRef.getObject().getName().toString();
             	}

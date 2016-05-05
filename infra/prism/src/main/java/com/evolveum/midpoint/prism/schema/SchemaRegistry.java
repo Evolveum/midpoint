@@ -46,6 +46,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.xml.resolver.Catalog;
 import org.apache.xml.resolver.CatalogManager;
 import org.apache.xml.resolver.tools.CatalogResolver;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -656,14 +657,42 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Debug
         return resolveUnqualifiedTypeName(typeName);
     }
 
-	public ComplexTypeDefinition determineParentDefinition(ComplexTypeDefinition complexTypeDefinition, ItemPath rest) {
-		ComplexTypeDefinition def = findComplexTypeDefinition(new QName(
-				"http://midpoint.evolveum.com/xml/ns/public/common/common-3",
-				"ObjectType"));		// FIXME BRUTAL HACK
-		if (def == null) {
-			throw new IllegalStateException("Couldn't find definition for parent for " + complexTypeDefinition.getTypeName() + ", path=" + rest);
+	// current implementation tries to find all references to the child CTD and select those that are able to resolve path of 'rest'
+	// fails on ambiguity
+	// it's a bit fragile, as adding new references to child CTD in future may break existing code
+	public ComplexTypeDefinition determineParentDefinition(@NotNull ComplexTypeDefinition child, @NotNull ItemPath rest) {
+		ComplexTypeDefinition parent = null;
+		for (PrismSchema schema : getSchemas()) {
+			if (schema == null) {
+				continue;
+			}
+			for (ComplexTypeDefinition ctd : schema.getComplexTypeDefinitions()) {
+				for (ItemDefinition item : ctd.getDefinitions()) {
+					if (item instanceof PrismContainerDefinition) {
+						PrismContainerDefinition<?> itemPcd = (PrismContainerDefinition<?>) item;
+						if (itemPcd.getComplexTypeDefinition() != null) {
+							if (child.getTypeName().equals(itemPcd.getComplexTypeDefinition().getTypeName())) {
+								if (!rest.isEmpty() && ctd.findItemDefinition(rest) == null) {
+									continue;
+								}
+								if (parent != null && !parent.getTypeClass().equals(ctd.getTypeName())) {
+									throw new IllegalStateException("Couldn't find parent definition for " + child.getTypeName() + ": More than one candidate found: "
+										+ parent.getTypeName() + ", " + itemPcd.getTypeName());
+								}
+								parent = ctd;
+							}
+						}
+					}
+				}
+			}
 		}
-		return def;
+//		ComplexTypeDefinition def = findComplexTypeDefinition(new QName(
+//				"http://midpoint.evolveum.com/xml/ns/public/common/common-3",
+//				"ObjectType"));		// FIXME BRUTAL HACK
+		if (parent == null) {
+			throw new IllegalStateException("Couldn't find definition for parent for " + child.getTypeName() + ", path=" + rest);
+		}
+		return parent;
 	}
 
 	public PrismObjectDefinition determineReferencedObjectDefinition(QName targetTypeName, ItemPath rest) {
