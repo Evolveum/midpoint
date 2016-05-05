@@ -102,7 +102,7 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
             };
             add(refreshIcon);
 
-            AjaxIconButton newObjectIcon = new AjaxIconButton(ID_NEW_OBJECT, new Model<>("fa fa-edit"),
+            AjaxIconButton newObjectIcon = new AjaxIconButton(ID_NEW_OBJECT, new Model<>("fa fa-plus"),
                     mainObjectListPanel.createStringResource("MainObjectListPanel.newObject")) {
 
                 @Override
