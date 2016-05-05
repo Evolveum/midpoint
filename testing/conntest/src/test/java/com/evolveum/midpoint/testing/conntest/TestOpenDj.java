@@ -120,10 +120,14 @@ public class TestOpenDj extends AbstractLdapConnTest {
 		return "cd1e0ff2-0099-11e5-9e22-001e8c717e5b";
 	}
 	
+	protected int getInitialSyncToken() {
+		return INITIAL_SYNC_TOKEN;
+	}
+	
 	@Override
 	protected void assertStepSyncToken(String syncTaskOid, int step, long tsStart, long tsEnd)
 			throws ObjectNotFoundException, SchemaException {
-		assertSyncToken(syncTaskOid, (Integer)(step + INITIAL_SYNC_TOKEN));
+		assertSyncToken(syncTaskOid, (Integer)(step + getInitialSyncToken()));
 	}
 	
 }

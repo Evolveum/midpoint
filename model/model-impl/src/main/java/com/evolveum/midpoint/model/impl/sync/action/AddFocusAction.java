@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2013 Evolveum
+ * Copyright (c) 2013-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,6 +49,10 @@ public class AddFocusAction implements Action {
 	@Override
 	public <F extends FocusType> void handle(LensContext<F> context, SynchronizationSituation<F> situation,
 			Map<QName, Object> parameters, Task task, OperationResult parentResult) {
+		
+		if (context == null) {
+			throw new UnsupportedOperationException("addFocus action is not supported with synchronize=false");
+		}
 		
 		PrismContext prismContext = context.getPrismContext();
 		

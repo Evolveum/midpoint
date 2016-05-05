@@ -187,6 +187,10 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
 	protected int getNumberOfAllAccounts() {
 		return NUMBER_OF_GENERATED_ACCOUNTS + (isIdmAdminInteOrgPerson()?1:0);
 	}
+	
+	protected boolean hasAssociationShortcut() {
+		return true;
+	}
 
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -250,7 +254,7 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
         PrismObject<ShadowType> shadow = shadows.get(0);
         assertAccountShadow(shadow, toAccountDn(ACCOUNT_0_UID));
         
-        assertConnectorOperationIncrement(1);
+        assertConnectorOperationIncrement(1, 2);
         assertConnectorSimulatedPagingSearchIncrement(0);
         
         SearchResultMetadata metadata = shadows.getMetadata();
@@ -258,7 +262,6 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
         	assertFalse(metadata.isPartialResults());
         }
 	}
-	
 
 	/**
 	 * No paging. It should return all accounts.
@@ -276,7 +279,7 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
         
         SearchResultList<PrismObject<ShadowType>> searchResultList = doSearch(TEST_NAME, query, getNumberOfAllAccounts(), task, result);
         
-        assertConnectorOperationIncrement(1);
+        assertConnectorOperationIncrement(1, getNumberOfAllAccounts() + 1);
         assertConnectorSimulatedPagingSearchIncrement(0);
         
         SearchResultMetadata metadata = searchResultList.getMetadata();
@@ -305,7 +308,7 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
         
 		SearchResultList<PrismObject<ShadowType>> searchResultList = doSearch(TEST_NAME, query, 50, task, result);
                 
-        assertConnectorOperationIncrement(1);
+        assertConnectorOperationIncrement(1, 51);
         assertConnectorSimulatedPagingSearchIncrement(0);
         
         SearchResultMetadata metadata = searchResultList.getMetadata();
@@ -335,7 +338,7 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
 		
 		SearchResultList<PrismObject<ShadowType>> searchResultList = doSearch(TEST_NAME, query, 222, task, result);
                 
-        assertConnectorOperationIncrement(1);
+        assertConnectorOperationIncrement(1, 223);
         assertConnectorSimulatedPagingSearchIncrement(0);
         
         SearchResultMetadata metadata = searchResultList.getMetadata();
@@ -365,7 +368,7 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
 		
 		SearchResultList<PrismObject<ShadowType>> searchResultList = doSearch(TEST_NAME, query, 150, task, result);
                 
-        assertConnectorOperationIncrement(1);
+        assertConnectorOperationIncrement(1, 151);
         assertConnectorSimulatedPagingSearchIncrement(0);
         
         SearchResultMetadata metadata = searchResultList.getMetadata();
@@ -423,7 +426,7 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
         
 		SearchResultList<PrismObject<ShadowType>> searchResultList = doSearch(TEST_NAME, query, 50, task, result);
         
-        assertConnectorOperationIncrement(1);
+        assertConnectorOperationIncrement(1, 51);
         assertConnectorSimulatedPagingSearchIncrement(0);
         
         SearchResultMetadata metadata = searchResultList.getMetadata();
@@ -454,7 +457,7 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
         
 		SearchResultList<PrismObject<ShadowType>> searchResultList = doSearch(TEST_NAME, query, 50, task, result);
         
-        assertConnectorOperationIncrement(1);
+        assertConnectorOperationIncrement(1, 51);
         assertConnectorSimulatedPagingSearchIncrement(0);
         
         SearchResultMetadata metadata = searchResultList.getMetadata();
@@ -484,7 +487,7 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
         
 		SearchResultList<PrismObject<ShadowType>> searchResultList = doSearch(TEST_NAME, query, 222, task, result);
         
-        assertConnectorOperationIncrement(1);
+        assertConnectorOperationIncrement(1, 223);
         assertConnectorSimulatedPagingSearchIncrement(0);
         
         SearchResultMetadata metadata = searchResultList.getMetadata();
@@ -519,7 +522,7 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
         assertAccountShadow(shadows.get(0), toAccountDn(isIdmAdminInteOrgPerson()?ACCOUNT_19_UID:ACCOUNT_20_UID));
         assertAccountShadow(shadows.get(49), toAccountDn(isIdmAdminInteOrgPerson()?ACCOUNT_68_UID:ACCOUNT_69_UID));
         
-        assertConnectorOperationIncrement(1);
+        assertConnectorOperationIncrement(1, 51);
         assertConnectorSimulatedPagingSearchIncrement(0);
         
         SearchResultMetadata metadata = shadows.getMetadata();
@@ -554,7 +557,7 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
         assertAccountShadow(shadows.get(0), toAccountDn(isIdmAdminInteOrgPerson()?ACCOUNT_19_UID:ACCOUNT_20_UID));
         assertAccountShadow(shadows.get(221), toAccountDn(isIdmAdminInteOrgPerson()?ACCOUNT_240_UID:ACCOUNT_241_UID));
                 
-        assertConnectorOperationIncrement(1);
+        assertConnectorOperationIncrement(1, 223);
         assertConnectorSimulatedPagingSearchIncrement(0);
         
         SearchResultMetadata metadata = shadows.getMetadata();
@@ -581,7 +584,7 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
         
 		SearchResultList<PrismObject<ShadowType>> resultList = doSearch(TEST_NAME, query, getSearchSizeLimit(), task, result);
         
-        assertConnectorOperationIncrement(1);
+        assertConnectorOperationIncrement(1, getSearchSizeLimit() + 1);
         assertConnectorSimulatedPagingSearchIncrement(0);
         
         SearchResultMetadata metadata = resultList.getMetadata();
@@ -613,7 +616,7 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
         singleInfernoSearch(query, 42, 200, 42, "uid", task, result);
         singleInfernoSearch(query, 200, 30, 200, "sn", task, result);
                 
-        assertConnectorOperationIncrement(5);
+        assertConnectorOperationIncrement(5, 332);
         assertConnectorSimulatedPagingSearchIncrement(0);
     }
 	
@@ -997,4 +1000,13 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
         Entry ldapEntryUndead = getLdapEntry(toGroupDn(GROUP_UNDEAD_CN));
         display("Undead group", ldapEntryUndead);
 	}
+	
+	protected void assertConnectorOperationIncrement(int shortcutIncrement, int noShortcutIncrement) {
+		if (hasAssociationShortcut()) {
+			assertConnectorOperationIncrement(shortcutIncrement);
+		} else {
+			assertConnectorOperationIncrement(noShortcutIncrement);
+		}		
+	}
+
 }

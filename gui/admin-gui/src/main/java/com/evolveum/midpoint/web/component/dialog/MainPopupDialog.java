@@ -16,25 +16,20 @@
 
 package com.evolveum.midpoint.web.component.dialog;
 
-import java.util.List;
-
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
-import org.apache.wicket.model.util.ListModel;
-
-import com.evolveum.midpoint.web.page.admin.resources.dto.TestConnectionResultDto;
 
 /**
  * @author Viliam Repan (lazyman)
+ * @author katkav
  */
 public class MainPopupDialog extends ModalWindow {
-	
+	private static final long serialVersionUID = 1L;
+
 	private static final String ID_MAIN_POPUP_BODY = "popupBody";
 	
 	private boolean initialized;
@@ -51,16 +46,18 @@ public class MainPopupDialog extends ModalWindow {
         setWidthUnit("px");
 
         setCloseButtonCallback(new ModalWindow.CloseButtonCallback() {
+			private static final long serialVersionUID = 1L;
 
-            @Override
+			@Override
             public boolean onCloseButtonClicked(AjaxRequestTarget target) {
                 return true;
             }
         });
 
         setWindowClosedCallback(new ModalWindow.WindowClosedCallback() {
+			private static final long serialVersionUID = 1L;
 
-            @Override
+			@Override
             public void onClose(AjaxRequestTarget target) {
                 MainPopupDialog.this.close(target);
             }

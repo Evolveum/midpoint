@@ -24,18 +24,16 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.RoleSelectionSpecification;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
-import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
 import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.form.multivalue.GenericMultiValueLabelEditPanel;
-import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
-import com.evolveum.midpoint.web.page.admin.orgs.OrgTreeAssignablePanel;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
@@ -87,7 +85,7 @@ public class MultipleAssignmentSelectorPanel<F extends FocusType, H extends Focu
     private List<OrgType> orgEditorObject = new ArrayList<>();
     private PrismObject<F> focus;
     private ObjectFilter authorizedRolesFilter = null;
-    private IModel<ObjectFilter> filterModel = null;
+//    private IModel<ObjectFilter> filterModel = null;
     private static final Trace LOGGER = TraceManager.getTrace(MultipleAssignmentSelectorPanel.class);
 
     public MultipleAssignmentSelectorPanel(String id, LoadableModel<List<AssignmentEditorDto>> assignmentsModel,
@@ -96,7 +94,7 @@ public class MultipleAssignmentSelectorPanel<F extends FocusType, H extends Focu
         this.assignmentsModel = assignmentsModel;
         this.type = type;
         this.focus = focus;
-        filterModel = getFilterModel();
+//        filterModel = getFilterModel();
         tenantEditorObject.add(new OrgType());
         orgEditorObject.add(new OrgType());
         initLayout(targetFocusClass);
@@ -107,9 +105,9 @@ public class MultipleAssignmentSelectorPanel<F extends FocusType, H extends Focu
 
         IModel<List<AssignmentEditorDto>> availableAssignmentModel = createAvailableAssignmentModel();
         final MultipleAssignmentSelector availableAssignmentsPanel = new MultipleAssignmentSelector<F, H>(ID_AVAILABLE_ASSIGNMENTS,
-                availableAssignmentModel, targetFocusClass, type, focus, filterModel);
+                availableAssignmentModel, targetFocusClass, type, focus, getFilterModel(true));
         final MultipleAssignmentSelector currentAssignmentsPanel = new MultipleAssignmentSelector<F, H>(ID_CURRENT_ASSIGNMENTS,
-                assignmentsModel, targetFocusClass, type, null, null){
+                assignmentsModel, targetFocusClass, type, null, getFilterModel(false)){
             @Override
         protected List<AssignmentEditorDto> getListProviderDataList(){
                 return assignmentsModel.getObject();
@@ -230,14 +228,20 @@ public class MultipleAssignmentSelectorPanel<F extends FocusType, H extends Focu
         target.add(from);
     }
 
-    private  IModel<ObjectFilter> getFilterModel(){
+    private  IModel<ObjectFilter> getFilterModel(final boolean isRequestableFilter){
         return new IModel<ObjectFilter>() {
             @Override
             public ObjectFilter getObject() {
-                if (authorizedRolesFilter == null){
+                if (isRequestableFilter && authorizedRolesFilter == null){
                     initRolesFilter();
                 }
-                return authorizedRolesFilter;
+                ItemPath path = new ItemPath(FocusType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS);
+                ObjectFilter archivedRolesFilter = EqualFilter.createEqual(path, RoleType.class,
+                        getPageBase().getPrismContext(), null, ActivationStatusType.ARCHIVED);
+                ObjectFilter filter = isRequestableFilter && authorizedRolesFilter != null ?
+                        AndFilter.createAnd(authorizedRolesFilter, archivedRolesFilter) :
+                        new NotFilter(archivedRolesFilter);
+                return filter;
             }
 
             @Override

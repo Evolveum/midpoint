@@ -15,11 +15,6 @@
  */
 package com.evolveum.midpoint.web.page.admin.resources;
 
-import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.web.component.AbstractSummaryPanel;
-import org.apache.wicket.Component;
-import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
 

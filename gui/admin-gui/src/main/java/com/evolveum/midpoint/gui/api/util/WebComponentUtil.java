@@ -69,6 +69,7 @@ import org.jetbrains.annotations.NotNull;
 import org.joda.time.format.DateTimeFormat;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
+import com.evolveum.midpoint.gui.api.component.result.OpResult;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.prism.Objectable;
@@ -98,6 +99,7 @@ import com.evolveum.midpoint.prism.query.QueryJaxbConvertor;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
+import com.evolveum.midpoint.schema.constants.ConnectorTestOperation;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -168,7 +170,8 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 /**
- * Utility class containing miscellaneous methods used mostly in Wicket components.
+ * Utility class containing miscellaneous methods used mostly in Wicket
+ * components.
  * 
  * @author lazyman
  */
@@ -179,12 +182,13 @@ public final class WebComponentUtil {
 
 	public static enum Channel {
 		// TODO: move this to schema component
-		LIVE_SYNC("http://midpoint.evolveum.com/xml/ns/public/provisioning/channels-3#liveSync"), 
-		RECONCILIATION("http://midpoint.evolveum.com/xml/ns/public/provisioning/channels-3#reconciliation"), 
-		DISCOVERY("http://midpoint.evolveum.com/xml/ns/public/provisioning/channels-3#discovery"), 
-		IMPORT("http://midpoint.evolveum.com/xml/ns/public/provisioning/channels-3#import"), 
-		USER("http://midpoint.evolveum.com/xml/ns/public/provisioning/channels-3#user"),
-		WEB_SERVICE("http://midpoint.evolveum.com/xml/ns/public/provisioning/channels-3#webService");
+		LIVE_SYNC(
+				"http://midpoint.evolveum.com/xml/ns/public/provisioning/channels-3#liveSync"), RECONCILIATION(
+						"http://midpoint.evolveum.com/xml/ns/public/provisioning/channels-3#reconciliation"), DISCOVERY(
+								"http://midpoint.evolveum.com/xml/ns/public/provisioning/channels-3#discovery"), IMPORT(
+										"http://midpoint.evolveum.com/xml/ns/public/provisioning/channels-3#import"), USER(
+												"http://midpoint.evolveum.com/xml/ns/public/provisioning/channels-3#user"), WEB_SERVICE(
+														"http://midpoint.evolveum.com/xml/ns/public/provisioning/channels-3#webService");
 
 		private String channel;
 
@@ -207,49 +211,49 @@ public final class WebComponentUtil {
 
 	private WebComponentUtil() {
 	}
-	
-	public static TaskType createSingleRecurenceTask(String taskName, QName applicableType, ObjectQuery query, ObjectDelta delta, String category, PageBase pageBase) throws SchemaException{
-			
-			TaskType task = new TaskType();
 
-			MidPointPrincipal owner = SecurityUtils.getPrincipalUser();
+	public static TaskType createSingleRecurenceTask(String taskName, QName applicableType, ObjectQuery query,
+			ObjectDelta delta, String category, PageBase pageBase) throws SchemaException {
 
-			ObjectReferenceType ownerRef = new ObjectReferenceType();
-			ownerRef.setOid(owner.getOid());
-			ownerRef.setType(owner.getUser().COMPLEX_TYPE);
-			task.setOwnerRef(ownerRef);
+		TaskType task = new TaskType();
 
-			task.setBinding(TaskBindingType.LOOSE);
-			task.setCategory(category);
-			task.setExecutionStatus(TaskExecutionStatusType.RUNNABLE);
-			task.setRecurrence(TaskRecurrenceType.SINGLE);
-			task.setThreadStopAction(ThreadStopActionType.RESTART);
-			task.setHandlerUri(pageBase.getTaskService().getHandlerUriForCategory(category));
-			ScheduleType schedule = new ScheduleType();
-			schedule.setMisfireAction(MisfireActionType.EXECUTE_IMMEDIATELY);
-			task.setSchedule(schedule);
+		MidPointPrincipal owner = SecurityUtils.getPrincipalUser();
 
-			task.setName(WebComponentUtil.createPolyFromOrigString(taskName));
+		ObjectReferenceType ownerRef = new ObjectReferenceType();
+		ownerRef.setOid(owner.getOid());
+		ownerRef.setType(owner.getUser().COMPLEX_TYPE);
+		task.setOwnerRef(ownerRef);
 
-		
-				PrismObject<TaskType> prismTask = task.asPrismObject();
-				ItemPath path = new ItemPath(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_OBJECT_QUERY);
-				PrismProperty objectQuery = prismTask.findOrCreateProperty(path);
-				QueryType queryType = QueryJaxbConvertor.createQueryType(query, pageBase.getPrismContext());
-				objectQuery.addRealValue(queryType);
+		task.setBinding(TaskBindingType.LOOSE);
+		task.setCategory(category);
+		task.setExecutionStatus(TaskExecutionStatusType.RUNNABLE);
+		task.setRecurrence(TaskRecurrenceType.SINGLE);
+		task.setThreadStopAction(ThreadStopActionType.RESTART);
+		task.setHandlerUri(pageBase.getTaskService().getHandlerUriForCategory(category));
+		ScheduleType schedule = new ScheduleType();
+		schedule.setMisfireAction(MisfireActionType.EXECUTE_IMMEDIATELY);
+		task.setSchedule(schedule);
 
-				path = new ItemPath(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_OBJECT_TYPE);
-				PrismProperty objectType = prismTask.findOrCreateProperty(path);
-				objectType.setRealValue(applicableType);
+		task.setName(WebComponentUtil.createPolyFromOrigString(taskName));
 
-				if (delta != null) {
-					path = new ItemPath(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_OBJECT_DELTA);
-					PrismProperty objectDelta = prismTask.findOrCreateProperty(path);
-					objectDelta.setRealValue(DeltaConvertor.toObjectDeltaType(delta));
-				}
-			
-			return task;
-		
+		PrismObject<TaskType> prismTask = task.asPrismObject();
+		ItemPath path = new ItemPath(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_OBJECT_QUERY);
+		PrismProperty objectQuery = prismTask.findOrCreateProperty(path);
+		QueryType queryType = QueryJaxbConvertor.createQueryType(query, pageBase.getPrismContext());
+		objectQuery.addRealValue(queryType);
+
+		path = new ItemPath(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_OBJECT_TYPE);
+		PrismProperty objectType = prismTask.findOrCreateProperty(path);
+		objectType.setRealValue(applicableType);
+
+		if (delta != null) {
+			path = new ItemPath(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_OBJECT_DELTA);
+			PrismProperty objectDelta = prismTask.findOrCreateProperty(path);
+			objectDelta.setRealValue(DeltaConvertor.toObjectDeltaType(delta));
+		}
+
+		return task;
+
 	}
 
 	public static boolean isAuthorized(String... action) {
@@ -278,7 +282,8 @@ public final class WebComponentUtil {
 		}
 
 		if (l > Integer.MAX_VALUE || l < Integer.MIN_VALUE) {
-			throw new IllegalArgumentException("Couldn't transform long '" + l + "' to int, too big or too small.");
+			throw new IllegalArgumentException(
+					"Couldn't transform long '" + l + "' to int, too big or too small.");
 		}
 
 		return (int) l.longValue();
@@ -294,7 +299,7 @@ public final class WebComponentUtil {
 
 		return focusTypeList;
 	}
-	
+
 	public static List<QName> createAssignableTypesList() {
 		List<QName> focusTypeList = new ArrayList<>();
 
@@ -322,6 +327,19 @@ public final class WebComponentUtil {
 				return list;
 			}
 		};
+	}
+
+	public static List<OpResult> getTestConnectionResults(OperationResult result, PageBase component) {
+		List<OpResult> resultsDto = new ArrayList<>();
+		for (ConnectorTestOperation connectorOperation : ConnectorTestOperation.values()) {
+			for (OperationResult testResult : result.getSubresults()) {
+				if (connectorOperation.getOperation().equals(testResult.getOperation())) {
+					OpResult resultDto = OpResult.getOpResult(component, testResult);
+					resultsDto.add(resultDto);
+				}
+			}
+		}
+		return resultsDto;
 	}
 
 	public static List<String> createTaskCategoryList() {
@@ -354,11 +372,13 @@ public final class WebComponentUtil {
 		return categories;
 	}
 
-	public static IModel<String> createCategoryNameModel(final Component component, final IModel<String> categorySymbolModel) {
+	public static IModel<String> createCategoryNameModel(final Component component,
+			final IModel<String> categorySymbolModel) {
 		return new AbstractReadOnlyModel<String>() {
 			@Override
 			public String getObject() {
-				return createStringResourceStatic(component, "pageTasks.category." + categorySymbolModel.getObject()).getString();
+				return createStringResourceStatic(component,
+						"pageTasks.category." + categorySymbolModel.getObject()).getString();
 			}
 		};
 	}
@@ -391,8 +411,8 @@ public final class WebComponentUtil {
 	// }, true);
 	// }
 
-	public static <E extends Enum> DropDownChoicePanel createEnumPanel(Class clazz, String id, final IModel<E> model,
-			final Component component) {
+	public static <E extends Enum> DropDownChoicePanel createEnumPanel(Class clazz, String id,
+			final IModel<E> model, final Component component) {
 		// final Class clazz = model.getObject().getClass();
 		final Object o = model.getObject();
 		return new DropDownChoicePanel(id, model, WebComponentUtil.createReadonlyModelFromEnum(clazz),
@@ -418,8 +438,8 @@ public final class WebComponentUtil {
 				}, true);
 	}
 
-	public static DropDownChoicePanel createEnumPanel(final PrismPropertyDefinition def, String id, final IModel model,
-			final Component component) {
+	public static DropDownChoicePanel createEnumPanel(final PrismPropertyDefinition def, String id,
+			final IModel model, final Component component) {
 		// final Class clazz = model.getObject().getClass();
 		final Object o = model.getObject();
 
@@ -508,28 +528,25 @@ public final class WebComponentUtil {
 	}
 
 	public static <O extends ObjectType> String getEffectiveName(PrismObject<O> object, QName propertyName) {
-    	if (object == null) {
-            return null;
-        }
-    	
-    	PrismProperty prop = object.findProperty(propertyName);
-    	
-    	if (prop!= null){
-    		Object realValue = prop.getRealValue();
-    		if (prop.getDefinition().getTypeName().equals(DOMUtil.XSD_STRING)){
-    			return (String) realValue;
-    		} else if (realValue instanceof PolyString){
-    			return WebComponentUtil.getOrigStringFromPoly((PolyString)realValue);
-    		}
-    	}
-    	
-    	
-    	
-        PolyString name = getValue(object, ObjectType.F_NAME, PolyString.class);
+		if (object == null) {
+			return null;
+		}
 
-        return name != null ? name.getOrig() : null;
-    }
+		PrismProperty prop = object.findProperty(propertyName);
 
+		if (prop != null) {
+			Object realValue = prop.getRealValue();
+			if (prop.getDefinition().getTypeName().equals(DOMUtil.XSD_STRING)) {
+				return (String) realValue;
+			} else if (realValue instanceof PolyString) {
+				return WebComponentUtil.getOrigStringFromPoly((PolyString) realValue);
+			}
+		}
+
+		PolyString name = getValue(object, ObjectType.F_NAME, PolyString.class);
+
+		return name != null ? name.getOrig() : null;
+	}
 
 	public static String getName(ObjectReferenceType ref) {
 		if (ref == null) {
@@ -552,16 +569,16 @@ public final class WebComponentUtil {
 
 		return name != null ? name.getOrig() : null;
 	}
-	
+
 	public static String getDisplayNameOrName(PrismObject object) {
 		if (object == null) {
 			return null;
 		}
 		if (object.canRepresent(OrgType.class)) {
-					PolyString displayName = getValue(object, OrgType.F_DISPLAY_NAME, PolyString.class);
-					if (displayName != null && displayName.getOrig() != null) {
-						return displayName.getOrig();
-					}
+			PolyString displayName = getValue(object, OrgType.F_DISPLAY_NAME, PolyString.class);
+			if (displayName != null && displayName.getOrig() != null) {
+				return displayName.getOrig();
+			}
 		}
 		return getName(object);
 	}
@@ -672,13 +689,14 @@ public final class WebComponentUtil {
 			return;
 		}
 
-		PropertyDelta propertyDelta = delta.findPropertyDelta(
-				new ItemPath(SchemaConstantsGenerated.C_CREDENTIALS, CredentialsType.F_PASSWORD, PasswordType.F_VALUE));
+		PropertyDelta propertyDelta = delta.findPropertyDelta(new ItemPath(
+				SchemaConstantsGenerated.C_CREDENTIALS, CredentialsType.F_PASSWORD, PasswordType.F_VALUE));
 		if (propertyDelta == null) {
 			return;
 		}
 
-		Collection<PrismPropertyValue<ProtectedStringType>> values = propertyDelta.getValues(ProtectedStringType.class);
+		Collection<PrismPropertyValue<ProtectedStringType>> values = propertyDelta
+				.getValues(ProtectedStringType.class);
 		for (PrismPropertyValue<ProtectedStringType> value : values) {
 			ProtectedStringType string = value.getValue();
 			encryptProtectedString(string, encrypt, app);
@@ -686,8 +704,8 @@ public final class WebComponentUtil {
 	}
 
 	public static void encryptCredentials(PrismObject object, boolean encrypt, MidPointApplication app) {
-		PrismContainer password = object
-				.findContainer(new ItemPath(SchemaConstantsGenerated.C_CREDENTIALS, CredentialsType.F_PASSWORD));
+		PrismContainer password = object.findContainer(
+				new ItemPath(SchemaConstantsGenerated.C_CREDENTIALS, CredentialsType.F_PASSWORD));
 		if (password == null) {
 			return;
 		}
@@ -703,7 +721,8 @@ public final class WebComponentUtil {
 		encryptProtectedString(string, encrypt, app);
 	}
 
-	public static void encryptProtectedString(ProtectedStringType string, boolean encrypt, MidPointApplication app) {
+	public static void encryptProtectedString(ProtectedStringType string, boolean encrypt,
+			MidPointApplication app) {
 		if (string == null) {
 			return;
 		}
@@ -787,31 +806,31 @@ public final class WebComponentUtil {
 		return dateFormat.format(date);
 	}
 
-    public static String getLocalizedDatePattern(String style){
-        return DateTimeFormat.patternForStyle(style, getCurrentLocale());
-    }
+	public static String getLocalizedDatePattern(String style) {
+		return DateTimeFormat.patternForStyle(style, getCurrentLocale());
+	}
 
-    public static Locale getCurrentLocale(){
-        Locale locale = Session.get().getLocale();
-        if (locale == null){
-            locale = Locale.getDefault();
-        }
-        return locale;
-    }
+	public static Locale getCurrentLocale() {
+		Locale locale = Session.get().getLocale();
+		if (locale == null) {
+			locale = Locale.getDefault();
+		}
+		return locale;
+	}
 
 	public static String getLocalizedDate(XMLGregorianCalendar date, String style) {
 		return getLocalizedDate(XmlTypeConverter.toDate(date), style);
 	}
 
-    public static String getLocalizedDate(Date date, String style) {
+	public static String getLocalizedDate(Date date, String style) {
 		if (date == null) {
 			return null;
 		}
-        PatternDateConverter converter = new PatternDateConverter(getLocalizedDatePattern(style), true );
-        return converter.convertToString(date, WebComponentUtil.getCurrentLocale());
-    }
+		PatternDateConverter converter = new PatternDateConverter(getLocalizedDatePattern(style), true);
+		return converter.convertToString(date, WebComponentUtil.getCurrentLocale());
+	}
 
-    public static boolean isActivationEnabled(PrismObject object) {
+	public static boolean isActivationEnabled(PrismObject object) {
 		Validate.notNull(object);
 
 		PrismContainer activation = object.findContainer(UserType.F_ACTIVATION); // this
@@ -857,7 +876,7 @@ public final class WebComponentUtil {
 
 		return result.isSuccess() || result.isHandledError() || result.isInProgress();
 	}
-	
+
 	public static <T extends ObjectType> String createDefaultIcon(PrismObject<T> object) {
 		Class<T> type = object.getCompileTimeClass();
 		if (type.equals(UserType.class)) {
@@ -873,10 +892,10 @@ public final class WebComponentUtil {
 		} else if (type.equals(ResourceType.class)) {
 			return createResourceIcon((PrismObject<ResourceType>) object);
 		}
-		
+
 		return "";
 	}
-	
+
 	public static <T extends ObjectType> String createDefaultColoredIcon(QName objectType) {
 		if (QNameUtil.match(UserType.COMPLEX_TYPE, objectType)) {
 			return GuiStyleConstants.CLASS_OBJECT_USER_ICON_COLORED;
@@ -894,7 +913,7 @@ public final class WebComponentUtil {
 			return "";
 		}
 	}
-	
+
 	public static <T extends ObjectType> String getBoxCssClasses(QName objectType) {
 		if (QNameUtil.match(UserType.COMPLEX_TYPE, objectType)) {
 			return GuiStyleConstants.CLASS_OBJECT_USER_BOX_CSS_CLASSES;
@@ -912,7 +931,7 @@ public final class WebComponentUtil {
 			return "";
 		}
 	}
-	
+
 	public static <T extends ObjectType> String getBoxThinCssClasses(QName objectType) {
 		if (QNameUtil.match(UserType.COMPLEX_TYPE, objectType)) {
 			return GuiStyleConstants.CLASS_OBJECT_USER_BOX_THIN_CSS_CLASSES;
@@ -942,15 +961,16 @@ public final class WebComponentUtil {
 				continue;
 			}
 			if (StringUtils.equals(targetRef.getOid(), SystemObjectsType.ROLE_SUPERUSER.value())) {
-				return GuiStyleConstants.CLASS_OBJECT_USER_ICON + " " + GuiStyleConstants.CLASS_ICON_STYLE_PRIVILEGED;
+				return GuiStyleConstants.CLASS_OBJECT_USER_ICON + " "
+						+ GuiStyleConstants.CLASS_ICON_STYLE_PRIVILEGED;
 			}
 			if (StringUtils.equals(targetRef.getOid(), SystemObjectsType.ROLE_END_USER.value())) {
 				isEndUser = true;
 			}
 		}
-		
+
 		boolean isManager = false;
-		for (ObjectReferenceType parentOrgRef: user.getParentOrgRef()) {
+		for (ObjectReferenceType parentOrgRef : user.getParentOrgRef()) {
 			if (SchemaConstants.ORG_MANAGER.equals(parentOrgRef.getRelation())) {
 				isManager = true;
 				break;
@@ -959,7 +979,8 @@ public final class WebComponentUtil {
 
 		String additionalStyle = getIconEnabledDisabled(object);
 		if (additionalStyle == null) {
-			// Set manager and end-user icon only as a last resort. All other colors have priority.
+			// Set manager and end-user icon only as a last resort. All other
+			// colors have priority.
 			if (isManager) {
 				additionalStyle = GuiStyleConstants.CLASS_ICON_STYLE_MANAGER;
 			} else if (isEndUser) {
@@ -970,27 +991,28 @@ public final class WebComponentUtil {
 		}
 		return GuiStyleConstants.CLASS_OBJECT_USER_ICON + " " + additionalStyle;
 	}
-	
-	
+
 	public static String createRoleIcon(PrismObject<RoleType> object) {
-		for (AuthorizationType authorization: object.asObjectable().getAuthorization()) {
+		for (AuthorizationType authorization : object.asObjectable().getAuthorization()) {
 			if (authorization.getAction().contains(AuthorizationConstants.AUTZ_ALL_URL)) {
-				return GuiStyleConstants.CLASS_OBJECT_ROLE_ICON + " " + GuiStyleConstants.CLASS_ICON_STYLE_PRIVILEGED;
+				return GuiStyleConstants.CLASS_OBJECT_ROLE_ICON + " "
+						+ GuiStyleConstants.CLASS_ICON_STYLE_PRIVILEGED;
 			}
 		}
-		
+
 		return getIconEnabledDisabled(object, GuiStyleConstants.CLASS_OBJECT_ROLE_ICON);
 	}
-	
+
 	public static String createOrgIcon(PrismObject<OrgType> object) {
 		return getIconEnabledDisabled(object, GuiStyleConstants.CLASS_OBJECT_ORG_ICON);
 	}
-	
+
 	public static String createServiceIcon(PrismObject<ServiceType> object) {
 		return getIconEnabledDisabled(object, GuiStyleConstants.CLASS_OBJECT_SERVICE_ICON);
 	}
 
-	private static <F extends FocusType> String getIconEnabledDisabled(PrismObject<F> object, String baseIcon) {
+	private static <F extends FocusType> String getIconEnabledDisabled(PrismObject<F> object,
+			String baseIcon) {
 		String additionalStyle = getIconEnabledDisabled(object);
 		if (additionalStyle == null) {
 			return baseIcon + " " + GuiStyleConstants.CLASS_ICON_STYLE_NORMAL;
@@ -998,7 +1020,7 @@ public final class WebComponentUtil {
 			return baseIcon + " " + additionalStyle;
 		}
 	}
-	
+
 	private static <F extends FocusType> String getIconEnabledDisabled(PrismObject<F> object) {
 		ActivationType activation = object.asObjectable().getActivation();
 		if (activation != null) {
@@ -1017,41 +1039,43 @@ public final class WebComponentUtil {
 		if (operationalState != null) {
 			AvailabilityStatusType lastAvailabilityStatus = operationalState.getLastAvailabilityStatus();
 			if (lastAvailabilityStatus == AvailabilityStatusType.UP) {
-				return GuiStyleConstants.CLASS_OBJECT_RESOURCE_ICON + " " + GuiStyleConstants.CLASS_ICON_STYLE_UP;
+				return GuiStyleConstants.CLASS_OBJECT_RESOURCE_ICON + " "
+						+ GuiStyleConstants.CLASS_ICON_STYLE_UP;
 			}
 			if (lastAvailabilityStatus == AvailabilityStatusType.DOWN) {
-				return GuiStyleConstants.CLASS_OBJECT_RESOURCE_ICON + " " + GuiStyleConstants.CLASS_ICON_STYLE_DOWN;
+				return GuiStyleConstants.CLASS_OBJECT_RESOURCE_ICON + " "
+						+ GuiStyleConstants.CLASS_ICON_STYLE_DOWN;
 			}
 		}
 		return GuiStyleConstants.CLASS_OBJECT_RESOURCE_ICON + " " + GuiStyleConstants.CLASS_ICON_STYLE_NORMAL;
 	}
-	
+
 	public static String createTaskIcon(PrismObject<TaskType> object) {
 		return GuiStyleConstants.CLASS_OBJECT_TASK_ICON + " " + GuiStyleConstants.CLASS_ICON_STYLE_NORMAL;
 	}
-	
+
 	public static String createShadowIcon(PrismObject<ShadowType> object) {
 		ShadowType shadow = object.asObjectable();
-		
-		if (ShadowUtil.isProtected(object)){
+
+		if (ShadowUtil.isProtected(object)) {
 			return GuiStyleConstants.CLASS_SHADOW_ICON_PROTECTED;
 		}
-		
+
 		ShadowKindType kind = shadow.getKind();
 		if (kind == null) {
 			return GuiStyleConstants.CLASS_SHADOW_ICON_UNKNOWN;
 		}
-		
-		switch (kind){
-			case ACCOUNT: 
+
+		switch (kind) {
+			case ACCOUNT:
 				return GuiStyleConstants.CLASS_SHADOW_ICON_ACCOUNT;
 			case GENERIC:
 				return GuiStyleConstants.CLASS_SHADOW_ICON_GENERIC;
 			case ENTITLEMENT:
 				return GuiStyleConstants.CLASS_SHADOW_ICON_ENTITLEMENT;
-					
+
 		}
-		
+
 		return GuiStyleConstants.CLASS_SHADOW_ICON_UNKNOWN;
 	}
 
@@ -1075,15 +1099,16 @@ public final class WebComponentUtil {
 				return "ActivationStatusType.DISABLED";
 			} else if (ActivationStatusType.ARCHIVED.equals(activation.getEffectiveStatus())) {
 				return "ActivationStatusType.ARCHIVED";
-			} 
+			}
 		}
 
 		return null;
 	}
-	
+
 	public static String createErrorIcon(OperationResult result) {
 		OperationResultStatus status = result.getStatus();
-		OperationResultStatusPresentationProperties icon = OperationResultStatusPresentationProperties.parseOperationalResultStatus(status);
+		OperationResultStatusPresentationProperties icon = OperationResultStatusPresentationProperties
+				.parseOperationalResultStatus(status);
 		return icon.getIcon();
 	}
 
@@ -1101,7 +1126,8 @@ public final class WebComponentUtil {
 			// ignored
 		}
 
-		operatingSystemMXBean = (com.sun.management.OperatingSystemMXBean) ManagementFactory.getOperatingSystemMXBean();
+		operatingSystemMXBean = (com.sun.management.OperatingSystemMXBean) ManagementFactory
+				.getOperatingSystemMXBean();
 		long upTime = runtimeMXBean.getUptime();
 		long processCpuTime = operatingSystemMXBean.getProcessCpuTime();
 		long elapsedCpu = processCpuTime - prevProcessCpuTime;
@@ -1148,8 +1174,8 @@ public final class WebComponentUtil {
 	 * @param <T>
 	 * @return
 	 */
-	public static <T extends Selectable> List<T> isAnythingSelected(AjaxRequestTarget target, T single, Table table,
-			PageBase page, String nothingWarnMessage) {
+	public static <T extends Selectable> List<T> isAnythingSelected(AjaxRequestTarget target, T single,
+			Table table, PageBase page, String nothingWarnMessage) {
 		List<T> selected;
 		if (single != null) {
 			selected = new ArrayList<T>();
@@ -1178,7 +1204,8 @@ public final class WebComponentUtil {
 	/*
 	 * Methods used for providing prismContext into various objects.
 	 */
-	public static void revive(LoadableModel<?> loadableModel, PrismContext prismContext) throws SchemaException {
+	public static void revive(LoadableModel<?> loadableModel, PrismContext prismContext)
+			throws SchemaException {
 		if (loadableModel != null) {
 			loadableModel.revive(prismContext);
 		}
@@ -1213,7 +1240,8 @@ public final class WebComponentUtil {
 			try {
 				objectType.asPrismObject().revive(getPrismContext(component));
 			} catch (SchemaException e) {
-				throw new SystemException("Couldn't revive " + objectType + " because of schema exception", e);
+				throw new SystemException("Couldn't revive " + objectType + " because of schema exception",
+						e);
 			}
 		}
 	}
@@ -1300,31 +1328,33 @@ public final class WebComponentUtil {
 	}
 
 	public static <T extends Component> T theSameForPage(T object, PageReference containingPageReference) {
-        Page containingPage = containingPageReference.getPage();
-        if (containingPage == null) {
-            return object;
-        }
-        String path = object.getPageRelativePath();
-        T retval = (T) containingPage.get(path);
-        if (retval == null) {
-            return object;
-//            throw new IllegalStateException("There is no component like " + object + " (path '" + path + "') on " + containingPage);
-        }
-        return retval;
-    }
-    
-    public static String debugHandler(IRequestHandler handler) {
-    	if (handler == null) {
-    		return null;
-    	}
-    	if (handler instanceof RenderPageRequestHandler) {
-    		return "RenderPageRequestHandler("+((RenderPageRequestHandler)handler).getPageClass().getName()+")";
-    	} else {
-    		return handler.toString();
-    	}
-    }
-    
-    public static ItemPath joinPath(ItemPath path, ItemPath deltaPath) {
+		Page containingPage = containingPageReference.getPage();
+		if (containingPage == null) {
+			return object;
+		}
+		String path = object.getPageRelativePath();
+		T retval = (T) containingPage.get(path);
+		if (retval == null) {
+			return object;
+			// throw new IllegalStateException("There is no component like " +
+			// object + " (path '" + path + "') on " + containingPage);
+		}
+		return retval;
+	}
+
+	public static String debugHandler(IRequestHandler handler) {
+		if (handler == null) {
+			return null;
+		}
+		if (handler instanceof RenderPageRequestHandler) {
+			return "RenderPageRequestHandler(" + ((RenderPageRequestHandler) handler).getPageClass().getName()
+					+ ")";
+		} else {
+			return handler.toString();
+		}
+	}
+
+	public static ItemPath joinPath(ItemPath path, ItemPath deltaPath) {
 		List<ItemPathSegment> newPath = new ArrayList<ItemPathSegment>();
 
 		ItemPathSegment firstDeltaSegment = deltaPath != null ? deltaPath.first() : null;
@@ -1350,14 +1380,15 @@ public final class WebComponentUtil {
 		}
 		Objectable object = ref.asReferenceValue().getObject().asObjectable();
 		if (!type.isAssignableFrom(object.getClass())) {
-			throw new IllegalStateException("Got " + object.getClass() + " when expected " + type + ": " + ObjectTypeUtil.toShortString(ref, true));
+			throw new IllegalStateException("Got " + object.getClass() + " when expected " + type + ": "
+					+ ObjectTypeUtil.toShortString(ref, true));
 		}
 		return (T) object;
 	}
 
 	public static void dispatchToObjectDetailsPage(ObjectReferenceType objectRef, PageBase page) {
 		if (objectRef == null) {
-			return;		// should not occur
+			return; // should not occur
 		}
 		QName type = objectRef.getType();
 		PageParameters parameters = new PageParameters();
@@ -1388,11 +1419,9 @@ public final class WebComponentUtil {
 		if (clazz == null) {
 			return false;
 		}
-		return AbstractRoleType.class.isAssignableFrom(clazz) ||
-				UserType.class.isAssignableFrom(clazz) ||
-				ResourceType.class.isAssignableFrom(clazz) ||
-				TaskType.class.isAssignableFrom(clazz) ||
-				ReportType.class.isAssignableFrom(clazz);
+		return AbstractRoleType.class.isAssignableFrom(clazz) || UserType.class.isAssignableFrom(clazz)
+				|| ResourceType.class.isAssignableFrom(clazz) || TaskType.class.isAssignableFrom(clazz)
+				|| ReportType.class.isAssignableFrom(clazz);
 	}
 
 	public static boolean hasDetailsPage(ObjectReferenceType ref) {
@@ -1407,8 +1436,8 @@ public final class WebComponentUtil {
 	}
 
 	@NotNull
-	public static TabbedPanel<ITab> createTabPanel(String id, final PageBase parentPage, final List<ITab> tabs,
-			TabbedPanel.RightSideItemProvider rightSideItemProvider) {
+	public static TabbedPanel<ITab> createTabPanel(String id, final PageBase parentPage,
+			final List<ITab> tabs, TabbedPanel.RightSideItemProvider rightSideItemProvider) {
 		TabbedPanel<ITab> tabPanel = new TabbedPanel<ITab>(id, tabs, rightSideItemProvider) {
 			@Override
 			protected WebMarkupContainer newLink(String linkId, final int index) {
@@ -1456,7 +1485,7 @@ public final class WebComponentUtil {
 		DebugUtil.indentDebugDump(sb, level);
 		sb.append(c).append("\n");
 		if (c instanceof MarkupContainer) {
-			for (Component sub: (MarkupContainer)c) {
+			for (Component sub : (MarkupContainer) c) {
 				debugDumpComponentTree(sb, sub, level + 1);
 			}
 		}

@@ -1,0 +1,222 @@
+<resource xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+          xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+          xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+          xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+          oid="acbc95b-76e0-48e2-86d6-3d4f02d420ac">
+   <name>OpenStack Scripted REST</name>
+   <connectorRef type="c:ConnectorType">
+      <filter>
+         <q:equal>
+            <q:path>c:connectorType</q:path>
+            <q:value>org.forgerock.openicf.connectors.scriptedrest.ScriptedRESTConnector</q:value>
+         </q:equal>
+      </filter>
+   </connectorRef>
+   <connectorConfiguration xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
+      <icfc:configurationProperties xmlns:gen760="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.forgerock.openicf.connectors.scriptedrest-connector/org.forgerock.openicf.connectors.scriptedrest.ScriptedRESTConnector">
+         <gen760:deleteScriptFileName>/opt/midpoint-home/icf-connectors/opst-scripts/OpenStack-DeleteScript.groovy</gen760:deleteScriptFileName>
+         <gen760:schemaScriptFileName>/opt/midpoint-home/icf-connectors/opst-scripts/OpenStack-schema.groovy</gen760:schemaScriptFileName>
+         <gen760:reloadScriptOnExecution>true</gen760:reloadScriptOnExecution>
+         <gen760:updateScriptFileName>/opt/midpoint-home/icf-connectors/opst-scripts/OpenStack-UpdateScript.groovy</gen760:updateScriptFileName>
+         <gen760:searchScriptFileName>/opt/midpoint-home/icf-connectors/opst-scripts/OpenStack-SearchScript.groovy</gen760:searchScriptFileName>
+         <gen760:scriptingLanguage>GROOVY</gen760:scriptingLanguage>
+         <gen760:endPoint>http://localhost:5000/</gen760:endPoint>
+         <gen760:createScriptFileName>/opt/midpoint-home/icf-connectors/opst-scripts/OpenStack-CreateScript.groovy</gen760:createScriptFileName>
+         <gen760:clearTextPasswordToScript>true</gen760:clearTextPasswordToScript>
+         <gen760:login>admin</gen760:login>
+         <gen760:password>
+            <t:clearValue>secret</t:clearValue>
+         </gen760:password>
+      </icfc:configurationProperties>
+   </connectorConfiguration>
+
+   <schemaHandling>
+      <objectType>
+         <kind>entitlement</kind>
+         <intent>project</intent>
+         <displayName>OpenStack Project</displayName>
+         <default>true</default>
+         <objectClass>ri:Project</objectClass>
+         <attribute>
+            <c:ref>ri:projectId</c:ref>
+            <inbound>
+               <strength>strong</strength>
+               <target>
+                  <c:path>identifier</c:path>
+               </target>
+            </inbound>
+         </attribute>
+         <attribute>
+            <c:ref>ri:projectName</c:ref>
+            <outbound>
+               <source>
+                  <c:path>name</c:path>
+               </source>
+            </outbound>
+         </attribute>
+         <attribute>
+            <c:ref>icfs:name</c:ref>
+            <outbound>
+               <source>
+                  <c:path>name</c:path>
+               </source>
+            </outbound>
+         </attribute>
+      </objectType>
+      <objectType>
+         <kind>account</kind>
+         <intent>default</intent>
+         <displayName>OpenStack Account</displayName>
+         <default>true</default>
+         <objectClass>ri:Account</objectClass>
+         <attribute>
+            <c:ref>icfs:name</c:ref>
+            <displayName>ConnID Name</displayName>
+            <outbound>
+               <source>
+                  <c:path>name</c:path>
+               </source>
+            </outbound>
+         </attribute>
+         <attribute>
+            <c:ref>icfs:uid</c:ref>
+            <displayName>ConnID UID</displayName>
+         </attribute>
+         <attribute>
+            <c:ref>ri:accountName</c:ref>
+            <displayName>Account Name</displayName>
+            <outbound>
+               <source>
+                  <c:path>name</c:path>
+               </source>
+            </outbound>
+         </attribute>
+         <attribute>
+            <c:ref>ri:email</c:ref>
+            <displayName>Email</displayName>
+            <outbound>
+               <source>
+                  <c:path>emailAddress</c:path>
+               </source>
+            </outbound>
+         </attribute>
+         <association>
+            <c:ref>ri:group</c:ref>
+            <displayName>LDAP Group Membership</displayName>
+            <kind>entitlement</kind>
+            <intent>project</intent>
+            <direction>subjectToObject</direction>
+            <associationAttribute>ri:tenantId</associationAttribute>
+            <valueAttribute>icfs:uid</valueAttribute>
+         </association>
+         <credentials>
+            <password>
+               <outbound/>
+            </password>
+         </credentials>
+      </objectType>
+      <objectType>
+         <kind>generic</kind>
+         <intent>vm</intent>
+         <displayName>OpenStack VM</displayName>
+         <default>true</default>
+         <objectClass>ri:Server</objectClass>
+         <attribute>
+            <c:ref>icfs:name</c:ref>
+            <displayName>ConnID Name</displayName>
+            <outbound>
+               <source>
+                  <c:path>name</c:path>
+               </source>
+            </outbound>
+         </attribute>
+         <attribute>
+            <c:ref>ri:serverName</c:ref>
+            <displayName>ConnID Name</displayName>
+            <outbound>
+               <source>
+                  <c:path>name</c:path>
+               </source>
+            </outbound>
+         </attribute>
+         <attribute>
+            <c:ref>ri:projectName</c:ref>
+            <displayName>Project Name</displayName>
+            <outbound>
+               <source>
+                  <c:path>name</c:path>
+               </source>
+               <expression>
+                  <script>
+                     <code>
+                           import com.evolveum.midpoint.xml.ns._public.common.common_3.*
+                           import com.evolveum.midpoint.util.exception.*
+                           
+                           parent = midpoint.getParentOrgByOrgType(focus, 'project')
+                           
+                           if (parent == null) {
+                                throw new SchemaException("No Tenant/project defined");
+                           }
+                           
+                           return parent.getName().getOrig()
+                           
+                       </code>
+                  </script>
+               </expression>
+            </outbound>
+         </attribute>
+         <attribute>
+            <c:ref>ri:imageRef</c:ref>
+            <displayName>Image Reference</displayName>
+            <outbound>
+               <expression>
+                  <value>dd3cc1ef-9d85-49d0-bf5f-b49538ba7cc9</value>
+               </expression>
+            </outbound>
+         </attribute>
+         <attribute>
+            <c:ref>ri:flavorRef</c:ref>
+            <displayName>Flavor Reference</displayName>
+            <outbound>
+               <expression>
+                  <value>999</value>
+               </expression>
+            </outbound>
+         </attribute>
+         <!--  NEEDED CUSTOM EXTENSION SCHEMA
+         <attribute>
+            <c:ref>ri:ipAddress</c:ref>
+            <displayName>Server IP</displayName>
+            <inbound>
+               <strength>strong</strength>
+               <target>
+                  <c:path xmlns:ext="http://midpoint.evolveum.com/xml/ns/custom/openstack-1">extension/ext:host</c:path>
+               </target>
+            </inbound>
+         </attribute>
+         -->
+      </objectType>
+   </schemaHandling>
+   <capabilities>
+      <cachingMetadata>
+         <retrievalTimestamp>2016-01-26T16:41:46.178+01:00</retrievalTimestamp>
+         <serialNumber>abb7784558b80f89-5f96984a51759e0c</serialNumber>
+      </cachingMetadata>
+      <native xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">
+         <cap:addRemoveAttributeValues/>
+         <cap:liveSync/>
+         <cap:testConnection/>
+         <cap:create/>
+         <cap:read/>
+         <cap:update/>
+         <cap:delete/>
+         <cap:script>
+            <cap:host>
+               <cap:type>connector</cap:type>
+            </cap:host>
+         </cap:script>
+      </native>
+   </capabilities>
+</resource>
