@@ -774,18 +774,6 @@ public class ReconciliationProcessor {
         return false;
     }
 
-    private boolean isInPvwoValues(Object value,
-			Collection<ItemValueWithOrigin<? extends PrismPropertyValue<?>,PrismPropertyDefinition<?>>> shouldBePvwos) {
-		for (ItemValueWithOrigin<? extends PrismPropertyValue<?>,PrismPropertyDefinition<?>> shouldBePvwo : shouldBePvwos) {
-			PrismPropertyValue<?> shouldBePPValue = shouldBePvwo.getPropertyValue();
-			Object shouldBeValue = shouldBePPValue.getValue();
-			if (shouldBeValue.equals(value)) {
-				return true;
-			}
-		}
-		return false;
-	}
-
 	private <T> boolean isInPvwoValues(ValueMatcher<T> valueMatcher, T value,
 			Collection<ItemValueWithOrigin<PrismPropertyValue<T>,PrismPropertyDefinition<T>>> shouldBePvwos) {
 
@@ -797,7 +785,7 @@ public class ReconciliationProcessor {
 			if (!shouldBePvwo.isValid()) {
         		continue;
         	}
-			PrismPropertyValue<T> shouldBePPValue = shouldBePvwo.getPropertyValue();
+			PrismPropertyValue<T> shouldBePPValue = shouldBePvwo.getItemValue();
 			T shouldBeValue = shouldBePPValue.getValue();
 			if (matchValue(value, shouldBeValue, valueMatcher)) {
 				return true;

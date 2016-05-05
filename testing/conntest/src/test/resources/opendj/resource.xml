@@ -154,6 +154,14 @@
 				</inbound>
 			</attribute>
 			<attribute>
+				<ref>ri:employeeType</ref>
+				<outbound>
+					<source>
+						<path>employeeType</path>
+					</source>
+				</outbound>
+			</attribute>
+			<attribute>
 				<ref>ri:isMemberOf</ref>
 				<fetchStrategy>explicit</fetchStrategy>
 			</attribute>

@@ -156,6 +156,15 @@
                     </target>
 				</inbound>
 			</attribute>
+			<attribute>
+				<ref>ri:employeeType</ref>
+				<matchingRule>mr:stringIgnoreCase</matchingRule>
+				<outbound>
+					<source>
+						<path>employeeType</path>
+					</source>
+				</outbound>
+			</attribute>
 			
 			<association>
             	<ref>ri:group</ref>

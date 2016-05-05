@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 import com.evolveum.midpoint.model.common.mapping.PrismValueDeltaSetTripleProducer;
+import com.evolveum.midpoint.model.impl.lens.projector.ValueMatcher;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismValue;
@@ -26,6 +27,7 @@ import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
 
 /**
  * @author semancik
@@ -43,11 +45,6 @@ public class ItemValueWithOrigin<V extends PrismValue, D extends ItemDefinition>
 		this.itemValue = propertyValue;
 		this.mapping = mapping;
 		this.construction = accountConstruction;
-	}
-
-    @Deprecated
-	public V getPropertyValue() {
-		return itemValue;
 	}
 
     // the same as above, but with correct name
@@ -72,11 +69,17 @@ public class ItemValueWithOrigin<V extends PrismValue, D extends ItemDefinition>
 		return construction.isValid();
 	}
 	
-	public boolean equalsRealValue(V pvalue) {
+	public <T> boolean equalsRealValue(V pvalue, ValueMatcher<T> valueMatcher) throws SchemaException {
 		if (itemValue == null) {
 			return false;
 		}
-		return itemValue.equalsRealValue(pvalue);
+		if (valueMatcher == null) {
+			return itemValue.equalsRealValue(pvalue);
+		} else {
+			// this must be a property, otherwise there would be no matcher
+			return valueMatcher.match(((PrismPropertyValue<T>)itemValue).getValue(), 
+					((PrismPropertyValue<T>)pvalue).getValue());
+		}
 	}
 	
 	public ItemValueWithOrigin<V,D> clone() {

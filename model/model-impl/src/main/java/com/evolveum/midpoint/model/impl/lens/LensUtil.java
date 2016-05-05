@@ -234,7 +234,7 @@ public class LensUtil {
 					});
 		}
 		
-        Collection<V> allValues = collectAllValues(triple);
+        Collection<V> allValues = collectAllValues(triple, valueMatcher);
         
         final MutableBoolean itemHasStrongMutable = new MutableBoolean(false);
         SimpleVisitor<I> visitor = new SimpleVisitor<I>() {
@@ -258,11 +258,11 @@ public class LensUtil {
         	// The first set that the value is present determines the result.
 			// TODO shouldn't we use valueMatcher here? [med]
             Collection<ItemValueWithOrigin<V,D>> zeroPvwos =
-                    collectPvwosFromSet(value, triple.getZeroSet());
+                    collectPvwosFromSet(value, triple.getZeroSet(), valueMatcher);
             Collection<ItemValueWithOrigin<V,D>> plusPvwos =
-                    collectPvwosFromSet(value, triple.getPlusSet());
+                    collectPvwosFromSet(value, triple.getPlusSet(), valueMatcher);
             Collection<ItemValueWithOrigin<V,D>> minusPvwos =
-                    collectPvwosFromSet(value, triple.getMinusSet());
+                    collectPvwosFromSet(value, triple.getMinusSet(), valueMatcher);
             
             if (LOGGER.isTraceEnabled()) {
             	LOGGER.trace("PVWOs for value {}:\nzero = {}\nplus = {}\nminus = {}",
@@ -492,8 +492,8 @@ public class LensUtil {
 		Collection<V> values = new ArrayList<V>();
 		for (ItemValueWithOrigin<V,D> pvwo: pvwos) {
 			if (pvwo.getMapping().getStrength() == MappingStrengthType.WEAK && applyWeak) {
-				if (origin == null || origin == pvwo.getPropertyValue().getOriginType()) {
-					values.add((V)pvwo.getPropertyValue().clone());
+				if (origin == null || origin == pvwo.getItemValue().getOriginType()) {
+					values.add((V)pvwo.getItemValue().clone());
 				}
 			}
 		}
@@ -511,32 +511,47 @@ public class LensUtil {
 		}
 	}
 	
-	private static <V extends PrismValue, D extends ItemDefinition> Collection<V> collectAllValues(DeltaSetTriple<? extends ItemValueWithOrigin<V,D>> triple) {
+	private static <V extends PrismValue, D extends ItemDefinition> Collection<V> collectAllValues
+			(DeltaSetTriple<? extends ItemValueWithOrigin<V,D>> triple, ValueMatcher<?> valueMatcher) throws SchemaException {
         Collection<V> allValues = new HashSet<>();
-        collectAllValuesFromSet(allValues, triple.getZeroSet());
-        collectAllValuesFromSet(allValues, triple.getPlusSet());
-        collectAllValuesFromSet(allValues, triple.getMinusSet());
+        collectAllValuesFromSet(allValues, triple.getZeroSet(), valueMatcher);
+        collectAllValuesFromSet(allValues, triple.getPlusSet(), valueMatcher);
+        collectAllValuesFromSet(allValues, triple.getMinusSet(), valueMatcher);
         return allValues;
     }
 
-    private static <V extends PrismValue, D extends ItemDefinition> void collectAllValuesFromSet(Collection<V> allValues,
-            Collection<? extends ItemValueWithOrigin<V,D>> collection) {
+    private static <V extends PrismValue, D extends ItemDefinition, T> void collectAllValuesFromSet(Collection<V> allValues,
+            Collection<? extends ItemValueWithOrigin<V,D>> collection, ValueMatcher<T> valueMatcher) throws SchemaException {
         if (collection == null) {
             return;
         }
         for (ItemValueWithOrigin<V,D> pvwo : collection) {
-        	V pval = pvwo.getPropertyValue();
-        	if (!PrismValue.containsRealValue(allValues, pval)) {
-        		allValues.add(pval);
+        	V pval = pvwo.getItemValue();
+        	if (valueMatcher == null) {
+	        	if (!PrismValue.containsRealValue(allValues, pval)) {
+	        		allValues.add(pval);
+	        	}
+        	} else {
+        		boolean found = false;
+        		for (V valueFromAllvalues: allValues) {
+        			if (valueMatcher.match(((PrismPropertyValue<T>)valueFromAllvalues).getValue(), 
+        					((PrismPropertyValue<T>)pval).getValue())) {
+        				found = true;
+        				break;
+        			}
+        		}
+        		if (!found) {
+        			allValues.add(pval);
+        		}
         	}
         }
     }
     
     private static <V extends PrismValue, D extends ItemDefinition> Collection<ItemValueWithOrigin<V,D>> collectPvwosFromSet(V pvalue,
-            Collection<? extends ItemValueWithOrigin<V,D>> deltaSet) {
+            Collection<? extends ItemValueWithOrigin<V,D>> deltaSet, ValueMatcher<?> valueMatcher) throws SchemaException {
     	Collection<ItemValueWithOrigin<V,D>> pvwos = new ArrayList<>();
         for (ItemValueWithOrigin<V,D> setPvwo : deltaSet) {
-        	if (setPvwo.equalsRealValue(pvalue)) {
+        	if (setPvwo.equalsRealValue(pvalue, valueMatcher)) {
         		pvwos.add(setPvwo);
         	}
         }
