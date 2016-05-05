@@ -25,9 +25,11 @@ import org.apache.wicket.model.Model;
 
 /**
  * @author Viliam Repan (lazyman)
+ * @author katkav
  */
 public class MainPopupDialog extends ModalWindow {
-	
+	private static final long serialVersionUID = 1L;
+
 	private static final String ID_MAIN_POPUP_BODY = "popupBody";
 	
 	private boolean initialized;
@@ -44,16 +46,18 @@ public class MainPopupDialog extends ModalWindow {
         setWidthUnit("px");
 
         setCloseButtonCallback(new ModalWindow.CloseButtonCallback() {
+			private static final long serialVersionUID = 1L;
 
-            @Override
+			@Override
             public boolean onCloseButtonClicked(AjaxRequestTarget target) {
                 return true;
             }
         });
 
         setWindowClosedCallback(new ModalWindow.WindowClosedCallback() {
+			private static final long serialVersionUID = 1L;
 
-            @Override
+			@Override
             public void onClose(AjaxRequestTarget target) {
                 MainPopupDialog.this.close(target);
             }

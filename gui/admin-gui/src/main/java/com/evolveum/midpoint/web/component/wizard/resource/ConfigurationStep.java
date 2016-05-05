@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -242,29 +242,10 @@ public class ConfigurationStep extends WizardStep {
 		TestConnectionResultPanel testConnectionPanel = new TestConnectionResultPanel(page.getMainPopupBodyId(), new ListModel<OpResult>(resultDtoList));
 		testConnectionPanel.setOutputMarkupId(true);
 		page.showMainPopup(testConnectionPanel, new Model<String>("Test connection result"), target, 600, 400);
-//		page.setMainPopupContent(createConnectionResultTable(new ListModel<>(resultDtoList)));
-//		page.getMainPopup().setInitialHeight(400);
-//		page.getMainPopup().setInitialWidth(600);
-//		page.showMainPopup(target);
-
 		page.showResult(result, "Test connection failed", false);
 		target.add(page.getFeedbackPanel());
 		target.add(getForm());
 	}
-
-//	private TablePanel<TestConnectionResultDto> createConnectionResultTable(ListModel<TestConnectionResultDto> model) {
-//		ListDataProvider<TestConnectionResultDto> listprovider = new ListDataProvider<>(this,
-//				model);
-//		List<ColumnTypeDto> columns = Arrays.asList(new ColumnTypeDto<String>("Operation Name", "operationName", null),
-//				new ColumnTypeDto("Status", "status", null),
-//				new ColumnTypeDto<String>("Error Message", "errorMessage", null));
-//
-//		TablePanel<TestConnectionResultDto> table =
-//				new TablePanel<>(getPageBase().getMainPopupBodyId(), listprovider, ColumnUtils.<TestConnectionResultDto>createColumns(columns));
-//		table.setOutputMarkupId(true);
-//		return table;
-//	}
-
 
 	@Override
     public void applyState() {

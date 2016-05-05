@@ -96,13 +96,7 @@ public class PageResource extends PageAdminResources {
 
 	public static final String TABLE_TEST_CONNECTION_RESULT_ID = "testConņectionResults";
 
-	// private static final String FORM_DETAILS_OD = "details";
-
 	LoadableModel<PrismObject<ResourceType>> resourceModel;
-
-	private LoadableModel<CapabilitiesDto> capabilitiesModel;
-
-//	private ListModel testConnectionModel = new ListModel();
 
 	private String resourceOid;
 
@@ -347,9 +341,7 @@ public class PageResource extends PageAdminResources {
 		}
 
 		OperationResult result = new OperationResult(OPERATION_TEST_CONNECTION);
-		PrismObject<ResourceType> resource = null;
 		List<OpResult>  resultsDto = new ArrayList<>();
-		// try {
 		try {
 			Task task = createSimpleTask(OPERATION_TEST_CONNECTION);
 
@@ -357,7 +349,7 @@ public class PageResource extends PageAdminResources {
 
 			resultsDto = WebComponentUtil.getTestConnectionResults(result, this);
 
-			resource = getModelService().getObject(ResourceType.class, dto.getOid(), null, task, result);
+			getModelService().getObject(ResourceType.class, dto.getOid(), null, task, result);
 		} catch (ObjectNotFoundException | SchemaException | SecurityViolationException
 				| CommunicationException | ConfigurationException e) {
 			result.recordFatalError("Failed to test resource connection", e);
@@ -371,9 +363,9 @@ public class PageResource extends PageAdminResources {
 			result.recomputeStatus();
 		}
 
-//		resourceModel.reset();
 		TestConnectionResultPanel testConnectionPanel = new TestConnectionResultPanel(getMainPopupBodyId(), new ListModel<OpResult>(resultsDto)) {
-			
+			private static final long serialVersionUID = 1L;
+
 			@Override
 			protected void okPerformed(AjaxRequestTarget target) {
 				refreshStatus(target);
@@ -381,22 +373,15 @@ public class PageResource extends PageAdminResources {
 		};
 		testConnectionPanel.setOutputMarkupId(true);
 		getMainPopup().setCloseButtonCallback(new ModalWindow.CloseButtonCallback() {
+			private static final long serialVersionUID = 1L;
 
-            @Override
+			@Override
             public boolean onCloseButtonClicked(AjaxRequestTarget target) {
                 return false;
             }
         });
 
 		showMainPopup(testConnectionPanel, new Model<String>("Test connection result"), target, 800, 500);
-//		showMainPopup(createConnectionResultTable(resultsDto), new Model<String>("Test connection result"), target, 600, 400);
-//		ResourceSummaryPanel resourceSummaryPanel = (ResourceSummaryPanel) get(PANEL_RESOURCE_SUMMARY);
-//		resourceSummaryPanel.getModel().setObject(resource.asObjectable());
-//		target.add(resourceSummaryPanel);
-		
-//		showResult(result, "Test connection failed");
-//		target.add(getFeedbackPanel());
-		
 
 	}
 	
@@ -404,28 +389,4 @@ public class PageResource extends PageAdminResources {
 		target.add(addOrReplace(createResourceSummaryPanel()));
 		target.add(addOrReplace(createTabsPanel()));
 	}
-
-//	private RepeatingView createConnectionResultTable(List<OpResult> testResults) {
-////		ListDataProvider<TestConnectionResultDto> listprovider = new ListDataProvider<TestConnectionResultDto>(
-////				this, model);
-////		List<ColumnTypeDto> columns = Arrays.asList(
-////				new ColumnTypeDto<String>("Operation Name", "operationName", null),
-////				new ColumnTypeDto("Status", "status", null),
-////				new ColumnTypeDto<String>("Error Message", "errorMessage", null));
-////
-////		TablePanel table = new TablePanel(getMainPopupBodyId(), listprovider,
-////				ColumnUtils.createColumns(columns));
-////		table.setOutputMarkupId(true);
-//		
-//		RepeatingView resultView = new RepeatingView(getMainPopupBodyId());
-//		
-//		for (OpResult result : testResults) {
-//			resultView.add(new OperationResultPanel(resultView.newChildId(), new Model<OpResult>(result)));
-//		}
-//		
-//		resultView.setOutputMarkupId(true);
-//		
-//		return resultView;
-//	}
-
 }
