@@ -33,6 +33,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 import org.w3c.dom.Element;
 
@@ -101,7 +102,15 @@ public class TestOpenDJNegative extends AbstractOpenDJTest {
 		repoAddShadowFromFile(ACCOUNT_JACK_REPO_FILE, initResult);
 	}
 	
-// We are NOT starting OpenDJ here. We want to see the blood .. err ... errors
+	@BeforeClass
+	public static void stoptLdap() throws Exception {
+		// Make sure that OpenDJ is stopped. We want to see the blood .. err ... errors
+		try {
+			openDJController.stop();
+		} catch (Exception ex) {
+			LOGGER.trace("Exeception during stopping already stopped LDAP (probably harmless)", ex);
+		}
+	}
 	
 	@Test
 	public void test003Connection() throws Exception {
