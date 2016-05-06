@@ -28,6 +28,7 @@ import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -223,13 +224,15 @@ public class OperationResultPanel extends BasePanel<OpResult> {
 			public File getObject() {
 				String home = getPageBase().getMidpointConfiguration().getMidpointHome();
 				File f = new File(home, "result");
-				DataOutputStream dos;
+				DataOutputStream dos = null;
 				try {
 					dos = new DataOutputStream(new FileOutputStream(f));
 
 					dos.writeBytes(OperationResultPanel.this.getModel().getObject().getXml());
 				} catch (IOException e) {
 					LOGGER.error("Could not download result: {}", e.getMessage(), e);
+				} finally {
+					IOUtils.closeQuietly(dos);
 				}
 
 				return f;
