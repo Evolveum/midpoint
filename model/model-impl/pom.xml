@@ -127,7 +127,11 @@
 			<artifactId>security-api</artifactId>
 			<version>3.4-SNAPSHOT</version>
 		</dependency>
-		
+
+		<dependency>
+			<groupId>commons-io</groupId>
+			<artifactId>commons-io</artifactId>
+		</dependency>
 		<dependency>
 			<groupId>commons-lang</groupId>
 			<artifactId>commons-lang</artifactId>
