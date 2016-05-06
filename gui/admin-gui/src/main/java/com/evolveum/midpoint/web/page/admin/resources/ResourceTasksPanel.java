@@ -108,7 +108,7 @@ public class ResourceTasksPanel extends Panel {
 			private static final long serialVersionUID = 1L;
 			
 			@Override
-			protected BaseSortableDataProvider<SelectableBean<TaskType>> getProvider() {
+			protected BaseSortableDataProvider<SelectableBean<TaskType>> initProvider() {
 				return new ListDataProvider2(pageBase, tasks);
 			}
 			

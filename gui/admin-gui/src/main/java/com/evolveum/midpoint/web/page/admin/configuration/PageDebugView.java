@@ -81,7 +81,7 @@ public class PageDebugView extends PageAdminConfiguration {
 
     public static final String PARAM_OBJECT_ID = "objectId";
     public static final String PARAM_OBJECT_TYPE = "objectType";
-    private IModel<ObjectViewDto> model;
+    private LoadableModel<ObjectViewDto> model;
     private AceEditor editor;
     private final IModel<Boolean> encrypt = new Model<>(true);
     private final IModel<Boolean> saveAsRaw = new Model<>(true);
@@ -108,6 +108,9 @@ public class PageDebugView extends PageAdminConfiguration {
 
             @Override
             public String getObject() {
+            	if (!model.isLoaded()){
+            		return "";
+            	}
                 return createStringResource("PageDebugView.title", model.getObject().getName()).getString();
             }
         };
