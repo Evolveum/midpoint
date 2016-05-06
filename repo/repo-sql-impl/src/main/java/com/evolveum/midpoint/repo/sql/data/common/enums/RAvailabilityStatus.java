@@ -26,6 +26,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AvailabilityStatusTy
 public enum RAvailabilityStatus implements SchemaEnum<AvailabilityStatusType> {
 
     UP(AvailabilityStatusType.UP),
+    BROKEN(AvailabilityStatusType.BROKEN),
     DOWN(AvailabilityStatusType.DOWN);
 
     private AvailabilityStatusType status;
