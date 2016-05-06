@@ -113,13 +113,13 @@ public class ResourceDetailsTabPanel extends Panel{
 		ListDataProvider<ResourceConfigurationDto> resourceConfigProvider = new ListDataProvider<ResourceConfigurationDto>(
 				ResourceDetailsTabPanel.this, new ListModel<ResourceConfigurationDto>(resourceConfigList));
 
-		List<ColumnTypeDto> columns = Arrays.asList(
-				new ColumnTypeDto("ShadowType.kind", "objectTypeDefinition.kind", ShadowType.F_KIND.getLocalPart()),
+		List<ColumnTypeDto<String>> columns = Arrays.asList(
+				new ColumnTypeDto<String>("ShadowType.kind", "objectTypeDefinition.kind", ShadowType.F_KIND.getLocalPart()),
 				new ColumnTypeDto<String>("ShadowType.objectClass", "objectTypeDefinition.objectClass.localPart",
 						ShadowType.F_OBJECT_CLASS.getLocalPart()),
 				new ColumnTypeDto<String>("ShadowType.intent", "objectTypeDefinition.intent",
 						ShadowType.F_INTENT.getLocalPart()),
-				new ColumnTypeDto<Boolean>("ResourceType.isSync", "sync", null));
+				new ColumnTypeDto<String>("ResourceType.isSync", "sync", null));
 
 		List<IColumn<SelectableBean<ResourceType>, String>> tableColumns = ColumnUtils.createColumns(columns);
 

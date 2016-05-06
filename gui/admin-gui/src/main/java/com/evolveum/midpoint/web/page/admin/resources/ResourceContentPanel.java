@@ -146,8 +146,6 @@ public abstract class ResourceContentPanel extends Panel {
 	private String intent;
 	private QName objectClass;
 
-	// private LoadableModel<Search> searchModel;
-
 	IModel<PrismObject<ResourceType>> resourceModel;
 
 	public ResourceContentPanel(String id, IModel<PrismObject<ResourceType>> resourceModel, QName objectClass,
@@ -197,15 +195,6 @@ public abstract class ResourceContentPanel extends Panel {
 
 	private void initLayout() {
 
-		// searchModel = new LoadableModel<Search>(false) {
-		//
-		// @Override
-		// public Search load() {
-		//
-		// return ResourceContentPanel.this.createSearch();
-		// }
-		// };
-
 		MainObjectListPanel<ShadowType> shadowListPanel = new MainObjectListPanel<ShadowType>(ID_TABLE,
 				ShadowType.class, TableId.PAGE_RESOURCE_ACCOUNTS_PANEL, null, pageBase) {
 			private static final long serialVersionUID = 1L;
@@ -233,8 +222,8 @@ public abstract class ResourceContentPanel extends Panel {
 			}
 
 			@Override
-			protected BaseSortableDataProvider<SelectableBean<ShadowType>> getProvider() {
-				SelectableBeanObjectDataProvider<ShadowType> provider = (SelectableBeanObjectDataProvider<ShadowType>) super.getProvider();
+			protected BaseSortableDataProvider<SelectableBean<ShadowType>> initProvider() {
+				SelectableBeanObjectDataProvider<ShadowType> provider = (SelectableBeanObjectDataProvider<ShadowType>) super.initProvider();
 				provider.setEmptyListOnNullQuery(true);
 				provider.setSort(null);
 				createSearchOptions(provider);
@@ -269,6 +258,7 @@ public abstract class ResourceContentPanel extends Panel {
 			@Override
 			protected LoadableModel<Search> createSearchModel() {
 				return new LoadableModel<Search>(false) {
+					private static final long serialVersionUID = 1L;
 
 					@Override
 					public Search load() {
@@ -341,6 +331,7 @@ public abstract class ResourceContentPanel extends Panel {
 		InlineMenuItem item = new InlineMenuItem(
 				getPageBase().createStringResource("ResourceContentResourcePanel.showExisting"),
 				new InlineMenuItemAction() {
+					private static final long serialVersionUID = 1L;
 
 					@Override
 					public void onClick(AjaxRequestTarget target) {
@@ -351,6 +342,7 @@ public abstract class ResourceContentPanel extends Panel {
 
 		item = new InlineMenuItem(getPageBase().createStringResource("ResourceContentResourcePanel.newTask"),
 				new InlineMenuItemAction() {
+					private static final long serialVersionUID = 1L;
 
 					@Override
 					public void onClick(AjaxRequestTarget target) {
@@ -428,35 +420,37 @@ public abstract class ResourceContentPanel extends Panel {
 		return tasksForKind;
 	}
 
-	private SelectableBeanObjectDataProvider<ShadowType> initProvider() {
-		SelectableBeanObjectDataProvider<ShadowType> provider = new SelectableBeanObjectDataProvider<ShadowType>(
-				this, ShadowType.class) {
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			public SelectableBean<ShadowType> createDataObjectWrapper(ShadowType obj) {
-				SelectableBean<ShadowType> bean = super.createDataObjectWrapper(obj);
-				List<InlineMenuItem> inlineMenu = createRowMenuItems();
-				if (inlineMenu != null) {
-					bean.getMenuItems().addAll(inlineMenu);
-				}
-				return bean;
-			}
-		};
-
-		ObjectQuery query = createQuery();
-
-		if (query == null) {
-			initCustomLayout();
-			return provider;
-
-		}
-
-		provider.setEmptyListOnNullQuery(true);
-		provider.setSort(null);
-		createSearchOptions(provider);
-		return provider;
-	}
+	// private SelectableBeanObjectDataProvider<ShadowType> initProvider() {
+	// SelectableBeanObjectDataProvider<ShadowType> provider = new
+	// SelectableBeanObjectDataProvider<ShadowType>(
+	// this, ShadowType.class) {
+	// private static final long serialVersionUID = 1L;
+	//
+	// @Override
+	// public SelectableBean<ShadowType> createDataObjectWrapper(ShadowType obj)
+	// {
+	// SelectableBean<ShadowType> bean = super.createDataObjectWrapper(obj);
+	// List<InlineMenuItem> inlineMenu = createRowMenuItems();
+	// if (inlineMenu != null) {
+	// bean.getMenuItems().addAll(inlineMenu);
+	// }
+	// return bean;
+	// }
+	// };
+	//
+	// ObjectQuery query = createQuery();
+	//
+	// if (query == null) {
+	// initCustomLayout();
+	// return provider;
+	//
+	// }
+	//
+	// provider.setEmptyListOnNullQuery(true);
+	// provider.setSort(null);
+	// createSearchOptions(provider);
+	// return provider;
+	// }
 
 	protected void initCustomLayout() {
 		// Nothing to do, for subclass extension
@@ -494,7 +488,7 @@ public abstract class ResourceContentPanel extends Panel {
 
 	protected abstract Search createSearch();
 
-	private void createSearchOptions(SelectableBeanObjectDataProvider provider) {
+	private void createSearchOptions(SelectableBeanObjectDataProvider<ShadowType> provider) {
 
 		Collection<SelectorOptions<GetOperationOptions>> opts = SelectorOptions.createCollection(
 				ShadowType.F_ASSOCIATION, GetOperationOptions.createRetrieve(RetrieveOption.EXCLUDE));
@@ -512,8 +506,8 @@ public abstract class ResourceContentPanel extends Panel {
 
 	private List<IColumn<SelectableBean<ShadowType>, String>> initColumns() {
 
-		List<ColumnTypeDto> columnDefs = Arrays.asList(
-				new ColumnTypeDto("ShadowType.synchronizationSituation",
+		List<ColumnTypeDto<String>> columnDefs = Arrays.asList(
+				new ColumnTypeDto<String>("ShadowType.synchronizationSituation",
 						SelectableBean.F_VALUE + ".synchronizationSituation",
 						ShadowType.F_SYNCHRONIZATION_SITUATION.getLocalPart()),
 				new ColumnTypeDto<String>("ShadowType.intent", SelectableBean.F_VALUE + ".intent",
@@ -521,8 +515,9 @@ public abstract class ResourceContentPanel extends Panel {
 
 		List<IColumn<SelectableBean<ShadowType>, String>> columns = new ArrayList<>();
 
-		IColumn column = new AbstractColumn<SelectableBean<ShadowType>, String>(
+		IColumn<SelectableBean<ShadowType>, String> column = new AbstractColumn<SelectableBean<ShadowType>, String>(
 				createStringResource("pageContentAccounts.identifiers")) {
+			private static final long serialVersionUID = 1L;
 
 			@Override
 			public void populateItem(Item<ICellPopulator<SelectableBean<ShadowType>>> cellItem,
@@ -551,9 +546,10 @@ public abstract class ResourceContentPanel extends Panel {
 			private static final long serialVersionUID = 1L;
 
 			@Override
-			protected IModel createLinkModel(final IModel<SelectableBean<ShadowType>> rowModel) {
+			protected IModel<FocusType> createLinkModel(final IModel<SelectableBean<ShadowType>> rowModel) {
 
 				return new AbstractReadOnlyModel<FocusType>() {
+					private static final long serialVersionUID = 1L;
 
 					@Override
 					public FocusType getObject() {
@@ -570,8 +566,6 @@ public abstract class ResourceContentPanel extends Panel {
 
 			@Override
 			public void onClick(AjaxRequestTarget target, IModel<SelectableBean<ShadowType>> rowModel) {
-				SelectableBean<ShadowType> shadow = rowModel.getObject();
-				ShadowType shadowType = shadow.getValue();
 				ownerDetailsPerformed(target, this.getModelObjectIdentifier());
 			}
 		};
@@ -662,8 +656,6 @@ public abstract class ResourceContentPanel extends Panel {
 	}
 
 	private <F extends FocusType> F loadShadowOwner(IModel<SelectableBean<ShadowType>> model) {
-		F owner = null;
-
 		ShadowType shadow = model.getObject().getValue();
 		String shadowOid;
 		if (shadow != null) {
@@ -672,31 +664,37 @@ public abstract class ResourceContentPanel extends Panel {
 			return null;
 		}
 
-		Task task = pageBase.createSimpleTask(OPERATION_LOAD_SHADOW_OWNER);
-		OperationResult result = new OperationResult(OPERATION_LOAD_SHADOW_OWNER);
+		return loadShadowOwner(shadowOid);
 
-		try {
-			PrismObject prismOwner = pageBase.getModelService().searchShadowOwner(shadowOid, null, task,
-					result);
-
-			if (prismOwner != null) {
-				owner = (F) prismOwner.asObjectable();
-			}
-		} catch (ObjectNotFoundException exception) {
-			// owner was not found, it's possible and it's ok on unlinked
-			// accounts
-		} catch (Exception ex) {
-			result.recordFatalError(pageBase.getString("PageAccounts.message.ownerNotFound", shadowOid), ex);
-			LoggingUtils.logException(LOGGER, "Could not load owner of account with oid: " + shadowOid, ex);
-		} finally {
-			result.computeStatusIfUnknown();
-		}
-
-		if (WebComponentUtil.showResultInPage(result)) {
-			pageBase.showResult(result, false);
-		}
-
-		return owner;
+		// Task task = pageBase.createSimpleTask(OPERATION_LOAD_SHADOW_OWNER);
+		// OperationResult result = new
+		// OperationResult(OPERATION_LOAD_SHADOW_OWNER);
+		//
+		// try {
+		// PrismObject<? extends FocusType> prismOwner =
+		// pageBase.getModelService().searchShadowOwner(shadowOid, null, task,
+		// result);
+		//
+		// if (prismOwner != null) {
+		// owner = (F) prismOwner.asObjectable();
+		// }
+		// } catch (ObjectNotFoundException exception) {
+		// // owner was not found, it's possible and it's ok on unlinked
+		// // accounts
+		// } catch (Exception ex) {
+		// result.recordFatalError(pageBase.getString("PageAccounts.message.ownerNotFound",
+		// shadowOid), ex);
+		// LoggingUtils.logException(LOGGER, "Could not load owner of account
+		// with oid: " + shadowOid, ex);
+		// } finally {
+		// result.computeStatusIfUnknown();
+		// }
+		//
+		// if (WebComponentUtil.showResultInPage(result)) {
+		// pageBase.showResult(result, false);
+		// }
+		//
+		// return owner;
 	}
 
 	private void shadowDetailsPerformed(AjaxRequestTarget target, String accountName, String accountOid) {
@@ -718,8 +716,8 @@ public abstract class ResourceContentPanel extends Panel {
 		OperationResult result = new OperationResult(OPERATION_LOAD_SHADOW_OWNER);
 
 		try {
-			PrismObject prismOwner = pageBase.getModelService().searchShadowOwner(shadowOid, null, task,
-					result);
+			PrismObject<? extends FocusType> prismOwner = pageBase.getModelService()
+					.searchShadowOwner(shadowOid, null, task, result);
 
 			if (prismOwner != null) {
 				return (F) prismOwner.asObjectable();
@@ -746,6 +744,7 @@ public abstract class ResourceContentPanel extends Panel {
 
 		items.add(new InlineMenuItem(createStringResource("pageContentAccounts.menu.enableAccounts"), true,
 				new HeaderMenuAction(this) {
+					private static final long serialVersionUID = 1L;
 
 					@Override
 					public void onSubmit(AjaxRequestTarget target, Form<?> form) {
@@ -755,6 +754,7 @@ public abstract class ResourceContentPanel extends Panel {
 
 		items.add(new InlineMenuItem(createStringResource("pageContentAccounts.menu.disableAccounts"), true,
 				new HeaderMenuAction(this) {
+					private static final long serialVersionUID = 1L;
 
 					@Override
 					public void onSubmit(AjaxRequestTarget target, Form<?> form) {
@@ -764,6 +764,7 @@ public abstract class ResourceContentPanel extends Panel {
 
 		items.add(new InlineMenuItem(createStringResource("pageContentAccounts.menu.deleteAccounts"), true,
 				new HeaderMenuAction(this) {
+					private static final long serialVersionUID = 1L;
 
 					@Override
 					public void onSubmit(AjaxRequestTarget target, Form<?> form) {
@@ -776,6 +777,8 @@ public abstract class ResourceContentPanel extends Panel {
 		items.add(new InlineMenuItem(createStringResource("pageContentAccounts.menu.importAccounts"), true,
 				new HeaderMenuAction(this) {
 
+					private static final long serialVersionUID = 1L;
+
 					@Override
 					public void onSubmit(AjaxRequestTarget target, Form<?> form) {
 						importResourceObject(null, target);
@@ -786,6 +789,7 @@ public abstract class ResourceContentPanel extends Panel {
 
 		items.add(new InlineMenuItem(createStringResource("pageContentAccounts.menu.removeOwners"), true,
 				new HeaderMenuAction(this) {
+					private static final long serialVersionUID = 1L;
 
 					@Override
 					public void onSubmit(AjaxRequestTarget target, Form<?> form) {
@@ -891,7 +895,7 @@ public abstract class ResourceContentPanel extends Panel {
 		OperationResult result = new OperationResult(OPERATION_IMPORT_OBJECT);
 		Task task = pageBase.createSimpleTask(OPERATION_IMPORT_OBJECT);
 
-		if (selectedShadow == null && selectedShadow.isEmpty()) {
+		if (selectedShadow == null || selectedShadow.isEmpty()) {
 			result.recordWarning("Nothing select to import");
 			getPageBase().showResult(result);
 			target.add(getPageBase().getFeedbackPanel());
@@ -928,7 +932,7 @@ public abstract class ResourceContentPanel extends Panel {
 		OperationResult result = new OperationResult(OPERATION_DELETE_OBJECT);
 		Task task = pageBase.createSimpleTask(OPERATION_DELETE_OBJECT);
 
-		if (selectedShadow == null && selectedShadow.isEmpty()) {
+		if (selectedShadow == null || selectedShadow.isEmpty()) {
 			result.recordWarning("Nothing selected to delete");
 			getPageBase().showResult(result);
 			target.add(getPageBase().getFeedbackPanel());
@@ -946,7 +950,6 @@ public abstract class ResourceContentPanel extends Panel {
 			} catch (ObjectAlreadyExistsException | ObjectNotFoundException | SchemaException
 					| ExpressionEvaluationException | CommunicationException | ConfigurationException
 					| PolicyViolationException | SecurityViolationException e) {
-				// TODO Auto-generated catch block
 				result.recordPartialError("Could not delete object " + shadow, e);
 				LOGGER.error("Could not delete {}, using option {}", shadow, opts, e);
 				continue;
@@ -975,7 +978,7 @@ public abstract class ResourceContentPanel extends Panel {
 		OperationResult result = new OperationResult(OPERATION_UPDATE_STATUS);
 		Task task = pageBase.createSimpleTask(OPERATION_UPDATE_STATUS);
 
-		if (selectedShadow == null && selectedShadow.isEmpty()) {
+		if (selectedShadow == null || selectedShadow.isEmpty()) {
 			result.recordWarning("Nothing selected to update status");
 			getPageBase().showResult(result);
 			target.add(getPageBase().getFeedbackPanel());
@@ -1012,7 +1015,7 @@ public abstract class ResourceContentPanel extends Panel {
 
 	}
 
-	private PrismObjectDefinition getFocusDefinition() {
+	private PrismObjectDefinition<FocusType> getFocusDefinition() {
 		return pageBase.getPrismContext().getSchemaRegistry()
 				.findObjectDefinitionByCompileTimeClass(FocusType.class);
 	}

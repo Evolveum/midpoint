@@ -32,6 +32,7 @@ import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.audit.api.AuditEventType;
 import com.evolveum.midpoint.audit.api.AuditService;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.security.api.ConnectionEnvironment;
@@ -39,6 +40,8 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 /**
  * @author semancik
@@ -80,8 +83,29 @@ public class SecurityHelper {
         record.setTimestamp(System.currentTimeMillis());
         record.setOutcome(status);
         record.setMessage(message);
+        record.setSessionIdentifier(connEnv.getSessionId());
 
         auditService.audit(record, task);
+    }
+    
+    public void auditLogout(ConnectionEnvironment connEnv, Task task) {
+    	AuditEventRecord record = new AuditEventRecord(AuditEventType.TERMINATE_SESSION, AuditEventStage.REQUEST);
+		PrismObject<UserType> owner = task.getOwner();
+		if (owner != null) {
+			record.setInitiator(owner);
+			PolyStringType name = owner.asObjectable().getName();
+			if (name != null) {
+				record.setParameter(name.getOrig());
+			}
+		}
+
+		record.setChannel(connEnv.getChannel());
+		record.setTimestamp(System.currentTimeMillis());
+		record.setSessionIdentifier(connEnv.getSessionId());
+
+		record.setOutcome(OperationResultStatus.SUCCESS);
+
+		auditService.audit(record, task);
     }
 
 	public String getUsernameFromMessage(SOAPMessage saajSoapMessage) throws WSSecurityException {
