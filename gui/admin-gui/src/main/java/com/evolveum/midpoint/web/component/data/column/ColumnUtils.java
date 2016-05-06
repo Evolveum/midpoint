@@ -45,16 +45,16 @@ import com.evolveum.midpoint.web.component.util.SelectableBean;
 
 public class ColumnUtils {
 
-	public static <T> List<IColumn<T, String>> createColumns(List<ColumnTypeDto> columns) {
+	public static <T> List<IColumn<T, String>> createColumns(List<ColumnTypeDto<String>> columns) {
 		List<IColumn<T, String>> tableColumns = new ArrayList<>();
-		for (ColumnTypeDto column : columns) {
-			PropertyColumn tableColumn = null;
+		for (ColumnTypeDto<String> column : columns) {
+			PropertyColumn<T, String> tableColumn = null;
 			if (column.isSortable()) {
 				tableColumn = createPropertyColumn(column.getColumnName(), column.getSortableColumn(),
 						column.getColumnValue(), column.isMultivalue());
 
 			} else {
-				tableColumn = new PropertyColumn(createStringResource(column.getColumnName()),
+				tableColumn = new PropertyColumn<T, String>(createStringResource(column.getColumnName()),
 						column.getColumnValue());
 			}
 			tableColumns.add(tableColumn);
@@ -63,10 +63,10 @@ public class ColumnUtils {
 		return tableColumns;
 	}
 
-	private static PropertyColumn createPropertyColumn(String name, String sortableProperty,
+	private static <T> PropertyColumn<T, String> createPropertyColumn(String name, String sortableProperty,
 			final String expression, final boolean multivalue) {
 
-		return new PropertyColumn(createStringResource(name), sortableProperty, expression) {
+		return new PropertyColumn<T, String>(createStringResource(name), sortableProperty, expression) {
 			private static final long serialVersionUID = 1L;
 
 			@Override
@@ -365,14 +365,14 @@ public class ColumnUtils {
 	public static <T extends ObjectType> List<IColumn<SelectableBean<T>, String>> getDefaultUserColumns() {
 		List<IColumn<SelectableBean<T>, String>> columns = new ArrayList<IColumn<SelectableBean<T>, String>>();
 
-		List<ColumnTypeDto> columnsDefs = Arrays.asList(
-				new ColumnTypeDto("UserType.givenName", UserType.F_GIVEN_NAME.getLocalPart(),
+		List<ColumnTypeDto<String>> columnsDefs = Arrays.asList(
+				new ColumnTypeDto<String>("UserType.givenName", UserType.F_GIVEN_NAME.getLocalPart(),
 						SelectableBean.F_VALUE + ".givenName.orig", false),
-				new ColumnTypeDto("UserType.familyName", UserType.F_FAMILY_NAME.getLocalPart(),
+				new ColumnTypeDto<String>("UserType.familyName", UserType.F_FAMILY_NAME.getLocalPart(),
 						SelectableBean.F_VALUE + ".familyName.orig", false),
-				new ColumnTypeDto("UserType.fullName", UserType.F_FULL_NAME.getLocalPart(),
+				new ColumnTypeDto<String>("UserType.fullName", UserType.F_FULL_NAME.getLocalPart(),
 						SelectableBean.F_VALUE + ".fullName.orig", false),
-				new ColumnTypeDto("UserType.emailAddress", UserType.F_EMAIL_ADDRESS.getLocalPart(),
+				new ColumnTypeDto<String>("UserType.emailAddress", UserType.F_EMAIL_ADDRESS.getLocalPart(),
 						SelectableBean.F_VALUE + ".emailAddress", false)
 
 		);
@@ -443,8 +443,8 @@ public class ColumnUtils {
 
 		});
 
-		List<ColumnTypeDto> columnsDefs = Arrays.asList(
-				new ColumnTypeDto("TaskType.executionStatus", TaskType.F_EXECUTION_STATUS.getLocalPart(),
+		List<ColumnTypeDto<String>> columnsDefs = Arrays.asList(
+				new ColumnTypeDto<String>("TaskType.executionStatus", TaskType.F_EXECUTION_STATUS.getLocalPart(),
 						SelectableBean.F_VALUE + ".executionStatus", false));
 		columns.addAll(ColumnUtils.<SelectableBean<T>>createColumns(columnsDefs));
 
@@ -485,14 +485,14 @@ public class ColumnUtils {
 			sortByDisplayName = AbstractRoleType.F_DISPLAY_NAME.getLocalPart();
 			sortByIdentifer = AbstractRoleType.F_IDENTIFIER.getLocalPart();
 		}
-		List<ColumnTypeDto> columnsDefs = Arrays.asList(
-				new ColumnTypeDto("AbstractRoleType.displayName",
+		List<ColumnTypeDto<String>> columnsDefs = Arrays.asList(
+				new ColumnTypeDto<String>("AbstractRoleType.displayName",
 						sortByDisplayName,
 						SelectableBean.F_VALUE + ".displayName", false),
-				new ColumnTypeDto("AbstractRoleType.description",
+				new ColumnTypeDto<String>("AbstractRoleType.description",
 						null,
 						SelectableBean.F_VALUE + ".description", false),
-				new ColumnTypeDto("AbstractRoleType.identifier", sortByIdentifer,
+				new ColumnTypeDto<String>("AbstractRoleType.identifier", sortByIdentifer,
 						SelectableBean.F_VALUE + ".identifier", false)
 
 		);
@@ -503,11 +503,11 @@ public class ColumnUtils {
 	public static <T extends ObjectType> List<IColumn<SelectableBean<T>, String>> getDefaultResourceColumns() {
 		List<IColumn<SelectableBean<T>, String>> columns = new ArrayList<IColumn<SelectableBean<T>, String>>();
 
-		List<ColumnTypeDto> columnsDefs = Arrays.asList(
+		List<ColumnTypeDto<String>> columnsDefs = Arrays.asList(
 				// new ColumnTypeDto("AbstractRoleType.displayName",
 				// SelectableBean.F_VALUE + ".displayName",
 				// true, false),
-				new ColumnTypeDto("AbstractRoleType.description", ResourceType.F_DESCRIPTION.getLocalPart(),
+				new ColumnTypeDto<String>("AbstractRoleType.description", ResourceType.F_DESCRIPTION.getLocalPart(),
 						SelectableBean.F_VALUE + ".description", false)
 		// new ColumnTypeDto("AbstractRoleType.identifier",
 		// SelectableBean.F_VALUE + ".identifier", true,

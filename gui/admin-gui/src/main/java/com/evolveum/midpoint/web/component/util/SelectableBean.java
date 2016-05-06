@@ -23,6 +23,7 @@ import java.util.List;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.web.component.data.column.InlineMenuable;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
 
 /**
  * @author lazyman
@@ -65,6 +66,10 @@ public class SelectableBean<T extends Serializable> extends Selectable implement
 
 	public void setResult(OperationResult result) {
 		this.result = result;
+	}
+	
+	public void setResult(OperationResultType resultType) {
+		this.result = OperationResult.createOperationResult(resultType);
 	}
 
 	public List<InlineMenuItem> getMenuItems() {

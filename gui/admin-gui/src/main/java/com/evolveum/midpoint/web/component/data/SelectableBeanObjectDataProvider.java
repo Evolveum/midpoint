@@ -152,7 +152,7 @@ public class SelectableBeanObjectDataProvider<O extends ObjectType> extends Base
             result.computeStatusIfUnknown();
         }
 
-        if (!WebComponentUtil.isSuccessOrHandledError(result)) {
+        if (result.isFatalError()) {
             return handleNotSuccessOrHandledErrorInIterator(result);
         }
 
@@ -174,6 +174,9 @@ public class SelectableBeanObjectDataProvider<O extends ObjectType> extends Base
 
     public SelectableBean<O> createDataObjectWrapper(O obj) {
     	SelectableBean<O> selectable = new SelectableBean<O>(obj);
+    	if (!WebComponentUtil.isSuccessOrHandledError(obj.getFetchResult())){
+    		selectable.setResult(obj.getFetchResult());
+    	}
     	for (O s : selected){
     		if (s.getOid().equals(obj.getOid())){
     			selectable.setSelected(true);

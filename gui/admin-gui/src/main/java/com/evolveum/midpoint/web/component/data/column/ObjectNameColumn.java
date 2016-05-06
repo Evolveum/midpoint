@@ -23,6 +23,7 @@ import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -60,7 +61,17 @@ public class ObjectNameColumn<O extends ObjectType> extends AbstractColumn<Selec
 					OperationResultStatusPresentationProperties props = OperationResultStatusPresentationProperties.parseOperationalResultStatus(result.getStatus());
 					return cellItem.getString(props.getStatusLabelKey());
 				} else {
-					return value.getName().getOrig();
+					String name = WebComponentUtil.getName(value);
+					if (selectableBean.getResult() != null){
+						StringBuilder complexName = new StringBuilder(name);
+						complexName.append("(");
+						complexName.append(selectableBean.getResult().getStatus());
+						complexName.append(")");
+						return complexName.toString(); 
+					}
+						return name;
+					
+					
 				}
 			} 
 		};
@@ -76,7 +87,11 @@ public class ObjectNameColumn<O extends ObjectType> extends AbstractColumn<Selec
 					OperationResult result = selectableBean.getResult();
 					throw new RestartResponseException(new PageOperationResult(result));
 				} else {
-					ObjectNameColumn.this.onClick(target, rowModel);
+					if (selectableBean.getResult() != null){
+						throw new RestartResponseException(new PageOperationResult(selectableBean.getResult()));
+					} else {
+						ObjectNameColumn.this.onClick(target, rowModel);
+					}
 				}
             }
 

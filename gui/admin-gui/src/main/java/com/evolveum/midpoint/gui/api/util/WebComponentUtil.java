@@ -148,6 +148,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MisfireActionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationalStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
@@ -859,6 +860,11 @@ public final class WebComponentUtil {
 		}
 
 		return result.isSuccess() || result.isHandledError();
+	}
+	
+	public static boolean isSuccessOrHandledError(OperationResultType resultType) {
+		OperationResult result = OperationResult.createOperationResult(resultType);
+		return isSuccessOrHandledError(result);
 	}
 
 	public static boolean isSuccessOrHandledErrorOrWarning(OperationResult result) {
