@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2015 Evolveum
+ * Copyright (c) 2013-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -53,6 +53,7 @@ import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.impl.rest.PATCH;
+import com.evolveum.midpoint.model.impl.security.SecurityHelper;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
@@ -64,13 +65,13 @@ import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.security.api.ConnectionEnvironment;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ConsistencyViolationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -82,29 +83,48 @@ import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectModificatio
 import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
+/**
+ * @author katkav
+ * @author semancik
+ */
 @Service
 @Produces({"application/xml", "application/json"})
 public class ModelRestService {
 	
-	@Autowired
+	public static final String CLASS_DOT = ModelRestService.class.getName() + ".";
+	public static final String OPERATION_REST_SERVICE = CLASS_DOT + "restService";
+	public static final String OPERATION_GET = CLASS_DOT + "get";
+	public static final String OPERATION_ADD_OBJECT = CLASS_DOT + "addObject";
+	public static final String OPERATION_DELETE_OBJECT = CLASS_DOT + "deleteObject";
+	public static final String OPERATION_MODIFY_OBJECT = CLASS_DOT + "modifyObject";
+	public static final String OPERATION_NOTIFY_CHANGE = CLASS_DOT + "notifyChange";
+	public static final String OPERATION_FIND_SHADOW_OWNER = CLASS_DOT + "findShadowOwner";
+	public static final String OPERATION_SEARCH_OBJECTS = CLASS_DOT + "searchObjects";
+	public static final String OPERATION_IMPORT_FROM_RESOURCE = CLASS_DOT + "importFromResource";
+	public static final String OPERATION_TEST_RESOURCE = CLASS_DOT + "testResource";
+	public static final String OPERATION_SUSPEND_TASKS = CLASS_DOT + "suspendTasks";
+	public static final String OPERATION_SUSPEND_AND_DELETE_TASKS = CLASS_DOT + "suspendAndDeleteTasks";
+	public static final String OPERATION_RESUME_TASKS = CLASS_DOT + "resumeTasks";
+	public static final String OPERATION_SCHEDULE_TASKS_NOW = CLASS_DOT + "scheduleTasksNow";
+
+	
+	@Autowired(required=true)
 	private ModelCrudService model;
 
-	@Autowired
+	@Autowired(required=true)
 	private ModelInteractionService modelInteraction;
 	
-	@Autowired
-	private TaskManager taskManager;
-	
-	@Autowired
-	private AuditService auditService;
-	
-	@Autowired
+	@Autowired(required=true)
 	private PrismContext prismContext;
+	
+	@Autowired(required=true)
+	private SecurityHelper securityHelper;
 	
 	private static final Trace LOGGER = TraceManager.getTrace(ModelRestService.class);
 	
 	public static final long WAIT_FOR_TASK_STOP = 2000L;
-	private static final String OPTIONS = "options";
+	private static final String QUERY_PARAMETER_OPTIONS = "options";
+	public static final String MESSAGE_PROPERTY_TASK_NAME = "task";
 	
 	public ModelRestService() {
 		// nothing to do
@@ -115,9 +135,8 @@ public class ModelRestService {
 	public Response getValuePolicyForUser(@PathParam("id") String oid, @Context MessageContext mc) {
 		LOGGER.info("getValuePolicyForUser start");
 
-		Task task = taskManager.createTaskInstance("get");
-		OperationResult parentResult = task.getResult();
-		initRequest(task, mc);
+		Task task = initRequest(mc);
+		OperationResult parentResult = task.getResult().createSubresult(OPERATION_GET);
 
 		Response response;
 		try {
@@ -135,7 +154,7 @@ public class ModelRestService {
 		}
 
 		parentResult.computeStatus();
-		auditLogout(task);
+		finishRequest(task);
 
 		LOGGER.info("getValuePolicyForUser finish");
 
@@ -183,9 +202,8 @@ public class ModelRestService {
 			@Context MessageContext mc){
 		LOGGER.info("model rest service for get operation start");
 		
-		Task task = taskManager.createTaskInstance("get");
-		OperationResult parentResult = task.getResult();
-		initRequest(task, mc);
+		Task task = initRequest(mc);
+		OperationResult parentResult = task.getResult().createSubresult(OPERATION_GET);
 		
 		Class<T> clazz = ObjectTypes.getClassFromRestType(type);
 		Response response;
@@ -200,7 +218,7 @@ public class ModelRestService {
 		}
 		
 		parentResult.computeStatus();
-		auditLogout(task);
+		finishRequest(task);
 		return response;
 	}
 
@@ -214,13 +232,12 @@ public class ModelRestService {
 			@Context UriInfo uriInfo, @Context MessageContext mc) {
 		LOGGER.info("model rest service for add operation start");
 		
-		Task task = taskManager.createTaskInstance("add");
-		initRequest(task, mc);
-		OperationResult parentResult = task.getResult();
+		Task task = initRequest(mc);
+		OperationResult parentResult = task.getResult().createSubresult(OPERATION_ADD_OBJECT);
 		
 		Class clazz = ObjectTypes.getClassFromRestType(type);
 		if (!object.getCompileTimeClass().equals(clazz)){
-			auditLogout(task);
+			finishRequest(task);
 			return buildErrorResponse(Status.BAD_REQUEST, "Request to add object of type "
 					+ object.getCompileTimeClass().getSimpleName() + " to the collection of " + type);
 		}
@@ -251,7 +268,7 @@ public class ModelRestService {
 		}
 		
 		parentResult.computeStatus();
-		auditLogout(task);
+		finishRequest(task);
 		return response;
 	}
 
@@ -264,13 +281,12 @@ public class ModelRestService {
 	
 		LOGGER.info("model rest service for add operation start");
 
-		Task task = taskManager.createTaskInstance("add");
-		initRequest(task, mc);
-		OperationResult parentResult = task.getResult();
+		Task task = initRequest(mc);
+		OperationResult parentResult = task.getResult().createSubresult(OPERATION_ADD_OBJECT);
 		
 		Class clazz = ObjectTypes.getClassFromRestType(type);
 		if (!object.getCompileTimeClass().equals(clazz)){
-			auditLogout(task);
+			finishRequest(task);
 			return buildErrorResponse(Status.BAD_REQUEST, "Request to add object of type "
 					+ object.getCompileTimeClass().getSimpleName()
 					+ " to the collection of " + type);
@@ -299,7 +315,7 @@ public class ModelRestService {
 		}
 		
 		parentResult.computeStatus();
-		auditLogout(task);
+		finishRequest(task);
 		return response;
 	}
 	
@@ -311,9 +327,8 @@ public class ModelRestService {
 
 		LOGGER.info("model rest service for delete operation start");
 		
-		Task task = taskManager.createTaskInstance("delete");
-		initRequest(task, mc);
-		OperationResult parentResult = task.getResult();
+		Task task = initRequest(mc);
+		OperationResult parentResult = task.getResult().createSubresult(OPERATION_DELETE_OBJECT);
 		
 		Class clazz = ObjectTypes.getClassFromRestType(type);
 		Response response;
@@ -321,7 +336,7 @@ public class ModelRestService {
 			if (clazz.isAssignableFrom(TaskType.class)){
 				model.suspendAndDeleteTasks(MiscUtil.createCollection(id), WAIT_FOR_TASK_STOP, true, parentResult);
 				parentResult.computeStatus();
-				auditLogout(task);
+				finishRequest(task);
 				if (parentResult.isSuccess()){
 					return Response.noContent().build();
 				}
@@ -339,7 +354,7 @@ public class ModelRestService {
 		}
 		
 		parentResult.computeStatus();
-		auditLogout(task);
+		finishRequest(task);
 		return response;
 	}
 	
@@ -358,9 +373,8 @@ public class ModelRestService {
 		
 		LOGGER.info("model rest service for modify operation start");
 		
-		Task task = taskManager.createTaskInstance("modifyObject");
-		initRequest(task, mc);
-		OperationResult parentResult = task.getResult();
+		Task task = initRequest(mc);
+		OperationResult parentResult = task.getResult().createSubresult(OPERATION_MODIFY_OBJECT);
 		
 		Class clazz = ObjectTypes.getClassFromRestType(type);
 		Response response;
@@ -374,7 +388,7 @@ public class ModelRestService {
 		}
 		
 		parentResult.computeStatus();
-		auditLogout(task);
+		finishRequest(task);
 		return response;
 	}
 	
@@ -384,9 +398,9 @@ public class ModelRestService {
 			@Context UriInfo uriInfo, @Context MessageContext mc) {
 		LOGGER.info("model rest service for notify change operation start");
 		Validate.notNull(changeDescription, "Chnage description must not be null");
-		Task task = taskManager.createTaskInstance("notifyChange");
-		initRequest(task, mc);
-		OperationResult parentResult = task.getResult();
+		
+		Task task = initRequest(mc);
+		OperationResult parentResult = task.getResult().createSubresult(OPERATION_NOTIFY_CHANGE);
 		
 		Response response;
 		try {
@@ -405,7 +419,7 @@ public class ModelRestService {
 		}
 		
 		parentResult.computeStatus();
-		auditLogout(task);
+		finishRequest(task);
 		return response;
 	}
 
@@ -418,9 +432,8 @@ public class ModelRestService {
 		
 		LOGGER.info("model rest service for find shadow owner operation start");
 
-		Task task = taskManager.createTaskInstance("find shadow owner");
-		initRequest(task, mc);
-		OperationResult parentResult = task.getResult();
+		Task task = initRequest(mc);
+		OperationResult parentResult = task.getResult().createSubresult(OPERATION_FIND_SHADOW_OWNER);
 		
 		Response response;
 		try {
@@ -433,7 +446,7 @@ public class ModelRestService {
 		}
 		
 		parentResult.computeStatus();
-		auditLogout(task);
+		finishRequest(task);
 		return response;
 	}
 
@@ -444,9 +457,8 @@ public class ModelRestService {
 	
 		LOGGER.info("model rest service for find shadow owner operation start");
 
-		Task task = taskManager.createTaskInstance("searchObjects");
-		initRequest(task, mc);
-		OperationResult parentResult = task.getResult();
+		Task task = initRequest(mc);
+		OperationResult parentResult = task.getResult().createSubresult(OPERATION_SEARCH_OBJECTS);
 
 		Class clazz = ObjectTypes.getClassFromRestType(type);
 		Response response;
@@ -466,7 +478,7 @@ public class ModelRestService {
 		}
 		
 		parentResult.computeStatus();
-		auditLogout(task);
+		finishRequest(task);
 		return response;
 	}
 
@@ -477,9 +489,8 @@ public class ModelRestService {
 			@Context MessageContext mc, @Context UriInfo uriInfo) {	
 		LOGGER.info("model rest service for import from resource operation start");
 
-		Task task = taskManager.createTaskInstance("importFromResource");
-		initRequest(task, mc);
-		OperationResult parentResult = task.getResult();
+		Task task = initRequest(mc);
+		OperationResult parentResult = task.getResult().createSubresult(OPERATION_IMPORT_FROM_RESOURCE);
 
 		QName objClass = new QName(MidPointConstants.NS_RI, objectClass);
 		Response response;
@@ -492,7 +503,7 @@ public class ModelRestService {
 		}
 		
 		parentResult.computeStatus();
-		auditLogout(task);
+		finishRequest(task);
 		return response;
 	}
 
@@ -502,18 +513,23 @@ public class ModelRestService {
 	public Response testResource(@PathParam("resourceOid") String resourceOid, @Context MessageContext mc) {
 		LOGGER.info("model rest service for test resource operation start");
 
-		Task task = taskManager.createTaskInstance("testResource");
-		initRequest(task, mc);
+		Task task = initRequest(mc);
+		OperationResult parentResult = task.getResult().createSubresult(OPERATION_TEST_RESOURCE);
 
 		Response response;
+		OperationResult testResult = null;
 		try {
-			OperationResult result = model.testResource(resourceOid, task);
-			response = Response.ok(result).build();
+			testResult = model.testResource(resourceOid, task);
+			response = Response.ok(testResult).build();
 		} catch (Exception ex) {
 			response = handleException(ex);
 		}
 	
-		auditLogout(task);
+		if (testResult != null) {
+			parentResult.getSubresults().add(testResult);
+		}
+		
+		finishRequest(task);
 		return response;
 	}
 	
@@ -521,9 +537,8 @@ public class ModelRestService {
 	@Path("/tasks/{oid}/suspend")
     public Response suspendTasks(@PathParam("oid") String taskOid, @Context MessageContext mc) {
 		
-		Task task = taskManager.createTaskInstance("suspendTasks");
-		initRequest(task, mc);
-		OperationResult parentResult = task.getResult();
+		Task task = initRequest(mc);
+		OperationResult parentResult = task.getResult().createSubresult(OPERATION_SUSPEND_TASKS);
 		
 		Response response;
 		Collection<String> taskOids = MiscUtil.createCollection(taskOid);
@@ -539,17 +554,17 @@ public class ModelRestService {
 			response = handleException(ex);
 		}
 
-		auditLogout(task);
+		finishRequest(task);
 		return response;
     }
 
 //	@DELETE
 //	@Path("tasks/{oid}/suspend")
     public Response suspendAndDeleteTasks(@PathParam("oid") String taskOid, @Context MessageContext mc) {
-    	Task task = taskManager.createTaskInstance("suspendAndDeleteTasks");
-		initRequest(task, mc);
-		OperationResult parentResult = task.getResult();
-		
+    	
+    	Task task = initRequest(mc);
+		OperationResult parentResult = task.getResult().createSubresult(OPERATION_SUSPEND_AND_DELETE_TASKS);
+				
 		Response response;
 		Collection<String> taskOids = MiscUtil.createCollection(taskOid);
 		try {
@@ -565,17 +580,17 @@ public class ModelRestService {
 			response = handleException(ex);
 		}
         
-		auditLogout(task);
+		finishRequest(task);
 		return response;
     }
 	
 	@POST
 	@Path("/tasks/{oid}/resume")
     public Response resumeTasks(@PathParam("oid") String taskOid, @Context MessageContext mc) {
-		Task task = taskManager.createTaskInstance("resumeTasks");
-		initRequest(task, mc);
-		OperationResult parentResult = task.getResult();
-
+		
+		Task task = initRequest(mc);
+		OperationResult parentResult = task.getResult().createSubresult(OPERATION_RESUME_TASKS);
+		
 		Response response;
 		Collection<String> taskOids = MiscUtil.createCollection(taskOid);
 		try {
@@ -592,7 +607,7 @@ public class ModelRestService {
 			response = handleException(ex);
 		}
 
-		auditLogout(task);
+		finishRequest(task);
 		return response;
     }
 
@@ -600,9 +615,10 @@ public class ModelRestService {
 	@POST
 	@Path("tasks/{oid}/run")
     public Response scheduleTasksNow(@PathParam("oid") String taskOid, @Context MessageContext mc) {
-		Task task = taskManager.createTaskInstance("scheduleTasksNow");
-		initRequest(task, mc);
-		OperationResult parentResult = task.getResult();
+		
+		Task task = initRequest(mc);
+		OperationResult parentResult = task.getResult().createSubresult(OPERATION_SCHEDULE_TASKS_NOW);
+
 		Collection<String> taskOids = MiscUtil.createCollection(taskOid);
 
 		Response response;
@@ -620,7 +636,7 @@ public class ModelRestService {
 			response = handleException(ex);
 		}
 
-		auditLogout(task);
+		finishRequest(task);
 		return response;
     }
 	
@@ -663,43 +679,22 @@ public class ModelRestService {
 //    }
 
 
-    private ModelExecuteOptions getOptions(UriInfo uriInfo){
-    	List<String> options = uriInfo.getQueryParameters().get(OPTIONS);
+	private ModelExecuteOptions getOptions(UriInfo uriInfo){
+    	List<String> options = uriInfo.getQueryParameters().get(QUERY_PARAMETER_OPTIONS);
 		return ModelExecuteOptions.fromRestOptions(options);
     }
     
-	private void initRequest(Task task, MessageContext mc) {
-		UserType user = (UserType) mc.get("authenticatedUser");
-		task.setOwner(user.asPrismObject());
-		task.setChannel(SchemaConstants.CHANNEL_REST_URI);
-		auditLoginSuccess(task);
-	}
-    
-    private void auditLoginSuccess(Task task) {
-		audit(AuditEventType.CREATE_SESSION, task);
-	}
-    
-    private void auditLogout(Task task) {
-		audit(AuditEventType.TERMINATE_SESSION, task);
+	private Task initRequest(MessageContext mc) {
+		Task task = (Task) mc.get(MESSAGE_PROPERTY_TASK_NAME);
+		// No need to audit login. it was already audited during authentication
+		return task;
 	}
 
-	private void audit(AuditEventType event, Task task) {
-		AuditEventRecord record = new AuditEventRecord(event, AuditEventStage.REQUEST);
-		PrismObject<UserType> owner = task.getOwner();
-		if (owner != null) {
-			record.setInitiator(owner);
-			PolyStringType name = owner.asObjectable().getName();
-			if (name != null) {
-				record.setParameter(name.getOrig());
-			}
-		}
-
-		record.setChannel(SchemaConstants.CHANNEL_REST_URI);
-		record.setTimestamp(System.currentTimeMillis());
-		record.setSessionIdentifier(task.getTaskIdentifier());
-
-		record.setOutcome(OperationResultStatus.SUCCESS);
-
-		auditService.audit(record, task);
+	private void finishRequest(Task task) {
+		task.getResult().computeStatus();
+		ConnectionEnvironment connEnv = new ConnectionEnvironment();
+		connEnv.setChannel(SchemaConstants.CHANNEL_REST_URI);
+		connEnv.setSessionId(task.getTaskIdentifier());
+		securityHelper.auditLogout(connEnv, task);
 	}
 }

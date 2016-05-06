@@ -489,8 +489,8 @@ public class ConsolidationProcessor {
 	private <V extends PrismValue,D extends ItemDefinition> ItemDelta<V,D> consolidateItem(RefinedObjectClassDefinition rOcDef,
 			ResourceShadowDiscriminator discr, ObjectDelta<ShadowType> existingDelta, LensProjectionContext projCtx,
 			boolean addUnchangedValues, boolean completeShadow, boolean isExclusiveStrong, 
-			ItemPath itemPath, D itemDefinition, 
-			DeltaSetTriple<ItemValueWithOrigin<V,D>> triple, ValueMatcher<?> valueMatcher, Comparator<V> comparator, String itemDesc) 
+			ItemPath itemPath, D itemDefinition, DeltaSetTriple<ItemValueWithOrigin<V,D>> triple, 
+			ValueMatcher<?> valueMatcher, Comparator<V> comparator, String itemDesc) 
 					throws SchemaException, ExpressionEvaluationException, PolicyViolationException {
 
         boolean forceAddUnchangedValues = false;

@@ -1471,11 +1471,19 @@ public class ResourceObjectConverter {
 		if (operations == null) {
 			operations = new ArrayList<Operation>();
 		}
+		RefinedObjectClassDefinition objectClassDefinition = ctx.getObjectClassDefinition();
 		for (ItemDelta itemDelta : objectChange) {
 			if (isAttributeDelta(itemDelta) || SchemaConstants.PATH_PASSWORD.equivalent(itemDelta.getParentPath())) {
 				if (itemDelta instanceof PropertyDelta) {
 					PropertyModificationOperation attributeModification = new PropertyModificationOperation(
 							(PropertyDelta) itemDelta);
+					RefinedAttributeDefinition<Object> attrDef = objectClassDefinition.findAttributeDefinition(itemDelta.getElementName());
+					if (attrDef != null) {
+						attributeModification.setMatchingRuleQName(attrDef.getMatchingRuleQName());
+						if (itemDelta.getDefinition() == null) {
+							itemDelta.setDefinition(attrDef);
+						}
+					}
 					operations.add(attributeModification);
 				} else if (itemDelta instanceof ContainerDelta) {
 					// skip the container delta - most probably password change

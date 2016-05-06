@@ -47,7 +47,8 @@ public class StartupConfiguration implements MidpointConfiguration {
     private static final String MIDPOINT_HOME = "midpoint.home";
     private static final String MIDPOINT_SECTION = "midpoint";
     private static final String SAFE_MODE = "safeMode";
-    
+    private static final String PROFILING_ENABLED = "profilingEnabled";
+
     private static final String DEFAULT_CONFIG_FILE_NAME = "config.xml";
 	private static final String LOGBACK_CONFIG_FILENAME = "logback.xml";
 
@@ -273,6 +274,15 @@ public class StartupConfiguration implements MidpointConfiguration {
         }
         return c.getBoolean(SAFE_MODE, false);
     }
+
+	@Override
+	public boolean isProfilingEnabled() {
+		Configuration c = getConfiguration(MIDPOINT_SECTION);
+		if (c == null) {
+			return false;           // should not occur
+		}
+		return c.getBoolean(PROFILING_ENABLED, false);
+	}
 
     @Override
     public String toString() {

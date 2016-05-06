@@ -39,12 +39,15 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
 import com.evolveum.midpoint.model.api.AuthenticationEvaluator;
+import com.evolveum.midpoint.model.impl.ModelRestService;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.api.ConnectionEnvironment;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.SecurityEnforcer;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -67,6 +70,9 @@ public class MidpointRestAuthenticationHandler implements ContainerRequestFilter
 			
 	@Autowired(required = true)
 	private SecurityHelper securityHelper;
+	
+	@Autowired(required=true)
+	private TaskManager taskManager;
 		
     public void handleRequest(Message m, ContainerRequestContext requestCtx) {
         AuthorizationPolicy policy = (AuthorizationPolicy)m.get(AuthorizationPolicy.class);
@@ -85,7 +91,12 @@ public class MidpointRestAuthenticationHandler implements ContainerRequestFilter
         
         LOGGER.trace("Authenticating username '{}' to REST service", enteredUsername);
         
+        // We need to create task before attempting authentication. Task ID is also a session ID.
+        Task task = taskManager.createTaskInstance(ModelRestService.OPERATION_REST_SERVICE);
+        task.setChannel(SchemaConstants.CHANNEL_REST_URI);
+        
         ConnectionEnvironment connEnv = createConnectionEnvironment();
+        connEnv.setSessionId(task.getTaskIdentifier());
         String enteredPassword = policy.getPassword();
         UsernamePasswordAuthenticationToken token;
         try {
@@ -102,8 +113,9 @@ public class MidpointRestAuthenticationHandler implements ContainerRequestFilter
         }
         
         UserType user = ((MidPointPrincipal)token.getPrincipal()).getUser();
+        task.setOwner(user.asPrismObject());
         
-        m.put("authenticatedUser", user);
+        m.put(ModelRestService.MESSAGE_PROPERTY_TASK_NAME, task);
         securityEnforcer.setupPreAuthenticatedSecurityContext(user.asPrismObject());
         
         LOGGER.trace("Authenticated to REST service as {}", user);

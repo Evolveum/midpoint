@@ -3,6 +3,7 @@ package com.evolveum.midpoint.web.component.input;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.markup.html.form.IChoiceRenderer;
 import org.apache.wicket.model.IModel;
 
@@ -20,7 +21,7 @@ public class ObjectReferenceChoiceRenderer implements IChoiceRenderer<ObjectRefe
 
 	@Override
 	public ObjectReferenceType getObject(String id, IModel<? extends List<? extends ObjectReferenceType>> choices) {
-		return choices.getObject().get(Integer.parseInt(id));
+		return StringUtils.isNotBlank(id) ? choices.getObject().get(Integer.parseInt(id)) : null;
 	}
 
 	@Override

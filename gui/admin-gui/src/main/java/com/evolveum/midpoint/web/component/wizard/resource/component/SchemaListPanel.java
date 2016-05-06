@@ -46,6 +46,7 @@ import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
+import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
@@ -211,7 +212,8 @@ public class SchemaListPanel extends SimplePanel<PrismObject<ResourceType>> {
 
 		initDetailsPanel(objectClassInfoColumn);
 
-        ISortableDataProvider<AttributeDto, String> attributeProvider = new ListDataProvider<>(this, attributeModel, true);
+		ListDataProvider<AttributeDto> attributeProvider = new ListDataProvider<>(this, attributeModel, true);
+		attributeProvider.setSort(AttributeDto.F_DISPLAY_ORDER, SortOrder.ASCENDING);
         BoxedTablePanel<AttributeDto> attributeTable = new BoxedTablePanel<>(ID_ATTRIBUTE_TABLE, attributeProvider, initColumns());
         attributeTable.setOutputMarkupId(true);
         attributeTable.setItemsPerPage(UserProfileStorage.DEFAULT_PAGING_SIZE);

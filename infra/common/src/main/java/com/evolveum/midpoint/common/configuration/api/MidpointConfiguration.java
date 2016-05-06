@@ -65,4 +65,6 @@ public interface MidpointConfiguration {
     Document getXmlConfigAsDocument();
 
     boolean isSafeMode();
+
+	boolean isProfilingEnabled();
 }

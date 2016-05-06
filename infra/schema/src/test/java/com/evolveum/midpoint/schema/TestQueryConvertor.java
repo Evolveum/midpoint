@@ -483,7 +483,7 @@ public class TestQueryConvertor {
 		displayTestTitle(TEST_NAME);
 		PrismObjectDefinition<UserType> userDef = getPrismContext().getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
 		ObjectQuery q = QueryBuilder.queryFor(UserType.class, getPrismContext())
-				.item(UserType.F_EMPLOYEE_NUMBER).eq().item(new ItemPath(UserType.F_COST_CENTER), userDef.findItemDefinition(UserType.F_COST_CENTER))
+				.item(UserType.F_EMPLOYEE_NUMBER).eq().item(UserType.F_COST_CENTER)
 				.build();
 		checkQueryRoundtripFile(UserType.class, q, TEST_NAME);
 	}

@@ -23,6 +23,7 @@ public class ConnectionEnvironment {
 	
 	private String channel;
 	private String remoteHost;
+	private String sessionId;
 
 	public String getChannel() {
 		return channel;
@@ -38,6 +39,14 @@ public class ConnectionEnvironment {
 
 	public void setRemoteHost(String remoteHost) {
 		this.remoteHost = remoteHost;
+	}
+
+	public String getSessionId() {
+		return sessionId;
+	}
+
+	public void setSessionId(String sessionId) {
+		this.sessionId = sessionId;
 	}
 
 }

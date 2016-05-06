@@ -29,9 +29,8 @@
         <property name="advice" ref="midpointAdvice" />
     </bean>
 
-    <bean
-            class="org.springframework.aop.framework.autoproxy.BeanNameAutoProxyCreator">
-        <property name="beanNames">
+    <bean id="instrumentableBeans" class="java.util.ArrayList">
+        <constructor-arg>
             <list>
                 <value>repositoryService</value>
                 <value>cacheRepositoryService</value>
@@ -41,7 +40,19 @@
                 <value>synchronizationService</value>
                 <value>modelController</value>
             </list>
-        </property>
+        </constructor-arg>
+    </bean>
+
+    <bean id="noBeans" class="java.util.ArrayList">
+        <constructor-arg>
+            <list>
+                <value>dummyBeanNameBecauseThisListCannotBeEmpty</value>
+            </list>
+        </constructor-arg>
+    </bean>
+
+    <bean class="org.springframework.aop.framework.autoproxy.BeanNameAutoProxyCreator">
+        <property name="beanNames" value="#{midpointConfiguration.profilingEnabled ? instrumentableBeans : noBeans}"/>
         <!--<property name="proxyTargetClass" value="true"/>-->
         <property name="interceptorNames">
             <list>
