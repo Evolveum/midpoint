@@ -239,7 +239,7 @@ public class MultipleAssignmentSelectorPanel<F extends FocusType, H extends Focu
                 ObjectFilter archivedRolesFilter = EqualFilter.createEqual(path, RoleType.class,
                         getPageBase().getPrismContext(), null, ActivationStatusType.ARCHIVED);
                 ObjectFilter filter = isRequestableFilter && authorizedRolesFilter != null ?
-                        AndFilter.createAnd(authorizedRolesFilter, archivedRolesFilter) :
+                        AndFilter.createAnd(authorizedRolesFilter, new NotFilter(archivedRolesFilter)) :
                         new NotFilter(archivedRolesFilter);
                 return filter;
             }
