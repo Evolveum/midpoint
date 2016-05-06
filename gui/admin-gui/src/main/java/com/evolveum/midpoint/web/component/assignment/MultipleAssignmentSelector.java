@@ -43,6 +43,7 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.repeater.Item;
+import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
@@ -184,6 +185,7 @@ public class MultipleAssignmentSelector<F extends FocusType, H extends FocusType
                 super.onComponentTag(tag);
                 if (rowModel.getObject().isSelected()) {
                     tag.put("class", "list-group-item active");
+                    tag.put("style", "background-color: #eee; border-color: #d6d6d6; color: #000;");
                 } else {
                     tag.put("class", "list-group-item");
                 }
