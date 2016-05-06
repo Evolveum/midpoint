@@ -22,6 +22,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.TabbedPanel;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationDialog;
+import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.certification.dto.StageDefinitionDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationStageDefinitionType;
@@ -53,8 +54,6 @@ public class DefinitionStagesPanel extends BasePanel<List<StageDefinitionDto>> {
     private static final String ID_MOVE_STAGE_LEFT = "moveStageLeft";
     private static final String ID_DELETE_STAGE = "deleteStage";
     private static final String DEFAULT_STAGE_NAME_PREFIX = "Stage ";
-
-	private static final String DIALOG_CONFIRM_DELETE = "confirmDeletePopup";
 
 	private TabbedPanel<ITab> tabPanel;
 	private PageCertDefinition parentPage;
@@ -120,28 +119,25 @@ public class DefinitionStagesPanel extends BasePanel<List<StageDefinitionDto>> {
 		delete.add(visibleIfMoreTabs);
 		add(delete);
 
-		add(new ConfirmationDialog(DIALOG_CONFIRM_DELETE,
-				createStringResource("DefinitionStagesPanel.confirmDelete"),
-				new AbstractReadOnlyModel<String>() {
-					@Override
-					public String getObject() {
-						StageDefinitionDto dto = getModelObject().get(tabPanel.getSelectedTab());
-						return getString("DefinitionStagesPanel.confirmDeleteText", dto.getName());
-					}
-				}) {
-			@Override
-			public void yesPerformed(AjaxRequestTarget target) {
-				close(target);
-				deleteConfirmedPerformed(target);
-			}
-		});
-
         setOutputMarkupId(true);
     }
 
 	private void deletePerformed(AjaxRequestTarget target) {
-		ModalWindow dialog = (ModalWindow) get(DIALOG_CONFIRM_DELETE);
-		dialog.show(target);
+        ConfirmationPanel dialog = new ConfirmationPanel(getPageBase().getMainPopupBodyId(), new AbstractReadOnlyModel<String>() {
+                    @Override
+                    public String getObject() {
+                        StageDefinitionDto dto = getModelObject().get(tabPanel.getSelectedTab());
+                        return getString("DefinitionStagesPanel.confirmDeleteText", dto.getName());
+                    }
+                }){
+            @Override
+            public void yesPerformed(AjaxRequestTarget target) {
+                getPageBase().hideMainPopup(target);
+                deleteConfirmedPerformed(target);
+            }
+        };
+        getPageBase().showMainPopup(dialog, createStringResource("DefinitionStagesPanel.confirmDelete"), target);
+
 	}
 
 	private void addPerformed(AjaxRequestTarget target) {

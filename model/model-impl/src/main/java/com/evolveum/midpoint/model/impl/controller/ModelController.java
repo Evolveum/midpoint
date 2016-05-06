@@ -49,6 +49,7 @@ import com.evolveum.midpoint.wf.api.WorkflowManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ScriptingExpressionType;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -1531,12 +1532,13 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 	@Override
 	public void importObjectsFromFile(File input, ImportOptionsType options, Task task,
 			OperationResult parentResult) throws FileNotFoundException {
-		 OperationResult result = parentResult.createSubresult(IMPORT_OBJECTS_FROM_FILE);
-		 FileInputStream fis;
-		 try {
+		OperationResult result = parentResult.createSubresult(IMPORT_OBJECTS_FROM_FILE);
+		FileInputStream fis = null;
+		try {
 			fis = new FileInputStream(input);
 		} catch (FileNotFoundException e) {
-			String msg = "Error reading from file "+input+": "+e.getMessage();
+			IOUtils.closeQuietly(fis);
+			String msg = "Error reading from file " + input + ": " + e.getMessage();
 			result.recordFatalError(msg, e);
 			throw e;
 		}
@@ -1549,7 +1551,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 			try {
 				fis.close();
 			} catch (IOException e) {
-				LOGGER.error("Error closing file "+input+": "+e.getMessage(), e);
+				LOGGER.error("Error closing file " + input + ": " + e.getMessage(), e);
 			}
 		}
 		result.computeStatus();
