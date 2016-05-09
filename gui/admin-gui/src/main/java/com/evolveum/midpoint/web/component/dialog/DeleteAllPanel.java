@@ -19,6 +19,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
 import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
@@ -37,11 +38,11 @@ import java.util.Collection;
 /**
  * Created by Honchar.
  */
-public class DeleteAllPanel extends Panel{
+public class DeleteAllPanel extends Panel  implements Popupable{
 
-    private static final Trace LOGGER = TraceManager.getTrace(DeleteAllDialog.class);
+    private static final Trace LOGGER = TraceManager.getTrace(DeleteAllPanel.class);
 
-    private static final String DOT_CLASS = DeleteAllDialog.class.getName() + ".";
+    private static final String DOT_CLASS = DeleteAllPanel.class.getName() + ".";
     private static final String OPERATION_SEARCH_ITERATIVE_TASK = DOT_CLASS + "searchIterativeTask";
     private static final String OPERATION_COUNT_TASK = DOT_CLASS + "countObjectsTask";
 
@@ -60,14 +61,10 @@ public class DeleteAllPanel extends Panel{
 
     private IModel<DeleteAllDto> model = new Model(new DeleteAllDto());
 
-    public DeleteAllPanel(String id, IModel<String> title){
+    public DeleteAllPanel(String id){
         super(id);
-
-//        setInitialWidth(650);
-//        setInitialHeight(350);
-//        setWidthUnit("px");
-
-       WebMarkupContainer content = new WebMarkupContainer(ID_CONTENT);
+        WebMarkupContainer content = new WebMarkupContainer(ID_CONTENT);
+        add(content);
         initLayout(content);
     }
 
@@ -341,4 +338,26 @@ public class DeleteAllPanel extends Panel{
     public void noPerformed(AjaxRequestTarget target) {
         getPagebase().hideMainPopup(target);
     }
+
+    @Override
+    public int getWidth() {
+        return 650;
+    }
+
+    @Override
+    public int getHeight() {
+        return 350;
+    }
+
+    @Override
+    public StringResourceModel getTitle() {
+        return createStringResource("pageDebugList.dialog.title.deleteAll");
+    }
+
+    @Override
+    public Component getComponent() {
+        return this;
+    }
+
 }
+
