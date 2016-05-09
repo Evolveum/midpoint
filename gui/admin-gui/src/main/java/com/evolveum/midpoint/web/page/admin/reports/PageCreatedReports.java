@@ -43,8 +43,10 @@ import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.InlineMenuHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.InlineMenuable;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationDialog;
+import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.page.admin.certification.dto.StageDefinitionDto;
 import com.evolveum.midpoint.web.page.admin.configuration.PageAdminConfiguration;
 import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
 import com.evolveum.midpoint.web.page.admin.home.dto.PersonalInfoDto;
@@ -111,9 +113,7 @@ public class PageCreatedReports extends PageAdminReports {
     private static final String ID_CREATED_REPORTS_TABLE = "table";
     private static final String ID_SEARCH_FORM = "searchForm";
     private static final String ID_BASIC_SEARCH = "basicSearch";
-    private static final String ID_FILTER_FILE_TYPE = "filetype";
     private static final String ID_REPORT_TYPE_SELECT = "reportType";
-    private static final String ID_CONFIRM_DELETE = "confirmDeletePopup";
     private static final String ID_TABLE_HEADER = "tableHeader";
 
     private LoadableModel<ReportOutputSearchDto> searchModel;
@@ -228,28 +228,6 @@ public class PageCreatedReports extends PageAdminReports {
         table.setShowPaging(true);
         table.setOutputMarkupId(true);
         mainForm.add(table);
-
-        add(new ConfirmationDialog(ID_CONFIRM_DELETE, createStringResource("pageCreatedReports.dialog.title.confirmDelete"),
-                createDeleteConfirmString()) {
-
-            @Override
-            public void yesPerformed(AjaxRequestTarget target) {
-                close(target);
-
-                ReportDeleteDialogDto dto = deleteModel.getObject();
-                switch (dto.getOperation()) {
-                    case DELETE_SINGLE:
-                        deleteSelectedConfirmedPerformed(target, Arrays.asList(dto.getObjects().get(0)));
-                        break;
-                    case DELETE_SELECTED:
-                        deleteSelectedConfirmedPerformed(target, dto.getObjects());
-                        break;
-                    case DELETE_ALL:
-                        deleteAllConfirmedPerformed(target);
-                        break;
-                }
-            }
-        });
     }
 
     //TODO - commented until FileType property will be available in ReportOutputType
@@ -415,12 +393,35 @@ public class PageCreatedReports extends PageAdminReports {
     }
 
     private void deleteAllPerformed(AjaxRequestTarget target, ReportDeleteDialogDto.Operation op) {
-        ReportDeleteDialogDto dto = new ReportDeleteDialogDto(op, null);
+        final ReportDeleteDialogDto dto = new ReportDeleteDialogDto(op, null);
         deleteModel.setObject(dto);
 
-        ModalWindow dialog = (ModalWindow) get(ID_CONFIRM_DELETE);
-        dialog.show(target);
+        getPageBase().showMainPopup(getDeleteDialogPanel(), createStringResource("pageCreatedReports.dialog.title.confirmDelete"), target);
     }
+
+    private ConfirmationPanel getDeleteDialogPanel(){
+        ConfirmationPanel dialog = new ConfirmationPanel(getPageBase().getMainPopupBodyId(), createDeleteConfirmString()){
+            @Override
+            public void yesPerformed(AjaxRequestTarget target) {
+                getPageBase().hideMainPopup(target);
+
+                ReportDeleteDialogDto dto = deleteModel.getObject();
+                switch (dto.getOperation()) {
+                    case DELETE_SINGLE:
+                        deleteSelectedConfirmedPerformed(target, Arrays.asList(dto.getObjects().get(0)));
+                        break;
+                    case DELETE_SELECTED:
+                        deleteSelectedConfirmedPerformed(target, dto.getObjects());
+                        break;
+                    case DELETE_ALL:
+                        deleteAllConfirmedPerformed(target);
+                        break;
+                }
+            }
+        };
+        return dialog;
+    }
+
 
     private void deleteSelectedPerformed(AjaxRequestTarget target, ReportDeleteDialogDto.Operation op, ReportOutputType single) {
         List<ReportOutputType> selected = getSelectedData();
@@ -437,8 +438,7 @@ public class PageCreatedReports extends PageAdminReports {
         ReportDeleteDialogDto dto = new ReportDeleteDialogDto(op, selected);
         deleteModel.setObject(dto);
 
-        ModalWindow dialog = (ModalWindow) get(ID_CONFIRM_DELETE);
-        dialog.show(target);
+        getPageBase().showMainPopup(getDeleteDialogPanel(), createStringResource("pageCreatedReports.dialog.title.confirmDelete"), target);
     }
 
     private void deleteSelectedConfirmedPerformed(AjaxRequestTarget target, List<ReportOutputType> objects) {

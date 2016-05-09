@@ -98,6 +98,8 @@ public class PageLogin extends PageBase {
         error(getString(key));
 
         httpSession.removeAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);
+
+        getSessionStorage().clearBreadcrumbs();
     }
 
     @Override
