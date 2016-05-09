@@ -104,6 +104,7 @@ import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.component.data.column.TwoValueLinkPanel;
 import com.evolveum.midpoint.web.component.dialog.DeleteAllDialog;
 import com.evolveum.midpoint.web.component.dialog.DeleteAllDto;
+import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.web.component.input.ChoiceableChoiceRenderer;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
@@ -125,7 +126,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.query_3.QueryType;
-
 
 /**
  * @author lazyman
@@ -206,8 +206,9 @@ public class PageDebugList extends PageAdminConfiguration {
 
 		try {
 			OperationResult result = new OperationResult(OPERATION_LOAD_RESOURCES);
-			List<PrismObject<ResourceType>> list = WebModelServiceUtils.searchObjects(ResourceType.class, null,
-					SelectorOptions.createCollection(GetOperationOptions.createRaw()), result, this, null);
+			List<PrismObject<ResourceType>> list = WebModelServiceUtils.searchObjects(ResourceType.class,
+					null, SelectorOptions.createCollection(GetOperationOptions.createRaw()), result, this,
+					null);
 
 			for (PrismObject obj : list) {
 				ObjectViewDto dto = new ObjectViewDto(obj.getOid(), WebComponentUtil.getName(obj));
@@ -309,11 +310,11 @@ public class PageDebugList extends PageAdminConfiguration {
 			@Override
 			public void populateItem(Item<ICellPopulator<DebugObjectItem>> cellItem, String componentId,
 					final IModel<DebugObjectItem> rowModel) {
-				
+
 				TwoValueLinkPanel panel = new TwoValueLinkPanel(componentId,
 						new PropertyModel<String>(rowModel, DebugObjectItem.F_NAME),
-						new PropertyModel<String>(rowModel, DebugObjectItem.F_OID)){
-					
+						new PropertyModel<String>(rowModel, DebugObjectItem.F_OID)) {
+
 					@Override
 					public void onClick(AjaxRequestTarget target) {
 						DebugObjectItem object = rowModel.getObject();
@@ -322,15 +323,15 @@ public class PageDebugList extends PageAdminConfiguration {
 				};
 
 				cellItem.add(panel);
-                cellItem.add(new AttributeModifier("class", "col-md-3"));
-				
+				cellItem.add(new AttributeModifier("class", "col-md-3"));
+
 			}
 
 		};
 
 		columns.add(column);
 		columns.add(new PropertyColumn(createStringResource("pageDebugList.description"),
-                DebugObjectItem.F_DESCRIPTION));
+				DebugObjectItem.F_DESCRIPTION));
 
 		if (ShadowType.class.isAssignableFrom(type)) {
 			columns.add(new PropertyColumn(createStringResource("pageDebugList.resourceName"),
@@ -393,33 +394,33 @@ public class PageDebugList extends PageAdminConfiguration {
 
 		headerMenuItems
 				.add(new InlineMenuItem(createStringResource("pageDebugList.menu.exportAllSelectedType"),
-                        true, new HeaderMenuAction(this) {
+						true, new HeaderMenuAction(this) {
 
-                    @Override
-                    public void onSubmit(AjaxRequestTarget target, Form<?> form) {
-                        exportAllType(target);
-                    }
-                }));
+							@Override
+							public void onSubmit(AjaxRequestTarget target, Form<?> form) {
+								exportAllType(target);
+							}
+						}));
 
-        headerMenuItems
-                .add(new InlineMenuItem(createStringResource("pageDebugList.menu.exportShadowsOnResource"),
-                        new Model(true), new AbstractReadOnlyModel<Boolean>() {
+		headerMenuItems
+				.add(new InlineMenuItem(createStringResource("pageDebugList.menu.exportShadowsOnResource"),
+						new Model(true), new AbstractReadOnlyModel<Boolean>() {
 
-                    @Override
-                    public Boolean getObject() {
-                        DebugSearchDto dto = searchModel.getObject();
-                        return ObjectTypes.SHADOW.equals(dto.getType());
-                    }
+							@Override
+							public Boolean getObject() {
+								DebugSearchDto dto = searchModel.getObject();
+								return ObjectTypes.SHADOW.equals(dto.getType());
+							}
 
-                }, false, new HeaderMenuAction(this) {
+						}, false, new HeaderMenuAction(this) {
 
-                    @Override
-                    public void onClick(AjaxRequestTarget target) {
-                        exportAllShadowsOnResource(target);
-                    }
-                }));
+							@Override
+							public void onClick(AjaxRequestTarget target) {
+								exportAllShadowsOnResource(target);
+							}
+						}));
 
-        headerMenuItems.add(new InlineMenuItem(createStringResource("pageDebugList.menu.exportAll"), true,
+		headerMenuItems.add(new InlineMenuItem(createStringResource("pageDebugList.menu.exportAll"), true,
 				new HeaderMenuAction(this) {
 
 					@Override
@@ -450,21 +451,21 @@ public class PageDebugList extends PageAdminConfiguration {
 
 		headerMenuItems
 				.add(new InlineMenuItem(createStringResource("pageDebugList.menu.deleteShadowsOnResource"),
-                        new Model(true), new AbstractReadOnlyModel<Boolean>() {
+						new Model(true), new AbstractReadOnlyModel<Boolean>() {
 
-                    @Override
-                    public Boolean getObject() {
-                        DebugSearchDto dto = searchModel.getObject();
-                        return ObjectTypes.SHADOW.equals(dto.getType());
-                    }
+							@Override
+							public Boolean getObject() {
+								DebugSearchDto dto = searchModel.getObject();
+								return ObjectTypes.SHADOW.equals(dto.getType());
+							}
 
-                }, false, new HeaderMenuAction(this) {
+						}, false, new HeaderMenuAction(this) {
 
-                    @Override
-                    public void onClick(AjaxRequestTarget target) {
-                        deleteAllShadowsOnResource(target);
-                    }
-                }));
+							@Override
+							public void onClick(AjaxRequestTarget target) {
+								deleteAllShadowsOnResource(target);
+							}
+						}));
 
 		headerMenuItems.add(new InlineMenuItem());
 
@@ -494,7 +495,7 @@ public class PageDebugList extends PageAdminConfiguration {
 
 	/**
 	 * called when object type is changed, search panel will be refreshed
-     */
+	 */
 	private void listObjectsPerformed(AjaxRequestTarget target) {
 		DebugSearchDto dto = searchModel.getObject();
 		setupSearchDto(dto);
@@ -611,33 +612,33 @@ public class PageDebugList extends PageAdminConfiguration {
 		options.add(SelectorOptions.create(ItemPath.EMPTY_PATH, opt));
 
 		OperationResult result = new OperationResult(OPERATION_LAXATIVE_DELETE);
-        String taskOid = null;
+		String taskOid = null;
 		try {
 			if (dto.getDeleteUsers()) {
 				ObjectQuery query = createDeleteAllUsersQuery();
-                taskOid = deleteObjectsAsync(UserType.COMPLEX_TYPE, query, true, "Delete all users", result);
+				taskOid = deleteObjectsAsync(UserType.COMPLEX_TYPE, query, true, "Delete all users", result);
 			}
 			if (dto.getDeleteOrgs()) {
-                taskOid = deleteObjectsAsync(OrgType.COMPLEX_TYPE, null, true, "Delete all orgs", result);
+				taskOid = deleteObjectsAsync(OrgType.COMPLEX_TYPE, null, true, "Delete all orgs", result);
 			}
 			if (dto.getDeleteAccountShadow()) {
-                taskOid = deleteAllShadowsConfirmed(result, true);
+				taskOid = deleteAllShadowsConfirmed(result, true);
 			}
 			if (dto.getDeleteNonAccountShadow()) {
-                taskOid = deleteAllShadowsConfirmed(result, false);
+				taskOid = deleteAllShadowsConfirmed(result, false);
 			}
 		} catch (Exception ex) {
 			result.computeStatus(getString("pageDebugList.message.laxativeProblem"));
 			LoggingUtils.logException(LOGGER, getString("pageDebugList.message.laxativeProblem"), ex);
 		}
 
-        if (taskOid != null) {
-            PageParameters parameters = new PageParameters();
-            parameters.add(OnePageParameterEncoder.PARAMETER, taskOid);
-            setResponsePage(PageTaskEdit.class, parameters);
-        } else {
-            setResponsePage(PageTasks.class);
-        }
+		if (taskOid != null) {
+			PageParameters parameters = new PageParameters();
+			parameters.add(OnePageParameterEncoder.PARAMETER, taskOid);
+			setResponsePage(PageTaskEdit.class, parameters);
+		} else {
+			setResponsePage(PageTasks.class);
+		}
 		target.add(getFeedbackPanel());
 
 		result.recomputeStatus();
@@ -655,7 +656,7 @@ public class PageDebugList extends PageAdminConfiguration {
 			throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
 
 		ObjectFilter kind = EqualFilter.createEqual(ShadowType.F_KIND, ShadowType.class, getPrismContext(),
-                null, ShadowKindType.ACCOUNT);
+				null, ShadowKindType.ACCOUNT);
 
 		String taskName;
 		ObjectQuery query;
@@ -703,8 +704,7 @@ public class PageDebugList extends PageAdminConfiguration {
 				searchDto.getType().getClassDefinition());
 		confDialogModel.setObject(dto);
 
-        showMainPopup(getDeleteConfirmationPanel(), createStringResource("pageDebugList.dialog.title.confirmDelete"),
-                target);
+		showMainPopup(getDeleteConfirmationPanel(), target);
 	}
 
 	private List<DebugObjectItem> getSelectedData(AjaxRequestTarget target, DebugObjectItem item) {
@@ -735,8 +735,7 @@ public class PageDebugList extends PageAdminConfiguration {
 				selected, searchDto.getType().getClassDefinition());
 		confDialogModel.setObject(dto);
 
-        showMainPopup(getDeleteConfirmationPanel(), createStringResource("pageDebugList.dialog.title.confirmDelete"),
-                target);
+		showMainPopup(getDeleteConfirmationPanel(), target);
 	}
 
 	private void deleteAllIdentities(AjaxRequestTarget target) {
@@ -750,7 +749,7 @@ public class PageDebugList extends PageAdminConfiguration {
 		LOGGER.debug("Deleting all of type {}", dto.getType());
 
 		OperationResult result = new OperationResult(OPERATION_DELETE_OBJECTS);
-        String taskOid = null;
+		String taskOid = null;
 		try {
 			ObjectQuery query = null;
 			if (ObjectTypes.USER.equals(dto.getType())) {
@@ -759,7 +758,8 @@ public class PageDebugList extends PageAdminConfiguration {
 
 			QName type = dto.getType().getTypeQName();
 
-			taskOid = deleteObjectsAsync(type, query, true, "Delete all of type " + type.getLocalPart(), result);
+			taskOid = deleteObjectsAsync(type, query, true, "Delete all of type " + type.getLocalPart(),
+					result);
 
 			info(getString("pageDebugList.messsage.deleteAllOfType", dto.getType()));
 		} catch (Exception ex) {
@@ -770,13 +770,13 @@ public class PageDebugList extends PageAdminConfiguration {
 		}
 
 		showResult(result);
-        if (taskOid != null) {
-            PageParameters parameters = new PageParameters();
-            parameters.add(OnePageParameterEncoder.PARAMETER, taskOid);
-            setResponsePage(PageTaskEdit.class, parameters);
-        } else {
-            setResponsePage(PageTasks.class);
-        }
+		if (taskOid != null) {
+			PageParameters parameters = new PageParameters();
+			parameters.add(OnePageParameterEncoder.PARAMETER, taskOid);
+			setResponsePage(PageTaskEdit.class, parameters);
+		} else {
+			setResponsePage(PageTasks.class);
+		}
 		target.add(getFeedbackPanel());
 	}
 
@@ -785,8 +785,8 @@ public class PageDebugList extends PageAdminConfiguration {
 
 		OperationResult result = new OperationResult(OPERATION_DELETE_OBJECTS);
 		for (DebugObjectItem bean : items) {
-			WebModelServiceUtils.deleteObject(dto.getType(), bean.getOid(), ModelExecuteOptions.createRaw(), result,
-					this);
+			WebModelServiceUtils.deleteObject(dto.getType(), bean.getOid(), ModelExecuteOptions.createRaw(),
+					result, this);
 		}
 		result.computeStatusIfUnknown();
 
@@ -813,8 +813,7 @@ public class PageDebugList extends PageAdminConfiguration {
 				DebugConfDialogDto.Operation.DELETE_RESOURCE_SHADOWS, null, null);
 		confDialogModel.setObject(dialogDto);
 
-        showMainPopup(getDeleteConfirmationPanel(), createStringResource("pageDebugList.dialog.title.confirmDelete"),
-                target);
+		showMainPopup(getDeleteConfirmationPanel(), target);
 	}
 
 	private void exportAllShadowsOnResource(AjaxRequestTarget target) {
@@ -825,52 +824,52 @@ public class PageDebugList extends PageAdminConfiguration {
 			return;
 		}
 
-        RefFilter ref = RefFilter.createReferenceEqual(ShadowType.F_RESOURCE_REF, ShadowType.class,
-                getPrismContext(), dto.getResource().getOid());
-        ObjectQuery objectQuery = ObjectQuery.createObjectQuery(ref);
-        initDownload(target, dto.getType().getClassDefinition(), objectQuery);
+		RefFilter ref = RefFilter.createReferenceEqual(ShadowType.F_RESOURCE_REF, ShadowType.class,
+				getPrismContext(), dto.getResource().getOid());
+		ObjectQuery objectQuery = ObjectQuery.createObjectQuery(ref);
+		initDownload(target, dto.getType().getClassDefinition(), objectQuery);
 
-    }
+	}
 
+	private Popupable getDeleteConfirmationPanel() {
+		return new ConfirmationPanel(getMainPopupBodyId(), createDeleteConfirmString()) {
+			private static final long serialVersionUID = 1L;
 
-    private Component getDeleteConfirmationPanel() {
-        return new ConfirmationPanel(getMainPopupBodyId(),
-                createDeleteConfirmString()) {
-            @Override
-            public void yesPerformed(AjaxRequestTarget target) {
-                ModalWindow modalWindow = findParent(ModalWindow.class);
-                if (modalWindow != null) {
-                    modalWindow.close(target);
-                    DebugConfDialogDto dto = confDialogModel.getObject();
-                    switch (dto.getOperation()) {
-                        case DELETE_ALL_TYPE:
-                            deleteAllTypeConfirmed(target);
-                            break;
-                        case DELETE_SELECTED:
-                            deleteSelectedConfirmed(target, dto.getObjects());
-                            break;
-                        case DELETE_RESOURCE_SHADOWS:
-                            deleteAllShadowsOnResourceConfirmed(target);
-                            break;
-                    }
-                }
-            }
+			@Override
+			public void yesPerformed(AjaxRequestTarget target) {
+				ModalWindow modalWindow = findParent(ModalWindow.class);
+				if (modalWindow != null) {
+					modalWindow.close(target);
+					DebugConfDialogDto dto = confDialogModel.getObject();
+					switch (dto.getOperation()) {
+						case DELETE_ALL_TYPE:
+							deleteAllTypeConfirmed(target);
+							break;
+						case DELETE_SELECTED:
+							deleteSelectedConfirmed(target, dto.getObjects());
+							break;
+						case DELETE_RESOURCE_SHADOWS:
+							deleteAllShadowsOnResourceConfirmed(target);
+							break;
+					}
+				}
+			}
 
-            @Override
-            public boolean getLabelEscapeModelStrings() {
-                return false;
-            }
-        };
-    }
+			@Override
+			public boolean getLabelEscapeModelStrings() {
+				return false;
+			}
+		};
+	}
 
-    private void deleteAllShadowsOnResourceConfirmed(AjaxRequestTarget target) {
+	private void deleteAllShadowsOnResourceConfirmed(AjaxRequestTarget target) {
 		DebugSearchDto dto = searchModel.getObject();
 		String resourceOid = dto.getResource().getOid();
 
 		LOGGER.debug("Deleting shadows on resource {}", resourceOid);
 
 		OperationResult result = new OperationResult(OPERATION_DELETE_SHADOWS);
-        String taskOid = null;
+		String taskOid = null;
 		try {
 			RefFilter ref = RefFilter.createReferenceEqual(ShadowType.F_RESOURCE_REF, ShadowType.class,
 					getPrismContext(), dto.getResource().getOid());
@@ -878,8 +877,8 @@ public class PageDebugList extends PageAdminConfiguration {
 
 			QName type = ShadowType.COMPLEX_TYPE;
 
-			taskOid = deleteObjectsAsync(type, objectQuery, true, "Delete shadows on " + dto.getResource().getName(),
-					result);
+			taskOid = deleteObjectsAsync(type, objectQuery, true,
+					"Delete shadows on " + dto.getResource().getName(), result);
 
 			info(getString("pageDebugList.messsage.deleteAllShadowsStarted", dto.getResource().getName()));
 		} catch (Exception ex) {
@@ -890,13 +889,13 @@ public class PageDebugList extends PageAdminConfiguration {
 		}
 
 		showResult(result);
-        if (taskOid != null) {
-            PageParameters parameters = new PageParameters();
-            parameters.add(OnePageParameterEncoder.PARAMETER, taskOid);
-            setResponsePage(PageTaskEdit.class, parameters);
-        } else {
-            setResponsePage(PageTasks.class);
-        }
+		if (taskOid != null) {
+			PageParameters parameters = new PageParameters();
+			parameters.add(OnePageParameterEncoder.PARAMETER, taskOid);
+			setResponsePage(PageTaskEdit.class, parameters);
+		} else {
+			setResponsePage(PageTasks.class);
+		}
 		target.add(getFeedbackPanel());
 	}
 
@@ -937,7 +936,7 @@ public class PageDebugList extends PageAdminConfiguration {
 		TaskManager taskManager = getTaskManager();
 		taskManager.switchToBackground(task, result);
 		result.setBackgroundTaskOid(task.getOid());
-        return task.getOid();
+		return task.getOid();
 	}
 
 	private static class SearchFragment extends Fragment {
@@ -957,7 +956,7 @@ public class PageDebugList extends PageAdminConfiguration {
 			final IModel<DebugSearchDto> model = (IModel) getDefaultModel();
 
 			EnumChoiceRenderer<ObjectTypes> renderer = new EnumChoiceRenderer<ObjectTypes>() {
-				
+
 				protected String resourceKey(ObjectTypes object) {
 					ObjectTypeGuiDescriptor descr = ObjectTypeGuiDescriptor.getDescriptor(object);
 					String key = descr != null ? descr.getLocalizationKey()
@@ -985,27 +984,27 @@ public class PageDebugList extends PageAdminConfiguration {
 			resource.setNullValid(true);
 			resource.add(new AjaxFormComponentUpdatingBehavior("blur") {
 
-                @Override
-                protected void onUpdate(AjaxRequestTarget target) {
-                    // nothing to do, it's here just to update model
-                }
-            });
-            resource.add(new OnChangeAjaxBehavior() {
+				@Override
+				protected void onUpdate(AjaxRequestTarget target) {
+					// nothing to do, it's here just to update model
+				}
+			});
+			resource.add(new OnChangeAjaxBehavior() {
 
-                @Override
-                protected void onUpdate(AjaxRequestTarget target) {
-                    PageDebugList page = (PageDebugList) getPage();
-                    page.listObjectsPerformed(target);
-                }
-            });
+				@Override
+				protected void onUpdate(AjaxRequestTarget target) {
+					PageDebugList page = (PageDebugList) getPage();
+					page.listObjectsPerformed(target);
+				}
+			});
 			resource.add(new VisibleEnableBehaviour() {
 
-                @Override
-                public boolean isVisible() {
-                    DebugSearchDto dto = model.getObject();
-                    return ObjectTypes.SHADOW.equals(dto.getType());
-                }
-            });
+				@Override
+				public boolean isVisible() {
+					DebugSearchDto dto = model.getObject();
+					return ObjectTypes.SHADOW.equals(dto.getType());
+				}
+			});
 			searchForm.add(resource);
 
 			AjaxCheckBox zipCheck = new AjaxCheckBox(ID_ZIP_CHECK, new Model<>(false)) {
@@ -1068,7 +1067,6 @@ public class PageDebugList extends PageAdminConfiguration {
 					return object.getName();
 				}
 
-				
 			};
 		}
 	}

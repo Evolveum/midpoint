@@ -308,8 +308,7 @@ public class TreeTablePanel extends BasePanel<String> {
 			}
 		};
 
-		parentPage.showMainPopup(orgAssignablePanel, new Model<String>("Select new parent"), target, 900,
-				700);
+		parentPage.showMainPopup(orgAssignablePanel, target);
 
 	}
 
@@ -430,6 +429,8 @@ public class TreeTablePanel extends BasePanel<String> {
 	private void deleteRootPerformed(final SelectableBean<OrgType> orgToDelete, AjaxRequestTarget target) {
 
 		ConfirmationPanel confirmationPanel = new ConfirmationPanel(getPageBase().getMainPopupBodyId()) {
+			private static final long serialVersionUID = 1L;
+
 			@Override
 			public void yesPerformed(AjaxRequestTarget target) {
 				deleteRootConfirmedPerformed(orgToDelete, target);
@@ -437,7 +438,7 @@ public class TreeTablePanel extends BasePanel<String> {
 		};
 
 		confirmationPanel.setOutputMarkupId(true);
-		getPageBase().showMainPopup(confirmationPanel, new Model<String>("Delete org?"), target, 150, 100);
+		getPageBase().showMainPopup(confirmationPanel, target);
 	}
 
 	private void deleteRootConfirmedPerformed(SelectableBean<OrgType> orgToDelete, AjaxRequestTarget target) {

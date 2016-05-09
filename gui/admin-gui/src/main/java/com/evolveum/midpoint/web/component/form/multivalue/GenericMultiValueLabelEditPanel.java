@@ -19,6 +19,7 @@ package com.evolveum.midpoint.web.component.form.multivalue;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 
 import org.apache.commons.lang.StringUtils;
@@ -37,6 +38,7 @@ import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.FeedbackPanel;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 
 import java.io.Serializable;
 import java.util.Iterator;
@@ -50,7 +52,7 @@ import java.util.List;
  *
  *  @author shood
  * */
-public class GenericMultiValueLabelEditPanel <T extends Serializable> extends BasePanel<List<T>>{
+public class GenericMultiValueLabelEditPanel <T extends Serializable> extends BasePanel<List<T>> {
 
     private static final Trace LOGGER = TraceManager.getTrace(GenericMultiValueLabelEditPanel.class);
 
@@ -177,15 +179,10 @@ public class GenericMultiValueLabelEditPanel <T extends Serializable> extends Ba
         add(repeater);
     }
 
-    protected void showDialog(Component dialogContent, IModel<String> dialogTitle, AjaxRequestTarget target){
-        setDialogSize();
-        getPageBase().showMainPopup(dialogContent, dialogTitle, target);
+    protected void showDialog(Popupable dialogContent, AjaxRequestTarget target){
+        getPageBase().showMainPopup(dialogContent, target);
     }
 
-    protected void setDialogSize(){
-        getPageBase().getMainPopup().setInitialWidth(625);
-        getPageBase().getMainPopup().setInitialHeight(400);
-    }
 
     /**
      * @return css class for off-setting other values (not first, left to the first there is a label)
@@ -323,4 +320,5 @@ public class GenericMultiValueLabelEditPanel <T extends Serializable> extends Ba
     protected boolean getAddButtonVisibility(){
         return true;
     }
+
 }

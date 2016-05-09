@@ -54,6 +54,7 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
+import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenu;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
@@ -300,7 +301,7 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
 							};
 							resourceSelectionPanel.setOutputMarkupId(true);
 							pageBase.showMainPopup(resourceSelectionPanel,
-									new Model<String>("Select resrouces"), target, 900, 700);
+									target);
 						}
 					});
 			items.add(item);
@@ -400,7 +401,7 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
 		}
 
 		showModalWindow(getDeleteProjectionPopupContent(),
-				createStringResource("pageAdminFocus.title.confirmDelete"), target);
+				target);
 	}
 
 	private boolean isAnyProjectionSelected(AjaxRequestTarget target,
@@ -479,7 +480,7 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
 		target.add(get(createComponentPath(componentPath)));
 	}
 
-	private Component getDeleteProjectionPopupContent() {
+	private Popupable getDeleteProjectionPopupContent() {
 		ConfirmationPanel dialog = new ConfirmationPanel(getPageBase().getMainPopupBodyId(),
 				new AbstractReadOnlyModel<String>() {
 					private static final long serialVersionUID = 1L;

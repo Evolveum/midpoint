@@ -341,14 +341,14 @@ public class MultipleAssignmentSelectorPanel<F extends FocusType, H extends Focu
 //                        tenantEditorObject.add(selected.getValue());
 //                        target.add(getTenantEditorContainer());                    }
 //                };
-                getPageBase().showMainPopup(tenantPanel, new Model<String>("Select tenant"), target, 900, 700);
+                getPageBase().showMainPopup(tenantPanel, target);
             }
 
-            @Override
-            protected void setDialogSize() {
-                getPageBase().getMainPopup().setInitialWidth(900);
-                getPageBase().getMainPopup().setInitialHeight(700);
-            }
+//            @Override
+//            protected void setDialogSize() {
+//                getPageBase().getMainPopup().setInitialWidth(900);
+//                getPageBase().getMainPopup().setInitialHeight(700);
+//            }
 
 
         };
@@ -407,14 +407,14 @@ public class MultipleAssignmentSelectorPanel<F extends FocusType, H extends Focu
                         target.add(getOrgUnitEditorContainer());
                     }
                 };
-                getPageBase().showMainPopup(orgPanel, new Model<String>("Select organization"), target);
+                getPageBase().showMainPopup(orgPanel, target);
             }
 
-            @Override
-            protected void setDialogSize() {
-                getPageBase().getMainPopup().setInitialWidth(900);
-                getPageBase().getMainPopup().setInitialHeight(700);
-            }
+//            @Override
+//            protected void setDialogSize() {
+//                getPageBase().getMainPopup().setInitialWidth(900);
+//                getPageBase().getMainPopup().setInitialHeight(700);
+//            }
         };
         orgUnitEditor.setOutputMarkupId(true);
         return orgUnitEditor;

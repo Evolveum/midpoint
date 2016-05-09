@@ -253,7 +253,6 @@ public class ChangePasswordPanel extends BasePanel<MyPasswordsDto> {
                 getPageBase().hideMainPopup(target);
 
             }
-        }, getPageBase().createStringResource("ChangePasswordPanel.helpPopupTitle"),
-               target, HELP_MODAL_WIDTH, HELP_MODAL_HEIGH);
+        }, target);
     }
 }

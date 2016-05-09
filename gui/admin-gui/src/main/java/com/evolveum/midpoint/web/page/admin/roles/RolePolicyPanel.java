@@ -82,7 +82,7 @@ public class RolePolicyPanel extends SimplePanel<RoleType>{
                         target.add(getMinAssignmentsContainer());
                     }
                 };
-                showDialog(window, createStringResource("MultiplicityPolicyDialog.label"), target);
+                showDialog(window, target);
             }
 
             @Override
@@ -111,7 +111,7 @@ public class RolePolicyPanel extends SimplePanel<RoleType>{
                     }
 
                 };
-                showDialog(window, createStringResource("MultiplicityPolicyDialog.label"), target);
+                showDialog(window, target);
             }
 
             @Override

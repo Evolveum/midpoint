@@ -105,6 +105,7 @@ import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
 import com.evolveum.midpoint.web.component.breadcrumbs.BreadcrumbPageClass;
 import com.evolveum.midpoint.web.component.breadcrumbs.BreadcrumbPageInstance;
 import com.evolveum.midpoint.web.component.dialog.MainPopupDialog;
+import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.web.component.menu.MainMenuItem;
 import com.evolveum.midpoint.web.component.menu.MenuItem;
 import com.evolveum.midpoint.web.component.menu.SideBarMenuItem;
@@ -608,25 +609,10 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 		getMainPopup().setTitle(title);
 	}
 
-	public void setMainPopupContent(Component body) {
-		getMainPopup().setBody(body);
+	public void showMainPopup(Popupable popupable, AjaxRequestTarget target) {
+        getMainPopup().setBody(popupable);
+        getMainPopup().show(target);
 	}
-
-	public void showMainPopup(AjaxRequestTarget target) {
-		getMainPopup().show(target);
-	}
-
-    public void showMainPopup(Component body, IModel<String> title, AjaxRequestTarget target) {
-        setMainPopupContent(body);
-        setMainPopupTitle(title);
-        showMainPopup(target);
-    }
-    
-    public void showMainPopup(Component body, IModel<String> title, AjaxRequestTarget target, int initialWidth, int initialHeight) {
-       getMainPopup().setInitialHeight(initialHeight);
-       getMainPopup().setInitialWidth(initialWidth);
-       showMainPopup(body, title, target);
-    }
 
     public void hideMainPopup(AjaxRequestTarget target) {
         getMainPopup().close(target);

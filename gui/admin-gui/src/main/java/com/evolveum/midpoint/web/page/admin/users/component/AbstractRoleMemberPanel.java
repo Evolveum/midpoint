@@ -266,8 +266,7 @@ public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extend
 			};
 		};
 
-		getPageBase().showMainPopup(chooseTypePopupContent, new Model<String>("Choose type"), target, 300,
-				200);
+		getPageBase().showMainPopup(chooseTypePopupContent, target);
 
 	}
 	
@@ -330,7 +329,7 @@ public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extend
 		};
 		browser.setOutputMarkupId(true);
 
-		getPageBase().showMainPopup(browser, new Model<String>("Select members"), target, 900, 700);
+		getPageBase().showMainPopup(browser, target);
 
 	}
 	

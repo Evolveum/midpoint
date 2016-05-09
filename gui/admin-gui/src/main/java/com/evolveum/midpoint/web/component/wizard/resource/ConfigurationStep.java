@@ -241,7 +241,7 @@ public class ConfigurationStep extends WizardStep {
 
 		TestConnectionResultPanel testConnectionPanel = new TestConnectionResultPanel(page.getMainPopupBodyId(), new ListModel<OpResult>(resultDtoList));
 		testConnectionPanel.setOutputMarkupId(true);
-		page.showMainPopup(testConnectionPanel, new Model<>("Test connection result"), target, 600, 400);
+		page.showMainPopup(testConnectionPanel, target);
 		page.showResult(result, "Test connection failed", false);
 		target.add(page.getFeedbackPanel());
 		target.add(getForm());

@@ -300,7 +300,7 @@ public class MultipleAssignmentSelector<F extends FocusType, H extends FocusType
                  target.add(getFilterButton());
     		}
     	};
-       getPageBase().showMainPopup(focusBrowser, title, target, 900, 500);
+       getPageBase().showMainPopup(focusBrowser, target);
     }
 
 

@@ -396,7 +396,7 @@ public class PageCreatedReports extends PageAdminReports {
         final ReportDeleteDialogDto dto = new ReportDeleteDialogDto(op, null);
         deleteModel.setObject(dto);
 
-        getPageBase().showMainPopup(getDeleteDialogPanel(), createStringResource("pageCreatedReports.dialog.title.confirmDelete"), target);
+        getPageBase().showMainPopup(getDeleteDialogPanel(), target);
     }
 
     private ConfirmationPanel getDeleteDialogPanel(){
@@ -438,7 +438,7 @@ public class PageCreatedReports extends PageAdminReports {
         ReportDeleteDialogDto dto = new ReportDeleteDialogDto(op, selected);
         deleteModel.setObject(dto);
 
-        getPageBase().showMainPopup(getDeleteDialogPanel(), createStringResource("pageCreatedReports.dialog.title.confirmDelete"), target);
+        getPageBase().showMainPopup(getDeleteDialogPanel(), target);
     }
 
     private void deleteSelectedConfirmedPerformed(AjaxRequestTarget target, List<ReportOutputType> objects) {

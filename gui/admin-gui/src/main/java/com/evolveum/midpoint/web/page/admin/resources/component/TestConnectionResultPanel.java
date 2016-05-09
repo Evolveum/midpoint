@@ -17,22 +17,25 @@ package com.evolveum.midpoint.web.page.admin.resources.component;
 
 import java.util.List;
 
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
+import org.apache.wicket.model.StringResourceModel;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.result.OpResult;
 import com.evolveum.midpoint.gui.api.component.result.OperationResultPanel;
 import com.evolveum.midpoint.web.component.AjaxButton;
+import com.evolveum.midpoint.web.component.dialog.Popupable;
 
 /**
  * 
  * @author katkav
  *
  */
-public class TestConnectionResultPanel extends BasePanel<List<OpResult>> {
+public class TestConnectionResultPanel extends BasePanel<List<OpResult>> implements Popupable{
 	
 	public TestConnectionResultPanel(String id, IModel<List<OpResult>> model) {
 		super(id, model);
@@ -76,6 +79,26 @@ public class TestConnectionResultPanel extends BasePanel<List<OpResult>> {
 	
 	protected void okPerformed(AjaxRequestTarget target) {
 		
+	}
+
+	@Override
+	public int getWidth() {
+		return 600;
+	}
+
+	@Override
+	public int getHeight() {
+		return 400;
+	}
+
+	@Override
+	public StringResourceModel getTitle() {
+		return new StringResourceModel("TestConnectionResultPanel.testConnection.result");
+	}
+
+	@Override
+	public Component getComponent() {
+		return this;
 	}
 
 }
