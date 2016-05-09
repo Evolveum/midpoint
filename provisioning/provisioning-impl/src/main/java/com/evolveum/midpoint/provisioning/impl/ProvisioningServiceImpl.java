@@ -504,7 +504,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 				result.computeStatus();
 				result.recordSuccessIfUnknown();
 				result.cleanupResult();
-				validateObjects(objects);
+//				validateObjects(objects);
 				return objects;
 			}
 	
@@ -539,7 +539,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		
 		result.computeStatus();
 		result.cleanupResult();
-		validateObjects(objListType);
+//		validateObjects(objListType);
 		objListType.setMetadata(metadata);
 		return objListType;
 	}
@@ -564,7 +564,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
 				PrismObject<T> completeResource = completeObject(type, repoObject, options, objResult);
 				newObjListType.add((PrismObject<T>) completeResource);
-
+				validateObject(completeResource);
                 objResult.computeStatusIfUnknown();
                 if (!objResult.isSuccess()) {
                     completeResource.asObjectable().setFetchResult(objResult.createOperationResultType());      // necessary e.g. to skip validation for resources that had issues when checked

@@ -3291,6 +3291,13 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
+            <xsd:enumeration value="broken">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="BROKEN"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
              </xsd:restriction>
     </xsd:simpleType>
     

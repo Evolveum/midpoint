@@ -264,6 +264,10 @@ public class ResourceDetailsTabPanel extends Panel{
 					backgroundColor = "bg-red";
 					messageKey = "PageResource.resource.down";
 					icon = "fa-ban";
+				} else if (lastAvailabilityStatus == AvailabilityStatusType.BROKEN) {
+					backgroundColor = "bg-yellow";
+					messageKey = "PageResource.resource.broken";
+					icon = "fa-warning";
 				}
 			}
 		}

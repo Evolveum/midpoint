@@ -38,6 +38,7 @@
             classpath*:ctx-notifications.xml,
             classpath:ctx-certification.xml,
             classpath:ctx-interceptor.xml,
+            classpath*:ctx-overlay.xml,
 <!--             classpath:ctx-camel-imports.xml, -->
             /WEB-INF/ctx-webapp.xml,
             /WEB-INF/ctx-web-security.xml,

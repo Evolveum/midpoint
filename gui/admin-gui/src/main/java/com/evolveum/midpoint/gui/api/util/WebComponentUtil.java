@@ -1052,6 +1052,11 @@ public final class WebComponentUtil {
 				return GuiStyleConstants.CLASS_OBJECT_RESOURCE_ICON + " "
 						+ GuiStyleConstants.CLASS_ICON_STYLE_DOWN;
 			}
+			
+			if (lastAvailabilityStatus == AvailabilityStatusType.BROKEN) {
+				return GuiStyleConstants.CLASS_OBJECT_RESOURCE_ICON + " "
+						+ GuiStyleConstants.CLASS_ICON_STYLE_BROKEN;
+			}
 		}
 		return GuiStyleConstants.CLASS_OBJECT_RESOURCE_ICON + " " + GuiStyleConstants.CLASS_ICON_STYLE_NORMAL;
 	}

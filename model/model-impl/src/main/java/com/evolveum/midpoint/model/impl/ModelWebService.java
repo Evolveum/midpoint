@@ -251,6 +251,11 @@ public class ModelWebService extends AbstractModelWebService implements ModelPor
 
         try {
             for (JAXBElement<?> script : scriptsToExecute) {
+            	
+            	Object scriptValue = script.getValue();
+            	if (!(scriptValue instanceof ScriptingExpressionType)) {
+            		throw new SchemaException("Expected that scripts will be of type ScriptingExpressionType, but it was "+scriptValue.getClass().getName());
+            	}
 
                 ScriptExecutionResult executionResult = scriptingService.evaluateExpression((ScriptingExpressionType) script.getValue(), task, result);
 

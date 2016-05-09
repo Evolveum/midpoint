@@ -566,21 +566,29 @@ public class ResourceManager {
 			// The connector was not found. The resource definition is either
 			// wrong or the connector is not
 			// installed.
+			modifyResourceAvailabilityStatus(resource, AvailabilityStatusType.BROKEN, parentResult);
 			initResult.recordFatalError("The connector was not found: "+e.getMessage(), e);
 			return;
 		} catch (SchemaException e) {
+			modifyResourceAvailabilityStatus(resource, AvailabilityStatusType.BROKEN, parentResult);
 			initResult.recordFatalError("Schema error while dealing with the connector definition: "+e.getMessage(), e);
 			return;
 		} catch (RuntimeException e) {
+			modifyResourceAvailabilityStatus(resource, AvailabilityStatusType.BROKEN, parentResult);
 			initResult.recordFatalError("Unexpected runtime error: "+e.getMessage(), e);
 			return;
 		} catch (CommunicationException e) {
+			modifyResourceAvailabilityStatus(resource, AvailabilityStatusType.BROKEN, parentResult);
 			initResult.recordFatalError("Communication error: "+e.getMessage(), e);
 			return;
 		} catch (ConfigurationException e) {
+			modifyResourceAvailabilityStatus(resource, AvailabilityStatusType.BROKEN, parentResult);
 			initResult.recordFatalError("Configuration error: "+e.getMessage(), e);
 			return;
 		}
+		
+			
+		
 		LOGGER.debug("Testing connection to the resource with oid {}", resource.getOid());
 
 		// === test CONFIGURATION ===
@@ -593,18 +601,23 @@ public class ResourceManager {
 					.getValue(), configResult);
 			configResult.recordSuccess();
 		} catch (CommunicationException e) {
+			modifyResourceAvailabilityStatus(resource, AvailabilityStatusType.BROKEN, parentResult);
 			configResult.recordFatalError("Communication error", e);
 			return;
 		} catch (GenericFrameworkException e) {
+			modifyResourceAvailabilityStatus(resource, AvailabilityStatusType.BROKEN, parentResult);
 			configResult.recordFatalError("Generic error", e);
 			return;
 		} catch (SchemaException e) {
+			modifyResourceAvailabilityStatus(resource, AvailabilityStatusType.BROKEN, parentResult);
 			configResult.recordFatalError("Schema error", e);
 			return;
 		} catch (ConfigurationException e) {
+			modifyResourceAvailabilityStatus(resource, AvailabilityStatusType.BROKEN, parentResult);
 			configResult.recordFatalError("Configuration error", e);
 			return;
 		} catch (RuntimeException e) {
+			modifyResourceAvailabilityStatus(resource, AvailabilityStatusType.BROKEN, parentResult);
 			configResult.recordFatalError("Unexpected runtime error", e);
 			return;
 		}
@@ -643,12 +656,15 @@ public class ResourceManager {
 //			}
 			schema = connector.fetchResourceSchema(generateObjectClasses, schemaResult);
 		} catch (CommunicationException e) {
+			modifyResourceAvailabilityStatus(resource, AvailabilityStatusType.BROKEN, parentResult);
 			schemaResult.recordFatalError("Communication error: " + e.getMessage(), e);
 			return;
 		} catch (GenericFrameworkException e) {
+			modifyResourceAvailabilityStatus(resource, AvailabilityStatusType.BROKEN, parentResult);
 			schemaResult.recordFatalError("Generic error: " + e.getMessage(), e);
 			return;
 		} catch (ConfigurationException e) {
+			modifyResourceAvailabilityStatus(resource, AvailabilityStatusType.BROKEN, parentResult);
 			schemaResult.recordFatalError("Configuration error: " + e.getMessage(), e);
 			return;
 		}
@@ -659,11 +675,13 @@ public class ResourceManager {
 			try {
 				schema = RefinedResourceSchema.getResourceSchema(resource, prismContext);
 			} catch (SchemaException e) {
+				modifyResourceAvailabilityStatus(resource, AvailabilityStatusType.BROKEN, parentResult);
 				schemaResult.recordFatalError(e);
 				return;
 			}
 			
 			if (schema == null || schema.isEmpty()) {
+				modifyResourceAvailabilityStatus(resource, AvailabilityStatusType.BROKEN, parentResult);
 				schemaResult.recordFatalError("Connector does not support schema and no static schema available");
 				return;
 			}
@@ -678,17 +696,21 @@ public class ResourceManager {
 		try {
 			resource = completeResource(resource, schema, true, null, schemaResult);
 		} catch (ObjectNotFoundException e) {
+			modifyResourceAvailabilityStatus(resource, AvailabilityStatusType.BROKEN, parentResult);
 			schemaResult.recordFatalError(
 					"Object not found (unexpected error, probably a bug): " + e.getMessage(), e);
 			return;
 		} catch (SchemaException e) {
+			modifyResourceAvailabilityStatus(resource, AvailabilityStatusType.BROKEN, parentResult);
 			schemaResult.recordFatalError(
 					"Schema processing error (probably connector bug): " + e.getMessage(), e);
 			return;
 		} catch (CommunicationException e) {
+			modifyResourceAvailabilityStatus(resource, AvailabilityStatusType.BROKEN, parentResult);
 			schemaResult.recordFatalError("Communication error: " + e.getMessage(), e);
 			return;
 		} catch (ConfigurationException e) {
+			modifyResourceAvailabilityStatus(resource, AvailabilityStatusType.BROKEN, parentResult);
 			schemaResult.recordFatalError("Configuration error: " + e.getMessage(), e);
 			return;
 		}

@@ -145,15 +145,13 @@ public class SelectableBeanObjectDataProvider<O extends ObjectType> extends Base
             for (PrismObject<O> object : list) {
                 getAvailableData().add(createDataObjectWrapper(object.asObjectable()));
             }
+//            result.recordSuccess();
         } catch (Exception ex) {
             result.recordFatalError("Couldn't list objects.", ex);
             LoggingUtils.logException(LOGGER, "Couldn't list objects", ex);
+            return handleNotSuccessOrHandledErrorInIterator(result);
         } finally {
             result.computeStatusIfUnknown();
-        }
-
-        if (result.isFatalError()) {
-            return handleNotSuccessOrHandledErrorInIterator(result);
         }
 
         LOGGER.trace("end::iterator() {}", result);

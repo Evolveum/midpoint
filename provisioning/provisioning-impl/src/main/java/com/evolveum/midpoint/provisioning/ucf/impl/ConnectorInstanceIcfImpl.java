@@ -3293,7 +3293,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 					+ e.getMessage(), e);
 		} catch (RuntimeException e) {
 			// The ConnId will mask encryption exceptions into RuntimeException
-			throw new SystemException("Unable to re-enctyt value of element " + propertyName + ": "
+			throw new SystemException("Unable to encrypt value of element " + propertyName + ": "
 					+ e.getMessage(), e);
 		}
 	}
