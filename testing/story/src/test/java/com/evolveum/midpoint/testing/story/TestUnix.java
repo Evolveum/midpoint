@@ -944,7 +944,7 @@ public class TestUnix extends AbstractStoryTest {
 	 * Modify the account directly on resource: add aux object class, add the
 	 * attributes. Then reconcile the user. The recon should fix it.
 	 */
-	@Test(enabled=false) // MID-2883
+	@Test // MID-2883
     public void test136MeddleWithAccountAndReconcileUserLargo() throws Exception {
 		final String TEST_NAME = "test136MeddleWithAccountAndReconcileUserLargo";
         TestUtil.displayTestTile(this, TEST_NAME);
