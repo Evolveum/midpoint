@@ -187,7 +187,7 @@
 
 	<!-- Users -->
 
-	<user>
+	<user oid="00000000-ee88-6666-0000-000000000001">
 		<name>ifarinic</name>
 		<parentOrgRef oid="00000000-ee88-6666-0000-100000001200" type="c:OrgType"/> <!-- No "relation" in the ref means "member" -->
 		<parentOrgRef oid="00000000-ee88-6666-0000-100000001200" type="c:OrgType" relation="org:manager"/>
@@ -215,10 +215,12 @@
 		<familyName>Farinič</familyName>
 		<honorificPrefix>Mgr.</honorificPrefix>
 		<title>CEO</title>
+		<emailAddress>igor.farinic@evolveum.com</emailAddress>
+		<employeeNumber>001</employeeNumber>
 		<locality>Košice</locality>
 	</user>
 
-	<user>
+	<user oid="00000000-ee88-6666-0000-000000000002">
 		<name>semancik</name>
 		<parentOrgRef oid="00000000-ee88-6666-0000-100000001100" type="c:OrgType"/> <!-- No "relation" in the ref means "member" -->
 		<parentOrgRef oid="00000000-ee88-6666-0000-100000001100" type="c:OrgType" relation="org:manager"/>
@@ -255,10 +257,12 @@
 		<honorificPrefix>Ing.</honorificPrefix>
 		<honorificSuffix>PhD</honorificSuffix>
 		<title>Software Architect</title>
+		<emailAddress>radovan.semancik@evolveum.com</emailAddress>
+		<employeeNumber>002</employeeNumber>
 		<locality>Lozorno</locality>
 	</user>
 
-	<user>
+	<user oid="00000000-ee88-6666-0000-000000000003">
 		<name>katkav</name>
 		<parentOrgRef oid="00000000-ee88-6666-0000-100000001110" type="c:OrgType"/>
 		<parentOrgRef oid="00000000-ee88-6666-0000-200000000001" type="c:OrgType"/>
@@ -282,10 +286,12 @@
 		<familyName>Valaliková</familyName>
 		<honorificPrefix>Ing.</honorificPrefix>
 		<title>Software Developer</title>
+		<emailAddress>katarika.valalikova@evolveum.com</emailAddress>
+		<employeeNumber>003</employeeNumber>
 		<locality>Bratislava</locality>
 	</user>
 
-	<user>
+	<user oid="00000000-ee88-6666-0000-000000000004">
 		<name>mederly</name>
 		<parentOrgRef oid="00000000-ee88-6666-0000-100000001110" type="c:OrgType"/>
 		<parentOrgRef oid="00000000-ee88-6666-0000-200000000001" type="c:OrgType"/>
@@ -306,10 +312,12 @@
 		<honorificPrefix>Mgr.</honorificPrefix>
 		<honorificSuffix>PhD</honorificSuffix>
 		<title>Software Developer</title>
+		<emailAddress>pavol.mederly@evolveum.com</emailAddress>
+		<employeeNumber>004</employeeNumber>
 		<locality>Kalná nad Hronom</locality>
 	</user>
 	
-	<user>
+	<user oid="00000000-ee88-6666-0000-000000000005">
 		<name>lazyman</name>
 		<parentOrgRef oid="00000000-ee88-6666-0000-100000001110" type="c:OrgType"/>
 		<parentOrgRef oid="00000000-ee88-6666-0000-200000000001" type="c:OrgType"/>
@@ -325,10 +333,12 @@
 		<familyName>Repáň</familyName>
 		<honorificPrefix>Ing.</honorificPrefix>
 		<title>Software Developer</title>
+		<emailAddress>viliam.repan@evolveum.com</emailAddress>
+		<employeeNumber>005</employeeNumber>
 		<locality>Bratislava</locality>
 	</user>
 	
-	<user>
+	<user oid="00000000-ee88-6666-0000-000000000006">
 		<name>honchar</name>
 		<parentOrgRef oid="00000000-ee88-6666-0000-100000001110" type="c:OrgType"/>
 		<parentOrgRef oid="00000000-ee88-6666-0000-200000000001" type="c:OrgType"/>
@@ -343,10 +353,12 @@
 		<givenName>Kate</givenName>
 		<familyName>Honchar</familyName>
 		<title>Software Developer</title>
+		<emailAddress>kate.honchar@evolveum.com</emailAddress>
+		<employeeNumber>006</employeeNumber>
 		<locality>Bratislava</locality>
 	</user>
 
-	<user>
+	<user oid="00000000-ee88-6666-0000-000000000007">
 		<name>vix</name>
 		<parentOrgRef oid="00000000-ee88-6666-0000-100000001120" type="c:OrgType"/>
 		<parentOrgRef oid="00000000-ee88-6666-0000-100000001130" type="c:OrgType"/>
@@ -370,10 +382,12 @@
 		<familyName>Noris</familyName>
 		<honorificPrefix>Ing.</honorificPrefix>
 		<title>IDM Engineer</title>
+		<emailAddress>ivan.noris@evolveum.com</emailAddress>
+		<employeeNumber>007</employeeNumber>
 		<locality>Bratislava</locality>
 	</user>
 	
-	<user>
+	<user oid="00000000-ee88-6666-0000-000000000008">
 		<name>oscar</name>
 		<parentOrgRef oid="00000000-ee88-6666-0000-100000001120" type="c:OrgType"/>
 		<parentOrgRef oid="00000000-ee88-6666-0000-100000001130" type="c:OrgType"/>		
@@ -393,10 +407,12 @@
 		<familyName>Pálos</familyName>
 		<honorificPrefix>Mgr.</honorificPrefix>
 		<title>IDM Engineer</title>
+		<emailAddress>gustav.palos@evolveum.com</emailAddress>
+		<employeeNumber>008</employeeNumber>
 		<locality>Bratislava</locality>
 	</user>
 	
-	<user>
+	<user oid="00000000-ee88-6666-0000-000000000009">
 		<name>zibri</name>
 		<parentOrgRef oid="00000000-ee88-6666-0000-100000001220" type="c:OrgType"/>		
 		<parentOrgRef oid="00000000-ee88-6666-0000-100000001220" type="c:OrgType" relation="org:manager"/>
@@ -410,10 +426,12 @@
 		<givenName>Andrea</givenName>
 		<familyName>Žibritovská</familyName>
 		<title>CFO</title>
+		<emailAddress>andrea.zibritovska@evolveum.com</emailAddress>
+		<employeeNumber>009</employeeNumber>
 		<locality>Bratislava</locality>
 	</user>
 
-	<user>
+	<user oid="00000000-ee88-6666-0000-000000000010">
 		<name>vera</name>
 		<parentOrgRef oid="00000000-ee88-6666-0000-100000001210" type="c:OrgType"/>		
 		<parentOrgRef oid="00000000-ee88-6666-0000-100000001210" type="c:OrgType" relation="org:manager"/>
@@ -436,6 +454,8 @@
 		<givenName>Veronika</givenName>
 		<familyName>Kolpaščikovová</familyName>
 		<title>Marketing Specialist</title>
+		<emailAddress>veronika.kolpascikovova@evolveum.com</emailAddress>
+		<employeeNumber>010</employeeNumber>
 		<locality>Zvolen</locality>
 	</user>
 	
