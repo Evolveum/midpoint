@@ -300,24 +300,6 @@ public class ResourceAttributeContainerDefinition extends PrismContainerDefiniti
 		super.copyDefinitionData(clone);
 	}
 
-//	public Set<ResourceAttribute> parseAttributes(List<Object> elements, PropertyPath parentPath) throws SchemaException {
-//		return (Set) parseItems(elements, parentPath);
-//	}
-//	
-//	// Resource objects are usualy constructed as top-level objects, so this comes handy
-//	public Set<ResourceAttribute> parseAttributes(List<Object> elements) throws SchemaException {
-//		return (Set) parseItems(elements, null);
-//	}
-//
-//	public Collection<? extends ResourceAttribute> parseIdentifiers(List<Object> elements, PropertyPath parentPath) throws SchemaException {
-//		return (Collection) parseItems(elements, parentPath, getIdentifiers());
-//	}
-//	
-//	// Resource objects are usualy constructed as top-level objects, so this comes handy
-//	public Collection<? extends ResourceAttribute> parseIdentifiers(List<Object> elements) throws SchemaException {
-//		return (Collection) parseItems(elements, null, getIdentifiers());
-//	}
-
 	public ResourceAttributeDefinition findAttributeDefinition(QName elementQName) {
 		return findAttributeDefinition(elementQName, false);
 	}
