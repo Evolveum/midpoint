@@ -20,6 +20,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
+import com.evolveum.midpoint.web.page.admin.certification.dto.StageDefinitionDto;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -92,8 +94,6 @@ public class PageResources extends PageAdminResources {
 	private static final String OPERATION_DELETE_HOSTS = DOT_CLASS + "deleteHosts";
 	private static final String OPERATION_CONNECTOR_DISCOVERY = DOT_CLASS + "connectorDiscovery";
 
-	private static final String ID_DELETE_RESOURCES_POPUP = "deleteResourcesPopup";
-	private static final String ID_DELETE_HOSTS_POPUP = "deleteHostsPopup";
 	private static final String ID_MAIN_FORM = "mainForm";
 	private static final String ID_TABLE = "table";
 	private static final String ID_CONNECTOR_TABLE = "connectorTable";
@@ -200,30 +200,6 @@ public class PageResources extends PageAdminResources {
 		};
 		connectorHosts.setOutputMarkupId(true);
 		mainForm.add(connectorHosts);
-
-		add(new ConfirmationDialog(ID_DELETE_RESOURCES_POPUP,
-				createStringResource("pageResources.dialog.title.confirmDelete"),
-				createDeleteConfirmString("pageResources.message.deleteResourceConfirm",
-						"pageResources.message.deleteResourcesConfirm", true)) {
-
-			@Override
-			public void yesPerformed(AjaxRequestTarget target) {
-				close(target);
-				deleteResourceConfirmedPerformed(target);
-			}
-		});
-
-		add(new ConfirmationDialog(ID_DELETE_HOSTS_POPUP,
-				createStringResource("pageResources.dialog.title.confirmDelete"),
-				createDeleteConfirmString("pageResources.message.deleteHostConfirm",
-						"pageResources.message.deleteHostsConfirm", false)) {
-
-			@Override
-			public void yesPerformed(AjaxRequestTarget target) {
-				close(target);
-				deleteHostConfirmedPerformed(target);
-			}
-		});
 	}
 
 	private List<InlineMenuItem> createRowMenuItems() {
@@ -380,9 +356,18 @@ public class PageResources extends PageAdminResources {
 			return;
 		}
 
-		ModalWindow dialog = (ModalWindow) get(ID_DELETE_HOSTS_POPUP);
-		dialog.show(target);
-	}
+        ConfirmationPanel dialog = new ConfirmationPanel(((PageBase)getPage()).getMainPopupBodyId(),
+                createDeleteConfirmString("pageResources.message.deleteHostConfirm",
+                "pageResources.message.deleteHostsConfirm", false)){
+            @Override
+            public void yesPerformed(AjaxRequestTarget target) {
+                ((PageBase)getPage()).hideMainPopup(target);
+                deleteHostConfirmedPerformed(target);
+            }
+        };
+        ((PageBase)getPage()).showMainPopup(dialog, createStringResource("pageResources.dialog.title.confirmDelete"), target);
+
+    }
 
 	private List<ResourceType> isAnyResourceSelected(AjaxRequestTarget target, ResourceType single) {
 		List<ResourceType> selected = null;
@@ -407,9 +392,17 @@ public class PageResources extends PageAdminResources {
 			return;
 		}
 
-		ModalWindow dialog = (ModalWindow) get(ID_DELETE_RESOURCES_POPUP);
-		dialog.show(target);
-	}
+        ConfirmationPanel dialog = new ConfirmationPanel(((PageBase)getPage()).getMainPopupBodyId(),
+                createDeleteConfirmString("pageResources.message.deleteResourceConfirm",
+                        "pageResources.message.deleteResourcesConfirm", true)){
+            @Override
+            public void yesPerformed(AjaxRequestTarget target) {
+                ((PageBase)getPage()).hideMainPopup(target);
+                deleteResourceConfirmedPerformed(target);
+            }
+        };
+        ((PageBase)getPage()).showMainPopup(dialog, createStringResource("pageResources.dialog.title.confirmDelete"), target);
+    }
 
 	private MainObjectListPanel<ResourceType> getResourceTable() {
 		return (MainObjectListPanel<ResourceType>) get(createComponentPath(ID_MAIN_FORM, ID_TABLE));
