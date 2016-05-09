@@ -273,12 +273,12 @@ public class PageCertDefinition extends PageAdminCertification {
 			result.recordFatalError("Couldn't save object: " + ex.getMessage(), ex);
 		}
 
+		showResult(result);
+
 		if (result.isError()) {
-			showResult(result);
 			target.add(getFeedbackPanel());
 		} else {
-			showResult(result);
-			setResponsePage(PageCertDefinitions.class);
+			redirectBack();
 		}
 	}
 	//endregion
