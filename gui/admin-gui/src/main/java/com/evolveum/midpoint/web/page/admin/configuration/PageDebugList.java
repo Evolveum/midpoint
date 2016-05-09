@@ -229,17 +229,17 @@ public class PageDebugList extends PageAdminConfiguration {
 	}
 
 	private void initLayout() {
-		DeleteAllDialog deleteAllDialog = new DeleteAllDialog(ID_DELETE_ALL_DIALOG,
-				createStringResource("pageDebugList.dialog.title.deleteAll")) {
-
-			@Override
-			public void yesPerformed(AjaxRequestTarget target) {
-				close(target);
-
-				deleteAllIdentitiesConfirmed(target, getModel().getObject());
-			}
-		};
-		add(deleteAllDialog);
+//		DeleteAllDialog deleteAllDialog = new DeleteAllDialog(ID_DELETE_ALL_DIALOG,
+//				createStringResource("pageDebugList.dialog.title.deleteAll")) {
+//
+//			@Override
+//			public void yesPerformed(AjaxRequestTarget target) {
+//				close(target);
+//
+//				deleteAllIdentitiesConfirmed(target, getModel().getObject());
+//			}
+//		};
+//		add(deleteAllDialog);
 
 		Form main = new Form(ID_MAIN_FORM);
 		add(main);
