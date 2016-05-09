@@ -381,7 +381,7 @@ public class PageResource extends PageAdminResources {
             }
         });
 
-		showMainPopup(testConnectionPanel, new Model<String>("Test connection result"), target, 800, 500);
+		showMainPopup(testConnectionPanel, target);
 
 	}
 	

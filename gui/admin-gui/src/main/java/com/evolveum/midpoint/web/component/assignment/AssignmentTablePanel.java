@@ -54,6 +54,7 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
+import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenu;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
@@ -124,21 +125,21 @@ public class AssignmentTablePanel<T extends ObjectType> extends BasePanel<List<A
 			protected void populateItem(final ListItem<AssignmentEditorDto> item) {
 				AssignmentEditorPanel editor = new AssignmentEditorPanel(ID_ROW, item.getModel());
 				item.add(editor);
-				
+
 				editor.add(AttributeModifier.append("class", new AbstractReadOnlyModel<String>() {
 					private static final long serialVersionUID = 1L;
 
 					@Override
-		            public String getObject() {
-		                AssignmentEditorDto dto = item.getModel().getObject();
-		                ObjectReferenceType targetRef = dto.getTargetRef();
-		                if (targetRef != null && targetRef.getType() != null) {
-		                	return WebComponentUtil.getBoxThinCssClasses(targetRef.getType());
-		                } else {
-		                	return GuiStyleConstants.CLASS_OBJECT_RESOURCE_BOX_THIN_CSS_CLASSES;
-		                }
-		            }
-		        }));
+					public String getObject() {
+						AssignmentEditorDto dto = item.getModel().getObject();
+						ObjectReferenceType targetRef = dto.getTargetRef();
+						if (targetRef != null && targetRef.getType() != null) {
+							return WebComponentUtil.getBoxThinCssClasses(targetRef.getType());
+						} else {
+							return GuiStyleConstants.CLASS_OBJECT_RESOURCE_BOX_THIN_CSS_CLASSES;
+						}
+					}
+				}));
 			}
 		};
 		list.setOutputMarkupId(true);
@@ -166,11 +167,13 @@ public class AssignmentTablePanel<T extends ObjectType> extends BasePanel<List<A
 
 		InlineMenuItem item = new InlineMenuItem(createStringResource("AssignmentTablePanel.menu.assign"),
 				new InlineMenuItemAction() {
+					private static final long serialVersionUID = 1L;
 
 					@Override
 					public void onClick(AjaxRequestTarget target) {
 						TypedAssignablePanel panel = new TypedAssignablePanel(
 								getPageBase().getMainPopupBodyId(), RoleType.class, true, getPageBase()) {
+							private static final long serialVersionUID = 1L;
 
 							@Override
 							protected void addPerformed(AjaxRequestTarget target, List selected) {
@@ -181,18 +184,20 @@ public class AssignmentTablePanel<T extends ObjectType> extends BasePanel<List<A
 
 						};
 						panel.setOutputMarkupId(true);
-						getPageBase().showMainPopup(panel, new Model<String>("Select"), target, 900, 500);
+						getPageBase().showMainPopup(panel, target);
 					}
 				});
 		items.add(item);
 
 		item = new InlineMenuItem(createStringResource("AssignmentTablePanel.menu.assignOrg"),
 				new InlineMenuItemAction() {
+					private static final long serialVersionUID = 1L;
 
 					@Override
 					public void onClick(AjaxRequestTarget target) {
 						OrgTreeAssignablePanel orgTreePanel = new OrgTreeAssignablePanel(
 								getPageBase().getMainPopupBodyId(), true, getPageBase()) {
+							private static final long serialVersionUID = 1L;
 
 							@Override
 							protected void assignSelectedOrgPerformed(List<OrgType> selectedOrgs,
@@ -203,8 +208,7 @@ public class AssignmentTablePanel<T extends ObjectType> extends BasePanel<List<A
 							}
 						};
 						orgTreePanel.setOutputMarkupId(true);
-						getPageBase().showMainPopup(orgTreePanel, new Model<String>("Select Org"), target,
-								900, 500);
+						getPageBase().showMainPopup(orgTreePanel, target);
 
 					}
 				});
@@ -214,6 +218,7 @@ public class AssignmentTablePanel<T extends ObjectType> extends BasePanel<List<A
 
 		item = new InlineMenuItem(createStringResource("AssignmentTablePanel.menu.unassign"),
 				new InlineMenuItemAction() {
+					private static final long serialVersionUID = 1L;
 
 					@Override
 					public void onClick(AjaxRequestTarget target) {
@@ -224,6 +229,7 @@ public class AssignmentTablePanel<T extends ObjectType> extends BasePanel<List<A
 
 		item = new InlineMenuItem(createStringResource("AssignmentTablePanel.menu.showAllAssignments"),
 				new InlineMenuItemAction() {
+					private static final long serialVersionUID = 1L;
 
 					@Override
 					public void onClick(AjaxRequestTarget target) {
@@ -253,10 +259,6 @@ public class AssignmentTablePanel<T extends ObjectType> extends BasePanel<List<A
 		return selected;
 	}
 
-	protected void showModalWindow(Component body, IModel<String> title, AjaxRequestTarget target) {
-		getPageBase().showMainPopup(body, title, target);
-	}
-
 	private void deleteAssignmentPerformed(AjaxRequestTarget target) {
 		List<AssignmentEditorDto> selected = getSelectedAssignments();
 
@@ -266,12 +268,13 @@ public class AssignmentTablePanel<T extends ObjectType> extends BasePanel<List<A
 			return;
 		}
 
-		showModalWindow(getDeleteAssignmentPopupContent(),
-				createStringResource("AssignmentTablePanel.modal.title.confirmDeletion"), target);
+		getPageBase().showMainPopup(getDeleteAssignmentPopupContent(), target);
 	}
 
-	private Component getDeleteAssignmentPopupContent() {
+	private Popupable getDeleteAssignmentPopupContent() {
 		return new ConfirmationPanel(getPageBase().getMainPopupBodyId(), new AbstractReadOnlyModel<String>() {
+
+			private static final long serialVersionUID = 1L;
 
 			@Override
 			public String getObject() {
@@ -279,6 +282,8 @@ public class AssignmentTablePanel<T extends ObjectType> extends BasePanel<List<A
 						getSelectedAssignments().size()).getString();
 			}
 		}) {
+
+			private static final long serialVersionUID = 1L;
 
 			@Override
 			public void yesPerformed(AjaxRequestTarget target) {

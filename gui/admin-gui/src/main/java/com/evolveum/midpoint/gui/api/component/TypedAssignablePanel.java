@@ -19,12 +19,14 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.model.util.ListModel;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
@@ -32,6 +34,7 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.web.component.AjaxButton;
+import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.web.component.input.QNameChoiceRenderer;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
@@ -41,7 +44,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ServiceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
-public class TypedAssignablePanel<T extends ObjectType> extends BasePanel<T> {
+public class TypedAssignablePanel<T extends ObjectType> extends BasePanel<T> implements Popupable{
 
 	/**
 	 * 
@@ -65,11 +68,11 @@ public class TypedAssignablePanel<T extends ObjectType> extends BasePanel<T> {
 
 	private IModel<QName> typeModel;
 
-	private PageBase parentPage;
+//	private PageBase parentPage;
 
 	public TypedAssignablePanel(String id, final Class<T> type, boolean multiselect, PageBase parentPage) {
 		super(id);
-		this.parentPage = parentPage;
+		setParent(parentPage);
 		typeModel = new LoadableModel<QName>(false) {
 
 			@Override
@@ -160,7 +163,7 @@ public class TypedAssignablePanel<T extends ObjectType> extends BasePanel<T> {
 	}
 	
 	protected void onClick(AjaxRequestTarget target, T focus) {
-		parentPage.hideMainPopup(target);
+		getPageBase().hideMainPopup(target);
 	}
 	
 	private void refreshCounts(AjaxRequestTarget target) {
@@ -169,12 +172,10 @@ public class TypedAssignablePanel<T extends ObjectType> extends BasePanel<T> {
 	}
 
 	private PopupObjectListPanel<T> createObjectListPanel(String id, final String countId, final QName type) {
-		PopupObjectListPanel<T> listPanel = new PopupObjectListPanel<T>(id, qnameToCompileTimeClass(type), true, parentPage) {
+		PopupObjectListPanel<T> listPanel = new PopupObjectListPanel<T>(id, qnameToCompileTimeClass(type), true, getPageBase()) {
 			@Override
 			protected void onUpdateCheckbox(AjaxRequestTarget target) {
 				refreshCounts(target);
-//				TypedAssignablePanel.this.get(ID_COUNT_CONTAINER)
-//				target.add(getParent().getParent().addOrReplace(createCountContainer()));
 			}
 		
 		};
@@ -190,21 +191,41 @@ public class TypedAssignablePanel<T extends ObjectType> extends BasePanel<T> {
 	}
 
 	protected void addPerformed(AjaxRequestTarget target, List<T> selected) {
-		parentPage.hideMainPopup(target);
+		getPageBase().hideMainPopup(target);
 	}
 
 	private Class qnameToCompileTimeClass(QName typeName) {
-		return parentPage.getPrismContext().getSchemaRegistry().getCompileTimeClassForObjectType(typeName);
+		return getPageBase().getPrismContext().getSchemaRegistry().getCompileTimeClassForObjectType(typeName);
 	}
 
 	private QName compileTimeClassToQName(Class<T> type) {
-		PrismObjectDefinition<T> def = parentPage.getPrismContext().getSchemaRegistry()
+		PrismObjectDefinition<T> def = getPageBase().getPrismContext().getSchemaRegistry()
 				.findObjectDefinitionByCompileTimeClass(type);
 		if (def == null) {
 			return UserType.COMPLEX_TYPE;
 		}
 
 		return def.getTypeName();
+	}
+
+	@Override
+	public int getWidth() {
+		return 900;
+	}
+
+	@Override
+	public int getHeight() {
+		return 500;
+	}
+
+	@Override
+	public StringResourceModel getTitle() {
+		return getPageBase().createStringResource("TypedAssignablePanel.selectObjects");
+	}
+
+	@Override
+	public Component getComponent() {
+		return this;
 	}
 
 }

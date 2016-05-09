@@ -77,7 +77,7 @@ public class TaskResultTabPanel extends AbstractObjectTabPanel<TaskType> impleme
 				OperationResult opResult = taskDtoModel.getObject().getTaskOperationResult();
 				OperationResultPanel body = new OperationResultPanel(pageBase.getMainPopupBodyId(), new Model<OpResult>(OpResult.getOpResult(pageBase, opResult)));
 				body.setOutputMarkupId(true);
-				pageBase.showMainPopup(body, new Model<String>("Result"), target, 900, 500);
+				pageBase.showMainPopup(body, target);
 			}
 		});
 	}

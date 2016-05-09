@@ -136,7 +136,7 @@ public class DefinitionStagesPanel extends BasePanel<List<StageDefinitionDto>> {
                 deleteConfirmedPerformed(target);
             }
         };
-        getPageBase().showMainPopup(dialog, createStringResource("DefinitionStagesPanel.confirmDelete"), target);
+        getPageBase().showMainPopup(dialog, target);
 
 	}
 

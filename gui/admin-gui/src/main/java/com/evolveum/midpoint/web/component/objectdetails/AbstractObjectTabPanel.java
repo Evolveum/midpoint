@@ -36,6 +36,7 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.component.prism.PrismPropertyPanel;
@@ -131,8 +132,8 @@ public abstract class AbstractObjectTabPanel<O extends ObjectType> extends Panel
 		return object;
 	}
 
-	protected void showModalWindow(Component body, IModel<String> title, AjaxRequestTarget target) {
-        getPageBase().showMainPopup(body, title, target);
+	protected void showModalWindow(Popupable popupable, AjaxRequestTarget target) {
+        getPageBase().showMainPopup(popupable, target);
 		target.add(getFeedbackPanel());
 	}
 

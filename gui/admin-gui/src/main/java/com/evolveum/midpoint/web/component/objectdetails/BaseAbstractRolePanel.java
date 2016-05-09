@@ -119,7 +119,7 @@ public class BaseAbstractRolePanel extends SimplePanel<AbstractRoleType>{
                         target.add(getMinAssignmentsContainer());
                     }
                 };
-                showDialog(window, createStringResource("MultiplicityPolicyDialog.label"), target);
+                showDialog(window, target);
             }
 
             @Override
@@ -147,7 +147,7 @@ public class BaseAbstractRolePanel extends SimplePanel<AbstractRoleType>{
                             target.add(getMaxAssignmentsContainer());
                         }
                     };
-                    showDialog(window, createStringResource("MultiplicityPolicyDialog.label"), target);
+                    showDialog(window, target);
             }
 
             @Override

@@ -18,10 +18,13 @@ package com.evolveum.midpoint.web.page.admin.resources;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
+import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.model.util.ListModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
@@ -37,6 +40,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
 import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
+import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.util.ListDataProvider2;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
@@ -48,7 +52,7 @@ import com.evolveum.midpoint.web.util.TaskOperationUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
-public class ResourceTasksPanel extends Panel {
+public class ResourceTasksPanel extends Panel implements Popupable{
 	private static final long serialVersionUID = 1L;
 
 	private static final String DOT_CLASS = ResourceTasksPanel.class.getName() + ".";
@@ -220,6 +224,26 @@ public class ResourceTasksPanel extends Panel {
 			oids.add(task.getOid());
 		}
 		return oids;
+	}
+
+	@Override
+	public int getWidth() {
+		return 900;
+	}
+
+	@Override
+	public int getHeight() {
+		return 500;
+	}
+
+	@Override
+	public StringResourceModel getTitle() {
+		return pageBase.createStringResource("ResourceTasksPanel.definedTasks");
+	}
+
+	@Override
+	public Component getComponent() {
+		return this;
 	}
 
 }

@@ -21,11 +21,14 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.model.util.ListModel;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
@@ -34,13 +37,14 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.web.component.AjaxButton;
+import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.web.component.input.QNameChoiceRenderer;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
-public class FocusBrowserPanel<T extends ObjectType> extends BasePanel<T> {
+public class FocusBrowserPanel<T extends ObjectType> extends BasePanel<T> implements Popupable{
 
 	private static final String ID_TYPE = "type";
 	private static final String ID_TYPE_PANEL = "typePanel";
@@ -156,30 +160,6 @@ public class FocusBrowserPanel<T extends ObjectType> extends BasePanel<T> {
                 return query;
             }
         };
-
-		// ObjectListPanel<T> listPanel = new ObjectListPanel<T>(ID_TABLE, type,
-		// parentPage) {
-		//
-		// @Override
-		// public void objectDetailsPerformed(AjaxRequestTarget target, T focus)
-		// {
-		// super.objectDetailsPerformed(target, focus);
-		// FocusBrowserPanel.this.onClick(target, focus);
-		// }
-		//
-		// @Override
-		// public void addPerformed(AjaxRequestTarget target, List<T> selected)
-		// {
-		// super.addPerformed(target, selected);
-		// FocusBrowserPanel.this.addPerformed(target, selected);
-		// }
-		//
-		// @Override
-		// public boolean isMultiSelect() {
-		// return multiselect;
-		// }
-		// };
-		// listPanel.setMultiSelect(multiselect);
 		listPanel.setOutputMarkupId(true);
 		return listPanel;
 	}
@@ -200,6 +180,26 @@ public class FocusBrowserPanel<T extends ObjectType> extends BasePanel<T> {
 		}
 
 		return def.getTypeName();
+	}
+
+	@Override
+	public int getWidth() {
+		return 900;
+	}
+
+	@Override
+	public int getHeight() {
+		return 700;
+	}
+
+	@Override
+	public StringResourceModel getTitle() {
+		return parentPage.createStringResource("ObjectBrowserPanel.chooseObject");
+	}
+
+	@Override
+	public Component getComponent() {
+		return this;
 	}
 
 }

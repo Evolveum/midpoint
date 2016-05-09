@@ -46,6 +46,7 @@ public abstract class AbstractSummaryPanel<C extends Containerable> extends Base
 
     public AbstractSummaryPanel(String id, IModel<C> model) {
         super(id, model);
+        setOutputMarkupId(true);
     }
 
     protected void initLayoutCommon() {

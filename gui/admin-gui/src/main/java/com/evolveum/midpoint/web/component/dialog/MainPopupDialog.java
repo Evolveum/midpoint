@@ -38,7 +38,7 @@ public class MainPopupDialog extends ModalWindow {
         super(id);
 
         setCssClassName(ModalWindow.CSS_CLASS_GRAY);
-        setCookieName(ConfirmationDialog.class.getSimpleName() + ((int) (Math.random() * 100)));
+//        setCookieName(ConfirmationDialog.class.getSimpleName() + ((int) (Math.random() * 100)));
         showUnloadConfirmation(false);
         setResizable(false);
         setInitialWidth(350);
@@ -79,10 +79,21 @@ public class MainPopupDialog extends ModalWindow {
        initialized = true;
     }
     
-    public void setBody(Component component){
+    private void setBody(Component component){
     	WebMarkupContainer content = (WebMarkupContainer) get(getContentId());
     	content.addOrReplace(component);
     }
+    
+    public void setBody(Popupable popupable){
+    	setTitle(popupable.getTitle());
+    	setInitialHeight(popupable.getHeight());
+    	setInitialWidth(popupable.getWidth());
+    	WebMarkupContainer content = (WebMarkupContainer) get(getContentId());
+    	popupable.getComponent().setOutputMarkupId(true);
+    	content.addOrReplace(popupable.getComponent());
+    }
+    
+    
     
    
 }

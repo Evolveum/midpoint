@@ -3,6 +3,7 @@ package com.evolveum.midpoint.web.page.admin.configuration.component;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
+import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.web.component.form.TextAreaFormGroup;
 import com.evolveum.midpoint.web.component.form.TextFormGroup;
 import com.evolveum.midpoint.web.component.form.multivalue.MultiValueTextFormGroup;
@@ -21,7 +22,7 @@ import java.util.List;
 /**
  * Created honchar
  */
-public class RichHyperlinkConfigPanel extends Panel {
+public class RichHyperlinkConfigPanel extends Panel implements Popupable {
     private static final String ID_MAIN_FORM = "mainForm";
     private static final String ID_DESCRIPTION = "description";
     private static final String ID_LABEL = "label";
@@ -157,4 +158,24 @@ public class RichHyperlinkConfigPanel extends Panel {
     private Component getMainForm(){
         return get(ID_MAIN_FORM);
     }
+
+	@Override
+	public int getWidth() {
+		return 600;
+	}
+
+	@Override
+	public int getHeight() {
+		return 900;
+	}
+
+	@Override
+	public StringResourceModel getTitle() {
+		return null;
+	}
+
+	@Override
+	public Component getComponent() {
+		return this;
+	}
 }

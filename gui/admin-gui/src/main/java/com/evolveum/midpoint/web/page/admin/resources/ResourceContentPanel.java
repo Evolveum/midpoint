@@ -389,7 +389,7 @@ public abstract class ResourceContentPanel extends Panel {
 
 		ResourceTasksPanel tasksPanel = new ResourceTasksPanel(getPageBase().getMainPopupBodyId(), false,
 				new ListModel<>(tasks), getPageBase());
-		getPageBase().showMainPopup(tasksPanel, new Model<String>("Defined tasks"), target, 900, 500);
+		getPageBase().showMainPopup(tasksPanel, target);
 
 	}
 
@@ -596,8 +596,8 @@ public abstract class ResourceContentPanel extends Panel {
 						ResourceContentPanel.this.getPageBase().getMainPopupBodyId(),
 						new Model<OpResult>(OpResult.getOpResult(pageBase, result)));
 				body.setOutputMarkupId(true);
-				ResourceContentPanel.this.getPageBase().showMainPopup(body, new Model<String>("Result"),
-						target, 900, 500);
+				ResourceContentPanel.this.getPageBase().showMainPopup(body,
+						target);
 
 			}
 		});
@@ -875,7 +875,7 @@ public abstract class ResourceContentPanel extends Panel {
 
 						};
 
-						pageBase.showMainPopup(browser, new Model<String>("ChangeOwner"), target, 900, 500);
+						pageBase.showMainPopup(browser, target);
 
 					}
 				}));
