@@ -202,6 +202,17 @@
 				</outbound>
 			</attribute>
 			<attribute>
+				<ref>ri:mail</ref>
+				<displayName>Mail</displayName>
+				<tolerant>false</tolerant>
+				<outbound>
+					<strength>strong</strength>
+					<source>
+						<path>emailAddress</path>
+					</source>
+				</outbound>
+			</attribute>
+			<attribute>
 				<ref>ri:l</ref>
 				<displayName>Location</displayName>
 				<outbound>
@@ -215,8 +226,20 @@
 				<displayName>Employee Type</displayName>
 				<tolerant>false</tolerant>
 				<outbound>
+					<strength>strong</strength>
 					<source>
 						<path>employeeType</path>
+					</source>
+				</outbound>
+			</attribute>
+			<attribute>
+				<ref>ri:employeeNumber</ref>
+				<displayName>Employee Number</displayName>
+				<tolerant>false</tolerant>
+				<outbound>
+					<strength>strong</strength>
+					<source>
+						<path>employeeNumber</path>
 					</source>
 				</outbound>
 			</attribute>
