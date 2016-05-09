@@ -365,7 +365,7 @@ public class PageResources extends PageAdminResources {
                 deleteHostConfirmedPerformed(target);
             }
         };
-        ((PageBase)getPage()).showMainPopup(dialog, createStringResource("pageResources.dialog.title.confirmDelete"), target);
+        ((PageBase)getPage()).showMainPopup(dialog, target);
 
     }
 
@@ -401,7 +401,7 @@ public class PageResources extends PageAdminResources {
                 deleteResourceConfirmedPerformed(target);
             }
         };
-        ((PageBase)getPage()).showMainPopup(dialog, createStringResource("pageResources.dialog.title.confirmDelete"), target);
+        ((PageBase)getPage()).showMainPopup(dialog, target);
     }
 
 	private MainObjectListPanel<ResourceType> getResourceTable() {

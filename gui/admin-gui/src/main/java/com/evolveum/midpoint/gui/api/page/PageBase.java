@@ -610,26 +610,9 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 	}
 
 	public void showMainPopup(Popupable popupable, AjaxRequestTarget target) {
-//		 getMainPopup().setInitialHeight(popupable.getHeight());
-//         getMainPopup().setInitialWidth(popupable.getWidth());
         getMainPopup().setBody(popupable);
-//        setMainPopupTitle(popupable.getTitle());
         getMainPopup().show(target);
 	}
-
-//	public void showMainPopup(AjaxRequestTarget target) {
-//		getMainPopup().show(target);
-//	}
-
-//    public void showMainPopup(Popupable body, IModel<String> title, AjaxRequestTarget target) {
-//    	
-//    }
-//    
-//    public void showMainPopup(MainPopupPanel body, IModel<String> title, AjaxRequestTarget target, int initialWidth, int initialHeight) {
-//       getMainPopup().setInitialHeight(initialHeight);
-//       getMainPopup().setInitialWidth(initialWidth);
-//       showMainPopup(body, title, target);
-//    }
 
     public void hideMainPopup(AjaxRequestTarget target) {
         getMainPopup().close(target);
