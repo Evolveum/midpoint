@@ -20,6 +20,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
+import com.evolveum.midpoint.web.component.dialog.Popupable;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
@@ -92,8 +94,6 @@ public class PageUsers extends PageAdminUsers {
 	private static final String OPERATION_UNLOCK_USERS = DOT_CLASS + "unlockUsers";
 	private static final String OPERATION_UNLOCK_USER = DOT_CLASS + "unlockUser";
 
-	private static final String DIALOG_CONFIRM_DELETE = "confirmDeletePopup";
-
 	private static final String ID_MAIN_FORM = "mainForm";
 	private static final String ID_TABLE = "table";
 
@@ -129,16 +129,6 @@ public class PageUsers extends PageAdminUsers {
 	private void initLayout() {
 		Form mainForm = new Form(ID_MAIN_FORM);
 		add(mainForm);
-
-		add(new ConfirmationDialog(DIALOG_CONFIRM_DELETE,
-				createStringResource("pageUsers.dialog.title.confirmDelete"), createDeleteConfirmString()) {
-
-			@Override
-			public void yesPerformed(AjaxRequestTarget target) {
-				close(target);
-				deleteConfirmedPerformed(target);
-			}
-		});
 
 		initTable(mainForm);
 	}
@@ -362,10 +352,8 @@ public class PageUsers extends PageAdminUsers {
 		if (users.isEmpty()) {
 			return;
 		}
-
-		ModalWindow dialog = (ModalWindow) get(DIALOG_CONFIRM_DELETE);
-		dialog.show(target);
-	}
+        showMainPopup(getDeletePopupContent(), target);
+    }
 
 	private void deleteConfirmedPerformed(AjaxRequestTarget target) {
 		List<UserType> users = new ArrayList<UserType>();
@@ -543,4 +531,13 @@ public class PageUsers extends PageAdminUsers {
 		target.add(getTable());
 	}
 
+    private Popupable getDeletePopupContent() {
+        return new ConfirmationPanel(getMainPopupBodyId(), createDeleteConfirmString()) {
+            @Override
+            public void yesPerformed(AjaxRequestTarget target) {
+                hideMainPopup(target);
+                deleteConfirmedPerformed(target);
+            }
+        };
+    }
 }
