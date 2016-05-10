@@ -1,7 +1,3 @@
 "id","firstname","lastname","disabled","password"
 "user01","Firstname","Lastname","false","secret"
 "user02","Test","Lastname","false","secret"
-"nnnnn","fffff","lllll","false","password"
-"AAAA_DEL_PROJ11","AAAA_DEL_PROJ","last","false","password"
-"maxeassign11","maxeassign1","maxeassign1","false","maxeassign1"
-"AAA_del_proj_user","AAA_del_proj_user","AAA_del_proj_user","false","AAA_del_proj_user"
