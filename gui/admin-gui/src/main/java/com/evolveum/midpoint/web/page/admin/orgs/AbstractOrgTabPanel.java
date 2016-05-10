@@ -105,15 +105,6 @@ public abstract class AbstractOrgTabPanel extends BasePanel{
 				changeTabPerformed(index);
 				return super.setSelectedTab(index);
 			}
-//			@Override
-//			public TabbedPanel<ITab> setSelectedTab(int index) {
-//				return super.setSelectedTab(index);
-//			}
-        	
-//            @Override
-//            protected void onTabChange(int index) {
-//                changeTabPerformed(index);
-//            }
         };
         tabbedPanel.setOutputMarkupId(true);
         

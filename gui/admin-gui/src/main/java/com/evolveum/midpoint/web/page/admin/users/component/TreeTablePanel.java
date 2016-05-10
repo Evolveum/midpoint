@@ -95,6 +95,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
  */
 public class TreeTablePanel extends BasePanel<String> {
 
+	private static final long serialVersionUID = 1L;
 	private PageBase parentPage;
 
 	@Override
@@ -127,6 +128,7 @@ public class TreeTablePanel extends BasePanel<String> {
 	protected void initLayout() {
 
 		OrgTreePanel treePanel = new OrgTreePanel(ID_TREE_PANEL, getModel(), false) {
+			private static final long serialVersionUID = 1L;
 
 			@Override
 			protected void selectTreeItemPerformed(SelectableBean<OrgType> selected,
@@ -170,6 +172,7 @@ public class TreeTablePanel extends BasePanel<String> {
 
 		InlineMenuItem item = new InlineMenuItem(createStringResource("TreeTablePanel.move"),
 				new ColumnMenuAction<SelectableBean<OrgType>>() {
+					private static final long serialVersionUID = 1L;
 
 					@Override
 					public void onClick(AjaxRequestTarget target) {
@@ -180,6 +183,7 @@ public class TreeTablePanel extends BasePanel<String> {
 
 		item = new InlineMenuItem(createStringResource("TreeTablePanel.makeRoot"),
 				new ColumnMenuAction<SelectableBean<OrgType>>() {
+					private static final long serialVersionUID = 1L;
 
 					@Override
 					public void onClick(AjaxRequestTarget target) {
@@ -190,6 +194,7 @@ public class TreeTablePanel extends BasePanel<String> {
 
 		item = new InlineMenuItem(createStringResource("TreeTablePanel.delete"),
 				new ColumnMenuAction<SelectableBean<OrgType>>() {
+					private static final long serialVersionUID = 1L;
 
 					@Override
 					public void onClick(AjaxRequestTarget target) {
@@ -200,6 +205,7 @@ public class TreeTablePanel extends BasePanel<String> {
 
 		item = new InlineMenuItem(createStringResource("TreeTablePanel.recompute"),
 				new ColumnMenuAction<SelectableBean<OrgType>>() {
+					private static final long serialVersionUID = 1L;
 
 					@Override
 					public void onClick(AjaxRequestTarget target) {
@@ -210,6 +216,7 @@ public class TreeTablePanel extends BasePanel<String> {
 
 		item = new InlineMenuItem(createStringResource("TreeTablePanel.edit"),
 				new ColumnMenuAction<SelectableBean<OrgType>>() {
+					private static final long serialVersionUID = 1L;
 
 					@Override
 					public void onClick(AjaxRequestTarget target) {
@@ -220,6 +227,7 @@ public class TreeTablePanel extends BasePanel<String> {
 
 		item = new InlineMenuItem(createStringResource("TreeTablePanel.createChild"),
 				new ColumnMenuAction<SelectableBean<OrgType>>() {
+					private static final long serialVersionUID = 1L;
 
 					@Override
 					public void onClick(AjaxRequestTarget target) {
@@ -301,7 +309,7 @@ public class TreeTablePanel extends BasePanel<String> {
 
 		OrgTreeAssignablePanel orgAssignablePanel = new OrgTreeAssignablePanel(
 				parentPage.getMainPopupBodyId(), false, parentPage) {
-
+			private static final long serialVersionUID = 1L;
 			@Override
 			protected void onItemSelect(SelectableBean<OrgType> selected, AjaxRequestTarget target) {
 				moveConfirmPerformed(orgToMove, selected, target);
@@ -390,7 +398,7 @@ public class TreeTablePanel extends BasePanel<String> {
 
 		parentPage.showResult(result);
 		target.add(parentPage.getFeedbackPanel());
-//		target.add(getTreePanel());
+		// target.add(getTreePanel());
 		setResponsePage(PageOrgTree.class);
 	}
 
