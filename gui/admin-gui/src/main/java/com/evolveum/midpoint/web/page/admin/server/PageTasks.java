@@ -22,6 +22,8 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
+import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
+import com.evolveum.midpoint.web.component.dialog.Popupable;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.time.DurationFormatUtils;
 import org.apache.wicket.Component;
@@ -29,7 +31,6 @@ import org.apache.wicket.MarkupContainer;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.datetime.markup.html.basic.DateLabel;
-import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
@@ -158,8 +159,6 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
     private static final String ID_TASK_TABLE = "taskTable";
     private static final String ID_NODE_TABLE = "nodeTable";
     private static final String ID_SEARCH_CLEAR = "searchClear";
-    private static final String ID_DELETE_TASKS_POPUP = "deleteTasksPopup";
-    private static final String ID_DELETE_ALL_CLOSED_TASKS_POPUP = "deleteAllClosedTasksPopup";
     private static final String ID_TABLE_HEADER = "tableHeader";
 	public static final String ID_SYNCHRONIZE_WORKFLOW_REQUESTS = "synchronizeWorkflowRequests";
 
@@ -301,29 +300,6 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
         nodeTable.setShowPaging(false);
         mainForm.add(nodeTable);
 
-        add(new ConfirmationDialog(ID_DELETE_TASKS_POPUP,
-                createStringResource("pageTasks.dialog.title.confirmDelete"),
-                createDeleteConfirmString("pageTasks.message.deleteTaskConfirm",
-                        "pageTasks.message.deleteTasksConfirm", true)) {
-
-            @Override
-            public void yesPerformed(AjaxRequestTarget target) {
-                close(target);
-                deleteTaskConfirmedPerformed(target);
-            }
-        });
-
-        add(new ConfirmationDialog(ID_DELETE_ALL_CLOSED_TASKS_POPUP,
-                createStringResource("pageTasks.dialog.title.confirmDelete"),
-                createStringResource("pageTasks.message.deleteAllClosedTasksConfirm")) {
-
-            @Override
-            public void yesPerformed(AjaxRequestTarget target) {
-                close(target);
-                deleteAllClosedTasksConfirmedPerformed(target);
-            }
-        });
-
         initDiagnosticButtons();
     }
 
@@ -348,14 +324,6 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
         IColumn column = new CheckBoxHeaderColumn<>();
         columns.add(column);
 
-//        column = new LinkColumn<NodeDto>(createStringResource("pageTasks.node.name"), "name", "name") {
-//
-//            @Override
-//            public void onClick(AjaxRequestTarget target, IModel<NodeDto> rowModel) {
-//                NodeDto node = rowModel.getObject();
-//                nodeDetailsPerformed(target, node.getOid());
-//            }
-//        };
 		column = new PropertyColumn<>(createStringResource("pageTasks.node.name"), "name", "name");
         columns.add(column);
 
@@ -367,13 +335,6 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
                 return createStringResource(en).getString();
             }
         });
-
-//        CheckBoxColumn check = new CheckBoxColumn(createStringResource("pageTasks.node.running"), "running");
-//        check.setEnabled(false);
-//        columns.add(check);
-
-        // currently, name == identifier, so this is redundant
-//        columns.add(new PropertyColumn(createStringResource("pageTasks.node.nodeIdentifier"), "nodeIdentifier"));
 
         columns.add(new PropertyColumn(createStringResource("pageTasks.node.managementPort"), "managementPort"));
         columns.add(new AbstractColumn<NodeDto, String>(createStringResource("pageTasks.node.lastCheckInTime")) {
@@ -926,8 +887,7 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
         tasksToBeDeleted.clear();
         tasksToBeDeleted.add(dto);
 
-        ModalWindow dialog = (ModalWindow) get(ID_DELETE_TASKS_POPUP);
-        dialog.show(target);
+        showMainPopup(getDeleteTaskPopupContent(), target);
     }
 
     private void deleteTasksPerformed(AjaxRequestTarget target) {
@@ -940,13 +900,11 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
 
         tasksToBeDeleted = taskDtoList;
 
-        ModalWindow dialog = (ModalWindow) get(ID_DELETE_TASKS_POPUP);
-        dialog.show(target);
+        showMainPopup(getDeleteTaskPopupContent(), target);
     }
 
     private void deleteAllClosedTasksPerformed(AjaxRequestTarget target) {
-        ModalWindow dialog = (ModalWindow) get(ID_DELETE_ALL_CLOSED_TASKS_POPUP);
-        dialog.show(target);
+        showMainPopup(getDeleteClosedTaskPopupContent(), target);
     }
 
     private void scheduleTasksPerformed(AjaxRequestTarget target, List<String> oids) {
@@ -1592,4 +1550,27 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
                     }
                 }));
     }
+
+    private Popupable getDeleteTaskPopupContent() {
+        return new ConfirmationPanel(getMainPopupBodyId(),
+                createDeleteConfirmString("pageTasks.message.deleteTaskConfirm",
+                        "pageTasks.message.deleteTasksConfirm", true)) {
+            @Override
+            public void yesPerformed(AjaxRequestTarget target) {
+                hideMainPopup(target);
+                deleteTaskConfirmedPerformed(target);
+            }
+        };
+    }
+
+    private Popupable getDeleteClosedTaskPopupContent() {
+        return new ConfirmationPanel(getMainPopupBodyId(), createStringResource("pageTasks.message.deleteAllClosedTasksConfirm")) {
+            @Override
+            public void yesPerformed(AjaxRequestTarget target) {
+                hideMainPopup(target);
+                deleteAllClosedTasksConfirmedPerformed(target);
+            }
+        };
+    }
+
 }
