@@ -21,6 +21,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.xml.namespace.QName;
 
@@ -32,14 +33,17 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationType;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import com.evolveum.midpoint.common.refinery.CompositeRefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.PropertyLimitations;
 import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.model.common.mapping.Mapping;
 import com.evolveum.midpoint.model.common.mapping.PrismValueDeltaSetTripleProducer;
@@ -56,8 +60,10 @@ import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -65,8 +71,11 @@ import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -192,6 +201,8 @@ public class ReconciliationProcessor {
                 }
                 reconcileProjectionAssociations(projCtx, squeezedAssociations, rOcDef);
             }
+            
+            reconcileMissingAuxiliaryObjectClassAttributes(projCtx);
 
 		} catch (RuntimeException e) {
 			subResult.recordFatalError(e);
@@ -258,6 +269,99 @@ public class ReconciliationProcessor {
 		if (auxObjectClassChanged) {
 			projCtx.recompute();
 			projCtx.refreshAuxiliaryObjectClassDefinitions();
+		}
+	}
+	
+	/**
+	 * If auxiliary object classes changed, there may still be some attributes that were defined by the aux objectclasses
+	 * that were deleted. If these attributes are still around then delete them. Otherwise the delete of the aux object class
+	 * may fail.
+	 */
+	private void reconcileMissingAuxiliaryObjectClassAttributes(LensProjectionContext projCtx) throws SchemaException {
+		ObjectDelta<ShadowType> delta = projCtx.getDelta();
+		if (delta == null) {
+			return;
+		}
+		PropertyDelta<QName> auxOcDelta = delta.findPropertyDelta(ShadowType.F_AUXILIARY_OBJECT_CLASS);
+		if (auxOcDelta == null || auxOcDelta.isEmpty()) {
+			return;
+		}
+		Collection<QName> deletedAuxObjectClassNames = null;
+		PrismObject<ShadowType> objectOld = projCtx.getObjectOld();
+		if (auxOcDelta.isReplace()) {
+			if (objectOld == null) {
+				return;
+			}
+			PrismProperty<QName> auxOcPropOld = objectOld.findProperty(ShadowType.F_AUXILIARY_OBJECT_CLASS);
+			if (auxOcPropOld == null) {
+				return;
+			}
+			Collection<QName> auxOcsOld = auxOcPropOld.getRealValues();
+			Set<QName> auxOcsToReplace = PrismPropertyValue.getRealValuesOfCollection(auxOcDelta.getValuesToReplace());
+			deletedAuxObjectClassNames = new ArrayList<>(auxOcsOld.size());
+			for (QName auxOcOld: auxOcsOld) {
+				if (!QNameUtil.contains(auxOcsToReplace, auxOcOld)) {
+					deletedAuxObjectClassNames.add(auxOcOld);
+				}
+			}
+		} else {
+			Collection<PrismPropertyValue<QName>> valuesToDelete = auxOcDelta.getValuesToDelete();
+			if (valuesToDelete == null || valuesToDelete.isEmpty()) {
+				return;
+			}
+			deletedAuxObjectClassNames = PrismPropertyValue.getRealValuesOfCollection(valuesToDelete);
+		}
+		LOGGER.trace("Deleted auxiliary object classes: {}", deletedAuxObjectClassNames);
+		if (deletedAuxObjectClassNames == null || deletedAuxObjectClassNames.isEmpty()) {
+			return;
+		}
+		
+		List<QName> attributesToDelete = new ArrayList<>();
+		String projHumanReadableName = projCtx.getHumanReadableName();
+		RefinedResourceSchema refinedResourceSchema = projCtx.getRefinedResourceSchema();
+		RefinedObjectClassDefinition structuralObjectClassDefinition = projCtx.getStructuralObjectClassDefinition();
+		Collection<RefinedObjectClassDefinition> auxiliaryObjectClassDefinitions = projCtx.getAuxiliaryObjectClassDefinitions();
+		for (QName deleteAuxOcName: deletedAuxObjectClassNames) {
+			ObjectClassComplexTypeDefinition auxOcDef = refinedResourceSchema.findObjectClassDefinition(deleteAuxOcName);
+			for (ResourceAttributeDefinition auxAttrDef: auxOcDef.getAttributeDefinitions()) {
+				QName auxAttrName = auxAttrDef.getName();
+				if (attributesToDelete.contains(auxAttrName)) {
+					continue;
+				}
+				RefinedAttributeDefinition<Object> strucuralAttrDef = structuralObjectClassDefinition.findAttributeDefinition(auxAttrName);
+				if (strucuralAttrDef == null) {
+					boolean found = false;
+					for (RefinedObjectClassDefinition auxiliaryObjectClassDefinition: auxiliaryObjectClassDefinitions) {
+						if (QNameUtil.contains(deletedAuxObjectClassNames, auxiliaryObjectClassDefinition.getTypeName())) {
+							continue;
+						}
+						RefinedAttributeDefinition<Object> existingAuxAttrDef = auxiliaryObjectClassDefinition.findAttributeDefinition(auxAttrName);
+						if (existingAuxAttrDef != null) {
+							found = true;
+							break;
+						}
+					}
+					if (!found) {
+						LOGGER.trace("Removing attribute {} because it is in the deleted object class {} and it is not defined by any current object class for {}",
+								auxAttrName, deleteAuxOcName, projHumanReadableName);
+						attributesToDelete.add(auxAttrName);
+					}
+				}
+			}
+		}
+		LOGGER.trace("Attributes to delete: {}", attributesToDelete);
+		if (attributesToDelete.isEmpty()) {
+			return;
+		}
+		
+		for (QName attrNameToDelete: attributesToDelete) {
+			ResourceAttribute<Object> attrToDelete = ShadowUtil.getAttribute(objectOld, attrNameToDelete);
+			if (attrToDelete == null || attrToDelete.isEmpty()) {
+				continue;
+			}
+			PropertyDelta<Object> attrDelta = attrToDelete.createDelta();
+			attrDelta.addValuesToDelete(PrismValue.cloneCollection(attrToDelete.getValues()));
+			projCtx.swallowToSecondaryDelta(attrDelta);
 		}
 	}
 	

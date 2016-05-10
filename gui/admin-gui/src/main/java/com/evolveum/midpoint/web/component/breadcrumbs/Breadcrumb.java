@@ -16,7 +16,10 @@
 
 package com.evolveum.midpoint.web.component.breadcrumbs;
 
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import org.apache.wicket.Component;
+import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 
 import java.io.Serializable;
@@ -26,6 +29,8 @@ import java.util.Arrays;
  * @author Viliam Repan (lazyman)
  */
 public class Breadcrumb implements Serializable {
+
+    private static final Trace LOG = TraceManager.getTrace(Breadcrumb.class);
 
     private IModel<String> label;
     private IModel<String> icon;
@@ -40,8 +45,8 @@ public class Breadcrumb implements Serializable {
     }
 
     public Breadcrumb(IModel<String> label, IModel<String> icon) {
-        this.icon = icon;
-        this.label = label;
+        setLabel(label);
+        setIcon(icon);
     }
 
     public IModel<String> getLabel() {
@@ -49,7 +54,7 @@ public class Breadcrumb implements Serializable {
     }
 
     public void setLabel(IModel<String> label) {
-        this.label = label;
+        this.label = wrapModel(label);
     }
 
     public IModel<String> getIcon() {
@@ -57,7 +62,7 @@ public class Breadcrumb implements Serializable {
     }
 
     public void setIcon(IModel<String> icon) {
-        this.icon = icon;
+        this.icon = wrapModel(icon);
     }
 
     public boolean isUseLink() {
@@ -77,6 +82,25 @@ public class Breadcrumb implements Serializable {
     }
 
     public void redirect(Component component) {
+    }
+
+    private <T extends Serializable> IModel<T> wrapModel(final IModel<T> model) {
+        if (model == null) {
+            return null;
+        }
+
+        return new AbstractReadOnlyModel<T>() {
+
+            @Override
+            public T getObject() {
+                try {
+                    return model.getObject();
+                } catch (Exception ex) {
+                    LOG.warn("Couldn't load breadcrumb model value", ex);
+                    return null;
+                }
+            }
+        };
     }
 
     @Override

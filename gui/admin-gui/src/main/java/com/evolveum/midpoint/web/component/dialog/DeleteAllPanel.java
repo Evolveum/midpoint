@@ -1,33 +1,4 @@
-/*
- * Copyright (c) 2010-2013 Evolveum
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package com.evolveum.midpoint.web.component.dialog;
-
-import java.util.ArrayList;
-import java.util.Collection;
-
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
-import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
-import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.form.CheckBox;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
-import org.apache.wicket.model.PropertyModel;
-import org.apache.wicket.model.StringResourceModel;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
@@ -48,18 +19,34 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import org.apache.wicket.Component;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
+import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
+import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.form.CheckBox;
+import org.apache.wicket.markup.html.panel.Panel;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
+import org.apache.wicket.model.PropertyModel;
+import org.apache.wicket.model.StringResourceModel;
+
+import java.util.ArrayList;
+import java.util.Collection;
 
 /**
- *  @author shood
- * */
-public class DeleteAllDialog extends ModalWindow{
+ * Created by Honchar.
+ */
+public class DeleteAllPanel extends Panel  implements Popupable{
 
-    private static final Trace LOGGER = TraceManager.getTrace(DeleteAllDialog.class);
+    private static final Trace LOGGER = TraceManager.getTrace(DeleteAllPanel.class);
 
-    private static final String DOT_CLASS = DeleteAllDialog.class.getName() + ".";
+    private static final String DOT_CLASS = DeleteAllPanel.class.getName() + ".";
     private static final String OPERATION_SEARCH_ITERATIVE_TASK = DOT_CLASS + "searchIterativeTask";
     private static final String OPERATION_COUNT_TASK = DOT_CLASS + "countObjectsTask";
 
+    private static final String ID_CONTENT = "content";
     private static final String ID_CHB_USERS = "checkboxUsers";
     private static final String ID_CHB_ORG = "checkboxOrg";
     private static final String ID_CHB_ACCOUNT_SHADOW = "checkboxAccountShadow";
@@ -74,40 +61,10 @@ public class DeleteAllDialog extends ModalWindow{
 
     private IModel<DeleteAllDto> model = new Model(new DeleteAllDto());
 
-    public DeleteAllDialog(String id, IModel<String> title){
+    public DeleteAllPanel(String id){
         super(id);
-
-        if(title != null){
-            setTitle(title);
-        }
-
-        setCssClassName(ModalWindow.CSS_CLASS_GRAY);
-        setCookieName(ConfirmationDialog.class.getSimpleName() + ((int) (Math.random() * 100)));
-        showUnloadConfirmation(false);
-        setResizable(false);
-        setInitialWidth(650);
-        setInitialHeight(350);
-        setWidthUnit("px");
-
-        setCloseButtonCallback(new ModalWindow.CloseButtonCallback() {
-
-            @Override
-            public boolean onCloseButtonClicked(AjaxRequestTarget target) {
-                return true;
-            }
-        });
-
-        setWindowClosedCallback(new ModalWindow.WindowClosedCallback() {
-
-            @Override
-            public void onClose(AjaxRequestTarget target) {
-                DeleteAllDialog.this.close(target);
-            }
-        });
-
-        WebMarkupContainer content = new WebMarkupContainer(getContentId());
-        setContent(content);
-
+        WebMarkupContainer content = new WebMarkupContainer(ID_CONTENT);
+        add(content);
         initLayout(content);
     }
 
@@ -165,7 +122,7 @@ public class DeleteAllDialog extends ModalWindow{
 
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
-               updateLabelModel(target, ID_TEXT_NON_ACC_SHADOW);
+                updateLabelModel(target, ID_TEXT_NON_ACC_SHADOW);
             }
         });
         content.add(deleteNonAccountShadowsCheckbox);
@@ -238,11 +195,11 @@ public class DeleteAllDialog extends ModalWindow{
     }
 
     private Label getLabel(String ID){
-        return (Label)get(getContentId()+":"+ID);
+        return (Label)get(ID_CONTENT +":"+ID);
     }
 
     public StringResourceModel createStringResource(String resourceKey, Object... objects) {
-    	return PageBase.createStringResourceStatic(this, resourceKey, objects);
+        return PageBase.createStringResourceStatic(this, resourceKey, objects);
 //        return new StringResourceModel(resourceKey, this, new Model<String>(), resourceKey, objects);
     }
 
@@ -379,6 +336,28 @@ public class DeleteAllDialog extends ModalWindow{
     }
 
     public void noPerformed(AjaxRequestTarget target) {
-        close(target);
+        getPagebase().hideMainPopup(target);
     }
+
+    @Override
+    public int getWidth() {
+        return 650;
+    }
+
+    @Override
+    public int getHeight() {
+        return 350;
+    }
+
+    @Override
+    public StringResourceModel getTitle() {
+        return createStringResource("pageDebugList.dialog.title.deleteAll");
+    }
+
+    @Override
+    public Component getComponent() {
+        return this;
+    }
+
 }
+

@@ -473,7 +473,7 @@ public class ResourceObjectConverter {
 					break;
 				}
 			} else if (QNameUtil.match(firstPathName, ShadowType.F_ACTIVATION) || QNameUtil.match(firstPathName, ShadowType.F_CREDENTIALS) ||
-					QNameUtil.match(firstPathName, ShadowType.F_ASSOCIATION)) {
+					QNameUtil.match(firstPathName, ShadowType.F_ASSOCIATION) || QNameUtil.match(firstPathName, ShadowType.F_AUXILIARY_OBJECT_CLASS)) {
 				hasResourceModification = true;
 			}
 		}

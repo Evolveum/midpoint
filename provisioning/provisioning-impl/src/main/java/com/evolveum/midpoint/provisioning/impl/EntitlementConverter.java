@@ -508,7 +508,9 @@ class EntitlementConverter {
 						}
 						
 						attributeDelta.addValuesToDelete(valueAttr.getClonedValues());
-						LOGGER.trace("Association in deleted shadow delta: {}", attributeDelta);
+						if (LOGGER.isTraceEnabled()) {
+							LOGGER.trace("Association in deleted shadow delta:\n{}", attributeDelta.debugDump());
+						}
 	
 						return true;
 					}

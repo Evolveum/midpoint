@@ -24,7 +24,7 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
-import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
+import com.evolveum.midpoint.web.component.dialog.*;
 import com.evolveum.midpoint.web.component.search.Search;
 import com.evolveum.midpoint.web.component.search.SearchFactory;
 import com.evolveum.midpoint.web.component.search.SearchPanel;
@@ -102,9 +102,6 @@ import com.evolveum.midpoint.web.component.data.column.InlineMenuHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.InlineMenuable;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.component.data.column.TwoValueLinkPanel;
-import com.evolveum.midpoint.web.component.dialog.DeleteAllDialog;
-import com.evolveum.midpoint.web.component.dialog.DeleteAllDto;
-import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.web.component.input.ChoiceableChoiceRenderer;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
@@ -151,7 +148,6 @@ public class PageDebugList extends PageAdminConfiguration {
 	private static final String ID_EXPORT = "export";
 	private static final String ID_EXPORT_ALL = "exportAll";
 	private static final String ID_SEARCH_FORM = "searchForm";
-	private static final String ID_DELETE_ALL_DIALOG = "confirmDeleteAll";
 	private static final String ID_RESOURCE = "resource";
 	private static final String ID_TABLE_HEADER = "tableHeader";
 	private static final String ID_SEARCH = "search";
@@ -230,17 +226,17 @@ public class PageDebugList extends PageAdminConfiguration {
 	}
 
 	private void initLayout() {
-		DeleteAllDialog deleteAllDialog = new DeleteAllDialog(ID_DELETE_ALL_DIALOG,
-				createStringResource("pageDebugList.dialog.title.deleteAll")) {
-
-			@Override
-			public void yesPerformed(AjaxRequestTarget target) {
-				close(target);
-
-				deleteAllIdentitiesConfirmed(target, getModel().getObject());
-			}
-		};
-		add(deleteAllDialog);
+//		DeleteAllDialog deleteAllDialog = new DeleteAllDialog(ID_DELETE_ALL_DIALOG,
+//				createStringResource("pageDebugList.dialog.title.deleteAll")) {
+//
+//			@Override
+//			public void yesPerformed(AjaxRequestTarget target) {
+//				close(target);
+//
+//				deleteAllIdentitiesConfirmed(target, getModel().getObject());
+//			}
+//		};
+//		add(deleteAllDialog);
 
 		Form main = new Form(ID_MAIN_FORM);
 		add(main);
@@ -404,21 +400,21 @@ public class PageDebugList extends PageAdminConfiguration {
 
 		headerMenuItems
 				.add(new InlineMenuItem(createStringResource("pageDebugList.menu.exportShadowsOnResource"),
-						new Model(true), new AbstractReadOnlyModel<Boolean>() {
+                        new Model(true), new AbstractReadOnlyModel<Boolean>() {
 
-							@Override
-							public Boolean getObject() {
-								DebugSearchDto dto = searchModel.getObject();
-								return ObjectTypes.SHADOW.equals(dto.getType());
-							}
+                    @Override
+                    public Boolean getObject() {
+                        DebugSearchDto dto = searchModel.getObject();
+                        return ObjectTypes.SHADOW.equals(dto.getType());
+                    }
 
-						}, false, new HeaderMenuAction(this) {
+                }, false, new HeaderMenuAction(this) {
 
-							@Override
-							public void onClick(AjaxRequestTarget target) {
-								exportAllShadowsOnResource(target);
-							}
-						}));
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        exportAllShadowsOnResource(target);
+                    }
+                }));
 
 		headerMenuItems.add(new InlineMenuItem(createStringResource("pageDebugList.menu.exportAll"), true,
 				new HeaderMenuAction(this) {
@@ -739,8 +735,14 @@ public class PageDebugList extends PageAdminConfiguration {
 	}
 
 	private void deleteAllIdentities(AjaxRequestTarget target) {
-		DeleteAllDialog dialog = (DeleteAllDialog) get(ID_DELETE_ALL_DIALOG);
-		dialog.show(target);
+        DeleteAllPanel dialog = new DeleteAllPanel(getMainPopupBodyId()){
+            @Override
+			public void yesPerformed(AjaxRequestTarget target) {
+				hideMainPopup(target);
+				deleteAllIdentitiesConfirmed(target, getModel().getObject());
+			}
+        };
+        showMainPopup(dialog, target);
 	}
 
 	private void deleteAllTypeConfirmed(AjaxRequestTarget target) {

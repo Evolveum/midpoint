@@ -37,6 +37,7 @@ import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.util.exception.TunnelException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MailServerConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NotificationConfigurationType;
@@ -273,17 +274,33 @@ public class CryptoUtil {
 			}
 		}
 		
-		securitySelfTestAlgorithm("AES", "AES/CBC/PKCS5Padding",result);
+		securitySelfTestAlgorithm("AES", "AES/CBC/PKCS5Padding", null, result);
+		OperationResult cryptoResult = result.getLastSubresult();
+		if (cryptoResult.isError()) {
+			// Do a test encryption. It happens sometimes that the key generator
+            // generates a key that is not supported by the cipher.
+			// Fall back to known key size supported by all JCE implementations
+			securitySelfTestAlgorithm("AES", "AES/CBC/PKCS5Padding", 128, result);
+			OperationResult cryptoResult2 = result.getLastSubresult();
+			if (cryptoResult2.isSuccess()) {
+				cryptoResult.setStatus(OperationResultStatus.HANDLED_ERROR);
+			}
+		}
 		
 		result.computeStatus();
 	}
 
-	private static void securitySelfTestAlgorithm(String algorithmName, String transformationName, OperationResult parentResult) {
+	private static void securitySelfTestAlgorithm(String algorithmName, String transformationName, Integer keySize, OperationResult parentResult) {
 		OperationResult subresult = parentResult.createSubresult(CryptoUtil.class.getName()+".securitySelfTest.algorithm."+algorithmName);
 		try {
 			KeyGenerator keyGenerator = KeyGenerator.getInstance(algorithmName);
+			if (keySize != null) {
+				keyGenerator.init(keySize);
+			}
 			subresult.addReturn("keyGeneratorProvider", keyGenerator.getProvider().getName());
 			subresult.addReturn("keyGeneratorAlgorithm", keyGenerator.getAlgorithm());
+			subresult.addReturn("keyGeneratorKeySize", keySize);
+			
 			SecretKey key = keyGenerator.generateKey();
 			subresult.addReturn("keyAlgorithm", key.getAlgorithm());
 			subresult.addReturn("keyLength", key.getEncoded().length*8);

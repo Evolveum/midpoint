@@ -18,6 +18,7 @@ package com.evolveum.midpoint.util;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Set;
 
 import javax.xml.namespace.QName;
 
@@ -224,5 +225,17 @@ public class QNameUtil {
 	public static String getLocalPart(QName name) {
         return name != null ? name.getLocalPart() : null;
     }
+
+	public static boolean contains(Collection<QName> col, QName qname) {
+		if (col == null) {
+			return false;
+		}
+		for (QName element: col) {
+			if (match(element, qname)) {
+				return true;
+			}
+		}
+		return false;
+	}
 
 }

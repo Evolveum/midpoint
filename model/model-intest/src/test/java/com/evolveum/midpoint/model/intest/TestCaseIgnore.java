@@ -168,8 +168,8 @@ public class TestCaseIgnore extends AbstractInitializedModelIntegrationTest {
         repoAddObjectFromFile(ROLE_FOOL_FILE, RoleType.class, initResult);
         
 		InternalMonitor.reset();
-		InternalMonitor.setTraceShadowFetchOperation(true);
-		InternalMonitor.setTraceResourceSchemaOperations(true);
+		InternalMonitor.setTraceShadowFetchOperation(false);
+		InternalMonitor.setTraceResourceSchemaOperations(false);
 	}
 	
 	@Test
@@ -716,7 +716,7 @@ public class TestCaseIgnore extends AbstractInitializedModelIntegrationTest {
                 
         assertNoDummyAccount(RESOURCE_DUMMY_UPCASE_NAME, ACCOUNT_JACK_DUMMY_UPCASE_NAME);
         // MID-2147
-//        assertNoDummyGroupMember(RESOURCE_DUMMY_UPCASE_NAME, GROUP_JOKER_DUMMY_UPCASE_NAME, ACCOUNT_JACK_DUMMY_UPCASE_NAME);
+        assertNoDummyGroupMember(RESOURCE_DUMMY_UPCASE_NAME, GROUP_JOKER_DUMMY_UPCASE_NAME, ACCOUNT_JACK_DUMMY_UPCASE_NAME);
         
         assertShadows(5);
 	}
