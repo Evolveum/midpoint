@@ -120,6 +120,10 @@
                             <q:path>name</q:path>
                             <q:value>End user</q:value>
                     </q:equal>
+                    <q:equal>
+                            <q:path>name</q:path>
+                            <q:value>Delegated Administration Role</q:value><!-- To see also this role -->
+                    </q:equal>
                </q:or>
             </filter>
         </object>

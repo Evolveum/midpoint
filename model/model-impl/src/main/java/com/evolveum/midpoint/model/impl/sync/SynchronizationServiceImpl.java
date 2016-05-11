@@ -193,20 +193,6 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 			eventInfo.setOriginalSituation(situation.getSituation());
 			eventInfo.setNewSituation(situation.getSituation());			// overwritten later (TODO fix this!)
 
-//			if (isProtected((PrismObject<ShadowType>) currentShadow)){
-//				LOGGER.trace("SYNCHRONIZATION skipping {} because it is protected", currentShadow);
-//				// Just make sure there is no misleading synchronization situation in the shadow
-//				if (currentShadow.asObjectable().getSynchronizationSituation() != null) {
-//					ObjectDelta<ShadowType> shadowDelta = ObjectDelta.createModificationReplaceProperty(ShadowType.class, currentShadow.getOid(),
-//							ShadowType.F_SYNCHRONIZATION_SITUATION, prismContext);
-//					provisioningService.modifyObject(ShadowType.class, currentShadow.getOid(), 
-//							shadowDelta.getModifications(), null, null, task, subResult);
-//				}
-//				subResult.recordStatus(OperationResultStatus.NOT_APPLICABLE, "Skipped because it is protected");
-//				eventInfo.setProtected();
-//				eventInfo.record(task);
-//				return;
-//			}
 			if (change.isUnrelatedChange() || Utils.isDryRun(task) || isProtected((PrismObject<ShadowType>) currentShadow)){
 				PrismObject object = null;
 				if (change.getCurrentShadow() != null){
@@ -345,26 +331,24 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 			
 			String policyIntent = synchronizationPolicy.getIntent();
 			ShadowKindType policyKind = synchronizationPolicy.getKind();
+			ObjectClassComplexTypeDefinition policyObjectClass = null;
+			RefinedResourceSchema schema = RefinedResourceSchema.getRefinedSchema(resource);
 			if (policyKind == null && policyIntent == null) {
-				LOGGER.warn("Neither objectClass nor kind/intent defined for sycnrhonization policy. Could not reliably apply synchronization definition. Skipping...");
-				return false;
+				policyObjectClass = schema.findDefaultObjectClassDefinition(policyKind);
 			}
 			
-			ObjectClassComplexTypeDefinition policyObjectClass;
+			
 			if (policyKind != null){
-				RefinedResourceSchema schema = RefinedResourceSchema.getRefinedSchema(resource);
 				if (StringUtils.isEmpty(policyIntent)) {
 					policyObjectClass = schema.findDefaultObjectClassDefinition(policyKind);
 				} else {
 					policyObjectClass = schema.findObjectClassDefinition(policyKind, policyIntent);
 				}
 				
-				if (policyObjectClass != null && policyObjectClass.getTypeName().equals(shadowObjectClass)){
-					return true;
-				} 
-				
-				return false;
 			}
+			if (policyObjectClass != null && policyObjectClass.getTypeName().equals(shadowObjectClass)){
+				return true;
+			} 
 		}
 		
 		if (policyObjectClasses != null && !policyObjectClasses.isEmpty()) {

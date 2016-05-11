@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2013 Evolveum
+  ~ Copyright (c) 2010-2016 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -28,27 +28,12 @@
 			<resourceRef oid="10000000-0000-0000-0000-000000000004"/>
 		</construction>
 	</assignment>
-	
-	<assignment>
-		<construction>
-			<resourceRef oid="10000000-0000-0000-0000-000000000104"/>
-		</construction>
-	</assignment>
-	
-	<assignment>
-		<construction>
-			<resourceRef oid="10000000-0000-0000-0000-000000000204"/>
-		</construction>
-	</assignment>
-    
+	    
     <linkRef oid="c0c010c0-d34d-b33f-f00d-22220004000e" type="c:ShadowType"/>
-    <linkRef oid="c0c010c0-d34d-b33f-f00d-22220104000e" type="c:ShadowType"/>
-    <linkRef oid="c0c010c0-d34d-b33f-f00d-22220204000e" type="c:ShadowType"/>
 
     <fullName>Elaine Marley</fullName>
     <givenName>Elaine</givenName>
     <familyName>Marley</familyName>
     <locality>Melee Island</locality>
-    
 
 </user>

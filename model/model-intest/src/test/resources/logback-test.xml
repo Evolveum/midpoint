@@ -43,7 +43,7 @@
          if any of the following is set to "TRACE" then it was changed by mistake and should be changed back -->
 	<logger name="com.evolveum.midpoint.model.impl.lens.Clockwork" level="DEBUG" />
 	<logger name="com.evolveum.midpoint.model.impl.lens.projector" level="DEBUG" />
- 	<logger name="com.evolveum.midpoint.model.impl.lens.projector.Projector" level="DEBUG" />
+ 	<logger name="com.evolveum.midpoint.model.impl.lens.projector.Projector" level="TRACE" />
  	<logger name="com.evolveum.midpoint.model.impl.lens.projector.ContextLoader" level="DEBUG" />
  	<logger name="com.evolveum.midpoint.model.impl.lens.projector.FocusProcessor" level="DEBUG" />
  	<logger name="com.evolveum.midpoint.model.impl.lens.projector.InboundProcessor" level="DEBUG" />
@@ -61,7 +61,7 @@
  	<logger name="com.evolveum.midpoint.model.impl.util" level="TRACE" />
 	<logger name="com.evolveum.midpoint.model.impl.sync" level="DEBUG" />
  	<logger name="com.evolveum.midpoint.model.impl.sync.CorrelationConfirmationEvaluator" level="DEBUG" />
-    <logger name="com.evolveum.midpoint.provisioning" level="TRACE" />
+    <logger name="com.evolveum.midpoint.provisioning" level="DEBUG" />
     <logger name="com.evolveum.midpoint.provisioning.impl.ResourceManager" level="DEBUG" />
 	<logger name="com.evolveum.midpoint.expression" level="DEBUG" />
 	<logger name="com.evolveum.midpoint.model.common.expression" level="DEBUG" />
@@ -76,8 +76,8 @@
     <logger name="com.evolveum.midpoint.security" level="DEBUG" />
     <logger name="com.evolveum.midpoint.security.impl.SecurityEnforcerImpl" level="DEBUG" />
     <logger name="com.evolveum.midpoint.model.impl.util.AbstractSearchIterativeTaskHandler" level="DEBUG" />
-    <logger name="com.evolveum.midpoint.model.impl.sync.SynchronizationServiceImpl" level="TRACE" />
-    <logger name="com.evolveum.midpoint.model.impl.sync.ReconciliationTaskHandler" level="TRACE" />
+    <logger name="com.evolveum.midpoint.model.impl.sync.SynchronizationServiceImpl" level="DEBUG" />
+    <logger name="com.evolveum.midpoint.model.impl.sync.ReconciliationTaskHandler" level="DEBUG" />
     <logger name="com.evolveum.midpoint.model.impl.sync.FocusValidityScannerTaskHandler" level="DEBUG" />
     <logger name="com.evolveum.midpoint.model.impl.controller.ModelController" level="DEBUG" />
     <logger name="com.evolveum.midpoint.model.impl.controller.ModelInteractionServiceImpl" level="DEBUG" />

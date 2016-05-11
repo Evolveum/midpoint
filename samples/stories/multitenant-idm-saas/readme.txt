@@ -38,8 +38,10 @@ menu on the left side.
 
 To modify organization settings:
 - click Org. structure on the left side, then Organization tree
-- click on the organization name on the right side
-- update e.g. Description if necessary
+- click the wheel button near the organization name in the tree part of the
+page and choose Edit
+- click "Show empty fields" icon if necessary
+- update attribute(s), e.g. Description if necessary
 - change password policy which will be applied for all objects in this
 organization
 - save the form
@@ -48,22 +50,22 @@ Based on your changes, attributes in OpenLDAP will be changed.
 Password policy if midPoint-only setting, so changing it will not provision
 changes to OpenLDAP.
 
-To create new administrator for his/her organization:
+To create new administrator or user for his/her organization:
 - click Org. structure on the left side, then Organization tree
+- (do not use Users / New user to create user; there is no relationship to
+organization and permission will be denied (no attributes will be displayed)
 
-- expand his/her organization (TODO: https://jira.evolveum.com/browse/MID-2795
-to allow only his/her organization to be visible)
-- click on the organization on the left side to expand current users
-- on the right side, near "Members", click the wheel icon and select "Add
-member"
+- click the organization name on the left side to expand current users
+- on the right side, in the header of "Members" table, click the wheel icon
+and select "Create member" and confirm "UserType" to open new user form
 - fill in the following attributes:
-  - name (this is login and OpenLDAP uid attribute)
+  - name (this is midPoint login and OpenLDAP uid attribute)
   - givenName
   - familyName
   - employeeType: click to the field and choose either customer-admin or
   customer-user
-  - emailAddress: to send (simulate sending) notification with initial
-  password
+  - emailAddress: to send (simulate sending) notification with initial password
+  - password
 - save the form
 
 Based on the employeeType setting, user will be created either as
@@ -96,7 +98,8 @@ will be automatically (un)assigned based on this setting.
 To assign user a different role using midPoint, click on the user and switch
 to tab "Assignments":
 - click on the wheel near "Assignments" header
-- click Assign role
+- click Assign
+- select "RoleType" in "Choose member type" select box
 - select role(s). For example Customer Power User role
 - click Assign and then Save
 
@@ -122,25 +125,21 @@ would need to be used (which would also mean all target applications bound
 with OpenLDAP would need to know which attribute represents the account
 state).
 
-To Delete user you need to go to Users then List users
-(TODO https://jira.evolveum.com/browse/MID-2824). Select the users you wish to
+To Delete user you need to go to Users then List users. Select the users you wish to
 delete and in the wheel choose "Delete" action. User will be deleted from
 midPoint and the account from OpenLDAP.
 
 To allow normal (non-admin) users to change their own password in the
-self-service GUI, you need to first to assign them the permission to log in:
-Click on the user and switch to tab "Assignments":
-- click on the wheel near "Assignments" header
-- click Assign role
-- select role "Customer End User Role"
-- click Assign and then Save
+self-service GUI, users first need to have "Customer End Role" role assigned
+(this is now automatically assigned by object template for both customer-user
+and customer-admin users).
 
 From now, the user can login to midPoint using http://localhost:8080/midpoint
 (the same URL is used for administration) and update his/her password in
 midPoint and OpenLDAP.
 
 Setup:
-- tested with Tomcat 7.x, JDK 7.x, git-v3.4devel-515-g6c30887
+- tested with Tomcat 7.x, JDK 7.x, v3.4devel-1465-g49a0f7b
 - update filePath in the CSV resource before importing data! It must point to
 your CSV file with customer info!
 
