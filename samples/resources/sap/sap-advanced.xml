@@ -50,13 +50,20 @@
                 <limitations>
                     <minOccurs>0</minOccurs>
                 </limitations>
-                <matchingRule>mr:stringIgnoreCase</matchingRule>
                 <outbound>
                     <source>
                         <c:path>$user/name</c:path>
                     </source>
+                    <expression>
+                        <script>
+                            <code>
+                                return basic.uc(basic.stringify(name));
+                            </code>
+                        </script>
+                    </expression>
                 </outbound>
                 <inbound>
+                    <strength>weak</strength>
                     <target>
                         <c:path>$user/name</c:path>
                     </target>
@@ -384,6 +391,7 @@
             <enabled>true</enabled>
             <correlation>
                 <q:equal>
+                    <q:matching>polyStringNorm</q:matching>
                     <q:path>c:name</q:path>
                     <expression>
                         <c:path>$account/attributes/icfs:name</c:path>
