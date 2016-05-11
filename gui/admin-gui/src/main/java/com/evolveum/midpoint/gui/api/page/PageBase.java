@@ -1091,8 +1091,11 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 		MenuItem menu = new MenuItem(createStringResource("PageAdmin.menu.top.configuration.bulkActions"),
 				PageBulkAction.class);
 		submenu.add(menu);
-		menu = new MenuItem(createStringResource("PageAdmin.menu.top.configuration.importObject"),
-				PageImportObject.class);
+
+        PageParameters pageImportParams = new PageParameters();
+        pageImportParams.add(PageImportObject.FROM_MENU_ITEM_PARAM, PageImportObject.FROM_MENU_ITEM_PARAM_TRUE_VALUE);
+        menu = new MenuItem(createStringResource("PageAdmin.menu.top.configuration.importObject"),
+				PageImportObject.class, pageImportParams, null);
 		submenu.add(menu);
 		menu = new MenuItem(createStringResource("PageAdmin.menu.top.configuration.repositoryObjects"),
 				PageDebugList.class);

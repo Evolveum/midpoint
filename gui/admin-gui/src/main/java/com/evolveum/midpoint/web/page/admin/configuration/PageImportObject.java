@@ -26,6 +26,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
+import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.component.AceEditor;
@@ -49,6 +50,7 @@ import org.apache.wicket.markup.html.form.upload.FileUpload;
 import org.apache.wicket.markup.html.form.upload.FileUploadField;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.file.File;
 
 import java.io.FileInputStream;
@@ -78,6 +80,7 @@ public class PageImportObject extends PageAdminConfiguration {
 	private static final String ID_IMPORT_RADIO_GROUP = "importRadioGroup";
 	private static final String ID_FILE_RADIO = "fileRadio";
 	private static final String ID_XML_RADIO = "xmlRadio";
+    private static final String ID_BACK_BUTTON = "back";
 	private static final String ID_IMPORT_FILE_BUTTON = "importFileButton";
 	private static final String ID_IMPORT_XML_BUTTON = "importXmlButton";
 	private static final String ID_INPUT = "input";
@@ -86,6 +89,10 @@ public class PageImportObject extends PageAdminConfiguration {
 	private static final String ID_INPUT_FILE_LABEL = "inputFileLabel";
 	private static final String ID_INPUT_FILE = "inputFile";
 	private static final String ID_FILE_INPUT = "fileInput";
+
+	public static final String FROM_MENU_ITEM_PARAM = "openedFromMenuItem";
+    public static final String FROM_MENU_ITEM_PARAM_TRUE_VALUE = "1";
+    public static final String FROM_MENU_ITEM_PARAM_FALSE_VALUE = "0";
 
 	private static final Integer INPUT_FILE = 1;
 	private static final Integer INPUT_XML = 2;
@@ -174,6 +181,28 @@ public class PageImportObject extends PageAdminConfiguration {
 	}
 
 	private void initButtons(WebMarkupContainer buttonBar, IModel<Integer> inputType) {
+        AjaxButton backButton = new AjaxButton(ID_BACK_BUTTON, createStringResource("PageCertCampaign.button.back")) {
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                redirectBack();
+            }
+        };
+        backButton.add(new VisibleEnableBehaviour(){
+           public boolean isVisible(){
+               PageParameters params = PageImportObject.this.getPageParameters();
+               if (params != null){
+                   if (params.get(FROM_MENU_ITEM_PARAM) != null &&
+                           !params.get(FROM_MENU_ITEM_PARAM).isNull() &&
+                           params.get(FROM_MENU_ITEM_PARAM).toString().equals(FROM_MENU_ITEM_PARAM_TRUE_VALUE)){
+                       return false;
+                   }
+               }
+               return true;
+           }
+        });
+        buttonBar.add(backButton);
+
 		AjaxSubmitButton saveFileButton = new AjaxSubmitButton(ID_IMPORT_FILE_BUTTON,
 				createStringResource("PageImportObject.button.import")) {
 
