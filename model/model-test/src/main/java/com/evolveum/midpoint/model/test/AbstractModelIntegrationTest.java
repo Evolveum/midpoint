@@ -2002,7 +2002,11 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 				try {
 					Task freshTask = taskManager.getTask(taskOid, waitResult);
 					OperationResult result = freshTask.getResult();
-					LOGGER.debug("Result of timed-out task:\n{}", result.debugDump());
+					LOGGER.debug("Timed-out task:\n{}", freshTask.debugDump());
+					display("Times", "origLastRunStartTimestamp="+longTimeToString(origLastRunStartTimestamp) 
+					+ ", origLastRunStartTimestamp=" + longTimeToString(origLastRunStartTimestamp) 
+					+ ", freshTask.getLastRunStartTimestamp()=" + longTimeToString(freshTask.getLastRunStartTimestamp())
+					+ ", freshTask.getLastRunFinishTimestamp()=" + longTimeToString(freshTask.getLastRunFinishTimestamp()));
 					assert false : "Timeout ("+timeout+") while waiting for "+freshTask+" next run. Last result "+result;
 				} catch (ObjectNotFoundException e) {
 					LOGGER.error("Exception during task refresh: {}", e,e);
@@ -2012,6 +2016,14 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 			}
 		};
 		IntegrationTestTools.waitFor("Waiting for task " + taskOid + " next run", checker, timeout, DEFAULT_TASK_SLEEP_TIME);
+		
+		Task freshTask = taskManager.getTask(taskOid, waitResult);
+		LOGGER.debug("Final task:\n{}", freshTask.debugDump());
+		display("Times", "origLastRunStartTimestamp="+longTimeToString(origLastRunStartTimestamp) 
+		+ ", origLastRunStartTimestamp=" + longTimeToString(origLastRunStartTimestamp) 
+		+ ", freshTask.getLastRunStartTimestamp()=" + longTimeToString(freshTask.getLastRunStartTimestamp())
+		+ ", freshTask.getLastRunFinishTimestamp()=" + longTimeToString(freshTask.getLastRunFinishTimestamp()));
+		
 		return taskResultHolder.getValue();
 	}
 	
