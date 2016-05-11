@@ -84,8 +84,11 @@
     </authorization>
 
     <authorization>
-	<name>Read for all resources and roles of roleType=customer and End User</name>
+	<name>Read for all resources, all organizations and roles of roleType=customer and End User</name>
         <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+        <object>
+            <type>OrgType</type>
+        </object>
         <object>
             <type>ResourceType</type>
         </object>
