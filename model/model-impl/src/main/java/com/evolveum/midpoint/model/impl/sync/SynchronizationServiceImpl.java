@@ -335,7 +335,6 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 			RefinedResourceSchema schema = RefinedResourceSchema.getRefinedSchema(resource);
 			if (policyKind == null && policyIntent == null) {
 				policyObjectClass = schema.findDefaultObjectClassDefinition(policyKind);
-//				LOGGER.warn("Neither objectClass nor kind/intent defined for sycnrhonization policy. Could not reliably apply synchronization definition. Skipping...");
 			}
 			
 			
