@@ -16,30 +16,33 @@
 
 package com.evolveum.midpoint.provisioning.impl.mock;
 
-import static org.testng.AssertJUnit.assertNull;
 import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertNotNull;
+import static org.testng.AssertJUnit.assertNull;
 import static org.testng.AssertJUnit.assertTrue;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.testng.AssertJUnit;
 
-import com.evolveum.midpoint.prism.delta.ChangeType;
-import com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener;
+import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.provisioning.api.ChangeNotificationDispatcher;
+import com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
 import com.evolveum.midpoint.provisioning.api.ResourceOperationDescription;
 import com.evolveum.midpoint.provisioning.api.ResourceOperationListener;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.ObjectChecker;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
@@ -107,6 +110,11 @@ public class SynchornizationServiceMock implements ResourceObjectChangeListener,
 
 		assertTrue("Either current shadow or delta must be present", change.getCurrentShadow() != null
 				|| change.getObjectDelta() != null);
+		
+		if (change.isUnrelatedChange() || isDryRun(task) || (change.getCurrentShadow() != null && change.getCurrentShadow().asObjectable().isProtectedObject() == Boolean.TRUE)){
+			return;
+		}
+		
 		if (change.getCurrentShadow() != null) {
 			ShadowType currentShadowType = change.getCurrentShadow().asObjectable();
 			if (currentShadowType != null) {
@@ -163,6 +171,33 @@ public class SynchornizationServiceMock implements ResourceObjectChangeListener,
 		callCountNotifyChange++;
 		lastChange = change;
 	}
+	
+	 private static boolean isDryRun(Task task){
+	    	
+	    	Validate.notNull(task, "Task must not be null.");
+	    	
+	    	if (task.getExtension() == null){
+	    		return false;
+	    	}
+			
+	    	PrismProperty<Boolean> item = task.getExtensionProperty(SchemaConstants.MODEL_EXTENSION_DRY_RUN);
+			if (item == null || item.isEmpty()){
+				return false;
+			}
+			
+			if (item.getValues().size() > 1){
+				return false;
+//				throw new SchemaException("Unexpected number of values for option 'dry run'.");
+			}
+					
+			Boolean dryRun = item.getValues().iterator().next().getValue();
+			
+			if (dryRun == null){
+				return false;
+			}
+	    	
+			return dryRun.booleanValue(); 
+	    }
 	
 	/* (non-Javadoc)
 	 * @see com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener#notifyFailure(com.evolveum.midpoint.provisioning.api.ResourceObjectShadowFailureDescription, com.evolveum.midpoint.task.api.Task, com.evolveum.midpoint.schema.result.OperationResult)
