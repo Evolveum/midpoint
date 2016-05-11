@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.model.impl.sync;
 
 import com.evolveum.midpoint.common.InternalsConfig;
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.common.expression.ExpressionFactory;
@@ -41,6 +42,7 @@ import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.statistics.StatisticsUtil;
@@ -124,21 +126,6 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 
 		try {
 
-			if (isProtected((PrismObject<ShadowType>) currentShadow)){
-				LOGGER.trace("SYNCHRONIZATION skipping {} because it is protected", currentShadow);
-				// Just make sure there is no misleading synchronization situation in the shadow
-				if (currentShadow.asObjectable().getSynchronizationSituation() != null) {
-					ObjectDelta<ShadowType> shadowDelta = ObjectDelta.createModificationReplaceProperty(ShadowType.class, currentShadow.getOid(),
-							ShadowType.F_SYNCHRONIZATION_SITUATION, prismContext);
-					provisioningService.modifyObject(ShadowType.class, currentShadow.getOid(), 
-							shadowDelta.getModifications(), null, null, task, subResult);
-				}
-				subResult.recordStatus(OperationResultStatus.NOT_APPLICABLE, "Skipped because it is protected");
-				eventInfo.setProtected();
-				eventInfo.record(task);
-				return;
-			}
-			
 			ResourceType resourceType = change.getResource().asObjectable();
 			PrismObject<SystemConfigurationType> configuration = Utils.getSystemConfiguration(repositoryService, subResult);
 			
@@ -206,7 +193,21 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 			eventInfo.setOriginalSituation(situation.getSituation());
 			eventInfo.setNewSituation(situation.getSituation());			// overwritten later (TODO fix this!)
 
-			if (change.isUnrelatedChange() || Utils.isDryRun(task)){
+//			if (isProtected((PrismObject<ShadowType>) currentShadow)){
+//				LOGGER.trace("SYNCHRONIZATION skipping {} because it is protected", currentShadow);
+//				// Just make sure there is no misleading synchronization situation in the shadow
+//				if (currentShadow.asObjectable().getSynchronizationSituation() != null) {
+//					ObjectDelta<ShadowType> shadowDelta = ObjectDelta.createModificationReplaceProperty(ShadowType.class, currentShadow.getOid(),
+//							ShadowType.F_SYNCHRONIZATION_SITUATION, prismContext);
+//					provisioningService.modifyObject(ShadowType.class, currentShadow.getOid(), 
+//							shadowDelta.getModifications(), null, null, task, subResult);
+//				}
+//				subResult.recordStatus(OperationResultStatus.NOT_APPLICABLE, "Skipped because it is protected");
+//				eventInfo.setProtected();
+//				eventInfo.record(task);
+//				return;
+//			}
+			if (change.isUnrelatedChange() || Utils.isDryRun(task) || isProtected((PrismObject<ShadowType>) currentShadow)){
 				PrismObject object = null;
 				if (change.getCurrentShadow() != null){
 					object = change.getCurrentShadow();
@@ -339,6 +340,33 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 		QName shadowObjectClass = currentShadowType.getObjectClass();
 		Validate.notNull(shadowObjectClass, "No objectClass in currentShadow");
 		List<QName> policyObjectClasses = synchronizationPolicy.getObjectClass();
+		
+		if (policyObjectClasses == null || policyObjectClasses.isEmpty()) {
+			
+			String policyIntent = synchronizationPolicy.getIntent();
+			ShadowKindType policyKind = synchronizationPolicy.getKind();
+			if (policyKind == null && policyIntent == null) {
+				LOGGER.warn("Neither objectClass nor kind/intent defined for sycnrhonization policy. Could not reliably apply synchronization definition. Skipping...");
+				return false;
+			}
+			
+			ObjectClassComplexTypeDefinition policyObjectClass;
+			if (policyKind != null){
+				RefinedResourceSchema schema = RefinedResourceSchema.getRefinedSchema(resource);
+				if (StringUtils.isEmpty(policyIntent)) {
+					policyObjectClass = schema.findDefaultObjectClassDefinition(policyKind);
+				} else {
+					policyObjectClass = schema.findObjectClassDefinition(policyKind, policyIntent);
+				}
+				
+				if (policyObjectClass != null && policyObjectClass.getTypeName().equals(shadowObjectClass)){
+					return true;
+				} 
+				
+				return false;
+			}
+		}
+		
 		if (policyObjectClasses != null && !policyObjectClasses.isEmpty()) {
 			if (!policyObjectClasses.contains(shadowObjectClass)) {	// TODO relaxed QName match [med]
 				return false;
