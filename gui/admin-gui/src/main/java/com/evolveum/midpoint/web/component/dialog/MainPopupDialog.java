@@ -38,7 +38,6 @@ public class MainPopupDialog extends ModalWindow {
         super(id);
 
         setCssClassName(ModalWindow.CSS_CLASS_GRAY);
-//        setCookieName(ConfirmationDialog.class.getSimpleName() + ((int) (Math.random() * 100)));
         showUnloadConfirmation(false);
         setResizable(false);
         setInitialWidth(350);
