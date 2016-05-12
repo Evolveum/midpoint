@@ -479,7 +479,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
 		assertNull("Unexpected user "+userCalypso, userCalypso);
 		
 		PrismObject<ShadowType> shadow = getShadowModelNoFetch(accountShadowCalypsoDummyOid);
-        assertSituation(shadow, null);
+        assertSituation(shadow, SynchronizationSituationType.DISPUTED);
         
         result.computeStatus();
         TestUtil.assertSuccess(result);
