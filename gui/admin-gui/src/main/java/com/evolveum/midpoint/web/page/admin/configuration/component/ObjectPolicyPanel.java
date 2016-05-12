@@ -24,6 +24,7 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
@@ -40,6 +41,7 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.StringResourceModel;
 
+import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
@@ -51,6 +53,7 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
+import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.web.component.form.DropDownFormGroup;
 import com.evolveum.midpoint.web.component.input.ChoiceableChoiceRenderer;
 import com.evolveum.midpoint.web.component.input.QNameChoiceRenderer;
@@ -68,11 +71,16 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 /**
  * @author shood
  */
-public class ObjectPolicyDialog extends ModalWindow {
+public class ObjectPolicyPanel extends BasePanel<ObjectPolicyDialogDto> implements Popupable{
 
-	private static final Trace LOGGER = TraceManager.getTrace(ObjectPolicyDialog.class);
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 
-	private static final String DOT_CLASS = ObjectPolicyDialog.class.getName() + ".";
+	private static final Trace LOGGER = TraceManager.getTrace(ObjectPolicyPanel.class);
+
+	private static final String DOT_CLASS = ObjectPolicyPanel.class.getName() + ".";
 
 	private static final String OPERATION_LOAD_ALL_OBJECT_TEMPLATES = DOT_CLASS + "loadObjectTemplates";
 
@@ -98,7 +106,7 @@ public class ObjectPolicyDialog extends ModalWindow {
 	private boolean initialized;
 	private IModel<ObjectPolicyDialogDto> model;
 
-	public ObjectPolicyDialog(String id, final ObjectPolicyConfigurationTypeDto config) {
+	public ObjectPolicyPanel(String id, final ObjectPolicyConfigurationTypeDto config) {
 		super(id);
 
 		model = new LoadableModel<ObjectPolicyDialogDto>(false) {
@@ -108,19 +116,21 @@ public class ObjectPolicyDialog extends ModalWindow {
 				return loadModel(config);
 			}
 		};
+		
+		initLayout();
 
 		setOutputMarkupId(true);
-		setTitle(createStringResource("ObjectPolicyDialog.label"));
-		showUnloadConfirmation(false);
-		setCssClassName(ModalWindow.CSS_CLASS_GRAY);
-		setCookieName(ObjectPolicyDialog.class.getSimpleName() + ((int) (Math.random() * 100)));
-		setInitialWidth(625);
-		setInitialHeight(400);
-		setWidthUnit("px");
-
-		WebMarkupContainer content = new WebMarkupContainer(getContentId());
-		content.setOutputMarkupId(true);
-		setContent(content);
+//		setTitle(createStringResource("ObjectPolicyDialog.label"));
+//		showUnloadConfirmation(false);
+//		setCssClassName(ModalWindow.CSS_CLASS_GRAY);
+//		setCookieName(ObjectPolicyPanel.class.getSimpleName() + ((int) (Math.random() * 100)));
+//		setInitialWidth(625);
+//		setInitialHeight(400);
+//		setWidthUnit("px");
+//
+//		WebMarkupContainer content = new WebMarkupContainer(getContentId());
+//		content.setOutputMarkupId(true);
+//		setContent(content);
 	}
 
 	private ObjectPolicyDialogDto loadModel(ObjectPolicyConfigurationTypeDto config) {
@@ -141,27 +151,16 @@ public class ObjectPolicyDialog extends ModalWindow {
 		// objects);
 	}
 
-	@Override
-	protected void onBeforeRender() {
-		super.onBeforeRender();
 
-		if (initialized) {
-			return;
-		}
+//	public void updateModel(AjaxRequestTarget target, ObjectPolicyConfigurationTypeDto config) {
+//		model.setObject(new ObjectPolicyDialogDto(config, getPageBase()));
+//		target.add(getContent());
+//	}
 
-		initLayout((WebMarkupContainer) get(getContentId()));
-		initialized = true;
-	}
-
-	public void updateModel(AjaxRequestTarget target, ObjectPolicyConfigurationTypeDto config) {
-		model.setObject(new ObjectPolicyDialogDto(config, getPageBase()));
-		target.add(getContent());
-	}
-
-	public void initLayout(WebMarkupContainer content) {
+	public void initLayout() {
 		Form form = new Form(ID_FORM);
 		form.setOutputMarkupId(true);
-		content.add(form);
+		add(form);
 
 		DropDownFormGroup type = new DropDownFormGroup<>(ID_TYPE,
 				new PropertyModel<QName>(model, ObjectPolicyDialogDto.F_TYPE), createTypeChoiceList(),
@@ -299,7 +298,7 @@ public class ObjectPolicyDialog extends ModalWindow {
 		List<PropertyConstraintTypeDto> list = model.getObject().getPropertyConstraintsList();
 		list.add(new PropertyConstraintTypeDto(null));
 
-		target.add(getContent());
+//		target.add(getContent());
 	}
 
 	private void removePerformed(AjaxRequestTarget target, ListItem item) {
@@ -319,7 +318,7 @@ public class ObjectPolicyDialog extends ModalWindow {
 			list.add(new PropertyConstraintTypeDto(null));
 		}
 
-		target.add(getContent());
+//		target.add(getContent());
 	}
 
 	protected boolean isAddButtonVisible(ListItem item) {
@@ -382,28 +381,44 @@ public class ObjectPolicyDialog extends ModalWindow {
 
 			@Override
 			public List<QName> getObject() {
-				List<QName> list = new ArrayList<>();
-				list.add(UserType.COMPLEX_TYPE);
-				list.add(RoleType.COMPLEX_TYPE);
-				list.add(OrgType.COMPLEX_TYPE);
-
-				return list;
+				return WebComponentUtil.createFocusTypeList();
 			}
 		};
 	}
 
 	private void cancelPerformed(AjaxRequestTarget target) {
-		close(target);
+		getPageBase().hideMainPopup(target);
 	}
 
 	protected void savePerformed(AjaxRequestTarget target) {
+		getPageBase().hideMainPopup(target);
 	}
 
-	private PageBase getPageBase() {
-		return (PageBase) getPage();
-	}
+//	private PageBase getPageBase() {
+//		return (PageBase) getPage();
+//	}
 
 	public IModel<ObjectPolicyDialogDto> getModel() {
 		return model;
+	}
+
+	@Override
+	public int getWidth() {
+		return 625;
+	}
+
+	@Override
+	public int getHeight() {
+		return 400;
+	}
+
+	@Override
+	public StringResourceModel getTitle() {
+		return createStringResource("ObjectPolicyDialog.label");
+	}
+
+	@Override
+	public Component getComponent() {
+		return this;
 	}
 }
