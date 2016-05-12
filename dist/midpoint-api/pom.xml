@@ -73,62 +73,98 @@
             <scope>compile</scope>
         </dependency>
     </dependencies>
-    <build>
-        <plugins>
-            <plugin>
-                        <artifactId>maven-assembly-plugin</artifactId>
-                        <version>2.4</version>
-                        <configuration>
-                            <descriptorRefs>
-                                <descriptorRef>jar-with-dependencies</descriptorRef>
-                            </descriptorRefs>
-                          <!-- <finalName>midpoint-${version}</finalName>
-                            -->
-                        </configuration>
-                        <executions>
-                          <execution>
-                            <id>make-assembly</id>
-                            <phase>package</phase>
-                            <goals>
-                              <goal>single</goal>
-                            </goals>
-                          </execution>
-                        </executions>  
-                </plugin>
+	<build>
+		<plugins>
+			<plugin>
+				<artifactId>maven-assembly-plugin</artifactId>
+				<version>2.4</version>
+				<configuration>
+					<descriptorRefs>
+						<descriptorRef>jar-with-dependencies</descriptorRef>
+					</descriptorRefs>
+					<!-- <finalName>midpoint-${version}</finalName> -->
+				</configuration>
+				<executions>
+					<execution>
+						<id>make-assembly</id>
+						<phase>package</phase>
+						<goals>
+							<goal>single</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
 
-            <plugin>
-                <artifactId>maven-javadoc-plugin</artifactId>
-                <version>2.10.3</version>
-                <configuration>
-                        <includeDependencySources>true</includeDependencySources>
-                        <dependencySourceIncludes>
-                            <dependencySourceInclude>com.evolveum.*:*</dependencySourceInclude>
-                        </dependencySourceIncludes>
-                        <quiet>false</quiet>
-                        <debug>true</debug>
-                </configuration>
-                <executions>
-                  <execution>
-                    <id>javadoc-jar</id>
-                    <phase>package</phase> <!-- bind to the packaging phase -->
-                    <goals>
-						<goal>jar</goal>
-                    </goals>
-                  </execution>
-                </executions>
-            </plugin>
-            <plugin>
+			<plugin>
+				<artifactId>maven-javadoc-plugin</artifactId>
+				<version>2.10.3</version>
+				<configuration>
+					<includeDependencySources>true</includeDependencySources>
+					<dependencySourceIncludes>
+						<dependencySourceInclude>com.evolveum.*:*</dependencySourceInclude>
+					</dependencySourceIncludes>
+					<quiet>false</quiet>
+					<debug>true</debug>
+				</configuration>
+				<executions>
+					<execution>
+						<id>javadoc-jar</id>
+						<phase>package</phase>
+						<goals>
+							<goal>jar</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
 				<artifactId>maven-surefire-plugin</artifactId>
 				<configuration>
 					<skip>true</skip>
 				</configuration>
 			</plugin>
-            <plugin>
+			<plugin>
 				<artifactId>maven-dependency-plugin</artifactId>
 				<configuration>
 					<skip>true</skip>
 				</configuration>
 			</plugin>
-        </plugins>
-    </build>
+		</plugins>
+	</build>
+    <profiles>
+    	<profile>
+			<id>java8</id>
+			<activation>
+		      <jdk>[1.8,)</jdk>
+		    </activation>
+			<build>
+				<plugins>
+					<plugin>
+					  <groupId>org.apache.maven.plugins</groupId>
+					  <artifactId>maven-javadoc-plugin</artifactId>
+					  <version>2.10.3</version>
+					  <executions>
+				        <execution>
+				            <id>javadoc-jar</id>
+				            <phase>package</phase>
+				            <goals>
+				                <goal>jar</goal>
+				            </goals>
+				            <configuration>
+				            	<includeDependencySources>true</includeDependencySources>
+		                        <dependencySourceIncludes>
+		                            <dependencySourceInclude>com.evolveum.*:*</dependencySourceInclude>
+		                        </dependencySourceIncludes>
+		                        <quiet>false</quiet>
+		                        <debug>true</debug>
+                                                
+				                <additionalparam>-Xdoclint:none</additionalparam>
+				                <failOnError>false</failOnError>
+				            </configuration>
+				        </execution>
+				    </executions>
+				</plugin>
+				</plugins>
+			</build>
+		</profile>
+    </profiles>
 </project>

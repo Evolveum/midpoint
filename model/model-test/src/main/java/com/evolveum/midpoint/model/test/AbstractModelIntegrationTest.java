@@ -1958,6 +1958,10 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		return waitForTaskNextRunAssertSuccess(taskOid, checkSubresult, DEFAULT_TASK_WAIT_TIMEOUT);
 	}
 	
+	protected OperationResult waitForTaskNextRunAssertSuccess(Task origTask, boolean checkSubresult) throws Exception {
+		return waitForTaskNextRunAssertSuccess(origTask, checkSubresult, DEFAULT_TASK_WAIT_TIMEOUT);
+	}
+	
 	protected OperationResult waitForTaskNextRunAssertSuccess(final String taskOid, final boolean checkSubresult, final int timeout) throws Exception {
 		OperationResult taskResult = waitForTaskNextRun(taskOid, checkSubresult, timeout);
 		if (isError(taskResult, checkSubresult)) {
@@ -1966,16 +1970,33 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		return taskResult;
 	}
 	
+	protected OperationResult waitForTaskNextRunAssertSuccess(Task origTask, final boolean checkSubresult, final int timeout) throws Exception {
+		OperationResult taskResult = waitForTaskNextRun(origTask, checkSubresult, timeout);
+		if (isError(taskResult, checkSubresult)) {
+            assert false : "Error in task "+origTask+": "+TestUtil.getErrorMessage(taskResult)+"\n\n"+taskResult.debugDump();
+        }
+		return taskResult;
+	}
+	
 	protected OperationResult waitForTaskNextRun(final String taskOid, final boolean checkSubresult, final int timeout) throws Exception {
 		final OperationResult waitResult = new OperationResult(AbstractIntegrationTest.class+".waitForTaskNextRun");
 		Task origTask = taskManager.getTask(taskOid, waitResult);
+		return waitForTaskNextRun(origTask, checkSubresult, timeout, waitResult);
+	}
+	
+	protected OperationResult waitForTaskNextRun(final Task origTask, final boolean checkSubresult, final int timeout) throws Exception {
+		final OperationResult waitResult = new OperationResult(AbstractIntegrationTest.class+".waitForTaskNextRun");
+		return waitForTaskNextRun(origTask, checkSubresult, timeout, waitResult);
+	}
+	
+	protected OperationResult waitForTaskNextRun(final Task origTask, final boolean checkSubresult, final int timeout, final OperationResult waitResult) throws Exception {
 		final Long origLastRunStartTimestamp = origTask.getLastRunStartTimestamp();
 		final Long origLastRunFinishTimestamp = origTask.getLastRunFinishTimestamp();
 		final Holder<OperationResult> taskResultHolder = new Holder<>();
 		Checker checker = new Checker() {
 			@Override
 			public boolean check() throws Exception {
-				Task freshTask = taskManager.getTask(taskOid, waitResult);
+				Task freshTask = taskManager.getTask(origTask.getOid(), waitResult);
 				OperationResult taskResult = freshTask.getResult();
 //				display("Times", longTimeToString(origLastRunStartTimestamp) + "-" + longTimeToString(origLastRunStartTimestamp) 
 //						+ " : " + longTimeToString(freshTask.getLastRunStartTimestamp()) + "-" + longTimeToString(freshTask.getLastRunFinishTimestamp()));
@@ -2000,9 +2021,13 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 			@Override
 			public void timeout() {
 				try {
-					Task freshTask = taskManager.getTask(taskOid, waitResult);
+					Task freshTask = taskManager.getTask(origTask.getOid(), waitResult);
 					OperationResult result = freshTask.getResult();
-					LOGGER.debug("Result of timed-out task:\n{}", result.debugDump());
+					LOGGER.debug("Timed-out task:\n{}", freshTask.debugDump());
+					display("Times", "origLastRunStartTimestamp="+longTimeToString(origLastRunStartTimestamp) 
+					+ ", origLastRunFinishTimestamp=" + longTimeToString(origLastRunFinishTimestamp) 
+					+ ", freshTask.getLastRunStartTimestamp()=" + longTimeToString(freshTask.getLastRunStartTimestamp())
+					+ ", freshTask.getLastRunFinishTimestamp()=" + longTimeToString(freshTask.getLastRunFinishTimestamp()));
 					assert false : "Timeout ("+timeout+") while waiting for "+freshTask+" next run. Last result "+result;
 				} catch (ObjectNotFoundException e) {
 					LOGGER.error("Exception during task refresh: {}", e,e);
@@ -2011,7 +2036,15 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 				}
 			}
 		};
-		IntegrationTestTools.waitFor("Waiting for task " + taskOid + " next run", checker, timeout, DEFAULT_TASK_SLEEP_TIME);
+		IntegrationTestTools.waitFor("Waiting for task " + origTask + " next run", checker, timeout, DEFAULT_TASK_SLEEP_TIME);
+		
+		Task freshTask = taskManager.getTask(origTask.getOid(), waitResult);
+		LOGGER.debug("Final task:\n{}", freshTask.debugDump());
+		display("Times", "origLastRunStartTimestamp="+longTimeToString(origLastRunStartTimestamp) 
+		+ ", origLastRunFinishTimestamp=" + longTimeToString(origLastRunFinishTimestamp) 
+		+ ", freshTask.getLastRunStartTimestamp()=" + longTimeToString(freshTask.getLastRunStartTimestamp())
+		+ ", freshTask.getLastRunFinishTimestamp()=" + longTimeToString(freshTask.getLastRunFinishTimestamp()));
+		
 		return taskResultHolder.getValue();
 	}
 	

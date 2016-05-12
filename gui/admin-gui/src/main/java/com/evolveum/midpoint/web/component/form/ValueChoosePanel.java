@@ -254,7 +254,9 @@ public class ValueChoosePanel<T, C extends ObjectType> extends BasePanel<T> {
 
                 if (ort instanceof PrismReferenceValue) {
                     PrismReferenceValue prv = (PrismReferenceValue) ort;
-                    return prv == null ? null : (prv.getTargetName() != null ? prv.getTargetName().getOrig() : prv.getOid());
+                    return prv == null ? null : (prv.getTargetName() != null ?
+                            (prv.getTargetName().getOrig() + (prv.getTargetType() != null ? ": " + prv.getTargetType().getLocalPart() : "") )
+                            : prv.getOid());
                 } else if (ort instanceof ObjectViewDto) {
                     return ((ObjectViewDto) ort).getName();
                 }

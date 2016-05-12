@@ -136,6 +136,10 @@ public class PrismValuePanel extends Panel {
         if (input instanceof InputPanel) {
             initAccessBehaviour((InputPanel) input);
             feedback.setFilter(new ComponentFeedbackMessageFilter(((InputPanel) input).getBaseFormComponent()));
+        } else if (input instanceof LockoutStatusPanel) {
+            feedback.setFilter(new ComponentFeedbackMessageFilter(input));
+        } else if (input instanceof ValueChoosePanel) {
+            feedback.setFilter(new ComponentFeedbackMessageFilter(input));
         }
         valueContainer.add(input);
 
