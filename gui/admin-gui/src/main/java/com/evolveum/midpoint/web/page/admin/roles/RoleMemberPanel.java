@@ -88,9 +88,10 @@ public class RoleMemberPanel extends AbstractRoleMemberPanel<RoleType> {
 	}
 
 		private <V> DropDownChoice<V> createDropDown(String id, IModel<V> defaultModel, final List<V> values,
-			IChoiceRenderer renderer) {
+			IChoiceRenderer<V> renderer) {
 		DropDownChoice<V> listSelect = new DropDownChoice<V>(id, defaultModel,
 				new AbstractReadOnlyModel<List<V>>() {
+					private static final long serialVersionUID = 1L;
 
 					@Override
 					public List<V> getObject() {
@@ -99,6 +100,7 @@ public class RoleMemberPanel extends AbstractRoleMemberPanel<RoleType> {
 				}, renderer);
 
 		listSelect.add(new OnChangeAjaxBehavior() {
+			private static final long serialVersionUID = 1L;
 
 			@Override
 			protected void onUpdate(AjaxRequestTarget target) {
@@ -113,7 +115,7 @@ public class RoleMemberPanel extends AbstractRoleMemberPanel<RoleType> {
 		DropDownChoice<QName> typeChoice = (DropDownChoice) get(createComponentPath(ID_OBJECT_TYPE));
 		QName type = typeChoice.getModelObject();
 		getMemberTable().clearCache();
-		getMemberTable().refreshTable(qnameToClass(type), target);
+		getMemberTable().refreshTable((Class<FocusType>) WebComponentUtil.qnameToClass(getPrismContext(), type), target);
 	}
 
 
@@ -157,14 +159,14 @@ public class RoleMemberPanel extends AbstractRoleMemberPanel<RoleType> {
 		}
 
 	}
-	private void addFilter(ObjectFilter filter, List<ObjectFilter> conditions, boolean isNot) {
-		if (isNot) {
-			ObjectFilter notFilter = NotFilter.createNot(filter);
-			conditions.add(notFilter);
-		} else {
-			conditions.add(filter);
-		}
-	}
+//	private void addFilter(ObjectFilter filter, List<ObjectFilter> conditions, boolean isNot) {
+//		if (isNot) {
+//			ObjectFilter notFilter = NotFilter.createNot(filter);
+//			conditions.add(notFilter);
+//		} else {
+//			conditions.add(filter);
+//		}
+//	}
 
 	
 	private MainObjectListPanel<FocusType> getMemberTable() {
@@ -250,7 +252,7 @@ public class RoleMemberPanel extends AbstractRoleMemberPanel<RoleType> {
 	}
 
 	private ObjectDelta prepareDelta(QName type, MemberOperation operation, OperationResult result) {
-		Class classType = qnameToClass(type);
+		Class classType = WebComponentUtil.qnameToClass(getPrismContext(), type);
 		ObjectDelta delta = null;
 		try {
 			switch (operation) {

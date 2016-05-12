@@ -339,7 +339,7 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 		ObjectTypes type = typeChoice.getModelObject();
 		target.add(get(createComponentPath(ID_FORM, ID_SEARCH_SCOPE)));
 		getMemberTable().clearCache();
-		getMemberTable().refreshTable(qnameToClass(type.getTypeQName()), target);
+		getMemberTable().refreshTable((Class<ObjectType>) WebComponentUtil.qnameToClass(getPageBase().getPrismContext(), type.getTypeQName()), target);
 	}
 
 	private MainObjectListPanel<ObjectType> getMemberTable() {
@@ -581,21 +581,21 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 
 	}
 
-	private ObjectQuery createQueryForRecompute() {
-
-		List<ObjectType> objects = getMemberTable().getSelectedObjects();
-		List<String> oids = new ArrayList<>();
-		for (ObjectType object : objects) {
-			oids.add(object.getOid());
-
-		}
-
-		return ObjectQuery.createObjectQuery(InOidFilter.createInOid(oids));
-	}
+//	private ObjectQuery createQueryForRecompute() {
+//
+//		List<ObjectType> objects = getMemberTable().getSelectedObjects();
+//		List<String> oids = new ArrayList<>();
+//		for (ObjectType object : objects) {
+//			oids.add(object.getOid());
+//
+//		}
+//
+//		return ObjectQuery.createObjectQuery(InOidFilter.createInOid(oids));
+//	}
 
 	protected ObjectDelta createMemberDelta(MemberOperation operation, QName type, QName relation)
 			throws SchemaException {
-		Class classType = qnameToClass(type);
+		Class classType = WebComponentUtil.qnameToClass(getPageBase().getPrismContext(), type);
 		ObjectDelta delta = null;
 		switch (operation) {
 			case ADD:

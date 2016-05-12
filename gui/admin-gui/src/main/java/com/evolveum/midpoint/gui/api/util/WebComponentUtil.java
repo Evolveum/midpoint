@@ -212,6 +212,15 @@ public final class WebComponentUtil {
 
 	private WebComponentUtil() {
 	}
+	
+	public static Class<?> qnameToClass(PrismContext prismContext, QName type) {
+		return prismContext.getSchemaRegistry().determineCompileTimeClass(type);
+	}
+	
+	public static <T extends ObjectType> QName classToQName(PrismContext prismContext, Class<T> clazz) {
+		return prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(clazz).getTypeName();
+	}
+	
 
 	public static TaskType createSingleRecurenceTask(String taskName, QName applicableType, ObjectQuery query,
 			ObjectDelta delta, String category, PageBase pageBase) throws SchemaException {
