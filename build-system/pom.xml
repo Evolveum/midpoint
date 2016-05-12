@@ -1525,33 +1525,6 @@
 				</plugins>
 			</build>
 		</profile>
-		<profile>
-			<id>java8</id>
-			<activation>
-		      <jdk>[1.8,)</jdk>
-		    </activation>
-			<build>
-				<plugins>
-					<plugin>
-					  <groupId>org.apache.maven.plugins</groupId>
-					  <artifactId>maven-javadoc-plugin</artifactId>
-					  <version>2.10.3</version>
-					  <executions>
-				        <execution>
-				            <id>javadoc-jar</id>
-				            <goals>
-				                <goal>jar</goal>
-				            </goals>
-				            <configuration>
-				                <additionalparam>-Xdoclint:none</additionalparam>
-				                <failOnError>false</failOnError>
-				            </configuration>
-				        </execution>
-				    </executions>
-				</plugin>
-				</plugins>
-			</build>
-		</profile>
     </profiles>
     <dependencies>
     	<dependency> <!-- Not used, but required for surefire plugin not to complain -->
