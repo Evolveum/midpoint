@@ -540,14 +540,6 @@ public class TestOrgSync extends AbstractStoryTest {
 		TestUtil.displayTestTile(this, TEST_NAME);
 		Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
 
-		PrismObject<UserType> userBeforeProcessing = findUserByUsername(ACCOUNT_REDSKULL_USERNAME);
-		UserType redskullBeforeProcessing = userBeforeProcessing.asObjectable();
-
-		List<String> shadowOids = new ArrayList<>();
-		for (ObjectReferenceType ref : redskullBeforeProcessing.getLinkRef()) {
-			shadowOids.add(ref.getOid());
-		}
-
 		// WHEN
 		TestUtil.displayWhen(TEST_NAME);
 		dummyResourceHr.deleteAccountByName(ACCOUNT_REDSKULL_USERNAME);
@@ -558,16 +550,6 @@ public class TestOrgSync extends AbstractStoryTest {
 		PrismObject<UserType> user = findUserByUsername(ACCOUNT_REDSKULL_USERNAME);
 		display("User", user);
 		assertNull("Redskull user not gone", user);
-
-		for (String oid : shadowOids) {
-			try {
-				PrismObject<ShadowType> shadow = getObjectViaRepo(ShadowType.class, oid);
-				assertNull("Expected no shadows, but found " + shadow, shadow);
-			} catch (ObjectNotFoundException ex) {
-				// this is expected and totally OK
-			}
-
-		}
 
 		dumpOrgTree();
 
