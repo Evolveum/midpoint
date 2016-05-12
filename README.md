@@ -25,7 +25,7 @@ The most important features of midPoint are:
    - Entitlements
    - Support for ConnId and OpenICF connectors
    - Provisioning consistency and error handling
-   - Segregation of Duties (SoG)
+   - Segregation of Duties (SoD)
    - Support for security auditing and reporting
    - Workflow
    - Reporting
@@ -50,6 +50,7 @@ Latest source code can be obtained from our Git repository using one of the
 following repository locations:
 
   https://github.com/Evolveum/midpoint.git
+  
   git@github.com:Evolveum/midpoint.git
 
 This project is developed under Apache license (version 2.0) You may get copy

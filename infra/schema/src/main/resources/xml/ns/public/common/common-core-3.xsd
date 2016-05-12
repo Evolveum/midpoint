@@ -8377,7 +8377,7 @@
                                 </p>
                             </xsd:documentation>
                             <xsd:appinfo>
-                                <a:displayName>Display Order</a:displayName>
+                                <a:displayName>URL</a:displayName>
                                 <a:displayOrder>150</a:displayOrder>
                             </xsd:appinfo>
                         </xsd:annotation>

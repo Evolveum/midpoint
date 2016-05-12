@@ -66,6 +66,7 @@ import com.evolveum.midpoint.schema.result.OperationConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskCategory;
 import com.evolveum.midpoint.task.api.TaskHandler;
@@ -559,18 +560,28 @@ public class ReconciliationTaskHandler implements TaskHandler {
 				if ((objectclassDef instanceof RefinedObjectClassDefinition) && !((RefinedObjectClassDefinition)objectclassDef).matches(shadow.asObjectable())) {
 					return true;
 				}
+				
 				if (LOGGER.isTraceEnabled()) {
 					LOGGER.trace("Shadow reconciliation of {}, fullSynchronizationTimestamp={}", shadow, shadow.asObjectable().getFullSynchronizationTimestamp());
 				}
 				long started = System.currentTimeMillis();
+				PrismObject<ShadowType> resourceShadow = null;
 				try {
 					task.recordIterativeOperationStart(shadow.asObjectable());
-					reconcileShadow(shadow, resource, task);
+					resourceShadow = reconcileShadow(shadow, resource, task);
 					task.recordIterativeOperationEnd(shadow.asObjectable(), started, null);
 				} catch (Throwable t) {
 					task.recordIterativeOperationEnd(shadow.asObjectable(), started, t);
 					throw t;
 				}
+				
+				if (ShadowUtil.isProtected(resourceShadow)) {
+					if (LOGGER.isTraceEnabled()) {
+						LOGGER.trace("Skipping recording counter for {} because it is protected", shadow);
+					}
+					return task.canRun();
+				}
+				
 				countHolder.setValue(countHolder.getValue() + 1);
                 incrementAndRecordProgress(task, new OperationResult("dummy"));     // reconcileShadow writes to its own dummy OperationResult, so we do the same here
                 return task.canRun();
@@ -597,14 +608,14 @@ public class ReconciliationTaskHandler implements TaskHandler {
         return !interrupted;
 	}
 	
-	private void reconcileShadow(PrismObject<ShadowType> shadow, PrismObject<ResourceType> resource, Task task) {
+	private PrismObject<ShadowType> reconcileShadow(PrismObject<ShadowType> shadow, PrismObject<ResourceType> resource, Task task) {
 		OperationResult opResult = new OperationResult(OperationConstants.RECONCILIATION+".shadowReconciliation.object");
 		try {
 			Collection<SelectorOptions<GetOperationOptions>> options = null;
 			if (Utils.isDryRun(task)){
 				 options = SelectorOptions.createCollection(GetOperationOptions.createDoNotDiscovery());
 			}
-			provisioningService.getObject(ShadowType.class, shadow.getOid(), options, task, opResult);
+			return provisioningService.getObject(ShadowType.class, shadow.getOid(), options, task, opResult);
 		} catch (ObjectNotFoundException e) {
 			// Account is gone
 			reactShadowGone(shadow, resource, task, opResult);		// actually, for deleted objects here is the recon code called second time
@@ -620,6 +631,8 @@ public class ReconciliationTaskHandler implements TaskHandler {
 		} catch (SecurityViolationException e) {
 			processShadowReconError(e, shadow, opResult);
 		}
+		
+		return null;
 	}
 
 

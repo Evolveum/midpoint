@@ -916,10 +916,11 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 	
 	@Test
     public void test200AddUserRapp() throws Exception {
-        TestUtil.displayTestTile(this, "test100ModifyUserGivenName");
+		final String TEST_NAME = "test200AddUserRapp";
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestUserTemplate.class.getName() + ".test200AddUserRapp");
+        Task task = taskManager.createTaskInstance(TestUserTemplate.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
     
         PrismObject<UserType> user = PrismTestUtil.parseObject(USER_RAPP_FILE);
@@ -940,13 +941,14 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         assertAssignments(userAfter, 1);
         
         UserType userAfterType = userAfter.asObjectable();
-        assertEquals("Unexpected number of accountRefs", 1, userAfterType.getLinkRef().size());
+        assertLinks(userAfter, 1);
         
         result.computeStatus();
         TestUtil.assertSuccess(result);
         
         assertEquals("Unexpected value of employeeNumber, maybe it was generated and should not be?", 
         		"D3ADB33F", userAfterType.getEmployeeNumber());
+        assertEquals("Wrong costCenter", "G001", userAfterType.getCostCenter());
 	}
 	
 	@Test
@@ -1031,6 +1033,73 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         
         assertEquals("Unexpected length  of employeeNumber, maybe it was not generated?", 
         		GenerateExpressionEvaluator.DEFAULT_LENGTH, userAfterType.getEmployeeNumber().length());
+	}
+	
+	@Test
+    public void test220AssignRoleSailorToUserRapp() throws Exception {
+		final String TEST_NAME = "test220AssignRoleSailorToUserRapp";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestUserTemplate.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+    
+		// WHEN
+		assignRole(USER_RAPP_OID, ROLE_SAILOR_OID, task, result);
+
+		// THEN
+		PrismObject<UserType> userAfter = modelService.getObject(UserType.class, USER_RAPP_OID, null, task, result);
+        assertUser(userAfter, USER_RAPP_OID, "rapp", "Rapp Scallion", "Rapp", "Scallion");
+        PrismAsserts.assertNoItem(userAfter, UserType.F_DESCRIPTION);
+        
+        assertAssignedAccount(userAfter, RESOURCE_DUMMY_BLUE_OID);
+        assertAssignedRole(userAfter, ROLE_SAILOR_OID);
+        assertAssignments(userAfter, 2);
+        
+        UserType userAfterType = userAfter.asObjectable();
+        assertLinks(userAfter, 2);
+        
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        assertEquals("Unexpected value of employeeNumber", 
+        		"D3ADB33F", userAfterType.getEmployeeNumber());
+        assertEquals("Wrong costCenter", "CC-TITANIC", userAfterType.getCostCenter());
+	}
+	
+	/**
+	 * MID-3028
+	 */
+	@Test
+    public void test229UnassignRoleSailorFromUserRapp() throws Exception {
+		final String TEST_NAME = "test220AssignRoleSailorToUserRapp";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestUserTemplate.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+    
+		// WHEN
+		unassignRole(USER_RAPP_OID, ROLE_SAILOR_OID, task, result);
+
+		// THEN
+		PrismObject<UserType> userAfter = modelService.getObject(UserType.class, USER_RAPP_OID, null, task, result);
+        assertUser(userAfter, USER_RAPP_OID, "rapp", "Rapp Scallion", "Rapp", "Scallion");
+        PrismAsserts.assertNoItem(userAfter, UserType.F_DESCRIPTION);
+        
+        assertAssignedAccount(userAfter, RESOURCE_DUMMY_BLUE_OID);
+        assertAssignedNoRole(userAfter);
+        assertAssignments(userAfter, 1);
+        
+        UserType userAfterType = userAfter.asObjectable();
+        assertLinks(userAfter, 1);
+        
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        assertEquals("Unexpected value of employeeNumber", 
+        		"D3ADB33F", userAfterType.getEmployeeNumber());
+        assertEquals("Wrong costCenter", "G001", userAfterType.getCostCenter());
 	}
 	
 	/**
