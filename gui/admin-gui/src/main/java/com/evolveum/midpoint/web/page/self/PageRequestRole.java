@@ -62,7 +62,7 @@ import java.util.*;
         @AuthorizationAction(actionUri = PageSelf.AUTH_SELF_ALL_URI,
                 label = PageSelf.AUTH_SELF_ALL_LABEL,
                 description = PageSelf.AUTH_SELF_ALL_DESCRIPTION),
-        @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_SELF_CREDENTIALS_URL,
+        @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_SELF_REQUEST_ROLE_URL,
                 label = "PageSelfCredentials.auth.requestRole.label",
                 description = "PageSelfCredentials.auth.requestRole.description")})
 public class PageRequestRole extends PageSelf {
