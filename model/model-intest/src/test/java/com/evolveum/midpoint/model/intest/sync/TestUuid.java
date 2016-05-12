@@ -35,6 +35,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
+import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
 
 import com.evolveum.icf.dummy.resource.BreakMode;
@@ -82,6 +83,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
  *
  */
 @ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
+@Listeners({ com.evolveum.midpoint.tools.testng.AlphabeticalMethodInterceptor.class })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestUuid extends AbstractInitializedModelIntegrationTest {
 	
@@ -208,6 +210,8 @@ public class TestUuid extends AbstractInitializedModelIntegrationTest {
         rememberShadowFetchOperationCount();
         reconciliationTaskResultListener.clear();
         
+        Task taskBefore = taskManager.getTask(TASK_RECONCILE_DUMMY_UUID_OID, result);
+        
 		// WHEN
         TestUtil.displayWhen(TEST_NAME);
         restartTask(TASK_RECONCILE_DUMMY_UUID_OID);
@@ -215,7 +219,7 @@ public class TestUuid extends AbstractInitializedModelIntegrationTest {
         // THEN
         TestUtil.displayThen(TEST_NAME);
         
-        waitForTaskNextRunAssertSuccess(TASK_RECONCILE_DUMMY_UUID_OID, true);
+        waitForTaskNextRunAssertSuccess(taskBefore, true);
         
         // THEN
         TestUtil.displayThen(TEST_NAME);        
@@ -279,6 +283,8 @@ public class TestUuid extends AbstractInitializedModelIntegrationTest {
 		
 		display("Old shadow OID", augustusShadowOid);
 		display("Account ID "+ oldAccount.getId() + " -> " + account.getId());
+		
+		Task taskBefore = taskManager.getTask(TASK_RECONCILE_DUMMY_UUID_OID, result);
         
         dummyResource.purgeScriptHistory();
         dummyAuditService.clear();
@@ -292,7 +298,7 @@ public class TestUuid extends AbstractInitializedModelIntegrationTest {
         // THEN
         TestUtil.displayThen(TEST_NAME);
         
-        waitForTaskNextRunAssertSuccess(TASK_RECONCILE_DUMMY_UUID_OID, true);
+        waitForTaskNextRunAssertSuccess(taskBefore, true);
         
         // THEN
         TestUtil.displayThen(TEST_NAME);        
@@ -358,6 +364,8 @@ public class TestUuid extends AbstractInitializedModelIntegrationTest {
 		
 		display("Old shadow OID", augustusShadowOid);
 		display("Account ID "+ oldAccount.getId() + " -> " + account.getId());
+		
+		Task taskBefore = taskManager.getTask(TASK_RECONCILE_DUMMY_UUID_OID, result);
         
         dummyResource.purgeScriptHistory();
         dummyAuditService.clear();
@@ -371,7 +379,7 @@ public class TestUuid extends AbstractInitializedModelIntegrationTest {
         // THEN
         TestUtil.displayThen(TEST_NAME);
         
-        waitForTaskNextRunAssertSuccess(TASK_RECONCILE_DUMMY_UUID_OID, true);
+        waitForTaskNextRunAssertSuccess(taskBefore, true);
         
         // THEN
         TestUtil.displayThen(TEST_NAME);        
