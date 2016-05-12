@@ -27,7 +27,13 @@
 <!-- ***** From End User role (fragments) ***** -->
 
     <authorization>
-        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#selfAll</action>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#selfDashboard</action>
+    </authorization>
+    <authorization>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#selfProfile</action>
+    </authorization>
+    <authorization>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#selfCredentials</action>
     </authorization>
     <authorization>
         <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
@@ -83,12 +89,22 @@
     	<item>credentials</item>
     </authorization>
 
+<!-- XXX Authorization to read own organization and its content including the path from root ... -->
     <authorization>
-	<name>Read for all resources, all organizations and roles of roleType=customer and End User</name>
-        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+	<name>Magic read only</name>
+	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
         <object>
-            <type>OrgType</type>
+            <orgRelation>
+<!--                <subjectRelation>org:manager</subjectRelation>-->
+                <scope>allDescendants</scope>
+                <includeReferenceOrg>true</includeReferenceOrg>
+            </orgRelation>
         </object>
+    </authorization>
+
+    <authorization>
+	<name>Read for all resources and roles of roleType=customer and End User</name>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
         <object>
             <type>ResourceType</type>
         </object>
@@ -119,6 +135,7 @@
             <type>RoleType</type>
         </object>
     </authorization>
+
     <requestable>false</requestable>
     <roleType>customer</roleType>
 </role>
