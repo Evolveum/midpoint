@@ -442,6 +442,10 @@ public class ShadowUtil {
     }
     
     public static boolean isProtected(PrismObject<? extends ShadowType> shadow) {
+    	if (shadow == null) {
+    		return false;
+    	}
+    	
     	ShadowType shadowType = shadow.asObjectable();
     	Boolean protectedObject = shadowType.isProtectedObject();
     	return (protectedObject != null && protectedObject);
