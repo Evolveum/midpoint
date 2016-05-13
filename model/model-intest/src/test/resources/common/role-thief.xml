@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright (c) 2015 Evolveum
+  ~ Copyright (c) 2015-2016 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@
     <!-- No construction here. By purpose: to test exclusivity without any constructions. -->
     <policyConstraints>
     	<exclusion>
-	    	<description>A judge cannot be a pirate at the same time. At least not openly.</description>
+	    	<description>A thief cannot be a pirate at the same time. At least not openly.</description>
 	    	<enforcement>enforce</enforcement>
 	    	<targetRef oid="12345111-1111-2222-1111-121212111111" type="RoleType"/> <!-- Judge -->
     	</exclusion>

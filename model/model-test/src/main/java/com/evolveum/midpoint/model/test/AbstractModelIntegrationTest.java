@@ -460,8 +460,14 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	
 	protected void assertAdministrativeStatus(PrismObject<? extends ObjectType> object, ActivationStatusType expected) {
 		PrismProperty<ActivationStatusType> statusProperty = object.findProperty(ACTIVATION_ADMINISTRATIVE_STATUS_PATH);
+		if (expected == null && statusProperty == null) {
+			return;
+		}
 		assert statusProperty != null : "No status property in "+object;
 		ActivationStatusType status = statusProperty.getRealValue();
+		if (expected == null && status == null) {
+			return;
+		}
 		assert status != null : "No status property is null in "+object;
 		assert status == expected : "status property is "+status+", expected "+expected+" in "+object;
 	}

@@ -217,9 +217,13 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 
 			if (isProtected((PrismObject<ShadowType>) currentShadow)) {
 				if (StringUtils.isNotBlank(synchronizationPolicy.getIntent())) {
-					Collection<? extends ItemDelta> modifications = PropertyDelta
-							.createModificationReplacePropertyCollection(ShadowType.F_INTENT,
-									currentShadow.getDefinition(), synchronizationPolicy.getIntent());
+					List<PropertyDelta<?>> modifications = SynchronizationSituationUtil
+							.createSynchronizationTimestampsDelta(currentShadow);
+
+					PropertyDelta<String> intentDelta = PropertyDelta.createModificationReplaceProperty(
+							ShadowType.F_INTENT, currentShadow.getDefinition(),
+							synchronizationPolicy.getIntent());
+					modifications.add(intentDelta);
 
 					try {
 						repositoryService.modifyObject(ShadowType.class, currentShadow.getOid(),
@@ -230,7 +234,6 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 					} finally {
 						task.markObjectActionExecutedBoundary();
 					}
-					
 
 				}
 				subResult.recordSuccess();
@@ -415,7 +418,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 			ObjectClassComplexTypeDefinition policyObjectClass = null;
 			RefinedResourceSchema schema = RefinedResourceSchema.getRefinedSchema(resource);
 			if (policyKind == null && policyIntent == null) {
-				policyObjectClass = schema.findDefaultObjectClassDefinition(policyKind);
+				policyObjectClass = schema.findDefaultObjectClassDefinition(ShadowKindType.ACCOUNT);
 			}
 
 			if (policyKind != null) {
@@ -426,17 +429,13 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 				}
 
 			}
-			if (policyObjectClass != null && policyObjectClass.getTypeName().equals(shadowObjectClass)) {
-				return true;
+			if (policyObjectClass != null && !policyObjectClass.getTypeName().equals(shadowObjectClass)) {
+				return false;
 			}
 		}
-
+		// TODO relaxed QName match [med]
 		if (policyObjectClasses != null && !policyObjectClasses.isEmpty()) {
-			if (!policyObjectClasses.contains(shadowObjectClass)) { // TODO
-																	// relaxed
-																	// QName
-																	// match
-																	// [med]
+			if (!policyObjectClasses.contains(shadowObjectClass)) {
 				return false;
 			}
 		}
@@ -457,17 +456,45 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 			return false;
 		}
 
-		if (synchronizationPolicy.getCondition() != null) {
-			ExpressionType conditionExpressionType = synchronizationPolicy.getCondition();
-			String desc = "condition in object synchronization " + synchronizationPolicy.getName();
-			ExpressionVariables variables = Utils.getDefaultExpressionVariables(null, currentShadow, null,
-					resource, configuration);
-			PrismPropertyValue<Boolean> evaluateCondition = ExpressionUtil.evaluateCondition(variables,
-					conditionExpressionType, expressionFactory, desc, task, result);
-			return evaluateCondition.getValue();
+		// if (synchronizationPolicy.getCondition() != null) {
+		Boolean conditionResult = evaluateSynchronizationPolicyCondition(synchronizationPolicy, currentShadow,
+				resource, configuration, task, result);
+		if (conditionResult != null) {
+			return conditionResult.booleanValue();
 		}
+		// return conditionResult.booleanValue();
+
+		// ExpressionType conditionExpressionType =
+		// synchronizationPolicy.getCondition();
+		// String desc = "condition in object synchronization " +
+		// synchronizationPolicy.getName();
+		// ExpressionVariables variables =
+		// Utils.getDefaultExpressionVariables(null, currentShadow, null,
+		// resource, configuration);
+		// PrismPropertyValue<Boolean> evaluateCondition =
+		// ExpressionUtil.evaluateCondition(variables,
+		// conditionExpressionType, expressionFactory, desc, task, result);
+		// return evaluateCondition.getValue();
+		// }
 
 		return true;
+	}
+
+	private Boolean evaluateSynchronizationPolicyCondition(ObjectSynchronizationType synchronizationPolicy,
+			PrismObject<? extends ShadowType> currentShadow, PrismObject<ResourceType> resource,
+			PrismObject<SystemConfigurationType> configuration, Task task, OperationResult result)
+					throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
+		if (synchronizationPolicy.getCondition() == null) {
+			return null;
+		}
+		ExpressionType conditionExpressionType = synchronizationPolicy.getCondition();
+		String desc = "condition in object synchronization " + synchronizationPolicy.getName();
+		ExpressionVariables variables = Utils.getDefaultExpressionVariables(null, currentShadow, null,
+				resource, configuration);
+		PrismPropertyValue<Boolean> evaluateCondition = ExpressionUtil.evaluateCondition(variables,
+				conditionExpressionType, expressionFactory, desc, task, result);
+		return evaluateCondition.getValue();
+
 	}
 
 	private boolean isLogDebug(ResourceObjectShadowChangeDescription change) {

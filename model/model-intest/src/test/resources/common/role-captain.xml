@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright (c) 2010-2013 Evolveum
+  ~ Copyright (c) 2010-2016 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -18,7 +18,19 @@
         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
         xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004">
-    <name>Captain</name>    
+    <name>Captain</name>
+    <inducement>
+    	<focusMappings>
+    		<mapping>
+    			<expression>
+    				<value>G001</value> <!-- Same CC as defined in user-template-complex -->
+    			</expression>
+    			<target>
+    				<path>costCenter</path>
+    			</target>
+    		</mapping>
+    	</focusMappings>
+    </inducement>
     <authorization>
     	<action>http://midpoint.evolveum.com/xml/ns/test/authorization#command</action>
     </authorization>

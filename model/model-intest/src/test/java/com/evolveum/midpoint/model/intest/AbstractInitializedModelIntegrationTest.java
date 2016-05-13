@@ -66,6 +66,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityPolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ServiceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
@@ -278,6 +279,9 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
 		if (doAddOrgstruct()) {
 			repoAddObjectsFromFile(ORG_MONKEY_ISLAND_FILE, OrgType.class, initResult);
 		}
+		
+		// Services
+		repoAddObjectFromFile(SERVICE_SHIP_SEA_MONKEY_FILE, ServiceType.class, initResult);
 
 	}
 	

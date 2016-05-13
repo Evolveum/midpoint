@@ -950,6 +950,7 @@ public class LensUtil {
 		Mapping<V,D> mapping = mappingFactory.createMapping(mappingType, contextDesc);
 		
 		if (!mapping.isApplicableToChannel(context.getChannel())) {
+			LOGGER.trace("Mapping {} not applicable to channel {}, skipping.", mapping, context.getChannel());
 			return null;
 		}
 		
@@ -979,6 +980,7 @@ public class LensUtil {
 					&& mapping.getStrength() == MappingStrengthType.WEAK) {
 				// This valueConstruction only applies if the property does not have a value yet.
 				// ... but it does
+				LOGGER.trace("Mapping {} is weak and focus already has a value {}, skipping.", mapping, existingUserItem);
 				return null;
 			}
 		}
