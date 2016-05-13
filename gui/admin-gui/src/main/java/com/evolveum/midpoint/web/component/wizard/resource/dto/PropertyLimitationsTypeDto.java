@@ -62,17 +62,19 @@ public class PropertyLimitationsTypeDto implements Serializable{
     }
 
     public PropertyLimitationsType prepareDtoForSave(){
-        if(limitationObject == null){
+        if (limitationObject == null) {
             limitationObject = new PropertyLimitationsType();
-        }
+        } else {
+			limitationObject.getLayer().clear();
+		}
 
-        if(schema){
+        if (schema) {
             limitationObject.getLayer().add(LayerType.SCHEMA);
         }
-        if(model){
+        if (model) {
             limitationObject.getLayer().add(LayerType.MODEL);
         }
-        if(presentation){
+        if (presentation) {
             limitationObject.getLayer().add(LayerType.PRESENTATION);
         }
 

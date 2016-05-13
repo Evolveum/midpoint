@@ -323,6 +323,9 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 	protected static final String ORG_TYPE_FUNCTIONAL = "functional"; 
 	protected static final String ORG_TYPE_PROJECT = "project";
 	
+	protected static final File SERVICE_SHIP_SEA_MONKEY_FILE = new File(COMMON_DIR, "service-ship-sea-monkey.xml");
+	protected static final String SERVICE_SHIP_SEA_MONKEY_OID = "914b94be-1901-11e6-9269-972ee32cd8db";
+	
 	protected static final String TASK_RECONCILE_DUMMY_FILENAME = COMMON_DIR + "/task-reconcile-dummy.xml";
 	protected static final String TASK_RECONCILE_DUMMY_OID = "10000000-0000-0000-5656-565600000004";
 	

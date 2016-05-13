@@ -37,6 +37,8 @@ import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.match.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.Component;
@@ -72,24 +74,10 @@ import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.result.OpResult;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.prism.Objectable;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.Revivable;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
-import com.evolveum.midpoint.prism.match.DistinguishedNameMatchingRule;
-import com.evolveum.midpoint.prism.match.PolyStringNormMatchingRule;
-import com.evolveum.midpoint.prism.match.PolyStringOrigMatchingRule;
-import com.evolveum.midpoint.prism.match.PolyStringStrictMatchingRule;
-import com.evolveum.midpoint.prism.match.StringIgnoreCaseMatchingRule;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.prism.polystring.PolyString;
@@ -1279,14 +1267,15 @@ public final class WebComponentUtil {
 	public static List<QName> getMatchingRuleList() {
 		List<QName> list = new ArrayList<>();
 
-		String NS_MATCHING_RULE = "http://prism.evolveum.com/xml/ns/public/matching-rule-3";
-
-		list.add(new QName(NS_MATCHING_RULE, "default", "mr"));
+		list.add(DefaultMatchingRule.NAME);
 		list.add(StringIgnoreCaseMatchingRule.NAME);
 		list.add(PolyStringStrictMatchingRule.NAME);
 		list.add(PolyStringOrigMatchingRule.NAME);
 		list.add(PolyStringNormMatchingRule.NAME);
 		list.add(DistinguishedNameMatchingRule.NAME);
+		list.add(ExchangeEmailAddressesMatchingRule.NAME);
+		list.add(UuidMatchingRule.NAME);
+		list.add(XmlMatchingRule.NAME);
 
 		return list;
 	}

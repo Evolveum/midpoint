@@ -113,7 +113,7 @@ public class MappingEditorDialog extends ModalWindow {
 	private IModel<MappingTypeDto> model;
 	private Map<String, String> policyMap = new HashMap<>();
 	private IModel<MappingType> inputModel;
-	private boolean isInbound = false;
+	private boolean isTargetRequired = false;
 
 	public MappingEditorDialog(String id, final IModel<MappingType> mapping) {
 		super(id);
@@ -145,15 +145,15 @@ public class MappingEditorDialog extends ModalWindow {
 		setContent(content);
 	}
 
-	public void updateModel(AjaxRequestTarget target, IModel<MappingType> mapping, boolean isInbound) {
-		this.isInbound = isInbound;
+	public void updateModel(AjaxRequestTarget target, IModel<MappingType> mapping, boolean isTargetRequired) {
+		this.isTargetRequired = isTargetRequired;
 		model.setObject(new MappingTypeDto(mapping.getObject(), getPageBase().getPrismContext()));
 		inputModel = mapping;
 		target.add(getContent());
 	}
 
-	public void updateModel(AjaxRequestTarget target, MappingType mapping, boolean isInbound) {
-		this.isInbound = isInbound;
+	public void updateModel(AjaxRequestTarget target, MappingType mapping, boolean isTargetRequired) {
+		this.isTargetRequired = isTargetRequired;
 		model.setObject(new MappingTypeDto(mapping, getPageBase().getPrismContext()));
 
 		if (inputModel != null) {
@@ -277,7 +277,7 @@ public class MappingEditorDialog extends ModalWindow {
 		// TODO - create some nice ItemPathType editor in near future
 		TextFormGroup target = new TextFormGroup(ID_TARGET, new PropertyModel<String>(model, MappingTypeDto.F_TARGET),
 				createStringResource("MappingEditorDialog.label.target"), "SchemaHandlingStep.mapping.tooltip.target",
-				true, ID_LABEL_SIZE, ID_INPUT_SIZE, isInbound);
+				true, ID_LABEL_SIZE, ID_INPUT_SIZE, isTargetRequired);
 		target.setOutputMarkupId(true);
 		form.add(target);
 
@@ -572,7 +572,7 @@ public class MappingEditorDialog extends ModalWindow {
 	}
 
 	private void savePerformed(AjaxRequestTarget target) {
-		if (isInbound) {
+		if (isTargetRequired) {
 			if (model.getObject().getTarget() == null || model.getObject().getTarget().isEmpty()) {
 				warn(getString("MappingEditorDialog.message.warn.emptyTarget"));
 				target.add(getFeedback());

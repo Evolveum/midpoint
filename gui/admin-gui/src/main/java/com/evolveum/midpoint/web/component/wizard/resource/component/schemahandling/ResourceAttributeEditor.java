@@ -29,7 +29,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.form.multivalue.MultiValueTextEditPanel;
 import com.evolveum.midpoint.web.component.form.multivalue.MultiValueTextPanel;
-import com.evolveum.midpoint.web.component.input.QNameChoiceRenderer;
 import com.evolveum.midpoint.web.component.input.QNameEditorPanel;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
@@ -81,6 +80,7 @@ public class ResourceAttributeEditor extends SimplePanel<ResourceAttributeDefini
     private static final String ID_INTOLERANT_VP = "intolerantValuePattern";
     private static final String ID_FETCH_STRATEGY = "fetchStrategy";
     private static final String ID_MATCHING_RULE = "matchingRule";
+    private static final String ID_UNKNOWN_MATCHING_RULE = "unknownMatchingRule";
     private static final String ID_INBOUND = "inbound";
     private static final String ID_OUTBOUND_LABEL = "outboundLabel";
     private static final String ID_BUTTON_OUTBOUND = "buttonOutbound";
@@ -252,17 +252,7 @@ public class ResourceAttributeEditor extends SimplePanel<ResourceAttributeDefini
         fetchStrategy.setNullValid(true);
         add(fetchStrategy);
 
-        DropDownChoice matchingRule = new DropDownChoice<>(ID_MATCHING_RULE,
-                new PropertyModel<QName>(getModel(), "matchingRule"),
-                new AbstractReadOnlyModel<List<QName>>() {
-
-                    @Override
-                    public List<QName> getObject() {
-                        return WebComponentUtil.getMatchingRuleList();
-                    }
-                }, new QNameChoiceRenderer());
-        matchingRule.setNullValid(true);
-        add(matchingRule);
+		AttributeEditorUtils.addMatchingRuleFields(this);
 
         TextField outboundLabel = new TextField<>(ID_OUTBOUND_LABEL,
                 new AbstractReadOnlyModel<String>() {
@@ -374,7 +364,7 @@ public class ResourceAttributeEditor extends SimplePanel<ResourceAttributeDefini
         initModals();
     }
 
-    private void initModals(){
+    private void initModals() {
         ModalWindow limitationsEditor = new LimitationsEditorDialog(ID_MODAL_LIMITATIONS,
                 new PropertyModel<List<PropertyLimitationsType>>(getModel(), "limitations"));
         add(limitationsEditor);

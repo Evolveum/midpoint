@@ -22,16 +22,15 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.web.component.form.CheckFormGroup;
 import com.evolveum.midpoint.web.component.form.TextFormGroup;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
-import com.evolveum.midpoint.web.component.input.ThreeStateBooleanPanel;
-import com.evolveum.midpoint.web.component.input.validator.NotNullValidator;
 import com.evolveum.midpoint.web.component.wizard.resource.dto.PropertyLimitationsTypeDto;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
+import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnChangeAjaxFormUpdatingBehavior;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LayerType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LoggingLevelType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PropertyAccessType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PropertyLimitationsType;
-
+import org.apache.commons.lang3.BooleanUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -57,11 +56,11 @@ import java.util.List;
  * */
 public class LimitationsEditorDialog extends ModalWindow{
 
-    private static enum ChangeState{
+    private enum ChangeState{
         SKIP, FIRST, LAST
     }
 
-    private static enum PropertyAccess{
+    private enum PropertyAccess{
         Allow, Inherit, Deny
     }
 
@@ -135,7 +134,7 @@ public class LimitationsEditorDialog extends ModalWindow{
     protected void onBeforeRender(){
         super.onBeforeRender();
 
-        if(initialized){
+        if (initialized) {
             return;
         }
 
@@ -143,7 +142,7 @@ public class LimitationsEditorDialog extends ModalWindow{
         initialized = true;
     }
 
-    public void initLayout(WebMarkupContainer content){
+    public void initLayout(WebMarkupContainer content) {
         Form form = new Form(ID_MAIN_FORM);
         form.setOutputMarkupId(true);
         content.add(form);
@@ -172,14 +171,14 @@ public class LimitationsEditorDialog extends ModalWindow{
                 WebMarkupContainer limitationBody = new WebMarkupContainer(ID_BODY);
                 limitationBody.setOutputMarkupId(true);
                 limitationBody.setMarkupId(createCollapseItemId(item, false).getObject());
-                if(changeState != ChangeState.SKIP){
+                if (changeState != ChangeState.SKIP) {
                     limitationBody.add(new AttributeModifier("class", new AbstractReadOnlyModel<String>() {
 
                         @Override
                         public String getObject() {
-                            if(changeState == ChangeState.FIRST && item.getIndex() == 0){
+                            if (changeState == ChangeState.FIRST && item.getIndex() == 0) {
                                 return "panel-collapse collapse in";
-                            } else if(changeState == ChangeState.LAST && item.getIndex() == (getModelObject().size()-1)){
+                            } else if (changeState == ChangeState.LAST && item.getIndex() == (getModelObject().size()-1)) {
                                 return "panel-collapse collapse in";
                             } else {
                                 return "panel-collapse collapse";
@@ -198,7 +197,7 @@ public class LimitationsEditorDialog extends ModalWindow{
         initButtons(form);
     }
 
-    private void initButtons(Form form){
+    private void initButtons(Form form) {
         AjaxLink add = new AjaxLink(ID_BUTTON_ADD) {
 
             @Override
@@ -227,7 +226,7 @@ public class LimitationsEditorDialog extends ModalWindow{
         form.add(save);
     }
 
-    private void initLimitationBody(final WebMarkupContainer body, ListItem<PropertyLimitationsTypeDto> item){
+    private void initLimitationBody(final WebMarkupContainer body, ListItem<PropertyLimitationsTypeDto> item) {
         CheckFormGroup schema = new CheckFormGroup(ID_LAYER_SCHEMA, new PropertyModel<Boolean>(item.getModelObject(), PropertyLimitationsTypeDto.F_SCHEMA),
                 createStringResource("LimitationsEditorDialog.label.schema"), ID_LABEL_SIZE, ID_INPUT_SIZE);
         schema.getCheck().add(prepareAjaxOnComponentTagUpdateBehavior());
@@ -248,33 +247,21 @@ public class LimitationsEditorDialog extends ModalWindow{
                 WebComponentUtil.createReadonlyModelFromEnum(PropertyAccess.class), false);
         FormComponent<PropertyAccess> addInput = add.getBaseFormComponent();
         addInput.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
-        addInput.add(new AjaxFormComponentUpdatingBehavior("change") {
-            @Override
-            protected void onUpdate(AjaxRequestTarget target) {
-            }
-        });
+        addInput.add(new EmptyOnChangeAjaxFormUpdatingBehavior());
 
         DropDownChoicePanel read = new DropDownChoicePanel(ID_ACCESS_READ,
                 getReadPropertyAccessModel(item.getModel()),
                 WebComponentUtil.createReadonlyModelFromEnum(PropertyAccess.class), false);
         FormComponent<PropertyAccess> readInput = read.getBaseFormComponent();
         readInput.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
-        readInput.add(new AjaxFormComponentUpdatingBehavior("change") {
-            @Override
-            protected void onUpdate(AjaxRequestTarget target) {
-            }
-        });
+        readInput.add(new EmptyOnChangeAjaxFormUpdatingBehavior());
 
         DropDownChoicePanel modify = new DropDownChoicePanel(ID_ACCESS_MODIFY,
                 getModifyPropertyAccessModel(item.getModel()),
                 WebComponentUtil.createReadonlyModelFromEnum(PropertyAccess.class), false);
         FormComponent<PropertyAccess> modifyInput = modify.getBaseFormComponent();
         modifyInput.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
-        modifyInput.add(new AjaxFormComponentUpdatingBehavior("change") {
-            @Override
-            protected void onUpdate(AjaxRequestTarget target) {
-            }
-        });
+        modifyInput.add(new EmptyOnChangeAjaxFormUpdatingBehavior());
 
         body.add(add);
         body.add(read);
@@ -296,8 +283,7 @@ public class LimitationsEditorDialog extends ModalWindow{
         body.add(ignore);
 
         Label layersTooltip = new Label(ID_T_LAYERS);
-        layersTooltip.add(new InfoTooltipBehavior(true){
-
+        layersTooltip.add(new InfoTooltipBehavior(true) {
             @Override
             public String getModalContainer(Component component) {
                 return body.getMarkupId();
@@ -306,8 +292,7 @@ public class LimitationsEditorDialog extends ModalWindow{
         body.add(layersTooltip);
 
         Label propertyTooltip = new Label(ID_T_PROPERTY);
-        propertyTooltip.add(new InfoTooltipBehavior(true){
-
+        propertyTooltip.add(new InfoTooltipBehavior(true) {
             @Override
             public String getModalContainer(Component component) {
                 return body.getMarkupId();
@@ -318,7 +303,6 @@ public class LimitationsEditorDialog extends ModalWindow{
 
     private AjaxFormComponentUpdatingBehavior prepareAjaxOnComponentTagUpdateBehavior(){
         return new AjaxFormComponentUpdatingBehavior("blur") {
-
             @Override
             protected void onUpdate(AjaxRequestTarget target) {}
         };
@@ -333,29 +317,32 @@ public class LimitationsEditorDialog extends ModalWindow{
                 PropertyLimitationsTypeDto dto = item.getModelObject();
                 sb.append("#").append(item.getIndex()+1).append(" - ");
 
-                if(dto.isModel()){
-                    sb.append(LayerType.MODEL).append(", ");
+				List<LayerType> layers = new ArrayList<>();
+                if (dto.isModel()) {
+                    layers.add(LayerType.MODEL);
                 }
-                if(dto.isPresentation()){
-                    sb.append(LayerType.PRESENTATION).append(", ");
+                if (dto.isPresentation()) {
+                    layers.add(LayerType.PRESENTATION);
                 }
-                if(dto.isSchema()){
-                    sb.append(LayerType.SCHEMA).append(", ");
+                if (dto.isSchema()) {
+                    layers.add(LayerType.SCHEMA);
                 }
+				sb.append(StringUtils.join(layers, ", "));
                 sb.append(":");
 
-                if(dto.getLimitationObject().getAccess() != null){
+                if (dto.getLimitationObject().getAccess() != null) {
+					List<String> accesses = new ArrayList<>();
                     PropertyAccessType access = dto.getLimitationObject().getAccess();
-
-                    if(access.isRead() != null && access.isRead()){
-                        sb.append(getString("LimitationsEditorDialog.label.read")).append(", ");
+                    if (BooleanUtils.isTrue(access.isRead())) {
+                        accesses.add(getString("LimitationsEditorDialog.label.read"));
                     }
-                    if(access.isAdd() != null && access.isAdd()){
-                        sb.append(getString("LimitationsEditorDialog.label.add")).append(", ");
+                    if (BooleanUtils.isTrue(access.isAdd())) {
+                        accesses.add(getString("LimitationsEditorDialog.label.add"));
                     }
-                    if(access.isModify() != null && access.isModify()){
-                        sb.append(getString("LimitationsEditorDialog.label.modify")).append(", ");
+                    if (BooleanUtils.isTrue(access.isModify())) {
+                        accesses.add(getString("LimitationsEditorDialog.label.modify"));
                     }
+					sb.append(StringUtils.join(accesses, ", "));
                 }
 
                 return sb.toString();
@@ -370,7 +357,7 @@ public class LimitationsEditorDialog extends ModalWindow{
             public String getObject() {
                 StringBuilder sb = new StringBuilder();
 
-                if(appendSelector){
+                if (appendSelector) {
                     sb.append("#");
                 }
 
@@ -383,7 +370,6 @@ public class LimitationsEditorDialog extends ModalWindow{
 
     public StringResourceModel createStringResource(String resourceKey, Object... objects) {
     	return PageBase.createStringResourceStatic(this, resourceKey, objects);
-//        return new StringResourceModel(resourceKey, this, null, resourceKey, objects);
     }
 
     private void addLimitationsPerformed(AjaxRequestTarget target){
@@ -406,7 +392,7 @@ public class LimitationsEditorDialog extends ModalWindow{
         List<PropertyLimitationsTypeDto> list = model.getObject();
         List<PropertyLimitationsType> outputList = new ArrayList<>();
 
-        for(PropertyLimitationsTypeDto dto: list){
+        for (PropertyLimitationsTypeDto dto: list) {
             outputList.add(dto.prepareDtoForSave());
         }
 
@@ -420,8 +406,8 @@ public class LimitationsEditorDialog extends ModalWindow{
             public PropertyAccess getObject() {
                 Boolean add = model.getObject().getLimitationObject().getAccess().isAdd();
                 if (add == null){
-                    return  PropertyAccess.Inherit;
-                } else if (add){
+                    return PropertyAccess.Inherit;
+                } else if (add) {
                     return PropertyAccess.Allow;
                 } else {
                     return PropertyAccess.Deny;
@@ -430,9 +416,9 @@ public class LimitationsEditorDialog extends ModalWindow{
 
             @Override
             public void setObject(PropertyAccess propertyAccess) {
-                if (propertyAccess.equals(PropertyAccess.Allow)){
+                if (propertyAccess.equals(PropertyAccess.Allow)) {
                     model.getObject().getLimitationObject().getAccess().setAdd(true);
-                } else if (propertyAccess.equals(PropertyAccess.Deny)){
+                } else if (propertyAccess.equals(PropertyAccess.Deny)) {
                     model.getObject().getLimitationObject().getAccess().setAdd(false);
                 } else {
                     model.getObject().getLimitationObject().getAccess().setAdd(null);
@@ -444,12 +430,12 @@ public class LimitationsEditorDialog extends ModalWindow{
             }
         };
     }
-    private IModel<PropertyAccess> getReadPropertyAccessModel(final IModel<PropertyLimitationsTypeDto> model){
+    private IModel<PropertyAccess> getReadPropertyAccessModel(final IModel<PropertyLimitationsTypeDto> model) {
         return new IModel<PropertyAccess>() {
             @Override
             public PropertyAccess getObject() {
                 Boolean read = model.getObject().getLimitationObject().getAccess().isRead();
-                if (read == null){
+                if (read == null) {
                     return  PropertyAccess.Inherit;
                 } else if (read){
                     return PropertyAccess.Allow;
@@ -460,9 +446,9 @@ public class LimitationsEditorDialog extends ModalWindow{
 
             @Override
             public void setObject(PropertyAccess propertyAccess) {
-                if (propertyAccess.equals(PropertyAccess.Allow)){
+                if (propertyAccess.equals(PropertyAccess.Allow)) {
                     model.getObject().getLimitationObject().getAccess().setRead(true);
-                } else if (propertyAccess.equals(PropertyAccess.Deny)){
+                } else if (propertyAccess.equals(PropertyAccess.Deny)) {
                     model.getObject().getLimitationObject().getAccess().setRead(false);
                 } else {
                     model.getObject().getLimitationObject().getAccess().setRead(null);
@@ -474,14 +460,14 @@ public class LimitationsEditorDialog extends ModalWindow{
             }
         };
     }
-    private IModel<PropertyAccess> getModifyPropertyAccessModel(final IModel<PropertyLimitationsTypeDto> model){
+    private IModel<PropertyAccess> getModifyPropertyAccessModel(final IModel<PropertyLimitationsTypeDto> model) {
         return new IModel<PropertyAccess>() {
             @Override
             public PropertyAccess getObject() {
                 Boolean modify = model.getObject().getLimitationObject().getAccess().isModify();
-                if (modify == null){
+                if (modify == null) {
                     return  PropertyAccess.Inherit;
-                } else if (modify){
+                } else if (modify) {
                     return PropertyAccess.Allow;
                 } else {
                     return PropertyAccess.Deny;
@@ -490,9 +476,9 @@ public class LimitationsEditorDialog extends ModalWindow{
 
             @Override
             public void setObject(PropertyAccess propertyAccess) {
-                if (propertyAccess.equals(PropertyAccess.Allow)){
+                if (propertyAccess.equals(PropertyAccess.Allow)) {
                     model.getObject().getLimitationObject().getAccess().setModify(true);
-                } else if (propertyAccess.equals(PropertyAccess.Deny)){
+                } else if (propertyAccess.equals(PropertyAccess.Deny)) {
                     model.getObject().getLimitationObject().getAccess().setModify(false);
                 } else {
                     model.getObject().getLimitationObject().getAccess().setModify(null);

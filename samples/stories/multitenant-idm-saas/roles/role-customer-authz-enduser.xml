@@ -27,15 +27,24 @@
 <!-- ***** From End User role (fragments) ***** -->
 
     <authorization>
-        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#selfAll</action>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#selfDashboard</action>
     </authorization>
     <authorization>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#selfProfile</action>
+    </authorization>
+    <authorization>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#selfCredentials</action>
+    </authorization>
+<!-- ***** MODEL ***** -->
+    <authorization>
+    	<name>self-read</name>
         <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
         <object>
             <special>self</special>
         </object>
     </authorization>
     <authorization>
+	<name>self-shadow-read</name>
         <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
         <object>
             <type>ShadowType</type>
@@ -45,6 +54,7 @@
         </object>
     </authorization>
     <authorization>
+    	<name>self-credentials-request</name>
     	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#changeCredentials</action>
     	<phase>request</phase>
     	<object>
@@ -53,6 +63,7 @@
     	<item>credentials</item>
     </authorization>
     <authorization>
+    	<name>self-shadow-credentials-request</name>
     	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#changeCredentials</action>
     	<phase>request</phase>
     	<object>
@@ -63,15 +74,47 @@
     	</object>
     	<item>credentials</item>
     </authorization>
+<!-- Intentionally commented out
     <authorization>
+    	<name>assign-requestable-roles</name>
+    	<description>
+    		Allow to assign requestable roles. This allows to request roles in a request-and-approve process.
+    	    The requestable roles will be displayed in the role request dialog by default.
+    	    Please note that the roles also need an approved definition to go through the approval process.
+    	    Otherwise they will be assigned automatically wihout any approval. 
+    	</description>
+    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#assign</action>
+    	<phase>request</phase>
+    	<object>
+    		<special>self</special>
+    	</object>
+    	<target>
+    		<type>RoleType</type>
+    		<filter>
+    			<q:equal>
+    				<q:path>requestable</q:path>
+    				<q:value>true</q:value>
+    			</q:equal>
+    		</filter>
+    	</target>
+    </authorization>
+-->
+    <authorization>
+    	<name>self-execution-modify</name>
     	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#modify</action>
     	<phase>execution</phase>
     	<object>
     		<special>self</special>
     	</object>
     	<item>credentials</item>
+<!-- Intentionally commented out
+    	<item>assignment</item>
+    	<item>parentOrgRef</item>
+    	<item>roleMembershipRef</item>
+-->
     </authorization>
     <authorization>
+    	<name>self-sahdow-execution-modify</name>
     	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#modify</action>
     	<phase>execution</phase>
     	<object>
@@ -83,14 +126,26 @@
     	<item>credentials</item>
     </authorization>
 
+<!-- XXX Authorization to read own organization and its content including the path from root ... -->
     <authorization>
-	<name>Read for all resources, all organizations and roles of roleType=customer and End User</name>
+	<name>Magic read only</name>
+	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+        <object>
+            <orgRelation>
+                <scope>allDescendants</scope>
+                <includeReferenceOrg>true</includeReferenceOrg>
+            </orgRelation>
+        </object>
+    </authorization>
+
+    <authorization>
+	<name>Read for all resources and roles of roleType=customer and End User</name>
         <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
         <object>
-            <type>OrgType</type>
+            <type>ResourceType</type>
         </object>
         <object>
-            <type>ResourceType</type>
+            <type>ServiceType</type>
         </object>
         <object>
             <type>RoleType</type>
@@ -108,8 +163,10 @@
             </filter>
         </object>
     </authorization>
-    <authorization><!-- XXX XXX still roles can be "assigned" in GUI (will fail in model)-->
+<!-- Request a role will not work (fail) -->
+    <!-- XXX XXX still roles can be "assigned" in GUI (will fail in model)-->
 <!-- https://jira.evolveum.com/browse/MID-2146 -->
+    <authorization>
 	<name>Do not allow to assign anything for self</name>
 	<decision>deny</decision>
         <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#assign</action>

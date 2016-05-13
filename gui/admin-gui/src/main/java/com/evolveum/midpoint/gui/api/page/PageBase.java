@@ -27,6 +27,7 @@ import javax.management.MBeanServer;
 import javax.management.MBeanServerFactory;
 import javax.management.ObjectName;
 
+import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.AttributeModifier;
@@ -341,6 +342,10 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
 	public PrismContext getPrismContext() {
 		return getMidpointApplication().getPrismContext();
+	}
+
+	public MatchingRuleRegistry getMatchingRuleRegistry() {
+		return getMidpointApplication().getMatchingRuleRegistry();
 	}
 
 	public TaskManager getTaskManager() {
