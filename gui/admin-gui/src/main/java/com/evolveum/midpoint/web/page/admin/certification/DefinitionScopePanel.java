@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.web.page.admin.certification;
 
+import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
@@ -33,7 +34,7 @@ import org.apache.wicket.model.PropertyModel;
  * @author mederly
  */
 
-public class DefinitionScopePanel extends SimplePanel<DefinitionScopeDto> {
+public class DefinitionScopePanel extends BasePanel<DefinitionScopeDto> {
 
     private static final String ID_NAME = "name";
     private static final String ID_DESCRIPTION = "description";
@@ -54,9 +55,9 @@ public class DefinitionScopePanel extends SimplePanel<DefinitionScopeDto> {
 
     public DefinitionScopePanel(String id, IModel<DefinitionScopeDto> model) {
         super(id, model);
+		initLayout();
     }
 
-    @Override
     protected void initLayout() {
         final TextField nameField = new TextField(ID_NAME, new PropertyModel<>(getModel(), DefinitionScopeDto.F_NAME));
         nameField.add(new VisibleEnableBehaviour() {

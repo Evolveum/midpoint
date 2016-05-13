@@ -16,12 +16,12 @@
 
 package com.evolveum.midpoint.web.component.wizard.resource.component.schemahandling;
 
+import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.form.multivalue.MultiValueTextEditPanel;
-import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.component.wizard.WizardUtil;
 import com.evolveum.midpoint.web.component.wizard.resource.component.schemahandling.modal.MappingEditorDialog;
 import com.evolveum.midpoint.web.component.wizard.resource.dto.MappingTypeDto;
@@ -42,7 +42,7 @@ import java.util.List;
 /**
  *  @author shood
  * */
-public class ResourceActivationEditor extends SimplePanel<ResourceActivationDefinitionType>{
+public class ResourceActivationEditor extends BasePanel<ResourceActivationDefinitionType> {
 
     private static final Trace LOGGER = TraceManager.getTrace(ResourceActivationEditor.class);
 
@@ -91,6 +91,7 @@ public class ResourceActivationEditor extends SimplePanel<ResourceActivationDefi
 
     public ResourceActivationEditor(String id, IModel<ResourceActivationDefinitionType> model){
         super(id, model);
+		initLayout();
     }
 
     @Override
@@ -207,7 +208,6 @@ public class ResourceActivationEditor extends SimplePanel<ResourceActivationDefi
         }
     }
 
-    @Override
     protected void initLayout(){
         prepareActivationPanelBody(ResourceActivationDefinitionType.F_EXISTENCE.getLocalPart(), ID_EXISTENCE_FS,
                 ID_EXISTENCE_OUT, ID_EXISTENCE_IN);

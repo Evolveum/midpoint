@@ -1,11 +1,13 @@
 package com.evolveum.midpoint.web.page.admin.certification;
 
+import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.web.component.prism.PrismPropertyPanel;
 import com.evolveum.midpoint.web.component.prism.ReferenceWrapper;
-import com.evolveum.midpoint.web.component.util.SimplePanel;
-import com.evolveum.midpoint.web.page.admin.certification.dto.*;
+import com.evolveum.midpoint.web.page.admin.certification.dto.AccessCertificationReviewerDto;
+import com.evolveum.midpoint.web.page.admin.certification.dto.ManagerSearchDto;
+import com.evolveum.midpoint.web.page.admin.certification.dto.StageDefinitionDto;
 import com.evolveum.midpoint.web.page.admin.configuration.component.ChooseTypePanel;
 import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseOutcomeStrategyType;
@@ -24,7 +26,7 @@ import java.util.List;
 /**
  * Created by Kate Honchar.
  */
-public class DefinitionStagePanel extends SimplePanel<StageDefinitionDto> {
+public class DefinitionStagePanel extends BasePanel<StageDefinitionDto> {
     private static final String ID_NAME = "name";
     private static final String ID_DESCRIPTION = "description";
     private static final String ID_DURATION = "duration";
@@ -64,14 +66,10 @@ public class DefinitionStagePanel extends SimplePanel<StageDefinitionDto> {
     // TODO remove pageBase from the constructor -- replace with delayed layout initialization
     public DefinitionStagePanel(String id, IModel<StageDefinitionDto> model, PageBase pageBase) {
         super(id, model);
-        initLayoutDeferred(pageBase);
+        initLayout(pageBase);
     }
 
-    @Override
-    protected void initLayout() {
-    }
-
-    protected void initLayoutDeferred(PageBase pageBase) {
+    protected void initLayout(PageBase pageBase) {
         TextField nameField = new TextField(ID_NAME, new PropertyModel<>(getModel(), StageDefinitionDto.F_NAME));
         add(nameField);
 

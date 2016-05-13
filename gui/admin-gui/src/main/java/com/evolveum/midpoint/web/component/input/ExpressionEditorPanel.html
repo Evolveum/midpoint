@@ -20,6 +20,15 @@
 
     <dl class="dl-horizontal">
         <dt>
+            <label wicket:id="descriptionLabel"></label>
+        </dt>
+        <dd>
+            <textarea wicket:id="description" class="form-control input-sm" rows="5"></textarea>
+        </dd>
+    </dl>
+
+    <dl class="dl-horizontal">
+        <dt>
             <label wicket:id="typeLabel"></label>
             <i wicket:id="typeTooltip" wicket:message="title:ResourceWizard.expression.tooltip.type"/>
         </dt>
@@ -64,7 +73,7 @@
         </dt>
         <dd>
             <a wicket:id="update" class="btn btn-success">
-                <span><wicket:message key="ExpressionEditorPanel.button.expressionSave" /></span>
+                <span><label wicket:id="updateLabel"></label></span>
             </a>
         </dd>
     </dl>

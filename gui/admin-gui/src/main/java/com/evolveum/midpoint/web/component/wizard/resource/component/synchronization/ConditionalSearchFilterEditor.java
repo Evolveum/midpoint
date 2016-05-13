@@ -16,26 +16,22 @@
 
 package com.evolveum.midpoint.web.component.wizard.resource.component.synchronization;
 
+import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.web.component.input.ExpressionEditorPanel;
 import com.evolveum.midpoint.web.component.input.SearchFilterPanel;
 import com.evolveum.midpoint.web.component.input.dto.SearchFilterTypeDto;
-import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConditionalSearchFilterType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
-
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.markup.html.form.TextArea;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.PropertyModel;
 
 /**
  *  @author shood
  * */
-public class ConditionalSearchFilterEditor extends SimplePanel<ConditionalSearchFilterType>{
+public class ConditionalSearchFilterEditor extends BasePanel<ConditionalSearchFilterType> {
 
-    private static final String ID_DESCRIPTION = "description";
     private static final String ID_EXPRESSION_PANEL = "expressionPanel";
     private static final String ID_FILTER_CLAUSE_PANEL = "filterClausePanel";
 
@@ -43,6 +39,7 @@ public class ConditionalSearchFilterEditor extends SimplePanel<ConditionalSearch
 
     public ConditionalSearchFilterEditor(String id, IModel<ConditionalSearchFilterType> model){
         super(id, model);
+		initLayout();
     }
 
     @Override
@@ -72,25 +69,16 @@ public class ConditionalSearchFilterEditor extends SimplePanel<ConditionalSearch
         }
     }
 
-    @Override
     protected void initLayout(){
         loadExpression();
 
-        TextArea description = new TextArea<>(ID_DESCRIPTION, new PropertyModel<String>(getModel(), "description"));
-        add(description);
-
-        ExpressionEditorPanel expressionEditor = new ExpressionEditorPanel(ID_EXPRESSION_PANEL, expression){
+        ExpressionEditorPanel expressionEditor = new ExpressionEditorPanel(ID_EXPRESSION_PANEL, expression) {
 
             @Override
-            public void performExpressionHook(AjaxRequestTarget target){
-
-                ExpressionType expression = null;
-                if(getExpressionModel().getObject() != null && getExpressionModel().getObject().getExpressionObject() != null){
-                    expression = getExpressionModel().getObject().getExpressionObject();
-                }
-
-                if(expression != null){
-                    ConditionalSearchFilterEditor.this.getModel().getObject().setCondition(expression);
+            public void performExpressionHook(AjaxRequestTarget target) {
+                if (getExpressionDtoModel().getObject() != null) {
+					ExpressionType expression = getExpressionDtoModel().getObject().getExpressionObject();
+					ConditionalSearchFilterEditor.this.getModel().getObject().setCondition(expression);
                 }
             }
 
@@ -99,7 +87,17 @@ public class ConditionalSearchFilterEditor extends SimplePanel<ConditionalSearch
                 return "ConditionalSearchFilterEditor.condition.type.label";
             }
 
-            @Override
+			@Override
+			public String getDescriptionLabelKey() {
+				return "ConditionalSearchFilterEditor.condition.description.label";
+			}
+
+			@Override
+			public String getUpdateLabelKey() {
+				return "ConditionalSearchFilterEditor.condition.update.label";
+			}
+
+			@Override
             public String getExpressionLabelKey() {
                 return "ConditionalSearchFilterEditor.condition.label";
             }

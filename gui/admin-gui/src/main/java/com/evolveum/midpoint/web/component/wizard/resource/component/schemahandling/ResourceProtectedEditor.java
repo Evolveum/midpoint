@@ -16,8 +16,8 @@
 
 package com.evolveum.midpoint.web.component.wizard.resource.component.schemahandling;
 
+import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.web.component.input.SearchFilterPanel;
-import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectPatternType;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
@@ -40,9 +40,9 @@ import java.util.List;
 /**
  *  @author shood
  * */
-public class ResourceProtectedEditor extends SimplePanel<List<ResourceObjectPatternType>>{
+public class ResourceProtectedEditor extends BasePanel<List<ResourceObjectPatternType>> {
 
-    private static enum ChangeState{
+    private enum ChangeState{
         SKIP, FIRST, LAST
     }
 
@@ -64,6 +64,7 @@ public class ResourceProtectedEditor extends SimplePanel<List<ResourceObjectPatt
 
     public ResourceProtectedEditor(String id, IModel<List<ResourceObjectPatternType>> model){
         super(id, model);
+		initLayout();
     }
 
     @Override
@@ -77,7 +78,6 @@ public class ResourceProtectedEditor extends SimplePanel<List<ResourceObjectPatt
         return model;
     }
 
-    @Override
     protected void initLayout(){
         WebMarkupContainer container = new WebMarkupContainer(ID_CONTAINER);
         container.setOutputMarkupId(true);

@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.web.component.wizard.resource.component.schemahandling;
 
+import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
@@ -30,7 +31,6 @@ import com.evolveum.midpoint.web.component.form.multivalue.MultiValueTextEditPan
 import com.evolveum.midpoint.web.component.form.multivalue.MultiValueTextPanel;
 import com.evolveum.midpoint.web.component.input.QNameChoiceRenderer;
 import com.evolveum.midpoint.web.component.input.QNameEditorPanel;
-import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.component.wizard.WizardUtil;
 import com.evolveum.midpoint.web.component.wizard.resource.component.schemahandling.modal.LimitationsEditorDialog;
 import com.evolveum.midpoint.web.component.wizard.resource.component.schemahandling.modal.MappingEditorDialog;
@@ -38,7 +38,6 @@ import com.evolveum.midpoint.web.component.wizard.resource.dto.MappingTypeDto;
 import com.evolveum.midpoint.web.page.admin.resources.PageResources;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -53,14 +52,13 @@ import org.apache.wicket.model.PropertyModel;
 import org.w3c.dom.Element;
 
 import javax.xml.namespace.QName;
-
 import java.util.ArrayList;
 import java.util.List;
 
 /**
  *  @author shood
  * */
-public class ResourceAssociationEditor extends SimplePanel<ResourceObjectAssociationType>{
+public class ResourceAssociationEditor extends BasePanel<ResourceObjectAssociationType> {
 
     private static final Trace LOGGER = TraceManager.getTrace(ResourceAssociationEditor.class);
 
@@ -112,9 +110,9 @@ public class ResourceAssociationEditor extends SimplePanel<ResourceObjectAssocia
 
         this.resource = resource;
         this.objectType = objectType;
+		initLayout();
     }
 
-    @Override
     protected void initLayout(){
         Label label = new Label(ID_LABEL, new AbstractReadOnlyModel<String>() {
 

@@ -16,7 +16,7 @@
 
 package com.evolveum.midpoint.web.component.wizard.resource.component.capability;
 
-import com.evolveum.midpoint.web.component.util.SimplePanel;
+import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.web.component.wizard.resource.dto.CapabilityDto;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.*;
 import org.apache.wicket.markup.html.basic.Label;
@@ -27,17 +27,17 @@ import org.apache.wicket.model.PropertyModel;
 /**
  *  @author shood
  * */
-public class CapabilityValuePanel extends SimplePanel{
+public class CapabilityValuePanel extends BasePanel {
 
     private static final String ID_LABEL = "label";
     private static final String ID_ENABLED = "enabled";
 
     public CapabilityValuePanel(String componentId, IModel<CapabilityDto> model){
         super(componentId, model);
+		initLayout();
     }
 
-    @Override
-    protected void initLayout(){
+    protected void initLayout() {
 
         Label label = new Label(ID_LABEL, createStringResource(getCapabilityLabelKey()));
         add(label);

@@ -16,11 +16,19 @@
 
 package com.evolveum.midpoint.web.component.wizard.resource.component.schemahandling;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
+import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.input.ObjectReferenceChoiceRenderer;
+import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
@@ -36,28 +44,15 @@ import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.logging.LoggingUtils;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.input.ObjectReferenceChoiceRenderer;
-import com.evolveum.midpoint.web.component.util.SimplePanel;
-import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDependencyStrictnessType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDependencyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  *  @author shood
  * */
-public class ResourceDependencyEditor extends SimplePanel<List<ResourceObjectTypeDependencyType>>{
+public class ResourceDependencyEditor extends BasePanel<List<ResourceObjectTypeDependencyType>> {
 
     private static enum ChangeState{
         SKIP, FIRST, LAST
@@ -91,6 +86,7 @@ public class ResourceDependencyEditor extends SimplePanel<List<ResourceObjectTyp
 
     public ResourceDependencyEditor(String id, IModel<List<ResourceObjectTypeDependencyType>> model){
         super(id, model);
+		initLayout();
     }
 
     @Override
@@ -104,7 +100,6 @@ public class ResourceDependencyEditor extends SimplePanel<List<ResourceObjectTyp
         return model;
     }
 
-    @Override
     protected void initLayout(){
         WebMarkupContainer container = new WebMarkupContainer(ID_CONTAINER);
         container.setOutputMarkupId(true);

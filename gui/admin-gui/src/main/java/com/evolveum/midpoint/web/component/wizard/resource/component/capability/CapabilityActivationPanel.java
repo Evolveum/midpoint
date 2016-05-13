@@ -15,10 +15,9 @@
  */
 package com.evolveum.midpoint.web.component.wizard.resource.component.capability;
 
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.web.component.form.multivalue.MultiValueTextPanel;
 import com.evolveum.midpoint.web.component.input.QNameChoiceRenderer;
-import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.component.wizard.resource.dto.CapabilityDto;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 import org.apache.wicket.markup.html.basic.Label;
@@ -35,7 +34,7 @@ import java.util.List;
 /**
  *  @author shood
  * */
-public class CapabilityActivationPanel extends SimplePanel{
+public class CapabilityActivationPanel extends BasePanel {
 
     private static final String ID_CHECK_VALID_FROM_ENABLED = "validFromEnabled";
     private static final String ID_CHECK_VALID_FROM_RETURNED = "validFromReturned";
@@ -60,9 +59,9 @@ public class CapabilityActivationPanel extends SimplePanel{
 
     public CapabilityActivationPanel(String componentId, IModel<CapabilityDto> model){
         super(componentId, model);
+		initLayout();
     }
 
-    @Override
     protected void initLayout(){
         CheckBox validFromEnabled = new CheckBox(ID_CHECK_VALID_FROM_ENABLED,
                 new PropertyModel<Boolean>(getModel(), "capability.validFrom.enabled"));

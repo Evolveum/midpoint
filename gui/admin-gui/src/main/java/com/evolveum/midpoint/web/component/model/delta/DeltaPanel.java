@@ -16,9 +16,9 @@
 
 package com.evolveum.midpoint.web.component.model.delta;
 
+import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
@@ -28,7 +28,7 @@ import org.apache.wicket.model.ResourceModel;
 /**
  * @author mederly
  */
-public class DeltaPanel extends SimplePanel<DeltaDto> {
+public class DeltaPanel extends BasePanel<DeltaDto> {
 
     private static final Trace LOGGER = TraceManager.getTrace(DeltaPanel.class);
 
@@ -42,9 +42,9 @@ public class DeltaPanel extends SimplePanel<DeltaDto> {
 
     public DeltaPanel(String id, IModel<DeltaDto> model) {
         super(id, model);
+		initLayout();
     }
 
-    @Override
     protected void initLayout() {
 
         Label changeType = new Label(ID_CHANGE_TYPE, new PropertyModel<String>(getModel(), DeltaDto.F_CHANGE_TYPE));

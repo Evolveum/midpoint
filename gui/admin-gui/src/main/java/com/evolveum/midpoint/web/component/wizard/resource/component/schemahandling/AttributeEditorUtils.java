@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.web.component.wizard.resource.component.schemahandling;
 
+import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -23,7 +24,6 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.input.QNameChoiceRenderer;
-import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceItemDefinitionType;
 import org.apache.wicket.markup.html.basic.Label;
@@ -44,7 +44,7 @@ class AttributeEditorUtils {
 
 	private static final Trace LOGGER = TraceManager.getTrace(AttributeEditorUtils.class);
 
-	static void addMatchingRuleFields(final SimplePanel<? extends ResourceItemDefinitionType> editor) {
+	static void addMatchingRuleFields(final BasePanel<? extends ResourceItemDefinitionType> editor) {
 
 		// normalizes unqualified QNames
 		final IModel<QName> matchingRuleModel = new IModel<QName>() {

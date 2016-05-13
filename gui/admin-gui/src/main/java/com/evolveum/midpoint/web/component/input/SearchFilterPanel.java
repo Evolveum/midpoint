@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.web.component.input;
 
+import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -36,7 +37,7 @@ import org.apache.wicket.model.PropertyModel;
 /**
  *  @author shood
  * */
-public class SearchFilterPanel<T extends SearchFilterType> extends SimplePanel<T>{
+public class SearchFilterPanel<T extends SearchFilterType> extends BasePanel<T> {
 
     private static final Trace LOGGER = TraceManager.getTrace(SearchFilterPanel.class);
 
@@ -49,6 +50,7 @@ public class SearchFilterPanel<T extends SearchFilterType> extends SimplePanel<T
 
     public SearchFilterPanel(String id, IModel<T> model){
         super(id, model);
+		initLayout();
     }
 
     private void loadModel(){
@@ -63,7 +65,6 @@ public class SearchFilterPanel<T extends SearchFilterType> extends SimplePanel<T
         }
     }
 
-    @Override
     protected void initLayout(){
         loadModel();
 

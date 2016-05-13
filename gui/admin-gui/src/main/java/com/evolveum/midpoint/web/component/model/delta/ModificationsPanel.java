@@ -16,9 +16,9 @@
 
 package com.evolveum.midpoint.web.component.model.delta;
 
+import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.util.SimplePanel;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
@@ -29,7 +29,7 @@ import org.apache.wicket.model.PropertyModel;
 /**
  * @author mederly
  */
-public class ModificationsPanel extends SimplePanel<DeltaDto> {
+public class ModificationsPanel extends BasePanel<DeltaDto> {
 
     private static final Trace LOGGER = TraceManager.getTrace(ModificationsPanel.class);
 
@@ -40,9 +40,9 @@ public class ModificationsPanel extends SimplePanel<DeltaDto> {
 
     public ModificationsPanel(String id, IModel<DeltaDto> model) {
         super(id, model);
+		initLayout();
     }
 
-    @Override
     protected void initLayout() {
 
         add(new ListView<ModificationDto>(ID_MODIFICATION, new PropertyModel(getModel(), DeltaDto.F_MODIFICATIONS)) {

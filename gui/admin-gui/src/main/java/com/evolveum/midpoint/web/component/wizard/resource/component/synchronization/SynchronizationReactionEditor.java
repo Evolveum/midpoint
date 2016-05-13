@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.web.component.wizard.resource.component.synchronization;
 
+import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -30,7 +31,6 @@ import com.evolveum.midpoint.web.component.form.multivalue.MultiValueTextEditPan
 import com.evolveum.midpoint.web.component.input.ObjectReferenceChoiceRenderer;
 import com.evolveum.midpoint.web.component.input.StringChoiceRenderer;
 import com.evolveum.midpoint.web.component.input.TriStateComboPanel;
-import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -50,7 +50,7 @@ import java.util.Map;
 /**
  *  @author shood
  * */
-public class SynchronizationReactionEditor extends SimplePanel<SynchronizationReactionType>{
+public class SynchronizationReactionEditor extends BasePanel<SynchronizationReactionType> {
 
     private static final Trace LOGGER = TraceManager.getTrace(SynchronizationReactionEditor.class);
 
@@ -78,9 +78,9 @@ public class SynchronizationReactionEditor extends SimplePanel<SynchronizationRe
 
     public SynchronizationReactionEditor(String id, IModel<SynchronizationReactionType> model){
         super(id, model);
+		initLayout();
     }
 
-    @Override
     protected void initLayout(){
         Label label = new Label(ID_LABEL, new AbstractReadOnlyModel<String>() {
 

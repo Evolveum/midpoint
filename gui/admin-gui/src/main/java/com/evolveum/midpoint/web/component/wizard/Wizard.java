@@ -1,11 +1,10 @@
 package com.evolveum.midpoint.web.component.wizard;
 
+import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.component.wizard.resource.*;
 import com.evolveum.midpoint.web.page.admin.resources.PageResources;
-
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.wizard.*;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -19,7 +18,7 @@ import java.util.List;
 /**
  * @author lazyman
  */
-public class Wizard extends SimplePanel<IWizardModel> implements IWizardModelListener, IWizard {
+public class Wizard extends BasePanel<IWizardModel> implements IWizardModelListener, IWizard {
 
     private static final String ID_FORM = "form";
     private static final String ID_HEADER = "header";
@@ -29,9 +28,9 @@ public class Wizard extends SimplePanel<IWizardModel> implements IWizardModelLis
 
     public Wizard(String id, IModel<IWizardModel> model) {
         super(id, model);
+		initLayout();
     }
 
-    @Override
     protected void initLayout() {
         Form form = new Form(ID_FORM);
         add(form);

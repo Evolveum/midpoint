@@ -15,6 +15,7 @@
  */
 package com.evolveum.midpoint.web.component.wizard.resource.component.schemahandling;
 
+import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -25,16 +26,17 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.form.multivalue.MultiValueTextEditPanel;
-import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.component.wizard.resource.component.schemahandling.modal.ExpressionVariableEditorDialog;
 import com.evolveum.midpoint.web.component.wizard.resource.dto.IterationSpecificationTypeDto;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.form.*;
+import org.apache.wicket.markup.html.form.DropDownChoice;
+import org.apache.wicket.markup.html.form.EnumChoiceRenderer;
+import org.apache.wicket.markup.html.form.TextArea;
+import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
@@ -47,7 +49,7 @@ import java.util.Map;
 /**
  *  @author shood
  * */
-public class ResourceIterationEditor extends SimplePanel<IterationSpecificationType>{
+public class ResourceIterationEditor extends BasePanel<IterationSpecificationType> {
 
     private static final Trace LOGGER = TraceManager.getTrace(ResourceIterationEditor.class);
 
@@ -96,6 +98,7 @@ public class ResourceIterationEditor extends SimplePanel<IterationSpecificationT
 
     public ResourceIterationEditor(String id, IModel<IterationSpecificationType> iteration){
         super(id, iteration);
+		initLayout();
     }
 
     @Override
@@ -135,7 +138,6 @@ public class ResourceIterationEditor extends SimplePanel<IterationSpecificationT
         }
     }
 
-    @Override
     protected void initLayout(){
         loadModel();
         getModel();

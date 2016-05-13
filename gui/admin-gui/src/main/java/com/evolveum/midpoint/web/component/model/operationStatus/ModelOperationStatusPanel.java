@@ -16,12 +16,10 @@
 
 package com.evolveum.midpoint.web.component.model.operationStatus;
 
+import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.model.api.context.ModelState;
-import com.evolveum.midpoint.web.component.model.delta.DeltaDto;
-import com.evolveum.midpoint.web.component.model.delta.DeltaPanel;
 import com.evolveum.midpoint.web.component.prism.show.SceneDto;
 import com.evolveum.midpoint.web.component.prism.show.ScenePanel;
-import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
@@ -31,7 +29,7 @@ import org.apache.wicket.model.StringResourceModel;
 /**
  * @author mederly
  */
-public class ModelOperationStatusPanel extends SimplePanel<ModelOperationStatusDto> {
+public class ModelOperationStatusPanel extends BasePanel<ModelOperationStatusDto> {
 
     private static final String ID_STATE = "state";
     private static final String ID_FOCUS_TYPE = "focusType";
@@ -40,9 +38,9 @@ public class ModelOperationStatusPanel extends SimplePanel<ModelOperationStatusD
 
     public ModelOperationStatusPanel(String id, IModel<ModelOperationStatusDto> model) {
         super(id, model);
+		initLayout();
     }
 
-    @Override
     protected void initLayout() {
 
         add(new Label(ID_STATE, new StringResourceModel("ModelOperationStatusPanel.state.${}", new PropertyModel<ModelState>(getModel(), ModelOperationStatusDto.F_STATE))));

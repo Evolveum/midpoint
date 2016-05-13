@@ -15,20 +15,17 @@
  */
 package com.evolveum.midpoint.web.page.admin.configuration.component;
 
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
-import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
-import org.apache.wicket.model.StringResourceModel;
-
+import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AceEditor;
-import com.evolveum.midpoint.web.component.util.SimplePanel;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
+import org.apache.wicket.model.StringResourceModel;
 
-public class AceEditorDialog extends SimplePanel<String> {
+public class AceEditorDialog extends BasePanel<String> {
 
 	 private static final Trace LOGGER = TraceManager.getTrace(AceEditorDialog.class);
 
@@ -41,11 +38,9 @@ public class AceEditorDialog extends SimplePanel<String> {
 	    
 	    public AceEditorDialog(String id){
 	    	super(id);
+			initLayout();
 	    }
 
-	   
-	  
-	    @Override
 	    protected void initLayout(){
 	    	
 	    	add(createAceEditor());

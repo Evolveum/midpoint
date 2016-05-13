@@ -16,8 +16,8 @@
 
 package com.evolveum.midpoint.web.component.wizard.resource.component.capability;
 
+import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.web.component.form.multivalue.MultiValueTextPanel;
-import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.component.wizard.resource.dto.CapabilityDto;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ProvisioningScriptHostType;
@@ -34,7 +34,7 @@ import java.util.List;
 /**
  *  @author shood
  * */
-public class CapabilityScriptPanel extends SimplePanel {
+public class CapabilityScriptPanel extends BasePanel {
 
     private static final String ID_ENABLED = "enabled";
     private static final String ID_ON_CONNECTOR = "onConnectorValue";
@@ -45,9 +45,9 @@ public class CapabilityScriptPanel extends SimplePanel {
 
     public CapabilityScriptPanel(String componentId, IModel<CapabilityDto> model){
         super(componentId, model);
+		initLayout();
     }
 
-    @Override
     protected void initLayout(){
         CheckBox enabled = new CheckBox(ID_ENABLED, new PropertyModel<Boolean>(getModel(), "capability.enabled"));
         add(enabled);
