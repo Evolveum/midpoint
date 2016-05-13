@@ -80,7 +80,6 @@ public class ResourceAssociationEditor extends SimplePanel<ResourceObjectAssocia
     private static final String ID_TOLERANT_VP = "tolerantValuePattern";
     private static final String ID_INTOLERANT_VP = "intolerantValuePattern";
     private static final String ID_FETCH_STRATEGY = "fetchStrategy";
-    private static final String ID_MATCHING_RULE = "matchingRule";
     private static final String ID_INBOUND = "inbound";
     private static final String ID_OUTBOUND_LABEL = "outboundLabel";
     private static final String ID_BUTTON_OUTBOUND = "buttonOutbound";
@@ -224,17 +223,7 @@ public class ResourceAssociationEditor extends SimplePanel<ResourceObjectAssocia
         fetchStrategy.setNullValid(true);
         add(fetchStrategy);
 
-        DropDownChoice matchingRule = new DropDownChoice<>(ID_MATCHING_RULE,
-                new PropertyModel<QName>(getModel(), "matchingRule"),
-                new AbstractReadOnlyModel<List<QName>>() {
-
-                    @Override
-                    public List<QName> getObject() {
-                        return WebComponentUtil.getMatchingRuleList();
-                    }
-                }, new QNameChoiceRenderer());
-        matchingRule.setNullValid(true);
-        add(matchingRule);
+        AttributeEditorUtils.addMatchingRuleFields(this);
 
         TextField outboundLabel = new TextField<>(ID_OUTBOUND_LABEL,
                 new AbstractReadOnlyModel<String>() {

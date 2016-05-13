@@ -21,6 +21,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.evolveum.midpoint.gui.api.component.BasePanel;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
 import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
@@ -60,7 +61,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ValuePolicyType;
 /**
  *  @author shood
  * */
-public class ResourceCredentialsEditor extends SimplePanel<ResourceCredentialsDefinitionType>{
+public class ResourceCredentialsEditor extends BasePanel<ResourceCredentialsDefinitionType> {
 
     private static final Trace LOGGER = TraceManager.getTrace(ResourceCredentialsEditor.class);
 
@@ -79,10 +80,11 @@ public class ResourceCredentialsEditor extends SimplePanel<ResourceCredentialsDe
     private static final String ID_T_IN = "inboundTooltip";
     private static final String ID_T_PASS_POLICY = "passwordPolicyRefTooltip";
 
-    private Map<String, String> passPolicyMap = new HashMap<>();
+    final private Map<String, String> passPolicyMap = new HashMap<>();
 
     public ResourceCredentialsEditor(String id, IModel<ResourceCredentialsDefinitionType> model){
         super(id, model);
+		initLayout();
     }
 
     @Override
@@ -100,8 +102,7 @@ public class ResourceCredentialsEditor extends SimplePanel<ResourceCredentialsDe
         return model;
     }
 
-    @Override
-    protected void initLayout(){
+    protected void initLayout() {
         DropDownChoice fetchStrategy = new DropDownChoice<>(ID_FETCH_STRATEGY,
                 new PropertyModel<AttributeFetchStrategyType>(getModel(), "password.fetchStrategy"),
                 WebComponentUtil.createReadonlyModelFromEnum(AttributeFetchStrategyType.class),
@@ -258,7 +259,7 @@ public class ResourceCredentialsEditor extends SimplePanel<ResourceCredentialsDe
 
     private void inboundEditPerformed(AjaxRequestTarget target, MappingType mapping){
         MappingEditorDialog window = (MappingEditorDialog) get(ID_MODAL_INBOUND);
-        window.updateModel(target, mapping, true);
+        window.updateModel(target, mapping, false);
         window.show(target);
     }
 }

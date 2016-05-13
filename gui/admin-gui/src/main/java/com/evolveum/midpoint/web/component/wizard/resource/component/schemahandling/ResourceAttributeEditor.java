@@ -17,7 +17,6 @@ package com.evolveum.midpoint.web.component.wizard.resource.component.schemahand
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.ItemPathUtil;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -25,13 +24,11 @@ import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.form.multivalue.MultiValueTextEditPanel;
 import com.evolveum.midpoint.web.component.form.multivalue.MultiValueTextPanel;
-import com.evolveum.midpoint.web.component.input.QNameChoiceRenderer;
 import com.evolveum.midpoint.web.component.input.QNameEditorPanel;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
@@ -61,7 +58,6 @@ import org.w3c.dom.Element;
 
 import javax.xml.namespace.QName;
 
-import java.io.Serializable;
 import java.util.*;
 
 /**
@@ -256,63 +252,7 @@ public class ResourceAttributeEditor extends SimplePanel<ResourceAttributeDefini
         fetchStrategy.setNullValid(true);
         add(fetchStrategy);
 
-		// normalizes unqualified QNames
-		final IModel<QName> matchingRuleModel = new IModel<QName>() {
-			@Override
-			public QName getObject() {
-				QName rawRuleName = getModelObject().getMatchingRule();
-				if (rawRuleName == null) {
-					return null;
-				}
-				try {
-					MatchingRule<?> rule = getPageBase().getMatchingRuleRegistry().getMatchingRule(rawRuleName, null);
-					return rule.getName();
-				} catch (SchemaException e) {
-					// we could get here if invalid QName is specified - but we don't want to throw an exception in that case
-					LoggingUtils.logException(LOGGER, "Invalid matching rule name encountered in resource wizard: {} -- continuing", e, rawRuleName);
-					return rawRuleName;
-				}
-			}
-
-			@Override
-			public void setObject(QName value) {
-				getModelObject().setMatchingRule(value);
-			}
-
-			@Override
-			public void detach() {
-			}
-		};
-		final List<QName> matchingRuleList = WebComponentUtil.getMatchingRuleList();
-		DropDownChoice matchingRule = new DropDownChoice<>(ID_MATCHING_RULE,
-				matchingRuleModel, new AbstractReadOnlyModel<List<QName>>() {
-			@Override
-			public List<QName> getObject() {
-				return matchingRuleList;
-			}
-		}, new QNameChoiceRenderer());
-        matchingRule.setNullValid(true);
-		matchingRule.add(new VisibleEnableBehaviour() {
-			@Override
-			public boolean isVisible() {
-				return WebComponentUtil.getMatchingRuleList().contains(matchingRuleModel.getObject());
-			}
-		});
-        add(matchingRule);
-
-		Label unknownMatchingRule = new Label(ID_UNKNOWN_MATCHING_RULE, new AbstractReadOnlyModel<String>() {
-			@Override
-			public String getObject() {
-				return getString("ResourceAttributeEditor.label.unknownMatchingRule", matchingRuleModel.getObject());
-			}
-		});
-		unknownMatchingRule.add(new VisibleEnableBehaviour() {
-			@Override
-			public boolean isVisible() {
-				return !WebComponentUtil.getMatchingRuleList().contains(matchingRuleModel.getObject());
-			}
-		});
-		add(unknownMatchingRule);
+		AttributeEditorUtils.addMatchingRuleFields(this);
 
         TextField outboundLabel = new TextField<>(ID_OUTBOUND_LABEL,
                 new AbstractReadOnlyModel<String>() {
