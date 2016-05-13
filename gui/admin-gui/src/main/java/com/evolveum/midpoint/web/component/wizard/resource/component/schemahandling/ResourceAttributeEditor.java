@@ -374,7 +374,7 @@ public class ResourceAttributeEditor extends SimplePanel<ResourceAttributeDefini
         initModals();
     }
 
-    private void initModals(){
+    private void initModals() {
         ModalWindow limitationsEditor = new LimitationsEditorDialog(ID_MODAL_LIMITATIONS,
                 new PropertyModel<List<PropertyLimitationsType>>(getModel(), "limitations"));
         add(limitationsEditor);
