@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -348,6 +348,32 @@ public class TestDelta {
 		System.out.println(delta1.debugDump());
 
 		PrismAsserts.assertReplace(delta1, "r1x", "r1y", "add2");
+		PrismAsserts.assertNoAdd(delta1);
+		PrismAsserts.assertNoDelete(delta1);
+	}
+	
+	@Test
+    public void testPropertyDeltaMerge13() throws Exception {
+		System.out.println("\n\n===[ testPropertyDeltaMerge13 ]===\n");
+		
+		// GIVEN
+		PrismPropertyDefinition propertyDefinition = new PrismPropertyDefinition(UserType.F_DESCRIPTION, 
+				DOMUtil.XSD_STRING, PrismTestUtil.getPrismContext());
+
+		PropertyDelta<String> delta1 = new PropertyDelta<String>(propertyDefinition, PrismTestUtil.getPrismContext());
+		delta1.setValuesToReplace(new PrismPropertyValue<String>("r1x"));
+
+		PropertyDelta<String> delta2 = new PropertyDelta<String>(propertyDefinition, PrismTestUtil.getPrismContext());
+		delta2.addValueToDelete(new PrismPropertyValue<String>("r1x"));
+		
+		// WHEN
+		delta1.merge(delta2);
+		
+		// THEN
+		System.out.println("Merged delta:");
+		System.out.println(delta1.debugDump());
+
+		PrismAsserts.assertReplace(delta1);
 		PrismAsserts.assertNoAdd(delta1);
 		PrismAsserts.assertNoDelete(delta1);
 	}

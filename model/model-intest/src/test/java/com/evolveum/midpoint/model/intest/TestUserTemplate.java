@@ -1061,6 +1061,79 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         assertEquals("Wrong costCenter", "G001", userAfterType.getCostCenter());
 	}
 	
+	
+	/**
+	 * Role Captains has focus mapping for the same costCenter as is given
+	 * by the user template.
+	 */
+	@Test
+    public void test230AssignRoleCaptainToUserRapp() throws Exception {
+		final String TEST_NAME = "test230AssignRoleCaptainToUserRapp";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestUserTemplate.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+    
+		// WHEN
+		assignRole(USER_RAPP_OID, ROLE_CAPTAIN_OID, task, result);
+
+		// THEN
+		PrismObject<UserType> userAfter = modelService.getObject(UserType.class, USER_RAPP_OID, null, task, result);
+        assertUser(userAfter, USER_RAPP_OID, "rapp", "Rapp Scallion", "Rapp", "Scallion");
+        
+        assertAssignedAccount(userAfter, RESOURCE_DUMMY_BLUE_OID);
+        assertAssignedRole(userAfter, ROLE_CAPTAIN_OID);
+        assertAssignments(userAfter, 2);
+        
+        UserType userAfterType = userAfter.asObjectable();
+        assertLinks(userAfter, 1);
+        
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        assertEquals("Unexpected value of employeeNumber", 
+        		"D3ADB33F", userAfterType.getEmployeeNumber());
+        assertEquals("Wrong costCenter", "G001", userAfterType.getCostCenter());
+	}
+	
+	/**
+	 * Role Captains has focus mapping for the same costCenter as is given
+	 * by the user template.
+	 * MID-3028
+	 */
+	@Test
+    public void test239UnassignRoleCaptainFromUserRapp() throws Exception {
+		final String TEST_NAME = "test239UnassignRoleCaptainFromUserRapp";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestUserTemplate.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+    
+		// WHEN
+		unassignRole(USER_RAPP_OID, ROLE_CAPTAIN_OID, task, result);
+
+		// THEN
+		PrismObject<UserType> userAfter = modelService.getObject(UserType.class, USER_RAPP_OID, null, task, result);
+		display("User after", userAfter);
+        assertUser(userAfter, USER_RAPP_OID, "rapp", "Rapp Scallion", "Rapp", "Scallion");
+        
+        assertAssignedAccount(userAfter, RESOURCE_DUMMY_BLUE_OID);
+        assertAssignedNoRole(userAfter);
+        assertAssignments(userAfter, 1);
+        
+        UserType userAfterType = userAfter.asObjectable();
+        assertLinks(userAfter, 1);
+        
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        assertEquals("Unexpected value of employeeNumber", 
+        		"D3ADB33F", userAfterType.getEmployeeNumber());
+        assertEquals("Wrong costCenter", "G001", userAfterType.getCostCenter());
+	}
+	
 	/**
 	 * Move the time to the future. See if the time-based mapping in user template is properly recomputed.
 	 */

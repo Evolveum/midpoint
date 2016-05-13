@@ -61,6 +61,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -146,6 +147,10 @@ public class ObjectTemplateProcessor {
 
 		XMLGregorianCalendar nextRecomputeTime = collectTripleFromTemplate(context, objectTemplate, phase, focusOdo, outputTripleMap,
 				iteration, iterationToken, now, objectTemplate.toString(), task, result);
+		
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace("outputTripleMap before item delta computation:\n{}", DebugUtil.debugDumpMapMultiLine(outputTripleMap));
+		}
 
 		Collection<ItemDelta<?,?>> itemDeltas = computeItemDeltas(outputTripleMap, itemDefinitionsMap, focusOdo, focusDefinition, "object template "+objectTemplate+ " for focus "+focusOdo.getAnyObject());
 		
@@ -281,7 +286,7 @@ public class ObjectTemplateProcessor {
 	}
 
 	private <F extends FocusType> XMLGregorianCalendar collectTripleFromTemplate(LensContext<F> context,
-			ObjectTemplateType objectTemplateType, ObjectTemplateMappingEvaluationPhaseType phase, ObjectDeltaObject<F> userOdo,
+			ObjectTemplateType objectTemplateType, ObjectTemplateMappingEvaluationPhaseType phase, ObjectDeltaObject<F> focusOdo,
 			Map<ItemPath, DeltaSetTriple<? extends ItemValueWithOrigin<?,?>>> outputTripleMap,
 			int iteration, String iterationToken,
 			XMLGregorianCalendar now, String contextDesc, Task task, OperationResult result)
@@ -301,7 +306,7 @@ public class ObjectTemplateProcessor {
 			}
 			LOGGER.trace("Including template {}", includeObject);
 			ObjectTemplateType includeObjectType = includeObject.asObjectable();
-			XMLGregorianCalendar includeNextRecomputeTime = collectTripleFromTemplate(context, includeObjectType, phase, userOdo, 
+			XMLGregorianCalendar includeNextRecomputeTime = collectTripleFromTemplate(context, includeObjectType, phase, focusOdo, 
 					outputTripleMap, iteration, iterationToken,
 					now, "include "+includeObject+" in "+objectTemplateType + " in " + contextDesc, task, result);
 			if (includeNextRecomputeTime != null) {
@@ -313,7 +318,7 @@ public class ObjectTemplateProcessor {
 		
 		// Process own mappings
 		Collection<ObjectTemplateMappingType> mappings = collectMapings(objectTemplateType);
-		XMLGregorianCalendar templateNextRecomputeTime = collectTripleFromMappings(mappings, phase, context, objectTemplateType, userOdo, 
+		XMLGregorianCalendar templateNextRecomputeTime = collectTripleFromMappings(mappings, phase, context, objectTemplateType, focusOdo, 
 				outputTripleMap, iteration, iterationToken, now, contextDesc, task, result);
 		if (templateNextRecomputeTime != null) {
 			if (nextRecomputeTime == null || nextRecomputeTime.compare(templateNextRecomputeTime) == DatatypeConstants.GREATER) {
@@ -344,7 +349,7 @@ public class ObjectTemplateProcessor {
 
 	private <V extends PrismValue, D extends ItemDefinition, F extends FocusType> XMLGregorianCalendar collectTripleFromMappings(
 			Collection<ObjectTemplateMappingType> mappings, ObjectTemplateMappingEvaluationPhaseType phase, LensContext<F> context,
-			ObjectTemplateType objectTemplateType, ObjectDeltaObject<F> userOdo,
+			ObjectTemplateType objectTemplateType, ObjectDeltaObject<F> focusOdo,
 			Map<ItemPath, DeltaSetTriple<? extends ItemValueWithOrigin<?,?>>> outputTripleMap,
 			int iteration, String iterationToken,
 			XMLGregorianCalendar now, String contextDesc, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
@@ -359,7 +364,7 @@ public class ObjectTemplateProcessor {
 			if (mappingPhase != phase) {
 				continue;
 			}
-			Mapping<V,D> mapping = LensUtil.createFocusMapping(mappingFactory, context, mappingType, objectTemplateType, userOdo, 
+			Mapping<V,D> mapping = LensUtil.createFocusMapping(mappingFactory, context, mappingType, objectTemplateType, focusOdo, 
 					null, iteration, iterationToken, context.getSystemConfiguration(), now, contextDesc, task, result);
 			if (mapping == null) {
 				continue;
@@ -386,6 +391,9 @@ public class ObjectTemplateProcessor {
                 continue;
             }
 			DeltaSetTriple<ItemValueWithOrigin<V,D>> outputTriple = ItemValueWithOrigin.createOutputTriple(mapping);
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("Output tripple for {}:\n{}", mapping, outputTriple==null?null:outputTriple.debugDump());
+			}
 			if (outputTriple == null) {
 				continue;
 			}

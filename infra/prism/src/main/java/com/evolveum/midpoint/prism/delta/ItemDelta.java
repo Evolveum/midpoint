@@ -1029,9 +1029,8 @@ public abstract class ItemDelta<V extends PrismValue,D extends ItemDefinition> i
 	}
 	
 	private void removeEmptySets() {
-		if (valuesToReplace != null && valuesToReplace.isEmpty()) {
-			valuesToReplace = null;
-		}
+		// Do not remove replace set, even if it is empty. 
+		// Empty replace set is not the same as no replace set
 		if (valuesToAdd != null && valuesToAdd.isEmpty()) {
 			valuesToAdd = null;
 		}
