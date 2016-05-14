@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.web.component.wizard.resource;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.model.NonEmptyLoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
@@ -85,7 +86,7 @@ public class NameStep extends WizardStep {
     private static final String ID_CONNECTOR_HOST = "connectorHost";
     private static final String ID_CONNECTOR = "connector";
 
-	final private LoadableModel<PrismObject<ResourceType>> resourceModelRaw;
+	final private NonEmptyLoadableModel<PrismObject<ResourceType>> resourceModelRaw;
 
 	final private LoadableModel<String> resourceNameModel;
 	final private LoadableModel<String> resourceDescriptionModel;
@@ -99,7 +100,7 @@ public class NameStep extends WizardStep {
 
 	final private PageResourceWizard parentPage;
 
-    public NameStep(@NotNull LoadableModel<PrismObject<ResourceType>> modelRaw, @NotNull final PageResourceWizard parentPage) {
+    public NameStep(@NotNull NonEmptyLoadableModel<PrismObject<ResourceType>> modelRaw, @NotNull final PageResourceWizard parentPage) {
         super(parentPage);
 		this.parentPage = parentPage;
         this.resourceModelRaw = modelRaw;

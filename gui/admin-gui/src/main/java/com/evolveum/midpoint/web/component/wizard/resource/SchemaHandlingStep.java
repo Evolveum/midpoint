@@ -18,6 +18,7 @@ package com.evolveum.midpoint.web.component.wizard.resource;
 
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.model.NonEmptyLoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.ModelService;
@@ -124,18 +125,18 @@ public class SchemaHandlingStep extends WizardStep {
 
     private static final Integer AUTO_COMPLETE_LIST_SIZE = 10;
 
-    @NotNull final private IModel<PrismObject<ResourceType>> resourceModel;
 	@NotNull final private PageResourceWizard parentPage;
+    @NotNull final private NonEmptyLoadableModel<PrismObject<ResourceType>> resourceModel;
+	@NotNull final private NonEmptyLoadableModel<SchemaHandlingDto> schemaHandlingDtoModel;
 
-    private LoadableModel<SchemaHandlingDto> schemaHandlingDtoModel;
-
-    public SchemaHandlingStep(@NotNull final IModel<PrismObject<ResourceType>> resourceModel, @NotNull PageResourceWizard parentPage) {
+    public SchemaHandlingStep(@NotNull final NonEmptyLoadableModel<PrismObject<ResourceType>> resourceModel, @NotNull PageResourceWizard parentPage) {
         super(parentPage);
-        this.resourceModel = resourceModel;
 		this.parentPage = parentPage;
+        this.resourceModel = resourceModel;
 
-        schemaHandlingDtoModel = new LoadableModel<SchemaHandlingDto>(false) {
+        schemaHandlingDtoModel = new NonEmptyLoadableModel<SchemaHandlingDto>(false) {
             @Override
+			@NotNull
             protected SchemaHandlingDto load() {
                 return loadSchemaHandlingDto();
             }
@@ -157,12 +158,10 @@ public class SchemaHandlingStep extends WizardStep {
     private SchemaHandlingDto loadSchemaHandlingDto() {
 
         List<ResourceObjectTypeDefinitionTypeDto> list = new ArrayList<>();
-        if (resourceModel.getObject() != null) {
-            SchemaHandlingType schemaHandling = getOrCreateSchemaHandling();
-			for (ResourceObjectTypeDefinitionType objectType: schemaHandling.getObjectType()) {
-				list.add(new ResourceObjectTypeDefinitionTypeDto(objectType));
-			}
-        }
+		SchemaHandlingType schemaHandling = getOrCreateSchemaHandling();
+		for (ResourceObjectTypeDefinitionType objectType: schemaHandling.getObjectType()) {
+			list.add(new ResourceObjectTypeDefinitionTypeDto(objectType));
+		}
 		SchemaHandlingDto dto = new SchemaHandlingDto(list);
 		dto.setObjectClassList(loadResourceObjectClassList(resourceModel, LOGGER, getString("SchemaHandlingStep.message.errorLoadingObjectTypeList")));
         return dto;
@@ -276,7 +275,7 @@ public class SchemaHandlingStep extends WizardStep {
         };
     }
 
-	public static void addKindAndIntent(StringBuilder sb, ShadowKindType kind, String intent) {
+	static void addKindAndIntent(StringBuilder sb, ShadowKindType kind, String intent) {
 		if (kind != null || intent != null) {
 			sb.append(" (");
 			sb.append(kind != null ? kind : " - ");
@@ -788,12 +787,8 @@ public class SchemaHandlingStep extends WizardStep {
         target.add(getObjectTypeEditor(), getObjectListTable(), getNavigator());
     }
 
-	private boolean isSelected(ResourceObjectTypeDefinitionTypeDto objectType) {
-		if (schemaHandlingDtoModel.getObject().getSelected() != null) {
-			return schemaHandlingDtoModel.getObject().getSelected() == objectType;
-		} else {
-			return false;
-		}
+	private boolean isSelected(@NotNull ResourceObjectTypeDefinitionTypeDto objectType) {
+		return schemaHandlingDtoModel.getObject().getSelected() == objectType;
 	}
 
 	private void addObjectTypePerformed(AjaxRequestTarget target){
@@ -825,14 +820,14 @@ public class SchemaHandlingStep extends WizardStep {
 		return resource.asObjectable().getSchemaHandling();
 	}
 
-	private void removeEmptyContainers(PrismObject<ResourceType> resourcePrism){
+	private void removeEmptyContainers(PrismObject<ResourceType> resourcePrism) {
         if(resourcePrism == null){
             return;
         }
 
         ResourceType resource = resourcePrism.asObjectable();
 
-        if(resource != null && resource.getSchemaHandling() != null){
+        if (resource.getSchemaHandling() != null) {
             SchemaHandlingType schemaHandling = resource.getSchemaHandling();
 
             for(ResourceObjectTypeDefinitionType objectType: schemaHandling.getObjectType()){

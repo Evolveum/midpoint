@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.web.page.admin.resources;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.model.NonEmptyLoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -60,9 +61,9 @@ public class PageResourceWizard extends PageAdminResources {
 	// these models should be reset after each 'save' operation, in order to fetch current data (on demand)
 	// each step should use corresponding model
 	// these models have always non-null content
-	@NotNull private final LoadableModel<PrismObject<ResourceType>> modelRaw;				// contains resolved connector as well
-	@NotNull private final LoadableModel<PrismObject<ResourceType>> modelNoFetch;			// contains resolved connector as well
-    @NotNull private final LoadableModel<PrismObject<ResourceType>> modelFull;
+	@NotNull private final NonEmptyLoadableModel<PrismObject<ResourceType>> modelRaw;				// contains resolved connector as well
+	@NotNull private final NonEmptyLoadableModel<PrismObject<ResourceType>> modelNoFetch;			// contains resolved connector as well
+    @NotNull private final NonEmptyLoadableModel<PrismObject<ResourceType>> modelFull;
 
 	// for new resources: should be set after first save; for others: should be set on page creation
     private String editedResourceOid;
@@ -84,8 +85,8 @@ public class PageResourceWizard extends PageAdminResources {
     }
 
 	@NotNull
-	private LoadableModel<PrismObject<ResourceType>> createResourceModel(final Collection<SelectorOptions<GetOperationOptions>> options) {
-		return new LoadableModel<PrismObject<ResourceType>>(false) {
+	private NonEmptyLoadableModel<PrismObject<ResourceType>> createResourceModel(final Collection<SelectorOptions<GetOperationOptions>> options) {
+		return new NonEmptyLoadableModel<PrismObject<ResourceType>>(false) {
 			@Override
 			protected PrismObject<ResourceType> load() {
 				try {

@@ -16,22 +16,8 @@
 
 package com.evolveum.midpoint.web.component.wizard.resource;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.extensions.markup.html.tabs.AbstractTab;
-import org.apache.wicket.extensions.markup.html.tabs.ITab;
-import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.model.Model;
-import org.apache.wicket.model.util.ListModel;
-import org.jetbrains.annotations.NotNull;
-
 import com.evolveum.midpoint.gui.api.component.result.OpResult;
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.model.NonEmptyLoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
@@ -65,6 +51,19 @@ import com.evolveum.midpoint.web.page.admin.resources.component.TestConnectionRe
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.extensions.markup.html.tabs.AbstractTab;
+import org.apache.wicket.extensions.markup.html.tabs.ITab;
+import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.model.Model;
+import org.apache.wicket.model.util.ListModel;
+import org.jetbrains.annotations.NotNull;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 
 /**
  * @author lazyman
@@ -82,17 +81,18 @@ public class ConfigurationStep extends WizardStep {
     private static final String ID_TEST_CONNECTION = "testConnection";
 	private static final String ID_MAIN = "main";
 
-	final private LoadableModel<PrismObject<ResourceType>> resourceModelNoFetch;
-	final private LoadableModel<List<ContainerWrapper>> configurationPropertiesModel;
+	final private NonEmptyLoadableModel<PrismObject<ResourceType>> resourceModelNoFetch;
+	final private NonEmptyLoadableModel<List<ContainerWrapper>> configurationPropertiesModel;
 	final private PageResourceWizard parentPage;
 
-    public ConfigurationStep(LoadableModel<PrismObject<ResourceType>> modelNoFetch, final PageResourceWizard parentPage) {
+    public ConfigurationStep(NonEmptyLoadableModel<PrismObject<ResourceType>> modelNoFetch, final PageResourceWizard parentPage) {
         super(parentPage);
         this.resourceModelNoFetch = modelNoFetch;
 		this.parentPage = parentPage;
 
-        this.configurationPropertiesModel = new LoadableModel<List<ContainerWrapper>>(false) {
+        this.configurationPropertiesModel = new NonEmptyLoadableModel<List<ContainerWrapper>>(false) {
             @Override
+			@NotNull
             protected List<ContainerWrapper> load() {
 				return createConfigContainerWrappers();
             }
@@ -217,7 +217,7 @@ public class ConfigurationStep extends WizardStep {
 	}
 
 	@SuppressWarnings("unchecked")
-	public TabbedPanel<ITab> getConfigurationTabbedPanel() {
+	private TabbedPanel<ITab> getConfigurationTabbedPanel() {
 		return (TabbedPanel<ITab>) get(createComponentPath(ID_MAIN, ID_CONFIGURATION));
 	}
 
@@ -239,7 +239,7 @@ public class ConfigurationStep extends WizardStep {
 			result.recordFatalError("Failed to test resource connection", ex);
 		}
 
-		TestConnectionResultPanel testConnectionPanel = new TestConnectionResultPanel(page.getMainPopupBodyId(), new ListModel<OpResult>(resultDtoList));
+		TestConnectionResultPanel testConnectionPanel = new TestConnectionResultPanel(page.getMainPopupBodyId(), new ListModel<>(resultDtoList));
 		testConnectionPanel.setOutputMarkupId(true);
 		page.showMainPopup(testConnectionPanel, target);
 		page.showResult(result, "Test connection failed", false);

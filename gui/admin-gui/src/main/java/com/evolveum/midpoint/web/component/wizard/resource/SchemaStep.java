@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.web.component.wizard.resource;
 
+import com.evolveum.midpoint.gui.api.model.NonEmptyLoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
@@ -44,6 +45,7 @@ import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -60,9 +62,9 @@ public class SchemaStep extends WizardStep {
     private static final String ID_TAB_PANEL = "tabPanel";
     private static final String ID_RELOAD = "reload";
     private static final String ID_ACE_EDITOR = "aceEditor";
-    private IModel<PrismObject<ResourceType>> model;
+    @NotNull private final NonEmptyLoadableModel<PrismObject<ResourceType>> model;
 
-    public SchemaStep(IModel<PrismObject<ResourceType>> model, PageBase pageBase) {
+    public SchemaStep(@NotNull NonEmptyLoadableModel<PrismObject<ResourceType>> model, PageBase pageBase) {
         super(pageBase);
         this.model = model;
         setOutputMarkupId(true);
@@ -75,7 +77,7 @@ public class SchemaStep extends WizardStep {
         tabs.add(createSimpleSchemaView());
         tabs.add(createSchemaEditor());
 
-        TabbedPanel tabPanel = new TabbedPanel(ID_TAB_PANEL, tabs);
+        TabbedPanel<ITab> tabPanel = new TabbedPanel<>(ID_TAB_PANEL, tabs);
         tabPanel.setOutputMarkupId(true);
         add(tabPanel);
 
@@ -116,11 +118,8 @@ public class SchemaStep extends WizardStep {
     }
 
     private void reloadPerformed(AjaxRequestTarget target) {
-        if(model == null || model.getObject() == null){
-            return;
-        }
 
-        PrismObject<ResourceType> resource = model.getObject();
+		PrismObject<ResourceType> resource = model.getObject();
         resource.asObjectable().setSchema(new XmlSchemaType());
         Task task = getPageBase().createSimpleTask(OPERATION_RELOAD_RESOURCE_SCHEMA);
         OperationResult result = task.getResult();

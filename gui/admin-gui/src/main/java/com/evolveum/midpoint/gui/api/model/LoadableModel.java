@@ -34,23 +34,23 @@ public abstract class LoadableModel<T> implements IModel<T> {
 
     private T object;
     private boolean loaded = false;
-    private boolean allwaysReload;
+    private boolean alwaysReload;
 
     public LoadableModel() {
         this(null, true);
     }
 
-    public LoadableModel(boolean allwaysReload) {
-        this(null, allwaysReload);
+    public LoadableModel(boolean alwaysReload) {
+        this(null, alwaysReload);
     }
 
     public LoadableModel(T object) {
         this(object, true);
     }
 
-    public LoadableModel(T object, boolean allwaysReload) {
+    public LoadableModel(T object, boolean alwaysReload) {
         this.object = object;
-        this.allwaysReload = allwaysReload;
+        this.alwaysReload = alwaysReload;
     }
 
     public T getObject() {
@@ -86,7 +86,7 @@ public abstract class LoadableModel<T> implements IModel<T> {
     }
 
     public void detach() {
-        if (loaded && allwaysReload) {
+        if (loaded && alwaysReload) {
             this.loaded = false;
             onDetach();
         }

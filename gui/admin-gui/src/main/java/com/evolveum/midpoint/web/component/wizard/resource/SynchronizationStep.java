@@ -17,7 +17,7 @@
 package com.evolveum.midpoint.web.component.wizard.resource;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.model.NonEmptyLoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.ModelService;
@@ -120,16 +120,17 @@ public class SynchronizationStep extends WizardStep {
     private static final String ID_T_REACTION = "reactionTooltip";
 
 	@NotNull private final PageResourceWizard parentPage;
-    @NotNull private final IModel<PrismObject<ResourceType>> resourceModel;				// always has an object
-    @NotNull private final LoadableModel<ResourceSynchronizationDto> syncDtoModel;		// always has an object
+    @NotNull private final NonEmptyLoadableModel<PrismObject<ResourceType>> resourceModel;
+    @NotNull private final NonEmptyLoadableModel<ResourceSynchronizationDto> syncDtoModel;
 
-    public SynchronizationStep(@NotNull IModel<PrismObject<ResourceType>> resourceModel, PageResourceWizard parentPage) {
+    public SynchronizationStep(@NotNull NonEmptyLoadableModel<PrismObject<ResourceType>> resourceModel, @NotNull PageResourceWizard parentPage) {
         super(parentPage);
 		this.parentPage = parentPage;
         this.resourceModel = resourceModel;
 
-        syncDtoModel = new LoadableModel<ResourceSynchronizationDto>(false) {
+        syncDtoModel = new NonEmptyLoadableModel<ResourceSynchronizationDto>(false) {
             @Override
+			@NotNull
             protected ResourceSynchronizationDto load() {
                 return loadResourceSynchronization();
             }
@@ -150,7 +151,6 @@ public class SynchronizationStep extends WizardStep {
 
 	@NotNull
     private ResourceSynchronizationDto loadResourceSynchronization() {
-		assert resourceModel.getObject() != null;
 
 		if (resourceModel.getObject().asObjectable().getSynchronization() == null) {
 			resourceModel.getObject().asObjectable().setSynchronization(new SynchronizationType());

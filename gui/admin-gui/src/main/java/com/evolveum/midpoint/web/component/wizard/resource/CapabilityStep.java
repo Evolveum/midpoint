@@ -18,6 +18,7 @@ package com.evolveum.midpoint.web.component.wizard.resource;
 
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.model.NonEmptyLoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
@@ -59,6 +60,7 @@ import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
+import org.jetbrains.annotations.NotNull;
 
 import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
@@ -101,25 +103,30 @@ public class CapabilityStep extends WizardStep {
 
     private static final String DIALOG_SELECT_CAPABILITY = "capabilitySelectPopup";
 
-    private IModel<CapabilityStepDto> model;
-    private IModel<PrismObject<ResourceType>> resourceModel;
+	@NotNull private final NonEmptyLoadableModel<CapabilityStepDto> dtoModel;				// always has an object
+    @NotNull private final NonEmptyLoadableModel<PrismObject<ResourceType>> resourceModel;			// always has an object
 
-    public CapabilityStep(IModel<PrismObject<ResourceType>> prismModel, PageBase pageBase){
+    public CapabilityStep(@NotNull NonEmptyLoadableModel<PrismObject<ResourceType>> resourceModel, PageBase pageBase) {
         super(pageBase);
-        this.resourceModel = prismModel;
-
-        model = new LoadableModel<CapabilityStepDto>() {
-
+        this.resourceModel = resourceModel;
+        this.dtoModel = new NonEmptyLoadableModel<CapabilityStepDto>(false) {
             @Override
+			@NotNull
             protected CapabilityStepDto load() {
-                return loadModel();
+                return loadDtoModel();
             }
         };
 
         initLayout();
     }
 
-    private CapabilityStepDto loadModel(){
+	@Override
+	protected void onConfigure() {
+		dtoModel.reset();
+	}
+
+	@NotNull
+	private CapabilityStepDto loadDtoModel() {
         PrismObject<ResourceType> resourcePrism = resourceModel.getObject();
         ResourceType resource = resourcePrism.asObjectable();
         CapabilityStepDto dto = new CapabilityStepDto();
@@ -128,7 +135,7 @@ public class CapabilityStep extends WizardStep {
         return dto;
     }
 
-    private List<CapabilityDto> loadCapabilitiesFromResource(ResourceType resource){
+    private List<CapabilityDto> loadCapabilitiesFromResource(ResourceType resource) {
         List<CapabilityDto> capabilityList = new ArrayList<>();
 
         try {
@@ -167,7 +174,7 @@ public class CapabilityStep extends WizardStep {
 
     protected void initLayout(){
         final ListDataProvider<CapabilityDto> capabilityProvider = new ListDataProvider<>(this,
-                new PropertyModel<List<CapabilityDto>>(model.getObject(), CapabilityStepDto.F_CAPABILITIES));
+                new PropertyModel<List<CapabilityDto>>(dtoModel.getObject(), CapabilityStepDto.F_CAPABILITIES));
 
         WebMarkupContainer tableBody = new WebMarkupContainer(ID_CAPABILITY_TABLE);
         tableBody.setOutputMarkupId(true);
@@ -241,7 +248,7 @@ public class CapabilityStep extends WizardStep {
         };
         add(addLink);
 
-        ModalWindow dialog = new AddCapabilityDialog(DIALOG_SELECT_CAPABILITY, model){
+        ModalWindow dialog = new AddCapabilityDialog(DIALOG_SELECT_CAPABILITY, dtoModel){
 
             @Override
             protected void addPerformed(AjaxRequestTarget target){
@@ -260,11 +267,11 @@ public class CapabilityStep extends WizardStep {
     }
 
     private void deleteCapabilityPerformed(AjaxRequestTarget target, CapabilityDto rowModel){
-        for(CapabilityDto dto: model.getObject().getCapabilities()){
+        for(CapabilityDto dto: dtoModel.getObject().getCapabilities()){
             dto.setSelected(false);
         }
 
-        model.getObject().getCapabilities().remove(rowModel);
+        dtoModel.getObject().getCapabilities().remove(rowModel);
         target.add(getConfigContainer().replaceWith(new WebMarkupContainer(ID_CAPABILITY_CONFIG)));
         target.add(getTable());
     }
@@ -272,7 +279,7 @@ public class CapabilityStep extends WizardStep {
     private void addCapabilitiesPerformed(AjaxRequestTarget target, List<CapabilityDto> selected){
         for(CapabilityDto dto: selected){
             dto.setSelected(false);
-            model.getObject().getCapabilities().add(dto);
+            dtoModel.getObject().getCapabilities().add(dto);
         }
 
         target.add(getTable());
@@ -282,12 +289,12 @@ public class CapabilityStep extends WizardStep {
 
     private void addCapabilityPerformed(AjaxRequestTarget target){
         AddCapabilityDialog window = (AddCapabilityDialog)get(DIALOG_SELECT_CAPABILITY);
-        window.updateTable(target, model);
+        window.updateTable(target, dtoModel);
         window.show(target);
     }
 
     private void editCapabilityPerformed(final AjaxRequestTarget target, CapabilityDto capability){
-        for(CapabilityDto dto: model.getObject().getCapabilities()){
+        for(CapabilityDto dto: dtoModel.getObject().getCapabilities()){
             dto.setSelected(false);
         }
 
@@ -373,7 +380,7 @@ public class CapabilityStep extends WizardStep {
             List<CapabilityDto> oldCapabilities = loadCapabilitiesFromResource(( resourceModel.getObject()).asObjectable());
             List<CapabilityDto> newCapabilities = new ArrayList<>();
 
-            for(CapabilityDto dto: model.getObject().getCapabilities()){
+            for(CapabilityDto dto: dtoModel.getObject().getCapabilities()){
                 if(!oldCapabilities.contains(dto)){
                     newCapabilities.add(dto);
                 }
