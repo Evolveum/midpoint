@@ -33,13 +33,13 @@ import com.evolveum.midpoint.web.page.error.PageError;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import org.apache.wicket.RestartResponseException;
+import org.apache.wicket.extensions.wizard.IWizardModel;
 import org.apache.wicket.extensions.wizard.WizardModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 
@@ -60,9 +60,9 @@ public class PageResourceWizard extends PageAdminResources {
 	// these models should be reset after each 'save' operation, in order to fetch current data (on demand)
 	// each step should use corresponding model
 	// these models have always non-null content
-    private LoadableModel<PrismObject<ResourceType>> modelRaw;				// contains resolved connector as well
-    private LoadableModel<PrismObject<ResourceType>> modelNoFetch;			// contains resolved connector as well
-    private LoadableModel<PrismObject<ResourceType>> modelFull;
+	@NotNull private final LoadableModel<PrismObject<ResourceType>> modelRaw;				// contains resolved connector as well
+	@NotNull private final LoadableModel<PrismObject<ResourceType>> modelNoFetch;			// contains resolved connector as well
+    @NotNull private final LoadableModel<PrismObject<ResourceType>> modelFull;
 
 	// for new resources: should be set after first save; for others: should be set on page creation
     private String editedResourceOid;
@@ -106,7 +106,7 @@ public class PageResourceWizard extends PageAdminResources {
 	}
 
 	// named differently from "loadResource", as this is used in the superclass
-	public PrismObject<ResourceType> loadResourceModelObject(Collection<SelectorOptions<GetOperationOptions>> options) {
+	private PrismObject<ResourceType> loadResourceModelObject(Collection<SelectorOptions<GetOperationOptions>> options) {
 		Task task = createSimpleTask("loadResource");
 		return WebModelServiceUtils.loadObject(ResourceType.class, editedResourceOid, options, this, task, task.getResult());
 	}
@@ -144,7 +144,7 @@ public class PageResourceWizard extends PageAdminResources {
         wizardModel.add(new CapabilityStep(modelFull, this));
         wizardModel.add(new SynchronizationStep(modelFull, this));
 
-        Wizard wizard = new Wizard(ID_WIZARD, new Model(wizardModel));
+        Wizard wizard = new Wizard(ID_WIZARD, new Model<IWizardModel>(wizardModel));
         wizard.setOutputMarkupId(true);
         add(wizard);
     }

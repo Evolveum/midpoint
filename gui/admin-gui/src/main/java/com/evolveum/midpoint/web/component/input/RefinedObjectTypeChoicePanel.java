@@ -18,6 +18,7 @@ package com.evolveum.midpoint.web.component.input;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.markup.html.form.IChoiceRenderer;
 import org.apache.wicket.model.IModel;
 
@@ -91,7 +92,7 @@ public class RefinedObjectTypeChoicePanel extends DropDownChoicePanel<RefinedObj
 
 			@Override
 			public RefinedObjectClassDefinition getObject(String id, IModel<? extends List<? extends RefinedObjectClassDefinition>> choices) {
-				return choices.getObject().get(Integer.parseInt(id));
+				return StringUtils.isNotBlank(id) ? choices.getObject().get(Integer.parseInt(id)) : null;
 			}
 		};
 	}

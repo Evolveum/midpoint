@@ -18,7 +18,6 @@ package com.evolveum.midpoint.web.component.wizard.resource;
 
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.ModelService;
@@ -53,7 +52,6 @@ import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -129,17 +127,17 @@ public class SchemaHandlingStep extends WizardStep {
     @NotNull final private IModel<PrismObject<ResourceType>> resourceModel;
 	@NotNull final private PageResourceWizard parentPage;
 
-    private IModel<SchemaHandlingDto> model;
+    private LoadableModel<SchemaHandlingDto> schemaHandlingDtoModel;
 
     public SchemaHandlingStep(@NotNull final IModel<PrismObject<ResourceType>> resourceModel, @NotNull PageResourceWizard parentPage) {
         super(parentPage);
         this.resourceModel = resourceModel;
 		this.parentPage = parentPage;
 
-        model = new LoadableModel<SchemaHandlingDto>(false) {
+        schemaHandlingDtoModel = new LoadableModel<SchemaHandlingDto>(false) {
             @Override
             protected SchemaHandlingDto load() {
-                return loadObjectTypes();
+                return loadSchemaHandlingDto();
             }
         };
 
@@ -147,8 +145,16 @@ public class SchemaHandlingStep extends WizardStep {
 		setOutputMarkupId(true);
     }
 
-    private SchemaHandlingDto loadObjectTypes() {
-        SchemaHandlingDto dto = new SchemaHandlingDto();
+	@Override
+	protected void onConfigure() {
+		if (schemaHandlingDtoModel.isLoaded()) {
+			int index = schemaHandlingDtoModel.getObject().getSelectedIndex();
+			schemaHandlingDtoModel.reset();
+			schemaHandlingDtoModel.getObject().setSelectedIndex(index);
+		}
+	}
+
+    private SchemaHandlingDto loadSchemaHandlingDto() {
 
         List<ResourceObjectTypeDefinitionTypeDto> list = new ArrayList<>();
         if (resourceModel.getObject() != null) {
@@ -157,19 +163,18 @@ public class SchemaHandlingStep extends WizardStep {
 				list.add(new ResourceObjectTypeDefinitionTypeDto(objectType));
 			}
         }
-		dto.setObjectTypeList(list);
-
+		SchemaHandlingDto dto = new SchemaHandlingDto(list);
 		dto.setObjectClassList(loadResourceObjectClassList(resourceModel, LOGGER, getString("SchemaHandlingStep.message.errorLoadingObjectTypeList")));
         return dto;
     }
 
     private boolean isAnySelected() {
-		return model.getObject().getSelected() != null;
+		return schemaHandlingDtoModel.getObject().getSelected() != null;
     }
 
     private void initLayout() {
         final ListDataProvider<ResourceObjectTypeDefinitionTypeDto> objectTypeProvider = new ListDataProvider<>(this,
-                new PropertyModel<List<ResourceObjectTypeDefinitionTypeDto>>(model, SchemaHandlingDto.F_OBJECT_TYPES));
+                new PropertyModel<List<ResourceObjectTypeDefinitionTypeDto>>(schemaHandlingDtoModel, SchemaHandlingDto.F_OBJECT_TYPES));
 
         // first row - object types table
         WebMarkupContainer objectTypesTable = new WebMarkupContainer(ID_ROWS);
@@ -264,26 +269,29 @@ public class SchemaHandlingStep extends WizardStep {
                 if (objectType != null && objectType.getObjectType() != null) {
                     ResourceObjectTypeDefinitionType object = objectType.getObjectType();
                     sb.append(object.getDisplayName() != null ? object.getDisplayName() : "- ");
-
-                    if (object.getKind() != null || object.getIntent() != null) {
-                        sb.append(" (");
-                        sb.append(object.getKind() != null ? object.getKind() : " - ");
-                        sb.append(", ");
-                        sb.append(object.getIntent() != null ? object.getIntent() : "- ");
-                        sb.append(")");
-                    }
-                }
+					addKindAndIntent(sb, object.getKind(), object.getIntent());
+				}
                 return sb.toString();
             }
         };
     }
 
-    private void initObjectTypeEditor(WebMarkupContainer editor){
+	public static void addKindAndIntent(StringBuilder sb, ShadowKindType kind, String intent) {
+		if (kind != null || intent != null) {
+			sb.append(" (");
+			sb.append(kind != null ? kind : " - ");
+			sb.append(", ");
+			sb.append(intent != null ? intent : "- ");
+			sb.append(")");
+		}
+	}
+
+	private void initObjectTypeEditor(WebMarkupContainer editor){
         Label editorLabel = new Label(ID_EDITOR_NAME, new LoadableModel<String>() {
 
             @Override
             protected String load() {
-				ResourceObjectTypeDefinitionTypeDto selected = model.getObject().getSelected();
+				ResourceObjectTypeDefinitionTypeDto selected = schemaHandlingDtoModel.getObject().getSelected();
 				return selected != null ? selected.getObjectType().getDisplayName() : "";
             }
         });
@@ -291,27 +299,27 @@ public class SchemaHandlingStep extends WizardStep {
         editor.add(editorLabel);
 
         DropDownChoice editorKind = new DropDownChoice<>(ID_EDITOR_KIND,
-                new PropertyModel<ShadowKindType>(model, getExpression(ResourceObjectTypeDefinitionType.F_KIND)),
+                new PropertyModel<ShadowKindType>(schemaHandlingDtoModel, getExpression(ResourceObjectTypeDefinitionType.F_KIND)),
                 WebComponentUtil.createReadonlyModelFromEnum(ShadowKindType.class),
                 new EnumChoiceRenderer<ShadowKindType>(this));
 		editorKind.add(new UpdateNamesBehaviour());
         editor.add(editorKind);
 
-        TextField editorIntent = new TextField<>(ID_EDITOR_INTENT, new PropertyModel<String>(model,
+        TextField editorIntent = new TextField<>(ID_EDITOR_INTENT, new PropertyModel<String>(schemaHandlingDtoModel,
 				getExpression(ResourceObjectTypeDefinitionType.F_INTENT)));
 		editorIntent.add(new UpdateNamesBehaviour());
         editor.add(editorIntent);
 
-        TextField editorDisplayName = new TextField<>(ID_EDITOR_DISPLAY_NAME, new PropertyModel<String>(model,
+        TextField editorDisplayName = new TextField<>(ID_EDITOR_DISPLAY_NAME, new PropertyModel<String>(schemaHandlingDtoModel,
 				getExpression(ResourceObjectTypeDefinitionType.F_DISPLAY_NAME)));
 		editorDisplayName.add(new UpdateNamesBehaviour());
         editor.add(editorDisplayName);
 
-        TextArea editorDescription = new TextArea<>(ID_EDITOR_DESCRIPTION, new PropertyModel<String>(model,
+        TextArea editorDescription = new TextArea<>(ID_EDITOR_DESCRIPTION, new PropertyModel<String>(schemaHandlingDtoModel,
 				getExpression(ResourceObjectTypeDefinitionType.F_DESCRIPTION)));
         editor.add(editorDescription);
 
-        CheckBox editorDefault = new CheckBox(ID_EDITOR_DEFAULT, new PropertyModel<Boolean>(model,
+        CheckBox editorDefault = new CheckBox(ID_EDITOR_DEFAULT, new PropertyModel<Boolean>(schemaHandlingDtoModel,
                 getExpression(ResourceObjectTypeDefinitionType.F_DEFAULT)));
         editor.add(editorDefault);
 
@@ -329,17 +337,17 @@ public class SchemaHandlingStep extends WizardStep {
         autoCompleteSettings.setShowListOnEmptyInput(true);
         autoCompleteSettings.setMaxHeightInPx(200);
         AutoCompleteTextField<String> editorObjectClass = new AutoCompleteTextField<String>(ID_EDITOR_OBJECT_CLASS,
-                new PropertyModel<String>(model, SchemaHandlingDto.F_SELECTED_OBJECT_CLASS), autoCompleteSettings) {
+                new PropertyModel<String>(schemaHandlingDtoModel, SchemaHandlingDto.F_OBJECT_CLASS_NAME), autoCompleteSettings) {
             @Override
             protected Iterator<String> getChoices(String input) {
                 return getObjectClassChoices(input);
             }
         };
         editorObjectClass.add(new EmptyOnChangeAjaxFormUpdatingBehavior());
-        editorObjectClass.add(createObjectClassValidator(new LoadableModel<List<QName>>(false) {
+        editorObjectClass.add(createObjectClassValidator(new AbstractReadOnlyModel<List<QName>>() {
             @Override
-            protected List<QName> load() {
-                return model.getObject().getObjectClassList();
+            public List<QName> getObject() {
+                return schemaHandlingDtoModel.getObject().getObjectClassList();
             }
         }));
 		editorObjectClass.setRequired(true);
@@ -347,7 +355,7 @@ public class SchemaHandlingStep extends WizardStep {
         editor.add(editorObjectClass);
 
         MultiValueTextEditPanel editorAttributes = new MultiValueTextEditPanel<ResourceAttributeDefinitionType>(ID_EDITOR_ATTRIBUTES,
-                new PropertyModel<List<ResourceAttributeDefinitionType>>(model,
+                new PropertyModel<List<ResourceAttributeDefinitionType>>(schemaHandlingDtoModel,
 						getExpression(ResourceObjectTypeDefinitionType.F_ATTRIBUTE)), false, true){
 
             @Override
@@ -408,7 +416,7 @@ public class SchemaHandlingStep extends WizardStep {
         editor.add(editorAttributes);
 
         MultiValueTextEditPanel editorAssociations = new MultiValueTextEditPanel<ResourceObjectAssociationType>(ID_EDITOR_ASSOCIATIONS,
-                new PropertyModel<List<ResourceObjectAssociationType>>(model,
+                new PropertyModel<List<ResourceObjectAssociationType>>(schemaHandlingDtoModel,
 						getExpression(ResourceObjectTypeDefinitionType.F_ASSOCIATION)), false, true){
 
             @Override
@@ -466,7 +474,7 @@ public class SchemaHandlingStep extends WizardStep {
         editor.add(editorAssociations);
 
         DropDownChoice editorAssignmentPolicyRef = new DropDownChoice<>(ID_EDITOR_ASSIGNMENT_POLICY,
-                new PropertyModel<AssignmentPolicyEnforcementType>(model,
+                new PropertyModel<AssignmentPolicyEnforcementType>(schemaHandlingDtoModel,
 						getExpression(ResourceObjectTypeDefinitionType.F_ASSIGNMENT_POLICY_ENFORCEMENT)),
                 WebComponentUtil.createReadonlyModelFromEnum(AssignmentPolicyEnforcementType.class),
                 new EnumChoiceRenderer<AssignmentPolicyEnforcementType>(this));
@@ -567,7 +575,7 @@ public class SchemaHandlingStep extends WizardStep {
 	}
 
 	private Iterator<String> getObjectClassChoices(String input) {
-        List<QName> resourceObjectClassList = model.getObject().getObjectClassList();
+        List<QName> resourceObjectClassList = schemaHandlingDtoModel.getObject().getObjectClassList();
         List<String> choices = new ArrayList<>(AUTO_COMPLETE_LIST_SIZE);
 
         if(Strings.isEmpty(input)){
@@ -626,7 +634,7 @@ public class SchemaHandlingStep extends WizardStep {
     }
 
     private void resetSelected(){
-        model.getObject().setSelected(null);
+        schemaHandlingDtoModel.getObject().setSelected(null);
     }
 
     private void insertEmptyThirdRow(){
@@ -635,7 +643,7 @@ public class SchemaHandlingStep extends WizardStep {
 
     private void dependencyEditPerformed(AjaxRequestTarget target){
         WebMarkupContainer newContainer = new ResourceDependencyEditor(ID_THIRD_ROW_CONTAINER,
-                new PropertyModel<List<ResourceObjectTypeDependencyType>>(model,
+                new PropertyModel<List<ResourceObjectTypeDependencyType>>(schemaHandlingDtoModel,
 						getExpression(ResourceObjectTypeDefinitionType.F_DEPENDENCY)));
         getThirdRowContainer().replaceWith(newContainer);
 
@@ -644,7 +652,7 @@ public class SchemaHandlingStep extends WizardStep {
 
     private void iterationEditPerformed(AjaxRequestTarget target){
         WebMarkupContainer newContainer = new ResourceIterationEditor(ID_THIRD_ROW_CONTAINER,
-                new PropertyModel<IterationSpecificationType>(model,
+                new PropertyModel<IterationSpecificationType>(schemaHandlingDtoModel,
 						getExpression(ResourceObjectTypeDefinitionType.F_ITERATION)));
         getThirdRowContainer().replaceWith(newContainer);
 
@@ -653,7 +661,7 @@ public class SchemaHandlingStep extends WizardStep {
 
     private void protectedEditPerformed(AjaxRequestTarget target){
         WebMarkupContainer newContainer = new ResourceProtectedEditor(ID_THIRD_ROW_CONTAINER,
-                new PropertyModel<List<ResourceObjectPatternType>>(model,
+                new PropertyModel<List<ResourceObjectPatternType>>(schemaHandlingDtoModel,
 						getExpression(ResourceObjectTypeDefinitionType.F_PROTECTED)));
         getThirdRowContainer().replaceWith(newContainer);
 
@@ -662,7 +670,7 @@ public class SchemaHandlingStep extends WizardStep {
 
     private void activationEditPerformed(AjaxRequestTarget target){
         WebMarkupContainer newContainer = new ResourceActivationEditor(ID_THIRD_ROW_CONTAINER,
-                new PropertyModel<ResourceActivationDefinitionType>(model,
+                new PropertyModel<ResourceActivationDefinitionType>(schemaHandlingDtoModel,
 						getExpression(ResourceObjectTypeDefinitionType.F_ACTIVATION)));
         getThirdRowContainer().replaceWith(newContainer);
 
@@ -671,7 +679,7 @@ public class SchemaHandlingStep extends WizardStep {
 
     private void credentialsEditPerformed(AjaxRequestTarget target){
         WebMarkupContainer newContainer = new ResourceCredentialsEditor(ID_THIRD_ROW_CONTAINER,
-                new PropertyModel<ResourceCredentialsDefinitionType>(model,
+                new PropertyModel<ResourceCredentialsDefinitionType>(schemaHandlingDtoModel,
 						getExpression(ResourceObjectTypeDefinitionType.F_CREDENTIALS)));
         getThirdRowContainer().replaceWith(newContainer);
 
@@ -679,9 +687,9 @@ public class SchemaHandlingStep extends WizardStep {
     }
 
     private void editAttributePerformed(AjaxRequestTarget target, final ResourceAttributeDefinitionType object){
-        if(model.getObject().getSelected() != null && model.getObject().getSelected().getObjectType().getObjectClass() != null){
+        if(schemaHandlingDtoModel.getObject().getSelected() != null && schemaHandlingDtoModel.getObject().getSelected().getObjectType().getObjectClass() != null){
             WebMarkupContainer newContainer = new ResourceAttributeEditor(ID_THIRD_ROW_CONTAINER, new Model<>(object),
-                    model.getObject().getSelected().getObjectType(), resourceModel.getObject());
+                    schemaHandlingDtoModel.getObject().getSelected().getObjectType(), resourceModel.getObject());
             getThirdRowContainer().replaceWith(newContainer);
 
             target.add(getThirdRowContainer(), get(ID_OBJECT_TYPE_EDITOR));
@@ -693,9 +701,9 @@ public class SchemaHandlingStep extends WizardStep {
     }
 
     private void editAssociationPerformed(AjaxRequestTarget target, ResourceObjectAssociationType object){
-        if(model.getObject().getSelected() != null && model.getObject().getSelected().getObjectType().getObjectClass() != null){
+        if(schemaHandlingDtoModel.getObject().getSelected() != null && schemaHandlingDtoModel.getObject().getSelected().getObjectType().getObjectClass() != null){
             WebMarkupContainer newContainer = new ResourceAssociationEditor(ID_THIRD_ROW_CONTAINER, new Model<>(object),
-                    model.getObject().getSelected().getObjectType(), resourceModel.getObject());
+                    schemaHandlingDtoModel.getObject().getSelected().getObjectType(), resourceModel.getObject());
             getThirdRowContainer().replaceWith(newContainer);
 
             target.add(getThirdRowContainer(), get(ID_OBJECT_TYPE_EDITOR), parentPage.getFeedbackPanel());
@@ -751,7 +759,7 @@ public class SchemaHandlingStep extends WizardStep {
 
     private void editObjectTypePerformed(AjaxRequestTarget target, ResourceObjectTypeDefinitionTypeDto objectType){
 		boolean wasAnySelected = isAnySelected();
-        model.getObject().setSelected(objectType);
+        schemaHandlingDtoModel.getObject().setSelected(objectType);
         insertEmptyThirdRow();
 		if (wasAnySelected) {
 			target.add(getObjectListTable(), getNavigator(), getObjectTypeEditor(), getThirdRowContainer());
@@ -764,7 +772,7 @@ public class SchemaHandlingStep extends WizardStep {
 		ResourceObjectTypeDefinitionType realObjectType = objectType.getObjectType();
 		resourceModel.getObject().asObjectable().getSchemaHandling().getObjectType().remove(realObjectType);
 
-        ArrayList<ResourceObjectTypeDefinitionTypeDto> list = (ArrayList<ResourceObjectTypeDefinitionTypeDto>) model.getObject().getObjectTypeList();
+        ArrayList<ResourceObjectTypeDefinitionTypeDto> list = (ArrayList<ResourceObjectTypeDefinitionTypeDto>) schemaHandlingDtoModel.getObject().getObjectTypeList();
         list.remove(objectType);
 
         if (isSelected(objectType)) {
@@ -781,8 +789,8 @@ public class SchemaHandlingStep extends WizardStep {
     }
 
 	private boolean isSelected(ResourceObjectTypeDefinitionTypeDto objectType) {
-		if (model.getObject().getSelected() != null) {
-			return model.getObject().getSelected() == objectType;
+		if (schemaHandlingDtoModel.getObject().getSelected() != null) {
+			return schemaHandlingDtoModel.getObject().getSelected() == objectType;
 		} else {
 			return false;
 		}
@@ -793,13 +801,13 @@ public class SchemaHandlingStep extends WizardStep {
         objectType.setDisplayName(getString("SchemaHandlingStep.label.newObjectType"));
         ResourceObjectTypeDefinitionTypeDto dto = new ResourceObjectTypeDefinitionTypeDto(objectType);
 
-        if (model.getObject().getObjectTypeList().isEmpty()){
+        if (schemaHandlingDtoModel.getObject().getObjectTypeList().isEmpty()){
             objectType.setDefault(true);
         }
 
         resetSelected();
-        model.getObject().setSelected(dto);
-        model.getObject().getObjectTypeList().add(dto);
+        schemaHandlingDtoModel.getObject().setSelected(dto);
+        schemaHandlingDtoModel.getObject().getObjectTypeList().add(dto);
 		getOrCreateSchemaHandling().getObjectType().add(objectType);
         insertEmptyThirdRow();
         //target.add(getObjectListTable(), getNavigator(), getObjectTypeEditor(), getThirdRowContainer());

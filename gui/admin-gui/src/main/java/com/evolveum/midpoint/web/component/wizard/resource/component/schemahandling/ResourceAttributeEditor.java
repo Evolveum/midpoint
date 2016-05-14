@@ -40,6 +40,7 @@ import com.evolveum.midpoint.web.page.admin.resources.PageResources;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
+import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
@@ -175,7 +176,7 @@ public class ResourceAttributeEditor extends BasePanel<ResourceAttributeDefiniti
                 }, new IChoiceRenderer<ItemPathType>() {
                 	@Override
                 			public ItemPathType getObject(String id, IModel<? extends List<? extends ItemPathType>> choices) {
-                		return choices.getObject().get(Integer.parseInt(id));
+                		return StringUtils.isNotBlank(id) ? choices.getObject().get(Integer.parseInt(id)) : null;
                 			}
 
             @Override

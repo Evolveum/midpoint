@@ -15,52 +15,63 @@
  */
 package com.evolveum.midpoint.web.component.wizard.resource.dto;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
+import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.List;
 
 /**
  *  @author shood
  * */
-public class SchemaHandlingDto implements Serializable{
+public class SchemaHandlingDto implements Serializable {
 
     public static final String F_OBJECT_TYPES = "objectTypeList";
     public static final String F_SELECTED = "selected";
-    public static final String F_SELECTED_OBJECT_CLASS = "selectedObjectClass";
+    public static final String F_OBJECT_CLASS_NAME = "objectClassName";
 
-    private List<ResourceObjectTypeDefinitionTypeDto> objectTypeList = new ArrayList<>();
+    @NotNull private final List<ResourceObjectTypeDefinitionTypeDto> objectTypeList;
     private ResourceObjectTypeDefinitionTypeDto selected;
-    private String selectedObjectClass;
+    private String objectClassName;
     private List<QName> objectClassList;
 
-    public List<ResourceObjectTypeDefinitionTypeDto> getObjectTypeList() {
-        return objectTypeList;
-    }
+	public SchemaHandlingDto(@NotNull List<ResourceObjectTypeDefinitionTypeDto> list) {
+		this.objectTypeList = list;
+	}
 
-    public void setObjectTypeList(List<ResourceObjectTypeDefinitionTypeDto> objectTypeList) {
-        this.objectTypeList = objectTypeList;
+	public List<ResourceObjectTypeDefinitionTypeDto> getObjectTypeList() {
+        return objectTypeList;
     }
 
     public ResourceObjectTypeDefinitionTypeDto getSelected() {
         return selected;
     }
 
-    public void setSelected(ResourceObjectTypeDefinitionTypeDto selected) {
-        this.selected = selected;
+	public int getSelectedIndex() {
+		return selected != null ? objectTypeList.indexOf(selected) : -1;
+	}
 
-        if (selected == null) {
-            selectedObjectClass = null;
-        } else if (selected.getObjectType().getObjectClass() != null) {
-            selectedObjectClass = selected.getObjectType().getObjectClass().getLocalPart();
-        } else if (selected.getObjectType().getObjectClass() == null) {
-            selectedObjectClass = null;
-        }
+	public void setSelectedIndex(int index) {
+		if (index >= 0 && index < objectTypeList.size()) {
+			setSelected(objectTypeList.get(index));
+		}
+	}
+
+	public void setSelected(ResourceObjectTypeDefinitionTypeDto selected) {
+        this.selected = selected;
+		setObjectClassNameFrom(selected);
     }
 
-    public List<QName> getObjectClassList() {
+	private void setObjectClassNameFrom(ResourceObjectTypeDefinitionTypeDto objectType) {
+		if (objectType == null) {
+			objectClassName = null;
+		} else {
+			QName oc = objectType.getObjectType().getObjectClass();
+			objectClassName = oc != null ? oc.getLocalPart() : null;
+		}
+	}
+
+	public List<QName> getObjectClassList() {
         return objectClassList;
     }
 
@@ -68,14 +79,14 @@ public class SchemaHandlingDto implements Serializable{
         this.objectClassList = objectClassList;
     }
 
-    public String getSelectedObjectClass() {
-        return selectedObjectClass;
+    public String getObjectClassName() {
+        return objectClassName;
     }
 
-    public void setSelectedObjectClass(String selectedObjectClass) {
-        this.selectedObjectClass = selectedObjectClass;
+    public void setObjectClassName(String objectClassName) {
+        this.objectClassName = objectClassName;
 		if (selected != null) {
-			selected.getObjectType().setObjectClass(findObjectClassQName(selectedObjectClass));	// update object class in selected objectType container
+			selected.getObjectType().setObjectClass(findObjectClassQName(objectClassName));	// update object class in selected objectType container
 		}
     }
 

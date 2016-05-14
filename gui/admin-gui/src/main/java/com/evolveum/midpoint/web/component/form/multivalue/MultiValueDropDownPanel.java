@@ -19,6 +19,7 @@ package com.evolveum.midpoint.web.component.form.multivalue;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -235,7 +236,7 @@ public class MultiValueDropDownPanel<T extends Serializable> extends BasePanel<L
         	
         	@Override
         	public T getObject(String id, IModel<? extends List<? extends T>> choices) {
-        		return choices.getObject().get(Integer.parseInt(id));
+        		return StringUtils.isNotBlank(id) ? choices.getObject().get(Integer.parseInt(id)) : null;
         	}
 
             @Override

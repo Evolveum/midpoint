@@ -198,7 +198,7 @@ public class NameStep extends WizardStep {
                 	@Override
                 	public PrismObject<ConnectorType> getObject(String id,
                 			IModel<? extends List<? extends PrismObject<ConnectorType>>> choices) {
-                		return choices.getObject().get(Integer.parseInt(id));
+                		return StringUtils.isNotBlank(id) ? choices.getObject().get(Integer.parseInt(id)) : null;
                 	}
 
                     @Override
