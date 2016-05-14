@@ -107,8 +107,8 @@ public enum ObjectTypes {
     private ObjectManager objectManager;
     private String restType;
 
-    private ObjectTypes(QName type, QName name, Class<? extends ObjectType> classDefinition,
-                        ObjectManager objectManager, String restType) {
+    ObjectTypes(QName type, QName name, Class<? extends ObjectType> classDefinition,
+			ObjectManager objectManager, String restType) {
         this.type = type;
         this.name = name;
         this.classDefinition = classDefinition;

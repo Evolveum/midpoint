@@ -23,6 +23,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -266,9 +267,9 @@ public class ResourceDependencyEditor extends BasePanel<List<ResourceObjectTypeD
         try {
             resources = getPageBase().getModelService().searchObjects(ResourceType.class, new ObjectQuery(), null, task, result);
             result.recomputeStatus();
-        } catch (Exception e){
+        } catch (CommonException|RuntimeException e){
             result.recordFatalError("Couldn't get resource list.", e);
-            LoggingUtils.logException(LOGGER, "Couldn't get resource list.", e);
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't get resource list.", e);
         }
 
         // TODO - show error somehow

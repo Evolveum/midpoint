@@ -266,7 +266,7 @@ public class ConfigurationStep extends WizardStep {
 
 			parentPage.resetModels();
         } catch (Exception ex) {
-            LoggingUtils.logException(LOGGER, "Error occurred during resource test connection", ex);
+            LoggingUtils.logUnexpectedException(LOGGER, "Error occurred during saving changes", ex);
             result.recordFatalError("Couldn't save configuration changes.", ex);
         } finally {
             result.computeStatusIfUnknown();

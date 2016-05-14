@@ -21,6 +21,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.evolveum.midpoint.util.exception.CommonException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -217,9 +218,9 @@ public class ExpressionVariableEditorDialog extends ModalWindow {
 			objects = getPageBase().getModelService().searchObjects(ObjectType.class, new ObjectQuery(), null, task,
 					result);
 			result.recomputeStatus();
-		} catch (Exception e) {
+		} catch (CommonException|RuntimeException e) {
 			result.recordFatalError("Couldn't load objects from repository.", e);
-			LoggingUtils.logException(LOGGER, "Couldn't load objects from repository", e);
+			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load objects from repository", e);
 		}
 
 		// TODO - show error somehow

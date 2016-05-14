@@ -107,7 +107,7 @@ public class IterationSpecificationTypeDto implements Serializable{
 
         } catch (SchemaException e){
             //TODO - how can we show this error to user?
-            LoggingUtils.logException(LOGGER, "Could not load expressions from mapping.", e, e.getStackTrace());
+            LoggingUtils.logUnexpectedException(LOGGER, "Could not load expressions from mapping.", e, e.getStackTrace());
             expression = e.getMessage();
         }
     }

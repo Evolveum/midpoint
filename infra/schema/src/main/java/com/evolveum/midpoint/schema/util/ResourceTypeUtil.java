@@ -60,13 +60,13 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.TestConnecti
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.UpdateCapabilityType;
 import com.evolveum.prism.xml.ns._public.types_3.SchemaDefinitionType;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
 
 import javax.xml.namespace.QName;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 
 /**
  * Methods that would belong to the ResourceType class but cannot go there
@@ -206,6 +206,7 @@ public class ResourceTypeUtil {
 	/**
 	 * Assumes that native capabilities are already cached. 
 	 */
+	@Nullable
 	public static <T extends CapabilityType> T getEffectiveCapability(ResourceType resource, Class<T> capabilityClass) {
 		return getEffectiveCapability(resource, null, capabilityClass);
 	}
@@ -258,35 +259,41 @@ public class ResourceTypeUtil {
 	public static <T extends CapabilityType> boolean hasEffectiveCapability(ResourceType resource, Class<T> capabilityClass) {
 		return getEffectiveCapability(resource, capabilityClass) != null;
 	}
-	
+
+	/**
+	 * Assumes that native capabilities are already cached.
+	 */
+	public static List<Object> getAllCapabilities(ResourceType resource) throws SchemaException {
+		return getEffectiveCapabilities(resource, true);
+	}
+
 	/**
 	 * Assumes that native capabilities are already cached. 
 	 */
 	public static List<Object> getEffectiveCapabilities(ResourceType resource) throws SchemaException {
+		return getEffectiveCapabilities(resource, false);
+	}
+
+	private static List<Object> getEffectiveCapabilities(ResourceType resource, boolean includeDisabled) throws SchemaException {
+		List<Object> rv = new ArrayList<>();
 		if (resource.getCapabilities() == null) {
-			return new ArrayList<Object>();
+			return rv;
 		}
-		if (resource.getCapabilities().getConfigured() != null) {
-			List<Object> effectiveCapabilities = new ArrayList<Object>();
-			for (Object configuredCapability: resource.getCapabilities().getConfigured().getAny()) {
-				if (CapabilityUtil.isCapabilityEnabled(configuredCapability)) {
-					effectiveCapabilities.add(configuredCapability);
+		List<Object> configuredCaps = resource.getCapabilities().getConfigured() != null ? resource.getCapabilities().getConfigured().getAny() : Collections.emptyList();
+		List<Object> nativeCaps = resource.getCapabilities().getNative() != null ? resource.getCapabilities().getNative().getAny() : Collections.emptyList();
+		for (Object configuredCapability : configuredCaps) {
+			if (includeDisabled || CapabilityUtil.isCapabilityEnabled(configuredCapability)) {
+				rv.add(configuredCapability);
+			}
+		}
+		for (Object nativeCapability: nativeCaps) {
+			if (!CapabilityUtil.containsCapabilityWithSameElementName(configuredCaps, nativeCapability)) {
+				if (includeDisabled || CapabilityUtil.isCapabilityEnabled(nativeCapability)) {
+					rv.add(nativeCapability);
 				}
 			}
-			if (resource.getCapabilities().getNative() != null) {
-				for (Object nativeCapability: resource.getCapabilities().getNative().getAny()) {
-					if (CapabilityUtil.isCapabilityEnabled(nativeCapability) && 
-							!CapabilityUtil.containsCapabilityWithSameElementName(resource.getCapabilities().getConfigured().getAny(), nativeCapability)) {
-						effectiveCapabilities.add(nativeCapability);
-					}
-				}
-			}
-			return effectiveCapabilities;
-		} else if (resource.getCapabilities().getNative() != null) {
-			return resource.getCapabilities().getNative().getAny();
-		} else {
-			return new ArrayList<Object>();
-		}		
+		}
+		return rv;
 	}
 
 	public static boolean isActivationCapabilityEnabled(ResourceType resource) {
@@ -392,16 +399,7 @@ public class ResourceTypeUtil {
 			activationCapability = CapabilityUtil.getCapability(resource.getCapabilities().getNative().getAny(),
 					ActivationCapabilityType.class);
 		}
-		if (activationCapability == null) {
-			return false;
-		}
-		
-		ActivationStatusCapabilityType status = activationCapability.getStatus();
-		if (status == null) {
-			return false;
-		}
-		
-		return true;
+		return CapabilityUtil.getEffectiveActivationStatus(activationCapability) != null;
 	}
 	
 	public static boolean hasResourceNativeActivationLockoutCapability(ResourceType resource) {
@@ -412,16 +410,7 @@ public class ResourceTypeUtil {
 			activationCapability = CapabilityUtil.getCapability(resource.getCapabilities().getNative().getAny(),
 					ActivationCapabilityType.class);
 		}
-		if (activationCapability == null) {
-			return false;
-		}
-		
-		ActivationLockoutStatusCapabilityType lockoutStatus = activationCapability.getLockoutStatus();
-		if (lockoutStatus == null) {
-			return false;
-		}
-		
-		return true;
+		return CapabilityUtil.getEffectiveActivationLockoutStatus(activationCapability) != null;
 	}
 	
 	public static boolean hasResourceConfiguredActivationCapability(ResourceType resource) {
@@ -580,4 +569,15 @@ public class ResourceTypeUtil {
 		return resource.getBusiness().getApproverRef();
 	}
 
+	@NotNull
+	public static Collection<Class<? extends CapabilityType>> getNativeCapabilityClasses(ResourceType resource) {
+		Set<Class<? extends CapabilityType>> rv = new HashSet<>();
+		if (resource.getCapabilities() == null || resource.getCapabilities().getNative() == null) {
+			return rv;
+		}
+		for (Object o : resource.getCapabilities().getNative().getAny()) {
+			rv.add(CapabilityUtil.asCapabilityType(o).getClass());
+		}
+		return rv;
+	}
 }

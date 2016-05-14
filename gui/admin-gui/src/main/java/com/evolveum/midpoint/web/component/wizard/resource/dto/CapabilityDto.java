@@ -25,72 +25,20 @@ import java.io.Serializable;
  */
 public class CapabilityDto<T extends CapabilityType> implements Serializable {
 
-    public static final String F_NATIVE_CAPABILITY = "nativeCapability";
-    public static final String F_VALUE = "value";
-    public static final String F_CAPABILITY = "capability";
-    public static final String F_SELECTED = "selected";
+    public static final String F_DISPLAY_NAME = "displayName";
+	public static final String F_SELECTED = "selected";
 
-    private boolean selected = false;
-    private boolean nativeCapability;
-    private String value;
-    private String tooltipKey;
+    private String displayName;
+    private String resourceKey;
     private T capability;
+	private boolean selected;								// used only when adding capabilities (multi-select dialog)
+	private boolean amongNativeCapabilities;
 
-    public CapabilityDto(T capability, String value, boolean nativeCapability) {
+	public CapabilityDto(T capability, boolean amongNativeCapabilities) {
         this.capability = capability;
-        this.value = value;
-        this.nativeCapability = nativeCapability;
-        this.tooltipKey = determineTooltipKey();
-    }
-
-    private String determineTooltipKey(){
-        if(capability != null){
-            if(capability instanceof ReadCapabilityType){
-                return "CapabilityStep.capability.read.tooltip";
-            } else if (capability instanceof UpdateCapabilityType){
-                return "CapabilityStep.capability.update.tooltip";
-            } else if (capability instanceof CreateCapabilityType){
-                return "CapabilityStep.capability.create.tooltip";
-            } else if (capability instanceof DeleteCapabilityType){
-                return "CapabilityStep.capability.delete.tooltip";
-            } else if (capability instanceof LiveSyncCapabilityType){
-                return "CapabilityStep.capability.liveSync.tooltip";
-            } else if (capability instanceof TestConnectionCapabilityType){
-                return "CapabilityStep.capability.testConnection.tooltip";
-            } else if (capability instanceof ActivationCapabilityType){
-                return "CapabilityStep.capability.activation.tooltip";
-            } else if (capability instanceof CredentialsCapabilityType){
-                return "CapabilityStep.capability.credentials.tooltip";
-            } else if (capability instanceof ScriptCapabilityType){
-                return "CapabilityStep.capability.script.tooltip";
-            }
-        }
-
-        return null;
-    }
-
-    public boolean isNativeCapability() {
-        return nativeCapability;
-    }
-
-    public void setNativeCapability(boolean nativeCapability) {
-        this.nativeCapability = nativeCapability;
-    }
-
-    public String getValue() {
-        return value;
-    }
-
-    public void setValue(String value) {
-        this.value = value;
-    }
-
-    public T getCapability() {
-        return capability;
-    }
-
-    public void setCapability(T capability) {
-        this.capability = capability;
+        this.displayName = Capability.getDisplayNameForClass(capability.getClass());
+		this.resourceKey = Capability.getResourceKeyForClass(capability.getClass());
+		this.amongNativeCapabilities = amongNativeCapabilities;
     }
 
     public boolean isSelected() {
@@ -101,13 +49,33 @@ public class CapabilityDto<T extends CapabilityType> implements Serializable {
         this.selected = selected;
     }
 
-    public String getTooltipKey() {
-        return tooltipKey;
+	public String getValue() {
+		return getDisplayName();
+	}
+
+    public String getDisplayName() {
+        return displayName;
     }
 
-    public void setTooltipKey(String tooltipKey) {
-        this.tooltipKey = tooltipKey;
+    public void setDisplayName(String displayName) {
+        this.displayName = displayName;
     }
+
+    public T getCapability() {
+        return capability;
+    }
+
+    public void setCapability(T capability) {
+        this.capability = capability;
+    }
+
+    public String getResourceKey() {
+        return resourceKey;
+    }
+
+	public String getTooltipKey() {
+		return resourceKey != null ? "CapabilityStep.capability."+resourceKey+".tooltip" : null;
+	}
 
     @Override
     public boolean equals(Object o) {
@@ -116,22 +84,29 @@ public class CapabilityDto<T extends CapabilityType> implements Serializable {
 
         CapabilityDto that = (CapabilityDto) o;
 
-        if (nativeCapability != that.nativeCapability) return false;
         if (selected != that.selected) return false;
         if (capability != null ? !capability.equals(that.capability) : that.capability != null) return false;
-        if (tooltipKey != null ? !tooltipKey.equals(that.tooltipKey) : that.tooltipKey != null) return false;
-        if (value != null ? !value.equals(that.value) : that.value != null) return false;
+        if (resourceKey != null ? !resourceKey.equals(that.resourceKey) : that.resourceKey != null) return false;
+        if (displayName != null ? !displayName.equals(that.displayName) : that.displayName != null) return false;
 
         return true;
     }
 
     @Override
     public int hashCode() {
-        int result = (selected ? 1 : 0);
-        result = 31 * result + (nativeCapability ? 1 : 0);
-        result = 31 * result + (value != null ? value.hashCode() : 0);
-        result = 31 * result + (tooltipKey != null ? tooltipKey.hashCode() : 0);
+        int result = 1;
+        result = 31 * result + (selected ? 1 : 0);
+        result = 31 * result + (displayName != null ? displayName.hashCode() : 0);
+        result = 31 * result + (resourceKey != null ? resourceKey.hashCode() : 0);
         result = 31 * result + (capability != null ? capability.hashCode() : 0);
         return result;
     }
+
+	public boolean isAmongNativeCapabilities() {
+		return amongNativeCapabilities;
+	}
+
+	public void setAmongNativeCapabilities(boolean amongNativeCapabilities) {
+		this.amongNativeCapabilities = amongNativeCapabilities;
+	}
 }

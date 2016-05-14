@@ -19,12 +19,10 @@ package com.evolveum.midpoint.web.component.prism;
 import com.evolveum.midpoint.common.refinery.CompositeRefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedAssociationDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
-import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.CapabilityUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -309,7 +307,7 @@ public class ContainerWrapperFactory {
                         }
 
                         // capability handling for activation properties
-                        if (isShadowActivation(cWrapper) && !hasCapability(cWrapper, def)) {
+                        if (isShadowActivation(cWrapper) && !hasActivationCapability(cWrapper, def)) {
                             continue;
                         }
 
@@ -409,22 +407,22 @@ public class ContainerWrapperFactory {
         return true;
     }
 
-    private boolean hasCapability(ContainerWrapper cWrapper, PrismPropertyDefinition def) {
+    private boolean hasActivationCapability(ContainerWrapper cWrapper, PrismPropertyDefinition def) {
         ObjectWrapper oWrapper = cWrapper.getObject();
         ShadowType shadow = (ShadowType) oWrapper.getObject().asObjectable();
 
         ActivationCapabilityType cap = ResourceTypeUtil.getEffectiveCapability(shadow.getResource(),
                 ActivationCapabilityType.class);
 
-        if (ActivationType.F_VALID_FROM.equals(def.getName()) && cap.getValidFrom() == null) {
+        if (ActivationType.F_VALID_FROM.equals(def.getName()) && CapabilityUtil.getEffectiveActivationValidFrom(cap) == null) {
             return false;
         }
 
-        if (ActivationType.F_VALID_TO.equals(def.getName()) && cap.getValidTo() == null) {
+        if (ActivationType.F_VALID_TO.equals(def.getName()) && CapabilityUtil.getEffectiveActivationValidTo(cap) == null) {
             return false;
         }
 
-        if (ActivationType.F_ADMINISTRATIVE_STATUS.equals(def.getName()) && cap.getStatus() == null) {
+        if (ActivationType.F_ADMINISTRATIVE_STATUS.equals(def.getName()) && CapabilityUtil.getEffectiveActivationStatus(cap) == null) {
             return false;
         }
 

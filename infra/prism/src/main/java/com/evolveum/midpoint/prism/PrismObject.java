@@ -223,10 +223,12 @@ public class PrismObject<O extends Objectable> extends PrismContainer<O> {
 		return (PrismObjectDefinition<O>) super.deepCloneDefinition(ultraDeep);
 	}
 
+	@NotNull
 	public ObjectDelta<O> diff(PrismObject<O> other) {
 		return diff(other, true, false);
 	}
 
+	@NotNull
 	public ObjectDelta<O> diff(PrismObject<O> other, boolean ignoreMetadata, boolean isLiteral) {
 		if (other == null) {
 			ObjectDelta<O> objectDelta = new ObjectDelta<O>(getCompileTimeClass(), ChangeType.DELETE, getPrismContext());

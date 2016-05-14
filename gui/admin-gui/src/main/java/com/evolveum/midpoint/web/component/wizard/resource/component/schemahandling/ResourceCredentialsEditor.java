@@ -23,6 +23,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -219,9 +220,9 @@ public class ResourceCredentialsEditor extends BasePanel<ResourceCredentialsDefi
         try{
             policies = getPageBase().getModelService().searchObjects(ValuePolicyType.class, new ObjectQuery(), null, task, result);
             result.recomputeStatus();
-        } catch (Exception e){
+        } catch (CommonException |RuntimeException e) {
             result.recordFatalError("Couldn't load password policies.", e);
-            LoggingUtils.logException(LOGGER, "Couldn't load password policies", e);
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load password policies", e);
         }
 
         // TODO - show error somehow

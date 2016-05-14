@@ -33,6 +33,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.common.refinery.RefinedAssociationDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.repo.cache.RepositoryCache;
+import com.evolveum.midpoint.schema.CapabilityUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AttributeFetchStrategyType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.AddRemoveAttributeValuesCapabilityType;
 
@@ -1239,7 +1240,7 @@ public class ResourceObjectConverter {
 		PropertyDelta<XMLGregorianCalendar> validFromPropertyDelta = PropertyDelta.findPropertyDelta(objectChange,
 				SchemaConstants.PATH_ACTIVATION_VALID_FROM);
 		if (validFromPropertyDelta != null) {
-			if (activationCapabilityType == null || activationCapabilityType.getValidFrom() == null) {
+			if (CapabilityUtil.getEffectiveActivationValidFrom(activationCapabilityType) == null) {
 				throw new SchemaException("Attempt to change activation validFrom on "+resource+" which does not have the capability");
 			}
 			XMLGregorianCalendar xmlCal = validFromPropertyDelta.getPropertyNewMatchingPath().getRealValue();
@@ -1251,7 +1252,7 @@ public class ResourceObjectConverter {
 		PropertyDelta<XMLGregorianCalendar> validToPropertyDelta = PropertyDelta.findPropertyDelta(objectChange,
 				SchemaConstants.PATH_ACTIVATION_VALID_TO);
 		if (validToPropertyDelta != null) {
-			if (activationCapabilityType == null || activationCapabilityType.getValidTo() == null) {
+			if (CapabilityUtil.getEffectiveActivationValidTo(activationCapabilityType) == null) {
 				throw new SchemaException("Attempt to change activation validTo on "+resource+" which does not have the capability");
 			}
 			XMLGregorianCalendar xmlCal = validToPropertyDelta.getPropertyNewMatchingPath().getRealValue();
@@ -1690,33 +1691,17 @@ public class ResourceObjectConverter {
 		return activationType;
 	}
 
-	private static ActivationStatusCapabilityType getStatusCapability(ResourceType resource, ActivationCapabilityType activationCapability) {
-		ActivationStatusCapabilityType statusCapabilityType = activationCapability.getStatus();
-		if (statusCapabilityType != null) {
-			return statusCapabilityType;
-		}
-		return null;
-	}
-	
-	private static ActivationLockoutStatusCapabilityType getLockoutStatusCapability(ResourceType resource, ActivationCapabilityType activationCapability) {
-		ActivationLockoutStatusCapabilityType statusCapabilityType = activationCapability.getLockoutStatus();
-		if (statusCapabilityType != null) {
-			return statusCapabilityType;
-		}
-		return null;
-	}
-	
 	private static void converFromSimulatedActivationAdministrativeStatus(ActivationType activationType, ActivationCapabilityType activationCapability,
 			ResourceType resource, PrismObject<ShadowType> shadow, OperationResult parentResult) {
 		
-		ActivationStatusCapabilityType statusCapabilityType = getStatusCapability(resource, activationCapability);
+		ActivationStatusCapabilityType statusCapabilityType = CapabilityUtil.getEffectiveActivationStatus(activationCapability);
 		if (statusCapabilityType == null) {
 			return;
 		}
 		
 		ResourceAttributeContainer attributesContainer = ShadowUtil.getAttributesContainer(shadow);		
 		ResourceAttribute<?> activationProperty = null;
-		if (statusCapabilityType != null && statusCapabilityType.getAttribute() != null) {
+		if (statusCapabilityType.getAttribute() != null) {
 			activationProperty = attributesContainer.findAttribute(statusCapabilityType.getAttribute());
 		}
 		
@@ -1811,14 +1796,14 @@ public class ResourceObjectConverter {
 	private static void converFromSimulatedActivationLockoutStatus(ActivationType activationType, ActivationCapabilityType activationCapability,
 			ResourceType resource, PrismObject<ShadowType> shadow, OperationResult parentResult) {
 		
-		ActivationLockoutStatusCapabilityType statusCapabilityType = getLockoutStatusCapability(resource, activationCapability);
+		ActivationLockoutStatusCapabilityType statusCapabilityType = CapabilityUtil.getEffectiveActivationLockoutStatus(activationCapability);
 		if (statusCapabilityType == null) {
 			return;
 		}
 		
 		ResourceAttributeContainer attributesContainer = ShadowUtil.getAttributesContainer(shadow);		
 		ResourceAttribute<?> activationProperty = null;
-		if (statusCapabilityType != null && statusCapabilityType.getAttribute() != null) {
+		if (statusCapabilityType.getAttribute() != null) {
 			activationProperty = attributesContainer.findAttribute(statusCapabilityType.getAttribute());
 		}
 		
@@ -1921,7 +1906,7 @@ public class ResourceObjectConverter {
 			return null;
 		}
 
-		ActivationStatusCapabilityType capActStatus = getStatusCapability(ctx.getResource(), activationCapability);
+		ActivationStatusCapabilityType capActStatus = CapabilityUtil.getEffectiveActivationStatus(activationCapability);
 		if (capActStatus == null) {
 			result.recordWarning("Resource " + ctx.getResource()
 					+ " does not have native or simulated activation status capability. Processing of activation for "+ shadow +" was skipped");
@@ -2047,7 +2032,7 @@ public class ResourceObjectConverter {
 			return null;
 		}
 
-		ActivationLockoutStatusCapabilityType capActStatus = getLockoutStatusCapability(ctx.getResource(), activationCapability);
+		ActivationLockoutStatusCapabilityType capActStatus = CapabilityUtil.getEffectiveActivationLockoutStatus(activationCapability);
 		if (capActStatus == null) {
 			result.recordWarning("Resource " + ctx.getResource()
 					+ " does not have native or simulated activation lockout capability. Processing of activation for "+ shadow +" was skipped");

@@ -25,6 +25,7 @@ import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -431,8 +432,8 @@ public class ResourceAttributeEditor extends BasePanel<ResourceAttributeDefiniti
 
             try {
                 return ResourceSchema.parse(xsdSchema, resource.toString(), getPageBase().getPrismContext());
-            } catch (Exception e) {
-                LoggingUtils.logException(LOGGER, "Couldn't parse resource schema.", e);
+            } catch (SchemaException|RuntimeException e) {
+                LoggingUtils.logUnexpectedException(LOGGER, "Couldn't parse resource schema.", e);
                 getSession().error(getString("ResourceAttributeEditor.message.cantParseSchema") + " " + e.getMessage());
 
                 throw new RestartResponseException(PageResources.class);

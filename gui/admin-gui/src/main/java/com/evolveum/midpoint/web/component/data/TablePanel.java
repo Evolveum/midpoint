@@ -133,8 +133,8 @@ public class TablePanel<T> extends Panel implements Table {
     }
 
     @Override
-    public DataTable getDataTable() {
-        return (DataTable) get(ID_TABLE);
+    public DataTable<T, ?> getDataTable() {
+        return (DataTable<T, ?>) get(ID_TABLE);
     }
 
     public NavigatorPanel getNavigatorPanel() {

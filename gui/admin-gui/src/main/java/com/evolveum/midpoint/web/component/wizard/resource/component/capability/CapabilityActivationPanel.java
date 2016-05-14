@@ -20,6 +20,7 @@ import com.evolveum.midpoint.web.component.form.multivalue.MultiValueTextPanel;
 import com.evolveum.midpoint.web.component.input.QNameChoiceRenderer;
 import com.evolveum.midpoint.web.component.wizard.resource.dto.CapabilityDto;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationCapabilityType;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.CheckBox;
 import org.apache.wicket.markup.html.form.DropDownChoice;
@@ -57,7 +58,7 @@ public class CapabilityActivationPanel extends BasePanel {
     private static final String ID_T_V_TO_ENABLED = "validToEnabledTooltip";
     private static final String ID_T_V_TO_RETURN = "validToReturnedTooltip";
 
-    public CapabilityActivationPanel(String componentId, IModel<CapabilityDto> model){
+    public CapabilityActivationPanel(String componentId, IModel<CapabilityDto<ActivationCapabilityType>> model){
         super(componentId, model);
 		initLayout();
     }

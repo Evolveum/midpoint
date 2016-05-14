@@ -655,7 +655,7 @@ public class SynchronizationStep extends WizardStep {
 			syncDtoModel.reset();
 
         } catch (CommonException|RuntimeException e) {
-            LoggingUtils.logException(LOGGER, "Couldn't save resource synchronization.", e);
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't save resource synchronization.", e);
             result.recordFatalError(getString("SynchronizationStep.message.cantSave", e));
         } finally {
             result.computeStatusIfUnknown();

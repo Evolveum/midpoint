@@ -17,8 +17,12 @@
 package com.evolveum.midpoint.web.component.wizard.resource.component.capability;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.web.component.wizard.resource.dto.Capability;
 import com.evolveum.midpoint.web.component.wizard.resource.dto.CapabilityDto;
+import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnChangeAjaxFormUpdatingBehavior;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.*;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.CheckBox;
 import org.apache.wicket.model.IModel;
@@ -27,41 +31,35 @@ import org.apache.wicket.model.PropertyModel;
 /**
  *  @author shood
  * */
-public class CapabilityValuePanel extends BasePanel {
+public class CapabilityValuePanel extends BasePanel<CapabilityDto<CapabilityType>> {
 
     private static final String ID_LABEL = "label";
     private static final String ID_ENABLED = "enabled";
 
-    public CapabilityValuePanel(String componentId, IModel<CapabilityDto> model){
+	private final WebMarkupContainer capabilityTable;
+
+    public CapabilityValuePanel(String componentId, IModel<CapabilityDto<CapabilityType>> model, WebMarkupContainer capabilityTable) {
         super(componentId, model);
+		this.capabilityTable = capabilityTable;
 		initLayout();
     }
 
     protected void initLayout() {
-
         Label label = new Label(ID_LABEL, createStringResource(getCapabilityLabelKey()));
         add(label);
 
         CheckBox enabled = new CheckBox(ID_ENABLED, new PropertyModel<Boolean>(getModel(), "capability.enabled"));
+		enabled.add(new EmptyOnChangeAjaxFormUpdatingBehavior() {
+			@Override
+			protected void onUpdate(AjaxRequestTarget target) {
+				target.add(capabilityTable);
+			}
+		});
         add(enabled);
     }
 
     private String getCapabilityLabelKey(){
-        CapabilityType capability = ((CapabilityDto)getModel().getObject()).getCapability();
-
-        if(capability instanceof ReadCapabilityType){
-            return "capabilityValuePanel.label.capability.read";
-        } else if(capability instanceof UpdateCapabilityType){
-            return "capabilityValuePanel.label.capability.update";
-        } else if(capability instanceof CreateCapabilityType){
-            return "capabilityValuePanel.label.capability.create";
-        } else if(capability instanceof DeleteCapabilityType){
-            return "capabilityValuePanel.label.capability.delete";
-        } else if(capability instanceof LiveSyncCapabilityType){
-            return "capabilityValuePanel.label.capability.liveSync";
-        } else if(capability instanceof TestConnectionCapabilityType){
-            return "capabilityValuePanel.label.capability.testConnection";
-        }
-        return null;
+        CapabilityType capability = getModelObject().getCapability();
+		return "capabilityValuePanel.label.capability." + Capability.getResourceKeyForClass(capability.getClass());
     }
 }

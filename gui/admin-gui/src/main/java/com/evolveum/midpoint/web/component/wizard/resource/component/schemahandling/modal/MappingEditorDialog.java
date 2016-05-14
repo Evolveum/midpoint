@@ -21,6 +21,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.evolveum.midpoint.util.exception.CommonException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
@@ -536,9 +537,9 @@ public class MappingEditorDialog extends ModalWindow {
 			policies = getPageBase().getModelService().searchObjects(ValuePolicyType.class, new ObjectQuery(), null,
 					task, result);
 			result.recomputeStatus();
-		} catch (Exception e) {
+		} catch (CommonException|RuntimeException e) {
 			result.recordFatalError("Couldn't load password policies.", e);
-			LoggingUtils.logException(LOGGER, "Couldn't load password policies", e);
+			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load password policies", e);
 		}
 
 		// TODO - show error somehow
@@ -588,8 +589,8 @@ public class MappingEditorDialog extends ModalWindow {
 				inputModel = new PropertyModel<>(model, MappingTypeDto.F_MAPPING);
 			}
 
-		} catch (Exception e) {
-			LoggingUtils.logException(LOGGER, "Couldn't save mapping.", e, e.getStackTrace());
+		} catch (CommonException|RuntimeException e) {
+			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't save mapping.", e, e.getStackTrace());
 			error(getString("MappingEditorDialog.message.cantSave") + e);
 		}
 

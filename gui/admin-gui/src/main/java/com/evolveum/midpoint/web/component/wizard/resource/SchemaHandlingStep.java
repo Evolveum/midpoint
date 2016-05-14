@@ -744,7 +744,7 @@ public class SchemaHandlingStep extends WizardStep {
 			modelService.executeChanges(deltas, null, parentPage.createSimpleTask(OPERATION_SAVE_SCHEMA_HANDLING), result);
 			parentPage.resetModels();
         } catch (RuntimeException|CommonException e) {
-            LoggingUtils.logException(LOGGER, "Couldn't save schema handling", e);
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't save schema handling", e);
             result.recordFatalError(getString("SchemaHandlingStep.message.saveError", e));
         } finally {
             result.computeStatusIfUnknown();

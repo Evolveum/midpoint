@@ -4719,7 +4719,7 @@
                 a closed set. Resource may also specify additional capabilities. If the code that is processing
                 capabilities encounters unknown capability it must ignore it.
                 
-                Each capability should have boolean propery "enabled" whith true default value. This is used in
+                Each capability should have boolean propery "enabled" with true default value. This is used in
                 the configured capabilities section to disable individual capabilities.
                 
                 This part defines native and configured capabilities. The effective capabilities of the resource

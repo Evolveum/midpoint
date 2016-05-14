@@ -35,6 +35,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -403,8 +404,8 @@ public class NameStep extends WizardStep {
         try {
             ModelService model = page.getModelService();
             model.discoverConnectors(host, task, result);
-        } catch (Exception ex) {
-            LoggingUtils.logException(LOGGER, "Couldn't discover connectors", ex);
+        } catch (CommonException|RuntimeException ex) {
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't discover connectors", ex);
         } finally {
             result.recomputeStatus();
         }
