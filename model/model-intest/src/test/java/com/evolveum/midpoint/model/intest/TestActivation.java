@@ -1760,7 +1760,6 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 	/**
 	 * Make sure that recompute does not destroy anything.
 	 */
-	@Test
     public <F extends FocusType> void test5X5Recompute(final String TEST_NAME, Class<F> type, String oid) throws Exception {
         TestUtil.displayTestTile(this, TEST_NAME);
 
