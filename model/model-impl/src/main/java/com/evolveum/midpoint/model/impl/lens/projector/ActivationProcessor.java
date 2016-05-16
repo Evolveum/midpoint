@@ -39,6 +39,7 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.CapabilityUtil;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -264,10 +265,10 @@ public class ActivationProcessor {
         	return;
         }
 
-        ActivationStatusCapabilityType capStatus = capActivation.getStatus();
-        ActivationValidityCapabilityType capValidFrom = capActivation.getValidFrom();
-        ActivationValidityCapabilityType capValidTo = capActivation.getValidTo();
-        ActivationLockoutStatusCapabilityType capLockoutStatus = capActivation.getLockoutStatus();
+        ActivationStatusCapabilityType capStatus = CapabilityUtil.getEffectiveActivationStatus(capActivation);
+        ActivationValidityCapabilityType capValidFrom = CapabilityUtil.getEffectiveActivationValidFrom(capActivation);
+        ActivationValidityCapabilityType capValidTo = CapabilityUtil.getEffectiveActivationValidTo(capActivation);
+        ActivationLockoutStatusCapabilityType capLockoutStatus = CapabilityUtil.getEffectiveActivationLockoutStatus(capActivation);
         
         if (capStatus != null) {
 	    	evaluateActivationMapping(context, accCtx,
@@ -405,9 +406,9 @@ public class ActivationProcessor {
         	return;
         }
 
-        ActivationStatusCapabilityType capStatus = capActivation.getStatus();
-        ActivationValidityCapabilityType capValidFrom = capActivation.getValidFrom();
-        ActivationValidityCapabilityType capValidTo = capActivation.getValidTo();
+        ActivationStatusCapabilityType capStatus = CapabilityUtil.getEffectiveActivationStatus(capActivation);
+        ActivationValidityCapabilityType capValidFrom = CapabilityUtil.getEffectiveActivationValidFrom(capActivation);
+        ActivationValidityCapabilityType capValidTo = CapabilityUtil.getEffectiveActivationValidTo(capActivation);
         
         if (capStatus != null) {
         	
@@ -584,8 +585,8 @@ public class ActivationProcessor {
 		        ItemDeltaItem<PrismPropertyValue<T>,PrismPropertyDefinition<T>> sourceIdi = context.getFocusContext().getObjectDeltaObject().findIdi(focusPropertyPath);
 		        
 		        if (capActivation != null && focusPropertyPath.equals(SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS)) {
-			        ActivationValidityCapabilityType capValidFrom = capActivation.getValidFrom();
-			        ActivationValidityCapabilityType capValidTo = capActivation.getValidTo();
+			        ActivationValidityCapabilityType capValidFrom = CapabilityUtil.getEffectiveActivationValidFrom(capActivation);
+			        ActivationValidityCapabilityType capValidTo = CapabilityUtil.getEffectiveActivationValidTo(capActivation);
 			        
 			        // Source: computedShadowStatus
 			        ItemDeltaItem<PrismPropertyValue<ActivationStatusType>,PrismPropertyDefinition<ActivationStatusType>> computedIdi;

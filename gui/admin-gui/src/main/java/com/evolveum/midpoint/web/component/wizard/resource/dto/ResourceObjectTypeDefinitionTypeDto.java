@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.web.component.wizard.resource.dto;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.Serializable;
 
@@ -27,20 +28,14 @@ public class ResourceObjectTypeDefinitionTypeDto implements Serializable{
 
     public static final String F_OBJECT_TYPE = "objectType";
 
-    private ResourceObjectTypeDefinitionType objectType;
+    @NotNull private final ResourceObjectTypeDefinitionType objectType;
 
-    public ResourceObjectTypeDefinitionTypeDto(){}
-
-    public ResourceObjectTypeDefinitionTypeDto(ResourceObjectTypeDefinitionType objectType){
+    public ResourceObjectTypeDefinitionTypeDto(@NotNull ResourceObjectTypeDefinitionType objectType){
         this.objectType = objectType;
     }
 
     public ResourceObjectTypeDefinitionType getObjectType() {
         return objectType;
-    }
-
-    public void setObjectType(ResourceObjectTypeDefinitionType objectType) {
-        this.objectType = objectType;
     }
 
     @Override

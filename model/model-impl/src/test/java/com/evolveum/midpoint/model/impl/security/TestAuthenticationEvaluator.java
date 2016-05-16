@@ -911,7 +911,7 @@ public class TestAuthenticationEvaluator extends AbstractInternalModelIntegratio
 		PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
 		display("user after", userAfter);
 		
-		assertEncryptedPassword(userAfter, USER_GUYBRUSH_PASSWORD);
+		assertEncryptedUserPassword(userAfter, USER_GUYBRUSH_PASSWORD);
 		assertPasswordMetadata(userAfter, false, startTs, endTs, null, SchemaConstants.CHANNEL_GUI_USER_URI);
 		
 		assertFailedLogins(userAfter, 0);

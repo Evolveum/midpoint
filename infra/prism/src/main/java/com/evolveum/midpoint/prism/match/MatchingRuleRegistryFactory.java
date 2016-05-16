@@ -34,7 +34,8 @@ public class MatchingRuleRegistryFactory {
 		registry.registerMatchingRule(new DistinguishedNameMatchingRule());
 		registry.registerMatchingRule(new XmlMatchingRule());
 		registry.registerMatchingRule(new UuidMatchingRule());
-		
+		registry.registerMatchingRule(new DefaultMatchingRule<>());
+
 		return registry;
 	}
 

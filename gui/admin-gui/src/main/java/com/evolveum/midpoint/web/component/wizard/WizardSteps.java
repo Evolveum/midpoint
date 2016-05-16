@@ -16,11 +16,10 @@
 
 package com.evolveum.midpoint.web.component.wizard;
 
+import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.component.wizard.resource.component.WizardHelpDialog;
-
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
@@ -39,7 +38,7 @@ import java.util.List;
 /**
  * @author lazyman
  */
-public class WizardSteps extends SimplePanel<List<WizardStepDto>> {
+public class WizardSteps extends BasePanel<List<WizardStepDto>> {
 
     private static final String ID_LINK_REPEATER = "linkRepeater";
     private static final String ID_LINK = "link";
@@ -49,9 +48,9 @@ public class WizardSteps extends SimplePanel<List<WizardStepDto>> {
 
     public WizardSteps(String id, IModel<List<WizardStepDto>> model) {
         super(id, model);
+		initLayout();
     }
 
-    @Override
     protected void initLayout() {
         ListView<WizardStepDto> linkContainer = new ListView<WizardStepDto>(ID_LINK_REPEATER, getModel()) {
 

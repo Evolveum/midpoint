@@ -74,6 +74,10 @@
 			<groupId>net.sf.jasperreports</groupId>
 			<artifactId>jasperreports</artifactId>
 		</dependency>
+        <dependency>
+            <groupId>org.jetbrains</groupId>
+            <artifactId>annotations-java5</artifactId>
+        </dependency>
         <!--<dependency>-->
             <!--<groupId>org.apache.cxf</groupId>-->
             <!--<artifactId>cxf-rt-transports-http-jetty</artifactId>-->

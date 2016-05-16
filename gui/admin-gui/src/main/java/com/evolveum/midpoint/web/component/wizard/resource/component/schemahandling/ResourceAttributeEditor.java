@@ -15,6 +15,7 @@
  */
 package com.evolveum.midpoint.web.component.wizard.resource.component.schemahandling;
 
+import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -24,14 +25,13 @@ import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.form.multivalue.MultiValueTextEditPanel;
 import com.evolveum.midpoint.web.component.form.multivalue.MultiValueTextPanel;
-import com.evolveum.midpoint.web.component.input.QNameChoiceRenderer;
 import com.evolveum.midpoint.web.component.input.QNameEditorPanel;
-import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.component.wizard.WizardUtil;
 import com.evolveum.midpoint.web.component.wizard.resource.component.schemahandling.modal.LimitationsEditorDialog;
@@ -40,8 +40,8 @@ import com.evolveum.midpoint.web.component.wizard.resource.dto.MappingTypeDto;
 import com.evolveum.midpoint.web.page.admin.resources.PageResources;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
+import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
@@ -58,13 +58,15 @@ import org.apache.wicket.model.PropertyModel;
 import org.w3c.dom.Element;
 
 import javax.xml.namespace.QName;
-
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 
 /**
  *  @author shood
  * */
-public class ResourceAttributeEditor extends SimplePanel<ResourceAttributeDefinitionType>{
+public class ResourceAttributeEditor extends BasePanel<ResourceAttributeDefinitionType> {
 
     private static final Trace LOGGER = TraceManager.getTrace(ResourceAttributeEditor.class);
 
@@ -81,6 +83,7 @@ public class ResourceAttributeEditor extends SimplePanel<ResourceAttributeDefini
     private static final String ID_INTOLERANT_VP = "intolerantValuePattern";
     private static final String ID_FETCH_STRATEGY = "fetchStrategy";
     private static final String ID_MATCHING_RULE = "matchingRule";
+    private static final String ID_UNKNOWN_MATCHING_RULE = "unknownMatchingRule";
     private static final String ID_INBOUND = "inbound";
     private static final String ID_OUTBOUND_LABEL = "outboundLabel";
     private static final String ID_BUTTON_OUTBOUND = "buttonOutbound";
@@ -111,9 +114,9 @@ public class ResourceAttributeEditor extends SimplePanel<ResourceAttributeDefini
 
         this.resource = resource;
         this.objectType = objectType;
+		initLayout();
     }
 
-    @Override
     protected void initLayout(){
         Label label = new Label(ID_LABEL, new AbstractReadOnlyModel<String>() {
 
@@ -174,7 +177,7 @@ public class ResourceAttributeEditor extends SimplePanel<ResourceAttributeDefini
                 }, new IChoiceRenderer<ItemPathType>() {
                 	@Override
                 			public ItemPathType getObject(String id, IModel<? extends List<? extends ItemPathType>> choices) {
-                		return choices.getObject().get(Integer.parseInt(id));
+                		return StringUtils.isNotBlank(id) ? choices.getObject().get(Integer.parseInt(id)) : null;
                 			}
 
             @Override
@@ -252,17 +255,7 @@ public class ResourceAttributeEditor extends SimplePanel<ResourceAttributeDefini
         fetchStrategy.setNullValid(true);
         add(fetchStrategy);
 
-        DropDownChoice matchingRule = new DropDownChoice<>(ID_MATCHING_RULE,
-                new PropertyModel<QName>(getModel(), "matchingRule"),
-                new AbstractReadOnlyModel<List<QName>>() {
-
-                    @Override
-                    public List<QName> getObject() {
-                        return WebComponentUtil.getMatchingRuleList();
-                    }
-                }, new QNameChoiceRenderer());
-        matchingRule.setNullValid(true);
-        add(matchingRule);
+		AttributeEditorUtils.addMatchingRuleFields(this);
 
         TextField outboundLabel = new TextField<>(ID_OUTBOUND_LABEL,
                 new AbstractReadOnlyModel<String>() {
@@ -374,7 +367,7 @@ public class ResourceAttributeEditor extends SimplePanel<ResourceAttributeDefini
         initModals();
     }
 
-    private void initModals(){
+    private void initModals() {
         ModalWindow limitationsEditor = new LimitationsEditorDialog(ID_MODAL_LIMITATIONS,
                 new PropertyModel<List<PropertyLimitationsType>>(getModel(), "limitations"));
         add(limitationsEditor);
@@ -439,8 +432,8 @@ public class ResourceAttributeEditor extends SimplePanel<ResourceAttributeDefini
 
             try {
                 return ResourceSchema.parse(xsdSchema, resource.toString(), getPageBase().getPrismContext());
-            } catch (Exception e) {
-                LoggingUtils.logException(LOGGER, "Couldn't parse resource schema.", e);
+            } catch (SchemaException|RuntimeException e) {
+                LoggingUtils.logUnexpectedException(LOGGER, "Couldn't parse resource schema.", e);
                 getSession().error(getString("ResourceAttributeEditor.message.cantParseSchema") + " " + e.getMessage());
 
                 throw new RestartResponseException(PageResources.class);

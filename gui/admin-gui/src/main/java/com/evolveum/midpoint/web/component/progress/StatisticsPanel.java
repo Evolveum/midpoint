@@ -16,14 +16,11 @@
 
 package com.evolveum.midpoint.web.component.progress;
 
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.web.component.util.SimplePanel;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.EnvironmentalPerformanceInformationType;
+import com.evolveum.midpoint.gui.api.component.BasePanel;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
-import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 
@@ -32,7 +29,7 @@ import java.util.List;
 /**
  * @author mederly
  */
-public class StatisticsPanel extends SimplePanel<StatisticsDto> {
+public class StatisticsPanel extends BasePanel<StatisticsDto> {
 
     private static final String ID_CONTENTS_PANEL = "contents";
     private static final String ID_PROVISIONING_STATISTICS_LINES = "provisioningStatisticsLines";
@@ -85,11 +82,13 @@ public class StatisticsPanel extends SimplePanel<StatisticsDto> {
 
     public StatisticsPanel(String id) {
         super(id);
+		initLayout();
     }
 
     public StatisticsPanel(String id, IModel<StatisticsDto> model) {
         super(id, model);
-    }
+		initLayout();
+	}
 
     protected void initLayout() {
         contentsPanel = new WebMarkupContainer(ID_CONTENTS_PANEL);

@@ -30,24 +30,24 @@ import java.util.Map;
  * */
 public class ResourceSynchronizationDto implements Serializable{
 
-    public static final String F_OBJECT_SYNC_LIST = "objectSyncList";
+    public static final String F_OBJECT_SYNCRONIZATION_LIST = "objectSynchronizationList";
     public static final String F_SELECTED = "selected";
     public static final String F_OBJECT_CLASS_LIST = "objectClassList";
 
-    private List<ObjectSynchronizationTypeDto> objectSyncList = new ArrayList<>();
+	private final List<ObjectSynchronizationType> objectSynchronizationList;		// live list in resourceModel
     private ObjectSynchronizationType selected;
     private List<QName> objectClassList;
     private Map<String, String> objectTemplateMap = new HashMap<>();
 
-    public List<ObjectSynchronizationTypeDto> getObjectSyncList() {
-        return objectSyncList;
-    }
+	public ResourceSynchronizationDto(List<ObjectSynchronizationType> objectSynchronizationList) {
+		this.objectSynchronizationList = objectSynchronizationList;
+	}
 
-    public void setObjectSyncList(List<ObjectSynchronizationTypeDto> objectSyncList) {
-        this.objectSyncList = objectSyncList;
-    }
+	public List<ObjectSynchronizationType> getObjectSynchronizationList() {
+		return objectSynchronizationList;
+	}
 
-    public ObjectSynchronizationType getSelected() {
+	public ObjectSynchronizationType getSelected() {
         return selected;
     }
 
@@ -55,7 +55,17 @@ public class ResourceSynchronizationDto implements Serializable{
         this.selected = selected;
     }
 
-    public List<QName> getObjectClassList() {
+	public int getSelectedIndex() {
+		return selected != null ? objectSynchronizationList.indexOf(selected) : -1;
+	}
+
+	public void setSelectedIndex(int index) {
+		if (index >= 0 && index < objectSynchronizationList.size()) {
+			selected = objectSynchronizationList.get(index);
+		}
+	}
+
+	public List<QName> getObjectClassList() {
         if(objectClassList == null){
             objectClassList = new ArrayList<>();
         }
@@ -84,8 +94,6 @@ public class ResourceSynchronizationDto implements Serializable{
 
         if (objectClassList != null ? !objectClassList.equals(that.objectClassList) : that.objectClassList != null)
             return false;
-        if (objectSyncList != null ? !objectSyncList.equals(that.objectSyncList) : that.objectSyncList != null)
-            return false;
         if (objectTemplateMap != null ? !objectTemplateMap.equals(that.objectTemplateMap) : that.objectTemplateMap != null)
             return false;
         if (selected != null ? !selected.equals(that.selected) : that.selected != null) return false;
@@ -95,7 +103,7 @@ public class ResourceSynchronizationDto implements Serializable{
 
     @Override
     public int hashCode() {
-        int result = objectSyncList != null ? objectSyncList.hashCode() : 0;
+        int result = 1;
         result = 31 * result + (selected != null ? selected.hashCode() : 0);
         result = 31 * result + (objectClassList != null ? objectClassList.hashCode() : 0);
         result = 31 * result + (objectTemplateMap != null ? objectTemplateMap.hashCode() : 0);

@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.web.component.wizard.resource;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.model.NonEmptyLoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
@@ -34,6 +35,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -85,7 +87,7 @@ public class NameStep extends WizardStep {
     private static final String ID_CONNECTOR_HOST = "connectorHost";
     private static final String ID_CONNECTOR = "connector";
 
-	final private LoadableModel<PrismObject<ResourceType>> resourceModelRaw;
+	final private NonEmptyLoadableModel<PrismObject<ResourceType>> resourceModelRaw;
 
 	final private LoadableModel<String> resourceNameModel;
 	final private LoadableModel<String> resourceDescriptionModel;
@@ -99,7 +101,7 @@ public class NameStep extends WizardStep {
 
 	final private PageResourceWizard parentPage;
 
-    public NameStep(@NotNull LoadableModel<PrismObject<ResourceType>> modelRaw, @NotNull final PageResourceWizard parentPage) {
+    public NameStep(@NotNull NonEmptyLoadableModel<PrismObject<ResourceType>> modelRaw, @NotNull final PageResourceWizard parentPage) {
         super(parentPage);
 		this.parentPage = parentPage;
         this.resourceModelRaw = modelRaw;
@@ -198,7 +200,7 @@ public class NameStep extends WizardStep {
                 	@Override
                 	public PrismObject<ConnectorType> getObject(String id,
                 			IModel<? extends List<? extends PrismObject<ConnectorType>>> choices) {
-                		return choices.getObject().get(Integer.parseInt(id));
+                		return StringUtils.isNotBlank(id) ? choices.getObject().get(Integer.parseInt(id)) : null;
                 	}
 
                     @Override
@@ -402,8 +404,8 @@ public class NameStep extends WizardStep {
         try {
             ModelService model = page.getModelService();
             model.discoverConnectors(host, task, result);
-        } catch (Exception ex) {
-            LoggingUtils.logException(LOGGER, "Couldn't discover connectors", ex);
+        } catch (CommonException|RuntimeException ex) {
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't discover connectors", ex);
         } finally {
             result.recomputeStatus();
         }

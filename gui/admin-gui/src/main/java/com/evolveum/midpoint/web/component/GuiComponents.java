@@ -63,7 +63,7 @@ public class GuiComponents {
         
         	@Override
         	public T getObject(String id, IModel<? extends List<? extends T>> choices) {
-        		return choices.getObject().get(Integer.parseInt(id));
+        		return id != null ? choices.getObject().get(Integer.parseInt(id)) : null;
         	}
 
             @Override

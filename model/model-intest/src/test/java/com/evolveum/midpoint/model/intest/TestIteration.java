@@ -126,6 +126,9 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 	protected static final File USER_TEMPLATE_ITERATION_RANDOM_FILE = new File(TEST_DIR, "user-template-iteration-random.xml");
 	protected static final String USER_TEMPLATE_ITERATION_RANDOM_OID = "10000000-0000-0000-0000-0000000d0002"; // SAME OID as USER_TEMPLATE_ITERATION
 	
+	protected static final File USER_TEMPLATE_ITERATION_UNIQUE_EMAIL_FILE = new File(TEST_DIR, "user-template-iteration-unique-email.xml");
+	protected static final String USER_TEMPLATE_ITERATION_UNIQUE_EMAIL_OID = "10000000-0000-0000-0000-0000000d0004";
+	
 	private static final String USER_ANGELICA_NAME = "angelica";
 	private static final String ACCOUNT_SPARROW_NAME = "sparrow";
 	
@@ -160,6 +163,18 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 	private static final String USER_ALFRED_NAME = "alfred";
 
 	private static final String USER_BOB_NAME = "bob";
+
+	private static final String USER_ALFREDO_FETTUCINI_USERNAME = "afettucini";
+	private static final String USER_ALFREDO_FETTUCINI_GIVEN_NAME = "Alfredo";
+	private static final String USER_ALFREDO_FETTUCINI_FAMILY_NAME = "Fettucini";
+
+	private static final String USER_BILL_FETTUCINI_USERNAME = "bfettucini";
+	private static final String USER_BILL_FETTUCINI_GIVEN_NAME = "Bill";
+	private static final String USER_BILL_FETTUCINI_FAMILY_NAME = "Fettucini";
+
+	private static final String USER_FETTUCINI_NICKNAME = "fetty";
+
+	private static final String EMAIL_SUFFIX = "@example.com";
 
 	protected String jupiterUserOid;
 
@@ -232,6 +247,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 		dummyResourceCtlFuchsia.setResource(resourceDummyFuchsia);
 
 		addObject(USER_TEMPLATE_ITERATION_FILE);
+		addObject(USER_TEMPLATE_ITERATION_UNIQUE_EMAIL_FILE);
 
 		addObject(USER_LARGO_FILE);
 
@@ -2180,6 +2196,91 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 		assertNoUserNick(ACCOUNT_DIPLOMATICO_USERNAME, RUM_FULLNAME, RUM_FULLNAME+iterationTokenDiplomatico);
 		assertUserNick(ACCOUNT_MILLONARIO_USERNAME, RON_FULLNAME, RON_FULLNAME, "Northern Peru");
 		assertNoUserNick(ACCOUNT_MILLONARIO_USERNAME, RUM_FULLNAME, RUM_FULLNAME+iterationTokenMillonario);
+	}
+	
+	
+	/**
+	 * MID-2887
+	 */
+	@Test
+    public void test800UniqeEmailAddUserAlfredoFettucini() throws Exception {
+		final String TEST_NAME = "test800UniqeEmailAddUserAlfredoFettucini";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestIteration.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        dummyAuditService.clear();
+        
+        setDefaultObjectTemplate(UserType.COMPLEX_TYPE, USER_TEMPLATE_ITERATION_UNIQUE_EMAIL_OID);
+        
+        PrismObject<UserType> user = createUser(USER_ALFREDO_FETTUCINI_USERNAME, USER_ALFREDO_FETTUCINI_GIVEN_NAME, USER_ALFREDO_FETTUCINI_FAMILY_NAME,
+        		USER_FETTUCINI_NICKNAME, true);
+        
+		// WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        addObject(user, task, result);
+		
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+		result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+		PrismObject<UserType> userAfter = getUser(user.getOid());
+		display("User after change execution", userAfter);
+		assertUser(userAfter, user.getOid(), USER_ALFREDO_FETTUCINI_USERNAME, 
+				USER_ALFREDO_FETTUCINI_GIVEN_NAME + " " + USER_ALFREDO_FETTUCINI_FAMILY_NAME,
+				USER_ALFREDO_FETTUCINI_GIVEN_NAME, USER_ALFREDO_FETTUCINI_FAMILY_NAME);
+	
+		PrismAsserts.assertEqualsPolyString("Wrong "+user+" nickname", USER_FETTUCINI_NICKNAME, userAfter.asObjectable().getNickName());
+		
+		assertEquals("Wrong "+user+" emailAddress", USER_FETTUCINI_NICKNAME + EMAIL_SUFFIX, userAfter.asObjectable().getEmailAddress());
+	}
+	
+	/**
+	 * MID-2887
+	 */
+	@Test
+    public void test802UniqeEmailAddUserBillFettucini() throws Exception {
+		final String TEST_NAME = "test802UniqeEmailAddUserBillFettucini";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestIteration.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        dummyAuditService.clear();
+        
+        setDefaultObjectTemplate(UserType.COMPLEX_TYPE, USER_TEMPLATE_ITERATION_UNIQUE_EMAIL_OID);
+        
+        PrismObject<UserType> user = createUser(USER_BILL_FETTUCINI_USERNAME, USER_BILL_FETTUCINI_GIVEN_NAME, 
+        		USER_BILL_FETTUCINI_FAMILY_NAME, USER_FETTUCINI_NICKNAME, true);
+        
+		// WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        addObject(user, task, result);
+		
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+		result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+		PrismObject<UserType> userAfter = getUser(user.getOid());
+		display("User after change execution", userAfter);
+		assertUser(userAfter, user.getOid(), USER_BILL_FETTUCINI_USERNAME, 
+				USER_BILL_FETTUCINI_GIVEN_NAME + " " + USER_BILL_FETTUCINI_FAMILY_NAME,
+				USER_BILL_FETTUCINI_GIVEN_NAME, USER_BILL_FETTUCINI_FAMILY_NAME);
+	
+		PrismAsserts.assertEqualsPolyString("Wrong "+user+" nickname", USER_FETTUCINI_NICKNAME, userAfter.asObjectable().getNickName());
+		
+		assertEquals("Wrong "+user+" emailAddress", USER_FETTUCINI_NICKNAME + ".1" + EMAIL_SUFFIX, userAfter.asObjectable().getEmailAddress());
+	}
+	
+
+	private PrismObject<UserType> createUser(String username, String givenName,
+			String familyName, String nickname, boolean enabled) throws SchemaException {
+		PrismObject<UserType> user = createUser(username, givenName, familyName, enabled);
+		user.asObjectable().setNickName(PrismTestUtil.createPolyStringType(nickname));
+		return user;
 	}
 
 	private void assertUserLargo(PrismObject<UserType> userLargo) {

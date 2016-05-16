@@ -33,6 +33,7 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
+import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.wf.api.WorkflowManager;
 import org.apache.commons.configuration.Configuration;
@@ -198,8 +199,11 @@ public class MidPointApplication extends AuthenticatedWebApplication {
 	transient private WorkflowManager workflowManager;
     @Autowired
     transient MidpointConfiguration configuration;
-    @Autowired(required = true)
+    @Autowired
     transient Protector protector;
+	@Autowired
+	transient MatchingRuleRegistry matchingRuleRegistry;
+
     private WebApplicationConfiguration webApplicationConfiguration;
 
     @Override
@@ -487,7 +491,11 @@ public class MidPointApplication extends AuthenticatedWebApplication {
         return new Locale("en", "US");
     }
 
-    private static class ResourceFileFilter implements FilenameFilter {
+	public MatchingRuleRegistry getMatchingRuleRegistry() {
+		return matchingRuleRegistry;
+	}
+
+	private static class ResourceFileFilter implements FilenameFilter {
 
         @Override
         public boolean accept(File parent, String name) {

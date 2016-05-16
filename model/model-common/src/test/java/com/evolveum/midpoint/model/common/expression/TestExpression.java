@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2015 Evolveum
+ * Copyright (c) 2013-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -54,6 +54,12 @@ public class TestExpression {
     
 	private static final File TEST_DIR = new File("src/test/resources/expression/expression");
 	
+	private static final File USER_JACK_FILE = new File(TEST_DIR, "user-jack.xml");
+	
+	private static final File ACCOUNT_JACK_DUMMYFILE = new File(TEST_DIR, "account-jack-dummy.xml");
+	
+	private static final File EXPRESSION_ITERATION_CONDITION_FILE = new File(TEST_DIR, "iteration-condition.xml");
+	
     private PrismContext prismContext;
 
 	private long lastScriptExecutionCount;
@@ -77,22 +83,21 @@ public class TestExpression {
     	
     	// GIVEN
     	OperationResult result = new OperationResult(TestExpression.class.getName()+"."+TEST_NAME);
-    	String filename = "iteration-condition.xml";
     	
     	rememberScriptExecutionCount();
     	
     	ExpressionType expressionType = PrismTestUtil.parseAtomicValue(
-                new File(TEST_DIR, filename), ExpressionType.COMPLEX_TYPE);
+    			EXPRESSION_ITERATION_CONDITION_FILE, ExpressionType.COMPLEX_TYPE);
 
     	PrismPropertyDefinition<Boolean> outputDefinition = new PrismPropertyDefinition<Boolean>(ExpressionConstants.OUTPUT_ELMENT_NAME,
 				DOMUtil.XSD_BOOLEAN, prismContext);
 		Expression<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> expression = expressionFactory.makeExpression(expressionType, outputDefinition , TEST_NAME, null, result);
 		
 		ExpressionVariables variables = new ExpressionVariables();
-		PrismObject<UserType> user = PrismTestUtil.parseObject(new File(TEST_DIR, "user-jack.xml"));
+		PrismObject<UserType> user = PrismTestUtil.parseObject(USER_JACK_FILE);
 		variables.addVariableDefinition(ExpressionConstants.VAR_FOCUS, user);
 		variables.addVariableDefinition(ExpressionConstants.VAR_USER, user);
-		PrismObject<ShadowType> account = PrismTestUtil.parseObject(new File(TEST_DIR, "account-jack-dummy.xml"));
+		PrismObject<ShadowType> account = PrismTestUtil.parseObject(ACCOUNT_JACK_DUMMYFILE);
 		variables.addVariableDefinition(ExpressionConstants.VAR_SHADOW, account);
 		variables.addVariableDefinition(ExpressionConstants.VAR_ITERATION, 1);
 		variables.addVariableDefinition(ExpressionConstants.VAR_ITERATION_TOKEN, "001");

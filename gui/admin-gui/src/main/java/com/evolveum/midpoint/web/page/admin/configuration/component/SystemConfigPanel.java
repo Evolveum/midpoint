@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,21 +26,24 @@ import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 
+import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.web.component.ObjectPolicyConfigurationEditor;
-import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.AEPlevel;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.ObjectPolicyConfigurationTypeDto;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.SystemConfigurationDto;
 import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityPolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ValuePolicyType;
 
 /**
  * @author lazyman
  */
-public class SystemConfigPanel extends SimplePanel<SystemConfigurationDto> {
+public class SystemConfigPanel extends BasePanel<SystemConfigurationDto> {
 
-    private static final String ID_GLOBAL_PASSWORD_POLICY_CHOOSER = "passwordPolicyChooser";
+	private static final long serialVersionUID = 1L;
+	private static final String ID_GLOBAL_PASSWORD_POLICY_CHOOSER = "passwordPolicyChooser";
     private static final String ID_GLOBAL_SECURITY_POLICY_CHOOSER = "securityPolicyChooser";
     private static final String ID_OBJECT_POLICY_EDITOR = "objectPolicyEditor";
     private static final String ID_GLOBAL_AEP = "aepChooser";
@@ -50,27 +53,22 @@ public class SystemConfigPanel extends SimplePanel<SystemConfigurationDto> {
     private static final String ID_CLEANUP_CLOSED_TASKS_TOOLTIP = "closedTasksCleanupTooltip";
 
     private static final String ID_EXPERIMENTAL_CODE_CHECKBOX = "experimentalCodeCheckbox";
-    
-    
-    private static final String ID_MAIN_FORM = "mainForm";
-
- 
-
+   
 
     public SystemConfigPanel(String id, IModel<SystemConfigurationDto> model) {
         super(id, model);
 
         setOutputMarkupId(true);
+        initLayout();
     }
 
-    @Override
     protected void initLayout(){
 
-        ChooseTypePanel passPolicyChoosePanel = new ChooseTypePanel(ID_GLOBAL_PASSWORD_POLICY_CHOOSER,
-                new PropertyModel<ObjectViewDto>(getModel(), SystemConfigurationDto.F_PASSWORD_POLICY));
+        ChooseTypePanel<ValuePolicyType> passPolicyChoosePanel = new ChooseTypePanel<ValuePolicyType>(ID_GLOBAL_PASSWORD_POLICY_CHOOSER,
+                new PropertyModel<ObjectViewDto<ValuePolicyType>>(getModel(), SystemConfigurationDto.F_PASSWORD_POLICY));
 
-        ChooseTypePanel securityPolicyChoosePanel = new ChooseTypePanel(ID_GLOBAL_SECURITY_POLICY_CHOOSER,
-                new PropertyModel<ObjectViewDto>(getModel(), SystemConfigurationDto.F_SECURITY_POLICY));
+        ChooseTypePanel<SecurityPolicyType> securityPolicyChoosePanel = new ChooseTypePanel<SecurityPolicyType>(ID_GLOBAL_SECURITY_POLICY_CHOOSER,
+                new PropertyModel<ObjectViewDto<SecurityPolicyType>>(getModel(), SystemConfigurationDto.F_SECURITY_POLICY));
         add(passPolicyChoosePanel);
         add(securityPolicyChoosePanel);
 

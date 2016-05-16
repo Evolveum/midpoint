@@ -1,5 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2013 Evolveum
+  ~ Copyright (c) 2010-2016 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -14,22 +15,9 @@
   ~ limitations under the License.
   -->
 
-<!DOCTYPE html>
-<html xmlns:wicket="http://wicket.apache.org">
-<wicket:panel>
-
-    <h3><wicket:message key="WfDeltasPanel.label.deltaIn"/></h3>
-    <div wicket:id="deltaInList">
-        <div wicket:id="deltaIn"/>
-        <p/>
-    </div>
-
-    <h3><wicket:message key="WfDeltasPanel.label.deltaOut"/></h3>
-    <div wicket:id="deltaOutList">
-        <div wicket:id="deltaOut"/>
-        <p/>
-    </div>
-    <span wicket:id="deltaOutListEmpty"></span>
-
-</wicket:panel>
-</html>
+<script xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+	<language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
+	<code>
+		midpoint.isUniquePropertyValue(user, 'fullName', value)
+	</code>
+</script>

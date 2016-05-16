@@ -58,15 +58,18 @@ import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.util.TestUtil;
-import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LockoutStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ServiceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TimeIntervalStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
@@ -116,18 +119,18 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 		resourceDummyKhakiType = resourceDummyKhaki.asObjectable();
 		dummyResourceCtlKhaki.setResource(resourceDummyKhaki);
 	}
+	
+	
 
 	@Test
     public void test050CheckJackEnabled() throws Exception {
-        TestUtil.displayTestTile(this, "test050CheckJackEnabled");
+		final String TEST_NAME = "test050CheckJackEnabled";
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN, WHEN
         // this happens during test initialization when user-jack.xml is added
         
         // THEN
-        Task task = taskManager.createTaskInstance(TestActivation.class.getName() + ".test050CheckJackEnabled");
-        OperationResult result = task.getResult();
-        
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
 		assertUserJack(userJack, "Jack Sparrow");
@@ -138,10 +141,11 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 
 	@Test
     public void test051ModifyUserJackDisable() throws Exception {
-        TestUtil.displayTestTile(this, "test051ModifyUserJackDisable");
+		final String TEST_NAME = "test051ModifyUserJackDisable";
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestActivation.class.getName() + ".test051ModifyUserJackDisable");
+        Task task = taskManager.createTaskInstance(TestActivation.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
         
@@ -153,7 +157,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 		// THEN
         XMLGregorianCalendar end = clock.currentTimeXMLGregorianCalendar();
 		result.computeStatus();
-        TestUtil.assertSuccess("executeChanges result", result);
+        TestUtil.assertSuccess(result);
         
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
@@ -169,10 +173,11 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 	
 	@Test
     public void test052ModifyUserJackEnable() throws Exception {
-        TestUtil.displayTestTile(this, "test052ModifyUserJackEnable");
+		final String TEST_NAME = "test052ModifyUserJackEnable";
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestActivation.class.getName() + ".test052ModifyUserJackEnable");
+        Task task = taskManager.createTaskInstance(TestActivation.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
         
@@ -184,7 +189,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 		// THEN
         XMLGregorianCalendar end = clock.currentTimeXMLGregorianCalendar();
 		result.computeStatus();
-        TestUtil.assertSuccess("executeChanges result", result);
+        TestUtil.assertSuccess(result);
         
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
@@ -407,11 +412,6 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 		// Check audit
         display("Audit", dummyAuditService);
         dummyAuditService.assertNoRecord();
-//        dummyAuditService.assertRecords(2);
-//        dummyAuditService.assertSimpleRecordSanity();
-//        dummyAuditService.assertAnyRequestDeltas();
-//        dummyAuditService.assertExecutionDeltas(0);
-//        dummyAuditService.assertExecutionSuccess();
 	}
 	
 	/**
@@ -837,7 +837,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         checkAdminStatusFor15x(userJack, true, true, true);
     }
 
-    private void checkAdminStatusFor15x(PrismObject user, boolean userStatus, boolean accountStatus, boolean accountStatusYellow) throws Exception {
+    private void checkAdminStatusFor15x(PrismObject<UserType> user, boolean userStatus, boolean accountStatus, boolean accountStatusYellow) throws Exception {
         PrismObject<ShadowType> account = getShadowModel(accountOid);
         PrismObject<ShadowType> accountYellow = getShadowModel(accountYellowOid);
         
@@ -1574,6 +1574,220 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 	}
 	
 	
+	@Test
+    public void test500CheckRolePirateInitial() throws Exception {
+		test5X0CheckInitial("test500CheckRolePirateInitial", RoleType.class, ROLE_PIRATE_OID);
+	}
+	
+	@Test
+    public void test501RolePirateRecompute() throws Exception {
+		test5X1Recompute("test501RolePirateRecompute", RoleType.class, ROLE_PIRATE_OID);
+	}
+	
+	@Test
+    public void test502ModifyRolePirateDisable() throws Exception {
+		test5X2ModifyDisable("test502ModifyRolePirateDisable", RoleType.class, ROLE_PIRATE_OID);
+	}
+	
+	@Test
+    public void test504ModifyRolePirateEnable() throws Exception {
+		test5X4ModifyEnable("test504ModifyRolePirateEnable", RoleType.class, ROLE_PIRATE_OID);
+	}
+	
+	@Test
+    public void test505RolePirateRecompute() throws Exception {
+		test5X5Recompute("test505RolePirateRecompute", RoleType.class, ROLE_PIRATE_OID);
+	}
+	
+	
+	@Test
+    public void test510CheckOrgScummBarInitial() throws Exception {
+		test5X0CheckInitial("test510CheckOrgScummBarInitial", OrgType.class, ORG_SCUMM_BAR_OID);
+	}
+	
+	@Test
+    public void test511OrgScummBarRecompute() throws Exception {
+		test5X1Recompute("test511OrgScummBarRecompute", OrgType.class, ORG_SCUMM_BAR_OID);
+	}
+	
+	@Test
+    public void test512ModifyOrgScummBarDisable() throws Exception {
+		test5X2ModifyDisable("test512ModifyOrgScummBarDisable", OrgType.class, ORG_SCUMM_BAR_OID);
+	}
+	
+	@Test
+    public void test514ModifyOrgScummBarEnable() throws Exception {
+		test5X4ModifyEnable("test514ModifyOrgScummBarEnable", OrgType.class, ORG_SCUMM_BAR_OID);
+	}
+	
+	@Test
+    public void test515OrgScummBarRecompute() throws Exception {
+		test5X5Recompute("test515OrgScummBarRecompute", OrgType.class, ORG_SCUMM_BAR_OID);
+	}
+
+
+	@Test
+    public void test520CheckSerivceSeaMonkeyInitial() throws Exception {
+		test5X0CheckInitial("test520CheckSerivceSeaMonkeyInitial", ServiceType.class, SERVICE_SHIP_SEA_MONKEY_OID);
+	}
+	
+	@Test
+    public void test521SerivceSeaMonkeyRecompute() throws Exception {
+		test5X1Recompute("test521SerivceSeaMonkeyRecompute", ServiceType.class, SERVICE_SHIP_SEA_MONKEY_OID);
+	}
+	
+	@Test
+    public void test522ModifySerivceSeaMonkeyDisable() throws Exception {
+		test5X2ModifyDisable("test522ModifySerivceSeaMonkeyDisable", ServiceType.class, SERVICE_SHIP_SEA_MONKEY_OID);
+	}
+	
+	@Test
+    public void test524ModifySerivceSeaMonkeyEnable() throws Exception {
+		test5X4ModifyEnable("test524ModifySerivceSeaMonkeyEnable", ServiceType.class, SERVICE_SHIP_SEA_MONKEY_OID);
+	}
+	
+	@Test
+    public void test525SerivceSeaMonkeyRecompute() throws Exception {
+		test5X5Recompute("test525SerivceSeaMonkeyRecompute", ServiceType.class, SERVICE_SHIP_SEA_MONKEY_OID);
+	}
+
+    private <F extends FocusType> void test5X0CheckInitial(final String TEST_NAME, Class<F> type, String oid) throws Exception {
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN, WHEN
+        // this happens during test initialization when the role is added
+        
+        // THEN        
+        PrismObject<F> objectAfter = getObject(type, oid);
+		display("Object after", objectAfter);
+        
+		assertAdministrativeStatus(objectAfter, null);
+		// Cannot assert validity or effective status here. The object was added through repo and was not recomputed yet.
+	}
+	
+	/**
+	 * Make sure that recompute properly updates the effective status.
+	 * MID-2877
+	 */
+    private <F extends FocusType> void test5X1Recompute(final String TEST_NAME, Class<F> type, String oid) throws Exception {
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestActivation.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+        dummyAuditService.clear();
+        
+		// WHEN
+        modelService.recompute(type, oid, task, result);
+		
+		// THEN
+		result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        PrismObject<F> objectAfter = getObject(type, oid);
+		display("Object after", objectAfter);
+		        
+		assertAdministrativeStatus(objectAfter, null);
+		assertValidity(objectAfter, null);
+		assertEffectiveStatus(objectAfter, ActivationStatusType.ENABLED);		
+	}
+	
+	/**
+	 * MID-2877
+	 */
+    private <F extends FocusType> void test5X2ModifyDisable(final String TEST_NAME, Class<F> type, String oid) throws Exception {
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestActivation.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        XMLGregorianCalendar start = clock.currentTimeXMLGregorianCalendar();
+        
+		// WHEN
+        modifyObjectReplaceProperty(type, oid, 
+        		ACTIVATION_ADMINISTRATIVE_STATUS_PATH, task, result, ActivationStatusType.DISABLED);
+		
+		// THEN
+        XMLGregorianCalendar end = clock.currentTimeXMLGregorianCalendar();
+		result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        PrismObject<F> objectAfter = getObject(type, oid);
+		display("Object after", objectAfter);
+        
+		assertAdministrativeStatusDisabled(objectAfter);
+		assertValidity(objectAfter, null);
+		assertEffectiveStatus(objectAfter, ActivationStatusType.DISABLED);
+		assertDisableTimestampFocus(objectAfter, start, end);
+		
+		TestUtil.assertModifyTimestamp(objectAfter, start, end);
+	}
+	
+	/**
+	 * MID-2877
+	 */
+	private <F extends FocusType> void test5X4ModifyEnable(final String TEST_NAME, Class<F> type, String oid) throws Exception {
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestActivation.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        XMLGregorianCalendar start = clock.currentTimeXMLGregorianCalendar();
+        
+		// WHEN
+        modifyObjectReplaceProperty(type, oid, 
+        		ACTIVATION_ADMINISTRATIVE_STATUS_PATH, task, result, ActivationStatusType.ENABLED);
+		
+		// THEN
+        XMLGregorianCalendar end = clock.currentTimeXMLGregorianCalendar();
+		result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        PrismObject<F> objectAfter = getObject(type, oid);
+		display("Object after", objectAfter);
+        
+		assertAdministrativeStatusEnabled(objectAfter);
+		assertValidity(objectAfter, null);
+		assertEffectiveStatus(objectAfter, ActivationStatusType.ENABLED);
+		assertEnableTimestampFocus(objectAfter, start, end);
+		
+		TestUtil.assertModifyTimestamp(objectAfter, start, end);
+	}
+	
+	/**
+	 * Make sure that recompute does not destroy anything.
+	 */
+    public <F extends FocusType> void test5X5Recompute(final String TEST_NAME, Class<F> type, String oid) throws Exception {
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestActivation.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+        dummyAuditService.clear();
+        
+		// WHEN
+        modelService.recompute(type, oid, task, result);
+		
+		// THEN
+		result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        PrismObject<F> objectAfter = getObject(type, oid);
+		display("Object after", objectAfter);
+		        
+		assertAdministrativeStatusEnabled(objectAfter);
+		assertValidity(objectAfter, null);
+		assertEffectiveStatus(objectAfter, ActivationStatusType.ENABLED);
+		
+		// Check audit
+        display("Audit", dummyAuditService);
+        dummyAuditService.assertNoRecord();
+	}
+	
 		
 	private void assertDummyActivationEnabledState(String userId, boolean expectedEnabled) {
 		assertDummyActivationEnabledState(null, userId, expectedEnabled);
@@ -1601,10 +1815,10 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 		assertDummyActivationEnabledState(instance, userId, false);
 	}
 	
-	private void assertValidity(PrismObject<UserType> user, TimeIntervalStatusType expectedValidityStatus) {
-		ActivationType activation = user.asObjectable().getActivation();
-		assertNotNull("No activation in "+user, activation);
-		assertEquals("Unexpected validity status in "+user, expectedValidityStatus, activation.getValidityStatus());
+	private <F extends FocusType> void assertValidity(PrismObject<F> focus, TimeIntervalStatusType expectedValidityStatus) {
+		ActivationType activation = focus.asObjectable().getActivation();
+		assertNotNull("No activation in "+focus, activation);
+		assertEquals("Unexpected validity status in "+focus, expectedValidityStatus, activation.getValidityStatus());
 	}
 	
 	private void assertValidityTimestamp(PrismObject<UserType> user, long expected) {
@@ -1635,10 +1849,10 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 		AssertJUnit.fail("Expected validityChangeTimestamp to be between "+lowerBound+" and "+upperBound+", but it was "+validityMillis);
 	}
 	
-	private void assertEffectiveStatus(PrismObject<UserType> user, ActivationStatusType expected) {
-		ActivationType activation = user.asObjectable().getActivation();
-		assertNotNull("No activation in "+user, activation);
-		assertEquals("Unexpected effective activation status in "+user, expected, activation.getEffectiveStatus());
+	private <F extends FocusType> void assertEffectiveStatus(PrismObject<F> focus, ActivationStatusType expected) {
+		ActivationType activation = focus.asObjectable().getActivation();
+		assertNotNull("No activation in "+focus, activation);
+		assertEquals("Unexpected effective activation status in "+focus, expected, activation.getEffectiveStatus());
 	}
 	
 	

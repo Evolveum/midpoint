@@ -228,9 +228,9 @@ public class LensUtil {
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("Consolidating {} triple:\n{}\nApriori Delta:\n{}\nExisting item:\n{}", 
 					new Object[]{
-						itemPath, triple.debugDump(), 
-						aprioriItemDelta==null?"null":aprioriItemDelta.debugDump(),
-						itemExisting==null?"null":itemExisting.debugDump(),
+						itemPath, triple.debugDump(1), 
+						aprioriItemDelta==null?"null":aprioriItemDelta.debugDump(1),
+						itemExisting==null?"null":itemExisting.debugDump(1),
 					});
 		}
 		
@@ -252,7 +252,7 @@ public class LensUtil {
         // a single item (e.g. attribute). But this loop iterates over every potential value of that item.
         for (V value : allValues) {
         	
-        	LOGGER.trace("item existing: {}, consolidating value: {}", itemExisting, value);
+        	LOGGER.trace("  consolidating value: {}", value);
         	// Check what to do with the value using the usual "triple routine". It means that if a value is
         	// in zero set than we need no delta, plus set means add delta and minus set means delete delta.
         	// The first set that the value is present determines the result.
@@ -950,6 +950,7 @@ public class LensUtil {
 		Mapping<V,D> mapping = mappingFactory.createMapping(mappingType, contextDesc);
 		
 		if (!mapping.isApplicableToChannel(context.getChannel())) {
+			LOGGER.trace("Mapping {} not applicable to channel {}, skipping.", mapping, context.getChannel());
 			return null;
 		}
 		
@@ -979,6 +980,7 @@ public class LensUtil {
 					&& mapping.getStrength() == MappingStrengthType.WEAK) {
 				// This valueConstruction only applies if the property does not have a value yet.
 				// ... but it does
+				LOGGER.trace("Mapping {} is weak and focus already has a value {}, skipping.", mapping, existingUserItem);
 				return null;
 			}
 		}

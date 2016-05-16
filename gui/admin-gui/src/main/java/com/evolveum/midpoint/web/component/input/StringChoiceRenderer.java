@@ -25,7 +25,7 @@ public class StringChoiceRenderer implements IChoiceRenderer<String> {
 
 	@Override
 	public String getObject(String id, IModel<? extends List<? extends String>> choices) {
-		return choices.getObject().get(Integer.parseInt(id));
+		return StringUtils.isNotBlank(id) ? choices.getObject().get(Integer.parseInt(id)) : null;
 	}
 
 	@Override

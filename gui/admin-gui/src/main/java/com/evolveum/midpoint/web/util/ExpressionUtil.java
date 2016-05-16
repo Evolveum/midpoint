@@ -75,7 +75,7 @@ public class ExpressionUtil {
     public static final String EXPRESSION_PATH = "<path>Insert path here</path>";
     public static final String EXPRESSION_GENERATE =
                     "<generate>\n" +
-                    "    <valuePolicyRef oid=\"Insert value policy oid\"/>\n" +
+                    //"    <valuePolicyRef oid=\"Insert value policy oid\"/>\n" +
                     "</generate>";
 
     public static final String ELEMENT_SCRIPT = "</script>";

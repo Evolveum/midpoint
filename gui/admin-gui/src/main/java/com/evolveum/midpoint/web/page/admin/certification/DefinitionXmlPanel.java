@@ -16,8 +16,8 @@
 
 package com.evolveum.midpoint.web.page.admin.certification;
 
+import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.web.component.AceEditor;
-import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.page.admin.certification.dto.CertDefinitionDto;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
@@ -26,15 +26,15 @@ import org.apache.wicket.model.PropertyModel;
  * @author mederly
  */
 
-public class DefinitionXmlPanel extends SimplePanel<CertDefinitionDto> {
+public class DefinitionXmlPanel extends BasePanel<CertDefinitionDto> {
 
     private static final String ID_ACE_EDITOR = "aceEditor1";
 
     public DefinitionXmlPanel(String id, IModel<CertDefinitionDto> model) {
         super(id, model);
+		initLayout();
     }
 
-    @Override
     protected void initLayout() {
         AceEditor editor = new AceEditor(ID_ACE_EDITOR, new PropertyModel<String>(getModel(), CertDefinitionDto.F_XML));
         //TODO for now it is only readonly

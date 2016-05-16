@@ -25,6 +25,8 @@ import com.evolveum.midpoint.web.util.ExpressionUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import org.apache.commons.lang.StringUtils;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.xml.bind.JAXBElement;
 import java.io.Serializable;
@@ -36,39 +38,37 @@ public class ExpressionTypeDto implements Serializable{
 
     private static final Trace LOGGER = TraceManager.getTrace(ExpressionTypeDto.class);
 
+    public static final String F_DESCRIPTION = "description";
     public static final String F_TYPE = "type";
     public static final String F_LANGUAGE = "language";
     public static final String F_POLICY_REF = "policyRef";
     public static final String F_EXPRESSION = "expression";
-    public static final String F_EXPRESSION_OBJECT = "expressionObject";
 
     private ExpressionUtil.ExpressionEvaluatorType type;
     private ExpressionUtil.Language language;
     private ObjectReferenceType policyRef;
     private String expression;
-    private ExpressionType expressionObject;
+    @NotNull private final ExpressionType expressionObject;
 
-    public ExpressionTypeDto(ExpressionType expression, PrismContext prismContext){
-
-        if(expression != null){
+    public ExpressionTypeDto(@Nullable ExpressionType expression, @NotNull PrismContext prismContext) {
+        if (expression != null) {
             expressionObject = expression;
         } else {
             expressionObject = new ExpressionType();
         }
-
-        if(!expressionObject.getExpressionEvaluator().isEmpty()){
+        if (!expressionObject.getExpressionEvaluator().isEmpty()) {
             loadExpression(prismContext);
         }
     }
 
-    private void loadExpression(PrismContext context){
-        try{
-            if(expressionObject.getExpressionEvaluator().size() == 1){
+    private void loadExpression(PrismContext context) {
+        try {
+            if (expressionObject.getExpressionEvaluator().size() == 1) {
                 expression = context.serializeAtomicValue(expressionObject.getExpressionEvaluator().get(0), PrismContext.LANG_XML);
             } else {
                 StringBuilder sb = new StringBuilder();
 
-                for(JAXBElement<?> element: expressionObject.getExpressionEvaluator()){
+                for (JAXBElement<?> element: expressionObject.getExpressionEvaluator()) {
                     String subElement = context.serializeAtomicValue(element, PrismContext.LANG_XML);
                     sb.append(subElement).append("\n");
                 }
@@ -77,31 +77,22 @@ public class ExpressionTypeDto implements Serializable{
             }
 
             type = ExpressionUtil.getExpressionType(expression);
-            if(type != null && type.equals(ExpressionUtil.ExpressionEvaluatorType.SCRIPT)){
+            if (type != null && type.equals(ExpressionUtil.ExpressionEvaluatorType.SCRIPT)) {
                 language = ExpressionUtil.getExpressionLanguage(expression);
             }
 
             //TODO - add algorithm to determine objectReferenceType from String expression
-        } catch (SchemaException e){
+        } catch (SchemaException e) {
             //TODO - how can we show this error to user?
             LoggingUtils.logException(LOGGER, "Could not load expressions from ExpressionType.", e);
             expression = e.getMessage();
         }
     }
 
-    public void updateExpression(PrismContext context) throws SchemaException, IllegalArgumentException{
-
-        if(expressionObject == null){
-            expressionObject = new ExpressionType();
-        }
-
-        if(expression != null && StringUtils.isNotEmpty(expression)){
+    public void updateExpression(PrismContext context) throws SchemaException, IllegalArgumentException {
+        if (expression != null && StringUtils.isNotEmpty(expression)) {
             expression = ExpressionUtil.addNamespaces(expression, type);
-
-            if(LOGGER.isTraceEnabled()){
-                LOGGER.trace("Expression to serialize: " + expression);
-            }
-
+            LOGGER.trace("Expression to serialize: {}", expression);
             JAXBElement<?> newElement = context.parseAnyValueAsJAXBElement(expression, PrismContext.LANG_XML);
             expressionObject.getExpressionEvaluator().add(newElement);
         } else {
@@ -153,13 +144,18 @@ public class ExpressionTypeDto implements Serializable{
         this.expression = expression;
     }
 
-    public ExpressionType getExpressionObject() {
+    @NotNull
+	public ExpressionType getExpressionObject() {
         return expressionObject;
     }
 
-    public void setExpressionObject(ExpressionType expressionObject) {
-        this.expressionObject = expressionObject;
-    }
+	public String getDescription() {
+		return expressionObject.getDescription();
+	}
+
+	public void setDescription(String description) {
+		expressionObject.setDescription(description);
+	}
 
     @Override
     public boolean equals(Object o) {
@@ -169,7 +165,7 @@ public class ExpressionTypeDto implements Serializable{
         ExpressionTypeDto that = (ExpressionTypeDto) o;
 
         if (expression != null ? !expression.equals(that.expression) : that.expression != null) return false;
-        if (expressionObject != null ? !expressionObject.equals(that.expressionObject) : that.expressionObject != null)
+        if (!expressionObject.equals(that.expressionObject))
             return false;
         if (language != that.language) return false;
         if (policyRef != null ? !policyRef.equals(that.policyRef) : that.policyRef != null) return false;
@@ -184,7 +180,7 @@ public class ExpressionTypeDto implements Serializable{
         result = 31 * result + (language != null ? language.hashCode() : 0);
         result = 31 * result + (policyRef != null ? policyRef.hashCode() : 0);
         result = 31 * result + (expression != null ? expression.hashCode() : 0);
-        result = 31 * result + (expressionObject != null ? expressionObject.hashCode() : 0);
+        result = 31 * result + expressionObject.hashCode();
         return result;
     }
 }

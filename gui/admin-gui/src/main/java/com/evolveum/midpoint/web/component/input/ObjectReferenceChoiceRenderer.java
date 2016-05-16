@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.Validate;
 import org.apache.wicket.markup.html.form.IChoiceRenderer;
 import org.apache.wicket.model.IModel;
 
@@ -16,6 +17,7 @@ public class ObjectReferenceChoiceRenderer implements IChoiceRenderer<ObjectRefe
 
 	public ObjectReferenceChoiceRenderer(Map<String, String> referenceMap) {
 		super();
+		Validate.notNull(referenceMap);
 		this.referenceMap = referenceMap;
 	}
 
@@ -26,7 +28,7 @@ public class ObjectReferenceChoiceRenderer implements IChoiceRenderer<ObjectRefe
 
 	@Override
 	public Object getDisplayValue(ObjectReferenceType object) {
-		return referenceMap.get(object.getOid());
+		return object != null ? referenceMap.get(object.getOid()) : null;
 	}
 
 	@Override

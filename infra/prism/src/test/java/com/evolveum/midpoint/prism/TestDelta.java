@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,8 @@ import static org.testng.AssertJUnit.assertNotNull;
 import java.io.IOException;
 import java.util.Collection;
 
+import javax.xml.datatype.XMLGregorianCalendar;
+
 import com.evolveum.midpoint.prism.delta.*;
 
 import org.testng.AssertJUnit;
@@ -39,6 +41,7 @@ import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
@@ -347,6 +350,32 @@ public class TestDelta {
 		System.out.println(delta1.debugDump());
 
 		PrismAsserts.assertReplace(delta1, "r1x", "r1y", "add2");
+		PrismAsserts.assertNoAdd(delta1);
+		PrismAsserts.assertNoDelete(delta1);
+	}
+	
+	@Test
+    public void testPropertyDeltaMerge13() throws Exception {
+		System.out.println("\n\n===[ testPropertyDeltaMerge13 ]===\n");
+		
+		// GIVEN
+		PrismPropertyDefinition propertyDefinition = new PrismPropertyDefinition(UserType.F_DESCRIPTION, 
+				DOMUtil.XSD_STRING, PrismTestUtil.getPrismContext());
+
+		PropertyDelta<String> delta1 = new PropertyDelta<String>(propertyDefinition, PrismTestUtil.getPrismContext());
+		delta1.setValuesToReplace(new PrismPropertyValue<String>("r1x"));
+
+		PropertyDelta<String> delta2 = new PropertyDelta<String>(propertyDefinition, PrismTestUtil.getPrismContext());
+		delta2.addValueToDelete(new PrismPropertyValue<String>("r1x"));
+		
+		// WHEN
+		delta1.merge(delta2);
+		
+		// THEN
+		System.out.println("Merged delta:");
+		System.out.println(delta1.debugDump());
+
+		PrismAsserts.assertReplace(delta1);
 		PrismAsserts.assertNoAdd(delta1);
 		PrismAsserts.assertNoDelete(delta1);
 	}
@@ -1053,7 +1082,65 @@ public class TestDelta {
     	PrismAsserts.assertNoItem(user, UserType.F_ADDITIONAL_NAMES);
         user.checkConsistence();
     }
+	
+	@Test
+    public void testObjectDeltaFindItemDeltaModifyProperty() throws Exception {
+		System.out.println("\n\n===[ testObjectDeltaFindItemDeltaModifyProperty ]===\n");
+		// GIVEN
+		
+    	ObjectDelta<UserType> userDelta = createDeltaForFindItem();
+    	ItemPath itemDeltaPath = new ItemPath(UserType.F_GIVEN_NAME);
+				
+		// WHEN
+    	ItemDelta<PrismValue, ItemDefinition> itemDelta = userDelta.findItemDelta(itemDeltaPath);
+        
+        // THEN
+    	PrismAsserts.assertInstanceOf(PropertyDelta.class, itemDelta);
+    	assertEquals(itemDeltaPath, itemDelta.getPath());
+    	PrismAsserts.assertPropertyValues("Wrong replace values in "+itemDelta, 
+    			((PropertyDelta)itemDelta).getValuesToReplace(), "Guybrush");
+    }
+	
+	@Test
+    public void testObjectDeltaFindItemDeltaModifyPropertyInContainer() throws Exception {
+		System.out.println("\n\n===[ testObjectDeltaFindItemDeltaModifyPropertyInContainer ]===\n");
+		// GIVEN
+		ObjectDelta<UserType> userDelta = createDeltaForFindItem();
+		System.out.println("Object delta:\n"+userDelta.debugDump());
+    	
+		ItemPath itemDeltaPath = new ItemPath(UserType.F_ACTIVATION, ActivationType.F_ENABLED);
+				
+		// WHEN
+    	ItemDelta<PrismValue, ItemDefinition> itemDelta = userDelta.findItemDelta(itemDeltaPath);
+        
+        // THEN
+    	System.out.println("Item delta:\n"+(itemDelta==null?"null":itemDelta.debugDump()));
+    	PrismAsserts.assertInstanceOf(PropertyDelta.class, itemDelta);
+    	assertEquals(itemDeltaPath, itemDelta.getPath());
+    	PrismAsserts.assertPropertyValues("Wrong add values in "+itemDelta, 
+    			((PropertyDelta)itemDelta).getValuesToAdd(), Boolean.TRUE);
+    }
 
+	private ObjectDelta<UserType> createDeltaForFindItem() throws SchemaException {
+		ObjectDelta<UserType> userDelta = ObjectDelta.createModificationAddProperty(UserType.class, USER_FOO_OID, 
+    			UserType.F_LOCALITY, PrismTestUtil.getPrismContext(), "Caribbean");
+    	userDelta.addModificationReplaceProperty(UserType.F_GIVEN_NAME, "Guybrush");
+    	
+    	ContainerDelta<ActivationType> activationDelta = userDelta.createContainerModification(new ItemPath(UserType.F_ACTIVATION));
+    	PrismContainerValue<ActivationType> activationCVal = new PrismContainerValue();
+    	activationDelta.addValueToAdd(activationCVal);
+    	
+    	PrismProperty<Boolean> enabledProperty = activationCVal.createProperty(ActivationType.F_ENABLED);
+    	enabledProperty.setRealValue(Boolean.TRUE);
+    	
+    	PrismProperty<XMLGregorianCalendar> validFromProperty = activationCVal.createProperty(ActivationType.F_VALID_FROM);
+    	validFromProperty.setRealValue(XmlTypeConverter.createXMLGregorianCalendar(20016, 5, 16, 19, 8, 33));
+
+    	userDelta.addModification(activationDelta);
+    	
+    	return userDelta;
+	}
+	
 	/**
 	 * MODIFY/add + MODIFY/add
 	 */

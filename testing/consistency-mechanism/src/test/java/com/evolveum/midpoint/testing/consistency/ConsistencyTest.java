@@ -1994,9 +1994,9 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		
 		LOGGER.info("start running task");
 		// WHEN
-		repoAddObjectFromFile(TASK_OPENDJ_RECONCILIATION_FILENAME, TaskType.class, result);
 		long started = System.currentTimeMillis();
-		waitForTaskNextRunAssertSuccess(TASK_OPENDJ_RECONCILIATION_OID, false, 120000);
+		repoAddObjectFromFile(TASK_OPENDJ_RECONCILIATION_FILENAME, TaskType.class, result);
+		waitForTaskFinish(TASK_OPENDJ_RECONCILIATION_OID, false, 120000);
 		LOGGER.info("Reconciliation task run took {} seconds", (System.currentTimeMillis()-started)/1000L);
 
 		// THEN

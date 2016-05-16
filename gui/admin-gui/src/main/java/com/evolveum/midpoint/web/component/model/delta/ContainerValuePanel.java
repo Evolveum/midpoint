@@ -16,23 +16,19 @@
 
 package com.evolveum.midpoint.web.component.model.delta;
 
-import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.util.SimplePanel;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
-
-import java.util.List;
 
 /**
  * @author mederly
  */
-public class ContainerValuePanel extends SimplePanel<ContainerValueDto> {
+public class ContainerValuePanel extends BasePanel<ContainerValueDto> {
 
     private static final Trace LOGGER = TraceManager.getTrace(ModificationsPanel.class);
 
@@ -42,9 +38,9 @@ public class ContainerValuePanel extends SimplePanel<ContainerValueDto> {
 
     public ContainerValuePanel(String id, IModel<ContainerValueDto> model) {
         super(id, model);
+		initLayout();
     }
 
-    @Override
     protected void initLayout() {
 
         add(new ListView<ContainerItemDto>(ID_ITEM, new PropertyModel(getModel(), ContainerValueDto.F_ITEM_LIST)) {

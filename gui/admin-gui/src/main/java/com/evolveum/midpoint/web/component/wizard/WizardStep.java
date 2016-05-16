@@ -21,6 +21,7 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.util.exception.SchemaException;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -121,8 +122,8 @@ public class WizardStep extends org.apache.wicket.extensions.wizard.WizardStep {
                     list.add(def.getTypeName());
                 }
             }
-        } catch (Exception e){
-            LoggingUtils.logException(LOGGER, message, e);
+        } catch (SchemaException|RuntimeException e){
+            LoggingUtils.logUnexpectedException(LOGGER, message, e);
             error(message + " " + e.getMessage());
         }
 

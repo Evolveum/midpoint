@@ -45,7 +45,7 @@ public class QNameChoiceRenderer implements IChoiceRenderer<QName> {
 
 	private boolean usePrefix = false;
 	
-	public QNameChoiceRenderer(){
+	public QNameChoiceRenderer() {
 		this(false);
 	}
 

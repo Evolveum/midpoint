@@ -1032,4 +1032,10 @@ public class PrismAsserts {
 		assertEquals(message+": wrong target oid", expected.getOid(), actual.getOid());
 		assertEquals(message+": wrong target type", expected.getTargetType(), actual.getTargetType());
 	}
+
+	public static void assertInstanceOf(Class<?> expectedClass, Object object) {
+		assertNotNull("Expected that object will be instance of "+expectedClass+", but it is null", object);
+		assertTrue("Expected that "+object+" will be instance of "+expectedClass+", but it is "+object.getClass(), 
+				expectedClass.isAssignableFrom(object.getClass()));	
+	}
 }

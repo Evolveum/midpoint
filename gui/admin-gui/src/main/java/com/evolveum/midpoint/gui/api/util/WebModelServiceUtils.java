@@ -61,6 +61,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import org.apache.wicket.Session;
 import org.apache.wicket.protocol.http.WebSession;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Utility class that contains methods that interact with ModelService and other
@@ -199,12 +200,14 @@ public class WebModelServiceUtils {
     	
     }
 
+	@Nullable
     public static <T extends ObjectType> PrismObject<T> loadObject(Class<T> type, String oid,
                                                                    PageBase page, Task task, OperationResult result) {
         return loadObject(type, oid, null, page, task, result);
     }
 
-    public static <T extends ObjectType> PrismObject<T> loadObject(Class<T> type, String oid,
+    @Nullable
+	public static <T extends ObjectType> PrismObject<T> loadObject(Class<T> type, String oid,
                                                                     Collection<SelectorOptions<GetOperationOptions>> options,
                                                                     PageBase page, Task task, OperationResult result) {
         LOGGER.debug("Loading {} with oid {}, options {}", new Object[]{type.getSimpleName(), oid, options});

@@ -21,19 +21,14 @@ import java.util.List;
 import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.*;
+import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationLockoutStatusCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationStatusCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CredentialsCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ObjectFactory;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.PasswordCapabilityType;
 
 /**
  * @author semancik
@@ -48,9 +43,9 @@ public class CapabilityUtil {
 		}
 		for (Object cap : capabilities) {
 			if (cap instanceof JAXBElement) {
-				JAXBElement jaxe = (JAXBElement) cap;
-				if (capabilityClass.isAssignableFrom(jaxe.getDeclaredType())) {
-					return (T) jaxe.getValue();
+				JAXBElement element = (JAXBElement) cap;
+				if (capabilityClass.isAssignableFrom(element.getDeclaredType())) {
+					return (T) element.getValue();
 				}
 			} else if (capabilityClass.isAssignableFrom(cap.getClass())) {
 				return (T) cap;
@@ -76,7 +71,7 @@ public class CapabilityUtil {
 		}
 	}
 
-	public static boolean isCapabilityEnabled(Element capability) throws SchemaException {
+	private static boolean isCapabilityEnabled(Element capability) throws SchemaException {
 		if (capability == null) {
 			return false;
 		}
@@ -149,7 +144,7 @@ public class CapabilityUtil {
 		if (capability == null) {
 			return false;
 		}
-		ActivationStatusCapabilityType statusCap = capability.getStatus();
+		ActivationStatusCapabilityType statusCap = getEffectiveActivationStatus(capability);
 		if (statusCap == null) {
 			return false;
 		}
@@ -171,5 +166,113 @@ public class CapabilityUtil {
 			return true;
 		}
 		return statusCap.isReturnedByDefault();
+	}
+
+	@SuppressWarnings("unchecked")
+	public static CapabilityType asCapabilityType(Object capabilityObject) {
+		return capabilityObject instanceof CapabilityType ?
+				(CapabilityType) capabilityObject :
+				((JAXBElement<? extends CapabilityType>) capabilityObject).getValue();
+	}
+
+	public static void fillDefaults(@NotNull CapabilityType capability) {
+		if (capability.isEnabled() == null) {
+			capability.setEnabled(true);
+		}
+		if (capability instanceof ActivationCapabilityType) {
+			ActivationCapabilityType act = ((ActivationCapabilityType) capability);
+			if (act.getStatus() == null) {
+				ActivationStatusCapabilityType st = new ActivationStatusCapabilityType();
+				act.setStatus(st);
+				st.setEnabled(false);				// TODO check if all midPoint code honors this flag!
+				st.setReturnedByDefault(false);
+				st.setIgnoreAttribute(true);
+			} else {
+				ActivationStatusCapabilityType st = act.getStatus();
+				st.setEnabled(def(st.isEnabled(), true));
+				st.setReturnedByDefault(def(st.isReturnedByDefault(), true));
+				st.setIgnoreAttribute(def(st.isIgnoreAttribute(), true));
+			}
+			if (act.getLockoutStatus() == null) {
+				ActivationLockoutStatusCapabilityType st = new ActivationLockoutStatusCapabilityType();
+				act.setLockoutStatus(st);
+				st.setEnabled(false);
+				st.setReturnedByDefault(false);
+				st.setIgnoreAttribute(true);
+			} else {
+				ActivationLockoutStatusCapabilityType st = act.getLockoutStatus();
+				st.setEnabled(def(st.isEnabled(), true));
+				st.setReturnedByDefault(def(st.isReturnedByDefault(), true));
+				st.setIgnoreAttribute(def(st.isIgnoreAttribute(), true));
+			}
+			if (act.getValidFrom() == null) {
+				ActivationValidityCapabilityType vf = new ActivationValidityCapabilityType();
+				act.setValidFrom(vf);
+				vf.setEnabled(false);
+				vf.setReturnedByDefault(false);
+			} else {
+				ActivationValidityCapabilityType vf = act.getValidFrom();
+				vf.setEnabled(def(vf.isEnabled(), true));
+				vf.setReturnedByDefault(def(vf.isReturnedByDefault(), true));
+			}
+			if (act.getValidTo() == null) {
+				ActivationValidityCapabilityType vt = new ActivationValidityCapabilityType();
+				act.setValidTo(vt);
+				vt.setEnabled(false);
+				vt.setReturnedByDefault(false);
+			} else {
+				ActivationValidityCapabilityType vt = act.getValidTo();
+				vt.setEnabled(def(vt.isEnabled(), true));
+				vt.setReturnedByDefault(def(vt.isReturnedByDefault(), true));
+			}
+		} else if (capability instanceof CredentialsCapabilityType) {
+			CredentialsCapabilityType cred = ((CredentialsCapabilityType) capability);
+			if (cred.getPassword() == null) {
+				PasswordCapabilityType pc = new PasswordCapabilityType();
+				cred.setPassword(pc);
+				pc.setEnabled(false);
+				pc.setReturnedByDefault(false);
+			} else {
+				PasswordCapabilityType pc = cred.getPassword();
+				pc.setEnabled(def(pc.isEnabled(), true));
+				pc.setReturnedByDefault(def(pc.isReturnedByDefault(), true));
+			}
+		}
+	}
+
+	private static Boolean def(Boolean originalValue, boolean defaultValue) {
+		return originalValue != null ? originalValue : defaultValue;
+	}
+
+	public static ActivationStatusCapabilityType getEffectiveActivationStatus(ActivationCapabilityType act) {
+		if (act != null && act.getStatus() != null && !Boolean.FALSE.equals(act.getStatus().isEnabled())) {
+			return act.getStatus();
+		} else {
+			return null;
+		}
+	}
+
+	public static ActivationValidityCapabilityType getEffectiveActivationValidFrom(ActivationCapabilityType act) {
+		if (act != null && act.getValidFrom() != null && !Boolean.FALSE.equals(act.getValidFrom().isEnabled())) {
+			return act.getValidFrom();
+		} else {
+			return null;
+		}
+	}
+
+	public static ActivationValidityCapabilityType getEffectiveActivationValidTo(ActivationCapabilityType act) {
+		if (act != null && act.getValidTo() != null && !Boolean.FALSE.equals(act.getValidTo().isEnabled())) {
+			return act.getValidTo();
+		} else {
+			return null;
+		}
+	}
+
+	public static ActivationLockoutStatusCapabilityType getEffectiveActivationLockoutStatus(ActivationCapabilityType act) {
+		if (act != null && act.getLockoutStatus() != null && !Boolean.FALSE.equals(act.getLockoutStatus().isEnabled())) {
+			return act.getLockoutStatus();
+		} else {
+			return null;
+		}
 	}
 }

@@ -18,10 +18,12 @@ package com.evolveum.midpoint.web.component.wizard.resource.component;
 
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
+import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -30,7 +32,6 @@ import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxColumn;
 import com.evolveum.midpoint.web.component.data.paging.NavigatorPanel;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
-import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.component.wizard.resource.dto.AttributeDto;
 import com.evolveum.midpoint.web.component.wizard.resource.dto.ObjectClassDataProvider;
@@ -40,7 +41,6 @@ import com.evolveum.midpoint.web.page.admin.resources.PageResources;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -48,7 +48,6 @@ import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
@@ -70,7 +69,7 @@ import java.util.List;
 /**
  * @author lazyman
  */
-public class SchemaListPanel extends SimplePanel<PrismObject<ResourceType>> {
+public class SchemaListPanel extends BasePanel<PrismObject<ResourceType>> {
 
     private static final Trace LOGGER = TraceManager.getTrace(SchemaListPanel.class);
 
@@ -102,6 +101,7 @@ public class SchemaListPanel extends SimplePanel<PrismObject<ResourceType>> {
 
     public SchemaListPanel(String id, IModel<PrismObject<ResourceType>> model) {
         super(id, model);
+		initLayout();
     }
 
     protected void initModels() {
@@ -130,7 +130,6 @@ public class SchemaListPanel extends SimplePanel<PrismObject<ResourceType>> {
         };
     }
 
-    @Override
     protected void initLayout() {
         initModels();
 
@@ -368,8 +367,8 @@ public class SchemaListPanel extends SimplePanel<PrismObject<ResourceType>> {
             }
 
             return RefinedResourceSchema.getRefinedSchema(resource, getPageBase().getPrismContext());
-        } catch (Exception ex) {
-            LoggingUtils.logException(LOGGER, "Couldn't parse resource schema.", ex);
+        } catch (SchemaException|RuntimeException ex) {
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't parse resource schema.", ex);
             getSession().error(getString("SchemaListPanel.message.couldntParseSchema") + " " + ex.getMessage());
 
             throw new RestartResponseException(PageResources.class);

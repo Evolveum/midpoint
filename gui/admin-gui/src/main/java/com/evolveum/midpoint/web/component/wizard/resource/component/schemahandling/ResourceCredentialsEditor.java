@@ -16,11 +16,24 @@
 
 package com.evolveum.midpoint.web.component.wizard.resource.component.schemahandling;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
+import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.form.multivalue.MultiValueTextEditPanel;
+import com.evolveum.midpoint.web.component.input.ObjectReferenceChoiceRenderer;
+import com.evolveum.midpoint.web.component.wizard.WizardUtil;
+import com.evolveum.midpoint.web.component.wizard.resource.component.schemahandling.modal.MappingEditorDialog;
+import com.evolveum.midpoint.web.component.wizard.resource.dto.MappingTypeDto;
+import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
 import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
@@ -34,33 +47,15 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.logging.LoggingUtils;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.form.multivalue.MultiValueTextEditPanel;
-import com.evolveum.midpoint.web.component.input.ObjectReferenceChoiceRenderer;
-import com.evolveum.midpoint.web.component.util.SimplePanel;
-import com.evolveum.midpoint.web.component.wizard.WizardUtil;
-import com.evolveum.midpoint.web.component.wizard.resource.component.schemahandling.modal.MappingEditorDialog;
-import com.evolveum.midpoint.web.component.wizard.resource.dto.MappingTypeDto;
-import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AttributeFetchStrategyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceCredentialsDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourcePasswordDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ValuePolicyType;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  *  @author shood
  * */
-public class ResourceCredentialsEditor extends SimplePanel<ResourceCredentialsDefinitionType>{
+public class ResourceCredentialsEditor extends BasePanel<ResourceCredentialsDefinitionType> {
 
     private static final Trace LOGGER = TraceManager.getTrace(ResourceCredentialsEditor.class);
 
@@ -79,10 +74,11 @@ public class ResourceCredentialsEditor extends SimplePanel<ResourceCredentialsDe
     private static final String ID_T_IN = "inboundTooltip";
     private static final String ID_T_PASS_POLICY = "passwordPolicyRefTooltip";
 
-    private Map<String, String> passPolicyMap = new HashMap<>();
+    final private Map<String, String> passPolicyMap = new HashMap<>();
 
     public ResourceCredentialsEditor(String id, IModel<ResourceCredentialsDefinitionType> model){
         super(id, model);
+		initLayout();
     }
 
     @Override
@@ -100,8 +96,7 @@ public class ResourceCredentialsEditor extends SimplePanel<ResourceCredentialsDe
         return model;
     }
 
-    @Override
-    protected void initLayout(){
+    protected void initLayout() {
         DropDownChoice fetchStrategy = new DropDownChoice<>(ID_FETCH_STRATEGY,
                 new PropertyModel<AttributeFetchStrategyType>(getModel(), "password.fetchStrategy"),
                 WebComponentUtil.createReadonlyModelFromEnum(AttributeFetchStrategyType.class),
@@ -225,9 +220,9 @@ public class ResourceCredentialsEditor extends SimplePanel<ResourceCredentialsDe
         try{
             policies = getPageBase().getModelService().searchObjects(ValuePolicyType.class, new ObjectQuery(), null, task, result);
             result.recomputeStatus();
-        } catch (Exception e){
+        } catch (CommonException |RuntimeException e) {
             result.recordFatalError("Couldn't load password policies.", e);
-            LoggingUtils.logException(LOGGER, "Couldn't load password policies", e);
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load password policies", e);
         }
 
         // TODO - show error somehow
@@ -258,7 +253,7 @@ public class ResourceCredentialsEditor extends SimplePanel<ResourceCredentialsDe
 
     private void inboundEditPerformed(AjaxRequestTarget target, MappingType mapping){
         MappingEditorDialog window = (MappingEditorDialog) get(ID_MODAL_INBOUND);
-        window.updateModel(target, mapping, true);
+        window.updateModel(target, mapping, false);
         window.show(target);
     }
 }

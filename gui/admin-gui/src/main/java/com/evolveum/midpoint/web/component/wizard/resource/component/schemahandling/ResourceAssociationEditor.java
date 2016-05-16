@@ -16,12 +16,14 @@
 
 package com.evolveum.midpoint.web.component.wizard.resource.component.schemahandling;
 
+import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -30,7 +32,6 @@ import com.evolveum.midpoint.web.component.form.multivalue.MultiValueTextEditPan
 import com.evolveum.midpoint.web.component.form.multivalue.MultiValueTextPanel;
 import com.evolveum.midpoint.web.component.input.QNameChoiceRenderer;
 import com.evolveum.midpoint.web.component.input.QNameEditorPanel;
-import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.component.wizard.WizardUtil;
 import com.evolveum.midpoint.web.component.wizard.resource.component.schemahandling.modal.LimitationsEditorDialog;
 import com.evolveum.midpoint.web.component.wizard.resource.component.schemahandling.modal.MappingEditorDialog;
@@ -38,7 +39,6 @@ import com.evolveum.midpoint.web.component.wizard.resource.dto.MappingTypeDto;
 import com.evolveum.midpoint.web.page.admin.resources.PageResources;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -53,14 +53,13 @@ import org.apache.wicket.model.PropertyModel;
 import org.w3c.dom.Element;
 
 import javax.xml.namespace.QName;
-
 import java.util.ArrayList;
 import java.util.List;
 
 /**
  *  @author shood
  * */
-public class ResourceAssociationEditor extends SimplePanel<ResourceObjectAssociationType>{
+public class ResourceAssociationEditor extends BasePanel<ResourceObjectAssociationType> {
 
     private static final Trace LOGGER = TraceManager.getTrace(ResourceAssociationEditor.class);
 
@@ -80,7 +79,6 @@ public class ResourceAssociationEditor extends SimplePanel<ResourceObjectAssocia
     private static final String ID_TOLERANT_VP = "tolerantValuePattern";
     private static final String ID_INTOLERANT_VP = "intolerantValuePattern";
     private static final String ID_FETCH_STRATEGY = "fetchStrategy";
-    private static final String ID_MATCHING_RULE = "matchingRule";
     private static final String ID_INBOUND = "inbound";
     private static final String ID_OUTBOUND_LABEL = "outboundLabel";
     private static final String ID_BUTTON_OUTBOUND = "buttonOutbound";
@@ -113,9 +111,9 @@ public class ResourceAssociationEditor extends SimplePanel<ResourceObjectAssocia
 
         this.resource = resource;
         this.objectType = objectType;
+		initLayout();
     }
 
-    @Override
     protected void initLayout(){
         Label label = new Label(ID_LABEL, new AbstractReadOnlyModel<String>() {
 
@@ -224,17 +222,7 @@ public class ResourceAssociationEditor extends SimplePanel<ResourceObjectAssocia
         fetchStrategy.setNullValid(true);
         add(fetchStrategy);
 
-        DropDownChoice matchingRule = new DropDownChoice<>(ID_MATCHING_RULE,
-                new PropertyModel<QName>(getModel(), "matchingRule"),
-                new AbstractReadOnlyModel<List<QName>>() {
-
-                    @Override
-                    public List<QName> getObject() {
-                        return WebComponentUtil.getMatchingRuleList();
-                    }
-                }, new QNameChoiceRenderer());
-        matchingRule.setNullValid(true);
-        add(matchingRule);
+        AttributeEditorUtils.addMatchingRuleFields(this);
 
         TextField outboundLabel = new TextField<>(ID_OUTBOUND_LABEL,
                 new AbstractReadOnlyModel<String>() {
@@ -417,8 +405,8 @@ public class ResourceAssociationEditor extends SimplePanel<ResourceObjectAssocia
 
             try {
                 return ResourceSchema.parse(xsdSchema, resource.toString(), getPageBase().getPrismContext());
-            } catch (Exception e) {
-                LoggingUtils.logException(LOGGER, "Couldn't parse resource schema.", e);
+            } catch (SchemaException|RuntimeException e) {
+                LoggingUtils.logUnexpectedException(LOGGER, "Couldn't parse resource schema.", e);
                 getSession().error(getString("ResourceAssociationEditor.message.cantParseSchema") + " " + e.getMessage());
 
                 throw new RestartResponseException(PageResources.class);
