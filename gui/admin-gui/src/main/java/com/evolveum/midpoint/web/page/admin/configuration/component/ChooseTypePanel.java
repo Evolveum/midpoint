@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,17 +41,16 @@ import java.util.List;
  *  Distinguish between chooser panels that reside on "main page" and
  *  the one that resides in the popup window (ObjectSelectionPanel).
  */
-public class ChooseTypePanel<T extends ObjectType> extends BasePanel<ObjectViewDto> {
+public class ChooseTypePanel<T extends ObjectType> extends BasePanel<ObjectViewDto<T>> {
+	private static final long serialVersionUID = 1L;
 
-    private static final Trace LOGGER = TraceManager.getTrace(ChooseTypePanel.class);
+	private static final Trace LOGGER = TraceManager.getTrace(ChooseTypePanel.class);
 
     private static final String ID_OBJECT_NAME = "name";
     private static final String ID_LINK_CHOOSE = "choose";
     private static final String ID_LINK_REMOVE = "remove";
 
-    private static final String MODAL_ID_OBJECT_SELECTION_POPUP = "objectSelectionPopup";
-
-    public ChooseTypePanel(String id, IModel<ObjectViewDto> model){
+    public ChooseTypePanel(String id, IModel<ObjectViewDto<T>> model){
         super(id, model);
         initLayout();
     }
@@ -59,10 +58,11 @@ public class ChooseTypePanel<T extends ObjectType> extends BasePanel<ObjectViewD
     protected void initLayout() {
 
         final Label name = new Label(ID_OBJECT_NAME, new AbstractReadOnlyModel<String>(){
-
+        	private static final long serialVersionUID = 1L;
+        	
             @Override
             public String getObject() {
-                ObjectViewDto dto = getModel().getObject();
+                ObjectViewDto<T> dto = getModel().getObject();
                 if (dto != null) {
                     if (dto.getName() != null)
                         return getModel().getObject().getName();
@@ -77,15 +77,17 @@ public class ChooseTypePanel<T extends ObjectType> extends BasePanel<ObjectViewD
         });
         name.setOutputMarkupId(true);
 
-        AjaxLink choose = new AjaxLink(ID_LINK_CHOOSE) {
-
+        AjaxLink<String> choose = new AjaxLink<String>(ID_LINK_CHOOSE) {
+        	private static final long serialVersionUID = 1L;
+        	
             @Override
             public void onClick(AjaxRequestTarget target) {
                  changeOptionPerformed(target);
             }
         };
 
-        AjaxLink remove = new AjaxLink(ID_LINK_REMOVE) {
+        AjaxLink<String> remove = new AjaxLink<String>(ID_LINK_REMOVE) {
+        	private static final long serialVersionUID = 1L;
 
             @Override
             public void onClick(AjaxRequestTarget target) {
@@ -98,50 +100,7 @@ public class ChooseTypePanel<T extends ObjectType> extends BasePanel<ObjectViewD
         add(remove);
         add(name);
 
-//        initDialog();
     }
-
-//    private void initDialog() {
-//        final ModalWindow dialog = new ModalWindow(MODAL_ID_OBJECT_SELECTION_POPUP);
-//
-//        ObjectSelectionPanel.Context context = new ObjectSelectionPanel.Context(this) {
-//
-//            // It seems that when modal window is open, ChooseTypePanel.this points to
-//            // wrong instance of ChooseTypePanel (the one that will not be used afterwards -
-//            // any changes made to its models are simply lost). So we want to get the reference to the "correct" one.
-//            public ChooseTypePanel getRealParent() {
-//                return WebComponentUtil.theSameForPage(ChooseTypePanel.this, getCallingPageReference());
-//            }
-//
-//            @Override
-//            public void chooseOperationPerformed(AjaxRequestTarget target, ObjectType object) {
-//                getRealParent().choosePerformed(target, object);
-//            }
-//
-//            @Override
-//            public ObjectQuery getDataProviderQuery() {
-//                return getRealParent().getChooseQuery();
-//            }
-//
-//            public boolean isSearchEnabled() {
-//                return getRealParent().isSearchEnabled();
-//            }
-//
-//            @Override
-//            public QName getSearchProperty() {
-//                return getRealParent().getSearchProperty();
-//            }
-//
-//            @Override
-//            public Class<? extends ObjectType> getObjectTypeClass() {
-//                return getRealParent().getObjectTypeClass();
-//            }
-//
-//        };
-//
-//        ObjectSelectionPage.prepareDialog(dialog, context, this, "chooseTypeDialog.title", ID_OBJECT_NAME);
-//        add(dialog);
-//    }
 
     protected  boolean isSearchEnabled(){
         return false;
@@ -156,10 +115,8 @@ public class ChooseTypePanel<T extends ObjectType> extends BasePanel<ObjectViewD
     }
 
     private void choosePerformed(AjaxRequestTarget target, T object){
-//        ModalWindow window = (ModalWindow) get(MODAL_ID_OBJECT_SELECTION_POPUP);
-//        window.close(target);
-
-        ObjectViewDto o = getModel().getObject();
+    	getPageBase().hideMainPopup(target);
+        ObjectViewDto<T> o = getModel().getObject();
 
         o.setName(WebComponentUtil.getName(object));
         o.setOid(object.getOid());
@@ -186,12 +143,10 @@ public class ChooseTypePanel<T extends ObjectType> extends BasePanel<ObjectViewD
     	objectBrowserPanel.setOutputMarkupId(true);
     	
     	getPageBase().showMainPopup(objectBrowserPanel, target);
-//        ModalWindow window = (ModalWindow)get(MODAL_ID_OBJECT_SELECTION_POPUP);
-//        window.show(target);
     }
 
     private void setToDefault(){
-        ObjectViewDto dto = new ObjectViewDto();
+        ObjectViewDto<T> dto = new ObjectViewDto<T>();
         dto.setType(getObjectTypeClass());
         getModel().setObject(dto);
     }
