@@ -132,7 +132,7 @@ public class TestPassword extends AbstractInitializedModelIntegrationTest {
 		display("User after change execution", userJack);
 		assertUserJack(userJack, "Jack Sparrow");
         
-		assertEncryptedPassword(userJack, "deadmentellnotales");
+		assertEncryptedUserPassword(userJack, USER_JACK_PASSWORD);
 	}
 	
 
@@ -163,7 +163,7 @@ public class TestPassword extends AbstractInitializedModelIntegrationTest {
 		display("User after change execution", userJack);
 		assertUserJack(userJack, "Jack Sparrow");
         
-		assertEncryptedPassword(userJack, USER_PASSWORD_1_CLEAR);
+		assertEncryptedUserPassword(userJack, USER_PASSWORD_1_CLEAR);
 		assertPasswordMetadata(userJack, false, startCal, endCal);
 	}
 	
@@ -263,7 +263,7 @@ public class TestPassword extends AbstractInitializedModelIntegrationTest {
 		display("User after change execution", userJack);
 		assertUserJack(userJack, "Jack Sparrow");
         
-		assertEncryptedPassword(userJack, USER_PASSWORD_2_CLEAR);
+		assertEncryptedUserPassword(userJack, USER_PASSWORD_2_CLEAR);
 		assertDummyPassword(ACCOUNT_JACK_DUMMY_USERNAME, USER_PASSWORD_2_CLEAR);
 		assertPasswordMetadata(userJack, false, lastPasswordChangeStart, lastPasswordChangeEnd);
 	}
@@ -293,7 +293,7 @@ public class TestPassword extends AbstractInitializedModelIntegrationTest {
 		assertUserJack(userJack, "Jack Sparrow");
         
 		// User should still have old password
-		assertEncryptedPassword(userJack, USER_PASSWORD_2_CLEAR);
+		assertEncryptedUserPassword(userJack, USER_PASSWORD_2_CLEAR);
 		// Account has new password
 		assertDummyPassword(ACCOUNT_JACK_DUMMY_USERNAME, USER_PASSWORD_3_CLEAR);
 		
@@ -341,7 +341,7 @@ public class TestPassword extends AbstractInitializedModelIntegrationTest {
 		assertUserJack(userJack, "Jack Sparrow");
         
 		// User should still have old password
-		assertEncryptedPassword(userJack, USER_PASSWORD_4_CLEAR);
+		assertEncryptedUserPassword(userJack, USER_PASSWORD_4_CLEAR);
 		// Account has new password
 		assertDummyPassword(ACCOUNT_JACK_DUMMY_USERNAME, USER_PASSWORD_5_CLEAR);
 		
@@ -380,7 +380,7 @@ public class TestPassword extends AbstractInitializedModelIntegrationTest {
         assertDummyPassword(RESOURCE_DUMMY_RED_NAME, ACCOUNT_JACK_DUMMY_USERNAME, USER_PASSWORD_4_CLEAR);
         
         // User and default dummy account should have unchanged passwords
-        assertEncryptedPassword(userJack, USER_PASSWORD_4_CLEAR);
+        assertEncryptedUserPassword(userJack, USER_PASSWORD_4_CLEAR);
      	assertDummyPassword("jack", USER_PASSWORD_5_CLEAR);
      	
      	assertPasswordMetadata(userJack, false, lastPasswordChangeStart, lastPasswordChangeEnd);
@@ -427,7 +427,7 @@ public class TestPassword extends AbstractInitializedModelIntegrationTest {
 		assertUserJack(userJack, USER_JACK_FULL_NAME);
         
 		// User should still have old password
-		assertEncryptedPassword(userJack, USER_PASSWORD_1_CLEAR);
+		assertEncryptedUserPassword(userJack, USER_PASSWORD_1_CLEAR);
 		// Red account has the same account as user
 		assertDummyPassword(RESOURCE_DUMMY_RED_NAME, ACCOUNT_JACK_DUMMY_USERNAME, USER_PASSWORD_1_CLEAR);
 		// ... and default account has also the same password as user now. There was no other change on default dummy instance 
@@ -474,7 +474,7 @@ public class TestPassword extends AbstractInitializedModelIntegrationTest {
         assertDummyPassword(RESOURCE_DUMMY_RED_NAME, ACCOUNT_JACK_DUMMY_USERNAME, USER_PASSWORD_1_CLEAR);
         
         // User and default dummy account should have unchanged passwords
-        assertEncryptedPassword(userJack, USER_PASSWORD_1_CLEAR);
+        assertEncryptedUserPassword(userJack, USER_PASSWORD_1_CLEAR);
      	assertDummyPassword(ACCOUNT_JACK_DUMMY_USERNAME, USER_PASSWORD_1_CLEAR);
      	
      	assertPasswordMetadata(userJack, false, lastPasswordChangeStart, lastPasswordChangeEnd);
@@ -516,18 +516,12 @@ public class TestPassword extends AbstractInitializedModelIntegrationTest {
         assertDummyPassword(RESOURCE_DUMMY_RED_NAME, ACCOUNT_JACK_DUMMY_USERNAME, USER_PASSWORD_A_CLEAR);
         
         // User and default dummy account should have unchanged passwords
-        assertEncryptedPassword(userJack, USER_PASSWORD_A_CLEAR);
+        assertEncryptedUserPassword(userJack, USER_PASSWORD_A_CLEAR);
      	assertDummyPassword(ACCOUNT_JACK_DUMMY_USERNAME, USER_PASSWORD_A_CLEAR);
 	}
 
 	private void assertDummyPassword(String userId, String expectedClearPassword) {
 		assertDummyPassword(null, userId, expectedClearPassword);
-	}
-	
-	private void assertDummyPassword(String instance, String userId, String expectedClearPassword) {
-		DummyAccount account = getDummyAccount(instance, userId);
-		assertNotNull("No dummy account "+userId, account);
-		assertEquals("Wrong password in dummy '"+instance+"' account "+userId, expectedClearPassword, account.getPassword());
 	}
 	
 }

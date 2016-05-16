@@ -86,11 +86,17 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 	protected static final String RESOURCE_DUMMY_IVORY_NAME = "ivory";
 	protected static final String RESOURCE_DUMMY_IVORY_NAMESPACE = MidPointConstants.NS_RI;
 	
-	// IVORY dummy resource has a LAX dependency on default dummy resource
+	// IVORY dummy resource has a RELAXED dependency on default dummy resource
 	protected static final File RESOURCE_DUMMY_BEIGE_FILE = new File(TEST_DIR, "resource-dummy-beige.xml");
 	protected static final String RESOURCE_DUMMY_BEIGE_OID = "10000000-0000-0000-0000-00000001b504";
 	protected static final String RESOURCE_DUMMY_BEIGE_NAME = "beige";
 	protected static final String RESOURCE_DUMMY_BEIGE_NAMESPACE = MidPointConstants.NS_RI;
+	
+	// PERU dummy resource has a RELAXED dependency on YELLOW dummy resource
+	protected static final File RESOURCE_DUMMY_PERU_FILE = new File(TEST_DIR, "resource-dummy-peru.xml");
+	protected static final String RESOURCE_DUMMY_PERU_OID = "10000000-0000-0000-0000-00000001c504";
+	protected static final String RESOURCE_DUMMY_PERU_NAME = "peru";
+	protected static final String RESOURCE_DUMMY_PERU_NAMESPACE = MidPointConstants.NS_RI;
 	
 	protected static final File RESOURCE_DUMMY_DAVID_FILE = new File(TEST_DIR, "resource-dummy-david.xml");
 	protected static final String RESOURCE_DUMMY_DAVID_OID = "10000000-0000-0000-0000-000000300001";
@@ -117,6 +123,8 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 
 	private static final String USER_FIELD_NAME = "field";
 	
+	private static final String USER_PASSWORD_A_CLEAR = "A"; // too short
+	
 	protected static DummyResource dummyResourceLavender;
 	protected static DummyResourceContoller dummyResourceCtlLavender;
 	protected ResourceType resourceDummyLavenderType;
@@ -131,6 +139,11 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 	protected static DummyResourceContoller dummyResourceCtlBeige;
 	protected ResourceType resourceDummyBeigeType;
 	protected PrismObject<ResourceType> resourceDummyBeige;
+	
+	protected static DummyResource dummyResourcePeru;
+	protected static DummyResourceContoller dummyResourceCtlPeru;
+	protected ResourceType resourceDummyPeruType;
+	protected PrismObject<ResourceType> resourceDummyPeru;
 	
 	protected static DummyResource dummyResourceDavid;
 	protected static DummyResourceContoller dummyResourceCtlDavid;
@@ -164,6 +177,13 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 		resourceDummyBeige = importAndGetObjectFromFile(ResourceType.class, RESOURCE_DUMMY_BEIGE_FILE, RESOURCE_DUMMY_BEIGE_OID, initTask, initResult);
 		resourceDummyBeigeType = resourceDummyBeige.asObjectable();
 		dummyResourceCtlBeige.setResource(resourceDummyBeige);
+		
+		dummyResourceCtlPeru = DummyResourceContoller.create(RESOURCE_DUMMY_PERU_NAME, resourceDummyPeru);
+		dummyResourceCtlPeru.extendSchemaPirate();
+		dummyResourcePeru = dummyResourceCtlPeru.getDummyResource();
+		resourceDummyPeru = importAndGetObjectFromFile(ResourceType.class, RESOURCE_DUMMY_PERU_FILE, RESOURCE_DUMMY_PERU_OID, initTask, initResult);
+		resourceDummyPeruType = resourceDummyPeru.asObjectable();
+		dummyResourceCtlPeru.setResource(resourceDummyPeru);
 
 		dummyResourceCtlDavid = DummyResourceContoller.create(RESOURCE_DUMMY_DAVID_NAME);
 		dummyResourceCtlDavid.extendSchemaPirate();
@@ -1118,6 +1138,137 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         result.computeStatus();
         TestUtil.assertSuccess(result);
         
+        assertNoDummyAccount(RESOURCE_DUMMY_LAVENDER_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
+        assertNoDummyAccount(RESOURCE_DUMMY_BEIGE_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
+        assertNoDummyAccount(RESOURCE_DUMMY_IVORY_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
+        assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME);
+    }
+    
+    /**
+     * Resource peru depends on resource yellow, but the dependency is relaxed.
+     * The account should be created even if we do not have yellow account yet.
+     */
+    @Test
+    public void test380AddAccountPeru() throws Exception {
+		final String TEST_NAME = "test380AddAccountPeru";
+		TestUtil.displayTestTile(TEST_NAME);
+		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
+		dummyResource.resetBreakMode();
+		
+		// precondition
+		assertEncryptedUserPassword(USER_JACK_OID, USER_JACK_PASSWORD);
+		
+		Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        		
+        ObjectDelta<UserType> userDelta = createModifyUserAddAccount(USER_JACK_OID, resourceDummyPeru);
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        modelService.executeChanges(MiscSchemaUtil.createCollection(userDelta), null, task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        assertDummyAccount(RESOURCE_DUMMY_PERU_NAME, ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
+        assertDummyPassword(RESOURCE_DUMMY_PERU_NAME, ACCOUNT_JACK_DUMMY_USERNAME, USER_JACK_PASSWORD);
+    }
+
+    @Test
+    public void test382AddAccountYellow() throws Exception {
+		final String TEST_NAME = "test382AddAccountYellow";
+		TestUtil.displayTestTile(TEST_NAME);
+		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
+		
+		Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        		
+        ObjectDelta<UserType> userDelta = createModifyUserAddAccount(USER_JACK_OID, resourceDummyYellow);
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        modelService.executeChanges(MiscSchemaUtil.createCollection(userDelta), null, task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        PrismObject<UserType> userJack = getUser(USER_JACK_OID);
+		display("User after change execution", userJack);
+		assertUserJack(userJack);
+		assertLinks(userJack, 2);
+        
+        assertDummyAccount(RESOURCE_DUMMY_YELLOW_NAME, ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
+        assertDummyPassword(RESOURCE_DUMMY_YELLOW_NAME, ACCOUNT_JACK_DUMMY_USERNAME, USER_JACK_PASSWORD);
+        
+        assertDummyAccount(RESOURCE_DUMMY_PERU_NAME, ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
+        assertDummyPassword(RESOURCE_DUMMY_PERU_NAME, ACCOUNT_JACK_DUMMY_USERNAME, USER_JACK_PASSWORD);
+    }
+    
+    /**
+	 * Yellow resource has minimum password length constraint. Change password to something shorter.
+	 * There is dependency yellow<-peru. Make sure that the peru is not affected (the dependency is relaxed)
+	 * MID-3033, MID-2134
+	 */
+	@Test
+    public void test385ModifyUserJackPasswordA() throws Exception {
+		final String TEST_NAME = "test385ModifyUserJackPasswordA";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestPassword.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
+        
+		// WHEN
+        modifyUserChangePassword(USER_JACK_OID, USER_PASSWORD_A_CLEAR, task, result);
+		
+		// THEN
+		result.computeStatus();
+		TestUtil.assertPartialError(result);
+        
+		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
+		display("User after change execution", userJack);
+		assertUserJack(userJack);
+		assertLinks(userJack, 2);
+
+        // Check account in dummy resource (yellow): password is too short for this, original password should remain there
+        assertDummyAccount(RESOURCE_DUMMY_YELLOW_NAME, ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
+        assertDummyPassword(RESOURCE_DUMMY_YELLOW_NAME, ACCOUNT_JACK_DUMMY_USERNAME, USER_JACK_PASSWORD);
+        
+        // Check account in dummy resource (peru)
+        assertDummyAccount(RESOURCE_DUMMY_PERU_NAME, ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
+        assertDummyPassword(RESOURCE_DUMMY_PERU_NAME, ACCOUNT_JACK_DUMMY_USERNAME, USER_PASSWORD_A_CLEAR);
+        
+        assertEncryptedUserPassword(userJack, USER_PASSWORD_A_CLEAR);
+	}
+
+    
+    @Test
+    public void test389DeleteAccountPeru() throws Exception {
+		final String TEST_NAME = "test389DeleteAccountPeru";
+		TestUtil.displayTestTile(TEST_NAME);
+		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
+		
+		Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        		
+        ObjectDelta<UserType> userDelta = createModifyUserDeleteAccount(USER_JACK_OID, resourceDummyPeru);
+        
+        TestUtil.displayWhen(TEST_NAME);
+        modelService.executeChanges(MiscSchemaUtil.createCollection(userDelta), null, task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        assertNoDummyAccount(RESOURCE_DUMMY_PERU_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
+        
+        // just to be sure
         assertNoDummyAccount(RESOURCE_DUMMY_LAVENDER_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
         assertNoDummyAccount(RESOURCE_DUMMY_BEIGE_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
         assertNoDummyAccount(RESOURCE_DUMMY_IVORY_NAME, ACCOUNT_JACK_DUMMY_USERNAME);

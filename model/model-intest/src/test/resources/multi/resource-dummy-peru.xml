@@ -15,10 +15,10 @@
   ~ limitations under the License.
   -->
 
-<!-- IVORY dummy resource for testing. It is used in multi-resource tests.
-      Similar to lavender resource but it has only lax dependency on default dummy resource. -->
+<!-- PERU dummy resource for testing. It is used in multi-resource tests.
+      It has relaxed dependency on yellow resource. -->
 
-<resource oid="10000000-0000-0000-0000-000000011504"
+<resource oid="10000000-0000-0000-0000-00000001c504"
 		  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
           xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
           xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
@@ -28,7 +28,7 @@
           xmlns:xsd="http://www.w3.org/2001/XMLSchema"
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 								  
-	<name>Dummy Resource Ivory</name>
+	<name>Dummy Resource Peru</name>
 	<connectorRef type="c:ConnectorType">
 		<filter>
 			<q:and>
@@ -47,7 +47,7 @@
 	               xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
 					   
 		<icfc:configurationProperties>
-			<icfi:instanceId>ivory</icfi:instanceId>
+			<icfi:instanceId>peru</icfi:instanceId>
 		</icfc:configurationProperties>
 
 	</connectorConfiguration>
@@ -136,7 +136,6 @@
 			</attribute>
 			<attribute>
 				<ref>icfs:uid</ref>
-				<displayName>UID</displayName>
 			</attribute>
 			<attribute>
 				<ref>ri:fullname</ref>
@@ -159,8 +158,8 @@
 				</outbound>
 			</attribute>
 			<dependency>
-				<resourceRef oid="10000000-0000-0000-0000-000000000004"/> <!-- default dummy -->
-				<strictness>lax</strictness>
+				<resourceRef oid="10000000-0000-0000-0000-000000000704"/> <!-- yellow dummy -->
+				<strictness>relaxed</strictness>
 			</dependency>
 			<activation>
             	<administrativeStatus>

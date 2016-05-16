@@ -2648,7 +2648,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         String accountOid = accountRefType.getOid();
         assertFalse("No accountRef oid", StringUtils.isBlank(accountOid));
         
-        assertEncryptedPassword(userBlackbeard, "QueenAnne");
+        assertEncryptedUserPassword(userBlackbeard, "QueenAnne");
         assertPasswordMetadata(userBlackbeard, true, startTime, endTime, USER_ADMINISTRATOR_OID, "http://pirates.net/avast");
         
 		// Check shadow
@@ -2732,7 +2732,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         String accountOid = accountRefType.getOid();
         assertFalse("No accountRef oid", StringUtils.isBlank(accountOid));
         
-        assertEncryptedPassword(userMorgan, "rum");
+        assertEncryptedUserPassword(userMorgan, "rum");
         assertPasswordMetadata(userMorgan, true, startTime, endTime);
         
 		// Check shadow

@@ -16,7 +16,7 @@
   -->
 
 <!-- IVORY dummy resource for testing. It is used in multi-resource tests.
-      Similar to yellow resource but it has only lax dependency on default dummy resource. -->
+      Similar to lavender resource but it has only relaxed dependency on default dummy resource. -->
 
 <resource oid="10000000-0000-0000-0000-00000001b504"
 		  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
