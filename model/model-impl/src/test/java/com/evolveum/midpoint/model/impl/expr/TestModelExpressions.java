@@ -151,7 +151,7 @@ public class TestModelExpressions extends AbstractInternalModelIntegrationTest {
         PrismObject<UserType> chef = repositoryService.getObject(UserType.class, CHEF_OID, null, result);
 
         ScriptExpressionEvaluatorType scriptType = parseScriptType("expression-" + TEST_NAME + ".xml");
-        ItemDefinition outputDefinition = new PrismPropertyDefinition(PROPERTY_NAME, DOMUtil.XSD_STRING, PrismTestUtil.getPrismContext());
+        PrismPropertyDefinition<String> outputDefinition = new PrismPropertyDefinition<>(PROPERTY_NAME, DOMUtil.XSD_STRING, PrismTestUtil.getPrismContext());
         ScriptExpression scriptExpression = scriptExpressionFactory.createScriptExpression(scriptType, outputDefinition, TEST_NAME);
         ExpressionVariables variables = new ExpressionVariables();
         variables.addVariableDefinition(new QName(SchemaConstants.NS_C, "user"), chef);
@@ -168,6 +168,36 @@ public class TestModelExpressions extends AbstractInternalModelIntegrationTest {
         oids.add(scriptOutputs.get(2).getValue());
         Set<String> expectedOids = new HashSet<String>(Arrays.asList(new String[] { CHEESE_OID, CHEESE_JR_OID, LECHUCK_OID }));
         assertEquals("Unexpected script output", expectedOids, oids);
+    }
+    
+    /**
+     * MID-2887
+     */
+    @Test
+    public void testIsUniquePropertyValue() throws Exception {
+        final String TEST_NAME = "testIsUniquePropertyValue";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        OperationResult result = new OperationResult(TestModelExpressions.class.getName() + "." + TEST_NAME);
+
+        PrismObject<UserType> chef = repositoryService.getObject(UserType.class, CHEF_OID, null, result);
+
+        ScriptExpressionEvaluatorType scriptType = parseScriptType("expression-" + TEST_NAME + ".xml");
+        PrismPropertyDefinition<Boolean> outputDefinition = new PrismPropertyDefinition<>(PROPERTY_NAME, DOMUtil.XSD_BOOLEAN, PrismTestUtil.getPrismContext());
+        ScriptExpression scriptExpression = scriptExpressionFactory.createScriptExpression(scriptType, outputDefinition, TEST_NAME);
+        ExpressionVariables variables = new ExpressionVariables();
+        variables.addVariableDefinition(new QName(SchemaConstants.NS_C, "user"), chef);
+        variables.addVariableDefinition(new QName(SchemaConstants.NS_C, "value"), "Scumm Bar Chef");
+
+        // WHEN
+        List<PrismPropertyValue<Boolean>> scriptOutputs = evaluate(scriptExpression, variables, false, TEST_NAME, null, result);
+
+        // THEN
+        display("Script output", scriptOutputs);
+        assertEquals("Unexpected number of script outputs", 1, scriptOutputs.size());
+        Boolean scriptOutput = scriptOutputs.get(0).getValue();
+        assertEquals("Unexpected script output", Boolean.TRUE, scriptOutput);
     }
 
     @Test
@@ -297,7 +327,7 @@ public class TestModelExpressions extends AbstractInternalModelIntegrationTest {
     	
     }
 
-    private List<PrismPropertyValue<String>> evaluate(ScriptExpression scriptExpression, ExpressionVariables variables, boolean useNew,
+    private <T> List<PrismPropertyValue<T>> evaluate(ScriptExpression scriptExpression, ExpressionVariables variables, boolean useNew,
                                                       String contextDescription, Task task, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
         if (task == null) {
             task = taskManager.createTaskInstance();
