@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -56,6 +56,7 @@ public class DummyConfiguration extends AbstractConfiguration {
 	private String[] forbiddenNames = new String[0];
 	private boolean useLegacySchema = true;
 	private String requiredBaseContextOrgName = null;
+	private Integer minPasswordLength = null;
 
 	/**
      * Defines name of the dummy resource instance. There may be several dummy resource running in
@@ -315,6 +316,14 @@ public class DummyConfiguration extends AbstractConfiguration {
 
 	public void setRequiredBaseContextOrgName(String requiredBaseContextOrgName) {
 		this.requiredBaseContextOrgName = requiredBaseContextOrgName;
+	}
+
+	public Integer getMinPasswordLength() {
+		return minPasswordLength;
+	}
+
+	public void setMinPasswordLength(Integer minPasswordLength) {
+		this.minPasswordLength = minPasswordLength;
 	}
 
 	/**

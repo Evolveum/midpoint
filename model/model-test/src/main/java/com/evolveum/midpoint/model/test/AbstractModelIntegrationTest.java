@@ -725,6 +725,18 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		modelService.executeChanges(deltas, null, task, result);
 	}
 	
+	protected void modifyUserChangePassword(String userOid, String newPassword, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
+		ProtectedStringType userPasswordPs = new ProtectedStringType();
+        userPasswordPs.setClearValue(newPassword);
+        modifyUserReplace(userOid, PASSWORD_VALUE_PATH, task,  result, userPasswordPs);
+	}
+	
+	protected void modifyAccountChangePassword(String accountOid, String newPassword, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
+		ProtectedStringType userPasswordPs = new ProtectedStringType();
+        userPasswordPs.setClearValue(newPassword);
+        modifyAccountShadowReplace(accountOid, PASSWORD_VALUE_PATH, task,  result, userPasswordPs);
+	}
+	
 	protected void recomputeUser(String userOid, Task task, OperationResult result) throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException  {
 		modelService.recompute(UserType.class, userOid, task, result);
 	}
