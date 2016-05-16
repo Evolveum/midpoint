@@ -2084,6 +2084,17 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	}
 	
 	protected void restartTask(String taskOid) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
+		
+		// Wait at least 1ms here. We have the timestamp in the tasks with a millisecond granularity. If the tasks is started,
+		// executed and then resstarted and excecuted within the same millisecond then the second execution will not be
+		// detected and the wait for task finish will time-out. So waiting one millisecond here will make sure that the
+		// timestamps are different. And 1ms is not that long to significantly affect test run times.
+		try {
+			Thread.sleep(1);
+		} catch (InterruptedException e) {
+			LOGGER.warn("Sleep interrupted: {}", e.getMessage(), e);
+		}
+		
 		final OperationResult result = new OperationResult(AbstractIntegrationTest.class+".restartTask");
 		ObjectDelta<TaskType> taskDelta = ObjectDelta.createModificationReplaceProperty(TaskType.class, taskOid, TaskType.F_EXECUTION_STATUS, prismContext, TaskExecutionStatusType.RUNNABLE);
 		taskDelta.addModificationReplaceProperty(TaskType.F_RESULT_STATUS);
