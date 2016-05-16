@@ -5100,7 +5100,7 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="strength" minOccurs="0" type="tns:MappingStrengthType" default="strong">
+            <xsd:element name="strength" minOccurs="0" type="tns:MappingStrengthType" default="normal">
                 <xsd:annotation>
                     <xsd:documentation>
                         TODO
