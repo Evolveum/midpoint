@@ -28,6 +28,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.parser.XPathHolder;
 import com.evolveum.midpoint.prism.path.IdItemPathSegment;
+import com.evolveum.midpoint.prism.path.IdentifierPathSegment;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPath.CompareResult;
 import com.evolveum.midpoint.prism.path.ItemPathSegment;
@@ -302,6 +303,9 @@ public abstract class ItemDelta<V extends PrismValue,D extends ItemDefinition> i
 	}
 
 	public void addValuesToAdd(Collection<V> newValues) {
+		if (newValues == null) {
+			return;
+		}
 		for (V val : newValues) {
 			addValueToAdd(val);
 		}
@@ -358,12 +362,18 @@ public abstract class ItemDelta<V extends PrismValue,D extends ItemDefinition> i
 	}
 
 	public void mergeValuesToAdd(Collection<V> newValues) {
+		if (newValues == null) {
+			return;
+		}
 		for (V val : newValues) {
 			mergeValueToAdd(val);
 		}
 	}
 	
 	public void mergeValuesToAdd(V[] newValues) {
+		if (newValues == null) {
+			return;
+		}
 		for (V val : newValues) {
 			mergeValueToAdd(val);
 		}
@@ -383,6 +393,9 @@ public abstract class ItemDelta<V extends PrismValue,D extends ItemDefinition> i
 	}
 
 	public void addValuesToDelete(Collection<V> newValues) {
+		if (newValues == null) {
+			return;
+		}
 		for (V val : newValues) {
 			addValueToDelete(val);
 		}
@@ -457,6 +470,9 @@ public abstract class ItemDelta<V extends PrismValue,D extends ItemDefinition> i
 	}
 
 	public void setValuesToReplace(Collection<V> newValues) {
+		if (newValues == null) {
+			return;
+		}
 		if (valuesToAdd != null) {
 			throw new IllegalStateException("Delta " + this
 					+ " already has values to add ("+valuesToAdd+"), attempt to set value to replace ("+newValues+")");
@@ -753,6 +769,9 @@ public abstract class ItemDelta<V extends PrismValue,D extends ItemDefinition> i
         for (ItemDelta<?,?> delta : deltas) {
             if (deltaType.isAssignableFrom(delta.getClass()) && delta.getPath().equivalent(propertyPath)) {
                 return (DD) delta;
+            }
+            if ((delta instanceof ContainerDelta<?>) && delta.getPath().isSubPath(propertyPath)) {
+            	return (DD) ((ContainerDelta)delta).getSubDelta(propertyPath.substract(delta.getPath()));
             }
         }
         return null;
