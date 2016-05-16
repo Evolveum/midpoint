@@ -57,6 +57,7 @@ import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -219,7 +220,10 @@ public class ObjectTemplateProcessor {
 	<F extends FocusType> Collection<ItemDelta<?,?>> computeItemDeltas(Map<ItemPath, DeltaSetTriple<? extends ItemValueWithOrigin<?,?>>> outputTripleMap,
 			Map<ItemPath,ObjectTemplateItemDefinitionType> itemDefinitionsMap,	// may be null
 			ObjectDeltaObject<F> focusOdo, PrismObjectDefinition<F> focusDefinition, String contextDesc) throws ExpressionEvaluationException, PolicyViolationException, SchemaException {
+		
 		Collection<ItemDelta<?,?>> itemDeltas = new ArrayList<>();
+		ObjectDelta<F> focusDelta = focusOdo.getObjectDelta();
+		
 		for (Entry<ItemPath, DeltaSetTriple<? extends ItemValueWithOrigin<?,?>>> entry: outputTripleMap.entrySet()) {
 			ItemPath itemPath = entry.getKey();
 			DeltaSetTriple<? extends ItemValueWithOrigin<?,?>> outputTriple = entry.getValue();
@@ -233,6 +237,9 @@ public class ObjectTemplateProcessor {
 			boolean isNonTolerant = templateItemDefinition != null && Boolean.FALSE.equals(templateItemDefinition.isTolerant());
 
 			ItemDelta aprioriItemDelta = null;
+			if (focusDelta != null) {
+				aprioriItemDelta = focusDelta.findItemDelta(itemPath);
+			}
 			boolean addUnchangedValues = true;	// We need to add unchanged values otherwise the unconditional mappings will not be applied
 			boolean filterExistingValues = !isNonTolerant;	// if non-tolerant, we want to gather ZERO & PLUS sets
 			ItemDefinition itemDefinition = focusDefinition.findItemDefinition(itemPath);
