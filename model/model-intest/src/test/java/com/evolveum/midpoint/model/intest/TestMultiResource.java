@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -74,11 +74,11 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 	
 	public static final File TEST_DIR = new File("src/test/resources/multi");
 	
-	// YELLOW dummy resource has a STRICT dependency on default dummy resource
-	protected static final File RESOURCE_DUMMY_YELLOW_FILE = new File(TEST_DIR, "resource-dummy-yellow.xml");
-	protected static final String RESOURCE_DUMMY_YELLOW_OID = "10000000-0000-0000-0000-000000000504";
-	protected static final String RESOURCE_DUMMY_YELLOW_NAME = "yellow";
-	protected static final String RESOURCE_DUMMY_YELLOW_NAMESPACE = MidPointConstants.NS_RI;
+	// LAVENDER dummy resource has a STRICT dependency on default dummy resource
+	protected static final File RESOURCE_DUMMY_LAVENDER_FILE = new File(TEST_DIR, "resource-dummy-lavender.xml");
+	protected static final String RESOURCE_DUMMY_LAVENDER_OID = "10000000-0000-0000-0000-000000000504";
+	protected static final String RESOURCE_DUMMY_LAVENDER_NAME = "lavender";
+	protected static final String RESOURCE_DUMMY_LAVENDER_NAMESPACE = MidPointConstants.NS_RI;
 	
 	// IVORY dummy resource has a LAX dependency on default dummy resource
 	protected static final File RESOURCE_DUMMY_IVORY_FILE = new File(TEST_DIR, "resource-dummy-ivory.xml");
@@ -117,10 +117,10 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 
 	private static final String USER_FIELD_NAME = "field";
 	
-	protected static DummyResource dummyResourceYellow;
-	protected static DummyResourceContoller dummyResourceCtlYellow;
-	protected ResourceType resourceDummyYellowType;
-	protected PrismObject<ResourceType> resourceDummyYellow;
+	protected static DummyResource dummyResourceLavender;
+	protected static DummyResourceContoller dummyResourceCtlLavender;
+	protected ResourceType resourceDummyLavenderType;
+	protected PrismObject<ResourceType> resourceDummyLavender;
 	
 	protected static DummyResource dummyResourceIvory;
 	protected static DummyResourceContoller dummyResourceCtlIvory;
@@ -144,12 +144,12 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		super.initSystem(initTask, initResult);
 		
-		dummyResourceCtlYellow = DummyResourceContoller.create(RESOURCE_DUMMY_YELLOW_NAME, resourceDummyYellow);
-		dummyResourceCtlYellow.extendSchemaPirate();
-		dummyResourceYellow = dummyResourceCtlYellow.getDummyResource();
-		resourceDummyYellow = importAndGetObjectFromFile(ResourceType.class, RESOURCE_DUMMY_YELLOW_FILE, RESOURCE_DUMMY_YELLOW_OID, initTask, initResult);
-		resourceDummyYellowType = resourceDummyYellow.asObjectable();
-		dummyResourceCtlYellow.setResource(resourceDummyYellow);
+		dummyResourceCtlLavender = DummyResourceContoller.create(RESOURCE_DUMMY_LAVENDER_NAME, resourceDummyLavender);
+		dummyResourceCtlLavender.extendSchemaPirate();
+		dummyResourceLavender = dummyResourceCtlLavender.getDummyResource();
+		resourceDummyLavender = importAndGetObjectFromFile(ResourceType.class, RESOURCE_DUMMY_LAVENDER_FILE, RESOURCE_DUMMY_LAVENDER_OID, initTask, initResult);
+		resourceDummyLavenderType = resourceDummyLavender.asObjectable();
+		dummyResourceCtlLavender.setResource(resourceDummyLavender);
 		
 		dummyResourceCtlIvory = DummyResourceContoller.create(RESOURCE_DUMMY_IVORY_NAME, resourceDummyIvory);
 		dummyResourceCtlIvory.extendSchemaPirate();
@@ -206,7 +206,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 		jackUnAssignRoleDummies(TEST_NAME);
 	}
 	
-	// TODO: yellow resource with failure
+	// TODO: lavender resource with failure
 	
 	@Test
     public void test115JackAssignRoleDummiesFullErrorIvory() throws Exception {
@@ -324,7 +324,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         assertLinks(userJack, 1);
         
         assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
-        assertNoDummyAccount(RESOURCE_DUMMY_YELLOW_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
+        assertNoDummyAccount(RESOURCE_DUMMY_LAVENDER_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
         assertNoDummyAccount(RESOURCE_DUMMY_BEIGE_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
         
         assertDummyAccount(RESOURCE_DUMMY_IVORY_NAME, ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
@@ -358,7 +358,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         assertLinks(userJack, 0);
         
         assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
-        assertNoDummyAccount(RESOURCE_DUMMY_YELLOW_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
+        assertNoDummyAccount(RESOURCE_DUMMY_LAVENDER_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
         assertNoDummyAccount(RESOURCE_DUMMY_IVORY_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
         assertNoDummyAccount(RESOURCE_DUMMY_BEIGE_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
 	}
@@ -389,7 +389,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         assertLinks(userJack, 1);
         
         assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
-        assertNoDummyAccount(RESOURCE_DUMMY_YELLOW_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
+        assertNoDummyAccount(RESOURCE_DUMMY_LAVENDER_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
         assertNoDummyAccount(RESOURCE_DUMMY_IVORY_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
         
         assertDummyAccount(RESOURCE_DUMMY_BEIGE_NAME, ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
@@ -423,17 +423,18 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         assertLinks(userJack, 0);
         
         assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
-        assertNoDummyAccount(RESOURCE_DUMMY_YELLOW_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
+        assertNoDummyAccount(RESOURCE_DUMMY_LAVENDER_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
         assertNoDummyAccount(RESOURCE_DUMMY_IVORY_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
         assertNoDummyAccount(RESOURCE_DUMMY_BEIGE_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
 	}
 	
 	/**
-	 * Yellow resource has a strict dependency. The provisioning should fail.
+	 * Lavender resource has a strict dependency. The provisioning should fail.
 	 */
 	@Test
-    public void test250JackAssignDummyYellow() throws Exception {
-		final String TEST_NAME = "test250JackAssignDummyYellow";
+    public void test250JackAssignDummyLavender() throws Exception {
+		final String TEST_NAME = "test250JackAssignDummyLavender";
+		TestUtil.displayTestTile(TEST_NAME);
 		
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
@@ -445,7 +446,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 		
 		try {
 			// WHEN
-			assignAccount(USER_JACK_OID, RESOURCE_DUMMY_YELLOW_OID, null, task, result);
+			assignAccount(USER_JACK_OID, RESOURCE_DUMMY_LAVENDER_OID, null, task, result);
 			
 			AssertJUnit.fail("Unexpected success");
 		} catch (PolicyViolationException e) {
@@ -461,7 +462,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         assertAssignments(userJack, 0);
         
         assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
-        assertNoDummyAccount(RESOURCE_DUMMY_YELLOW_NAME, ACCOUNT_JACK_DUMMY_USERNAME);       
+        assertNoDummyAccount(RESOURCE_DUMMY_LAVENDER_NAME, ACCOUNT_JACK_DUMMY_USERNAME);       
         assertNoDummyAccount(RESOURCE_DUMMY_IVORY_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
 	}
 	
@@ -494,13 +495,13 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         // This is set up by "feedback" using an inbound expression. It has nothing with dependencies yet.
         assertUserProperty(USER_JACK_OID, UserType.F_ORGANIZATIONAL_UNIT, PrismTestUtil.createPolyString("The crew of The Lost Souls"));
 
-        display("YELLOW dummy account", getDummyAccount(RESOURCE_DUMMY_YELLOW_NAME, ACCOUNT_JACK_DUMMY_USERNAME));
-        assertDummyAccount(RESOURCE_DUMMY_YELLOW_NAME, ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
+        display("LAVENDER dummy account", getDummyAccount(RESOURCE_DUMMY_LAVENDER_NAME, ACCOUNT_JACK_DUMMY_USERNAME));
+        assertDummyAccount(RESOURCE_DUMMY_LAVENDER_NAME, ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
         // This is set by red's outbound from user's organizationalUnit. If dependencies work this outbound is processed
         // after user's organizationUnit is set and it will have the same value as above.
-        assertDummyAccountAttribute(RESOURCE_DUMMY_YELLOW_NAME, ACCOUNT_JACK_DUMMY_USERNAME, 
+        assertDummyAccountAttribute(RESOURCE_DUMMY_LAVENDER_NAME, ACCOUNT_JACK_DUMMY_USERNAME, 
         		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, "The crew of The Lost Souls");
-        assertDummyAccountAttribute(RESOURCE_DUMMY_YELLOW_NAME, ACCOUNT_JACK_DUMMY_USERNAME, 
+        assertDummyAccountAttribute(RESOURCE_DUMMY_LAVENDER_NAME, ACCOUNT_JACK_DUMMY_USERNAME, 
         		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME, "Jack Sparrow must be the best CAPTAIN the Caribbean has ever seen");
         
         assertDummyAccount(RESOURCE_DUMMY_IVORY_NAME, ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
@@ -553,12 +554,12 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         // This is set up by "feedback" using an inbound expression. It has nothing with dependencies yet.
         assertUserProperty(USER_JACK_OID, UserType.F_ORGANIZATIONAL_UNIT, PrismTestUtil.createPolyString("The crew of The Lost Souls"));
         
-        assertDummyAccount(RESOURCE_DUMMY_YELLOW_NAME, toName, toFullName, true);
+        assertDummyAccount(RESOURCE_DUMMY_LAVENDER_NAME, toName, toFullName, true);
         // This is set by red's outbound from user's organizationalUnit. If dependencies work this outbound is processed
         // after user's organizationUnit is set and it will have the same value as above.
-        assertDummyAccountAttribute(RESOURCE_DUMMY_YELLOW_NAME, toName,
+        assertDummyAccountAttribute(RESOURCE_DUMMY_LAVENDER_NAME, toName,
         		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, "The crew of The Lost Souls");
-        assertDummyAccountAttribute(RESOURCE_DUMMY_YELLOW_NAME, toName, 
+        assertDummyAccountAttribute(RESOURCE_DUMMY_LAVENDER_NAME, toName, 
         		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME, toFullName +" must be the best CAPTAIN the Caribbean has ever seen");
         
         assertDummyAccount(RESOURCE_DUMMY_IVORY_NAME, toName, toFullName, true);
@@ -590,7 +591,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         assertLinks(user, 0);
         
         assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
-        assertNoDummyAccount(RESOURCE_DUMMY_YELLOW_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
+        assertNoDummyAccount(RESOURCE_DUMMY_LAVENDER_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
         assertNoDummyAccount(RESOURCE_DUMMY_IVORY_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
         assertNoDummyAccount(RESOURCE_DUMMY_BEIGE_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
         
@@ -628,7 +629,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         assertLinks(userJack, expectAccount ? 2 : 1);
 
     	assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
-    	assertNoDummyAccount(RESOURCE_DUMMY_YELLOW_NAME);
+    	assertNoDummyAccount(RESOURCE_DUMMY_LAVENDER_NAME);
 
     	if (expectAccount) {
     		assertDummyAccount(dummyResourceName, ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
@@ -667,7 +668,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         assertLinks(user, 0);
         
         assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
-        assertNoDummyAccount(RESOURCE_DUMMY_YELLOW_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
+        assertNoDummyAccount(RESOURCE_DUMMY_LAVENDER_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
         assertNoDummyAccount(RESOURCE_DUMMY_IVORY_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
         assertNoDummyAccount(RESOURCE_DUMMY_BEIGE_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
         
@@ -799,26 +800,26 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 		assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME);
         assertNoDummyAccount(RESOURCE_DUMMY_BLUE_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
         assertNoDummyAccount(RESOURCE_DUMMY_RED_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
-        assertNoDummyAccount(RESOURCE_DUMMY_YELLOW_OID, ACCOUNT_JACK_DUMMY_USERNAME);
+        assertNoDummyAccount(RESOURCE_DUMMY_LAVENDER_OID, ACCOUNT_JACK_DUMMY_USERNAME);
         assertNoDummyAccount(RESOURCE_DUMMY_BEIGE_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
         assertNoDummyAccount(RESOURCE_DUMMY_IVORY_OID, ACCOUNT_JACK_DUMMY_USERNAME);
         
 	}
     
     /**
-     * Attempt to add yellow account should fail. There is unsatisfied strict dependency on
+     * Attempt to add lavender account should fail. There is unsatisfied strict dependency on
      * default dummy resource.
      */
     @Test
-    public void test350AddAccountYellow() throws Exception {
-		final String TEST_NAME = "test350AddAccountYellow";
+    public void test350AddAccountLavender() throws Exception {
+		final String TEST_NAME = "test350AddAccountLavender";
 		TestUtil.displayTestTile(TEST_NAME);
 		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 		
 		Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         		
-        ObjectDelta<UserType> userDelta = createModifyUserAddAccount(USER_JACK_OID, resourceDummyYellow);
+        ObjectDelta<UserType> userDelta = createModifyUserAddAccount(USER_JACK_OID, resourceDummyLavender);
         
         // WHEN
         try {
@@ -836,7 +837,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         result.computeStatus();
         TestUtil.assertFailure(result);
         
-        assertNoDummyAccount(RESOURCE_DUMMY_YELLOW_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
+        assertNoDummyAccount(RESOURCE_DUMMY_LAVENDER_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
 		
     }
     
@@ -916,15 +917,15 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
      * This should work now as the dependency is satisfied.
      */
     @Test
-    public void test362AddAccountYellow() throws Exception {
-		final String TEST_NAME = "test362AddAccountYellow";
+    public void test362AddAccountLavender() throws Exception {
+		final String TEST_NAME = "test362AddAccountLavender";
 		TestUtil.displayTestTile(TEST_NAME);
 		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 		
 		Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         		
-        ObjectDelta<UserType> userDelta = createModifyUserAddAccount(USER_JACK_OID, resourceDummyYellow);
+        ObjectDelta<UserType> userDelta = createModifyUserAddAccount(USER_JACK_OID, resourceDummyLavender);
         
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
@@ -935,12 +936,12 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         result.computeStatus();
         TestUtil.assertSuccess(result);
         
-        assertDummyAccount(RESOURCE_DUMMY_YELLOW_NAME, ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
+        assertDummyAccount(RESOURCE_DUMMY_LAVENDER_NAME, ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
 		
     }
     
     /**
-     * The account cannot be deleted because there is strict dependency on it (from yellow resource).
+     * The account cannot be deleted because there is strict dependency on it (from lavender resource).
      */
     @Test
     public void test370DeleteAccountDummy() throws Exception {
@@ -977,7 +978,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
     }
     
     /**
-     * The account cannot be unlinked because there is strict dependency on it (from yellow resource).
+     * The account cannot be unlinked because there is strict dependency on it (from lavender resource).
      */
     @Test
     public void test372UnlinkAccountDummy() throws Exception {
@@ -1014,15 +1015,15 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
     }
     
     @Test
-    public void test374DeleteAccountYellow() throws Exception {
-		final String TEST_NAME = "test374DeleteAccountYellow";
+    public void test374DeleteAccountLavender() throws Exception {
+		final String TEST_NAME = "test374DeleteAccountLavender";
 		TestUtil.displayTestTile(TEST_NAME);
 		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 		
 		Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         		
-        ObjectDelta<UserType> userDelta = createModifyUserDeleteAccount(USER_JACK_OID, resourceDummyYellow);
+        ObjectDelta<UserType> userDelta = createModifyUserDeleteAccount(USER_JACK_OID, resourceDummyLavender);
         
         TestUtil.displayWhen(TEST_NAME);
         modelService.executeChanges(MiscSchemaUtil.createCollection(userDelta), null, task, result);
@@ -1035,7 +1036,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         PrismObject<UserType> user = getUser(USER_JACK_OID);
         assertAccount(user, RESOURCE_DUMMY_OID);
         
-        assertNoDummyAccount(RESOURCE_DUMMY_YELLOW_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
+        assertNoDummyAccount(RESOURCE_DUMMY_LAVENDER_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
         assertDefaultDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
 		
     }
@@ -1062,7 +1063,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         result.computeStatus();
         TestUtil.assertSuccess(result);
         
-        assertNoDummyAccount(RESOURCE_DUMMY_YELLOW_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
+        assertNoDummyAccount(RESOURCE_DUMMY_LAVENDER_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
         assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME);
     }
     
@@ -1089,7 +1090,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         result.computeStatus();
         TestUtil.assertSuccess(result);
         
-        assertNoDummyAccount(RESOURCE_DUMMY_YELLOW_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
+        assertNoDummyAccount(RESOURCE_DUMMY_LAVENDER_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
         assertNoDummyAccount(RESOURCE_DUMMY_BEIGE_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
         assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME);
     }
@@ -1117,7 +1118,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         result.computeStatus();
         TestUtil.assertSuccess(result);
         
-        assertNoDummyAccount(RESOURCE_DUMMY_YELLOW_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
+        assertNoDummyAccount(RESOURCE_DUMMY_LAVENDER_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
         assertNoDummyAccount(RESOURCE_DUMMY_BEIGE_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
         assertNoDummyAccount(RESOURCE_DUMMY_IVORY_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
         assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME);
