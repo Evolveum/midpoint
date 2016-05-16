@@ -1,0 +1,577 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2014 ProofID
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  ~
+  ~ Portions Copyright (c) 2015 Evolveum
+  -->
+
+
+<!--
+
+This file is an example of Resource definition. It defines an Office365 resource
+using an Identity Connector Framework Office365 connector. 
+
+This contains configuration for a managed (non federated) Office 365 domain
+
+-->
+
+
+<resource xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+          xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+          xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+          xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+          oid="resource-o365">
+        <name>Office 365 Connector</name>
+        <description>Office 365 Connector</description>
+        <connectorRef oid="7ded7a48-bde6-4318-b481-604a049a899d" type="c:ConnectorType">
+            <!-- ICF org.identityconnectors.office365.Office365Connector v1.2.0.0-SNAPSHOT -->
+        </connectorRef>
+        <connectorConfiguration xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
+            <icfc:configurationProperties xmlns:gen548="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.forgerock.openicf.connectors.office365-connector/org.identityconnectors.office365.Office365Connector">
+                <gen548:apiEndPoint>graph.windows.net</gen548:apiEndPoint>
+                <gen548:tenancy>TENANCYNAME.onmicrosoft.com</gen548:tenancy>
+                <gen548:symetricKey>
+                    <clearValue>SYMETRICKEY</clearValue>
+                </gen548:symetricKey>
+                <gen548:authURL>https://accounts.accesscontrol.windows.net/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx/tokens/OAuth/2</gen548:authURL>
+                <gen548:principalID>PRINCIAPLID</gen548:principalID>
+                <gen548:resourceID>00000002-0000-0000-c000-000000000000</gen548:resourceID>
+                <gen548:acsPrincipalID>00000001-0000-0000-c000-000000000000</gen548:acsPrincipalID>
+                <gen548:immutableIDEncodeMechanism>straight-base64</gen548:immutableIDEncodeMechanism>
+            </icfc:configurationProperties>
+        </connectorConfiguration>
+    <schema>
+        <definition>
+            <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+                        xmlns:ra="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-3"
+                        xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+                        xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
+                        elementFormDefault="qualified"
+                        targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
+                <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"/>
+                <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-3"/>
+                <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-3"/>
+                <xsd:complexType name="AccountObjectClass">
+                    <xsd:annotation>
+                        <xsd:appinfo>
+                            <ra:resourceObject/>
+                            <ra:identifier>icfs:uid</ra:identifier>
+                            <ra:secondaryIdentifier>icfs:name</ra:secondaryIdentifier>
+                            <ra:displayNameAttribute>icfs:name</ra:displayNameAttribute>
+                            <ra:namingAttribute>icfs:name</ra:namingAttribute>
+                            <ra:nativeObjectClass>__ACCOUNT__</ra:nativeObjectClass>
+                            <ra:kind>account</ra:kind>
+                            <ra:default>true</ra:default>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                    <xsd:sequence>
+                        <xsd:element minOccurs="0" ref="icfs:uid">
+                            <xsd:annotation>
+                                <xsd:appinfo>
+                                    <a:displayName>ConnId UID</a:displayName>
+                                    <a:displayOrder>100</a:displayOrder>
+                                    <a:access>read</a:access>
+                                </xsd:appinfo>
+                            </xsd:annotation>
+                        </xsd:element>
+                        <xsd:element minOccurs="0" name="state" type="xsd:string">
+                            <xsd:annotation>
+                                <xsd:appinfo>
+                                    <a:displayOrder>120</a:displayOrder>
+                                </xsd:appinfo>
+                            </xsd:annotation>
+                        </xsd:element>
+                        <xsd:element minOccurs="0"
+                                     name="forceChangePasswordNextLogin"
+                                     type="xsd:boolean">
+                            <xsd:annotation>
+                                <xsd:appinfo>
+                                    <a:displayOrder>130</a:displayOrder>
+                                </xsd:appinfo>
+                            </xsd:annotation>
+                        </xsd:element>
+                        <xsd:element minOccurs="0" name="usageLocation" type="xsd:string">
+                            <xsd:annotation>
+                                <xsd:appinfo>
+                                    <a:displayOrder>140</a:displayOrder>
+                                </xsd:appinfo>
+                            </xsd:annotation>
+                        </xsd:element>
+                        <xsd:element minOccurs="0" name="mail" type="xsd:string">
+                            <xsd:annotation>
+                                <xsd:appinfo>
+                                    <a:displayOrder>150</a:displayOrder>
+                                </xsd:appinfo>
+                            </xsd:annotation>
+                        </xsd:element>
+                        <xsd:element minOccurs="0" name="postalCode" type="xsd:string">
+                            <xsd:annotation>
+                                <xsd:appinfo>
+                                    <a:displayOrder>160</a:displayOrder>
+                                </xsd:appinfo>
+                            </xsd:annotation>
+                        </xsd:element>
+                        <xsd:element maxOccurs="unbounded"
+                                     minOccurs="0"
+                                     name="otherMails"
+                                     type="xsd:string">
+                            <xsd:annotation>
+                                <xsd:appinfo>
+                                    <a:displayOrder>170</a:displayOrder>
+                                </xsd:appinfo>
+                            </xsd:annotation>
+                        </xsd:element>
+                        <xsd:element minOccurs="0" name="preferredLanguage" type="xsd:string">
+                            <xsd:annotation>
+                                <xsd:appinfo>
+                                    <a:displayOrder>180</a:displayOrder>
+                                </xsd:appinfo>
+                            </xsd:annotation>
+                        </xsd:element>
+                        <xsd:element minOccurs="0" name="department" type="xsd:string">
+                            <xsd:annotation>
+                                <xsd:appinfo>
+                                    <a:displayOrder>190</a:displayOrder>
+                                </xsd:appinfo>
+                            </xsd:annotation>
+                        </xsd:element>
+                        <xsd:element name="mailNickname" type="xsd:string">
+                            <xsd:annotation>
+                                <xsd:appinfo>
+                                    <a:displayOrder>200</a:displayOrder>
+                                </xsd:appinfo>
+                            </xsd:annotation>
+                        </xsd:element>
+                        <xsd:element minOccurs="0" name="surname" type="xsd:string">
+                            <xsd:annotation>
+                                <xsd:appinfo>
+                                    <a:displayOrder>210</a:displayOrder>
+                                </xsd:appinfo>
+                            </xsd:annotation>
+                        </xsd:element>
+                        <xsd:element minOccurs="0" name="country" type="xsd:string">
+                            <xsd:annotation>
+                                <xsd:appinfo>
+                                    <a:displayOrder>220</a:displayOrder>
+                                </xsd:appinfo>
+                            </xsd:annotation>
+                        </xsd:element>
+                        <xsd:element minOccurs="0" name="physicalDeliveryOfficeName" type="xsd:string">
+                            <xsd:annotation>
+                                <xsd:appinfo>
+                                    <a:displayOrder>230</a:displayOrder>
+                                </xsd:appinfo>
+                            </xsd:annotation>
+                        </xsd:element>
+                        <xsd:element minOccurs="0" name="streetAddress" type="xsd:string">
+                            <xsd:annotation>
+                                <xsd:appinfo>
+                                    <a:displayOrder>240</a:displayOrder>
+                                </xsd:appinfo>
+                            </xsd:annotation>
+                        </xsd:element>
+                        <xsd:element minOccurs="0" name="displayName" type="xsd:string">
+                            <xsd:annotation>
+                                <xsd:appinfo>
+                                    <a:displayOrder>250</a:displayOrder>
+                                </xsd:appinfo>
+                            </xsd:annotation>
+                        </xsd:element>
+                        <xsd:element minOccurs="0" name="mobile" type="xsd:string">
+                            <xsd:annotation>
+                                <xsd:appinfo>
+                                    <a:displayOrder>260</a:displayOrder>
+                                </xsd:appinfo>
+                            </xsd:annotation>
+                        </xsd:element>
+                        <xsd:element minOccurs="0" name="jobTitle" type="xsd:string">
+                            <xsd:annotation>
+                                <xsd:appinfo>
+                                    <a:displayOrder>270</a:displayOrder>
+                                </xsd:appinfo>
+                            </xsd:annotation>
+                        </xsd:element>
+                        <xsd:element minOccurs="0" name="givenName" type="xsd:string">
+                            <xsd:annotation>
+                                <xsd:appinfo>
+                                    <a:displayOrder>280</a:displayOrder>
+                                </xsd:appinfo>
+                            </xsd:annotation>
+                        </xsd:element>
+                        <xsd:element ref="icfs:name">
+                            <xsd:annotation>
+                                <xsd:appinfo>
+                                    <a:displayName>ConnId Name</a:displayName>
+                                    <a:displayOrder>110</a:displayOrder>
+                                </xsd:appinfo>
+                            </xsd:annotation>
+                        </xsd:element>
+                        <xsd:element maxOccurs="unbounded"
+                                     minOccurs="0"
+                                     name="proxyAddresses"
+                                     type="xsd:string">
+                            <xsd:annotation>
+                                <xsd:appinfo>
+                                    <a:displayOrder>290</a:displayOrder>
+                                </xsd:appinfo>
+                            </xsd:annotation>
+                        </xsd:element>
+                        <xsd:element name="accountEnabled" type="xsd:boolean">
+                            <xsd:annotation>
+                                <xsd:appinfo>
+                                    <a:displayOrder>300</a:displayOrder>
+                                </xsd:appinfo>
+                            </xsd:annotation>
+                        </xsd:element>
+                        <xsd:element minOccurs="0" name="city" type="xsd:string">
+                            <xsd:annotation>
+                                <xsd:appinfo>
+                                    <a:displayOrder>310</a:displayOrder>
+                                </xsd:appinfo>
+                            </xsd:annotation>
+                        </xsd:element>
+                        <xsd:element minOccurs="0" name="thumbnailPhoto" type="xsd:base64Binary">
+                            <xsd:annotation>
+                                <xsd:appinfo>
+                                    <a:displayOrder>320</a:displayOrder>
+                                </xsd:appinfo>
+                            </xsd:annotation>
+                        </xsd:element>
+                        <xsd:element minOccurs="0" name="telephoneNumber" type="xsd:string">
+                            <xsd:annotation>
+                                <xsd:appinfo>
+                                    <a:displayOrder>330</a:displayOrder>
+                                </xsd:appinfo>
+                            </xsd:annotation>
+                        </xsd:element>
+                        <xsd:element minOccurs="0" name="facsimileTelephoneNumber" type="xsd:string">
+                            <xsd:annotation>
+                                <xsd:appinfo>
+                                    <a:displayOrder>340</a:displayOrder>
+                                </xsd:appinfo>
+                            </xsd:annotation>
+                        </xsd:element>
+                        <xsd:element minOccurs="0" name="licenses" type="xsd:string">
+                            <xsd:annotation>
+                                <xsd:appinfo>
+                                    <a:displayOrder>350</a:displayOrder>
+                                </xsd:appinfo>
+                            </xsd:annotation>
+                        </xsd:element>
+                        <xsd:element minOccurs="0" name="immutableId" type="xsd:string">
+                            <xsd:annotation>
+                                <xsd:appinfo>
+                                    <a:displayOrder>360</a:displayOrder>
+                                </xsd:appinfo>
+                            </xsd:annotation>
+                        </xsd:element>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:schema>
+        </definition>
+    </schema>
+    <schemaHandling>
+        <objectType>
+            <kind>account</kind>
+            <displayName>Account</displayName>
+            <default>true</default>
+            <objectClass>ri:AccountObjectClass</objectClass>
+            <attribute>
+                <c:ref>icfs:name</c:ref>
+                <displayName>Login</displayName>
+                <outbound>
+                    <strength>strong</strength>
+                    <source>
+                        <c:path>$user/name</c:path>
+                    </source>
+                    <expression>
+                        <script>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
+                            <code>
+                                name.getOrig() + '@TENANCYNAME.onmicrosoft.com';
+                            </code>
+                        </script>
+                    </expression>
+                </outbound>
+                <inbound>
+                    <strength>weak</strength>
+                    <source>
+                        <c:path>$account/name</c:path>
+                    </source>
+                    <expression>
+                        <script>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
+                            <code>
+                                name.getOrig().substring(0, name.getOrig().indexOf('@'));
+                            </code>
+                        </script>
+                    </expression>
+                    <target>
+                        <c:path>$user/name</c:path>
+                    </target>
+                </inbound>
+            </attribute>
+            <attribute>
+                <c:ref>ri:usageLocation</c:ref>
+                <displayName>Locality</displayName>
+                <outbound>
+                    <strength>weak</strength>
+                    <expression>
+                        <value>CZ</value>
+                    </expression>
+                </outbound>
+            </attribute>
+            <attribute>
+                <c:ref>ri:mail</c:ref>
+                <displayName>Email</displayName>
+                <inbound>
+                    <target>
+                        <c:path>$user/emailAddress</c:path>
+                    </target>
+                </inbound>
+            </attribute>
+            <attribute>
+                <c:ref>ri:telephoneNumber</c:ref>
+                <displayName>Phone</displayName>
+                <outbound>
+                    <source>
+                        <c:path>$user/telephoneNumber</c:path>
+                    </source>
+                </outbound>
+            </attribute>
+            <attribute>
+                <c:ref>ri:jobTitle</c:ref>
+                <displayName>Job Title</displayName>
+                <outbound>
+                    <source>
+                        <c:path>$user/title</c:path>
+                    </source>
+                </outbound>
+            </attribute>
+            <attribute>
+                <c:ref>ri:department</c:ref>
+                <displayName>Department</displayName>
+                <outbound>
+                    <source>
+                        <c:path>$user/organizationalUnit</c:path>
+                    </source>
+                </outbound>
+            </attribute>   
+            <attribute>
+                <c:ref>ri:mailNickname</c:ref>
+                <displayName>Mail Nickname</displayName>
+                <outbound>
+                    <source>
+                        <c:path>$user/name</c:path>
+                    </source>
+                </outbound>
+                <inbound>
+                    <strength>weak</strength>
+                    <source>
+                        <c:path>$account/name</c:path>
+                    </source>
+                    <expression>
+                        <script>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
+                            <code>
+                                name.getOrig().substring(0, name.getOrig().indexOf('@'));
+                            </code>
+                        </script>
+                    </expression>
+                    <target>
+                        <c:path>$user/name</c:path>
+                    </target>
+                </inbound>
+            </attribute>
+            <attribute>
+                <c:ref>ri:givenName</c:ref>
+                <displayName>Given Name</displayName>
+                <outbound>
+                    <strength>strong</strength>
+                    <source>
+                        <c:path>$user/givenName</c:path>
+                    </source>
+                </outbound>
+                <inbound>
+                    <strength>weak</strength>
+                    <target>
+                        <c:path>$user/givenName</c:path>
+                    </target>
+                </inbound>
+            </attribute>
+            <attribute>
+                <c:ref>ri:surname</c:ref>
+                <displayName>Family name</displayName>
+                <outbound>
+                    <strength>strong</strength>
+                    <source>
+                        <c:path>$user/familyName</c:path>
+                    </source>
+                </outbound>
+                <inbound>
+                    <strength>weak</strength>
+                    <target>
+                        <c:path>$user/familyName</c:path>
+                    </target>
+                </inbound>
+            </attribute>
+            <attribute>
+                <c:ref>ri:displayName</c:ref>
+                <displayName>Full Name</displayName>
+                <outbound>
+                    <strength>strong</strength>
+                    <source>
+                        <c:path>$user/fullName</c:path>
+                    </source>
+                </outbound>
+                <inbound>
+                    <strength>weak</strength>
+                    <target>
+                        <c:path>$user/fullName</c:path>
+                    </target>
+                </inbound>
+            </attribute>
+            <attribute>
+                <c:ref>ri:licenses</c:ref>
+                <displayName>Licence</displayName>
+                <description>The license and plans to assign to the user</description>
+                <outbound>
+                    <expression>
+                        <value>ENTERPRISEPACK</value>
+                    </expression>
+                </outbound>
+            </attribute>
+            <attribute>
+                <c:ref>ri:proxyAddresses</c:ref>
+                <displayName>EMail Addresses</displayName>
+            </attribute>
+            <activation>
+                <existence>
+                    <outbound>
+                        <strength>weak</strength>
+                        <expression>
+                            <value>true</value>
+                        </expression>
+                    </outbound>
+                </existence>
+                <administrativeStatus>
+                    <outbound>
+                        <strength>strong</strength>
+                        <expression>
+                            <variable>
+                                <name xmlns:my="http://whatever.com/my">my:admStatus</name>
+                                <c:path>$user/activation/administrativeStatus</c:path>
+                            </variable>
+                            <script>
+                                <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
+                                <code>
+                                    import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
+                                    if (legal) {
+										if (admStatus?.value) {
+											if (admStatus.value.toUpperCase().equals('DISABLED')) {
+												ActivationStatusType.DISABLED;
+											} else {
+												input;
+											}
+										} else {
+											input;
+										}
+                                    } else {
+										ActivationStatusType.DISABLED;
+                                    }
+                                </code>
+                            </script>
+                        </expression>
+                    </outbound>
+                    <inbound>
+                        <strength>weak</strength>
+                        <expression>
+                            <asIs/>
+                        </expression>
+                    </inbound>
+                </administrativeStatus>
+            </activation>
+            <credentials>
+                <password>
+                    <outbound/>
+                </password>
+            </credentials>
+        </objectType>
+    </schemaHandling>
+    <capabilities>
+        <native xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">
+            <cap:addRemoveAttributeValues/>
+            <cap:credentials>
+                <cap:password>
+                    <cap:returnedByDefault>false</cap:returnedByDefault>
+                </cap:password>
+            </cap:credentials>
+            <cap:testConnection/>
+            <cap:create/>
+            <cap:read/>
+            <cap:update/>
+            <cap:delete/>
+            <cap:script>
+                <cap:host>
+                    <cap:type>connector</cap:type>
+                </cap:host>
+            </cap:script>
+        </native>
+        <configured xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">
+            <cap:activation>
+                <cap:status>
+                    <cap:attribute>ri:accountEnabled</cap:attribute>
+                    <cap:enableValue>true</cap:enableValue>
+                    <cap:disableValue>false</cap:disableValue>
+                </cap:status>
+            </cap:activation>
+        </configured>
+    </capabilities>
+    <synchronization>
+        <objectSynchronization>
+            <enabled>true</enabled>
+            <correlation>
+                <q:equal>
+                    <q:path>c:name</q:path>
+                    <expression>
+                        <c:path>$account/attributes/ri:mailNickname</c:path>
+                    </expression>
+                </q:equal>
+            </correlation>
+            <reaction>
+                <situation>linked</situation>
+                <synchronize>true</synchronize>
+                <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#modifyUser"/>
+            </reaction>
+            <reaction>
+                <situation>deleted</situation>
+                <synchronize>true</synchronize>
+                <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#unlinkAccount"/>
+            </reaction>
+            <reaction>
+                <situation>unlinked</situation>
+                <synchronize>true</synchronize>
+                <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#linkAccount"/>
+            </reaction>
+            <reaction>
+                <situation>unmatched</situation>
+                <synchronize>true</synchronize>
+                <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#addUser"/>
+            </reaction>
+        </objectSynchronization>
+    </synchronization>
+</resource>

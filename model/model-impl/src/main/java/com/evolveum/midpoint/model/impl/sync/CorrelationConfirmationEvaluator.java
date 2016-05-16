@@ -62,6 +62,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 import com.evolveum.prism.xml.ns._public.query_3.PagingType;
+import java.util.HashSet;
+import java.util.Set;
 
 @Component
 public class CorrelationConfirmationEvaluator {
@@ -132,6 +134,14 @@ public class CorrelationConfirmationEvaluator {
 					"SYNCHRONIZATION: CORRELATION: expression for {} returned {} users: {}",
 					new Object[] { currentShadow, users.size(),
 							PrettyPrinter.prettyPrint(users, 3) });
+			if (users.size() > 1) {
+                    // remove duplicates
+				Set<PrismObject<F>> usersWithoutDups = new HashSet<>();
+				usersWithoutDups.addAll(users);
+				users.clear();
+				users.addAll(usersWithoutDups);
+				LOGGER.debug("SYNCHRONIZATION: CORRELATION: found {} users without duplicates", users.size());
+			}
 		}
 		return users;
 	}
