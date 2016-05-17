@@ -17,7 +17,7 @@
 package com.evolveum.midpoint.web.page.admin.configuration.component;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.api.component.FocusBrowserPanel;
+import com.evolveum.midpoint.gui.api.component.ObjectBrowserPanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -132,7 +132,7 @@ public class ChooseTypePanel<T extends ObjectType> extends BasePanel<ObjectViewD
     	Class<T> type = getObjectTypeClass();
     	List<QName> supportedTypes = new ArrayList<>();
     	supportedTypes.add(WebComponentUtil.classToQName(getPageBase().getPrismContext(), type));
-    	FocusBrowserPanel<T> objectBrowserPanel = new FocusBrowserPanel<T>(getPageBase().getMainPopupBodyId(), type, supportedTypes, false, getPageBase()){
+    	ObjectBrowserPanel<T> objectBrowserPanel = new ObjectBrowserPanel<T>(getPageBase().getMainPopupBodyId(), type, supportedTypes, false, getPageBase()){
     		private static final long serialVersionUID = 1L;
 
 			@Override

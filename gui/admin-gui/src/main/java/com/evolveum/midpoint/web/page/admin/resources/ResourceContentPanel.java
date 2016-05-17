@@ -42,7 +42,7 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
-import com.evolveum.midpoint.gui.api.component.FocusBrowserPanel;
+import com.evolveum.midpoint.gui.api.component.ObjectBrowserPanel;
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
 import com.evolveum.midpoint.gui.api.component.button.DropdownButtonDto;
 import com.evolveum.midpoint.gui.api.component.button.DropdownButtonPanel;
@@ -864,7 +864,7 @@ public abstract class ResourceContentPanel extends Panel {
 					@Override
 					public void onSubmit(AjaxRequestTarget target, Form<?> form) {
 						final SelectableBean<ShadowType> shadow = getRowModel().getObject();
-						FocusBrowserPanel<UserType> browser = new FocusBrowserPanel<UserType>(
+						ObjectBrowserPanel<UserType> browser = new ObjectBrowserPanel<UserType>(
 								pageBase.getMainPopupBodyId(), UserType.class,
 								WebComponentUtil.createFocusTypeList(), false, pageBase) {
 

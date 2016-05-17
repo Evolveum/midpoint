@@ -48,7 +48,7 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.api.component.FocusBrowserPanel;
+import com.evolveum.midpoint.gui.api.component.ObjectBrowserPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -287,7 +287,7 @@ public class MultipleAssignmentSelector<F extends FocusType, H extends FocusType
         List<QName> supportedTypes = new ArrayList<>();
         supportedTypes.add(getPageBase().getPrismContext().getSchemaRegistry()
                 .findObjectDefinitionByCompileTimeClass(targetFocusClass).getTypeName());
-        FocusBrowserPanel<H> focusBrowser = new FocusBrowserPanel<H>(getPageBase().getMainPopupBodyId(),
+        ObjectBrowserPanel<H> focusBrowser = new ObjectBrowserPanel<H>(getPageBase().getMainPopupBodyId(),
                 targetFocusClass, supportedTypes, false, getPageBase()) {
             @Override
     		protected void onSelectPerformed(AjaxRequestTarget target, H filterUser) {

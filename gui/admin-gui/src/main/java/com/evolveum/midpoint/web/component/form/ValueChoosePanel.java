@@ -31,7 +31,7 @@ import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.api.component.FocusBrowserPanel;
+import com.evolveum.midpoint.gui.api.component.ObjectBrowserPanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.query.InOidFilter;
@@ -182,7 +182,7 @@ public class ValueChoosePanel<T, C extends ObjectType> extends BasePanel<T> {
     		supportedTypes.add(WebComponentUtil.classToQName(getPageBase().getPrismContext(), type));
     	}
     	ObjectFilter filter = createChooseQuery(values) == null ? null : createChooseQuery(values).getFilter();
-    	FocusBrowserPanel<C> objectBrowserPanel = new FocusBrowserPanel<C>(getPageBase().getMainPopupBodyId(), type, supportedTypes, false, getPageBase(), filter) {
+    	ObjectBrowserPanel<C> objectBrowserPanel = new ObjectBrowserPanel<C>(getPageBase().getMainPopupBodyId(), type, supportedTypes, false, getPageBase(), filter) {
     		private static final long serialVersionUID = 1L;
 
 			@Override

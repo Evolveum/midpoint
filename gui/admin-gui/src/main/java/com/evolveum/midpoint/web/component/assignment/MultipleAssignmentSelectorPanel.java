@@ -17,7 +17,7 @@
 package com.evolveum.midpoint.web.component.assignment;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.api.component.FocusBrowserPanel;
+import com.evolveum.midpoint.gui.api.component.ObjectBrowserPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
@@ -320,7 +320,7 @@ public class MultipleAssignmentSelectorPanel<F extends FocusType, H extends Focu
                     ObjectFilter filter = EqualFilter.createEqual(OrgType.F_TENANT, OrgType.class,
                             getPageBase().getPrismContext(), null, true);
 
-                FocusBrowserPanel<OrgType> tenantPanel = new FocusBrowserPanel<OrgType>(getPageBase().getMainPopupBodyId(),
+                ObjectBrowserPanel<OrgType> tenantPanel = new ObjectBrowserPanel<OrgType>(getPageBase().getMainPopupBodyId(),
                         OrgType.class, supportedTypes, false, getPageBase(), filter) {
                     @Override
                     protected void onSelectPerformed(AjaxRequestTarget target, OrgType org) {
@@ -397,7 +397,7 @@ public class MultipleAssignmentSelectorPanel<F extends FocusType, H extends Focu
                 List<QName> supportedTypes = new ArrayList<>();
                 supportedTypes.add(getPageBase().getPrismContext().getSchemaRegistry()
                         .findObjectDefinitionByCompileTimeClass(OrgType.class).getTypeName());
-                FocusBrowserPanel<OrgType> orgPanel = new FocusBrowserPanel<OrgType>(getPageBase().getMainPopupBodyId(),
+                ObjectBrowserPanel<OrgType> orgPanel = new ObjectBrowserPanel<OrgType>(getPageBase().getMainPopupBodyId(),
                         OrgType.class, supportedTypes, false, getPageBase()) {
                     @Override
                     protected void onSelectPerformed(AjaxRequestTarget target, OrgType org) {

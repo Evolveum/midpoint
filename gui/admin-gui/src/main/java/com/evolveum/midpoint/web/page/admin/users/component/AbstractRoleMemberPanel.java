@@ -23,7 +23,7 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.api.component.FocusBrowserPanel;
+import com.evolveum.midpoint.gui.api.component.ObjectBrowserPanel;
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
@@ -318,7 +318,7 @@ public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extend
 //		for (ObjectTypes t : ObjectTypes.values()) {
 //			types.add(t.getTypeQName());
 //		}
-		FocusBrowserPanel<ObjectType> browser = new FocusBrowserPanel(getPageBase().getMainPopupBodyId(),
+		ObjectBrowserPanel<ObjectType> browser = new ObjectBrowserPanel(getPageBase().getMainPopupBodyId(),
 				UserType.class, types, true, getPageBase()) {
 
 			@Override

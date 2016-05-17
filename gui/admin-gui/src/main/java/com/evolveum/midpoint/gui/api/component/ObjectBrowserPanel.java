@@ -44,8 +44,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
-public class FocusBrowserPanel<T extends ObjectType> extends BasePanel<T> implements Popupable{
+public class ObjectBrowserPanel<T extends ObjectType> extends BasePanel<T> implements Popupable{
 
+	private static final long serialVersionUID = 1L;
 	private static final String ID_TYPE = "type";
 	private static final String ID_TYPE_PANEL = "typePanel";
 	private static final String ID_TABLE = "table";
@@ -57,17 +58,18 @@ public class FocusBrowserPanel<T extends ObjectType> extends BasePanel<T> implem
 	private PageBase parentPage;
 	private ObjectFilter queryFilter;
 
-	public FocusBrowserPanel(String id, final Class<T> type, List<QName> supportedTypes, boolean multiselect,
+	public ObjectBrowserPanel(String id, final Class<T> type, List<QName> supportedTypes, boolean multiselect,
 			PageBase parentPage) {
 		this(id, type, supportedTypes, multiselect, parentPage, null);
 	}
 
-	public FocusBrowserPanel(String id, final Class<T> type, List<QName> supportedTypes, boolean multiselect,
+	public ObjectBrowserPanel(String id, final Class<T> type, List<QName> supportedTypes, boolean multiselect,
 			PageBase parentPage, ObjectFilter queryFilter) {
 		super(id);
 		this.parentPage = parentPage;
         this.queryFilter = queryFilter;
 		typeModel = new LoadableModel<QName>(false) {
+			private static final long serialVersionUID = 1L;
 
 			@Override
 			protected QName load() {
@@ -84,15 +86,17 @@ public class FocusBrowserPanel<T extends ObjectType> extends BasePanel<T> implem
 		WebMarkupContainer typePanel = new WebMarkupContainer(ID_TYPE_PANEL);
 		typePanel.setOutputMarkupId(true);
 		typePanel.add(new VisibleEnableBehaviour() {
+			private static final long serialVersionUID = 1L;
 			@Override
 			public boolean isVisible() {
 				return supportedTypes.size() != 1;
 			}
 		});
 		add(typePanel);
-		DropDownChoice<QName> typeSelect = new DropDownChoice(ID_TYPE, typeModel,
-				new ListModel(supportedTypes), new QNameChoiceRenderer());
+		DropDownChoice<QName> typeSelect = new DropDownChoice<QName>(ID_TYPE, typeModel,
+				new ListModel<QName>(supportedTypes), new QNameChoiceRenderer());
 		typeSelect.add(new OnChangeAjaxBehavior() {
+			private static final long serialVersionUID = 1L;
 
 			@Override
 			protected void onUpdate(AjaxRequestTarget target) {
@@ -113,15 +117,17 @@ public class FocusBrowserPanel<T extends ObjectType> extends BasePanel<T> implem
 		AjaxButton addButton = new AjaxButton(ID_BUTTON_ADD,
 				createStringResource("userBrowserDialog.button.addButton")) {
 
+			private static final long serialVersionUID = 1L;
 			@Override
 			public void onClick(AjaxRequestTarget target) {
 				List<T> selected = ((PopupObjectListPanel) getParent().get(ID_TABLE)).getSelectedObjects();
-				QName type = FocusBrowserPanel.this.typeModel.getObject();
-				FocusBrowserPanel.this.addPerformed(target, type, selected);
+				QName type = ObjectBrowserPanel.this.typeModel.getObject();
+				ObjectBrowserPanel.this.addPerformed(target, type, selected);
 			}
 		};
 
 		addButton.add(new VisibleEnableBehaviour() {
+			private static final long serialVersionUID = 1L;
 
 			@Override
 			public boolean isVisible() {
@@ -144,9 +150,10 @@ public class FocusBrowserPanel<T extends ObjectType> extends BasePanel<T> implem
 
 		PopupObjectListPanel<T> listPanel = new PopupObjectListPanel<T>(ID_TABLE, type, multiselect,
 				parentPage) {
+			private static final long serialVersionUID = 1L;
 			@Override
 			protected void onSelectPerformed(AjaxRequestTarget target, T object) {
-				FocusBrowserPanel.this.onSelectPerformed(target, object);
+				ObjectBrowserPanel.this.onSelectPerformed(target, object);
 			}
 
             @Override

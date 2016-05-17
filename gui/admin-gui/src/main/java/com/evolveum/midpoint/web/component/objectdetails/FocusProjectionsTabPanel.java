@@ -38,7 +38,7 @@ import org.apache.wicket.request.resource.PackageResourceReference;
 
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
-import com.evolveum.midpoint.gui.api.component.FocusBrowserPanel;
+import com.evolveum.midpoint.gui.api.component.ObjectBrowserPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
@@ -287,7 +287,7 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
 							List<QName> supportedTypes = new ArrayList<>(1);
 							supportedTypes.add(ResourceType.COMPLEX_TYPE);
 							PageBase pageBase = FocusProjectionsTabPanel.this.getPageBase();
-							FocusBrowserPanel<ResourceType> resourceSelectionPanel = new FocusBrowserPanel<ResourceType>(
+							ObjectBrowserPanel<ResourceType> resourceSelectionPanel = new ObjectBrowserPanel<ResourceType>(
 									pageBase.getMainPopupBodyId(), ResourceType.class, supportedTypes, true,
 									pageBase) {
 
