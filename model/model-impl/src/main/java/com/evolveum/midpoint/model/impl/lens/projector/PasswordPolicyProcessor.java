@@ -309,7 +309,7 @@ public class PasswordPolicyProcessor {
 		}
 		
 		PrismObject<ShadowType> accountShadow = null;
-		PrismProperty<PasswordType> password = null;
+		PrismProperty<ProtectedStringType> password = null;
 		if (ChangeType.ADD == accountDelta.getChangeType()){
 			accountShadow = accountDelta.getObjectToAdd();
 			if (accountShadow != null){
@@ -318,7 +318,7 @@ public class PasswordPolicyProcessor {
 			}
 		}
 		if (ChangeType.MODIFY == accountDelta.getChangeType() || password == null) {
-			PropertyDelta<PasswordType> passwordValueDelta = null;
+			PropertyDelta<ProtectedStringType> passwordValueDelta = null;
 			if (accountDelta != null) {
 				passwordValueDelta = accountDelta.findPropertyDelta(SchemaConstants.PATH_PASSWORD_VALUE);
 				// Modification sanity check
@@ -330,7 +330,7 @@ public class PasswordPolicyProcessor {
 					LOGGER.trace("Skipping processing password policies. Shadow delta does not contain password change.");
 					return;
 				}
-				password = (PrismProperty<PasswordType>) passwordValueDelta.getItemNewMatchingPath(null);
+				password = (PrismProperty<ProtectedStringType>) passwordValueDelta.getItemNewMatchingPath(null);
 			}
 		}
 
