@@ -261,9 +261,10 @@ public class ConfigurationStep extends WizardStep {
 			for (ContainerWrapper wrapper : wrappers) {
 				wrapper.collectModifications(delta);
 			}
-			LOGGER.info("Applying delta:\n{}", delta.debugDump());
-			WebModelServiceUtils.save(delta, result, parentPage);
-
+			if (!delta.isEmpty()) {
+				LOGGER.info("Applying delta:\n{}", delta.debugDump());
+				WebModelServiceUtils.save(delta, result, parentPage);
+			}
 			parentPage.resetModels();
         } catch (Exception ex) {
             LoggingUtils.logUnexpectedException(LOGGER, "Error occurred during saving changes", ex);

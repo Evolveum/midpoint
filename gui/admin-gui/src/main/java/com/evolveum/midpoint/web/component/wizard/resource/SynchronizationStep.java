@@ -642,18 +642,16 @@ public class SynchronizationStep extends WizardStep {
             oldResource = WebModelServiceUtils.loadObject(ResourceType.class, newResource.getOid(), getPageBase(), task, result);
             if (oldResource != null) {
 				ObjectDelta delta = oldResource.diff(newResource);
-
-//                if(LOGGER.isTraceEnabled()){
-                    LOGGER.info(delta.debugDump());
-//                }
-
-                Collection<ObjectDelta<? extends ObjectType>> deltas = WebComponentUtil.createDeltaCollection(delta);
-                modelService.executeChanges(deltas, null, getPageBase().createSimpleTask(OPERATION_SAVE_SYNC), result);
+				if (!delta.isEmpty()) {
+					//                if(LOGGER.isTraceEnabled()){
+					LOGGER.info(delta.debugDump());
+					//                }
+					Collection<ObjectDelta<? extends ObjectType>> deltas = WebComponentUtil.createDeltaCollection(delta);
+					modelService.executeChanges(deltas, null, getPageBase().createSimpleTask(OPERATION_SAVE_SYNC), result);
+					parentPage.resetModels();
+					syncDtoModel.reset();
+				}
             }
-
-			parentPage.resetModels();
-			syncDtoModel.reset();
-
         } catch (CommonException|RuntimeException e) {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't save resource synchronization.", e);
             result.recordFatalError(getString("SynchronizationStep.message.cantSave", e));
