@@ -610,24 +610,24 @@ public class SynchronizationStep extends WizardStep {
     }
 
     private void reactionEditPerformed(AjaxRequestTarget target, SynchronizationReactionType reaction){
-        WebMarkupContainer newContainer = new SynchronizationReactionEditor(ID_THIRD_ROW_CONTAINER,
-                new Model<>(reaction));
-        getThirdRowContainer().replaceWith(newContainer);
+		WebMarkupContainer newContainer = new SynchronizationReactionEditor(ID_THIRD_ROW_CONTAINER, new Model<>(reaction));
+		getThirdRowContainer().replaceWith(newContainer);
 
-        for(SynchronizationActionType action: reaction.getAction()){
-            if(action.getRef() != null){
-                warn(getString("SynchronizationStep.message.unsupportedActionFormat"));
-                break;
-            }
-        }
+		for (SynchronizationActionType action : reaction.getAction()) {
+			if (action.getRef() != null) {
+				warn(getString("SynchronizationStep.message.unsupportedActionFormat"));
+				break;
+			}
+		}
 
         target.add(getThirdRowContainer(), get(ID_OBJECT_SYNC_EDITOR), getPageBase().getFeedbackPanel());
     }
 
     @Override
-    public void applyState(){
+    public void applyState() {
         savePerformed();
-    }
+		insertEmptyThirdRow();
+	}
 
     private void savePerformed() {
         PrismObject<ResourceType> oldResource;
