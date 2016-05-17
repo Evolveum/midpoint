@@ -82,15 +82,15 @@ public class SynchronizationReactionEditor extends BasePanel<SynchronizationReac
 		initLayout();
     }
 
-    protected void initLayout(){
-        Label label = new Label(ID_LABEL, new AbstractReadOnlyModel<String>() {
+	protected void initLayout() {
+		Label label = new Label(ID_LABEL, new AbstractReadOnlyModel<String>() {
 
             @Override
             public String getObject() {
                 SynchronizationReactionType reaction = getModelObject();
 
-                if(reaction.getName() == null && reaction.getSituation() == null){
-                    return getString("SynchronizationReactionEditor.label.new");
+				if (reaction.getName() == null && reaction.getSituation() == null) {
+					return getString("SynchronizationReactionEditor.label.new");
                 } else {
                     return getString("SynchronizationReactionEditor.label.edit",
                             reaction.getName() != null ? reaction.getName() : getString("MultiValueField.nameNotSpecified"));

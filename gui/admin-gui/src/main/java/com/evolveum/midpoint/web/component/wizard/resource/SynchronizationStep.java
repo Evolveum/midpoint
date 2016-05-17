@@ -610,24 +610,24 @@ public class SynchronizationStep extends WizardStep {
     }
 
     private void reactionEditPerformed(AjaxRequestTarget target, SynchronizationReactionType reaction){
-        WebMarkupContainer newContainer = new SynchronizationReactionEditor(ID_THIRD_ROW_CONTAINER,
-                new Model<>(reaction));
-        getThirdRowContainer().replaceWith(newContainer);
+		WebMarkupContainer newContainer = new SynchronizationReactionEditor(ID_THIRD_ROW_CONTAINER, new Model<>(reaction));
+		getThirdRowContainer().replaceWith(newContainer);
 
-        for(SynchronizationActionType action: reaction.getAction()){
-            if(action.getRef() != null){
-                warn(getString("SynchronizationStep.message.unsupportedActionFormat"));
-                break;
-            }
-        }
+		for (SynchronizationActionType action : reaction.getAction()) {
+			if (action.getRef() != null) {
+				warn(getString("SynchronizationStep.message.unsupportedActionFormat"));
+				break;
+			}
+		}
 
         target.add(getThirdRowContainer(), get(ID_OBJECT_SYNC_EDITOR), getPageBase().getFeedbackPanel());
     }
 
     @Override
-    public void applyState(){
+    public void applyState() {
         savePerformed();
-    }
+		insertEmptyThirdRow();
+	}
 
     private void savePerformed() {
         PrismObject<ResourceType> oldResource;
@@ -642,18 +642,16 @@ public class SynchronizationStep extends WizardStep {
             oldResource = WebModelServiceUtils.loadObject(ResourceType.class, newResource.getOid(), getPageBase(), task, result);
             if (oldResource != null) {
 				ObjectDelta delta = oldResource.diff(newResource);
-
-//                if(LOGGER.isTraceEnabled()){
-                    LOGGER.info(delta.debugDump());
-//                }
-
-                Collection<ObjectDelta<? extends ObjectType>> deltas = WebComponentUtil.createDeltaCollection(delta);
-                modelService.executeChanges(deltas, null, getPageBase().createSimpleTask(OPERATION_SAVE_SYNC), result);
+				if (!delta.isEmpty()) {
+					//                if(LOGGER.isTraceEnabled()){
+					LOGGER.info(delta.debugDump());
+					//                }
+					Collection<ObjectDelta<? extends ObjectType>> deltas = WebComponentUtil.createDeltaCollection(delta);
+					modelService.executeChanges(deltas, null, getPageBase().createSimpleTask(OPERATION_SAVE_SYNC), result);
+					parentPage.resetModels();
+					syncDtoModel.reset();
+				}
             }
-
-			parentPage.resetModels();
-			syncDtoModel.reset();
-
         } catch (CommonException|RuntimeException e) {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't save resource synchronization.", e);
             result.recordFatalError(getString("SynchronizationStep.message.cantSave", e));

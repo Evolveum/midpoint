@@ -94,7 +94,7 @@ public class PageResource extends PageAdminResources {
 	private static final String BUTTON_WIZARD_ID = "wizard";
 	private static final String ID_BUTTON_BACK = "back";
 
-	public static final String TABLE_TEST_CONNECTION_RESULT_ID = "testConņectionResults";
+	public static final String TABLE_TEST_CONNECTION_RESULT_ID = "testConnectionResults";
 
 	LoadableModel<PrismObject<ResourceType>> resourceModel;
 
