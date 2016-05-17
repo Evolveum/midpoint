@@ -725,6 +725,18 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		modelService.executeChanges(deltas, null, task, result);
 	}
 	
+	protected void modifyUserChangePassword(String userOid, String newPassword, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
+		ProtectedStringType userPasswordPs = new ProtectedStringType();
+        userPasswordPs.setClearValue(newPassword);
+        modifyUserReplace(userOid, PASSWORD_VALUE_PATH, task,  result, userPasswordPs);
+	}
+	
+	protected void modifyAccountChangePassword(String accountOid, String newPassword, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
+		ProtectedStringType userPasswordPs = new ProtectedStringType();
+        userPasswordPs.setClearValue(newPassword);
+        modifyAccountShadowReplace(accountOid, PASSWORD_VALUE_PATH, task,  result, userPasswordPs);
+	}
+	
 	protected void recomputeUser(String userOid, Task task, OperationResult result) throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException  {
 		modelService.recompute(UserType.class, userOid, task, result);
 	}
@@ -2084,6 +2096,17 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	}
 	
 	protected void restartTask(String taskOid) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
+		
+		// Wait at least 1ms here. We have the timestamp in the tasks with a millisecond granularity. If the tasks is started,
+		// executed and then resstarted and excecuted within the same millisecond then the second execution will not be
+		// detected and the wait for task finish will time-out. So waiting one millisecond here will make sure that the
+		// timestamps are different. And 1ms is not that long to significantly affect test run times.
+		try {
+			Thread.sleep(1);
+		} catch (InterruptedException e) {
+			LOGGER.warn("Sleep interrupted: {}", e.getMessage(), e);
+		}
+		
 		final OperationResult result = new OperationResult(AbstractIntegrationTest.class+".restartTask");
 		ObjectDelta<TaskType> taskDelta = ObjectDelta.createModificationReplaceProperty(TaskType.class, taskOid, TaskType.F_EXECUTION_STATUS, prismContext, TaskExecutionStatusType.RUNNABLE);
 		taskDelta.addModificationReplaceProperty(TaskType.F_RESULT_STATUS);
@@ -2244,9 +2267,10 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		addObject(object);
 	}
 	
-	protected <O extends ObjectType> void addObject(File file, Task task, OperationResult result) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException, IOException {
+	protected <O extends ObjectType> PrismObject<O> addObject(File file, Task task, OperationResult result) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException, IOException {
 		PrismObject<O> object = PrismTestUtil.parseObject(file);
 		addObject(object, task, result);
+		return object;
 	}
 	
 	protected <O extends ObjectType> void addObject(PrismObject<O> object) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
@@ -3047,7 +3071,15 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         }
 	}
 	
-	protected void assertEncryptedPassword(PrismObject<UserType> user, String expectedClearPassword) throws EncryptionException {
+	protected void assertEncryptedUserPassword(String userOid, String expectedClearPassword) throws EncryptionException, ObjectNotFoundException, SchemaException {
+		OperationResult result = new OperationResult(AbstractIntegrationTest.class.getName()+".assertEncryptedUserPassword");
+		PrismObject<UserType> user = repositoryService.getObject(UserType.class, userOid, null, result);
+		result.computeStatus();
+		TestUtil.assertSuccess(result);
+		assertEncryptedUserPassword(user, expectedClearPassword);
+	}
+	
+	protected void assertEncryptedUserPassword(PrismObject<UserType> user, String expectedClearPassword) throws EncryptionException {
 		UserType userType = user.asObjectable();
 		ProtectedStringType protectedActualPassword = userType.getCredentials().getPassword().getValue();
 		String actualClearPassword = protector.decryptString(protectedActualPassword);
@@ -3075,6 +3107,12 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 			TestUtil.assertBetween("Wrong password modify timestamp in password metadata in "+user, start, end, metadataType.getModifyTimestamp());
 			assertEquals("Wrong modification channel", channel, metadataType.getModifyChannel());
 		}
+	}
+	
+	protected void assertDummyPassword(String instance, String userId, String expectedClearPassword) {
+		DummyAccount account = getDummyAccount(instance, userId);
+		assertNotNull("No dummy account "+userId, account);
+		assertEquals("Wrong password in dummy '"+instance+"' account "+userId, expectedClearPassword, account.getPassword());
 	}
 
 	protected void reconcileUser(String oid, Task task, OperationResult result) throws CommunicationException, ObjectAlreadyExistsException, ExpressionEvaluationException, PolicyViolationException, SchemaException, SecurityViolationException, ConfigurationException, ObjectNotFoundException {

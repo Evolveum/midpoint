@@ -1139,6 +1139,41 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 	}
 	
 	/**
+	 * Object template mapping for cost center is weak, role mapping is normal.
+	 * Direct modification should override both.
+	 */
+	@Test
+    public void test232ModifyUserRappCostCenter() throws Exception {
+		final String TEST_NAME = "test232ModifyUserRappCostCenter";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestUserTemplate.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+    
+		// WHEN
+        modifyUserReplace(USER_RAPP_OID, UserType.F_COST_CENTER, task, result, "CC-RAPP");
+
+		// THEN
+		PrismObject<UserType> userAfter = modelService.getObject(UserType.class, USER_RAPP_OID, null, task, result);
+        assertUser(userAfter, USER_RAPP_OID, "rapp", "Rapp Scallion", "Rapp", "Scallion");
+        
+        assertAssignedAccount(userAfter, RESOURCE_DUMMY_BLUE_OID);
+        assertAssignedRole(userAfter, ROLE_CAPTAIN_OID);
+        assertAssignments(userAfter, 2);
+        
+        UserType userAfterType = userAfter.asObjectable();
+        assertLinks(userAfter, 1);
+        
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        assertEquals("Unexpected value of employeeNumber", 
+        		"D3ADB33F", userAfterType.getEmployeeNumber());
+        assertEquals("Wrong costCenter", "CC-RAPP", userAfterType.getCostCenter());
+	}
+	
+	/**
 	 * Role Captains has focus mapping for the same costCenter as is given
 	 * by the user template.
 	 * MID-3028
@@ -1172,7 +1207,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         
         assertEquals("Unexpected value of employeeNumber", 
         		"D3ADB33F", userAfterType.getEmployeeNumber());
-        assertEquals("Wrong costCenter", "G001", userAfterType.getCostCenter());
+        assertEquals("Wrong costCenter", "CC-RAPP", userAfterType.getCostCenter());
 	}
 	
 	/**

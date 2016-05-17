@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -70,23 +70,7 @@ public class PasswordPolicyProcessor {
 	@Autowired(required = true)
 	ModelObjectResolver resolver;
 
-	void processPasswordPolicy(ValuePolicyType passwordPolicy, PrismProperty password, OperationResult result)
-			throws PolicyViolationException, SchemaException {
-
-		if (passwordPolicy == null) {
-			LOGGER.trace("Skipping processing password policies. Password policy not specified.");
-			return;
-		}
-
-        String passwordValue = determinePasswordValue(password);
-
-        boolean isValid = PasswordPolicyUtils.validatePassword(passwordValue, passwordPolicy, result);
-
-		if (!isValid) {
-			result.computeStatus();
-			throw new PolicyViolationException("Provided password does not satisfy password policies. " + result.getMessage());
-		}
-	}
+	
 	
 	<F extends FocusType> void processPasswordPolicy(LensFocusContext<F> focusContext, 
 			LensContext<F> context, Task task, OperationResult result)
@@ -110,21 +94,21 @@ public class PasswordPolicyProcessor {
 			return;
 		}
 
-		PrismProperty<PasswordType> password = null;
+		PrismProperty<ProtectedStringType> passwordValueProperty = null;
 		PrismObject<F> user;
 		if (ChangeType.ADD == userDelta.getChangeType()) {
 			user = focusContext.getDelta().getObjectToAdd();
 			if (user != null) {
-				password = user.findProperty(SchemaConstants.PATH_PASSWORD_VALUE);
+				passwordValueProperty = user.findProperty(SchemaConstants.PATH_PASSWORD_VALUE);
 			}
-			if (password == null){
+			if (passwordValueProperty == null){
 				if (wasExecuted(userDelta, focusContext)){
 					LOGGER.trace("Skipping processing password policies. User addition was already executed.");
 					return;
 				}
 			}
 		} else if (ChangeType.MODIFY == userDelta.getChangeType()) {
-			PropertyDelta<PasswordType> passwordValueDelta;
+			PropertyDelta<ProtectedStringType> passwordValueDelta;
 			if (userDelta != null) {
 				passwordValueDelta = userDelta.findPropertyDelta(SchemaConstants.PATH_PASSWORD_VALUE);
 				if (passwordValueDelta == null) {
@@ -133,14 +117,14 @@ public class PasswordPolicyProcessor {
 				}
 				if (userDelta.getChangeType() == ChangeType.MODIFY && passwordValueDelta != null) {
 					if (passwordValueDelta.isAdd()) {
-						password = (PrismProperty<PasswordType>) passwordValueDelta.getItemNewMatchingPath(null);
+						passwordValueProperty = (PrismProperty<ProtectedStringType>) passwordValueDelta.getItemNewMatchingPath(null);
 					} else if (passwordValueDelta.isDelete()) {
-						password = null;
+						passwordValueProperty = null;
 					} else {
-						password = (PrismProperty<PasswordType>) passwordValueDelta.getItemNewMatchingPath(null);
+						passwordValueProperty = (PrismProperty<ProtectedStringType>) passwordValueDelta.getItemNewMatchingPath(null);
 					}
 				} else {
-					password = (PrismProperty<PasswordType>) passwordValueDelta.getItemNewMatchingPath(null);
+					passwordValueProperty = (PrismProperty<ProtectedStringType>) passwordValueDelta.getItemNewMatchingPath(null);
 				}
 			}
 		}
@@ -153,8 +137,26 @@ public class PasswordPolicyProcessor {
 			passwordPolicy = focusContext.getOrgPasswordPolicy();
 		}
 		
-		processPasswordPolicy(passwordPolicy, password, result);
+		processPasswordPolicy(passwordPolicy, passwordValueProperty, result);
 
+	}
+	
+	private void processPasswordPolicy(ValuePolicyType passwordPolicy, PrismProperty<ProtectedStringType> passwordProperty, OperationResult result)
+			throws PolicyViolationException, SchemaException {
+
+		if (passwordPolicy == null) {
+			LOGGER.trace("Skipping processing password policies. Password policy not specified.");
+			return;
+		}
+
+        String passwordValue = determinePasswordValue(passwordProperty);
+
+        boolean isValid = PasswordPolicyUtils.validatePassword(passwordValue, passwordPolicy, result);
+
+		if (!isValid) {
+			result.computeStatus();
+			throw new PolicyViolationException("Provided password does not satisfy password policies. " + result.getMessage());
+		}
 	}
 
 	private <F extends FocusType> boolean wasExecuted(ObjectDelta<UserType> userDelta, LensFocusContext<F> focusContext){
@@ -307,7 +309,7 @@ public class PasswordPolicyProcessor {
 		}
 		
 		PrismObject<ShadowType> accountShadow = null;
-		PrismProperty<PasswordType> password = null;
+		PrismProperty<ProtectedStringType> password = null;
 		if (ChangeType.ADD == accountDelta.getChangeType()){
 			accountShadow = accountDelta.getObjectToAdd();
 			if (accountShadow != null){
@@ -316,7 +318,7 @@ public class PasswordPolicyProcessor {
 			}
 		}
 		if (ChangeType.MODIFY == accountDelta.getChangeType() || password == null) {
-			PropertyDelta<PasswordType> passwordValueDelta = null;
+			PropertyDelta<ProtectedStringType> passwordValueDelta = null;
 			if (accountDelta != null) {
 				passwordValueDelta = accountDelta.findPropertyDelta(SchemaConstants.PATH_PASSWORD_VALUE);
 				// Modification sanity check
@@ -328,7 +330,7 @@ public class PasswordPolicyProcessor {
 					LOGGER.trace("Skipping processing password policies. Shadow delta does not contain password change.");
 					return;
 				}
-				password = (PrismProperty<PasswordType>) passwordValueDelta.getItemNewMatchingPath(null);
+				password = (PrismProperty<ProtectedStringType>) passwordValueDelta.getItemNewMatchingPath(null);
 			}
 		}
 
@@ -365,12 +367,12 @@ public class PasswordPolicyProcessor {
 
 
     // On missing password this returns empty string (""). It is then up to password policy whether it allows empty passwords or not.
-	private String determinePasswordValue(PrismProperty<PasswordType> password) {
+	private String determinePasswordValue(PrismProperty<ProtectedStringType> password) {
 		if (password == null || password.getValue(ProtectedStringType.class) == null) {
 			return null;
 		}
 
-		ProtectedStringType passValue = password.getValue(ProtectedStringType.class).getValue();
+		ProtectedStringType passValue = password.getRealValue();
 
 		if (passValue == null) {
 			return null;

@@ -20,8 +20,18 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import com.evolveum.midpoint.prism.schema.SchemaRegistry;
+import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
+import com.evolveum.midpoint.web.component.search.SearchFactory;
+import com.evolveum.midpoint.web.component.search.SearchItem;
+import com.evolveum.midpoint.web.component.search.SearchValue;
+import com.evolveum.midpoint.web.session.PageStorage;
+import com.evolveum.midpoint.web.session.SessionStorage;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
@@ -95,8 +105,7 @@ public class PageUsers extends PageAdminUsers {
 	private static final String ID_TABLE = "table";
 
 	private UserType singleDelete;
-	private LoadableModel<Search> searchModel;
-	private LoadableModel<ExecuteChangeOptionsDto> executeOptionsModel;
+    private LoadableModel<ExecuteChangeOptionsDto> executeOptionsModel;
 
 	public PageUsers() {
 		this(true, null, null);
@@ -116,12 +125,30 @@ public class PageUsers extends PageAdminUsers {
 			}
 		};
 
-		initLayout();
+        if (StringUtils.isNotEmpty(text)){
+            initSearch(text);
+        }
+        initLayout();
 	}
 
 	public PageUsers(UsersDto.SearchType type, String text) {
 		this(true, type, text);
 	}
+
+    private void initSearch(String text){
+        PageStorage storage = getSessionStorage().getPageStorageMap().get(SessionStorage.KEY_USERS);
+        if (storage == null) {
+            storage = getSessionStorage().initPageStorage(SessionStorage.KEY_USERS);
+        }
+        Search search = SearchFactory.createSearch(UserType.class, getPrismContext(), true);
+        if (search.getItems() != null && search.getItems().size() > 0){
+            SearchItem searchItem = search.getItems().get(0);
+            searchItem.getValues().add(new SearchValue<>(text));
+        }
+        storage.setSearch(search);
+        getSessionStorage().getPageStorageMap().put(SessionStorage.KEY_USERS, storage);
+
+    }
 
 	private void initLayout() {
 		Form mainForm = new Form(ID_MAIN_FORM);

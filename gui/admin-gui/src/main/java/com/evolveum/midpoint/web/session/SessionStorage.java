@@ -166,6 +166,9 @@ public class SessionStorage implements Serializable {
     	} else if (KEY_SERVICES.equals(key)) {
     		pageStorage = new ServicesStorage();
     		pageStorageMap.put(KEY_SERVICES, pageStorage);
+    	} else if (KEY_RESOURCES.equals(key)) {
+    		pageStorage = new ResourcesStorage();
+    		pageStorageMap.put(KEY_RESOURCES, pageStorage);
     	}
     	return pageStorage;
     	//TODO: fixme

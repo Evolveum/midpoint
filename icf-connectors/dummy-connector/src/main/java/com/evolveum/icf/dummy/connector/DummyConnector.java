@@ -21,6 +21,7 @@ import org.identityconnectors.framework.common.exceptions.AlreadyExistsException
 import org.identityconnectors.framework.common.exceptions.ConnectionFailedException;
 import org.identityconnectors.framework.common.exceptions.ConnectorException;
 import org.identityconnectors.framework.common.exceptions.ConnectorIOException;
+import org.identityconnectors.framework.common.exceptions.InvalidAttributeValueException;
 import org.identityconnectors.framework.common.exceptions.UnknownUidException;
 import org.identityconnectors.framework.common.objects.*;
 
@@ -1794,6 +1795,9 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 		((GuardedString)passwdObject).access(new Accessor() {
 			@Override
 			public void access(char[] passwdChars) {
+				if (configuration.getMinPasswordLength() != null && passwdChars.length < configuration.getMinPasswordLength()) {
+					throw new InvalidAttributeValueException("Password too short");
+				}
 				account.setPassword(new String(passwdChars));
 			}
 		});

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2014 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -97,10 +97,11 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
 
     @Test
     public void test100EmptySequence() throws Exception {
-        TestUtil.displayTestTile(this, "test100EmptySequence");
+    	final String TEST_NAME = "test100EmptySequence";
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        OperationResult result = new OperationResult(DOT_CLASS + "test100EmptySequence");
+        OperationResult result = new OperationResult(DOT_CLASS + TEST_NAME);
         ExpressionSequenceType sequence = new ExpressionSequenceType();
         ObjectFactory of = new ObjectFactory();
 
@@ -115,10 +116,11 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
 
     @Test
     public void test110EmptyPipeline() throws Exception {
-        TestUtil.displayTestTile(this, "test110EmptyPipeline");
+    	final String TEST_NAME = "test110EmptyPipeline";
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        OperationResult result = new OperationResult(DOT_CLASS + "test110EmptyPipeline");
+        OperationResult result = new OperationResult(DOT_CLASS + TEST_NAME);
         ExpressionPipelineType pipeline = new ExpressionPipelineType();
         ObjectFactory of = new ObjectFactory();
 
@@ -133,10 +135,11 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
 
     @Test
     public void test120Log() throws Exception {
-        TestUtil.displayTestTile(this, "test120Log");
+    	final String TEST_NAME = "test120Log";
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        OperationResult result = new OperationResult(DOT_CLASS + "test120Log");
+        OperationResult result = new OperationResult(DOT_CLASS + TEST_NAME);
         PrismProperty<ScriptingExpressionType> logAction = (PrismProperty) prismContext.parseAnyData(LOG_FILE);
 
         LogfileTestTailer tailer = new LogfileTestTailer(LoggingConfigurationManager.AUDIT_LOGGER_NAME);
@@ -156,10 +159,11 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
 
     @Test
     public void test200SearchUser() throws Exception {
-        TestUtil.displayTestTile(this, "test200SearchUser");
+    	final String TEST_NAME = "test200SearchUser";
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        OperationResult result = new OperationResult(DOT_CLASS + "test200SearchUser");
+        OperationResult result = new OperationResult(DOT_CLASS + TEST_NAME);
         PrismProperty<SearchExpressionType> expression = (PrismProperty) prismContext.parseAnyData(SEARCH_FOR_USERS_FILE);
 
         // WHEN
@@ -175,10 +179,11 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
 
     @Test
     public void test205SearchForResources() throws Exception {
-        TestUtil.displayTestTile(this, "test205SearchForResources");
+    	final String TEST_NAME = "test205SearchForResources";
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        OperationResult result = new OperationResult(DOT_CLASS + "test205SearchForResources");
+        OperationResult result = new OperationResult(DOT_CLASS + TEST_NAME);
         PrismProperty<SearchExpressionType> expression = (PrismProperty) prismContext.parseAnyData(SEARCH_FOR_RESOURCES_FILE);
 
         // WHEN
@@ -193,10 +198,11 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
 
     @Test
     public void test206SearchForRoles() throws Exception {
-        TestUtil.displayTestTile(this, "test206SearchForRoles");
+    	final String TEST_NAME = "test206SearchForRoles";
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        OperationResult result = new OperationResult(DOT_CLASS + "test206SearchForRoles");
+        OperationResult result = new OperationResult(DOT_CLASS + TEST_NAME);
         PrismProperty<SearchExpressionType> expression = (PrismProperty) prismContext.parseAnyData(SEARCH_FOR_ROLES_FILE);
 
         // WHEN
@@ -211,10 +217,11 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
 
     @Test
     public void test210SearchForShadows() throws Exception {
-        TestUtil.displayTestTile(this, "test210SearchForShadows");
+    	final String TEST_NAME = "test210SearchForShadows";
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        OperationResult result = new OperationResult(DOT_CLASS + "test210SearchForShadows");
+        OperationResult result = new OperationResult(DOT_CLASS + TEST_NAME);
         PrismProperty<SearchExpressionType> expression = (PrismProperty) prismContext.parseAnyData(SEARCH_FOR_SHADOWS_FILE);
 
         // WHEN
@@ -230,10 +237,11 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
 
     @Test
     public void test215SearchForShadowsNoFetch() throws Exception {
-        TestUtil.displayTestTile(this, "test215SearchForShadowsNoFetch");
+    	final String TEST_NAME = "test215SearchForShadowsNoFetch";
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        OperationResult result = new OperationResult(DOT_CLASS + "test215SearchForShadowsNoFetch");
+        OperationResult result = new OperationResult(DOT_CLASS + TEST_NAME);
         PrismProperty<SearchExpressionType> expression = (PrismProperty) prismContext.parseAnyData(SEARCH_FOR_SHADOWS_NOFETCH_FILE);
 
         // WHEN
@@ -249,10 +257,11 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
 
     @Test
     public void test220SearchForUsersAccounts() throws Exception {
-        TestUtil.displayTestTile(this, "test220SearchForUsersAccounts");
+    	final String TEST_NAME = "test220SearchForUsersAccounts";
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        OperationResult result = new OperationResult(DOT_CLASS + "test220SearchForUsersAccounts");
+        OperationResult result = new OperationResult(DOT_CLASS + TEST_NAME);
         PrismProperty<SearchExpressionType> expression = (PrismProperty) prismContext.parseAnyData(SEARCH_FOR_USERS_ACCOUNTS_FILE);
 
         // WHEN
@@ -268,10 +277,11 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
 
     @Test
     public void test225SearchForUsersAccountsNoFetch() throws Exception {
-        TestUtil.displayTestTile(this, "test225SearchForUsersAccountsNoFetch");
+    	final String TEST_NAME = "test225SearchForUsersAccountsNoFetch";
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        OperationResult result = new OperationResult(DOT_CLASS + "test225SearchForUsersAccountsNoFetch");
+        OperationResult result = new OperationResult(DOT_CLASS + TEST_NAME);
         PrismProperty<SearchExpressionType> expression = (PrismProperty) prismContext.parseAnyData(SEARCH_FOR_USERS_ACCOUNTS_NOFETCH_FILE);
 
         // WHEN
@@ -287,10 +297,11 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
 
     @Test
     public void test300DisableJack() throws Exception {
-        TestUtil.displayTestTile(this, "test300DisableJack");
+    	final String TEST_NAME = "test300DisableJack";
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        OperationResult result = new OperationResult(DOT_CLASS + "test300DisableJack");
+        OperationResult result = new OperationResult(DOT_CLASS + TEST_NAME);
         PrismProperty<ScriptingExpressionType> expression = (PrismProperty) prismContext.parseAnyData(DISABLE_JACK_FILE);
 
         // WHEN
@@ -307,10 +318,11 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
 
     @Test
     public void test310EnableJack() throws Exception {
-        TestUtil.displayTestTile(this, "test310EnableJack");
+    	final String TEST_NAME = "test310EnableJack";
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        OperationResult result = new OperationResult(DOT_CLASS + "test310EnableJack");
+        OperationResult result = new OperationResult(DOT_CLASS + TEST_NAME);
         PrismProperty<ScriptingExpressionType> expression = (PrismProperty) prismContext.parseAnyData(ENABLE_JACK_FILE);
 
         // WHEN
@@ -327,10 +339,11 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
 
     @Test
     public void test320DeleteAndAddJack() throws Exception {
-        TestUtil.displayTestTile(this, "test320DeleteAndAddJack");
+    	final String TEST_NAME = "test320DeleteAndAddJack";
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        OperationResult result = new OperationResult(DOT_CLASS + "test320DeleteAndAddJack");
+        OperationResult result = new OperationResult(DOT_CLASS + TEST_NAME);
         PrismProperty<ScriptingExpressionType> expression = (PrismProperty) prismContext.parseAnyData(DELETE_AND_ADD_JACK_FILE);
 
         // WHEN
@@ -347,10 +360,11 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
 
     @Test
     public void test330ModifyJack() throws Exception {
-        TestUtil.displayTestTile(this, "test330ModifyJack");
+    	final String TEST_NAME = "test330ModifyJack";
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        OperationResult result = new OperationResult(DOT_CLASS + "test330ModifyJack");
+        OperationResult result = new OperationResult(DOT_CLASS + TEST_NAME);
         PrismProperty<ScriptingExpressionType> expression = (PrismProperty) prismContext.parseAnyData(MODIFY_JACK_FILE);
 
         // WHEN
@@ -368,10 +382,11 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
 
     @Test
     public void test340ModifyJackBack() throws Exception {
-        TestUtil.displayTestTile(this, "test340ModifyJackBack");
+    	final String TEST_NAME = "test340ModifyJackBack";
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        OperationResult result = new OperationResult(DOT_CLASS + "test340ModifyJackBack");
+        OperationResult result = new OperationResult(DOT_CLASS + TEST_NAME);
         PrismProperty<ScriptingExpressionType> expression = (PrismProperty) prismContext.parseAnyData(MODIFY_JACK_BACK_FILE);
 
         // WHEN
@@ -389,10 +404,11 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
 
     @Test
     public void test350RecomputeJack() throws Exception {
-        TestUtil.displayTestTile(this, "test350RecomputeJack");
+    	final String TEST_NAME = "test350RecomputeJack";
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        OperationResult result = new OperationResult(DOT_CLASS + "test350RecomputeJack");
+        OperationResult result = new OperationResult(DOT_CLASS + TEST_NAME);
         PrismProperty<ScriptingExpressionType> expression = (PrismProperty) prismContext.parseAnyData(RECOMPUTE_JACK_FILE);
 
         // WHEN
@@ -409,10 +425,11 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
 
     @Test
     public void test360AssignToJack() throws Exception {
-        TestUtil.displayTestTile(this, "test360AssignToJack");
+    	final String TEST_NAME = "test360AssignToJack";
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        OperationResult result = new OperationResult(DOT_CLASS + "test360AssignToJack");
+        OperationResult result = new OperationResult(DOT_CLASS + TEST_NAME);
         PrismProperty<ScriptingExpressionType> expression = (PrismProperty) prismContext.parseAnyData(ASSIGN_TO_JACK_FILE);
 
         // WHEN
@@ -433,10 +450,11 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
 
     @Test
     public void test370AssignToJackInBackground() throws Exception {
-        TestUtil.displayTestTile(this, "test370AssignToJackInBackground");
+    	final String TEST_NAME = "test370AssignToJackInBackground";
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        OperationResult result = new OperationResult(DOT_CLASS + "test370AssignToJackInBackground");
+        OperationResult result = new OperationResult(DOT_CLASS + TEST_NAME);
         PrismProperty<ScriptingExpressionType> expression = (PrismProperty) prismContext.parseAnyData(ASSIGN_TO_JACK_2_FILE);
 
         // WHEN
@@ -456,10 +474,11 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
 
     @Test
     public void test380DisableJackInBackgroundSimple() throws Exception {
-        TestUtil.displayTestTile(this, "test380DisableJackInBackgroundSimple");
+    	final String TEST_NAME = "test380DisableJackInBackgroundSimple";
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        OperationResult result = new OperationResult(DOT_CLASS + "test380DisableJackInBackgroundSimple");
+        OperationResult result = new OperationResult(DOT_CLASS + TEST_NAME);
 
         // WHEN
         Task task = taskManager.createTaskInstance();
@@ -479,12 +498,13 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
         assertAdministrativeStatusDisabled(jack);
     }
 
-    @Test(enabled = true)
+    @Test
     public void test400PurgeSchema() throws Exception {
-        TestUtil.displayTestTile(this, "test400PurgeSchema");
+    	final String TEST_NAME = "test400PurgeSchema";
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        OperationResult result = new OperationResult(DOT_CLASS + "test400PurgeSchema");
+        OperationResult result = new OperationResult(DOT_CLASS + TEST_NAME);
         Task task = taskManager.createTaskInstance();
         PrismProperty<ScriptingExpressionType> expression = (PrismProperty) prismContext.parseAnyData(PURGE_DUMMY_BLACK_SCHEMA_FILE);
 
@@ -517,10 +537,11 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
 
     @Test
     public void test410TestResource() throws Exception {
-        TestUtil.displayTestTile(this, "test410TestResource");
+    	final String TEST_NAME = "test410TestResource";
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        OperationResult result = new OperationResult(DOT_CLASS + "test410TestResource");
+        OperationResult result = new OperationResult(DOT_CLASS + TEST_NAME);
         PrismProperty<ScriptingExpressionType> expression = (PrismProperty) prismContext.parseAnyData(TEST_DUMMY_RESOURCE_FILE);
 
         // WHEN
