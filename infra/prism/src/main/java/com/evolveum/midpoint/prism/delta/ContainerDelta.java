@@ -21,7 +21,9 @@ import java.util.*;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.path.IdItemPathSegment;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
@@ -140,26 +142,34 @@ public class ContainerDelta<V extends Containerable> extends ItemDelta<PrismCont
 		if (path.isEmpty()) {
 			return this;
 		}
+		Long id = null;
+		ItemPathSegment first = path.first();
+    	if (first instanceof IdItemPathSegment) {
+    		id = ((IdItemPathSegment)first).getId();
+    		path = path.rest();
+    	}
 		ItemDefinition itemDefinition = getDefinition().findItemDefinition(path);
 		ItemDelta<?,?> itemDelta = itemDefinition.createEmptyDelta(getPath().subPath(path));
-		itemDelta.addValuesToAdd(findItemValues(path, getValuesToAdd()));
-		itemDelta.addValuesToDelete(findItemValues(path, getValuesToDelete()));
-		itemDelta.setValuesToReplace(findItemValues(path, getValuesToReplace()));
+		itemDelta.addValuesToAdd(findItemValues(id, path, getValuesToAdd()));
+		itemDelta.addValuesToDelete(findItemValues(id, path, getValuesToDelete()));
+		itemDelta.setValuesToReplace(findItemValues(id, path, getValuesToReplace()));
 		if (itemDelta.isEmpty()) {
 			return null;
 		}
 		return itemDelta;
 	}
 	
-	private Collection findItemValues(ItemPath path, Collection<PrismContainerValue<V>> cvalues) {
+	private Collection findItemValues(Long id, ItemPath path, Collection<PrismContainerValue<V>> cvalues) {
 		if (cvalues == null) {
 			return null;
 		}
 		Collection<PrismValue> subValues = new ArrayList<PrismValue>();
 		for (PrismContainerValue<V> cvalue: cvalues) {
-			Item<?,?> item = cvalue.findItem(path);
-			if (item != null) {
-				subValues.addAll(item.getValues());
+			if (id == null || id == cvalue.getId()) {
+				Item<?,?> item = cvalue.findItem(path);
+				if (item != null) {
+					subValues.addAll(PrismValue.cloneCollection(item.getValues()));
+				}
 			}
 		}
 		return subValues;

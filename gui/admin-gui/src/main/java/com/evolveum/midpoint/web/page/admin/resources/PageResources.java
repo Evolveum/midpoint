@@ -21,6 +21,10 @@ import java.util.Collection;
 import java.util.List;
 
 import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
+import com.evolveum.midpoint.web.component.search.*;
+import com.evolveum.midpoint.web.session.PageStorage;
+import com.evolveum.midpoint.web.session.SessionStorage;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -62,9 +66,6 @@ import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
 import com.evolveum.midpoint.web.component.data.column.InlineMenuHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
-import com.evolveum.midpoint.web.component.search.Search;
-import com.evolveum.midpoint.web.component.search.SearchFactory;
-import com.evolveum.midpoint.web.component.search.SearchFormPanel;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.configuration.PageDebugView;
 import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
@@ -111,7 +112,7 @@ public class PageResources extends PageAdminResources {
 		this(true, searchText);
 	}
 
-	public PageResources(boolean clearSessionPaging, final String searchText) {
+	public PageResources(boolean clearSessionPaging, String searchText) {
 		searchModel = new LoadableModel<Search>(false) {
 
 			@Override
@@ -135,8 +136,26 @@ public class PageResources extends PageAdminResources {
 			}
 		};
 
-		initLayout();
+        if (StringUtils.isNotEmpty(searchText)){
+            initSearch(searchText);
+        }
+        initLayout();
 	}
+
+    private void initSearch(String text){
+        PageStorage storage = getSessionStorage().getPageStorageMap().get(SessionStorage.KEY_RESOURCES);
+        if (storage == null) {
+            storage = getSessionStorage().initPageStorage(SessionStorage.KEY_RESOURCES);
+        }
+        Search search = SearchFactory.createSearch(UserType.class, getPrismContext(), true);
+
+        if (search.getItems() != null && search.getItems().size() > 0){
+            SearchItem searchItem = search.getItems().get(0);
+            searchItem.getValues().add(new SearchValue<>(text));
+        }
+        storage.setSearch(search);
+        getSessionStorage().getPageStorageMap().put(SessionStorage.KEY_RESOURCES, storage);
+    }
 
 	private void initLayout() {
 		Form mainForm = new Form(ID_MAIN_FORM);
