@@ -735,14 +735,14 @@ public class SchemaHandlingStep extends WizardStep {
 			}
 
 			delta = oldResource.diff(newResource);
-
-//                if(LOGGER.isTraceEnabled()){
-			LOGGER.info("Applying delta:\n{}", delta.debugDump());
-//                }
-
-			Collection<ObjectDelta<? extends ObjectType>> deltas = WebComponentUtil.createDeltaCollection(delta);
-			modelService.executeChanges(deltas, null, parentPage.createSimpleTask(OPERATION_SAVE_SCHEMA_HANDLING), result);
-			parentPage.resetModels();
+			if (!delta.isEmpty()) {
+				//                if(LOGGER.isTraceEnabled()){
+				LOGGER.info("Applying delta:\n{}", delta.debugDump());
+				//                }
+				Collection<ObjectDelta<? extends ObjectType>> deltas = WebComponentUtil.createDeltaCollection(delta);
+				modelService.executeChanges(deltas, null, parentPage.createSimpleTask(OPERATION_SAVE_SCHEMA_HANDLING), result);
+				parentPage.resetModels();
+			}
         } catch (RuntimeException|CommonException e) {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't save schema handling", e);
             result.recordFatalError(getString("SchemaHandlingStep.message.saveError", e));

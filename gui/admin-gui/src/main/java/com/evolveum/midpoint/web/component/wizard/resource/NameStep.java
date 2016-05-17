@@ -31,12 +31,14 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.prism.delta.builder.S_ItemEntry;
 import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -429,7 +431,8 @@ public class NameStep extends WizardStep {
 			}
 
 			ObjectDelta delta;
-			boolean isNew = resource.getOid() == null;
+			final String oid = resource.getOid();
+			boolean isNew = oid == null;
 			if (isNew) {
 				resource = prismContext.createObject(ResourceType.class);
 				ResourceType resourceType = resource.asObjectable();
@@ -438,17 +441,35 @@ public class NameStep extends WizardStep {
 				resourceType.setConnectorRef(ObjectTypeUtil.createObjectRef(connector));
 				delta = ObjectDelta.createAddDelta(resource);
 			} else {
-				S_ItemEntry i = DeltaBuilder.deltaFor(ResourceType.class, prismContext)
-						.item(ResourceType.F_NAME).replace(PolyString.fromOrig(resourceNameModel.getObject()))
-						.item(ResourceType.F_DESCRIPTION).replace(resourceDescriptionModel.getObject())
-						.item(ResourceType.F_CONNECTOR_REF).replace(ObjectTypeUtil.createObjectRef(connector).asReferenceValue());
+				PrismObject<ResourceType> oldResourceObject =
+						WebModelServiceUtils.loadObject(ResourceType.class, oid,
+								GetOperationOptions.createRawCollection(),
+								parentPage, parentPage.createSimpleTask("loadResource"), result);
+				if (oldResourceObject == null) {
+					throw new SystemException("Resource being edited (" + oid + ") couldn't be retrieved");
+				}
+				ResourceType oldResource = oldResourceObject.asObjectable();
+				S_ItemEntry i = DeltaBuilder.deltaFor(ResourceType.class, prismContext);
+				if (!StringUtils.equals(PolyString.getOrig(oldResource.getName()), resourceNameModel.getObject())) {
+					i = i.item(ResourceType.F_NAME).replace(PolyString.fromOrig(resourceNameModel.getObject()));
+				}
+				if (!StringUtils.equals(oldResource.getDescription(), resourceDescriptionModel.getObject())) {
+					i = i.item(ResourceType.F_DESCRIPTION).replace(resourceDescriptionModel.getObject());
+				}
+				String oldConnectorOid = oldResource.getConnectorRef() != null ? oldResource.getConnectorRef().getOid() : null;
+				String newConnectorOid = connector.getOid();
+				if (!StringUtils.equals(oldConnectorOid, newConnectorOid)) {
+					i = i.item(ResourceType.F_CONNECTOR_REF).replace(ObjectTypeUtil.createObjectRef(connector).asReferenceValue());
+				}
 				if (!isConfigurationSchemaCompatible(connector)) {
 					i = i.item(ResourceType.F_CONNECTOR_CONFIGURATION).replace();
 				}
-				delta = i.asObjectDelta(resource.getOid());
+				delta = i.asObjectDelta(oid);
 			}
-			LOGGER.info("Applying delta:\n{}", delta.debugDump());
-            WebModelServiceUtils.save(delta, ModelExecuteOptions.createRaw(), result, parentPage);
+			if (!delta.isEmpty()) {
+				LOGGER.info("Applying delta:\n{}", delta.debugDump());
+				WebModelServiceUtils.save(delta, ModelExecuteOptions.createRaw(), result, parentPage);
+			}
 
 			if (isNew) {
 				parentPage.setEditedResourceOid(delta.getOid());

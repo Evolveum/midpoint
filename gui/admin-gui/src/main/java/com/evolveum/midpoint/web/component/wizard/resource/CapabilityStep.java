@@ -398,9 +398,12 @@ public class CapabilityStep extends WizardStep {
                 if (LOGGER.isTraceEnabled()) {
                     LOGGER.trace(delta.debugDump());
                 }
-                @SuppressWarnings("unchecked") Collection<ObjectDelta<? extends ObjectType>> deltas = WebComponentUtil.createDeltaCollection(delta);
-                modelService.executeChanges(deltas, null, getPageBase().createSimpleTask(OPERATION_SAVE_CAPABILITIES), result);
-				parentPage.resetModels();
+				if (!delta.isEmpty()) {
+					@SuppressWarnings("unchecked") Collection<ObjectDelta<? extends ObjectType>> deltas = WebComponentUtil
+							.createDeltaCollection(delta);
+					modelService.executeChanges(deltas, null, getPageBase().createSimpleTask(OPERATION_SAVE_CAPABILITIES), result);
+					parentPage.resetModels();
+				}
             }
         } catch (CommonException|RuntimeException e){
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't save capabilities", e);
