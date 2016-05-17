@@ -286,11 +286,30 @@ public final class WebComponentUtil {
 
 		return (int) l.longValue();
 	}
+	
+	public static List<QName> createObjectTypeList() {
+		List<QName> types = new ArrayList<>(ObjectTypes.values().length);
+		for (ObjectTypes t : ObjectTypes.values()) {
+			types.add(t.getTypeQName());
+		}
+		return types;
+	}
 
 	public static List<QName> createFocusTypeList() {
 		List<QName> focusTypeList = new ArrayList<>();
 
 		focusTypeList.add(UserType.COMPLEX_TYPE);
+		focusTypeList.add(OrgType.COMPLEX_TYPE);
+		focusTypeList.add(RoleType.COMPLEX_TYPE);
+		focusTypeList.add(ServiceType.COMPLEX_TYPE);
+
+		return focusTypeList;
+	}
+	
+	public static List<QName> createAbstractRoleTypeList() {
+		List<QName> focusTypeList = new ArrayList<>();
+
+		focusTypeList.add(AbstractRoleType.COMPLEX_TYPE);
 		focusTypeList.add(OrgType.COMPLEX_TYPE);
 		focusTypeList.add(RoleType.COMPLEX_TYPE);
 		focusTypeList.add(ServiceType.COMPLEX_TYPE);

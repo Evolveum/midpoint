@@ -313,10 +313,11 @@ public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extend
 
 	protected void addMembers(final QName relation, AjaxRequestTarget target) {
 
-		List<QName> types = new ArrayList<>(ObjectTypes.values().length);
-		for (ObjectTypes t : ObjectTypes.values()) {
-			types.add(t.getTypeQName());
-		}
+		List<QName> types = WebComponentUtil.createObjectTypeList();
+//				new ArrayList<>(ObjectTypes.values().length);
+//		for (ObjectTypes t : ObjectTypes.values()) {
+//			types.add(t.getTypeQName());
+//		}
 		FocusBrowserPanel<ObjectType> browser = new FocusBrowserPanel(getPageBase().getMainPopupBodyId(),
 				UserType.class, types, true, getPageBase()) {
 

@@ -666,14 +666,13 @@ public class PrismValuePanel extends Panel {
                       panel = new TextPanel<>(id, new PropertyModel<String>(valueWrapperModel, baseExpression), type);
                   }
               }
-        } else if (item instanceof PrismReference) {
-//        	((PrismReferenceDefinition) item.getDefinition()).
-        	Class typeFromName = null;
+        } else if (item instanceof PrismReference) {        	
         	PrismContext prismContext = item.getPrismContext();
             if (prismContext == null) {
                 prismContext = pageBase.getPrismContext();
             }
             QName targetTypeName = ((PrismReferenceDefinition) item.getDefinition()).getTargetTypeName();
+            Class typeFromName = null;
             if (targetTypeName != null && prismContext != null) {
                 typeFromName = prismContext.getSchemaRegistry().determineCompileTimeClass(targetTypeName);
         	}
