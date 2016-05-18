@@ -1108,11 +1108,11 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         display("User jack after", userJack);
         assertUserAssignedOrgs(userJack, ORG_MINISTRY_OF_OFFENSE_OID);
-        assertAssignedOrg(userJack, ORG_MINISTRY_OF_OFFENSE_OID, null);                         // because of object template
+        // No assignment from object template. The object template mapping is normal. It will NOT be applied
+        // because there is primary delta.
         assertAssignedOrg(userJack, ORG_MINISTRY_OF_OFFENSE_OID, SchemaConstants.ORG_MANAGER);  // because of the modification
-        assertUserHasOrgs(userJack, ORG_MINISTRY_OF_OFFENSE_OID, ORG_MINISTRY_OF_OFFENSE_OID);
+        assertUserHasOrgs(userJack, ORG_MINISTRY_OF_OFFENSE_OID);
         assertHasOrg(userJack, ORG_MINISTRY_OF_OFFENSE_OID, SchemaConstants.ORG_MANAGER);
-        assertHasOrg(userJack, ORG_MINISTRY_OF_OFFENSE_OID, null);
 
         // Postcondition
         assertMonkeyIslandOrgSanity();
