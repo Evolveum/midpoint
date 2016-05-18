@@ -249,6 +249,7 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
 		// User Templates
 		repoAddObjectFromFile(USER_TEMPLATE_FILENAME, ObjectTemplateType.class, initResult);
 		repoAddObjectFromFile(USER_TEMPLATE_COMPLEX_FILENAME, ObjectTemplateType.class, initResult);
+		repoAddObjectFromFile(USER_TEMPLATE_INBOUNDS_FILENAME, ObjectTemplateType.class, initResult);
 		repoAddObjectFromFile(USER_TEMPLATE_COMPLEX_INCLUDE_FILENAME, ObjectTemplateType.class, initResult);
         repoAddObjectFromFile(USER_TEMPLATE_ORG_ASSIGNMENT_FILENAME, ObjectTemplateType.class, initResult);
 
@@ -267,6 +268,8 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
 		
 		// Roles
 		repoAddObjectFromFile(ROLE_PIRATE_FILE, RoleType.class, initResult);
+		repoAddObjectFromFile(ROLE_PIRATE_GREEN_FILE, RoleType.class, initResult);
+		repoAddObjectFromFile(ROLE_BUCCANEER_GREEN_FILE, RoleType.class, initResult);
 		repoAddObjectFromFile(ROLE_NICE_PIRATE_FILENAME, RoleType.class, initResult);
 		repoAddObjectFromFile(ROLE_CAPTAIN_FILENAME, RoleType.class, initResult);
 		repoAddObjectFromFile(ROLE_JUDGE_FILE, RoleType.class, initResult);

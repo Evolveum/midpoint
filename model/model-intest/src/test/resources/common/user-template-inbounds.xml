@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2015 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<objectTemplate oid="10000000-0000-0000-0000-000000000555"
+   xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+   xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+   xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+   xmlns:t='http://prism.evolveum.com/xml/ns/public/types-3'
+   xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+   xmlns:piracy='http://midpoint.evolveum.com/xml/ns/samples/piracy'>
+    <name>User Template - Test Inbounds</name>
+ 
+ 
+	<!-- RB-RBAC functionality. The Pirate role is automatically assigned based on the value of employeeType property -->
+    <mapping>
+    	<authoritative>true</authoritative>
+    	<strength>strong</strength>
+    	<source>
+    		<path>employeeType</path>
+    	</source>
+    	<expression>
+            <value>
+                <targetRef oid="12345678-d34d-b33f-f00d-555555557777" type="RoleType"/>
+            </value>
+    	</expression>
+    	<target>
+    		<path>assignment</path>
+    	</target>
+    	<condition>
+    		<script>
+            	<language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
+            	<code>employeeType == 'PIRATE'</code>
+            </script>
+		</condition>
+    </mapping>
+    
+    <!-- This is quite a stupid way how to add the same role for many values of user property.
+         A single mapping with a condition that has an '||' operator internally will be more efficient.
+         But this is using this way to check for situation in which the same value is added and removed at the same time. -->
+    <mapping>
+    	<authoritative>true</authoritative>
+    	<source>
+    		<path>employeeType</path>
+    	</source>
+    	<expression>
+            <value>
+                <targetRef oid="12345678-d34d-b33f-f00d-555555558888" type="RoleType"/>
+            </value>
+    	</expression>
+    	<target>
+    		<path>assignment</path>
+    	</target>
+    	<condition>
+    		<script>
+            	<language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
+            	<code>employeeType == 'BUCCANEER'</code>
+            </script>
+		</condition>
+    </mapping>
+
+</objectTemplate>
