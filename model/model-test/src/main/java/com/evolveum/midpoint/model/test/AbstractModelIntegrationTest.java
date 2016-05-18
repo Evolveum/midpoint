@@ -164,12 +164,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.ConnectException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Date;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static org.testng.AssertJUnit.assertEquals;
@@ -2108,11 +2103,8 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		}
 		
 		final OperationResult result = new OperationResult(AbstractIntegrationTest.class+".restartTask");
-		ObjectDelta<TaskType> taskDelta = ObjectDelta.createModificationReplaceProperty(TaskType.class, taskOid, TaskType.F_EXECUTION_STATUS, prismContext, TaskExecutionStatusType.RUNNABLE);
-		taskDelta.addModificationReplaceProperty(TaskType.F_RESULT_STATUS);
-		taskDelta.addModificationReplaceProperty(TaskType.F_RESULT);
 		LOGGER.info("Restarting task {}", taskOid);
-		taskManager.modifyTask(taskOid, taskDelta.getModifications(), result);
+		taskManager.scheduleTasksNow(Collections.singleton(taskOid), result);
 	}
 	
 	protected void setSecurityContextUser(String userOid) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException {
