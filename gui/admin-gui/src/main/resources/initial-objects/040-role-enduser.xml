@@ -122,7 +122,7 @@
     	<item>roleMembershipRef</item>
     </authorization>
     <authorization>
-    	<name>self-sahdow-execution-modify</name>
+    	<name>self-shadow-execution-modify</name>
     	<description>
     		Authorization that allows to self-modification of some properties on user's accounts, but only in execution phase. 
     		The limitation real limitation of these operations is done in the request phase.
