@@ -43,6 +43,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashSet;
 
 /**
  * @author lazyman
@@ -64,6 +65,9 @@ public class PageResourceWizard extends PageAdminResources {
 	@NotNull private final NonEmptyLoadableModel<PrismObject<ResourceType>> modelRaw;				// contains resolved connector as well
 	@NotNull private final NonEmptyLoadableModel<PrismObject<ResourceType>> modelNoFetch;			// contains resolved connector as well
     @NotNull private final NonEmptyLoadableModel<PrismObject<ResourceType>> modelFull;
+
+	// additional models that have to be reset after each 'save' operation
+	@NotNull private final Collection<LoadableModel<?>> dependentModels = new HashSet<>();
 
 	// for new resources: should be set after first save; for others: should be set on page creation
     private String editedResourceOid;
@@ -154,6 +158,13 @@ public class PageResourceWizard extends PageAdminResources {
 		modelRaw.reset();
 		modelNoFetch.reset();
 		modelFull.reset();
+		for (LoadableModel<?> model : dependentModels) {
+			model.reset();
+		}
+	}
+
+	public void registerDependentModel(@NotNull LoadableModel<?> model) {
+		dependentModels.add(model);
 	}
 
 	// questionable

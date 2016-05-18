@@ -16,8 +16,6 @@
 
 package com.evolveum.midpoint.web.component.wizard.resource;
 
-
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.model.NonEmptyLoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
@@ -49,7 +47,6 @@ import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
-
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -72,8 +69,10 @@ import org.apache.wicket.util.string.Strings;
 import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
-
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
 
 /**
  *  @author lazyman
@@ -141,19 +140,11 @@ public class SchemaHandlingStep extends WizardStep {
                 return loadSchemaHandlingDto();
             }
         };
+		parentPage.registerDependentModel(schemaHandlingDtoModel);
 
         initLayout();
 		setOutputMarkupId(true);
     }
-
-	@Override
-	protected void onConfigure() {
-		if (schemaHandlingDtoModel.isLoaded()) {
-			int index = schemaHandlingDtoModel.getObject().getSelectedIndex();
-			schemaHandlingDtoModel.reset();
-			schemaHandlingDtoModel.getObject().setSelectedIndex(index);
-		}
-	}
 
     private SchemaHandlingDto loadSchemaHandlingDto() {
 
@@ -286,10 +277,9 @@ public class SchemaHandlingStep extends WizardStep {
 	}
 
 	private void initObjectTypeEditor(WebMarkupContainer editor){
-        Label editorLabel = new Label(ID_EDITOR_NAME, new LoadableModel<String>() {
-
+        Label editorLabel = new Label(ID_EDITOR_NAME, new AbstractReadOnlyModel<Object>() {
             @Override
-            protected String load() {
+            public String getObject() {
 				ResourceObjectTypeDefinitionTypeDto selected = schemaHandlingDtoModel.getObject().getSelected();
 				return selected != null ? selected.getObjectType().getDisplayName() : "";
             }
@@ -716,6 +706,7 @@ public class SchemaHandlingStep extends WizardStep {
     @Override
     public void applyState() {
         savePerformed();
+		insertEmptyThirdRow();
     }
 
     private void savePerformed() {

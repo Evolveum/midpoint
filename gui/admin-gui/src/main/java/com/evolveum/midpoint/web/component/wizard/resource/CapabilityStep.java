@@ -114,15 +114,10 @@ public class CapabilityStep extends WizardStep {
                 return loadDtoModel();
             }
         };
+		parentPage.registerDependentModel(dtoModel);
 
         initLayout();
     }
-
-	@Override
-	protected void onConfigure() {
-		// we cannot reset dtoModel here, as it contains data that cannot be re-fetched
-		// so if new native capabilities are discovered while wizard is open, they won't be shown here
-	}
 
 	@NotNull
 	private CapabilityStepDto loadDtoModel() {
@@ -302,41 +297,43 @@ public class CapabilityStep extends WizardStep {
 
                 @Override
                 public IModel<List<QName>> createAttributeChoiceModel(final IChoiceRenderer<QName> renderer) {
-                    return new LoadableModel<List<QName>>(false) {
+					LoadableModel<List<QName>> attributeChoiceModel = new LoadableModel<List<QName>>(false) {
 
-                        @Override
-                        protected List<QName> load() {
-                            List<QName> choices = new ArrayList<>();
+						@Override
+						protected List<QName> load() {
+							List<QName> choices = new ArrayList<>();
 
-                            PrismObject<ResourceType> resourcePrism = resourceModel.getObject();
+							PrismObject<ResourceType> resourcePrism = resourceModel.getObject();
 
-                            try {
-                                ResourceSchema schema = RefinedResourceSchema.getResourceSchema(resourcePrism, getPageBase().getPrismContext());
+							try {
+								ResourceSchema schema = RefinedResourceSchema.getResourceSchema(resourcePrism, getPageBase().getPrismContext());
 								if (schema != null) {
 									ObjectClassComplexTypeDefinition def = schema.findDefaultObjectClassDefinition(ShadowKindType.ACCOUNT);
 									for (ResourceAttributeDefinition attribute : def.getAttributeDefinitions()) {
 										choices.add(attribute.getName());
 									}
 								}
-                            } catch (CommonException|RuntimeException e) {
-                                LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load resource schema attributes.", e);
-                                getPageBase().error("Couldn't load resource schema attributes" + e);
-                            }
+							} catch (CommonException | RuntimeException e) {
+								LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load resource schema attributes.", e);
+								getPageBase().error("Couldn't load resource schema attributes" + e);
+							}
 
-                            Collections.sort(choices, new Comparator<QName>() {
+							Collections.sort(choices, new Comparator<QName>() {
 
-                                @Override
-                                public int compare(QName o1, QName o2) {
-                                    String s1 = (String) renderer.getDisplayValue(o1);
-                                    String s2 = (String) renderer.getDisplayValue(o2);
+								@Override
+								public int compare(QName o1, QName o2) {
+									String s1 = (String) renderer.getDisplayValue(o1);
+									String s2 = (String) renderer.getDisplayValue(o2);
 
-                                    return String.CASE_INSENSITIVE_ORDER.compare(s1, s2);
-                                }
-                            });
+									return String.CASE_INSENSITIVE_ORDER.compare(s1, s2);
+								}
+							});
 
-                            return choices;
-                        }
-                    };
+							return choices;
+						}
+					};
+					parentPage.registerDependentModel(attributeChoiceModel);
+					return attributeChoiceModel;
                 }
             };
         } else if (capType instanceof ScriptCapabilityType) {

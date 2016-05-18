@@ -16,7 +16,6 @@
 
 package com.evolveum.midpoint.web.component.wizard.resource;
 
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.model.NonEmptyLoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
@@ -135,19 +134,11 @@ public class SynchronizationStep extends WizardStep {
                 return loadResourceSynchronization();
             }
         };
+		parentPage.registerDependentModel(syncDtoModel);
 
         initLayout();
 		setOutputMarkupId(true);
     }
-
-	@Override
-	protected void onConfigure() {
-		if (syncDtoModel.isLoaded()) {
-			int index = syncDtoModel.getObject().getSelectedIndex();
-			syncDtoModel.reset();
-			syncDtoModel.getObject().setSelectedIndex(index);
-		}
-	}
 
 	@NotNull
     private ResourceSynchronizationDto loadResourceSynchronization() {
@@ -320,10 +311,9 @@ public class SynchronizationStep extends WizardStep {
 
             @Override
             protected IValidator<String> createAutoCompleteValidator(){
-                return createObjectClassValidator(new LoadableModel<List<QName>>(false) {
-
+                return createObjectClassValidator(new AbstractReadOnlyModel<List<QName>>() {
                     @Override
-                    protected List<QName> load() {
+					public List<QName> getObject() {
                         return syncDtoModel.getObject().getObjectClassList();
                     }
                 });

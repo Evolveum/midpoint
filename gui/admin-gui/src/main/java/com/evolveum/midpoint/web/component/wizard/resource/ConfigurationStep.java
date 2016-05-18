@@ -97,6 +97,7 @@ public class ConfigurationStep extends WizardStep {
 				return createConfigContainerWrappers();
             }
 		};
+		parentPage.registerDependentModel(configurationPropertiesModel);
 
         initLayout();
     }
@@ -166,7 +167,6 @@ public class ConfigurationStep extends WizardStep {
 
 	@Override
 	protected void onConfigure() {
-		configurationPropertiesModel.reset();
 		updateConfigurationTabs();
 	}
 
