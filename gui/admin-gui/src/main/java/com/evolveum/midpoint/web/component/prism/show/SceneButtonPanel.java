@@ -25,13 +25,16 @@ import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 
+import com.evolveum.midpoint.gui.api.GuiStyleConstants;
+
 /**
  * @author mserbak
  * @author lazyman
  */
 public class SceneButtonPanel extends Panel {
+	private static final long serialVersionUID = 1L;
 
-    public static final String ID_MINIMIZE_BUTTON = "minimizeButton";
+	public static final String ID_MINIMIZE_BUTTON = "minimizeButton";
     public static final String ID_ICON = "icon";
 
     public SceneButtonPanel(String id, IModel<SceneDto> model) {
@@ -41,7 +44,8 @@ public class SceneButtonPanel extends Panel {
     }
 
     private void initLayout(final IModel<SceneDto> model) {
-        AjaxLink minimize = new AjaxLink(ID_MINIMIZE_BUTTON) {
+        AjaxLink<String> minimize = new AjaxLink<String>(ID_MINIMIZE_BUTTON) {
+        	private static final long serialVersionUID = 1L;
 
             @Override
             public void onClick(AjaxRequestTarget target) {
@@ -52,20 +56,22 @@ public class SceneButtonPanel extends Panel {
 
         Label icon = new Label(ID_ICON);
         icon.add(AttributeModifier.append("class", new AbstractReadOnlyModel<String>() {
+        	private static final long serialVersionUID = 1L;
 
             @Override
             public String getObject() {
                 SceneDto dto = model.getObject();
                 if (dto.isMinimized()) {
-                    return "fa fa-expand";
+                    return GuiStyleConstants.CLASS_ICON_EXPAND;
                 }
 
-                return "fa fa-compress";
+                return GuiStyleConstants.CLASS_ICON_COLLAPSE;
             }
         }));
         minimize.add(icon);
 
-        icon.add(new AttributeAppender("title", new AbstractReadOnlyModel() {
+        icon.add(new AttributeAppender("title", new AbstractReadOnlyModel<String>() {
+        	private static final long serialVersionUID = 1L;
 
             @Override
             public String getObject() {
