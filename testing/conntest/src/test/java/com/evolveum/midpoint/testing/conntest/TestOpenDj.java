@@ -86,6 +86,11 @@ public class TestOpenDj extends AbstractLdapConnTest {
 	}
 	
 	@Override
+	protected String getPeopleLdapSuffix() {
+		return "ou=people,"+getLdapSuffix();
+	}
+	
+	@Override
 	protected String getAccount0Cn() {
 		return "Warlaz Kunjegjul (00000000)";
 	}

@@ -76,7 +76,7 @@
 					<expression>
 						<script>
 							<code>
-								'uid=' + name + iterationToken + ',ou=People,dc=example,dc=com'
+								'uid=' + name + iterationToken + ',ou=people,dc=example,dc=com'
 							</code>
 						</script>
 					</expression>
