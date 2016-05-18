@@ -308,8 +308,26 @@ public class SchemaHandlingStep extends WizardStep {
 				getExpression(ResourceObjectTypeDefinitionType.F_DESCRIPTION)));
         editor.add(editorDescription);
 
-        CheckBox editorDefault = new CheckBox(ID_EDITOR_DEFAULT, new PropertyModel<Boolean>(schemaHandlingDtoModel,
+        final CheckBox editorDefault = new CheckBox(ID_EDITOR_DEFAULT, new PropertyModel<Boolean>(schemaHandlingDtoModel,
                 getExpression(ResourceObjectTypeDefinitionType.F_DEFAULT)));
+        editorDefault.add(new EmptyOnChangeAjaxFormUpdatingBehavior() {
+            @Override
+            protected void onUpdate(AjaxRequestTarget target) {
+                Boolean newValue = editorDefault.getModelObject();
+                if (Boolean.TRUE.equals(newValue)) {
+                    SchemaHandlingDto dto = schemaHandlingDtoModel.getObject();
+                    ResourceObjectTypeDefinitionTypeDto selected = dto.getSelected();
+                    ShadowKindType selectedKind = selected.getObjectType().getKind();
+                    for (ResourceObjectTypeDefinitionTypeDto currentObjectTypeDto : dto.getObjectTypeList()) {
+                        ShadowKindType currentKind = currentObjectTypeDto.getObjectType().getKind();
+                        if (currentObjectTypeDto != selected && currentKind == selectedKind
+                                && Boolean.TRUE.equals(currentObjectTypeDto.getObjectType().isDefault())) {
+                            currentObjectTypeDto.getObjectType().setDefault(false);
+                        }
+                    }
+                }
+            }
+        });
         editor.add(editorDefault);
 
         AjaxSubmitLink editorDependency = new AjaxSubmitLink(ID_EDITOR_BUTTON_DEPENDENCY) {
@@ -706,7 +724,8 @@ public class SchemaHandlingStep extends WizardStep {
     @Override
     public void applyState() {
         savePerformed();
-		insertEmptyThirdRow();
+		insertEmptyThirdRow();          // otherwise the original 3rd column would be displayed after returning to the page
+                                        // (but without 2nd column)
     }
 
     private void savePerformed() {
@@ -725,7 +744,7 @@ public class SchemaHandlingStep extends WizardStep {
 				throw new IllegalStateException("No resource to apply schema handling to");
 			}
 
-			delta = oldResource.diff(newResource);
+			delta = parentPage.computeDiff(oldResource, newResource);
 			if (!delta.isEmpty()) {
 				//                if(LOGGER.isTraceEnabled()){
 				LOGGER.info("Applying delta:\n{}", delta.debugDump());

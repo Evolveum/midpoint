@@ -390,8 +390,8 @@ public class CapabilityStep extends WizardStep {
             }
 
             oldResource = WebModelServiceUtils.loadObject(ResourceType.class, resource.getOid(), getPageBase(), task, result);
-            if (oldResource != null){
-                ObjectDelta<ResourceType> delta = oldResource.diff(resourceObject);
+            if (oldResource != null) {
+                ObjectDelta<ResourceType> delta = parentPage.computeDiff(oldResource, resourceObject);
                 if (LOGGER.isTraceEnabled()) {
                     LOGGER.trace(delta.debugDump());
                 }

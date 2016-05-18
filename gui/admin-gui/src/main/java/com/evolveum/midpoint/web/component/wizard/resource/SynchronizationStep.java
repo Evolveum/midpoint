@@ -631,7 +631,7 @@ public class SynchronizationStep extends WizardStep {
         try {
             oldResource = WebModelServiceUtils.loadObject(ResourceType.class, newResource.getOid(), getPageBase(), task, result);
             if (oldResource != null) {
-				ObjectDelta delta = oldResource.diff(newResource);
+                ObjectDelta<ResourceType> delta = parentPage.computeDiff(oldResource, newResource);
 				if (!delta.isEmpty()) {
 					//                if(LOGGER.isTraceEnabled()){
 					LOGGER.info(delta.debugDump());
