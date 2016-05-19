@@ -165,6 +165,10 @@ public class ResourceContentTabPanel extends Panel {
 				try {
 					RefinedResourceSchema refinedSchema = RefinedResourceSchema
 							.getRefinedSchema(model.getObject(), parentPage.getPrismContext());
+					if (refinedSchema == null) {
+//						warn("No schema found in resource. Please check your configuration and try to test connection for the resource.");
+						return "NO SCHEMA DEFINED";
+					}
 					ocDef = refinedSchema.getRefinedDefinition(kind, intentModel.getObject());
 					if (ocDef != null) {
 						return ocDef.getObjectClassDefinition().getTypeName().getLocalPart();

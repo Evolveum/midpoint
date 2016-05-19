@@ -19,13 +19,14 @@ package com.evolveum.midpoint.web.component.wizard.resource;
 import com.evolveum.midpoint.gui.api.model.NonEmptyLoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.model.api.util.ResourceUtils;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -36,9 +37,8 @@ import com.evolveum.midpoint.web.component.TabbedPanel;
 import com.evolveum.midpoint.web.component.wizard.WizardStep;
 import com.evolveum.midpoint.web.component.wizard.resource.component.SchemaListPanel;
 import com.evolveum.midpoint.web.component.wizard.resource.component.XmlEditorPanel;
+import com.evolveum.midpoint.web.page.admin.resources.PageResourceWizard;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.XmlSchemaType;
-
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.tabs.AbstractTab;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
@@ -62,11 +62,14 @@ public class SchemaStep extends WizardStep {
     private static final String ID_TAB_PANEL = "tabPanel";
     private static final String ID_RELOAD = "reload";
     private static final String ID_ACE_EDITOR = "aceEditor";
-    @NotNull private final NonEmptyLoadableModel<PrismObject<ResourceType>> model;
 
-    public SchemaStep(@NotNull NonEmptyLoadableModel<PrismObject<ResourceType>> model, PageBase pageBase) {
-        super(pageBase);
+    @NotNull private final NonEmptyLoadableModel<PrismObject<ResourceType>> model;
+	@NotNull private final PageResourceWizard parentPage;
+
+    public SchemaStep(@NotNull NonEmptyLoadableModel<PrismObject<ResourceType>> model, @NotNull PageResourceWizard parentPage) {
+        super(parentPage);
         this.model = model;
+		this.parentPage = parentPage;
         setOutputMarkupId(true);
 
         initLayout();
@@ -118,25 +121,25 @@ public class SchemaStep extends WizardStep {
     }
 
     private void reloadPerformed(AjaxRequestTarget target) {
-
-		PrismObject<ResourceType> resource = model.getObject();
-        resource.asObjectable().setSchema(new XmlSchemaType());
         Task task = getPageBase().createSimpleTask(OPERATION_RELOAD_RESOURCE_SCHEMA);
         OperationResult result = task.getResult();
 
-		resource = WebModelServiceUtils.loadObject(ResourceType.class, resource.getOid(), getPageBase(), task, result);
-		if (resource != null) {
-			model.getObject().asObjectable().setSchema(resource.asObjectable().getSchema());
+		try {
+			ResourceUtils.deleteSchema(model.getObject(), parentPage.getModelService(), parentPage.getPrismContext(), task, result);
+			parentPage.resetModels();
+			result.computeStatusIfUnknown();
+		} catch (CommonException|RuntimeException e) {
+			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't reload the schema", e);
+			result.recordFatalError("Couldn't reload the schema: " + e.getMessage(), e);
 		}
 
-        result.computeStatusIfUnknown();
-        if(result.isSuccess()){
-            LOGGER.info(getString("SchemaStep.message.reload.ok", WebComponentUtil.getName(resource)));
-            result.recordSuccess();
-        } else {
-            LOGGER.error(getString("SchemaStep.message.reload.fail", WebComponentUtil.getName(resource)));
-            result.recordFatalError(getString("SchemaStep.message.reload.fail", WebComponentUtil.getName(resource)));
-        }
+//		if (result.isSuccess()) {
+//			LOGGER.info(getString("SchemaStep.message.reload.ok", WebComponentUtil.getName(resource)));
+//            result.recordSuccess();
+//        } else {
+//            LOGGER.error(getString("SchemaStep.message.reload.fail", WebComponentUtil.getName(resource)));
+//            result.recordFatalError(getString("SchemaStep.message.reload.fail", WebComponentUtil.getName(resource)));
+//        }
 
         getPageBase().showResult(result);
         target.add(getPageBase().getFeedbackPanel(), this);
@@ -163,7 +166,7 @@ public class SchemaStep extends WizardStep {
 
             @Override
             public WebMarkupContainer getPanel(String panelId) {
-                return new SchemaListPanel(panelId, model);
+                return new SchemaListPanel(panelId, model, parentPage);
             }
         };
     }

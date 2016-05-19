@@ -21,6 +21,9 @@ import com.evolveum.midpoint.gui.api.model.NonEmptyLoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
@@ -43,6 +46,8 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashSet;
+import java.util.Iterator;
 
 /**
  * @author lazyman
@@ -64,6 +69,9 @@ public class PageResourceWizard extends PageAdminResources {
 	@NotNull private final NonEmptyLoadableModel<PrismObject<ResourceType>> modelRaw;				// contains resolved connector as well
 	@NotNull private final NonEmptyLoadableModel<PrismObject<ResourceType>> modelNoFetch;			// contains resolved connector as well
     @NotNull private final NonEmptyLoadableModel<PrismObject<ResourceType>> modelFull;
+
+	// additional models that have to be reset after each 'save' operation
+	@NotNull private final Collection<LoadableModel<?>> dependentModels = new HashSet<>();
 
 	// for new resources: should be set after first save; for others: should be set on page creation
     private String editedResourceOid;
@@ -87,6 +95,7 @@ public class PageResourceWizard extends PageAdminResources {
 	@NotNull
 	private NonEmptyLoadableModel<PrismObject<ResourceType>> createResourceModel(final Collection<SelectorOptions<GetOperationOptions>> options) {
 		return new NonEmptyLoadableModel<PrismObject<ResourceType>>(false) {
+			@NotNull
 			@Override
 			protected PrismObject<ResourceType> load() {
 				try {
@@ -154,10 +163,34 @@ public class PageResourceWizard extends PageAdminResources {
 		modelRaw.reset();
 		modelNoFetch.reset();
 		modelFull.reset();
+		for (LoadableModel<?> model : dependentModels) {
+			model.reset();
+		}
+	}
+
+	public void registerDependentModel(@NotNull LoadableModel<?> model) {
+		dependentModels.add(model);
 	}
 
 	// questionable
     public boolean isNewResource() {
         return editedResourceOid != null;
     }
+
+	public ObjectDelta<ResourceType> computeDiff(PrismObject<ResourceType> oldResource, PrismObject<ResourceType> newResource) {
+		ObjectDelta<ResourceType> delta = oldResource.diff(newResource);
+		if (!delta.isModify()) {
+			return delta;
+		}
+		final ItemPath RESULT_PATH = new ItemPath(ResourceType.F_FETCH_RESULT);
+		@SuppressWarnings("unchecked")
+		Iterator<? extends ItemDelta<?,?>> iterator = delta.getModifications().iterator();
+		while (iterator.hasNext()) {
+			ItemDelta<?,?> itemDelta = iterator.next();
+			if (RESULT_PATH.equivalent(itemDelta.getPath())) {
+				iterator.remove();
+			}
+		}
+		return delta;
+	}
 }

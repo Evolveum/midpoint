@@ -45,6 +45,8 @@ import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 import javax.xml.ws.Holder;
 
+import com.evolveum.midpoint.task.api.TaskManagerException;
+import com.evolveum.midpoint.util.exception.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.opends.server.core.ModifyOperation;
@@ -126,11 +128,6 @@ import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.JAXBUtil;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectDeltaListType;
@@ -2819,15 +2816,19 @@ public class TestSanityLegacy extends AbstractModelIntegrationTest {
 
         waitFor("Waiting for import to complete", new Checker() {
             @Override
-            public boolean check() throws Exception {
+            public boolean check() throws CommonException {
                 Holder<OperationResultType> resultHolder = new Holder<OperationResultType>();
                 Holder<ObjectType> objectHolder = new Holder<ObjectType>();
                 OperationResult opResult = new OperationResult("import check");
                 assertNoRepoCache();
                 SelectorQualifiedGetOptionsType options = new SelectorQualifiedGetOptionsType();
-                modelWeb.getObject(ObjectTypes.TASK.getTypeQName(), taskOid,
-                        options, objectHolder, resultHolder);
-                assertNoRepoCache();
+				try {
+					modelWeb.getObject(ObjectTypes.TASK.getTypeQName(), taskOid,
+							options, objectHolder, resultHolder);
+				} catch (FaultMessage faultMessage) {
+					throw new SystemException(faultMessage);
+				}
+				assertNoRepoCache();
                 //				display("getObject result (wait loop)",resultHolder.value);
                 TestUtil.assertSuccess("getObject has failed", resultHolder.value);
                 Task task = taskManager.createTaskInstance(objectHolder.value.asPrismObject(), opResult);
@@ -3677,9 +3678,13 @@ public class TestSanityLegacy extends AbstractModelIntegrationTest {
         taskManager.shutdown();
         waitFor("waiting for task manager shutdown", new Checker() {
             @Override
-            public boolean check() throws Exception {
-                return taskManager.getLocallyRunningTasks(new OperationResult("dummy")).isEmpty();
-            }
+            public boolean check() throws CommonException {
+				try {
+					return taskManager.getLocallyRunningTasks(new OperationResult("dummy")).isEmpty();
+				} catch (TaskManagerException e) {
+					throw new SystemException(e);
+				}
+			}
 
             @Override
             public void timeout() {
@@ -3782,7 +3787,7 @@ public class TestSanityLegacy extends AbstractModelIntegrationTest {
 
         waitFor("Waiting for sync cycle to detect change", new Checker() {
             @Override
-            public boolean check() throws Exception {
+            public boolean check() throws CommonException {
                 syncCycle.refresh(result);
                 display("SyncCycle while waiting for sync cycle to detect change", syncCycle);
                 if (syncCycle.getExecutionStatus() != TaskExecutionStatus.RUNNABLE) {

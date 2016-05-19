@@ -87,7 +87,8 @@ class AttributeEditorUtils {
 		matchingRule.add(new VisibleEnableBehaviour() {
 			@Override
 			public boolean isVisible() {
-				return WebComponentUtil.getMatchingRuleList().contains(matchingRuleModel.getObject());
+				QName ruleName = matchingRuleModel.getObject();
+				return ruleName == null || WebComponentUtil.getMatchingRuleList().contains(ruleName);
 			}
 		});
 		editor.add(matchingRule);
@@ -101,7 +102,8 @@ class AttributeEditorUtils {
 		unknownMatchingRule.add(new VisibleEnableBehaviour() {
 			@Override
 			public boolean isVisible() {
-				return !WebComponentUtil.getMatchingRuleList().contains(matchingRuleModel.getObject());
+				QName ruleName = matchingRuleModel.getObject();
+				return ruleName != null && !WebComponentUtil.getMatchingRuleList().contains(ruleName);
 			}
 		});
 		editor.add(unknownMatchingRule);

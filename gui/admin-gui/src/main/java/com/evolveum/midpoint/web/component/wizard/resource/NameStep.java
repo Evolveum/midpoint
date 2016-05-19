@@ -93,13 +93,12 @@ public class NameStep extends WizardStep {
 
 	final private LoadableModel<String> resourceNameModel;
 	final private LoadableModel<String> resourceDescriptionModel;
-	final private LoadableModel<List<PrismObject<ConnectorHostType>>> allHostsModel;
 	final private LoadableModel<PrismObject<ConnectorHostType>> selectedHostModel;
 	final private LoadableModel<List<PrismObject<ConnectorType>>> allConnectorsModel;
 	final private LoadableModel<List<PrismObject<ConnectorType>>> relevantConnectorsModel;		    // filtered, based on selected host
 	final private LoadableModel<PrismObject<ConnectorType>> selectedConnectorModel;
 	final private IModel<String> schemaChangeWarningModel;
-	final private List<LoadableModel<?>> resetOnConfigure = new ArrayList<>();
+	final private LoadableModel<List<PrismObject<ConnectorHostType>>> allHostsModel;				// this one is not dependent on resource content
 
 	final private PageResourceWizard parentPage;
 
@@ -114,7 +113,7 @@ public class NameStep extends WizardStep {
 				return PolyString.getOrig(resourceModelRaw.getObject().getName());
 			}
 		};
-		resetOnConfigure.add(resourceNameModel);
+		parentPage.registerDependentModel(resourceNameModel);
 
 		resourceDescriptionModel = new LoadableModel<String>() {
 			@Override
@@ -122,7 +121,7 @@ public class NameStep extends WizardStep {
 				return resourceModelRaw.getObject().asObjectable().getDescription();
 			}
 		};
-		resetOnConfigure.add(resourceDescriptionModel);
+		parentPage.registerDependentModel(resourceDescriptionModel);
 
 		allHostsModel = new LoadableModel<List<PrismObject<ConnectorHostType>>>(false) {
 			@Override
@@ -130,7 +129,6 @@ public class NameStep extends WizardStep {
 				return WebModelServiceUtils.searchObjects(ConnectorHostType.class, null, null, NameStep.this.parentPage);
 			}
 		};
-		resetOnConfigure.add(allHostsModel);
 
 		selectedHostModel = new LoadableModel<PrismObject<ConnectorHostType>>(false) {
 			@Override
@@ -138,7 +136,7 @@ public class NameStep extends WizardStep {
 				return getExistingConnectorHost();
 			}
 		};
-		resetOnConfigure.add(selectedHostModel);
+		parentPage.registerDependentModel(selectedHostModel);
 
 		allConnectorsModel = new LoadableModel<List<PrismObject<ConnectorType>>>(false) {
 			@Override
@@ -146,7 +144,7 @@ public class NameStep extends WizardStep {
 				return WebModelServiceUtils.searchObjects(ConnectorType.class, null, null, NameStep.this.parentPage);
 			}
 		};
-		resetOnConfigure.add(allConnectorsModel);
+		parentPage.registerDependentModel(allConnectorsModel);
 
 		relevantConnectorsModel = new LoadableModel<List<PrismObject<ConnectorType>>>(false) {
 			@Override
@@ -154,7 +152,7 @@ public class NameStep extends WizardStep {
 				return loadConnectors(selectedHostModel.getObject());
 			}
 		};
-		resetOnConfigure.add(relevantConnectorsModel);
+		parentPage.registerDependentModel(relevantConnectorsModel);
 
 		selectedConnectorModel = new LoadableModel<PrismObject<ConnectorType>>(false) {
 			@Override
@@ -162,7 +160,7 @@ public class NameStep extends WizardStep {
 				return getExistingConnector();
 			}
 		};
-		resetOnConfigure.add(selectedConnectorModel);
+		parentPage.registerDependentModel(selectedConnectorModel);
 
 		schemaChangeWarningModel = new AbstractReadOnlyModel<String>() {
 			@Override
@@ -173,13 +171,6 @@ public class NameStep extends WizardStep {
 		};
         initLayout();
     }
-
-	@Override
-	protected void onConfigure() {
-		for (LoadableModel<?> model : resetOnConfigure) {
-			model.reset();
-		}
-	}
 
 	private void initLayout() {
         add(new TextFormGroup(ID_NAME, resourceNameModel, createStringResource("NameStep.name"), "col-md-3", "col-md-6", true));

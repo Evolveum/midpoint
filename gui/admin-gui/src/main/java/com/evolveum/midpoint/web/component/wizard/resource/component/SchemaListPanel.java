@@ -37,6 +37,7 @@ import com.evolveum.midpoint.web.component.wizard.resource.dto.AttributeDto;
 import com.evolveum.midpoint.web.component.wizard.resource.dto.ObjectClassDataProvider;
 import com.evolveum.midpoint.web.component.wizard.resource.dto.ObjectClassDetailsDto;
 import com.evolveum.midpoint.web.component.wizard.resource.dto.ObjectClassDto;
+import com.evolveum.midpoint.web.page.admin.resources.PageResourceWizard;
 import com.evolveum.midpoint.web.page.admin.resources.PageResources;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
@@ -95,16 +96,16 @@ public class SchemaListPanel extends BasePanel<PrismObject<ResourceType>> {
     private static final String ID_T_NATIVE_OBJECT_CLASS = "nativeObjectClassTooltip";
     private static final String ID_T_DEFAULT = "isDefaultTooltip";
 
-    private IModel<List<ObjectClassDto>> allClasses;
+    private LoadableModel<List<ObjectClassDto>> allClasses;
     private LoadableModel<ObjectClassDetailsDto> detailsModel;
     private LoadableModel<List<AttributeDto>> attributeModel;
 
-    public SchemaListPanel(String id, IModel<PrismObject<ResourceType>> model) {
+    public SchemaListPanel(String id, IModel<PrismObject<ResourceType>> model, PageResourceWizard parentPage) {
         super(id, model);
-		initLayout();
+		initLayout(parentPage);
     }
 
-    protected void initModels() {
+    private void initModels(PageResourceWizard parentPage) {
         allClasses = new LoadableModel<List<ObjectClassDto>>(false) {
 
             @Override
@@ -112,6 +113,7 @@ public class SchemaListPanel extends BasePanel<PrismObject<ResourceType>> {
                 return loadAllClasses();
             }
         };
+		parentPage.registerDependentModel(allClasses);
 
         attributeModel = new LoadableModel<List<AttributeDto>>(false) {
 
@@ -120,6 +122,7 @@ public class SchemaListPanel extends BasePanel<PrismObject<ResourceType>> {
                 return loadAttributes();
             }
         };
+		parentPage.registerDependentModel(attributeModel);
 
         detailsModel = new LoadableModel<ObjectClassDetailsDto>() {
 
@@ -128,10 +131,11 @@ public class SchemaListPanel extends BasePanel<PrismObject<ResourceType>> {
                 return loadDetails();
             }
         };
+		parentPage.registerDependentModel(detailsModel);
     }
 
-    protected void initLayout() {
-        initModels();
+    protected void initLayout(PageResourceWizard parentPage) {
+        initModels(parentPage);
 
         final ObjectClassDataProvider dataProvider = new ObjectClassDataProvider(allClasses);
 
@@ -203,8 +207,7 @@ public class SchemaListPanel extends BasePanel<PrismObject<ResourceType>> {
 		objectClassInfoColumn.add(new VisibleEnableBehaviour() {
 			@Override
 			public boolean isVisible() {
-				ObjectClassDto selected = getSelectedObjectClass();
-				return selected != null && dataProvider.isDisplayed(selected.getName());
+				return getSelectedObjectClass() != null;
 			}
 		});
 		objectClassInfoContainer.add(objectClassInfoColumn);

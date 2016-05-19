@@ -15,6 +15,8 @@
  */
 package com.evolveum.midpoint.test;
 
+import com.evolveum.midpoint.util.exception.CommonException;
+
 /**
  * @author Radovan Semancik
  *
@@ -25,7 +27,7 @@ public interface Checker {
 	 * true = done
 	 * false = continue waiting
 	 */
-	public boolean check() throws Exception;
+	public boolean check() throws CommonException;
 	
 	public void timeout();
 

@@ -33,6 +33,7 @@ import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.test.Checker;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
+import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -444,7 +445,7 @@ public class TestGeneralChangeProcessor extends AbstractInternalModelIntegration
         final OperationResult waitResult = new OperationResult(AbstractIntegrationTest.class+".waitForTaskClose");
         Checker checker = new Checker() {
             @Override
-            public boolean check() throws Exception {
+            public boolean check() throws CommonException {
                 task.refresh(waitResult);
                 OperationResult result = task.getResult();
                 if (verbose) display("Check result", result);

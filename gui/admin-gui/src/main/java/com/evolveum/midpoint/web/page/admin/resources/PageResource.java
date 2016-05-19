@@ -15,44 +15,21 @@
  */
 package com.evolveum.midpoint.web.page.admin.resources;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-
-import org.apache.commons.lang.StringUtils;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
-import org.apache.wicket.extensions.markup.html.tabs.ITab;
-import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.model.Model;
-import org.apache.wicket.model.util.ListModel;
-import org.apache.wicket.request.mapper.parameter.PageParameters;
-
 import com.evolveum.midpoint.gui.api.component.result.OpResult;
 import com.evolveum.midpoint.gui.api.component.tabs.PanelTab;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
-import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.model.api.util.ResourceUtils;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
@@ -64,8 +41,17 @@ import com.evolveum.midpoint.web.page.admin.resources.component.TestConnectionRe
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.XmlSchemaType;
-import com.evolveum.prism.xml.ns._public.types_3.SchemaDefinitionType;
+import org.apache.commons.lang.StringUtils;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
+import org.apache.wicket.extensions.markup.html.tabs.ITab;
+import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.model.util.ListModel;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 /**
  * @author katkav
@@ -290,41 +276,13 @@ public class PageResource extends PageAdminResources {
 		OperationResult parentResult = new OperationResult(OPERATION_REFRESH_SCHEMA);
 
 		try {
-
-			PrismContainer<XmlSchemaType> resourceSchemaContainer = resourceModel.getObject()
-					.findContainer(ResourceType.F_SCHEMA);
-
-			if (resourceSchemaContainer != null && resourceSchemaContainer.getValue() != null) {
-				PrismProperty<SchemaDefinitionType> resourceSchemaDefinitionProp = resourceSchemaContainer
-						.findProperty(XmlSchemaType.F_DEFINITION);
-
-				if (resourceSchemaDefinitionProp != null && !resourceSchemaDefinitionProp.isEmpty()) {
-
-					PrismPropertyValue<SchemaDefinitionType> resourceSchema = resourceSchemaDefinitionProp
-							.getValue().clone();
-					ObjectDelta<ResourceType> deleteSchemaDefinitionDelta = ObjectDelta
-							.createModificationDeleteProperty(ResourceType.class,
-									resourceModel.getObject().getOid(),
-									new ItemPath(ResourceType.F_SCHEMA, XmlSchemaType.F_DEFINITION),
-									getPrismContext(), resourceSchema.getValue());
-					// delete schema
-					getModelService().executeChanges(
-							(Collection) MiscUtil.createCollection(deleteSchemaDefinitionDelta), null, task,
-							parentResult);
-
-				}
-
-			}
-
-			// try to load fresh scehma
-			getModelService().testResource(resourceModel.getObject().getOid(), task);
-
+			ResourceUtils.deleteSchema(resourceModel.getObject(), getModelService(), getPrismContext(), task, parentResult);
+			getModelService().testResource(resourceModel.getObject().getOid(), task);					// try to load fresh scehma
 		} catch (ObjectAlreadyExistsException | ObjectNotFoundException | SchemaException
 				| ExpressionEvaluationException | CommunicationException | ConfigurationException
 				| PolicyViolationException | SecurityViolationException e) {
-			// TODO Auto-generated catch block
-			LOGGER.error("Error deleting resource schema: " + e.getMessage(), e);
-			parentResult.recordFatalError("Error deleting resource schema", e);
+			LoggingUtils.logUnexpectedException(LOGGER, "Error refreshing resource schema", e);
+			parentResult.recordFatalError("Error refreshing resource schema", e);
 		}
 
 		parentResult.computeStatus();

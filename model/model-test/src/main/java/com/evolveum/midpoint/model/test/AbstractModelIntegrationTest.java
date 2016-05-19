@@ -87,6 +87,7 @@ import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.SecurityEnforcer;
 import com.evolveum.midpoint.security.api.UserProfileService;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.TaskExecutionStatus;
 import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.test.Checker;
 import com.evolveum.midpoint.test.DummyAuditService;
@@ -99,14 +100,7 @@ import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
@@ -164,12 +158,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.ConnectException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Date;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static org.testng.AssertJUnit.assertEquals;
@@ -255,7 +244,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	
 	protected DummyAuditService dummyAuditService;
 	
-	protected boolean verbose = false;
+	protected boolean verbose = true;
 	
 	private static final Trace LOGGER = TraceManager.getTrace(AbstractModelIntegrationTest.class);
 			
@@ -1864,7 +1853,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		final OperationResult waitResult = new OperationResult(AbstractIntegrationTest.class+".waitForTaskFinish");
 		Checker checker = new Checker() {
 			@Override
-			public boolean check() throws Exception {
+			public boolean check() throws CommonException {
 				task.refresh(waitResult);
 				waitResult.summarize();
 //				Task freshTask = taskManager.getTask(task.getOid(), waitResult);
@@ -1891,19 +1880,19 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		IntegrationTestTools.waitFor("Waiting for " + task + " finish", checker, timeout, sleepTime);
 	}
 	
-	protected void waitForTaskFinish(String taskOid, boolean checkSubresult) throws Exception {
+	protected void waitForTaskFinish(String taskOid, boolean checkSubresult) throws CommonException {
 		waitForTaskFinish(taskOid, checkSubresult, DEFAULT_TASK_WAIT_TIMEOUT);
 	}
 	
-	protected void waitForTaskFinish(final String taskOid, final boolean checkSubresult, final int timeout) throws Exception {
+	protected void waitForTaskFinish(final String taskOid, final boolean checkSubresult, final int timeout) throws CommonException {
 		waitForTaskFinish(taskOid, checkSubresult, timeout, false);
 	}
 	
-	protected void waitForTaskFinish(final String taskOid, final boolean checkSubresult, final int timeout, final boolean errorOk) throws Exception {
+	protected void waitForTaskFinish(final String taskOid, final boolean checkSubresult, final int timeout, final boolean errorOk) throws CommonException {
 		final OperationResult waitResult = new OperationResult(AbstractIntegrationTest.class+".waitForTaskFinish");
 		Checker checker = new Checker() {
 			@Override
-			public boolean check() throws Exception {
+			public boolean check() throws CommonException {
 				Task freshTask = taskManager.getTask(taskOid, waitResult);
 				OperationResult result = freshTask.getResult();
 				if (verbose) display("Check result", result);
@@ -1945,7 +1934,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		final OperationResult waitResult = new OperationResult(AbstractIntegrationTest.class+".waitForTaskStart");
 		Checker checker = new Checker() {
 			@Override
-			public boolean check() throws Exception {
+			public boolean check() throws CommonException {
 				Task freshTask = taskManager.getTask(taskOid, waitResult);
 				OperationResult result = freshTask.getResult();
 				if (verbose) display("Check result", result);
@@ -2013,7 +2002,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		final Holder<OperationResult> taskResultHolder = new Holder<>();
 		Checker checker = new Checker() {
 			@Override
-			public boolean check() throws Exception {
+			public boolean check() throws CommonException {
 				Task freshTask = taskManager.getTask(origTask.getOid(), waitResult);
 				OperationResult taskResult = freshTask.getResult();
 //				display("Times", longTimeToString(origLastRunStartTimestamp) + "-" + longTimeToString(origLastRunStartTimestamp) 
@@ -2095,7 +2084,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		return result;
 	}
 	
-	protected void restartTask(String taskOid) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
+	protected void restartTask(String taskOid) throws CommonException {
 		
 		// Wait at least 1ms here. We have the timestamp in the tasks with a millisecond granularity. If the tasks is started,
 		// executed and then resstarted and excecuted within the same millisecond then the second execution will not be
@@ -2108,11 +2097,21 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		}
 		
 		final OperationResult result = new OperationResult(AbstractIntegrationTest.class+".restartTask");
-		ObjectDelta<TaskType> taskDelta = ObjectDelta.createModificationReplaceProperty(TaskType.class, taskOid, TaskType.F_EXECUTION_STATUS, prismContext, TaskExecutionStatusType.RUNNABLE);
-		taskDelta.addModificationReplaceProperty(TaskType.F_RESULT_STATUS);
-		taskDelta.addModificationReplaceProperty(TaskType.F_RESULT);
+		Task task = taskManager.getTask(taskOid, result);
 		LOGGER.info("Restarting task {}", taskOid);
-		taskManager.modifyTask(taskOid, taskDelta.getModifications(), result);
+		if (task.getExecutionStatus() == TaskExecutionStatus.SUSPENDED) {
+			taskManager.resumeTask(task, result);
+		} else if (task.getExecutionStatus() == TaskExecutionStatus.CLOSED) {
+			taskManager.scheduleTasksNow(Collections.singleton(taskOid), result);
+		} else if (task.getExecutionStatus() == TaskExecutionStatus.RUNNABLE) {
+			if (taskManager.getLocallyRunningTaskByIdentifier(task.getTaskIdentifier()) != null) {
+				// Task is really executing. Let's wait until it finishes; hopefully it won't start again (TODO)
+				waitForTaskFinish(taskOid, false);
+			}
+			taskManager.scheduleTasksNow(Collections.singleton(taskOid), result);
+		} else {
+			throw new IllegalStateException("Task " + task + " cannot be restarted, because its state is: " + task.getExecutionStatus());
+		}
 	}
 	
 	protected void setSecurityContextUser(String userOid) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException {

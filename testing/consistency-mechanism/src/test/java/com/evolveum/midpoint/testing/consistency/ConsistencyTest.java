@@ -43,6 +43,8 @@ import javax.xml.ws.Holder;
 
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 
+import com.evolveum.midpoint.task.api.TaskManagerException;
+import com.evolveum.midpoint.util.exception.*;
 import org.apache.commons.lang.StringUtils;
 import org.opends.server.types.Entry;
 import org.opends.server.types.Entry;
@@ -110,13 +112,6 @@ import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.JAXBUtil;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.PropertyReferenceListType;
@@ -2040,8 +2035,12 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		taskManager.shutdown();
 		waitFor("waiting for task manager shutdown", new Checker() {
 			@Override
-			public boolean check() throws Exception {
-				return taskManager.getLocallyRunningTasks(new OperationResult("dummy")).isEmpty();
+			public boolean check() throws CommonException {
+				try {
+					return taskManager.getLocallyRunningTasks(new OperationResult("dummy")).isEmpty();
+				} catch (TaskManagerException e) {
+					throw new SystemException(e);
+				}
 			}
 
 			@Override
