@@ -1572,11 +1572,10 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
             clearTaskOperationResult(task, parentResult);
             scheduleRunnableTaskNow(task, parentResult);
         } else {
-            String message = "Task " + task + " cannot be run now, because it is not in RUNNABLE nor CLOSED state.";
+            String message = "Task " + task + " cannot be run now, because it is not in RUNNABLE nor CLOSED state. State is " + task.getExecutionStatus();
             parentResult.createSubresult(DOT_INTERFACE + "scheduleTaskNow").recordFatalError(message);
             LOGGER.error(message);
-            return;
-        }
+		}
     }
 
     private void clearTaskOperationResult(Task task, OperationResult parentResult) throws SchemaException, ObjectNotFoundException {

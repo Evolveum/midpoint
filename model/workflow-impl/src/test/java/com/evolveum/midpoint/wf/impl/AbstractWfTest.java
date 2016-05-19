@@ -48,13 +48,7 @@ import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.test.Checker;
 import com.evolveum.midpoint.test.IntegrationTestTools;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.wf.api.WorkflowManager;
 import com.evolveum.midpoint.wf.impl.activiti.ActivitiEngine;
 import com.evolveum.midpoint.wf.impl.tasks.WfTaskUtil;
@@ -498,7 +492,7 @@ public class AbstractWfTest extends AbstractInternalModelIntegrationTest {
         final OperationResult waitResult = new OperationResult(AbstractIntegrationTest.class+".waitForTaskClose");
         Checker checker = new Checker() {
             @Override
-            public boolean check() throws Exception {
+            public boolean check() throws CommonException {
                 task.refresh(waitResult);
                 OperationResult result = task.getResult();
                 if (verbose) display("Check result", result);
