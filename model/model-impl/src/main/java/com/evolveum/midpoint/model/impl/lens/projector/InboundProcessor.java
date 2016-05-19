@@ -201,7 +201,7 @@ public class InboundProcessor {
 
         PrismObject<ShadowType> accountCurrent = projContext.getObjectCurrent();
         PrismObject<ShadowType> accountNew = projContext.getObjectNew();
-        if (hasAnyStrongMapping(accountDefinition) && !projContext.isFullShadow()) {
+        if (hasAnyStrongMapping(accountDefinition) && !projContext.isFullShadow() && !projContext.isThombstone()) {
         	LOGGER.trace("There are strong inbound mapping, but the shadow hasn't be fully loaded yet. Trying to load full shadow now.");      // todo change to trace level eventually
             try {
                 contextLoader.loadFullShadow(context, projContext, task, result);
