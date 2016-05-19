@@ -1121,12 +1121,12 @@ public class ContextLoader {
 		}
 		
 		GetOperationOptions getOptions = GetOperationOptions.createAllowNotFound();
-		if (SchemaConstants.CHANGE_CHANNEL_DISCOVERY.equals(context.getChannel())) {
+		if (SchemaConstants.CHANGE_CHANNEL_DISCOVERY_URI.equals(context.getChannel())) {
 			LOGGER.trace("Loading full resource object {} from provisioning - with doNotDiscover to avoid loops", projCtx);
 			// Avoid discovery loops
 			getOptions.setDoNotDiscovery(true);
 		} else {
-			LOGGER.trace("Loading full resource object {} from provisioning (discovery enabled)", projCtx);
+			LOGGER.trace("Loading full resource object {} from provisioning (discovery enabled), channel: {}", projCtx, context.getChannel());
 		}
 		try {	
 			Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(getOptions);
