@@ -239,11 +239,9 @@ public class ObjectUpdater {
         if (FocusType.class.isAssignableFrom(savedObject.getCompileTimeClass())) {
             savedObject.removeProperty(FocusType.F_JPEG_PHOTO);
         } else if (LookupTableType.class.equals(savedObject.getCompileTimeClass())) {
-            PrismContainer table = savedObject.findContainer(LookupTableType.F_ROW);
-            savedObject.remove(table);
+            savedObject.removeContainer(LookupTableType.F_ROW);
         } else if (AccessCertificationCampaignType.class.equals(savedObject.getCompileTimeClass())) {
-            PrismContainer caseContainer = savedObject.findContainer(AccessCertificationCampaignType.F_CASE);
-            savedObject.remove(caseContainer);
+            savedObject.removeContainer(AccessCertificationCampaignType.F_CASE);
         }
 
         String xml = prismContext.serializeObjectToString(savedObject, PrismContext.LANG_XML);
