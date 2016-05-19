@@ -15,34 +15,12 @@
  */
 package com.evolveum.midpoint.web.page.admin.resources;
 
-import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.RefFilter;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
-import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.web.component.box.InfoBoxPanel;
-import com.evolveum.midpoint.web.component.box.InfoBoxType;
-import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
-import com.evolveum.midpoint.web.component.data.column.ColumnTypeDto;
-import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
-import com.evolveum.midpoint.web.component.data.column.LinkPanel;
-import com.evolveum.midpoint.web.component.util.ListDataProvider;
-import com.evolveum.midpoint.web.component.util.SelectableBean;
-import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceConfigurationDto;
-import com.evolveum.midpoint.web.page.admin.server.PageTaskEdit;
-import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import javax.xml.namespace.QName;
+
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -56,46 +34,87 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.model.util.ListModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
-import javax.xml.namespace.QName;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import com.evolveum.midpoint.common.SynchronizationUtils;
+import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.RefFilter;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.box.InfoBoxPanel;
+import com.evolveum.midpoint.web.component.box.InfoBoxType;
+import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
+import com.evolveum.midpoint.web.component.data.column.ColumnTypeDto;
+import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
+import com.evolveum.midpoint.web.component.data.column.LinkPanel;
+import com.evolveum.midpoint.web.component.util.ListDataProvider;
+import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceConfigurationDto;
+import com.evolveum.midpoint.web.page.admin.server.PageTaskEdit;
+import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AvailabilityStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSynchronizationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationalStateType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceActivationDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceAttributeDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourcePasswordDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
-public class ResourceDetailsTabPanel extends Panel{
-	
+public class ResourceDetailsTabPanel extends Panel {
+
+	private static final Trace LOGGER = TraceManager.getTrace(ResourceDetailsTabPanel.class);
+
 	private static final String DOT_CLASS = ResourceDetailsTabPanel.class.getName() + ".";
 	private static final String OPERATION_SEARCH_TASKS_FOR_RESOURCE = DOT_CLASS + "seachTasks";
-	
+
 	public static final String ID_LAST_AVAILABILITY_STATUS = "lastStatus";
 	private static final String ID_SOURCE_TARGET = "sourceTarget";
-	private static final String ID_SCHEMA_STATUS = "schemaStatus";	
-	
+	private static final String ID_SCHEMA_STATUS = "schemaStatus";
+
 	private static final String PANEL_CAPABILITIES = "capabilities";
-	
+
 	private static final long serialVersionUID = 1L;
-	
+
 	LoadableModel<CapabilitiesDto> capabilitiesModel;
-	
+
 	private PageBase parentPage;
-	
+
 	public ResourceDetailsTabPanel(String id, final IModel<?> model, PageBase parentPage) {
 		super(id, model);
 		this.parentPage = parentPage;
-		
+
 		capabilitiesModel = new LoadableModel<CapabilitiesDto>() {
+			private static final long serialVersionUID = 1L;
+
 			@Override
 			protected CapabilitiesDto load() {
 				PrismObject<ResourceType> resource = (PrismObject<ResourceType>) model.getObject();
 				return new CapabilitiesDto(resource.asObjectable());
 			}
 		};
-		
+
 		initLayout(model, parentPage);
 	}
-	
-	protected void initLayout(IModel model, PageBase parentPage){
-		
-		
+
+	protected void initLayout(IModel model, PageBase parentPage) {
+
 		PrismObject<ResourceType> resourceObject = (PrismObject<ResourceType>) model.getObject();
 		ResourceType resource = resourceObject.asObjectable();
 
@@ -104,7 +123,7 @@ public class ResourceDetailsTabPanel extends Panel{
 		add(createSourceTargetInfo(resource));
 
 		add(createSchemaStatusInfo(resource));
-		
+
 		CapabilitiesPanel capabilities = new CapabilitiesPanel(PANEL_CAPABILITIES, capabilitiesModel);
 		add(capabilities);
 
@@ -114,8 +133,10 @@ public class ResourceDetailsTabPanel extends Panel{
 				ResourceDetailsTabPanel.this, new ListModel<ResourceConfigurationDto>(resourceConfigList));
 
 		List<ColumnTypeDto<String>> columns = Arrays.asList(
-				new ColumnTypeDto<String>("ShadowType.kind", "objectTypeDefinition.kind", ShadowType.F_KIND.getLocalPart()),
-				new ColumnTypeDto<String>("ShadowType.objectClass", "objectTypeDefinition.objectClass.localPart",
+				new ColumnTypeDto<String>("ShadowType.kind", "objectTypeDefinition.kind",
+						ShadowType.F_KIND.getLocalPart()),
+				new ColumnTypeDto<String>("ShadowType.objectClass",
+						"objectTypeDefinition.objectClass.localPart",
 						ShadowType.F_OBJECT_CLASS.getLocalPart()),
 				new ColumnTypeDto<String>("ShadowType.intent", "objectTypeDefinition.intent",
 						ShadowType.F_INTENT.getLocalPart()),
@@ -130,81 +151,92 @@ public class ResourceDetailsTabPanel extends Panel{
 			public void populateItem(Item item, String componentId, final IModel rowModel) {
 				ResourceConfigurationDto conf = (ResourceConfigurationDto) rowModel.getObject();
 				RepeatingView repeater = new RepeatingView(componentId);
-				for (final TaskType task : conf.getDefinedTasks()){
-					repeater.add(new LinkPanel(repeater.newChildId(), new Model<String>(task.getName().getOrig())) {
+				for (final TaskType task : conf.getDefinedTasks()) {
+					repeater.add(new LinkPanel(repeater.newChildId(),
+							new Model<String>(task.getName().getOrig())) {
 
-			            @Override
-			            public void onClick(AjaxRequestTarget target) {
-			            	ResourceDetailsTabPanel.this.taskDetailsPerformed(target, task.getOid());
-			            }
+						@Override
+						public void onClick(AjaxRequestTarget target) {
+							ResourceDetailsTabPanel.this.taskDetailsPerformed(target, task.getOid());
+						}
 
-			           
-			        });
+					});
 				}
-				
-				
+
 				item.add(repeater);
 			}
-			
+
 		};
-		
+
 		tableColumns.add(tasksColumn);
 
-		BoxedTablePanel<ResourceConfigurationDto> resourceConfig = new BoxedTablePanel(
-				"resourceConfig", resourceConfigProvider, tableColumns);
+		BoxedTablePanel<ResourceConfigurationDto> resourceConfig = new BoxedTablePanel("resourceConfig",
+				resourceConfigProvider, tableColumns);
 		resourceConfig.setAdditionalBoxCssClasses("box-success");
 		add(resourceConfig);
-		
-		
 
 	}
-	
+
 	private List<ResourceConfigurationDto> createResourceConfigList(ResourceType resource) {
 		OperationResult result = new OperationResult(OPERATION_SEARCH_TASKS_FOR_RESOURCE);
-		
+
 		List<PrismObject<TaskType>> tasks = WebModelServiceUtils.searchObjects(TaskType.class,
-				ObjectQuery.createObjectQuery(RefFilter.createReferenceEqual(TaskType.F_OBJECT_REF, TaskType.class,
-						parentPage.getPrismContext(), resource.getOid())),
+				ObjectQuery.createObjectQuery(RefFilter.createReferenceEqual(TaskType.F_OBJECT_REF,
+						TaskType.class, parentPage.getPrismContext(), resource.getOid())),
 				result, parentPage);
 
 		List<ResourceConfigurationDto> configs = new ArrayList<>();
-		
-		if (resource.getSchemaHandling() == null){
+
+		if (resource.getSchemaHandling() == null) {
 			return configs;
 		}
-		
+
 		List<ResourceObjectTypeDefinitionType> objectTypes = resource.getSchemaHandling().getObjectType();
-		
-		if (objectTypes == null){
+
+		if (objectTypes == null) {
 			return configs;
 		}
-		
-		for (ResourceObjectTypeDefinitionType objectType : objectTypes) {
-			boolean sync = false;
-			if (resource.getSynchronization() != null && resource.getSynchronization().getObjectSynchronization() != null){
-			 sync =  isSynchronizationFor(objectType, resource.getSynchronization().getObjectSynchronization());
 
+		try {
+			for (ResourceObjectTypeDefinitionType objectType : objectTypes) {
+				ObjectSynchronizationType obejctSynchronization = null;
+				if (resource.getSynchronization() != null
+						&& resource.getSynchronization().getObjectSynchronization() != null) {
+
+					obejctSynchronization = getSynchronizationFor(objectType,
+							resource.getSynchronization().getObjectSynchronization(),
+							resource.asPrismObject());
+
+				}
+				List<TaskType> syncTask = new ArrayList<>();
+				if (obejctSynchronization != null) {
+					syncTask = getTaskFor(tasks, obejctSynchronization, resource.asPrismObject());
+				}
+
+				ResourceConfigurationDto resourceConfig = new ResourceConfigurationDto(objectType,
+						obejctSynchronization != null, syncTask);
+				configs.add(resourceConfig);
 			}
-			List<TaskType> syncTask = getTaskFor(tasks, objectType);
-
-			ResourceConfigurationDto resourceConfig = new ResourceConfigurationDto(objectType, sync, syncTask);
-			configs.add(resourceConfig);
+		} catch (SchemaException ex) {
+			LoggingUtils.logException(LOGGER, "Could not determine resource configuration", ex);
 		}
 
 		return configs;
 	}
-	
-	private void taskDetailsPerformed(AjaxRequestTarget target, String taskOid){
+
+	private void taskDetailsPerformed(AjaxRequestTarget target, String taskOid) {
 		PageParameters parameters = new PageParameters();
-        parameters.add(OnePageParameterEncoder.PARAMETER, taskOid);
-        setResponsePage(new PageTaskEdit(parameters));
-		
+		parameters.add(OnePageParameterEncoder.PARAMETER, taskOid);
+		setResponsePage(new PageTaskEdit(parameters));
+
 	}
-	
-	private InfoBoxPanel addCapabilityMappingInfo(String fieldId, SourceTarget sourceTarget, String messageKey) {
+
+	private InfoBoxPanel addCapabilityMappingInfo(String fieldId, SourceTarget sourceTarget,
+			String messageKey) {
 		String backgroundColor = "bg-green";
 
-		InfoBoxType infoBoxType = new InfoBoxType(backgroundColor, sourceTarget.getCssClass(), getString(messageKey));
+		InfoBoxType infoBoxType = new InfoBoxType(backgroundColor, sourceTarget.getCssClass(),
+				getString(messageKey));
 		Model<InfoBoxType> boxModel = new Model<InfoBoxType>(infoBoxType);
 
 		return new InfoBoxPanel(fieldId, boxModel);
@@ -217,23 +249,24 @@ public class ResourceDetailsTabPanel extends Panel{
 
 		String numberKey = null;
 		switch (sourceTarget) {
-		case SOURCE:
-			numberKey = "PageResource.resource.source";
-			break;
-		case TARGET:
-			numberKey = "PageResource.resource.target";
-			break;
-		case SOURCE_TARGET:
-			numberKey = "PageResource.resource.sourceAndTarget";
-			break;
+			case SOURCE:
+				numberKey = "PageResource.resource.source";
+				break;
+			case TARGET:
+				numberKey = "PageResource.resource.target";
+				break;
+			case SOURCE_TARGET:
+				numberKey = "PageResource.resource.sourceAndTarget";
+				break;
 
-		default:
-			backgroundColor = "bg-gray";
-			numberKey = "PageResource.resource.noMappings";
-			break;
+			default:
+				backgroundColor = "bg-gray";
+				numberKey = "PageResource.resource.noMappings";
+				break;
 		}
-		
-		InfoBoxType infoBoxType = new InfoBoxType(backgroundColor, sourceTarget.getCssClass(), getString("PageResource.resource.mappings"));
+
+		InfoBoxType infoBoxType = new InfoBoxType(backgroundColor, sourceTarget.getCssClass(),
+				getString("PageResource.resource.mappings"));
 		infoBoxType.setNumber(getString(numberKey));
 
 		if (isSynchronizationDefined(resource)) {
@@ -243,7 +276,7 @@ public class ResourceDetailsTabPanel extends Panel{
 		Model<InfoBoxType> boxModel = new Model<InfoBoxType>(infoBoxType);
 
 		return new InfoBoxPanel(ID_SOURCE_TARGET, boxModel);
-		
+
 	}
 
 	private InfoBoxPanel createLastAvailabilityStatusInfo(ResourceType resource) {
@@ -251,7 +284,7 @@ public class ResourceDetailsTabPanel extends Panel{
 		String messageKey = "PageResource.resource.availabilityUnknown";
 		String backgroundColor = "bg-gray";
 		String icon = "fa-question";
-		
+
 		OperationalStateType operationalState = resource.getOperationalState();
 		if (operationalState != null) {
 			AvailabilityStatusType lastAvailabilityStatus = operationalState.getLastAvailabilityStatus();
@@ -271,24 +304,25 @@ public class ResourceDetailsTabPanel extends Panel{
 				}
 			}
 		}
-		
+
 		InfoBoxType infoBoxType = new InfoBoxType(backgroundColor, icon, getString(messageKey));
 
 		ConnectorType connectorType = resource.getConnector();
-		String connectorName = StringUtils.substringAfterLast(WebComponentUtil.getEffectiveName(connectorType, ConnectorType.F_CONNECTOR_TYPE), ".");
+		String connectorName = StringUtils.substringAfterLast(
+				WebComponentUtil.getEffectiveName(connectorType, ConnectorType.F_CONNECTOR_TYPE), ".");
 		String connectorVersion = connectorType.getConnectorVersion();
 		infoBoxType.setNumber(connectorName);
 		infoBoxType.setDescription(connectorVersion);
-		
+
 		Model<InfoBoxType> boxModel = new Model<InfoBoxType>(infoBoxType);
 
 		InfoBoxPanel lastAvailabilityStatus = new InfoBoxPanel(ID_LAST_AVAILABILITY_STATUS, boxModel);
 		lastAvailabilityStatus.setOutputMarkupId(true);
-		
+
 		return lastAvailabilityStatus;
-		
+
 	}
-	
+
 	private InfoBoxPanel createSchemaStatusInfo(ResourceType resource) {
 
 		String backgroundColor = "bg-gray";
@@ -304,8 +338,9 @@ public class ResourceDetailsTabPanel extends Panel{
 				backgroundColor = "bg-purple";
 				icon = "fa-cubes";
 				int numObjectTypes = 0;
-				List<? extends RefinedObjectClassDefinition> refinedDefinitions = refinedSchema.getRefinedDefinitions();
-				for (RefinedObjectClassDefinition refinedDefinition: refinedDefinitions) {
+				List<? extends RefinedObjectClassDefinition> refinedDefinitions = refinedSchema
+						.getRefinedDefinitions();
+				for (RefinedObjectClassDefinition refinedDefinition : refinedDefinitions) {
 					if (refinedDefinition.getKind() != null) {
 						numObjectTypes++;
 					}
@@ -327,8 +362,9 @@ public class ResourceDetailsTabPanel extends Panel{
 			icon = "fa-warning";
 			numberMessage = getString("PageResource.resource.schemaError");
 		}
-		
-		InfoBoxType infoBoxType = new InfoBoxType(backgroundColor, icon, getString("PageResource.resource.schema"));
+
+		InfoBoxType infoBoxType = new InfoBoxType(backgroundColor, icon,
+				getString("PageResource.resource.schema"));
 		infoBoxType.setNumber(numberMessage);
 		infoBoxType.setProgress(progress);
 		infoBoxType.setDescription(description);
@@ -336,55 +372,31 @@ public class ResourceDetailsTabPanel extends Panel{
 		Model<InfoBoxType> boxModel = new Model<InfoBoxType>(infoBoxType);
 
 		return new InfoBoxPanel(ID_SCHEMA_STATUS, boxModel);
-		
+
 	}
-	
-	private boolean isSynchronizationFor(ResourceObjectTypeDefinitionType obejctTypesDefinition,
-			List<ObjectSynchronizationType> synchronizationPolicies) {
+
+	private ObjectSynchronizationType getSynchronizationFor(
+			ResourceObjectTypeDefinitionType obejctTypesDefinition,
+			List<ObjectSynchronizationType> synchronizationPolicies, PrismObject<ResourceType> resource)
+					throws SchemaException {
 
 		for (ObjectSynchronizationType synchronizationPolicy : synchronizationPolicies) {
-			List<QName> policyObjectClasses = synchronizationPolicy.getObjectClass();
-			if (policyObjectClasses == null || policyObjectClasses.isEmpty()) {
-				return isSynchronizationFor(obejctTypesDefinition, null, synchronizationPolicy.getKind(),
-						synchronizationPolicy.getIntent());
-			}
-			for (QName policyObjetClass : policyObjectClasses) {
-				return isSynchronizationFor(obejctTypesDefinition, policyObjetClass, synchronizationPolicy.getKind(),
-						synchronizationPolicy.getIntent());
-			}
-		}
-
-		return false;
-	}
-
-	private boolean isSynchronizationFor(ResourceObjectTypeDefinitionType obejctTypesDefinition, QName objectClass,
-			ShadowKindType kind, String intent) {
-		if (obejctTypesDefinition.getObjectClass() != null) {
-			if (objectClass != null) {
-				if (!objectClass.equals(obejctTypesDefinition.getObjectClass())) {
-					return false;
+			if (SynchronizationUtils.isPolicyApplicable(obejctTypesDefinition.getObjectClass(),
+					obejctTypesDefinition.getKind(), obejctTypesDefinition.getIntent(), synchronizationPolicy,
+					resource)) {
+				if (synchronizationPolicy.getObjectClass().isEmpty()) {
+					synchronizationPolicy.getObjectClass().add(obejctTypesDefinition.getObjectClass());
 				}
+				return synchronizationPolicy;
 			}
 		}
 
-		// kind
-		ShadowKindType shadowKind = obejctTypesDefinition.getKind();
-		if (kind != null && shadowKind != null && !kind.equals(shadowKind)) {
-			return false;
-		}
-
-		// intent
-		// TODO is the intent always present in shadow at this time? [med]
-		String shadowIntent = obejctTypesDefinition.getIntent();
-		if (intent != null && shadowIntent != null && !MiscSchemaUtil.equalsIntent(shadowIntent, intent)) {
-			return false;
-		}
-
-		return true;
+		return null;
 	}
 
 	private List<TaskType> getTaskFor(List<PrismObject<TaskType>> tasks,
-			ResourceObjectTypeDefinitionType objectTypeDefinition) {
+			ObjectSynchronizationType synchronizationPolicy, PrismObject<ResourceType> resource)
+					throws SchemaException {
 		List<TaskType> syncTasks = new ArrayList<TaskType>();
 		for (PrismObject<TaskType> task : tasks) {
 			PrismProperty<ShadowKindType> taskKind = task
@@ -401,21 +413,45 @@ public class ResourceDetailsTabPanel extends Panel{
 				taskIntentValue = taskIntent.getRealValue();
 			}
 
-			PrismProperty<QName> taskObjectClass = task
-					.findProperty(new ItemPath(TaskType.F_EXTENSION, SchemaConstants.OBJECTCLASS_PROPERTY_NAME));
+			PrismProperty<QName> taskObjectClass = task.findProperty(
+					new ItemPath(TaskType.F_EXTENSION, SchemaConstants.OBJECTCLASS_PROPERTY_NAME));
 			QName taskObjectClassValue = null;
 			if (taskObjectClass != null) {
 				taskObjectClassValue = taskObjectClass.getRealValue();
 			}
 
-			if (isSynchronizationFor(objectTypeDefinition, taskObjectClassValue, taskKindValue, taskIntentValue)) {
+			// TODO: unify with determineObjectClass in Utils (model-impl, which
+			// is not accessible in admin-gui)
+			if (taskObjectClassValue == null) {
+				ObjectClassComplexTypeDefinition taskObjectClassDef = null;
+				RefinedResourceSchema schema = RefinedResourceSchema.getRefinedSchema(resource);
+				if (schema == null) {
+					throw new SchemaException(
+							"No schema defined in resource. Possible configuration problem?");
+				}
+				if (taskKindValue == null && taskIntentValue == null) {
+					taskObjectClassDef = schema.findDefaultObjectClassDefinition(ShadowKindType.ACCOUNT);
+				}
+
+				if (taskKindValue != null) {
+					if (StringUtils.isEmpty(taskIntentValue)) {
+						taskObjectClassDef = schema.findDefaultObjectClassDefinition(taskKindValue);
+					} else {
+						taskObjectClassDef = schema.findObjectClassDefinition(taskKindValue, taskIntentValue);
+					}
+
+				}
+				taskObjectClassValue = taskObjectClassDef.getTypeName();
+			}
+
+			if (SynchronizationUtils.isPolicyApplicable(taskObjectClassValue, taskKindValue, taskIntentValue,
+					synchronizationPolicy, resource)) {
 				syncTasks.add(task.asObjectable());
 			}
 		}
 
 		return syncTasks;
 	}
-
 
 	// TODO: ####### start of move to ResourceTypeUtil ###########
 
@@ -426,7 +462,8 @@ public class ResourceDetailsTabPanel extends Panel{
 
 	private boolean isInboundDefined(ResourceAttributeDefinitionType attr) {
 		return attr.getInbound() != null && CollectionUtils.isNotEmpty(attr.getInbound())
-				&& (attr.getInbound().get(0).getTarget() != null || attr.getInbound().get(0).getExpression() != null);
+				&& (attr.getInbound().get(0).getTarget() != null
+						|| attr.getInbound().get(0).getExpression() != null);
 	}
 
 	private boolean isSynchronizationDefined(ResourceType resource) {
@@ -520,15 +557,17 @@ public class ResourceDetailsTabPanel extends Panel{
 				}
 
 				if (!hasOutbound) {
-					ResourceActivationDefinitionType activationDef = resourceObjectTypeDefinition.getActivation();
-					if (activationDef.getAdministrativeStatus() != null
-							&& CollectionUtils.isNotEmpty(activationDef.getAdministrativeStatus().getOutbound())) {
+					ResourceActivationDefinitionType activationDef = resourceObjectTypeDefinition
+							.getActivation();
+					if (activationDef.getAdministrativeStatus() != null && CollectionUtils
+							.isNotEmpty(activationDef.getAdministrativeStatus().getOutbound())) {
 						hasOutbound = true;
 					}
 				}
 
 				if (!hasOutbound) {
-					ResourceActivationDefinitionType activationDef = resourceObjectTypeDefinition.getActivation();
+					ResourceActivationDefinitionType activationDef = resourceObjectTypeDefinition
+							.getActivation();
 					if (activationDef.getValidFrom() != null
 							&& CollectionUtils.isNotEmpty(activationDef.getValidFrom().getOutbound())) {
 						hasOutbound = true;
@@ -536,7 +575,8 @@ public class ResourceDetailsTabPanel extends Panel{
 				}
 
 				if (!hasOutbound) {
-					ResourceActivationDefinitionType activationDef = resourceObjectTypeDefinition.getActivation();
+					ResourceActivationDefinitionType activationDef = resourceObjectTypeDefinition
+							.getActivation();
 					if (activationDef.getValidTo() != null
 							&& CollectionUtils.isNotEmpty(activationDef.getValidTo().getOutbound())) {
 						hasOutbound = true;
@@ -544,7 +584,8 @@ public class ResourceDetailsTabPanel extends Panel{
 				}
 
 				if (!hasOutbound) {
-					ResourceActivationDefinitionType activationDef = resourceObjectTypeDefinition.getActivation();
+					ResourceActivationDefinitionType activationDef = resourceObjectTypeDefinition
+							.getActivation();
 					if (activationDef.getExistence() != null
 							&& CollectionUtils.isNotEmpty(activationDef.getExistence().getOutbound())) {
 						hasOutbound = true;
@@ -552,15 +593,17 @@ public class ResourceDetailsTabPanel extends Panel{
 				}
 
 				if (!hasInbound) {
-					ResourceActivationDefinitionType activationDef = resourceObjectTypeDefinition.getActivation();
-					if (activationDef.getAdministrativeStatus() != null
-							&& CollectionUtils.isNotEmpty(activationDef.getAdministrativeStatus().getInbound())) {
+					ResourceActivationDefinitionType activationDef = resourceObjectTypeDefinition
+							.getActivation();
+					if (activationDef.getAdministrativeStatus() != null && CollectionUtils
+							.isNotEmpty(activationDef.getAdministrativeStatus().getInbound())) {
 						hasInbound = true;
 					}
 				}
 
 				if (!hasInbound) {
-					ResourceActivationDefinitionType activationDef = resourceObjectTypeDefinition.getActivation();
+					ResourceActivationDefinitionType activationDef = resourceObjectTypeDefinition
+							.getActivation();
 					if (activationDef.getValidFrom() != null
 							&& CollectionUtils.isNotEmpty(activationDef.getValidFrom().getInbound())) {
 						hasInbound = true;
@@ -568,7 +611,8 @@ public class ResourceDetailsTabPanel extends Panel{
 				}
 
 				if (!hasInbound) {
-					ResourceActivationDefinitionType activationDef = resourceObjectTypeDefinition.getActivation();
+					ResourceActivationDefinitionType activationDef = resourceObjectTypeDefinition
+							.getActivation();
 					if (activationDef.getValidTo() != null
 							&& CollectionUtils.isNotEmpty(activationDef.getValidTo().getInbound())) {
 						hasInbound = true;
@@ -576,7 +620,8 @@ public class ResourceDetailsTabPanel extends Panel{
 				}
 
 				if (!hasInbound) {
-					ResourceActivationDefinitionType activationDef = resourceObjectTypeDefinition.getActivation();
+					ResourceActivationDefinitionType activationDef = resourceObjectTypeDefinition
+							.getActivation();
 					if (activationDef.getExistence() != null
 							&& CollectionUtils.isNotEmpty(activationDef.getExistence().getInbound())) {
 						hasInbound = true;
@@ -648,7 +693,6 @@ public class ResourceDetailsTabPanel extends Panel{
 
 	// TODO: ####### end of move to ResourceTypeUtil ###########
 
-
 	private enum SourceTarget {
 
 		NOT_DEFINED("fa-square-o"), SOURCE("fa-sign-in"), TARGET("fa-sign-out"), SOURCE_TARGET("fa-exchange");
@@ -663,6 +707,5 @@ public class ResourceDetailsTabPanel extends Panel{
 			return cssClass;
 		}
 	}
-
 
 }

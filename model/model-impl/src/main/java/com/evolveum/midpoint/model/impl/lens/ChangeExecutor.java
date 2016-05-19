@@ -23,6 +23,7 @@ import static com.evolveum.midpoint.model.api.ProgressInformation.StateType.ENTE
 
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.common.InternalsConfig;
+import com.evolveum.midpoint.common.SynchronizationUtils;
 import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.ProgressInformation;
@@ -65,7 +66,6 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
-import com.evolveum.midpoint.schema.util.SynchronizationSituationUtil;
 import com.evolveum.midpoint.security.api.OwnerResolver;
 import com.evolveum.midpoint.security.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.Task;
@@ -624,7 +624,7 @@ public class ChangeExecutor {
     		LOGGER.trace("Problem with getting account, skipping modifying situation in account.");
 			return;
     	}
-    	List<PropertyDelta<?>> syncSituationDeltas = SynchronizationSituationUtil.createSynchronizationSituationAndDescriptionDelta(account,
+    	List<PropertyDelta<?>> syncSituationDeltas = SynchronizationUtils.createSynchronizationSituationAndDescriptionDelta(account,
     			situation, task.getChannel(), projectionCtx.hasFullShadow());
 
 		try {

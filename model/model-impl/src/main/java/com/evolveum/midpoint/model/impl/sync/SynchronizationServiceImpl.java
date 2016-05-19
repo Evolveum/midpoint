@@ -34,7 +34,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import com.evolveum.midpoint.common.InternalsConfig;
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
+import com.evolveum.midpoint.common.SynchronizationUtils;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.common.expression.ExpressionFactory;
@@ -46,7 +46,6 @@ import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.impl.util.Utils;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
@@ -55,7 +54,6 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -63,14 +61,11 @@ import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.statistics.StatisticsUtil;
 import com.evolveum.midpoint.schema.statistics.SynchronizationInformation;
-import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
-import com.evolveum.midpoint.schema.util.SynchronizationSituationUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -120,12 +115,8 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 	@Autowired
 	private CorrelationConfirmationEvaluator correlationConfirmationEvaluator;
 	@Autowired(required = true)
-	private PrismContext prismContext;
-	@Autowired(required = true)
 	@Qualifier("cacheRepositoryService")
 	private RepositoryService repositoryService;
-	@Autowired(required = true)
-	private ProvisioningService provisioningService;
 	@Autowired(required = true)
 	private ContextFactory contextFactory;
 	@Autowired(required = true)
@@ -217,7 +208,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 
 			if (isProtected((PrismObject<ShadowType>) currentShadow)) {
 				if (StringUtils.isNotBlank(synchronizationPolicy.getIntent())) {
-					List<PropertyDelta<?>> modifications = SynchronizationSituationUtil
+					List<PropertyDelta<?>> modifications = SynchronizationUtils
 							.createSynchronizationTimestampsDelta(currentShadow);
 
 					PropertyDelta<String> intentDelta = PropertyDelta.createModificationReplaceProperty(
@@ -274,7 +265,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 					object = change.getOldShadow();
 				}
 
-				Collection modifications = SynchronizationSituationUtil
+				Collection modifications = SynchronizationUtils
 						.createSynchronizationSituationAndDescriptionDelta(object, situation.getSituation(),
 								task.getChannel(), false);
 				if (StringUtils.isNotBlank(synchronizationPolicy.getIntent())) {
@@ -387,6 +378,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 			PrismObject<? extends ShadowType> currentShadow,
 			PrismObject<SystemConfigurationType> configuration, Task task, OperationResult result)
 					throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
+		
 		SynchronizationType synchronization = resourceType.getSynchronization();
 		if (synchronization == null) {
 			return null;
@@ -404,78 +396,16 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 			ObjectSynchronizationType synchronizationPolicy, PrismObject<ResourceType> resource,
 			PrismObject<SystemConfigurationType> configuration, Task task, OperationResult result)
 					throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
-		ShadowType currentShadowType = currentShadow.asObjectable();
 
-		// objectClass
-		QName shadowObjectClass = currentShadowType.getObjectClass();
-		Validate.notNull(shadowObjectClass, "No objectClass in currentShadow");
-		List<QName> policyObjectClasses = synchronizationPolicy.getObjectClass();
-
-		if (policyObjectClasses == null || policyObjectClasses.isEmpty()) {
-
-			String policyIntent = synchronizationPolicy.getIntent();
-			ShadowKindType policyKind = synchronizationPolicy.getKind();
-			ObjectClassComplexTypeDefinition policyObjectClass = null;
-			RefinedResourceSchema schema = RefinedResourceSchema.getRefinedSchema(resource);
-			if (policyKind == null && policyIntent == null) {
-				policyObjectClass = schema.findDefaultObjectClassDefinition(ShadowKindType.ACCOUNT);
-			}
-
-			if (policyKind != null) {
-				if (StringUtils.isEmpty(policyIntent)) {
-					policyObjectClass = schema.findDefaultObjectClassDefinition(policyKind);
-				} else {
-					policyObjectClass = schema.findObjectClassDefinition(policyKind, policyIntent);
-				}
-
-			}
-			if (policyObjectClass != null && !policyObjectClass.getTypeName().equals(shadowObjectClass)) {
-				return false;
-			}
-		}
-		// TODO relaxed QName match [med]
-		if (policyObjectClasses != null && !policyObjectClasses.isEmpty()) {
-			if (!policyObjectClasses.contains(shadowObjectClass)) {
-				return false;
-			}
-		}
-
-		// kind
-		ShadowKindType shadowKind = currentShadowType.getKind();
-		ShadowKindType policyKind = synchronizationPolicy.getKind();
-		if (policyKind != null && shadowKind != null && !policyKind.equals(shadowKind)) {
+		if (!SynchronizationUtils.isPolicyApplicable(currentShadow, synchronizationPolicy, resource)) {
 			return false;
 		}
-
-		// intent
-		// TODO is the intent always present in shadow at this time? [med]
-		String shadowIntent = currentShadowType.getIntent();
-		String policyIntent = synchronizationPolicy.getIntent();
-		if (policyIntent != null && shadowIntent != null
-				&& !MiscSchemaUtil.equalsIntent(shadowIntent, policyIntent)) {
-			return false;
-		}
-
-		// if (synchronizationPolicy.getCondition() != null) {
+	
 		Boolean conditionResult = evaluateSynchronizationPolicyCondition(synchronizationPolicy, currentShadow,
 				resource, configuration, task, result);
 		if (conditionResult != null) {
 			return conditionResult.booleanValue();
 		}
-		// return conditionResult.booleanValue();
-
-		// ExpressionType conditionExpressionType =
-		// synchronizationPolicy.getCondition();
-		// String desc = "condition in object synchronization " +
-		// synchronizationPolicy.getName();
-		// ExpressionVariables variables =
-		// Utils.getDefaultExpressionVariables(null, currentShadow, null,
-		// resource, configuration);
-		// PrismPropertyValue<Boolean> evaluateCondition =
-		// ExpressionUtil.evaluateCondition(variables,
-		// conditionExpressionType, expressionFactory, desc, task, result);
-		// return evaluateCondition.getValue();
-		// }
 
 		return true;
 	}
@@ -1065,19 +995,10 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 
 		ShadowType shadowType = shadow.asObjectable();
 		// new situation description
-		List<PropertyDelta<?>> deltas = SynchronizationSituationUtil
+		List<PropertyDelta<?>> deltas = SynchronizationUtils
 				.createSynchronizationSituationAndDescriptionDelta(shadow, situation.getSituation(),
 						change.getSourceChannel(), true);
-		// refresh situation
-		// PropertyDelta<SynchronizationSituationType> syncSituationDelta =
-		// SynchronizationSituationUtil.createSynchronizationSituationDelta(object,
-		// situation.getSituation());
-		// if (syncSituationDelta != null){
-		// syncSituationDeltas.add(syncSituationDelta);
-		// }
-		// syncSituationDeltas.add(SynchronizationSituationUtil.createSynchronizationTimestampDelta(object,
-		// timestamp));
-		//
+		
 		if (shadowType.getKind() == null) {
 			ShadowKindType kind = synchronizationPolicy.getKind();
 			if (kind == null) {

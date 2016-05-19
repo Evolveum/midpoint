@@ -15,6 +15,19 @@
  */
 package com.evolveum.midpoint.schema.util;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import javax.xml.namespace.QName;
+
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.w3c.dom.Element;
+
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
@@ -25,7 +38,6 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ScriptOutputsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AvailabilityStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CapabilityCollectionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorConfigurationType;
@@ -60,14 +72,6 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.TestConnecti
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.UpdateCapabilityType;
 import com.evolveum.prism.xml.ns._public.types_3.SchemaDefinitionType;
 
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.w3c.dom.Element;
-
-import javax.xml.namespace.QName;
-
-import java.util.*;
-
 /**
  * Methods that would belong to the ResourceType class but cannot go there
  * because of JAXB.
@@ -89,7 +93,7 @@ public class ResourceTypeUtil {
 			return null;
 		}
 	}
-
+	
 	/**
 	 * The usage of "resolver" is experimental. Let's see if it will be
 	 * practical ...
