@@ -58,9 +58,11 @@ import com.evolveum.midpoint.prism.query.ValueFilter;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -566,4 +568,53 @@ public final class Utils {
 	public static void clearSystemConfigurationCache() {
 		cachedSystemConfiguration = null;
 	}
+	
+	public static PrismReferenceValue determineAuditTargetDeltaOps(Collection<ObjectDeltaOperation<? extends ObjectType>> deltaOps) {
+		if (deltaOps == null || deltaOps.isEmpty()) {
+			return null;
+		}
+		if (deltaOps.size() == 1) {
+			ObjectDeltaOperation<? extends ObjectType> deltaOp = deltaOps.iterator().next();
+			return getAditTarget(deltaOp.getObjectDelta());
+		}
+		for (ObjectDeltaOperation<? extends ObjectType> deltaOp: deltaOps) {
+			if (!ShadowType.class.isAssignableFrom(deltaOp.getObjectDelta().getObjectTypeClass())) {
+				return getAditTarget(deltaOp.getObjectDelta());
+			}
+		}
+		// Several raw operations, all on shadows, no focus ... this should not happen
+		// But if it does we rather do not specify any target. We should not like to choose
+		// target randomly. That would be confusing.
+		return null;
+	}
+	
+	public static PrismReferenceValue determineAuditTarget(Collection<ObjectDelta<? extends ObjectType>> deltas) {
+		if (deltas == null || deltas.isEmpty()) {
+			return null;
+		}
+		if (deltas.size() == 1) {
+			ObjectDelta<? extends ObjectType> delta = deltas.iterator().next();
+			return getAditTarget(delta);
+		}
+		for (ObjectDelta<? extends ObjectType> delta: deltas) {
+			if (!ShadowType.class.isAssignableFrom(delta.getObjectTypeClass())) {
+				return getAditTarget(delta);
+			}
+		}
+		// Several raw operations, all on shadows, no focus ... this should not happen
+		// But if it does we rather do not specify any target. We should not like to choose
+		// target randomly. That would be confusing.
+		return null;
+	}
+
+	public static PrismReferenceValue getAditTarget(ObjectDelta<? extends ObjectType> delta) {
+		PrismReferenceValue targetRef = new PrismReferenceValue(delta.getOid());
+		targetRef.setTargetType(ObjectTypes.getObjectType(delta.getObjectTypeClass()).getTypeQName());
+		if (delta.isAdd()) {
+			targetRef.setObject(delta.getObjectToAdd());
+		}
+		return targetRef;
+	}
+	
+	
 }
