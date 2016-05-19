@@ -25,7 +25,6 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
@@ -85,7 +84,6 @@ import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAc
 import com.evolveum.midpoint.web.page.admin.roles.component.RoleSummaryPanel;
 import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
 import com.evolveum.midpoint.web.util.StringResourceChoiceRenderer;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
@@ -103,7 +101,7 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 
 	protected static final String ID_MANAGER_MENU = "managerMenu";
 	protected static final String ID_MANAGER_MENU_BODY = "managerMenuBody";
-	
+
 	protected static final String SEARCH_SCOPE_SUBTREE = "subtree";
 	protected static final String SEARCH_SCOPE_ONE = "one";
 
@@ -130,24 +128,23 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 		/// TODO: move to utils class??
 		List<ObjectTypes> objectTypes = Arrays.asList(ObjectTypes.values());
 		Collections.sort(objectTypes, new Comparator<ObjectTypes>() {
-			
+
 			@Override
 			public int compare(ObjectTypes o1, ObjectTypes o2) {
 				Validate.notNull(o1);
 				Validate.notNull(o2);
-				
+
 				String type1 = o1.getValue();
 				String type2 = o2.getValue();
-				
+
 				return String.CASE_INSENSITIVE_ORDER.compare(type1, type2);
-				
+
 			}
 		});
 		////////////
-		
+
 		DropDownChoice<ObjectTypes> objectType = new DropDownChoice<ObjectTypes>(ID_SEARCH_BY_TYPE,
-				Model.of(OBJECT_TYPES_DEFAULT), objectTypes,
-				new EnumChoiceRenderer<ObjectTypes>());
+				Model.of(OBJECT_TYPES_DEFAULT), objectTypes, new EnumChoiceRenderer<ObjectTypes>());
 		objectType.add(new OnChangeAjaxBehavior() {
 			private static final long serialVersionUID = 1L;
 
@@ -161,11 +158,11 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 		form.add(objectType);
 
 		DropDownChoice<String> seachScrope = new DropDownChoice<String>(ID_SEARCH_SCOPE,
-				Model.of(SEARCH_SCOPE_SUBTREE), SEARCH_SCOPE_VALUES,
+				Model.of(SEARCH_SCOPE_ONE), SEARCH_SCOPE_VALUES,
 				new StringResourceChoiceRenderer("TreeTablePanel.search.scope"));
 		seachScrope.add(new OnChangeAjaxBehavior() {
 			private static final long serialVersionUID = 1L;
-			
+
 			@Override
 			protected void onUpdate(AjaxRequestTarget target) {
 				refreshTable(target);
@@ -204,7 +201,7 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 
 			AjaxLink<String> link = new AjaxLink<String>(ID_EDIT_MANAGER) {
 				private static final long serialVersionUID = 1L;
-				
+
 				@Override
 				public void onClick(AjaxRequestTarget target) {
 					FocusSummaryPanel<FocusType> summary = (FocusSummaryPanel<FocusType>) getParent()
@@ -214,17 +211,17 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 				}
 			};
 			if (manager.getCompileTimeClass().equals(UserType.class)) {
-				managerMarkup.add(new UserSummaryPanel(ID_MANAGER_SUMMARY, new Model<ObjectWrapper<UserType>>(
-						(ObjectWrapper)managerWrapper)));
+				managerMarkup.add(new UserSummaryPanel(ID_MANAGER_SUMMARY,
+						new Model<ObjectWrapper<UserType>>((ObjectWrapper) managerWrapper)));
 			} else if (manager.getCompileTimeClass().equals(RoleType.class)) {
-				managerMarkup.add(new RoleSummaryPanel(ID_MANAGER_SUMMARY, new Model<ObjectWrapper<RoleType>>(
-						(ObjectWrapper)managerWrapper)));
+				managerMarkup.add(new RoleSummaryPanel(ID_MANAGER_SUMMARY,
+						new Model<ObjectWrapper<RoleType>>((ObjectWrapper) managerWrapper)));
 			} else if (manager.getCompileTimeClass().equals(OrgType.class)) {
-				managerMarkup.add(new OrgSummaryPanel(ID_MANAGER_SUMMARY, new Model<ObjectWrapper<OrgType>>(
-						(ObjectWrapper)managerWrapper)));
+				managerMarkup.add(new OrgSummaryPanel(ID_MANAGER_SUMMARY,
+						new Model<ObjectWrapper<OrgType>>((ObjectWrapper) managerWrapper)));
 			} else if (manager.getCompileTimeClass().equals(ServiceType.class)) {
-				managerMarkup.add(new ServiceSummaryPanel(ID_MANAGER_SUMMARY, new Model<ObjectWrapper<ServiceType>>(
-						(ObjectWrapper)managerWrapper)));
+				managerMarkup.add(new ServiceSummaryPanel(ID_MANAGER_SUMMARY,
+						new Model<ObjectWrapper<ServiceType>>((ObjectWrapper) managerWrapper)));
 			}
 			link.setOutputMarkupId(true);
 			managerMarkup.setOutputMarkupId(true);
@@ -248,13 +245,14 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 		}
 
 		managerContainer.add(view);
-		
-		InlineMenu menupanel = new InlineMenu(ID_MANAGER_MENU, new Model<Serializable>((Serializable)createManagersHeaderInlineMenu()));
 
-	     add(menupanel);
+		InlineMenu menupanel = new InlineMenu(ID_MANAGER_MENU,
+				new Model<Serializable>((Serializable) createManagersHeaderInlineMenu()));
+
+		add(menupanel);
 		menupanel.setOutputMarkupId(true);
 		managerContainer.add(menupanel);
-		
+
 		return managerContainer;
 	}
 
@@ -265,9 +263,7 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 
 			ObjectDelta delta = ObjectDelta.createModificationDeleteContainer(
 					manager.asPrismObject().getCompileTimeClass(), manager.getOid(), FocusType.F_ASSIGNMENT,
-					getPageBase().getPrismContext(),
-					createAssignmentToModify(
-							SchemaConstants.ORG_MANAGER));
+					getPageBase().getPrismContext(), createAssignmentToModify(SchemaConstants.ORG_MANAGER));
 
 			getPageBase().getModelService().executeChanges(WebComponentUtil.createDeltaCollection(delta),
 					null, task, parentResult);
@@ -339,7 +335,8 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 		ObjectTypes type = typeChoice.getModelObject();
 		target.add(get(createComponentPath(ID_FORM, ID_SEARCH_SCOPE)));
 		getMemberTable().clearCache();
-		getMemberTable().refreshTable((Class<ObjectType>) WebComponentUtil.qnameToClass(getPageBase().getPrismContext(), type.getTypeQName()), target);
+		getMemberTable().refreshTable((Class<ObjectType>) WebComponentUtil
+				.qnameToClass(getPageBase().getPrismContext(), type.getTypeQName()), target);
 	}
 
 	private MainObjectListPanel<ObjectType> getMemberTable() {
@@ -391,7 +388,9 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 
 	@Override
 	protected void addMembersPerformed(QName type, QName relation, List selected, AjaxRequestTarget target) {
-//		"Add managers: " + WebComponentUtil.getEffectiveName(getModelObject(), AbstractRoleType.F_DISPLAY_NAME)
+		// "Add managers: " +
+		// WebComponentUtil.getEffectiveName(getModelObject(),
+		// AbstractRoleType.F_DISPLAY_NAME)
 		Task operationalTask = getPageBase().createSimpleTask(getTaskName("Add", null, false));
 		ObjectDelta delta = prepareDelta(MemberOperation.ADD, type, relation, operationalTask.getResult(),
 				target);
@@ -466,8 +465,6 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 				TaskCategory.RECOMPUTATION, target);
 	}
 
-	
-	
 	@Override
 	protected ObjectQuery createMemberQuery() {
 		ObjectQuery query = null;
@@ -482,30 +479,17 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 
 		QName searchType = getSearchType();
 
-		try {
-			OrgFilter org;
-			if (OrgType.COMPLEX_TYPE.equals(searchType)) {
-				if (SEARCH_SCOPE_ONE.equals(scope)) {
-					filters.add(OrgFilter.createOrg(oid, OrgFilter.Scope.ONE_LEVEL));
-				} else {
-					filters.add(OrgFilter.createOrg(oid, OrgFilter.Scope.SUBTREE));
-				}
-			}
-			PrismReferenceValue referenceFilter = new PrismReferenceValue();
-			referenceFilter.setOid(oid);
-			RefFilter referenceOidFilter = RefFilter.createReferenceEqual(
-					new ItemPath(FocusType.F_PARENT_ORG_REF), UserType.class, getPageBase().getPrismContext(),
-					referenceFilter);
-			filters.add(referenceOidFilter);
+		OrgFilter org;
+		if (SEARCH_SCOPE_ONE.equals(scope)) {
+			filters.add(OrgFilter.createOrg(oid, OrgFilter.Scope.ONE_LEVEL));
+		} else {
+			filters.add(OrgFilter.createOrg(oid, OrgFilter.Scope.SUBTREE));
+		}
 
-			query = ObjectQuery.createObjectQuery(AndFilter.createAnd(filters));
+		query = ObjectQuery.createObjectQuery(AndFilter.createAnd(filters));
 
-			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("Searching members of org {} with query:\n{}", oid, query.debugDump());
-			}
-
-		} catch (SchemaException e) {
-			LoggingUtils.logException(LOGGER, "Couldn't prepare query for org. members.", e);
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace("Searching members of org {} with query:\n{}", oid, query.debugDump());
 		}
 
 		if (searchType.equals(ObjectType.COMPLEX_TYPE)) {
@@ -581,17 +565,17 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 
 	}
 
-//	private ObjectQuery createQueryForRecompute() {
-//
-//		List<ObjectType> objects = getMemberTable().getSelectedObjects();
-//		List<String> oids = new ArrayList<>();
-//		for (ObjectType object : objects) {
-//			oids.add(object.getOid());
-//
-//		}
-//
-//		return ObjectQuery.createObjectQuery(InOidFilter.createInOid(oids));
-//	}
+	// private ObjectQuery createQueryForRecompute() {
+	//
+	// List<ObjectType> objects = getMemberTable().getSelectedObjects();
+	// List<String> oids = new ArrayList<>();
+	// for (ObjectType object : objects) {
+	// oids.add(object.getOid());
+	//
+	// }
+	//
+	// return ObjectQuery.createObjectQuery(InOidFilter.createInOid(oids));
+	// }
 
 	protected ObjectDelta createMemberDelta(MemberOperation operation, QName type, QName relation)
 			throws SchemaException {

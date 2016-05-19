@@ -20,6 +20,7 @@ import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.repo.sql.data.common.enums.ROperationResultStatus;
 import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
@@ -372,12 +373,11 @@ public class RAuditEventRecord implements Serializable {
 
         try {
             if (record.getTarget() != null) {
-                PrismObject target = record.getTarget();
+                PrismReferenceValue target = record.getTarget();
                 repo.setTargetName(getOrigName(target));
                 repo.setTargetOid(target.getOid());
 
-                QName type = ObjectTypes.getObjectType(target.getCompileTimeClass()).getTypeQName();
-                repo.setTargetType(ClassMapper.getHQLTypeForQName(type));
+                repo.setTargetType(ClassMapper.getHQLTypeForQName(target.getTargetType()));
             }
             if (record.getTargetOwner() != null) {
                 PrismObject targetOwner = record.getTargetOwner();
@@ -463,6 +463,14 @@ public class RAuditEventRecord implements Serializable {
 
 	private static String getOrigName(PrismObject object) {
         PolyString name = (PolyString) object.getPropertyRealValue(ObjectType.F_NAME, PolyString.class);
+        return name != null ? name.getOrig() : null;
+    }
+	
+	private static String getOrigName(PrismReferenceValue refval) {
+		if (refval.getObject() != null) {
+			return getOrigName(refval.getObject());
+		}
+        PolyString name = refval.getTargetName();
         return name != null ? name.getOrig() : null;
     }
 }

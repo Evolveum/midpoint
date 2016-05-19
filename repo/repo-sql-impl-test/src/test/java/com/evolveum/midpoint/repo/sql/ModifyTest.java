@@ -41,6 +41,7 @@ import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 import org.xml.sax.SAXException;
 
+import com.evolveum.midpoint.common.SynchronizationUtils;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
@@ -66,7 +67,6 @@ import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.SynchronizationSituationUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -437,9 +437,9 @@ public class ModifyTest extends BaseSQLRepoTest {
 
 
         XMLGregorianCalendar timestamp = XmlTypeConverter.createXMLGregorianCalendar(System.currentTimeMillis());
-        List<PropertyDelta<?>> syncSituationDeltas = SynchronizationSituationUtil.
+        List<PropertyDelta<?>> syncSituationDeltas = SynchronizationUtils.
                 createSynchronizationSituationDescriptionDelta(repoShadow, SynchronizationSituationType.LINKED, timestamp, null, false);
-        PropertyDelta<SynchronizationSituationType> syncSituationDelta = SynchronizationSituationUtil.
+        PropertyDelta<SynchronizationSituationType> syncSituationDelta = SynchronizationUtils.
                 createSynchronizationSituationDelta(repoShadow, SynchronizationSituationType.LINKED);
         syncSituationDeltas.add(syncSituationDelta);
 
@@ -497,7 +497,7 @@ public class ModifyTest extends BaseSQLRepoTest {
         repositoryService.addObject(account, null, result);
 
 //        XMLGregorianCalendar timestamp = XmlTypeConverter.createXMLGregorianCalendar(System.currentTimeMillis());
-        List<PropertyDelta<?>> syncSituationDeltas = SynchronizationSituationUtil.
+        List<PropertyDelta<?>> syncSituationDeltas = SynchronizationUtils.
                 createSynchronizationSituationAndDescriptionDelta(account, SynchronizationSituationType.LINKED, null, false);
 //        PropertyDelta<SynchronizationSituationType> syncSituationDelta = SynchronizationSituationUtil.
 //                createSynchronizationSituationDelta(account, SynchronizationSituationType.LINKED);
@@ -514,7 +514,7 @@ public class ModifyTest extends BaseSQLRepoTest {
 
 
 //        timestamp = XmlTypeConverter.createXMLGregorianCalendar(System.currentTimeMillis());
-        syncSituationDeltas = SynchronizationSituationUtil.createSynchronizationSituationAndDescriptionDelta(afterFirstModify, null, null, false);
+        syncSituationDeltas = SynchronizationUtils.createSynchronizationSituationAndDescriptionDelta(afterFirstModify, null, null, false);
 //        syncSituationDelta = SynchronizationSituationUtil.createSynchronizationSituationDelta(afterFirstModify, null);
 //        syncSituationDeltas.add(syncSituationDelta);
 

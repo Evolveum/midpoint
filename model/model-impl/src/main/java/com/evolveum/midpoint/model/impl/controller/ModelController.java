@@ -442,6 +442,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 				// Go directly to repository
 				AuditEventRecord auditRecord = new AuditEventRecord(AuditEventType.EXECUTE_CHANGES_RAW, AuditEventStage.REQUEST);
 				auditRecord.addDeltas(ObjectDeltaOperation.cloneDeltaCollection(deltas));
+				auditRecord.setTarget(Utils.determineAuditTarget(deltas));
 				// we don't know auxiliary information (resource, objectName) at this moment -- so we do nothing
 				auditService.audit(auditRecord, task);
 				try {
@@ -615,6 +616,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 		}
         return executedDeltas;
 	}
+
 
 	protected void cleanupOperationResult(OperationResult result) {
 		// Clockwork.run sets "in-progress" flag just at the root level
@@ -1691,7 +1693,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 			return objectQuery;
 		}
 	}
-
+	
 	//region Task-related operations
 
     @Override

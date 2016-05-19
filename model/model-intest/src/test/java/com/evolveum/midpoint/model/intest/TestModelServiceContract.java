@@ -53,6 +53,7 @@ import org.testng.annotations.Test;
 import org.w3c.dom.Element;
 
 import com.evolveum.icf.dummy.resource.DummyAccount;
+import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.common.StaticExpressionUtil;
 import com.evolveum.midpoint.common.monitor.InternalMonitor;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
@@ -796,7 +797,8 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         dummyAuditService.assertAnyRequestDeltas();
         dummyAuditService.assertExecutionDeltas(1);
         dummyAuditService.assertHasDelta(ChangeType.ADD, ShadowType.class);
-        dummyAuditService.assertTarget(accountShadow.getOid());
+        // We cannot have OID in the request. The OID is not assigned yet at that stage.
+        dummyAuditService.assertTarget(accountShadow.getOid(), AuditEventStage.EXECUTION);
         dummyAuditService.assertExecutionSuccess();
 
         // Check notifications
@@ -2544,8 +2546,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         dummyAuditService.assertAnyRequestDeltas();
         dummyAuditService.assertExecutionDeltas(1);
         dummyAuditService.assertHasDelta(ChangeType.MODIFY, UserType.class);
-        // raw operation, no target
-        // dummyAuditService.assertTarget(USER_JACK_OID); // MID-2451
+        dummyAuditService.assertTarget(USER_JACK_OID); // MID-2451
         dummyAuditService.assertExecutionSuccess();
         
         assertScriptCompileIncrement(0);

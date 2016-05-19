@@ -30,6 +30,7 @@ import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
@@ -311,18 +312,25 @@ public class DummyAuditService implements AuditService, DebugDumpable {
 		assertEquals("Wrong number of execution deltas in audit trail (index "+index+")", expectedNumber, getExecutionDeltas(index).size());
 	}
 
-	public void assertTarget(String expectedOid) {
-		Collection<PrismObject<? extends ObjectType>> targets = new ArrayList<PrismObject<? extends ObjectType>>();
+	public void assertTarget(String expectedOid, AuditEventStage stage) {
+		Collection<PrismReferenceValue> targets = new ArrayList<>();
 		for(AuditEventRecord record: records) {
-			PrismObject<? extends ObjectType> target = record.getTarget();
-			if (target != null && expectedOid.equals(target.getOid())) {
-				return;
-			}
-			if (target != null) {
-				targets.add(target);
+			PrismReferenceValue target = record.getTarget();
+			if (stage == null || stage == record.getEventStage()) {
+				if (target != null && expectedOid.equals(target.getOid())) {
+					return;
+				}
+				if (target != null) {
+					targets.add(target);
+				}				
 			}
 		}
-		assert false : "Target "+expectedOid+" not found in audit records; found "+targets;
+		assert false : "Target "+expectedOid+" not found in audit records (stage="+stage+"); found "+targets;
+	}
+	
+	public void assertTarget(String expectedOid) {
+		assertTarget(expectedOid, AuditEventStage.REQUEST);
+		assertTarget(expectedOid, AuditEventStage.EXECUTION);
 	}
 	
 	public <O extends ObjectType,T> void assertOldValue(ChangeType expectedChangeType, Class<O> expectedClass, QName attrName, T expectedValue) {

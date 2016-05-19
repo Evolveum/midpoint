@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,6 +30,7 @@ import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.common.LoggingConfigurationManager;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
 import com.evolveum.midpoint.task.api.Task;
@@ -86,7 +87,7 @@ public class LoggerAuditServiceImpl implements AuditService {
 				", toid=" + record.getTaskOID() + 
 				", hid=" + record.getHostIdentifier() +
 				", I=" + formatObject(record.getInitiator()) +
-				", T=" + formatObject(record.getTarget()) + 
+				", T=" + formatReference(record.getTarget()) + 
 				", TO=" + formatObject(record.getTargetOwner()) + 
 				", D=" + formatDeltaSummary(record.getDeltas()) + 
 				", ch=" + record.getChannel() +
@@ -129,11 +130,14 @@ public class LoggerAuditServiceImpl implements AuditService {
 		return object.asObjectable().toDebugType()+":"+object.getOid()+"("+object.getElementName()+")";
 	}
 
-	private static String formatUser(UserType user) {
-		if (user == null) {
-			return "null";
+	private String formatReference(PrismReferenceValue refVal) {
+    	if (refVal == null) {
+    		return "null";
+    	}
+		if (refVal.getObject() != null) {
+			return formatObject(refVal.getObject());
 		}
-		return user.getOid()+"("+user.getName()+")";
+		return refVal.toString();
 	}
 
 	private String formatDeltaSummary(Collection<ObjectDeltaOperation<? extends ObjectType>> collection) {
