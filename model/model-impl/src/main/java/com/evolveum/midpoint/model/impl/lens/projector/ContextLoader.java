@@ -1161,7 +1161,14 @@ public class ContextLoader {
 							FocusType focusType = (FocusType) focusCurrent.asObjectable();
 							for (ObjectReferenceType linkRef: focusType.getLinkRef()) {
 								if (linkRef.getOid().equals(projCtx.getOid())) {
-									throw new SystemException("Internal error: the old OID "+projCtx.getOid()+" still exists in the linkRef ("+focusCurrent+")");
+									// The deleted shadow is still in the linkRef. This should not happen, but it obviously happens sometimes.
+									// Maybe some strange race condition? Anyway, we want a robust behavior and this linkeRef should NOT be there.
+									// So simple remove it.
+									LOGGER.warn("The OID "+projCtx.getOid()+" of deleted shadow still exists in the linkRef after discovery ("+focusCurrent+"), removing it");
+									ReferenceDelta unlinkDelta = ReferenceDelta.createModificationDelete(
+							        		FocusType.F_LINK_REF, focusContext.getObjectDefinition(), linkRef.asReferenceValue().clone());
+									focusContext.swallowToSecondaryDelta(unlinkDelta);
+									continue;
 								}
 								boolean found = false;
 								for (LensProjectionContext pCtx: context.getProjectionContexts()) {
