@@ -126,6 +126,7 @@ public class WorkItemsPanel extends BasePanel {
 		}
 
         BoxedTablePanel<WorkItemDto> workItemsTable = new BoxedTablePanel<>(ID_WORK_ITEMS_TABLE, provider, columns, tableId, pageSize);
+		workItemsTable.setAdditionalBoxCssClasses("without-box-header-top-border");
         add(workItemsTable);
     }
 
