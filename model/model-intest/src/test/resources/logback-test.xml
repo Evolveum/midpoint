@@ -33,8 +33,11 @@
 	<logger name="com.evolveum.midpoint.model.impl.sync.SynchronizeAccountResultHandler" level="DEBUG" />
 	<logger name="com.evolveum.midpoint.provisioning.impl.ChangeNotificationDispatcherImpl" level="DEBUG" />
 	<logger name="com.evolveum.midpoint.test" level="TRACE" />
-	<logger name="com.evolveum.midpoint.task.quartzimpl.execution.JobExecutor" level="DEBUG" />
 	<logger name="com.evolveum.midpoint.model.common.Clock" level="DEBUG" />
+	
+	<!-- Temporary, to hunt down MID-3036 -->
+	<logger name="com.evolveum.midpoint.task" level="TRACE" />
+	<logger name="com.evolveum.midpoint.task.quartzimpl.execution.JobExecutor" level="TRACE" /> <!-- should be DEBUG -->
 		
 	<logger name="PROFILING" level="OFF" />
 	<logger name="com.evolveum.midpoint.audit.log" level="TRACE" />
