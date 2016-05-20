@@ -724,8 +724,229 @@ It also contains inbound mappings and definition to enable synchronization.
 	                <situation>unmatched</situation>
 	            </reaction>
 			</objectSynchronization>
-        </synchronization>
 
+        	<objectSynchronization>
+                    <objectClass>ri:organizationalUnit</objectClass>
+                    <kind>generic</kind>
+                    <intent>ou-customer</intent>
+                    <focusType>c:OrgType</focusType>
+	            <enabled>true</enabled>
+	
+                    <condition>
+                        <script>
+                            <code>
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.*
+tmpSuffix = '(?i)^ou=.*,ou=customers,dc=example,dc=com$'
+re = ~tmpSuffix
+basic.getAttributeValue(shadow, 'http://midpoint.evolveum.com/xml/ns/public/resource/instance-3', 'dn') ==~ re
+                           </code>
+                        </script>
+                </condition>
+                <correlation>
+                    <q:equal>
+                        <q:matching>polyStringNorm</q:matching>
+                        <q:path>c:name</q:path>
+                        <expression>
+                            <path>
+				declare namespace ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3";
+				$shadow/attributes/ri:ou
+                            </path>
+                        </expression>
+                    </q:equal>
+                </correlation>
+	        <reaction>
+	            <situation>linked</situation>
+	            <synchronize>true</synchronize>
+	        </reaction>
+	        <reaction>
+	            <situation>deleted</situation>
+	            <synchronize>true</synchronize>
+		        <action>
+		       	    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#unlink</handlerUri>
+		        </action>
+	        </reaction>
+	
+	        <reaction>
+	            <situation>unlinked</situation>
+	            <synchronize>true</synchronize>
+		        <action>
+		          <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#link</handlerUri>
+		        </action>
+	        </reaction>
+	        <reaction>
+	            <situation>unmatched</situation>
+	        </reaction>
+	    </objectSynchronization>
+
+        	<objectSynchronization>
+                    <objectClass>ri:groupOfNames</objectClass>
+                    <kind>entitlement</kind>
+                    <intent>group-org-poweruser</intent>
+                    <focusType>c:OrgType</focusType>
+	            <enabled>true</enabled>
+	
+                    <condition>
+                        <script>
+                            <code>
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.*
+tmpSuffix = '(?i)^cn=.*-powerusers,ou=.*,ou=customers,dc=example,dc=com$'
+re = ~tmpSuffix
+basic.getAttributeValue(shadow, 'http://midpoint.evolveum.com/xml/ns/public/resource/instance-3', 'dn') ==~ re
+                           </code>
+                        </script>
+                </condition>
+                <correlation>
+                    <q:equal>
+                        <q:matching>polyStringNorm</q:matching>
+                        <q:path>c:name</q:path>
+                        <expression>
+                            <script>
+                                <code>
+				tmpCn = basic.getAttributeValue(shadow, 'http://midpoint.evolveum.com/xml/ns/public/resource/instance-3', 'cn')
+				re = /(?i)^(.*)-powerusers$/
+				matcher = (tmpCn =~ re)
+				if (matcher.matches()) return matcher[0][1]
+                                </code>
+                            </script>
+                        </expression>
+                    </q:equal>
+                </correlation>
+	        <reaction>
+	            <situation>linked</situation>
+	            <synchronize>true</synchronize>
+	        </reaction>
+	        <reaction>
+	            <situation>deleted</situation>
+	            <synchronize>true</synchronize>
+		        <action>
+		       	    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#unlink</handlerUri>
+		        </action>
+	        </reaction>
+	
+	        <reaction>
+	            <situation>unlinked</situation>
+	            <synchronize>true</synchronize>
+		        <action>
+		          <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#link</handlerUri>
+		        </action>
+	        </reaction>
+	        <reaction>
+	            <situation>unmatched</situation>
+	        </reaction>
+	    </objectSynchronization>
+        	<objectSynchronization>
+                    <objectClass>ri:groupOfNames</objectClass>
+                    <kind>entitlement</kind>
+                    <intent>group-org-user</intent>
+                    <focusType>c:OrgType</focusType>
+	            <enabled>true</enabled>
+	
+                    <condition>
+                        <script>
+                            <code>
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.*
+tmpSuffix = '(?i)^cn=.*-users,ou=.*,ou=customers,dc=example,dc=com$'
+re = ~tmpSuffix
+basic.getAttributeValue(shadow, 'http://midpoint.evolveum.com/xml/ns/public/resource/instance-3', 'dn') ==~ re
+                           </code>
+                        </script>
+                </condition>
+                <correlation>
+                    <q:equal>
+                        <q:matching>polyStringNorm</q:matching>
+                        <q:path>c:name</q:path>
+                        <expression>
+                            <script>
+                                <code>
+				tmpCn = basic.getAttributeValue(shadow, 'http://midpoint.evolveum.com/xml/ns/public/resource/instance-3', 'cn')
+				re = /(?i)^(.*)-users$/
+				matcher = (tmpCn =~ re)
+				if (matcher.matches()) return matcher[0][1]
+                                </code>
+                            </script>
+                        </expression>
+                    </q:equal>
+                </correlation>
+	        <reaction>
+	            <situation>linked</situation>
+	            <synchronize>true</synchronize>
+	        </reaction>
+	        <reaction>
+	            <situation>deleted</situation>
+	            <synchronize>true</synchronize>
+		        <action>
+		       	    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#unlink</handlerUri>
+		        </action>
+	        </reaction>
+	
+	        <reaction>
+	            <situation>unlinked</situation>
+	            <synchronize>true</synchronize>
+		        <action>
+		          <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#link</handlerUri>
+		        </action>
+	        </reaction>
+	        <reaction>
+	            <situation>unmatched</situation>
+	        </reaction>
+	    </objectSynchronization>
+        	<objectSynchronization>
+                    <objectClass>ri:groupOfNames</objectClass>
+                    <kind>entitlement</kind>
+                    <intent>group-org-admin</intent>
+                    <focusType>c:OrgType</focusType>
+	            <enabled>true</enabled>
+	
+                    <condition>
+                        <script>
+                            <code>
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.*
+tmpSuffix = '(?i)^cn=.*-admins,ou=.*,ou=customers,dc=example,dc=com$'
+re = ~tmpSuffix
+basic.getAttributeValue(shadow, 'http://midpoint.evolveum.com/xml/ns/public/resource/instance-3', 'dn') ==~ re
+                           </code>
+                        </script>
+                </condition>
+                <correlation>
+                    <q:equal>
+                        <q:matching>polyStringNorm</q:matching>
+                        <q:path>c:name</q:path>
+                        <expression>
+                            <script>
+                                <code>
+				tmpCn = basic.getAttributeValue(shadow, 'http://midpoint.evolveum.com/xml/ns/public/resource/instance-3', 'cn')
+				re = /(?i)^(.*)-admins$/
+				matcher = (tmpCn =~ re)
+				if (matcher.matches()) return matcher[0][1]
+                                </code>
+                            </script>
+                        </expression>
+                    </q:equal>
+                </correlation>
+	        <reaction>
+	            <situation>linked</situation>
+	            <synchronize>true</synchronize>
+	        </reaction>
+	        <reaction>
+	            <situation>deleted</situation>
+	            <synchronize>true</synchronize>
+		        <action>
+		       	    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#unlink</handlerUri>
+		        </action>
+	        </reaction>
+	
+	        <reaction>
+	            <situation>unlinked</situation>
+	            <synchronize>true</synchronize>
+		        <action>
+		          <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#link</handlerUri>
+		        </action>
+	        </reaction>
+	        <reaction>
+	            <situation>unmatched</situation>
+	        </reaction>
+	    </objectSynchronization>
+        </synchronization>
     </resource>
 
 </objects>
