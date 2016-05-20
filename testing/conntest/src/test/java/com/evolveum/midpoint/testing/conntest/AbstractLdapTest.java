@@ -466,7 +466,14 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
 		result.computeStatus();
 		TestUtil.assertSuccess(result);
 		
-		assertEquals("Unexpected number of accounts", expectedSize, foundObjects.size());
+		if (expectedSize != foundObjects.size()) {
+			if (foundObjects.size() < 10) {
+				display("Found objects", foundObjects);
+				AssertJUnit.fail("Unexpected number of accounts. Expected "+expectedSize+", found "+foundObjects.size()+": "+foundObjects);
+			} else {
+				AssertJUnit.fail("Unexpected number of accounts. Expected "+expectedSize+", found "+foundObjects.size()+" (too many to display)");
+			}
+		}
 		
 		SearchResultList<PrismObject<ShadowType>> resultList = new SearchResultList<>(foundObjects, searchResultMetadata);
 		
