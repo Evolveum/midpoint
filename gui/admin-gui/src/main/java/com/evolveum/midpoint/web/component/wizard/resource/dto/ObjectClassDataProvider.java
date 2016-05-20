@@ -16,10 +16,12 @@
 
 package com.evolveum.midpoint.web.component.wizard.resource.dto;
 
+import com.evolveum.midpoint.gui.api.model.NonEmptyModel;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.markup.repeater.data.IDataProvider;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -30,21 +32,20 @@ import java.util.List;
  */
 public class ObjectClassDataProvider implements IDataProvider<ObjectClassDto> {
 
-    private IModel<List<ObjectClassDto>> allClasses;
-    private List<ObjectClassDto> filteredClasses;
+    @NotNull private final NonEmptyModel<List<ObjectClassDto>> allClasses;
+    private String filter;
 
-    public ObjectClassDataProvider(IModel<List<ObjectClassDto>> allClasses) {
-        setAllClasses(allClasses);
+    public ObjectClassDataProvider(@NotNull NonEmptyModel<List<ObjectClassDto>> allClasses) {
+		this.allClasses = allClasses;
     }
 
     @Override
     public Iterator<? extends ObjectClassDto> iterator(long first, long count) {
         List<ObjectClassDto> data = new ArrayList<>();
-
-        for (int i = (int) first; i < getFilteredClasses().size() && i < first + count; i++) {
-            data.add(getFilteredClasses().get(i));
+		List<ObjectClassDto> filteredClasses = getFilteredClasses();
+		for (int i = (int) first; i < filteredClasses.size() && i < first + count; i++) {
+            data.add(filteredClasses.get(i));
         }
-
         return data.iterator();
     }
 
@@ -55,57 +56,41 @@ public class ObjectClassDataProvider implements IDataProvider<ObjectClassDto> {
 
     @Override
     public IModel<ObjectClassDto> model(ObjectClassDto object) {
-        return new Model(object);
+        return new Model<>(object);
     }
 
-    public void setAllClasses(IModel<List<ObjectClassDto>> allClasses) {
-        this.allClasses = allClasses;
-    }
-
+	// not cached because of data staleness issues (when source model(s) get reset)
     private List<ObjectClassDto> getFilteredClasses() {
-        if (filteredClasses == null) {
-            filterClasses(null);
+		if (StringUtils.isEmpty(filter)) {
+            return allClasses.getObject();
         }
-        return filteredClasses;
-    }
-
-    private List<ObjectClassDto> getAllClasses() {
-        List<ObjectClassDto> list = allClasses.getObject();
-        if (list == null) {
-            return new ArrayList<>();
-        }
-        return list;
-    }
-
-    public void filterClasses(String value) {
-        if (filteredClasses == null) {
-            filteredClasses = new ArrayList<>();
-        }
-
-        filteredClasses.clear();
-
-        if (StringUtils.isEmpty(value)) {
-            filteredClasses.addAll(getAllClasses());
-            return;
-        }
-
-        for (ObjectClassDto dto : getAllClasses()) {
-            if (StringUtils.containsIgnoreCase(dto.getName(), value)) {
-                filteredClasses.add(dto);
+		List<ObjectClassDto> rv = new ArrayList<>();
+		for (ObjectClassDto dto : allClasses.getObject()) {
+            if (StringUtils.containsIgnoreCase(dto.getDisplayName(), filter)) {
+                rv.add(dto);
             }
         }
+		return rv;
     }
 
     @Override
     public void detach() {
     }
 
-	public boolean isDisplayed(String name) {
-		for (ObjectClassDto objectClass : getFilteredClasses()) {
-			if (objectClass.getName().equals(name)) {
-				return true;
-			}
-		}
-		return false;
+//	public boolean isDisplayed(String name) {
+//		for (ObjectClassDto objectClass : getFilteredClasses()) {
+//			if (objectClass.getDisplayName().equals(name)) {
+//				return true;
+//			}
+//		}
+//		return false;
+//	}
+
+	public void setFilter(String filter) {
+		this.filter = filter;
+	}
+
+	public String getFilter() {
+		return filter;
 	}
 }

@@ -42,6 +42,8 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * @author lazyman
@@ -112,9 +114,9 @@ public class WizardStep extends org.apache.wicket.extensions.wizard.WizardStep {
         return StringUtils.join(components, ":");
     }
 
+	@NotNull
     protected List<QName> loadResourceObjectClassList(IModel<PrismObject<ResourceType>> model, Trace LOGGER, String message){
         List<QName> list = new ArrayList<>();
-
         try {
             ResourceSchema schema = RefinedResourceSchema.getResourceSchema(model.getObject(), getPageBase().getPrismContext());
             if (schema != null) {
@@ -126,7 +128,6 @@ public class WizardStep extends org.apache.wicket.extensions.wizard.WizardStep {
             LoggingUtils.logUnexpectedException(LOGGER, message, e);
             error(message + " " + e.getMessage());
         }
-
         return list;
     }
 

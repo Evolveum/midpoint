@@ -17,38 +17,39 @@
 package com.evolveum.midpoint.web.component.wizard.resource.dto;
 
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
-import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.web.component.util.Selectable;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
+import org.jetbrains.annotations.NotNull;
 
-import java.io.Serializable;
+import javax.xml.namespace.QName;
 
 /**
  * @author lazyman
  */
 public class ObjectClassDto extends Selectable implements Comparable<ObjectClassDto> {
 
-    public static final String F_NAME = "name";
+    public static final String F_DISPLAY_NAME = "displayName";
 
-    private RefinedObjectClassDefinition refinedDefinition;
+    @NotNull private final RefinedObjectClassDefinition refinedDefinition;
 
-    public ObjectClassDto(RefinedObjectClassDefinition definition){
+    public ObjectClassDto(@NotNull RefinedObjectClassDefinition definition){
         Validate.notNull(definition, "Refined object class definition must not be null.");
         this.refinedDefinition = definition;
     }
 
-    public String getName() {
+	public QName getObjectClassName() {
+		return refinedDefinition.getTypeName();
+	}
+
+    public String getDisplayName() {
         StringBuilder builder = new StringBuilder();
-        if (StringUtils.isNotEmpty(refinedDefinition.getDisplayName())) {
-            builder.append(refinedDefinition.getDisplayName());
-            builder.append(", ");
+		if (refinedDefinition.getTypeName() != null) {
+			builder.append(refinedDefinition.getTypeName().getLocalPart());
+		}
+		if (StringUtils.isNotEmpty(refinedDefinition.getDisplayName())) {
+			builder.append(" (").append(refinedDefinition.getDisplayName()).append(")");
         }
-
-        if (refinedDefinition.getTypeName() != null) {
-            builder.append(refinedDefinition.getTypeName().getLocalPart());
-        }
-
         return builder.toString().trim();
     }
 
@@ -57,12 +58,8 @@ public class ObjectClassDto extends Selectable implements Comparable<ObjectClass
     }
 
     @Override
-    public int compareTo(ObjectClassDto o) {
-        if (o == null) {
-            return 0;
-        }
-
-        return String.CASE_INSENSITIVE_ORDER.compare(getName(), o.getName());
+    public int compareTo(@NotNull ObjectClassDto o) {
+        return String.CASE_INSENSITIVE_ORDER.compare(getDisplayName(), o.getDisplayName());
     }
 
     @Override

@@ -31,7 +31,7 @@ import org.jetbrains.annotations.NotNull;
  *
  * @author mederly
  */
-public abstract class NonEmptyLoadableModel<T> extends LoadableModel<T> {
+public abstract class NonEmptyLoadableModel<T> extends LoadableModel<T> implements NonEmptyModel<T> {
 
 	public NonEmptyLoadableModel(boolean alwaysReload) {
 		super(alwaysReload);

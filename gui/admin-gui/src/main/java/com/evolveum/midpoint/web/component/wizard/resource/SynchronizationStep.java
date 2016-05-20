@@ -633,9 +633,7 @@ public class SynchronizationStep extends WizardStep {
             if (oldResource != null) {
                 ObjectDelta<ResourceType> delta = parentPage.computeDiff(oldResource, newResource);
 				if (!delta.isEmpty()) {
-					//                if(LOGGER.isTraceEnabled()){
-					LOGGER.info(delta.debugDump());
-					//                }
+					parentPage.logDelta(delta);
 					Collection<ObjectDelta<? extends ObjectType>> deltas = WebComponentUtil.createDeltaCollection(delta);
 					modelService.executeChanges(deltas, null, getPageBase().createSimpleTask(OPERATION_SAVE_SYNC), result);
 					parentPage.resetModels();
@@ -715,6 +713,7 @@ public class SynchronizationStep extends WizardStep {
 
 	private void addSyncObjectPerformed(AjaxRequestTarget target){
         ObjectSynchronizationType syncObject = new ObjectSynchronizationType();
+		syncObject.setEnabled(true);
         syncObject.setName(getString("SynchronizationStep.label.newObjectType"));
 
         syncDtoModel.getObject().setSelected(syncObject);

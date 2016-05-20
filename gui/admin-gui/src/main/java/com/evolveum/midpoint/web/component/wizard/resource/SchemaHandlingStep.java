@@ -139,7 +139,13 @@ public class SchemaHandlingStep extends WizardStep {
             protected SchemaHandlingDto load() {
                 return loadSchemaHandlingDto();
             }
-        };
+
+			@Override
+			public void reset() {
+				LOGGER.info("Resetting schemaHandlingDtoModel {}", schemaHandlingDtoModel);
+				super.reset();
+			}
+		};
 		parentPage.registerDependentModel(schemaHandlingDtoModel);
 
         initLayout();
@@ -148,23 +154,23 @@ public class SchemaHandlingStep extends WizardStep {
 
     private SchemaHandlingDto loadSchemaHandlingDto() {
 
-        List<ResourceObjectTypeDefinitionTypeDto> list = new ArrayList<>();
+        List<ResourceObjectTypeDefinitionTypeDto> objectTypeDefs = new ArrayList<>();
 		SchemaHandlingType schemaHandling = getOrCreateSchemaHandling();
 		for (ResourceObjectTypeDefinitionType objectType: schemaHandling.getObjectType()) {
-			list.add(new ResourceObjectTypeDefinitionTypeDto(objectType));
+			objectTypeDefs.add(new ResourceObjectTypeDefinitionTypeDto(objectType));
 		}
-		SchemaHandlingDto dto = new SchemaHandlingDto(list);
-		dto.setObjectClassList(loadResourceObjectClassList(resourceModel, LOGGER, getString("SchemaHandlingStep.message.errorLoadingObjectTypeList")));
-        return dto;
+		List<QName> objectClasses = loadResourceObjectClassList(resourceModel, LOGGER,
+				getString("SchemaHandlingStep.message.errorLoadingObjectTypeList"));
+		return new SchemaHandlingDto(objectTypeDefs, objectClasses);
     }
 
     private boolean isAnySelected() {
-		return schemaHandlingDtoModel.getObject().getSelected() != null;
+		return schemaHandlingDtoModel.getObject().getSelectedObjectTypeDto() != null;
     }
 
     private void initLayout() {
         final ListDataProvider<ResourceObjectTypeDefinitionTypeDto> objectTypeProvider = new ListDataProvider<>(this,
-                new PropertyModel<List<ResourceObjectTypeDefinitionTypeDto>>(schemaHandlingDtoModel, SchemaHandlingDto.F_OBJECT_TYPES));
+                new PropertyModel<List<ResourceObjectTypeDefinitionTypeDto>>(schemaHandlingDtoModel, SchemaHandlingDto.F_OBJECT_TYPE_DTO_LIST));
 
         // first row - object types table
         WebMarkupContainer objectTypesTable = new WebMarkupContainer(ID_ROWS);
@@ -280,7 +286,7 @@ public class SchemaHandlingStep extends WizardStep {
         Label editorLabel = new Label(ID_EDITOR_NAME, new AbstractReadOnlyModel<Object>() {
             @Override
             public String getObject() {
-				ResourceObjectTypeDefinitionTypeDto selected = schemaHandlingDtoModel.getObject().getSelected();
+				ResourceObjectTypeDefinitionTypeDto selected = schemaHandlingDtoModel.getObject().getSelectedObjectTypeDto();
 				return selected != null ? selected.getObjectType().getDisplayName() : "";
             }
         });
@@ -316,9 +322,9 @@ public class SchemaHandlingStep extends WizardStep {
                 Boolean newValue = editorDefault.getModelObject();
                 if (Boolean.TRUE.equals(newValue)) {
                     SchemaHandlingDto dto = schemaHandlingDtoModel.getObject();
-                    ResourceObjectTypeDefinitionTypeDto selected = dto.getSelected();
+                    ResourceObjectTypeDefinitionTypeDto selected = dto.getSelectedObjectTypeDto();
                     ShadowKindType selectedKind = selected.getObjectType().getKind();
-                    for (ResourceObjectTypeDefinitionTypeDto currentObjectTypeDto : dto.getObjectTypeList()) {
+                    for (ResourceObjectTypeDefinitionTypeDto currentObjectTypeDto : dto.getObjectTypeDtoList()) {
                         ShadowKindType currentKind = currentObjectTypeDto.getObjectType().getKind();
                         if (currentObjectTypeDto != selected && currentKind == selectedKind
                                 && Boolean.TRUE.equals(currentObjectTypeDto.getObjectType().isDefault())) {
@@ -578,7 +584,7 @@ public class SchemaHandlingStep extends WizardStep {
 
 	@NotNull
 	private String getExpression(QName property) {
-		return SchemaHandlingDto.F_SELECTED + ".objectType." + property.getLocalPart();
+		return SchemaHandlingDto.F_SELECTED_OBJECT_TYPE_DTO + ".objectType." + property.getLocalPart();
 	}
 
 	private Iterator<String> getObjectClassChoices(String input) {
@@ -641,7 +647,7 @@ public class SchemaHandlingStep extends WizardStep {
     }
 
     private void resetSelected(){
-        schemaHandlingDtoModel.getObject().setSelected(null);
+        schemaHandlingDtoModel.getObject().setSelectedObjectTypeDto(null);
     }
 
     private void insertEmptyThirdRow(){
@@ -694,9 +700,9 @@ public class SchemaHandlingStep extends WizardStep {
     }
 
     private void editAttributePerformed(AjaxRequestTarget target, final ResourceAttributeDefinitionType object){
-        if(schemaHandlingDtoModel.getObject().getSelected() != null && schemaHandlingDtoModel.getObject().getSelected().getObjectType().getObjectClass() != null){
+        if(schemaHandlingDtoModel.getObject().getSelectedObjectTypeDto() != null && schemaHandlingDtoModel.getObject().getSelectedObjectTypeDto().getObjectType().getObjectClass() != null){
             WebMarkupContainer newContainer = new ResourceAttributeEditor(ID_THIRD_ROW_CONTAINER, new Model<>(object),
-                    schemaHandlingDtoModel.getObject().getSelected().getObjectType(), resourceModel.getObject());
+                    schemaHandlingDtoModel.getObject().getSelectedObjectTypeDto().getObjectType(), resourceModel.getObject());
             getThirdRowContainer().replaceWith(newContainer);
 
             target.add(getThirdRowContainer(), get(ID_OBJECT_TYPE_EDITOR));
@@ -708,9 +714,9 @@ public class SchemaHandlingStep extends WizardStep {
     }
 
     private void editAssociationPerformed(AjaxRequestTarget target, ResourceObjectAssociationType object){
-        if(schemaHandlingDtoModel.getObject().getSelected() != null && schemaHandlingDtoModel.getObject().getSelected().getObjectType().getObjectClass() != null){
+        if(schemaHandlingDtoModel.getObject().getSelectedObjectTypeDto() != null && schemaHandlingDtoModel.getObject().getSelectedObjectTypeDto().getObjectType().getObjectClass() != null){
             WebMarkupContainer newContainer = new ResourceAssociationEditor(ID_THIRD_ROW_CONTAINER, new Model<>(object),
-                    schemaHandlingDtoModel.getObject().getSelected().getObjectType(), resourceModel.getObject());
+                    schemaHandlingDtoModel.getObject().getSelectedObjectTypeDto().getObjectType(), resourceModel.getObject());
             getThirdRowContainer().replaceWith(newContainer);
 
             target.add(getThirdRowContainer(), get(ID_OBJECT_TYPE_EDITOR), parentPage.getFeedbackPanel());
@@ -746,9 +752,7 @@ public class SchemaHandlingStep extends WizardStep {
 
 			delta = parentPage.computeDiff(oldResource, newResource);
 			if (!delta.isEmpty()) {
-				//                if(LOGGER.isTraceEnabled()){
-				LOGGER.info("Applying delta:\n{}", delta.debugDump());
-				//                }
+				parentPage.logDelta(delta);
 				Collection<ObjectDelta<? extends ObjectType>> deltas = WebComponentUtil.createDeltaCollection(delta);
 				modelService.executeChanges(deltas, null, parentPage.createSimpleTask(OPERATION_SAVE_SCHEMA_HANDLING), result);
 				parentPage.resetModels();
@@ -768,7 +772,7 @@ public class SchemaHandlingStep extends WizardStep {
 
     private void editObjectTypePerformed(AjaxRequestTarget target, ResourceObjectTypeDefinitionTypeDto objectType){
 		boolean wasAnySelected = isAnySelected();
-        schemaHandlingDtoModel.getObject().setSelected(objectType);
+        schemaHandlingDtoModel.getObject().setSelectedObjectTypeDto(objectType);
         insertEmptyThirdRow();
 		if (wasAnySelected) {
 			target.add(getObjectListTable(), getNavigator(), getObjectTypeEditor(), getThirdRowContainer());
@@ -781,7 +785,7 @@ public class SchemaHandlingStep extends WizardStep {
 		ResourceObjectTypeDefinitionType realObjectType = objectType.getObjectType();
 		resourceModel.getObject().asObjectable().getSchemaHandling().getObjectType().remove(realObjectType);
 
-        ArrayList<ResourceObjectTypeDefinitionTypeDto> list = (ArrayList<ResourceObjectTypeDefinitionTypeDto>) schemaHandlingDtoModel.getObject().getObjectTypeList();
+        ArrayList<ResourceObjectTypeDefinitionTypeDto> list = (ArrayList<ResourceObjectTypeDefinitionTypeDto>) schemaHandlingDtoModel.getObject().getObjectTypeDtoList();
         list.remove(objectType);
 
         if (isSelected(objectType)) {
@@ -798,7 +802,7 @@ public class SchemaHandlingStep extends WizardStep {
     }
 
 	private boolean isSelected(@NotNull ResourceObjectTypeDefinitionTypeDto objectType) {
-		return schemaHandlingDtoModel.getObject().getSelected() == objectType;
+		return schemaHandlingDtoModel.getObject().getSelectedObjectTypeDto() == objectType;
 	}
 
 	private void addObjectTypePerformed(AjaxRequestTarget target){
@@ -806,13 +810,13 @@ public class SchemaHandlingStep extends WizardStep {
         objectType.setDisplayName(getString("SchemaHandlingStep.label.newObjectType"));
         ResourceObjectTypeDefinitionTypeDto dto = new ResourceObjectTypeDefinitionTypeDto(objectType);
 
-        if (schemaHandlingDtoModel.getObject().getObjectTypeList().isEmpty()){
+        if (schemaHandlingDtoModel.getObject().getObjectTypeDtoList().isEmpty()){
             objectType.setDefault(true);
         }
 
         resetSelected();
-        schemaHandlingDtoModel.getObject().setSelected(dto);
-        schemaHandlingDtoModel.getObject().getObjectTypeList().add(dto);
+        schemaHandlingDtoModel.getObject().setSelectedObjectTypeDto(dto);
+        schemaHandlingDtoModel.getObject().getObjectTypeDtoList().add(dto);
 		getOrCreateSchemaHandling().getObjectType().add(objectType);
         insertEmptyThirdRow();
         //target.add(getObjectListTable(), getNavigator(), getObjectTypeEditor(), getThirdRowContainer());
