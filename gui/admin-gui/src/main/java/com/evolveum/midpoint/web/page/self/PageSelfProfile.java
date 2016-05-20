@@ -52,11 +52,7 @@ public class PageSelfProfile extends PageUser {
 	protected String getObjectOidParameter() {
 		return WebModelServiceUtils.getLoggedInUserOid();
 	}
-	
-	@Override
-	public PageBase getDefaultBackPage() {
-		return new PageSelfProfile();
-	}
+
 //
 //	@Override
 //	protected ExecuteChangeOptionsPanel initOptions(final Form mainForm) {
