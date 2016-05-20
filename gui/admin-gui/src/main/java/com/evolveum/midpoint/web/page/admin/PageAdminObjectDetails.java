@@ -624,8 +624,6 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 		
 	}
 	
-	public abstract PageBase getDefaultBackPage();
-	
 	public List<ObjectFormType> getObjectFormTypes() {
 		Task task = createSimpleTask(OPERATION_LOAD_GUI_CONFIGURATION);
 		OperationResult result = task.getResult();
