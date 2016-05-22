@@ -170,9 +170,13 @@ public class PageSelfDashboard extends PageSelf {
 		application = getApplication();
 		final Session session = Session.get();
 
-		AsyncDashboardPanel<Object, List<WorkItemDto>> workItemsPanel =
-                new AsyncDashboardPanel<Object, List<WorkItemDto>>(ID_WORK_ITEMS_PANEL, createStringResource("PageSelfDashboard.workItems"),
-                        GuiStyleConstants.CLASS_OBJECT_WORK_ITEM_ICON, GuiStyleConstants.CLASS_OBJECT_WORK_ITEM_BOX_CSS_CLASSES) {
+		AsyncDashboardPanel<Object, List<WorkItemDto>> workItemsPanel = new AsyncDashboardPanel<Object, List<WorkItemDto>>(
+                ID_WORK_ITEMS_PANEL,
+                createStringResource("PageSelfDashboard.workItems"),
+                GuiStyleConstants.CLASS_OBJECT_WORK_ITEM_ICON,
+                GuiStyleConstants.CLASS_OBJECT_WORK_ITEM_BOX_CSS_CLASSES,
+                true) {
+
 					private static final long serialVersionUID = 1L;
 
 					@Override
@@ -181,6 +185,7 @@ public class PageSelfDashboard extends PageSelf {
 
                         return new SecurityContextAwareCallable<CallableResult<List<WorkItemDto>>>(
                                 getSecurityEnforcer(), auth) {
+
                         	private static final long serialVersionUID = 1L;
 
                             @Override
@@ -193,7 +198,8 @@ public class PageSelfDashboard extends PageSelf {
 
                     @Override
                     protected Component getMainComponent(String markupId) {
-						ISortableDataProvider provider = new ListDataProvider(this, new PropertyModel<List<WorkItemDto>>(getModel(), CallableResult.F_VALUE));
+						ISortableDataProvider provider = new ListDataProvider(this,
+                                new PropertyModel<List<WorkItemDto>>(getModel(), CallableResult.F_VALUE));
 						return new WorkItemsPanel(markupId, provider, null, 10, WorkItemsPanel.View.DASHBOARD);
                     }
                 };
@@ -207,8 +213,11 @@ public class PageSelfDashboard extends PageSelf {
         add(workItemsPanel);
 
         AsyncDashboardPanel<Object, List<ProcessInstanceDto>> myRequestsPanel =
-                new AsyncDashboardPanel<Object, List<ProcessInstanceDto>>(ID_REQUESTS_PANEL, createStringResource("PageSelfDashboard.myRequests"),
-                		 GuiStyleConstants.CLASS_SHADOW_ICON_REQUEST, GuiStyleConstants.CLASS_OBJECT_SERVICE_BOX_CSS_CLASSES) {
+                new AsyncDashboardPanel<Object, List<ProcessInstanceDto>>(ID_REQUESTS_PANEL,
+                        createStringResource("PageSelfDashboard.myRequests"),
+                		 GuiStyleConstants.CLASS_SHADOW_ICON_REQUEST,
+                        GuiStyleConstants.CLASS_OBJECT_SERVICE_BOX_CSS_CLASSES, true) {
+
         			private static final long serialVersionUID = 1L;
 
                     @Override
@@ -229,7 +238,8 @@ public class PageSelfDashboard extends PageSelf {
 
                     @Override
                     protected Component getMainComponent(String markupId) {
-						ISortableDataProvider provider = new ListDataProvider(this, new PropertyModel<List<ProcessInstanceDto>>(getModel(), CallableResult.F_VALUE));
+						ISortableDataProvider provider = new ListDataProvider(this,
+                                new PropertyModel<List<ProcessInstanceDto>>(getModel(), CallableResult.F_VALUE));
                         return new ProcessInstancesPanel(markupId, provider, null, 10, ProcessInstancesPanel.View.DASHBOARD, null);
                     }
                 };
@@ -342,9 +352,12 @@ public class PageSelfDashboard extends PageSelf {
     }
     
     private void initMyAccounts() {
-        AsyncDashboardPanel<Object, List<SimpleAccountDto>> accounts =
-                new AsyncDashboardPanel<Object, List<SimpleAccountDto>>(ID_ACCOUNTS, createStringResource("PageDashboard.accounts"),
-                        GuiStyleConstants.CLASS_SHADOW_ICON_ACCOUNT, GuiStyleConstants.CLASS_OBJECT_SHADOW_BOX_CSS_CLASSES) {
+        AsyncDashboardPanel<Object, List<SimpleAccountDto>> accounts = new AsyncDashboardPanel<Object, List<SimpleAccountDto>>(ID_ACCOUNTS,
+                        createStringResource("PageDashboard.accounts"),
+                        GuiStyleConstants.CLASS_SHADOW_ICON_ACCOUNT,
+                        GuiStyleConstants.CLASS_OBJECT_SHADOW_BOX_CSS_CLASSES,
+                        true) {
+
 					private static final long serialVersionUID = 1L;
 
 					@Override
@@ -444,9 +457,12 @@ public class PageSelfDashboard extends PageSelf {
     }
 
     private void initAssignments() {
-        AsyncDashboardPanel<Object, List<AssignmentItemDto>> assignedOrgUnits =
-                new AsyncDashboardPanel<Object, List<AssignmentItemDto>>(ID_ASSIGNMENTS, createStringResource("PageDashboard.assignments"),
-                        GuiStyleConstants.CLASS_ICON_ASSIGNMENTS, GuiStyleConstants.CLASS_OBJECT_ROLE_BOX_CSS_CLASSES) {
+        AsyncDashboardPanel<Object, List<AssignmentItemDto>> assignedOrgUnits = new AsyncDashboardPanel<Object, List<AssignmentItemDto>>(ID_ASSIGNMENTS,
+                createStringResource("PageDashboard.assignments"),
+                GuiStyleConstants.CLASS_ICON_ASSIGNMENTS,
+                GuiStyleConstants.CLASS_OBJECT_ROLE_BOX_CSS_CLASSES,
+                true) {
+
         			private static final long serialVersionUID = 1L;
 
                     @Override

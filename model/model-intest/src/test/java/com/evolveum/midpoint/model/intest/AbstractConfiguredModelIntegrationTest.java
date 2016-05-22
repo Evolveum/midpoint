@@ -83,6 +83,9 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 	protected static final String USER_TEMPLATE_COMPLEX_FILENAME = COMMON_DIR + "/user-template-complex.xml";
 	protected static final String USER_TEMPLATE_COMPLEX_OID = "10000000-0000-0000-0000-000000000222";
 	
+	protected static final String USER_TEMPLATE_INBOUNDS_FILENAME = COMMON_DIR + "/user-template-inbounds.xml";
+	protected static final String USER_TEMPLATE_INBOUNDS_OID = "10000000-0000-0000-0000-000000000555";
+	
 	protected static final String USER_TEMPLATE_COMPLEX_INCLUDE_FILENAME = COMMON_DIR + "/user-template-complex-include.xml";
 	protected static final String USER_TEMPLATE_COMPLEX_INCLUDE_OID = "10000000-0000-0000-0000-000000000223";
 	
@@ -170,6 +173,16 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 	protected static final String ROLE_PIRATE_OID = "12345678-d34d-b33f-f00d-555555556666";
     protected static final String ROLE_PIRATE_NAME = "Pirate";
     protected static final String ROLE_PIRATE_DESCRIPTION = "Scurvy Pirates";
+    
+    protected static final File ROLE_PIRATE_GREEN_FILE = new File(COMMON_DIR, "role-pirate-green.xml");
+	protected static final String ROLE_PIRATE_GREEN_OID = "12345678-d34d-b33f-f00d-555555557777";
+    protected static final String ROLE_PIRATE_GREEN_NAME = "Pirate Green";
+    protected static final String ROLE_PIRATE_GREEN_DESCRIPTION = "Scurvy Pirates";
+    
+    protected static final File ROLE_BUCCANEER_GREEN_FILE = new File(COMMON_DIR, "role-buccaneer-green.xml");
+	protected static final String ROLE_BUCCANEER_GREEN_OID = "12345678-d34d-b33f-f00d-555555558888";
+    protected static final String ROLE_BUCCANEER_GREEN_NAME = "Bucaneers Green";
+    protected static final String ROLE_BUCCANEER_GREEN_DESCRIPTION = "Scurvy Bucaneers";
 	
 	protected static final String ROLE_NICE_PIRATE_FILENAME = COMMON_DIR + "/role-nice-pirate.xml";
 	protected static final String ROLE_NICE_PIRATE_OID = "12345678-d34d-b33f-f00d-555555556677";

@@ -32,7 +32,7 @@ public class ChooseFocusTypeDialogPanel extends BasePanel implements Popupable{
 	        type.setOutputMarkupId(true);
 	        add(type);
 	        
-	        AjaxButton confirmButton = new AjaxButton(ID_BUTTON_OK, createStringResource("button.ok")) {
+	        AjaxButton confirmButton = new AjaxButton(ID_BUTTON_OK, createStringResource("Button.ok")) {
 				
 				
 				@Override

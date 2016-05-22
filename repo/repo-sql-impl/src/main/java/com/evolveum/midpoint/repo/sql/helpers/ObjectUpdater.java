@@ -236,17 +236,22 @@ public class ObjectUpdater {
         LOGGER.debug("Updating full object xml column start.");
         savedObject.setVersion(Integer.toString(object.getVersion()));
 
+        // Deep cloning for object transformation - we don't want to return object "changed" by save.
+        // Its' because we're removing some properties during save operation and if save fails,
+        // overwrite attempt (for example using object importer) might try to delete existing object
+        // and then try to save this object one more time.
+        String xml = prismContext.serializeObjectToString(savedObject, PrismContext.LANG_XML);
+        savedObject = prismContext.parseObject(xml);
+
         if (FocusType.class.isAssignableFrom(savedObject.getCompileTimeClass())) {
             savedObject.removeProperty(FocusType.F_JPEG_PHOTO);
         } else if (LookupTableType.class.equals(savedObject.getCompileTimeClass())) {
-            PrismContainer table = savedObject.findContainer(LookupTableType.F_ROW);
-            savedObject.remove(table);
+            savedObject.removeContainer(LookupTableType.F_ROW);
         } else if (AccessCertificationCampaignType.class.equals(savedObject.getCompileTimeClass())) {
-            PrismContainer caseContainer = savedObject.findContainer(AccessCertificationCampaignType.F_CASE);
-            savedObject.remove(caseContainer);
+            savedObject.removeContainer(AccessCertificationCampaignType.F_CASE);
         }
 
-        String xml = prismContext.serializeObjectToString(savedObject, PrismContext.LANG_XML);
+        xml = prismContext.serializeObjectToString(savedObject, PrismContext.LANG_XML);
         byte[] fullObject = RUtil.getByteArrayFromXml(xml, getConfiguration().isUseZip());
 
         if (LOGGER.isTraceEnabled()) LOGGER.trace("Storing full object\n{}", xml);

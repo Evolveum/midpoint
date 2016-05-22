@@ -15,10 +15,15 @@
  */
 
 window.onload = initAjaxStatusSigns;
+
 function clickFuncWicket6(eventData) {
     var clickedElement = (window.event) ? event.srcElement : eventData.target;
-    if ((clickedElement.tagName.toUpperCase() == 'BUTTON' || clickedElement.tagName.toUpperCase() == 'A' || clickedElement.parentNode.tagName.toUpperCase() == 'A'
-        || (clickedElement.tagName.toUpperCase() == 'INPUT' && (clickedElement.type.toUpperCase() == 'BUTTON' || clickedElement.type.toUpperCase() == 'SUBMIT')))
+    if ((clickedElement.tagName.toUpperCase() == 'BUTTON' 
+        || clickedElement.tagName.toUpperCase() == 'A' 
+        || clickedElement.parentNode.tagName.toUpperCase() == 'A'
+        || (clickedElement.tagName.toUpperCase() == 'INPUT' 
+        && (clickedElement.type.toUpperCase() == 'BUTTON' 
+        || clickedElement.type.toUpperCase() == 'SUBMIT')))
         && clickedElement.parentNode.id.toUpperCase() != 'NOBUSY' ) {
         showAjaxStatusSign();
     }
@@ -43,14 +48,14 @@ function hideAjaxStatusSign() {
     document.getElementById('ajax_busy').style.display = 'none';
 }
 
-
 /**
  * InlineMenu initialization function
  */
 function initInlineMenu(menuId, hideByDefault) {
-    var menu = $('#' + menuId).find('ul.cog');
+    var cog = $('#' + menuId).find('ul.cog');
+    var menu = cog.children().find('ul.dropdown-menu');
 
-    var parent = menu.parent().parent();     //this is inline menu div
+    var parent = cog.parent().parent();     //this is inline menu div
     if (!hideByDefault && !isCogInTable(parent)) {
         return;
     }
@@ -63,15 +68,17 @@ function initInlineMenu(menuId, hideByDefault) {
     // we only want to hide inline menus that are in table <td> element,
     // inline menu in header must be visible all the time, or every menu
     // that has hideByDefault flag turned on
-    menu.hide();
+    cog.hide();
 
     parent.hover(function () {
         //over
-        menu.show();
+        cog.show();
     }, function () {
         //out
-        menu.hide();
-    })
+        if (!menu.is(':visible')) {
+            cog.hide();
+        }
+    });
 }
 
 function isCogInTable(inlineMenuDiv) {

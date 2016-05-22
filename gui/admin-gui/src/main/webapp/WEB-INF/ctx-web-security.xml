@@ -68,8 +68,10 @@ http://www.springframework.org/schema/security http://www.springframework.org/sc
 		<custom-filter ref="singleLogoutFilter" before="CAS_FILTER"/>
 		-->
 		
-        <form-login login-page="/login"
-                    authentication-success-handler-ref="authenticationSuccessHandler" />
+		<!-- login-processing-url must NOT be /login. Otherwise the requests from AJAX components
+			 on the login page will be interpreted as login form sumbit and there will be faux errors. -->
+        <form-login login-page="/login" login-processing-url="/spring_security_login"
+                    authentication-success-handler-ref="authenticationSuccessHandler"/>
         
         <csrf disabled="true"/>
         <headers disabled="true"/>
@@ -85,8 +87,7 @@ http://www.springframework.org/schema/security http://www.springframework.org/sc
         -->
         <beans:property name="defaultTargetUrl" value="/login"/>
     </beans:bean>
-
-
+    
     <beans:bean id="accessDecisionManager" class="com.evolveum.midpoint.web.security.MidPointGuiAuthorizationEvaluator">
     	<beans:constructor-arg name="securityEnforcer" ref="securityEnforcer"/>
     </beans:bean>

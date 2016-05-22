@@ -49,6 +49,7 @@
 		<icfc:configurationProperties>
 			<icfi:instanceId>green</icfi:instanceId>
 			<icfi:supportValidity>true</icfi:supportValidity>
+			<icfi:generateDefaultValues>true</icfi:generateDefaultValues>
 		</icfc:configurationProperties>
 
 	</connectorConfiguration>
@@ -105,6 +106,7 @@
                   <xsd:element name="weapon" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
                   <xsd:element name="drink" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
                   <xsd:element name="quote" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+                  <xsd:element name="internalId" type="xsd:int" minOccurs="0" maxOccurs="1"/>
                </xsd:sequence>
             </xsd:complexType>
          </xsd:schema>
@@ -198,6 +200,16 @@
 					</target>
 				</inbound>
 			</attribute>
+			<attribute>
+            <ref xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">ri:internalId</ref>
+            <inbound>
+            <strength>strong</strength>
+               <target>
+                  <c:path xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+                          xmlns:ext="http://midpoint.evolveum.com/xml/ns/science/user/ext">employeeNumber</c:path>
+               </target>
+            </inbound>
+         </attribute>
 			<attribute>
 				<ref>ri:loot</ref>
 				<displayName>Loot</displayName>

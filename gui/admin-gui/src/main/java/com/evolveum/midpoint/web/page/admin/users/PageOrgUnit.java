@@ -162,10 +162,4 @@ public class PageOrgUnit extends PageAdminAbstractRole<OrgType> implements Progr
 	protected AbstractObjectMainPanel<OrgType> createMainPanel(String id) {
 		return new AbstractRoleMainPanel<OrgType>(id, getObjectModel(), getAssignmentsModel(), getProjectionModel(), getInducementsModel(), this);
 	}
-
-	@Override
-	public PageBase getDefaultBackPage() {
-		return new PageOrgTree();
-	}
-
 }

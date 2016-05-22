@@ -60,6 +60,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorHostType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
@@ -153,8 +154,14 @@ public class ConnectorManager {
 			result.recordFatalError(e.getMessage(), e);
 			throw new ObjectNotFoundException(e.getMessage(), e);
 		}
+		ConnectorConfigurationType connectorConfigurationType = resourceType.getConnectorConfiguration();
+		if (connectorConfigurationType == null) {
+			SchemaException e = new SchemaException("No connector configuration in "+resource);
+			result.recordFatalError(e);
+			throw e;
+		}
 		try {
-			connector.configure(resourceType.getConnectorConfiguration().asPrismContainerValue(), result);
+			connector.configure(connectorConfigurationType.asPrismContainerValue(), result);
 			
 			ResourceSchema resourceSchema = RefinedResourceSchema.getResourceSchema(resourceType, prismContext);
 			Collection<Object> capabilities = ResourceTypeUtil.getNativeCapabilitiesCollection(resourceType);

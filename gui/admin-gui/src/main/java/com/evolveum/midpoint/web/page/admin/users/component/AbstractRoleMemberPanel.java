@@ -148,7 +148,7 @@ public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extend
 
 			@Override
 			protected void newObjectPerformed(AjaxRequestTarget target) {
-				// TODO Auto-generated method stub
+				AbstractRoleMemberPanel.this.createFocusMemberPerformed(null, target);
 
 			}
 

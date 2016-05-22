@@ -293,8 +293,10 @@ public class ModelRestService {
 		}
 		
 		ModelExecuteOptions modelExecuteOptions = ModelExecuteOptions.fromRestOptions(options);
-		if (modelExecuteOptions == null || !ModelExecuteOptions.isOverwrite(modelExecuteOptions)){
+		if (modelExecuteOptions == null) {
 			modelExecuteOptions = ModelExecuteOptions.createOverwrite();
+		} else if (!ModelExecuteOptions.isOverwrite(modelExecuteOptions)){
+			modelExecuteOptions.setOverwrite(Boolean.TRUE);
 		}
 		
 		String oid;

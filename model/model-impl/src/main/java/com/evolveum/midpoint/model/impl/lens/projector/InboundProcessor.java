@@ -54,6 +54,7 @@ import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.PrettyPrinter;
@@ -200,6 +201,21 @@ public class InboundProcessor {
 
         PrismObject<ShadowType> accountCurrent = projContext.getObjectCurrent();
         PrismObject<ShadowType> accountNew = projContext.getObjectNew();
+        if (hasAnyStrongMapping(accountDefinition) && !projContext.isFullShadow() && !projContext.isThombstone()) {
+        	LOGGER.trace("There are strong inbound mapping, but the shadow hasn't be fully loaded yet. Trying to load full shadow now.");      // todo change to trace level eventually
+            try {
+                contextLoader.loadFullShadow(context, projContext, task, result);
+                if (projContext.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.BROKEN) {
+                	return;
+                }
+                accountCurrent = projContext.getObjectCurrent(); 
+            } catch (ObjectNotFoundException|SecurityViolationException|CommunicationException|ConfigurationException e) {
+                LOGGER.warn("Couldn't load account with shadow OID {} because of {}, setting context as broken and skipping inbound processing on it", projContext.getOid(), e.getMessage());
+                projContext.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.BROKEN);
+                return;
+            }
+        }
+        
         for (QName accountAttributeName : accountDefinition.getNamesOfAttributesWithInboundExpressions()) {
             PropertyDelta<?> accountAttributeDelta = null;
             if (aPrioriDelta != null) {
@@ -251,6 +267,31 @@ public class InboundProcessor {
 					//
 					// TODO what if there is a priori delta for a given attribute (e.g. ADD one) and
 					// we want to reconcile also the existing attribute value? This probably would not work.
+//	            	if (aPrioriDelta != null) {
+//	                    accountAttributeDelta = aPrioriDelta.findPropertyDelta(new ItemPath(SchemaConstants.C_ATTRIBUTES), accountAttributeName);
+	                   if (inboundMappingType.getStrength() == MappingStrengthType.STRONG) {
+	                	   LOGGER.trace("There is an inbount mapping with strength == STRONG, trying to load full account now.");
+	                	   if (!projContext.isFullShadow() && !projContext.isDelete()) {
+	                		   try {
+	                                contextLoader.loadFullShadow(context, projContext, task, result);
+	                                if (projContext.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.BROKEN) {
+	                                	return;
+	                                }
+	                                accountCurrent = projContext.getObjectCurrent(); 
+	                            } catch (ObjectNotFoundException|SecurityViolationException|CommunicationException|ConfigurationException e) {
+	                                LOGGER.warn("Couldn't load account with shadow OID {} because of {}, setting context as broken and skipping inbound processing on it", projContext.getOid(), e.getMessage());
+	                                projContext.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.BROKEN);
+	                                return;
+	                            }
+	                	   }
+	                   }
+	                   
+	                 if (accountAttributeDelta == null && !projContext.isFullShadow() && !LensUtil.hasDependentContext(context, projContext)) {
+						LOGGER.trace("Skipping inbound for {} in {}: Not a full shadow and account a priori delta exists, but doesn't have change for processed property.",
+								accountAttributeName, projContext.getResourceShadowDiscriminator());
+						continue;
+	                }
+//	                }
 
 					PrismObject<F> focus;
 	            	if (context.getFocusContext().getObjectCurrent() != null){
@@ -324,6 +365,20 @@ public class InboundProcessor {
         		context.getFocusContext().getObjectNew(), projContext, accountDefinition, context, task, now, result);
         processSpecialPropertyInbound(accountDefinition.getActivationBidirectionalMappingType(ActivationType.F_VALID_TO), SchemaConstants.PATH_ACTIVATION_VALID_TO,
         		context.getFocusContext().getObjectNew(), projContext, accountDefinition, context, task, now, result);
+    }
+    
+    private boolean hasAnyStrongMapping(RefinedObjectClassDefinition objectDefinition) {
+    	
+    	for (QName attributeName : objectDefinition.getNamesOfAttributesWithInboundExpressions()) {
+    		RefinedAttributeDefinition<?> attributeDefinition = objectDefinition.getAttributeDefinition(attributeName);
+    		for (MappingType inboundMapping : attributeDefinition.getInboundMappingTypes()){
+    			if (inboundMapping.getStrength() == MappingStrengthType.STRONG) {
+    				return true;
+    			}
+    		}
+    	}
+    	
+    	return false;
     }
 
     /**

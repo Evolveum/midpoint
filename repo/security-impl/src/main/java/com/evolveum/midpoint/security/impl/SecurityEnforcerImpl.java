@@ -935,6 +935,9 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 							if (specTypeQName != null) {
                                 specTypeQName = prismContext.getSchemaRegistry().qualifyTypeName(specTypeQName);
 								PrismObjectDefinition<?> specObjectDef = prismContext.getSchemaRegistry().findObjectDefinitionByType(specTypeQName);
+								if (specObjectDef == null) {
+									throw new SchemaException("Unknown object type "+specTypeQName+" in "+autz.getHumanReadableDesc());
+								}
 								Class<?> specObjectClass = specObjectDef.getCompileTimeClass();
 								if (!objectType.isAssignableFrom(specObjectClass)) {
 									LOGGER.trace("  Authorization not applicable for object because of type mismatch, authorization {}, query {}",

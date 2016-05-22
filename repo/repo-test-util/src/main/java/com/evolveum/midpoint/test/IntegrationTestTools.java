@@ -350,11 +350,11 @@ public class IntegrationTestTools {
 		return values.iterator().next();
 	}
 
-	public static void waitFor(String message, Checker checker, int timeoutInterval) throws Exception {
+	public static void waitFor(String message, Checker checker, int timeoutInterval) throws CommonException {
         waitFor(message, checker, timeoutInterval, WAIT_FOR_LOOP_SLEEP_MILIS);
     }
 
-	public static void waitFor(String message, Checker checker, int timeoutInterval, long sleepInterval) throws Exception {
+	public static void waitFor(String message, Checker checker, int timeoutInterval, long sleepInterval) throws CommonException {
 		System.out.println(message);
 		LOGGER.debug(LOG_MESSAGE_PREFIX + message);
 		long startTime = System.currentTimeMillis();
@@ -365,7 +365,11 @@ public class IntegrationTestTools {
 				LOGGER.trace(LOG_MESSAGE_PREFIX + "... done " + message);
 				return;
 			}
-			Thread.sleep(sleepInterval);
+			try {
+				Thread.sleep(sleepInterval);
+			} catch (InterruptedException e) {
+				LOGGER.warn("Sleep interrupted: {}", e.getMessage(), e);
+			}
 		}
 		// we have timeout
 		System.out.println("Timeout while "+message);

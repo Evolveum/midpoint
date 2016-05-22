@@ -176,6 +176,10 @@ public abstract class ResourceContentPanel extends Panel {
 	public RefinedObjectClassDefinition getDefinitionByKind() throws SchemaException {
 		RefinedResourceSchema refinedSchema = RefinedResourceSchema
 				.getRefinedSchema(resourceModel.getObject(), getPageBase().getPrismContext());
+		if (refinedSchema == null) {
+			warn("No schema found in resource. Please check your configuration and try to test connection for the resource.");
+			return null;
+		}
 		return refinedSchema.getRefinedDefinition(getKind(), getIntent());
 
 	}
@@ -183,6 +187,10 @@ public abstract class ResourceContentPanel extends Panel {
 	public RefinedObjectClassDefinition getDefinitionByObjectClass() throws SchemaException {
 		RefinedResourceSchema refinedSchema = RefinedResourceSchema
 				.getRefinedSchema(resourceModel.getObject(), getPageBase().getPrismContext());
+		if (refinedSchema == null) {
+			warn("No schema found in resource. Please check your configuration and try to test connection for the resource.");
+			return null;
+		}
 		return refinedSchema.getRefinedDefinition(getObjectClass());
 
 	}
@@ -413,38 +421,6 @@ public abstract class ResourceContentPanel extends Panel {
 		}
 		return tasksForKind;
 	}
-
-	// private SelectableBeanObjectDataProvider<ShadowType> initProvider() {
-	// SelectableBeanObjectDataProvider<ShadowType> provider = new
-	// SelectableBeanObjectDataProvider<ShadowType>(
-	// this, ShadowType.class) {
-	// private static final long serialVersionUID = 1L;
-	//
-	// @Override
-	// public SelectableBean<ShadowType> createDataObjectWrapper(ShadowType obj)
-	// {
-	// SelectableBean<ShadowType> bean = super.createDataObjectWrapper(obj);
-	// List<InlineMenuItem> inlineMenu = createRowMenuItems();
-	// if (inlineMenu != null) {
-	// bean.getMenuItems().addAll(inlineMenu);
-	// }
-	// return bean;
-	// }
-	// };
-	//
-	// ObjectQuery query = createQuery();
-	//
-	// if (query == null) {
-	// initCustomLayout();
-	// return provider;
-	//
-	// }
-	//
-	// provider.setEmptyListOnNullQuery(true);
-	// provider.setSort(null);
-	// createSearchOptions(provider);
-	// return provider;
-	// }
 
 	protected void initCustomLayout() {
 		// Nothing to do, for subclass extension

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.parser.XPathHolder;
 import com.evolveum.midpoint.prism.parser.XPathSegment;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.ItemPathUtil;
 import com.evolveum.midpoint.prism.xml.GlobalDynamicNamespacePrefixMapper;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
@@ -234,6 +235,32 @@ public class ObjectTypeUtil {
         return ref;
     }
     
+    public static <T extends ObjectType> ObjectReferenceType createObjectRef(PrismReferenceValue refVal, boolean nameAsDescription) {
+        if (refVal == null) {
+            return null;
+        }
+        ObjectReferenceType ref = new ObjectReferenceType();
+        ref.setOid(refVal.getOid());
+        PrismObject<T> object = refVal.getObject();
+        if (object != null) {
+	        if (nameAsDescription) {
+	        	ref.setDescription(object.getBusinessDisplayName());
+	        }
+	        PrismObjectDefinition<T> definition = object.getDefinition();
+	        if (definition != null) {
+	            ref.setType(definition.getTypeName());
+	        }
+	        ref.setTargetName(PolyString.toPolyStringType(object.getName()));
+        } else {
+        	ref.setType(refVal.getTargetType());
+        	ref.setTargetName(PolyString.toPolyStringType(refVal.getTargetName()));
+        	if (nameAsDescription && refVal.getTargetName() != null) {
+	        	ref.setDescription(refVal.getTargetName().getOrig());
+	        }
+        }
+        return ref;
+    }
+    
     public static ObjectReferenceType createObjectRef(String oid, ObjectTypes type) {
        return createObjectRef(oid, null, type);
     }
@@ -431,4 +458,6 @@ public class ObjectTypeUtil {
 		}
 		return ref.asReferenceValue().getObject();
 	}
+	
+	
 }
