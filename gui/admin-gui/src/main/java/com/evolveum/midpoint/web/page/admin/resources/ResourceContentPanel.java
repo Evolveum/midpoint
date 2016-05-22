@@ -22,6 +22,8 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
@@ -105,14 +107,6 @@ import com.evolveum.midpoint.web.page.admin.server.PageTaskAdd;
 import com.evolveum.midpoint.web.page.admin.users.PageUser;
 import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
  * Implementation classes : ResourceContentResourcePanel,
@@ -921,16 +915,8 @@ public abstract class ResourceContentPanel extends Panel {
 
 	// TODO: as a task?
 	protected void deleteResourceObjectPerformed(ShadowType selected, AjaxRequestTarget target) {
-		List<ShadowType> selectedShadow = null;
-		if (selected != null) {
-			selectedShadow = new ArrayList<>();
-			selectedShadow.add(selected);
-		} else {
-			selectedShadow = getTable().getSelectedObjects();
-		}
-
-		OperationResult result = new OperationResult(OPERATION_DELETE_OBJECT);
-		Task task = pageBase.createSimpleTask(OPERATION_DELETE_OBJECT);
+        final List<ShadowType> selectedShadow = getSelectedShadowsList(selected);
+        final OperationResult result = new OperationResult(OPERATION_DELETE_OBJECT);
 
 		if (selectedShadow == null || selectedShadow.isEmpty()) {
 			result.recordWarning("Nothing selected to delete");
@@ -939,43 +925,72 @@ public abstract class ResourceContentPanel extends Panel {
 			return;
 		}
 
-		ModelExecuteOptions opts = createModelOptions();
+        ConfirmationPanel dialog = new ConfirmationPanel(((PageBase)getPage()).getMainPopupBodyId(),
+                createDeleteConfirmString(selected, "pageContentAccounts.message.deleteConfirmation",
+                        "pageContentAccounts.message.deleteConfirmationSingle")){
+            @Override
+            public void yesPerformed(AjaxRequestTarget target) {
+                ((PageBase)getPage()).hideMainPopup(target);
+                deleteAccountConfirmedPerformed(target, result, selectedShadow);
+            }
+        };
+        ((PageBase)getPage()).showMainPopup(dialog, target);
 
-		for (ShadowType shadow : selectedShadow) {
-			try {
-				ObjectDelta<ShadowType> deleteDelta = ObjectDelta.createDeleteDelta(ShadowType.class,
-						shadow.getOid(), getPageBase().getPrismContext());
-				getPageBase().getModelService().executeChanges(
-						WebComponentUtil.createDeltaCollection(deleteDelta), opts, task, result);
-			} catch (ObjectAlreadyExistsException | ObjectNotFoundException | SchemaException
-					| ExpressionEvaluationException | CommunicationException | ConfigurationException
-					| PolicyViolationException | SecurityViolationException e) {
-				result.recordPartialError("Could not delete object " + shadow, e);
-				LOGGER.error("Could not delete {}, using option {}", shadow, opts, e);
-				continue;
-			}
-		}
-
-		result.computeStatusIfUnknown();
-		getPageBase().showResult(result);
-		getTable().refreshTable(null, target);
-		target.add(getPageBase().getFeedbackPanel());
 
 	}
 
-	protected abstract ModelExecuteOptions createModelOptions();
+    private void deleteAccountConfirmedPerformed(AjaxRequestTarget target, OperationResult result, List<ShadowType> selected){
+        Task task = pageBase.createSimpleTask(OPERATION_DELETE_OBJECT);
+        ModelExecuteOptions opts = createModelOptions();
+
+        for (ShadowType shadow : selected) {
+            try {
+                ObjectDelta<ShadowType> deleteDelta = ObjectDelta.createDeleteDelta(ShadowType.class,
+                        shadow.getOid(), getPageBase().getPrismContext());
+                getPageBase().getModelService().executeChanges(
+                        WebComponentUtil.createDeltaCollection(deleteDelta), opts, task, result);
+            } catch (ObjectAlreadyExistsException | ObjectNotFoundException | SchemaException
+                    | ExpressionEvaluationException | CommunicationException | ConfigurationException
+                    | PolicyViolationException | SecurityViolationException e) {
+                result.recordPartialError("Could not delete object " + shadow, e);
+                LOGGER.error("Could not delete {}, using option {}", shadow, opts, e);
+                continue;
+            }
+        }
+
+        result.computeStatusIfUnknown();
+        getPageBase().showResult(result);
+        getTable().refreshTable(null, target);
+        target.add(getPageBase().getFeedbackPanel());
+
+
+    }
+
+    private IModel<String> createDeleteConfirmString(final ShadowType selected, final String oneDeleteKey, final String moreDeleteKey) {
+        return new AbstractReadOnlyModel<String>() {
+
+            @Override
+            public String getObject() {
+                List<ShadowType> selectedShadow = getSelectedShadowsList(selected);
+                switch (selectedShadow.size()) {
+                    case 1:
+                        Object first = selectedShadow.get(0);
+                        String name = WebComponentUtil.getName(((ShadowType) first));
+                        return getPageBase().createStringResource(oneDeleteKey, name).getString();
+                    default:
+                        return getPageBase().createStringResource(moreDeleteKey, selectedShadow.size()).getString();
+                }
+            }
+        };
+    }
+
+    protected abstract ModelExecuteOptions createModelOptions();
 
 	protected void updateResourceObjectStatusPerformed(ShadowType selected, AjaxRequestTarget target,
 			boolean enabled) {
-		List<ShadowType> selectedShadow = null;
-		if (selected != null) {
-			selectedShadow = new ArrayList<>();
-			selectedShadow.add(selected);
-		} else {
-			selectedShadow = getTable().getSelectedObjects();
-		}
+        List<ShadowType> selectedShadow = getSelectedShadowsList(selected);
 
-		OperationResult result = new OperationResult(OPERATION_UPDATE_STATUS);
+        OperationResult result = new OperationResult(OPERATION_UPDATE_STATUS);
 		Task task = pageBase.createSimpleTask(OPERATION_UPDATE_STATUS);
 
 		if (selectedShadow == null || selectedShadow.isEmpty()) {
@@ -1027,13 +1042,7 @@ public abstract class ResourceContentPanel extends Panel {
 	private void changeOwner(ShadowType selected, AjaxRequestTarget target, FocusType ownerToChange,
 			Operation operation) {
 
-		List<ShadowType> selectedShadow = null;
-		if (selected != null) {
-			selectedShadow = new ArrayList<>();
-			selectedShadow.add(selected);
-		} else {
-			selectedShadow = getTable().getSelectedObjects();
-		}
+		List<ShadowType> selectedShadow = getSelectedShadowsList(selected);
 
 		Collection<? extends ItemDelta> modifications = new ArrayList<>();
 
@@ -1120,6 +1129,17 @@ public abstract class ResourceContentPanel extends Panel {
 		getTable().refreshTable(null, target);
 		target.add(ResourceContentPanel.this);
 	}
+
+    private List<ShadowType> getSelectedShadowsList(ShadowType shadow){
+        List<ShadowType> selectedShadow = null;
+        if (shadow != null) {
+            selectedShadow = new ArrayList<>();
+            selectedShadow.add(shadow);
+        } else {
+            selectedShadow = getTable().getSelectedObjects();
+        }
+        return selectedShadow;
+    }
 
 	protected abstract SelectorOptions<GetOperationOptions> addAdditionalOptions();
 
