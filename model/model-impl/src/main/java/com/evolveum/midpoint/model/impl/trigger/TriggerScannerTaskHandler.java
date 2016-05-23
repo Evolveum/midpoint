@@ -28,10 +28,10 @@ import com.evolveum.midpoint.prism.query.LessFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskRunResult;
 import com.evolveum.midpoint.util.exception.*;
@@ -40,14 +40,14 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TriggerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import org.apache.commons.lang3.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import javax.xml.datatype.DatatypeConstants;
 import javax.xml.datatype.XMLGregorianCalendar;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType.F_TRIGGER;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.TriggerType.F_TIMESTAMP;
@@ -76,6 +76,38 @@ public class TriggerScannerTaskHandler extends AbstractScannerTaskHandler<Object
         super(ObjectType.class, "Trigger scan", OperationConstants.TRIGGER_SCAN);
     }
 
+	// task OID -> handlerUri -> OIDs; cleared on task start
+	// we use plain map, as it is much easier to synchronize explicitly than to play with ConcurrentMap methods
+	private Map<String,Map<String,Set<String>>> processedOidsMap = new HashMap<>();
+
+	private synchronized void initProcessedOids(Task coordinatorTask) {
+		Validate.notNull(coordinatorTask.getOid(), "Task OID is null");
+		processedOidsMap.put(coordinatorTask.getOid(), new HashMap<String, Set<String>>());
+	}
+
+	// TODO fix possible (although very small) memory leak occurring when task finishes unsuccessfully
+	private synchronized void cleanupProcessedOids(Task coordinatorTask) {
+		Validate.notNull(coordinatorTask.getOid(), "Task OID is null");
+		processedOidsMap.remove(coordinatorTask.getOid());
+	}
+
+	private synchronized boolean oidAlreadySeen(Task coordinatorTask, String handlerUri, String objectOid) {
+		Validate.notNull(coordinatorTask.getOid(), "Coordinator task OID is null");
+		Map<String,Set<String>> taskMap = processedOidsMap.get(coordinatorTask.getOid());
+		if (taskMap == null) {
+			throw new IllegalStateException("ProcessedOids map was not initialized for task = " + coordinatorTask);
+		}
+		Set<String> processedOids = taskMap.get(handlerUri);
+		if (processedOids != null) {
+			return !processedOids.add(objectOid);
+		} else {
+			processedOids = new HashSet<>();
+			processedOids.add(objectOid);
+			taskMap.put(handlerUri, processedOids);
+			return false;
+		}
+	}
+
 	@PostConstruct
 	private void initialize() {
 		taskManager.registerHandler(HANDLER_URI, this);
@@ -88,6 +120,9 @@ public class TriggerScannerTaskHandler extends AbstractScannerTaskHandler<Object
 
 	@Override
 	protected ObjectQuery createQuery(AbstractScannerResultHandler<ObjectType> handler, TaskRunResult runResult, Task task, OperationResult opResult) throws SchemaException {
+
+		initProcessedOids(task);
+
 		ObjectQuery query = new ObjectQuery();
 		ObjectFilter filter;
 		PrismObjectDefinition<UserType> focusObjectDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
@@ -109,16 +144,23 @@ public class TriggerScannerTaskHandler extends AbstractScannerTaskHandler<Object
 		query.setFilter(filter);
 		return query;
 	}
-	
+
 	@Override
-	protected AbstractScannerResultHandler<ObjectType> createHandler(TaskRunResult runResult, Task coordinatorTask,
+	protected void finish(AbstractScannerResultHandler<ObjectType> handler, TaskRunResult runResult, Task task, OperationResult opResult)
+			throws SchemaException {
+		super.finish(handler, runResult, task, opResult);
+		cleanupProcessedOids(task);
+	}
+
+	@Override
+	protected AbstractScannerResultHandler<ObjectType> createHandler(TaskRunResult runResult, final Task coordinatorTask,
 			OperationResult opResult) {
 		
 		AbstractScannerResultHandler<ObjectType> handler = new AbstractScannerResultHandler<ObjectType>(
 				coordinatorTask, TriggerScannerTaskHandler.class.getName(), "trigger", "trigger task", taskManager) {
 			@Override
 			protected boolean handleObject(PrismObject<ObjectType> object, Task workerTask, OperationResult result) throws CommonException {
-				fireTriggers(this, object, workerTask, result);
+				fireTriggers(this, object, workerTask, coordinatorTask, result);
 				return true;
 			}
 		};
@@ -126,7 +168,8 @@ public class TriggerScannerTaskHandler extends AbstractScannerTaskHandler<Object
         return handler;
 	}
 
-	private void fireTriggers(AbstractScannerResultHandler<ObjectType> handler, PrismObject<ObjectType> object, Task task, OperationResult result) throws SchemaException, 
+	private void fireTriggers(AbstractScannerResultHandler<ObjectType> handler, PrismObject<ObjectType> object, Task workerTask, Task coordinatorTask,
+			OperationResult result) throws SchemaException,
 			ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ObjectAlreadyExistsException, 
 			ConfigurationException, PolicyViolationException, SecurityViolationException {
 		PrismContainer<TriggerType> triggerContainer = object.findContainer(F_TRIGGER);
@@ -149,8 +192,8 @@ public class TriggerScannerTaskHandler extends AbstractScannerTaskHandler<Object
 							if (handlerUri == null) {
 								LOGGER.warn("Trigger without handler URI in {}", object);
 							} else {
-								fireTrigger(handlerUri, object, task, result);
-								removeTrigger(object, triggerCVal, task);
+								fireTrigger(handlerUri, object, workerTask, coordinatorTask, result);
+								removeTrigger(object, triggerCVal, workerTask);
 							}
 						} else {
 							LOGGER.trace("Trigger {} is not hot (timestamp={}, thisScanTimestamp={}, lastScanTimestamp={})", 
@@ -173,20 +216,20 @@ public class TriggerScannerTaskHandler extends AbstractScannerTaskHandler<Object
 		return handler.getLastScanTimestamp() == null || handler.getLastScanTimestamp().compare(timestamp) == DatatypeConstants.LESSER;
 	}
 
-	private void fireTrigger(String handlerUri, PrismObject<ObjectType> object, Task task, OperationResult result) {
+	private void fireTrigger(String handlerUri, PrismObject<ObjectType> object, Task workerTask, Task coordinatorTask, OperationResult result) {
 		LOGGER.debug("Firing trigger {} in {}", handlerUri, object);
 		TriggerHandler handler = triggerHandlerRegistry.getHandler(handlerUri);
 		if (handler == null) {
 			LOGGER.warn("No registered trigger handler for URI {}", handlerUri);
+		} else if (oidAlreadySeen(coordinatorTask, handlerUri, object.getOid())) {
+			LOGGER.trace("Handler {} already executed for {}", handlerUri, ObjectTypeUtil.toShortString(object));
 		} else {
 			try {
-				
-				handler.handle(object, task, result);
-				
-			// Properly handle everything that the handler spits out. We do not want this task to die.
-			// Looks like the impossible happens and checked exceptions can somehow get here. Hence the heavy artillery below.
+				handler.handle(object, workerTask, result);
+				// Properly handle everything that the handler spits out. We do not want this task to die.
+				// Looks like the impossible happens and checked exceptions can somehow get here. Hence the heavy artillery below.
 			} catch (Throwable e) {
-				LOGGER.error("Trigger handler {} executed on {} thrown an error: {}", new Object[] { handler, object, e.getMessage(), e});
+				LOGGER.error("Trigger handler {} executed on {} thrown an error: {}", new Object[] { handler, object, e.getMessage(), e });
 				result.recordPartialError(e);
 			}
 		}
