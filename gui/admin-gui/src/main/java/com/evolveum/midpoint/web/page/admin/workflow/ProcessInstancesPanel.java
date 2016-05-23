@@ -65,10 +65,15 @@ public class ProcessInstancesPanel extends BasePanel {
 	}
 
     private void initLayout(UserProfileStorage.TableId tableId, int pageSize, View view, final IModel<String> currentInstanceIdModel) {
-		BoxedTablePanel<ProcessInstanceDto> table = new BoxedTablePanel<ProcessInstanceDto>(ID_REQUESTS_TABLE, provider, initColumns(view), tableId, pageSize) {
+		BoxedTablePanel<ProcessInstanceDto> table = new BoxedTablePanel<ProcessInstanceDto>(
+				ID_REQUESTS_TABLE, provider, initColumns(view), tableId, pageSize) {
+
 			@Override
-			protected Item<ProcessInstanceDto> customizeNewRowItem(Item<ProcessInstanceDto> item, final IModel<ProcessInstanceDto> rowModel) {
+			protected Item<ProcessInstanceDto> customizeNewRowItem(Item<ProcessInstanceDto> item,
+																   final IModel<ProcessInstanceDto> rowModel) {
+
 				item.add(new AttributeAppender("class", new AbstractReadOnlyModel<String>() {
+
 					@Override
 					public String getObject() {
 						if (currentInstanceIdModel == null || currentInstanceIdModel.getObject() == null) {
@@ -86,6 +91,7 @@ public class ProcessInstancesPanel extends BasePanel {
 			}
 		};
 		table.setOutputMarkupId(true);
+		table.setAdditionalBoxCssClasses("without-box-header-top-border");
 		add(table);
 	}
 

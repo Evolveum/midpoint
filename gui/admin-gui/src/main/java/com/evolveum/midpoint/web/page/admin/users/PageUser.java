@@ -115,10 +115,4 @@ public class PageUser extends PageAdminFocus<UserType> {
 	protected AbstractObjectMainPanel<UserType> createMainPanel(String id) {
 		return new FocusMainPanel<UserType>(id, getObjectModel(), getAssignmentsModel(), getProjectionModel(), this);
 	}
-
-	@Override
-	public PageBase getDefaultBackPage() {
-		return new PageUsers();
-	}
-
 }

@@ -191,6 +191,10 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
 	protected boolean hasAssociationShortcut() {
 		return true;
 	}
+	
+	protected boolean isVlvSearchBeyondEndResurnsLastEntry() {
+		return false;
+	}
 
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -396,7 +400,11 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
         paging.setMaxSize(123);
 		query.setPaging(paging);
 		
-		SearchResultList<PrismObject<ShadowType>> searchResultList = doSearch(TEST_NAME, query, 0, task, result);
+		int expectedEntries = 0;
+		if (isVlvSearchBeyondEndResurnsLastEntry()) {
+			expectedEntries = 1;
+		}
+		SearchResultList<PrismObject<ShadowType>> searchResultList = doSearch(TEST_NAME, query, expectedEntries, task, result);
                 
         assertConnectorOperationIncrement(1);
         assertConnectorSimulatedPagingSearchIncrement(0);
@@ -405,9 +413,8 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
         if (metadata != null) {
         	assertFalse(metadata.isPartialResults());
         }
-    }
+    }	
 
-	
 	@Test
     public void test162SeachFirst50AccountsOffset0() throws Exception {
 		final String TEST_NAME = "test152SeachFirst50Accounts";

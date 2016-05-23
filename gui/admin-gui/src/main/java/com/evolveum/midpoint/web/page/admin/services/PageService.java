@@ -63,9 +63,4 @@ private static final Trace LOGGER = TraceManager.getTrace(PageService.class);
 		return new AbstractRoleMainPanel<ServiceType>(id, getObjectModel(), getAssignmentsModel(), getProjectionModel(), getInducementsModel(), this);
 	}
 
-	@Override
-	public PageBase getDefaultBackPage() {
-		return new PageServices();
-	}
-
 }

@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.web.component.progress;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
@@ -230,12 +231,8 @@ public class ProgressPanel extends BasePanel<ProgressDto> {
 				createStringResource("pageAdminFocus.button.back")) {
 
 			@Override
-			protected void onSubmit(AjaxRequestTarget target,
-					org.apache.wicket.markup.html.form.Form<?> form) {
-                Page page = getPage();
-                if (page != null && page instanceof PageAdminObjectDetails){
-                    setResponsePage(((PageAdminObjectDetails) page).getDefaultBackPage());
-                }
+			protected void onSubmit(AjaxRequestTarget target, org.apache.wicket.markup.html.form.Form<?> form) {
+                backPerformed(target);
 			}
 
 			@Override
@@ -248,6 +245,11 @@ public class ProgressPanel extends BasePanel<ProgressDto> {
 		progressForm.add(backButton);
 
 	}
+
+    protected void backPerformed(AjaxRequestTarget target) {
+        PageBase page = getPageBase();
+        page.redirectBack();
+    }
 
     // Note: do not setVisible(false) on the progress panel itself - it will disable AJAX refresh functionality attached to it.
     // Use the following two methods instead.

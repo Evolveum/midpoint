@@ -36,6 +36,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
+import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
 import com.evolveum.icf.dummy.resource.BreakMode;
@@ -44,7 +45,9 @@ import com.evolveum.icf.dummy.resource.DummyResource;
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.audit.api.AuditEventType;
+import com.evolveum.midpoint.common.crypto.CryptoUtil;
 import com.evolveum.midpoint.common.monitor.InternalMonitor;
+import com.evolveum.midpoint.common.policy.PasswordPolicyUtils;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.impl.sync.ReconciliationTaskHandler;
@@ -93,12 +96,15 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnfo
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ValuePolicyType;
+import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 /**
  * @author semancik
@@ -198,6 +204,9 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 	private static final File ROLE_CORPSE_FILE = new File(TEST_DIR, "role-corpse.xml");
 	private static final String ROLE_CORPSE_OID = "1c64c778-e7ac-11e5-b91a-9f44177e2359";
 	
+	protected static final File PASSWORD_POLICY_LOWER_CASE_ALPHA_AZURE_FILE = new File(TEST_DIR, "password-policy-azure.xml");
+    protected static final String PASSWORD_POLICY_LOWER_CASE_ALPHA_AZURE_OID = "81818181-76e0-59e2-8888-3d4f02d3fffd";
+	
     protected static final File TASK_RECONCILE_DUMMY_SINGLE_FILE = new File(TEST_DIR, "task-reconcile-dummy-single.xml");
     protected static final String TASK_RECONCILE_DUMMY_SINGLE_OID = "10000000-0000-0000-5656-565600000004";
 
@@ -268,6 +277,9 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 		
 		// Roles
 		repoAddObjectFromFile(ROLE_CORPSE_FILE, RoleType.class, initResult);
+		
+		// Password policy
+		repoAddObjectFromFile(PASSWORD_POLICY_LOWER_CASE_ALPHA_AZURE_FILE, ValuePolicyType.class, initResult);
 		
 		// And a user that will be correlated to that account
 		repoAddObjectFromFile(USER_RAPP_FILE, UserType.class, initResult);
@@ -1375,6 +1387,31 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         assertDummyAccount(RESOURCE_DUMMY_AZURE_NAME, USER_RAPP_USERNAME, USER_RAPP_FULLNAME, true);
         assertDummyAccountAttribute(RESOURCE_DUMMY_AZURE_NAME, USER_RAPP_USERNAME, 
         		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, "The crew of The Elaine");
+        
+      //Checking password policy
+        PrismObject<UserType> userRapp = findUserByUsername(USER_RAPP_USERNAME);
+        assertNotNull("No user Rapp", userRapp);
+        UserType userTypeRapp = userRapp.asObjectable();
+        
+        assertNotNull("User Rapp has no credentials", userTypeRapp.getCredentials());
+        PasswordType password = userTypeRapp.getCredentials().getPassword();
+        assertNotNull("User Rapp has no password", password);
+        
+        ProtectedStringType passwordType = password.getValue();
+        
+        String stringPassword = null;
+        if (passwordType.getClearValue() == null) {
+        	stringPassword = protector.decryptString(passwordType);
+        }
+        
+        assertNotNull("No clear text password", stringPassword);
+        
+        PrismObject<ValuePolicyType> passwordPolicy = getObjectViaRepo(ValuePolicyType.class, PASSWORD_POLICY_LOWER_CASE_ALPHA_AZURE_OID);
+        
+        OperationResult satisfyPolicyResult = PasswordPolicyUtils.validatePassword(stringPassword, passwordPolicy.asObjectable());
+        assertTrue("Password doesn't satisfy password policy, generated password: " + stringPassword, satisfyPolicyResult.isSuccess());
+        /////////
+        
         
         // These are protected accounts, they should not be imported
         assertNoImporterUserByUsername(ACCOUNT_DAVIEJONES_DUMMY_USERNAME);

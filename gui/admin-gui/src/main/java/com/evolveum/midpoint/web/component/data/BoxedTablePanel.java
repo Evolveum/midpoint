@@ -311,7 +311,7 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
 
 			if (count > 0) {
 				if (count == Integer.MAX_VALUE) {
-					return PageBase.createStringResourceStatic(PagingFooter.this, "CountToolbar.lable",
+					return PageBase.createStringResourceStatic(PagingFooter.this, "CountToolbar.label.unknownCount",
 							new Object[] { from, to }).getString();
 				}
 

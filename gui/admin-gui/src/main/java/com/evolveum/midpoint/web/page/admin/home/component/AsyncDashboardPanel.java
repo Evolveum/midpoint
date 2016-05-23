@@ -52,6 +52,10 @@ public abstract class AsyncDashboardPanel<V, T> extends AsyncUpdatePanel<V, Call
         this(id, title, icon, new Model(), boxCssClasses);
     }
 
+    public AsyncDashboardPanel(String id, IModel<String> title, String icon, String boxCssClasses, boolean noPadding) {
+        this(id, title, icon, new Model(), Duration.seconds(DEFAULT_TIMER_DURATION),boxCssClasses, noPadding);
+    }
+
     public AsyncDashboardPanel(String id, IModel<String> title, String icon, IModel<V> callableParameterModel,
     		String boxCssClasses) {
         this(id, title, icon, callableParameterModel, Duration.seconds(DEFAULT_TIMER_DURATION), boxCssClasses);
@@ -59,9 +63,14 @@ public abstract class AsyncDashboardPanel<V, T> extends AsyncUpdatePanel<V, Call
 
     public AsyncDashboardPanel(String id, IModel<String> title, String icon, IModel<V> callableParameterModel,
                                Duration durationSecs, String boxCssClasses) {
+        this(id, title, icon, callableParameterModel, Duration.seconds(DEFAULT_TIMER_DURATION), boxCssClasses, false);
+    }
+
+    public AsyncDashboardPanel(String id, IModel<String> title, String icon, IModel<V> callableParameterModel,
+                               Duration durationSecs, String boxCssClasses, boolean noPadding) {
         super(id, callableParameterModel, durationSecs);
         
-        initLayout();
+        initLayout(noPadding);
 
         WebMarkupContainer dashboardTitle = (WebMarkupContainer) get(
                 createComponentPath(ID_DASHBOARD_PARENT, ID_DASHBOARD_TITLE));
@@ -80,7 +89,7 @@ public abstract class AsyncDashboardPanel<V, T> extends AsyncUpdatePanel<V, Call
         dashboardTitle.add(iconI);
     }
 
-    private void initLayout() {
+    private void initLayout(boolean noPadding) {
         WebMarkupContainer dashboardParent = new WebMarkupContainer(ID_DASHBOARD_PARENT);
         add(dashboardParent);
 
@@ -92,6 +101,10 @@ public abstract class AsyncDashboardPanel<V, T> extends AsyncUpdatePanel<V, Call
 
         WebMarkupContainer dashboardContent = new WebMarkupContainer(ID_DASHBOARD_CONTENT);
         dashboardParent.add(dashboardContent);
+
+        if (noPadding) {
+            dashboardContent.add(AttributeAppender.append("class", "no-padding"));
+        }
 
         dashboardContent.add(new Label(ID_CONTENT));
 

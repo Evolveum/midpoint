@@ -21,39 +21,39 @@
 	<name>Locales</name>
 
 	<row>
-		<key>cs_CZ</key>
+		<key>cs</key>
 		<label>Čeština</label>
 	</row>
 	<row>
-		<key>de_DE</key>
+		<key>de</key>
 		<label>Deutsch</label>
 	</row>
 	<row>
-		<key>et_EE</key>
+		<key>et</key>
 		<label>Eesti</label>
 	</row>
 	<row>
-		<key>en_US</key>
-		<label>English (US)</label>
+		<key>en</key>
+		<label>English</label>
 	</row>
 	<row>
-		<key>es_ES</key>
+		<key>es</key>
 		<label>Español</label>
 	</row>
 	<row>
-		<key>hu_HU</key>
+		<key>hu</key>
 		<label>Magyar</label>
 	</row>
 	<row>
-		<key>ru_RU</key>
+		<key>ru</key>
 		<label>Русский</label>
 	</row>
 	<row>
-		<key>sk_SK</key>
+		<key>sk</key>
 		<label>Slovenčina</label>
 	</row>
 	<row>
-		<key>tr_TR</key>
+		<key>tr</key>
 		<label>Türkçe</label>
 	</row>
 

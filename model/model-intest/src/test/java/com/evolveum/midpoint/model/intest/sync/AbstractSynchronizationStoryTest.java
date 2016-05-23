@@ -47,6 +47,7 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
@@ -846,14 +847,41 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
         assertNull("User wally is not gone", userWally);
         
         assertNoDummyAccount(RESOURCE_DUMMY_BLUE_NAME, ACCOUNT_WALLY_DUMMY_USERNAME);
-        assertNoShadow(ACCOUNT_WALLY_DUMMY_USERNAME, resourceDummyBlue, task, result);
+        
+        // Interesting things can happen here. Like this:
+        //
+        // Recon blue:  Search on resource, remeber results in connector, sending them one
+        //              by one to midpoint. But recon task is slow, it will not send wally
+        //              account yet.
+        // Recon green: Search on resource, got wally as the first result, sending to model,
+        //              model deletes user and blue account.
+        // Recon blue:  It finally gets to send wally account to the model. But the original
+        //              shadow is gone. So, provisioning creates a new shadow. And it is right.
+        //              the object just came from the connector and therefore provisioning
+        //              thinks that it is fresh and it has been re-created.
+        //
+        // We have nothing simple to do about this. And really, we do not care much because
+        // it is not really a problem. It is rare and the next recon run should fix it anyway.
+        // It will not cause any real harm on target resource. It may do some (even quite nasty)
+        // churn on source+target resource. But source+target is a dangerous lifestyle anyway.
+        //
+        // So, if that happens we will just wait for the next recon run and check that it
+        // sorts it out.
+        
+        ObjectQuery wallyBlueAccountsQuery = createAccountShadowQuery(ACCOUNT_WALLY_DUMMY_USERNAME, resourceDummyBlue);
+		List<PrismObject<ShadowType>> wallyBlueAccounts = repositoryService.searchObjects(ShadowType.class, wallyBlueAccountsQuery, null, result);
+		if (!wallyBlueAccounts.isEmpty()) {
+			waitForSyncTaskNextRun(resourceDummyBlue);
+		}
+		
+		assertNoShadow(ACCOUNT_WALLY_DUMMY_USERNAME, resourceDummyBlue, task, result);
         
         assertUsers(6 + getNumberOfExtraDummyUsers());
 
         if (isReconciliation()) {
         	if (takResultBlue.getStatus() == OperationResultStatus.PARTIAL_ERROR) {
             	// Blue resource recon may fail. The user may be deleted before the blue
-        		// recon task finishes. If the result (user, accouts) is OK then tolarate this error.
+        		// recon task finishes. If the result (user, accounts) is OK then tolerate this error.
         	} else {
         		TestUtil.assertSuccess("Blue resource syncronization has failed", takResultBlue);
         	}
