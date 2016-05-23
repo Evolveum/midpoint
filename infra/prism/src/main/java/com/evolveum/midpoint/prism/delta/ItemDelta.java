@@ -1672,6 +1672,9 @@ public abstract class ItemDelta<V extends PrismValue,D extends ItemDefinition> i
 			throw new IllegalStateException("Delta is a REPLACE delta, not an ADD one");
 		}
 		valuesToReplace = valuesToAdd;
+		if (valuesToReplace == null) {
+			valuesToReplace = new ArrayList<>(0);
+		}
 		valuesToAdd = null;
 	}
 	

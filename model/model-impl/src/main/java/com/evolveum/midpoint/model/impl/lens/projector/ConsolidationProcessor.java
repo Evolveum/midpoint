@@ -219,6 +219,10 @@ public class ConsolidationProcessor {
 					public boolean isAuthoritative() {
 						return true;
 					}
+					@Override
+					public boolean isSourceless() {
+						return false;
+					}
 				};
 				Collection<PrismValueDeltaSetTripleProducer<PrismPropertyValue<QName>,PrismPropertyDefinition<QName>>> col = new ArrayList<>(1);
 				col.add(prod);

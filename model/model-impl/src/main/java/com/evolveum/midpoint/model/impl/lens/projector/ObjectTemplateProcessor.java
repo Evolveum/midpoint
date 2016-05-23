@@ -41,12 +41,14 @@ import com.evolveum.midpoint.model.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.model.common.expression.ObjectDeltaObject;
 import com.evolveum.midpoint.model.common.mapping.Mapping;
 import com.evolveum.midpoint.model.common.mapping.MappingFactory;
+import com.evolveum.midpoint.model.common.mapping.PrismValueDeltaSetTripleProducer;
 import com.evolveum.midpoint.model.impl.ModelObjectResolver;
 import com.evolveum.midpoint.model.impl.lens.ItemValueWithOrigin;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.model.impl.lens.LensUtil;
 import com.evolveum.midpoint.model.impl.trigger.RecomputeTriggerHandler;
+import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
@@ -70,6 +72,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingStrengthType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingTargetDeclarationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateItemDefinitionType;
@@ -153,7 +156,8 @@ public class ObjectTemplateProcessor {
 			LOGGER.trace("outputTripleMap before item delta computation:\n{}", DebugUtil.debugDumpMapMultiLine(outputTripleMap));
 		}
 
-		Collection<ItemDelta<?,?>> itemDeltas = computeItemDeltas(outputTripleMap, itemDefinitionsMap, focusOdo, focusDefinition, "object template "+objectTemplate+ " for focus "+focusOdo.getAnyObject());
+		String contextDesc = "object template "+objectTemplate+ " for focus "+focusOdo.getAnyObject();
+		Collection<ItemDelta<?,?>> itemDeltas = computeItemDeltas(outputTripleMap, itemDefinitionsMap, focusOdo, focusDefinition, contextDesc);
 		
 		focusContext.applyProjectionWaveSecondaryDeltas(itemDeltas);
 				
@@ -223,6 +227,12 @@ public class ObjectTemplateProcessor {
 		
 		Collection<ItemDelta<?,?>> itemDeltas = new ArrayList<>();
 		ObjectDelta<F> focusDelta = focusOdo.getObjectDelta();
+		PrismObject<F> focusNew = focusOdo.getNewObject();
+		
+		boolean addUnchangedValues = false;
+		if (focusDelta != null && focusDelta.isAdd()) {
+			addUnchangedValues = true;
+		}
 		
 		for (Entry<ItemPath, DeltaSetTriple<? extends ItemValueWithOrigin<?,?>>> entry: outputTripleMap.entrySet()) {
 			ItemPath itemPath = entry.getKey();
@@ -240,26 +250,58 @@ public class ObjectTemplateProcessor {
 			if (focusDelta != null) {
 				aprioriItemDelta = focusDelta.findItemDelta(itemPath);
 			}
-			boolean addUnchangedValues = true;	// We need to add unchanged values otherwise the unconditional mappings will not be applied
 			boolean filterExistingValues = !isNonTolerant;	// if non-tolerant, we want to gather ZERO & PLUS sets
 			ItemDefinition itemDefinition = focusDefinition.findItemDefinition(itemPath);
-			ItemDelta<?,?> itemDelta = LensUtil.consolidateTripleToDelta(itemPath, (DeltaSetTriple)outputTriple,
-					itemDefinition, aprioriItemDelta, focusOdo.getNewObject(), null, null,
+			ItemDelta itemDelta = LensUtil.consolidateTripleToDelta(itemPath, (DeltaSetTriple)outputTriple,
+					itemDefinition, aprioriItemDelta, focusNew, null, null,
 					addUnchangedValues, filterExistingValues, false, contextDesc, true);
+			
+			
+			// Do a quick version of reconciliation. There is not much to reconcile as both the source and the target
+			// is focus. But there are few cases to handle, such as strong mappings, and sourceless normal mappings. 
+			Collection<? extends ItemValueWithOrigin<?,?>> zeroSet = outputTriple.getZeroSet();
+			Item<PrismValue, ItemDefinition> itemNew = null;
+			if (focusNew != null) {
+				itemNew = focusNew.findItem(itemPath);
+			}
+			for (ItemValueWithOrigin<?,?> zeroSetIvwo: zeroSet) {
+				
+				PrismValueDeltaSetTripleProducer<?, ?> mapping = zeroSetIvwo.getMapping();
+				if ((mapping.getStrength() == null || mapping.getStrength() == MappingStrengthType.NORMAL)) {
+					if (aprioriItemDelta != null && !aprioriItemDelta.isEmpty()) {
+						continue;
+					}
+					if (!mapping.isSourceless()) {
+						continue;
+					}
+				}
+				
+				if (mapping.getStrength() == MappingStrengthType.WEAK && 
+						((itemNew != null && !itemNew.isEmpty()) || (itemDelta != null && itemDelta.addsAnyValue()))) {
+					continue;
+				}
+				
+				PrismValue valueFromZeroSet = zeroSetIvwo.getItemValue();
+				if (itemNew == null || !itemNew.containsRealValue(valueFromZeroSet)) {
+					LOGGER.trace("Reconciliation will add value {} for item {}. Existing item: {}", valueFromZeroSet, itemPath, itemNew);
+					itemDelta.addValuesToAdd(valueFromZeroSet.clone());
+				}
+			}
+			
 
 			if (isNonTolerant) {
 				if (itemDelta.isDelete()) {
 					LOGGER.trace("Non-tolerant item with values to DELETE => removing them");
 					itemDelta.resetValuesToDelete();        // these are useless now - we move everything to REPLACE
 				}
-				if (itemDelta.isAdd()) {
-					itemDelta.addToReplaceDelta();
-					LOGGER.trace("Non-tolerant item with resulting ADD delta => converted ADD to REPLACE values");
-				} else if (itemDelta.isReplace()) {
+				if (itemDelta.isReplace()) {
 					LOGGER.trace("Non-tolerant item with resulting REPLACE delta => doing nothing");
 				} else {
-					itemDelta.setValuesToReplace();
-					LOGGER.trace("Non-tolerant item => converting resulting empty delta to 'delete all values' delta");
+					for (ItemValueWithOrigin<?,?> zeroSetIvwo: zeroSet) {
+						itemDelta.addValuesToAdd(zeroSetIvwo.getItemValue().clone());
+					}
+					itemDelta.addToReplaceDelta();
+					LOGGER.trace("Non-tolerant item with resulting ADD delta => converted ADD to REPLACE values: {}", itemDelta.getValuesToReplace());
 				}
 
 				// To avoid phantom changes, compare with existing values (MID-2499).
