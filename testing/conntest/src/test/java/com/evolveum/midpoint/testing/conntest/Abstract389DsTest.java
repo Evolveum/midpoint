@@ -99,6 +99,11 @@ public abstract class Abstract389DsTest extends AbstractLdapConnTest {
 	protected boolean syncCanDetectDelete() {
 		return false;
 	}
+	
+	@Override
+	protected boolean isVlvSearchBeyondEndResurnsLastEntry() {
+		return true;
+	}
 
 	@Override
 	protected void assertStepSyncToken(String syncTaskOid, int step, long tsStart, long tsEnd)
