@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Evolveum
+ * Copyright (c) 2015-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,6 +34,13 @@ public interface PrismValueDeltaSetTripleProducer<V extends PrismValue, D extend
 
 	boolean isExclusive();
 
-	boolean isAuthoritative(); 
+	boolean isAuthoritative();
+
+	/**
+	 * Returns true if the mapping has no source. That means
+	 * it has to be evaluated for any delta. This really applies
+	 * only to normal-strength mappings.
+	 */
+	boolean isSourceless(); 
 
 }

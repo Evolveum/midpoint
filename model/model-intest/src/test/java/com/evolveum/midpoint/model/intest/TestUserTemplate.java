@@ -56,6 +56,7 @@ import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
@@ -91,10 +92,11 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 		
 	@Test
     public void test100ModifyUserGivenName() throws Exception {
-        TestUtil.displayTestTile(this, "test100ModifyUserGivenName");
+		final String TEST_NAME = "test100ModifyUserGivenName";
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestUserTemplate.class.getName() + ".test100ModifyUserGivenName");
+        Task task = taskManager.createTaskInstance(TestUserTemplate.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
     
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
@@ -106,6 +108,9 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 		modelService.executeChanges(deltas, null, task, result);
 
 		// THEN
+		result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
 		PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
         assertUserJack(userJack, "Jackie Sparrow", "Jackie", "Sparrow");
         PrismAsserts.assertPropertyValue(userJack, UserType.F_DESCRIPTION, "Where's the rum?");
@@ -127,6 +132,10 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 
         // original value of 0 should be gone now, because the corresponding item in user template is marked as non-tolerant
         PrismAsserts.assertPropertyValue(userJack.findContainer(UserType.F_EXTENSION), PIRACY_BAD_LUCK, 123L, 456L);
+        
+        // timezone mapping is normal-strength. The source (locality) has not changed. 
+        // The mapping should not be activated (MID-3040)
+        PrismAsserts.assertNoItem(userJack, UserType.F_TIMEZONE);
 	}
 
     @Test
@@ -149,6 +158,9 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 		modelService.executeChanges(deltas, null, task, result);
 
 		// THEN
+		result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
 		PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
 		display("User after", userJack);
         
@@ -196,6 +208,9 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 		modelService.executeChanges(deltas, null, task, result);
 
 		// THEN
+		result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
 		PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
 		display("User after", userJack);
 		
@@ -232,6 +247,9 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 		modelService.executeChanges(deltas, null, task, result);
 
 		// THEN
+		result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
 		PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
 		display("User after", userJack);
         
@@ -272,6 +290,9 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 		modelService.executeChanges(deltas, null, task, result);
 
 		// THEN
+		result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
 		PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
 		display("User after", userJack);
         
@@ -308,6 +329,9 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 		modelService.executeChanges(deltas, null, task, result);
 
 		// THEN
+		result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
 		PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
 		display("User after", userJack);
         
@@ -346,6 +370,9 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 		modelService.executeChanges(deltas, null, task, result);
 
 		// THEN
+		result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
 		PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
 		display("User after", userJack);
         
@@ -375,15 +402,13 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         Task task = taskManager.createTaskInstance(TestUserTemplate.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
     
-        Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
-        ObjectDelta<UserType> userDelta = ObjectDelta.createModificationReplaceProperty(UserType.class,
-        		USER_JACK_OID, UserType.F_TELEPHONE_NUMBER, prismContext, "1 222 3456789");
-        deltas.add(userDelta);
-                
 		// WHEN
-		modelService.executeChanges(deltas, null, task, result);
+        modifyUserReplace(USER_JACK_OID, UserType.F_TELEPHONE_NUMBER, task, result, "1 222 3456789");
 
 		// THEN
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
 		PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
 		display("User after", userJack);
         
@@ -404,9 +429,95 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         assertNull("Unexpected title: " + userJackType.getTitle(), userJackType.getTitle());
 	}
 	
+	/**
+	 * Reconcile the user. Check that nothing really changes.
+	 * MID-3040
+	 */
 	@Test
-    public void test110AssignDummy() throws Exception {
-		final String TEST_NAME = "test110AssignDummy";
+    public void test120ReconcileUser() throws Exception {
+		final String TEST_NAME = "test121ModifyUserReplaceLocality";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestUserTemplate.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        // WHEN
+        reconcileUser(USER_JACK_OID, task, result);
+        
+        // THEN
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
+		display("User after", userJack);
+        
+		PrismAsserts.assertPropertyValue(userJack, UserType.F_DESCRIPTION, "Where's the rum?");
+        assertAssignedAccount(userJack, RESOURCE_DUMMY_BLUE_OID);
+        assertNotAssignedRole(userJack, ROLE_PIRATE_OID);
+        assertAssignments(userJack, 1);
+        
+        UserType userJackType = userJack.asObjectable();
+        assertEquals("Unexpected number of accountRefs", 1, userJackType.getLinkRef().size());
+        
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        assertEquals("Wrong costCenter", "X000", userJackType.getCostCenter());
+        assertEquals("Wrong employee number", jackEmployeeNumber, userJackType.getEmployeeNumber());
+        assertEquals("Wrong telephone number", "1 222 3456789", userJackType.getTelephoneNumber());
+        assertNull("Unexpected title: " + userJackType.getTitle(), userJackType.getTitle());
+        
+        // timezone mapping is normal-strength. This is reconciliation. 
+        // The mapping should not be activated (MID-3040)
+        PrismAsserts.assertNoItem(userJack, UserType.F_TIMEZONE);
+	}
+	
+	/**
+	 * MID-3040
+	 */
+	@Test
+    public void test121ModifyUserReplaceLocality() throws Exception {
+		final String TEST_NAME = "test121ModifyUserReplaceLocality";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestUserTemplate.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+    
+		// WHEN
+        modifyUserReplace(USER_JACK_OID, UserType.F_LOCALITY, task, result, PrismTestUtil.createPolyString("Tortuga"));
+
+		// THEN
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+		PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
+		display("User after", userJack);
+        
+		PrismAsserts.assertPropertyValue(userJack, UserType.F_DESCRIPTION, "Where's the rum?");
+        assertAssignedAccount(userJack, RESOURCE_DUMMY_BLUE_OID);
+        assertNotAssignedRole(userJack, ROLE_PIRATE_OID);
+        assertAssignments(userJack, 1);
+        
+        UserType userJackType = userJack.asObjectable();
+        assertEquals("Unexpected number of accountRefs", 1, userJackType.getLinkRef().size());
+        
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        PrismAsserts.assertEqualsPolyString("Wrong locality", "Tortuga", userJackType.getLocality());
+        assertEquals("Wrong timezone", "High Seas/Tortuga", userJackType.getTimezone());
+        
+        assertEquals("Wrong costCenter", "X000", userJackType.getCostCenter());
+        assertEquals("Wrong employee number", jackEmployeeNumber, userJackType.getEmployeeNumber());
+        assertEquals("Wrong telephone number", "1 222 3456789", userJackType.getTelephoneNumber());
+        assertNull("Unexpected title: " + userJackType.getTitle(), userJackType.getTitle());
+	}
+	
+	@Test
+    public void test140AssignDummy() throws Exception {
+		final String TEST_NAME = "test140AssignDummy";
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
@@ -440,8 +551,8 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 	}
 	
 	@Test
-    public void test119UnAssignDummy() throws Exception {
-		final String TEST_NAME = "test119UnAssignDummy";
+    public void test149UnAssignDummy() throws Exception {
+		final String TEST_NAME = "test149UnAssignDummy";
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
@@ -837,12 +948,16 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test162ModifyUserGivenNameAgainPhantomChange() throws Exception {
-        TestUtil.displayTestTile(this, "test162ModifyUserGivenNameAgainPhantomChange");
+    	final String TEST_NAME = "test162ModifyUserGivenNameAgainPhantomChange";
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestUserTemplate.class.getName() + ".test162ModifyUserGivenNameAgainPhantomChange");
+        Task task = taskManager.createTaskInstance(TestUserTemplate.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
+        PrismObject<UserType> userBefore = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
+        display("User before", userBefore);
+        
         dummyAuditService.clear();
 
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
@@ -851,14 +966,17 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         deltas.add(userDelta);
 
         // WHEN
+        TestUtil.displayWhen(TEST_NAME);
         modelService.executeChanges(deltas, null, task, result);
 
         // THEN
-        PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
-
+        TestUtil.displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
-
+        
+        PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
+        display("User after", userJack);
+        
         PrismAsserts.assertPropertyValue(userJack.findContainer(UserType.F_EXTENSION), PIRACY_BAD_LUCK, 123L);
 
         display("Audit", dummyAuditService);
@@ -875,12 +993,16 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test165ModifyUserGivenNameAgainAgain() throws Exception {
-        TestUtil.displayTestTile(this, "test165ModifyUserGivenNameAgainAgain");
+    	final String TEST_NAME = "test165ModifyUserGivenNameAgainAgain";
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestUserTemplate.class.getName() + ".test165ModifyUserGivenNameAgainAgain");
+        Task task = taskManager.createTaskInstance(TestUserTemplate.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
+        PrismObject<UserType> userBefore = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
+        display("User before", userBefore);
+        
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
         ObjectDelta<UserType> userDelta = ObjectDelta.createModificationReplaceProperty(UserType.class,
                 USER_JACK_OID, UserType.F_GIVEN_NAME, prismContext, new PolyString("jackie"));
@@ -891,6 +1013,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 
         // THEN
         PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
+        display("User after", userJack);
 
         result.computeStatus();
         TestUtil.assertSuccess(result);
