@@ -63,16 +63,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TriggerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import org.apache.commons.lang3.Validate;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
-import javax.xml.datatype.DatatypeConstants;
-import javax.xml.datatype.XMLGregorianCalendar;
 import java.util.*;
 
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType.F_TRIGGER;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.TriggerType.F_TIMESTAMP;
 
 /**
  * 
@@ -242,7 +235,7 @@ public class TriggerScannerTaskHandler extends AbstractScannerTaskHandler<Object
 		if (handler == null) {
 			LOGGER.warn("No registered trigger handler for URI {}", handlerUri);
 		} else if (oidAlreadySeen(coordinatorTask, handlerUri, object.getOid())) {
-			LOGGER.trace("Handler {} already executed for {}", handlerUri, ObjectTypeUtil.toShortString(object));
+			LOGGER.debug("Handler {} already executed for {}", handlerUri, ObjectTypeUtil.toShortString(object));
 		} else {
 			try {
 				handler.handle(object, workerTask, result);
