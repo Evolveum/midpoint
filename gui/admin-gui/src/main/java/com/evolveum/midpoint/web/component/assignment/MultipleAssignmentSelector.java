@@ -29,6 +29,7 @@ import com.evolveum.midpoint.web.component.util.ListDataProvider;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import org.apache.commons.collections.IteratorUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -411,11 +412,11 @@ public class MultipleAssignmentSelector<F extends FocusType, H extends FocusType
         ObjectDataProvider temporaryProvider = new ObjectDataProvider(MultipleAssignmentSelector.this, type);
         List<AssignmentEditorDto> displayAssignmentsList = new ArrayList<>();
         temporaryProvider.setQuery(query);
+        Iterator it = temporaryProvider.internalIterator(0, temporaryProvider.size());
+        List<SelectableBean<F>> providerDataList = IteratorUtils.toList(it);
         for (AssignmentEditorDto dto : providerList) {
-            Iterator it = temporaryProvider.internalIterator(0, temporaryProvider.size());
-            while (it.hasNext()) {
-                SelectableBean selectableBean = (SelectableBean) it.next();
-                F object = (F) selectableBean.getValue();
+            for (SelectableBean<F> providerDataDto : providerDataList){
+                F object = providerDataDto.getValue();
                 if (object.getOid().equals(dto.getTargetRef().getOid())) {
                     displayAssignmentsList.add(dto);
                     break;
