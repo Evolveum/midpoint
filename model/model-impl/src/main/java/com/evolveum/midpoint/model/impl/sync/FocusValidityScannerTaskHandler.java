@@ -41,6 +41,7 @@ import com.evolveum.midpoint.prism.query.OrFilter;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.schema.result.OperationConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskRunResult;
 import com.evolveum.midpoint.util.exception.CommonException;
@@ -56,6 +57,22 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import org.apache.commons.lang3.Validate;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import javax.annotation.PostConstruct;
+import javax.xml.datatype.XMLGregorianCalendar;
+
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType.F_VALID_FROM;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType.F_VALID_TO;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType.F_ACTIVATION;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType.F_ASSIGNMENT;
 
 /**
  * 
@@ -80,7 +97,31 @@ public class FocusValidityScannerTaskHandler extends AbstractScannerTaskHandler<
 	
     @Autowired(required = true)
     private Clockwork clockwork;
-        
+
+	// task OID -> object OIDs; cleared on task start
+	// we use plain map, as it is much easier to synchronize explicitly than to play with ConcurrentMap methods
+	private Map<String,Set<String>> processedOidsMap = new HashMap<>();
+
+	private synchronized void initProcessedOids(Task coordinatorTask) {
+		Validate.notNull(coordinatorTask.getOid(), "Task OID is null");
+		processedOidsMap.put(coordinatorTask.getOid(), new HashSet<String>());
+	}
+
+	// TODO fix possible (although very small) memory leak occurring when task finishes unsuccessfully
+	private synchronized void cleanupProcessedOids(Task coordinatorTask) {
+		Validate.notNull(coordinatorTask.getOid(), "Task OID is null");
+		processedOidsMap.remove(coordinatorTask.getOid());
+	}
+
+	private synchronized boolean oidAlreadySeen(Task coordinatorTask, String objectOid) {
+		Validate.notNull(coordinatorTask.getOid(), "Coordinator task OID is null");
+		Set<String> oids = processedOidsMap.get(coordinatorTask.getOid());
+		if (oids == null) {
+			throw new IllegalStateException("ProcessedOids set was not initialized for task = " + coordinatorTask);
+		}
+		return !oids.add(objectOid);
+	}
+
 	private static final transient Trace LOGGER = TraceManager.getTrace(FocusValidityScannerTaskHandler.class);
 
 	public FocusValidityScannerTaskHandler() {
@@ -98,7 +139,8 @@ public class FocusValidityScannerTaskHandler extends AbstractScannerTaskHandler<
 	}
 
 	@Override
-	protected ObjectQuery createQuery(AbstractScannerResultHandler<UserType> handler, TaskRunResult runResult, Task task, OperationResult opResult) throws SchemaException {
+	protected ObjectQuery createQuery(AbstractScannerResultHandler<UserType> handler, TaskRunResult runResult, Task coordinatorTask, OperationResult opResult) throws SchemaException {
+		initProcessedOids(coordinatorTask);
 		ObjectQuery query = new ObjectQuery();
 		ObjectFilter filter;
 		PrismObjectDefinition<UserType> focusObjectDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
@@ -107,9 +149,9 @@ public class FocusValidityScannerTaskHandler extends AbstractScannerTaskHandler<
 		XMLGregorianCalendar thisScanTimestamp = handler.getThisScanTimestamp();
 		if (lastScanTimestamp == null) {
 			filter = OrFilter.createOr(
-						LessFilter.createLess(new ItemPath(FocusType.F_ACTIVATION, ActivationType.F_VALID_FROM), focusObjectDef, 
+						LessFilter.createLess(new ItemPath(FocusType.F_ACTIVATION, ActivationType.F_VALID_FROM), focusObjectDef,
 								thisScanTimestamp, true),
-						LessFilter.createLess(new ItemPath(FocusType.F_ACTIVATION, ActivationType.F_VALID_TO), focusObjectDef, 
+						LessFilter.createLess(new ItemPath(FocusType.F_ACTIVATION, ActivationType.F_VALID_TO), focusObjectDef,
 								thisScanTimestamp, true),
 						LessFilter.createLess(new ItemPath(FocusType.F_ASSIGNMENT, FocusType.F_ACTIVATION, ActivationType.F_VALID_FROM),
 								focusObjectDef, thisScanTimestamp, true),
@@ -119,15 +161,15 @@ public class FocusValidityScannerTaskHandler extends AbstractScannerTaskHandler<
 		} else {
 			filter = OrFilter.createOr(
 						AndFilter.createAnd(
-							GreaterFilter.createGreater(new ItemPath(FocusType.F_ACTIVATION, ActivationType.F_VALID_FROM), focusObjectDef, 
+							GreaterFilter.createGreater(new ItemPath(FocusType.F_ACTIVATION, ActivationType.F_VALID_FROM), focusObjectDef,
 									lastScanTimestamp, false),
-							LessFilter.createLess(new ItemPath(FocusType.F_ACTIVATION, ActivationType.F_VALID_FROM), focusObjectDef, 
+							LessFilter.createLess(new ItemPath(FocusType.F_ACTIVATION, ActivationType.F_VALID_FROM), focusObjectDef,
 									thisScanTimestamp, true)
 						),
 						AndFilter.createAnd(
-							GreaterFilter.createGreater(new ItemPath(FocusType.F_ACTIVATION, ActivationType.F_VALID_TO), focusObjectDef, 
+							GreaterFilter.createGreater(new ItemPath(FocusType.F_ACTIVATION, ActivationType.F_VALID_TO), focusObjectDef,
 									lastScanTimestamp, false),
-							LessFilter.createLess(new ItemPath(FocusType.F_ACTIVATION, ActivationType.F_VALID_TO), focusObjectDef, 
+							LessFilter.createLess(new ItemPath(FocusType.F_ACTIVATION, ActivationType.F_VALID_TO), focusObjectDef,
 									thisScanTimestamp, true)
 						),
 						AndFilter.createAnd(
@@ -142,13 +184,20 @@ public class FocusValidityScannerTaskHandler extends AbstractScannerTaskHandler<
 								LessFilter.createLess(new ItemPath(FocusType.F_ASSIGNMENT, FocusType.F_ACTIVATION, ActivationType.F_VALID_TO),
 										focusObjectDef, thisScanTimestamp, true)
 							)
-			);			
+			);
 		}
 		
 		query.setFilter(filter);
 		return query;
 	}
-	
+
+	@Override
+	protected void finish(AbstractScannerResultHandler<UserType> handler, TaskRunResult runResult, Task coordinatorTask, OperationResult opResult)
+			throws SchemaException {
+		super.finish(handler, runResult, coordinatorTask, opResult);
+		cleanupProcessedOids(coordinatorTask);
+	}
+
 	@Override
 	protected AbstractScannerResultHandler<UserType> createHandler(TaskRunResult runResult, final Task coordinatorTask,
 			OperationResult opResult) {
@@ -156,8 +205,12 @@ public class FocusValidityScannerTaskHandler extends AbstractScannerTaskHandler<
 		AbstractScannerResultHandler<UserType> handler = new AbstractScannerResultHandler<UserType>(
 				coordinatorTask, FocusValidityScannerTaskHandler.class.getName(), "recompute", "recompute task", taskManager) {
 			@Override
-			protected boolean handleObject(PrismObject<UserType> user, Task workerTask, OperationResult result) throws CommonException {
-				recomputeUser(user, workerTask, result);
+			protected boolean handleObject(PrismObject<UserType> object, Task workerTask, OperationResult result) throws CommonException {
+				if (oidAlreadySeen(coordinatorTask, object.getOid())) {
+					LOGGER.trace("Recomputation already executed for {}", ObjectTypeUtil.toShortString(object));
+				} else {
+					recomputeUser(object, workerTask, result);
+				}
 				return true;
 			}
 		};
