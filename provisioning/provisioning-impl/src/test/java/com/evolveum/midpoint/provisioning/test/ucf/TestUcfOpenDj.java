@@ -211,7 +211,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 			configurationDefinition.findContainerDefinition(ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_ELEMENT_QNAME);
 		PrismPropertyDefinition<String> propHost = configurationPropertiesDefinition.findPropertyDefinition(new QName(ProvisioningTestUtil.CONNECTOR_LDAP_NS,"host"));
 		assertNotNull("No definition for configuration property 'host' in connector schema", propHost);
-		PrismAsserts.assertDefinition(propHost, new QName(ProvisioningTestUtil.CONNECTOR_LDAP_NS,"host"), DOMUtil.XSD_STRING, 0, 1);
+		PrismAsserts.assertDefinition(propHost, new QName(ProvisioningTestUtil.CONNECTOR_LDAP_NS,"host"), DOMUtil.XSD_STRING, 1, 1);
 		assertEquals("Wrong property 'host' display name", "Host", propHost.getDisplayName());
 		assertEquals("Wrong property 'host' help", "The name or IP address of the LDAP server host.", propHost.getHelp());
 	}
