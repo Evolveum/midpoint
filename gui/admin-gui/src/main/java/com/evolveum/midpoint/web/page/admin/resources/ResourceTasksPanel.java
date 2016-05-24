@@ -129,7 +129,7 @@ public class ResourceTasksPanel extends Panel implements Popupable{
 //				super.objectDetailsPerformed(target, task);
 				PageParameters parameters = new PageParameters();
 		        parameters.add(OnePageParameterEncoder.PARAMETER, task.getOid());
-		        setResponsePage(new PageTaskEdit(parameters));
+		        setResponsePage(PageTaskEdit.class, parameters);
 			}
 
 			@Override

@@ -569,7 +569,7 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
             private void taskDetailsPerformed(AjaxRequestTarget target, String oid) {
                 PageParameters parameters = new PageParameters();
                 parameters.add(OnePageParameterEncoder.PARAMETER, oid);
-                component.setResponsePage(new PageTaskEdit(parameters));
+                component.setResponsePage(PageTaskEdit.class, parameters);
             }
 
             @Override

@@ -197,7 +197,7 @@ public class ProcessInstancesPanel extends BasePanel {
 	private void itemDetailsPerformed(AjaxRequestTarget target, String pid) {
         PageParameters parameters = new PageParameters();
         parameters.add(OnePageParameterEncoder.PARAMETER, pid);
-        setResponsePage(new PageTaskEdit(parameters));
+        setResponsePage(PageTaskEdit.class, parameters);
     }
 
 	// copied and adapted from WorkItemsPanel - TODO deduplicate
