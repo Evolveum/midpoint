@@ -137,8 +137,8 @@ public class ProcessInstancesPanel extends BasePanel {
 
 	@NotNull
 	private IColumn<ProcessInstanceDto,String> createNameColumn() {
-		if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_WORK_ITEMS_ALL_URL,
-				AuthorizationConstants.AUTZ_UI_WORK_ITEMS_PROCESS_INSTANCE_URL)) {
+		if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_TASKS_ALL_URL,
+				AuthorizationConstants.AUTZ_UI_TASK_URL)) {
 			return new LinkColumn<ProcessInstanceDto>(createStringResource("MyRequestsPanel.name"), "name") {
 				@Override
 				public void onClick(AjaxRequestTarget target, IModel<ProcessInstanceDto> rowModel) {

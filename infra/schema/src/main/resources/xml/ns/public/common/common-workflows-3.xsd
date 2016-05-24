@@ -68,10 +68,10 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="allowApproveOthersItems" minOccurs="0" type="xsd:boolean" default="true">
+            <xsd:element name="allowCompleteOthersItems" minOccurs="0" type="xsd:boolean" default="false">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Whether appropriately privileged users (e.g. the administrator) can approve work items
+                        Whether appropriately privileged users (e.g. the administrator) can approve/reject work items
                         assigned to other users.
                     </xsd:documentation>
                 </xsd:annotation>

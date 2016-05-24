@@ -52,7 +52,8 @@ public class WorkItemDtoProvider extends BaseSortableDataProvider<WorkItemDto> {
     private static final String OPERATION_LIST_ITEMS = DOT_CLASS + "listItems";
     private static final String OPERATION_COUNT_ITEMS = DOT_CLASS + "countItems";
 
-    boolean assigned;
+    boolean claimable;
+	boolean all;
 
     public String currentUser() {
         MidPointPrincipal principal = SecurityUtils.getPrincipalUser();
@@ -63,9 +64,10 @@ public class WorkItemDtoProvider extends BaseSortableDataProvider<WorkItemDto> {
         return principal.getOid();
     }
 
-    public WorkItemDtoProvider(Component component, boolean assigned) {
+    public WorkItemDtoProvider(Component component, boolean claimable, boolean all) {
         super(component);
-        this.assigned = assigned;
+        this.claimable = claimable;
+		this.all = all;
     }
 
     @Override
@@ -110,13 +112,16 @@ public class WorkItemDtoProvider extends BaseSortableDataProvider<WorkItemDto> {
     }
 
     private ObjectQuery createQuery(OperationResult result) throws SchemaException {
-        if (assigned) {
-            return QueryBuilder.queryFor(WorkItemType.class, getPrismContext())
-                    .item(WorkItemType.F_ASSIGNEE_REF).ref(currentUser())
-                    .build();
-        } else {
-            return QueryBuilder.queryFor(WorkItemType.class, getPrismContext())
+		if (all) {
+			return QueryBuilder.queryFor(WorkItemType.class, getPrismContext())
+					.build();
+		} else if (claimable) {
+			return QueryBuilder.queryFor(WorkItemType.class, getPrismContext())
 					.item(WorkItemType.F_CANDIDATE_ROLES_REF).ref(getGroupsForUser(currentUser(), result))
+					.build();
+        } else {
+			return QueryBuilder.queryFor(WorkItemType.class, getPrismContext())
+					.item(WorkItemType.F_ASSIGNEE_REF).ref(currentUser())
 					.build();
         }
     }

@@ -16,7 +16,6 @@
 package com.evolveum.midpoint.web.page.admin.workflow;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.model.api.WorkflowService;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -46,7 +45,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -68,9 +66,9 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType.
  * @author mederly
  */
 @PageDescriptor(url = "/admin/workItem", encoder = OnePageParameterEncoder.class, action = {
-        @AuthorizationAction(actionUri = PageAdminWorkItems.AUTH_WORK_ITEMS_ALL,
-                label = PageAdminWorkItems.AUTH_WORK_ITEMS_ALL_LABEL,
-                description = PageAdminWorkItems.AUTH_WORK_ITEMS_ALL_DESCRIPTION),
+        @AuthorizationAction(actionUri = PageAdminWorkItems.AUTH_APPROVALS_ALL,
+                label = PageAdminWorkItems.AUTH_APPROVALS_ALL_LABEL,
+                description = PageAdminWorkItems.AUTH_APPROVALS_ALL_DESCRIPTION),
         @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_WORK_ITEM_URL,
                 label = "PageWorkItem.auth.workItem.label",
                 description = "PageWorkItem.auth.workItem.description")})

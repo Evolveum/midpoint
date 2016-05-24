@@ -174,31 +174,16 @@ public class AuthorizationConstants {
 	public static final String AUTZ_UI_ROLE_DETAILS_URL = NS_AUTHORIZATION_UI + "#roleDetails";
 	
 	
-	//Work Items
-	public static final QName AUTZ_UI_WORK_ITEMS_ALL_QNAME = new QName(NS_AUTHORIZATION_UI, "workItemsAll");
-	public static final String AUTZ_UI_WORK_ITEMS_ALL_URL = NS_AUTHORIZATION_UI + "#workItemsAll";
-	
-	public static final QName AUTZ_UI_WORK_ITEMS_QNAME = new QName(NS_AUTHORIZATION_UI, "workItems");
-	public static final String AUTZ_UI_WORK_ITEMS_URL = NS_AUTHORIZATION_UI + "#workItems";
-	
-	public static final QName AUTZ_UI_WORK_ITEM_QNAME = new QName(NS_AUTHORIZATION_UI, "workItem");
+	//Approvals (workflows)
+	public static final String AUTZ_UI_APPROVALS_ALL_URL = NS_AUTHORIZATION_UI + "#approvalsAll";
+	public static final String AUTZ_UI_MY_WORK_ITEMS_URL = NS_AUTHORIZATION_UI + "#myWorkItems";
+	public static final String AUTZ_UI_CLAIMABLE_WORK_ITEMS_URL = NS_AUTHORIZATION_UI + "#claimableWorkItems";
+	public static final String AUTZ_UI_ALL_WORK_ITEMS_URL = NS_AUTHORIZATION_UI + "#allWorkItems";
 	public static final String AUTZ_UI_WORK_ITEM_URL = NS_AUTHORIZATION_UI + "#workItem";
-	
-	public static final QName AUTZ_UI_WORK_ITEMS_ALL_REQUESTS_QNAME = new QName(NS_AUTHORIZATION_UI, "workItemsAllRequests");
-	public static final String AUTZ_UI_WORK_ITEMS_ALL_REQUESTS_URL = NS_AUTHORIZATION_UI + "#workItemsAllRequests";
-	
-	public static final QName AUTZ_UI_WORK_ITEMS_MY_REQUESTS_QNAME = new QName(NS_AUTHORIZATION_UI, "workItemsMyRequests");
-	public static final String AUTZ_UI_WORK_ITEMS_MY_REQUESTS_URL = NS_AUTHORIZATION_UI + "#workItemsMyRequests";
-	
-	public static final QName AUTZ_UI_WORK_ITEMS_ABOUT_ME_REQUESTS_QNAME = new QName(NS_AUTHORIZATION_UI, "workItemsAboutMeRequests");
-	public static final String AUTZ_UI_WORK_ITEMS_ABOUT_ME_REQUESTS_URL = NS_AUTHORIZATION_UI + "#workItemsAboutMeRequests";
-	
-	public static final QName AUTZ_UI_WORK_ITEMS_PROCESS_INSTANCE_QNAME = new QName(NS_AUTHORIZATION_UI, "workItemsProcessInstance");
-	public static final String AUTZ_UI_WORK_ITEMS_PROCESS_INSTANCE_URL = NS_AUTHORIZATION_UI + "#workItemsProcessInstance";
+	public static final String AUTZ_UI_WORK_ITEMS_ALL_REQUESTS_URL = NS_AUTHORIZATION_UI + "#allRequests";
+	public static final String AUTZ_UI_MY_REQUESTS_URL = NS_AUTHORIZATION_UI + "#myRequests";
+	public static final String AUTZ_UI_REQUESTS_ABOUT_ME_URL = NS_AUTHORIZATION_UI + "#requestsAboutMe";
 
-    public static final QName AUTZ_UI_WORK_ITEMS_APPROVE_OTHERS_ITEMS_QNAME = new QName(NS_AUTHORIZATION_UI, "workItemsApproveOthersItems");
-    public static final String AUTZ_UI_WORK_ITEMS_APPROVE_OTHERS_ITEMS_URL = NS_AUTHORIZATION_UI + "#workItemsApproveOthersItems";
-    
 	//Tasks
 	public static final QName AUTZ_UI_TASKS_ALL_QNAME = new QName(NS_AUTHORIZATION_UI, "tasksAll");
 	public static final String AUTZ_UI_TASKS_ALL_URL = NS_AUTHORIZATION_UI + "#tasksAll";

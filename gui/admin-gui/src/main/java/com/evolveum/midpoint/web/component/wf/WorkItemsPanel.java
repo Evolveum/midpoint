@@ -17,7 +17,6 @@
 package com.evolveum.midpoint.web.component.wf;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
@@ -133,7 +132,7 @@ public class WorkItemsPanel extends BasePanel {
 	@NotNull
 	private AbstractColumn<WorkItemDto, String> createNameColumn() {
 		AbstractColumn<WorkItemDto, String> nameColumn;
-		if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_WORK_ITEMS_ALL_URL,
+		if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_APPROVALS_ALL_URL,
 				AuthorizationConstants.AUTZ_UI_WORK_ITEM_URL)) {
 			nameColumn = new LinkColumn<WorkItemDto>(createStringResource("WorkItemsPanel.name"), WorkItemDto.F_NAME,
 					WorkItemDto.F_NAME) {

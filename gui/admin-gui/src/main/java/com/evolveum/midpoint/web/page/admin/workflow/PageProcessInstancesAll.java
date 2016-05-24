@@ -16,7 +16,6 @@
 
 package com.evolveum.midpoint.web.page.admin.workflow;
 
-import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
@@ -24,23 +23,19 @@ import com.evolveum.midpoint.web.application.PageDescriptor;
 import org.apache.wicket.model.IModel;
 
 /**
- * Created with IntelliJ IDEA.
- * User: mederly
- * Date: 28.9.2012
- * Time: 14:11
- * To change this template use File | Settings | File Templates.
+ * @author mederly
  */
-@PageDescriptor(url = "/admin/workItems/allRequests", action = {
-        @AuthorizationAction(actionUri = PageAdminWorkItems.AUTH_WORK_ITEMS_ALL,
-                label = PageAdminWorkItems.AUTH_WORK_ITEMS_ALL_LABEL,
-                description = PageAdminWorkItems.AUTH_WORK_ITEMS_ALL_DESCRIPTION),
+@PageDescriptor(url = "/admin/allRequests", action = {
+        @AuthorizationAction(actionUri = PageAdminWorkItems.AUTH_APPROVALS_ALL,
+                label = PageAdminWorkItems.AUTH_APPROVALS_ALL_LABEL,
+                description = PageAdminWorkItems.AUTH_APPROVALS_ALL_DESCRIPTION),
         @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_WORK_ITEMS_ALL_REQUESTS_URL,
-                label = "PageProcessInstancesAll.auth.workItemsAllRequests.label",
-                description = "PageProcessInstancesAll.auth.workItemsAllRequests.description")})
+                label = "PageProcessInstancesAll.auth.allRequests.label",
+                description = "PageProcessInstancesAll.auth.allRequests.description")})
 public class PageProcessInstancesAll extends PageProcessInstances {
 
     protected IModel<String> createPageTitleModel() {
-        return createStringResource("PageProcessInstancesRequestedBy.title");
+        return createStringResource("PageProcessInstancesAll.title");
     }
 
     public PageProcessInstancesAll() {

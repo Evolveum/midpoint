@@ -19,17 +19,12 @@ package com.evolveum.midpoint.web.page.admin.workflow;
 import com.evolveum.midpoint.model.api.WorkflowService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
-import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.application.AuthorizationAction;
-import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.wf.WorkItemsPanel;
-import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemDtoProvider;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemDto;
+import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemDtoProvider;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.form.Form;
@@ -39,20 +34,12 @@ import java.util.List;
 /**
  * @author lazyman
  */
-@PageDescriptor(url = "/admin/workItems", action = {
-        @AuthorizationAction(actionUri = PageAdminWorkItems.AUTH_WORK_ITEMS_ALL,
-                label = PageAdminWorkItems.AUTH_WORK_ITEMS_ALL_LABEL,
-                description = PageAdminWorkItems.AUTH_WORK_ITEMS_ALL_DESCRIPTION),
-        @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_WORK_ITEMS_URL,
-                label = "PageWorkItems.auth.workItems.label",
-                description = "PageWorkItems.auth.workItems.description")})
-public class PageWorkItems extends PageAdminWorkItems {
+public abstract class PageWorkItems extends PageAdminWorkItems {
 
-    private static final Trace LOGGER = TraceManager.getTrace(PageWorkItems.class);
+    //private static final Trace LOGGER = TraceManager.getTrace(PageWorkItems.class);
     private static final String DOT_CLASS = PageWorkItems.class.getName() + ".";
     private static final String OPERATION_APPROVE_OR_REJECT_ITEMS = DOT_CLASS + "approveOrRejectItems";
     private static final String OPERATION_APPROVE_OR_REJECT_ITEM = DOT_CLASS + "approveOrRejectItem";
-    private static final String OPERATION_REJECT_ITEMS = DOT_CLASS + "rejectItems";
     private static final String OPERATION_CLAIM_ITEMS = DOT_CLASS + "claimItems";
     private static final String OPERATION_CLAIM_ITEM = DOT_CLASS + "claimItem";
     private static final String OPERATION_RELEASE_ITEMS = DOT_CLASS + "releaseItems";
@@ -60,17 +47,13 @@ public class PageWorkItems extends PageAdminWorkItems {
     private static final String ID_WORK_ITEMS_PANEL = "workItemsPanel";
 
     private static final String ID_MAIN_FORM = "mainForm";
-    private static final String ID_WORK_ITEM_TABLE = "workItemTable";
 
-    boolean assigned;
+    private boolean claimable;
+	private boolean all;
 
-    public PageWorkItems() {
-        assigned = true;
-        initLayout();
-    }
-
-    public PageWorkItems(boolean assigned) {
-        this.assigned = assigned;
+    public PageWorkItems(boolean claimable, boolean all) {
+        this.claimable = claimable;
+		this.all = all;
         initLayout();
     }
 
@@ -78,7 +61,7 @@ public class PageWorkItems extends PageAdminWorkItems {
         Form mainForm = new Form(ID_MAIN_FORM);
         add(mainForm);
 
-        WorkItemsPanel panel = new WorkItemsPanel(ID_WORK_ITEMS_PANEL, new WorkItemDtoProvider(PageWorkItems.this, assigned),
+        WorkItemsPanel panel = new WorkItemsPanel(ID_WORK_ITEMS_PANEL, new WorkItemDtoProvider(PageWorkItems.this, claimable, all),
                 UserProfileStorage.TableId.PAGE_WORK_ITEMS, (int) getItemsPerPage(UserProfileStorage.TableId.PAGE_WORK_ITEMS),
 				WorkItemsPanel.View.FULL_LIST);
 
@@ -96,7 +79,7 @@ public class PageWorkItems extends PageAdminWorkItems {
                 claimWorkItemsPerformed(target);
             }
         };
-        claim.setVisible(!assigned);
+        claim.setVisible(!all && claimable);
         mainForm.add(claim);
 
         AjaxButton release = new AjaxButton("release", createStringResource("pageWorkItems.button.release")) {
@@ -106,7 +89,7 @@ public class PageWorkItems extends PageAdminWorkItems {
                 releaseWorkItemsPerformed(target);
             }
         };
-        release.setVisible(assigned);
+        release.setVisible(!all && !claimable);
         mainForm.add(release);
 
         // the following are shown irrespectively of whether the work item is assigned or not

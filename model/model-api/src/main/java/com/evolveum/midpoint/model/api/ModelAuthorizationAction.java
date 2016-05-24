@@ -52,6 +52,8 @@ public enum ModelAuthorizationAction implements DisplayableValue<String> {
 	READ_OWN_CERTIFICATION_DECISIONS("readOwnCertificationDecisions", "Read own access certification decisions", "READ_OWN_CERTIFICATION_DECISIONS_HELP"),
 	RECORD_CERTIFICATION_DECISION("recordCertificationDecision", "Record access certification decision", "RECORD_CERTIFICATION_DECISION_HELP"),
 
+	COMPLETE_ALL_WORK_ITEMS("completeAllWorkItems", "Complete all work items", "COMPLETE_ALL_WORK_ITEMS_HELP"),
+	READ_ALL_WORK_ITEMS("readAllWorkItems", "Read all work items", "READ_ALL_WORK_ITEMS_HELP"),
 	STOP_APPROVAL_PROCESS_INSTANCE("stopApprovalProcessInstance", "Stop approval process instance", "STOP_APPROVAL_PROCESS_INSTANCE_HELP")
 	;
 	
