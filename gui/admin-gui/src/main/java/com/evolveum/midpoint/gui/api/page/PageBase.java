@@ -28,6 +28,7 @@ import javax.management.MBeanServerFactory;
 import javax.management.ObjectName;
 
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.web.page.admin.workflow.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
@@ -291,7 +292,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 					        .item(WorkItemType.F_ASSIGNEE_REF).ref(getPrincipal().getOid())
 					        .build();
 					return modelService.countContainers(WorkItemType.class, query, null, task, task.getResult());
-				} catch (SchemaException e) {
+				} catch (SchemaException|SecurityViolationException e) {
 					LoggingUtils.logExceptionAsWarning(LOGGER, "Couldn't load work item count", e);
 					return null;
 				}

@@ -440,7 +440,7 @@ public interface ModelService {
 
 	<T extends Containerable> Integer countContainers(Class<T> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options,
 			Task task, OperationResult parentResult)
-			throws SchemaException;
+			throws SchemaException, SecurityViolationException;
 
 	/**
 	 * <p>

@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.web.page.admin.workflow.dto;
 
+import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
@@ -112,16 +113,18 @@ public class WorkItemDtoProvider extends BaseSortableDataProvider<WorkItemDto> {
     }
 
     private ObjectQuery createQuery(OperationResult result) throws SchemaException {
-		if (all) {
+		boolean authorizedToSeeAll = isAuthorized(ModelAuthorizationAction.READ_ALL_WORK_ITEMS.getUrl());
+		if (all && authorizedToSeeAll) {
 			return QueryBuilder.queryFor(WorkItemType.class, getPrismContext())
 					.build();
-		} else if (claimable) {
+		} else if (all || !claimable) {
+			// not authorized to see all => sees only allocated to him (not quite what is expected, but sufficient for the time being)
 			return QueryBuilder.queryFor(WorkItemType.class, getPrismContext())
-					.item(WorkItemType.F_CANDIDATE_ROLES_REF).ref(getGroupsForUser(currentUser(), result))
+					.item(WorkItemType.F_ASSIGNEE_REF).ref(currentUser())
 					.build();
         } else {
 			return QueryBuilder.queryFor(WorkItemType.class, getPrismContext())
-					.item(WorkItemType.F_ASSIGNEE_REF).ref(currentUser())
+					.item(WorkItemType.F_CANDIDATE_ROLES_REF).ref(getGroupsForUser(currentUser(), result))
 					.build();
         }
     }
@@ -134,7 +137,7 @@ public class WorkItemDtoProvider extends BaseSortableDataProvider<WorkItemDto> {
         try {
             ObjectQuery query = createQuery(result);
             count = getModel().countContainers(WorkItemType.class, query, null, task, result);
-        } catch (SchemaException|RuntimeException e) {
+        } catch (SchemaException|SecurityViolationException|RuntimeException e) {
             throw new SystemException("Couldn't count work items: " + e.getMessage(), e);
         }
 
