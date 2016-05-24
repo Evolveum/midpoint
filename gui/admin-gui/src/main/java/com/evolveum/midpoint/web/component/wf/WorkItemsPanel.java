@@ -204,14 +204,20 @@ public class WorkItemsPanel extends BasePanel {
 		return new IconColumn<WorkItemDto>(createStringResource("")) {
 			@Override
 			protected IModel<String> createIconModel(IModel<WorkItemDto> rowModel) {
+				if (getObjectType(rowModel) == null) {
+					return null;
+				}
 				ObjectTypeGuiDescriptor guiDescriptor = getObjectTypeDescriptor(rowModel);
-				String icon = guiDescriptor != null ? guiDescriptor.getIcon() : ObjectTypeGuiDescriptor.ERROR_ICON;
+				String icon = guiDescriptor != null ? guiDescriptor.getBlackIcon() : ObjectTypeGuiDescriptor.ERROR_ICON;
 				return new Model<>(icon);
 			}
 
 			private ObjectTypeGuiDescriptor getObjectTypeDescriptor(IModel<WorkItemDto> rowModel) {
-				QName type = object ? rowModel.getObject().getObjectType() : rowModel.getObject().getTargetType();
-				return ObjectTypeGuiDescriptor.getDescriptor(ObjectTypes.getObjectTypeFromTypeQName(type));
+				return ObjectTypeGuiDescriptor.getDescriptor(ObjectTypes.getObjectTypeFromTypeQName(getObjectType(rowModel)));
+			}
+
+			private QName getObjectType(IModel<WorkItemDto> rowModel) {
+				return object ? rowModel.getObject().getObjectType() : rowModel.getObject().getTargetType();
 			}
 
 			@Override

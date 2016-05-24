@@ -228,14 +228,21 @@ public class ProcessInstancesPanel extends BasePanel {
 		return new IconColumn<ProcessInstanceDto>(createStringResource("")) {
 			@Override
 			protected IModel<String> createIconModel(IModel<ProcessInstanceDto> rowModel) {
+				if (getObjectType(rowModel) == null) {
+					return null;
+				}
 				ObjectTypeGuiDescriptor guiDescriptor = getObjectTypeDescriptor(rowModel);
-				String icon = guiDescriptor != null ? guiDescriptor.getIcon() : ObjectTypeGuiDescriptor.ERROR_ICON;
+				String icon = guiDescriptor != null ? guiDescriptor.getBlackIcon() : ObjectTypeGuiDescriptor.ERROR_ICON;
 				return new Model<>(icon);
 			}
 
 			private ObjectTypeGuiDescriptor getObjectTypeDescriptor(IModel<ProcessInstanceDto> rowModel) {
-				QName type = object ? rowModel.getObject().getObjectType() : rowModel.getObject().getTargetType();
+				QName type = getObjectType(rowModel);
 				return ObjectTypeGuiDescriptor.getDescriptor(ObjectTypes.getObjectTypeFromTypeQName(type));
+			}
+
+			private QName getObjectType(IModel<ProcessInstanceDto> rowModel) {
+				return object ? rowModel.getObject().getObjectType() : rowModel.getObject().getTargetType();
 			}
 
 			@Override
