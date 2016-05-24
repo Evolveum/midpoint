@@ -61,7 +61,8 @@ public class ApplicationHomeSetup {
                 midpointHomePath + "/log",
                 midpointHomePath + "/schema",
                 midpointHomePath + "/import",
-                midpointHomePath + "/export"
+                midpointHomePath + "/export",
+                midpointHomePath + "/tmp"
         };
 
         for (String directory : directories) {

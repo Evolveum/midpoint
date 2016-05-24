@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -244,6 +244,11 @@ public class Mapping<V extends PrismValue,D extends ItemDefinition> implements D
 
 	public MappingType getMappingType() {
 		return mappingType;
+	}
+	
+	@Override
+	public boolean isSourceless() {
+		return sources.isEmpty();
 	}
 
 	public void setRootNode(ObjectReferenceType objectRef) {
@@ -1192,7 +1197,11 @@ public class Mapping<V extends PrismValue,D extends ItemDefinition> implements D
 
 	@Override
 	public String toString() {
-		return "M(" + getMappingDisplayName() + " = " + outputTriple + toStringStrength() + ")";
+		if (mappingType != null && mappingType.getName() != null) {
+			return "M(" + mappingType.getName()+ ": "+ getMappingDisplayName() + " = " + outputTriple + toStringStrength() + ")";
+		} else {
+			return "M(" + getMappingDisplayName() + " = " + outputTriple + toStringStrength() + ")";
+		}
 	}
 
 	private String getMappingDisplayName() {
@@ -1213,5 +1222,5 @@ public class Mapping<V extends PrismValue,D extends ItemDefinition> implements D
 		}
 		return null;
 	}
-	
+
 }
