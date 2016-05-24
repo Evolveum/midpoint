@@ -19,6 +19,7 @@ package com.evolveum.midpoint.web.component.refresh;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.web.component.data.column.LinkIconPanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AbstractAjaxTimerBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -44,12 +45,12 @@ public class AutoRefreshPanel extends BasePanel<AutoRefreshDto> {
 
 	private AbstractAjaxTimerBehavior refreshingBehavior;			// this behavior is attached to some component (defined by owning page/panel)
 
-	public AutoRefreshPanel(String id, IModel<AutoRefreshDto> model, Refreshable refreshable) {
+	public AutoRefreshPanel(String id, IModel<AutoRefreshDto> model, Refreshable refreshable, boolean inSummaryPanel) {
 		super(id, model);
-		initLayout(refreshable);
+		initLayout(refreshable, inSummaryPanel);
 	}
 
-	private void initLayout(final Refreshable refreshable) {
+	private void initLayout(final Refreshable refreshable, boolean inSummaryPanel) {
 
 		final LinkIconPanel refreshNow = new LinkIconPanel(ID_REFRESH_NOW, new Model("fa fa-refresh"), createStringResource("autoRefreshPanel.refreshNow")) {
 			@Override
@@ -107,6 +108,10 @@ public class AutoRefreshPanel extends BasePanel<AutoRefreshDto> {
 		});
 		status.setRenderBodyOnly(true);
 		add(status);
+
+		if (inSummaryPanel) {
+			add(new AttributeModifier("class", "summary-tag"));
+		}
 	}
 
 	public void startRefreshing(final Refreshable refreshable) {
