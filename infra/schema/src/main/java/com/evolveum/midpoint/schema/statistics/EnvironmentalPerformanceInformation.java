@@ -460,9 +460,6 @@ public class EnvironmentalPerformanceInformation {
 
     public synchronized void recordMappingOperation(String objectOid, String objectName, String mappingName, long duration) {
         // ignoring mapping name for now
-        if (objectName == null) {
-            System.out.println("Null objectName");
-        }
         MappingsStatisticsKey key = new MappingsStatisticsKey(objectOid, objectName);
         GenericStatisticsData data = mappingsData.get(key);
         if (data == null) {
