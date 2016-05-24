@@ -20,6 +20,7 @@ import com.evolveum.midpoint.model.common.expression.Expression;
 import com.evolveum.midpoint.model.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.model.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.model.common.expression.ExpressionVariables;
+import com.evolveum.midpoint.model.impl.expr.ModelExpressionThreadLocalHolder;
 import com.evolveum.midpoint.notifications.api.NotificationManager;
 import com.evolveum.midpoint.notifications.api.transports.Message;
 import com.evolveum.midpoint.notifications.api.transports.Transport;
@@ -229,7 +230,8 @@ public class SimpleSmsTransport implements Transport {
 
         Expression<PrismPropertyValue<String>,PrismPropertyDefinition<String>> expression = expressionFactory.makeExpression(expressionType, resultDef, shortDesc, task, result);
         ExpressionEvaluationContext params = new ExpressionEvaluationContext(null, expressionVariables, shortDesc, task, result);
-        PrismValueDeltaSetTriple<PrismPropertyValue<String>> exprResult = expression.evaluate(params);
+        PrismValueDeltaSetTriple<PrismPropertyValue<String>> exprResult = ModelExpressionThreadLocalHolder
+				.evaluateExpressionInContext(expression, params, task, result);
 
         if (exprResult.getZeroSet().size() != 1) {
             throw new SystemException("Invalid number of return values (" + exprResult.getZeroSet().size() + "), expected 1.");

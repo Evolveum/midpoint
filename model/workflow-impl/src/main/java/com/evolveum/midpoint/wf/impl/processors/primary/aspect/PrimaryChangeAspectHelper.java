@@ -336,14 +336,7 @@ public class PrimaryChangeAspectHelper {
             ExpressionEvaluationContext params = new ExpressionEvaluationContext(null, expressionVariables,
                     "applicability condition expression", task, result);
 
-            ModelExpressionThreadLocalHolder.pushCurrentResult(result);
-            ModelExpressionThreadLocalHolder.pushCurrentTask(task);
-            try {
-                exprResultTriple = expression.evaluate(params);
-            } finally {
-                ModelExpressionThreadLocalHolder.popCurrentResult();
-                ModelExpressionThreadLocalHolder.popCurrentTask();
-            }
+			exprResultTriple = ModelExpressionThreadLocalHolder.evaluateExpressionInContext(expression, params, task, result);
         } catch (SchemaException|ExpressionEvaluationException|ObjectNotFoundException|RuntimeException e) {
             // TODO report as a specific exception?
             throw new SystemException("Couldn't evaluate applicability condition in aspect "

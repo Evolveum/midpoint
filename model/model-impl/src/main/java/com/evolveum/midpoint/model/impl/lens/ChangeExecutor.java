@@ -33,6 +33,7 @@ import com.evolveum.midpoint.model.common.expression.ExpressionEvaluationContext
 import com.evolveum.midpoint.model.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.model.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.model.impl.ModelObjectResolver;
+import com.evolveum.midpoint.model.impl.expr.ModelExpressionThreadLocalHolder;
 import com.evolveum.midpoint.model.impl.lens.projector.FocusConstraintsChecker;
 import com.evolveum.midpoint.model.impl.util.Utils;
 import com.evolveum.midpoint.prism.ConsistencyCheckScope;
@@ -1337,7 +1338,8 @@ public class ChangeExecutor {
     	
     	
     	ExpressionEvaluationContext params = new ExpressionEvaluationContext(null, variables, shortDesc, task, result);
-		PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = expression.evaluate(params);
+		PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = ModelExpressionThreadLocalHolder
+				.evaluateExpressionInContext(expression, params, task, result);
 		
 		Collection<PrismPropertyValue<String>> nonNegativeValues = null;
 		if (outputTriple != null) {

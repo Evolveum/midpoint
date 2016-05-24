@@ -18,10 +18,18 @@ package com.evolveum.midpoint.model.impl.expr;
 import java.util.ArrayDeque;
 import java.util.Deque;
 
+import com.evolveum.midpoint.model.common.expression.Expression;
+import com.evolveum.midpoint.model.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensContextPlaceholder;
+import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
@@ -103,4 +111,19 @@ public class ModelExpressionThreadLocalHolder {
 		return stack.peek();
 	}
 
+	// TODO move to better place
+	public static <T> PrismValueDeltaSetTriple<PrismPropertyValue<T>> evaluateExpressionInContext(Expression<PrismPropertyValue<T>,
+			PrismPropertyDefinition<T>> expression, ExpressionEvaluationContext params, Task task, OperationResult result)
+			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
+		ModelExpressionThreadLocalHolder.pushCurrentResult(result);
+		ModelExpressionThreadLocalHolder.pushCurrentTask(task);
+		PrismValueDeltaSetTriple<PrismPropertyValue<T>> exprResultTriple;
+		try {
+			exprResultTriple = expression.evaluate(params);
+		} finally {
+			ModelExpressionThreadLocalHolder.popCurrentResult();
+			ModelExpressionThreadLocalHolder.popCurrentTask();
+		}
+		return exprResultTriple;
+	}
 }
