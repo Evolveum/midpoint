@@ -42,7 +42,6 @@ import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
-import javax.xml.namespace.QName;
 import java.util.Date;
 
 /**
@@ -121,7 +120,7 @@ public class TaskSummaryPanel extends ObjectSummaryPanel<TaskType> {
 		});
 		addTag(tagOutcome);
 
-		final Component emptyTag = new Label(ID_TAG_EMPTY, new Model("<br/>")).setEscapeModelStrings(false);
+		final Component emptyTag = new Label(ID_TAG_EMPTY, new Model("<span style=\"display: block; padding-bottom: 5px\"/>")).setEscapeModelStrings(false);
 		emptyTag.add(new VisibleEnableBehaviour() {
 			@Override
 			public boolean isVisible() {
@@ -130,8 +129,14 @@ public class TaskSummaryPanel extends ObjectSummaryPanel<TaskType> {
 		});
 		addTag(emptyTag);
 
-		final AutoRefreshPanel refreshTag = new AutoRefreshPanel(ID_TAG_REFRESH, refreshModel, parentPage);
+		final AutoRefreshPanel refreshTag = new AutoRefreshPanel(ID_TAG_REFRESH, refreshModel, parentPage, true);
 		refreshTag.setOutputMarkupId(true);
+		refreshTag.add(new VisibleEnableBehaviour() {
+			@Override
+			public boolean isVisible() {
+				return parentPage.getTaskDto().getWorkflowOutcome() == null;		// because otherwise there are too many tags to fit into window
+			}
+		} );
 		addTag(refreshTag);
 	}
 

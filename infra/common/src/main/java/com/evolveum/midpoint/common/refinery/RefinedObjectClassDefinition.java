@@ -522,7 +522,7 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
 				throw new SchemaException("No ICF UID attribute in schema as specified in the definition of protected objects (this is deprecated syntax anyway, convert it to filter)");
 			}
 			ResourceAttribute<String> attr = attributeDefinition.instantiate();
-			attr.setRealValue(patternType.getName());
+			attr.setRealValue(patternType.getUid());
 			resourceObjectPattern.addIdentifier(attr);			
 		} else {
 			throw new SchemaException("No filter and no deprecated name/uid in resource object pattern");

@@ -43,8 +43,7 @@ public class JpaAnyContainerDefinition extends JpaDataNodeDefinition {
 
     @Override
     public DataSearchResult nextLinkDefinition(ItemPath path, ItemDefinition itemDefinition) throws QueryException {
-        QName itemName = ItemPath.asSingleName(path);
-        if (itemName == null) {
+        if (ItemPath.asSingleName(path) == null) {
             throw new QueryException("Couldn't resolve paths other than those in the form of single name in extension/attributes container: " + path);
         }
         if (itemDefinition == null) {
@@ -62,7 +61,7 @@ public class JpaAnyContainerDefinition extends JpaDataNodeDefinition {
 
         CollectionSpecification collSpec = itemDefinition.isSingleValue() ? null : new CollectionSpecification();
         JpaAnyPropertyDefinition anyPropDefinition = new JpaAnyPropertyDefinition(Object.class, null);      // TODO
-        JpaLinkDefinition linkDefinition = new JpaAnyPropertyLinkDefinition(itemName, jpaName, collSpec, ownerType, anyPropDefinition);
+        JpaLinkDefinition linkDefinition = new JpaAnyPropertyLinkDefinition(itemDefinition.getName(), jpaName, collSpec, ownerType, anyPropDefinition);
         DataSearchResult result = new DataSearchResult(linkDefinition, ItemPath.EMPTY_PATH);
         return result;
     }

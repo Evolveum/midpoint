@@ -103,7 +103,7 @@ public class SceneItemValuePanel extends BasePanel<SceneItemValue> {
 		@Override
 		public String getObject() {
 			ObjectTypeGuiDescriptor guiDescriptor = getObjectTypeDescriptor();
-			return guiDescriptor != null ? guiDescriptor.getIcon() : ObjectTypeGuiDescriptor.ERROR_ICON;
+			return guiDescriptor != null ? guiDescriptor.getBlackIcon() : ObjectTypeGuiDescriptor.ERROR_ICON;
 		}
 	}
 

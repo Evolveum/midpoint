@@ -80,15 +80,8 @@ public class AccCertExpressionHelper {
 
         Expression<PrismPropertyValue<T>,PrismPropertyDefinition<T>> expression = expressionFactory.makeExpression(expressionType, resultDef, shortDesc, task, result);
         ExpressionEvaluationContext params = new ExpressionEvaluationContext(null, expressionVariables, shortDesc, task, result);
-        ModelExpressionThreadLocalHolder.pushCurrentResult(result);
-        ModelExpressionThreadLocalHolder.pushCurrentTask(task);
-        PrismValueDeltaSetTriple<PrismPropertyValue<T>> exprResult;
-        try {
-            exprResult = expression.evaluate(params);
-        } finally {
-            ModelExpressionThreadLocalHolder.popCurrentResult();
-            ModelExpressionThreadLocalHolder.popCurrentTask();
-        }
+
+        PrismValueDeltaSetTriple<PrismPropertyValue<T>> exprResult = ModelExpressionThreadLocalHolder.evaluateExpressionInContext(expression, params, task, result);
 
         List<T> retval = new ArrayList<>();
         for (PrismPropertyValue<T> item : exprResult.getZeroSet()) {

@@ -160,6 +160,7 @@ public class PageResourceWizard extends PageAdminResources {
     }
 
 	public void resetModels() {
+		LOGGER.info("Resetting models");
 		modelRaw.reset();
 		modelNoFetch.reset();
 		modelFull.reset();
@@ -192,5 +193,10 @@ public class PageResourceWizard extends PageAdminResources {
 			}
 		}
 		return delta;
+	}
+
+	// TODO change to debug
+	public void logDelta(ObjectDelta delta) {
+		LOGGER.info("Applying delta:\n{}", delta.debugDump());
 	}
 }

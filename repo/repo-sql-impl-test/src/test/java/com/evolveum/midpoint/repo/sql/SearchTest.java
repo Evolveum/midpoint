@@ -487,4 +487,52 @@ public class SearchTest extends BaseSQLRepoTest {
 		assertTrue(result.isSuccess());
 		assertEquals("Should find one resource", 1, resources.size());
 	}
+
+	@Test
+	public void testMultivaluedExtensionPropertySubstringQualified() throws SchemaException {
+		ObjectQuery query = QueryBuilder.queryFor(GenericObjectType.class, prismContext)
+				.item(ObjectType.F_EXTENSION, new QName("http://example.com/p", "multivalued")).contains("slava")
+				.build();
+		OperationResult result = new OperationResult("search");
+		List<PrismObject<GenericObjectType>> resources = repositoryService.searchObjects(GenericObjectType.class, query, null, result);
+		result.recomputeStatus();
+		assertTrue(result.isSuccess());
+		assertEquals("Should find one object", 1, resources.size());
+	}
+
+	@Test
+	public void testMultivaluedExtensionPropertyEqualsQualified() throws SchemaException {
+		ObjectQuery query = QueryBuilder.queryFor(GenericObjectType.class, prismContext)
+				.item(ObjectType.F_EXTENSION, new QName("http://example.com/p", "multivalued")).eq("Bratislava")
+				.build();
+		OperationResult result = new OperationResult("search");
+		List<PrismObject<GenericObjectType>> resources = repositoryService.searchObjects(GenericObjectType.class, query, null, result);
+		result.recomputeStatus();
+		assertTrue(result.isSuccess());
+		assertEquals("Should find one object", 1, resources.size());
+	}
+
+	@Test
+	public void testMultivaluedExtensionPropertySubstringUnqualified() throws SchemaException {
+		ObjectQuery query = QueryBuilder.queryFor(GenericObjectType.class, prismContext)
+				.item(ObjectType.F_EXTENSION, new QName("multivalued")).contains("slava")
+				.build();
+		OperationResult result = new OperationResult("search");
+		List<PrismObject<GenericObjectType>> resources = repositoryService.searchObjects(GenericObjectType.class, query, null, result);
+		result.recomputeStatus();
+		assertTrue(result.isSuccess());
+		assertEquals("Should find one object", 1, resources.size());
+	}
+
+	@Test
+	public void testMultivaluedExtensionPropertyEqualsUnqualified() throws SchemaException {
+		ObjectQuery query = QueryBuilder.queryFor(GenericObjectType.class, prismContext)
+				.item(ObjectType.F_EXTENSION, new QName("multivalued")).eq("Bratislava")
+				.build();
+		OperationResult result = new OperationResult("search");
+		List<PrismObject<GenericObjectType>> resources = repositoryService.searchObjects(GenericObjectType.class, query, null, result);
+		result.recomputeStatus();
+		assertTrue(result.isSuccess());
+		assertEquals("Should find one object", 1, resources.size());
+	}
 }

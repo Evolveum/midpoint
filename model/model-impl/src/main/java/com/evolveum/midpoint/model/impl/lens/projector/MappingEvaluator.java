@@ -79,8 +79,18 @@ public class MappingEvaluator {
 		ModelExpressionThreadLocalHolder.pushLensContext(lensContext);
 		ModelExpressionThreadLocalHolder.pushCurrentResult(parentResult);
 		ModelExpressionThreadLocalHolder.pushCurrentTask(task);
-		String objectOid = mapping.getOriginObject() != null ? mapping.getOriginObject().getOid() : null;
-		String objectName = mapping.getOriginObject() != null ? String.valueOf(mapping.getOriginObject().getName()) : null;
+		ObjectType originObject = mapping.getOriginObject();
+		String objectOid, objectName;
+		if (originObject instanceof FocusType) {
+			// MID-2866 - TEMPORARY WORKAROUND: it seems that originObject is sometimes a FocusType ... we have to aggregate such objects by type, as it yields huge statistics
+			objectOid = null;
+			objectName = originObject.getClass().getSimpleName();
+		} else if (originObject != null) {
+			objectOid = originObject.getOid();
+			objectName = String.valueOf(originObject.getName());
+		} else {
+			objectOid = objectName = null;
+		}
 		String mappingName = mapping.getItemName() != null ? mapping.getItemName().getLocalPart() : null;
 		long start = System.currentTimeMillis();
 		try {

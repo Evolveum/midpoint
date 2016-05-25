@@ -39,6 +39,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.match.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.Component;
@@ -125,35 +126,6 @@ import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.web.security.SecurityUtils;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AvailabilityStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MisfireActionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationalStateType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ScheduleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ServiceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskBindingType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskRecurrenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ThreadStopActionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
@@ -918,6 +890,7 @@ public final class WebComponentUtil {
 		return "";
 	}
 
+	// TODO reconcile with ObjectTypeGuiDescriptor
 	public static <T extends ObjectType> String createDefaultColoredIcon(QName objectType) {
 		if (QNameUtil.match(UserType.COMPLEX_TYPE, objectType)) {
 			return GuiStyleConstants.CLASS_OBJECT_USER_ICON_COLORED;
@@ -931,6 +904,41 @@ public final class WebComponentUtil {
 			return GuiStyleConstants.CLASS_OBJECT_TASK_ICON_COLORED;
 		} else if (QNameUtil.match(ResourceType.COMPLEX_TYPE, objectType)) {
 			return GuiStyleConstants.CLASS_OBJECT_RESOURCE_ICON_COLORED;
+		} else if (QNameUtil.match(AccessCertificationCampaignType.COMPLEX_TYPE, objectType)) {
+			return GuiStyleConstants.CLASS_OBJECT_CERT_CAMPAIGN_ICON_COLORED;
+		} else if (QNameUtil.match(AccessCertificationDefinitionType.COMPLEX_TYPE, objectType)) {
+			return GuiStyleConstants.CLASS_OBJECT_CERT_DEF_ICON_COLORED;
+		} else if (QNameUtil.match(WorkItemType.COMPLEX_TYPE, objectType)) {
+			return GuiStyleConstants.CLASS_OBJECT_WORK_ITEM_ICON_COLORED;
+		} else if (QNameUtil.match(ShadowType.COMPLEX_TYPE, objectType)) {
+			return GuiStyleConstants.CLASS_OBJECT_SHADOW_ICON_COLORED;
+		} else {
+			return "";
+		}
+	}
+
+	// TODO reconcile with ObjectTypeGuiDescriptor
+	public static <T extends ObjectType> String createDefaultBlackIcon(QName objectType) {
+		if (QNameUtil.match(UserType.COMPLEX_TYPE, objectType)) {
+			return GuiStyleConstants.CLASS_OBJECT_USER_ICON;
+		} else if (QNameUtil.match(RoleType.COMPLEX_TYPE, objectType)) {
+			return GuiStyleConstants.CLASS_OBJECT_ROLE_ICON;
+		} else if (QNameUtil.match(OrgType.COMPLEX_TYPE, objectType)) {
+			return GuiStyleConstants.CLASS_OBJECT_ORG_ICON;
+		} else if (QNameUtil.match(ServiceType.COMPLEX_TYPE, objectType)) {
+			return GuiStyleConstants.CLASS_OBJECT_SERVICE_ICON;
+		} else if (QNameUtil.match(TaskType.COMPLEX_TYPE, objectType)) {
+			return GuiStyleConstants.CLASS_OBJECT_TASK_ICON;
+		} else if (QNameUtil.match(ResourceType.COMPLEX_TYPE, objectType)) {
+			return GuiStyleConstants.CLASS_OBJECT_RESOURCE_ICON;
+		} else if (QNameUtil.match(AccessCertificationCampaignType.COMPLEX_TYPE, objectType)) {
+			return GuiStyleConstants.CLASS_OBJECT_CERT_CAMPAIGN_ICON;
+		} else if (QNameUtil.match(AccessCertificationDefinitionType.COMPLEX_TYPE, objectType)) {
+			return GuiStyleConstants.CLASS_OBJECT_CERT_DEF_ICON;
+		} else if (QNameUtil.match(WorkItemType.COMPLEX_TYPE, objectType)) {
+			return GuiStyleConstants.CLASS_OBJECT_WORK_ITEM_ICON;
+		} else if (QNameUtil.match(ShadowType.COMPLEX_TYPE, objectType)) {
+			return GuiStyleConstants.CLASS_OBJECT_SHADOW_ICON;
 		} else {
 			return "";
 		}

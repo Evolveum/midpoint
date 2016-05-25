@@ -69,7 +69,7 @@ public class CertDecisionHelper implements Serializable {
             @Override
             protected IModel<String> createIconModel(IModel<CertCaseOrDecisionDto> rowModel) {
                 ObjectTypeGuiDescriptor guiDescriptor = getObjectTypeDescriptor(isObject, rowModel);
-                String icon = guiDescriptor != null ? guiDescriptor.getIcon() : ObjectTypeGuiDescriptor.ERROR_ICON;
+                String icon = guiDescriptor != null ? guiDescriptor.getBlackIcon() : ObjectTypeGuiDescriptor.ERROR_ICON;
                 return new Model<>(icon);
             }
 

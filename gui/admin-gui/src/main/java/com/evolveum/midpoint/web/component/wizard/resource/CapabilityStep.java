@@ -158,7 +158,7 @@ public class CapabilityStep extends WizardStep {
 
 	protected void initLayout() {
         final ListDataProvider<CapabilityDto<CapabilityType>> capabilityProvider = new ListDataProvider<>(this,
-				new PropertyModel<List<CapabilityDto<CapabilityType>>>(dtoModel.getObject(), CapabilityStepDto.F_CAPABILITIES));
+				new PropertyModel<List<CapabilityDto<CapabilityType>>>(dtoModel, CapabilityStepDto.F_CAPABILITIES));
 
         WebMarkupContainer tableBody = new WebMarkupContainer(ID_CAPABILITY_TABLE);
         tableBody.setOutputMarkupId(true);
@@ -392,10 +392,8 @@ public class CapabilityStep extends WizardStep {
             oldResource = WebModelServiceUtils.loadObject(ResourceType.class, resource.getOid(), getPageBase(), task, result);
             if (oldResource != null) {
                 ObjectDelta<ResourceType> delta = parentPage.computeDiff(oldResource, resourceObject);
-                if (LOGGER.isTraceEnabled()) {
-                    LOGGER.trace(delta.debugDump());
-                }
 				if (!delta.isEmpty()) {
+					parentPage.logDelta(delta);
 					@SuppressWarnings("unchecked") Collection<ObjectDelta<? extends ObjectType>> deltas = WebComponentUtil
 							.createDeltaCollection(delta);
 					modelService.executeChanges(deltas, null, getPageBase().createSimpleTask(OPERATION_SAVE_CAPABILITIES), result);

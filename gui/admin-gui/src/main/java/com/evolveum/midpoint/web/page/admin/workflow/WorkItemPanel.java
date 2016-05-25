@@ -161,7 +161,7 @@ public class WorkItemPanel extends BasePanel<WorkItemDto> {
 				if (oid != null) {
 					PageParameters parameters = new PageParameters();
 					parameters.add(OnePageParameterEncoder.PARAMETER, oid);
-					setResponsePage(new PageTaskEdit(parameters));
+					setResponsePage(PageTaskEdit.class, parameters);
 				}
 			}
 		});

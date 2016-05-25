@@ -28,6 +28,8 @@ import javax.management.MBeanServerFactory;
 import javax.management.ObjectName;
 
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.web.page.admin.workflow.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.AttributeModifier;
@@ -150,11 +152,6 @@ import com.evolveum.midpoint.web.page.admin.users.PageOrgTree;
 import com.evolveum.midpoint.web.page.admin.users.PageOrgUnit;
 import com.evolveum.midpoint.web.page.admin.users.PageUser;
 import com.evolveum.midpoint.web.page.admin.users.PageUsers;
-import com.evolveum.midpoint.web.page.admin.workflow.PageProcessInstancesAll;
-import com.evolveum.midpoint.web.page.admin.workflow.PageProcessInstancesRequestedBy;
-import com.evolveum.midpoint.web.page.admin.workflow.PageProcessInstancesRequestedFor;
-import com.evolveum.midpoint.web.page.admin.workflow.PageWorkItems;
-import com.evolveum.midpoint.web.page.admin.workflow.PageWorkItemsClaimable;
 import com.evolveum.midpoint.web.page.login.PageLogin;
 import com.evolveum.midpoint.web.page.self.PageRequestRole;
 import com.evolveum.midpoint.web.page.self.PageSelfCredentials;
@@ -295,7 +292,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 					        .item(WorkItemType.F_ASSIGNEE_REF).ref(getPrincipal().getOid())
 					        .build();
 					return modelService.countContainers(WorkItemType.class, query, null, task, task.getResult());
-				} catch (SchemaException e) {
+				} catch (SchemaException|SecurityViolationException e) {
 					LoggingUtils.logExceptionAsWarning(LOGGER, "Couldn't load work item count", e);
 					return null;
 				}
@@ -922,8 +919,8 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 			items.add(createResourcesItems());
 		}
 
-		if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_WORK_ITEMS_URL,
-				AuthorizationConstants.AUTZ_UI_WORK_ITEMS_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_URL,
+		if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_MY_WORK_ITEMS_URL,
+				AuthorizationConstants.AUTZ_UI_APPROVALS_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_URL,
 				AuthorizationConstants.AUTZ_GUI_ALL_DEPRECATED_URL)) {
 			if (getWorkflowManager().isEnabled()) {
 				items.add(createWorkItemsItems());
@@ -984,20 +981,22 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
 		List<MenuItem> submenu = item.getItems();
 
-		MenuItem menu = new MenuItem(createStringResource("PageAdmin.menu.top.workItems.list"), PageWorkItems.class);
+		MenuItem menu = new MenuItem(createStringResource("PageAdmin.menu.top.workItems.list"), PageWorkItemsAllocatedToMe.class);
 		submenu.add(menu);
 		menu = new MenuItem(createStringResource("PageAdmin.menu.top.workItems.listClaimable"),
 				PageWorkItemsClaimable.class);
 		submenu.add(menu);
-
-		menu = new MenuItem(createStringResource("PageAdmin.menu.top.workItems.listProcessInstancesAll"),
-				PageProcessInstancesAll.class);
+		menu = new MenuItem(createStringResource("PageAdmin.menu.top.workItems.listAll"), PageWorkItemsAll.class);
 		submenu.add(menu);
+
 		menu = new MenuItem(createStringResource("PageAdmin.menu.top.workItems.listProcessInstancesRequestedBy"),
 				PageProcessInstancesRequestedBy.class);
 		submenu.add(menu);
 		menu = new MenuItem(createStringResource("PageAdmin.menu.top.workItems.listProcessInstancesRequestedFor"),
 				PageProcessInstancesRequestedFor.class);
+		submenu.add(menu);
+		menu = new MenuItem(createStringResource("PageAdmin.menu.top.workItems.listProcessInstancesAll"),
+				PageProcessInstancesAll.class);
 		submenu.add(menu);
 
 		return item;

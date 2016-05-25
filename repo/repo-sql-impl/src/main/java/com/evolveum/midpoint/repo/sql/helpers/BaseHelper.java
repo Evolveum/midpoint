@@ -233,6 +233,12 @@ public class BaseHelper {
 	}
 
 	private boolean isExceptionRelatedToSerialization(Exception ex) {
+		boolean rv = isExceptionRelatedToSerializationInternal(ex);
+		LOGGER.trace("Considering if exception {} is related to serialization: returning {}", ex, rv, ex);
+		return rv;
+	}
+
+	private boolean isExceptionRelatedToSerializationInternal(Exception ex) {
 
 		if (ex instanceof SerializationRelatedException
 				|| ex instanceof PessimisticLockException

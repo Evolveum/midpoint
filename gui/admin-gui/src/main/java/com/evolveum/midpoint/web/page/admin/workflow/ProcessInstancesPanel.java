@@ -137,8 +137,8 @@ public class ProcessInstancesPanel extends BasePanel {
 
 	@NotNull
 	private IColumn<ProcessInstanceDto,String> createNameColumn() {
-		if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_WORK_ITEMS_ALL_URL,
-				AuthorizationConstants.AUTZ_UI_WORK_ITEMS_PROCESS_INSTANCE_URL)) {
+		if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_TASKS_ALL_URL,
+				AuthorizationConstants.AUTZ_UI_TASK_URL)) {
 			return new LinkColumn<ProcessInstanceDto>(createStringResource("MyRequestsPanel.name"), "name") {
 				@Override
 				public void onClick(AjaxRequestTarget target, IModel<ProcessInstanceDto> rowModel) {
@@ -197,7 +197,7 @@ public class ProcessInstancesPanel extends BasePanel {
 	private void itemDetailsPerformed(AjaxRequestTarget target, String pid) {
         PageParameters parameters = new PageParameters();
         parameters.add(OnePageParameterEncoder.PARAMETER, pid);
-        setResponsePage(new PageTaskEdit(parameters));
+        setResponsePage(PageTaskEdit.class, parameters);
     }
 
 	// copied and adapted from WorkItemsPanel - TODO deduplicate
@@ -228,14 +228,21 @@ public class ProcessInstancesPanel extends BasePanel {
 		return new IconColumn<ProcessInstanceDto>(createStringResource("")) {
 			@Override
 			protected IModel<String> createIconModel(IModel<ProcessInstanceDto> rowModel) {
+				if (getObjectType(rowModel) == null) {
+					return null;
+				}
 				ObjectTypeGuiDescriptor guiDescriptor = getObjectTypeDescriptor(rowModel);
-				String icon = guiDescriptor != null ? guiDescriptor.getIcon() : ObjectTypeGuiDescriptor.ERROR_ICON;
+				String icon = guiDescriptor != null ? guiDescriptor.getBlackIcon() : ObjectTypeGuiDescriptor.ERROR_ICON;
 				return new Model<>(icon);
 			}
 
 			private ObjectTypeGuiDescriptor getObjectTypeDescriptor(IModel<ProcessInstanceDto> rowModel) {
-				QName type = object ? rowModel.getObject().getObjectType() : rowModel.getObject().getTargetType();
+				QName type = getObjectType(rowModel);
 				return ObjectTypeGuiDescriptor.getDescriptor(ObjectTypes.getObjectTypeFromTypeQName(type));
+			}
+
+			private QName getObjectType(IModel<ProcessInstanceDto> rowModel) {
+				return object ? rowModel.getObject().getObjectType() : rowModel.getObject().getTargetType();
 			}
 
 			@Override

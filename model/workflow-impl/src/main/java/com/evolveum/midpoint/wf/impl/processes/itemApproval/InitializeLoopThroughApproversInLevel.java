@@ -20,6 +20,7 @@ import com.evolveum.midpoint.model.common.expression.Expression;
 import com.evolveum.midpoint.model.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.model.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.model.common.expression.ExpressionVariables;
+import com.evolveum.midpoint.model.impl.expr.ModelExpressionThreadLocalHolder;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
@@ -145,7 +146,7 @@ public class InitializeLoopThroughApproversInLevel implements JavaDelegate {
         PrismPropertyDefinition<String> approverOidDef = new PrismPropertyDefinition(approverOidName, DOMUtil.XSD_STRING, prismContext);
         Expression<PrismPropertyValue<String>,PrismPropertyDefinition<String>> expression = expressionFactory.makeExpression(approverExpression, approverOidDef, "approverExpression", task, result);
         ExpressionEvaluationContext params = new ExpressionEvaluationContext(null, expressionVariables, "approverExpression", task, result);
-        PrismValueDeltaSetTriple<PrismPropertyValue<String>> exprResult = expression.evaluate(params);
+        PrismValueDeltaSetTriple<PrismPropertyValue<String>> exprResult = ModelExpressionThreadLocalHolder.evaluateExpressionInContext(expression, params, task, result);
 
         List<LightweightObjectRef> retval = new ArrayList<LightweightObjectRef>();
         for (PrismPropertyValue<String> item : exprResult.getZeroSet()) {
@@ -169,7 +170,9 @@ public class InitializeLoopThroughApproversInLevel implements JavaDelegate {
         Expression<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> expression = expressionFactory.makeExpression(expressionType, resultDef, "automatic approval expression", task, result);
         ExpressionEvaluationContext params = new ExpressionEvaluationContext(null, expressionVariables, 
         		"automatic approval expression", task, result);
-        PrismValueDeltaSetTriple<PrismPropertyValue<Boolean>> exprResultTriple = expression.evaluate(params);
+
+		PrismValueDeltaSetTriple<PrismPropertyValue<Boolean>> exprResultTriple =
+				ModelExpressionThreadLocalHolder.evaluateExpressionInContext(expression, params, task, result);
 
         Collection<PrismPropertyValue<Boolean>> exprResult = exprResultTriple.getZeroSet();
         if (exprResult.size() == 0) {
@@ -181,7 +184,7 @@ public class InitializeLoopThroughApproversInLevel implements JavaDelegate {
         return boolResult != null ? boolResult : false;
     }
 
-    private ExpressionFactory getExpressionFactory() {
+	private ExpressionFactory getExpressionFactory() {
         LOGGER.trace("Getting expressionFactory");
         ExpressionFactory ef = getApplicationContext().getBean("expressionFactory", ExpressionFactory.class);
         if (ef == null) {

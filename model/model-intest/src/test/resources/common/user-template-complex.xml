@@ -45,6 +45,7 @@
     	<displayOrder>123</displayOrder>
     	<emphasized>true</emphasized>
     	<mapping>
+    		<name>usertemplate-costcenter-g001-weak-afterAssignemnts</name>
 	    	<strength>weak</strength>
 	    	<expression>
 	            <value>G001</value>    	
@@ -52,6 +53,7 @@
 	    	<evaluationPhase>afterAssignments</evaluationPhase>
 	    </mapping>
 	    <mapping>
+	    	<name>usertemplate-costcenter-b666-strong-conditional</name>
 	    	<authoritative>true</authoritative>
 	    	<strength>strong</strength>
 	    	<source>
@@ -73,6 +75,23 @@
     	<ref>preferredLanguage</ref>
     	<displayName>Language</displayName>
     	<valueEnumerationRef oid="70000000-0000-0000-1111-000000000001"/>
+    </item>
+
+	<!-- Normal-strength mapping with property source and target -->
+	<item>
+    	<ref>timezone</ref>
+    	<mapping>
+    		<name>usertemplate-timezone</name>
+	    	<authoritative>true</authoritative>
+	    	<source>
+	    		<path>locality</path>
+	    	</source>
+	    	<expression>
+	            <script>
+	            	<code>'High Seas/' + locality</code>
+	            </script>
+	    	</expression>
+	    </mapping>
     </item>
 
 	<item>
@@ -177,6 +196,7 @@
     		demand. We want to populate new Org object with a name and description derived from
     		the user.
     	</description>
+    	<strength>strong</strength>
     	<authoritative>true</authoritative>
     	<source>
     		<path>organizationalUnit</path>

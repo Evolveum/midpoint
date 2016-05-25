@@ -53,6 +53,7 @@ import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.query.RQuery;
 import com.evolveum.midpoint.repo.sql.query2.QueryEngine2;
 import com.evolveum.midpoint.repo.sql.query2.RQueryImpl;
+import com.evolveum.midpoint.repo.sql.query2.hqm.RootHibernateQuery;
 import com.evolveum.midpoint.repo.sql.type.XMLGregorianCalendarType;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
@@ -68,7 +69,10 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 import org.apache.commons.lang.StringUtils;
+import org.hibernate.Query;
 import org.hibernate.Session;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
@@ -114,6 +118,7 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.TriggerType.F
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType.F_PROCESS_INSTANCE_ID;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType.F_REQUESTER_REF;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType.F_START_TIMESTAMP;
+import static org.testng.AssertJUnit.assertEquals;
 
 /**
  * @author lazyman
@@ -544,8 +549,9 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
              *         l.value = 123
              */
 
-            String real = getInterpretedQuery2(session, GenericObjectType.class,
-                    new File(TEST_DIR, "query-and-generic.xml"));
+            RQueryImpl realQuery = (RQueryImpl) getInterpretedQuery2Whole(session, GenericObjectType.class,
+					getQuery(new File(TEST_DIR, "query-and-generic.xml"), GenericObjectType.class), false);
+			String real = realQuery.getQuery().getQueryString();
 
             String expected = "select\n" +
                     "  g.fullObject, g.stringsCount, g.longsCount, g.datesCount, g.referencesCount, g.polysCount, g.booleansCount\n" +
@@ -556,6 +562,8 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     "  ( g.name.norm = :norm and l.value = :value )\n";
 
             assertEqualsIgnoreWhitespace(expected, real);
+
+			assertEquals("Wrong property URI for 'intType'", "http://example.com/p#intType", realQuery.getQuerySource().getParameters().get("name").getValue());
         } finally {
             close(session);
         }
@@ -572,7 +580,9 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     .and().item(F_EXTENSION, new QName("longType")).eq(335)
                     .build();
 
-            String real = getInterpretedQuery2(session, GenericObjectType.class, query);
+			RQuery realQuery = getInterpretedQuery2Whole(session, GenericObjectType.class, query, false);
+			RootHibernateQuery source = ((RQueryImpl) realQuery).getQuerySource();
+			String real = ((RQueryImpl) realQuery).getQuery().getQueryString();
 
             String expected = "select\n" +
                     "  g.fullObject, g.stringsCount, g.longsCount, g.datesCount, g.referencesCount, g.polysCount, g.booleansCount\n" +
@@ -590,6 +600,9 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
 
             // note l and l2 cannot be merged as they point to different extension properties (intType, longType)
             assertEqualsIgnoreWhitespace(expected, real);
+
+			assertEquals("Wrong property URI for 'intType'", "http://example.com/p#intType", source.getParameters().get("name").getValue());
+			assertEquals("Wrong property URI for 'longType'", "http://example.com/p#longType", source.getParameters().get("name2").getValue());
         } finally {
             close(session);
         }
@@ -618,8 +631,8 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
     public void test074QueryAccountByAttributeAndExtensionValue() throws Exception {
         Session session = open();
         try {
-            String real = getInterpretedQuery2(session, ShadowType.class,
-                    new File(TEST_DIR, "query-account-by-attribute-and-extension-value.xml"));
+            RQueryImpl realQuery = (RQueryImpl) getInterpretedQuery2Whole(session, ShadowType.class,
+                    getQuery(new File(TEST_DIR, "query-account-by-attribute-and-extension-value.xml"), ShadowType.class), false);
             String expected = "select\n" +
                     "  s.fullObject, s.stringsCount, s.longsCount, s.datesCount, s.referencesCount, s.polysCount, s.booleansCount\n" +
                     "from\n" +
@@ -631,7 +644,10 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     "    s2.value = :value and\n" +
                     "    l.value = :value2\n" +
                     "  )";
-            assertEqualsIgnoreWhitespace(expected, real);
+            assertEqualsIgnoreWhitespace(expected, realQuery.getQuery().getQueryString());
+
+			assertEquals("Wrong property URI for 'a1'", "#a1", realQuery.getQuerySource().getParameters().get("name").getValue());
+			assertEquals("Wrong property URI for 'shoeSize'", "http://example.com/xml/ns/mySchema#shoeSize", realQuery.getQuerySource().getParameters().get("name2").getValue());
         } finally {
             close(session);
         }
@@ -657,8 +673,8 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
              *
              *   [If we used AND instead of OR, this SHOULD BE left join r.strings s1, left join r.strings s2]
              */
-            String real = getInterpretedQuery2(session, ShadowType.class,
-                    new File(TEST_DIR, "query-or-composite.xml"));
+            RQueryImpl realQuery = (RQueryImpl) getInterpretedQuery2Whole(session, ShadowType.class,
+                    getQuery(new File(TEST_DIR, "query-or-composite.xml"), ShadowType.class), false);
 
             String expected = "select\n" +
                     "  s.fullObject, s.stringsCount, s.longsCount, s.datesCount, s.referencesCount, s.polysCount, s.booleansCount\n" +
@@ -689,8 +705,11 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                 relation = #
                 type = com.evolveum.midpoint.repo.sql.data.common.other.RObjectType.RESOURCE
              */
-            assertEqualsIgnoreWhitespace(expected, real);
-        } finally {
+            assertEqualsIgnoreWhitespace(expected, realQuery.getQuery().getQueryString());
+			assertEquals("Wrong property URI for 'foo'", "http://midpoint.evolveum.com/blabla#foo", realQuery.getQuerySource().getParameters().get("name").getValue());
+			assertEquals("Wrong property URI for 'stringType'", "http://example.com/p#stringType", realQuery.getQuerySource().getParameters().get("name2").getValue());
+
+		} finally {
             close(session);
         }
     }
@@ -1993,13 +2012,13 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
             LOGGER.info("{}", object.getOid());
         }
         int realCount = objects.size();
-        AssertJUnit.assertEquals("Expected count doesn't match for searchObjects " + orgFilter, count, realCount);
+        assertEquals("Expected count doesn't match for searchObjects " + orgFilter, count, realCount);
 
         result.computeStatusIfUnknown();
         AssertJUnit.assertTrue(result.isSuccess());
 
         realCount = repositoryService.countObjects(type, query, result);
-        AssertJUnit.assertEquals("Expected count doesn't match for countObjects " + orgFilter, count, realCount);
+        assertEquals("Expected count doesn't match for countObjects " + orgFilter, count, realCount);
 
         result.computeStatusIfUnknown();
         AssertJUnit.assertTrue(result.isSuccess());
@@ -2104,14 +2123,14 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
 
             OperationResult result = new OperationResult("test530queryUserSubstringName");
             int count = repositoryService.countObjects(ObjectType.class, objectQuery, result);
-            AssertJUnit.assertEquals(2, count);
+            assertEquals(2, count);
 
             substring = SubstringFilter.createSubstring(F_NAME, ObjectType.class,
                     prismContext, PolyStringOrigMatchingRule.NAME, "a");
             objectQuery = ObjectQuery.createObjectQuery(substring);
             objectQuery.setUseNewQueryInterpreter(true);
             count = repositoryService.countObjects(ObjectType.class, objectQuery, result);
-            AssertJUnit.assertEquals(20, count);
+            assertEquals(20, count);
 
         } finally {
             close(session);
@@ -2309,7 +2328,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     UserType.class, prismContext, "some weapon name");
             TypeFilter type = TypeFilter.createType(UserType.COMPLEX_TYPE, eq);
 
-            String real = getInterpretedQuery2(session, ObjectType.class, ObjectQuery.createObjectQuery(type));
+            RQueryImpl realQuery = (RQueryImpl) getInterpretedQuery2Whole(session, ObjectType.class, ObjectQuery.createObjectQuery(type), false);
             String expected = "select\n" +
                     "  o.fullObject,\n" +
                     "  o.stringsCount,\n" +
@@ -2326,9 +2345,10 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     "    o.objectTypeClass = :objectTypeClass and\n" +
                     "    s.value = :value\n" +
                     "  )\n";
-            assertEqualsIgnoreWhitespace(expected, real);
+            assertEqualsIgnoreWhitespace(expected, realQuery.getQuery().getQueryString());
+			assertEquals("Wrong property URI for 'weapon'", "http://example.com/p#weapon", realQuery.getQuerySource().getParameters().get("name").getValue());
 
-        } finally {
+		} finally {
             close(session);
         }
     }
@@ -2624,7 +2644,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
             ObjectQuery objectQuery = ObjectQuery.createObjectQuery(eq);
             objectQuery.setUseNewQueryInterpreter(true);
 
-            String real = getInterpretedQuery2(session, GenericObjectType.class, objectQuery);
+            RQueryImpl realQuery = (RQueryImpl) getInterpretedQuery2Whole(session, GenericObjectType.class, objectQuery, false);
             String expected = "select\n" +
                     "  g.fullObject,\n" +
                     "  g.stringsCount,\n" +
@@ -2639,16 +2659,17 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     "where\n" +
                     "  b.value = :value\n";
 
-            assertEqualsIgnoreWhitespace(expected, real);
+            assertEqualsIgnoreWhitespace(expected, realQuery.getQuery().getQueryString());
+			assertEquals("Wrong property URI for 'skipAutogeneration'", "http://example.com/p#skipAutogeneration", realQuery.getQuerySource().getParameters().get("name").getValue());
 
-            OperationResult result = new OperationResult("search");
+			OperationResult result = new OperationResult("search");
             List<PrismObject<GenericObjectType>> objects = repositoryService.searchObjects(GenericObjectType.class,
                     objectQuery, null, result);
             result.computeStatus();
             AssertJUnit.assertTrue(result.isSuccess());
 
             AssertJUnit.assertNotNull(objects);
-            AssertJUnit.assertEquals(1, objects.size());
+            assertEquals(1, objects.size());
 
             PrismObject<GenericObjectType> obj = objects.get(0);
             AssertJUnit.assertTrue(obj.getCompileTimeClass().equals(GenericObjectType.class));
@@ -2658,7 +2679,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     result);
             result.computeStatus();
             AssertJUnit.assertTrue(result.isSuccess());
-            AssertJUnit.assertEquals(1, count);
+            assertEquals(1, count);
         } finally {
             close(session);
         }
@@ -2705,7 +2726,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
             AssertJUnit.assertTrue(result.isSuccess());
 
             AssertJUnit.assertNotNull(objects);
-            AssertJUnit.assertEquals(1, objects.size());
+            assertEquals(1, objects.size());
 
             PrismObject<UserType> obj = objects.get(0);
             AssertJUnit.assertTrue(obj.getCompileTimeClass().equals(UserType.class));
@@ -2714,7 +2735,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
             long count = repositoryService.countObjects(UserType.class, objectQuery, result);
             result.computeStatus();
             AssertJUnit.assertTrue(result.isSuccess());
-            AssertJUnit.assertEquals(1, count);
+            assertEquals(1, count);
         } finally {
             close(session);
         }
@@ -3557,22 +3578,27 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
 
     protected <T extends Containerable> String getInterpretedQuery2(Session session, Class<T> type, File file,
                                                                     boolean interpretCount) throws Exception {
-
-        QueryType queryType = PrismTestUtil.parseAtomicValue(file, QueryType.COMPLEX_TYPE);
-
-        LOGGER.info("QUERY TYPE TO CONVERT : {}", ObjectQueryUtil.dump(queryType));
-
-        ObjectQuery query = null;
-        try {
-            query = QueryJaxbConvertor.createObjectQuery((Class) type, queryType, prismContext);        // TODO
-        } catch (Exception ex) {
-            LOGGER.info("error while converting query: " + ex.getMessage(), ex);
-        }
-
+		ObjectQuery query = getQuery(file, type);
         return getInterpretedQuery2(session, type, query, interpretCount);
     }
 
-    protected <T extends Containerable> String getInterpretedQuery2(Session session, Class<T> type, ObjectQuery query) throws Exception {
+	@Nullable
+	private <T extends Containerable> ObjectQuery getQuery(File file, Class type)
+			throws SchemaException, IOException {
+		QueryType queryType = PrismTestUtil.parseAtomicValue(file, QueryType.COMPLEX_TYPE);
+
+		LOGGER.info("QUERY TYPE TO CONVERT : {}", ObjectQueryUtil.dump(queryType));
+
+		ObjectQuery query = null;
+		try {
+			query = QueryJaxbConvertor.createObjectQuery(type, queryType, prismContext);        // TODO
+		} catch (Exception ex) {
+			LOGGER.info("error while converting query: " + ex.getMessage(), ex);
+		}
+		return query;
+	}
+
+	protected <T extends Containerable> String getInterpretedQuery2(Session session, Class<T> type, ObjectQuery query) throws Exception {
         return getInterpretedQuery2(session, type, query, false);
     }
 
@@ -3580,23 +3606,30 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
     protected <T extends Containerable> String getInterpretedQuery2(Session session, Class<T> type, ObjectQuery query,
                                                                    boolean interpretCount) throws Exception {
 
-        if (query != null) {
-            LOGGER.info("QUERY TYPE TO CONVERT :\n{}", (query.getFilter() != null ? query.getFilter().debugDump(3) : null));
-        }
-
-        QueryEngine2 engine = new QueryEngine2(baseHelper.getConfiguration(), prismContext);
-        RQuery rQuery = engine.interpret(query, type, null, interpretCount, session);
-        //just test if DB will handle it or throws some exception
-        if (interpretCount) {
-            rQuery.uniqueResult();
-        } else {
-            rQuery.list();
-        }
+		RQuery rQuery = getInterpretedQuery2Whole(session, type, query, interpretCount);
 
         return ((RQueryImpl) rQuery).getQuery().getQueryString();
     }
 
-    private void assertEqualsIgnoreWhitespace(String expected, String real) {
+	@NotNull
+	private <T extends Containerable> RQuery getInterpretedQuery2Whole(Session session, Class<T> type, ObjectQuery query, boolean interpretCount)
+			throws QueryException {
+		if (query != null) {
+			LOGGER.info("QUERY TYPE TO CONVERT :\n{}", (query.getFilter() != null ? query.getFilter().debugDump(3) : null));
+		}
+
+		QueryEngine2 engine = new QueryEngine2(baseHelper.getConfiguration(), prismContext);
+		RQuery rQuery = engine.interpret(query, type, null, interpretCount, session);
+		//just test if DB will handle it or throws some exception
+		if (interpretCount) {
+			rQuery.uniqueResult();
+		} else {
+			rQuery.list();
+		}
+		return rQuery;
+	}
+
+	private void assertEqualsIgnoreWhitespace(String expected, String real) {
         LOGGER.info("exp. query>\n{}\nreal query>\n{}", expected, real);
         String expNorm = StringUtils.normalizeSpace(expected);
         String realNorm = StringUtils.normalizeSpace(real);

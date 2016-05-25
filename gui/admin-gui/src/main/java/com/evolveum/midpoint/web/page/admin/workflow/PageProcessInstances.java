@@ -149,7 +149,7 @@ public abstract class PageProcessInstances extends PageAdminWorkItems {
     private void itemDetailsPerformed(AjaxRequestTarget target, String taskOid) {
         PageParameters parameters = new PageParameters();
         parameters.add(OnePageParameterEncoder.PARAMETER, taskOid);
-        setResponsePage(new PageTaskEdit(parameters));
+        setResponsePage(PageTaskEdit.class, parameters);
     }
 
     private void stopProcessInstancesPerformed(AjaxRequestTarget target) {

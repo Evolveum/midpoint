@@ -26,7 +26,8 @@
     		so the approver may examine who is requesting and what is requesting.
     	</description>
     	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#workItem</action>
-        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#workItems</action>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#myWorkItems</action>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#claimableWorkItems</action>
         <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#userDetails</action>
         <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#roleDetails</action>
         <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#orgUnit</action>

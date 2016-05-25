@@ -25,11 +25,10 @@ import java.util.List;
 
 /**
  *  @author shood
- * */
-public class CapabilityStepDto implements Serializable{
+ */
+public class CapabilityStepDto implements Serializable {
 
     public static final String F_CAPABILITIES = "capabilities";
-	public static final String F_SELECTED_CAPABILITY = "selectedCapability";
 
 	private CapabilityDto selectedDto;
 
@@ -51,22 +50,8 @@ public class CapabilityStepDto implements Serializable{
 		return selectedDto;
 	}
 
-	public CapabilityType getSelectedCapability() {
-		return selectedDto != null ? selectedDto.getCapability() : null;
-	}
-
 	public void setSelected(CapabilityDto selected) {
 		this.selectedDto = selected;
-	}
-
-	public int getSelectedIndex() {
-		return selectedDto != null ? capabilities.indexOf(selectedDto) : -1;
-	}
-
-	public void setSelectedIndex(int index) {
-		if (index >= 0 && index < capabilities.size()) {
-			setSelected(capabilities.get(index));
-		}
 	}
 
 }

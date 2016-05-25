@@ -648,6 +648,9 @@
                 <t:norm>userx00002</t:norm>
             </p:polyType>
             <p:skipAutogeneration>true</p:skipAutogeneration>
+            <p:multivalued>Bratislava</p:multivalued>
+            <p:multivalued>Levice</p:multivalued>
+            <p:multivalued>Kalna</p:multivalued>
         </extension>
         <objectType>http://myself.me/schemas/objects#SampleConfigType</objectType>
     </genericObject>

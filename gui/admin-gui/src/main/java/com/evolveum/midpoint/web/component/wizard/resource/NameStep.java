@@ -458,14 +458,14 @@ public class NameStep extends WizardStep {
 				delta = i.asObjectDelta(oid);
 			}
 			if (!delta.isEmpty()) {
-				LOGGER.info("Applying delta:\n{}", delta.debugDump());
+				parentPage.logDelta(delta);
 				WebModelServiceUtils.save(delta, ModelExecuteOptions.createRaw(), result, parentPage);
+				parentPage.resetModels();
 			}
 
 			if (isNew) {
 				parentPage.setEditedResourceOid(delta.getOid());
 			}
-			parentPage.resetModels();
 
         } catch (RuntimeException|SchemaException ex) {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't save resource", ex);

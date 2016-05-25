@@ -847,7 +847,7 @@ public class LensUtil {
 		
 		ExpressionEvaluationContext expressionContext = new ExpressionEvaluationContext(sources , variables, 
 				"iteration token expression in "+accountContext.getHumanReadableName(), task, result);
-		PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = expression.evaluate(expressionContext);
+		PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = ModelExpressionThreadLocalHolder.evaluateExpressionInContext(expression, expressionContext, task, result);
 		Collection<PrismPropertyValue<String>> outputValues = outputTriple.getNonNegativeValues();
 		if (outputValues.isEmpty()) {
 			return "";
@@ -897,7 +897,7 @@ public class LensUtil {
 		variables.addVariableDefinition(ExpressionConstants.VAR_ITERATION_TOKEN, iterationToken);
 		
 		ExpressionEvaluationContext expressionContext = new ExpressionEvaluationContext(null , variables, desc, task, result);
-		PrismValueDeltaSetTriple<PrismPropertyValue<Boolean>> outputTriple = expression.evaluate(expressionContext);
+		PrismValueDeltaSetTriple<PrismPropertyValue<Boolean>> outputTriple = ModelExpressionThreadLocalHolder.evaluateExpressionInContext(expression, expressionContext, task, result);
 		Collection<PrismPropertyValue<Boolean>> outputValues = outputTriple.getNonNegativeValues();
 		if (outputValues.isEmpty()) {
 			return false;

@@ -65,7 +65,11 @@ public class RootHibernateQuery extends HibernateQuery {
         return addParameter(prefix, value, null);
     }
 
-    private String findFreeName(String prefix) {
+	public Map<String, QueryParameterValue> getParameters() {
+		return parameters;
+	}
+
+	private String findFreeName(String prefix) {
         int i = 1;
         for (;;) {
             String name = i == 1 ? prefix : prefix+i;

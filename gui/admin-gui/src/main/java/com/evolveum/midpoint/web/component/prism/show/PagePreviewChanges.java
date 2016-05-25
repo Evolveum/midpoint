@@ -32,6 +32,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AjaxButton;
+import com.evolveum.midpoint.web.page.admin.PageAdmin;
 import com.evolveum.midpoint.web.page.admin.home.PageDashboard;
 import com.evolveum.midpoint.web.page.admin.workflow.PageAdminWorkItems;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
@@ -49,14 +50,8 @@ import static org.apache.commons.collections.CollectionUtils.addIgnoreNull;
 /**
  * @author mederly
  */
-@PageDescriptor(url = "/admin/workItem", encoder = OnePageParameterEncoder.class, action = {
-		@AuthorizationAction(actionUri = PageAdminWorkItems.AUTH_WORK_ITEMS_ALL,
-				label = PageAdminWorkItems.AUTH_WORK_ITEMS_ALL_LABEL,
-				description = PageAdminWorkItems.AUTH_WORK_ITEMS_ALL_DESCRIPTION),
-		@AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_WORK_ITEM_URL,
-				label = "PageWorkItem.auth.workItem.label",
-				description = "PageWorkItem.auth.workItem.description")})
-public class PagePreviewChanges extends PageAdminWorkItems {		// TODO extends
+@PageDescriptor(url = "/admin/previewChanges", encoder = OnePageParameterEncoder.class)
+public class PagePreviewChanges extends PageAdmin {
 
 	private static final String ID_PRIMARY_DELTAS_SCENE = "primaryDeltas";
 	private static final String ID_SECONDARY_DELTAS_SCENE = "secondaryDeltas";

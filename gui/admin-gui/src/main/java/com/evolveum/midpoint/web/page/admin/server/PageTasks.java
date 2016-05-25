@@ -236,7 +236,7 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
 
     private void initLayout() {
 
-		refreshPanel = new AutoRefreshPanel(ID_REFRESH_PANEL, refreshModel, this);
+		refreshPanel = new AutoRefreshPanel(ID_REFRESH_PANEL, refreshModel, this, false);
 		add(refreshPanel);
 
         Form mainForm = new Form(ID_MAIN_FORM);
@@ -569,7 +569,7 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
             private void taskDetailsPerformed(AjaxRequestTarget target, String oid) {
                 PageParameters parameters = new PageParameters();
                 parameters.add(OnePageParameterEncoder.PARAMETER, oid);
-                component.setResponsePage(new PageTaskEdit(parameters));
+                component.setResponsePage(PageTaskEdit.class, parameters);
             }
 
             @Override

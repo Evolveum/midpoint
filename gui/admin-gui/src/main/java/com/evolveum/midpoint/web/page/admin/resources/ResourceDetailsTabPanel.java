@@ -227,8 +227,7 @@ public class ResourceDetailsTabPanel extends Panel {
 	private void taskDetailsPerformed(AjaxRequestTarget target, String taskOid) {
 		PageParameters parameters = new PageParameters();
 		parameters.add(OnePageParameterEncoder.PARAMETER, taskOid);
-		setResponsePage(new PageTaskEdit(parameters));
-
+		setResponsePage(PageTaskEdit.class, parameters);
 	}
 
 	private InfoBoxPanel addCapabilityMappingInfo(String fieldId, SourceTarget sourceTarget,

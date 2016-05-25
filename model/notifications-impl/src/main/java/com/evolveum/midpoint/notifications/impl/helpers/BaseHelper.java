@@ -126,15 +126,7 @@ public abstract class BaseHelper {
         Expression<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> expression = expressionFactory.makeExpression(expressionType, resultDef, shortDesc, task, result);
         ExpressionEvaluationContext params = new ExpressionEvaluationContext(null, expressionVariables, shortDesc, task, result);
 
-        ModelExpressionThreadLocalHolder.pushCurrentResult(result);
-        ModelExpressionThreadLocalHolder.pushCurrentTask(task);
-        PrismValueDeltaSetTriple<PrismPropertyValue<Boolean>> exprResultTriple;
-        try {
-            exprResultTriple = expression.evaluate(params);
-        } finally {
-            ModelExpressionThreadLocalHolder.popCurrentResult();
-            ModelExpressionThreadLocalHolder.popCurrentTask();
-        }
+        PrismValueDeltaSetTriple<PrismPropertyValue<Boolean>> exprResultTriple = ModelExpressionThreadLocalHolder.evaluateExpressionInContext(expression, params, task, result);
 
         Collection<PrismPropertyValue<Boolean>> exprResult = exprResultTriple.getZeroSet();
         if (exprResult.size() == 0) {
@@ -175,14 +167,7 @@ public abstract class BaseHelper {
         ExpressionEvaluationContext params = new ExpressionEvaluationContext(null, expressionVariables, shortDesc, task, result);
 
         PrismValueDeltaSetTriple<PrismPropertyValue<String>> exprResult;
-        ModelExpressionThreadLocalHolder.pushCurrentResult(result);
-        ModelExpressionThreadLocalHolder.pushCurrentTask(task);
-        try {
-            exprResult = expression.evaluate(params);
-        } finally {
-            ModelExpressionThreadLocalHolder.popCurrentResult();
-            ModelExpressionThreadLocalHolder.popCurrentTask();
-        }
+		exprResult = ModelExpressionThreadLocalHolder.evaluateExpressionInContext(expression, params, task, result);
 
         List<String> retval = new ArrayList<String>();
         for (PrismPropertyValue<String> item : exprResult.getZeroSet()) {

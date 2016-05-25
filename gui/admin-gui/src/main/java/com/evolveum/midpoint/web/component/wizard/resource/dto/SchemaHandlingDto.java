@@ -26,40 +26,32 @@ import java.util.List;
  * */
 public class SchemaHandlingDto implements Serializable {
 
-    public static final String F_OBJECT_TYPES = "objectTypeList";
-    public static final String F_SELECTED = "selected";
+    public static final String F_OBJECT_TYPE_DTO_LIST = "objectTypeDtoList";
+    public static final String F_SELECTED_OBJECT_TYPE_DTO = "selectedObjectTypeDto";
     public static final String F_OBJECT_CLASS_NAME = "objectClassName";
 
-    @NotNull private final List<ResourceObjectTypeDefinitionTypeDto> objectTypeList;
-    private ResourceObjectTypeDefinitionTypeDto selected;
+    @NotNull private final List<ResourceObjectTypeDefinitionTypeDto> objectTypeDtoList;
+	@NotNull private final List<QName> objectClassList;
+    private ResourceObjectTypeDefinitionTypeDto selectedObjectTypeDto;
     private String objectClassName;
-    private List<QName> objectClassList;
 
-	public SchemaHandlingDto(@NotNull List<ResourceObjectTypeDefinitionTypeDto> list) {
-		this.objectTypeList = list;
+	public SchemaHandlingDto(@NotNull List<ResourceObjectTypeDefinitionTypeDto> list, @NotNull List<QName> objectClasses) {
+		this.objectTypeDtoList = list;
+		this.objectClassList = objectClasses;
 	}
 
-	public List<ResourceObjectTypeDefinitionTypeDto> getObjectTypeList() {
-        return objectTypeList;
+	@NotNull
+	public List<ResourceObjectTypeDefinitionTypeDto> getObjectTypeDtoList() {
+        return objectTypeDtoList;
     }
 
-    public ResourceObjectTypeDefinitionTypeDto getSelected() {
-        return selected;
+    public ResourceObjectTypeDefinitionTypeDto getSelectedObjectTypeDto() {
+        return selectedObjectTypeDto;
     }
 
-	public int getSelectedIndex() {
-		return selected != null ? objectTypeList.indexOf(selected) : -1;
-	}
-
-	public void setSelectedIndex(int index) {
-		if (index >= 0 && index < objectTypeList.size()) {
-			setSelected(objectTypeList.get(index));
-		}
-	}
-
-	public void setSelected(ResourceObjectTypeDefinitionTypeDto selected) {
-        this.selected = selected;
-		setObjectClassNameFrom(selected);
+	public void setSelectedObjectTypeDto(ResourceObjectTypeDefinitionTypeDto selectedObjectTypeDto) {
+        this.selectedObjectTypeDto = selectedObjectTypeDto;
+		setObjectClassNameFrom(selectedObjectTypeDto);
     }
 
 	private void setObjectClassNameFrom(ResourceObjectTypeDefinitionTypeDto objectType) {
@@ -71,22 +63,21 @@ public class SchemaHandlingDto implements Serializable {
 		}
 	}
 
+	@NotNull
 	public List<QName> getObjectClassList() {
         return objectClassList;
     }
 
-    public void setObjectClassList(List<QName> objectClassList) {
-        this.objectClassList = objectClassList;
-    }
-
+	@SuppressWarnings("unused")
     public String getObjectClassName() {
         return objectClassName;
     }
 
+	@SuppressWarnings("unused")
     public void setObjectClassName(String objectClassName) {
         this.objectClassName = objectClassName;
-		if (selected != null) {
-			selected.getObjectType().setObjectClass(findObjectClassQName(objectClassName));	// update object class in selected objectType container
+		if (selectedObjectTypeDto != null) {
+			selectedObjectTypeDto.getObjectType().setObjectClass(findObjectClassQName(objectClassName));	// update object class in selected objectType container
 		}
     }
 

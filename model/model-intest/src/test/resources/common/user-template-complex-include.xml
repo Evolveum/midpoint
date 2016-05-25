@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2013 Evolveum
+  ~ Copyright (c) 2010-2016 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -21,7 +21,8 @@
    xmlns:t='http://prism.evolveum.com/xml/ns/public/types-3'>
     <name>Complex User Template Include</name>
     <mapping>
-    	<!-- This mapping is NOT initial so if will in fact FORCE fullname consistency -->
+    	<name>usertemplate-included-fullName</name>
+    	<!-- This mapping is NOT weak so if will in fact FORCE fullname consistency -->
     	<source>
     		<path>$user/givenName</path>
     	</source>
@@ -47,6 +48,8 @@
     
     <!-- Unconditional automatic assignment of Blue Dummy resource -->
     <mapping>
+    	<name>usertemplate-included-assignment-blue</name>
+    	<strength>strong</strength>
     	<expression>
             <value>
                 <construction>
