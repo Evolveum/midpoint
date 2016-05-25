@@ -224,10 +224,15 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 	}
 
 	private void finishPreviewProcessing(AjaxRequestTarget target, OperationResult result) {
+		getMainPanel().setVisible(true);
+		getProgressReporter().getProgressPanel().hide();
+		getProgressReporter().hideAbortButton(target);
+		getProgressReporter().hideBackButton(target);
+
 		showResult(result);
 		target.add(getFeedbackPanel());
 		setResponsePage(new PagePreviewChanges(getProgressReporter().getPreviewResult(), getModelInteractionService()));
-		// TODO implement "back" functionality correctly
+
 	}
 
 	private List<FocusSubwrapperDto<ShadowType>> loadShadowWrappers() {

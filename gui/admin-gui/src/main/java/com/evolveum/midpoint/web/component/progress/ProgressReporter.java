@@ -296,6 +296,11 @@ public class ProgressReporter implements Serializable {
         target.add(abortButton);
     }
 
+    public void hideBackButton(AjaxRequestTarget target) {
+        backButton.setVisible(false);
+        target.add(backButton);
+    }
+
     public void showBackButton(AjaxRequestTarget target) {
         backButton.setVisible(true);
         target.add(backButton);
