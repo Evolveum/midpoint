@@ -153,11 +153,15 @@ public class StateReporter {
         if (uid != null) {
             object = " " + uid.getUidValue();
         }
-        recordState(finished + " " + operation + " of " + getObjectClassName(objectClassDef) + object + " on " + getResourceName() + durationString);
+		final String stateMessage =
+				finished + " " + operation + " of " + getObjectClassName(objectClassDef) + object + " on " + getResourceName() + durationString;
+		recordState(stateMessage);
         if (task != null) {
             if (duration >= 0) {
                 task.recordProvisioningOperation(resourceOid, getResourceName(), getObjectClassQName(objectClassDef), lastOperation, ex == null, 1, duration);
-            }
+            } else {
+				LOGGER.warn("Negative duration while recording provisiong operation: {}", stateMessage);
+			}
         } else {
             reportNoTask(resourceOid, lastOperation);
         }
@@ -177,4 +181,16 @@ public class StateReporter {
     public void setTask(Task task) {
         this.task = task;
     }
+
+	public Task getTask() {
+		return task;
+	}
+
+	public String getResourceOid() {
+		return resourceOid;
+	}
+
+	public void setResourceOid(String resourceOid) {
+		this.resourceOid = resourceOid;
+	}
 }
