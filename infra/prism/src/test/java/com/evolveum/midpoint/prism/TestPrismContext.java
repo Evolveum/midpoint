@@ -160,7 +160,7 @@ public class TestPrismContext {
 
 		assertEquals("Wrong compile-time class in user definition", UserType.class, userDefinition.getCompileTimeClass());
 		PrismAsserts.assertPropertyDefinition(userDefinition, USER_NAME_QNAME, PolyStringType.COMPLEX_TYPE, 0, 1);
-		PrismAsserts.assertItemDefinitionDisplayName(userDefinition, USER_NAME_QNAME, "Name");
+		PrismAsserts.assertItemDefinitionDisplayName(userDefinition, USER_NAME_QNAME, "ObjectType.name");
 		PrismAsserts.assertItemDefinitionDisplayOrder(userDefinition, USER_NAME_QNAME, 0);
 		PrismAsserts.assertEmphasized(userDefinition, USER_NAME_QNAME, true);
 		PrismAsserts.assertItemDefinitionHelp(userDefinition, USER_NAME_QNAME, "Short unique name of the object");
@@ -178,7 +178,7 @@ public class TestPrismContext {
 		PrismAsserts.assertDefinition(extensionContainer, USER_EXTENSION_QNAME, DOMUtil.XSD_ANY, 0, 1);
 		assertTrue("Extension is not runtime", extensionContainer.isRuntimeSchema());
 		assertTrue("Extension is not empty", extensionContainer.getDefinitions().isEmpty());
-		PrismAsserts.assertItemDefinitionDisplayName(userDefinition, USER_EXTENSION_QNAME, "Extension");
+		PrismAsserts.assertItemDefinitionDisplayName(userDefinition, USER_EXTENSION_QNAME, "ObjectType.extension");
 		PrismAsserts.assertItemDefinitionDisplayOrder(userDefinition, USER_EXTENSION_QNAME, 1000);
 		PrismAsserts.assertItemDefinitionHelp(userDefinition, USER_EXTENSION_QNAME, "Object extension contains extra properties");
 		
