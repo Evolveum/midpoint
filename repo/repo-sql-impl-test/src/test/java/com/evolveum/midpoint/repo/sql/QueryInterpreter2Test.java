@@ -85,6 +85,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
@@ -3543,6 +3544,90 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
 		}
 
 	}
+
+	@Test
+	public void testAdHoc102NullRefSingle() throws Exception {
+		Session session = open();
+		try {
+			ObjectQuery query = QueryBuilder.queryFor(ResourceType.class, prismContext)
+					.item(ResourceType.F_CONNECTOR_REF).ref(new ArrayList<PrismReferenceValue>())
+					.build();
+			String real = getInterpretedQuery2(session, ResourceType.class, query);
+			String expected = "select\n"
+					+ "  r.fullObject,\n"
+					+ "  r.stringsCount,\n"
+					+ "  r.longsCount,\n"
+					+ "  r.datesCount,\n"
+					+ "  r.referencesCount,\n"
+					+ "  r.polysCount,\n"
+					+ "  r.booleansCount\n"
+					+ "from\n"
+					+ "  RResource r\n"
+					+ "where\n"
+					+ "  r.connectorRef.targetOid is null";
+			assertEqualsIgnoreWhitespace(expected, real);
+		} finally {
+			close(session);
+		}
+	}
+
+	@Test(enabled = false)
+	public void testAdHoc103NullRefMulti() throws Exception {
+		Session session = open();
+		try {
+			ObjectQuery query = QueryBuilder.queryFor(UserType.class, prismContext)
+					.item(UserType.F_LINK_REF).ref(new ArrayList<PrismReferenceValue>())
+					.build();
+			String real = getInterpretedQuery2(session, UserType.class, query);
+			String expected = "";
+			assertEqualsIgnoreWhitespace(expected, real);
+		} finally {
+			close(session);
+		}
+	}
+
+	@Test
+	public void testAdHoc104NullEqSingle() throws Exception {
+		Session session = open();
+		try {
+			ObjectQuery query = QueryBuilder.queryFor(UserType.class, prismContext)
+					.item(UserType.F_EMPLOYEE_NUMBER).isNull()
+					.build();
+			String real = getInterpretedQuery2(session, UserType.class, query);
+			String expected = "select\n"
+					+ "  u.fullObject,\n"
+					+ "  u.stringsCount,\n"
+					+ "  u.longsCount,\n"
+					+ "  u.datesCount,\n"
+					+ "  u.referencesCount,\n"
+					+ "  u.polysCount,\n"
+					+ "  u.booleansCount\n"
+					+ "from\n"
+					+ "  RUser u\n"
+					+ "where\n"
+					+ "  u.employeeNumber is null";
+			assertEqualsIgnoreWhitespace(expected, real);
+		} finally {
+			close(session);
+		}
+	}
+
+	@Test(enabled = false)
+	public void testAdHoc105NullEqMulti() throws Exception {
+		Session session = open();
+		try {
+			ObjectQuery query = QueryBuilder.queryFor(UserType.class, prismContext)
+					.item(UserType.F_EMPLOYEE_TYPE).isNull()
+					.build();
+			String real = getInterpretedQuery2(session, UserType.class, query);
+			String expected = "";
+			assertEqualsIgnoreWhitespace(expected, real);
+		} finally {
+			close(session);
+		}
+
+	}
+
 
 	//    @Test
 //    public void test930OrganizationEqualsCostCenter() throws Exception {
