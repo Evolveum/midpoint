@@ -17,19 +17,13 @@ package com.evolveum.midpoint.provisioning.impl;
 
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
-import com.evolveum.midpoint.prism.ComplexTypeDefinition;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
 import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
@@ -51,15 +45,13 @@ public class ProvisioningContext extends StateReporter {
 	private ConnectorManager connectorManager;
 	private OperationResult parentResult;
 	
-	private String resourceOid;
 	private PrismObject<ShadowType> originalShadow;
 	private ResourceShadowDiscriminator shadowCoordinates;
 	private Collection<QName> additionalAuxiliaryObjectClassQNames;
 	private boolean useRefinedDefinition = true;
 	
 	private RefinedObjectClassDefinition objectClassDefinition;
-	private Task task;
-	
+
 	private ResourceType resource;
 	private ConnectorInstance connector;
 	private RefinedResourceSchema refinedSchema;
@@ -70,12 +62,8 @@ public class ProvisioningContext extends StateReporter {
 		this.parentResult = parentResult;
 	}
 	
-	public String getResourceOid() {
-		return resourceOid;
-	}
-
 	public void setResourceOid(String resourceOid) {
-		this.resourceOid = resourceOid;
+		super.setResourceOid(resourceOid);
 		this.resource = null;
 		this.connector = null;
 		this.refinedSchema = null;
@@ -115,17 +103,21 @@ public class ProvisioningContext extends StateReporter {
 
 	public ResourceType getResource() throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
 		if (resource == null) {
-			if (resourceOid == null) {
+			if (getResourceOid() == null) {
 				throw new SchemaException("Null resource OID "+getDesc());
 			}
-			resource = resourceManager.getResource(resourceOid, null, parentResult).asObjectable();
-			if (resource != null && resource.getName() != null) {
-				super.setResourceName(resource.getName().getOrig());
-			}
+			resource = resourceManager.getResource(getResourceOid(), null, parentResult).asObjectable();
+			updateResourceName();
 		}
 		return resource;
 	}
-	
+
+	private void updateResourceName() {
+		if (resource != null && resource.getName() != null) {
+			super.setResourceName(resource.getName().getOrig());
+		}
+	}
+
 	public RefinedResourceSchema getRefinedSchema() throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException {
 		if (refinedSchema == null) {
 			refinedSchema = ProvisioningUtil.getRefinedSchema(getResource());
@@ -157,17 +149,8 @@ public class ProvisioningContext extends StateReporter {
 		return objectClassDefinition;
 	}
 	
-	public Task getTask() {
-		return task;
-	}
-
-	public void setTask(Task task) {
-		this.task = task;
-		super.setTask(task);
-	}
-	
 	public String getChannel() {
-		return task==null?null:task.getChannel();
+		return getTask()==null?null:getTask().getChannel();
 	}
 
 	public ConnectorInstance getConnector(OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
@@ -186,7 +169,7 @@ public class ProvisioningContext extends StateReporter {
 	 */
 	public ProvisioningContext spawn(ShadowKindType kind, String intent) {
 		ProvisioningContext ctx = spawnSameResource();
-		ctx.shadowCoordinates = new ResourceShadowDiscriminator(resourceOid, kind, intent);
+		ctx.shadowCoordinates = new ResourceShadowDiscriminator(getResourceOid(), kind, intent);
 		return ctx;
 	}
 		
@@ -195,7 +178,7 @@ public class ProvisioningContext extends StateReporter {
 	 */
 	public ProvisioningContext spawn(QName objectClassQName) throws SchemaException {
 		ProvisioningContext ctx = spawnSameResource();
-		ctx.shadowCoordinates = new ResourceShadowDiscriminator(resourceOid, null, null);
+		ctx.shadowCoordinates = new ResourceShadowDiscriminator(getResourceOid(), null, null);
 		ctx.shadowCoordinates.setObjectClass(objectClassQName);
 		return ctx;
 	}
@@ -220,9 +203,10 @@ public class ProvisioningContext extends StateReporter {
 	
 	private ProvisioningContext spawnSameResource() {
 		ProvisioningContext ctx = new ProvisioningContext(connectorManager, resourceManager, parentResult);
-		ctx.task = this.task;
-		ctx.resourceOid = this.resourceOid;
+		ctx.setTask(this.getTask());
+		ctx.setResourceOid(getResourceOid());
 		ctx.resource = this.resource;
+		ctx.updateResourceName();					// TODO eliminate this mess - check if we need StateReporter any more
 		ctx.connector = this.connector;
 		ctx.refinedSchema = this.refinedSchema;
 		return ctx;
@@ -240,11 +224,11 @@ public class ProvisioningContext extends StateReporter {
 		
 	public String getDesc() {
 		if (originalShadow != null) {
-			return "for " + originalShadow + " in " + (resource==null?("resource "+resourceOid):resource);
+			return "for " + originalShadow + " in " + (resource==null?("resource "+getResourceOid()):resource);
 		} else if (shadowCoordinates != null && !shadowCoordinates.isWildcard()) {
-			return "for " + shadowCoordinates + " in " + (resource==null?("resource "+resourceOid):resource);
+			return "for " + shadowCoordinates + " in " + (resource==null?("resource "+getResourceOid()):resource);
 		} else {
-			return "for wildcard in " + (resource==null?("resource "+resourceOid):resource);
+			return "for wildcard in " + (resource==null?("resource "+getResourceOid()):resource);
 		}
 	}
 
