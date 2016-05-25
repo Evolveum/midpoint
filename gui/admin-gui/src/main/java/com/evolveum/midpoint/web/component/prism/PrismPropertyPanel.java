@@ -290,7 +290,9 @@ public class PrismPropertyPanel<IW extends ItemWrapper> extends Panel {
             public String getObject() {
                 IW wrapper = model.getObject();
                 String displayName = wrapper.getDisplayName();
-                return getString(displayName, null, displayName);
+                String displayNameValueByKey = PageBase.createStringResourceStatic(PrismPropertyPanel.this, displayName).getString();
+                return StringUtils.isEmpty(displayNameValueByKey) ?
+                        getString(displayName, null, displayName) : displayNameValueByKey;
             }
         };
     }

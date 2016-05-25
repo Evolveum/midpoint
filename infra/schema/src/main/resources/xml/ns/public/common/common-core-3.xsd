@@ -175,7 +175,7 @@
                         </p>
                     </xsd:documentation>
                     <xsd:appinfo>
-                    	<a:displayName>Name</a:displayName>
+                    	<a:displayName>ObjectType.name</a:displayName>
                     	<a:displayOrder>0</a:displayOrder>
                     	<a:emphasized>true</a:emphasized>
                     </xsd:appinfo>
@@ -191,7 +191,7 @@
                         </p>
                     </xsd:documentation>
                     <xsd:appinfo>
-                    	<a:displayName>Description</a:displayName>
+                    	<a:displayName>ObjectType.description</a:displayName>
                     	<a:displayOrder>10</a:displayOrder>
                     </xsd:appinfo>
                 </xsd:annotation>
@@ -233,7 +233,7 @@
                         </p>
                     </xsd:documentation>
                     <xsd:appinfo>
-                    	<a:displayName>Extension</a:displayName>
+                    	<a:displayName>ObjectType.extension</a:displayName>
                     	<a:displayOrder>1000</a:displayOrder>
                     </xsd:appinfo>
                 </xsd:annotation>
@@ -257,7 +257,7 @@
 	                </xsd:documentation>
 	                <xsd:appinfo>
 	        			<a:objectReferenceTargetType>tns:OrgType</a:objectReferenceTargetType>
-	        			<a:displayName>Parent Organization</a:displayName>
+	        			<a:displayName>OrgType.parentOrganization</a:displayName>
                     	<a:displayOrder>240</a:displayOrder>
 	        		</xsd:appinfo>
 	            </xsd:annotation>
@@ -290,7 +290,7 @@
                     </xsd:documentation>
                     <xsd:appinfo>
             			<a:objectReferenceTargetType>tns:OrgType</a:objectReferenceTargetType>
-            			<a:displayName>Tenant</a:displayName>
+            			<a:displayName>OrgType.tenant</a:displayName>
                     	<a:displayOrder>250</a:displayOrder>
             		</xsd:appinfo>
                 </xsd:annotation>
@@ -1846,7 +1846,7 @@
                                 </p>
                             </xsd:documentation>
                             <xsd:appinfo>
-                                <a:displayName>Assignment</a:displayName>
+                                <a:displayName>FocusType.assignmentKey</a:displayName>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -1944,7 +1944,7 @@
                                 </p>
                             </xsd:documentation>
                             <xsd:appinfo>
-                                <a:displayName>Jpeg photo</a:displayName>
+                                <a:displayName>FocusType.jpegPhoto</a:displayName>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -1995,7 +1995,7 @@
                                 </p>
                             </xsd:documentation>
                             <xsd:appinfo>
-		                    	<a:displayName>Full Name</a:displayName>
+		                    	<a:displayName>UserType.fullName</a:displayName>
 		                    	<a:displayOrder>100</a:displayOrder>
 		                    	<a:emphasized>true</a:emphasized>
 		                    </xsd:appinfo>
@@ -2023,7 +2023,7 @@
                                 </p>
                             </xsd:documentation>
                             <xsd:appinfo>
-		                    	<a:displayName>Given Name</a:displayName>
+		                    	<a:displayName>UserType.givenName</a:displayName>
 		                    	<a:displayOrder>110</a:displayOrder>
 		                    	<a:emphasized>true</a:emphasized>
 		                    </xsd:appinfo>
@@ -2051,7 +2051,7 @@
                                 </p>
                             </xsd:documentation>
                             <xsd:appinfo>
-		                    	<a:displayName>Family Name</a:displayName>
+		                    	<a:displayName>UserType.familyName</a:displayName>
 		                    	<a:displayOrder>120</a:displayOrder>
 		                    	<a:emphasized>true</a:emphasized>
 		                    </xsd:appinfo>
@@ -2075,7 +2075,7 @@
                                 </p> 
                             </xsd:documentation>
                             <xsd:appinfo>
-		                    	<a:displayName>Additional Name</a:displayName>
+		                    	<a:displayName>UserType.additionalName</a:displayName>
 		                    	<a:displayOrder>130</a:displayOrder>
 		                    </xsd:appinfo>
                         </xsd:annotation>
@@ -2103,7 +2103,7 @@
                                 </p>
                             </xsd:documentation>
                             <xsd:appinfo>
-		                    	<a:displayName>Nickname</a:displayName>
+		                    	<a:displayName>UserType.nickname</a:displayName>
 		                    	<a:displayOrder>140</a:displayOrder>
 		                    </xsd:appinfo>
                         </xsd:annotation>
@@ -2130,7 +2130,7 @@
                                 </p>
                             </xsd:documentation>
                             <xsd:appinfo>
-		                    	<a:displayName>Honorific Prefix</a:displayName>
+		                    	<a:displayName>UserType.honorificPrefix</a:displayName>
 		                    	<a:displayOrder>150</a:displayOrder>
 		                    </xsd:appinfo>
                         </xsd:annotation>
@@ -2156,7 +2156,7 @@
                                 </p>
                             </xsd:documentation>
                             <xsd:appinfo>
-		                    	<a:displayName>Honorific Suffix</a:displayName>
+		                    	<a:displayName>UserType.honorificSuffix</a:displayName>
 		                    	<a:displayOrder>160</a:displayOrder>
 		                    </xsd:appinfo>
                         </xsd:annotation>
@@ -2179,7 +2179,7 @@
                                 </p>
                             </xsd:documentation>
                             <xsd:appinfo>
-		                    	<a:displayName>Title</a:displayName>
+		                    	<a:displayName>UserType.title</a:displayName>
 		                    	<a:displayOrder>170</a:displayOrder>
 		                    </xsd:appinfo>
                         </xsd:annotation>
@@ -2203,7 +2203,7 @@
                                 </p>
                             </xsd:documentation>
                             <xsd:appinfo>
-		                    	<a:displayName>Preferred Language</a:displayName>
+		                    	<a:displayName>UserType.preferredLanguage</a:displayName>
 		                    	<a:displayOrder>200</a:displayOrder>
 		                    	<a:valueEnumerationRef oid="00000000-0000-0000-0000-000000000200" type="tns:LookupTableType"/>
 		                    </xsd:appinfo>
@@ -2228,7 +2228,7 @@
                                 </p>
                             </xsd:documentation>
                             <xsd:appinfo>
-		                    	<a:displayName>Locale</a:displayName>
+		                    	<a:displayName>UserType.locale</a:displayName>
 		                    	<a:displayOrder>210</a:displayOrder>
 		                    	<a:valueEnumerationRef oid="00000000-0000-0000-0000-000000000210" type="tns:LookupTableType"/>
 		                    </xsd:appinfo>
@@ -2250,7 +2250,7 @@
                                 </p> 
                             </xsd:documentation>
                             <xsd:appinfo>
-		                    	<a:displayName>Timezone</a:displayName>
+		                    	<a:displayName>UserType.timezone</a:displayName>
 		                    	<a:displayOrder>220</a:displayOrder>
 		                    	<a:valueEnumerationRef oid="00000000-0000-0000-0000-000000000220" type="tns:LookupTableType"/>
 		                    </xsd:appinfo>
@@ -2270,7 +2270,7 @@
                                 </p>
                             </xsd:documentation>
                             <xsd:appinfo>
-                                <a:displayName>Email Address</a:displayName>
+                                <a:displayName>UserType.EmailAddress</a:displayName>
                                 <a:displayOrder>300</a:displayOrder>
                             </xsd:appinfo>
                         </xsd:annotation>
@@ -2284,7 +2284,7 @@
                                 </p>
                             </xsd:documentation>
                             <xsd:appinfo>
-                                <a:displayName>Telephone Number</a:displayName>
+                                <a:displayName>UserType.telephoneNumber</a:displayName>
                                 <a:displayOrder>310</a:displayOrder>
                             </xsd:appinfo>
                         </xsd:annotation>
@@ -2301,7 +2301,7 @@
                                 </p>
                             </xsd:documentation>
                             <xsd:appinfo>
-                                <a:displayName>Employee Number</a:displayName>
+                                <a:displayName>UserType.employeeNumber</a:displayName>
                                 <a:displayOrder>400</a:displayOrder>
                             </xsd:appinfo>
                         </xsd:annotation>
@@ -2324,7 +2324,7 @@
                                 </p>
                             </xsd:documentation>
                             <xsd:appinfo>
-                                <a:displayName>Employee Type</a:displayName>
+                                <a:displayName>UserType.employeeType</a:displayName>
                                 <a:displayOrder>410</a:displayOrder>
                             </xsd:appinfo>
                         </xsd:annotation>
@@ -2345,7 +2345,7 @@
                                 </p>
                             </xsd:documentation>
                             <xsd:appinfo>
-                                <a:displayName>Cost Center</a:displayName>
+                                <a:displayName>UserType.costCenter</a:displayName>
                                 <a:displayOrder>420</a:displayOrder>
                             </xsd:appinfo>
                         </xsd:annotation>
@@ -2367,7 +2367,7 @@
                                 </p>
                             </xsd:documentation>
                             <xsd:appinfo>
-                                <a:displayName>Organization</a:displayName>
+                                <a:displayName>UserType.organization</a:displayName>
                                 <a:displayOrder>430</a:displayOrder>
                             </xsd:appinfo>
                         </xsd:annotation>
@@ -2389,7 +2389,7 @@
                                 </p>
                             </xsd:documentation>
                             <xsd:appinfo>
-                                <a:displayName>Organizational Unit</a:displayName>
+                                <a:displayName>UserType.organizationalUnit</a:displayName>
                                 <a:displayOrder>440</a:displayOrder>
                             </xsd:appinfo>
                         </xsd:annotation>
@@ -2406,7 +2406,7 @@
                                 </p>
                             </xsd:documentation>
                             <xsd:appinfo>
-                                <a:displayName>Locality</a:displayName>
+                                <a:displayName>UserType.locality</a:displayName>
                                 <a:displayOrder>450</a:displayOrder>
                             </xsd:appinfo>
                         </xsd:annotation>
@@ -2418,7 +2418,7 @@
                                 The set of user's credentials (such as passwords).
                             </xsd:documentation>
                             <xsd:appinfo>
-                                <a:displayName>Credentials</a:displayName>
+                                <a:displayName>UserType.credentials</a:displayName>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -2464,14 +2464,14 @@
             <xsd:element name="password" type="tns:PasswordType" minOccurs="0" maxOccurs="1">
                 <xsd:annotation>
                     <xsd:appinfo>
-                        <a:displayName>Password</a:displayName>
+                        <a:displayName>CredentialsType.password</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="securityQuestions" type="tns:SecurityQuestionsCredentialsType" minOccurs="0" maxOccurs="1">
                 <xsd:annotation>
                     <xsd:appinfo>
-                        <a:displayName>Security Questions</a:displayName>
+                        <a:displayName>CredentialsType.securityQuestions</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -2653,7 +2653,7 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
-                <a:displayName>Assignment</a:displayName>
+                <a:displayName>AssignmentType.assignment</a:displayName>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -2679,7 +2679,7 @@
                         </xsd:documentation>
                         <xsd:appinfo>
                     		<a:objectReference>tns:targetRef</a:objectReference>
-                            <a:displayName>Target</a:displayName>
+                            <a:displayName>AssignmentType.target</a:displayName>
                     	</xsd:appinfo>
                     </xsd:annotation>
                 </xsd:element>
@@ -2690,7 +2690,7 @@
                             TODO: target ref
                         </xsd:documentation>
                         <xsd:appinfo>
-                            <a:displayName>Target</a:displayName>
+                            <a:displayName>AssignmentType.target</a:displayName>
                         </xsd:appinfo>
                     </xsd:annotation>
                 </xsd:element>
@@ -2701,7 +2701,7 @@
                             TODO
                         </xsd:documentation>
                         <xsd:appinfo>
-                            <a:displayName>Construction</a:displayName>
+                            <a:displayName>AssignmentType.construction</a:displayName>
                         </xsd:appinfo>
                     </xsd:annotation>
                 </xsd:element>
@@ -2733,7 +2733,7 @@
                     </xsd:documentation>
                     <xsd:appinfo>
             			<a:objectReferenceTargetType>tns:OrgType</a:objectReferenceTargetType>
-                        <a:displayName>Tenant reference</a:displayName>
+                        <a:displayName>AssignmentType.tenantReference</a:displayName>
             		</xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -2749,7 +2749,7 @@
                     </xsd:documentation>
                     <xsd:appinfo>
             			<a:objectReferenceTargetType>tns:OrgType</a:objectReferenceTargetType>
-                        <a:displayName>Org reference</a:displayName>
+                        <a:displayName>AssignmentType.orgReference</a:displayName>
             		</xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -2800,7 +2800,7 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
-                <a:displayName>Activation</a:displayName>
+                <a:displayName>ActivationType.activation</a:displayName>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -2824,7 +2824,7 @@
                         described concept is inactive.
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <a:displayName>Administrative Status</a:displayName>
+                        <a:displayName>ActivationType.administrativeStatus</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -2844,7 +2844,7 @@
                         If this property is not present then the computation haven't taken place yet.
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <a:displayName>Effective Status</a:displayName>
+                        <a:displayName>ActivationType.effectiveStatus</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -2855,7 +2855,7 @@
                         Not applied if the "enabled" flag is set to any value.
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <a:displayName>Valid From</a:displayName>
+                        <a:displayName>ActivationType.validFrom</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -2866,7 +2866,7 @@
                         Not applied if the "enabled" flag is set to any value.
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <a:displayName>Valid To</a:displayName>
+                        <a:displayName>ActivationType.validTo</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -2887,7 +2887,7 @@
                         If this property is not present then the computation haven't taken place yet.
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <a:displayName>Validity Status</a:displayName>
+                        <a:displayName>ActivationType.validityStatus</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -2965,7 +2965,7 @@
                         to unlock the account by setting this property to "normal" value.
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <a:displayName>Lock-out Status</a:displayName>
+                        <a:displayName>ActivationType.lockOutStatus</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -2980,7 +2980,7 @@
                         for most cases. It only makes sense if the lockoutStatus is not in the "normal" state.
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <a:displayName>Lock-out Expiration</a:displayName>
+                        <a:displayName>ActivationType.lockOutExpiration</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -6335,7 +6335,7 @@
                             	and there is no uniqueness requirement.
                             </xsd:documentation>
                             <xsd:appinfo>
-		                    	<a:displayName>Display Name</a:displayName>
+		                    	<a:displayName>ConnectorType.displayName</a:displayName>
 		                    	<a:displayOrder>100</a:displayOrder>
 		                    </xsd:appinfo>
                         </xsd:annotation>
@@ -6711,7 +6711,7 @@
                                 documentation.
                             </xsd:documentation>
                             <xsd:appinfo>
-                                <a:displayName>Activation</a:displayName>
+                                <a:displayName>ShadowType.activation</a:displayName>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -6979,7 +6979,7 @@
                             	</p>
                             </xsd:documentation>
                             <xsd:appinfo>
-		                    	<a:displayName>Display Name</a:displayName>
+		                    	<a:displayName>AbstractRoleType.displayName</a:displayName>
 		                    	<a:displayOrder>9</a:displayOrder>
 		                    </xsd:appinfo>
                         </xsd:annotation>
@@ -6997,7 +6997,7 @@
                                 </p>
                             </xsd:documentation>
                             <xsd:appinfo>
-		                    	<a:displayName>Identifier</a:displayName>
+		                    	<a:displayName>AbstractRoleType.identifier</a:displayName>
 		                    	<a:displayOrder>110</a:displayOrder>
 		                    </xsd:appinfo>
                         </xsd:annotation>
@@ -7022,7 +7022,7 @@
                             	</p>
                             </xsd:documentation>
                             <xsd:appinfo>
-                                <a:displayName>Inducement</a:displayName>
+                                <a:displayName>AbstractRoleType.inducement</a:displayName>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -7048,7 +7048,7 @@
                     			</p>
                     		</xsd:documentation>
                     		 <xsd:appinfo>
-                                <a:displayName>Requestable</a:displayName>
+                                <a:displayName>AbstractRoleType.requestable</a:displayName>
                             </xsd:appinfo>
                     	</xsd:annotation>
                     </xsd:element>
@@ -7076,7 +7076,7 @@
                     			</p>
                     		</xsd:documentation>
                     		 <xsd:appinfo>
-                                <a:displayName>Risk Level</a:displayName>
+                                <a:displayName>AbstractRoleType.riskLevel</a:displayName>
                             </xsd:appinfo>
                     	</xsd:annotation>
                     </xsd:element>
@@ -7090,7 +7090,7 @@
                                 </p>
                             </xsd:documentation>
                              <xsd:appinfo>
-                                <a:displayName>Owner</a:displayName>
+                                <a:displayName>AbstractRoleType.owner</a:displayName>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -7104,7 +7104,7 @@
                                 </p>
                             </xsd:documentation>
                              <xsd:appinfo>
-                                <a:displayName>Approver</a:displayName>
+                                <a:displayName>AbstractRoleType.approver</a:displayName>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -7606,7 +7606,7 @@
                                 </p>
                     		</xsd:documentation>
                             <xsd:appinfo>
-                                <a:displayName>Role Type</a:displayName>
+                                <a:displayName>RoleType.roleType</a:displayName>
                             </xsd:appinfo>
                     	</xsd:annotation>
                     </xsd:element>
@@ -8189,7 +8189,7 @@
                                 </p>
                             </xsd:documentation>
                             <xsd:appinfo>
-                                <a:displayName>Type</a:displayName>
+                                <a:displayName>OrgType.type</a:displayName>
                                 <a:displayOrder>120</a:displayOrder>
                             </xsd:appinfo>
                         </xsd:annotation>
@@ -8205,7 +8205,7 @@
                                 </p>
                             </xsd:documentation>
                             <xsd:appinfo>
-                                <a:displayName>Is Tenant</a:displayName>
+                                <a:displayName>OrgType.isTenant</a:displayName>
                                 <a:displayOrder>130</a:displayOrder>
                             </xsd:appinfo>
                         </xsd:annotation>
@@ -8219,7 +8219,7 @@
                                 </p>
                             </xsd:documentation>
                             <xsd:appinfo>
-                                <a:displayName>Cost Center</a:displayName>
+                                <a:displayName>OrgType.CostCenter</a:displayName>
                                 <a:displayOrder>200</a:displayOrder>
                             </xsd:appinfo>
                         </xsd:annotation>
@@ -8236,7 +8236,7 @@
                                 </p>
                             </xsd:documentation>
                             <xsd:appinfo>
-                                <a:displayName>Locality</a:displayName>
+                                <a:displayName>OrgType.locality</a:displayName>
                                 <a:displayOrder>210</a:displayOrder>
                             </xsd:appinfo>
                         </xsd:annotation>
@@ -8250,7 +8250,7 @@
                                 </p>
                             </xsd:documentation>
                             <xsd:appinfo>
-                                <a:displayName>Mail Domain</a:displayName>
+                                <a:displayName>OrgType.mailDomain</a:displayName>
                                 <a:displayOrder>220</a:displayOrder>
                             </xsd:appinfo>
                         </xsd:annotation>
@@ -8269,7 +8269,7 @@
                                 </p>
                             </xsd:documentation>
                             <xsd:appinfo>
-                                <a:displayName>Display Order</a:displayName>
+                                <a:displayName>OrgType.displayOrder</a:displayName>
                                 <a:displayOrder>300</a:displayOrder>
                             </xsd:appinfo>
                         </xsd:annotation>
@@ -8284,7 +8284,7 @@
                             </xsd:documentation>
                             <xsd:appinfo>
                     			<a:objectReferenceTargetType>tns:ValuePolicyType</a:objectReferenceTargetType>
-                    			<a:displayName>Password Policy</a:displayName>
+                    			<a:displayName>OrgType.passwordPolicy</a:displayName>
                                 <a:displayOrder>230</a:displayOrder>
                     		</xsd:appinfo>
                         </xsd:annotation>
@@ -8328,7 +8328,7 @@
                                 </p>
                             </xsd:documentation>
                             <xsd:appinfo>
-                                <a:displayName>Type</a:displayName>
+                                <a:displayName>ServiceType.type</a:displayName>
                                 <a:displayOrder>120</a:displayOrder>
                             </xsd:appinfo>
                         </xsd:annotation>
@@ -8344,7 +8344,7 @@
                                 </p>
                             </xsd:documentation>
                             <xsd:appinfo>
-                                <a:displayName>Locality</a:displayName>
+                                <a:displayName>ServiceType.locality</a:displayName>
                                 <a:displayOrder>210</a:displayOrder>
                             </xsd:appinfo>
                         </xsd:annotation>
@@ -8363,7 +8363,7 @@
                                 </p>
                             </xsd:documentation>
                             <xsd:appinfo>
-                                <a:displayName>Display Order</a:displayName>
+                                <a:displayName>ServiceType.displayOrder</a:displayName>
                                 <a:displayOrder>300</a:displayOrder>
                             </xsd:appinfo>
                         </xsd:annotation>
@@ -8377,7 +8377,7 @@
                                 </p>
                             </xsd:documentation>
                             <xsd:appinfo>
-                                <a:displayName>URL</a:displayName>
+                                <a:displayName>ServiceType.URL</a:displayName>
                                 <a:displayOrder>150</a:displayOrder>
                             </xsd:appinfo>
                         </xsd:annotation>
