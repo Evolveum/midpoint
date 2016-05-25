@@ -700,7 +700,7 @@ public class SimpleTaskAdapter implements Task {
     }
 
     @Override
-    public void recordMappingOperation(String objectOid, String objectName, String mappingName, long duration) {
+    public void recordMappingOperation(String objectOid, String objectName, String objectTypeName, String mappingName, long duration) {
     }
 
     @Override

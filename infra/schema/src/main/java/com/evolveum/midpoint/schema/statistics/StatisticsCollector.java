@@ -56,7 +56,7 @@ public interface StatisticsCollector {
 
     void recordNotificationOperation(String transportName, boolean success, long duration);
 
-    void recordMappingOperation(String objectOid, String objectName, String mappingName, long duration);
+    void recordMappingOperation(String objectOid, String objectName, String objectTypeName, String mappingName, long duration);
 
     /**
      * Records information about iterative processing of objects.
