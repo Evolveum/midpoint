@@ -136,12 +136,24 @@ public class PolyString implements Matchable<PolyString>, Recomputable, Structur
 		return new PolyString(this.orig.substring(index, index+1));
 	}
 	
+//	public PolyString getAt(Range at) {
+//		// TODO
+//	}
+//
+//	public PolyString getAt(IntRange at) {
+//		// TODO
+//	}
+	
 	public int length() {
 		return orig.length();
 	}
 	
 	public PolyString trim() {
 		return new PolyString(orig.trim(), norm.trim());
+	}
+	
+	public String substring(int from, int to) {
+		return this.orig.substring(from,to);
 	}
 
 	@Override
