@@ -93,6 +93,30 @@
 	    	</expression>
 	    </mapping>
     </item>
+    
+    <!-- Weak mapping with property source and target -->
+	<item>
+    	<ref>locale</ref>
+    	<mapping>
+    		<name>usertemplate-locale</name>
+    		<strength>weak</strength>
+	    	<authoritative>true</authoritative>
+	    	<source>
+	    		<path>locality</path>
+	    	</source>
+	    	<expression>
+	            <script>
+	            	<code>
+	            		if (locality == null) {
+	            			return null
+	            		} else {
+	            			locality.substring(0,2).toUpperCase()
+	            		}
+	            	</code>
+	            </script>
+	    	</expression>
+	    </mapping>
+    </item>
 
 	<item>
 		<ref>extension/badLuck</ref>
