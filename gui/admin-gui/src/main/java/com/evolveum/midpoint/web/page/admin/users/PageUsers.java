@@ -362,7 +362,6 @@ public class PageUsers extends PageAdminUsers {
 	private void userDetailsPerformed(AjaxRequestTarget target, String oid) {
 		PageParameters parameters = new PageParameters();
 		parameters.add(OnePageParameterEncoder.PARAMETER, oid);
-		getSessionStorage().setPreviousPageInstance(new PageUsers(false));
 		setResponsePage(PageUser.class, parameters);
 	}
 

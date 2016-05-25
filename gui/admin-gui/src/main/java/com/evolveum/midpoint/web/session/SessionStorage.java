@@ -33,17 +33,6 @@ public class SessionStorage implements Serializable {
     private List<Breadcrumb> breadcrumbs;
 
     /**
-     * place to store "previous page" for back button
-     */
-    private Class<? extends WebPage> previousPage;
-    
-    private Page previousPageInstance;
-    /**
-     * place to store "previous page" parameters for back button
-     */
-    private PageParameters previousPageParams;
-
-    /**
      * place to store information in session for various pages
      */
     private Map<String, PageStorage> pageStorageMap = new HashMap<>();
@@ -63,30 +52,6 @@ public class SessionStorage implements Serializable {
     * */
     private UserProfileStorage userProfile;
 
-    public Class<? extends WebPage> getPreviousPage() {
-        return previousPage;
-    }
-
-    public void setPreviousPage(Class<? extends WebPage> previousPage) {
-        this.previousPage = previousPage;
-    }
-    
-    public void setPreviousPageInstance(Page previousPage) {
-        this.previousPageInstance = previousPage;
-    }
-    
-    public Page getPreviousPageInstance() {
-		return previousPageInstance;
-	}
-
-    public PageParameters getPreviousPageParams() {
-        return previousPageParams;
-    }
-
-    public void setPreviousPageParams(PageParameters previousPageParams) {
-        this.previousPageParams = previousPageParams;
-    }
-    
     public Map<String, PageStorage> getPageStorageMap() {
 		return pageStorageMap;
 	}
