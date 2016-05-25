@@ -51,6 +51,8 @@ public class EnvironmentalPerformanceInformation {
     private Map<NotificationsStatisticsKey,GenericStatisticsData> notificationsData = new HashMap<>();
     private Map<MappingsStatisticsKey,GenericStatisticsData> mappingsData = new HashMap<>();
 
+	private static final int AGGREGATION_THRESHOLD = 50;
+
     private StatusMessage lastMessage;
 
     public EnvironmentalPerformanceInformation(EnvironmentalPerformanceInformationType value) {
@@ -109,17 +111,27 @@ public class EnvironmentalPerformanceInformation {
     }
 
     private MappingsStatisticsType toMappingsStatisticsType() {
-        MappingsStatisticsType rv = new MappingsStatisticsType();
+        final MappingsStatisticsType rv = new MappingsStatisticsType();
         if (mappingsData == null) {
             return rv;
         }
+		final Map<String,Integer> entriesPerType = new HashMap<>();
+		for (MappingsStatisticsKey key: mappingsData.keySet()) {
+			Integer current = entriesPerType.get(key.getObjectType());
+			entriesPerType.put(key.getObjectType(), current != null ? current+1 : 1);
+		}
         for (Map.Entry<MappingsStatisticsKey, GenericStatisticsData> entry : mappingsData.entrySet()) {
-            MappingsStatisticsKey key = entry.getKey();
-            String object = key.getObjectName();
-            MappingsStatisticsEntryType entryType = findMappingsEntryType(rv.getEntry(), object);
+            final MappingsStatisticsKey key = entry.getKey();
+            final String targetEntryName;
+			if (entriesPerType.get(key.getObjectType()) < AGGREGATION_THRESHOLD) {
+				targetEntryName = key.getObjectName();
+			} else {
+				targetEntryName = key.getObjectType() + " (aggregated)";
+			}
+            MappingsStatisticsEntryType entryType = findMappingsEntryType(rv.getEntry(), targetEntryName);
             if (entryType == null) {
                 entryType = new MappingsStatisticsEntryType();
-                entryType.setObject(object);
+                entryType.setObject(targetEntryName);
                 rv.getEntry().add(entryType);
             }
             setValueMapping(entryType, entry.getValue().getCount(),
@@ -458,9 +470,9 @@ public class EnvironmentalPerformanceInformation {
         data.recordOperation(duration, 1);
     }
 
-    public synchronized void recordMappingOperation(String objectOid, String objectName, String mappingName, long duration) {
+    public synchronized void recordMappingOperation(String objectOid, String objectName, String objectTypeName, String mappingName, long duration) {
         // ignoring mapping name for now
-        MappingsStatisticsKey key = new MappingsStatisticsKey(objectOid, objectName);
+        MappingsStatisticsKey key = new MappingsStatisticsKey(objectOid, objectName, objectTypeName);
         GenericStatisticsData data = mappingsData.get(key);
         if (data == null) {
             data = new GenericStatisticsData();

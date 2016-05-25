@@ -21,12 +21,14 @@ package com.evolveum.midpoint.schema.statistics;
  */
 public class MappingsStatisticsKey {
 
-    private String objectOid;
-    private String objectName;
+    private final String objectOid;
+    private final String objectName;
+    private final String objectType;
 
-    public MappingsStatisticsKey(String objectOid, String objectName) {
+    public MappingsStatisticsKey(String objectOid, String objectName, String objectType) {
         this.objectOid = objectOid;
         this.objectName = objectName;
+		this.objectType = objectType;
     }
 
     public String getObjectOid() {
@@ -37,7 +39,11 @@ public class MappingsStatisticsKey {
         return objectName;
     }
 
-    @Override
+	public String getObjectType() {
+		return objectType;
+	}
+
+	@Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
@@ -45,6 +51,7 @@ public class MappingsStatisticsKey {
         MappingsStatisticsKey that = (MappingsStatisticsKey) o;
 
         if (objectOid != null ? !objectOid.equals(that.objectOid) : that.objectOid != null) return false;
+        if (objectType != null ? !objectType.equals(that.objectType) : that.objectType != null) return false;
         return !(objectName != null ? !objectName.equals(that.objectName) : that.objectName != null);
 
     }

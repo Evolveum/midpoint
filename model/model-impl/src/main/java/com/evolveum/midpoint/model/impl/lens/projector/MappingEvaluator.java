@@ -80,16 +80,13 @@ public class MappingEvaluator {
 		ModelExpressionThreadLocalHolder.pushCurrentResult(parentResult);
 		ModelExpressionThreadLocalHolder.pushCurrentTask(task);
 		ObjectType originObject = mapping.getOriginObject();
-		String objectOid, objectName;
-		if (originObject instanceof FocusType) {
-			// MID-2866 - TEMPORARY WORKAROUND: it seems that originObject is sometimes a FocusType ... we have to aggregate such objects by type, as it yields huge statistics
-			objectOid = null;
-			objectName = originObject.getClass().getSimpleName();
-		} else if (originObject != null) {
+		String objectOid, objectName, objectTypeName;
+		if (originObject != null) {
 			objectOid = originObject.getOid();
 			objectName = String.valueOf(originObject.getName());
+			objectTypeName = originObject.getClass().getSimpleName();
 		} else {
-			objectOid = objectName = null;
+			objectOid = objectName = objectTypeName = null;
 		}
 		String mappingName = mapping.getItemName() != null ? mapping.getItemName().getLocalPart() : null;
 		long start = System.currentTimeMillis();
@@ -101,7 +98,7 @@ public class MappingEvaluator {
 			task.recordState("Evaluation of mapping " + mapping.getMappingContextDescription() + " finished with error in " + (System.currentTimeMillis()-start) + " ms.");
 			throw new IllegalArgumentException(e.getMessage()+" in "+mapping.getContextDescription(), e);
 		} finally {
-			task.recordMappingOperation(objectOid, objectName, mappingName, System.currentTimeMillis() - start);
+			task.recordMappingOperation(objectOid, objectName, objectTypeName, mappingName, System.currentTimeMillis() - start);
 			ModelExpressionThreadLocalHolder.popLensContext();
 			ModelExpressionThreadLocalHolder.popCurrentResult();
 			ModelExpressionThreadLocalHolder.popCurrentTask();
