@@ -258,10 +258,10 @@ public class TestSchemaSanity {
 
 		assertEquals("Wrong compile-time class in role definition", RoleType.class, roleDefinition.getCompileTimeClass());
 		PrismAsserts.assertPropertyDefinition(roleDefinition, ObjectType.F_NAME, PolyStringType.COMPLEX_TYPE, 0, 1);
-		PrismAsserts.assertItemDefinitionDisplayName(roleDefinition, ObjectType.F_NAME, "Name");
+		PrismAsserts.assertItemDefinitionDisplayName(roleDefinition, ObjectType.F_NAME, "ObjectType.name");
 		PrismAsserts.assertItemDefinitionDisplayOrder(roleDefinition, ObjectType.F_NAME, 0);
 		PrismAsserts.assertPropertyDefinition(roleDefinition, ObjectType.F_DESCRIPTION, DOMUtil.XSD_STRING, 0, 1);
-		PrismAsserts.assertItemDefinitionDisplayName(roleDefinition, ObjectType.F_DESCRIPTION, "Description");
+		PrismAsserts.assertItemDefinitionDisplayName(roleDefinition, ObjectType.F_DESCRIPTION, "ObjectType.description");
 		PrismAsserts.assertItemDefinitionDisplayOrder(roleDefinition, ObjectType.F_DESCRIPTION, 10);
 		PrismAsserts.assertPropertyDefinition(roleDefinition, RoleType.F_REQUESTABLE, DOMUtil.XSD_BOOLEAN, 0, 1);
 	}
