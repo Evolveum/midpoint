@@ -60,6 +60,7 @@ AS
     DELETE FROM m_org_closure;
     DELETE FROM m_org;
     DELETE FROM m_role;
+    DELETE FROM m_service_type;
     DELETE FROM m_service;
     DELETE FROM m_abstract_role;
     DELETE FROM m_system_configuration;

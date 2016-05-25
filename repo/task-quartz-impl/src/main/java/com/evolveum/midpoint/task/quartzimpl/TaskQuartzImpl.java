@@ -2807,8 +2807,8 @@ public class TaskQuartzImpl implements Task {
 	}
 
 	@Override
-	public void recordMappingOperation(String objectOid, String objectName, String mappingName, long duration) {
-		environmentalPerformanceInformation.recordMappingOperation(objectOid, objectName, mappingName, duration);
+	public void recordMappingOperation(String objectOid, String objectName, String objectTypeName, String mappingName, long duration) {
+		environmentalPerformanceInformation.recordMappingOperation(objectOid, objectName, objectTypeName, mappingName, duration);
 	}
 
 	@Override

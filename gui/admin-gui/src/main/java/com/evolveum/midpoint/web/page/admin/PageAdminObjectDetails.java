@@ -106,7 +106,11 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 	private ObjectDelta<O> delta;
 	
 	private AbstractObjectMainPanel<O> mainPanel;
-	
+
+	@Override
+	protected void createBreadcrumb() {
+		createInstanceBreadcrumb();
+	}
 
 	@Override
 	protected IModel<String> createPageTitleModel() {

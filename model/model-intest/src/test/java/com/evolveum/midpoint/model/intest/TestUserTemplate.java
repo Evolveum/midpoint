@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,45 +15,38 @@
  */
 package com.evolveum.midpoint.model.intest;
 
-import static org.testng.AssertJUnit.assertNull;
-import static org.testng.AssertJUnit.assertNotNull;
-import static com.evolveum.midpoint.test.util.TestUtil.assertFailure;
-import static com.evolveum.midpoint.test.util.TestUtil.assertSuccess;
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertNotNull;
+import static org.testng.AssertJUnit.assertNull;
 
 import java.io.File;
-import java.math.BigDecimal;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Collection;
 import java.util.List;
 
-import javax.xml.bind.JAXBException;
-import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
-import javax.xml.datatype.DatatypeConstants.Field;
 
-import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.prism.delta.ChangeType;
-import com.evolveum.midpoint.prism.delta.PropertyDelta;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.schema.ObjectDeltaOperation;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.common.expression.evaluator.GenerateExpressionEvaluator;
 import com.evolveum.midpoint.model.impl.trigger.RecomputeTriggerHandler;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
@@ -69,6 +62,7 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
@@ -79,7 +73,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 	
-	public static final File TEST_DIR = new File("src/test/resources/contract");
+	public static final File TEST_DIR = new File("src/test/resources/object-template");
+	
+	protected static final File ROLE_RASTAMAN_FILE = new File(TEST_DIR, "role-rastaman.xml");
+	protected static final String ROLE_RASTAMAN_OID = "81ac6b8c-225c-11e6-ab0f-87a169c85cca";
 
 	private static String jackEmployeeNumber;
 	
@@ -87,6 +84,9 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		super.initSystem(initTask, initResult);
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+        
+        repoAddObjectFromFile(ROLE_RASTAMAN_FILE, RoleType.class, initResult);
+        
 		setDefaultUserTemplate(USER_TEMPLATE_COMPLEX_OID);
 	}
 		
@@ -1327,6 +1327,304 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         
         result.computeStatus();
         TestUtil.assertSuccess(result);
+        
+        assertEquals("Unexpected value of employeeNumber", 
+        		"D3ADB33F", userAfterType.getEmployeeNumber());
+        assertEquals("Wrong costCenter", "CC-RAPP", userAfterType.getCostCenter());
+	}
+	
+	@Test
+    public void test240ModifyUserRappLocalityScabb() throws Exception {
+		final String TEST_NAME = "test240ModifyUserRappLocalityScabb";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestUserTemplate.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        PrismObject<UserType> userBefore = modelService.getObject(UserType.class, USER_RAPP_OID, null, task, result);
+		display("User before", userBefore);
+		
+		assertEquals("Wrong timezone", "High Seas/null", userBefore.asObjectable().getTimezone());
+		assertEquals("Wrong locale", null, userBefore.asObjectable().getLocale());
+    
+		// WHEN
+        modifyUserReplace(USER_RAPP_OID, UserType.F_LOCALITY, task, result, PrismTestUtil.createPolyString("Scabb Island"));
+
+		// THEN
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+		PrismObject<UserType> userAfter = modelService.getObject(UserType.class, USER_RAPP_OID, null, task, result);
+		display("User after", userAfter);
+        
+		assertAssignedAccount(userAfter, RESOURCE_DUMMY_BLUE_OID);
+        assertAssignedNoRole(userAfter);
+        assertAssignments(userAfter, 1);
+        
+        UserType userAfterType = userAfter.asObjectable();
+        assertLinks(userAfter, 1);
+        
+        assertEquals("Wrong timezone", "High Seas/Scabb Island", userAfterType.getTimezone());
+        assertEquals("Wrong locale", "SC", userAfterType.getLocale());
+        
+        assertEquals("Unexpected value of employeeNumber", 
+        		"D3ADB33F", userAfterType.getEmployeeNumber());
+        assertEquals("Wrong costCenter", "CC-RAPP", userAfterType.getCostCenter());
+	}
+	
+	
+	/**
+	 * Role Rastaman has focus mapping for the same timezone as is given
+	 * by the user template. This mapping is normal strength. Even though
+	 * it is evaluated after the template the mapping, role assignment is an
+	 * explicit delta and the mapping should be applied.
+	 * MID-3040
+	 */
+	@Test
+    public void test242AssignRoleRastamanToUserRapp() throws Exception {
+		final String TEST_NAME = "test242AssignRoleRastamanToUserRapp";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestUserTemplate.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+    
+		// WHEN
+		assignRole(USER_RAPP_OID, ROLE_RASTAMAN_OID, task, result);
+
+		// THEN
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+
+		PrismObject<UserType> userAfter = modelService.getObject(UserType.class, USER_RAPP_OID, null, task, result);
+        assertUser(userAfter, USER_RAPP_OID, "rapp", "Rapp Scallion", "Rapp", "Scallion");
+        
+        assertAssignedAccount(userAfter, RESOURCE_DUMMY_BLUE_OID);
+        assertAssignedRole(userAfter, ROLE_RASTAMAN_OID);
+        assertAssignments(userAfter, 2);
+        
+        UserType userAfterType = userAfter.asObjectable();
+        assertLinks(userAfter, 1);
+                
+        assertEquals("Wrong timezone", "Caribbean/Whatever", userAfterType.getTimezone());
+        assertEquals("Wrong locale", "WE", userAfterType.getLocale());
+        
+        assertEquals("Unexpected value of employeeNumber", 
+        		"D3ADB33F", userAfterType.getEmployeeNumber());
+        assertEquals("Wrong costCenter", "CC-RAPP", userAfterType.getCostCenter());
+	}
+	
+	/**
+	 * Role Rastaman has focus mapping for the same timezone as is given
+	 * by the user template. This mapping is normal strength. It is evaluated
+	 * after the template the mapping, so it should not be applied because
+	 * there is already a-priori delta from the template.
+	 * MID-3040
+	 */
+	@Test
+    public void test244ModifyUserRappLocalityCoffin() throws Exception {
+		final String TEST_NAME = "test244ModifyUserRappLocalityCoffin";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestUserTemplate.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        PrismObject<UserType> userBefore = modelService.getObject(UserType.class, USER_RAPP_OID, null, task, result);
+		display("User before", userBefore);
+		
+		// WHEN
+        modifyUserReplace(USER_RAPP_OID, UserType.F_LOCALITY, task, result, PrismTestUtil.createPolyString("Coffin"));
+
+		// THEN
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+		PrismObject<UserType> userAfter = modelService.getObject(UserType.class, USER_RAPP_OID, null, task, result);
+		display("User after", userAfter);
+        
+		assertAssignedAccount(userAfter, RESOURCE_DUMMY_BLUE_OID);
+        assertAssignedRole(userAfter, ROLE_RASTAMAN_OID);
+        assertAssignments(userAfter, 2);
+        
+        UserType userAfterType = userAfter.asObjectable();
+        assertLinks(userAfter, 1);
+        
+        assertEquals("Wrong timezone", "High Seas/Coffin", userAfterType.getTimezone());
+        assertEquals("Wrong locale", "WE", userAfterType.getLocale());
+        
+        assertEquals("Unexpected value of employeeNumber", 
+        		"D3ADB33F", userAfterType.getEmployeeNumber());
+        assertEquals("Wrong costCenter", "CC-RAPP", userAfterType.getCostCenter());
+	}
+	
+	/**
+	 * Similar to test244, but also use reconcile option. 
+	 * MID-3040
+	 */
+	@Test
+    public void test245ModifyUserRappLocalityUnderReconcile() throws Exception {
+		final String TEST_NAME = "test245ModifyUserRappLocalityUnderReconcile";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestUserTemplate.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        PrismObject<UserType> userBefore = modelService.getObject(UserType.class, USER_RAPP_OID, null, task, result);
+		display("User before", userBefore);
+
+		ObjectDelta<UserType> objectDelta = createModifyUserReplaceDelta(USER_RAPP_OID, new ItemPath(UserType.F_LOCALITY),
+				PrismTestUtil.createPolyString("Six feet under"));
+		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(objectDelta);
+		ModelExecuteOptions options = ModelExecuteOptions.createReconcile();
+		
+		// WHEN
+		modelService.executeChanges(deltas, options, task, result);
+
+		// THEN
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+		PrismObject<UserType> userAfter = modelService.getObject(UserType.class, USER_RAPP_OID, null, task, result);
+		display("User after", userAfter);
+        
+		assertAssignedAccount(userAfter, RESOURCE_DUMMY_BLUE_OID);
+        assertAssignedRole(userAfter, ROLE_RASTAMAN_OID);
+        assertAssignments(userAfter, 2);
+        
+        UserType userAfterType = userAfter.asObjectable();
+        assertLinks(userAfter, 1);
+        
+        assertEquals("Wrong timezone", "High Seas/Six feet under", userAfterType.getTimezone());
+        assertEquals("Wrong locale", "WE", userAfterType.getLocale());
+        
+        assertEquals("Unexpected value of employeeNumber", 
+        		"D3ADB33F", userAfterType.getEmployeeNumber());
+        assertEquals("Wrong costCenter", "CC-RAPP", userAfterType.getCostCenter());
+	}
+	
+	/**
+	 * Changing timezone. timezone is a target of (normal) object template mapping and
+	 * (normal) role mapping. But as this is primary delta none of the mappings should
+	 * be applied.
+	 * MID-3040
+	 */
+	@Test
+    public void test246ModifyUserRappTimezoneMonkey() throws Exception {
+		final String TEST_NAME = "test246ModifyUserRappTimezoneMonkey";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestUserTemplate.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        PrismObject<UserType> userBefore = modelService.getObject(UserType.class, USER_RAPP_OID, null, task, result);
+		display("User before", userBefore);
+		
+		// WHEN
+        modifyUserReplace(USER_RAPP_OID, UserType.F_TIMEZONE, task, result, "Monkey Island");
+
+		// THEN
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+		PrismObject<UserType> userAfter = modelService.getObject(UserType.class, USER_RAPP_OID, null, task, result);
+		display("User after", userAfter);
+        
+		assertAssignedAccount(userAfter, RESOURCE_DUMMY_BLUE_OID);
+        assertAssignedRole(userAfter, ROLE_RASTAMAN_OID);
+        assertAssignments(userAfter, 2);
+        
+        UserType userAfterType = userAfter.asObjectable();
+        assertLinks(userAfter, 1);
+        
+        assertEquals("Wrong timezone", "Monkey Island", userAfterType.getTimezone());
+        assertEquals("Wrong locale", "WE", userAfterType.getLocale());
+        
+        assertEquals("Unexpected value of employeeNumber", 
+        		"D3ADB33F", userAfterType.getEmployeeNumber());
+        assertEquals("Wrong costCenter", "CC-RAPP", userAfterType.getCostCenter());
+	}
+
+	/**
+	 * Changing locale. Locale is a target of (weak) object template mapping and
+	 * (normal) role mapping. But as this is primary delta none of the mappings should
+	 * be applied.
+	 * MID-3040
+	 */
+	@Test
+    public void test247ModifyUserRappLocaleMI() throws Exception {
+		final String TEST_NAME = "test247ModifyUserRappLocaleMI";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestUserTemplate.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        PrismObject<UserType> userBefore = modelService.getObject(UserType.class, USER_RAPP_OID, null, task, result);
+		display("User before", userBefore);
+		
+		// WHEN
+        modifyUserReplace(USER_RAPP_OID, UserType.F_LOCALE, task, result, "MI");
+
+		// THEN
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+		PrismObject<UserType> userAfter = modelService.getObject(UserType.class, USER_RAPP_OID, null, task, result);
+		display("User after", userAfter);
+        
+		assertAssignedAccount(userAfter, RESOURCE_DUMMY_BLUE_OID);
+        assertAssignedRole(userAfter, ROLE_RASTAMAN_OID);
+        assertAssignments(userAfter, 2);
+        
+        UserType userAfterType = userAfter.asObjectable();
+        assertLinks(userAfter, 1);
+        
+        // The normal mapping from the rastaman role was applied at this point
+        // This is sourceless mapping and there is no a-priori delta
+        assertEquals("Wrong timezone", "Caribbean/Whatever", userAfterType.getTimezone());
+        
+        assertEquals("Wrong locale", "MI", userAfterType.getLocale());
+        
+        assertEquals("Unexpected value of employeeNumber", 
+        		"D3ADB33F", userAfterType.getEmployeeNumber());
+        assertEquals("Wrong costCenter", "CC-RAPP", userAfterType.getCostCenter());
+	}
+
+	@Test
+    public void test249UnassignRoleRastamanFromUserRapp() throws Exception {
+		final String TEST_NAME = "test249UnassignRoleRastamanFromUserRapp";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestUserTemplate.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+    
+		// WHEN
+		unassignRole(USER_RAPP_OID, ROLE_RASTAMAN_OID, task, result);
+
+		// THEN
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+
+		PrismObject<UserType> userAfter = modelService.getObject(UserType.class, USER_RAPP_OID, null, task, result);
+        assertUser(userAfter, USER_RAPP_OID, "rapp", "Rapp Scallion", "Rapp", "Scallion");
+        PrismAsserts.assertNoItem(userAfter, UserType.F_DESCRIPTION);
+        
+        assertAssignedAccount(userAfter, RESOURCE_DUMMY_BLUE_OID);
+        assertAssignedNoRole(userAfter);
+        assertAssignments(userAfter, 1);
+        
+        UserType userAfterType = userAfter.asObjectable();
+        assertLinks(userAfter, 1);
+        
+        // Role is unassigned. The mapping was authoritative, so it removed the value
+        assertEquals("Wrong timezone", null, userAfterType.getTimezone());
+        
+        assertEquals("Wrong locale", "MI", userAfterType.getLocale());
         
         assertEquals("Unexpected value of employeeNumber", 
         		"D3ADB33F", userAfterType.getEmployeeNumber());

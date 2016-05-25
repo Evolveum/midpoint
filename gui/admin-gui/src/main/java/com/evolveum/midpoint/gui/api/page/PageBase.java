@@ -1489,15 +1489,12 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 		Iterator<Breadcrumb> iterator = breadcrumbs.iterator();
 		while (iterator.hasNext()) {
 			Breadcrumb b = iterator.next();
-			if (b.equals(breadcrumb)) {
-				found = true;
-			}
-
 			if (found) {
 				iterator.remove();
+			} else if (b.equals(breadcrumb)) {
+				found = true;
 			}
 		}
-
 		breadcrumb.redirect(this);
 	}
 

@@ -229,6 +229,10 @@ public class ObjectTemplateProcessor {
 		ObjectDelta<F> focusDelta = focusOdo.getObjectDelta();
 		PrismObject<F> focusNew = focusOdo.getNewObject();
 		
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace("Computing deltas in {}, focusDelta:\n{}", contextDesc, focusDelta==null?null:focusDelta.toString());
+		}
+		
 		boolean addUnchangedValues = false;
 		if (focusDelta != null && focusDelta.isAdd()) {
 			addUnchangedValues = true;
@@ -274,11 +278,16 @@ public class ObjectTemplateProcessor {
 					if (!mapping.isSourceless()) {
 						continue;
 					}
-				}
-				
-				if (mapping.getStrength() == MappingStrengthType.WEAK && 
-						((itemNew != null && !itemNew.isEmpty()) || (itemDelta != null && itemDelta.addsAnyValue()))) {
-					continue;
+					LOGGER.trace("Adding zero values from normal mapping {}, a-priori delta: {}, isSourceless: {}", 
+							mapping, aprioriItemDelta, mapping.isSourceless());
+				} else if (mapping.getStrength() == MappingStrengthType.WEAK) {
+					if ((itemNew != null && !itemNew.isEmpty()) || (itemDelta != null && itemDelta.addsAnyValue())) {
+						continue;
+					}
+					LOGGER.trace("Adding zero values from weak mapping {}, itemNew: {}, itemDelta: {}", 
+							mapping, itemNew, itemDelta);
+				} else {
+					LOGGER.trace("Adding zero values from strong mapping {}", mapping);
 				}
 				
 				PrismValue valueFromZeroSet = zeroSetIvwo.getItemValue();
