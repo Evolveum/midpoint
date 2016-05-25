@@ -137,8 +137,12 @@ public class NotificationChangeHook implements ChangeHook {
 
         ModelEvent event = new ModelEvent(lightweightIdentifierGenerator);
         event.setModelContext(modelContext);
-        // TODO or take channel from modelContext?
-        event.setChannel(task.getChannel());
+		// TODO is this correct? it's not quite clear how we work with channel info in task / modelContext
+		String channel = task.getChannel();
+		if (channel == null) {
+			channel = modelContext.getChannel();
+		}
+        event.setChannel(channel);
 
         if (task.getOwner() != null) {
             event.setRequester(new SimpleObjectRefImpl(notificationsUtil, task.getOwner().asObjectable()));
