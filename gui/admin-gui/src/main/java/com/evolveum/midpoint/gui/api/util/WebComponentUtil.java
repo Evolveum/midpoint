@@ -892,7 +892,9 @@ public final class WebComponentUtil {
 
 	// TODO reconcile with ObjectTypeGuiDescriptor
 	public static <T extends ObjectType> String createDefaultColoredIcon(QName objectType) {
-		if (QNameUtil.match(UserType.COMPLEX_TYPE, objectType)) {
+		if (objectType == null) {
+			return "";
+		} else if (QNameUtil.match(UserType.COMPLEX_TYPE, objectType)) {
 			return GuiStyleConstants.CLASS_OBJECT_USER_ICON_COLORED;
 		} else if (QNameUtil.match(RoleType.COMPLEX_TYPE, objectType)) {
 			return GuiStyleConstants.CLASS_OBJECT_ROLE_ICON_COLORED;
@@ -919,7 +921,9 @@ public final class WebComponentUtil {
 
 	// TODO reconcile with ObjectTypeGuiDescriptor
 	public static <T extends ObjectType> String createDefaultBlackIcon(QName objectType) {
-		if (QNameUtil.match(UserType.COMPLEX_TYPE, objectType)) {
+		if (objectType == null) {
+			return "";
+		} else if (QNameUtil.match(UserType.COMPLEX_TYPE, objectType)) {
 			return GuiStyleConstants.CLASS_OBJECT_USER_ICON;
 		} else if (QNameUtil.match(RoleType.COMPLEX_TYPE, objectType)) {
 			return GuiStyleConstants.CLASS_OBJECT_ROLE_ICON;
