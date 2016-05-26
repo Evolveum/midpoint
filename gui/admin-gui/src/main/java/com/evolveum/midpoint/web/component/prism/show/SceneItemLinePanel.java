@@ -52,7 +52,17 @@ public class SceneItemLinePanel extends BasePanel<SceneItemLineDto> {
 		WebMarkupContainer nameCell = new WebMarkupContainer(ID_NAME_CONTAINER);
 		nameCell.add(new AttributeModifier("rowspan",
 				new PropertyModel<Integer>(getModel(), SceneItemLineDto.F_NUMBER_OF_LINES)));
-		Label label = new Label("name", new PropertyModel<String>(getModel(), SceneItemLineDto.F_NAME));
+		Label label = new Label("name", new AbstractReadOnlyModel<String>() {
+			@Override
+			public String getObject() {
+				final SceneItemLineDto lineDto = getModel().getObject();
+				if (lineDto == null || lineDto.getName() == null) {
+					return null;
+				}
+				String key = lineDto.getName();
+				return getLocalizer().getString(key, SceneItemLinePanel.this, key);
+			}
+		});
 		nameCell.add(label);
 		nameCell.add(new VisibleEnableBehaviour() {
 			@Override

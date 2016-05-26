@@ -26,6 +26,7 @@ import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ValueDisplayUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
@@ -57,6 +58,9 @@ public class TextFormatter {
     @Autowired(required = true)
     @Qualifier("cacheRepositoryService")
     private transient RepositoryService cacheRepositoryService;
+
+	private static final ResourceBundle RESOURCE_BUNDLE = ResourceBundle.getBundle(
+			SchemaConstants.SCHEMA_LOCALIZATION_PROPERTIES_RESOURCE_BASE_PATH);
 
     private static final Trace LOGGER = TraceManager.getTrace(TextFormatter.class);
 
@@ -382,7 +386,7 @@ public class TextFormatter {
                     itemDefinition = objectDefinition.findItemDefinition(path.allUpToIncluding(segment));
                 }
                 if (itemDefinition != null && itemDefinition.getDisplayName() != null) {
-                    sb.append(itemDefinition.getDisplayName());
+                    sb.append(resolve(itemDefinition.getDisplayName()));
                 } else {
                     sb.append(((NameItemPathSegment) segment).getName().getLocalPart());
                 }
@@ -393,7 +397,15 @@ public class TextFormatter {
         return sb.toString();
     }
 
-    // we call this on filtered list of item deltas - all of they have definition set
+	private String resolve(String key) {
+		if (key != null && RESOURCE_BUNDLE.containsKey(key)) {
+			return RESOURCE_BUNDLE.getString(key);
+		} else {
+			return key;
+		}
+	}
+
+	// we call this on filtered list of item deltas - all of they have definition set
     private ItemPath getPathToExplain(ItemDelta itemDelta) {
         ItemPath path = itemDelta.getPath();
 
@@ -447,7 +459,7 @@ public class TextFormatter {
     // we call this on filtered list of items - all of them have definition set
     private String getItemLabel(Item item) {
         return item.getDefinition().getDisplayName() != null ?
-                item.getDefinition().getDisplayName() : item.getElementName().getLocalPart();
+                resolve(item.getDefinition().getDisplayName()) : item.getElementName().getLocalPart();
     }
 
     private List<Item> filterAndOrderItems(List<Item> items, List<ItemPath> hiddenPaths, boolean showOperationalAttributes) {
