@@ -59,7 +59,7 @@ public class TestTextFormatter extends AbstractTestNGSpringContextTests {
     public static final String CHANGES_DIR_NAME = "src/test/resources/changes";
     public static final String USER_JACK_MODIFICATION_FILE = CHANGES_DIR_NAME + "/user-jack-modification.xml";
 
-    protected static final List<ItemPath> auxiliaryPaths = Arrays.asList(
+	protected static final List<ItemPath> auxiliaryPaths = Arrays.asList(
             new ItemPath(UserType.F_FAMILY_NAME),               // for testing purposes
             new ItemPath(ShadowType.F_METADATA),
             new ItemPath(ShadowType.F_ACTIVATION, ActivationType.F_VALIDITY_STATUS),
@@ -94,7 +94,7 @@ public class TestTextFormatter extends AbstractTestNGSpringContextTests {
     }
 
 
-    @Test(enabled = true)
+    @Test
     public void test010FormatUser() throws Exception {
 
         // GIVEN
@@ -117,30 +117,35 @@ public class TestTextFormatter extends AbstractTestNGSpringContextTests {
 
         // THEN
 
-        assertTrue("hidden operational attribute when it should be shown ('hide none')", jackFormattedHideNone.contains("createTimestamp:"));
-        assertTrue("hidden auxiliary attribute (effective status) when it should be shown ('hide none')", jackFormattedHideNone.contains("Effective Status: ENABLED"));
-        assertTrue("hidden auxiliary attribute (family name) when it should be shown ('hide none')", jackFormattedHideNone.contains("Family Name: Sparrow"));
-        assertTrue("hidden standard attribute when it should be shown ('hide none')", jackFormattedHideNone.contains("ship: Black Pearl"));
+		final String CREATE_TIMESTAMP = "createTimestamp:";
+		final String EFFECTIVE_STATUS = "Effective status: ENABLED";
+		final String FAMILY_NAME = "Family name: Sparrow";
+		final String SHIP = "ship: Black Pearl";
 
-        assertTrue("shown operational attribute when it should be hidden ('hide oper')", !jackFormattedHideOper.contains("createTimestamp:"));
-        assertTrue("hidden auxiliary attribute when it should be shown ('hide oper')", jackFormattedHideOper.contains("Effective Status: ENABLED"));
-        assertTrue("hidden auxiliary attribute (family name) when it should be shown ('hide oper')", jackFormattedHideOper.contains("Family Name: Sparrow"));
-        assertTrue("hidden standard attribute when it should be shown ('hide oper')", jackFormattedHideOper.contains("ship: Black Pearl"));
+		assertTrue("hidden operational attribute when it should be shown ('hide none')", jackFormattedHideNone.contains(CREATE_TIMESTAMP));
+		assertTrue("hidden auxiliary attribute (effective status) when it should be shown ('hide none')", jackFormattedHideNone.contains(EFFECTIVE_STATUS));
+		assertTrue("hidden auxiliary attribute (family name) when it should be shown ('hide none')", jackFormattedHideNone.contains(FAMILY_NAME));
+		assertTrue("hidden standard attribute when it should be shown ('hide none')", jackFormattedHideNone.contains(SHIP));
 
-        assertTrue("shown auxiliary attribute (metadata) when it should be hidden ('hide aux')", !jackFormattedHideAux.contains("createTimestamp:"));
-        assertTrue("shown auxiliary attribute (family name) when it should be hidden ('hide aux')", !jackFormattedHideAux.contains("Family Name: Sparrow"));
-        assertTrue("shown auxiliary attribute (effective status) when it should be hidden ('hide aux')", !jackFormattedHideAux.contains("Effective Status: ENABLED"));
-        assertTrue("hidden standard attribute when it should be shown ('hide aux')", jackFormattedHideAux.contains("ship: Black Pearl"));
+        assertTrue("shown operational attribute when it should be hidden ('hide oper')", !jackFormattedHideOper.contains(CREATE_TIMESTAMP));
+        assertTrue("hidden auxiliary attribute when it should be shown ('hide oper')", jackFormattedHideOper.contains(EFFECTIVE_STATUS));
+        assertTrue("hidden auxiliary attribute (family name) when it should be shown ('hide oper')", jackFormattedHideOper.contains(FAMILY_NAME));
+        assertTrue("hidden standard attribute when it should be shown ('hide oper')", jackFormattedHideOper.contains(SHIP));
 
-        assertTrue("shown operational attribute when it should be hidden ('hide aux and oper')", !jackFormattedHideAuxAndOper.contains("createTimestamp:"));
-        assertTrue("shown auxiliary attribute (effective status) when it should be hidden ('hide aux and oper')", !jackFormattedHideAuxAndOper.contains("Effective Status: ENABLED"));
-        assertTrue("shown auxiliary attribute (family name) when it should be hidden ('hide aux and oper')", !jackFormattedHideAuxAndOper.contains("Family Name: Sparrow"));
-        assertTrue("hidden standard attribute when it should be shown ('hide aux and oper')", jackFormattedHideAuxAndOper.contains("ship: Black Pearl"));
+        assertTrue("shown auxiliary attribute (metadata) when it should be hidden ('hide aux')", !jackFormattedHideAux.contains(CREATE_TIMESTAMP));
+        assertTrue("shown auxiliary attribute (family name) when it should be hidden ('hide aux')", !jackFormattedHideAux.contains(FAMILY_NAME));
+        assertTrue("shown auxiliary attribute (effective status) when it should be hidden ('hide aux')", !jackFormattedHideAux.contains(EFFECTIVE_STATUS));
+        assertTrue("hidden standard attribute when it should be shown ('hide aux')", jackFormattedHideAux.contains(SHIP));
+
+        assertTrue("shown operational attribute when it should be hidden ('hide aux and oper')", !jackFormattedHideAuxAndOper.contains(CREATE_TIMESTAMP));
+        assertTrue("shown auxiliary attribute (effective status) when it should be hidden ('hide aux and oper')", !jackFormattedHideAuxAndOper.contains(EFFECTIVE_STATUS));
+        assertTrue("shown auxiliary attribute (family name) when it should be hidden ('hide aux and oper')", !jackFormattedHideAuxAndOper.contains(FAMILY_NAME));
+        assertTrue("hidden standard attribute when it should be shown ('hide aux and oper')", jackFormattedHideAuxAndOper.contains(SHIP));
 
     }
 
 
-    @Test(enabled = true)
+    @Test
     public void test020FormatUserModification() throws Exception {
 
         // GIVEN
@@ -205,7 +210,7 @@ public class TestTextFormatter extends AbstractTestNGSpringContextTests {
         assertFalse(notes.contains("Assignment[3]"));
     }
 
-    @Test(enabled = true)
+    @Test
     public void test030FormatAccount() throws Exception {
 
         // GIVEN
@@ -222,15 +227,20 @@ public class TestTextFormatter extends AbstractTestNGSpringContextTests {
 
         // THEN
 
-        assertTrue("account name is not shown", jackFormattedHideNone.contains("Name: jack"));
-        assertTrue("account password is not shown", jackFormattedHideNone.contains("(protected string)"));
-        assertTrue("administrative status is not shown", jackFormattedHideNone.contains("Administrative Status: ENABLED"));
-        assertTrue("effective status is not shown", jackFormattedHideNone.contains("Effective Status: ENABLED"));
+		final String NAME = "Name: jack";
+		final String PASSWORD = "(protected string)";
+		final String ADMINISTRATIVE_STATUS = "Administrative status: ENABLED";
+		final String EFFECTIVE_STATUS = "Effective status: ENABLED";
 
-        assertTrue("account name is not shown", jackFormattedHideAux.contains("Name: jack"));
-        assertTrue("account password is not shown", jackFormattedHideAux.contains("(protected string)"));
-        assertTrue("administrative status is not shown", jackFormattedHideAux.contains("Administrative Status: ENABLED"));
-        assertTrue("effective status is shown although it should be hidden", !jackFormattedHideAux.contains("Effective Status: ENABLED"));
+		assertTrue("account name is not shown", jackFormattedHideNone.contains(NAME));
+		assertTrue("account password is not shown", jackFormattedHideNone.contains(PASSWORD));
+		assertTrue("administrative status is not shown", jackFormattedHideNone.contains(ADMINISTRATIVE_STATUS));
+		assertTrue("effective status is not shown", jackFormattedHideNone.contains(EFFECTIVE_STATUS));
+
+        assertTrue("account name is not shown", jackFormattedHideAux.contains(NAME));
+        assertTrue("account password is not shown", jackFormattedHideAux.contains(PASSWORD));
+        assertTrue("administrative status is not shown", jackFormattedHideAux.contains(ADMINISTRATIVE_STATUS));
+        assertTrue("effective status is shown although it should be hidden", !jackFormattedHideAux.contains(EFFECTIVE_STATUS));
 
 //        AssertJUnit.assertTrue("hidden operational attribute when it should be shown ('hide none')", jackFormattedHideNone.contains("createTimestamp:"));
 //        AssertJUnit.assertTrue("hidden auxiliary attribute (effective status) when it should be shown ('hide none')", jackFormattedHideNone.contains("Effective Status: ENABLED"));

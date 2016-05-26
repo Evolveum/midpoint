@@ -13,10 +13,14 @@
 
 CREATE TABLE m_abstract_role (
   approvalProcess    VARCHAR(255),
+  displayName_norm   VARCHAR(255),
+  displayName_orig   VARCHAR(255),
+  identifier         VARCHAR(255),
   ownerRef_relation  VARCHAR(157),
   ownerRef_targetOid VARCHAR(36),
   ownerRef_type      INTEGER,
   requestable        BIT,
+  riskLevel          VARCHAR(255),
   oid                VARCHAR(36) NOT NULL,
   PRIMARY KEY (oid)
 )
@@ -598,10 +602,7 @@ CREATE TABLE m_object_template (
 
 CREATE TABLE m_org (
   costCenter       VARCHAR(255),
-  displayName_norm VARCHAR(255),
-  displayName_orig VARCHAR(255),
   displayOrder     INTEGER,
-  identifier       VARCHAR(255),
   locality_norm    VARCHAR(255),
   locality_orig    VARCHAR(255),
   name_norm        VARCHAR(255),
@@ -905,6 +906,8 @@ CREATE TABLE m_value_policy (
   DEFAULT CHARACTER SET utf8
   COLLATE utf8_bin
   ENGINE = InnoDB;
+
+CREATE INDEX iAbstractRoleIdentifier ON m_abstract_role (identifier);
 
 CREATE INDEX iRequestable ON m_abstract_role (requestable);
 

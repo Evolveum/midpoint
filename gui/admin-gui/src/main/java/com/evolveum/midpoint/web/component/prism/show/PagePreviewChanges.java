@@ -32,12 +32,16 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AjaxButton;
+import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
+import com.evolveum.midpoint.web.component.breadcrumbs.BreadcrumbPageInstance;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
+import com.evolveum.midpoint.web.page.admin.PageAdminObjectDetails;
 import com.evolveum.midpoint.web.page.admin.home.PageDashboard;
 import com.evolveum.midpoint.web.page.admin.workflow.PageAdminWorkItems;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
@@ -56,6 +60,7 @@ public class PagePreviewChanges extends PageAdmin {
 	private static final String ID_PRIMARY_DELTAS_SCENE = "primaryDeltas";
 	private static final String ID_SECONDARY_DELTAS_SCENE = "secondaryDeltas";
 	private static final String ID_BACK = "back";
+	private static final String ID_SAVE = "save";
 
 	private static final Trace LOGGER = TraceManager.getTrace(PagePreviewChanges.class);
 
@@ -127,17 +132,40 @@ public class PagePreviewChanges extends PageAdmin {
 	}
 
 	private void initButtons(Form mainForm) {
-		AjaxButton cancel = new AjaxButton(ID_BACK, createStringResource("pageAccount.button.back")) {		// TODO key
+		AjaxButton cancel = new AjaxButton(ID_BACK, createStringResource("PagePreviewChanges.button.back")) {
 			@Override
 			public void onClick(AjaxRequestTarget target) {
 				cancelPerformed(target);
 			}
 		};
 		mainForm.add(cancel);
+
+		AjaxButton save = new AjaxButton(ID_SAVE, createStringResource("PagePreviewChanges.button.save")) {
+			@Override
+			public void onClick(AjaxRequestTarget target) {
+				savePerformed(target);
+			}
+		};
+		mainForm.add(save);
 	}
 
 	private void cancelPerformed(AjaxRequestTarget target) {
 		redirectBack();
+	}
+
+	private void savePerformed(AjaxRequestTarget target) {
+		Breadcrumb bc = redirectBack();
+		if (bc instanceof BreadcrumbPageInstance) {
+			BreadcrumbPageInstance bcpi = (BreadcrumbPageInstance) bc;
+			WebPage page = bcpi.getPage();
+			if (page instanceof PageAdminObjectDetails) {
+				((PageAdminObjectDetails) page).setSaveOnConfigure(true);
+			} else {
+				error("Couldn't save changes - unexpected referring page: " + page);
+			}
+		} else {
+			error("Couldn't save changes - no instance for referring page; breadcrumb is " + bc);
+		}
 	}
 
 }

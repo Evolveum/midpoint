@@ -25,6 +25,7 @@ import com.evolveum.midpoint.model.api.context.ModelContext;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.Page;
 import org.apache.wicket.RestartResponseException;
+import org.apache.wicket.ajax.AbstractAjaxTimerBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
@@ -72,6 +73,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import org.apache.wicket.util.time.Duration;
 
 /** 
  * @author semancik
@@ -106,10 +108,26 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 	private ObjectDelta<O> delta;
 	
 	private AbstractObjectMainPanel<O> mainPanel;
+	private boolean saveOnConfigure;		// ugly hack - whether to invoke 'Save' when returning to this page
 
 	@Override
 	protected void createBreadcrumb() {
 		createInstanceBreadcrumb();
+	}
+
+	@Override
+	protected void onConfigure() {
+		super.onConfigure();
+		if (saveOnConfigure) {
+			saveOnConfigure = false;
+			add(new AbstractAjaxTimerBehavior(Duration.milliseconds(100)) {
+				@Override
+				protected void onTimer(AjaxRequestTarget target) {
+					stop(target);
+					savePerformed(target);
+				}
+			});
+		}
 	}
 
 	@Override
@@ -660,5 +678,13 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 	protected boolean isSupportedObjectType(QName type) {
 		ObjectTypes objectType = ObjectTypes.getObjectType(getCompileTimeClass());
 		return QNameUtil.match(objectType.getTypeQName(),type);
+	}
+
+	public void setSaveOnConfigure(boolean saveOnConfigure) {
+		this.saveOnConfigure = saveOnConfigure;
+	}
+
+	public boolean isSaveOnConfigure() {
+		return saveOnConfigure;
 	}
 }

@@ -984,6 +984,9 @@
           xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
           xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
         <name>Judge</name>
+        <displayName>The honest one</displayName>
+        <riskLevel>critical</riskLevel>
+        <identifier>123</identifier>
         <linkRef oid="11223355"/>
         <assignment id="1">
             <construction>

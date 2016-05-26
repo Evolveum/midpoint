@@ -535,4 +535,18 @@ public class SearchTest extends BaseSQLRepoTest {
 		assertTrue(result.isSuccess());
 		assertEquals("Should find one object", 1, resources.size());
 	}
+
+	@Test
+	public void testRoleAttributes() throws SchemaException {
+		ObjectQuery query = QueryBuilder.queryFor(RoleType.class, prismContext)
+				.item(RoleType.F_RISK_LEVEL).eq("critical")
+				.and().item(RoleType.F_IDENTIFIER).eq("123")
+				.and().item(RoleType.F_DISPLAY_NAME).eqPoly("The honest one", "").matchingOrig()
+				.build();
+		OperationResult result = new OperationResult("search");
+		List<PrismObject<RoleType>> roles = repositoryService.searchObjects(RoleType.class, query, null, result);
+		result.recomputeStatus();
+		assertTrue(result.isSuccess());
+		assertEquals("Should find one object", 1, roles.size());
+	}
 }
