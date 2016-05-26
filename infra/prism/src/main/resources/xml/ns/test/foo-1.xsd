@@ -100,7 +100,7 @@
             <xsd:element ref="tns:name" minOccurs="0">
             	<xsd:annotation>
             		<xsd:appinfo>
-            			<a:displayName>Name</a:displayName>
+            			<a:displayName>ObjectType.name</a:displayName>
             			<a:displayOrder>0</a:displayOrder>
             			<a:help>Short unique name of the object</a:help>
             			<a:emphasized>true</a:emphasized>
@@ -111,7 +111,7 @@
             <xsd:element ref="tns:extension" minOccurs="0" maxOccurs="1">
             	<xsd:annotation>
             		<xsd:appinfo>
-            			<a:displayName>Extension</a:displayName>
+            			<a:displayName>ObjectType.extension</a:displayName>
             			<a:displayOrder>1000</a:displayOrder>
             			<a:help>Object extension contains extra properties</a:help>
             		</xsd:appinfo>
@@ -145,7 +145,7 @@
                     <xsd:element name="fullName" type="xsd:string">
                     	<xsd:annotation>
                     		<xsd:appinfo>
-                    			<a:displayName>Full Name</a:displayName>
+                    			<a:displayName>UserType.fullName</a:displayName>
                     			<a:displayOrder>10</a:displayOrder>
 		            			<a:help>User full name</a:help>
 		            			<a:emphasized>true</a:emphasized>
@@ -170,7 +170,7 @@
                     <xsd:element name="activation" type="tns:ActivationType" minOccurs="0">
                     	<xsd:annotation>
 		            		<xsd:appinfo>
-		            			<a:displayName>Activation</a:displayName>
+		            			<a:displayName>ActivationType.activation</a:displayName>
 		            			<a:displayOrder>1200</a:displayOrder>
 		            			<a:help>User activation properties</a:help>
 		            		</xsd:appinfo>
