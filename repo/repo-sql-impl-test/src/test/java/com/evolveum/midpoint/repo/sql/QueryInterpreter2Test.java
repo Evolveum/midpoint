@@ -3628,6 +3628,37 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
 
 	}
 
+	@Test
+	public void testAdHoc106AbstractRoleParameters() throws Exception {
+		Session session = open();
+		try {
+			ObjectQuery query = QueryBuilder.queryFor(RoleType.class, prismContext)
+					.item(RoleType.F_RISK_LEVEL).eq("critical")
+					.and().item(RoleType.F_IDENTIFIER).eq("001")
+					.and().item(RoleType.F_DISPLAY_NAME).eqPoly("aaa", "aaa").matchingNorm()
+					.build();
+			String real = getInterpretedQuery2(session, RoleType.class, query);
+			String expected = "select\n"
+					+ "  r.fullObject,\n"
+					+ "  r.stringsCount,\n"
+					+ "  r.longsCount,\n"
+					+ "  r.datesCount,\n"
+					+ "  r.referencesCount,\n"
+					+ "  r.polysCount,\n"
+					+ "  r.booleansCount\n"
+					+ "from\n"
+					+ "  RRole r\n"
+					+ "where\n"
+					+ "  (\n"
+					+ "    r.riskLevel = :riskLevel and\n"
+					+ "    r.identifier = :identifier and\n"
+					+ "    r.displayName.norm = :norm\n"
+					+ "  )\n";
+			assertEqualsIgnoreWhitespace(expected, real);
+		} finally {
+			close(session);
+		}
+	}
 
 	//    @Test
 //    public void test930OrganizationEqualsCostCenter() throws Exception {

@@ -17,10 +17,10 @@
 package com.evolveum.midpoint.repo.sql.data.common;
 
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.repo.sql.data.common.container.RAssignment;
 import com.evolveum.midpoint.repo.sql.data.common.container.RExclusion;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedReference;
+import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
 import com.evolveum.midpoint.repo.sql.data.common.other.RAssignmentOwner;
 import com.evolveum.midpoint.repo.sql.data.common.other.RReferenceOwner;
 import com.evolveum.midpoint.repo.sql.query.definition.JaxbName;
@@ -35,13 +35,12 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExclusionPolicyConstraintType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import org.hibernate.annotations.Cascade;
+import org.hibernate.annotations.*;
 import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.Index;
-import org.hibernate.annotations.Persister;
-import org.hibernate.annotations.Where;
 
 import javax.persistence.*;
+import javax.persistence.Entity;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -57,10 +56,15 @@ import java.util.Set;
 @Entity
 @ForeignKey(name = "fk_abstract_role")
 @org.hibernate.annotations.Table(appliesTo = "m_abstract_role",
-        indexes = {@Index(name = "iRequestable", columnNames = "requestable")})             // TODO correct index name
+        indexes = {
+				@Index(name = "iAbstractRoleIdentifier", columnNames = "identifier"),
+				@Index(name = "iRequestable", columnNames = "requestable")})             // TODO correct index name
 @Persister(impl = MidPointJoinedPersister.class)
 public abstract class RAbstractRole<T extends AbstractRoleType> extends RFocus<T> {
 
+	private String identifier;
+	private String riskLevel;
+	private RPolyString displayName;
     private Set<RExclusion> exclusion;
     private Boolean requestable;
     private Set<RObjectReference<RFocus>> approverRef;
@@ -108,7 +112,20 @@ public abstract class RAbstractRole<T extends AbstractRoleType> extends RFocus<T
         return ownerRef;
     }
 
-    public void setApproverRef(Set<RObjectReference<RFocus>> approverRef) {
+	public String getIdentifier() {
+		return identifier;
+	}
+
+	public String getRiskLevel() {
+		return riskLevel;
+	}
+
+	@Embedded
+	public RPolyString getDisplayName() {
+		return displayName;
+	}
+
+	public void setApproverRef(Set<RObjectReference<RFocus>> approverRef) {
         this.approverRef = approverRef;
     }
 
@@ -128,7 +145,19 @@ public abstract class RAbstractRole<T extends AbstractRoleType> extends RFocus<T
         this.requestable = requestable;
     }
 
-    @Override
+	public void setIdentifier(String identifier) {
+		this.identifier = identifier;
+	}
+
+	public void setRiskLevel(String riskLevel) {
+		this.riskLevel = riskLevel;
+	}
+
+	public void setDisplayName(RPolyString displayName) {
+		this.displayName = displayName;
+	}
+
+	@Override
     public boolean equals(Object o) {
         if (this == o)
             return true;
@@ -149,8 +178,10 @@ public abstract class RAbstractRole<T extends AbstractRoleType> extends RFocus<T
             return false;
         if (ownerRef != null ? !ownerRef.equals(that.ownerRef) : that.ownerRef != null)
             return false;
+		if (displayName != null ? !displayName.equals(that.displayName) : that.displayName != null) return false;
+		if (identifier != null ? !identifier.equals(that.identifier) : that.identifier != null) return false;
 
-        return true;
+		return true;
     }
 
     @Override
@@ -166,10 +197,15 @@ public abstract class RAbstractRole<T extends AbstractRoleType> extends RFocus<T
                                                                  PrismContext prismContext,
                                                                  IdGeneratorResult generatorResult)
             throws DtoTranslationException {
+
         RFocus.copyFromJAXB(jaxb, repo, prismContext, generatorResult);
         repo.setRequestable(jaxb.isRequestable());
 
-        for (AssignmentType inducement : jaxb.getInducement()) {
+		repo.setDisplayName(RPolyString.copyFromJAXB(jaxb.getDisplayName()));
+		repo.setIdentifier(jaxb.getIdentifier());
+		repo.setRiskLevel(jaxb.getRiskLevel());
+
+		for (AssignmentType inducement : jaxb.getInducement()) {
             RAssignment rInducement = new RAssignment(repo, RAssignmentOwner.ABSTRACT_ROLE);
             RAssignment.copyFromJAXB(inducement, rInducement, jaxb, prismContext, generatorResult);
 
@@ -190,7 +226,7 @@ public abstract class RAbstractRole<T extends AbstractRoleType> extends RFocus<T
             }
         }
 
-        PrismObjectDefinition<AbstractRoleType> roleDefinition = jaxb.asPrismObject().getDefinition();
+        //PrismObjectDefinition<AbstractRoleType> roleDefinition = jaxb.asPrismObject().getDefinition();
 
         repo.setApprovalProcess(jaxb.getApprovalProcess());
 

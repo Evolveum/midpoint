@@ -44,8 +44,6 @@ import java.util.Set;
 public class ROrg extends RAbstractRole<OrgType> {
 
     private RPolyString name;
-    private RPolyString displayName;
-    private String identifier;
     private Set<String> orgType;
     private String costCenter;
     private RPolyString locality;
@@ -63,15 +61,6 @@ public class ROrg extends RAbstractRole<OrgType> {
 
     public String getCostCenter() {
         return costCenter;
-    }
-
-    @Embedded
-    public RPolyString getDisplayName() {
-        return displayName;
-    }
-
-    public String getIdentifier() {
-        return identifier;
     }
 
     @Embedded
@@ -102,14 +91,6 @@ public class ROrg extends RAbstractRole<OrgType> {
         this.costCenter = costCenter;
     }
 
-    public void setDisplayName(RPolyString displayName) {
-        this.displayName = displayName;
-    }
-
-    public void setIdentifier(String identifier) {
-        this.identifier = identifier;
-    }
-
     public void setLocality(RPolyString locality) {
         this.locality = locality;
     }
@@ -136,8 +117,6 @@ public class ROrg extends RAbstractRole<OrgType> {
 
         if (name != null ? !name.equals(that.name) : that.name != null) return false;
         if (costCenter != null ? !costCenter.equals(that.costCenter) : that.costCenter != null) return false;
-        if (displayName != null ? !displayName.equals(that.displayName) : that.displayName != null) return false;
-        if (identifier != null ? !identifier.equals(that.identifier) : that.identifier != null) return false;
         if (locality != null ? !locality.equals(that.locality) : that.locality != null) return false;
         if (orgType != null ? !orgType.equals(that.orgType) : that.orgType != null) return false;
         if (tenant != null ? !tenant.equals(that.tenant) : that.tenant != null) return false;
@@ -149,8 +128,6 @@ public class ROrg extends RAbstractRole<OrgType> {
     public int hashCode() {
         int result = super.hashCode();
         result = 31 * result + (name != null ? name.hashCode() : 0);
-        result = 31 * result + (displayName != null ? displayName.hashCode() : 0);
-        result = 31 * result + (identifier != null ? identifier.hashCode() : 0);
         result = 31 * result + (orgType != null ? orgType.hashCode() : 0);
         result = 31 * result + (costCenter != null ? costCenter.hashCode() : 0);
         result = 31 * result + (locality != null ? locality.hashCode() : 0);
@@ -164,8 +141,6 @@ public class ROrg extends RAbstractRole<OrgType> {
 
         repo.setName(RPolyString.copyFromJAXB(jaxb.getName()));
         repo.setCostCenter(jaxb.getCostCenter());
-        repo.setDisplayName(RPolyString.copyFromJAXB(jaxb.getDisplayName()));
-        repo.setIdentifier(jaxb.getIdentifier());
         repo.setLocality(RPolyString.copyFromJAXB(jaxb.getLocality()));
         repo.setOrgType(RUtil.listToSet(jaxb.getOrgType()));
         repo.setTenant(jaxb.isTenant());

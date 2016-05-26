@@ -3,10 +3,14 @@
 
 CREATE TABLE m_abstract_role (
   approvalProcess    VARCHAR2(255 CHAR),
+  displayName_norm   VARCHAR2(255 CHAR),
+  displayName_orig   VARCHAR2(255 CHAR),
+  identifier         VARCHAR2(255 CHAR),
   ownerRef_relation  VARCHAR2(157 CHAR),
   ownerRef_targetOid VARCHAR2(36 CHAR),
   ownerRef_type      NUMBER(10, 0),
   requestable        NUMBER(1, 0),
+  riskLevel          VARCHAR2(255 CHAR),
   oid                VARCHAR2(36 CHAR) NOT NULL,
   PRIMARY KEY (oid)
 ) INITRANS 30;
@@ -483,10 +487,7 @@ CREATE TABLE m_object_template (
 
 CREATE TABLE m_org (
   costCenter       VARCHAR2(255 CHAR),
-  displayName_norm VARCHAR2(255 CHAR),
-  displayName_orig VARCHAR2(255 CHAR),
   displayOrder     NUMBER(10, 0),
-  identifier       VARCHAR2(255 CHAR),
   locality_norm    VARCHAR2(255 CHAR),
   locality_orig    VARCHAR2(255 CHAR),
   name_norm        VARCHAR2(255 CHAR),
@@ -731,6 +732,8 @@ CREATE TABLE m_value_policy (
   oid       VARCHAR2(36 CHAR) NOT NULL,
   PRIMARY KEY (oid)
 ) INITRANS 30;
+
+CREATE INDEX iAbstractRoleIdentifier ON m_abstract_role (identifier) INITRANS 30;
 
 CREATE INDEX iRequestable ON m_abstract_role (requestable) INITRANS 30;
 

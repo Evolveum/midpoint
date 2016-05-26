@@ -1,9 +1,13 @@
 CREATE TABLE m_abstract_role (
   approvalProcess    NVARCHAR(255) COLLATE database_default,
+  displayName_norm   NVARCHAR(255) COLLATE database_default,
+  displayName_orig   NVARCHAR(255) COLLATE database_default,
+  identifier         NVARCHAR(255) COLLATE database_default,
   ownerRef_relation  NVARCHAR(157) COLLATE database_default,
   ownerRef_targetOid NVARCHAR(36) COLLATE database_default,
   ownerRef_type      INT,
   requestable        BIT,
+  riskLevel          NVARCHAR(255) COLLATE database_default,
   oid                NVARCHAR(36) COLLATE database_default NOT NULL,
   PRIMARY KEY (oid)
 );
@@ -480,10 +484,7 @@ CREATE TABLE m_object_template (
 
 CREATE TABLE m_org (
   costCenter       NVARCHAR(255) COLLATE database_default,
-  displayName_norm NVARCHAR(255) COLLATE database_default,
-  displayName_orig NVARCHAR(255) COLLATE database_default,
   displayOrder     INT,
-  identifier       NVARCHAR(255) COLLATE database_default,
   locality_norm    NVARCHAR(255) COLLATE database_default,
   locality_orig    NVARCHAR(255) COLLATE database_default,
   name_norm        NVARCHAR(255) COLLATE database_default,
@@ -721,6 +722,8 @@ CREATE TABLE m_value_policy (
   oid       NVARCHAR(36) COLLATE database_default NOT NULL,
   PRIMARY KEY (oid)
 );
+
+CREATE INDEX iAbstractRoleIdentifier ON m_abstract_role (identifier);
 
 CREATE INDEX iRequestable ON m_abstract_role (requestable);
 
