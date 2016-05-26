@@ -1460,7 +1460,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         }
     }
 
-	public void redirectBack() {
+	public Breadcrumb redirectBack() {
 		List<Breadcrumb> breadcrumbs = getSessionStorage().getBreadcrumbs();
 		if (breadcrumbs.size() < 2) {
 			getSessionStorage().clearBreadcrumbs();
@@ -1472,11 +1472,12 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 				setResponsePage(PageSelfDashboard.class);
 			}
 			
-			return;
+			return null;
 		}
 
 		Breadcrumb breadcrumb = breadcrumbs.get(breadcrumbs.size() - 2);
 		redirectBackToBreadcrumb(breadcrumb);
+		return breadcrumb;
 	}
 
 	public void redirectBackToBreadcrumb(Breadcrumb breadcrumb) {
