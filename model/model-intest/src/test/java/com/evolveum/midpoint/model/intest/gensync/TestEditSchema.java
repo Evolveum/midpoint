@@ -1049,7 +1049,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
 		// This has default lookup def in schema
 		PrismPropertyDefinition<String> timezoneDef = editDef.findPropertyDefinition(UserType.F_TIMEZONE);
 		assertNotNull("No definition for timezone in user", timezoneDef);
-		assertEquals("Wrong timezone displayName", "Timezone", timezoneDef.getDisplayName());
+		assertEquals("Wrong timezone displayName", "UserType.timezone", timezoneDef.getDisplayName());
 		assertTrue("timezone not readable", timezoneDef.canRead());
 		valueEnumerationRef = timezoneDef.getValueEnumerationRef();
 		assertNotNull("No valueEnumerationRef for timezone", valueEnumerationRef);
@@ -1290,7 +1290,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         
 		PrismPropertyDefinition<PolyString> nameDef = editDef.findPropertyDefinition(UserType.F_NAME);
 		assertNotNull("No definition for name in user", nameDef);
-		assertEquals("Wrong name displayName", "Name", nameDef.getDisplayName());
+		assertEquals("Wrong name displayName", "ObjectType.name", nameDef.getDisplayName());
 		assertTrue("name not readable", nameDef.canRead());
 		assertTrue("name is creatable", !nameDef.canAdd());
 		assertTrue("name is modifiable", !nameDef.canModify());
@@ -1360,7 +1360,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
 			@Override
 			public void validate(PrismPropertyDefinition<PolyString> propDef, String name) throws Exception {
 				assertNotNull("No definition for name in user", propDef);
-				assertEquals("Wrong name displayName", "Name", propDef.getDisplayName());
+				assertEquals("Wrong name displayName", "ObjectType.name", propDef.getDisplayName());
 				assertTrue(name+" not readable", propDef.canRead());
 				assertTrue(name+" is creatable", !propDef.canAdd());
 				assertTrue(name+" is modifiable", !propDef.canModify());
@@ -1447,7 +1447,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
 				@Override
 				public void validate(PrismPropertyDefinition<PolyString> propDef, String name) throws Exception {
 					assertNotNull("No definition for name in user", propDef);
-					assertEquals("Wrong name displayName", "Name", propDef.getDisplayName());
+					assertEquals("Wrong name displayName", "ObjectType.name", propDef.getDisplayName());
 					assertTrue(name+" of "+user+" not readable", propDef.canRead());
 					assertTrue(name+" of "+user+" is creatable", !propDef.canAdd());
 					assertTrue(name+" of "+user+" is modifiable", !propDef.canModify());
@@ -1577,14 +1577,14 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         
         PrismPropertyDefinition<PolyString> descriptionDef = userDefinition.findPropertyDefinition(UserType.F_DESCRIPTION);
 		assertNotNull("No definition for description in user", descriptionDef);
-		assertEquals("Wrong description displayName", "Description", descriptionDef.getDisplayName());
+		assertEquals("Wrong description displayName", "ObjectType.description", descriptionDef.getDisplayName());
 		assertTrue("description not readable", descriptionDef.canRead());
 		assertTrue("description not creatable", descriptionDef.canAdd());
 		assertTrue("description not modifiable", descriptionDef.canModify());
         
         PrismPropertyDefinition<PolyString> additionalNameDef = userDefinition.findPropertyDefinition(UserType.F_ADDITIONAL_NAME);
 		assertNotNull("No definition for additionalName in user", additionalNameDef);
-		assertEquals("Wrong additionalName displayName", "Additional Name", additionalNameDef.getDisplayName());
+		assertEquals("Wrong additionalName displayName", "UserType.additionalName", additionalNameDef.getDisplayName());
 		assertTrue("additionalName not readable", additionalNameDef.canRead());
 		assertTrue("additionalName not creatable", additionalNameDef.canAdd());
 		assertTrue("additionalName not modifiable", additionalNameDef.canModify());
@@ -1600,7 +1600,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
 		
 		PrismPropertyDefinition<String> preferredLanguageDef = userDefinition.findPropertyDefinition(UserType.F_PREFERRED_LANGUAGE);
 		assertNotNull("No definition for preferredLanguage in user", preferredLanguageDef);
-		assertEquals("Wrong preferredLanguage displayName", "Preferred Language", preferredLanguageDef.getDisplayName());
+		assertEquals("Wrong preferredLanguage displayName", "UserType.preferredLanguage", preferredLanguageDef.getDisplayName());
 		assertTrue("preferredLanguage not readable", preferredLanguageDef.canRead());
 		assertTrue("preferredLanguage not creatable", preferredLanguageDef.canAdd());
 		assertTrue("preferredLanguage not modifiable", preferredLanguageDef.canModify());
