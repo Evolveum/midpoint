@@ -35,6 +35,7 @@ import java.util.Set;
 
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.wf.api.WorkflowManager;
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.io.IOUtils;
@@ -243,6 +244,7 @@ public class MidPointApplication extends AuthenticatedWebApplication {
 
         List<IStringResourceLoader> resourceLoaders = resourceSettings.getStringResourceLoaders();
         resourceLoaders.add(0, new Utf8BundleStringResourceLoader("localization/Midpoint"));
+        resourceLoaders.add(1, new Utf8BundleStringResourceLoader(SchemaConstants.SCHEMA_LOCALIZATION_PROPERTIES_RESOURCE_BASE_PATH));
 
         resourceSettings.setThrowExceptionOnMissingResource(false);
         getMarkupSettings().setStripWicketTags(true);
@@ -458,13 +460,6 @@ public class MidPointApplication extends AuthenticatedWebApplication {
 
 	public ModelInteractionService getModelInteractionService() {
         return modelInteractionService;
-    }
-
-    public String getString(String key) {
-        ResourceSettings resourceSettings = getResourceSettings();
-        List<IStringResourceLoader> resourceLoaders = resourceSettings.getStringResourceLoaders();
-        IStringResourceLoader loader = resourceLoaders.get(0);
-        return loader.loadStringResource((Class) null, key, null, null, null);
     }
 
     public static boolean containsLocale(Locale locale) {
