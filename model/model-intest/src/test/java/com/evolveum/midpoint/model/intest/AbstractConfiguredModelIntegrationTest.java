@@ -146,6 +146,7 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 	protected static final String RESOURCE_DUMMY_BLACK_NAMESPACE = MidPointConstants.NS_RI;
 
 	// Orange dummy resource for testing associations with resource-provided referential integrity
+	// It also have very little outbound expressions and it has some strange inbound expressions.
 	protected static final String RESOURCE_DUMMY_ORANGE_FILENAME = COMMON_DIR + "/resource-dummy-orange.xml";
 	protected static final String RESOURCE_DUMMY_ORANGE_OID = "10000000-0000-0000-0000-000000001104";
 	protected static final String RESOURCE_DUMMY_ORANGE_NAME = "orange";
@@ -226,6 +227,7 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 	protected static final String USER_GUYBRUSH_OID = "c0c010c0-d34d-b33f-f00d-111111111116";
 	protected static final String USER_GUYBRUSH_USERNAME = "guybrush";
 	protected static final String USER_GUYBRUSH_FULL_NAME = "Guybrush Threepwood";
+	protected static final String USER_GUYBRUSH_GIVEN_NAME = "Guybrush";
 	protected static final String USER_GUYBRUSH_FAMILY_NAME = "Threepwood";
 	
 	// Largo does not have a full name set, employeeType=PIRATE

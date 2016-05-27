@@ -15,6 +15,10 @@
   ~ limitations under the License.
   -->
 
+
+<!-- Orange dummy resource for testing associations with resource-provided referential integrity.
+     It also have very little outbound expressions and it has some strange inbound expressions. -->
+
 <resource oid="10000000-0000-0000-0000-000000001104"
 		  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
           xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
@@ -110,21 +114,7 @@
 			<attribute>
 				<ref>ri:location</ref>
 				<displayName>Location</displayName>
-				<outbound>
-					<strength>strong</strength>
-					<source>
-						<path>
-							$user/locality
-						</path>
-					</source>
-				</outbound>
 				<inbound>
-					<channel>http://midpoint.evolveum.com/xml/ns/public/provisioning/channels-3#import</channel>
-					<expression>
-						<script>
-							<code>'Came from ' + input</code>
-						</script>
-					</expression>
 					<target>
 						<path>description</path>
 					</target>
@@ -153,75 +143,56 @@
 				<ref>ri:loot</ref>
 				<displayName>Loot</displayName>
 				<fetchStrategy>explicit</fetchStrategy>
-				<outbound>
-					<channel>http://pirates.net/avast</channel>
-					<expression>
-						<script>
-							<code>9999 + 1</code>
-						</script>
-					</expression>
-				</outbound>
 			</attribute>
 			<attribute>
 				<ref>ri:weapon</ref>
 				<displayName>Weapon</displayName>
-				<outbound>
-					<strength>weak</strength>
-					<source>
-						<path>
-                            declare namespace piracy = "http://midpoint.evolveum.com/xml/ns/samples/piracy";
-							$user/extension/piracy:weapon
-						</path>
-					</source>
-				</outbound>
 			</attribute>
 			<attribute>
 				<ref>ri:drink</ref>
 				<displayName>Drink</displayName>
 				<tolerant>false</tolerant>
-				<outbound>
-					<strength>strong</strength>
-					<expression>
-						<value>rum</value>
-					</expression>
-				</outbound>
 			</attribute>
 			<attribute>
 				<ref>ri:quote</ref>
 				<displayName>Quote</displayName>
 				<tolerant>true</tolerant>
-				<outbound>
-					<strength>strong</strength>
-					<expression>
-						<value>Arr!</value>
-					</expression>
-				</outbound>
 			</attribute>
             <attribute>
                 <ref>ri:gossip</ref>
                 <displayName>Gossip</displayName>
                 <tolerant>true</tolerant>
+                <inbound>
+                	<expression>
+                		<script>
+                			<code>
+                				import com.evolveum.midpoint.xml.ns._public.common.common_3.*
+                				
+                				if (input == null) {
+                					return null;
+                				}
+                				
+                				
+                				def targetRef = new ObjectReferenceType()
+                				targetRef.setOid(input);
+                				targetRef.setType(RoleType.COMPLEX_TYPE)
+                				
+                				def assignment = new AssignmentType()
+                				assignment.setTargetRef(targetRef)
+                				return assignment;
+                			</code>
+                		</script>
+                	</expression>
+                	<target>
+                		<path>assignment</path>
+                	</target>
+                </inbound>
             </attribute>
             <attribute>
                 <ref>ri:water</ref>
                 <limitations>
                 	<ignore>true</ignore>
                 </limitations>
-                <outbound>
-                	<!-- Make sure this mapping is really ignored -->
-					<expression>
-						<value>fishy</value>
-					</expression>
-				</outbound>
-				<inbound>
-                	<!-- Make sure this mapping is really ignored -->
-					<expression>
-						<value>very FISHY</value>
-					</expression>
-					<target>
-						<path>$user/fullName</path>
-					</target>
-				</inbound>
             </attribute>
             
             <association>

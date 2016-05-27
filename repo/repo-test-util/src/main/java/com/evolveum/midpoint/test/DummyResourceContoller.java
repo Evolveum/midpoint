@@ -202,8 +202,20 @@ public class DummyResourceContoller extends AbstractResourceController {
 		return attrDef;
 	}
 	
+	public QName getAttributeQName(String attrName) {
+		return new QName(getNamespace(), attrName);
+	}
+	
+	public ItemPath getAttributePath(QName attrQName) {
+		return new ItemPath(ShadowType.F_ATTRIBUTES, attrQName);
+	}
+	
+	public ItemPath getAttributePath(String attrName) {
+		return new ItemPath(ShadowType.F_ATTRIBUTES, getAttributeQName(attrName));
+	}
+	
 	public QName getAttributeFullnameQName() {
-		return new QName(getNamespace(), DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME);
+		return  getAttributeQName(DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME);
 	}
 
 	public ItemPath getAttributeFullnamePath() {
@@ -212,7 +224,7 @@ public class DummyResourceContoller extends AbstractResourceController {
 	
 	public QName getAttributeWeaponQName() {
 		assertExtendedSchema();
-		return new QName(getNamespace(), DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME);
+		return  getAttributeQName(DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME);
 	}
 
 	public ItemPath getAttributeWeaponPath() {
@@ -222,7 +234,7 @@ public class DummyResourceContoller extends AbstractResourceController {
 
 	public QName getAttributeLootQName() {
 		assertExtendedSchema();
-		return new QName(getNamespace(), DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME);
+		return  getAttributeQName(DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME);
 	}
 
 	public ItemPath getAttributeLootPath() {
