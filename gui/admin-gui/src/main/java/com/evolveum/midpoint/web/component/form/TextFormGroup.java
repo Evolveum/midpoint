@@ -106,6 +106,7 @@ public class TextFormGroup extends BasePanel<String> {
         textWrapper.add(text);
 
         FeedbackPanel feedback = new FeedbackPanel(ID_FEEDBACK, new ComponentFeedbackMessageFilter(text));
+        feedback.setFilter(new ComponentFeedbackMessageFilter(text));
         feedback.setOutputMarkupId(true);
         textWrapper.add(feedback);
     }
