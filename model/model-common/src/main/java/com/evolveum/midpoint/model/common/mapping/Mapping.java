@@ -356,6 +356,13 @@ public class Mapping<V extends PrismValue,D extends ItemDefinition> implements D
 		return value;
 	}
 	
+	public Boolean isTolerant() {
+		if (mappingType == null) {
+			return null;
+		}
+		return mappingType.isTolerant();
+	}
+	
 	public boolean isConditionMaskOld() {
 		return conditionMaskOld;
 	}
