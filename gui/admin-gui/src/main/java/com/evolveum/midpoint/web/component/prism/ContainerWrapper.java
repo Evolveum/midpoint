@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.web.component.prism;
 
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
@@ -368,16 +369,22 @@ public class ContainerWrapper<C extends Containerable> implements ItemWrapper, S
     }
 
     
-	public void sort(boolean alphaSorting) {
+	public void sort(final PageBase pageBase) {
 		if (objectWrapper.isSorted()){
             Collections.sort(properties, new Comparator<ItemWrapper>(){
                 @Override
                 public int compare(ItemWrapper pw1, ItemWrapper pw2) {
                     ItemDefinition id1 = pw1.getItemDefinition();
                     ItemDefinition id2 = pw2.getItemDefinition();
-                    String str1 =(id1 != null ? (id1.getDisplayName() != null ? id1.getDisplayName() :
+                    String str1 =(id1 != null ? (id1.getDisplayName() != null ?
+                            (pageBase.createStringResource(id1.getDisplayName()) != null &&
+                                    StringUtils.isNotEmpty(pageBase.createStringResource(id1.getDisplayName()).getString()) ?
+                                    pageBase.createStringResource(id1.getDisplayName()).getString() : id1.getDisplayName()):
                             (id1.getName() != null && id1.getName().getLocalPart() != null ? id1.getName().getLocalPart() : "")) : "");
-                    String str2 =(id2 != null ? (id2.getDisplayName() != null ? id2.getDisplayName() :
+                    String str2 =(id2 != null ? (id2.getDisplayName() != null ?
+                            (pageBase.createStringResource(id2.getDisplayName()) != null &&
+                                    StringUtils.isNotEmpty(pageBase.createStringResource(id2.getDisplayName()).getString()) ?
+                                    pageBase.createStringResource(id2.getDisplayName()).getString() : id2.getDisplayName()):
                             (id2.getName() != null && id2.getName().getLocalPart() != null ? id2.getName().getLocalPart() : "")) : "");
                     return str1.compareToIgnoreCase(str2);
                 }

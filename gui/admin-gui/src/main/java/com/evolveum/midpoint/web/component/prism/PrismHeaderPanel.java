@@ -18,6 +18,7 @@ package com.evolveum.midpoint.web.component.prism;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.togglebutton.ToggleIconButton;
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
@@ -86,7 +87,7 @@ public class PrismHeaderPanel extends Panel {
             public void onClick(AjaxRequestTarget target) {
                 ObjectWrapper objectWrapper = getObjectWrapper(model);
                 objectWrapper.setSorted(!objectWrapper.isSorted());
-                objectWrapper.sort();
+                objectWrapper.sort((PageBase)getPage());
 
                 onButtonClick(target);
             }

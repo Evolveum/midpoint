@@ -303,10 +303,10 @@ public class ObjectWrapper<O extends ObjectType> implements Serializable, Reviva
         }
     }
     
-    public void sort() {
+    public void sort(PageBase pageBase) {
     	ContainerWrapper main = findMainContainerWrapper();
     	if (main != null) {
-    		main.sort(isSorted());
+    		main.sort(pageBase);
     	}
     	computeStripes();
     }
