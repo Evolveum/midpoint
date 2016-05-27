@@ -163,6 +163,8 @@
                 <displayName>Gossip</displayName>
                 <tolerant>true</tolerant>
                 <inbound>
+                	<!-- Make this mapping tolerant. We so not want to remove existing assignments. -->
+                	<tolerant>true</tolerant>
                 	<expression>
                 		<script>
                 			<code>

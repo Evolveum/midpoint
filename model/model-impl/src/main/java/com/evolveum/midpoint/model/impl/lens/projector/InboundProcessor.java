@@ -529,13 +529,14 @@ public class InboundProcessor {
 	            }
 	        }
 	        
-	        if (triple.hasZeroSet()) {
+	        if (mapping.isTolerant() != Boolean.TRUE && triple.hasZeroSet()) {
 	        	Item sourceItem = targetItemDef.instantiate();
 		    	sourceItem.addAll(PrismValue.cloneCollection(triple.getZeroSet()));
 		        if (targetFocusItem != null) {
-		            LOGGER.trace("Simple property comparing user property {} to computed property {} ",
-		                    new Object[]{targetFocusItem, sourceItem});
-		            //simple property comparing if user property exists
+		        	if (LOGGER.isTraceEnabled()) {
+		        		LOGGER.trace("Comparing focus item:\n{}\nto computed item:\n{} ",
+		                    new Object[]{targetFocusItem.debugDump(), sourceItem.debugDump()});
+		        	}
 		            ItemDelta diffDelta = targetFocusItem.diff(sourceItem);
 		            if (diffDelta != null) {
 		            	diffDelta.setElementName(ItemPath.getName(targetFocusItemPath.last()));

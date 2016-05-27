@@ -316,10 +316,10 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
 	}
 	
 	/**
-	 * ???
+	 * Discovered by accident. Just make sure that another change will not destroy anything.
 	 * MID-3080
 	 */
-	@Test(enabled=false) // MID-3080
+	@Test
     public void test204AssignAccountOrgangeAgain() throws Exception {
 		final String TEST_NAME = "test204AssignAccountOrgangeAgain";
         TestUtil.displayTestTile(this, TEST_NAME);
@@ -346,6 +346,52 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
         assertAssignedAccount(userAfter, RESOURCE_DUMMY_ORANGE_OID);
         assertAssignedRole(userAfter, ROLE_PIRATE_OID);
         assertAssignments(userAfter, 2);
+        assertLinks(userAfter, 2);
+        
+        DummyAccount dummyAccount = assertDummyAccount(RESOURCE_DUMMY_ORANGE_NAME, USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME, true);
+        display("Orange account", dummyAccount);
+        
+        guybrushShadowOrangeOid = getLinkRefOid(userAfter, RESOURCE_DUMMY_ORANGE_OID);
+        PrismObject<ShadowType> shadowOrange = getShadowModel(guybrushShadowOrangeOid);
+        display("Orange shadow", shadowOrange);
+        
+	}
+	
+	/**
+	 * Remove the value of 'gossip' attribute on account (through shadow). 
+	 * That attribute has an inbound expression that removes an assignment.
+	 * Make sure it is processed properly.
+	 * MID-2689
+	 */
+	@Test
+    public void test209ModifyAccountOrgangeGossipRemove() throws Exception {
+		final String TEST_NAME = "test209ModifyAccountOrgangeGossipRemove";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestUserTemplate.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        PrismObject<UserType> userBefore = getUser(USER_GUYBRUSH_OID);
+		display("User before", userBefore);
+    
+		// WHEN
+		modifyObjectDeleteProperty(ShadowType.class, guybrushShadowOrangeOid, 
+				dummyResourceCtlOrange.getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME),
+				task, result, ROLE_PIRATE_OID);
+
+		// THEN
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+		PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
+		display("User after", userAfter);
+        assertUser(userAfter, USER_GUYBRUSH_OID, USER_GUYBRUSH_USERNAME, 
+        		USER_GUYBRUSH_FULL_NAME, USER_GUYBRUSH_GIVEN_NAME, USER_GUYBRUSH_FAMILY_NAME);
+        
+        assertAssignedAccount(userAfter, RESOURCE_DUMMY_ORANGE_OID);
+        assertAssignedNoRole(userAfter);
+        assertAssignments(userAfter, 1);
         assertLinks(userAfter, 2);
         
         DummyAccount dummyAccount = assertDummyAccount(RESOURCE_DUMMY_ORANGE_NAME, USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME, true);

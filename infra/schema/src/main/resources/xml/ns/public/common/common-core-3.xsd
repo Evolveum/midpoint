@@ -5089,21 +5089,66 @@
             <xsd:element name="authoritative" minOccurs="0" type="xsd:boolean" default="true">
                 <xsd:annotation>
                     <xsd:documentation>
-                        TODO
+                        <p>
+                           Authoritative flag controls the way how mapping is used to
+                           remove values. It does not influence adding of values. If mapping is
+                           authoritative then it will add value and also remove the value. If mapping
+                           is not authoritative it will only add the value.
+                        </p>
+
+						<p>
+						   Non-authoritative mappings are used if there are several possible sources
+						   for a particular value. E.g. the value may be added by the mapping and
+						   also added directly on the resource by system administrator. In this case
+						   midPoint cannot remove the value when the assignment (or role) containing
+						   the mapping is removed because the value might have been added manually.
+						   Other settings, such as tolerance may apply on attribute level.
+						</p>
+
+						<p>
+							The default value for authoritative flag is true.
+						</p>
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="exclusive" minOccurs="0" type="xsd:boolean" default="false">
                 <xsd:annotation>
                     <xsd:documentation>
-                        TODO
+                        <p>
+                        	Exclusive mapping may be applied only as a single mapping for a
+                        	particular target property. If an exclusive mapping is applied
+                        	together with any other mapping it results in an error.
+                        </p>
+                        <p>
+							The default value for exclusive flag is false.
+                        </p>
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="tolerant" type="xsd:boolean" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        When set to true, allows attribute/property values that are set outside
+                        of this mapping. I. e. it allows other values that set by this mapping.
+                        
+                        The default value for tolerant setting depends on when the mapping is used.
+                        It is assumed to be true in inbound mappings, it is assumed to be false
+                        in other mappings. This default setting was chosen to maintain behaviour
+                        which is compatible with previous midPoint versions.
+
+                        Support for this setting is currently EXPERIMENTAL.
+                        Use the tolerant setting for resource attribute when needed.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="strength" minOccurs="0" type="tns:MappingStrengthType" default="normal">
                 <xsd:annotation>
                     <xsd:documentation>
-                        TODO
+                        <p>
+                        	Strength of the mapping defines how aggressively will the mapping be applied.
+                        	The strongest mappings are applied all the time (regardless of the consequences)
+                        	and the weakest mappings are applied only if nothing else can be applied.
+                        </p>
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -5140,7 +5185,13 @@
     <xsd:simpleType name="MappingStrengthType">
         <xsd:annotation>
             <xsd:documentation>
-                TODO
+                <p>
+                	Strength of the mapping defines how aggressively will
+                	the mapping be applied. The strongest mappings are
+                	applied all the time (regardless of the consequences)
+                	and the weakest mappings are applied only if nothing
+                	else can be applied.
+                </p>
             </xsd:documentation>
             <xsd:appinfo>
                 <jaxb:typesafeEnumClass/>
@@ -5149,6 +5200,11 @@
         <xsd:restriction base="xsd:string">
             <xsd:enumeration value="strong">
                 <xsd:annotation>
+                	<xsd:documentation>
+                		<p>
+                			Always applied, regardless of context. Strong mappings enforce particular values.
+                		</p>
+                	</xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="STRONG"/>
                     </xsd:appinfo>
@@ -5156,6 +5212,11 @@
             </xsd:enumeration>
             <xsd:enumeration value="normal">
                 <xsd:annotation>
+                	<xsd:documentation>
+                		<p>
+                			Apply the mapping unless there is a more specific change.
+                		</p>
+                	</xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="NORMAL"/>
                     </xsd:appinfo>
@@ -5163,6 +5224,13 @@
             </xsd:enumeration>
             <xsd:enumeration value="weak">
                 <xsd:annotation>
+                	<xsd:documentation>
+                		<p>
+                			Apply the mapping only if there is a no other change on target property
+                			and the target property does not have any value. This mapping strength
+                			is use to set initial (default) values for attributes and properties.
+                		</p>
+                	</xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="WEAK"/>
                     </xsd:appinfo>
