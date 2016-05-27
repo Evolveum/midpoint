@@ -716,10 +716,11 @@ public class SynchronizationStep extends WizardStep {
 		syncObject.setEnabled(true);
         syncObject.setName(getString("SynchronizationStep.label.newObjectType"));
 
-        syncDtoModel.getObject().setSelected(syncObject);
+        //syncDtoModel.getObject().setSelected(syncObject);
         resourceModel.getObject().asObjectable().getSynchronization().getObjectSynchronization().add(syncObject);
-        insertEmptyThirdRow();
-        target.add(getSyncObjectTable(), getNavigator(), getSyncObjectEditor(), getThirdRowContainer());
+        //insertEmptyThirdRow();
+        //target.add(getSyncObjectTable(), getNavigator(), getSyncObjectEditor(), getThirdRowContainer());
+		editSyncObjectPerformed(target, syncObject);
     }
 
 	private class UpdateNamesBehaviour extends EmptyOnChangeAjaxFormUpdatingBehavior {
