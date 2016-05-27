@@ -245,7 +245,7 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
 		display("User before", userBefore);
     
 		// WHEN
-        assignAccount(USER_GUYBRUSH_OID, RESOURCE_DUMMY_ORANGE_OID, null);
+        assignAccount(USER_GUYBRUSH_OID, RESOURCE_DUMMY_ORANGE_OID, null, task, result);
 
 		// THEN
         result.computeStatus();
@@ -332,7 +332,7 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
 		display("User before", userBefore);
     
 		// WHEN
-        assignAccount(USER_GUYBRUSH_OID, RESOURCE_DUMMY_ORANGE_OID, null);
+        assignAccount(USER_GUYBRUSH_OID, RESOURCE_DUMMY_ORANGE_OID, null, task, result);
 
 		// THEN
         result.computeStatus();
