@@ -112,7 +112,7 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 		WrapperTestUtil.assertPropertyWrapper(mainContainerWrapper, UserType.F_TIMEZONE, null);
 		
 		ContainerWrapper<ActivationType> activationContainerWrapper = objectWrapper.findContainerWrapper(new ItemPath(UserType.F_ACTIVATION));
-		WrapperTestUtil.assertWrapper(activationContainerWrapper, "Activation", UserType.F_ACTIVATION, user, ContainerStatus.MODIFYING);
+		WrapperTestUtil.assertWrapper(activationContainerWrapper, "ActivationType.activation", UserType.F_ACTIVATION, user, ContainerStatus.MODIFYING);
 		WrapperTestUtil.assertPropertyWrapper(activationContainerWrapper, ActivationType.F_ADMINISTRATIVE_STATUS, ActivationStatusType.ENABLED);
 		WrapperTestUtil.assertPropertyWrapper(activationContainerWrapper, ActivationType.F_LOCKOUT_STATUS, null);
 	}
@@ -148,7 +148,7 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 		assertEquals("wrong number of items in "+attributesContainerWrapper, 16, attributesContainerWrapper.getItems().size());
 		
 		ContainerWrapper<ActivationType> activationContainerWrapper = objectWrapper.findContainerWrapper(new ItemPath(UserType.F_ACTIVATION));
-		WrapperTestUtil.assertWrapper(activationContainerWrapper, "Activation", UserType.F_ACTIVATION, shadow, ContainerStatus.MODIFYING);
+		WrapperTestUtil.assertWrapper(activationContainerWrapper, "ShadowType.activation", UserType.F_ACTIVATION, shadow, ContainerStatus.MODIFYING);
 		WrapperTestUtil.assertPropertyWrapper(activationContainerWrapper, ActivationType.F_ADMINISTRATIVE_STATUS, ActivationStatusType.ENABLED);
 		WrapperTestUtil.assertPropertyWrapper(activationContainerWrapper, ActivationType.F_LOCKOUT_STATUS, null);
 	}
@@ -209,7 +209,7 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 		assertEquals("wrong number of items in "+attributesContainerWrapper, 16, attributesContainerWrapper.getItems().size());
 		
 		ContainerWrapper<ActivationType> activationContainerWrapper = objectWrapper.findContainerWrapper(new ItemPath(UserType.F_ACTIVATION));
-		WrapperTestUtil.assertWrapper(activationContainerWrapper, "Activation", UserType.F_ACTIVATION, shadow, ContainerStatus.MODIFYING);
+		WrapperTestUtil.assertWrapper(activationContainerWrapper, "ShadowType.activation", UserType.F_ACTIVATION, shadow, ContainerStatus.MODIFYING);
 		WrapperTestUtil.assertPropertyWrapper(activationContainerWrapper, ActivationType.F_ADMINISTRATIVE_STATUS, ActivationStatusType.ENABLED);
 		WrapperTestUtil.assertPropertyWrapper(activationContainerWrapper, ActivationType.F_LOCKOUT_STATUS, null);
 		
