@@ -330,7 +330,7 @@ public class JobExecutor implements InterruptableJob {
             }
 
 		} catch (Throwable t) {
-			LoggingUtils.logException(LOGGER, "An exception occurred during processing of task {}", t, task);
+			LoggingUtils.logUnexpectedException(LOGGER, "An exception occurred during processing of task {}", t, task);
 			//throw new JobExecutionException("An exception occurred during processing of task " + task, t);
 		}
 	}
@@ -549,13 +549,14 @@ mainCycle:
             task.setProgress(runResult.getProgress());
             task.setLastRunFinishTimestamp(System.currentTimeMillis());
             if (runResult.getOperationResult() != null) {
-                OperationResult taskResult = runResult.getOperationResult().clone();
                 try {
+					OperationResult taskResult = runResult.getOperationResult().clone();
                     taskResult.cleanupResult();
+					task.setResult(taskResult);
                 } catch (Throwable ex) {
-                    LoggingUtils.logUnexpectedException(LOGGER, "Problem with task result cleanup - continuing", ex);
+                    LoggingUtils.logUnexpectedException(LOGGER, "Problem with task result cleanup - continuing with non-cleaned result", ex);
+					task.setResult(runResult.getOperationResult());
                 }
-                task.setResult(taskResult);
             }
             task.setNode(null);
             task.savePendingModifications(result);
