@@ -146,14 +146,8 @@
 				<displayName>Location</displayName>
 				<inbound>
 					<strength>strong</strength>
-					<channel>http://midpoint.evolveum.com/xml/ns/public/provisioning/channels-3#import</channel>
-					<expression>
-						<script>
-							<code>'Came from ' + input</code>
-						</script>
-					</expression>
 					<target>
-						<path>description</path>
+						<path>organization</path>
 					</target>
 				</inbound>
 			</attribute>
@@ -259,6 +253,7 @@
 					</expression>
 				</q:equal>
 			</correlation>
+			<objectTemplateRef oid="3cf43520-241d-11e6-afa5-a377b674950d"/> <!-- MID-2427 -->
 			<reaction>
 	            <situation>linked</situation>
 	            <synchronize>true</synchronize>
