@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.web.component.search;
 
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceDefinition;
@@ -25,6 +26,7 @@ import com.evolveum.midpoint.util.DisplayableValue;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.commons.lang.builder.ToStringBuilder;
+import org.apache.wicket.model.StringResourceModel;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -73,6 +75,12 @@ public class SearchItem<T extends Serializable> implements Serializable {
     }
 
     public String getName() {
+        StringResourceModel nameModel = PageBase.createStringResourceStatic(null, definition.getDisplayName());
+        if (nameModel != null){
+            if (StringUtils.isNotEmpty(nameModel.getString())) {
+                return nameModel.getString();
+            }
+        }
         String name = definition.getDisplayName();
         if (StringUtils.isNotEmpty(name)) {
             return name;

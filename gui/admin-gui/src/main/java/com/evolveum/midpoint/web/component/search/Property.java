@@ -16,11 +16,13 @@
 
 package com.evolveum.midpoint.web.component.search;
 
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.commons.lang.builder.ToStringBuilder;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.StringResourceModel;
 
 import java.io.Serializable;
 
@@ -101,6 +103,12 @@ public class Property implements Serializable, Comparable<Property> {
             return null;
         }
 
+        StringResourceModel nameModel = PageBase.createStringResourceStatic(null, def.getDisplayName());
+        if (nameModel != null){
+            if (StringUtils.isNotEmpty(nameModel.getString())) {
+                return nameModel.getString();
+            }
+        }
         String name = def.getDisplayName();
         if (StringUtils.isEmpty(name)) {
             name = def.getName().getLocalPart();
