@@ -145,92 +145,90 @@ public class ObjectRetriever {
 			boolean lockForUpdate, OperationResult operationResult)
             throws ObjectNotFoundException, SchemaException, DtoTranslationException {
 
-		OperationResult subResult = operationResult.createMinorSubresult(OPERATION_GET_OBJECT_INTERNAL);
-		try {
+		boolean lockedForUpdateViaHibernate = false;
+		boolean lockedForUpdateViaSql = false;
 
-			boolean lockedForUpdateViaHibernate = false;
-			boolean lockedForUpdateViaSql = false;
-
-			LockOptions lockOptions = new LockOptions();
-			//todo fix lock for update!!!!!
-			if (lockForUpdate) {
-				if (getConfiguration().isLockForUpdateViaHibernate()) {
-					lockOptions.setLockMode(LockMode.PESSIMISTIC_WRITE);
-					lockedForUpdateViaHibernate = true;
-				} else if (getConfiguration().isLockForUpdateViaSql()) {
-					if (LOGGER.isTraceEnabled()) {
-						LOGGER.trace("Trying to lock object " + oid + " for update (via SQL)");
-					}
-					long time = System.currentTimeMillis();
-					SQLQuery q = session.createSQLQuery("select oid from m_object where oid = ? for update");
-					q.setString(0, oid);
-					Object result = q.uniqueResult();
-					if (result == null) {
-						return throwObjectNotFoundException(type, oid);
-					}
-					if (LOGGER.isTraceEnabled()) {
-						LOGGER.trace("Locked via SQL (in " + (System.currentTimeMillis() - time) + " ms)");
-					}
-					lockedForUpdateViaSql = true;
+		LockOptions lockOptions = new LockOptions();
+		//todo fix lock for update!!!!!
+		if (lockForUpdate) {
+			if (getConfiguration().isLockForUpdateViaHibernate()) {
+				lockOptions.setLockMode(LockMode.PESSIMISTIC_WRITE);
+				lockedForUpdateViaHibernate = true;
+			} else if (getConfiguration().isLockForUpdateViaSql()) {
+				if (LOGGER.isTraceEnabled()) {
+					LOGGER.trace("Trying to lock object " + oid + " for update (via SQL)");
 				}
-			}
-
-			if (LOGGER.isTraceEnabled()) {
-				if (lockedForUpdateViaHibernate) {
-					LOGGER.trace("Getting object " + oid + " with locking for update (via hibernate)");
-				} else if (lockedForUpdateViaSql) {
-					LOGGER.trace("Getting object " + oid + ", already locked for update (via SQL)");
-				} else {
-					LOGGER.trace("Getting object " + oid + " without locking for update");
+				long time = System.currentTimeMillis();
+				SQLQuery q = session.createSQLQuery("select oid from m_object where oid = ? for update");
+				q.setString(0, oid);
+				Object result = q.uniqueResult();
+				if (result == null) {
+					return throwObjectNotFoundException(type, oid);
 				}
-			}
-
-			GetObjectResult fullObject = null;
-			if (!lockForUpdate) {
-				Query query = session.getNamedQuery("get.object");
-				query.setString("oid", oid);
-				query.setResultTransformer(GetObjectResult.RESULT_TRANSFORMER);
-				query.setLockOptions(lockOptions);
-
-				fullObject = (GetObjectResult) query.uniqueResult();
-			} else {
-				// we're doing update after this get, therefore we load full object right now
-				// (it would be loaded during merge anyway)
-				// this just loads object to hibernate session, probably will be removed later. Merge after this get
-				// will be faster. Read and use object only from fullObject column.
-				// todo remove this later [lazyman]
-				Criteria criteria = session.createCriteria(ClassMapper.getHQLTypeClass(type));
-				criteria.add(Restrictions.eq("oid", oid));
-
-				criteria.setLockMode(lockOptions.getLockMode());
-				RObject obj = (RObject) criteria.uniqueResult();
-
-				if (obj != null) {
-					obj.toJAXB(prismContext, null).asPrismObject();
-					fullObject = new GetObjectResult(obj.getFullObject(), obj.getStringsCount(), obj.getLongsCount(),
-							obj.getDatesCount(), obj.getReferencesCount(), obj.getPolysCount(), obj.getBooleansCount());
+				if (LOGGER.isTraceEnabled()) {
+					LOGGER.trace("Locked via SQL (in " + (System.currentTimeMillis() - time) + " ms)");
 				}
+				lockedForUpdateViaSql = true;
 			}
-
-			LOGGER.trace("Got it.");
-			if (fullObject == null) {
-				throwObjectNotFoundException(type, oid);
-			}
-
-			LOGGER.trace("Transforming data to JAXB type.");
-			PrismObject<T> prismObject = updateLoadedObject(fullObject, type, options, session, subResult);
-			validateObjectType(prismObject, type);
-
-			subResult.computeStatusIfUnknown();
-			if (subResult.isWarning() || subResult.isError() || subResult.isInProgress()) {
-				prismObject.asObjectable().setFetchResult(subResult.createOperationResultType());
-			}
-
-			return prismObject;
-		} catch (RuntimeException|ObjectNotFoundException|SchemaException|DtoTranslationException e) {
-			subResult.recordFatalError(e.getMessage(), e);
-			throw e;
 		}
+
+		if (LOGGER.isTraceEnabled()) {
+			if (lockedForUpdateViaHibernate) {
+				LOGGER.trace("Getting object " + oid + " with locking for update (via hibernate)");
+			} else if (lockedForUpdateViaSql) {
+				LOGGER.trace("Getting object " + oid + ", already locked for update (via SQL)");
+			} else {
+				LOGGER.trace("Getting object " + oid + " without locking for update");
+			}
+		}
+
+		GetObjectResult fullObject = null;
+		if (!lockForUpdate) {
+			Query query = session.getNamedQuery("get.object");
+			query.setString("oid", oid);
+			query.setResultTransformer(GetObjectResult.RESULT_TRANSFORMER);
+			query.setLockOptions(lockOptions);
+
+			fullObject = (GetObjectResult) query.uniqueResult();
+		} else {
+			// we're doing update after this get, therefore we load full object right now
+			// (it would be loaded during merge anyway)
+			// this just loads object to hibernate session, probably will be removed later. Merge after this get
+			// will be faster. Read and use object only from fullObject column.
+			// todo remove this later [lazyman]
+			Criteria criteria = session.createCriteria(ClassMapper.getHQLTypeClass(type));
+			criteria.add(Restrictions.eq("oid", oid));
+
+			criteria.setLockMode(lockOptions.getLockMode());
+			RObject obj = (RObject) criteria.uniqueResult();
+
+			if (obj != null) {
+				obj.toJAXB(prismContext, null).asPrismObject();
+				fullObject = new GetObjectResult(obj.getFullObject(), obj.getStringsCount(), obj.getLongsCount(),
+						obj.getDatesCount(), obj.getReferencesCount(), obj.getPolysCount(), obj.getBooleansCount());
+			}
+		}
+
+		LOGGER.trace("Got it.");
+		if (fullObject == null) {
+			throwObjectNotFoundException(type, oid);
+		}
+
+		LOGGER.trace("Transforming data to JAXB type.");
+		PrismObject<T> prismObject = updateLoadedObject(fullObject, type, options, session, operationResult);
+		validateObjectType(prismObject, type);
+
+		// this was implemented to allow report parsing errors as warnings to upper layers;
+		// however, it causes problems when serialization problems are encountered: in such cases, we put
+		// FATAL_ERROR to the result here, and it should be then removed or muted (which is a complication)
+		// -- so, as the parsing errors are not implemented, we disabled this code as well
+
+		//			subResult.computeStatusIfUnknown();
+		//			if (subResult.isWarning() || subResult.isError() || subResult.isInProgress()) {
+		//				prismObject.asObjectable().setFetchResult(subResult.createOperationResultType());
+		//			}
+
+		return prismObject;
     }
 
     protected SqlRepositoryConfiguration getConfiguration() {
