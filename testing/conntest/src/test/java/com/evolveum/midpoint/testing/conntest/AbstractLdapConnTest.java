@@ -943,7 +943,7 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
         
         String repoPrimaryIdentifier = ShadowUtil.getAttributeValue(repoShadow, getPrimaryIdentifierAttributeQName());
         if ("dn".equals(getPrimaryIdentifierAttributeName())) {
-        	assertEquals("Entry DN (primary identifier) was not updated in the shadow", toAccountDn(USER_CPTBARBOSSA_USERNAME), repoPrimaryIdentifier);
+        	assertEquals("Entry DN (primary identifier) was not updated in the shadow", toAccountDn(USER_CPTBARBOSSA_USERNAME).toLowerCase(), repoPrimaryIdentifier);
         } else {
         	assertEquals("Entry ID changed after rename", accountBarbossaEntryId, repoPrimaryIdentifier);
         }
@@ -990,7 +990,7 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
         
         String repoPrimaryIdentifier = ShadowUtil.getAttributeValue(repoShadow, getPrimaryIdentifierAttributeQName());
         if ("dn".equals(getPrimaryIdentifierAttributeName())) {
-        	assertEquals("Entry DN (primary identifier) was not updated in the shadow", toAccountDn(USER_CPTBARBOSSA_USERNAME), repoPrimaryIdentifier);
+        	assertEquals("Entry DN (primary identifier) was not updated in the shadow", toAccountDn(USER_CPTBARBOSSA_USERNAME).toLowerCase(), repoPrimaryIdentifier);
         } else {
         	assertEquals("Entry ID changed after rename", accountBarbossaEntryId, repoPrimaryIdentifier);
         }
