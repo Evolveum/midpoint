@@ -157,6 +157,24 @@
 				<ref>ri:quote</ref>
 				<displayName>Quote</displayName>
 				<tolerant>true</tolerant>
+				<inbound>
+					<expression> <!-- MID-2421 -->
+                		<script>
+                			<code>
+                				if (input == null) {
+                					return null;
+                				}
+                				if (input.contains("rrr")) {
+                					return input;
+                				}
+                				return null;
+                			</code>
+                		</script>
+                	</expression>
+                	<target>
+                		<path>description</path>
+                	</target>
+				</inbound>
 			</attribute>
             <attribute>
                 <ref>ri:gossip</ref>

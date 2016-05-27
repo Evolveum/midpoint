@@ -121,7 +121,6 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
 		display("User after", userJack);
         
 		PrismAsserts.assertPropertyValue(userJack, UserType.F_DESCRIPTION, "Where's the rum?");
-//        assertAssignedAccount(userJack, RESOURCE_DUMMY_BLUE_OID);
         assertAssignedRole(userJack, ROLE_PIRATE_GREEN_OID);
         assertAssignments(userJack, 1);
         
@@ -133,17 +132,10 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
         
         assertEquals("Unexpected number of organizationalUnits", 1, userJackType.getOrganizationalUnit().size());
         assertEquals("Wrong organizationalUnit", PrismTestUtil.createPolyStringType("The crew of pirate"), userJackType.getOrganizationalUnit().get(0));
-//        assertEquals("Wrong costCenter", "G001", userJackType.getCostCenter());
         
         
         jackEmployeeNumber = userJackType.getEmployeeNumber();
         assertNotNull("Wrong employee number. Expected not null value, got " + jackEmployeeNumber, jackEmployeeNumber);
-//        assertEquals("Unexpected length  of employeeNumber, maybe it was not generated?",
-//                GenerateExpressionEvaluator.DEFAULT_LENGTH, jackEmployeeNumber.length());
-        
-//        XMLGregorianCalendar now = clock.currentTimeXMLGregorianCalendar();
-//        XMLGregorianCalendar monthLater = XmlTypeConverter.addDuration(now, XmlTypeConverter.createDuration("P1M"));
-//        assertTrigger(userJack, RecomputeTriggerHandler.HANDLER_URI, monthLater, 100000L);
 	}
 	
 	/**
@@ -172,7 +164,6 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
 		display("User after", userJack);
 		
 		PrismAsserts.assertPropertyValue(userJack, UserType.F_DESCRIPTION, "Where's the rum?");
-//        assertAssignedAccount(userJack, RESOURCE_DUMMY_BLUE_OID);
         assertAssignedRole(userJack, ROLE_BUCCANEER_GREEN_OID);
         assertAssignments(userJack, 1);
         
@@ -181,9 +172,7 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
         
         result.computeStatus();
         TestUtil.assertSuccess(result);
-//        assertEquals("Unexpected number of organizationalUnits", 1, userJackType.getOrganizationalUnit().size());
-        assertEquals("Wrong organizationalUnit", PrismTestUtil.createPolyStringType("The crew of buccaneer"), userJackType.getOrganizationalUnit().get(1));
-//        assertEquals("Wrong costCenter", "B666", userJackType.getCostCenter());
+        PrismAsserts.assertEqualsCollectionUnordered("Wrong organizationalUnit", userJackType.getOrganizationalUnit(), PrismTestUtil.createPolyStringType("The crew of buccaneer"));
         assertEquals("Employee number has changed", jackEmployeeNumber, userJackType.getEmployeeNumber());
 	}
 	
@@ -209,7 +198,6 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
 		display("User after", userJack);
         
 		PrismAsserts.assertPropertyValue(userJack, UserType.F_DESCRIPTION, "Where's the rum?");
-//        assertAssignedAccount(userJack, RESOURCE_DUMMY_BLUE_OID);
         assertNotAssignedRole(userJack, ROLE_PIRATE_GREEN_OID);
         assertNotAssignedRole(userJack, ROLE_BUCCANEER_GREEN_OID);
         assertNoAssignments(userJack);
@@ -220,9 +208,6 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
         result.computeStatus();
         TestUtil.assertSuccess(result);
         
-//        assertEquals("Unexpected number of organizationalUnits", 0, userJackType.getOrganizationalUnit().size());
-//        assertEquals("Wrong organizationalUnit", PrismTestUtil.createPolyStringType("The crew of pirate"), userJackType.getOrganizationalUnit().get(0));
-//        assertEquals("Wrong costCenter", "G001", userJackType.getCostCenter());
         assertEquals("Employee number has changed", jackEmployeeNumber, userJackType.getEmployeeNumber());
 	}
 
@@ -233,8 +218,8 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
 	 * MID-2689
 	 */
 	@Test
-    public void test200AssignAccountOrgange() throws Exception {
-		final String TEST_NAME = "test200AssignAccountOrgange";
+    public void test200AssignAccountOrange() throws Exception {
+		final String TEST_NAME = "test200AssignAccountOrange";
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
@@ -276,8 +261,8 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
 	 * MID-2689
 	 */
 	@Test
-    public void test202ModifyAccountOrgangeGossip() throws Exception {
-		final String TEST_NAME = "test202ModifyAccountOrgangeGossip";
+    public void test202ModifyAccountOrangeGossip() throws Exception {
+		final String TEST_NAME = "test202ModifyAccountOrangeGossip";
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
@@ -320,8 +305,8 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
 	 * MID-3080
 	 */
 	@Test
-    public void test204AssignAccountOrgangeAgain() throws Exception {
-		final String TEST_NAME = "test204AssignAccountOrgangeAgain";
+    public void test204AssignAccountOrangeAgain() throws Exception {
+		final String TEST_NAME = "test204AssignAccountOrangeAgain";
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
@@ -364,8 +349,8 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
 	 * MID-2689
 	 */
 	@Test
-    public void test209ModifyAccountOrgangeGossipRemove() throws Exception {
-		final String TEST_NAME = "test209ModifyAccountOrgangeGossipRemove";
+    public void test209ModifyAccountOrangeGossipRemove() throws Exception {
+		final String TEST_NAME = "test209ModifyAccountOrangeGossipRemove";
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
@@ -403,4 +388,149 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
         
 	}
 	
+	/**
+	 * Modify 'quote' on account (through shadow). That attribute has an inbound
+	 * expression that passes some values to description user property.
+	 * This will not pass.
+	 * MID-2421
+	 */
+	@Test
+    public void test210ModifyAccountOrangeQuoteMonkey() throws Exception {
+		final String TEST_NAME = "test210ModifyAccountOrangeQuoteMonkey";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestUserTemplate.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        PrismObject<UserType> userBefore = getUser(USER_GUYBRUSH_OID);
+		display("User before", userBefore);
+    
+		// WHEN
+		modifyObjectReplaceProperty(ShadowType.class, guybrushShadowOrangeOid, 
+				dummyResourceCtlOrange.getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_NAME),
+				task, result, "Look behind you, a Three-Headed Monkey!");
+
+		// THEN
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+		PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
+		display("User after", userAfter);
+        assertUser(userAfter, USER_GUYBRUSH_OID, USER_GUYBRUSH_USERNAME, 
+        		USER_GUYBRUSH_FULL_NAME, USER_GUYBRUSH_GIVEN_NAME, USER_GUYBRUSH_FAMILY_NAME);
+        
+        assertEquals("Wrong description", null, userAfter.asObjectable().getDescription());
+        
+        assertAssignedAccount(userAfter, RESOURCE_DUMMY_ORANGE_OID);
+        assertAssignedNoRole(userAfter);
+        assertAssignments(userAfter, 1);
+        assertLinks(userAfter, 2);
+        
+        DummyAccount dummyAccount = assertDummyAccount(RESOURCE_DUMMY_ORANGE_NAME, USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME, true);
+        display("Orange account", dummyAccount);
+        
+        guybrushShadowOrangeOid = getLinkRefOid(userAfter, RESOURCE_DUMMY_ORANGE_OID);
+        PrismObject<ShadowType> shadowOrange = getShadowModel(guybrushShadowOrangeOid);
+        display("Orange shadow", shadowOrange);
+        
+	}
+
+	/**
+	 * Modify 'quote' on account (through shadow). That attribute has an inbound
+	 * expression that passes some values to description user property.
+	 * This should pass.
+	 * MID-2421
+	 */
+	@Test
+    public void test211ModifyAccountOrangeQuotePirate() throws Exception {
+		final String TEST_NAME = "test211ModifyAccountOrangeQuotePirate";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestUserTemplate.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        PrismObject<UserType> userBefore = getUser(USER_GUYBRUSH_OID);
+		display("User before", userBefore);
+    
+		// WHEN
+		modifyObjectReplaceProperty(ShadowType.class, guybrushShadowOrangeOid, 
+				dummyResourceCtlOrange.getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_NAME),
+				task, result, "I wanna be a pirrrrrrate!");
+
+		// THEN
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+		PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
+		display("User after", userAfter);
+        assertUser(userAfter, USER_GUYBRUSH_OID, USER_GUYBRUSH_USERNAME, 
+        		USER_GUYBRUSH_FULL_NAME, USER_GUYBRUSH_GIVEN_NAME, USER_GUYBRUSH_FAMILY_NAME);
+        
+        assertEquals("Wrong description", "I wanna be a pirrrrrrate!", userAfter.asObjectable().getDescription());
+        
+        assertAssignedAccount(userAfter, RESOURCE_DUMMY_ORANGE_OID);
+        assertAssignedNoRole(userAfter);
+        assertAssignments(userAfter, 1);
+        assertLinks(userAfter, 2);
+        
+        DummyAccount dummyAccount = assertDummyAccount(RESOURCE_DUMMY_ORANGE_NAME, USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME, true);
+        display("Orange account", dummyAccount);
+        
+        guybrushShadowOrangeOid = getLinkRefOid(userAfter, RESOURCE_DUMMY_ORANGE_OID);
+        PrismObject<ShadowType> shadowOrange = getShadowModel(guybrushShadowOrangeOid);
+        display("Orange shadow", shadowOrange);
+        
+	}
+	
+	/**
+	 * Modify 'quote' on account (through shadow). That attribute has an inbound
+	 * expression that passes some values to description user property.
+	 * This will not pass. Is should remove the previous value of description.
+	 * MID-2421
+	 */
+	@Test
+    public void test214ModifyAccountOrangeQuoteWoodchuck() throws Exception {
+		final String TEST_NAME = "test214ModifyAccountOrangeQuoteWoodchuck";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestUserTemplate.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        PrismObject<UserType> userBefore = getUser(USER_GUYBRUSH_OID);
+		display("User before", userBefore);
+    
+		// WHEN
+		modifyObjectReplaceProperty(ShadowType.class, guybrushShadowOrangeOid, 
+				dummyResourceCtlOrange.getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_NAME),
+				task, result, "How much wood could a woodchuck chuck if a woodchuck could chuck wood?");
+
+		// THEN
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+		PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
+		display("User after", userAfter);
+        assertUser(userAfter, USER_GUYBRUSH_OID, USER_GUYBRUSH_USERNAME, 
+        		USER_GUYBRUSH_FULL_NAME, USER_GUYBRUSH_GIVEN_NAME, USER_GUYBRUSH_FAMILY_NAME);
+        
+        assertEquals("Wrong description", null, userAfter.asObjectable().getDescription());
+        
+        assertAssignedAccount(userAfter, RESOURCE_DUMMY_ORANGE_OID);
+        assertAssignedNoRole(userAfter);
+        assertAssignments(userAfter, 1);
+        assertLinks(userAfter, 2);
+        
+        DummyAccount dummyAccount = assertDummyAccount(RESOURCE_DUMMY_ORANGE_NAME, USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME, true);
+        display("Orange account", dummyAccount);
+        
+        guybrushShadowOrangeOid = getLinkRefOid(userAfter, RESOURCE_DUMMY_ORANGE_OID);
+        PrismObject<ShadowType> shadowOrange = getShadowModel(guybrushShadowOrangeOid);
+        display("Orange shadow", shadowOrange);
+        
+	}
+
+
 }

@@ -58,6 +58,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -484,10 +485,10 @@ public class InboundProcessor {
     	//                  the differences will be added to delta
     	
     	if (LOGGER.isTraceEnabled()) {
-    		LOGGER.trace("Inbound value construction for {} returned triple:\n{}", accountAttributeName, triple == null ? "null" : triple.debugDump());
+    		LOGGER.trace("Inbound mapping for {} returned triple:\n{}", accountAttributeName, triple == null ? "null" : triple.debugDump());
     	}
         
-    	if (triple != null && !triple.isEmpty()) {
+    	if (triple != null) {
     		
 	        if (triple.hasPlusSet()) {
 
@@ -529,25 +530,30 @@ public class InboundProcessor {
 	            }
 	        }
 	        
-	        if (mapping.isTolerant() != Boolean.TRUE && triple.hasZeroSet()) {
-	        	Item sourceItem = targetItemDef.instantiate();
-		    	sourceItem.addAll(PrismValue.cloneCollection(triple.getZeroSet()));
+	        if (mapping.isTolerant() != Boolean.TRUE) {
+	        	Item shouldBeItem = targetItemDef.instantiate();
+		    	shouldBeItem.addAll(PrismValue.cloneCollection(triple.getZeroSet()));
+		    	shouldBeItem.addAll(PrismValue.cloneCollection(triple.getPlusSet()));
 		        if (targetFocusItem != null) {
-		        	if (LOGGER.isTraceEnabled()) {
-		        		LOGGER.trace("Comparing focus item:\n{}\nto computed item:\n{} ",
-		                    new Object[]{targetFocusItem.debugDump(), sourceItem.debugDump()});
+		            ItemDelta diffDelta = targetFocusItem.diff(shouldBeItem);
+		            if (LOGGER.isTraceEnabled()) {
+		        		LOGGER.trace("Comparing focus item:\n{}\nto should be item:\n{}\ndiff:\n{} ",
+		                    new Object[]{
+		                    		DebugUtil.debugDump(targetFocusItem, 1), 
+		                    		DebugUtil.debugDump(shouldBeItem, 1), 
+		                    		DebugUtil.debugDump(diffDelta, 1)
+		                    	});
 		        	}
-		            ItemDelta diffDelta = targetFocusItem.diff(sourceItem);
 		            if (diffDelta != null) {
 		            	diffDelta.setElementName(ItemPath.getName(targetFocusItemPath.last()));
 		            	diffDelta.setParentPath(targetFocusItemPath.allExceptLast());
 		            	outputFocusItemDelta.merge(diffDelta);
 		            }
 		        } else {
-		            if (sourceItem != null) {	// actually sourceProperty is never null here [med]
+		            if (shouldBeItem != null) {	// actually sourceProperty is never null here [med]
 		                LOGGER.trace("Adding user property because inbound say so (account doesn't contain that value)");
 		                //if user property doesn't exist we have to add it (as delta), because inbound say so
-		                outputFocusItemDelta.addValuesToAdd(sourceItem.getClonedValues());
+		                outputFocusItemDelta.addValuesToAdd(shouldBeItem.getClonedValues());
 		            }
 		            //we don't have to create delta, because everything is alright
 		            LOGGER.trace("We don't have to create delta, everything is alright.");
