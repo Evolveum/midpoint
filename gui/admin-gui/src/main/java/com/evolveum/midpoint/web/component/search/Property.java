@@ -103,13 +103,13 @@ public class Property implements Serializable, Comparable<Property> {
             return null;
         }
 
-        StringResourceModel nameModel = PageBase.createStringResourceStatic(null, def.getDisplayName());
-        if (nameModel != null){
-            if (StringUtils.isNotEmpty(nameModel.getString())) {
-                return nameModel.getString();
-            }
-        }
-        String name = def.getDisplayName();
+		if (def.getDisplayName() != null) {
+			StringResourceModel nameModel = PageBase.createStringResourceStatic(null, def.getDisplayName());
+			if (StringUtils.isNotEmpty(nameModel.getString())) {
+				return nameModel.getString();
+			}
+		}
+        String name = def.getDisplayName();		// TODO this is always null here, isn't it?
         if (StringUtils.isEmpty(name)) {
             name = def.getName().getLocalPart();
         }

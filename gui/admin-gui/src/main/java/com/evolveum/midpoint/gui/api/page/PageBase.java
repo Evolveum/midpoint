@@ -62,6 +62,7 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.resource.CoreLibrariesContributor;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.apache.wicket.util.string.StringValue;
+import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
@@ -712,6 +713,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 		return createStringResource(resourceKey);
 	}
 
+	@NotNull
     public static StringResourceModel createStringResourceStatic(Component component, String resourceKey,
                                                                  Object... objects) {
         return new StringResourceModel(resourceKey, component).setModel(new Model<String>())
