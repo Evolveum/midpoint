@@ -423,8 +423,8 @@ public class TestDiff {
     }
 
     @Test
-    public void testContainerSimpleDiffNoChange() throws Exception {
-    	System.out.println("\n\n===[ testContainerSimpleDiffNoChange ]===\n");
+    public void testContainerSimpleDiffModificationsNoChange() throws Exception {
+    	System.out.println("\n\n===[ testContainerSimpleDiffModificationsNoChange ]===\n");
     	
     	// GIVEN
     	PrismObjectDefinition<UserType> userDef = getUserTypeDefinition();
@@ -439,7 +439,7 @@ public class TestDiff {
     	ass2cval.setPropertyRealValue(AssignmentType.F_DESCRIPTION, "blah blah", PrismTestUtil.getPrismContext());
 		
 		// WHEN
-    	Collection<? extends ItemDelta> modifications = ass1.diff(ass2);
+    	Collection<? extends ItemDelta> modifications = ass1.diffModifications(ass2);
         
         // THEN
         assertNotNull(modifications);
@@ -449,8 +449,8 @@ public class TestDiff {
     }
 
     @Test
-    public void testContainerDiffDesciption() throws Exception {
-    	System.out.println("\n\n===[ testContainerDiffDesciption ]===\n");
+    public void testContainerDiffModificationsDesciption() throws Exception {
+    	System.out.println("\n\n===[ testContainerDiffModificationsDesciption ]===\n");
     	
     	// GIVEN
     	PrismObjectDefinition<UserType> userDef = getUserTypeDefinition();
@@ -467,7 +467,7 @@ public class TestDiff {
     	ass2cval.setPropertyRealValue(AssignmentType.F_DESCRIPTION, "chamalalia patlama paprtala", PrismTestUtil.getPrismContext());
 		
 		// WHEN
-    	Collection<? extends ItemDelta> modifications = ass1.diff(ass2);
+    	Collection<? extends ItemDelta> modifications = ass1.diffModifications(ass2);
         
         // THEN
         assertNotNull(modifications);

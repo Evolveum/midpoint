@@ -382,19 +382,11 @@ public class PrismProperty<T> extends Item<PrismPropertyValue<T>,PrismPropertyDe
 	}
 
 	public PropertyDelta<T> diff(PrismProperty<T> other) {
-    	return diff(other, true, false);
+		return (PropertyDelta<T>) super.diff(other);
     }
     
     public PropertyDelta<T> diff(PrismProperty<T> other, boolean ignoreMetadata, boolean isLiteral) {
-    	List<? extends ItemDelta> deltas = new ArrayList<ItemDelta>();
-    	diffInternal(other, deltas, ignoreMetadata, isLiteral);
-    	if (deltas.isEmpty()) {
-    		return null;
-    	}
-    	if (deltas.size() > 1) {
-    		throw new IllegalStateException("Unexpected number of deltas from property diff: "+deltas);
-    	}
-    	return (PropertyDelta<T>)deltas.get(0);
+    	return (PropertyDelta<T>) super.diff(other, true, false);
     }
     
     public static <T> PropertyDelta<T> diff(PrismProperty<T> a, PrismProperty<T> b) {

@@ -458,14 +458,22 @@ public abstract class Item<V extends PrismValue, D extends ItemDefinition> imple
     
     public abstract <IV extends PrismValue,ID extends ItemDefinition> PartiallyResolvedItem<IV,ID> findPartial(ItemPath path);
     
-    public Collection<? extends ItemDelta> diff(Item<V,D> other) {
+    // We want this method to be consistent with property diff
+    public ItemDelta<V,D> diff(Item<V,D> other) {
     	return diff(other, true, false);
     }
         
-    public Collection<? extends ItemDelta> diff(Item<V,D> other, boolean ignoreMetadata, boolean isLiteral) {
-    	Collection<? extends ItemDelta> itemDeltas = new ArrayList<ItemDelta>();
+    // We want this method to be consistent with property diff
+    public ItemDelta<V,D> diff(Item<V,D> other, boolean ignoreMetadata, boolean isLiteral) {
+    	List<? extends ItemDelta> itemDeltas = new ArrayList<>();
 		diffInternal(other, itemDeltas, ignoreMetadata, isLiteral);
-		return itemDeltas;
+		if (itemDeltas.isEmpty()) {
+			return null;
+		}
+		if (itemDeltas.size() > 1) {
+			throw new UnsupportedOperationException("Item multi-delta diff is not supported yet");
+		}
+		return itemDeltas.get(0);
     }
         
     protected void diffInternal(Item<V,D> other, Collection<? extends ItemDelta> deltas, 

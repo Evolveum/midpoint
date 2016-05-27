@@ -46,6 +46,7 @@ import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
+import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.midpoint.model.common.expression.evaluator.GenerateExpressionEvaluator;
 import com.evolveum.midpoint.model.impl.trigger.RecomputeTriggerHandler;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -57,6 +58,7 @@ import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.QNameUtil;
@@ -82,7 +84,8 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
 	
 	public static final File TEST_DIR = new File("src/test/resources/contract");
 
-	private static String jackEmployeeNumber;
+	private String jackEmployeeNumber;
+	private String guybrushShadowOrangeOid;
 	
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -222,1121 +225,136 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
 //        assertEquals("Wrong costCenter", "G001", userJackType.getCostCenter());
         assertEquals("Employee number has changed", jackEmployeeNumber, userJackType.getEmployeeNumber());
 	}
+
+	/**
+	 * Not much happens here. Just ordinary account assign. Just make sure
+	 * that the inbound mappings do not fail for empty values and that 
+	 * we have a good environment for the following tests.
+	 * MID-2689
+	 */
+	@Test
+    public void test200AssignAccountOrgange() throws Exception {
+		final String TEST_NAME = "test200AssignAccountOrgange";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestUserTemplate.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        PrismObject<UserType> userBefore = getUser(USER_GUYBRUSH_OID);
+		display("User before", userBefore);
+    
+		// WHEN
+        assignAccount(USER_GUYBRUSH_OID, RESOURCE_DUMMY_ORANGE_OID, null);
+
+		// THEN
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+		PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
+		display("User after", userAfter);
+        assertUser(userAfter, USER_GUYBRUSH_OID, USER_GUYBRUSH_USERNAME, 
+        		USER_GUYBRUSH_FULL_NAME, USER_GUYBRUSH_GIVEN_NAME, USER_GUYBRUSH_FAMILY_NAME);
+        
+        assertAssignedAccount(userAfter, RESOURCE_DUMMY_ORANGE_OID);
+        assertAssignedNoRole(userAfter);
+        assertAssignments(userAfter, 1);
+        assertLinks(userAfter, 2);
+        
+        DummyAccount dummyAccount = assertDummyAccount(RESOURCE_DUMMY_ORANGE_NAME, USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME, true);
+        display("Orange account", dummyAccount);
+        
+        guybrushShadowOrangeOid = getLinkRefOid(userAfter, RESOURCE_DUMMY_ORANGE_OID);
+        PrismObject<ShadowType> shadowOrange = getShadowModel(guybrushShadowOrangeOid);
+        display("Orange shadow", shadowOrange);
+        
+	}
 	
-//	/**
-//	 * Cost center has two mappings. Strong mapping should not be applied here as the condition is false.
-//	 * The weak mapping should be overridden by the change we try here.
-//	 */
-//	@Test
-//    public void test104ModifyUserCostCenter() throws Exception {
-//		final String TEST_NAME = "test104ModifyUserCostCenter";
-//        TestUtil.displayTestTile(this, TEST_NAME);
-//
-//        // GIVEN
-//        Task task = taskManager.createTaskInstance(TestInbounds.class.getName() + "." + TEST_NAME);
-//        OperationResult result = task.getResult();
-//    
-//        Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
-//        ObjectDelta<UserType> userDelta = ObjectDelta.createModificationReplaceProperty(UserType.class,
-//        		USER_JACK_OID, UserType.F_COST_CENTER, prismContext, "X000");
-//        deltas.add(userDelta);
-//                
-//		// WHEN
-//		modelService.executeChanges(deltas, null, task, result);
-//
-//		// THEN
-//		PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
-//		display("User after", userJack);
-//        
-//		PrismAsserts.assertPropertyValue(userJack, UserType.F_DESCRIPTION, "Where's the rum?");
-//        assertAssignedAccount(userJack, RESOURCE_DUMMY_BLUE_OID);
-//        assertNotAssignedRole(userJack, ROLE_PIRATE_OID);
-//        assertAssignments(userJack, 1);
-//        
-//        UserType userJackType = userJack.asObjectable();
-//        assertEquals("Unexpected number of accountRefs", 1, userJackType.getLinkRef().size());
-//        
-//        result.computeStatus();
-//        TestUtil.assertSuccess(result);
-//        
-//        assertEquals("Wrong costCenter", "X000", userJackType.getCostCenter());
-//        assertEquals("Employee number has changed", jackEmployeeNumber, userJackType.getEmployeeNumber());
-//	}
-//	
-//	@Test
-//    public void test105ModifyUserTelephoneNumber() throws Exception {
-//		final String TEST_NAME = "test105ModifyUserTelephoneNumber";
-//        TestUtil.displayTestTile(this, TEST_NAME);
-//
-//        // GIVEN
-//        Task task = taskManager.createTaskInstance(TestInbounds.class.getName() + "." + TEST_NAME);
-//        OperationResult result = task.getResult();
-//    
-//        Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
-//        ObjectDelta<UserType> userDelta = ObjectDelta.createModificationReplaceProperty(UserType.class,
-//        		USER_JACK_OID, UserType.F_TELEPHONE_NUMBER, prismContext, "1234");
-//        deltas.add(userDelta);
-//                
-//		// WHEN
-//		modelService.executeChanges(deltas, null, task, result);
-//
-//		// THEN
-//		PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
-//		display("User after", userJack);
-//        
-//		PrismAsserts.assertPropertyValue(userJack, UserType.F_DESCRIPTION, "Where's the rum?");
-//        assertAssignedAccount(userJack, RESOURCE_DUMMY_BLUE_OID);
-//        assertNotAssignedRole(userJack, ROLE_PIRATE_OID);
-//        assertAssignments(userJack, 1);
-//        
-//        UserType userJackType = userJack.asObjectable();
-//        assertEquals("Unexpected number of accountRefs", 1, userJackType.getLinkRef().size());
-//        
-//        result.computeStatus();
-//        TestUtil.assertSuccess(result);
-//        
-//        assertEquals("Wrong costCenter", "X000", userJackType.getCostCenter());
-//        assertEquals("Wrong employee number", jackEmployeeNumber, userJackType.getEmployeeNumber());
-//        assertEquals("Wrong telephone number", "1234", userJackType.getTelephoneNumber());
-//        assertNull("Unexpected title: " + userJackType.getTitle(), userJackType.getTitle());
-//	}
-//	
-//	@Test
-//    public void test106ModifyUserRemoveTelephoneNumber() throws Exception {
-//		final String TEST_NAME = "test106ModifyUserRemoveTelephoneNumber";
-//        TestUtil.displayTestTile(this, TEST_NAME);
-//
-//        // GIVEN
-//        Task task = taskManager.createTaskInstance(TestInbounds.class.getName() + "." + TEST_NAME);
-//        OperationResult result = task.getResult();
-//    
-//        Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
-//        ObjectDelta<UserType> userDelta = ObjectDelta.createModificationReplaceProperty(UserType.class,
-//        		USER_JACK_OID, UserType.F_TELEPHONE_NUMBER, prismContext);
-//        deltas.add(userDelta);
-//                
-//		// WHEN
-//		modelService.executeChanges(deltas, null, task, result);
-//
-//		// THEN
-//		PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
-//		display("User after", userJack);
-//        
-//		PrismAsserts.assertPropertyValue(userJack, UserType.F_DESCRIPTION, "Where's the rum?");
-//        assertAssignedAccount(userJack, RESOURCE_DUMMY_BLUE_OID);
-//        assertNotAssignedRole(userJack, ROLE_PIRATE_OID);
-//        assertAssignments(userJack, 1);
-//        
-//        UserType userJackType = userJack.asObjectable();
-//        assertEquals("Unexpected number of accountRefs", 1, userJackType.getLinkRef().size());
-//        
-//        result.computeStatus();
-//        TestUtil.assertSuccess(result);
-//        
-//        assertEquals("Wrong costCenter", "X000", userJackType.getCostCenter());
-//        assertEquals("Wrong employee number", jackEmployeeNumber, userJackType.getEmployeeNumber());
-//        assertNull("Unexpected telephone number: " + userJackType.getTelephoneNumber(), userJackType.getTelephoneNumber());
-//        assertEquals("Wrong Title", PrismTestUtil.createPolyStringType("Happy Pirate"), userJackType.getTitle());
-//	}
-//	
-//	@Test
-//    public void test107ModifyUserSetTelephoneNumber() throws Exception {
-//		final String TEST_NAME = "test107ModifyUserSetTelephoneNumber";
-//        TestUtil.displayTestTile(this, TEST_NAME);
-//
-//        // GIVEN
-//        Task task = taskManager.createTaskInstance(TestInbounds.class.getName() + "." + TEST_NAME);
-//        OperationResult result = task.getResult();
-//    
-//        Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
-//        ObjectDelta<UserType> userDelta = ObjectDelta.createModificationReplaceProperty(UserType.class,
-//        		USER_JACK_OID, UserType.F_TELEPHONE_NUMBER, prismContext, "1 222 3456789");
-//        deltas.add(userDelta);
-//                
-//		// WHEN
-//		modelService.executeChanges(deltas, null, task, result);
-//
-//		// THEN
-//		PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
-//		display("User after", userJack);
-//        
-//		PrismAsserts.assertPropertyValue(userJack, UserType.F_DESCRIPTION, "Where's the rum?");
-//        assertAssignedAccount(userJack, RESOURCE_DUMMY_BLUE_OID);
-//        assertNotAssignedRole(userJack, ROLE_PIRATE_OID);
-//        assertAssignments(userJack, 1);
-//        
-//        UserType userJackType = userJack.asObjectable();
-//        assertEquals("Unexpected number of accountRefs", 1, userJackType.getLinkRef().size());
-//        
-//        result.computeStatus();
-//        TestUtil.assertSuccess(result);
-//        
-//        assertEquals("Wrong costCenter", "X000", userJackType.getCostCenter());
-//        assertEquals("Wrong employee number", jackEmployeeNumber, userJackType.getEmployeeNumber());
-//        assertEquals("Wrong telephone number", "1 222 3456789", userJackType.getTelephoneNumber());
-//        assertNull("Unexpected title: " + userJackType.getTitle(), userJackType.getTitle());
-//	}
-//	
-//	@Test
-//    public void test110AssignDummy() throws Exception {
-//		final String TEST_NAME = "test110AssignDummy";
-//        TestUtil.displayTestTile(this, TEST_NAME);
-//
-//        // GIVEN
-//        Task task = taskManager.createTaskInstance(TestInbounds.class.getName() + "." + TEST_NAME);
-//        OperationResult result = task.getResult();
-//                    
-//		// WHEN
-//        assignAccount(USER_JACK_OID, RESOURCE_DUMMY_OID, null, task, result);
-//
-//		// THEN
-//		PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
-//		display("User after", userJack);
-//        
-//		PrismAsserts.assertPropertyValue(userJack, UserType.F_DESCRIPTION, "Where's the rum?");
-//        assertAssignedAccount(userJack, RESOURCE_DUMMY_BLUE_OID);
-//        assertAssignedAccount(userJack, RESOURCE_DUMMY_OID);
-//        assertNotAssignedRole(userJack, ROLE_PIRATE_OID);
-//        assertAssignments(userJack, 2);
-//        
-//        UserType userJackType = userJack.asObjectable();
-//        assertEquals("Unexpected number of accountRefs", 2, userJackType.getLinkRef().size());
-//        
-//        result.computeStatus();
-//        TestUtil.assertSuccess(result);
-//        
-//        assertEquals("Wrong costCenter", "X000", userJackType.getCostCenter());
-//        assertEquals("Wrong employee number", jackEmployeeNumber, userJackType.getEmployeeNumber());
-//        assertEquals("Wrong telephone number", "1 222 3456789", userJackType.getTelephoneNumber());
-//        assertNull("Unexpected title: " + userJackType.getTitle(), userJackType.getTitle());
-//        IntegrationTestTools.assertExtensionProperty(userJack, PIRACY_COLORS, "none");
-//	}
-//	
-//	@Test
-//    public void test119UnAssignDummy() throws Exception {
-//		final String TEST_NAME = "test119UnAssignDummy";
-//        TestUtil.displayTestTile(this, TEST_NAME);
-//
-//        // GIVEN
-//        Task task = taskManager.createTaskInstance(TestInbounds.class.getName() + "." + TEST_NAME);
-//        OperationResult result = task.getResult();
-//                    
-//		// WHEN
-//        unassignAccount(USER_JACK_OID, RESOURCE_DUMMY_OID, null, task, result);
-//
-//		// THEN
-//		PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
-//		display("User after", userJack);
-//        
-//		PrismAsserts.assertPropertyValue(userJack, UserType.F_DESCRIPTION, "Where's the rum?");
-//        assertAssignedAccount(userJack, RESOURCE_DUMMY_BLUE_OID);
-//        assertNotAssignedRole(userJack, ROLE_PIRATE_OID);
-//        assertAssignments(userJack, 1);
-//        
-//        UserType userJackType = userJack.asObjectable();
-//        assertEquals("Unexpected number of accountRefs", 1, userJackType.getLinkRef().size());
-//        
-//        result.computeStatus();
-//        TestUtil.assertSuccess(result);
-//        
-//        assertEquals("Wrong costCenter", "X000", userJackType.getCostCenter());
-//        assertEquals("Wrong employee number", jackEmployeeNumber, userJackType.getEmployeeNumber());
-//        assertEquals("Wrong telephone number", "1 222 3456789", userJackType.getTelephoneNumber());
-//        assertNull("Unexpected title: "+userJackType.getTitle(), userJackType.getTitle());
-//        IntegrationTestTools.assertNoExtensionProperty(userJack, PIRACY_COLORS);
-//	}
-//
-//	@Test
-//    public void test150ModifyJackOrganizationalUnitRum() throws Exception {
-//		final String TEST_NAME = "test150ModifyJackOrganizationalUnitRum";
-//        TestUtil.displayTestTile(this, TEST_NAME);
-//
-//        // GIVEN
-//        Task task = taskManager.createTaskInstance(TestInbounds.class.getName() + "." + TEST_NAME);
-//        OperationResult result = task.getResult();
-//                    
-//		// WHEN
-//        modifyUserReplace(USER_JACK_OID, UserType.F_ORGANIZATIONAL_UNIT, task, result, PrismTestUtil.createPolyString("F0004"));
-//
-//		// THEN
-//		PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
-//		display("User after", userJack);
-//        
-//		PrismAsserts.assertPropertyValue(userJack, UserType.F_DESCRIPTION, "Where's the rum?");
-//        assertAssignedAccount(userJack, RESOURCE_DUMMY_BLUE_OID);
-//        assertNotAssignedRole(userJack, ROLE_PIRATE_OID);
-//        assertAssignedOrg(userJack, ORG_MINISTRY_OF_RUM_OID);
-//        assertHasOrg(userJack, ORG_MINISTRY_OF_RUM_OID);
-//        assertAssignments(userJack, 2);
-//        
-//        UserType userJackType = userJack.asObjectable();
-//        assertEquals("Unexpected number of accountRefs", 1, userJackType.getLinkRef().size());
-//        
-//        result.computeStatus();
-//        TestUtil.assertSuccess(result);
-//        
-//        assertEquals("Wrong costCenter", "X000", userJackType.getCostCenter());
-//        assertEquals("Wrong employee number", jackEmployeeNumber, userJackType.getEmployeeNumber());
-//        assertEquals("Wrong telephone number", "1 222 3456789", userJackType.getTelephoneNumber());
-//        assertNull("Unexpected title: " + userJackType.getTitle(), userJackType.getTitle());
-////        IntegrationTestTools.assertNoExtensionProperty(userJack, PIRACY_COLORS);
-//	}
-//
-//	@Test
-//    public void test151ModifyJackOrganizationalUnitOffense() throws Exception {
-//		final String TEST_NAME = "test151ModifyJackOrganizationalUnitOffense";
-//        TestUtil.displayTestTile(this, TEST_NAME);
-//
-//        // GIVEN
-//        Task task = taskManager.createTaskInstance(TestInbounds.class.getName() + "." + TEST_NAME);
-//        OperationResult result = task.getResult();
-//                    
-//		// WHEN
-//        modifyUserReplace(USER_JACK_OID, UserType.F_ORGANIZATIONAL_UNIT, task, result, PrismTestUtil.createPolyString("F0003"));
-//
-//		// THEN
-//		PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
-//		display("User after", userJack);
-//        
-//		PrismAsserts.assertPropertyValue(userJack, UserType.F_DESCRIPTION, "Where's the rum?");
-//        assertAssignedAccount(userJack, RESOURCE_DUMMY_BLUE_OID);
-//        assertNotAssignedRole(userJack, ROLE_PIRATE_OID);
-//        assertAssignedOrg(userJack, ORG_MINISTRY_OF_OFFENSE_OID);
-//        assertHasOrg(userJack, ORG_MINISTRY_OF_OFFENSE_OID);
-//        assertAssignments(userJack, 2);
-//        
-//        UserType userJackType = userJack.asObjectable();
-//        assertEquals("Unexpected number of accountRefs", 1, userJackType.getLinkRef().size());
-//        
-//        result.computeStatus();
-//        TestUtil.assertSuccess(result);
-//        
-//        assertEquals("Wrong costCenter", "X000", userJackType.getCostCenter());
-//        assertEquals("Wrong employee number", jackEmployeeNumber, userJackType.getEmployeeNumber());
-//        assertEquals("Wrong telephone number", "1 222 3456789", userJackType.getTelephoneNumber());
-//        assertNull("Unexpected title: " + userJackType.getTitle(), userJackType.getTitle());
-////        IntegrationTestTools.assertNoExtensionProperty(userJack, PIRACY_COLORS);
-//	}
-//
-//	@Test
-//    public void test152ModifyJackOrganizationalUnitAddRum() throws Exception {
-//		final String TEST_NAME = "test152ModifyJackOrganizationalUnitAddRum";
-//        TestUtil.displayTestTile(this, TEST_NAME);
-//
-//        // GIVEN
-//        Task task = taskManager.createTaskInstance(TestInbounds.class.getName() + "." + TEST_NAME);
-//        OperationResult result = task.getResult();
-//                    
-//		// WHEN
-//        modifyUserAdd(USER_JACK_OID, UserType.F_ORGANIZATIONAL_UNIT, task, result, PrismTestUtil.createPolyString("F0004"));
-//
-//		// THEN
-//		PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
-//		display("User after", userJack);
-//        
-//		PrismAsserts.assertPropertyValue(userJack, UserType.F_DESCRIPTION, "Where's the rum?");
-//        assertAssignedAccount(userJack, RESOURCE_DUMMY_BLUE_OID);
-//        assertNotAssignedRole(userJack, ROLE_PIRATE_OID);
-//        assertAssignedOrg(userJack, ORG_MINISTRY_OF_RUM_OID);
-//        assertAssignedOrg(userJack, ORG_MINISTRY_OF_OFFENSE_OID);
-//        assertHasOrg(userJack, ORG_MINISTRY_OF_RUM_OID);
-//        assertHasOrg(userJack, ORG_MINISTRY_OF_OFFENSE_OID);
-//        assertAssignments(userJack, 3);
-//        
-//        UserType userJackType = userJack.asObjectable();
-//        assertEquals("Unexpected number of accountRefs", 1, userJackType.getLinkRef().size());
-//        
-//        result.computeStatus();
-//        TestUtil.assertSuccess(result);
-//        
-//        assertEquals("Wrong costCenter", "X000", userJackType.getCostCenter());
-//        assertEquals("Wrong employee number", jackEmployeeNumber, userJackType.getEmployeeNumber());
-//        assertEquals("Wrong telephone number", "1 222 3456789", userJackType.getTelephoneNumber());
-//        assertNull("Unexpected title: " + userJackType.getTitle(), userJackType.getTitle());
-////        IntegrationTestTools.assertNoExtensionProperty(userJack, PIRACY_COLORS);
-//	}
-//
-//	@Test
-//    public void test153ModifyJackOrganizationalUnitDeleteOffense() throws Exception {
-//		final String TEST_NAME = "test153ModifyJackOrganizationalUnitDeleteOffense";
-//        TestUtil.displayTestTile(this, TEST_NAME);
-//
-//        // GIVEN
-//        Task task = taskManager.createTaskInstance(TestInbounds.class.getName() + "." + TEST_NAME);
-//        OperationResult result = task.getResult();
-//                    
-//		// WHEN
-//        modifyUserDelete(USER_JACK_OID, UserType.F_ORGANIZATIONAL_UNIT, task, result, PrismTestUtil.createPolyString("F0003"));
-//
-//		// THEN
-//		PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
-//		display("User after", userJack);
-//        
-//		PrismAsserts.assertPropertyValue(userJack, UserType.F_DESCRIPTION, "Where's the rum?");
-//        assertAssignedAccount(userJack, RESOURCE_DUMMY_BLUE_OID);
-//        assertNotAssignedRole(userJack, ROLE_PIRATE_OID);
-//        assertAssignedOrg(userJack, ORG_MINISTRY_OF_RUM_OID);
-//        assertHasOrg(userJack, ORG_MINISTRY_OF_RUM_OID);
-//        assertAssignments(userJack, 2);
-//        
-//        UserType userJackType = userJack.asObjectable();
-//        assertEquals("Unexpected number of accountRefs", 1, userJackType.getLinkRef().size());
-//        
-//        result.computeStatus();
-//        TestUtil.assertSuccess(result);
-//        
-//        assertEquals("Wrong costCenter", "X000", userJackType.getCostCenter());
-//        assertEquals("Wrong employee number", jackEmployeeNumber, userJackType.getEmployeeNumber());
-//        assertEquals("Wrong telephone number", "1 222 3456789", userJackType.getTelephoneNumber());
-//        assertNull("Unexpected title: "+userJackType.getTitle(), userJackType.getTitle());
-////        IntegrationTestTools.assertNoExtensionProperty(userJack, PIRACY_COLORS);
-//	}
-//
-//	/**
-//	 * Creates org on demand.
-//	 */
-//	@Test
-//    public void test155ModifyJackOrganizationalUnitFD001() throws Exception {
-//		final String TEST_NAME = "test155ModifyJackOrganizationalUnitFD001";
-//        TestUtil.displayTestTile(this, TEST_NAME);
-//
-//        // GIVEN
-//        Task task = taskManager.createTaskInstance(TestInbounds.class.getName() + "." + TEST_NAME);
-//        OperationResult result = task.getResult();
-//                    
-//		// WHEN
-//        modifyUserAdd(USER_JACK_OID, UserType.F_ORGANIZATIONAL_UNIT, task, result, PrismTestUtil.createPolyString("FD001"));
-//
-//		// THEN
-//		PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
-//		display("User after", userJack);
-//        
-//		PrismAsserts.assertPropertyValue(userJack, UserType.F_DESCRIPTION, "Where's the rum?");
-//        assertAssignedAccount(userJack, RESOURCE_DUMMY_BLUE_OID);
-//        assertNotAssignedRole(userJack, ROLE_PIRATE_OID);
-//        assertAssignedOrg(userJack, ORG_MINISTRY_OF_RUM_OID);
-//        assertHasOrg(userJack, ORG_MINISTRY_OF_RUM_OID);
-//
-//        assertOnDemandOrgAssigned("FD001", userJack);
-//        
-//        assertAssignments(userJack, 3);
-//        
-//        UserType userJackType = userJack.asObjectable();
-//        assertEquals("Unexpected number of accountRefs", 1, userJackType.getLinkRef().size());
-//        
-//        result.computeStatus();
-//        TestUtil.assertSuccess(result);
-//        
-//        assertEquals("Wrong costCenter", "X000", userJackType.getCostCenter());
-//        assertEquals("Wrong employee number", jackEmployeeNumber, userJackType.getEmployeeNumber());
-//        assertEquals("Wrong telephone number", "1 222 3456789", userJackType.getTelephoneNumber());
-//        assertNull("Unexpected title: "+userJackType.getTitle(), userJackType.getTitle());
-////        IntegrationTestTools.assertNoExtensionProperty(userJack, PIRACY_COLORS);
-//	}
-//	
-//	/**
-//	 * Reconcile user Jack, see that everything is OK.
-//	 */
-//	@Test
-//    public void test156ReconcileJack() throws Exception {
-//		final String TEST_NAME = "test156ReconcileJack";
-//        TestUtil.displayTestTile(this, TEST_NAME);
-//
-//        // GIVEN
-//        Task task = taskManager.createTaskInstance(TestInbounds.class.getName() + "." + TEST_NAME);
-//        OperationResult result = task.getResult();
-//                    
-//		// WHEN
-//        reconcileUser(USER_JACK_OID, task, result);
-//
-//		// THEN
-//		PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
-//		display("User after", userJack);
-//        
-//		PrismAsserts.assertPropertyValue(userJack, UserType.F_DESCRIPTION, "Where's the rum?");
-//        assertAssignedAccount(userJack, RESOURCE_DUMMY_BLUE_OID);
-//        assertNotAssignedRole(userJack, ROLE_PIRATE_OID);
-//        assertAssignedOrg(userJack, ORG_MINISTRY_OF_RUM_OID);
-//        assertHasOrg(userJack, ORG_MINISTRY_OF_RUM_OID);
-//
-//        assertOnDemandOrgAssigned("FD001", userJack);
-//        
-//        assertAssignments(userJack, 3);
-//        
-//        UserType userJackType = userJack.asObjectable();
-//        assertEquals("Unexpected number of accountRefs", 1, userJackType.getLinkRef().size());
-//        
-//        result.computeStatus();
-//        TestUtil.assertSuccess(result);
-//        
-//        assertEquals("Wrong costCenter", "X000", userJackType.getCostCenter());
-//        assertEquals("Wrong employee number", jackEmployeeNumber, userJackType.getEmployeeNumber());
-//        assertEquals("Wrong telephone number", "1 222 3456789", userJackType.getTelephoneNumber());
-//        assertNull("Unexpected title: "+userJackType.getTitle(), userJackType.getTitle());
-//	}
-//	
-//	/**
-//	 * Creates two orgs on demand.
-//	 */
-//	@Test
-//    public void test157ModifyJackOrganizationalUnitFD0023() throws Exception {
-//		final String TEST_NAME = "test157ModifyJackOrganizationalUnitFD0023";
-//        TestUtil.displayTestTile(this, TEST_NAME);
-//
-//        // GIVEN
-//        Task task = taskManager.createTaskInstance(TestInbounds.class.getName() + "." + TEST_NAME);
-//        OperationResult result = task.getResult();
-//                    
-//		// WHEN
-//        modifyUserAdd(USER_JACK_OID, UserType.F_ORGANIZATIONAL_UNIT, task, result, 
-//        		PrismTestUtil.createPolyString("FD002"), PrismTestUtil.createPolyString("FD003"));
-//
-//		// THEN
-//		PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
-//		display("User after", userJack);
-//        
-//		PrismAsserts.assertPropertyValue(userJack, UserType.F_DESCRIPTION, "Where's the rum?");
-//        assertAssignedAccount(userJack, RESOURCE_DUMMY_BLUE_OID);
-//        assertNotAssignedRole(userJack, ROLE_PIRATE_OID);
-//        
-//        assertAssignedOrg(userJack, ORG_MINISTRY_OF_RUM_OID);
-//        assertHasOrg(userJack, ORG_MINISTRY_OF_RUM_OID);
-//        
-//        assertOnDemandOrgAssigned("FD001", userJack);
-//        assertOnDemandOrgAssigned("FD002", userJack);
-//        assertOnDemandOrgAssigned("FD003", userJack);
-//                
-//        assertAssignments(userJack, 5);
-//        
-//        UserType userJackType = userJack.asObjectable();
-//        assertEquals("Unexpected number of accountRefs", 1, userJackType.getLinkRef().size());
-//        
-//        result.computeStatus();
-//        TestUtil.assertSuccess(result);
-//        
-//        assertEquals("Wrong costCenter", "X000", userJackType.getCostCenter());
-//        assertEquals("Wrong employee number", jackEmployeeNumber, userJackType.getEmployeeNumber());
-//        assertEquals("Wrong telephone number", "1 222 3456789", userJackType.getTelephoneNumber());
-//        assertNull("Unexpected title: "+userJackType.getTitle(), userJackType.getTitle());
-////        IntegrationTestTools.assertNoExtensionProperty(userJack, PIRACY_COLORS);
-//	}
-//	
-//	@Test
-//    public void test159ModifyJackDeleteOrganizationalUnitFD002() throws Exception {
-//		final String TEST_NAME = "test159ModifyJackDeleteOrganizationalUnitFD002";
-//        TestUtil.displayTestTile(this, TEST_NAME);
-//
-//        // GIVEN
-//        Task task = taskManager.createTaskInstance(TestInbounds.class.getName() + "." + TEST_NAME);
-//        OperationResult result = task.getResult();
-//                    
-//		// WHEN
-//        modifyUserDelete(USER_JACK_OID, UserType.F_ORGANIZATIONAL_UNIT, task, result,
-//                PrismTestUtil.createPolyString("FD002"));
-//
-//		// THEN
-//		PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
-//		display("User after", userJack);
-//        
-//		PrismAsserts.assertPropertyValue(userJack, UserType.F_DESCRIPTION, "Where's the rum?");
-//        assertAssignedAccount(userJack, RESOURCE_DUMMY_BLUE_OID);
-//        assertNotAssignedRole(userJack, ROLE_PIRATE_OID);
-//        
-//        assertAssignedOrg(userJack, ORG_MINISTRY_OF_RUM_OID);
-//        assertHasOrg(userJack, ORG_MINISTRY_OF_RUM_OID);
-//        
-//        assertOnDemandOrgAssigned("FD001", userJack);
-//        assertOnDemandOrgAssigned("FD003", userJack);
-//                
-//        assertAssignments(userJack, 4);
-//        
-//        assertOnDemandOrgExists("FD002");
-//        
-//        UserType userJackType = userJack.asObjectable();
-//        assertEquals("Unexpected number of accountRefs", 1, userJackType.getLinkRef().size());
-//        
-//        result.computeStatus();
-//        TestUtil.assertSuccess(result);
-//        
-//        assertEquals("Wrong costCenter", "X000", userJackType.getCostCenter());
-//        assertEquals("Wrong employee number", jackEmployeeNumber, userJackType.getEmployeeNumber());
-//        assertEquals("Wrong telephone number", "1 222 3456789", userJackType.getTelephoneNumber());
-//        assertNull("Unexpected title: "+userJackType.getTitle(), userJackType.getTitle());
-////        IntegrationTestTools.assertNoExtensionProperty(userJack, PIRACY_COLORS);
-//	}
-//
-//    @Test
-//    public void test160ModifyUserGivenNameAgain() throws Exception {
-//        TestUtil.displayTestTile(this, "test160ModifyUserGivenNameAgain");
-//
-//        // GIVEN
-//        Task task = taskManager.createTaskInstance(TestInbounds.class.getName() + ".test160ModifyUserGivenNameAgain");
-//        OperationResult result = task.getResult();
-//
-//        dummyAuditService.clear();
-//
-//        Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
-//        ObjectDelta<UserType> userDelta = ObjectDelta.createModificationReplaceProperty(UserType.class,
-//                USER_JACK_OID, UserType.F_GIVEN_NAME, prismContext, new PolyString("JACKIE"));
-//        deltas.add(userDelta);
-//
-//        // WHEN
-//        modelService.executeChanges(deltas, null, task, result);
-//
-//        // THEN
-//        PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
-//
-//        result.computeStatus();
-//        TestUtil.assertSuccess(result);
-//
-//        PrismAsserts.assertPropertyValue(userJack.findContainer(UserType.F_EXTENSION), PIRACY_BAD_LUCK, 123L);
-//
-//        display("Audit", dummyAuditService);
-//        dummyAuditService.assertRecords(2);
-//        dummyAuditService.assertSimpleRecordSanity();
-//        dummyAuditService.assertAnyRequestDeltas();
-//        dummyAuditService.assertExecutionDeltas(2);
-//        dummyAuditService.assertHasDelta(ChangeType.MODIFY, UserType.class);
-//        dummyAuditService.assertTarget(USER_JACK_OID);
-//        dummyAuditService.assertExecutionSuccess();
-//        ObjectDeltaOperation<?> objectDeltaOperation = dummyAuditService.getExecutionDelta(0, ChangeType.MODIFY, UserType.class);
-//        assertEquals("unexpected number of modifications in audited delta", 4, objectDeltaOperation.getObjectDelta().getModifications().size());   // givenName + badLuck + modifyTimestamp
-//        PropertyDelta badLuckDelta = objectDeltaOperation.getObjectDelta().findPropertyDelta(new ItemPath(UserType.F_EXTENSION, PIRACY_BAD_LUCK));
-//        assertNotNull("badLuck delta was not found", badLuckDelta);
-//        List<PrismValue> oldValues = (List<PrismValue>) badLuckDelta.getEstimatedOldValues();
-//        assertNotNull("badLuck delta has null estimatedOldValues field", oldValues);
-//        PrismAsserts.assertEqualsCollectionUnordered("badLuck delta has wrong estimatedOldValues", oldValues, new PrismPropertyValue<Long>(123L), new PrismPropertyValue<Long>(456L));
-//    }
-//
-//    @Test
-//    public void test162ModifyUserGivenNameAgainPhantomChange() throws Exception {
-//        TestUtil.displayTestTile(this, "test162ModifyUserGivenNameAgainPhantomChange");
-//
-//        // GIVEN
-//        Task task = taskManager.createTaskInstance(TestInbounds.class.getName() + ".test162ModifyUserGivenNameAgainPhantomChange");
-//        OperationResult result = task.getResult();
-//
-//        dummyAuditService.clear();
-//
-//        Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
-//        ObjectDelta<UserType> userDelta = ObjectDelta.createModificationReplaceProperty(UserType.class,
-//                USER_JACK_OID, UserType.F_GIVEN_NAME, prismContext, new PolyString("JACKIE"));      // this is a phantom change
-//        deltas.add(userDelta);
-//
-//        // WHEN
-//        modelService.executeChanges(deltas, null, task, result);
-//
-//        // THEN
-//        PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
-//
-//        result.computeStatus();
-//        TestUtil.assertSuccess(result);
-//
-//        PrismAsserts.assertPropertyValue(userJack.findContainer(UserType.F_EXTENSION), PIRACY_BAD_LUCK, 123L);
-//
-//        display("Audit", dummyAuditService);
-//        dummyAuditService.assertRecords(2);
-//        dummyAuditService.assertSimpleRecordSanity();
-//        dummyAuditService.assertAnyRequestDeltas();
-//        dummyAuditService.assertExecutionDeltas(1);
-//        dummyAuditService.assertHasDelta(ChangeType.MODIFY, UserType.class);
-//        dummyAuditService.assertTarget(USER_JACK_OID);
-//        dummyAuditService.assertExecutionSuccess();
-//        ObjectDeltaOperation<?> objectDeltaOperation = dummyAuditService.getExecutionDelta(0);
-//        assertEquals("unexpected number of modifications in audited delta", 2, objectDeltaOperation.getObjectDelta().getModifications().size());   // givenName + modifyTimestamp
-//    }
-//
-//    @Test
-//    public void test165ModifyUserGivenNameAgainAgain() throws Exception {
-//        TestUtil.displayTestTile(this, "test165ModifyUserGivenNameAgainAgain");
-//
-//        // GIVEN
-//        Task task = taskManager.createTaskInstance(TestInbounds.class.getName() + ".test165ModifyUserGivenNameAgainAgain");
-//        OperationResult result = task.getResult();
-//
-//        Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
-//        ObjectDelta<UserType> userDelta = ObjectDelta.createModificationReplaceProperty(UserType.class,
-//                USER_JACK_OID, UserType.F_GIVEN_NAME, prismContext, new PolyString("jackie"));
-//        deltas.add(userDelta);
-//
-//        // WHEN
-//        modelService.executeChanges(deltas, null, task, result);
-//
-//        // THEN
-//        PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
-//
-//        result.computeStatus();
-//        TestUtil.assertSuccess(result);
-//
-//        // all the values should be gone now, because the corresponding item in user template is marked as non-tolerant
-//        PrismAsserts.assertNoItem(userJack, new ItemPath(UserType.F_EXTENSION, PIRACY_BAD_LUCK));
-//    }
-//
-//    private PrismObject<OrgType> assertOnDemandOrgExists(String orgName) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException {
-//		PrismObject<OrgType> org = findObjectByName(OrgType.class, orgName);
-//		assertNotNull("The org "+orgName+" is missing!", org);
-//		display("Org "+orgName, org);
-//		PrismAsserts.assertPropertyValue(org, OrgType.F_NAME, PrismTestUtil.createPolyString(orgName));
-//		return org;
-//	}
-//	
-//	private void assertOnDemandOrgAssigned(String orgName, PrismObject<UserType> user) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException {
-//		PrismObject<OrgType> org = assertOnDemandOrgExists(orgName);
-//		PrismAsserts.assertPropertyValue(org, OrgType.F_DESCRIPTION, "Created on demand from user "+user.asObjectable().getName());
-//		assertAssignedOrg(user, org.getOid());
-//        assertHasOrg(user, org.getOid());		
-//	}
-//	
-//	@Test
-//    public void test200AddUserRapp() throws Exception {
-//		final String TEST_NAME = "test200AddUserRapp";
-//        TestUtil.displayTestTile(this, TEST_NAME);
-//
-//        // GIVEN
-//        Task task = taskManager.createTaskInstance(TestInbounds.class.getName() + "." + TEST_NAME);
-//        OperationResult result = task.getResult();
-//    
-//        PrismObject<UserType> user = PrismTestUtil.parseObject(USER_RAPP_FILE);
-//        Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
-//        ObjectDelta<UserType> userDelta = ObjectDelta.createAddDelta(user);
-//        deltas.add(userDelta);
-//                
-//		// WHEN
-//		modelService.executeChanges(deltas, null, task, result);
-//
-//		// THEN
-//		PrismObject<UserType> userAfter = modelService.getObject(UserType.class, USER_RAPP_OID, null, task, result);
-//        assertUser(userAfter, USER_RAPP_OID, "rapp", "Rapp Scallion", "Rapp", "Scallion");
-//        PrismAsserts.assertNoItem(userAfter, UserType.F_DESCRIPTION);
-//        
-//        assertAssignedAccount(userAfter, RESOURCE_DUMMY_BLUE_OID);
-//        assertAssignedNoRole(userAfter);
-//        assertAssignments(userAfter, 1);
-//        
-//        UserType userAfterType = userAfter.asObjectable();
-//        assertLinks(userAfter, 1);
-//        
-//        result.computeStatus();
-//        TestUtil.assertSuccess(result);
-//        
-//        assertEquals("Unexpected value of employeeNumber, maybe it was generated and should not be?", 
-//        		"D3ADB33F", userAfterType.getEmployeeNumber());
-//        assertEquals("Wrong costCenter", "G001", userAfterType.getCostCenter());
-//	}
-//	
-//	@Test
-//    public void test201AddUserLargo() throws Exception {
-//        TestUtil.displayTestTile(this, "test201AddUserLargo");
-//
-//        // GIVEN
-//        Task task = taskManager.createTaskInstance(TestInbounds.class.getName() + ".test201AddUserLargo");
-//        // This simulates IMPORT to trigger the channel-limited mapping
-//        task.setChannel(QNameUtil.qNameToUri(SchemaConstants.CHANGE_CHANNEL_IMPORT));
-//        OperationResult result = task.getResult();
-//    
-//        PrismObject<UserType> user = PrismTestUtil.parseObject(USER_LARGO_FILE);
-//        Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
-//        ObjectDelta<UserType> userDelta = ObjectDelta.createAddDelta(user);
-//        deltas.add(userDelta);
-//                
-//		// WHEN
-//		modelService.executeChanges(deltas, null, task, result);
-//
-//		// THEN
-//		PrismObject<UserType> userAfter = modelService.getObject(UserType.class, USER_LARGO_OID, null, task, result);
-//		display("Largo after", userAfter);
-//        assertUser(userAfter, USER_LARGO_OID, "largo", "Largo LaGrande", "Largo", "LaGrande");
-//
-//        // locality is null; the description comes from inbound mapping on dummy resource
-//        // PrismAsserts.assertPropertyValue(userAfter, UserType.F_DESCRIPTION, "Came from null");
-//
-//        // TODO TEMPORARILY allowing value of "Imported user", because the inbound mapping is not applied because of
-//        // the "locality" attribute is null (Skipping inbound for {...}location in Discr(RSD(account (default)
-//        // @10000000-0000-0000-0000-000000000004)): Not a full shadow and account a priori delta exists, but
-//        // doesn't have change for processed property.
-//        //
-//        // Either we fix this or recommend setting volatility=unpredictable for such situations.
-//        PrismAsserts.assertPropertyValue(userAfter, UserType.F_DESCRIPTION, "Imported user");
-//        assertAssignedAccount(userAfter, RESOURCE_DUMMY_BLUE_OID);
-//        assertAssignedRole(userAfter, ROLE_PIRATE_OID);
-//        assertAssignments(userAfter, 2);
-//                
-//        UserType userAfterType = userAfter.asObjectable();
-//        assertEquals("Unexpected number of accountRefs", 2, userAfterType.getLinkRef().size());
-//        
-//        result.computeStatus();
-//        TestUtil.assertSuccess(result);
-//        
-//        assertEquals("Unexpected length  of employeeNumber, maybe it was not generated?", 
-//        		GenerateExpressionEvaluator.DEFAULT_LENGTH, userAfterType.getEmployeeNumber().length());
-//	}
-//	
-//	@Test
-//    public void test202AddUserMonkey() throws Exception {
-//        TestUtil.displayTestTile(this, "test202AddUserMonkey");
-//
-//        // GIVEN
-//        Task task = taskManager.createTaskInstance(TestInbounds.class.getName() + ".test202AddUserMonkey");
-//        OperationResult result = task.getResult();
-//    
-//        PrismObject<UserType> user = PrismTestUtil.parseObject(new File(USER_THREE_HEADED_MONKEY_FILENAME));
-//        Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
-//        ObjectDelta<UserType> userDelta = ObjectDelta.createAddDelta(user);
-//        deltas.add(userDelta);
-//                
-//		// WHEN
-//		modelService.executeChanges(deltas, null, task, result);
-//
-//		// THEN
-//		PrismObject<UserType> userAfter = modelService.getObject(UserType.class, USER_THREE_HEADED_MONKEY_OID, null, task, result);
-//		display("User after", userAfter);
-////        assertUser(userAfter, USER_THREE_HEADED_MONKEY_OID, "monkey", " Monkey", null, "Monkey");
-//        assertUser(userAfter, USER_THREE_HEADED_MONKEY_OID, "monkey", "Three-Headed Monkey", null, "Monkey");
-//        PrismAsserts.assertNoItem(userAfter, UserType.F_DESCRIPTION);
-//        
-//        assertAssignedAccount(userAfter, RESOURCE_DUMMY_BLUE_OID);
-//        assertAssignedNoRole(userAfter);
-//        assertAssignments(userAfter, 1);
-//                
-//        UserType userAfterType = userAfter.asObjectable();
-//        assertEquals("Unexpected number of accountRefs", 1, userAfterType.getLinkRef().size());
-//        
-//        result.computeStatus();
-//        TestUtil.assertSuccess(result);
-//        
-//        assertEquals("Unexpected length  of employeeNumber, maybe it was not generated?", 
-//        		GenerateExpressionEvaluator.DEFAULT_LENGTH, userAfterType.getEmployeeNumber().length());
-//	}
-//	
-//	@Test
-//    public void test220AssignRoleSailorToUserRapp() throws Exception {
-//		final String TEST_NAME = "test220AssignRoleSailorToUserRapp";
-//        TestUtil.displayTestTile(this, TEST_NAME);
-//
-//        // GIVEN
-//        Task task = taskManager.createTaskInstance(TestInbounds.class.getName() + "." + TEST_NAME);
-//        OperationResult result = task.getResult();
-//    
-//		// WHEN
-//		assignRole(USER_RAPP_OID, ROLE_SAILOR_OID, task, result);
-//
-//		// THEN
-//		PrismObject<UserType> userAfter = modelService.getObject(UserType.class, USER_RAPP_OID, null, task, result);
-//        assertUser(userAfter, USER_RAPP_OID, "rapp", "Rapp Scallion", "Rapp", "Scallion");
-//        PrismAsserts.assertNoItem(userAfter, UserType.F_DESCRIPTION);
-//        
-//        assertAssignedAccount(userAfter, RESOURCE_DUMMY_BLUE_OID);
-//        assertAssignedRole(userAfter, ROLE_SAILOR_OID);
-//        assertAssignments(userAfter, 2);
-//        
-//        UserType userAfterType = userAfter.asObjectable();
-//        assertLinks(userAfter, 2);
-//        
-//        result.computeStatus();
-//        TestUtil.assertSuccess(result);
-//        
-//        assertEquals("Unexpected value of employeeNumber", 
-//        		"D3ADB33F", userAfterType.getEmployeeNumber());
-//        assertEquals("Wrong costCenter", "CC-TITANIC", userAfterType.getCostCenter());
-//	}
-//	
-//	/**
-//	 * MID-3028
-//	 */
-//	@Test
-//    public void test229UnassignRoleSailorFromUserRapp() throws Exception {
-//		final String TEST_NAME = "test220AssignRoleSailorToUserRapp";
-//        TestUtil.displayTestTile(this, TEST_NAME);
-//
-//        // GIVEN
-//        Task task = taskManager.createTaskInstance(TestInbounds.class.getName() + "." + TEST_NAME);
-//        OperationResult result = task.getResult();
-//    
-//		// WHEN
-//		unassignRole(USER_RAPP_OID, ROLE_SAILOR_OID, task, result);
-//
-//		// THEN
-//		PrismObject<UserType> userAfter = modelService.getObject(UserType.class, USER_RAPP_OID, null, task, result);
-//        assertUser(userAfter, USER_RAPP_OID, "rapp", "Rapp Scallion", "Rapp", "Scallion");
-//        PrismAsserts.assertNoItem(userAfter, UserType.F_DESCRIPTION);
-//        
-//        assertAssignedAccount(userAfter, RESOURCE_DUMMY_BLUE_OID);
-//        assertAssignedNoRole(userAfter);
-//        assertAssignments(userAfter, 1);
-//        
-//        UserType userAfterType = userAfter.asObjectable();
-//        assertLinks(userAfter, 1);
-//        
-//        result.computeStatus();
-//        TestUtil.assertSuccess(result);
-//        
-//        assertEquals("Unexpected value of employeeNumber", 
-//        		"D3ADB33F", userAfterType.getEmployeeNumber());
-//        assertEquals("Wrong costCenter", "G001", userAfterType.getCostCenter());
-//	}
-//	
-//	
-//	/**
-//	 * Role Captains has focus mapping for the same costCenter as is given
-//	 * by the user template.
-//	 */
-//	@Test
-//    public void test230AssignRoleCaptainToUserRapp() throws Exception {
-//		final String TEST_NAME = "test230AssignRoleCaptainToUserRapp";
-//        TestUtil.displayTestTile(this, TEST_NAME);
-//
-//        // GIVEN
-//        Task task = taskManager.createTaskInstance(TestInbounds.class.getName() + "." + TEST_NAME);
-//        OperationResult result = task.getResult();
-//    
-//		// WHEN
-//		assignRole(USER_RAPP_OID, ROLE_CAPTAIN_OID, task, result);
-//
-//		// THEN
-//		PrismObject<UserType> userAfter = modelService.getObject(UserType.class, USER_RAPP_OID, null, task, result);
-//        assertUser(userAfter, USER_RAPP_OID, "rapp", "Rapp Scallion", "Rapp", "Scallion");
-//        
-//        assertAssignedAccount(userAfter, RESOURCE_DUMMY_BLUE_OID);
-//        assertAssignedRole(userAfter, ROLE_CAPTAIN_OID);
-//        assertAssignments(userAfter, 2);
-//        
-//        UserType userAfterType = userAfter.asObjectable();
-//        assertLinks(userAfter, 1);
-//        
-//        result.computeStatus();
-//        TestUtil.assertSuccess(result);
-//        
-//        assertEquals("Unexpected value of employeeNumber", 
-//        		"D3ADB33F", userAfterType.getEmployeeNumber());
-//        assertEquals("Wrong costCenter", "G001", userAfterType.getCostCenter());
-//	}
-//	
-//	/**
-//	 * Object template mapping for cost center is weak, role mapping is normal.
-//	 * Direct modification should override both.
-//	 */
-//	@Test
-//    public void test232ModifyUserRappCostCenter() throws Exception {
-//		final String TEST_NAME = "test232ModifyUserRappCostCenter";
-//        TestUtil.displayTestTile(this, TEST_NAME);
-//
-//        // GIVEN
-//        Task task = taskManager.createTaskInstance(TestInbounds.class.getName() + "." + TEST_NAME);
-//        OperationResult result = task.getResult();
-//    
-//		// WHEN
-//        modifyUserReplace(USER_RAPP_OID, UserType.F_COST_CENTER, task, result, "CC-RAPP");
-//
-//		// THEN
-//		PrismObject<UserType> userAfter = modelService.getObject(UserType.class, USER_RAPP_OID, null, task, result);
-//        assertUser(userAfter, USER_RAPP_OID, "rapp", "Rapp Scallion", "Rapp", "Scallion");
-//        
-//        assertAssignedAccount(userAfter, RESOURCE_DUMMY_BLUE_OID);
-//        assertAssignedRole(userAfter, ROLE_CAPTAIN_OID);
-//        assertAssignments(userAfter, 2);
-//        
-//        UserType userAfterType = userAfter.asObjectable();
-//        assertLinks(userAfter, 1);
-//        
-//        result.computeStatus();
-//        TestUtil.assertSuccess(result);
-//        
-//        assertEquals("Unexpected value of employeeNumber", 
-//        		"D3ADB33F", userAfterType.getEmployeeNumber());
-//        assertEquals("Wrong costCenter", "CC-RAPP", userAfterType.getCostCenter());
-//	}
-//	
-//	/**
-//	 * Role Captains has focus mapping for the same costCenter as is given
-//	 * by the user template.
-//	 * MID-3028
-//	 */
-//	@Test
-//    public void test239UnassignRoleCaptainFromUserRapp() throws Exception {
-//		final String TEST_NAME = "test239UnassignRoleCaptainFromUserRapp";
-//        TestUtil.displayTestTile(this, TEST_NAME);
-//
-//        // GIVEN
-//        Task task = taskManager.createTaskInstance(TestInbounds.class.getName() + "." + TEST_NAME);
-//        OperationResult result = task.getResult();
-//    
-//		// WHEN
-//		unassignRole(USER_RAPP_OID, ROLE_CAPTAIN_OID, task, result);
-//
-//		// THEN
-//		PrismObject<UserType> userAfter = modelService.getObject(UserType.class, USER_RAPP_OID, null, task, result);
-//		display("User after", userAfter);
-//        assertUser(userAfter, USER_RAPP_OID, "rapp", "Rapp Scallion", "Rapp", "Scallion");
-//        
-//        assertAssignedAccount(userAfter, RESOURCE_DUMMY_BLUE_OID);
-//        assertAssignedNoRole(userAfter);
-//        assertAssignments(userAfter, 1);
-//        
-//        UserType userAfterType = userAfter.asObjectable();
-//        assertLinks(userAfter, 1);
-//        
-//        result.computeStatus();
-//        TestUtil.assertSuccess(result);
-//        
-//        assertEquals("Unexpected value of employeeNumber", 
-//        		"D3ADB33F", userAfterType.getEmployeeNumber());
-//        assertEquals("Wrong costCenter", "CC-RAPP", userAfterType.getCostCenter());
-//	}
-//	
-//	/**
-//	 * Move the time to the future. See if the time-based mapping in user template is properly recomputed.
-//	 */
-//	@Test
-//    public void test800Kaboom() throws Exception {
-//		final String TEST_NAME = "test800Kaboom";
-//        TestUtil.displayTestTile(this, TEST_NAME);
-//        
-//        // GIVEN
-//        Task task = taskManager.createTaskInstance(TestInbounds.class.getName() + "." + TEST_NAME);
-//        OperationResult result = task.getResult();
-//        
-//        importObjectFromFile(TASK_TRIGGER_SCANNER_FILE);
-//        waitForTaskStart(TASK_TRIGGER_SCANNER_OID, false);
-//        
-//        XMLGregorianCalendar now = clock.currentTimeXMLGregorianCalendar();
-//        now.add(XmlTypeConverter.createDuration("P1M1D"));
-//        clock.override(now);
-//        
-//        // WHEN
-//        waitForTaskNextRunAssertSuccess(TASK_TRIGGER_SCANNER_OID, true);
-//        
-//        // THEN
-//        PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
-//        PrismAsserts.assertPropertyValue(userJack, UserType.F_ADDITIONAL_NAME, PrismTestUtil.createPolyString("Kaboom!"));
-//        assertNoTrigger(userJack);
-//	}
-//	
-//	@Test
-//    public void test900DeleteUser() throws Exception {
-//		final String TEST_NAME = "test900DeleteUser";
-//        TestUtil.displayTestTile(this, TEST_NAME);
-//
-//        // GIVEN
-//        Task task = taskManager.createTaskInstance(TestInbounds.class.getName() + "." + TEST_NAME);
-//        OperationResult result = task.getResult();
-//    
-//        Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
-//        ObjectDelta<UserType> userDelta = ObjectDelta.createDeleteDelta(UserType.class,
-//        		USER_JACK_OID, prismContext);
-//        deltas.add(userDelta);
-//                
-//		// WHEN
-//		modelService.executeChanges(deltas, null, task, result);
-//
-//		// THEN
-//		try {
-//			PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
-//			display("User after", userJack);
-//			assert false : "User was not deleted: "+userJack;
-//		} catch (ObjectNotFoundException e) {
-//			// This is expected
-//		}
-//
-//		// TODO: check on resource
-//		
-//		result.computeStatus();
-//        TestUtil.assertFailure(result);
-//	}
-//	
-//	@Test
-//    public void test950CreateUserJackWithoutTemplate() throws Exception {
-//		final String TEST_NAME = "test950CreateUserJackWithoutTemplate";
-//        TestUtil.displayTestTile(this, TEST_NAME);
-//	
-//        // GIVEN
-//        setDefaultUserTemplate(null);        
-//
-//        Task task = taskManager.createTaskInstance(TestInbounds.class.getName() + "." + TEST_NAME);
-//        OperationResult result = task.getResult();
-//        
-//        // WHEN
-//        addObject(USER_JACK_FILE, task, result);
-//        
-//        // THEN
-//        result.computeStatus();
-//        TestUtil.assertSuccess(result);
-//
-//        PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
-//		display("User after", userJack);
-//        
-//		PrismAsserts.assertPropertyValue(userJack, UserType.F_DESCRIPTION, "Where's the rum?");
-//        assertAssignments(userJack, 0);
-//        
-//        UserType userJackType = userJack.asObjectable();
-//        assertEquals("Unexpected number of accountRefs", 0, userJackType.getLinkRef().size());
-//
-//		PrismAsserts.assertNoItem(userJack, UserType.F_ORGANIZATIONAL_UNIT);
-//        
-//	}
-//	
-//	/**
-//	 * Would creates org on demand if the template would be active. But it is not.
-//	 */
-//	@Test
-//    public void test952ModifyJackOrganizationalUnitFD004() throws Exception {
-//		final String TEST_NAME = "test952ModifyJackOrganizationalUnitFD004";
-//        TestUtil.displayTestTile(this, TEST_NAME);
-//
-//        // GIVEN
-//        Task task = taskManager.createTaskInstance(TestInbounds.class.getName() + "." + TEST_NAME);
-//        OperationResult result = task.getResult();
-//                    
-//		// WHEN
-//        modifyUserAdd(USER_JACK_OID, UserType.F_ORGANIZATIONAL_UNIT, task, result, PrismTestUtil.createPolyString("FD004"));
-//
-//		// THEN
-//		PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
-//		display("User after", userJack);
-//        
-//		PrismAsserts.assertPropertyValue(userJack, UserType.F_DESCRIPTION, "Where's the rum?");
-//		PrismAsserts.assertPropertyValue(userJack, UserType.F_ORGANIZATIONAL_UNIT, PrismTestUtil.createPolyString("FD004"));
-//		
-//        assertAssignments(userJack, 0);
-//        
-//        UserType userJackType = userJack.asObjectable();
-//        assertEquals("Unexpected number of accountRefs", 0, userJackType.getLinkRef().size());
-//        
-//        PrismObject<OrgType> org = findObjectByName(OrgType.class, "FD004");
-//        assertNull("Found org "+org+" but not expecting it", org);
-//	}
-//	
-//	/**
-//	 * Set the template. Reconcile the user that should have org created on demand (but does not).
-//	 * The org should be created.
-//	 */
-//	@Test
-//    public void test960ReconcileUserJackWithTemplate() throws Exception {
-//		final String TEST_NAME = "test960ModifyUserJackWithTemplate";
-//        TestUtil.displayTestTile(this, TEST_NAME);
-//
-//        // GIVEN
-//        setDefaultUserTemplate(USER_TEMPLATE_COMPLEX_OID);
-//        
-//        Task task = taskManager.createTaskInstance(TestInbounds.class.getName() + "." + TEST_NAME);
-//        OperationResult result = task.getResult();
-//                    
-//		// WHEN
-//        reconcileUser(USER_JACK_OID, task, result);
-//        
-//        // THEN
-//        result.computeStatus();
-//        TestUtil.assertSuccess(result);
-// 		PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
-// 		display("User after", userJack);
-//         
-// 		PrismAsserts.assertPropertyValue(userJack, UserType.F_DESCRIPTION, "Where's the rum?");
-//		assertAssignedAccount(userJack, RESOURCE_DUMMY_BLUE_OID);
-//		assertOnDemandOrgAssigned("FD004", userJack);
-//		
-//		assertAssignments(userJack, 2);
-//		
-//		UserType userJackType = userJack.asObjectable();
-//		assertEquals("Unexpected number of accountRefs", 1, userJackType.getLinkRef().size());
-//        
-//	}
+	/**
+	 * Modify 'gossip' on account (through shadow). That attribute has an inbound
+	 * expression that creates an assignment. Make sure it is processed properly.
+	 * MID-2689
+	 */
+	@Test
+    public void test202ModifyAccountOrgangeGossip() throws Exception {
+		final String TEST_NAME = "test202ModifyAccountOrgangeGossip";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestUserTemplate.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        PrismObject<UserType> userBefore = getUser(USER_GUYBRUSH_OID);
+		display("User before", userBefore);
+    
+		// WHEN
+		modifyObjectAddProperty(ShadowType.class, guybrushShadowOrangeOid, 
+				dummyResourceCtlOrange.getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME),
+				task, result, ROLE_PIRATE_OID);
+
+		// THEN
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+		PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
+		display("User after", userAfter);
+        assertUser(userAfter, USER_GUYBRUSH_OID, USER_GUYBRUSH_USERNAME, 
+        		USER_GUYBRUSH_FULL_NAME, USER_GUYBRUSH_GIVEN_NAME, USER_GUYBRUSH_FAMILY_NAME);
+        
+        assertAssignedAccount(userAfter, RESOURCE_DUMMY_ORANGE_OID);
+        assertAssignedRole(userAfter, ROLE_PIRATE_OID);
+        assertAssignments(userAfter, 2);
+        assertLinks(userAfter, 2);
+        
+        DummyAccount dummyAccount = assertDummyAccount(RESOURCE_DUMMY_ORANGE_NAME, USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME, true);
+        display("Orange account", dummyAccount);
+        
+        guybrushShadowOrangeOid = getLinkRefOid(userAfter, RESOURCE_DUMMY_ORANGE_OID);
+        PrismObject<ShadowType> shadowOrange = getShadowModel(guybrushShadowOrangeOid);
+        display("Orange shadow", shadowOrange);
+        
+	}
+	
+	/**
+	 * ???
+	 * MID-3080
+	 */
+	@Test(enabled=false) // MID-3080
+    public void test204AssignAccountOrgangeAgain() throws Exception {
+		final String TEST_NAME = "test204AssignAccountOrgangeAgain";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestUserTemplate.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        PrismObject<UserType> userBefore = getUser(USER_GUYBRUSH_OID);
+		display("User before", userBefore);
+    
+		// WHEN
+        assignAccount(USER_GUYBRUSH_OID, RESOURCE_DUMMY_ORANGE_OID, null);
+
+		// THEN
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+		PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
+		display("User after", userAfter);
+        assertUser(userAfter, USER_GUYBRUSH_OID, USER_GUYBRUSH_USERNAME, 
+        		USER_GUYBRUSH_FULL_NAME, USER_GUYBRUSH_GIVEN_NAME, USER_GUYBRUSH_FAMILY_NAME);
+        
+        assertAssignedAccount(userAfter, RESOURCE_DUMMY_ORANGE_OID);
+        assertAssignedRole(userAfter, ROLE_PIRATE_OID);
+        assertAssignments(userAfter, 2);
+        assertLinks(userAfter, 2);
+        
+        DummyAccount dummyAccount = assertDummyAccount(RESOURCE_DUMMY_ORANGE_NAME, USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME, true);
+        display("Orange account", dummyAccount);
+        
+        guybrushShadowOrangeOid = getLinkRefOid(userAfter, RESOURCE_DUMMY_ORANGE_OID);
+        PrismObject<ShadowType> shadowOrange = getShadowModel(guybrushShadowOrangeOid);
+        display("Orange shadow", shadowOrange);
+        
+	}
+	
 }

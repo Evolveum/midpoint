@@ -33,6 +33,7 @@ import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.model.impl.lens.LensObjectDeltaOperation;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.impl.lens.LensUtil;
+import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -300,10 +301,10 @@ public class InboundProcessor {
 	            		focus = context.getFocusContext().getObjectNew();
 	            	}
 
-	                PropertyDelta<?> userPropertyDelta = null;
+	                ItemDelta focusItemDelta = null;
 	                if (aPrioriDelta != null && accountAttributeDelta != null) {
-	                    LOGGER.trace("Processing inbound from a priori delta.");
-	                    userPropertyDelta = evaluateInboundMapping(context, inboundMappingType, accountAttributeName, null, accountAttributeDelta, 
+	                    LOGGER.trace("Processing inbound from a priori delta: {}", aPrioriDelta);
+	                    focusItemDelta = evaluateInboundMapping(context, inboundMappingType, accountAttributeName, null, accountAttributeDelta, 
 	                    		focus, accountNew, projContext.getResource(), task, result);
 	                } else if (accountCurrent != null) {
 	                	if (!projContext.isFullShadow()) {
@@ -335,15 +336,15 @@ public class InboundProcessor {
                                 return;
                             }
                         }
-	                    LOGGER.trace("Processing inbound from account sync absolute state (currentAccount).");
 	                    PrismProperty<?> oldAccountProperty = accountCurrent.findProperty(new ItemPath(ShadowType.F_ATTRIBUTES, accountAttributeName));
-	                    userPropertyDelta = evaluateInboundMapping(context, inboundMappingType, accountAttributeName, oldAccountProperty, null, 
+	                    LOGGER.trace("Processing inbound from account sync absolute state (currentAccount): {}", oldAccountProperty);
+	                    focusItemDelta = evaluateInboundMapping(context, inboundMappingType, accountAttributeName, oldAccountProperty, null, 
 	                    		focus, accountNew, projContext.getResource(), task, result);
 	                }
 	
-	                if (userPropertyDelta != null && !userPropertyDelta.isEmpty()) {
-	                    LOGGER.trace("Created delta (from inbound expression) \n{}", new Object[]{userPropertyDelta.debugDump(3)});
-	                    context.getFocusContext().swallowToProjectionWaveSecondaryDelta(userPropertyDelta);
+	                if (focusItemDelta != null && !focusItemDelta.isEmpty()) {
+	                    LOGGER.trace("Created delta (from inbound expression) \n{}", new Object[]{focusItemDelta.debugDump(3)});
+	                    context.getFocusContext().swallowToProjectionWaveSecondaryDelta(focusItemDelta);
 	                    context.recomputeFocus();
 	                } else {
 	                    LOGGER.trace("Created delta (from inbound expression) was null or empty.");
@@ -423,7 +424,7 @@ public class InboundProcessor {
         return false;
     }
     
-    private <A,U, F extends FocusType> PropertyDelta<U> evaluateInboundMapping(final LensContext<F> context, 
+    private <A, F extends FocusType, V extends PrismValue,D extends ItemDefinition> ItemDelta<V,D> evaluateInboundMapping(final LensContext<F> context, 
     		MappingType inboundMappingType, 
     		QName accountAttributeName, PrismProperty<A> oldAccountProperty, PropertyDelta<A> accountAttributeDelta,
             PrismObject<F> focusNew, PrismObject<ShadowType> account, ResourceType resource, Task task, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, ConfigurationException {
@@ -432,7 +433,7 @@ public class InboundProcessor {
         	throw new SystemException("Property "+oldAccountProperty+" has raw parsing state, such property cannot be used in inbound expressions");
         }
     	
-    	Mapping<PrismPropertyValue<U>,PrismPropertyDefinition<U>> mapping = mappingFactory.createMapping(inboundMappingType, 
+    	Mapping<V,D> mapping = mappingFactory.createMapping(inboundMappingType, 
     			"inbound expression for "+accountAttributeName+" in "+resource);
     	
     	if (!mapping.isApplicableToChannel(context.getChannel())) {
@@ -457,26 +458,25 @@ public class InboundProcessor {
             return null;
         }
         
-        ItemPath targetFocusPropertyPath = mapping.getOutputPath();
-        if (targetFocusPropertyPath == null || targetFocusPropertyPath.isEmpty()) {
+        ItemPath targetFocusItemPath = mapping.getOutputPath();
+        if (targetFocusItemPath == null || targetFocusItemPath.isEmpty()) {
         	throw new ConfigurationException("Empty target path in "+mapping.getContextDescription());
         }
-        PrismProperty<U> targetFocusProperty = null;
+        Item targetFocusItem = null;
         if (focusNew != null) {
-        	targetFocusProperty = focusNew.findProperty(targetFocusPropertyPath);
+        	targetFocusItem = focusNew.findItem(targetFocusItemPath);
         }
         PrismObjectDefinition<F> focusDefinition = context.getFocusContext().getObjectDefinition();
-        PrismPropertyDefinition targetPropertyDef = focusDefinition.findPropertyDefinition(targetFocusPropertyPath);
-        if (targetPropertyDef == null) {
-        	throw new SchemaException("No definition for focus property "+targetFocusPropertyPath+", cannot process inbound expression in "+resource);
+        ItemDefinition targetItemDef = focusDefinition.findItemDefinition(targetFocusItemPath);
+        if (targetItemDef == null) {
+        	throw new SchemaException("No definition for focus property "+targetFocusItemPath+", cannot process inbound expression in "+resource);
         }
-        
-        PropertyDelta<U> outputUserPropertydelta = new PropertyDelta<U>(targetFocusPropertyPath, targetPropertyDef, prismContext);
+        ItemDelta outputFocusItemDelta = targetItemDef.createEmptyDelta(targetFocusItemPath);
     	
         mappingEvaluator.evaluateMapping(mapping, context, task, result);
         
     	
-    	PrismValueDeltaSetTriple<PrismPropertyValue<U>> triple = mapping.getOutputTriple();
+    	PrismValueDeltaSetTriple<V> triple = mapping.getOutputTriple();
     	// Meaning of the resulting triple:
     	//   values in PLUS set will be added     (valuesToAdd in delta)
     	//   values in MINUS set will be removed  (valuesToDelete in delta)
@@ -493,60 +493,60 @@ public class InboundProcessor {
 
 				boolean alreadyReplaced = false;
 
-				for (PrismPropertyValue<U> value : triple.getPlusSet()) {
+				for (V value : triple.getPlusSet()) {
 
-	                if (targetFocusProperty != null && targetFocusProperty.hasRealValue(value)) {
+	                if (targetFocusItem != null && targetFocusItem.hasRealValue(value)) {
 	                    continue;
 	                }
 	
 	                //if property is not multi value replace existing attribute
-	                if (targetFocusProperty != null && !targetFocusProperty.getDefinition().isMultiValue() && !targetFocusProperty.isEmpty()) {
-	                    Collection<PrismPropertyValue<U>> replace = new ArrayList<PrismPropertyValue<U>>();
-	                    replace.add(value.clone());
-	                    outputUserPropertydelta.setValuesToReplace(replace);
+	                if (targetFocusItem != null && !targetFocusItem.getDefinition().isMultiValue() && !targetFocusItem.isEmpty()) {
+	                    Collection<V> replace = new ArrayList<V>();
+	                    replace.add((V) value.clone());
+	                    outputFocusItemDelta.setValuesToReplace(replace);
 
 						if (alreadyReplaced) {
-							LOGGER.warn("Multiple values for a single-valued property {}; duplicate value = {}", targetFocusProperty, value);
+							LOGGER.warn("Multiple values for a single-valued property {}; duplicate value = {}", targetFocusItem, value);
 						} else {
 							alreadyReplaced = true;
 						}
 	                } else {
-	                    outputUserPropertydelta.addValueToAdd(value.clone());
+	                    outputFocusItemDelta.addValueToAdd(value.clone());
 	                }
 	            }
 	        }
 
 	        if (triple.hasMinusSet()) {
 	            LOGGER.trace("Checking account sync property delta values to delete");
-	            for (PrismPropertyValue<U> value : triple.getMinusSet()) {
+	            for (V value : triple.getMinusSet()) {
 	
-	                if (targetFocusProperty == null || targetFocusProperty.hasRealValue(value)) {
-	                	if (!outputUserPropertydelta.isReplace()) {
+	                if (targetFocusItem == null || targetFocusItem.hasRealValue(value)) {
+	                	if (!outputFocusItemDelta.isReplace()) {
 	                		// This is not needed if we are going to replace. In fact it might cause an error.
-	                		outputUserPropertydelta.addValueToDelete(value);
+	                		outputFocusItemDelta.addValueToDelete(value);
 	                	}
 	                }
 	            }
 	        }
 	        
 	        if (triple.hasZeroSet()) {
-		        PrismProperty<U> sourceProperty = targetPropertyDef.instantiate();
-		    	sourceProperty.addAll(PrismValue.cloneCollection(triple.getZeroSet()));
-		        if (targetFocusProperty != null) {
+	        	Item sourceItem = targetItemDef.instantiate();
+		    	sourceItem.addAll(PrismValue.cloneCollection(triple.getZeroSet()));
+		        if (targetFocusItem != null) {
 		            LOGGER.trace("Simple property comparing user property {} to computed property {} ",
-		                    new Object[]{targetFocusProperty, sourceProperty});
+		                    new Object[]{targetFocusItem, sourceItem});
 		            //simple property comparing if user property exists
-		            PropertyDelta<U> diffDelta = targetFocusProperty.diff(sourceProperty);
+		            ItemDelta diffDelta = targetFocusItem.diff(sourceItem);
 		            if (diffDelta != null) {
-		            	diffDelta.setElementName(ItemPath.getName(targetFocusPropertyPath.last()));
-		            	diffDelta.setParentPath(targetFocusPropertyPath.allExceptLast());
-		            	outputUserPropertydelta.merge(diffDelta);
+		            	diffDelta.setElementName(ItemPath.getName(targetFocusItemPath.last()));
+		            	diffDelta.setParentPath(targetFocusItemPath.allExceptLast());
+		            	outputFocusItemDelta.merge(diffDelta);
 		            }
 		        } else {
-		            if (sourceProperty != null) {	// actually sourceProperty is never null here [med]
+		            if (sourceItem != null) {	// actually sourceProperty is never null here [med]
 		                LOGGER.trace("Adding user property because inbound say so (account doesn't contain that value)");
 		                //if user property doesn't exist we have to add it (as delta), because inbound say so
-		                outputUserPropertydelta.addValuesToAdd(sourceProperty.getClonedValues());
+		                outputFocusItemDelta.addValuesToAdd(sourceItem.getClonedValues());
 		            }
 		            //we don't have to create delta, because everything is alright
 		            LOGGER.trace("We don't have to create delta, everything is alright.");
@@ -567,8 +567,8 @@ public class InboundProcessor {
     			// then we need to make sure that the output (focus property) is also empty. Otherwise we miss the
     			// re-sets of projection values to empty values and cannot propagate them.
     			
-    			if (targetFocusProperty != null && !targetFocusProperty.isEmpty()) {
-    				outputUserPropertydelta.setValuesToReplace();
+    			if (targetFocusItem != null && !targetFocusItem.isEmpty()) {
+    				outputFocusItemDelta.setValuesToReplace();
     			}
 
 				// TODO implement something similar also for scripted inbounds (MID-2421)
@@ -577,7 +577,7 @@ public class InboundProcessor {
     	}
 
         // if no changes were generated return null
-        return outputUserPropertydelta.isEmpty() ? null : outputUserPropertydelta;
+        return outputFocusItemDelta.isEmpty() ? null : outputFocusItemDelta;
     }
 
 	private <F extends ObjectType> StringPolicyResolver createStringPolicyResolver(final LensContext<F> context) {

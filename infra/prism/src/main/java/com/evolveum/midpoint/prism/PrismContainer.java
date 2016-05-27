@@ -17,6 +17,8 @@
 package com.evolveum.midpoint.prism;
 
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.IdItemPathSegment;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathSegment;
@@ -664,6 +666,24 @@ public class PrismContainer<C extends Containerable> extends Item<PrismContainer
 			val.assertDefinitions(tolarateRaw, this.toString()+" in "+sourceDescription);
 		}
 	}
+    
+	public ContainerDelta<C> diff(PrismContainer<C> other) {
+		return (ContainerDelta<C>) super.diff(other);
+    }
+    
+    public ContainerDelta<C> diff(PrismContainer<C> other, boolean ignoreMetadata, boolean isLiteral) {
+    	return (ContainerDelta<C>) super.diff(other, true, false);
+    }
+    
+    public List<? extends ItemDelta> diffModifications(PrismContainer<C> other) {
+    	return diffModifications(other, true, false);
+    }
+    
+    public List<? extends ItemDelta> diffModifications(PrismContainer<C> other, boolean ignoreMetadata, boolean isLiteral) {
+    	List<? extends ItemDelta> itemDeltas = new ArrayList<>();
+		diffInternal(other, itemDeltas, ignoreMetadata, isLiteral);
+		return itemDeltas;
+    }
 
 	@Override
     public PrismContainer<C> clone() {
