@@ -103,7 +103,7 @@
             <icon>
                 <cssClass>fa fa-user</cssClass>
             </icon>
-            <color>blue</color>
+            <color>green</color>
             <authorization>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#selfProfile</authorization>
             <authorization>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#selfAll</authorization>
         </userDashboardLink>
@@ -114,7 +114,7 @@
             <icon>
                 <cssClass>fa fa-shield</cssClass>
             </icon>
-            <color>red</color>
+            <color>blue</color>
             <authorization>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#selfCredentials</authorization>
             <authorization>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#selfAll</authorization>
         </userDashboardLink>
@@ -124,16 +124,16 @@
             <icon>
                 <cssClass>fa fa-users</cssClass>
             </icon>
-            <color>green</color>
+            <color>red</color>
             <authorization>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#users</authorization>
         </userDashboardLink>
         <userDashboardLink>
             <targetUrl>/admin/resources</targetUrl>
             <label>List resources</label>
             <icon>
-                <cssClass>fa fa-building</cssClass>
+                <cssClass>fa fa-database</cssClass>
             </icon>
-            <color>yellow</color>
+            <color>purple</color>
             <authorization>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#resources</authorization>
         </userDashboardLink>
     </adminGuiConfiguration>
