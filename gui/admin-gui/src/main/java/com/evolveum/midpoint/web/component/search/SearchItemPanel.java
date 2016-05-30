@@ -28,34 +28,21 @@ import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.AttributeModifier;
-import org.apache.wicket.Component;
-import org.apache.wicket.MarkupContainer;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
-import org.apache.wicket.behavior.Behavior;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.form.DropDownChoice;
-import org.apache.wicket.markup.html.form.EnumChoiceRenderer;
 import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.markup.html.form.IChoiceRenderer;
-import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
-import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
-import org.apache.wicket.util.convert.ConversionException;
-import org.apache.wicket.util.convert.IConverter;
-import org.apache.wicket.util.convert.converter.AbstractConverter;
 
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 
 /**
  * @author Viliam Repan (lazyman)
@@ -74,13 +61,8 @@ public class SearchItemPanel extends BasePanel<SearchItem> {
     private static final String ID_VALUES = "values";
     private static final String ID_VALUE = "value";
     private static final String ID_TEXT = "text";
-    private static final String ID_TEXT_INPUT = "textInput";
     private static final String ID_COMBO = "combo";
-    private static final String ID_COMBO_INPUT = "comboInput";
     private static final String ID_BROWSER = "browser";
-    private static final String ID_BROWSER_INPUT = "browserInput";
-    private static final String ID_BROWSE = "browse";
-    private static final String ID_BROWSER_POPUP = "browserPopup";
 
     private LoadableModel<SearchItemPopoverDto> popoverModel;
 
@@ -222,7 +204,7 @@ public class SearchItemPanel extends BasePanel<SearchItem> {
                     }
                 }));
 
-                Fragment fragment = createPopoverFragment(item.getModel());
+                SearchPopupPanel fragment = createPopoverFragment(item.getModel());
                 fragment.setRenderBodyOnly(true);
                 item.add(fragment);
             }
@@ -248,15 +230,15 @@ public class SearchItemPanel extends BasePanel<SearchItem> {
         popoverBody.add(close);
     }
 
-    private Fragment createPopoverFragment(IModel<DisplayableValue> data) {
-        Fragment fragment;
+    private SearchPopupPanel createPopoverFragment(IModel<DisplayableValue> data) {
+        SearchPopupPanel popup;
         SearchItem item = getModelObject();
 
         IModel<? extends List> choices = null;
 
         switch (item.getType()) {
             case BROWSER:
-                fragment = new BrowserFragment(ID_VALUE, ID_BROWSER, this, data);
+                popup = new BrowserPopupPanel(ID_VALUE, data);
                 break;
             case BOOLEAN:
                 choices = createBooleanChoices();
@@ -264,14 +246,14 @@ public class SearchItemPanel extends BasePanel<SearchItem> {
                 if (choices == null) {
                     choices = new Model((Serializable) item.getAllowedValues());
                 }
-                fragment = new ComboFragment(ID_VALUE, ID_COMBO, this, data, choices);
+                popup = new ComboPopupPanel(ID_VALUE, data, choices);
                 break;
             case TEXT:
             default:
-                fragment = new TextFragment(ID_VALUE, ID_TEXT, this, data);
+                popup = new TextPopupPanel(ID_VALUE, data);
         }
 
-        return fragment;
+        return popup;
     }
 
     private IModel<List<DisplayableValue>> createBooleanChoices() {
@@ -373,136 +355,5 @@ public class SearchItemPanel extends BasePanel<SearchItem> {
 
     void updatePopupBody(AjaxRequestTarget target) {
         target.add(get(createComponentPath(ID_POPOVER, ID_POPOVER_BODY)));
-    }
-
-    private static class TextFragment extends SearchFragmentBase {
-
-        public TextFragment(String id, String markupId, MarkupContainer markupProvider,
-                            IModel<DisplayableValue> value) {
-            super(id, markupId, markupProvider, value);
-
-            IModel data = new PropertyModel(value, SearchValue.F_VALUE);
-            final TextField input = new TextField(ID_TEXT_INPUT, data);
-            input.add(new AjaxFormComponentUpdatingBehavior("blur") {
-
-                @Override
-                protected void onUpdate(AjaxRequestTarget target) {
-                    //nothing to do, just update model data
-                }
-            });
-            input.add(new Behavior() {
-                @Override
-                public void bind(Component component) {
-                    super.bind( component );
-
-                    component.add( AttributeModifier.replace( "onkeydown", Model.of( "if(event.keyCode == 13) {event.preventDefault();}" ) ) );
-                }
-            });
-            input.setOutputMarkupId(true);
-            add(input);
-        }
-    }
-
-    private static class ComboFragment<T extends Serializable> extends SearchFragmentBase {
-
-        public ComboFragment(String id, String markupId, MarkupContainer markupProvider,
-                             final IModel<T> value, IModel<List<T>> choices) {
-            super(id, markupId, markupProvider, value);
-
-            IModel data = new PropertyModel(value, SearchValue.F_VALUE);
-
-            final DisplayableRenderer renderer = new DisplayableRenderer(choices);
-            EnumChoiceRenderer rendered = new EnumChoiceRenderer();
-            final DropDownChoice input = new DropDownChoice(ID_COMBO_INPUT, data, choices, renderer) {
-
-                @Override
-                public IConverter getConverter(Class type) {
-                    return renderer;
-                }
-            };
-            input.setNullValid(true);
-            input.setOutputMarkupId(true);
-            add(input);
-        }
-    }
-
-    private static class BrowserFragment<T extends Serializable> extends SearchFragmentBase {
-
-        public BrowserFragment(String id, String markupId, MarkupContainer markupProvider,
-                               IModel<T> data) {
-            super(id, markupId, markupProvider, data);
-
-            IModel value = new PropertyModel(data, SearchValue.F_LABEL);
-            TextField input = new TextField(ID_BROWSER_INPUT, value);
-            add(input);
-
-            AjaxLink browse = new AjaxLink(ID_BROWSE) {
-
-                @Override
-                public void onClick(AjaxRequestTarget target) {
-                    browsePerformed(target);
-                }
-            };
-            add(browse);
-        }
-
-        private void browsePerformed(AjaxRequestTarget target) {
-//            SearchItemPanel panel = findParent(SearchItemPanel.class);
-//            ChooseTypeDialog dialog = (ChooseTypeDialog) panel.get(ID_BROWSER_POPUP);
-//            dialog.show(target);
-        }
-    }
-
-    private static class DisplayableRenderer<T extends Serializable> extends AbstractConverter<DisplayableValue>
-            implements IChoiceRenderer<DisplayableValue<T>> {
-
-        private IModel<List<DisplayableValue>> allChoices;
-
-        public DisplayableRenderer(IModel<List<DisplayableValue>> allChoices) {
-            this.allChoices = allChoices;
-        }
-
-        @Override
-        protected Class<DisplayableValue> getTargetType() {
-            return DisplayableValue.class;
-        }
-
-        @Override
-        public Object getDisplayValue(DisplayableValue<T> object) {
-            if (object == null) {
-                return null;
-            }
-
-            return object.getLabel();
-        }
-
-        @Override
-        public String getIdValue(DisplayableValue<T> object, int index) {
-            return Integer.toString(index);
-        }
-
-        @Override
-        public DisplayableValue<T> getObject(String id, IModel<? extends List<? extends DisplayableValue<T>>> choices) {
-            if (StringUtils.isEmpty(id)) {
-                return null;
-            }
-            return choices.getObject().get(Integer.parseInt(id));
-        }
-
-        @Override
-        public DisplayableValue<T> convertToObject(String value, Locale locale) throws ConversionException {
-            if (value == null) {
-                return null;
-            }
-
-            List<DisplayableValue> values = allChoices.getObject();
-            for (DisplayableValue val : values) {
-                if (value.equals(val.getLabel())) {
-                    return val;
-                }
-            }
-
-            return null;
-        }
     }
 }
