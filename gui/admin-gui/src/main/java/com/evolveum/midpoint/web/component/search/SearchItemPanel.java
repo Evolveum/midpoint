@@ -35,7 +35,6 @@ import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -71,9 +70,6 @@ public class SearchItemPanel extends BasePanel<SearchItem> {
     private static final String ID_CLOSE = "close";
     private static final String ID_VALUES = "values";
     private static final String ID_VALUE = "value";
-    private static final String ID_TEXT = "text";
-    private static final String ID_COMBO = "combo";
-    private static final String ID_BROWSER = "browser";
 
     private LoadableModel<SearchItemPopoverDto> popoverModel;
 
@@ -135,7 +131,6 @@ public class SearchItemPanel extends BasePanel<SearchItem> {
         });
 
         initPopover();
-        initBrowserPopup();
     }
 
     private SearchItemPopoverDto loadPopoverItems() {
@@ -152,45 +147,6 @@ public class SearchItemPanel extends BasePanel<SearchItem> {
         }
 
         return dto;
-    }
-
-    private void initBrowserPopup() {
-        //todo better browser dialog
-//        ChooseTypeDialog dialog = new ChooseTypeDialog(ID_BROWSER_POPUP, RoleType.class) {
-//
-//            @Override
-//            protected void chooseOperationPerformed(AjaxRequestTarget target, ObjectType object) {
-//                browserSelectObjectPerformed(target, object);
-//            }
-//
-//            @Override
-//            public boolean isSearchEnabled() {
-//                return true;
-//            }
-//
-//            @Override
-//            public QName getSearchProperty() {
-//                return ObjectType.F_NAME;
-//            }
-//        };
-//        add(dialog);
-    }
-
-    private void browserSelectObjectPerformed(AjaxRequestTarget target, ObjectType object) {
-        SearchItem item = getModelObject();
-
-        PrismReferenceValue ref = PrismReferenceValue.createFromTarget(object.asPrismObject());
-        SearchValue value = new SearchValue(ref, object.getName().getOrig());
-//        item.setValue(value); //todo fix
-
-//        ChooseTypeDialog dialog = (ChooseTypeDialog) get(ID_BROWSER_POPUP);
-//        dialog.close(target);
-
-        updateItemPerformed(target);
-    }
-
-    private void referenceDeleted(AjaxRequestTarget target) {
-
     }
 
     private void initPopover() {
@@ -270,7 +226,7 @@ public class SearchItemPanel extends BasePanel<SearchItem> {
 
     private PrismObject<LookupTableType> findLookupTable(ItemDefinition definition) {
         PrismReferenceValue valueEnumerationRef = definition.getValueEnumerationRef();
-        if (valueEnumerationRef== null) {
+        if (valueEnumerationRef == null) {
             return null;
         }
 
