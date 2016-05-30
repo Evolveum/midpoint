@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ package com.evolveum.midpoint.model.intest;
 import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.icf.dummy.resource.DummyResource;
 import com.evolveum.icf.dummy.resource.DummySyncStyle;
+import com.evolveum.icf.dummy.resource.SchemaViolationException;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
@@ -375,38 +376,5 @@ public class TestVolatility extends AbstractInitializedModelIntegrationTest {
     protected void waitForSyncTaskNextRun() throws Exception {
         waitForTaskNextRunAssertSuccess(TASK_LIVE_SYNC_DUMMY_HR_OID, false, 10000);
     }
-
-	private void assertAccount(PrismObject<UserType> userJack, String name, String expectedFullName, String shipAttributeName, String expectedShip,
-			boolean expectedEnabled, DummyResourceContoller resourceCtl, Task task) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException {
-		// ship inbound mapping is used, it is strong 
-        String accountOid = getSingleLinkOid(userJack);
-        
-		// Check shadow
-        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, task.getResult());
-        display("Repo shadow", accountShadow);
-        assertAccountShadowRepo(accountShadow, accountOid, name, resourceCtl.getResource().asObjectable());
-        
-        // Check account
-        // All the changes should be reflected to the account
-        PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, task.getResult());
-        display("Model shadow", accountModel);
-        assertAccountShadowModel(accountModel, accountOid, name, resourceCtl.getResource().asObjectable());
-        PrismAsserts.assertPropertyValue(accountModel, 
-        		resourceCtl.getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME),
-        		expectedFullName);
-        if (shipAttributeName != null) {
-	        if (expectedShip == null) {
-	        	PrismAsserts.assertNoItem(accountModel, 
-	            		resourceCtl.getAttributePath(shipAttributeName));        	
-	        } else {
-	        	PrismAsserts.assertPropertyValue(accountModel, 
-	        		resourceCtl.getAttributePath(shipAttributeName),
-	        		expectedShip);
-	        }
-        }
-        
-        // Check account in dummy resource
-        assertDummyAccount(resourceCtl.getName(), name, expectedFullName, expectedEnabled);
-	}
 	
 }

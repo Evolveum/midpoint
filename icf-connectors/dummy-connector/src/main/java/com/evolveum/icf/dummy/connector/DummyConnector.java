@@ -260,7 +260,7 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 		} catch (FileNotFoundException e) {
 			throw new ConnectorIOException(e.getMessage(), e);
 		} catch (SchemaViolationException e) {
-			throw new ConnectorException(e);
+			throw new InvalidAttributeValueException(e);
 		}
         
         String id;
@@ -339,10 +339,9 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 			        	try {
 							account.replaceAttributeValues(name, attr.getValue());
 						} catch (SchemaViolationException e) {
-							// we cannot throw checked exceptions. But this one looks suitable.
 							// Note: let's do the bad thing and add exception loaded by this classloader as inner exception here
 							// The framework should deal with it ... somehow
-							throw new IllegalArgumentException(e.getMessage(),e);
+							throw new InvalidAttributeValueException(e.getMessage(),e);
 						}
 		        	}
 		        }
@@ -492,6 +491,9 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 		} catch (FileNotFoundException e) {
 			log.info("update::exception "+e);
 			throw new ConnectorIOException(e.getMessage(), e);
+		} catch (SchemaViolationException e) {
+			log.info("update::exception "+e);
+			throw new InvalidAttributeValueException(e.getMessage(), e);
 		}
         
         log.info("update::end");
@@ -678,6 +680,9 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 		} catch (FileNotFoundException e) {
 			log.info("addAttributeValues::exception "+e);
 			throw new ConnectorIOException(e.getMessage(), e);
+		} catch (SchemaViolationException e) {
+			log.info("addAttributeValues::exception "+e);
+			throw new InvalidAttributeValueException(e.getMessage(), e);
 		}
         
         return uid;
@@ -848,6 +853,9 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 		} catch (FileNotFoundException e) {
 			log.info("removeAttributeValues::exception "+e);
 			throw new ConnectorIOException(e.getMessage(), e);
+		} catch (SchemaViolationException e) {
+			log.info("removeAttributeValues::exception "+e);
+			throw new InvalidAttributeValueException(e.getMessage(), e);
 		}
 
         return uid;
@@ -911,6 +919,9 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 		} catch (FileNotFoundException e) {
 			log.info("delete::exception "+e);
 			throw new ConnectorIOException(e.getMessage(), e);
+		} catch (SchemaViolationException e) {
+			log.info("delete::exception "+e);
+			throw new InvalidAttributeValueException(e.getMessage(), e);
 		}
         
         log.info("delete::end");
@@ -929,10 +940,16 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 
         SchemaBuilder builder = new SchemaBuilder(DummyConnector.class);
         
-    	builder.defineObjectClass(createAccountObjectClass(configuration.getSupportActivation()));
-        builder.defineObjectClass(createGroupObjectClass(configuration.getSupportActivation()));
-        builder.defineObjectClass(createPrivilegeObjectClass());
-        builder.defineObjectClass(createOrgObjectClass());
+    	try {
+			
+    		builder.defineObjectClass(createAccountObjectClass(configuration.getSupportActivation()));
+			builder.defineObjectClass(createGroupObjectClass(configuration.getSupportActivation()));
+			builder.defineObjectClass(createPrivilegeObjectClass());
+			builder.defineObjectClass(createOrgObjectClass());
+			
+		} catch (SchemaViolationException e) {
+			throw new InvalidAttributeValueException(e.getMessage(), e);
+		}
 
         log.info("schema::end");
         return builder.build();
@@ -979,7 +996,7 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
         return objClassBuilder;
     }
     
-	private ObjectClassInfo createAccountObjectClass(boolean supportsActivation) {
+	private ObjectClassInfo createAccountObjectClass(boolean supportsActivation) throws SchemaViolationException {
 		// __ACCOUNT__ objectclass
         
         DummyObjectClass dummyAccountObjectClass;
@@ -1161,6 +1178,9 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 		} catch (FileNotFoundException e) {
 			log.info("executeQuery::exception "+e);
 			throw new ConnectorIOException(e.getMessage(), e);
+		} catch (SchemaViolationException e) {
+			log.info("executeQuery::exception "+e);
+			throw new InvalidAttributeValueException(e.getMessage(), e);
 		}
         
         log.info("executeQuery::end");
@@ -1399,6 +1419,9 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 		} catch (FileNotFoundException e) {
 			log.info("sync::exception "+e);
 			throw new ConnectorIOException(e.getMessage(), e);
+		} catch (SchemaViolationException e) {
+			log.info("sync::exception "+e);
+			throw new InvalidAttributeValueException(e.getMessage(), e);
 		}
         
         log.info("sync::end");
@@ -1528,7 +1551,7 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 		return date.getTime();
 	}
 
-	private ConnectorObject convertToConnectorObject(DummyAccount account, Collection<String> attributesToGet) {
+	private ConnectorObject convertToConnectorObject(DummyAccount account, Collection<String> attributesToGet) throws SchemaViolationException {
 		
 		DummyObjectClass objectClass;
 		try {
@@ -1579,7 +1602,7 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
         return builder.build();
 	}
 	
-	private DummyAccount convertToAccount(Set<Attribute> createAttributes) throws ConnectException, FileNotFoundException {
+	private DummyAccount convertToAccount(Set<Attribute> createAttributes) throws ConnectException, FileNotFoundException, SchemaViolationException {
 		log.ok("Create attributes: {0}", createAttributes);
 		String userName = Utils.getMandatoryStringAttribute(createAttributes, Name.NAME);
 		if (configuration.getUpCaseName()) {
@@ -1641,7 +1664,7 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 		return newAccount;
 	}
 	
-	private DummyGroup convertToGroup(Set<Attribute> createAttributes) throws ConnectException, FileNotFoundException {
+	private DummyGroup convertToGroup(Set<Attribute> createAttributes) throws ConnectException, FileNotFoundException, SchemaViolationException {
 		String icfName = Utils.getMandatoryStringAttribute(createAttributes,Name.NAME);
 		if (configuration.getUpCaseName()) {
 			icfName = StringUtils.upperCase(icfName);

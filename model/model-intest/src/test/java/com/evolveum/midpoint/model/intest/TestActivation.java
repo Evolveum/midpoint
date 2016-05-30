@@ -41,6 +41,7 @@ import org.testng.annotations.Test;
 
 import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.icf.dummy.resource.DummyResource;
+import com.evolveum.icf.dummy.resource.SchemaViolationException;
 import com.evolveum.midpoint.model.intest.sync.AbstractSynchronizationStoryTest;
 import com.evolveum.midpoint.model.intest.sync.TestValidityRecomputeTask;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -1789,29 +1790,29 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 	}
 	
 		
-	private void assertDummyActivationEnabledState(String userId, boolean expectedEnabled) {
+	private void assertDummyActivationEnabledState(String userId, boolean expectedEnabled) throws SchemaViolationException {
 		assertDummyActivationEnabledState(null, userId, expectedEnabled);
 	}
 	
-	private void assertDummyActivationEnabledState(String instance, String userId, boolean expectedEnabled) {
+	private void assertDummyActivationEnabledState(String instance, String userId, boolean expectedEnabled) throws SchemaViolationException {
 		DummyAccount account = getDummyAccount(instance, userId);
 		assertNotNull("No dummy account "+userId, account);
 		assertEquals("Wrong enabled flag in dummy '"+instance+"' account "+userId, expectedEnabled, account.isEnabled());
 	}
 	
-	private void assertDummyEnabled(String userId) {
+	private void assertDummyEnabled(String userId) throws SchemaViolationException {
 		assertDummyActivationEnabledState(userId, true);
 	}
 	
-	private void assertDummyDisabled(String userId) {
+	private void assertDummyDisabled(String userId) throws SchemaViolationException {
 		assertDummyActivationEnabledState(userId, false);
 	}
 	
-	private void assertDummyEnabled(String instance, String userId) {
+	private void assertDummyEnabled(String instance, String userId) throws SchemaViolationException {
 		assertDummyActivationEnabledState(instance, userId, true);
 	}
 	
-	private void assertDummyDisabled(String instance, String userId) {
+	private void assertDummyDisabled(String instance, String userId) throws SchemaViolationException {
 		assertDummyActivationEnabledState(instance, userId, false);
 	}
 	

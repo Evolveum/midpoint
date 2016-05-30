@@ -26,6 +26,7 @@ import static org.testng.AssertJUnit.assertNull;
 import java.io.File;
 import java.io.FileInputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
@@ -42,8 +43,10 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
+import com.evolveum.icf.dummy.resource.BreakMode;
 import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
+import com.evolveum.midpoint.notifications.api.transports.Message;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainer;
@@ -130,9 +133,10 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
 
 	private static String treasureIsland;
 	
-	private String accountGuybrushDummyRedOid;
-
 	private String accountGuybrushOid;
+	private String accountJackOid;
+
+	private String accountJackRedOid;
 	
 	public TestStrangeCases() throws JAXBException {
 		super();
@@ -145,8 +149,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
 		
 		dummyResourceCtlRed.addAccount(ACCOUNT_GUYBRUSH_DUMMY_USERNAME, "Guybrush Threepwood", "Monkey Island");
 		
-		PrismObject<ShadowType> accountGuybrushDummyRed = repoAddObjectFromFile(ACCOUNT_GUYBRUSH_DUMMY_RED_FILE, ShadowType.class, initResult);
-		accountGuybrushDummyRedOid = accountGuybrushDummyRed.getOid();
+		repoAddObjectFromFile(ACCOUNT_GUYBRUSH_DUMMY_RED_FILE, ShadowType.class, initResult);
 		
 		treasureIsland = IOUtils.toString(new FileInputStream(TREASURE_ISLAND_FILE)).replace("\r\n", "\n");     // for Windows compatibility
 		
@@ -156,7 +159,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
 		addObject(ROLE_BAD_CONSTRUCTION_RESOURCE_REF_FILE, initTask, initResult);
 		addObject(ROLE_META_BAD_CONSTRUCTION_RESOURCE_REF_FILE, initTask, initResult);
 		
-		DebugUtil.setDetailedDebugDump(true);
+//		DebugUtil.setDetailedDebugDump(true);
 	}
 
 	@Test
@@ -333,6 +336,10 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.assertExecutionSuccess();
 	}
 	
+	/**
+	 * User with linkRef that points nowhere.
+	 * MID-2134
+	 */
 	@Test
     public void test200ModifyUserJackBrokenAccountRefAndPolyString() throws Exception {
 		final String TEST_NAME = "test200ModifyUserJackBrokenAccountRefAndPolyString";
@@ -354,6 +361,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         		fullNamePolyString);
 		
 		// THEN
+        TestUtil.displayThen(TEST_NAME);
 		result.computeStatus();
         TestUtil.assertSuccess("executeChanges result", result, 2);
         
@@ -370,6 +378,117 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.assertExecutionDeltas(2);
         dummyAuditService.assertHasDelta(ChangeType.MODIFY, UserType.class);
         dummyAuditService.assertExecutionOutcome(OperationResultStatus.HANDLED_ERROR);
+	}
+	
+	/**
+	 * Not much to see here. Just making sure that add account goes smoothly
+	 * after previous test. Also preparing setup for following tests.
+	 * The account is simply added, not assigned. This makes it quite fragile.
+	 * This is the way how we like it (in the tests).
+	 */
+	@Test
+    public void test210ModifyUserAddAccount() throws Exception {
+    	final String TEST_NAME = "test210ModifyUserAddAccount";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
+        
+		// WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        modifyUserAddAccount(USER_JACK_OID, ACCOUNT_JACK_DUMMY_FILE, task, result);
+		
+		// THEN
+        TestUtil.displayThen(TEST_NAME);
+		result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+		// Check accountRef
+		PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
+        accountJackOid = getSingleLinkOid(userJack);
+        
+        // Check account in dummy resource
+        assertDefaultDummyAccount("jack", "Jack Sparrow", true);
+	}
+	
+	/**
+	 * Not much to see here. Just preparing setup for following tests.
+	 * The account is simply added, not assigned. This makes it quite fragile.
+	 * This is the way how we like it (in the tests).
+	 */
+	@Test
+    public void test212ModifyUserAddAccountRed() throws Exception {
+    	final String TEST_NAME = "test212ModifyUserAddAccountRed";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
+        
+		// WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        modifyUserAddAccount(USER_JACK_OID, ACCOUNT_JACK_DUMMY_RED_FILE, task, result);
+		
+		// THEN
+        TestUtil.displayThen(TEST_NAME);
+		result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+		// Check accountRef
+		PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
+		assertLinks(userJack, 2);
+		accountJackRedOid = getLinkRefOid(userJack, RESOURCE_DUMMY_RED_OID);
+		assertNotNull(accountJackRedOid);
+        
+        assertDefaultDummyAccount("jack", "Jack Sparrow", true);
+        assertDummyAccount(RESOURCE_DUMMY_RED_NAME, "jack", "Magnificent Captain Jack Sparrow", true);
+	}
+	
+	/**
+	 * Cause schema violation on the account during a provisioning operation. This should fail
+	 * the operation, but other operations should proceed and the account should definitelly NOT
+	 * be unlinked.
+	 * MID-2134
+	 */
+	@Test
+    public void test212ModifyUserJackBrokenAccountRefAndPolyString() throws Exception {
+		final String TEST_NAME = "test212ModifyUserJackBrokenAccountRefAndPolyString";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        dummyAuditService.clear();
+        
+        dummyResource.setModifyBreakMode(BreakMode.SCHEMA);
+                        
+		// WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        modifyUserReplace(USER_JACK_OID, UserType.F_FULL_NAME, task, result, 
+        		new PolyString("Cpt. Jack Sparrow", null));
+		
+		// THEN
+        TestUtil.displayThen(TEST_NAME);
+		result.computeStatus();
+		display("Result", result);
+		TestUtil.assertPartialError(result);
+        
+		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
+		display("User after change execution", userJack);
+		assertUserJack(userJack, "Cpt. Jack Sparrow");
+        
+		assertLinks(userJack, 2);
+		String accountJackRedOidAfter = getLinkRefOid(userJack, RESOURCE_DUMMY_RED_OID);
+		assertNotNull(accountJackRedOidAfter);
+        
+		// The change was not propagated here because of schema violation error
+		assertDefaultDummyAccount("jack", "Jack Sparrow", true);
+		
+		// The change should be propagated here normally
+        assertDummyAccount(RESOURCE_DUMMY_RED_NAME, "jack", "Cpt. Jack Sparrow", true);
 	}
 	
 	// Lets test various extension magic and border cases now. This is maybe quite hight in the architecture for
@@ -421,7 +540,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
 		PrismObject<UserType> userDeGhoulash = getUser(USER_DEGHOULASH_OID);
 		display("User after change execution", userDeGhoulash);
 		assertUser(userDeGhoulash, USER_DEGHOULASH_OID, "deghoulash", "Charles DeGhoulash", "Charles", "DeGhoulash");
-        assertAccounts(USER_JACK_OID, 0);
+        assertAccounts(USER_DEGHOULASH_OID, 0);
                 
         // Check audit
         display("Audit", dummyAuditService);
