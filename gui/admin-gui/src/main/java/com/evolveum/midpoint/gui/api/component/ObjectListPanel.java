@@ -160,7 +160,8 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 					}
 				}
 				if (search == null) {
-					search = SearchFactory.createSearch(type, parentPage.getPrismContext(), true);
+					search = SearchFactory.createSearch(type, parentPage.getPrismContext(),
+							parentPage.getModelInteractionService());
 				}
 				return search;
 			}
