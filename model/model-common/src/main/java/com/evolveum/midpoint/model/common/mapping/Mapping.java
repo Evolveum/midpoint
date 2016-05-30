@@ -356,6 +356,13 @@ public class Mapping<V extends PrismValue,D extends ItemDefinition> implements D
 		return value;
 	}
 	
+	public Boolean isTolerant() {
+		if (mappingType == null) {
+			return null;
+		}
+		return mappingType.isTolerant();
+	}
+	
 	public boolean isConditionMaskOld() {
 		return conditionMaskOld;
 	}
@@ -974,21 +981,31 @@ public class Mapping<V extends PrismValue,D extends ItemDefinition> implements D
 		outputTriple = expression.evaluate(params);
 
 		if (outputTriple == null) {
-			return;
-		}
+			
+			if (conditionResultNew) {
+				// We need to return empty triple instead of null.
+				// The condition was true (or there was not condition at all)
+				// so the mapping is applicable.
+				// Returning null would mean that the mapping is not applicable
+				// at all.
+				outputTriple = new PrismValueDeltaSetTriple<>();
+			}
+			
+		} else {
 		
-		// reflect condition change
-		if (!conditionResultOld && conditionResultNew) {
-			// Condition change false -> true
-			outputTriple.addAllToPlusSet(outputTriple.getZeroSet());
-			outputTriple.clearZeroSet();
-			outputTriple.clearMinusSet();
-		}
-		if (conditionResultOld && !conditionResultNew) {
-			// Condition change true -> false
-			outputTriple.addAllToMinusSet(outputTriple.getZeroSet());
-			outputTriple.clearZeroSet();
-			outputTriple.clearPlusSet();
+			// reflect condition change
+			if (!conditionResultOld && conditionResultNew) {
+				// Condition change false -> true
+				outputTriple.addAllToPlusSet(outputTriple.getZeroSet());
+				outputTriple.clearZeroSet();
+				outputTriple.clearMinusSet();
+			}
+			if (conditionResultOld && !conditionResultNew) {
+				// Condition change true -> false
+				outputTriple.addAllToMinusSet(outputTriple.getZeroSet());
+				outputTriple.clearZeroSet();
+				outputTriple.clearPlusSet();
+			}
 		}
 	}
 	

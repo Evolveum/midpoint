@@ -26,6 +26,11 @@ public interface PrismValueDeltaSetTripleProducer<V extends PrismValue, D extend
 
 	QName getMappingQName();
 
+	/**
+	 * Null output tripple means "the mapping is not applicable", e.g. due to the
+	 * condition being false.
+	 * Empty output triple means "the mapping is applicable but there are no values".
+	 */
 	PrismValueDeltaSetTriple<V> getOutputTriple();
 	
 	MappingStrengthType getStrength();

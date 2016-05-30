@@ -201,7 +201,7 @@ public class MappingTypeDto implements Serializable {
         }
 
         if(condition != null){
-            if(mappingObject.getCondition() != null){
+            if (mappingObject.getCondition() == null) {
                 mappingObject.setCondition(new ExpressionType());
             }
 

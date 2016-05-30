@@ -329,6 +329,8 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 	protected static final File ORG_MONKEY_ISLAND_FILE = new File(COMMON_DIR, "org-monkey-island.xml");
 	protected static final String ORG_GOVERNOR_OFFICE_OID = "00000000-8888-6666-0000-100000000001";
 	protected static final String ORG_SCUMM_BAR_OID = "00000000-8888-6666-0000-100000000006";
+	protected static final String ORG_SCUMM_BAR_NAME = "F0006";
+	protected static final String ORG_SCUMM_BAR_DISPLAY_NAME = "Scumm Bar";
 	protected static final String ORG_MINISTRY_OF_OFFENSE_OID = "00000000-8888-6666-0000-100000000003";
     protected static final String ORG_MINISTRY_OF_DEFENSE_OID = "00000000-8888-6666-0000-100000000002";
 	protected static final String ORG_MINISTRY_OF_RUM_OID = "00000000-8888-6666-0000-100000000004";

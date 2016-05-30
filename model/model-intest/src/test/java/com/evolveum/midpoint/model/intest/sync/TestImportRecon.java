@@ -93,6 +93,7 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
@@ -188,19 +189,25 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 	private static final String ACCOUNT_HTM_NAME = "htm";
 	private static final String ACCOUNT_HTM_FULL_NAME = "Horatio Torquemada Marley";
 
-	
+	// AZURE resource. It disables unmatched accounts. 
+    // It also has several objectType definitions that are designed to confuse
+    // the code that determines refined schema definitions
 	protected static final File RESOURCE_DUMMY_AZURE_FILE = new File(TEST_DIR, "resource-dummy-azure.xml");
 	protected static final File RESOURCE_DUMMY_AZURE_DEPRECATED_FILE = new File(TEST_DIR, "resource-dummy-azure-deprecated.xml");
 	protected static final String RESOURCE_DUMMY_AZURE_OID = "10000000-0000-0000-0000-00000000a204";
 	protected static final String RESOURCE_DUMMY_AZURE_NAME = "azure";
 	protected static final String RESOURCE_DUMMY_AZURE_NAMESPACE = MidPointConstants.NS_RI;
 	
+	// LIME dummy resource. This is a pure authoritative resource. It has only inbound mappings.
 	protected static final File RESOURCE_DUMMY_LIME_FILE = new File(TEST_DIR, "resource-dummy-lime.xml");
 	protected static final File RESOURCE_DUMMY_LIME_DEPRECATED_FILE = new File(TEST_DIR, "resource-dummy-lime-deprecated.xml");
 	protected static final String RESOURCE_DUMMY_LIME_OID = "10000000-0000-0000-0000-000000131404";
 	protected static final String RESOURCE_DUMMY_LIME_NAME = "lime";
 	protected static final String RESOURCE_DUMMY_LIME_NAMESPACE = MidPointConstants.NS_RI;
 
+	protected static final File USER_TEMPLACE_LIME_FILE = new File(TEST_DIR, "user-template-lime.xml");
+	protected static final String USER_TEMPLACE_LIME_OID = "3cf43520-241d-11e6-afa5-a377b674950d";
+	
 	private static final File ROLE_CORPSE_FILE = new File(TEST_DIR, "role-corpse.xml");
 	private static final String ROLE_CORPSE_OID = "1c64c778-e7ac-11e5-b91a-9f44177e2359";
 	
@@ -280,6 +287,9 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 		
 		// Password policy
 		repoAddObjectFromFile(PASSWORD_POLICY_LOWER_CASE_ALPHA_AZURE_FILE, ValuePolicyType.class, initResult);
+		
+		// Object templates
+		repoAddObjectFromFile(USER_TEMPLACE_LIME_FILE, ObjectTemplateType.class, initResult);
 		
 		// And a user that will be correlated to that account
 		repoAddObjectFromFile(USER_RAPP_FILE, UserType.class, initResult);
@@ -578,6 +588,164 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         // Check audit
         assertImportAuditModifications(3);
 	}
+	
+	/**
+	 * MID-2427
+	 */
+	@Test
+    public void test162ImportFromResourceDummyLimeRappOrganizationScummBar() throws Exception {
+		final String TEST_NAME = "test162ImportFromResourceDummyLimeRappOrganizationScummBar";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TestImportRecon.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
+        
+        DummyAccount accountRappLimeBefore = dummyResourceLime.getAccountByUsername(USER_RAPP_USERNAME);
+        accountRappLimeBefore.replaceAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME,
+        		ORG_SCUMM_BAR_NAME);
+        display("Rapp lime account before", accountRappLimeBefore);
+
+        // Preconditions
+
+        PrismObject<UserType> userRappBefore = getUser(USER_RAPP_OID);
+        display("User rapp before", userRappBefore);
+        PrismAsserts.assertPropertyValue(userRappBefore, UserType.F_ORGANIZATIONAL_UNIT, 
+        		PrismTestUtil.createPolyString("The crew of The Elaine"));
+        assertNoAssignments(userRappBefore);
+
+        assertUsers(10);
+        dummyAuditService.clear();
+        rememberShadowFetchOperationCount();
+
+		// WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        modelService.importFromResource(RESOURCE_DUMMY_LIME_OID, new QName(RESOURCE_DUMMY_LIME_NAMESPACE, "AccountObjectClass"), task, result);
+		
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        OperationResult subresult = result.getLastSubresult();
+        TestUtil.assertInProgress("importAccountsFromResource result", subresult);
+        
+        waitForTaskFinish(task, true, 40000);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        TestUtil.assertSuccess(task.getResult());
+        
+        assertShadowFetchOperationCountIncrement(2);
+                
+        assertImportedUserByOid(USER_ADMINISTRATOR_OID);
+        assertImportedUserByOid(USER_JACK_OID);
+        assertImportedUserByOid(USER_BARBOSSA_OID);
+        assertImportedUserByOid(USER_GUYBRUSH_OID, RESOURCE_DUMMY_OID);
+        assertImportedUserByOid(USER_RAPP_OID, RESOURCE_DUMMY_OID, RESOURCE_DUMMY_LIME_OID);
+        assertImportedUserByUsername(ACCOUNT_HERMAN_DUMMY_USERNAME, RESOURCE_DUMMY_OID);
+        assertImportedUserByUsername(ACCOUNT_STAN_NAME, RESOURCE_DUMMY_OID);
+        assertImportedUserByUsername(ACCOUNT_RUM_NAME, RESOURCE_DUMMY_LIME_OID);
+        assertImportedUserByUsername(ACCOUNT_MURRAY_NAME, RESOURCE_DUMMY_LIME_OID);
+        
+        PrismObject<UserType> userRappAfter = getUser(USER_RAPP_OID);
+        display("User rapp after", userRappAfter);
+        PrismAsserts.assertPropertyValue(userRappAfter, UserType.F_ORGANIZATIONAL_UNIT, 
+        		PrismTestUtil.createPolyString("The crew of The Elaine"));
+        PrismAsserts.assertPropertyValue(userRappAfter, UserType.F_ORGANIZATION, 
+        		PrismTestUtil.createPolyString(ORG_SCUMM_BAR_NAME));
+        
+        // These are protected accounts, they should not be imported
+        assertNoImporterUserByUsername(ACCOUNT_DAVIEJONES_DUMMY_USERNAME);
+        assertNoImporterUserByUsername(ACCOUNT_CALYPSO_DUMMY_USERNAME);
+        
+        DummyAccount accountRappLimeAfter = dummyResourceLime.getAccountByUsername(USER_RAPP_USERNAME);
+        display("Rapp lime account after", accountRappLimeAfter);
+        assertAssignedOrg(userRappAfter, ORG_SCUMM_BAR_OID);
+        assertAssignments(userRappAfter, 1);
+        
+        assertUsers(10);
+        
+        // Check audit
+        assertImportAuditModifications(1);
+	}
+	
+	/**
+	 * MID-2427
+	 */
+	@Test
+    public void test164ImportFromResourceDummyLimeRappOrganizationNull() throws Exception {
+		final String TEST_NAME = "test164ImportFromResourceDummyLimeRappOrganizationNull";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TestImportRecon.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
+        
+        DummyAccount accountRappLimeBefore = dummyResourceLime.getAccountByUsername(USER_RAPP_USERNAME);
+        accountRappLimeBefore.replaceAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME /* no value */);
+        display("Rapp lime account before", accountRappLimeBefore);
+
+        // Preconditions
+
+        PrismObject<UserType> userRappBefore = getUser(USER_RAPP_OID);
+        display("User rapp before", userRappBefore);
+        PrismAsserts.assertPropertyValue(userRappBefore, UserType.F_ORGANIZATIONAL_UNIT, 
+        		PrismTestUtil.createPolyString("The crew of The Elaine"));
+        PrismAsserts.assertPropertyValue(userRappBefore, UserType.F_ORGANIZATION, 
+        		PrismTestUtil.createPolyString(ORG_SCUMM_BAR_NAME));
+        assertAssignedOrg(userRappBefore, ORG_SCUMM_BAR_OID);
+        assertAssignments(userRappBefore, 1);
+
+        assertUsers(10);
+        dummyAuditService.clear();
+        rememberShadowFetchOperationCount();
+
+		// WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        modelService.importFromResource(RESOURCE_DUMMY_LIME_OID, new QName(RESOURCE_DUMMY_LIME_NAMESPACE, "AccountObjectClass"), task, result);
+		
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        OperationResult subresult = result.getLastSubresult();
+        TestUtil.assertInProgress("importAccountsFromResource result", subresult);
+        
+        waitForTaskFinish(task, true, 40000);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        TestUtil.assertSuccess(task.getResult());
+        
+        assertShadowFetchOperationCountIncrement(2);
+                
+        assertImportedUserByOid(USER_ADMINISTRATOR_OID);
+        assertImportedUserByOid(USER_JACK_OID);
+        assertImportedUserByOid(USER_BARBOSSA_OID);
+        assertImportedUserByOid(USER_GUYBRUSH_OID, RESOURCE_DUMMY_OID);
+        assertImportedUserByOid(USER_RAPP_OID, RESOURCE_DUMMY_OID, RESOURCE_DUMMY_LIME_OID);
+        assertImportedUserByUsername(ACCOUNT_HERMAN_DUMMY_USERNAME, RESOURCE_DUMMY_OID);
+        assertImportedUserByUsername(ACCOUNT_STAN_NAME, RESOURCE_DUMMY_OID);
+        assertImportedUserByUsername(ACCOUNT_RUM_NAME, RESOURCE_DUMMY_LIME_OID);
+        assertImportedUserByUsername(ACCOUNT_MURRAY_NAME, RESOURCE_DUMMY_LIME_OID);
+        
+        PrismObject<UserType> userRappAfter = getUser(USER_RAPP_OID);
+        display("User rapp after", userRappAfter);
+        PrismAsserts.assertPropertyValue(userRappAfter, UserType.F_ORGANIZATIONAL_UNIT, 
+        		PrismTestUtil.createPolyString("The crew of The Elaine"));
+        PrismAsserts.assertNoItem(userRappAfter, UserType.F_ORGANIZATION);
+        
+        // These are protected accounts, they should not be imported
+        assertNoImporterUserByUsername(ACCOUNT_DAVIEJONES_DUMMY_USERNAME);
+        assertNoImporterUserByUsername(ACCOUNT_CALYPSO_DUMMY_USERNAME);
+        
+        DummyAccount accountRappLimeAfter = dummyResourceLime.getAccountByUsername(USER_RAPP_USERNAME);
+        display("Rapp lime account after", accountRappLimeAfter);
+        assertNoAssignments(userRappAfter);
+        
+        assertUsers(10);
+        
+        // Check audit
+        assertImportAuditModifications(1);
+	}
 
 	@Test
     public void test200ReconcileDummy() throws Exception {
@@ -691,7 +859,6 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         IntegrationTestTools.assertScripts(dummyResource.getScriptHistory(), scripts.toArray(new ProvisioningScriptSpec[0]));
         
         assertReconAuditModifications(1, TASK_RECONCILE_DUMMY_OID);
-//		assertReconAuditModifications(2, TASK_RECONCILE_DUMMY_OID);		// Temporary measure, see MID-2441. There is a (seemingly) redundant user delta there.
         
         // Task result
         PrismObject<TaskType> reconTaskAfter = getTask(TASK_RECONCILE_DUMMY_OID);

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -89,8 +89,9 @@ public class DummyAccount extends DummyObject {
 
 	@Override
 	protected void extendDebugDump(StringBuilder sb, int indent) {
+		sb.append("\n");
 		DebugUtil.debugDumpWithLabelToStringLn(sb, "Password", password, indent + 1);
-		DebugUtil.debugDumpWithLabelToStringLn(sb, "Lockout", lockout, indent + 1);
+		DebugUtil.debugDumpWithLabelToString(sb, "Lockout", lockout, indent + 1);
 	}
 	
 }

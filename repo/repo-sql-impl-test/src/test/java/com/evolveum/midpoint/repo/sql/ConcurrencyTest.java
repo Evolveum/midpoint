@@ -361,6 +361,11 @@ public class ConcurrencyTest extends BaseSQLRepoTest {
 
             try {
                 repositoryService.modifyObject(UserType.class, oid, deltas, result);
+				result.computeStatus();
+				if (result.isError()) {
+					LOGGER.error("Error found in operation result:\n{}", result.debugDump());
+					throw new IllegalStateException("Error found in operation result");
+				}
             } catch (Exception e) {
                 String msg = "modifyObject failed while modifying attribute(s) " + attributeNames()
                         + " to value " + dataWritten;
