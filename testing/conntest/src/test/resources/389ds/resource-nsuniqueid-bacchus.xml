@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2015 Evolveum
+  ~ Copyright (c) 2010-2016 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -71,7 +71,6 @@
 			<attribute>
 				<ref>ri:dn</ref>
 				<displayName>Distinguished Name</displayName>
-				<matchingRule>mr:distinguishedName</matchingRule>
 				<outbound>
 				    <source>
 				    	<path>$user/name</path>
@@ -88,7 +87,6 @@
 			<attribute>
 				<ref>ri:nsUniqueId</ref>
 				<displayName>Entry ID</displayName>
-				<matchingRule>mr:stringIgnoreCase</matchingRule>
 			</attribute>
 			<attribute>
 				<ref>ri:cn</ref>
@@ -138,7 +136,6 @@
 			<attribute>
 				<ref>ri:uid</ref>
 				<displayName>Login Name</displayName>
-				<matchingRule>mr:stringIgnoreCase</matchingRule>
 				<outbound>
 					<strength>weak</strength>
 					<source>
@@ -159,8 +156,15 @@
 				</inbound>
 			</attribute>
 			<attribute>
+				<ref>ri:employeeType</ref>
+				<outbound>
+					<source>
+						<path>employeeType</path>
+					</source>
+				</outbound>
+			</attribute>
+			<attribute>
 				<ref>ri:memberOf</ref>
-				<matchingRule>mr:stringIgnoreCase</matchingRule>
 				<fetchStrategy>explicit</fetchStrategy>
 			</attribute>
 			
@@ -217,7 +221,6 @@
             <objectClass>ri:groupOfUniqueNames</objectClass>
             <attribute>
 				<ref>ri:dn</ref>
-				<matchingRule>mr:distinguishedName</matchingRule>
 				<outbound>
 					<!-- Name cannot be weak. Changes in name trigger object rename. -->
 					<source>
@@ -239,11 +242,9 @@
 			</attribute>
 			<attribute>
 				<ref>ri:uniqueMember</ref>
-				<matchingRule>mr:distinguishedName</matchingRule>
 			</attribute>
 			<attribute>
 				<ref>ri:cn</ref>
-				<matchingRule>mr:stringIgnoreCase</matchingRule>
 				<outbound>
 					<strength>weak</strength>
 					<source>
