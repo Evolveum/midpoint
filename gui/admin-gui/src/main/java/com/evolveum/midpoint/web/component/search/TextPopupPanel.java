@@ -27,15 +27,14 @@ import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.behavior.Behavior;
+import org.apache.wicket.extensions.ajax.markup.html.autocomplete.AutoCompleteSettings;
 import org.apache.wicket.extensions.ajax.markup.html.autocomplete.AutoCompleteTextField;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 /**
  * @author Viliam Repan (lazyman)
@@ -86,7 +85,10 @@ public class TextPopupPanel extends SearchPopupPanel<DisplayableValue> {
             return new TextField(ID_TEXT_INPUT, data);
         }
 
-        return new AutoCompleteTextField(ID_TEXT_INPUT, data) {
+        AutoCompleteSettings settings = new AutoCompleteSettings();
+        settings.setShowListOnEmptyInput(true);
+
+        return new AutoCompleteTextField(ID_TEXT_INPUT, data, settings) {
 
             @Override
             protected Iterator getChoices(String input) {
@@ -103,7 +105,19 @@ public class TextPopupPanel extends SearchPopupPanel<DisplayableValue> {
             return values;
         }
 
-        List<LookupTableRowType> rows = lookup.asObjectable().getRow();
+        List<LookupTableRowType> rows = new ArrayList<>();
+        rows.addAll(lookup.asObjectable().getRow());
+
+        Collections.sort(rows, new Comparator<LookupTableRowType>() {
+
+            @Override
+            public int compare(LookupTableRowType o1, LookupTableRowType o2) {
+                String s1 = WebComponentUtil.getOrigStringFromPoly(o1.getLabel());
+                String s2 = WebComponentUtil.getOrigStringFromPoly(o2.getLabel());
+
+                return String.CASE_INSENSITIVE_ORDER.compare(s1, s2);
+            }
+        });
 
         for (LookupTableRowType row : rows) {
             String rowLabel = WebComponentUtil.getOrigStringFromPoly(row.getLabel());
