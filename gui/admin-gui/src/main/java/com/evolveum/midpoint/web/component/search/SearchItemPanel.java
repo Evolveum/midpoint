@@ -18,13 +18,23 @@ package com.evolveum.midpoint.web.component.search;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.RetrieveOption;
+import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.AttributeModifier;
@@ -42,6 +52,7 @@ import org.apache.wicket.model.PropertyModel;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -250,10 +261,28 @@ public class SearchItemPanel extends BasePanel<SearchItem> {
                 break;
             case TEXT:
             default:
-                popup = new TextPopupPanel(ID_VALUE, data);
+                PrismObject<LookupTableType> lookupTable = findLookupTable(item.getDefinition());
+                popup = new TextPopupPanel(ID_VALUE, data, lookupTable);
         }
 
         return popup;
+    }
+
+    private PrismObject<LookupTableType> findLookupTable(ItemDefinition definition) {
+        PrismReferenceValue valueEnumerationRef = definition.getValueEnumerationRef();
+        if (valueEnumerationRef== null) {
+            return null;
+        }
+
+        PageBase page = getPageBase();
+
+        String lookupTableUid = valueEnumerationRef.getOid();
+        Task task = page.createSimpleTask("loadLookupTable");
+        OperationResult result = task.getResult();
+
+        Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(LookupTableType.F_ROW,
+                GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE));
+        return WebModelServiceUtils.loadObject(LookupTableType.class, lookupTableUid, options, page, task, result);
     }
 
     private IModel<List<DisplayableValue>> createBooleanChoices() {

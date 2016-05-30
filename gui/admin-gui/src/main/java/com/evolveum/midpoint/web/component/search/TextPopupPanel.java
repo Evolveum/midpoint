@@ -16,16 +16,26 @@
 
 package com.evolveum.midpoint.web.component.search;
 
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.util.DisplayableValue;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableRowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
+import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.behavior.Behavior;
+import org.apache.wicket.extensions.ajax.markup.html.autocomplete.AutoCompleteTextField;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
+
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
 /**
  * @author Viliam Repan (lazyman)
@@ -34,15 +44,20 @@ public class TextPopupPanel extends SearchPopupPanel<DisplayableValue> {
 
     private static final String ID_TEXT_INPUT = "textInput";
 
-    public TextPopupPanel(String id, IModel model) {
+    private static final int MAX_ITEMS = 10;
+
+    private PrismObject<LookupTableType> lookup;
+
+    public TextPopupPanel(String id, IModel<DisplayableValue> model, PrismObject<LookupTableType> lookup) {
         super(id, model);
+        this.lookup = lookup;
 
         initLayout();
     }
 
     private void initLayout() {
-        IModel data = new PropertyModel(getModel(), SearchValue.F_VALUE);
-        final TextField input = new TextField(ID_TEXT_INPUT, data);
+        final TextField input = initTextField();
+
         input.add(new AjaxFormComponentUpdatingBehavior("blur") {
 
             @Override
@@ -62,5 +77,45 @@ public class TextPopupPanel extends SearchPopupPanel<DisplayableValue> {
         });
         input.setOutputMarkupId(true);
         add(input);
+    }
+
+    private TextField initTextField() {
+        IModel data = new PropertyModel(getModel(), SearchValue.F_VALUE);
+
+        if (lookup == null) {
+            return new TextField(ID_TEXT_INPUT, data);
+        }
+
+        return new AutoCompleteTextField(ID_TEXT_INPUT, data) {
+
+            @Override
+            protected Iterator getChoices(String input) {
+                return prepareAutoCompleteList(input).iterator();
+            }
+        };
+    }
+
+
+    private List<String> prepareAutoCompleteList(String input) {
+        List<String> values = new ArrayList<>();
+
+        if (lookup == null || lookup.asObjectable().getRow() == null) {
+            return values;
+        }
+
+        List<LookupTableRowType> rows = lookup.asObjectable().getRow();
+
+        for (LookupTableRowType row : rows) {
+            String rowLabel = WebComponentUtil.getOrigStringFromPoly(row.getLabel());
+            if (StringUtils.isEmpty(input) || rowLabel.toLowerCase().startsWith(input.toLowerCase())) {
+                values.add(rowLabel);
+            }
+
+            if (values.size() > MAX_ITEMS) {
+                break;
+            }
+        }
+
+        return values;
     }
 }
