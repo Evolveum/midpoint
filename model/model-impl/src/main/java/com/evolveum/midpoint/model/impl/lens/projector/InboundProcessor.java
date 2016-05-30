@@ -344,11 +344,13 @@ public class InboundProcessor {
 	                }
 	
 	                if (focusItemDelta != null && !focusItemDelta.isEmpty()) {
-	                    LOGGER.trace("Created delta (from inbound expression) \n{}", new Object[]{focusItemDelta.debugDump(3)});
+	                	if (LOGGER.isTraceEnabled()) {
+	                		LOGGER.trace("Created delta (from inbound expression for {} on {})\n{}", accountAttributeName, projContext.getResource(), focusItemDelta.debugDump(1));
+	                	}
 	                    context.getFocusContext().swallowToProjectionWaveSecondaryDelta(focusItemDelta);
 	                    context.recomputeFocus();
 	                } else {
-	                    LOGGER.trace("Created delta (from inbound expression) was null or empty.");
+	                    LOGGER.trace("Created delta (from inbound expression for {} on {}) was null or empty.", accountAttributeName, projContext.getResource());
 	                }
 	            }
             }
@@ -530,56 +532,42 @@ public class InboundProcessor {
 	            }
 	        }
 	        
-	        if (mapping.isTolerant() != Boolean.TRUE) {
-	        	Item shouldBeItem = targetItemDef.instantiate();
-		    	shouldBeItem.addAll(PrismValue.cloneCollection(triple.getZeroSet()));
-		    	shouldBeItem.addAll(PrismValue.cloneCollection(triple.getPlusSet()));
-		        if (targetFocusItem != null) {
-		            ItemDelta diffDelta = targetFocusItem.diff(shouldBeItem);
-		            if (LOGGER.isTraceEnabled()) {
-		        		LOGGER.trace("Comparing focus item:\n{}\nto should be item:\n{}\ndiff:\n{} ",
-		                    new Object[]{
-		                    		DebugUtil.debugDump(targetFocusItem, 1), 
-		                    		DebugUtil.debugDump(shouldBeItem, 1), 
-		                    		DebugUtil.debugDump(diffDelta, 1)
-		                    	});
-		        	}
-		            if (diffDelta != null) {
-		            	diffDelta.setElementName(ItemPath.getName(targetFocusItemPath.last()));
-		            	diffDelta.setParentPath(targetFocusItemPath.allExceptLast());
-		            	outputFocusItemDelta.merge(diffDelta);
-		            }
-		        } else {
-		            if (shouldBeItem != null) {	// actually sourceProperty is never null here [med]
-		                LOGGER.trace("Adding user property because inbound say so (account doesn't contain that value)");
-		                //if user property doesn't exist we have to add it (as delta), because inbound say so
-		                outputFocusItemDelta.addValuesToAdd(shouldBeItem.getClonedValues());
-		            }
-		            //we don't have to create delta, because everything is alright
-		            LOGGER.trace("We don't have to create delta, everything is alright.");
-		        }
+        	Item shouldBeItem = targetItemDef.instantiate();
+	    	shouldBeItem.addAll(PrismValue.cloneCollection(triple.getZeroSet()));
+	    	shouldBeItem.addAll(PrismValue.cloneCollection(triple.getPlusSet()));
+	        if (targetFocusItem != null) {
+	            ItemDelta diffDelta = targetFocusItem.diff(shouldBeItem);
+	            if (LOGGER.isTraceEnabled()) {
+	        		LOGGER.trace("Comparing focus item:\n{}\nto should be item:\n{}\ndiff:\n{} ",
+	                    new Object[]{
+	                    		DebugUtil.debugDump(targetFocusItem, 1), 
+	                    		DebugUtil.debugDump(shouldBeItem, 1), 
+	                    		DebugUtil.debugDump(diffDelta, 1)
+	                    	});
+	        	}
+	            if (diffDelta != null) {
+	            	if (mapping.isTolerant() == Boolean.TRUE) {
+	            		diffDelta.resetValuesToDelete();
+	            		if (LOGGER.isTraceEnabled()) {
+	            			LOGGER.trace("Removing delete part of the diff delta because mapping is tolerant:\n{}", diffDelta.debugDump());
+	            		}
+	            	}
+	            	diffDelta.setElementName(ItemPath.getName(targetFocusItemPath.last()));
+	            	diffDelta.setParentPath(targetFocusItemPath.allExceptLast());
+	            	outputFocusItemDelta.merge(diffDelta);
+	            }
+	        } else {
+	        	if (LOGGER.isTraceEnabled()) {
+	        		LOGGER.trace("Adding user property because inbound say so (account doesn't contain that value):\n{}",
+                		shouldBeItem.getValues());
+	        	}
+                //if user property doesn't exist we have to add it (as delta), because inbound say so
+                outputFocusItemDelta.addValuesToAdd(shouldBeItem.getClonedValues());
 	        }
 	        
     	} else { // triple == null
-
-			// TODO this is perhaps not always right. If the reason for triple == null is that the inbound was not applied
-			// because of condition being false, we perhaps should not reset the user's property.
-			// See TestImportRecon.test200ReconcileDummy, where user c0c010c0-d34d-b33f-f00d-11111111c008 has
-			// organizationalUnit being zeroed, even if the inbound was not applied because of condition==false.
-			// See MID-2441.
-
-   			if (accountAttributeDelta == null && (LensUtil.isSyncChannel(context.getChannel()) || ModelExecuteOptions.isReconcile(context.getOptions()))){
-    			// This is the case of "inbound reconciliation" which is quite special. The triple returned null
-    			// which means that there was nothing in the input and (unsurprisingly) no change. If the input was empty
-    			// then we need to make sure that the output (focus property) is also empty. Otherwise we miss the
-    			// re-sets of projection values to empty values and cannot propagate them.
-    			
-    			if (targetFocusItem != null && !targetFocusItem.isEmpty()) {
-    				outputFocusItemDelta.setValuesToReplace();
-    			}
-
-				// TODO implement something similar also for scripted inbounds (MID-2421)
-    		}
+    		
+    		// the mapping is not applicable. Nothing to do.
     		
     	}
 

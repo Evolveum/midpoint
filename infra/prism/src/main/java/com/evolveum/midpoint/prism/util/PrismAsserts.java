@@ -586,6 +586,12 @@ public class PrismAsserts {
 		assert set == null || set.isEmpty() : "Expected triple "+setName+" to be empty, but it was: "+set;
 	}
 	
+	public static void assertTripleEmpty(DeltaSetTriple<?> triple) {
+		assert triple != null : "triple is null (expected it to be empty)";
+		assert triple.isEmpty() : "triple is not empty, it is: "+triple;
+	}
+
+	
 	public static void assertEquals(String message, PolyString expected, PolyString actual) {
 		assert expected.equals(actual) : message + "; expected " + DebugUtil.dump(expected) + ", was " +
 					DebugUtil.dump(actual);
@@ -1038,4 +1044,5 @@ public class PrismAsserts {
 		assertTrue("Expected that "+object+" will be instance of "+expectedClass+", but it is "+object.getClass(), 
 				expectedClass.isAssignableFrom(object.getClass()));	
 	}
+
 }

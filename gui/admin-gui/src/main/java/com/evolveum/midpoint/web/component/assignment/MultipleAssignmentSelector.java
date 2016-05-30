@@ -20,11 +20,16 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.model.api.ModelInteractionService;
+import com.evolveum.midpoint.model.api.RoleSelectionSpecification;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
@@ -51,7 +56,6 @@ import org.apache.wicket.model.Model;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.ObjectBrowserPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
@@ -79,10 +83,8 @@ public class MultipleAssignmentSelector<F extends FocusType, H extends FocusType
 
     private static final Trace LOGGER = TraceManager.getTrace(MultipleAssignmentSelector.class);
     private static final String DOT_CLASS = MultipleAssignmentSelector.class.getName() + ".";
-    private static final String OPERATION_LOAD_AVAILABLE_ROLES = DOT_CLASS + "loadAvailableRoles";
     private static final String OPERATION_LOAD_FILTER_OBJECT = DOT_CLASS + "loadFilterObject";
 
-    private static final String ID_USER_CHOOSER_DIALOG = "userChooserDialog";
     private static final String ID_TABLE = "table";
     private static final String ID_FILTER_BUTTON_CONTAINER = "filterButtonContainer";
     private static final String ID_SEARCH_FORM = "searchForm";
@@ -388,8 +390,9 @@ public class MultipleAssignmentSelector<F extends FocusType, H extends FocusType
         }
         List<AssignmentEditorDto> currentAssignments = getAssignmentsByType(assignmentsList);
 
-        if (filterModel != null && filterModel.getObject() != null) {
-            query.addFilter(filterModel.getObject());
+        if ((provider.getQuery() == null || provider.getQuery().getFilter() == null)
+                && filterModel != null && filterModel.getObject() != null) {
+            query.setFilter(filterModel.getObject());
         }
         return applyQueryToListProvider(query, currentAssignments);
     }
@@ -453,9 +456,9 @@ public class MultipleAssignmentSelector<F extends FocusType, H extends FocusType
             public ObjectQuery getQuery() {
                 if (searchQuery == null){
                     searchQuery = new ObjectQuery();
-                }
-                if (filterModel != null && filterModel.getObject() != null){
-                    searchQuery.addFilter(filterModel.getObject());
+                    if (filterModel != null && filterModel.getObject() != null) {
+                        searchQuery.addFilter(filterModel.getObject());
+                    }
                 }
                 return searchQuery;
             }
