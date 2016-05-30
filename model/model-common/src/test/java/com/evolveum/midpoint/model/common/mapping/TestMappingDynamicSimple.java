@@ -296,7 +296,7 @@ public class TestMappingDynamicSimple {
 		);	// changed values
     	
     	// THEN
-    	assertNull("expected null triple", outputTriple);
+    	PrismAsserts.assertTripleEmpty(outputTriple);
 //    	PrismAsserts.assertTripleNoZero(outputTriple);
 //    	PrismAsserts.assertTripleNoPlus(outputTriple);
 //    	PrismAsserts.assertTripleNoMinus(outputTriple);    	
