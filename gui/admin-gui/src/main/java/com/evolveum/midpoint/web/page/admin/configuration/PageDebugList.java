@@ -504,7 +504,8 @@ public class PageDebugList extends PageAdminConfiguration {
 
 	private void setupSearchDto(DebugSearchDto dto) {
 		ObjectTypes type = dto.getType();
-		Search search = SearchFactory.createSearch(type.getClassDefinition(), getPrismContext(), true);
+		Search search = SearchFactory.createSearch(type.getClassDefinition(), getPrismContext(),
+				getModelInteractionService());
 		dto.setSearch(search);
 	}
 

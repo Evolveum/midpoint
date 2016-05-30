@@ -116,7 +116,8 @@ public class MultipleAssignmentSelector<F extends FocusType, H extends FocusType
 
             @Override
             public Search load() {
-                Search search =  SearchFactory.createSearch(RoleType.class, getPageBase().getPrismContext(), true);
+                Search search =  SearchFactory.createSearch(RoleType.class, getPageBase().getPrismContext(),
+                        getPageBase().getModelInteractionService());
                 return search;
             }
         };

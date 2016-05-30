@@ -24,6 +24,7 @@ public enum BreakMode {
 	NONE,
 	NETWORK,
 	IO,
+	SCHEMA,
 	GENERIC,
 	UNSUPPORTED,
 	RUNTIME;

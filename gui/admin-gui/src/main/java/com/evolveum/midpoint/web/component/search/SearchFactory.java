@@ -16,9 +16,15 @@
 
 package com.evolveum.midpoint.web.component.search;
 
+import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import java.util.Arrays;
@@ -30,6 +36,9 @@ import java.util.Map;
  * @author Viliam Repan (lazyman)
  */
 public class SearchFactory {
+
+    private static final String DOT_CLASS = SearchFactory.class.getName() + ".";
+    private static final String LOAD_OBJECT_DEFINITION = DOT_CLASS + "loadObjectDefinition";
 
     private static final Map<Class, List<ItemPath>> SEARCHABLE_OBJECTS = new HashMap<>();
 
@@ -96,13 +105,27 @@ public class SearchFactory {
         ));
     }
 
-    public static <T extends ObjectType> Search createSearch(Class<T> type, PrismContext ctx) {
-        return createSearch(type, ctx, true);
+    public static <T extends ObjectType> Search createSearch(Class<T> type, PrismContext ctx,
+                                                             ModelInteractionService modelInteractionService) {
+        return createSearch(type, ctx, modelInteractionService, true);
     }
 
-    public static <T extends ObjectType> Search createSearch(Class<T> type, PrismContext ctx,
-                                                             boolean useDefsFromSuperclass) {
-        Map<ItemPath, ItemDefinition> availableDefs = getAvailableDefinitions(type, ctx, useDefsFromSuperclass);
+    public static <T extends ObjectType> Search createSearch(
+            Class<T> type, PrismContext ctx, ModelInteractionService modelInteractionService,
+            boolean useDefsFromSuperclass) {
+
+        PrismObjectDefinition objectDef;
+        try {
+            OperationResult result = new OperationResult(LOAD_OBJECT_DEFINITION);
+
+            PrismObject empty = ctx.createObject(type);
+            objectDef = modelInteractionService.getEditObjectDefinition(
+                    empty, AuthorizationPhaseType.REQUEST, result);
+        } catch (SchemaException | ConfigurationException | ObjectNotFoundException ex) {
+            throw new SystemException(ex);
+        }
+
+        Map<ItemPath, ItemDefinition> availableDefs = getAvailableDefinitions(objectDef, useDefsFromSuperclass);
 
         Search search = new Search(type, availableDefs);
 
@@ -117,20 +140,27 @@ public class SearchFactory {
     }
 
     private static <T extends ObjectType> Map<ItemPath, ItemDefinition> getAvailableDefinitions(
-            Class<T> type, PrismContext ctx, boolean useDefsFromSuperclass) {
-
+            PrismObjectDefinition<T> objectDef, boolean useDefsFromSuperclass) {
         Map<ItemPath, ItemDefinition> map = new HashMap<>();
-        map.putAll(createExtensionDefinitionList(type, ctx));
 
-        Class<T> typeClass = type;
+        map.putAll(createExtensionDefinitionList(objectDef));
+
+        Class<T> typeClass = objectDef.getCompileTimeClass();
         while (typeClass != null && !com.evolveum.prism.xml.ns._public.types_3.ObjectType.class.equals(typeClass)) {
-            List<ItemPath> pathList = SEARCHABLE_OBJECTS.get(typeClass);
-            if (pathList != null) {
-                map.putAll(createAvailableDefinitions(typeClass, ctx, pathList));
+            List<ItemPath> paths = SEARCHABLE_OBJECTS.get(typeClass);
+            if (paths != null) {
+                for (ItemPath path : paths) {
+                    ItemDefinition def = objectDef.findItemDefinition(path);
+                    if (def != null) {
+                        map.put(path, def);
+                    }
+                }
             }
+
             if (!useDefsFromSuperclass) {
                 break;
             }
+
             typeClass = (Class<T>) typeClass.getSuperclass();
         }
 
@@ -138,16 +168,13 @@ public class SearchFactory {
     }
 
     private static <T extends ObjectType> Map<ItemPath, ItemDefinition> createExtensionDefinitionList(
-            Class<T> type, PrismContext ctx) {
+            PrismObjectDefinition<T> objectDef) {
 
         Map<ItemPath, ItemDefinition> map = new HashMap<>();
 
-        SchemaRegistry registry = ctx.getSchemaRegistry();
-        PrismObjectDefinition objDef = registry.findObjectDefinitionByCompileTimeClass(type);
-
         ItemPath extensionPath = new ItemPath(ObjectType.F_EXTENSION);
 
-        PrismContainerDefinition ext = objDef.findContainerDefinition(ObjectType.F_EXTENSION);
+        PrismContainerDefinition ext = objectDef.findContainerDefinition(ObjectType.F_EXTENSION);
         for (ItemDefinition def : (List<ItemDefinition>) ext.getDefinitions()) {
             if (!(def instanceof PrismPropertyDefinition)
                     && !(def instanceof PrismReferenceDefinition)) {
@@ -155,24 +182,6 @@ public class SearchFactory {
             }
 
             map.put(new ItemPath(extensionPath, def.getName()), def);
-        }
-
-        return map;
-    }
-
-    private static <T extends ObjectType> Map<ItemPath, ItemDefinition> createAvailableDefinitions(
-            Class<T> type, PrismContext ctx, List<ItemPath> paths) {
-
-        Map<ItemPath, ItemDefinition> map = new HashMap<>();
-
-        SchemaRegistry registry = ctx.getSchemaRegistry();
-        PrismObjectDefinition objDef = registry.findObjectDefinitionByCompileTimeClass(type);
-
-        for (ItemPath path : paths) {
-            ItemDefinition def = objDef.findItemDefinition(path);
-            if (def != null) {
-                map.put(path, def);
-            }
         }
 
         return map;

@@ -50,7 +50,8 @@ public class ResourceContentRepositoryPanel extends ResourceContentPanel {
 
 	@Override
 	protected Search createSearch() {
-		return SearchFactory.createSearch(ShadowType.class, getPageBase().getPrismContext());
+		return SearchFactory.createSearch(ShadowType.class, getPageBase().getPrismContext(),
+				getPageBase().getModelInteractionService());
 	}
 
 	@Override

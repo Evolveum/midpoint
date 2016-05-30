@@ -43,7 +43,7 @@ public class DummyOrg extends DummyObject {
 	}
 		
 	@Override
-	protected DummyObjectClass getObjectClass() throws ConnectException, FileNotFoundException {
+	protected DummyObjectClass getObjectClass() throws ConnectException, FileNotFoundException, SchemaViolationException {
 		return resource.getAccountObjectClass();
 	}
 

@@ -44,6 +44,7 @@ import com.evolveum.icf.dummy.resource.DummyObject;
 import com.evolveum.icf.dummy.resource.DummyObjectClass;
 import com.evolveum.icf.dummy.resource.DummyPrivilege;
 import com.evolveum.icf.dummy.resource.DummyResource;
+import com.evolveum.icf.dummy.resource.SchemaViolationException;
 import com.evolveum.midpoint.common.InternalsConfig;
 import com.evolveum.midpoint.common.monitor.CachingStatistics;
 import com.evolveum.midpoint.common.monitor.InternalMonitor;
@@ -323,7 +324,7 @@ public abstract class AbstractDummyTest extends AbstractIntegrationTest {
 		dummyResourceCtl.assertDummyResourceSchemaSanityExtended(resourceSchema, resourceType);
 	}
 	
-	protected DummyAccount getDummyAccount(String icfName, String icfUid) throws ConnectException, FileNotFoundException {
+	protected DummyAccount getDummyAccount(String icfName, String icfUid) throws ConnectException, FileNotFoundException, SchemaViolationException {
 //		if (isNameUnique()) {
 		if (isIcfNameUidSame()) {
 			return dummyResource.getAccountByUsername(icfName);
@@ -332,7 +333,7 @@ public abstract class AbstractDummyTest extends AbstractIntegrationTest {
 		}
 	}
 	
-	protected DummyAccount getDummyAccountAssert(String icfName, String icfUid) throws ConnectException, FileNotFoundException {
+	protected DummyAccount getDummyAccountAssert(String icfName, String icfUid) throws ConnectException, FileNotFoundException, SchemaViolationException {
 //		if (isNameUnique()) {
 		if (isIcfNameUidSame()) {
 			return dummyResource.getAccountByUsername(icfName);
@@ -344,7 +345,7 @@ public abstract class AbstractDummyTest extends AbstractIntegrationTest {
 		}
 	}
 	
-	protected DummyGroup getDummyGroup(String icfName, String icfUid) throws ConnectException, FileNotFoundException {
+	protected DummyGroup getDummyGroup(String icfName, String icfUid) throws ConnectException, FileNotFoundException, SchemaViolationException {
 //		if (isNameUnique()) {
 		if (isIcfNameUidSame()) {
 			return dummyResource.getGroupByName(icfName);
@@ -353,7 +354,7 @@ public abstract class AbstractDummyTest extends AbstractIntegrationTest {
 		}
 	}
 	
-	protected DummyGroup getDummyGroupAssert(String icfName, String icfUid) throws ConnectException, FileNotFoundException {
+	protected DummyGroup getDummyGroupAssert(String icfName, String icfUid) throws ConnectException, FileNotFoundException, SchemaViolationException {
 //		if (isNameUnique()) {
 		if (isIcfNameUidSame()) {
 			return dummyResource.getGroupByName(icfName);
@@ -365,7 +366,7 @@ public abstract class AbstractDummyTest extends AbstractIntegrationTest {
 		}
 	}
 	
-	protected DummyPrivilege getDummyPrivilege(String icfName, String icfUid) throws ConnectException, FileNotFoundException {
+	protected DummyPrivilege getDummyPrivilege(String icfName, String icfUid) throws ConnectException, FileNotFoundException, SchemaViolationException {
 //		if (isNameUnique()) {
 		if (isIcfNameUidSame()) {
 			return dummyResource.getPrivilegeByName(icfName);
@@ -374,7 +375,7 @@ public abstract class AbstractDummyTest extends AbstractIntegrationTest {
 		}
 	}
 
-	protected DummyPrivilege getDummyPrivilegeAssert(String icfName, String icfUid) throws ConnectException, FileNotFoundException {
+	protected DummyPrivilege getDummyPrivilegeAssert(String icfName, String icfUid) throws ConnectException, FileNotFoundException, SchemaViolationException {
 //		if (isNameUnique()) {
 		if (isIcfNameUidSame()) {
 			return dummyResource.getPrivilegeByName(icfName);
@@ -386,7 +387,7 @@ public abstract class AbstractDummyTest extends AbstractIntegrationTest {
 		}
 	}
 
-	protected <T> void assertDummyAccountAttributeValues(String accountName, String accountUid, String attributeName, T... expectedValues) throws ConnectException, FileNotFoundException {
+	protected <T> void assertDummyAccountAttributeValues(String accountName, String accountUid, String attributeName, T... expectedValues) throws ConnectException, FileNotFoundException, SchemaViolationException {
 		DummyAccount dummyAccount = getDummyAccountAssert(accountName, accountUid);
 		assertNotNull("No account '"+accountName+"'", dummyAccount);
 		assertDummyAttributeValues(dummyAccount, attributeName, expectedValues);

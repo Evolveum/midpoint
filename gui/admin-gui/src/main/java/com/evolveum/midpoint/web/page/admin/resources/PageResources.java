@@ -121,7 +121,8 @@ public class PageResources extends PageAdminResources {
 				Search dto = storage.getSearch();
 
 				if (dto == null) {
-					dto = SearchFactory.createSearch(ResourceType.class, getPrismContext(), true);
+					dto = SearchFactory.createSearch(ResourceType.class, getPrismContext(),
+							getModelInteractionService());
 				}
 
 				return dto;
@@ -132,7 +133,8 @@ public class PageResources extends PageAdminResources {
 
 			@Override
 			protected Search load() {
-				return SearchFactory.createSearch(ConnectorHostType.class, getPrismContext(), true);
+				return SearchFactory.createSearch(ConnectorHostType.class, getPrismContext(),
+						getModelInteractionService());
 			}
 		};
 
@@ -147,7 +149,7 @@ public class PageResources extends PageAdminResources {
         if (storage == null) {
             storage = getSessionStorage().initPageStorage(SessionStorage.KEY_RESOURCES);
         }
-        Search search = SearchFactory.createSearch(UserType.class, getPrismContext(), true);
+        Search search = SearchFactory.createSearch(UserType.class, getPrismContext(), getModelInteractionService());
 
         if (search.getItems() != null && search.getItems().size() > 0){
             SearchItem searchItem = search.getItems().get(0);
