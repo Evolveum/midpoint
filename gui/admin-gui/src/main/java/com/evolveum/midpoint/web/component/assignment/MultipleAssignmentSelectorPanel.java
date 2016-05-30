@@ -207,7 +207,10 @@ public class MultipleAssignmentSelectorPanel<F extends FocusType, H extends Focu
         for (AssignmentEditorDto dto : fromProviderList) {
             if (dto.isSelected()) {
                 for (AssignmentEditorDto assignmentDto : assignmentsList) {
-                    if (assignmentDto.getTargetRef().getOid().equals(dto.getTargetRef().getOid()) &&
+                    String assignmentDtoOid = getAssignmentDtoOid(assignmentDto);
+                    String dtoOid = getAssignmentDtoOid(dto);
+                    if (assignmentDtoOid != null &&
+                            dtoOid != null && assignmentDtoOid.equals(dtoOid) &&
                             areEqualReferenceObjects(assignmentDto.getTenantRef(), dto.getTenantRef()) &&
                             areEqualReferenceObjects(assignmentDto.getOrgRef(), dto.getOrgRef())) {
                         if (assignmentDto.getStatus().equals(UserDtoStatus.ADD)) {
@@ -542,4 +545,17 @@ public class MultipleAssignmentSelectorPanel<F extends FocusType, H extends Focu
         assignmentsList.removeAll(listToBeRemoved);
     }
 
+    private String getAssignmentDtoOid(AssignmentEditorDto assignmentDto){
+        ObjectReferenceType assignmentDtoTargetRef = assignmentDto.getTargetRef();
+        String assignmentDtoOid = null;
+        if (assignmentDtoTargetRef != null){
+            assignmentDtoOid = assignmentDtoTargetRef.getOid();
+        } else {
+            AssignmentType oldValue = assignmentDto.getOldValue() != null ? assignmentDto.getOldValue().getValue() : null;
+            assignmentDtoOid = oldValue != null ?
+                    (oldValue.getTarget() == null ? null : oldValue.getTarget().getOid())
+                    : null;
+        }
+        return assignmentDtoOid;
+    }
 }
