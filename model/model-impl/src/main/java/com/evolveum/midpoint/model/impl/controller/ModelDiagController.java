@@ -20,6 +20,7 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.impl.dataModel.DataModelVisualizer;
 import com.evolveum.midpoint.schema.ProvisioningDiag;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.api.SecurityEnforcer;
@@ -63,7 +64,8 @@ public class ModelDiagController implements ModelDiagnosticService {
 	
 	public static final String CLASS_NAME_WITH_DOT = ModelDiagController.class.getName() + ".";
 	private static final String REPOSITORY_SELF_TEST_USER = CLASS_NAME_WITH_DOT + "repositorySelfTest.user";
-	
+	private static final String EXPORT_DATA_MODEL = CLASS_NAME_WITH_DOT + "exportDataModel";
+
 	private static final String NAME_PREFIX = "selftest";
 	private static final int NAME_RANDOM_LENGTH = 5;
 	
@@ -77,6 +79,8 @@ public class ModelDiagController implements ModelDiagnosticService {
 	
 	private static final Trace LOGGER = TraceManager.getTrace(ModelDiagController.class);
 
+	@Autowired
+	private DataModelVisualizer dataModelVisualizer;
 	
 	@Autowired(required = true)
 	private PrismContext prismContext;
@@ -461,4 +465,16 @@ public class ModelDiagController implements ModelDiagnosticService {
 		return prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(type);
 	}
 
+	@Override
+	public String exportDataModel(Task task, OperationResult parentResult) throws SchemaException {
+		OperationResult result = parentResult.createSubresult(EXPORT_DATA_MODEL);
+		try {
+			String rv = dataModelVisualizer.visualize(task, result);
+			result.computeStatusIfUnknown();
+			return rv;
+		} catch(Throwable t) {
+			result.recordFatalError(t.getMessage(), t);
+			throw t;
+		}
+	}
 }
