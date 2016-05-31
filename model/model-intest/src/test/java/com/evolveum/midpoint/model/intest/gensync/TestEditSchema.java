@@ -38,6 +38,7 @@ import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.RelationalValueSearchQuery;
 import com.evolveum.midpoint.schema.RelationalValueSearchType;
+import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.RetrieveOption;
 import com.evolveum.midpoint.schema.SearchResultList;
@@ -56,12 +57,15 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.exception.TunnelException;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ImportOptionsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableRowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
@@ -1253,6 +1257,135 @@ public class TestEditSchema extends AbstractGenericSyncTest {
 
         assertSteadyResources();
     }
+	
+    @Test
+    public void test260EditShadowSchemaKindIntent() throws Exception {
+		final String TEST_NAME="test260EditShadowSchemaKindIntent";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        ResourceShadowDiscriminator discr = new ResourceShadowDiscriminator(RESOURCE_DUMMY_OID, ShadowKindType.ACCOUNT, null);
+        
+		// WHEN
+        TestUtil.displayWhen(TEST_NAME);
+		PrismObjectDefinition<ShadowType> editDef = modelInteractionService.getEditShadowDefinition(discr, AuthorizationPhaseType.REQUEST, result);
+		
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+		
+		PrismPropertyDefinition<PolyString> nameDef = editDef.findPropertyDefinition(ShadowType.F_NAME);
+		assertNotNull("No definition for name in shadow", nameDef);
+		assertEquals("Wrong shadow name displayName", "ObjectType.name", nameDef.getDisplayName());
+		assertTrue("additionalName not readable", nameDef.canRead());
+		
+		PrismPropertyDefinition<Object> attrFullNameDef = editDef.findPropertyDefinition(dummyResourceCtl.getAttributeFullnamePath());
+		assertNotNull("No definition for fullname attribute in shadow", attrFullNameDef);
+		assertEquals("Wrong shadow fullname attribute displayName", "Full Name", attrFullNameDef.getDisplayName());
+		assertTrue("additionalName not readable", attrFullNameDef.canRead());
+				
+        assertSteadyResources();
+    }
+
+    @Test
+    public void test261EditShadowSchemaObjectclass() throws Exception {
+		final String TEST_NAME="test261EditShadowSchemaObjectclass";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        ResourceShadowDiscriminator discr = new ResourceShadowDiscriminator(RESOURCE_DUMMY_OID, dummyResourceCtl.getAccountObjectClassQName());
+        IntegrationTestTools.display("Discr", discr);
+        
+		// WHEN
+        TestUtil.displayWhen(TEST_NAME);
+		PrismObjectDefinition<ShadowType> editDef = modelInteractionService.getEditShadowDefinition(discr, AuthorizationPhaseType.REQUEST, result);
+		
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+		
+		PrismPropertyDefinition<PolyString> nameDef = editDef.findPropertyDefinition(ShadowType.F_NAME);
+		assertNotNull("No definition for name in shadow", nameDef);
+		assertEquals("Wrong shadow name displayName", "ObjectType.name", nameDef.getDisplayName());
+		assertTrue("additionalName not readable", nameDef.canRead());
+		
+		PrismPropertyDefinition<Object> attrFullNameDef = editDef.findPropertyDefinition(dummyResourceCtl.getAttributeFullnamePath());
+		assertNotNull("No definition for fullname attribute in shadow", attrFullNameDef);
+		assertEquals("Wrong shadow fullname attribute displayName", "Full Name", attrFullNameDef.getDisplayName());
+		assertTrue("additionalName not readable", attrFullNameDef.canRead());
+				
+        assertSteadyResources();
+    }
+
+    @Test
+    public void test263EditShadowSchemaEmpty() throws Exception {
+		final String TEST_NAME="test263EditShadowSchemaEmpty";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        ResourceShadowDiscriminator discr = new ResourceShadowDiscriminator(null, null);
+        IntegrationTestTools.display("Discr", discr);
+        
+		// WHEN
+        TestUtil.displayWhen(TEST_NAME);
+		PrismObjectDefinition<ShadowType> editDef = modelInteractionService.getEditShadowDefinition(discr, AuthorizationPhaseType.REQUEST, result);
+		
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+		
+		PrismPropertyDefinition<PolyString> nameDef = editDef.findPropertyDefinition(ShadowType.F_NAME);
+		assertNotNull("No definition for name in shadow", nameDef);
+		assertEquals("Wrong shadow name displayName", "ObjectType.name", nameDef.getDisplayName());
+		assertTrue("additionalName not readable", nameDef.canRead());
+		
+		PrismPropertyDefinition<Object> attrFullNameDef = editDef.findPropertyDefinition(dummyResourceCtl.getAttributeFullnamePath());
+		assertNull("Unexpected definition for fullname attribute in shadow", attrFullNameDef);
+				
+        assertSteadyResources();
+    }
+
+    @Test
+    public void test265EditShadowSchemaNull() throws Exception {
+		final String TEST_NAME="test265EditShadowSchemaNull";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+		// WHEN
+        TestUtil.displayWhen(TEST_NAME);
+		PrismObjectDefinition<ShadowType> editDef = modelInteractionService.getEditShadowDefinition(null, AuthorizationPhaseType.REQUEST, result);
+		
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+		
+		PrismPropertyDefinition<PolyString> nameDef = editDef.findPropertyDefinition(ShadowType.F_NAME);
+		assertNotNull("No definition for name in shadow", nameDef);
+		assertEquals("Wrong shadow name displayName", "ObjectType.name", nameDef.getDisplayName());
+		assertTrue("additionalName not readable", nameDef.canRead());
+		
+		PrismPropertyDefinition<Object> attrFullNameDef = editDef.findPropertyDefinition(dummyResourceCtl.getAttributeFullnamePath());
+		assertNull("Unexpected definition for fullname attribute in shadow", attrFullNameDef);
+				
+        assertSteadyResources();
+    }
+
 
     @Test
     public void test300RoleTypes() throws Exception {
