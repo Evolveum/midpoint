@@ -143,9 +143,9 @@ public class DummyResourceContoller extends AbstractResourceController {
 	}
 
 	/**
-	 * Extend schema in piratey fashion. Arr! This is used in many tests. Lots of attributes, various combination of types, etc. 
+	 * Extend schema in piratey fashion. Arr! This is used in many tests. Lots of attributes, various combination of types, etc.  
 	 */
-	public void extendSchemaPirate() throws ConnectException, FileNotFoundException {
+	public void extendSchemaPirate() throws ConnectException, FileNotFoundException, SchemaViolationException {
 		populateWithDefaultSchema();
 		DummyObjectClass accountObjectClass = dummyResource.getAccountObjectClass();
 		addAttrDef(accountObjectClass, DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, String.class, false, true);
@@ -174,7 +174,7 @@ public class DummyResourceContoller extends AbstractResourceController {
 	/**
 	 * Extend dummy schema to look like AD
 	 */
-	public void extendSchemaAd() throws ConnectException, FileNotFoundException {
+	public void extendSchemaAd() throws ConnectException, FileNotFoundException, SchemaViolationException {
 		DummyObjectClass accountObjectClass = dummyResource.getAccountObjectClass();
 		addAttrDef(accountObjectClass, DUMMY_ACCOUNT_ATTRIBUTE_AD_GIVEN_NAME_NAME, String.class, false, false);
 		addAttrDef(accountObjectClass, DUMMY_ACCOUNT_ATTRIBUTE_AD_SN_NAME, String.class, false, false);

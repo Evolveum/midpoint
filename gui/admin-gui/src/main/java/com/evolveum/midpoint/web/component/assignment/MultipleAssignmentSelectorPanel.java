@@ -78,15 +78,13 @@ public class MultipleAssignmentSelectorPanel<F extends FocusType, H extends Focu
 
 
     private static final String DOT_CLASS = MultipleAssignmentSelectorPanel.class.getName();
-    private static final String OPERATION_LOAD_AVAILABLE_ROLES = DOT_CLASS + "loadAvailableRoles";
     private Class<G> type;
 
     private List<OrgType> tenantEditorObject = new ArrayList<>();
     private List<OrgType> orgEditorObject = new ArrayList<>();
     private PrismObject<F> focus;
-    private ObjectFilter authorizedRolesFilter = null;
-//    private IModel<ObjectFilter> filterModel = null;
     private static final Trace LOGGER = TraceManager.getTrace(MultipleAssignmentSelectorPanel.class);
+    private static final String OPERATION_LOAD_ASSIGNABLE_ROLES = DOT_CLASS + "loadAssignableRoles";
 
     public MultipleAssignmentSelectorPanel(String id, LoadableModel<List<AssignmentEditorDto>> assignmentsModel,
                                            PrismObject<F> focus, Class<H> targetFocusClass, Class<G> type) {
@@ -94,7 +92,6 @@ public class MultipleAssignmentSelectorPanel<F extends FocusType, H extends Focu
         this.assignmentsModel = assignmentsModel;
         this.type = type;
         this.focus = focus;
-//        filterModel = getFilterModel();
         tenantEditorObject.add(new OrgType());
         orgEditorObject.add(new OrgType());
         initLayout(targetFocusClass);
@@ -210,7 +207,10 @@ public class MultipleAssignmentSelectorPanel<F extends FocusType, H extends Focu
         for (AssignmentEditorDto dto : fromProviderList) {
             if (dto.isSelected()) {
                 for (AssignmentEditorDto assignmentDto : assignmentsList) {
-                    if (assignmentDto.getTargetRef().getOid().equals(dto.getTargetRef().getOid()) &&
+                    String assignmentDtoOid = getAssignmentDtoOid(assignmentDto);
+                    String dtoOid = getAssignmentDtoOid(dto);
+                    if (assignmentDtoOid != null &&
+                            dtoOid != null && assignmentDtoOid.equals(dtoOid) &&
                             areEqualReferenceObjects(assignmentDto.getTenantRef(), dto.getTenantRef()) &&
                             areEqualReferenceObjects(assignmentDto.getOrgRef(), dto.getOrgRef())) {
                         if (assignmentDto.getStatus().equals(UserDtoStatus.ADD)) {
@@ -232,16 +232,23 @@ public class MultipleAssignmentSelectorPanel<F extends FocusType, H extends Focu
         return new IModel<ObjectFilter>() {
             @Override
             public ObjectFilter getObject() {
-                if (isRequestableFilter && authorizedRolesFilter == null){
-                    initRolesFilter();
-                }
                 ItemPath path = new ItemPath(FocusType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS);
                 ObjectFilter archivedRolesFilter = EqualFilter.createEqual(path, RoleType.class,
                         getPageBase().getPrismContext(), null, ActivationStatusType.ARCHIVED);
-                ObjectFilter filter = isRequestableFilter && authorizedRolesFilter != null ?
-                        AndFilter.createAnd(authorizedRolesFilter, new NotFilter(archivedRolesFilter)) :
-                        new NotFilter(archivedRolesFilter);
-                return filter;
+                ObjectFilter filter = null;
+                if (isRequestableFilter) {
+                    ObjectFilter assignableRolesFilter = getAssignableRolesFilter();
+                    if (assignableRolesFilter instanceof NotFilter) {
+                        return null;
+                    } else if (assignableRolesFilter != null) {
+                        filter = AndFilter.createAnd(assignableRolesFilter, new NotFilter(archivedRolesFilter));
+                    } else {
+                        filter = new NotFilter(archivedRolesFilter);
+                    }
+                    return filter;
+                } else {
+                    return new NotFilter(archivedRolesFilter);
+                }
             }
 
             @Override
@@ -256,14 +263,15 @@ public class MultipleAssignmentSelectorPanel<F extends FocusType, H extends Focu
         };
     }
 
-    private void initRolesFilter (){
+    private ObjectFilter getAssignableRolesFilter() {
         LOGGER.debug("Loading roles which the current user has right to assign");
-        OperationResult result = new OperationResult(OPERATION_LOAD_AVAILABLE_ROLES);
+        OperationResult result = new OperationResult(OPERATION_LOAD_ASSIGNABLE_ROLES);
+        ObjectFilter filter = null;
         try {
             PageBase pb = getPageBase();
             ModelInteractionService mis = pb.getModelInteractionService();
             RoleSelectionSpecification roleSpec = mis.getAssignableRoleSpecification(focus, result);
-            authorizedRolesFilter = roleSpec.getFilter();
+            filter = roleSpec.getFilter();
         } catch (Exception ex) {
             LoggingUtils.logException(LOGGER, "Couldn't load available roles", ex);
             result.recordFatalError("Couldn't load available roles", ex);
@@ -273,6 +281,7 @@ public class MultipleAssignmentSelectorPanel<F extends FocusType, H extends Focu
         if (!result.isSuccess() && !result.isHandledError()) {
             getPageBase().showResult(result);
         }
+        return filter;
     }
 
     private GenericMultiValueLabelEditPanel createTenantContainer(){
@@ -536,4 +545,17 @@ public class MultipleAssignmentSelectorPanel<F extends FocusType, H extends Focu
         assignmentsList.removeAll(listToBeRemoved);
     }
 
+    private String getAssignmentDtoOid(AssignmentEditorDto assignmentDto){
+        ObjectReferenceType assignmentDtoTargetRef = assignmentDto.getTargetRef();
+        String assignmentDtoOid = null;
+        if (assignmentDtoTargetRef != null){
+            assignmentDtoOid = assignmentDtoTargetRef.getOid();
+        } else {
+            AssignmentType oldValue = assignmentDto.getOldValue() != null ? assignmentDto.getOldValue().getValue() : null;
+            assignmentDtoOid = oldValue != null ?
+                    (oldValue.getTarget() == null ? null : oldValue.getTarget().getOid())
+                    : null;
+        }
+        return assignmentDtoOid;
+    }
 }

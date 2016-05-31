@@ -106,6 +106,12 @@ public class SearchShadowOwnerTest extends BaseSQLRepoTest {
         assertNotNull("No owner for account", role);
         PrismProperty name = role.findProperty(ObjectType.F_NAME);
         AssertJUnit.assertNotNull(name);
-        AssertJUnit.assertEquals("Judge", ((PolyString) name.getRealValue()).getOrig());
+        String orig = ((PolyString) name.getRealValue()).getOrig();
+        // there are two object which own tested shadow
+        if ("Judge".equals(orig)
+                || "lazyman vm".equals(orig)) {
+            return;
+        }
+        AssertJUnit.fail("Unexpected object name for shadow owner '" + orig + "'");
     }
 }

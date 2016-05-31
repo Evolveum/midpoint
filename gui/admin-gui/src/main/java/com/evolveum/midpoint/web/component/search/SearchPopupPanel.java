@@ -1,11 +1,11 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -16,30 +16,25 @@
 
 package com.evolveum.midpoint.web.component.search;
 
+import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.util.DisplayableValue;
-import org.apache.wicket.MarkupContainer;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
-import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.model.IModel;
 
-import java.io.Serializable;
 import java.util.List;
 
 /**
  * @author Viliam Repan (lazyman)
  */
-abstract class SearchFragmentBase<T extends Serializable> extends Fragment {
+abstract class SearchPopupPanel<T> extends BasePanel<T> {
 
     private static final String ID_REMOVE = "remove";
     private static final String ID_ADD = "add";
 
-    private IModel<T> data;
+    public SearchPopupPanel(String id, IModel<T> model) {
+        super(id, model);
 
-    SearchFragmentBase(String id, String markupId, MarkupContainer markupProvider, IModel<T> data) {
-        super(id, markupId, markupProvider);
-
-        this.data = data;
         initButtons();
     }
 
@@ -75,7 +70,7 @@ abstract class SearchFragmentBase<T extends Serializable> extends Fragment {
 
     protected void removePerformed(AjaxRequestTarget target) {
         SearchItemPanel panel = findParent(SearchItemPanel.class);
-        T val = data.getObject();
+        T val = getModelObject();
 
         SearchItemPopoverDto dto = panel.getPopoverModel().getObject();
         List<DisplayableValue> values = dto.getValues();

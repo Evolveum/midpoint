@@ -112,15 +112,6 @@
 				</inbound>
 			</attribute>
 			<attribute>
-				<ref>ri:location</ref>
-				<displayName>Location</displayName>
-				<inbound>
-					<target>
-						<path>description</path>
-					</target>
-				</inbound>
-			</attribute>
-			<attribute>
 				<ref>ri:ship</ref>
 				<displayName>Ship</displayName>
 				<inbound>

@@ -671,7 +671,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 	/**
 	 * MID-2427
 	 */
-	@Test(enabled=false) // MID-2427
+	@Test
     public void test164ImportFromResourceDummyLimeRappOrganizationNull() throws Exception {
 		final String TEST_NAME = "test164ImportFromResourceDummyLimeRappOrganizationNull";
         TestUtil.displayTestTile(this, TEST_NAME);
@@ -859,7 +859,6 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         IntegrationTestTools.assertScripts(dummyResource.getScriptHistory(), scripts.toArray(new ProvisioningScriptSpec[0]));
         
         assertReconAuditModifications(1, TASK_RECONCILE_DUMMY_OID);
-//		assertReconAuditModifications(2, TASK_RECONCILE_DUMMY_OID);		// Temporary measure, see MID-2441. There is a (seemingly) redundant user delta there.
         
         // Task result
         PrismObject<TaskType> reconTaskAfter = getTask(TASK_RECONCILE_DUMMY_OID);

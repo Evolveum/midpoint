@@ -37,6 +37,7 @@ import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
 import com.evolveum.icf.dummy.resource.DummyAccount;
+import com.evolveum.icf.dummy.resource.SchemaViolationException;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainer;
@@ -695,7 +696,7 @@ public class TestPassword extends AbstractInitializedModelIntegrationTest {
 	// TODO: add user with password that violates the policy
 	
 
-	private void assertDummyPassword(String userId, String expectedClearPassword) {
+	private void assertDummyPassword(String userId, String expectedClearPassword) throws SchemaViolationException {
 		assertDummyPassword(null, userId, expectedClearPassword);
 	}
 	

@@ -42,14 +42,11 @@ import com.evolveum.midpoint.web.page.admin.home.dto.SecurityQuestionAnswerDTO;
 import com.evolveum.midpoint.web.security.SecurityUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import org.apache.wicket.AttributeModifier;
-import org.apache.wicket.Page;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.image.ContextImage;
-import org.apache.wicket.markup.html.image.Image;
+import org.apache.wicket.markup.html.image.NonCachingImage;
 import org.apache.wicket.markup.html.link.ExternalLink;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
@@ -59,10 +56,7 @@ import org.apache.wicket.request.resource.AbstractResource;
 import org.apache.wicket.request.resource.ByteArrayResource;
 import org.springframework.security.core.context.SecurityContextHolder;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 /**
  * @author lazyman
@@ -126,7 +120,7 @@ public class UserMenuPanel extends BasePanel {
         WebMarkupContainer iconBox = new WebMarkupContainer(ID_ICON_BOX);
         add(iconBox);
 
-        Image img = new Image(ID_PHOTO, new AbstractReadOnlyModel<AbstractResource>() {
+        NonCachingImage img = new NonCachingImage(ID_PHOTO, new AbstractReadOnlyModel<AbstractResource>() {
 
             @Override
             public AbstractResource getObject() {
@@ -175,7 +169,7 @@ public class UserMenuPanel extends BasePanel {
         WebMarkupContainer panelIconBox = new WebMarkupContainer(ID_PANEL_ICON_BOX);
         add(panelIconBox);
 
-        Image panelImg = new Image(ID_PANEL_PHOTO, new AbstractReadOnlyModel<AbstractResource>() {
+        NonCachingImage panelImg = new NonCachingImage(ID_PANEL_PHOTO, new AbstractReadOnlyModel<AbstractResource>() {
 
             @Override
             public AbstractResource getObject() {
