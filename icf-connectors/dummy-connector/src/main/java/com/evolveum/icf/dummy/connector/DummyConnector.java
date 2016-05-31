@@ -1807,7 +1807,7 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 	}
 
 
-	private void changePassword(final DummyAccount account, Attribute attr) {
+	private void changePassword(final DummyAccount account, Attribute attr) throws ConnectException, FileNotFoundException, SchemaViolationException {
 		if (attr.getValue() == null || attr.getValue().isEmpty()) {
 			throw new IllegalArgumentException("Empty password was provided");
 		}
@@ -1815,15 +1815,17 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 		if (!(passwdObject instanceof GuardedString)) {
 			throw new IllegalArgumentException("Password was provided as "+passwdObject.getClass().getName()+" while expecting GuardedString");
 		}
+		final String[] passwdArray = { "" };
 		((GuardedString)passwdObject).access(new Accessor() {
 			@Override
 			public void access(char[] passwdChars) {
 				if (configuration.getMinPasswordLength() != null && passwdChars.length < configuration.getMinPasswordLength()) {
 					throw new InvalidAttributeValueException("Password too short");
 				}
-				account.setPassword(new String(passwdChars));
+				passwdArray[0] = new String(passwdChars);
 			}
 		});
+		account.setPassword(passwdArray[0]);
 	}
 	
 	private boolean attributesToGetHasAttribute(Collection<String> attributesToGet, String attrName) {

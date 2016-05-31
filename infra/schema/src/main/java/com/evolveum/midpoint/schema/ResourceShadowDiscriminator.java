@@ -21,6 +21,8 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
@@ -40,7 +42,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
  * 
  * @author Radovan Semancik
  */
-public class ResourceShadowDiscriminator implements Serializable {
+public class ResourceShadowDiscriminator implements Serializable, DebugDumpable {
 	private static final long serialVersionUID = 346600684011645741L;
 	
 	private String resourceOid;
@@ -272,4 +274,23 @@ public class ResourceShadowDiscriminator implements Serializable {
     	sb.append(")");
     	return sb.toString();
     }
+
+	@Override
+	public String debugDump() {
+		return debugDump(0);
+	}
+
+	@Override
+	public String debugDump(int indent) {
+		StringBuilder sb = new StringBuilder();
+		DebugUtil.indentDebugDump(sb, indent);
+		sb.append("ResourceShadowDiscriminator\n");
+		DebugUtil.debugDumpWithLabelLn(sb, "resourceOid", resourceOid, indent + 1);
+		DebugUtil.debugDumpWithLabelToStringLn(sb, "kind", kind, indent + 1);
+		DebugUtil.debugDumpWithLabelLn(sb, "intent", indent, indent + 1);
+		DebugUtil.debugDumpWithLabelLn(sb, "objectClass", objectClass, indent + 1);
+		DebugUtil.debugDumpWithLabelLn(sb, "thombstone", thombstone, indent + 1);
+		DebugUtil.debugDumpWithLabel(sb, "order", order, indent + 1);
+		return sb.toString();
+	}
 }

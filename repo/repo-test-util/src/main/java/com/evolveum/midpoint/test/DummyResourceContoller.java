@@ -27,6 +27,7 @@ import java.net.ConnectException;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
@@ -376,6 +377,10 @@ public class DummyResourceContoller extends AbstractResourceController {
 
 	public QName getOrgObjectClassQName() {
 		return new QName(getNamespace(), OBJECTCLASS_ORG_LOCAL_PART);
+	}
+
+	public QName getAccountObjectClassQName() {
+		return new QName(getNamespace(), SchemaTestConstants.ACCOUNT_OBJECT_CLASS_LOCAL_NAME);
 	}
 
 }
