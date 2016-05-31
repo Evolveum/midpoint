@@ -96,4 +96,11 @@ public interface ModelDiagnosticService {
 	 * EXPERIMENTAL.
 	 */
 	public String executeRepositoryQuery(String query, Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException;
+
+	/**
+	 * Exports data model
+	 *
+	 * EXPERIMENTAL. (TODO find a better place)
+	 */
+	String exportDataModel(Task task, OperationResult parentResult) throws SchemaException;
 }
