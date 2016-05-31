@@ -26,7 +26,9 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.web.session.SessionStorage;
 import net.sf.jasperreports.web.util.WebUtil;
+import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
@@ -436,7 +438,19 @@ public class TreeTablePanel extends BasePanel<String> {
 
 	private void deleteRootPerformed(final SelectableBean<OrgType> orgToDelete, AjaxRequestTarget target) {
 
-		ConfirmationPanel confirmationPanel = new ConfirmationPanel(getPageBase().getMainPopupBodyId()) {
+		ConfirmationPanel confirmationPanel = new ConfirmationPanel(getPageBase().getMainPopupBodyId(),
+                new AbstractReadOnlyModel<String>() {
+
+                    private static final long serialVersionUID = 1L;
+
+                    @Override
+                    public String getObject() {
+                        return createStringResource("TreeTablePanel.message.deleteTreeObjectConfirm",
+                                orgToDelete.getValue().getDisplayName() != null &&
+                                        StringUtils.isNotEmpty(orgToDelete.getValue().getDisplayName().getOrig())?
+                                        orgToDelete.getValue().getDisplayName() : orgToDelete.getValue().getName()).getString();
+                    }
+                }) {
 			private static final long serialVersionUID = 1L;
 
 			@Override
