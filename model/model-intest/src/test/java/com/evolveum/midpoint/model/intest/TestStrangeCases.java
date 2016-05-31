@@ -454,8 +454,8 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
 	 * MID-2134
 	 */
 	@Test
-    public void test212ModifyUserJackBrokenAccountRefAndPolyString() throws Exception {
-		final String TEST_NAME = "test212ModifyUserJackBrokenAccountRefAndPolyString";
+    public void test212ModifyUserJackBrokenSchemaViolationPolyString() throws Exception {
+		final String TEST_NAME = "test212ModifyUserJackBrokenSchemaViolationPolyString";
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
@@ -490,7 +490,51 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
 		// The change should be propagated here normally
         assertDummyAccount(RESOURCE_DUMMY_RED_NAME, "jack", "Cpt. Jack Sparrow", true);
 	}
-	
+
+	/**
+	 * Cause schema violation on the account during a provisioning operation. This should fail
+	 * the operation, but other operations should proceed and the account should definitelly NOT
+	 * be unlinked.
+	 * MID-2134
+	 */
+	@Test
+    public void test214ModifyUserJackBrokenPassword() throws Exception {
+		final String TEST_NAME = "test214ModifyUserJackBrokenPassword";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        dummyAuditService.clear();
+        
+        dummyResource.setModifyBreakMode(BreakMode.SCHEMA);
+                        
+		// WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        modifyUserChangePassword(USER_JACK_OID, "whereStheRUM", task, result);
+		
+		// THEN
+        TestUtil.displayThen(TEST_NAME);
+		result.computeStatus();
+		display("Result", result);
+		TestUtil.assertPartialError(result);
+        
+		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
+		display("User after change execution", userJack);
+		assertUserJack(userJack, "Cpt. Jack Sparrow");
+		assertEncryptedUserPassword(userJack, "whereStheRUM");
+        
+		assertLinks(userJack, 2);
+		String accountJackRedOidAfter = getLinkRefOid(userJack, RESOURCE_DUMMY_RED_OID);
+		assertNotNull(accountJackRedOidAfter);
+        
+		// The change was not propagated here because of schema violation error
+		assertDefaultDummyAccount("jack", "Jack Sparrow", true);
+		
+		// The change should be propagated here normally
+        assertDummyAccount(RESOURCE_DUMMY_RED_NAME, "jack", "Cpt. Jack Sparrow", true);
+	}
+
 	// Lets test various extension magic and border cases now. This is maybe quite hight in the architecture for
 	// this test, but we want to make sure that none of the underlying components will screw the things up.
 	
