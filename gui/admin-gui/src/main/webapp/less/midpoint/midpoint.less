@@ -43,24 +43,28 @@
 /**
  *  Auto-complete drop-down choice styles
  */
-div.wicket-aa {
-  background-color: @body-bg;
-  border: 1px solid @input-border;
-  padding: 2px;
-  margin: 1px;
-  text-align: left;
+div.wicket-aa-container {
+  z-index: 20003 !important;  // used because if autocomplete used on popup
 
-  ul {
-    list-style: none;
+  div.wicket-aa {
+    background-color: @body-bg;
+    border: 1px solid @input-border;
     padding: 2px;
-    margin: 0;
+    margin: 1px;
+    text-align: left;
 
-    li {
+    ul {
+      list-style: none;
       padding: 2px;
       margin: 0;
 
-      &.selected {
-        background-color: lighten(@input-border-focus, 10%);
+      li {
+        padding: 2px;
+        margin: 0;
+
+        &.selected {
+          background-color: lighten(@input-border-focus, 10%);
+        }
       }
     }
   }
