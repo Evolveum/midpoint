@@ -49,6 +49,7 @@ import org.identityconnectors.framework.common.exceptions.ConnectorSecurityExcep
 import org.identityconnectors.framework.common.exceptions.InvalidCredentialException;
 import org.identityconnectors.framework.common.exceptions.OperationTimeoutException;
 import org.identityconnectors.framework.common.exceptions.PermissionDeniedException;
+import org.identityconnectors.framework.common.exceptions.RetryableException;
 import org.identityconnectors.framework.common.exceptions.UnknownUidException;
 import org.identityconnectors.framework.common.objects.Attribute;
 import org.identityconnectors.framework.common.objects.Uid;
@@ -267,6 +268,11 @@ class IcfUtil {
 		} else if (icfException instanceof InvalidAttributeValueException) {
 			Exception newEx = new SchemaException(createMessageFromAllExceptions(null, icfException));
 			icfResult.recordFatalError("Schema violation: "+icfException.getMessage(), newEx);
+			return newEx;
+			
+		} else if (icfException instanceof RetryableException) {
+			Exception newEx = new CommunicationException(createMessageFromAllExceptions(null, icfException));
+			icfResult.recordFatalError("Retryable errror: "+icfException.getMessage(), newEx);
 			return newEx;
 
 		} else if (icfException instanceof ConnectorSecurityException) {
