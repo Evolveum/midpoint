@@ -20,6 +20,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
@@ -30,7 +31,7 @@ import javax.xml.bind.JAXBElement;
  * */
 public class ExpressionUtil {
 
-    public static enum ExpressionEvaluatorType{
+	public static enum ExpressionEvaluatorType{
         LITERAL,
         AS_IS,
         PATH,
@@ -218,4 +219,8 @@ public class ExpressionUtil {
 
         return expression;
     }
+
+	public static boolean isEmpty(ExpressionType expression) {
+		return expression == null || expression.getExpressionEvaluator().isEmpty();
+	}
 }

@@ -17,15 +17,13 @@
 package com.evolveum.midpoint.web.component.wizard.resource.component.synchronization;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.model.NonEmptyModel;
 import com.evolveum.midpoint.web.component.input.ExpressionEditorPanel;
 import com.evolveum.midpoint.web.component.input.SearchFilterPanel;
-import com.evolveum.midpoint.web.component.input.dto.SearchFilterTypeDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConditionalSearchFilterType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
-import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.PropertyModel;
 
 /**
  *  @author shood
@@ -35,44 +33,15 @@ public class ConditionalSearchFilterEditor extends BasePanel<ConditionalSearchFi
     private static final String ID_EXPRESSION_PANEL = "expressionPanel";
     private static final String ID_FILTER_CLAUSE_PANEL = "filterClausePanel";
 
-    private IModel<ExpressionType> expression;
-
-    public ConditionalSearchFilterEditor(String id, IModel<ConditionalSearchFilterType> model){
+	// expression and filter must be non-null
+    public ConditionalSearchFilterEditor(String id, NonEmptyModel<ConditionalSearchFilterType> model) {
         super(id, model);
 		initLayout();
     }
 
-    @Override
-    public IModel<ConditionalSearchFilterType> getModel(){
-        IModel<ConditionalSearchFilterType> model = super.getModel();
-
-        if(model.getObject() == null){
-            model.setObject(new ConditionalSearchFilterType());
-        }
-
-        return model;
-    }
-
-    private void loadExpression(){
-        if(expression == null){
-            expression = new LoadableModel<ExpressionType>(false) {
-
-                @Override
-                protected ExpressionType load() {
-                    if(getModel() != null && getModel().getObject() != null){
-                        return getModel().getObject().getCondition();
-                    } else {
-                        return new ExpressionType();
-                    }
-                }
-            };
-        }
-    }
-
     protected void initLayout(){
-        loadExpression();
-
-        ExpressionEditorPanel expressionEditor = new ExpressionEditorPanel(ID_EXPRESSION_PANEL, expression) {
+        ExpressionEditorPanel expressionEditor = new ExpressionEditorPanel(ID_EXPRESSION_PANEL,
+				new PropertyModel<ExpressionType>(getModel(), ConditionalSearchFilterType.F_CONDITION.getLocalPart())) {
 
             @Override
             public void performExpressionHook(AjaxRequestTarget target) {
@@ -104,20 +73,7 @@ public class ConditionalSearchFilterEditor extends BasePanel<ConditionalSearchFi
         };
         add(expressionEditor);
 
-        SearchFilterPanel filterClauseEditor = new SearchFilterPanel<ConditionalSearchFilterType>(ID_FILTER_CLAUSE_PANEL, getModel()){
-
-            @Override
-            public void performFilterClauseHook(AjaxRequestTarget target){
-                if(model != null && model.getObject() != null && ConditionalSearchFilterEditor.this.getModel() != null){
-                    SearchFilterTypeDto dto = model.getObject();
-                    SearchFilterType filter = dto.getFilterObject();
-
-                    if(filter != null){
-                        ConditionalSearchFilterEditor.this.getModelObject().setFilterClauseXNode(filter.getFilterClauseXNode());
-                    }
-                }
-            }
-        };
+        SearchFilterPanel filterClauseEditor = new SearchFilterPanel<>(ID_FILTER_CLAUSE_PANEL, (NonEmptyModel<ConditionalSearchFilterType>) getModel());
         add(filterClauseEditor);
     }
 }
