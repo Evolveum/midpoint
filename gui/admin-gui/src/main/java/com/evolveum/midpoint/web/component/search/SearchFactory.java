@@ -138,7 +138,9 @@ public class SearchFactory {
         PrismPropertyDefinition def = objDef.findPropertyDefinition(ObjectType.F_NAME);
 
         SearchItem item = search.addItem(def);
-        item.setFixed(true);
+        if (item != null) {
+            item.setFixed(true);
+        }
 
         return search;
     }
