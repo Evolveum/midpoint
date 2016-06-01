@@ -59,6 +59,7 @@ import com.evolveum.midpoint.prism.query.TypeFilter;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.RetrieveOption;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -244,25 +245,58 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 		if (object.canRepresent(ShadowType.class)) {
 			PrismObject<ShadowType> shadow = (PrismObject<ShadowType>)object;
 			String resourceOid = ShadowUtil.getResourceOid(shadow);
-			PrismObject<ResourceType> resource;
-			try {
-				resource = provisioning.getObject(ResourceType.class, resourceOid, null, null, result);			// TODO include task here
-			} catch (CommunicationException | SecurityViolationException e) {
-				throw new ConfigurationException(e.getMessage(), e);
+			if (resourceOid != null) {
+				PrismObject<ResourceType> resource;
+				try {
+					resource = provisioning.getObject(ResourceType.class, resourceOid, null, null, result);			// TODO include task here
+				} catch (CommunicationException | SecurityViolationException e) {
+					throw new ConfigurationException(e.getMessage(), e);
+				}
+				RefinedObjectClassDefinition refinedObjectClassDefinition = getEditObjectClassDefinition(shadow, resource, phase);
+				if (refinedObjectClassDefinition != null) {
+					objectDefinition.getComplexTypeDefinition().replaceDefinition(ShadowType.F_ATTRIBUTES, 
+						refinedObjectClassDefinition.toResourceAttributeContainerDefinition());
+				}
 			}
-			RefinedObjectClassDefinition refinedObjectClassDefinition = getEditObjectClassDefinition(shadow, resource, phase);
-			objectDefinition.getComplexTypeDefinition().replaceDefinition(ShadowType.F_ATTRIBUTES, 
-					refinedObjectClassDefinition.toResourceAttributeContainerDefinition());
 		}
 		
 		result.computeStatus();
 		return objectDefinition;
+	}
+	
+	@Override
+	public PrismObjectDefinition<ShadowType> getEditShadowDefinition(ResourceShadowDiscriminator discr, AuthorizationPhaseType phase, OperationResult parentResult) throws SchemaException, ConfigurationException, ObjectNotFoundException {
+		// HACK hack hack
+		// Make a dummy shadow instance here and evaluate the schema for that. It is not 100% correct. But good enough for now.
+		// TODO: refactor when we add better support for multi-tenancy
+		
+		PrismObject<ShadowType> shadow = prismContext.getSchemaRegistry().instantiate(ShadowType.class);
+		ShadowType shadowType = shadow.asObjectable();
+		ObjectReferenceType resourceRef = new ObjectReferenceType();
+		if (discr != null) {
+			resourceRef.setOid(discr.getResourceOid());
+			shadowType.setResourceRef(resourceRef);
+			shadowType.setKind(discr.getKind());
+			shadowType.setIntent(discr.getIntent());
+			shadowType.setObjectClass(discr.getObjectClass());
+		}
+		
+		return getEditObjectDefinition(shadow, phase, parentResult); 
 	}
 
     @Override
 	public RefinedObjectClassDefinition getEditObjectClassDefinition(PrismObject<ShadowType> shadow, PrismObject<ResourceType> resource, AuthorizationPhaseType phase)
 			throws SchemaException {
     	Validate.notNull(resource, "Resource must not be null");
+    	
+    	RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resource);
+    	CompositeRefinedObjectClassDefinition rocd = refinedSchema.determineCompositeObjectClassDefinition(shadow);
+    	if (rocd == null) {
+    		LOGGER.debug("No object class definition for shadow {}, returning null");
+    		return null;
+    	}
+        LayerRefinedObjectClassDefinition layeredROCD = rocd.forLayer(LayerType.PRESENTATION);
+    	
     	// TODO: maybe we need to expose owner resolver in the interface?
 		ObjectSecurityConstraints securityConstraints = securityEnforcer.compileSecurityConstraints(shadow, null);
 		if (LOGGER.isTraceEnabled()) {
@@ -271,10 +305,6 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 		if (securityConstraints == null) {
 			return null;
 		}
-    	
-    	RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resource);
-    	CompositeRefinedObjectClassDefinition rocd = refinedSchema.determineCompositeObjectClassDefinition(shadow);
-        LayerRefinedObjectClassDefinition layeredROCD = rocd.forLayer(LayerType.PRESENTATION);
 
     	ItemPath attributesPath = new ItemPath(ShadowType.F_ATTRIBUTES);
 		AuthorizationDecisionType attributesReadDecision = schemaTransformer.computeItemDecision(securityConstraints, attributesPath, ModelAuthorizationAction.READ.getUrl(), 

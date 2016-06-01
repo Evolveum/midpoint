@@ -104,6 +104,7 @@ public class MultipleAssignmentSelector<F extends FocusType, H extends FocusType
     private ObjectQuery searchQuery = null;
     private PrismObject<F> focus;
     private H filterObject = null;
+    private boolean filterObjectIsAdded = false;
 
     public MultipleAssignmentSelector(String id, IModel<List<AssignmentEditorDto>> selectorModel,
                                       Class<H> targetFocusClass, Class type, PrismObject<F> focus, IModel<ObjectFilter> filterModel) {
@@ -260,8 +261,14 @@ public class MultipleAssignmentSelector<F extends FocusType, H extends FocusType
     }
 
     private void searchPerformed(ObjectQuery query, AjaxRequestTarget target) {
-        searchQuery = query;
-
+        MultipleAssignmentSelector.this.searchQuery = query;
+        if (filterModel != null && filterModel.getObject() != null) {
+            if (query == null){
+                query = new ObjectQuery();
+            }
+            query.addFilter(filterModel.getObject());
+            filterObjectIsAdded = true;
+        }
         BoxedTablePanel panel = getTable();
         panel.setCurrentPage(null);
         provider.setQuery(query);
@@ -391,10 +398,12 @@ public class MultipleAssignmentSelector<F extends FocusType, H extends FocusType
         }
         List<AssignmentEditorDto> currentAssignments = getAssignmentsByType(assignmentsList);
 
-        if ((provider.getQuery() == null || provider.getQuery().getFilter() == null)
-                && filterModel != null && filterModel.getObject() != null) {
+        if (!filterObjectIsAdded
+                && filterModel != null && filterModel.getObject() != null
+                && query.getFilter() == null) {
             query.setFilter(filterModel.getObject());
         }
+        filterObjectIsAdded = false;
         return applyQueryToListProvider(query, currentAssignments);
     }
 
