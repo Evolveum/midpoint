@@ -528,6 +528,17 @@
                     <groupId>org.slf4j</groupId>
                     <artifactId>slf4j-jdk14</artifactId>
                 </exclusion>
+                <!-- Exclude api-all and connector-common as that would be included in the WAR as a transitive
+                     dependency. We do not want that. We only want the api-all from the connector
+                     jar that would be loaded by the ConnId. -->
+                <exclusion>
+                    <groupId>org.apache.directory.api</groupId>
+                    <artifactId>api-all</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>com.evolveum.polygon</groupId>
+					<artifactId>connector-common</artifactId>
+                </exclusion>
             </exclusions>
         </dependency>
         <dependency>
