@@ -18,6 +18,7 @@ package com.evolveum.midpoint.web.component.search;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.match.PolyStringNormMatchingRule;
+import com.evolveum.midpoint.prism.match.StringIgnoreCaseMatchingRule;
 import com.evolveum.midpoint.prism.parser.QueryConvertor;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
@@ -208,7 +209,7 @@ public class Search implements Serializable {
             return EqualFilter.createEqual(path, propDef, value);
         } else if (DOMUtil.XSD_STRING.equals(propDef.getTypeName())) {
             String text = (String) searchValue.getValue();
-            return SubstringFilter.createSubstring(path, propDef, null, text);
+            return SubstringFilter.createSubstring(path, propDef, StringIgnoreCaseMatchingRule.NAME, text);
         } else if (SchemaConstants.T_POLY_STRING_TYPE.equals(propDef.getTypeName())) {
             //we're looking for string value, therefore substring filter should be used
             String text = (String) searchValue.getValue();
