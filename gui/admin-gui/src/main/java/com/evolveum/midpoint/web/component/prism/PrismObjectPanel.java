@@ -63,7 +63,6 @@ public class PrismObjectPanel<O extends ObjectType> extends Panel {
     }
     
     private void initLayout(final IModel<ObjectWrapper<O>> model, ResourceReference image, final Form<ObjectWrapper<O>> form) {
-        setOutputMarkupId(true);
         Component headerComponent = createHeader(ID_HEADER, model, form);
         add(headerComponent);
 
