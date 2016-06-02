@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -65,6 +65,7 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ConnectorTestOperation;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.statistics.ConnectorOperationalStatus;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
@@ -925,8 +926,6 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			resource = getRepoObject(ResourceType.class, resourceOid, null, testResult);
 			resourceManager.testConnection(resource, testResult);
 
-//		} catch (ObjectNotFoundException ex) {
-//			throw new ObjectNotFoundException("Object with OID " + resourceOid + " not found");
 		} catch (SchemaException ex) {
 			throw new IllegalArgumentException(ex.getMessage(), ex);
 		}
@@ -1280,6 +1279,37 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		result.computeStatus("Connector discovery failed");
 		result.cleanupResult();
 		return discoverConnectors;
+	}
+	
+	@Override
+	public ConnectorOperationalStatus getConnectorOperationalStatus(String resourceOid, OperationResult parentResult) 
+			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException  {
+		OperationResult result = parentResult.createSubresult(ProvisioningService.class.getName()
+				+ ".getConnectorOperationalStatus");
+		result.addParam("resourceOid", resourceOid);
+		result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ProvisioningServiceImpl.class);
+
+		PrismObject<ResourceType> resource;
+		try {
+			
+			resource = resourceManager.getResource(resourceOid, null, result);
+
+		} catch (SchemaException | ObjectNotFoundException ex) {
+			ProvisioningUtil.recordFatalError(LOGGER, result, ex.getMessage(), ex);
+			throw ex;
+		}
+		
+		ConnectorOperationalStatus stats;
+		try {
+			stats = connectorManager.getConnectorOperationalStatus(resource, result);
+		} catch (ObjectNotFoundException | SchemaException | CommunicationException | ConfigurationException ex) {
+			ProvisioningUtil.recordFatalError(LOGGER, result, "Getting operations status from connector for resource "+resourceOid+" failed: "+ex.getMessage(), ex);
+			throw ex;
+		}
+
+		result.computeStatus();
+		result.cleanupResult();
+		return stats;
 	}
 
 	@SuppressWarnings("unchecked")

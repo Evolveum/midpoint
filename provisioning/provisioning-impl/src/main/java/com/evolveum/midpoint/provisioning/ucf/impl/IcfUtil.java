@@ -40,6 +40,7 @@ import javax.naming.directory.SchemaViolationException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 
+import org.identityconnectors.common.security.GuardedString;
 import org.identityconnectors.framework.common.exceptions.AlreadyExistsException;
 import org.identityconnectors.framework.common.exceptions.ConfigurationException;
 import org.identityconnectors.framework.common.exceptions.ConnectionBrokenException;
@@ -58,6 +59,8 @@ import org.identityconnectors.framework.common.objects.filter.CompositeFilter;
 import org.identityconnectors.framework.common.objects.filter.Filter;
 
 import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.crypto.EncryptionException;
+import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
@@ -73,6 +76,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 import org.identityconnectors.framework.impl.api.remote.RemoteWrappedException;
 
@@ -519,4 +523,28 @@ class IcfUtil {
 		return uidRoa;
 	}
 
+	public static GuardedString toGuardedString(ProtectedStringType ps, String propertyName, Protector protector) {
+		if (ps == null) {
+			return null;
+		}
+		if (!protector.isEncrypted(ps)) {
+			if (ps.getClearValue() == null) {
+				return null;
+			}
+			LOGGER.warn("Using cleartext value for {}", propertyName);
+			return new GuardedString(ps.getClearValue().toCharArray());
+		}
+		try {
+			return new GuardedString(protector.decryptString(ps).toCharArray());
+		} catch (EncryptionException e) {
+			LOGGER.error("Unable to decrypt value of element {}: {}",
+					new Object[] { propertyName, e.getMessage(), e });
+			throw new SystemException("Unable to decrypt value of element " + propertyName + ": "
+					+ e.getMessage(), e);
+		} catch (RuntimeException e) {
+			// The ConnId will mask encryption exceptions into RuntimeException
+			throw new SystemException("Unable to encrypt value of element " + propertyName + ": "
+					+ e.getMessage(), e);
+		}
+	}
 }

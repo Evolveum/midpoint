@@ -47,6 +47,7 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.statistics.ConnectorOperationalStatus;
 import com.evolveum.midpoint.schema.util.ConnectorTypeUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
@@ -503,6 +504,11 @@ public class ConnectorManager {
 
 	public void connectorFrameworkSelfTest(OperationResult parentTestResult, Task task) {
 		connectorFactory.selfTest(parentTestResult);
+	}
+	
+	public ConnectorOperationalStatus getConnectorOperationalStatus(PrismObject<ResourceType> resource, OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
+		ConnectorInstance connectorInstance = getConfiguredConnectorInstance(resource, false, result);
+		return connectorInstance.getOperationalStatus();
 	}
 
 	public void shutdown() {

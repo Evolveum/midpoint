@@ -114,6 +114,7 @@ import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.statistics.ConnectorOperationalStatus;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.schema.util.SchemaTestConstants;
@@ -686,6 +687,7 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
 					entries.add(entry);
 				}
 			}
+			searchCursor.close();
 		} catch (CursorLdapReferralException e) {
 			throw new IllegalStateException("Got referral to: "+e.getReferralInfo(), e);
 		}
@@ -701,6 +703,7 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
 		LdapNetworkConnection conn = ldapConnect(entry.getDn().toString(), password);
 		assertTrue("Not connected", conn.isConnected());
 		assertTrue("Not authenticated", conn.isAuthenticated());
+		ldapDisconnect(conn);
 	}
 
 	protected Entry addLdapAccount(String uid, String cn, String givenName, String sn) throws LdapException, IOException, CursorException {
@@ -797,11 +800,11 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
 		}
 	}
 	
-	protected LdapNetworkConnection ldapConnect() throws LdapException {
+	protected LdapNetworkConnection ldapConnect() throws LdapException, IOException {
 		return ldapConnect(getLdapBindDn(), getLdapBindPassword());
 	}
 	
-	protected LdapNetworkConnection ldapConnect(String bindDn, String bindPassword) throws LdapException {
+	protected LdapNetworkConnection ldapConnect(String bindDn, String bindPassword) throws LdapException, IOException {
 		LOGGER.trace("LDAP connect to {}:{} as {}",
 				getLdapServerHost(), getLdapServerPort(), bindDn);
 		LdapConnectionConfig config = new LdapConnectionConfig();
@@ -840,6 +843,7 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
 		bindRequest.setSimple(true);
 		BindResponse bindResponse = connection.bind(bindRequest);
 		if (bindResponse.getLdapResult().getResultCode() != ResultCodeEnum.SUCCESS) {
+			ldapDisconnect(connection);
 			throw new SecurityException("Bind as "+bindDn+" failed: "+bindResponse.getLdapResult().getDiagnosticMessage()+" ("+bindResponse.getLdapResult().getResultCode()+")");
 		}
 		LOGGER.trace("LDAP connected to {}:{}, bound as {}",
@@ -848,6 +852,7 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
 	}
 
 	protected void ldapDisconnect(LdapNetworkConnection connection) throws IOException {
+		LOGGER.trace("LDAP disconnect {}", connection);
 		connection.close();
 	}
 	
@@ -873,7 +878,16 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
 		}
 	}
 	
-	protected void assertLdapConnectorInstances(int expectedConnectorInstances) throws NumberFormatException, IOException, InterruptedException {
+	protected void assertLdapConnectorInstances(int expectedConnectorInstances) throws NumberFormatException, IOException, InterruptedException, SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException {
+		OperationResult result = new OperationResult(AbstractLdapTest.class.getName() + ".assertLdapConnectorInstances");
+		ConnectorOperationalStatus stats = provisioningService.getConnectorOperationalStatus(getResourceOid(), result);
+		display("Resource connector stats", stats);
+		result.computeStatus();
+		TestUtil.assertSuccess(result);
+		
+		assertEquals("Unexpected number of LDAP connector instances", expectedConnectorInstances, 
+				stats.getPoolStatusNumIdle() + stats.getPoolStatusNumActive());
+		
 		if (!isAssertOpenFiles()) {
 			return;
 		}
