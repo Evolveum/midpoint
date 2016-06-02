@@ -756,16 +756,15 @@ public class SynchronizationStep extends WizardStep {
     }
 
     private void deleteSyncObjectPerformed(AjaxRequestTarget target, ObjectSynchronizationType syncObject) {
-        ArrayList<ObjectSynchronizationType> list = (ArrayList<ObjectSynchronizationType>) syncDtoModel.getObject().getObjectSynchronizationList();
-
-        list.remove(syncObject);
-
         if (isSelected(syncObject)) {
+			syncDtoModel.getObject().setSelected(null);
             insertEmptyThirdRow();
             target.add(getThirdRowContainer());
         }
 
-        if (list.isEmpty()) {
+		ArrayList<ObjectSynchronizationType> list = (ArrayList<ObjectSynchronizationType>) syncDtoModel.getObject().getObjectSynchronizationList();
+		list.remove(syncObject);
+		if (list.isEmpty()) {
             insertEmptyThirdRow();
             target.add(getThirdRowContainer());
         }

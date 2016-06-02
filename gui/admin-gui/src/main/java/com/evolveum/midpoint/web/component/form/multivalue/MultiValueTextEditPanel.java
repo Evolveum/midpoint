@@ -206,9 +206,10 @@ public class MultiValueTextEditPanel<T extends Serializable> extends BasePanel<L
 
     protected void addValuePerformed(AjaxRequestTarget target){
         List<T> objects = getModelObject();
-        objects.add(createNewEmptyItem());
+		T added = createNewEmptyItem();
+		objects.add(added);
 
-        performAddValueHook(target);
+        performAddValueHook(target, added);
         target.add(this);
     }
 
@@ -261,7 +262,7 @@ public class MultiValueTextEditPanel<T extends Serializable> extends BasePanel<L
     /**
      *  Override to provide custom hook when adding new value
      * */
-    protected void performAddValueHook(AjaxRequestTarget target){}
+    protected void performAddValueHook(AjaxRequestTarget target, T added){}
 
     /**
      *  Override to provide custom hook when removing value from list
