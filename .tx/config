@@ -7,3 +7,9 @@ source_file = gui/admin-gui/src/main/resources/localization/Midpoint.properties
 source_lang = en
 type = UNICODEPROPERTIES
 
+[midpoint.schema]
+file_filter = infra/schema/src/main/resources/localization/schema_<lang>.properties 
+source_file = infra/schema/src/main/resources/localization/schema.properties 
+source_lang = en
+type = UNICODEPROPERTIES
+

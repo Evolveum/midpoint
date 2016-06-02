@@ -268,7 +268,7 @@ public class AuthorizationConstants {
 
 	public static final QName AUTZ_UI_SELF_DASHBOARD_QNAME = new QName(NS_AUTHORIZATION_UI, "selfDashboard");
 	public static final String AUTZ_UI_SELF_DASHBOARD_URL = NS_AUTHORIZATION_UI + "#selfDashboard";
-	
+
 	//permitAll  - it means, no authorization is required, everyone can access these resources, this is user for about system and about midpoint pages..
 	public static final QName AUTZ_UI_PERMIT_ALL_QNAME = new QName(NS_AUTHORIZATION_UI, "permitAll");
 	public static final String AUTZ_UI_PERMIT_ALL_URL = QNameUtil.qNameToUri(AUTZ_UI_PERMIT_ALL_QNAME);
@@ -284,5 +284,12 @@ public class AuthorizationConstants {
 
     // Does not really belong here. But there is no better place now.
     public static final String ANONYMOUS_USER_PRINCIPAL = "anonymousUser";
-    
+
+    //authorization for assign and unassign actions
+    public static final QName AUTZ_UI_ASSIGN_ACTION_QNAME = new QName(NS_AUTHORIZATION_MODEL, "assign");
+    public static final String AUTZ_UI_ASSIGN_ACTION_URL = NS_AUTHORIZATION_MODEL + "#assign";
+
+    public static final QName AUTZ_UI_UNASSIGN_ACTION_QNAME = new QName(NS_AUTHORIZATION_MODEL, "unassign");
+    public static final String AUTZ_UI_UNASSIGN_ACTION_URL = NS_AUTHORIZATION_MODEL + "#unassign";
+
 }
