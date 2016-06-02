@@ -202,7 +202,7 @@ public class ResourceIterationEditor extends BasePanel<IterationSpecificationTyp
 
         MultiValueTextEditPanel variableList = new MultiValueTextEditPanel<ExpressionVariableDefinitionType>(variableId,
                 new PropertyModel<List<ExpressionVariableDefinitionType>>(model,
-                        IterationSpecificationTypeDto.F_ITERATION + "." + containerValue + ".variable"), false, true){
+                        IterationSpecificationTypeDto.F_ITERATION + "." + containerValue + ".variable"), null, false, true){
 
             @Override
             protected IModel<String> createTextModel(final IModel<ExpressionVariableDefinitionType> model) {

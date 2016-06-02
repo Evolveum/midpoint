@@ -32,16 +32,18 @@ import com.evolveum.midpoint.web.component.form.multivalue.MultiValueTextEditPan
 import com.evolveum.midpoint.web.component.input.ObjectReferenceChoiceRenderer;
 import com.evolveum.midpoint.web.component.input.StringChoiceRenderer;
 import com.evolveum.midpoint.web.component.input.TriStateComboPanel;
+import com.evolveum.midpoint.web.component.wizard.resource.SynchronizationStep;
+import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnChangeAjaxFormUpdatingBehavior;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.*;
-import org.apache.wicket.model.AbstractReadOnlyModel;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
-import org.apache.wicket.model.PropertyModel;
+import org.apache.wicket.markup.html.list.ListItem;
+import org.apache.wicket.model.*;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -77,29 +79,20 @@ public class SynchronizationReactionEditor extends BasePanel<SynchronizationReac
 
     private Map<String, String> objectTemplateMap = new HashMap<>();
 
-    public SynchronizationReactionEditor(String id, IModel<SynchronizationReactionType> model){
+	@NotNull private final SynchronizationStep parentStep;
+
+    public SynchronizationReactionEditor(String id, IModel<SynchronizationReactionType> model, SynchronizationStep parentStep) {
         super(id, model);
+		this.parentStep = parentStep;
 		initLayout();
     }
 
 	protected void initLayout() {
-		Label label = new Label(ID_LABEL, new AbstractReadOnlyModel<String>() {
-
-            @Override
-            public String getObject() {
-                SynchronizationReactionType reaction = getModelObject();
-
-				if (reaction.getName() == null && reaction.getSituation() == null) {
-					return getString("SynchronizationReactionEditor.label.new");
-                } else {
-                    return getString("SynchronizationReactionEditor.label.edit",
-                            reaction.getName() != null ? reaction.getName() : getString("MultiValueField.nameNotSpecified"));
-                }
-            }
-        });
+		Label label = new Label(ID_LABEL, new ResourceModel("SynchronizationReactionEditor.label.edit"));
         add(label);
 
         TextField name = new TextField<>(ID_NAME, new PropertyModel<String>(getModel(), "name"));
+		name.add(new ReactionListUpdateBehavior());
         add(name);
 
         TextArea description = new TextArea<>(ID_DESCRIPTION, new PropertyModel<String>(getModel(), "description"));
@@ -110,6 +103,7 @@ public class SynchronizationReactionEditor extends BasePanel<SynchronizationReac
                 WebComponentUtil.createReadonlyModelFromEnum(SynchronizationSituationType.class),
                 new EnumChoiceRenderer<SynchronizationSituationType>(this));
         situation.setNullValid(true);
+		situation.add(new ReactionListUpdateBehavior());
         add(situation);
 
         MultiValueDropDownPanel channel = new MultiValueDropDownPanel<String>(ID_CHANNEL,
@@ -139,7 +133,7 @@ public class SynchronizationReactionEditor extends BasePanel<SynchronizationReac
         };
         add(channel);
         TriStateComboPanel synchronize = new TriStateComboPanel(ID_SYNCHRONIZE, new PropertyModel<Boolean>(getModel(), "synchronize"));
-
+		synchronize.add(new ReactionListUpdateBehavior());
         add(synchronize);
 
         CheckBox reconcile = new CheckBox(ID_RECONCILE, new PropertyModel<Boolean>(getModel(), "reconcile"));
@@ -158,7 +152,7 @@ public class SynchronizationReactionEditor extends BasePanel<SynchronizationReac
         add(objectTemplateRef);
 
         MultiValueTextEditPanel action = new MultiValueTextEditPanel<SynchronizationActionType>(ID_ACTION,
-                new PropertyModel<List<SynchronizationActionType>>(getModel(), "action"), false, true){
+                new PropertyModel<List<SynchronizationActionType>>(getModel(), "action"), null, false, true){
 
             @Override
             protected IModel<String> createTextModel(final IModel<SynchronizationActionType> model) {
@@ -167,27 +161,30 @@ public class SynchronizationReactionEditor extends BasePanel<SynchronizationReac
                     @Override
                     public String getObject() {
                         SynchronizationActionType action = model.getObject();
-
-                        if(action == null){
+                        if (action == null) {
                             return null;
                         }
-
                         StringBuilder sb = new StringBuilder();
-                        sb.append(action.getName() != null ? action.getName() : " - ");
-
-                        if(action.getHandlerUri() != null){
-                            String[] handlerUriSplit = action.getHandlerUri().split("#");
-                            sb.append("(");
-                            sb.append(handlerUriSplit[handlerUriSplit.length - 1]);
-                            sb.append(")");
+                        sb.append(action.getName() != null ? action.getName() : "-");
+                        if (action.getHandlerUri() != null) {
+                            sb.append(" (").append(StringUtils.substringAfter(action.getHandlerUri(), "#")).append(")");
                         }
-
                         return sb.toString();
                     }
                 };
             }
 
-            @Override
+			@Override
+			protected void performAddValueHook(AjaxRequestTarget target, SynchronizationActionType added) {
+				target.add(parentStep.getReactionList());
+			}
+
+			@Override
+			protected void performRemoveValueHook(AjaxRequestTarget target, ListItem<SynchronizationActionType> item) {
+				target.add(parentStep.getReactionList());
+			}
+
+			@Override
             protected SynchronizationActionType createNewEmptyItem(){
                 return new SynchronizationActionType();
             }
@@ -227,12 +224,12 @@ public class SynchronizationReactionEditor extends BasePanel<SynchronizationReac
         initModals();
     }
 
-    private void initModals(){
+    private void initModals() {
         ModalWindow actionEditor = new SynchronizationActionEditorDialog(ID_ACTION_MODAL, null){
 
             @Override
             public void updateComponents(AjaxRequestTarget target){
-                target.add(SynchronizationReactionEditor.this.get(ID_ACTION));
+                target.add(SynchronizationReactionEditor.this.get(ID_ACTION), parentStep.getReactionList());
             }
         };
         add(actionEditor);
@@ -278,4 +275,11 @@ public class SynchronizationReactionEditor extends BasePanel<SynchronizationReac
         window.updateModel(target, action);
         window.show(target);
     }
+
+	private class ReactionListUpdateBehavior extends EmptyOnChangeAjaxFormUpdatingBehavior {
+		@Override
+		protected void onUpdate(AjaxRequestTarget target) {
+			target.add(parentStep.getReactionList());
+		}
+	}
 }

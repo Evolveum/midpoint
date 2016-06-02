@@ -50,6 +50,7 @@ import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.ExpressionUtil;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -416,7 +417,7 @@ public class SynchronizationStep extends WizardStep {
         editor.add(opportunistic);
 
         MultiValueTextEditPanel editorCorrelation = new MultiValueTextEditPanel<ConditionalSearchFilterType>(ID_EDITOR_EDITOR_CORRELATION,
-                new PropertyModel<List<ConditionalSearchFilterType>>(syncDtoModel, ResourceSynchronizationDto.F_SELECTED + ".correlation"), false, true){
+                new PropertyModel<List<ConditionalSearchFilterType>>(syncDtoModel, ResourceSynchronizationDto.F_SELECTED + ".correlation"), null, false, true){
 
             @Override
             protected IModel<String> createTextModel(final IModel<ConditionalSearchFilterType> model) {
@@ -458,7 +459,7 @@ public class SynchronizationStep extends WizardStep {
         editor.add(editorCorrelation);
 
         MultiValueTextEditPanel editorReaction = new MultiValueTextEditPanel<SynchronizationReactionType>(ID_EDITOR_REACTION,
-                new PropertyModel<List<SynchronizationReactionType>>(syncDtoModel, ResourceSynchronizationDto.F_SELECTED + ".reaction"), false, true){
+                new PropertyModel<List<SynchronizationReactionType>>(syncDtoModel, ResourceSynchronizationDto.F_SELECTED + ".reaction"), null, false, true){
 
             @Override
             protected IModel<String> createTextModel(final IModel<SynchronizationReactionType> model) {
@@ -466,20 +467,33 @@ public class SynchronizationStep extends WizardStep {
 
                     @Override
                     public String getObject() {
-                        StringBuilder sb = new StringBuilder();
-
-                        if(model.getObject() != null){
-                            SynchronizationReactionType reaction = model.getObject();
-
-                            sb.append(reaction.getName() != null ? reaction.getName() : "- ");
-
-                            if(reaction.getSituation() != null){
-                                sb.append(" (");
-                                sb.append(reaction.getSituation());
-                                sb.append(")");
-                            }
+						SynchronizationReactionType reaction = model.getObject();
+                        if (reaction == null) {
+							return "";
+						}
+						StringBuilder sb = new StringBuilder();
+                        sb.append(reaction.getName() != null ? reaction.getName() : "-");
+						sb.append(" (");
+						if (reaction.getSituation() != null) {
+							sb.append(reaction.getSituation());
                         }
-
+						if (Boolean.TRUE.equals(reaction.isSynchronize()) || !reaction.getAction().isEmpty()) {
+							sb.append(" => ");
+							if (!reaction.getAction().isEmpty()) {
+								boolean first = true;
+								for (SynchronizationActionType action : reaction.getAction()) {
+									if (first) {
+										first = false;
+									} else {
+										sb.append(", ");
+									}
+									sb.append(StringUtils.substringAfter(action.getHandlerUri(), "#"));
+								}
+							} else {
+								sb.append("sync");	// TODO i18n
+							}
+						}
+						sb.append(")");
                         return sb.toString();
                     }
                 };
@@ -500,6 +514,7 @@ public class SynchronizationStep extends WizardStep {
                 return !isAnySelected();
             }
         };
+		editorReaction.setOutputMarkupId(true);
         editor.add(editorReaction);
 
         Label kindTooltip = new Label(ID_T_KIND);
@@ -598,6 +613,10 @@ public class SynchronizationStep extends WizardStep {
         return get(ID_OBJECT_SYNC_EDITOR);
     }
 
+	public Component getReactionList() {
+		return get(createComponentPath(ID_OBJECT_SYNC_EDITOR, ID_EDITOR_REACTION));
+	}
+
     private Component getThirdRowContainer(){
         return get(ID_THIRD_ROW_CONTAINER);
     }
@@ -646,7 +665,7 @@ public class SynchronizationStep extends WizardStep {
     }
 
     private void reactionEditPerformed(AjaxRequestTarget target, SynchronizationReactionType reaction){
-		WebMarkupContainer newContainer = new SynchronizationReactionEditor(ID_THIRD_ROW_CONTAINER, new Model<>(reaction));
+		WebMarkupContainer newContainer = new SynchronizationReactionEditor(ID_THIRD_ROW_CONTAINER, new Model<>(reaction), this);
 		getThirdRowContainer().replaceWith(newContainer);
 
 		for (SynchronizationActionType action : reaction.getAction()) {
@@ -718,31 +737,6 @@ public class SynchronizationStep extends WizardStep {
 			}
 		}
 	}
-
-	//    private void prepareResourceToSave(ResourceType resource) {
-//        if (resource.getSynchronization() == null) {
-//            return;
-//        }
-//
-//        ResourceSynchronizationDto dto = syncDtoModel.getObject();
-//
-//        SynchronizationType sync = resource.getSynchronization();
-//        for(ObjectSynchronizationType syncObject: sync.getObjectSynchronization()){
-//            List<QName> newObjectClassList = new ArrayList<>();
-//
-//            for(QName objectClass: syncObject.getObjectClass()){
-//                for(QName objClazz: dto.getObjectClassList()){
-//                    if(objClazz.getLocalPart().equals(objectClass.getLocalPart())){
-//                        QName newObjectClass = new QName(objClazz.getNamespaceURI(), objClazz.getLocalPart());
-//                        newObjectClassList.add(newObjectClass);
-//                    }
-//                }
-//            }
-//
-//            syncObject.getObjectClass().clear();
-//            syncObject.getObjectClass().addAll(newObjectClassList);
-//        }
-//    }
 
     private void editSyncObjectPerformed(AjaxRequestTarget target, ObjectSynchronizationType syncObject) {
 		boolean wasAnySelected = isAnySelected();
