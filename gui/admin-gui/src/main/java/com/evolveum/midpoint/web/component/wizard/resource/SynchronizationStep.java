@@ -17,6 +17,8 @@
 package com.evolveum.midpoint.web.component.wizard.resource;
 
 import com.evolveum.midpoint.gui.api.model.NonEmptyLoadableModel;
+import com.evolveum.midpoint.gui.api.model.NonEmptyModel;
+import com.evolveum.midpoint.gui.api.model.NonEmptyWrapperModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.ModelService;
@@ -44,6 +46,7 @@ import com.evolveum.midpoint.web.component.wizard.resource.dto.ResourceSynchroni
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnChangeAjaxFormUpdatingBehavior;
 import com.evolveum.midpoint.web.page.admin.resources.PageResourceWizard;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
+import com.evolveum.midpoint.web.util.ExpressionUtil;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.wicket.AttributeModifier;
@@ -407,7 +410,7 @@ public class SynchronizationStep extends WizardStep {
             }
 
             @Override
-            protected void editPerformed(AjaxRequestTarget target, ConditionalSearchFilterType object){
+            protected void editPerformed(AjaxRequestTarget target, ConditionalSearchFilterType object) {
                 correlationEditPerformed(target, object);
             }
 
@@ -591,9 +594,12 @@ public class SynchronizationStep extends WizardStep {
         target.add(getThirdRowContainer(), get(ID_OBJECT_SYNC_EDITOR), getPageBase().getFeedbackPanel());
     }
 
-    private void correlationEditPerformed(AjaxRequestTarget target, ConditionalSearchFilterType condition){
+    private void correlationEditPerformed(AjaxRequestTarget target, @NotNull ConditionalSearchFilterType condition) {
+		if (condition.getCondition() == null) {
+			condition.setCondition(new ExpressionType());			// removed at save
+		}
         WebMarkupContainer newContainer = new ConditionalSearchFilterEditor(ID_THIRD_ROW_CONTAINER,
-                new Model<>(condition));
+				new NonEmptyWrapperModel<>(new Model<>(condition)));
         getThirdRowContainer().replaceWith(newContainer);
 
         target.add(getThirdRowContainer(), get(ID_OBJECT_SYNC_EDITOR), getPageBase().getFeedbackPanel());
@@ -626,7 +632,7 @@ public class SynchronizationStep extends WizardStep {
         OperationResult result = task.getResult();
         ModelService modelService = getPageBase().getModelService();
 
-//        prepareResourceToSave(newResource.asObjectable());
+        removeEmptyContainers(newResource.asObjectable());
 
         try {
             oldResource = WebModelServiceUtils.loadObject(ResourceType.class, newResource.getOid(), getPageBase(), task, result);
@@ -653,7 +659,27 @@ public class SynchronizationStep extends WizardStep {
         }
     }
 
-//    private void prepareResourceToSave(ResourceType resource) {
+	private void removeEmptyContainers(ResourceType resourceType) {
+		if (resourceType.getSynchronization() == null) {
+			return;
+		}
+
+		for (ObjectSynchronizationType objectSync : resourceType.getSynchronization().getObjectSynchronization()) {
+			if (objectSync.getCondition() != null && ExpressionUtil.isEmpty(objectSync.getCondition())) {
+				objectSync.setCondition(null);
+			}
+			if (objectSync.getConfirmation() != null && ExpressionUtil.isEmpty(objectSync.getConfirmation())) {
+				objectSync.setConfirmation(null);
+			}
+			for (ConditionalSearchFilterType correlationFilter : objectSync.getCorrelation()) {
+				if (correlationFilter.getCondition() != null && ExpressionUtil.isEmpty(correlationFilter.getCondition())) {
+					correlationFilter.setCondition(null);
+				}
+			}
+		}
+	}
+
+	//    private void prepareResourceToSave(ResourceType resource) {
 //        if (resource.getSynchronization() == null) {
 //            return;
 //        }

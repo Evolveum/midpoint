@@ -1065,7 +1065,7 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
 		assertEquals("Wrong passwordAllowChange in "+shadow, expected, passwordAllowChange);
 	}
 	
-	private void makeBadLoginAttempt(String uid) throws LdapException {
+	private void makeBadLoginAttempt(String uid) throws LdapException, IOException {
 		try {
 			LdapNetworkConnection conn = ldapConnect(toAccountDn(uid), "thisIsAwRoNgPASSW0RD");
 			if (conn.isAuthenticated()) {
