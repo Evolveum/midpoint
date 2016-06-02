@@ -37,6 +37,7 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 import org.w3c.dom.Document;
 
+import com.evolveum.icf.dummy.connector.DummyConnector;
 import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.icf.dummy.resource.DummyResource;
 import com.evolveum.icf.dummy.resource.DummySyncStyle;
@@ -69,6 +70,7 @@ import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.statistics.ConnectorOperationalStatus;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
@@ -254,7 +256,7 @@ public class TestUcfDummy extends AbstractTestNGSpringContextTests {
 			GenericFrameworkException, SchemaException, ConfigurationException {
 		TestUtil.displayTestTile("test004CreateConfiguredConnector");
 		
-		ConnectorInstance cc = connectorFactory.createConnectorInstance(connectorType, ResourceTypeUtil.getResourceNamespace(resourceType),
+		cc = connectorFactory.createConnectorInstance(connectorType, ResourceTypeUtil.getResourceNamespace(resourceType),
 				"test connector");
 		assertNotNull("Failed to instantiate connector", cc);
 		OperationResult result = new OperationResult(TestUcfDummy.class.getName() + ".testCreateConfiguredConnector");
@@ -271,10 +273,34 @@ public class TestUcfDummy extends AbstractTestNGSpringContextTests {
 	}
 	
 	@Test
-	public void test030ResourceSchema() throws Exception {
-		TestUtil.displayTestTile("test030ResourceSchema");
+	public void test022ConnectorStatsConfigured() throws Exception {
+		final String TEST_NAME = "test022ConnectorStatsConfigured";
+		TestUtil.displayTestTile(TEST_NAME);
 		
-		OperationResult result = new OperationResult(TestUcfDummy.class+".test030ResourceSchema");
+		// WHEN
+		ConnectorOperationalStatus operationalStatus = cc.getOperationalStatus();
+		
+		// THEN
+		display("Connector operational status", operationalStatus);
+		assertNotNull("null operational status", operationalStatus);
+		
+		assertEquals("Wrong connectorClassName", DummyConnector.class.getName(), operationalStatus.getConnectorClassName());
+		assertEquals("Wrong poolConfigMinSize", null, operationalStatus.getPoolConfigMinSize());
+		assertEquals("Wrong poolConfigMaxSize", (Integer)10, operationalStatus.getPoolConfigMaxSize());
+		assertEquals("Wrong poolConfigMinIdle", (Integer)1, operationalStatus.getPoolConfigMinIdle());
+		assertEquals("Wrong poolConfigMaxIdle", (Integer)10, operationalStatus.getPoolConfigMaxIdle());
+		assertEquals("Wrong poolConfigWaitTimeout", (Long)150000L, operationalStatus.getPoolConfigWaitTimeout());
+		assertEquals("Wrong poolConfigMinEvictableIdleTime", (Long)120000L, operationalStatus.getPoolConfigMinEvictableIdleTime());
+		assertEquals("Wrong poolStatusNumIdle", (Integer)0, operationalStatus.getPoolStatusNumIdle());
+		assertEquals("Wrong poolStatusNumActive", (Integer)0, operationalStatus.getPoolStatusNumActive());
+	}
+	
+	@Test
+	public void test030ResourceSchema() throws Exception {
+		final String TEST_NAME = "test030ResourceSchema";
+		TestUtil.displayTestTile(TEST_NAME);
+		
+		OperationResult result = new OperationResult(TestUcfDummy.class + "." + TEST_NAME);
 		
 		cc = connectorFactory.createConnectorInstance(connectorType, ResourceTypeUtil.getResourceNamespace(resourceType), 
 				"test connector");
@@ -307,10 +333,11 @@ public class TestUcfDummy extends AbstractTestNGSpringContextTests {
 	}
 	
 	@Test
-	public void test030ResourceSchemaAccountObjectClass() throws Exception {
-		TestUtil.displayTestTile("test030ResourceSchemaAccountObjectClass");
+	public void test031ResourceSchemaAccountObjectClass() throws Exception {
+		final String TEST_NAME = "test031ResourceSchemaAccountObjectClass";
+		TestUtil.displayTestTile(TEST_NAME);
 		
-		OperationResult result = new OperationResult(TestUcfDummy.class+".test030ResourceSchema");
+		OperationResult result = new OperationResult(TestUcfDummy.class + "." + TEST_NAME);
 		
 		cc = connectorFactory.createConnectorInstance(connectorType, ResourceTypeUtil.getResourceNamespace(resourceType), "test connector");
 		assertNotNull("Failed to instantiate connector", cc);
@@ -332,19 +359,29 @@ public class TestUcfDummy extends AbstractTestNGSpringContextTests {
 		assertEquals("Unexpected number of object class definitions", 1, resourceSchema.getObjectClassDefinitions().size());
 		
 		display("RESOURCE SCHEMA DEFINITION" + resourceSchema.getDefinitions().iterator().next().getTypeName());
-//		dummyResourceCtl.assertDummyResourceSchemaSanityExtended(resourceSchema, resourceType);
-//		
-//		Document xsdSchemaDom = resourceSchema.serializeToXsd();
-//		assertNotNull("No serialized resource schema", xsdSchemaDom);
-//		display("Serialized XSD resource schema", DOMUtil.serializeDOMToString(xsdSchemaDom));
-//		
-//		// Try to re-parse
-//		ResourceSchema reparsedResourceSchema = ResourceSchema.parse(DOMUtil.getFirstChildElement(xsdSchemaDom),
-//				"serialized schema", PrismTestUtil.getPrismContext());
-//		display("Re-parsed resource schema", reparsedResourceSchema);
-//		assertEquals("Unexpected number of definitions in re-parsed schema", 3, reparsedResourceSchema.getDefinitions().size());
-//		
-//		dummyResourceCtl.assertDummyResourceSchemaSanityExtended(reparsedResourceSchema, resourceType);
+	}
+	
+	@Test
+	public void test033ConnectorStatsInitialized() throws Exception {
+		final String TEST_NAME = "test033ConnectorStatsInitialized";
+		TestUtil.displayTestTile(TEST_NAME);
+		
+		// WHEN
+		ConnectorOperationalStatus operationalStatus = cc.getOperationalStatus();
+		
+		// THEN
+		display("Connector operational status", operationalStatus);
+		assertNotNull("null operational status", operationalStatus);
+		
+		assertEquals("Wrong connectorClassName", DummyConnector.class.getName(), operationalStatus.getConnectorClassName());
+		assertEquals("Wrong poolConfigMinSize", null, operationalStatus.getPoolConfigMinSize());
+		assertEquals("Wrong poolConfigMaxSize", (Integer)10, operationalStatus.getPoolConfigMaxSize());
+		assertEquals("Wrong poolConfigMinIdle", (Integer)1, operationalStatus.getPoolConfigMinIdle());
+		assertEquals("Wrong poolConfigMaxIdle", (Integer)10, operationalStatus.getPoolConfigMaxIdle());
+		assertEquals("Wrong poolConfigWaitTimeout", (Long)150000L, operationalStatus.getPoolConfigWaitTimeout());
+		assertEquals("Wrong poolConfigMinEvictableIdleTime", (Long)120000L, operationalStatus.getPoolConfigMinEvictableIdleTime());
+		assertEquals("Wrong poolStatusNumIdle", (Integer)1, operationalStatus.getPoolStatusNumIdle());
+		assertEquals("Wrong poolStatusNumActive", (Integer)0, operationalStatus.getPoolStatusNumActive());
 	}
 	
 	@Test

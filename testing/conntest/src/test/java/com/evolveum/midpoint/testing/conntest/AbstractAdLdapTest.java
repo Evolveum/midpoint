@@ -332,6 +332,7 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
         assertTrue("lastLogonDef modify", lastLogonDef.canModify());
         assertTrue("lastLogonDef add", lastLogonDef.canAdd());
         
+        assertStableSystem();
 	}
 	
 	// test050 in subclasses
@@ -372,6 +373,8 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
         if (metadata != null) {
         	assertFalse(metadata.isPartialResults());
         }
+        
+        assertStableSystem();
 	}
 	
 	@Test
@@ -410,6 +413,8 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
         if (metadata != null) {
         	assertFalse(metadata.isPartialResults());
         }
+        
+        assertStableSystem();
 	}
 	
 	@Test
@@ -446,6 +451,8 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
         
         assertConnectorOperationIncrement(1);
         assertConnectorSimulatedPagingSearchIncrement(0);
+        
+        assertStableSystem();
 	}
 	
 	
@@ -478,6 +485,8 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
         if (metadata != null) {
         	assertFalse(metadata.isPartialResults());
         }
+        
+        assertLdapConnectorInstances(2);
     }
 	
 	/**
@@ -507,6 +516,8 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
         if (metadata != null) {
         	assertFalse(metadata.isPartialResults());
         }
+        
+        assertLdapConnectorInstances(2);
     }
 	
 	/**
@@ -536,6 +547,8 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
         if (metadata != null) {
         	assertFalse(metadata.isPartialResults());
         }
+        
+        assertLdapConnectorInstances(2);
     }
 	
 	@Test
@@ -564,6 +577,7 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
         	assertFalse(metadata.isPartialResults());
         }
         
+        assertLdapConnectorInstances(2);
     }
 	
 	/**
@@ -594,6 +608,8 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
         if (metadata != null) {
         	assertFalse(metadata.isPartialResults());
         }
+        
+        assertLdapConnectorInstances(2);
     }
 	
 	/**
@@ -630,6 +646,8 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
         if (metadata != null) {
         	assertFalse(metadata.isPartialResults());
         }
+        
+        assertLdapConnectorInstances(2);
     }
 	
 	/**
@@ -665,6 +683,7 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
         	assertFalse(metadata.isPartialResults());
         }
 
+        assertLdapConnectorInstances(2);
     }
 		
 	@Test
@@ -713,6 +732,8 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
         Long createTimestamp = createTimestampAttribute.getRealValue();
         // LDAP server may be on a different host. Allow for some clock offset.
         TestUtil.assertBetween("Wrong createTimestamp in "+shadow, roundTsDown(tsStart)-120000, roundTsUp(tsEnd)+120000, createTimestamp);
+        
+        assertLdapConnectorInstances(3);
 	}
 	
 	@Test
@@ -747,6 +768,8 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
         PrismObject<UserType> user = getUser(USER_BARBOSSA_OID);
         String shadowOid = getSingleLinkOid(user);
         assertEquals("Shadows have moved", accountBarbossaOid, shadowOid);
+        
+        assertLdapConnectorInstances(3);
 	}
 	
 	@Test
@@ -781,6 +804,8 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
         PrismObject<UserType> user = getUser(USER_BARBOSSA_OID);
         String shadowOid = getSingleLinkOid(user);
         assertEquals("Shadows have moved", accountBarbossaOid, shadowOid);
+        
+        assertLdapConnectorInstances(3);
 	}
 	
 	/**
@@ -821,6 +846,8 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
         PrismObject<UserType> user = getUser(USER_BARBOSSA_OID);
         String shadowOid = getSingleLinkOid(user);
         assertEquals("Shadows have moved", accountBarbossaOid, shadowOid);
+        
+        assertLdapConnectorInstances(3);
 	}
 	
 	@Test
@@ -854,6 +881,8 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
         PrismObject<UserType> user = getUser(USER_BARBOSSA_OID);
         String shadowOid = getSingleLinkOid(user);
         assertEquals("Shadows have moved", accountBarbossaOid, shadowOid);
+        
+        assertLdapConnectorInstances(4);
 	}
 	
 	@Test
@@ -892,6 +921,8 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
         } catch (SecurityException e) {
         	// this is expected
         }
+        
+        assertLdapConnectorInstances(5);
 	}
 
 	@Test
@@ -923,6 +954,8 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
         String shadowOid = getSingleLinkOid(user);
         PrismObject<ShadowType> shadow = getObject(ShadowType.class, shadowOid);
         assertAccountEnabled(shadow);
+        
+        assertLdapConnectorInstances(3);
 	}
 
 	/**
@@ -963,6 +996,8 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
         PrismObject<ShadowType> shadow = getObject(ShadowType.class, shadowOid);
         IntegrationTestTools.assertAssociation(shadow, getAssociationGroupQName(), groupPiratesOid);
         assertAccountDisabled(shadow);
+        
+        assertLdapConnectorInstances(3);
 	}
 	
 	@Test
@@ -997,6 +1032,8 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
         } catch (SecurityException e) {
         	// this is expected, account is disabled
         }
+        
+        assertLdapConnectorInstances(3);
 	}
 	
 	@Test
@@ -1030,6 +1067,8 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
         assertAccountEnabled(shadow);
         
         assertLdapPassword(USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME, "wanna.be.a.123");
+        
+        assertLdapConnectorInstances(3);
 	}
 
 	@Test
@@ -1063,6 +1102,7 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
         PrismObject<ShadowType> shadow = getObject(ShadowType.class, shadowOid);
         IntegrationTestTools.assertAssociation(shadow, getAssociationGroupQName(), groupPiratesOid);
         
+        assertLdapConnectorInstances(3);
 	}
 	
 	@Test
@@ -1103,6 +1143,8 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
         display("Shadow after rename (repo)", repoShadow);
         
         assertNoLdapAccount(USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME);
+        
+        assertLdapConnectorInstances(3);
 	}
 	
 	// TODO: create account with a group membership
@@ -1141,6 +1183,7 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
         PrismObject<ShadowType> shadow = getObject(ShadowType.class, shadowOid);
         IntegrationTestTools.assertNoAssociation(shadow, getAssociationGroupQName(), groupPiratesOid);
         
+        assertLdapConnectorInstances(3);
 	}
 	
 	@Test
@@ -1166,6 +1209,8 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
         
         PrismObject<UserType> user = getUser(USER_BARBOSSA_OID);
         assertNoLinkedAccount(user);
+        
+        assertLdapConnectorInstances(3);
 	}
 	
 	@Test
@@ -1203,6 +1248,8 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
         groupMeleeOid = getSingleLinkOid(org);
         PrismObject<ShadowType> shadow = getShadowModel(groupMeleeOid);
         display("Shadow (model)", shadow);
+        
+        assertLdapConnectorInstances(3);
 	}
 	
 	@Test
@@ -1233,6 +1280,8 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
         assertLdapGroupMember(entry, GROUP_MELEE_ISLAND_NAME);
 
         IntegrationTestTools.assertAssociation(shadow, getAssociationGroupQName(), groupMeleeOid);
+        
+        assertLdapConnectorInstances(3);
 	}
 	
 	@Override
