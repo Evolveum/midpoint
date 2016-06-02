@@ -214,7 +214,7 @@ public class DebugUtil {
 	}
 
 	public static void debugDumpWithLabelLn(StringBuilder sb, String label, int val, int indent) {
-		debugDumpLabel(sb, label, indent);
+		debugDumpWithLabel(sb, label, val, indent);
 		sb.append("\n");
 	}
 	
@@ -225,7 +225,7 @@ public class DebugUtil {
 	}
 	
 	public static void debugDumpWithLabelLn(StringBuilder sb, String label, long val, int indent) {
-		debugDumpLabel(sb, label, indent);
+		debugDumpWithLabel(sb, label, val, indent);
 		sb.append("\n");
 	}
 

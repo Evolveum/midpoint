@@ -130,6 +130,14 @@ public class TestOpenDj extends AbstractLdapConnTest {
 	}
 	
 	@Override
+	protected boolean isAssertOpenFiles() {
+		// Cannot do this here. OpenDJ is embedded, the
+		// number of open files for the whole process may
+		// vary significantly because of OpenDJ.
+		return false;
+	}
+	
+	@Override
 	protected void assertStepSyncToken(String syncTaskOid, int step, long tsStart, long tsEnd)
 			throws ObjectNotFoundException, SchemaException {
 		assertSyncToken(syncTaskOid, (Integer)(step + getInitialSyncToken()));

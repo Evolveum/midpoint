@@ -18,8 +18,11 @@ package com.evolveum.midpoint.web.component.prism;
 
 import java.util.List;
 
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
@@ -60,33 +63,24 @@ public class PrismObjectPanel<O extends ObjectType> extends Panel {
     }
     
     private void initLayout(final IModel<ObjectWrapper<O>> model, ResourceReference image, final Form<ObjectWrapper<O>> form) {
-        Component headerComponent = createHeader(ID_HEADER, model);
+        Component headerComponent = createHeader(ID_HEADER, model, form);
         add(headerComponent);
 
+        addOrReplaceContainers(model, form, false);
 
-        ListView<ContainerWrapper> containers = new ListView<ContainerWrapper>(ID_CONTAINERS,
-                createContainerModel(model)) {
-			private static final long serialVersionUID = 1L;
-
-			@Override
-            protected void populateItem(ListItem<ContainerWrapper> item) {
-                createContainerPanel(item, form);
-            }
-        };
-        containers.setReuseItems(true);
-        add(containers);
     }
 
 	public void removeAllContainerWrappers() {
 		((ListView<ContainerWrapper>) get(ID_CONTAINERS)).removeAll();
 	}
 
-    protected Component createHeader(String id, IModel<ObjectWrapper<O>> model) {
+    protected Component createHeader(String id, final IModel<ObjectWrapper<O>> model, final Form<ObjectWrapper<O>> form) {
     	PrismHeaderPanel header = new PrismHeaderPanel(ID_HEADER, model) {
 			private static final long serialVersionUID = 1L;
 
 			@Override
 			protected void onButtonClick(AjaxRequestTarget target) {
+                addOrReplaceContainers(model, form, true);
 				target.add(PrismObjectPanel.this);
 			}
     		
@@ -107,6 +101,24 @@ public class PrismObjectPanel<O extends ObjectType> extends Panel {
         PrismContainerPanel panel = new PrismContainerPanel(ID_CONTAINER, item.getModel(), true, form, pageBase);
         panel.setOutputMarkupPlaceholderTag(true);
         item.add(panel);
+    }
+
+    private void addOrReplaceContainers(IModel<ObjectWrapper<O>> model, final Form form, boolean isToBeReplaced){
+        ListView<ContainerWrapper> containers = new ListView<ContainerWrapper>(ID_CONTAINERS,
+                createContainerModel(model)) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected void populateItem(ListItem<ContainerWrapper> item) {
+                createContainerPanel(item, form);
+            }
+        };
+        containers.setReuseItems(true);
+        if (isToBeReplaced) {
+            replace(containers);
+        } else {
+            add(containers);
+        }
     }
 
 }
