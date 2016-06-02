@@ -23,7 +23,6 @@ import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.query.FilterUtils;
 import com.evolveum.midpoint.prism.util.ItemPathUtil;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -39,6 +38,7 @@ import com.evolveum.midpoint.web.component.util.ListDataProvider;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.component.wizard.WizardStep;
 import com.evolveum.midpoint.web.component.wizard.WizardUtil;
+import com.evolveum.midpoint.web.component.wizard.resource.component.DuplicateObjectTypeDetector;
 import com.evolveum.midpoint.web.component.wizard.resource.component.schemahandling.*;
 import com.evolveum.midpoint.web.component.wizard.resource.dto.ResourceObjectTypeDefinitionTypeDto;
 import com.evolveum.midpoint.web.component.wizard.resource.dto.SchemaHandlingDto;
@@ -110,6 +110,10 @@ public class SchemaHandlingStep extends WizardStep {
     private static final String ID_EDITOR_BUTTON_CREDENTIALS = "editorCredentialsButton";
     private static final String ID_EDITOR_ATTRIBUTES = "editorAttributes";
     private static final String ID_EDITOR_ASSOCIATIONS = "editorAssociations";
+    private static final String ID_DUPLICATE_OBJECT_TYPE_WARNING_CONTAINER = "duplicateObjectTypeWarningContainer";
+    private static final String ID_DUPLICATE_OBJECT_TYPE_WARNING = "duplicateObjectTypeWarning";
+    private static final String ID_DUPLICATE_OBJECT_TYPE_WARNING_TEXT = "duplicateObjectTypeWarningText";
+
     private static final String ID_T_KIND = "kindTooltip";
     private static final String ID_T_INTENT = "intentTooltip";
     private static final String ID_T_DEFAULT = "defaultTooltip";
@@ -178,7 +182,26 @@ public class SchemaHandlingStep extends WizardStep {
         objectTypesTable.setOutputMarkupId(true);
         add(objectTypesTable);
 
-        // second row - object type editor
+		WebMarkupContainer duplicateObjectTypeWarningContainer = new WebMarkupContainer(ID_DUPLICATE_OBJECT_TYPE_WARNING_CONTAINER);
+		WebMarkupContainer duplicateObjectTypeWarning = new WebMarkupContainer(ID_DUPLICATE_OBJECT_TYPE_WARNING);
+		duplicateObjectTypeWarning.add(new VisibleEnableBehaviour() {
+			@Override
+			public boolean isVisible() {
+				return duplicateObjectTypesPresent();
+			}
+		});
+		Label duplicateObjectTypeWarningText = new Label(ID_DUPLICATE_OBJECT_TYPE_WARNING_TEXT, new AbstractReadOnlyModel<String>() {
+			@Override
+			public String getObject() {
+				return getString("SchemaHandlingStep.duplicateObjectTypeWarning", getDuplicateObjectTypes());
+			}
+		});
+		duplicateObjectTypeWarning.add(duplicateObjectTypeWarningText);
+		duplicateObjectTypeWarningContainer.add(duplicateObjectTypeWarning);
+		duplicateObjectTypeWarningContainer.setOutputMarkupId(true);
+		add(duplicateObjectTypeWarningContainer);
+
+		// second row - object type editor
         WebMarkupContainer objectTypeEditor = new WebMarkupContainer(ID_OBJECT_TYPE_EDITOR);
         objectTypeEditor.setOutputMarkupId(true);
         objectTypeEditor.add(new VisibleEnableBehaviour(){
@@ -250,13 +273,33 @@ public class SchemaHandlingStep extends WizardStep {
             protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
                 addObjectTypePerformed(target);
             }
+
+			@Override
+			protected void onError(AjaxRequestTarget target, Form<?> form) {
+				target.add(parentPage.getFeedbackPanel());
+			}
         };
         add(add);
 
         initObjectTypeEditor(objectTypeEditor);
     }
 
-    private IModel<String> createObjectTypeDisplayModel(final ResourceObjectTypeDefinitionTypeDto objectType){
+	private String getDuplicateObjectTypes() {
+		DuplicateObjectTypeDetector detector = new DuplicateObjectTypeDetector();
+		for (ResourceObjectTypeDefinitionTypeDto dto : schemaHandlingDtoModel.getObject().getObjectTypeDtoList()) {
+			detector.add(dto.getObjectType());
+		}
+		if (!detector.hasDuplicates()) {
+			return null;
+		}
+		return detector.getDuplicatesList();
+	}
+
+	private boolean duplicateObjectTypesPresent() {
+		return getDuplicateObjectTypes() != null;
+	}
+
+	private IModel<String> createObjectTypeDisplayModel(final ResourceObjectTypeDefinitionTypeDto objectType){
         return new AbstractReadOnlyModel<String>() {
 
             @Override
@@ -647,6 +690,10 @@ public class SchemaHandlingStep extends WizardStep {
         return get(ID_PAGING_OBJECT_TYPE);
     }
 
+	private Component getDuplicateObjectTypeWarningContainer() {
+		return get(ID_DUPLICATE_OBJECT_TYPE_WARNING_CONTAINER);
+	}
+
     private void resetSelected(){
         schemaHandlingDtoModel.getObject().setSelectedObjectTypeDto(null);
     }
@@ -799,7 +846,7 @@ public class SchemaHandlingStep extends WizardStep {
             target.add(getThirdRowContainer());
         }
 
-        target.add(getObjectTypeEditor(), getObjectListTable(), getNavigator());
+        target.add(getObjectTypeEditor(), getObjectListTable(), getNavigator(), getDuplicateObjectTypeWarningContainer());
     }
 
 	private boolean isSelected(@NotNull ResourceObjectTypeDefinitionTypeDto objectType) {
@@ -1077,7 +1124,7 @@ public class SchemaHandlingStep extends WizardStep {
 	private class UpdateNamesBehaviour extends EmptyOnChangeAjaxFormUpdatingBehavior {
 		@Override
 		protected void onUpdate(AjaxRequestTarget target) {
-			target.add(getObjectListTable(), getObjectTypeEditor().get(ID_EDITOR_NAME));
+			target.add(getObjectListTable(), getObjectTypeEditor().get(ID_EDITOR_NAME), getDuplicateObjectTypeWarningContainer());
 		}
 	}
 }
