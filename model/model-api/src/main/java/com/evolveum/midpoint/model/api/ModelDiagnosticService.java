@@ -17,20 +17,15 @@ package com.evolveum.midpoint.model.api;
 
 import java.util.Collection;
 
-import com.evolveum.midpoint.model.api.context.ModelContext;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.ProvisioningDiag;
 import com.evolveum.midpoint.schema.RepositoryDiag;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 /**
  * A service provided by the IDM Model focused on system diagnostic. It allows to retrieve diagnostic data
@@ -102,5 +97,6 @@ public interface ModelDiagnosticService {
 	 *
 	 * EXPERIMENTAL. (TODO find a better place)
 	 */
-	String exportDataModel(Task task, OperationResult parentResult) throws SchemaException;
+	String exportDataModel(Collection<String> resourceOids, Task task, OperationResult parentResult)
+			throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, SecurityViolationException;
 }
