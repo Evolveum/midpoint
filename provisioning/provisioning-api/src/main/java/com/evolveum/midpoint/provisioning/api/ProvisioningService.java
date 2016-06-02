@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,6 +38,7 @@ import com.evolveum.midpoint.schema.SearchResultMetadata;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ConnectorTestOperation;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.statistics.ConnectorOperationalStatus;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -57,8 +58,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
  * <p>Provisioning Service Interface.</p>
  * <p>
  * Status: public
- * Stability: DRAFT, some changes are likely
- * @version 0.3
+ * Stability: STABLE, only compatible changes are expected
+ * @version 3.4
  * @author Radovan Semancik
  * </p>
  * <p>
@@ -119,7 +120,7 @@ public interface ProvisioningService {
 	 * @throws GenericConnectorException
 	 *             unknown connector framework error
 	 */
-	public <T extends ObjectType> PrismObject<T> getObject(Class<T> type, String oid, Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult)
+	<T extends ObjectType> PrismObject<T> getObject(Class<T> type, String oid, Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult)
 			throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, 
 			SecurityViolationException;
 	
@@ -167,7 +168,7 @@ public interface ProvisioningService {
 	 * @throws SecurityViolationException 
 	 * 				Security violation while communicating with the connector or processing provisioning policies
 	 */
-	public <T extends ObjectType> String addObject(PrismObject<T> object, OperationProvisioningScriptsType scripts, ProvisioningOperationOptions options,
+	<T extends ObjectType> String addObject(PrismObject<T> object, OperationProvisioningScriptsType scripts, ProvisioningOperationOptions options,
 			Task task, OperationResult parentResult)
 			throws ObjectAlreadyExistsException, SchemaException, CommunicationException, ObjectNotFoundException, 
 			ConfigurationException, SecurityViolationException;
@@ -197,7 +198,7 @@ public interface ProvisioningService {
 	 * @throws GenericConnectorException
 	 *             unknown connector framework error
 	 */
-	public int synchronize(ResourceShadowDiscriminator shadowCoordinates, Task task, OperationResult parentResult) throws ObjectNotFoundException, 
+	int synchronize(ResourceShadowDiscriminator shadowCoordinates, Task task, OperationResult parentResult) throws ObjectNotFoundException, 
 			CommunicationException, SchemaException, ConfigurationException, SecurityViolationException;
 
 
@@ -230,14 +231,14 @@ public interface ProvisioningService {
 	 * @throws SecurityViolationException 
 	 * 				Security violation while communicating with the connector or processing provisioning policies
 	 */
-	public <T extends ObjectType> SearchResultList<PrismObject<T>> searchObjects(Class<T> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult)
+	<T extends ObjectType> SearchResultList<PrismObject<T>> searchObjects(Class<T> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult)
 			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, 
 			SecurityViolationException;
 
 	/**
 	 * Options: if noFetch or raw, we count only shadows from the repository.
 	 */
-	public <T extends ObjectType> Integer countObjects(Class<T> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult)
+	<T extends ObjectType> Integer countObjects(Class<T> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult)
 			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
 			SecurityViolationException;
 	
@@ -268,7 +269,7 @@ public interface ProvisioningService {
 	 * @throws SecurityViolationException 
 	 * 				Security violation while communicating with the connector or processing provisioning policies
 	 */
-	public <T extends ObjectType> SearchResultMetadata searchObjectsIterative(Class<T> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options,
+	<T extends ObjectType> SearchResultMetadata searchObjectsIterative(Class<T> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options,
 																			  final ResultHandler<T> handler, Task task, final OperationResult parentResult)
 			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException;
 
@@ -306,7 +307,7 @@ public interface ProvisioningService {
 	 * @throws ObjectAlreadyExistsException
      *             if resulting object would have name which already exists in another object of the same type
 	 */
-	public <T extends ObjectType> String modifyObject(Class<T> type, String oid, Collection<? extends ItemDelta> modifications,
+	<T extends ObjectType> String modifyObject(Class<T> type, String oid, Collection<? extends ItemDelta> modifications,
 			OperationProvisioningScriptsType scripts, ProvisioningOperationOptions options, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, 
 			CommunicationException, ConfigurationException, SecurityViolationException, ObjectAlreadyExistsException;
 
@@ -334,7 +335,7 @@ public interface ProvisioningService {
 	 * @throws GenericConnectorException
 	 *             unknown connector framework error
 	 */
-	public <T extends ObjectType> void deleteObject(Class<T> type, String oid, ProvisioningOperationOptions option, OperationProvisioningScriptsType scripts, Task task, OperationResult parentResult)
+	<T extends ObjectType> void deleteObject(Class<T> type, String oid, ProvisioningOperationOptions option, OperationProvisioningScriptsType scripts, Task task, OperationResult parentResult)
 			throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, SecurityViolationException;
 
 	/**
@@ -358,7 +359,7 @@ public interface ProvisioningService {
 	 * @throws ObjectAlreadyExistsException
      *             if resulting object would have name which already exists in another object of the same type
 	 */
-	public <T extends ObjectType> void executeScript(String resourceOid, ProvisioningScriptType script, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, 
+	<T extends ObjectType> void executeScript(String resourceOid, ProvisioningScriptType script, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, 
 			CommunicationException, ConfigurationException, SecurityViolationException, ObjectAlreadyExistsException;
 	
 	/**
@@ -385,7 +386,7 @@ public interface ProvisioningService {
 	 *             
 	 * @see ConnectorTestOperation
 	 */
-	public OperationResult testResource(String resourceOid) throws ObjectNotFoundException;
+	OperationResult testResource(String resourceOid) throws ObjectNotFoundException;
 
 	/**
 	 * Discovers local or remote connectors.
@@ -401,7 +402,10 @@ public interface ProvisioningService {
 	 * @return discovered connectors
 	 * @throws CommunicationException error connecting to a remote host
 	 */
-	public Set<ConnectorType> discoverConnectors(ConnectorHostType hostType, OperationResult parentResult) throws CommunicationException;
+	Set<ConnectorType> discoverConnectors(ConnectorHostType hostType, OperationResult parentResult) throws CommunicationException;
+	
+	ConnectorOperationalStatus getConnectorOperationalStatus(String resourceOid, OperationResult parentResult)
+			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException;
 	
 	/**
 	 * Lists resource objects.
@@ -425,43 +429,43 @@ public interface ProvisioningService {
 	 * @throws SchemaException error handling resource schema
 	 * @throws CommunicationException error communicating with the resource
 	 */
-	public List<PrismObject<? extends ShadowType>> listResourceObjects(String resourceOid, QName objectClass, ObjectPaging paging,
+	List<PrismObject<? extends ShadowType>> listResourceObjects(String resourceOid, QName objectClass, ObjectPaging paging,
 																	   Task task, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException;
 	
 	
-	public <T extends ShadowType> void finishOperation(PrismObject<T> object, ProvisioningOperationOptions options, Task task, OperationResult parentResult)
+	<T extends ShadowType> void finishOperation(PrismObject<T> object, ProvisioningOperationOptions options, Task task, OperationResult parentResult)
 			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
 			ObjectAlreadyExistsException, SecurityViolationException;
 
 	/**
 	 * Applies appropriate definition to the shadow/resource delta.
 	 */
-	public <T extends ObjectType> void applyDefinition(ObjectDelta<T> delta, OperationResult parentResult) 
+	<T extends ObjectType> void applyDefinition(ObjectDelta<T> delta, OperationResult parentResult) 
 		throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException;
 
     /**
      * Applies appropriate definition to the shadow/resource delta (uses provided object to get necessary information)
      */
-    public <T extends ObjectType> void applyDefinition(ObjectDelta<T> delta, Objectable object, OperationResult parentResult)
+    <T extends ObjectType> void applyDefinition(ObjectDelta<T> delta, Objectable object, OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException;
 
     /**
 	 * Applies appropriate definition to the shadow.
 	 */
-	public <T extends ObjectType> void applyDefinition(PrismObject<T> shadow, OperationResult parentResult) 
+	<T extends ObjectType> void applyDefinition(PrismObject<T> shadow, OperationResult parentResult) 
 		throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException;
 	
 	/**
 	 * Applies appropriate definition to the query.
 	 */
-	public <T extends ObjectType> void applyDefinition(Class<T> type, ObjectQuery query, OperationResult parentResult) 
+	<T extends ObjectType> void applyDefinition(Class<T> type, ObjectQuery query, OperationResult parentResult) 
 		throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException;
 	
 	/**
 	 * Runs a short, non-destructive internal provisioning test. It tests provisioning framework and
 	 * general setup. Use ModelService.testResource for testing individual resource configurations.
 	 */
-	public void provisioningSelfTest(OperationResult parentTestResult, Task task);
+	void provisioningSelfTest(OperationResult parentTestResult, Task task);
 
     /**
      * Returns a diagnostic information.
@@ -476,7 +480,7 @@ public interface ProvisioningService {
 	 * The implementation may execute resource-intensive tasks in this method. All the dependencies should be already
 	 * constructed, properly wired and initialized. Also logging and other infrastructure should be already set up.
 	 */
-	public void postInit(OperationResult parentResult);
+	void postInit(OperationResult parentResult);
 
 	ConstraintsCheckingResult checkConstraints(RefinedObjectClassDefinition shadowDefinition,
 											   PrismObject<ShadowType> shadowObject,
@@ -490,6 +494,6 @@ public interface ProvisioningService {
 
 	void exitConstraintsCheckerCache();
 
-	public void shutdown();
+	void shutdown();
 
 }
