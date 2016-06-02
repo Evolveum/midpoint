@@ -39,6 +39,9 @@
 		<identifier>0002</identifier>
 		<orgType>functional</orgType>
 		<locality>The towers, bastions and bars</locality>
+		 <assignment id="1">
+      <targetRef oid="00000000-8888-6666-0000-100000000001" type="c:OrgType"/>
+   </assignment>
 	</org>
 
 	<org oid="00000000-8888-6666-0000-100000000003">
@@ -49,6 +52,9 @@
 		<identifier>0003</identifier>
 		<orgType>functional</orgType>
 		<costCenter>CC666</costCenter>
+		<assignment id="1">
+      <targetRef oid="00000000-8888-6666-0000-100000000001" type="c:OrgType"/>
+   </assignment>
 	</org>
 
 	<org oid="00000000-8888-6666-0000-100000000004">
@@ -59,6 +65,9 @@
 		<identifier>0004</identifier>
 		<orgType>functional</orgType>
 		<costCenter>CCRUM</costCenter>
+		<assignment id="1">
+      <targetRef oid="00000000-8888-6666-0000-100000000001" type="c:OrgType"/>
+   </assignment>
 	</org>
 
 	<org oid="00000000-8888-6666-0000-100000000005">
@@ -68,6 +77,9 @@
 		<displayName>Swashbuckler Section</displayName>
 		<identifier>0005</identifier>
 		<orgType>functional</orgType>
+		<assignment id="1">
+      <targetRef oid="00000000-8888-6666-0000-100000000003" type="c:OrgType"/>
+   </assignment>
 	</org>
 
 	<org oid="00000000-8888-6666-0000-100000000006">
@@ -79,6 +91,12 @@
 		<identifier>0006</identifier>
 		<orgType>functional</orgType>
 		<locality>Mêlée Island</locality>
+		<assignment id="1">
+      <targetRef oid="00000000-8888-6666-0000-100000000003" type="c:OrgType"/>
+   </assignment>
+   <assignment id="2">
+      <targetRef oid="00000000-8888-6666-0000-100000000004" type="c:OrgType"/>
+   </assignment>
 	</org>
 
 	<!-- Project organizational structure -->
@@ -96,6 +114,9 @@
 		<displayName>Save Elaine</displayName>
 		<identifier>0001</identifier>
 		<orgType>project</orgType>
+		<assignment id="1">
+      <targetRef oid="00000000-8888-6666-0000-200000000000" type="c:OrgType"/>
+   </assignment>
 	</org>
 
 	<org oid="00000000-8888-6666-0000-200000000002">
@@ -104,6 +125,9 @@
 		<displayName>Kidnap and marry Elaine</displayName>
 		<identifier>0002</identifier>
 		<orgType>project</orgType>
+		<assignment id="1">
+      <targetRef oid="00000000-8888-6666-0000-200000000000" type="c:OrgType"/>
+   </assignment>
 	</org>
 
 	<!-- Users -->
