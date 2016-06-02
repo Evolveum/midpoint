@@ -190,7 +190,7 @@ public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extend
 	}
 	
 	
-	private List<InlineMenuItem> createMembersHeaderInlineMenu() {
+	protected List<InlineMenuItem> createMembersHeaderInlineMenu() {
 		List<InlineMenuItem> headerMenuItems = new ArrayList<>();
 		headerMenuItems.add(new InlineMenuItem(createStringResource("TreeTablePanel.menu.createMember"),
 				false, new HeaderMenuAction(this) {

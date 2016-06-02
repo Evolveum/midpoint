@@ -26,6 +26,7 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import org.apache.commons.lang.Validate;
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
@@ -75,6 +76,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.FocusSummaryPanel;
+import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenu;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.prism.ContainerStatus;
@@ -114,6 +116,7 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 	protected static final String OPERATION_SEARCH_MANAGERS = DOT_CLASS + "searchManagers";
 	private static final String ID_MANAGER_SUMMARY = "managerSummary";
 	private static final String ID_REMOVE_MANAGER = "removeManager";
+	private static final String ID_DELETE_MANAGER = "deleteManager";
 	private static final String ID_EDIT_MANAGER = "editManager";
 
 	private static final long serialVersionUID = 1L;
@@ -242,6 +245,21 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 			};
 			removeManager.setOutputMarkupId(true);
 			managerMarkup.add(removeManager);
+			
+			AjaxButton deleteManager = new AjaxButton(ID_DELETE_MANAGER) {
+
+				@Override
+				public void onClick(AjaxRequestTarget target) {
+					FocusSummaryPanel<FocusType> summary = (FocusSummaryPanel<FocusType>) getParent()
+							.get(ID_MANAGER_SUMMARY);
+					deleteManagerPerformed(summary.getModelObject(), this, target);
+//					getParent().setVisible(false);
+//					target.add(getParent());
+
+				}
+			};
+			deleteManager.setOutputMarkupId(true);
+			managerMarkup.add(deleteManager);
 		}
 
 		managerContainer.add(view);
@@ -279,7 +297,89 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 		target.add(getPageBase().getFeedbackPanel());
 
 	}
+	
+	private void deleteManagerConfirmPerformed(FocusType manager, AjaxRequestTarget target) {
+		getPageBase().hideMainPopup(target);
+		OperationResult parentResult = new OperationResult("Remove manager");
+		Task task = getPageBase().createSimpleTask("Remove manager");
+		try {
 
+			ObjectDelta delta = ObjectDelta.createDeleteDelta(manager.asPrismObject().getCompileTimeClass(), manager.getOid(), getPageBase().getPrismContext());
+			getPageBase().getModelService().executeChanges(WebComponentUtil.createDeltaCollection(delta),
+					null, task, parentResult);
+			parentResult.computeStatus();
+		} catch (SchemaException | ObjectAlreadyExistsException | ObjectNotFoundException
+				| ExpressionEvaluationException | CommunicationException | ConfigurationException
+				| PolicyViolationException | SecurityViolationException e) {
+
+			parentResult.recordFatalError("Failed to remove manager " + e.getMessage(), e);
+			LoggingUtils.logException(LOGGER, "Failed to remove manager", e);
+			getPageBase().showResult(parentResult);
+		}
+		target.add(getPageBase().getFeedbackPanel());
+
+	}
+	
+	private void deleteManagerPerformed(final FocusType manager, final Component summary, AjaxRequestTarget target) {
+		ConfirmationPanel confirmDelete = new ConfirmationPanel(getPageBase().getMainPopupBodyId(), createStringResource("TreeTablePanel.menu.deleteManager.confirm")) {
+			@Override
+			public void yesPerformed(AjaxRequestTarget target) {
+				OrgMemberPanel.this.deleteManagerConfirmPerformed(manager, target);
+				summary.getParent().setVisible(false);
+				target.add(summary.getParent());
+			}
+		};
+		
+		getPageBase().showMainPopup(confirmDelete, target);
+	}
+	
+	
+	@Override
+	protected List<InlineMenuItem> createMembersHeaderInlineMenu() {
+		List<InlineMenuItem> headerMenuItems = super.createMembersHeaderInlineMenu();
+		
+		headerMenuItems.add(new InlineMenuItem(createStringResource("TreeTablePanel.menu.deleteMember"),
+				false, new HeaderMenuAction(this) {
+
+					@Override
+					public void onClick(AjaxRequestTarget target) {
+						deleteMemberPerformed(QueryScope.SELECTED, null, target, "TreeTablePanel.menu.deleteMember.confirm");
+					}
+				}));
+		
+		headerMenuItems.add(new InlineMenuItem(createStringResource("TreeTablePanel.menu.deleteAllMembers"),
+				false, new HeaderMenuAction(this) {
+
+					@Override
+					public void onClick(AjaxRequestTarget target) {
+						deleteMemberPerformed(QueryScope.ALL, null, target, "TreeTablePanel.menu.deleteAllMembers.confirm");
+					}
+				}));
+		return headerMenuItems;
+	}
+	
+	private void deleteMemberPerformed(final QueryScope scope, final QName relation, final AjaxRequestTarget target, String confirmMessageKey) {
+		ConfirmationPanel confirmDelete = new ConfirmationPanel(getPageBase().getMainPopupBodyId(), createStringResource(confirmMessageKey)) {
+			@Override
+			public void yesPerformed(AjaxRequestTarget target) {
+				OrgMemberPanel.this.deleteMemberConfirmPerformed(scope, relation, target);
+			}
+		};
+		
+		getPageBase().showMainPopup(confirmDelete, target);
+	}
+
+	private void deleteMemberConfirmPerformed(QueryScope scope, QName relation, AjaxRequestTarget target) {
+		getPageBase().hideMainPopup(target);
+		Task operationalTask = getPageBase().createSimpleTask(getTaskName("Delete", scope, false));
+		ObjectDelta delta = ObjectDelta.createDeleteDelta(ObjectType.class, "fakeOid", getPageBase().getPrismContext());
+		if (delta == null) {
+			return;
+		}
+		executeMemberOperation(operationalTask, ObjectType.COMPLEX_TYPE, createQueryForMemberAction(scope, relation, true), delta, TaskCategory.EXECUTE_CHANGES, target);
+		
+	}
+	
 	private List<InlineMenuItem> createManagersHeaderInlineMenu() {
 		List<InlineMenuItem> headerMenuItems = new ArrayList<>();
 
@@ -325,6 +425,17 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 								recomputeManagersPerformed(QueryScope.ALL, target);
 							}
 						}));
+		
+		headerMenuItems
+		.add(new InlineMenuItem(createStringResource("TreeTablePanel.menu.deleteManagersAll"),
+				false, new HeaderMenuAction(this) {
+					private static final long serialVersionUID = 1L;
+
+					@Override
+					public void onClick(AjaxRequestTarget target) {
+						OrgMemberPanel.this.deleteMemberPerformed(QueryScope.ALL, SchemaConstants.ORG_MANAGER, target, "TreeTablePanel.menu.deleteManagersAll.confirm");
+					}
+				}));
 
 		return headerMenuItems;
 	}
