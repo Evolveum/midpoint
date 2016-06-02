@@ -266,7 +266,7 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
         	assertFalse(metadata.isPartialResults());
         }
         
-        assertStableSystem();
+        assertLdapConnectorInstances(1);
 	}
 
 	/**
@@ -293,7 +293,7 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
         	assertFalse(metadata.isPartialResults());
         }
         
-        assertStableSystem();
+        assertLdapConnectorInstances(1);
     }
 	
 	/**
@@ -324,7 +324,7 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
         	assertFalse(metadata.isPartialResults());
         }
         
-        assertStableSystem();
+        assertLdapConnectorInstances(1);
     }
 	
 	/**
@@ -355,7 +355,7 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
         	assertFalse(metadata.isPartialResults());
         }
         
-        assertStableSystem();
+        assertLdapConnectorInstances(1);
     }
 	
 	/**
@@ -387,7 +387,7 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
         	assertFalse(metadata.isPartialResults());
         }
         
-        assertStableSystem();
+        assertLdapConnectorInstances(1);
     }
 
 	/**
@@ -423,7 +423,7 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
         	assertFalse(metadata.isPartialResults());
         }
         
-        assertStableSystem();
+        assertLdapConnectorInstances(1);
     }	
 
 	@Test
@@ -452,7 +452,7 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
         	assertFalse(metadata.isPartialResults());
         }
         
-        assertStableSystem();
+        assertLdapConnectorInstances(1);
     }
 	
 	/**
@@ -484,7 +484,7 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
         	assertFalse(metadata.isPartialResults());
         }
         
-        assertStableSystem();
+        assertLdapConnectorInstances(1);
     }
 
 	/**
@@ -516,7 +516,7 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
         	assertFalse(metadata.isPartialResults());
         }
 
-        assertStableSystem();
+        assertLdapConnectorInstances(1);
     }
 	
 	/**
@@ -552,7 +552,7 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
         	assertFalse(metadata.isPartialResults());
         }
 
-        assertStableSystem();
+        assertLdapConnectorInstances(1);
     }
 
 	/**
@@ -588,7 +588,7 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
         	assertFalse(metadata.isPartialResults());
         }
         
-        assertStableSystem();
+        assertLdapConnectorInstances(1);
     }
 	
 	/**
@@ -616,7 +616,7 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
         assertNotNull("No search metadata", metadata);
         assertTrue("Partial results not indicated", metadata.isPartialResults());
         
-        assertStableSystem();
+        assertLdapConnectorInstances(1);
     }
 	
 	/**
@@ -646,7 +646,7 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
         assertConnectorOperationIncrement(5, 332);
         assertConnectorSimulatedPagingSearchIncrement(0);
         
-        assertStableSystem();
+        assertLdapConnectorInstances(1);
     }
 	
 	private void singleInfernoSearch(ObjectQuery query, int expectedNumberOfResults, Integer offset, Integer maxSize, String sortAttrName, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
@@ -693,6 +693,8 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
         
         long tsEnd = System.currentTimeMillis();
 
+        assertLdapConnectorInstances(1);
+        
         Entry entry = assertLdapAccount(USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME);
         assertAttribute(entry, "title", null);
         
@@ -715,7 +717,7 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
         // LDAP server may be on a different host. Allow for some clock offset.
         TestUtil.assertBetween("Wrong createTimestamp in "+shadow, roundTsDown(tsStart)-1000, roundTsUp(tsEnd)+1000, createTimestamp);
         
-        assertLdapConnectorInstances(2);
+        assertLdapConnectorInstances(1);
 	}
 
 	@Test
@@ -750,7 +752,7 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
         String shadowOid = getSingleLinkOid(user);
         assertEquals("Shadows have moved", accountBarbossaOid, shadowOid);
         
-        assertLdapConnectorInstances(2);
+        assertLdapConnectorInstances(1);
 	}
 	
 	/**
@@ -789,7 +791,7 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
         String shadowOid = getSingleLinkOid(user);
         assertEquals("Shadows have moved", accountBarbossaOid, shadowOid);
         
-        assertLdapConnectorInstances(2);
+        assertLdapConnectorInstances(1);
 	}
 	
 	/**
@@ -828,7 +830,7 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
         String shadowOid = getSingleLinkOid(user);
         assertEquals("Shadows have moved", accountBarbossaOid, shadowOid);
         
-        assertLdapConnectorInstances(2);
+        assertLdapConnectorInstances(1);
 	}
 	
 	@Test
@@ -862,7 +864,7 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
         String shadowOid = getSingleLinkOid(user);
         assertEquals("Shadows have moved", accountBarbossaOid, shadowOid);
         
-        assertLdapConnectorInstances(3);
+        assertLdapConnectorInstances(1);
 	}
 	
 	@Test
@@ -890,7 +892,7 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
         String shadowOid = getSingleLinkOid(user);
         assertEquals("Shadows have moved", accountBarbossaOid, shadowOid);
         
-        assertLdapConnectorInstances(3);
+        assertLdapConnectorInstances(1);
 	}
 	
 	@Test
@@ -918,7 +920,7 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
         String shadowOid = getSingleLinkOid(user);
         assertEquals("Shadows have moved", accountBarbossaOid, shadowOid);
         
-        assertLdapConnectorInstances(3);
+        assertLdapConnectorInstances(1);
 	}
 
 	@Test
@@ -946,7 +948,7 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
         String shadowOid = getSingleLinkOid(user);
         assertEquals("Shadows have moved", accountBarbossaOid, shadowOid);
         
-        assertLdapConnectorInstances(3);
+        assertLdapConnectorInstances(1);
 	}
 	
 	@Test
@@ -986,7 +988,7 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
         	assertEquals("Entry ID changed after rename", accountBarbossaEntryId, repoPrimaryIdentifier);
         }
         
-        assertLdapConnectorInstances(3);
+        assertLdapConnectorInstances(1);
 	}
 	
 	/**
@@ -1035,7 +1037,7 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
         	assertEquals("Entry ID changed after rename", accountBarbossaEntryId, repoPrimaryIdentifier);
         }
         
-        assertLdapConnectorInstances(3);
+        assertLdapConnectorInstances(1);
 	}
 	
 	@Test
@@ -1062,7 +1064,7 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
         PrismObject<UserType> user = getUser(USER_BARBOSSA_OID);
         assertNoLinkedAccount(user);
         
-        assertLdapConnectorInstances(3);
+        assertLdapConnectorInstances(1);
 	}
 	
 	/**
@@ -1104,7 +1106,7 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
         Entry ldapEntryUndead = getLdapEntry(toGroupDn(GROUP_UNDEAD_CN));
         display("Undead group", ldapEntryUndead);
         
-        assertLdapConnectorInstances(3);
+        assertLdapConnectorInstances(1);
 	}
 	
 	/**
@@ -1143,7 +1145,7 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
         Entry ldapEntryUndead = getLdapEntry(toGroupDn(GROUP_UNDEAD_CN));
         display("Undead group", ldapEntryUndead);
         
-        assertLdapConnectorInstances(3);
+        assertLdapConnectorInstances(1);
 	}
 	
 	/**
@@ -1182,7 +1184,7 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
         Entry ldapEntryUndead = getLdapEntry(toGroupDn(GROUP_UNDEAD_CN));
         display("Undead group", ldapEntryUndead);
         
-        assertLdapConnectorInstances(3);
+        assertLdapConnectorInstances(1);
 	}
 	
 	/**
@@ -1221,7 +1223,7 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
         Entry ldapEntryUndead = getLdapEntry(toGroupDn(GROUP_UNDEAD_CN));
         display("Undead group", ldapEntryUndead);
         
-        assertLdapConnectorInstances(3);
+        assertLdapConnectorInstances(1);
 	}
 	
 	protected void assertConnectorOperationIncrement(int shortcutIncrement, int noShortcutIncrement) {
