@@ -260,19 +260,23 @@ public class TreeTablePanel extends BasePanel<String> {
 		PrismContext prismContext = TreeTablePanel.this.getPageBase().getPrismContext();
 		PrismObjectDefinition def = prismContext.getSchemaRegistry().findObjectDefinitionByType(type);
 		PrismObject obj = def.instantiate();
-		if (parentOrgRef == null) {
-			ObjectType org = getTreePanel().getSelected().getValue();
-			parentOrgRef = ObjectTypeUtil.createObjectRef(org);
-			parentOrgRef.setRelation(relation);
-		}
+		
 		ObjectType objType = (ObjectType) obj.asObjectable();
-		objType.getParentOrgRef().add(parentOrgRef);
-
 		if (FocusType.class.isAssignableFrom(obj.getCompileTimeClass())) {
 			AssignmentType assignment = new AssignmentType();
 			assignment.setTargetRef(parentOrgRef);
 			((FocusType) objType).getAssignment().add(assignment);
+		} else {
+			if (parentOrgRef == null) {
+				ObjectType org = getTreePanel().getSelected().getValue();
+				parentOrgRef = ObjectTypeUtil.createObjectRef(org);
+				parentOrgRef.setRelation(relation);
+			}
+			
+			objType.getParentOrgRef().add(parentOrgRef);
 		}
+		
+		
 
 		Class newObjectPageClass = objectDetailsMap.get(obj.getCompileTimeClass());
 
