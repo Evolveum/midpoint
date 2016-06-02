@@ -1284,7 +1284,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 	@Override
 	public ConnectorOperationalStatus getConnectorOperationalStatus(String resourceOid, OperationResult parentResult) 
 			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException  {
-		OperationResult result = parentResult.createSubresult(ProvisioningService.class.getName()
+		OperationResult result = parentResult.createMinorSubresult(ProvisioningService.class.getName()
 				+ ".getConnectorOperationalStatus");
 		result.addParam("resourceOid", resourceOid);
 		result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ProvisioningServiceImpl.class);
