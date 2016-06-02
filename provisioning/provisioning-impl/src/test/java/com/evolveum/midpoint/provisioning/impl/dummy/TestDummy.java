@@ -53,6 +53,7 @@ import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
 import org.w3c.dom.Element;
 
+import com.evolveum.icf.dummy.connector.DummyConnector;
 import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.icf.dummy.resource.DummyGroup;
 import com.evolveum.icf.dummy.resource.DummyPrivilege;
@@ -108,6 +109,7 @@ import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.statistics.ConnectorOperationalStatus;
 import com.evolveum.midpoint.schema.util.ConnectorTypeUtil;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -1016,8 +1018,39 @@ public class TestDummy extends AbstractDummyTest {
 
 		assertSteadyResource();
 	}
-
 	
+	@Test
+	public void test090ConnectorStatsAfterSomeUse() throws Exception {
+		final String TEST_NAME = "test090ConnectorStatsAfterSomeUse";
+		TestUtil.displayTestTile(TEST_NAME);
+		// GIVEN
+		Task task = taskManager.createTaskInstance(TestDummy.class.getName() + "."  + TEST_NAME);
+		OperationResult result = task.getResult();
+
+		// WHEN
+		ConnectorOperationalStatus operationalStatus = provisioningService.getConnectorOperationalStatus(RESOURCE_DUMMY_OID, result);
+
+		// THEN
+		result.computeStatus();
+		TestUtil.assertSuccess(result);
+
+		display("Connector operational status", operationalStatus);
+		assertNotNull("null operational status", operationalStatus);
+		
+		assertEquals("Wrong connectorClassName", DummyConnector.class.getName(), operationalStatus.getConnectorClassName());
+		assertEquals("Wrong poolConfigMinSize", null, operationalStatus.getPoolConfigMinSize());
+		assertEquals("Wrong poolConfigMaxSize", (Integer)10, operationalStatus.getPoolConfigMaxSize());
+		assertEquals("Wrong poolConfigMinIdle", (Integer)1, operationalStatus.getPoolConfigMinIdle());
+		assertEquals("Wrong poolConfigMaxIdle", (Integer)10, operationalStatus.getPoolConfigMaxIdle());
+		assertEquals("Wrong poolConfigWaitTimeout", (Long)150000L, operationalStatus.getPoolConfigWaitTimeout());
+		assertEquals("Wrong poolConfigMinEvictableIdleTime", (Long)120000L, operationalStatus.getPoolConfigMinEvictableIdleTime());
+		assertEquals("Wrong poolStatusNumIdle", (Integer)1, operationalStatus.getPoolStatusNumIdle());
+		assertEquals("Wrong poolStatusNumActive", (Integer)0, operationalStatus.getPoolStatusNumActive());
+		
+		assertSteadyResource();
+	}
+
+
 	@Test
 	public void test100AddAccount() throws Exception {
 		final String TEST_NAME = "test100AddAccount";
