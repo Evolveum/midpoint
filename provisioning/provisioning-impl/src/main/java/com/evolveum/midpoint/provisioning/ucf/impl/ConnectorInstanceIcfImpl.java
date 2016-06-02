@@ -35,6 +35,7 @@ import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.OrderDirection;
 import com.evolveum.midpoint.provisioning.impl.StateReporter;
 import com.evolveum.midpoint.schema.SearchResultMetadata;
+import com.evolveum.midpoint.schema.statistics.ConnectorOperationalStatus;
 import com.evolveum.midpoint.schema.statistics.ProvisioningOperation;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.Holder;
@@ -90,6 +91,13 @@ import org.identityconnectors.framework.common.objects.SyncResultsHandler;
 import org.identityconnectors.framework.common.objects.SyncToken;
 import org.identityconnectors.framework.common.objects.Uid;
 import org.identityconnectors.framework.common.objects.filter.Filter;
+import org.identityconnectors.framework.impl.api.APIConfigurationImpl;
+import org.identityconnectors.framework.impl.api.local.LocalConnectorInfoImpl;
+import org.identityconnectors.framework.impl.api.local.ObjectPool;
+import org.identityconnectors.framework.impl.api.local.ObjectPool.Statistics;
+import org.identityconnectors.framework.impl.api.local.operations.ConnectorOperationalContext;
+import org.identityconnectors.framework.spi.Connector;
+import org.identityconnectors.framework.spi.PoolableConnector;
 
 import com.evolveum.midpoint.prism.ComplexTypeDefinition;
 import com.evolveum.midpoint.prism.PrismContainer;
@@ -210,6 +218,8 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 	ConnectorType connectorType;
 	ConnectorFacade icfConnectorFacade;
 	String resourceSchemaNamespace;
+	private APIConfiguration apiConfig = null;
+	
 	Protector protector;
 	PrismContext prismContext;
 	private IcfNameMapper icfNameMapper;
@@ -281,13 +291,10 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			// will cause that all the "raw" elements are parsed
 			configuration.applyDefinition(getConfigurationContainerDefinition());
 
-			APIConfiguration apiConfig = cinfo.createDefaultAPIConfiguration();
-
-			// Transform XML configuration from the resource to the ICF
-			// connector
-			// configuration
+			IcfConfigurationTransformer configTransformer = new IcfConfigurationTransformer(connectorType, cinfo, protector);
+			// Transform XML configuration from the resource to the ICF connector configuration
 			try {
-				transformConnectorConfiguration(apiConfig, configuration);
+				apiConfig = configTransformer.transformConnectorConfiguration(configuration);
 			} catch (SchemaException e) {
 				result.recordFatalError(e.getMessage(), e);
 				throw e;
@@ -492,6 +499,49 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		}
 		LOGGER.debug("Unknown subtype {} defined for attribute {}, ignoring (no matching rule definition)", icfSubtype, attributeInfo.getName());
 		return null;
+	}
+	
+	@Override
+	public ConnectorOperationalStatus getOperationalStatus() throws ObjectNotFoundException {
+		
+		if (!(cinfo instanceof LocalConnectorInfoImpl)) {
+			LOGGER.trace("Cannot get operational status of a remote connector {}", connectorType);
+			return null;
+		}
+		
+		if (apiConfig == null) {
+			LOGGER.trace("Cannot get operational status of a connector {}: connector not yet configured", connectorType);
+			throw new IllegalStateException("Connector "+connectorType+" not yet configured");
+		}
+		
+		ConnectorOperationalStatus status = new ConnectorOperationalStatus();
+		
+		ConnectorOperationalContext connectorOperationalContext = new ConnectorOperationalContext((LocalConnectorInfoImpl)cinfo, (APIConfigurationImpl) apiConfig);
+		
+		Class<? extends Connector> connectorClass = connectorOperationalContext.getConnectorClass();
+		if (connectorClass != null) {
+			status.setConnectorClassName(connectorClass.getName());
+		}
+		
+		ObjectPoolConfiguration poolConfiguration = apiConfig.getConnectorPoolConfiguration();
+		if (poolConfiguration != null) {
+			status.setPoolConfigMaxSize(poolConfiguration.getMaxObjects());
+			status.setPoolConfigMinIdle(poolConfiguration.getMinIdle());
+			status.setPoolConfigMaxIdle(poolConfiguration.getMaxIdle());
+			status.setPoolConfigWaitTimeout(poolConfiguration.getMaxWait());
+			status.setPoolConfigMinEvictableIdleTime(poolConfiguration.getMinEvictableIdleTimeMillis());
+		}
+		
+		ObjectPool<PoolableConnector> pool = connectorOperationalContext.getPool();
+		if (pool != null) {
+			Statistics poolStats = pool.getStatistics();
+			if (poolStats != null) {
+				status.setPoolStatusNumActive(poolStats.getNumActive());
+				status.setPoolStatusNumIdle(poolStats.getNumIdle());
+			}
+		}
+		
+		return status;
 	}
 
 	@Override
@@ -1368,7 +1418,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			if (shadowType.getCredentials() != null && shadowType.getCredentials().getPassword() != null) {
 				PasswordType password = shadowType.getCredentials().getPassword();
 				ProtectedStringType protectedString = password.getValue();
-				GuardedString guardedPassword = toGuardedString(protectedString, "new password");
+				GuardedString guardedPassword = IcfUtil.toGuardedString(protectedString, "new password", protector);
 				attributes.add(AttributeBuilder.build(OperationalAttributes.PASSWORD_NAME,
 						guardedPassword));
 			}
@@ -2681,7 +2731,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			LOGGER.trace("Skipping processing password delta. Password delta does not contain new value.");
 			return;
 		}
-		GuardedString guardedPassword = toGuardedString(newPassword.getValue().getValue(), "new password");
+		GuardedString guardedPassword = IcfUtil.toGuardedString(newPassword.getValue().getValue(), "new password", protector);
 		attributes.add(AttributeBuilder.build(OperationalAttributes.PASSWORD_NAME, guardedPassword));
 
 	}
@@ -2971,334 +3021,6 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				scriptArguments);
 		return scriptContext;
 	}
-
-	/**
-	 * Transforms midPoint XML configuration of the connector to the ICF
-	 * configuration.
-	 * <p/>
-	 * The "configuration" part of the XML resource definition will be used.
-	 * <p/>
-	 * The provided ICF APIConfiguration will be modified, some values may be
-	 * overwritten.
-	 * 
-	 * @param apiConfig
-	 *            ICF connector configuration
-	 * @param resourceType
-	 *            midPoint XML configuration
-	 * @throws SchemaException
-	 * @throws ConfigurationException
-	 */
-	private void transformConnectorConfiguration(APIConfiguration apiConfig, PrismContainerValue configuration)
-			throws SchemaException, ConfigurationException {
-
-		ConfigurationProperties configProps = apiConfig.getConfigurationProperties();
-
-		// The namespace of all the configuration properties specific to the
-		// connector instance will have a connector instance namespace. This
-		// namespace can be found in the resource definition.
-		String connectorConfNs = connectorType.getNamespace();
-
-		PrismContainer configurationPropertiesContainer = configuration
-				.findContainer(ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_ELEMENT_QNAME);
-		if (configurationPropertiesContainer == null) {
-			// Also try this. This is an older way.
-			configurationPropertiesContainer = configuration.findContainer(new QName(connectorConfNs,
-					ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_ELEMENT_LOCAL_NAME));
-		}
-
-		transformConnectorConfiguration(configProps, configurationPropertiesContainer, connectorConfNs);
-
-		PrismContainer connectorPoolContainer = configuration.findContainer(new QName(
-				ConnectorFactoryIcfImpl.NS_ICF_CONFIGURATION,
-				ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_XML_ELEMENT_NAME));
-		ObjectPoolConfiguration connectorPoolConfiguration = apiConfig.getConnectorPoolConfiguration();
-		transformConnectorPoolConfiguration(connectorPoolConfiguration, connectorPoolContainer);
-
-		PrismProperty producerBufferSizeProperty = configuration.findProperty(new QName(
-				ConnectorFactoryIcfImpl.NS_ICF_CONFIGURATION,
-				ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_PRODUCER_BUFFER_SIZE_XML_ELEMENT_NAME));
-		if (producerBufferSizeProperty != null) {
-			apiConfig.setProducerBufferSize(parseInt(producerBufferSizeProperty));
-		}
-
-		PrismContainer connectorTimeoutsContainer = configuration.findContainer(new QName(
-				ConnectorFactoryIcfImpl.NS_ICF_CONFIGURATION,
-				ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_TIMEOUTS_XML_ELEMENT_NAME));
-		transformConnectorTimeoutsConfiguration(apiConfig, connectorTimeoutsContainer);
-
-        PrismContainer resultsHandlerConfigurationContainer = configuration.findContainer(new QName(
-                ConnectorFactoryIcfImpl.NS_ICF_CONFIGURATION,
-                ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_RESULTS_HANDLER_CONFIGURATION_ELEMENT_LOCAL_NAME));
-        ResultsHandlerConfiguration resultsHandlerConfiguration = apiConfig.getResultsHandlerConfiguration();
-        transformResultsHandlerConfiguration(resultsHandlerConfiguration, resultsHandlerConfigurationContainer);
-
-	}
-
-	private void transformConnectorConfiguration(ConfigurationProperties configProps,
-			PrismContainer<?> configurationPropertiesContainer, String connectorConfNs)
-			throws ConfigurationException, SchemaException {
-
-		if (configurationPropertiesContainer == null || configurationPropertiesContainer.getValue() == null) {
-			throw new SchemaException("No configuration properties container in " + connectorType);
-		}
-
-		int numConfingProperties = 0;
-		List<QName> wrongNamespaceProperties = new ArrayList<>();
-
-		for (PrismProperty prismProperty : configurationPropertiesContainer.getValue().getProperties()) {
-			QName propertyQName = prismProperty.getElementName();
-
-			// All the elements must be in a connector instance
-			// namespace.
-			if (propertyQName.getNamespaceURI() == null
-					|| !propertyQName.getNamespaceURI().equals(connectorConfNs)) {
-				LOGGER.warn("Found element with a wrong namespace ({}) in {}",
-						propertyQName.getNamespaceURI(), connectorType);
-				wrongNamespaceProperties.add(propertyQName);
-			} else {
-
-				numConfingProperties++;
-
-				// Local name of the element is the same as the name
-				// of ICF configuration property
-				String propertyName = propertyQName.getLocalPart();
-				ConfigurationProperty property = configProps.getProperty(propertyName);
-				
-				if (property == null) {
-					throw new ConfigurationException("Unknown configuration property "+propertyName);
-				}
-
-				// Check (java) type of ICF configuration property,
-				// behave accordingly
-				Class<?> type = property.getType();
-				if (type.isArray()) {
-					property.setValue(convertToIcfArray(prismProperty, type.getComponentType()));
-					// property.setValue(prismProperty.getRealValuesArray(type.getComponentType()));
-				} else {
-					// Single-valued property are easy to convert
-					property.setValue(convertToIcfSingle(prismProperty, type));
-					// property.setValue(prismProperty.getRealValue(type));
-				}
-			}
-		}
-		// empty configuration is OK e.g. when creating a new resource using wizard
-		if (numConfingProperties == 0 && !wrongNamespaceProperties.isEmpty()) {
-			throw new SchemaException("No configuration properties found. Wrong namespace? (expected: "
-					+ connectorConfNs + ", present e.g. " + wrongNamespaceProperties.get(0) + ")");
-		}
-	}
-
-	private void transformConnectorPoolConfiguration(ObjectPoolConfiguration connectorPoolConfiguration,
-			PrismContainer<?> connectorPoolContainer) throws SchemaException {
-
-		if (connectorPoolContainer == null || connectorPoolContainer.getValue() == null) {
-			return;
-		}
-
-		for (PrismProperty prismProperty : connectorPoolContainer.getValue().getProperties()) {
-			QName propertyQName = prismProperty.getElementName();
-			if (propertyQName.getNamespaceURI().equals(ConnectorFactoryIcfImpl.NS_ICF_CONFIGURATION)) {
-				String subelementName = propertyQName.getLocalPart();
-				if (ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_MIN_EVICTABLE_IDLE_TIME_MILLIS
-						.equals(subelementName)) {
-					connectorPoolConfiguration.setMinEvictableIdleTimeMillis(parseLong(prismProperty));
-				} else if (ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_MIN_IDLE
-						.equals(subelementName)) {
-					connectorPoolConfiguration.setMinIdle(parseInt(prismProperty));
-				} else if (ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_MAX_IDLE
-						.equals(subelementName)) {
-					connectorPoolConfiguration.setMaxIdle(parseInt(prismProperty));
-				} else if (ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_MAX_OBJECTS
-						.equals(subelementName)) {
-					connectorPoolConfiguration.setMaxObjects(parseInt(prismProperty));
-				} else if (ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_MAX_WAIT
-						.equals(subelementName)) {
-					connectorPoolConfiguration.setMaxWait(parseLong(prismProperty));
-				} else {
-					throw new SchemaException(
-							"Unexpected element "
-									+ propertyQName
-									+ " in "
-									+ ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_XML_ELEMENT_NAME);
-				}
-			} else {
-				throw new SchemaException(
-						"Unexpected element "
-								+ propertyQName
-								+ " in "
-								+ ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_XML_ELEMENT_NAME);
-			}
-		}
-	}
-
-	private void transformConnectorTimeoutsConfiguration(APIConfiguration apiConfig,
-			PrismContainer<?> connectorTimeoutsContainer) throws SchemaException {
-
-		if (connectorTimeoutsContainer == null || connectorTimeoutsContainer.getValue() == null) {
-			return;
-		}
-
-		for (PrismProperty prismProperty : connectorTimeoutsContainer.getValue().getProperties()) {
-			QName propertQName = prismProperty.getElementName();
-
-			if (ConnectorFactoryIcfImpl.NS_ICF_CONFIGURATION.equals(propertQName.getNamespaceURI())) {
-				String opName = propertQName.getLocalPart();
-				Class<? extends APIOperation> apiOpClass = ConnectorFactoryIcfImpl.resolveApiOpClass(opName);
-				if (apiOpClass != null) {
-					apiConfig.setTimeout(apiOpClass, parseInt(prismProperty));
-				} else {
-					throw new SchemaException("Unknown operation name " + opName + " in "
-							+ ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_TIMEOUTS_XML_ELEMENT_NAME);
-				}
-			}
-		}
-	}
-
-    private void transformResultsHandlerConfiguration(ResultsHandlerConfiguration resultsHandlerConfiguration,
-                                                     PrismContainer<?> resultsHandlerConfigurationContainer) throws SchemaException {
-
-        if (resultsHandlerConfigurationContainer == null || resultsHandlerConfigurationContainer.getValue() == null) {
-            return;
-        }
-
-        for (PrismProperty prismProperty : resultsHandlerConfigurationContainer.getValue().getProperties()) {
-            QName propertyQName = prismProperty.getElementName();
-            if (propertyQName.getNamespaceURI().equals(ConnectorFactoryIcfImpl.NS_ICF_CONFIGURATION)) {
-                String subelementName = propertyQName.getLocalPart();
-                if (ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_RESULTS_HANDLER_CONFIGURATION_ENABLE_NORMALIZING_RESULTS_HANDLER
-                        .equals(subelementName)) {
-                    resultsHandlerConfiguration.setEnableNormalizingResultsHandler(parseBoolean(prismProperty));
-                } else if (ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_RESULTS_HANDLER_CONFIGURATION_ENABLE_FILTERED_RESULTS_HANDLER
-                        .equals(subelementName)) {
-                    resultsHandlerConfiguration.setEnableFilteredResultsHandler(parseBoolean(prismProperty));
-                } else if (ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_RESULTS_HANDLER_CONFIGURATION_FILTERED_RESULTS_HANDLER_IN_VALIDATION_MODE
-                        .equals(subelementName)) {
-                    resultsHandlerConfiguration.setFilteredResultsHandlerInValidationMode(parseBoolean(prismProperty));
-                } else if (ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_RESULTS_HANDLER_CONFIGURATION_ENABLE_CASE_INSENSITIVE_HANDLER
-                        .equals(subelementName)) {
-                    resultsHandlerConfiguration.setEnableCaseInsensitiveFilter(parseBoolean(prismProperty));
-                } else if (ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_RESULTS_HANDLER_CONFIGURATION_ENABLE_ATTRIBUTES_TO_GET_SEARCH_RESULTS_HANDLER
-                        .equals(subelementName)) {
-                    resultsHandlerConfiguration.setEnableAttributesToGetSearchResultsHandler(parseBoolean(prismProperty));
-                } else {
-                    throw new SchemaException(
-                            "Unexpected element "
-                                    + propertyQName
-                                    + " in "
-                                    + ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_RESULTS_HANDLER_CONFIGURATION_ELEMENT_LOCAL_NAME);
-                }
-            } else {
-                throw new SchemaException(
-                        "Unexpected element "
-                                + propertyQName
-                                + " in "
-                                + ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_RESULTS_HANDLER_CONFIGURATION_ELEMENT_LOCAL_NAME);
-            }
-        }
-    }
-
-    private int parseInt(PrismProperty<?> prop) {
-		return prop.getRealValue(Integer.class);
-	}
-
-	private long parseLong(PrismProperty<?> prop) {
-		Object realValue = prop.getRealValue();
-		if (realValue instanceof Long) {
-			return (Long) realValue;
-		} else if (realValue instanceof Integer) {
-			return ((Integer) realValue);
-		} else {
-			throw new IllegalArgumentException("Cannot convert " + realValue.getClass() + " to long");
-		}
-	}
-
-    private boolean parseBoolean(PrismProperty<?> prop) {
-        return prop.getRealValue(Boolean.class);
-    }
-
-    private Object convertToIcfSingle(PrismProperty<?> configProperty, Class<?> expectedType)
-			throws ConfigurationException {
-		if (configProperty == null) {
-			return null;
-		}
-		PrismPropertyValue<?> pval = configProperty.getValue();
-		return convertToIcf(pval, expectedType);
-	}
-
-	private Object[] convertToIcfArray(PrismProperty prismProperty, Class<?> componentType)
-			throws ConfigurationException {
-		List<PrismPropertyValue> values = prismProperty.getValues();
-		Object valuesArrary = Array.newInstance(componentType, values.size());
-		for (int j = 0; j < values.size(); ++j) {
-			Object icfValue = convertToIcf(values.get(j), componentType);
-			Array.set(valuesArrary, j, icfValue);
-		}
-		return (Object[]) valuesArrary;
-	}
-
-	private Object convertToIcf(PrismPropertyValue<?> pval, Class<?> expectedType) throws ConfigurationException {
-		Object midPointRealValue = pval.getValue();
-		if (expectedType.equals(GuardedString.class)) {
-			// Guarded string is a special ICF beast
-			// The value must be ProtectedStringType
-			if (midPointRealValue instanceof ProtectedStringType) {
-				ProtectedStringType ps = (ProtectedStringType) pval.getValue();
-				return toGuardedString(ps, pval.getParent().getElementName().getLocalPart());
-			} else {
-				throw new ConfigurationException(
-						"Expected protected string as value of configuration property "
-								+ pval.getParent().getElementName().getLocalPart() + " but got "
-								+ midPointRealValue.getClass());
-			}
-
-		} else if (expectedType.equals(GuardedByteArray.class)) {
-			// Guarded string is a special ICF beast
-			// TODO
-//			return new GuardedByteArray(Base64.decodeBase64((ProtectedByteArrayType) pval.getValue()));
-			return new GuardedByteArray(((ProtectedByteArrayType) pval.getValue()).getClearBytes());
-		} else if (midPointRealValue instanceof PolyString) {
-			return ((PolyString)midPointRealValue).getOrig();
-		} else if (midPointRealValue instanceof PolyStringType) {
-			return ((PolyStringType)midPointRealValue).getOrig();
-		} else if (expectedType.equals(File.class) && midPointRealValue instanceof String) {
-			return new File((String)midPointRealValue);
-		} else if (expectedType.equals(String.class) && midPointRealValue instanceof ProtectedStringType) {
-			try {
-				return protector.decryptString((ProtectedStringType)midPointRealValue);
-			} catch (EncryptionException e) {
-				throw new ConfigurationException(e);
-			}
-		} else {
-			return midPointRealValue;
-		}
-	}
-
-	private GuardedString toGuardedString(ProtectedStringType ps, String propertyName) {
-		if (ps == null) {
-			return null;
-		}
-		if (!protector.isEncrypted(ps)) {
-			if (ps.getClearValue() == null) {
-				return null;
-			}
-			LOGGER.warn("Using cleartext value for {}", propertyName);
-			return new GuardedString(ps.getClearValue().toCharArray());
-		}
-		try {
-			return new GuardedString(protector.decryptString(ps).toCharArray());
-		} catch (EncryptionException e) {
-			LOGGER.error("Unable to decrypt value of element {}: {}",
-					new Object[] { propertyName, e.getMessage(), e });
-			throw new SystemException("Unable to decrypt value of element " + propertyName + ": "
-					+ e.getMessage(), e);
-		} catch (RuntimeException e) {
-			// The ConnId will mask encryption exceptions into RuntimeException
-			throw new SystemException("Unable to encrypt value of element " + propertyName + ": "
-					+ e.getMessage(), e);
-		}
-	}
-
-	
 
 	/*
 	 * (non-Javadoc)

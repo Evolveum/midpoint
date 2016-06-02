@@ -25,6 +25,7 @@ import com.evolveum.midpoint.util.exception.CommonException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
+import org.apache.wicket.feedback.ContainerFeedbackMessageFilter;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.DropDownChoice;
@@ -285,6 +286,7 @@ public class MappingEditorDialog extends ModalWindow {
 		FeedbackPanel feedback = new FeedbackPanel(ID_FEEDBACK);
 		feedback.setOutputMarkupId(true);
 		feedback.setOutputMarkupPlaceholderTag(true);
+		feedback.setFilter(new ContainerFeedbackMessageFilter(this));		// because 'no target' messages are generated with reporter == this (why?)
 		form.add(feedback);
 
 		DropDownFormGroup<ExpressionUtil.ExpressionEvaluatorType> expressionType = new DropDownFormGroup<ExpressionUtil.ExpressionEvaluatorType>(

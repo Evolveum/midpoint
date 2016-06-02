@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,6 +28,7 @@ import com.evolveum.midpoint.schema.processor.ResourceObjectIdentification;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.processor.SearchHierarchyConstraints;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.statistics.ConnectorOperationalStatus;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.PagedSearchCapabilityType;
@@ -73,10 +74,11 @@ public interface ConnectorInstance {
 	 * @param configuration
 	 * @throws ConfigurationException 
 	 */
-	public void configure(PrismContainerValue<?> configuration, OperationResult parentResult) throws CommunicationException, GenericFrameworkException, SchemaException, ConfigurationException;
+	void configure(PrismContainerValue<?> configuration, OperationResult parentResult) throws CommunicationException, GenericFrameworkException, SchemaException, ConfigurationException;
 
+	ConnectorOperationalStatus getOperationalStatus() throws ObjectNotFoundException;
 	
-	public PrismSchema generateConnectorSchema();
+	PrismSchema generateConnectorSchema();
 	
 	/**
 	 * Get necessary information from the remote system.
@@ -96,7 +98,7 @@ public interface ConnectorInstance {
 	 * @throws GenericFrameworkException
 	 * @throws ConfigurationException 
 	 */
-	public void initialize(ResourceSchema resourceSchema, Collection<Object> capabilities, boolean caseIgnoreAttributeNames, OperationResult parentResult)
+	void initialize(ResourceSchema resourceSchema, Collection<Object> capabilities, boolean caseIgnoreAttributeNames, OperationResult parentResult)
 			throws CommunicationException, GenericFrameworkException, ConfigurationException;
 	
 	/**
@@ -114,7 +116,7 @@ public interface ConnectorInstance {
 	 * @throws GenericFrameworkException
 	 * @throws ConfigurationException 
 	 */
-	public Collection<Object> fetchCapabilities(OperationResult parentResult) throws CommunicationException,
+	Collection<Object> fetchCapabilities(OperationResult parentResult) throws CommunicationException,
 			GenericFrameworkException, ConfigurationException;
 	
     /**
@@ -133,7 +135,7 @@ public interface ConnectorInstance {
 	 *				- nothing was fetched.
      * @throws ConfigurationException 
 	 */
-	public ResourceSchema fetchResourceSchema(List<QName> generateObjectClasses, OperationResult parentResult) throws CommunicationException, GenericFrameworkException, ConfigurationException;
+	ResourceSchema fetchResourceSchema(List<QName> generateObjectClasses, OperationResult parentResult) throws CommunicationException, GenericFrameworkException, ConfigurationException;
 	
 	/**
 	 * Retrieves a specific object from the resource.
@@ -159,7 +161,7 @@ public interface ConnectorInstance {
 	 *				- nothing was fetched.
 	 * @throws SchemaException error converting object from native (connector) format
 	 */
-	public <T extends ShadowType> PrismObject<T> fetchObject(Class<T> type, ResourceObjectIdentification resourceObjectIdentification, AttributesToReturn attributesToReturn, StateReporter reporter,
+	<T extends ShadowType> PrismObject<T> fetchObject(Class<T> type, ResourceObjectIdentification resourceObjectIdentification, AttributesToReturn attributesToReturn, StateReporter reporter,
 															 OperationResult parentResult)
 		throws ObjectNotFoundException, CommunicationException, GenericFrameworkException, SchemaException, 
 		SecurityViolationException, ConfigurationException;
@@ -187,7 +189,7 @@ public interface ConnectorInstance {
 	 * @throws ObjectNotFoundException if something from the search parameters refers non-existent object.
 	 * 									e.g. if search base points to an non-existent object.
 	 */
-    public <T extends ShadowType> SearchResultMetadata search(ObjectClassComplexTypeDefinition objectClassDefinition, ObjectQuery query, ResultHandler<T> handler, AttributesToReturn attributesToReturn, PagedSearchCapabilityType pagedSearchConfigurationType, SearchHierarchyConstraints searchHierarchyConstraints, StateReporter reporter,
+    <T extends ShadowType> SearchResultMetadata search(ObjectClassComplexTypeDefinition objectClassDefinition, ObjectQuery query, ResultHandler<T> handler, AttributesToReturn attributesToReturn, PagedSearchCapabilityType pagedSearchConfigurationType, SearchHierarchyConstraints searchHierarchyConstraints, StateReporter reporter,
 															  OperationResult parentResult)
             throws CommunicationException, GenericFrameworkException, SchemaException, SecurityViolationException,
             		ObjectNotFoundException;
@@ -208,7 +210,7 @@ public interface ConnectorInstance {
      * @throws SchemaException
      * @throws java.lang.UnsupportedOperationException
      */
-    public int count(ObjectClassComplexTypeDefinition objectClassDefinition, ObjectQuery query, PagedSearchCapabilityType pagedSearchConfigurationType, StateReporter reporter,
+    int count(ObjectClassComplexTypeDefinition objectClassDefinition, ObjectQuery query, PagedSearchCapabilityType pagedSearchConfigurationType, StateReporter reporter,
 					 OperationResult parentResult)
             throws CommunicationException, GenericFrameworkException, SchemaException, UnsupportedOperationException;
 
@@ -236,7 +238,7 @@ public interface ConnectorInstance {
 	 * @return created object attributes. May be null.
 	 * @throws ObjectAlreadyExistsException object already exists on the resource
 	 */
-	public Collection<ResourceAttribute<?>> addObject(PrismObject<? extends ShadowType> object, Collection<Operation> additionalOperations, StateReporter reporter,
+	Collection<ResourceAttribute<?>> addObject(PrismObject<? extends ShadowType> object, Collection<Operation> additionalOperations, StateReporter reporter,
 													  OperationResult parentResult) throws CommunicationException, GenericFrameworkException, SchemaException,
 			ObjectAlreadyExistsException, ConfigurationException;
 	
@@ -258,16 +260,16 @@ public interface ConnectorInstance {
 	 * @throws SchemaException 
 	 * @throws ObjectAlreadyExistsException in case that the modified object conflicts with another existing object (e.g. while renaming an object)
 	 */
-	public Collection<PropertyModificationOperation> modifyObject(ObjectClassComplexTypeDefinition objectClass, Collection<? extends ResourceAttribute<?>> identifiers, Collection<Operation> changes, StateReporter reporter,
+	Collection<PropertyModificationOperation> modifyObject(ObjectClassComplexTypeDefinition objectClass, Collection<? extends ResourceAttribute<?>> identifiers, Collection<Operation> changes, StateReporter reporter,
 																  OperationResult parentResult)
 			throws ObjectNotFoundException, CommunicationException, GenericFrameworkException, SchemaException, 
 			SecurityViolationException, ObjectAlreadyExistsException;
 	
-	public void deleteObject(ObjectClassComplexTypeDefinition objectClass, Collection<Operation> additionalOperations, Collection<? extends ResourceAttribute<?>> identifiers, StateReporter reporter,
+	void deleteObject(ObjectClassComplexTypeDefinition objectClass, Collection<Operation> additionalOperations, Collection<? extends ResourceAttribute<?>> identifiers, StateReporter reporter,
 							 OperationResult parentResult)
 					throws ObjectNotFoundException, CommunicationException, GenericFrameworkException;
 	
-	public Object executeScript(ExecuteProvisioningScriptOperation scriptOperation, StateReporter reporter, OperationResult parentResult) throws CommunicationException, GenericFrameworkException;
+	Object executeScript(ExecuteProvisioningScriptOperation scriptOperation, StateReporter reporter, OperationResult parentResult) throws CommunicationException, GenericFrameworkException;
 	
 	/**
 	 * Creates a live Java object from a token previously serialized to string.
@@ -279,7 +281,7 @@ public interface ConnectorInstance {
 	 * @param serializedToken
 	 * @return
 	 */
-	public PrismProperty<?> deserializeToken(Object serializedToken);
+	PrismProperty<?> deserializeToken(Object serializedToken);
 	
 	/**
 	 * Returns the latest token. In other words, returns a token that
@@ -290,7 +292,7 @@ public interface ConnectorInstance {
 	 * @return
 	 * @throws CommunicationException
 	 */
-	public <T> PrismProperty<T> fetchCurrentToken(ObjectClassComplexTypeDefinition objectClass, StateReporter reporter, OperationResult parentResult) throws CommunicationException, GenericFrameworkException;
+	<T> PrismProperty<T> fetchCurrentToken(ObjectClassComplexTypeDefinition objectClass, StateReporter reporter, OperationResult parentResult) throws CommunicationException, GenericFrameworkException;
 	
 	/**
 	 * Token may be null. That means "from the beginning of history".
@@ -298,7 +300,7 @@ public interface ConnectorInstance {
 	 * @param lastToken
 	 * @return
 	 */
-	public <T extends ShadowType> List<Change<T>> fetchChanges(ObjectClassComplexTypeDefinition objectClass, PrismProperty<?> lastToken, AttributesToReturn attrsToReturn, StateReporter reporter,
+	<T extends ShadowType> List<Change<T>> fetchChanges(ObjectClassComplexTypeDefinition objectClass, PrismProperty<?> lastToken, AttributesToReturn attrsToReturn, StateReporter reporter,
 															   OperationResult parentResult) throws CommunicationException, GenericFrameworkException, SchemaException, ConfigurationException;
 	
 	//public ValidationResult validateConfiguration(ResourceConfiguration newConfiguration);
@@ -306,9 +308,9 @@ public interface ConnectorInstance {
 	//public void applyConfiguration(ResourceConfiguration newConfiguration) throws MisconfigurationException;
 	
 	// Maybe this should be moved to ConnectorManager? In that way it can also test connector instantiation.
-	public void test(OperationResult parentResult);
+	void test(OperationResult parentResult);
 
 
-	public void dispose();
+	void dispose();
 	
 }

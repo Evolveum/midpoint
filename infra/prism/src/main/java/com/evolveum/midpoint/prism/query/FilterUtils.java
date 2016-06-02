@@ -22,6 +22,7 @@ import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
 /**
  * @author mederly
@@ -55,4 +56,8 @@ public class FilterUtils {
         }
         return findItemDefinition(parentPath, complexTypeDefinition);
     }
+
+	public static boolean isFilterEmpty(SearchFilterType filter) {
+		return filter == null || (filter.getDescription() == null && !filter.containsFilterClause());
+	}
 }

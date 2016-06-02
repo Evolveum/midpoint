@@ -203,7 +203,7 @@ public class Lsof implements DebugDumpable {
 		if (baselineTotalFds + increase != totalFds) {
 			LOGGER.debug("Unexpected FD number increase {} ({} -> {}):\n{}", (totalFds - baselineTotalFds), baselineTotalFds, totalFds, debugDump(1));
 			logFailDump();
-			AssertJUnit.fail("Unexpected FD number increase, expected increase " + increase + " ("+baselineTotalFds + increase +"), but was "
+			AssertJUnit.fail("Unexpected FD number increase, expected increase " + increase + " ("+ (baselineTotalFds + increase) +"), but was "
 			  + (totalFds - baselineTotalFds) + " (" + totalFds + ")");
 		} else {
 			LOGGER.debug("Expected increase of {} FDs (total {})", increase, totalFds);

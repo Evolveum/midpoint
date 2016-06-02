@@ -34,6 +34,7 @@ public class ResourceObjectTypeDefinitionTypeDto implements Serializable{
         this.objectType = objectType;
     }
 
+	@NotNull
     public ResourceObjectTypeDefinitionType getObjectType() {
         return objectType;
     }
@@ -45,14 +46,11 @@ public class ResourceObjectTypeDefinitionTypeDto implements Serializable{
 
         ResourceObjectTypeDefinitionTypeDto that = (ResourceObjectTypeDefinitionTypeDto) o;
 
-        if (objectType != null ? !objectType.equals(that.objectType) : that.objectType != null) return false;
-
-        return true;
-    }
+		return objectType.equals(that.objectType);
+	}
 
     @Override
     public int hashCode() {
-        int result = 31 + (objectType != null ? objectType.hashCode() : 0);
-        return result;
+		return 31 + (objectType != null ? objectType.hashCode() : 0);
     }
 }

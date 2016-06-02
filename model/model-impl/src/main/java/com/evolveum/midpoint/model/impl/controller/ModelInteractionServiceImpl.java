@@ -64,6 +64,7 @@ import com.evolveum.midpoint.schema.RetrieveOption;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.schema.statistics.ConnectorOperationalStatus;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.ObjectSecurityConstraints;
@@ -659,6 +660,21 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 	@NotNull
 	public Scene visualizeDelta(ObjectDelta<? extends ObjectType> delta, Task task, OperationResult result) throws SchemaException {
 		return visualizer.visualizeDelta(delta, task, result);
+	}
+
+	@Override
+	public ConnectorOperationalStatus getConnectorOperationalStatus(String resourceOid, OperationResult parentResult)
+			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException {
+		OperationResult result = parentResult.createMinorSubresult(GET_CONNECTOR_OPERATIONAL_STATUS);
+		ConnectorOperationalStatus status;
+		try {
+			status = provisioning.getConnectorOperationalStatus(resourceOid, result);
+		} catch (SchemaException | ObjectNotFoundException | CommunicationException | ConfigurationException e) {
+			result.recordFatalError(e);
+			throw e;
+		}
+		result.computeStatus();
+		return status;
 	}
 
 }

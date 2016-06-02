@@ -17,6 +17,8 @@
 package com.evolveum.midpoint.web.component.wizard.resource;
 
 import com.evolveum.midpoint.gui.api.model.NonEmptyLoadableModel;
+import com.evolveum.midpoint.gui.api.model.NonEmptyModel;
+import com.evolveum.midpoint.gui.api.model.NonEmptyWrapperModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.ModelService;
@@ -37,6 +39,7 @@ import com.evolveum.midpoint.web.component.input.TriStateComboPanel;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.component.wizard.WizardStep;
+import com.evolveum.midpoint.web.component.wizard.resource.component.DuplicateObjectTypeDetector;
 import com.evolveum.midpoint.web.component.wizard.resource.component.synchronization.ConditionalSearchFilterEditor;
 import com.evolveum.midpoint.web.component.wizard.resource.component.synchronization.SynchronizationExpressionEditor;
 import com.evolveum.midpoint.web.component.wizard.resource.component.synchronization.SynchronizationReactionEditor;
@@ -44,6 +47,7 @@ import com.evolveum.midpoint.web.component.wizard.resource.dto.ResourceSynchroni
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnChangeAjaxFormUpdatingBehavior;
 import com.evolveum.midpoint.web.page.admin.resources.PageResourceWizard;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
+import com.evolveum.midpoint.web.util.ExpressionUtil;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.wicket.AttributeModifier;
@@ -90,7 +94,11 @@ public class SynchronizationStep extends WizardStep {
     private static final String ID_OBJECT_SYNC_EDITOR = "objectSyncConfig";
     private static final String ID_THIRD_ROW_CONTAINER = "thirdRowContainer";
 
-    private static final String ID_EDITOR_LABEL = "editorLabel";
+	private static final String ID_DUPLICATE_OBJECT_TYPE_WARNING_CONTAINER = "duplicateObjectTypeWarningContainer";
+	private static final String ID_DUPLICATE_OBJECT_TYPE_WARNING = "duplicateObjectTypeWarning";
+	private static final String ID_DUPLICATE_OBJECT_TYPE_WARNING_TEXT = "duplicateObjectTypeWarningText";
+
+	private static final String ID_EDITOR_LABEL = "editorLabel";
     private static final String ID_EDITOR_NAME = "editorName";
     private static final String ID_EDITOR_DESCRIPTION = "editorDescription";
     private static final String ID_EDITOR_KIND = "editorKind";
@@ -242,10 +250,41 @@ public class SynchronizationStep extends WizardStep {
         };
         add(add);
 
-        initObjectSyncEditor(objectSyncEditor);
+		WebMarkupContainer duplicateObjectTypeWarningContainer = new WebMarkupContainer(ID_DUPLICATE_OBJECT_TYPE_WARNING_CONTAINER);
+		WebMarkupContainer duplicateObjectTypeWarning = new WebMarkupContainer(ID_DUPLICATE_OBJECT_TYPE_WARNING);
+		duplicateObjectTypeWarning.add(new VisibleEnableBehaviour() {
+			@Override
+			public boolean isVisible() {
+				return getDuplicateObjectTypes() != null;
+			}
+		});
+		Label duplicateObjectTypeWarningText = new Label(ID_DUPLICATE_OBJECT_TYPE_WARNING_TEXT, new AbstractReadOnlyModel<String>() {
+			@Override
+			public String getObject() {
+				return getString("SynchronizationStep.duplicateObjectTypeWarning", getDuplicateObjectTypes());
+			}
+		});
+		duplicateObjectTypeWarning.add(duplicateObjectTypeWarningText);
+		duplicateObjectTypeWarningContainer.add(duplicateObjectTypeWarning);
+		duplicateObjectTypeWarningContainer.setOutputMarkupId(true);
+		add(duplicateObjectTypeWarningContainer);
+
+		initObjectSyncEditor(objectSyncEditor);
     }
 
-    private void initObjectSyncEditor(WebMarkupContainer editor){
+	private String getDuplicateObjectTypes() {
+		DuplicateObjectTypeDetector detector = new DuplicateObjectTypeDetector();
+		for (ObjectSynchronizationType synchronization: syncDtoModel.getObject().getObjectSynchronizationList()) {
+			detector.add(synchronization);
+		}
+		if (!detector.hasDuplicates()) {
+			return null;
+		}
+		return detector.getDuplicatesList();
+	}
+
+
+	private void initObjectSyncEditor(WebMarkupContainer editor){
         Label editorLabel = new Label(ID_EDITOR_LABEL, new AbstractReadOnlyModel<String>() {
             @Override
             public String getObject() {
@@ -407,7 +446,7 @@ public class SynchronizationStep extends WizardStep {
             }
 
             @Override
-            protected void editPerformed(AjaxRequestTarget target, ConditionalSearchFilterType object){
+            protected void editPerformed(AjaxRequestTarget target, ConditionalSearchFilterType object) {
                 correlationEditPerformed(target, object);
             }
 
@@ -551,7 +590,11 @@ public class SynchronizationStep extends WizardStep {
         return get(ID_PAGING);
     }
 
-    private Component getSyncObjectEditor(){
+	private Component getDuplicateObjectTypeWarningContainer() {
+		return get(ID_DUPLICATE_OBJECT_TYPE_WARNING_CONTAINER);
+	}
+
+	private Component getSyncObjectEditor(){
         return get(ID_OBJECT_SYNC_EDITOR);
     }
 
@@ -591,9 +634,12 @@ public class SynchronizationStep extends WizardStep {
         target.add(getThirdRowContainer(), get(ID_OBJECT_SYNC_EDITOR), getPageBase().getFeedbackPanel());
     }
 
-    private void correlationEditPerformed(AjaxRequestTarget target, ConditionalSearchFilterType condition){
+    private void correlationEditPerformed(AjaxRequestTarget target, @NotNull ConditionalSearchFilterType condition) {
+		if (condition.getCondition() == null) {
+			condition.setCondition(new ExpressionType());			// removed at save
+		}
         WebMarkupContainer newContainer = new ConditionalSearchFilterEditor(ID_THIRD_ROW_CONTAINER,
-                new Model<>(condition));
+				new NonEmptyWrapperModel<>(new Model<>(condition)));
         getThirdRowContainer().replaceWith(newContainer);
 
         target.add(getThirdRowContainer(), get(ID_OBJECT_SYNC_EDITOR), getPageBase().getFeedbackPanel());
@@ -626,7 +672,7 @@ public class SynchronizationStep extends WizardStep {
         OperationResult result = task.getResult();
         ModelService modelService = getPageBase().getModelService();
 
-//        prepareResourceToSave(newResource.asObjectable());
+        removeEmptyContainers(newResource.asObjectable());
 
         try {
             oldResource = WebModelServiceUtils.loadObject(ResourceType.class, newResource.getOid(), getPageBase(), task, result);
@@ -653,7 +699,27 @@ public class SynchronizationStep extends WizardStep {
         }
     }
 
-//    private void prepareResourceToSave(ResourceType resource) {
+	private void removeEmptyContainers(ResourceType resourceType) {
+		if (resourceType.getSynchronization() == null) {
+			return;
+		}
+
+		for (ObjectSynchronizationType objectSync : resourceType.getSynchronization().getObjectSynchronization()) {
+			if (objectSync.getCondition() != null && ExpressionUtil.isEmpty(objectSync.getCondition())) {
+				objectSync.setCondition(null);
+			}
+			if (objectSync.getConfirmation() != null && ExpressionUtil.isEmpty(objectSync.getConfirmation())) {
+				objectSync.setConfirmation(null);
+			}
+			for (ConditionalSearchFilterType correlationFilter : objectSync.getCorrelation()) {
+				if (correlationFilter.getCondition() != null && ExpressionUtil.isEmpty(correlationFilter.getCondition())) {
+					correlationFilter.setCondition(null);
+				}
+			}
+		}
+	}
+
+	//    private void prepareResourceToSave(ResourceType resource) {
 //        if (resource.getSynchronization() == null) {
 //            return;
 //        }
@@ -704,7 +770,7 @@ public class SynchronizationStep extends WizardStep {
             target.add(getThirdRowContainer());
         }
 
-        target.add(getSyncObjectEditor(), getSyncObjectTable(), getNavigator());
+        target.add(getSyncObjectEditor(), getSyncObjectTable(), getNavigator(), getDuplicateObjectTypeWarningContainer());
     }
 
 	private boolean isSelected(ObjectSynchronizationType syncObject) {
@@ -716,17 +782,15 @@ public class SynchronizationStep extends WizardStep {
 		syncObject.setEnabled(true);
         syncObject.setName(getString("SynchronizationStep.label.newObjectType"));
 
-        //syncDtoModel.getObject().setSelected(syncObject);
         resourceModel.getObject().asObjectable().getSynchronization().getObjectSynchronization().add(syncObject);
-        //insertEmptyThirdRow();
-        //target.add(getSyncObjectTable(), getNavigator(), getSyncObjectEditor(), getThirdRowContainer());
 		editSyncObjectPerformed(target, syncObject);
+		target.add(getDuplicateObjectTypeWarningContainer());
     }
 
 	private class UpdateNamesBehaviour extends EmptyOnChangeAjaxFormUpdatingBehavior {
 		@Override
 		protected void onUpdate(AjaxRequestTarget target) {
-			target.add(getSyncObjectTable(), getSyncObjectEditor().get(ID_EDITOR_LABEL));
+			target.add(getSyncObjectTable(), getSyncObjectEditor().get(ID_EDITOR_LABEL), getDuplicateObjectTypeWarningContainer());
 		}
 	}
 

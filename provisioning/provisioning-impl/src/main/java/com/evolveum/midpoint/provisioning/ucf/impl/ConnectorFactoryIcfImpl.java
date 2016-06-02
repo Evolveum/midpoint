@@ -65,6 +65,8 @@ import org.identityconnectors.framework.api.operations.TestApiOp;
 import org.identityconnectors.framework.api.operations.UpdateApiOp;
 import org.identityconnectors.framework.api.operations.ValidateApiOp;
 import org.identityconnectors.framework.common.FrameworkUtil;
+import org.identityconnectors.framework.impl.api.local.LocalConnectorInfoImpl;
+import org.identityconnectors.framework.impl.api.local.operations.ConnectorOperationalContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.w3c.dom.Element;

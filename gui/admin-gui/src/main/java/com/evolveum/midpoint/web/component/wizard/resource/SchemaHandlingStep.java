@@ -38,6 +38,7 @@ import com.evolveum.midpoint.web.component.util.ListDataProvider;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.component.wizard.WizardStep;
 import com.evolveum.midpoint.web.component.wizard.WizardUtil;
+import com.evolveum.midpoint.web.component.wizard.resource.component.DuplicateObjectTypeDetector;
 import com.evolveum.midpoint.web.component.wizard.resource.component.schemahandling.*;
 import com.evolveum.midpoint.web.component.wizard.resource.dto.ResourceObjectTypeDefinitionTypeDto;
 import com.evolveum.midpoint.web.component.wizard.resource.dto.SchemaHandlingDto;
@@ -109,6 +110,10 @@ public class SchemaHandlingStep extends WizardStep {
     private static final String ID_EDITOR_BUTTON_CREDENTIALS = "editorCredentialsButton";
     private static final String ID_EDITOR_ATTRIBUTES = "editorAttributes";
     private static final String ID_EDITOR_ASSOCIATIONS = "editorAssociations";
+    private static final String ID_DUPLICATE_OBJECT_TYPE_WARNING_CONTAINER = "duplicateObjectTypeWarningContainer";
+    private static final String ID_DUPLICATE_OBJECT_TYPE_WARNING = "duplicateObjectTypeWarning";
+    private static final String ID_DUPLICATE_OBJECT_TYPE_WARNING_TEXT = "duplicateObjectTypeWarningText";
+
     private static final String ID_T_KIND = "kindTooltip";
     private static final String ID_T_INTENT = "intentTooltip";
     private static final String ID_T_DEFAULT = "defaultTooltip";
@@ -177,7 +182,26 @@ public class SchemaHandlingStep extends WizardStep {
         objectTypesTable.setOutputMarkupId(true);
         add(objectTypesTable);
 
-        // second row - object type editor
+		WebMarkupContainer duplicateObjectTypeWarningContainer = new WebMarkupContainer(ID_DUPLICATE_OBJECT_TYPE_WARNING_CONTAINER);
+		WebMarkupContainer duplicateObjectTypeWarning = new WebMarkupContainer(ID_DUPLICATE_OBJECT_TYPE_WARNING);
+		duplicateObjectTypeWarning.add(new VisibleEnableBehaviour() {
+			@Override
+			public boolean isVisible() {
+				return duplicateObjectTypesPresent();
+			}
+		});
+		Label duplicateObjectTypeWarningText = new Label(ID_DUPLICATE_OBJECT_TYPE_WARNING_TEXT, new AbstractReadOnlyModel<String>() {
+			@Override
+			public String getObject() {
+				return getString("SchemaHandlingStep.duplicateObjectTypeWarning", getDuplicateObjectTypes());
+			}
+		});
+		duplicateObjectTypeWarning.add(duplicateObjectTypeWarningText);
+		duplicateObjectTypeWarningContainer.add(duplicateObjectTypeWarning);
+		duplicateObjectTypeWarningContainer.setOutputMarkupId(true);
+		add(duplicateObjectTypeWarningContainer);
+
+		// second row - object type editor
         WebMarkupContainer objectTypeEditor = new WebMarkupContainer(ID_OBJECT_TYPE_EDITOR);
         objectTypeEditor.setOutputMarkupId(true);
         objectTypeEditor.add(new VisibleEnableBehaviour(){
@@ -249,13 +273,33 @@ public class SchemaHandlingStep extends WizardStep {
             protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
                 addObjectTypePerformed(target);
             }
+
+			@Override
+			protected void onError(AjaxRequestTarget target, Form<?> form) {
+				target.add(parentPage.getFeedbackPanel());
+			}
         };
         add(add);
 
         initObjectTypeEditor(objectTypeEditor);
     }
 
-    private IModel<String> createObjectTypeDisplayModel(final ResourceObjectTypeDefinitionTypeDto objectType){
+	private String getDuplicateObjectTypes() {
+		DuplicateObjectTypeDetector detector = new DuplicateObjectTypeDetector();
+		for (ResourceObjectTypeDefinitionTypeDto dto : schemaHandlingDtoModel.getObject().getObjectTypeDtoList()) {
+			detector.add(dto.getObjectType());
+		}
+		if (!detector.hasDuplicates()) {
+			return null;
+		}
+		return detector.getDuplicatesList();
+	}
+
+	private boolean duplicateObjectTypesPresent() {
+		return getDuplicateObjectTypes() != null;
+	}
+
+	private IModel<String> createObjectTypeDisplayModel(final ResourceObjectTypeDefinitionTypeDto objectType){
         return new AbstractReadOnlyModel<String>() {
 
             @Override
@@ -646,6 +690,10 @@ public class SchemaHandlingStep extends WizardStep {
         return get(ID_PAGING_OBJECT_TYPE);
     }
 
+	private Component getDuplicateObjectTypeWarningContainer() {
+		return get(ID_DUPLICATE_OBJECT_TYPE_WARNING_CONTAINER);
+	}
+
     private void resetSelected(){
         schemaHandlingDtoModel.getObject().setSelectedObjectTypeDto(null);
     }
@@ -672,7 +720,7 @@ public class SchemaHandlingStep extends WizardStep {
         target.add(getThirdRowContainer(), get(ID_OBJECT_TYPE_EDITOR), parentPage.getFeedbackPanel());
     }
 
-    private void protectedEditPerformed(AjaxRequestTarget target){
+    private void protectedEditPerformed(AjaxRequestTarget target) {
         WebMarkupContainer newContainer = new ResourceProtectedEditor(ID_THIRD_ROW_CONTAINER,
                 new PropertyModel<List<ResourceObjectPatternType>>(schemaHandlingDtoModel,
 						getExpression(ResourceObjectTypeDefinitionType.F_PROTECTED)));
@@ -736,7 +784,7 @@ public class SchemaHandlingStep extends WizardStep {
 
     private void savePerformed() {
         PrismObject<ResourceType> oldResource;
-        PrismObject<ResourceType> newResource = resourceModel.getObject();
+        @NotNull PrismObject<ResourceType> newResource = resourceModel.getObject();
         Task task = parentPage.createSimpleTask(OPERATION_SAVE_SCHEMA_HANDLING);
         OperationResult result = task.getResult();
         ModelService modelService = parentPage.getModelService();
@@ -798,7 +846,7 @@ public class SchemaHandlingStep extends WizardStep {
             target.add(getThirdRowContainer());
         }
 
-        target.add(getObjectTypeEditor(), getObjectListTable(), getNavigator());
+        target.add(getObjectTypeEditor(), getObjectListTable(), getNavigator(), getDuplicateObjectTypeWarningContainer());
     }
 
 	private boolean isSelected(@NotNull ResourceObjectTypeDefinitionTypeDto objectType) {
@@ -834,44 +882,41 @@ public class SchemaHandlingStep extends WizardStep {
 		return resource.asObjectable().getSchemaHandling();
 	}
 
-	private void removeEmptyContainers(PrismObject<ResourceType> resourcePrism) {
-        if(resourcePrism == null){
-            return;
-        }
+	private void removeEmptyContainers(@NotNull PrismObject<ResourceType> resourcePrism) {
 
         ResourceType resource = resourcePrism.asObjectable();
 
         if (resource.getSchemaHandling() != null) {
             SchemaHandlingType schemaHandling = resource.getSchemaHandling();
 
-            for(ResourceObjectTypeDefinitionType objectType: schemaHandling.getObjectType()){
+            for (ResourceObjectTypeDefinitionType objectType: schemaHandling.getObjectType()) {
 
-                //Clear obsolete containers from attributes
+                //Clear empty/invalid containers from attributes
                 List<ResourceAttributeDefinitionType> newAttributeList = new ArrayList<>();
                 newAttributeList.addAll(objectType.getAttribute());
-                for(ResourceAttributeDefinitionType attribute: objectType.getAttribute()){
-                    if(attribute.getRef() == null){
-                        newAttributeList.remove(attribute);
-                    }
-                }
-                objectType.getAttribute().clear();
+				for (ResourceAttributeDefinitionType attribute : objectType.getAttribute()) {
+					if (attribute.getRef() == null) {
+						newAttributeList.remove(attribute);
+					}
+				}
+				objectType.getAttribute().clear();
                 objectType.getAttribute().addAll(newAttributeList);
 
-                for(ResourceAttributeDefinitionType attr: objectType.getAttribute()){
-                    List<MappingType> newInbounds = clearEmptyMappings(attr.getInbound());
-                    attr.getInbound().clear();
-                    attr.getInbound().addAll(newInbounds);
-                }
+				for (ResourceAttributeDefinitionType attr : objectType.getAttribute()) {
+					List<MappingType> newInbounds = clearEmptyMappings(attr.getInbound());
+					attr.getInbound().clear();
+					attr.getInbound().addAll(newInbounds);
+				}
 
-                //Clear obsolete containers from associations
+                //Clear empty/invalid containers from associations
                 List<ResourceObjectAssociationType> newAssociationList = new ArrayList<>();
                 newAssociationList.addAll(objectType.getAssociation());
-                for(ResourceObjectAssociationType association: objectType.getAssociation()){
-                    if(association.getKind() == null){
-                        newAssociationList.remove(association);
-                    }
-                }
-                objectType.getAssociation().clear();
+				for (ResourceObjectAssociationType association : objectType.getAssociation()) {
+					if (association.getKind() == null) {
+						newAssociationList.remove(association);
+					}
+				}
+				objectType.getAssociation().clear();
                 objectType.getAssociation().addAll(newAssociationList);
 
                 for(ResourceObjectAssociationType association: objectType.getAssociation()){
@@ -881,11 +926,29 @@ public class SchemaHandlingStep extends WizardStep {
                 }
 
                 prepareActivation(objectType.getActivation());
+
+				// protected accounts
+				List<ResourceObjectPatternType> newProtectedList = new ArrayList<>();
+				for (ResourceObjectPatternType protectedObject : objectType.getProtected()) {
+					if (protectedObject.getFilter() != null && !protectedObject.getFilter().containsFilterClause()) {
+						// we know that we lose description for empty filters ... but such filters (description + no clause) cause problems in prisms
+						protectedObject.setFilter(null);
+					}
+					if (protectedObject.getName() != null || protectedObject.getUid() != null || protectedObject.getFilter() != null) {
+						newProtectedList.add(protectedObject);
+					}
+				}
+				replace(objectType.getProtected(), newProtectedList);
             }
         }
     }
 
-    private List<MappingType> clearEmptyMappings(List<MappingType> list){
+	private <T> void replace(List<T> list, List<T> newList) {
+		list.clear();
+		list.addAll(newList);
+	}
+
+	private List<MappingType> clearEmptyMappings(List<MappingType> list){
         List<MappingType> newList = new ArrayList<>();
 
         for(MappingType mapping: list){
@@ -898,12 +961,12 @@ public class SchemaHandlingStep extends WizardStep {
     }
 
     private void prepareActivation(ResourceActivationDefinitionType activation){
-        if(activation == null){
-            return;
-        }
+		if (activation == null) {
+			return;
+		}
 
-        if(activation.getAdministrativeStatus() != null){
-            ResourceBidirectionalMappingType administrativeStatus = activation.getAdministrativeStatus();
+		if (activation.getAdministrativeStatus() != null) {
+			ResourceBidirectionalMappingType administrativeStatus = activation.getAdministrativeStatus();
 
             List<MappingType> inbounds = administrativeStatus.getInbound();
             List<MappingType> outbounds = administrativeStatus.getOutbound();
@@ -923,8 +986,8 @@ public class SchemaHandlingStep extends WizardStep {
             }
         }
 
-        if(activation.getValidTo() != null){
-            ResourceBidirectionalMappingType validTo = activation.getValidTo();
+		if (activation.getValidTo() != null) {
+			ResourceBidirectionalMappingType validTo = activation.getValidTo();
 
             List<MappingType> inbounds = validTo.getInbound();
             List<MappingType> outbounds = validTo.getOutbound();
@@ -939,13 +1002,13 @@ public class SchemaHandlingStep extends WizardStep {
             validTo.getOutbound().clear();
             validTo.getOutbound().addAll(newOutbounds);
 
-            if(isBidirectionalMappingEmpty(validTo)){
-                activation.setValidTo(null);
-            }
-        }
+			if (isBidirectionalMappingEmpty(validTo)) {
+				activation.setValidTo(null);
+			}
+		}
 
-        if(activation.getValidFrom() != null){
-            ResourceBidirectionalMappingType validFrom = activation.getValidFrom();
+		if (activation.getValidFrom() != null) {
+			ResourceBidirectionalMappingType validFrom = activation.getValidFrom();
 
             List<MappingType> inbounds = validFrom.getInbound();
             List<MappingType> outbounds = validFrom.getOutbound();
@@ -960,13 +1023,13 @@ public class SchemaHandlingStep extends WizardStep {
             validFrom.getOutbound().clear();
             validFrom.getOutbound().addAll(newOutbounds);
 
-            if(isBidirectionalMappingEmpty(validFrom)){
-                activation.setValidFrom(null);
-            }
-        }
+			if (isBidirectionalMappingEmpty(validFrom)) {
+				activation.setValidFrom(null);
+			}
+		}
 
-        if(activation.getExistence() != null){
-            ResourceBidirectionalMappingType existence = activation.getExistence();
+		if (activation.getExistence() != null) {
+			ResourceBidirectionalMappingType existence = activation.getExistence();
 
             List<MappingType> inbounds = existence.getInbound();
             List<MappingType> newInbounds = new ArrayList<>();
@@ -1061,7 +1124,7 @@ public class SchemaHandlingStep extends WizardStep {
 	private class UpdateNamesBehaviour extends EmptyOnChangeAjaxFormUpdatingBehavior {
 		@Override
 		protected void onUpdate(AjaxRequestTarget target) {
-			target.add(getObjectListTable(), getObjectTypeEditor().get(ID_EDITOR_NAME));
+			target.add(getObjectListTable(), getObjectTypeEditor().get(ID_EDITOR_NAME), getDuplicateObjectTypeWarningContainer());
 		}
 	}
 }

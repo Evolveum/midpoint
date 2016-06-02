@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-20146 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,13 @@
 
 package com.evolveum.midpoint.util;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Date;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import javax.xml.namespace.QName;
 
@@ -196,35 +201,35 @@ public class DebugUtil {
 		sb.append("\n");
 	}
 
-	public static void debugDumpWithLabel(StringBuilder sb, String label, boolean val, int indent) {
+	public static void debugDumpWithLabel(StringBuilder sb, String label, Boolean val, int indent) {
 		debugDumpLabel(sb, label, indent);
 		sb.append(" ");
 		sb.append(val);
 	}
 
-	public static void debugDumpWithLabelLn(StringBuilder sb, String label, boolean val, int indent) {
+	public static void debugDumpWithLabelLn(StringBuilder sb, String label, Boolean val, int indent) {
 		debugDumpWithLabel(sb, label, val, indent);
 		sb.append("\n");
 	}
 	
-	public static void debugDumpWithLabel(StringBuilder sb, String label, int val, int indent) {
+	public static void debugDumpWithLabel(StringBuilder sb, String label, Integer val, int indent) {
 		debugDumpLabel(sb, label, indent);
 		sb.append(" ");
 		sb.append(val);
 	}
 
-	public static void debugDumpWithLabelLn(StringBuilder sb, String label, int val, int indent) {
+	public static void debugDumpWithLabelLn(StringBuilder sb, String label, Integer val, int indent) {
 		debugDumpWithLabel(sb, label, val, indent);
 		sb.append("\n");
 	}
 	
-	public static void debugDumpWithLabel(StringBuilder sb, String label, long val, int indent) {
+	public static void debugDumpWithLabel(StringBuilder sb, String label, Long val, int indent) {
 		debugDumpLabel(sb, label, indent);
 		sb.append(" ");
 		sb.append(val);
 	}
 	
-	public static void debugDumpWithLabelLn(StringBuilder sb, String label, long val, int indent) {
+	public static void debugDumpWithLabelLn(StringBuilder sb, String label, Long val, int indent) {
 		debugDumpWithLabel(sb, label, val, indent);
 		sb.append("\n");
 	}
