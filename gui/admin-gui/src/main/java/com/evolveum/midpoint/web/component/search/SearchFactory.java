@@ -20,6 +20,7 @@ import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
+import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -109,22 +110,33 @@ public class SearchFactory {
         ));
     }
 
+    public static <T extends ObjectType> Search createSearchForShadow(
+            ResourceShadowDiscriminator discriminator, PrismContext ctx, ModelInteractionService modelInteractionService) {
+        return createSearch(ShadowType.class, discriminator, ctx, modelInteractionService, true);
+    }
+
     public static <T extends ObjectType> Search createSearch(Class<T> type, PrismContext ctx,
                                                              ModelInteractionService modelInteractionService) {
-        return createSearch(type, ctx, modelInteractionService, true);
+        return createSearch(type, null, ctx, modelInteractionService, true);
     }
 
     public static <T extends ObjectType> Search createSearch(
-            Class<T> type, PrismContext ctx, ModelInteractionService modelInteractionService,
-            boolean useDefsFromSuperclass) {
+            Class<T> type, ResourceShadowDiscriminator discriminator, PrismContext ctx,
+            ModelInteractionService modelInteractionService, boolean useDefsFromSuperclass) {
 
         PrismObjectDefinition objectDef;
         try {
             OperationResult result = new OperationResult(LOAD_OBJECT_DEFINITION);
 
             PrismObject empty = ctx.createObject(type);
-            objectDef = modelInteractionService.getEditObjectDefinition(
-                    empty, AuthorizationPhaseType.REQUEST, result);
+
+            if (ShadowType.class.equals(type)) {
+                objectDef = modelInteractionService.getEditShadowDefinition(discriminator,
+                        AuthorizationPhaseType.REQUEST, result);
+            } else {
+                objectDef = modelInteractionService.getEditObjectDefinition(
+                        empty, AuthorizationPhaseType.REQUEST, result);
+            }
         } catch (SchemaException | ConfigurationException | ObjectNotFoundException ex) {
             throw new SystemException(ex);
         }
@@ -138,7 +150,9 @@ public class SearchFactory {
         PrismPropertyDefinition def = objDef.findPropertyDefinition(ObjectType.F_NAME);
 
         SearchItem item = search.addItem(def);
-        item.setFixed(true);
+        if (item != null) {
+            item.setFixed(true);
+        }
 
         return search;
     }

@@ -75,7 +75,14 @@ public class SearchItem<T extends Serializable> implements Serializable {
     }
 
     public String getName() {
-        StringResourceModel nameModel = PageBase.createStringResourceStatic(null, definition.getDisplayName());
+        String key = definition.getDisplayName();
+        if (StringUtils.isEmpty(key)) {
+            StringBuilder sb = new StringBuilder();
+            sb.append(search.getType().getSimpleName()).append('.').append(definition.getName().getLocalPart());
+            key =  sb.toString();
+        }
+
+        StringResourceModel nameModel = PageBase.createStringResourceStatic(null, key);
         if (nameModel != null){
             if (StringUtils.isNotEmpty(nameModel.getString())) {
                 return nameModel.getString();

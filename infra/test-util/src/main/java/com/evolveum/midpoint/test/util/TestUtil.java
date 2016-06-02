@@ -39,6 +39,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
@@ -594,5 +595,10 @@ public class TestUtil {
 	public static void assertMessageContains(String message, String expectedSubstring) {
 		assertTrue("Expected that message will contain substring '"+expectedSubstring+"', but it did not. Message: "+message,
 				message.contains(expectedSubstring));
+	}
+	
+	// WARNING! Only works on Linux
+	public static int getPid() throws NumberFormatException, IOException {
+		return Integer.parseInt(new File("/proc/self").getCanonicalFile().getName());
 	}
 }

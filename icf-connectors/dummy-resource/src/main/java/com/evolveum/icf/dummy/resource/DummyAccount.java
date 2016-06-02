@@ -55,7 +55,8 @@ public class DummyAccount extends DummyObject {
 		return password;
 	}
 
-	public void setPassword(String password) {
+	public void setPassword(String password) throws ConnectException, FileNotFoundException, SchemaViolationException {
+		checkModifyBreak();
 		this.password = password;
 	}
 	
@@ -63,7 +64,8 @@ public class DummyAccount extends DummyObject {
 		return lockout;
 	}
 
-	public void setLockout(boolean lockout) {
+	public void setLockout(boolean lockout) throws ConnectException, FileNotFoundException, SchemaViolationException {
+		checkModifyBreak();
 		this.lockout = lockout;
 	}
 

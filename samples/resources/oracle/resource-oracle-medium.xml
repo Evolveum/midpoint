@@ -26,8 +26,8 @@
 
 		<connectorConfiguration>
 			<icfc:resultsHandlerConfiguration>
-				<icfc:enableFilteredResultsHandler>false</icfc:enableFilteredResultsHandler>
 				<icfc:enableNormalizingResultsHandler>false</icfc:enableNormalizingResultsHandler>
+				<icfc:enableFilteredResultsHandler>false</icfc:enableFilteredResultsHandler>
 				<icfc:enableAttributesToGetSearchResultsHandler>false</icfc:enableAttributesToGetSearchResultsHandler>
 			</icfc:resultsHandlerConfiguration>
 			<icfc:configurationProperties

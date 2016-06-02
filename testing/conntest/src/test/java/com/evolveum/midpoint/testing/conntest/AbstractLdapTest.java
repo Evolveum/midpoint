@@ -119,6 +119,7 @@ import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.schema.util.SchemaTestConstants;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.util.Lsof;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -200,6 +201,8 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
     protected ObjectClassComplexTypeDefinition accountObjectClassDefinition;
     
     protected DefaultConfigurableBinaryAttributeDetector binaryAttributeDetector = new DefaultConfigurableBinaryAttributeDetector();
+    
+    protected Lsof lsof;
 	
     @Override
     protected void startResources() throws Exception {
@@ -320,6 +323,10 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
 		return true;
 	}
 	
+	protected boolean isAssertOpenFiles() {
+		return true;
+	}
+	
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		super.initSystem(initTask, initResult);
@@ -368,7 +375,12 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
         
         ciMatchingRule = matchingRuleRegistry.getMatchingRule(StringIgnoreCaseMatchingRule.NAME, DOMUtil.XSD_STRING);
         dnMatchingRule = matchingRuleRegistry.getMatchingRule(DistinguishedNameMatchingRule.NAME, DOMUtil.XSD_STRING);
+        
+        if (isAssertOpenFiles()) {
+        	lsof = new Lsof(TestUtil.getPid());
+        }
 	}
+
 
 	@Test
 	public void test010Connection() throws Exception {
@@ -379,6 +391,13 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
 		
 		display("Test connection result",testResult);
 		TestUtil.assertSuccess("Test connection failed",testResult);
+		
+		if (isAssertOpenFiles()) {
+			// Set lsof baseline only after the first connection.
+			// We will have more reasonable number here.
+			lsof.rememberBaseline();
+			display("lsof baseline", lsof);
+		}
 	}
 	
 	@Test
@@ -414,6 +433,7 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
         assertFalse("createTimestampDef read", createTimestampDef.canModify());
         assertFalse("createTimestampDef read", createTimestampDef.canAdd());
         
+        assertStableSystem();
 	}
 	
 	protected <T> ObjectFilter createAttributeFilter(String attrName, T attrVal) throws SchemaException {
@@ -846,4 +866,27 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
 	protected long roundTsUp(long ts) {
 		return (((long)(ts/1000))*1000)+1;
 	}
+	
+	protected void assertStableSystem() throws NumberFormatException, IOException, InterruptedException {
+	    if (isAssertOpenFiles()) {
+			lsof.assertStable();
+		}
+	}
+	
+	protected void assertLdapConnectorInstances(int expectedConnectorInstances) throws NumberFormatException, IOException, InterruptedException {
+		if (!isAssertOpenFiles()) {
+			return;
+		}
+		if (expectedConnectorInstances == 1) {
+			assertStableSystem();
+		} else {
+			lsof.assertFdIncrease((expectedConnectorInstances - 1) * getNumberOfFdsPerLdapConnectorInstance());
+		}
+	}
+
+
+	protected int getNumberOfFdsPerLdapConnectorInstance() {
+		return 7;
+	}
+	
 }

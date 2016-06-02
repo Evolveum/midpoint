@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2014 Evolveum
+ * Copyright (c) 2010-20146 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,6 @@
 
 package com.evolveum.midpoint.util;
 
-import java.io.BufferedReader;
-import java.io.StringReader;
 import java.util.*;
 import java.util.Map.Entry;
 
@@ -28,8 +26,6 @@ import javax.xml.namespace.QName;
  * @author semancik
  */
 public class DebugUtil {
-
-	private static int SHOW_LIST_MEMBERS = 3;
 	
 	private static boolean detailedDebugDump = false;
 	
@@ -183,6 +179,22 @@ public class DebugUtil {
 		sb.append(" ");
 		sb.append(val);
 	}
+	
+	public static void debugDumpWithLabelLn(StringBuilder sb, String label, String val, int indent) {
+		debugDumpWithLabel(sb, label, val, indent);
+		sb.append("\n");
+	}
+	
+	public static void debugDumpWithLabel(StringBuilder sb, String label, QName val, int indent) {
+		debugDumpLabel(sb, label, indent);
+		sb.append(" ");
+		sb.append(PrettyPrinter.prettyPrint(val));
+	}
+	
+	public static void debugDumpWithLabelLn(StringBuilder sb, String label, QName val, int indent) {
+		debugDumpWithLabel(sb, label, val, indent);
+		sb.append("\n");
+	}
 
 	public static void debugDumpWithLabel(StringBuilder sb, String label, boolean val, int indent) {
 		debugDumpLabel(sb, label, indent);
@@ -190,16 +202,31 @@ public class DebugUtil {
 		sb.append(val);
 	}
 
+	public static void debugDumpWithLabelLn(StringBuilder sb, String label, boolean val, int indent) {
+		debugDumpWithLabel(sb, label, val, indent);
+		sb.append("\n");
+	}
+	
 	public static void debugDumpWithLabel(StringBuilder sb, String label, int val, int indent) {
 		debugDumpLabel(sb, label, indent);
 		sb.append(" ");
 		sb.append(val);
 	}
 
+	public static void debugDumpWithLabelLn(StringBuilder sb, String label, int val, int indent) {
+		debugDumpWithLabel(sb, label, val, indent);
+		sb.append("\n");
+	}
+	
 	public static void debugDumpWithLabel(StringBuilder sb, String label, long val, int indent) {
 		debugDumpLabel(sb, label, indent);
 		sb.append(" ");
 		sb.append(val);
+	}
+	
+	public static void debugDumpWithLabelLn(StringBuilder sb, String label, long val, int indent) {
+		debugDumpWithLabel(sb, label, val, indent);
+		sb.append("\n");
 	}
 
 	public static void debugDumpWithLabel(StringBuilder sb, String label, Collection<? extends DebugDumpable> dds, int indent) {
@@ -216,6 +243,11 @@ public class DebugUtil {
 		}
 	}
 	
+	public static void debugDumpWithLabelLn(StringBuilder sb, String label, Collection<? extends DebugDumpable> dds, int indent) {
+		debugDumpWithLabel(sb, label, dds, indent);
+		sb.append("\n");
+	}
+	
 	public static <K, V> void debugDumpWithLabel(StringBuilder sb, String label, Map<K, V> map, int indent) {
 		debugDumpLabel(sb, label, indent);
 		if (map == null) {
@@ -224,6 +256,11 @@ public class DebugUtil {
 			sb.append("\n");
 			debugDumpMapMultiLine(sb, map, indent + 1);
 		}
+	}
+	
+	public static <K, V> void debugDumpWithLabelLn(StringBuilder sb, String label, Map<K, V> map, int indent) {
+		debugDumpWithLabel(sb, label, map, indent);
+		sb.append("\n");
 	}
 	
 	public static void debugDumpWithLabelToString(StringBuilder sb, String label, Object object, int indent) {
@@ -235,7 +272,7 @@ public class DebugUtil {
 			sb.append(object.toString());
 		}
 	}
-	
+		
 	public static void debugDumpWithLabelToStringLn(StringBuilder sb, String label, Object object, int indent) {
 		debugDumpWithLabelToString(sb, label, object, indent);
 		sb.append("\n");

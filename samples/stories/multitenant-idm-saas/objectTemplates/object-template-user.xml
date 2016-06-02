@@ -79,6 +79,7 @@
     		the user.
     	</description>
     	<authoritative>true</authoritative>
+        <strength>strong</strength>
     	<source>
     		<path>organization</path>
     	</source>
@@ -155,6 +156,7 @@
     		the user.
     	</description>
     	<authoritative>true</authoritative>
+        <strength>strong</strength>
     	<source>
     		<path>organization</path>
     	</source>
@@ -197,6 +199,7 @@
 <!-- FIXME FIXME assign once more with manager relation; do not create. Ordering???????????????? -->	
     <mapping>
     	<name>Basic Customer Admin role assignment</name>
+        <strength>strong</strength>
         <source>
             <path>$user/employeeType</path>
         </source>
@@ -218,6 +221,7 @@
 
     <mapping>
     	<name>Delegated Administration role assignment</name>
+        <strength>strong</strength>
         <source>
             <path>$user/employeeType</path>
         </source>
@@ -239,6 +243,7 @@
 
     <mapping>
     	<name>Basic Customer User role assignment</name>
+        <strength>strong</strength>
         <source>
             <path>$user/employeeType</path>
         </source>

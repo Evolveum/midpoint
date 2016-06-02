@@ -308,7 +308,7 @@ public abstract class DummyObject implements DebugDumpable {
 		}
 	}
 
-	private void checkModifyBreak() throws ConnectException, FileNotFoundException, SchemaViolationException {
+	protected void checkModifyBreak() throws ConnectException, FileNotFoundException, SchemaViolationException {
 		if (resource == null) {
 			return;
 		}
