@@ -22,6 +22,7 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.web.page.admin.resources.PageResourceWizard;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -160,4 +161,14 @@ public class WizardStep extends org.apache.wicket.extensions.wizard.WizardStep {
     public void setResult(OperationResult result) {
         this.result = result;
     }
+
+	@Override
+	public boolean isComplete() {
+		if (!super.isComplete()) {
+			return false;
+		}
+
+		PageResourceWizard pageResourceWizard = (PageResourceWizard) getPageBase();
+		return !pageResourceWizard.getIssuesModel().getObject().hasErrorsFor(getClass());
+	}
 }

@@ -354,7 +354,8 @@ public class CapabilityStep extends WizardStep {
 
     @Override
     public void applyState() {
-        savePerformed();
+		super.applyState();
+		savePerformed();
     }
 
     private void savePerformed() {

@@ -27,15 +27,13 @@ public class WizardStepDto implements Serializable {
     private boolean enabled = true;
     private boolean visible = true;
     private boolean active;
+	private WizardStep wizardStep;
 
-    public WizardStepDto(String name) {
-        this(name, true, true);
-    }
-
-    public WizardStepDto(String name, boolean enabled, boolean visible) {
+    public WizardStepDto(String name, WizardStep wizStep, boolean enabled, boolean visible) {
         this.name = name;
         this.enabled = enabled;
         this.visible = visible;
+		this.wizardStep = wizStep;
     }
 
     public boolean isActive() {
@@ -65,4 +63,8 @@ public class WizardStepDto implements Serializable {
     public void setVisible(boolean visible) {
         this.visible = visible;
     }
+
+	public WizardStep getWizardStep() {
+		return wizardStep;
+	}
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,20 +14,14 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.web.component.wizard.resource;
+package com.evolveum.midpoint.model.api.validator;
 
 /**
- * TODO clean up (pmed)
- * @author lazyman
+ * @author mederly
  */
-public class ResourceWizard /*extends Wizard*/ {
+public enum Scope {
 
-//    public ResourceWizard(String id, WizardModel wizardModel) {
-//        super(id, wizardModel);
-//    }
-//
-//    @Override
-//    protected Component newButtonBar(String id) {
-//        return new WizardButtonBar(id, this);
-//    }
+	QUICK,			// something that can be done quite regularly (e.g. when an item value is changed)
+	THOROUGH;		// something that is done on demand, e.g. checking groovy scripts or checking object references
+
 }

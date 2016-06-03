@@ -223,6 +223,7 @@ public class ConfigurationStep extends WizardStep {
 
 	// copied from PageResource, TODO deduplicate
 	private void testConnectionPerformed(AjaxRequestTarget target) {
+		super.applyState();
 		saveChanges();
 
 		PageBase page = getPageBase();
@@ -249,7 +250,8 @@ public class ConfigurationStep extends WizardStep {
 
 	@Override
     public void applyState() {
-        saveChanges();
+		super.applyState();
+		saveChanges();
     }
 
     private void saveChanges() {
