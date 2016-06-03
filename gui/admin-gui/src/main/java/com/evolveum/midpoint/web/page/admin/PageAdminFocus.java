@@ -755,7 +755,7 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 		return refDelta;
 	}
 
-	public void recomputeAssignmentsPerformed(AssignmentPreviewDialog dialog, AjaxRequestTarget target) {
+	public List<AssignmentsPreviewDto> recomputeAssignmentsPerformed(AjaxRequestTarget target) {
 		LOGGER.debug("Recompute user assignments");
 		Task task = createSimpleTask(OPERATION_RECOMPUTE_ASSIGNMENTS);
 		OperationResult result = new OperationResult(OPERATION_RECOMPUTE_ASSIGNMENTS);
@@ -822,7 +822,7 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 			} catch (NoFocusNameSchemaException e) {
 				info(getString("pageAdminFocus.message.noUserName"));
 				target.add(getFeedbackPanel());
-				return;
+				return null;
 			}
 
 			DeltaSetTriple<? extends EvaluatedAssignment> evaluatedAssignmentTriple = modelContext
@@ -833,10 +833,9 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 			if (evaluatedAssignments.isEmpty()) {
 				info(getString("pageAdminFocus.message.noAssignmentsAvailable"));
 				target.add(getFeedbackPanel());
-				return;
+				return null;
 			}
 
-			List<String> directAssignmentsOids = new ArrayList<>();
 			for (EvaluatedAssignment<UserType> evaluatedAssignment : evaluatedAssignments) {
 				if (!evaluatedAssignment.isValid()) {
 					continue;
@@ -862,14 +861,14 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 				}
 			}
 
-			dialog.updateData(target, new ArrayList<>(assignmentDtoSet), directAssignmentsOids);
-			dialog.show(target);
+			return new ArrayList<>(assignmentDtoSet);
 
 		} catch (Exception e) {
 			LoggingUtils.logUnexpectedException(LOGGER, "Could not create assignments preview.", e);
 			error("Could not create assignments preview. Reason: " + e);
 			target.add(getFeedbackPanel());
 		}
+        return null;
 	}
 
 	private AssignmentsPreviewDto createAssignmentsPreviewDto(EvaluatedAbstractRole evaluatedAbstractRole,
