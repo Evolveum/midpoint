@@ -20,6 +20,7 @@ import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.assignment.AssignmentEditorDto;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
@@ -31,6 +32,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import org.apache.wicket.ajax.AjaxRequestTarget;
+
 public abstract class PageAdminAbstractRole<T extends AbstractRoleType> extends PageAdminFocus<T> {
 
 	private LoadableModel<List<AssignmentEditorDto>> inducementsModel;
@@ -38,18 +41,18 @@ public abstract class PageAdminAbstractRole<T extends AbstractRoleType> extends 
 	public LoadableModel<List<AssignmentEditorDto>> getInducementsModel() {
 		return inducementsModel;
 	}
-
+	
 	@Override
-	protected void prepareFocusDeltaForModify(ObjectDelta<T> focusDelta) throws SchemaException {
-		super.prepareFocusDeltaForModify(focusDelta);
+	protected void prepareObjectDeltaForModify(ObjectDelta<T> focusDelta) throws SchemaException {
+		super.prepareObjectDeltaForModify(focusDelta);
 
 		PrismObject<T> abstractRole = getObjectWrapper().getObject();
 		PrismContainerDefinition<AssignmentType> def = abstractRole.getDefinition()
 				.findContainerDefinition(AbstractRoleType.F_INDUCEMENT);
 		handleAssignmentDeltas(focusDelta, inducementsModel.getObject(), def);
-
-		}
-
+	}
+	
+	
 	@Override
 	protected void prepareObjectForAdd(PrismObject<T> focus) throws SchemaException {
 		super.prepareObjectForAdd(focus);
@@ -83,5 +86,5 @@ public abstract class PageAdminAbstractRole<T extends AbstractRoleType> extends 
 
 		return list;
 	}
-
+	
 }

@@ -55,16 +55,6 @@ public class ResourceSynchronizationDto implements Serializable{
         this.selected = selected;
     }
 
-	public int getSelectedIndex() {
-		return selected != null ? objectSynchronizationList.indexOf(selected) : -1;
-	}
-
-	public void setSelectedIndex(int index) {
-		if (index >= 0 && index < objectSynchronizationList.size()) {
-			selected = objectSynchronizationList.get(index);
-		}
-	}
-
 	public List<QName> getObjectClassList() {
         if(objectClassList == null){
             objectClassList = new ArrayList<>();

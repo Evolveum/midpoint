@@ -33,9 +33,11 @@ import com.evolveum.midpoint.web.component.form.multivalue.MultiValueTextPanel;
 import com.evolveum.midpoint.web.component.input.QNameChoiceRenderer;
 import com.evolveum.midpoint.web.component.input.QNameEditorPanel;
 import com.evolveum.midpoint.web.component.wizard.WizardUtil;
+import com.evolveum.midpoint.web.component.wizard.resource.SchemaHandlingStep;
 import com.evolveum.midpoint.web.component.wizard.resource.component.schemahandling.modal.LimitationsEditorDialog;
 import com.evolveum.midpoint.web.component.wizard.resource.component.schemahandling.modal.MappingEditorDialog;
 import com.evolveum.midpoint.web.component.wizard.resource.dto.MappingTypeDto;
+import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnChangeAjaxFormUpdatingBehavior;
 import com.evolveum.midpoint.web.page.admin.resources.PageResources;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -43,13 +45,13 @@ import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
+import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
 import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.*;
-import org.apache.wicket.model.AbstractReadOnlyModel;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
-import org.apache.wicket.model.PropertyModel;
+import org.apache.wicket.markup.html.list.ListItem;
+import org.apache.wicket.model.*;
+import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Element;
 
 import javax.xml.namespace.QName;
@@ -82,6 +84,7 @@ public class ResourceAssociationEditor extends BasePanel<ResourceObjectAssociati
     private static final String ID_INBOUND = "inbound";
     private static final String ID_OUTBOUND_LABEL = "outboundLabel";
     private static final String ID_BUTTON_OUTBOUND = "buttonOutbound";
+    private static final String ID_DELETE_OUTBOUND = "deleteOutbound";
     private static final String ID_BUTTON_LIMITATIONS = "buttonLimitations";
     private static final String ID_MODAL_LIMITATIONS = "limitationsEditor";
     private static final String ID_MODAL_INBOUND = "inboundEditor";
@@ -104,33 +107,20 @@ public class ResourceAssociationEditor extends BasePanel<ResourceObjectAssociati
 
     private PrismObject<ResourceType> resource;
     private ResourceObjectTypeDefinitionType objectType;
+	@NotNull final private SchemaHandlingStep parentStep;
 
-    public ResourceAssociationEditor(String id, IModel<ResourceObjectAssociationType> model,
-                                     ResourceObjectTypeDefinitionType objectType, PrismObject<ResourceType> resource){
+	public ResourceAssociationEditor(String id, IModel<ResourceObjectAssociationType> model,
+                                     ResourceObjectTypeDefinitionType objectType, PrismObject<ResourceType> resource, SchemaHandlingStep parentStep) {
         super(id, model);
 
         this.resource = resource;
         this.objectType = objectType;
+		this.parentStep = parentStep;
 		initLayout();
     }
 
-    protected void initLayout(){
-        Label label = new Label(ID_LABEL, new AbstractReadOnlyModel<String>() {
-
-            @Override
-            public String getObject() {
-                ResourceObjectAssociationType association = getModelObject();
-
-                if(association.getDisplayName() == null && association.getRef() == null){
-                    return getString("ResourceAssociationEditor.label.new");
-                } else {
-                    if(association.getRef().getItemPath() != null){
-                        return getString("ResourceAssociationEditor.label.edit", association.getRef().getItemPath().toString());
-                    }
-                    return getString("ResourceAssociationEditor.label.edit", "");
-                }
-            }
-        });
+    protected void initLayout() {
+        Label label = new Label(ID_LABEL, new ResourceModel("ResourceAssociationEditor.label.edit"));
         add(label);
 
         DropDownChoice kind = new DropDownChoice<>(ID_KIND,
@@ -181,12 +171,27 @@ public class ResourceAssociationEditor extends BasePanel<ResourceObjectAssociati
 
         QNameEditorPanel nonSchemaRefPanel = new QNameEditorPanel(ID_ASSOCIATION_ATTRIBUTE_PANEL, new PropertyModel<ItemPathType>(getModel(), "ref"),
                 "SchemaHandlingStep.association.label.associationName", "SchemaHandlingStep.association.tooltip.associationLocalPart",
-                "SchemaHandlingStep.association.label.associationNamespace", "SchemaHandlingStep.association.tooltip.associationNamespace");
+                "SchemaHandlingStep.association.label.associationNamespace", "SchemaHandlingStep.association.tooltip.associationNamespace")  {
+			@Override
+			protected void onUpdate(AjaxRequestTarget target) {
+				target.add(parentStep.getAssociationList());
+			}
+			@Override
+			public boolean isLocalPartRequired() {
+				return true;
+			}
+		};
         nonSchemaRefPanel.setOutputMarkupId(true);
         nonSchemaRefPanel.setOutputMarkupPlaceholderTag(true);
         add(nonSchemaRefPanel);
 
         TextField displayName = new TextField<>(ID_DISPLAY_NAME, new PropertyModel<String>(getModel(), "displayName"));
+		displayName.add(new EmptyOnChangeAjaxFormUpdatingBehavior() {
+			@Override
+			protected void onUpdate(AjaxRequestTarget target) {
+				target.add(parentStep.getAssociationList());
+			}
+		});
         add(displayName);
 
         TextArea description = new TextArea<>(ID_DESCRIPTION, new PropertyModel<String>(getModel(), "description"));
@@ -244,17 +249,36 @@ public class ResourceAssociationEditor extends BasePanel<ResourceObjectAssociati
         add(outboundLabel);
 
         AjaxSubmitButton outbound = new AjaxSubmitButton(ID_BUTTON_OUTBOUND) {
-
             @Override
             protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
                 outboundEditPerformed(target);
             }
-        };
+
+			@Override
+			protected void onError(AjaxRequestTarget target, Form<?> form) {
+				target.add(parentStep.getPageBase().getFeedbackPanel());
+			}
+		};
         outbound.setOutputMarkupId(true);
         add(outbound);
 
-        MultiValueTextEditPanel inbound = new MultiValueTextEditPanel<MappingType>(ID_INBOUND,
-                new PropertyModel<List<MappingType>>(getModel(), "inbound"), false, true){
+		AjaxSubmitLink deleteOutbound = new AjaxSubmitLink(ID_DELETE_OUTBOUND) {
+
+			@Override
+			protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
+				deleteOutboundPerformed(target);
+			}
+
+			@Override
+			protected void onError(AjaxRequestTarget target, Form<?> form) {
+				target.add(parentStep.getPageBase().getFeedbackPanel());
+			}
+		};
+		deleteOutbound.setOutputMarkupId(true);
+		add(deleteOutbound);
+
+		MultiValueTextEditPanel inbound = new MultiValueTextEditPanel<MappingType>(ID_INBOUND,
+                new PropertyModel<List<MappingType>>(getModel(), "inbound"), null, false, true){
 
             @Override
             protected IModel<String> createTextModel(final IModel<MappingType> model) {
@@ -273,7 +297,17 @@ public class ResourceAssociationEditor extends BasePanel<ResourceObjectAssociati
                 return WizardUtil.createEmptyMapping();
             }
 
-            @Override
+			@Override
+			protected void performAddValueHook(AjaxRequestTarget target, MappingType added) {
+				target.add(parentStep.getAssociationList());
+			}
+
+			@Override
+			protected void performRemoveValueHook(AjaxRequestTarget target, ListItem<MappingType> item) {
+				target.add(parentStep.getAssociationList());
+			}
+
+			@Override
             protected void editPerformed(AjaxRequestTarget target, MappingType object){
                 inboundEditPerformed(target, object);
             }
@@ -344,7 +378,7 @@ public class ResourceAssociationEditor extends BasePanel<ResourceObjectAssociati
         initModals();
     }
 
-    private void initModals(){
+    private void initModals() {
         ModalWindow limitationsEditor = new LimitationsEditorDialog(ID_MODAL_LIMITATIONS,
                 new PropertyModel<List<PropertyLimitationsType>>(getModel(), "limitations"));
         add(limitationsEditor);
@@ -363,7 +397,7 @@ public class ResourceAssociationEditor extends BasePanel<ResourceObjectAssociati
 
             @Override
             public void updateComponents(AjaxRequestTarget target) {
-                target.add(ResourceAssociationEditor.this.get(ID_OUTBOUND_LABEL), ResourceAssociationEditor.this.get(ID_BUTTON_OUTBOUND));
+                target.add(ResourceAssociationEditor.this.get(ID_OUTBOUND_LABEL), ResourceAssociationEditor.this.get(ID_BUTTON_OUTBOUND), parentStep.getAssociationList());
             }
         };
         add(outboundEditor);
@@ -438,7 +472,13 @@ public class ResourceAssociationEditor extends BasePanel<ResourceObjectAssociati
         window.show(target);
     }
 
-    private void outboundEditPerformed(AjaxRequestTarget target){
+	private void deleteOutboundPerformed(AjaxRequestTarget target) {
+		ResourceObjectAssociationType def = getModelObject();
+		def.setOutbound(null);
+		target.add(this, parentStep.getAssociationList());
+	}
+
+	private void outboundEditPerformed(AjaxRequestTarget target){
         MappingEditorDialog window = (MappingEditorDialog) get(ID_MODAL_OUTBOUND);
         window.updateModel(target, new PropertyModel<MappingType>(getModel(), "outbound"), false);
         window.show(target);

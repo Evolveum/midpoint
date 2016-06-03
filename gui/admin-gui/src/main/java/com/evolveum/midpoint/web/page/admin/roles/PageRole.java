@@ -107,8 +107,8 @@ public class PageRole extends PageAdminAbstractRole<RoleType> implements Progres
 	}
 
 	@Override
-	protected void prepareFocusDeltaForModify(ObjectDelta<RoleType> focusDelta) throws SchemaException {
-		super.prepareFocusDeltaForModify(focusDelta);
+	protected void prepareObjectDeltaForModify(ObjectDelta<RoleType> focusDelta) throws SchemaException {
+		super.prepareObjectDeltaForModify(focusDelta);
 
 		ObjectDelta<RoleType> delta = getObjectWrapper().getObjectOld().diff(getObjectWrapper().getObject());
 

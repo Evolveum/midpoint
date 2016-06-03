@@ -15,6 +15,8 @@
  */
 package com.evolveum.midpoint.web.component.wizard.resource.dto;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceAttributeDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectAssociationType;
 import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
@@ -28,12 +30,16 @@ public class SchemaHandlingDto implements Serializable {
 
     public static final String F_OBJECT_TYPE_DTO_LIST = "objectTypeDtoList";
     public static final String F_SELECTED_OBJECT_TYPE_DTO = "selectedObjectTypeDto";
+    public static final String F_SELECTED_ATTRIBUTE = "selectedAttribute";
+    public static final String F_SELECTED_ASSOCIATION = "selectedAssociation";
     public static final String F_OBJECT_CLASS_NAME = "objectClassName";
 
     @NotNull private final List<ResourceObjectTypeDefinitionTypeDto> objectTypeDtoList;
 	@NotNull private final List<QName> objectClassList;
     private ResourceObjectTypeDefinitionTypeDto selectedObjectTypeDto;
     private String objectClassName;
+	private ResourceAttributeDefinitionType selectedAttribute;
+	private ResourceObjectAssociationType selectedAssociation;
 
 	public SchemaHandlingDto(@NotNull List<ResourceObjectTypeDefinitionTypeDto> list, @NotNull List<QName> objectClasses) {
 		this.objectTypeDtoList = list;
@@ -92,5 +98,21 @@ public class SchemaHandlingDto implements Serializable {
 		}
 		return null;
 		//throw new IllegalStateException("No " + localName + " in object class list: " + objectClassList);
+	}
+
+	public ResourceAttributeDefinitionType getSelectedAttribute() {
+		return selectedAttribute;
+	}
+
+	public void setSelectedAttribute(ResourceAttributeDefinitionType selectedAttribute) {
+		this.selectedAttribute = selectedAttribute;
+	}
+
+	public ResourceObjectAssociationType getSelectedAssociation() {
+		return selectedAssociation;
+	}
+
+	public void setSelectedAssociation(ResourceObjectAssociationType selectedAssociation) {
+		this.selectedAssociation = selectedAssociation;
 	}
 }

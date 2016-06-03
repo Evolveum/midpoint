@@ -755,29 +755,6 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 		return refDelta;
 	}
 
-
-	protected void prepareFocusDeltaForModify(ObjectDelta<F> focusDelta) throws SchemaException {
-		// handle accounts
-		SchemaRegistry registry = getPrismContext().getSchemaRegistry();
-		PrismObjectDefinition<F> objectDefinition = registry
-				.findObjectDefinitionByCompileTimeClass(getCompileTimeClass());
-		PrismReferenceDefinition refDef = objectDefinition.findReferenceDefinition(FocusType.F_LINK_REF);
-		ReferenceDelta refDelta = prepareUserAccountsDeltaForModify(refDef);
-		if (!refDelta.isEmpty()) {
-			focusDelta.addModification(refDelta);
-		}
-		
-		refDef = objectDefinition.findReferenceDefinition(FocusType.F_PARENT_ORG_REF);
-		refDelta = prepareUserOrgsDeltaForModify(refDef);
-		if (!refDelta.isEmpty()) {
-			focusDelta.addModification(refDelta);
-		}
-
-		// handle assignments
-		PrismContainerDefinition def = objectDefinition.findContainerDefinition(UserType.F_ASSIGNMENT);
-		handleAssignmentDeltas(focusDelta, getFocusAssignments(), def);
-	}
-
 	public void recomputeAssignmentsPerformed(AssignmentPreviewDialog dialog, AjaxRequestTarget target) {
 		LOGGER.debug("Recompute user assignments");
 		Task task = createSimpleTask(OPERATION_RECOMPUTE_ASSIGNMENTS);
@@ -812,7 +789,7 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 
 					break;
 				case MODIFYING:
-					prepareFocusDeltaForModify(delta);
+					prepareObjectDeltaForModify(delta);
 
 					if (LOGGER.isTraceEnabled()) {
 						LOGGER.trace("Delta before modify user:\n{}", new Object[] { delta.debugDump(3) });

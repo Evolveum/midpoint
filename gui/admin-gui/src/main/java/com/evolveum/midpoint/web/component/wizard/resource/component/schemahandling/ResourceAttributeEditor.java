@@ -34,9 +34,11 @@ import com.evolveum.midpoint.web.component.form.multivalue.MultiValueTextPanel;
 import com.evolveum.midpoint.web.component.input.QNameEditorPanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.component.wizard.WizardUtil;
+import com.evolveum.midpoint.web.component.wizard.resource.SchemaHandlingStep;
 import com.evolveum.midpoint.web.component.wizard.resource.component.schemahandling.modal.LimitationsEditorDialog;
 import com.evolveum.midpoint.web.component.wizard.resource.component.schemahandling.modal.MappingEditorDialog;
 import com.evolveum.midpoint.web.component.wizard.resource.dto.MappingTypeDto;
+import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnChangeAjaxFormUpdatingBehavior;
 import com.evolveum.midpoint.web.page.admin.resources.PageResources;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -51,10 +53,9 @@ import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.*;
-import org.apache.wicket.model.AbstractReadOnlyModel;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
-import org.apache.wicket.model.PropertyModel;
+import org.apache.wicket.markup.html.list.ListItem;
+import org.apache.wicket.model.*;
+import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Element;
 
 import javax.xml.namespace.QName;
@@ -107,35 +108,30 @@ public class ResourceAttributeEditor extends BasePanel<ResourceAttributeDefiniti
     private PrismObject<ResourceType> resource;
     private ResourceObjectTypeDefinitionType objectType;
     private boolean nonSchemaRefValueAllowed = false;
+	@NotNull final private SchemaHandlingStep parentStep;
 
     public ResourceAttributeEditor(String id, IModel<ResourceAttributeDefinitionType> model, ResourceObjectTypeDefinitionType objectType,
-                                   PrismObject<ResourceType> resource){
+			PrismObject<ResourceType> resource, SchemaHandlingStep parentStep) {
         super(id, model);
 
         this.resource = resource;
         this.objectType = objectType;
+		this.parentStep = parentStep;
 		initLayout();
     }
 
-    protected void initLayout(){
-        Label label = new Label(ID_LABEL, new AbstractReadOnlyModel<String>() {
-
-            @Override
-            public String getObject() {
-                ResourceAttributeDefinitionType attribute = getModelObject();
-
-                if(attribute.getRef() == null || attribute.getRef().equals(new ItemPathType())){
-                    return getString("ResourceAttributeEditor.label.new");
-                } else {
-                    return getString("ResourceAttributeEditor.label.edit", ItemPathUtil.getOnlySegmentQName(attribute.getRef()).getLocalPart());
-                }
-            }
-        });
+    protected void initLayout() {
+        Label label = new Label(ID_LABEL, new ResourceModel("ResourceAttributeEditor.label.edit"));
         add(label);
 
         QNameEditorPanel nonSchemaRefPanel = new QNameEditorPanel(ID_NON_SCHEMA_REF_PANEL, new PropertyModel<ItemPathType>(getModel(), "ref"),
                 "SchemaHandlingStep.attribute.label.attributeName", "SchemaHandlingStep.attribute.tooltip.attributeLocalPart",
-                "SchemaHandlingStep.attribute.label.attributeNamespace", "SchemaHandlingStep.attribute.tooltip.attributeNamespace");
+                "SchemaHandlingStep.attribute.label.attributeNamespace", "SchemaHandlingStep.attribute.tooltip.attributeNamespace") {
+			@Override
+			protected void onUpdate(AjaxRequestTarget target) {
+				target.add(parentStep.getAttributeList());
+			}
+		};
 
         nonSchemaRefPanel.setOutputMarkupId(true);
         nonSchemaRefPanel.setOutputMarkupPlaceholderTag(true);
@@ -207,6 +203,12 @@ public class ResourceAttributeEditor extends BasePanel<ResourceAttributeDefiniti
 
         refSelect.setOutputMarkupId(true);
         refSelect.setOutputMarkupPlaceholderTag(true);
+		refSelect.add(new EmptyOnChangeAjaxFormUpdatingBehavior() {
+			@Override
+			protected void onUpdate(AjaxRequestTarget target) {
+				target.add(parentStep.getAttributeList());
+			}
+		});
         schemaRefPanel.add(refSelect);
 
         CheckBox allowNonSchema = new CheckBox(ID_REFERENCE_ALLOW, new PropertyModel<Boolean>(this, "nonSchemaRefValueAllowed"));
@@ -220,6 +222,12 @@ public class ResourceAttributeEditor extends BasePanel<ResourceAttributeDefiniti
         add(allowNonSchema);
 
         TextField displayName = new TextField<>(ID_DISPLAY_NAME, new PropertyModel<String>(getModel(), "displayName"));
+		displayName.add(new EmptyOnChangeAjaxFormUpdatingBehavior() {
+			@Override
+			protected void onUpdate(AjaxRequestTarget target) {
+				target.add(parentStep.getAttributeList());
+			}
+		});
         add(displayName);
 
         TextArea description = new TextArea<>(ID_DESCRIPTION, new PropertyModel<String>(getModel(), "description"));
@@ -282,6 +290,11 @@ public class ResourceAttributeEditor extends BasePanel<ResourceAttributeDefiniti
             protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
                 outboundEditPerformed(target);
             }
+
+			@Override
+			protected void onError(AjaxRequestTarget target, Form<?> form) {
+				target.add(parentStep.getPageBase().getFeedbackPanel());
+			}
         };
         outbound.setOutputMarkupId(true);
         add(outbound);
@@ -292,12 +305,17 @@ public class ResourceAttributeEditor extends BasePanel<ResourceAttributeDefiniti
             protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
                 deleteOutboundPerformed(target);
             }
-        };
+
+			@Override
+			protected void onError(AjaxRequestTarget target, Form<?> form) {
+				target.add(parentStep.getPageBase().getFeedbackPanel());
+			}
+		};
         deleteOutbound.setOutputMarkupId(true);
         add(deleteOutbound);
 
         MultiValueTextEditPanel inbound = new MultiValueTextEditPanel<MappingType>(ID_INBOUND,
-                new PropertyModel<List<MappingType>>(getModel(), "inbound"), false, true){
+                new PropertyModel<List<MappingType>>(getModel(), "inbound"), null, false, true){
 
             @Override
             protected IModel<String> createTextModel(final IModel<MappingType> model) {
@@ -316,7 +334,17 @@ public class ResourceAttributeEditor extends BasePanel<ResourceAttributeDefiniti
                 return WizardUtil.createEmptyMapping();
             }
 
-            @Override
+			@Override
+			protected void performAddValueHook(AjaxRequestTarget target, MappingType added) {
+				target.add(parentStep.getAttributeList());
+			}
+
+			@Override
+			protected void performRemoveValueHook(AjaxRequestTarget target, ListItem<MappingType> item) {
+				target.add(parentStep.getAttributeList());
+			}
+
+			@Override
             protected void editPerformed(AjaxRequestTarget target, MappingType object){
                 inboundEditPerformed(target, object);
             }
@@ -385,7 +413,7 @@ public class ResourceAttributeEditor extends BasePanel<ResourceAttributeDefiniti
 
             @Override
             public void updateComponents(AjaxRequestTarget target) {
-                target.add(ResourceAttributeEditor.this.get(ID_OUTBOUND_LABEL), ResourceAttributeEditor.this.get(ID_BUTTON_OUTBOUND));
+                target.add(ResourceAttributeEditor.this.get(ID_OUTBOUND_LABEL), ResourceAttributeEditor.this.get(ID_BUTTON_OUTBOUND), parentStep.getAttributeList());
             }
         };
         add(outboundEditor);
@@ -472,8 +500,7 @@ public class ResourceAttributeEditor extends BasePanel<ResourceAttributeDefiniti
     private void deleteOutboundPerformed(AjaxRequestTarget target) {
         ResourceAttributeDefinitionType def = getModelObject();
         def.setOutbound(null);
-
-        target.add(this);
+        target.add(this, parentStep.getAttributeList());
     }
 
     private void outboundEditPerformed(AjaxRequestTarget target){
