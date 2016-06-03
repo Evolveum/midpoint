@@ -293,8 +293,9 @@ public class SchemaListPanel extends BasePanel<PrismObject<ResourceType>> {
 
     private void objectClassClickPerformed(AjaxRequestTarget target, ObjectClassDto dto) {
         for (ObjectClassDto o : allClasses.getObject()) {
-            o.setSelected(ObjectUtils.equals(o.getObjectClassName(), dto.getObjectClassName()));	// object identity comparison is not OK here (dto from class list may be older/younger than DTOs in allClasses)
+			o.setSelected(false);
         }
+		dto.setSelected(true);
         attributeModel.reset();
         detailsModel.reset();
         target.add(get(ID_TABLE_BODY), get(ID_OBJECT_CLASS_INFO_CONTAINER));

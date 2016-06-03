@@ -50,8 +50,8 @@ import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 import javax.xml.namespace.QName;
 
-import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
@@ -568,7 +568,7 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
 	
 	private static RefinedObjectClassDefinition parseRefinedObjectClass(ResourceObjectTypeDefinitionType schemaHandlingObjDefType,
 			ResourceType resourceType, RefinedResourceSchema rSchema, PrismContext prismContext,
-			ShadowKindType kind, String intent, String typeDesc, String contextDescription) throws SchemaException {
+			@NotNull ShadowKindType kind, @NotNull String intent, String typeDesc, String contextDescription) throws SchemaException {
 		
 		ObjectClassComplexTypeDefinition objectClassDef;
         if (schemaHandlingObjDefType.getObjectClass() != null) {
@@ -584,17 +584,8 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
         RefinedObjectClassDefinition rOcDef = new RefinedObjectClassDefinition(prismContext, resourceType, objectClassDef);
         rOcDef.setKind(kind);
         rOcDef.schemaHandlingObjectTypeDefinitionType = schemaHandlingObjDefType;
+		rOcDef.setIntent(intent);
 
-        if (intent == null && kind == ShadowKindType.ACCOUNT) {
-        	intent = SchemaConstants.INTENT_DEFAULT;
-        }
-        
-        if (intent != null) {
-            rOcDef.setIntent(intent);
-        } else {
-            throw new SchemaException(StringUtils.capitalize(typeDesc)+" type definition does not have intent, in " + contextDescription);
-        }
-        
         if (schemaHandlingObjDefType.getDisplayName() != null) {
             rOcDef.setDisplayName(schemaHandlingObjDefType.getDisplayName());
         } else {

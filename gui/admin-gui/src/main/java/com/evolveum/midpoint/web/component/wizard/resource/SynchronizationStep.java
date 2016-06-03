@@ -39,6 +39,7 @@ import com.evolveum.midpoint.web.component.input.TriStateComboPanel;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.component.wizard.WizardStep;
+import com.evolveum.midpoint.web.component.wizard.resource.component.DuplicateObjectTypeDetector;
 import com.evolveum.midpoint.web.component.wizard.resource.component.synchronization.ConditionalSearchFilterEditor;
 import com.evolveum.midpoint.web.component.wizard.resource.component.synchronization.SynchronizationExpressionEditor;
 import com.evolveum.midpoint.web.component.wizard.resource.component.synchronization.SynchronizationReactionEditor;
@@ -49,6 +50,7 @@ import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.ExpressionUtil;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -93,7 +95,11 @@ public class SynchronizationStep extends WizardStep {
     private static final String ID_OBJECT_SYNC_EDITOR = "objectSyncConfig";
     private static final String ID_THIRD_ROW_CONTAINER = "thirdRowContainer";
 
-    private static final String ID_EDITOR_LABEL = "editorLabel";
+	private static final String ID_DUPLICATE_OBJECT_TYPE_WARNING_CONTAINER = "duplicateObjectTypeWarningContainer";
+	private static final String ID_DUPLICATE_OBJECT_TYPE_WARNING = "duplicateObjectTypeWarning";
+	private static final String ID_DUPLICATE_OBJECT_TYPE_WARNING_TEXT = "duplicateObjectTypeWarningText";
+
+	private static final String ID_EDITOR_LABEL = "editorLabel";
     private static final String ID_EDITOR_NAME = "editorName";
     private static final String ID_EDITOR_DESCRIPTION = "editorDescription";
     private static final String ID_EDITOR_KIND = "editorKind";
@@ -245,10 +251,41 @@ public class SynchronizationStep extends WizardStep {
         };
         add(add);
 
-        initObjectSyncEditor(objectSyncEditor);
+		WebMarkupContainer duplicateObjectTypeWarningContainer = new WebMarkupContainer(ID_DUPLICATE_OBJECT_TYPE_WARNING_CONTAINER);
+		WebMarkupContainer duplicateObjectTypeWarning = new WebMarkupContainer(ID_DUPLICATE_OBJECT_TYPE_WARNING);
+		duplicateObjectTypeWarning.add(new VisibleEnableBehaviour() {
+			@Override
+			public boolean isVisible() {
+				return getDuplicateObjectTypes() != null;
+			}
+		});
+		Label duplicateObjectTypeWarningText = new Label(ID_DUPLICATE_OBJECT_TYPE_WARNING_TEXT, new AbstractReadOnlyModel<String>() {
+			@Override
+			public String getObject() {
+				return getString("SynchronizationStep.duplicateObjectTypeWarning", getDuplicateObjectTypes());
+			}
+		});
+		duplicateObjectTypeWarning.add(duplicateObjectTypeWarningText);
+		duplicateObjectTypeWarningContainer.add(duplicateObjectTypeWarning);
+		duplicateObjectTypeWarningContainer.setOutputMarkupId(true);
+		add(duplicateObjectTypeWarningContainer);
+
+		initObjectSyncEditor(objectSyncEditor);
     }
 
-    private void initObjectSyncEditor(WebMarkupContainer editor){
+	private String getDuplicateObjectTypes() {
+		DuplicateObjectTypeDetector detector = new DuplicateObjectTypeDetector();
+		for (ObjectSynchronizationType synchronization: syncDtoModel.getObject().getObjectSynchronizationList()) {
+			detector.add(synchronization);
+		}
+		if (!detector.hasDuplicates()) {
+			return null;
+		}
+		return detector.getDuplicatesList();
+	}
+
+
+	private void initObjectSyncEditor(WebMarkupContainer editor){
         Label editorLabel = new Label(ID_EDITOR_LABEL, new AbstractReadOnlyModel<String>() {
             @Override
             public String getObject() {
@@ -380,7 +417,7 @@ public class SynchronizationStep extends WizardStep {
         editor.add(opportunistic);
 
         MultiValueTextEditPanel editorCorrelation = new MultiValueTextEditPanel<ConditionalSearchFilterType>(ID_EDITOR_EDITOR_CORRELATION,
-                new PropertyModel<List<ConditionalSearchFilterType>>(syncDtoModel, ResourceSynchronizationDto.F_SELECTED + ".correlation"), false, true){
+                new PropertyModel<List<ConditionalSearchFilterType>>(syncDtoModel, ResourceSynchronizationDto.F_SELECTED + ".correlation"), null, false, true){
 
             @Override
             protected IModel<String> createTextModel(final IModel<ConditionalSearchFilterType> model) {
@@ -422,7 +459,7 @@ public class SynchronizationStep extends WizardStep {
         editor.add(editorCorrelation);
 
         MultiValueTextEditPanel editorReaction = new MultiValueTextEditPanel<SynchronizationReactionType>(ID_EDITOR_REACTION,
-                new PropertyModel<List<SynchronizationReactionType>>(syncDtoModel, ResourceSynchronizationDto.F_SELECTED + ".reaction"), false, true){
+                new PropertyModel<List<SynchronizationReactionType>>(syncDtoModel, ResourceSynchronizationDto.F_SELECTED + ".reaction"), null, false, true){
 
             @Override
             protected IModel<String> createTextModel(final IModel<SynchronizationReactionType> model) {
@@ -430,20 +467,33 @@ public class SynchronizationStep extends WizardStep {
 
                     @Override
                     public String getObject() {
-                        StringBuilder sb = new StringBuilder();
-
-                        if(model.getObject() != null){
-                            SynchronizationReactionType reaction = model.getObject();
-
-                            sb.append(reaction.getName() != null ? reaction.getName() : "- ");
-
-                            if(reaction.getSituation() != null){
-                                sb.append(" (");
-                                sb.append(reaction.getSituation());
-                                sb.append(")");
-                            }
+						SynchronizationReactionType reaction = model.getObject();
+                        if (reaction == null) {
+							return "";
+						}
+						StringBuilder sb = new StringBuilder();
+                        sb.append(reaction.getName() != null ? reaction.getName() : "-");
+						sb.append(" (");
+						if (reaction.getSituation() != null) {
+							sb.append(reaction.getSituation());
                         }
-
+						if (Boolean.TRUE.equals(reaction.isSynchronize()) || !reaction.getAction().isEmpty()) {
+							sb.append(" => ");
+							if (!reaction.getAction().isEmpty()) {
+								boolean first = true;
+								for (SynchronizationActionType action : reaction.getAction()) {
+									if (first) {
+										first = false;
+									} else {
+										sb.append(", ");
+									}
+									sb.append(StringUtils.substringAfter(action.getHandlerUri(), "#"));
+								}
+							} else {
+								sb.append("sync");	// TODO i18n
+							}
+						}
+						sb.append(")");
                         return sb.toString();
                     }
                 };
@@ -464,6 +514,7 @@ public class SynchronizationStep extends WizardStep {
                 return !isAnySelected();
             }
         };
+		editorReaction.setOutputMarkupId(true);
         editor.add(editorReaction);
 
         Label kindTooltip = new Label(ID_T_KIND);
@@ -554,9 +605,17 @@ public class SynchronizationStep extends WizardStep {
         return get(ID_PAGING);
     }
 
-    private Component getSyncObjectEditor(){
+	private Component getDuplicateObjectTypeWarningContainer() {
+		return get(ID_DUPLICATE_OBJECT_TYPE_WARNING_CONTAINER);
+	}
+
+	private Component getSyncObjectEditor(){
         return get(ID_OBJECT_SYNC_EDITOR);
     }
+
+	public Component getReactionList() {
+		return get(createComponentPath(ID_OBJECT_SYNC_EDITOR, ID_EDITOR_REACTION));
+	}
 
     private Component getThirdRowContainer(){
         return get(ID_THIRD_ROW_CONTAINER);
@@ -606,7 +665,7 @@ public class SynchronizationStep extends WizardStep {
     }
 
     private void reactionEditPerformed(AjaxRequestTarget target, SynchronizationReactionType reaction){
-		WebMarkupContainer newContainer = new SynchronizationReactionEditor(ID_THIRD_ROW_CONTAINER, new Model<>(reaction));
+		WebMarkupContainer newContainer = new SynchronizationReactionEditor(ID_THIRD_ROW_CONTAINER, new Model<>(reaction), this);
 		getThirdRowContainer().replaceWith(newContainer);
 
 		for (SynchronizationActionType action : reaction.getAction()) {
@@ -679,31 +738,6 @@ public class SynchronizationStep extends WizardStep {
 		}
 	}
 
-	//    private void prepareResourceToSave(ResourceType resource) {
-//        if (resource.getSynchronization() == null) {
-//            return;
-//        }
-//
-//        ResourceSynchronizationDto dto = syncDtoModel.getObject();
-//
-//        SynchronizationType sync = resource.getSynchronization();
-//        for(ObjectSynchronizationType syncObject: sync.getObjectSynchronization()){
-//            List<QName> newObjectClassList = new ArrayList<>();
-//
-//            for(QName objectClass: syncObject.getObjectClass()){
-//                for(QName objClazz: dto.getObjectClassList()){
-//                    if(objClazz.getLocalPart().equals(objectClass.getLocalPart())){
-//                        QName newObjectClass = new QName(objClazz.getNamespaceURI(), objClazz.getLocalPart());
-//                        newObjectClassList.add(newObjectClass);
-//                    }
-//                }
-//            }
-//
-//            syncObject.getObjectClass().clear();
-//            syncObject.getObjectClass().addAll(newObjectClassList);
-//        }
-//    }
-
     private void editSyncObjectPerformed(AjaxRequestTarget target, ObjectSynchronizationType syncObject) {
 		boolean wasAnySelected = isAnySelected();
 		syncDtoModel.getObject().setSelected(syncObject);
@@ -716,21 +750,20 @@ public class SynchronizationStep extends WizardStep {
     }
 
     private void deleteSyncObjectPerformed(AjaxRequestTarget target, ObjectSynchronizationType syncObject) {
-        ArrayList<ObjectSynchronizationType> list = (ArrayList<ObjectSynchronizationType>) syncDtoModel.getObject().getObjectSynchronizationList();
-
-        list.remove(syncObject);
-
         if (isSelected(syncObject)) {
+			syncDtoModel.getObject().setSelected(null);
             insertEmptyThirdRow();
             target.add(getThirdRowContainer());
         }
 
-        if (list.isEmpty()) {
+		ArrayList<ObjectSynchronizationType> list = (ArrayList<ObjectSynchronizationType>) syncDtoModel.getObject().getObjectSynchronizationList();
+		list.remove(syncObject);
+		if (list.isEmpty()) {
             insertEmptyThirdRow();
             target.add(getThirdRowContainer());
         }
 
-        target.add(getSyncObjectEditor(), getSyncObjectTable(), getNavigator());
+        target.add(getSyncObjectEditor(), getSyncObjectTable(), getNavigator(), getDuplicateObjectTypeWarningContainer());
     }
 
 	private boolean isSelected(ObjectSynchronizationType syncObject) {
@@ -742,17 +775,15 @@ public class SynchronizationStep extends WizardStep {
 		syncObject.setEnabled(true);
         syncObject.setName(getString("SynchronizationStep.label.newObjectType"));
 
-        //syncDtoModel.getObject().setSelected(syncObject);
         resourceModel.getObject().asObjectable().getSynchronization().getObjectSynchronization().add(syncObject);
-        //insertEmptyThirdRow();
-        //target.add(getSyncObjectTable(), getNavigator(), getSyncObjectEditor(), getThirdRowContainer());
 		editSyncObjectPerformed(target, syncObject);
+		target.add(getDuplicateObjectTypeWarningContainer());
     }
 
 	private class UpdateNamesBehaviour extends EmptyOnChangeAjaxFormUpdatingBehavior {
 		@Override
 		protected void onUpdate(AjaxRequestTarget target) {
-			target.add(getSyncObjectTable(), getSyncObjectEditor().get(ID_EDITOR_LABEL));
+			target.add(getSyncObjectTable(), getSyncObjectEditor().get(ID_EDITOR_LABEL), getDuplicateObjectTypeWarningContainer());
 		}
 	}
 

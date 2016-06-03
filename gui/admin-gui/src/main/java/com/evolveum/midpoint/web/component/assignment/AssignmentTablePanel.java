@@ -22,6 +22,7 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -165,68 +166,70 @@ public class AssignmentTablePanel<T extends ObjectType> extends BasePanel<List<A
 	private List<InlineMenuItem> createAssignmentMenu() {
 		List<InlineMenuItem> items = new ArrayList<>();
 
-		InlineMenuItem item = new InlineMenuItem(createStringResource("AssignmentTablePanel.menu.assign"),
-				new InlineMenuItemAction() {
-					private static final long serialVersionUID = 1L;
+		InlineMenuItem item;
+        if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ASSIGN_ACTION_URL)) {
+            item = new InlineMenuItem(createStringResource("AssignmentTablePanel.menu.assign"),
+                    new InlineMenuItemAction() {
+                        private static final long serialVersionUID = 1L;
 
-					@Override
-					public void onClick(AjaxRequestTarget target) {
-						TypedAssignablePanel panel = new TypedAssignablePanel(
-								getPageBase().getMainPopupBodyId(), RoleType.class, true, getPageBase()) {
-							private static final long serialVersionUID = 1L;
+                        @Override
+                        public void onClick(AjaxRequestTarget target) {
+                            TypedAssignablePanel panel = new TypedAssignablePanel(
+                                    getPageBase().getMainPopupBodyId(), RoleType.class, true, getPageBase()) {
+                                private static final long serialVersionUID = 1L;
 
-							@Override
-							protected void addPerformed(AjaxRequestTarget target, List selected) {
-								super.addPerformed(target, selected);
-								addSelectedAssignablePerformed(target, selected,
-										getPageBase().getMainPopup().getId());
-							}
+                                @Override
+                                protected void addPerformed(AjaxRequestTarget target, List selected) {
+                                    super.addPerformed(target, selected);
+                                    addSelectedAssignablePerformed(target, selected,
+                                            getPageBase().getMainPopup().getId());
+                                }
 
-						};
-						panel.setOutputMarkupId(true);
-						getPageBase().showMainPopup(panel, target);
-					}
-				});
-		items.add(item);
+                            };
+                            panel.setOutputMarkupId(true);
+                            getPageBase().showMainPopup(panel, target);
+                        }
+                    });
+            items.add(item);
 
-		item = new InlineMenuItem(createStringResource("AssignmentTablePanel.menu.assignOrg"),
-				new InlineMenuItemAction() {
-					private static final long serialVersionUID = 1L;
+            item = new InlineMenuItem(createStringResource("AssignmentTablePanel.menu.assignOrg"),
+                    new InlineMenuItemAction() {
+                        private static final long serialVersionUID = 1L;
 
-					@Override
-					public void onClick(AjaxRequestTarget target) {
-						OrgTreeAssignablePanel orgTreePanel = new OrgTreeAssignablePanel(
-								getPageBase().getMainPopupBodyId(), true, getPageBase()) {
-							private static final long serialVersionUID = 1L;
+                        @Override
+                        public void onClick(AjaxRequestTarget target) {
+                            OrgTreeAssignablePanel orgTreePanel = new OrgTreeAssignablePanel(
+                                    getPageBase().getMainPopupBodyId(), true, getPageBase()) {
+                                private static final long serialVersionUID = 1L;
 
-							@Override
-							protected void assignSelectedOrgPerformed(List<OrgType> selectedOrgs,
-									AjaxRequestTarget target) {
-								// TODO Auto-generated method stub
-								addSelectedAssignablePerformed(target, (List) selectedOrgs,
-										getPageBase().getMainPopup().getId());
-							}
-						};
-						orgTreePanel.setOutputMarkupId(true);
-						getPageBase().showMainPopup(orgTreePanel, target);
+                                @Override
+                                protected void assignSelectedOrgPerformed(List<OrgType> selectedOrgs,
+                                                                          AjaxRequestTarget target) {
+                                    // TODO Auto-generated method stub
+                                    addSelectedAssignablePerformed(target, (List) selectedOrgs,
+                                            getPageBase().getMainPopup().getId());
+                                }
+                            };
+                            orgTreePanel.setOutputMarkupId(true);
+                            getPageBase().showMainPopup(orgTreePanel, target);
 
-					}
-				});
-		items.add(item);
+                        }
+                    });
+            items.add(item);
+            items.add(new InlineMenuItem());
+        }
+        if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_UNASSIGN_ACTION_URL)) {
+            item = new InlineMenuItem(createStringResource("AssignmentTablePanel.menu.unassign"),
+                    new InlineMenuItemAction() {
+                        private static final long serialVersionUID = 1L;
 
-		items.add(new InlineMenuItem());
-
-		item = new InlineMenuItem(createStringResource("AssignmentTablePanel.menu.unassign"),
-				new InlineMenuItemAction() {
-					private static final long serialVersionUID = 1L;
-
-					@Override
-					public void onClick(AjaxRequestTarget target) {
-						deleteAssignmentPerformed(target);
-					}
-				});
-		items.add(item);
-
+                        @Override
+                        public void onClick(AjaxRequestTarget target) {
+                            deleteAssignmentPerformed(target);
+                        }
+                    });
+            items.add(item);
+        }
 		item = new InlineMenuItem(createStringResource("AssignmentTablePanel.menu.showAllAssignments"),
 				new InlineMenuItemAction() {
 					private static final long serialVersionUID = 1L;

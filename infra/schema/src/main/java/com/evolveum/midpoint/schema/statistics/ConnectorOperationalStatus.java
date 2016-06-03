@@ -15,6 +15,8 @@
  */
 package com.evolveum.midpoint.schema.statistics;
 
+import java.io.Serializable;
+
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 
@@ -22,7 +24,19 @@ import com.evolveum.midpoint.util.DebugUtil;
  * @author semancik
  *
  */
-public class ConnectorOperationalStatus implements DebugDumpable {
+public class ConnectorOperationalStatus implements DebugDumpable, Serializable {
+	private static final long serialVersionUID = 5644725183169800491L;
+
+	public static final String F_CONNECTOR_CLASS_NAME = "connectorClassName";
+	public static final String F_POOL_CONFIG_MIN_SIZE = "poolConfigMinSize";
+	public static final String F_POOL_CONFIG_MAX_SIZE = "poolConfigMaxSize";
+	public static final String F_POOL_CONFIG_MIN_IDLE = "poolConfigMinIdle";
+	public static final String F_POOL_CONFIG_MAX_IDLE = "poolConfigMaxIdle";
+	public static final String F_POOL_CONFIG_WAIT_TIMEOUT = "poolConfigWaitTimeout";
+	public static final String F_POOL_CONFIG_MIN_EVICTABLE_IDLE_TIME = "poolConfigMinEvictableIdleTime";
+	public static final String F_POOL_STATUS_NUM_IDLE = "poolStatusNumIdle";
+	public static final String F_POOL_STATUS_NUM_ACTIVE = "poolStatusNumActive";
+	
 	
 	private String connectorClassName;
 	

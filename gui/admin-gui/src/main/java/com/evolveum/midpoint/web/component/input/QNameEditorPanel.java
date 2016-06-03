@@ -21,9 +21,11 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnChangeAjaxFormUpdatingBehavior;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import org.apache.commons.lang.StringUtils;
+import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.DropDownChoice;
@@ -153,6 +155,7 @@ public class QNameEditorPanel extends BasePanel<ItemPathType>{
         localPart.setOutputMarkupId(true);
         localPart.setOutputMarkupPlaceholderTag(true);
         localPart.setRequired(isLocalPartRequired());
+		localPart.add(new UpdateBehavior());
         add(localPart);
 
         DropDownChoice namespace = new DropDownChoice<>(ID_NAMESPACE, namespaceModel, prepareNamespaceList());
@@ -160,6 +163,7 @@ public class QNameEditorPanel extends BasePanel<ItemPathType>{
         namespace.setOutputMarkupPlaceholderTag(true);
         namespace.setNullValid(false);
         namespace.setRequired(true);
+		namespace.add(new UpdateBehavior());
         add(namespace);
 
         Label localPartTooltip = new Label(ID_T_LOCAL_PART);
@@ -189,4 +193,14 @@ public class QNameEditorPanel extends BasePanel<ItemPathType>{
     public boolean isLocalPartRequired(){
         return false;
     }
+
+	private class UpdateBehavior extends EmptyOnChangeAjaxFormUpdatingBehavior {
+		@Override
+		protected void onUpdate(AjaxRequestTarget target) {
+			QNameEditorPanel.this.onUpdate(target);
+		}
+	}
+
+	protected void onUpdate(AjaxRequestTarget target) {
+	}
 }
