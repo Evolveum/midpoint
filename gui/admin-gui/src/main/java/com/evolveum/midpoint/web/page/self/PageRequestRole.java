@@ -43,12 +43,12 @@ import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.assignment.AssignmentEditorDto;
 import com.evolveum.midpoint.web.component.assignment.MultipleAssignmentSelectorPanel;
 import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
-import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
 import com.evolveum.midpoint.web.page.admin.home.PageDashboard;
 import com.evolveum.midpoint.web.page.admin.home.dto.MyPasswordsDto;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
 import com.evolveum.midpoint.web.security.SecurityUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.Model;
@@ -73,11 +73,13 @@ public class PageRequestRole extends PageSelf {
 
     private LoadableModel<List<AssignmentEditorDto>> assignmentsModel;
     private PrismObject<UserType> user;
+    private OperationResult backgroundTaskOperationResult = null;
 
     private static final Trace LOGGER = TraceManager.getTrace(PageRequestRole.class);
     private static final String DOT_CLASS = PageRequestRole.class.getName() + ".";
     private static final String OPERATION_LOAD_USER = DOT_CLASS + "loadUser";
     protected static final String OPERATION_SAVE = DOT_CLASS + "save";
+    protected static final String OPERATION_WF_TASK_CREATED = "com.evolveum.midpoint.wf.impl.WfHook.invoke";
 
     public PageRequestRole() {
         assignmentsModel = new LoadableModel<List<AssignmentEditorDto>>(false) {
@@ -197,6 +199,11 @@ public class PageRequestRole extends PageSelf {
             result.recomputeStatus();
         }
 
+        findBackgroundTaskOperation(result);
+        if (backgroundTaskOperationResult != null
+                && StringUtils.isNotEmpty(backgroundTaskOperationResult.getBackgroundTaskOid())){
+             result.setMessage(createStringResource("operation.com.evolveum.midpoint.web.page.self.PageRequestRole.taskCreated").getString());
+        }
         if (!WebComponentUtil.isSuccessOrHandledError(result)) {
             showResult(result);
             target.add(getFeedbackPanel());
@@ -209,6 +216,26 @@ public class PageRequestRole extends PageSelf {
                 setResponsePage(PageSelfDashboard.class);
             }
         }
+    }
+
+    private void findBackgroundTaskOperation(OperationResult result){
+        if (backgroundTaskOperationResult != null) {
+            return;
+        } else {
+            List<OperationResult> subresults = result.getSubresults();
+            if (subresults == null || subresults.size() == 0) {
+                return;
+            }
+            for (OperationResult subresult : subresults) {
+                if (subresult.getOperation().equals(OPERATION_WF_TASK_CREATED)) {
+                    backgroundTaskOperationResult = subresult;
+                    return;
+                } else {
+                    findBackgroundTaskOperation(subresult);
+                }
+            }
+        }
+        return;
     }
 
     protected ContainerDelta handleAssignmentDeltas(ObjectDelta<UserType> focusDelta,

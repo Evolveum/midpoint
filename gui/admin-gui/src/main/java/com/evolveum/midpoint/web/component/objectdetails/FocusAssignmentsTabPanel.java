@@ -29,6 +29,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
+
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -63,9 +65,10 @@ public class FocusAssignmentsTabPanel<F extends FocusType> extends AbstractObjec
 
 			@Override
 			protected void showAllAssignments(AjaxRequestTarget target) {
-				AssignmentPreviewDialog dialog = (AssignmentPreviewDialog) getParent().getParent()
-						.get(createComponentPath(MODAL_ID_ASSIGNMENTS_PREVIEW));
-				((PageAdminFocus) getPageBase()).recomputeAssignmentsPerformed(dialog, target);
+                List<AssignmentsPreviewDto> assignmentsPreviewDtos = ((PageAdminFocus) getPageBase()).recomputeAssignmentsPerformed(target);
+				AssignmentPreviewDialog dialog = new AssignmentPreviewDialog(getPageBase().getMainPopupBodyId(),
+                        assignmentsPreviewDtos, new ArrayList<String>(), getPageBase());
+				getPageBase().showMainPopup(dialog, target);
 			}
 
 		};

@@ -18,6 +18,7 @@ package com.evolveum.midpoint.web.component.objectdetails;
 import java.util.List;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
@@ -128,6 +129,12 @@ public abstract class AbstractObjectMainPanel<O extends ObjectType> extends Pane
 				target.add(parentPage.getFeedbackPanel());
 			}
 		};
+        saveButton.add(new VisibleEnableBehaviour(){
+            @Override
+        public boolean isVisible(){
+                return !getObjectWrapper().isReadonly();
+            }
+        });
 		mainForm.setDefaultButton(saveButton);
 		mainForm.add(saveButton);
 	}

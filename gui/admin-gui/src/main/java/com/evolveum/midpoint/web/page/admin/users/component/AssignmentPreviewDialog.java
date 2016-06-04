@@ -17,13 +17,17 @@ package com.evolveum.midpoint.web.page.admin.users.component;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.IconColumn;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
+import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
 import com.evolveum.midpoint.web.page.admin.resources.PageResourceWizard;
 import com.evolveum.midpoint.web.page.admin.roles.PageRole;
+import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
 import com.evolveum.midpoint.web.page.admin.users.PageOrgUnit;
 import com.evolveum.midpoint.web.util.ObjectTypeGuiDescriptor;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
@@ -31,6 +35,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
@@ -39,6 +44,7 @@ import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
@@ -52,19 +58,23 @@ import java.util.List;
 /**
  *  @author shood
  * */
-public class AssignmentPreviewDialog extends ModalWindow{
+public class AssignmentPreviewDialog extends Panel implements Popupable {
 
+    private static final String ID_CONTENT = "panel";
     private static final String ID_TABLE = "table";
     private static final String ID_BUTTON_CANCEL = "cancelButton";
 
     private boolean initialized;
     private List<String> directAssignments;
     private IModel<List<AssignmentsPreviewDto>> data;
+    private PageBase pageBase;
 
-    public AssignmentPreviewDialog(String id, final List<AssignmentsPreviewDto> data, List<String> directAssignments){
+    public AssignmentPreviewDialog(String id, final List<AssignmentsPreviewDto> data, List<String> directAssignments,
+                                   PageBase pageBase){
         super(id);
 
         this.directAssignments = directAssignments;
+        this.pageBase = pageBase;
         this.data = new LoadableModel<List<AssignmentsPreviewDto>>(false) {
 
             @Override
@@ -72,49 +82,19 @@ public class AssignmentPreviewDialog extends ModalWindow{
                 return data == null ? new ArrayList<AssignmentsPreviewDto>() : data;
             }
         };
-
-        setTitle(createStringResource("AssignmentPreviewDialog.label"));
-        showUnloadConfirmation(false);
-        setCssClassName(ModalWindow.CSS_CLASS_GRAY);
-        setCookieName(AssignmentPreviewDialog.class.getSimpleName() + ((int) (Math.random() * 100)));
-        setInitialWidth(1100);
-        setInitialHeight(500);
-        setWidthUnit("px");
-
-        WebMarkupContainer content = new WebMarkupContainer(getContentId());
-        setContent(content);
+        initLayout();
     }
-
-    public void updateData(AjaxRequestTarget target, List<AssignmentsPreviewDto> newData, List<String> directAssignments){
-        this.directAssignments = directAssignments;
-        data.setObject(newData);
-        target.add(get(getContentId() + ":" + ID_TABLE));
-    }
-
     public StringResourceModel createStringResource(String resourceKey, Object... objects) {
     	return PageBase.createStringResourceStatic(this, resourceKey, objects);
-//        return new StringResourceModel(resourceKey, this, null, resourceKey, objects);
     }
 
-    private PageBase getPageBase() {
-        return (PageBase) getPage();
-    }
-
-    @Override
-    protected void onBeforeRender(){
-        super.onBeforeRender();
-
-        if(initialized){
-            return;
-        }
-
-        initLayout((WebMarkupContainer) get(getContentId()));
-        initialized = true;
-    }
-
-    public void initLayout(WebMarkupContainer content){
+    public void initLayout(){
         List<IColumn<AssignmentsPreviewDto, String>> columns = initColumns();
-        ListDataProvider provider = new ListDataProvider(getPageBase(), data);
+        ListDataProvider provider = new ListDataProvider(pageBase, data);
+
+        WebMarkupContainer content = new WebMarkupContainer(ID_CONTENT);
+        content.setOutputMarkupId(true);
+        add(content);
 
         TablePanel table = new TablePanel<>(ID_TABLE, provider, columns);
         table.setOutputMarkupId(true);
@@ -125,7 +105,6 @@ public class AssignmentPreviewDialog extends ModalWindow{
 
             @Override
             public void onClick(AjaxRequestTarget ajaxRequestTarget) {
-                cancelPerformed(ajaxRequestTarget);
             }
         };
         content.add(cancelButton);
@@ -139,7 +118,27 @@ public class AssignmentPreviewDialog extends ModalWindow{
             @Override
             public void onClick(AjaxRequestTarget target, IModel<AssignmentsPreviewDto> rowModel){
                 AssignmentsPreviewDto dto = rowModel.getObject();
-                chooseOperationPerformed(target, dto.getTargetOid(), dto.getTargetClass());
+                chooseOperationPerformed(dto.getTargetOid(), dto.getTargetClass());
+            }
+
+            @Override
+            public boolean isEnabled(IModel<AssignmentsPreviewDto> rowModel) {
+                Class targetClass = rowModel.getObject().getTargetClass();
+                String authorizationAction = "";
+                if (targetClass.getSimpleName().equals("OrgType")){
+                    authorizationAction = AuthorizationConstants.AUTZ_UI_ORG_UNIT_URL;
+                } else if (targetClass.getSimpleName().equals("RoleType")){
+                    authorizationAction = AuthorizationConstants.AUTZ_UI_ROLE_URL;
+                } else if (targetClass.getSimpleName().equals("ServiceType")){
+                    authorizationAction = AuthorizationConstants.AUTZ_UI_SERVICE_URL;
+                } else if (targetClass.getSimpleName().equals("ResourceType")){
+                    authorizationAction = AuthorizationConstants.AUTZ_UI_RESOURCE_URL;
+                }
+                if (WebComponentUtil.isAuthorized(authorizationAction)) {
+                    return true;
+                }
+
+                return false;
             }
         });
 
@@ -187,7 +186,7 @@ public class AssignmentPreviewDialog extends ModalWindow{
         return columns;
     }
 
-    private void chooseOperationPerformed(AjaxRequestTarget target, String oid, Class clazz){
+    private void chooseOperationPerformed(String oid, Class clazz){
         PageParameters parameters = new PageParameters();
         parameters.add(OnePageParameterEncoder.PARAMETER, oid);
 
@@ -200,7 +199,24 @@ public class AssignmentPreviewDialog extends ModalWindow{
         }
     }
 
-    private void cancelPerformed(AjaxRequestTarget target) {
-        close(target);
+    @Override
+    public int getWidth() {
+        return 1100;
     }
+
+    @Override
+    public int getHeight() {
+        return 500;
+    }
+
+    @Override
+    public StringResourceModel getTitle() {
+        return new StringResourceModel("AssignmentPreviewDialog.label");
+    }
+
+    @Override
+    public Component getComponent() {
+        return this;
+    }
+
 }

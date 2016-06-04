@@ -174,7 +174,7 @@ public class ReportUtils {
         String val = (defaultValue == null) ? key : defaultValue;
         ResourceBundle bundle;
         try {
-            bundle = ResourceBundle.getBundle("localization/Midpoint", new Locale("en", "US"));
+            bundle = ResourceBundle.getBundle("localization/schema", new Locale("en", "US"));
         } catch (MissingResourceException e) {
             return (defaultValue != null) ? defaultValue : key; //workaround for Jasper Studio
         }
