@@ -27,6 +27,7 @@ import javax.management.MBeanServer;
 import javax.management.MBeanServerFactory;
 import javax.management.ObjectName;
 
+import com.evolveum.midpoint.model.api.validator.ResourceValidator;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.web.page.admin.workflow.*;
@@ -238,6 +239,9 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 	@SpringBean(name = "reportManager")
 	private ReportManager reportManager;
 
+	@SpringBean(name = "resourceValidator")
+	private ResourceValidator resourceValidator;
+
 	// @SpringBean(name = "certificationManager")
 	// private CertificationManager certificationManager;
 
@@ -356,6 +360,10 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
 	public WorkflowManager getWorkflowManager() {
 		return workflowManager;
+	}
+
+	public ResourceValidator getResourceValidator() {
+		return resourceValidator;
 	}
 
 	public ReportManager getReportManager() {

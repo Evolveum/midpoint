@@ -32,11 +32,13 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.wizard.Wizard;
+import com.evolveum.midpoint.web.component.wizard.WizardStep;
 import com.evolveum.midpoint.web.component.wizard.resource.*;
 import com.evolveum.midpoint.web.page.error.PageError;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import org.apache.wicket.RestartResponseException;
+import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.wizard.IWizardModel;
 import org.apache.wicket.extensions.wizard.WizardModel;
 import org.apache.wicket.model.IModel;
@@ -69,6 +71,7 @@ public class PageResourceWizard extends PageAdminResources {
 	@NotNull private final NonEmptyLoadableModel<PrismObject<ResourceType>> modelRaw;				// contains resolved connector as well
 	@NotNull private final NonEmptyLoadableModel<PrismObject<ResourceType>> modelNoFetch;			// contains resolved connector as well
     @NotNull private final NonEmptyLoadableModel<PrismObject<ResourceType>> modelFull;
+	@NotNull private final ResourceWizardIssuesModel issuesModel;
 
 	// additional models that have to be reset after each 'save' operation
 	@NotNull private final Collection<LoadableModel<?>> dependentModels = new HashSet<>();
@@ -89,7 +92,9 @@ public class PageResourceWizard extends PageAdminResources {
 				SelectorOptions.create(GetOperationOptions.createNoFetch())));
 		modelFull = createResourceModel(null);
 
-        initLayout();
+		issuesModel = new ResourceWizardIssuesModel(modelFull, this);
+
+		initLayout();
     }
 
 	@NotNull
@@ -146,7 +151,7 @@ public class PageResourceWizard extends PageAdminResources {
     }
 
     private void initLayout() {
-        WizardModel wizardModel = new ResourceWizardModel();
+        WizardModel wizardModel = new ResourceWizardModel(this);
         wizardModel.add(new NameStep(modelRaw, this));
         wizardModel.add(new ConfigurationStep(modelNoFetch, this));
         wizardModel.add(new SchemaStep(modelFull, this));
@@ -154,10 +159,22 @@ public class PageResourceWizard extends PageAdminResources {
         wizardModel.add(new SynchronizationStep(modelFull, this));
 		wizardModel.add(new CapabilityStep(modelFull, this));
 
-        Wizard wizard = new Wizard(ID_WIZARD, new Model<IWizardModel>(wizardModel));
+        Wizard wizard = new Wizard(ID_WIZARD, new Model<IWizardModel>(wizardModel), issuesModel);
         wizard.setOutputMarkupId(true);
         add(wizard);
     }
+
+	public void refreshIssues(AjaxRequestTarget target) {
+		issuesModel.reset();
+		Wizard wizard = (Wizard) get(ID_WIZARD);
+		target.add(wizard.getIssuesPanel());
+		target.add(wizard.getSteps());
+		target.add(wizard.getButtons());
+	}
+
+	@NotNull public ResourceWizardIssuesModel getIssuesModel() {
+		return issuesModel;
+	}
 
 	public void resetModels() {
 		LOGGER.info("Resetting models");
@@ -198,5 +215,15 @@ public class PageResourceWizard extends PageAdminResources {
 	// TODO change to debug
 	public void logDelta(ObjectDelta delta) {
 		LOGGER.info("Applying delta:\n{}", delta.debugDump());
+	}
+
+	public boolean isCurrentStepComplete() {
+		Wizard wizard = (Wizard) get(ID_WIZARD);
+		WizardStep activeStep = (WizardStep) wizard.getModelObject().getActiveStep();
+		return activeStep == null || activeStep.isComplete();
+	}
+
+	public Wizard getWizard() {
+		return (Wizard) get(ID_WIZARD);
 	}
 }

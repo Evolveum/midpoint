@@ -25,26 +25,81 @@ import org.apache.wicket.markup.html.panel.Panel;
  */
 public class WizardButtonBar extends Panel implements IDefaultButtonProvider {
 
-    public WizardButtonBar(String id, IWizard wizard) {
+    public WizardButtonBar(String id, final Wizard wizard) {
         super(id);
-        add(new ResourceWizardPreviousButton("previous", wizard));
-        add(new NextButton("next", wizard));
-        add(new LastButton("last", wizard));
+        add(new PreviousButton("previous", wizard) {
+			@Override
+			public void onClick() {
+				IWizardModel wizardModel = getWizardModel();
+				IWizardStep step = wizardModel.getActiveStep();
+				step.applyState();
+				if (step.isComplete()) {
+					wizardModel.previous();
+				} else {
+					couldntSave();
+				}
+			}
+		});
+        add(new NextButton("next", wizard) {
+			@Override
+			public void onClick() {
+				IWizardModel wizardModel = getWizardModel();
+				IWizardStep step = wizardModel.getActiveStep();
+				step.applyState();
+				if (step.isComplete()) {
+					wizardModel.next();
+				} else {
+					couldntSave();
+				}
+			}
+		});
+        add(new LastButton("last", wizard) {
+			@Override
+			public void onClick() {
+				IWizardModel wizardModel = getWizardModel();
+				IWizardStep step = wizardModel.getActiveStep();
+				step.applyState();
+				if (step.isComplete()) {
+					wizardModel.last();
+				} else {
+					couldntSave();
+				}
+			}
+		});
         add(new CancelButton("cancel", wizard));
         add(new FinishButton("finish", wizard){
 
-            /*
-            *   Finish button is always enabled, so user don't have to
-            *   click through every step of wizard every time it is used
-            * */
+			@Override
+			public void onClick()
+			{
+				IWizardModel wizardModel = getWizardModel();
+				IWizardStep step = wizardModel.getActiveStep();
+				step.applyState();
+				if (step.isComplete()) {
+					getWizardModel().finish();
+				} else {
+					couldntSave();
+				}
+			}
+			/*
+             *   Finish button is always enabled, so user don't have to
+             *   click through every step of wizard every time it is used
+             */
             @Override
             public boolean isEnabled() {
-                return true;
+				final IWizardStep activeStep = wizard.getModelObject().getActiveStep();
+				return activeStep == null || activeStep.isComplete();
             }
         });
     }
 
-    @Override
+	private void couldntSave() {
+		// we should't come here
+		error("Fix the indicated errors first.");
+		getPage().setResponsePage(getPage());
+	}
+
+	@Override
     public IFormSubmittingComponent getDefaultButton(IWizardModel model) {
 
         if (model.isNextAvailable()){

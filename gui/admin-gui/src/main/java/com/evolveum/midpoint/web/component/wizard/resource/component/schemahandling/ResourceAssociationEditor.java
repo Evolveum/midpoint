@@ -176,10 +176,6 @@ public class ResourceAssociationEditor extends BasePanel<ResourceObjectAssociati
 			protected void onUpdate(AjaxRequestTarget target) {
 				target.add(parentStep.getAssociationList());
 			}
-			@Override
-			public boolean isLocalPartRequired() {
-				return true;
-			}
 		};
         nonSchemaRefPanel.setOutputMarkupId(true);
         nonSchemaRefPanel.setOutputMarkupPlaceholderTag(true);

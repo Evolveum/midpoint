@@ -162,7 +162,7 @@ public class QNameEditorPanel extends BasePanel<ItemPathType>{
         namespace.setOutputMarkupId(true);
         namespace.setOutputMarkupPlaceholderTag(true);
         namespace.setNullValid(false);
-        namespace.setRequired(true);
+        namespace.setRequired(isNamespaceRequired());
 		namespace.add(new UpdateBehavior());
         add(namespace);
 
@@ -187,12 +187,13 @@ public class QNameEditorPanel extends BasePanel<ItemPathType>{
         return Arrays.asList(SchemaConstants.NS_ICF_SCHEMA, MidPointConstants.NS_RI);
     }
 
-    /**
-     *  Should localPart of QName be required?
-     * */
     public boolean isLocalPartRequired(){
         return false;
     }
+
+	public boolean isNamespaceRequired() {
+		return false;
+	}
 
 	private class UpdateBehavior extends EmptyOnChangeAjaxFormUpdatingBehavior {
 		@Override

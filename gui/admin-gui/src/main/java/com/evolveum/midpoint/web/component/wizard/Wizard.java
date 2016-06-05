@@ -2,14 +2,18 @@ package com.evolveum.midpoint.web.component.wizard;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.model.NonEmptyModel;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.web.component.wizard.resource.*;
+import com.evolveum.midpoint.web.component.wizard.resource.dto.WizardIssuesDto;
 import com.evolveum.midpoint.web.page.admin.resources.PageResources;
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.wizard.*;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.IModel;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -24,10 +28,14 @@ public class Wizard extends BasePanel<IWizardModel> implements IWizardModelListe
     private static final String ID_HEADER = "header";
     private static final String ID_STEPS = "steps";
     private static final String ID_VIEW = "view";
+    private static final String ID_ISSUES = "issues";
     private static final String ID_BUTTONS = "buttons";
 
-    public Wizard(String id, IModel<IWizardModel> model) {
+	@NotNull private final NonEmptyModel<WizardIssuesDto> issuesModel;
+
+    public Wizard(String id, IModel<IWizardModel> model, @NotNull NonEmptyModel<WizardIssuesDto> issuesModel) {
         super(id, model);
+		this.issuesModel = issuesModel;
 		initLayout();
     }
 
@@ -58,6 +66,7 @@ public class Wizard extends BasePanel<IWizardModel> implements IWizardModelListe
                 changeStep(target, dto);
             }
         };
+		steps.setOutputMarkupId(true);
         form.add(steps);
 
         WebMarkupContainer header = new WebMarkupContainer(ID_HEADER);
@@ -66,7 +75,12 @@ public class Wizard extends BasePanel<IWizardModel> implements IWizardModelListe
         WebMarkupContainer view = new WebMarkupContainer(ID_VIEW);
         form.add(view);
 
+		WizardIssuesPanel issuesPanel = new WizardIssuesPanel(ID_ISSUES, issuesModel);
+		issuesPanel.setOutputMarkupId(true);
+		form.add(issuesPanel);
+
         WizardButtonBar buttons = new WizardButtonBar(ID_BUTTONS, this);
+		buttons.setOutputMarkupId(true);
         form.add(buttons);
 
         IWizardModel wizard = getWizardModel();
@@ -74,7 +88,19 @@ public class Wizard extends BasePanel<IWizardModel> implements IWizardModelListe
         wizard.reset();
     }
 
-    private List<WizardStepDto> loadSteps() {
+	public WizardIssuesPanel getIssuesPanel() {
+		return (WizardIssuesPanel) get(createComponentPath(ID_FORM, ID_ISSUES));
+	}
+
+	public Component getSteps() {
+		return get(createComponentPath(ID_FORM, ID_STEPS));
+	}
+
+	public Component getButtons() {
+		return get(createComponentPath(ID_FORM, ID_BUTTONS));
+	}
+
+	private List<WizardStepDto> loadSteps() {
         List<WizardStepDto> steps = new ArrayList<>();
 
         IWizardModel model = getWizardModel();
@@ -83,9 +109,9 @@ public class Wizard extends BasePanel<IWizardModel> implements IWizardModelListe
             IWizardStep step = iterator.next();
             if (step instanceof WizardStep) {
                 WizardStep wizStep = (WizardStep) step;
-                steps.add(new WizardStepDto(wizStep.getTitle(), false, true));
+                steps.add(new WizardStepDto(wizStep.getTitle(), wizStep, false, true));
             } else {
-                steps.add(new WizardStepDto("Wizard.unknownStep", false, true));
+                steps.add(new WizardStepDto("Wizard.unknownStep", null, false, true));
             }
         }
 
@@ -215,4 +241,8 @@ public class Wizard extends BasePanel<IWizardModel> implements IWizardModelListe
 
         target.add(this, getPageBase().getFeedbackPanel());
     }
+//
+//	public boolean noErrors() {
+//		return !issuesModel.getObject().hasErrors();
+//	}
 }

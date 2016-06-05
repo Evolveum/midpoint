@@ -68,7 +68,7 @@ public class ItemPath implements Serializable, Cloneable {
         }
     }
 
-	public ItemPath(Object[] namesOrIds) {
+	public ItemPath(Object... namesOrIds) {
 		this.segments = new ArrayList<>(namesOrIds.length);
 		for (Object nameOrId : namesOrIds) {
 			if (nameOrId instanceof QName) {

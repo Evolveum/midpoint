@@ -37,7 +37,6 @@ import com.evolveum.midpoint.web.component.util.ListDataProvider;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.component.wizard.WizardStep;
 import com.evolveum.midpoint.web.component.wizard.WizardUtil;
-import com.evolveum.midpoint.web.component.wizard.resource.component.DuplicateObjectTypeDetector;
 import com.evolveum.midpoint.web.component.wizard.resource.component.schemahandling.*;
 import com.evolveum.midpoint.web.component.wizard.resource.dto.ResourceObjectTypeDefinitionTypeDto;
 import com.evolveum.midpoint.web.component.wizard.resource.dto.SchemaHandlingDto;
@@ -109,9 +108,6 @@ public class SchemaHandlingStep extends WizardStep {
     private static final String ID_EDITOR_BUTTON_CREDENTIALS = "editorCredentialsButton";
     private static final String ID_EDITOR_ATTRIBUTES = "editorAttributes";
     private static final String ID_EDITOR_ASSOCIATIONS = "editorAssociations";
-    private static final String ID_DUPLICATE_OBJECT_TYPE_WARNING_CONTAINER = "duplicateObjectTypeWarningContainer";
-    private static final String ID_DUPLICATE_OBJECT_TYPE_WARNING = "duplicateObjectTypeWarning";
-    private static final String ID_DUPLICATE_OBJECT_TYPE_WARNING_TEXT = "duplicateObjectTypeWarningText";
 
     private static final String ID_T_KIND = "kindTooltip";
     private static final String ID_T_INTENT = "intentTooltip";
@@ -180,25 +176,6 @@ public class SchemaHandlingStep extends WizardStep {
         WebMarkupContainer objectTypesTable = new WebMarkupContainer(ID_ROWS);
         objectTypesTable.setOutputMarkupId(true);
         add(objectTypesTable);
-
-		WebMarkupContainer duplicateObjectTypeWarningContainer = new WebMarkupContainer(ID_DUPLICATE_OBJECT_TYPE_WARNING_CONTAINER);
-		WebMarkupContainer duplicateObjectTypeWarning = new WebMarkupContainer(ID_DUPLICATE_OBJECT_TYPE_WARNING);
-		duplicateObjectTypeWarning.add(new VisibleEnableBehaviour() {
-			@Override
-			public boolean isVisible() {
-				return duplicateObjectTypesPresent();
-			}
-		});
-		Label duplicateObjectTypeWarningText = new Label(ID_DUPLICATE_OBJECT_TYPE_WARNING_TEXT, new AbstractReadOnlyModel<String>() {
-			@Override
-			public String getObject() {
-				return getString("SchemaHandlingStep.duplicateObjectTypeWarning", getDuplicateObjectTypes());
-			}
-		});
-		duplicateObjectTypeWarning.add(duplicateObjectTypeWarningText);
-		duplicateObjectTypeWarningContainer.add(duplicateObjectTypeWarning);
-		duplicateObjectTypeWarningContainer.setOutputMarkupId(true);
-		add(duplicateObjectTypeWarningContainer);
 
 		// second row - object type editor
         WebMarkupContainer objectTypeEditor = new WebMarkupContainer(ID_OBJECT_TYPE_EDITOR);
@@ -283,21 +260,6 @@ public class SchemaHandlingStep extends WizardStep {
         initObjectTypeEditor(objectTypeEditor);
     }
 
-	private String getDuplicateObjectTypes() {
-		DuplicateObjectTypeDetector detector = new DuplicateObjectTypeDetector();
-		for (ResourceObjectTypeDefinitionTypeDto dto : schemaHandlingDtoModel.getObject().getObjectTypeDtoList()) {
-			detector.add(dto.getObjectType());
-		}
-		if (!detector.hasDuplicates()) {
-			return null;
-		}
-		return detector.getDuplicatesList();
-	}
-
-	private boolean duplicateObjectTypesPresent() {
-		return getDuplicateObjectTypes() != null;
-	}
-
 	private IModel<String> createObjectTypeDisplayModel(final ResourceObjectTypeDefinitionTypeDto objectType){
         return new AbstractReadOnlyModel<String>() {
 
@@ -305,7 +267,7 @@ public class SchemaHandlingStep extends WizardStep {
             public String getObject() {
                 StringBuilder sb = new StringBuilder();
 
-                if (objectType != null && objectType.getObjectType() != null) {
+                if (objectType != null) {
                     ResourceObjectTypeDefinitionType object = objectType.getObjectType();
                     sb.append(object.getDisplayName() != null ? object.getDisplayName() : "- ");
 					addKindAndIntent(sb, object.getKind(), object.getIntent());
@@ -399,14 +361,18 @@ public class SchemaHandlingStep extends WizardStep {
                 return getObjectClassChoices(input);
             }
         };
-        editorObjectClass.add(new EmptyOnChangeAjaxFormUpdatingBehavior());
+        editorObjectClass.add(new EmptyOnChangeAjaxFormUpdatingBehavior() {
+			@Override
+			protected void onUpdate(AjaxRequestTarget target) {
+				parentPage.refreshIssues(target);
+			}
+		});
         editorObjectClass.add(createObjectClassValidator(new AbstractReadOnlyModel<List<QName>>() {
             @Override
             public List<QName> getObject() {
                 return schemaHandlingDtoModel.getObject().getObjectClassList();
             }
         }));
-		editorObjectClass.setRequired(true);
 		editorObjectClass.setConvertEmptyInputStringToNull(true);
         editor.add(editorObjectClass);
 
@@ -701,10 +667,6 @@ public class SchemaHandlingStep extends WizardStep {
         return get(ID_PAGING_OBJECT_TYPE);
     }
 
-	private Component getDuplicateObjectTypeWarningContainer() {
-		return get(ID_DUPLICATE_OBJECT_TYPE_WARNING_CONTAINER);
-	}
-
     private void resetSelected(){
         schemaHandlingDtoModel.getObject().setSelectedObjectTypeDto(null);
     }
@@ -811,9 +773,11 @@ public class SchemaHandlingStep extends WizardStep {
 
     @Override
     public void applyState() {
-        savePerformed();
-		insertEmptyThirdRow();          // otherwise the original 3rd column would be displayed after returning to the page
-                                        // (but without 2nd column)
+		if (isComplete()) {
+			savePerformed();
+			insertEmptyThirdRow();          // otherwise the original 3rd column would be displayed after returning to the page
+											// (but without 2nd column)
+		}
     }
 
     private void savePerformed() {
@@ -835,6 +799,7 @@ public class SchemaHandlingStep extends WizardStep {
 			delta = parentPage.computeDiff(oldResource, newResource);
 			if (!delta.isEmpty()) {
 				parentPage.logDelta(delta);
+				@SuppressWarnings("unchecked")
 				Collection<ObjectDelta<? extends ObjectType>> deltas = WebComponentUtil.createDeltaCollection(delta);
 				modelService.executeChanges(deltas, null, parentPage.createSimpleTask(OPERATION_SAVE_SCHEMA_HANDLING), result);
 				parentPage.resetModels();
@@ -878,7 +843,8 @@ public class SchemaHandlingStep extends WizardStep {
             resetThirdRowContainer(target);
         }
 
-        target.add(getObjectTypeEditor(), getObjectListTable(), getNavigator(), getDuplicateObjectTypeWarningContainer());
+        target.add(getObjectTypeEditor(), getObjectListTable(), getNavigator());
+		parentPage.refreshIssues(target);
     }
 
 	private boolean isSelected(@NotNull ResourceObjectTypeDefinitionTypeDto objectType) {
@@ -900,8 +866,8 @@ public class SchemaHandlingStep extends WizardStep {
 		getOrCreateSchemaHandling().getObjectType().add(objectType);
         insertEmptyThirdRow();
 		resetSelections(target);
-        //target.add(getObjectListTable(), getNavigator(), getObjectTypeEditor(), getThirdRowContainer());
 		target.add(this);
+		parentPage.refreshIssues(target);
     }
 
 	@NotNull
@@ -1157,7 +1123,8 @@ public class SchemaHandlingStep extends WizardStep {
 	private class UpdateNamesBehaviour extends EmptyOnChangeAjaxFormUpdatingBehavior {
 		@Override
 		protected void onUpdate(AjaxRequestTarget target) {
-			target.add(getObjectListTable(), getObjectTypeEditor().get(ID_EDITOR_NAME), getDuplicateObjectTypeWarningContainer());
+			target.add(getObjectListTable(), getObjectTypeEditor().get(ID_EDITOR_NAME));
+			parentPage.refreshIssues(target);
 		}
 	}
 }

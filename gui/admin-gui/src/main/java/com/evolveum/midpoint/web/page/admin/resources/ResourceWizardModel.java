@@ -18,6 +18,7 @@ package com.evolveum.midpoint.web.page.admin.resources;
 
 import org.apache.wicket.extensions.wizard.IWizardStep;
 import org.apache.wicket.extensions.wizard.WizardModel;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Iterator;
 
@@ -33,6 +34,12 @@ import java.util.Iterator;
  */
 public class ResourceWizardModel extends WizardModel {
 
+	@NotNull final private PageResourceWizard parentPage;
+
+	public ResourceWizardModel(PageResourceWizard parentPage) {
+		this.parentPage = parentPage;
+	}
+
 	@Override
 	public void previous() {
 		Integer i = getCurrentStepIndex();
@@ -45,7 +52,7 @@ public class ResourceWizardModel extends WizardModel {
 	@Override
 	public boolean isPreviousAvailable() {
 		Integer i = getCurrentStepIndex();
-		return i != null && i > 0;
+		return i != null && i > 0 && getActiveStep().isComplete();
 	}
 
 	private Integer getCurrentStepIndex() {

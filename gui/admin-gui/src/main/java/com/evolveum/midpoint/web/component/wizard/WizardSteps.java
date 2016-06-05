@@ -20,6 +20,7 @@ import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.component.wizard.resource.component.WizardHelpDialog;
+import com.evolveum.midpoint.web.page.admin.resources.PageResourceWizard;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
@@ -77,7 +78,9 @@ public class WizardSteps extends BasePanel<List<WizardStepDto>> {
 
                     @Override
                     public boolean isEnabled() {
-                        return true;
+						final boolean enabled = ((PageResourceWizard) getPageBase()).isCurrentStepComplete();
+//						System.out.println(dto.getName() + " enabled = " + enabled);
+						return enabled;
                     }
 
                     @Override
@@ -87,12 +90,20 @@ public class WizardSteps extends BasePanel<List<WizardStepDto>> {
                 });
 
                 button.add(AttributeModifier.replace("class", new AbstractReadOnlyModel<String>() {
-
                     @Override
                     public String getObject() {
-                        return dto.isActive() ? "current" : null;
+						return dto.getWizardStep() == getActiveStep() ? "current" : null;
                     }
                 }));
+
+				button.add(AttributeModifier.replace("style", new AbstractReadOnlyModel<String>() {
+					@Override
+					public String getObject() {
+						final boolean enabled = ((PageResourceWizard) getPageBase()).isCurrentStepComplete();
+//						System.out.println(dto.getName() + " enabled2 = " + enabled);
+						return enabled ? null : "color: #FFF;";		// TODO respect color scheme (and find a better style for disabled anyway...)
+					}
+				}));
 
                 Label label = new Label(ID_LABEL, createLabelModel(dto.getName()));
                 button.add(label);
