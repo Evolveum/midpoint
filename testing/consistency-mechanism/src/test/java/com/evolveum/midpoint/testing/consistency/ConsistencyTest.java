@@ -173,6 +173,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 	private static final QName RESOURCE_OPENDJ_ACCOUNT_OBJECTCLASS = new QName(RESOURCE_OPENDJ_NS,"inetOrgPerson");
 	private static final String RESOURCE_OPENDJ_PRIMARY_IDENTIFIER_LOCAL_NAME = "entryUUID";
 	private static final String RESOURCE_OPENDJ_SECONDARY_IDENTIFIER_LOCAL_NAME = "dn";
+	private static final QName RESOURCE_OPENDJ_SECONDARY_IDENTIFIER = new QName(RESOURCE_OPENDJ_NS, RESOURCE_OPENDJ_SECONDARY_IDENTIFIER_LOCAL_NAME);
 
 	private static final String CONNECTOR_LDAP_NAMESPACE = "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-ldap/com.evolveum.polygon.connector.ldap.LdapConnector";
 
@@ -842,21 +843,21 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 	public void test140ModifyObjectNotFound() throws Exception {
 		final String TEST_NAME = "test140ModifyObjectNotFound";
 		TestUtil.displayTestTile(TEST_NAME);
-		OperationResult parentResult = new OperationResult(TEST_NAME);
+		OperationResult result = new OperationResult(TEST_NAME);
 
-		repoAddShadowFromFile(ACCOUNT_GUYBRUSH_FILE, parentResult);
-		repoAddObjectFromFile(USER_GUYBRUSH_FILENAME, UserType.class, parentResult);
+		repoAddShadowFromFile(ACCOUNT_GUYBRUSH_FILE, result);
+		repoAddObjectFromFile(USER_GUYBRUSH_FILENAME, UserType.class, result);
 
 		assertUserOneAccountRef(USER_GUYBRUSH_OID);
 		
 		Task task = taskManager.createTaskInstance();
 		
 		// WHEN
-		requestToExecuteChanges(REQUEST_ACCOUNT_MODIFY_NOT_FOUND_DELETE_ACCOUNT, ACCOUNT_GUYBRUSH_OID, ShadowType.class, task, null, parentResult);
+		requestToExecuteChanges(REQUEST_ACCOUNT_MODIFY_NOT_FOUND_DELETE_ACCOUNT, ACCOUNT_GUYBRUSH_OID, ShadowType.class, task, null, result);
 
 		// THEN
 		try {
-			repositoryService.getObject(ShadowType.class, ACCOUNT_GUYBRUSH_OID, null, parentResult);
+			repositoryService.getObject(ShadowType.class, ACCOUNT_GUYBRUSH_OID, null, result);
 			fail("Expected ObjectNotFound but did not get one.");
 		} catch (Exception ex) {
 			if (!(ex instanceof ObjectNotFoundException)) {
@@ -864,9 +865,9 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 			}
 		}
 
-		assertUserNoAccountRef(USER_GUYBRUSH_OID, parentResult);
+		assertUserNoAccountRef(USER_GUYBRUSH_OID, result);
 
-		repositoryService.deleteObject(UserType.class, USER_GUYBRUSH_OID, parentResult);
+		repositoryService.deleteObject(UserType.class, USER_GUYBRUSH_OID, result);
 	}
 
 	/**
@@ -938,6 +939,120 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		PrismObject<ShadowType> modifiedAccount = modelService.getObject(ShadowType.class, accountOid, null, task, parentResult);
 		assertNotNull(modifiedAccount);
 		assertShadowName(modifiedAccount.asObjectable(), "uid=hector,ou=people,dc=example,dc=com");
+	}
+	
+	/**
+	 * Recompute user => account not found => reaction: Re-create account
+	 * MID-3093
+	 */
+	@Test
+	public void test150RecomputeUserAccountNotFound() throws Exception {
+		final String TEST_NAME = "test150RecomputeUserAccountNotFound";
+		TestUtil.displayTestTile(TEST_NAME);
+		
+		// GIVEN
+		Task task = taskManager.createTaskInstance(TEST_NAME);
+		OperationResult result = task.getResult();
+
+		repoAddObjectFromFile(USER_GUYBRUSH_FILENAME, UserType.class, result);
+		assignAccount(USER_GUYBRUSH_OID, RESOURCE_OPENDJ_OID, null);
+		
+		PrismObject<UserType> userBefore = getUser(USER_GUYBRUSH_OID);
+		display("User before", userBefore);
+		String accountShadowOid = assertOneAccountRef(userBefore);
+		PrismObject<ShadowType> shadowBefore = getShadowModel(accountShadowOid);
+		display("Shadow before", shadowBefore);
+		
+		String dn = ShadowUtil.getAttributeValue(shadowBefore, RESOURCE_OPENDJ_SECONDARY_IDENTIFIER);
+		openDJController.delete(dn);
+		
+		// WHEN
+		recomputeUser(USER_GUYBRUSH_OID, task, result);
+
+		// THEN
+		result.computeStatus();
+		TestUtil.assertSuccess(result);
+		
+		PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
+		display("User after", userAfter);
+		String accountShadowOidAfter = assertOneAccountRef(userAfter);
+		PrismObject<ShadowType> shadowAfter = getShadowModel(accountShadowOidAfter);
+		display("Shadow after", shadowAfter);
+
+		Entry entryAfter = openDJController.fetchEntry(dn);
+		display("Entry after", entryAfter);
+	}
+	
+	/**
+	 * Recompute user => account not found => reaction: Re-create account
+	 * MID-3093
+	 */
+	@Test
+	public void test152RecomputeUserAccountAndShadowNotFound() throws Exception {
+		final String TEST_NAME = "test152RecomputeUserAccountAndShadowNotFound";
+		TestUtil.displayTestTile(TEST_NAME);
+		
+		// GIVEN
+		Task task = taskManager.createTaskInstance(TEST_NAME);
+		OperationResult result = task.getResult();
+
+		PrismObject<UserType> userBefore = getUser(USER_GUYBRUSH_OID);
+		display("User before", userBefore);
+		String accountShadowOid = assertOneAccountRef(userBefore);
+		PrismObject<ShadowType> shadowBefore = getShadowModel(accountShadowOid);
+		display("Shadow before", shadowBefore);
+		
+		String dn = ShadowUtil.getAttributeValue(shadowBefore, RESOURCE_OPENDJ_SECONDARY_IDENTIFIER);
+		openDJController.delete(dn);
+		
+		repositoryService.deleteObject(ShadowType.class, accountShadowOid, result);
+		
+		// WHEN
+		recomputeUser(USER_GUYBRUSH_OID, task, result);
+
+		// THEN
+		result.computeStatus();
+		TestUtil.assertSuccess(result);
+		
+		PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
+		display("User after", userAfter);
+		String accountShadowOidAfter = assertOneAccountRef(userAfter);
+		PrismObject<ShadowType> shadowAfter = getShadowModel(accountShadowOidAfter);
+		display("Shadow after", shadowAfter);
+
+		Entry entryAfter = openDJController.fetchEntry(dn);
+		display("Entry after", entryAfter);
+	}
+	
+	@Test
+	public void test159DeleteUSerGuybrush() throws Exception {
+		final String TEST_NAME = "test159DeleteUSerGuybrush";
+		TestUtil.displayTestTile(TEST_NAME);
+		
+		// GIVEN
+		Task task = taskManager.createTaskInstance(TEST_NAME);
+		OperationResult result = task.getResult();
+
+		PrismObject<UserType> userBefore = getUser(USER_GUYBRUSH_OID);
+		display("User before", userBefore);
+		String accountShadowOid = assertOneAccountRef(userBefore);
+		PrismObject<ShadowType> shadowBefore = getShadowModel(accountShadowOid);
+		display("Shadow before", shadowBefore);
+		
+		String dn = ShadowUtil.getAttributeValue(shadowBefore, RESOURCE_OPENDJ_SECONDARY_IDENTIFIER);
+		openDJController.delete(dn);
+		
+		// WHEN
+		deleteObject(UserType.class, USER_GUYBRUSH_OID, task, result);
+
+		// THEN
+		result.computeStatus();
+		TestUtil.assertSuccess(result);
+		
+		assertNoObject(UserType.class, USER_GUYBRUSH_OID, task, result);
+		
+		// TODO: assert no shadow
+		// TODO: assert no entry
 	}
 	
 	@Test
@@ -2182,14 +2297,8 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 
 		parentResult.computeStatus();
 		TestUtil.assertSuccess("getObject has failed", parentResult);
-		display("User (repository)", repoUser);
-
-		List<ObjectReferenceType> accountRefs = repoUserType.getLinkRef();
-		assertEquals("No accountRefs", 1, accountRefs.size());
-		ObjectReferenceType accountRef = accountRefs.get(0);
 		
-		return accountRef.getOid();
-
+		return assertOneAccountRef(repoUser);
 	}
 
 	private String assertOneAccountRef(PrismObject<UserType> user) throws Exception{
