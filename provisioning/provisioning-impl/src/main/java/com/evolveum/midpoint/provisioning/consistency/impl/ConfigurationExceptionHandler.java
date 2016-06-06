@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,8 +18,6 @@ package com.evolveum.midpoint.provisioning.consistency.impl;
 
 import java.util.Collection;
 
-import com.evolveum.midpoint.provisioning.impl.ConstraintsChecker;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -28,11 +26,12 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.provisioning.api.ResourceOperationDescription;
 import com.evolveum.midpoint.provisioning.consistency.api.ErrorHandler;
-import com.evolveum.midpoint.provisioning.consistency.api.ErrorHandler.FailedOperation;
+import com.evolveum.midpoint.provisioning.impl.ConstraintsChecker;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -73,7 +72,7 @@ public class ConfigurationExceptionHandler extends ErrorHandler {
                 delta = ObjectDelta.createModifyDelta(shadow.getOid(), modifications, shadow.getClass(), prismContext);
                 break;
             case GET:
-                OperationResult operationResult = parentResult.createSubresult("Compensation for configuration problem. Operation: " + op.name());
+                OperationResult operationResult = parentResult.createSubresult("com.evolveum.midpoint.provisioning.consistency.impl.ConfigurationExceptionHandler.handleError." + op.name());
                 operationResult.addParam("shadow", shadow);
                 operationResult.addParam("currentOperation", op);
                 operationResult.addParam("exception", ex.getMessage());

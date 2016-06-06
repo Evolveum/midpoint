@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -93,7 +93,7 @@ public class CommunicationExceptionHandler extends ErrorHandler {
 
 		Validate.notNull(shadow, "Shadow must not be null.");
 		
-		OperationResult operationResult = parentResult.createSubresult("Compensation for communication problem. Operation: " + op.name());
+		OperationResult operationResult = parentResult.createSubresult("com.evolveum.midpoint.provisioning.consistency.impl.CommunicationExceptionHandler.handleError." + op.name());
 		operationResult.addParam("shadow", shadow);
 		operationResult.addParam("currentOperation", op);
 		operationResult.addParam("exception", ex.getMessage());
