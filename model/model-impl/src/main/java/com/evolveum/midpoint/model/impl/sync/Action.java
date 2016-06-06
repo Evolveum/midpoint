@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,15 @@
 
 package com.evolveum.midpoint.model.impl.sync;
 
+import java.util.Map;
+
+import javax.xml.namespace.QName;
+
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-
-import javax.xml.namespace.QName;
-import java.util.Map;
 
 /**
  * @author Vilo Repan
@@ -30,5 +32,5 @@ import java.util.Map;
 public interface Action {
 
     <F extends FocusType> void handle(LensContext<F> context, SynchronizationSituation<F> situation, Map<QName,Object> parameters,
-    		Task task, OperationResult parentResult);
+    		Task task, OperationResult parentResult) throws SchemaException;
 }

@@ -30,6 +30,7 @@ import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
@@ -48,7 +49,7 @@ public class AddFocusAction implements Action {
 	 */
 	@Override
 	public <F extends FocusType> void handle(LensContext<F> context, SynchronizationSituation<F> situation,
-			Map<QName, Object> parameters, Task task, OperationResult parentResult) {
+			Map<QName, Object> parameters, Task task, OperationResult parentResult) throws SchemaException {
 		
 		if (context == null) {
 			throw new UnsupportedOperationException("addFocus action is not supported with synchronize=false");

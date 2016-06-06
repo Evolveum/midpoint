@@ -226,7 +226,11 @@ public class TaskQuartzImpl implements Task {
     }
 
 	private PrismObject<TaskType> createPrism() {
-		return getPrismContext().createObject(TaskType.class);
+		try {
+			return getPrismContext().createObject(TaskType.class);
+		} catch (SchemaException e) {
+			throw new SystemException(e.getMessage(), e);
+		}
 	}
 
 	private void setDefaults() {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,6 +42,7 @@ import com.evolveum.midpoint.schema.util.SchemaTestConstants;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.XmlSchemaType;
@@ -125,17 +126,17 @@ public class TestResourceSchema {
         assertEquals("Wrong account intent", "admin", accDef.getIntent());
         assertTrue("Not a default account", accDef.isDefaultInAKind());
         
-        PrismPropertyDefinition loginAttrDef = accDef.findPropertyDefinition(new QName(SCHEMA_NAMESPACE, "login"));
+        PrismPropertyDefinition<String> loginAttrDef = accDef.findPropertyDefinition(new QName(SCHEMA_NAMESPACE, "login"));
         assertEquals(new QName(SCHEMA_NAMESPACE, "login"), loginAttrDef.getName());
         assertEquals(DOMUtil.XSD_STRING, loginAttrDef.getTypeName());
         assertFalse("Ignored while it should not be", loginAttrDef.isIgnored());
         
-        PrismPropertyDefinition groupAttrDef = accDef.findPropertyDefinition(new QName(SCHEMA_NAMESPACE, "group"));
+        PrismPropertyDefinition<Integer> groupAttrDef = accDef.findPropertyDefinition(new QName(SCHEMA_NAMESPACE, "group"));
         assertEquals(new QName(SCHEMA_NAMESPACE, "group"), groupAttrDef.getName());
         assertEquals(DOMUtil.XSD_INT, groupAttrDef.getTypeName());
         assertFalse("Ignored while it should not be", groupAttrDef.isIgnored());
         
-        PrismPropertyDefinition ufoAttrDef = accDef.findPropertyDefinition(new QName(SCHEMA_NAMESPACE, "ufo"));
+        PrismPropertyDefinition<String> ufoAttrDef = accDef.findPropertyDefinition(new QName(SCHEMA_NAMESPACE, "ufo"));
         assertEquals(new QName(SCHEMA_NAMESPACE, "ufo"), ufoAttrDef.getName());
         assertTrue("Not ignored as it should be", ufoAttrDef.isIgnored());
         
@@ -239,15 +240,15 @@ public class TestResourceSchema {
 		assertEquals("AccountObjectClass class not an account", ShadowKindType.ACCOUNT, objectClassDef.getKind());
 		assertTrue("AccountObjectClass class not a DEFAULT account", objectClassDef.isDefaultInAKind());
 		
-		PrismPropertyDefinition loginDef = objectClassDef.findPropertyDefinition(new QName(SCHEMA_NAMESPACE,"login"));
+		PrismPropertyDefinition<String> loginDef = objectClassDef.findPropertyDefinition(new QName(SCHEMA_NAMESPACE,"login"));
 		assertEquals(new QName(SCHEMA_NAMESPACE,"login"), loginDef.getName());
 		assertEquals(DOMUtil.XSD_STRING, loginDef.getTypeName());
 
-		PrismPropertyDefinition passwdDef = objectClassDef.findPropertyDefinition(new QName(SCHEMA_NAMESPACE,"password"));
+		PrismPropertyDefinition<ProtectedStringType> passwdDef = objectClassDef.findPropertyDefinition(new QName(SCHEMA_NAMESPACE,"password"));
 		assertEquals(new QName(SCHEMA_NAMESPACE,"password"), passwdDef.getName());
 		assertEquals(ProtectedStringType.COMPLEX_TYPE, passwdDef.getTypeName());
 
-		PrismContainerDefinition credDef = objectClassDef.findContainerDefinition(new QName(SchemaConstants.NS_C,"credentials"));
+		PrismContainerDefinition<CredentialsType> credDef = objectClassDef.findContainerDefinition(new QName(SchemaConstants.NS_C,"credentials"));
 		assertEquals(new QName(SchemaConstants.NS_C,"credentials"), credDef.getName());
 		assertEquals(new QName(SchemaConstants.NS_C,"CredentialsType"), credDef.getTypeName());
 	}
@@ -299,7 +300,7 @@ public class TestResourceSchema {
 	}
 
 	
-	private PrismObject<ResourceType> wrapInResource(Element xsdElement) {
+	private PrismObject<ResourceType> wrapInResource(Element xsdElement) throws SchemaException {
 		PrismObjectDefinition<ResourceType> resourceDefinition =
 			PrismTestUtil.getPrismContext().getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ResourceType.class);
 		PrismObject<ResourceType> resource = resourceDefinition.instantiate();
@@ -338,14 +339,14 @@ public class TestResourceSchema {
 		containerDefinition.setDisplayName("The Account");
 		containerDefinition.setNativeObjectClass("ACCOUNT");
 		// ... in it ordinary attribute - an identifier
-		ResourceAttributeDefinition icfUidDef = containerDefinition.createAttributeDefinition(
+		ResourceAttributeDefinition<String> icfUidDef = containerDefinition.createAttributeDefinition(
 				SchemaTestConstants.ICFS_UID, DOMUtil.XSD_STRING);
 		((Collection)containerDefinition.getPrimaryIdentifiers()).add(icfUidDef);
-		ResourceAttributeDefinition xloginDef = containerDefinition.createAttributeDefinition("login", DOMUtil.XSD_STRING);
+		ResourceAttributeDefinition<String> xloginDef = containerDefinition.createAttributeDefinition("login", DOMUtil.XSD_STRING);
 		xloginDef.setNativeAttributeName("LOGIN");
 		containerDefinition.setDisplayNameAttribute(xloginDef.getName());
 		// ... and local property with a type from another schema
-		ResourceAttributeDefinition xpasswdDef = containerDefinition.createAttributeDefinition("password", ProtectedStringType.COMPLEX_TYPE);
+		ResourceAttributeDefinition<String> xpasswdDef = containerDefinition.createAttributeDefinition("password", ProtectedStringType.COMPLEX_TYPE);
 		xpasswdDef.setNativeAttributeName("PASSWORD");
 		// ... property reference
 		containerDefinition.createAttributeDefinition(SchemaConstants.C_CREDENTIALS, SchemaConstants.C_CREDENTIALS_TYPE);

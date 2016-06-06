@@ -199,7 +199,7 @@ public class ObjectWrapperFactory {
     private <O extends ObjectType> List<ContainerWrapper<? extends Containerable>> createCustomContainerWrapper(
     															ObjectWrapper<O> oWrapper, PrismObject<O> object,
                                                                 PrismObjectDefinition<O> objectDefinitionForEditing,
-                                                                QName name, OperationResult result) {
+                                                                QName name, OperationResult result) throws SchemaException {
         PrismContainer container = object.findContainer(name);
         ContainerStatus status = container == null ? ContainerStatus.ADDING : ContainerStatus.MODIFYING;
         List<ContainerWrapper<? extends Containerable>> list = new ArrayList<>();
@@ -222,7 +222,7 @@ public class ObjectWrapperFactory {
     private <O extends ObjectType, C extends Containerable> void addContainerWrappers(
     														List<ContainerWrapper<? extends Containerable>> containerWrappers,
     														ObjectWrapper<O> oWrapper, PrismContainer<C> parentContainer, ItemPath path,
-    														OperationResult result) {
+    														OperationResult result) throws SchemaException {
 
         PrismContainerDefinition<C> parentContainerDefinition = parentContainer.getDefinition();
 

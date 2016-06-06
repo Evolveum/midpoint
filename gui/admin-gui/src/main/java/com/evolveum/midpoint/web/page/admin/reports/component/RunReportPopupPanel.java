@@ -500,9 +500,10 @@ public class RunReportPopupPanel extends SimplePanel<ReportDto> {
 
 //    	List<ReportParameterType> reportParams = new ArrayList<ReportParameterType>();
         PrismContainerDefinition<ReportParameterType> paramContainterDef = getPrismContext().getSchemaRegistry().findContainerDefinitionByElementName(ReportConstants.REPORT_PARAMS_PROPERTY_NAME);
-        PrismContainer<ReportParameterType> paramContainer = paramContainterDef.instantiate();
+        PrismContainer<ReportParameterType> paramContainer;
         try {
 
+        	paramContainer = paramContainterDef.instantiate();
             ReportParameterType reportParam = new ReportParameterType();
             PrismContainerValue<ReportParameterType> reportParamValue = reportParam.asPrismContainerValue();
             reportParamValue.revive(getPrismContext());

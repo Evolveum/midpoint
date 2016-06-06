@@ -167,7 +167,13 @@ public class ModelDiagController implements ModelDiagnosticService {
     private void repositorySelfTestUser(Task task, OperationResult testResult) {
 		OperationResult result = testResult.createSubresult(REPOSITORY_SELF_TEST_USER);
 		
-		PrismObject<UserType> user = getObjectDefinition(UserType.class).instantiate(); 
+		PrismObject<UserType> user;
+		try {
+			user = getObjectDefinition(UserType.class).instantiate();
+		} catch (SchemaException e) {
+			result.recordFatalError(e);
+			return;
+		} 
 		UserType userType = user.asObjectable();
 		
 		String name = generateRandomName();

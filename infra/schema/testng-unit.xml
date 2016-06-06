@@ -37,6 +37,7 @@
             <class name="com.evolveum.midpoint.schema.TestSchemaRegistry"/>
             <!--<class name="com.evolveum.midpoint.schema.TestJaxbSanity"/>-->              <!-- deprecated because of no JAXB support -->
             <class name="com.evolveum.midpoint.schema.TestJaxbParsing"/>
+            <class name="com.evolveum.midpoint.schema.TestObjectConstruction"/>
             <class name="com.evolveum.midpoint.schema.TestJaxbConstruction"/>
             <class name="com.evolveum.midpoint.schema.TestParseDiffPatch"/>
             <class name="com.evolveum.midpoint.schema.TestDeltaConverter"/>

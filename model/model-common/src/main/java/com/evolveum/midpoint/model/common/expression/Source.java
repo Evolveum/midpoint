@@ -26,6 +26,7 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
+import com.evolveum.midpoint.util.exception.SchemaException;
 
 /**
  * @author semancik
@@ -53,7 +54,7 @@ public class Source<V extends PrismValue,D extends ItemDefinition> extends ItemD
 		this.name = name;
 	}
 	
-	public Item<V,D> getEmptyItem() {
+	public Item<V,D> getEmptyItem() throws SchemaException {
 		ItemDefinition definition = getDefinition();
 		if (definition == null) {
 			throw new IllegalStateException("No definition in source "+this);
