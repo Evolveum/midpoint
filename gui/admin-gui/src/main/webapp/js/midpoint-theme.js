@@ -103,7 +103,7 @@ function updateHeightReal(elementId, add, substract) {
 
     console.log("Document height: " + documentHeight + ", mainContainer: " + mainContainerHeight);
 
-    var height = documentHeight - mainContainerHeight - elementHeight;
+    var height = documentHeight - mainContainerHeight - elementHeight - 1;
     console.log("Height clean: " + height);
 
     if (substract instanceof Array) {

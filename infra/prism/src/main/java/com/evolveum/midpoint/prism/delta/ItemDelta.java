@@ -468,6 +468,10 @@ public abstract class ItemDelta<V extends PrismValue,D extends ItemDefinition> i
 	public void resetValuesToDelete() {
 		valuesToDelete = null;
 	}
+	
+	public void resetValuesToReplace() {
+		valuesToReplace = null;
+	}
 
 	public void setValuesToReplace(Collection<V> newValues) {
 		if (newValues == null) {
@@ -513,7 +517,7 @@ public abstract class ItemDelta<V extends PrismValue,D extends ItemDefinition> i
 			val.recompute();
 		}
 	}
-
+	
 	/**
 	 * Sets empty value to replace. This efficiently means removing all values.
 	 */
@@ -538,6 +542,25 @@ public abstract class ItemDelta<V extends PrismValue,D extends ItemDefinition> i
 			valuesToReplace = newValueCollection();
 		} else {
 			valuesToReplace.clear();
+		}
+		if (newValue != null) {
+			valuesToReplace.add(newValue);
+			newValue.setParent(this);
+			newValue.recompute();
+		}
+	}
+	
+	public void addValueToReplace(V newValue) {
+		if (valuesToAdd != null) {
+			throw new IllegalStateException("Delta " + this
+					+ " already has values to add, attempt to set value to replace");
+		}
+		if (valuesToDelete != null) {
+			throw new IllegalStateException("Delta " + this
+					+ " already has values to delete, attempt to set value to replace");
+		}
+		if (valuesToReplace == null) {
+			valuesToReplace = newValueCollection();
 		}
 		if (newValue != null) {
 			valuesToReplace.add(newValue);

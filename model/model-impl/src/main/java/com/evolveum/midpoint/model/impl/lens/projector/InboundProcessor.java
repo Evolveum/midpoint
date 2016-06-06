@@ -547,9 +547,28 @@ public class InboundProcessor {
 	        	}
 	            if (diffDelta != null) {
 	            	if (mapping.isTolerant() == Boolean.TRUE) {
-	            		diffDelta.resetValuesToDelete();
-	            		if (LOGGER.isTraceEnabled()) {
-	            			LOGGER.trace("Removing delete part of the diff delta because mapping is tolerant:\n{}", diffDelta.debugDump());
+	            		if (diffDelta.isReplace()) {
+	            			if (diffDelta.getValuesToReplace().isEmpty()) {
+	            				diffDelta.resetValuesToReplace();
+		            			if (LOGGER.isTraceEnabled()) {
+			            			LOGGER.trace("Removing empty replace part of the diff delta because mapping is tolerant:\n{}", diffDelta.debugDump());
+			            		}
+	            			} else {
+	            				if (LOGGER.isTraceEnabled()) {
+			            			LOGGER.trace("Making sure that the replace part of the diff contains old values delta because mapping is tolerant:\n{}", diffDelta.debugDump());
+			            		}
+	            				for (Object shouldBeValueObj: shouldBeItem.getValues()) {
+	            					PrismValue shouldBeValue = (PrismValue)shouldBeValueObj;
+	            					if (!PrismValue.containsRealValue(diffDelta.getValuesToReplace(), shouldBeValue)) {
+	            						diffDelta.addValueToReplace(shouldBeValue.clone());
+	            					}
+	            				}
+	            			}
+	            		} else {
+		            		diffDelta.resetValuesToDelete();
+		            		if (LOGGER.isTraceEnabled()) {
+		            			LOGGER.trace("Removing delete part of the diff delta because mapping is tolerant:\n{}", diffDelta.debugDump());
+		            		}
 	            		}
 	            	}
 	            	diffDelta.setElementName(ItemPath.getName(targetFocusItemPath.last()));
