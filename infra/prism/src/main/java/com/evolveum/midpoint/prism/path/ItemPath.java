@@ -426,6 +426,14 @@ public class ItemPath implements Serializable, Cloneable {
 		return paths;
 	}
 
+	public ItemPath append(QName childName) {
+		return new ItemPath(this, childName);
+	}
+
+	public ItemPath append(ItemPath childPath) {
+		return new ItemPath(this, childPath);
+	}
+
 	public enum CompareResult {
 		EQUIVALENT,
 		SUPERPATH,
