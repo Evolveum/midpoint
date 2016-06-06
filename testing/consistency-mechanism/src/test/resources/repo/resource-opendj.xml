@@ -114,6 +114,7 @@
 					<maxOccurs>1</maxOccurs>
 				</limitations>
 				<outbound>
+					<strength>strong</strength> <!-- MID-3093 -->
 					<source>
 						<path>$user/fullName</path>
 					</source>

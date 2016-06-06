@@ -301,11 +301,20 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 			eventInfo.setNewSituation(newSituation);
 			eventInfo.record(task);
 			subResult.computeStatus();
+			
+		} catch (SystemException ex) {
+			// avoid unnecessary re-wrap
+			eventInfo.setException(ex);
+			eventInfo.record(task);
+			subResult.recordFatalError(ex);
+			throw ex;
+			
 		} catch (Exception ex) {
 			eventInfo.setException(ex);
 			eventInfo.record(task);
 			subResult.recordFatalError(ex);
 			throw new SystemException(ex);
+			
 		} finally {
 			task.markObjectActionExecutedBoundary();
 			// if (LOGGER.isTraceEnabled()) {
@@ -752,7 +761,23 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 			Iterator<LensProjectionContext> iterator = lensContext.getProjectionContextsIterator();
 			LensProjectionContext originalProjectionContext = iterator.hasNext() ? iterator.next() : null;
 
-			clockwork.run(lensContext, task, parentResult);
+			try {
+				
+				clockwork.run(lensContext, task, parentResult);
+				
+			} catch (ConfigurationException | ObjectNotFoundException | SchemaException |
+					PolicyViolationException | ExpressionEvaluationException | ObjectAlreadyExistsException |
+					CommunicationException | SecurityViolationException e) {
+				LOGGER.error("SYNCHRONIZATION: Error in synchronization on {} for situation {}: {}: {}. Change was {}",
+						new Object[] {resource, situation.getSituation(), e.getClass().getSimpleName(), 
+								e.getMessage(), change, e});
+				// what to do here? We cannot throw the error back. All that the notifyChange method
+				// could do is to convert it to SystemException. But that indicates an internal error and it will
+				// break whatever code called the notifyChange in the first place. We do not want that.
+				// If the clockwork could not do anything with the exception then perhaps nothing can be done at all.
+				// So just log the error (the error should be remembered in the result and task already)
+				// and then just go on.
+			}
 
 			// note: actions "AFTER" seem to be useless here (basically they
 			// modify lens context - which is relevant only if followed by
