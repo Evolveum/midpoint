@@ -138,7 +138,8 @@ public class ObjectNotFoundHandler extends ErrorHandler {
 		case MODIFY:
 			LOGGER.debug("DISCOVERY: cannot find object {}. The operation in progress is MODIFY, therefore initiating synchronization", shadow);
 			LOGGER.trace("Starting discovery to find out if the object should exist or not.");
-			OperationResult handleErrorResult = result.createSubresult("Discovery for situation: Object not found on the " + ObjectTypeUtil.toShortString(shadow.getResource()));
+			OperationResult handleErrorResult = result.createSubresult("com.evolveum.midpoint.provisioning.consistency.impl.ObjectNotFoundHandler.handleError.discovery");
+			handleErrorResult.addContext(OperationResult.CONTEXT_RESOURCE, shadow.getResource());
 			
 			ObjectDeltaType shadowModifications = shadow.getObjectChange();
 			Collection<? extends ItemDelta> modifications = DeltaConvertor.toModifications(
@@ -158,9 +159,16 @@ public class ObjectNotFoundHandler extends ErrorHandler {
 			// the model to decide, if the account will be revived or unlinked
 			// form the user
 			// TODO: task initialication
-//			Task task = taskManager.createTaskInstance();
-//			task.setChannel(QNameUtil.qNameToUri(SchemaConstants.CHANGE_CHANNEL_DISCOVERY));
-			changeNotificationDispatcher.notifyChange(change, task, handleErrorResult);
+			
+			try {
+				
+				changeNotificationDispatcher.notifyChange(change, task, handleErrorResult);
+				
+			} catch (RuntimeException e) {
+				handleErrorResult.recordFatalError(e);
+				result.computeStatus();
+				throw e;
+			}
 			handleErrorResult.computeStatus();
 			String oidVal = null;
 			findReturnedValue(handleErrorResult, oidVal);
@@ -209,7 +217,8 @@ public class ObjectNotFoundHandler extends ErrorHandler {
 				throw new ObjectNotFoundException(ex.getMessage(), ex);
 			}
 			LOGGER.debug("DISCOVERY: cannot find object {}. The operation in progress is GET, therefore initiating synchronization", shadow);
-			OperationResult handleGetErrorResult = result.createSubresult("Discovery for situation: Object not found on the " + ObjectTypeUtil.toShortString(shadow.getResource()));
+			OperationResult handleGetErrorResult = result.createSubresult("com.evolveum.midpoint.provisioning.consistency.impl.ObjectNotFoundHandler.handleError.discovery");
+			handleGetErrorResult.addContext(OperationResult.CONTEXT_RESOURCE, shadow.getResource());
 			
 			Collection<? extends ItemDelta> deadModification = PropertyDelta.createModificationReplacePropertyCollection(ShadowType.F_DEAD, shadow.asPrismObject().getDefinition(), true);
 			ConstraintsChecker.onShadowModifyOperation(deadModification);
@@ -230,11 +239,19 @@ public class ObjectNotFoundHandler extends ErrorHandler {
 			// the model to decide, if the account will be revived or unlinked
 			// form the user
 			// TODO: task initialication
-//			Task getTask = taskManager.createTaskInstance();
+			
 			if (task == null){
 				task = taskManager.createTaskInstance();
 			}
-			changeNotificationDispatcher.notifyChange(getChange, task, handleGetErrorResult);
+			try {
+				
+				changeNotificationDispatcher.notifyChange(getChange, task, handleGetErrorResult);
+				
+			} catch (RuntimeException e) {
+				handleGetErrorResult.recordFatalError(e);
+				result.computeStatus();
+				throw e;
+			}
 			// String oidVal = null;
 			handleGetErrorResult.computeStatus();
 			findReturnedValue(handleGetErrorResult, null);
