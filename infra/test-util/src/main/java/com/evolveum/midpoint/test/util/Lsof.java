@@ -43,6 +43,8 @@ public class Lsof implements DebugDumpable {
 	private static final Trace LOGGER = TraceManager.getTrace(Lsof.class);
 	
 	private int pid;
+	private int tolerance = 2;
+	
 	private String lsofOutput;
 	private int totalFds;
 	private Map<String, Integer> typeMap;
@@ -58,6 +60,14 @@ public class Lsof implements DebugDumpable {
 	public Lsof(int pid) {
 		super();
 		this.pid = pid;
+	}
+	
+	public int getTolerance() {
+		return tolerance;
+	}
+
+	public void setTolerance(int tolerance) {
+		this.tolerance = tolerance;
 	}
 
 	public int rememberBaseline() throws NumberFormatException, IOException, InterruptedException {
@@ -189,10 +199,10 @@ public class Lsof implements DebugDumpable {
 	
 	public void assertStable() throws NumberFormatException, IOException, InterruptedException {
 		count();
-		if (baselineTotalFds != totalFds) {
+		if (!checkWithinTolerance(baselineTotalFds, totalFds)) {
 			LOGGER.debug("FD situation UNSTABLE ({} -> {}):\n{}", baselineTotalFds, totalFds, debugDump(1));
 			logFailDump();
-			AssertJUnit.fail("Unexpected number of open FDs, expected: "+baselineTotalFds+", but was "+totalFds);
+			AssertJUnit.fail("Unexpected number of open FDs, expected: "+baselineTotalFds+", but was "+totalFds+" (tolerance "+tolerance+")");
 		} else {
 			LOGGER.debug("FD situation stable (total {})", totalFds);
 		}
@@ -200,14 +210,18 @@ public class Lsof implements DebugDumpable {
 		
 	public void assertFdIncrease(int increase) throws NumberFormatException, IOException, InterruptedException {
 		count();
-		if (baselineTotalFds + increase != totalFds) {
+		if (!checkWithinTolerance(baselineTotalFds + increase,  totalFds)) {
 			LOGGER.debug("Unexpected FD number increase {} ({} -> {}):\n{}", (totalFds - baselineTotalFds), baselineTotalFds, totalFds, debugDump(1));
 			logFailDump();
 			AssertJUnit.fail("Unexpected FD number increase, expected increase " + increase + " ("+ (baselineTotalFds + increase) +"), but was "
-			  + (totalFds - baselineTotalFds) + " (" + totalFds + ")");
+			  + (totalFds - baselineTotalFds) + " (" + totalFds + ")"+" (tolerance "+tolerance+")");
 		} else {
 			LOGGER.debug("Expected increase of {} FDs (total {})", increase, totalFds);
 		}
+	}
+
+	private boolean checkWithinTolerance(int expected, int was) {
+		return (was <= (expected + tolerance)) && (was >= (expected - tolerance));
 	}
 
 	private void logFailDump() {

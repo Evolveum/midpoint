@@ -42,4 +42,9 @@ public class TestOpenDjDumber extends TestOpenDj {
 	protected int getInitialSyncToken() {
 		return INITIAL_SYNC_TOKEN;
 	}
+	
+	@Override
+	protected boolean isUsingGroupShortcutAttribute() {
+		return false;
+	}
 }
