@@ -73,9 +73,9 @@ public class ResourceAttributeEditor extends BasePanel<ResourceAttributeDefiniti
 
     private static final String ID_LABEL = "label";
     private static final String ID_SCHEMA_REF_PANEL = "schemaRefPanel";
-    private static final String ID_NON_SCHEMA_REF_PANEL = "nonSchemaReferencePanel";
+    private static final String ID_NON_SCHEMA_REF_PANEL = "nonSchemaReferencePanel";	// temporarily not used
     private static final String ID_REFERENCE_SELECT = "referenceSelect";
-    private static final String ID_REFERENCE_ALLOW = "allowRef";
+    private static final String ID_REFERENCE_ALLOW = "allowRef";						// temporarily not used
     private static final String ID_DISPLAY_NAME = "displayName";
     private static final String ID_DESCRIPTION = "description";
     private static final String ID_EXCLUSIVE_STRONG = "exclusiveStrong";
@@ -124,9 +124,12 @@ public class ResourceAttributeEditor extends BasePanel<ResourceAttributeDefiniti
         Label label = new Label(ID_LABEL, new ResourceModel("ResourceAttributeEditor.label.edit"));
         add(label);
 
+/*
+		TEMPORARILY DISABLED
+
         QNameEditorPanel nonSchemaRefPanel = new QNameEditorPanel(ID_NON_SCHEMA_REF_PANEL, new PropertyModel<ItemPathType>(getModel(), "ref"),
                 "SchemaHandlingStep.attribute.label.attributeName", "SchemaHandlingStep.attribute.tooltip.attributeLocalPart",
-                "SchemaHandlingStep.attribute.label.attributeNamespace", "SchemaHandlingStep.attribute.tooltip.attributeNamespace") {
+                "SchemaHandlingStep.attribute.label.attributeNamespace", "SchemaHandlingStep.attribute.tooltip.attributeNamespace", true, true) {
 			@Override
 			protected void onUpdate(AjaxRequestTarget target) {
 				target.add(parentStep.getAttributeList());
@@ -143,6 +146,7 @@ public class ResourceAttributeEditor extends BasePanel<ResourceAttributeDefiniti
             }
         });
         add(nonSchemaRefPanel);
+*/
 
         WebMarkupContainer schemaRefPanel = new WebMarkupContainer(ID_SCHEMA_REF_PANEL);
         schemaRefPanel.setOutputMarkupId(true);
@@ -211,6 +215,9 @@ public class ResourceAttributeEditor extends BasePanel<ResourceAttributeDefiniti
 		});
         schemaRefPanel.add(refSelect);
 
+/*
+		TEMPORARILY DISABLED
+
         CheckBox allowNonSchema = new CheckBox(ID_REFERENCE_ALLOW, new PropertyModel<Boolean>(this, "nonSchemaRefValueAllowed"));
         allowNonSchema.add(new AjaxFormComponentUpdatingBehavior("change") {
 
@@ -220,6 +227,7 @@ public class ResourceAttributeEditor extends BasePanel<ResourceAttributeDefiniti
             }
         });
         add(allowNonSchema);
+*/
 
         TextField displayName = new TextField<>(ID_DISPLAY_NAME, new PropertyModel<String>(getModel(), "displayName"));
 		displayName.add(new EmptyOnChangeAjaxFormUpdatingBehavior() {

@@ -33,13 +33,31 @@ public interface ResourceValidator {
 
 	String CAT_BASIC = "basic";
 	String CAT_CONFIGURATION = "configuration";
+	String CAT_SCHEMA = "schema";
 	String CAT_SCHEMA_HANDLING = "schemaHandling";
 	String CAT_SYNCHRONIZATION = "synchronization";
 	String CAT_CAPABILITIES = "capabilities";
 
+	String C_NO_SCHEMA = "noSchema";
 	String C_MISSING_OBJECT_CLASS = "missingObjectClass";
+	String C_UNKNOWN_OBJECT_CLASS = "unknownObjectClass";
 	String C_MULTIPLE_SCHEMA_HANDLING_DEFINITIONS = "multipleSchemaHandlingDefinitions";
+	String C_MULTIPLE_SCHEMA_HANDLING_DEFAULT_DEFINITIONS = "multipleSchemaHandlingDefaultDefinitions";
 	String C_MULTIPLE_SYNCHRONIZATION_DEFINITIONS = "multipleSynchronizationDefinitions";
+	String C_NO_SYNCHRONIZATION_DEFINITION = "noSynchronizationDefinition";
+	String C_NO_ATTRIBUTE_REF = "noAttributeName";
+	String C_UNKNOWN_ATTRIBUTE_NAME = "unknownAttributeName";
+	String C_COLLIDING_ASSOCIATION_NAME = "collidingAssociationName";
+	String C_NO_ASSOCIATION_NAME = "noAssociationName";
+	String C_WRONG_ITEM_NAME = "wrongItemName";
+	String C_NO_ITEM_NAMESPACE = "noItemNamespace";
+	String C_MISSING_ASSOCIATION_TARGET_KIND = "missingAssociationTargetKind";
+	String C_MISSING_ASSOCIATION_TARGET_INTENT = "missingAssociationTargetIntent";
+	String C_MISSING_ASSOCIATION_DIRECTION = "missingAssociationDirection";
+	String C_MISSING_ASSOCIATION_ASSOCIATION_ATTRIBUTE = "missingAssociationAssociationAttribute";
+	String C_MISSING_ASSOCIATION_VALUE_ATTRIBUTE = "missingAssociationValueAttribute";
+	String C_WRONG_MATCHING_RULE = "wrongMatchingRule";
+	String C_MULTIPLE_ITEMS = "multipleItems";
 
 	@NotNull
 	ValidationResult validate(@NotNull PrismObject<ResourceType> resourceObject, @NotNull Scope scope, @NotNull Task task,
