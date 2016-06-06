@@ -233,8 +233,12 @@ public class TreeTablePanel extends BasePanel<String> {
 
 					@Override
 					public void onClick(AjaxRequestTarget target) {
-						initObjectForAdd(ObjectTypeUtil.createObjectRef(getRowModel().getObject().getValue()),
-								OrgType.COMPLEX_TYPE, null, target);
+						try {
+							initObjectForAdd(ObjectTypeUtil.createObjectRef(getRowModel().getObject().getValue()),
+									OrgType.COMPLEX_TYPE, null, target);
+						} catch (SchemaException e) {
+							throw new SystemException(e.getMessage(), e);
+						}
 					}
 				});
 		items.add(item);
@@ -255,7 +259,7 @@ public class TreeTablePanel extends BasePanel<String> {
 	}
 
 	private void initObjectForAdd(ObjectReferenceType parentOrgRef, QName type, QName relation,
-			AjaxRequestTarget target) {
+			AjaxRequestTarget target) throws SchemaException {
 		TreeTablePanel.this.getPageBase().hideMainPopup(target);
 		PrismContext prismContext = TreeTablePanel.this.getPageBase().getPrismContext();
 		PrismObjectDefinition def = prismContext.getSchemaRegistry().findObjectDefinitionByType(type);

@@ -1054,7 +1054,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 	private <F extends FocusType> void executeActions(SynchronizationReactionType reactionDef,
 			LensContext<F> context, SynchronizationSituation<F> situation, BeforeAfterType order,
 			ResourceType resource, boolean logDebug, Task task, OperationResult parentResult)
-					throws ConfigurationException {
+					throws ConfigurationException, SchemaException {
 
 		for (SynchronizationActionType actionDef : reactionDef.getAction()) {
 			if ((actionDef.getOrder() == null && order == BeforeAfterType.BEFORE)

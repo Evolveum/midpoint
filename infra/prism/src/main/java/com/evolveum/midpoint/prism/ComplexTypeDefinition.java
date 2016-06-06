@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -186,11 +186,11 @@ public class ComplexTypeDefinition extends Definition {
      * @param name property definition name
      * @return found property definition or null
      */
-    public <C extends Containerable> PrismPropertyDefinition<C> findPropertyDefinition(QName name) {
+    public <T> PrismPropertyDefinition<T> findPropertyDefinition(QName name) {
         return findItemDefinition(name, PrismPropertyDefinition.class);
     }
     
-    public <C extends Containerable> PrismPropertyDefinition<C> findPropertyDefinition(ItemPath path) {
+    public <T> PrismPropertyDefinition<T> findPropertyDefinition(ItemPath path) {
         return findItemDefinition(path, PrismPropertyDefinition.class);
     }
 	

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,8 @@
 package com.evolveum.midpoint.prism;
 
 import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.util.exception.SchemaException;
 
 /**
  * MidPoint Object Definition.
@@ -44,13 +46,19 @@ public class PrismObjectDefinition<O extends Objectable> extends PrismContainerD
 	}
 	
 	@Override
-	public PrismObject<O> instantiate() {
+	public PrismObject<O> instantiate() throws SchemaException {
+		if (isAbstract()) {
+			throw new SchemaException("Cannot instantiate abstract definition "+this);
+		}
 		PrismObject<O> midPointObject = new PrismObject<O>(getName(), this, prismContext);
 		return midPointObject;
 	}
 	
 	@Override
-	public PrismObject<O> instantiate(QName name) {
+	public PrismObject<O> instantiate(QName name) throws SchemaException {
+		if (isAbstract()) {
+			throw new SchemaException("Cannot instantiate abstract definition "+this);
+		}
         name = addNamespaceIfApplicable(name);
 		PrismObject<O> midPointObject = new PrismObject<O>(name, this, prismContext);
 		return midPointObject;

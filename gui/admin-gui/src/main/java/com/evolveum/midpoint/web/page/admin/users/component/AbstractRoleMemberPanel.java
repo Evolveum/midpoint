@@ -261,7 +261,11 @@ public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extend
 				getPageBase().getMainPopupBodyId()) {
 
 			protected void okPerformed(QName type, AjaxRequestTarget target) {
-				initObjectForAdd(null, type, relation, target);
+				try {
+					initObjectForAdd(null, type, relation, target);
+				} catch (SchemaException e) {
+					throw new SystemException(e.getMessage(), e);
+				}
 
 			};
 		};
@@ -271,7 +275,7 @@ public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extend
 	}
 	
 	private void initObjectForAdd(ObjectReferenceType parentOrgRef, QName type, QName relation,
-			AjaxRequestTarget target) {
+			AjaxRequestTarget target) throws SchemaException {
 		getPageBase().hideMainPopup(target);
 		PrismContext prismContext = getPageBase().getPrismContext();
 		PrismObjectDefinition def = prismContext.getSchemaRegistry().findObjectDefinitionByType(type);

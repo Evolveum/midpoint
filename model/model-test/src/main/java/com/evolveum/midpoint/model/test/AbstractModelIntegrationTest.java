@@ -1532,7 +1532,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     	return assignmentDefinition.findContainerDefinition(AssignmentType.F_EXTENSION);
     }
     
-    protected PrismContainer<?> getAssignmentExtensionInstance() {
+    protected PrismContainer<?> getAssignmentExtensionInstance() throws SchemaException {
     	return getAssignmentExtensionDefinition().instantiate();
     }
 
