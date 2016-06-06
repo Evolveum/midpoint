@@ -28,6 +28,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import java.lang.reflect.Modifier;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -124,22 +125,7 @@ public class SearchFactory {
             Class<T> type, ResourceShadowDiscriminator discriminator, PrismContext ctx,
             ModelInteractionService modelInteractionService, boolean useDefsFromSuperclass) {
 
-        PrismObjectDefinition objectDef;
-        try {
-            OperationResult result = new OperationResult(LOAD_OBJECT_DEFINITION);
-
-            PrismObject empty = ctx.createObject(type);
-
-            if (ShadowType.class.equals(type)) {
-                objectDef = modelInteractionService.getEditShadowDefinition(discriminator,
-                        AuthorizationPhaseType.REQUEST, result);
-            } else {
-                objectDef = modelInteractionService.getEditObjectDefinition(
-                        empty, AuthorizationPhaseType.REQUEST, result);
-            }
-        } catch (SchemaException | ConfigurationException | ObjectNotFoundException ex) {
-            throw new SystemException(ex);
-        }
+        PrismObjectDefinition objectDef = findObjectDefinition(type, discriminator, ctx, modelInteractionService);
 
         Map<ItemPath, ItemDefinition> availableDefs = getAvailableDefinitions(objectDef, useDefsFromSuperclass);
 
@@ -155,6 +141,32 @@ public class SearchFactory {
         }
 
         return search;
+    }
+
+    private static <T extends ObjectType> PrismObjectDefinition findObjectDefinition(
+            Class<T> type, ResourceShadowDiscriminator discriminator, PrismContext ctx,
+            ModelInteractionService modelInteractionService) {
+
+        try {
+            if (Modifier.isAbstract(type.getModifiers())) {
+                SchemaRegistry registry = ctx.getSchemaRegistry();
+                return registry.findObjectDefinitionByCompileTimeClass(type);
+            }
+
+            OperationResult result = new OperationResult(LOAD_OBJECT_DEFINITION);
+
+            PrismObject empty = ctx.createObject(type);
+
+            if (ShadowType.class.equals(type)) {
+                return modelInteractionService.getEditShadowDefinition(discriminator,
+                        AuthorizationPhaseType.REQUEST, result);
+            } else {
+                return modelInteractionService.getEditObjectDefinition(
+                        empty, AuthorizationPhaseType.REQUEST, result);
+            }
+        } catch (SchemaException | ConfigurationException | ObjectNotFoundException ex) {
+            throw new SystemException(ex);
+        }
     }
 
     private static <T extends ObjectType> Map<ItemPath, ItemDefinition> getAvailableDefinitions(

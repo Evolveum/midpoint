@@ -308,6 +308,10 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
 		return false;
 	}
 	
+	protected boolean isUsingGroupShortcutAttribute() {
+		return true;
+	}
+	
 	protected String getScriptDirectoryName() {
 		return "/opt/Bamboo/local/conntest";
 	}
@@ -878,13 +882,21 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
 		}
 	}
 	
+	protected void assertLdapConnectorInstances(int expectedConnectorInstancesShortcut, int expectedConnectorInstancesNoShortcut) throws NumberFormatException, IOException, InterruptedException, SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException {
+		if (isUsingGroupShortcutAttribute()) {
+			assertLdapConnectorInstances(expectedConnectorInstancesShortcut);
+		} else {
+			assertLdapConnectorInstances(expectedConnectorInstancesNoShortcut);
+		}
+	}
+
 	protected void assertLdapConnectorInstances(int expectedConnectorInstances) throws NumberFormatException, IOException, InterruptedException, SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException {
 		OperationResult result = new OperationResult(AbstractLdapTest.class.getName() + ".assertLdapConnectorInstances");
 		ConnectorOperationalStatus stats = provisioningService.getConnectorOperationalStatus(getResourceOid(), result);
 		display("Resource connector stats", stats);
 		result.computeStatus();
 		TestUtil.assertSuccess(result);
-		
+				
 		assertEquals("Unexpected number of LDAP connector instances", expectedConnectorInstances, 
 				stats.getPoolStatusNumIdle() + stats.getPoolStatusNumActive());
 		

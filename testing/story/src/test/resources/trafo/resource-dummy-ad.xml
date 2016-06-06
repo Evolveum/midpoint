@@ -280,10 +280,10 @@ if (basic.stringify(employeeType) == 'T' || basic.stringify(employeeType) == 'R'
 						</expression>
 					</outbound>
 					<inbound>
+						<tolerant>true</tolerant>
 						<target>
 							<path>$user/extension/trafo:homedir</path>
 						</target>
-						
 					</inbound>
 				</attribute>
 				<attribute>
