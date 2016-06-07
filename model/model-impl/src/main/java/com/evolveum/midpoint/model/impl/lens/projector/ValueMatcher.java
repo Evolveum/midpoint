@@ -49,8 +49,13 @@ public class ValueMatcher<T> {
 
 	public static <T> ValueMatcher<T> createMatcher(RefinedAttributeDefinition rAttrDef, MatchingRuleRegistry matchingRuleRegistry) throws SchemaException {
 		QName matchingRuleQName = rAttrDef.getMatchingRuleQName();
-		MatchingRule<Object> matchingRule = matchingRuleRegistry.getMatchingRule(matchingRuleQName, rAttrDef.getTypeName());
-		return new ValueMatcher<T>((MatchingRule<T>) matchingRule);
+		MatchingRule<T> matchingRule;
+		try {
+			matchingRule = matchingRuleRegistry.getMatchingRule(matchingRuleQName, rAttrDef.getTypeName());
+		} catch (SchemaException e) {
+			throw new SchemaException(e.getMessage()+", defined for attribute "+rAttrDef.getName(), e);
+		}
+		return new ValueMatcher<T>(matchingRule);
 	}
 	
 	public static <T> ValueMatcher<T> createDefaultMatcher(QName type, MatchingRuleRegistry matchingRuleRegistry) throws SchemaException {
