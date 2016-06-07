@@ -64,6 +64,7 @@ import com.evolveum.midpoint.model.test.AbstractModelIntegrationTest;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.OriginType;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -953,8 +954,9 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TEST_NAME);
 		OperationResult result = task.getResult();
-
-		repoAddObjectFromFile(USER_GUYBRUSH_FILENAME, UserType.class, result);
+		PrismObject<UserType> userGuybrushFromFile = PrismTestUtil.parseObject(new File(USER_GUYBRUSH_FILENAME));
+		userGuybrushFromFile.asObjectable().getLinkRef().clear();
+		repoAddObject(UserType.class, userGuybrushFromFile, result);
 		assignAccount(USER_GUYBRUSH_OID, RESOURCE_OPENDJ_OID, null);
 		
 		PrismObject<UserType> userBefore = getUser(USER_GUYBRUSH_OID);
