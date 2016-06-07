@@ -22,6 +22,7 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import org.apache.commons.lang.Validate;
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.form.AjaxCheckBox;
@@ -179,6 +180,9 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
 						target.add(shadows);
 					}
 				};
+                if (item.getModel().getObject().getStatus().equals(UserDtoStatus.DELETE)) {
+                    shadowHeader.add(new AttributeModifier("class", "box-header with-border delete"));
+                }
 				item.add(shadowHeader);
 			}
 		};
