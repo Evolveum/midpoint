@@ -27,6 +27,7 @@ import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.TextField;
@@ -47,7 +48,9 @@ public class QNameEditorPanel extends BasePanel<ItemPathType>{
     private static final String ID_LOCAL_PART = "localPart";
     private static final String ID_NAMESPACE = "namespace";
     private static final String ID_LOCAL_PART_LABEL = "localPartLabel";
+    private static final String ID_LOCAL_PART_REQUIRED = "localPartRequired";
     private static final String ID_NAMESPACE_LABEL = "namespaceLabel";
+    private static final String ID_NAMESPACE_REQUIRED = "namespaceRequired";
     private static final String ID_T_LOCAL_PART = "localPartTooltip";
     private static final String ID_T_NAMESPACE = "namespaceTooltip";
 
@@ -55,13 +58,8 @@ public class QNameEditorPanel extends BasePanel<ItemPathType>{
 	private IModel<String> localpartModel;
     private IModel<String> namespaceModel;
 
-    public QNameEditorPanel(String id, IModel<ItemPathType> model) {
-        this(id, model, "QNameEditor.label.localPart", "QNameEditor.tooltip.localPart",
-                "QNameEditor.label.namespace", "QNameEditor.tooltip.namespace");
-    }
-
     public QNameEditorPanel(String id, IModel<ItemPathType> model, String localPartLabelKey, String localPartTooltipKey,
-                            String namespaceLabelKey, String namespaceTooltipKey) {
+                            String namespaceLabelKey, String namespaceTooltipKey, boolean markLocalPartAsRequired, boolean markNamespaceAsRequired) {
         super(id, model);
 		this.itemPathModel = model;
 
@@ -106,7 +104,7 @@ public class QNameEditorPanel extends BasePanel<ItemPathType>{
 			}
 		};
 
-        initLayout(localPartLabelKey, localPartTooltipKey, namespaceLabelKey, namespaceTooltipKey);
+        initLayout(localPartLabelKey, localPartTooltipKey, namespaceLabelKey, namespaceTooltipKey, markLocalPartAsRequired, markNamespaceAsRequired);
     }
 
 	private QName itemPathToQName() {
@@ -139,19 +137,27 @@ public class QNameEditorPanel extends BasePanel<ItemPathType>{
     }
 
     private void initLayout(String localPartLabelKey, String localPartTooltipKey,
-                              String namespaceLabelKey, String namespaceTooltipKey){
+			String namespaceLabelKey, String namespaceTooltipKey, boolean markLocalPartAsRequired, boolean markNamespaceAsRequired){
 
         Label localPartLabel = new Label(ID_LOCAL_PART_LABEL, getString(localPartLabelKey));
         localPartLabel.setOutputMarkupId(true);
         localPartLabel.setOutputMarkupPlaceholderTag(true);
         add(localPartLabel);
 
+		WebMarkupContainer localPartRequired = new WebMarkupContainer(ID_LOCAL_PART_REQUIRED);
+		localPartRequired.setVisible(markLocalPartAsRequired);
+		add(localPartRequired);
+
         Label namespaceLabel = new Label(ID_NAMESPACE_LABEL, getString(namespaceLabelKey));
         namespaceLabel.setOutputMarkupId(true);
         namespaceLabel.setOutputMarkupPlaceholderTag(true);
         add(namespaceLabel);
 
-        TextField localPart = new TextField<>(ID_LOCAL_PART, localpartModel);
+		WebMarkupContainer namespaceRequired = new WebMarkupContainer(ID_NAMESPACE_REQUIRED);
+		namespaceRequired.setVisible(markNamespaceAsRequired);
+		add(namespaceRequired);
+
+		TextField localPart = new TextField<>(ID_LOCAL_PART, localpartModel);
         localPart.setOutputMarkupId(true);
         localPart.setOutputMarkupPlaceholderTag(true);
         localPart.setRequired(isLocalPartRequired());

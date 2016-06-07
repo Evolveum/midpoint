@@ -77,6 +77,25 @@ public class ShadowUtil {
 		return attributesContainer.getSecondaryIdentifiers();	
 	}
 	
+	public static ResourceAttribute<String> getSecondaryIdentifier(PrismObject<? extends ShadowType> shadow) throws SchemaException {
+		Collection<ResourceAttribute<?>> secondaryIdentifiers = getSecondaryIdentifiers(shadow);
+		if (secondaryIdentifiers == null || secondaryIdentifiers.isEmpty()) {
+			return null;
+		}
+		if (secondaryIdentifiers.size() > 1) {
+			throw new SchemaException("Too many secondary identifiers in "+shadow+": "+secondaryIdentifiers);
+		}
+		return (ResourceAttribute<String>) secondaryIdentifiers.iterator().next();
+	}
+	
+	public static String getSecondaryIdentifierRealValue(PrismObject<? extends ShadowType> shadow) throws SchemaException {
+		ResourceAttribute<String> secondaryIdentifier = getSecondaryIdentifier(shadow);
+		if (secondaryIdentifier == null) {
+			return null;
+		}
+		return secondaryIdentifier.getRealValue();
+	}
+	
 	public static ResourceAttribute<?> getSecondaryIdentifier(ObjectClassComplexTypeDefinition objectClassDefinition, 
 			Collection<? extends ResourceAttribute<?>> identifiers) throws SchemaException {
 		if (identifiers == null) {

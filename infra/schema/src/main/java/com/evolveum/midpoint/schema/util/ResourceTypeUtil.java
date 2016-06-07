@@ -584,4 +584,14 @@ public class ResourceTypeUtil {
 		}
 		return rv;
 	}
+
+	@NotNull
+	public static ShadowKindType fillDefault(ShadowKindType kind) {
+		return kind != null ? kind : ShadowKindType.ACCOUNT;
+	}
+
+	@NotNull
+	public static String fillDefault(String intent) {
+		return intent != null ? intent : SchemaConstants.INTENT_DEFAULT;
+	}
 }

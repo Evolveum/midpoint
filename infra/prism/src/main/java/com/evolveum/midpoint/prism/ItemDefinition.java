@@ -287,14 +287,14 @@ public abstract class ItemDefinition<I extends Item> extends Definition implemen
 	 * used as an element name for the instance. The instance will otherwise be empty.
 	 * @return created item instance
 	 */
-	abstract public I instantiate();
+	abstract public I instantiate() throws SchemaException;
 
 	/**
 	 * Create an item instance. Definition name will use provided name.
 	 * for the instance. The instance will otherwise be empty.
 	 * @return created item instance
 	 */
-	abstract public I instantiate(QName name);
+	abstract public I instantiate(QName name) throws SchemaException;
 
     // add namespace from the definition if it's safe to do so
     protected QName addNamespaceIfApplicable(QName name) {

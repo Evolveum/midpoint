@@ -94,7 +94,11 @@ public class ConfigurationStep extends WizardStep {
             @Override
 			@NotNull
             protected List<ContainerWrapper> load() {
-				return createConfigContainerWrappers();
+				try {
+					return createConfigContainerWrappers();
+				} catch (SchemaException e) {
+					throw new SystemException(e.getMessage(), e);
+				}
             }
 		};
 		parentPage.registerDependentModel(configurationPropertiesModel);
@@ -103,7 +107,7 @@ public class ConfigurationStep extends WizardStep {
     }
 
 	@NotNull
-	private List<ContainerWrapper> createConfigContainerWrappers() {
+	private List<ContainerWrapper> createConfigContainerWrappers() throws SchemaException {
 		PrismObject<ResourceType> resource = resourceModelNoFetch.getObject();
 		PrismContainer<ConnectorConfigurationType> configuration = resource.findContainer(ResourceType.F_CONNECTOR_CONFIGURATION);
 

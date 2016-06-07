@@ -16,7 +16,12 @@
 
 package com.evolveum.midpoint.web.component.wizard;
 
+import com.evolveum.midpoint.web.component.AjaxButton;
+import com.evolveum.midpoint.web.component.AjaxSubmitButton;
+import com.evolveum.midpoint.web.page.admin.resources.PageResourceWizard;
+import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.wizard.*;
+import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.IFormSubmittingComponent;
 import org.apache.wicket.markup.html.panel.Panel;
 
@@ -25,9 +30,17 @@ import org.apache.wicket.markup.html.panel.Panel;
  */
 public class WizardButtonBar extends Panel implements IDefaultButtonProvider {
 
+	private static final String ID_PREVIOUS = "previous";
+	private static final String ID_NEXT = "next";
+	private static final String ID_LAST = "last";
+	private static final String ID_FINISH = "finish";
+	private static final String ID_CANCEL = "cancel";
+	private static final String ID_VALIDATE = "validate";
+	private static final String ID_SAVE = "save";
+
     public WizardButtonBar(String id, final Wizard wizard) {
         super(id);
-        add(new PreviousButton("previous", wizard) {
+        add(new PreviousButton(ID_PREVIOUS, wizard) {
 			@Override
 			public void onClick() {
 				IWizardModel wizardModel = getWizardModel();
@@ -40,7 +53,7 @@ public class WizardButtonBar extends Panel implements IDefaultButtonProvider {
 				}
 			}
 		});
-        add(new NextButton("next", wizard) {
+        add(new NextButton(ID_NEXT, wizard) {
 			@Override
 			public void onClick() {
 				IWizardModel wizardModel = getWizardModel();
@@ -53,21 +66,9 @@ public class WizardButtonBar extends Panel implements IDefaultButtonProvider {
 				}
 			}
 		});
-        add(new LastButton("last", wizard) {
-			@Override
-			public void onClick() {
-				IWizardModel wizardModel = getWizardModel();
-				IWizardStep step = wizardModel.getActiveStep();
-				step.applyState();
-				if (step.isComplete()) {
-					wizardModel.last();
-				} else {
-					couldntSave();
-				}
-			}
-		});
-        add(new CancelButton("cancel", wizard));
-        add(new FinishButton("finish", wizard){
+        add(new LastButton(ID_LAST, wizard));			// not used at all
+        add(new CancelButton(ID_CANCEL, wizard));
+        add(new FinishButton(ID_FINISH, wizard){
 
 			@Override
 			public void onClick()
@@ -91,7 +92,25 @@ public class WizardButtonBar extends Panel implements IDefaultButtonProvider {
 				return activeStep == null || activeStep.isComplete();
             }
         });
-    }
+
+		add(new AjaxSubmitButton(ID_VALIDATE) {
+			@Override
+			protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
+				((PageResourceWizard) getPage()).refreshIssues(target);
+			}
+		});
+
+		add(new AjaxSubmitButton(ID_SAVE) {
+			@Override
+			protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
+				IWizardStep activeStep = wizard.getModelObject().getActiveStep();
+				if (activeStep != null) {
+					activeStep.applyState();
+				}
+			}
+		});
+
+	}
 
 	private void couldntSave() {
 		// we should't come here

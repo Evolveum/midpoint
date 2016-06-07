@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -645,15 +645,15 @@ public class PrismContext {
         return new RawType(rootXNode, this);
     }
 
-    public <T extends Objectable> PrismObject<T> createObject(Class<T> clazz) {
+    public <T extends Objectable> PrismObject<T> createObject(Class<T> clazz) throws SchemaException {
         PrismObjectDefinition definition = schemaRegistry.findObjectDefinitionByCompileTimeClass(clazz);
         if (definition == null) {
-            throw new IllegalStateException("Definition for prism object holding " + clazz + " couldn't be found");
+            throw new SchemaException("Definition for prism object holding " + clazz + " couldn't be found");
         }
         return definition.instantiate();
     }
 
-	public <T extends Objectable> T createObjectable(Class<T> clazz) {
+	public <T extends Objectable> T createObjectable(Class<T> clazz) throws SchemaException {
 		return createObject(clazz).asObjectable();
 	}
 

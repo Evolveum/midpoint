@@ -298,6 +298,10 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 				} catch (SecurityViolationException e) {
 					ProvisioningUtil.recordFatalError(LOGGER, result, "Error getting object OID=" + oid + ": " + e.getMessage(), e);
 					throw e;
+				} catch (SystemException e) {
+					// Do NOT wrap this into SystemException again
+					ProvisioningUtil.recordFatalError(LOGGER, result, "Error getting object OID=" + oid + ": " + e.getMessage(), e);
+					throw e;
 				} catch (RuntimeException e){
 					ProvisioningUtil.recordFatalError(LOGGER, result, "Error getting object OID=" + oid + ": " + e.getMessage(), e);
 					throw new SystemException(e);

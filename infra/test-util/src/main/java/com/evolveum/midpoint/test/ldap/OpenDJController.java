@@ -48,6 +48,7 @@ import org.opends.messages.MessageBuilder;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.BindOperation;
+import org.opends.server.core.DeleteOperation;
 import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.protocols.internal.InternalClientConnection;
@@ -800,6 +801,13 @@ public class OpenDJController extends AbstractResourceController {
         String ldif = "dn: " + entryDn + "\nchangetype: modify\nreplace: "+attributeName+"\n"+attributeName+": " + value;
         return executeLdifChange(ldif);
     }
+	
+	public void delete(String entryDn) {
+		DeleteOperation deleteOperation = getInternalConnection().processDelete(entryDn);
+		if (ResultCode.SUCCESS != deleteOperation.getResultCode()) {
+        	throw new RuntimeException("LDAP operation error: "+deleteOperation.getResultCode()+": "+deleteOperation.getErrorMessage());
+        }
+	}
 	
 	public String dumpEntries() throws DirectoryException {
 		InternalSearchOperation op = getInternalConnection().processSearch(

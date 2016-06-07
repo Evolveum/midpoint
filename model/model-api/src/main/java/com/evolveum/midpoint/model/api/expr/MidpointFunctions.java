@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -64,8 +64,10 @@ public interface MidpointFunctions {
 	 * </p>
 	 * @param type Class of the object to create
 	 * @return empty object in memory
+	 * @throws SchemaException schema error instantiating the object (e.g. attempt to
+	 *                         instantiate abstract type).
 	 */
-	<T extends ObjectType> T createEmptyObject(Class<T> type);
+	<T extends ObjectType> T createEmptyObject(Class<T> type) throws SchemaException;
 
 	/**
 	 * <p>
@@ -81,8 +83,10 @@ public interface MidpointFunctions {
 	 * @param type Class of the object to create
 	 * @param name Name of the object
 	 * @return empty object in memory
+	 * @throws SchemaException schema error instantiating the object (e.g. attempt to
+	 *                         instantiate abstract type).
 	 */
-	<T extends ObjectType> T createEmptyObjectWithName(Class<T> type, String name);
+	<T extends ObjectType> T createEmptyObjectWithName(Class<T> type, String name) throws SchemaException;
 
 	/**
 	 * <p>
@@ -98,8 +102,10 @@ public interface MidpointFunctions {
 	 * @param type Class of the object to create
 	 * @param name Name of the object
 	 * @return empty object in memory
+	 * @throws SchemaException schema error instantiating the object (e.g. attempt to
+	 *                         instantiate abstract type).
 	 */
-	<T extends ObjectType> T createEmptyObjectWithName(Class<T> type, PolyString name);
+	<T extends ObjectType> T createEmptyObjectWithName(Class<T> type, PolyString name) throws SchemaException;
 	
 	/**
 	 * <p>
@@ -115,8 +121,10 @@ public interface MidpointFunctions {
 	 * @param type Class of the object to create
 	 * @param name Name of the object
 	 * @return empty object in memory
+	 * @throws SchemaException schema error instantiating the object (e.g. attempt to
+	 *                         instantiate abstract type).
 	 */
-	<T extends ObjectType> T createEmptyObjectWithName(Class<T> type, PolyStringType name);
+	<T extends ObjectType> T createEmptyObjectWithName(Class<T> type, PolyStringType name) throws SchemaException;
 
 	<T extends ObjectType> T resolveReference(ObjectReferenceType reference)
             throws ObjectNotFoundException, SchemaException,

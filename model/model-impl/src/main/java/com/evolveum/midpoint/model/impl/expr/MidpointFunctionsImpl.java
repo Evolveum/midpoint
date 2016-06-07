@@ -690,28 +690,28 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     // Convenience functions
     
 	@Override
-	public <T extends ObjectType> T createEmptyObject(Class<T> type) {
+	public <T extends ObjectType> T createEmptyObject(Class<T> type) throws SchemaException {
 		PrismObjectDefinition<T> objectDefinition = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(type);
 		PrismObject<T> object = objectDefinition.instantiate();
 		return object.asObjectable();
 	}
 
 	@Override
-	public <T extends ObjectType> T createEmptyObjectWithName(Class<T> type, String name) {
+	public <T extends ObjectType> T createEmptyObjectWithName(Class<T> type, String name) throws SchemaException {
 		T objectType = createEmptyObject(type);
 		objectType.setName(new PolyStringType(name));
 		return objectType;
 	}
 
 	@Override
-	public <T extends ObjectType> T createEmptyObjectWithName(Class<T> type, PolyString name) {
+	public <T extends ObjectType> T createEmptyObjectWithName(Class<T> type, PolyString name) throws SchemaException {
 		T objectType = createEmptyObject(type);
 		objectType.setName(new PolyStringType(name));
 		return objectType;
 	}
 
 	@Override
-	public <T extends ObjectType> T createEmptyObjectWithName(Class<T> type, PolyStringType name) {
+	public <T extends ObjectType> T createEmptyObjectWithName(Class<T> type, PolyStringType name) throws SchemaException {
 		T objectType = createEmptyObject(type);
 		objectType.setName(name);
 		return objectType;

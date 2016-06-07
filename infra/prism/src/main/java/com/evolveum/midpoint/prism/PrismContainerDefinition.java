@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,6 +29,7 @@ import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
 
 import javax.xml.namespace.QName;
 
@@ -389,7 +390,7 @@ public class PrismContainerDefinition<C extends Containerable> extends ItemDefin
      * This is a preferred way how to create property container.
      */
     @Override
-    public PrismContainer<C> instantiate() {
+    public PrismContainer<C> instantiate() throws SchemaException {
         return instantiate(getName());
     }
 
@@ -399,7 +400,10 @@ public class PrismContainerDefinition<C extends Containerable> extends ItemDefin
      * This is a preferred way how to create property container.
      */
     @Override
-    public PrismContainer<C> instantiate(QName elementName) {
+    public PrismContainer<C> instantiate(QName elementName) throws SchemaException {
+    	if (isAbstract()) {
+			throw new SchemaException("Cannot instantiate abstract definition "+this);
+		}
         elementName = addNamespaceIfApplicable(elementName);
         return new PrismContainer<C>(elementName, this, prismContext);
     }

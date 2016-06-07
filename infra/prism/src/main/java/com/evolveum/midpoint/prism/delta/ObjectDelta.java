@@ -1204,7 +1204,7 @@ public class ObjectDelta<T extends Objectable> implements DebugDumpable, Visitab
     	return objectDelta;
     }
     
-    public static <O extends Objectable> ObjectDelta<O> createEmptyAddDelta(Class<O> type, String oid, PrismContext prismContext) {
+    public static <O extends Objectable> ObjectDelta<O> createEmptyAddDelta(Class<O> type, String oid, PrismContext prismContext) throws SchemaException {
     	ObjectDelta<O> objectDelta = createEmptyDelta(type, oid, prismContext, ChangeType.ADD);
     	PrismObjectDefinition<O> objDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(type);
     	PrismObject<O> objectToAdd = objDef.instantiate();

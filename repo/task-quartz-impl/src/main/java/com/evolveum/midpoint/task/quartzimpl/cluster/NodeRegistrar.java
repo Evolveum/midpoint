@@ -121,7 +121,12 @@ public class NodeRegistrar {
     private PrismObject<NodeType> createNodePrism(TaskManagerConfiguration configuration) {
 
         PrismObjectDefinition<NodeType> nodeTypeDef = getPrismContext().getSchemaRegistry().findObjectDefinitionByCompileTimeClass(NodeType.class);
-        PrismObject<NodeType> nodePrism = nodeTypeDef.instantiate();
+        PrismObject<NodeType> nodePrism;
+		try {
+			nodePrism = nodeTypeDef.instantiate();
+		} catch (SchemaException e) {
+			throw new SystemException(e.getMessage(), e);
+		}
 
         NodeType node = nodePrism.asObjectable();
 
