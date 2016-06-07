@@ -594,4 +594,17 @@ public class ResourceTypeUtil {
 	public static String fillDefault(String intent) {
 		return intent != null ? intent : SchemaConstants.INTENT_DEFAULT;
 	}
+
+	public static ResourceObjectTypeDefinitionType findObjectTypeDefinition(PrismObject<ResourceType> resourceObject, ShadowKindType kind,
+			String intent) {
+		if (resourceObject == null || resourceObject.asObjectable().getSchemaHandling() == null) {
+			return null;
+		}
+		for (ResourceObjectTypeDefinitionType def : resourceObject.asObjectable().getSchemaHandling().getObjectType()) {
+			if (fillDefault(kind).equals(fillDefault(def.getKind())) && fillDefault(intent).equals(fillDefault(def.getIntent()))) {
+				return def;
+			}
+		}
+		return null;
+	}
 }

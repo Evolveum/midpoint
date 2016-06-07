@@ -133,7 +133,7 @@ public class SynchronizationReactionEditor extends BasePanel<SynchronizationReac
         };
         add(channel);
         TriStateComboPanel synchronize = new TriStateComboPanel(ID_SYNCHRONIZE, new PropertyModel<Boolean>(getModel(), "synchronize"));
-		synchronize.add(new ReactionListUpdateBehavior());
+		synchronize.getBaseFormComponent().add(new ReactionListUpdateBehavior());
         add(synchronize);
 
         CheckBox reconcile = new CheckBox(ID_RECONCILE, new PropertyModel<Boolean>(getModel(), "reconcile"));

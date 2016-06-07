@@ -26,7 +26,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
-import com.evolveum.midpoint.schema.constants.MidPointConstants;
+import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
@@ -36,6 +36,7 @@ import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.PrettyPrinter;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import org.apache.commons.lang.StringUtils;
@@ -46,13 +47,25 @@ import org.springframework.stereotype.Component;
 
 import javax.xml.namespace.QName;
 import java.text.MessageFormat;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.ResourceBundle;
-import java.util.Set;
+import java.util.*;
+
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSituationType.*;
 
 /**
  * EXPERIMENTAL
+ *
+ * TODO:
+ *  - existence of dependent kind/intent/resource (in thorough scope)
+ *  - checking references (thorough)
+ *  - mapping: unknown channel / except-channel
+ *  - mapping: invalid source, invalid target
+ *  - empty mapping (?)
+ *  - iteration tokens
+ *  - invalid objectclass in synchronization
+ *  - invalid focus type in synchronization
+ *  - empty correlation, correlation condition?
+ *  - empty confirmation condition?
+ *  - empty synchronization condition?
  *
  * @author mederly
  */
@@ -110,7 +123,7 @@ public class ResourceValidatorImpl implements ResourceValidator {
 					getString(CLASS_DOT + C_NO_SCHEMA, t.getMessage()),
 					ObjectTypeUtil.createObjectRef(resourceObject), ItemPath.EMPTY_PATH);
 		}
-		
+
 		ResourceValidationContext ctx = new ResourceValidationContext(resourceObject, scope, task, vr, resourceSchema);
 		
 		SchemaHandlingType schemaHandling = resource.getSchemaHandling();
@@ -122,13 +135,18 @@ public class ResourceValidatorImpl implements ResourceValidator {
 		SynchronizationType synchronization = resource.getSynchronization();
 		if (synchronization != null) {
 			checkSynchronizationDuplicateObjectTypes(ctx, synchronization);
+			int i = 1;
+			for (ObjectSynchronizationType objectSync : resource.getSynchronization().getObjectSynchronization()) {
+				checkObjectSynchronization(ctx, new ItemPath(ResourceType.F_SYNCHRONIZATION, SynchronizationType.F_OBJECT_SYNCHRONIZATION, i), objectSync);
+				i++;
+			}
 		}
 		checkSynchronizationExistence(ctx);
 		return ctx.validationResult;
 	}
 
 	private void checkSchemaHandlingObjectTypes(ResourceValidationContext ctx, SchemaHandlingType schemaHandling) {
-		int i = 0;
+		int i = 1;
 		for (ResourceObjectTypeDefinitionType objectType : schemaHandling.getObjectType()) {
 			ItemPath path = new ItemPath(ResourceType.F_SCHEMA_HANDLING, SchemaHandlingType.F_OBJECT_TYPE, i);
 			checkSchemaHandlingObjectType(ctx, path, objectType);
@@ -138,31 +156,105 @@ public class ResourceValidatorImpl implements ResourceValidator {
 
 	private void checkSchemaHandlingObjectType(ResourceValidationContext ctx, ItemPath path, ResourceObjectTypeDefinitionType objectType) {
 		checkDuplicateItems(ctx, path, objectType);
+		checkObjectClass(ctx, path, objectType);
+		ObjectClassComplexTypeDefinition ocdef = null;
+		if (ctx.resourceSchema != null && objectType.getObjectClass() != null) {
+			ocdef = ctx.resourceSchema.findObjectClassDefinition(objectType.getObjectClass());
+			checkObjectClassDefinition(ctx, path, objectType, ocdef);
+		}
+		int i = 1;
+		for (ResourceAttributeDefinitionType attributeDef : objectType.getAttribute()) {
+			checkSchemaHandlingAttribute(ctx, ocdef, path.append(new ItemPath(ResourceObjectTypeDefinitionType.F_ATTRIBUTE, i)), objectType, attributeDef);
+			i++;
+		}
+		i = 1;
+		for (ResourceObjectAssociationType associationDef : objectType.getAssociation()) {
+			checkSchemaHandlingAssociation(ctx, ocdef, path.append(new ItemPath(ResourceObjectTypeDefinitionType.F_ATTRIBUTE, i)), objectType, associationDef);
+			i++;
+		}
+
+		if (objectType.getActivation() != null) {
+			ItemPath actPath = path.append(ResourceObjectTypeDefinitionType.F_ACTIVATION);
+			checkBidirectionalMapping(ctx, actPath, ResourceActivationDefinitionType.F_ADMINISTRATIVE_STATUS, objectType, objectType.getActivation().getAdministrativeStatus());
+			checkBidirectionalMapping(ctx, actPath, ResourceActivationDefinitionType.F_EXISTENCE, objectType, objectType.getActivation().getExistence());
+			checkBidirectionalMapping(ctx, actPath, ResourceActivationDefinitionType.F_LOCKOUT_STATUS, objectType, objectType.getActivation().getLockoutStatus());
+			checkBidirectionalMapping(ctx, actPath, ResourceActivationDefinitionType.F_VALID_FROM, objectType, objectType.getActivation().getValidFrom());
+			checkBidirectionalMapping(ctx, actPath, ResourceActivationDefinitionType.F_VALID_TO, objectType, objectType.getActivation().getValidTo());
+		}
+		if (objectType.getCredentials() != null) {
+			ItemPath credPath = path.append(ResourceObjectTypeDefinitionType.F_CREDENTIALS);
+			checkPasswordMapping(ctx, credPath, ResourceCredentialsDefinitionType.F_PASSWORD, objectType, objectType.getCredentials().getPassword());
+		}
+		checkDependencies(ctx, path, objectType);
+	}
+
+	private void checkBidirectionalMapping(ResourceValidationContext ctx, ItemPath path, QName itemName, ResourceObjectTypeDefinitionType objectType,
+			@Nullable ResourceBidirectionalMappingType bidirectionalMapping) {
+		if (bidirectionalMapping == null) {
+			return;
+		}
+		ItemPath itemPath = path.append(itemName);
+		int i = 1;
+		for (MappingType inbound : bidirectionalMapping.getInbound()) {
+			checkMapping(ctx, itemPath.append(ResourceBidirectionalMappingType.F_INBOUND), objectType, itemName, inbound, false, i, true);
+			i++;
+		}
+		i = 1;
+		for (MappingType outbound : bidirectionalMapping.getOutbound()) {
+			checkMapping(ctx, itemPath.append(ResourceBidirectionalMappingType.F_OUTBOUND), objectType, itemName, outbound, true, i, true);
+			i++;
+		}
+	}
+
+	private void checkPasswordMapping(ResourceValidationContext ctx, ItemPath path, QName itemName, ResourceObjectTypeDefinitionType objectType,
+			@Nullable ResourcePasswordDefinitionType passwordDefinition) {
+		if (passwordDefinition == null) {
+			return;
+		}
+		ItemPath itemPath = path.append(itemName);
+		int i = 1;
+		for (MappingType inbound : passwordDefinition.getInbound()) {
+			checkMapping(ctx, itemPath.append(ResourcePasswordDefinitionType.F_INBOUND), objectType, itemName, inbound, false, i, true);
+			i++;
+		}
+		if (passwordDefinition.getOutbound() != null) {
+			checkMapping(ctx, itemPath.append(ResourcePasswordDefinitionType.F_OUTBOUND), objectType, itemName, passwordDefinition.getOutbound(), true, 0, true);
+		}
+	}
+
+	private void checkDependencies(ResourceValidationContext ctx, ItemPath path, ResourceObjectTypeDefinitionType objectType) {
+		for (ResourceObjectTypeDependencyType dependency : objectType.getDependency()) {
+			if (dependency.getResourceRef() == null ||
+					(ctx.resourceObject.getOid() != null && ctx.resourceObject.getOid().equals(dependency.getResourceRef().getOid()))) {
+				if (ResourceTypeUtil.findObjectTypeDefinition(ctx.resourceObject, dependency.getKind(), dependency.getIntent()) == null) {
+					ctx.validationResult.add(Issue.Severity.WARNING,
+							CAT_SCHEMA_HANDLING, C_DEPENDENT_OBJECT_TYPE_DOES_NOT_EXIST,
+							getString(CLASS_DOT + C_DEPENDENT_OBJECT_TYPE_DOES_NOT_EXIST, getName(objectType),
+									ResourceTypeUtil.fillDefault(dependency.getKind()) + "/" + ResourceTypeUtil.fillDefault(dependency.getIntent())),
+							ctx.resourceRef, path.append(ResourceObjectTypeDefinitionType.F_DEPENDENCY));
+				}
+			} else {
+				// check in 'remote' resource only if thorough validation is required
+			}
+		}
+	}
+
+	private void checkObjectClassDefinition(ResourceValidationContext ctx, ItemPath path,
+			ResourceObjectTypeDefinitionType objectType, ObjectClassComplexTypeDefinition ocdef) {
+		if (ocdef == null) {
+			ctx.validationResult.add(Issue.Severity.WARNING,
+					CAT_SCHEMA_HANDLING, C_UNKNOWN_OBJECT_CLASS,
+					getString(CLASS_DOT + C_UNKNOWN_OBJECT_CLASS, getName(objectType), objectType.getObjectClass()),
+					ctx.resourceRef, path.append(ResourceObjectTypeDefinitionType.F_OBJECT_CLASS));
+		}
+	}
+
+	private void checkObjectClass(ResourceValidationContext ctx, ItemPath path, ResourceObjectTypeDefinitionType objectType) {
 		if (objectType.getObjectClass() == null) {
 			ctx.validationResult.add(Issue.Severity.ERROR,
 					CAT_SCHEMA_HANDLING, C_MISSING_OBJECT_CLASS,
 					getString(CLASS_DOT + C_MISSING_OBJECT_CLASS, getName(objectType)),
 					ctx.resourceRef, path.append(ResourceObjectTypeDefinitionType.F_OBJECT_CLASS));
-		}
-		ObjectClassComplexTypeDefinition ocdef = null;
-		if (ctx.resourceSchema != null && objectType.getObjectClass() != null) {
-			ocdef = ctx.resourceSchema.findObjectClassDefinition(objectType.getObjectClass());
-			if (ocdef == null) {
-				ctx.validationResult.add(Issue.Severity.WARNING,
-						CAT_SCHEMA_HANDLING, C_UNKNOWN_OBJECT_CLASS,
-						getString(CLASS_DOT + C_UNKNOWN_OBJECT_CLASS, getName(objectType), objectType.getObjectClass()),
-						ctx.resourceRef, path.append(ResourceObjectTypeDefinitionType.F_OBJECT_CLASS));
-			}
-		}
-		int i = 0;
-		for (ResourceAttributeDefinitionType attributeDef : objectType.getAttribute()) {
-			checkSchemaHandlingAttribute(ctx, ocdef, path.append(new ItemPath(ResourceObjectTypeDefinitionType.F_ATTRIBUTE, i)), objectType, attributeDef);
-			i++;
-		}
-		i = 0;
-		for (ResourceObjectAssociationType associationDef : objectType.getAssociation()) {
-			checkSchemaHandlingAssociation(ctx, ocdef, path.append(new ItemPath(ResourceObjectTypeDefinitionType.F_ATTRIBUTE, i)), objectType, associationDef);
-			i++;
 		}
 	}
 
@@ -199,7 +291,7 @@ public class ResourceValidatorImpl implements ResourceValidator {
 			ItemPath path,
 			ResourceObjectTypeDefinitionType objectType, ResourceAttributeDefinitionType attributeDef) {
 		QName ref = itemRefToName(attributeDef.getRef());
-		checkSchemaHandlingItem(ctx, path, attributeDef);
+		checkSchemaHandlingItem(ctx, path, objectType, attributeDef);
 		ResourceAttributeDefinition<?> rad = null;
 		if (ocdef != null) {
 			if (ref != null) {
@@ -214,6 +306,49 @@ public class ResourceValidatorImpl implements ResourceValidator {
 		}
 		checkItemRef(ctx, path, objectType, attributeDef, C_NO_ATTRIBUTE_REF);
 		checkMatchingRule(ctx, path, objectType, attributeDef, ref, rad);
+	}
+
+	private void checkMapping(ResourceValidationContext ctx, ItemPath path, ResourceObjectTypeDefinitionType objectType,
+			QName itemName, MappingType mapping, boolean outbound, int index, boolean implicitSourceOrTarget) {
+		String inOut = outbound ? getString("ResourceValidator.outboundMapping") : getString("ResourceValidator.inboundMapping", index);
+		String itemNameText = PrettyPrinter.prettyPrint(itemName);
+		if (outbound && mapping.getTarget() != null) {
+			ctx.validationResult.add(Issue.Severity.INFO,
+					CAT_SCHEMA_HANDLING, C_SUPERFLUOUS_MAPPING_TARGET,
+					getString(CLASS_DOT + C_SUPERFLUOUS_MAPPING_TARGET, getName(objectType),
+							inOut, itemNameText, format(mapping.getTarget())),
+					ctx.resourceRef, path);
+		}
+		if (!implicitSourceOrTarget && (mapping.getExpression() == null || mapping.getExpression().getExpressionEvaluator().isEmpty() ||
+				(mapping.getExpression().getExpressionEvaluator().size() == 1 &&
+						QNameUtil.match(mapping.getExpression().getExpressionEvaluator().get(0).getName(), SchemaConstantsGenerated.C_AS_IS)))) {
+			if ((outbound && (mapping.getSource() == null || mapping.getSource().isEmpty())) || (!outbound && mapping.getTarget() == null)) {
+				String code = outbound ? C_MISSING_MAPPING_SOURCE : C_MISSING_MAPPING_TARGET;
+				ctx.validationResult.add(Issue.Severity.WARNING,
+						CAT_SCHEMA_HANDLING, code,
+						getString(CLASS_DOT + code, getName(objectType), inOut, itemNameText),
+						ctx.resourceRef, path);
+			}
+		}
+		for (MappingSourceDeclarationType source : mapping.getSource()) {
+			checkItemPath(ctx, path, objectType, itemName, mapping, outbound, index, source.getPath());
+		}
+		if (mapping.getTarget() != null) {
+			checkItemPath(ctx, path, objectType, itemName, mapping, outbound, index, mapping.getTarget().getPath());
+		}
+	}
+
+	private void checkItemPath(ResourceValidationContext ctx, ItemPath path, ResourceObjectTypeDefinitionType objectType,
+			QName itemDef, MappingType mapping, boolean outbound, int index, ItemPathType mappingPath) {
+		// TODO
+	}
+
+	private String format(MappingTargetDeclarationType target) {
+		return target != null ? format(target.getPath()) : "";
+	}
+
+	private String format(ItemPathType path) {
+		return path != null ? path.toString() : "";
 	}
 
 	@Nullable
@@ -239,7 +374,7 @@ public class ResourceValidatorImpl implements ResourceValidator {
 
 	private void checkSchemaHandlingAssociation(ResourceValidationContext ctx, ObjectClassComplexTypeDefinition ocdef, ItemPath path,
 			ResourceObjectTypeDefinitionType objectType, ResourceObjectAssociationType associationDef) {
-		checkSchemaHandlingItem(ctx, path, associationDef);
+		checkSchemaHandlingItem(ctx, path, objectType, associationDef);
 		checkItemRef(ctx, path, objectType, associationDef, C_NO_ASSOCIATION_NAME);
 		checkNotEmpty(ctx, path, objectType, associationDef, associationDef.getKind(), ResourceObjectAssociationType.F_KIND, C_MISSING_ASSOCIATION_TARGET_KIND);
 		checkNotEmpty(ctx, path, objectType, associationDef, associationDef.getIntent(), ResourceObjectAssociationType.F_INTENT, C_MISSING_ASSOCIATION_TARGET_INTENT);
@@ -258,7 +393,21 @@ public class ResourceValidatorImpl implements ResourceValidator {
 				}
 			}
 		}
+		for (String intent : associationDef.getIntent()) {
+			checkAssociationTargetIntent(ctx, path, objectType, associationDef, ref, intent);
+		}
+	}
 
+	private void checkAssociationTargetIntent(ResourceValidationContext ctx, ItemPath path,
+			ResourceObjectTypeDefinitionType objectType, ResourceObjectAssociationType associationDef, QName ref, String intent) {
+		if (ResourceTypeUtil.findObjectTypeDefinition(ctx.resourceObject, associationDef.getKind(), intent) == null) {
+			ctx.validationResult.add(Issue.Severity.WARNING,
+					CAT_SCHEMA_HANDLING, C_TARGET_OBJECT_TYPE_DOES_NOT_EXIST,
+					getString(CLASS_DOT + C_TARGET_OBJECT_TYPE_DOES_NOT_EXIST, getName(objectType),
+							ResourceTypeUtil.fillDefault(associationDef.getKind()) + "/" + ResourceTypeUtil.fillDefault(intent),
+							PrettyPrinter.prettyPrint(ref)),
+					ctx.resourceRef, path);
+		}
 	}
 
 	private void checkNotEmpty(ResourceValidationContext ctx, ItemPath path, ResourceObjectTypeDefinitionType objectType,
@@ -295,7 +444,17 @@ public class ResourceValidatorImpl implements ResourceValidator {
 		}
 	}
 
-	private void checkSchemaHandlingItem(ResourceValidationContext ctx, ItemPath path, ResourceItemDefinitionType itemDef) {
+	private void checkSchemaHandlingItem(ResourceValidationContext ctx, ItemPath path, ResourceObjectTypeDefinitionType objectType,
+			ResourceItemDefinitionType itemDef) {
+		QName itemName = itemRefToName(itemDef.getRef());
+		if (itemDef.getOutbound() != null) {
+			checkMapping(ctx, path.append(ResourceItemDefinitionType.F_OUTBOUND), objectType, itemName, itemDef.getOutbound(), true, 0, false);
+		}
+		int i = 1;
+		for (MappingType inbound : itemDef.getInbound()) {
+			checkMapping(ctx, path.append(new ItemPath(ResourceItemDefinitionType.F_INBOUND, i)), objectType, itemName, inbound, false, i, false);
+			i++;
+		}
 	}
 
 	private void checkSchemaHandlingDuplicateObjectTypes(ResourceValidationContext ctx, SchemaHandlingType schemaHandling) {
@@ -363,6 +522,64 @@ public class ResourceValidatorImpl implements ResourceValidator {
 		}
 	}
 
+	private void checkObjectSynchronization(ResourceValidationContext ctx, ItemPath path, ObjectSynchronizationType objectSync) {
+		Map<SynchronizationSituationType,Integer> counts = new HashMap<>();
+		for (SynchronizationReactionType reaction : objectSync.getReaction()) {
+			if (reaction.getSituation() == null) {
+				ctx.validationResult.add(Issue.Severity.WARNING, CAT_SYNCHRONIZATION, C_NO_SITUATION,
+						getString(CLASS_DOT + C_NO_SITUATION, getName(objectSync)),
+						ctx.resourceRef, path);
+			} else {
+				Integer c = counts.get(reaction.getSituation());
+				counts.put(reaction.getSituation(), c != null ? c+1 : 1);
+			}
+		}
+		checkMissingReactions(ctx, path, objectSync, counts, Arrays.asList(UNLINKED, UNMATCHED));
+		checkDuplicateReactions(ctx, path, objectSync, counts);
+	}
+
+	private void checkDuplicateReactions(ResourceValidationContext ctx, ItemPath path, ObjectSynchronizationType objectSync,
+			Map<SynchronizationSituationType, Integer> counts) {
+		List<SynchronizationSituationType> duplicates = new ArrayList<>();
+		for (Map.Entry<SynchronizationSituationType, Integer> entry : counts.entrySet()) {
+			if (entry.getValue() > 1) {
+				duplicates.add(entry.getKey());
+			}
+		}
+		if (!duplicates.isEmpty()) {
+			ctx.validationResult.add(Issue.Severity.WARNING, CAT_SYNCHRONIZATION, C_DUPLICATE_REACTIONS,
+					getString(CLASS_DOT + C_DUPLICATE_REACTIONS, getName(objectSync), String.valueOf(duplicates)),
+					ctx.resourceRef, path);
+		}
+	}
+
+	private void checkMissingReactions(ResourceValidationContext ctx, ItemPath path, ObjectSynchronizationType objectSync,
+			Map<SynchronizationSituationType, Integer> counts, Collection<SynchronizationSituationType> situations) {
+		List<SynchronizationSituationType> missing = new ArrayList<>(situations);
+		missing.removeAll(counts.keySet());
+		if (!missing.isEmpty()) {
+			ctx.validationResult.add(Issue.Severity.WARNING, CAT_SYNCHRONIZATION, C_NO_REACTION,
+					getString(CLASS_DOT + C_NO_REACTION, getName(objectSync), String.valueOf(missing)),
+					ctx.resourceRef, path);
+		}
+	}
+
+	private String getName(ObjectSynchronizationType objectSync) {
+		StringBuilder sb = new StringBuilder();
+		if (objectSync.getName() != null) {
+			sb.append(objectSync.getName());
+			sb.append(" (");
+		}
+		sb.append("kind: ");
+		sb.append(ResourceTypeUtil.fillDefault(objectSync.getKind()));
+		sb.append(", intent: ");
+		sb.append(ResourceTypeUtil.fillDefault(objectSync.getIntent()));
+		if (objectSync.getName() != null) {
+			sb.append(")");
+		}
+		return sb.toString();
+	}
+
 	private String getName(ResourceObjectTypeDefinitionType objectType) {
 		StringBuilder sb = new StringBuilder();
 		if (objectType.getDisplayName() != null) {
@@ -370,9 +587,9 @@ public class ResourceValidatorImpl implements ResourceValidator {
 			sb.append(" (");
 		}
 		sb.append("kind: ");
-		sb.append(objectType.getKind() != null ? objectType.getKind() : ShadowKindType.ACCOUNT);
+		sb.append(ResourceTypeUtil.fillDefault(objectType.getKind()));
 		sb.append(", intent: ");
-		sb.append(objectType.getIntent() != null ? objectType.getIntent() : SchemaConstants.INTENT_DEFAULT);
+		sb.append(ResourceTypeUtil.fillDefault(objectType.getIntent()));
 		if (objectType.getDisplayName() != null) {
 			sb.append(")");
 		}
