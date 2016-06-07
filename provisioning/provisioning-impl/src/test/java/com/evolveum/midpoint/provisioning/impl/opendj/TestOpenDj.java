@@ -417,6 +417,15 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		assertTrue("No cn read", cnDef.canRead());
 		assertEquals("Wrong cn matching rule", StringIgnoreCaseMatchingRule.NAME, cnDef.getMatchingRuleQName());
 		
+		ResourceAttributeDefinition<byte[]> jpegPhoto = accountDef.findAttributeDefinition("jpegPhoto");
+		assertNotNull("No definition for jpegPhoto", jpegPhoto);
+		assertEquals(-1, jpegPhoto.getMaxOccurs());
+		assertEquals(0, jpegPhoto.getMinOccurs());
+		assertTrue("No jpegPhoto create", jpegPhoto.canAdd());
+		assertTrue("No jpegPhoto update", jpegPhoto.canModify());
+		assertTrue("No jpegPhoto read", jpegPhoto.canRead());
+		assertEquals("Wrong jpegPhoto matching rule", null, jpegPhoto.getMatchingRuleQName());
+		
 		ResourceAttributeDefinition<String> dsDef = accountDef.findAttributeDefinition("ds-pwp-account-disabled");
 		assertNotNull("No definition for ds-pwp-account-disabled", dsDef);
 		assertEquals(1, dsDef.getMaxOccurs());
