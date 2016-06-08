@@ -14,15 +14,31 @@
   ~ limitations under the License.
   -->
 
-<role oid="3931573a-2d85-11e6-8ac1-3c970e44b9e2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<role oid="4115e6be-2d85-11e6-bef5-3c970e44b9e2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+		xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
-    <name>CSV File</name>    
-    <description>Role to create normal account on CSV File target resource.</description>
+    <name>CSV File - Basic Groups</name>    
+    <description>Role to create normal account on CSV File target resource and to assign basic groups.</description>
     <inducement>
     	<construction>
     		<!-- The c: prefix in type must be there due to a JAXB bug -->
     		<resourceRef oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3fafe" type="c:ResourceType"/>
+    		<attribute>
+                    <ref>ri:groups</ref>
+                    <outbound>
+			<strength>strong</strength>
+<!-- To apply when reconciling/recomputing -->
+                    	<expression>
+	                        <value>Essential Documents</value>
+	                        <value>Meals</value>
+	                        <value>Travelling</value>
+	                        <value>North Gate Access</value>
+	                        <value>South Gate Access</value>
+	                        <value>Parking B2</value>
+	                </expression>
+	            </outbound>
+            </attribute>    		
     	</construction>
     </inducement>    
 </role>
