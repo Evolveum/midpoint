@@ -35,6 +35,7 @@ import com.evolveum.midpoint.web.component.wizard.Wizard;
 import com.evolveum.midpoint.web.component.wizard.WizardStep;
 import com.evolveum.midpoint.web.component.wizard.resource.*;
 import com.evolveum.midpoint.web.page.error.PageError;
+import com.evolveum.midpoint.web.util.MidPointPageParametersEncoder;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import org.apache.wicket.RestartResponseException;
@@ -54,7 +55,7 @@ import java.util.Iterator;
 /**
  * @author lazyman
  */
-@PageDescriptor(url = "/admin/resources/wizard", encoder = OnePageParameterEncoder.class, action = {
+@PageDescriptor(url = "/admin/resources/wizard", encoder = MidPointPageParametersEncoder.class, action = {
         @AuthorizationAction(actionUri = PageAdminResources.AUTH_RESOURCE_ALL,
             label = PageAdminResources.AUTH_RESOURCE_ALL_LABEL,
             description = PageAdminResources.AUTH_RESOURCE_ALL_DESCRIPTION),
@@ -64,6 +65,9 @@ import java.util.Iterator;
 public class PageResourceWizard extends PageAdminResources {
 
     private static final String ID_WIZARD = "wizard";
+	public static final String PARAM_OID = "oid";
+	public static final String PARAM_CONFIG_ONLY = "configOnly";
+	public static final String PARAM_READ_ONLY = "readOnly";
 
 	// these models should be reset after each 'save' operation, in order to fetch current data (on demand)
 	// each step should use corresponding model

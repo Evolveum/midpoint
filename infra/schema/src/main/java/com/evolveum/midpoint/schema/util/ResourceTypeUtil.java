@@ -595,12 +595,25 @@ public class ResourceTypeUtil {
 		return intent != null ? intent : SchemaConstants.INTENT_DEFAULT;
 	}
 
-	public static ResourceObjectTypeDefinitionType findObjectTypeDefinition(PrismObject<ResourceType> resourceObject, ShadowKindType kind,
-			String intent) {
+	public static ResourceObjectTypeDefinitionType findObjectTypeDefinition(PrismObject<ResourceType> resourceObject, @Nullable ShadowKindType kind,
+			@Nullable String intent) {
 		if (resourceObject == null || resourceObject.asObjectable().getSchemaHandling() == null) {
 			return null;
 		}
 		for (ResourceObjectTypeDefinitionType def : resourceObject.asObjectable().getSchemaHandling().getObjectType()) {
+			if (fillDefault(kind).equals(fillDefault(def.getKind())) && fillDefault(intent).equals(fillDefault(def.getIntent()))) {
+				return def;
+			}
+		}
+		return null;
+	}
+
+	@Nullable
+	public static ObjectSynchronizationType findObjectSynchronization(@Nullable ResourceType resource, @Nullable ShadowKindType kind, @Nullable String intent) {
+		if (resource == null || resource.getSynchronization() == null) {
+			return null;
+		}
+		for (ObjectSynchronizationType def : resource.getSynchronization().getObjectSynchronization()) {
 			if (fillDefault(kind).equals(fillDefault(def.getKind())) && fillDefault(intent).equals(fillDefault(def.getIntent()))) {
 				return def;
 			}

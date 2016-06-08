@@ -21,12 +21,14 @@ import com.evolveum.midpoint.model.api.validator.Issue;
 import com.evolveum.midpoint.model.api.validator.ResourceValidator;
 import com.evolveum.midpoint.model.api.validator.Scope;
 import com.evolveum.midpoint.model.api.validator.ValidationResult;
+import com.evolveum.midpoint.model.impl.util.DataModelUtil;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
+import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
@@ -49,6 +51,7 @@ import javax.xml.namespace.QName;
 import java.text.MessageFormat;
 import java.util.*;
 
+import static com.evolveum.midpoint.schema.util.ResourceTypeUtil.fillDefault;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSituationType.*;
 
 /**
@@ -230,7 +233,7 @@ public class ResourceValidatorImpl implements ResourceValidator {
 					ctx.validationResult.add(Issue.Severity.WARNING,
 							CAT_SCHEMA_HANDLING, C_DEPENDENT_OBJECT_TYPE_DOES_NOT_EXIST,
 							getString(CLASS_DOT + C_DEPENDENT_OBJECT_TYPE_DOES_NOT_EXIST, getName(objectType),
-									ResourceTypeUtil.fillDefault(dependency.getKind()) + "/" + ResourceTypeUtil.fillDefault(dependency.getIntent())),
+									fillDefault(dependency.getKind()) + "/" + fillDefault(dependency.getIntent())),
 							ctx.resourceRef, path.append(ResourceObjectTypeDefinitionType.F_DEPENDENCY));
 				}
 			} else {
@@ -331,16 +334,42 @@ public class ResourceValidatorImpl implements ResourceValidator {
 			}
 		}
 		for (MappingSourceDeclarationType source : mapping.getSource()) {
-			checkItemPath(ctx, path, objectType, itemName, mapping, outbound, index, source.getPath());
+			checkItemPath(ctx, path, objectType, itemName, mapping, outbound, itemNameText, true, index, source.getPath());
 		}
 		if (mapping.getTarget() != null) {
-			checkItemPath(ctx, path, objectType, itemName, mapping, outbound, index, mapping.getTarget().getPath());
+			checkItemPath(ctx, path, objectType, itemName, mapping, outbound, itemNameText, false, index, mapping.getTarget().getPath());
 		}
 	}
 
 	private void checkItemPath(ResourceValidationContext ctx, ItemPath path, ResourceObjectTypeDefinitionType objectType,
-			QName itemDef, MappingType mapping, boolean outbound, int index, ItemPathType mappingPath) {
-		// TODO
+			QName itemDef, MappingType mapping, boolean outbound, String itemNameText, boolean isSource, int index, @Nullable ItemPathType mappingPath) {
+		if (mappingPath == null) {
+			return;
+		}
+		DataModelUtil.PathResolutionContext pctx = new DataModelUtil.ResourceResolutionContext(prismContext, ExpressionConstants.VAR_FOCUS,
+				ctx.resourceObject.asObjectable(), fillDefault(objectType.getKind()), fillDefault(objectType.getIntent()));
+		DataModelUtil.PathResolutionResult result = DataModelUtil.resolvePath(mappingPath.getItemPath(), pctx);
+		if (result == null) {
+			// i.e. not implemented -> no reports
+		} else if (result.getDefinition() != null) {
+			// definition found => OK (ignoring any potential issues found)
+		} else {
+			String code = isSource ? C_INVALID_MAPPING_SOURCE : C_INVALID_MAPPING_TARGET;
+			String inOut = outbound ? getString("ResourceValidator.outboundMapping") : getString("ResourceValidator.inboundMapping", index);
+			Issue.Severity severity = Issue.getSeverity(result.getIssues());
+			if (severity == null) {
+				severity = Issue.Severity.INFO;
+			}
+			StringBuilder sb = new StringBuilder();
+			boolean first = true;
+			for (Issue issue : result.getIssues()) {
+				if (first) first = false; else sb.append("; ");
+				sb.append(issue.getText());
+			}
+			ctx.validationResult.add(severity, CAT_SCHEMA_HANDLING, code,
+					getString(CLASS_DOT + code, getName(objectType), inOut, itemNameText, sb.toString()),
+					ctx.resourceRef, path);
+		}
 	}
 
 	private String format(MappingTargetDeclarationType target) {
@@ -404,7 +433,7 @@ public class ResourceValidatorImpl implements ResourceValidator {
 			ctx.validationResult.add(Issue.Severity.WARNING,
 					CAT_SCHEMA_HANDLING, C_TARGET_OBJECT_TYPE_DOES_NOT_EXIST,
 					getString(CLASS_DOT + C_TARGET_OBJECT_TYPE_DOES_NOT_EXIST, getName(objectType),
-							ResourceTypeUtil.fillDefault(associationDef.getKind()) + "/" + ResourceTypeUtil.fillDefault(intent),
+							fillDefault(associationDef.getKind()) + "/" + fillDefault(intent),
 							PrettyPrinter.prettyPrint(ref)),
 					ctx.resourceRef, path);
 		}
@@ -471,7 +500,7 @@ public class ResourceValidatorImpl implements ResourceValidator {
 		int defAccount = 0, defEntitlement = 0, defGeneric = 0;
 		for (ResourceObjectTypeDefinitionType def : schemaHandling.getObjectType()) {
 			if (Boolean.TRUE.equals(def.isDefault())) {
-				switch (ResourceTypeUtil.fillDefault(def.getKind())) {
+				switch (fillDefault(def.getKind())) {
 					case ACCOUNT:
 						defAccount++;
 						break;
@@ -558,7 +587,7 @@ public class ResourceValidatorImpl implements ResourceValidator {
 		List<SynchronizationSituationType> missing = new ArrayList<>(situations);
 		missing.removeAll(counts.keySet());
 		if (!missing.isEmpty()) {
-			ctx.validationResult.add(Issue.Severity.WARNING, CAT_SYNCHRONIZATION, C_NO_REACTION,
+			ctx.validationResult.add(Issue.Severity.INFO, CAT_SYNCHRONIZATION, C_NO_REACTION,
 					getString(CLASS_DOT + C_NO_REACTION, getName(objectSync), String.valueOf(missing)),
 					ctx.resourceRef, path);
 		}
@@ -571,9 +600,9 @@ public class ResourceValidatorImpl implements ResourceValidator {
 			sb.append(" (");
 		}
 		sb.append("kind: ");
-		sb.append(ResourceTypeUtil.fillDefault(objectSync.getKind()));
+		sb.append(fillDefault(objectSync.getKind()));
 		sb.append(", intent: ");
-		sb.append(ResourceTypeUtil.fillDefault(objectSync.getIntent()));
+		sb.append(fillDefault(objectSync.getIntent()));
 		if (objectSync.getName() != null) {
 			sb.append(")");
 		}
@@ -587,9 +616,9 @@ public class ResourceValidatorImpl implements ResourceValidator {
 			sb.append(" (");
 		}
 		sb.append("kind: ");
-		sb.append(ResourceTypeUtil.fillDefault(objectType.getKind()));
+		sb.append(fillDefault(objectType.getKind()));
 		sb.append(", intent: ");
-		sb.append(ResourceTypeUtil.fillDefault(objectType.getIntent()));
+		sb.append(fillDefault(objectType.getIntent()));
 		if (objectType.getDisplayName() != null) {
 			sb.append(")");
 		}

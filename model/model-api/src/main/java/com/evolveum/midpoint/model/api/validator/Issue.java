@@ -22,6 +22,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.Serializable;
+import java.util.List;
 
 /**
  * @author mederly
@@ -30,6 +31,10 @@ public class Issue implements Serializable {
 
 	public enum Severity {	// ordered from most to least severe
 		ERROR, WARNING, INFO;
+
+		public boolean isAtLeast(@NotNull Severity other) {
+			return ordinal() <= other.ordinal();
+		}
 	}
 
 	@NotNull private final Severity severity;
@@ -39,7 +44,8 @@ public class Issue implements Serializable {
 	@Nullable private final ObjectReferenceType objectRef;
 	@Nullable private final ItemPath itemPath;
 
-	Issue(@NotNull Severity severity, @NotNull String category, @NotNull String code, @NotNull String text, ObjectReferenceType objectRef, ItemPath itemPath) {
+	public Issue(@NotNull Severity severity, @NotNull String category, @NotNull String code, @NotNull String text, ObjectReferenceType objectRef,
+			ItemPath itemPath) {
 		this.severity = severity;
 		this.category = category;
 		this.code = code;
@@ -79,6 +85,17 @@ public class Issue implements Serializable {
 	}
 
 	public boolean hasSeverityAtLeast(@NotNull Severity severity) {
-		return this.severity.ordinal() <= severity.ordinal();
+		return this.severity.isAtLeast(severity);
+	}
+
+	@Nullable
+	public static Severity getSeverity(List<Issue> issues) {
+		Severity max = null;
+		for (Issue issue : issues) {
+			if (max == null || issue.getSeverity().isAtLeast(max)) {
+				max = issue.getSeverity();
+			}
+		}
+		return max;
 	}
 }

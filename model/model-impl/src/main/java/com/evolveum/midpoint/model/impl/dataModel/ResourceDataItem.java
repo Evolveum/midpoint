@@ -121,6 +121,16 @@ public class ResourceDataItem extends DataItem {
 		return "\"" + getResourceName() + ":" + ctx.getObjectTypeName(getRefinedObjectClassDefinition()) + ":" + itemName.getLocalPart() + "\"";
 	}
 
+	@Override
+	public String getNodeLabel() {
+		return "TODO";
+	}
+
+	@Override
+	public String getNodeStyleAttributes() {
+		return "TODO";
+	}
+
 	@NotNull
 	public String getResourceName() {
 		PolyString name = ctx.getResource(resourceOid).getName();
