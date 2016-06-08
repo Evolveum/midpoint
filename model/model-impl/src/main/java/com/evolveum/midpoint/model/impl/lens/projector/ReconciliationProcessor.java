@@ -390,8 +390,10 @@ public class ReconciliationProcessor {
 //			LOGGER.trace("Attribute reconciliation processing attribute {}",attrName);
 		RefinedAttributeDefinition<T> attributeDefinition = projCtx.findAttributeDefinition(attrName);
 		if (attributeDefinition == null) {
-			throw new SchemaException("No definition for attribute " + attrName + " in "
-					+ projCtx.getResourceShadowDiscriminator());
+			String msg = "No definition for attribute " + attrName + " in "
+					+ projCtx.getResourceShadowDiscriminator();
+//			LOGGER.error("{}, structuralOC:\n{}", msg, projCtx.getStructuralObjectClassDefinition().debugDump());
+			throw new SchemaException(msg);
 		}
 
 		DeltaSetTriple<ItemValueWithOrigin<PrismPropertyValue<T>,PrismPropertyDefinition<T>>> pvwoTriple = 

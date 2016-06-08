@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -415,9 +415,43 @@ public class GetOperationOptions implements Serializable, Cloneable {
 
 	@Override
 	public String toString() {
-		return "GetOperationOptions(resolve=" + resolve + ", resolveNames=" + resolveNames + ",noFetch=" + noFetch
-				+ ", raw=" + raw + ", doNotDiscovery="+doNotDiscovery+", retrieve="+retrieve+", allowNotFound="+ allowNotFound 
-				+", relationalValueSearchQuery="+relationalValueSearchQuery+")";
+		StringBuilder sb = new StringBuilder("GetOperationOptions(");
+		appendFlag(sb, "resolve", resolve);
+		appendFlag(sb, "resolveNames", resolveNames);
+		appendFlag(sb, "noFetch", noFetch);
+		appendFlag(sb, "raw", raw);
+		appendFlag(sb, "doNotDiscovery", doNotDiscovery);
+		appendVal(sb, "retrieve", retrieve);
+		appendFlag(sb, "allowNotFound", allowNotFound);
+		appendVal(sb, "relationalValueSearchQuery", relationalValueSearchQuery);
+		if (sb.charAt(sb.length() - 1) == ',') {
+			sb.deleteCharAt(sb.length() - 1);
+		}
+		sb.append(")");
+		return sb.toString();
+	}
+
+	private void appendFlag(StringBuilder sb, String name, Boolean val) {
+		if (val == null) {
+			return;
+		} else if (val) {
+			sb.append(name);
+			sb.append(",");
+		} else {
+			sb.append(name);
+			sb.append("=false,");
+		}
+	}
+	
+	private void appendVal(StringBuilder sb, String name, Object val) {
+		if (val == null) {
+			return;
+		} else {
+			sb.append(name);
+			sb.append("=");
+			sb.append(val);
+			sb.append(",");
+		}
 	}
 
 }

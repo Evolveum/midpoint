@@ -1162,17 +1162,17 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		if (icfConnectorFacade == null) {
 			result.recordFatalError("Attempt to use unconfigured connector");
 			throw new IllegalStateException("Attempt to use unconfigured connector "
-					+ ObjectTypeUtil.toShortString(connectorType));
+					+ ObjectTypeUtil.toShortString(connectorType) + " " + description);
 		}
 
 		// Get UID from the set of identifiers
 		Uid uid = getUid(objectClassDefinition, identifiers);
 		if (uid == null) {
 			result.recordFatalError("Required attribute UID not found in identification set while attempting to fetch object identified by "
-					+ identifiers + " from " + ObjectTypeUtil.toShortString(connectorType));
+					+ identifiers + " from " + description);
 			throw new IllegalArgumentException(
 					"Required attribute UID not found in identification set while attempting to fetch object identified by "
-							+ identifiers + " from " + ObjectTypeUtil.toShortString(connectorType));
+							+ identifiers + " from " + description);
 		}
 
 		ObjectClass icfObjectClass = icfNameMapper.objectClassToIcf(objectClassDefinition, getSchemaNamespace(), connectorType, legacySchema);
@@ -1180,11 +1180,11 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			result.recordFatalError("Unable to determine object class from QName "
 					+ objectClassDefinition.getTypeName()
 					+ " while attempting to fetch object identified by " + identifiers + " from "
-					+ ObjectTypeUtil.toShortString(connectorType));
+					+ description);
 			throw new IllegalArgumentException("Unable to determine object class from QName "
 					+ objectClassDefinition.getTypeName()
 					+ " while attempting to fetch object identified by " + identifiers + " from "
-					+ ObjectTypeUtil.toShortString(connectorType));
+					+ description);
 		}
 		
 		OperationOptionsBuilder optionsBuilder = new OperationOptionsBuilder();
@@ -1217,8 +1217,8 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			throw ex;
 		} catch (ObjectNotFoundException ex) {
 			result.recordFatalError("Object not found");
-			throw new ObjectNotFoundException("Object identified by " + identifiers + " (ConnId UID "+uid+"), objectClass " + objectClassDefinition.getTypeName() + "  was not found by "
-					+ connectorType);
+			throw new ObjectNotFoundException("Object identified by " + identifiers + " (ConnId UID "+uid+"), objectClass " + objectClassDefinition.getTypeName() + "  was not found in "
+					+ description);
 		} catch (SchemaException ex) {
 			result.recordFatalError(ex);
 			throw ex;
@@ -1229,8 +1229,8 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 
 		if (co == null) {
 			result.recordFatalError("Object not found");
-			throw new ObjectNotFoundException("Object identified by " + identifiers + " (ConnId UID "+uid+"), objectClass " + objectClassDefinition.getTypeName() + " was not found by "
-					+ connectorType);
+			throw new ObjectNotFoundException("Object identified by " + identifiers + " (ConnId UID "+uid+"), objectClass " + objectClassDefinition.getTypeName() + " was not in "
+					+ description);
 		}
 
 		PrismObjectDefinition<T> shadowDefinition = toShadowDefinition(objectClassDefinition);

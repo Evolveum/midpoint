@@ -30,6 +30,7 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -52,6 +53,7 @@ import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
+import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
@@ -905,6 +907,29 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 			}
     	}
     }
+	
+	@Override
+	protected void checkConsistence(PrismObject<ShadowType> object, String elementDesc, String contextDesc) {
+		super.checkConsistence(object, elementDesc, contextDesc);
+		ResourceAttributeContainer attributesContainer = ShadowUtil.getAttributesContainer(object);
+    	if (attributesContainer != null) {
+    		ResourceType resource = getResource();
+    		if (resource != null) {
+	    		String resourceNamespace = ResourceTypeUtil.getResourceNamespace(resource);
+	    		for(ResourceAttribute<?> attribute: attributesContainer.getAttributes()) {
+	    			QName attrName = attribute.getElementName();
+	    			if (SchemaConstants.NS_ICF_SCHEMA.equals(attrName.getNamespaceURI())) {
+	    				continue;
+	    			}
+	    			if (resourceNamespace.equals(attrName.getNamespaceURI())) {
+	    				continue;
+	    			}
+	    			String desc = elementDesc+" in "+this + (contextDesc == null ? "" : " in " +contextDesc);
+	    			throw new IllegalStateException("Invalid namespace for attribute "+attrName+" in "+desc);
+	    		}
+    		}
+    	}
+	}
 	
 	protected boolean isRequireSecondardyDeltaOid() {
 		if (synchronizationPolicyDecision == SynchronizationPolicyDecision.ADD ||
