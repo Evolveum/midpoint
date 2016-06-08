@@ -136,8 +136,8 @@ public class WizardButtonBar extends Panel implements IDefaultButtonProvider {
 	}
 
 	private void couldntSave() {
-		// we should't come here
-		error("Fix the indicated errors first.");
+		// we should't come here but ... might happen if 'issues' window is not up-to-date
+		error(getString("Wizard.correctErrorsFirst"));
 		getPage().setResponsePage(getPage());
 	}
 

@@ -785,11 +785,12 @@ public class SchemaHandlingStep extends WizardStep {
 
     @Override
     public void applyState() {
-		if (isComplete()) {
-			savePerformed();
-			insertEmptyThirdRow();          // otherwise the original 3rd column would be displayed after returning to the page
-											// (but without 2nd column)
+		if (parentPage.isReadOnly() || !isComplete()) {
+			return;
 		}
+		savePerformed();
+		insertEmptyThirdRow();          // otherwise the original 3rd column would be displayed after returning to the page
+										// (but without 2nd column)
     }
 
     private void savePerformed() {

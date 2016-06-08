@@ -206,8 +206,9 @@ public class Wizard extends BasePanel<IWizardModel> implements IWizardModelListe
 
     @Override
     public void onCancel() {
-        setResponsePage(new PageResources(false));
-        warn(getString("Wizard.message.cancel"));
+		getPageBase().redirectBack();
+        //setResponsePage(new PageResources(false));
+        //warn(getString("Wizard.message.cancel"));
     }
 
     @Override
@@ -223,7 +224,8 @@ public class Wizard extends BasePanel<IWizardModel> implements IWizardModelListe
             }
         }
 
-        setResponsePage(new PageResources(false));
+        //setResponsePage(new PageResources(false));
+		getPageBase().redirectBack();
     }
 
     private void changeStep(AjaxRequestTarget target, WizardStepDto dto){

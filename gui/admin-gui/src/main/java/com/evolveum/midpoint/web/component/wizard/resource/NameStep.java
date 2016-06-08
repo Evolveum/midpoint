@@ -425,6 +425,10 @@ public class NameStep extends WizardStep {
 
     @Override
     public void applyState() {
+		if (parentPage.isReadOnly() || !isComplete()) {
+			return;
+		}
+
 		PrismContext prismContext = parentPage.getPrismContext();
         Task task = parentPage.createSimpleTask(OPERATION_SAVE_RESOURCE);
         OperationResult result = task.getResult();

@@ -213,7 +213,7 @@ public class CapabilityStep extends WizardStep {
 				deleteLink.add(new VisibleEnableBehaviour() {
 					@Override
 					public boolean isVisible() {
-						return !dto.isAmongNativeCapabilities();
+						return !dto.isAmongNativeCapabilities() && !parentPage.isReadOnly();
 					}
 				});
                 name.add(deleteLink);
@@ -355,7 +355,9 @@ public class CapabilityStep extends WizardStep {
 
     @Override
     public void applyState() {
-		super.applyState();
+		if (parentPage.isReadOnly() || !isComplete()) {
+			return;
+		}
 		savePerformed();
     }
 

@@ -651,7 +651,10 @@ public class SynchronizationStep extends WizardStep {
 
     @Override
     public void applyState() {
-        savePerformed();
+		if (parentPage.isReadOnly() || !isComplete()) {
+			return;
+		}
+		savePerformed();
 		insertEmptyThirdRow();
 	}
 
