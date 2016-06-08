@@ -140,6 +140,8 @@ public class PrismValuePanel extends Panel {
             feedback.setFilter(new ComponentFeedbackMessageFilter(input));
         } else if (input instanceof ValueChoosePanel) {
             feedback.setFilter(new ComponentFeedbackMessageFilter(input));
+        } else if (input instanceof AssociationValueChoicePanel){
+            feedback.setFilter(new ComponentFeedbackMessageFilter(((AssociationValueChoicePanel) input).getTextComponent()));
         }
         valueContainer.add(input);
 
