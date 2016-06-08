@@ -20,10 +20,11 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.impl.dataModel.DataModelVisualizer;
 import com.evolveum.midpoint.schema.ProvisioningDiag;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.api.SecurityEnforcer;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -45,9 +46,6 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.RandomString;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
@@ -63,7 +61,8 @@ public class ModelDiagController implements ModelDiagnosticService {
 	
 	public static final String CLASS_NAME_WITH_DOT = ModelDiagController.class.getName() + ".";
 	private static final String REPOSITORY_SELF_TEST_USER = CLASS_NAME_WITH_DOT + "repositorySelfTest.user";
-	
+	private static final String EXPORT_DATA_MODEL = CLASS_NAME_WITH_DOT + "exportDataModel";
+
 	private static final String NAME_PREFIX = "selftest";
 	private static final int NAME_RANDOM_LENGTH = 5;
 	
@@ -77,6 +76,8 @@ public class ModelDiagController implements ModelDiagnosticService {
 	
 	private static final Trace LOGGER = TraceManager.getTrace(ModelDiagController.class);
 
+	@Autowired
+	private DataModelVisualizer dataModelVisualizer;
 	
 	@Autowired(required = true)
 	private PrismContext prismContext;
@@ -467,4 +468,17 @@ public class ModelDiagController implements ModelDiagnosticService {
 		return prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(type);
 	}
 
+	@Override
+	public String exportDataModel(Collection<String> resourceOids, Task task, OperationResult parentResult)
+			throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, SecurityViolationException {
+		OperationResult result = parentResult.createSubresult(EXPORT_DATA_MODEL);
+		try {
+			String rv = dataModelVisualizer.visualize(resourceOids, task, result);
+			result.computeStatusIfUnknown();
+			return rv;
+		} catch(Throwable t) {
+			result.recordFatalError(t.getMessage(), t);
+			throw t;
+		}
+	}
 }
