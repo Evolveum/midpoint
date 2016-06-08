@@ -969,8 +969,9 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		openDJController.delete(dn);
 		
 		PrismObject<ShadowType> repoShadowBefore = repositoryService.getObject(ShadowType.class, accountShadowOid, null, result);
+		assertNotNull("Repo shadow is gone!", repoShadowBefore);
 		display("Repository shadow before", repoShadowBefore);
-		assertFalse("Oh my! Shadow is dead!", repoShadowBefore.asObjectable().isDead());
+		assertTrue("Oh my! Shadow is dead!", repoShadowBefore.asObjectable().isDead() != Boolean.TRUE);
 		
 		// WHEN
 		TestUtil.displayWhen(TEST_NAME);
