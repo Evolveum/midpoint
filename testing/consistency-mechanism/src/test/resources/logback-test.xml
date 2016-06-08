@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2013 Evolveum
+  ~ Copyright (c) 2010-2016 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -17,7 +17,6 @@
 
 <configuration>
 
-
 	<appender name="X" class="ch.qos.logback.core.FileAppender">
 		<file>./target/test.log</file>
 		<encoder>
@@ -25,11 +24,14 @@
 			<pattern>%date [%thread] %-5level [%X{subsystem}]\(%logger{46}\): %message%n</pattern>
 		</encoder>
 	</appender>
+
+	<logger name="com.evolveum.midpoint.testing.consistency" level="TRACE" />
+	<logger name="com.evolveum.midpoint.test" level="TRACE" />
     
     <logger name="com.evolveum.midpoint.util.ClassPathUtil" level="INFO"/>
 	<logger name="org.springframework" level="WARN" />
 	<logger name="com.evolveum.midpoint" level="DEBUG" />
-	<logger name="com.evolveum.midpoint.provisioning" level="TRACE" />
+	<logger name="com.evolveum.midpoint.provisioning" level="DEBUG" />
 	<logger name="com.evolveum.midpoint.provisioning.impl.ResourceManager" level="DEBUG" />
 	<logger name="com.evolveum.midpoint.provisioning.ucf" level="DEBUG" />
 	<logger name="com.evolveum.midpoint.model" level="DEBUG" />
@@ -47,8 +49,6 @@
 	<!-- Projector traces are just too much info. DEBUG is enough. Also, clockwork will dump the context at important points. -->
 	<logger name="com.evolveum.midpoint.model.impl.lens.projector" level="TRACE" />
 	
-	<logger name="com.evolveum.midpoint.testing.consistency" level="TRACE" />
-	<logger name="com.evolveum.midpoint.test" level="TRACE" />
 	<logger name="PROFILING" level="OFF" />
 	<root level="WARN">
 		<appender-ref ref="X" />
