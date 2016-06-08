@@ -217,7 +217,7 @@ public class PageResource extends PageAdminResources {
 
 	private void startWizard(boolean configOnly, boolean readOnly) {
 		PageParameters parameters = new PageParameters();
-		parameters.add(PageResourceWizard.PARAM_OID, resourceModel.getObject().getOid());
+		parameters.add(OnePageParameterEncoder.PARAMETER, resourceModel.getObject().getOid());		// compatibility with PageAdminResources
 		parameters.add(PageResourceWizard.PARAM_CONFIG_ONLY, configOnly);
 		parameters.add(PageResourceWizard.PARAM_READ_ONLY, readOnly);
 		setResponsePage(new PageResourceWizard(parameters));

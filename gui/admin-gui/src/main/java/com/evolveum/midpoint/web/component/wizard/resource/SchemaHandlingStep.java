@@ -73,6 +73,8 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
+import static com.evolveum.midpoint.schema.util.ResourceTypeUtil.fillDefault;
+
 /**
  *  @author lazyman
  *  @author shood
@@ -226,6 +228,7 @@ public class SchemaHandlingStep extends WizardStep {
                         deleteObjectTypePerformed(target, objectType);
                     }
                 };
+				parentPage.addEditingVisibleBehavior(delete);
                 link.add(delete);
 
                 item.add(AttributeModifier.replace("class", new AbstractReadOnlyModel<String>() {
@@ -255,6 +258,7 @@ public class SchemaHandlingStep extends WizardStep {
 				target.add(parentPage.getFeedbackPanel());
 			}
         };
+		parentPage.addEditingVisibleBehavior(add);
         add(add);
 
         initObjectTypeEditor(objectTypeEditor);
@@ -303,20 +307,24 @@ public class SchemaHandlingStep extends WizardStep {
                 WebComponentUtil.createReadonlyModelFromEnum(ShadowKindType.class),
                 new EnumChoiceRenderer<ShadowKindType>(this));
 		editorKind.add(new UpdateNamesBehaviour());
-        editor.add(editorKind);
+		parentPage.addEditingEnabledBehavior(editorKind);
+		editor.add(editorKind);
 
         TextField editorIntent = new TextField<>(ID_EDITOR_INTENT, new PropertyModel<String>(schemaHandlingDtoModel,
 				getExpression(ResourceObjectTypeDefinitionType.F_INTENT)));
 		editorIntent.add(new UpdateNamesBehaviour());
+		parentPage.addEditingEnabledBehavior(editorIntent);
         editor.add(editorIntent);
 
         TextField editorDisplayName = new TextField<>(ID_EDITOR_DISPLAY_NAME, new PropertyModel<String>(schemaHandlingDtoModel,
 				getExpression(ResourceObjectTypeDefinitionType.F_DISPLAY_NAME)));
 		editorDisplayName.add(new UpdateNamesBehaviour());
+		parentPage.addEditingEnabledBehavior(editorDisplayName);
         editor.add(editorDisplayName);
 
         TextArea editorDescription = new TextArea<>(ID_EDITOR_DESCRIPTION, new PropertyModel<String>(schemaHandlingDtoModel,
 				getExpression(ResourceObjectTypeDefinitionType.F_DESCRIPTION)));
+		parentPage.addEditingEnabledBehavior(editorDescription);
         editor.add(editorDescription);
 
         final CheckBox editorDefault = new CheckBox(ID_EDITOR_DEFAULT, new PropertyModel<Boolean>(schemaHandlingDtoModel,
@@ -328,9 +336,9 @@ public class SchemaHandlingStep extends WizardStep {
                 if (Boolean.TRUE.equals(newValue)) {
                     SchemaHandlingDto dto = schemaHandlingDtoModel.getObject();
                     ResourceObjectTypeDefinitionTypeDto selected = dto.getSelectedObjectTypeDto();
-                    ShadowKindType selectedKind = selected.getObjectType().getKind();
+                    ShadowKindType selectedKind = fillDefault(selected.getObjectType().getKind());
                     for (ResourceObjectTypeDefinitionTypeDto currentObjectTypeDto : dto.getObjectTypeDtoList()) {
-                        ShadowKindType currentKind = currentObjectTypeDto.getObjectType().getKind();
+                        ShadowKindType currentKind = fillDefault(currentObjectTypeDto.getObjectType().getKind());
                         if (currentObjectTypeDto != selected && currentKind == selectedKind
                                 && Boolean.TRUE.equals(currentObjectTypeDto.getObjectType().isDefault())) {
                             currentObjectTypeDto.getObjectType().setDefault(false);
@@ -339,6 +347,7 @@ public class SchemaHandlingStep extends WizardStep {
                 }
             }
         });
+		parentPage.addEditingEnabledBehavior(editorDefault);
         editor.add(editorDefault);
 
         AjaxSubmitLink editorDependency = new AjaxSubmitLink(ID_EDITOR_BUTTON_DEPENDENCY) {
@@ -373,13 +382,15 @@ public class SchemaHandlingStep extends WizardStep {
                 return schemaHandlingDtoModel.getObject().getObjectClassList();
             }
         }));
+		parentPage.addEditingEnabledBehavior(editorObjectClass);
 		editorObjectClass.setConvertEmptyInputStringToNull(true);
         editor.add(editorObjectClass);
 
         MultiValueTextEditPanel editorAttributes = new MultiValueTextEditPanel<ResourceAttributeDefinitionType>(ID_EDITOR_ATTRIBUTES,
                 new PropertyModel<List<ResourceAttributeDefinitionType>>(schemaHandlingDtoModel,
 						getExpression(ResourceObjectTypeDefinitionType.F_ATTRIBUTE)),
-				new PropertyModel<ResourceAttributeDefinitionType>(schemaHandlingDtoModel, SchemaHandlingDto.F_SELECTED_ATTRIBUTE), false, true) {
+				new PropertyModel<ResourceAttributeDefinitionType>(schemaHandlingDtoModel, SchemaHandlingDto.F_SELECTED_ATTRIBUTE), false, true,
+				parentPage.getReadOnlyModel()) {
 
             @Override
             protected IModel<String> createTextModel(final IModel<ResourceAttributeDefinitionType> model) {
@@ -428,7 +439,7 @@ public class SchemaHandlingStep extends WizardStep {
                 new PropertyModel<List<ResourceObjectAssociationType>>(schemaHandlingDtoModel,
 						getExpression(ResourceObjectTypeDefinitionType.F_ASSOCIATION)),
 				new PropertyModel<ResourceObjectAssociationType>(schemaHandlingDtoModel, SchemaHandlingDto.F_SELECTED_ASSOCIATION),
-				false, true){
+				false, true, parentPage.getReadOnlyModel()) {
 
             @Override
             protected IModel<String> createTextModel(final IModel<ResourceObjectAssociationType> model) {
@@ -478,6 +489,7 @@ public class SchemaHandlingStep extends WizardStep {
 						getExpression(ResourceObjectTypeDefinitionType.F_ASSIGNMENT_POLICY_ENFORCEMENT)),
                 WebComponentUtil.createReadonlyModelFromEnum(AssignmentPolicyEnforcementType.class),
                 new EnumChoiceRenderer<AssignmentPolicyEnforcementType>(this));
+		parentPage.addEditingEnabledBehavior(editorAssignmentPolicyRef);
         editor.add(editorAssignmentPolicyRef);
 
         AjaxSubmitLink editorIteration = new AjaxSubmitLink(ID_EDITOR_BUTTON_ITERATION) {
@@ -678,7 +690,7 @@ public class SchemaHandlingStep extends WizardStep {
     private void dependencyEditPerformed(AjaxRequestTarget target){
         WebMarkupContainer newContainer = new ResourceDependencyEditor(ID_THIRD_ROW_CONTAINER,
                 new PropertyModel<List<ResourceObjectTypeDependencyType>>(schemaHandlingDtoModel,
-						getExpression(ResourceObjectTypeDefinitionType.F_DEPENDENCY)));
+						getExpression(ResourceObjectTypeDefinitionType.F_DEPENDENCY)), parentPage);
         getThirdRowContainer().replaceWith(newContainer);
 
         target.add(getThirdRowContainer(), get(ID_OBJECT_TYPE_EDITOR), parentPage.getFeedbackPanel());
@@ -706,7 +718,7 @@ public class SchemaHandlingStep extends WizardStep {
 	private void iterationEditPerformed(AjaxRequestTarget target){
         WebMarkupContainer newContainer = new ResourceIterationEditor(ID_THIRD_ROW_CONTAINER,
                 new PropertyModel<IterationSpecificationType>(schemaHandlingDtoModel,
-						getExpression(ResourceObjectTypeDefinitionType.F_ITERATION)));
+						getExpression(ResourceObjectTypeDefinitionType.F_ITERATION)), parentPage);
         getThirdRowContainer().replaceWith(newContainer);
 		resetSelections(target);
         target.add(getThirdRowContainer(), get(ID_OBJECT_TYPE_EDITOR), parentPage.getFeedbackPanel());
@@ -715,7 +727,7 @@ public class SchemaHandlingStep extends WizardStep {
     private void protectedEditPerformed(AjaxRequestTarget target) {
         WebMarkupContainer newContainer = new ResourceProtectedEditor(ID_THIRD_ROW_CONTAINER,
                 new PropertyModel<List<ResourceObjectPatternType>>(schemaHandlingDtoModel,
-						getExpression(ResourceObjectTypeDefinitionType.F_PROTECTED)));
+						getExpression(ResourceObjectTypeDefinitionType.F_PROTECTED)), parentPage);
         getThirdRowContainer().replaceWith(newContainer);
 		resetSelections(target);
         target.add(getThirdRowContainer(), get(ID_OBJECT_TYPE_EDITOR), parentPage.getFeedbackPanel());
@@ -724,7 +736,7 @@ public class SchemaHandlingStep extends WizardStep {
     private void activationEditPerformed(AjaxRequestTarget target){
         WebMarkupContainer newContainer = new ResourceActivationEditor(ID_THIRD_ROW_CONTAINER,
                 new PropertyModel<ResourceActivationDefinitionType>(schemaHandlingDtoModel,
-						getExpression(ResourceObjectTypeDefinitionType.F_ACTIVATION)));
+						getExpression(ResourceObjectTypeDefinitionType.F_ACTIVATION)), parentPage.getReadOnlyModel());
         getThirdRowContainer().replaceWith(newContainer);
 		resetSelections(target);
         target.add(getThirdRowContainer(), get(ID_OBJECT_TYPE_EDITOR), parentPage.getFeedbackPanel());
@@ -733,7 +745,7 @@ public class SchemaHandlingStep extends WizardStep {
     private void credentialsEditPerformed(AjaxRequestTarget target){
         WebMarkupContainer newContainer = new ResourceCredentialsEditor(ID_THIRD_ROW_CONTAINER,
                 new PropertyModel<ResourceCredentialsDefinitionType>(schemaHandlingDtoModel,
-						getExpression(ResourceObjectTypeDefinitionType.F_CREDENTIALS)));
+						getExpression(ResourceObjectTypeDefinitionType.F_CREDENTIALS)), parentPage);
         getThirdRowContainer().replaceWith(newContainer);
 		resetSelections(target);
         target.add(getThirdRowContainer(), get(ID_OBJECT_TYPE_EDITOR), parentPage.getFeedbackPanel());
@@ -744,7 +756,7 @@ public class SchemaHandlingStep extends WizardStep {
         if (schemaHandlingDtoModel.getObject().getSelectedObjectTypeDto() != null && schemaHandlingDtoModel.getObject().getSelectedObjectTypeDto().getObjectType().getObjectClass() != null) {
 			schemaHandlingDtoModel.getObject().setSelectedAttribute(object);
             WebMarkupContainer newContainer = new ResourceAttributeEditor(ID_THIRD_ROW_CONTAINER, new Model<>(object),
-                    schemaHandlingDtoModel.getObject().getSelectedObjectTypeDto().getObjectType(), resourceModel.getObject(), this);
+                    schemaHandlingDtoModel.getObject().getSelectedObjectTypeDto().getObjectType(), resourceModel.getObject(), this, parentPage.getReadOnlyModel());
             getThirdRowContainer().replaceWith(newContainer);
 
             target.add(getThirdRowContainer(), get(ID_OBJECT_TYPE_EDITOR));
@@ -760,7 +772,7 @@ public class SchemaHandlingStep extends WizardStep {
         if (schemaHandlingDtoModel.getObject().getSelectedObjectTypeDto() != null && schemaHandlingDtoModel.getObject().getSelectedObjectTypeDto().getObjectType().getObjectClass() != null) {
 			schemaHandlingDtoModel.getObject().setSelectedAssociation(object);
             WebMarkupContainer newContainer = new ResourceAssociationEditor(ID_THIRD_ROW_CONTAINER, new Model<>(object),
-                    schemaHandlingDtoModel.getObject().getSelectedObjectTypeDto().getObjectType(), resourceModel.getObject(), this);
+                    schemaHandlingDtoModel.getObject().getSelectedObjectTypeDto().getObjectType(), resourceModel.getObject(), this, parentPage.getReadOnlyModel());
             getThirdRowContainer().replaceWith(newContainer);
 
             target.add(getThirdRowContainer(), get(ID_OBJECT_TYPE_EDITOR), parentPage.getFeedbackPanel());
@@ -821,6 +833,7 @@ public class SchemaHandlingStep extends WizardStep {
 		boolean wasAnySelected = isAnySelected();
         schemaHandlingDtoModel.getObject().setSelectedObjectTypeDto(objectType);
 		resetSelections(target);
+		insertEmptyThirdRow();
 		if (wasAnySelected) {
 			target.add(getObjectListTable(), getNavigator(), getObjectTypeEditor(), getThirdRowContainer());
 		} else {

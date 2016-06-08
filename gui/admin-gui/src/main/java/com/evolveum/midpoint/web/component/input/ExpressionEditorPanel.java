@@ -25,6 +25,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.input.dto.ExpressionTypeDto;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.page.admin.resources.PageResourceWizard;
 import com.evolveum.midpoint.web.util.ExpressionUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
@@ -76,9 +77,9 @@ public class ExpressionEditorPanel extends BasePanel<ExpressionType> {
     private IModel<ExpressionTypeDto> dtoModel;
     private Map<String, String> policyMap = new HashMap<>();
 
-    public ExpressionEditorPanel(String id, IModel<ExpressionType> model) {
+    public ExpressionEditorPanel(String id, IModel<ExpressionType> model, PageResourceWizard parentPage) {
         super(id, model);
-		initLayout();
+		initLayout(parentPage);
     }
 
     protected IModel<ExpressionTypeDto> getExpressionDtoModel(){
@@ -96,7 +97,9 @@ public class ExpressionEditorPanel extends BasePanel<ExpressionType> {
         }
     }
 
-    protected void initLayout(){
+    protected void initLayout(PageResourceWizard parentPage) {
+		parentPage.addEditingEnabledBehavior(this);
+
         loadDtoModel();
 
 		Label descriptionLabel = new Label(ID_LABEL_DESCRIPTION, createStringResource(getDescriptionLabelKey()));
@@ -104,6 +107,7 @@ public class ExpressionEditorPanel extends BasePanel<ExpressionType> {
 
 		TextArea description = new TextArea<>(ID_DESCRIPTION, new PropertyModel<String>(dtoModel, ExpressionTypeDto.F_DESCRIPTION));
 		description.setOutputMarkupId(true);
+		//parentPage.addEditingEnabledBehavior(description);
 		add(description);
 
 		Label typeLabel = new Label(ID_LABEL_TYPE, createStringResource(getTypeLabelKey()));
@@ -113,7 +117,8 @@ public class ExpressionEditorPanel extends BasePanel<ExpressionType> {
                 new PropertyModel<ExpressionUtil.ExpressionEvaluatorType>(dtoModel, ExpressionTypeDto.F_TYPE),
                 WebComponentUtil.createReadonlyModelFromEnum(ExpressionUtil.ExpressionEvaluatorType.class),
                 new EnumChoiceRenderer<ExpressionUtil.ExpressionEvaluatorType>(this));
-        type.add(new AjaxFormComponentUpdatingBehavior("change") {
+		//parentPage.addEditingEnabledBehavior(type);
+		type.add(new AjaxFormComponentUpdatingBehavior("change") {
 
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
@@ -136,13 +141,15 @@ public class ExpressionEditorPanel extends BasePanel<ExpressionType> {
                 return ExpressionUtil.ExpressionEvaluatorType.SCRIPT.equals(dtoModel.getObject().getType());
             }
         });
-        add(languageContainer);
+		//parentPage.addEditingEnabledBehavior(languageContainer);
+		add(languageContainer);
 
         DropDownChoice language = new DropDownChoice<>(ID_LANGUAGE,
                 new PropertyModel<ExpressionUtil.Language>(dtoModel, ExpressionTypeDto.F_LANGUAGE),
                 WebComponentUtil.createReadonlyModelFromEnum(ExpressionUtil.Language.class),
                 new EnumChoiceRenderer<ExpressionUtil.Language>(this));
-        language.add(new AjaxFormComponentUpdatingBehavior("change") {
+		//parentPage.addEditingEnabledBehavior(language);
+		language.add(new AjaxFormComponentUpdatingBehavior("change") {
 
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
@@ -174,8 +181,8 @@ public class ExpressionEditorPanel extends BasePanel<ExpressionType> {
                         return WebModelServiceUtils.createObjectReferenceList(ValuePolicyType.class, getPageBase(), policyMap);
                     }
                 }, new ObjectReferenceChoiceRenderer(policyMap));
-        
-        policyRef.add(new AjaxFormComponentUpdatingBehavior("change") {
+		//parentPage.addEditingEnabledBehavior(policyRef);
+		policyRef.add(new AjaxFormComponentUpdatingBehavior("change") {
 
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
@@ -191,7 +198,8 @@ public class ExpressionEditorPanel extends BasePanel<ExpressionType> {
 
         TextArea expression = new TextArea<>(ID_EXPRESSION, new PropertyModel<String>(dtoModel, ExpressionTypeDto.F_EXPRESSION));
         expression.setOutputMarkupId(true);
-        add(expression);
+		//parentPage.addEditingEnabledBehavior(expression);
+		add(expression);
 
         AjaxSubmitLink update = new AjaxSubmitLink(ID_BUTTON_UPDATE) {
 
@@ -203,48 +211,14 @@ public class ExpressionEditorPanel extends BasePanel<ExpressionType> {
 		Label updateLabel = new Label(ID_LABEL_UPDATE, createStringResource(getUpdateLabelKey()));
 		updateLabel.setRenderBodyOnly(true);
 		update.add(updateLabel);
-        add(update);
+		parentPage.addEditingVisibleBehavior(update);
+		add(update);
 
         add(WebComponentUtil.createHelp(ID_T_TYPE));
         languageContainer.add(WebComponentUtil.createHelp(ID_T_LANGUAGE));
         policyContainer.add(WebComponentUtil.createHelp(ID_T_POLICY));
         add(WebComponentUtil.createHelp(ID_T_EXPRESSION));
     }
-
-//    private List<ObjectReferenceType> createPasswordPolicyList(){
-//        policyMap.clear();
-//        OperationResult result = new OperationResult(OPERATION_LOAD_PASSWORD_POLICIES);
-//        Task task = getPageBase().createSimpleTask(OPERATION_LOAD_PASSWORD_POLICIES);
-//        List<PrismObject<ValuePolicyType>> policies = null;
-//        List<ObjectReferenceType> references = new ArrayList<>();
-//
-//        try{
-//            policies = getPageBase().getModelService().searchObjects(ValuePolicyType.class, new ObjectQuery(), null, task, result);
-//            result.recomputeStatus();
-//        } catch (Exception e){
-//            result.recordFatalError("Couldn't load password policies.", e);
-//            LoggingUtils.logException(LOGGER, "Couldn't load password policies", e);
-//        }
-//
-//        // TODO - show error somehow
-//        // if(!result.isSuccess()){
-//        //    getPageBase().showResult(result);
-//        // }
-//
-//        if(policies != null){
-//            ObjectReferenceType ref;
-//
-//            for(PrismObject<ValuePolicyType> policy: policies){
-//                policyMap.put(policy.getOid(), WebMiscUtil.getName(policy));
-//                ref = new ObjectReferenceType();
-//                ref.setType(ValuePolicyType.COMPLEX_TYPE);
-//                ref.setOid(policy.getOid());
-//                references.add(ref);
-//            }
-//        }
-//
-//        return references;
-//    }
 
     protected void updateExpressionPerformed(AjaxRequestTarget target){
         try {

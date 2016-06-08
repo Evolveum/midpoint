@@ -28,6 +28,7 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.input.ObjectReferenceChoiceRenderer;
+import com.evolveum.midpoint.web.page.admin.resources.PageResourceWizard;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.wicket.AttributeModifier;
@@ -85,9 +86,9 @@ public class ResourceDependencyEditor extends BasePanel<List<ResourceObjectTypeD
     private ChangeState changeState = ChangeState.FIRST;
     private Map<String, String> resourceMap = new HashMap<>();
 
-    public ResourceDependencyEditor(String id, IModel<List<ResourceObjectTypeDependencyType>> model){
+    public ResourceDependencyEditor(String id, IModel<List<ResourceObjectTypeDependencyType>> model, PageResourceWizard parentPage) {
         super(id, model);
-		initLayout();
+		initLayout(parentPage);
     }
 
     @Override
@@ -101,7 +102,7 @@ public class ResourceDependencyEditor extends BasePanel<List<ResourceObjectTypeD
         return model;
     }
 
-    protected void initLayout(){
+    protected void initLayout(final PageResourceWizard parentPage){
         WebMarkupContainer container = new WebMarkupContainer(ID_CONTAINER);
         container.setOutputMarkupId(true);
         add(container);
@@ -125,6 +126,7 @@ public class ResourceDependencyEditor extends BasePanel<List<ResourceObjectTypeD
                         deleteDependencyPerformed(target, item);
                     }
                 };
+				parentPage.addEditingVisibleBehavior(delete);
                 linkContainer.add(delete);
 
                 WebMarkupContainer dependencyBody = new WebMarkupContainer(ID_DEPENDENCY_BODY);
@@ -151,6 +153,7 @@ public class ResourceDependencyEditor extends BasePanel<List<ResourceObjectTypeD
 
                 TextField order = new TextField<>(ID_ORDER, new PropertyModel<Integer>(item.getModelObject(), "order"));
                 order.add(prepareAjaxOnComponentTagUpdateBehavior());
+				parentPage.addEditingEnabledBehavior(order);
                 dependencyBody.add(order);
 
                 DropDownChoice strictness = new DropDownChoice<>(ID_STRICTNESS,
@@ -158,6 +161,7 @@ public class ResourceDependencyEditor extends BasePanel<List<ResourceObjectTypeD
                         WebComponentUtil.createReadonlyModelFromEnum(ResourceObjectTypeDependencyStrictnessType.class),
                         new EnumChoiceRenderer<ResourceObjectTypeDependencyStrictnessType>(this));
                 strictness.add(prepareAjaxOnComponentTagUpdateBehavior());
+				parentPage.addEditingEnabledBehavior(strictness);
                 dependencyBody.add(strictness);
 
                 DropDownChoice kind = new DropDownChoice<>(ID_KIND,
@@ -165,10 +169,12 @@ public class ResourceDependencyEditor extends BasePanel<List<ResourceObjectTypeD
                         WebComponentUtil.createReadonlyModelFromEnum(ShadowKindType.class),
                         new EnumChoiceRenderer<ShadowKindType>(this));
                 kind.add(prepareAjaxOnComponentTagUpdateBehavior());
+				parentPage.addEditingEnabledBehavior(kind);
                 dependencyBody.add(kind);
 
                 TextField intent = new TextField<>(ID_INTENT, new PropertyModel<String>(item.getModelObject(), "intent"));
                 intent.add(prepareAjaxOnComponentTagUpdateBehavior());
+				parentPage.addEditingEnabledBehavior(intent);
                 dependencyBody.add(intent);
 
                 DropDownChoice resource = new DropDownChoice<>(ID_REF,
@@ -182,6 +188,7 @@ public class ResourceDependencyEditor extends BasePanel<List<ResourceObjectTypeD
                         }, new ObjectReferenceChoiceRenderer(resourceMap));
                         
                 resource.add(prepareAjaxOnComponentTagUpdateBehavior());
+				parentPage.addEditingEnabledBehavior(resource);
                 dependencyBody.add(resource);
 
                 Label orderTooltip = new Label(ID_T_ORDER);
@@ -215,6 +222,7 @@ public class ResourceDependencyEditor extends BasePanel<List<ResourceObjectTypeD
                 addDependencyPerformed(target);
             }
         };
+		parentPage.addEditingVisibleBehavior(add);
         add(add);
     }
 

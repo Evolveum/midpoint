@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.web.component.wizard.resource.component.schemahandling;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.model.NonEmptyModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -44,7 +45,7 @@ class AttributeEditorUtils {
 
 	private static final Trace LOGGER = TraceManager.getTrace(AttributeEditorUtils.class);
 
-	static void addMatchingRuleFields(final BasePanel<? extends ResourceItemDefinitionType> editor) {
+	static void addMatchingRuleFields(final BasePanel<? extends ResourceItemDefinitionType> editor, final NonEmptyModel<Boolean> readOnlyModel) {
 
 		// normalizes unqualified QNames
 		final IModel<QName> matchingRuleModel = new IModel<QName>() {
@@ -89,6 +90,10 @@ class AttributeEditorUtils {
 			public boolean isVisible() {
 				QName ruleName = matchingRuleModel.getObject();
 				return ruleName == null || WebComponentUtil.getMatchingRuleList().contains(ruleName);
+			}
+			@Override
+			public boolean isEnabled() {
+				return !readOnlyModel.getObject();
 			}
 		});
 		editor.add(matchingRule);

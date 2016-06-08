@@ -18,17 +18,12 @@ package com.evolveum.midpoint.web.component.wizard.resource.component.schemahand
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.CommonException;
-import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.form.multivalue.MultiValueTextEditPanel;
 import com.evolveum.midpoint.web.component.wizard.resource.component.schemahandling.modal.ExpressionVariableEditorDialog;
 import com.evolveum.midpoint.web.component.wizard.resource.dto.IterationSpecificationTypeDto;
+import com.evolveum.midpoint.web.page.admin.resources.PageResourceWizard;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -42,7 +37,6 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -97,9 +91,10 @@ public class ResourceIterationEditor extends BasePanel<IterationSpecificationTyp
     private Map<String, String> policyMap = new HashMap<>();
     private IModel<IterationSpecificationTypeDto> model;
 
-    public ResourceIterationEditor(String id, IModel<IterationSpecificationType> iteration){
+    public ResourceIterationEditor(String id, IModel<IterationSpecificationType> iteration,
+			PageResourceWizard parentPage){
         super(id, iteration);
-		initLayout();
+		initLayout(parentPage);
     }
 
     @Override
@@ -139,27 +134,28 @@ public class ResourceIterationEditor extends BasePanel<IterationSpecificationTyp
         }
     }
 
-    protected void initLayout(){
+    protected void initLayout(PageResourceWizard parentPage) {
         loadModel();
         getModel();
         TextField maxIteration = new TextField<>(ID_MAX_ITERATION, new PropertyModel<Integer>(model,
                 IterationSpecificationTypeDto.F_ITERATION + "." + "maxIterations"));
+		parentPage.addEditingEnabledBehavior(maxIteration);
         add(maxIteration);
 
         prepareIterationSubsectionBody(IterationSpecificationType.F_TOKEN_EXPRESSION.getLocalPart(), ID_TOKEN_DESCRIPTION,
                 ID_TOKEN_VARIABLE_LIST, ID_TOKEN_RETURN_MULTIPLICITY, ID_TOKEN_EXPR_TYPE, ID_TOKEN_EXPR,
                 ID_TOKEN_EXPR_LANG, ID_TOKEN_EXPR_POLICY, IterationSpecificationTypeDto.TOKEN_EXPRESSION_PREFIX,
-                ID_TOKEN_LANG_CONTAINER, ID_TOKEN_POLICY_CONTAINER);
+                ID_TOKEN_LANG_CONTAINER, ID_TOKEN_POLICY_CONTAINER, parentPage);
 
         prepareIterationSubsectionBody(IterationSpecificationType.F_PRE_ITERATION_CONDITION.getLocalPart(), ID_PRE_DESCRIPTION,
                 ID_PRE_VARIABLE_LIST, ID_PRE_RETURN_MULTIPLICITY, ID_PRE_EXPR_TYPE, ID_PRE_EXPR,
                 ID_PRE_EXPR_LANG, ID_PRE_EXPR_POLICY, IterationSpecificationTypeDto.PRE_EXPRESSION_PREFIX,
-                ID_PRE_LANG_CONTAINER, ID_PRE_POLICY_CONTAINER);
+                ID_PRE_LANG_CONTAINER, ID_PRE_POLICY_CONTAINER, parentPage);
 
         prepareIterationSubsectionBody(IterationSpecificationType.F_POST_ITERATION_CONDITION.getLocalPart(), ID_POST_DESCRIPTION,
                 ID_POST_VARIABLE_LIST, ID_POST_RETURN_MULTIPLICITY, ID_POST_EXPR_TYPE, ID_POST_EXPR,
                 ID_POST_EXPR_LANG, ID_POST_EXPR_POLICY, IterationSpecificationTypeDto.POST_EXPRESSION_PREFIX,
-                ID_POST_LANG_CONTAINER, ID_POST_POLICY_CONTAINER);
+                ID_POST_LANG_CONTAINER, ID_POST_POLICY_CONTAINER, parentPage);
 
         Label maxItTooltip = new Label(ID_T_MAX_ITERATION);
         maxItTooltip.add(new InfoTooltipBehavior());
@@ -193,16 +189,17 @@ public class ResourceIterationEditor extends BasePanel<IterationSpecificationTyp
     }
 
     private void prepareIterationSubsectionBody(String containerValue, String descriptionId, String variableId,
-                                                String returnMultiplicityId, String expressionType, final String expression,
-                                                final String languageId, final String policyId, final String prefix,
-                                                final String languageContainerId, final String policyContainerId){
+			String returnMultiplicityId, String expressionType, final String expression,
+			final String languageId, final String policyId, final String prefix,
+			final String languageContainerId, final String policyContainerId, PageResourceWizard parentPage){
         TextArea description = new TextArea<>(descriptionId, new PropertyModel<String>(model,
                 IterationSpecificationTypeDto.F_ITERATION + "." + containerValue + ".description"));
+		parentPage.addEditingEnabledBehavior(description);
         add(description);
 
         MultiValueTextEditPanel variableList = new MultiValueTextEditPanel<ExpressionVariableDefinitionType>(variableId,
                 new PropertyModel<List<ExpressionVariableDefinitionType>>(model,
-                        IterationSpecificationTypeDto.F_ITERATION + "." + containerValue + ".variable"), null, false, true){
+                        IterationSpecificationTypeDto.F_ITERATION + "." + containerValue + ".variable"), null, false, true, parentPage.getReadOnlyModel()) {
 
             @Override
             protected IModel<String> createTextModel(final IModel<ExpressionVariableDefinitionType> model) {
@@ -238,142 +235,12 @@ public class ResourceIterationEditor extends BasePanel<IterationSpecificationTyp
                         IterationSpecificationTypeDto.F_ITERATION + "." + containerValue + ".returnMultiplicity"),
                 WebComponentUtil.createReadonlyModelFromEnum(ExpressionReturnMultiplicityType.class),
                 new EnumChoiceRenderer<ExpressionReturnMultiplicityType>(this));
+		parentPage.addEditingEnabledBehavior(returnMultiplicity);
         add(returnMultiplicity);
 
-        /*
-        DropDownChoice exprType = new DropDownChoice<>(expressionType,
-                new PropertyModel<ExpressionUtil.ExpressionEvaluatorType>(model, prefix + "ExpressionType"),
-                WebMiscUtil.createReadonlyModelFromEnum(ExpressionUtil.ExpressionEvaluatorType.class),
-                new EnumChoiceRenderer<ExpressionUtil.ExpressionEvaluatorType>(this));
-        exprType.add(new AjaxFormComponentUpdatingBehavior("onchange") {
-
-            @Override
-            protected void onUpdate(AjaxRequestTarget target) {
-                model.getObject().updateExpression(prefix);
-                target.add(get(expression));
-                target.add(get(languageContainerId));
-                target.add(get(policyContainerId));
-            }
-        });
-        add(exprType);
-
-        WebMarkupContainer langContainer = new WebMarkupContainer(languageContainerId);
-        langContainer.setOutputMarkupId(true);
-        langContainer.setOutputMarkupPlaceholderTag(true);
-        langContainer.add(new VisibleEnableBehaviour() {
-
-            @Override
-            public boolean isVisible() {
-                if (ExpressionUtil.ExpressionEvaluatorType.SCRIPT.equals(model.getObject().getExpressionType(prefix))) {
-                    return true;
-                }
-                return false;
-            }
-        });
-        add(langContainer);
-
-        DropDownChoice language = new DropDownChoice<>(languageId,
-                new PropertyModel<ExpressionUtil.Language>(model, prefix + IterationSpecificationTypeDto.F_LANGUAGE),
-                WebMiscUtil.createReadonlyModelFromEnum(ExpressionUtil.Language.class),
-                new EnumChoiceRenderer<ExpressionUtil.Language>(this));
-        language.add(new AjaxFormComponentUpdatingBehavior("onchange") {
-
-            @Override
-            protected void onUpdate(AjaxRequestTarget target) {
-                model.getObject().updateExpressionLanguage(prefix);
-                target.add(get(expression));
-            }
-        });
-        langContainer.add(language);
-
-        WebMarkupContainer policyContainer = new WebMarkupContainer(policyContainerId);
-        policyContainer.setOutputMarkupId(true);
-        policyContainer.setOutputMarkupPlaceholderTag(true);
-        policyContainer.add(new VisibleEnableBehaviour() {
-
-            @Override
-            public boolean isVisible() {
-                if (ExpressionUtil.ExpressionEvaluatorType.GENERATE.equals(model.getObject().getExpressionType(prefix))) {
-                    return true;
-                }
-                return false;
-            }
-        });
-        add(policyContainer);
-
-        DropDownChoice policy = new DropDownChoice<>(policyId,
-                new PropertyModel<ObjectReferenceType>(model, prefix + IterationSpecificationTypeDto.F_POLICY_REF),
-                new AbstractReadOnlyModel<List<ObjectReferenceType>>() {
-
-                    @Override
-                    public List<ObjectReferenceType> getObject() {
-                        return createPasswordPolicyList();
-                    }
-                }, new IChoiceRenderer<ObjectReferenceType>() {
-
-            @Override
-            public Object getDisplayValue(ObjectReferenceType object) {
-                return policyMap.get(object.getOid());
-            }
-
-            @Override
-            public String getIdValue(ObjectReferenceType object, int index) {
-                return Integer.toString(index);
-            }
-        });
-        policy.add(new AjaxFormComponentUpdatingBehavior("onchange") {
-
-            @Override
-            protected void onUpdate(AjaxRequestTarget target) {
-                model.getObject().updateExpressionPolicy(prefix);
-                target.add(get(expression));
-            }
-        });
-        policyContainer.add(policy);
-
-        TextArea expr = new TextArea<>(expression, new PropertyModel<String>(model, prefix + "Expression"));
-        expr.setOutputMarkupId(true);
-        add(expr);
-        */
     }
 
-    //TODO - optimize this - now we are loading this 3* when resource iteration is edited
-    private List<ObjectReferenceType> createPasswordPolicyList(){
-        policyMap.clear();
-        OperationResult result = new OperationResult(OPERATION_LOAD_PASSWORD_POLICIES);
-        Task task = getPageBase().createSimpleTask(OPERATION_LOAD_PASSWORD_POLICIES);
-        List<PrismObject<ValuePolicyType>> policies = null;
-        List<ObjectReferenceType> references = new ArrayList<>();
-
-        try{
-            policies = getPageBase().getModelService().searchObjects(ValuePolicyType.class, new ObjectQuery(), null, task, result);
-            result.recomputeStatus();
-        } catch (CommonException|RuntimeException e){
-            result.recordFatalError("Couldn't load password policies.", e);
-            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load password policies", e);
-        }
-
-        // TODO - show error somehow
-        // if(!result.isSuccess()){
-        //    getPageBase().showResult(result);
-        // }
-
-        if(policies != null){
-            ObjectReferenceType ref;
-
-            for(PrismObject<ValuePolicyType> policy: policies){
-                policyMap.put(policy.getOid(), WebComponentUtil.getName(policy));
-                ref = new ObjectReferenceType();
-                ref.setType(ValuePolicyType.COMPLEX_TYPE);
-                ref.setOid(policy.getOid());
-                references.add(ref);
-            }
-        }
-
-        return references;
-    }
-
-    private void initModals(){
+    private void initModals() {
         ModalWindow variableEditor = new ExpressionVariableEditorDialog(ID_VARIABLE_EDITOR_MODAL, null){
 
             @Override

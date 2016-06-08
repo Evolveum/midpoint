@@ -17,6 +17,8 @@
 package com.evolveum.midpoint.web.component.form.multivalue;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.model.NonEmptyModel;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 
 import org.apache.wicket.AttributeModifier;
@@ -54,14 +56,14 @@ public class MultiValueAutoCompleteTextPanel<T extends Serializable> extends Bas
     private static final String CSS_DISABLED = " disabled";
     private static final Integer AUTO_COMPLETE_LIST_SIZE = 10;
 
-    public MultiValueAutoCompleteTextPanel(String id, IModel<List<T>> model, boolean inputEnabled){
+    public MultiValueAutoCompleteTextPanel(String id, IModel<List<T>> model, boolean inputEnabled, NonEmptyModel<Boolean> readOnlyModel) {
         super(id, model);
         setOutputMarkupId(true);
 
-        initLayout(inputEnabled);
+        initLayout(inputEnabled, readOnlyModel);
     }
 
-    private void initLayout(final boolean inputEnabled){
+    private void initLayout(final boolean inputEnabled, final NonEmptyModel<Boolean> readOnlyModel) {
         WebMarkupContainer placeholderContainer = new WebMarkupContainer(ID_PLACEHOLDER_CONTAINER);
         placeholderContainer.setOutputMarkupPlaceholderTag(true);
         placeholderContainer.setOutputMarkupPlaceholderTag(true);
@@ -94,6 +96,7 @@ public class MultiValueAutoCompleteTextPanel<T extends Serializable> extends Bas
         }));
         placeholderAdd.setOutputMarkupId(true);
         placeholderAdd.setOutputMarkupPlaceholderTag(true);
+		placeholderAdd.add(WebComponentUtil.visibleIfFalse(readOnlyModel));
         placeholderContainer.add(placeholderAdd);
 
         ListView repeater = new ListView<T>(ID_REPEATER, getModel()){
@@ -128,7 +131,7 @@ public class MultiValueAutoCompleteTextPanel<T extends Serializable> extends Bas
 
                 WebMarkupContainer buttonGroup = new WebMarkupContainer(ID_BUTTON_GROUP);
                 item.add(buttonGroup);
-                initButtons(buttonGroup, item);
+                initButtons(buttonGroup, item, readOnlyModel);
             }
         };
         repeater.setOutputMarkupId(true);
@@ -176,7 +179,7 @@ public class MultiValueAutoCompleteTextPanel<T extends Serializable> extends Bas
         return choices.iterator();
     }
 
-    private void initButtons(WebMarkupContainer buttonGroup, final ListItem<T> item) {
+    private void initButtons(WebMarkupContainer buttonGroup, final ListItem<T> item, NonEmptyModel<Boolean> readOnlyModel) {
         AjaxLink add = new AjaxLink(ID_ADD) {
 
             @Override
@@ -185,6 +188,7 @@ public class MultiValueAutoCompleteTextPanel<T extends Serializable> extends Bas
             }
         };
         add.add(new AttributeAppender("class", getPlusClassModifier(item)));
+		add.add(WebComponentUtil.visibleIfFalse(readOnlyModel));
         buttonGroup.add(add);
 
         AjaxLink remove = new AjaxLink(ID_REMOVE) {
@@ -195,6 +199,7 @@ public class MultiValueAutoCompleteTextPanel<T extends Serializable> extends Bas
             }
         };
         remove.add(new AttributeAppender("class", getMinusClassModifier()));
+		remove.add(WebComponentUtil.visibleIfFalse(readOnlyModel));
         buttonGroup.add(remove);
     }
 

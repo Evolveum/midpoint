@@ -4,11 +4,14 @@ import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.model.NonEmptyModel;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.component.wizard.resource.*;
 import com.evolveum.midpoint.web.component.wizard.resource.dto.WizardIssuesDto;
+import com.evolveum.midpoint.web.page.admin.resources.PageResourceWizard;
 import com.evolveum.midpoint.web.page.admin.resources.PageResources;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.markup.html.AjaxFallbackLink;
 import org.apache.wicket.extensions.wizard.*;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.Form;
@@ -30,6 +33,9 @@ public class Wizard extends BasePanel<IWizardModel> implements IWizardModelListe
     private static final String ID_VIEW = "view";
     private static final String ID_ISSUES = "issues";
     private static final String ID_BUTTONS = "buttons";
+    private static final String ID_AUTO_SAVE_NOTE = "autoSaveNote";
+    private static final String ID_READ_ONLY_NOTE = "readOnlyNote";
+    private static final String ID_READ_ONLY_SWITCH = "readOnlySwitch";
 
 	@NotNull private final NonEmptyModel<WizardIssuesDto> issuesModel;
 
@@ -67,6 +73,7 @@ public class Wizard extends BasePanel<IWizardModel> implements IWizardModelListe
             }
         };
 		steps.setOutputMarkupId(true);
+		steps.setVisible(hasMoreThanOneStep());
         form.add(steps);
 
         WebMarkupContainer header = new WebMarkupContainer(ID_HEADER);
@@ -83,10 +90,49 @@ public class Wizard extends BasePanel<IWizardModel> implements IWizardModelListe
 		buttons.setOutputMarkupId(true);
         form.add(buttons);
 
+		WebMarkupContainer autoSaveNote = new WebMarkupContainer(ID_AUTO_SAVE_NOTE);
+		autoSaveNote.add(new VisibleEnableBehaviour() {
+			@Override
+			public boolean isVisible() {
+				PageResourceWizard wizardPage = (PageResourceWizard) getPageBase();
+				return !wizardPage.isConfigurationOnly() && !wizardPage.isReadOnly();
+			}
+		});
+		form.add(autoSaveNote);
+
+		WebMarkupContainer readOnlyNote = new WebMarkupContainer(ID_READ_ONLY_NOTE);
+		readOnlyNote.add(new VisibleEnableBehaviour() {
+			@Override
+			public boolean isVisible() {
+				PageResourceWizard wizardPage = (PageResourceWizard) getPageBase();
+				return wizardPage.isReadOnly();
+			}
+		});
+		form.add(readOnlyNote);
+
+		readOnlyNote.add(new AjaxFallbackLink<String>(ID_READ_ONLY_SWITCH) {
+			@Override
+			public void onClick(AjaxRequestTarget ajaxRequestTarget) {
+				PageResourceWizard wizardPage = (PageResourceWizard) getPageBase();
+				wizardPage.resetModels();			// e.g. to switch configuration models to read-write
+				wizardPage.setReadOnly(false);
+				ajaxRequestTarget.add(wizardPage);
+			}
+		});
+
         IWizardModel wizard = getWizardModel();
         wizard.addListener(this);
         wizard.reset();
     }
+
+	public boolean hasMoreThanOneStep() {
+		Iterator<IWizardStep> iter = getWizardModel().stepIterator();
+		if (!iter.hasNext()) {
+			return false;
+		}
+		iter.next();
+		return iter.hasNext();
+	}
 
 	public WizardIssuesPanel getIssuesPanel() {
 		return (WizardIssuesPanel) get(createComponentPath(ID_FORM, ID_ISSUES));

@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.web.component.wizard.resource.component.schemahandling;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.model.NonEmptyModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
@@ -110,17 +111,19 @@ public class ResourceAssociationEditor extends BasePanel<ResourceObjectAssociati
 	@NotNull final private SchemaHandlingStep parentStep;
 
 	public ResourceAssociationEditor(String id, IModel<ResourceObjectAssociationType> model,
-                                     ResourceObjectTypeDefinitionType objectType, PrismObject<ResourceType> resource, SchemaHandlingStep parentStep) {
+			ResourceObjectTypeDefinitionType objectType, PrismObject<ResourceType> resource, SchemaHandlingStep parentStep,
+			NonEmptyModel<Boolean> readOnlyModel) {
         super(id, model);
 
         this.resource = resource;
         this.objectType = objectType;
 		this.parentStep = parentStep;
-		initLayout();
+		initLayout(readOnlyModel);
     }
 
-    protected void initLayout() {
+    protected void initLayout(NonEmptyModel<Boolean> readOnlyModel) {
         Label label = new Label(ID_LABEL, new ResourceModel("ResourceAssociationEditor.label.edit"));
+		label.add(WebComponentUtil.enabledIfFalse(readOnlyModel));
         add(label);
 
         DropDownChoice kind = new DropDownChoice<>(ID_KIND,
@@ -128,10 +131,12 @@ public class ResourceAssociationEditor extends BasePanel<ResourceObjectAssociati
                 WebComponentUtil.createReadonlyModelFromEnum(ShadowKindType.class),
                 new EnumChoiceRenderer<ShadowKindType>(this));
         kind.setNullValid(false);
+		kind.add(WebComponentUtil.enabledIfFalse(readOnlyModel));
         add(kind);
 
         MultiValueTextPanel intent = new MultiValueTextPanel<>(ID_INTENT,
-                new PropertyModel<List<String>>(getModel(), "intent"));
+                new PropertyModel<List<String>>(getModel(), "intent"), readOnlyModel);
+		intent.add(WebComponentUtil.enabledIfFalse(readOnlyModel));
         add(intent);
 
         DropDownChoice direction = new DropDownChoice<>(ID_DIRECTION,
@@ -139,6 +144,7 @@ public class ResourceAssociationEditor extends BasePanel<ResourceObjectAssociati
                 WebComponentUtil.createReadonlyModelFromEnum(ResourceObjectAssociationDirectionType.class),
                 new EnumChoiceRenderer<ResourceObjectAssociationDirectionType>(this));
         direction.setNullValid(true);
+		direction.add(WebComponentUtil.enabledIfFalse(readOnlyModel));
         add(direction);
 
         DropDownChoice associationAttribute = new DropDownChoice<>(ID_ASSOCIATION_ATTRIBUTE,
@@ -151,6 +157,7 @@ public class ResourceAssociationEditor extends BasePanel<ResourceObjectAssociati
                     }
                 }, new QNameChoiceRenderer(true));
         associationAttribute.setNullValid(true);
+		associationAttribute.add(WebComponentUtil.enabledIfFalse(readOnlyModel));
         add(associationAttribute);
 
         DropDownChoice valueAttribute = new DropDownChoice<>(ID_VALUE_ATTRIBUTE,
@@ -163,10 +170,12 @@ public class ResourceAssociationEditor extends BasePanel<ResourceObjectAssociati
                     }
                 }, new QNameChoiceRenderer(true));
         valueAttribute.setNullValid(true);
+		valueAttribute.add(WebComponentUtil.enabledIfFalse(readOnlyModel));
         add(valueAttribute);
 
         CheckBox explicitRefIntegrity = new CheckBox(ID_EXPLICIT_REF_INTEGRITY,
                 new PropertyModel<Boolean>(getModel(), "explicitReferentialIntegrity"));
+		explicitRefIntegrity.add(WebComponentUtil.enabledIfFalse(readOnlyModel));
         add(explicitRefIntegrity);
 
         QNameEditorPanel nonSchemaRefPanel = new QNameEditorPanel(ID_ASSOCIATION_ATTRIBUTE_PANEL, new PropertyModel<ItemPathType>(getModel(), "ref"),
@@ -179,6 +188,7 @@ public class ResourceAssociationEditor extends BasePanel<ResourceObjectAssociati
 		};
         nonSchemaRefPanel.setOutputMarkupId(true);
         nonSchemaRefPanel.setOutputMarkupPlaceholderTag(true);
+		nonSchemaRefPanel.add(WebComponentUtil.enabledIfFalse(readOnlyModel));
         add(nonSchemaRefPanel);
 
         TextField displayName = new TextField<>(ID_DISPLAY_NAME, new PropertyModel<String>(getModel(), "displayName"));
@@ -188,9 +198,11 @@ public class ResourceAssociationEditor extends BasePanel<ResourceObjectAssociati
 				target.add(parentStep.getAssociationList());
 			}
 		});
+		displayName.add(WebComponentUtil.enabledIfFalse(readOnlyModel));
         add(displayName);
 
         TextArea description = new TextArea<>(ID_DESCRIPTION, new PropertyModel<String>(getModel(), "description"));
+		description.add(WebComponentUtil.enabledIfFalse(readOnlyModel));
         add(description);
 
         AjaxLink limitations = new AjaxLink(ID_BUTTON_LIMITATIONS) {
@@ -203,17 +215,21 @@ public class ResourceAssociationEditor extends BasePanel<ResourceObjectAssociati
         add(limitations);
 
         CheckBox exclusiveStrong = new CheckBox(ID_EXCLUSIVE_STRONG, new PropertyModel<Boolean>(getModel(), "exclusiveStrong"));
+		exclusiveStrong.add(WebComponentUtil.enabledIfFalse(readOnlyModel));
         add(exclusiveStrong);
 
         CheckBox tolerant = new CheckBox(ID_TOLERANT, new PropertyModel<Boolean>(getModel(), "tolerant"));
+		tolerant.add(WebComponentUtil.enabledIfFalse(readOnlyModel));
         add(tolerant);
 
         MultiValueTextPanel tolerantVP = new MultiValueTextPanel<>(ID_TOLERANT_VP,
-                new PropertyModel<List<String>>(getModel(), "tolerantValuePattern"));
+                new PropertyModel<List<String>>(getModel(), "tolerantValuePattern"), readOnlyModel);
+		tolerantVP.add(WebComponentUtil.enabledIfFalse(readOnlyModel));
         add(tolerantVP);
 
         MultiValueTextPanel intolerantVP = new MultiValueTextPanel<>(ID_INTOLERANT_VP,
-                new PropertyModel<List<String>>(getModel(), "intolerantValuePattern"));
+                new PropertyModel<List<String>>(getModel(), "intolerantValuePattern"), readOnlyModel);
+		intolerantVP.add(WebComponentUtil.enabledIfFalse(readOnlyModel));
         add(intolerantVP);
 
         DropDownChoice fetchStrategy = new DropDownChoice<>(ID_FETCH_STRATEGY,
@@ -221,9 +237,10 @@ public class ResourceAssociationEditor extends BasePanel<ResourceObjectAssociati
                 WebComponentUtil.createReadonlyModelFromEnum(AttributeFetchStrategyType.class),
                 new EnumChoiceRenderer<AttributeFetchStrategyType>(this));
         fetchStrategy.setNullValid(true);
+		fetchStrategy.add(WebComponentUtil.enabledIfFalse(readOnlyModel));
         add(fetchStrategy);
 
-        AttributeEditorUtils.addMatchingRuleFields(this);
+        AttributeEditorUtils.addMatchingRuleFields(this, readOnlyModel);
 
         TextField outboundLabel = new TextField<>(ID_OUTBOUND_LABEL,
                 new AbstractReadOnlyModel<String>() {
@@ -271,10 +288,11 @@ public class ResourceAssociationEditor extends BasePanel<ResourceObjectAssociati
 			}
 		};
 		deleteOutbound.setOutputMarkupId(true);
+		deleteOutbound.add(WebComponentUtil.visibleIfFalse(readOnlyModel));
 		add(deleteOutbound);
 
 		MultiValueTextEditPanel inbound = new MultiValueTextEditPanel<MappingType>(ID_INBOUND,
-                new PropertyModel<List<MappingType>>(getModel(), "inbound"), null, false, true){
+                new PropertyModel<List<MappingType>>(getModel(), "inbound"), null, false, true, readOnlyModel) {
 
             @Override
             protected IModel<String> createTextModel(final IModel<MappingType> model) {
@@ -309,7 +327,7 @@ public class ResourceAssociationEditor extends BasePanel<ResourceObjectAssociati
             }
         };
         inbound.setOutputMarkupId(true);
-        add(inbound);
+		add(inbound);
 
         Label kindTooltip = new Label(ID_T_KIND);
         kindTooltip.add(new InfoTooltipBehavior());
@@ -371,15 +389,15 @@ public class ResourceAssociationEditor extends BasePanel<ResourceObjectAssociati
         inboundTooltip.add(new InfoTooltipBehavior());
         add(inboundTooltip);
 
-        initModals();
+        initModals(readOnlyModel);
     }
 
-    private void initModals() {
+    private void initModals(NonEmptyModel<Boolean> readOnlyModel) {
         ModalWindow limitationsEditor = new LimitationsEditorDialog(ID_MODAL_LIMITATIONS,
-                new PropertyModel<List<PropertyLimitationsType>>(getModel(), "limitations"));
+                new PropertyModel<List<PropertyLimitationsType>>(getModel(), "limitations"), readOnlyModel);
         add(limitationsEditor);
 
-        ModalWindow inboundEditor = new MappingEditorDialog(ID_MODAL_INBOUND, null){
+        ModalWindow inboundEditor = new MappingEditorDialog(ID_MODAL_INBOUND, null, readOnlyModel) {
 
             @Override
             public void updateComponents(AjaxRequestTarget target){
@@ -389,7 +407,7 @@ public class ResourceAssociationEditor extends BasePanel<ResourceObjectAssociati
         };
         add(inboundEditor);
 
-        ModalWindow outboundEditor = new MappingEditorDialog(ID_MODAL_OUTBOUND, null){
+        ModalWindow outboundEditor = new MappingEditorDialog(ID_MODAL_OUTBOUND, null, readOnlyModel) {
 
             @Override
             public void updateComponents(AjaxRequestTarget target) {

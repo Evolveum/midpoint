@@ -16,6 +16,7 @@
 package com.evolveum.midpoint.web.component.wizard.resource.component.schemahandling;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.model.NonEmptyModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -31,7 +32,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.form.multivalue.MultiValueTextEditPanel;
 import com.evolveum.midpoint.web.component.form.multivalue.MultiValueTextPanel;
-import com.evolveum.midpoint.web.component.input.QNameEditorPanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.component.wizard.WizardUtil;
 import com.evolveum.midpoint.web.component.wizard.resource.SchemaHandlingStep;
@@ -46,7 +46,6 @@ import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
 import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
@@ -111,17 +110,19 @@ public class ResourceAttributeEditor extends BasePanel<ResourceAttributeDefiniti
 	@NotNull final private SchemaHandlingStep parentStep;
 
     public ResourceAttributeEditor(String id, IModel<ResourceAttributeDefinitionType> model, ResourceObjectTypeDefinitionType objectType,
-			PrismObject<ResourceType> resource, SchemaHandlingStep parentStep) {
+			PrismObject<ResourceType> resource, SchemaHandlingStep parentStep, NonEmptyModel<Boolean> readOnlyModel) {
         super(id, model);
 
         this.resource = resource;
         this.objectType = objectType;
 		this.parentStep = parentStep;
-		initLayout();
+		initLayout(readOnlyModel);
     }
 
-    protected void initLayout() {
+    protected void initLayout(final NonEmptyModel<Boolean> readOnlyModel) {
+
         Label label = new Label(ID_LABEL, new ResourceModel("ResourceAttributeEditor.label.edit"));
+		label.add(WebComponentUtil.enabledIfFalse(readOnlyModel));
         add(label);
 
 /*
@@ -152,13 +153,15 @@ public class ResourceAttributeEditor extends BasePanel<ResourceAttributeDefiniti
         schemaRefPanel.setOutputMarkupId(true);
         schemaRefPanel.setOutputMarkupPlaceholderTag(true);
         schemaRefPanel.add(new VisibleEnableBehaviour(){
-
             @Override
             public boolean isVisible() {
                 return !nonSchemaRefValueAllowed;
             }
-
-        });
+			@Override
+			public boolean isEnabled() {
+				return !readOnlyModel.getObject();
+			}
+		});
         add(schemaRefPanel);
 
         Label refTooltip = new Label(ID_T_REF);
@@ -204,7 +207,6 @@ public class ResourceAttributeEditor extends BasePanel<ResourceAttributeDefiniti
             }
         };
         refSelect.setNullValid(false);
-
         refSelect.setOutputMarkupId(true);
         refSelect.setOutputMarkupPlaceholderTag(true);
 		refSelect.add(new EmptyOnChangeAjaxFormUpdatingBehavior() {
@@ -213,6 +215,7 @@ public class ResourceAttributeEditor extends BasePanel<ResourceAttributeDefiniti
 				target.add(parentStep.getAttributeList());
 			}
 		});
+		refSelect.add(WebComponentUtil.enabledIfFalse(readOnlyModel));
         schemaRefPanel.add(refSelect);
 
 /*
@@ -236,9 +239,11 @@ public class ResourceAttributeEditor extends BasePanel<ResourceAttributeDefiniti
 				target.add(parentStep.getAttributeList());
 			}
 		});
+		displayName.add(WebComponentUtil.enabledIfFalse(readOnlyModel));
         add(displayName);
 
         TextArea description = new TextArea<>(ID_DESCRIPTION, new PropertyModel<String>(getModel(), "description"));
+		description.add(WebComponentUtil.enabledIfFalse(readOnlyModel));
         add(description);
 
         AjaxLink limitations = new AjaxLink(ID_BUTTON_LIMITATIONS) {
@@ -251,17 +256,21 @@ public class ResourceAttributeEditor extends BasePanel<ResourceAttributeDefiniti
         add(limitations);
 
         CheckBox exclusiveStrong = new CheckBox(ID_EXCLUSIVE_STRONG, new PropertyModel<Boolean>(getModel(), "exclusiveStrong"));
+		exclusiveStrong.add(WebComponentUtil.enabledIfFalse(readOnlyModel));
         add(exclusiveStrong);
 
         CheckBox tolerant = new CheckBox(ID_TOLERANT, new PropertyModel<Boolean>(getModel(), "tolerant"));
+		tolerant.add(WebComponentUtil.enabledIfFalse(readOnlyModel));
         add(tolerant);
 
         MultiValueTextPanel tolerantVP = new MultiValueTextPanel<>(ID_TOLERANT_VP,
-                new PropertyModel<List<String>>(getModel(), "tolerantValuePattern"));
-        add(tolerantVP);
+                new PropertyModel<List<String>>(getModel(), "tolerantValuePattern"), readOnlyModel);
+		tolerantVP.add(WebComponentUtil.enabledIfFalse(readOnlyModel));
+		add(tolerantVP);
 
         MultiValueTextPanel intolerantVP = new MultiValueTextPanel<>(ID_INTOLERANT_VP,
-                new PropertyModel<List<String>>(getModel(), "intolerantValuePattern"));
+                new PropertyModel<List<String>>(getModel(), "intolerantValuePattern"), readOnlyModel);
+		intolerantVP.add(WebComponentUtil.enabledIfFalse(readOnlyModel));
         add(intolerantVP);
 
         DropDownChoice fetchStrategy = new DropDownChoice<>(ID_FETCH_STRATEGY,
@@ -269,9 +278,10 @@ public class ResourceAttributeEditor extends BasePanel<ResourceAttributeDefiniti
                 WebComponentUtil.createReadonlyModelFromEnum(AttributeFetchStrategyType.class),
                 new EnumChoiceRenderer<AttributeFetchStrategyType>(this));
         fetchStrategy.setNullValid(true);
+		fetchStrategy.add(WebComponentUtil.enabledIfFalse(readOnlyModel));
         add(fetchStrategy);
 
-		AttributeEditorUtils.addMatchingRuleFields(this);
+		AttributeEditorUtils.addMatchingRuleFields(this, readOnlyModel);
 
         TextField outboundLabel = new TextField<>(ID_OUTBOUND_LABEL,
                 new AbstractReadOnlyModel<String>() {
@@ -320,10 +330,11 @@ public class ResourceAttributeEditor extends BasePanel<ResourceAttributeDefiniti
 			}
 		};
         deleteOutbound.setOutputMarkupId(true);
+		deleteOutbound.add(WebComponentUtil.visibleIfFalse(readOnlyModel));
         add(deleteOutbound);
 
         MultiValueTextEditPanel inbound = new MultiValueTextEditPanel<MappingType>(ID_INBOUND,
-                new PropertyModel<List<MappingType>>(getModel(), "inbound"), null, false, true){
+                new PropertyModel<List<MappingType>>(getModel(), "inbound"), null, false, true, readOnlyModel) {
 
             @Override
             protected IModel<String> createTextModel(final IModel<MappingType> model) {
@@ -400,15 +411,15 @@ public class ResourceAttributeEditor extends BasePanel<ResourceAttributeDefiniti
         inboundTooltip.add(new InfoTooltipBehavior());
         add(inboundTooltip);
 
-        initModals();
+        initModals(readOnlyModel);
     }
 
-    private void initModals() {
+    private void initModals(NonEmptyModel<Boolean> readOnlyModel) {
         ModalWindow limitationsEditor = new LimitationsEditorDialog(ID_MODAL_LIMITATIONS,
-                new PropertyModel<List<PropertyLimitationsType>>(getModel(), "limitations"));
+                new PropertyModel<List<PropertyLimitationsType>>(getModel(), "limitations"), readOnlyModel);
         add(limitationsEditor);
 
-        ModalWindow inboundEditor = new MappingEditorDialog(ID_MODAL_INBOUND, null){
+        ModalWindow inboundEditor = new MappingEditorDialog(ID_MODAL_INBOUND, null, readOnlyModel) {
 
             @Override
             public void updateComponents(AjaxRequestTarget target) {
@@ -417,7 +428,7 @@ public class ResourceAttributeEditor extends BasePanel<ResourceAttributeDefiniti
         };
         add(inboundEditor);
 
-        ModalWindow outboundEditor = new MappingEditorDialog(ID_MODAL_OUTBOUND, null){
+        ModalWindow outboundEditor = new MappingEditorDialog(ID_MODAL_OUTBOUND, null, readOnlyModel) {
 
             @Override
             public void updateComponents(AjaxRequestTarget target) {

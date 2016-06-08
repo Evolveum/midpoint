@@ -17,12 +17,12 @@
 package com.evolveum.midpoint.web.component.form.multivalue;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.model.NonEmptyModel;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -58,15 +58,15 @@ public class MultiValueTextEditPanel<T extends Serializable> extends BasePanel<L
 
 	@Nullable private final IModel<T> selectedModel;			// holding the selected item
 
-    public MultiValueTextEditPanel(String id, IModel<List<T>> model, IModel<T> selectedModel, boolean inputEnabled, boolean showPlaceholder) {
+    public MultiValueTextEditPanel(String id, IModel<List<T>> model, IModel<T> selectedModel, boolean inputEnabled, boolean showPlaceholder, NonEmptyModel<Boolean> readOnlyModel) {
         super(id, model);
         setOutputMarkupId(true);
 		this.selectedModel = selectedModel;
 
-        initLayout(inputEnabled, showPlaceholder);
+        initLayout(inputEnabled, showPlaceholder, readOnlyModel);
     }
 
-    private void initLayout(final boolean inputEnabled, final boolean showPlaceholder) {
+    private void initLayout(final boolean inputEnabled, final boolean showPlaceholder, final NonEmptyModel<Boolean> readOnlyModel) {
         WebMarkupContainer placeholderContainer = new WebMarkupContainer(ID_PLACEHOLDER_CONTAINER);
         placeholderContainer.setOutputMarkupPlaceholderTag(true);
         placeholderContainer.setOutputMarkupPlaceholderTag(true);
@@ -97,6 +97,7 @@ public class MultiValueTextEditPanel<T extends Serializable> extends BasePanel<L
                 return "";
             }
         }));
+		placeholderAdd.add(WebComponentUtil.visibleIfFalse(readOnlyModel));
         placeholderAdd.setOutputMarkupId(true);
         placeholderAdd.setOutputMarkupPlaceholderTag(true);
         placeholderContainer.add(placeholderAdd);
@@ -119,7 +120,7 @@ public class MultiValueTextEditPanel<T extends Serializable> extends BasePanel<L
 
                 WebMarkupContainer buttonGroup = new WebMarkupContainer(ID_BUTTON_GROUP);
                 item.add(buttonGroup);
-                initButtons(buttonGroup, item);
+                initButtons(buttonGroup, item, readOnlyModel);
             }
         };
         repeater.setOutputMarkupId(true);
@@ -134,7 +135,7 @@ public class MultiValueTextEditPanel<T extends Serializable> extends BasePanel<L
         add(repeater);
     }
 
-    private void initButtons(WebMarkupContainer buttonGroup, final ListItem<T> item) {
+    private void initButtons(WebMarkupContainer buttonGroup, final ListItem<T> item, NonEmptyModel<Boolean> readOnlyModel) {
         AjaxSubmitLink edit = new AjaxSubmitLink(ID_EDIT) {
 
             @Override
@@ -168,6 +169,7 @@ public class MultiValueTextEditPanel<T extends Serializable> extends BasePanel<L
             }
         };
         add.add(new AttributeAppender("class", getPlusClassModifier(item)));
+		add.add(WebComponentUtil.visibleIfFalse(readOnlyModel));
         buttonGroup.add(add);
 
         AjaxLink remove = new AjaxLink(ID_REMOVE) {
@@ -178,7 +180,8 @@ public class MultiValueTextEditPanel<T extends Serializable> extends BasePanel<L
             }
         };
         remove.add(new AttributeAppender("class", getMinusClassModifier()));
-        buttonGroup.add(remove);
+		remove.add(WebComponentUtil.visibleIfFalse(readOnlyModel));
+		buttonGroup.add(remove);
     }
 
     protected String getPlusClassModifier(ListItem<T> item){
