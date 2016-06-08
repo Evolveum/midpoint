@@ -376,7 +376,7 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 		if (delta == null) {
 			return;
 		}
-		executeMemberOperation(operationalTask, ObjectType.COMPLEX_TYPE, createQueryForMemberAction(scope, relation, true), delta, TaskCategory.EXECUTE_CHANGES, target);
+		executeMemberOperation(operationalTask, FocusType.COMPLEX_TYPE, createQueryForMemberAction(scope, relation, true), delta, TaskCategory.EXECUTE_CHANGES, target);
 		
 	}
 	
@@ -565,13 +565,13 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 	@Override
 	protected void recomputeMembersPerformed(QueryScope scope, AjaxRequestTarget target) {
 		Task operationalTask = getPageBase().createSimpleTask(getTaskName("Recompute", scope, false));
-		executeMemberOperation(operationalTask, ObjectType.COMPLEX_TYPE,
+		executeMemberOperation(operationalTask, FocusType.COMPLEX_TYPE,
 				createQueryForMemberAction(scope, null, true), null, TaskCategory.RECOMPUTATION, target);
 	}
 
 	protected void recomputeManagersPerformed(QueryScope scope, AjaxRequestTarget target) {
 		Task operationalTask = getPageBase().createSimpleTask(getTaskName("Recompute", scope, true));
-		executeMemberOperation(operationalTask, ObjectType.COMPLEX_TYPE,
+		executeMemberOperation(operationalTask, FocusType.COMPLEX_TYPE,
 				createQueryForMemberAction(scope, SchemaConstants.ORG_MANAGER, true), null,
 				TaskCategory.RECOMPUTATION, target);
 	}
@@ -662,17 +662,13 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 
 		}
 
-		if (isFocus) {
-			PrismReferenceDefinition def = org.asPrismObject().getDefinition()
-					.findReferenceDefinition(new ItemPath(OrgType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF));
-			ObjectFilter orgASsignmentFilter = RefFilter.createReferenceEqual(
-					new ItemPath(FocusType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF), def,
-					createReference(relation).asReferenceValue());
-			return ObjectQuery
-					.createObjectQuery(TypeFilter.createType(FocusType.COMPLEX_TYPE, orgASsignmentFilter));
-		}
-
-		return null;
+		PrismReferenceDefinition def = org.asPrismObject().getDefinition()
+				.findReferenceDefinition(new ItemPath(OrgType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF));
+		ObjectFilter orgASsignmentFilter = RefFilter.createReferenceEqual(
+				new ItemPath(FocusType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF), def,
+				createReference(relation).asReferenceValue());
+		return ObjectQuery
+				.createObjectQuery(TypeFilter.createType(FocusType.COMPLEX_TYPE, orgASsignmentFilter));
 
 	}
 

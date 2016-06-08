@@ -287,7 +287,7 @@ public class RoleMemberPanel extends AbstractRoleMemberPanel<RoleType> {
 	@Override
 	protected void recomputeMembersPerformed(QueryScope scope, AjaxRequestTarget target) {
 		Task operationalTask = getPageBase().createSimpleTask(getTaskName("Recompute", scope));
-		executeMemberOperation(operationalTask, ObjectType.COMPLEX_TYPE, getActionQuery(scope), null,
+		executeMemberOperation(operationalTask, FocusType.COMPLEX_TYPE, getActionQuery(scope), null,
 				TaskCategory.RECOMPUTATION, target);
 
 	}

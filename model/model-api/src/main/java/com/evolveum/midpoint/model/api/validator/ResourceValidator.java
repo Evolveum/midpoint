@@ -58,6 +58,17 @@ public interface ResourceValidator {
 	String C_MISSING_ASSOCIATION_VALUE_ATTRIBUTE = "missingAssociationValueAttribute";
 	String C_WRONG_MATCHING_RULE = "wrongMatchingRule";
 	String C_MULTIPLE_ITEMS = "multipleItems";
+	String C_DEPENDENT_OBJECT_TYPE_DOES_NOT_EXIST = "dependentObjectTypeDoesNotExist";
+	String C_TARGET_OBJECT_TYPE_DOES_NOT_EXIST = "targetObjectTypeDoesNotExist";
+	String C_INVALID_MAPPING_SOURCE = "invalidMappingSource";
+	String C_MISSING_MAPPING_SOURCE = "missingMappingSource";
+	String C_INVALID_MAPPING_TARGET = "invalidMappingTarget";
+	String C_MISSING_MAPPING_TARGET = "missingMappingTarget";
+	String C_SUPERFLUOUS_MAPPING_TARGET = "superfluousMappingTarget";
+	String C_UNKNOWN_OBJECT_CLASS_IN_SYNCHRONIZATION = "unknownObjectClassInSynchronization";
+	String C_NO_REACTION = "noReaction";
+	String C_DUPLICATE_REACTIONS = "duplicateReactions";
+	String C_NO_SITUATION = "noSituation";
 
 	@NotNull
 	ValidationResult validate(@NotNull PrismObject<ResourceType> resourceObject, @NotNull Scope scope, @NotNull Task task,
