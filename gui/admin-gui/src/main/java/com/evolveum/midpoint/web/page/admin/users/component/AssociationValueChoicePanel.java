@@ -40,6 +40,7 @@ import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
 import com.evolveum.midpoint.web.page.admin.roles.component.UserOrgReferenceChoosePanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
@@ -114,6 +115,7 @@ public class AssociationValueChoicePanel<C extends ObjectType> extends BasePanel
         textWrapper.add(text);
 
         FeedbackPanel feedback = new FeedbackPanel(ID_FEEDBACK, new ComponentFeedbackMessageFilter(text));
+        feedback.setFilter(new ComponentFeedbackMessageFilter(text));
         textWrapper.add(feedback);
 
         AjaxLink edit = new AjaxLink(ID_EDIT) {
@@ -351,6 +353,10 @@ public class AssociationValueChoicePanel<C extends ObjectType> extends BasePanel
         }
 
         return true;
+    }
+
+    public Component getTextComponent(){
+        return get(ID_TEXT_WRAPPER).get(ID_TEXT);
     }
 
 
