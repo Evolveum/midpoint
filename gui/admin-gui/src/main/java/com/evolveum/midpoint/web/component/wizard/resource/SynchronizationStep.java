@@ -392,7 +392,9 @@ public class SynchronizationStep extends WizardStep {
         editor.add(opportunistic);
 
         MultiValueTextEditPanel editorCorrelation = new MultiValueTextEditPanel<ConditionalSearchFilterType>(ID_EDITOR_EDITOR_CORRELATION,
-                new PropertyModel<List<ConditionalSearchFilterType>>(syncDtoModel, ResourceSynchronizationDto.F_SELECTED + ".correlation"), null, false, true, parentPage.getReadOnlyModel()) {
+                new PropertyModel<List<ConditionalSearchFilterType>>(syncDtoModel, ResourceSynchronizationDto.F_SELECTED + ".correlation"),
+				new PropertyModel<ConditionalSearchFilterType>(syncDtoModel, ResourceSynchronizationDto.F_SELECTED_CORRELATION),
+				false, true, parentPage.getReadOnlyModel()) {
 
             @Override
             protected IModel<String> createTextModel(final IModel<ConditionalSearchFilterType> model) {
@@ -434,7 +436,9 @@ public class SynchronizationStep extends WizardStep {
         editor.add(editorCorrelation);
 
         MultiValueTextEditPanel editorReaction = new MultiValueTextEditPanel<SynchronizationReactionType>(ID_EDITOR_REACTION,
-                new PropertyModel<List<SynchronizationReactionType>>(syncDtoModel, ResourceSynchronizationDto.F_SELECTED + ".reaction"), null, false, true, parentPage.getReadOnlyModel()) {
+                new PropertyModel<List<SynchronizationReactionType>>(syncDtoModel, ResourceSynchronizationDto.F_SELECTED + ".reaction"),
+                new PropertyModel<SynchronizationReactionType>(syncDtoModel, ResourceSynchronizationDto.F_SELECTED_REACTION),
+				false, true, parentPage.getReadOnlyModel()) {
 
             @Override
             protected IModel<String> createTextModel(final IModel<SynchronizationReactionType> model) {
@@ -588,6 +592,10 @@ public class SynchronizationStep extends WizardStep {
 		return get(createComponentPath(ID_OBJECT_SYNC_EDITOR, ID_EDITOR_REACTION));
 	}
 
+	public Component getCorrelationList() {
+		return get(createComponentPath(ID_OBJECT_SYNC_EDITOR, ID_EDITOR_EDITOR_CORRELATION));
+	}
+
     private Component getThirdRowContainer(){
         return get(ID_THIRD_ROW_CONTAINER);
     }
@@ -606,7 +614,7 @@ public class SynchronizationStep extends WizardStep {
             }
         };
         getThirdRowContainer().replaceWith(newContainer);
-
+		resetSelections(target);
         target.add(getThirdRowContainer(), get(ID_OBJECT_SYNC_EDITOR), getPageBase().getFeedbackPanel());
     }
 
@@ -620,7 +628,7 @@ public class SynchronizationStep extends WizardStep {
             }
         };
         getThirdRowContainer().replaceWith(newContainer);
-
+		resetSelections(target);
         target.add(getThirdRowContainer(), get(ID_OBJECT_SYNC_EDITOR), getPageBase().getFeedbackPanel());
     }
 
@@ -628,6 +636,8 @@ public class SynchronizationStep extends WizardStep {
 		if (condition.getCondition() == null) {
 			condition.setCondition(new ExpressionType());			// removed at save
 		}
+		resetSelections(target);
+		syncDtoModel.getObject().setSelectedCorrelation(condition);
         WebMarkupContainer newContainer = new ConditionalSearchFilterEditor(ID_THIRD_ROW_CONTAINER,
 				new NonEmptyWrapperModel<>(new Model<>(condition)), parentPage);
         getThirdRowContainer().replaceWith(newContainer);
@@ -646,6 +656,9 @@ public class SynchronizationStep extends WizardStep {
 			}
 		}
 
+		resetSelections(target);
+		syncDtoModel.getObject().setSelectedReaction(reaction);
+
         target.add(getThirdRowContainer(), get(ID_OBJECT_SYNC_EDITOR), getPageBase().getFeedbackPanel());
     }
 
@@ -656,6 +669,7 @@ public class SynchronizationStep extends WizardStep {
 		}
 		savePerformed();
 		insertEmptyThirdRow();
+		resetSelections(null);
 	}
 
     private void savePerformed() {
@@ -716,6 +730,7 @@ public class SynchronizationStep extends WizardStep {
 		boolean wasAnySelected = isAnySelected();
 		syncDtoModel.getObject().setSelected(syncObject);
 		insertEmptyThirdRow();
+		resetSelections(target);
 		if (wasAnySelected) {
 			target.add(getSyncObjectTable(), getNavigator(), getSyncObjectEditor(), getThirdRowContainer());
 		} else {
@@ -727,6 +742,7 @@ public class SynchronizationStep extends WizardStep {
         if (isSelected(syncObject)) {
 			syncDtoModel.getObject().setSelected(null);
             insertEmptyThirdRow();
+			resetSelections(target);
             target.add(getThirdRowContainer());
         }
 
@@ -734,6 +750,7 @@ public class SynchronizationStep extends WizardStep {
 		list.remove(syncObject);
 		if (list.isEmpty()) {
             insertEmptyThirdRow();
+			resetSelections(target);
             target.add(getThirdRowContainer());
         }
 
@@ -760,6 +777,22 @@ public class SynchronizationStep extends WizardStep {
 		protected void onUpdate(AjaxRequestTarget target) {
 			target.add(getSyncObjectTable(), getSyncObjectEditor().get(ID_EDITOR_LABEL));
 			parentPage.refreshIssues(target);
+		}
+	}
+
+	private void resetSelections(AjaxRequestTarget target) {
+		ResourceSynchronizationDto dto = syncDtoModel.getObject();
+		if (dto.getSelectedCorrelation() != null) {
+			dto.setSelectedCorrelation(null);
+			if (target != null) {
+				target.add(getCorrelationList());
+			}
+		}
+		if (dto.getSelectedReaction() != null) {
+			dto.setSelectedReaction(null);
+			if (target != null) {
+				target.add(getReactionList());
+			}
 		}
 	}
 
