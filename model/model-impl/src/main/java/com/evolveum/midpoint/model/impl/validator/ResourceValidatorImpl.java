@@ -29,6 +29,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
+import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
@@ -37,7 +38,6 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
@@ -275,7 +275,7 @@ public class ResourceValidatorImpl implements ResourceValidator {
 		if (!duplicates.isEmpty()) {
 			ctx.validationResult.add(Issue.Severity.ERROR,
 					CAT_SCHEMA_HANDLING, C_MULTIPLE_ITEMS,
-					getString(CLASS_DOT + C_MULTIPLE_ITEMS, getName(objectType), PrettyPrinter.prettyPrint(duplicates)),
+					getString(CLASS_DOT + C_MULTIPLE_ITEMS, getName(objectType), prettyPrintUsingStandardPrefix(duplicates)),
 					ctx.resourceRef, path);
 		}
 	}
@@ -316,7 +316,7 @@ public class ResourceValidatorImpl implements ResourceValidator {
 	private void checkMapping(ResourceValidationContext ctx, ItemPath path, ResourceObjectTypeDefinitionType objectType,
 			QName itemName, MappingType mapping, boolean outbound, int index, boolean implicitSourceOrTarget) {
 		String inOut = outbound ? getString("ResourceValidator.outboundMapping") : getString("ResourceValidator.inboundMapping", index);
-		String itemNameText = PrettyPrinter.prettyPrint(itemName);
+		String itemNameText = prettyPrintUsingStandardPrefix(itemName);
 		if (outbound && mapping.getTarget() != null) {
 			ctx.validationResult.add(Issue.Severity.INFO,
 					CAT_SCHEMA_HANDLING, C_SUPERFLUOUS_MAPPING_TARGET,
@@ -398,7 +398,7 @@ public class ResourceValidatorImpl implements ResourceValidator {
 		} catch (Throwable t) {
 			ctx.validationResult.add(Issue.Severity.WARNING,
 					CAT_SCHEMA_HANDLING, C_WRONG_MATCHING_RULE,
-					getString(CLASS_DOT + C_WRONG_MATCHING_RULE, getName(objectType), PrettyPrinter.prettyPrint(ref), t.getMessage()),
+					getString(CLASS_DOT + C_WRONG_MATCHING_RULE, getName(objectType), prettyPrintUsingStandardPrefix(ref), t.getMessage()),
 					ctx.resourceRef, path.append(ResourceItemDefinitionType.F_MATCHING_RULE));
 		}
 	}
@@ -419,7 +419,7 @@ public class ResourceValidatorImpl implements ResourceValidator {
 				if (ocdef.findAttributeDefinition(ref, ResourceTypeUtil.isCaseIgnoreAttributeNames(ctx.resourceObject.asObjectable())) != null) {
 					ctx.validationResult.add(Issue.Severity.ERROR,
 							CAT_SCHEMA_HANDLING, C_COLLIDING_ASSOCIATION_NAME,
-							getString(CLASS_DOT + C_COLLIDING_ASSOCIATION_NAME, getName(objectType), PrettyPrinter.prettyPrint(ref)),
+							getString(CLASS_DOT + C_COLLIDING_ASSOCIATION_NAME, getName(objectType), prettyPrintUsingStandardPrefix(ref)),
 							ctx.resourceRef, path.append(ResourceItemDefinitionType.F_REF));
 				}
 			}
@@ -436,7 +436,7 @@ public class ResourceValidatorImpl implements ResourceValidator {
 					CAT_SCHEMA_HANDLING, C_TARGET_OBJECT_TYPE_DOES_NOT_EXIST,
 					getString(CLASS_DOT + C_TARGET_OBJECT_TYPE_DOES_NOT_EXIST, getName(objectType),
 							fillDefault(associationDef.getKind()) + "/" + fillDefault(intent),
-							PrettyPrinter.prettyPrint(ref)),
+							prettyPrintUsingStandardPrefix(ref)),
 					ctx.resourceRef, path);
 		}
 	}
@@ -654,6 +654,42 @@ public class ResourceValidatorImpl implements ResourceValidator {
 		}
 		final MessageFormat format = new MessageFormat(resolvedKey, RESOURCE_BUNDLE.getLocale());
 		return format.format(parameters);
+	}
+
+	// PrettyPrinter output is too verbose/confusing
+	// TODO move to some standard class (but PrettyPrinter is questionable)
+
+	public static String prettyPrintUsingStandardPrefix(Collection<QName> names) {
+		StringBuilder sb = new StringBuilder();
+		boolean first = true;
+		for (QName name : names) {
+			if (first) {
+				first = false;
+			} else {
+				sb.append(", ");
+			}
+			sb.append(prettyPrintUsingStandardPrefix(name));
+		}
+		return sb.toString();
+	}
+
+	// TODO check if there's not any standard list of usual prefixes (I'm quite sure there is)
+	public static String prettyPrintUsingStandardPrefix(QName name) {
+		if (name == null) {
+			return null;
+		}
+		String ns = name.getNamespaceURI();
+		if (SchemaConstants.NS_C.equals(ns)) {
+			return "c:" + name.getLocalPart();
+		} else if (MidPointConstants.NS_RI.equals(ns)) {
+			return "ri:" + name.getLocalPart();
+		} else if (SchemaConstantsGenerated.NS_ICF_SCHEMA.equals(ns)) {
+			return "icfs:" + name.getLocalPart();
+		} else if (SchemaConstantsGenerated.NS_ICF_SCHEMA.equals(ns)) {
+			return "icfs:" + name.getLocalPart();
+		} else {
+			return null;
+		}
 	}
 
 }
