@@ -27,6 +27,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -402,7 +403,7 @@ public class SchemaHandlingStep extends WizardStep {
                             return null;
                         }
                         ResourceAttributeDefinitionType attribute = model.getObject();
-						return formatItemInfo(attribute.getRef(), attribute.getDisplayName(), attribute.getInbound(), attribute.getOutbound());
+						return formatItemInfo(attribute, attribute.getRef(), attribute.getDisplayName(), attribute.getInbound(), attribute.getOutbound());
                     }
                 };
             }
@@ -451,7 +452,7 @@ public class SchemaHandlingStep extends WizardStep {
                         if (association == null) {
                             return null;
                         }
-						return formatItemInfo(association.getRef(), association.getDisplayName(), association.getInbound(), association.getOutbound());
+						return formatItemInfo(association, association.getRef(), association.getDisplayName(), association.getInbound(), association.getOutbound());
                     }
                 };
             }
@@ -581,10 +582,11 @@ public class SchemaHandlingStep extends WizardStep {
         editor.add(credentialsTooltip);
     }
 
-	private String formatItemInfo(ItemPathType ref, String displayName, List<MappingType> inbound, MappingType outbound) {
+	private String formatItemInfo(ResourceItemDefinitionType item, ItemPathType ref, String displayName, List<MappingType> inbound,
+			MappingType outbound) {
 		StringBuilder sb = new StringBuilder();
 		if (ref != null && !ref.getItemPath().isEmpty()) {
-			QName name = ItemPathUtil.getOnlySegmentQName(ref);
+			QName name = ItemPathUtil.getOnlySegmentQNameRobust(ref);
 			if (name != null) {
 				String prefix = SchemaConstants.NS_ICF_SCHEMA.equals(name.getNamespaceURI()) ? "icfs" : "ri";
 				sb.append(prefix);
@@ -593,6 +595,10 @@ public class SchemaHandlingStep extends WizardStep {
 			}
 		} else {
 			sb.append("-");
+		}
+		String duplicateInfo = getDuplicateInfo(item);
+		if (duplicateInfo != null) {
+			sb.append(" (").append(duplicateInfo).append(")");
 		}
 		if (displayName != null) {
 			sb.append(" (").append(displayName).append(")");
@@ -605,6 +611,32 @@ public class SchemaHandlingStep extends WizardStep {
 			sb.append(", ").append(getString("SchemaHandlingStep.out"));
 		}
 		return sb.toString();
+	}
+
+	private String getDuplicateInfo(ResourceItemDefinitionType item) {
+		ResourceObjectTypeDefinitionTypeDto selectedObjectTypeDto = schemaHandlingDtoModel.getObject().getSelectedObjectTypeDto();
+		if (selectedObjectTypeDto == null) {
+			return null;		// shouldn't occur
+		}
+		ResourceObjectTypeDefinitionType selectedObjectType = selectedObjectTypeDto.getObjectType();
+		List<ItemRefinedDefinitionType> existingItems = new ArrayList<>();
+		existingItems.addAll(selectedObjectType.getAttribute());
+		existingItems.addAll(selectedObjectType.getAssociation());
+		QName name = ItemPathUtil.getOnlySegmentQNameRobust(item.getRef());
+		int count = 0, position = 0;
+		for (ItemRefinedDefinitionType existingItem : existingItems) {
+			QName existingName = ItemPathUtil.getOnlySegmentQNameRobust(existingItem.getRef());
+			if (QNameUtil.match(name, existingName)) {
+				count++;
+			}
+			if (item == existingItem) {
+				position = count;
+			}
+		}
+		if (count == 1) {
+			return null;
+		}
+		return getString("SchemaHandlingStep.dup", position);
 	}
 
 	@NotNull

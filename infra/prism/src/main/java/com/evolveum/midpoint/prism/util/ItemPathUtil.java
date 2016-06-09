@@ -29,6 +29,7 @@ public class ItemPathUtil {
 		return itemPath.isEmpty();
 	}
 
+	// TODO consider requiring path to be non-null
 	public static QName getOnlySegmentQName(ItemPathType pathType) {
 		if (pathType == null) {
 			return null;
@@ -48,6 +49,25 @@ public class ItemPathUtil {
 			return ((NameItemPathSegment)segment).getName();
 		} else {
 			throw new IllegalArgumentException("Expected a path with a name segment, bug got "+path);
+		}
+	}
+
+	public static QName getOnlySegmentQNameRobust(ItemPathType pathType) {
+		if (pathType == null) {
+			return null;
+		}
+		return getOnlySegmentQNameRobust(pathType.getItemPath());
+	}
+
+	public static QName getOnlySegmentQNameRobust(ItemPath path) {
+		if (path == null || path.size() != 1) {
+			return null;
+		}
+		ItemPathSegment segment = path.first();
+		if (segment instanceof NameItemPathSegment) {
+			return ((NameItemPathSegment)segment).getName();
+		} else {
+			return null;
 		}
 	}
 

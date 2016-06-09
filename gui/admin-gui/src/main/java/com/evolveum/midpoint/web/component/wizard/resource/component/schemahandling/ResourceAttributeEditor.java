@@ -44,6 +44,7 @@ import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
@@ -200,10 +201,10 @@ public class ResourceAttributeEditor extends BasePanel<ResourceAttributeDefiniti
                     return false;
                 }
 
-                QName referenceQName = ItemPathUtil.getOnlySegmentQName(getModelObject());
-                QName optionQName = ItemPathUtil.getOnlySegmentQName(object);
+                QName referenceQName = ItemPathUtil.getOnlySegmentQNameRobust(getModelObject());
+                QName optionQName = ItemPathUtil.getOnlySegmentQNameRobust(object);
 
-                return referenceQName.equals(optionQName);
+                return ObjectUtils.equals(referenceQName, optionQName);
             }
         };
         refSelect.setNullValid(false);
