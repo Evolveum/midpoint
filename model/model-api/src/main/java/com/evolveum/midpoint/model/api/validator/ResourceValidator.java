@@ -45,6 +45,7 @@ public interface ResourceValidator {
 	String C_MULTIPLE_SCHEMA_HANDLING_DEFAULT_DEFINITIONS = "multipleSchemaHandlingDefaultDefinitions";
 	String C_MULTIPLE_SYNCHRONIZATION_DEFINITIONS = "multipleSynchronizationDefinitions";
 	String C_NO_SYNCHRONIZATION_DEFINITION = "noSynchronizationDefinition";
+	String C_NO_SCHEMA_HANDLING_DEFINITION = "noSchemaHandlingDefinition";
 	String C_NO_ATTRIBUTE_REF = "noAttributeName";
 	String C_UNKNOWN_ATTRIBUTE_NAME = "unknownAttributeName";
 	String C_COLLIDING_ASSOCIATION_NAME = "collidingAssociationName";

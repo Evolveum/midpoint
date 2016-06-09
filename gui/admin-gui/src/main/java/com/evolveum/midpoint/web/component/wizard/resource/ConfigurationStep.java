@@ -234,6 +234,7 @@ public class ConfigurationStep extends WizardStep {
 
 	// copied from PageResource, TODO deduplicate
 	private void testConnectionPerformed(AjaxRequestTarget target) {
+		parentPage.refreshIssues(null);
 		if (parentPage.isReadOnly() || !isComplete()) {
 			return;
 		}
@@ -263,6 +264,7 @@ public class ConfigurationStep extends WizardStep {
 
 	@Override
     public void applyState() {
+		parentPage.refreshIssues(null);
 		if (parentPage.isReadOnly() || !isComplete()) {
 			return;
 		}

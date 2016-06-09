@@ -1385,15 +1385,15 @@ public class TaskQuartzImpl implements Task {
         processModificationBatched(setChannelAndPrepareDelta(value));
     }
 
-//    @Override
-//    public void setDescriptionImmediate(String value, OperationResult parentResult)
-//            throws ObjectNotFoundException, SchemaException {
-//        try {
-//            processModificationNow(setDescriptionAndPrepareDelta(value), parentResult);
-//        } catch (ObjectAlreadyExistsException ex) {
-//            throw new SystemException(ex);
-//        }
-//    }
+    @Override
+    public void setChannelImmediate(String value, OperationResult parentResult)
+            throws ObjectNotFoundException, SchemaException {
+        try {
+            processModificationNow(setChannelAndPrepareDelta(value), parentResult);
+        } catch (ObjectAlreadyExistsException ex) {
+            throw new SystemException(ex);
+        }
+    }
 
     public void setChannelTransient(String name) {
         taskPrism.asObjectable().setChannel(name);
@@ -2471,10 +2471,11 @@ public class TaskQuartzImpl implements Task {
         TaskQuartzImpl sub = (TaskQuartzImpl) taskManager.createTaskInstance();
         sub.setParent(this.getTaskIdentifier());
         sub.setOwner(this.getOwner());
+		sub.setChannel(this.getChannel());
 
 //        taskManager.registerTransientSubtask(sub, this);
 
-        LOGGER.trace("New subtask " + sub.getTaskIdentifier() + " has been created.");
+        LOGGER.trace("New subtask {} has been created.", sub.getTaskIdentifier());
         return sub;
     }
 

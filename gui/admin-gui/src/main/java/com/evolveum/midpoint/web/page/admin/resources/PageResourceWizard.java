@@ -51,6 +51,7 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -185,12 +186,14 @@ public class PageResourceWizard extends PageAdminResources {
         add(wizard);
     }
 
-	public void refreshIssues(AjaxRequestTarget target) {
+	public void refreshIssues(@Nullable AjaxRequestTarget target) {
 		issuesModel.reset();
-		Wizard wizard = (Wizard) get(ID_WIZARD);
-		target.add(wizard.getIssuesPanel());
-		target.add(wizard.getSteps());
-		target.add(wizard.getButtons());
+		if (target != null) {
+			Wizard wizard = (Wizard) get(ID_WIZARD);
+			target.add(wizard.getIssuesPanel());
+			target.add(wizard.getSteps());
+			target.add(wizard.getButtons());
+		}
 	}
 
 	@NotNull public ResourceWizardIssuesModel getIssuesModel() {

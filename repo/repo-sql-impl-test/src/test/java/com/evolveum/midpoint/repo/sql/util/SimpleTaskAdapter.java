@@ -191,6 +191,11 @@ public class SimpleTaskAdapter implements Task {
     }
 
     @Override
+    public void setChannelImmediate(String channelUri, OperationResult parentResult) {
+        throw new UnsupportedOperationException("not implemented yet.");
+    }
+
+    @Override
     public PrismObject<UserType> getRequestee() {
         return null;
     }
