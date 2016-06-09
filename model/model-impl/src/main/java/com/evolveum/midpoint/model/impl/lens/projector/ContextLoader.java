@@ -480,7 +480,7 @@ public class ContextLoader {
 			String oid = linkRefVal.getOid();
 			if (StringUtils.isBlank(oid)) {
 				LOGGER.trace("Null or empty OID in link reference {} in:\n{}", linkRef,
-						focus.debugDump());
+						focus.debugDump(1));
 				throw new SchemaException("Null or empty OID in link reference in " + focus);
 			}
 			LensProjectionContext existingAccountContext = findAccountContext(oid, context);
@@ -1002,7 +1002,7 @@ public class ContextLoader {
 						if (LOGGER.isTraceEnabled()) {
 							if (!GetOperationOptions.isNoFetch(rootOptions) && !GetOperationOptions.isRaw(rootOptions)) {
 								if (LOGGER.isTraceEnabled()) {
-									LOGGER.trace("Full shadow loaded for {}:\n{}", projectionHumanReadableName, objectOld.debugDump());
+									LOGGER.trace("Full shadow loaded for {}:\n{}", projectionHumanReadableName, objectOld.debugDump(1));
 								}
 							}
 						}
@@ -1111,8 +1111,6 @@ public class ContextLoader {
 		}
 		
 		setPrimaryDeltaOldValue(projContext);
-		
-		LOGGER.trace("FINISHED load of projection context {}\n{}", projectionHumanReadableName, projContext.debugDump());
 	}
 	
 	private <F extends ObjectType> boolean needToReload(LensContext<F> context,
@@ -1258,7 +1256,7 @@ public class ContextLoader {
 
 		
 		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("Loaded full resource object:\n{}", projCtx.debugDump());
+			LOGGER.trace("Loaded full resource object:\n{}", projCtx.debugDump(1));
 		}
 	}
 
