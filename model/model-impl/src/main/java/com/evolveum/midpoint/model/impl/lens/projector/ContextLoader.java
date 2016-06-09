@@ -505,7 +505,7 @@ public class ContextLoader {
 					shadow = provisioningService.getObject(ShadowType.class, oid, options, task, result);
 				} catch (ObjectNotFoundException e) {
 					// Broken accountRef. We need to mark it for deletion
-					LensProjectionContext accountContext = getOrCreateBrokenAccountContext(context, oid);
+					LensProjectionContext accountContext = getOrCreateEmptyThombstoneProjectionContext(context, oid);
 					accountContext.setFresh(true);
 					accountContext.setExists(false);
 					OperationResult getObjectSubresult = result.getLastSubresult();
@@ -675,7 +675,7 @@ public class ContextLoader {
 						// Broken accountRef. We need to try again with raw options, because the error should be thrown because of non-existent resource
 						Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createRaw());
 						account = provisioningService.getObject(ShadowType.class, oid, options, task, result);
-						accountContext = getOrCreateBrokenAccountContext(context, oid);
+						accountContext = getOrCreateEmptyThombstoneProjectionContext(context, oid);
 						accountContext.setFresh(true);
 						accountContext.setExists(false);
 						OperationResult getObjectSubresult = result.getLastSubresult();
@@ -917,21 +917,24 @@ public class ContextLoader {
 		return null;
 	}
 	
-	private <F extends ObjectType> LensProjectionContext getOrCreateBrokenAccountContext(LensContext<F> context,
-			String brokenAccountOid) {
-		LensProjectionContext accountContext = context.findProjectionContextByOid(brokenAccountOid);
-		if (accountContext != null) {
-			if (accountContext.getSynchronizationPolicyDecision() != SynchronizationPolicyDecision.BROKEN) {
-				throw new SystemException("Account context for broken account OID="+brokenAccountOid+" exists but it is not marked" +
-						" as broken: "+accountContext);
-			}
-			return accountContext;
+	private <F extends ObjectType> LensProjectionContext getOrCreateEmptyThombstoneProjectionContext(LensContext<F> context,
+			String missingShadowOid) {
+		LensProjectionContext projContext = context.findProjectionContextByOid(missingShadowOid);
+		if (projContext == null) {
+			projContext = context.createProjectionContext(null);
+			projContext.setOid(missingShadowOid);
 		}
 		
-		accountContext = context.createProjectionContext(null);
-		accountContext.setOid(brokenAccountOid);
-		accountContext.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.BROKEN);
-		return accountContext;
+		if (projContext.getResourceShadowDiscriminator() == null) {
+			projContext.setResourceShadowDiscriminator(new ResourceShadowDiscriminator(null, null, null, true));
+		} else {
+			projContext.getResourceShadowDiscriminator().setThombstone(true);
+		}
+		
+		projContext.setFullShadow(false);
+		projContext.setObjectCurrent(null);
+		
+		return projContext;
 	}
 	
 	/**
