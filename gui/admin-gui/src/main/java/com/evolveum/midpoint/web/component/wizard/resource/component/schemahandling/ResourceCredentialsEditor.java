@@ -148,7 +148,7 @@ public class ResourceCredentialsEditor extends BasePanel<ResourceCredentialsDefi
         add(outbound);
 
         MultiValueTextEditPanel inbound = new MultiValueTextEditPanel<MappingType>(ID_INBOUND,
-                new PropertyModel<List<MappingType>>(getModel(), "password.inbound"), null, false, true, parentPage.getReadOnlyModel()) {
+                new PropertyModel<List<MappingType>>(getModel(), "password.inbound"), null, false, true, true, parentPage.getReadOnlyModel()) {
 
             @Override
             protected IModel<String> createTextModel(final IModel<MappingType> model) {

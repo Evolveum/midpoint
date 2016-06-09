@@ -57,11 +57,14 @@ public class MultiValueTextEditPanel<T extends Serializable> extends BasePanel<L
     private static final String CSS_DISABLED = " disabled";
 
 	@Nullable private final IModel<T> selectedModel;			// holding the selected item
+	private final boolean preventDuplicates;					// it maybe somehow works automatically, but here's an explicit way of requesting this behavior
 
-    public MultiValueTextEditPanel(String id, IModel<List<T>> model, IModel<T> selectedModel, boolean inputEnabled, boolean showPlaceholder, NonEmptyModel<Boolean> readOnlyModel) {
+    public MultiValueTextEditPanel(String id, IModel<List<T>> model, IModel<T> selectedModel, boolean inputEnabled, boolean showPlaceholder,
+			boolean preventDuplicates, NonEmptyModel<Boolean> readOnlyModel) {
         super(id, model);
         setOutputMarkupId(true);
 		this.selectedModel = selectedModel;
+		this.preventDuplicates = preventDuplicates;
 
         initLayout(inputEnabled, showPlaceholder, readOnlyModel);
     }
@@ -219,10 +222,11 @@ public class MultiValueTextEditPanel<T extends Serializable> extends BasePanel<L
     protected void addValuePerformed(AjaxRequestTarget target){
         List<T> objects = getModelObject();
 		T added = createNewEmptyItem();
-		objects.add(added);
-
-        performAddValueHook(target, added);
-        target.add(this);
+		if (!preventDuplicates || !objects.contains(added)) {
+			objects.add(added);
+			performAddValueHook(target, added);
+			target.add(this);
+		}
     }
 
     protected IModel<String> createTextModel(final IModel<T> model) {
