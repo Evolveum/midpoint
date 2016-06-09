@@ -545,6 +545,9 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 		if (discr == null) {
 			return null;			// maybe when an account is deleted
 		}
+		if (resource == null) {
+			return null;
+		}
 		ResourceObjectTypeDefinitionType def = ResourceTypeUtil.getResourceObjectTypeDefinitionType(resource, discr.getKind(), discr.getIntent());
         return def;
     }
@@ -889,7 +892,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 		if (synchronizationPolicyDecision == SynchronizationPolicyDecision.BROKEN) {
 			return;
 		}
-    	if (fresh && !force) {
+    	if (fresh && !force && resourceShadowDiscriminator != null && !resourceShadowDiscriminator.isThombstone()) {
     		if (resource == null) {
 	    		throw new IllegalStateException("Null resource in "+this + (contextDesc == null ? "" : " in " +contextDesc));
 	    	}

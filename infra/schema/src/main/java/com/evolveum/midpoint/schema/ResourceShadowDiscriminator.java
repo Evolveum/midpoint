@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -133,7 +133,11 @@ public class ResourceShadowDiscriminator implements Serializable, DebugDumpable 
 	}
 
 	/**
-	 * Thumbstone flag is true: the account no longer exists. The data we have are the latest metadata we were able to get. 
+	 * Thumbstone flag is true: the account no longer exists. The data we have are the latest metadata we were able to get.
+	 * The projection will be marked as thombstone if we discover that the associated resource object is gone. Or the shadow
+	 * is gone and we can no longer associate the resource object. In any way the thombstoned projection is marked for removal.
+	 * It will be eventually unlinked and the shadow will be deleted. The shadow may stay around in the "dead" state for
+	 * some time for reporting purposes.
 	 */
 	public boolean isThombstone() {
 		return thombstone;

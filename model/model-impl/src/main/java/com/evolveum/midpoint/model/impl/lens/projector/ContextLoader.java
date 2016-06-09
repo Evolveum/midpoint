@@ -1056,8 +1056,8 @@ public class ContextLoader {
 				resourceOid = ShadowUtil.getResourceOid(shadowType);
 			} else if (projContext.getResourceShadowDiscriminator() != null) {
 				resourceOid = projContext.getResourceShadowDiscriminator().getResourceOid();
-			} else {
-				throw new IllegalStateException("No shadow and no resource intent means no resource OID in "+projectionHumanReadableName);
+			} else if (!thombstone) {
+				throw new IllegalStateException("No shadow, no discriminator and not thombstone? That won't do. Projection "+projectionHumanReadableName);
 			}
 		} else {
 			resourceOid = resourceType.getOid();
@@ -1066,10 +1066,14 @@ public class ContextLoader {
 		// Determine discriminator
 		ResourceShadowDiscriminator discr = projContext.getResourceShadowDiscriminator();
 		if (discr == null) {
-			ShadowType accountShadowType = projectionObject.asObjectable();
-			String intent = ShadowUtil.getIntent(accountShadowType);
-			ShadowKindType kind = ShadowUtil.getKind(accountShadowType);
-			discr = new ResourceShadowDiscriminator(resourceOid, kind, intent, thombstone);
+			if (projectionObject != null) {
+				ShadowType accountShadowType = projectionObject.asObjectable();
+				String intent = ShadowUtil.getIntent(accountShadowType);
+				ShadowKindType kind = ShadowUtil.getKind(accountShadowType);
+				discr = new ResourceShadowDiscriminator(resourceOid, kind, intent, thombstone);
+			} else {
+				discr = new ResourceShadowDiscriminator(null, null, null, thombstone);
+			}
 			projContext.setResourceShadowDiscriminator(discr);
 		} else {
 			if (thombstone) {
@@ -1079,7 +1083,7 @@ public class ContextLoader {
 		}
 		
 		// Load resource
-		if (resourceType == null) {
+		if (resourceType == null && resourceOid != null) {
 			resourceType = LensUtil.getResource(context, resourceOid, provisioningService, task, result);
 			projContext.setResource(resourceType);
 		}
