@@ -338,7 +338,7 @@ public class ResourceAttributeEditor extends BasePanel<ResourceAttributeDefiniti
         add(deleteOutbound);
 
         MultiValueTextEditPanel inbound = new MultiValueTextEditPanel<MappingType>(ID_INBOUND,
-                new PropertyModel<List<MappingType>>(getModel(), "inbound"), null, false, true, true, readOnlyModel) {
+                new PropertyModel<List<MappingType>>(getModel(), "inbound"), null, false, true, readOnlyModel) {
 
             @Override
             protected IModel<String> createTextModel(final IModel<MappingType> model) {
@@ -360,6 +360,7 @@ public class ResourceAttributeEditor extends BasePanel<ResourceAttributeDefiniti
 			@Override
 			protected void performAddValueHook(AjaxRequestTarget target, MappingType added) {
 				target.add(parentStep.getAttributeList());
+				target.add(parentStep.getAssociationList());		// because of marking duplicates
 			}
 
 			@Override

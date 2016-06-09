@@ -267,6 +267,14 @@ public class SchemaHandlingStep extends WizardStep {
         initObjectTypeEditor(objectTypeEditor);
     }
 
+	@Override
+	protected void onConfigure() {
+		super.onConfigure();
+		if (!isAnySelected()) {
+			insertEmptyThirdRow();
+		}
+	}
+
 	private IModel<String> createObjectTypeDisplayModel(final ResourceObjectTypeDefinitionTypeDto objectType){
         return new AbstractReadOnlyModel<String>() {
 
@@ -390,7 +398,7 @@ public class SchemaHandlingStep extends WizardStep {
         MultiValueTextEditPanel editorAttributes = new MultiValueTextEditPanel<ResourceAttributeDefinitionType>(ID_EDITOR_ATTRIBUTES,
                 new PropertyModel<List<ResourceAttributeDefinitionType>>(schemaHandlingDtoModel,
 						getExpression(ResourceObjectTypeDefinitionType.F_ATTRIBUTE)),
-				new PropertyModel<ResourceAttributeDefinitionType>(schemaHandlingDtoModel, SchemaHandlingDto.F_SELECTED_ATTRIBUTE), false, true, true,
+				new PropertyModel<ResourceAttributeDefinitionType>(schemaHandlingDtoModel, SchemaHandlingDto.F_SELECTED_ATTRIBUTE), false, true,
 				parentPage.getReadOnlyModel()) {
 
             @Override
@@ -415,7 +423,7 @@ public class SchemaHandlingStep extends WizardStep {
 
 			@Override
 			protected void performAddValueHook(AjaxRequestTarget target, ResourceAttributeDefinitionType added) {
-				editPerformed(target, added);
+				//editPerformed(target, added);
 			}
 
 			@Override
@@ -440,7 +448,7 @@ public class SchemaHandlingStep extends WizardStep {
                 new PropertyModel<List<ResourceObjectAssociationType>>(schemaHandlingDtoModel,
 						getExpression(ResourceObjectTypeDefinitionType.F_ASSOCIATION)),
 				new PropertyModel<ResourceObjectAssociationType>(schemaHandlingDtoModel, SchemaHandlingDto.F_SELECTED_ASSOCIATION),
-				false, true, true, parentPage.getReadOnlyModel()) {
+				false, true, parentPage.getReadOnlyModel()) {
 
             @Override
             protected IModel<String> createTextModel(final IModel<ResourceObjectAssociationType> model) {
@@ -464,7 +472,7 @@ public class SchemaHandlingStep extends WizardStep {
 
 			@Override
 			protected void performAddValueHook(AjaxRequestTarget target, ResourceObjectAssociationType added) {
-				editPerformed(target, added);
+				//editPerformed(target, added);
 			}
 
 			@Override

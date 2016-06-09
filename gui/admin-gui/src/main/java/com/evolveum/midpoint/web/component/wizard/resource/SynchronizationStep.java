@@ -251,6 +251,14 @@ public class SynchronizationStep extends WizardStep {
 		initObjectSyncEditor(objectSyncEditor);
     }
 
+	@Override
+	protected void onConfigure() {
+		super.onConfigure();
+		if (!isAnySelected()) {
+			insertEmptyThirdRow();
+		}
+	}
+
 	private void initObjectSyncEditor(WebMarkupContainer editor){
         Label editorLabel = new Label(ID_EDITOR_LABEL, new AbstractReadOnlyModel<String>() {
             @Override
@@ -395,7 +403,7 @@ public class SynchronizationStep extends WizardStep {
         MultiValueTextEditPanel editorCorrelation = new MultiValueTextEditPanel<ConditionalSearchFilterType>(ID_EDITOR_EDITOR_CORRELATION,
                 new PropertyModel<List<ConditionalSearchFilterType>>(syncDtoModel, ResourceSynchronizationDto.F_SELECTED + ".correlation"),
 				new PropertyModel<ConditionalSearchFilterType>(syncDtoModel, ResourceSynchronizationDto.F_SELECTED_CORRELATION),
-				false, true, true, parentPage.getReadOnlyModel()) {
+				false, true, parentPage.getReadOnlyModel()) {
 
             @Override
             protected IModel<String> createTextModel(final IModel<ConditionalSearchFilterType> model) {
@@ -439,7 +447,7 @@ public class SynchronizationStep extends WizardStep {
         MultiValueTextEditPanel editorReaction = new MultiValueTextEditPanel<SynchronizationReactionType>(ID_EDITOR_REACTION,
                 new PropertyModel<List<SynchronizationReactionType>>(syncDtoModel, ResourceSynchronizationDto.F_SELECTED + ".reaction"),
                 new PropertyModel<SynchronizationReactionType>(syncDtoModel, ResourceSynchronizationDto.F_SELECTED_REACTION),
-				false, true, true, parentPage.getReadOnlyModel()) {
+				false, true, parentPage.getReadOnlyModel()) {
 
             @Override
             protected IModel<String> createTextModel(final IModel<SynchronizationReactionType> model) {
