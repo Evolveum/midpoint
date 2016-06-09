@@ -25,6 +25,7 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.util.ItemPathUtil;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -46,6 +47,7 @@ import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -282,13 +284,11 @@ public class SchemaHandlingStep extends WizardStep {
     }
 
 	static void addKindAndIntent(StringBuilder sb, ShadowKindType kind, String intent) {
-		if (kind != null || intent != null) {
-			sb.append(" (");
-			sb.append(kind != null ? kind : " - ");
-			sb.append(", ");
-			sb.append(intent != null ? intent : "- ");
-			sb.append(")");
-		}
+		sb.append(" (");
+		sb.append(ResourceTypeUtil.fillDefault(kind));
+		sb.append(", ");
+		sb.append(ResourceTypeUtil.fillDefault(intent));
+		sb.append(")");
 	}
 
 	private void initObjectTypeEditor(WebMarkupContainer editor){
@@ -866,9 +866,9 @@ public class SchemaHandlingStep extends WizardStep {
 		return schemaHandlingDtoModel.getObject().getSelectedObjectTypeDto() == objectType;
 	}
 
-	private void addObjectTypePerformed(AjaxRequestTarget target){
+	private void addObjectTypePerformed(AjaxRequestTarget target) {
         ResourceObjectTypeDefinitionType objectType = new ResourceObjectTypeDefinitionType();
-        objectType.setDisplayName(getString("SchemaHandlingStep.label.newObjectType"));
+        objectType.setDisplayName(generateName(getString("SchemaHandlingStep.label.newObjectType")));
         ResourceObjectTypeDefinitionTypeDto dto = new ResourceObjectTypeDefinitionTypeDto(objectType);
 
         if (schemaHandlingDtoModel.getObject().getObjectTypeDtoList().isEmpty()){
@@ -884,6 +884,23 @@ public class SchemaHandlingStep extends WizardStep {
 		target.add(this);
 		parentPage.refreshIssues(target);
     }
+
+	private String generateName(String prefix) {
+		List<String> existing = new ArrayList<>();
+		for (ResourceObjectTypeDefinitionTypeDto objectTypeDto : schemaHandlingDtoModel.getObject().getObjectTypeDtoList()) {
+			CollectionUtils.addIgnoreNull(existing, objectTypeDto.getObjectType().getDisplayName());
+		}
+		return generateName(existing, prefix);
+	}
+
+	static String generateName(List<String> existing, String prefix) {
+		for (int i = 1;; i++) {
+			String candidate = prefix + (i > 1 ? " "+i : "");
+			if (!existing.contains(candidate)) {
+				return candidate;
+			}
+		}
+	}
 
 	@NotNull
 	private SchemaHandlingType getOrCreateSchemaHandling() {

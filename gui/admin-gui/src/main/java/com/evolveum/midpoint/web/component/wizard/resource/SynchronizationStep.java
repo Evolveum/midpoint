@@ -48,6 +48,7 @@ import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.ExpressionUtil;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -766,7 +767,7 @@ public class SynchronizationStep extends WizardStep {
 	private void addSyncObjectPerformed(AjaxRequestTarget target){
         ObjectSynchronizationType syncObject = new ObjectSynchronizationType();
 		syncObject.setEnabled(true);
-        syncObject.setName(getString("SynchronizationStep.label.newObjectType"));
+        syncObject.setName(generateName(getString("SynchronizationStep.label.newObjectType")));
 
         resourceModel.getObject().asObjectable().getSynchronization().getObjectSynchronization().add(syncObject);
 		editSyncObjectPerformed(target, syncObject);
@@ -795,6 +796,14 @@ public class SynchronizationStep extends WizardStep {
 				target.add(getReactionList());
 			}
 		}
+	}
+
+	private String generateName(String prefix) {
+		List<String> existing = new ArrayList<>();
+		for (ObjectSynchronizationType sync : syncDtoModel.getObject().getObjectSynchronizationList()) {
+			CollectionUtils.addIgnoreNull(existing, sync.getName());
+		}
+		return SchemaHandlingStep.generateName(existing, prefix);
 	}
 
 }
