@@ -16,6 +16,7 @@
 package com.evolveum.midpoint.model.intest;
 
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
+import static org.testng.AssertJUnit.assertNotNull;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -38,6 +39,7 @@ import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
@@ -656,6 +658,93 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         assertNoDummyAccount(RESOURCE_DUMMY_LAVENDER_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
         assertNoDummyAccount(RESOURCE_DUMMY_IVORY_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
 	}
+	
+	/**
+	 * Cause schema violation on the account during a provisioning operation. This should fail
+	 * the operation, but other operations should proceed and the account should definitelly NOT
+	 * be unlinked.
+	 * MID-2134
+	 */
+	@Test
+    public void test227ModifyUserJackDefaultDummyBrokenSchemaViolation() throws Exception {
+		final String TEST_NAME = "test227ModifyUserJackDefaultDummyBrokenSchemaViolation";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        dummyAuditService.clear();
+        
+        dummyResource.setModifyBreakMode(BreakMode.SCHEMA);
+                        
+		// WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        modifyUserReplace(USER_JACK_OID, UserType.F_FULL_NAME, task, result, 
+        		new PolyString("Cpt. Jack Sparrow", null));
+		
+		// THEN
+        TestUtil.displayThen(TEST_NAME);
+		result.computeStatus();
+		display("Result", result);
+		TestUtil.assertPartialError(result);
+		
+		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
+        assertLinks(userJack, 2);
+        
+        display("dummy resource after", dummyResource);
+        display("beige dummy resource after", dummyResourceBeige);
+        
+        assertDummyAccount(null, ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
+        assertDummyAccount(RESOURCE_DUMMY_BEIGE_NAME, ACCOUNT_JACK_DUMMY_USERNAME, "Cpt. Jack Sparrow", true);
+        // No value for ship ... no place to get it from
+        assertDummyAccountAttribute(RESOURCE_DUMMY_BEIGE_NAME, ACCOUNT_JACK_DUMMY_USERNAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME);
+        
+        assertNoDummyAccount(RESOURCE_DUMMY_LAVENDER_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
+        assertNoDummyAccount(RESOURCE_DUMMY_IVORY_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
+        
+        dummyResource.resetBreakMode();
+	}
+	
+	/**
+	 * Reset break mode, make sure that everything is back to normal.
+	 * MID-2134
+	 */
+	@Test
+    public void test228ModifyUserJackDefaultDummyNoError() throws Exception {
+		final String TEST_NAME = "test228ModifyUserJackDefaultDummyNoError";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        dummyAuditService.clear();
+        dummyResource.resetBreakMode();
+                        
+		// WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        modifyUserReplace(USER_JACK_OID, UserType.F_FULL_NAME, task, result, 
+        		new PolyString(USER_JACK_FULL_NAME, null));
+		
+		// THEN
+        TestUtil.displayThen(TEST_NAME);
+		result.computeStatus();
+		display("Result", result);
+		TestUtil.assertSuccess(result);
+		
+		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
+        assertLinks(userJack, 2);
+        
+        display("dummy resource after", dummyResource);
+        display("beige dummy resource after", dummyResourceBeige);
+        
+        assertDummyAccount(null, ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
+        assertDummyAccount(RESOURCE_DUMMY_BEIGE_NAME, ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
+        // No value for ship ... no place to get it from
+        assertDummyAccountAttribute(RESOURCE_DUMMY_BEIGE_NAME, ACCOUNT_JACK_DUMMY_USERNAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME);
+        
+        assertNoDummyAccount(RESOURCE_DUMMY_LAVENDER_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
+        assertNoDummyAccount(RESOURCE_DUMMY_IVORY_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
+	}
 
 	/**
 	 * Beige resource has a relaxed dependency. Try provisioning of both
@@ -669,6 +758,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
+        dummyResource.resetBreakMode();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
         
 		ObjectDelta<UserType> userDelta = createAccountAssignmentUserDelta(USER_JACK_OID, RESOURCE_DUMMY_BEIGE_OID, null, false);
