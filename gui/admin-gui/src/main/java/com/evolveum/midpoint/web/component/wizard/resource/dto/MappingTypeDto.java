@@ -406,11 +406,9 @@ public class MappingTypeDto implements Serializable {
         sb.append(")");
         sb.append("->");
 
-        if(mapping.getTarget() != null){
+        if (mapping.getTarget() != null) {
             MappingTargetDeclarationType target = mapping.getTarget();
-            if(target.getPath() != null && target.getPath().getItemPath() != null
-                    && target.getPath().getItemPath().getSegments() != null){
-
+            if (target.getPath() != null && !ItemPath.isNullOrEmpty(target.getPath().getItemPath())) {
                 List<ItemPathSegment> segments = target.getPath().getItemPath().getSegments();
                 sb.append(segments.get(segments.size() - 1));
             }

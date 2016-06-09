@@ -109,6 +109,12 @@ public class SynchronizationReactionEditor extends BasePanel<SynchronizationReac
         situation.setNullValid(true);
 		situation.add(new ReactionListUpdateBehavior());
 		parentPage.addEditingEnabledBehavior(situation);
+		situation.add(new EmptyOnChangeAjaxFormUpdatingBehavior() {
+			@Override
+			protected void onUpdate(AjaxRequestTarget target) {
+				((PageResourceWizard) getPageBase()).refreshIssues(target);
+			}
+		});
         add(situation);
 
         MultiValueDropDownPanel channel = new MultiValueDropDownPanel<String>(ID_CHANNEL,
@@ -185,11 +191,13 @@ public class SynchronizationReactionEditor extends BasePanel<SynchronizationReac
 			@Override
 			protected void performAddValueHook(AjaxRequestTarget target, SynchronizationActionType added) {
 				target.add(parentStep.getReactionList());
+				((PageResourceWizard) getPageBase()).refreshIssues(target);
 			}
 
 			@Override
 			protected void performRemoveValueHook(AjaxRequestTarget target, ListItem<SynchronizationActionType> item) {
 				target.add(parentStep.getReactionList());
+				((PageResourceWizard) getPageBase()).refreshIssues(target);
 			}
 
 			@Override

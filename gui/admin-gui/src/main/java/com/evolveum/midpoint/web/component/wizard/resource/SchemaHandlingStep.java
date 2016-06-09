@@ -423,7 +423,7 @@ public class SchemaHandlingStep extends WizardStep {
 
 			@Override
 			protected void performAddValueHook(AjaxRequestTarget target, ResourceAttributeDefinitionType added) {
-				//editPerformed(target, added);
+				parentPage.refreshIssues(target);
 			}
 
 			@Override
@@ -439,6 +439,7 @@ public class SchemaHandlingStep extends WizardStep {
             @Override
             protected void performRemoveValueHook(AjaxRequestTarget target, ListItem<ResourceAttributeDefinitionType> item) {
 				resetThirdRowContainer(target);
+				parentPage.refreshIssues(target);
             }
         };
 		editorAttributes.setOutputMarkupId(true);
@@ -472,7 +473,7 @@ public class SchemaHandlingStep extends WizardStep {
 
 			@Override
 			protected void performAddValueHook(AjaxRequestTarget target, ResourceObjectAssociationType added) {
-				//editPerformed(target, added);
+				parentPage.refreshIssues(target);
 			}
 
 			@Override
@@ -488,6 +489,7 @@ public class SchemaHandlingStep extends WizardStep {
             @Override
             protected void performRemoveValueHook(AjaxRequestTarget target, ListItem<ResourceObjectAssociationType> item) {
 				resetThirdRowContainer(target);
+				parentPage.refreshIssues(target);
             }
         };
 		editorAssociations.setOutputMarkupId(true);

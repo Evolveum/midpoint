@@ -16,10 +16,12 @@
 
 package com.evolveum.midpoint.web.component.wizard;
 
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.resources.PageResourceWizard;
+import org.apache.wicket.Session;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.wizard.*;
 import org.apache.wicket.markup.html.form.Form;
@@ -116,7 +118,12 @@ public class WizardButtonBar extends Panel implements IDefaultButtonProvider {
 		AjaxSubmitButton validate = new AjaxSubmitButton(ID_VALIDATE) {
 			@Override
 			protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
+				Session.get().getFeedbackMessages().clear();			// TODO - ok?
 				((PageResourceWizard) getPage()).refreshIssues(target);
+			}
+			@Override
+			protected void onError(AjaxRequestTarget target, Form<?> form) {
+				target.add(((PageBase) getPage()).getFeedbackPanel());
 			}
 		};
 		validate.add(showInFullWizardMode);
@@ -129,6 +136,11 @@ public class WizardButtonBar extends Panel implements IDefaultButtonProvider {
 				if (activeStep != null) {
 					activeStep.applyState();
 				}
+			}
+
+			@Override
+			protected void onError(AjaxRequestTarget target, Form<?> form) {
+				target.add(((PageBase) getPage()).getFeedbackPanel());
 			}
 		};
 		save.add(showInFullWizardMode);

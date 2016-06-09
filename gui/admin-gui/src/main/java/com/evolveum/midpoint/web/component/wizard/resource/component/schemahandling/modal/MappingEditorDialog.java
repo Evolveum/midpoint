@@ -23,11 +23,12 @@ import java.util.Map;
 
 import com.evolveum.midpoint.gui.api.model.NonEmptyModel;
 import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.form.*;
+import com.evolveum.midpoint.web.page.admin.resources.PageResourceWizard;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
-import org.apache.wicket.feedback.ContainerFeedbackMessageFilter;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.DropDownChoice;
@@ -153,6 +154,11 @@ public class MappingEditorDialog extends ModalWindow {
 		model.setObject(new MappingTypeDto(mapping.getObject(), getPageBase().getPrismContext()));
 		inputModel = mapping;
 		target.add(getContent());
+
+		if (initialized) {
+			((WebMarkupContainer) get(getContentId())).removeAll();
+			initialized = false;
+		}
 	}
 
 	public void updateModel(AjaxRequestTarget target, MappingType mapping, boolean isTargetRequired) {
@@ -166,6 +172,11 @@ public class MappingEditorDialog extends ModalWindow {
 		}
 
 		target.add(getContent());
+
+		if (initialized) {
+			((WebMarkupContainer) get(getContentId())).removeAll();
+			initialized = false;
+		}
 	}
 
 	public StringResourceModel createStringResource(String resourceKey, Object... objects) {
@@ -285,16 +296,16 @@ public class MappingEditorDialog extends ModalWindow {
 		// TODO - create some nice ItemPathType editor in near future
 		TextFormGroup target = new TextFormGroup(ID_TARGET, new PropertyModel<String>(model, MappingTypeDto.F_TARGET),
 				createStringResource("MappingEditorDialog.label.target"), "SchemaHandlingStep.mapping.tooltip.target",
-				true, ID_LABEL_SIZE, ID_INPUT_SIZE, isTargetRequired);
+				true, ID_LABEL_SIZE, ID_INPUT_SIZE, false, isTargetRequired);
 		target.setOutputMarkupId(true);
 		target.add(WebComponentUtil.enabledIfFalse(readOnlyModel));
 		form.add(target);
 
-		FeedbackPanel feedback = new FeedbackPanel(ID_FEEDBACK);
-		feedback.setOutputMarkupId(true);
-		feedback.setOutputMarkupPlaceholderTag(true);
-		feedback.setFilter(new ContainerFeedbackMessageFilter(this));		// because 'no target' messages are generated with reporter == this (why?)
-		form.add(feedback);
+//		FeedbackPanel feedback = new FeedbackPanel(ID_FEEDBACK);
+//		feedback.setOutputMarkupId(true);
+//		feedback.setOutputMarkupPlaceholderTag(true);
+//		feedback.setFilter(new ContainerFeedbackMessageFilter(this));		// because 'no target' messages are generated with reporter == this (why?)
+//		form.add(feedback);
 
 		DropDownFormGroup<ExpressionUtil.ExpressionEvaluatorType> expressionType = new DropDownFormGroup<ExpressionUtil.ExpressionEvaluatorType>(
 				ID_EXPRESSION_TYPE,
@@ -523,11 +534,11 @@ public class MappingEditorDialog extends ModalWindow {
 		sourceTooltip.add(new InfoTooltipBehavior(true));
 		form.add(sourceTooltip);
 
-		AjaxSubmitButton cancel = new AjaxSubmitButton(ID_BUTTON_CANCEL,
+		AjaxButton cancel = new AjaxButton(ID_BUTTON_CANCEL,
 				createStringResource("MappingEditorDialog.button.cancel")) {
 
 			@Override
-			protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
+			public void onClick(AjaxRequestTarget target) {
 				cancelPerformed(target);
 			}
 		};
@@ -540,6 +551,11 @@ public class MappingEditorDialog extends ModalWindow {
 			protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
 				savePerformed(target);
 			}
+
+			@Override
+			protected void onError(AjaxRequestTarget target, Form<?> form) {
+				target.add(getPageBase().getFeedbackPanel(), getContent());
+			}
 		};
 		save.add(WebComponentUtil.visibleIfFalse(readOnlyModel));
 		form.add(save);
@@ -547,10 +563,6 @@ public class MappingEditorDialog extends ModalWindow {
 
 	private PageBase getPageBase() {
 		return (PageBase) getPage();
-	}
-
-	private FeedbackPanel getFeedback() {
-		return (FeedbackPanel) get(getContentId() + ":" + ID_MAIN_FORM + ":" + ID_FEEDBACK);
 	}
 
 	private List<ObjectReferenceType> createPasswordPolicyList() {
@@ -600,14 +612,6 @@ public class MappingEditorDialog extends ModalWindow {
 	}
 
 	private void savePerformed(AjaxRequestTarget target) {
-		if (isTargetRequired) {
-			if (model.getObject().getTarget() == null || model.getObject().getTarget().isEmpty()) {
-				warn(getString("MappingEditorDialog.message.warn.emptyTarget"));
-				target.add(getFeedback());
-				return;
-			}
-		}
-
 		try {
 			if (inputModel != null) {
 				inputModel.setObject(model.getObject().prepareDtoToSave(getPageBase().getPrismContext()));
@@ -623,6 +627,7 @@ public class MappingEditorDialog extends ModalWindow {
 
 		updateComponents(target);
 		target.add(getPageBase().getFeedbackPanel());
+		((PageResourceWizard) getPageBase()).refreshIssues(target);
 		close(target);
 	}
 

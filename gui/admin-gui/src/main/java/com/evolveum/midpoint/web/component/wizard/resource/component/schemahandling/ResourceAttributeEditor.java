@@ -39,6 +39,7 @@ import com.evolveum.midpoint.web.component.wizard.resource.component.schemahandl
 import com.evolveum.midpoint.web.component.wizard.resource.component.schemahandling.modal.MappingEditorDialog;
 import com.evolveum.midpoint.web.component.wizard.resource.dto.MappingTypeDto;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnChangeAjaxFormUpdatingBehavior;
+import com.evolveum.midpoint.web.page.admin.resources.PageResourceWizard;
 import com.evolveum.midpoint.web.page.admin.resources.PageResources;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -361,12 +362,14 @@ public class ResourceAttributeEditor extends BasePanel<ResourceAttributeDefiniti
 			protected void performAddValueHook(AjaxRequestTarget target, MappingType added) {
 				target.add(parentStep.getAttributeList());
 				target.add(parentStep.getAssociationList());		// because of marking duplicates
+				((PageResourceWizard) getPageBase()).refreshIssues(target);
 			}
 
 			@Override
 			protected void performRemoveValueHook(AjaxRequestTarget target, ListItem<MappingType> item) {
 				target.add(parentStep.getAttributeList());
 				target.add(parentStep.getAssociationList());		// because of marking duplicates
+				((PageResourceWizard) getPageBase()).refreshIssues(target);
 			}
 
 			@Override

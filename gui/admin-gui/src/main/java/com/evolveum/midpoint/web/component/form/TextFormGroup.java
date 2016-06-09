@@ -23,6 +23,7 @@ import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.feedback.ComponentFeedbackMessageFilter;
+import org.apache.wicket.feedback.ContainerFeedbackMessageFilter;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.TextField;
@@ -46,17 +47,18 @@ public class TextFormGroup extends BasePanel<String> {
 
     public TextFormGroup(String id, IModel<String> value, IModel<String> label, String labelSize, String textSize,
                          boolean required) {
-        this(id, value, label, null, false, labelSize, textSize, required);
+        this(id, value, label, null, false, labelSize, textSize, required, required);
     }
 
     public TextFormGroup(String id, IModel<String> value, IModel<String> label, String tooltipKey, boolean isTooltipInModel, String labelSize,
-                         String textSize, boolean required) {
+                         String textSize, boolean required, boolean markAsRequired) {
         super(id, value);
 
-        initLayout(label, tooltipKey, isTooltipInModel, labelSize, textSize, required);
+        initLayout(label, tooltipKey, isTooltipInModel, labelSize, textSize, required, markAsRequired);
     }
 
-    private void initLayout(IModel<String> label, final String tooltipKey, boolean isTooltipInModal, String labelSize, String textSize, final boolean required) {
+    private void initLayout(IModel<String> label, final String tooltipKey, boolean isTooltipInModal, String labelSize, String textSize, final boolean required,
+			final boolean markAsRequired) {
         WebMarkupContainer labelContainer = new WebMarkupContainer(ID_LABEL_CONTAINER);
         add(labelContainer);
 
@@ -90,7 +92,7 @@ public class TextFormGroup extends BasePanel<String> {
 		requiredContainer.add(new VisibleEnableBehaviour() {
 			@Override
 			public boolean isVisible() {
-				return required;
+				return markAsRequired;
 			}
 		});
 		labelContainer.add(requiredContainer);
@@ -105,8 +107,7 @@ public class TextFormGroup extends BasePanel<String> {
         text.setLabel(label);
         textWrapper.add(text);
 
-        FeedbackPanel feedback = new FeedbackPanel(ID_FEEDBACK, new ComponentFeedbackMessageFilter(text));
-        feedback.setFilter(new ComponentFeedbackMessageFilter(text));
+        FeedbackPanel feedback = new FeedbackPanel(ID_FEEDBACK, new ContainerFeedbackMessageFilter(this));
         feedback.setOutputMarkupId(true);
         textWrapper.add(feedback);
     }

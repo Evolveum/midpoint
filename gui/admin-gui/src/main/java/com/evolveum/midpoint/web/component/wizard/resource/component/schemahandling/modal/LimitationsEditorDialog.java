@@ -276,12 +276,12 @@ public class LimitationsEditorDialog extends ModalWindow{
         body.add(modify);
 
         TextFormGroup minOccurs = new TextFormGroup(ID_MIN_OCCURS, new PropertyModel<String>(item.getModelObject(), PropertyLimitationsTypeDto.F_LIMITATION + ".minOccurs"),
-                createStringResource("LimitationsEditorDialog.label.minOccurs"), "SchemaHandlingStep.limitations.tooltip.minOccurs", true, ID_LABEL_SIZE, ID_INPUT_SIZE, false);
+                createStringResource("LimitationsEditorDialog.label.minOccurs"), "SchemaHandlingStep.limitations.tooltip.minOccurs", true, ID_LABEL_SIZE, ID_INPUT_SIZE, false, false);
         minOccurs.getField().add(prepareAjaxOnComponentTagUpdateBehavior());
         body.add(minOccurs);
 
         TextFormGroup maxOccurs = new TextFormGroup(ID_MAX_OCCURS, new PropertyModel<String>(item.getModelObject(), PropertyLimitationsTypeDto.F_LIMITATION + ".maxOccurs"),
-                createStringResource("LimitationsEditorDialog.label.maxOccurs"), "SchemaHandlingStep.limitations.tooltip.maxOccurs", true, ID_LABEL_SIZE, ID_INPUT_SIZE, false);
+                createStringResource("LimitationsEditorDialog.label.maxOccurs"), "SchemaHandlingStep.limitations.tooltip.maxOccurs", true, ID_LABEL_SIZE, ID_INPUT_SIZE, false, false);
         maxOccurs.getField().add(prepareAjaxOnComponentTagUpdateBehavior());
         body.add(maxOccurs);
 

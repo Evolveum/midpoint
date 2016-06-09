@@ -59,6 +59,7 @@ import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.*;
+import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.markup.repeater.data.DataView;
 import org.apache.wicket.model.AbstractReadOnlyModel;
@@ -497,7 +498,17 @@ public class SynchronizationStep extends WizardStep {
                 reactionEditPerformed(target, object);
             }
 
-            @Override
+			@Override
+			protected void performAddValueHook(AjaxRequestTarget target, SynchronizationReactionType added) {
+				parentPage.refreshIssues(target);
+			}
+
+			@Override
+			protected void performRemoveValueHook(AjaxRequestTarget target, ListItem<SynchronizationReactionType> item) {
+				parentPage.refreshIssues(target);
+			}
+
+			@Override
             protected boolean buttonsDisabled(){
                 return !isAnySelected();
             }
