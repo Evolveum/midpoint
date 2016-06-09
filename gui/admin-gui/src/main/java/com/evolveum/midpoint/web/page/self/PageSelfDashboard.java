@@ -17,11 +17,9 @@ package com.evolveum.midpoint.web.page.self;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType.F_WORK_ITEM_CREATED_TIMESTAMP;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.Application;
 import org.apache.wicket.Component;
@@ -74,18 +72,6 @@ import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemDto;
 import com.evolveum.midpoint.web.page.self.component.DashboardSearchPanel;
 import com.evolveum.midpoint.web.page.self.component.LinksPanel;
 import com.evolveum.midpoint.web.security.SecurityUtils;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RichHyperlinkType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType;
 
 /**
  * @author Viliam Repan (lazyman)
@@ -522,9 +508,15 @@ public class PageSelfDashboard extends PageSelf {
         return callableResult;
     }
 
-	private AssignmentItemDto createAssignmentItem(PrismObject<UserType> user, PrismContainerValue assignment,
+	private AssignmentItemDto createAssignmentItem(PrismObject<UserType> user,
+                                                   PrismContainerValue<AssignmentType> assignment,
 			Task task, OperationResult result) {
-		PrismReference targetRef = assignment.findReference(AssignmentType.F_TARGET_REF);
+        ActivationType activation = assignment.asContainerable().getActivation();
+        if (activation != null && activation.getAdministrativeStatus() != null
+                && !activation.getAdministrativeStatus().equals(ActivationStatusType.ENABLED)) {
+            return null;
+        }
+        PrismReference targetRef = assignment.findReference(AssignmentType.F_TARGET_REF);
 		if (targetRef == null || targetRef.isEmpty()) {
 			// account construction
 			PrismContainer construction = assignment.findContainer(AssignmentType.F_CONSTRUCTION);
