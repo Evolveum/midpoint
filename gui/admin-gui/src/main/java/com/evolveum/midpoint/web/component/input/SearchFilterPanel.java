@@ -19,6 +19,7 @@ package com.evolveum.midpoint.web.component.input;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.model.NonEmptyModel;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.xnode.MapXNode;
 import com.evolveum.midpoint.prism.xnode.RootXNode;
@@ -52,7 +53,7 @@ public class SearchFilterPanel<T extends SearchFilterType> extends BasePanel<T> 
 
     @NotNull private final IModel<String> clauseStringModel;
 
-    public SearchFilterPanel(String id, @NotNull final NonEmptyModel<T> filterModel) {
+    public SearchFilterPanel(String id, @NotNull final NonEmptyModel<T> filterModel, @NotNull NonEmptyModel<Boolean> readOnlyModel) {
         super(id, filterModel);
 		clauseStringModel = new LoadableModel<String>(false) {
 			@Override
@@ -60,7 +61,7 @@ public class SearchFilterPanel<T extends SearchFilterType> extends BasePanel<T> 
 				return loadFilterClause(getPageBase().getPrismContext());
 			}
 		};
-		initLayout();
+		initLayout(readOnlyModel);
     }
 
 	private String loadFilterClause(PrismContext prismContext) {
@@ -80,10 +81,16 @@ public class SearchFilterPanel<T extends SearchFilterType> extends BasePanel<T> 
 	}
 
 
-	protected void initLayout() {
+	protected void initLayout(NonEmptyModel<Boolean> readOnlyModel) {
 
-		add(new TextArea<>(ID_DESCRIPTION, new PropertyModel<String>(getModel(), SearchFilterType.F_DESCRIPTION.getLocalPart())));
-        add(new TextArea<>(ID_FILTER_CLAUSE, clauseStringModel));
+		TextArea<String> description = new TextArea<>(ID_DESCRIPTION,
+				new PropertyModel<String>(getModel(), SearchFilterType.F_DESCRIPTION.getLocalPart()));
+		description.add(WebComponentUtil.enabledIfFalse(readOnlyModel));
+		add(description);
+
+		TextArea<String> clause = new TextArea<>(ID_FILTER_CLAUSE, clauseStringModel);
+		clause.add(WebComponentUtil.enabledIfFalse(readOnlyModel));
+		add(clause);
 
         AjaxSubmitLink update = new AjaxSubmitLink(ID_BUTTON_UPDATE) {
 
@@ -92,6 +99,7 @@ public class SearchFilterPanel<T extends SearchFilterType> extends BasePanel<T> 
                 updateClausePerformed(target);
             }
         };
+		update.add(WebComponentUtil.visibleIfFalse(readOnlyModel));
         add(update);
 
         Label clauseTooltip = new Label(ID_T_CLAUSE);
@@ -125,8 +133,4 @@ public class SearchFilterPanel<T extends SearchFilterType> extends BasePanel<T> 
 		}
 	}
 
-//	/**
-//     *  Override this in component with SearchFilterPanel to provide additional functionality when filterClause is updated
-//     * */
-//    public void performFilterClauseHook(AjaxRequestTarget target){}
 }

@@ -150,9 +150,17 @@ public class InboundProcessor {
 
         try {
             for (LensProjectionContext projectionContext : context.getProjectionContexts()) {
+            	if (projectionContext.isThombstone()) {
+            		if (LOGGER.isTraceEnabled()) {
+            			LOGGER.trace("Skipping processing of inbound expressions for projection {} because is is thombstone", projectionContext.getHumanReadableName());
+            		}
+            		continue;
+            	}
             	if (!projectionContext.isCanProject()){
-            		LOGGER.trace("Skipping processing of inbound expressions for projection {}: there is a limit to propagate changes only from resource {}",
-							projectionContext.getResourceShadowDiscriminator(), context.getTriggeredResourceOid());
+            		if (LOGGER.isTraceEnabled()) {
+            			LOGGER.trace("Skipping processing of inbound expressions for projection {}: there is a limit to propagate changes only from resource {}",
+            				projectionContext.getHumanReadableName(), context.getTriggeredResourceOid());
+            		}
             		continue;
             	}
             	ResourceShadowDiscriminator rat = projectionContext.getResourceShadowDiscriminator();
@@ -160,15 +168,18 @@ public class InboundProcessor {
             	ObjectDelta<ShadowType> aPrioriDelta = getAPrioriDelta(context, projectionContext);
             	
             	if (!projectionContext.isDoReconciliation() && aPrioriDelta == null && !LensUtil.hasDependentContext(context, projectionContext) && !projectionContext.isFullShadow()) {
-            		LOGGER.trace("Skipping processing of inbound expressions for projection {}: no reconciliation and no a priori delta and no dependent context", rat);
+            		if (LOGGER.isTraceEnabled()) {
+            			LOGGER.trace("Skipping processing of inbound expressions for projection {}: no reconciliation and no a priori delta and no dependent context", 
+            					projectionContext.getHumanReadableName());
+            		}
             		continue;
             	}
 
                 RefinedObjectClassDefinition rOcDef = projectionContext.getCompositeObjectClassDefinition();
                 if (rOcDef == null) {
-                    LOGGER.error("Definition for projection type {} not found in the context, but it " +
-                            "should be there, dumping context:\n{}", rat, context.debugDump());
-                    throw new IllegalStateException("Definition for projection type " + rat
+                    LOGGER.error("Definition for projection {} not found in the context, but it " +
+                            "should be there, dumping context:\n{}", projectionContext.getHumanReadableName(), context.debugDump());
+                    throw new IllegalStateException("Definition for projection " + projectionContext.getHumanReadableName()
                             + " not found in the context, but it should be there");
                 }
 

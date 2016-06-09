@@ -37,8 +37,10 @@ import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.model.NonEmptyModel;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.match.*;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
@@ -51,6 +53,7 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
 import org.apache.wicket.authroles.authentication.AuthenticatedWebApplication;
 import org.apache.wicket.authroles.authorization.strategies.role.Roles;
+import org.apache.wicket.behavior.Behavior;
 import org.apache.wicket.core.request.handler.RenderPageRequestHandler;
 import org.apache.wicket.datetime.PatternDateConverter;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
@@ -141,15 +144,14 @@ public final class WebComponentUtil {
 	private static final Trace LOGGER = TraceManager.getTrace(WebComponentUtil.class);
 	private static DatatypeFactory df = null;
 
-	public static enum Channel {
+	public enum Channel {
 		// TODO: move this to schema component
-		LIVE_SYNC(
-				"http://midpoint.evolveum.com/xml/ns/public/provisioning/channels-3#liveSync"), RECONCILIATION(
-						"http://midpoint.evolveum.com/xml/ns/public/provisioning/channels-3#reconciliation"), DISCOVERY(
-								"http://midpoint.evolveum.com/xml/ns/public/provisioning/channels-3#discovery"), IMPORT(
-										"http://midpoint.evolveum.com/xml/ns/public/provisioning/channels-3#import"), USER(
-												"http://midpoint.evolveum.com/xml/ns/public/provisioning/channels-3#user"), WEB_SERVICE(
-														"http://midpoint.evolveum.com/xml/ns/public/provisioning/channels-3#webService");
+		LIVE_SYNC(SchemaConstants.CHANGE_CHANNEL_LIVE_SYNC_URI),
+		RECONCILIATION(SchemaConstants.CHANGE_CHANNEL_RECON_URI),
+		DISCOVERY(SchemaConstants.CHANGE_CHANNEL_DISCOVERY_URI),
+		IMPORT(SchemaConstants.CHANNEL_OBJECT_IMPORT_URI),
+		USER(SchemaConstants.CHANNEL_GUI_USER_URI),
+		WEB_SERVICE(SchemaConstants.CHANNEL_WEB_SERVICE_URI);
 
 		private String channel;
 
@@ -1539,4 +1541,23 @@ public final class WebComponentUtil {
 		pw.close();
 		return sw.toString();
 	}
+
+	public static Behavior visibleIfFalse(final NonEmptyModel<Boolean> model) {
+		return new VisibleEnableBehaviour() {
+			@Override
+			public boolean isVisible() {
+				return !model.getObject();
+			}
+		};
+	}
+
+	public static Behavior enabledIfFalse(final NonEmptyModel<Boolean> model) {
+		return new VisibleEnableBehaviour() {
+			@Override
+			public boolean isEnabled() {
+				return !model.getObject();
+			}
+		};
+	}
+
 }

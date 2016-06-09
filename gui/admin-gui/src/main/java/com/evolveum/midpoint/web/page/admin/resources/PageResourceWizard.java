@@ -18,6 +18,7 @@ package com.evolveum.midpoint.web.page.admin.resources;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.model.NonEmptyLoadableModel;
+import com.evolveum.midpoint.gui.api.model.NonEmptyModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -31,20 +32,26 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
+import com.evolveum.midpoint.web.component.form.TextFormGroup;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.component.wizard.Wizard;
 import com.evolveum.midpoint.web.component.wizard.WizardStep;
 import com.evolveum.midpoint.web.component.wizard.resource.*;
 import com.evolveum.midpoint.web.page.error.PageError;
+import com.evolveum.midpoint.web.util.MidPointPageParametersEncoder;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.wizard.IWizardModel;
 import org.apache.wicket.extensions.wizard.WizardModel;
+import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -54,7 +61,7 @@ import java.util.Iterator;
 /**
  * @author lazyman
  */
-@PageDescriptor(url = "/admin/resources/wizard", encoder = OnePageParameterEncoder.class, action = {
+@PageDescriptor(url = "/admin/resources/wizard", encoder = MidPointPageParametersEncoder.class, action = {
         @AuthorizationAction(actionUri = PageAdminResources.AUTH_RESOURCE_ALL,
             label = PageAdminResources.AUTH_RESOURCE_ALL_LABEL,
             description = PageAdminResources.AUTH_RESOURCE_ALL_DESCRIPTION),
@@ -64,6 +71,9 @@ import java.util.Iterator;
 public class PageResourceWizard extends PageAdminResources {
 
     private static final String ID_WIZARD = "wizard";
+	public static final String PARAM_OID = "oid";
+	public static final String PARAM_CONFIG_ONLY = "configOnly";
+	public static final String PARAM_READ_ONLY = "readOnly";
 
 	// these models should be reset after each 'save' operation, in order to fetch current data (on demand)
 	// each step should use corresponding model
@@ -79,12 +89,20 @@ public class PageResourceWizard extends PageAdminResources {
 	// for new resources: should be set after first save; for others: should be set on page creation
     private String editedResourceOid;
 
+	private final boolean configurationOnly;
+	private boolean readOnly;
+
     public PageResourceWizard(@NotNull PageParameters parameters) {
-        getPageParameters().overwriteWith(parameters);						// to be available in the constructor as well
+        getPageParameters().overwriteWith(parameters);						// to be available in the methods called within this constructor as well
+
+		configurationOnly = parameters.get(PARAM_CONFIG_ONLY).toBoolean();
+		readOnly = parameters.get(PARAM_READ_ONLY).toBoolean();
 
         editedResourceOid = getResourceOid();								// might be null at this moment
 
-        modelRaw = createResourceModel(Arrays.asList(
+		LOGGER.debug("Resource wizard called with oid={}, configOnly={}, readOnly={}", editedResourceOid, configurationOnly, readOnly);
+
+		modelRaw = createResourceModel(Arrays.asList(
 				SelectorOptions.create(ResourceType.F_CONNECTOR_REF, GetOperationOptions.createResolve()),
 				SelectorOptions.create(GetOperationOptions.createRaw())));
 		modelNoFetch = createResourceModel(Arrays.asList(
@@ -152,24 +170,30 @@ public class PageResourceWizard extends PageAdminResources {
 
     private void initLayout() {
         WizardModel wizardModel = new ResourceWizardModel(this);
-        wizardModel.add(new NameStep(modelRaw, this));
+		if (!configurationOnly) {
+			wizardModel.add(new NameStep(modelRaw, this));
+		}
         wizardModel.add(new ConfigurationStep(modelNoFetch, this));
-        wizardModel.add(new SchemaStep(modelFull, this));
-        wizardModel.add(new SchemaHandlingStep(modelFull, this));
-        wizardModel.add(new SynchronizationStep(modelFull, this));
-		wizardModel.add(new CapabilityStep(modelFull, this));
+		if (!configurationOnly) {
+			wizardModel.add(new SchemaStep(modelFull, this));
+			wizardModel.add(new SchemaHandlingStep(modelFull, this));
+			wizardModel.add(new SynchronizationStep(modelFull, this));
+			wizardModel.add(new CapabilityStep(modelFull, this));
+		}
 
         Wizard wizard = new Wizard(ID_WIZARD, new Model<IWizardModel>(wizardModel), issuesModel);
         wizard.setOutputMarkupId(true);
         add(wizard);
     }
 
-	public void refreshIssues(AjaxRequestTarget target) {
+	public void refreshIssues(@Nullable AjaxRequestTarget target) {
 		issuesModel.reset();
-		Wizard wizard = (Wizard) get(ID_WIZARD);
-		target.add(wizard.getIssuesPanel());
-		target.add(wizard.getSteps());
-		target.add(wizard.getButtons());
+		if (target != null) {
+			Wizard wizard = (Wizard) get(ID_WIZARD);
+			target.add(wizard.getIssuesPanel());
+			target.add(wizard.getSteps());
+			target.add(wizard.getButtons());
+		}
 	}
 
 	@NotNull public ResourceWizardIssuesModel getIssuesModel() {
@@ -225,5 +249,58 @@ public class PageResourceWizard extends PageAdminResources {
 
 	public Wizard getWizard() {
 		return (Wizard) get(ID_WIZARD);
+	}
+
+	public boolean isConfigurationOnly() {
+		return configurationOnly;
+	}
+
+	public boolean isReadOnly() {
+		return readOnly;
+	}
+
+	public void setReadOnly(boolean readOnly) {
+		this.readOnly = readOnly;
+	}
+
+	public void addEditingEnabledBehavior(Component... components) {
+		for (Component component : components) {
+			component.add(new VisibleEnableBehaviour() {
+				@Override
+				public boolean isEnabled() {
+					return !readOnly;
+				}
+			});
+		}
+	}
+
+	public void addEditingVisibleBehavior(Component... components) {
+		for (Component component : components) {
+			component.add(new VisibleEnableBehaviour() {
+				@Override
+				public boolean isVisible() {
+					return !readOnly;
+				}
+			});
+		}
+	}
+
+	public NonEmptyModel<Boolean> getReadOnlyModel() {
+		return new NonEmptyModel<Boolean>() {
+			@NotNull
+			@Override
+			public Boolean getObject() {
+				return readOnly;
+			}
+
+			@Override
+			public void setObject(@NotNull Boolean object) {
+				throw new UnsupportedOperationException();
+			}
+
+			@Override
+			public void detach() {
+			}
+		};
 	}
 }

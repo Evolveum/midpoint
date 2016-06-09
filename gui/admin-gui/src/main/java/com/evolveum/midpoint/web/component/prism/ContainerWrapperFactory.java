@@ -322,9 +322,9 @@ public class ContainerWrapperFactory {
                         // to an existing object)
                         if (objectWrapper == null || objectWrapper.getStatus() == ContainerStatus.MODIFYING) {
 
-                            propertyIsReadOnly = !def.canModify();
+                            propertyIsReadOnly = cWrapper.isReadonly() || !def.canModify();
                         } else {
-                            propertyIsReadOnly = !def.canAdd();
+                            propertyIsReadOnly = cWrapper.isReadonly() || !def.canAdd();
                         }
                         if (property == null) {
                             properties.add(new PropertyWrapper(cWrapper, def.instantiate(), propertyIsReadOnly,

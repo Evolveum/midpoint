@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -471,8 +471,7 @@ public class ChangeExecutor {
 
         if (projCtx.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.UNLINK
         		|| projCtx.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.DELETE
-        		|| projCtx.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.BROKEN
-        		|| projCtx.isDelete()) {
+        		|| projCtx.isDelete() || isEmptyThombstone(projCtx)) {
             // Link should NOT exist
         	
         	if (!focusContext.isDelete()) {
@@ -530,7 +529,17 @@ public class ChangeExecutor {
         }
     }
 
-    private <F extends ObjectType> void linkShadow(String userOid, String shadowOid, LensElementContext<F> focusContext, LensProjectionContext projCtx, Task task, OperationResult parentResult) throws ObjectNotFoundException,
+    /**
+     * Return true if this projection is just a linkRef that points to
+     * no shadow.
+     */
+    private boolean isEmptyThombstone(LensProjectionContext projCtx) {
+		return projCtx.getResourceShadowDiscriminator() != null && 
+				projCtx.getResourceShadowDiscriminator().isThombstone() &&
+				projCtx.getObjectCurrent() == null;
+	}
+
+	private <F extends ObjectType> void linkShadow(String userOid, String shadowOid, LensElementContext<F> focusContext, LensProjectionContext projCtx, Task task, OperationResult parentResult) throws ObjectNotFoundException,
             SchemaException {
 
         Class<F> typeClass = focusContext.getObjectTypeClass();

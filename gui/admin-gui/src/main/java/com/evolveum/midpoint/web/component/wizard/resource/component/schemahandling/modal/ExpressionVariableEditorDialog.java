@@ -193,7 +193,7 @@ public class ExpressionVariableEditorDialog extends ModalWindow {
 		form.add(cancel);
 
 		AjaxSubmitButton save = new AjaxSubmitButton(ID_BUTTON_SAVE,
-				createStringResource("ExpressionVariableEditor.button.save")) {
+				createStringResource("ExpressionVariableEditor.button.apply")) {
 
 			@Override
 			protected void onSubmit(AjaxRequestTarget target, Form<?> form) {

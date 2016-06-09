@@ -17,6 +17,7 @@ package com.evolveum.midpoint.web.component.wizard.resource.component.synchroniz
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.web.component.input.ExpressionEditorPanel;
+import com.evolveum.midpoint.web.page.admin.resources.PageResourceWizard;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.AbstractReadOnlyModel;
@@ -30,9 +31,9 @@ public class SynchronizationExpressionEditor extends BasePanel<ExpressionType> {
     private static final String ID_LABEL = "label";
     private static final String ID_EXPRESSION_EDITOR = "expressionPanel";
 
-    public SynchronizationExpressionEditor(String id, IModel<ExpressionType> model){
+    public SynchronizationExpressionEditor(String id, IModel<ExpressionType> model, PageResourceWizard parentPage) {
         super(id, model);
-		initLayout();
+		initLayout(parentPage);
     }
 
     @Override
@@ -46,7 +47,7 @@ public class SynchronizationExpressionEditor extends BasePanel<ExpressionType> {
         return model;
     }
 
-    protected void initLayout(){
+    protected void initLayout(PageResourceWizard parentPage){
         Label label = new Label(ID_LABEL, new AbstractReadOnlyModel<String>() {
 
             @Override
@@ -56,7 +57,7 @@ public class SynchronizationExpressionEditor extends BasePanel<ExpressionType> {
         });
         add(label);
 
-        ExpressionEditorPanel expressionEditor = new ExpressionEditorPanel(ID_EXPRESSION_EDITOR, getModel());
+        ExpressionEditorPanel expressionEditor = new ExpressionEditorPanel(ID_EXPRESSION_EDITOR, getModel(), parentPage);
         add(expressionEditor);
     }
 

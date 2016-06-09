@@ -222,13 +222,16 @@ public class PrismValuePanel extends Panel {
                 public boolean isEnabled() {
                     ValueWrapper wrapper = valueWrapperModel.getObject();
                     ItemWrapper itemWrapper = wrapper.getItem();
+					if (valueWrapperModel.getObject().isReadonly()) {
+						return false;
+					}
                     if (itemWrapper.getContainer() == null) {
                         return true;        // TODO
                     }
                     ObjectWrapper object = itemWrapper.getContainer().getObject();
                     ItemDefinition def = itemWrapper.getItem().getDefinition();
 
-                    return !valueWrapperModel.getObject().isReadonly() && (object == null || isAccessible(def, object.getStatus()));
+                    return object == null || isAccessible(def, object.getStatus());
                 }
             });
         }

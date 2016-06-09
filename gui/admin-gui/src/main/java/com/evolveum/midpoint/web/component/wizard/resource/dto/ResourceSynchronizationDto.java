@@ -16,7 +16,9 @@
 
 package com.evolveum.midpoint.web.component.wizard.resource.dto;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConditionalSearchFilterType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSynchronizationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationReactionType;
 
 import javax.xml.namespace.QName;
 import java.io.Serializable;
@@ -32,10 +34,14 @@ public class ResourceSynchronizationDto implements Serializable{
 
     public static final String F_OBJECT_SYNCRONIZATION_LIST = "objectSynchronizationList";
     public static final String F_SELECTED = "selected";
+	public static final String F_SELECTED_CORRELATION = "selectedCorrelation";
+	public static final String F_SELECTED_REACTION = "selectedReaction";
     public static final String F_OBJECT_CLASS_LIST = "objectClassList";
 
 	private final List<ObjectSynchronizationType> objectSynchronizationList;		// live list in resourceModel
     private ObjectSynchronizationType selected;
+	private ConditionalSearchFilterType selectedCorrelation;
+	private SynchronizationReactionType selectedReaction;
     private List<QName> objectClassList;
     private Map<String, String> objectTemplateMap = new HashMap<>();
 
@@ -54,6 +60,22 @@ public class ResourceSynchronizationDto implements Serializable{
     public void setSelected(ObjectSynchronizationType selected) {
         this.selected = selected;
     }
+
+	public ConditionalSearchFilterType getSelectedCorrelation() {
+		return selectedCorrelation;
+	}
+
+	public void setSelectedCorrelation(ConditionalSearchFilterType selectedCorrelation) {
+		this.selectedCorrelation = selectedCorrelation;
+	}
+
+	public SynchronizationReactionType getSelectedReaction() {
+		return selectedReaction;
+	}
+
+	public void setSelectedReaction(SynchronizationReactionType selectedReaction) {
+		this.selectedReaction = selectedReaction;
+	}
 
 	public List<QName> getObjectClassList() {
         if(objectClassList == null){
@@ -87,6 +109,8 @@ public class ResourceSynchronizationDto implements Serializable{
         if (objectTemplateMap != null ? !objectTemplateMap.equals(that.objectTemplateMap) : that.objectTemplateMap != null)
             return false;
         if (selected != null ? !selected.equals(that.selected) : that.selected != null) return false;
+        if (selectedCorrelation != null ? !selectedCorrelation.equals(that.selectedCorrelation) : that.selectedCorrelation != null) return false;
+		if (selectedReaction != null ? !selectedReaction.equals(that.selectedReaction) : that.selectedReaction != null) return false;
 
         return true;
     }

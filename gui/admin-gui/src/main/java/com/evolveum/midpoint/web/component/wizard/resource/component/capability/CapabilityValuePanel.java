@@ -20,7 +20,8 @@ import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.web.component.wizard.resource.dto.Capability;
 import com.evolveum.midpoint.web.component.wizard.resource.dto.CapabilityDto;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnChangeAjaxFormUpdatingBehavior;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.*;
+import com.evolveum.midpoint.web.page.admin.resources.PageResourceWizard;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
@@ -38,13 +39,17 @@ public class CapabilityValuePanel extends BasePanel<CapabilityDto<CapabilityType
 
 	private final WebMarkupContainer capabilityTable;
 
-    public CapabilityValuePanel(String componentId, IModel<CapabilityDto<CapabilityType>> model, WebMarkupContainer capabilityTable) {
+    public CapabilityValuePanel(String componentId, IModel<CapabilityDto<CapabilityType>> model, WebMarkupContainer capabilityTable,
+			PageResourceWizard parentPage) {
         super(componentId, model);
 		this.capabilityTable = capabilityTable;
-		initLayout();
+		initLayout(parentPage);
     }
 
-    protected void initLayout() {
+    protected void initLayout(PageResourceWizard parentPage) {
+
+		parentPage.addEditingEnabledBehavior(this);
+
         Label label = new Label(ID_LABEL, createStringResource(getCapabilityLabelKey()));
         add(label);
 

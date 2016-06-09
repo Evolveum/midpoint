@@ -21,12 +21,15 @@ import com.evolveum.midpoint.model.api.validator.Issue;
 import com.evolveum.midpoint.model.api.validator.ResourceValidator;
 import com.evolveum.midpoint.model.api.validator.Scope;
 import com.evolveum.midpoint.model.api.validator.ValidationResult;
+import com.evolveum.midpoint.model.impl.util.DataModelUtil;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
+import com.evolveum.midpoint.schema.constants.ExpressionConstants;
+import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
@@ -35,7 +38,6 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
@@ -49,6 +51,7 @@ import javax.xml.namespace.QName;
 import java.text.MessageFormat;
 import java.util.*;
 
+import static com.evolveum.midpoint.schema.util.ResourceTypeUtil.fillDefault;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSituationType.*;
 
 /**
@@ -78,6 +81,7 @@ public class ResourceValidatorImpl implements ResourceValidator {
 			SchemaConstants.SCHEMA_LOCALIZATION_PROPERTIES_RESOURCE_BASE_PATH);
 
 	private static final ItemPath ITEM_PATH_SYNCHRONIZATION = new ItemPath(ResourceType.F_SYNCHRONIZATION, SynchronizationType.F_OBJECT_SYNCHRONIZATION);
+	private static final ItemPath ITEM_PATH_SCHEMA_HANDLING = new ItemPath(ResourceType.F_SCHEMA_HANDLING, SchemaHandlingType.F_OBJECT_TYPE);
 
 	@Autowired
 	private MatchingRuleRegistry matchingRuleRegistry;
@@ -141,7 +145,8 @@ public class ResourceValidatorImpl implements ResourceValidator {
 				i++;
 			}
 		}
-		checkSynchronizationExistence(ctx);
+		checkSynchronizationExistenceForSchemaHandlingObjectTypes(ctx);
+		checkSchemaHandlingExistenceForSynchronizationObjectTypes(ctx);
 		return ctx.validationResult;
 	}
 
@@ -230,7 +235,7 @@ public class ResourceValidatorImpl implements ResourceValidator {
 					ctx.validationResult.add(Issue.Severity.WARNING,
 							CAT_SCHEMA_HANDLING, C_DEPENDENT_OBJECT_TYPE_DOES_NOT_EXIST,
 							getString(CLASS_DOT + C_DEPENDENT_OBJECT_TYPE_DOES_NOT_EXIST, getName(objectType),
-									ResourceTypeUtil.fillDefault(dependency.getKind()) + "/" + ResourceTypeUtil.fillDefault(dependency.getIntent())),
+									fillDefault(dependency.getKind()) + "/" + fillDefault(dependency.getIntent())),
 							ctx.resourceRef, path.append(ResourceObjectTypeDefinitionType.F_DEPENDENCY));
 				}
 			} else {
@@ -270,7 +275,7 @@ public class ResourceValidatorImpl implements ResourceValidator {
 		if (!duplicates.isEmpty()) {
 			ctx.validationResult.add(Issue.Severity.ERROR,
 					CAT_SCHEMA_HANDLING, C_MULTIPLE_ITEMS,
-					getString(CLASS_DOT + C_MULTIPLE_ITEMS, getName(objectType), PrettyPrinter.prettyPrint(duplicates)),
+					getString(CLASS_DOT + C_MULTIPLE_ITEMS, getName(objectType), prettyPrintUsingStandardPrefix(duplicates)),
 					ctx.resourceRef, path);
 		}
 	}
@@ -311,7 +316,7 @@ public class ResourceValidatorImpl implements ResourceValidator {
 	private void checkMapping(ResourceValidationContext ctx, ItemPath path, ResourceObjectTypeDefinitionType objectType,
 			QName itemName, MappingType mapping, boolean outbound, int index, boolean implicitSourceOrTarget) {
 		String inOut = outbound ? getString("ResourceValidator.outboundMapping") : getString("ResourceValidator.inboundMapping", index);
-		String itemNameText = PrettyPrinter.prettyPrint(itemName);
+		String itemNameText = prettyPrintUsingStandardPrefix(itemName);
 		if (outbound && mapping.getTarget() != null) {
 			ctx.validationResult.add(Issue.Severity.INFO,
 					CAT_SCHEMA_HANDLING, C_SUPERFLUOUS_MAPPING_TARGET,
@@ -331,16 +336,42 @@ public class ResourceValidatorImpl implements ResourceValidator {
 			}
 		}
 		for (MappingSourceDeclarationType source : mapping.getSource()) {
-			checkItemPath(ctx, path, objectType, itemName, mapping, outbound, index, source.getPath());
+			checkItemPath(ctx, path, objectType, itemName, mapping, outbound, itemNameText, true, index, source.getPath());
 		}
 		if (mapping.getTarget() != null) {
-			checkItemPath(ctx, path, objectType, itemName, mapping, outbound, index, mapping.getTarget().getPath());
+			checkItemPath(ctx, path, objectType, itemName, mapping, outbound, itemNameText, false, index, mapping.getTarget().getPath());
 		}
 	}
 
 	private void checkItemPath(ResourceValidationContext ctx, ItemPath path, ResourceObjectTypeDefinitionType objectType,
-			QName itemDef, MappingType mapping, boolean outbound, int index, ItemPathType mappingPath) {
-		// TODO
+			QName itemDef, MappingType mapping, boolean outbound, String itemNameText, boolean isSource, int index, @Nullable ItemPathType mappingPath) {
+		if (mappingPath == null) {
+			return;
+		}
+		DataModelUtil.PathResolutionContext pctx = new DataModelUtil.ResourceResolutionContext(prismContext, ExpressionConstants.VAR_FOCUS,
+				ctx.resourceObject.asObjectable(), fillDefault(objectType.getKind()), fillDefault(objectType.getIntent()));
+		DataModelUtil.PathResolutionResult result = DataModelUtil.resolvePath(mappingPath.getItemPath(), pctx);
+		if (result == null) {
+			// i.e. not implemented -> no reports
+		} else if (result.getDefinition() != null) {
+			// definition found => OK (ignoring any potential issues found)
+		} else {
+			String code = isSource ? C_INVALID_MAPPING_SOURCE : C_INVALID_MAPPING_TARGET;
+			String inOut = outbound ? getString("ResourceValidator.outboundMapping") : getString("ResourceValidator.inboundMapping", index);
+			Issue.Severity severity = Issue.getSeverity(result.getIssues());
+			if (severity == null) {
+				severity = Issue.Severity.INFO;
+			}
+			StringBuilder sb = new StringBuilder();
+			boolean first = true;
+			for (Issue issue : result.getIssues()) {
+				if (first) first = false; else sb.append("; ");
+				sb.append(issue.getText());
+			}
+			ctx.validationResult.add(severity, CAT_SCHEMA_HANDLING, code,
+					getString(CLASS_DOT + code, getName(objectType), inOut, itemNameText, sb.toString()),
+					ctx.resourceRef, path);
+		}
 	}
 
 	private String format(MappingTargetDeclarationType target) {
@@ -367,7 +398,7 @@ public class ResourceValidatorImpl implements ResourceValidator {
 		} catch (Throwable t) {
 			ctx.validationResult.add(Issue.Severity.WARNING,
 					CAT_SCHEMA_HANDLING, C_WRONG_MATCHING_RULE,
-					getString(CLASS_DOT + C_WRONG_MATCHING_RULE, getName(objectType), PrettyPrinter.prettyPrint(ref), t.getMessage()),
+					getString(CLASS_DOT + C_WRONG_MATCHING_RULE, getName(objectType), prettyPrintUsingStandardPrefix(ref), t.getMessage()),
 					ctx.resourceRef, path.append(ResourceItemDefinitionType.F_MATCHING_RULE));
 		}
 	}
@@ -388,7 +419,7 @@ public class ResourceValidatorImpl implements ResourceValidator {
 				if (ocdef.findAttributeDefinition(ref, ResourceTypeUtil.isCaseIgnoreAttributeNames(ctx.resourceObject.asObjectable())) != null) {
 					ctx.validationResult.add(Issue.Severity.ERROR,
 							CAT_SCHEMA_HANDLING, C_COLLIDING_ASSOCIATION_NAME,
-							getString(CLASS_DOT + C_COLLIDING_ASSOCIATION_NAME, getName(objectType), PrettyPrinter.prettyPrint(ref)),
+							getString(CLASS_DOT + C_COLLIDING_ASSOCIATION_NAME, getName(objectType), prettyPrintUsingStandardPrefix(ref)),
 							ctx.resourceRef, path.append(ResourceItemDefinitionType.F_REF));
 				}
 			}
@@ -404,8 +435,8 @@ public class ResourceValidatorImpl implements ResourceValidator {
 			ctx.validationResult.add(Issue.Severity.WARNING,
 					CAT_SCHEMA_HANDLING, C_TARGET_OBJECT_TYPE_DOES_NOT_EXIST,
 					getString(CLASS_DOT + C_TARGET_OBJECT_TYPE_DOES_NOT_EXIST, getName(objectType),
-							ResourceTypeUtil.fillDefault(associationDef.getKind()) + "/" + ResourceTypeUtil.fillDefault(intent),
-							PrettyPrinter.prettyPrint(ref)),
+							fillDefault(associationDef.getKind()) + "/" + fillDefault(intent),
+							prettyPrintUsingStandardPrefix(ref)),
 					ctx.resourceRef, path);
 		}
 	}
@@ -471,7 +502,7 @@ public class ResourceValidatorImpl implements ResourceValidator {
 		int defAccount = 0, defEntitlement = 0, defGeneric = 0;
 		for (ResourceObjectTypeDefinitionType def : schemaHandling.getObjectType()) {
 			if (Boolean.TRUE.equals(def.isDefault())) {
-				switch (ResourceTypeUtil.fillDefault(def.getKind())) {
+				switch (fillDefault(def.getKind())) {
 					case ACCOUNT:
 						defAccount++;
 						break;
@@ -510,7 +541,7 @@ public class ResourceValidatorImpl implements ResourceValidator {
 		}
 	}
 
-	private void checkSynchronizationExistence(ResourceValidationContext ctx) {
+	private void checkSynchronizationExistenceForSchemaHandlingObjectTypes(ResourceValidationContext ctx) {
 		ResourceType resource = ctx.resourceObject.asObjectable();
 		Set<ObjectTypeRecord> schemaHandlingFor = new HashSet<>(ObjectTypeRecord.extractFrom(resource.getSchemaHandling()));
 		Collection<ObjectTypeRecord> synchronizationFor = ObjectTypeRecord.extractFrom(resource.getSynchronization());
@@ -519,6 +550,18 @@ public class ResourceValidatorImpl implements ResourceValidator {
 			ctx.validationResult.add(Issue.Severity.INFO, CAT_SYNCHRONIZATION, C_NO_SYNCHRONIZATION_DEFINITION,
 					getString(CLASS_DOT + C_NO_SYNCHRONIZATION_DEFINITION, ObjectTypeRecord.asFormattedList(schemaHandlingFor)),
 					ctx.resourceRef, ITEM_PATH_SYNCHRONIZATION);
+		}
+	}
+
+	private void checkSchemaHandlingExistenceForSynchronizationObjectTypes(ResourceValidationContext ctx) {
+		ResourceType resource = ctx.resourceObject.asObjectable();
+		Set<ObjectTypeRecord> synchronizationFor = new HashSet<>(ObjectTypeRecord.extractFrom(resource.getSynchronization()));
+		Collection<ObjectTypeRecord> schemaHandlingFor = ObjectTypeRecord.extractFrom(resource.getSchemaHandling());
+		synchronizationFor.removeAll(schemaHandlingFor);
+		if (!synchronizationFor.isEmpty()) {
+			ctx.validationResult.add(Issue.Severity.INFO, CAT_SCHEMA_HANDLING, C_NO_SCHEMA_HANDLING_DEFINITION,
+					getString(CLASS_DOT + C_NO_SCHEMA_HANDLING_DEFINITION, ObjectTypeRecord.asFormattedList(synchronizationFor)),
+					ctx.resourceRef, ITEM_PATH_SCHEMA_HANDLING);
 		}
 	}
 
@@ -558,7 +601,7 @@ public class ResourceValidatorImpl implements ResourceValidator {
 		List<SynchronizationSituationType> missing = new ArrayList<>(situations);
 		missing.removeAll(counts.keySet());
 		if (!missing.isEmpty()) {
-			ctx.validationResult.add(Issue.Severity.WARNING, CAT_SYNCHRONIZATION, C_NO_REACTION,
+			ctx.validationResult.add(Issue.Severity.INFO, CAT_SYNCHRONIZATION, C_NO_REACTION,
 					getString(CLASS_DOT + C_NO_REACTION, getName(objectSync), String.valueOf(missing)),
 					ctx.resourceRef, path);
 		}
@@ -571,9 +614,9 @@ public class ResourceValidatorImpl implements ResourceValidator {
 			sb.append(" (");
 		}
 		sb.append("kind: ");
-		sb.append(ResourceTypeUtil.fillDefault(objectSync.getKind()));
+		sb.append(fillDefault(objectSync.getKind()));
 		sb.append(", intent: ");
-		sb.append(ResourceTypeUtil.fillDefault(objectSync.getIntent()));
+		sb.append(fillDefault(objectSync.getIntent()));
 		if (objectSync.getName() != null) {
 			sb.append(")");
 		}
@@ -587,9 +630,9 @@ public class ResourceValidatorImpl implements ResourceValidator {
 			sb.append(" (");
 		}
 		sb.append("kind: ");
-		sb.append(ResourceTypeUtil.fillDefault(objectType.getKind()));
+		sb.append(fillDefault(objectType.getKind()));
 		sb.append(", intent: ");
-		sb.append(ResourceTypeUtil.fillDefault(objectType.getIntent()));
+		sb.append(fillDefault(objectType.getIntent()));
 		if (objectType.getDisplayName() != null) {
 			sb.append(")");
 		}
@@ -611,6 +654,42 @@ public class ResourceValidatorImpl implements ResourceValidator {
 		}
 		final MessageFormat format = new MessageFormat(resolvedKey, RESOURCE_BUNDLE.getLocale());
 		return format.format(parameters);
+	}
+
+	// PrettyPrinter output is too verbose/confusing
+	// TODO move to some standard class (but PrettyPrinter is questionable)
+
+	public static String prettyPrintUsingStandardPrefix(Collection<QName> names) {
+		StringBuilder sb = new StringBuilder();
+		boolean first = true;
+		for (QName name : names) {
+			if (first) {
+				first = false;
+			} else {
+				sb.append(", ");
+			}
+			sb.append(prettyPrintUsingStandardPrefix(name));
+		}
+		return sb.toString();
+	}
+
+	// TODO check if there's not any standard list of usual prefixes (I'm quite sure there is)
+	public static String prettyPrintUsingStandardPrefix(QName name) {
+		if (name == null) {
+			return null;
+		}
+		String ns = name.getNamespaceURI();
+		if (SchemaConstants.NS_C.equals(ns)) {
+			return "c:" + name.getLocalPart();
+		} else if (MidPointConstants.NS_RI.equals(ns)) {
+			return "ri:" + name.getLocalPart();
+		} else if (SchemaConstantsGenerated.NS_ICF_SCHEMA.equals(ns)) {
+			return "icfs:" + name.getLocalPart();
+		} else if (SchemaConstantsGenerated.NS_ICF_SCHEMA.equals(ns)) {
+			return "icfs:" + name.getLocalPart();
+		} else {
+			return null;
+		}
 	}
 
 }

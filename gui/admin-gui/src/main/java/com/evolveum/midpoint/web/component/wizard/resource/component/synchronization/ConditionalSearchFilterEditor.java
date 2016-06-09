@@ -20,6 +20,7 @@ import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.model.NonEmptyModel;
 import com.evolveum.midpoint.web.component.input.ExpressionEditorPanel;
 import com.evolveum.midpoint.web.component.input.SearchFilterPanel;
+import com.evolveum.midpoint.web.page.admin.resources.PageResourceWizard;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConditionalSearchFilterType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -34,14 +35,14 @@ public class ConditionalSearchFilterEditor extends BasePanel<ConditionalSearchFi
     private static final String ID_FILTER_CLAUSE_PANEL = "filterClausePanel";
 
 	// expression and filter must be non-null
-    public ConditionalSearchFilterEditor(String id, NonEmptyModel<ConditionalSearchFilterType> model) {
+    public ConditionalSearchFilterEditor(String id, NonEmptyModel<ConditionalSearchFilterType> model, PageResourceWizard parentPage) {
         super(id, model);
-		initLayout();
+		initLayout(parentPage);
     }
 
-    protected void initLayout(){
+    protected void initLayout(PageResourceWizard parentPage) {
         ExpressionEditorPanel expressionEditor = new ExpressionEditorPanel(ID_EXPRESSION_PANEL,
-				new PropertyModel<ExpressionType>(getModel(), ConditionalSearchFilterType.F_CONDITION.getLocalPart())) {
+				new PropertyModel<ExpressionType>(getModel(), ConditionalSearchFilterType.F_CONDITION.getLocalPart()), parentPage) {
 
             @Override
             public void performExpressionHook(AjaxRequestTarget target) {
@@ -73,7 +74,8 @@ public class ConditionalSearchFilterEditor extends BasePanel<ConditionalSearchFi
         };
         add(expressionEditor);
 
-        SearchFilterPanel filterClauseEditor = new SearchFilterPanel<>(ID_FILTER_CLAUSE_PANEL, (NonEmptyModel<ConditionalSearchFilterType>) getModel());
+        SearchFilterPanel filterClauseEditor = new SearchFilterPanel<>(ID_FILTER_CLAUSE_PANEL, (NonEmptyModel<ConditionalSearchFilterType>) getModel(),
+				parentPage.getReadOnlyModel());
         add(filterClauseEditor);
     }
 }

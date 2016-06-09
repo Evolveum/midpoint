@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.web.component.wizard.resource.component.schemahandling;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.model.NonEmptyModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -29,9 +30,11 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.form.multivalue.MultiValueTextEditPanel;
 import com.evolveum.midpoint.web.component.input.ObjectReferenceChoiceRenderer;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.component.wizard.WizardUtil;
 import com.evolveum.midpoint.web.component.wizard.resource.component.schemahandling.modal.MappingEditorDialog;
 import com.evolveum.midpoint.web.component.wizard.resource.dto.MappingTypeDto;
+import com.evolveum.midpoint.web.page.admin.resources.PageResourceWizard;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -76,9 +79,9 @@ public class ResourceCredentialsEditor extends BasePanel<ResourceCredentialsDefi
 
     final private Map<String, String> passPolicyMap = new HashMap<>();
 
-    public ResourceCredentialsEditor(String id, IModel<ResourceCredentialsDefinitionType> model){
+    public ResourceCredentialsEditor(String id, IModel<ResourceCredentialsDefinitionType> model, PageResourceWizard parentPage) {
         super(id, model);
-		initLayout();
+		initLayout(parentPage);
     }
 
     @Override
@@ -96,13 +99,24 @@ public class ResourceCredentialsEditor extends BasePanel<ResourceCredentialsDefi
         return model;
     }
 
-    protected void initLayout() {
+    protected void initLayout(final PageResourceWizard parentPage) {
         DropDownChoice fetchStrategy = new DropDownChoice<>(ID_FETCH_STRATEGY,
                 new PropertyModel<AttributeFetchStrategyType>(getModel(), "password.fetchStrategy"),
                 WebComponentUtil.createReadonlyModelFromEnum(AttributeFetchStrategyType.class),
                 new EnumChoiceRenderer<AttributeFetchStrategyType>(this));
+		parentPage.addEditingEnabledBehavior(fetchStrategy);
         add(fetchStrategy);
 
+		VisibleEnableBehaviour showIfEditingOrOutboundExists = new VisibleEnableBehaviour() {
+			@Override
+			public boolean isVisible() {
+				ResourceCredentialsDefinitionType credentials = getModel().getObject();
+				if (credentials == null || credentials.getPassword() == null) {
+					return !parentPage.isReadOnly();
+				}
+				return !parentPage.isReadOnly() || credentials.getPassword().getOutbound() != null;
+			}
+		};
         TextField outboundLabel = new TextField<>(ID_OUTBOUND_LABEL, new AbstractReadOnlyModel<String>() {
 
             @Override
@@ -119,6 +133,7 @@ public class ResourceCredentialsEditor extends BasePanel<ResourceCredentialsDefi
         });
         outboundLabel.setEnabled(false);
         outboundLabel.setOutputMarkupId(true);
+		outboundLabel.add(showIfEditingOrOutboundExists);
         add(outboundLabel);
 
         AjaxSubmitLink outbound = new AjaxSubmitLink(ID_OUTBOUND_BUTTON) {
@@ -129,10 +144,11 @@ public class ResourceCredentialsEditor extends BasePanel<ResourceCredentialsDefi
             }
         };
         outbound.setOutputMarkupId(true);
+		outbound.add(showIfEditingOrOutboundExists);
         add(outbound);
 
         MultiValueTextEditPanel inbound = new MultiValueTextEditPanel<MappingType>(ID_INBOUND,
-                new PropertyModel<List<MappingType>>(getModel(), "password.inbound"), null, false, true){
+                new PropertyModel<List<MappingType>>(getModel(), "password.inbound"), null, false, true, parentPage.getReadOnlyModel()) {
 
             @Override
             protected IModel<String> createTextModel(final IModel<MappingType> model) {
@@ -169,6 +185,7 @@ public class ResourceCredentialsEditor extends BasePanel<ResourceCredentialsDefi
                        
                     }
                 }, new ObjectReferenceChoiceRenderer(passPolicyMap));
+		parentPage.addEditingEnabledBehavior(passwordPolicy);
         add(passwordPolicy);
 
         Label fetchTooltip = new Label(ID_T_FETCH);
@@ -187,11 +204,11 @@ public class ResourceCredentialsEditor extends BasePanel<ResourceCredentialsDefi
         passPolicyTooltip.add(new InfoTooltipBehavior());
         add(passPolicyTooltip);
 
-        initModals();
+        initModals(parentPage.getReadOnlyModel());
     }
 
-    private void initModals(){
-        ModalWindow inboundEditor = new MappingEditorDialog(ID_MODAL_INBOUND, null){
+    private void initModals(NonEmptyModel<Boolean> readOnlyModel){
+        ModalWindow inboundEditor = new MappingEditorDialog(ID_MODAL_INBOUND, null, readOnlyModel) {
 
             @Override
             public void updateComponents(AjaxRequestTarget target) {
@@ -200,7 +217,7 @@ public class ResourceCredentialsEditor extends BasePanel<ResourceCredentialsDefi
         };
         add(inboundEditor);
 
-        ModalWindow outboundEditor = new MappingEditorDialog(ID_MODAL_OUTBOUND, null){
+        ModalWindow outboundEditor = new MappingEditorDialog(ID_MODAL_OUTBOUND, null, readOnlyModel) {
 
             @Override
             public void updateComponents(AjaxRequestTarget target) {

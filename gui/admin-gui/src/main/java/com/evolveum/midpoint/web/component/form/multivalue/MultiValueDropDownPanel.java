@@ -17,6 +17,8 @@
 package com.evolveum.midpoint.web.component.form.multivalue;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.model.NonEmptyModel;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 
 import org.apache.commons.lang3.StringUtils;
@@ -49,14 +51,14 @@ public class MultiValueDropDownPanel<T extends Serializable> extends BasePanel<L
 
     private static final String CSS_DISABLED = " disabled";
 
-    public MultiValueDropDownPanel(String id, IModel<List<T>> model, boolean nullValid){
+    public MultiValueDropDownPanel(String id, IModel<List<T>> model, boolean nullValid, NonEmptyModel<Boolean> readOnlyModel) {
         super(id, model);
         setOutputMarkupId(true);
 
-        initLayout(nullValid);
+        initLayout(nullValid, readOnlyModel);
     }
 
-    private void initLayout(final boolean nullValid){
+    private void initLayout(final boolean nullValid, final NonEmptyModel<Boolean> readOnlyModel) {
         WebMarkupContainer placeholderContainer = new WebMarkupContainer(ID_PLACEHOLDER_CONTAINER);
         placeholderContainer.setOutputMarkupPlaceholderTag(true);
         placeholderContainer.setOutputMarkupPlaceholderTag(true);
@@ -89,6 +91,7 @@ public class MultiValueDropDownPanel<T extends Serializable> extends BasePanel<L
         }));
         placeholderAdd.setOutputMarkupId(true);
         placeholderAdd.setOutputMarkupPlaceholderTag(true);
+		placeholderAdd.add(WebComponentUtil.visibleIfFalse(readOnlyModel));
         placeholderContainer.add(placeholderAdd);
 
         ListView repeater = new ListView<T>(ID_REPEATER, getModel()){
@@ -99,11 +102,12 @@ public class MultiValueDropDownPanel<T extends Serializable> extends BasePanel<L
                 DropDownChoice choice = new DropDownChoice<>(ID_INPUT, createDropDownItemModel(item.getModel()),
                         createChoiceList(), createRenderer());
                 choice.setNullValid(nullValid);
+				choice.add(WebComponentUtil.enabledIfFalse(readOnlyModel));
                 item.add(choice);
 
                 WebMarkupContainer buttonGroup = new WebMarkupContainer(ID_BUTTON_GROUP);
                 item.add(buttonGroup);
-                initButtons(buttonGroup, item);
+                initButtons(buttonGroup, item, readOnlyModel);
             }
         };
         repeater.setOutputMarkupId(true);
@@ -137,7 +141,7 @@ public class MultiValueDropDownPanel<T extends Serializable> extends BasePanel<L
         };
     }
 
-    private void initButtons(WebMarkupContainer buttonGroup, final ListItem<T> item) {
+    private void initButtons(WebMarkupContainer buttonGroup, final ListItem<T> item, NonEmptyModel<Boolean> readOnlyModel) {
         AjaxLink add = new AjaxLink(ID_ADD) {
 
             @Override
@@ -146,6 +150,7 @@ public class MultiValueDropDownPanel<T extends Serializable> extends BasePanel<L
             }
         };
         add.add(new AttributeAppender("class", getPlusClassModifier(item)));
+		add.add(WebComponentUtil.visibleIfFalse(readOnlyModel));
         buttonGroup.add(add);
 
         AjaxLink remove = new AjaxLink(ID_REMOVE) {
@@ -156,6 +161,7 @@ public class MultiValueDropDownPanel<T extends Serializable> extends BasePanel<L
             }
         };
         remove.add(new AttributeAppender("class", getMinusClassModifier()));
+		remove.add(WebComponentUtil.visibleIfFalse(readOnlyModel));
         buttonGroup.add(remove);
     }
 

@@ -40,6 +40,7 @@ import javax.xml.bind.JAXBElement;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import java.math.BigInteger;
 import java.util.Date;
 
 /**
@@ -133,6 +134,8 @@ public class ValueDisplayUtil {
 //            } else {
 //                return qname.getLocalPart();
 //            }
+        } else if (value instanceof Number) {
+			return String.valueOf(value);
         } else {
             return "(a value of type " + value.getClass().getName() + ")";  // todo i18n
         }

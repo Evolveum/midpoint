@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.web.component.wizard.resource.component.schemahandling.modal;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.model.NonEmptyModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.web.component.form.CheckFormGroup;
@@ -47,6 +48,7 @@ import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.StringResourceModel;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -92,10 +94,12 @@ public class LimitationsEditorDialog extends ModalWindow{
     private boolean initialized;
     private IModel<List<PropertyLimitationsTypeDto>> model;
     private IModel<List<PropertyLimitationsType>> inputModel;
+	@NotNull final private NonEmptyModel<Boolean> readOnlyModel;
 
-    public LimitationsEditorDialog(String id, final IModel<List<PropertyLimitationsType>> limitation){
+    public LimitationsEditorDialog(String id, final IModel<List<PropertyLimitationsType>> limitation, NonEmptyModel<Boolean> readOnlyModel) {
         super(id);
 
+		this.readOnlyModel = readOnlyModel;
         inputModel = limitation;
         model = new LoadableModel<List<PropertyLimitationsTypeDto>>(false) {
 
@@ -166,7 +170,8 @@ public class LimitationsEditorDialog extends ModalWindow{
                         deleteLimitationPerformed(target, item);
                     }
                 };
-                linkContainer.add(delete);
+				delete.add(WebComponentUtil.visibleIfFalse(readOnlyModel));
+				linkContainer.add(delete);
 
                 WebMarkupContainer limitationBody = new WebMarkupContainer(ID_BODY);
                 limitationBody.setOutputMarkupId(true);
@@ -186,6 +191,7 @@ public class LimitationsEditorDialog extends ModalWindow{
                         }
                     }));
                 }
+				limitationBody.add(WebComponentUtil.enabledIfFalse(readOnlyModel));
                 item.add(limitationBody);
                 initLimitationBody(limitationBody, item);
 
@@ -205,6 +211,7 @@ public class LimitationsEditorDialog extends ModalWindow{
                 addLimitationsPerformed(target);
             }
         };
+		add.add(WebComponentUtil.visibleIfFalse(readOnlyModel));
         form.add(add);
 
         AjaxLink cancel = new AjaxLink(ID_BUTTON_CANCEL) {
@@ -223,6 +230,7 @@ public class LimitationsEditorDialog extends ModalWindow{
                 savePerformed(target);
             }
         };
+		save.add(WebComponentUtil.visibleIfFalse(readOnlyModel));
         form.add(save);
     }
 

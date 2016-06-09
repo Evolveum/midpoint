@@ -16,6 +16,7 @@
 package com.evolveum.midpoint.model.intest;
 
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
+import static org.testng.AssertJUnit.assertNotNull;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -38,6 +39,7 @@ import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
@@ -62,6 +64,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
@@ -385,11 +388,13 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 	}
 	
 	/**
-	 * Beige resource has a relaxed dependency. The provisioning should go OK.
+	 * Beige resource has a relaxed dependency. The provisioning should go OK
+	 * even if there is no default dummy account.
 	 */
 	@Test
     public void test210JackAssignDummyBeige() throws Exception {
 		final String TEST_NAME = "test210JackAssignDummyBeige";
+		TestUtil.displayTestTile(this, TEST_NAME);
 		
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
@@ -400,9 +405,11 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 		modifyUserReplace(USER_JACK_OID, UserType.F_ORGANIZATIONAL_UNIT, task, result);
 		
 		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
 		assignAccount(USER_JACK_OID, RESOURCE_DUMMY_BEIGE_OID, null, task, result);
 		
 		// THEN
+		TestUtil.displayThen(TEST_NAME);
 		result.computeStatus();
         TestUtil.assertSuccess(result);
         
@@ -419,11 +426,13 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 	}
 	
 	/**
-	 * Beige resource has a relaxed dependency. The provisioning should go OK.
+	 * Beige resource has a relaxed dependency. The deprovisioning should go OK
+	 * even if there is not default dummy account.
 	 */
 	@Test
     public void test219JackUnAssignDummyBeige() throws Exception {
 		final String TEST_NAME = "test219JackUnAssignDummyBeige";
+		TestUtil.displayTestTile(this, TEST_NAME);
 		
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
@@ -434,9 +443,11 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 		modifyUserReplace(USER_JACK_OID, UserType.F_ORGANIZATIONAL_UNIT, task, result);
 		
 		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
 		unassignAccount(USER_JACK_OID, RESOURCE_DUMMY_BEIGE_OID, null, task, result);
 		
 		// THEN
+		TestUtil.displayThen(TEST_NAME);
 		result.computeStatus();
         TestUtil.assertSuccess(result);
         
@@ -448,6 +459,329 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         assertNoDummyAccount(RESOURCE_DUMMY_IVORY_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
         assertNoDummyAccount(RESOURCE_DUMMY_BEIGE_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
 	}
+	
+	/**
+	 * Beige resource has a relaxed dependency. Try provisioning of both
+	 * beige and default dummy accounts.
+	 */
+	@Test
+    public void test220JackAssignDummyBeigeAndDefault() throws Exception {
+		final String TEST_NAME = "test220JackAssignDummyBeigeAndDefault";
+		TestUtil.displayTestTile(this, TEST_NAME);
+		
+		// GIVEN
+		Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
+        
+        // Clean up user
+		modifyUserReplace(USER_JACK_OID, UserType.F_ORGANIZATIONAL_UNIT, task, result);
+		
+		ObjectDelta<UserType> userDelta = createAccountAssignmentUserDelta(USER_JACK_OID, RESOURCE_DUMMY_BEIGE_OID, null, true);
+		userDelta.addModification(createAssignmentModification(RESOURCE_DUMMY_OID, ShadowKindType.ACCOUNT, null, true));
+		
+		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
+		executeChanges(userDelta, null, task, result);
+		
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+		result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        PrismObject<UserType> userJack = getUser(USER_JACK_OID);
+        assertLinks(userJack, 2);
+        
+        assertDummyAccount(null, ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
+        assertDummyAccount(RESOURCE_DUMMY_BEIGE_NAME, ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
+        // No value for ship ... no place to get it from
+        assertDummyAccountAttribute(RESOURCE_DUMMY_BEIGE_NAME, ACCOUNT_JACK_DUMMY_USERNAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME);
+        
+        assertNoDummyAccount(RESOURCE_DUMMY_LAVENDER_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
+        assertNoDummyAccount(RESOURCE_DUMMY_IVORY_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
+	}
+	
+	/**
+	 * Recompute to check that recompute will not ruin anything. 
+	 */
+	@Test
+    public void test221JackRecompute() throws Exception {
+		final String TEST_NAME = "test221JackRecompute";
+		TestUtil.displayTestTile(this, TEST_NAME);
+		
+		// GIVEN
+		Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        		
+		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
+		recomputeUser(USER_JACK_OID, task, result);
+		
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+		result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        PrismObject<UserType> userJack = getUser(USER_JACK_OID);
+        assertLinks(userJack, 2);
+        
+        assertDummyAccount(null, ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
+        assertDummyAccount(RESOURCE_DUMMY_BEIGE_NAME, ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
+        // No value for ship ... no place to get it from
+        assertDummyAccountAttribute(RESOURCE_DUMMY_BEIGE_NAME, ACCOUNT_JACK_DUMMY_USERNAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME);
+        
+        assertNoDummyAccount(RESOURCE_DUMMY_LAVENDER_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
+        assertNoDummyAccount(RESOURCE_DUMMY_IVORY_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
+	}
+	
+	/**
+	 * Delete account on default dummy resource (but keep it assigned and keep the shadow).
+	 * The recompute the user. The account should be re-created.
+	 * MID-2134, MID-3093
+	 */
+	@Test
+    public void test223JackKillDefaultDummyAccounAndRecompute() throws Exception {
+		final String TEST_NAME = "test223JackKillDefaultDummyAccounAndRecompute";
+		TestUtil.displayTestTile(this, TEST_NAME);
+		
+		// GIVEN
+		Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        dummyResource.deleteAccountByName(ACCOUNT_JACK_DUMMY_USERNAME);
+        display("dummy resource before", dummyResource);
+        		
+		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
+		recomputeUser(USER_JACK_OID, task, result);
+		
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+		result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        PrismObject<UserType> userJack = getUser(USER_JACK_OID);
+        display("user after", userJack);
+        assertLinks(userJack, 2);
+        
+        display("dummy resource after", dummyResource);
+        
+        assertDummyAccount(null, ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
+        assertDummyAccount(RESOURCE_DUMMY_BEIGE_NAME, ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
+        // No value for ship ... no place to get it from
+        assertDummyAccountAttribute(RESOURCE_DUMMY_BEIGE_NAME, ACCOUNT_JACK_DUMMY_USERNAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME);
+        
+        assertNoDummyAccount(RESOURCE_DUMMY_LAVENDER_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
+        assertNoDummyAccount(RESOURCE_DUMMY_IVORY_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
+	}
+
+	/**
+	 * Delete account on beige dummy resource (but keep it assigned and keep the shadow).
+	 * The recompute the user. The account should be re-created.
+	 * MID-2134, MID-3093
+	 */
+	@Test
+    public void test224JackKillBeigeAccounAndRecompute() throws Exception {
+		final String TEST_NAME = "test224JackKillBeigeAccounAndRecompute";
+		TestUtil.displayTestTile(this, TEST_NAME);
+		
+		// GIVEN
+		Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        dummyResourceBeige.deleteAccountByName(ACCOUNT_JACK_DUMMY_USERNAME);
+        display("beige dummy resource before", dummyResourceBeige);
+        		
+		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
+		recomputeUser(USER_JACK_OID, task, result);
+		
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+		result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        PrismObject<UserType> userJack = getUser(USER_JACK_OID);
+        assertLinks(userJack, 2);
+        
+        display("beige dummy resource after", dummyResourceBeige);
+        
+        assertDummyAccount(null, ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
+        assertDummyAccount(RESOURCE_DUMMY_BEIGE_NAME, ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
+        // No value for ship ... no place to get it from
+        assertDummyAccountAttribute(RESOURCE_DUMMY_BEIGE_NAME, ACCOUNT_JACK_DUMMY_USERNAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME);
+        
+        assertNoDummyAccount(RESOURCE_DUMMY_LAVENDER_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
+        assertNoDummyAccount(RESOURCE_DUMMY_IVORY_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
+	}
+	
+	/**
+	 * Delete both accounts on beige and default dummy resource (but keep it assigned and keep the shadows).
+	 * The recompute the user. The accounts should be re-created.
+	 * MID-2134, MID-3093
+	 */
+	@Test
+    public void test225JackKillBothAccounsAndRecompute() throws Exception {
+		final String TEST_NAME = "test225JackKillBothAccounsAndRecompute";
+		TestUtil.displayTestTile(this, TEST_NAME);
+		
+		// GIVEN
+		Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        dummyResource.deleteAccountByName(ACCOUNT_JACK_DUMMY_USERNAME);
+        display("dummy resource before", dummyResource);
+        
+        dummyResourceBeige.deleteAccountByName(ACCOUNT_JACK_DUMMY_USERNAME);
+        display("beige dummy resource before", dummyResourceBeige);
+        		
+		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
+		recomputeUser(USER_JACK_OID, task, result);
+		
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+		result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        PrismObject<UserType> userJack = getUser(USER_JACK_OID);
+        assertLinks(userJack, 2);
+        
+        display("dummy resource after", dummyResource);
+        display("beige dummy resource after", dummyResourceBeige);
+        
+        assertDummyAccount(null, ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
+        assertDummyAccount(RESOURCE_DUMMY_BEIGE_NAME, ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
+        // No value for ship ... no place to get it from
+        assertDummyAccountAttribute(RESOURCE_DUMMY_BEIGE_NAME, ACCOUNT_JACK_DUMMY_USERNAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME);
+        
+        assertNoDummyAccount(RESOURCE_DUMMY_LAVENDER_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
+        assertNoDummyAccount(RESOURCE_DUMMY_IVORY_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
+	}
+	
+	/**
+	 * Cause schema violation on the account during a provisioning operation. This should fail
+	 * the operation, but other operations should proceed and the account should definitelly NOT
+	 * be unlinked.
+	 * MID-2134
+	 */
+	@Test
+    public void test227ModifyUserJackDefaultDummyBrokenSchemaViolation() throws Exception {
+		final String TEST_NAME = "test227ModifyUserJackDefaultDummyBrokenSchemaViolation";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        dummyAuditService.clear();
+        
+        dummyResource.setModifyBreakMode(BreakMode.SCHEMA);
+                        
+		// WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        modifyUserReplace(USER_JACK_OID, UserType.F_FULL_NAME, task, result, 
+        		new PolyString("Cpt. Jack Sparrow", null));
+		
+		// THEN
+        TestUtil.displayThen(TEST_NAME);
+		result.computeStatus();
+		display("Result", result);
+		TestUtil.assertPartialError(result);
+		
+		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
+        assertLinks(userJack, 2);
+        
+        display("dummy resource after", dummyResource);
+        display("beige dummy resource after", dummyResourceBeige);
+        
+        assertDummyAccount(null, ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
+        assertDummyAccount(RESOURCE_DUMMY_BEIGE_NAME, ACCOUNT_JACK_DUMMY_USERNAME, "Cpt. Jack Sparrow", true);
+        // No value for ship ... no place to get it from
+        assertDummyAccountAttribute(RESOURCE_DUMMY_BEIGE_NAME, ACCOUNT_JACK_DUMMY_USERNAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME);
+        
+        assertNoDummyAccount(RESOURCE_DUMMY_LAVENDER_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
+        assertNoDummyAccount(RESOURCE_DUMMY_IVORY_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
+        
+        dummyResource.resetBreakMode();
+	}
+	
+	/**
+	 * Reset break mode, make sure that everything is back to normal.
+	 * MID-2134
+	 */
+	@Test
+    public void test228ModifyUserJackDefaultDummyNoError() throws Exception {
+		final String TEST_NAME = "test228ModifyUserJackDefaultDummyNoError";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        dummyAuditService.clear();
+        dummyResource.resetBreakMode();
+                        
+		// WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        modifyUserReplace(USER_JACK_OID, UserType.F_FULL_NAME, task, result, 
+        		new PolyString(USER_JACK_FULL_NAME, null));
+		
+		// THEN
+        TestUtil.displayThen(TEST_NAME);
+		result.computeStatus();
+		display("Result", result);
+		TestUtil.assertSuccess(result);
+		
+		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
+        assertLinks(userJack, 2);
+        
+        display("dummy resource after", dummyResource);
+        display("beige dummy resource after", dummyResourceBeige);
+        
+        assertDummyAccount(null, ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
+        assertDummyAccount(RESOURCE_DUMMY_BEIGE_NAME, ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
+        // No value for ship ... no place to get it from
+        assertDummyAccountAttribute(RESOURCE_DUMMY_BEIGE_NAME, ACCOUNT_JACK_DUMMY_USERNAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME);
+        
+        assertNoDummyAccount(RESOURCE_DUMMY_LAVENDER_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
+        assertNoDummyAccount(RESOURCE_DUMMY_IVORY_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
+	}
+
+	/**
+	 * Beige resource has a relaxed dependency. Try provisioning of both
+	 * beige and default dummy accounts.
+	 */
+	@Test
+    public void test229JackUnassignDummyBeigeAndDefault() throws Exception {
+		final String TEST_NAME = "test229JackUnassignDummyBeigeAndDefault";
+		TestUtil.displayTestTile(this, TEST_NAME);
+		
+		// GIVEN
+		Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        dummyResource.resetBreakMode();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
+        
+		ObjectDelta<UserType> userDelta = createAccountAssignmentUserDelta(USER_JACK_OID, RESOURCE_DUMMY_BEIGE_OID, null, false);
+		userDelta.addModification(createAssignmentModification(RESOURCE_DUMMY_OID, ShadowKindType.ACCOUNT, null, false));
+		
+		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
+		executeChanges(userDelta, null, task, result);
+		
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+		result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        PrismObject<UserType> userJack = getUser(USER_JACK_OID);
+        assertLinks(userJack, 0);
+        
+        assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
+        assertNoDummyAccount(RESOURCE_DUMMY_LAVENDER_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
+        assertNoDummyAccount(RESOURCE_DUMMY_IVORY_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
+        assertNoDummyAccount(RESOURCE_DUMMY_BEIGE_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
+	}
+
 	
 	/**
 	 * Lavender resource has a strict dependency. The provisioning should fail.

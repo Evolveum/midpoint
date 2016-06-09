@@ -21,6 +21,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.evolveum.midpoint.gui.api.model.NonEmptyModel;
 import com.evolveum.midpoint.util.exception.CommonException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
@@ -67,6 +68,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingStrengthType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ValuePolicyType;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * @author shood
@@ -116,11 +118,13 @@ public class MappingEditorDialog extends ModalWindow {
 	private Map<String, String> policyMap = new HashMap<>();
 	private IModel<MappingType> inputModel;
 	private boolean isTargetRequired = false;
+	@NotNull private final NonEmptyModel<Boolean> readOnlyModel;
 
-	public MappingEditorDialog(String id, final IModel<MappingType> mapping) {
+	public MappingEditorDialog(String id, final IModel<MappingType> mapping, NonEmptyModel<Boolean> readOnlyModel) {
 		super(id);
 
 		inputModel = mapping;
+		this.readOnlyModel = readOnlyModel;
 		model = new LoadableModel<MappingTypeDto>(false) {
 
 			@Override
@@ -191,23 +195,27 @@ public class MappingEditorDialog extends ModalWindow {
 		TextFormGroup name = new TextFormGroup(ID_NAME,
 				new PropertyModel<String>(model, MappingTypeDto.F_MAPPING + ".name"),
 				createStringResource("MappingEditorDialog.label.name"), ID_LABEL_SIZE, ID_INPUT_SIZE, false);
+		name.add(WebComponentUtil.enabledIfFalse(readOnlyModel));
 		form.add(name);
 
 		TextAreaFormGroup description = new TextAreaFormGroup(ID_DESCRIPTION,
 				new PropertyModel<String>(model, MappingTypeDto.F_MAPPING + ".description"),
 				createStringResource("MappingEditorDialog.label.description"), ID_LABEL_SIZE, ID_INPUT_SIZE, false);
+		description.add(WebComponentUtil.enabledIfFalse(readOnlyModel));
 		form.add(description);
 
 		CheckFormGroup authoritative = new CheckFormGroup(ID_AUTHORITATIVE,
 				new PropertyModel<Boolean>(model, MappingTypeDto.F_MAPPING + ".authoritative"),
 				createStringResource("MappingEditorDialog.label.authoritative"),
 				"SchemaHandlingStep.mapping.tooltip.authoritative", true, ID_LABEL_SIZE, ID_INPUT_SIZE);
+		authoritative.add(WebComponentUtil.enabledIfFalse(readOnlyModel));
 		form.add(authoritative);
 
 		CheckFormGroup exclusive = new CheckFormGroup(ID_EXCLUSIVE,
 				new PropertyModel<Boolean>(model, MappingTypeDto.F_MAPPING + ".exclusive"),
 				createStringResource("MappingEditorDialog.label.exclusive"),
 				"SchemaHandlingStep.mapping.tooltip.exclusive", true, ID_LABEL_SIZE, ID_INPUT_SIZE);
+		exclusive.add(WebComponentUtil.enabledIfFalse(readOnlyModel));
 		form.add(exclusive);
 
 		DropDownFormGroup strength = new DropDownFormGroup<>(ID_STRENGTH,
@@ -216,10 +224,11 @@ public class MappingEditorDialog extends ModalWindow {
 				new EnumChoiceRenderer<MappingStrengthType>(this),
 				createStringResource("MappingEditorDialog.label.strength"),
 				"SchemaHandlingStep.mapping.tooltip.strength", true, ID_LABEL_SIZE, ID_INPUT_SIZE, false);
+		strength.add(WebComponentUtil.enabledIfFalse(readOnlyModel));
 		form.add(strength);
 
 		MultiValueDropDownPanel channel = new MultiValueDropDownPanel<String>(ID_CHANNEL,
-				new PropertyModel<List<String>>(model, MappingTypeDto.F_MAPPING + ".channel"), true) {
+				new PropertyModel<List<String>>(model, MappingTypeDto.F_MAPPING + ".channel"), true, readOnlyModel) {
 
 			@Override
 			protected String createNewEmptyItem() {
@@ -246,7 +255,7 @@ public class MappingEditorDialog extends ModalWindow {
 		form.add(channel);
 
 		MultiValueDropDownPanel exceptChannel = new MultiValueDropDownPanel<String>(ID_EXCEPT_CHANNEL,
-				new PropertyModel<List<String>>(model, MappingTypeDto.F_MAPPING + ".exceptChannel"), true) {
+				new PropertyModel<List<String>>(model, MappingTypeDto.F_MAPPING + ".exceptChannel"), true, readOnlyModel) {
 
 			@Override
 			protected String createNewEmptyItem() {
@@ -273,7 +282,7 @@ public class MappingEditorDialog extends ModalWindow {
 
 		// TODO - create some nice ItemPathType editor in near future
 		MultiValueTextPanel source = new MultiValueTextPanel<>(ID_SOURCE,
-				new PropertyModel<List<String>>(model, MappingTypeDto.F_SOURCE));
+				new PropertyModel<List<String>>(model, MappingTypeDto.F_SOURCE), readOnlyModel);
 		form.add(source);
 
 		// TODO - create some nice ItemPathType editor in near future
@@ -281,6 +290,7 @@ public class MappingEditorDialog extends ModalWindow {
 				createStringResource("MappingEditorDialog.label.target"), "SchemaHandlingStep.mapping.tooltip.target",
 				true, ID_LABEL_SIZE, ID_INPUT_SIZE, isTargetRequired);
 		target.setOutputMarkupId(true);
+		target.add(WebComponentUtil.enabledIfFalse(readOnlyModel));
 		form.add(target);
 
 		FeedbackPanel feedback = new FeedbackPanel(ID_FEEDBACK);
@@ -314,6 +324,7 @@ public class MappingEditorDialog extends ModalWindow {
 				target.add(get(getContentId() + ":" + ID_MAIN_FORM + ":" + ID_EXPRESSION_POLICY_REF));
 			}
 		});
+		expressionType.add(WebComponentUtil.enabledIfFalse(readOnlyModel));
 		form.add(expressionType);
 
 		DropDownFormGroup expressionLanguage = new DropDownFormGroup<>(ID_EXPRESSION_LANG,
@@ -325,16 +336,17 @@ public class MappingEditorDialog extends ModalWindow {
 		expressionLanguage.setOutputMarkupId(true);
 		expressionLanguage.setOutputMarkupPlaceholderTag(true);
 		expressionLanguage.add(new VisibleEnableBehaviour() {
-
 			@Override
 			public boolean isVisible() {
 				return ExpressionUtil.ExpressionEvaluatorType.SCRIPT.equals(model.getObject().getExpressionType());
-
+			}
+			@Override
+			public boolean isEnabled() {
+				return !readOnlyModel.getObject();
 			}
 		});
 		form.add(expressionLanguage);
 		expressionLanguage.getInput().add(new AjaxFormComponentUpdatingBehavior("change") {
-
 			@Override
 			protected void onUpdate(AjaxRequestTarget target) {
 				model.getObject().updateExpressionLanguage();
@@ -365,14 +377,16 @@ public class MappingEditorDialog extends ModalWindow {
 		expressionGeneratePolicy.setOutputMarkupId(true);
 		expressionGeneratePolicy.setOutputMarkupPlaceholderTag(true);
 		expressionGeneratePolicy.add(new VisibleEnableBehaviour() {
-
 			@Override
 			public boolean isVisible() {
 				return ExpressionUtil.ExpressionEvaluatorType.GENERATE.equals(model.getObject().getExpressionType());
 			}
+			@Override
+			public boolean isEnabled() {
+				return !readOnlyModel.getObject();
+			}
 		});
 		expressionGeneratePolicy.getInput().add(new AjaxFormComponentUpdatingBehavior("change") {
-
 			@Override
 			protected void onUpdate(AjaxRequestTarget target) {
 				model.getObject().updateExpressionGeneratePolicy();
@@ -387,6 +401,7 @@ public class MappingEditorDialog extends ModalWindow {
 				"SchemaHandlingStep.mapping.tooltip.expression", true, ID_LABEL_SIZE, ID_INPUT_SIZE, false,
 				CODE_ROW_COUNT);
 		expression.setOutputMarkupId(true);
+		expression.add(WebComponentUtil.enabledIfFalse(readOnlyModel));
 		form.add(expression);
 
 		DropDownFormGroup<ExpressionUtil.ExpressionEvaluatorType> conditionType = new DropDownFormGroup<ExpressionUtil.ExpressionEvaluatorType>(
@@ -415,6 +430,7 @@ public class MappingEditorDialog extends ModalWindow {
 			}
 		});
 		form.add(conditionType);
+		conditionType.add(WebComponentUtil.enabledIfFalse(readOnlyModel));
 
 		DropDownFormGroup conditionLanguage = new DropDownFormGroup<>(ID_CONDITION_LANG,
 				new PropertyModel<ExpressionUtil.Language>(model, MappingTypeDto.F_CONDITION_LANG),
@@ -429,6 +445,11 @@ public class MappingEditorDialog extends ModalWindow {
 			@Override
 			public boolean isVisible() {
 				return ExpressionUtil.ExpressionEvaluatorType.SCRIPT.equals(model.getObject().getConditionType());
+			}
+
+			@Override
+			public boolean isEnabled() {
+				return !readOnlyModel.getObject();
 			}
 		});
 		conditionLanguage.getInput().add(new AjaxFormComponentUpdatingBehavior("change") {
@@ -468,6 +489,11 @@ public class MappingEditorDialog extends ModalWindow {
 			public boolean isVisible() {
 				return ExpressionUtil.ExpressionEvaluatorType.GENERATE.equals(model.getObject().getConditionType());
 			}
+
+			@Override
+			public boolean isEnabled() {
+				return !readOnlyModel.getObject();
+			}
 		});
 		conditionGeneratePolicy.getInput().add(new AjaxFormComponentUpdatingBehavior("change") {
 
@@ -485,6 +511,7 @@ public class MappingEditorDialog extends ModalWindow {
 				"SchemaHandlingStep.mapping.tooltip.condition", true, ID_LABEL_SIZE, ID_INPUT_SIZE, false,
 				CODE_ROW_COUNT);
 		condition.setOutputMarkupId(true);
+		condition.add(WebComponentUtil.enabledIfFalse(readOnlyModel));
 		form.add(condition);
 
 		Label channelTooltip = new Label(ID_T_CHANNEL);
@@ -510,13 +537,14 @@ public class MappingEditorDialog extends ModalWindow {
 		form.add(cancel);
 
 		AjaxSubmitButton save = new AjaxSubmitButton(ID_BUTTON_SAVE,
-				createStringResource("MappingEditorDialog.button.save")) {
+				createStringResource("MappingEditorDialog.button.apply")) {
 
 			@Override
 			protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
 				savePerformed(target);
 			}
 		};
+		save.add(WebComponentUtil.visibleIfFalse(readOnlyModel));
 		form.add(save);
 	}
 

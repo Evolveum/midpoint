@@ -57,6 +57,16 @@ public class WizardIssuesDto implements Serializable {
 		return false;
 	}
 
+	public Severity getSeverity() {
+		Severity max = null;
+		for (Issue issue : issues) {
+			if (max == null || issue.severity.ordinal() < max.ordinal()) {
+				max = issue.severity;
+			}
+		}
+		return max;
+	}
+
 	public void add(@NotNull Severity severity, @NotNull String text, @Nullable Class<? extends WizardStep> relatedStep) {
 		issues.add(new Issue(severity, text, relatedStep));
 	}
@@ -89,19 +99,25 @@ public class WizardIssuesDto implements Serializable {
 		}
 	}
 
-	private enum Severity {
-		ERROR("fa fa-fw fa-exclamation-circle text-danger"),
-		WARNING("fa fa-fw fa-exclamation-triangle text-warning"),
-		INFO("fa fa-fw fa-info-circle text-primary");
+	public enum Severity {
+		ERROR("fa fa-fw fa-exclamation-circle text-danger", "danger"),
+		WARNING("fa fa-fw fa-exclamation-triangle text-warning", "warning"),
+		INFO("fa fa-fw fa-info-circle text-primary", "primary");
 
 		private String icon;
+		private String colorStyle;
 
-		Severity(String icon) {
+		Severity(String icon, String colorStyle) {
 			this.icon = icon;
+			this.colorStyle = colorStyle;
 		}
 
 		public String getIcon() {
 			return icon;
+		}
+
+		public String getColorStyle() {
+			return colorStyle;
 		}
 
 		@NotNull

@@ -18,6 +18,7 @@ package com.evolveum.midpoint.web.component.wizard;
 
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.resources.PageResourceWizard;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.wizard.*;
@@ -40,7 +41,17 @@ public class WizardButtonBar extends Panel implements IDefaultButtonProvider {
 
     public WizardButtonBar(String id, final Wizard wizard) {
         super(id);
-        add(new PreviousButton(ID_PREVIOUS, wizard) {
+
+		VisibleEnableBehaviour showInFullWizardMode = new VisibleEnableBehaviour() {
+			@Override
+			public boolean isVisible() {
+				PageResourceWizard wizardPage = (PageResourceWizard) getPage();
+				return !wizardPage.isConfigurationOnly() && !wizardPage.isReadOnly();
+			}
+		};
+		boolean moreSteps = wizard.hasMoreThanOneStep();
+
+		PreviousButton previous = new PreviousButton(ID_PREVIOUS, wizard) {
 			@Override
 			public void onClick() {
 				IWizardModel wizardModel = getWizardModel();
@@ -52,8 +63,11 @@ public class WizardButtonBar extends Panel implements IDefaultButtonProvider {
 					couldntSave();
 				}
 			}
-		});
-        add(new NextButton(ID_NEXT, wizard) {
+		};
+		previous.setVisible(moreSteps);
+		add(previous);
+
+		final NextButton next = new NextButton(ID_NEXT, wizard) {
 			@Override
 			public void onClick() {
 				IWizardModel wizardModel = getWizardModel();
@@ -65,8 +79,14 @@ public class WizardButtonBar extends Panel implements IDefaultButtonProvider {
 					couldntSave();
 				}
 			}
-		});
-        add(new LastButton(ID_LAST, wizard));			// not used at all
+		};
+		next.setVisible(moreSteps);
+		add(next);
+
+		final LastButton lastButton = new LastButton(ID_LAST, wizard);
+		lastButton.setVisible(false);		// not used at all
+		add(lastButton);
+
         add(new CancelButton(ID_CANCEL, wizard));
         add(new FinishButton(ID_FINISH, wizard){
 
@@ -93,14 +113,16 @@ public class WizardButtonBar extends Panel implements IDefaultButtonProvider {
             }
         });
 
-		add(new AjaxSubmitButton(ID_VALIDATE) {
+		AjaxSubmitButton validate = new AjaxSubmitButton(ID_VALIDATE) {
 			@Override
 			protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
 				((PageResourceWizard) getPage()).refreshIssues(target);
 			}
-		});
+		};
+		validate.add(showInFullWizardMode);
+		add(validate);
 
-		add(new AjaxSubmitButton(ID_SAVE) {
+		final AjaxSubmitButton save = new AjaxSubmitButton(ID_SAVE) {
 			@Override
 			protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
 				IWizardStep activeStep = wizard.getModelObject().getActiveStep();
@@ -108,13 +130,14 @@ public class WizardButtonBar extends Panel implements IDefaultButtonProvider {
 					activeStep.applyState();
 				}
 			}
-		});
-
+		};
+		save.add(showInFullWizardMode);
+		add(save);
 	}
 
 	private void couldntSave() {
-		// we should't come here
-		error("Fix the indicated errors first.");
+		// we should't come here but ... might happen if 'issues' window is not up-to-date
+		error(getString("Wizard.correctErrorsFirst"));
 		getPage().setResponsePage(getPage());
 	}
 

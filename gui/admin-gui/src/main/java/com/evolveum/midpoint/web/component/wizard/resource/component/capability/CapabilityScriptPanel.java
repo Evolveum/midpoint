@@ -20,6 +20,7 @@ import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.web.component.form.multivalue.MultiValueTextPanel;
 import com.evolveum.midpoint.web.component.wizard.resource.dto.CapabilityDto;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnChangeAjaxFormUpdatingBehavior;
+import com.evolveum.midpoint.web.page.admin.resources.PageResourceWizard;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ProvisioningScriptHostType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ScriptCapabilityType;
@@ -46,12 +47,15 @@ public class CapabilityScriptPanel extends BasePanel<CapabilityDto<ScriptCapabil
     private static final String ID_T_ON_CONNECTOR = "onConnectorTooltip";
     private static final String ID_T_ON_RESOURCE = "onResourceTooltip";
 
-    public CapabilityScriptPanel(String componentId, IModel<CapabilityDto<ScriptCapabilityType>> model, WebMarkupContainer capabilitiesTable){
+    public CapabilityScriptPanel(String componentId, IModel<CapabilityDto<ScriptCapabilityType>> model, WebMarkupContainer capabilitiesTable,
+			PageResourceWizard parentPage){
         super(componentId, model);
-		initLayout(capabilitiesTable);
+		initLayout(capabilitiesTable, parentPage);
     }
 
-    protected void initLayout(final WebMarkupContainer capabilitiesTable) {
+    protected void initLayout(final WebMarkupContainer capabilitiesTable, PageResourceWizard parentPage) {
+		parentPage.addEditingEnabledBehavior(this);
+
         CheckBox enabled = new CheckBox(ID_ENABLED, new PropertyModel<Boolean>(getModel(), "capability.enabled"));
 		enabled.add(new EmptyOnChangeAjaxFormUpdatingBehavior() {
 			@Override
@@ -61,10 +65,10 @@ public class CapabilityScriptPanel extends BasePanel<CapabilityDto<ScriptCapabil
 		});
         add(enabled);
 
-        MultiValueTextPanel onConnector = new MultiValueTextPanel(ID_ON_CONNECTOR, prepareOnConnectorModel());
+        MultiValueTextPanel onConnector = new MultiValueTextPanel(ID_ON_CONNECTOR, prepareOnConnectorModel(), parentPage.getReadOnlyModel());
         add(onConnector);
 
-        MultiValueTextPanel onResource = new MultiValueTextPanel(ID_ON_RESOURCE, Model.of(prepareOnResourceModel()));
+        MultiValueTextPanel onResource = new MultiValueTextPanel(ID_ON_RESOURCE, Model.of(prepareOnResourceModel()), parentPage.getReadOnlyModel());
         add(onResource);
 
         Label enabledTooltip = new Label(ID_T_ENABLED);

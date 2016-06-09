@@ -25,6 +25,7 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
+import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.PropertyModel;
 import org.jetbrains.annotations.NotNull;
 
@@ -36,6 +37,7 @@ import java.util.List;
 public class WizardIssuesPanel extends BasePanel<WizardIssuesDto> {
 
 	private static final String ID_PANEL = "panel";
+	private static final String ID_TITLE = "title";
 	private static final String ID_TABLE = "table";
 	private static final String ID_ROW = "row";
 	private static final String ID_SEVERITY = "severity";
@@ -54,7 +56,31 @@ public class WizardIssuesPanel extends BasePanel<WizardIssuesDto> {
 				return getModelObject().hasIssues();
 			}
 		});
+		panel.add(AttributeAppender.append("class", new AbstractReadOnlyModel<String>() {
+			@Override
+			public String getObject() {
+				WizardIssuesDto issuesDto = WizardIssuesPanel.this.getModelObject();
+				WizardIssuesDto.Severity severity = issuesDto.getSeverity();
+				return severity != null ? "box-" + severity.getColorStyle() : null;
+			}
+		}));
 		add(panel);
+
+		Label title = new Label(ID_TITLE, new AbstractReadOnlyModel<String>() {
+			@Override
+			public String getObject() {
+				WizardIssuesDto issuesDto = WizardIssuesPanel.this.getModelObject();
+				WizardIssuesDto.Severity severity = issuesDto.getSeverity();
+				if (severity == null) {
+					return "";
+				} else if (severity == WizardIssuesDto.Severity.INFO) {
+					return getString("Wizard.Notes");
+				} else {
+					return getString("Wizard.Issues");
+				}
+			}
+		});
+		panel.add(title);
 
 		WebMarkupContainer table = new WebMarkupContainer(ID_TABLE);
 		panel.add(table);

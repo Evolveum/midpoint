@@ -19,6 +19,7 @@ package com.evolveum.midpoint.web.component.wizard.resource.component.capability
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.web.component.wizard.resource.dto.CapabilityDto;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnChangeAjaxFormUpdatingBehavior;
+import com.evolveum.midpoint.web.page.admin.resources.PageResourceWizard;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CredentialsCapabilityType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -41,12 +42,16 @@ public class CapabilityCredentialsPanel extends BasePanel<CapabilityDto<Credenti
     private static final String ID_T_PASS_ENABLED = "passEnabledTooltip";
     private static final String ID_T_PASS_RETURN = "passReturnedTooltip";
 
-    public CapabilityCredentialsPanel(String componentId, IModel<CapabilityDto<CredentialsCapabilityType>> model, WebMarkupContainer capabilitiesTable) {
+    public CapabilityCredentialsPanel(String componentId, IModel<CapabilityDto<CredentialsCapabilityType>> model,
+			WebMarkupContainer capabilitiesTable, PageResourceWizard parentPage) {
         super(componentId, model);
-		initLayout(capabilitiesTable);
+		initLayout(capabilitiesTable, parentPage);
     }
 
-    protected void initLayout(final WebMarkupContainer capabilitiesTable) {
+    protected void initLayout(final WebMarkupContainer capabilitiesTable, PageResourceWizard parentPage) {
+
+		parentPage.addEditingEnabledBehavior(this);
+
         Label passLabel = new Label(ID_LABEL_PASSWORD, createStringResource("capabilityCredentialsPanel.label.password"));
         add(passLabel);
 
