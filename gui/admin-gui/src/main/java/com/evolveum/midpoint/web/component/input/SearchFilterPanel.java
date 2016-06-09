@@ -27,6 +27,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.AceEditor;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 import org.apache.commons.lang.StringUtils;
@@ -88,7 +89,7 @@ public class SearchFilterPanel<T extends SearchFilterType> extends BasePanel<T> 
 		description.add(WebComponentUtil.enabledIfFalse(readOnlyModel));
 		add(description);
 
-		TextArea<String> clause = new TextArea<>(ID_FILTER_CLAUSE, clauseStringModel);
+		AceEditor clause = new AceEditor(ID_FILTER_CLAUSE, clauseStringModel);
 		clause.add(WebComponentUtil.enabledIfFalse(readOnlyModel));
 		add(clause);
 

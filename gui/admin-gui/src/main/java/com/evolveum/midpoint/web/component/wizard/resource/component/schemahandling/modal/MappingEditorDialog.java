@@ -23,6 +23,7 @@ import java.util.Map;
 
 import com.evolveum.midpoint.gui.api.model.NonEmptyModel;
 import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.web.component.form.*;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
@@ -52,10 +53,6 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
-import com.evolveum.midpoint.web.component.form.CheckFormGroup;
-import com.evolveum.midpoint.web.component.form.DropDownFormGroup;
-import com.evolveum.midpoint.web.component.form.TextAreaFormGroup;
-import com.evolveum.midpoint.web.component.form.TextFormGroup;
 import com.evolveum.midpoint.web.component.form.multivalue.MultiValueDropDownPanel;
 import com.evolveum.midpoint.web.component.form.multivalue.MultiValueTextPanel;
 import com.evolveum.midpoint.web.component.input.ObjectReferenceChoiceRenderer;
@@ -395,7 +392,7 @@ public class MappingEditorDialog extends ModalWindow {
 		});
 		form.add(expressionGeneratePolicy);
 
-		TextAreaFormGroup expression = new TextAreaFormGroup(ID_EXPRESSION,
+		AceEditorFormGroup expression = new AceEditorFormGroup(ID_EXPRESSION,
 				new PropertyModel<String>(model, MappingTypeDto.F_EXPRESSION),
 				createStringResource("MappingEditorDialog.label.expression"),
 				"SchemaHandlingStep.mapping.tooltip.expression", true, ID_LABEL_SIZE, ID_INPUT_SIZE, false,
@@ -505,7 +502,7 @@ public class MappingEditorDialog extends ModalWindow {
 		});
 		form.add(conditionGeneratePolicy);
 
-		TextAreaFormGroup condition = new TextAreaFormGroup(ID_CONDITION,
+		AceEditorFormGroup condition = new AceEditorFormGroup(ID_CONDITION,
 				new PropertyModel<String>(model, MappingTypeDto.F_CONDITION),
 				createStringResource("MappingEditorDialog.label.condition"),
 				"SchemaHandlingStep.mapping.tooltip.condition", true, ID_LABEL_SIZE, ID_INPUT_SIZE, false,

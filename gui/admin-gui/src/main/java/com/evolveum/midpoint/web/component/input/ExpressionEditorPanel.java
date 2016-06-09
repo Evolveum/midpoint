@@ -23,6 +23,7 @@ import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.AceEditor;
 import com.evolveum.midpoint.web.component.input.dto.ExpressionTypeDto;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.resources.PageResourceWizard;
@@ -100,6 +101,8 @@ public class ExpressionEditorPanel extends BasePanel<ExpressionType> {
     protected void initLayout(PageResourceWizard parentPage) {
 		parentPage.addEditingEnabledBehavior(this);
 
+		setOutputMarkupId(true);
+
         loadDtoModel();
 
 		Label descriptionLabel = new Label(ID_LABEL_DESCRIPTION, createStringResource(getDescriptionLabelKey()));
@@ -123,7 +126,8 @@ public class ExpressionEditorPanel extends BasePanel<ExpressionType> {
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
                 dtoModel.getObject().updateExpressionType();
-                target.add(get(ID_LANGUAGE_CONTAINER), get(ID_POLICY_CONTAINER), get(ID_EXPRESSION));
+                //target.add(get(ID_LANGUAGE_CONTAINER), get(ID_POLICY_CONTAINER), get(ID_EXPRESSION));
+				target.add(ExpressionEditorPanel.this);				// because of ACE editor
             }
         });
         type.setOutputMarkupId(true);
@@ -154,7 +158,8 @@ public class ExpressionEditorPanel extends BasePanel<ExpressionType> {
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
                 dtoModel.getObject().updateExpressionLanguage();
-                target.add(get(ID_LANGUAGE_CONTAINER), get(ID_POLICY_CONTAINER), get(ID_EXPRESSION));
+                //target.add(get(ID_LANGUAGE_CONTAINER), get(ID_POLICY_CONTAINER), get(ID_EXPRESSION));
+				target.add(ExpressionEditorPanel.this);			// because of ACE editor
             }
         });
         language.setNullValid(false);
@@ -196,7 +201,7 @@ public class ExpressionEditorPanel extends BasePanel<ExpressionType> {
         Label expressionLabel = new Label(ID_LABEL_EXPRESSION, createStringResource(getExpressionLabelKey()));
         add(expressionLabel);
 
-        TextArea expression = new TextArea<>(ID_EXPRESSION, new PropertyModel<String>(dtoModel, ExpressionTypeDto.F_EXPRESSION));
+        AceEditor expression = new AceEditor(ID_EXPRESSION, new PropertyModel<String>(dtoModel, ExpressionTypeDto.F_EXPRESSION));
         expression.setOutputMarkupId(true);
 		//parentPage.addEditingEnabledBehavior(expression);
 		add(expression);
