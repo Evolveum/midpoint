@@ -81,6 +81,7 @@ public class ResourceValidatorImpl implements ResourceValidator {
 			SchemaConstants.SCHEMA_LOCALIZATION_PROPERTIES_RESOURCE_BASE_PATH);
 
 	private static final ItemPath ITEM_PATH_SYNCHRONIZATION = new ItemPath(ResourceType.F_SYNCHRONIZATION, SynchronizationType.F_OBJECT_SYNCHRONIZATION);
+	private static final ItemPath ITEM_PATH_SCHEMA_HANDLING = new ItemPath(ResourceType.F_SCHEMA_HANDLING, SchemaHandlingType.F_OBJECT_TYPE);
 
 	@Autowired
 	private MatchingRuleRegistry matchingRuleRegistry;
@@ -144,7 +145,8 @@ public class ResourceValidatorImpl implements ResourceValidator {
 				i++;
 			}
 		}
-		checkSynchronizationExistence(ctx);
+		checkSynchronizationExistenceForSchemaHandlingObjectTypes(ctx);
+		checkSchemaHandlingExistenceForSynchronizationObjectTypes(ctx);
 		return ctx.validationResult;
 	}
 
@@ -539,7 +541,7 @@ public class ResourceValidatorImpl implements ResourceValidator {
 		}
 	}
 
-	private void checkSynchronizationExistence(ResourceValidationContext ctx) {
+	private void checkSynchronizationExistenceForSchemaHandlingObjectTypes(ResourceValidationContext ctx) {
 		ResourceType resource = ctx.resourceObject.asObjectable();
 		Set<ObjectTypeRecord> schemaHandlingFor = new HashSet<>(ObjectTypeRecord.extractFrom(resource.getSchemaHandling()));
 		Collection<ObjectTypeRecord> synchronizationFor = ObjectTypeRecord.extractFrom(resource.getSynchronization());
@@ -548,6 +550,18 @@ public class ResourceValidatorImpl implements ResourceValidator {
 			ctx.validationResult.add(Issue.Severity.INFO, CAT_SYNCHRONIZATION, C_NO_SYNCHRONIZATION_DEFINITION,
 					getString(CLASS_DOT + C_NO_SYNCHRONIZATION_DEFINITION, ObjectTypeRecord.asFormattedList(schemaHandlingFor)),
 					ctx.resourceRef, ITEM_PATH_SYNCHRONIZATION);
+		}
+	}
+
+	private void checkSchemaHandlingExistenceForSynchronizationObjectTypes(ResourceValidationContext ctx) {
+		ResourceType resource = ctx.resourceObject.asObjectable();
+		Set<ObjectTypeRecord> synchronizationFor = new HashSet<>(ObjectTypeRecord.extractFrom(resource.getSynchronization()));
+		Collection<ObjectTypeRecord> schemaHandlingFor = ObjectTypeRecord.extractFrom(resource.getSchemaHandling());
+		synchronizationFor.removeAll(schemaHandlingFor);
+		if (!synchronizationFor.isEmpty()) {
+			ctx.validationResult.add(Issue.Severity.INFO, CAT_SCHEMA_HANDLING, C_NO_SCHEMA_HANDLING_DEFINITION,
+					getString(CLASS_DOT + C_NO_SCHEMA_HANDLING_DEFINITION, ObjectTypeRecord.asFormattedList(synchronizationFor)),
+					ctx.resourceRef, ITEM_PATH_SCHEMA_HANDLING);
 		}
 	}
 

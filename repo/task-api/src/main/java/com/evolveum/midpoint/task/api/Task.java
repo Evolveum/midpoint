@@ -890,6 +890,10 @@ public interface Task extends DebugDumpable, StatisticsCollector {
      */
     public void setChannel(String channelUri);
 
+    /**
+     * Sets change channel URI.
+     */
+    public void setChannelImmediate(String channelUri, OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
 
     /**
      * Gets the requestee OID - typically an identification of account owner (for notifications).

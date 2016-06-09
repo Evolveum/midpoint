@@ -64,7 +64,7 @@ public class ObjectNameColumn<O extends ObjectType> extends AbstractColumn<Selec
 					String name = WebComponentUtil.getName(value);
 					if (selectableBean.getResult() != null){
 						StringBuilder complexName = new StringBuilder(name);
-						complexName.append("(");
+						complexName.append(" (");
 						complexName.append(selectableBean.getResult().getStatus());
 						complexName.append(")");
 						return complexName.toString(); 

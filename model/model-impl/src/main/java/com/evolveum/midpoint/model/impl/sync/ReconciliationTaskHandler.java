@@ -179,6 +179,10 @@ public class ReconciliationTaskHandler implements TaskHandler {
 		String resourceOid = coordinatorTask.getObjectOid();
 		opResult.addContext("resourceOid", resourceOid);
 
+		if (coordinatorTask.getChannel() == null) {
+			coordinatorTask.setChannel(SchemaConstants.CHANGE_CHANNEL_RECON_URI);
+		}
+
 		if (resourceOid == null) {
 			throw new IllegalArgumentException("Resource OID is missing in task extension");
 		}

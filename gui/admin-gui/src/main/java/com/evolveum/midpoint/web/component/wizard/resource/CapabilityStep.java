@@ -355,6 +355,7 @@ public class CapabilityStep extends WizardStep {
 
     @Override
     public void applyState() {
+		parentPage.refreshIssues(null);
 		if (parentPage.isReadOnly() || !isComplete()) {
 			return;
 		}
