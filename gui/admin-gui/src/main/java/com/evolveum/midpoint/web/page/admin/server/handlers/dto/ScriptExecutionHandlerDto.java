@@ -22,6 +22,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
 import com.evolveum.midpoint.web.security.MidPointApplication;
+import com.evolveum.midpoint.web.util.WebXmlUtil;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ExecuteScriptType;
 import org.apache.wicket.Application;
 
@@ -43,7 +44,8 @@ public class ScriptExecutionHandlerDto extends HandlerDto {
 		}
 		PrismContext prismContext = ((MidPointApplication) Application.get()).getPrismContext();
 		try {
-			return prismContext.serializeAnyData(script, SchemaConstants.SE_EXECUTE_SCRIPT, PrismContext.LANG_XML);
+			return WebXmlUtil.stripNamespaceDeclarations(
+					prismContext.serializeAnyData(script, SchemaConstants.SE_EXECUTE_SCRIPT, PrismContext.LANG_XML));
 		} catch (SchemaException e) {
 			throw new SystemException("Couldn't serialize script: " + e.getMessage(), e);
 		}

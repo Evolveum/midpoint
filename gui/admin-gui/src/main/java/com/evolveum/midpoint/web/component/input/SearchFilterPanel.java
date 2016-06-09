@@ -29,6 +29,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AceEditor;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
+import com.evolveum.midpoint.web.util.WebXmlUtil;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -70,7 +71,8 @@ public class SearchFilterPanel<T extends SearchFilterType> extends BasePanel<T> 
 			T filter = getModelObject();
 			if (filter.containsFilterClause()) {
 				RootXNode clause = filter.getFilterClauseAsRootXNode();
-				return prismContext.serializeXNodeToString(clause, PrismContext.LANG_XML);
+				String xml = prismContext.serializeXNodeToString(clause, PrismContext.LANG_XML);
+				return WebXmlUtil.stripNamespaceDeclarations(xml);
 			} else {
 				return null;
 			}

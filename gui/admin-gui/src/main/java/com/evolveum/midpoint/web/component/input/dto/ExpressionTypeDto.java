@@ -24,7 +24,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.util.ExpressionUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -72,7 +71,6 @@ public class ExpressionTypeDto implements Serializable{
                     String subElement = context.serializeAtomicValue(element, PrismContext.LANG_XML);
                     sb.append(subElement).append("\n");
                 }
-
                 expression = sb.toString();
             }
 
@@ -90,14 +88,7 @@ public class ExpressionTypeDto implements Serializable{
     }
 
     public void updateExpression(PrismContext context) throws SchemaException, IllegalArgumentException {
-        if (expression != null && StringUtils.isNotEmpty(expression)) {
-            expression = ExpressionUtil.addNamespaces(expression, type);
-            LOGGER.trace("Expression to serialize: {}", expression);
-            JAXBElement<?> newElement = context.parseAnyValueAsJAXBElement(expression, PrismContext.LANG_XML);
-            expressionObject.getExpressionEvaluator().add(newElement);
-        } else {
-            expressionObject.getExpressionEvaluator().clear();
-        }
+		ExpressionUtil.parseExpressionEvaluators(expression, expressionObject, context);
     }
 
     public void updateExpressionType(){

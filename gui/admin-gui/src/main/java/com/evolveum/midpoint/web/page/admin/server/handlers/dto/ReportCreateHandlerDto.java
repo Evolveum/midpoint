@@ -26,6 +26,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
 import com.evolveum.midpoint.web.security.MidPointApplication;
+import com.evolveum.midpoint.web.util.WebXmlUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportParameterType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import org.apache.wicket.Application;
@@ -55,7 +56,8 @@ public class ReportCreateHandlerDto extends HandlerDto {
 		PrismContainerValue<ReportParameterType> pcv = container.getValue();
 		PrismContext prismContext = ((MidPointApplication) Application.get()).getPrismContext();
 		try {
-			return prismContext.serializeContainerValueToString(pcv, ReportConstants.REPORT_PARAMS_PROPERTY_NAME, PrismContext.LANG_XML);
+			return WebXmlUtil.stripNamespaceDeclarations(
+					prismContext.serializeContainerValueToString(pcv, ReportConstants.REPORT_PARAMS_PROPERTY_NAME, PrismContext.LANG_XML));
 		} catch (SchemaException e) {
 			throw new SystemException("Couldn't serialize report parameters: " + e.getMessage(), e);
 		}

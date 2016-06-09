@@ -215,6 +215,7 @@ public class ResourceAttributeEditor extends BasePanel<ResourceAttributeDefiniti
 			@Override
 			protected void onUpdate(AjaxRequestTarget target) {
 				target.add(parentStep.getAttributeList());
+				((PageResourceWizard) getPageBase()).refreshIssues(target);
 			}
 		});
 		refSelect.add(WebComponentUtil.enabledIfFalse(readOnlyModel));

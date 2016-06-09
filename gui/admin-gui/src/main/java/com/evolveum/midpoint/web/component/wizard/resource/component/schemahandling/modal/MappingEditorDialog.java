@@ -301,12 +301,6 @@ public class MappingEditorDialog extends ModalWindow {
 		target.add(WebComponentUtil.enabledIfFalse(readOnlyModel));
 		form.add(target);
 
-//		FeedbackPanel feedback = new FeedbackPanel(ID_FEEDBACK);
-//		feedback.setOutputMarkupId(true);
-//		feedback.setOutputMarkupPlaceholderTag(true);
-//		feedback.setFilter(new ContainerFeedbackMessageFilter(this));		// because 'no target' messages are generated with reporter == this (why?)
-//		form.add(feedback);
-
 		DropDownFormGroup<ExpressionUtil.ExpressionEvaluatorType> expressionType = new DropDownFormGroup<ExpressionUtil.ExpressionEvaluatorType>(
 				ID_EXPRESSION_TYPE,
 				new PropertyModel<ExpressionUtil.ExpressionEvaluatorType>(model, MappingTypeDto.F_EXPRESSION_TYPE),

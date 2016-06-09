@@ -24,6 +24,7 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.web.util.ObjectTypeGuiDescriptor;
+import com.evolveum.midpoint.web.util.WebXmlUtil;
 import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 import org.apache.wicket.Application;
 
@@ -56,7 +57,8 @@ public class QueryBasedHandlerDto extends HandlerDto {
 		}
 		PrismContext prismContext = ((MidPointApplication) Application.get()).getPrismContext();
 		try {
-			return prismContext.serializeAnyData(query, SchemaConstants.MODEL_EXTENSION_OBJECT_QUERY, PrismContext.LANG_XML);
+			return WebXmlUtil.stripNamespaceDeclarations(
+					prismContext.serializeAnyData(query, SchemaConstants.MODEL_EXTENSION_OBJECT_QUERY, PrismContext.LANG_XML));
 		} catch (SchemaException e) {
 			throw new SystemException("Couldn't serialize query: " + e.getMessage(), e);
 		}

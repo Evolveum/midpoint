@@ -186,6 +186,7 @@ public class ResourceAssociationEditor extends BasePanel<ResourceObjectAssociati
 			@Override
 			protected void onUpdate(AjaxRequestTarget target) {
 				target.add(parentStep.getAssociationList());
+				((PageResourceWizard) getPageBase()).refreshIssues(target);
 			}
 		};
         nonSchemaRefPanel.setOutputMarkupId(true);
