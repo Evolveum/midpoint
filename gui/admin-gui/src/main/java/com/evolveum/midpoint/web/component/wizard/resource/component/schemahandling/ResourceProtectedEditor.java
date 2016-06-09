@@ -20,6 +20,7 @@ import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.model.NonEmptyPropertyModel;
 import com.evolveum.midpoint.web.component.input.SearchFilterPanel;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
+import com.evolveum.midpoint.web.page.admin.resources.PageResourceWizard;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectPatternType;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
@@ -63,9 +64,9 @@ public class ResourceProtectedEditor extends BasePanel<List<ResourceObjectPatter
 
     private ChangeState changeState = ChangeState.FIRST;
 
-    public ResourceProtectedEditor(String id, IModel<List<ResourceObjectPatternType>> model) {
+    public ResourceProtectedEditor(String id, IModel<List<ResourceObjectPatternType>> model, PageResourceWizard parentPage) {
         super(id, model);
-		initLayout();
+		initLayout(parentPage);
 		if (model.getObject() == null) {		// shouldn't occur, actually
 			model.setObject(new ArrayList<ResourceObjectPatternType>());
 		} else {
@@ -77,7 +78,7 @@ public class ResourceProtectedEditor extends BasePanel<List<ResourceObjectPatter
 		}
     }
 
-    protected void initLayout() {
+    protected void initLayout(final PageResourceWizard parentPage) {
         WebMarkupContainer container = new WebMarkupContainer(ID_CONTAINER);
         container.setOutputMarkupId(true);
         add(container);
@@ -119,6 +120,7 @@ public class ResourceProtectedEditor extends BasePanel<List<ResourceObjectPatter
                         deleteProtectedAccountPerformed(target, item);
                     }
                 };
+				parentPage.addEditingVisibleBehavior(delete);
                 linkCont.add(delete);
 
                 WebMarkupContainer accountBody = new WebMarkupContainer(ID_ACCOUNT_BODY);
@@ -146,15 +148,17 @@ public class ResourceProtectedEditor extends BasePanel<List<ResourceObjectPatter
                 //TODO - maybe add some validator and auto-complete functionality?
                 TextField name = new TextField<>(ID_NAME, new PropertyModel<String>(item.getModel(), "name"));
                 name.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
-                accountBody.add(name);
+				parentPage.addEditingEnabledBehavior(name);
+				accountBody.add(name);
 
                 //TODO - maybe add some validator and auto-complete functionality?
                 TextField uid = new TextField<>(ID_UID, new PropertyModel<String>(item.getModel(), "uid"));
                 uid.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
+				parentPage.addEditingEnabledBehavior(uid);
                 accountBody.add(uid);
 
                 SearchFilterPanel searchFilterPanel = new SearchFilterPanel<>(ID_FILTER_EDITOR,
-						new NonEmptyPropertyModel<SearchFilterType>(item.getModel(), "filter"));
+						new NonEmptyPropertyModel<SearchFilterType>(item.getModel(), "filter"), parentPage.getReadOnlyModel());
                 accountBody.add(searchFilterPanel);
 
                 Label nameTooltip = new Label(ID_T_NAME);
@@ -180,7 +184,8 @@ public class ResourceProtectedEditor extends BasePanel<List<ResourceObjectPatter
                 addProtectedAccountPerformed(target);
             }
         };
-        add(add);
+		parentPage.addEditingVisibleBehavior(add);
+		add(add);
     }
 
     private WebMarkupContainer getMainContainer(){

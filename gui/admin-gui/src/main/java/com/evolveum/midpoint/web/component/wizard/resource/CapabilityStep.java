@@ -213,7 +213,7 @@ public class CapabilityStep extends WizardStep {
 				deleteLink.add(new VisibleEnableBehaviour() {
 					@Override
 					public boolean isVisible() {
-						return !dto.isAmongNativeCapabilities();
+						return !dto.isAmongNativeCapabilities() && !parentPage.isReadOnly();
 					}
 				});
                 name.add(deleteLink);
@@ -235,6 +235,7 @@ public class CapabilityStep extends WizardStep {
                 addCapabilityPerformed(target);
             }
         };
+		parentPage.addEditingVisibleBehavior(addLink);
         add(addLink);
 
         ModalWindow dialog = new AddCapabilityDialog(DIALOG_SELECT_CAPABILITY, dtoModel) {
@@ -293,7 +294,7 @@ public class CapabilityStep extends WizardStep {
         CapabilityType capType = capability.getCapability();
 
         if (capType instanceof ActivationCapabilityType) {
-			newConfig = new CapabilityActivationPanel(ID_CAPABILITY_CONFIG, new Model<>((CapabilityDto<ActivationCapabilityType>) capability)) {
+			newConfig = new CapabilityActivationPanel(ID_CAPABILITY_CONFIG, new Model<>((CapabilityDto<ActivationCapabilityType>) capability), parentPage) {
 
                 @Override
                 public IModel<List<QName>> createAttributeChoiceModel(final IChoiceRenderer<QName> renderer) {
@@ -337,11 +338,11 @@ public class CapabilityStep extends WizardStep {
                 }
             };
         } else if (capType instanceof ScriptCapabilityType) {
-            newConfig = new CapabilityScriptPanel(ID_CAPABILITY_CONFIG, new Model<>((CapabilityDto<ScriptCapabilityType>) capability), getTable());
+            newConfig = new CapabilityScriptPanel(ID_CAPABILITY_CONFIG, new Model<>((CapabilityDto<ScriptCapabilityType>) capability), getTable(), parentPage);
         } else if (capType instanceof CredentialsCapabilityType) {
-            newConfig = new CapabilityCredentialsPanel(ID_CAPABILITY_CONFIG, new Model<>((CapabilityDto<CredentialsCapabilityType>)capability), getTable());
+            newConfig = new CapabilityCredentialsPanel(ID_CAPABILITY_CONFIG, new Model<>((CapabilityDto<CredentialsCapabilityType>)capability), getTable(), parentPage);
         } else {
-            newConfig = new CapabilityValuePanel(ID_CAPABILITY_CONFIG, new Model<>((CapabilityDto<CapabilityType>) capability), getTable());
+            newConfig = new CapabilityValuePanel(ID_CAPABILITY_CONFIG, new Model<>((CapabilityDto<CapabilityType>) capability), getTable(), parentPage);
         }
 		// TODO other specific capabilities (paged, count, ...)
 
@@ -354,7 +355,9 @@ public class CapabilityStep extends WizardStep {
 
     @Override
     public void applyState() {
-		super.applyState();
+		if (parentPage.isReadOnly() || !isComplete()) {
+			return;
+		}
 		savePerformed();
     }
 

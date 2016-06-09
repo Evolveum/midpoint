@@ -45,6 +45,7 @@ import com.evolveum.midpoint.web.component.prism.ContainerStatus;
 import com.evolveum.midpoint.web.component.prism.ContainerWrapper;
 import com.evolveum.midpoint.web.component.prism.ContainerWrapperFactory;
 import com.evolveum.midpoint.web.component.prism.PrismContainerPanel;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.component.wizard.WizardStep;
 import com.evolveum.midpoint.web.page.admin.resources.PageResourceWizard;
 import com.evolveum.midpoint.web.page.admin.resources.component.TestConnectionResultPanel;
@@ -140,10 +141,10 @@ public class ConfigurationStep extends WizardStep {
 			ContainerWrapperFactory cwf = new ContainerWrapperFactory(parentPage);
 			ContainerWrapper containerWrapper;
 			if (container != null) {
-				containerWrapper = cwf.createContainerWrapper(container, ContainerStatus.MODIFYING, containerPath, false);
+				containerWrapper = cwf.createContainerWrapper(container, ContainerStatus.MODIFYING, containerPath, parentPage.isReadOnly());
 			} else {
 				container = containerDef.instantiate();
-				containerWrapper = cwf.createContainerWrapper(container, ContainerStatus.ADDING, containerPath, false);
+				containerWrapper = cwf.createContainerWrapper(container, ContainerStatus.ADDING, containerPath, parentPage.isReadOnly());
 			}
 			containerWrappers.add(containerWrapper);
 		}
@@ -194,6 +195,12 @@ public class ConfigurationStep extends WizardStep {
                 testConnectionPerformed(target);
             }
         };
+		testConnection.add(new VisibleEnableBehaviour() {
+			@Override
+			public boolean isVisible() {
+				return !parentPage.isReadOnly();
+			}
+		});
         add(testConnection);
     }
 
@@ -227,7 +234,9 @@ public class ConfigurationStep extends WizardStep {
 
 	// copied from PageResource, TODO deduplicate
 	private void testConnectionPerformed(AjaxRequestTarget target) {
-		super.applyState();
+		if (parentPage.isReadOnly() || !isComplete()) {
+			return;
+		}
 		saveChanges();
 
 		PageBase page = getPageBase();
@@ -254,7 +263,9 @@ public class ConfigurationStep extends WizardStep {
 
 	@Override
     public void applyState() {
-		super.applyState();
+		if (parentPage.isReadOnly() || !isComplete()) {
+			return;
+		}
 		saveChanges();
     }
 

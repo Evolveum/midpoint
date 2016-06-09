@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.web.component.wizard.resource.component.schemahandling;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.model.NonEmptyModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -32,6 +33,7 @@ import com.evolveum.midpoint.web.component.input.ObjectReferenceChoiceRenderer;
 import com.evolveum.midpoint.web.component.wizard.WizardUtil;
 import com.evolveum.midpoint.web.component.wizard.resource.component.schemahandling.modal.MappingEditorDialog;
 import com.evolveum.midpoint.web.component.wizard.resource.dto.MappingTypeDto;
+import com.evolveum.midpoint.web.page.admin.resources.PageResourceWizard;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -76,9 +78,9 @@ public class ResourceCredentialsEditor extends BasePanel<ResourceCredentialsDefi
 
     final private Map<String, String> passPolicyMap = new HashMap<>();
 
-    public ResourceCredentialsEditor(String id, IModel<ResourceCredentialsDefinitionType> model){
+    public ResourceCredentialsEditor(String id, IModel<ResourceCredentialsDefinitionType> model, PageResourceWizard parentPage) {
         super(id, model);
-		initLayout();
+		initLayout(parentPage);
     }
 
     @Override
@@ -96,11 +98,12 @@ public class ResourceCredentialsEditor extends BasePanel<ResourceCredentialsDefi
         return model;
     }
 
-    protected void initLayout() {
+    protected void initLayout(PageResourceWizard parentPage) {
         DropDownChoice fetchStrategy = new DropDownChoice<>(ID_FETCH_STRATEGY,
                 new PropertyModel<AttributeFetchStrategyType>(getModel(), "password.fetchStrategy"),
                 WebComponentUtil.createReadonlyModelFromEnum(AttributeFetchStrategyType.class),
                 new EnumChoiceRenderer<AttributeFetchStrategyType>(this));
+		parentPage.addEditingEnabledBehavior(fetchStrategy);
         add(fetchStrategy);
 
         TextField outboundLabel = new TextField<>(ID_OUTBOUND_LABEL, new AbstractReadOnlyModel<String>() {
@@ -132,7 +135,7 @@ public class ResourceCredentialsEditor extends BasePanel<ResourceCredentialsDefi
         add(outbound);
 
         MultiValueTextEditPanel inbound = new MultiValueTextEditPanel<MappingType>(ID_INBOUND,
-                new PropertyModel<List<MappingType>>(getModel(), "password.inbound"), null, false, true){
+                new PropertyModel<List<MappingType>>(getModel(), "password.inbound"), null, false, true, parentPage.getReadOnlyModel()) {
 
             @Override
             protected IModel<String> createTextModel(final IModel<MappingType> model) {
@@ -169,6 +172,7 @@ public class ResourceCredentialsEditor extends BasePanel<ResourceCredentialsDefi
                        
                     }
                 }, new ObjectReferenceChoiceRenderer(passPolicyMap));
+		parentPage.addEditingEnabledBehavior(passwordPolicy);
         add(passwordPolicy);
 
         Label fetchTooltip = new Label(ID_T_FETCH);
@@ -187,11 +191,11 @@ public class ResourceCredentialsEditor extends BasePanel<ResourceCredentialsDefi
         passPolicyTooltip.add(new InfoTooltipBehavior());
         add(passPolicyTooltip);
 
-        initModals();
+        initModals(parentPage.getReadOnlyModel());
     }
 
-    private void initModals(){
-        ModalWindow inboundEditor = new MappingEditorDialog(ID_MODAL_INBOUND, null){
+    private void initModals(NonEmptyModel<Boolean> readOnlyModel){
+        ModalWindow inboundEditor = new MappingEditorDialog(ID_MODAL_INBOUND, null, readOnlyModel) {
 
             @Override
             public void updateComponents(AjaxRequestTarget target) {
@@ -200,7 +204,7 @@ public class ResourceCredentialsEditor extends BasePanel<ResourceCredentialsDefi
         };
         add(inboundEditor);
 
-        ModalWindow outboundEditor = new MappingEditorDialog(ID_MODAL_OUTBOUND, null){
+        ModalWindow outboundEditor = new MappingEditorDialog(ID_MODAL_OUTBOUND, null, readOnlyModel) {
 
             @Override
             public void updateComponents(AjaxRequestTarget target) {

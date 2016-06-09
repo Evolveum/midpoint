@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.web.component.wizard.resource.component.synchronization;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.model.NonEmptyModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -34,6 +35,7 @@ import com.evolveum.midpoint.web.component.input.StringChoiceRenderer;
 import com.evolveum.midpoint.web.component.input.TriStateComboPanel;
 import com.evolveum.midpoint.web.component.wizard.resource.SynchronizationStep;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnChangeAjaxFormUpdatingBehavior;
+import com.evolveum.midpoint.web.page.admin.resources.PageResourceWizard;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang3.StringUtils;
@@ -81,21 +83,24 @@ public class SynchronizationReactionEditor extends BasePanel<SynchronizationReac
 
 	@NotNull private final SynchronizationStep parentStep;
 
-    public SynchronizationReactionEditor(String id, IModel<SynchronizationReactionType> model, SynchronizationStep parentStep) {
+    public SynchronizationReactionEditor(String id, IModel<SynchronizationReactionType> model, SynchronizationStep parentStep,
+			PageResourceWizard parentPage) {
         super(id, model);
 		this.parentStep = parentStep;
-		initLayout();
+		initLayout(parentPage);
     }
 
-	protected void initLayout() {
+	protected void initLayout(PageResourceWizard parentPage) {
 		Label label = new Label(ID_LABEL, new ResourceModel("SynchronizationReactionEditor.label.edit"));
         add(label);
 
         TextField name = new TextField<>(ID_NAME, new PropertyModel<String>(getModel(), "name"));
 		name.add(new ReactionListUpdateBehavior());
+		parentPage.addEditingEnabledBehavior(name);
         add(name);
 
         TextArea description = new TextArea<>(ID_DESCRIPTION, new PropertyModel<String>(getModel(), "description"));
+		parentPage.addEditingEnabledBehavior(description);
         add(description);
 
         DropDownChoice situation = new DropDownChoice<>(ID_SITUATION,
@@ -104,10 +109,11 @@ public class SynchronizationReactionEditor extends BasePanel<SynchronizationReac
                 new EnumChoiceRenderer<SynchronizationSituationType>(this));
         situation.setNullValid(true);
 		situation.add(new ReactionListUpdateBehavior());
+		parentPage.addEditingEnabledBehavior(situation);
         add(situation);
 
         MultiValueDropDownPanel channel = new MultiValueDropDownPanel<String>(ID_CHANNEL,
-                new PropertyModel<List<String>>(getModel(), "channel"), true){
+                new PropertyModel<List<String>>(getModel(), "channel"), true, parentPage.getReadOnlyModel()) {
 
             @Override
             protected String createNewEmptyItem() {
@@ -134,9 +140,11 @@ public class SynchronizationReactionEditor extends BasePanel<SynchronizationReac
         add(channel);
         TriStateComboPanel synchronize = new TriStateComboPanel(ID_SYNCHRONIZE, new PropertyModel<Boolean>(getModel(), "synchronize"));
 		synchronize.getBaseFormComponent().add(new ReactionListUpdateBehavior());
+		parentPage.addEditingEnabledBehavior(synchronize);
         add(synchronize);
 
         CheckBox reconcile = new CheckBox(ID_RECONCILE, new PropertyModel<Boolean>(getModel(), "reconcile"));
+		parentPage.addEditingEnabledBehavior(reconcile);
         add(reconcile);
 
         DropDownChoice objectTemplateRef = new DropDownChoice<>(ID_OBJECT_TEMPLATE_REF,
@@ -149,10 +157,11 @@ public class SynchronizationReactionEditor extends BasePanel<SynchronizationReac
                     }
                 }, new ObjectReferenceChoiceRenderer(objectTemplateMap));
         objectTemplateRef.setNullValid(true);
+		parentPage.addEditingEnabledBehavior(objectTemplateRef);
         add(objectTemplateRef);
 
         MultiValueTextEditPanel action = new MultiValueTextEditPanel<SynchronizationActionType>(ID_ACTION,
-                new PropertyModel<List<SynchronizationActionType>>(getModel(), "action"), null, false, true){
+                new PropertyModel<List<SynchronizationActionType>>(getModel(), "action"), null, false, true, parentPage.getReadOnlyModel()) {
 
             @Override
             protected IModel<String> createTextModel(final IModel<SynchronizationActionType> model) {

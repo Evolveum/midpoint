@@ -19,6 +19,7 @@ import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.web.component.form.multivalue.MultiValueTextPanel;
 import com.evolveum.midpoint.web.component.input.QNameChoiceRenderer;
 import com.evolveum.midpoint.web.component.wizard.resource.dto.CapabilityDto;
+import com.evolveum.midpoint.web.page.admin.resources.PageResourceWizard;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationCapabilityType;
 import org.apache.wicket.markup.html.basic.Label;
@@ -58,12 +59,14 @@ public class CapabilityActivationPanel extends BasePanel {
     private static final String ID_T_V_TO_ENABLED = "validToEnabledTooltip";
     private static final String ID_T_V_TO_RETURN = "validToReturnedTooltip";
 
-    public CapabilityActivationPanel(String componentId, IModel<CapabilityDto<ActivationCapabilityType>> model){
+    public CapabilityActivationPanel(String componentId, IModel<CapabilityDto<ActivationCapabilityType>> model, PageResourceWizard parentPage) {
         super(componentId, model);
-		initLayout();
+		initLayout(parentPage);
     }
 
-    protected void initLayout(){
+    protected void initLayout(PageResourceWizard parentPage) {
+		parentPage.addEditingEnabledBehavior(this);
+
         CheckBox validFromEnabled = new CheckBox(ID_CHECK_VALID_FROM_ENABLED,
                 new PropertyModel<Boolean>(getModel(), "capability.validFrom.enabled"));
         add(validFromEnabled);
@@ -93,7 +96,7 @@ public class CapabilityActivationPanel extends BasePanel {
         add(statusIgnore);
 
         MultiValueTextPanel statusEnableList = new MultiValueTextPanel<String>(ID_STATUS_ENABLE_LIST,
-                new PropertyModel<List<String>>(getModel(), "capability.status.enableValue")){
+                new PropertyModel<List<String>>(getModel(), "capability.status.enableValue"), parentPage.getReadOnlyModel()) {
 
             @Override
             protected StringResourceModel createEmptyItemPlaceholder(){
@@ -103,7 +106,7 @@ public class CapabilityActivationPanel extends BasePanel {
         add(statusEnableList);
 
         MultiValueTextPanel statusDisableList = new MultiValueTextPanel<String>(ID_STATUS_DISABLE_LIST,
-                new PropertyModel<List<String>>(getModel(), "capability.status.disableValue")){
+                new PropertyModel<List<String>>(getModel(), "capability.status.disableValue"), parentPage.getReadOnlyModel()) {
 
             @Override
             protected StringResourceModel createEmptyItemPlaceholder(){

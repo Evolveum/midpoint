@@ -213,6 +213,7 @@ public class SynchronizationStep extends WizardStep {
                         deleteSyncObjectPerformed(target, syncObject);
                     }
                 };
+				parentPage.addEditingVisibleBehavior(delete);
                 link.add(delete);
 
                 item.add(AttributeModifier.replace("class", new AbstractReadOnlyModel<String>() {
@@ -243,6 +244,7 @@ public class SynchronizationStep extends WizardStep {
                 addSyncObjectPerformed(target);
             }
         };
+		parentPage.addEditingVisibleBehavior(add);
         add(add);
 
 		initObjectSyncEditor(objectSyncEditor);
@@ -265,10 +267,12 @@ public class SynchronizationStep extends WizardStep {
         TextField editorName = new TextField<>(ID_EDITOR_NAME, new PropertyModel<String>(syncDtoModel,
                 ResourceSynchronizationDto.F_SELECTED + ".name"));
 		editorName.add(new UpdateNamesBehaviour());
+		parentPage.addEditingEnabledBehavior(editorName);
         editor.add(editorName);
 
         TextArea editorDescription = new TextArea<>(ID_EDITOR_DESCRIPTION, new PropertyModel<String>(syncDtoModel,
                 ResourceSynchronizationDto.F_SELECTED + ".description"));
+		parentPage.addEditingEnabledBehavior(editorDescription);
         editor.add(editorDescription);
 
         DropDownChoice editorKind = new DropDownChoice<>(ID_EDITOR_KIND,
@@ -277,15 +281,17 @@ public class SynchronizationStep extends WizardStep {
                 new EnumChoiceRenderer<ShadowKindType>());
         editorKind.setNullValid(true);
 		editorKind.add(new UpdateNamesBehaviour());
+		parentPage.addEditingEnabledBehavior(editorKind);
         editor.add(editorKind);
 
         TextField editorIntent = new TextField<>(ID_EDITOR_INTENT, new PropertyModel<String>(syncDtoModel,
                 ResourceSynchronizationDto.F_SELECTED + ".intent"));
 		editorIntent.add(new UpdateNamesBehaviour());
+		parentPage.addEditingEnabledBehavior(editorIntent);
         editor.add(editorIntent);
 
         MultiValueAutoCompleteTextPanel<QName> editorObjectClass = new MultiValueAutoCompleteTextPanel<QName>(ID_EDITOR_OBJECT_CLASS,
-                new PropertyModel<List<QName>>(syncDtoModel, ResourceSynchronizationDto.F_SELECTED + ".objectClass"), true){
+                new PropertyModel<List<QName>>(syncDtoModel, ResourceSynchronizationDto.F_SELECTED + ".objectClass"), true, parentPage.getReadOnlyModel()) {
 
             @Override
             protected IModel<String> createTextModel(final IModel<QName> model) {
@@ -322,6 +328,7 @@ public class SynchronizationStep extends WizardStep {
                 });
             }
         };
+		parentPage.addEditingEnabledBehavior(editorObjectClass);
         editor.add(editorObjectClass);
 
         DropDownChoice editorFocus = new DropDownChoice<>(ID_EDITOR_FOCUS, new PropertyModel<QName>(syncDtoModel,
@@ -334,10 +341,12 @@ public class SynchronizationStep extends WizardStep {
                     }
                 }, new QNameChoiceRenderer());
         editorFocus.setNullValid(true);
+		parentPage.addEditingEnabledBehavior(editorFocus);
         editor.add(editorFocus);
 
         CheckBox editorEnabled = new CheckBox(ID_EDITOR_ENABLED, new PropertyModel<Boolean>(syncDtoModel,
                 ResourceSynchronizationDto.F_SELECTED + ".enabled"));
+		parentPage.addEditingEnabledBehavior(editorEnabled);
         editor.add(editorEnabled);
 
         AjaxSubmitLink editorCondition = new AjaxSubmitLink(ID_EDITOR_BUTTON_CONDITION){
@@ -370,17 +379,22 @@ public class SynchronizationStep extends WizardStep {
                     }
                 }, new ObjectReferenceChoiceRenderer(syncDtoModel.getObject().getObjectTemplateMap()));
         editorObjectTemplate.setNullValid(true);
+		parentPage.addEditingEnabledBehavior(editorObjectTemplate);
         editor.add(editorObjectTemplate);
 
         CheckBox editorReconcile = new CheckBox(ID_EDITOR_RECONCILE, new PropertyModel<Boolean>(syncDtoModel,
                 ResourceSynchronizationDto.F_SELECTED + ".reconcile"));
+		parentPage.addEditingEnabledBehavior(editorReconcile);
         editor.add(editorReconcile);
 
         TriStateComboPanel opportunistic = new TriStateComboPanel(ID_EDITOR_OPPORTUNISTIC, new PropertyModel<Boolean>(syncDtoModel, ResourceSynchronizationDto.F_SELECTED + ".opportunistic"));
+		parentPage.addEditingEnabledBehavior(opportunistic);
         editor.add(opportunistic);
 
         MultiValueTextEditPanel editorCorrelation = new MultiValueTextEditPanel<ConditionalSearchFilterType>(ID_EDITOR_EDITOR_CORRELATION,
-                new PropertyModel<List<ConditionalSearchFilterType>>(syncDtoModel, ResourceSynchronizationDto.F_SELECTED + ".correlation"), null, false, true){
+                new PropertyModel<List<ConditionalSearchFilterType>>(syncDtoModel, ResourceSynchronizationDto.F_SELECTED + ".correlation"),
+				new PropertyModel<ConditionalSearchFilterType>(syncDtoModel, ResourceSynchronizationDto.F_SELECTED_CORRELATION),
+				false, true, parentPage.getReadOnlyModel()) {
 
             @Override
             protected IModel<String> createTextModel(final IModel<ConditionalSearchFilterType> model) {
@@ -422,7 +436,9 @@ public class SynchronizationStep extends WizardStep {
         editor.add(editorCorrelation);
 
         MultiValueTextEditPanel editorReaction = new MultiValueTextEditPanel<SynchronizationReactionType>(ID_EDITOR_REACTION,
-                new PropertyModel<List<SynchronizationReactionType>>(syncDtoModel, ResourceSynchronizationDto.F_SELECTED + ".reaction"), null, false, true){
+                new PropertyModel<List<SynchronizationReactionType>>(syncDtoModel, ResourceSynchronizationDto.F_SELECTED + ".reaction"),
+                new PropertyModel<SynchronizationReactionType>(syncDtoModel, ResourceSynchronizationDto.F_SELECTED_REACTION),
+				false, true, parentPage.getReadOnlyModel()) {
 
             @Override
             protected IModel<String> createTextModel(final IModel<SynchronizationReactionType> model) {
@@ -576,6 +592,10 @@ public class SynchronizationStep extends WizardStep {
 		return get(createComponentPath(ID_OBJECT_SYNC_EDITOR, ID_EDITOR_REACTION));
 	}
 
+	public Component getCorrelationList() {
+		return get(createComponentPath(ID_OBJECT_SYNC_EDITOR, ID_EDITOR_EDITOR_CORRELATION));
+	}
+
     private Component getThirdRowContainer(){
         return get(ID_THIRD_ROW_CONTAINER);
     }
@@ -586,7 +606,7 @@ public class SynchronizationStep extends WizardStep {
 
     private void conditionEditPerformed(AjaxRequestTarget target){
         WebMarkupContainer newContainer = new SynchronizationExpressionEditor(ID_THIRD_ROW_CONTAINER,
-                new PropertyModel<ExpressionType>(syncDtoModel, ResourceSynchronizationDto.F_SELECTED + ".condition")){
+                new PropertyModel<ExpressionType>(syncDtoModel, ResourceSynchronizationDto.F_SELECTED + ".condition"), parentPage) {
 
             @Override
             public String getLabel(){
@@ -594,13 +614,13 @@ public class SynchronizationStep extends WizardStep {
             }
         };
         getThirdRowContainer().replaceWith(newContainer);
-
+		resetSelections(target);
         target.add(getThirdRowContainer(), get(ID_OBJECT_SYNC_EDITOR), getPageBase().getFeedbackPanel());
     }
 
     private void confirmationEditPerformed(AjaxRequestTarget target){
         WebMarkupContainer newContainer = new SynchronizationExpressionEditor(ID_THIRD_ROW_CONTAINER,
-                new PropertyModel<ExpressionType>(syncDtoModel, ResourceSynchronizationDto.F_SELECTED + ".confirmation")){
+                new PropertyModel<ExpressionType>(syncDtoModel, ResourceSynchronizationDto.F_SELECTED + ".confirmation"), parentPage){
 
             @Override
             public String getLabel(){
@@ -608,7 +628,7 @@ public class SynchronizationStep extends WizardStep {
             }
         };
         getThirdRowContainer().replaceWith(newContainer);
-
+		resetSelections(target);
         target.add(getThirdRowContainer(), get(ID_OBJECT_SYNC_EDITOR), getPageBase().getFeedbackPanel());
     }
 
@@ -616,15 +636,17 @@ public class SynchronizationStep extends WizardStep {
 		if (condition.getCondition() == null) {
 			condition.setCondition(new ExpressionType());			// removed at save
 		}
+		resetSelections(target);
+		syncDtoModel.getObject().setSelectedCorrelation(condition);
         WebMarkupContainer newContainer = new ConditionalSearchFilterEditor(ID_THIRD_ROW_CONTAINER,
-				new NonEmptyWrapperModel<>(new Model<>(condition)));
+				new NonEmptyWrapperModel<>(new Model<>(condition)), parentPage);
         getThirdRowContainer().replaceWith(newContainer);
 
         target.add(getThirdRowContainer(), get(ID_OBJECT_SYNC_EDITOR), getPageBase().getFeedbackPanel());
     }
 
     private void reactionEditPerformed(AjaxRequestTarget target, SynchronizationReactionType reaction){
-		WebMarkupContainer newContainer = new SynchronizationReactionEditor(ID_THIRD_ROW_CONTAINER, new Model<>(reaction), this);
+		WebMarkupContainer newContainer = new SynchronizationReactionEditor(ID_THIRD_ROW_CONTAINER, new Model<>(reaction), this, parentPage);
 		getThirdRowContainer().replaceWith(newContainer);
 
 		for (SynchronizationActionType action : reaction.getAction()) {
@@ -634,13 +656,20 @@ public class SynchronizationStep extends WizardStep {
 			}
 		}
 
+		resetSelections(target);
+		syncDtoModel.getObject().setSelectedReaction(reaction);
+
         target.add(getThirdRowContainer(), get(ID_OBJECT_SYNC_EDITOR), getPageBase().getFeedbackPanel());
     }
 
     @Override
     public void applyState() {
-        savePerformed();
+		if (parentPage.isReadOnly() || !isComplete()) {
+			return;
+		}
+		savePerformed();
 		insertEmptyThirdRow();
+		resetSelections(null);
 	}
 
     private void savePerformed() {
@@ -701,6 +730,7 @@ public class SynchronizationStep extends WizardStep {
 		boolean wasAnySelected = isAnySelected();
 		syncDtoModel.getObject().setSelected(syncObject);
 		insertEmptyThirdRow();
+		resetSelections(target);
 		if (wasAnySelected) {
 			target.add(getSyncObjectTable(), getNavigator(), getSyncObjectEditor(), getThirdRowContainer());
 		} else {
@@ -712,6 +742,7 @@ public class SynchronizationStep extends WizardStep {
         if (isSelected(syncObject)) {
 			syncDtoModel.getObject().setSelected(null);
             insertEmptyThirdRow();
+			resetSelections(target);
             target.add(getThirdRowContainer());
         }
 
@@ -719,6 +750,7 @@ public class SynchronizationStep extends WizardStep {
 		list.remove(syncObject);
 		if (list.isEmpty()) {
             insertEmptyThirdRow();
+			resetSelections(target);
             target.add(getThirdRowContainer());
         }
 
@@ -745,6 +777,22 @@ public class SynchronizationStep extends WizardStep {
 		protected void onUpdate(AjaxRequestTarget target) {
 			target.add(getSyncObjectTable(), getSyncObjectEditor().get(ID_EDITOR_LABEL));
 			parentPage.refreshIssues(target);
+		}
+	}
+
+	private void resetSelections(AjaxRequestTarget target) {
+		ResourceSynchronizationDto dto = syncDtoModel.getObject();
+		if (dto.getSelectedCorrelation() != null) {
+			dto.setSelectedCorrelation(null);
+			if (target != null) {
+				target.add(getCorrelationList());
+			}
+		}
+		if (dto.getSelectedReaction() != null) {
+			dto.setSelectedReaction(null);
+			if (target != null) {
+				target.add(getReactionList());
+			}
 		}
 	}
 

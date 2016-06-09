@@ -324,11 +324,14 @@ public class ContainerWrapper<C extends Containerable> implements ItemWrapper, S
 
     public boolean isReadonly() {
         PrismContainerDefinition def = getItemDefinition();
+		if (readonly) {
+			return true;
+		}
         if (def != null) {
             // todo take into account the containing object status (adding vs. modifying)
             return (def.canRead() && !def.canAdd() && !def.canModify());
         }
-        return readonly;
+        return false;
     }
 
     public void setReadonly(boolean readonly) {

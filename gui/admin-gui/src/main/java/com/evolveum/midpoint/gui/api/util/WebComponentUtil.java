@@ -37,8 +37,10 @@ import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.model.NonEmptyModel;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.match.*;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
@@ -51,6 +53,7 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
 import org.apache.wicket.authroles.authentication.AuthenticatedWebApplication;
 import org.apache.wicket.authroles.authorization.strategies.role.Roles;
+import org.apache.wicket.behavior.Behavior;
 import org.apache.wicket.core.request.handler.RenderPageRequestHandler;
 import org.apache.wicket.datetime.PatternDateConverter;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
@@ -1539,4 +1542,23 @@ public final class WebComponentUtil {
 		pw.close();
 		return sw.toString();
 	}
+
+	public static Behavior visibleIfFalse(final NonEmptyModel<Boolean> model) {
+		return new VisibleEnableBehaviour() {
+			@Override
+			public boolean isVisible() {
+				return !model.getObject();
+			}
+		};
+	}
+
+	public static Behavior enabledIfFalse(final NonEmptyModel<Boolean> model) {
+		return new VisibleEnableBehaviour() {
+			@Override
+			public boolean isEnabled() {
+				return !model.getObject();
+			}
+		};
+	}
+
 }

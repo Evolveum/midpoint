@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.web.component.wizard.resource.component.schemahandling;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.model.NonEmptyModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -89,9 +90,9 @@ public class ResourceActivationEditor extends BasePanel<ResourceActivationDefini
 
     private boolean isInitialized = false;
 
-    public ResourceActivationEditor(String id, IModel<ResourceActivationDefinitionType> model){
+    public ResourceActivationEditor(String id, IModel<ResourceActivationDefinitionType> model, NonEmptyModel<Boolean> readOnlyModel) {
         super(id, model);
-		initLayout();
+		initLayout(readOnlyModel);
     }
 
     @Override
@@ -208,18 +209,18 @@ public class ResourceActivationEditor extends BasePanel<ResourceActivationDefini
         }
     }
 
-    protected void initLayout(){
+    protected void initLayout(NonEmptyModel<Boolean> readOnlyModel) {
         prepareActivationPanelBody(ResourceActivationDefinitionType.F_EXISTENCE.getLocalPart(), ID_EXISTENCE_FS,
-                ID_EXISTENCE_OUT, ID_EXISTENCE_IN);
+                ID_EXISTENCE_OUT, ID_EXISTENCE_IN, readOnlyModel);
 
         prepareActivationPanelBody(ResourceActivationDefinitionType.F_ADMINISTRATIVE_STATUS.getLocalPart(), ID_ADM_STATUS_FS,
-                ID_ADM_STATUS_OUT, ID_ADM_STATUS_IN);
+                ID_ADM_STATUS_OUT, ID_ADM_STATUS_IN, readOnlyModel);
 
         prepareActivationPanelBody(ResourceActivationDefinitionType.F_VALID_FROM.getLocalPart(), ID_VALID_FROM_FS,
-                ID_VALID_FROM_OUT, ID_VALID_FROM_IN);
+                ID_VALID_FROM_OUT, ID_VALID_FROM_IN, readOnlyModel);
 
         prepareActivationPanelBody(ResourceActivationDefinitionType.F_VALID_TO.getLocalPart(), ID_VALID_TO_FS,
-                ID_VALID_TO_OUT, ID_VALID_TO_IN);
+                ID_VALID_TO_OUT, ID_VALID_TO_IN, readOnlyModel);
 
         Label exFetchTooltip = new Label(ID_T_EX_FETCH);
         exFetchTooltip.add(new InfoTooltipBehavior());
@@ -269,19 +270,22 @@ public class ResourceActivationEditor extends BasePanel<ResourceActivationDefini
         validToInTooltip.add(new InfoTooltipBehavior());
         add(validToInTooltip);
 
-        initModals();
+        initModals(readOnlyModel);
     }
 
-    private void prepareActivationPanelBody(String containerValue, String fetchStrategyId, String outboundId, String inboundId){
+    private void prepareActivationPanelBody(String containerValue, String fetchStrategyId, String outboundId, String inboundId,
+			NonEmptyModel<Boolean> readOnlyModel){
         DropDownChoice fetchStrategy = new DropDownChoice<>(fetchStrategyId,
                 new PropertyModel<AttributeFetchStrategyType>(getModel(), containerValue + ".fetchStrategy"),
                 WebComponentUtil.createReadonlyModelFromEnum(AttributeFetchStrategyType.class),
                 new EnumChoiceRenderer<AttributeFetchStrategyType>(this));
         fetchStrategy.setNullValid(true);
+		fetchStrategy.add(WebComponentUtil.enabledIfFalse(readOnlyModel));
         add(fetchStrategy);
 
-        MultiValueTextEditPanel outbound = new MultiValueTextEditPanel<MappingType>(outboundId,
-                new PropertyModel<List<MappingType>>(getModel(), containerValue + ".outbound"), null, false, true){
+		MultiValueTextEditPanel outbound = new MultiValueTextEditPanel<MappingType>(outboundId,
+                new PropertyModel<List<MappingType>>(getModel(), containerValue + ".outbound"), null, false, true,
+				readOnlyModel) {
 
             @Override
             protected IModel<String> createTextModel(final IModel<MappingType> model) {
@@ -308,7 +312,7 @@ public class ResourceActivationEditor extends BasePanel<ResourceActivationDefini
         add(outbound);
 
         MultiValueTextEditPanel inbound = new MultiValueTextEditPanel<MappingType>(inboundId,
-                new PropertyModel<List<MappingType>>(getModel(), containerValue + ".inbound"), null, false, true){
+                new PropertyModel<List<MappingType>>(getModel(), containerValue + ".inbound"), null, false, true, readOnlyModel) {
 
             @Override
             protected IModel<String> createTextModel(final IModel<MappingType> model) {
@@ -336,8 +340,8 @@ public class ResourceActivationEditor extends BasePanel<ResourceActivationDefini
         add(inbound);
     }
 
-    private void initModals(){
-        ModalWindow mappingEditor = new MappingEditorDialog(ID_MODAL_MAPPING, null){
+    private void initModals(NonEmptyModel<Boolean> readOnlyModel) {
+        ModalWindow mappingEditor = new MappingEditorDialog(ID_MODAL_MAPPING, null, readOnlyModel) {
 
             @Override
             public void updateComponents(AjaxRequestTarget target){

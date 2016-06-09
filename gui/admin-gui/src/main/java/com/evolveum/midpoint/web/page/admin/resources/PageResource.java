@@ -77,7 +77,9 @@ public class PageResource extends PageAdminResources {
 	private static final String BUTTON_TEST_CONNECTION_ID = "testConnection";
 	private static final String BUTTON_REFRESH_SCHEMA_ID = "refreshSchema";
 	private static final String BUTTON_EDIT_XML_ID = "editXml";
-	private static final String BUTTON_WIZARD_ID = "wizard";
+	private static final String BUTTON_CONFIGURATION_EDIT_ID = "configurationEdit";
+	private static final String BUTTON_WIZARD_EDIT_ID = "wizardEdit";
+	private static final String BUTTON_WIZARD_SHOW_ID = "wizardShow";
 	private static final String ID_BUTTON_BACK = "back";
 
 	public static final String TABLE_TEST_CONNECTION_RESULT_ID = "testConnectionResults";
@@ -173,18 +175,33 @@ public class PageResource extends PageAdminResources {
 			}
 		};
 		add(editXml);
-		AjaxButton wizard = new AjaxButton(BUTTON_WIZARD_ID,
-				createStringResource("pageResource.button.wizard")) {
+		AjaxButton configurationEdit = new AjaxButton(BUTTON_CONFIGURATION_EDIT_ID,
+				createStringResource("pageResource.button.configurationEdit")) {
 			private static final long serialVersionUID = 1L;
-
 			@Override
 			public void onClick(AjaxRequestTarget target) {
-				PageParameters parameters = new PageParameters();
-				parameters.add(OnePageParameterEncoder.PARAMETER, resourceModel.getObject().getOid());
-				setResponsePage(new PageResourceWizard(parameters));
+				startWizard(true, false);
 			}
 		};
-		add(wizard);
+		add(configurationEdit);
+		AjaxButton wizardShow = new AjaxButton(BUTTON_WIZARD_SHOW_ID,
+				createStringResource("pageResource.button.wizardShow")) {
+			private static final long serialVersionUID = 1L;
+			@Override
+			public void onClick(AjaxRequestTarget target) {
+				startWizard(false, true);
+			}
+		};
+		add(wizardShow);
+		AjaxButton wizardEdit = new AjaxButton(BUTTON_WIZARD_EDIT_ID,
+				createStringResource("pageResource.button.wizardEdit")) {
+			private static final long serialVersionUID = 1L;
+			@Override
+			public void onClick(AjaxRequestTarget target) {
+				startWizard(false, false);
+			}
+		};
+		add(wizardEdit);
 
 		AjaxButton back = new AjaxButton(ID_BUTTON_BACK, createStringResource("pageResource.button.back")) {
 			private static final long serialVersionUID = 1L;
@@ -197,7 +214,15 @@ public class PageResource extends PageAdminResources {
 		add(back);
 
 	}
-	
+
+	private void startWizard(boolean configOnly, boolean readOnly) {
+		PageParameters parameters = new PageParameters();
+		parameters.add(OnePageParameterEncoder.PARAMETER, resourceModel.getObject().getOid());		// compatibility with PageAdminResources
+		parameters.add(PageResourceWizard.PARAM_CONFIG_ONLY, configOnly);
+		parameters.add(PageResourceWizard.PARAM_READ_ONLY, readOnly);
+		setResponsePage(new PageResourceWizard(parameters));
+	}
+
 	private ResourceSummaryPanel createResourceSummaryPanel(){
 		 ResourceSummaryPanel resourceSummaryPanel = new ResourceSummaryPanel(PANEL_RESOURCE_SUMMARY,
 					resourceModel);

@@ -45,6 +45,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.form.DropDownFormGroup;
 import com.evolveum.midpoint.web.component.form.TextAreaFormGroup;
 import com.evolveum.midpoint.web.component.form.TextFormGroup;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.component.wizard.WizardStep;
 import com.evolveum.midpoint.web.component.wizard.resource.dto.ConnectorHostTypeComparator;
 import com.evolveum.midpoint.web.page.admin.resources.PageResourceWizard;
@@ -173,10 +174,24 @@ public class NameStep extends WizardStep {
     }
 
 	private void initLayout() {
-        add(new TextFormGroup(ID_NAME, resourceNameModel, createStringResource("NameStep.name"), "col-md-3", "col-md-6", true));
-        add(new TextAreaFormGroup(ID_DESCRIPTION, resourceDescriptionModel, createStringResource("NameStep.description"), "col-md-3", "col-md-6", false, 3));
-        add(createHostDropDown());
-        add(createConnectorDropDown());
+		parentPage.addEditingEnabledBehavior(this);
+
+		TextFormGroup name = new TextFormGroup(ID_NAME, resourceNameModel, createStringResource("NameStep.name"), "col-md-3", "col-md-6", true);
+		add(name);
+
+		TextAreaFormGroup description = new TextAreaFormGroup(ID_DESCRIPTION, resourceDescriptionModel,
+				createStringResource("NameStep.description"), "col-md-3", "col-md-6",
+				false, 3);
+		//parentPage.addEditingEnabledBehavior(description);
+		add(description);
+
+		DropDownFormGroup<PrismObject<ConnectorHostType>> hostDropDown = createHostDropDown();
+		//parentPage.addEditingEnabledBehavior(hostDropDown);
+		add(hostDropDown);
+
+		DropDownFormGroup<PrismObject<ConnectorType>> connectorDropDown = createConnectorDropDown();
+		//parentPage.addEditingEnabledBehavior(connectorDropDown);
+		add(connectorDropDown);
     }
 
 	@SuppressWarnings("unchecked")
@@ -410,6 +425,10 @@ public class NameStep extends WizardStep {
 
     @Override
     public void applyState() {
+		if (parentPage.isReadOnly() || !isComplete()) {
+			return;
+		}
+
 		PrismContext prismContext = parentPage.getPrismContext();
         Task task = parentPage.createSimpleTask(OPERATION_SAVE_RESOURCE);
         OperationResult result = task.getResult();
