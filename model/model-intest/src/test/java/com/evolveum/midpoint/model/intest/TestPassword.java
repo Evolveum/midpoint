@@ -28,6 +28,8 @@ import java.util.Collection;
 import javax.xml.bind.JAXBException;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 import org.springframework.test.annotation.DirtiesContext;
@@ -53,17 +55,6 @@ import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ValuePolicyType;
 
 /**
  * @author semancik
@@ -694,7 +685,70 @@ public class TestPassword extends AbstractInitializedModelIntegrationTest {
 	}
 	
 	// TODO: add user with password that violates the policy
-	
+
+	/**
+	 * Create an org, and create two parentOrgRefs for jack (MID-3099).
+	 * Change to password that violates the password policy.
+	 */
+	@Test
+	public void test300TwoParentOrgRefs() throws Exception {
+		final String TEST_NAME = "test300TwoParentOrgRefs";
+		TestUtil.displayTestTile(this, TEST_NAME);
+
+		// GIVEN
+		Task task = taskManager.createTaskInstance(TestPassword.class.getName() + "." + TEST_NAME);
+		OperationResult result = task.getResult();
+		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+
+		assignOrg(USER_JACK_OID, ORG_GOVERNOR_OFFICE_OID, null);
+		assignOrg(USER_JACK_OID, ORG_GOVERNOR_OFFICE_OID, SchemaConstants.ORG_MANAGER);
+
+		UserType jack = getUser(USER_JACK_OID).asObjectable();
+		display("jack", jack);
+		assertEquals("Wrong # of parentOrgRefs", 2, jack.getParentOrgRef().size());
+
+		ObjectDelta<OrgType> orgDelta = (ObjectDelta<OrgType>) DeltaBuilder.deltaFor(OrgType.class, prismContext)
+				.item(OrgType.F_PASSWORD_POLICY_REF).replace(new PrismReferenceValue(PASSWORD_POLICY_GLOBAL_OID))
+				.asObjectDelta(ORG_GOVERNOR_OFFICE_OID);
+		executeChanges(orgDelta, null, task, result);
+
+		OrgType govOffice = getObject(OrgType.class, ORG_GOVERNOR_OFFICE_OID).asObjectable();
+		display("governor's office", govOffice);
+		assertEquals("Wrong OID of password policy ref", PASSWORD_POLICY_GLOBAL_OID, govOffice.getPasswordPolicyRef().getOid());
+
+		try {
+			// WHEN
+			modifyUserChangePassword(USER_JACK_OID, USER_PASSWORD_1_CLEAR, task, result);
+
+			AssertJUnit.fail("Unexpected success");
+		} catch (PolicyViolationException e) {
+			// This is expected
+			display("Exected exception", e);
+		}
+
+		// THEN
+		result.computeStatus();
+		TestUtil.assertFailure(result);
+
+		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
+		display("User after change execution", userJack);
+		assertUserJack(userJack);
+		assertLinks(userJack, 3);
+		accountYellowOid = getLinkRefOid(userJack, RESOURCE_DUMMY_YELLOW_OID);
+
+		// Make sure that the password is unchanged
+
+		assertEncryptedUserPassword(userJack, USER_PASSWORD_VALID);
+		assertPasswordMetadata(userJack, false, lastPasswordChangeStart, lastPasswordChangeEnd);
+
+		assertDummyPassword(ACCOUNT_JACK_DUMMY_USERNAME, USER_PASSWORD_VALID);
+
+		assertDummyAccount(RESOURCE_DUMMY_YELLOW_NAME, ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
+		assertDummyPassword(RESOURCE_DUMMY_YELLOW_NAME, ACCOUNT_JACK_DUMMY_USERNAME, USER_PASSWORD_VALID);
+
+		assertDummyAccount(RESOURCE_DUMMY_RED_NAME, ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
+		assertDummyPassword(RESOURCE_DUMMY_RED_NAME, ACCOUNT_JACK_DUMMY_USERNAME, USER_PASSWORD_VALID);
+	}
 
 	private void assertDummyPassword(String userId, String expectedClearPassword) throws SchemaViolationException {
 		assertDummyPassword(null, userId, expectedClearPassword);

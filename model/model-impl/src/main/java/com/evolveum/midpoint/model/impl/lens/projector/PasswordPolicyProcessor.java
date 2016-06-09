@@ -19,9 +19,11 @@ package com.evolveum.midpoint.model.impl.lens.projector;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -235,43 +237,45 @@ public class PasswordPolicyProcessor {
 	
 	private ValuePolicyType determineValuePolicy(PrismObject object, Task task, OperationResult result)
 			throws SchemaException {
-		LOGGER.trace("Determining password policies from object", object);
+		LOGGER.trace("Determining password policies from object: {}", ObjectTypeUtil.toShortString(object));
 		PrismReference orgRef = object.findReference(ObjectType.F_PARENT_ORG_REF);
 		if (orgRef == null) {
 			return null;
 		}
-		List<PrismReferenceValue> values = orgRef.getValues();
-		ValuePolicyType valuePolicy = null;
+		List<PrismReferenceValue> orgRefValues = orgRef.getValues();
+		ValuePolicyType resultingValuePolicy = null;
 		List<PrismObject<OrgType>> orgs = new ArrayList<PrismObject<OrgType>>();
 		try {
-			for (PrismReferenceValue orgRefValue : values) {
+			for (PrismReferenceValue orgRefValue : orgRefValues) {
 				if (orgRefValue != null) {
 
-					if (valuePolicy != null) {
-						throw new IllegalStateException(
-								"Found more than one policy while trying to validate user's password. Please check your configuration");
-					}
-
-					PrismObject<OrgType> org = resolver.resolve(orgRefValue,
-							"resolving parent org ref", null, null, result);
+					PrismObject<OrgType> org = resolver.resolve(orgRefValue, "resolving parent org ref", null, null, result);
 					orgs.add(org);
-					valuePolicy = resolvePolicy(org, task, result);
+					ValuePolicyType valuePolicy = resolvePolicy(org, task, result);
 
+					if (valuePolicy != null) {
+						if (resultingValuePolicy == null) {
+							resultingValuePolicy = valuePolicy;
+						} else if (!StringUtils.equals(valuePolicy.getOid(), resultingValuePolicy.getOid())) {
+							throw new IllegalStateException(
+									"Found more than one policy while trying to validate user's password. Please check your configuration");
+						}
+					}
 				}
 			}
 		} catch (ObjectNotFoundException ex) {
 			throw new IllegalStateException(ex);
 		}
 		// go deeper
-		if (valuePolicy == null) {
+		if (resultingValuePolicy == null) {
 			for (PrismObject<OrgType> orgType : orgs) {
-				valuePolicy = determineValuePolicy(orgType, task, result);
-				if (valuePolicy != null){
-					return valuePolicy;
+				resultingValuePolicy = determineValuePolicy(orgType, task, result);
+				if (resultingValuePolicy != null) {
+					return resultingValuePolicy;
 				}
 			}
 		}
-		return valuePolicy;
+		return resultingValuePolicy;
 	}
 	
 	private ValuePolicyType resolvePolicy(PrismObject<OrgType> org, Task task, OperationResult result)
