@@ -33,6 +33,7 @@ import com.evolveum.midpoint.web.component.form.multivalue.MultiValueTextEditPan
 import com.evolveum.midpoint.web.component.form.multivalue.MultiValueTextPanel;
 import com.evolveum.midpoint.web.component.input.QNameChoiceRenderer;
 import com.evolveum.midpoint.web.component.input.QNameEditorPanel;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.component.wizard.WizardUtil;
 import com.evolveum.midpoint.web.component.wizard.resource.SchemaHandlingStep;
 import com.evolveum.midpoint.web.component.wizard.resource.component.schemahandling.modal.LimitationsEditorDialog;
@@ -242,6 +243,7 @@ public class ResourceAssociationEditor extends BasePanel<ResourceObjectAssociati
 
         AttributeEditorUtils.addMatchingRuleFields(this, readOnlyModel);
 
+		VisibleEnableBehaviour showIfEditingOrOutboundExists = AttributeEditorUtils.createShowIfEditingOrOutboundExists(getModel(), readOnlyModel);
         TextField outboundLabel = new TextField<>(ID_OUTBOUND_LABEL,
                 new AbstractReadOnlyModel<String>() {
 
@@ -259,6 +261,7 @@ public class ResourceAssociationEditor extends BasePanel<ResourceObjectAssociati
                 });
         outboundLabel.setOutputMarkupId(true);
         outboundLabel.setEnabled(false);
+		outboundLabel.add(showIfEditingOrOutboundExists);
         add(outboundLabel);
 
         AjaxSubmitButton outbound = new AjaxSubmitButton(ID_BUTTON_OUTBOUND) {
@@ -273,6 +276,7 @@ public class ResourceAssociationEditor extends BasePanel<ResourceObjectAssociati
 			}
 		};
         outbound.setOutputMarkupId(true);
+		outbound.add(showIfEditingOrOutboundExists);
         add(outbound);
 
 		AjaxSubmitLink deleteOutbound = new AjaxSubmitLink(ID_DELETE_OUTBOUND) {

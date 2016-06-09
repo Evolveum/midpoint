@@ -30,6 +30,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.form.multivalue.MultiValueTextEditPanel;
 import com.evolveum.midpoint.web.component.input.ObjectReferenceChoiceRenderer;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.component.wizard.WizardUtil;
 import com.evolveum.midpoint.web.component.wizard.resource.component.schemahandling.modal.MappingEditorDialog;
 import com.evolveum.midpoint.web.component.wizard.resource.dto.MappingTypeDto;
@@ -98,7 +99,7 @@ public class ResourceCredentialsEditor extends BasePanel<ResourceCredentialsDefi
         return model;
     }
 
-    protected void initLayout(PageResourceWizard parentPage) {
+    protected void initLayout(final PageResourceWizard parentPage) {
         DropDownChoice fetchStrategy = new DropDownChoice<>(ID_FETCH_STRATEGY,
                 new PropertyModel<AttributeFetchStrategyType>(getModel(), "password.fetchStrategy"),
                 WebComponentUtil.createReadonlyModelFromEnum(AttributeFetchStrategyType.class),
@@ -106,6 +107,16 @@ public class ResourceCredentialsEditor extends BasePanel<ResourceCredentialsDefi
 		parentPage.addEditingEnabledBehavior(fetchStrategy);
         add(fetchStrategy);
 
+		VisibleEnableBehaviour showIfEditingOrOutboundExists = new VisibleEnableBehaviour() {
+			@Override
+			public boolean isVisible() {
+				ResourceCredentialsDefinitionType credentials = getModel().getObject();
+				if (credentials == null || credentials.getPassword() == null) {
+					return !parentPage.isReadOnly();
+				}
+				return !parentPage.isReadOnly() || credentials.getPassword().getOutbound() != null;
+			}
+		};
         TextField outboundLabel = new TextField<>(ID_OUTBOUND_LABEL, new AbstractReadOnlyModel<String>() {
 
             @Override
@@ -122,6 +133,7 @@ public class ResourceCredentialsEditor extends BasePanel<ResourceCredentialsDefi
         });
         outboundLabel.setEnabled(false);
         outboundLabel.setOutputMarkupId(true);
+		outboundLabel.add(showIfEditingOrOutboundExists);
         add(outboundLabel);
 
         AjaxSubmitLink outbound = new AjaxSubmitLink(ID_OUTBOUND_BUTTON) {
@@ -132,6 +144,7 @@ public class ResourceCredentialsEditor extends BasePanel<ResourceCredentialsDefi
             }
         };
         outbound.setOutputMarkupId(true);
+		outbound.add(showIfEditingOrOutboundExists);
         add(outbound);
 
         MultiValueTextEditPanel inbound = new MultiValueTextEditPanel<MappingType>(ID_INBOUND,

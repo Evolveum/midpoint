@@ -301,6 +301,8 @@ public class ResourceAttributeEditor extends BasePanel<ResourceAttributeDefiniti
                 });
         outboundLabel.setEnabled(false);
         outboundLabel.setOutputMarkupId(true);
+		VisibleEnableBehaviour showIfEditingOrOutboundExists = AttributeEditorUtils.createShowIfEditingOrOutboundExists(getModel(), readOnlyModel);
+		outboundLabel.add(showIfEditingOrOutboundExists);
         add(outboundLabel);
 
         AjaxSubmitLink outbound = new AjaxSubmitLink(ID_BUTTON_OUTBOUND) {
@@ -316,6 +318,7 @@ public class ResourceAttributeEditor extends BasePanel<ResourceAttributeDefiniti
 			}
         };
         outbound.setOutputMarkupId(true);
+		outbound.add(showIfEditingOrOutboundExists);
         add(outbound);
 
         AjaxSubmitLink deleteOutbound = new AjaxSubmitLink(ID_DELETE_OUTBOUND) {
@@ -415,7 +418,7 @@ public class ResourceAttributeEditor extends BasePanel<ResourceAttributeDefiniti
         initModals(readOnlyModel);
     }
 
-    private void initModals(NonEmptyModel<Boolean> readOnlyModel) {
+	private void initModals(NonEmptyModel<Boolean> readOnlyModel) {
         ModalWindow limitationsEditor = new LimitationsEditorDialog(ID_MODAL_LIMITATIONS,
                 new PropertyModel<List<PropertyLimitationsType>>(getModel(), "limitations"), readOnlyModel);
         add(limitationsEditor);

@@ -133,8 +133,9 @@ public class DataModelUtil {
 			if (context instanceof ResourceResolutionContext) {
 				ResourceResolutionContext rctx = (ResourceResolutionContext) context;
 				ObjectSynchronizationType def = ResourceTypeUtil.findObjectSynchronization(rctx.resource, rctx.kind, rctx.intent);
-				if (def != null && def.getFocusType() != null) {
-					PrismObjectDefinition<Objectable> objdef = rctx.prismContext.getSchemaRegistry().findObjectDefinitionByType(def.getFocusType());
+				if (def != null) {
+					QName focusType = def.getFocusType() != null ? def.getFocusType() : UserType.COMPLEX_TYPE;
+					PrismObjectDefinition<Objectable> objdef = rctx.prismContext.getSchemaRegistry().findObjectDefinitionByType(focusType);
 					if (objdef != null && objdef.getCompileTimeClass() != null && FocusType.class.isAssignableFrom(objdef.getCompileTimeClass())) {
 						clazz = (Class) objdef.getCompileTimeClass();
 					}

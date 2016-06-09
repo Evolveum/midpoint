@@ -31,6 +31,7 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
+import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
 import java.util.List;
@@ -113,5 +114,20 @@ class AttributeEditorUtils {
 		});
 		editor.add(unknownMatchingRule);
 
+	}
+
+	@NotNull
+	public static VisibleEnableBehaviour createShowIfEditingOrOutboundExists(final IModel<? extends ResourceItemDefinitionType> model,
+			final NonEmptyModel<Boolean> readOnlyModel) {
+		return new VisibleEnableBehaviour() {
+			@Override
+			public boolean isVisible() {
+				ResourceItemDefinitionType itemDefinition = model.getObject();
+				if (itemDefinition == null) {
+					return false;
+				}
+				return !readOnlyModel.getObject() || itemDefinition.getOutbound() != null;
+			}
+		};
 	}
 }
