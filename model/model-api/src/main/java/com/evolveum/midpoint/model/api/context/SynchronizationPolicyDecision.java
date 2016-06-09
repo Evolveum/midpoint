@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,9 +47,12 @@ public enum SynchronizationPolicyDecision {
 	UNLINK,
 	
 	/**
-	 * The account is not usable. E.g. because the associated shadow does
-	 * not exist any more, resource does not exists any more, etc.
-	 * Such account link will be removed.
+	 * The projection is broken. I.e. there is some (fixable) state that
+	 * prevents proper operations with the projection. This may be schema violation
+	 * problem, security problem (access denied), misconfiguration, etc.
+	 * Broken projections will be kept in the state that they are (maintaining
+	 * status quo) until the problem is fixed. We will do no operations on broken
+	 * projections and we will NOT unlink them or delete them.
 	 */
 	BROKEN,
 

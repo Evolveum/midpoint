@@ -61,14 +61,12 @@ public class ObjectNotFoundHandler extends ErrorHandler {
 	@Autowired
 	@Qualifier("cacheRepositoryService")
 	private RepositoryService cacheRepositoryService;
-//	@Autowired
-//	private ChangeNotificationDispatcher changeNotificationDispatcher;
+
 	@Autowired(required = true)
 	private ProvisioningService provisioningService;
+	
 	@Autowired(required = true)
 	private TaskManager taskManager;
-
-	private String oid = null;
 	
 	private static final Trace LOGGER = TraceManager.getTrace(ObjectNotFoundHandler.class);
 
@@ -171,7 +169,7 @@ public class ObjectNotFoundHandler extends ErrorHandler {
 			}
 			handleErrorResult.computeStatus();
 			String oidVal = null;
-			findReturnedValue(handleErrorResult, oidVal);
+			String oid = findCreatedAccountOid(handleErrorResult, oidVal);
 			if (oid != null){
 				LOGGER.trace("Found new oid {} as a return param from model. Probably the new shadow was created.", oid);
 				LOGGER.debug("DISCOVERY: object {} re-created, applying pending changes", shadow);
@@ -212,7 +210,7 @@ public class ObjectNotFoundHandler extends ErrorHandler {
 			return shadow;
 		case GET:
 			if (!compensate){
-				LOGGER.trace("DISCOVERY: cannot find object {}, GET operation: handling skipped", shadow);
+				LOGGER.trace("DISCOVERY: cannot find object {}, GET operation: handling skipped because discovery is disabled", shadow);
 				result.recordFatalError(ex.getMessage(), ex);
 				throw new ObjectNotFoundException(ex.getMessage(), ex);
 			}
@@ -248,15 +246,21 @@ public class ObjectNotFoundHandler extends ErrorHandler {
 				changeNotificationDispatcher.notifyChange(getChange, task, handleGetErrorResult);
 				
 			} catch (RuntimeException e) {
+				LOGGER.trace("DISCOVERY: synchronization invoked for  {} ended with an error {}", shadow, e);
 				handleGetErrorResult.recordFatalError(e);
 				result.computeStatus();
 				throw e;
 			}
+			
 			// String oidVal = null;
 			handleGetErrorResult.computeStatus();
-			findReturnedValue(handleGetErrorResult, null);
+			
+			LOGGER.trace("DISCOVERY: synchronization invoked for  {} finished with status {}", shadow, handleGetErrorResult.getStatus());
+			
+			oid = findCreatedAccountOid(handleGetErrorResult, null);
 			
 			try {
+				LOGGER.trace("DISCOVERY: deleting  {}", shadow);
 				cacheRepositoryService.deleteObject(ShadowType.class, shadow.getOid(), result);
 			} catch (ObjectNotFoundException e) {
 				// delete the old shadow that was probably deleted from the
@@ -270,18 +274,20 @@ public class ObjectNotFoundHandler extends ErrorHandler {
 			if (oid != null) {
                 PrismObject newShadow;
                 try {
+                	LOGGER.trace("DISCOVERY: retrieving shadow  {}", oid);
 				    newShadow = provisioningService.getObject(shadow.getClass(), oid, null, task, result);
+				    LOGGER.trace("DISCOVERY: retrieved {}", newShadow);
                 } finally {
                     result.computeStatus();
                 }
-                LOGGER.debug("DISCOVERY: object {} re-created as {}. GET operation handler done.", shadow, newShadow);
+                LOGGER.debug("DISCOVERY: object {} re-created as {}. GET operation handler done: returning new shadow", shadow, newShadow);
 				shadow = (T) newShadow.asObjectable();
 				parentResult.recordHandledError("Object was re-created by the discovery.");
 				return shadow;
 			} else {
 				parentResult.recordHandledError("Object was deleted by the discovery and the invalid link was removed from the user.");
 				result.computeStatus();
-				LOGGER.debug("DISCOVERY: object {} was deleted. GET operation handler done.", shadow);
+				LOGGER.debug("DISCOVERY: object {} was deleted. GET operation handler done: throwing ObjectNotFoundException", shadow);
 				throw new ObjectNotFoundException(ex.getMessage(), ex);
 			}
 			
@@ -307,17 +313,19 @@ public class ObjectNotFoundHandler extends ErrorHandler {
 		return change;
 	}
 
-	private void findReturnedValue(OperationResult handleErrorResult, String oidVal) {
+	private String findCreatedAccountOid(OperationResult handleErrorResult, String oidVal) {
 		if (oidVal != null) {
-			oid = oidVal;
-			return;
+			return oidVal;
 		}
 		List<OperationResult> subresults = handleErrorResult.getSubresults();
 		for (OperationResult subresult : subresults) {
 			String oidValue = (String) subresult.getReturn("createdAccountOid");
-			findReturnedValue(subresult, oidValue);
+			String oid = findCreatedAccountOid(subresult, oidValue);
+			if (oid != null) {
+				return oid;
+			}
 		}
-		return;
+		return null;
 	}
 
 }
