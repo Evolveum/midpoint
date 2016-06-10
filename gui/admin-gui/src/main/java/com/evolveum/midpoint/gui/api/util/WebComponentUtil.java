@@ -1150,7 +1150,7 @@ public final class WebComponentUtil {
 		OperationResultStatus status = result.getStatus();
 		OperationResultStatusPresentationProperties icon = OperationResultStatusPresentationProperties
 				.parseOperationalResultStatus(status);
-		return icon.getIcon();
+		return icon.getIcon() + " fa-lg";
 	}
 
 	public static double getSystemLoad() {

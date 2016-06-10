@@ -120,15 +120,6 @@ public class TaskSummaryPanel extends ObjectSummaryPanel<TaskType> {
 		});
 		addTag(tagOutcome);
 
-		final Component emptyTag = new Label(ID_TAG_EMPTY, new Model("<span style=\"display: block; padding-bottom: 5px\"/>")).setEscapeModelStrings(false);
-		emptyTag.add(new VisibleEnableBehaviour() {
-			@Override
-			public boolean isVisible() {
-				return parentPage.getTaskDto().getWorkflowOutcome() == null;
-			}
-		});
-		addTag(emptyTag);
-
 		final AutoRefreshPanel refreshTag = new AutoRefreshPanel(ID_TAG_REFRESH, refreshModel, parentPage, true);
 		refreshTag.setOutputMarkupId(true);
 		refreshTag.add(new VisibleEnableBehaviour() {
@@ -142,15 +133,15 @@ public class TaskSummaryPanel extends ObjectSummaryPanel<TaskType> {
 
 	private String getIconForExecutionStatus(TaskDtoExecutionStatus status) {
 		if (status == null) {
-			return "fa fa-fw fa-question-circle fa-lg text-warning";
+			return "fa fa-fw fa-question-circle text-warning";
 		}
 		switch (status) {
-			case RUNNING: return "fa fa-fw fa-lg fa-spinner";
-			case RUNNABLE: return "fa fa-fw fa-lg fa-hand-o-up";
-			case SUSPENDED: return "fa fa-fw fa-lg fa-bed";
-			case SUSPENDING: return "fa fa-fw fa-lg fa-bed";
-			case WAITING: return "fa fa-fw fa-lg fa-clock-o";
-			case CLOSED: return "fa fa-fw fa-lg fa-power-off";
+			case RUNNING: return "fa fa-fw fa-spinner";
+			case RUNNABLE: return "fa fa-fw fa-hand-o-up";
+			case SUSPENDED: return "fa fa-fw fa-bed";
+			case SUSPENDING: return "fa fa-fw fa-bed";
+			case WAITING: return "fa fa-fw fa-clock-o";
+			case CLOSED: return "fa fa-fw fa-power-off";
 			default: return "";
 		}
 	}
