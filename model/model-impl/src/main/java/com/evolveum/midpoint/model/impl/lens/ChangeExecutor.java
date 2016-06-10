@@ -361,6 +361,7 @@ public class ChangeExecutor {
 
 	private <O extends ObjectType> boolean isRepeatedAlreadyExistsException(LensProjectionContext projContext) {
 		int deltas = projContext.getExecutedDeltas().size();
+		LOGGER.trace("isRepeatedAlreadyExistsException starting; number of executed deltas = {}", deltas);
 		if (deltas < 2) {
 			return false;
 		}
@@ -369,13 +370,16 @@ public class ChangeExecutor {
 		// TODO check also previous execution result to see if it's AlreadyExistException?
 		ObjectDelta<ShadowType> lastDelta = lastDeltaOp.getObjectDelta();
 		ObjectDelta<ShadowType> previousDelta = previousDeltaOp.getObjectDelta();
+		boolean rv;
 		if (lastDelta.isAdd() && previousDelta.isAdd()) {
-			return isEquivalentAddDelta(lastDelta.getObjectToAdd(), previousDelta.getObjectToAdd());
+			rv = isEquivalentAddDelta(lastDelta.getObjectToAdd(), previousDelta.getObjectToAdd());
 		} else if (lastDelta.isModify() && previousDelta.isModify()) {
-			return isEquivalentModifyDelta(lastDelta.getModifications(), previousDelta.getModifications());
+			rv = isEquivalentModifyDelta(lastDelta.getModifications(), previousDelta.getModifications());
 		} else {
-			return false;
+			rv = false;
 		}
+		LOGGER.trace("isRepeatedAlreadyExistsException returning {}; based of comparison of previousDelta:\n{}\nwith lastDelta:\n{}", rv, previousDelta, lastDelta);
+		return rv;
 	}
 
 	private boolean isEquivalentModifyDelta(Collection<? extends ItemDelta<?, ?>> modifications1, Collection<? extends ItemDelta<?, ?>> modifications2) {
