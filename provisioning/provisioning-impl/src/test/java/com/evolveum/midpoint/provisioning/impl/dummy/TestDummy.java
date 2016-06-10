@@ -2738,8 +2738,106 @@ public class TestDummy extends AbstractDummyTest {
 		ObjectFilter attrFilter = NoneFilter.createNone();
 		testSeachIterative(TEST_NAME, attrFilter, null, true, true, false);
 	}
+    
+    /**
+     * Search with query that queries both the repository and the resource.
+     * We cannot do this. This should fail.
+     * MID-2822
+     */
+    @Test
+	public void test195SearchOnAndOffResource() throws Exception {
+		final String TEST_NAME = "test195SearchOnAndOffResource";
+		TestUtil.displayTestTile(TEST_NAME);
+		
+		// GIVEN
+		Task task = taskManager.createTaskInstance(TestDummy.class.getName() + "." + TEST_NAME);
+		OperationResult result = task.getResult();
+		
+		ObjectQuery query = createOnOffQuery();
+		
+		ResultHandler<ShadowType> handler = new ResultHandler<ShadowType>() {
+			@Override
+			public boolean handle(PrismObject<ShadowType> object, OperationResult parentResult) {
+				AssertJUnit.fail("Handler called: "+object);
+				return false;
+			}
+		};
+		
+		try {
+			// WHEN
+			provisioningService.searchObjectsIterative(ShadowType.class, query, 
+					null, handler, task, result);
+			
+			AssertJUnit.fail("unexpected success");
+			
+		} catch (SchemaException e) {
+			// This is expected
+			display("Expected exception", e);
+		}
+		
+		// THEN
+		result.computeStatus();
+		TestUtil.assertFailure(result);
+			
+	}
+    
+    /**
+     * Search with query that queries both the repository and the resource.
+     * NoFetch. This should go OK.
+     * MID-2822
+     */
+    @Test
+	public void test196SearchOnAndOffResourceNoFetch() throws Exception {
+		final String TEST_NAME = "test196SearchOnAndOffResourceNoFetch";
+		TestUtil.displayTestTile(TEST_NAME);
+		
+		// GIVEN
+		Task task = taskManager.createTaskInstance(TestDummy.class.getName() + "." + TEST_NAME);
+		OperationResult result = task.getResult();
+		
+		ObjectQuery query = createOnOffQuery();
+		
+		ResultHandler<ShadowType> handler = new ResultHandler<ShadowType>() {
+			@Override
+			public boolean handle(PrismObject<ShadowType> object, OperationResult parentResult) {
+				AssertJUnit.fail("Handler called: "+object);
+				return false;
+			}
+		};
+		
+		// WHEN
+		provisioningService.searchObjectsIterative(ShadowType.class, query, 
+				SelectorOptions.createCollection(GetOperationOptions.createNoFetch()),
+				handler, task, result);
+			
+		// THEN
+		result.computeStatus();
+		TestUtil.assertSuccess(result);
+			
+	}
 
-    protected <T> void testSeachIterativeSingleAttrFilter(final String TEST_NAME, String attrName, T attrVal,
+    private ObjectQuery createOnOffQuery() throws SchemaException {
+		ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(RESOURCE_DUMMY_OID, new QName(ResourceTypeUtil.getResourceNamespace(resourceType),
+                ConnectorFactoryIcfImpl.ACCOUNT_OBJECT_CLASS_LOCAL_NAME), prismContext);
+		
+		ResourceSchema resourceSchema = RefinedResourceSchema.getResourceSchema(resource, prismContext);
+		ObjectClassComplexTypeDefinition objectClassDef = resourceSchema.findObjectClassDefinition(SchemaTestConstants.ACCOUNT_OBJECT_CLASS_LOCAL_NAME);
+		
+		ResourceAttributeDefinition<String> attrDef = objectClassDef.findAttributeDefinition(
+				dummyResourceCtl.getAttributeQName(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME));
+		ObjectFilter attrFilter = EqualFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES, attrDef.getName()), attrDef, 
+				"Sea Monkey");
+		
+		ObjectFilter deadFilter = EqualFilter.createEqual(ShadowType.F_DEAD, ShadowType.class, prismContext, Boolean.TRUE);
+		
+		ObjectFilter filter = AndFilter.createAnd(query.getFilter(), attrFilter, deadFilter);
+		query.setFilter(filter);
+		display("Query", query);
+
+		return query;
+	}
+
+	protected <T> void testSeachIterativeSingleAttrFilter(final String TEST_NAME, String attrName, T attrVal,
 			GetOperationOptions rootOptions, boolean fullShadow, String... expectedAccountIds) throws Exception {
 		testSeachIterativeSingleAttrFilter(TEST_NAME, dummyResourceCtl.getAttributeQName(attrName), attrVal, 
 				rootOptions, fullShadow, expectedAccountIds);
