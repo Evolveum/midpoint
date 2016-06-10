@@ -112,7 +112,7 @@ public class ProgressPanel extends BasePanel<ProgressDto> {
                                 if (statusType == null) {
                                     return null;
                                 } else {
-                                    return OperationResultStatusPresentationProperties.parseOperationalResultStatus(statusType).getIcon();
+                                    return OperationResultStatusPresentationProperties.parseOperationalResultStatus(statusType).getIcon() + " fa-lg";
                                 }
                             }
                         },
