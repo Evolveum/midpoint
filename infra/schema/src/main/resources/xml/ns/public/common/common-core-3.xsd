@@ -7755,14 +7755,21 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
+            <xsd:element name="order" type="xsd:int" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Order of this approval level. (Marked as optional only to ensure backward compatibility. Will change to 'required' eventually.)
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="name" type="xsd:string" minOccurs="0"/>
             <xsd:element name="description" type="xsd:string" minOccurs="0"/>
             <xsd:element name="approverRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
                         Instruction to approve something, by a user (if this points to a User object) or
-                        by someone from a group of users (if this points to a Role or Org object; representing
-                        all users that possess that role or belong to that OU).
+                        by someone from a group of users (if this points to a Org object; representing
+                        all users that belong to that OU).
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
