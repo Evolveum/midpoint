@@ -65,6 +65,7 @@ import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.OrFilter;
+import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.prism.query.SubstringFilter;
 import com.evolveum.midpoint.prism.query.ValueFilter;
 import com.evolveum.midpoint.prism.util.PrismUtil;
@@ -886,7 +887,15 @@ public abstract class ShadowCache {
 			if (f instanceof EqualFilter) {
 				ItemPath parentPath = ((EqualFilter) f).getParentPath();
 				if (parentPath == null || parentPath.isEmpty()) {
-					continue;
+					QName elementName = ((EqualFilter) f).getElementName();
+					if (QNameUtil.match(ShadowType.F_OBJECT_CLASS, elementName) ||
+							QNameUtil.match(ShadowType.F_AUXILIARY_OBJECT_CLASS, elementName) ||
+							QNameUtil.match(ShadowType.F_KIND, elementName) ||
+							QNameUtil.match(ShadowType.F_INTENT, elementName)) {
+						continue;
+					}
+					throw new SchemaException("Cannot combine on-resource and off-resource properties in a shadow search query. Encountered property " +
+							((EqualFilter) f).getFullPath());
 				}
 				attributeFilter.add(f);
 			} else if (f instanceof NaryLogicalFilter) {
@@ -909,6 +918,17 @@ public abstract class ShadowCache {
 
 			} else if (f instanceof SubstringFilter) {
 				attributeFilter.add(f);
+			} else if (f instanceof RefFilter) {
+				ItemPath parentPath = ((RefFilter)f).getParentPath();
+				if (parentPath == null || parentPath.isEmpty()) {
+					QName elementName = ((RefFilter) f).getElementName();
+					if (QNameUtil.match(ShadowType.F_RESOURCE_REF, elementName)) {
+						continue;
+					}
+				}
+				throw new SchemaException("Cannot combine on-resource and off-resource properties in a shadow search query. Encountered filter " + f);
+			} else {
+				throw new SchemaException("Cannot combine on-resource and off-resource properties in a shadow search query. Encountered filter " + f);
 			}
 
 		}

@@ -1263,12 +1263,32 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         PrismObject<ShadowType> shadowEstevan = getObject(ShadowType.class, accountEstevanOid);
         display("Estevan shadow", shadowEstevan);
 
-//        This does not work, and it might not work anytime soon.
-//        see MID-2822
-//        assertSearch(ShadowType.class, ObjectQuery.createObjectQuery(
-//        		ObjectQueryUtil.createResourceAndObjectClassFilter(RESOURCE_DUMMY_OID, 
-//        				new QName(RESOURCE_DUMMY_NAMESPACE, "AccountObjectClass"), prismContext)), 2);
+    	// MID-2822
         
+    	Task task = taskManager.createTaskInstance(TestSecurity.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+
+        ObjectQuery query = ObjectQuery.createObjectQuery(
+        		ObjectQueryUtil.createResourceAndObjectClassFilter(RESOURCE_DUMMY_OID, 
+        				new QName(RESOURCE_DUMMY_NAMESPACE, "AccountObjectClass"), prismContext));
+
+        // When finally fixed is should be like this:
+//    	assertSearch(ShadowType.class, query, 2);
+        
+        try {
+            
+            modelService.searchObjects(ShadowType.class, query, null, task, result);
+                    	
+        	AssertJUnit.fail("unexpected success");
+			
+		} catch (SchemaException e) {
+			// This is expected. The authorizations will mix on-resource and off-resource search.
+			display("Expected exception", e);
+		}
+        result.computeStatus();
+		TestUtil.assertFailure(result);
+        
+		
         assertDeleteAllow(UserType.class, USER_ESTEVAN_OID);
                 
         assertVisibleUsers(3);
