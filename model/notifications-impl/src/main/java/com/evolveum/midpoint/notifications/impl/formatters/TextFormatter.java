@@ -29,6 +29,7 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ValueDisplayUtil;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -428,15 +429,20 @@ public class TextFormatter {
 
     private List<ItemDelta> filterAndOrderItemDeltas(ObjectDelta<? extends Objectable> objectDelta, List<ItemPath> hiddenPaths, boolean showOperationalAttributes) {
         List<ItemDelta> toBeDisplayed = new ArrayList<ItemDelta>(objectDelta.getModifications().size());
+        List<QName> noDefinition = new ArrayList<>();
         for (ItemDelta itemDelta: objectDelta.getModifications()) {
             if (itemDelta.getDefinition() != null) {
                 if ((showOperationalAttributes || !itemDelta.getDefinition().isOperational()) && !NotificationsUtil.isAmongHiddenPaths(itemDelta.getPath(), hiddenPaths)) {
                     toBeDisplayed.add(itemDelta);
                 }
             } else {
-                LOGGER.error("ItemDelta " + itemDelta.getElementName() + " without definition - WILL NOT BE INCLUDED IN NOTIFICATION. In " + objectDelta);
+                noDefinition.add(itemDelta.getElementName());
             }
         }
+		if (!noDefinition.isEmpty()) {
+			LOGGER.error("ItemDeltas for {} without definition - WILL NOT BE INCLUDED IN NOTIFICATION. Containing object delta:\n{}",
+					noDefinition, objectDelta.debugDump());
+		}
         Collections.sort(toBeDisplayed, new Comparator<ItemDelta>() {
             @Override
             public int compare(ItemDelta delta1, ItemDelta delta2) {
@@ -467,6 +473,7 @@ public class TextFormatter {
             return new ArrayList<>();
         }
         List<Item> toBeDisplayed = new ArrayList<Item>(items.size());
+        List<QName> noDefinition = new ArrayList<>();
         for (Item item : items) {
             if (item.getDefinition() != null) {
                 boolean isHidden = NotificationsUtil.isAmongHiddenPaths(item.getPath(), hiddenPaths);
@@ -474,9 +481,13 @@ public class TextFormatter {
                     toBeDisplayed.add(item);
                 }
             } else {
-                LOGGER.error("Item " + item.getElementName() + " without definition - WILL NOT BE INCLUDED IN NOTIFICATION.");
+				noDefinition.add(item.getElementName());
             }
         }
+		if (!noDefinition.isEmpty()) {
+			LOGGER.error("Items {} without definition - THEY WILL NOT BE INCLUDED IN NOTIFICATION.\nAll items:\n{}",
+					noDefinition, DebugUtil.debugDump(items));
+		}
         Collections.sort(toBeDisplayed, new Comparator<Item>() {
             @Override
             public int compare(Item item1, Item item2) {
