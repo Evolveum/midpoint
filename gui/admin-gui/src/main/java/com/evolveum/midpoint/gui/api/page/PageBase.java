@@ -30,6 +30,7 @@ import javax.management.ObjectName;
 import com.evolveum.midpoint.model.api.validator.ResourceValidator;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.web.page.admin.server.PageTasksCertScheduling;
 import com.evolveum.midpoint.web.page.admin.workflow.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
@@ -1086,7 +1087,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 		submenu.add(menu);
 		PageParameters params = new PageParameters();
 		params.add(PageTasks.SELECTED_CATEGORY, TaskCategory.ACCESS_CERTIFICATION);
-		menu = new MenuItem(createStringResource("PageAdmin.menu.top.certification.scheduling"), PageTasks.class,
+		menu = new MenuItem(createStringResource("PageAdmin.menu.top.certification.scheduling"), PageTasksCertScheduling.class,
 				params, null);
 		submenu.add(menu);
 		menu = new MenuItem(createStringResource("PageAdmin.menu.top.certification.decisions"),

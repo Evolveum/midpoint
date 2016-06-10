@@ -43,16 +43,18 @@
             <type>WorkItemType</type>
         </object>
     </authorization> -->
-    <authorization>
-    	<name>tasks-read</name>
-    	<description>
-    		...
-    	</description>
+    <authorization id="2">
+        <name>tasks-read</name>
+        <description>
+            Allow to see the requester of the operation that is being approved.
+            In order for the approver to see other properties (e.g. history of the approvals) please allow read access
+            to other items as well, e.g. to the whole workflowContext.
+        </description>
         <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
         <object>
             <type>TaskType</type>
-            <!-- TODO: more specific authorization -->
         </object>
+        <item>workflowContext/requesterRef</item>
     </authorization>
     <authorization>
     	<name>users-read</name>

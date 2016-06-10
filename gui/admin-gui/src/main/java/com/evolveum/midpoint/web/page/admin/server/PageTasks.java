@@ -151,23 +151,19 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
     private List<TaskDto> tasksToBeDeleted = new ArrayList<>();
 
     public PageTasks() {
-        this(true);
-    }
-
-    public PageTasks(boolean clearSessionStorage) {
-        this(true, "", null);
+		this("", null);
     }
 
     public PageTasks(String searchText) {
-        this(true, searchText, null);
+        this(searchText, null);
     }
 
     public PageTasks(PageParameters parameters) {
-        this(true, "", parameters);
+        this("", parameters);
     }
 
     // TODO clean the mess with constructors
-    public PageTasks(boolean clearSessionStorage, String searchText, PageParameters parameters) {
+    public PageTasks(String searchText, PageParameters parameters) {
         if (parameters != null) {
             getPageParameters().overwriteWith(parameters);
         }
@@ -503,9 +499,9 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
                     @Override
                     public String getObject() {
                         if (rowModel != null && rowModel.getObject() != null && rowModel.getObject().getStatus() != null) {
-                            return OperationResultStatusPresentationProperties.parseOperationalResultStatus(rowModel.getObject().getStatus().createStatusType()).getIcon();
+                            return OperationResultStatusPresentationProperties.parseOperationalResultStatus(rowModel.getObject().getStatus().createStatusType()).getIcon() + " fa-lg";
                         } else
-                            return OperationResultStatusPresentationProperties.UNKNOWN.getIcon();
+                            return OperationResultStatusPresentationProperties.UNKNOWN.getIcon() + " fa-lg";
                     }
                 };
             }

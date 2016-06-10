@@ -148,6 +148,9 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 
 	protected static final File ROLE_PROP_READ_SOME_MODIFY_SOME_EXEC_ALL_FILE = new File(TEST_DIR, "role-prop-read-some-modify-some-exec-all.xml");
 	protected static final String ROLE_PROP_READ_SOME_MODIFY_SOME_EXEC_ALL_OID = "00000000-0000-0000-0000-00000000ad08";
+
+	protected static final File ROLE_PROP_READ_SOME_MODIFY_SOME_USER_FILE = new File(TEST_DIR, "role-prop-read-some-modify-some-user.xml");
+	protected static final String ROLE_PROP_READ_SOME_MODIFY_SOME_USER_OID = "00000000-0000-0000-0000-00000000ae08";
 	
 	protected static final File ROLE_SELF_ACCOUNTS_READ_FILE = new File(TEST_DIR, "role-self-accounts-read.xml");
 	protected static final String ROLE_SELF_ACCOUNTS_READ_OID = "00000000-0000-0000-0000-00000000aa09";
@@ -249,6 +252,7 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 		repoAddObjectFromFile(ROLE_PROP_READ_SOME_MODIFY_SOME_FILE, RoleType.class, initResult);
 		repoAddObjectFromFile(ROLE_PROP_READ_SOME_MODIFY_SOME_REQ_EXEC_FILE, RoleType.class, initResult);
 		repoAddObjectFromFile(ROLE_PROP_READ_SOME_MODIFY_SOME_EXEC_ALL_FILE, RoleType.class, initResult);
+		repoAddObjectFromFile(ROLE_PROP_READ_SOME_MODIFY_SOME_USER_FILE, RoleType.class, initResult);
 		repoAddObjectFromFile(ROLE_READ_JACKS_CAMPAIGNS_FILE, RoleType.class, initResult);
 		repoAddObjectFromFile(ROLE_SELF_ACCOUNTS_READ_FILE, RoleType.class, initResult);
 		repoAddObjectFromFile(ROLE_SELF_ACCOUNTS_READ_WRITE_FILE, RoleType.class, initResult);
@@ -892,6 +896,81 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 		final String TEST_NAME = "test215reAutzJackPropReadSomeModifySomeReqExec";
 		testAutzJackPropReadSomeModifySome(TEST_NAME, ROLE_PROP_READ_SOME_MODIFY_SOME_REQ_EXEC_OID);
 	}
+	
+	/**
+	 * MID-3126
+	 */
+    @Test
+    public void test216AutzJackPropReadSomeModifySomeUser() throws Exception {
+		final String TEST_NAME = "test216AutzJackPropReadSomeModifySomeUser";
+		TestUtil.displayTestTile(this, TEST_NAME);
+		// GIVEN
+		cleanupAutzTest(USER_JACK_OID);
+		assignRole(USER_JACK_OID, ROLE_PROP_READ_SOME_MODIFY_SOME_USER_OID);
+		login(USER_JACK_USERNAME);
+		
+		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
+				
+//		assertModifyAllow(UserType.class, USER_JACK_OID, UserType.F_ADDITIONAL_NAME, PrismTestUtil.createPolyString("Captain"));
+		
+		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
+		display("Jack", userJack);
+		assertUserJackReadSomeModifySome(userJack);
+		assertJackEditSchemaReadSomeModifySome(userJack);
+		
+		PrismObject<UserType> userGuybrush = findUserByUsername(USER_GUYBRUSH_USERNAME);
+		display("Guybrush", userGuybrush);
+		assertNull("Unexpected Guybrush", userGuybrush);
+		
+		assertAddDeny();
+		
+		assertModifyAllow(UserType.class, USER_JACK_OID, UserType.F_FULL_NAME, PrismTestUtil.createPolyString("Captain Jack Sparrow"));
+		assertModifyDeny(UserType.class, USER_GUYBRUSH_OID, UserType.F_DESCRIPTION, "Pirate wannabe");
+		
+		assertModifyDeny(UserType.class, USER_JACK_OID, UserType.F_HONORIFIC_PREFIX, PrismTestUtil.createPolyString("Captain"));
+		assertModifyDeny(UserType.class, USER_GUYBRUSH_OID, UserType.F_HONORIFIC_PREFIX, PrismTestUtil.createPolyString("Pirate"));
+		assertModifyDeny(UserType.class, USER_BARBOSSA_OID, UserType.F_HONORIFIC_PREFIX, PrismTestUtil.createPolyString("Mutinier"));
+		
+		assertModifyDeny(UserType.class, USER_JACK_OID, UserType.F_COST_CENTER, "V3RYC0STLY");
+		assertModifyDeny(UserType.class, USER_JACK_OID, UserType.F_ORGANIZATION, PrismTestUtil.createPolyString("Brethren of the Coast"));
+		
+		assertDeleteDeny();
+		
+		assertGlobalStateUntouched();
+	}
+    
+    private void assertUserJackReadSomeModifySome(PrismObject<UserType> userJack) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException {
+    	
+		PrismAsserts.assertPropertyValue(userJack, UserType.F_NAME, PrismTestUtil.createPolyString(USER_JACK_USERNAME));
+		PrismAsserts.assertPropertyValue(userJack, UserType.F_FULL_NAME, PrismTestUtil.createPolyString(USER_JACK_FULL_NAME));
+		PrismAsserts.assertPropertyValue(userJack, new ItemPath(UserType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS),
+			ActivationStatusType.ENABLED);
+		PrismAsserts.assertNoItem(userJack, UserType.F_GIVEN_NAME);
+		PrismAsserts.assertNoItem(userJack, UserType.F_FAMILY_NAME);
+		PrismAsserts.assertNoItem(userJack, UserType.F_ADDITIONAL_NAME);
+		PrismAsserts.assertNoItem(userJack, UserType.F_DESCRIPTION);
+		PrismAsserts.assertNoItem(userJack, new ItemPath(UserType.F_ACTIVATION, ActivationType.F_EFFECTIVE_STATUS));
+		assertAssignmentsWithTargets(userJack, 1);
+    }
+    
+    private void assertJackEditSchemaReadSomeModifySome(PrismObject<UserType> userJack) throws SchemaException, ConfigurationException, ObjectNotFoundException {
+    	PrismObjectDefinition<UserType> userJackEditSchema = getEditObjectDefinition(userJack);
+		display("Jack's edit schema", userJackEditSchema);
+		assertItemFlags(userJackEditSchema, UserType.F_NAME, true, false, false);
+		assertItemFlags(userJackEditSchema, UserType.F_FULL_NAME, true, false, true);
+		assertItemFlags(userJackEditSchema, UserType.F_DESCRIPTION, false, false, true);
+		assertItemFlags(userJackEditSchema, UserType.F_GIVEN_NAME, false, false, false);
+		assertItemFlags(userJackEditSchema, UserType.F_FAMILY_NAME, false, false, false);
+		assertItemFlags(userJackEditSchema, UserType.F_ADDITIONAL_NAME, false, false, true);
+		assertItemFlags(userJackEditSchema, UserType.F_METADATA, false, false, false);
+		assertItemFlags(userJackEditSchema, new ItemPath(UserType.F_METADATA, MetadataType.F_CREATE_TIMESTAMP), false, false, false);
+		assertItemFlags(userJackEditSchema, UserType.F_ASSIGNMENT, true, false, false);
+		assertItemFlags(userJackEditSchema, new ItemPath(UserType.F_ASSIGNMENT, UserType.F_METADATA), true, false, false);
+		assertItemFlags(userJackEditSchema, new ItemPath(UserType.F_ASSIGNMENT, UserType.F_METADATA, MetadataType.F_CREATE_TIMESTAMP), true, false, false);
+		assertItemFlags(userJackEditSchema, new ItemPath(UserType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS), true, false, false);
+		assertItemFlags(userJackEditSchema, new ItemPath(UserType.F_ACTIVATION, ActivationType.F_EFFECTIVE_STATUS), false, false, false);
+    }
 
     public void testAutzJackPropReadSomeModifySome(final String TEST_NAME, String roleOid) throws Exception {
         TestUtil.displayTestTile(this, TEST_NAME);
@@ -908,34 +987,10 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         assertModifyAllow(UserType.class, USER_JACK_OID, UserType.F_ADDITIONAL_NAME, PrismTestUtil.createPolyString("Captain"));
         
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
-        display("Jack", userJack);
-        PrismAsserts.assertPropertyValue(userJack, UserType.F_NAME, PrismTestUtil.createPolyString(USER_JACK_USERNAME));
-        PrismAsserts.assertPropertyValue(userJack, UserType.F_FULL_NAME, PrismTestUtil.createPolyString(USER_JACK_FULL_NAME));
-        PrismAsserts.assertPropertyValue(userJack, new ItemPath(UserType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS),
-        	ActivationStatusType.ENABLED);
-        PrismAsserts.assertNoItem(userJack, UserType.F_GIVEN_NAME);
-        PrismAsserts.assertNoItem(userJack, UserType.F_FAMILY_NAME);
-        PrismAsserts.assertNoItem(userJack, UserType.F_ADDITIONAL_NAME);
-        PrismAsserts.assertNoItem(userJack, UserType.F_DESCRIPTION);
-        PrismAsserts.assertNoItem(userJack, new ItemPath(UserType.F_ACTIVATION, ActivationType.F_EFFECTIVE_STATUS));
-        assertAssignmentsWithTargets(userJack, 1);
-        
-        PrismObjectDefinition<UserType> userJackEditSchema = getEditObjectDefinition(userJack);
-        display("Jack's edit schema", userJackEditSchema);
-        assertItemFlags(userJackEditSchema, UserType.F_NAME, true, false, false);
-        assertItemFlags(userJackEditSchema, UserType.F_FULL_NAME, true, false, true);
-        assertItemFlags(userJackEditSchema, UserType.F_DESCRIPTION, false, false, true);
-        assertItemFlags(userJackEditSchema, UserType.F_GIVEN_NAME, false, false, false);
-        assertItemFlags(userJackEditSchema, UserType.F_FAMILY_NAME, false, false, false);
-        assertItemFlags(userJackEditSchema, UserType.F_ADDITIONAL_NAME, false, false, true);
-        assertItemFlags(userJackEditSchema, UserType.F_METADATA, false, false, false);
-        assertItemFlags(userJackEditSchema, new ItemPath(UserType.F_METADATA, MetadataType.F_CREATE_TIMESTAMP), false, false, false);
-        assertItemFlags(userJackEditSchema, UserType.F_ASSIGNMENT, true, false, false);
-        assertItemFlags(userJackEditSchema, new ItemPath(UserType.F_ASSIGNMENT, UserType.F_METADATA), true, false, false);
-        assertItemFlags(userJackEditSchema, new ItemPath(UserType.F_ASSIGNMENT, UserType.F_METADATA, MetadataType.F_CREATE_TIMESTAMP), true, false, false);
-        assertItemFlags(userJackEditSchema, new ItemPath(UserType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS), true, false, false);
-        assertItemFlags(userJackEditSchema, new ItemPath(UserType.F_ACTIVATION, ActivationType.F_EFFECTIVE_STATUS), false, false, false);
-        
+		display("Jack", userJack);
+		assertUserJackReadSomeModifySome(userJack);
+		assertJackEditSchemaReadSomeModifySome(userJack);
+		
         PrismObject<UserType> userGuybrush = findUserByUsername(USER_GUYBRUSH_USERNAME);
         display("Guybrush", userGuybrush);
         PrismAsserts.assertPropertyValue(userGuybrush, UserType.F_NAME, PrismTestUtil.createPolyString(USER_GUYBRUSH_USERNAME));
@@ -965,6 +1020,7 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         
         assertGlobalStateUntouched();
 	}
+
     
     @Test
     public void test218AutzJackPropReadSomeModifySomeExecAll() throws Exception {
@@ -1263,12 +1319,32 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         PrismObject<ShadowType> shadowEstevan = getObject(ShadowType.class, accountEstevanOid);
         display("Estevan shadow", shadowEstevan);
 
-//        This does not work, and it might not work anytime soon.
-//        see MID-2822
-//        assertSearch(ShadowType.class, ObjectQuery.createObjectQuery(
-//        		ObjectQueryUtil.createResourceAndObjectClassFilter(RESOURCE_DUMMY_OID, 
-//        				new QName(RESOURCE_DUMMY_NAMESPACE, "AccountObjectClass"), prismContext)), 2);
+    	// MID-2822
         
+    	Task task = taskManager.createTaskInstance(TestSecurity.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+
+        ObjectQuery query = ObjectQuery.createObjectQuery(
+        		ObjectQueryUtil.createResourceAndObjectClassFilter(RESOURCE_DUMMY_OID, 
+        				new QName(RESOURCE_DUMMY_NAMESPACE, "AccountObjectClass"), prismContext));
+
+        // When finally fixed is should be like this:
+//    	assertSearch(ShadowType.class, query, 2);
+        
+        try {
+            
+            modelService.searchObjects(ShadowType.class, query, null, task, result);
+                    	
+        	AssertJUnit.fail("unexpected success");
+			
+		} catch (SchemaException e) {
+			// This is expected. The authorizations will mix on-resource and off-resource search.
+			display("Expected exception", e);
+		}
+        result.computeStatus();
+		TestUtil.assertFailure(result);
+        
+		
         assertDeleteAllow(UserType.class, USER_ESTEVAN_OID);
                 
         assertVisibleUsers(3);

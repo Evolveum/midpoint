@@ -40,10 +40,11 @@ public class ApprovalLevelImpl implements ApprovalLevel, Serializable {
 
     private static final long serialVersionUID = 1989606281279792045L;
 
+	private final int order;
     private String name;
     private String description;
-    private List<LightweightObjectRefImpl> approverRefs = new ArrayList<LightweightObjectRefImpl>();
-    private List<SerializationSafeContainer<ExpressionType>> approverExpressions = new ArrayList<SerializationSafeContainer<ExpressionType>>();
+    private List<LightweightObjectRefImpl> approverRefs = new ArrayList<>();
+    private List<SerializationSafeContainer<ExpressionType>> approverExpressions = new ArrayList<>();
     private LevelEvaluationStrategyType evaluationStrategy;
     private SerializationSafeContainer<ExpressionType> automaticallyApproved;
 
@@ -53,6 +54,7 @@ public class ApprovalLevelImpl implements ApprovalLevel, Serializable {
 
         Validate.notNull(prismContext, "prismContext must not be null");
 
+		this.order = levelType.getOrder() != null ? levelType.getOrder() : 0;
         this.name = levelType.getName();
         this.description = levelType.getDescription();
 
@@ -74,6 +76,8 @@ public class ApprovalLevelImpl implements ApprovalLevel, Serializable {
         Validate.notNull(prismContext, "prismContext must not be null");
 
         setPrismContext(prismContext);
+
+		order = 0;
 
         if (approverRefList != null) {
             for (ObjectReferenceType approverRef : approverRefList) {
@@ -114,7 +118,7 @@ public class ApprovalLevelImpl implements ApprovalLevel, Serializable {
 
     @Override
     public List<ExpressionType> getApproverExpressions() {
-        List<ExpressionType> retval = new ArrayList<ExpressionType>();
+        List<ExpressionType> retval = new ArrayList<>();
         for (SerializationSafeContainer<ExpressionType> approverExpression : approverExpressions) {
             retval.add(approverExpression.getValue());
         }
@@ -142,10 +146,14 @@ public class ApprovalLevelImpl implements ApprovalLevel, Serializable {
     }
 
     public void setAutomaticallyApproved(ExpressionType automaticallyApproved) {
-        this.automaticallyApproved = new SingleItemSerializationSafeContainerImpl<ExpressionType>(automaticallyApproved, prismContext);
+        this.automaticallyApproved = new SingleItemSerializationSafeContainerImpl<>(automaticallyApproved, prismContext);
     }
 
-    @Override
+	public int getOrder() {
+		return order;
+	}
+
+	@Override
     public PrismContext getPrismContext() {
         return prismContext;
     }
@@ -158,6 +166,7 @@ public class ApprovalLevelImpl implements ApprovalLevel, Serializable {
     @Override
     public ApprovalLevelType toApprovalLevelType(PrismContext prismContext) {
         ApprovalLevelType levelType = new ApprovalLevelType();          // is this ok?
+		levelType.setOrder(getOrder());
         levelType.setName(getName());
         levelType.setDescription(getDescription());
         levelType.setAutomaticallyApproved(getAutomaticallyApproved());

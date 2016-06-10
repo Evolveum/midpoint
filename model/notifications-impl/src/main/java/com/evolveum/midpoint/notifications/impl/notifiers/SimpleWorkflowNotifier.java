@@ -16,9 +16,7 @@
 
 package com.evolveum.midpoint.notifications.impl.notifiers;
 
-import com.evolveum.midpoint.notifications.api.events.Event;
-import com.evolveum.midpoint.notifications.api.events.WorkItemEvent;
-import com.evolveum.midpoint.notifications.api.events.WorkflowEvent;
+import com.evolveum.midpoint.notifications.api.events.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -28,6 +26,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.GeneralNotifierType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SimpleWorkflowNotifierType;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
@@ -58,7 +57,25 @@ public class SimpleWorkflowNotifier extends GeneralNotifier {
         return true;
     }
 
-    @Override
+	@Override
+	protected UserType getDefaultRecipient(Event event, GeneralNotifierType generalNotifierType, OperationResult result) {
+		SimpleObjectRef recipientRef;
+		if (event instanceof WorkflowProcessEvent) {
+			recipientRef = event.getRequester();
+		} else if (event instanceof WorkItemEvent) {
+			recipientRef = ((WorkItemEvent) event).getAssignee();
+		} else {
+			return null;
+		}
+		ObjectType recipient = notificationsUtil.getObjectType(recipientRef, result);
+		if (recipient instanceof UserType) {
+			return (UserType) recipient;
+		} else {
+			return null;
+		}
+	}
+
+	@Override
     protected String getSubject(Event event, GeneralNotifierType generalNotifierType, String transport, Task task, OperationResult result) {
 
         if (event.isAdd()) {

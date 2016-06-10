@@ -104,7 +104,11 @@ abstract public class WorkflowEvent extends BaseEvent {
 		return workflowContext.getProcessSpecificState();
     }
 
-    public WfPrimaryChangeProcessorStateType getPrimaryChangeProcessorState() {
+	public WfContextType getWorkflowContext() {
+		return workflowContext;
+	}
+
+	public WfPrimaryChangeProcessorStateType getPrimaryChangeProcessorState() {
         WfProcessorSpecificStateType state = getProcessorSpecificState();
         if (state instanceof WfPrimaryChangeProcessorStateType) {
             return (WfPrimaryChangeProcessorStateType) state;
@@ -132,7 +136,7 @@ abstract public class WorkflowEvent extends BaseEvent {
                 ", answer=" + workflowContext.getAnswer() +
                 '}';
     }
-    
+
     // This method is not used. It is here just for maven dependency plugin to detect the
     // dependency on workflow-api
     @SuppressWarnings("unused")

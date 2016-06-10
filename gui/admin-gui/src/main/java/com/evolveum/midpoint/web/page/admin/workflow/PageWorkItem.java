@@ -27,9 +27,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -76,7 +74,6 @@ public class PageWorkItem extends PageAdminWorkItems {
 
     private static final String DOT_CLASS = PageWorkItem.class.getName() + ".";
     private static final String OPERATION_LOAD_WORK_ITEM = DOT_CLASS + "loadWorkItem";
-    private static final String OPERATION_LOAD_PROCESS_INSTANCE = DOT_CLASS + "loadProcessInstance";
     private static final String OPERATION_SAVE_WORK_ITEM = DOT_CLASS + "saveWorkItem";
     private static final String OPERATION_CLAIM_WORK_ITEM = DOT_CLASS + "claimWorkItem";
     private static final String OPERATION_RELEASE_WORK_ITEM = DOT_CLASS + "releaseWorkItem";
@@ -138,20 +135,27 @@ public class PageWorkItem extends PageAdminWorkItems {
 				final Collection<SelectorOptions<GetOperationOptions>> getTaskOptions = resolveItemsNamed(
 						new ItemPath(F_WORKFLOW_CONTEXT, F_REQUESTER_REF));
 				getTaskOptions.addAll(retrieveItemsNamed(new ItemPath(F_WORKFLOW_CONTEXT, F_WORK_ITEM)));
-				taskType = getModelService().getObject(TaskType.class, taskOid, getTaskOptions, task, result).asObjectable();
+				try {
+					taskType = getModelService().getObject(TaskType.class, taskOid, getTaskOptions, task, result).asObjectable();
+				} catch (AuthorizationException e) {
+					LoggingUtils.logExceptionOnDebugLevel(LOGGER, "Access to the task {} was denied", e, taskOid);
+				}
 
-				final ObjectQuery relatedTasksQuery = QueryBuilder.queryFor(TaskType.class, getPrismContext())
-						.item(F_PARENT).eq(taskType.getParent())
-						.build();
-				List<PrismObject<TaskType>> relatedTaskObjects = getModelService().searchObjects(TaskType.class, relatedTasksQuery, null, task, result);
-				for (PrismObject<TaskType> relatedObject : relatedTaskObjects) {
-					relatedTasks.add(relatedObject.asObjectable());
+				if (taskType != null) {
+					final ObjectQuery relatedTasksQuery = QueryBuilder.queryFor(TaskType.class, getPrismContext())
+							.item(F_PARENT).eq(taskType.getParent())
+							.build();
+					List<PrismObject<TaskType>> relatedTaskObjects = getModelService()
+							.searchObjects(TaskType.class, relatedTasksQuery, null, task, result);
+					for (PrismObject<TaskType> relatedObject : relatedTaskObjects) {
+						relatedTasks.add(relatedObject.asObjectable());
+					}
 				}
 			}
 			workItemDto = new WorkItemDto(workItem, taskType, relatedTasks);
 			workItemDto.prepareDeltaVisualization("pageWorkItem.delta", getPrismContext(), getModelInteractionService(), task, result);
             result.recordSuccessIfUnknown();
-        } catch (Exception ex) {
+        } catch (CommonException|RuntimeException ex) {
             result.recordFatalError("Couldn't get work item.", ex);
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't get work item.", ex);
         }
@@ -281,6 +285,7 @@ public class PageWorkItem extends PageAdminWorkItems {
         mainForm.add(cancel);
     }
 
+	@SuppressWarnings("unused")
     private void cancelPerformed(AjaxRequestTarget target) {
         redirectBack();
     }

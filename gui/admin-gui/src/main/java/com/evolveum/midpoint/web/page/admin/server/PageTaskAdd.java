@@ -582,7 +582,7 @@ public class PageTaskAdd extends PageAdminTasks {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                setResponsePage(new PageTasks(false));
+                redirectBack();
             }
         };
         mainForm.add(backButton);
