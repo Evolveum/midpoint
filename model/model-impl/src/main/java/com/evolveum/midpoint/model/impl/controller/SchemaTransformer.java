@@ -56,6 +56,7 @@ import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationDecisionType;
@@ -188,11 +189,26 @@ public class SchemaTransformer {
     	
     	PrismObjectDefinition<O> objectDefinition = object.deepCloneDefinition(true);
     	
+    	ObjectSecurityConstraints securityConstraints;
+    	try {
+	    	securityConstraints = securityEnforcer.compileSecurityConstraints(object, null);
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("Security constrains for {}:\n{}", object, securityConstraints==null?"null":securityConstraints.debugDump());
+			}
+			if (securityConstraints == null) {
+				SecurityUtil.logSecurityDeny(object, "because no security constraints are defined (default deny)");
+				throw new AuthorizationException("Access denied");
+			}
+    	} catch (SecurityViolationException | SchemaException | RuntimeException e) {
+			result.recordFatalError(e);
+			throw e;
+		}
+
     	if (phase == null) {
-    		applySchemasAndSecurityPhase(object, objectDefinition, rootOptions, AuthorizationPhaseType.REQUEST, task, result);
-    		applySchemasAndSecurityPhase(object, objectDefinition, rootOptions, AuthorizationPhaseType.EXECUTION, task, result);
+    		applySchemasAndSecurityPhase(object, securityConstraints, objectDefinition, rootOptions, AuthorizationPhaseType.REQUEST, task, result);
+    		applySchemasAndSecurityPhase(object, securityConstraints, objectDefinition, rootOptions, AuthorizationPhaseType.EXECUTION, task, result);
     	} else {
-    		applySchemasAndSecurityPhase(object, objectDefinition, rootOptions, phase, task, result);
+    		applySchemasAndSecurityPhase(object, securityConstraints, objectDefinition, rootOptions, phase, task, result);
     	}
 		
 		ObjectTemplateType objectTemplateType;
@@ -208,25 +224,18 @@ public class SchemaTransformer {
 		result.recordSuccessIfUnknown();
     }
 	
-	private <O extends ObjectType> void applySchemasAndSecurityPhase(PrismObject<O> object, PrismObjectDefinition<O> objectDefinition, 
+	private <O extends ObjectType> void applySchemasAndSecurityPhase(PrismObject<O> object, ObjectSecurityConstraints securityConstraints, PrismObjectDefinition<O> objectDefinition, 
 			GetOperationOptions rootOptions, AuthorizationPhaseType phase, Task task, OperationResult result) 
 					throws SchemaException, SecurityViolationException, ConfigurationException, ObjectNotFoundException {
 		Validate.notNull(phase);
 		try {
-			ObjectSecurityConstraints securityConstraints = securityEnforcer.compileSecurityConstraints(object, null);
-			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("Security constrains for {}:\n{}", object, securityConstraints==null?"null":securityConstraints.debugDump());
-			}
-			if (securityConstraints == null) {
-				SecurityUtil.logSecurityDeny(object, "because no security constraints are defined (default deny)");
-				throw new AuthorizationException("Access denied");
-			}
 			AuthorizationDecisionType globalReadDecision = securityConstraints.getActionDecision(ModelAuthorizationAction.READ.getUrl(), phase);
 			if (globalReadDecision == AuthorizationDecisionType.DENY) {
 				// shortcut
 				SecurityUtil.logSecurityDeny(object, "because the authorization denies access");
 				throw new AuthorizationException("Access denied");
 			}
+			
 			AuthorizationDecisionType globalAddDecision = securityConstraints.getActionDecision(ModelAuthorizationAction.ADD.getUrl(), phase);
 			AuthorizationDecisionType globalModifyDecision = securityConstraints.getActionDecision(ModelAuthorizationAction.MODIFY.getUrl(), phase);
 			applySecurityConstraints((List)object.getValue().getItems(), securityConstraints, globalReadDecision,
@@ -239,7 +248,7 @@ public class SchemaTransformer {
 			
 			applySecurityConstraintsItemDef(objectDefinition, ItemPath.EMPTY_PATH, securityConstraints, globalReadDecision, globalAddDecision, globalModifyDecision, phase);
 			
-		} catch (SecurityViolationException | SchemaException e) {
+		} catch (SecurityViolationException | RuntimeException e) {
 			result.recordFatalError(e);
 			throw e;
 		}

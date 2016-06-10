@@ -221,8 +221,18 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 	public <O extends ObjectType> PrismObjectDefinition<O> getEditObjectDefinition(PrismObject<O> object, AuthorizationPhaseType phase, OperationResult parentResult) throws SchemaException, ConfigurationException, ObjectNotFoundException {
 		OperationResult result = parentResult.createMinorSubresult(GET_EDIT_OBJECT_DEFINITION);
 		PrismObjectDefinition<O> objectDefinition = object.getDefinition().deepClone(true);
+		
+		PrismObject<O> baseObject = object;
+		if (object.getOid() != null) {
+			// Re-read the object from the repository to make sure we have all the properties.
+			// the object from method parameters may be already processed by the security code
+			// and properties needed to evaluate authorizations may not be there
+			// MID-3126
+			baseObject = cacheRepositoryService.getObject(object.getCompileTimeClass(), object.getOid(), null, result);
+		}
+		
 		// TODO: maybe we need to expose owner resolver in the interface?
-		ObjectSecurityConstraints securityConstraints = securityEnforcer.compileSecurityConstraints(object, null);
+		ObjectSecurityConstraints securityConstraints = securityEnforcer.compileSecurityConstraints(baseObject, null);
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("Security constrains for {}:\n{}", object, securityConstraints==null?"null":securityConstraints.debugDump());
 		}
