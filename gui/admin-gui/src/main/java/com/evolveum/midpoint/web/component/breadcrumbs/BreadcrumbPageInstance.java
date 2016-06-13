@@ -20,6 +20,7 @@ import org.apache.commons.lang.Validate;
 import org.apache.wicket.Component;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import java.util.Arrays;
 
@@ -42,6 +43,11 @@ public class BreadcrumbPageInstance extends Breadcrumb {
 
     public WebPage getPage() {
         return page;
+    }
+
+    @Override
+    public PageParameters getParameters() {
+        return page.getPageParameters();
     }
 
     @Override

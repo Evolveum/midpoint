@@ -330,6 +330,21 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 		getSessionStorage().pushBreadcrumb(bc);
 	}
 
+	public void updateBreadcrumbParameters(String key, Object value) {
+		List<Breadcrumb> list = getSessionStorage().getBreadcrumbs();
+		if (list.isEmpty()) {
+			return;
+		}
+
+		Breadcrumb bc = list.get(list.size() - 1);
+		PageParameters params = bc.getParameters();
+		if (params == null) {
+			return;
+		}
+
+		params.set(key, value);
+	}
+
 	public PageBase() {
 		this(null);
 	}

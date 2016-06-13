@@ -15,74 +15,55 @@
  */
 package com.evolveum.midpoint.web.component.objectdetails;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
-import java.util.List;
-
-import com.evolveum.midpoint.web.page.self.PageSelfProfile;
-import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
-
-import org.apache.commons.lang.BooleanUtils;
-import org.apache.commons.lang.Validate;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.extensions.markup.html.tabs.AbstractTab;
-import org.apache.wicket.extensions.markup.html.tabs.ITab;
-import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.panel.Panel;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.util.string.StringValue;
-
 import com.evolveum.midpoint.gui.api.component.tabs.CountablePanelTab;
 import com.evolveum.midpoint.gui.api.component.tabs.PanelTab;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.prism.query.AndFilter;
-import com.evolveum.midpoint.prism.query.EqualFilter;
-import com.evolveum.midpoint.prism.query.NotFilter;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.RefFilter;
+import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.assignment.AssignmentEditorDto;
-import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.PageAdminFocus;
 import com.evolveum.midpoint.web.page.admin.PageAdminObjectDetails;
-import com.evolveum.midpoint.web.page.admin.server.PageTasks;
-import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoProvider;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoProviderOptions;
 import com.evolveum.midpoint.web.page.admin.users.dto.FocusSubwrapperDto;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FormSpecificationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectFormType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
+import com.evolveum.midpoint.web.page.self.PageSelfProfile;
+import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import org.apache.commons.lang.BooleanUtils;
+import org.apache.commons.lang.Validate;
+import org.apache.wicket.extensions.markup.html.tabs.ITab;
+import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.util.string.StringValue;
+
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author semancik
  *
  */
 public class FocusMainPanel<F extends FocusType> extends AbstractObjectMainPanel<F> {
+
 	private static final long serialVersionUID = 1L;
-	
+
 	private static final Trace LOGGER = TraceManager.getTrace(FocusMainPanel.class);
 
 	private LoadableModel<List<FocusSubwrapperDto<ShadowType>>> projectionModel;
 	private LoadableModel<List<AssignmentEditorDto>> assignmentsModel;
 	private TaskDtoProvider taskDtoProvider;
-	
-        public FocusMainPanel(String id, LoadableModel<ObjectWrapper<F>> objectModel,
-			LoadableModel<List<AssignmentEditorDto>> assignmentsModel, 
-			LoadableModel<List<FocusSubwrapperDto<ShadowType>>> projectionModel,
-			PageAdminFocus<F> parentPage) {
+
+	public FocusMainPanel(String id, LoadableModel<ObjectWrapper<F>> objectModel,
+						  LoadableModel<List<AssignmentEditorDto>> assignmentsModel,
+						  LoadableModel<List<FocusSubwrapperDto<ShadowType>>> projectionModel,
+						  PageAdminFocus<F> parentPage) {
 		super(id, objectModel, parentPage);
 		Validate.notNull(projectionModel, "Null projection model");
 		this.assignmentsModel = assignmentsModel;
@@ -92,11 +73,11 @@ public class FocusMainPanel<F extends FocusType> extends AbstractObjectMainPanel
 
 	private void initLayout(final PageAdminObjectDetails<F> parentPage) {
 		getMainForm().setMultiPart(true);
-		
+
 		taskDtoProvider = new TaskDtoProvider(parentPage, TaskDtoProviderOptions.minimalOptions());
 		taskDtoProvider.setQuery(createTaskQuery(null, parentPage));
 	}
-	
+
 	@Override
 	protected void onInitialize() {
 		super.onInitialize();
@@ -104,7 +85,7 @@ public class FocusMainPanel<F extends FocusType> extends AbstractObjectMainPanel
 
 		taskDtoProvider.setQuery(createTaskQuery(oidValue != null ? oidValue.toString() : null, (PageBase)getPage()));
 	}
-		
+
 	private ObjectQuery createTaskQuery(String oid, PageBase page) {
 		List<ObjectFilter> filters = new ArrayList<ObjectFilter>();
 
@@ -124,11 +105,11 @@ public class FocusMainPanel<F extends FocusType> extends AbstractObjectMainPanel
 		return new ObjectQuery().createObjectQuery(AndFilter.createAnd(filters));
 	}
 
-	
+
 	@Override
 	protected List<ITab> createTabs(final PageAdminObjectDetails<F> parentPage) {
 		List<ITab> tabs = new ArrayList<>();
-		
+
 		List<ObjectFormType> objectFormTypes = parentPage.getObjectFormTypes();
 		if (objectFormTypes == null || objectFormTypes.isEmpty()) {
 			addDefaultTabs(parentPage, tabs);
@@ -152,11 +133,11 @@ public class FocusMainPanel<F extends FocusType> extends AbstractObjectMainPanel
 
 						@Override
 						public WebMarkupContainer createPanel(String panelId) {
-							return createTabPanel(panelId, formSpecificationType, parentPage); 
+							return createTabPanel(panelId, formSpecificationType, parentPage);
 						}
 					});
 		}
-				
+
 		return tabs;
 	}
 
@@ -181,7 +162,7 @@ public class FocusMainPanel<F extends FocusType> extends AbstractObjectMainPanel
 			}
 			AbstractFocusTabPanel<F> tabPanel;
 			try {
-				tabPanel = (AbstractFocusTabPanel<F>) constructor.newInstance(panelId, getMainForm(), getObjectModel(), 
+				tabPanel = (AbstractFocusTabPanel<F>) constructor.newInstance(panelId, getMainForm(), getObjectModel(),
 						assignmentsModel, projectionModel ,parentPage);
 			} catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
 				throw new SystemException("Error instantiating "+panelClass+": "+e.getMessage(), e);
@@ -201,7 +182,7 @@ public class FocusMainPanel<F extends FocusType> extends AbstractObjectMainPanel
 				throw new SystemException("Error instantiating "+panelClass+": "+e.getMessage(), e);
 			}
 			return tabPanel;
-		
+
 		} else {
 			throw new UnsupportedOperationException("Tab panels that are not subclasses of AbstractObjectTabPanel or AbstractFocusTabPanel are not supported yet (got "+panelClass+")");
 		}
@@ -210,11 +191,11 @@ public class FocusMainPanel<F extends FocusType> extends AbstractObjectMainPanel
 	protected WebMarkupContainer createFocusDetailsTabPanel(String panelId, PageAdminObjectDetails<F> parentPage) {
 		return new FocusDetailsTabPanel<F>(panelId, getMainForm(), getObjectModel(), assignmentsModel, projectionModel, parentPage);
 	}
-	
+
 	protected WebMarkupContainer createFocusProjectionsTabPanel(String panelId, PageAdminObjectDetails<F> parentPage) {
 		return new FocusProjectionsTabPanel<F>(panelId, getMainForm(), getObjectModel(), projectionModel, parentPage);
 	}
-	
+
 	protected WebMarkupContainer createFocusAssignmentsTabPanel(String panelId, PageAdminObjectDetails<F> parentPage) {
 		return new FocusAssignmentsTabPanel<F>(panelId, getMainForm(), getObjectModel(), assignmentsModel, parentPage);
 	}
@@ -224,24 +205,24 @@ public class FocusMainPanel<F extends FocusType> extends AbstractObjectMainPanel
 	}
 
 	protected void addDefaultTabs(final PageAdminObjectDetails<F> parentPage, List<ITab> tabs) {
-		
+
 		tabs.add(
 				new PanelTab(parentPage.createStringResource("pageAdminFocus.basic")){
 					private static final long serialVersionUID = 1L;
 
 					@Override
 					public WebMarkupContainer createPanel(String panelId) {
-						return createFocusDetailsTabPanel(panelId, parentPage); 
+						return createFocusDetailsTabPanel(panelId, parentPage);
 					}
 				});
-		
+
 		tabs.add(
                 new CountablePanelTab(parentPage.createStringResource("pageAdminFocus.projections")){
                 	private static final long serialVersionUID = 1L;
-                	
+
 					@Override
 					public WebMarkupContainer createPanel(String panelId) {
-						return createFocusProjectionsTabPanel(panelId, parentPage); 
+						return createFocusProjectionsTabPanel(panelId, parentPage);
 					}
 
 					@Override
@@ -249,14 +230,14 @@ public class FocusMainPanel<F extends FocusType> extends AbstractObjectMainPanel
 						return Integer.toString(projectionModel.getObject() == null ? 0 : projectionModel.getObject().size());
 					}
 				});
-		
+
 		tabs.add(
 				new CountablePanelTab(parentPage.createStringResource("pageAdminFocus.assignments")) {
 					private static final long serialVersionUID = 1L;
-					
+
 					@Override
 					public WebMarkupContainer createPanel(String panelId) {
-						return createFocusAssignmentsTabPanel(panelId, parentPage); 
+						return createFocusAssignmentsTabPanel(panelId, parentPage);
 					}
 
 					@Override
@@ -264,14 +245,14 @@ public class FocusMainPanel<F extends FocusType> extends AbstractObjectMainPanel
 						return Integer.toString(assignmentsModel.getObject() == null ? 0 : assignmentsModel.getObject().size());
 					}
 				});
-		
+
 		tabs.add(
 				new CountablePanelTab(parentPage.createStringResource("pageAdminFocus.tasks")) {
 					private static final long serialVersionUID = 1L;
-					
+
 					@Override
 					public WebMarkupContainer createPanel(String panelId) {
-						return new FocusTasksTabPanel<F>(panelId, getMainForm(), getObjectModel(), taskDtoProvider, parentPage); 
+						return new FocusTasksTabPanel<F>(panelId, getMainForm(), getObjectModel(), taskDtoProvider, parentPage);
 					}
 
 					@Override
@@ -279,12 +260,12 @@ public class FocusMainPanel<F extends FocusType> extends AbstractObjectMainPanel
 						return Long.toString(taskDtoProvider == null ? 0L : taskDtoProvider.size());
 					}
 				});
-		
+
         if (!(parentPage instanceof PageSelfProfile)) {
             tabs.add(
                     new PanelTab(parentPage.createStringResource("pageAdminFocus.request")) {
                     	private static final long serialVersionUID = 1L;
-                    	
+
                         @Override
                         public WebMarkupContainer createPanel(String panelId) {
                             return createRequestAssignmentTabPanel(panelId, parentPage);
