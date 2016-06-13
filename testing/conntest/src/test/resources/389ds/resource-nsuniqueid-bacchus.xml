@@ -242,6 +242,9 @@
 			</attribute>
 			<attribute>
 				<ref>ri:uniqueMember</ref>
+				<!-- We need explicit matching rule here. 
+				     uniqueMember attribute does NOT have DN syntax in the LDAP schema. -->
+				<matchingRule>mr:distinguishedName</matchingRule>
 			</attribute>
 			<attribute>
 				<ref>ri:cn</ref>
