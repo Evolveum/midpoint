@@ -69,6 +69,23 @@ public class DataModelVisualizer {
 		return ctx.exportDot();
     }
 
+	@SuppressWarnings("unchecked")
+    public String visualize(ResourceType resource, Task task, OperationResult result)
+			throws SchemaException, SecurityViolationException, ObjectNotFoundException, CommunicationException, ConfigurationException {
+
+		LOGGER.info("Starting data model visualization for {}", ObjectTypeUtil.toShortString(resource));
+
+		VisualizationContext ctx = new VisualizationContext(prismContext);
+
+		List<PrismObject<ResourceType>> resources = new ArrayList<>();
+		resources.add(resource.clone().asPrismObject());
+
+		createDataItems(ctx, resources);
+		processResourceMappings(ctx, resources);
+
+		return ctx.exportDot();
+    }
+
 	private void processResourceMappings(VisualizationContext ctx, List<PrismObject<ResourceType>> resources) throws SchemaException {
 		for (PrismObject<ResourceType> resource : resources) {
 			LOGGER.info("Processing {}", ObjectTypeUtil.toShortString(resource));

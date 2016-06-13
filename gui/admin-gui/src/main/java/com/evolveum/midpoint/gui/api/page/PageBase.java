@@ -1491,6 +1491,26 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 		return breadcrumb;
 	}
 
+	// TODO deduplicate with redirectBack
+	public RestartResponseException redirectBackViaRestartResponseException() {
+		List<Breadcrumb> breadcrumbs = getSessionStorage().getBreadcrumbs();
+		if (breadcrumbs.size() < 2) {
+			getSessionStorage().clearBreadcrumbs();
+
+			if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_DASHBOARD_URL,
+					AuthorizationConstants.AUTZ_UI_HOME_ALL_URL)) {
+				return new RestartResponseException(PageDashboard.class);
+			} else {
+				return new RestartResponseException(PageSelfDashboard.class);
+			}
+		}
+
+		Breadcrumb breadcrumb = breadcrumbs.get(breadcrumbs.size() - 2);
+		redirectBackToBreadcrumb(breadcrumb);
+		return breadcrumb.getRestartResponseException();
+	}
+
+
 	public void redirectBackToBreadcrumb(Breadcrumb breadcrumb) {
 		Validate.notNull(breadcrumb, "Breadcrumb must not be null");
 

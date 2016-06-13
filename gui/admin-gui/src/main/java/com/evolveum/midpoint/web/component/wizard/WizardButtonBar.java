@@ -40,6 +40,7 @@ public class WizardButtonBar extends Panel implements IDefaultButtonProvider {
 	private static final String ID_CANCEL = "cancel";
 	private static final String ID_VALIDATE = "validate";
 	private static final String ID_SAVE = "save";
+	private static final String ID_VISUALIZE = "visualize";
 
     public WizardButtonBar(String id, final Wizard wizard) {
         super(id);
@@ -145,6 +146,20 @@ public class WizardButtonBar extends Panel implements IDefaultButtonProvider {
 		};
 		save.add(showInFullWizardMode);
 		add(save);
+
+		final AjaxSubmitButton visualize = new AjaxSubmitButton(ID_VISUALIZE) {
+			@Override
+			protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
+				((PageResourceWizard) getPage()).visualize(target);
+			}
+
+			@Override
+			protected void onError(AjaxRequestTarget target, Form<?> form) {
+				target.add(((PageBase) getPage()).getFeedbackPanel());
+			}
+		};
+		visualize.setVisible(moreSteps);
+		add(visualize);
 	}
 
 	private void couldntSave() {

@@ -26,6 +26,7 @@ import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 
 /**
  * A service provided by the IDM Model focused on system diagnostic. It allows to retrieve diagnostic data
@@ -98,5 +99,8 @@ public interface ModelDiagnosticService {
 	 * EXPERIMENTAL. (TODO find a better place)
 	 */
 	String exportDataModel(Collection<String> resourceOids, Task task, OperationResult parentResult)
+			throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, SecurityViolationException;
+
+	String exportDataModel(ResourceType resource, Task task, OperationResult parentResult)
 			throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, SecurityViolationException;
 }
