@@ -71,7 +71,6 @@
 			<attribute>
 				<ref>ri:dn</ref>
 				<displayName>Distinguished Name</displayName>
-				<matchingRule>mr:distinguishedName</matchingRule>
 				<outbound>
 				    <source>
 				    	<path>$user/name</path>
@@ -133,7 +132,6 @@
 			<attribute>
 				<ref>ri:uid</ref>
 				<displayName>Login Name</displayName>
-				<matchingRule>mr:stringIgnoreCase</matchingRule>
 				<outbound>
 					<strength>weak</strength>
 					<source>
@@ -163,7 +161,6 @@
 			</attribute>
 			<attribute>
 				<ref>ri:memberOf</ref>
-				<matchingRule>mr:stringIgnoreCase</matchingRule>
 				<fetchStrategy>explicit</fetchStrategy>
 			</attribute>
 			
@@ -220,7 +217,6 @@
             <objectClass>ri:groupOfUniqueNames</objectClass>
             <attribute>
 				<ref>ri:dn</ref>
-				<matchingRule>mr:stringIgnoreCase</matchingRule>
 				<outbound>
 					<!-- Name cannot be weak. Changes in name trigger object rename. -->
 					<source>
@@ -242,11 +238,12 @@
 			</attribute>
 			<attribute>
 				<ref>ri:uniqueMember</ref>
-				<matchingRule>mr:stringIgnoreCase</matchingRule>
+				<!-- We need explicit matching rule here. 
+				     uniqueMember attribute does NOT have DN syntax in the LDAP schema. -->
+				<matchingRule>mr:distinguishedName</matchingRule>
 			</attribute>
 			<attribute>
 				<ref>ri:cn</ref>
-				<matchingRule>mr:stringIgnoreCase</matchingRule>
 				<outbound>
 					<strength>weak</strength>
 					<source>

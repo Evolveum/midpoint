@@ -104,7 +104,7 @@ public class MultipleAssignmentSelectorPanel<F extends FocusType, H extends Focu
         final MultipleAssignmentSelector availableAssignmentsPanel = new MultipleAssignmentSelector<F, H>(ID_AVAILABLE_ASSIGNMENTS,
                 availableAssignmentModel, targetFocusClass, type, focus, getFilterModel(true));
         final MultipleAssignmentSelector currentAssignmentsPanel = new MultipleAssignmentSelector<F, H>(ID_CURRENT_ASSIGNMENTS,
-                assignmentsModel, targetFocusClass, type, null, getFilterModel(false)){
+                assignmentsModel, targetFocusClass, type, null, getFilterModel(true)){
             @Override
         protected List<AssignmentEditorDto> getListProviderDataList(){
                 return assignmentsModel.getObject();
@@ -176,7 +176,10 @@ public class MultipleAssignmentSelectorPanel<F extends FocusType, H extends Focu
             if (dto.isSelected()) {
                 boolean toBeAdded = true;
                 for (AssignmentEditorDto assignmentDto : assignmentsList) {
-                    if (assignmentDto.getTargetRef().getOid().equals(dto.getTargetRef().getOid())) {
+                    String assignmentOid = getAssignmentDtoOid(assignmentDto);
+                    String dtoOid = getAssignmentDtoOid(dto);
+                    if (assignmentOid != null &&
+                            dtoOid != null && assignmentOid.equals(dtoOid)) {
                         if (areEqualReferenceObjects(assignmentDto.getTenantRef(), dto.getTenantRef()) &&
                                 areEqualReferenceObjects(assignmentDto.getOrgRef(), dto.getOrgRef())){
                             if (assignmentDto.getStatus().equals(UserDtoStatus.DELETE)) {

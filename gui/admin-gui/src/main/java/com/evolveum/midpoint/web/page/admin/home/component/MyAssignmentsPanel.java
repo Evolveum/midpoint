@@ -63,7 +63,7 @@ public class MyAssignmentsPanel extends BasePanel<List<AssignmentItemDto>> {
                     public String getObject() {
                         AssignmentItemDto item = rowModel.getObject();
                         if (item.getType() == null) {
-                            return OperationResultStatusPresentationProperties.FATAL_ERROR.getIcon();
+                            return OperationResultStatusPresentationProperties.FATAL_ERROR.getIcon() + " fa-lg";
                         }
 
                         return item.getType().getIconCssClass();

@@ -48,7 +48,11 @@ public class BreadcrumbPageClass extends Breadcrumb {
         return page;
     }
 
+    @Override
     public PageParameters getParameters() {
+        if (parameters == null) {
+            parameters = new PageParameters();
+        }
         return parameters;
     }
 
@@ -88,7 +92,6 @@ public class BreadcrumbPageClass extends Breadcrumb {
 
         if (page != null ? !page.equals(that.page) : that.page != null) return false;
         return parameters != null ? parameters.equals(that.parameters) : that.parameters == null;
-
     }
 
     @Override

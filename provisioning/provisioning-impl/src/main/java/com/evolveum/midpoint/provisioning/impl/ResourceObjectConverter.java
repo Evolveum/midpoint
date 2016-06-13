@@ -436,7 +436,9 @@ public class ResourceObjectConverter {
 			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
 			SecurityViolationException, ObjectAlreadyExistsException {
 		
-		LOGGER.trace("Modifying resource object {}", repoShadow);
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace("Modifying resource object {}, deltas:\n", repoShadow, DebugUtil.debugDump(itemDeltas, 1));
+		}
 		
 		RefinedObjectClassDefinition objectClassDefinition = ctx.getObjectClassDefinition();
 		Collection<Operation> operations = new ArrayList<Operation>();

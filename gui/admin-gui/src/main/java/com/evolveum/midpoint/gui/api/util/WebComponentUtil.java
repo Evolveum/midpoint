@@ -40,6 +40,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.gui.api.model.NonEmptyModel;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.match.*;
+import com.evolveum.midpoint.web.component.AjaxTabbedPanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
@@ -69,6 +70,7 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.request.IRequestHandler;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.apache.wicket.util.string.StringValue;
 import org.apache.wicket.util.visit.IVisit;
 import org.apache.wicket.util.visit.IVisitor;
 import org.jetbrains.annotations.NotNull;
@@ -1150,7 +1152,7 @@ public final class WebComponentUtil {
 		OperationResultStatus status = result.getStatus();
 		OperationResultStatusPresentationProperties icon = OperationResultStatusPresentationProperties
 				.parseOperationalResultStatus(status);
-		return icon.getIcon();
+		return icon.getIcon() + " fa-lg";
 	}
 
 	public static double getSystemLoad() {
@@ -1478,9 +1480,25 @@ public final class WebComponentUtil {
 	}
 
 	@NotNull
-	public static TabbedPanel<ITab> createTabPanel(String id, final PageBase parentPage,
-			final List<ITab> tabs, TabbedPanel.RightSideItemProvider rightSideItemProvider) {
-		TabbedPanel<ITab> tabPanel = new TabbedPanel<ITab>(id, tabs, rightSideItemProvider) {
+	public static TabbedPanel<ITab> createTabPanel(
+			String id, final PageBase parentPage, final List<ITab> tabs, TabbedPanel.RightSideItemProvider provider) {
+		return createTabPanel(id, parentPage, tabs, provider);
+	}
+
+	@NotNull
+	public static TabbedPanel<ITab> createTabPanel(
+			String id, final PageBase parentPage, final List<ITab> tabs, TabbedPanel.RightSideItemProvider provider,
+			final String tabChangeParameter) {
+
+		TabbedPanel<ITab> tabPanel = new TabbedPanel<ITab>(id, tabs, provider) {
+
+			@Override
+			protected void onTabChange(int index) {
+				if (tabChangeParameter != null) {
+					parentPage.updateBreadcrumbParameters(tabChangeParameter, index);
+				}
+			}
+
 			@Override
 			protected WebMarkupContainer newLink(String linkId, final int index) {
 				return new AjaxSubmitLink(linkId) {
@@ -1560,4 +1578,27 @@ public final class WebComponentUtil {
 		};
 	}
 
+	public static Integer getIntegerParameter(PageParameters params, String key) {
+		if (params == null || params.get(key) == null) {
+			return null;
+		}
+
+		StringValue value = params.get(key);
+		if (!StringUtils.isNumeric(value.toString())) {
+			return null;
+		}
+
+		return value.toInteger();
+	}
+
+	public static void setSelectedTabFromPageParameters(TabbedPanel tabbed, PageParameters params, String paramName) {
+		IModel<List> tabsModel = tabbed.getTabs();
+
+		Integer tabIndex = getIntegerParameter(params, paramName);
+		if (tabIndex == null || tabIndex < 0 || tabIndex >= tabsModel.getObject().size()) {
+			return;
+		}
+
+		tabbed.setSelectedTab(tabIndex);
+	}
 }

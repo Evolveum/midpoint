@@ -81,6 +81,7 @@ public class AjaxTabbedPanel<T extends ITab> extends TabbedPanel<T>
             public void onClick(final AjaxRequestTarget target)
             {
                 setSelectedTab(index);
+                onTabChange(index);
                 if (target != null)
                 {
                     target.add(AjaxTabbedPanel.this);

@@ -499,9 +499,9 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
                     @Override
                     public String getObject() {
                         if (rowModel != null && rowModel.getObject() != null && rowModel.getObject().getStatus() != null) {
-                            return OperationResultStatusPresentationProperties.parseOperationalResultStatus(rowModel.getObject().getStatus().createStatusType()).getIcon();
+                            return OperationResultStatusPresentationProperties.parseOperationalResultStatus(rowModel.getObject().getStatus().createStatusType()).getIcon() + " fa-lg";
                         } else
-                            return OperationResultStatusPresentationProperties.UNKNOWN.getIcon();
+                            return OperationResultStatusPresentationProperties.UNKNOWN.getIcon() + " fa-lg";
                     }
                 };
             }
