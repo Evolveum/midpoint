@@ -71,6 +71,7 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.ResultHandler;
+import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -105,6 +106,7 @@ import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AdminGuiConfigurationType;
@@ -952,6 +954,71 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		constructionType.setResourceRef(resourceRef);
 		constructionType.setIntent(intent);
 		return assignmentType;
+	}
+	
+	protected ObjectDelta<UserType> createParametricAssignmentDelta(String userOid, String roleOid, String orgOid, String tenantOid, boolean adding) throws SchemaException {
+		Collection<ItemDelta<?,?>> modifications = new ArrayList<>();
+		
+		ContainerDelta<AssignmentType> assignmentDelta = ContainerDelta.createDelta(UserType.F_ASSIGNMENT, getUserDefinition());
+		PrismContainerValue<AssignmentType> cval = new PrismContainerValue<AssignmentType>(prismContext);
+		if (adding) {
+			assignmentDelta.addValueToAdd(cval);
+		} else {
+			assignmentDelta.addValueToDelete(cval);
+		}
+		PrismReference targetRef = cval.findOrCreateReference(AssignmentType.F_TARGET_REF);
+		targetRef.getValue().setOid(roleOid);
+		targetRef.getValue().setTargetType(RoleType.COMPLEX_TYPE);
+		
+		if (orgOid != null) {
+			PrismReference orgRef = cval.findOrCreateReference(AssignmentType.F_ORG_REF);
+			orgRef.getValue().setOid(orgOid);
+		}
+		
+		if (tenantOid != null) {
+			PrismReference tenantRef = cval.findOrCreateReference(AssignmentType.F_TENANT_REF);
+			tenantRef.getValue().setOid(tenantOid);
+		}
+		
+		
+		modifications.add(assignmentDelta);
+		return  ObjectDelta.createModifyDelta(userOid, modifications, UserType.class, prismContext);
+	}
+	
+	protected void assignPrametricRole(String userOid, String roleOid, String orgOid, String tenantOid, Task task, OperationResult result) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
+		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(
+				createParametricAssignmentDelta(userOid, roleOid, orgOid, tenantOid, true));
+		modelService.executeChanges(deltas, null, task, result);
+	}
+	
+	protected void unassignPrametricRole(String userOid, String roleOid, String orgOid, String tenantOid, Task task, OperationResult result) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
+		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(
+				createParametricAssignmentDelta(userOid, roleOid, orgOid, tenantOid, false));
+		modelService.executeChanges(deltas, null, task, result);
+	}
+	
+	protected void assertAssignees(String targetOid, int expectedAssignees) throws SchemaException {
+		OperationResult result = new OperationResult(AbstractModelIntegrationTest.class.getName()+".assertAssignees");
+		int count = countAssignees(targetOid, result);
+		if (count != expectedAssignees) {
+			SearchResultList<PrismObject<FocusType>> assignees = listAssignees(targetOid, result);
+			AssertJUnit.fail("Unexpected number of assignees of "+targetOid+", expected "+expectedAssignees+", but was " + count+ ": "+assignees);
+		}
+		
+	}
+	
+	protected int countAssignees(String targetOid, OperationResult result) throws SchemaException {
+		ObjectFilter filter = RefFilter.createReferenceEqual(
+				new ItemPath(FocusType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF), UserType.class, prismContext, targetOid);
+		ObjectQuery query = ObjectQuery.createObjectQuery(filter);
+		return repositoryService.countObjects(FocusType.class, query, result);
+	}
+	
+	protected SearchResultList<PrismObject<FocusType>> listAssignees(String targetOid, OperationResult result) throws SchemaException {
+		ObjectFilter filter = RefFilter.createReferenceEqual(
+				new ItemPath(FocusType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF), UserType.class, prismContext, targetOid);
+		ObjectQuery query = ObjectQuery.createObjectQuery(filter);
+		return repositoryService.searchObjects(FocusType.class, query, null, result);
 	}
 
     protected ConstructionType createAccountConstruction(String resourceOid, String intent) throws SchemaException {

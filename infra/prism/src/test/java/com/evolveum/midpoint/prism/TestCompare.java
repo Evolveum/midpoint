@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,8 @@ import static com.evolveum.midpoint.prism.PrismInternalTestUtil.*;
 import java.io.File;
 import java.io.IOException;
 import java.util.GregorianCalendar;
+
+import javax.xml.namespace.QName;
 
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
@@ -51,6 +53,9 @@ import com.evolveum.midpoint.util.exception.SchemaException;
  */
 public abstract class TestCompare {
 	
+	private static final QName REF_QNAME = new QName(NS_FOO, "ref");
+	private static final QName REF_TYPE_QNAME = new QName(NS_FOO, "RefType");;
+
 	protected abstract String getSubdirName();
 	
 	protected abstract String getFilenameSuffix();
@@ -262,6 +267,105 @@ public abstract class TestCompare {
 		assertFalse("val35 - val31", val35.equals(val31));
 		assertFalse("val34 - val35", val34.equals(val35));
 		assertFalse("val35 - val34", val35.equals(val34));
+		
+	}
+	
+	@Test
+	public void testEqualsReferenceValuesSchema() throws Exception {
+		System.out.println("===[ testEqualsReferenceValuesSchema ]===");
+		
+		PrismContext prismContext = constructInitializedPrismContext();
+		
+		PrismReferenceDefinition ref1Def = new PrismReferenceDefinition(REF_QNAME, REF_TYPE_QNAME, prismContext);
+		ref1Def.setTargetTypeName(ACCOUNT_TYPE_QNAME);
+		PrismReference ref1 = new PrismReference(REF_QNAME, ref1Def, prismContext);
+		
+		PrismReferenceValue val11 = new PrismReferenceValue("oid1");
+		val11.setTargetType(ACCOUNT_TYPE_QNAME);
+		ref1.add(val11);
+		
+		PrismReferenceValue val12 = new PrismReferenceValue("oid1");
+		val12.setTargetType(ACCOUNT_TYPE_QNAME);
+		ref1.add(val12);
+		
+		PrismReferenceValue val13 = new PrismReferenceValue("oid1");
+		// No type
+		ref1.add(val13);
+		
+		PrismReferenceValue val14 = new PrismReferenceValue("oid1");
+		// No type
+		ref1.add(val14);
+		
+		PrismReferenceDefinition ref2Def = new PrismReferenceDefinition(REF_QNAME, REF_TYPE_QNAME, prismContext);
+		// no target type def
+		PrismReference ref2 = new PrismReference(REF_QNAME, ref2Def, prismContext);
+		
+		PrismReferenceValue val21 = new PrismReferenceValue("oid1");
+		val21.setTargetType(ACCOUNT_TYPE_QNAME);
+		ref2.add(val21);
+		
+		PrismReferenceValue val22 = new PrismReferenceValue("oid1");
+		val22.setTargetType(ACCOUNT_TYPE_QNAME);
+		ref2.add(val22);
+		
+		PrismReferenceValue val23 = new PrismReferenceValue("oid1");
+		// No type
+		ref2.add(val23);
+		
+		// No def in val4x
+		
+		PrismReferenceValue val41 = new PrismReferenceValue("oid1");
+		val41.setTargetType(ACCOUNT_TYPE_QNAME);
+		
+		PrismReferenceValue val42 = new PrismReferenceValue("oid1");
+		val42.setTargetType(ACCOUNT_TYPE_QNAME);
+		
+		PrismReferenceValue val43 = new PrismReferenceValue("oid1");
+		// No type
+
+		
+		assertTrue("val11 - val11", val11.equals(val11));
+		assertTrue("val11 - val12", val11.equals(val12));
+		assertTrue("val12 - val11", val12.equals(val11));
+		assertTrue("val11 - val13", val11.equals(val13));
+		assertTrue("val13 - val11", val13.equals(val11));
+		assertTrue("val13 - val14", val13.equals(val14));
+		
+		assertTrue("val21 - val21", val21.equals(val21));
+		assertTrue("val21 - val22", val21.equals(val22));
+		assertTrue("val22 - val21", val22.equals(val21));
+		assertFalse("val21 - val23", val21.equals(val23));
+		assertFalse("val23 - val21", val23.equals(val21));
+		
+		assertTrue("val41 - val41", val41.equals(val41));
+		assertTrue("val41 - val42", val41.equals(val42));
+		assertTrue("val42 - val41", val42.equals(val41));
+		assertFalse("val41 - val43", val41.equals(val43));
+		assertFalse("val43 - val41", val43.equals(val41));
+		
+		assertTrue("val11 - val21", val11.equals(val21));
+		assertTrue("val11 - val41", val11.equals(val41));
+		
+		assertTrue("val41 - val11", val41.equals(val11));
+		assertTrue("val41 - val21", val41.equals(val12));
+		
+		assertTrue("val13 - val21", val13.equals(val21));
+		assertTrue("val13 - val41", val13.equals(val41));
+
+		assertFalse("val43 - val11", val43.equals(val11));
+		assertFalse("val43 - val12", val43.equals(val12));
+		assertFalse("val43 - val13", val43.equals(val13));
+		
+		assertFalse("val43 - val21", val43.equals(val21));
+		assertFalse("val43 - val22", val43.equals(val22));
+		assertTrue("val43 - val23", val43.equals(val23));
+		
+		
+//		assertTrue("val11 - val11", val11.equals(val11));
+//		assertTrue("val11 - val11", val11.equals(val11));
+//		assertTrue("val11 - val11", val11.equals(val11));
+//		assertTrue("val11 - val11", val11.equals(val11));
+		
 		
 	}
 	

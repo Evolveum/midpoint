@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,9 @@ import com.evolveum.midpoint.prism.Visitor;
 import com.evolveum.midpoint.util.Cloner;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.Foreachable;
 import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.Processor;
 import com.evolveum.midpoint.util.Transformer;
 
 import java.io.Serializable;
@@ -40,7 +42,7 @@ import java.util.Iterator;
  *
  * @author Radovan Semancik
  */
-public class DeltaSetTriple<T> implements DebugDumpable, Serializable, SimpleVisitable<T> {
+public class DeltaSetTriple<T> implements DebugDumpable, Serializable, SimpleVisitable<T>, Foreachable<T> {
 
     /**
      * Collection of values that were not changed.
@@ -344,6 +346,27 @@ public class DeltaSetTriple<T> implements DebugDumpable, Serializable, SimpleVis
 		return set.isEmpty();
 	}
 	
+	/**
+	 * Process each element of every set.
+	 * This is different from the visitor. Visitor will go
+	 * deep inside, foreach will remain on the surface.
+	 */
+	@Override
+	public void foreach(Processor<T> processor) {
+		foreachSet(processor, zeroSet);
+		foreachSet(processor, plusSet);
+		foreachSet(processor, minusSet);
+	}
+	
+	private void foreachSet(Processor<T> processor, Collection<T> set) {
+		if (set == null) {
+			return;
+		}
+		for (T element: set) {
+			processor.process(element);
+		}
+	}
+
 	@Override
 	public void accept(SimpleVisitor<T> visitor) {
 		acceptSet(visitor, zeroSet);

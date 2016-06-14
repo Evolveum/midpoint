@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -138,7 +138,11 @@ public class Expression<V extends PrismValue,D extends ItemDefinition> {
 					}
 					outputTriple.removeEmptyValues(allowEmptyRealValues);
 					if (InternalsConfig.consistencyChecks) {
-						outputTriple.checkConsistence();
+						try {
+							outputTriple.checkConsistence();
+						} catch (IllegalStateException e) {
+							throw new IllegalStateException(e.getMessage() + "; in expression " + this +", evaluator " + evaluator, e);
+						}
 					}
 					traceSuccess(context, processedVariables, outputTriple);
 					return outputTriple;

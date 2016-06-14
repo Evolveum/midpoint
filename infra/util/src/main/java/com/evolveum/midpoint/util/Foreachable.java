@@ -1,5 +1,5 @@
-/*
- * Copyright (c) 2010-2016 Evolveum
+/**
+ * Copyright (c) 2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,22 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.evolveum.midpoint.prism;
+package com.evolveum.midpoint.util;
 
-import org.testng.annotations.Test;
+/**
+ * @author semancik
+ *
+ */
+public interface Foreachable<T> {
+	
+	/**
+	 * Will call processor for every element in the instance.
+	 * This is NOT recursive. E.g. in case of collection of collections
+	 * the processor will NOT be called for elements of the inner collections.
+	 * If you need recursion please have a look at Visitor.
+	 */
+	void foreach(Processor<T> processor);
 
-public class TestCompareXml extends TestCompare{
-	@Test
-	public void f() {
-	}
-
-	@Override
-	protected String getSubdirName() {
-		return "xml";
-	}
-
-	@Override
-	protected String getFilenameSuffix() {
-		return "xml";
-	}
 }

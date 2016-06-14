@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -101,10 +101,13 @@ public class ExpressionUtil {
 	public static <V extends PrismValue> PrismValueDeltaSetTriple<V> toOutputTriple(
 			PrismValueDeltaSetTriple<V> resultTriple, ItemDefinition outputDefinition,
 			final ItemPath residualPath, final Protector protector, final PrismContext prismContext) {
+		
+		PrismValueDeltaSetTriple<V> clonedTriple = resultTriple.clone();
+		
 		final Class<?> resultTripleValueClass = resultTriple.getRealValueClass();
 		if (resultTripleValueClass == null) {
 			// triple is empty. type does not matter.
-			return resultTriple;
+			return clonedTriple;
 		}
 		Class<?> expectedJavaType = XsdTypeMapper.toJavaType(outputDefinition.getTypeName());
 		if (expectedJavaType == null) {
@@ -112,11 +115,10 @@ public class ExpressionUtil {
 					.getCompileTimeClass(outputDefinition.getTypeName());
 		}
 		if (resultTripleValueClass == expectedJavaType) {
-			return resultTriple;
+			return clonedTriple;
 		}
 		final Class<?> finalExpectedJavaType = expectedJavaType;
 
-		PrismValueDeltaSetTriple<V> clonedTriple = resultTriple.clone();
 		clonedTriple.accept(new Visitor() {
 			@Override
 			public void visit(Visitable visitable) {
@@ -616,7 +618,7 @@ public class ExpressionUtil {
 					+ nonNegativeValues.size() + ") in " + shortDesc);
 		}
 
-		return nonNegativeValues.iterator().next();
+		return (V) nonNegativeValues.iterator().next();
 	}
 
 	private static Collection<String> evaluateStringExpression(ExpressionVariables variables,

@@ -42,6 +42,7 @@ import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.apache.commons.io.FileUtils;
 import org.custommonkey.xmlunit.XMLAssert;
+import org.testng.AssertJUnit;
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 import org.w3c.dom.Element;
@@ -537,13 +538,22 @@ public class TestQueryConvertor {
 				.or().item(ShadowType.F_RESOURCE_REF).ref("oid3")
 				.or().item(ShadowType.F_RESOURCE_REF).ref("oid4", ResourceType.COMPLEX_TYPE)
 				.build();
+		q1object.getFilter().checkConsistence();
+		
 		String q2xml = FileUtils.readFileToString(new File(TEST_DIR + "/" + TEST_NAME + ".xml"));
 		displayQueryXml(q2xml);
 		QueryType q2jaxb = toQueryType(q2xml);
 		displayQueryType(q2jaxb);
 		ObjectQuery q2object = toObjectQuery(ShadowType.class, q2jaxb);
+		
+		System.out.println("q1object:\n"+q1object.debugDump(1));
+		System.out.println("q2object:\n"+q2object.debugDump(1));
+		
 		assertEquals("Reparsed query is not as original one (via toString)", q1object.toString(), q2object.toString());	// primitive way of comparing parsed queries
-		assertTrue("Reparsed query is not as original one (via equivalent):\nq1="+q1object+"\nq2="+q2object, q1object.equivalent(q2object));
+		
+		if (!q1object.equivalent(q2object)) {
+			AssertJUnit.fail("Reparsed query is not as original one (via equivalent):\nq1="+q1object+"\nq2="+q2object);
+		}
 	}
 
 	@Test

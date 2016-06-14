@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2014 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -74,7 +75,7 @@ public class SubstringFilter<T> extends PropertyValueFilter<PrismPropertyValue<T
 	}
 
 	public static <T> SubstringFilter createSubstring(ItemPath path, PrismProperty<T> item, QName matchingRule) {
-		return createSubstring(path, item.getDefinition(), matchingRule, item.getValue());
+		return createSubstring(path, item.getDefinition(), matchingRule, item.getValue().clone());
 	}
 	
 	public static <T> SubstringFilter createSubstring(ItemPath path, PrismProperty<T> item, QName matchingRule,
@@ -84,63 +85,69 @@ public class SubstringFilter<T> extends PropertyValueFilter<PrismPropertyValue<T
 		if (values.size() > 1) {
 			throw new IllegalArgumentException("Expected at most 1 value, got " + values);
 		} else if (values.size() == 1) {
-			value = values.get(0);
+			value = values.get(0).clone();
 		} else {
 			value = null;
 		}
 		return createSubstring(path, item.getDefinition(), matchingRule, value, anchorStart, anchorEnd);
 	}
 		
-	public static <T> SubstringFilter createSubstring(QName path, PrismPropertyDefinition itemDefinition, PrismPropertyValue<T> values) {
+	public static <T> SubstringFilter<T> createSubstring(QName path, PrismPropertyDefinition<T> itemDefinition, PrismPropertyValue<T> values) {
 		return createSubstring(new ItemPath(path), itemDefinition, null, values);
 	}
 	
-	public static <T> SubstringFilter createSubstring(ItemPath path, PrismPropertyDefinition itemDefinition, PrismPropertyValue<T> values) {
+	public static <T> SubstringFilter<T> createSubstring(ItemPath path, PrismPropertyDefinition<T> itemDefinition, PrismPropertyValue<T> values) {
 		return createSubstring(path, itemDefinition, null, values);
 	}
 	
-	public static <T> SubstringFilter createSubstring(QName path, PrismPropertyDefinition itemDefinition, QName matchingRule, PrismPropertyValue<T> values) {
+	public static <T> SubstringFilter<T> createSubstring(QName path, PrismPropertyDefinition<T> itemDefinition, QName matchingRule, PrismPropertyValue<T> values) {
 		return createSubstring(new ItemPath(path), itemDefinition, matchingRule, values);
 	}
 		
-	public static <T> SubstringFilter createSubstring(QName path, PrismPropertyDefinition itemDefinition, T realValues) {
+	public static <T> SubstringFilter<T> createSubstring(QName path, PrismPropertyDefinition<T> itemDefinition, T realValues) {
 		return createSubstring(new ItemPath(path), itemDefinition, null, realValues);
 	}
 	
-	public static <T> SubstringFilter createSubstring(ItemPath path, PrismPropertyDefinition itemDefinition, T realValues) {
+	public static <T> SubstringFilter<T> createSubstring(ItemPath path, PrismPropertyDefinition<T> itemDefinition, T realValues) {
 		return createSubstring(path, itemDefinition, null, realValues);
 	}
 	
-	public static <T> SubstringFilter createSubstring(QName path, PrismPropertyDefinition itemDefinition, QName matchingRule, T realValues) {
+	public static <T> SubstringFilter<T> createSubstring(QName path, PrismPropertyDefinition<T> itemDefinition, QName matchingRule, T realValues) {
 		return createSubstring(new ItemPath(path), itemDefinition, matchingRule, realValues);
 	}
 
-	public static <T> SubstringFilter createSubstring(ItemPath path, PrismPropertyDefinition itemDefinition, QName matchingRule, T realValues) {
+	public static <T> SubstringFilter<T> createSubstring(ItemPath path, PrismPropertyDefinition<T> itemDefinition, QName matchingRule, T realValues) {
 		return createSubstring(path, itemDefinition, matchingRule, realValues, false, false);
 	}
 
-	public static <T> SubstringFilter createSubstring(ItemPath path, PrismPropertyDefinition itemDefinition, QName matchingRule, T realValues, boolean anchorStart, boolean anchorEnd) {
+	public static <T> SubstringFilter<T> createSubstring(ItemPath path, PrismPropertyDefinition<T> itemDefinition, QName matchingRule, T realValues, boolean anchorStart, boolean anchorEnd) {
 		if (realValues == null){
 			return createNullSubstring(path, itemDefinition, matchingRule);
 		}
 		List<PrismPropertyValue<T>> pValues = createPropertyList(itemDefinition, realValues);
-		return new SubstringFilter<T>(path, itemDefinition, matchingRule, pValues, anchorStart, anchorEnd);
+		SubstringFilter<T> substringFilter = new SubstringFilter<T>(path, itemDefinition, matchingRule, pValues, anchorStart, anchorEnd);
+		for (PrismPropertyValue<T> pVal: pValues) {
+			pVal.setParent(substringFilter);
+		}
+		return substringFilter;
 	}
 	
-	public static <T> SubstringFilter createSubstring(ItemPath path, PrismPropertyDefinition itemDefinition, QName matchingRule, PrismPropertyValue<T> values) {
+	public static <T> SubstringFilter<T> createSubstring(ItemPath path, PrismPropertyDefinition<T> itemDefinition, QName matchingRule, PrismPropertyValue<T> value) {
 		Validate.notNull(path, "Item path in substring filter must not be null.");
 		Validate.notNull(itemDefinition, "Item definition in substring filter must not be null.");
 		
-		if (values == null){
+		if (value == null){
 			return createNullSubstring(path, itemDefinition, matchingRule);
 		}
 		
-		List<PrismPropertyValue<T>> pValues = createPropertyList(itemDefinition, values);
+		List<PrismPropertyValue<T>> pValues = createPropertyList(itemDefinition, value);
 				
-		return new SubstringFilter(path, itemDefinition, matchingRule, pValues);
+		SubstringFilter<T> substringFilter = new SubstringFilter<>(path, itemDefinition, matchingRule, pValues);
+		value.setParent(substringFilter);
+		return substringFilter;
 	}
 	
-	public static <T> SubstringFilter createSubstring(ItemPath path, PrismPropertyDefinition itemDefinition, QName matchingRule, 
+	public static <T> SubstringFilter<T> createSubstring(ItemPath path, PrismPropertyDefinition<T> itemDefinition, QName matchingRule, 
 			PrismPropertyValue<T> values, boolean anchorStart, boolean anchorEnd) {
 		Validate.notNull(path, "Item path in substring filter must not be null.");
 		Validate.notNull(itemDefinition, "Item definition in substring filter must not be null.");
@@ -151,14 +158,18 @@ public class SubstringFilter<T> extends PropertyValueFilter<PrismPropertyValue<T
 		
 		List<PrismPropertyValue<T>> pValues = createPropertyList(itemDefinition, values);
 				
-		return new SubstringFilter(path, itemDefinition, matchingRule, pValues, anchorStart, anchorEnd);
+		SubstringFilter<T> substringFilter =  new SubstringFilter<>(path, itemDefinition, matchingRule, pValues, anchorStart, anchorEnd);
+		for (PrismPropertyValue<T> pVal: pValues) {
+			pVal.setParent(substringFilter);
+		}
+		return substringFilter;
 	}
 	
-	public static <O extends Objectable, T> SubstringFilter createSubstring(ItemPath path, Class<O> clazz, PrismContext prismContext, T value) {
-		return createSubstring(path, clazz, prismContext, null, value);
+	public static <O extends Objectable, T> SubstringFilter<T> createSubstring(ItemPath path, Class<O> clazz, PrismContext prismContext, T realValue) {
+		return createSubstring(path, clazz, prismContext, null, realValue);
 	}
 	
-	public static <O extends Objectable, T> SubstringFilter createSubstring(ItemPath path, Class<O> clazz, PrismContext prismContext, QName matchingRule, T realValue) {
+	public static <O extends Objectable, T> SubstringFilter<T> createSubstring(ItemPath path, Class<O> clazz, PrismContext prismContext, QName matchingRule, T realValue) {
 		
 		ItemDefinition itemDefinition = FilterUtils.findItemDefinition(path, clazz, prismContext);
 		
@@ -167,24 +178,28 @@ public class SubstringFilter<T> extends PropertyValueFilter<PrismPropertyValue<T
 		}
 		
 		if (realValue == null){
-			return createNullSubstring(path, (PrismPropertyDefinition) itemDefinition, matchingRule);
+			return createNullSubstring(path, (PrismPropertyDefinition<T>) itemDefinition, matchingRule);
 		}
 		
-		List<PrismPropertyValue<T>> pVals = createPropertyList((PrismPropertyDefinition) itemDefinition, realValue);
+		List<PrismPropertyValue<T>> pVals = createPropertyList((PrismPropertyDefinition<T>) itemDefinition, realValue);
 		
-		return new SubstringFilter(path, itemDefinition, matchingRule, pVals);
+		SubstringFilter<T> substringFilter = new SubstringFilter<>(path, itemDefinition, matchingRule, pVals);
+		for (PrismPropertyValue<T> pVal: pVals) {
+			pVal.setParent(substringFilter);
+		}
+		return substringFilter;
 	}
 	
-	public static <O extends Objectable> SubstringFilter createSubstring(QName propertyName, Class<O> clazz, PrismContext prismContext, String value) {
+	public static <O extends Objectable> SubstringFilter<String> createSubstring(QName propertyName, Class<O> clazz, PrismContext prismContext, String value) {
 		return createSubstring(propertyName, clazz, prismContext, null, value);
     }
 
-    public static <O extends Objectable> SubstringFilter createSubstring(QName propertyName, Class<O> clazz, PrismContext prismContext, QName matchingRule, String value) {
+    public static <O extends Objectable> SubstringFilter<String> createSubstring(QName propertyName, Class<O> clazz, PrismContext prismContext, QName matchingRule, String value) {
         return createSubstring(new ItemPath(propertyName), clazz, prismContext, matchingRule, value);
     }
     
-    private static SubstringFilter createNullSubstring(ItemPath itemPath, PrismPropertyDefinition propertyDef, QName matchingRule){
-		return new SubstringFilter(itemPath, propertyDef, matchingRule);
+    private static <T> SubstringFilter<T> createNullSubstring(ItemPath itemPath, PrismPropertyDefinition propertyDef, QName matchingRule){
+		return new SubstringFilter<>(itemPath, propertyDef, matchingRule);
 		
 	}
 
@@ -205,8 +220,12 @@ public class SubstringFilter<T> extends PropertyValueFilter<PrismPropertyValue<T
     }
 
     @Override
-	public SubstringFilter clone() {
-        SubstringFilter filter = new SubstringFilter(getFullPath(), getDefinition(), getMatchingRule(), getValues());
+	public SubstringFilter<T> clone() {
+    	List<PrismPropertyValue<T>> clonedValues = getCloneValuesList();
+        SubstringFilter<T> filter = new SubstringFilter<>(getFullPath(), getDefinition(), getMatchingRule(), clonedValues);
+        for (PrismPropertyValue<T> clonedValue: clonedValues) {
+        	clonedValue.setParent(filter);
+        }
         filter.anchorStart = anchorStart;
         filter.anchorEnd = anchorEnd;
 
@@ -299,9 +318,8 @@ public class SubstringFilter<T> extends PropertyValueFilter<PrismPropertyValue<T
 	}
 	
 	@Override
-	public PrismPropertyDefinition getDefinition() {
-		// TODO Auto-generated method stub
-		return (PrismPropertyDefinition) super.getDefinition();
+	public PrismPropertyDefinition<T> getDefinition() {
+		return (PrismPropertyDefinition<T>) super.getDefinition();
 	}
 
 	@Override

@@ -31,6 +31,7 @@ import com.evolveum.midpoint.util.Cloner;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.Processor;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 import java.util.ArrayList;
@@ -238,6 +239,16 @@ public class PrismValueDeltaSetTriple<V extends PrismValue> extends DeltaSetTrip
 			}
 		};
 		accept(visitor);
+		
+		Processor<V> processor = new Processor<V>() {
+			@Override
+			public void process(V pval) {
+				if (pval.getParent() != null) {
+					throw new IllegalStateException("Value "+pval+" in triple "+PrismValueDeltaSetTriple.this+" has parent, looks like it was not cloned properly");
+				}
+			}
+		};
+		foreach(processor);
 	}
 	
 	@Override

@@ -38,10 +38,10 @@ import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
-public abstract class PropertyValueFilter<T extends PrismValue> extends ValueFilter implements Itemable {
+public abstract class PropertyValueFilter<V extends PrismValue> extends ValueFilter implements Itemable {
 
 	private ExpressionWrapper expression;
-	private List<T> values;
+	private List<V> values;
 	private ItemPath rightHandSidePath;							// alternative to "values"
 	private ItemDefinition rightHandSideDefinition;				// optional (needed only if path points to extension item)
 
@@ -60,12 +60,12 @@ public abstract class PropertyValueFilter<T extends PrismValue> extends ValueFil
 		this.rightHandSideDefinition = rightHandSideDefinition;
 	}
 	
-	PropertyValueFilter(ItemPath path, ItemDefinition definition, QName matchingRule, List<T> values) {
+	PropertyValueFilter(ItemPath path, ItemDefinition definition, QName matchingRule, List<V> values) {
 		super(path, definition, matchingRule);
 		this.values = values;
 	}
 	
-	PropertyValueFilter(ItemPath path, ItemDefinition definition, T value){
+	PropertyValueFilter(ItemPath path, ItemDefinition definition, V value){
 		super(path, definition);
 		setValue(value);
 	}
@@ -79,7 +79,8 @@ public abstract class PropertyValueFilter<T extends PrismValue> extends ValueFil
 		super(path, definition);
 		this.expression = expression;
 	}
-	PropertyValueFilter(ItemPath path, ItemDefinition definition, ExpressionWrapper expression, List<T> values) {
+	
+	PropertyValueFilter(ItemPath path, ItemDefinition definition, ExpressionWrapper expression, List<V> values) {
 		super(path, definition);
 		this.values = values;
 		this.expression = expression;
@@ -150,11 +151,11 @@ public abstract class PropertyValueFilter<T extends PrismValue> extends ValueFil
 		return pVals;
 	}
 	
-	public List<T> getValues() {
+	public List<V> getValues() {
 		return values;
 	}
 
-	public T getSingleValue() {
+	public V getSingleValue() {
 		if (values == null || values.isEmpty()) {
 			return null;
 		}
@@ -164,29 +165,32 @@ public abstract class PropertyValueFilter<T extends PrismValue> extends ValueFil
 		return values.iterator().next();
 	}
 	
-	public void setValues(List<T> values) {
-		this.values = values;
-	}
-	
-	public void setValue(T value) {
-		List<T> values = new ArrayList<T>();
+	public void setValue(V value) {
+		List<V> values = new ArrayList<V>();
 		if (value != null) {
+			value.setParent(this);
 			values.add(value);
 		}
 		this.values = values;
 	}
 	
-	protected void cloneValues(PropertyValueFilter clone) {
+	protected void cloneValues(PropertyValueFilter<V> clone) {
 		super.cloneValues(clone);
 		clone.values = getCloneValuesList();
+		if (clone.values != null) {
+			for (V clonedValue: clone.values) {
+				clonedValue.setParent(clone);
+			}
+		}
 	}
-	private List<T> getCloneValuesList() {
+	
+	protected List<V> getCloneValuesList() {
 		if (values == null) {
 			return null;
 		}
-		List<T> clonedValues = new ArrayList<T>(values.size());
-		for(T value: values) {
-			clonedValues.add((T) value.clone());
+		List<V> clonedValues = new ArrayList<V>(values.size());
+		for(V value: values) {
+			clonedValues.add((V) value.clone());
 		}
 		return clonedValues;
 	}
@@ -244,10 +248,14 @@ public abstract class PropertyValueFilter<T extends PrismValue> extends ValueFil
 	
 	@Override
 	public void checkConsistence() {
+		super.checkConsistence();
 		if (values == null) {
 			return; // this is OK, searching for item with no value
 		}
-		for (T value: values) {
+		for (V value: values) {
+			if (value.getParent() != this) {
+				throw new IllegalArgumentException("Value "+value+" in "+this+" has a bad parent "+value.getParent());
+			}
 			if (value == null) {
 				throw new IllegalArgumentException("Null value in "+this);
 			}
@@ -260,7 +268,7 @@ public abstract class PropertyValueFilter<T extends PrismValue> extends ValueFil
 	@Override
 	public boolean isRaw() {
 		if (values != null) {
-			for (T value: values) {
+			for (V value: values) {
 				if (value.isRaw()) {
 					return true;
 				}
@@ -287,7 +295,7 @@ public abstract class PropertyValueFilter<T extends PrismValue> extends ValueFil
 		
 		return true;
 	}
-
+	
 	@Override
 	public boolean equals(Object o) {
 		return equals(o, true);
@@ -346,7 +354,7 @@ public abstract class PropertyValueFilter<T extends PrismValue> extends ValueFil
 			sb.append("null");
 		}
 		
-		List<T> values = getValues();
+		List<V> values = getValues();
 		if (values != null) {
 			sb.append("\n");
 			DebugUtil.indentDebugDump(sb, indent+1);

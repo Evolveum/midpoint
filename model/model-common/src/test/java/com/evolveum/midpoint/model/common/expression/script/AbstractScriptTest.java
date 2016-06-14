@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.crypto.AESProtector;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
@@ -252,7 +253,15 @@ public abstract class AbstractScriptTest {
 	private <T> List<PrismPropertyValue<T>> evaluateExpression(ScriptExpressionEvaluatorType scriptType, ItemDefinition outputDefinition, 
 			ExpressionVariables variables, String shortDesc, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
 		ScriptExpression scriptExpression = scriptExpressionfactory.createScriptExpression(scriptType, outputDefinition, shortDesc);
-		return scriptExpression.evaluate(variables, null, false, shortDesc, null, result);
+		List<PrismPropertyValue<T>> resultValues = scriptExpression.evaluate(variables, null, false, shortDesc, null, result);
+		if (resultValues != null) {
+			for (PrismPropertyValue<T> resultVal: resultValues) {
+				if (resultVal.getParent() != null) {
+					AssertJUnit.fail("Result value "+resultVal+" from expression "+scriptExpression+" has parent");
+				}
+			}
+		}
+		return resultValues;
 	}
 	
 	private <T> List<PrismPropertyValue<T>> evaluateExpression(ScriptExpressionEvaluatorType scriptType, QName typeName, boolean scalar, 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2014 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -173,7 +173,8 @@ public class ConstraintsChecker {
 				AndFilter.createAnd(
 						RefFilter.createReferenceEqual(ShadowType.F_RESOURCE_REF, ShadowType.class, prismContext, resourceType.getOid()),
 						EqualFilter.createEqual(ShadowType.F_OBJECT_CLASS, ShadowType.class, prismContext, accountDefinition.getTypeName()),
-						EqualFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES, identifier.getDefinition().getName()), identifier.getDefinition(), identifierValues),
+						EqualFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES, identifier.getDefinition().getName()), identifier.getDefinition(), 
+								PrismPropertyValue.cloneCollection(identifierValues)),
 						isNotDead));
 
 		boolean unique = checkUniqueness(oid, identifier, query, task, result);
