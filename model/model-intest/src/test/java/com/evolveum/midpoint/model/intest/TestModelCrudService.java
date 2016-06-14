@@ -25,6 +25,9 @@ import java.util.Collection;
 import javax.xml.bind.JAXBException;
 
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
+import com.evolveum.midpoint.prism.util.PrismAsserts;
+import com.evolveum.midpoint.test.IntegrationTestTools;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
@@ -52,11 +55,6 @@ import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 import static org.testng.AssertJUnit.*;
 
@@ -419,8 +417,10 @@ public class TestModelCrudService extends AbstractInitializedModelIntegrationTes
 		OperationResult result = task.getResult();
 		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
+		assertDummyAccount(null, "morgan");
+
 		// WHEN
-		modelCrudService.deleteObject(UserType.class, USER_MORGAN_OID, ModelExecuteOptions.createReconcile(), task, result);
+		modelCrudService.deleteObject(FocusType.class, USER_MORGAN_OID, null, task, result);
 
 		// THEN
 		try {
@@ -430,6 +430,10 @@ public class TestModelCrudService extends AbstractInitializedModelIntegrationTes
 			// ok
 		}
 
-		assertNoDummyAccountById(null, "morgan");
+		assertNoDummyAccount(null, "morgan");
+
+		result.computeStatus();
+		IntegrationTestTools.display(result);
+		TestUtil.assertSuccess(result);
 	}
 }
