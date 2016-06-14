@@ -1982,7 +1982,9 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         assertGlobalStateUntouched();
 	}
 
-	
+	/**
+	 * MID-3136
+	 */
 	@Test
     public void test277AutzJackAssignRequestableRolesWithOrgRef() throws Exception {
 		final String TEST_NAME = "test277AutzJackAssignRequestableRolesWithOrgRef";
@@ -2043,6 +2045,9 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         assertGlobalStateUntouched();
 	}
 	
+	/**
+	 * MID-3136
+	 */
 	@Test
     public void test278AutzJackAssignRequestableRolesWithTenantRef() throws Exception {
 		final String TEST_NAME = "test278AutzJackAssignRequestableRolesWithTenantRef";
@@ -2139,6 +2144,37 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         assertAssignments(user, 2);
         
         user = getUser(USER_JACK_OID);
+        
+        // MID-3136
+        assertAllow("assign business role to jack", new Attempt() {
+			@Override
+			public void run(Task task, OperationResult result) throws Exception {
+				assignPrametricRole(USER_JACK_OID, ROLE_BUSINESS_1_OID, null, ORG_GOVERNOR_OFFICE_OID, task, result);
+			}
+		});
+        
+        user = getUser(USER_JACK_OID);
+        assertAssignments(user, 3);
+        assertAssignedRole(user, ROLE_BUSINESS_1_OID);
+        
+        assertDeny("assign application role to jack", new Attempt() {
+			@Override
+			public void run(Task task, OperationResult result) throws Exception {
+				assignRole(USER_JACK_OID, ROLE_BUSINESS_2_OID, task, result);
+			}
+		});
+
+        // End-user role has authorization to assign, but not to unassign
+        assertDeny("unassign business role from jack", new Attempt() {
+			@Override
+			public void run(Task task, OperationResult result) throws Exception {
+				unassignPrametricRole(USER_JACK_OID, ROLE_BUSINESS_1_OID, null, ORG_GOVERNOR_OFFICE_OID, task, result);
+			}
+		});
+
+        user = getUser(USER_JACK_OID);
+        display("user after (expected 3 assignments)", user);
+        assertAssignments(user, 3);
        
         assertGlobalStateUntouched();
         
