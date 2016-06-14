@@ -15,10 +15,6 @@
  */
 package com.evolveum.midpoint.model.intest;
 
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertFalse;
-import static org.testng.AssertJUnit.assertNull;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -28,6 +24,7 @@ import java.util.Collection;
 
 import javax.xml.bind.JAXBException;
 
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
@@ -60,6 +57,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+
+import static org.testng.AssertJUnit.*;
 
 /**
  * This is testing the DEPRECATED functions of model API. It should be removed once the functions are phased out.
@@ -411,4 +410,26 @@ public class TestModelCrudService extends AbstractInitializedModelIntegrationTes
         assertDefaultDummyAccount("morgan", "Sir Henry Morgan", true);
 	}
 
+	@Test
+	public void test220DeleteUserMorgan() throws Exception {
+		TestUtil.displayTestTile(this, "test220DeleteUserMorgan");
+
+		// GIVEN
+		Task task = taskManager.createTaskInstance(TestModelCrudService.class.getName() + ".test220DeleteUserMorgan");
+		OperationResult result = task.getResult();
+		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+
+		// WHEN
+		modelCrudService.deleteObject(UserType.class, USER_MORGAN_OID, ModelExecuteOptions.createReconcile(), task, result);
+
+		// THEN
+		try {
+			getUser(USER_MORGAN_OID);
+			fail("User morgan exists even if he should not");
+		} catch (ObjectNotFoundException e) {
+			// ok
+		}
+
+		assertNoDummyAccountById(null, "morgan");
+	}
 }
