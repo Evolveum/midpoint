@@ -538,7 +538,7 @@ public class TestQueryConvertor {
 				.or().item(ShadowType.F_RESOURCE_REF).ref("oid3")
 				.or().item(ShadowType.F_RESOURCE_REF).ref("oid4", ResourceType.COMPLEX_TYPE)
 				.build();
-		q1object.getFilter().checkConsistence();
+		q1object.getFilter().checkConsistence(true);
 		
 		String q2xml = FileUtils.readFileToString(new File(TEST_DIR + "/" + TEST_NAME + ".xml"));
 		displayQueryXml(q2xml);

@@ -875,7 +875,7 @@ public abstract class ShadowCache {
 
 		if (InternalsConfig.consistencyChecks && attributeQuery != null
 				&& attributeQuery.getFilter() != null) {
-			attributeQuery.getFilter().checkConsistence();
+			attributeQuery.getFilter().checkConsistence(true);
 		}
 		return attributeQuery;
 	}

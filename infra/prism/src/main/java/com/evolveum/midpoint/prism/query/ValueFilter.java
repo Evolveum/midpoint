@@ -129,17 +129,13 @@ public abstract class ValueFilter<T extends PrismValue> extends ObjectFilter {
 	public abstract boolean isRaw();
 	
 	@Override
-	public void checkConsistence() {
+	public void checkConsistence(boolean requireDefinitions) {
 		if (fullPath == null) {
 			throw new IllegalArgumentException("Null path in "+this);
 		}
-		if (isRequireDefinition() && definition == null) {
+		if (requireDefinitions && definition == null) {
 			throw new IllegalArgumentException("Null definition in "+this);
 		}
-	}
-
-	protected boolean isRequireDefinition() {
-		return true;
 	}
 
 	@Override

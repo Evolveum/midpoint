@@ -1108,7 +1108,8 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		}
 		
 		if (InternalsConfig.consistencyChecks && filter != null) {
-			filter.checkConsistence();
+			// We may not have all the definitions here. We will apply the definitions later
+			filter.checkConsistence(false);
 		}
 		
 		if (filter != null && filter instanceof NoneFilter) {

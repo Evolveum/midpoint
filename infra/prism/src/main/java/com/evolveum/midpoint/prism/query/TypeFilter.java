@@ -94,13 +94,13 @@ public class TypeFilter extends ObjectFilter {
     }
     
     @Override
-	public void checkConsistence() {
+	public void checkConsistence(boolean requireDefinitions) {
 		if (type == null) {
 			throw new IllegalArgumentException("Null type in "+this);
 		}
 		// null subfilter is legal. It means "ALL".
 		if (filter != null) {
-			filter.checkConsistence();
+			filter.checkConsistence(requireDefinitions);
 		}
 	}
 

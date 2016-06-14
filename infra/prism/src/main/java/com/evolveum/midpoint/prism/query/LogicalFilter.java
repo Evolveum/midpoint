@@ -67,7 +67,7 @@ public abstract class LogicalFilter extends ObjectFilter {
 	}
 
 	@Override
-	public void checkConsistence() {
+	public void checkConsistence(boolean requireDefinitions) {
 		if (conditions == null) {
 			throw new IllegalArgumentException("Null conditions in "+this);
 		}
@@ -78,7 +78,7 @@ public abstract class LogicalFilter extends ObjectFilter {
 			if (condition == null) {
 				throw new IllegalArgumentException("Null subfilter in "+this);
 			}
-			condition.checkConsistence();
+			condition.checkConsistence(requireDefinitions);
 		}
 	}
 	

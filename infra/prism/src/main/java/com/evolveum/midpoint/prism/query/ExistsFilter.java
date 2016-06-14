@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,7 +46,7 @@ public class ExistsFilter extends ObjectFilter {
         this.fullPath = fullPath;
         this.definition = definition;
         this.filter = filter;
-        checkConsistence();
+        checkConsistence(true);
     }
 
     public ItemPath getFullPath() {
@@ -85,16 +85,16 @@ public class ExistsFilter extends ObjectFilter {
     }
     
     @Override
-	public void checkConsistence() {
+	public void checkConsistence(boolean requireDefinitions) {
 		if (fullPath == null || fullPath.isEmpty()) {
 			throw new IllegalArgumentException("Null or empty path in "+this);
 		}
-        if (definition == null) {
+        if (requireDefinitions && definition == null) {
             throw new IllegalArgumentException("Null definition in "+this);
         }
 		// null subfilter is legal. It means "ALL".
 		if (filter != null) {
-			filter.checkConsistence();
+			filter.checkConsistence(requireDefinitions);
 		}
 	}
 
