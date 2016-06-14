@@ -282,7 +282,7 @@ public class MiscDataUtil {
         // 2) is the current user allowed to approve any item?
         try {
 			WfConfigurationType wfConfig = SystemConfigurationHolder.getWorkflowConfiguration();
-			boolean allowedOthersItemsApproval = wfConfig != null && wfConfig.isAllowCompleteOthersItems() != null ? wfConfig.isAllowCompleteOthersItems() : false;
+			boolean allowedOthersItemsApproval = wfConfig != null && wfConfig.isAllowCompleteOthersItems() != null ? wfConfig.isAllowCompleteOthersItems() : true;
 			if (allowedOthersItemsApproval
 					&& securityEnforcer.isAuthorized(ModelAuthorizationAction.COMPLETE_ALL_WORK_ITEMS.getUrl(), null, null, null, null, null)) {
                 return true;

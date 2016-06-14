@@ -38,6 +38,7 @@
 <!-- to be able to see configuration objects - may be security risk to allow
      see e.g. all/foreign password policies... -->
 <!--<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#debugs</action>-->
+<!--<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#tasksAll</action>-->
     </authorization>
 
 <!-- ***** From End User role (fragments) ***** -->
@@ -364,5 +365,26 @@
             </owner>
         </object>
     </authorization>
+
+    <authorization>
+        <name>Allow creation of background tasks</name>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#add</action>
+        <object>
+            <type>TaskType</type>
+        </object>
+    </authorization>
+
+    <!-- doesn't work in 3.4
+    <authorization>
+        <name>Allow reading of own background tasks</name>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+        <object>
+            <type>TaskType</type>
+            <owner>
+                <special>self</special>
+            </owner>
+        </object>
+    </authorization> -->
+
     <requestable>false</requestable>
 </role>
