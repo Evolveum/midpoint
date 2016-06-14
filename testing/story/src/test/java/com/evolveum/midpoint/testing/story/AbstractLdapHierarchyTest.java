@@ -500,7 +500,7 @@ public abstract class AbstractLdapHierarchyTest extends AbstractStoryTest {
 	}
 
 	private PrismObject<UserType> createUser(String username, String givenName,
-			String familyName, String parentOrgOid) {
+			String familyName, String parentOrgOid) throws SchemaException {
 		PrismObject<UserType> user = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class).instantiate();
 		UserType userType = user.asObjectable();
 		userType.setName(new PolyStringType(username));
@@ -518,7 +518,7 @@ public abstract class AbstractLdapHierarchyTest extends AbstractStoryTest {
 		return user;
 	}
 
-	private PrismObject<OrgType> createOrg(String name, String parentOrgOid) {
+	private PrismObject<OrgType> createOrg(String name, String parentOrgOid) throws SchemaException {
 		PrismObject<OrgType> org = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(OrgType.class).instantiate();
 		OrgType orgType = org.asObjectable();
 		orgType.setName(new PolyStringType(name));
