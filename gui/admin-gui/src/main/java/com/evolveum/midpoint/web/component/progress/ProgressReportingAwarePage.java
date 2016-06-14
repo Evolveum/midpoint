@@ -56,4 +56,6 @@ public interface ProgressReportingAwarePage {
     WebApplicationConfiguration getWebApplicationConfiguration();
     
     public WebMarkupContainer getFeedbackPanel();
+
+	void continueEditing(AjaxRequestTarget target);
 }

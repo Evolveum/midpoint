@@ -55,8 +55,11 @@ public class ProgressPanel extends BasePanel<ProgressDto> {
     private static final String ID_LOG_ITEM = "logItem";
     private static final String ID_EXECUTION_TIME = "executionTime";
     private static final String ID_PROGRESS_FORM = "progressForm";
+	private static final String ID_BACK = "back";
+	private static final String ID_ABORT = "abort";
+	private static final String ID_CONTINUE_EDITING = "continueEditing";
 
-    private ProgressReporter progressReporter;
+	private ProgressReporter progressReporter;
     private Form progressForm;
     private long operationStartTime;            // if 0, operation hasn't start yet
     private long operationDurationTime;         // if >0, operation has finished
@@ -208,7 +211,7 @@ public class ProgressPanel extends BasePanel<ProgressDto> {
     
     private void initButtons(final Form progressForm, final ProgressReportingAwarePage page) {
 
-		AjaxSubmitButton abortButton = new AjaxSubmitButton("abort",
+		AjaxSubmitButton abortButton = new AjaxSubmitButton(ID_ABORT,
 				createStringResource("pageAdminFocus.button.abort")) {
 
 			@Override
@@ -227,7 +230,7 @@ public class ProgressPanel extends BasePanel<ProgressDto> {
         progressReporter.registerAbortButton(abortButton);
         progressForm.add(abortButton);
 
-		AjaxSubmitButton backButton = new AjaxSubmitButton("back",
+		AjaxSubmitButton backButton = new AjaxSubmitButton(ID_BACK,
 				createStringResource("pageAdminFocus.button.back")) {
 
 			@Override
@@ -243,6 +246,24 @@ public class ProgressPanel extends BasePanel<ProgressDto> {
 		};
 		progressReporter.registerBackButton(backButton);
 		progressForm.add(backButton);
+
+		AjaxSubmitButton continueEditingButton = new AjaxSubmitButton(ID_CONTINUE_EDITING,
+				createStringResource("pageAdminFocus.button.continueEditing")) {
+
+			@Override
+			protected void onSubmit(AjaxRequestTarget target, org.apache.wicket.markup.html.form.Form<?> form) {
+				ProgressReportingAwarePage page = (ProgressReportingAwarePage) getPage();
+				page.continueEditing(target);
+			}
+
+			@Override
+			protected void onError(AjaxRequestTarget target,
+					org.apache.wicket.markup.html.form.Form<?> form) {
+				target.add(page.getFeedbackPanel());
+			}
+		};
+		progressReporter.registerContinueEditingButton(continueEditingButton);
+		progressForm.add(continueEditingButton);
 
 	}
 

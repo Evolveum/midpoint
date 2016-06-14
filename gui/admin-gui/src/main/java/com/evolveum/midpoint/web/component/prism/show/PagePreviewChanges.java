@@ -16,28 +16,23 @@
 
 package com.evolveum.midpoint.web.component.prism.show;
 
-import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.context.ModelProjectionContext;
 import com.evolveum.midpoint.model.api.visualizer.Scene;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
 import com.evolveum.midpoint.web.component.breadcrumbs.BreadcrumbPageInstance;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
 import com.evolveum.midpoint.web.page.admin.PageAdminObjectDetails;
-import com.evolveum.midpoint.web.page.admin.home.PageDashboard;
-import com.evolveum.midpoint.web.page.admin.workflow.PageAdminWorkItems;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -59,7 +54,7 @@ public class PagePreviewChanges extends PageAdmin {
 
 	private static final String ID_PRIMARY_DELTAS_SCENE = "primaryDeltas";
 	private static final String ID_SECONDARY_DELTAS_SCENE = "secondaryDeltas";
-	private static final String ID_BACK = "back";
+	private static final String ID_CONTINUE_EDITING = "continueEditing";
 	private static final String ID_SAVE = "save";
 
 	private static final Trace LOGGER = TraceManager.getTrace(PagePreviewChanges.class);
@@ -132,7 +127,7 @@ public class PagePreviewChanges extends PageAdmin {
 	}
 
 	private void initButtons(Form mainForm) {
-		AjaxButton cancel = new AjaxButton(ID_BACK, createStringResource("PagePreviewChanges.button.back")) {
+		AjaxButton cancel = new AjaxButton(ID_CONTINUE_EDITING, createStringResource("PagePreviewChanges.button.continueEditing")) {
 			@Override
 			public void onClick(AjaxRequestTarget target) {
 				cancelPerformed(target);

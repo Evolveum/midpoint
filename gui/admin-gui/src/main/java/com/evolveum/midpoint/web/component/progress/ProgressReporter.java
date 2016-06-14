@@ -66,6 +66,7 @@ public class ProgressReporter implements Serializable {
     // links to wicket artefacts on parent page
     private AjaxSubmitButton abortButton;
     private AjaxSubmitButton backButton;
+    private AjaxSubmitButton continueEditingButton;
     private ProgressReportingAwarePage parentPage;
     private ProgressPanel progressPanel;
     private Behavior refreshingBehavior = null;             // behavior is attached to the progress panel
@@ -264,6 +265,13 @@ public class ProgressReporter implements Serializable {
         this.backButton = backButton;
     }
 
+    public void registerContinueEditingButton(AjaxSubmitButton continueEditingButton) {
+		continueEditingButton.setOutputMarkupId(true);
+		continueEditingButton.setOutputMarkupPlaceholderTag(true);
+		continueEditingButton.setVisible(false);
+        this.continueEditingButton = continueEditingButton;
+    }
+
     /**
      * You have to call this method when Abort button is pressed
      */
@@ -301,9 +309,19 @@ public class ProgressReporter implements Serializable {
         target.add(backButton);
     }
 
+    public void hideContinueEditingButton(AjaxRequestTarget target) {
+        continueEditingButton.setVisible(false);
+        target.add(continueEditingButton);
+    }
+
     public void showBackButton(AjaxRequestTarget target) {
         backButton.setVisible(true);
         target.add(backButton);
+    }
+
+    public void showContinueEditingButton(AjaxRequestTarget target) {
+        continueEditingButton.setVisible(true);
+        target.add(continueEditingButton);
     }
 
 
