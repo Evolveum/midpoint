@@ -77,7 +77,7 @@ public class NotificationsUtil {
         }
     }
 
-    public ObjectType getObjectType(SimpleObjectRef simpleObjectRef, OperationResult result) {
+    public ObjectType getObjectType(SimpleObjectRef simpleObjectRef, boolean allowNotFound, OperationResult result) {
         if (simpleObjectRef == null) {
             return null;
         }
@@ -92,7 +92,11 @@ public class NotificationsUtil {
         try {
             objectType = cacheRepositoryService.getObject(ObjectType.class, simpleObjectRef.getOid(), null, result).asObjectable();
         } catch (ObjectNotFoundException e) {   // todo correct error handling
-            throw new SystemException(e);
+			if (allowNotFound) {
+				return null;
+			} else {
+				throw new SystemException(e);
+			}
         } catch (SchemaException e) {
             throw new SystemException(e);
         }
@@ -141,7 +145,7 @@ public class NotificationsUtil {
         if (event.getRequester() != null) {
             body.append("Requester: ");
             try {
-                ObjectType requester = event.getRequester().resolveObjectType(result);
+                ObjectType requester = event.getRequester().resolveObjectType(result, false);
                 if (requester instanceof UserType) {
                     UserType requesterUser = (UserType) requester;
                     body.append(requesterUser.getFullName()).append(" (").append(requester.getName()).append(")");

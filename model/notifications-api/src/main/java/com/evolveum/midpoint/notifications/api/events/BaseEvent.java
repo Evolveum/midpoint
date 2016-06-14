@@ -178,8 +178,8 @@ public abstract class BaseEvent implements Event {
 
     public void createExpressionVariables(Map<QName, Object> variables, OperationResult result) {
         variables.put(SchemaConstants.C_EVENT, this);
-        variables.put(SchemaConstants.C_REQUESTER, requester != null ? requester.resolveObjectType(result) : null);
-        variables.put(SchemaConstants.C_REQUESTEE, requestee != null ? requestee.resolveObjectType(result) : null);
+        variables.put(SchemaConstants.C_REQUESTER, requester != null ? requester.resolveObjectType(result, false) : null);
+        variables.put(SchemaConstants.C_REQUESTEE, requestee != null ? requestee.resolveObjectType(result, true) : null);
     }
 
     // Finding items in deltas/objects

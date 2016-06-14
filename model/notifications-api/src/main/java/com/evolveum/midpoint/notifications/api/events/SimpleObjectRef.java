@@ -27,5 +27,5 @@ public interface SimpleObjectRef {
     public void setOid(String oid);
     public ObjectType getObjectType();
     public void setObjectType(ObjectType objectType);
-    ObjectType resolveObjectType(OperationResult result);
+    ObjectType resolveObjectType(OperationResult result, boolean allowNotFound);
 }

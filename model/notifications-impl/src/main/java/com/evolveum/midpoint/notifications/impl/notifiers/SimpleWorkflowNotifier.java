@@ -67,7 +67,7 @@ public class SimpleWorkflowNotifier extends GeneralNotifier {
 		} else {
 			return null;
 		}
-		ObjectType recipient = notificationsUtil.getObjectType(recipientRef, result);
+		ObjectType recipient = notificationsUtil.getObjectType(recipientRef, false, result);
 		if (recipient instanceof UserType) {
 			return (UserType) recipient;
 		} else {
@@ -109,7 +109,7 @@ public class SimpleWorkflowNotifier extends GeneralNotifier {
         if (workflowEvent instanceof WorkItemEvent) {
             WorkItemEvent workItemEvent = (WorkItemEvent) workflowEvent;
             body.append("Work item: ").append(workItemEvent.getWorkItemName()).append("\n");
-            ObjectType assigneeType = notificationsUtil.getObjectType(workItemEvent.getAssignee(), result);
+            ObjectType assigneeType = notificationsUtil.getObjectType(workItemEvent.getAssignee(), true, result);
             if (assigneeType != null) {
                 body.append("Assignee: ").append(assigneeType.getName()).append("\n");
             }
