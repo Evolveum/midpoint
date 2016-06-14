@@ -986,7 +986,7 @@ public class ContextLoader {
 					projContext.setExists(true);
 					GetOperationOptions rootOptions = new GetOperationOptions();
 					if (projContext.isDoReconciliation()) {
-						if (SchemaConstants.CHANGE_CHANNEL_DISCOVERY.equals(context.getChannel())) {
+						if (SchemaConstants.CHANGE_CHANNEL_DISCOVERY_URI.equals(context.getChannel())) {
 							// Avoid discovery loops
 							rootOptions.setDoNotDiscovery(true);
 						}
