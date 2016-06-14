@@ -25,6 +25,7 @@ import com.evolveum.midpoint.schema.ProvisioningDiag;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.api.SecurityEnforcer;
 import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -476,9 +477,24 @@ public class ModelDiagController implements ModelDiagnosticService {
 			String rv = dataModelVisualizer.visualize(resourceOids, task, result);
 			result.computeStatusIfUnknown();
 			return rv;
-		} catch(Throwable t) {
+		} catch (Throwable t) {
 			result.recordFatalError(t.getMessage(), t);
 			throw t;
 		}
 	}
+
+	@Override
+	public String exportDataModel(ResourceType resource, Task task, OperationResult parentResult)
+			throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, SecurityViolationException {
+		OperationResult result = parentResult.createSubresult(EXPORT_DATA_MODEL);
+		try {
+			String rv = dataModelVisualizer.visualize(resource, task, result);
+			result.computeStatusIfUnknown();
+			return rv;
+		} catch (Throwable t) {
+			result.recordFatalError(t.getMessage(), t);
+			throw t;
+		}
+	}
+
 }

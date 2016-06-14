@@ -68,7 +68,7 @@ public class WorkItemEvent extends WorkflowEvent {
     @Override
     public void createExpressionVariables(Map<QName, Object> variables, OperationResult result) {
         super.createExpressionVariables(variables, result);
-        variables.put(SchemaConstants.C_ASSIGNEE, assignee != null ? assignee.resolveObjectType(result) : null);
+        variables.put(SchemaConstants.C_ASSIGNEE, assignee != null ? assignee.resolveObjectType(result, false) : null);
         variables.put(SchemaConstants.C_WORK_ITEM, workItem);
     }
 

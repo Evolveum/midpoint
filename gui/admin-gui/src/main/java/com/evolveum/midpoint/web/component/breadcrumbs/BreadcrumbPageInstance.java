@@ -18,8 +18,10 @@ package com.evolveum.midpoint.web.component.breadcrumbs;
 
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.Component;
+import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import java.util.Arrays;
 
@@ -45,11 +47,21 @@ public class BreadcrumbPageInstance extends Breadcrumb {
     }
 
     @Override
+    public PageParameters getParameters() {
+        return page.getPageParameters();
+    }
+
+    @Override
     public void redirect(Component component) {
         component.setResponsePage(page);
     }
 
-    @Override
+	@Override
+	public RestartResponseException getRestartResponseException() {
+		return new RestartResponseException(page);
+	}
+
+	@Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;

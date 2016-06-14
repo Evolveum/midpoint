@@ -110,7 +110,7 @@ public class UserPasswordNotifier extends GeneralNotifier {
 
         ModelEvent modelEvent = (ModelEvent) event;
         List<ObjectDelta<FocusType>> deltas = modelEvent.getFocusDeltas();
-        return "Password for user " + notificationsUtil.getObjectType(event.getRequestee(), result).getName() + " is: " + getPasswordFromDeltas(deltas);
+        return "Password for user " + notificationsUtil.getObjectType(event.getRequestee(), false, result).getName() + " is: " + getPasswordFromDeltas(deltas);
     }
 
     @Override

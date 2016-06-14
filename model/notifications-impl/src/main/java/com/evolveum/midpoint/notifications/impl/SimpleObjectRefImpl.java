@@ -74,8 +74,8 @@ public class SimpleObjectRefImpl implements SimpleObjectRef {
     }
 
     @Override
-    public ObjectType resolveObjectType(OperationResult result) {
-        return notificationsUtil.getObjectType(this, result);
+    public ObjectType resolveObjectType(OperationResult result, boolean allowNotFound) {
+        return notificationsUtil.getObjectType(this, allowNotFound, result);
     }
 
     @Override

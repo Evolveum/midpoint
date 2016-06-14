@@ -115,6 +115,11 @@ public class PageResourceWizard extends PageAdminResources {
 		initLayout();
     }
 
+	@Override
+	protected void createBreadcrumb() {
+		createInstanceBreadcrumb();
+	}
+
 	@NotNull
 	private NonEmptyLoadableModel<PrismObject<ResourceType>> createResourceModel(final Collection<SelectorOptions<GetOperationOptions>> options) {
 		return new NonEmptyLoadableModel<PrismObject<ResourceType>>(false) {
@@ -302,5 +307,9 @@ public class PageResourceWizard extends PageAdminResources {
 			public void detach() {
 			}
 		};
+	}
+
+	public void visualize(AjaxRequestTarget target) {
+		setResponsePage(new PageResourceVisualization(modelFull.getObject()));
 	}
 }

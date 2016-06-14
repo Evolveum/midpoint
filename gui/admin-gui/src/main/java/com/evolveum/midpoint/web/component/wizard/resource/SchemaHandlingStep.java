@@ -495,13 +495,13 @@ public class SchemaHandlingStep extends WizardStep {
 		editorAssociations.setOutputMarkupId(true);
         editor.add(editorAssociations);
 
-        DropDownChoice editorAssignmentPolicyRef = new DropDownChoice<>(ID_EDITOR_ASSIGNMENT_POLICY,
-                new PropertyModel<AssignmentPolicyEnforcementType>(schemaHandlingDtoModel,
-						getExpression(ResourceObjectTypeDefinitionType.F_ASSIGNMENT_POLICY_ENFORCEMENT)),
-                WebComponentUtil.createReadonlyModelFromEnum(AssignmentPolicyEnforcementType.class),
-                new EnumChoiceRenderer<AssignmentPolicyEnforcementType>(this));
-		parentPage.addEditingEnabledBehavior(editorAssignmentPolicyRef);
-        editor.add(editorAssignmentPolicyRef);
+//        DropDownChoice editorAssignmentPolicyRef = new DropDownChoice<>(ID_EDITOR_ASSIGNMENT_POLICY,
+//                new PropertyModel<AssignmentPolicyEnforcementType>(schemaHandlingDtoModel,
+//						getExpression(ResourceObjectTypeDefinitionType.F_ASSIGNMENT_POLICY_ENFORCEMENT)),
+//                WebComponentUtil.createReadonlyModelFromEnum(AssignmentPolicyEnforcementType.class),
+//                new EnumChoiceRenderer<AssignmentPolicyEnforcementType>(this));
+//		parentPage.addEditingEnabledBehavior(editorAssignmentPolicyRef);
+//        editor.add(editorAssignmentPolicyRef);
 
         AjaxSubmitLink editorIteration = new AjaxSubmitLink(ID_EDITOR_BUTTON_ITERATION) {
 

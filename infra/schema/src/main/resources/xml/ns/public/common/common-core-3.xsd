@@ -3526,7 +3526,13 @@
             </xsd:element>
             <xsd:element name="dependency" type="tns:ResourceObjectTypeDependencyType" minOccurs="0" maxOccurs="unbounded"/>
          	<xsd:element name="association" type="tns:ResourceObjectAssociationType" minOccurs="0" maxOccurs="unbounded"/>
-         	<xsd:element name="assignmentPolicyEnforcement" type="tns:AssignmentPolicyEnforcementType" minOccurs="0"/>
+         	<xsd:element name="assignmentPolicyEnforcement" type="tns:AssignmentPolicyEnforcementType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Currently not implemented.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="volatility" type="tns:ResourceObjectVolatilityType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>

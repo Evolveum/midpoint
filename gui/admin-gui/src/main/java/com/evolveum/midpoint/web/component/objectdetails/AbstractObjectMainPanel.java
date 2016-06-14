@@ -18,6 +18,7 @@ package com.evolveum.midpoint.web.component.objectdetails;
 import java.util.List;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.web.component.AjaxTabbedPanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -44,6 +45,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
  */
 public abstract class AbstractObjectMainPanel<O extends ObjectType> extends Panel {
 
+	public static final String PARAMETER_SELECTED_TAB = "tab";
+
 	private static final String ID_MAIN_FORM = "mainForm";
 	private static final String ID_TAB_PANEL = "tabPanel";
 	private static final String ID_EXECUTE_OPTIONS = "executeOptions";
@@ -68,6 +71,15 @@ public abstract class AbstractObjectMainPanel<O extends ObjectType> extends Pane
 		Validate.notNull(objectModel, "Null object model");
 		this.objectModel = objectModel;
 		initLayout(parentPage);
+	}
+
+	@Override
+	protected void onConfigure() {
+		super.onConfigure();
+
+		TabbedPanel tabbedPanel = (TabbedPanel) get(ID_MAIN_FORM + ":" + ID_TAB_PANEL);
+		WebComponentUtil.setSelectedTabFromPageParameters(tabbedPanel, getPage().getPageParameters(),
+				PARAMETER_SELECTED_TAB);
 	}
 
 	public LoadableModel<ObjectWrapper<O>> getObjectModel() {
@@ -96,7 +108,8 @@ public abstract class AbstractObjectMainPanel<O extends ObjectType> extends Pane
 	
 	protected void initLayoutTabs(final PageAdminObjectDetails<O> parentPage) {
 		List<ITab> tabs = createTabs(parentPage);
-		TabbedPanel<ITab> tabPanel = WebComponentUtil.createTabPanel(ID_TAB_PANEL, parentPage, tabs, null);
+		TabbedPanel<ITab> tabPanel = WebComponentUtil.createTabPanel(ID_TAB_PANEL, parentPage, tabs, null,
+				PARAMETER_SELECTED_TAB);
 		mainForm.add(tabPanel);
 	}
 

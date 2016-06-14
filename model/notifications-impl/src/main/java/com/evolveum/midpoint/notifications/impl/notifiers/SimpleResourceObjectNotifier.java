@@ -130,7 +130,7 @@ public class SimpleResourceObjectNotifier extends GeneralNotifier {
 
         ResourceObjectEvent resourceObjectEvent = (ResourceObjectEvent) event;
 
-        UserType owner = (UserType) notificationsUtil.getObjectType(resourceObjectEvent.getRequestee(), result);
+        UserType owner = (UserType) notificationsUtil.getObjectType(resourceObjectEvent.getRequestee(), true, result);
         ResourceOperationDescription rod = resourceObjectEvent.getAccountOperationDescription();
         ObjectDelta<ShadowType> delta = (ObjectDelta<ShadowType>) rod.getObjectDelta();
 

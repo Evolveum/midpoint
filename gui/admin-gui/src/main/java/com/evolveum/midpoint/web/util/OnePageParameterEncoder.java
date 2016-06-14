@@ -23,16 +23,17 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 import java.util.List;
 
 /**
+ * This encoder with encode/decode {@link OnePageParameterEncoder#PARAMETER} to path
+ * and all other parameters as query parameters.
+ * <p>
+ * Example: /mountPoint/pathParameterValue?param2=value2&param3=value3
+ *
  * @author lazyman
  */
 public class OnePageParameterEncoder implements IPageParametersEncoder {
 
-    public static final String PARAMETER = "parameter";
+    public static final String PARAMETER = "pathParameter";
 
-    /**
-     * Decodes URL like this: /mountPoint/paramValue1
-     * Parameter value is in URL with name defined in constructor
-     */
     @Override
     public PageParameters decodePageParameters(Url url) {
         PageParameters parameters = new PageParameters();
@@ -43,23 +44,26 @@ public class OnePageParameterEncoder implements IPageParametersEncoder {
             parameters.add(PARAMETER, value);
         }
 
+        if (url.getQueryParameters() != null) {
+            for (Url.QueryParameter qp : url.getQueryParameters()) {
+                parameters.add(qp.getName(), qp.getValue());
+            }
+        }
+
         return parameters.isEmpty() ? null : parameters;
     }
 
-    /**
-     * Encodes URL like this: /mountPoint/paramValue1
-     */
     @Override
     public Url encodePageParameters(PageParameters pageParameters) {
         Url url = new Url();
 
         for (PageParameters.NamedPair pair : pageParameters.getAllNamed()) {
-            if (!PARAMETER.equals(pair.getKey())) {
+            if (PARAMETER.equals(pair.getKey())) {
+                url.getSegments().add(pair.getValue());
                 continue;
             }
 
-            url.getSegments().add(pair.getValue());
-            break;
+            url.addQueryParameter(pair.getKey(), pair.getValue());
         }
 
         return url;

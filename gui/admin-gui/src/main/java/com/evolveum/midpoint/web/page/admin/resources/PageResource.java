@@ -46,6 +46,7 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.util.ListModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
@@ -84,6 +85,8 @@ public class PageResource extends PageAdminResources {
 
 	public static final String TABLE_TEST_CONNECTION_RESULT_ID = "testConnectionResults";
 
+	public static final String PARAMETER_SELECTED_TAB = "tab";
+
 	LoadableModel<PrismObject<ResourceType>> resourceModel;
 
 	private String resourceOid;
@@ -107,6 +110,14 @@ public class PageResource extends PageAdminResources {
 			}
 		};
 		initLayout();
+	}
+
+	@Override
+	protected void onConfigure() {
+		super.onConfigure();
+
+		AjaxTabbedPanel tabbedPanel = (AjaxTabbedPanel) get(ID_TAB_PANEL);
+		WebComponentUtil.setSelectedTabFromPageParameters(tabbedPanel, getPageParameters(), PARAMETER_SELECTED_TAB);
 	}
 
 	protected String getResourceOid() {
@@ -138,8 +149,6 @@ public class PageResource extends PageAdminResources {
 		addOrReplace(createResourceSummaryPanel());
 
 		addOrReplace(createTabsPanel());
-		
-		
 
 		AjaxButton test = new AjaxButton(BUTTON_TEST_CONNECTION_ID,
 				createStringResource("pageResource.button.test")) {
@@ -299,7 +308,13 @@ public class PageResource extends PageAdminResources {
 			}
 		});
 
-		AjaxTabbedPanel<ITab> resourceTabs = new AjaxTabbedPanel<>(ID_TAB_PANEL, tabs);
+		AjaxTabbedPanel<ITab> resourceTabs = new AjaxTabbedPanel<ITab>(ID_TAB_PANEL, tabs) {
+
+			@Override
+			protected void onTabChange(int index) {
+				updateBreadcrumbParameters(PARAMETER_SELECTED_TAB, index);
+			}
+		};
 		resourceTabs.setOutputMarkupId(true);
 		return resourceTabs;
 	}

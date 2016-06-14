@@ -71,8 +71,8 @@ public class VisualizationContext {
 	}
 
 	public ResourceDataItem findResourceItem(@NotNull String resourceOid, @Nullable ShadowKindType kind, @Nullable String intent, @NotNull ItemPath path) {
-		kind = DataModelVisualizer.def(kind);
-		intent = DataModelVisualizer.def(intent);
+		kind = DataModelVisualizerImpl.def(kind);
+		intent = DataModelVisualizerImpl.def(intent);
 		QName name = path.asSingleName();
 		if (name == null) {
 			LOGGER.warn("Unexpected path to an attribute: {}", path);

@@ -19,8 +19,10 @@ package com.evolveum.midpoint.web.component.breadcrumbs;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import org.apache.wicket.Component;
+import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import java.io.Serializable;
 import java.util.Arrays;
@@ -47,6 +49,10 @@ public class Breadcrumb implements Serializable {
     public Breadcrumb(IModel<String> label, IModel<String> icon) {
         setLabel(label);
         setIcon(icon);
+    }
+
+    public PageParameters getParameters() {
+        return null;
     }
 
     public IModel<String> getLabel() {
@@ -84,7 +90,11 @@ public class Breadcrumb implements Serializable {
     public void redirect(Component component) {
     }
 
-    private <T extends Serializable> IModel<T> wrapModel(final IModel<T> model) {
+	public RestartResponseException getRestartResponseException() {
+		throw new UnsupportedOperationException("Should be implemented in a subclass");
+	}
+
+	private <T extends Serializable> IModel<T> wrapModel(final IModel<T> model) {
         if (model == null) {
             return null;
         }

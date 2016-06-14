@@ -195,7 +195,7 @@ public class GeneralNotifier extends BaseHandler {
     }
 
     protected UserType getDefaultRecipient(Event event, GeneralNotifierType generalNotifierType, OperationResult result) {
-        ObjectType objectType = notificationsUtil.getObjectType(event.getRequestee(), result);
+        ObjectType objectType = notificationsUtil.getObjectType(event.getRequestee(), true, result);
         if (objectType instanceof UserType) {
             return (UserType) objectType;
         } else {
@@ -359,7 +359,7 @@ public class GeneralNotifier extends BaseHandler {
         if (requesterRef == null) {
             return "(unknown or none)";
         }
-        ObjectType requester = requesterRef.resolveObjectType(result);
+        ObjectType requester = requesterRef.resolveObjectType(result, false);
         String name = PolyString.getOrig(requester.getName());
         if (requester instanceof UserType) {
             return name + " (" + PolyString.getOrig(((UserType) requester).getFullName()) + ")";
