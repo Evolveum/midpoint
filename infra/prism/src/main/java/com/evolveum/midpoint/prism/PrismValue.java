@@ -31,6 +31,7 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -108,6 +109,24 @@ public abstract class PrismValue implements Visitable, PathVisitable, Serializab
 			throw new IllegalStateException("No parent, cannot create value path for "+this); 
 		}
 		return parent.getPath();
+	}
+	
+	/**
+	 * Used when we are removing the value from the previous parent.
+	 * Or when we know that the previous parent will be discarded and we
+	 * want to avoid unnecessary cloning.
+	 */
+	public void clearParent() {
+		parent = null;
+	}
+	
+	public static <T> void clearParent(List<PrismPropertyValue<T>> values) {
+		if (values == null) {
+			return;
+		}
+		for (PrismPropertyValue<T> val: values) {
+			val.clearParent();
+		}
 	}
 	
 	public PrismContext getPrismContext() {

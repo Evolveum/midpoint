@@ -1535,6 +1535,8 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         PrismObject<UserType> userBefore = getUser(USER_ELAINE_OID);
         display("User before", userBefore);
         
+        assertAssignees(ROLE_GOVERNOR_OID, 0);
+        
         // WHEN
         assignRole(USER_ELAINE_OID, ROLE_GOVERNOR_OID, task, result);
         
@@ -1551,6 +1553,8 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         assertAssignedRole(USER_ELAINE_OID, ROLE_GOVERNOR_OID, task, result);
         assertDefaultDummyAccount(ACCOUNT_ELAINE_DUMMY_USERNAME, ACCOUNT_ELAINE_DUMMY_FULLNAME, true);
         assertDefaultDummyAccountAttribute(ACCOUNT_ELAINE_DUMMY_USERNAME, "title", "Her Excellency Governor");
+        
+        assertAssignees(ROLE_GOVERNOR_OID, 1);
 	}
 	
 	/**
@@ -1581,6 +1585,8 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         TestUtil.assertFailure(result);
         
         assertNoAssignments(USER_JACK_OID);
+        
+        assertAssignees(ROLE_GOVERNOR_OID, 1);
 	}
 	
 	/**
@@ -1601,7 +1607,10 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         addObject(user);
         userLemonheadOid = user.getOid();
         
+        assertAssignees(ROLE_CANNIBAL_OID, 0);
+        
         // WHEN
+        TestUtil.displayWhen(TEST_NAME);
         assignRole(user.getOid(), ROLE_CANNIBAL_OID, task, result);
         
         // THEN
@@ -1612,6 +1621,9 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         assertAssignedRole(user.getOid(), ROLE_CANNIBAL_OID, task, result);
         assertDefaultDummyAccount(USER_LEMONHEAD_NAME, USER_LEMONHEAD_FULLNAME, true);
         assertDefaultDummyAccountAttribute(USER_LEMONHEAD_NAME, "title", "Voracious Cannibal");
+        
+        assertAssignees(ROLE_CANNIBAL_OID, 1);
+        assertAssignees(ROLE_GOVERNOR_OID, 1);
 	}
 	
 	@Test
@@ -1627,7 +1639,10 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         addObject(user);
         userSharptoothOid = user.getOid();
         
+        assertAssignees(ROLE_CANNIBAL_OID, 1);
+        
         // WHEN
+        TestUtil.displayWhen(TEST_NAME);
         assignRole(user.getOid(), ROLE_CANNIBAL_OID, task, result);
         
         // THEN
@@ -1638,6 +1653,9 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         assertAssignedRole(user.getOid(), ROLE_CANNIBAL_OID, task, result);
         assertDefaultDummyAccount(USER_SHARPTOOTH_NAME, USER_SHARPTOOTH_FULLNAME, true);
         assertDefaultDummyAccountAttribute(USER_SHARPTOOTH_NAME, "title", "Voracious Cannibal");
+        
+        assertAssignees(ROLE_CANNIBAL_OID, 2);
+        assertAssignees(ROLE_GOVERNOR_OID, 1);
 	}
 	
 	@Test
@@ -1653,7 +1671,10 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         addObject(user);
         userRedskullOid = user.getOid();
         
+        assertAssignees(ROLE_CANNIBAL_OID, 2);
+        
         // WHEN
+        TestUtil.displayWhen(TEST_NAME);
         assignRole(user.getOid(), ROLE_CANNIBAL_OID, task, result);
         
         // THEN
@@ -1664,6 +1685,9 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         assertAssignedRole(user.getOid(), ROLE_CANNIBAL_OID, task, result);
         assertDefaultDummyAccount(USER_REDSKULL_NAME, USER_REDSKULL_FULLNAME, true);
         assertDefaultDummyAccountAttribute(USER_REDSKULL_NAME, "title", "Voracious Cannibal");
+        
+        assertAssignees(ROLE_CANNIBAL_OID, 3);
+        assertAssignees(ROLE_GOVERNOR_OID, 1);
 	}
 
 	@Test
@@ -1679,8 +1703,11 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         addObject(user);
         userBignoseOid = user.getOid();
         
+        assertAssignees(ROLE_CANNIBAL_OID, 3);
+        
         try {
 	        // WHEN
+        	TestUtil.displayWhen(TEST_NAME);
 	        assignRole(user.getOid(), ROLE_GOVERNOR_OID, task, result);
 	        
 	        AssertJUnit.fail("Unexpected success");
@@ -1695,6 +1722,9 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         TestUtil.assertFailure(result);
         
         assertNoAssignments(user.getOid());
+        
+        assertAssignees(ROLE_CANNIBAL_OID, 3);
+        assertAssignees(ROLE_GOVERNOR_OID, 1);
 	}
 	
 	@Test
@@ -1706,7 +1736,10 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         
+        assertAssignees(ROLE_CANNIBAL_OID, 3);
+        
         // WHEN
+        TestUtil.displayWhen(TEST_NAME);
         unassignRole(userSharptoothOid, ROLE_CANNIBAL_OID, task, result);
         
         // THEN
@@ -1716,6 +1749,9 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         
         assertNoAssignments(userSharptoothOid);
         assertNoDummyAccount(USER_SHARPTOOTH_NAME);
+        
+        assertAssignees(ROLE_CANNIBAL_OID, 2);
+        assertAssignees(ROLE_GOVERNOR_OID, 1);
 	}
 	
 	@Test
@@ -1727,8 +1763,11 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         
+        assertAssignees(ROLE_CANNIBAL_OID, 2);
+        
         try {
 	        // WHEN
+        	TestUtil.displayWhen(TEST_NAME);
 	        unassignRole(userRedskullOid, ROLE_CANNIBAL_OID, task, result);
 	        
 	        AssertJUnit.fail("Unexpected success");
@@ -1745,6 +1784,39 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         assertAssignedRole(userRedskullOid, ROLE_CANNIBAL_OID, task, result);
         assertDefaultDummyAccount(USER_REDSKULL_NAME, USER_REDSKULL_FULLNAME, true);
         assertDefaultDummyAccountAttribute(USER_REDSKULL_NAME, "title", "Voracious Cannibal");
+        
+        assertAssignees(ROLE_CANNIBAL_OID, 2);
+        assertAssignees(ROLE_GOVERNOR_OID, 1);
+	}
+	
+	@Test
+    public void test649ElaineUnassignRoleGovernor() throws Exception {
+		final String TEST_NAME = "test649ElaineUnassignRoleGovernor";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
+
+        Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        PrismObject<UserType> userBefore = getUser(USER_ELAINE_OID);
+        display("User before", userBefore);
+        
+        assertAssignees(ROLE_GOVERNOR_OID, 1);
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        unassignRole(USER_ELAINE_OID, ROLE_GOVERNOR_OID, task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+
+        PrismObject<UserType> userAfter = getUser(USER_ELAINE_OID);
+        display("User after", userAfter);
+        assertAssignedNoRole(userAfter);
+        
+        assertAssignees(ROLE_GOVERNOR_OID, 0);
 	}
 
 	@Test
@@ -2011,4 +2083,65 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
 	}
 
+	@Test
+    public void test720JackAssignRoleGovernorTenantRef() throws Exception {
+		final String TEST_NAME = "test720JackAssignRoleGovernorTenantRef";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+
+        Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+        task.setOwner(getUser(USER_ADMINISTRATOR_OID));
+        OperationResult result = task.getResult();
+        
+        assertAssignees(ROLE_GOVERNOR_OID, 0);
+        
+        PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
+        display("User jack before", userBefore);
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        assignPrametricRole(USER_JACK_OID, ROLE_GOVERNOR_OID, null, ORG_SCUMM_BAR_OID, task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        assertAssignedRole(USER_JACK_OID, ROLE_GOVERNOR_OID, task, result);
+        assertDefaultDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
+        assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, 
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Her Excellency Governor of Scumm Bar");
+        
+        assertAssignees(ROLE_GOVERNOR_OID, 1);
+	}
+	
+	@Test
+    public void test729JackUnassignRoleGovernorTenantRef() throws Exception {
+		final String TEST_NAME = "test729JackUnassignRoleGovernorTenantRef";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+
+        Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+        task.setOwner(getUser(USER_ADMINISTRATOR_OID));
+        OperationResult result = task.getResult();
+        
+        assertAssignees(ROLE_GOVERNOR_OID, 1);
+        
+        PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
+        display("User jack before", userBefore);
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        unassignPrametricRole(USER_JACK_OID, ROLE_GOVERNOR_OID, null, ORG_SCUMM_BAR_OID, task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        assertAssignedNoRole(USER_JACK_OID, task, result);
+        assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
+        
+        assertAssignees(ROLE_GOVERNOR_OID, 0);
+	}
 }

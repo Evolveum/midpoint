@@ -79,6 +79,9 @@ import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.path.IdItemPathSegment;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
+import com.evolveum.midpoint.prism.query.AndFilter;
+import com.evolveum.midpoint.prism.query.InOidFilter;
+import com.evolveum.midpoint.prism.query.NotFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.RefFilter;
@@ -1517,30 +1520,31 @@ public class AssignmentProcessor {
 			if (targetType instanceof AbstractRoleType) {
 				PolicyConstraintsType policyConstraints = ((AbstractRoleType)targetType).getPolicyConstraints();
 				if (policyConstraints != null && (!policyConstraints.getMinAssignees().isEmpty() || !policyConstraints.getMaxAssignees().isEmpty())) {
-					int assigneeCount = countAssignees((PrismObject<? extends AbstractRoleType>)target, result);
-					if (plusMinus == PlusMinusZero.PLUS) {
-						assigneeCount++;
+					String focusOid = null;
+					if (context.getFocusContext() != null) {
+						focusOid = context.getFocusContext().getOid();
 					}
-					if (plusMinus == PlusMinusZero.MINUS) {
-						assigneeCount--;
+					int numberOfAssigneesExceptMyself = countAssignees((PrismObject<? extends AbstractRoleType>)target, focusOid, result);
+					if (plusMinus == PlusMinusZero.PLUS) {
+						numberOfAssigneesExceptMyself++;
 					}
 					for (MultiplicityPolicyConstraintType constraint: policyConstraints.getMinAssignees()) {
 						Integer multiplicity = XsdTypeMapper.multiplicityToInteger(constraint.getMultiplicity());
 						// Complain only if the situation is getting worse
-						if (multiplicity >= 0 && assigneeCount < multiplicity && plusMinus == PlusMinusZero.MINUS) {
+						if (multiplicity >= 0 && numberOfAssigneesExceptMyself < multiplicity && plusMinus == PlusMinusZero.MINUS) {
 							if (constraint.getEnforcement() == null || constraint.getEnforcement() == PolicyConstraintEnforcementType.ENFORCE) {
 								throw new PolicyViolationException("Policy violation: "+target+" requires at least "+multiplicity+
-										" assignees. The operation would result in "+assigneeCount+" assignees.");
+										" assignees. The operation would result in "+numberOfAssigneesExceptMyself+" assignees.");
 							}
 						}
 					}
 					for (MultiplicityPolicyConstraintType constraint: policyConstraints.getMaxAssignees()) {
 						Integer multiplicity = XsdTypeMapper.multiplicityToInteger(constraint.getMultiplicity());
 						// Complain only if the situation is getting worse
-						if (multiplicity >= 0 && assigneeCount > multiplicity && plusMinus == PlusMinusZero.PLUS) {
+						if (multiplicity >= 0 && numberOfAssigneesExceptMyself > multiplicity && plusMinus == PlusMinusZero.PLUS) {
 							if (constraint.getEnforcement() == null || constraint.getEnforcement() == PolicyConstraintEnforcementType.ENFORCE) {
 								throw new PolicyViolationException("Policy violation: "+target+" requires at most "+multiplicity+
-										" assignees. The operation would result in "+assigneeCount+" assignees.");
+										" assignees. The operation would result in "+numberOfAssigneesExceptMyself+" assignees.");
 							}
 						}
 					}
@@ -1549,9 +1553,16 @@ public class AssignmentProcessor {
 		}
 	}
 
-	private int countAssignees(PrismObject<? extends AbstractRoleType> target, OperationResult result) throws SchemaException {
-		ObjectFilter filter = RefFilter.createReferenceEqual(
+	private int countAssignees(PrismObject<? extends AbstractRoleType> target, String selfOid, OperationResult result) throws SchemaException {
+		ObjectFilter refFilter = RefFilter.createReferenceEqual(
 				new ItemPath(FocusType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF), UserType.class, prismContext, target.getOid());
+		ObjectFilter filter;
+		if (selfOid == null) {
+			filter = refFilter;
+		} else {
+			InOidFilter oidFilter = InOidFilter.createInOid(selfOid);
+			filter = AndFilter.createAnd(refFilter, NotFilter.createNot(oidFilter));
+		}
 		ObjectQuery query = ObjectQuery.createObjectQuery(filter);
 		return repositoryService.countObjects(FocusType.class, query, result);
 	}

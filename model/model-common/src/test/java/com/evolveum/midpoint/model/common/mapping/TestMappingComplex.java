@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -71,6 +71,7 @@ public class TestMappingComplex {
     	
     	// THEN
 		PrismValueDeltaSetTriple<PrismPropertyValue<PolyString>> outputTriple = mapping.getOutputTriple();
+		outputTriple.checkConsistence();
 		PrismAsserts.assertTripleNoZero(outputTriple);
 	  	PrismAsserts.assertTriplePlus(outputTriple, PrismTestUtil.createPolyString("Pirate Jackie (#321)"));
 	  	PrismAsserts.assertTripleMinus(outputTriple, PrismTestUtil.createPolyString("Pirate null (#null)"));
@@ -126,6 +127,7 @@ public class TestMappingComplex {
     	
     	// THEN
 		PrismValueDeltaSetTriple<PrismPropertyValue<PolyString>> outputTriple = mapping.getOutputTriple();
+		outputTriple.checkConsistence();
 		PrismAsserts.assertTripleZero(outputTriple, PrismTestUtil.createPolyString("Pirate null (#null)"));
 	  	PrismAsserts.assertTripleNoPlus(outputTriple);
 	  	PrismAsserts.assertTripleNoMinus(outputTriple);

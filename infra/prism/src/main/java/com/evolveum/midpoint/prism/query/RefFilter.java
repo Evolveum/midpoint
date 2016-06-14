@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2014 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.evolveum.midpoint.prism.query;
 
 import java.util.ArrayList;
@@ -35,6 +34,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -51,23 +51,36 @@ public class RefFilter extends PropertyValueFilter<PrismReferenceValue> {
 		super(path, definition, expression);
 	}
 	
-	
-	public static RefFilter createReferenceEqual(ItemPath path, PrismReference item){
-		return new RefFilter(path, item.getDefinition(), null, item.getValues());
+	public static RefFilter createReferenceEqual(ItemPath path, PrismReference item) {
+		List<PrismReferenceValue> refValues = (List<PrismReferenceValue>) PrismValue.cloneCollection(item.getValues());
+		RefFilter refFilter = new RefFilter(path, item.getDefinition(), null, refValues);
+		for (PrismReferenceValue rval: refValues) {
+			rval.setParent(refFilter);
+		}
+		return refFilter;
 	}
 		
-	public static RefFilter createReferenceEqual(ItemPath path, PrismReferenceDefinition definition, PrismReferenceValue... values){
+	public static RefFilter createReferenceEqual(ItemPath path, PrismReferenceDefinition definition, PrismReferenceValue... values) {
 		if (values == null){
 			createNullRefFilter(path, definition);
 		}		
-		return new RefFilter(path, definition, null, Arrays.asList(values));
+		RefFilter refFilter = new RefFilter(path, definition, null, Arrays.asList(values));
+		for (PrismReferenceValue rval: values) {
+			rval.setParent(refFilter);
+		}
+		return refFilter;
 	}
 	
 	public static RefFilter createReferenceEqual(ItemPath path, PrismReference item, ExpressionWrapper expression){
-		return new RefFilter(path, item.getDefinition(), expression, item.getValues());
+		List<PrismReferenceValue> refValues = (List<PrismReferenceValue>) PrismValue.cloneCollection(item.getValues());
+		RefFilter refFilter = new RefFilter(path, item.getDefinition(), expression, refValues);
+		for (PrismReferenceValue rval: refValues) {
+			rval.setParent(refFilter);
+		}
+		return refFilter;
 	}
 	
-	public static RefFilter createReferenceEqual(ItemPath path, PrismReferenceDefinition definition, ExpressionWrapper expression){
+	public static RefFilter createReferenceEqual(ItemPath path, PrismReferenceDefinition definition, ExpressionWrapper expression) {
 		return new RefFilter(path, definition, expression);
 	}
 		
@@ -82,9 +95,12 @@ public class RefFilter extends PropertyValueFilter<PrismReferenceValue> {
 		for (String oid : oids){
 			refValues.add(new PrismReferenceValue(oid));
 		}
-		
 	
-		return new RefFilter(path, referenceDefinition, null, refValues);
+		RefFilter refFilter = new RefFilter(path, referenceDefinition, null, refValues);
+		for (PrismReferenceValue rval: refValues) {
+			rval.setParent(refFilter);
+		}
+		return refFilter;
 	}
 
     // beware, creating reference with (oid, ObjectType) may result in not matching a concrete reference of e.g. (oid, RoleType)

@@ -15,6 +15,7 @@
  */
 package com.evolveum.midpoint.model.common.expression;
 
+import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertEquals;
 
 import java.io.File;
@@ -108,6 +109,8 @@ public class TestExpression {
 		PrismValueDeltaSetTriple<PrismPropertyValue<Boolean>> outputTriple = expression.evaluate(expressionContext);
     	
 		// THEN
+		assertNotNull(outputTriple);
+		outputTriple.checkConsistence();
 		
 		// Make sure that the script is executed only once. There is no delta in the variables, no need to do it twice.
 		assertScriptExecutionIncrement(1);

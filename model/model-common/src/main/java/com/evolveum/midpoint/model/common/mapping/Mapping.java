@@ -542,6 +542,10 @@ public class Mapping<V extends PrismValue,D extends ItemDefinition> implements D
 			result.recordFatalError(e);
 			traceFailure(e);
 			throw e;
+		} catch (Error e) {
+			result.recordFatalError(e);
+			traceFailure(e);
+			throw e;
 		}
 	}
 	
@@ -617,7 +621,7 @@ public class Mapping<V extends PrismValue,D extends ItemDefinition> implements D
 		LOGGER.trace(sb.toString());
 	}
 	
-	private void traceFailure(Exception e) {
+	private void traceFailure(Throwable e) {
 		LOGGER.error("Error evaluating {}: {}", new Object[]{getMappingContextDescription(), e.getMessage(), e});
 		traceEvaluationEnd();
 		if (!LOGGER.isTraceEnabled()) {

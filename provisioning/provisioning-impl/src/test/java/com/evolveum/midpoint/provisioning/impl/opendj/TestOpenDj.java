@@ -1616,6 +1616,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		QueryType queryType = PrismTestUtil.parseAtomicValue(QUERY_COMPLEX_FILTER_FILE,
                 QueryType.COMPLEX_TYPE);
 		ObjectQuery query = QueryJaxbConvertor.createObjectQuery(ShadowType.class, queryType, prismContext);
+		provisioningService.applyDefinition(ShadowType.class, query, result);
 
 		rememberConnectorOperationCount();
 		rememberConnectorSimulatedPagingSearchCount();
@@ -2051,6 +2052,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		QueryType queryType = PrismTestUtil.parseAtomicValue(QUERY_VANHELGEN_FILE,
                 QueryType.COMPLEX_TYPE);
 		ObjectQuery query = QueryJaxbConvertor.createObjectQuery(ShadowType.class, queryType, prismContext);
+		provisioningService.applyDefinition(ShadowType.class, query, result);
 		
 		Entry entry = openDJController.addEntryFromLdifFile(ACCOUNT_POSIX_VANHELGEN_LDIF_FILE);
 

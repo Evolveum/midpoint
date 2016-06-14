@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,11 +18,9 @@ package com.evolveum.midpoint.model.common.mapping;
 import static org.testng.AssertJUnit.assertEquals;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Collection;
 
-import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 
@@ -275,7 +273,11 @@ public class MappingTestEvaluator {
 		OperationResult opResult = new OperationResult(testName);
 		mapping.evaluate(null, opResult);
 		assertResult(opResult);
-		return mapping.getOutputTriple();
+		PrismValueDeltaSetTriple<PrismPropertyValue<T>> outputTriple = mapping.getOutputTriple();
+		if (outputTriple != null) {
+			outputTriple.checkConsistence();
+		}
+		return outputTriple;
 	}
 	
 	public <T,I> PrismValueDeltaSetTriple<PrismPropertyValue<T>> evaluateMapping(String filename, String testName, 
@@ -285,7 +287,11 @@ public class MappingTestEvaluator {
 		OperationResult opResult = new OperationResult(testName);
 		mapping.evaluate(null, opResult);
 		assertResult(opResult);
-		return mapping.getOutputTriple();
+		PrismValueDeltaSetTriple<PrismPropertyValue<T>> outputTriple = mapping.getOutputTriple();
+		if (outputTriple != null) {
+			outputTriple.checkConsistence();
+		}
+		return outputTriple;
 	}
 	
 	public <T,I> PrismValueDeltaSetTriple<PrismPropertyValue<T>> evaluateMapping(String filename, String testName, 
@@ -295,7 +301,11 @@ public class MappingTestEvaluator {
 		OperationResult opResult = new OperationResult(testName);
 		mapping.evaluate(null, opResult);
 		assertResult(opResult);
-		return mapping.getOutputTriple();
+		PrismValueDeltaSetTriple<PrismPropertyValue<T>> outputTriple = mapping.getOutputTriple();
+		if (outputTriple != null) {
+			outputTriple.checkConsistence();
+		}
+		return outputTriple;
 	}
 	
 	public void assertResult(OperationResult opResult) {
@@ -322,7 +332,11 @@ public class MappingTestEvaluator {
 		OperationResult opResult = new OperationResult(testName);
 		mapping.evaluate(null, opResult);
 		assertResult(opResult);
-		return mapping.getOutputTriple();
+		PrismValueDeltaSetTriple<PrismPropertyValue<T>> outputTriple = mapping.getOutputTriple();
+		if (outputTriple != null) {
+			outputTriple.checkConsistence();
+		}
+		return outputTriple;
 	}
 	
 	public <T,I> PrismValueDeltaSetTriple<PrismPropertyValue<T>> evaluateMappingDynamicDelete(String filename, String testName, 
@@ -334,7 +348,11 @@ public class MappingTestEvaluator {
 		OperationResult opResult = new OperationResult(testName);
 		mapping.evaluate(null, opResult);
 		assertResult(opResult);
-		return mapping.getOutputTriple();
+		PrismValueDeltaSetTriple<PrismPropertyValue<T>> outputTriple = mapping.getOutputTriple();
+		if (outputTriple != null) {
+			outputTriple.checkConsistence();
+		}
+		return outputTriple;
 	}
 	
 	public <T,I> PrismValueDeltaSetTriple<PrismPropertyValue<T>> evaluateMappingDynamicReplace(String filename, String testName, 
@@ -346,7 +364,11 @@ public class MappingTestEvaluator {
 		OperationResult opResult = new OperationResult(testName);
 		mapping.evaluate(null, opResult);
 		assertResult(opResult);
-		return mapping.getOutputTriple();
+		PrismValueDeltaSetTriple<PrismPropertyValue<T>> outputTriple = mapping.getOutputTriple();
+		if (outputTriple != null) {
+			outputTriple.checkConsistence();
+		}
+		return outputTriple;
 	}
 	
 	public <T,I> PrismValueDeltaSetTriple<PrismPropertyValue<T>> evaluateMappingDynamicReplace(String filename, String testName, 
@@ -358,7 +380,11 @@ public class MappingTestEvaluator {
 		OperationResult opResult = new OperationResult(testName);
 		mapping.evaluate(null, opResult);
 		assertResult(opResult);
-		return mapping.getOutputTriple();
+		PrismValueDeltaSetTriple<PrismPropertyValue<T>> outputTriple = mapping.getOutputTriple();
+		if (outputTriple != null) {
+			outputTriple.checkConsistence();
+		}
+		return outputTriple;
 	}
 	
 	public <T,I> PrismValueDeltaSetTriple<PrismPropertyValue<T>> evaluateMappingDynamicReplace(String filename, String testName, 
@@ -370,7 +396,11 @@ public class MappingTestEvaluator {
 		OperationResult opResult = new OperationResult(testName);
 		mapping.evaluate(null, opResult);
 		assertResult(opResult);
-		return mapping.getOutputTriple();
+		PrismValueDeltaSetTriple<PrismPropertyValue<T>> outputTriple = mapping.getOutputTriple();
+		if (outputTriple != null) {
+			outputTriple.checkConsistence();
+		}
+		return outputTriple;
 	}
 	
 	public <T,I> PrismValueDeltaSetTriple<PrismPropertyValue<T>> evaluateMappingDynamicReplace(String filename, String testName, 
@@ -382,7 +412,11 @@ public class MappingTestEvaluator {
 		OperationResult opResult = new OperationResult(testName);
 		mapping.evaluate(null, opResult);
 		assertResult(opResult);
-		return mapping.getOutputTriple();
+		PrismValueDeltaSetTriple<PrismPropertyValue<T>> outputTriple = mapping.getOutputTriple();
+		if (outputTriple != null) {
+			outputTriple.checkConsistence();
+		}
+		return outputTriple;
 	}
 	
 	public ItemPath toPath(String propertyName) {

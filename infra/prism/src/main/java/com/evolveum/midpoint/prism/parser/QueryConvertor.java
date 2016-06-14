@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -291,9 +291,13 @@ public class QueryConvertor {
 				return null;
             } else {
 				if (isEq) {
-					return EqualFilter.createEqual(itemPath, (PrismProperty) item, matchingRule);
+					List<PrismPropertyValue<T>> values = item.getValues();
+					PrismValue.clearParent(values);
+					return EqualFilter.createEqual(itemPath, 
+							(PrismPropertyDefinition<T>)item.getDefinition(), matchingRule, values);
 				}
 				PrismPropertyValue<T> propertyValue = (PrismPropertyValue<T>) item.getValue(0);
+				propertyValue.clearParent();
 				if (isGt || isGtEq) {
 					return GreaterFilter.createGreater(itemPath, pcd, propertyValue, isGtEq);
 				} else {

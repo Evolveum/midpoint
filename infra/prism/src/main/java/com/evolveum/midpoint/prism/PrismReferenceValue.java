@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 
@@ -205,6 +206,11 @@ public class PrismReferenceValue extends PrismValue implements DebugDumpable, Se
 	}
 	
 	@Override
+	public PrismReferenceDefinition getDefinition() {
+		return (PrismReferenceDefinition) super.getDefinition();
+	}
+	
+	@Override
 	public boolean isRaw() {
 		// Reference value cannot be raw
 		return false;
@@ -371,17 +377,27 @@ public class PrismReferenceValue extends PrismValue implements DebugDumpable, Se
 				}
 			}
 		}
-		if (this.getTargetType() == null) {
-			if (other.getTargetType() != null)
-				return false;
-		} else if (!this.getTargetType().equals(other.getTargetType()))
+		if (!equalsTargetType(other)) {
 			return false;
+		}
 		if (this.relation == null) {
 			if (other.relation != null)
 				return false;
 		} else if (!this.relation.equals(other.relation))
 			return false;
 		return true;
+	}
+
+	private boolean equalsTargetType(PrismReferenceValue other) {
+		QName otherTargetType = other.getTargetType();
+		if (otherTargetType == null && other.getDefinition() != null) {
+			otherTargetType = other.getDefinition().getTargetTypeName();
+		}
+		QName thisTargetType = this.getTargetType();
+		if (thisTargetType == null && this.getDefinition() != null) {
+			thisTargetType = this.getDefinition().getTargetTypeName();
+		}
+		return QNameUtil.match(thisTargetType, otherTargetType);
 	}
 
 	@Override
