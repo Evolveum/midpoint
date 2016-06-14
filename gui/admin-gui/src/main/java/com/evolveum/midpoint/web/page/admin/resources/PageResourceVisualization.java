@@ -106,8 +106,9 @@ public class PageResourceVisualization extends PageAdmin {
 
 		Task task = createSimpleTask(OPERATION_EXPORT_DATA_MODEL);
 		OperationResult result = task.getResult();
-		String dot = null;
+		String dot;
 		try {
+			resourceObject.revive(getPrismContext());
 			dot = getModelDiagnosticService().exportDataModel(resourceObject.asObjectable(), task, result);
 		} catch (CommonException|RuntimeException e) {
 			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't export the data model for {}", e, ObjectTypeUtil.toShortString(resourceObject));
