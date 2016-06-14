@@ -133,9 +133,13 @@ public abstract class ValueFilter<T extends PrismValue> extends ObjectFilter {
 		if (fullPath == null) {
 			throw new IllegalArgumentException("Null path in "+this);
 		}
-		if (definition == null) {
+		if (isRequireDefinition() && definition == null) {
 			throw new IllegalArgumentException("Null definition in "+this);
 		}
+	}
+
+	protected boolean isRequireDefinition() {
+		return true;
 	}
 
 	@Override

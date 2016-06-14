@@ -264,6 +264,11 @@ public abstract class PropertyValueFilter<V extends PrismValue> extends ValueFil
 			}
 		}
 	}
+	
+	@Override
+	protected boolean isRequireDefinition() {
+		return !isRaw();
+	};
 
 	@Override
 	public boolean isRaw() {

@@ -66,6 +66,7 @@ import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
@@ -300,8 +301,12 @@ public abstract class AbstractSearchExpressionEvaluator<V extends PrismValue,D e
 		
 		try {
 			objectResolver.searchIterative(targetTypeClass, query, options, handler, task, result);
+		} catch (IllegalStateException e) { // this comes from checkConsistence methods
+			throw new IllegalStateException(e.getMessage()+" in "+contextDescription, e);
 		} catch (SchemaException e) {
 			throw new SchemaException(e.getMessage()+" in "+contextDescription, e);
+		} catch (SystemException e) {
+			throw new SystemException(e.getMessage()+" in "+contextDescription, e);
 		} catch (CommunicationException | ConfigurationException 
 				| SecurityViolationException e) {
 			if (searchOnResource && tryAlsoRepository) {
