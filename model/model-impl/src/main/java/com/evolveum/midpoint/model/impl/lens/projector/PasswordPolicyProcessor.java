@@ -352,6 +352,10 @@ public class PasswordPolicyProcessor {
 	
 	private <F extends ObjectType> boolean isCheckOrgPolicy(LensContext<F> context) throws SchemaException{
 		LensFocusContext focusCtx = context.getFocusContext();
+		if (focusCtx == null) {
+			return false;			// TODO - ok?
+		}
+
 		if (focusCtx.getDelta() != null){
 			if (focusCtx.getDelta().isAdd()){
 				return false;
