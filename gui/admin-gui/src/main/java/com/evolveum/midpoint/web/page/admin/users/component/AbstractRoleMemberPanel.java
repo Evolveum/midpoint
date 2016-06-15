@@ -284,14 +284,17 @@ public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extend
 			parentOrgRef = createReference(relation);
 		}
 		ObjectType objType = (ObjectType) obj.asObjectable();
-		objType.getParentOrgRef().add(parentOrgRef);
-
 		if (FocusType.class.isAssignableFrom(obj.getCompileTimeClass())) {
 			AssignmentType assignment = new AssignmentType();
 			assignment.setTargetRef(parentOrgRef);
 			((FocusType) objType).getAssignment().add(assignment);
+		} else {
+			if (parentOrgRef == null) {
+				parentOrgRef = createReference(relation);
+			}
+			objType.getParentOrgRef().add(parentOrgRef);
 		}
-
+		
 		Class newObjectPageClass = objectDetailsMap.get(obj.getCompileTimeClass());
 
 		Constructor constructor = null;
