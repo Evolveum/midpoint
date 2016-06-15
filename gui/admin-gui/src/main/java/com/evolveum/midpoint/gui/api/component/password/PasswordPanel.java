@@ -177,10 +177,6 @@ public class PasswordPanel extends InputPanel {
         get(ID_LINK_CONTAINER).get(ID_PASSWORD_REMOVE).setVisible(true);
         passwordInputVisble = false;
         target.add(this);
-
-        ProtectedStringType newValue = new ProtectedStringType();
-        byte[] temp = new byte[0];
-        newValue.setClearBytes(temp);
         model.setObject(null);
     }
 
@@ -263,10 +259,14 @@ public class PasswordPanel extends InputPanel {
 
 		@Override
 		public void setObject(String object) {
-			if (psModel.getObject() == null) {
-				psModel.setObject(new ProtectedStringType());
+			if (object == null) {
+				psModel.setObject(null);
+			} else {
+				if (psModel.getObject() == null) {
+					psModel.setObject(new ProtectedStringType());
+				}
+				psModel.getObject().setClearValue(object);
 			}
-			psModel.getObject().setClearValue(object);
 		}
     	
     }
