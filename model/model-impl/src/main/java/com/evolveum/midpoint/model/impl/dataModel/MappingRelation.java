@@ -5,6 +5,7 @@ import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
@@ -97,7 +98,8 @@ public class MappingRelation extends Relation {
 
 	@Override
 	public String getNodeTooltip() {
-		String lines = getTooltipString().replace("\n", VisualizationContext.LF);
+		String lines = getTooltipString().trim();
+		lines = lines.replace("\n", VisualizationContext.LF);
 		lines = lines.replace("\"", "\\\"");
 		return lines;
 	}
@@ -105,7 +107,7 @@ public class MappingRelation extends Relation {
 	private String getTooltipString() {
 		ExpressionType expression = mapping.getExpression();
 		if (expression == null || expression.getExpressionEvaluator().isEmpty()) {
-			return "";
+			return "asIs";
 		}
 		JAXBElement<?> evalElement = expression.getExpressionEvaluator().get(0);
 		Object eval = evalElement.getValue();
@@ -115,6 +117,8 @@ public class MappingRelation extends Relation {
 			return "asIs";
 		} else if (eval instanceof ScriptExpressionEvaluatorType) {
 			return ((ScriptExpressionEvaluatorType) eval).getCode();
+		} else if (eval instanceof ItemPathType) {
+			return String.valueOf(((ItemPathType) eval).getItemPath());
 		} else {
 			return "";
 		}

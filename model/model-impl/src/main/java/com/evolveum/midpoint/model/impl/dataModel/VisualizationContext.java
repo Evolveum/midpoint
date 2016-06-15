@@ -209,6 +209,7 @@ public class VisualizationContext {
 				sb.append(" [label=\"").append(relation.getEdgeLabel()).append("\"");
 				sb.append(", style=").append(relation.getEdgeStyle());
 				sb.append(", tooltip=\"").append(relation.getEdgeTooltip()).append("\"");
+				sb.append(", labeltooltip=\"").append(relation.getEdgeTooltip()).append("\"");
 				sb.append("];").append("\n");
 			} else {
 				String mappingName = "m" + (mappingNode++);
