@@ -179,7 +179,7 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
     }
 
     /**
-     * Disposes of the {@link CSVFileConnector}'s resources.
+     * Disposes of the connector's resources.
      *
      * @see Connector#dispose()
      */
@@ -1808,23 +1808,25 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 
 
 	private void changePassword(final DummyAccount account, Attribute attr) throws ConnectException, FileNotFoundException, SchemaViolationException {
-		if (attr.getValue() == null || attr.getValue().isEmpty()) {
-			throw new IllegalArgumentException("Empty password was provided");
-		}
-		Object passwdObject = attr.getValue().get(0);
-		if (!(passwdObject instanceof GuardedString)) {
-			throw new IllegalArgumentException("Password was provided as "+passwdObject.getClass().getName()+" while expecting GuardedString");
-		}
-		final String[] passwdArray = { "" };
-		((GuardedString)passwdObject).access(new Accessor() {
-			@Override
-			public void access(char[] passwdChars) {
-				if (configuration.getMinPasswordLength() != null && passwdChars.length < configuration.getMinPasswordLength()) {
-					throw new InvalidAttributeValueException("Password too short");
-				}
-				passwdArray[0] = new String(passwdChars);
+		final String[] passwdArray = { null };
+		if (attr.getValue() != null && !attr.getValue().isEmpty()) {
+			Object passwdObject = attr.getValue().get(0);
+			if (!(passwdObject instanceof GuardedString)) {
+				throw new IllegalArgumentException(
+						"Password was provided as " + passwdObject.getClass().getName() + " while expecting GuardedString");
 			}
-		});
+			((GuardedString)passwdObject).access(new Accessor() {
+				@Override
+				public void access(char[] passwdChars) {
+					if (configuration.getMinPasswordLength() != null && passwdChars.length < configuration.getMinPasswordLength()) {
+						throw new InvalidAttributeValueException("Password too short");
+					}
+					passwdArray[0] = new String(passwdChars);
+				}
+			});
+		} else {
+			// empty password => null
+		}
 		account.setPassword(passwdArray[0]);
 	}
 	
