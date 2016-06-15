@@ -69,6 +69,7 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.Definition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.match.PolyStringNormMatchingRule;
 import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
 import com.evolveum.midpoint.prism.query.AndFilter;
@@ -744,20 +745,28 @@ public class PageAccounts extends PageAdminConfiguration {
 
         OperationResult result = new OperationResult(OPERATION_LOAD_RESOURCES);
         try {
-            List<PrismObject<ResourceType>> objects = getModelService().searchObjects(ResourceType.class, null, null,
+            List<PrismObject<ResourceType>> objects = getModelService().searchObjects(ResourceType.class, null, SelectorOptions.createCollection(GetOperationOptions.createNoFetch()),
                     createSimpleTask(OPERATION_LOAD_RESOURCES), result);
 
             if (objects != null) {
                 for (PrismObject<ResourceType> object : objects) {
-                    resources.add(new ResourceItemDto(object.getOid(), WebComponentUtil.getName(object)));
+                	StringBuilder nameBuilder = new StringBuilder(WebComponentUtil.getName(object));
+                	PrismProperty<OperationResultType> fetchResult = object.findProperty(ResourceType.F_FETCH_RESULT);
+                	if (fetchResult != null){
+                		nameBuilder.append(" (");
+                		nameBuilder.append(fetchResult.getRealValue().getStatus());
+                		nameBuilder.append(")");
+                	}
+                    resources.add(new ResourceItemDto(object.getOid(), nameBuilder.toString()));
                 }
             }
+            result.recordSuccess();
         } catch (Exception ex) {
             LoggingUtils.logException(LOGGER, "Couldn't load resources", ex);
             result.recordFatalError("Couldn't load resources, reason: " + ex.getMessage(), ex);
         } finally {
             if (result.isUnknown()) {
-                result.recomputeStatus();
+                result.computeStatus();
             }
         }
 
@@ -810,7 +819,10 @@ public class PageAccounts extends PageAdminConfiguration {
             dto.setObjectClassList(accountObjectClassList);
         } catch (Exception e){
             LoggingUtils.logException(LOGGER, "Couldn't load object class list from resource.", e);
-            error("Couldn't load object class list from resource.");
+            result.recordFatalError("Couldn't load object class list from resource.: " +e.getMessage(), e);
+            showResult(result, false);
+            resourceModel.setObject(null);
+            new RestartResponseException(PageAccounts.this);
         }
     }
 
