@@ -18,7 +18,7 @@ public class RepositoryDataItem extends DataItem {
 
 	private static final String COLOR_USER = "darkred";
 	private static final String COLOR_ROLE = "darkgreen";
-	private static final String COLOR_ORG = "darkgreen";
+	private static final String COLOR_ORG = "darkorange";
 	private static final String COLOR_DEFAULT = "black";
 	private static final String COLOR_FILL = "grey92";
 
