@@ -33,6 +33,7 @@ import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
 import com.evolveum.prism.xml.ns._public.types_3.SchemaDefinitionType;
 
@@ -276,6 +277,11 @@ public class PrismPropertyValue<T> extends PrismValue implements DebugDumpable, 
     		}
     		if (value instanceof PolyStringType) {
     			throw new IllegalStateException("PolyStringType found in property value "+this+" ("+myPath+" in "+rootItem+")");
+    		}
+    		if (value instanceof ProtectedStringType) {
+    			if (((ProtectedStringType)value).isEmpty()) {
+    				throw new IllegalStateException("Empty ProtectedStringType found in property value "+this+" ("+myPath+" in "+rootItem+")");
+    			}
     		}
     		PrismContext prismContext = getPrismContext();
     		if (value instanceof PolyString && prismContext != null) {

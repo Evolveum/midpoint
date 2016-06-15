@@ -896,7 +896,7 @@ public class TestWSSecurity extends AbstractWebserviceTest {
     	displayTestTitle(TEST_NAME);
     	
     	LogfileTestTailer tailer = createLogTailer();
-        modelPort = createModelPort(USER_NOBODY_USERNAME, "wrongPassword", WSConstants.PW_DIGEST);
+        modelPort = createModelPort(USER_NOPASSWORD_USERNAME, "wrongPassword", WSConstants.PW_DIGEST);
 
         Holder<ObjectType> objectHolder = new Holder<ObjectType>();
         Holder<OperationResultType> resultHolder = new Holder<OperationResultType>();
@@ -913,7 +913,7 @@ public class TestWSSecurity extends AbstractWebserviceTest {
         }
         
         tailer.tail();
-        assertAuditLoginFailed(tailer, "no authorizations");
+        assertAuditLoginFailed(tailer, "no credentials in user");
     }
 	
 	@Test
@@ -922,7 +922,7 @@ public class TestWSSecurity extends AbstractWebserviceTest {
     	displayTestTitle(TEST_NAME);
     	
     	LogfileTestTailer tailer = createLogTailer();
-        modelPort = createModelPort(USER_NOBODY_USERNAME, " ", WSConstants.PW_DIGEST);
+        modelPort = createModelPort(USER_NOPASSWORD_USERNAME, " ", WSConstants.PW_DIGEST);
 
         Holder<ObjectType> objectHolder = new Holder<ObjectType>();
         Holder<OperationResultType> resultHolder = new Holder<OperationResultType>();
@@ -939,7 +939,7 @@ public class TestWSSecurity extends AbstractWebserviceTest {
         }
         
         tailer.tail();
-        assertAuditLoginFailed(tailer, "no authorizations");
+        assertAuditLoginFailed(tailer, "no credentials in user");
     }
 	
 	@Test
