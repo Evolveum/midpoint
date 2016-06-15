@@ -118,17 +118,17 @@ public class ResourceDataItem extends DataItem {
 
 	@Override
 	public String getNodeName() {
-		return "\"" + getResourceName() + ":" + ctx.getObjectTypeName(getRefinedObjectClassDefinition()) + ":" + itemName.getLocalPart() + "\"";
+		return "\"" + getResourceName() + ":" + ctx.getObjectTypeName(getRefinedObjectClassDefinition(), false) + ":" + itemName.getLocalPart() + "\"";
 	}
 
 	@Override
 	public String getNodeLabel() {
-		return "TODO";
+		return getItemName().getLocalPart();
 	}
 
 	@Override
 	public String getNodeStyleAttributes() {
-		return "TODO";
+		return "";
 	}
 
 	@NotNull

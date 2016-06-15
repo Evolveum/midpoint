@@ -43,4 +43,20 @@ public class Relation {
 	public String getNodeLabel(String defaultLabel) {
 		return null;
 	}
+
+	public String getEdgeStyle() {
+		return "";
+	}
+
+	public String getNodeStyleAttributes() {
+		return "";
+	}
+
+	public String getEdgeTooltip() {
+		return "";
+	}
+
+	public String getNodeTooltip() {
+		return "";
+	}
 }

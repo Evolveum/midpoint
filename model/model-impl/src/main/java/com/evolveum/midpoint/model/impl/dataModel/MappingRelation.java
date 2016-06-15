@@ -4,7 +4,6 @@ import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
 import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
 import org.apache.commons.lang3.StringUtils;
@@ -44,21 +43,14 @@ public class MappingRelation extends Relation {
 			return defaultLabel;
 		}
 		if (expression.getExpressionEvaluator().size() > 1) {
-			return "> 1 evaluator";
+			return "> 1 evaluator";		// TODO multivalues
 		}
 		JAXBElement<?> evalElement = expression.getExpressionEvaluator().get(0);
 		Object eval = evalElement.getValue();
 		if (QNameUtil.match(evalElement.getName(), SchemaConstants.C_VALUE)) {
 			if (showConstant) {
-				if (eval instanceof RawType) {
-					XNode xnode = ((RawType) eval).getXnode();
-					if (xnode instanceof PrimitiveXNode) {
-						eval = ((PrimitiveXNode) xnode).getStringValue();
-					} else {
-						eval = xnode.toString();
-					}
-				}
-				return "\'" + StringUtils.abbreviate(String.valueOf(eval), MAX_CONSTANT_WIDTH) + "\'";
+				String str = getStringConstant(eval);
+				return "\'" + StringUtils.abbreviate(str, MAX_CONSTANT_WIDTH) + "\'";
 			} else {
 				return "constant";
 			}
@@ -76,8 +68,79 @@ public class MappingRelation extends Relation {
 		}
 	}
 
+	private String getStringConstant(Object eval) {
+		if (eval instanceof RawType) {
+            XNode xnode = ((RawType) eval).getXnode();
+            if (xnode instanceof PrimitiveXNode) {
+                eval = ((PrimitiveXNode) xnode).getStringValue();
+            } else {
+                eval = xnode.toString();
+            }
+        }
+		return String.valueOf(eval);
+	}
+
 	@Override
 	public String getNodeLabel(String defaultLabel) {
 		return getLabel(defaultLabel, true);
+	}
+
+	@Override
+	public String getEdgeStyle() {
+		switch (mapping.getStrength() != null ? mapping.getStrength() : MappingStrengthType.NORMAL) {
+			case NORMAL: return "dashed";
+			case STRONG: return "solid";
+			case WEAK: return "dotted";
+		}
+		return "";
+	}
+
+	@Override
+	public String getNodeTooltip() {
+		String lines = getTooltipString().replace("\n", VisualizationContext.LF);
+		lines = lines.replace("\"", "\\\"");
+		return lines;
+	}
+
+	private String getTooltipString() {
+		ExpressionType expression = mapping.getExpression();
+		if (expression == null || expression.getExpressionEvaluator().isEmpty()) {
+			return "";
+		}
+		JAXBElement<?> evalElement = expression.getExpressionEvaluator().get(0);
+		Object eval = evalElement.getValue();
+		if (QNameUtil.match(evalElement.getName(), SchemaConstants.C_VALUE)) {
+			return getStringConstant(eval);
+		} else if (eval instanceof AsIsExpressionEvaluatorType) {
+			return "asIs";
+		} else if (eval instanceof ScriptExpressionEvaluatorType) {
+			return ((ScriptExpressionEvaluatorType) eval).getCode();
+		} else {
+			return "";
+		}
+	}
+
+	@Override
+	public String getEdgeTooltip() {
+		return getNodeTooltip();
+	}
+
+	@Override
+	public String getNodeStyleAttributes() {
+		ExpressionType expression = mapping.getExpression();
+		if (expression == null || expression.getExpressionEvaluator().isEmpty()) {
+			return "";
+		}
+		JAXBElement<?> evalElement = expression.getExpressionEvaluator().get(0);
+		Object eval = evalElement.getValue();
+		if (QNameUtil.match(evalElement.getName(), SchemaConstants.C_VALUE)) {
+			return "style=filled, fillcolor=ivory";
+		} else if (eval instanceof AsIsExpressionEvaluatorType) {
+			return "";
+		} else if (eval instanceof ScriptExpressionEvaluatorType) {
+			return "style=filled, fillcolor=wheat";
+		} else {
+			return "";
+		}
 	}
 }
