@@ -1022,3 +1022,37 @@ th.cog, td.cog {
 	margin-left: 0px;
 	margin-right: 0px;
 }
+
+// operation result
+
+.paramtable {
+	border: 0px;
+	
+	.paramtable-row {
+		
+		.paramtable-name {
+			vertical-align: top;
+		}
+		
+		.paramtable-name::after {
+			content: ':';
+		}
+		
+		.paramtable-value {
+			padding-left: 5px;
+			padding-right: 20px;
+		    white-space: pre-wrap;
+		    word-break: break-all;
+		}
+	}
+}
+
+.stacktrace {
+	font-family: monospace;
+    white-space: pre-wrap;
+    font-size: 11px;
+}
+
+dd.stacktrace::before {
+	content: none;
+}

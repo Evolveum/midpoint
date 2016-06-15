@@ -44,8 +44,12 @@
 					<dt wicket:id="messageLabel"></dt>
 					<dd wicket:id="resultMessage"></dd>
 					<dt wicket:id="paramsLabel"></dt>
-					<dd  wicket:id="params">
-						<span wicket:id="paramName"/>:&nbsp;<span wicket:id="paramValue"/>
+					<dd>
+						<table class="paramtable">
+							<tr class="paramtable-row" wicket:id="params">
+								<th class="paramtable-name" wicket:id="paramName"/><td class="paramtable-value" wicket:id="paramValue"/>
+							</tr>
+						</table>
 					</dd>
 					<dt wicket:id="contextsLabel"></dt>
 					<dd wicket:id="contexts"></dd>
@@ -55,7 +59,7 @@
 					<dt wicket:id="errorLabel"></dt>
 					<dd  wicket:id="errorMessage"></dd>
 					<dd > <a wicket:id="errorStackTraceLink" >show</a></dd>
-					<dd  wicket:id="errorStackTrace"></dd>
+					<dd  class="stacktrace" wicket:id="errorStackTrace"></dd>
 					
 					
 				</dl>

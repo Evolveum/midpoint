@@ -475,15 +475,48 @@ public class ModelExecuteOptions implements Serializable, Cloneable {
     }
     
     @Override
-    public String toString(){
-		return "[force=" + force + ",raw=" + raw + ",noCrypt=" + noCrypt
-				+ ",reconcile=" + reconcile
-				+ ",executeImmediatelyAfterApproval="
-				+ executeImmediatelyAfterApproval + ",overwrite=" + overwrite
-				+ ",limitPropagation="+limitPropagation
-				+ ",reevaluateSearchFilters="+reevaluateSearchFilters
-				+ ",preAuthorized="+preAuthorized+"]";
+    public String toString() {
+    	StringBuilder sb = new StringBuilder("ModelExecuteOptions(");
+    	appendFlag(sb, "executeImmediatelyAfterApproval", executeImmediatelyAfterApproval);
+    	appendFlag(sb, "force", force);
+    	appendFlag(sb, "isImport", isImport);
+    	appendFlag(sb, "limitPropagation", limitPropagation);
+    	appendFlag(sb, "noCrypt", noCrypt);
+    	appendFlag(sb, "overwrite", overwrite);
+    	appendFlag(sb, "preAuthorized", preAuthorized);
+    	appendFlag(sb, "raw", raw);
+    	appendFlag(sb, "reconcile", reconcile);
+    	appendFlag(sb, "reevaluateSearchFilters", reevaluateSearchFilters);
+    	appendFlag(sb, "reconcileAffected", reconcileAffected);
+    	if (sb.charAt(sb.length() - 1) == ',') {
+			sb.deleteCharAt(sb.length() - 1);
+		}
+		sb.append(")");
+		return sb.toString();
     }
+    
+    private void appendFlag(StringBuilder sb, String name, Boolean val) {
+		if (val == null) {
+			return;
+		} else if (val) {
+			sb.append(name);
+			sb.append(",");
+		} else {
+			sb.append(name);
+			sb.append("=false,");
+		}
+	}
+	
+	private void appendVal(StringBuilder sb, String name, Object val) {
+		if (val == null) {
+			return;
+		} else {
+			sb.append(name);
+			sb.append("=");
+			sb.append(val);
+			sb.append(",");
+		}
+	}
 
     public ModelExecuteOptions clone() {
         // not much efficient, but...
