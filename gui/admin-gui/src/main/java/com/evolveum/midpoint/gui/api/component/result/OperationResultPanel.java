@@ -512,7 +512,10 @@ public class OperationResultPanel extends BasePanel<OpResult> implements Popupab
 
 			@Override
 			public void onClick(AjaxRequestTarget target) {
-				model.getObject().setShowError(!model.getObject().isShowError());
+				OpResult result = OperationResultPanel.this.getModelObject();
+				result.setShowError(!model.getObject().isShowError());
+				result.setAlreadyShown(false);  // hack to be able to expand/collapse OpResult after rendered.
+//				model.getObject().setShowError(!model.getObject().isShowError());
 				target.add(OperationResultPanel.this);
 			}
 
