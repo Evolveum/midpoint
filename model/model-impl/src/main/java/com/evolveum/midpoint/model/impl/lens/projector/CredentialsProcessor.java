@@ -16,7 +16,7 @@
 package com.evolveum.midpoint.model.impl.lens.projector;
 
 import java.util.Collection;
-import java.util.List;
+import java.util.Collections;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
@@ -227,14 +227,27 @@ public class CredentialsProcessor {
 		passwordMapping.setStringPolicyResolver(stringPolicyResolver);
 		
 		mappingEvaluator.evaluateMapping(passwordMapping, context, task, result);
-        
-        PrismProperty<ProtectedStringType> accountPasswordNew = (PrismProperty) passwordMapping.getOutput();
-        if (accountPasswordNew == null || accountPasswordNew.isEmpty()) {
-            LOGGER.trace("Credentials 'password' expression resulted in null, skipping credentials processing for {}", rat);
-            return;
-        }
-        PropertyDelta<ProtectedStringType> accountPasswordDeltaNew = new PropertyDelta<ProtectedStringType>(SchemaConstants.PATH_PASSWORD_VALUE, accountPasswordPropertyDefinition, prismContext);
-        accountPasswordDeltaNew.setValuesToReplace(accountPasswordNew.getClonedValues());
+
+		// TODO review all this code !! MID-3156
+		// Originally here was "do nothing if output is null or empty".
+		// But because of MID-3111 we have to be a bit more cautious
+		PrismProperty<ProtectedStringType> accountPasswordNew = (PrismProperty) passwordMapping.getOutput();
+		if (accountPasswordNew == null || accountPasswordNew.isEmpty()) {
+			if (passwordMapping.getOutputTriple() == null) {
+				LOGGER.trace("Credentials 'password' expression resulted in null output triple, skipping credentials processing for {}", rat);
+				return;
+			}
+			if (passwordMapping.getStrength() != MappingStrengthType.STRONG) {
+				LOGGER.trace("Credentials 'password' expression resulted in 'no value' via non-strong mapping, skipping credentials processing for {}", rat);
+				return;
+			}
+		}
+        PropertyDelta<ProtectedStringType> accountPasswordDeltaNew = new PropertyDelta<>(SchemaConstants.PATH_PASSWORD_VALUE, accountPasswordPropertyDefinition, prismContext);
+		if (accountPasswordNew != null) {
+			accountPasswordDeltaNew.setValuesToReplace(accountPasswordNew.getClonedValues());
+		} else {
+			accountPasswordDeltaNew.setValuesToReplace(Collections.<PrismPropertyValue<ProtectedStringType>>emptyList());
+		}
         LOGGER.trace("Adding new password delta for account {}", rat);
         accCtx.swallowToSecondaryDelta(accountPasswordDeltaNew);
 
