@@ -354,6 +354,7 @@ public class SchemaHandlingStep extends WizardStep {
                         }
                     }
                 }
+				parentPage.refreshIssues(target);
             }
         });
 		parentPage.addEditingEnabledBehavior(editorDefault);
@@ -913,7 +914,7 @@ public class SchemaHandlingStep extends WizardStep {
         objectType.setDisplayName(generateName(getString("SchemaHandlingStep.label.newObjectType")));
         ResourceObjectTypeDefinitionTypeDto dto = new ResourceObjectTypeDefinitionTypeDto(objectType);
 
-        if (schemaHandlingDtoModel.getObject().getObjectTypeDtoList().isEmpty()){
+        if (schemaHandlingDtoModel.getObject().getObjectTypeDtoList().isEmpty()) {
             objectType.setDefault(true);
         }
 
