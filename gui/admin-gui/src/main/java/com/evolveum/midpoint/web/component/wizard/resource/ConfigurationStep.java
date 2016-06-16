@@ -274,6 +274,7 @@ public class ConfigurationStep extends WizardStep {
     private void saveChanges() {
         Task task = parentPage.createSimpleTask(OPERATION_SAVE);
         OperationResult result = task.getResult();
+		boolean saved = false;
         try {
             List<ContainerWrapper> wrappers = configurationPropertiesModel.getObject();
 			ObjectDelta delta = ObjectDelta.createEmptyModifyDelta(ResourceType.class, parentPage.getEditedResourceOid(), parentPage.getPrismContext());
@@ -284,6 +285,7 @@ public class ConfigurationStep extends WizardStep {
 				parentPage.logDelta(delta);
 				WebModelServiceUtils.save(delta, result, parentPage);
 				parentPage.resetModels();
+				saved = true;
 			}
         } catch (Exception ex) {
             LoggingUtils.logUnexpectedException(LOGGER, "Error occurred during saving changes", ex);
@@ -293,7 +295,7 @@ public class ConfigurationStep extends WizardStep {
             setResult(result);
         }
 
-        if (WebComponentUtil.showResultInPage(result)) {
+		if (parentPage.showSaveResultInPage(saved, result)) {
             parentPage.showResult(result);
         }
 

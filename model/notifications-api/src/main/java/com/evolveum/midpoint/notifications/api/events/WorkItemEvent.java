@@ -20,6 +20,7 @@ import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.DecisionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.EventCategoryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType;
@@ -72,7 +73,16 @@ public class WorkItemEvent extends WorkflowEvent {
         variables.put(SchemaConstants.C_WORK_ITEM, workItem);
     }
 
-    @Override
+	@Override
+	protected String getAnswer() {
+		DecisionType decision = workItem.getDecision();
+		if (decision == null) {
+			return null;
+		}
+		return decision.getResultAsString();
+	}
+
+	@Override
     public String toString() {
         return "WorkflowProcessEvent{" +
                 "workflowEvent=" + super.toString() +

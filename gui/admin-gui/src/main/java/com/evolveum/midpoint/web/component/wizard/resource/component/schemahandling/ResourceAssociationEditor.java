@@ -411,7 +411,7 @@ public class ResourceAssociationEditor extends BasePanel<ResourceObjectAssociati
 
             @Override
             public void updateComponents(AjaxRequestTarget target){
-                target.add(ResourceAssociationEditor.this.get(ID_INBOUND));
+                target.add(ResourceAssociationEditor.this.get(ID_INBOUND), parentStep.getAssociationList());
             }
 
         };

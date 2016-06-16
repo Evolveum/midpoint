@@ -22,13 +22,15 @@
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 	xmlns:my="http://whatever.com/my"
+  	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
 	xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-3 ../../../../../../infra/schema/src/main/resources/xml/ns/public/common/common-3.xsd
 							  http://www.w3.org/2001/XMLSchema ../../../../../../infra/schema/src/test/resources/standard/XMLSchema.xsd">
 								  
 	<!-- Resource printable name -->
 	<name>Reconciliation: OpenDJ</name>
-	
-	<extension>
+
+	<extension xmlns:mext="http://midpoint.evolveum.com/xml/ns/public/model/extension-3">
+		<mext:objectclass>ri:inetOrgPerson</mext:objectclass>
 	</extension>
 	
 	<taskIdentifier>91919191-76e0-59e2-86d6-3d4f02d30000</taskIdentifier>

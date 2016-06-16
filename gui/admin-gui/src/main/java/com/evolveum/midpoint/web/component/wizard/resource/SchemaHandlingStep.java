@@ -49,6 +49,7 @@ import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -284,8 +285,10 @@ public class SchemaHandlingStep extends WizardStep {
 
                 if (objectType != null) {
                     ResourceObjectTypeDefinitionType object = objectType.getObjectType();
-                    sb.append(object.getDisplayName() != null ? object.getDisplayName() : "- ");
+                    sb.append(object.getDisplayName() != null ? object.getDisplayName() + " " : "");
 					addKindAndIntent(sb, object.getKind(), object.getIntent());
+					sb.append(" -> ");
+					sb.append(object.getObjectClass() != null ? object.getObjectClass().getLocalPart() : "");
 				}
                 return sb.toString();
             }
@@ -293,7 +296,7 @@ public class SchemaHandlingStep extends WizardStep {
     }
 
 	static void addKindAndIntent(StringBuilder sb, ShadowKindType kind, String intent) {
-		sb.append(" (");
+		sb.append("(");
 		sb.append(ResourceTypeUtil.fillDefault(kind));
 		sb.append(", ");
 		sb.append(ResourceTypeUtil.fillDefault(intent));
@@ -354,6 +357,7 @@ public class SchemaHandlingStep extends WizardStep {
                         }
                     }
                 }
+				parentPage.refreshIssues(target);
             }
         });
 		parentPage.addEditingEnabledBehavior(editorDefault);
@@ -379,12 +383,7 @@ public class SchemaHandlingStep extends WizardStep {
                 return getObjectClassChoices(input);
             }
         };
-        editorObjectClass.add(new EmptyOnChangeAjaxFormUpdatingBehavior() {
-			@Override
-			protected void onUpdate(AjaxRequestTarget target) {
-				parentPage.refreshIssues(target);
-			}
-		});
+        editorObjectClass.add(new UpdateNamesBehaviour());
         editorObjectClass.add(createObjectClassValidator(new AbstractReadOnlyModel<List<QName>>() {
             @Override
             public List<QName> getObject() {
@@ -592,7 +591,7 @@ public class SchemaHandlingStep extends WizardStep {
         editor.add(credentialsTooltip);
     }
 
-	private String formatItemInfo(ResourceItemDefinitionType item, ItemPathType ref, String displayName, List<MappingType> inbound,
+	private String formatItemInfo(ResourceItemDefinitionType item, ItemPathType ref, String displayName, List<MappingType> inbounds,
 			MappingType outbound) {
 		StringBuilder sb = new StringBuilder();
 		if (ref != null && !ref.getItemPath().isEmpty()) {
@@ -613,14 +612,40 @@ public class SchemaHandlingStep extends WizardStep {
 		if (displayName != null) {
 			sb.append(" (").append(displayName).append(")");
 		}
-		if (!inbound.isEmpty()) {
-			sb.append(", ");
-			sb.append(getString("SchemaHandlingStep.in", inbound.size()));
+		if (!inbounds.isEmpty()) {
+			sb.append(" | ");
+			sb.append(getString("SchemaHandlingStep.in", ""));
+			boolean first = true;
+			for (MappingType inbound : inbounds) {
+				if (inbound != null && inbound.getTarget() != null) {
+					if (first) first = false; else sb.append(", ");
+					sb.append(formatPath(inbound.getTarget().getPath()));
+				}
+			}
 		}
 		if (outbound != null) {
-			sb.append(", ").append(getString("SchemaHandlingStep.out"));
+			sb.append(" | ").append(getString("SchemaHandlingStep.out")).append(": ");
+			boolean first = true;
+			for (MappingSourceDeclarationType source : outbound.getSource()) {
+				if (source != null) {
+					if (first) first = false; else sb.append(", ");
+					sb.append(formatPath(source.getPath()));
+				}
+			}
 		}
 		return sb.toString();
+	}
+
+	// FIXME brutally hacked for now
+	private String formatPath(ItemPathType path) {
+		String rv = String.valueOf(path);
+		rv = StringUtils.removeStart(rv, "$user/");
+		rv = StringUtils.removeStart(rv, "$c:user/");
+		rv = StringUtils.removeStart(rv, "$focus/");
+		rv = StringUtils.removeStart(rv, "$c:focus/");
+		rv = StringUtils.removeStart(rv, "extension/");
+		rv = StringUtils.removeStart(rv, "c:extension/");
+		return rv;
 	}
 
 	private String getDuplicateInfo(ResourceItemDefinitionType item) {
@@ -843,6 +868,7 @@ public class SchemaHandlingStep extends WizardStep {
         OperationResult result = task.getResult();
         ModelService modelService = parentPage.getModelService();
         ObjectDelta delta;
+		boolean saved = false;
 
         removeEmptyContainers(newResource);
 
@@ -859,6 +885,7 @@ public class SchemaHandlingStep extends WizardStep {
 				Collection<ObjectDelta<? extends ObjectType>> deltas = WebComponentUtil.createDeltaCollection(delta);
 				modelService.executeChanges(deltas, null, parentPage.createSimpleTask(OPERATION_SAVE_SCHEMA_HANDLING), result);
 				parentPage.resetModels();
+				saved = true;
 			}
         } catch (RuntimeException|CommonException e) {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't save schema handling", e);
@@ -868,7 +895,7 @@ public class SchemaHandlingStep extends WizardStep {
         }
 
         setResult(result);
-        if (WebComponentUtil.showResultInPage(result)) {
+		if (parentPage.showSaveResultInPage(saved, result)) {
             parentPage.showResult(result);
         }
     }
@@ -910,10 +937,10 @@ public class SchemaHandlingStep extends WizardStep {
 
 	private void addObjectTypePerformed(AjaxRequestTarget target) {
         ResourceObjectTypeDefinitionType objectType = new ResourceObjectTypeDefinitionType();
-        objectType.setDisplayName(generateName(getString("SchemaHandlingStep.label.newObjectType")));
+        //objectType.setDisplayName(generateName(getString("SchemaHandlingStep.label.newObjectType")));
         ResourceObjectTypeDefinitionTypeDto dto = new ResourceObjectTypeDefinitionTypeDto(objectType);
 
-        if (schemaHandlingDtoModel.getObject().getObjectTypeDtoList().isEmpty()){
+        if (schemaHandlingDtoModel.getObject().getObjectTypeDtoList().isEmpty()) {
             objectType.setDefault(true);
         }
 

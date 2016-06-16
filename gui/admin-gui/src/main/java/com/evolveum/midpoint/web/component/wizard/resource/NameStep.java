@@ -45,7 +45,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.form.DropDownFormGroup;
 import com.evolveum.midpoint.web.component.form.TextAreaFormGroup;
 import com.evolveum.midpoint.web.component.form.TextFormGroup;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.component.wizard.WizardStep;
 import com.evolveum.midpoint.web.component.wizard.resource.dto.ConnectorHostTypeComparator;
 import com.evolveum.midpoint.web.page.admin.resources.PageResourceWizard;
@@ -433,6 +432,7 @@ public class NameStep extends WizardStep {
 		PrismContext prismContext = parentPage.getPrismContext();
         Task task = parentPage.createSimpleTask(OPERATION_SAVE_RESOURCE);
         OperationResult result = task.getResult();
+		boolean saved = false;
 
         try {
             PrismObject<ResourceType> resource = resourceModelRaw.getObject();
@@ -481,6 +481,7 @@ public class NameStep extends WizardStep {
 				parentPage.logDelta(delta);
 				WebModelServiceUtils.save(delta, ModelExecuteOptions.createRaw(), result, parentPage);
 				parentPage.resetModels();
+				saved = true;
 			}
 
 			if (isNew) {
@@ -495,7 +496,7 @@ public class NameStep extends WizardStep {
             setResult(result);
         }
 
-        if (WebComponentUtil.showResultInPage(result)) {
+		if (parentPage.showSaveResultInPage(saved, result)) {
             parentPage.showResult(result);
         }
     }

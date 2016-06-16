@@ -362,14 +362,14 @@ public class ResourceAttributeEditor extends BasePanel<ResourceAttributeDefiniti
 			@Override
 			protected void performAddValueHook(AjaxRequestTarget target, MappingType added) {
 				target.add(parentStep.getAttributeList());
-				target.add(parentStep.getAssociationList());		// because of marking duplicates
+				target.add(parentStep.getAssociationList());
 				((PageResourceWizard) getPageBase()).refreshIssues(target);
 			}
 
 			@Override
 			protected void performRemoveValueHook(AjaxRequestTarget target, ListItem<MappingType> item) {
 				target.add(parentStep.getAttributeList());
-				target.add(parentStep.getAssociationList());		// because of marking duplicates
+				target.add(parentStep.getAssociationList());
 				((PageResourceWizard) getPageBase()).refreshIssues(target);
 			}
 
@@ -433,7 +433,7 @@ public class ResourceAttributeEditor extends BasePanel<ResourceAttributeDefiniti
 
             @Override
             public void updateComponents(AjaxRequestTarget target) {
-                target.add(ResourceAttributeEditor.this.get(ID_INBOUND));
+				target.add(ResourceAttributeEditor.this.get(ID_INBOUND), parentStep.getAttributeList());
             }
         };
         add(inboundEditor);

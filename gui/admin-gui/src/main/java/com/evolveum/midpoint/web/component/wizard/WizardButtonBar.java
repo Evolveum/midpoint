@@ -24,9 +24,11 @@ import com.evolveum.midpoint.web.page.admin.resources.PageResourceWizard;
 import org.apache.wicket.Session;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.wizard.*;
+import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.IFormSubmittingComponent;
 import org.apache.wicket.markup.html.panel.Panel;
+import org.apache.wicket.model.AbstractReadOnlyModel;
 
 /**
  * @author lazyman
@@ -41,6 +43,7 @@ public class WizardButtonBar extends Panel implements IDefaultButtonProvider {
 	private static final String ID_VALIDATE = "validate";
 	private static final String ID_SAVE = "save";
 	private static final String ID_VISUALIZE = "visualize";
+	private static final String ID_VISUALIZE_LABEL = "visualizeLabel";
 
     public WizardButtonBar(String id, final Wizard wizard) {
         super(id);
@@ -136,6 +139,7 @@ public class WizardButtonBar extends Panel implements IDefaultButtonProvider {
 				IWizardStep activeStep = wizard.getModelObject().getActiveStep();
 				if (activeStep != null) {
 					activeStep.applyState();
+					target.add(getPage());
 				}
 			}
 
@@ -150,6 +154,16 @@ public class WizardButtonBar extends Panel implements IDefaultButtonProvider {
 		final AjaxSubmitButton visualize = new AjaxSubmitButton(ID_VISUALIZE) {
 			@Override
 			protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
+				IWizardStep activeStep = wizard.getModelObject().getActiveStep();
+				PageResourceWizard wizardPage = (PageResourceWizard) getPage();
+				if (!wizardPage.isReadOnly()) {
+					if (activeStep != null) {
+						activeStep.applyState();
+						if (!activeStep.isComplete()) {
+							return;
+						}
+					}
+				}
 				((PageResourceWizard) getPage()).visualize(target);
 			}
 
@@ -160,6 +174,15 @@ public class WizardButtonBar extends Panel implements IDefaultButtonProvider {
 		};
 		visualize.setVisible(moreSteps);
 		add(visualize);
+
+		Label visualizeLabel = new Label(ID_VISUALIZE_LABEL, new AbstractReadOnlyModel<String>() {
+			@Override
+			public String getObject() {
+				PageResourceWizard wizardPage = (PageResourceWizard) getPage();
+				return wizardPage.isReadOnly() ? getString("ResourceWizard.visualize") : getString("ResourceWizard.saveAndVisualize");
+			}
+		});
+		visualize.add(visualizeLabel);
 	}
 
 	private void couldntSave() {

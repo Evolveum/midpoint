@@ -43,6 +43,7 @@ public interface ResourceValidator {
 	String C_UNKNOWN_OBJECT_CLASS = "unknownObjectClass";
 	String C_MULTIPLE_SCHEMA_HANDLING_DEFINITIONS = "multipleSchemaHandlingDefinitions";
 	String C_MULTIPLE_SCHEMA_HANDLING_DEFAULT_DEFINITIONS = "multipleSchemaHandlingDefaultDefinitions";
+	String C_NO_DEFAULT_ACCOUNT_SCHEMA_HANDLING_DEFAULT_DEFINITION = "noDefaultAccountSchemaHandlingDefinition";
 	String C_MULTIPLE_SYNCHRONIZATION_DEFINITIONS = "multipleSynchronizationDefinitions";
 	String C_NO_SYNCHRONIZATION_DEFINITION = "noSynchronizationDefinition";
 	String C_NO_SCHEMA_HANDLING_DEFINITION = "noSchemaHandlingDefinition";
