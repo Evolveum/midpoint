@@ -22,7 +22,12 @@
 	xmlns:xsd="http://www.w3.org/2001/XMLSchema">
 								  
 	<name>Live Synchronization: HR Resource</name>
-	
+
+    <extension xmlns:gen533="http://midpoint.evolveum.com/xml/ns/public/provisioning/liveSync-3"
+               xmlns:mext="http://midpoint.evolveum.com/xml/ns/public/model/extension-3">
+        <mext:kind>account</mext:kind>
+    </extension>
+
 	<taskIdentifier>10000000-0000-0000-5555-555500000001</taskIdentifier>
 	<ownerRef oid="00000000-0000-0000-0000-000000000002"/>
 	<executionStatus>runnable</executionStatus>
