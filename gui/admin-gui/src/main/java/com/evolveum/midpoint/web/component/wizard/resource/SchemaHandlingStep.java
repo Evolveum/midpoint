@@ -45,6 +45,7 @@ import com.evolveum.midpoint.web.component.wizard.resource.dto.SchemaHandlingDto
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnChangeAjaxFormUpdatingBehavior;
 import com.evolveum.midpoint.web.page.admin.resources.PageResourceWizard;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
+import com.evolveum.midpoint.web.util.ExpressionUtil;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
@@ -1039,6 +1040,20 @@ public class SchemaHandlingStep extends WizardStep {
 					}
 				}
 				replace(objectType.getProtected(), newProtectedList);
+
+				// iterator expressions
+				if (objectType.getIteration() != null) {
+					IterationSpecificationType it = objectType.getIteration();
+					if (ExpressionUtil.isEmpty(it.getTokenExpression())) {
+						it.setTokenExpression(null);
+					}
+					if (ExpressionUtil.isEmpty(it.getPreIterationCondition())) {
+						it.setPreIterationCondition(null);
+					}
+					if (ExpressionUtil.isEmpty(it.getPostIterationCondition())) {
+						it.setPostIterationCondition(null);
+					}
+				}
             }
         }
     }
