@@ -911,7 +911,7 @@ public class SchemaHandlingStep extends WizardStep {
 
 	private void addObjectTypePerformed(AjaxRequestTarget target) {
         ResourceObjectTypeDefinitionType objectType = new ResourceObjectTypeDefinitionType();
-        objectType.setDisplayName(generateName(getString("SchemaHandlingStep.label.newObjectType")));
+        //objectType.setDisplayName(generateName(getString("SchemaHandlingStep.label.newObjectType")));
         ResourceObjectTypeDefinitionTypeDto dto = new ResourceObjectTypeDefinitionTypeDto(objectType);
 
         if (schemaHandlingDtoModel.getObject().getObjectTypeDtoList().isEmpty()) {

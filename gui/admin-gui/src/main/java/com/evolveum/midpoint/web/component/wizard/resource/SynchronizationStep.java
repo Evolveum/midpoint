@@ -573,7 +573,7 @@ public class SynchronizationStep extends WizardStep {
                 StringBuilder sb = new StringBuilder();
 
                 if (syncObject != null) {
-                    sb.append(syncObject.getName() != null ? syncObject.getName() : "(name not specified) ");
+                    sb.append(syncObject.getName() != null ? syncObject.getName() : "-");
 					SchemaHandlingStep.addKindAndIntent(sb, syncObject.getKind(), syncObject.getIntent());
                 }
 
@@ -786,7 +786,7 @@ public class SynchronizationStep extends WizardStep {
 	private void addSyncObjectPerformed(AjaxRequestTarget target){
         ObjectSynchronizationType syncObject = new ObjectSynchronizationType();
 		syncObject.setEnabled(true);
-        syncObject.setName(generateName(getString("SynchronizationStep.label.newObjectType")));
+        //syncObject.setName(generateName(getString("SynchronizationStep.label.newObjectType")));
 
         resourceModel.getObject().asObjectable().getSynchronization().getObjectSynchronization().add(syncObject);
 		editSyncObjectPerformed(target, syncObject);

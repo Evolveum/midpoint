@@ -139,6 +139,7 @@ public class WizardButtonBar extends Panel implements IDefaultButtonProvider {
 				IWizardStep activeStep = wizard.getModelObject().getActiveStep();
 				if (activeStep != null) {
 					activeStep.applyState();
+					target.add(getPage());
 				}
 			}
 
