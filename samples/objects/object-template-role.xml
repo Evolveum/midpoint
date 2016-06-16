@@ -32,6 +32,7 @@
     <mapping>
     	<name>Responsibility metarole assignment</name>
     	<authoritative>true</authoritative>
+        <strength>strong</strength>
     	<source>
     		<path>extension/ext:responsibility</path>
     	</source>

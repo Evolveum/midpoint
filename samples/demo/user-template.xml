@@ -45,6 +45,7 @@
        
     <mapping>
 	<description>A hack to avoid feedback to HR feed - deleting accounts because they are not assigned</description>
+		<strength>strong</strength>
     	<source>
     		<path>employeeType</path>
     	</source>
@@ -68,6 +69,7 @@
     </mapping>
  
     <mapping>
+		<strength>strong</strength>
     	<source>
     		<path>employeeType</path>
     	</source>
@@ -89,6 +91,7 @@
     </mapping>
 
     <mapping>
+		<strength>strong</strength>
     	<source>
     		<path>employeeType</path>
     	</source>
@@ -111,7 +114,7 @@
 
 <!-- moved to HR Feed resource
     <mapping>
-	<strength>weak</strength>
+		<strength>weak</strength>
     	<expression>
             <value>ENABLED</value>    	
     	</expression>
