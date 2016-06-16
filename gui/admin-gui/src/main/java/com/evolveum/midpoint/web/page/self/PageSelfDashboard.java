@@ -413,7 +413,10 @@ public class PageSelfDashboard extends PageSelf {
         Collection<SelectorOptions<GetOperationOptions>> options =
                 SelectorOptions.createCollection(ShadowType.F_RESOURCE, getOpts);
 
-        
+        SelectorOptions<GetOperationOptions> resolveNamesOptions = new SelectorOptions(GetOperationOptions.createResolveNames());
+        resolveNamesOptions.getOptions().setNoFetch(Boolean.TRUE);
+        options.add(resolveNamesOptions);
+
         List<ObjectReferenceType> references = user.asObjectable().getLinkRef();
         for (ObjectReferenceType reference : references) {
             PrismObject<ShadowType> account = WebModelServiceUtils.loadObject(ShadowType.class, reference.getOid(),
