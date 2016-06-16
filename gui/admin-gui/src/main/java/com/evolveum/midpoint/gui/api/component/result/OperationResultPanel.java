@@ -64,13 +64,16 @@ public class OperationResultPanel extends BasePanel<OpResult> implements Popupab
 	private static final String ID_ICON_TYPE = "iconType";
 	private static final String ID_MESSAGE = "message";
 	private static final String ID_MESSAGE_LABEL = "messageLabel";
+	private static final String ID_PARAMS = "params";
 	private static final String ID_BACKGROUND_TASK = "backgroundTask";
 	private static final String ID_SHOW_ALL = "showAll";
 	private static final String ID_HIDE_ALL = "hideAll";
+	private static final String ID_ERROR_STACK_TRACE = "errorStackTrace";
 
 	static final String OPERATION_RESOURCE_KEY_PREFIX = "operation.";
 
 	private static final Trace LOGGER = TraceManager.getTrace(OperationResultPanel.class);
+
 
 	public OperationResultPanel(String id, IModel<OpResult> model) {
 		super(id, model);
@@ -382,7 +385,7 @@ public class OperationResultPanel extends BasePanel<OpResult> implements Popupab
 
 		operationContent.add(paramsLabel);
 
-		ListView<Param> params = new ListView<Param>("params", createParamsModel(model)) {
+		ListView<Param> params = new ListView<Param>(ID_PARAMS, createParamsModel(model)) {
 			private static final long serialVersionUID = 1L;
 
 			@Override
@@ -492,7 +495,7 @@ public class OperationResultPanel extends BasePanel<OpResult> implements Popupab
 		errorMessage.setOutputMarkupId(true);
 		operationPanel.add(errorMessage);
 
-		final Label errorStackTrace = new Label("errorStackTrace",
+		final Label errorStackTrace = new Label(ID_ERROR_STACK_TRACE,
 				new PropertyModel<String>(model, "exceptionsStackTrace"));
 		errorStackTrace.add(new VisibleEnableBehaviour() {
 			private static final long serialVersionUID = 1L;
@@ -512,7 +515,10 @@ public class OperationResultPanel extends BasePanel<OpResult> implements Popupab
 
 			@Override
 			public void onClick(AjaxRequestTarget target) {
-				model.getObject().setShowError(!model.getObject().isShowError());
+				OpResult result = OperationResultPanel.this.getModelObject();
+				result.setShowError(!model.getObject().isShowError());
+				result.setAlreadyShown(false);  // hack to be able to expand/collapse OpResult after rendered.
+//				model.getObject().setShowError(!model.getObject().isShowError());
 				target.add(OperationResultPanel.this);
 			}
 

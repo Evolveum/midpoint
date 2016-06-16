@@ -27,6 +27,7 @@ public enum RFailedOperationType implements SchemaEnum<FailedOperationTypeType> 
 
     DELETE(FailedOperationTypeType.DELETE),
     ADD(FailedOperationTypeType.ADD),
+    GET(FailedOperationTypeType.GET),
     MODIFY(FailedOperationTypeType.MODIFY);
 
     private FailedOperationTypeType operation;

@@ -25,6 +25,7 @@
 	
     <mapping>
     	<!-- This mapping is NOT initial so if will in fact FORCE fullname consistency -->
+		<strength>strong</strength>
     	<source>
     		<path>$user/givenName</path>
     	</source>
@@ -49,6 +50,7 @@
     </mapping>
 	<mapping>
       <description>A hack to avoid feedback to HR feed - deleting accounts because they are not assigned</description>
+	  <strength>strong</strength>
       <source>
          <c:path xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">employeeType</c:path>
       </source>
@@ -69,6 +71,7 @@
       </condition>
    </mapping>
    <mapping>
+	  <strength>strong</strength>
       <source>
          <c:path xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">employeeType</c:path>
       </source>
@@ -87,6 +90,7 @@
       </condition>
    </mapping>
    <mapping>
+	  <strength>strong</strength>
       <source>
          <c:path xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">employeeType</c:path>
       </source>
@@ -105,6 +109,7 @@
       </condition>
    </mapping>
    <mapping>
+	  <strength>strong</strength>
       <source>
          <c:path xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">employeeType</c:path>
       </source>
@@ -141,6 +146,7 @@
     		the user.
     	</description>
     	<authoritative>true</authoritative>
+		<strength>strong</strength>
     	<source>
     		<path>extension/ext:orgpath</path>
     	</source>
@@ -211,6 +217,7 @@
     <mapping>
     	<name>responsibility role assignment</name>
     	<authoritative>true</authoritative>
+		<strength>strong</strength>
     	<source>
     		<path>extension/ext:responsibility</path>
     	</source>

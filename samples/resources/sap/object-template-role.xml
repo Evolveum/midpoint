@@ -12,6 +12,7 @@
     <mapping>
         <name>SAP ActivityGroup metarole assignment</name>
         <authoritative>true</authoritative>
+        <strength>strong</strength>
         <source>
             <path>roleType</path>
         </source>
@@ -34,6 +35,7 @@
     <mapping>
         <name>SAP Group metarole assignment</name>
         <authoritative>true</authoritative>
+        <strength>strong</strength>
         <source>
             <path>roleType</path>
         </source>
@@ -56,6 +58,7 @@
     <mapping>
         <name>SAP Group metarole assignment</name>
         <authoritative>true</authoritative>
+        <strength>strong</strength>
         <source>
             <path>roleType</path>
         </source>

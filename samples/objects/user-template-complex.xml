@@ -25,6 +25,7 @@
     <name>Complex User Template</name>
     <mapping>
 		<!-- This expression is NOT initial so if will in fact FORCE fullname consistency -->
+		<strength>strong</strength>
 		<source>
 			<path>$user/givenName</path>
 		</source>
@@ -46,6 +47,7 @@
     
 	<!-- Unconditional automatic assignment of OpenDJ resource -->
     <mapping>
+		<strength>strong</strength>
     	<expression>
             <value>
             	<assignment>
@@ -62,6 +64,7 @@
     
     <!-- RB-RBAC functionality. The Pirate role is automatically assigned based on the value of employeeType property -->
     <mapping>
+		<strength>strong</strength>
     	<source>
     		<path>employeeType</path>
     	</source>

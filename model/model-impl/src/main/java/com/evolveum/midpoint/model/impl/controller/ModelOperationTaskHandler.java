@@ -106,7 +106,7 @@ public class ModelOperationTaskHandler implements TaskHandler {
             }
 
             if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("Context to be executed = " + context.debugDump());
+                LOGGER.trace("Context to be executed = {}", context.debugDump());
             }
 
             try {
@@ -124,6 +124,9 @@ public class ModelOperationTaskHandler implements TaskHandler {
                     }
                     projectionIterator.remove();
                 }
+				if (task.getChannel() == null) {
+					task.setChannel(context.getChannel());
+				}
                 clockwork.run(context, task, result);
 
 				task.setModelOperationContext(context.toLensContextType());

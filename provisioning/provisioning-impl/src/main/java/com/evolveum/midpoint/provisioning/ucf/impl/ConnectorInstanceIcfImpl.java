@@ -19,13 +19,7 @@ import static com.evolveum.midpoint.provisioning.ucf.impl.IcfUtil.processIcfExce
 
 import java.io.File;
 import java.lang.reflect.Array;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
@@ -2728,12 +2722,12 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		}
 		PrismProperty<ProtectedStringType> newPassword = passwordDelta.getPropertyNewMatchingPath();
 		if (newPassword == null || newPassword.isEmpty()) {
-			LOGGER.trace("Skipping processing password delta. Password delta does not contain new value.");
-			return;
+			LOGGER.debug("Setting null password.");
+			attributes.add(AttributeBuilder.build(OperationalAttributes.PASSWORD_NAME, Collections.EMPTY_LIST));
+		} else {
+			GuardedString guardedPassword = IcfUtil.toGuardedString(newPassword.getValue().getValue(), "new password", protector);
+			attributes.add(AttributeBuilder.build(OperationalAttributes.PASSWORD_NAME, guardedPassword));
 		}
-		GuardedString guardedPassword = IcfUtil.toGuardedString(newPassword.getValue().getValue(), "new password", protector);
-		attributes.add(AttributeBuilder.build(OperationalAttributes.PASSWORD_NAME, guardedPassword));
-
 	}
 	
 	private void addConvertedValues(Collection<PrismPropertyValue<QName>> pvals,

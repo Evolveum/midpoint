@@ -1077,7 +1077,7 @@ public class ResourceObjectConverter {
 		}
 		
 		if (InternalsConfig.consistencyChecks && query != null && query.getFilter() != null) {
-			query.getFilter().checkConsistence();
+			query.getFilter().checkConsistence(true);
 		}
 
 		ResultHandler<ShadowType> innerResultHandler = new ResultHandler<ShadowType>() {

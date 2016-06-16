@@ -55,6 +55,7 @@
     <mapping>
     	<name>Fullname</name>
     	<authoritative>true</authoritative>
+		<strength>strong</strength>
     	<source>
     		<path>givenName</path>
     	</source>
@@ -265,6 +266,7 @@
 
     <mapping>
     	<name>Customer End User role assignment</name>
+		<strength>strong</strength>
         <source>
             <path>$user/employeeType</path>
         </source>

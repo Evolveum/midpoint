@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2014 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,7 @@
 
 package com.evolveum.midpoint.prism.query;
 
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -39,7 +36,6 @@ public class OrgFilter extends ObjectFilter {
     }
 
     public OrgFilter() {
-        // TODO Auto-generated constructor stub
     }
 
     public static OrgFilter createOrg(PrismReferenceValue baseOrgRef, Scope scope) {
@@ -96,7 +92,7 @@ public class OrgFilter extends ObjectFilter {
     
 
     @Override
-	public void checkConsistence() {
+	public void checkConsistence(boolean requireDefinitions) {
 		if (baseOrgRef == null) {
 			throw new IllegalArgumentException("Null baseOrgRef in "+this);
 		}
@@ -177,7 +173,6 @@ public class OrgFilter extends ObjectFilter {
 
     @Override
     public boolean match(PrismContainerValue value, MatchingRuleRegistry matchingRuleRegistry) throws SchemaException {
-        // TODO Auto-generated method stub
         return false;
     }
 }

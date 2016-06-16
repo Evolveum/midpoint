@@ -29,7 +29,7 @@ import org.apache.commons.lang.Validate;
  */
 abstract public class WorkflowEvent extends BaseEvent {
 
-    private final WfContextType workflowContext;
+    protected final WfContextType workflowContext;
     private final ChangeType changeType;                      // ADD = process/task start, DELETE = process/task finish (for now)
 
     public WorkflowEvent(LightweightIdentifierGenerator lightweightIdentifierGenerator, ChangeType changeType, WfContextType workflowContext) {
@@ -46,10 +46,12 @@ abstract public class WorkflowEvent extends BaseEvent {
     }
 
     public OperationStatus getOperationStatus() {
-        return resultToStatus(changeType, workflowContext.getAnswer());
+        return resultToStatus(changeType, getAnswer());
     }
 
-    @Override
+	protected abstract String getAnswer();
+
+	@Override
     public boolean isStatusType(EventStatusType eventStatusType) {
         return getOperationStatus().matchesEventStatusType(eventStatusType);
     }
@@ -133,7 +135,7 @@ abstract public class WorkflowEvent extends BaseEvent {
                 "event=" + super.toString() +
                 ", processInstanceName='" + getProcessInstanceName() + '\'' +
                 ", changeType=" + changeType +
-                ", answer=" + workflowContext.getAnswer() +
+                ", answer=" + getAnswer() +
                 '}';
     }
 

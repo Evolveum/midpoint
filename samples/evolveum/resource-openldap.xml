@@ -69,6 +69,7 @@
 			<icfcldap:operationalAttributes>memberOf</icfcldap:operationalAttributes>
 			<icfcldap:operationalAttributes>createTimestamp</icfcldap:operationalAttributes>
 			<icfcldap:usePermissiveModify>always</icfcldap:usePermissiveModify>
+			<icfcldap:lockoutStrategy>openldap</icfcldap:lockoutStrategy>
 		</icfc:configurationProperties>
 		<icfc:resultsHandlerConfiguration>
 			<icfc:enableNormalizingResultsHandler>false</icfc:enableNormalizingResultsHandler>
@@ -288,6 +289,9 @@
 						</expression>
 					</inbound>
 				</administrativeStatus>
+				<lockoutStatus>
+					<outbound/>
+				</lockoutStatus>
 			</activation>
 
 			<credentials>

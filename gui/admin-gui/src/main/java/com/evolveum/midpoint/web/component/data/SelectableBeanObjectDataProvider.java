@@ -43,6 +43,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.error.PageError;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 
 /**
  * @author lazyman
@@ -136,6 +137,9 @@ public class SelectableBeanObjectDataProvider<O extends ObjectType> extends Base
             	LOGGER.trace("Query {} with {}", type.getSimpleName(), query.debugDump());
             }
 
+            if (ResourceType.class.equals(type) && (options == null || options.isEmpty())){
+            	options = SelectorOptions.createCollection(GetOperationOptions.createNoFetch());
+            }
             List<PrismObject<O>> list = getModel().searchObjects(type, query, options, task, result);
             
             if (LOGGER.isTraceEnabled()) {

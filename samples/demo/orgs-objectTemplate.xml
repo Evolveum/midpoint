@@ -16,6 +16,7 @@
            when using Projects & Orgs you need to disable 'projects-objectTemplate.xml' and enable 'orgs-objectTemplate.xml'  -->
     <mapping>
         <description>A hack to avoid feedback to HR feed - deleting accounts because they are not assigned</description>
+        <strength>strong</strength>
         <source>
             <c:path>orgType</c:path>
         </source>
@@ -35,6 +36,7 @@
     </mapping>
     <mapping>
         <description>A hack to avoid feedback to HR feed - deleting accounts because they are not assigned</description>
+        <strength>strong</strength>
         <source>
             <c:path>orgType</c:path>
         </source>

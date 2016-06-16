@@ -44,9 +44,7 @@ public class PropertyWrapper<I extends Item<? extends PrismValue, ID>, ID extend
 	public PropertyWrapper(@Nullable ContainerWrapper container, I property, boolean readonly, ValueStatus status) {
 		super(container, property, readonly, status);
 
-        ItemPath passwordPath = new ItemPath(SchemaConstantsGenerated.C_CREDENTIALS,
-                CredentialsType.F_PASSWORD);
-        if (container != null && passwordPath.equivalent(container.getPath())
+        if (container != null && SchemaConstants.PATH_PASSWORD.equivalent(container.getPath())
                 && PasswordType.F_VALUE.equals(property.getElementName())) {
 			super.setDisplayName("prismPropertyPanel.name.credentials.password");
 		}

@@ -35,7 +35,12 @@ public class WorkflowProcessEvent extends WorkflowEvent {
         return eventCategoryType == EventCategoryType.WORKFLOW_PROCESS_EVENT || eventCategoryType == EventCategoryType.WORKFLOW_EVENT;
     }
 
-    @Override
+	@Override
+	protected String getAnswer() {
+		return workflowContext.getAnswer();
+	}
+
+	@Override
     public String toString() {
         return "WorkflowProcessEvent{" +
                 "workflowEvent=" + super.toString() +

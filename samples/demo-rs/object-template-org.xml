@@ -24,6 +24,7 @@
         <name>Org Template</name>
                 
     <mapping>
+        <strength>strong</strength>
     	<source>
     		<path>orgType</path>
     	</source>

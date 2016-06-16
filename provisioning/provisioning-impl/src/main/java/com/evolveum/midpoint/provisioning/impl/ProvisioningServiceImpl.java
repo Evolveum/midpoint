@@ -568,13 +568,13 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			try {
 
 				PrismObject<T> completeResource = completeObject(type, repoObject, options, objResult);
-				newObjListType.add((PrismObject<T>) completeResource);
 				validateObject(completeResource);
                 objResult.computeStatusIfUnknown();
                 if (!objResult.isSuccess()) {
                     completeResource.asObjectable().setFetchResult(objResult.createOperationResultType());      // necessary e.g. to skip validation for resources that had issues when checked
                     result.addSubresult(objResult);
                 }
+                newObjListType.add((PrismObject<T>) completeResource);
 
 				// TODO: what else do to with objResult??
 
@@ -1108,7 +1108,8 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		}
 		
 		if (InternalsConfig.consistencyChecks && filter != null) {
-			filter.checkConsistence();
+			// We may not have all the definitions here. We will apply the definitions later
+			filter.checkConsistence(false);
 		}
 		
 		if (filter != null && filter instanceof NoneFilter) {

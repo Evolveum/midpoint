@@ -60,6 +60,7 @@
    	<!--<mapping>-->
 		<!--<name>End user role for all CDO users</name>-->
 		<!--<authoritative>true</authoritative>-->
+		<!--<strength>strong</strength>-->
 		<!--<source>-->
 			<!--<path>employeeType</path>-->
 		<!--</source>-->
@@ -84,6 +85,7 @@
  	<mapping>
       <name>User - SAP Role mapping</name>
       <authoritative>true</authoritative>
+	  <strength>strong</strength>
       <source>
          <c:name>sapRole</c:name>
          <c:path xmlns:ext="http://xml.uniba.sk/cdoext">extension/sapRoles</c:path>
@@ -134,6 +136,7 @@
 	<mapping>
 		<name>User - SAP Profile mapping</name>
 		<authoritative>true</authoritative>
+		<strength>strong</strength>
 		<source>
 			<c:name>sapProfile</c:name>
 			<c:path xmlns:ext="http://xml.uniba.sk/cdoext">extension/sapProfiles</c:path>
@@ -184,6 +187,7 @@
 	<mapping>
 		<name>User - SAP Group mapping</name>
 		<authoritative>true</authoritative>
+		<strength>strong</strength>
 		<source>
 			<c:name>sapGroup</c:name>
 			<c:path xmlns:ext="http://xml.uniba.sk/cdoext">extension/sapGroups</c:path>

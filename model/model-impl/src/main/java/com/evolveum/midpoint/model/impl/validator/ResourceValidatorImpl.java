@@ -133,7 +133,7 @@ public class ResourceValidatorImpl implements ResourceValidator {
 		SchemaHandlingType schemaHandling = resource.getSchemaHandling();
 		if (schemaHandling != null) {
 			checkSchemaHandlingDuplicateObjectTypes(ctx, schemaHandling);
-			checkSchemaHandlingMoreDefaults(ctx, schemaHandling);
+			checkSchemaHandlingDefaults(ctx, schemaHandling);
 			checkSchemaHandlingObjectTypes(ctx, schemaHandling);
 		}
 		SynchronizationType synchronization = resource.getSynchronization();
@@ -498,8 +498,9 @@ public class ResourceValidatorImpl implements ResourceValidator {
 		}
 	}
 
-	private void checkSchemaHandlingMoreDefaults(ResourceValidationContext ctx, SchemaHandlingType schemaHandling) {
+	private void checkSchemaHandlingDefaults(ResourceValidationContext ctx, SchemaHandlingType schemaHandling) {
 		int defAccount = 0, defEntitlement = 0, defGeneric = 0;
+		int totalAccount = 0;
 		for (ResourceObjectTypeDefinitionType def : schemaHandling.getObjectType()) {
 			if (Boolean.TRUE.equals(def.isDefault())) {
 				switch (fillDefault(def.getKind())) {
@@ -516,10 +517,19 @@ public class ResourceValidatorImpl implements ResourceValidator {
 						throw new IllegalStateException();
 				}
 			}
+			if (fillDefault(def.getKind()) == ShadowKindType.ACCOUNT) {
+				totalAccount++;
+			}
 		}
 		checkMultipleDefaultDefinitions(ctx, ShadowKindType.ACCOUNT, defAccount);
 		checkMultipleDefaultDefinitions(ctx, ShadowKindType.ENTITLEMENT, defEntitlement);
 		checkMultipleDefaultDefinitions(ctx, ShadowKindType.GENERIC, defGeneric);
+		if (totalAccount > 0 && defAccount == 0) {
+			ctx.validationResult.add(Issue.Severity.INFO,
+					CAT_SCHEMA_HANDLING, C_NO_DEFAULT_ACCOUNT_SCHEMA_HANDLING_DEFAULT_DEFINITION,
+					getString(CLASS_DOT + C_NO_DEFAULT_ACCOUNT_SCHEMA_HANDLING_DEFAULT_DEFINITION),
+					ctx.resourceRef, new ItemPath(ResourceType.F_SCHEMA_HANDLING, SchemaHandlingType.F_OBJECT_TYPE));
+		}
 	}
 
 	private void checkMultipleDefaultDefinitions(ResourceValidationContext ctx, ShadowKindType kind, int count) {

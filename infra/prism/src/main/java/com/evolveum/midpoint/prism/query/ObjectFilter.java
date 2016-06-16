@@ -51,7 +51,7 @@ public abstract class ObjectFilter implements DebugDumpable, Serializable, Reviv
 		QueryConvertor.revive(this, prismContext);
 	}
 	
-	public abstract void checkConsistence();
+	public abstract void checkConsistence(boolean requireDefinitions);
 
 	public abstract boolean equals(Object o, boolean exact);
 }

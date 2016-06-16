@@ -367,6 +367,8 @@ public class CapabilityStep extends WizardStep {
         OperationResult result = task.getResult();
         ModelService modelService = getPageBase().getModelService();
 
+		boolean saved = false;
+
         try {
 			PrismObject<ResourceType> oldResource;
 			final PrismObject<ResourceType> resourceObject = resourceModel.getObject();
@@ -403,6 +405,7 @@ public class CapabilityStep extends WizardStep {
 							.createDeltaCollection(delta);
 					modelService.executeChanges(deltas, null, getPageBase().createSimpleTask(OPERATION_SAVE_CAPABILITIES), result);
 					parentPage.resetModels();
+					saved = true;
 				}
             }
         } catch (CommonException|RuntimeException e){
@@ -413,7 +416,7 @@ public class CapabilityStep extends WizardStep {
             setResult(result);
         }
 
-        if (WebComponentUtil.showResultInPage(result)) {
+        if (parentPage.showSaveResultInPage(saved, result)) {
             getPageBase().showResult(result);
         }
     }

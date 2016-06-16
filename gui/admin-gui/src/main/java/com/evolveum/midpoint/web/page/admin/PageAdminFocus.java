@@ -211,14 +211,9 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
             showResult(result);
 			target.add(getFeedbackPanel());
 
-			// if we only stayed on the page because of displaying results, hide
-			// the Save button
-			// (the content of the page might not be consistent with reality,
-			// e.g. concerning the accounts part...
-			// this page was not created with the repeated save possibility in
-			// mind)
-			if (userAdded || !result.isFatalError()) {
-//				progressReporter.hideSaveButton(target);
+			if (!userAdded && result.isFatalError()) {
+				getProgressReporter().hideBackButton(target);				// not to confuse the user
+				getProgressReporter().showContinueEditingButton(target);
 			}
 		}
 	}
@@ -228,11 +223,21 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 		getProgressReporter().getProgressPanel().hide();
 		getProgressReporter().hideAbortButton(target);
 		getProgressReporter().hideBackButton(target);
+		getProgressReporter().hideContinueEditingButton(target);
 
 		showResult(result);
 		target.add(getFeedbackPanel());
 		setResponsePage(new PagePreviewChanges(getProgressReporter().getPreviewResult(), getModelInteractionService()));
+	}
 
+	@Override
+	public void continueEditing(AjaxRequestTarget target) {
+		getMainPanel().setVisible(true);
+		getProgressReporter().getProgressPanel().hide();
+		getProgressReporter().hideAbortButton(target);
+		getProgressReporter().hideBackButton(target);
+		getProgressReporter().hideContinueEditingButton(target);
+		target.add(this);
 	}
 
 	private List<FocusSubwrapperDto<ShadowType>> loadShadowWrappers() {

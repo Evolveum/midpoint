@@ -372,7 +372,7 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 	private void deleteMemberConfirmPerformed(QueryScope scope, QName relation, AjaxRequestTarget target) {
 		getPageBase().hideMainPopup(target);
 		Task operationalTask = getPageBase().createSimpleTask(getTaskName("Delete", scope, false));
-		ObjectDelta delta = ObjectDelta.createDeleteDelta(ObjectType.class, "fakeOid", getPageBase().getPrismContext());
+		ObjectDelta delta = ObjectDelta.createDeleteDelta(FocusType.class, "fakeOid", getPageBase().getPrismContext());
 		if (delta == null) {
 			return;
 		}

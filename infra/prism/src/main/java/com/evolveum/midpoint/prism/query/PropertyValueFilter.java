@@ -247,8 +247,8 @@ public abstract class PropertyValueFilter<V extends PrismValue> extends ValueFil
 	}
 	
 	@Override
-	public void checkConsistence() {
-		super.checkConsistence();
+	public void checkConsistence(boolean requireDefinitions) {
+		super.checkConsistence(requireDefinitions);
 		if (values == null) {
 			return; // this is OK, searching for item with no value
 		}
@@ -264,7 +264,7 @@ public abstract class PropertyValueFilter<V extends PrismValue> extends ValueFil
 			}
 		}
 	}
-
+	
 	@Override
 	public boolean isRaw() {
 		if (values != null) {
