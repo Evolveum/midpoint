@@ -220,6 +220,11 @@ public class ConfigurationStep extends WizardStep {
 				}
 			});
 		}
+		int i = tabbedPanel.getSelectedTab();
+		if (i < 0 || i > tabs.size()) {
+			i = 0;
+		}
+		tabbedPanel.setSelectedTab(i);
 	}
 
 	@SuppressWarnings("unchecked")
@@ -301,7 +306,6 @@ public class ConfigurationStep extends WizardStep {
 
 		configurationPropertiesModel.reset();
 		updateConfigurationTabs();
-		TabbedPanel<ITab> tabbedPanel = getConfigurationTabbedPanel();
-		tabbedPanel.setSelectedTab(tabbedPanel.getSelectedTab());
+
 	}
 }
