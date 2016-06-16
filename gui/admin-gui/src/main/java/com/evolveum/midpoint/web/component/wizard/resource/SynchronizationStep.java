@@ -24,6 +24,7 @@ import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -267,7 +268,7 @@ public class SynchronizationStep extends WizardStep {
                 if (!isAnySelected()) {
 					return null;        // shouldn't occur
 				}
-				String name = syncDtoModel.getObject().getSelected().getName() != null ? syncDtoModel.getObject().getSelected().getName() : "-";
+				String name = syncDtoModel.getObject().getSelected().getName() != null ? syncDtoModel.getObject().getSelected().getName() : "";
 				return getString("SynchronizationStep.label.editSyncObject", name);
             }
         });
@@ -351,6 +352,7 @@ public class SynchronizationStep extends WizardStep {
                     }
                 }, new QNameChoiceRenderer());
         editorFocus.setNullValid(true);
+		editorFocus.add(new UpdateNamesBehaviour());
 		parentPage.addEditingEnabledBehavior(editorFocus);
         editor.add(editorFocus);
 
@@ -461,13 +463,13 @@ public class SynchronizationStep extends WizardStep {
 							return "";
 						}
 						StringBuilder sb = new StringBuilder();
-                        sb.append(reaction.getName() != null ? reaction.getName() : "-");
-						sb.append(" (");
+                        sb.append(reaction.getName() != null ? reaction.getName() + " " : "");
+						sb.append("(");
 						if (reaction.getSituation() != null) {
 							sb.append(reaction.getSituation());
                         }
 						if (Boolean.TRUE.equals(reaction.isSynchronize()) || !reaction.getAction().isEmpty()) {
-							sb.append(" => ");
+							sb.append(" -> ");
 							if (!reaction.getAction().isEmpty()) {
 								boolean first = true;
 								for (SynchronizationActionType action : reaction.getAction()) {
@@ -573,8 +575,10 @@ public class SynchronizationStep extends WizardStep {
                 StringBuilder sb = new StringBuilder();
 
                 if (syncObject != null) {
-                    sb.append(syncObject.getName() != null ? syncObject.getName() : "-");
+                    sb.append(syncObject.getName() != null ? syncObject.getName() + " " : "");
 					SchemaHandlingStep.addKindAndIntent(sb, syncObject.getKind(), syncObject.getIntent());
+					sb.append(" => ");
+					sb.append(getTypeDisplayName(ResourceTypeUtil.fillDefaultFocusType(syncObject.getFocusType())));
                 }
 
                 return sb.toString();
@@ -582,7 +586,12 @@ public class SynchronizationStep extends WizardStep {
         };
     }
 
-    private void addDisableClassModifier(Component component){
+	// TODO move to some utils
+	private static String getTypeDisplayName(@NotNull QName name) {
+		return StringUtils.removeEnd(name.getLocalPart(), "Type");
+	}
+
+	private void addDisableClassModifier(Component component){
         component.add(new AttributeAppender("class", new AbstractReadOnlyModel<String>() {
 
             @Override
@@ -699,6 +708,7 @@ public class SynchronizationStep extends WizardStep {
         Task task = getPageBase().createSimpleTask(OPERATION_SAVE_SYNC);
         OperationResult result = task.getResult();
         ModelService modelService = getPageBase().getModelService();
+		boolean saved = false;
 
         removeEmptyContainers(newResource.asObjectable());
 
@@ -712,6 +722,7 @@ public class SynchronizationStep extends WizardStep {
 					modelService.executeChanges(deltas, null, getPageBase().createSimpleTask(OPERATION_SAVE_SYNC), result);
 					parentPage.resetModels();
 					syncDtoModel.reset();
+					saved = true;
 				}
             }
         } catch (CommonException|RuntimeException e) {
@@ -722,7 +733,7 @@ public class SynchronizationStep extends WizardStep {
             setResult(result);
         }
 
-        if (WebComponentUtil.showResultInPage(result)) {
+		if (parentPage.showSaveResultInPage(saved, result)) {
             getPageBase().showResult(result);
         }
     }
