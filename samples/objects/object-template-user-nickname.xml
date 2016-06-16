@@ -25,6 +25,7 @@
     
     <mapping>
     	<!-- This mapping is NOT initial so if will in fact FORCE fullname consistency -->
+        <strength>strong</strength>
     	<source>
     		<path>$user/givenName</path>
     	</source>

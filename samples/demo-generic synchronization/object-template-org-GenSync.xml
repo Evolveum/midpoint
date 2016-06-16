@@ -34,6 +34,7 @@
     <mapping>
     	<name>Org-org mapping</name>
     	<authoritative>true</authoritative>
+		<strength>strong</strength>
     	<source>
     		<path>extension/ext:orgpath</path>
     	</source>
@@ -113,6 +114,7 @@
     <mapping>
     	<name>Org metarole assignment</name>
     	<authoritative>true</authoritative>
+		<strength>strong</strength>
     	<source>
     		<path>orgType</path>
     	</source>

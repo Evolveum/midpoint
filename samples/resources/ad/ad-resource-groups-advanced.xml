@@ -438,6 +438,7 @@
         <mapping>
             <name>Metarole assignment</name>
             <authoritative>true</authoritative>
+            <strength>strong</strength>
             <expression>
                 <assignmentTargetSearch>
                     <targetType>c:RoleType</targetType>
