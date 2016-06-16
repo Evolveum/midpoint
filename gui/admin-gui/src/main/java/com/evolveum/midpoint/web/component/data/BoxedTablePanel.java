@@ -256,11 +256,13 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
 				protected void pageSizeChanged(AjaxRequestTarget target) {
 					Table table = findParent(Table.class);
 					UserProfileStorage.TableId tableId = table.getTableId();
-
-					PageBase page = (PageBase) getPage();
-					Integer pageSize = page.getSessionStorage().getUserProfile().getPagingSize(tableId);
-
-					table.setItemsPerPage(pageSize);
+					
+					if (tableId != null) {
+						PageBase page = (PageBase) getPage();
+						Integer pageSize = page.getSessionStorage().getUserProfile().getPagingSize(tableId);
+	
+						table.setItemsPerPage(pageSize);
+					}
 					target.add(findParent(PagingFooter.class));
 					target.add((Component) table);
 				}
