@@ -417,7 +417,8 @@ public class PageUsers extends PageAdminUsers {
 
 		showResult(result);
 		target.add(getFeedbackPanel());
-		target.add(getTable());
+		getTable().refreshTable(UserType.class, target);
+		getTable().clearCache();
 	}
 
 	private void unlockPerformed(AjaxRequestTarget target, UserType selectedUser) {
@@ -452,7 +453,8 @@ public class PageUsers extends PageAdminUsers {
 
 		showResult(result);
 		target.add(getFeedbackPanel());
-		target.add(getTable());
+		getTable().refreshTable(UserType.class, target);
+		getTable().clearCache();
 	}
 
 	private void reconcilePerformed(AjaxRequestTarget target, UserType selectedUser) {
@@ -484,7 +486,8 @@ public class PageUsers extends PageAdminUsers {
 
 		showResult(result);
 		target.add(getFeedbackPanel());
-		target.add(getTable());
+		getTable().refreshTable(UserType.class, target);
+		getTable().clearCache();
 	}
 
 	/**
@@ -551,7 +554,8 @@ public class PageUsers extends PageAdminUsers {
 
 		showResult(result);
 		target.add(getFeedbackPanel());
-		target.add(getTable());
+		getTable().clearCache();
+		getTable().refreshTable(UserType.class, target);
 	}
 
     private Popupable getDeletePopupContent() {
