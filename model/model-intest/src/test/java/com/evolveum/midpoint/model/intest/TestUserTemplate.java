@@ -1158,6 +1158,45 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         		GenerateExpressionEvaluator.DEFAULT_LENGTH, userAfterType.getEmployeeNumber().length());
 	}
 	
+	/**
+	 * MID-3186
+	 */
+	@Test
+    public void test204AddUserHerman() throws Exception {
+		final String TEST_NAME = "test204AddUserHerman";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestUserTemplate.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+    
+        PrismObject<UserType> user = PrismTestUtil.parseObject(USER_HERMAN_FILE);
+        Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
+        ObjectDelta<UserType> userDelta = ObjectDelta.createAddDelta(user);
+        deltas.add(userDelta);
+                
+		// WHEN
+		modelService.executeChanges(deltas, null, task, result);
+
+		// THEN
+		PrismObject<UserType> userAfter = modelService.getObject(UserType.class, USER_HERMAN_OID, null, task, result);
+        assertUser(userAfter, USER_HERMAN_OID, USER_HERMAN_USERNAME, USER_HERMAN_FULL_NAME, "Herman", "Toothrot");
+        PrismAsserts.assertNoItem(userAfter, UserType.F_DESCRIPTION);
+        PrismAsserts.assertPropertyValue(userAfter, UserType.F_TIMEZONE, "High Seas/Monkey Island");
+        
+        assertAssignedAccount(userAfter, RESOURCE_DUMMY_BLUE_OID);
+        assertAssignedNoRole(userAfter);
+        assertAssignments(userAfter, 1);
+        
+        UserType userAfterType = userAfter.asObjectable();
+        assertLinks(userAfter, 1);
+        
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        assertEquals("Wrong costCenter", "G001", userAfterType.getCostCenter());
+	}
+	
 	@Test
     public void test220AssignRoleSailorToUserRapp() throws Exception {
 		final String TEST_NAME = "test220AssignRoleSailorToUserRapp";
