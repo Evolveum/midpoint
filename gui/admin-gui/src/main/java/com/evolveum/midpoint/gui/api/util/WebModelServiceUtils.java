@@ -59,6 +59,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+
+import ch.qos.logback.classic.Logger;
+
 import org.apache.wicket.Session;
 import org.apache.wicket.protocol.http.WebSession;
 import org.jetbrains.annotations.Nullable;
@@ -79,6 +82,7 @@ public class WebModelServiceUtils {
     private static final String OPERATION_SEARCH_OBJECTS = DOT_CLASS + "searchObjects";
     private static final String OPERATION_SAVE_OBJECT = DOT_CLASS + "saveObject";
     private static final String OPERATION_LOAD_OBJECT_REFS = DOT_CLASS + "loadObjectReferences";
+    private static final String OPERATION_COUNT_OBJECT = DOT_CLASS + "countObjects";
 
     public static String resolveReferenceName(ObjectReferenceType ref, PageBase page, Task task, OperationResult result) {
 		if (ref == null) {
@@ -311,6 +315,23 @@ public class WebModelServiceUtils {
         LOGGER.debug("Loaded ({}) with result {}", new Object[]{objects.size(), subResult});
 
         return objects;
+    }
+    
+    public static <T extends ObjectType> int countObjects(Class<T> type, ObjectQuery query, PageBase page) {
+    	LOGGER.debug("Count object: type => {}, query => {}", type, query);
+    	Task task = page.createSimpleTask(OPERATION_COUNT_OBJECT);
+    	OperationResult parentResult = new OperationResult(OPERATION_COUNT_OBJECT);
+    	int count = 0;
+    	try {
+			count = page.getModelService().countObjects(type, query, null, task, parentResult);
+		} catch (SchemaException | ObjectNotFoundException | SecurityViolationException
+				| ConfigurationException | CommunicationException ex) {
+			parentResult.recordFatalError("WebModelUtils.couldntCountObjects", ex);
+            LoggingUtils.logException(LOGGER, "Couldn't count objects", ex);
+		}
+
+         LOGGER.debug("Count objects with result {}", new Object[]{parentResult});
+         return count;
     }
 
     public static <T extends ObjectType> void deleteObject(Class<T> type, String oid, OperationResult result,
