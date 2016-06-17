@@ -288,38 +288,12 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 				LOGGER.trace("  Empty list of allowed items, operation allowed");
 			} else {
 				// all items in the object and delta must be allowed
-				final MutableBoolean itemDecision = new MutableBoolean(true);
+				
 				if (delta != null) {
-					// If there is delta then consider only the delta.
-					Visitor visitor = new Visitor() {
-						@Override
-						public void visit(Visitable visitable) {
-							ItemPath itemPath = getPath(visitable);
-							if (itemPath != null && !itemPath.isEmpty()) {
-								if (!isInList(itemPath, allowedItems)) {
-									LOGGER.trace("  DENY operation because item {} in the delta is not allowed", itemPath);
-									itemDecision.setValue(false);
-								}
-							}
-						}
-					};
-					delta.accept(visitor);
+					allow = processAuthorizationDelta(delta, allowedItems);
 				} else if (object != null) {
-					Visitor visitor = new Visitor() {
-						@Override
-						public void visit(Visitable visitable) {
-							ItemPath itemPath = getPath(visitable);
-							if (itemPath != null && !itemPath.isEmpty()) {
-								if (!isInList(itemPath, allowedItems)) {
-									LOGGER.trace("  DENY operation because item {} in the object is not allowed", itemPath);
-									itemDecision.setValue(false);
-								}
-							}
-						}
-					};
-					object.accept(visitor);
+					allow = processAuthorizationObject(object, allowedItems);
 				}
-				allow = itemDecision.booleanValue();
 			}
 		}
 
@@ -329,13 +303,38 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 		return allow;
 	}
 	
-	private ItemPath getPath(Visitable visitable) {
-		if (visitable instanceof ItemDelta) {
-			return ((ItemDelta)visitable).getPath();
-		} else if (visitable instanceof Item) {
-			return ((Item)visitable).getPath();
+	private <O extends ObjectType> boolean processAuthorizationObject(PrismObject<O> object, final Collection<ItemPath> allowedItems) {
+		final MutableBoolean itemDecision = new MutableBoolean(true);
+		Visitor visitor = new Visitor() {
+			@Override
+			public void visit(Visitable visitable) {
+				if (visitable instanceof Item) {
+					ItemPath itemPath = ((Item)visitable).getPath();
+					if (itemPath != null && !itemPath.isEmpty()) {
+						if (!isInList(itemPath, allowedItems)) {
+							LOGGER.trace("  DENY operation because item {} in the object is not allowed", itemPath);
+							itemDecision.setValue(false);
+						}
+					}
+				}
+			}
+		};
+		object.accept(visitor);
+		return itemDecision.booleanValue();
+	}
+	
+	private <O extends ObjectType> boolean processAuthorizationDelta(ObjectDelta<O> delta, final Collection<ItemPath> allowedItems) {
+		if (delta.isAdd()) {
+			return processAuthorizationObject(delta.getObjectToAdd(), allowedItems);
 		} else {
-			return null;
+			for (ItemDelta<?,?> itemDelta: delta.getModifications()) {
+				ItemPath itemPath = itemDelta.getPath();
+				if (!isInList(itemPath, allowedItems)) {
+					LOGGER.trace("  DENY operation because item {} in the delta is not allowed", itemPath);
+					return false;
+				}
+			}
+			return true;
 		}
 	}
 	

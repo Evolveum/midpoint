@@ -7300,6 +7300,7 @@
 							</xsd:documentation>
 							<xsd:appinfo>
 								<a:since>3.4</a:since>
+                                <a:displayName>AdminGuiConfigurationType.adminGuiConfiguration</a:displayName>
 							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:element>
@@ -9148,6 +9149,9 @@
                             <xsd:documentation>
                                 Administration GUI configuration.
                             </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>AdminGuiConfigurationType.adminGuiConfiguration</a:displayName>
+                            </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                 </xsd:sequence>

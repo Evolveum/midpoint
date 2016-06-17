@@ -130,7 +130,7 @@ public class WorkItemDto extends Selectable {
     }
 
 	public String getCreatedFormattedFull() {
-		return WebComponentUtil.getLocalizedDate(workItem.getWorkItemCreatedTimestamp(), DateLabelComponent.FULL_FULL_STYLE);
+		return WebComponentUtil.getLocalizedDate(workItem.getWorkItemCreatedTimestamp(), DateLabelComponent.FULL_MEDIUM_STYLE);
 	}
 
 	public Date getCreatedDate() {
@@ -142,7 +142,7 @@ public class WorkItemDto extends Selectable {
     }
 
     public String getStartedFormattedFull() {
-        return WebComponentUtil.getLocalizedDate(workItem.getProcessStartedTimestamp(), DateLabelComponent.FULL_FULL_STYLE);
+        return WebComponentUtil.getLocalizedDate(workItem.getProcessStartedTimestamp(), DateLabelComponent.FULL_MEDIUM_STYLE);
     }
 
     public String getAssigneeOrCandidates() {
