@@ -24,9 +24,6 @@ import java.util.Map;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.web.session.SessionStorage;
-import net.sf.jasperreports.web.util.WebUtil;
-import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
@@ -44,7 +41,9 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.ReferenceDelta;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.OrgFilter;
+import com.evolveum.midpoint.prism.query.OrgFilter.Scope;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -62,7 +61,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
-import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.orgs.OrgTreeAssignablePanel;
 import com.evolveum.midpoint.web.page.admin.orgs.OrgTreePanel;
@@ -114,6 +112,7 @@ public class TreeTablePanel extends BasePanel<String> {
 	protected static final String OPERATION_UPDATE_OBJECT = DOT_CLASS + "updateObject";
 	protected static final String OPERATION_RECOMPUTE = DOT_CLASS + "recompute";
 	protected static final String OPERATION_SEARCH_MANAGERS = DOT_CLASS + "searchManagers";
+	protected static final String OPERATION_COUNT_CHILDREN = DOT_CLASS + "countChildren";
 
 	private static final String ID_TREE_PANEL = "treePanel";
 	private static final String ID_MEMBER_PANEL = "memberPanel";
@@ -234,7 +233,8 @@ public class TreeTablePanel extends BasePanel<String> {
 					@Override
 					public void onClick(AjaxRequestTarget target) {
 						try {
-							initObjectForAdd(ObjectTypeUtil.createObjectRef(getRowModel().getObject().getValue()),
+							initObjectForAdd(
+									ObjectTypeUtil.createObjectRef(getRowModel().getObject().getValue()),
 									OrgType.COMPLEX_TYPE, null, target);
 						} catch (SchemaException e) {
 							throw new SystemException(e.getMessage(), e);
@@ -264,7 +264,7 @@ public class TreeTablePanel extends BasePanel<String> {
 		PrismContext prismContext = TreeTablePanel.this.getPageBase().getPrismContext();
 		PrismObjectDefinition def = prismContext.getSchemaRegistry().findObjectDefinitionByType(type);
 		PrismObject obj = def.instantiate();
-		
+
 		ObjectType objType = (ObjectType) obj.asObjectable();
 		if (FocusType.class.isAssignableFrom(obj.getCompileTimeClass())) {
 			AssignmentType assignment = new AssignmentType();
@@ -276,11 +276,9 @@ public class TreeTablePanel extends BasePanel<String> {
 				parentOrgRef = ObjectTypeUtil.createObjectRef(org);
 				parentOrgRef.setRelation(relation);
 			}
-			
+
 			objType.getParentOrgRef().add(parentOrgRef);
 		}
-		
-		
 
 		Class newObjectPageClass = objectDetailsMap.get(obj.getCompileTimeClass());
 
@@ -320,6 +318,7 @@ public class TreeTablePanel extends BasePanel<String> {
 		OrgTreeAssignablePanel orgAssignablePanel = new OrgTreeAssignablePanel(
 				parentPage.getMainPopupBodyId(), false, parentPage) {
 			private static final long serialVersionUID = 1L;
+
 			@Override
 			protected void onItemSelect(SelectableBean<OrgType> selected, AjaxRequestTarget target) {
 				moveConfirmPerformed(orgToMove, selected, target);
@@ -447,29 +446,50 @@ public class TreeTablePanel extends BasePanel<String> {
 	private void deleteRootPerformed(final SelectableBean<OrgType> orgToDelete, AjaxRequestTarget target) {
 
 		ConfirmationPanel confirmationPanel = new ConfirmationPanel(getPageBase().getMainPopupBodyId(),
-                new AbstractReadOnlyModel<String>() {
+				new AbstractReadOnlyModel<String>() {
 
-                    private static final long serialVersionUID = 1L;
+					private static final long serialVersionUID = 1L;
 
-                    @Override
-                    public String getObject() {
-                        return createStringResource("TreeTablePanel.message.deleteTreeObjectConfirm",
-                                orgToDelete.getValue().getDisplayName() != null &&
-                                        StringUtils.isNotEmpty(orgToDelete.getValue().getDisplayName().getOrig())?
-                                        orgToDelete.getValue().getDisplayName() : orgToDelete.getValue().getName()).getString();
-                    }
-                }) {
+					@Override
+					public String getObject() {
+						if (hasChildren(orgToDelete)) {
+							return createStringResource("TreeTablePanel.message.warn.deleteTreeObjectConfirm",
+									WebComponentUtil.getEffectiveName(orgToDelete.getValue(),
+											OrgType.F_DISPLAY_NAME)).getObject();
+						}
+						return createStringResource("TreeTablePanel.message.deleteTreeObjectConfirm",
+								WebComponentUtil.getEffectiveName(orgToDelete.getValue(),
+										OrgType.F_DISPLAY_NAME)).getObject();
+					}
+				}) {
 			private static final long serialVersionUID = 1L;
 
 			@Override
 			public void yesPerformed(AjaxRequestTarget target) {
-				deleteRootConfirmedPerformed(orgToDelete, target);
+					deleteRootConfirmedPerformed(orgToDelete, target);
 			}
 		};
 
 		confirmationPanel.setOutputMarkupId(true);
 		getPageBase().showMainPopup(confirmationPanel, target);
 	}
+
+	private boolean hasChildren(SelectableBean<OrgType> orgToDelete) {
+		OrgFilter childrenFilter = OrgFilter.createOrg(orgToDelete.getValue().getOid(), Scope.SUBTREE);
+		Task task = getPageBase().createSimpleTask(OPERATION_COUNT_CHILDREN);
+		OperationResult result = new OperationResult(OPERATION_COUNT_CHILDREN);
+		try {
+			int count = getPageBase().getModelService().countObjects(ObjectType.class,
+					ObjectQuery.createObjectQuery(childrenFilter), null, task, result);
+			return (count > 0);
+		} catch (SchemaException | ObjectNotFoundException | SecurityViolationException
+				| ConfigurationException | CommunicationException e) {
+			LoggingUtils.logException(LOGGER, e.getMessage(), e);
+			result.recordFatalError("Could not count members for org " + orgToDelete.getValue(), e);
+			return false;
+		}
+	}
+
 
 	private void deleteRootConfirmedPerformed(SelectableBean<OrgType> orgToDelete, AjaxRequestTarget target) {
 		getPageBase().hideMainPopup(target);
