@@ -1924,8 +1924,8 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 	}
 
 	@Test
-    public void test276AutzJackAssignRequestableRoles() throws Exception {
-		final String TEST_NAME = "test276AutzJackAssignRequestableRoles";
+    public void test275AutzJackAssignRequestableRoles() throws Exception {
+		final String TEST_NAME = "test275AutzJackAssignRequestableRoles";
         TestUtil.displayTestTile(this, TEST_NAME);
         // GIVEN
         cleanupAutzTest(USER_JACK_OID);        
@@ -1986,8 +1986,8 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 	 * MID-3136
 	 */
 	@Test
-    public void test277AutzJackAssignRequestableRolesWithOrgRef() throws Exception {
-		final String TEST_NAME = "test277AutzJackAssignRequestableRolesWithOrgRef";
+    public void test276AutzJackAssignRequestableRolesWithOrgRef() throws Exception {
+		final String TEST_NAME = "test276AutzJackAssignRequestableRolesWithOrgRef";
         TestUtil.displayTestTile(this, TEST_NAME);
         // GIVEN
         cleanupAutzTest(USER_JACK_OID);        
@@ -2046,11 +2046,200 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 	}
 	
 	/**
+	 * Assign a role with parameter while the user already has the same role without a parameter.
+	 * It seems that in this case the deltas are processed in a slightly different way.
 	 * MID-3136
 	 */
 	@Test
-    public void test278AutzJackAssignRequestableRolesWithTenantRef() throws Exception {
-		final String TEST_NAME = "test278AutzJackAssignRequestableRolesWithTenantRef";
+    public void test277AutzJackAssignRequestableRolesWithOrgRefSecondTime() throws Exception {
+		final String TEST_NAME = "test277AutzJackAssignRequestableRolesWithOrgRefSecondTime";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        // GIVEN
+        cleanupAutzTest(USER_JACK_OID);        
+        assignRole(USER_JACK_OID, ROLE_ASSIGN_REQUESTABLE_ROLES_OID);
+        
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
+        
+        login(USER_JACK_USERNAME);
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+
+        assertReadAllow(10);
+        assertAddDeny();
+        assertModifyDeny();
+        assertDeleteDeny();
+
+        PrismObject<UserType> user = getUser(USER_JACK_OID);
+        assertAssignments(user, 2);
+        assertAssignedRole(user, ROLE_ASSIGN_REQUESTABLE_ROLES_OID);
+        
+        assertAllow("assign business role to jack (no param)", new Attempt() {
+			@Override
+			public void run(Task task, OperationResult result) throws Exception {
+				assignPrametricRole(USER_JACK_OID, ROLE_BUSINESS_1_OID, null, null, task, result);
+			}
+		});
+        
+        user = getUser(USER_JACK_OID);
+        assertAssignments(user, 3);
+        assertAssignedRole(user, ROLE_BUSINESS_1_OID);
+        
+        assertAllow("assign business role to jack (org MoR)", new Attempt() {
+			@Override
+			public void run(Task task, OperationResult result) throws Exception {
+				assignPrametricRole(USER_JACK_OID, ROLE_BUSINESS_1_OID, ORG_MINISTRY_OF_RUM_OID, null, task, result);
+			}
+		});
+        
+        user = getUser(USER_JACK_OID);
+        assertAssignments(user, 4);
+        display("user after (expected 4 assignments)", user);
+        assertAssignedRole(user, ROLE_BUSINESS_1_OID);
+
+        assertAllow("assign business role to jack (org Scumm)", new Attempt() {
+			@Override
+			public void run(Task task, OperationResult result) throws Exception {
+				assignPrametricRole(USER_JACK_OID, ROLE_BUSINESS_1_OID, ORG_SCUMM_BAR_OID, null, task, result);
+			}
+		});
+        
+        user = getUser(USER_JACK_OID);
+        assertAssignments(user, 5);
+        display("user after (expected 5 assignments)", user);
+        assertAssignedRole(user, ROLE_BUSINESS_1_OID);
+
+        assertAllow("unassign business role from jack (org Scumm)", new Attempt() {
+			@Override
+			public void run(Task task, OperationResult result) throws Exception {
+				unassignPrametricRole(USER_JACK_OID, ROLE_BUSINESS_1_OID, ORG_SCUMM_BAR_OID, null, task, result);
+			}
+		});
+        
+        user = getUser(USER_JACK_OID);
+        assertAssignments(user, 4);
+        display("user after (expected 4 assignments)", user);
+        assertAssignedRole(user, ROLE_BUSINESS_1_OID);
+        
+        assertDeny("assign application role to jack", new Attempt() {
+			@Override
+			public void run(Task task, OperationResult result) throws Exception {
+				assignRole(USER_JACK_OID, ROLE_BUSINESS_2_OID, task, result);
+			}
+		});
+
+        assertAllow("unassign business role from jack (no param)", new Attempt() {
+			@Override
+			public void run(Task task, OperationResult result) throws Exception {
+				unassignPrametricRole(USER_JACK_OID, ROLE_BUSINESS_1_OID, null, null, task, result);
+			}
+		});
+        
+        user = getUser(USER_JACK_OID);
+        display("user after (expected 3 assignments)", user);
+        assertAssignments(user, 3);
+        
+        assertAllow("unassign business role from jack (org MoR)", new Attempt() {
+			@Override
+			public void run(Task task, OperationResult result) throws Exception {
+				unassignPrametricRole(USER_JACK_OID, ROLE_BUSINESS_1_OID, ORG_MINISTRY_OF_RUM_OID, null, task, result);
+			}
+		});
+
+        user = getUser(USER_JACK_OID);
+        display("user after (expected 2 assignments)", user);
+        assertAssignments(user, 2);
+        
+        RoleSelectionSpecification spec = getAssignableRoleSpecification(getUser(USER_JACK_OID));
+        assertRoleTypes(spec);
+        assertFilter(spec.getFilter(), TypeFilter.class);
+        
+        assertGlobalStateUntouched();
+	}
+	
+	/**
+	 * MID-3136
+	 */
+	@Test
+    public void test278AutzJackAssignRequestableRolesWithOrgRefTweakedDelta() throws Exception {
+		final String TEST_NAME = "test278AutzJackAssignRequestableRolesWithOrgRefTweakedDelta";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        // GIVEN
+        cleanupAutzTest(USER_JACK_OID);        
+        assignRole(USER_JACK_OID, ROLE_ASSIGN_REQUESTABLE_ROLES_OID);
+        
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
+        
+        login(USER_JACK_USERNAME);
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+
+        assertReadAllow(10);
+        assertAddDeny();
+        assertModifyDeny();
+        assertDeleteDeny();
+
+        PrismObject<UserType> user = getUser(USER_JACK_OID);
+        assertAssignments(user, 2);
+        assertAssignedRole(user, ROLE_ASSIGN_REQUESTABLE_ROLES_OID);
+        
+        assertAllow("assign business role to jack", new Attempt() {
+			@Override
+			public void run(Task task, OperationResult result) throws Exception {
+				assignPrametricRole(USER_JACK_OID, ROLE_BUSINESS_1_OID, ORG_MINISTRY_OF_RUM_OID, null, task, result);
+			}
+		});
+        
+        user = getUser(USER_JACK_OID);
+        assertAssignments(user, 3);
+        assertAssignedRole(user, ROLE_BUSINESS_1_OID);
+
+        assertDeny("assign application role to jack", new Attempt() {
+			@Override
+			public void run(Task task, OperationResult result) throws Exception {
+				Collection<ItemDelta<?,?>> modifications = new ArrayList<>();
+				ContainerDelta<AssignmentType> assignmentDelta1 = ContainerDelta.createDelta(UserType.F_ASSIGNMENT, getUserDefinition());
+				PrismContainerValue<AssignmentType> cval = new PrismContainerValue<AssignmentType>(prismContext);
+				assignmentDelta1.addValueToAdd(cval);
+				PrismReference targetRef = cval.findOrCreateReference(AssignmentType.F_TARGET_REF);
+				targetRef.getValue().setOid(ROLE_BUSINESS_2_OID);
+				targetRef.getValue().setTargetType(RoleType.COMPLEX_TYPE);
+				targetRef.getValue().setRelation(null);
+				cval.setId(123L);
+				ContainerDelta<AssignmentType> assignmentDelta = assignmentDelta1;
+				modifications.add(assignmentDelta);
+				ObjectDelta<UserType> userDelta1 = ObjectDelta.createModifyDelta(USER_JACK_OID, modifications, UserType.class, prismContext);
+				ObjectDelta<UserType> userDelta = userDelta1;
+				Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
+				modelService.executeChanges(deltas, null, task, result);
+			}
+		});
+
+        assertAllow("unassign business role from jack", new Attempt() {
+			@Override
+			public void run(Task task, OperationResult result) throws Exception {
+				unassignPrametricRole(USER_JACK_OID, ROLE_BUSINESS_1_OID, ORG_MINISTRY_OF_RUM_OID, null, task, result);
+			}
+		});
+
+        user = getUser(USER_JACK_OID);
+        display("user after (expected 2 assignments)", user);
+        assertAssignments(user, 2);
+        
+        RoleSelectionSpecification spec = getAssignableRoleSpecification(getUser(USER_JACK_OID));
+        assertRoleTypes(spec);
+        assertFilter(spec.getFilter(), TypeFilter.class);
+        
+        assertGlobalStateUntouched();
+	}
+	
+	/**
+	 * MID-3136
+	 */
+	@Test
+    public void test279AutzJackAssignRequestableRolesWithTenantRef() throws Exception {
+		final String TEST_NAME = "test279AutzJackAssignRequestableRolesWithTenantRef";
         TestUtil.displayTestTile(this, TEST_NAME);
         // GIVEN
         cleanupAutzTest(USER_JACK_OID);        
@@ -2175,6 +2364,75 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         user = getUser(USER_JACK_OID);
         display("user after (expected 3 assignments)", user);
         assertAssignments(user, 3);
+       
+        assertGlobalStateUntouched();
+        
+        assertCredentialsPolicy(user);
+	}
+	
+	@Test
+    public void test281AutzJackEndUserSecondTime() throws Exception {
+		final String TEST_NAME = "test281AutzJackEndUserSecondTime";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        // GIVEN
+        cleanupAutzTest(USER_JACK_OID);        
+        
+        assignRole(USER_JACK_OID, ROLE_END_USER_OID);
+        
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
+        
+        login(USER_JACK_USERNAME);
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+
+        PrismObject<UserType> user = getUser(USER_JACK_OID);
+        assertAssignments(user, 2);
+        
+        user = getUser(USER_JACK_OID);
+        
+        // MID-3136
+        assertAllow("assign business role to jack (no param)", new Attempt() {
+			@Override
+			public void run(Task task, OperationResult result) throws Exception {
+				assignPrametricRole(USER_JACK_OID, ROLE_BUSINESS_1_OID, null, null, task, result);
+			}
+		});
+        
+        user = getUser(USER_JACK_OID);
+        assertAssignments(user, 3);
+        assertAssignedRole(user, ROLE_BUSINESS_1_OID);
+        
+        // MID-3136
+        assertAllow("assign business role to jack (org governor)", new Attempt() {
+			@Override
+			public void run(Task task, OperationResult result) throws Exception {
+				assignPrametricRole(USER_JACK_OID, ROLE_BUSINESS_1_OID, null, ORG_GOVERNOR_OFFICE_OID, task, result);
+			}
+		});
+        
+        user = getUser(USER_JACK_OID);
+        assertAssignments(user, 4);
+        assertAssignedRole(user, ROLE_BUSINESS_1_OID);
+        
+        assertDeny("assign application role to jack", new Attempt() {
+			@Override
+			public void run(Task task, OperationResult result) throws Exception {
+				assignRole(USER_JACK_OID, ROLE_BUSINESS_2_OID, task, result);
+			}
+		});
+
+        // End-user role has authorization to assign, but not to unassign
+        assertDeny("unassign business role from jack", new Attempt() {
+			@Override
+			public void run(Task task, OperationResult result) throws Exception {
+				unassignPrametricRole(USER_JACK_OID, ROLE_BUSINESS_1_OID, null, ORG_GOVERNOR_OFFICE_OID, task, result);
+			}
+		});
+
+        user = getUser(USER_JACK_OID);
+        display("user after (expected 4 assignments)", user);
+        assertAssignments(user, 4);
        
         assertGlobalStateUntouched();
         

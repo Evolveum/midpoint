@@ -170,7 +170,9 @@ public class ContainerWrapper<C extends Containerable> implements ItemWrapper, S
         // we decide not according to status of this container, but according to
         // the status of the whole object
         if (objectWrapper != null && objectWrapper.getStatus() == ContainerStatus.ADDING) {
-            return def.canAdd();
+
+            return (def.canAdd() && def.isEmphasized())
+                    || (def.canAdd() && showEmpty(item));
         }
 
         // otherwise, object.getStatus() is MODIFYING
