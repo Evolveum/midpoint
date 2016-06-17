@@ -479,14 +479,15 @@ public final class WebComponentUtil {
 
 			@Override
 			public String getIdValue(Object object, int index) {
-				return String.valueOf(index);
-				// for (DisplayableValue v : enumModelValues.getObject()){
-				// if (object.equals(v.getValue())){
-				// return v.getLabel();
-				// }
-				// }
-				// return
-				// object.getValue().toString();//Integer.toString(index);
+                if (object instanceof String && enumModelValues != null && enumModelValues.getObject() != null) {
+                    List<DisplayableValue> enumValues = enumModelValues.getObject();
+                    for (DisplayableValue v : enumValues) {
+                        if (object.equals(v.getValue())) {
+                            return String.valueOf(enumValues.indexOf(v));
+                        }
+                    }
+                }
+                return String.valueOf(index);
 			}
 
 		}, true);
