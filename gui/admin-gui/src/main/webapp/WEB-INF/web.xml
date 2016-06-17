@@ -167,6 +167,10 @@
         <location>/error/404</location>
     </error-page>
     <error-page>
+        <error-code>410</error-code>
+        <location>/error/410</location>
+    </error-page>
+    <error-page>
         <error-code>500</error-code>
         <location>/error</location>
     </error-page>
