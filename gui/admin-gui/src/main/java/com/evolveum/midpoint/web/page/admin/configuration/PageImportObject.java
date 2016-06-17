@@ -323,7 +323,7 @@ public class PageImportObject extends PageAdminConfiguration {
 		}
 
 		showResult(result);
-		target.add(getFeedbackPanel());
+		target.add(PageImportObject.this);
 	}
 
 	
