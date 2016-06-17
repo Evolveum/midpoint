@@ -1065,8 +1065,9 @@ public class TestOrgSync extends AbstractStoryTest {
 
 		// Task result
 		PrismObject<TaskType> reconTaskAfter = getTask(TASK_RECON_OPENDJ_DEFAULT_SINGLE_OID);
+		display("Recon task after", reconTaskAfter);
+		assertTaskClosed(reconTaskAfter);
 		OperationResultType reconTaskResult = reconTaskAfter.asObjectable().getResult();
-		display("Recon task result", reconTaskResult);
 		TestUtil.assertSuccess(reconTaskResult);
 	}
 

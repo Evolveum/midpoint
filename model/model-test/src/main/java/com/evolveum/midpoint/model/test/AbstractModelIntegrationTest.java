@@ -2174,14 +2174,18 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		Task task = taskManager.getTask(taskOid, result);
 		LOGGER.info("Restarting task {}", taskOid);
 		if (task.getExecutionStatus() == TaskExecutionStatus.SUSPENDED) {
+			LOGGER.debug("Task {} is suspended, resuming it", task);
 			taskManager.resumeTask(task, result);
 		} else if (task.getExecutionStatus() == TaskExecutionStatus.CLOSED) {
+			LOGGER.debug("Task {} is closed, scheduling it to run now", task);
 			taskManager.scheduleTasksNow(Collections.singleton(taskOid), result);
 		} else if (task.getExecutionStatus() == TaskExecutionStatus.RUNNABLE) {
 			if (taskManager.getLocallyRunningTaskByIdentifier(task.getTaskIdentifier()) != null) {
 				// Task is really executing. Let's wait until it finishes; hopefully it won't start again (TODO)
+				LOGGER.debug("Task {} is running, waiting while it finishes before restarting", task);
 				waitForTaskFinish(taskOid, false);
 			}
+			LOGGER.debug("Task {} is finished, scheduling it to run now", task);
 			taskManager.scheduleTasksNow(Collections.singleton(taskOid), result);
 		} else {
 			throw new IllegalStateException("Task " + task + " cannot be restarted, because its state is: " + task.getExecutionStatus());
@@ -3210,6 +3214,10 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 			fail(message + ": expected=" + expected + ", actual=" + actual);
 		}
 		PrismAsserts.assertRefEquivalent(message, expected.asReferenceValue(), actual.asReferenceValue());
+	}
+	
+	protected void assertTaskClosed(PrismObject<TaskType> task) {
+		assertEquals("Wrong executionStatus in "+task, TaskExecutionStatusType.CLOSED, task.asObjectable().getExecutionStatus());
 	}
 
 }
