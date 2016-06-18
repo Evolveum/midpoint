@@ -165,7 +165,7 @@ public class WorkItemDtoProvider extends BaseSortableDataProvider<WorkItemDto> {
 		for (AssignmentType assignmentType : userType.getAssignment()) {
             ObjectReferenceType ref = assignmentType.getTargetRef();
             if (ref != null) {
-				retval.add(ref.asReferenceValue());
+				retval.add(ref.clone().asReferenceValue());
             }
         }
         return retval;
