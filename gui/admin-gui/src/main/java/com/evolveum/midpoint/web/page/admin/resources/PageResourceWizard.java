@@ -219,7 +219,7 @@ public class PageResourceWizard extends PageAdminResources {
 
 	// questionable
     public boolean isNewResource() {
-        return editedResourceOid != null;
+        return editedResourceOid == null;
     }
 
 	public ObjectDelta<ResourceType> computeDiff(PrismObject<ResourceType> oldResource, PrismObject<ResourceType> newResource) {
