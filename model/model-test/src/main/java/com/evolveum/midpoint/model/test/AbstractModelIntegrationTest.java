@@ -1953,7 +1953,45 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		};
 		IntegrationTestTools.waitFor("Waiting for " + task + " finish", checker, timeout, sleepTime);
 	}
-	
+
+	protected void waitForTaskCloseOrSuspend(String taskOid) throws Exception {
+		waitForTaskCloseOrSuspend(taskOid, DEFAULT_TASK_WAIT_TIMEOUT);
+	}
+
+	protected void waitForTaskCloseOrSuspend(String taskOid, final int timeout) throws Exception {
+		waitForTaskCloseOrSuspend(taskOid, timeout, DEFAULT_TASK_SLEEP_TIME);
+	}
+
+	protected void waitForTaskCloseOrSuspend(final String taskOid, final int timeout, long sleepTime) throws Exception {
+		final OperationResult waitResult = new OperationResult(AbstractIntegrationTest.class+".waitForTaskCloseOrSuspend");
+		Checker checker = new Checker() {
+			@Override
+			public boolean check() throws CommonException {
+				Task task = taskManager.getTask(taskOid, waitResult);
+				waitResult.summarize();
+				display("Task execution status = " + task.getExecutionStatus());
+				return task.getExecutionStatus() == TaskExecutionStatus.CLOSED
+						|| task.getExecutionStatus() == TaskExecutionStatus.SUSPENDED;
+			}
+			@Override
+			public void timeout() {
+				Task task = null;
+				try {
+					task = taskManager.getTask(taskOid, waitResult);
+				} catch (ObjectNotFoundException|SchemaException e) {
+					LOGGER.error("Exception during task refresh: {}", e,e);
+				}
+				OperationResult result = null;
+				if (task != null) {
+					result = task.getResult();
+					LOGGER.debug("Result of timed-out task:\n{}", result.debugDump());
+				}
+				assert false : "Timeout ("+timeout+") while waiting for "+taskOid+" to close or suspend. Last result "+result;
+			}
+		};
+		IntegrationTestTools.waitFor("Waiting for " + taskOid + " close/suspend", checker, timeout, sleepTime);
+	}
+
 	protected void waitForTaskFinish(String taskOid, boolean checkSubresult) throws CommonException {
 		waitForTaskFinish(taskOid, checkSubresult, DEFAULT_TASK_WAIT_TIMEOUT);
 	}
