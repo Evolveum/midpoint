@@ -107,7 +107,7 @@ public class PageRepoQuery extends PageAdminConfiguration {
             repoQueryDto.setAnswer(answer);
         } catch (SecurityViolationException|SchemaException|RuntimeException e) {
             result.recordFatalError("Couldn't execute query", e);
-            LoggingUtils.logException(LOGGER, "Couldn't execute query", e);
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't execute query", e);
             repoQueryDto.setAnswer(e.toString());
         } finally {
             result.computeStatus();

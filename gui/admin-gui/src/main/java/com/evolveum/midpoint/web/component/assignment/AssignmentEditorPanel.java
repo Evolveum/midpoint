@@ -758,7 +758,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 			}
 			result.recordSuccess();
 		} catch (Exception ex) {
-			LoggingUtils.logException(LOGGER, "Exception occurred during assignment attribute loading", ex);
+			LoggingUtils.logUnexpectedException(LOGGER, "Exception occurred during assignment attribute loading", ex);
 			result.recordFatalError("Exception occurred during assignment attribute loading.", ex);
 		} finally {
 			result.recomputeStatus();
@@ -793,7 +793,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 			target = getPageBase().getModelService().getObject(type, ref.getOid(), null, task, subResult);
 			subResult.recordSuccess();
 		} catch (Exception ex) {
-			LoggingUtils.logException(LOGGER, "Couldn't get account construction resource ref", ex);
+			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't get account construction resource ref", ex);
 			subResult.recordFatalError("Couldn't get account construction resource ref.", ex);
 		}
 
@@ -826,7 +826,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 				try {
 					targetObject = getTargetObject(assignmentEditorDto);
 				} catch (Exception ex) {
-					LoggingUtils.logException(LOGGER, "Couldn't load object", ex);
+					LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load object", ex);
 					// Otherwise ignore, will be pocessed by the fallback code
 					// below
 				}
@@ -861,7 +861,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 				try {
 					targetObject = getTargetObject(dto);
 				} catch (Exception ex) {
-					LoggingUtils.logException(LOGGER, "Couldn't load object", ex);
+					LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load object", ex);
 					return getString("AssignmentEditorPanel.loadError");
 				}
 

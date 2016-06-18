@@ -312,7 +312,7 @@ public class ObjectSelectionPanel extends Panel {
 
         } catch (Exception e){
             error(getString("chooseTypeDialog.message.queryError") + " " + e.getMessage());
-            LoggingUtils.logException(LOGGER, "Couldn't create query filter.", e);
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't create query filter.", e);
         }
 
         return query;

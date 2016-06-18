@@ -228,7 +228,7 @@ public class PageCertDefinitions extends PageAdminWorkItems {
 			getModelService().executeChanges(WebComponentUtil.createDeltaCollection(delta), null, task, result);
 		} catch (Exception ex) {
 			result.recordPartialError("Couldn't delete campaign definition.", ex);
-			LoggingUtils.logException(LOGGER, "Couldn't delete campaign definition", ex);
+			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't delete campaign definition", ex);
 		}
 
 		result.computeStatusIfUnknown();

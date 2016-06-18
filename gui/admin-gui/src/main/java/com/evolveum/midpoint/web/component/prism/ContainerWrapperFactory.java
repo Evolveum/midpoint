@@ -143,7 +143,7 @@ public class ContainerWrapperFactory {
 							}
 						}
 					} catch (Exception ex) {
-						LoggingUtils.logException(LOGGER,
+						LoggingUtils.logUnexpectedException(LOGGER,
 								"Couldn't load definitions from refined schema for shadow", ex);
 						result.recordFatalError(
 								"Couldn't load definitions from refined schema for shadow, reason: "

@@ -291,7 +291,7 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 				| PolicyViolationException | SecurityViolationException e) {
 
 			parentResult.recordFatalError("Failed to remove manager " + e.getMessage(), e);
-			LoggingUtils.logException(LOGGER, "Failed to remove manager", e);
+			LoggingUtils.logUnexpectedException(LOGGER, "Failed to remove manager", e);
 			getPageBase().showResult(parentResult);
 		}
 		target.add(getPageBase().getFeedbackPanel());
@@ -313,7 +313,7 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 				| PolicyViolationException | SecurityViolationException e) {
 
 			parentResult.recordFatalError("Failed to remove manager " + e.getMessage(), e);
-			LoggingUtils.logException(LOGGER, "Failed to remove manager", e);
+			LoggingUtils.logUnexpectedException(LOGGER, "Failed to remove manager", e);
 			getPageBase().showResult(parentResult);
 		}
 		target.add(getPageBase().getFeedbackPanel());
@@ -478,7 +478,7 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 			}
 			return query;
 		} catch (SchemaException e) {
-			LoggingUtils.logException(LOGGER, "Couldn't prepare query for org. managers.", e);
+			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't prepare query for org. managers.", e);
 			return null;
 		}
 

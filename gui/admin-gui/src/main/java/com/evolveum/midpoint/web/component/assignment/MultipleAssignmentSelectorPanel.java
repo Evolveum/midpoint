@@ -276,7 +276,7 @@ public class MultipleAssignmentSelectorPanel<F extends FocusType, H extends Focu
             RoleSelectionSpecification roleSpec = mis.getAssignableRoleSpecification(focus, result);
             filter = roleSpec.getFilter();
         } catch (Exception ex) {
-            LoggingUtils.logException(LOGGER, "Couldn't load available roles", ex);
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load available roles", ex);
             result.recordFatalError("Couldn't load available roles", ex);
         } finally {
             result.recomputeStatus();

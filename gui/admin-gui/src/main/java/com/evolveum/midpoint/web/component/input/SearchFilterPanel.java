@@ -115,7 +115,7 @@ public class SearchFilterPanel<T extends SearchFilterType> extends BasePanel<T> 
             updateFilterClause(getPageBase().getPrismContext());
             success(getString("SearchFilterPanel.message.expressionSuccess"));
         } catch (Exception e){
-            LoggingUtils.logException(LOGGER, "Could not create MapXNode from provided XML filterClause.", e);
+            LoggingUtils.logUnexpectedException(LOGGER, "Could not create MapXNode from provided XML filterClause.", e);
             error(getString("SearchFilterPanel.message.cantSerialize"));
         }
 

@@ -155,7 +155,7 @@ public class ProgressReporter implements Serializable {
         } catch (CommunicationException |ObjectAlreadyExistsException |ExpressionEvaluationException |
                 PolicyViolationException |SchemaException |SecurityViolationException |
                 ConfigurationException |ObjectNotFoundException |RuntimeException e) {
-            LoggingUtils.logException(LOGGER, "Error executing changes", e);
+            LoggingUtils.logUnexpectedException(LOGGER, "Error executing changes", e);
             if (!result.isFatalError()) {       // just to be sure the exception is recorded into the result
                 result.recordFatalError(e.getMessage(), e);
             }
@@ -191,7 +191,7 @@ public class ProgressReporter implements Serializable {
                 } catch (CommunicationException|ObjectAlreadyExistsException|ExpressionEvaluationException|
                         PolicyViolationException|SchemaException|SecurityViolationException|
                         ConfigurationException|ObjectNotFoundException|RuntimeException e) {
-                    LoggingUtils.logException(LOGGER, "Error executing changes", e);
+                    LoggingUtils.logUnexpectedException(LOGGER, "Error executing changes", e);
                     if (!result.isFatalError()) {       // just to be sure the exception is recorded into the result
                         result.recordFatalError(e.getMessage(), e);
                     }

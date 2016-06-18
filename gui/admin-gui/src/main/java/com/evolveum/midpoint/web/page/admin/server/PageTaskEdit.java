@@ -316,7 +316,7 @@ public class PageTaskEdit extends PageAdmin implements Refreshable {
 			wrapper = owf.createObjectWrapper("pageAdminFocus.focusDetails", null, object, ContainerStatus.MODIFYING);
 		} catch (Exception ex) {
 			result.recordFatalError("Couldn't get user.", ex);
-			LoggingUtils.logException(LOGGER, "Couldn't load user", ex);
+			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load user", ex);
 			wrapper = owf.createObjectWrapper("pageAdminFocus.focusDetails", null, object, null, null, ContainerStatus.MODIFYING, false);
 		}
 		showResult(wrapper.getResult(), false);

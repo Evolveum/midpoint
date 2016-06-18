@@ -95,10 +95,13 @@ public class AuthorizationConstants {
 	public static final QName AUTZ_UI_SERVICES_ALL_QNAME = new QName(NS_AUTHORIZATION_UI, "servicesAll");
 	public static final String AUTZ_UI_SERVICES_ALL_URL = NS_AUTHORIZATION_UI + "#servicesAll";
 	
+	public static final QName AUTZ_UI_SERVICES_QNAME = new QName(NS_AUTHORIZATION_UI, "services");
+	public static final String AUTZ_UI_SERVICES_URL = NS_AUTHORIZATION_UI + "#services";
+	
 	public static final QName AUTZ_UI_SERVICE_QNAME = new QName(NS_AUTHORIZATION_UI, "service");
 	public static final String AUTZ_UI_SERVICE_URL = NS_AUTHORIZATION_UI + "#service";
-	
-	
+
+
 
 	
 	//resources

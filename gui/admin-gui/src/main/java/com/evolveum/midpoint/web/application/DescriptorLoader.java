@@ -83,7 +83,7 @@ public final class DescriptorLoader {
                 scanPackagesForPages(customDescriptor.getPackagesToScan(), application);
             }
         } catch (Exception ex) {
-            LoggingUtils.logException(LOGGER, "Couldn't process application descriptor", ex);
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't process application descriptor", ex);
         }
     }
 

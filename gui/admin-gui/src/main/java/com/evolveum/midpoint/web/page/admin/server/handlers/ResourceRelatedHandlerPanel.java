@@ -158,7 +158,7 @@ public class ResourceRelatedHandlerPanel<D extends ResourceRelatedHandlerDto> ex
 
 						getModelObject().setObjectClassList(objectClassList);
 					} catch (Exception e){
-						LoggingUtils.logException(LOGGER, "Couldn't load object class list from resource.", e);
+						LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load object class list from resource.", e);
 						error("Couldn't load object class list from resource.");
 					}
 
@@ -243,7 +243,7 @@ public class ResourceRelatedHandlerPanel<D extends ResourceRelatedHandlerDto> ex
 			result.recomputeStatus();
 		} catch (Exception ex) {
 			result.recordFatalError("Couldn't get resource list.", ex);
-			LoggingUtils.logException(LOGGER, "Couldn't get resource list", ex);
+			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't get resource list", ex);
 		}
 
 		if (resources != null) {

@@ -252,7 +252,7 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
 
 			result.recordSuccess();
 		} catch (Exception ex) {
-			LoggingUtils.logException(LOGGER, "Exception occurred during assignment attribute loading", ex);
+			LoggingUtils.logUnexpectedException(LOGGER, "Exception occurred during assignment attribute loading", ex);
 			result.recordFatalError("Exception occurred during assignment attribute loading.", ex);
 		} finally {
 			result.recomputeStatus();
@@ -275,7 +275,7 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
 			target = pageBase.getModelService().getObject(type, ref.getOid(), null, task, subResult);
 			subResult.recordSuccess();
 		} catch (Exception ex) {
-			LoggingUtils.logException(LOGGER, "Couldn't get account construction resource ref", ex);
+			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't get account construction resource ref", ex);
 			subResult.recordFatalError("Couldn't get account construction resource ref.", ex);
 		}
 

@@ -368,7 +368,7 @@ public class TreeTablePanel extends BasePanel<String> {
 				| ExpressionEvaluationException | CommunicationException | ConfigurationException
 				| PolicyViolationException | SecurityViolationException e) {
 			result.recordFatalError("Failed to move organization unit " + toMove, e);
-			LoggingUtils.logException(LOGGER, "Failed to move organization unit" + toMove, e);
+			LoggingUtils.logUnexpectedException(LOGGER, "Failed to move organization unit" + toMove, e);
 		}
 
 		parentPage.showResult(result);
@@ -402,7 +402,7 @@ public class TreeTablePanel extends BasePanel<String> {
 				| ExpressionEvaluationException | CommunicationException | ConfigurationException
 				| PolicyViolationException | SecurityViolationException e) {
 			result.recordFatalError("Failed to move organization unit " + toMove, e);
-			LoggingUtils.logException(LOGGER, "Failed to move organization unit" + toMove, e);
+			LoggingUtils.logUnexpectedException(LOGGER, "Failed to move organization unit" + toMove, e);
 		}
 
 		parentPage.showResult(result);
@@ -435,7 +435,7 @@ public class TreeTablePanel extends BasePanel<String> {
 			result.recordSuccess();
 		} catch (Exception e) {
 			result.recordFatalError(getString("TreeTablePanel.message.recomputeError"), e);
-			LoggingUtils.logException(LOGGER, getString("TreeTablePanel.message.recomputeError"), e);
+			LoggingUtils.logUnexpectedException(LOGGER, getString("TreeTablePanel.message.recomputeError"), e);
 		}
 
 		getPageBase().showResult(result);
@@ -484,7 +484,7 @@ public class TreeTablePanel extends BasePanel<String> {
 			return (count > 0);
 		} catch (SchemaException | ObjectNotFoundException | SecurityViolationException
 				| ConfigurationException | CommunicationException e) {
-			LoggingUtils.logException(LOGGER, e.getMessage(), e);
+			LoggingUtils.logUnexpectedException(LOGGER, e.getMessage(), e);
 			result.recordFatalError("Could not count members for org " + orgToDelete.getValue(), e);
 			return false;
 		}

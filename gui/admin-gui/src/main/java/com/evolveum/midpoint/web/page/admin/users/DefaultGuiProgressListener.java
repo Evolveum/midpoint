@@ -243,7 +243,7 @@ public class DefaultGuiProgressListener implements ProgressListener, Serializabl
             PrismObject<ResourceType> object = parentPage.getModelService().getObject(ResourceType.class, oid, raw, task, result);
             name = PolyString.getOrig(object.asObjectable().getName());
         } catch (ObjectNotFoundException|SchemaException|SecurityViolationException|CommunicationException|ConfigurationException e) {
-            LoggingUtils.logException(LOGGER, "Couldn't determine the name of resource {}", e, oid);
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't determine the name of resource {}", e, oid);
             name = "(" + oid + ")";
         }
         nameCache.put(oid, name);

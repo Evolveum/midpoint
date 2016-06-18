@@ -134,7 +134,7 @@ public class PageResourceWizard extends PageAdminResources {
 					}
 					return resource;
 				} catch (Exception ex) {
-					LoggingUtils.logException(LOGGER, "Couldn't load resource", ex);
+					LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load resource", ex);
 					throw new RestartResponseException(PageError.class);
 				}
 			}

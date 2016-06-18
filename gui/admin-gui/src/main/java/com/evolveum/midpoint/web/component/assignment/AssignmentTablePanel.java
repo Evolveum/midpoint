@@ -353,7 +353,7 @@ public class AssignmentTablePanel<T extends ObjectType> extends BasePanel<List<A
 			} catch (Exception e) {
 				error(getString("AssignmentTablePanel.message.couldntAssignObject", object.getName(),
 						e.getMessage()));
-				LoggingUtils.logException(LOGGER, "Couldn't assign object", e);
+				LoggingUtils.logUnexpectedException(LOGGER, "Couldn't assign object", e);
 			}
 		}
 
@@ -370,7 +370,7 @@ public class AssignmentTablePanel<T extends ObjectType> extends BasePanel<List<A
 					new ItemPath(UserType.F_ASSIGNMENT));
 		} catch (SchemaException e) {
 			error(getString("Could not create assignment", resource.getName(), e.getMessage()));
-			LoggingUtils.logException(LOGGER, "Couldn't create assignment", e);
+			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't create assignment", e);
 			return;
 		}
 

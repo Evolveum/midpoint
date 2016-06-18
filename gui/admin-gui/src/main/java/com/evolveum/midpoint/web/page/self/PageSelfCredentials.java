@@ -190,14 +190,14 @@ public class PageSelfCredentials extends PageSelf {
                         dto.getAccounts().add(createPasswordAccountDto(account));
                         subResult.recordSuccessIfUnknown();
                     } catch (Exception ex) {
-                        LoggingUtils.logException(LOGGER, "Couldn't load account", ex);
+                        LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load account", ex);
                         subResult.recordFatalError("Couldn't load account.", ex);
                     }
                 }
             }
             result.recordSuccessIfUnknown();
         } catch (Exception ex) {
-            LoggingUtils.logException(LOGGER, "Couldn't load accounts", ex);
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load accounts", ex);
             result.recordFatalError("Couldn't load accounts", ex);
         } finally {
             result.recomputeStatus();
@@ -338,7 +338,7 @@ public class PageSelfCredentials extends PageSelf {
                         return;
                     }
                 } catch (Exception ex) {
-                    LoggingUtils.logException(LOGGER, "Couldn't check password", ex);
+                    LoggingUtils.logUnexpectedException(LOGGER, "Couldn't check password", ex);
                     checkPasswordResult.recordFatalError("Couldn't check password." + ex.getMessage(), ex);
                     target.add(getFeedbackPanel());
                     return;
@@ -385,7 +385,7 @@ public class PageSelfCredentials extends PageSelf {
             if (password != null){
                 password.setEncryptedData(null);
             }
-            LoggingUtils.logException(LOGGER, "Couldn't save password changes", ex);
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't save password changes", ex);
             result.recordFatalError("Couldn't save password changes.", ex);
         } finally {
             result.recomputeStatus();
@@ -441,7 +441,7 @@ public class PageSelfCredentials extends PageSelf {
                 PrismObject<ShadowType> shadow = WebModelServiceUtils.loadObject(ShadowType.class, reference.getOid(), options, this, task, subResult);
                 shadowTypeList.add(shadow.asObjectable());
             } catch (Exception ex) {
-                LoggingUtils.logException(LOGGER, "Couldn't load account", ex);
+                LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load account", ex);
                 subResult.recordFatalError("Couldn't load account." + ex.getMessage(), ex);
             } finally {
                 subResult.computeStatus();
@@ -478,7 +478,7 @@ public class PageSelfCredentials extends PageSelf {
             credentialsPolicyType = getModelInteractionService().getCredentialsPolicy(user, task, result);
             result.recordSuccessIfUnknown();
         } catch (Exception ex) {
-            LoggingUtils.logException(LOGGER, "Couldn't load credentials policy", ex);
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load credentials policy", ex);
             result.recordFatalError("Couldn't load credentials policy." + ex.getMessage(), ex);
         } finally {
             result.computeStatus();

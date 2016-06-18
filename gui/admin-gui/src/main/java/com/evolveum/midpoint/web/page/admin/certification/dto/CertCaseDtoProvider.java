@@ -80,7 +80,7 @@ public class CertCaseDtoProvider extends BaseSortableDataProvider<CertCaseOrDeci
             }
         } catch (Exception ex) {
             result.recordFatalError("Couldn't list decisions.", ex);
-            LoggingUtils.logException(LOGGER, "Couldn't list decisions", ex);
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't list decisions", ex);
         } finally {
             result.computeStatusIfUnknown();
         }
@@ -110,7 +110,7 @@ public class CertCaseDtoProvider extends BaseSortableDataProvider<CertCaseOrDeci
             count = caseList.size();
         } catch (Exception ex) {
             result.recordFatalError("Couldn't count objects.", ex);
-            LoggingUtils.logException(LOGGER, "Couldn't count objects", ex);
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't count objects", ex);
         } finally {
             result.computeStatusIfUnknown();
         }

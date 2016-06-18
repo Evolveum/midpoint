@@ -741,7 +741,7 @@ public class PageCertCampaigns extends PageAdminCertification {
 						result);
 			} catch (Exception ex) {
 				result.recordPartialError("Couldn't delete campaign.", ex);
-				LoggingUtils.logException(LOGGER, "Couldn't delete campaign", ex);
+				LoggingUtils.logUnexpectedException(LOGGER, "Couldn't delete campaign", ex);
 			}
 		}
 
@@ -787,7 +787,7 @@ public class PageCertCampaigns extends PageAdminCertification {
 				}
 			} catch (Exception ex) {
 				result.recordPartialError("Couldn't process campaign.", ex);
-				LoggingUtils.logException(LOGGER, "Couldn't process campaign", ex);
+				LoggingUtils.logUnexpectedException(LOGGER, "Couldn't process campaign", ex);
 			}
 		}
 

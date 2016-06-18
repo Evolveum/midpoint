@@ -142,7 +142,7 @@ public class WebModelServiceUtils {
             }
         } catch (Exception e){
             result.recordFatalError("Couldn't load password policies.", e);
-            LoggingUtils.logException(LOGGER, "Couldn't load password policies", e);
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load password policies", e);
         }
 
         // TODO - show error somehow
@@ -170,7 +170,7 @@ public class WebModelServiceUtils {
 			// TODO Auto-generated catch block
 //			error(pageBase.getString("pageUsers.message.nothingSelected") + e.getMessage());
 			parentResult.recordFatalError("Couldn't run task " + e.getMessage(), e);
-			LoggingUtils.logException(LOGGER, "Couldn't run task " + e.getMessage(), e);
+			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't run task " + e.getMessage(), e);
 			return null;
 		}
     	
@@ -198,7 +198,7 @@ public class WebModelServiceUtils {
 //			// TODO Auto-generated catch block
 ////			error(pageBase.getString("pageUsers.message.nothingSelected") + e.getMessage());
 //			parentResult.recordFatalError("Couldn't run task " + e.getMessage(), e);
-//			LoggingUtils.logException(LOGGER, "Couldn't run task " + e.getMessage(), e);
+//			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't run task " + e.getMessage(), e);
 //			return null;
 //		}
     	
@@ -246,7 +246,7 @@ public class WebModelServiceUtils {
         	return null;
         } catch (Exception ex) {
             subResult.recordFatalError("WebModelUtils.couldntLoadObject", ex);
-            LoggingUtils.logException(LOGGER, "Couldn't load object", ex);
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load object", ex);
         } finally {
             subResult.computeStatus();
         }
@@ -303,7 +303,7 @@ public class WebModelServiceUtils {
             }
         } catch (Exception ex) {
             subResult.recordFatalError("WebModelUtils.couldntSearchObjects", ex);
-            LoggingUtils.logException(LOGGER, "Couldn't search objects", ex);
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't search objects", ex);
         } finally {
             subResult.computeStatus();
         }
@@ -327,7 +327,7 @@ public class WebModelServiceUtils {
 		} catch (SchemaException | ObjectNotFoundException | SecurityViolationException
 				| ConfigurationException | CommunicationException ex) {
 			parentResult.recordFatalError("WebModelUtils.couldntCountObjects", ex);
-            LoggingUtils.logException(LOGGER, "Couldn't count objects", ex);
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't count objects", ex);
 		}
 
          LOGGER.debug("Count objects with result {}", new Object[]{parentResult});
@@ -364,7 +364,7 @@ public class WebModelServiceUtils {
             page.getModelService().executeChanges(WebComponentUtil.createDeltaCollection(delta), options, task, subResult);
         } catch (Exception ex) {
             subResult.recordFatalError("WebModelUtils.couldntDeleteObject", ex);
-            LoggingUtils.logException(LOGGER, "Couldn't delete object", ex);
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't delete object", ex);
         } finally {
             subResult.computeStatus();
         }

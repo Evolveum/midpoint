@@ -88,7 +88,7 @@ public class SampleFormFocusTabPanel<F extends FocusType> extends AbstractFocusT
             availableRoles = pageBase.getModelService().searchObjects(RoleType.class, null, null, task, task.getResult());
         } catch (SchemaException | ObjectNotFoundException | SecurityViolationException | CommunicationException | ConfigurationException e) {
             task.getResult().recordFatalError(e);
-            LoggingUtils.logException(LOGGER, "Couldn't load roles", e);
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load roles", e);
             availableRoles = new ArrayList<>();
             // TODO: better errror reporting
         }

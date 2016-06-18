@@ -191,7 +191,7 @@ public class PageRoles extends PageAdminRoles {
                 getModelService().executeChanges(WebComponentUtil.createDeltaCollection(delta), null, task, result);
             } catch (Exception ex) {
                 result.recordPartialError("Couldn't delete role.", ex);
-                LoggingUtils.logException(LOGGER, "Couldn't delete role", ex);
+                LoggingUtils.logUnexpectedException(LOGGER, "Couldn't delete role", ex);
             }
         }
 

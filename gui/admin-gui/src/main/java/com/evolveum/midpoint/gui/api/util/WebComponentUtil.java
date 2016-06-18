@@ -734,9 +734,9 @@ public final class WebComponentUtil {
 				protector.decrypt(string);
 			}
 		} catch (EncryptionException ex) {
-			LoggingUtils.logException(LOGGER, "Couldn't encrypt protected string", ex);
+			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't encrypt protected string", ex);
 		} catch (SchemaException e) {
-			LoggingUtils.logException(LOGGER, "Couldn't encrypt/decrypt protected string", e);
+			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't encrypt/decrypt protected string", e);
 		}
 	}
 

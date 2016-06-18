@@ -82,7 +82,7 @@ public class ExpressionTypeDto implements Serializable{
             //TODO - add algorithm to determine objectReferenceType from String expression
         } catch (SchemaException e) {
             //TODO - how can we show this error to user?
-            LoggingUtils.logException(LOGGER, "Could not load expressions from ExpressionType.", e);
+            LoggingUtils.logUnexpectedException(LOGGER, "Could not load expressions from ExpressionType.", e);
             expression = e.getMessage();
         }
     }

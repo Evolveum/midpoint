@@ -626,7 +626,7 @@ public class PageDebugList extends PageAdminConfiguration {
 			}
 		} catch (Exception ex) {
 			result.computeStatus(getString("pageDebugList.message.laxativeProblem"));
-			LoggingUtils.logException(LOGGER, getString("pageDebugList.message.laxativeProblem"), ex);
+			LoggingUtils.logUnexpectedException(LOGGER, getString("pageDebugList.message.laxativeProblem"), ex);
 		}
 
 		if (taskOid != null) {
@@ -769,7 +769,7 @@ public class PageDebugList extends PageAdminConfiguration {
 			result.recomputeStatus();
 			result.recordFatalError("Couldn't delete objects of type " + dto.getType(), ex);
 
-			LoggingUtils.logException(LOGGER, "Couldn't delete objects of type " + dto.getType(), ex);
+			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't delete objects of type " + dto.getType(), ex);
 		}
 
 		showResult(result);
@@ -888,7 +888,7 @@ public class PageDebugList extends PageAdminConfiguration {
 			result.recomputeStatus();
 			result.recordFatalError("Couldn't delete shadows.", ex);
 
-			LoggingUtils.logException(LOGGER, "Couldn't delete shadows", ex);
+			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't delete shadows", ex);
 		}
 
 		showResult(result);

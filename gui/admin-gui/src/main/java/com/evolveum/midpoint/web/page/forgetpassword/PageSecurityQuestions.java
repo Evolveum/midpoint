@@ -162,7 +162,7 @@ public class PageSecurityQuestions extends PageBase {
 			subResult.recordSuccessIfUnknown();
 
 		} catch (Exception ex) {
-			LoggingUtils.logException(LOGGER, "Couldn't load accounts", ex);
+			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load accounts", ex);
 			result.recordFatalError("Couldn't load accounts", ex);
 		} finally {
 			result.recomputeStatus();
@@ -192,7 +192,7 @@ public class PageSecurityQuestions extends PageBase {
 			securityContext.setAuthentication(authentication);
 
 		} catch (SchemaException e) {
-			LoggingUtils.logException(LOGGER, "Setting preauthentication token exception", e);
+			LoggingUtils.logUnexpectedException(LOGGER, "Setting preauthentication token exception", e);
 			e.printStackTrace();
 
 		}
@@ -539,17 +539,17 @@ public class PageSecurityQuestions extends PageBase {
 
 			}
 		} catch (ObjectNotFoundException e1) {
-			LoggingUtils.logException(LOGGER, "Couldn't reset password", e1);
+			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't reset password", e1);
 
 		} catch (SchemaException e1) {
-			LoggingUtils.logException(LOGGER, "Couldn't reset password", e1);
+			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't reset password", e1);
 			e1.printStackTrace();
 		} catch (SecurityViolationException e1) {
-			LoggingUtils.logException(LOGGER, "Couldn't reset password", e1);
+			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't reset password", e1);
 		} catch (CommunicationException e1) {
-			LoggingUtils.logException(LOGGER, "Couldn't reset password", e1);
+			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't reset password", e1);
 		} catch (ConfigurationException e1) {
-			LoggingUtils.logException(LOGGER, "Couldn't reset password", e1);
+			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't reset password", e1);
 		}
 
 		password.setClearValue(newPassword);
@@ -636,7 +636,7 @@ public class PageSecurityQuestions extends PageBase {
 		} catch (ObjectAlreadyExistsException | ObjectNotFoundException | SchemaException
 				| ExpressionEvaluationException | CommunicationException | ConfigurationException
 				| PolicyViolationException | SecurityViolationException | EncryptionException e) {
-			LoggingUtils.logException(LOGGER, "reset password exception", e);
+			LoggingUtils.logUnexpectedException(LOGGER, "reset password exception", e);
 		}
 
 		setAuthenticationNull();
@@ -709,7 +709,7 @@ public class PageSecurityQuestions extends PageBase {
 			 * transport.close();
 			 */
 		} catch (MessagingException ex) {
-			LoggingUtils.logException(LOGGER, "Mail send Exception", ex);
+			LoggingUtils.logUnexpectedException(LOGGER, "Mail send Exception", ex);
 		}
 
 	}

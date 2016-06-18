@@ -159,7 +159,7 @@ public class PageRequestRole extends PageSelf {
 
             result.recordSuccessIfUnknown();
         } catch (Exception ex) {
-            LoggingUtils.logException(LOGGER, "Couldn't load accounts", ex);
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load accounts", ex);
             result.recordFatalError("Couldn't load accounts", ex);
         } finally {
             result.recomputeStatus();

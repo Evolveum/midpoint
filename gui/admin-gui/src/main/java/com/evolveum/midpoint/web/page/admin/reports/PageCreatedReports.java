@@ -491,7 +491,7 @@ public class PageCreatedReports extends PageAdminReports {
             }
         } catch (Exception e) {
             error(getString("pageCreatedReports.message.queryError") + " " + e.getMessage());
-            LoggingUtils.logException(LOGGER, "Couldn't create query filter.", e);
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't create query filter.", e);
             return null;
         }
     }
@@ -519,7 +519,7 @@ public class PageCreatedReports extends PageAdminReports {
             input = reportManager.getReportOutputData(report.getOid(), result);
         } catch (Exception e) {
             pageBase.error(pageBase.getString("pageCreatedReports.message.downloadError") + " " + e.getMessage());
-            LoggingUtils.logException(LOGGER, "Couldn't download report.", e);
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't download report.", e);
             LOGGER.trace(result.debugDump());
         } finally {
             result.computeStatusIfUnknown();

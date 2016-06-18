@@ -231,7 +231,7 @@ public class ExpressionEditorPanel extends BasePanel<ExpressionType> {
 
             success(getString("ExpressionEditorPanel.message.expressionSuccess"));
         } catch (Exception e){
-            LoggingUtils.logException(LOGGER, "Could not create JAXBElement<?> from provided xml expression.", e);
+            LoggingUtils.logUnexpectedException(LOGGER, "Could not create JAXBElement<?> from provided xml expression.", e);
             error(getString("ExpressionEditorPanel.message.cantSerialize", e));
         }
 

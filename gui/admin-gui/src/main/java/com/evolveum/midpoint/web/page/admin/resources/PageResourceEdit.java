@@ -122,7 +122,7 @@ public class PageResourceEdit extends PageAdminResources {
 
             dto = new ObjectViewDto(resource.getOid(), WebComponentUtil.getName(resource), resource, xml);
         } catch (Exception ex) {
-            LoggingUtils.logException(LOGGER, "Couldn't load resource", ex);
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load resource", ex);
             throw new RestartResponseException(PageResources.class);
         }
 
@@ -236,7 +236,7 @@ public class PageResourceEdit extends PageAdminResources {
                 result.computeStatus();
             }
         } catch (Exception ex) {
-            LoggingUtils.logException(LOGGER, "Couldn't save resource", ex);
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't save resource", ex);
             result.recordFatalError("Couldn't save resource.", ex);
         }
 

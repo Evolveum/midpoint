@@ -697,7 +697,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 				target.add(PageBase.this);
 			}
 		} catch (Exception ex) {
-			LoggingUtils.logException(LOGGER, "Couldn't clear less/js cache", ex);
+			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't clear less/js cache", ex);
 			error("Error occurred, reason: " + ex.getMessage());
 			if (target != null) {
 				target.add(getFeedbackPanel());
@@ -932,7 +932,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 			items.add(createRolesItems());
 		}
 		
-		if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_SERVICE_URL,
+		if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_SERVICES_URL,
 				AuthorizationConstants.AUTZ_UI_SERVICES_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_URL,
 				AuthorizationConstants.AUTZ_GUI_ALL_DEPRECATED_URL)) {
 			items.add(createServicesItems());
@@ -1479,7 +1479,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
                 LOGGER.trace("Admin GUI config: {}", adminGuiConfig);
                 result.recordSuccess();
             } catch(Exception ex){
-                LoggingUtils.logException(LOGGER, "Couldn't load system configuration", ex);
+                LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load system configuration", ex);
                 result.recordFatalError("Couldn't load system configuration.", ex);
             }
             return adminGuiConfig;

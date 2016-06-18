@@ -358,7 +358,7 @@ public class ObjectPolicyPanel extends BasePanel<ObjectPolicyDialogDto> implemen
 					result.recomputeStatus();
 				} catch (Exception e) {
 					result.recordFatalError("Could not get list of object templates", e);
-					LoggingUtils.logException(LOGGER, "Could not get list of object templates", e);
+					LoggingUtils.logUnexpectedException(LOGGER, "Could not get list of object templates", e);
 					// TODO - show this error in GUI
 				}
 

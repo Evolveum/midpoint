@@ -368,7 +368,7 @@ public class UserMenuPanel extends BasePanel {
             }
         } catch (Exception ex) {
             result.recordFatalError("Couldn't load system security policy" + ex.getMessage(), ex);
-            LoggingUtils.logException(LOGGER, "Couldn't load system security policy", ex);
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load system security policy", ex);
         }finally {
             result.computeStatus();
         }

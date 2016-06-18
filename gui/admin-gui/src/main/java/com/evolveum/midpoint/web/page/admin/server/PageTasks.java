@@ -1227,7 +1227,7 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
             }
         } catch (Exception ex) {
             error(getString("pageTasks.message.couldntCreateQuery") + " " + ex.getMessage());
-            LoggingUtils.logException(LOGGER, "Couldn't create task filter", ex);
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't create task filter", ex);
         }
         return query;
     }
