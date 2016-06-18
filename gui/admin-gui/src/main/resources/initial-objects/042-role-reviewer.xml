@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2016 Evolveum
+  ~ Copyright (c) 2010-2016 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -14,55 +14,32 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<role oid="00000000-0000-0000-0000-00000000000a"
+<role oid="00000000-0000-0000-0000-00000000000b"
       xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
       xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
-    <name>Approver</name>
-    <description>Role authorizing users to make approval decisions on work items.</description>
+    <name>Reviewer</name>
+    <description>Role authorizing users to make decisions on certification cases.</description>
     <authorization>
-    	<name>gui-approver-access</name>
+    	<name>gui-reviewer-access</name>
     	<description>
-    		Allow access to list of work items in GUI. Allow access to pages that show object details,
-    		so the approver may examine who is requesting and what is requesting.
+    		Allow access to list of certification cases in GUI. Allow access to pages that show object details,
+    		so the reviewer may examine data related to the request.
     	</description>
-    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#workItem</action>
-        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#myWorkItems</action>
-        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#claimableWorkItems</action>
+    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#certificationDecisions</action>
         <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#userDetails</action>
         <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#roleDetails</action>
         <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#orgUnit</action>
         <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#service</action>
     </authorization>
-    <!-- TODO:
     <authorization>
-    	<name>workitems-read</name>
-    	<description>
-    		...
-    	</description>
-        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
-        <object>
-            <type>WorkItemType</type>
-        </object>
-    </authorization> -->
-    <authorization>
-        <name>tasks-read</name>
-        <description>
-            Allow to see the requester of the operation that is being approved and the current delta.
-            In order for the approver to see other properties (e.g. history of the approvals) please allow read access
-            to other items as well, e.g. to the whole workflowContext.
-        </description>
-        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
-        <object>
-            <type>TaskType</type>
-        </object>
-        <item>workflowContext/requesterRef</item>
-        <item>workflowContext/processorSpecificState</item>
+        <name>read-and-make-decisions</name>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#readOwnCertificationDecisions</action>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#recordCertificationDecision</action>
     </authorization>
     <authorization>
     	<name>users-read</name>
     	<description>
-    		Allow to read basic user properties to be able to display requestor details in the
-    		approval forms.
+    		Allow to read basic user properties.
     	</description>
         <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
         <object>
@@ -78,7 +55,7 @@
     <authorization>
     	<name>roles-read</name>
     	<description>
-    		Allow to read basic role properties to be able to display details of the requested role.
+    		Allow to read basic role properties.
     	</description>
         <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
         <object>
@@ -94,7 +71,7 @@
     <authorization>
     	<name>orgs-read</name>
     	<description>
-    		Allow to read basic org properties to be able to display details of the requested org.
+    		Allow to read basic org properties.
     	</description>
         <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
         <object>
@@ -110,7 +87,7 @@
     <authorization>
     	<name>services-read</name>
     	<description>
-    		Allow to read basic service properties to be able to display details of the requested service.
+    		Allow to read basic service properties.
     	</description>
         <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
         <object>

@@ -197,21 +197,23 @@ public class AccCertResponseComputationHelper {
     }
 
     public AccessCertificationResponseType computeOverallOutcome(AccessCertificationCaseType aCase, AccessCertificationCampaignType campaign) {
-        return computeOverallOutcome(aCase, campaign, null);
+		final OutcomeStrategy strategy = getOverallOutcomeStrategy(campaign);
+		final List<AccessCertificationResponseType> stageOutcomes = new ArrayList<>();
+		for (AccessCertificationCaseStageOutcomeType stageOutcome : aCase.getCompletedStageOutcome()) {
+			stageOutcomes.add(stageOutcome.getOutcome());
+		}
+		return strategy.computeOutcome(summarize(stageOutcomes));
     }
 
     // aCase contains outcomes from stages 1..N-1. Outcome from stage N is in currentStageOutcome
-    // (alternatively: aCase has stages 1..N and currentStageOutcome is null)
-    public AccessCertificationResponseType computeOverallOutcome(AccessCertificationCaseType aCase, AccessCertificationCampaignType campaign,
-                                                                 AccessCertificationResponseType currentStageOutcome) {
+	AccessCertificationResponseType computeOverallOutcome(AccessCertificationCaseType aCase, AccessCertificationCampaignType campaign,
+			AccessCertificationResponseType currentStageOutcome) {
         final OutcomeStrategy strategy = getOverallOutcomeStrategy(campaign);
         final List<AccessCertificationResponseType> stageOutcomes = new ArrayList<>();
         for (AccessCertificationCaseStageOutcomeType stageOutcome : aCase.getCompletedStageOutcome()) {
             stageOutcomes.add(stageOutcome.getOutcome());
         }
-        if (currentStageOutcome != null) {
-            stageOutcomes.add(currentStageOutcome);
-        }
+        stageOutcomes.add(currentStageOutcome);
         return strategy.computeOutcome(summarize(stageOutcomes));
     }
 }

@@ -187,7 +187,11 @@ public class PageCertCampaign extends PageAdminCertification {
 		if (!WebComponentUtil.isSuccessOrHandledError(result)) {
 			showResult(result);
 		}
-		return new CertCampaignDto(campaign, this, task, result);
+		if (campaign != null) {
+			return new CertCampaignDto(campaign, this, task, result);
+		} else {
+			throw redirectBackViaRestartResponseException();
+		}
 	}
 
 	private void initLayout() {
