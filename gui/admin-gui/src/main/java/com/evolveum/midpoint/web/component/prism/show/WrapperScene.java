@@ -80,6 +80,11 @@ public class WrapperScene implements Scene {
 			public String getDescription() {
 				return null;
 			}
+
+			@Override
+			public boolean namesAreResourceKeys() {
+				return false;
+			}
 		};
 	}
 

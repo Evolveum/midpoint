@@ -16,12 +16,14 @@
 
 package com.evolveum.midpoint.web.component.prism.show;
 
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.model.api.visualizer.Name;
 import com.evolveum.midpoint.model.api.visualizer.Scene;
 import com.evolveum.midpoint.model.api.visualizer.SceneDeltaItem;
 import com.evolveum.midpoint.model.api.visualizer.SceneItem;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.delta.ChangeType;
+import org.apache.wicket.Component;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.Serializable;
@@ -33,14 +35,13 @@ import java.util.List;
  */
 public class SceneDto implements Serializable {
 
-	public static final java.lang.String F_NAME = "name";
 	public static final java.lang.String F_CHANGE_TYPE = "changeType";
 	public static final java.lang.String F_OBJECT_TYPE = "objectType";
 	public static final java.lang.String F_DESCRIPTION = "description";
 	public static final java.lang.String F_ITEMS = "items";
 	public static final java.lang.String F_PARTIAL_SCENES = "partialScenes";
 
-	private Scene scene;
+	@NotNull private final Scene scene;
 	private boolean minimized;
 
 	private String boxClassOverride;
@@ -48,7 +49,7 @@ public class SceneDto implements Serializable {
 	private final List<SceneItemDto> items = new ArrayList<>();
 	private final List<SceneDto> partialScenes = new ArrayList<>();
 
-	public SceneDto(Scene scene) {
+	public SceneDto(@NotNull Scene scene) {
 		this.scene = scene;
 		for (SceneItem item : scene.getItems()) {
 			if (item != null) {
@@ -64,10 +65,6 @@ public class SceneDto implements Serializable {
 
 	public Scene getScene() {
 		return scene;
-	}
-
-	public void setScene(Scene scene) {
-		this.scene = scene;
 	}
 
 	public boolean isMinimized() {
@@ -86,19 +83,27 @@ public class SceneDto implements Serializable {
 		return items;
 	}
 
-	public String getName() {
+	public String getName(Component component) {
 		if (scene.getName() != null) {
 			if (scene.getName().getDisplayName() != null) {
-				return scene.getName().getDisplayName();
+				return resolve(scene.getName().getDisplayName(), component, scene.getName().namesAreResourceKeys());
 			} else {
-				return scene.getName().getSimpleName();
+				return resolve(scene.getName().getSimpleName(), component, scene.getName().namesAreResourceKeys());
 			}
 		} else {
-			return "(unnamed)";		// TODO i18n
+			return resolve("SceneDto.unnamed", component, true);
 		}
 	}
 
-	public String getDescription() {
+	private String resolve(String name, Component component, boolean namesAreResourceKeys) {
+		if (namesAreResourceKeys) {
+			return PageBase.createStringResourceStatic(component, name).getString();
+		} else {
+			return name;
+		}
+	}
+
+	public String getDescription(Component component) {
 		Name name = scene.getName();
 		if (name == null) {
 			return "";
@@ -106,7 +111,7 @@ public class SceneDto implements Serializable {
 		if (scene.getSourceDefinition() != null && !(scene.getSourceDefinition() instanceof PrismObjectDefinition)) {
 			return "";
 		}
-		if (name.getSimpleName() != null && !name.getSimpleName().equals(getName())) {
+		if (name.getSimpleName() != null && !name.getSimpleName().equals(getName(component))) {
 			return "(" + name.getSimpleName() + ")";
 		}
 		return "";

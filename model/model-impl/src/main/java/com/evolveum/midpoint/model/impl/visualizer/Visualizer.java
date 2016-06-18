@@ -115,6 +115,7 @@ public class Visualizer {
 		SceneImpl scene = new SceneImpl(owner);
 		scene.setChangeType(null);
 		NameImpl name = new NameImpl("id " + containerValue.getId());		// TODO
+		name.setNamesAreResourceKeys(false);
 		scene.setName(name);
 		scene.setSourceRelPath(EMPTY_PATH);
 		scene.setSourceAbsPath(EMPTY_PATH);
@@ -264,6 +265,7 @@ public class Visualizer {
 						if (def != null) {
 							name.setDisplayName(def.getDisplayName());
 						}
+						name.setNamesAreResourceKeys(true);
 						si.setName(name);
 						if (def != null) {
 							si.setOperational(def.isOperational());
@@ -454,6 +456,7 @@ public class Visualizer {
 		if (sceneDefinition != null) {
 			name.setDisplayName(sceneDefinition.getDisplayName());
 		}
+		name.setNamesAreResourceKeys(true);			// TODO: ok?
 		return name;
 	}
 
@@ -722,6 +725,7 @@ public class Visualizer {
 			name.setDisplayName(itemDelta.getDefinition().getDisplayName());
 		}
 		name.setId(simpleName);
+		name.setNamesAreResourceKeys(true);
 
 		SceneDeltaItemImpl si = new SceneDeltaItemImpl(name);
 		si.setSourceDelta(itemDelta);
@@ -751,6 +755,7 @@ public class Visualizer {
 			name.setDescription(def.getDocumentation());
 		}
 		name.setId(name.getSimpleName());		// todo reconsider
+		name.setNamesAreResourceKeys(true);
 		return name;
 	}
 
@@ -829,12 +834,14 @@ public class Visualizer {
 		} else if (objectType instanceof AbstractRoleType) {
 			name.setDisplayName(getOrig(((AbstractRoleType) objectType).getDisplayName()));
 		}
+		name.setNamesAreResourceKeys(false);
 		return name;
 	}
 
 	private NameImpl createSceneName(String oid) {
 		NameImpl nv = new NameImpl(oid);
 		nv.setId(oid);
+		nv.setNamesAreResourceKeys(false);
 		return nv;
 	}
 
