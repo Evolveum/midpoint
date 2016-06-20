@@ -65,10 +65,11 @@ public class CapabilityScriptPanel extends BasePanel<CapabilityDto<ScriptCapabil
 		});
         add(enabled);
 
-        MultiValueTextPanel onConnector = new MultiValueTextPanel(ID_ON_CONNECTOR, prepareOnConnectorModel(), parentPage.getReadOnlyModel());
+        MultiValueTextPanel onConnector = new MultiValueTextPanel(ID_ON_CONNECTOR, prepareOnConnectorModel(), parentPage.getReadOnlyModel(), true);
         add(onConnector);
 
-        MultiValueTextPanel onResource = new MultiValueTextPanel(ID_ON_RESOURCE, Model.of(prepareOnResourceModel()), parentPage.getReadOnlyModel());
+        MultiValueTextPanel onResource = new MultiValueTextPanel(ID_ON_RESOURCE, Model.of(prepareOnResourceModel()), parentPage.getReadOnlyModel(),
+				true);
         add(onResource);
 
         Label enabledTooltip = new Label(ID_T_ENABLED);

@@ -35,7 +35,6 @@ import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.EnumChoiceRenderer;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.IChoiceRenderer;
-import org.apache.wicket.markup.html.panel.FeedbackPanel;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -290,7 +289,7 @@ public class MappingEditorDialog extends ModalWindow {
 
 		// TODO - create some nice ItemPathType editor in near future
 		MultiValueTextPanel source = new MultiValueTextPanel<>(ID_SOURCE,
-				new PropertyModel<List<String>>(model, MappingTypeDto.F_SOURCE), readOnlyModel);
+				new PropertyModel<List<String>>(model, MappingTypeDto.F_SOURCE), readOnlyModel, true);
 		form.add(source);
 
 		// TODO - create some nice ItemPathType editor in near future

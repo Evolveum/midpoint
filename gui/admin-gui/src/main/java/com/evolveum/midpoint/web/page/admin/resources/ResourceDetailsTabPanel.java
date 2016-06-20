@@ -440,7 +440,9 @@ public class ResourceDetailsTabPanel extends Panel {
 					}
 
 				}
-				taskObjectClassValue = taskObjectClassDef.getTypeName();
+				if (taskObjectClassDef != null) {
+					taskObjectClassValue = taskObjectClassDef.getTypeName();
+				}
 			}
 
 			if (SynchronizationUtils.isPolicyApplicable(taskObjectClassValue, taskKindValue, taskIntentValue,
