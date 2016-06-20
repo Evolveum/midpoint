@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2016 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<role oid="00000000-0000-0000-0000-00000000000b"
+      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
+    <name>Reviewer</name>
+    <description>Role authorizing users to make decisions on certification cases.</description>
+    <authorization>
+    	<name>gui-reviewer-access</name>
+    	<description>
+    		Allow access to list of certification cases in GUI. Allow access to pages that show object details,
+    		so the reviewer may examine data related to the request.
+    	</description>
+    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#certificationDecisions</action>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#userDetails</action>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#roleDetails</action>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#orgUnit</action>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#service</action>
+    </authorization>
+    <authorization>
+        <name>read-and-make-decisions</name>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#readOwnCertificationDecisions</action>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#recordCertificationDecision</action>
+    </authorization>
+    <authorization>
+    	<name>users-read</name>
+    	<description>
+    		Allow to read basic user properties.
+    	</description>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+        <object>
+            <type>UserType</type>
+        </object>
+        <item>name</item>
+        <item>givenName</item>
+        <item>familyName</item>
+        <item>fullName</item>
+        <item>employeeType</item>
+        <item>employeeNumber</item>
+    </authorization>
+    <authorization>
+    	<name>roles-read</name>
+    	<description>
+    		Allow to read basic role properties.
+    	</description>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+        <object>
+            <type>RoleType</type>
+        </object>
+        <item>name</item>
+        <item>displayName</item>
+        <item>identifier</item>
+        <item>description</item>
+        <item>riskLevel</item>
+        <item>roleType</item>
+    </authorization>
+    <authorization>
+    	<name>orgs-read</name>
+    	<description>
+    		Allow to read basic org properties.
+    	</description>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+        <object>
+            <type>RoleType</type>
+        </object>
+        <item>name</item>
+        <item>displayName</item>
+        <item>identifier</item>
+        <item>description</item>
+        <item>riskLevel</item>
+        <item>orgType</item>
+    </authorization>
+    <authorization>
+    	<name>services-read</name>
+    	<description>
+    		Allow to read basic service properties.
+    	</description>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+        <object>
+            <type>ServiceType</type>
+        </object>
+        <item>name</item>
+        <item>displayName</item>
+        <item>identifier</item>
+        <item>description</item>
+        <item>riskLevel</item>
+        <item>serviceType</item>
+    </authorization>
+    <roleType>system</roleType>
+</role>

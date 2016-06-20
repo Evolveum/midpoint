@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2014 Evolveum
+  ~ Copyright (c) 2010-2016 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -23,7 +23,12 @@
     <!--         <assignmentPolicyEnforcement>relative</assignmentPolicyEnforcement> -->
     <!--         </globalAccountSynchronizationSettings> -->
     <globalPasswordPolicyRef oid="00000000-0000-0000-0000-000000000003" type="c:ValuePolicyType"/>
+    <globalSecurityPolicyRef oid="00000000-0000-0000-0000-000000000120"/>
     <logging>
+        <classLogger>
+            <level>ERROR</level>
+            <package>ro.isdc.wro.extensions.processor.css.Less4jProcessor</package>
+        </classLogger>
         <classLogger>
             <!-- disabled because of MID-744, helper insert messages on ERROR
             level which should not be there (probably should be on TRACE) -->
@@ -102,7 +107,7 @@
             <icon>
                 <cssClass>fa fa-user</cssClass>
             </icon>
-            <color>blue</color>
+            <color>green</color>
             <authorization>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#selfProfile</authorization>
             <authorization>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#selfAll</authorization>
         </userDashboardLink>
@@ -113,7 +118,7 @@
             <icon>
                 <cssClass>fa fa-shield</cssClass>
             </icon>
-            <color>red</color>
+            <color>blue</color>
             <authorization>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#selfCredentials</authorization>
             <authorization>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#selfAll</authorization>
         </userDashboardLink>
@@ -123,16 +128,16 @@
             <icon>
                 <cssClass>fa fa-users</cssClass>
             </icon>
-            <color>green</color>
+            <color>red</color>
             <authorization>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#users</authorization>
         </userDashboardLink>
         <userDashboardLink>
             <targetUrl>/admin/resources</targetUrl>
             <label>List resources</label>
             <icon>
-                <cssClass>fa fa-building</cssClass>
+                <cssClass>fa fa-database</cssClass>
             </icon>
-            <color>yellow</color>
+            <color>purple</color>
             <authorization>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#resources</authorization>
         </userDashboardLink>
     </adminGuiConfiguration>

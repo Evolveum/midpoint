@@ -203,18 +203,15 @@ public class PageRequestRole extends PageSelf {
         if (backgroundTaskOperationResult != null
                 && StringUtils.isNotEmpty(backgroundTaskOperationResult.getBackgroundTaskOid())){
              result.setMessage(createStringResource("operation.com.evolveum.midpoint.web.page.self.PageRequestRole.taskCreated").getString());
-        }
-        if (!WebComponentUtil.isSuccessOrHandledError(result)) {
             showResult(result);
+            setResponsePage(PageRequestRole.class);
+            return;
+        }
+        showResult(result);
+        if (!WebComponentUtil.isSuccessOrHandledError(result)) {
             target.add(getFeedbackPanel());
         } else {
-            showResult(result);
-            if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_DASHBOARD_URL,
-                    AuthorizationConstants.AUTZ_UI_HOME_ALL_URL)) {
-                setResponsePage(PageDashboard.class);
-            } else {
-                setResponsePage(PageSelfDashboard.class);
-            }
+            setResponsePage(PageRequestRole.class);
         }
     }
 
