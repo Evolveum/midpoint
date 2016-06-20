@@ -157,6 +157,7 @@ public class ContainerWrapper<C extends Containerable> implements ItemWrapper, S
         return null;
     }
 
+    // TODO: refactor this. Why it is not in the itemWrapper?
     boolean isItemVisible(ItemWrapper item) {
         ItemDefinition def = item.getItemDefinition();
         if (def.isIgnored() || def.isOperational()) {
@@ -206,6 +207,12 @@ public class ContainerWrapper<C extends Containerable> implements ItemWrapper, S
 	}
 
 	private boolean showEmpty(ItemWrapper item) {
+		// make sure that emphasized state is evaluated after the normal definitions are considered
+		// we do not want to display emphasized property if the user does not have an access to it.
+		// MID-3206
+        if (item.getItemDefinition().isEmphasized()) {
+        	return true;
+        }
         ObjectWrapper objectWrapper = getObject();
         List<ValueWrapper> valueWrappers = item.getValues();
         boolean isEmpty;

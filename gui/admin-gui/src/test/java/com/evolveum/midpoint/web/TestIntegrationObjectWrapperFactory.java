@@ -21,8 +21,11 @@ import static com.evolveum.midpoint.web.AdminGuiTestConstants.ROLE_MAPMAKER_OID;
 import static com.evolveum.midpoint.web.AdminGuiTestConstants.USER_JACK_FULL_NAME;
 import static com.evolveum.midpoint.web.AdminGuiTestConstants.USER_JACK_OID;
 import static com.evolveum.midpoint.web.AdminGuiTestConstants.USER_JACK_USERNAME;
+import static com.evolveum.midpoint.web.AdminGuiTestConstants.USER_EMPTY_OID;
+import static com.evolveum.midpoint.web.AdminGuiTestConstants.USER_EMPTY_USERNAME;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
+import static org.testng.AssertJUnit.assertNull;
 import static org.testng.AssertJUnit.assertTrue;
 
 import java.io.File;
@@ -38,6 +41,7 @@ import org.testng.annotations.Test;
 
 import com.evolveum.icf.dummy.resource.DummyGroup;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
+import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -106,8 +110,8 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 	}
 	
 	@Test
-    public void test100CreateWrapperUser() throws Exception {
-		final String TEST_NAME = "test100CreateWrapperUser";
+    public void test100CreateWrapperUserJack() throws Exception {
+		final String TEST_NAME = "test100CreateWrapperUserJack";
 		TestUtil.displayTestTile(TEST_NAME);
 		
 		PrismObject<UserType> user = getUser(USER_JACK_OID);
@@ -127,17 +131,86 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 		WrapperTestUtil.assertWrapper(objectWrapper, "user display name", "user description", user, ContainerStatus.MODIFYING);
 		assertEquals("wrong number of containers in "+objectWrapper, 10, objectWrapper.getContainers().size());
 		
-		ContainerWrapper mainContainerWrapper = objectWrapper.findContainerWrapper(null);
+		ContainerWrapper<UserType> mainContainerWrapper = objectWrapper.findContainerWrapper(null);
 		WrapperTestUtil.assertWrapper(mainContainerWrapper, "prismContainer.mainPanelDisplayName", (ItemPath)null, user, ContainerStatus.MODIFYING);
-		WrapperTestUtil.assertPropertyWrapper(mainContainerWrapper, UserType.F_NAME, PrismTestUtil.createPolyString("jack"));
+		WrapperTestUtil.assertPropertyWrapper(mainContainerWrapper, UserType.F_NAME, PrismTestUtil.createPolyString(USER_JACK_USERNAME));
 		WrapperTestUtil.assertPropertyWrapper(mainContainerWrapper, UserType.F_TIMEZONE, null);
 		
 		ContainerWrapper<ActivationType> activationContainerWrapper = objectWrapper.findContainerWrapper(new ItemPath(UserType.F_ACTIVATION));
 		WrapperTestUtil.assertWrapper(activationContainerWrapper, "ActivationType.activation", UserType.F_ACTIVATION, user, ContainerStatus.MODIFYING);
 		WrapperTestUtil.assertPropertyWrapper(activationContainerWrapper, ActivationType.F_ADMINISTRATIVE_STATUS, ActivationStatusType.ENABLED);
 		WrapperTestUtil.assertPropertyWrapper(activationContainerWrapper, ActivationType.F_LOCKOUT_STATUS, null);
+		
+		assertEquals("Wrong main container wrapper readOnly", Boolean.FALSE, (Boolean)mainContainerWrapper.isReadonly());
+		
+		assertItemWrapperFullConrol(mainContainerWrapper, UserType.F_NAME, true);
+		assertItemWrapperFullConrol(mainContainerWrapper, UserType.F_GIVEN_NAME, true);
+		assertItemWrapperFullConrol(mainContainerWrapper, UserType.F_FULL_NAME, true);
+		assertItemWrapperFullConrol(mainContainerWrapper, UserType.F_ADDITIONAL_NAME, false); // not visible, because it is empty
+		assertItemWrapperFullConrol(mainContainerWrapper, UserType.F_LOCALITY, true);
+		
+		// WHEN
+		objectWrapper.setShowEmpty(true);
+		
+		// THEN
+		assertItemWrapperFullConrol(mainContainerWrapper, UserType.F_NAME, true);
+		assertItemWrapperFullConrol(mainContainerWrapper, UserType.F_GIVEN_NAME, true); // emphasized
+		assertItemWrapperFullConrol(mainContainerWrapper, UserType.F_FULL_NAME, true); // emphasized
+		assertItemWrapperFullConrol(mainContainerWrapper, UserType.F_ADDITIONAL_NAME, true); // empty
+		assertItemWrapperFullConrol(mainContainerWrapper, UserType.F_LOCALITY, true); // empty
 	}
 	
+	@Test
+    public void test102CreateWrapperUserEmpty() throws Exception {
+		final String TEST_NAME = "test102CreateWrapperUserEmpty";
+		TestUtil.displayTestTile(TEST_NAME);
+		
+		PrismObject<UserType> user = getUser(USER_EMPTY_OID);
+		
+		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
+		
+		ObjectWrapperFactory factory = new ObjectWrapperFactory(getServiceLocator());
+		ObjectWrapper<UserType> objectWrapper = factory.createObjectWrapper("user display name", "user description", user, 
+				ContainerStatus.MODIFYING);
+		
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+		
+		IntegrationTestTools.display("Wrapper after", objectWrapper);
+		
+		WrapperTestUtil.assertWrapper(objectWrapper, "user display name", "user description", user, ContainerStatus.MODIFYING);
+		assertEquals("wrong number of containers in "+objectWrapper, 10, objectWrapper.getContainers().size());
+		
+		ContainerWrapper<UserType> mainContainerWrapper = objectWrapper.findContainerWrapper(null);
+		WrapperTestUtil.assertWrapper(mainContainerWrapper, "prismContainer.mainPanelDisplayName", (ItemPath)null, user, ContainerStatus.MODIFYING);
+		WrapperTestUtil.assertPropertyWrapper(mainContainerWrapper, UserType.F_NAME, PrismTestUtil.createPolyString(USER_EMPTY_USERNAME));
+		WrapperTestUtil.assertPropertyWrapper(mainContainerWrapper, UserType.F_TIMEZONE, null);
+		
+		// Not sure about this
+//		ContainerWrapper<ActivationType> activationContainerWrapper = objectWrapper.findContainerWrapper(new ItemPath(UserType.F_ACTIVATION));
+//		assertNull("Unexpected activation "+activationContainerWrapper, activationContainerWrapper);
+		
+		assertEquals("Wrong main container wrapper readOnly", Boolean.FALSE, (Boolean)mainContainerWrapper.isReadonly());
+		
+		assertItemWrapperFullConrol(mainContainerWrapper, UserType.F_NAME, true);
+		assertItemWrapperFullConrol(mainContainerWrapper, UserType.F_GIVEN_NAME, true); // emphasized
+		assertItemWrapperFullConrol(mainContainerWrapper, UserType.F_FULL_NAME, true); // emphasized
+		assertItemWrapperFullConrol(mainContainerWrapper, UserType.F_ADDITIONAL_NAME, false); // empty
+		assertItemWrapperFullConrol(mainContainerWrapper, UserType.F_LOCALITY, false); // empty
+		
+		// WHEN
+		objectWrapper.setShowEmpty(true);
+		
+		// THEN
+		assertItemWrapperFullConrol(mainContainerWrapper, UserType.F_NAME, true);
+		assertItemWrapperFullConrol(mainContainerWrapper, UserType.F_GIVEN_NAME, true); // emphasized
+		assertItemWrapperFullConrol(mainContainerWrapper, UserType.F_FULL_NAME, true); // emphasized
+		assertItemWrapperFullConrol(mainContainerWrapper, UserType.F_ADDITIONAL_NAME, true); // empty
+		assertItemWrapperFullConrol(mainContainerWrapper, UserType.F_LOCALITY, true); // empty		
+	}
+	
+
 	@Test
     public void test150CreateWrapperShadow() throws Exception {
 		final String TEST_NAME = "test150CreateWrapperShadow";
@@ -285,14 +358,14 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 		assertEquals("Wrong main container wrapper readOnly", Boolean.FALSE, (Boolean)mainContainerWrapper.isReadonly());
 		
 		ItemWrapper nameWrapper = mainContainerWrapper.findPropertyWrapper(UserType.F_NAME);
-		assertEquals("Wrong name readOnly", Boolean.TRUE, (Boolean)nameWrapper.isReadonly());
+		assertEquals("Wrong name readOnly", Boolean.TRUE, (Boolean)nameWrapper.isReadonly()); // Is this OK?
 		assertEquals("Wrong name visible", Boolean.TRUE, (Boolean)nameWrapper.isVisible());
 		assertEquals("Wrong name definition.canRead", Boolean.TRUE, (Boolean)nameWrapper.getItemDefinition().canRead());
 		assertEquals("Wrong name definition.canAdd", Boolean.FALSE, (Boolean)nameWrapper.getItemDefinition().canAdd());
 		assertEquals("Wrong name definition.canModify", Boolean.FALSE, (Boolean)nameWrapper.getItemDefinition().canModify());
 		
 		ItemWrapper givenNameWrapper = mainContainerWrapper.findPropertyWrapper(UserType.F_GIVEN_NAME);
-		assertEquals("Wrong givenName readOnly", Boolean.TRUE, (Boolean)givenNameWrapper.isReadonly());
+		assertEquals("Wrong givenName readOnly", Boolean.TRUE, (Boolean)givenNameWrapper.isReadonly()); // Is this OK?
 		assertEquals("Wrong givenName visible", Boolean.TRUE, (Boolean)givenNameWrapper.isVisible());
 		assertEquals("Wrong givenName definition.canRead", Boolean.TRUE, (Boolean)givenNameWrapper.getItemDefinition().canRead());
 		assertEquals("Wrong givenName definition.canAdd", Boolean.FALSE, (Boolean)givenNameWrapper.getItemDefinition().canAdd());
@@ -300,10 +373,31 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 
 		ItemWrapper fullNameWrapper = mainContainerWrapper.findPropertyWrapper(UserType.F_FULL_NAME);
 		assertEquals("Wrong fullName readOnly", Boolean.FALSE, (Boolean)fullNameWrapper.isReadonly());
-		assertEquals("Wrong fullName visible", Boolean.TRUE, (Boolean)givenNameWrapper.isVisible());
+		assertEquals("Wrong fullName visible", Boolean.TRUE, (Boolean)fullNameWrapper.isVisible());
 		assertEquals("Wrong fullName definition.canRead", Boolean.TRUE, (Boolean)fullNameWrapper.getItemDefinition().canRead());
 		assertEquals("Wrong fullName definition.canAdd", Boolean.FALSE, (Boolean)fullNameWrapper.getItemDefinition().canAdd());
 		assertEquals("Wrong fullName definition.canModify", Boolean.TRUE, (Boolean)fullNameWrapper.getItemDefinition().canModify());
+
+		ItemWrapper additionalNameWrapper = mainContainerWrapper.findPropertyWrapper(UserType.F_ADDITIONAL_NAME);
+		assertEquals("Wrong additionalName readOnly", Boolean.TRUE, (Boolean)additionalNameWrapper.isReadonly()); // Is this OK?
+		assertEquals("Wrong additionalName visible", Boolean.FALSE, (Boolean)additionalNameWrapper.isVisible()); // not visible, because it is empty
+		assertEquals("Wrong additionalName definition.canRead", Boolean.TRUE, (Boolean)additionalNameWrapper.getItemDefinition().canRead());
+		assertEquals("Wrong additionalName definition.canAdd", Boolean.FALSE, (Boolean)additionalNameWrapper.getItemDefinition().canAdd());
+		assertEquals("Wrong additionalName definition.canModify", Boolean.FALSE, (Boolean)additionalNameWrapper.getItemDefinition().canModify());
+
+		ItemWrapper localityNameWrapper = mainContainerWrapper.findPropertyWrapper(UserType.F_LOCALITY);
+		assertEquals("Wrong locality readOnly", Boolean.TRUE, (Boolean)localityNameWrapper.isReadonly());
+		assertEquals("Wrong locality visible", Boolean.TRUE, (Boolean)localityNameWrapper.isVisible());
+		assertEquals("Wrong locality definition.canRead", Boolean.TRUE, (Boolean)localityNameWrapper.getItemDefinition().canRead());
+		assertEquals("Wrong locality definition.canAdd", Boolean.FALSE, (Boolean)localityNameWrapper.getItemDefinition().canAdd());
+		assertEquals("Wrong locality definition.canModify", Boolean.FALSE, (Boolean)localityNameWrapper.getItemDefinition().canModify());
+		
+		// WHEN
+		objectWrapper.setShowEmpty(true);
+		
+		// THEN
+		additionalNameWrapper = mainContainerWrapper.findPropertyWrapper(UserType.F_ADDITIONAL_NAME);
+		assertEquals("Wrong additionalName visible", Boolean.TRUE, (Boolean)additionalNameWrapper.isVisible()); // not visible, because it is empty
 
 	}
 	
@@ -347,7 +441,9 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 		
 		ItemWrapper givenNameWrapper = mainContainerWrapper.findPropertyWrapper(UserType.F_GIVEN_NAME);
 		assertEquals("Wrong givenName readOnly", Boolean.TRUE, (Boolean)givenNameWrapper.isReadonly());
-		assertEquals("Wrong givenName visible", Boolean.TRUE, (Boolean)givenNameWrapper.isVisible());
+		// Emphasized property. But the role given no access to this. Therefore is should not be visible.
+		// MID-3206
+		assertEquals("Wrong givenName visible", Boolean.FALSE, (Boolean)givenNameWrapper.isVisible());
 		assertEquals("Wrong givenName definition.canRead", Boolean.FALSE, (Boolean)givenNameWrapper.getItemDefinition().canRead());
 		assertEquals("Wrong givenName definition.canAdd", Boolean.FALSE, (Boolean)givenNameWrapper.getItemDefinition().canAdd());
 		assertEquals("Wrong givenName definition.canModify", Boolean.FALSE, (Boolean)givenNameWrapper.getItemDefinition().canModify());
@@ -359,8 +455,32 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 		assertEquals("Wrong fullName definition.canAdd", Boolean.FALSE, (Boolean)fullNameWrapper.getItemDefinition().canAdd());
 		assertEquals("Wrong fullName definition.canModify", Boolean.TRUE, (Boolean)fullNameWrapper.getItemDefinition().canModify());
 		
+		ItemWrapper additionalNameWrapper = mainContainerWrapper.findPropertyWrapper(UserType.F_ADDITIONAL_NAME);
+		assertEquals("Wrong additionalName readOnly", Boolean.FALSE, (Boolean)additionalNameWrapper.isReadonly());
+		assertEquals("Wrong additionalName visible", Boolean.FALSE, (Boolean)additionalNameWrapper.isVisible());
+		assertEquals("Wrong additionalName definition.canRead", Boolean.FALSE, (Boolean)additionalNameWrapper.getItemDefinition().canRead());
+		assertEquals("Wrong additionalName definition.canAdd", Boolean.FALSE, (Boolean)additionalNameWrapper.getItemDefinition().canAdd());
+		assertEquals("Wrong additionalName definition.canModify", Boolean.TRUE, (Boolean)additionalNameWrapper.getItemDefinition().canModify());
+
+		ItemWrapper localityNameWrapper = mainContainerWrapper.findPropertyWrapper(UserType.F_LOCALITY);
+		assertEquals("Wrong locality readOnly", Boolean.TRUE, (Boolean)localityNameWrapper.isReadonly()); // Is this OK?
+		assertEquals("Wrong locality visible", Boolean.FALSE, (Boolean)localityNameWrapper.isVisible());
+		assertEquals("Wrong locality definition.canRead", Boolean.FALSE, (Boolean)localityNameWrapper.getItemDefinition().canRead());
+		assertEquals("Wrong locality definition.canAdd", Boolean.FALSE, (Boolean)localityNameWrapper.getItemDefinition().canAdd());
+		assertEquals("Wrong locality definition.canModify", Boolean.FALSE, (Boolean)localityNameWrapper.getItemDefinition().canModify());
+
 	}
 
+	private <C extends Containerable> void assertItemWrapperFullConrol(ContainerWrapper<C> containerWrapper, QName propName,
+			boolean visible) {
+		ItemWrapper itemWrapper = containerWrapper.findPropertyWrapper(propName);
+		assertEquals("Wrong "+propName+" readOnly", Boolean.FALSE, (Boolean)itemWrapper.isReadonly());
+		assertEquals("Wrong "+propName+" visible", visible, itemWrapper.isVisible());
+		assertEquals("Wrong "+propName+" definition.canRead", Boolean.TRUE, (Boolean)itemWrapper.getItemDefinition().canRead());
+		assertEquals("Wrong "+propName+" definition.canAdd", Boolean.TRUE, (Boolean)itemWrapper.getItemDefinition().canAdd());
+		assertEquals("Wrong "+propName+" definition.canModify", Boolean.TRUE, (Boolean)itemWrapper.getItemDefinition().canModify());
+	}
+	
 	private void cleanupAutzTest(String userOid) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException, IOException {
 		login(userAdministrator);
         unassignAllRoles(userOid);
