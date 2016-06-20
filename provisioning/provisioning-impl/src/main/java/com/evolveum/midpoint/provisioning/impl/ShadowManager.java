@@ -244,8 +244,7 @@ public class ShadowManager {
 		
 		List<EqualFilter> secondaryEquals = new ArrayList<>();
 		for (ResourceAttribute<?> secondaryIdentifier : secondaryIdentifiers){
-			secondaryEquals.add(EqualFilter.createEqual(secondaryIdentifier.getPath(), secondaryIdentifier.getDefinition(),
-					getNormalizedValue(secondaryIdentifier, ctx.getObjectClassDefinition())));
+			secondaryEquals.add(createAttributeEqualFilter(ctx, secondaryIdentifier));
 		}
 		
 		ObjectFilter secondaryIdentifierFilter = null;
@@ -314,9 +313,15 @@ public class ShadowManager {
 	private void checkConsistency(PrismObject<ShadowType> shadow) {
 		ProvisioningUtil.checkShadowActivationConsistency(shadow);
 	}
-
+	
+	private <T> EqualFilter<T> createAttributeEqualFilter(ProvisioningContext ctx,
+			ResourceAttribute<T> secondaryIdentifier) throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException {
+		return EqualFilter.createEqual(secondaryIdentifier.getPath(), secondaryIdentifier.getDefinition(),
+				null, getNormalizedValue(secondaryIdentifier, ctx.getObjectClassDefinition()));
+	}
+	
 	private <T> List<PrismPropertyValue<T>> getNormalizedValue(PrismProperty<T> attr, RefinedObjectClassDefinition rObjClassDef) throws SchemaException {
-		RefinedAttributeDefinition refinedAttributeDefinition = rObjClassDef.findAttributeDefinition(attr.getElementName());
+		RefinedAttributeDefinition<T> refinedAttributeDefinition = rObjClassDef.findAttributeDefinition(attr.getElementName());
 		QName matchingRuleQName = refinedAttributeDefinition.getMatchingRuleQName();
 		MatchingRule<T> matchingRule = matchingRuleRegistry.getMatchingRule(matchingRuleQName, refinedAttributeDefinition.getTypeName());
 		List<PrismPropertyValue<T>> normalized = new ArrayList<>();
@@ -564,7 +569,8 @@ public class ShadowManager {
 			String normalizedIdentifierValue = (String) getNormalizedAttributeValue(identifierValue, rAttrDef);
 			//new ItemPath(ShadowType.F_ATTRIBUTES)
 			PrismPropertyDefinition<String> def = (PrismPropertyDefinition<String>) identifier.getDefinition();
-			EqualFilter<String> filter = EqualFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES, def.getName()), def, new PrismPropertyValue<String>(normalizedIdentifierValue));
+			EqualFilter<String> filter = EqualFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES, def.getName()), 
+					def, new PrismPropertyValue<String>(normalizedIdentifierValue));
 			conditions.add(filter);
 		}
 
@@ -576,7 +582,8 @@ public class ShadowManager {
 		conditions.add(resourceRefFilter);
 		
 		if (objectClassDefinition != null) {
-			EqualFilter<QName> objectClassFilter = EqualFilter.createEqual(ShadowType.F_OBJECT_CLASS, ShadowType.class, prismContext,  objectClassDefinition.getTypeName());
+			EqualFilter<QName> objectClassFilter = EqualFilter.createEqual(ShadowType.F_OBJECT_CLASS, ShadowType.class, 
+					prismContext,  objectClassDefinition.getTypeName());
 			conditions.add(objectClassFilter);
 		}
 
