@@ -44,6 +44,10 @@ public class AdminGuiTestConstants {
     public static final String USER_JACK_GIVEN_NAME = "Jack";
     public static final String USER_JACK_FAMILY_NAME = "Sparrow";
     
+    public static final File USER_EMPTY_FILE = new File(COMMON_DIR, "user-empty.xml");
+    public static final String USER_EMPTY_OID = "50053534-36dc-11e6-86f7-035182a6f678";
+    public static final String USER_EMPTY_USERNAME = "empty";
+    
     public static final File RESOURCE_DUMMY_FILE = new File(COMMON_DIR, "resource-dummy.xml");
     public static final String RESOURCE_DUMMY_OID = "10000000-0000-0000-0000-000000000004";
     public static final String RESOURCE_DUMMY_NAMESPACE = MidPointConstants.NS_RI;

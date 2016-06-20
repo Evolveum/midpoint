@@ -1,5 +1,6 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <!--
-  ~ Copyright (c) 2010-2013 Evolveum
+  ~ Copyright (c) 2016 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -13,10 +14,12 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<wicket:panel xmlns:wicket="http://wicket.apache.org">
-    <div wicket:id="content" style="padding: 5px 15px 5px 5px">
 
-<div wicket:id="popupBody"/>
-    
-    </div>
-</wicket:panel>
+<user oid="50053534-36dc-11e6-86f7-035182a6f678"
+      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+    <name>empty</name>
+</user>

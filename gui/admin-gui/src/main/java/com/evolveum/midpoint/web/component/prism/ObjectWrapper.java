@@ -47,8 +47,9 @@ import java.util.*;
  * @author lazyman
  */
 public class ObjectWrapper<O extends ObjectType> implements Serializable, Revivable, DebugDumpable {
+	private static final long serialVersionUID = 1L;
 
-    public static final String F_DISPLAY_NAME = "displayName";
+	public static final String F_DISPLAY_NAME = "displayName";
     public static final String F_SELECTED = "selected";
 
     private static final Trace LOGGER = TraceManager.getTrace(ObjectWrapper.class);
@@ -255,7 +256,7 @@ public class ObjectWrapper<O extends ObjectType> implements Serializable, Reviva
         this.containers = containers;
     }
 
-    public ContainerWrapper findContainerWrapper(ItemPath path) {
+    public <C extends Containerable> ContainerWrapper<C> findContainerWrapper(ItemPath path) {
         for (ContainerWrapper wrapper : getContainers()) {
             if (path != null) {
                 if (path.equivalent(wrapper.getPath())) {
@@ -271,7 +272,7 @@ public class ObjectWrapper<O extends ObjectType> implements Serializable, Reviva
         return null;
     }
     
-    public ContainerWrapper findMainContainerWrapper() {
+    public ContainerWrapper<O> findMainContainerWrapper() {
         for (ContainerWrapper wrapper : getContainers()) {
         	if (wrapper.isMain()) {
         		return wrapper;

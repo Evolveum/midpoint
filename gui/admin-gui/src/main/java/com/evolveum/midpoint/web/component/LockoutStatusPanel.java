@@ -8,18 +8,18 @@ import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.panel.FeedbackPanel;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 
 /**
- * Created by Kate on 12.04.2016.
+ * Created by honchar
  */
 public class LockoutStatusPanel extends Panel {
     private static final String ID_CONTAINER = "container";
     private static final String ID_LABEL = "label";
     private static final String ID_BUTTON = "button";
-    private static final String BUTTON_UNDO_LABEL = "Undo";
-    private static final String BUTTON_UNLOCK_LABEL = "Unlock";
+    private static final String ID_FEEDBACK = "feedback";
     private boolean isInitialState = true;
     private boolean isUndo = false;
 
@@ -44,9 +44,13 @@ public class LockoutStatusPanel extends Panel {
             public String getObject() {
                 LockoutStatusType object = model != null ? model.getObject() : null;
 
-                return object == null ?
+                String labelValue = object == null ?
                         ((PageBase)getPage()).createStringResource("LockoutStatusType.UNDEFINED").getString()
                         : WebComponentUtil.createLocalizedModelForEnum(object, getLabel()).getObject();
+                if (!isInitialState){
+                    labelValue += " " + ((PageBase) getPage()).createStringResource("LockoutStatusPanel.changesSaving").getString();
+                }
+                return labelValue;
             }
 
             @Override
@@ -89,9 +93,9 @@ public class LockoutStatusPanel extends Panel {
             @Override
             public String getObject() {
                 if (isInitialState){
-                    return BUTTON_UNLOCK_LABEL;
+                    return ((PageBase)getPage()).createStringResource("LockoutStatusPanel.unlockButtonLabel").getString();
                 } else {
-                    return BUTTON_UNDO_LABEL;
+                    return ((PageBase)getPage()).createStringResource("LockoutStatusPanel.undoButtonLabel").getString();
                 }
             }
 

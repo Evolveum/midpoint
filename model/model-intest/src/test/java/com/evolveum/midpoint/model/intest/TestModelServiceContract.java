@@ -50,6 +50,7 @@ import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
+import org.testng.xml.dom.DomUtil;
 import org.w3c.dom.Element;
 
 import com.evolveum.icf.dummy.resource.DummyAccount;
@@ -87,6 +88,7 @@ import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
+import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
@@ -344,10 +346,11 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 
     @Test
     public void test101GetAccount() throws Exception {
-        TestUtil.displayTestTile(this, "test101GetAccount");
+    	final String TEST_NAME = "test101GetAccount";
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test101GetAccount");
+        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         preTestCleanup(AssignmentPolicyEnforcementType.POSITIVE);
         
@@ -387,6 +390,15 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         Collection<ResourceAttribute<?>> identifiers = attributesContainer.getPrimaryIdentifiers();
         assertNotNull("No identifiers (null) in attributes container in "+accountJackOid, identifiers);
         assertFalse("No identifiers (empty) in attributes container in "+accountJackOid, identifiers.isEmpty());
+        
+        ResourceAttribute<String> fullNameAttr = attributesContainer.findAttribute(dummyResourceCtl.getAttributeFullnameQName());
+        PrismAsserts.assertPropertyValue(fullNameAttr, ACCOUNT_JACK_DUMMY_FULLNAME);
+        ResourceAttributeDefinition<String> fullNameAttrDef = fullNameAttr.getDefinition();
+        display("attribute fullname definition", fullNameAttrDef);
+        PrismAsserts.assertDefinition(fullNameAttrDef, dummyResourceCtl.getAttributeFullnameQName(),
+        		DOMUtil.XSD_STRING, 1, 1);
+        assertEquals("Wrong fullname displayOrder", (Integer)260, fullNameAttrDef.getDisplayOrder());
+		assertEquals("Wrong fullname displayName", "Full Name", fullNameAttrDef.getDisplayName());
         
         assertSteadyResources();
 	}
