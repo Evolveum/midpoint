@@ -144,7 +144,7 @@ public class WfConfiguration implements BeanFactoryAware {
         }
 
         dataSource = c.getString(KEY_DATA_SOURCE, null);
-        if (dataSource == null && explicitJdbcUrl == null) {
+        if (dataSource == null && explicitJdbcUrl == null && sqlConfig != null) {
             dataSource = sqlConfig.getDataSource();             // we want to use wf-specific JDBC if there is one (i.e. we do not want to inherit data source from repo in such a case)
         }
 
@@ -154,7 +154,10 @@ public class WfConfiguration implements BeanFactoryAware {
             LOGGER.info("Activiti database is at " + jdbcUrl + " (a JDBC URL)");
         }
 
-        activitiSchemaUpdate = c.getBoolean(KEY_ACTIVITI_SCHEMA_UPDATE, true);
+		boolean defaultSchemaUpdate = sqlConfig == null || "update".equals(sqlConfig.getHibernateHbm2ddl());
+        activitiSchemaUpdate = c.getBoolean(KEY_ACTIVITI_SCHEMA_UPDATE, defaultSchemaUpdate);
+		LOGGER.info("Activiti automatic schema update: {}", activitiSchemaUpdate);
+
         jdbcDriver = c.getString(KEY_JDBC_DRIVER, sqlConfig != null ? sqlConfig.getDriverClassName() : null);
         jdbcUser = c.getString(KEY_JDBC_USERNAME, sqlConfig != null ? sqlConfig.getJdbcUsername() : null);
         jdbcPassword = c.getString(KEY_JDBC_PASSWORD, sqlConfig != null ? sqlConfig.getJdbcPassword() : null);
