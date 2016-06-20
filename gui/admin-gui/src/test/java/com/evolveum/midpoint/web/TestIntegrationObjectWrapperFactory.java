@@ -37,11 +37,13 @@ import javax.xml.namespace.QName;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
+import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
 import com.evolveum.icf.dummy.resource.DummyGroup;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -254,13 +256,16 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 		ItemWrapper fullnameWrapper = attributesContainerWrapper.findPropertyWrapper(dummyResourceCtl.getAttributeFullnameQName());
 		assertEquals("Wrong attribute fullname readOnly", Boolean.FALSE, (Boolean)fullnameWrapper.isReadonly()); // Is this OK?
 		assertEquals("Wrong attribute fullname visible", Boolean.TRUE, (Boolean)fullnameWrapper.isVisible());
-		display("fullname attribute definition", fullnameWrapper.getItemDefinition());
-		assertEquals("Wrong attribute fullname definition.canRead", Boolean.TRUE, (Boolean)fullnameWrapper.getItemDefinition().canRead());
-		assertEquals("Wrong attribute fullname definition.canAdd", Boolean.TRUE, (Boolean)fullnameWrapper.getItemDefinition().canAdd());
-		assertEquals("Wrong attribute fullname definition.canModify", Boolean.TRUE, (Boolean)fullnameWrapper.getItemDefinition().canModify());
+		ItemDefinition fullNameDefinition = fullnameWrapper.getItemDefinition();
+		display("fullname attribute definition", fullNameDefinition);
+		assertEquals("Wrong attribute fullname definition.canRead", Boolean.TRUE, (Boolean)fullNameDefinition.canRead());
+		assertEquals("Wrong attribute fullname definition.canAdd", Boolean.TRUE, (Boolean)fullNameDefinition.canAdd());
+		assertEquals("Wrong attribute fullname definition.canModify", Boolean.TRUE, (Boolean)fullNameDefinition.canModify());
 		// MID-3144
-		assertEquals("Wrong attribute fullname definition.displayOrder", (Integer)250, fullnameWrapper.getItemDefinition().getDisplayOrder());
-		assertEquals("Wrong attribute fullname definition.displayName", "Full Name", fullnameWrapper.getItemDefinition().getDisplayName());
+		if (fullNameDefinition.getDisplayOrder() == null || fullNameDefinition.getDisplayOrder() < 100 || fullNameDefinition.getDisplayOrder() > 400) {
+			AssertJUnit.fail("Wrong fullname definition.displayOrder: " + fullNameDefinition.getDisplayOrder());
+		}
+		assertEquals("Wrong attribute fullname definition.displayName", "Full Name", fullNameDefinition.getDisplayName());
 		
 	}
 
