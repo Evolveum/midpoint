@@ -21,6 +21,8 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.web.component.prism.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -60,28 +62,12 @@ import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenu;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
-import com.evolveum.midpoint.web.component.prism.CheckTableHeader;
-import com.evolveum.midpoint.web.component.prism.ContainerStatus;
-import com.evolveum.midpoint.web.component.prism.ContainerWrapper;
-import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
-import com.evolveum.midpoint.web.component.prism.PrismObjectPanel;
-import com.evolveum.midpoint.web.component.prism.PropertyWrapper;
-import com.evolveum.midpoint.web.component.prism.SimpleErrorPanel;
-import com.evolveum.midpoint.web.component.prism.ValueWrapper;
 import com.evolveum.midpoint.web.component.util.ObjectWrapperUtil;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.PageAdminFocus;
 import com.evolveum.midpoint.web.page.admin.users.dto.FocusSubwrapperDto;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
 import com.evolveum.midpoint.web.resource.img.ImgResources;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LayerType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
  * @author semancik
@@ -464,8 +450,28 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
 		}
 
 		for (FocusSubwrapperDto<ShadowType> account : selected) {
-			// TODO: implement unlock
+			if (!account.isLoadedOK()) {
+				continue;
+			}
+			ObjectWrapper<ShadowType> wrapper = account.getObject();
+			wrapper.setSelected(false);
+
+			ContainerWrapper<ActivationType> activation = wrapper.findContainerWrapper(new ItemPath(ShadowType.F_ACTIVATION));
+			if (activation == null) {
+				warn(getString("pageAdminFocus.message.noActivationFound", wrapper.getDisplayName()));
+				continue;
+			}
+
+			PropertyWrapper lockedProperty = activation.findPropertyWrapper(ActivationType.F_LOCKOUT_STATUS);
+			if (lockedProperty == null || lockedProperty.getValues().size() != 1) {
+				warn(getString("pageAdminFocus.message.noLockoutStatusPropertyFound", wrapper.getDisplayName()));
+				continue;
+			}
+			ValueWrapper value = (ValueWrapper) lockedProperty.getValues().get(0);
+			((PrismPropertyValue) value.getValue()).setValue(LockoutStatusType.NORMAL);
+			info(getString("pageAdminFocus.message.unlocked", wrapper.getDisplayName()));			// TODO only for really unlocked accounts
 		}
+		target.add(getFeedbackPanel(), get(createComponentPath(ID_SHADOWS)));
 	}
 
 	private void unlinkProjectionPerformed(AjaxRequestTarget target,
