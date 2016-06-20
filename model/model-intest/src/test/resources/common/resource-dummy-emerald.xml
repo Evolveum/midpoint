@@ -106,6 +106,15 @@
 				</inbound>
 			</attribute>
 			<attribute>
+				<ref>ri:location</ref>
+				<inbound>
+					<strength>strong</strength>
+					<target>
+						<path>locality</path>
+					</target>
+				</inbound>
+			</attribute>
+			<attribute>
 				<ref>ri:loot</ref>
 				<displayName>Loot</displayName>
 				<description>This will be interpreted as date and synced to validFrom</description>

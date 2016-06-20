@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -59,23 +59,12 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 public abstract class AbstractInboundSyncTest extends AbstractInitializedModelIntegrationTest {
 	
 	public static final File TEST_DIR = new File("src/test/resources/sync");
-	
-	protected static final File RESOURCE_DUMMY_EMERALD_FILE = new File(TEST_DIR, "resource-dummy-emerald.xml");
-	protected static final File RESOURCE_DUMMY_EMERALD_DEPRECATED_FILE = new File(TEST_DIR, "resource-dummy-emerald-deprecated.xml");
-	protected static final String RESOURCE_DUMMY_EMERALD_OID = "10000000-0000-0000-0000-00000000e404";
-	protected static final String RESOURCE_DUMMY_EMERALD_NAME = "emerald";
-	protected static final String RESOURCE_DUMMY_EMERALD_NAMESPACE = MidPointConstants.NS_RI;
-	
+		
 	protected static final File TASK_LIVE_SYNC_DUMMY_EMERALD_FILE = new File(TEST_DIR, "task-dummy-emerald-livesync.xml");
 	protected static final String TASK_LIVE_SYNC_DUMMY_EMERALD_OID = "10000000-0000-0000-5555-55550000e404";
 		
 	protected static final File TASK_RECON_DUMMY_EMERALD_FILE = new File(TEST_DIR, "task-dummy-emerald-recon.xml");
 	protected static final String TASK_RECON_DUMMY_EMERALD_OID = "10000000-0000-0000-5656-56560000e404";
-	
-	protected static DummyResource dummyResourceEmerald;
-	protected static DummyResourceContoller dummyResourceCtlEmerald;
-	protected ResourceType resourceDummyEmeraldType;
-	protected PrismObject<ResourceType> resourceDummyEmerald;
 		
 	protected static final String ACCOUNT_WALLY_DUMMY_USERNAME = "wally";
 	protected static final String ACCOUNT_MANCOMB_DUMMY_USERNAME = "mancomb";
@@ -93,12 +82,6 @@ public abstract class AbstractInboundSyncTest extends AbstractInitializedModelIn
 		
 		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 		
-		dummyResourceCtlEmerald = DummyResourceContoller.create(RESOURCE_DUMMY_EMERALD_NAME, resourceDummyEmerald);
-		dummyResourceCtlEmerald.extendSchemaPirate();
-		dummyResourceEmerald = dummyResourceCtlEmerald.getDummyResource();
-		resourceDummyEmerald = importAndGetObjectFromFile(ResourceType.class, getResourceDummyEmeraldFile(), RESOURCE_DUMMY_EMERALD_OID, initTask, initResult); 
-		resourceDummyEmeraldType = resourceDummyEmerald.asObjectable();
-		dummyResourceCtlEmerald.setResource(resourceDummyEmerald);
 	}
 	
 	protected File getResourceDummyEmeraldFile() {
