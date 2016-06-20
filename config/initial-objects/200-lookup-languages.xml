@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2016 Evolveum, AMI Praha
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<lookupTable oid="00000000-0000-0000-0000-000000000200"
+	xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'>
+
+	<name>Languages</name>
+
+	<row>
+		<key>cs</key>
+		<label>Čeština</label>
+	</row>
+	<row>
+		<key>de</key>
+		<label>Deutsch</label>
+	</row>
+	<row>
+		<key>et</key>
+		<label>Eesti</label>
+	</row>
+	<row>
+		<key>en</key>
+		<label>English</label>
+	</row>
+	<row>
+		<key>es</key>
+		<label>Español</label>
+	</row>
+	<row>
+		<key>hu</key>
+		<label>Magyar</label>
+	</row>
+	<!--row>
+		<key>ru</key>
+		<label>Русский</label>
+	</row-->
+	<row>
+		<key>sk</key>
+		<label>Slovenčina</label>
+	</row>
+	<row>
+		<key>tr</key>
+		<label>Türkçe</label>
+	</row>
+
+</lookupTable>

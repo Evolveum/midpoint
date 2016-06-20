@@ -156,7 +156,7 @@ public class PageCertCampaign extends PageAdminCertification {
 			stat = getCertificationService().getCampaignStatistics(campaignOid, false, task, result);
 			result.recordSuccessIfUnknown();
 		} catch (Exception ex) {
-			LoggingUtils.logException(LOGGER, "Couldn't get campaign statistics", ex);
+			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't get campaign statistics", ex);
 			result.recordFatalError("Couldn't get campaign statistics.", ex);
 		}
 		result.recomputeStatus();
@@ -179,7 +179,7 @@ public class PageCertCampaign extends PageAdminCertification {
 			}
 			result.recordSuccessIfUnknown();
 		} catch (Exception ex) {
-			LoggingUtils.logException(LOGGER, "Couldn't get campaign", ex);
+			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't get campaign", ex);
 			result.recordFatalError("Couldn't get campaign.", ex);
 		}
 		result.recomputeStatus();
@@ -187,7 +187,11 @@ public class PageCertCampaign extends PageAdminCertification {
 		if (!WebComponentUtil.isSuccessOrHandledError(result)) {
 			showResult(result);
 		}
-		return new CertCampaignDto(campaign, this, task, result);
+		if (campaign != null) {
+			return new CertCampaignDto(campaign, this, task, result);
+		} else {
+			throw redirectBackViaRestartResponseException();
+		}
 	}
 
 	private void initLayout() {

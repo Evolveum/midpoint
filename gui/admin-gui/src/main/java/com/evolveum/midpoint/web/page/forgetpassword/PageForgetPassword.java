@@ -277,7 +277,7 @@ public class PageForgetPassword extends PageBase {
 
 
 		} catch ( SchemaException e) {
-			LoggingUtils.logException(LOGGER, "Setting preauthentication token exception", e);
+			LoggingUtils.logUnexpectedException(LOGGER, "Setting preauthentication token exception", e);
 			e.printStackTrace();
 
 		}

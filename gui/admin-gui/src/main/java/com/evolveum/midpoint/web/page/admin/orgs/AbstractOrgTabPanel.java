@@ -152,7 +152,7 @@ public abstract class AbstractOrgTabPanel extends BasePanel{
                 warn(getString("PageOrgTree.message.noOrgStructDefined"));
             }
         } catch (Exception ex) {
-            LoggingUtils.logException(LOGGER, "Unable to load org. unit", ex);
+            LoggingUtils.logUnexpectedException(LOGGER, "Unable to load org. unit", ex);
             result.recordFatalError("Unable to load org unit", ex);
         } finally {
             result.computeStatus();

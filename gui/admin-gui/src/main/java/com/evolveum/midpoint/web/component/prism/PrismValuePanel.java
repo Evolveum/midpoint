@@ -891,7 +891,7 @@ public class PrismValuePanel extends Panel {
             ObjectQuery query = ObjectQuery.createObjectQuery(andFilter);
             return query;
         } catch (SchemaException ex) {
-            LoggingUtils.logException(LOGGER, "Unable to create associations search query", ex);
+            LoggingUtils.logUnexpectedException(LOGGER, "Unable to create associations search query", ex);
             return null;
         }
 

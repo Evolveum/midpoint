@@ -139,7 +139,7 @@ public class InitialDataImport {
                     errors++;
                 }
             } catch (Exception ex) {
-                LoggingUtils.logException(LOGGER, "Couldn't import file {}", ex, file.getName());
+                LoggingUtils.logUnexpectedException(LOGGER, "Couldn't import file {}", ex, file.getName());
                 mainResult.recordFatalError("Couldn't import file '" + file.getName() + "'", ex);
             }
         }
@@ -172,7 +172,7 @@ public class InitialDataImport {
             importObject = true;
         } catch (Exception ex) {
         	if (!importObject){
-	            LoggingUtils.logException(LOGGER, "Couldn't get object with oid {} from model", ex,
+	            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't get object with oid {} from model", ex,
 	                    object.getOid());
 	            result.recordWarning("Couldn't get object with oid '" + object.getOid() + "' from model",
 	                    ex);
@@ -191,7 +191,7 @@ public class InitialDataImport {
             LOGGER.info("Created {} as part of initial import", object);
             return true;
         } catch (Exception e) {
-            LoggingUtils.logException(LOGGER, "Couldn't import {} from file {}: ", e, object,
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't import {} from file {}: ", e, object,
                     file.getName(), e.getMessage());
             result.recordFatalError(e);
 

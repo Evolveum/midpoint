@@ -311,7 +311,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 			result.recordSuccess();
 		} catch (Exception ex) {
 			result.recordFatalError("Couldn't get object.", ex);
-			LoggingUtils.logException(LOGGER, "Couldn't load object", ex);
+			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load object", ex);
 		}
 
 		showResult(result, false);
@@ -336,7 +336,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 			wrapper = owf.createObjectWrapper("pageAdminFocus.focusDetails", null, object, status);
 		} catch (Exception ex) {
 			result.recordFatalError("Couldn't get user.", ex);
-			LoggingUtils.logException(LOGGER, "Couldn't load user", ex);
+			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load user", ex);
 			wrapper = owf.createObjectWrapper("pageAdminFocus.focusDetails", null, object, null, null, status, false);
 		}
 		wrapper.setLoadOptions(loadOptions);
@@ -456,7 +456,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 			}
 		} catch (Exception ex) {
 			result.recordFatalError(getString("pageUser.message.cantCreateUser"), ex);
-			LoggingUtils.logException(LOGGER, "Create user failed", ex);
+			LoggingUtils.logUnexpectedException(LOGGER, "Create user failed", ex);
 			showResult(result);
 			return;
 		}
@@ -486,7 +486,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 					}
 				} catch (Exception ex) {
 					result.recordFatalError(getString("pageFocus.message.cantCreateFocus"), ex);
-					LoggingUtils.logException(LOGGER, "Create user failed", ex);
+					LoggingUtils.logUnexpectedException(LOGGER, "Create user failed", ex);
 				}
 				break;
 
@@ -538,7 +538,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 				} catch (Exception ex) {
 					if (!executeForceDelete(objectWrapper, task, options, result)) {
 						result.recordFatalError(getString("pageUser.message.cantUpdateUser"), ex);
-						LoggingUtils.logException(LOGGER, getString("pageUser.message.cantUpdateUser"), ex);
+						LoggingUtils.logUnexpectedException(LOGGER, getString("pageUser.message.cantUpdateUser"), ex);
 					} else {
 						result.recomputeStatus();
 					}

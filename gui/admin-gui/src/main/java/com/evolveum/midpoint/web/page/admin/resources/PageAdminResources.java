@@ -92,7 +92,7 @@ public class PageAdminResources extends PageAdmin {
             }
 
         } catch (Exception ex) {
-            LoggingUtils.logException(LOGGER, "Couldn't get resource", ex);
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't get resource", ex);
             result.recordFatalError("Couldn't get resource, reason: " + ex.getMessage(), ex);
         }
 
@@ -164,7 +164,7 @@ public class PageAdminResources extends PageAdmin {
         try {
             getModelService().executeChanges(WebComponentUtil.createDeltaCollection(delta), null, task, result);
         } catch (Exception e){
-            LoggingUtils.logException(LOGGER, "Couldn't save task.", e);
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't save task.", e);
             result.recordFatalError("Couldn't save task.", e);
         }
         result.recomputeStatus();

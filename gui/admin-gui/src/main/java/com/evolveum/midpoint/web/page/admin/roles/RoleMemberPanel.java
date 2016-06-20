@@ -269,7 +269,7 @@ public class RoleMemberPanel extends AbstractRoleMemberPanel<RoleType> {
 					break;
 			}
 		} catch (SchemaException e) {
-			LoggingUtils.logException(LOGGER, "Failed to prepare delta for operation " + operation.name(), e);
+			LoggingUtils.logUnexpectedException(LOGGER, "Failed to prepare delta for operation " + operation.name(), e);
 			result.recordFatalError("Failed to prepare delta for operation " + operation.name(), e);
 		}
 		return delta;
@@ -329,7 +329,7 @@ public class RoleMemberPanel extends AbstractRoleMemberPanel<RoleType> {
 			}
 
 		} catch (SchemaException e) {
-			LoggingUtils.logException(LOGGER, "Couldn't prepare query for org. members.", e);
+			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't prepare query for org. members.", e);
 		}
 
 		DropDownChoice<QName> objectTypeChoice = (DropDownChoice) get(createComponentPath(ID_OBJECT_TYPE));

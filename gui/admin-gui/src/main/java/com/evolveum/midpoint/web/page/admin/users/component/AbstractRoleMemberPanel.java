@@ -371,7 +371,7 @@ public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extend
 			WebModelServiceUtils.runTask(task, operationalTask, parentResult, getPageBase());
 		} catch (SchemaException e) {
 			parentResult.recordFatalError(parentResult.getOperation(), e);
-			LoggingUtils.logException(LOGGER, "Failed to execute operaton " + parentResult.getOperation(), e);
+			LoggingUtils.logUnexpectedException(LOGGER, "Failed to execute operaton " + parentResult.getOperation(), e);
 			target.add(getPageBase().getFeedbackPanel());
 		}
 

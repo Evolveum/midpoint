@@ -3,27 +3,107 @@
 -- If you want to add Quartz and Activiti-related tables, please use files from quartz and activiti directories, respectively.
 
 CREATE TABLE m_abstract_role (
-  approvalProcess VARCHAR(255),
-  requestable     BOOLEAN,
-  oid             VARCHAR(36) NOT NULL,
+  approvalProcess    VARCHAR(255),
+  displayName_norm   VARCHAR(255),
+  displayName_orig   VARCHAR(255),
+  identifier         VARCHAR(255),
+  ownerRef_relation  VARCHAR(157),
+  ownerRef_targetOid VARCHAR(36),
+  ownerRef_type      INTEGER,
+  requestable        BOOLEAN,
+  riskLevel          VARCHAR(255),
+  oid                VARCHAR(36) NOT NULL,
   PRIMARY KEY (oid)
 );
 
 CREATE TABLE m_acc_cert_campaign (
-    definitionRef_relation VARCHAR(157),
-    definitionRef_targetOid VARCHAR(36),
-    definitionRef_type INTEGER,
-    name_norm VARCHAR(255),
-    name_orig VARCHAR(255),
-    oid VARCHAR(36) NOT NULL,
-    PRIMARY KEY (oid)
+  definitionRef_relation  VARCHAR(157),
+  definitionRef_targetOid VARCHAR(36),
+  definitionRef_type      INTEGER,
+  endTimestamp            TIMESTAMP,
+  handlerUri              VARCHAR(255),
+  name_norm               VARCHAR(255),
+  name_orig               VARCHAR(255),
+  ownerRef_relation       VARCHAR(157),
+  ownerRef_targetOid      VARCHAR(36),
+  ownerRef_type           INTEGER,
+  stageNumber             INTEGER,
+  startTimestamp          TIMESTAMP,
+  state                   INTEGER,
+  oid                     VARCHAR(36) NOT NULL,
+  PRIMARY KEY (oid)
+);
+
+CREATE TABLE m_acc_cert_case (
+  id                       INTEGER     NOT NULL,
+  owner_oid                VARCHAR(36) NOT NULL,
+  administrativeStatus     INTEGER,
+  archiveTimestamp         TIMESTAMP,
+  disableReason            VARCHAR(255),
+  disableTimestamp         TIMESTAMP,
+  effectiveStatus          INTEGER,
+  enableTimestamp          TIMESTAMP,
+  validFrom                TIMESTAMP,
+  validTo                  TIMESTAMP,
+  validityChangeTimestamp  TIMESTAMP,
+  validityStatus           INTEGER,
+  currentStageNumber       INTEGER,
+  currentStageOutcome      INTEGER,
+  fullObject               BLOB,
+  objectRef_relation       VARCHAR(157),
+  objectRef_targetOid      VARCHAR(36),
+  objectRef_type           INTEGER,
+  orgRef_relation          VARCHAR(157),
+  orgRef_targetOid         VARCHAR(36),
+  orgRef_type              INTEGER,
+  overallOutcome           INTEGER,
+  remediedTimestamp        TIMESTAMP,
+  reviewDeadline           TIMESTAMP,
+  reviewRequestedTimestamp TIMESTAMP,
+  targetRef_relation       VARCHAR(157),
+  targetRef_targetOid      VARCHAR(36),
+  targetRef_type           INTEGER,
+  tenantRef_relation       VARCHAR(157),
+  tenantRef_targetOid      VARCHAR(36),
+  tenantRef_type           INTEGER,
+  PRIMARY KEY (id, owner_oid)
+);
+
+CREATE TABLE m_acc_cert_case_reference (
+  owner_id        INTEGER      NOT NULL,
+  owner_owner_oid VARCHAR(36)  NOT NULL,
+  reference_type  INTEGER      NOT NULL,
+  relation        VARCHAR(157) NOT NULL,
+  targetOid       VARCHAR(36)  NOT NULL,
+  containerType   INTEGER,
+  PRIMARY KEY (owner_id, owner_owner_oid, reference_type, relation, targetOid)
+);
+
+CREATE TABLE m_acc_cert_decision (
+  id                    INTEGER     NOT NULL,
+  owner_id              INTEGER     NOT NULL,
+  owner_owner_oid       VARCHAR(36) NOT NULL,
+  reviewerComment       VARCHAR(255),
+  response              INTEGER,
+  reviewerRef_relation  VARCHAR(157),
+  reviewerRef_targetOid VARCHAR(36),
+  reviewerRef_type      INTEGER,
+  stageNumber           INTEGER     NOT NULL,
+  timestamp             TIMESTAMP,
+  PRIMARY KEY (id, owner_id, owner_owner_oid)
 );
 
 CREATE TABLE m_acc_cert_definition (
-    name_norm VARCHAR(255),
-    name_orig VARCHAR(255),
-    oid VARCHAR(36) NOT NULL,
-    PRIMARY KEY (oid)
+  handlerUri                   VARCHAR(255),
+  lastCampaignClosedTimestamp  TIMESTAMP,
+  lastCampaignStartedTimestamp TIMESTAMP,
+  name_norm                    VARCHAR(255),
+  name_orig                    VARCHAR(255),
+  ownerRef_relation            VARCHAR(157),
+  ownerRef_targetOid           VARCHAR(36),
+  ownerRef_type                INTEGER,
+  oid                          VARCHAR(36) NOT NULL,
+  PRIMARY KEY (oid)
 );
 
 CREATE TABLE m_assignment (
@@ -176,7 +256,7 @@ CREATE TABLE m_audit_delta (
   objectName_orig   VARCHAR(255),
   resourceName_norm VARCHAR(255),
   resourceName_orig VARCHAR(255),
-  resourceOid       varchar(36),
+  resourceOid       VARCHAR(36),
   status            INTEGER,
   PRIMARY KEY (checksum, record_id)
 );
@@ -408,10 +488,7 @@ CREATE TABLE m_object_template (
 
 CREATE TABLE m_org (
   costCenter       VARCHAR(255),
-  displayName_norm VARCHAR(255),
-  displayName_orig VARCHAR(255),
   displayOrder     INTEGER,
-  identifier       VARCHAR(255),
   locality_norm    VARCHAR(255),
   locality_orig    VARCHAR(255),
   name_norm        VARCHAR(255),
@@ -497,6 +574,21 @@ CREATE TABLE m_sequence (
   PRIMARY KEY (oid)
 );
 
+CREATE TABLE m_service (
+  displayOrder  INTEGER,
+  locality_norm VARCHAR(255),
+  locality_orig VARCHAR(255),
+  name_norm     VARCHAR(255),
+  name_orig     VARCHAR(255),
+  oid           VARCHAR(36) NOT NULL,
+  PRIMARY KEY (oid)
+);
+
+CREATE TABLE m_service_type (
+  service_oid VARCHAR(36) NOT NULL,
+  serviceType VARCHAR(255)
+);
+
 CREATE TABLE m_shadow (
   attemptNumber                INTEGER,
   dead                         BOOLEAN,
@@ -549,6 +641,18 @@ CREATE TABLE m_task (
   taskIdentifier         VARCHAR(255),
   threadStopAction       INTEGER,
   waitingReason          INTEGER,
+  wfEndTimestamp           TIMESTAMP,
+  wfObjectRef_relation     VARCHAR(157),
+  wfObjectRef_targetOid    VARCHAR(36),
+  wfObjectRef_type         INTEGER,
+  wfProcessInstanceId      VARCHAR(255),
+  wfRequesterRef_relation  VARCHAR(157),
+  wfRequesterRef_targetOid VARCHAR(36),
+  wfRequesterRef_type      INTEGER,
+  wfStartTimestamp         TIMESTAMP,
+  wfTargetRef_relation     VARCHAR(157),
+  wfTargetRef_targetOid    VARCHAR(36),
+  wfTargetRef_type         INTEGER,
   oid                    VARCHAR(36) NOT NULL,
   PRIMARY KEY (oid)
 );
@@ -623,10 +727,25 @@ CREATE TABLE m_value_policy (
   PRIMARY KEY (oid)
 );
 
+CREATE INDEX iAbstractRoleIdentifier ON m_abstract_role (identifier);
+
 CREATE INDEX iRequestable ON m_abstract_role (requestable);
 
 ALTER TABLE m_acc_cert_campaign
     ADD CONSTRAINT uc_acc_cert_campaign_name  UNIQUE (name_norm);
+
+CREATE INDEX iCaseObjectRefTargetOid ON m_acc_cert_case (objectRef_targetOid);
+
+CREATE INDEX iCaseTargetRefTargetOid ON m_acc_cert_case (targetRef_targetOid);
+
+CREATE INDEX iCaseTenantRefTargetOid ON m_acc_cert_case (tenantRef_targetOid);
+
+CREATE INDEX iCaseOrgRefTargetOid ON m_acc_cert_case (orgRef_targetOid);
+
+CREATE INDEX iCaseReferenceTargetOid ON m_acc_cert_case_reference (targetOid);
+
+ALTER TABLE m_acc_cert_decision
+ADD CONSTRAINT uc_case_stage_reviewer UNIQUE (owner_owner_oid, owner_id, stageNumber, reviewerRef_targetOid);
 
 ALTER TABLE m_acc_cert_definition
     ADD CONSTRAINT uc_acc_cert_definition_name  UNIQUE (name_norm);
@@ -673,7 +792,7 @@ ALTER TABLE m_lookup_table
 ADD CONSTRAINT uc_lookup_name UNIQUE (name_norm);
 
 ALTER TABLE m_lookup_table_row
-ADD CONSTRAINT uc_row_key UNIQUE (row_key);
+ADD CONSTRAINT uc_row_key UNIQUE (owner_oid, row_key);
 
 ALTER TABLE m_node
 ADD CONSTRAINT uc_node_name UNIQUE (name_norm);
@@ -752,6 +871,18 @@ ADD CONSTRAINT uc_system_configuration_name UNIQUE (name_norm);
 
 CREATE INDEX iParent ON m_task (parent);
 
+CREATE INDEX iTaskWfProcessInstanceId ON m_task (wfProcessInstanceId);
+
+CREATE INDEX iTaskWfStartTimestamp ON m_task (wfStartTimestamp);
+
+CREATE INDEX iTaskWfEndTimestamp ON m_task (wfEndTimestamp);
+
+CREATE INDEX iTaskWfRequesterOid ON m_task (wfRequesterRef_targetOid);
+
+CREATE INDEX iTaskWfObjectOid ON m_task (wfObjectRef_targetOid);
+
+CREATE INDEX iTaskWfTargetOid ON m_task (wfTargetRef_targetOid);
+
 CREATE INDEX iTriggerTimestamp ON m_trigger (timestampValue);
 
 ALTER TABLE m_user
@@ -779,6 +910,21 @@ ALTER TABLE m_acc_cert_campaign
     ADD CONSTRAINT fk_acc_cert_campaign
     FOREIGN KEY (oid)
     REFERENCES m_object;
+
+ALTER TABLE m_acc_cert_case
+ADD CONSTRAINT fk_acc_cert_case_owner
+FOREIGN KEY (owner_oid)
+REFERENCES m_object;
+
+ALTER TABLE m_acc_cert_case_reference
+ADD CONSTRAINT fk_acc_cert_case_ref_owner
+FOREIGN KEY (owner_id, owner_owner_oid)
+REFERENCES m_acc_cert_case;
+
+ALTER TABLE m_acc_cert_decision
+ADD CONSTRAINT fk_acc_cert_decision_owner
+FOREIGN KEY (owner_id, owner_owner_oid)
+REFERENCES m_acc_cert_case;
 
 ALTER TABLE m_acc_cert_definition
     ADD CONSTRAINT fk_acc_cert_definition
@@ -969,6 +1115,16 @@ ALTER TABLE m_sequence
 ADD CONSTRAINT fk_sequence
 FOREIGN KEY (oid)
 REFERENCES m_object;
+
+ALTER TABLE m_service
+  ADD CONSTRAINT fk_service
+FOREIGN KEY (oid)
+REFERENCES m_abstract_role;
+
+ALTER TABLE m_service_type
+  ADD CONSTRAINT fk_service_type
+FOREIGN KEY (service_oid)
+REFERENCES m_service;
 
 ALTER TABLE m_shadow
 ADD CONSTRAINT fk_shadow

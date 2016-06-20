@@ -90,7 +90,7 @@ public class PageUser extends PageAdminFocus<UserType> {
 
         // }
         // }catch(Exception ex){
-        // LoggingUtils.logException(LOGGER, "Could not return to user list",
+        // LoggingUtils.logUnexpectedException(LOGGER, "Could not return to user list",
         // ex);
         // }
     }

@@ -249,7 +249,7 @@ public class PageAbout extends PageAdminConfiguration {
 
             result.recordSuccessIfUnknown();
         } catch (Exception ex) {
-            LoggingUtils.logException(LOGGER, "Couldn't get repo diagnostics", ex);
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't get repo diagnostics", ex);
             result.recordFatalError("Couldn't get repo diagnostics.", ex);
         }
         result.recomputeStatus();
@@ -270,7 +270,7 @@ public class PageAbout extends PageAdminConfiguration {
 
             result.recordSuccessIfUnknown();
         } catch (Exception ex) {
-            LoggingUtils.logException(LOGGER, "Couldn't get provisioning diagnostics", ex);
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't get provisioning diagnostics", ex);
             result.recordFatalError("Couldn't get provisioning diagnostics.", ex);
         }
         result.recomputeStatus();

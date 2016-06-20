@@ -164,7 +164,7 @@ public class ResourceRelatedHandlerDto extends HandlerDto implements HandlerDtoE
 
 				setObjectClassList(objectClassList);
 			} catch (Exception e){
-				LoggingUtils.logException(LOGGER, "Couldn't load object class list from resource.", e);
+				LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load object class list from resource.", e);
 			}
 		}
 	}

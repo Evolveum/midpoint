@@ -134,7 +134,7 @@ public class PageResourceWizard extends PageAdminResources {
 					}
 					return resource;
 				} catch (Exception ex) {
-					LoggingUtils.logException(LOGGER, "Couldn't load resource", ex);
+					LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load resource", ex);
 					throw new RestartResponseException(PageError.class);
 				}
 			}
@@ -219,7 +219,7 @@ public class PageResourceWizard extends PageAdminResources {
 
 	// questionable
     public boolean isNewResource() {
-        return editedResourceOid != null;
+        return editedResourceOid == null;
     }
 
 	public ObjectDelta<ResourceType> computeDiff(PrismObject<ResourceType> oldResource, PrismObject<ResourceType> newResource) {

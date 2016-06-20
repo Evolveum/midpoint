@@ -264,7 +264,7 @@ public class PageTaskAdd extends PageAdminTasks {
 
                         model.getObject().setObjectClassList(objectClassList);
                     } catch (Exception e){
-                        LoggingUtils.logException(LOGGER, "Couldn't load object class list from resource.", e);
+                        LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load object class list from resource.", e);
                         error("Couldn't load object class list from resource.");
                     }
 
@@ -621,7 +621,7 @@ public class PageTaskAdd extends PageAdminTasks {
             result.recomputeStatus();
         } catch (Exception ex) {
             result.recordFatalError("Couldn't get resource list.", ex);
-            LoggingUtils.logException(LOGGER, "Couldn't get resource list", ex);
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't get resource list", ex);
         }
 
         // todo show result somehow...
@@ -657,7 +657,7 @@ public class PageTaskAdd extends PageAdminTasks {
         } catch (Exception ex) {
             result.recomputeStatus();
             result.recordFatalError("Unable to save task.", ex);
-            LoggingUtils.logException(LOGGER, "Couldn't add new task", ex);
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't add new task", ex);
         }
         showResult(result);
         target.add(getFeedbackPanel());

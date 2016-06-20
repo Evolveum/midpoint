@@ -135,7 +135,12 @@ public class ScenePanel extends BasePanel<SceneDto> {
 		Label headerObjectType = new Label(ID_HEADER_OBJECT_TYPE, new ObjectTypeModel());
 		headerObjectType.setRenderBodyOnly(true);
 
-		PropertyModel<String> nameModel = new PropertyModel<>(model, SceneDto.F_NAME);
+		IModel<String> nameModel = new AbstractReadOnlyModel<String>() {
+			@Override
+			public String getObject() {
+				return model.getObject().getName(ScenePanel.this);
+			}
+		};
 		Label headerNameLabel = new Label(ID_HEADER_NAME_LABEL, nameModel);
 		LinkPanel headerNameLink = new LinkPanel(ID_HEADER_NAME_LINK, nameModel) {
 
@@ -148,7 +153,12 @@ public class ScenePanel extends BasePanel<SceneDto> {
 				}
 			}
 		};
-        Label headerDescription = new Label(ID_HEADER_DESCRIPTION, new PropertyModel<String>(model, SceneDto.F_DESCRIPTION));
+        Label headerDescription = new Label(ID_HEADER_DESCRIPTION, new AbstractReadOnlyModel<String>() {
+			@Override
+			public String getObject() {
+				return model.getObject().getDescription(ScenePanel.this);
+			}
+		});
         Label headerWrapperDisplayName = new Label(ID_HEADER_WRAPPER_DISPLAY_NAME,
 				new AbstractReadOnlyModel<String>() {
 					@Override

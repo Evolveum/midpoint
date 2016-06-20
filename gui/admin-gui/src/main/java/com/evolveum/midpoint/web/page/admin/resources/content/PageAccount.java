@@ -223,7 +223,7 @@ public class PageAccount extends PageAdminResources {
             result.recomputeStatus();
         } catch (Exception ex) {
             result.recordFatalError("Couldn't save account.", ex);
-            LoggingUtils.logException(LOGGER, "Couldn't save account", ex);
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't save account", ex);
         }
 
         if (!result.isSuccess()) {

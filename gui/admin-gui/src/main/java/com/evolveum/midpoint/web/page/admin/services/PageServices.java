@@ -61,9 +61,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ServiceType;
         @AuthorizationAction(actionUri = PageAdminServices.AUTH_SERVICES_ALL,
                 label = PageAdminServices.AUTH_SERVICES_ALL_LABEL,
                 description = PageAdminServices.AUTH_SERVICES_ALL_DESCRIPTION),
-        @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_SERVICES_ALL_URL,
-                label = "PageUsers.auth.users.label",
-                description = "PageUsers.auth.users.description")})
+        @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_SERVICES_URL,
+                label = "PageServices.auth.services.label",
+                description = "PageServices.auth.services.description")})
 public class PageServices extends PageAdminServices {
 	private static final long serialVersionUID = 1L;
 
@@ -184,7 +184,7 @@ public class PageServices extends PageAdminServices {
                 getModelService().executeChanges(WebComponentUtil.createDeltaCollection(delta), null, task, result);
             } catch (Exception ex) {
                 result.recordPartialError("Couldn't delete service.", ex);
-                LoggingUtils.logException(LOGGER, "Couldn't delete service", ex);
+                LoggingUtils.logUnexpectedException(LOGGER, "Couldn't delete service", ex);
             }
         }
 

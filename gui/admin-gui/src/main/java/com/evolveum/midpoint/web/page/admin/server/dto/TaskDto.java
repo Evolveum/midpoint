@@ -277,7 +277,7 @@ public class TaskDto extends Selectable implements InlineMenuable {
 						options.isRetrieveSiblings() ? createCollection(TaskType.F_SUBTASK, createRetrieve()) : null;
                 parentTaskType = taskService.getTaskByIdentifier(taskType.getParent(), getOptions, thisOpResult).asObjectable();
             } catch (SchemaException|ObjectNotFoundException|SecurityViolationException|ConfigurationException e) {
-                LoggingUtils.logException(LOGGER, "Couldn't retrieve parent task for task {}", e, taskType.getOid());
+                LoggingUtils.logUnexpectedException(LOGGER, "Couldn't retrieve parent task for task {}", e, taskType.getOid());
             }
         }
     }

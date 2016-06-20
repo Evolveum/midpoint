@@ -151,7 +151,7 @@ public class RepositoryObjectDataProvider
 
             subResult.recordSuccess();
         } catch (Exception ex) {
-            LoggingUtils.logException(LOGGER, "Couldn't load resource for account", ex);
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load resource for account", ex);
             subResult.recordFatalError("Couldn't load resource for account.");
         } finally {
             subResult.recomputeStatus();

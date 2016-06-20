@@ -132,7 +132,7 @@ public class ObjectDataProvider<W extends Serializable, T extends ObjectType>
             }
         } catch (Exception ex) {
             result.recordFatalError("Couldn't list objects.", ex);
-            LoggingUtils.logException(LOGGER, "Couldn't list objects", ex);
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't list objects", ex);
         } finally {
             result.computeStatusIfUnknown();
         }
@@ -168,7 +168,7 @@ public class ObjectDataProvider<W extends Serializable, T extends ObjectType>
             count = getModel().countObjects(type, getQuery(), options, task, result);
         } catch (Exception ex) {
             result.recordFatalError("Couldn't count objects.", ex);
-            LoggingUtils.logException(LOGGER, "Couldn't count objects", ex);
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't count objects", ex);
         } finally {
             result.computeStatusIfUnknown();
         }

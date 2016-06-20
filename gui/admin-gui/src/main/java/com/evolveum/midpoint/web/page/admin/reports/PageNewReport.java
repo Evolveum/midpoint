@@ -234,7 +234,7 @@ public class PageNewReport extends PageAdminReports {
             setResponsePage(new PageReport(new ReportDto(Base64.encodeBase64(reportIn))));
         } catch (Exception ex) {
             result.recordFatalError("Couldn't import file.", ex);
-            LoggingUtils.logException(LOGGER, "Couldn't import file", ex);
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't import file", ex);
         } finally {
             if (stream != null) {
                 IOUtils.closeQuietly(stream);
@@ -264,7 +264,7 @@ public class PageNewReport extends PageAdminReports {
             setResponsePage(new PageReport(new ReportDto(Base64.encodeBase64(xml.getBytes()))));
         } catch (Exception ex) {
             result.recordFatalError("Couldn't import object.", ex);
-            LoggingUtils.logException(LOGGER, "Error occured during xml import", ex);
+            LoggingUtils.logUnexpectedException(LOGGER, "Error occured during xml import", ex);
         } finally {
             if (stream != null) {
                 IOUtils.closeQuietly(stream);

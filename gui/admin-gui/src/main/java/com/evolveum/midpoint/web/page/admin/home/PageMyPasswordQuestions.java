@@ -165,7 +165,7 @@ public class PageMyPasswordQuestions extends PageAdminHome {
                             decoded = protector.decryptString(securityQuestionAnswerType.getQuestionAnswer());
 
                         } catch (EncryptionException e) {
-                            LoggingUtils.logException(LOGGER, "Couldn't decrypt user answer", e);
+                            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't decrypt user answer", e);
 
                         }
                     }
@@ -471,7 +471,7 @@ public class PageMyPasswordQuestions extends PageAdminHome {
 			result.recordSuccess();
 		} catch (Exception ex) {
 			result.recordFatalError("Couldn't get user.", ex);
-			LoggingUtils.logException(LOGGER, "Couldn't load user PageMyQuestions", ex);
+			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load user PageMyQuestions", ex);
 		}
 
 			showResult(result, false);
@@ -488,7 +488,7 @@ public class PageMyPasswordQuestions extends PageAdminHome {
 			wrapper = owf.createObjectWrapper("pageMyPasswordQuestions.userDetails", null, user, status);
 		} catch (Exception ex){
 			result.recordFatalError("Couldn't get user.", ex);
-			LoggingUtils.logException(LOGGER, "Couldn't load user", ex);
+			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load user", ex);
 			wrapper = owf.createObjectWrapper("pageMyPasswordQuestions.userDetails", null, user, null, null, status, false);
 		}
 		//        ObjectWrapper wrapper = new ObjectWrapper("pageUser.userDetails", null, user, status);

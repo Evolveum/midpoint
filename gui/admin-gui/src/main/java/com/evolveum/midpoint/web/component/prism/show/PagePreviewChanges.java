@@ -78,8 +78,10 @@ public class PagePreviewChanges extends PageAdmin {
 					addIgnoreNull(secondaryDeltas, projCtx.getExecutableDelta());
 				}
 			}
-			LOGGER.info("Primary deltas:\n{}", DebugUtil.debugDump(primaryDeltas));
-			LOGGER.info("Secondary deltas:\n{}", DebugUtil.debugDump(secondaryDeltas));
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("Primary deltas:\n{}", DebugUtil.debugDump(primaryDeltas));
+				LOGGER.trace("Secondary deltas:\n{}", DebugUtil.debugDump(secondaryDeltas));
+			}
 
 			Task task = createSimpleTask("visualize");
 			primaryScenes = modelInteractionService.visualizeDeltas(primaryDeltas, task, task.getResult());

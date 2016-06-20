@@ -277,7 +277,7 @@ public class PrismPropertyPanel<IW extends ItemWrapper> extends Panel {
                 }
             }
         } catch (SchemaException ex) {
-            LoggingUtils.logException(LOGGER, "Couldn't check if property has pending modification", ex);
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't check if property has pending modification", ex);
         }
 
         return false;

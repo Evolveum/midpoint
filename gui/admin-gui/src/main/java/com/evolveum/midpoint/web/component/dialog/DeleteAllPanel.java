@@ -242,7 +242,7 @@ public class DeleteAllPanel extends Panel  implements Popupable{
             dto.setObjectsToDelete(dto.getObjectsToDelete() + dto.getUserCount());
         } catch (Exception ex) {
             result.computeStatus(getString("deleteAllDialog.message.countSearchProblem"));
-            LoggingUtils.logException(LOGGER, getString("deleteAllDialog.message.countSearchProblem"), ex);
+            LoggingUtils.logUnexpectedException(LOGGER, getString("deleteAllDialog.message.countSearchProblem"), ex);
         }
 
         return createStringResource("deleteAllDialog.label.usersDelete", dto.getUserCount()).getString();
@@ -267,7 +267,7 @@ public class DeleteAllPanel extends Panel  implements Popupable{
             dto.setObjectsToDelete(dto.getObjectsToDelete() + dto.getOrgUnitCount());
         } catch (Exception ex) {
             result.computeStatus(getString("deleteAllDialog.message.countSearchProblem"));
-            LoggingUtils.logException(LOGGER, getString("deleteAllDialog.message.countSearchProblem"), ex);
+            LoggingUtils.logUnexpectedException(LOGGER, getString("deleteAllDialog.message.countSearchProblem"), ex);
         }
 
         return createStringResource("deleteAllDialog.label.orgUnitsDelete", dto.getOrgUnitCount()).getString();
@@ -296,7 +296,7 @@ public class DeleteAllPanel extends Panel  implements Popupable{
 
         } catch (Exception ex) {
             result.computeStatus(getString("deleteAllDialog.message.countSearchProblem"));
-            LoggingUtils.logException(LOGGER, getString("deleteAllDialog.message.countSearchProblem"), ex);
+            LoggingUtils.logUnexpectedException(LOGGER, getString("deleteAllDialog.message.countSearchProblem"), ex);
         }
     }
 

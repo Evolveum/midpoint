@@ -23,6 +23,8 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
+import com.evolveum.midpoint.task.api.Task;
+
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -40,6 +42,7 @@ import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.TypedAssignablePanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
@@ -167,69 +170,75 @@ public class AssignmentTablePanel<T extends ObjectType> extends BasePanel<List<A
 		List<InlineMenuItem> items = new ArrayList<>();
 
 		InlineMenuItem item;
-        if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ASSIGN_ACTION_URL)) {
-            item = new InlineMenuItem(createStringResource("AssignmentTablePanel.menu.assign"),
-                    new InlineMenuItemAction() {
-                        private static final long serialVersionUID = 1L;
+		if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ASSIGN_ACTION_URL)) {
+			item = new InlineMenuItem(createStringResource("AssignmentTablePanel.menu.assign"),
+					new InlineMenuItemAction() {
+						private static final long serialVersionUID = 1L;
 
-                        @Override
-                        public void onClick(AjaxRequestTarget target) {
-                            TypedAssignablePanel panel = new TypedAssignablePanel(
-                                    getPageBase().getMainPopupBodyId(), RoleType.class, true, getPageBase()) {
-                                private static final long serialVersionUID = 1L;
+						@Override
+						public void onClick(AjaxRequestTarget target) {
+							TypedAssignablePanel panel = new TypedAssignablePanel(
+									getPageBase().getMainPopupBodyId(), RoleType.class, true, getPageBase()) {
+								private static final long serialVersionUID = 1L;
 
-                                @Override
-                                protected void addPerformed(AjaxRequestTarget target, List selected) {
-                                    super.addPerformed(target, selected);
-                                    addSelectedAssignablePerformed(target, selected,
-                                            getPageBase().getMainPopup().getId());
-                                }
+								@Override
+								protected void addPerformed(AjaxRequestTarget target, List selected) {
+									super.addPerformed(target, selected);
+									addSelectedAssignablePerformed(target, selected,
+											getPageBase().getMainPopup().getId());
+								}
 
-                            };
-                            panel.setOutputMarkupId(true);
-                            getPageBase().showMainPopup(panel, target);
-                        }
-                    });
-            items.add(item);
+							};
+							panel.setOutputMarkupId(true);
+							getPageBase().showMainPopup(panel, target);
+						}
+					});
+			items.add(item);
 
-            item = new InlineMenuItem(createStringResource("AssignmentTablePanel.menu.assignOrg"),
-                    new InlineMenuItemAction() {
-                        private static final long serialVersionUID = 1L;
+			item = new InlineMenuItem(createStringResource("AssignmentTablePanel.menu.assignOrg"),
+					new InlineMenuItemAction() {
+						private static final long serialVersionUID = 1L;
 
-                        @Override
-                        public void onClick(AjaxRequestTarget target) {
-                            OrgTreeAssignablePanel orgTreePanel = new OrgTreeAssignablePanel(
-                                    getPageBase().getMainPopupBodyId(), true, getPageBase()) {
-                                private static final long serialVersionUID = 1L;
+						@Override
+						public void onClick(AjaxRequestTarget target) {
+							int count = WebModelServiceUtils.countObjects(OrgType.class, null, getPageBase());
+							if (count > 0) {
+								OrgTreeAssignablePanel orgTreePanel = new OrgTreeAssignablePanel(
+										getPageBase().getMainPopupBodyId(), true, getPageBase()) {
+									private static final long serialVersionUID = 1L;
 
-                                @Override
-                                protected void assignSelectedOrgPerformed(List<OrgType> selectedOrgs,
-                                                                          AjaxRequestTarget target) {
-                                    // TODO Auto-generated method stub
-                                    addSelectedAssignablePerformed(target, (List) selectedOrgs,
-                                            getPageBase().getMainPopup().getId());
-                                }
-                            };
-                            orgTreePanel.setOutputMarkupId(true);
-                            getPageBase().showMainPopup(orgTreePanel, target);
+									@Override
+									protected void assignSelectedOrgPerformed(List<OrgType> selectedOrgs,
+											AjaxRequestTarget target) {
+										// TODO Auto-generated method stub
+										addSelectedAssignablePerformed(target, (List) selectedOrgs,
+												getPageBase().getMainPopup().getId());
+									}
+								};
+								orgTreePanel.setOutputMarkupId(true);
+								getPageBase().showMainPopup(orgTreePanel, target);
+							} else {
+								warn(createStringResource("AssignmentTablePanel.menu.assignOrg.noorgs").getString());
+								target.add(getPageBase().getFeedbackPanel());
+							}
 
-                        }
-                    });
-            items.add(item);
-            items.add(new InlineMenuItem());
-        }
-        if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_UNASSIGN_ACTION_URL)) {
-            item = new InlineMenuItem(createStringResource("AssignmentTablePanel.menu.unassign"),
-                    new InlineMenuItemAction() {
-                        private static final long serialVersionUID = 1L;
+						}
+					});
+			items.add(item);
+			items.add(new InlineMenuItem());
+		}
+		if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_UNASSIGN_ACTION_URL)) {
+			item = new InlineMenuItem(createStringResource("AssignmentTablePanel.menu.unassign"),
+					new InlineMenuItemAction() {
+						private static final long serialVersionUID = 1L;
 
-                        @Override
-                        public void onClick(AjaxRequestTarget target) {
-                            deleteAssignmentPerformed(target);
-                        }
-                    });
-            items.add(item);
-        }
+						@Override
+						public void onClick(AjaxRequestTarget target) {
+							deleteAssignmentPerformed(target);
+						}
+					});
+			items.add(item);
+		}
 		item = new InlineMenuItem(createStringResource("AssignmentTablePanel.menu.showAllAssignments"),
 				new InlineMenuItemAction() {
 					private static final long serialVersionUID = 1L;
@@ -344,7 +353,7 @@ public class AssignmentTablePanel<T extends ObjectType> extends BasePanel<List<A
 			} catch (Exception e) {
 				error(getString("AssignmentTablePanel.message.couldntAssignObject", object.getName(),
 						e.getMessage()));
-				LoggingUtils.logException(LOGGER, "Couldn't assign object", e);
+				LoggingUtils.logUnexpectedException(LOGGER, "Couldn't assign object", e);
 			}
 		}
 
@@ -361,7 +370,7 @@ public class AssignmentTablePanel<T extends ObjectType> extends BasePanel<List<A
 					new ItemPath(UserType.F_ASSIGNMENT));
 		} catch (SchemaException e) {
 			error(getString("Could not create assignment", resource.getName(), e.getMessage()));
-			LoggingUtils.logException(LOGGER, "Couldn't create assignment", e);
+			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't create assignment", e);
 			return;
 		}
 

@@ -124,7 +124,7 @@ public class PageBulkAction extends PageAdminConfiguration {
             }
         } catch (SchemaException|RuntimeException e) {
             result.recordFatalError("Couldn't parse bulk action object", e);
-            LoggingUtils.logException(LOGGER, "Couldn't parse bulk action object", e);
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't parse bulk action object", e);
         }
 
         if (expression != null) {
@@ -134,7 +134,7 @@ public class PageBulkAction extends PageAdminConfiguration {
                     result.recordStatus(OperationResultStatus.IN_PROGRESS, task.getName() + " has been successfully submitted to execution");
                 } catch (SchemaException|SecurityViolationException e) {
                     result.recordFatalError("Couldn't submit bulk action to execution", e);
-                    LoggingUtils.logException(LOGGER, "Couldn't submit bulk action to execution", e);
+                    LoggingUtils.logUnexpectedException(LOGGER, "Couldn't submit bulk action to execution", e);
                 }
             } else {
                 try {
@@ -144,7 +144,7 @@ public class PageBulkAction extends PageAdminConfiguration {
                     result.addCollectionOfSerializablesAsReturn("data", executionResult.getDataOutput());
                 } catch (ScriptExecutionException|SchemaException|SecurityViolationException e) {
                     result.recordFatalError("Couldn't execute bulk action", e);
-                    LoggingUtils.logException(LOGGER, "Couldn't execute bulk action", e);
+                    LoggingUtils.logUnexpectedException(LOGGER, "Couldn't execute bulk action", e);
                 }
             }
         }

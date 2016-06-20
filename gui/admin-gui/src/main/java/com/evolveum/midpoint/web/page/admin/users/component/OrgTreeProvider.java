@@ -128,7 +128,7 @@ public class OrgTreeProvider extends SortableTreeProvider<SelectableBean<OrgType
 //            Collections.sort(list);
             iterator = list.iterator();
         } catch (Exception ex) {
-            LoggingUtils.logException(LOGGER, "Couldn't load children", ex);
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load children", ex);
             result.recordFatalError("Unable to load org unit", ex);
         } finally {
             result.computeStatus();

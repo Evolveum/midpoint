@@ -1052,6 +1052,7 @@ public class TestOrgSync extends AbstractStoryTest {
 		TestUtil.displayThen(TEST_NAME);
 
 		waitForTaskFinish(TASK_RECON_OPENDJ_DEFAULT_SINGLE_OID, false);
+		waitForTaskCloseOrSuspend(TASK_RECON_OPENDJ_DEFAULT_SINGLE_OID);
 
 		// THEN
 		TestUtil.displayThen(TEST_NAME);
@@ -1092,6 +1093,7 @@ public class TestOrgSync extends AbstractStoryTest {
 		TestUtil.displayThen(TEST_NAME);
 
 		waitForTaskFinish(TASK_RECON_OPENDJ_DEFAULT_SINGLE_OID, false);
+		waitForTaskCloseOrSuspend(TASK_RECON_OPENDJ_DEFAULT_SINGLE_OID);
 
 		// THEN
 		TestUtil.displayThen(TEST_NAME);
@@ -1132,6 +1134,7 @@ public class TestOrgSync extends AbstractStoryTest {
 		TestUtil.displayThen(TEST_NAME);
 
 		waitForTaskFinish(TASK_RECON_OPENDJ_LDAPGROUP_SINGLE_OID, false);
+		waitForTaskCloseOrSuspend(TASK_RECON_OPENDJ_DEFAULT_SINGLE_OID);
 
 		// THEN
 		TestUtil.displayThen(TEST_NAME);
@@ -1183,6 +1186,7 @@ public class TestOrgSync extends AbstractStoryTest {
 		TestUtil.displayThen(TEST_NAME);
 
 		waitForTaskFinish(TASK_RECON_OPENDJ_DEFAULT_SINGLE_OID, false);
+		waitForTaskCloseOrSuspend(TASK_RECON_OPENDJ_DEFAULT_SINGLE_OID);
 
 		// THEN
 		TestUtil.displayThen(TEST_NAME);

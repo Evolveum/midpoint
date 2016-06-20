@@ -20,6 +20,7 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.exception.SystemException;
@@ -37,6 +38,7 @@ import com.evolveum.midpoint.web.page.admin.certification.dto.CertDecisionDto;
 import com.evolveum.midpoint.web.page.admin.certification.dto.CertDecisionDtoProvider;
 import com.evolveum.midpoint.web.page.admin.certification.helpers.AvailableResponses;
 import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
+import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemDto;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.TooltipBehavior;
@@ -196,27 +198,44 @@ public class PageCertDecisions extends PageAdminCertification {
         column = helper.createDetailedInfoColumn(this);
         columns.add(column);
 
-        column = new LinkColumn<CertDecisionDto>(
-                createStringResource("PageCertDecisions.table.campaignName"),
-                AccessCertificationCaseType.F_CAMPAIGN_REF.getLocalPart(), CertDecisionDto.F_CAMPAIGN_NAME) {
-            @Override
-            public void populateItem(Item<ICellPopulator<CertDecisionDto>> item, String componentId, IModel<CertDecisionDto> rowModel) {
-                super.populateItem(item, componentId, rowModel);
-                AccessCertificationCampaignType campaign = rowModel.getObject().getCampaign();
-                if (campaign != null && campaign.getDescription() != null) {
-                    item.add(AttributeModifier.replace("title", campaign.getDescription()));
-                    item.add(new TooltipBehavior());
-                }
-            }
+		if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_CERTIFICATION_ALL_URL,
+				AuthorizationConstants.AUTZ_UI_CERTIFICATION_CAMPAIGN_URL)) {
 
-            @Override
-            public void onClick(AjaxRequestTarget target, IModel<CertDecisionDto> rowModel) {
-                CertDecisionDto dto = rowModel.getObject();
-                PageParameters parameters = new PageParameters();
-                parameters.add(OnePageParameterEncoder.PARAMETER, dto.getCampaignRef().getOid());
-                setResponsePage(PageCertCampaign.class, parameters);
-            }
-        };
+			column = new LinkColumn<CertDecisionDto>(
+					createStringResource("PageCertDecisions.table.campaignName"),
+					AccessCertificationCaseType.F_CAMPAIGN_REF.getLocalPart(), CertDecisionDto.F_CAMPAIGN_NAME) {
+				@Override
+				public void populateItem(Item<ICellPopulator<CertDecisionDto>> item, String componentId, IModel<CertDecisionDto> rowModel) {
+					super.populateItem(item, componentId, rowModel);
+					AccessCertificationCampaignType campaign = rowModel.getObject().getCampaign();
+					if (campaign != null && campaign.getDescription() != null) {
+						item.add(AttributeModifier.replace("title", campaign.getDescription()));
+						item.add(new TooltipBehavior());
+					}
+				}
+
+				@Override
+				public void onClick(AjaxRequestTarget target, IModel<CertDecisionDto> rowModel) {
+					CertDecisionDto dto = rowModel.getObject();
+					PageParameters parameters = new PageParameters();
+					parameters.add(OnePageParameterEncoder.PARAMETER, dto.getCampaignRef().getOid());
+					setResponsePage(PageCertCampaign.class, parameters);
+				}
+			};
+		} else {
+			column = new AbstractColumn<CertDecisionDto, String>(createStringResource("PageCertDecisions.table.campaignName")) {
+				@Override
+				public void populateItem(Item<ICellPopulator<CertDecisionDto>> item, String componentId,
+						final IModel<CertDecisionDto> rowModel) {
+					item.add(new Label(componentId, new AbstractReadOnlyModel<Object>() {
+						@Override
+						public Object getObject() {
+							return rowModel.getObject().getCampaignName();
+						}
+					}));
+				}
+			};
+		}
         columns.add(column);
 
         column = new AbstractColumn<CertDecisionDto, String>(

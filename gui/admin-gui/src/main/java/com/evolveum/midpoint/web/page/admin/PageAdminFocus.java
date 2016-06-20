@@ -355,7 +355,7 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 
 		} catch (Exception ex) {
 			subResult.recordFatalError("Couldn't load account." + ex.getMessage(), ex);
-			LoggingUtils.logException(LOGGER, "Couldn't load account", ex);
+			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load account", ex);
 			subResult.computeStatus();
 			return new FocusSubwrapperDto<S>(false, resourceName, subResult);
 		}
@@ -534,7 +534,7 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 				}
 			} catch (Exception ex) {
 				result.recordFatalError("Failed to execute delete operation with force.");
-				LoggingUtils.logException(LOGGER, "Failed to execute delete operation with force", ex);
+				LoggingUtils.logUnexpectedException(LOGGER, "Failed to execute delete operation with force", ex);
 				return false;
 			}
 
@@ -655,7 +655,7 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 				// if (subResult != null) {
 				result.recordFatalError("Couldn't compute account delta.", ex);
 				// }
-				LoggingUtils.logException(LOGGER, "Couldn't compute account delta", ex);
+				LoggingUtils.logUnexpectedException(LOGGER, "Couldn't compute account delta", ex);
 			}
 		}
 

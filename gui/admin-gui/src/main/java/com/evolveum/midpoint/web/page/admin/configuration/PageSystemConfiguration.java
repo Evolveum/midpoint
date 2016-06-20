@@ -128,7 +128,7 @@ public class PageSystemConfiguration extends PageAdminConfiguration {
 			dto = new SystemConfigurationDto(systemConfig);
 			result.recordSuccess();
 		} catch (Exception ex) {
-			LoggingUtils.logException(LOGGER, "Couldn't load system configuration", ex);
+			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load system configuration", ex);
 			result.recordFatalError("Couldn't load system configuration.", ex);
 		}
 
@@ -288,7 +288,7 @@ public class PageSystemConfiguration extends PageAdminConfiguration {
 		} catch (Exception e) {
 			result.recomputeStatus();
 			result.recordFatalError("Couldn't save system configuration.", e);
-			LoggingUtils.logException(LOGGER, "Couldn't save system configuration.", e);
+			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't save system configuration.", e);
 		}
 
 		showResult(result);

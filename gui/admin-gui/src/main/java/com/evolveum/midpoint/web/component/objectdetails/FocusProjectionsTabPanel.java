@@ -269,7 +269,7 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
 			} catch (Exception ex) {
 				error(getString("pageAdminFocus.message.couldntCreateAccount", resource.getName(),
 						ex.getMessage()));
-				LoggingUtils.logException(LOGGER, "Couldn't create account", ex);
+				LoggingUtils.logUnexpectedException(LOGGER, "Couldn't create account", ex);
 			}
 		}
 		target.add(get(ID_SHADOWS));

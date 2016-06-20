@@ -131,7 +131,7 @@ public class PageCertDefinition extends PageAdminCertification {
 			definitionDto = new CertDefinitionDto(definition, this, getPrismContext());
 			result.recordSuccessIfUnknown();
 		} catch (Exception ex) {
-			LoggingUtils.logException(LOGGER, "Couldn't get definition", ex);
+			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't get definition", ex);
 			result.recordFatalError("Couldn't get definition.", ex);
 		}
 		result.recomputeStatus();

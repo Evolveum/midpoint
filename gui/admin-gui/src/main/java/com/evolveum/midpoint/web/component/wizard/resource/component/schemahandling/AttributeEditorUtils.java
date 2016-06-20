@@ -61,7 +61,7 @@ class AttributeEditorUtils {
 					return rule.getName();
 				} catch (SchemaException e) {
 					// we could get here if invalid QName is specified - but we don't want to throw an exception in that case
-					LoggingUtils.logException(LOGGER, "Invalid matching rule name encountered in resource wizard: {} -- continuing", e, rawRuleName);
+					LoggingUtils.logUnexpectedException(LOGGER, "Invalid matching rule name encountered in resource wizard: {} -- continuing", e, rawRuleName);
 					return rawRuleName;
 				}
 			}

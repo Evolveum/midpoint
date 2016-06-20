@@ -218,7 +218,7 @@ public class ResourceDetailsTabPanel extends Panel {
 				configs.add(resourceConfig);
 			}
 		} catch (SchemaException ex) {
-			LoggingUtils.logException(LOGGER, "Could not determine resource configuration", ex);
+			LoggingUtils.logUnexpectedException(LOGGER, "Could not determine resource configuration", ex);
 		}
 
 		return configs;

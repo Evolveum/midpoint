@@ -455,7 +455,7 @@ public class PageAccounts extends PageAdminConfiguration {
                     }
 
                 } catch (Exception e){
-                    LoggingUtils.logException(LOGGER, "Couldn't load intents from resource.", e);
+                    LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load intents from resource.", e);
                     error("Couldn't load intents from resource.");
                     return null;
                 }
@@ -543,7 +543,7 @@ public class PageAccounts extends PageAdminConfiguration {
 
                     return getModelService().countObjects(ShadowType.class, query, options, task, result);
                 } catch (Exception ex) {
-                    LoggingUtils.logException(LOGGER, "Couldn't count shadows", ex);
+                    LoggingUtils.logUnexpectedException(LOGGER, "Couldn't count shadows", ex);
                 }
 
                 return 0;
@@ -568,7 +568,7 @@ public class PageAccounts extends PageAdminConfiguration {
                         }
                     });
                 } catch (Exception ex) {
-                    LoggingUtils.logException(LOGGER, "Couldn't list files", ex);
+                    LoggingUtils.logUnexpectedException(LOGGER, "Couldn't list files", ex);
                     getSession().error("Couldn't list files, reason: " + ex.getMessage());
 
                     throw new RestartResponseException(PageDashboard.class);
@@ -703,7 +703,7 @@ public class PageAccounts extends PageAdminConfiguration {
 			xml = getPrismContext().serializeAtomicValue(result, ShadowType.F_RESULT, PrismContext.LANG_XML);
 			aceEditor.updateModel(new Model<String>(xml));
 		} catch (SchemaException e) {
-			LoggingUtils.logException(LOGGER, "Couldn't parse result", e);
+			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't parse result", e);
 			aceEditor.updateModel(new Model<String>("Unable to show result. For more information see logs."));
 		}
 		
@@ -727,7 +727,7 @@ public class PageAccounts extends PageAdminConfiguration {
             return RefFilter.createReferenceEqual(ShadowType.F_RESOURCE_REF, ShadowType.class,
                     getPrismContext(), oid);
         } catch (Exception ex) {
-            LoggingUtils.logException(LOGGER, "Couldn't create query", ex);
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't create query", ex);
             error("Couldn't create query, reason: " + ex.getMessage());
         } finally {
             result.recomputeStatus();
@@ -762,7 +762,7 @@ public class PageAccounts extends PageAdminConfiguration {
             }
             result.recordSuccess();
         } catch (Exception ex) {
-            LoggingUtils.logException(LOGGER, "Couldn't load resources", ex);
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load resources", ex);
             result.recordFatalError("Couldn't load resources, reason: " + ex.getMessage(), ex);
         } finally {
             if (result.isUnknown()) {
@@ -818,7 +818,7 @@ public class PageAccounts extends PageAdminConfiguration {
 
             dto.setObjectClassList(accountObjectClassList);
         } catch (Exception e){
-            LoggingUtils.logException(LOGGER, "Couldn't load object class list from resource.", e);
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load object class list from resource.", e);
             result.recordFatalError("Couldn't load object class list from resource.: " +e.getMessage(), e);
             showResult(result, false);
             resourceModel.setObject(null);
@@ -882,7 +882,7 @@ public class PageAccounts extends PageAdminConfiguration {
 
                         result.computeStatus();
                     } catch (Exception ex) {
-                        LoggingUtils.logException(LOGGER, "Couldn't serialize account", ex);
+                        LoggingUtils.logUnexpectedException(LOGGER, "Couldn't serialize account", ex);
                         result.recordFatalError("Couldn't serialize account.", ex);
 
                         return false;
@@ -902,7 +902,7 @@ public class PageAccounts extends PageAdminConfiguration {
 
             result.recomputeStatus();
         } catch (Exception ex) {
-            LoggingUtils.logException(LOGGER, "Couldn't export accounts", ex);
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't export accounts", ex);
             error(getString("PageAccounts.exportException", ex.getMessage()));
         } finally {
             IOUtils.closeQuietly(writer);
@@ -960,7 +960,7 @@ public class PageAccounts extends PageAdminConfiguration {
                 file.delete();
             }
         } catch (Exception ex) {
-            LoggingUtils.logException(LOGGER, "Couldn't delete export files", ex);
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't delete export files", ex);
             error("Couldn't delete export files, reason: " + ex.getMessage());
         }
 
@@ -1120,7 +1120,7 @@ public class PageAccounts extends PageAdminConfiguration {
             //owner was not found, it's possible and it's ok on unlinked accounts
         } catch (Exception ex){
             result.recordFatalError(getString("PageAccounts.message.ownerNotFound", shadowOid), ex);
-            LoggingUtils.logException(LOGGER, "Could not load owner of account with oid: " + shadowOid, ex);
+            LoggingUtils.logUnexpectedException(LOGGER, "Could not load owner of account with oid: " + shadowOid, ex);
         } finally {
             result.computeStatusIfUnknown();
         }

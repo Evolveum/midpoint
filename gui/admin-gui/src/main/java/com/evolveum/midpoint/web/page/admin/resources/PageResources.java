@@ -484,7 +484,7 @@ public class PageResources extends PageAdminResources {
 						result);
 			} catch (Exception ex) {
 				result.recordPartialError("Couldn't delete host.", ex);
-				LoggingUtils.logException(LOGGER, "Couldn't delete host", ex);
+				LoggingUtils.logUnexpectedException(LOGGER, "Couldn't delete host", ex);
 			}
 		}
 
@@ -522,7 +522,7 @@ public class PageResources extends PageAdminResources {
 						result);
 			} catch (Exception ex) {
 				result.recordPartialError("Couldn't delete resource.", ex);
-				LoggingUtils.logException(LOGGER, "Couldn't delete resource", ex);
+				LoggingUtils.logUnexpectedException(LOGGER, "Couldn't delete resource", ex);
 			}
 		}
 

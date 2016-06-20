@@ -451,7 +451,7 @@ public abstract class ResourceContentPanel extends Panel {
 				}
 			}
 		} catch (SchemaException ex) {
-			LoggingUtils.logException(LOGGER, "Could not crate query for shadows: " + ex.getMessage(), ex);
+			LoggingUtils.logUnexpectedException(LOGGER, "Could not crate query for shadows: " + ex.getMessage(), ex);
 		}
 		return baseQuery;
 	}
@@ -654,7 +654,7 @@ public abstract class ResourceContentPanel extends Panel {
 		// } catch (Exception ex) {
 		// result.recordFatalError(pageBase.getString("PageAccounts.message.ownerNotFound",
 		// shadowOid), ex);
-		// LoggingUtils.logException(LOGGER, "Could not load owner of account
+		// LoggingUtils.logUnexpectedException(LOGGER, "Could not load owner of account
 		// with oid: " + shadowOid, ex);
 		// } finally {
 		// result.computeStatusIfUnknown();
@@ -697,7 +697,7 @@ public abstract class ResourceContentPanel extends Panel {
 			// accounts
 		} catch (Exception ex) {
 			result.recordFatalError(pageBase.getString("PageAccounts.message.ownerNotFound", shadowOid), ex);
-			LoggingUtils.logException(LOGGER, "Could not load owner of account with oid: " + shadowOid, ex);
+			LoggingUtils.logUnexpectedException(LOGGER, "Could not load owner of account with oid: " + shadowOid, ex);
 		} finally {
 			result.computeStatusIfUnknown();
 		}

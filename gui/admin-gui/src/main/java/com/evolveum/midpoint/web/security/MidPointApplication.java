@@ -162,7 +162,7 @@ public class MidPointApplication extends AuthenticatedWebApplication {
                         locales.add(descriptor);
                     }
                 } catch (Exception ex) {
-                    LoggingUtils.logException(LOGGER, "Couldn't load localization", ex);
+                    LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load localization", ex);
                 } finally {
                     IOUtils.closeQuietly(reader);
                 }
@@ -170,7 +170,7 @@ public class MidPointApplication extends AuthenticatedWebApplication {
 
             Collections.sort(locales);
         } catch (Exception ex) {
-            LoggingUtils.logException(LOGGER, "Couldn't load locales", ex);
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load locales", ex);
         }
 
         AVAILABLE_LOCALES = Collections.unmodifiableList(locales);
@@ -292,7 +292,7 @@ public class MidPointApplication extends AuthenticatedWebApplication {
                 mountResource(path + "/" + file.getName(), new SharedResourceReference(clazz, file.getName()));
             }
         } catch (Exception ex) {
-            LoggingUtils.logException(LOGGER, "Couldn't mount files", ex);
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't mount files", ex);
         }
     }
 

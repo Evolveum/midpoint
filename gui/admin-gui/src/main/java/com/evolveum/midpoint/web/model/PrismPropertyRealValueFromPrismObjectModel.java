@@ -67,7 +67,7 @@ public class PrismPropertyRealValueFromPrismObjectModel<T,O extends ObjectType> 
         try {
             property = object.findOrCreateProperty(path);
         } catch (SchemaException ex) {
-            LoggingUtils.logException(LOGGER, "Couldn't create property in path {}", ex, path);
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't create property in path {}", ex, path);
             //todo show message in page error [lazyman]
             throw new RestartResponseException(PageError.class);
         }
@@ -93,7 +93,7 @@ public class PrismPropertyRealValueFromPrismObjectModel<T,O extends ObjectType> 
                 parent.remove(property);
             }
         } catch (Exception ex) {
-            LoggingUtils.logException(LOGGER, "Couldn't update prism property model", ex);
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't update prism property model", ex);
         }
     }
 

@@ -974,7 +974,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 //		for (AssignmentType assignmentType : user.getAssignment()) {
 //			ObjectReferenceType ref = assignmentType.getTargetRef();
 //			if (ref != null) {
-//				retval.add(ref.asReferenceValue());
+//				retval.add(ref.clone().asReferenceValue());
 //			}
 //		}
 //		return retval;

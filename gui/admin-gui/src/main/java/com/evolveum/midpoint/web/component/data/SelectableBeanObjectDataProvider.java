@@ -152,7 +152,7 @@ public class SelectableBeanObjectDataProvider<O extends ObjectType> extends Base
 //            result.recordSuccess();
         } catch (Exception ex) {
             result.recordFatalError("Couldn't list objects.", ex);
-            LoggingUtils.logException(LOGGER, "Couldn't list objects", ex);
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't list objects", ex);
             return handleNotSuccessOrHandledErrorInIterator(result);
         } finally {
             result.computeStatusIfUnknown();
@@ -202,7 +202,7 @@ public class SelectableBeanObjectDataProvider<O extends ObjectType> extends Base
             count = counted == null ? 0 : counted.intValue();
         } catch (Exception ex) {
             result.recordFatalError("Couldn't count objects.", ex);
-            LoggingUtils.logException(LOGGER, "Couldn't count objects", ex);
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't count objects", ex);
         } finally {
             result.computeStatusIfUnknown();
         }

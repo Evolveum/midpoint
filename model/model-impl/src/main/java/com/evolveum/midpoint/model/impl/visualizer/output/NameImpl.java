@@ -30,6 +30,7 @@ public class NameImpl implements Name {
 	private String displayName;
 	private String id;
 	private String description;
+	private boolean namesAreResourceKeys;
 
 	public NameImpl(String simpleName) {
 		this.simpleName = simpleName;
@@ -67,6 +68,14 @@ public class NameImpl implements Name {
 		this.description = description;
 	}
 
+	public boolean namesAreResourceKeys() {
+		return namesAreResourceKeys;
+	}
+
+	public void setNamesAreResourceKeys(boolean namesAreResourceKeys) {
+		this.namesAreResourceKeys = namesAreResourceKeys;
+	}
+
 	@Override
 	public String toString() {
 		return toDebugDump();
@@ -83,6 +92,9 @@ public class NameImpl implements Name {
 
 		NameImpl name = (NameImpl) o;
 
+		if (namesAreResourceKeys != name.namesAreResourceKeys) {
+			return false;
+		}
 		if (simpleName != null ? !simpleName.equals(name.simpleName) : name.simpleName != null) return false;
 		if (displayName != null ? !displayName.equals(name.displayName) : name.displayName != null) return false;
 		if (id != null ? !id.equals(name.id) : name.id != null) return false;

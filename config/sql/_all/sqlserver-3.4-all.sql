@@ -1,25 +1,105 @@
 CREATE TABLE m_abstract_role (
-  approvalProcess NVARCHAR(255) COLLATE database_default,
-  requestable     BIT,
-  oid             NVARCHAR(36) COLLATE database_default NOT NULL,
+  approvalProcess    NVARCHAR(255) COLLATE database_default,
+  displayName_norm   NVARCHAR(255) COLLATE database_default,
+  displayName_orig   NVARCHAR(255) COLLATE database_default,
+  identifier         NVARCHAR(255) COLLATE database_default,
+  ownerRef_relation  NVARCHAR(157) COLLATE database_default,
+  ownerRef_targetOid NVARCHAR(36) COLLATE database_default,
+  ownerRef_type      INT,
+  requestable        BIT,
+  riskLevel          NVARCHAR(255) COLLATE database_default,
+  oid                NVARCHAR(36) COLLATE database_default NOT NULL,
   PRIMARY KEY (oid)
 );
 
 CREATE TABLE m_acc_cert_campaign (
-    definitionRef_relation NVARCHAR(157) COLLATE database_default,
-    definitionRef_targetOid NVARCHAR(36) COLLATE database_default,
-    definitionRef_type INT,
-    name_norm NVARCHAR(255) COLLATE database_default,
-    name_orig NVARCHAR(255) COLLATE database_default,
-    oid NVARCHAR(36) COLLATE database_default NOT NULL,
-    PRIMARY KEY (oid)
+  definitionRef_relation  NVARCHAR(157) COLLATE database_default,
+  definitionRef_targetOid NVARCHAR(36) COLLATE database_default,
+  definitionRef_type      INT,
+  endTimestamp            DATETIME2,
+  handlerUri              NVARCHAR(255) COLLATE database_default,
+  name_norm               NVARCHAR(255) COLLATE database_default,
+  name_orig               NVARCHAR(255) COLLATE database_default,
+  ownerRef_relation       NVARCHAR(157) COLLATE database_default,
+  ownerRef_targetOid      NVARCHAR(36) COLLATE database_default,
+  ownerRef_type           INT,
+  stageNumber             INT,
+  startTimestamp          DATETIME2,
+  state                   INT,
+  oid                     NVARCHAR(36) COLLATE database_default NOT NULL,
+  PRIMARY KEY (oid)
+);
+
+CREATE TABLE m_acc_cert_case (
+  id                       INT                                   NOT NULL,
+  owner_oid                NVARCHAR(36) COLLATE database_default NOT NULL,
+  administrativeStatus     INT,
+  archiveTimestamp         DATETIME2,
+  disableReason            NVARCHAR(255) COLLATE database_default,
+  disableTimestamp         DATETIME2,
+  effectiveStatus          INT,
+  enableTimestamp          DATETIME2,
+  validFrom                DATETIME2,
+  validTo                  DATETIME2,
+  validityChangeTimestamp  DATETIME2,
+  validityStatus           INT,
+  currentStageNumber       INT,
+  currentStageOutcome      INT,
+  fullObject               VARBINARY(MAX),
+  objectRef_relation       NVARCHAR(157) COLLATE database_default,
+  objectRef_targetOid      NVARCHAR(36) COLLATE database_default,
+  objectRef_type           INT,
+  orgRef_relation          NVARCHAR(157) COLLATE database_default,
+  orgRef_targetOid         NVARCHAR(36) COLLATE database_default,
+  orgRef_type              INT,
+  overallOutcome           INT,
+  remediedTimestamp        DATETIME2,
+  reviewDeadline           DATETIME2,
+  reviewRequestedTimestamp DATETIME2,
+  targetRef_relation       NVARCHAR(157) COLLATE database_default,
+  targetRef_targetOid      NVARCHAR(36) COLLATE database_default,
+  targetRef_type           INT,
+  tenantRef_relation       NVARCHAR(157) COLLATE database_default,
+  tenantRef_targetOid      NVARCHAR(36) COLLATE database_default,
+  tenantRef_type           INT,
+  PRIMARY KEY (id, owner_oid)
+);
+
+CREATE TABLE m_acc_cert_case_reference (
+  owner_id        INT                                    NOT NULL,
+  owner_owner_oid NVARCHAR(36) COLLATE database_default  NOT NULL,
+  reference_type  INT                                    NOT NULL,
+  relation        NVARCHAR(157) COLLATE database_default NOT NULL,
+  targetOid       NVARCHAR(36) COLLATE database_default  NOT NULL,
+  containerType   INT,
+  PRIMARY KEY (owner_id, owner_owner_oid, reference_type, relation, targetOid)
+);
+
+CREATE TABLE m_acc_cert_decision (
+  id                    INT                                   NOT NULL,
+  owner_id              INT                                   NOT NULL,
+  owner_owner_oid       NVARCHAR(36) COLLATE database_default NOT NULL,
+  reviewerComment       NVARCHAR(255) COLLATE database_default,
+  response              INT,
+  reviewerRef_relation  NVARCHAR(157) COLLATE database_default,
+  reviewerRef_targetOid NVARCHAR(36) COLLATE database_default,
+  reviewerRef_type      INT,
+  stageNumber           INT                                   NOT NULL,
+  timestamp             DATETIME2,
+  PRIMARY KEY (id, owner_id, owner_owner_oid)
 );
 
 CREATE TABLE m_acc_cert_definition (
-    name_norm NVARCHAR(255) COLLATE database_default,
-    name_orig NVARCHAR(255) COLLATE database_default,
-    oid NVARCHAR(36) COLLATE database_default NOT NULL,
-    PRIMARY KEY (oid)
+  handlerUri                   NVARCHAR(255) COLLATE database_default,
+  lastCampaignClosedTimestamp  DATETIME2,
+  lastCampaignStartedTimestamp DATETIME2,
+  name_norm                    NVARCHAR(255) COLLATE database_default,
+  name_orig                    NVARCHAR(255) COLLATE database_default,
+  ownerRef_relation            NVARCHAR(157) COLLATE database_default,
+  ownerRef_targetOid           NVARCHAR(36) COLLATE database_default,
+  ownerRef_type                INT,
+  oid                          NVARCHAR(36) COLLATE database_default NOT NULL,
+  PRIMARY KEY (oid)
 );
 
 CREATE TABLE m_assignment (
@@ -404,10 +484,7 @@ CREATE TABLE m_object_template (
 
 CREATE TABLE m_org (
   costCenter       NVARCHAR(255) COLLATE database_default,
-  displayName_norm NVARCHAR(255) COLLATE database_default,
-  displayName_orig NVARCHAR(255) COLLATE database_default,
   displayOrder     INT,
-  identifier       NVARCHAR(255) COLLATE database_default,
   locality_norm    NVARCHAR(255) COLLATE database_default,
   locality_orig    NVARCHAR(255) COLLATE database_default,
   name_norm        NVARCHAR(255) COLLATE database_default,
@@ -493,6 +570,21 @@ CREATE TABLE m_sequence (
   PRIMARY KEY (oid)
 );
 
+CREATE TABLE m_service (
+  displayOrder  INT,
+  locality_norm NVARCHAR(255) COLLATE database_default,
+  locality_orig NVARCHAR(255) COLLATE database_default,
+  name_norm     NVARCHAR(255) COLLATE database_default,
+  name_orig     NVARCHAR(255) COLLATE database_default,
+  oid           NVARCHAR(36) COLLATE database_default NOT NULL,
+  PRIMARY KEY (oid)
+);
+
+CREATE TABLE m_service_type (
+  service_oid NVARCHAR(36) COLLATE database_default NOT NULL,
+  serviceType NVARCHAR(255) COLLATE database_default
+);
+
 CREATE TABLE m_shadow (
   attemptNumber                INT,
   dead                         BIT,
@@ -545,6 +637,18 @@ CREATE TABLE m_task (
   taskIdentifier         NVARCHAR(255) COLLATE database_default,
   threadStopAction       INT,
   waitingReason          INT,
+  wfEndTimestamp           DATETIME2,
+  wfObjectRef_relation     NVARCHAR(157) COLLATE database_default,
+  wfObjectRef_targetOid    NVARCHAR(36) COLLATE database_default,
+  wfObjectRef_type         INT,
+  wfProcessInstanceId      NVARCHAR(255) COLLATE database_default,
+  wfRequesterRef_relation  NVARCHAR(157) COLLATE database_default,
+  wfRequesterRef_targetOid NVARCHAR(36) COLLATE database_default,
+  wfRequesterRef_type      INT,
+  wfStartTimestamp         DATETIME2,
+  wfTargetRef_relation     NVARCHAR(157) COLLATE database_default,
+  wfTargetRef_targetOid    NVARCHAR(36) COLLATE database_default,
+  wfTargetRef_type         INT,
   oid                    NVARCHAR(36) COLLATE database_default NOT NULL,
   PRIMARY KEY (oid)
 );
@@ -619,10 +723,25 @@ CREATE TABLE m_value_policy (
   PRIMARY KEY (oid)
 );
 
+CREATE INDEX iAbstractRoleIdentifier ON m_abstract_role (identifier);
+
 CREATE INDEX iRequestable ON m_abstract_role (requestable);
 
 ALTER TABLE m_acc_cert_campaign
     ADD CONSTRAINT uc_acc_cert_campaign_name  UNIQUE (name_norm);
+
+CREATE INDEX iCaseObjectRefTargetOid ON m_acc_cert_case (objectRef_targetOid);
+
+CREATE INDEX iCaseTargetRefTargetOid ON m_acc_cert_case (targetRef_targetOid);
+
+CREATE INDEX iCaseTenantRefTargetOid ON m_acc_cert_case (tenantRef_targetOid);
+
+CREATE INDEX iCaseOrgRefTargetOid ON m_acc_cert_case (orgRef_targetOid);
+
+CREATE INDEX iCaseReferenceTargetOid ON m_acc_cert_case_reference (targetOid);
+
+ALTER TABLE m_acc_cert_decision
+ADD CONSTRAINT uc_case_stage_reviewer UNIQUE (owner_owner_oid, owner_id, stageNumber, reviewerRef_targetOid);
 
 ALTER TABLE m_acc_cert_definition
     ADD CONSTRAINT uc_acc_cert_definition_name  UNIQUE (name_norm);
@@ -669,7 +788,7 @@ ALTER TABLE m_lookup_table
 ADD CONSTRAINT uc_lookup_name UNIQUE (name_norm);
 
 ALTER TABLE m_lookup_table_row
-ADD CONSTRAINT uc_row_key UNIQUE (row_key);
+ADD CONSTRAINT uc_row_key UNIQUE (owner_oid, row_key);
 
 ALTER TABLE m_node
 ADD CONSTRAINT uc_node_name UNIQUE (name_norm);
@@ -748,6 +867,18 @@ ADD CONSTRAINT uc_system_configuration_name UNIQUE (name_norm);
 
 CREATE INDEX iParent ON m_task (parent);
 
+CREATE INDEX iTaskWfProcessInstanceId ON m_task (wfProcessInstanceId);
+
+CREATE INDEX iTaskWfStartTimestamp ON m_task (wfStartTimestamp);
+
+CREATE INDEX iTaskWfEndTimestamp ON m_task (wfEndTimestamp);
+
+CREATE INDEX iTaskWfRequesterOid ON m_task (wfRequesterRef_targetOid);
+
+CREATE INDEX iTaskWfObjectOid ON m_task (wfObjectRef_targetOid);
+
+CREATE INDEX iTaskWfTargetOid ON m_task (wfTargetRef_targetOid);
+
 CREATE INDEX iTriggerTimestamp ON m_trigger (timestampValue);
 
 ALTER TABLE m_user
@@ -775,6 +906,21 @@ ALTER TABLE m_acc_cert_campaign
     ADD CONSTRAINT fk_acc_cert_campaign
     FOREIGN KEY (oid)
     REFERENCES m_object;
+
+ALTER TABLE m_acc_cert_case
+ADD CONSTRAINT fk_acc_cert_case_owner
+FOREIGN KEY (owner_oid)
+REFERENCES m_object;
+
+ALTER TABLE m_acc_cert_case_reference
+ADD CONSTRAINT fk_acc_cert_case_ref_owner
+FOREIGN KEY (owner_id, owner_owner_oid)
+REFERENCES m_acc_cert_case;
+
+ALTER TABLE m_acc_cert_decision
+ADD CONSTRAINT fk_acc_cert_decision_owner
+FOREIGN KEY (owner_id, owner_owner_oid)
+REFERENCES m_acc_cert_case;
 
 ALTER TABLE m_acc_cert_definition
     ADD CONSTRAINT fk_acc_cert_definition
@@ -965,6 +1111,16 @@ ALTER TABLE m_sequence
 ADD CONSTRAINT fk_sequence
 FOREIGN KEY (oid)
 REFERENCES m_object;
+
+ALTER TABLE m_service
+  ADD CONSTRAINT fk_service
+FOREIGN KEY (oid)
+REFERENCES m_abstract_role;
+
+ALTER TABLE m_service_type
+  ADD CONSTRAINT fk_service_type
+FOREIGN KEY (service_oid)
+REFERENCES m_service;
 
 ALTER TABLE m_shadow
 ADD CONSTRAINT fk_shadow
@@ -1378,10 +1534,10 @@ create table ACT_GE_PROPERTY (
 );
 
 insert into ACT_GE_PROPERTY
-values ('schema.version', '5.17.0.2', 1);
+values ('schema.version', '5.20.0.1', 1);
 
 insert into ACT_GE_PROPERTY
-values ('schema.history', 'create(5.17.0.2)', 1);
+values ('schema.history', 'create(5.20.0.1)', 1);
 
 insert into ACT_GE_PROPERTY
 values ('next.dbid', '1', 1);
@@ -1445,7 +1601,7 @@ create table ACT_RU_EXECUTION (
 
 create table ACT_RU_JOB (
     ID_ nvarchar(64) NOT NULL,
-  REV_ int,
+  	REV_ int,
     TYPE_ nvarchar(255) NOT NULL,
     LOCK_EXP_TIME_ datetime,
     LOCK_OWNER_ nvarchar(255),
@@ -1564,6 +1720,14 @@ create table ACT_EVT_LOG (
     primary key (LOG_NR_)
 );
 
+create table ACT_PROCDEF_INFO (
+	ID_ nvarchar(64) not null,
+    PROC_DEF_ID_ nvarchar(64) not null,
+    REV_ int,
+    INFO_JSON_ID_ nvarchar(64),
+    primary key (ID_)
+);
+
 create index ACT_IDX_EXEC_BUSKEY on ACT_RU_EXECUTION(BUSINESS_KEY_);
 create index ACT_IDX_TASK_CREATE on ACT_RU_TASK(CREATE_TIME_);
 create index ACT_IDX_IDENT_LNK_USER on ACT_RU_IDENTITYLINK(USER_ID_);
@@ -1586,6 +1750,7 @@ create index ACT_IDX_EXEC_PROC_INST_ID on ACT_RU_EXECUTION(PROC_INST_ID_);
 create index ACT_IDX_TASK_PROC_DEF_ID on ACT_RU_TASK(PROC_DEF_ID_);
 create index ACT_IDX_EVENT_SUBSCR_EXEC_ID on ACT_RU_EVENT_SUBSCR(EXECUTION_ID_);
 create index ACT_IDX_JOB_EXCEPTION_STACK_ID on ACT_RU_JOB(EXCEPTION_STACK_ID_);
+create index ACT_IDX_INFO_PROCDEF on ACT_PROCDEF_INFO(PROC_DEF_ID_);
 
 alter table ACT_GE_BYTEARRAY
     add constraint ACT_FK_BYTEARR_DEPL
@@ -1637,9 +1802,9 @@ alter table ACT_RU_TASK
     references ACT_RU_EXECUTION (ID_);
 
 alter table ACT_RU_TASK
-  add constraint ACT_FK_TASK_PROCDEF
-  foreign key (PROC_DEF_ID_)
-  references ACT_RE_PROCDEF (ID_);
+  	add constraint ACT_FK_TASK_PROCDEF
+  	foreign key (PROC_DEF_ID_)
+  	references ACT_RE_PROCDEF (ID_);
 
 alter table ACT_RU_VARIABLE
     add constraint ACT_FK_VAR_EXE
@@ -1680,6 +1845,20 @@ alter table ACT_RE_MODEL
     add constraint ACT_FK_MODEL_DEPLOYMENT
     foreign key (DEPLOYMENT_ID_)
     references ACT_RE_DEPLOYMENT (ID_);
+
+alter table ACT_PROCDEF_INFO
+    add constraint ACT_FK_INFO_JSON_BA
+    foreign key (INFO_JSON_ID_)
+    references ACT_GE_BYTEARRAY (ID_);
+
+alter table ACT_PROCDEF_INFO
+    add constraint ACT_FK_INFO_PROCDEF
+    foreign key (PROC_DEF_ID_)
+    references ACT_RE_PROCDEF (ID_);
+
+alter table ACT_PROCDEF_INFO
+    add constraint ACT_UNIQ_INFO_PROCDEF
+    unique (PROC_DEF_ID_);
 
 create table ACT_HI_PROCINST (
     ID_ nvarchar(64) not null,
@@ -1835,6 +2014,7 @@ create index ACT_IDX_HI_ACT_INST_EXEC on ACT_HI_ACTINST(EXECUTION_ID_, ACT_ID_);
 create index ACT_IDX_HI_IDENT_LNK_USER on ACT_HI_IDENTITYLINK(USER_ID_);
 create index ACT_IDX_HI_IDENT_LNK_TASK on ACT_HI_IDENTITYLINK(TASK_ID_);
 create index ACT_IDX_HI_IDENT_LNK_PROCINST on ACT_HI_IDENTITYLINK(PROC_INST_ID_);
+create index ACT_IDX_HI_TASK_INST_PROCINST on ACT_HI_TASKINST(PROC_INST_ID_);
 
 create table ACT_ID_GROUP (
     ID_ nvarchar(64),
@@ -1882,4 +2062,3 @@ alter table ACT_ID_MEMBERSHIP
     add constraint ACT_FK_MEMB_USER
     foreign key (USER_ID_)
     references ACT_ID_USER (ID_);
-

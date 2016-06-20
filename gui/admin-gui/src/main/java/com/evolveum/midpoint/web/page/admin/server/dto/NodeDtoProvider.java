@@ -67,7 +67,7 @@ public class NodeDtoProvider extends BaseSortableDataProvider<NodeDto> {
             }
             result.recordSuccess();
         } catch (Exception ex) {
-            LoggingUtils.logException(LOGGER, "Unhandled exception when listing nodes", ex);
+            LoggingUtils.logUnexpectedException(LOGGER, "Unhandled exception when listing nodes", ex);
             result.recordFatalError("Couldn't list nodes.", ex);
         }
 
@@ -107,7 +107,7 @@ public class NodeDtoProvider extends BaseSortableDataProvider<NodeDto> {
             count = getModel().countObjects(NodeType.class, getQuery(), null, task, result);
             result.recomputeStatus();
         } catch (Exception ex) {
-            LoggingUtils.logException(LOGGER, "Unhandled exception when counting nodes", ex);
+            LoggingUtils.logUnexpectedException(LOGGER, "Unhandled exception when counting nodes", ex);
             result.recordFatalError("Couldn't count nodes.", ex);
         }
 
