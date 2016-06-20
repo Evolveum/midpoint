@@ -42,6 +42,7 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.match.*;
 import com.evolveum.midpoint.web.component.AjaxTabbedPanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.page.admin.services.PageService;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
@@ -1444,6 +1445,8 @@ public final class WebComponentUtil {
 			page.setResponsePage(PageRole.class, parameters);
 		} else if (OrgType.COMPLEX_TYPE.equals(type)) {
 			page.setResponsePage(PageOrgUnit.class, parameters);
+		} else if (ServiceType.COMPLEX_TYPE.equals(type)) {
+			page.setResponsePage(PageService.class, parameters);
 		} else if (UserType.COMPLEX_TYPE.equals(type)) {
 			page.setResponsePage(PageUser.class, parameters);
 		} else if (ResourceType.COMPLEX_TYPE.equals(type)) {
