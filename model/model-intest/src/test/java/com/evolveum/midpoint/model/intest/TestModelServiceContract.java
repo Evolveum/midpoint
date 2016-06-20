@@ -397,7 +397,10 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         display("attribute fullname definition", fullNameAttrDef);
         PrismAsserts.assertDefinition(fullNameAttrDef, dummyResourceCtl.getAttributeFullnameQName(),
         		DOMUtil.XSD_STRING, 1, 1);
-        assertEquals("Wrong fullname displayOrder", (Integer)260, fullNameAttrDef.getDisplayOrder());
+        // MID-3144
+		if (fullNameAttrDef.getDisplayOrder() == null || fullNameAttrDef.getDisplayOrder() < 100 || fullNameAttrDef.getDisplayOrder() > 400) {
+			AssertJUnit.fail("Wrong fullname displayOrder: " + fullNameAttrDef.getDisplayOrder());
+		}
 		assertEquals("Wrong fullname displayName", "Full Name", fullNameAttrDef.getDisplayName());
         
         assertSteadyResources();
