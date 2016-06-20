@@ -181,7 +181,7 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
 
         initLayout();
 
-		refreshPanel.startRefreshing(this);
+		refreshPanel.startRefreshing(this, null);
     }
 
     private TasksSearchDto loadTasksSearchDto() {
@@ -1169,7 +1169,7 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
         refreshTables(target);
 
 		if (refreshModel.getObject().isEnabled()) {
-			refreshPanel.startRefreshing(this);
+			refreshPanel.startRefreshing(this, target);
 		}
     }
 

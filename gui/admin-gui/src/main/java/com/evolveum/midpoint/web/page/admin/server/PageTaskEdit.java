@@ -208,7 +208,7 @@ public class PageTaskEdit extends PageAdmin implements Refreshable {
 		mainPanel.setOutputMarkupId(true);
 		add(mainPanel);
 
-		summaryPanel.getRefreshPanel().startRefreshing(this);
+		summaryPanel.getRefreshPanel().startRefreshing(this, null);
 	}
 
 	@Override
@@ -264,10 +264,9 @@ public class PageTaskEdit extends PageAdmin implements Refreshable {
 		refreshDto.recordRefreshed();
 
 		if (isEdit() || !refreshDto.isEnabled()) {
-			getRefreshPanel().stopRefreshing(this);
+			getRefreshPanel().stopRefreshing(this, target);
 		} else {
-			getRefreshPanel().stopRefreshing(this);
-			getRefreshPanel().startRefreshing(this);
+			getRefreshPanel().startRefreshing(this, target);
 		}
 	}
 
