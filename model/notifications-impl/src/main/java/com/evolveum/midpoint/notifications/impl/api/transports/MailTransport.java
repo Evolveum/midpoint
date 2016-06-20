@@ -133,11 +133,20 @@ public class MailTransport implements Transport {
             MailTransportSecurityType mailTransportSecurityType = mailServerConfigurationType.getTransportSecurity();
 
             boolean sslEnabled = false, starttlsEnable = false, starttlsRequired = false;
-            switch (mailTransportSecurityType) {
-                case STARTTLS_ENABLED: starttlsEnable = true; break;
-                case STARTTLS_REQUIRED: starttlsEnable = true; starttlsRequired = true; break;
-                case SSL: sslEnabled = true; break;
-            }
+			if (mailTransportSecurityType != null) {
+				switch (mailTransportSecurityType) {
+					case STARTTLS_ENABLED:
+						starttlsEnable = true;
+						break;
+					case STARTTLS_REQUIRED:
+						starttlsEnable = true;
+						starttlsRequired = true;
+						break;
+					case SSL:
+						sslEnabled = true;
+						break;
+				}
+			}
             properties.put("mail.smtp.ssl.enable", "" + sslEnabled);
             properties.put("mail.smtp.starttls.enable", "" + starttlsEnable);
             properties.put("mail.smtp.starttls.required", "" + starttlsRequired);
