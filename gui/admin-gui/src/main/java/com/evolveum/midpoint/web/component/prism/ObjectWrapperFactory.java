@@ -91,6 +91,9 @@ public class ObjectWrapperFactory {
 
             PrismObjectDefinition<O> objectDefinitionForEditing = modelServiceLocator.getModelInteractionService()
                     .getEditObjectDefinition(object, AuthorizationPhaseType.REQUEST, result);
+            if (LOGGER.isTraceEnabled()) {
+            	LOGGER.trace("Edit definition for {}:\n{}", object, objectDefinitionForEditing.debugDump(1));
+            }
             RefinedObjectClassDefinition objectClassDefinitionForEditing = null;
             if (isShadow(object)) {
                 PrismReference resourceRef = object.findReference(ShadowType.F_RESOURCE_REF);

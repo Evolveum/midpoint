@@ -15,16 +15,18 @@
  */
 package com.evolveum.midpoint.web;
 
-import static org.testng.AssertJUnit.assertNotNull;
-import static org.testng.AssertJUnit.assertNull;
+import static com.evolveum.midpoint.test.IntegrationTestTools.display;
+import static com.evolveum.midpoint.web.AdminGuiTestConstants.RESOURCE_DUMMY_ASSOCIATION_GROUP_QNAME;
+import static com.evolveum.midpoint.web.AdminGuiTestConstants.ROLE_MAPMAKER_OID;
+import static com.evolveum.midpoint.web.AdminGuiTestConstants.USER_JACK_FULL_NAME;
+import static com.evolveum.midpoint.web.AdminGuiTestConstants.USER_JACK_OID;
+import static com.evolveum.midpoint.web.AdminGuiTestConstants.USER_JACK_USERNAME;
 import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertFalse;
+import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertTrue;
-import static com.evolveum.midpoint.test.IntegrationTestTools.display;
-import static com.evolveum.midpoint.web.AdminGuiTestConstants.*;
-import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 
-import java.util.Arrays;
+import java.io.File;
+import java.io.IOException;
 import java.util.List;
 
 import javax.xml.namespace.QName;
@@ -32,26 +34,29 @@ import javax.xml.namespace.QName;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
-import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
 import com.evolveum.icf.dummy.resource.DummyGroup;
-import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
-import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
+import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.web.component.prism.AssociationWrapper;
 import com.evolveum.midpoint.web.component.prism.ContainerStatus;
 import com.evolveum.midpoint.web.component.prism.ContainerWrapper;
@@ -62,8 +67,7 @@ import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.web.component.prism.ValueWrapper;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowIdentifiersType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
@@ -77,12 +81,29 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiIntegrationTest {
 	
+	public static final File TEST_DIR = new File("src/test/resources/wrapper");
+	
+	protected static final File ROLE_PROP_READ_ALL_MODIFY_SOME_USER_FILE = new File(TEST_DIR, "role-prop-read-all-modify-some-user.xml");
+	protected static final String ROLE_PROP_READ_ALL_MODIFY_SOME_USER_OID = "00000000-0000-0000-0000-00000000ae05";
+	
+	protected static final File ROLE_PROP_READ_SOME_MODIFY_SOME_USER_FILE = new File(TEST_DIR, "role-prop-read-some-modify-some-user.xml");
+	protected static final String ROLE_PROP_READ_SOME_MODIFY_SOME_USER_OID = "00000000-0000-0000-0000-00000000ae08";
+	
 	private static final String USER_WALLY_NAME = "wally";
 	private static final String USER_WALLY_FULLNAME = "Wally B. Feed";
 	
 	public static final String GROUP_DUMMY_MAPMAKERS_NAME = "mapmakers";
 	private String userWallyOid;
 	private String accountWallyOid;
+	
+	@Override
+	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
+		super.initSystem(initTask, initResult);
+		
+		repoAddObjectFromFile(ROLE_PROP_READ_ALL_MODIFY_SOME_USER_FILE, RoleType.class, initResult);
+		repoAddObjectFromFile(ROLE_PROP_READ_SOME_MODIFY_SOME_USER_FILE, RoleType.class, initResult);
+		
+	}
 	
 	@Test
     public void test100CreateWrapperUser() throws Exception {
@@ -231,5 +252,117 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 		PrismAsserts.assertPropertyValue(groupAssociationUidProp, GROUP_DUMMY_MAPMAKERS_NAME);
 		
 	}
+	
+	/**
+	 * MID-3126
+	 */
+	@Test
+    public void test800EditSchemaJackPropReadAllModifySomeUser() throws Exception {
+		final String TEST_NAME = "test800EditSchemaJackPropReadAllModifySomeUser";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        // GIVEN
+        cleanupAutzTest(USER_JACK_OID);
+        assignRole(USER_JACK_OID, ROLE_PROP_READ_ALL_MODIFY_SOME_USER_OID);
+        login(USER_JACK_USERNAME);
 
+        ObjectWrapperFactory factory = new ObjectWrapperFactory(getServiceLocator());
+        PrismObject<UserType> user = getUser(USER_JACK_OID);
+        display("user before", user);
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        
+		ObjectWrapper<UserType> objectWrapper = factory.createObjectWrapper("user display name", "user description", user, 
+				ContainerStatus.MODIFYING);
+		
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+		
+		IntegrationTestTools.display("Wrapper after", objectWrapper);
+		assertEquals("Wrong object wrapper readOnly", Boolean.FALSE, (Boolean)objectWrapper.isReadonly());
+		
+		ContainerWrapper<UserType> mainContainerWrapper = objectWrapper.findMainContainerWrapper();
+		assertEquals("Wrong main container wrapper readOnly", Boolean.FALSE, (Boolean)mainContainerWrapper.isReadonly());
+		
+		ItemWrapper nameWrapper = mainContainerWrapper.findPropertyWrapper(UserType.F_NAME);
+		assertEquals("Wrong name readOnly", Boolean.TRUE, (Boolean)nameWrapper.isReadonly());
+		assertEquals("Wrong name visible", Boolean.TRUE, (Boolean)nameWrapper.isVisible());
+		assertEquals("Wrong name definition.canRead", Boolean.TRUE, (Boolean)nameWrapper.getItemDefinition().canRead());
+		assertEquals("Wrong name definition.canAdd", Boolean.FALSE, (Boolean)nameWrapper.getItemDefinition().canAdd());
+		assertEquals("Wrong name definition.canModify", Boolean.FALSE, (Boolean)nameWrapper.getItemDefinition().canModify());
+		
+		ItemWrapper givenNameWrapper = mainContainerWrapper.findPropertyWrapper(UserType.F_GIVEN_NAME);
+		assertEquals("Wrong givenName readOnly", Boolean.TRUE, (Boolean)givenNameWrapper.isReadonly());
+		assertEquals("Wrong givenName visible", Boolean.TRUE, (Boolean)givenNameWrapper.isVisible());
+		assertEquals("Wrong givenName definition.canRead", Boolean.TRUE, (Boolean)givenNameWrapper.getItemDefinition().canRead());
+		assertEquals("Wrong givenName definition.canAdd", Boolean.FALSE, (Boolean)givenNameWrapper.getItemDefinition().canAdd());
+		assertEquals("Wrong givenName definition.canModify", Boolean.FALSE, (Boolean)givenNameWrapper.getItemDefinition().canModify());
+
+		ItemWrapper fullNameWrapper = mainContainerWrapper.findPropertyWrapper(UserType.F_FULL_NAME);
+		assertEquals("Wrong fullName readOnly", Boolean.FALSE, (Boolean)fullNameWrapper.isReadonly());
+		assertEquals("Wrong fullName visible", Boolean.TRUE, (Boolean)givenNameWrapper.isVisible());
+		assertEquals("Wrong fullName definition.canRead", Boolean.TRUE, (Boolean)fullNameWrapper.getItemDefinition().canRead());
+		assertEquals("Wrong fullName definition.canAdd", Boolean.FALSE, (Boolean)fullNameWrapper.getItemDefinition().canAdd());
+		assertEquals("Wrong fullName definition.canModify", Boolean.TRUE, (Boolean)fullNameWrapper.getItemDefinition().canModify());
+
+	}
+	
+	/**
+	 * MID-3126
+	 */
+	@Test
+    public void test802EditSchemaJackPropReadSomeModifySomeUser() throws Exception {
+		final String TEST_NAME = "test800EditSchemaJackPropReadAllModifySomeUser";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        // GIVEN
+        cleanupAutzTest(USER_JACK_OID);
+        assignRole(USER_JACK_OID, ROLE_PROP_READ_SOME_MODIFY_SOME_USER_OID);
+        login(USER_JACK_USERNAME);
+
+        ObjectWrapperFactory factory = new ObjectWrapperFactory(getServiceLocator());
+        PrismObject<UserType> user = getUser(USER_JACK_OID);
+        display("user before", user);
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        
+		ObjectWrapper<UserType> objectWrapper = factory.createObjectWrapper("user display name", "user description", user, 
+				ContainerStatus.MODIFYING);
+		
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+		
+		IntegrationTestTools.display("Wrapper after", objectWrapper);
+		assertEquals("Wrong object wrapper readOnly", Boolean.FALSE, (Boolean)objectWrapper.isReadonly());
+		
+		ContainerWrapper<UserType> mainContainerWrapper = objectWrapper.findMainContainerWrapper();
+		assertEquals("Wrong main container wrapper readOnly", Boolean.FALSE, (Boolean)mainContainerWrapper.isReadonly());
+		
+		ItemWrapper nameWrapper = mainContainerWrapper.findPropertyWrapper(UserType.F_NAME);
+		assertEquals("Wrong name readOnly", Boolean.TRUE, (Boolean)nameWrapper.isReadonly());
+		assertEquals("Wrong name visible", Boolean.TRUE, (Boolean)nameWrapper.isVisible());
+		assertEquals("Wrong name definition.canRead", Boolean.TRUE, (Boolean)nameWrapper.getItemDefinition().canRead());
+		assertEquals("Wrong name definition.canAdd", Boolean.FALSE, (Boolean)nameWrapper.getItemDefinition().canAdd());
+		assertEquals("Wrong name definition.canModify", Boolean.FALSE, (Boolean)nameWrapper.getItemDefinition().canModify());
+		
+		ItemWrapper givenNameWrapper = mainContainerWrapper.findPropertyWrapper(UserType.F_GIVEN_NAME);
+		assertEquals("Wrong givenName readOnly", Boolean.TRUE, (Boolean)givenNameWrapper.isReadonly());
+		assertEquals("Wrong givenName visible", Boolean.TRUE, (Boolean)givenNameWrapper.isVisible());
+		assertEquals("Wrong givenName definition.canRead", Boolean.FALSE, (Boolean)givenNameWrapper.getItemDefinition().canRead());
+		assertEquals("Wrong givenName definition.canAdd", Boolean.FALSE, (Boolean)givenNameWrapper.getItemDefinition().canAdd());
+		assertEquals("Wrong givenName definition.canModify", Boolean.FALSE, (Boolean)givenNameWrapper.getItemDefinition().canModify());
+		
+		ItemWrapper fullNameWrapper = mainContainerWrapper.findPropertyWrapper(UserType.F_FULL_NAME);
+		assertEquals("Wrong fullName readOnly", Boolean.FALSE, (Boolean)fullNameWrapper.isReadonly());
+		assertEquals("Wrong fullName visible", Boolean.TRUE, (Boolean)fullNameWrapper.isVisible());
+		assertEquals("Wrong fullName definition.canRead", Boolean.TRUE, (Boolean)fullNameWrapper.getItemDefinition().canRead());
+		assertEquals("Wrong fullName definition.canAdd", Boolean.FALSE, (Boolean)fullNameWrapper.getItemDefinition().canAdd());
+		assertEquals("Wrong fullName definition.canModify", Boolean.TRUE, (Boolean)fullNameWrapper.getItemDefinition().canModify());
+		
+	}
+
+	private void cleanupAutzTest(String userOid) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException, IOException {
+		login(userAdministrator);
+        unassignAllRoles(userOid);
+	}
 }
