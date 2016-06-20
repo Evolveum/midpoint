@@ -58,8 +58,8 @@ public interface ItemWrapper<I extends Item, ID extends ItemDefinition> extends 
     public List<ValueWrapper> getValues();
 
     /**
-     * Visibility flag. This is an override of the default behavior given by the definition.
-     * TODO: when it overrides? If set to FALSE?
+     * Visibility flag. This is NOT an override, it defines whether the item
+     * should be displayed or not.
      */
     public boolean isVisible();
     

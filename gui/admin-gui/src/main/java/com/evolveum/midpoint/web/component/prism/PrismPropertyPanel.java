@@ -51,8 +51,9 @@ import java.util.List;
  * @author lazyman
  */
 public class PrismPropertyPanel<IW extends ItemWrapper> extends Panel {
-
-    private static final Trace LOGGER = TraceManager.getTrace(PrismPropertyPanel.class);
+	private static final long serialVersionUID = 1L;
+	
+	private static final Trace LOGGER = TraceManager.getTrace(PrismPropertyPanel.class);
     private static final String ID_HAS_PENDING_MODIFICATION = "hasPendingModification";
     private static final String ID_HELP = "help";
     private static final String ID_LABEL = "label";
@@ -71,12 +72,13 @@ public class PrismPropertyPanel<IW extends ItemWrapper> extends Panel {
         
         setOutputMarkupId(true);
         add(new VisibleEnableBehaviour() {
+        	private static final long serialVersionUID = 1L;
 
             @Override
             public boolean isVisible() {
-            	ItemWrapper property = model.getObject();
-                boolean visible = property.isVisible();
-                LOGGER.trace("isVisible: {}: {}", property, visible);
+            	IW propertyWrapper = model.getObject();
+                boolean visible = propertyWrapper.isVisible();
+                LOGGER.trace("isVisible: {}: {}", propertyWrapper, visible);
                 return visible;
             }
 
@@ -93,6 +95,8 @@ public class PrismPropertyPanel<IW extends ItemWrapper> extends Panel {
         WebMarkupContainer labelContainer = new WebMarkupContainer(ID_LABEL_CONTAINER);
         labelContainer.setOutputMarkupId(true);
         labelContainer.add(new VisibleEnableBehaviour() {
+        	private static final long serialVersionUID = 1L;
+        	
             @Override public boolean isVisible() {
                 return labelContainerVisible;
             }
@@ -103,6 +107,7 @@ public class PrismPropertyPanel<IW extends ItemWrapper> extends Panel {
         labelContainer.add(new Label(ID_LABEL, label));
 
         final IModel<String> helpText = new LoadableModel<String>(false) {
+        	private static final long serialVersionUID = 1L;
 
             @Override
             protected String load() {
@@ -113,6 +118,7 @@ public class PrismPropertyPanel<IW extends ItemWrapper> extends Panel {
         help.add(AttributeModifier.replace("title", helpText));
         help.add(new InfoTooltipBehavior());
         help.add(new VisibleEnableBehaviour() {
+        	private static final long serialVersionUID = 1L;
 
             @Override
             public boolean isVisible() {
@@ -123,10 +129,11 @@ public class PrismPropertyPanel<IW extends ItemWrapper> extends Panel {
 
         WebMarkupContainer required = new WebMarkupContainer("required");
         required.add(new VisibleEnableBehaviour() {
+        	private static final long serialVersionUID = 1L;
 
             @Override
             public boolean isVisible() {
-                ItemWrapper wrapper = model.getObject();
+                IW wrapper = model.getObject();
                 Item property = wrapper.getItem();
                 ItemDefinition def = property.getDefinition();
 
@@ -142,6 +149,7 @@ public class PrismPropertyPanel<IW extends ItemWrapper> extends Panel {
 
         WebMarkupContainer hasOutbound = new WebMarkupContainer("hasOutbound");
         hasOutbound.add(new VisibleEnableBehaviour() {
+        	private static final long serialVersionUID = 1L;
 
             @Override
             public boolean isVisible() {
@@ -152,6 +160,7 @@ public class PrismPropertyPanel<IW extends ItemWrapper> extends Panel {
 
         WebMarkupContainer hasPendingModification = new WebMarkupContainer(ID_HAS_PENDING_MODIFICATION);
         hasPendingModification.add(new VisibleEnableBehaviour() {
+        	private static final long serialVersionUID = 1L;
 
             @Override
             public boolean isVisible() {
@@ -162,6 +171,7 @@ public class PrismPropertyPanel<IW extends ItemWrapper> extends Panel {
 
         ListView<ValueWrapper> values = new ListView<ValueWrapper>("values",
                 new PropertyModel<List<ValueWrapper>>(model, "values")) {
+        	private static final long serialVersionUID = 1L;
 
             @Override
             protected void populateItem(final ListItem<ValueWrapper> item) {
@@ -170,6 +180,7 @@ public class PrismPropertyPanel<IW extends ItemWrapper> extends Panel {
                 item.add(AttributeModifier.append("class", createStyleClassModel(item.getModel())));
 
                 item.add(new VisibleEnableBehaviour() {
+                	private static final long serialVersionUID = 1L;
 
                     @Override
                     public boolean isVisible() {
@@ -209,6 +220,7 @@ public class PrismPropertyPanel<IW extends ItemWrapper> extends Panel {
 
     protected IModel<String> createStyleClassModel(final IModel<ValueWrapper> value) {
         return new AbstractReadOnlyModel<String>() {
+        	private static final long serialVersionUID = 1L;
 
             @Override
             public String getObject() {
@@ -285,6 +297,7 @@ public class PrismPropertyPanel<IW extends ItemWrapper> extends Panel {
 
     private IModel<String> createDisplayName(final IModel<IW> model) {
         return new AbstractReadOnlyModel<String>() {
+        	private static final long serialVersionUID = 1L;
 
             @Override
             public String getObject() {
