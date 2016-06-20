@@ -31,6 +31,7 @@ import com.evolveum.midpoint.web.component.search.SearchItem;
 import com.evolveum.midpoint.web.component.search.SearchValue;
 import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.web.session.SessionStorage;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
@@ -73,10 +74,6 @@ import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptions
 import com.evolveum.midpoint.web.page.admin.users.dto.UsersDto;
 import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
  * @author lazyman
@@ -435,9 +432,9 @@ public class PageUsers extends PageAdminUsers {
 				// credentials specified (otherwise this would create
 				// almost-empty password container)
 				ObjectDelta delta = ObjectDelta.createModificationReplaceProperty(
-						UserType.class, user.getOid(), new ItemPath(UserType.F_CREDENTIALS,
-								CredentialsType.F_PASSWORD, PasswordType.F_FAILED_LOGINS),
-						getPrismContext(), 0);
+						UserType.class, user.getOid(), new ItemPath(UserType.F_ACTIVATION,
+                                ActivationType.F_LOCKOUT_STATUS),
+						getPrismContext(), LockoutStatusType.NORMAL);
 				Collection<ObjectDelta<? extends ObjectType>> deltas = WebComponentUtil
 						.createDeltaCollection(delta);
 				getModelService().executeChanges(deltas, null, task, opResult);
