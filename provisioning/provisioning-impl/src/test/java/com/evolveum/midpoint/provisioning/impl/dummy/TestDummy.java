@@ -581,7 +581,9 @@ public class TestDummy extends AbstractDummyTest {
 		assertTrue("No fullname update", fullnameDef.canModify());
 		assertTrue("No fullname read", fullnameDef.canRead());
 		// MID-3144
-		assertEquals("Wrong fullname displayOrder", (Integer)250, fullnameDef.getDisplayOrder());
+		if (fullnameDef.getDisplayOrder() == null || fullnameDef.getDisplayOrder() < 100 || fullnameDef.getDisplayOrder() > 400) {
+			AssertJUnit.fail("Wrong fullname displayOrder: " + fullnameDef.getDisplayOrder());
+		}
 		assertEquals("Wrong fullname displayName", null, fullnameDef.getDisplayName());
 
 		assertNull("The _PASSSWORD_ attribute sneaked into schema",
