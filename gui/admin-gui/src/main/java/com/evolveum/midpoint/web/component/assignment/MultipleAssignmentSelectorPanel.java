@@ -27,12 +27,14 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
 import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.form.multivalue.GenericMultiValueLabelEditPanel;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -125,6 +127,12 @@ public class MultipleAssignmentSelectorPanel<F extends FocusType, H extends Focu
                 deleteFromAssignmentsModel(target, currentAssignmentsPanel, availableAssignmentsPanel);
             }
         };
+        remove.add(new VisibleEnableBehaviour() {
+            @Override
+            public boolean isEnabled() {
+                return WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_UNASSIGN_ACTION_URL);
+            }
+        });
 
         AjaxLink<String> buttonReset = new AjaxLink<String>(ID_BUTTON_RESET) {
             @Override
