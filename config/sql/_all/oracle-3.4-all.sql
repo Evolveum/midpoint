@@ -2,27 +2,107 @@
 -- replace ");" with ") INITRANS 30;"
 
 CREATE TABLE m_abstract_role (
-  approvalProcess VARCHAR2(255 CHAR),
-  requestable     NUMBER(1, 0),
-  oid             VARCHAR2(36 CHAR) NOT NULL,
+  approvalProcess    VARCHAR2(255 CHAR),
+  displayName_norm   VARCHAR2(255 CHAR),
+  displayName_orig   VARCHAR2(255 CHAR),
+  identifier         VARCHAR2(255 CHAR),
+  ownerRef_relation  VARCHAR2(157 CHAR),
+  ownerRef_targetOid VARCHAR2(36 CHAR),
+  ownerRef_type      NUMBER(10, 0),
+  requestable        NUMBER(1, 0),
+  riskLevel          VARCHAR2(255 CHAR),
+  oid                VARCHAR2(36 CHAR) NOT NULL,
   PRIMARY KEY (oid)
 ) INITRANS 30;
 
 CREATE TABLE m_acc_cert_campaign (
-    definitionRef_relation VARCHAR2(157 CHAR),
-    definitionRef_targetOid VARCHAR2(36 CHAR),
-    definitionRef_type NUMBER(10,0),
-    name_norm VARCHAR2(255 CHAR),
-    name_orig VARCHAR2(255 CHAR),
-    oid VARCHAR2(36 CHAR) NOT NULL,
-    PRIMARY KEY (oid)
+  definitionRef_relation  VARCHAR2(157 CHAR),
+  definitionRef_targetOid VARCHAR2(36 CHAR),
+  definitionRef_type      NUMBER(10, 0),
+  endTimestamp            TIMESTAMP,
+  handlerUri              VARCHAR2(255 CHAR),
+  name_norm               VARCHAR2(255 CHAR),
+  name_orig               VARCHAR2(255 CHAR),
+  ownerRef_relation       VARCHAR2(157 CHAR),
+  ownerRef_targetOid      VARCHAR2(36 CHAR),
+  ownerRef_type           NUMBER(10, 0),
+  stageNumber             NUMBER(10, 0),
+  startTimestamp          TIMESTAMP,
+  state                   NUMBER(10, 0),
+  oid                     VARCHAR2(36 CHAR) NOT NULL,
+  PRIMARY KEY (oid)
+) INITRANS 30;
+
+CREATE TABLE m_acc_cert_case (
+  id                       NUMBER(10, 0)     NOT NULL,
+  owner_oid                VARCHAR2(36 CHAR) NOT NULL,
+  administrativeStatus     NUMBER(10, 0),
+  archiveTimestamp         TIMESTAMP,
+  disableReason            VARCHAR2(255 CHAR),
+  disableTimestamp         TIMESTAMP,
+  effectiveStatus          NUMBER(10, 0),
+  enableTimestamp          TIMESTAMP,
+  validFrom                TIMESTAMP,
+  validTo                  TIMESTAMP,
+  validityChangeTimestamp  TIMESTAMP,
+  validityStatus           NUMBER(10, 0),
+  currentStageNumber       NUMBER(10, 0),
+  currentStageOutcome      NUMBER(10, 0),
+  fullObject               BLOB,
+  objectRef_relation       VARCHAR2(157 CHAR),
+  objectRef_targetOid      VARCHAR2(36 CHAR),
+  objectRef_type           NUMBER(10, 0),
+  orgRef_relation          VARCHAR2(157 CHAR),
+  orgRef_targetOid         VARCHAR2(36 CHAR),
+  orgRef_type              NUMBER(10, 0),
+  overallOutcome           NUMBER(10, 0),
+  remediedTimestamp        TIMESTAMP,
+  reviewDeadline           TIMESTAMP,
+  reviewRequestedTimestamp TIMESTAMP,
+  targetRef_relation       VARCHAR2(157 CHAR),
+  targetRef_targetOid      VARCHAR2(36 CHAR),
+  targetRef_type           NUMBER(10, 0),
+  tenantRef_relation       VARCHAR2(157 CHAR),
+  tenantRef_targetOid      VARCHAR2(36 CHAR),
+  tenantRef_type           NUMBER(10, 0),
+  PRIMARY KEY (id, owner_oid)
+) INITRANS 30;
+
+CREATE TABLE m_acc_cert_case_reference (
+  owner_id        NUMBER(10, 0)      NOT NULL,
+  owner_owner_oid VARCHAR2(36 CHAR)  NOT NULL,
+  reference_type  NUMBER(10, 0)      NOT NULL,
+  relation        VARCHAR2(157 CHAR) NOT NULL,
+  targetOid       VARCHAR2(36 CHAR)  NOT NULL,
+  containerType   NUMBER(10, 0),
+  PRIMARY KEY (owner_id, owner_owner_oid, reference_type, relation, targetOid)
+) INITRANS 30;
+
+CREATE TABLE m_acc_cert_decision (
+  id                    NUMBER(10, 0)     NOT NULL,
+  owner_id              NUMBER(10, 0)     NOT NULL,
+  owner_owner_oid       VARCHAR2(36 CHAR) NOT NULL,
+  reviewerComment       VARCHAR2(255 CHAR),
+  response              NUMBER(10, 0),
+  reviewerRef_relation  VARCHAR2(157 CHAR),
+  reviewerRef_targetOid VARCHAR2(36 CHAR),
+  reviewerRef_type      NUMBER(10, 0),
+  stageNumber           NUMBER(10, 0)     NOT NULL,
+  timestamp             TIMESTAMP,
+  PRIMARY KEY (id, owner_id, owner_owner_oid)
 ) INITRANS 30;
 
 CREATE TABLE m_acc_cert_definition (
-    name_norm VARCHAR2(255 CHAR),
-    name_orig VARCHAR2(255 CHAR),
-    oid VARCHAR2(36 CHAR) NOT NULL,
-    PRIMARY KEY (oid)
+  handlerUri                   VARCHAR2(255 CHAR),
+  lastCampaignClosedTimestamp  TIMESTAMP,
+  lastCampaignStartedTimestamp TIMESTAMP,
+  name_norm                    VARCHAR2(255 CHAR),
+  name_orig                    VARCHAR2(255 CHAR),
+  ownerRef_relation            VARCHAR2(157 CHAR),
+  ownerRef_targetOid           VARCHAR2(36 CHAR),
+  ownerRef_type                NUMBER(10, 0),
+  oid                          VARCHAR2(36 CHAR) NOT NULL,
+  PRIMARY KEY (oid)
 ) INITRANS 30;
 
 CREATE TABLE m_assignment (
@@ -407,10 +487,7 @@ CREATE TABLE m_object_template (
 
 CREATE TABLE m_org (
   costCenter       VARCHAR2(255 CHAR),
-  displayName_norm VARCHAR2(255 CHAR),
-  displayName_orig VARCHAR2(255 CHAR),
   displayOrder     NUMBER(10, 0),
-  identifier       VARCHAR2(255 CHAR),
   locality_norm    VARCHAR2(255 CHAR),
   locality_orig    VARCHAR2(255 CHAR),
   name_norm        VARCHAR2(255 CHAR),
@@ -503,6 +580,21 @@ CREATE TABLE m_sequence (
   PRIMARY KEY (oid)
 ) INITRANS 30;
 
+CREATE TABLE m_service (
+  displayOrder  NUMBER(10, 0),
+  locality_norm VARCHAR2(255 CHAR),
+  locality_orig VARCHAR2(255 CHAR),
+  name_norm     VARCHAR2(255 CHAR),
+  name_orig     VARCHAR2(255 CHAR),
+  oid           VARCHAR2(36 CHAR) NOT NULL,
+  PRIMARY KEY (oid)
+) INITRANS 30;
+
+CREATE TABLE m_service_type (
+  service_oid VARCHAR2(36 CHAR) NOT NULL,
+  serviceType VARCHAR2(255 CHAR)
+) INITRANS 30;
+
 CREATE TABLE m_shadow (
   attemptNumber                NUMBER(10, 0),
   dead                         NUMBER(1, 0),
@@ -555,6 +647,18 @@ CREATE TABLE m_task (
   taskIdentifier         VARCHAR2(255 CHAR),
   threadStopAction       NUMBER(10, 0),
   waitingReason          NUMBER(10, 0),
+  wfEndTimestamp           TIMESTAMP,
+  wfObjectRef_relation     VARCHAR2(157 CHAR),
+  wfObjectRef_targetOid    VARCHAR2(36 CHAR),
+  wfObjectRef_type         NUMBER(10, 0),
+  wfProcessInstanceId      VARCHAR2(255 CHAR),
+  wfRequesterRef_relation  VARCHAR2(157 CHAR),
+  wfRequesterRef_targetOid VARCHAR2(36 CHAR),
+  wfRequesterRef_type      NUMBER(10, 0),
+  wfStartTimestamp         TIMESTAMP,
+  wfTargetRef_relation     VARCHAR2(157 CHAR),
+  wfTargetRef_targetOid    VARCHAR2(36 CHAR),
+  wfTargetRef_type         NUMBER(10, 0),
   oid                    VARCHAR2(36 CHAR) NOT NULL,
   PRIMARY KEY (oid)
 ) INITRANS 30;
@@ -629,10 +733,25 @@ CREATE TABLE m_value_policy (
   PRIMARY KEY (oid)
 ) INITRANS 30;
 
+CREATE INDEX iAbstractRoleIdentifier ON m_abstract_role (identifier) INITRANS 30;
+
 CREATE INDEX iRequestable ON m_abstract_role (requestable) INITRANS 30;
 
 ALTER TABLE m_acc_cert_campaign
     ADD CONSTRAINT uc_acc_cert_campaign_name  UNIQUE (name_norm) INITRANS 30;
+
+CREATE INDEX iCaseObjectRefTargetOid ON m_acc_cert_case (objectRef_targetOid) INITRANS 30;
+
+CREATE INDEX iCaseTargetRefTargetOid ON m_acc_cert_case (targetRef_targetOid) INITRANS 30;
+
+CREATE INDEX iCaseTenantRefTargetOid ON m_acc_cert_case (tenantRef_targetOid) INITRANS 30;
+
+CREATE INDEX iCaseOrgRefTargetOid ON m_acc_cert_case (orgRef_targetOid) INITRANS 30;
+
+CREATE INDEX iCaseReferenceTargetOid ON m_acc_cert_case_reference (targetOid) INITRANS 30;
+
+ALTER TABLE m_acc_cert_decision
+ADD CONSTRAINT uc_case_stage_reviewer UNIQUE (owner_owner_oid, owner_id, stageNumber, reviewerRef_targetOid) INITRANS 30;
 
 ALTER TABLE m_acc_cert_definition
     ADD CONSTRAINT uc_acc_cert_definition_name  UNIQUE (name_norm) INITRANS 30;
@@ -679,7 +798,7 @@ ALTER TABLE m_lookup_table
 ADD CONSTRAINT uc_lookup_name UNIQUE (name_norm) INITRANS 30;
 
 ALTER TABLE m_lookup_table_row
-ADD CONSTRAINT uc_row_key UNIQUE (row_key) INITRANS 30;
+ADD CONSTRAINT uc_row_key UNIQUE (owner_oid, row_key) INITRANS 30;
 
 ALTER TABLE m_node
 ADD CONSTRAINT uc_node_name UNIQUE (name_norm) INITRANS 30;
@@ -758,6 +877,18 @@ ADD CONSTRAINT uc_system_configuration_name UNIQUE (name_norm) INITRANS 30;
 
 CREATE INDEX iParent ON m_task (parent) INITRANS 30;
 
+CREATE INDEX iTaskWfProcessInstanceId ON m_task (wfProcessInstanceId) INITRANS 30;
+
+CREATE INDEX iTaskWfStartTimestamp ON m_task (wfStartTimestamp) INITRANS 30;
+
+CREATE INDEX iTaskWfEndTimestamp ON m_task (wfEndTimestamp) INITRANS 30;
+
+CREATE INDEX iTaskWfRequesterOid ON m_task (wfRequesterRef_targetOid) INITRANS 30;
+
+CREATE INDEX iTaskWfObjectOid ON m_task (wfObjectRef_targetOid) INITRANS 30;
+
+CREATE INDEX iTaskWfTargetOid ON m_task (wfTargetRef_targetOid) INITRANS 30;
+
 CREATE INDEX iTriggerTimestamp ON m_trigger (timestampValue) INITRANS 30;
 
 ALTER TABLE m_user
@@ -785,6 +916,21 @@ ALTER TABLE m_acc_cert_campaign
     ADD CONSTRAINT fk_acc_cert_campaign
     FOREIGN KEY (oid)
     REFERENCES m_object;
+
+ALTER TABLE m_acc_cert_case
+ADD CONSTRAINT fk_acc_cert_case_owner
+FOREIGN KEY (owner_oid)
+REFERENCES m_object;
+
+ALTER TABLE m_acc_cert_case_reference
+ADD CONSTRAINT fk_acc_cert_case_ref_owner
+FOREIGN KEY (owner_id, owner_owner_oid)
+REFERENCES m_acc_cert_case;
+
+ALTER TABLE m_acc_cert_decision
+ADD CONSTRAINT fk_acc_cert_decision_owner
+FOREIGN KEY (owner_id, owner_owner_oid)
+REFERENCES m_acc_cert_case;
 
 ALTER TABLE m_acc_cert_definition
     ADD CONSTRAINT fk_acc_cert_definition
@@ -975,6 +1121,16 @@ ALTER TABLE m_sequence
 ADD CONSTRAINT fk_sequence
 FOREIGN KEY (oid)
 REFERENCES m_object;
+
+ALTER TABLE m_service
+  ADD CONSTRAINT fk_service
+FOREIGN KEY (oid)
+REFERENCES m_abstract_role;
+
+ALTER TABLE m_service_type
+  ADD CONSTRAINT fk_service_type
+FOREIGN KEY (service_oid)
+REFERENCES m_service;
 
 ALTER TABLE m_shadow
 ADD CONSTRAINT fk_shadow
@@ -1207,10 +1363,10 @@ create table ACT_GE_PROPERTY (
 );
 
 insert into ACT_GE_PROPERTY
-values ('schema.version', '5.17.0.2', 1);
+values ('schema.version', '5.20.0.1', 1);
 
 insert into ACT_GE_PROPERTY
-values ('schema.history', 'create(5.17.0.2)', 1);
+values ('schema.history', 'create(5.20.0.1)', 1);
 
 insert into ACT_GE_PROPERTY
 values ('next.dbid', '1', 1);
@@ -1395,6 +1551,14 @@ create table ACT_EVT_LOG (
 
 create sequence act_evt_log_seq;
 
+create table ACT_PROCDEF_INFO (
+	ID_ NVARCHAR2(64) not null,
+    PROC_DEF_ID_ NVARCHAR2(64) not null,
+    REV_ integer,
+    INFO_JSON_ID_ NVARCHAR2(64),
+    primary key (ID_)
+);
+
 create index ACT_IDX_EXEC_BUSKEY on ACT_RU_EXECUTION(BUSINESS_KEY_);
 create index ACT_IDX_TASK_CREATE on ACT_RU_TASK(CREATE_TIME_);
 create index ACT_IDX_IDENT_LNK_USER on ACT_RU_IDENTITYLINK(USER_ID_);
@@ -1519,6 +1683,22 @@ alter table ACT_RE_MODEL
     add constraint ACT_FK_MODEL_DEPLOYMENT
     foreign key (DEPLOYMENT_ID_)
     references ACT_RE_DEPLOYMENT (ID_);
+
+create index ACT_IDX_PROCDEF_INFO_JSON on ACT_PROCDEF_INFO(INFO_JSON_ID_);
+alter table ACT_PROCDEF_INFO
+    add constraint ACT_FK_INFO_JSON_BA
+    foreign key (INFO_JSON_ID_)
+    references ACT_GE_BYTEARRAY (ID_);
+
+create index ACT_IDX_PROCDEF_INFO_PROC on ACT_PROCDEF_INFO(PROC_DEF_ID_);
+alter table ACT_PROCDEF_INFO
+    add constraint ACT_FK_INFO_PROCDEF
+    foreign key (PROC_DEF_ID_)
+    references ACT_RE_PROCDEF (ID_);
+
+alter table ACT_PROCDEF_INFO
+    add constraint ACT_UNIQ_INFO_PROCDEF
+    unique (PROC_DEF_ID_);
 
 create table ACT_HI_PROCINST (
     ID_ NVARCHAR2(64) not null,
@@ -1674,6 +1854,7 @@ create index ACT_IDX_HI_IDENT_LNK_PROCINST on ACT_HI_IDENTITYLINK(PROC_INST_ID_)
 
 create index ACT_IDX_HI_ACT_INST_PROCINST on ACT_HI_ACTINST(PROC_INST_ID_, ACT_ID_);
 create index ACT_IDX_HI_ACT_INST_EXEC on ACT_HI_ACTINST(EXECUTION_ID_, ACT_ID_);
+create index ACT_IDX_HI_TASK_INST_PROCINST on ACT_HI_TASKINST(PROC_INST_ID_);
 
 create table ACT_ID_GROUP (
     ID_ NVARCHAR2(64),
