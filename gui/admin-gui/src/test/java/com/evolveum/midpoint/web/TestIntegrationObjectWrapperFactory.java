@@ -37,11 +37,13 @@ import javax.xml.namespace.QName;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
+import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
 import com.evolveum.icf.dummy.resource.DummyGroup;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -52,6 +54,7 @@ import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -73,6 +76,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAttributesType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowIdentifiersType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
@@ -234,9 +238,10 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 		WrapperTestUtil.assertWrapper(objectWrapper, "shadow display name", "shadow description", shadow, ContainerStatus.MODIFYING);
 		assertEquals("wrong number of containers in "+objectWrapper, 9, objectWrapper.getContainers().size());
 		
-		ContainerWrapper attributesContainerWrapper = objectWrapper.findContainerWrapper(new ItemPath(ShadowType.F_ATTRIBUTES));
-		WrapperTestUtil.assertWrapper(attributesContainerWrapper, "prismContainer.shadow.mainPanelDisplayName", new ItemPath(ShadowType.F_ATTRIBUTES), shadow.findContainer(ShadowType.F_ATTRIBUTES),
-				true, ContainerStatus.MODIFYING);
+		ContainerWrapper<ShadowAttributesType> attributesContainerWrapper = objectWrapper.findContainerWrapper(new ItemPath(ShadowType.F_ATTRIBUTES));
+		PrismContainer<ShadowAttributesType> attributesContainer = shadow.findContainer(ShadowType.F_ATTRIBUTES);
+		WrapperTestUtil.assertWrapper(attributesContainerWrapper, "prismContainer.shadow.mainPanelDisplayName", new ItemPath(ShadowType.F_ATTRIBUTES), 
+				attributesContainer, true, ContainerStatus.MODIFYING);
 		WrapperTestUtil.assertPropertyWrapper(attributesContainerWrapper, dummyResourceCtl.getAttributeFullnameQName(), USER_JACK_FULL_NAME);
 		WrapperTestUtil.assertPropertyWrapper(attributesContainerWrapper, SchemaConstants.ICFS_NAME, USER_JACK_USERNAME);
 		assertEquals("wrong number of items in "+attributesContainerWrapper, 16, attributesContainerWrapper.getItems().size());
@@ -245,6 +250,23 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 		WrapperTestUtil.assertWrapper(activationContainerWrapper, "ShadowType.activation", UserType.F_ACTIVATION, shadow, ContainerStatus.MODIFYING);
 		WrapperTestUtil.assertPropertyWrapper(activationContainerWrapper, ActivationType.F_ADMINISTRATIVE_STATUS, ActivationStatusType.ENABLED);
 		WrapperTestUtil.assertPropertyWrapper(activationContainerWrapper, ActivationType.F_LOCKOUT_STATUS, null);
+		
+		assertEquals("Wrong attributes container wrapper readOnly", Boolean.FALSE, (Boolean)attributesContainerWrapper.isReadonly());
+		
+		ItemWrapper fullnameWrapper = attributesContainerWrapper.findPropertyWrapper(dummyResourceCtl.getAttributeFullnameQName());
+		assertEquals("Wrong attribute fullname readOnly", Boolean.FALSE, (Boolean)fullnameWrapper.isReadonly()); // Is this OK?
+		assertEquals("Wrong attribute fullname visible", Boolean.TRUE, (Boolean)fullnameWrapper.isVisible());
+		ItemDefinition fullNameDefinition = fullnameWrapper.getItemDefinition();
+		display("fullname attribute definition", fullNameDefinition);
+		assertEquals("Wrong attribute fullname definition.canRead", Boolean.TRUE, (Boolean)fullNameDefinition.canRead());
+		assertEquals("Wrong attribute fullname definition.canAdd", Boolean.TRUE, (Boolean)fullNameDefinition.canAdd());
+		assertEquals("Wrong attribute fullname definition.canModify", Boolean.TRUE, (Boolean)fullNameDefinition.canModify());
+		// MID-3144
+		if (fullNameDefinition.getDisplayOrder() == null || fullNameDefinition.getDisplayOrder() < 100 || fullNameDefinition.getDisplayOrder() > 400) {
+			AssertJUnit.fail("Wrong fullname definition.displayOrder: " + fullNameDefinition.getDisplayOrder());
+		}
+		assertEquals("Wrong attribute fullname definition.displayName", "Full Name", fullNameDefinition.getDisplayName());
+		
 	}
 
 	@Test

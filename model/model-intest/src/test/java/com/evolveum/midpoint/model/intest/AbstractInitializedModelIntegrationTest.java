@@ -128,6 +128,11 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
 	protected ResourceType resourceDummyGreenType;
 	protected PrismObject<ResourceType> resourceDummyGreen;
 	
+	protected static DummyResource dummyResourceEmerald;
+	protected static DummyResourceContoller dummyResourceCtlEmerald;
+	protected ResourceType resourceDummyEmeraldType;
+	protected PrismObject<ResourceType> resourceDummyEmerald;
+	
 	protected DummyResource dummyResourceBlack;
 	protected DummyResourceContoller dummyResourceCtlBlack;
 	protected ResourceType resourceDummyBlackType;
@@ -204,6 +209,13 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
 		resourceDummyGreen = importAndGetObjectFromFile(ResourceType.class, getResourceDummyGreenFile(), RESOURCE_DUMMY_GREEN_OID, initTask, initResult);
 		resourceDummyGreenType = resourceDummyGreen.asObjectable();
 		dummyResourceCtlGreen.setResource(resourceDummyGreen);
+		
+		dummyResourceCtlEmerald = DummyResourceContoller.create(RESOURCE_DUMMY_EMERALD_NAME, resourceDummyEmerald);
+		dummyResourceCtlEmerald.extendSchemaPirate();
+		dummyResourceEmerald = dummyResourceCtlEmerald.getDummyResource();
+		resourceDummyEmerald = importAndGetObjectFromFile(ResourceType.class, getResourceDummyEmeraldFile(), RESOURCE_DUMMY_EMERALD_OID, initTask, initResult); 
+		resourceDummyEmeraldType = resourceDummyEmerald.asObjectable();
+		dummyResourceCtlEmerald.setResource(resourceDummyEmerald);
 		
 		dummyResourceCtlBlack = DummyResourceContoller.create(RESOURCE_DUMMY_BLACK_NAME, resourceDummyBlack);
 		dummyResourceCtlBlack.extendSchemaPirate();
@@ -302,6 +314,10 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
 
 	protected File getResourceDummyGreenFile() {
 		return RESOURCE_DUMMY_GREEN_FILE;
+	}
+	
+	protected File getResourceDummyEmeraldFile() {
+		return RESOURCE_DUMMY_EMERALD_FILE;
 	}
 
 	protected void postInitDummyResouce() {

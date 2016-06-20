@@ -139,6 +139,13 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 	protected static final String RESOURCE_DUMMY_GREEN_NAME = "green";
 	protected static final String RESOURCE_DUMMY_GREEN_NAMESPACE = MidPointConstants.NS_RI;
 	
+	// This is authoritative resource similar to green resource but it has a bit wilder inbound mappings.
+	protected static final File RESOURCE_DUMMY_EMERALD_FILE = new File(COMMON_DIR, "resource-dummy-emerald.xml");
+	protected static final File RESOURCE_DUMMY_EMERALD_DEPRECATED_FILE = new File(COMMON_DIR, "resource-dummy-emerald-deprecated.xml");
+	protected static final String RESOURCE_DUMMY_EMERALD_OID = "10000000-0000-0000-0000-00000000e404";
+	protected static final String RESOURCE_DUMMY_EMERALD_NAME = "emerald";
+	protected static final String RESOURCE_DUMMY_EMERALD_NAMESPACE = MidPointConstants.NS_RI;
+
 	// Black dummy resource for testing tolerant attributes
 	protected static final String RESOURCE_DUMMY_BLACK_FILENAME = COMMON_DIR + "/resource-dummy-black.xml";
 	protected static final String RESOURCE_DUMMY_BLACK_OID = "10000000-0000-0000-0000-000000000305";

@@ -205,7 +205,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 	protected static final String RESOURCE_DUMMY_LIME_NAME = "lime";
 	protected static final String RESOURCE_DUMMY_LIME_NAMESPACE = MidPointConstants.NS_RI;
 
-	protected static final File USER_TEMPLACE_LIME_FILE = new File(TEST_DIR, "user-template-lime.xml");
+	protected static final File USER_TEMPLATE_LIME_FILE = new File(TEST_DIR, "user-template-lime.xml");
 	protected static final String USER_TEMPLACE_LIME_OID = "3cf43520-241d-11e6-afa5-a377b674950d";
 	
 	private static final File ROLE_CORPSE_FILE = new File(TEST_DIR, "role-corpse.xml");
@@ -289,7 +289,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 		repoAddObjectFromFile(PASSWORD_POLICY_LOWER_CASE_ALPHA_AZURE_FILE, ValuePolicyType.class, initResult);
 		
 		// Object templates
-		repoAddObjectFromFile(USER_TEMPLACE_LIME_FILE, ObjectTemplateType.class, initResult);
+		repoAddObjectFromFile(USER_TEMPLATE_LIME_FILE, ObjectTemplateType.class, initResult);
 		
 		// And a user that will be correlated to that account
 		repoAddObjectFromFile(USER_RAPP_FILE, UserType.class, initResult);

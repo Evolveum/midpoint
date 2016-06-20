@@ -182,10 +182,12 @@ public class RefinedAttributeDefinition<T> extends ResourceAttributeDefinition<T
         throw new UnsupportedOperationException("Parts of refined attribute are immutable");
     }
 
+    @Override
     public String getDisplayName() {
         return displayName;
     }
 
+    @Override
     public void setDisplayName(String displayName) {
         this.displayName = displayName;
     }
@@ -507,6 +509,7 @@ public class RefinedAttributeDefinition<T> extends ResourceAttributeDefinition<T
 	}
 
 	protected void copyDefinitionData(RefinedAttributeDefinition<T> clone) {
+		super.copyDefinitionData(clone);
 		clone.accessOverride = this.accessOverride.clone();
 		clone.description = this.description;
 		clone.displayName = this.displayName;

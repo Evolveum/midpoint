@@ -552,7 +552,7 @@ public class TestDummy extends AbstractDummyTest {
 		assertFalse("Account definition is deprecated", accountDef.isDeprecated());
 		assertFalse("Account definition in auxiliary", accountDef.isAuxiliary());
 
-		RefinedAttributeDefinition uidDef = accountDef.findAttributeDefinition(ConnectorFactoryIcfImpl.ICFS_UID);
+		RefinedAttributeDefinition<String> uidDef = accountDef.findAttributeDefinition(ConnectorFactoryIcfImpl.ICFS_UID);
 		assertEquals(1, uidDef.getMaxOccurs());
 		assertEquals(0, uidDef.getMinOccurs());
 		assertFalse("No UID display name", StringUtils.isBlank(uidDef.getDisplayName()));
@@ -561,7 +561,7 @@ public class TestDummy extends AbstractDummyTest {
 		assertTrue("No UID read", uidDef.canRead());
 		assertTrue("UID definition not in identifiers", accountDef.getPrimaryIdentifiers().contains(uidDef));
 
-		RefinedAttributeDefinition nameDef = accountDef.findAttributeDefinition(ConnectorFactoryIcfImpl.ICFS_NAME);
+		RefinedAttributeDefinition<String> nameDef = accountDef.findAttributeDefinition(ConnectorFactoryIcfImpl.ICFS_NAME);
 		assertEquals(1, nameDef.getMaxOccurs());
 		assertEquals(1, nameDef.getMinOccurs());
 		assertFalse("No NAME displayName", StringUtils.isBlank(nameDef.getDisplayName()));
@@ -569,14 +569,22 @@ public class TestDummy extends AbstractDummyTest {
 		assertTrue("No NAME update", nameDef.canModify());
 		assertTrue("No NAME read", nameDef.canRead());
 		assertTrue("NAME definition not in identifiers", accountDef.getSecondaryIdentifiers().contains(nameDef));
+		// MID-3144
+		assertEquals("Wrong NAME displayOrder", (Integer)110, nameDef.getDisplayOrder());
+		assertEquals("Wrong NAME displayName", "Username", nameDef.getDisplayName());
 
-		RefinedAttributeDefinition fullnameDef = accountDef.findAttributeDefinition("fullname");
+		RefinedAttributeDefinition<String> fullnameDef = accountDef.findAttributeDefinition("fullname");
 		assertNotNull("No definition for fullname", fullnameDef);
 		assertEquals(1, fullnameDef.getMaxOccurs());
 		assertEquals(1, fullnameDef.getMinOccurs());
 		assertTrue("No fullname create", fullnameDef.canAdd());
 		assertTrue("No fullname update", fullnameDef.canModify());
 		assertTrue("No fullname read", fullnameDef.canRead());
+		// MID-3144
+		if (fullnameDef.getDisplayOrder() == null || fullnameDef.getDisplayOrder() < 100 || fullnameDef.getDisplayOrder() > 400) {
+			AssertJUnit.fail("Wrong fullname displayOrder: " + fullnameDef.getDisplayOrder());
+		}
+		assertEquals("Wrong fullname displayName", null, fullnameDef.getDisplayName());
 
 		assertNull("The _PASSSWORD_ attribute sneaked into schema",
 				accountDef.findAttributeDefinition(new QName(ConnectorFactoryIcfImpl.NS_ICF_SCHEMA, "password")));

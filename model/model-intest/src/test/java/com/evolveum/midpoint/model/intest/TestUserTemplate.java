@@ -32,9 +32,11 @@ import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
+import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.common.expression.evaluator.GenerateExpressionEvaluator;
 import com.evolveum.midpoint.model.impl.trigger.RecomputeTriggerHandler;
+import com.evolveum.midpoint.model.intest.sync.TestImportRecon;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismValue;
@@ -51,6 +53,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.QNameUtil;
@@ -63,6 +66,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnfo
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
@@ -77,6 +81,9 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 	
 	protected static final File ROLE_RASTAMAN_FILE = new File(TEST_DIR, "role-rastaman.xml");
 	protected static final String ROLE_RASTAMAN_OID = "81ac6b8c-225c-11e6-ab0f-87a169c85cca";
+
+	private static final String ACCOUNT_STAN_USERNAME = "stan";
+	private static final String ACCOUNT_STAN_FULLNAME = "Stan the Salesman";
 
 	private static String jackEmployeeNumber;
 	
@@ -1671,6 +1678,90 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 	}
 	
 	/**
+	 * MID-3186
+	 */
+	@Test
+    public void test300ImportStanFromEmeraldResource() throws Exception {
+		final String TEST_NAME = "test300ImportStanFromEmeraldResource";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TestImportRecon.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
+        
+        DummyAccount dummyAccountBefore = new DummyAccount(ACCOUNT_STAN_USERNAME);
+        dummyAccountBefore.replaceAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, 
+        		ACCOUNT_STAN_FULLNAME);
+        dummyAccountBefore.replaceAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, 
+        		"Melee Island");
+        dummyResourceEmerald.addAccount(dummyAccountBefore);
+        
+        PrismObject<ShadowType> shadowBefore = findAccountByUsername(ACCOUNT_STAN_USERNAME, resourceDummyEmerald);
+        display("Shadow before", shadowBefore);
+        
+		// WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        modelService.importFromResource(shadowBefore.getOid(), task, result);
+		
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        display(result);
+        TestUtil.assertSuccess(result);
+        
+        PrismObject<UserType> userAfter = findUserByUsername(ACCOUNT_STAN_USERNAME);
+        display("User after", userAfter);
+        assertNotNull("No stan user", userAfter);
+
+        PrismAsserts.assertPropertyValue(userAfter, UserType.F_FULL_NAME, PrismTestUtil.createPolyString(ACCOUNT_STAN_FULLNAME));
+        PrismAsserts.assertPropertyValue(userAfter, UserType.F_LOCALITY, PrismTestUtil.createPolyString("Melee Island"));
+        PrismAsserts.assertPropertyValue(userAfter, UserType.F_TIMEZONE, "High Seas/Melee Island");
+	}
+	
+	/**
+	 * Modify stan accoutn and reimport from the emerald resource. Make sure that
+	 * the normal mapping for locality in the object template is properly activated (as there is
+	 * an delta from inbound mapping in the emerald resource).
+	 * MID-3186
+	 */
+	@Test
+    public void test302ModifyStanAccountAndReimport() throws Exception {
+		final String TEST_NAME = "test302ModifyStanAccountAndReimport";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TestImportRecon.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
+        
+        DummyAccount dummyAccountBefore = dummyResourceEmerald.getAccountByUsername(ACCOUNT_STAN_USERNAME);
+        dummyAccountBefore.replaceAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, 
+        		"Booty Island");
+        
+        PrismObject<ShadowType> shadowBefore = findAccountByUsername(ACCOUNT_STAN_USERNAME, resourceDummyEmerald);
+        display("Shadow before", shadowBefore);
+        
+		// WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        modelService.importFromResource(shadowBefore.getOid(), task, result);
+		
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        display(result);
+        TestUtil.assertSuccess(result);
+        
+        PrismObject<UserType> userAfter = findUserByUsername(ACCOUNT_STAN_USERNAME);
+        display("User after", userAfter);
+        assertNotNull("No stan user", userAfter);
+
+        PrismAsserts.assertPropertyValue(userAfter, UserType.F_FULL_NAME, PrismTestUtil.createPolyString(ACCOUNT_STAN_FULLNAME));
+        PrismAsserts.assertPropertyValue(userAfter, UserType.F_LOCALITY, PrismTestUtil.createPolyString("Booty Island"));
+        PrismAsserts.assertPropertyValue(userAfter, UserType.F_TIMEZONE, "High Seas/Booty Island");
+	}
+	
+	/**
 	 * Move the time to the future. See if the time-based mapping in user template is properly recomputed.
 	 */
 	@Test
@@ -1681,6 +1772,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         // GIVEN
         Task task = taskManager.createTaskInstance(TestUserTemplate.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
         
         importObjectFromFile(TASK_TRIGGER_SCANNER_FILE);
         waitForTaskStart(TASK_TRIGGER_SCANNER_OID, false);
@@ -1706,6 +1798,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         // GIVEN
         Task task = taskManager.createTaskInstance(TestUserTemplate.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
     
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
         ObjectDelta<UserType> userDelta = ObjectDelta.createDeleteDelta(UserType.class,
@@ -1740,6 +1833,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 
         Task task = taskManager.createTaskInstance(TestUserTemplate.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
         
         // WHEN
         addObject(USER_JACK_FILE, task, result);
@@ -1806,6 +1900,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         
         Task task = taskManager.createTaskInstance(TestUserTemplate.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
                     
 		// WHEN
         reconcileUser(USER_JACK_OID, task, result);
@@ -1821,9 +1916,6 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 		assertOnDemandOrgAssigned("FD004", userJack);
 		
 		assertAssignments(userJack, 2);
-		
-		UserType userJackType = userJack.asObjectable();
-		assertEquals("Unexpected number of accountRefs", 1, userJackType.getLinkRef().size());
-        
+		assertLinks(userJack, 1);
 	}
 }
