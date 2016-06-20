@@ -73,6 +73,8 @@ public class ObjectWrapper<O extends ObjectType> implements Serializable, Reviva
     private boolean showAssignments = false;
     // whether to show name and description properties and metadata container
     private boolean showInheritedObjectAttributes = true;
+    
+    // readolny flag is an override. false means "do not override"
     private boolean readonly = false;
 
     private Collection<SelectorOptions<GetOperationOptions>> loadOptions;

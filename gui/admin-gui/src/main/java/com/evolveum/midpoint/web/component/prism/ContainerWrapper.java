@@ -64,7 +64,7 @@ public class ContainerWrapper<C extends Containerable> implements ItemWrapper, S
 
     private PrismContainerDefinition<C> containerDefinition;
 
-	public ContainerWrapper(ObjectWrapper objectWrapper, PrismContainer<C> container, ContainerStatus status, ItemPath path) {
+	ContainerWrapper(ObjectWrapper objectWrapper, PrismContainer<C> container, ContainerStatus status, ItemPath path) {
 		Validate.notNull(container, "container must not be null.");
 		Validate.notNull(status, "Container status must not be null.");
 
@@ -72,14 +72,14 @@ public class ContainerWrapper<C extends Containerable> implements ItemWrapper, S
 		this.container = container;
 		this.status = status;
 		this.path = path;
-		main = path == null;
-		readonly = objectWrapper.isReadonly(); // [pm] this is quite questionable
-		showInheritedObjectAttributes = objectWrapper.isShowInheritedObjectAttributes();
+		this.main = path == null;
+		this.readonly = objectWrapper.isReadonly(); // [pm] this is quite questionable
+		this.showInheritedObjectAttributes = objectWrapper.isShowInheritedObjectAttributes();
 		// have to be after setting "main" property
-		containerDefinition = getItemDefinition();
+		this.containerDefinition = getItemDefinition();
 	}
 
-	public ContainerWrapper(PrismContainer<C> container, ContainerStatus status, ItemPath path, boolean readOnly) {
+	ContainerWrapper(PrismContainer<C> container, ContainerStatus status, ItemPath path, boolean readOnly) {
         Validate.notNull(container, "container must not be null.");
         Validate.notNull(container.getDefinition(), "container definition must not be null.");
         Validate.notNull(status, "Container status must not be null.");
@@ -88,9 +88,9 @@ public class ContainerWrapper<C extends Containerable> implements ItemWrapper, S
 		this.containerDefinition = container.getDefinition();
         this.status = status;
         this.path = path;
-        main = path == null;
+        this.main = path == null;
         this.readonly = readOnly;
-        showInheritedObjectAttributes = false;
+        this.showInheritedObjectAttributes = false;
     }
 
     public void revive(PrismContext prismContext) throws SchemaException {
@@ -325,15 +325,9 @@ public class ContainerWrapper<C extends Containerable> implements ItemWrapper, S
     }
 
     public boolean isReadonly() {
-        PrismContainerDefinition def = getItemDefinition();
-		if (readonly) {
-			return true;
-		}
-        if (def != null) {
-            // todo take into account the containing object status (adding vs. modifying)
-            return (def.canRead() && !def.canAdd() && !def.canModify());
-        }
-        return false;
+		// readonly flag in container is an override. Do not get the value from definition
+		// otherwise it will be propagated to items and overrides the item definition.
+    	return readonly;
     }
 
     public void setReadonly(boolean readonly) {

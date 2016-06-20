@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,8 +38,17 @@ public interface ItemWrapper<I extends Item, ID extends ItemDefinition> extends 
 
     I getItem();
     
+    /**
+     * Item definition.
+     * The definition defines how the item will be displayed (type, read-only, read-write or
+     * not displayed at all). This behavior can be overriden by readonly and visible flags.
+     */
     ID getItemDefinition();
     
+    /**
+     * Read only flag. This is an override of the default behavior given by the definition.
+     * If set to TRUE then it overrides the value from the definition.
+     */
     boolean isReadonly();
 
 	boolean isEmpty();
@@ -47,9 +56,16 @@ public interface ItemWrapper<I extends Item, ID extends ItemDefinition> extends 
     boolean hasChanged();
     
     public List<ValueWrapper> getValues();
-    
+
+    /**
+     * Visibility flag. This is an override of the default behavior given by the definition.
+     * TODO: when it overrides? If set to FALSE?
+     */
     public boolean isVisible();
     
+    /**
+     * Used to display the form elements with stripe in every other line.
+     */
     public boolean isStripe();
     
     void setStripe(boolean isStripe);
