@@ -21,6 +21,9 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.Locale;
 
 /**
  * EXPERIMENTAL
@@ -73,6 +76,6 @@ public interface ResourceValidator {
 	String C_NO_SITUATION = "noSituation";
 
 	@NotNull
-	ValidationResult validate(@NotNull PrismObject<ResourceType> resourceObject, @NotNull Scope scope, @NotNull Task task,
-			@NotNull OperationResult result);
+	ValidationResult validate(@NotNull PrismObject<ResourceType> resourceObject, @NotNull Scope scope,
+			@Nullable Locale locale, @NotNull Task task, @NotNull OperationResult result);
 }

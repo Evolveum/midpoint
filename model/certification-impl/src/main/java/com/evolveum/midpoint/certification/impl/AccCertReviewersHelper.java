@@ -27,18 +27,7 @@ import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationReviewerSpecificationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationStageDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ManagerSearchType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -136,7 +125,7 @@ public class AccCertReviewersHelper {
             } else if (object instanceof OrgType) {
                 // TODO more elaborate behavior; eliminate unneeded resolveReference above
                 managers = orgStructFunctions.getManagersOfOrg(object.getOid(), true);
-            } else if (object instanceof RoleType) {
+            } else if (object instanceof RoleType || object instanceof ServiceType) {
                 // TODO implement
                 managers = new HashSet<>();
             } else {

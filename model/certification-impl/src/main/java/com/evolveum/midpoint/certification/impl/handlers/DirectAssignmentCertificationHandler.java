@@ -39,19 +39,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationAssignmentCaseType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationAssignmentReviewScopeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationObjectBasedScopeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
@@ -128,6 +116,8 @@ public class DirectAssignmentCertificationHandler extends BaseCertificationHandl
                 valid = isIncludeRoles(scope);
             } else if (OrgType.COMPLEX_TYPE.equals(assignment.getTargetRef().getType())) {
                 valid = isIncludeOrgs(scope);
+            } else if (ServiceType.COMPLEX_TYPE.equals(assignment.getTargetRef().getType())) {
+                valid = isIncludeServices(scope);
             } else {
                 throw new IllegalStateException("Unexpected targetRef type: " + assignment.getTargetRef().getType() + " in " + ObjectTypeUtil.toShortString(assignment));
             }
@@ -135,7 +125,7 @@ public class DirectAssignmentCertificationHandler extends BaseCertificationHandl
             assignmentCase.setTargetRef(assignment.getConstruction().getResourceRef());
             valid = isIncludeResources(scope);
         } else {
-            valid = false;      // neither role/org nor resource assignment; ignored for now
+            valid = false;      // neither role/org/service nor resource assignment; ignored for now
         }
         if (valid && isEnabledItemsOnly(scope) && !ActivationUtil.isAdministrativeEnabledOrNull(assignment.getActivation())) {
             valid = false;
@@ -187,6 +177,10 @@ public class DirectAssignmentCertificationHandler extends BaseCertificationHandl
 
     private boolean isIncludeOrgs(AccessCertificationAssignmentReviewScopeType scope) {
         return scope == null || !Boolean.FALSE.equals(scope.isIncludeOrgs());
+    }
+
+    private boolean isIncludeServices(AccessCertificationAssignmentReviewScopeType scope) {
+        return scope == null || !Boolean.FALSE.equals(scope.isIncludeServices());
     }
 
     private boolean isEnabledItemsOnly(AccessCertificationAssignmentReviewScopeType scope) {

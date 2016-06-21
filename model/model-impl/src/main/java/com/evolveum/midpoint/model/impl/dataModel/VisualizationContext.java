@@ -76,17 +76,12 @@ public class VisualizationContext {
 	public ResourceDataItem findResourceItem(@NotNull String resourceOid, @Nullable ShadowKindType kind, @Nullable String intent, @NotNull ItemPath path) {
 		kind = DataModelVisualizerImpl.def(kind);
 		intent = DataModelVisualizerImpl.def(intent);
-		QName name = path.asSingleName();
-		if (name == null) {
-			LOGGER.warn("Unexpected path to an attribute: {}", path);
-			return null;
-		}
 		for (ResourceDataItem item : getResourceDataItems()) {
-			if (item.matches(resourceOid, kind, intent, name)) {
+			if (item.matches(resourceOid, kind, intent, path)) {
 				return item;
 			}
 		}
-		LOGGER.warn("Unknown resource data item: resource={}, kind={}, intent={}, name={}", resourceOid, kind, intent, name);
+		LOGGER.warn("Unknown resource data item: resource={}, kind={}, intent={}, path={}", resourceOid, kind, intent, path);
 		return null;
 	}
 
@@ -167,25 +162,28 @@ public class VisualizationContext {
 						continue;
 					}
 					ResourceDataItem item = findResourceItem(resource.getOid(), def.getKind(), def.getIntent(), new ItemPath(attrDef.getName()));
-					if (showUnusedItems || isUsed(item)) {
-						showNodeIfNeeded(sb1, indent, itemsShown, item);
-						String nodeName = item.getNodeName();
-						addHiddenEdge(sb1, indent, previousNodeName, nodeName);
-						previousNodeName = nodeName;
-					}
+					previousNodeName = addResourceItem(itemsShown, indent, sb1, previousNodeName, item);
 				}
 				for (RefinedAssociationDefinition assocDef : def.getAssociations()) {
 					if (assocDef.isIgnored()) {
 						continue;
 					}
 					ResourceDataItem item = findResourceItem(resource.getOid(), def.getKind(), def.getIntent(), new ItemPath(assocDef.getName()));
-					if (showUnusedItems || isUsed(item)) {
-						showNodeIfNeeded(sb1, indent, itemsShown, item);
-						String nodeName = item.getNodeName();
-						addHiddenEdge(sb1, indent, previousNodeName, nodeName);
-						previousNodeName = nodeName;
-					}
+					previousNodeName = addResourceItem(itemsShown, indent, sb1, previousNodeName, item);
 				}
+				previousNodeName = addResourceItem(itemsShown, indent, sb1, previousNodeName,
+						findResourceItem(resource.getOid(), def.getKind(), def.getIntent(), new ItemPath(ShadowType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS)));
+				previousNodeName = addResourceItem(itemsShown, indent, sb1, previousNodeName,
+						findResourceItem(resource.getOid(), def.getKind(), def.getIntent(), new ItemPath(ShadowType.F_ACTIVATION, DataModelVisualizerImpl.ACTIVATION_EXISTENCE)));
+				previousNodeName = addResourceItem(itemsShown, indent, sb1, previousNodeName,
+						findResourceItem(resource.getOid(), def.getKind(), def.getIntent(), new ItemPath(ShadowType.F_ACTIVATION, ActivationType.F_VALID_FROM)));
+				previousNodeName = addResourceItem(itemsShown, indent, sb1, previousNodeName,
+						findResourceItem(resource.getOid(), def.getKind(), def.getIntent(), new ItemPath(ShadowType.F_ACTIVATION, ActivationType.F_VALID_TO)));
+				previousNodeName = addResourceItem(itemsShown, indent, sb1, previousNodeName,
+						findResourceItem(resource.getOid(), def.getKind(), def.getIntent(), new ItemPath(ShadowType.F_ACTIVATION, ActivationType.F_LOCKOUT_STATUS)));
+				previousNodeName = addResourceItem(itemsShown, indent, sb1, previousNodeName,
+						findResourceItem(resource.getOid(), def.getKind(), def.getIntent(), new ItemPath(ShadowType.F_CREDENTIALS, CredentialsType.F_PASSWORD)));
+
 				indent--;
 				sb1.append(indent(indent)).append("}\n");
 				if (previousNodeName != null) {
@@ -237,6 +235,16 @@ public class VisualizationContext {
 		sb.append("}");
 
 		return sb.toString();
+	}
+
+	private String addResourceItem(Set<DataItem> itemsShown, int indent, StringBuilder sb1, String previousNodeName, ResourceDataItem item) {
+		if (showUnusedItems || isUsed(item)) {
+			showNodeIfNeeded(sb1, indent, itemsShown, item);
+			String nodeName = item.getNodeName();
+			addHiddenEdge(sb1, indent, previousNodeName, nodeName);
+			previousNodeName = nodeName;
+		}
+		return previousNodeName;
 	}
 
 	private void showNodesIfNeeded(StringBuilder sb, int indent, Set<DataItem> itemsShown, List<DataItem> items) {

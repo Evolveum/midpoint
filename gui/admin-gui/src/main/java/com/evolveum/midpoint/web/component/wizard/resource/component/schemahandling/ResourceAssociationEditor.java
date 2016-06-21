@@ -137,7 +137,7 @@ public class ResourceAssociationEditor extends BasePanel<ResourceObjectAssociati
         add(kind);
 
         MultiValueTextPanel intent = new MultiValueTextPanel<>(ID_INTENT,
-                new PropertyModel<List<String>>(getModel(), "intent"), readOnlyModel);
+                new PropertyModel<List<String>>(getModel(), "intent"), readOnlyModel, true);
 		intent.add(WebComponentUtil.enabledIfFalse(readOnlyModel));
         add(intent);
 
@@ -226,12 +226,12 @@ public class ResourceAssociationEditor extends BasePanel<ResourceObjectAssociati
         add(tolerant);
 
         MultiValueTextPanel tolerantVP = new MultiValueTextPanel<>(ID_TOLERANT_VP,
-                new PropertyModel<List<String>>(getModel(), "tolerantValuePattern"), readOnlyModel);
+                new PropertyModel<List<String>>(getModel(), "tolerantValuePattern"), readOnlyModel, true);
 		tolerantVP.add(WebComponentUtil.enabledIfFalse(readOnlyModel));
         add(tolerantVP);
 
         MultiValueTextPanel intolerantVP = new MultiValueTextPanel<>(ID_INTOLERANT_VP,
-                new PropertyModel<List<String>>(getModel(), "intolerantValuePattern"), readOnlyModel);
+                new PropertyModel<List<String>>(getModel(), "intolerantValuePattern"), readOnlyModel, true);
 		intolerantVP.add(WebComponentUtil.enabledIfFalse(readOnlyModel));
         add(intolerantVP);
 

@@ -94,7 +94,7 @@ public class DefinitionScopePanel extends BasePanel<DefinitionScopeDto> {
 		add(WebComponentUtil.createHelp(ID_ASSIGNMENTS_INDUCEMENTS_HELP));
 
 		add(new CheckBox(ID_INCLUDE_RESOURCES, new PropertyModel<Boolean>(getModel(), DefinitionScopeDto.F_INCLUDE_RESOURCES)));
-        add(new CheckBox(ID_INCLUDE_ROLES, new PropertyModel<Boolean>(getModel(), DefinitionScopeDto.F_INCLUDE_RESOURCES)));
+        add(new CheckBox(ID_INCLUDE_ROLES, new PropertyModel<Boolean>(getModel(), DefinitionScopeDto.F_INCLUDE_ROLES)));
         add(new CheckBox(ID_INCLUDE_ORGS, new PropertyModel<Boolean>(getModel(), DefinitionScopeDto.F_INCLUDE_ORGS)));
 		add(new CheckBox(ID_INCLUDE_SERVICES, new PropertyModel<Boolean>(getModel(), DefinitionScopeDto.F_INCLUDE_SERVICES)));
 		add(WebComponentUtil.createHelp(ID_INCLUDE_TARGET_TYPES_HELP));

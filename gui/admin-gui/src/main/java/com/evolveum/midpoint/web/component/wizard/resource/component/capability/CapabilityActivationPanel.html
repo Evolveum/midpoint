@@ -70,6 +70,56 @@
         <div wicket:id="statusDisableList" />
     </dl>
 
+    <h4><wicket:message key="capabilityActivationPanel.label.lockout" /></h4>
+    <div class="row">
+        <div class="col-xs-6">
+            <dl class="dl-horizontal">
+                <dt>
+                    <label><wicket:message key="capabilityActivationPanel.label.enabled" /></label>
+                    <i wicket:id="lockoutEnabledTooltip" wicket:message="title:CapabilityStep.activation.tooltip.enabled"/>
+                </dt>
+                <dd><input wicket:id="lockoutEnabled" type="checkbox" value="checked"/></dd>
+            </dl>
+        </div>
+        <div class="col-xs-6">
+            <dl class="dl-horizontal">
+                <dt>
+                    <label><wicket:message key="capabilityActivationPanel.label.returnedByDefault" /></label>
+                    <i wicket:id="lockoutReturnedByDefaultTooltip" wicket:message="title:CapabilityStep.activation.tooltip.returnedByDefault"/>
+                </dt>
+                <dd><input wicket:id="lockoutReturnedByDefault" type="checkbox" value="checked"/></dd>
+            </dl>
+            <dl class="dl-horizontal">
+                <dt>
+                    <label><wicket:message key="capabilityActivationPanel.label.ignoreAttribute"/></label>
+                    <i wicket:id="lockoutIgnoreAttributeTooltip" wicket:message="title:CapabilityStep.activation.tooltip.ignoreAttribute"/>
+                </dt>
+                <dd><input wicket:id="lockoutIgnoreAttribute" type="checkbox" value="checked"/></dd>
+            </dl>
+        </div>
+    </div>
+    <dl class="dl-horizontal">
+        <dt>
+            <label><wicket:message key="capabilityActivationPanel.label.attributeName" /></label>
+            <i wicket:id="lockoutAttributeNameTooltip" wicket:message="title:CapabilityStep.activation.tooltip.lockoutAttributeName"/>
+        </dt>
+        <dd><select wicket:id="lockoutSelect" class="form-control input-sm"></select></dd>
+    </dl>
+    <dl class="dl-horizontal">
+        <dt>
+            <label><wicket:message key="capabilityActivationPanel.label.normalList" /></label>
+            <i wicket:id="lockoutNormalListTooltip" wicket:message="title:CapabilityStep.activation.tooltip.lockoutNormalList"/>
+        </dt>
+        <div wicket:id="lockoutNormalList" />
+    </dl>
+    <dl class="dl-horizontal">
+        <dt>
+            <label><wicket:message key="capabilityActivationPanel.label.lockedList" /></label>
+            <i wicket:id="lockoutLockedListTooltip" wicket:message="title:CapabilityStep.activation.tooltip.lockoutLockedList"/>
+        </dt>
+        <div wicket:id="lockoutLockedList" />
+    </dl>
+
     <div class="row">
         <div class="col-xs-6">
             <h4><wicket:message key="capabilityActivationPanel.label.validFrom" /></h4>

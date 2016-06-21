@@ -17,6 +17,7 @@
  
 <objects xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
          xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+         xmlns:t='http://prism.evolveum.com/xml/ns/public/types-3'
          xmlns:org='http://midpoint.evolveum.com/xml/ns/public/common/org-3'>
 
 	<!-- Functional organizational structure -->
@@ -260,6 +261,29 @@
 		<emailAddress>radovan.semancik@evolveum.com</emailAddress>
 		<employeeNumber>002</employeeNumber>
 		<locality>Lozorno</locality>
+		<credentials>
+			<password>
+				<value>
+					<t:clearValue>qwe123</t:clearValue>
+				</value>
+			</password>
+			<securityQuestions>
+				<questionAnswer>
+					<questionIdentifier>http://midpoint.evolveum.com/xml/ns/public/security/question-2#q001
+					</questionIdentifier>
+					<questionAnswer>
+						<t:clearValue>just a bit</t:clearValue>
+					</questionAnswer>
+				</questionAnswer>
+				<questionAnswer>
+					<questionIdentifier>http://midpoint.evolveum.com/xml/ns/public/security/question-2#q002
+					</questionIdentifier>
+					<questionAnswer>
+						<t:clearValue>Doggie</t:clearValue>
+					</questionAnswer>
+				</questionAnswer>
+			</securityQuestions>
+	   </credentials>
 	</user>
 
 	<user oid="00000000-ee88-6666-0000-000000000003">

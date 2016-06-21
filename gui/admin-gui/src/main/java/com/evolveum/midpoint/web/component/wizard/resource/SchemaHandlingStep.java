@@ -1154,7 +1154,7 @@ public class SchemaHandlingStep extends WizardStep {
                     continue;
                 }
 
-                if(inbound.getSource().size() == 0 && compareItemPath(inbound.getSource().get(0).getPath(), ResourceActivationEditor.EXISTENCE_DEFAULT_SOURCE)){
+                if(inbound.getSource().size() == 1 && compareItemPath(inbound.getSource().get(0).getPath(), ResourceActivationEditor.EXISTENCE_DEFAULT_SOURCE)){
                     newInbounds.add(new MappingType());
                     continue;
                 }

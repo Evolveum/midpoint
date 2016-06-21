@@ -174,11 +174,13 @@ public class ResourceTasksPanel extends Panel implements Popupable{
 			@Override
 			public void onClick(AjaxRequestTarget target) {
 				List<String> oids = createOidList(getTaskListPanel().getSelectedObjects());
-				
-				OperationResult result = TaskOperationUtils.runNowPerformed(pageBase.getTaskService(), oids);
-				pageBase.showResult(result);
+				if (!oids.isEmpty()) {
+					OperationResult result = TaskOperationUtils.runNowPerformed(pageBase.getTaskService(), oids);
+					pageBase.showResult(result);
+				} else {
+					noTasksSelected();
+				}
 				target.add(pageBase.getFeedbackPanel());
-				
 			}
 		};
 		add(runNow);
@@ -189,11 +191,13 @@ public class ResourceTasksPanel extends Panel implements Popupable{
 			@Override
 			public void onClick(AjaxRequestTarget target) {
 				List<String> oids = createOidList(getTaskListPanel().getSelectedObjects());
-				
-				OperationResult result = TaskOperationUtils.resumePerformed(pageBase.getTaskService(), oids);
-				pageBase.showResult(result);
+				if (!oids.isEmpty()) {
+					OperationResult result = TaskOperationUtils.resumePerformed(pageBase.getTaskService(), oids);
+					pageBase.showResult(result);
+				} else {
+					noTasksSelected();
+				}
 				target.add(pageBase.getFeedbackPanel());
-				
 			}
 		};
 		add(resume);
@@ -204,16 +208,22 @@ public class ResourceTasksPanel extends Panel implements Popupable{
 			@Override
 			public void onClick(AjaxRequestTarget target) {
 				List<String> oids = createOidList(getTaskListPanel().getSelectedObjects());
-				
-				OperationResult result = TaskOperationUtils.suspendPerformed(pageBase.getTaskService(), oids);
-				pageBase.showResult(result);
+				if (!oids.isEmpty()) {
+					OperationResult result = TaskOperationUtils.suspendPerformed(pageBase.getTaskService(), oids);
+					pageBase.showResult(result);
+				} else {
+					noTasksSelected();
+				}
 				target.add(pageBase.getFeedbackPanel());
-				
 			}
 		};
 		add(suspend);
 	}
-	
+
+	private void noTasksSelected() {
+		warn(getString("ResourceTasksPanel.noTasksSelected"));
+	}
+
 	private ObjectListPanel<TaskType> getTaskListPanel(){
 		return (ObjectListPanel<TaskType>) get(ID_TASKS_TABLE);
 	}

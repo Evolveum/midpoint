@@ -52,11 +52,11 @@ public class MultiValueTextPanel<T extends Serializable> extends BasePanel<List<
 
     private static final String CSS_DISABLED = " disabled";
 
-    public MultiValueTextPanel(String id, IModel<List<T>> value, NonEmptyModel<Boolean> readOnlyModel){
+    public MultiValueTextPanel(String id, IModel<List<T>> value, NonEmptyModel<Boolean> readOnlyModel, boolean emptyStringToNull) {
         super(id, value);
         setOutputMarkupId(true);
 
-        initLayout(readOnlyModel);
+        initLayout(readOnlyModel, emptyStringToNull);
     }
 
     @Override
@@ -68,7 +68,7 @@ public class MultiValueTextPanel<T extends Serializable> extends BasePanel<List<
         return super.getModel();
     }
 
-    private void initLayout(final NonEmptyModel<Boolean> readOnlyModel) {
+    private void initLayout(final NonEmptyModel<Boolean> readOnlyModel, final boolean emptyStringToNull) {
         WebMarkupContainer placeholderContainer = new WebMarkupContainer(ID_PLACEHOLDER_CONTAINER);
         placeholderContainer.setOutputMarkupPlaceholderTag(true);
         placeholderContainer.setOutputMarkupPlaceholderTag(true);
@@ -115,6 +115,7 @@ public class MultiValueTextPanel<T extends Serializable> extends BasePanel<List<
                 });
                 text.add(AttributeAppender.replace("placeholder", createEmptyItemPlaceholder()));
 				text.add(WebComponentUtil.enabledIfFalse(readOnlyModel));
+				text.setConvertEmptyInputStringToNull(emptyStringToNull);
                 item.add(text);
 
                 WebMarkupContainer buttonGroup = new WebMarkupContainer(ID_BUTTON_GROUP);

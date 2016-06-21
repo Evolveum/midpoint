@@ -308,6 +308,7 @@ public class CertDefinitionDto implements Serializable {
             scopeTypeObj.setIncludeAssignments(definitionScopeDto.isIncludeAssignments());
             scopeTypeObj.setIncludeInducements(definitionScopeDto.isIncludeInducements());
             scopeTypeObj.setIncludeResources(definitionScopeDto.isIncludeResources());
+            scopeTypeObj.setIncludeRoles(definitionScopeDto.isIncludeRoles());
             scopeTypeObj.setIncludeOrgs(definitionScopeDto.isIncludeOrgs());
             scopeTypeObj.setIncludeServices(definitionScopeDto.isIncludeServices());
             scopeTypeObj.setEnabledItemsOnly(definitionScopeDto.isEnabledItemsOnly());

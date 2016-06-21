@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.web.page.admin.resources;
 
 import com.evolveum.midpoint.gui.api.model.NonEmptyLoadableModel;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.model.api.validator.ResourceValidator;
 import com.evolveum.midpoint.model.api.validator.Scope;
 import com.evolveum.midpoint.model.api.validator.ValidationResult;
@@ -49,7 +50,7 @@ public class ResourceWizardIssuesModel extends NonEmptyLoadableModel<WizardIssue
 		}
 		ResourceValidator validator = wizardPage.getResourceValidator();
 		ValidationResult validationResult = validator
-				.validate(resourceModel.getObject(), Scope.QUICK, wizardPage.createSimpleTask("validate"), new OperationResult("validate"));
+				.validate(resourceModel.getObject(), Scope.QUICK, WebComponentUtil.getCurrentLocale(), wizardPage.createSimpleTask("validate"), new OperationResult("validate"));
 
 		issuesDto.fillFrom(validationResult);
 		issuesDto.sortIssues();

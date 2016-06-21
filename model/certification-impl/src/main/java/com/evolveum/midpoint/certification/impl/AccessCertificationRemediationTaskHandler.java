@@ -134,6 +134,7 @@ public class AccessCertificationRemediationTaskHandler implements TaskHandler {
                         caseHelper.markCaseAsRemedied(campaignOid, caseId, task, caseResult);
                         caseResult.computeStatus();
                         revokedOk++;
+						progress++;
                     } catch (Exception e) {     // TODO
                         String message = "Couldn't revoke case " + caseId + ": " + e.getMessage();
                         LoggingUtils.logUnexpectedException(LOGGER, message, e);
