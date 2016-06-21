@@ -317,10 +317,6 @@ public class PageImportObject extends PageAdminConfiguration {
 			}
 
 		}
-		
-		if (result.isSuccess()) {
-			xmlEditorModel.setObject(null);
-		}
 
 		showResult(result);
 		target.add(PageImportObject.this);
