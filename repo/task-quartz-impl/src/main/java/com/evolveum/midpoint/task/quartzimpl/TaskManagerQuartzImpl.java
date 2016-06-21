@@ -1351,7 +1351,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
     }
 
     private void logListenerException(RuntimeException e) {
-        LoggingUtils.logException(LOGGER, "Task listener returned an unexpected exception", e);
+        LoggingUtils.logUnexpectedException(LOGGER, "Task listener returned an unexpected exception", e);
     }
 
     public void notifyTaskFinish(Task task, TaskRunResult runResult) {
