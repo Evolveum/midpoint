@@ -38,6 +38,12 @@ import org.apache.wicket.model.PropertyModel;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.password.PasswordPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.component.data.SelectableDataTable;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxColumn;
@@ -48,7 +54,10 @@ import com.evolveum.midpoint.web.component.util.ListDataProvider;
 import com.evolveum.midpoint.web.page.admin.home.dto.MyPasswordsDto;
 import com.evolveum.midpoint.web.page.admin.home.dto.PasswordAccountDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsPropagationUserControlType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordChangeSecurityType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 /**
@@ -62,8 +71,11 @@ public class ChangePasswordPanel extends BasePanel<MyPasswordsDto> {
     private static final String ID_PASSWORD_LABEL = "passwordLabel";
     private static final String ID_OLD_PASSWORD_LABEL = "oldPasswordLabel";
     public static final String ID_ACCOUNTS_TABLE = "accounts";
+    public static final String ID_LAST_CHANGE = "lastChange";
     public static final String ID_ACCOUNTS_CONTAINER = "accountsContainer";
     private static final String ID_BUTTON_HELP = "help";
+    private static final String DOT_CLASS = ChangePasswordPanel.class.getName() + ".";
+    private static final String OPERATION_LOAD_USER = DOT_CLASS + "loadUSer";
     public static final String SELECTED_ACCOUNT_ICON_CSS = "fa fa-check-square-o";
     public static final String DESELECTED_ACCOUNT_ICON_CSS = "fa fa-square-o";
     public static final String PROPAGATED_ACCOUNT_ICON_CSS = "fa fa-sign-out";
@@ -78,8 +90,9 @@ public class ChangePasswordPanel extends BasePanel<MyPasswordsDto> {
         initLayout();
     }
 
-    public ChangePasswordPanel(String id, LoadableModel<MyPasswordsDto> model, MyPasswordsDto myPasswordsDto) {
+    public ChangePasswordPanel(String id, LoadableModel<MyPasswordsDto> model, MyPasswordsDto myPasswordsDto, PageBase pageBase) {
         super(id, model);
+        setParent(pageBase);
         initLayout();
     }
 
@@ -91,6 +104,24 @@ public class ChangePasswordPanel extends BasePanel<MyPasswordsDto> {
 
         Label passwordLabel = new Label(ID_PASSWORD_LABEL, createStringResource("PageSelfCredentials.passwordLabel1"));
         add(passwordLabel);
+        
+        MetadataType metadata = model.getObject().getMetadata();
+        PrismObject<UserType> modifier = null;
+        
+        if(metadata!=null){
+        	ObjectReferenceType modifierRef = metadata.getModifierRef();
+        	Task task = getPageBase().createSimpleTask(OPERATION_LOAD_USER);
+        	OperationResult result = new OperationResult(OPERATION_LOAD_USER);
+        	if(modifierRef!=null){
+        		modifier = WebModelServiceUtils.loadObject(UserType.class, modifierRef.getOid(), getPageBase(), task, result);   
+        	}
+        }
+        Label lastChange = new Label(ID_LAST_CHANGE,
+        	    createStringResource("PageSelfCredentials.lastChangeLabel",
+        	      metadata == null ? "NO CHANGE" : metadata.getModifyTimestamp(),
+        	      WebComponentUtil.getName(modifier)));
+        	  add(lastChange);
+        
 
         PasswordTextField oldPasswordField =
                 new PasswordTextField(ID_OLD_PASSWORD_FIELD, new PropertyModel<String>(model, MyPasswordsDto.F_OLD_PASSWORD));

@@ -146,6 +146,16 @@ public class PageSelfCredentials extends PageSelf {
             OperationResult subResult = result.createSubresult(OPERATION_LOAD_USER);
             user = getModelService().getObject(UserType.class, userOid, null, task, subResult);
             subResult.recordSuccessIfUnknown();
+            
+            UserType userType = user.asObjectable();
+            CredentialsType credentials = userType.getCredentials();
+            if (credentials != null){
+             PasswordType passwordType = credentials.getPassword();
+             if (passwordType != null) {
+              MetadataType metadata = passwordType.getMetadata();
+              dto.setMetadata(metadata);
+             }
+            }
 
             dto.getAccounts().add(createDefaultPasswordAccountDto(user));
 
@@ -202,8 +212,10 @@ public class PageSelfCredentials extends PageSelf {
         } finally {
             result.recomputeStatus();
         }
+        
 
-        Collections.sort(dto.getAccounts());
+        
+        		Collections.sort(dto.getAccounts());
 
         if (!result.isSuccess() && !result.isHandledError()) {
             showResult(result);
@@ -222,7 +234,7 @@ public class PageSelfCredentials extends PageSelf {
 
             @Override
             public WebMarkupContainer getPanel(String panelId) {
-                return new ChangePasswordPanel(panelId, model, model.getObject());
+                return new ChangePasswordPanel(panelId, model, model.getObject(),PageSelfCredentials.this);
             }
         });
 

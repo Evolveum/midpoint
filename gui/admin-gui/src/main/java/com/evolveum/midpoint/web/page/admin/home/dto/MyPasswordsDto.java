@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsPropagationUserControlType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordChangeSecurityType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
@@ -38,6 +39,7 @@ public class MyPasswordsDto implements Serializable {
     private CredentialsPropagationUserControlType propagation;
     private PasswordChangeSecurityType passwordChangeSecurity;
     private String oldPassword;
+    private MetadataType metadata;
 
     public List<PasswordAccountDto> getAccounts() {
         if (accounts == null) {
@@ -77,4 +79,14 @@ public class MyPasswordsDto implements Serializable {
     public void setOldPassword(String oldPassword) {
         this.oldPassword = oldPassword;
     }
+
+	public MetadataType getMetadata() {
+		return metadata;
+	}
+
+	public void setMetadata(MetadataType metadata) {
+		this.metadata = metadata;
+	}
+    
+    
 }
