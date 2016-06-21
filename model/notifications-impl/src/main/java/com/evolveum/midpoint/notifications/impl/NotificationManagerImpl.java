@@ -25,6 +25,7 @@ import com.evolveum.midpoint.notifications.impl.events.workflow.DefaultWorkflowE
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -32,6 +33,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.EventHandlerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NotificationConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -46,17 +48,21 @@ import java.util.HashMap;
 public class NotificationManagerImpl implements NotificationManager {
 
     private static final Trace LOGGER = TraceManager.getTrace(NotificationManager.class);
+	private static final String OPERATION_PROCESS_EVENT = NotificationManager.class + ".processEvent";
 
-    @Autowired(required = true)
+	@Autowired(required = true)
     @Qualifier("cacheRepositoryService")
     private transient RepositoryService cacheRepositoryService;
 
     @Autowired
     private DefaultWorkflowEventCreator defaultWorkflowEventCreator;
 
+	@Autowired
+	private TaskManager taskManager;
+
     private boolean disabled = false;               // for testing purposes (in order for model-intest to run more quickly)
 
-    private HashMap<Class<? extends EventHandlerType>,EventHandler> handlers = new HashMap<Class<? extends EventHandlerType>,EventHandler>();
+    private HashMap<Class<? extends EventHandlerType>,EventHandler> handlers = new HashMap<>();
     private HashMap<String,Transport> transports = new HashMap<String,Transport>();
 
     public void registerEventHandler(Class<? extends EventHandlerType> clazz, EventHandler handler) {
@@ -75,7 +81,7 @@ public class NotificationManagerImpl implements NotificationManager {
 
     @Override
     public void registerTransport(String name, Transport transport) {
-        LOGGER.trace("Registering notification transport " + transport + " under name " + name);
+        LOGGER.trace("Registering notification transport {} under name {}", transport, name);
         transports.put(name, transport);
     }
 
@@ -97,29 +103,24 @@ public class NotificationManagerImpl implements NotificationManager {
         return defaultWorkflowEventCreator;
     }
 
-    // event may be null
-    public void processEvent(Event event) {
-        processEvent(event, null, new OperationResult("dummy"));
+    public void processEvent(@Nullable Event event) {
+		Task task = taskManager.createTaskInstance(OPERATION_PROCESS_EVENT);
+        processEvent(event, task, task.getResult());
     }
 
-    // event may be null
-    public void processEvent(Event event, Task task, OperationResult result) {
+    public void processEvent(@Nullable Event event, Task task, OperationResult result) {
         if (event == null) {
             return;
         }
 
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("NotificationManager processing event " + event);
-        }
+		LOGGER.trace("NotificationManager processing event {}", event);
 
         SystemConfigurationType systemConfigurationType = NotificationsUtil.getSystemConfiguration(cacheRepositoryService, result);
         if (systemConfigurationType == null) {      // something really wrong happened (or we are doing initial import of objects)
             return;
         }
         if (systemConfigurationType.getNotificationConfiguration() == null) {
-            if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("No notification configuration in repository, exiting the change listener.");
-            }
+			LOGGER.trace("No notification configuration in repository, exiting the change listener.");
             return;
         }
 
@@ -129,9 +130,7 @@ public class NotificationManagerImpl implements NotificationManager {
             processEvent(event, eventHandlerType, task, result);
         }
 
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("NotificationManager successfully processed event " + event + " (" +notificationConfigurationType.getHandler().size() + " top level handler(s))");
-        }
+		LOGGER.trace("NotificationManager successfully processed event {} ({} top level handler(s))", event, notificationConfigurationType.getHandler().size());
     }
 
     public boolean processEvent(Event event, EventHandlerType eventHandlerType, Task task, OperationResult result) {
