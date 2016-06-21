@@ -288,88 +288,119 @@ public class ResourceTypeUtil {
 	}
 
 	public static boolean isActivationCapabilityEnabled(ResourceType resource) {
-		return isCapabilityEnabled(getEffectiveCapability(resource, ActivationCapabilityType.class));
+		return getEffectiveCapability(resource, ActivationCapabilityType.class) != null;
 	}
 	
 	public static boolean isActivationLockoutStatusCapabilityEnabled(ResourceType resource) {
-		return isCapabilityEnabled(getEffectiveCapability(resource, ActivationLockoutStatusCapabilityType.class));
+		return getEffectiveActivationLockoutStatusCapability(resource) != null;
 	}
-	
+
+	public static ActivationLockoutStatusCapabilityType getEffectiveActivationLockoutStatusCapability(ResourceType resource) {
+		ActivationCapabilityType act = getEffectiveCapability(resource, ActivationCapabilityType.class);
+		if (act == null || act.getLockoutStatus() == null || Boolean.FALSE.equals(act.getLockoutStatus().isEnabled())) {
+			return null;
+		} else {
+			return act.getLockoutStatus();
+		}
+	}
+
+	public static ActivationStatusCapabilityType getEffectiveActivationStatusCapability(ResourceType resource) {
+		ActivationCapabilityType act = getEffectiveCapability(resource, ActivationCapabilityType.class);
+		if (act == null || act.getStatus() == null || Boolean.FALSE.equals(act.getStatus().isEnabled())) {
+			return null;
+		} else {
+			return act.getStatus();
+		}
+	}
+
 	public static boolean isActivationStatusCapabilityEnabled(ResourceType resource) {
-		return isCapabilityEnabled(getEffectiveCapability(resource, ActivationStatusCapabilityType.class));
+		return getEffectiveActivationStatusCapability(resource) != null;
 	}
-	
+
+	public static ActivationValidityCapabilityType getEffectiveActivationValidFromCapability(ResourceType resource) {
+		ActivationCapabilityType act = getEffectiveCapability(resource, ActivationCapabilityType.class);
+		if (act == null || act.getValidFrom() == null || Boolean.FALSE.equals(act.getValidFrom().isEnabled())) {
+			return null;
+		} else {
+			return act.getValidFrom();
+		}
+	}
+
+	public static ActivationValidityCapabilityType getEffectiveActivationValidToCapability(ResourceType resource) {
+		ActivationCapabilityType act = getEffectiveCapability(resource, ActivationCapabilityType.class);
+		if (act == null || act.getValidTo() == null || Boolean.FALSE.equals(act.getValidTo().isEnabled())) {
+			return null;
+		} else {
+			return act.getValidTo();
+		}
+	}
+
 	public static boolean isActivationValidityCapabilityEnabled(ResourceType resource) {
-		return isCapabilityEnabled(getEffectiveCapability(resource, ActivationValidityCapabilityType.class));
+		return getEffectiveActivationValidFromCapability(resource) != null || getEffectiveActivationValidToCapability(resource) != null;
 	}
 	
 	public static boolean isCredentialsCapabilityEnabled(ResourceType resource) {
-		return isCapabilityEnabled(getEffectiveCapability(resource, CredentialsCapabilityType.class));
+		return getEffectiveCapability(resource, CredentialsCapabilityType.class) != null;
 	}
 	
 	public static boolean isCreateCapabilityEnabled(ResourceType resource){
-		return isCapabilityEnabled(getEffectiveCapability(resource, CreateCapabilityType.class));
+		return getEffectiveCapability(resource, CreateCapabilityType.class) != null;
 	}
 	
 	public static boolean isCountObjectsCapabilityEnabled(ResourceType resource){
-		return isCapabilityEnabled(getEffectiveCapability(resource, CountObjectsCapabilityType.class));
+		return getEffectiveCapability(resource, CountObjectsCapabilityType.class) != null;
 	}
 	
-	public static boolean isPaswswordCapabilityEnabled(ResourceType resource){
-		return isCapabilityEnabled(getEffectiveCapability(resource, PasswordCapabilityType.class));
+	public static boolean isPasswordCapabilityEnabled(ResourceType resource){
+		return getEffectivePasswordCapability(resource) != null;
 	}
-	
+
+	public static PasswordCapabilityType getEffectivePasswordCapability(ResourceType resource) {
+		CredentialsCapabilityType cct = getEffectiveCapability(resource, CredentialsCapabilityType.class);
+		if (cct == null || cct.getPassword() == null || Boolean.FALSE.equals(cct.getPassword().isEnabled())) {
+			return null;
+		} else {
+			return cct.getPassword();
+		}
+	}
+
 	public static boolean isLiveSyncCapabilityEnabled(ResourceType resource) {
-		return isCapabilityEnabled(getEffectiveCapability(resource, LiveSyncCapabilityType.class));
+		return getEffectiveCapability(resource, LiveSyncCapabilityType.class) != null;
 	}
 	
-	public static boolean isScriptOnHostCapabilityEnabled(ResourceType resource) {
-		return isCapabilityEnabled(getEffectiveCapability(resource, ScriptCapabilityType.class));
+	public static boolean isScriptCapabilityEnabled(ResourceType resource) {
+		return getEffectiveCapability(resource, ScriptCapabilityType.class) != null;
 	}
 	
 	public static boolean isTestConnectionCapabilityEnabled(ResourceType resource) {
-		return isCapabilityEnabled(getEffectiveCapability(resource, TestConnectionCapabilityType.class));
+		return getEffectiveCapability(resource, TestConnectionCapabilityType.class) != null;
 	}
 	
 	public static boolean isAuxiliaryObjectClassCapabilityEnabled(ResourceType resource) {
-		return isCapabilityEnabled(getEffectiveCapability(resource, AuxiliaryObjectClassesCapabilityType.class));
+		return getEffectiveCapability(resource, AuxiliaryObjectClassesCapabilityType.class) != null;
 	}
 	
 	public static boolean isPagedSearchCapabilityEnabled(ResourceType resource) {
-		return isCapabilityEnabled(getEffectiveCapability(resource, PagedSearchCapabilityType.class));
+		return getEffectiveCapability(resource, PagedSearchCapabilityType.class) != null;
 	}
 	
 	public static boolean isReadCapabilityEnabled(ResourceType resource){
-		return isCapabilityEnabled(getEffectiveCapability(resource, ReadCapabilityType.class));	
+		return getEffectiveCapability(resource, ReadCapabilityType.class) != null;
 	}
 	
 	public static boolean isUpdateCapabilityEnabled(ResourceType resource){
-		return isCapabilityEnabled(getEffectiveCapability(resource, UpdateCapabilityType.class));
+		return getEffectiveCapability(resource, UpdateCapabilityType.class) != null;
 	}
 	
 	public static boolean isAddRemoveAttributesValuesCapabilityEnabled(ResourceType resource){
-		return isCapabilityEnabled(getEffectiveCapability(resource, AddRemoveAttributeValuesCapabilityType.class));
+		return getEffectiveCapability(resource, AddRemoveAttributeValuesCapabilityType.class) != null;
 	}
 	
 	public static boolean isDeleteCapabilityEnabled(ResourceType resource){
-		return isCapabilityEnabled(getEffectiveCapability(resource, DeleteCapabilityType.class));
+		return getEffectiveCapability(resource, DeleteCapabilityType.class) != null;
 	}
 	
-	private static boolean isCapabilityEnabled(CapabilityType cap){
-		if (cap == null){
-			return false;
-		}
-		
-		if (cap.isEnabled() == null){
-			return true;
-		}
-		
-		return cap.isEnabled();
-	}
-	
-	
-	
-	
+
 	public static boolean hasResourceNativeActivationCapability(ResourceType resource) {
 		ActivationCapabilityType activationCapability = null;
 		// check resource native capabilities. if resource cannot do

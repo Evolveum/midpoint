@@ -49,7 +49,7 @@ public class CapabilitiesDto implements Serializable {
 		auxiliaryObjectClasses = ResourceTypeUtil.isAuxiliaryObjectClassCapabilityEnabled(resource);
 		countObjects = ResourceTypeUtil.isCountObjectsCapabilityEnabled(resource);
 		pagedSearch = ResourceTypeUtil.isPagedSearchCapabilityEnabled(resource);
-		password = ResourceTypeUtil.isPaswswordCapabilityEnabled(resource);
+		password = ResourceTypeUtil.isPasswordCapabilityEnabled(resource);
 		credentials = ResourceTypeUtil.isCredentialsCapabilityEnabled(resource);
 		liveSync = ResourceTypeUtil.isLiveSyncCapabilityEnabled(resource);
 		testConnection = ResourceTypeUtil.isTestConnectionCapabilityEnabled(resource);
@@ -58,7 +58,7 @@ public class CapabilitiesDto implements Serializable {
 		addRemoveAttributeValues = ResourceTypeUtil.isAddRemoveAttributesValuesCapabilityEnabled(resource);
 		delete = ResourceTypeUtil.isDeleteCapabilityEnabled(resource);
 		read = ResourceTypeUtil.isReadCapabilityEnabled(resource);
-		script = ResourceTypeUtil.isScriptOnHostCapabilityEnabled(resource);
+		script = ResourceTypeUtil.isScriptCapabilityEnabled(resource);
 	}
 
 	public boolean isActivation() {
