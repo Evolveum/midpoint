@@ -3,8 +3,8 @@ package com.evolveum.midpoint.model.impl.dataModel;
 import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import org.apache.commons.lang3.ObjectUtils;
 import org.jetbrains.annotations.NotNull;
@@ -20,7 +20,8 @@ public class ResourceDataItem extends DataItem {
 	@NotNull private final String resourceOid;
 	@NotNull private final ShadowKindType kind;
 	@NotNull private final String intent;				// TODO or more intents?
-	@NotNull private final QName itemName;
+	@NotNull private final ItemPath itemPath;
+	private final boolean hasItemDefinition;
 
 	private RefinedResourceSchema refinedResourceSchema;
 	private RefinedObjectClassDefinition refinedObjectClassDefinition;
@@ -31,7 +32,20 @@ public class ResourceDataItem extends DataItem {
 		this.resourceOid = resourceOid;
 		this.kind = kind;
 		this.intent = intent;
-		this.itemName = itemName;
+		this.itemPath = new ItemPath(itemName);
+		this.hasItemDefinition = true;
+	}
+
+	public ResourceDataItem(@NotNull VisualizationContext ctx, @NotNull String resourceOid, @NotNull ShadowKindType kind, @NotNull String intent, @NotNull ItemPath itemPath) {
+		this.ctx = ctx;
+		this.resourceOid = resourceOid;
+		this.kind = kind;
+		this.intent = intent;
+		this.itemPath = itemPath;
+		if (itemPath.lastNamed() == null) {
+			throw new IllegalArgumentException("Wrong itemPath (must end with a named segment): " + itemPath);
+		}
+		this.hasItemDefinition = itemPath.size() == 1;			// TODO
 	}
 
 	@NotNull
@@ -50,8 +64,8 @@ public class ResourceDataItem extends DataItem {
 	}
 
 	@NotNull
-	public QName getItemName() {
-		return itemName;
+	public QName getLastItemName() {
+		return itemPath.lastNamed().getName();
 	}
 
 	public RefinedResourceSchema getRefinedResourceSchema() {
@@ -82,8 +96,8 @@ public class ResourceDataItem extends DataItem {
 	public RefinedAttributeDefinition<?> getRefinedAttributeDefinition() {
 		if (refinedAttributeDefinition == null) {
 			RefinedObjectClassDefinition def = getRefinedObjectClassDefinition();
-			if (def != null) {
-				refinedAttributeDefinition = def.findAttributeDefinition(itemName);
+			if (def != null && hasItemDefinition) {
+				refinedAttributeDefinition = def.findAttributeDefinition(getLastItemName());
 			}
 		}
 		return refinedAttributeDefinition;
@@ -99,11 +113,11 @@ public class ResourceDataItem extends DataItem {
 				"resourceOid='" + resourceOid + '\'' +
 				", kind=" + kind +
 				", intent='" + intent + '\'' +
-				", name=" + itemName +
+				", path=" + itemPath +
 				'}';
 	}
 
-	public boolean matches(String resourceOid, ShadowKindType kind, String intent, QName name) {
+	public boolean matches(String resourceOid, ShadowKindType kind, String intent, ItemPath path) {
 		if (!this.resourceOid.equals(resourceOid)) {
 			return false;
 		}
@@ -113,17 +127,17 @@ public class ResourceDataItem extends DataItem {
 		if (!ObjectUtils.equals(this.intent, intent)) {
 			return false;
 		}
-		return QNameUtil.match(this.itemName, name);
+		return this.itemPath.equivalent(path);
 	}
 
 	@Override
 	public String getNodeName() {
-		return "\"" + getResourceName() + ":" + ctx.getObjectTypeName(getRefinedObjectClassDefinition(), false) + ":" + itemName.getLocalPart() + "\"";
+		return "\"" + getResourceName() + ":" + ctx.getObjectTypeName(getRefinedObjectClassDefinition(), false) + ":" + itemPath + "\"";
 	}
 
 	@Override
 	public String getNodeLabel() {
-		return getItemName().getLocalPart();
+		return getLastItemName().getLocalPart();
 	}
 
 	@Override

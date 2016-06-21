@@ -830,7 +830,7 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
 		return password.getPasswordPolicyRef();
 	}
 	
-    private ResourcePasswordDefinitionType getPasswordDefinition(){
+    public ResourcePasswordDefinitionType getPasswordDefinition(){
         if (schemaHandlingObjectTypeDefinitionType == null) {
             return null;
         }
