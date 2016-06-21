@@ -26,6 +26,7 @@ import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
+import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
@@ -73,6 +74,16 @@ public class NotificationsUtil {
             return null;
         } catch (SchemaException e) {
             LoggingUtils.logException(LOGGER, "Couldn't get resource", e);
+            return null;
+        }
+    }
+
+    public String getObjectName(String oid, OperationResult result) {
+        try {
+            PrismObject<? extends ObjectType> object = cacheRepositoryService.getObject(ObjectType.class, oid, null, result);
+            return PolyString.getOrig(object.asObjectable().getName());
+        } catch (CommonException|RuntimeException e) {
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't get resource", e);
             return null;
         }
     }
