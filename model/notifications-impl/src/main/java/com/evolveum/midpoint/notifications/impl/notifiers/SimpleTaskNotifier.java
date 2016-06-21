@@ -85,6 +85,9 @@ public class SimpleTaskNotifier extends GeneralNotifier {
         body.append("Notification about task-related operation.\n\n");
 		body.append("Task: ").append(taskName).append("\n");
 		body.append("Handler: ").append(task.getHandlerUri()).append("\n\n");
+		if (taskEvent.getTaskRunResult() != null) {
+			body.append("Run result status: ").append(taskEvent.getTaskRunResult().getRunResultStatus()).append("\n");
+		}
 		body.append("Status: ").append(taskEvent.getOperationResultStatus()).append("\n");
 		String message = taskEvent.getMessage();
 		if (StringUtils.isNotBlank(message)) {
