@@ -28,6 +28,7 @@ import com.evolveum.midpoint.security.api.SecurityEnforcer;
 import com.evolveum.midpoint.security.api.SecurityUtil;
 import com.evolveum.midpoint.security.api.UserProfileService;
 import com.evolveum.midpoint.util.DisplayableValue;
+import com.evolveum.midpoint.util.Producer;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -192,6 +193,18 @@ public class MidPointGuiAuthorizationEvaluator implements SecurityEnforcer {
 			Class<T> objectType, PrismObject<O> object, ObjectFilter origFilter) throws SchemaException {
 		return securityEnforcer.preProcessObjectFilter(operationUrl, phase, objectType, object, origFilter);
 	}
+
+	@Override
+	public <T> T runAs(Producer<T> producer, PrismObject<UserType> user) {
+		return securityEnforcer.runAs(producer, user);
+	}
+
+	@Override
+	public <T> T runPrivileged(Producer<T> producer) {
+		return securityEnforcer.runPrivileged(producer);
+	}
+
+	
     
     
 }

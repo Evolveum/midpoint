@@ -30,6 +30,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.ConfigAttribute;
 import org.springframework.security.access.SecurityConfig;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.authentication.InsufficientAuthenticationException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -40,21 +41,17 @@ import org.springframework.security.web.authentication.preauth.PreAuthenticatedA
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceDefinition;
-import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.Visitable;
 import com.evolveum.midpoint.prism.Visitor;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
-import com.evolveum.midpoint.prism.parser.QueryConvertor;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.AllFilter;
-import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.prism.query.InOidFilter;
 import com.evolveum.midpoint.prism.query.NoneFilter;
 import com.evolveum.midpoint.prism.query.NotFilter;
@@ -68,7 +65,6 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.security.api.Authorization;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
@@ -77,6 +73,7 @@ import com.evolveum.midpoint.security.api.OwnerResolver;
 import com.evolveum.midpoint.security.api.SecurityEnforcer;
 import com.evolveum.midpoint.security.api.SecurityUtil;
 import com.evolveum.midpoint.security.api.UserProfileService;
+import com.evolveum.midpoint.util.Producer;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.AuthorizationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -87,15 +84,14 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationDecisionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSpecificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgRelationObjectSpecificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgScopeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OwnedObjectSpecificationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SpecialObjectSpecificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
@@ -168,10 +164,6 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 			PrismObject<O> object, ObjectDelta<O> delta, PrismObject<T> target, OwnerResolver ownerResolver)
 			throws SchemaException {	
 		MidPointPrincipal midPointPrincipal = getMidPointPrincipal();
-		if (midPointPrincipal == null) {
-			// No need to log, the getMidPointPrincipal() already logs the reason
-			return false;
-		}
 		if (phase == null) {
 			if (!isAuthorizedInternal(midPointPrincipal, operationUrl, AuthorizationPhaseType.REQUEST, object, delta, target, ownerResolver)) {
 				return false;
@@ -197,7 +189,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 		LOGGER.trace("AUTZ: evaluating authorization principal={}, op={}, phase={}, object={}, delta={}, target={}",
 				new Object[]{midPointPrincipal, operationUrl, phase, object, delta, target});
 		final Collection<ItemPath> allowedItems = new ArrayList<>();
-		Collection<Authorization> authorities = midPointPrincipal.getAuthorities();
+		Collection<Authorization> authorities = getAuthorities(midPointPrincipal);
 		if (authorities != null) {
 			for (GrantedAuthority authority: authorities) {
 				if (authority instanceof Authorization) {
@@ -276,7 +268,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 					}
 					
 				} else {
-					LOGGER.warn("Unknown authority type {} in user {}", authority.getClass(), midPointPrincipal.getUsername());
+					LOGGER.warn("Unknown authority type {} in user {}", authority.getClass(), getUsername(midPointPrincipal));
 				}
 			}
 		}
@@ -353,9 +345,9 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 	public <O extends ObjectType, T extends ObjectType> void authorize(String operationUrl, AuthorizationPhaseType phase,
 			PrismObject<O> object, ObjectDelta<O> delta, PrismObject<T> target, OwnerResolver ownerResolver, 
 			OperationResult result) throws SecurityViolationException, SchemaException {
-		MidPointPrincipal principal = getPrincipal();
 		boolean allow = isAuthorized(operationUrl, phase, object, delta, target, ownerResolver);
 		if (!allow) {
+			MidPointPrincipal principal = getPrincipal();
 			String username = getQuotedUsername(principal);
 			String message;
 			if (target == null && object == null) {
@@ -367,7 +359,6 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 			}
 			LOGGER.error("{}", message);
 			AuthorizationException e = new AuthorizationException(message);
-//			+":\n"+((MidPointPrincipal)principal).debugDump());
 			result.recordFatalError(e.getMessage(), e);
 			throw e;
 		}
@@ -708,7 +699,6 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 		}
 		if (!(principal instanceof MidPointPrincipal)) {
 			if (authentication.getPrincipal() instanceof String && "anonymousUser".equals(principal)){
-				LOGGER.trace("AUTZ: deny because user is not logged in");
 				return null;
 			}
 			LOGGER.warn("Unknown principal type {}", principal.getClass());
@@ -717,19 +707,31 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 		return (MidPointPrincipal)principal;
 	}
 	
+	private Collection<Authorization> getAuthorities(MidPointPrincipal principal) {
+		if (principal == null) {
+			// Anonymous access, possibly with elevated privileges
+			Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+			Collection<Authorization> authorizations = new ArrayList<>();
+			for (GrantedAuthority authority: authentication.getAuthorities()) {
+				if (authority instanceof Authorization) {
+					authorizations.add((Authorization)authority);
+				}
+			}
+			return authorizations;
+		} else {
+			return principal.getAuthorities();
+		}
+	}
+	
 	@Override
 	public <O extends ObjectType> ObjectSecurityConstraints compileSecurityConstraints(PrismObject<O> object, OwnerResolver ownerResolver) throws SchemaException {
 		MidPointPrincipal principal = getMidPointPrincipal();
 		if (object == null) {
 			throw new IllegalArgumentException("Cannot compile security constraints of null object");
 		}
-		if (principal == null) {
-			// No need to log, the getMidPointPrincipal() already logs the reason
-			return null;
-		}
 		LOGGER.trace("AUTZ: evaluating security constraints principal={}, object={}", principal, object);
 		ObjectSecurityConstraintsImpl objectSecurityConstraints = new ObjectSecurityConstraintsImpl();
-		Collection<Authorization> authorities = principal.getAuthorities();
+		Collection<Authorization> authorities = getAuthorities(principal);
 		if (authorities != null) {
 			for (GrantedAuthority authority: authorities) {
 				if (authority instanceof Authorization) {
@@ -774,7 +776,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 					}
 					
 				} else {
-					LOGGER.warn("Unknown authority type {} in user {}", authority.getClass(), principal.getUsername());
+					LOGGER.warn("Unknown authority type {} in user {}", authority.getClass(), getUsername(principal));
 				}
 			}
 		}
@@ -845,9 +847,6 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 	public <T extends ObjectType, O extends ObjectType> ObjectFilter preProcessObjectFilter(String operationUrl, AuthorizationPhaseType phase, 
 			Class<T> objectType, PrismObject<O> object, ObjectFilter origFilter) throws SchemaException {
 		MidPointPrincipal principal = getMidPointPrincipal();
-		if (principal == null) {
-			throw new IllegalArgumentException("No vaild principal");
-		}
 		LOGGER.trace("AUTZ: evaluating search pre-process principal={}, objectType={}: orig filter {}", 
 				new Object[]{principal, objectType, origFilter});
 		if (origFilter == null) {
@@ -878,7 +877,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 	private <T extends ObjectType, O extends ObjectType> ObjectFilter preProcessObjectFilterInternal(MidPointPrincipal principal, String operationUrl, 
 			AuthorizationPhaseType phase, boolean includeNullPhase, 
 			Class<T> objectType, PrismObject<O> object, ObjectFilter origFilter) throws SchemaException {
-		Collection<Authorization> authorities = principal.getAuthorities();
+		Collection<Authorization> authorities = getAuthorities(principal);
 		ObjectFilter securityFilterAllow = null;
 		ObjectFilter securityFilterDeny = null;
 		boolean hasAllowAll = false;
@@ -1086,7 +1085,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 							if (ObjectQueryUtil.isAll(autzObjSecurityFilter)) {
 								// This is "deny all". We cannot have anything stronger than that.
 								// There is no point in continuing the evaluation.
-								LOGGER.trace("AUTZ search pre-process: principal={}, operation={}: deny all", new Object[]{principal.getUsername(), operationUrl});
+								LOGGER.trace("AUTZ search pre-process: principal={}, operation={}: deny all", new Object[]{getUsername(principal), operationUrl});
 								return NoneFilter.createNone();
 							}
 							securityFilterDeny = ObjectQueryUtil.filterOr(securityFilterDeny, autzObjSecurityFilter);
@@ -1094,7 +1093,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 					}
 					
 				} else {
-					LOGGER.warn("Unknown authority type {} in user {}", authority.getClass(), principal.getUsername());
+					LOGGER.warn("Unknown authority type {} in user {}", authority.getClass(), getUsername(principal));
 				}
 			}
 		}
@@ -1104,7 +1103,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 			origWithAllowFilter = origFilter;
 		} else if (securityFilterAllow == null) {
 			// Nothing has been allowed. This means default deny.
-			LOGGER.trace("AUTZ search pre-process: principal={}, operation={}: default deny", new Object[]{principal.getUsername(), operationUrl});
+			LOGGER.trace("AUTZ search pre-process: principal={}, operation={}: default deny",  new Object[]{getUsername(principal), operationUrl});
 			return NoneFilter.createNone();
 		} else {
 			origWithAllowFilter = ObjectQueryUtil.filterAnd(origFilter, securityFilterAllow);
@@ -1113,18 +1112,90 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 		if (securityFilterDeny == null) {
 			if (LOGGER.isTraceEnabled()) {
 				LOGGER.trace("AUTZ search pre-process: principal={}, operation={}: allow:\n{}", 
-					new Object[]{principal.getUsername(), operationUrl, origWithAllowFilter==null?"null":origWithAllowFilter.debugDump()});
+					new Object[]{getUsername(principal), operationUrl, origWithAllowFilter==null?"null":origWithAllowFilter.debugDump()});
 			}
 			return origWithAllowFilter;
 		} else {
 			ObjectFilter secFilter = ObjectQueryUtil.filterAnd(origWithAllowFilter, NotFilter.createNot(securityFilterDeny));
 			if (LOGGER.isTraceEnabled()) {
 				LOGGER.trace("AUTZ search pre-process: principal={}, operation={}: allow (with deny clauses):\n{}", 
-					new Object[]{principal.getUsername(), operationUrl, secFilter==null?"null":secFilter.debugDump()});
+					new Object[]{getUsername(principal), operationUrl, secFilter==null?"null":secFilter.debugDump()});
 			}
 			return secFilter;
 		}
 	}
+
+	private Object getUsername(MidPointPrincipal principal) {
+		return principal==null?null:principal.getUsername();
+	}
+
+	@Override
+	public <T> T runAs(Producer<T> producer, PrismObject<UserType> user) {
+		LOGGER.debug("Running {} as {}", producer, user);
+		Authentication origAuthentication = SecurityContextHolder.getContext().getAuthentication();
+		setupPreAuthenticatedSecurityContext(user);
+		try {
+			return producer.run();
+		} finally {
+			SecurityContextHolder.getContext().setAuthentication(origAuthentication);
+			LOGGER.debug("Finished running {} as {}", producer, user);
+		}
+	}
+
+	@Override
+	public <T> T runPrivileged(Producer<T> producer) {
+		LOGGER.debug("Running {} as privileged", producer);
+		Authentication origAuthentication = SecurityContextHolder.getContext().getAuthentication();
+		LOGGER.trace("ORIG auth {}", origAuthentication);
+		
+		// Try to reuse the original identity as much as possible. All we need to is add AUTZ_ALL
+		// to the list of authorities
+		Authorization privilegedAuthorization = createPrivilegedAuthorization();
+		Object newPrincipal = null;
+		
+		if (origAuthentication != null) {
+			Object origPrincipal = origAuthentication.getPrincipal();
+			if (origAuthentication instanceof AnonymousAuthenticationToken) {
+				newPrincipal = origPrincipal;
+			} else {
+				LOGGER.trace("ORIG principal {} ({})", origPrincipal, origPrincipal.getClass());
+				if (origPrincipal != null) {
+					if (origPrincipal instanceof MidPointPrincipal) {
+						MidPointPrincipal newMidPointPrincipal = ((MidPointPrincipal)origPrincipal).clone();
+						newMidPointPrincipal.getAuthorities().add(privilegedAuthorization);
+					}
+				}
+			}
+			
+			Collection newAuthorities = new ArrayList<>(); 
+			newAuthorities.addAll(origAuthentication.getAuthorities());
+			newAuthorities.add(privilegedAuthorization);
+			PreAuthenticatedAuthenticationToken newAuthorization = new PreAuthenticatedAuthenticationToken(newPrincipal, null, newAuthorities);
+			
+			LOGGER.trace("NEW auth {}", newAuthorization);
+			SecurityContextHolder.getContext().setAuthentication(newAuthorization);
+		} else {
+			LOGGER.debug("No original authentication, do NOT setting any privileged security context");
+		}
+		
+		
+		try {
+			return producer.run();
+		} finally {
+			SecurityContextHolder.getContext().setAuthentication(origAuthentication);
+			LOGGER.debug("Finished running {} as privileged", producer);
+			LOGGER.trace("Security context after privileged operation: {}", SecurityContextHolder.getContext());
+		}
+		
+	}
 	
+	
+	private Authorization createPrivilegedAuthorization() {
+		AuthorizationType authorizationType = new AuthorizationType();
+		authorizationType.getAction().add(AuthorizationConstants.AUTZ_ALL_URL);
+		return new Authorization(authorizationType);
+	}
 	
 }
+
+	

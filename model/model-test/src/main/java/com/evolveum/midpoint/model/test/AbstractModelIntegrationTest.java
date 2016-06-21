@@ -145,8 +145,10 @@ import org.opends.server.types.SearchResultEntry;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.ConfigAttribute;
 import org.springframework.security.access.SecurityConfig;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.context.SecurityContextImpl;
@@ -241,7 +243,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     protected UserProfileService userProfileService;
     
 	@Autowired(required=true)
-	private SecurityEnforcer securityEnforcer;
+	protected SecurityEnforcer securityEnforcer;
 	
 	@Autowired(required=true)
 	protected MidpointFunctions libraryMidpointFunctions;
@@ -2849,6 +2851,12 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		SecurityContext securityContext = SecurityContextHolder.getContext();
 		Authentication authentication = new UsernamePasswordAuthenticationToken(principal, null);
 		securityContext.setAuthentication(authentication);
+	}
+	
+	protected void loginAnonymous() {
+		Authentication authentication = new AnonymousAuthenticationToken("foo", 
+				"anonymousUser", AuthorityUtils.createAuthorityList("ROLE_ANONYMOUS"));
+		SecurityContextHolder.getContext().setAuthentication(authentication);
 	}
 	
 	protected void assertLoggedInUser(String username) {

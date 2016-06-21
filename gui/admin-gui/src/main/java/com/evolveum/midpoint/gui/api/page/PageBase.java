@@ -101,6 +101,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskCategory;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.Holder;
+import com.evolveum.midpoint.util.Producer;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -172,6 +173,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AdminGuiConfiguratio
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RichHyperlinkType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 /**
  * @author lazyman
@@ -307,7 +309,8 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 	}
 
 	protected void createBreadcrumb() {
-		BreadcrumbPageClass bc = new BreadcrumbPageClass(new AbstractReadOnlyModel() {
+		BreadcrumbPageClass bc = new BreadcrumbPageClass(new AbstractReadOnlyModel<String>() {
+			private static final long serialVersionUID = 1L;
 
 			@Override
 			public String getObject() {
@@ -319,7 +322,8 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 	}
 
 	protected void createInstanceBreadcrumb() {
-		BreadcrumbPageInstance bc = new BreadcrumbPageInstance(new AbstractReadOnlyModel() {
+		BreadcrumbPageInstance bc = new BreadcrumbPageInstance(new AbstractReadOnlyModel<String>() {
+			private static final long serialVersionUID = 1L;
 
 			@Override
 			public String getObject() {
@@ -424,12 +428,6 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 		return SecurityUtils.getPrincipalUser();
 	}
 
-	// public static StringResourceModel createStringResourceStatic(Component
-	// component, String resourceKey, Object... objects) {
-	// return new StringResourceModel(resourceKey, component, new
-	// Model<String>(), resourceKey, objects);
-	// }
-
 	public static StringResourceModel createStringResourceStatic(Component component, Enum e) {
 		String resourceKey = createEnumResourceKey(e);
 		return createStringResourceStatic(component, resourceKey);
@@ -453,6 +451,15 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 		}
 
 		task.setOwner(owner);
+		task.setChannel(SchemaConstants.CHANNEL_GUI_USER_URI);
+
+		return task;
+	}
+	
+	public Task createAnonymousTask(String operation) {
+		TaskManager manager = getTaskManager();
+		Task task = manager.createTaskInstance(operation);
+		
 		task.setChannel(SchemaConstants.CHANNEL_GUI_USER_URI);
 
 		return task;
@@ -517,6 +524,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
 		ListView breadcrumbs = new ListView<Breadcrumb>(ID_BREADCRUMB,
 				new AbstractReadOnlyModel<List<Breadcrumb>>() {
+					private static final long serialVersionUID = 1L;
 
 					@Override
 					public List<Breadcrumb> getObject() {
@@ -529,6 +537,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
                 final Breadcrumb dto = item.getModelObject();
 
 				AjaxLink bcLink = new AjaxLink(ID_BC_LINK) {
+					private static final long serialVersionUID = 1L;
 
 					@Override
 					public void onClick(AjaxRequestTarget target) {
@@ -537,6 +546,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 				};
 				item.add(bcLink);
                 bcLink.add(new VisibleEnableBehaviour() {
+                	private static final long serialVersionUID = 1L;
 
                     @Override
                     public boolean isEnabled() {
@@ -546,6 +556,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
 				WebMarkupContainer bcIcon = new WebMarkupContainer(ID_BC_ICON);
 				bcIcon.add(new VisibleEnableBehaviour() {
+					private static final long serialVersionUID = 1L;
 
 					@Override
 					public boolean isVisible() {
@@ -559,6 +570,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 				bcLink.add(bcName);
 
 				item.add(new VisibleEnableBehaviour() {
+					private static final long serialVersionUID = 1L;
 
 					@Override
 					public boolean isVisible() {
@@ -572,6 +584,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
 	private void initLayout() {
 		AjaxLink logo = new AjaxLink(ID_LOGO) {
+			private static final long serialVersionUID = 1L;
 
 			@Override
 			public void onClick(AjaxRequestTarget target) {
@@ -598,12 +611,16 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 		add(sidebarMenu);
 
 		WebMarkupContainer version = new WebMarkupContainer(ID_VERSION) {
+			private static final long serialVersionUID = 1L;
+			
 			@Deprecated
 			public String getDescribe() {
 				return PageBase.this.getDescribe();
 			}
 		};
 		version.add(new VisibleEnableBehaviour() {
+			private static final long serialVersionUID = 1L;
+			
 			@Override
 			public boolean isVisible() {
 				return RuntimeConfigurationType.DEVELOPMENT.equals(getApplication().getConfigurationType());
@@ -661,6 +678,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
 		WebMarkupContainer debugBar = new WebMarkupContainer(ID_DEBUG_BAR);
 		debugBar.add(new VisibleEnableBehaviour() {
+			private static final long serialVersionUID = 1L;
 
 			@Override
 			public boolean isVisible() {
@@ -671,6 +689,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 		add(debugBar);
 
 		AjaxButton clearCache = new AjaxButton(ID_CLEAR_CACHE, createStringResource("PageBase.clearCssCache")) {
+			private static final long serialVersionUID = 1L;
 
 			@Override
 			public void onClick(AjaxRequestTarget target) {
@@ -1560,4 +1579,8 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         }
     }
 
+    protected <T> T runPrivileged(Producer<T> producer) {
+    	return securityEnforcer.runPrivileged(producer);
+    }
+    
 }

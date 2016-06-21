@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2014-2015 Evolveum
+ * Copyright (c) 2014-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,6 +33,9 @@ public class SecurityUtil {
 	
 	private static final Trace LOGGER = TraceManager.getTrace(SecurityUtil.class);
 
+	/**
+	 * Returns principal representing currently logged-in user. Returns null if the user is anonynous.
+	 */
 	public static MidPointPrincipal getPrincipal() throws SecurityViolationException {
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 		if (authentication == null) {
@@ -42,11 +45,12 @@ public class SecurityUtil {
 		}
 		Object principalObject = authentication.getPrincipal();
 		if (!(principalObject instanceof MidPointPrincipal)) {
-			if (authentication.getPrincipal() instanceof String && "anonymousUser".equals(principalObject)){
-				throw new SecurityViolationException("Not logged in.");
-			}
-			throw new IllegalArgumentException("Expected that spring security principal will be of type "+
+			if (authentication.getPrincipal() instanceof String && "anonymousUser".equals(principalObject)) {
+				return null;
+			} else {
+				throw new IllegalArgumentException("Expected that spring security principal will be of type "+
 					MidPointPrincipal.class.getName()+" but it was "+principalObject.getClass());
+			}
 		}
 		return (MidPointPrincipal) principalObject;
 	}

@@ -758,7 +758,7 @@ public class ExpressionUtil {
 				}
 			}
 			if (actor == null) {
-				LOGGER.error("Couldn't get principal information - the 'actor' variable is set to null");
+				LOGGER.debug("Couldn't get principal information - the 'actor' variable is set to null");
 			}
 		} catch (SecurityViolationException e) {
 			LoggingUtils.logUnexpectedException(LOGGER,
