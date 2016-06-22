@@ -760,20 +760,12 @@ public class PrismValuePanel extends Panel {
         if(input == null || input.isEmpty()){
             for(LookupTableRowType row: rows){
                 values.add(WebComponentUtil.getOrigStringFromPoly(row.getLabel()));
-
-                if(values.size() > 10){
-                    return values;
-                }
             }
         } else {
             for(LookupTableRowType row: rows){
                 if(WebComponentUtil.getOrigStringFromPoly(row.getLabel()) != null &&
                         WebComponentUtil.getOrigStringFromPoly(row.getLabel()).toLowerCase().contains(input.toLowerCase())){
                     values.add(WebComponentUtil.getOrigStringFromPoly(row.getLabel()));
-                }
-
-                if(values.size() > 10){
-                    return values;
                 }
             }
         }
