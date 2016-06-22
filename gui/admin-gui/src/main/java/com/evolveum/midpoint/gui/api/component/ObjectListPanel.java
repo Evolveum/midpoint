@@ -100,19 +100,25 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 		storageMap.put(PageServices.class, SessionStorage.KEY_SERVICES);
 	}
 	
-	public ObjectListPanel(String id, Class<O> type, TableId tableId, Collection<SelectorOptions<GetOperationOptions>> options,
+	/**
+	 * @param defaultType specifies type of the object that will be selected by default. It can be changed.
+	 */
+	public ObjectListPanel(String id, Class<O> defaultType, TableId tableId, Collection<SelectorOptions<GetOperationOptions>> options,
 			PageBase parentPage) {
 		super(id);
-		this.type = type;
+		this.type = defaultType;
 		this.parentPage = parentPage;
 		this.options = options;
 		this.tableId = tableId;
 		initLayout();
 	}
 
-	ObjectListPanel(String id, Class<O> type, boolean multiselect, PageBase parentPage) {
+	/**
+	 * @param defaultType specifies type of the object that will be selected by default. It can be changed.
+	 */
+	ObjectListPanel(String id, Class<O> defaultType, boolean multiselect, PageBase parentPage) {
 		super(id);
-		this.type = type;
+		this.type = defaultType;
 		this.parentPage = parentPage;
 		this.multiselect = multiselect;
 		initLayout();

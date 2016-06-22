@@ -16,6 +16,7 @@
 package com.evolveum.midpoint.web.component.form;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import javax.xml.namespace.QName;
@@ -42,12 +43,18 @@ import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
-public class ValueChoosePanel<T, C extends ObjectType> extends BasePanel<T> {
+/**
+ *
+ * TODO: rename to ValueObjectChoicePanel, PrismValueObjectSelectorPanel or something better
+ *
+ * @param <T>
+ * @param <O> common superclass for all the options of objects that this panel should choose
+ */
+public class ValueChoosePanel<T, O extends ObjectType> extends BasePanel<T> {
 
   private static final long serialVersionUID = 1L;
 
@@ -60,18 +67,18 @@ public class ValueChoosePanel<T, C extends ObjectType> extends BasePanel<T> {
 
     protected static final String MODAL_ID_OBJECT_SELECTION_POPUP = "objectSelectionPopup";
  
-    private Class<C> type;
+    private Collection<Class<? extends O>> types;
 
-    public ValueChoosePanel(String id, IModel<T> value, List<PrismReferenceValue> values, boolean required, Class<C> type) {
+    public ValueChoosePanel(String id, IModel<T> value, List<PrismReferenceValue> values, boolean required, Collection<Class<? extends O>> types) {
         super(id, value);
         setOutputMarkupId(true);
         
-        this.type = type;
+        this.types = types;
 
-        initLayout(value, values, required, type);
+        initLayout(value, values, required, types);
     }
 
-    private void initLayout(final IModel<T> value, final List<PrismReferenceValue> values, final boolean required, Class<C> type) {
+    private void initLayout(final IModel<T> value, final List<PrismReferenceValue> values, final boolean required, Collection<Class<? extends O>> types) {
 
 
         WebMarkupContainer textWrapper = new WebMarkupContainer(ID_TEXT_WRAPPER);
@@ -170,23 +177,14 @@ public class ValueChoosePanel<T, C extends ObjectType> extends BasePanel<T> {
     }
 
     protected void editValuePerformed(List<PrismReferenceValue> values, AjaxRequestTarget target) {
-    	List<QName> supportedTypes = null;
-    	if (type == null || type.equals(ObjectType.class)) {
-    		supportedTypes = WebComponentUtil.createObjectTypeList();
-    	} else if (type.equals(FocusType.class)) {
-    		supportedTypes = WebComponentUtil.createFocusTypeList();
-    	} else if (type.equals(AbstractRoleType.class)) {
-    		supportedTypes = WebComponentUtil.createAbstractRoleTypeList();
-    	} else {
-    		supportedTypes = new ArrayList<>();
-    		supportedTypes.add(WebComponentUtil.classToQName(getPageBase().getPrismContext(), type));
-    	}
+    	List<QName> supportedTypes = WebComponentUtil.resolveObjectTypesToQNames(types, getPageBase().getPrismContext());
     	ObjectFilter filter = createChooseQuery(values) == null ? null : createChooseQuery(values).getFilter();
-    	ObjectBrowserPanel<C> objectBrowserPanel = new ObjectBrowserPanel<C>(getPageBase().getMainPopupBodyId(), type, supportedTypes, false, getPageBase(), filter) {
+    	Class<O> defaultType = (Class<O>) types.iterator().next();
+		ObjectBrowserPanel<O> objectBrowserPanel = new ObjectBrowserPanel<O>(getPageBase().getMainPopupBodyId(), defaultType, supportedTypes, false, getPageBase(), filter) {
     		private static final long serialVersionUID = 1L;
 
 			@Override
-    		protected void onSelectPerformed(AjaxRequestTarget target, C object) {
+    		protected void onSelectPerformed(AjaxRequestTarget target, O object) {
     			getPageBase().hideMainPopup(target);
     			ValueChoosePanel.this.choosePerformed(target, object);
     		}
@@ -203,7 +201,7 @@ public class ValueChoosePanel<T, C extends ObjectType> extends BasePanel<T> {
      * selected values array This is a temporary solution until we well be able
      * to create "already-chosen" query
      */
-    protected void choosePerformed(AjaxRequestTarget target, C object) {
+    protected void choosePerformed(AjaxRequestTarget target, O object) {
         choosePerformedHook(target, object);
 
         if (isObjectUnique(object)) {
@@ -217,7 +215,7 @@ public class ValueChoosePanel<T, C extends ObjectType> extends BasePanel<T> {
     }
 
 
-    protected boolean isObjectUnique(C object) {
+    protected boolean isObjectUnique(O object) {
 
         PrismReferenceValue old = (PrismReferenceValue) getModelObject();
         if (old == null || old.isEmpty()) {
@@ -235,7 +233,7 @@ public class ValueChoosePanel<T, C extends ObjectType> extends BasePanel<T> {
      * A custom code in form of hook that can be run on event of choosing new
      * object with this chooser component
      */
-    protected void choosePerformedHook(AjaxRequestTarget target, C object) {
+    protected void choosePerformedHook(AjaxRequestTarget target, O object) {
     }
 
 }

@@ -677,13 +677,24 @@ public class PrismValuePanel extends Panel {
                 prismContext = pageBase.getPrismContext();
             }
             QName targetTypeName = ((PrismReferenceDefinition) item.getDefinition()).getTargetTypeName();
-            Class typeFromName = null;
+            Class targetClass = null;
             if (targetTypeName != null && prismContext != null) {
-                typeFromName = prismContext.getSchemaRegistry().determineCompileTimeClass(targetTypeName);
+                targetClass = prismContext.getSchemaRegistry().determineCompileTimeClass(targetTypeName);
         	}
-        	final Class typeClass = typeFromName != null ? typeFromName : (item.getDefinition().getTypeClassIfKnown() != null ? item.getDefinition().getTypeClassIfKnown() : FocusType.class);
-        	panel = new ValueChoosePanel(id,
-    				new PropertyModel<>(valueWrapperModel, "value"), item.getValues(), false, typeClass);
+        	final Class typeClass = targetClass != null ? targetClass : 
+        		(item.getDefinition().getTypeClassIfKnown() != null ? item.getDefinition().getTypeClassIfKnown() : FocusType.class);
+        	Collection typeClasses = new ArrayList();
+        	
+        	// HACK HACK MID-3201 MID-3231
+        	if (isUserOrgItem(item, typeClass)) {
+        		typeClasses.add(UserType.class);
+        		typeClasses.add(OrgType.class);
+        	} else {
+        		typeClasses.add(typeClass);
+        	}
+        	
+			panel = new ValueChoosePanel(id,
+    				new PropertyModel<>(valueWrapperModel, "value"), item.getValues(), false, typeClasses);
         	
         } else if (item instanceof PrismContainer<?>) {
         	AssociationWrapper itemWrapper = (AssociationWrapper) valueWrapperModel.getObject().getItem();
@@ -731,7 +742,13 @@ public class PrismValuePanel extends Panel {
         return panel;
     }
 
-    private List<String> prepareAutoCompleteList(String input, PrismObject<LookupTableType> lookupTable){
+    private boolean isUserOrgItem(Item item, Class referenceType) {
+		return (referenceType == ObjectType.class || referenceType == FocusType.class) && 
+				(AbstractRoleType.F_APPROVER_REF.equals(item.getElementName()) ||
+				AbstractRoleType.F_OWNER_REF.equals(item.getElementName()));
+	}
+
+	private List<String> prepareAutoCompleteList(String input, PrismObject<LookupTableType> lookupTable){
         List<String> values = new ArrayList<>();
 
         if(lookupTable == null){

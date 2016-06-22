@@ -58,12 +58,18 @@ public class ObjectBrowserPanel<T extends ObjectType> extends BasePanel<T> imple
 	private PageBase parentPage;
 	private ObjectFilter queryFilter;
 
-	public ObjectBrowserPanel(String id, final Class<T> type, List<QName> supportedTypes, boolean multiselect,
+	/**
+	 * @param defaultType specifies type of the object that will be selected by default
+	 */
+	public ObjectBrowserPanel(String id, final Class<T> defaultType, List<QName> supportedTypes, boolean multiselect,
 			PageBase parentPage) {
-		this(id, type, supportedTypes, multiselect, parentPage, null);
+		this(id, defaultType, supportedTypes, multiselect, parentPage, null);
 	}
 
-	public ObjectBrowserPanel(String id, final Class<T> type, List<QName> supportedTypes, boolean multiselect,
+	/**
+	 * @param defaultType specifies type of the object that will be selected by default
+	 */
+	public ObjectBrowserPanel(String id, final Class<T> defaultType, List<QName> supportedTypes, boolean multiselect,
 			PageBase parentPage, ObjectFilter queryFilter) {
 		super(id);
 		this.parentPage = parentPage;
@@ -73,12 +79,12 @@ public class ObjectBrowserPanel<T extends ObjectType> extends BasePanel<T> imple
 
 			@Override
 			protected QName load() {
-				return compileTimeClassToQName(type);
+				return compileTimeClassToQName(defaultType);
 			}
 
 		};
 
-		initLayout(type, supportedTypes, multiselect);
+		initLayout(defaultType, supportedTypes, multiselect);
 	}
 
 	private void initLayout(Class<T> type, final List<QName> supportedTypes, final boolean multiselect) {

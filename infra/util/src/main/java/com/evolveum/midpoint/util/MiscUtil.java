@@ -41,6 +41,7 @@ import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeConstants;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
+import javax.xml.namespace.QName;
 
 /**
  * @author semancik
@@ -500,5 +501,20 @@ public class MiscUtil {
 					+ Character.digit(hex.charAt(i + 1), 16));
 		}
 		return bytes;
+	}
+
+	public static <T> void addAllIfNotPresent(List<T> receivingList, List<T> supplyingList) {
+		if (supplyingList == null) {
+			return;
+		}
+		for (T supplyingElement: supplyingList) {
+			addIfNotPresent(receivingList, supplyingElement);
+		}
+	}
+	
+	public static <T> void addIfNotPresent(List<T> receivingList, T supplyingElement) {
+		if (!receivingList.contains(supplyingElement)) {
+			receivingList.add(supplyingElement);
+		}
 	}
 }

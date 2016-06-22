@@ -28,6 +28,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 
@@ -119,6 +120,7 @@ import com.evolveum.midpoint.task.api.TaskCategory;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.DisplayableValue;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
@@ -296,6 +298,7 @@ public final class WebComponentUtil {
 		return false;
 	}
 
+	// TODO: move to util component
 	public static Integer safeLongToInteger(Long l) {
 		if (l == null) {
 			return null;
@@ -309,6 +312,7 @@ public final class WebComponentUtil {
 		return (int) l.longValue();
 	}
 	
+	// TODO: move to schema component
 	public static List<QName> createObjectTypeList() {
 		List<QName> types = new ArrayList<>(ObjectTypes.values().length);
 		for (ObjectTypes t : ObjectTypes.values()) {
@@ -317,6 +321,7 @@ public final class WebComponentUtil {
 		return types;
 	}
 
+	// TODO: move to schema component
 	public static List<QName> createFocusTypeList() {
 		List<QName> focusTypeList = new ArrayList<>();
 
@@ -328,6 +333,7 @@ public final class WebComponentUtil {
 		return focusTypeList;
 	}
 	
+	// TODO: move to schema component
 	public static List<QName> createAbstractRoleTypeList() {
 		List<QName> focusTypeList = new ArrayList<>();
 
@@ -339,6 +345,7 @@ public final class WebComponentUtil {
 		return focusTypeList;
 	}
 
+	// TODO: move to schema component
 	public static List<QName> createAssignableTypesList() {
 		List<QName> focusTypeList = new ArrayList<>();
 
@@ -348,6 +355,32 @@ public final class WebComponentUtil {
 		focusTypeList.add(ServiceType.COMPLEX_TYPE);
 
 		return focusTypeList;
+	}
+	
+	/**
+	 * Takes a collection of object types (classes) that may contain abstract types. Returns a collection
+	 * that only contain concrete types.
+	 * @param <O> common supertype for all the types in the collections
+	 * 
+	 * TODO: move to schema component
+	 */
+	public static <O extends ObjectType> List<QName> resolveObjectTypesToQNames(Collection<Class<? extends O>> types, PrismContext prismContext) {
+		if (types == null) {
+			return null;
+		}
+		List<QName> concreteTypes = new ArrayList<>(types.size());
+		for (Class<? extends O> type: types) {
+			if (type == null || type.equals(ObjectType.class)) {
+				MiscUtil.addAllIfNotPresent(concreteTypes, WebComponentUtil.createObjectTypeList());
+			} else if (type.equals(FocusType.class)) {
+				MiscUtil.addAllIfNotPresent(concreteTypes, WebComponentUtil.createFocusTypeList());
+	    	} else if (type.equals(AbstractRoleType.class)) {
+	    		MiscUtil.addAllIfNotPresent(concreteTypes, WebComponentUtil.createAbstractRoleTypeList());
+	    	} else {
+	    		MiscUtil.addIfNotPresent(concreteTypes, WebComponentUtil.classToQName(prismContext, type));
+	    	}
+		}
+		return concreteTypes;
 	}
 
 	public static <T extends Enum> IModel<String> createLocalizedModelForEnum(T value, Component comp) {
@@ -1673,5 +1706,6 @@ public final class WebComponentUtil {
 		} else {
 			throw new IllegalArgumentException("Cannot determine details page for "+type);
 		}
-	}	
+	}
+
 }
