@@ -264,6 +264,8 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 	public PageBase(PageParameters parameters) {
 		super(parameters);
 
+		LOGGER.debug("Initializing page {}", this.getClass());
+		
 		Injector.get().inject(this);
 		Validate.notNull(modelService, "Model service was not injected.");
 		Validate.notNull(taskManager, "Task manager was not injected.");

@@ -1655,5 +1655,23 @@ public final class WebComponentUtil {
 		}
 
 		tabbed.setSelectedTab(tabIndex);
+	}
+
+	public static <O extends ObjectType> Class<? extends PageBase> getObjectDetailsPage(Class<O> type) {
+		if (type == UserType.class) {
+			return PageUser.class;
+		} else if (type == OrgType.class) {
+			return PageOrgUnit.class;
+		} else if (type == RoleType.class) {
+			return PageRole.class;
+		} else if (type == ServiceType.class) {
+			return PageService.class;
+		} else if (type == ResourceType.class) {
+			return PageResource.class;
+		} else if (type == TaskType.class) {
+			return PageTaskEdit.class;
+		} else {
+			throw new IllegalArgumentException("Cannot determine details page for "+type);
+		}
 	}	
 }
