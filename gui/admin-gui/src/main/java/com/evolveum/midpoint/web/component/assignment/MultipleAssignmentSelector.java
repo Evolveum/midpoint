@@ -402,9 +402,23 @@ public class MultipleAssignmentSelector<F extends FocusType, H extends FocusType
                 && filterModel != null && filterModel.getObject() != null
                 && query.getFilter() == null) {
             query.setFilter(filterModel.getObject());
+            InOidFilter oidsFilter = InOidFilter.createInOid(getAssignmentOids(currentAssignments));
+            query.addFilter(oidsFilter);
         }
         filterObjectIsAdded = false;
         return applyQueryToListProvider(query, currentAssignments);
+    }
+
+    private List<String> getAssignmentOids(List<AssignmentEditorDto> assignments){
+        List<String> oidsList = new ArrayList<>();
+        if (assignments != null && assignments.size() > 0){
+            for (AssignmentEditorDto assignment : assignments){
+                if (assignment.getTargetRef() != null) {
+                    oidsList.add(assignment.getTargetRef().getOid());
+                }
+            }
+        }
+        return oidsList;
     }
 
     protected List<AssignmentEditorDto> getListProviderDataList(){
