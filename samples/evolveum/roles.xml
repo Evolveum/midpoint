@@ -53,4 +53,52 @@
 		<roleType>application</roleType>
 	</role>
 	
+	<role oid="b613c706-3889-11e6-b175-d78cc67d7066">
+		<name>Delegated Identity Administrator</name>
+		<description>Allows full identity administration for organizations where the user is a manager.</description>
+		<authorization>
+	    	<name>gui-access</name>
+	    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#usersAll</action>
+	        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#orgAll</action>
+	    </authorization>
+		<authorization>
+	    	<name>autz-read</name>
+	    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+	    	<object>
+	    		<orgRelation>
+	    			<subjectRelation>org:manager</subjectRelation>
+	    			<scope>allDescendants</scope>
+	    			<includeReferenceOrg>true</includeReferenceOrg>
+	    		</orgRelation>
+	    	</object>
+	    </authorization>
+	    <authorization>
+	    	<name>autz-write</name>
+	    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#modify</action>
+	    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#add</action>
+	    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#delete</action>
+	    	<object>
+	    		<orgRelation>
+	    			<subjectRelation>org:manager</subjectRelation>
+	    		</orgRelation>
+	    	</object>
+	    </authorization>
+	    <authorization>
+	    	<name>autz-shadow</name>
+	    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+	    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#modify</action>
+	    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#add</action>
+	    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#delete</action>
+	    	<object>
+	    		<type>ShadowType</type>
+	    		<owner>
+	    			<orgRelation>
+		    			<subjectRelation>org:manager</subjectRelation>
+		    		</orgRelation>
+	    		</owner>
+	    	</object>
+	    </authorization>
+		<roleType>application</roleType>
+	</role>
+	
 </objects>
