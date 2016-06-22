@@ -88,6 +88,12 @@ public class DebugUtil {
 		return sb.toString();
 	}
 	
+	public static String debugDump(Map<?,?> dumpables, int indent) {
+		StringBuilder sb = new StringBuilder();
+		debugDumpMapMultiLine(sb, dumpables, indent, true);
+		return sb.toString();
+	}
+	
 	public static void debugDump(StringBuilder sb, Collection<?> dumpables, int indent, boolean openCloseSymbols) {
 		debugDump(sb, dumpables, indent, openCloseSymbols, null);
 	}
@@ -154,6 +160,8 @@ public class DebugUtil {
 		}
 		if (object instanceof DebugDumpable) {
 			return ((DebugDumpable)object).debugDump(indent);
+		} else if (object instanceof Map) {
+			return debugDump((Map)object, indent);
 		} else if (object instanceof Collection) {
 			return debugDump((Collection<?>)object, indent);
 		} else {
@@ -362,7 +370,7 @@ public class DebugUtil {
 				sb.append("\n");
 				sb.append(((DebugDumpable)value).debugDump(inindent+1));
 			} else {
-				sb.append(value);
+				sb.append(PrettyPrinter.prettyPrint(value));
 			}
 			if (i.hasNext()) {
 				sb.append("\n");

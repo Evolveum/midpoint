@@ -89,8 +89,10 @@ public class PagePreviewChanges extends PageAdmin {
 		} catch (SchemaException e) {
 			throw new SystemException(e);		// TODO
 		}
-		LOGGER.info("Creating context DTO for primary deltas:\n{}", DebugUtil.debugDump(primaryScenes));
-		LOGGER.info("Creating context DTO for secondary deltas:\n{}", DebugUtil.debugDump(secondaryScenes));
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace("Creating context DTO for primary deltas:\n{}", DebugUtil.debugDump(primaryScenes));
+			LOGGER.trace("Creating context DTO for secondary deltas:\n{}", DebugUtil.debugDump(secondaryScenes));
+		}
 
 		final WrapperScene primaryScene = new WrapperScene(primaryScenes,
 				primaryScenes.size() != 1 ? "PagePreviewChanges.primaryChangesMore" : "PagePreviewChanges.primaryChangesOne", primaryScenes.size());
