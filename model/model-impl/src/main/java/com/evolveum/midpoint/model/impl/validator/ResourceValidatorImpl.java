@@ -61,7 +61,6 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.Synchronizati
  *  - existence of dependent kind/intent/resource (in thorough scope)
  *  - checking references (thorough)
  *  - mapping: unknown channel / except-channel
- *  - mapping: invalid source, invalid target
  *  - empty mapping (?)
  *  - iteration tokens
  *  - invalid objectclass in synchronization
@@ -359,11 +358,16 @@ public class ResourceValidatorImpl implements ResourceValidator {
 		} else if (result.getDefinition() != null) {
 			// definition found => OK (ignoring any potential issues found)
 		} else {
-			String code = isSource ? C_INVALID_MAPPING_SOURCE : C_INVALID_MAPPING_TARGET;
 			String inOut = outbound ? getString(ctx.bundle, "ResourceValidator.outboundMapping") : getString(ctx.bundle, "ResourceValidator.inboundMapping", index);
 			Issue.Severity severity = Issue.getSeverity(result.getIssues());
 			if (severity == null) {
 				severity = Issue.Severity.INFO;
+			}
+			String code;
+			if (severity != Issue.Severity.INFO) {
+				code = isSource ? C_INVALID_MAPPING_SOURCE : C_INVALID_MAPPING_TARGET;
+			} else {
+				code = isSource ? C_SUSPICIOUS_MAPPING_SOURCE : C_SUSPICIOUS_MAPPING_TARGET;
 			}
 			StringBuilder sb = new StringBuilder();
 			boolean first = true;
@@ -383,6 +387,20 @@ public class ResourceValidatorImpl implements ResourceValidator {
 
 	private String format(ItemPathType path) {
 		return path != null ? path.toString() : "";
+	}
+
+	private String format(List<?> items) {
+		StringBuilder sb = new StringBuilder();
+		boolean first = true;
+		for (Object o : items) {
+			if (first) {
+				first = false;
+			} else {
+				sb.append(", ");
+			}
+			sb.append(o);
+		}
+		return sb.toString();
 	}
 
 	@Nullable
@@ -590,8 +608,13 @@ public class ResourceValidatorImpl implements ResourceValidator {
 				counts.put(reaction.getSituation(), c != null ? c+1 : 1);
 			}
 		}
-		checkMissingReactions(ctx, path, objectSync, counts, Arrays.asList(UNLINKED, UNMATCHED));
+		checkMissingReactions(ctx, path, objectSync, counts, Collections.singletonList(UNLINKED));
 		checkDuplicateReactions(ctx, path, objectSync, counts);
+		if (objectSync.getCorrelation().isEmpty()) {
+			ctx.validationResult.add(Issue.Severity.WARNING, CAT_SYNCHRONIZATION, C_NO_CORRELATION_RULE,
+					getString(ctx.bundle, CLASS_DOT + C_NO_CORRELATION_RULE, getName(objectSync)),
+					ctx.resourceRef, path);
+		}
 	}
 
 	private void checkDuplicateReactions(ResourceValidationContext ctx, ItemPath path, ObjectSynchronizationType objectSync,
@@ -604,7 +627,7 @@ public class ResourceValidatorImpl implements ResourceValidator {
 		}
 		if (!duplicates.isEmpty()) {
 			ctx.validationResult.add(Issue.Severity.WARNING, CAT_SYNCHRONIZATION, C_DUPLICATE_REACTIONS,
-					getString(ctx.bundle, CLASS_DOT + C_DUPLICATE_REACTIONS, getName(objectSync), String.valueOf(duplicates)),
+					getString(ctx.bundle, CLASS_DOT + C_DUPLICATE_REACTIONS, getName(objectSync), format(duplicates)),
 					ctx.resourceRef, path);
 		}
 	}
@@ -615,7 +638,7 @@ public class ResourceValidatorImpl implements ResourceValidator {
 		missing.removeAll(counts.keySet());
 		if (!missing.isEmpty()) {
 			ctx.validationResult.add(Issue.Severity.INFO, CAT_SYNCHRONIZATION, C_NO_REACTION,
-					getString(ctx.bundle, CLASS_DOT + C_NO_REACTION, getName(objectSync), String.valueOf(missing)),
+					getString(ctx.bundle, CLASS_DOT + C_NO_REACTION, getName(objectSync), format(missing)),
 					ctx.resourceRef, path);
 		}
 	}

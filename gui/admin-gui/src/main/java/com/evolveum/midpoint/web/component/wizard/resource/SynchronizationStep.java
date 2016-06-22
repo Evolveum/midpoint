@@ -440,7 +440,17 @@ public class SynchronizationStep extends WizardStep {
                 correlationEditPerformed(target, object);
             }
 
-            @Override
+			@Override
+			protected void performAddValueHook(AjaxRequestTarget target, ConditionalSearchFilterType added) {
+				parentPage.refreshIssues(target);
+			}
+
+			@Override
+			protected void performRemoveValueHook(AjaxRequestTarget target, ListItem<ConditionalSearchFilterType> item) {
+				parentPage.refreshIssues(target);
+			}
+
+			@Override
             protected boolean buttonsDisabled(){
                 return !isAnySelected();
             }
