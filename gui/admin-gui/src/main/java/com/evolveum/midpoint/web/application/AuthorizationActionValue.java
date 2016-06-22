@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2014 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,8 +24,9 @@ import java.io.Serializable;
  * @author lazyman
  */
 public class AuthorizationActionValue implements DisplayableValue<String>, Serializable {
+	private static final long serialVersionUID = 1L;
 
-    private String value;
+	private String value;
     private String label;
     private String description;
 
@@ -52,4 +53,11 @@ public class AuthorizationActionValue implements DisplayableValue<String>, Seria
     public String getDescription() {
         return description;
     }
+
+	@Override
+	public String toString() {
+		return "AuthorizationActionValue(value=" + value + ", label=" + label + ", description="
+				+ description + ")";
+	}
+    
 }
