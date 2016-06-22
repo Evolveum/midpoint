@@ -319,6 +319,7 @@ public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extend
 
 		List<QName> types = WebComponentUtil.createObjectTypeList();
 		types.remove(NodeType.COMPLEX_TYPE);
+		types.remove(ShadowType.COMPLEX_TYPE);
 
 		ObjectBrowserPanel<ObjectType> browser = new ObjectBrowserPanel(getPageBase().getMainPopupBodyId(),
 				UserType.class, types, true, getPageBase()) {
