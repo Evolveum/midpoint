@@ -200,7 +200,30 @@ public class ColumnUtils {
 					}
 				};
 			}
-		};
+
+            @Override
+            protected IModel<String> createTitleModel(final IModel<SelectableBean<T>> rowModel) {
+
+                return new AbstractReadOnlyModel<String>() {
+
+                    @Override
+                    public String getObject() {
+                        T user = rowModel.getObject().getValue();
+                        String iconClass = WebComponentUtil.createUserIcon(user.asPrismContainer());
+                        String compareStringValue = GuiStyleConstants.CLASS_OBJECT_USER_ICON + " " + GuiStyleConstants.CLASS_ICON_STYLE;
+                        String titleValue = "";
+                        if (iconClass != null &&
+                                iconClass.startsWith(compareStringValue) &&
+                                iconClass.length() > compareStringValue.length()){
+                            titleValue = iconClass.substring(compareStringValue.length());
+                        }
+                        return createStringResource("ColumnUtils.getUserIconColumn.createTitleModel." + titleValue) == null ?
+                                "" : createStringResource("ColumnUtils.getUserIconColumn.createTitleModel." + titleValue).getString();
+                    }
+                };
+            }
+
+        };
 	}
 	
 	public static <T extends ObjectType> IColumn<SelectableBean<T>, String> getShadowIconColumn(){
