@@ -28,6 +28,7 @@ import java.io.FileInputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
@@ -46,6 +47,7 @@ import org.testng.annotations.Test;
 import com.evolveum.icf.dummy.resource.BreakMode;
 import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
+import com.evolveum.midpoint.model.api.ProgressListener;
 import com.evolveum.midpoint.notifications.api.transports.Message;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.ItemDefinition;
@@ -188,7 +190,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
 		try {
 			
 			// WHEN
-			modelService.executeChanges(deltas, null, task, result);
+			modelService.executeChanges(deltas, null, task, getCheckingProgressListenerCollection(), result);
 			
 			AssertJUnit.fail("Unexpected executeChanges success");
 		} catch (ObjectAlreadyExistsException e) {
@@ -261,7 +263,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
                 
 		// WHEN
         TestUtil.displayWhen(TEST_NAME);
-		modelService.executeChanges(deltas, null, task, result);
+		modelService.executeChanges(deltas, null, task, getCheckingProgressListenerCollection(), result);
 		
 		// THEN
 		result.computeStatus();
@@ -309,7 +311,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
                 
 		// WHEN
         TestUtil.displayWhen(TEST_NAME);
-		modelService.executeChanges(deltas, null, task, result);
+		modelService.executeChanges(deltas, null, task, getCheckingProgressListenerCollection(), result);
 		
 		// THEN
 		TestUtil.displayThen(TEST_NAME);
@@ -575,7 +577,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userAddDelta);
                         
 		// WHEN
-        modelService.executeChanges(deltas, null, task, result);
+        modelService.executeChanges(deltas, null, task, getCheckingProgressListenerCollection(), result);
 		
 		// THEN
 		result.computeStatus();
@@ -1166,7 +1168,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         
 		// WHEN
         TestUtil.displayWhen(TEST_NAME);
-		modelService.executeChanges(deltas, null, task, result);
+		modelService.executeChanges(deltas, null, task, getCheckingProgressListenerCollection(), result);
 		
 		// THEN
 		TestUtil.displayThen(TEST_NAME);
