@@ -22,14 +22,10 @@ import java.util.List;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.model.api.ModelInteractionService;
-import com.evolveum.midpoint.model.api.RoleSelectionSpecification;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
@@ -49,7 +45,6 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.repeater.Item;
-import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
@@ -107,7 +102,7 @@ public class MultipleAssignmentSelector<F extends FocusType, H extends FocusType
     private boolean filterObjectIsAdded = false;
 
     public MultipleAssignmentSelector(String id, IModel<List<AssignmentEditorDto>> selectorModel,
-                                      Class<H> targetFocusClass, Class type, PrismObject<F> focus, IModel<ObjectFilter> filterModel) {
+			Class<H> targetFocusClass, Class type, PrismObject<F> focus, IModel<ObjectFilter> filterModel, PageBase pageBase) {
         super(id, selectorModel);
         this.focus=focus;
         this.filterModel = filterModel;
@@ -128,10 +123,10 @@ public class MultipleAssignmentSelector<F extends FocusType, H extends FocusType
             provider = getAvailableAssignmentsDataProvider();
         }
 
-        initLayout();
+        initLayout(pageBase);
     }
 
-    private void initLayout() {
+    private void initLayout(PageBase pageBase) {
         setOutputMarkupId(true);
 
         WebMarkupContainer filterButtonContainer = new WebMarkupContainer(ID_FILTER_BUTTON_CONTAINER);
@@ -147,7 +142,7 @@ public class MultipleAssignmentSelector<F extends FocusType, H extends FocusType
         };
         filterButtonContainer.add(filterByUserButton);
 
-        labelValue = createStringResource("MultipleAssignmentSelector.filterByUser").getString();
+        labelValue = pageBase.createStringResource("MultipleAssignmentSelector.filterByUser").getString();
         Label label = new Label(ID_LABEL, createLabelModel());
         label.setRenderBodyOnly(true);
         filterByUserButton.add(label);
@@ -175,7 +170,7 @@ public class MultipleAssignmentSelector<F extends FocusType, H extends FocusType
                 AssignmentEditorDto dto =(AssignmentEditorDto) rowModel.getObject();
                 String name = StringUtils.isNotEmpty(dto.getNameForTargetObject()) ?
                         dto.getNameForTargetObject() : dto.getName();
-                return new Model<String>(name);
+                return new Model<>(name);
             }
 
             @Override

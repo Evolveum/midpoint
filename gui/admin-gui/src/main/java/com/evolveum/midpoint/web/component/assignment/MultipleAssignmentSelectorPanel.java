@@ -104,9 +104,9 @@ public class MultipleAssignmentSelectorPanel<F extends FocusType, H extends Focu
 
         IModel<List<AssignmentEditorDto>> availableAssignmentModel = createAvailableAssignmentModel();
         final MultipleAssignmentSelector availableAssignmentsPanel = new MultipleAssignmentSelector<F, H>(ID_AVAILABLE_ASSIGNMENTS,
-                availableAssignmentModel, targetFocusClass, type, focus, getFilterModel(true));
+                availableAssignmentModel, targetFocusClass, type, focus, getFilterModel(true), getPageBase());
         final MultipleAssignmentSelector currentAssignmentsPanel = new MultipleAssignmentSelector<F, H>(ID_CURRENT_ASSIGNMENTS,
-                assignmentsModel, targetFocusClass, type, null, getFilterModel(true)){
+                assignmentsModel, targetFocusClass, type, null, getFilterModel(true), getPageBase()){
             @Override
         protected List<AssignmentEditorDto> getListProviderDataList(){
                 return assignmentsModel.getObject();
