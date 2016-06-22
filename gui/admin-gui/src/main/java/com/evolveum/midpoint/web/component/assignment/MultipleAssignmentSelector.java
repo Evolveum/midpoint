@@ -402,8 +402,11 @@ public class MultipleAssignmentSelector<F extends FocusType, H extends FocusType
                 && filterModel != null && filterModel.getObject() != null
                 && query.getFilter() == null) {
             query.setFilter(filterModel.getObject());
-            InOidFilter oidsFilter = InOidFilter.createInOid(getAssignmentOids(currentAssignments));
-            query.addFilter(oidsFilter);
+            List<String> oidsList = getAssignmentOids(currentAssignments);
+            if (oidsList != null && oidsList.size() > 0) {
+                InOidFilter oidsFilter = InOidFilter.createInOid(oidsList);
+                query.addFilter(oidsFilter);
+            }
         }
         filterObjectIsAdded = false;
         return applyQueryToListProvider(query, currentAssignments);
