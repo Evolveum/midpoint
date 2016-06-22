@@ -370,7 +370,7 @@ public class PageResource extends PageAdminResources {
 			result.recomputeStatus();
 		}
 
-		TestConnectionResultPanel testConnectionPanel = new TestConnectionResultPanel(getMainPopupBodyId(), new ListModel<OpResult>(resultsDto)) {
+		TestConnectionResultPanel testConnectionPanel = new TestConnectionResultPanel(getMainPopupBodyId(), new ListModel<>(resultsDto), getPage()) {
 			private static final long serialVersionUID = 1L;
 
 			@Override

@@ -18,6 +18,7 @@ package com.evolveum.midpoint.web.page.admin.resources.component;
 import java.util.List;
 
 import org.apache.wicket.Component;
+import org.apache.wicket.Page;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
@@ -37,9 +38,9 @@ import com.evolveum.midpoint.web.component.dialog.Popupable;
  */
 public class TestConnectionResultPanel extends BasePanel<List<OpResult>> implements Popupable{
 	
-	public TestConnectionResultPanel(String id, IModel<List<OpResult>> model) {
+	public TestConnectionResultPanel(String id, IModel<List<OpResult>> model, Page parentPage) {
 		super(id, model);
-		initLayout();
+		initLayout(parentPage);
 	}
 
 	private static final long serialVersionUID = 1L;
@@ -49,11 +50,11 @@ public class TestConnectionResultPanel extends BasePanel<List<OpResult>> impleme
 
 	
 
-	private void initLayout() {
+	private void initLayout(Page parentPage) {
 		RepeatingView resultView = new RepeatingView(ID_RESULT);
 
 		for (OpResult result : getModel().getObject()) {
-			OperationResultPanel resultPanel = new OperationResultPanel(resultView.newChildId(), new Model<OpResult>(result));
+			OperationResultPanel resultPanel = new OperationResultPanel(resultView.newChildId(), new Model<>(result), parentPage);
 			resultPanel.setOutputMarkupId(true);
 			resultView.add(resultPanel);
 		}

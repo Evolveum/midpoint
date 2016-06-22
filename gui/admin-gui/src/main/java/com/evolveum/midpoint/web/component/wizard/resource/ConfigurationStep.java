@@ -259,7 +259,7 @@ public class ConfigurationStep extends WizardStep {
 			result.recordFatalError("Failed to test resource connection", ex);
 		}
 
-		TestConnectionResultPanel testConnectionPanel = new TestConnectionResultPanel(page.getMainPopupBodyId(), new ListModel<>(resultDtoList));
+		TestConnectionResultPanel testConnectionPanel = new TestConnectionResultPanel(page.getMainPopupBodyId(), new ListModel<>(resultDtoList), getPage());
 		testConnectionPanel.setOutputMarkupId(true);
 		page.showMainPopup(testConnectionPanel, target);
 		page.showResult(result, "Test connection failed", false);

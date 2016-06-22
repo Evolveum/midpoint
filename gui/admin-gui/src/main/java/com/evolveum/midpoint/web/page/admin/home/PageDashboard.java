@@ -263,7 +263,7 @@ public class PageDashboard extends PageAdminHome {
 
             @Override
             protected Component getMainComponent(String componentId) {
-                return new PersonalInfoPanel(componentId);
+                return new PersonalInfoPanel(componentId, PageDashboard.this);
             }
         };
         add(personalInfo);

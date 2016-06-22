@@ -124,14 +124,11 @@ public class Resolver {
 					}
 				}
 				if (itemDelta.getEstimatedOldValues() == null) {
-					if (!originalObjectFetched) {
-						final String oid = objectDelta.getOid();
+					final String oid = objectDelta.getOid();
+					if (!originalObjectFetched && oid != null) {
 						try {
 							originalObject = modelService.getObject(clazz, oid, createCollection(createNoFetch()), task, result);
-						} catch (RuntimeException|SchemaException|ConfigurationException |CommunicationException |SecurityViolationException e) {
-							LoggingUtils.logUnexpectedException(LOGGER, "Couldn't resolve object {}", e, oid);
-							warn(result, "Couldn't resolve object " + oid + ": " + e.getMessage(), e);
-						} catch (ObjectNotFoundException e) {
+						} catch (RuntimeException | SchemaException | ConfigurationException | CommunicationException | SecurityViolationException | ObjectNotFoundException e) {
 							LoggingUtils.logUnexpectedException(LOGGER, "Couldn't resolve object {}", e, oid);
 							warn(result, "Couldn't resolve object " + oid + ": " + e.getMessage(), e);
 						}

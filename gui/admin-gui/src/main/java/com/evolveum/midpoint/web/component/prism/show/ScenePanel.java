@@ -131,9 +131,9 @@ public class ScenePanel extends BasePanel<SceneDto> {
 		});
 
 		Label headerChangeType = new Label(ID_HEADER_CHANGE_TYPE, new ChangeTypeModel());
-		headerChangeType.setRenderBodyOnly(true);
+		//headerChangeType.setRenderBodyOnly(true);
 		Label headerObjectType = new Label(ID_HEADER_OBJECT_TYPE, new ObjectTypeModel());
-		headerObjectType.setRenderBodyOnly(true);
+		//headerObjectType.setRenderBodyOnly(true);
 
 		IModel<String> nameModel = new AbstractReadOnlyModel<String>() {
 			@Override

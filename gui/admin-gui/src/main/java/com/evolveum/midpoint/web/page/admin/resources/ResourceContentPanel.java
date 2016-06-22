@@ -565,7 +565,7 @@ public abstract class ResourceContentPanel extends Panel {
 
 				OperationResultPanel body = new OperationResultPanel(
 						ResourceContentPanel.this.getPageBase().getMainPopupBodyId(),
-						new Model<OpResult>(OpResult.getOpResult(pageBase, result)));
+						new Model<OpResult>(OpResult.getOpResult(pageBase, result)), getPage());
 				body.setOutputMarkupId(true);
 				ResourceContentPanel.this.getPageBase().showMainPopup(body,
 						target);
