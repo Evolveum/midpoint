@@ -805,12 +805,12 @@ public abstract class ResourceContentPanel extends Panel {
 					@Override
 					public void onSubmit(AjaxRequestTarget target, Form<?> form) {
 						final SelectableBean<ShadowType> shadow = getRowModel().getObject();
-						ObjectBrowserPanel<UserType> browser = new ObjectBrowserPanel<UserType>(
+						ObjectBrowserPanel<FocusType> browser = new ObjectBrowserPanel<FocusType>(
 								pageBase.getMainPopupBodyId(), UserType.class,
 								WebComponentUtil.createFocusTypeList(), false, pageBase) {
 
 							@Override
-							protected void onSelectPerformed(AjaxRequestTarget target, UserType focus) {
+							protected void onSelectPerformed(AjaxRequestTarget target, FocusType focus) {
 								changeOwner(shadow.getValue(), target, focus, Operation.MODIFY);
 							}
 
