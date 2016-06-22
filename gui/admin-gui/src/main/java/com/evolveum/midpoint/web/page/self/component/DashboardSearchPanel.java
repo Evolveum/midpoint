@@ -104,6 +104,7 @@ public class DashboardSearchPanel extends SimplePanel<T> {
             searchButton.setOutputMarkupId(true);
             searchButton.add(buttonLabel);
             searchForm.add(searchButton);
+            searchForm.setDefaultButton(searchButton);
 
 //            final WebMarkupContainer list = new WebMarkupContainer(ID_SEARCH_TYPES);
 //            list.setOutputMarkupId(true);
