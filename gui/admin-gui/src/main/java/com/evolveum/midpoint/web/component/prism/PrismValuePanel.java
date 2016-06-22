@@ -750,7 +750,8 @@ public class PrismValuePanel extends Panel {
             }
         } else {
             for(LookupTableRowType row: rows){
-                if(WebComponentUtil.getOrigStringFromPoly(row.getLabel()).startsWith(input)){
+                if(WebComponentUtil.getOrigStringFromPoly(row.getLabel()) != null &&
+                        WebComponentUtil.getOrigStringFromPoly(row.getLabel()).toLowerCase().contains(input.toLowerCase())){
                     values.add(WebComponentUtil.getOrigStringFromPoly(row.getLabel()));
                 }
 
