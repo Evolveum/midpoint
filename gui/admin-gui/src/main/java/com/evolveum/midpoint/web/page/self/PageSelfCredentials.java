@@ -144,7 +144,9 @@ public class PageSelfCredentials extends PageSelf {
             String userOid = SecurityUtils.getPrincipalUser().getOid();
             Task task = createSimpleTask(OPERATION_LOAD_USER);
             OperationResult subResult = result.createSubresult(OPERATION_LOAD_USER);
-            user = getModelService().getObject(UserType.class, userOid, null, task, subResult);
+            Collection<SelectorOptions<GetOperationOptions>> resolveNames =
+            		SelectorOptions.createCollection(GetOperationOptions.createResolveNames());
+            user = getModelService().getObject(UserType.class, userOid, resolveNames, task, subResult);
             subResult.recordSuccessIfUnknown();
             
             UserType userType = user.asObjectable();
