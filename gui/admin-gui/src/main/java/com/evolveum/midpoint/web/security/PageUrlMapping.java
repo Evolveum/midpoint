@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2014 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,25 +30,41 @@ public enum PageUrlMapping {
             new AuthorizationActionValue(AUTZ_UI_USER_DETAILS_URL,
                     "PageAdminUsers.authUri.userDetails.label", "PageAdminUsers.authUri.userDetails.description"),
             new AuthorizationActionValue(AUTZ_UI_USERS_ALL_URL,
-                    "PageAdminUsers.authUri.usersAll.label", "PageAdminUsers.authUri.usersAll.description")
+                    "PageAdminUsers.authUri.usersAll.label", "PageAdminUsers.authUri.usersAll.description"),
+            new AuthorizationActionValue(AUTZ_GUI_ALL_URL,
+                    "PageAdminUsers.authUri.usersAll.label", "PageAdminUsers.authUri.guiAll.description"),
+            new AuthorizationActionValue(AUTZ_GUI_ALL_DEPRECATED_URL,
+                    "PageAdminUsers.authUri.usersAll.label", "PageAdminUsers.authUri.guiAll.description")
     }),
     TASK_DETAILS("/admin/task/**", new DisplayableValue[]{
             new AuthorizationActionValue(AUTZ_UI_TASK_DETAIL_URL,
                     "PageAdminTasks.authUri.taskDetails.label", "PageAdminTasks.authUri.taskDetails.description"),
             new AuthorizationActionValue(AUTZ_UI_TASKS_ALL_URL,
-                    "PageAdminTasks.authUri.tasksAll.label", "PageAdminTasks.authUri.tasksAll.description")
+                    "PageAdminTasks.authUri.tasksAll.label", "PageAdminTasks.authUri.tasksAll.description"),
+            new AuthorizationActionValue(AUTZ_GUI_ALL_URL,
+                    "PageAdminTasks.authUri.tasksAll.label", "PageAdminTasks.authUri.guiAll.description"),
+            new AuthorizationActionValue(AUTZ_GUI_ALL_DEPRECATED_URL,
+                    "PageAdminTasks.authUri.tasksAll.label", "PageAdminTasks.authUri.guiAll.description")
     }),
     ROLE_DETAILS("/admin/role/**", new DisplayableValue[]{
             new AuthorizationActionValue(AUTZ_UI_ROLE_DETAILS_URL,
                     "PageAdminRoles.authUri.roleDetails.label", "PageAdminRoles.authUri.roleDetails.description"),
             new AuthorizationActionValue(AUTZ_UI_ROLES_ALL_URL,
-                    "PageAdminRoles.authUri.rolesAll.label", "PageAdminRoles.authUri.rolesAll.description")
+                    "PageAdminRoles.authUri.rolesAll.label", "PageAdminRoles.authUri.rolesAll.description"),
+            new AuthorizationActionValue(AUTZ_GUI_ALL_URL,
+                    "PageAdminRoles.authUri.rolesAll.label", "PageAdminRoles.authUri.guiAll.description"),
+            new AuthorizationActionValue(AUTZ_GUI_ALL_DEPRECATED_URL,
+                    "PageAdminRoles.authUri.rolesAll.label", "PageAdminRoles.authUri.guiAll.description")
     }),
     RESOURCE_DETAILS("/admin/resource/**", new DisplayableValue[]{
             new AuthorizationActionValue(AUTZ_UI_RESOURCE_DETAILS_URL,
                     "PageAdminResources.authUri.resourceDetails.label", "PageAdminResources.authUri.resourceDetails.description"),
             new AuthorizationActionValue(AUTZ_UI_RESOURCES_ALL_URL,
-                    "PageAdminResources.authUri.resourcesAll.label", "PageAdminResources.authUri.resourcesAll.description")
+                    "PageAdminResources.authUri.resourcesAll.label", "PageAdminResources.authUri.resourcesAll.description"),
+            new AuthorizationActionValue(AUTZ_GUI_ALL_URL,
+                    "PageAdminRoles.authUri.rolesAll.label", "PageAdminRoles.authUri.guiAll.description"),
+            new AuthorizationActionValue(AUTZ_GUI_ALL_DEPRECATED_URL,
+                    "PageAdminRoles.authUri.rolesAll.label", "PageAdminRoles.authUri.guiAll.description")
     });
 
     private String url;

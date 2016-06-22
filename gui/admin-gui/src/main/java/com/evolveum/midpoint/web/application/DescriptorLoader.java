@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2014 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,8 @@ package com.evolveum.midpoint.web.application;
 
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.util.ClassPathUtil;
+import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -38,27 +40,42 @@ import java.util.*;
 /**
  * @author lazyman
  */
-public final class DescriptorLoader {
+public final class DescriptorLoader implements DebugDumpable {
 
     private static final Trace LOGGER = TraceManager.getTrace(DescriptorLoader.class);
 
     private static Map<String, DisplayableValue<String>[]> actions = new HashMap<>();
+    private static Map<String, Class> urlClassMap = new HashMap<>();
+    
+    private String baseFileName = "/WEB-INF/descriptor.xml";
+    private String customFileName = "/WEB-INF/classes/descriptor.xml";
 
     public static Map<String, DisplayableValue<String>[]> getActions() {
         return actions;
     }
 
-    private static Map<String, Class> urlClassMap = new HashMap<>();
-
     public static Map<String, Class> getUrlClassMap() {
         return urlClassMap;
     }
 
-    public void loadData(MidPointApplication application) {
-        LOGGER.debug("Loading data from descriptor files.");
+    public String getBaseFileName() {
+		return baseFileName;
+	}
 
-        String baseFileName = "/WEB-INF/descriptor.xml";
-        String customFileName = "/WEB-INF/classes/descriptor.xml";
+	public void setBaseFileName(String baseFileName) {
+		this.baseFileName = baseFileName;
+	}
+
+	public String getCustomFileName() {
+		return customFileName;
+	}
+
+	public void setCustomFileName(String customFileName) {
+		this.customFileName = customFileName;
+	}
+
+	public void loadData(MidPointApplication application) {
+        LOGGER.debug("Loading data from descriptor files.");
 
         try (InputStream baseInput = application.getServletContext().getResourceAsStream(baseFileName);
              InputStream customInput = application.getServletContext().getResourceAsStream(customFileName)) {
@@ -82,6 +99,11 @@ public final class DescriptorLoader {
             if (customDescriptor != null) {
                 scanPackagesForPages(customDescriptor.getPackagesToScan(), application);
             }
+            
+            if (LOGGER.isTraceEnabled()) {
+            	LOGGER.trace("loaded:\n{}", debugDump(1));
+            }
+            
         } catch (Exception ex) {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't process application descriptor", ex);
         }
@@ -154,4 +176,19 @@ public final class DescriptorLoader {
             urlClassMap.put(url, clazz);
         }
     }
+
+	@Override
+	public String debugDump() {
+		return debugDump(0);
+	}
+
+	@Override
+	public String debugDump(int indent) {
+		StringBuilder sb = new StringBuilder();
+		DebugUtil.indentDebugDump(sb, indent);
+		sb.append("DescriptorLoader\n");
+		DebugUtil.debugDumpWithLabelLn(sb, "actions", actions, indent + 1);
+		DebugUtil.debugDumpWithLabel(sb, "urlClassMap", urlClassMap, indent + 1);
+		return sb.toString();
+	}
 }

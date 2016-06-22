@@ -27,6 +27,7 @@ import com.evolveum.midpoint.security.api.OwnerResolver;
 import com.evolveum.midpoint.security.api.SecurityEnforcer;
 import com.evolveum.midpoint.security.api.SecurityUtil;
 import com.evolveum.midpoint.security.api.UserProfileService;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.util.Producer;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -48,6 +49,7 @@ import org.springframework.security.web.FilterInvocation;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
@@ -166,7 +168,7 @@ public class MidPointGuiAuthorizationEvaluator implements SecurityEnforcer {
         if (!matcher.matches(filterInvocation.getRequest()) || actions == null) {
             return;
         }
-
+        
         for (DisplayableValue<String> action : actions) {
             String actionUri = action.getValue();
             if (StringUtils.isBlank(actionUri)) {
