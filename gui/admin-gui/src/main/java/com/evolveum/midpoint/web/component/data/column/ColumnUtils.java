@@ -87,7 +87,7 @@ public class ColumnUtils {
 
 	}
 
-	public static <O extends ObjectType> List<IColumn<SelectableBean<O>, String>> getDefaultColumns(Class<O> type) {
+	public static <O extends ObjectType> List<IColumn<SelectableBean<O>, String>> getDefaultColumns(Class<? extends O> type) {
 		if (type == null) {
 			return getDefaultUserColumns();
 		}
@@ -110,7 +110,7 @@ public class ColumnUtils {
 		}
 	}
 	
-	public static <T extends ObjectType> IColumn<SelectableBean<T>, String> createIconColumn(Class<T> type){
+	public static <O extends ObjectType> IColumn<SelectableBean<O>, String> createIconColumn(Class<? extends O> type){
 		
 		if (type.equals(ObjectType.class)){
 			return getDefaultIcons();
