@@ -57,15 +57,15 @@ public class SelectableBeanObjectDataProvider<O extends ObjectType> extends Base
     private static final String OPERATION_SEARCH_OBJECTS = DOT_CLASS + "searchObjects";
     private static final String OPERATION_COUNT_OBJECTS = DOT_CLASS + "countObjects";
 
-    private Set<O> selected = new HashSet<>();
+    private Set<? extends O> selected = new HashSet<>();
     
     private boolean emptyListOnNullQuery = false;
     private boolean useObjectCounting = true;
     
-    private Class<O> type;
+    private Class<? extends O> type;
     private Collection<SelectorOptions<GetOperationOptions>> options;
 
-    public SelectableBeanObjectDataProvider(Component component, Class<O> type) {
+    public SelectableBeanObjectDataProvider(Component component, Class<? extends O> type) {
         super(component, true, true);
 
         Validate.notNull(type);
@@ -81,7 +81,7 @@ public class SelectableBeanObjectDataProvider<O extends ObjectType> extends Base
     	for (SelectableBean<O> s : super.getAvailableData()){
 			SelectableBean<O> selectable = (SelectableBean<O>) s;
 			if (selectable.isSelected()){
-				selected.add(selectable.getValue());
+				((Set)selected).add(selectable.getValue());
 			}
     	}
     	List<O> allSelected = new ArrayList<>();
@@ -98,7 +98,7 @@ public class SelectableBeanObjectDataProvider<O extends ObjectType> extends Base
     	for (SelectableBean<O> available : getAvailableData()){
      		SelectableBean<O> selectableBean = (SelectableBean<O>) available;
      		if (selectableBean.isSelected()){
-     			selected.add(selectableBean.getValue());
+     			((Set)selected).add(selectableBean.getValue());
      		}
          }
          
@@ -140,13 +140,13 @@ public class SelectableBeanObjectDataProvider<O extends ObjectType> extends Base
             if (ResourceType.class.equals(type) && (options == null || options.isEmpty())){
             	options = SelectorOptions.createCollection(GetOperationOptions.createNoFetch());
             }
-            List<PrismObject<O>> list = getModel().searchObjects(type, query, options, task, result);
+            List<PrismObject<? extends O>> list = (List)getModel().searchObjects(type, query, options, task, result);
             
             if (LOGGER.isTraceEnabled()) {
             	LOGGER.trace("Query {} resulted in {} objects", type.getSimpleName(), list.size());
             }
             
-            for (PrismObject<O> object : list) {
+            for (PrismObject<? extends O> object : list) {
                 getAvailableData().add(createDataObjectWrapper(object.asObjectable()));
             }
 //            result.recordSuccess();

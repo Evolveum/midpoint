@@ -44,7 +44,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
-public class ObjectBrowserPanel<T extends ObjectType> extends BasePanel<T> implements Popupable{
+public class ObjectBrowserPanel<O extends ObjectType> extends BasePanel<O> implements Popupable{
 
 	private static final long serialVersionUID = 1L;
 	private static final String ID_TYPE = "type";
@@ -58,12 +58,18 @@ public class ObjectBrowserPanel<T extends ObjectType> extends BasePanel<T> imple
 	private PageBase parentPage;
 	private ObjectFilter queryFilter;
 
-	public ObjectBrowserPanel(String id, final Class<T> type, List<QName> supportedTypes, boolean multiselect,
+	/**
+	 * @param defaultType specifies type of the object that will be selected by default
+	 */
+	public ObjectBrowserPanel(String id, final Class<? extends O> defaultType, List<QName> supportedTypes, boolean multiselect,
 			PageBase parentPage) {
-		this(id, type, supportedTypes, multiselect, parentPage, null);
+		this(id, defaultType, supportedTypes, multiselect, parentPage, null);
 	}
 
-	public ObjectBrowserPanel(String id, final Class<T> type, List<QName> supportedTypes, boolean multiselect,
+	/**
+	 * @param defaultType specifies type of the object that will be selected by default
+	 */
+	public ObjectBrowserPanel(String id, final Class<? extends O> defaultType, List<QName> supportedTypes, boolean multiselect,
 			PageBase parentPage, ObjectFilter queryFilter) {
 		super(id);
 		this.parentPage = parentPage;
@@ -73,15 +79,15 @@ public class ObjectBrowserPanel<T extends ObjectType> extends BasePanel<T> imple
 
 			@Override
 			protected QName load() {
-				return compileTimeClassToQName(type);
+				return compileTimeClassToQName(defaultType);
 			}
 
 		};
 
-		initLayout(type, supportedTypes, multiselect);
+		initLayout(defaultType, supportedTypes, multiselect);
 	}
 
-	private void initLayout(Class<T> type, final List<QName> supportedTypes, final boolean multiselect) {
+	private void initLayout(Class<? extends O> type, final List<QName> supportedTypes, final boolean multiselect) {
 
 		WebMarkupContainer typePanel = new WebMarkupContainer(ID_TYPE_PANEL);
 		typePanel.setOutputMarkupId(true);
@@ -101,7 +107,7 @@ public class ObjectBrowserPanel<T extends ObjectType> extends BasePanel<T> imple
 			@Override
 			protected void onUpdate(AjaxRequestTarget target) {
 
-				ObjectListPanel<T> listPanel = (ObjectListPanel<T>) get(ID_TABLE);
+				ObjectListPanel<O> listPanel = (ObjectListPanel<O>) get(ID_TABLE);
 
 				listPanel = createObjectListPanel(qnameToCompileTimeClass(typeModel.getObject()),
 						multiselect);
@@ -111,7 +117,7 @@ public class ObjectBrowserPanel<T extends ObjectType> extends BasePanel<T> imple
 		});
 		typePanel.add(typeSelect);
 
-		ObjectListPanel<T> listPanel = createObjectListPanel(type, multiselect);
+		ObjectListPanel<O> listPanel = createObjectListPanel(type, multiselect);
 		add(listPanel);
 
 		AjaxButton addButton = new AjaxButton(ID_BUTTON_ADD,
@@ -120,7 +126,7 @@ public class ObjectBrowserPanel<T extends ObjectType> extends BasePanel<T> imple
 			private static final long serialVersionUID = 1L;
 			@Override
 			public void onClick(AjaxRequestTarget target) {
-				List<T> selected = ((PopupObjectListPanel) getParent().get(ID_TABLE)).getSelectedObjects();
+				List<O> selected = ((PopupObjectListPanel) getParent().get(ID_TABLE)).getSelectedObjects();
 				QName type = ObjectBrowserPanel.this.typeModel.getObject();
 				ObjectBrowserPanel.this.addPerformed(target, type, selected);
 			}
@@ -138,21 +144,21 @@ public class ObjectBrowserPanel<T extends ObjectType> extends BasePanel<T> imple
 		add(addButton);
 	}
 
-	protected void onClick(AjaxRequestTarget target, T focus) {
+	protected void onClick(AjaxRequestTarget target, O focus) {
 		parentPage.hideMainPopup(target);
 	}
 
-	protected void onSelectPerformed(AjaxRequestTarget target, T focus) {
+	protected void onSelectPerformed(AjaxRequestTarget target, O focus) {
 		parentPage.hideMainPopup(target);
 	}
 
-	private ObjectListPanel<T> createObjectListPanel(Class<T> type, final boolean multiselect) {
+	private ObjectListPanel<O> createObjectListPanel(Class<? extends O> type, final boolean multiselect) {
 
-		PopupObjectListPanel<T> listPanel = new PopupObjectListPanel<T>(ID_TABLE, type, multiselect,
+		PopupObjectListPanel<O> listPanel = new PopupObjectListPanel<O>(ID_TABLE, type, multiselect,
 				parentPage) {
 			private static final long serialVersionUID = 1L;
 			@Override
-			protected void onSelectPerformed(AjaxRequestTarget target, T object) {
+			protected void onSelectPerformed(AjaxRequestTarget target, O object) {
 				ObjectBrowserPanel.this.onSelectPerformed(target, object);
 			}
 
@@ -171,7 +177,7 @@ public class ObjectBrowserPanel<T extends ObjectType> extends BasePanel<T> imple
 		return listPanel;
 	}
 
-	protected void addPerformed(AjaxRequestTarget target, QName type, List<T> selected) {
+	protected void addPerformed(AjaxRequestTarget target, QName type, List<O> selected) {
 		parentPage.hideMainPopup(target);
 	}
 
@@ -179,7 +185,7 @@ public class ObjectBrowserPanel<T extends ObjectType> extends BasePanel<T> imple
 		return parentPage.getPrismContext().getSchemaRegistry().getCompileTimeClassForObjectType(typeName);
 	}
 
-	private QName compileTimeClassToQName(Class<T> type) {
+	private QName compileTimeClassToQName(Class<? extends O> type) {
 		PrismObjectDefinition def = parentPage.getPrismContext().getSchemaRegistry()
 				.findObjectDefinitionByCompileTimeClass(type);
 		if (def == null) {

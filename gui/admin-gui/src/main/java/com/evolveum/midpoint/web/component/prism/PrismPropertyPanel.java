@@ -72,7 +72,7 @@ public class PrismPropertyPanel<IW extends ItemWrapper> extends Panel {
         
         setOutputMarkupId(true);
         add(new VisibleEnableBehaviour() {
-        	private static final long serialVersionUID = 1L;
+			private static final long serialVersionUID = 1L;
 
             @Override
             public boolean isVisible() {

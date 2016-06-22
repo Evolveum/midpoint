@@ -9,6 +9,7 @@ import java.util.Map;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
@@ -66,17 +67,6 @@ import com.evolveum.midpoint.web.page.admin.users.PageUser;
 import com.evolveum.midpoint.web.page.admin.users.component.AbstractRoleMemberPanel.QueryScope;
 import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ServiceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extends BasePanel<T>{
 
@@ -274,6 +264,7 @@ public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extend
 
 	}
 	
+	// TODO: merge this with TreeTablePanel.initObjectForAdd, also see MID-3233
 	private void initObjectForAdd(ObjectReferenceType parentOrgRef, QName type, QName relation,
 			AjaxRequestTarget target) throws SchemaException {
 		getPageBase().hideMainPopup(target);
@@ -288,11 +279,17 @@ public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extend
 			AssignmentType assignment = new AssignmentType();
 			assignment.setTargetRef(parentOrgRef);
 			((FocusType) objType).getAssignment().add(assignment);
-		} else {
-			if (parentOrgRef == null) {
-				parentOrgRef = createReference(relation);
-			}
+		} 
+		
+		// Set parentOrgRef in any case. This is not strictly correct.
+		// The parentOrgRef should be added by the projector. But
+		// this is needed to successfully pass through security
+		// TODO: fix MID-3234
+		if (parentOrgRef == null) {
+			parentOrgRef = createReference(relation);
 			objType.getParentOrgRef().add(parentOrgRef);
+		} else {
+			objType.getParentOrgRef().add(parentOrgRef.clone());
 		}
 		
 		Class newObjectPageClass = objectDetailsMap.get(obj.getCompileTimeClass());
@@ -321,10 +318,8 @@ public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extend
 	protected void addMembers(final QName relation, AjaxRequestTarget target) {
 
 		List<QName> types = WebComponentUtil.createObjectTypeList();
-//				new ArrayList<>(ObjectTypes.values().length);
-//		for (ObjectTypes t : ObjectTypes.values()) {
-//			types.add(t.getTypeQName());
-//		}
+		types.remove(NodeType.COMPLEX_TYPE);
+
 		ObjectBrowserPanel<ObjectType> browser = new ObjectBrowserPanel(getPageBase().getMainPopupBodyId(),
 				UserType.class, types, true, getPageBase()) {
 
