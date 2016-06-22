@@ -2547,9 +2547,53 @@
         	<xsd:extension base="tns:AbstractCredentialType">
         		<xsd:sequence>
             		<xsd:element name="value" type="t:ProtectedStringType" minOccurs="0"/>
-            	</xsd:sequence>	
+            		<xsd:element name="historyEntry" type="tns:PasswordHistoryEntryType" minOccurs="0" maxOccurs="unbounded"/>
+            	</xsd:sequence>
         	</xsd:extension>
         </xsd:complexContent>
+    </xsd:complexType>
+    
+    <xsd:complexType name="PasswordHistoryEntryType">
+        <xsd:annotation>
+        	<xsd:documentation>
+        		Contains a single entry of the password history. It contains a historical value
+        		of a password together with essential metadata.
+        	</xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+            </xsd:appinfo>
+        </xsd:annotation>
+		<xsd:sequence>
+	  		<xsd:element name="metadata" type="tns:MetadataType" minOccurs="0">
+            	<xsd:annotation>
+            		<xsd:documentation>
+            			Timestamps and general metadata describing the credential change.
+            			This is a copy of the original metadata of the password before it was
+            			changed and before it was moved to the history.
+            		</xsd:documentation>
+            		<xsd:appinfo>
+            			<a:operational>true</a:operational>
+            		</xsd:appinfo>
+            	</xsd:annotation>
+            </xsd:element>
+            <xsd:element name="value" type="t:ProtectedStringType" minOccurs="0"/>
+            <xsd:element name="changeTimestamp" type="xsd:dateTime" minOccurs="0">
+    			<xsd:annotation>
+    				<xsd:documentation>
+    					The timestamp when this password was changed to a different value.
+    					This is different from the date in metadata. The dates in metadata
+    					tells when this password was created (when it started to be valid).
+    					The changeTimestamp tells when the password stopped to be valid and
+    					was moved to the history entries. This timestamp can be used to
+    					chronologically order the entries.
+    				</xsd:documentation>
+    				<xsd:appinfo>
+    					<a:operational>true</a:operational>
+    					<a:indexed>true</a:indexed>
+    				</xsd:appinfo>
+    			</xsd:annotation>
+    		</xsd:element>
+	  	</xsd:sequence>	
     </xsd:complexType>
     
     <xsd:complexType name="SecurityQuestionsCredentialsType">
@@ -10158,6 +10202,15 @@
 								when administrator changes password of other user.
 							</xsd:documentation>
 						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="passwordHistoryLength" type="xsd:int" minOccurs="0" maxOccurs="1">
+					    <xsd:annotation>
+					        <xsd:documentation>
+					            The number of entries to keep in the password history. Also specifies the
+					            number of past passwords that will be checked before accepting a new password
+					            change.
+					        </xsd:documentation>
+					    </xsd:annotation>
 					</xsd:element>
 				</xsd:sequence>
 			</xsd:extension>
