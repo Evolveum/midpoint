@@ -230,17 +230,6 @@ public class ResourceDetailsTabPanel extends Panel {
 		setResponsePage(PageTaskEdit.class, parameters);
 	}
 
-	private InfoBoxPanel addCapabilityMappingInfo(String fieldId, SourceTarget sourceTarget,
-			String messageKey) {
-		String backgroundColor = "bg-green";
-
-		InfoBoxType infoBoxType = new InfoBoxType(backgroundColor, sourceTarget.getCssClass(),
-				getString(messageKey));
-		Model<InfoBoxType> boxModel = new Model<InfoBoxType>(infoBoxType);
-
-		return new InfoBoxPanel(fieldId, boxModel);
-	}
-
 	private InfoBoxPanel createSourceTargetInfo(ResourceType resource) {
 
 		String backgroundColor = "bg-aqua";
@@ -265,11 +254,11 @@ public class ResourceDetailsTabPanel extends Panel {
 		}
 
 		InfoBoxType infoBoxType = new InfoBoxType(backgroundColor, sourceTarget.getCssClass(),
-				getString("PageResource.resource.mappings"));
-		infoBoxType.setNumber(getString(numberKey));
+				parentPage.getString("PageResource.resource.mappings"));
+		infoBoxType.setNumber(parentPage.getString(numberKey));
 
 		if (isSynchronizationDefined(resource)) {
-			infoBoxType.setDescription(getString("PageResource.resource.sync"));
+			infoBoxType.setDescription(parentPage.getString("PageResource.resource.sync"));
 		}
 
 		Model<InfoBoxType> boxModel = new Model<InfoBoxType>(infoBoxType);
@@ -304,7 +293,7 @@ public class ResourceDetailsTabPanel extends Panel {
 			}
 		}
 
-		InfoBoxType infoBoxType = new InfoBoxType(backgroundColor, icon, getString(messageKey));
+		InfoBoxType infoBoxType = new InfoBoxType(backgroundColor, icon, parentPage.getString(messageKey));
 
 		ConnectorType connectorType = resource.getConnector();
 		String connectorName = StringUtils.substringAfterLast(
@@ -345,25 +334,25 @@ public class ResourceDetailsTabPanel extends Panel {
 					}
 				}
 				int numAllDefinitions = refinedDefinitions.size();
-				numberMessage = numObjectTypes + " " + getString("PageResource.resource.objectTypes");
+				numberMessage = numObjectTypes + " " + parentPage.getString("PageResource.resource.objectTypes");
 				if (numAllDefinitions != 0) {
 					progress = numObjectTypes * 100 / numAllDefinitions;
 					if (progress > 100) {
 						progress = 100;
 					}
 				}
-				description = numAllDefinitions + " " + getString("PageResource.resource.schemaDefinitions");
+				description = numAllDefinitions + " " + parentPage.getString("PageResource.resource.schemaDefinitions");
 			} else {
-				numberMessage = getString("PageResource.resource.noSchema");
+				numberMessage = parentPage.getString("PageResource.resource.noSchema");
 			}
 		} catch (SchemaException e) {
 			backgroundColor = "bg-danger";
 			icon = "fa-warning";
-			numberMessage = getString("PageResource.resource.schemaError");
+			numberMessage = parentPage.getString("PageResource.resource.schemaError");
 		}
 
 		InfoBoxType infoBoxType = new InfoBoxType(backgroundColor, icon,
-				getString("PageResource.resource.schema"));
+				parentPage.getString("PageResource.resource.schema"));
 		infoBoxType.setNumber(numberMessage);
 		infoBoxType.setProgress(progress);
 		infoBoxType.setDescription(description);
