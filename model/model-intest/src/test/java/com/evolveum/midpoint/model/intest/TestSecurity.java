@@ -56,6 +56,7 @@ import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
+import com.evolveum.midpoint.util.Producer;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -611,17 +612,7 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         login(USER_JACK_USERNAME);
         
         // WHEN
-        assertReadDeny();
-        assertAddDeny();
-        assertModifyDeny();
-        assertDeleteDeny();
-
-		assertReadCertCasesDeny();
-        
-        RoleSelectionSpecification roleSpec = getAssignableRoleSpecification(userJack);
-        assertNotNull("Null role spec "+roleSpec, roleSpec);
-        assertRoleTypes(roleSpec);
-        assertFilter(roleSpec.getFilter(), NoneFilter.class);
+        assertNoAccess(userJack);
         
         assertGlobalStateUntouched();
 	}
@@ -636,21 +627,11 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         login(USER_JACK_USERNAME);
         
         // WHEN
-        assertReadAllow();
-        assertAddAllow();
-        assertModifyAllow();
-        assertDeleteAllow();
-
-		assertSearch(AccessCertificationCampaignType.class, null, 2);		// 2 campaigns there
-		assertReadCertCasesAllow();
-        
-        RoleSelectionSpecification roleSpec = getAssignableRoleSpecification(getUser(USER_JACK_OID));
-        assertNotNull("Null role spec "+roleSpec, roleSpec);
-        assertNull("Non-null role types in spec "+roleSpec, roleSpec.getRoleTypes());
-        assertFilter(roleSpec.getFilter(), null);
+        assertSuperuserAccess(9);
         
         assertGlobalStateUntouched();
 	}
+	
 
 	@Test
     public void test202AutzJackReadonlyRole() throws Exception {
@@ -2735,7 +2716,143 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         
         assertGlobalStateUntouched();
 	}
+	
+	@Test
+    public void test300AutzAnonymous() throws Exception {
+		final String TEST_NAME = "test300AutzAnonymous";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        // GIVEN
+        cleanupAutzTest(USER_JACK_OID);
+        PrismObject<UserType> userJack = getUser(USER_JACK_OID);
+        loginAnonymous();
+        
+        // WHEN 
+        assertNoAccess(userJack);
+        
+        assertGlobalStateUntouched();
+	}
+	
+	@Test
+    public void test310AutzJackNoRolePrivileged() throws Exception {
+		final String TEST_NAME = "test310AutzJackNoRolePrivileged";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        // GIVEN
+        cleanupAutzTest(USER_JACK_OID);
+        PrismObject<UserType> userJack = getUser(USER_JACK_OID);
+        login(USER_JACK_USERNAME);
+        
+        // WHEN (security context elevated)
+        securityEnforcer.runPrivileged(new Producer<Object>() {
+			
+			@Override
+			public Object run() {
+				try {
+					
+					assertSuperuserAccess(10);
+			        
+				} catch (Exception e) {
+					new RuntimeException(e.getMessage(), e);
+				}
+				
+				return null;
+			}
+		});
+        
+        // WHEN (security context back to normal)
+        assertNoAccess(userJack);
+        
+        assertGlobalStateUntouched();
+	}
+	
+	@Test
+    public void test312AutzAnonymousPrivileged() throws Exception {
+		final String TEST_NAME = "test312AutzAnonymousPrivileged";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        // GIVEN
+        cleanupAutzTest(USER_JACK_OID);
+        PrismObject<UserType> userJack = getUser(USER_JACK_OID);
+        loginAnonymous();
+        
+        // WHEN (security context elevated)
+        securityEnforcer.runPrivileged(new Producer<Object>() {
+			
+			@Override
+			public Object run() {
+				try {
+					
+					assertSuperuserAccess(10);
+			        
+				} catch (Exception e) {
+					new RuntimeException(e.getMessage(), e);
+				}
+				
+				return null;
+			}
+		});
+        
+        // WHEN (security context back to normal)
+        // MID-3221
+        //assertNoAccess(userJack);
+        
+        assertGlobalStateUntouched();
+	}
+	
+	@Test
+    public void test313AutzAnonymousPrivilegedRestore() throws Exception {
+		final String TEST_NAME = "test313AutzAnonymousPrivilegedRestore";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        // GIVEN
+        cleanupAutzTest(USER_JACK_OID);
+        PrismObject<UserType> userJack = getUser(USER_JACK_OID);
+        loginAnonymous();
+        
+        // WHEN (security context elevated)
+        securityEnforcer.runPrivileged(new Producer<Object>() {
+			
+			@Override
+			public Object run() {
+				
+				// do nothing.
+			        				
+				return null;
+			}
+		});
+        
+        // WHEN (security context back to normal)
+        assertNoAccess(userJack);
+        
+        assertGlobalStateUntouched();
+	}
 
+
+	private void assertSuperuserAccess(int readUserNum) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException, PolicyViolationException, IOException {
+		assertReadAllow(readUserNum);
+        assertAddAllow();
+        assertModifyAllow();
+        assertDeleteAllow();
+
+		assertSearch(AccessCertificationCampaignType.class, null, 2);		// 2 campaigns there
+		assertReadCertCasesAllow();
+        
+        RoleSelectionSpecification roleSpec = getAssignableRoleSpecification(getUser(USER_JACK_OID));
+        assertNotNull("Null role spec "+roleSpec, roleSpec);
+        assertNull("Non-null role types in spec "+roleSpec, roleSpec.getRoleTypes());
+        assertFilter(roleSpec.getFilter(), null);
+	}
+
+	private void assertNoAccess(PrismObject<UserType> userJack) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException, PolicyViolationException, IOException {
+		assertReadDeny();
+        assertAddDeny();
+        assertModifyDeny();
+        assertDeleteDeny();
+
+		assertReadCertCasesDeny();
+        
+        RoleSelectionSpecification roleSpec = getAssignableRoleSpecification(userJack);
+        assertNotNull("Null role spec "+roleSpec, roleSpec);
+        assertRoleTypes(roleSpec);
+        assertFilter(roleSpec.getFilter(), NoneFilter.class);
+	}
 	
 	private void assertItemFlags(PrismObjectDefinition<UserType> editSchema, QName itemName, boolean expectedRead, boolean expectedAdd, boolean expectedModify) {
 		assertItemFlags(editSchema, new ItemPath(itemName), expectedRead, expectedAdd, expectedModify);

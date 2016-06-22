@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,12 +41,14 @@ import javax.servlet.http.HttpSession;
  */
 @PageDescriptor(url = "/login")
 public class PageLogin extends PageBase {
+	private static final long serialVersionUID = 1L;
 
-    private static final Trace LOGGER = TraceManager.getTrace(PageLogin.class);
+	private static final Trace LOGGER = TraceManager.getTrace(PageLogin.class);
 
     private static final String ID_FORGET_PASSWORD = "forgetpassword";
 
-    protected static final String OPERATION_LOAD_RESET_PASSWORD_POLICY = "LOAD PASSWORD RESET POLICY";
+    private static final String DOT_CLASS = PageLogin.class.getName() + ".";
+    protected static final String OPERATION_LOAD_RESET_PASSWORD_POLICY = DOT_CLASS + "loadPasswordResetPolicy";
 
     public PageLogin() {
         if (SecurityUtils.getPrincipalUser() != null) {
@@ -56,6 +58,7 @@ public class PageLogin extends PageBase {
 
         BookmarkablePageLink<String> link = new BookmarkablePageLink<>(ID_FORGET_PASSWORD, PageForgetPassword.class);
         link.add(new VisibleEnableBehaviour() {
+        	private static final long serialVersionUID = 1L;
 
             @Override
             public boolean isVisible() {

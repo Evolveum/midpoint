@@ -367,6 +367,9 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 		RoleSelectionSpecification spec = new RoleSelectionSpecification();
 		
 		ObjectSecurityConstraints securityConstraints = securityEnforcer.compileSecurityConstraints(focus, null);
+		if (securityConstraints == null) {
+			return null;
+		}
 		AuthorizationDecisionType decision = securityConstraints.findItemDecision(new ItemPath(FocusType.F_ASSIGNMENT), 
 				ModelAuthorizationAction.MODIFY.getUrl(), AuthorizationPhaseType.REQUEST);
 		if (decision == AuthorizationDecisionType.ALLOW) {

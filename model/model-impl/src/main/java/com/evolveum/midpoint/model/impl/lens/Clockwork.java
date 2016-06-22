@@ -990,6 +990,9 @@ public class Clockwork {
 			}
 			String operationUrl = ModelUtils.getOperationUrlFromDelta(primaryDelta);
 			ObjectSecurityConstraints securityConstraints = securityEnforcer.compileSecurityConstraints(object, ownerResolver);
+			if (securityConstraints == null) {
+				throw new AuthorizationException("Access denied");
+			}
 
 			if (isFocus) {
 				// Process assignments first. If the assignments are allowed then we

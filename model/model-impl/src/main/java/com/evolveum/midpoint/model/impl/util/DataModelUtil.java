@@ -162,8 +162,14 @@ public class DataModelUtil {
 		if (itemDef != null) {
 			return new PathResolutionResult(itemDef);
 		} else {
-			return new PathResolutionResult(new Issue(Issue.Severity.WARNING, CAT_ITEM_PATH, C_NO_OBJECT_DEFINITION,
-					"No definition for '" + path + "' in " + def.getName().getLocalPart(), null, null));
+			if (FocusType.class.equals(clazz) && context instanceof ResourceResolutionContext) {
+				ResourceResolutionContext rctx = (ResourceResolutionContext) context;
+				return new PathResolutionResult(new Issue(Issue.Severity.INFO, CAT_ITEM_PATH, C_NO_OBJECT_DEFINITION,
+						"Couldn't verify item path '" + path + "' because specific focus type (user, role, org, ...) is not defined for kind=" + rctx.kind + ", indent=" + rctx.intent, null, null));
+			} else {
+				return new PathResolutionResult(new Issue(Issue.Severity.WARNING, CAT_ITEM_PATH, C_NO_OBJECT_DEFINITION,
+						"No definition for '" + path + "' in " + def.getName().getLocalPart(), null, null));
+			}
 		}
 	}
 }

@@ -24,6 +24,8 @@ import java.util.Map;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.util.exception.*;
+import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
@@ -47,14 +49,6 @@ import com.evolveum.midpoint.prism.query.OrgFilter.Scope;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -106,6 +100,7 @@ public class TreeTablePanel extends BasePanel<String> {
 	protected static final String DOT_CLASS = TreeTablePanel.class.getName() + ".";
 	protected static final String OPERATION_DELETE_OBJECTS = DOT_CLASS + "deleteObjects";
 	protected static final String OPERATION_DELETE_OBJECT = DOT_CLASS + "deleteObject";
+	protected static final String OPERATION_CHECK_PARENTS = DOT_CLASS + "checkParents";
 	protected static final String OPERATION_MOVE_OBJECTS = DOT_CLASS + "moveObjects";
 	protected static final String OPERATION_MOVE_OBJECT = DOT_CLASS + "moveObject";
 	protected static final String OPERATION_UPDATE_OBJECTS = DOT_CLASS + "updateObjects";
@@ -500,12 +495,32 @@ public class TreeTablePanel extends BasePanel<String> {
 		if (orgToDelete == null) {
 			orgToDelete = getTreePanel().getRootFromProvider();
 		}
-		WebModelServiceUtils.deleteObject(OrgType.class, orgToDelete.getValue().getOid(), result, page);
+		String oidToDelete = orgToDelete.getValue().getOid();
+		WebModelServiceUtils.deleteObject(OrgType.class, oidToDelete, result, page);
 
 		result.computeStatusIfUnknown();
 		page.showResult(result);
 
-		getTreePanel().refreshTabbedPanel(target);
+		// The following code determines if we deleted a root; if so, we refresh and reload whole page
+		// TODO consider if we couldn't skip this parent checking and simply refresh whole page
+		boolean isRoot = true;
+		for (ObjectReferenceType parentRef : orgToDelete.getValue().getParentOrgRef()) {
+			Task task = getPageBase().createSimpleTask(OPERATION_CHECK_PARENTS);
+			try {
+				getPageBase().getModelService().getObject(OrgType.class, parentRef.getOid(), null, task, task.getResult());
+				isRoot = false;
+				break;
+			} catch (CommonException|RuntimeException e) {
+				LoggingUtils.logExceptionAsWarning(LOGGER, "Exception while checking existence of org's {} parent: {}", e, oidToDelete, parentRef.getOid());
+			}
+		}
+
+		if (isRoot) {
+			// TODO is this ok? (target.add(getPage()) is not sufficient) [pmed]
+			throw new RestartResponseException(getPage().getClass());
+		} else {
+			getTreePanel().refreshTabbedPanel(target);
+		}
 	}
 
 	private void editRootPerformed(SelectableBean<OrgType> root, AjaxRequestTarget target) {
