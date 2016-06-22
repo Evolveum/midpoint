@@ -253,6 +253,7 @@ public class TreeTablePanel extends BasePanel<String> {
 		objectDetailsMap.put(TaskType.class, PageTaskEdit.class);
 	}
 
+	// TODO: merge this with AbstractRoleMemeberPanel.initObjectForAdd, also see MID-3233
 	private void initObjectForAdd(ObjectReferenceType parentOrgRef, QName type, QName relation,
 			AjaxRequestTarget target) throws SchemaException {
 		TreeTablePanel.this.getPageBase().hideMainPopup(target);
@@ -265,17 +266,26 @@ public class TreeTablePanel extends BasePanel<String> {
 			AssignmentType assignment = new AssignmentType();
 			assignment.setTargetRef(parentOrgRef);
 			((FocusType) objType).getAssignment().add(assignment);
-		} else {
-			if (parentOrgRef == null) {
-				ObjectType org = getTreePanel().getSelected().getValue();
-				parentOrgRef = ObjectTypeUtil.createObjectRef(org);
-				parentOrgRef.setRelation(relation);
-			}
+		}
 
+		// Set parentOrgRef in any case. This is not strictly correct.
+		// The parentOrgRef should be added by the projector. But
+		// this is needed to successfully pass through security
+		// TODO: fix MID-3234
+		if (parentOrgRef == null) {
+			ObjectType org = getTreePanel().getSelected().getValue();
+			parentOrgRef = ObjectTypeUtil.createObjectRef(org);
+			parentOrgRef.setRelation(relation);
 			objType.getParentOrgRef().add(parentOrgRef);
+		} else {
+			objType.getParentOrgRef().add(parentOrgRef.clone());
 		}
 
 		Class newObjectPageClass = objectDetailsMap.get(obj.getCompileTimeClass());
+		
+		if (LOGGER.isDebugEnabled()) {
+			LOGGER.debug("Adding child by using page {}:\n{}", newObjectPageClass.getSimpleName(), obj.debugDump(1));
+		}
 
 		Constructor constructor = null;
 		try {
