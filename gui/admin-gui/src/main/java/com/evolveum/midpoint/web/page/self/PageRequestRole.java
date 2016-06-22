@@ -98,7 +98,7 @@ public class PageRequestRole extends PageSelf {
         add(mainForm);
 
         MultipleAssignmentSelectorPanel<UserType, UserType, RoleType> panel = new MultipleAssignmentSelectorPanel<>(ID_MAIN_PANEL, assignmentsModel,
-                user, UserType.class, RoleType.class);
+                user, UserType.class, RoleType.class, this);
         mainForm.add(panel);
 
         initButtons(mainForm);

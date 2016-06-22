@@ -46,7 +46,6 @@ import org.apache.wicket.ajax.markup.html.form.AjaxButton;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
 
 import javax.xml.namespace.QName;
 import java.util.ArrayList;
@@ -89,24 +88,24 @@ public class MultipleAssignmentSelectorPanel<F extends FocusType, H extends Focu
     private static final String OPERATION_LOAD_ASSIGNABLE_ROLES = DOT_CLASS + "loadAssignableRoles";
 
     public MultipleAssignmentSelectorPanel(String id, LoadableModel<List<AssignmentEditorDto>> assignmentsModel,
-                                           PrismObject<F> focus, Class<H> targetFocusClass, Class<G> type) {
+			PrismObject<F> focus, Class<H> targetFocusClass, Class<G> type, PageBase page) {
         super(id, assignmentsModel);
         this.assignmentsModel = assignmentsModel;
         this.type = type;
         this.focus = focus;
         tenantEditorObject.add(new OrgType());
         orgEditorObject.add(new OrgType());
-        initLayout(targetFocusClass);
+        initLayout(targetFocusClass, page);
 
     }
 
-    private void initLayout(Class<H> targetFocusClass) {
+    private void initLayout(Class<H> targetFocusClass, PageBase page) {
 
         IModel<List<AssignmentEditorDto>> availableAssignmentModel = createAvailableAssignmentModel();
         final MultipleAssignmentSelector availableAssignmentsPanel = new MultipleAssignmentSelector<F, H>(ID_AVAILABLE_ASSIGNMENTS,
-                availableAssignmentModel, targetFocusClass, type, focus, getFilterModel(true), getPageBase());
+                availableAssignmentModel, targetFocusClass, type, focus, getFilterModel(true), page);
         final MultipleAssignmentSelector currentAssignmentsPanel = new MultipleAssignmentSelector<F, H>(ID_CURRENT_ASSIGNMENTS,
-                assignmentsModel, targetFocusClass, type, null, getFilterModel(true), getPageBase()){
+                assignmentsModel, targetFocusClass, type, null, getFilterModel(true), page){
             @Override
         protected List<AssignmentEditorDto> getListProviderDataList(){
                 return assignmentsModel.getObject();
