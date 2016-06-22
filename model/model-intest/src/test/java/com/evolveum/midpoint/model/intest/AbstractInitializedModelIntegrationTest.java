@@ -25,6 +25,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.net.ConnectException;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 import com.evolveum.midpoint.prism.query.OrgFilter;
@@ -35,9 +36,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import com.evolveum.icf.dummy.resource.DummyGroup;
 import com.evolveum.icf.dummy.resource.DummyResource;
+import com.evolveum.midpoint.model.api.ProgressListener;
 import com.evolveum.midpoint.model.common.mapping.MappingFactory;
 import com.evolveum.midpoint.model.impl.lens.Clockwork;
 import com.evolveum.midpoint.model.impl.lens.LensDebugListener;
+import com.evolveum.midpoint.model.intest.util.CheckingProgressListener;
 import com.evolveum.midpoint.model.intest.util.ProfilingLensDebugListener;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
@@ -92,6 +95,7 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
 	protected Clockwork clockwork;
 	
 	protected ProfilingLensDebugListener lensDebugListener;
+	protected CheckingProgressListener checkingProgressListener;
 	
 	protected UserType userTypeJack;
 	protected UserType userTypeBarbossa;
@@ -163,6 +167,7 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
 		mappingFactory.setProfiling(true);
 		lensDebugListener = new ProfilingLensDebugListener();
 		clockwork.setDebugListener(lensDebugListener);
+		checkingProgressListener = new CheckingProgressListener();
 		
 		// Resources
 				
@@ -460,5 +465,9 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
 			assert actualTimestamp >= timeBeforeSync : "Synchronization timestamp was not updated in shadow " + shadow;
 		}
 		// TODO: assert sync description
+	}
+	
+	protected Collection<ProgressListener> getCheckingProgressListenerCollection() {
+		return Collections.singleton((ProgressListener)checkingProgressListener);
 	}
 }
