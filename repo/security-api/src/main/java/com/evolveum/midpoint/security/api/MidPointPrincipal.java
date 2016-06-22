@@ -163,6 +163,24 @@ public class MidPointPrincipal implements UserDetails,  DebugDumpable {
 	public void setApplicableSecurityPolicy(SecurityPolicyType applicableSecurityPolicy) {
 		this.applicableSecurityPolicy = applicableSecurityPolicy;
 	}
+	
+	/**
+	 * Semi-shallow clone.
+	 */
+	public MidPointPrincipal clone() {
+		MidPointPrincipal clone = new MidPointPrincipal(this.user);
+		clone.adminGuiConfiguration = this.adminGuiConfiguration;
+		clone.applicableSecurityPolicy = this.applicableSecurityPolicy;
+		clone.authorizations = cloneAuthorities();
+		clone.effectiveActivationStatus = this.effectiveActivationStatus;
+		return clone;
+	}
+
+	private Collection<Authorization> cloneAuthorities() {
+		Collection<Authorization> clone = new ArrayList<>(authorizations.size());
+		clone.addAll(authorizations);
+		return clone;
+	}
 
 	/* (non-Javadoc)
 	 * @see com.evolveum.midpoint.util.DebugDumpable#debugDump()

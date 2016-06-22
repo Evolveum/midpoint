@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2014-2015 Evolveum
+ * Copyright (c) 2014-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.Producer;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseType;
@@ -81,5 +82,9 @@ public interface SecurityEnforcer extends AccessDecisionManager {
 	 * The objectType parameter defines the class of the object for which should be the returned filter applicable.
 	 */
 	<T extends ObjectType, O extends ObjectType> ObjectFilter preProcessObjectFilter(String operationUrl, AuthorizationPhaseType phase,
-			Class<T> objectType, PrismObject<O> object, ObjectFilter origFilter) throws SchemaException; 
+			Class<T> objectType, PrismObject<O> object, ObjectFilter origFilter) throws SchemaException;
+	
+	<T> T runAs(Producer<T> producer, PrismObject<UserType> user);
+	
+	<T> T runPrivileged(Producer<T> producer);
 }

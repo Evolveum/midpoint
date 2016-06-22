@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -119,10 +119,6 @@ public class AuditServiceProxy implements AuditService, AuditServiceRegistry {
     private void assertCorrectness(AuditEventRecord record, Task task) {
         if (task == null) {
             LOGGER.warn("Task is null in a call to audit service");
-        } else {
-            if (task.getOwner() == null) {
-                LOGGER.warn("Task '{}' has no owner in a call to audit service (should not happen except for initial repository loading)", new Object[]{task.getName()});
-            }
         }
     }
 
