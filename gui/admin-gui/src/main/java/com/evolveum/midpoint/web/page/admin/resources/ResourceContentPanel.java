@@ -95,6 +95,7 @@ import com.evolveum.midpoint.web.component.data.column.ColumnTypeDto;
 import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
 import com.evolveum.midpoint.web.component.data.column.InlineMenuHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
+import com.evolveum.midpoint.web.component.data.column.ObjectLinkColumn;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.search.Search;
@@ -485,7 +486,7 @@ public abstract class ResourceContentPanel extends Panel {
 
 		List<IColumn<SelectableBean<ShadowType>, String>> columns = new ArrayList<>();
 
-		IColumn<SelectableBean<ShadowType>, String> column = new AbstractColumn<SelectableBean<ShadowType>, String>(
+		IColumn<SelectableBean<ShadowType>, String> identifiersColumn = new AbstractColumn<SelectableBean<ShadowType>, String>(
 				createStringResource("pageContentAccounts.identifiers")) {
 			private static final long serialVersionUID = 1L;
 
@@ -508,11 +509,12 @@ public abstract class ResourceContentPanel extends Panel {
 
 			}
 		};
-		columns.add(column);
+		columns.add(identifiersColumn);
 
 		columns.addAll((Collection) ColumnUtils.createColumns(columnDefs));
-		column = new LinkColumn<SelectableBean<ShadowType>>(createStringResource("pageContentAccounts.owner"),
-				true) {
+		
+		ObjectLinkColumn<SelectableBean<ShadowType>> ownerColumn = new ObjectLinkColumn<SelectableBean<ShadowType>>(
+				createStringResource("pageContentAccounts.owner")) {
 			private static final long serialVersionUID = 1L;
 
 			@Override
@@ -528,18 +530,17 @@ public abstract class ResourceContentPanel extends Panel {
 							return null;
 						}
 						return owner;
-
 					}
 
 				};
 			}
 
 			@Override
-			public void onClick(AjaxRequestTarget target, IModel<SelectableBean<ShadowType>> rowModel) {
-				ownerDetailsPerformed(target, this.getModelObjectIdentifier());
+			public void onClick(AjaxRequestTarget target, IModel<SelectableBean<ShadowType>> rowModel, ObjectType targetObjectType) {
+				ownerDetailsPerformed(target, (FocusType)targetObjectType);
 			}
 		};
-		columns.add(column);
+		columns.add(ownerColumn);
 
 		columns.add(new LinkColumn<SelectableBean<ShadowType>>(
 				createStringResource("PageAccounts.accounts.result")) {
@@ -572,8 +573,8 @@ public abstract class ResourceContentPanel extends Panel {
 			}
 		});
 
-		column = new InlineMenuHeaderColumn(createHeaderMenuItems());
-		columns.add(column);
+		InlineMenuHeaderColumn menuColumn = new InlineMenuHeaderColumn(createHeaderMenuItems());
+		columns.add(menuColumn);
 
 		return columns;
 	}
@@ -614,15 +615,15 @@ public abstract class ResourceContentPanel extends Panel {
 		return (ShadowType) model.getObject().getValue();
 	}
 
-	private void ownerDetailsPerformed(AjaxRequestTarget target, String ownerOid) {
-		if (StringUtils.isEmpty(ownerOid)) {
-
+	private void ownerDetailsPerformed(AjaxRequestTarget target, FocusType owner) {
+		if (owner == null) {
 			return;
 		}
 
 		PageParameters parameters = new PageParameters();
-		parameters.add(OnePageParameterEncoder.PARAMETER, ownerOid);
-		setResponsePage(PageUser.class, parameters);
+		parameters.add(OnePageParameterEncoder.PARAMETER, owner.getOid());
+		Class<? extends PageBase> page = WebComponentUtil.getObjectDetailsPage(owner.getClass());
+		setResponsePage(page, parameters);
 	}
 
 	private <F extends FocusType> F loadShadowOwner(IModel<SelectableBean<ShadowType>> model) {
@@ -635,36 +636,6 @@ public abstract class ResourceContentPanel extends Panel {
 		}
 
 		return loadShadowOwner(shadowOid);
-
-		// Task task = pageBase.createSimpleTask(OPERATION_LOAD_SHADOW_OWNER);
-		// OperationResult result = new
-		// OperationResult(OPERATION_LOAD_SHADOW_OWNER);
-		//
-		// try {
-		// PrismObject<? extends FocusType> prismOwner =
-		// pageBase.getModelService().searchShadowOwner(shadowOid, null, task,
-		// result);
-		//
-		// if (prismOwner != null) {
-		// owner = (F) prismOwner.asObjectable();
-		// }
-		// } catch (ObjectNotFoundException exception) {
-		// // owner was not found, it's possible and it's ok on unlinked
-		// // accounts
-		// } catch (Exception ex) {
-		// result.recordFatalError(pageBase.getString("PageAccounts.message.ownerNotFound",
-		// shadowOid), ex);
-		// LoggingUtils.logUnexpectedException(LOGGER, "Could not load owner of account
-		// with oid: " + shadowOid, ex);
-		// } finally {
-		// result.computeStatusIfUnknown();
-		// }
-		//
-		// if (WebComponentUtil.showResultInPage(result)) {
-		// pageBase.showResult(result, false);
-		// }
-		//
-		// return owner;
 	}
 
 	private void shadowDetailsPerformed(AjaxRequestTarget target, String accountName, String accountOid) {
