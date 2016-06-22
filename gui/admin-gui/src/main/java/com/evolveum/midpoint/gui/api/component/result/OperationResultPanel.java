@@ -28,6 +28,7 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
+import org.apache.wicket.Page;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -75,13 +76,13 @@ public class OperationResultPanel extends BasePanel<OpResult> implements Popupab
 	private static final Trace LOGGER = TraceManager.getTrace(OperationResultPanel.class);
 
 
-	public OperationResultPanel(String id, IModel<OpResult> model) {
+	public OperationResultPanel(String id, IModel<OpResult> model, Page parentPage) {
 		super(id, model);
 
-		initLayout();
+		initLayout(parentPage);
 	}
 
-	public void initLayout() {
+	public void initLayout(Page parentPage) {
 
 		WebMarkupContainer detailsBox = new WebMarkupContainer(ID_DETAILS_BOX);
 		detailsBox.setOutputMarkupId(true);
@@ -89,7 +90,7 @@ public class OperationResultPanel extends BasePanel<OpResult> implements Popupab
 		add(detailsBox);
 
 		initHeader(detailsBox);
-		initDetails(detailsBox);
+		initDetails(detailsBox, parentPage);
 	}
 
 	private void initHeader(WebMarkupContainer box) {
@@ -270,12 +271,12 @@ public class OperationResultPanel extends BasePanel<OpResult> implements Popupab
 			});
 		}
 
-		message.setRenderBodyOnly(true);
+		//message.setRenderBodyOnly(true);
 		message.setOutputMarkupId(true);
 		return message;
 	}
 
-	private void initDetails(WebMarkupContainer box) {
+	private void initDetails(WebMarkupContainer box, Page parentPage) {
 
 		final WebMarkupContainer details = new WebMarkupContainer("details", getModel());
 		details.setOutputMarkupId(true);
@@ -303,7 +304,7 @@ public class OperationResultPanel extends BasePanel<OpResult> implements Popupab
 		details.add(operationPanel);
 
 		Label operationLabel = new Label("operationLabel",
-				getString("FeedbackAlertMessageDetails.operation"));
+				parentPage.getString("FeedbackAlertMessageDetails.operation"));
 		operationLabel.setOutputMarkupId(true);
 		operationPanel.add(operationLabel);
 
@@ -321,7 +322,7 @@ public class OperationResultPanel extends BasePanel<OpResult> implements Popupab
 		operation.setOutputMarkupId(true);
 		operationPanel.add(operation);
 
-		Label count = new Label("countLabel", getString("FeedbackAlertMessageDetails.count"));
+		Label count = new Label("countLabel", parentPage.getString("FeedbackAlertMessageDetails.count"));
 		count.add(new VisibleEnableBehaviour() {
 			private static final long serialVersionUID = 1L;
 
@@ -351,7 +352,7 @@ public class OperationResultPanel extends BasePanel<OpResult> implements Popupab
 
 		operationPanel.add(message);
 
-		Label messageLabel = new Label("messageLabel", getString("FeedbackAlertMessageDetails.message"));
+		Label messageLabel = new Label("messageLabel", parentPage.getString("FeedbackAlertMessageDetails.message"));
 		messageLabel.setOutputMarkupId(true);
 
 		messageLabel.add(new VisibleEnableBehaviour() {
@@ -365,14 +366,14 @@ public class OperationResultPanel extends BasePanel<OpResult> implements Popupab
 
 		operationPanel.add(messageLabel);
 
-		initParams(operationPanel, getModel());
-		initContexts(operationPanel, getModel());
-		initError(operationPanel, getModel());
+		initParams(operationPanel, getModel(), parentPage);
+		initContexts(operationPanel, getModel(), parentPage);
+		initError(operationPanel, getModel(), parentPage);
 	}
 
-	private void initParams(WebMarkupContainer operationContent, final IModel<OpResult> model) {
+	private void initParams(WebMarkupContainer operationContent, final IModel<OpResult> model, Page parentPage) {
 
-		Label paramsLabel = new Label("paramsLabel", getString("FeedbackAlertMessageDetails.params"));
+		Label paramsLabel = new Label("paramsLabel", parentPage.getString("FeedbackAlertMessageDetails.params"));
 		paramsLabel.setOutputMarkupId(true);
 		paramsLabel.add(new VisibleEnableBehaviour() {
 			private static final long serialVersionUID = 1L;
@@ -411,7 +412,7 @@ public class OperationResultPanel extends BasePanel<OpResult> implements Popupab
 
 			@Override
 			protected void populateItem(final ListItem<OpResult> item) {
-				Panel subresult = new OperationResultPanel("subresult", item.getModel());
+				Panel subresult = new OperationResultPanel("subresult", item.getModel(), getPage());
 				subresult.setOutputMarkupId(true);
 				item.add(subresult);
 			}
@@ -430,9 +431,9 @@ public class OperationResultPanel extends BasePanel<OpResult> implements Popupab
 
 	}
 
-	private void initContexts(WebMarkupContainer operationContent, final IModel<OpResult> model) {
+	private void initContexts(WebMarkupContainer operationContent, final IModel<OpResult> model, Page parentPage) {
 
-		Label contextsLabel = new Label("contextsLabel", getString("FeedbackAlertMessageDetails.contexts"));
+		Label contextsLabel = new Label("contextsLabel", parentPage.getString("FeedbackAlertMessageDetails.contexts"));
 		contextsLabel.setOutputMarkupId(true);
 		contextsLabel.add(new VisibleEnableBehaviour() {
 			private static final long serialVersionUID = 1L;
@@ -466,8 +467,8 @@ public class OperationResultPanel extends BasePanel<OpResult> implements Popupab
 		operationContent.add(contexts);
 	}
 
-	private void initError(WebMarkupContainer operationPanel, final IModel<OpResult> model) {
-		Label errorLabel = new Label("errorLabel", getString("FeedbackAlertMessageDetails.error"));
+	private void initError(WebMarkupContainer operationPanel, final IModel<OpResult> model, Page parentPage) {
+		Label errorLabel = new Label("errorLabel", parentPage.getString("FeedbackAlertMessageDetails.error"));
 		errorLabel.add(new VisibleEnableBehaviour() {
 			private static final long serialVersionUID = 1L;
 

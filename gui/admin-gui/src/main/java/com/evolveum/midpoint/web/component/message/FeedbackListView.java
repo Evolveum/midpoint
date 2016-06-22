@@ -49,7 +49,7 @@ public class FeedbackListView extends ListView<FeedbackMessage> {
 
 		if (message.getMessage() instanceof OpResult) {
 			OperationResultPanel panel = new OperationResultPanel("message",
-					new PropertyModel<OpResult>(item.getModel(), "message")) {
+					new PropertyModel<OpResult>(item.getModel(), "message"), getPage()) {
 
 				private static final long serialVersionUID = 1L;
 

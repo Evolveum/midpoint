@@ -178,8 +178,15 @@ public class Visualizer {
 		scene.setSourceDelta(objectDelta);
 		scene.setSourceRelPath(ItemPath.EMPTY_PATH);
 		scene.setSourceAbsPath(ItemPath.EMPTY_PATH);
-		PrismObject<? extends ObjectType> object =
-				objectDelta.isAdd() ? objectDelta.getObjectToAdd() : getOldObject(objectDelta.getOid(), objectDelta.getObjectTypeClass(), context, task, result);
+		PrismObject<? extends ObjectType> object;
+		if (objectDelta.isAdd()) {
+			object = objectDelta.getObjectToAdd();
+		} else if (objectDelta.getOid() != null) {
+			object = getOldObject(objectDelta.getOid(), objectDelta.getObjectTypeClass(), context, task, result);
+		} else {
+			// this can occur e.g. when showing secondary deltas for OBJECT ADD operation
+			object = null;
+		}
 		if (object != null) {
 			scene.setName(createSceneName(object));
 			scene.setSourceValue(object.getValue());
