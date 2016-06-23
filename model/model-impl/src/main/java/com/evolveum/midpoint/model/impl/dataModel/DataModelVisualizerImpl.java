@@ -52,7 +52,7 @@ public class DataModelVisualizerImpl implements DataModelVisualizer {
 	public String visualize(Collection<String> resourceOids, Task task, OperationResult result)
 			throws SchemaException, SecurityViolationException, ObjectNotFoundException, CommunicationException, ConfigurationException {
 
-		LOGGER.info("Starting data model visualization");
+		LOGGER.debug("Starting data model visualization");
 
 		VisualizationContext ctx = new VisualizationContext(prismContext);
 
@@ -77,7 +77,7 @@ public class DataModelVisualizerImpl implements DataModelVisualizer {
     public String visualize(ResourceType resource, Task task, OperationResult result)
 			throws SchemaException, SecurityViolationException, ObjectNotFoundException, CommunicationException, ConfigurationException {
 
-		LOGGER.info("Starting data model visualization for {}", ObjectTypeUtil.toShortString(resource));
+		LOGGER.debug("Starting data model visualization for {}", ObjectTypeUtil.toShortString(resource));
 
 		VisualizationContext ctx = new VisualizationContext(prismContext);
 
@@ -92,10 +92,10 @@ public class DataModelVisualizerImpl implements DataModelVisualizer {
 
 	private void processResourceMappings(VisualizationContext ctx, List<PrismObject<ResourceType>> resources) throws SchemaException {
 		for (PrismObject<ResourceType> resource : resources) {
-			LOGGER.info("Processing {}", ObjectTypeUtil.toShortString(resource));
+			LOGGER.debug("Processing {}", ObjectTypeUtil.toShortString(resource));
 			RefinedResourceSchema refinedResourceSchema = RefinedResourceSchema.getRefinedSchema(resource);
 			if (refinedResourceSchema == null) {
-				LOGGER.info("Refined resource schema is null, skipping the resource.");
+				LOGGER.debug("Refined resource schema is null, skipping the resource.");
 				continue;
 			}
 			List<? extends RefinedObjectClassDefinition> refinedDefinitions = refinedResourceSchema.getRefinedDefinitions();
@@ -179,12 +179,12 @@ public class DataModelVisualizerImpl implements DataModelVisualizer {
 		for (PrismObject<ResourceType> resource : resources) {
 			final ResourceSchema resourceSchema = RefinedResourceSchema.getResourceSchema(resource, prismContext);
 			if (resourceSchema == null) {
-				LOGGER.info("Resource schema is null, skipping the resource.");
+				LOGGER.debug("Resource schema is null, skipping the resource.");
 				continue;
 			}
 			RefinedResourceSchema refinedResourceSchema = RefinedResourceSchema.getRefinedSchema(resource);
 			if (refinedResourceSchema == null) {
-				LOGGER.info("Refined resource schema is null, skipping the resource.");		// actually shouldn't be null if resource schema exists
+				LOGGER.debug("Refined resource schema is null, skipping the resource.");		// actually shouldn't be null if resource schema exists
 				continue;
 			}
 
@@ -253,7 +253,7 @@ public class DataModelVisualizerImpl implements DataModelVisualizer {
 
 	private void processInboundMapping(@NotNull VisualizationContext ctx, @NotNull ResourceDataItem sourceItem, @NotNull MappingType mapping,
 			@Nullable ItemPath defaultTargetItemPath) {
-		LOGGER.info("Processing inbound mapping: {} for {}", mapping, sourceItem);
+		LOGGER.debug("Processing inbound mapping: {} for {}", mapping, sourceItem);
 		List<DataItem> sources = new ArrayList<>();
 		for (MappingSourceDeclarationType sourceDecl : mapping.getSource()) {
 			LOGGER.debug(" - src: {}", sourceDecl.getPath());
@@ -398,10 +398,10 @@ public class DataModelVisualizerImpl implements DataModelVisualizer {
 
 	private void processOutboundMapping(@NotNull VisualizationContext ctx, @NotNull ResourceDataItem targetItem, @NotNull MappingType mapping,
 			@Nullable ItemPath defaultSourceItemPath) {
-		LOGGER.info("Processing outbound mapping: {} for {}", mapping, targetItem);
+		LOGGER.debug("Processing outbound mapping: {} for {}", mapping, targetItem);
 		List<DataItem> sources = new ArrayList<>();
 		for (MappingSourceDeclarationType sourceDecl : mapping.getSource()) {
-			LOGGER.info(" - src: {}", sourceDecl.getPath());
+			LOGGER.debug(" - src: {}", sourceDecl.getPath());
 			DataItem sourceItem = resolveSourceItem(ctx, targetItem, mapping, sourceDecl, ExpressionConstants.VAR_FOCUS);
 			sources.add(sourceItem);
 		}

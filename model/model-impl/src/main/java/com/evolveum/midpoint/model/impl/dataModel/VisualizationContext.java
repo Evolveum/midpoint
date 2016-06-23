@@ -118,7 +118,7 @@ public class VisualizationContext {
 	}
 
 	public void registerMappingRelation(@NotNull List<DataItem> sources, @Nullable DataItem target, @NotNull MappingType mapping) {
-		LOGGER.info("Adding relation: {} -> {}", sources, target);
+		LOGGER.debug("Adding relation: {} -> {}", sources, target);
 		MappingRelation relation = new MappingRelation(sources, target, mapping);
 		relations.add(relation);
 	}
@@ -234,7 +234,9 @@ public class VisualizationContext {
 
 		sb.append("}");
 
-		return sb.toString();
+		String dot = sb.toString();
+		LOGGER.debug("Resulting DOT:\n{}", dot);
+		return dot;
 	}
 
 	private String addResourceItem(Set<DataItem> itemsShown, int indent, StringBuilder sb1, String previousNodeName, ResourceDataItem item) {

@@ -16,16 +16,16 @@ public class AdHocDataItem extends DataItem {
 
 	@Override
 	public String getNodeName() {
-		return "Unresolved: " + itemPath;
+		return "\"Unresolved: " + itemPath + "\"";
 	}
 
 	@Override
 	public String getNodeLabel() {
-		return "TODO";
+		return String.valueOf(itemPath);
 	}
 
 	@Override
 	public String getNodeStyleAttributes() {
-		return "TODO";
+		return "";
 	}
 }
