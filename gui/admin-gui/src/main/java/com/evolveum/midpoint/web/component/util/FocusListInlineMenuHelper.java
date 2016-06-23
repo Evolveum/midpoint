@@ -41,6 +41,7 @@ import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -53,7 +54,9 @@ import java.util.List;
  *
  * @author mederly
  */
-public class FocusListInlineMenuHelper<F extends FocusType> {
+public class FocusListInlineMenuHelper<F extends FocusType> implements Serializable {
+
+	private static final long serialVersionUID = 1L;
 
 	private static final Trace LOGGER = TraceManager.getTrace(FocusListInlineMenuHelper.class);
 
@@ -119,7 +122,7 @@ public class FocusListInlineMenuHelper<F extends FocusType> {
 	}
 
 	public List<InlineMenuItem> createRowActions() {
-		List<InlineMenuItem> menu = new ArrayList<InlineMenuItem>();
+		List<InlineMenuItem> menu = new ArrayList<>();
 		menu.add(new InlineMenuItem(parentPage.createStringResource("FocusListInlineMenuHelper.menu.enable"),
 				new ColumnMenuAction<SelectableBean<F>>() {
 
