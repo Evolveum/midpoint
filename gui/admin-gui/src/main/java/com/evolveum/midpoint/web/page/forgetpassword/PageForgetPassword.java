@@ -59,6 +59,11 @@ public class PageForgetPassword extends PageBase {
 		super();
 		initLayout();
 	}
+
+	@Override
+	protected void createBreadcrumb() {
+		//don't create breadcrumb for this page
+	}
 	
 	private void initLayout() {
 		Form form = new Form(ID_PWDRESETFORM) {

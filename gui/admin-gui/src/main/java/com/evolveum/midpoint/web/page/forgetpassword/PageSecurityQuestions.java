@@ -143,6 +143,11 @@ public class PageSecurityQuestions extends PageBase {
 		initLayout();
 
 	}
+
+	@Override
+	protected void createBreadcrumb() {
+		//don't create breadcrumb for this page
+	}
 	
 	public void initLayout() {
 			
