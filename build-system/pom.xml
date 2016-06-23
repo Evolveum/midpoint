@@ -592,12 +592,12 @@
             <dependency>
             	<groupId>com.evolveum.polygon</groupId>
                 <artifactId>connector-databasetable</artifactId>
-                <version>1.4.0.49</version>
+                <version>1.4.2.0</version>
             </dependency>
             <dependency>
                 <groupId>com.evolveum.polygon</groupId>
                 <artifactId>connector-csvfile</artifactId>
-                <version>1.4.0.49</version>
+                <version>1.4.2.0</version>
             </dependency>
             <dependency>
                 <groupId>com.evolveum.polygon</groupId>
