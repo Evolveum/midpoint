@@ -19,7 +19,7 @@
              xmlns:beans="http://www.springframework.org/schema/beans"
              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
              xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.1.xsd
-http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security-4.0.xsd">
+http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security-4.1.xsd">
 
 
     <global-method-security secured-annotations="enabled"/>
@@ -107,9 +107,36 @@ http://www.springframework.org/schema/security http://www.springframework.org/sc
 	    <beans:property name="authenticationManager" ref="authenticationManager" />
 	</beans:bean>
 
-    <authentication-manager alias="authenticationManager">
-        <authentication-provider ref="midPointAuthenticationProvider"/>
-    </authentication-manager>
+	<beans:bean id="contextSource"
+		class="org.springframework.security.ldap.DefaultSpringSecurityContextSource">
+		<beans:constructor-arg value="ldap://192.168.56.101:389/dc=example,dc=com" />
+		<beans:property name="userDn" value="cn=admin,dc=example,dc=com" />
+		<beans:property name="password" value="secret" />
+	</beans:bean>
+
+	<beans:bean id="ldapAuthProvider"
+		class="org.springframework.security.ldap.authentication.LdapAuthenticationProvider">
+		<beans:constructor-arg>
+			<beans:bean
+				class="org.springframework.security.ldap.authentication.BindAuthenticator">
+				<beans:constructor-arg ref="contextSource" />
+				<beans:property name="userDnPatterns">
+					<beans:list>
+						<beans:value>uid={0},ou=people</beans:value>
+					</beans:list>
+				</beans:property>
+			</beans:bean>
+		</beans:constructor-arg>
+
+		<beans:property name="userDetailsContextMapper"
+					ref="userDetailsService" />
+	</beans:bean>
+
+	<authentication-manager alias="authenticationManager">
+		<!-- <authentication-provider ref="midPointAuthenticationProvider"/> -->
+		<authentication-provider ref="ldapAuthProvider" />
+
+	</authentication-manager>
 	
 	<!-- For SSO CAS integration uncomment following and set CASSERVER address   and   change service url according to your needs-->
 	<!-- CAS CONFIG -->
