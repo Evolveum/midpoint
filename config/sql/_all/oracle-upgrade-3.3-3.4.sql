@@ -204,3 +204,5 @@ alter table ACT_PROCDEF_INFO
     unique (PROC_DEF_ID_);
 
 update ACT_GE_PROPERTY set VALUE_ = '5.20.0.1' where NAME_ = 'schema.version';
+
+commit;
