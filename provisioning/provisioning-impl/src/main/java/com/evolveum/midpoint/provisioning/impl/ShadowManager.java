@@ -24,6 +24,7 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
@@ -152,10 +153,12 @@ public class ShadowManager {
 	/**
 	 * Locates the appropriate Shadow in repository that corresponds to the
 	 * provided resource object.
+	 *
+	 * DEAD flag is cleared - in memory as well as in repository.
 	 * 
 	 * @param parentResult
 	 * 
-	 * @return current unchanged shadow object that corresponds to provided
+	 * @return current shadow object that corresponds to provided
 	 *         resource object or null if the object does not exist
 	 */
 	public PrismObject<ShadowType> lookupShadowInRepository(ProvisioningContext ctx, PrismObject<ShadowType> resourceShadow,
@@ -189,6 +192,17 @@ public class ShadowManager {
 		}
 		PrismObject<ShadowType> shadow = results.get(0);
 		checkConsistency(shadow);
+
+		if (Boolean.TRUE.equals(shadow.asObjectable().isDead())) {
+			LOGGER.debug("Repository shadow {} is marked as dead - resetting the flag", ObjectTypeUtil.toShortString(shadow));
+			shadow.asObjectable().setDead(false);
+			List<ItemDelta<?, ?>> deltas = DeltaBuilder.deltaFor(ShadowType.class, prismContext).item(ShadowType.F_DEAD).replace().asItemDeltas();
+			try {
+				repositoryService.modifyObject(ShadowType.class, shadow.getOid(), deltas, parentResult);
+			} catch (ObjectAlreadyExistsException e) {
+				throw new SystemException("Unexpected exception when resetting 'dead' flag: " + e.getMessage(), e);
+			}
+		}
 		return shadow;
 	}
 
