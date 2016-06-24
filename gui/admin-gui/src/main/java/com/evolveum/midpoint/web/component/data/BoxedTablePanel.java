@@ -83,6 +83,7 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
 	}
 
 	private void initLayout(List<IColumn<T, String>> columns, ISortableDataProvider provider, int pageSize) {
+        setOutputMarkupId(true);
 		WebMarkupContainer box = new WebMarkupContainer(ID_BOX);
 		box.add(new AttributeAppender("class", new AbstractReadOnlyModel<String>() {
 			private static final long serialVersionUID = 1L;

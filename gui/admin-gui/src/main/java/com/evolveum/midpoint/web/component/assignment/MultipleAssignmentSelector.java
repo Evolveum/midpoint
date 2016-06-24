@@ -404,7 +404,11 @@ public class MultipleAssignmentSelector<F extends FocusType, H extends FocusType
             }
         }
         filterObjectIsAdded = false;
-        return applyQueryToListProvider(query, currentAssignments);
+        if (currentAssignments != null && currentAssignments.size() > 0) {
+            return applyQueryToListProvider(query, currentAssignments);
+        } else {
+            return new ArrayList<AssignmentEditorDto>();
+        }
     }
 
     private List<String> getAssignmentOids(List<AssignmentEditorDto> assignments){

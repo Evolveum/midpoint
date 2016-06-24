@@ -77,7 +77,7 @@ public class PageSizePopover extends BasePanel {
         form.add(button);
 
         TextField input = new TextField(ID_INPUT, createInputModel());
-        input.add(new RangeValidator(5, 50));
+        input.add(new RangeValidator(5, 100));
         input.setLabel(createStringResource("PageSizePopover.title"));
         input.add(new SearchFormEnterBehavior(button));
         input.setType(Integer.class);
