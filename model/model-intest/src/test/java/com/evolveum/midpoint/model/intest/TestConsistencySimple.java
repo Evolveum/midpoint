@@ -45,7 +45,7 @@ import static org.testng.AssertJUnit.assertNotNull;
  * Tests various aspects of consistency mechanism. Unlike tests in consistency-mechanism module,
  * tests here are much simpler (e.g. use dummy resource instead of OpenDJ) and relatively isolated.
  *
- * TODO - move to testing/consistency-mechanis?
+ * TODO - move to testing/consistency-mechanism?
  *
  * @author mederly
  *
@@ -54,7 +54,7 @@ import static org.testng.AssertJUnit.assertNotNull;
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestConsistencySimple extends AbstractInitializedModelIntegrationTest {
 
-	private static final boolean ASSERT_SUCCESS = false;
+	private static final boolean ASSERT_SUCCESS = true;
 		
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -176,7 +176,7 @@ public class TestConsistencySimple extends AbstractInitializedModelIntegrationTe
 
 			if (shadowOperation == ShadowOperation.DELETE) {
 				deleteObjectRaw(ShadowType.class, shadow.getOid(), task, result);
-				assertNoObject(ShadowType.class, shadow.getOid(), task, result);
+				assertNoObject(ShadowType.class, shadow.getOid());
 			} else {
 				if (shadowOperation == ShadowOperation.UNLINK_AND_TOMBSTONE) {
 					@SuppressWarnings("unchecked")
@@ -237,9 +237,11 @@ public class TestConsistencySimple extends AbstractInitializedModelIntegrationTe
 	private void cleanUpBeforeTest(Task task, OperationResult result) throws Exception {
 		PrismObject<UserType> jack = getUser(USER_JACK_OID);
 		display("Jack on start", jack);
-		unassignAccount(USER_JACK_OID, RESOURCE_DUMMY_OID, SchemaConstants.INTENT_DEFAULT, task, result);
-		jack = getUser(USER_JACK_OID);
-		display("Jack after initial unassign", jack);
+		if (!jack.asObjectable().getAssignment().isEmpty()) {
+			unassignAccount(USER_JACK_OID, RESOURCE_DUMMY_OID, SchemaConstants.INTENT_DEFAULT, task, result);
+			jack = getUser(USER_JACK_OID);
+			display("Jack after initial unassign", jack);
+		}
 		if (!jack.asObjectable().getLinkRef().isEmpty()) {
 			for (ObjectReferenceType ref : jack.asObjectable().getLinkRef()) {
 				deleteObject(ShadowType.class, ref.getOid());

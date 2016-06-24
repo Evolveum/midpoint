@@ -1186,7 +1186,12 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		}
 		return account;
 	}
-	
+
+	protected <O extends ObjectType> void assertNoObject(Class<O> type, String oid) throws SchemaException, SecurityViolationException, CommunicationException, ConfigurationException {
+		Task task = createTask(AbstractModelIntegrationTest.class.getName() + ".assertNoObject");
+		assertNoObject(type, oid, task, task.getResult());
+	}
+
 	protected <O extends ObjectType> void assertNoObject(Class<O> type, String oid, Task task, OperationResult result) throws SchemaException, SecurityViolationException, CommunicationException, ConfigurationException {
 		try {
 			PrismObject<O> object = modelService.getObject(type, oid, null, task, result);
