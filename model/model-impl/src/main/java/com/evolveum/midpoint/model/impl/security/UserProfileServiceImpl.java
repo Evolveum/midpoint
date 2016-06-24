@@ -58,10 +58,14 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.ldap.userdetails.UserDetailsContextMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.ldap.core.DirContextAdapter;
+import org.springframework.ldap.core.DirContextOperations;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -76,7 +80,7 @@ import java.util.List;
  * @author semancik
  */
 @Service(value = "userDetailsService")
-public class UserProfileServiceImpl implements UserProfileService, UserDetailsService {
+public class UserProfileServiceImpl implements UserProfileService, UserDetailsService, UserDetailsContextMapper {
 
     private static final Trace LOGGER = TraceManager.getTrace(UserProfileServiceImpl.class);
     
@@ -316,12 +320,27 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
 	
 	@Override
 	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-//		 TODO Auto-generated method stub
 		try {
 			return getPrincipal(username);
 		} catch (ObjectNotFoundException e) {
 			throw new UsernameNotFoundException(e.getMessage(), e);
 		}
+	}
+
+	@Override
+	public UserDetails mapUserFromContext(DirContextOperations ctx, String username,
+			Collection<? extends GrantedAuthority> authorities) {
+		try {
+			return getPrincipal(username);
+		} catch (ObjectNotFoundException e) {
+			throw new UsernameNotFoundException(e.getMessage(), e);
+		}
+	}
+
+	@Override
+	public void mapUserToContext(UserDetails user, DirContextAdapter ctx) {
+		// TODO Auto-generated method stub
+		
 	}
 	
 	

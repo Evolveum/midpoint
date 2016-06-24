@@ -64,7 +64,7 @@
         <selenium.version>1.0.1</selenium.version>
         <slf4j.version>1.7.12</slf4j.version>
         <spring.version>4.2.5.RELEASE</spring.version>
-        <spring.security.version>4.0.4.RELEASE</spring.security.version>
+        <spring.security.version>4.1.0.RELEASE</spring.security.version>
         <testng.version>6.8.8</testng.version>
         <xml.resolver.version>1.2</xml.resolver.version>
         <xmlunit.version>2.1.1</xmlunit.version>
@@ -742,6 +742,11 @@
             <dependency>
                 <groupId>org.springframework.security</groupId>
                 <artifactId>spring-security-core</artifactId>
+                <version>${spring.security.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework.security</groupId>
+                <artifactId>spring-security-ldap</artifactId>
                 <version>${spring.security.version}</version>
             </dependency>
             <dependency> <!-- Needed for MethodInvocation object in security-impl, used by Spring Security -->
@@ -1422,6 +1427,7 @@
 								<!-- There is some kind of conflict between these. TODO: clean up -->
 								<ignoredUnusedDeclaredDependency>xml-apis:xml-apis</ignoredUnusedDeclaredDependency>
 								<ignoredUnusedDeclaredDependency>stax:stax-api</ignoredUnusedDeclaredDependency>
+								<ignoredUnusedDeclaredDependency>org.springframework.ldap:spring-ldap-core</ignoredUnusedDeclaredDependency>
 
 								<!-- We are making this dependency explicit to detect conflicts early -->
 								<ignoredUnusedDeclaredDependency>org.codehaus.woodstox:stax2-api</ignoredUnusedDeclaredDependency>
@@ -1434,6 +1440,7 @@
 								<!-- There is some kind of conflict between these. TODO: clean up -->
 								<ignoredUsedUndeclaredDependency>xml-apis:xml-apis</ignoredUsedUndeclaredDependency>
 								<ignoredUsedUndeclaredDependency>stax:stax-api</ignoredUsedUndeclaredDependency>
+								<ignoredUsedUndeclaredDependency>org.springframework.ldap:spring-ldap-core</ignoredUsedUndeclaredDependency>
 							</ignoredUsedUndeclaredDependencies>
 						</configuration>
 					</execution>
