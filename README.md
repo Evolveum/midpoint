@@ -1,6 +1,6 @@
 Status: [![Build Status](https://travis-ci.org/Evolveum/midpoint.svg?branch=master)](https://travis-ci.org/Evolveum/midpoint)
 
-midPoint 3.3 "Lincoln"
+midPoint 3.4 "Heisenberg"
 -------------------------------
 
 General information:
@@ -25,14 +25,13 @@ The most important features of midPoint are:
    - Entitlements
    - Support for ConnId and OpenICF connectors
    - Provisioning consistency and error handling
-   - Segregation of Duties (SoD)
+   - Identity governance (access certification)
    - Support for security auditing and reporting
    - Workflow
    - Reporting
    - Notifications
    - Local Java APIs, Remote web service interface (SOAP), REST API
    - High availablity (HA) support
-   - Access certification (technology preview)
 
 For more information please go to:
 

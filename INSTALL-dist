@@ -8,8 +8,8 @@ and release notes can be found at:
 
 1. Pre-requisities:
 
-    1. Java 7
-    2. Apache Tomcat 6.x or 7.x (or another supported web container)
+    1. Java (JRE) 7 or 8
+    2. Apache Tomcat 7.x or 8.x (or another supported web container)
 
 2. Install Apache Tomcat
 
