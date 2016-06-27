@@ -1,35 +1,56 @@
-midPoint 3.3 "Lincoln"
+midPoint 3.4 "Heisenberg"
 -------------------------------
 
-Release 3.3 is a fifteenth midPoint release code-named Lincoln. The 3.3
-release brings major GUI look&feel improvements and miscellaneous new
-features that improve practical usability of midPoint.
+Release 3.4 is a seventeenth midPoint release code-named Heisenberg.
+The 3.4 release brings identity governance features and significant user 
+interface improvements. MidPoint 3.4 is one of the major milestones in 
+midPoint project history.
 
-Release date: 1st December 2015
+Release date: 24th June 2016
 
-Changes with respect to version 3.2:
-* Significant GUI look&feel improvements
-* New self-service GUI pages
-    End-user home page (end-user dashboard)
-    End-user profile page
-    End-user credentials change page
-* Sequences
-* Improvement of associationTargetSearch expression
-* Aligned default value for user activation
-* Aligned default value for allowEmptyValues in expressions
-* LDAP-based connector for Active Directory (experimental)
-* Run-time support for Java 8 environment
-* Options for interpretation of expression empty values in queries
-* Option to force legacy object class names in connectors
-* Displaying role members on role details page
-* Expanded audit record table for easier search in deltas
-* Support for storing old values and object names in audit records
-* Improved audit report
-* Localization files switched to UTF-8 and single-file format
-* Using transifex.com to support community localization
-* Support for provisioning of user photo (jpeg binary data)
-* Indirect role membership index (roleMembershipRef)
-* Consistency mechanism improvements (self-healing)
-* Improved reliability of strong mappings
+Changes with respect to version 3.3:
+    Access certification (production quality)
+    Entitlement approval support
+    Support for overlay projects and deep customization
+    Major GUI improvements
+        Role selection and request dialog
+        Significantly improved look and feel
+        Look and feel unification and streamlining
+        Loading of projections (accounts) on demand
+        Improved search dialogs
+        Significantly improved resource management pages
+        Improved approval pages
+        Improved dashboards
+        Improved organizational structure pages
+        Improved the display of operation results
+        Introduced breadcrumbs and improved behavior of 'back' buttons
+        Resource wizard fixes and improvements
+        Usability improvements
+        GUI language detection and management improvements
+    Support for custom GUI forms (Wicket components)
+    Support for Service objects (ServiceType) to represent servers, network 
+      devices, mobile devices, network services, etc.
+    Support for base context searches for connectors that support object 
+      hierarchies (such as LDAP)
+    Improved support for entitlement associations that use non-identifier values
+    Support for volatile attributes in provisioning objects (volatilityTrigger)
+    Matching rule for XML-formatted string attributes and UUIDs
+    Automatic determination of matching rules based on ConnId subtypes.
+    Password retention policy
+    Support for orgRelation authorization that allows dynamic delegated 
+      administration.
+    Support for role/org owners in authorizations and other authorization 
+      improvements
+    LDAP-based AD connector in full production quality
+    Support for Active Directory multi-domain environment in LDAP-based AD 
+      connector
+    Support for permissive modify control in LDAP connector
+    Organizational structure recursion for associationFromLink expressions
+    Emphasized properties that will be always displayed (even if they are empty)
+    Support for lockoutStatus activation mapping
+    Pre configured databases of locales and timezones
+    Full support for Java 8 environment (both build and runtime)
+    Diagnostics improvements (connector statistics, logging improvements)
+    Improved documentation
 
 XPath2 scripting is deprecated and it is not supported in Java8 environment.

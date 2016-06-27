@@ -7,9 +7,9 @@ https://wiki.evolveum.com/display/midPoint/midPoint+Development+Snapshot
 
 1. Pre-requisities:
 
-    1. Java 7
+    1. Java (JDK) 8 or 7
     2. Apache Maven 3
-    3. Apache Tomcat 6.x or 7.x (or another supported web container)
+    3. Apache Tomcat 7.x or 8.x (or another supported web container)
     4. midPoint source code retrieved via Git or alternative mechanism
 
 2. Compile sources

@@ -52,6 +52,7 @@
             <class name="com.evolveum.midpoint.model.intest.TestIntent"/>
             <class name="com.evolveum.midpoint.model.intest.gensync.TestEditSchema"/>
             <class name="com.evolveum.midpoint.model.intest.gensync.TestRoleEntitlement"/>
+            <class name="com.evolveum.midpoint.model.intest.TestConsistencySimple"/>
         </classes>
     </test>
     <test name="Synchronization" preserve-order="true" parallel="false" verbose="10">
