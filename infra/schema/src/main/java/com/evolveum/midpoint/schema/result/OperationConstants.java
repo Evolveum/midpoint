@@ -47,5 +47,6 @@ public class OperationConstants {
 	public static final String CREATE_REPORT_FILE = PREFIX + ".createReportFile";
 
 	public static final String CHECK_SHADOW_INTEGRITY = PREFIX + ".checkShadowIntegrity";
+	public static final String REINDEX = PREFIX + ".reindex";
 
 }

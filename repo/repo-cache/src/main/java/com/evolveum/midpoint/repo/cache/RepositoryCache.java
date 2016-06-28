@@ -22,6 +22,7 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.api.RepoAddOptions;
+import com.evolveum.midpoint.repo.api.RepoModifyOptions;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.RelationalValueSearchType;
@@ -221,11 +222,16 @@ public class RepositoryCache implements RepositoryService {
 		return repository.countObjects(type, query, parentResult);
 	}
 
+	public <T extends ObjectType> void modifyObject(Class<T> type, String oid, Collection<? extends ItemDelta> modifications,
+													OperationResult parentResult) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
+		modifyObject(type, oid, modifications, null, parentResult);
+	}
+
 	@Override
 	public <T extends ObjectType> void modifyObject(Class<T> type, String oid, Collection<? extends ItemDelta> modifications,
-			OperationResult parentResult) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
+			RepoModifyOptions options, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
 		try {
-			repository.modifyObject(type, oid, modifications, parentResult);
+			repository.modifyObject(type, oid, modifications, options, parentResult);
 		} finally {
 			// this changes the object. We are too lazy to apply changes ourselves, so just invalidate
 			// the object in cache

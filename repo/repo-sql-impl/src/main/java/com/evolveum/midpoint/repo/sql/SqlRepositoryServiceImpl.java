@@ -33,6 +33,7 @@ import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.api.RepoAddOptions;
+import com.evolveum.midpoint.repo.api.RepoModifyOptions;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.sql.helpers.*;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -110,8 +111,8 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
     @Autowired
     private OrgClosureManager closureManager;
 
-	@Autowired
-	private BaseHelper baseHelper;
+    @Autowired
+    private BaseHelper baseHelper;
 
     public SqlRepositoryServiceImpl(SqlRepositoryFactory repositoryFactory) {
         super(repositoryFactory);
@@ -180,7 +181,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         }
     }
 
-	@Override
+    @Override
     @Deprecated
     public PrismObject<UserType> listAccountShadowOwner(String accountOid, OperationResult result)
             throws ObjectNotFoundException {
@@ -224,7 +225,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             if (filter instanceof NoneFilter) {
                 subResult.recordSuccess();
                 return new SearchResultList(new ArrayList<PrismObject<T>>(0));
-            } else if (filter instanceof AllFilter){
+            } else if (filter instanceof AllFilter) {
                 query = query.cloneEmpty();
                 query.setFilter(null);
             } else {
@@ -448,10 +449,17 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             }
         }
     }
+    public <T extends ObjectType> void modifyObject(Class<T> type, String oid,
+                                                    Collection<? extends ItemDelta> modifications,
+                                                    OperationResult result)
+            throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
+        modifyObject(type, oid, modifications, null, result);
+    }
 
     @Override
     public <T extends ObjectType> void modifyObject(Class<T> type, String oid,
                                                     Collection<? extends ItemDelta> modifications,
+                                                    RepoModifyOptions options,
                                                     OperationResult result)
             throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
 
@@ -465,7 +473,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         subResult.addParam("oid", oid);
         subResult.addCollectionOfSerializablesAsParam("modifications", modifications);
 
-        if (modifications.isEmpty()) {
+        if (modifications.isEmpty() && !RepoModifyOptions.isExecuteIfNoChanges(options)) {
             LOGGER.debug("Modification list is empty, nothing was modified.");
             subResult.recordStatus(OperationResultStatus.SUCCESS, "Modification list is empty, nothing was modified.");
             return;

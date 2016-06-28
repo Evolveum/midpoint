@@ -391,6 +391,9 @@ public interface RepositoryService {
 	<T extends ObjectType> void modifyObject(Class<T> type, String oid, Collection<? extends ItemDelta> modifications, OperationResult parentResult)
 			throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException;
 
+	<T extends ObjectType> void modifyObject(Class<T> type, String oid, Collection<? extends ItemDelta> modifications, RepoModifyOptions options, OperationResult parentResult)
+			throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException;
+
 	/**
 	 * <p>Deletes object with specified OID.</p>
 	 * <p>

@@ -19,6 +19,7 @@ package com.evolveum.midpoint.repo.sql.testing;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.repo.api.RepoAddOptions;
+import com.evolveum.midpoint.repo.api.RepoModifyOptions;
 import com.evolveum.midpoint.repo.sql.SqlRepositoryFactory;
 import com.evolveum.midpoint.repo.sql.SqlRepositoryServiceImpl;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -63,6 +64,16 @@ public class TestSqlRepositoryServiceImpl extends SqlRepositoryServiceImpl {
     public <T extends ObjectType> void modifyObject(Class<T> type, String oid, Collection<? extends ItemDelta> modifications, OperationResult result) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
         try {
             super.modifyObject(type, oid, modifications, result);
+        } finally {
+//            DBValidator.validateOwners(type, getConfiguration(), getSessionFactory());
+        }
+    }
+
+    @Override
+    public <T extends ObjectType> void modifyObject(Class<T> type, String oid, Collection<? extends ItemDelta> modifications,
+                                                    RepoModifyOptions options, OperationResult result) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
+        try {
+            super.modifyObject(type, oid, modifications, options, result);
         } finally {
 //            DBValidator.validateOwners(type, getConfiguration(), getSessionFactory());
         }
