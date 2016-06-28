@@ -24,11 +24,11 @@ import static com.codeborne.selenide.Selenide.open;
 //@ContextConfiguration(locations = {"classpath:spring-module.xml"})
 public class AbstractSelenideTest{
 //        extends AbstractTestNGSpringContextTests {
-    public static final String SITE_URL = "/midpoint";
+    public static final String SITE_URL = "/";
     public static final String ADMIN_LOGIN = "administrator";
-    public static final String ADMIN_PASSWORD = "5ecr3t";
+    public static final String ADMIN_PASSWORD = "administrator";
     //User's attributes' fields' names
-    public static final String USER_NAME_FIELD_NAME = "tabPanel:panel:focusForm:body:containers:0:container:properties:0:property:values:0:value:valueContainer:input:input";
+    public static final String USER_NAME_FIELD_NAME = "tabPanel:panel:focusDetails:containers:0:container:properties:0:property:values:0:value:valueContainer:input:input";
 
 
     public static final String DESCRIPTION_FIELD_NAME = "tabPanel:panel:focusForm:body:containers:0:container:properties:1:property:values:0:value:valueContainer:input:input";

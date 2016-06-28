@@ -28,11 +28,8 @@ public class LoginTest extends AbstractSelenideTest {
         //perform login
         login(ADMIN_LOGIN, ADMIN_PASSWORD);
 
-        //check if welcome message appears after user logged in
-        $(byText("welcome to midPoint")).shouldBe(visible);
-
-        //check if Superuser role is displayed in My Assignments on Dashboard
-        $(byText("Superuser"));
+        $(byText("Personal info")).shouldBe(visible);
+        $(byText("System status")).shouldBe(visible);
 
         close();
     }
@@ -59,9 +56,7 @@ public class LoginTest extends AbstractSelenideTest {
         //perform login
         login("", ADMIN_PASSWORD);
 
-        //check if error message appears
-        $(By.className("messages-error")).find(by("title", "Partial error")).shouldBe(visible);
-
+        $(byText("Invalid username and/or password.")).shouldBe(visible);
         close();
     }
 
@@ -87,9 +82,8 @@ public class LoginTest extends AbstractSelenideTest {
         //perform login
         login(ADMIN_LOGIN, "");
 
-        //check if error message appears
-        $(By.className("messages-error")).find(by("title", "Partial error")).shouldBe(visible);
 
+        $(byText("Couldn't authenticate user, reason: couldn't encode password.")).shouldBe(visible);
         close();
     }
 
@@ -105,7 +99,8 @@ public class LoginTest extends AbstractSelenideTest {
         createUser(USER_WITHOUT_PASSWORD, new HashMap<String, String>());
 
         //check if Success message appears after user saving
-        $(byText("Success")).shouldBe(visible);
+        $(byText("Save (GUI)")).shouldBe(visible);
+        $(byAttribute("class", "icon fa fa-check")).shouldBe(visible);
 
         //search for the created user in users list
         searchForElement(USER_WITHOUT_PASSWORD);

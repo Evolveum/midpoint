@@ -16,4 +16,8 @@
   -->
 <!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd">
 <suite name="unit" parallel="false" verbose="1">
+    <parameter name="site.url" value="http://localhost:8080/login"/>
+    <suite-files>
+        <suite-file path="./basic-tests-suite.xml"/>
+    </suite-files>
 </suite>
