@@ -27,6 +27,7 @@ import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.repo.api.RepoAddOptions;
+import com.evolveum.midpoint.repo.api.RepoModifyOptions;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.sql.SerializationRelatedException;
 import com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration;
@@ -64,10 +65,7 @@ import org.springframework.stereotype.Component;
 
 import java.lang.reflect.Method;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 
 /**
  * @author lazyman, mederly
@@ -342,8 +340,8 @@ public class ObjectUpdater {
     }
 
     public <T extends ObjectType> void modifyObjectAttempt(Class<T> type, String oid,
-                                                           Collection<? extends ItemDelta> modifications,
-                                                           OperationResult result) throws ObjectNotFoundException,
+			Collection<? extends ItemDelta> modifications,
+			RepoModifyOptions modifyOptions, OperationResult result) throws ObjectNotFoundException,
             SchemaException, ObjectAlreadyExistsException, SerializationRelatedException {
 
         // clone - because some certification and lookup table related methods manipulate this collection and even their constituent deltas
@@ -367,7 +365,7 @@ public class ObjectUpdater {
             Collection<? extends ItemDelta> lookupTableModifications = lookupTableHelper.filterLookupTableModifications(type, modifications);
             Collection<? extends ItemDelta> campaignCaseModifications = caseHelper.filterCampaignCaseModifications(type, modifications);
 
-            if (!modifications.isEmpty()) {
+            if (!modifications.isEmpty() || RepoModifyOptions.isExecuteIfNoChanges(modifyOptions)) {
 
                 // JpegPhoto (RFocusPhoto) is a special kind of entity. First of all, it is lazily loaded, because photos are really big.
                 // Each RFocusPhoto naturally belongs to one RFocus, so it would be appropriate to set orphanRemoval=true for focus-photo
@@ -385,7 +383,7 @@ public class ObjectUpdater {
                 Collection<SelectorOptions<GetOperationOptions>> options;
                 boolean containsFocusPhotoModification = FocusType.class.isAssignableFrom(type) && containsPhotoModification(modifications);
                 if (containsFocusPhotoModification) {
-                    options = Arrays.asList(SelectorOptions.create(FocusType.F_JPEG_PHOTO, GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE)));
+                    options = Collections.singletonList(SelectorOptions.create(FocusType.F_JPEG_PHOTO, GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE)));
                 } else {
                     options = null;
                 }
@@ -434,7 +432,7 @@ public class ObjectUpdater {
                 lookupTableHelper.updateLookupTableData(session, oid, lookupTableModifications);
             }
             if (AccessCertificationCampaignType.class.isAssignableFrom(type)) {
-                caseHelper.updateCampaignCases(session, oid, campaignCaseModifications);
+                caseHelper.updateCampaignCases(session, oid, campaignCaseModifications, modifyOptions);
             }
 
             LOGGER.trace("Before commit...");

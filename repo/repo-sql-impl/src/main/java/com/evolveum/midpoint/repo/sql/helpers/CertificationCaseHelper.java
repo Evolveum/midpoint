@@ -23,13 +23,15 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.IdItemPathSegment;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathSegment;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
+import com.evolveum.midpoint.repo.api.RepoModifyOptions;
 import com.evolveum.midpoint.repo.sql.data.common.RAccessCertificationCampaign;
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.data.common.container.RAccessCertificationCase;
 import com.evolveum.midpoint.repo.sql.data.common.container.RCertCaseReference;
-import com.evolveum.midpoint.repo.sql.query.QueryException;
-import com.evolveum.midpoint.repo.sql.util.*;
+import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
+import com.evolveum.midpoint.repo.sql.util.GetContainerableResult;
+import com.evolveum.midpoint.repo.sql.util.PrismIdentifierGenerator;
+import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
@@ -50,10 +52,7 @@ import org.hibernate.criterion.Restrictions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Contains methods specific to handle certification cases.
@@ -160,15 +159,15 @@ public class CertificationCaseHelper {
     }
 
     public <T extends ObjectType> void updateCampaignCases(Session session, String campaignOid,
-                                                           Collection<? extends ItemDelta> modifications) throws SchemaException, ObjectNotFoundException, DtoTranslationException {
-        if (modifications.isEmpty()) {
+			Collection<? extends ItemDelta> modifications, RepoModifyOptions modifyOptions) throws SchemaException, ObjectNotFoundException, DtoTranslationException {
+        if (modifications.isEmpty() && !RepoModifyOptions.isExecuteIfNoChanges(modifyOptions)) {
             return;
         }
 
         List<Long> casesAddedOrDeleted = addOrDeleteCases(session, campaignOid, modifications);
         LOGGER.trace("Cases added/deleted (null means REPLACE operation) = {}", casesAddedOrDeleted);
 
-        updateCasesContent(session, campaignOid, modifications, casesAddedOrDeleted);
+        updateCasesContent(session, campaignOid, modifications, casesAddedOrDeleted, modifyOptions);
     }
 
     protected List<Long> addOrDeleteCases(Session session, String campaignOid, Collection<? extends ItemDelta> modifications) throws SchemaException, DtoTranslationException {
@@ -225,7 +224,9 @@ public class CertificationCaseHelper {
         return replacePresent ? null : affectedIds;
     }
 
-    private void updateCasesContent(Session session, String campaignOid, Collection<? extends ItemDelta> modifications, List<Long> casesAddedOrDeleted) throws SchemaException, ObjectNotFoundException, DtoTranslationException {
+    private void updateCasesContent(Session session, String campaignOid, Collection<? extends ItemDelta> modifications,
+			List<Long> casesAddedOrDeleted, RepoModifyOptions modifyOptions) throws SchemaException, ObjectNotFoundException, DtoTranslationException {
+		Set<Long> casesModified = new HashSet<>();
         for (ItemDelta delta : modifications) {
             ItemPath deltaPath = delta.getPath();
             if (deltaPath.size() > 1) {
@@ -255,9 +256,30 @@ public class CertificationCaseHelper {
                 RAccessCertificationCase rCase = RAccessCertificationCase.toRepo(campaignOid, aCase, prismContext);
                 session.merge(rCase);
 
-                LOGGER.trace("Access certification case " + rCase + " merged.");
+                LOGGER.trace("Access certification case {} merged", rCase);
+				casesModified.add(aCase.getId());
             }
         }
+
+		// refresh campaign cases, if requested
+		if (RepoModifyOptions.isExecuteIfNoChanges(modifyOptions)) {
+			Query query = session.getNamedQuery("get.campaignCases");
+			query.setString("ownerOid", campaignOid);
+			List<Object> cases = query.list();
+			for (Object o : cases) {
+				if (!(o instanceof byte[])) {
+					throw new IllegalStateException("Certification case: expected byte[], got " + o.getClass());
+				}
+				byte[] fullObject = (byte[]) o;
+				AccessCertificationCaseType aCase = RAccessCertificationCase.createJaxb(fullObject, prismContext, false);
+				Long id = aCase.getId();
+				if (id != null && casesAddedOrDeleted != null && !casesAddedOrDeleted.contains(id) && !casesModified.contains(id)) {
+					RAccessCertificationCase rCase = RAccessCertificationCase.toRepo(campaignOid, aCase, prismContext);
+					session.merge(rCase);
+					LOGGER.trace("Access certification case {} refreshed", rCase);
+				}
+			}
+		}
     }
 
     private long checkPathSanity(ItemPath deltaPath, List<Long> casesAddedOrDeleted) {
