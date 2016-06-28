@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.web.component.prism;
 
+import com.evolveum.midpoint.common.policy.ValuePolicyGenerator;
 import com.evolveum.midpoint.common.refinery.CompositeRefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedAssociationDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
@@ -101,6 +102,10 @@ public class PrismValuePanel extends Panel {
     private static final String ID_ADD_BUTTON = "addButton";
     private static final String ID_REMOVE_BUTTON = "removeButton";
     private static final String ID_VALUE_CONTAINER = "valueContainer";
+    private static final String DOT_CLASS = PrismValuePanel.class.getName() + ".";
+    private static final String OPERATION_PASSWORD_RESET = DOT_CLASS + "resetPassword";
+    private static final String OPERATION_PASSWORD_GENERATE = DOT_CLASS + "generatePassword";
+    private static final String SYSTEM_CONFIGURATION_OID = SystemObjectsType.SYSTEM_CONFIGURATION.value();
     
     private static final Trace LOGGER = TraceManager.getTrace(PrismValuePanel.class);
 
@@ -469,7 +474,32 @@ public class PrismValuePanel extends Panel {
                       showRemovePasswordButton = false;
                   }
                   panel = new PasswordPanel(id, new PropertyModel<ProtectedStringType>(valueWrapperModel, baseExpression),
-                          valueWrapperModel.getObject().isReadonly(), showRemovePasswordButton);
+                          valueWrapperModel.getObject().isReadonly(), showRemovePasswordButton) {
+                	  
+                	  protected void onResetPassword(IModel<ProtectedStringType> model, AjaxRequestTarget target) {
+                		  super.onResetPassword(model, target);
+          				Task task = pageBase.createSimpleTask(OPERATION_PASSWORD_RESET);
+          				OperationResult result = task.getResult();	            
+          				Collection<SelectorOptions<GetOperationOptions>> resolve =
+          	            		SelectorOptions.createCollection(GetOperationOptions.createResolve(),SystemConfigurationType.F_GLOBAL_PASSWORD_POLICY);
+          				
+          				PrismObject<SystemConfigurationType> sysConfig = WebModelServiceUtils.loadObject(SystemConfigurationType.class, SYSTEM_CONFIGURATION_OID, resolve, pageBase, task, result);
+                	    OperationResult pwGenerate = new OperationResult(OPERATION_PASSWORD_GENERATE);
+                	    StringPolicyType valuePolicy = null;
+                	    
+                	    if(sysConfig.asObjectable().getGlobalPasswordPolicy()!=null){
+                	    	valuePolicy = sysConfig.asObjectable().getGlobalPasswordPolicy().getStringPolicy();
+                	    }
+                	    ProtectedStringType generatedPW = new ProtectedStringType();
+                	    String generatedString = ValuePolicyGenerator.generate(valuePolicy, 6, pwGenerate);
+                	    generatedPW.setClearValue(generatedString);             	    
+                	    model.setObject(generatedPW);
+                	    
+                	    get(ID_RESET_BUTTON_CONTAINER).get(ID_PASSWORD_GENERATED).setDefaultModelObject(generatedString);
+                	    target.add(get(ID_RESET_BUTTON_CONTAINER));
+                	  };
+                	  
+                  };
               } else if (DOMUtil.XSD_BOOLEAN.equals(valueType)) {
                   panel = new TriStateComboPanel(id, new PropertyModel<Boolean>(valueWrapperModel, baseExpression));
                   

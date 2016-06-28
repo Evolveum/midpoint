@@ -35,6 +35,7 @@ import org.apache.wicket.validation.IValidatable;
 import org.apache.wicket.validation.IValidator;
 import org.apache.wicket.validation.ValidationError;
 
+
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
@@ -50,16 +51,24 @@ public class PasswordPanel extends InputPanel {
 	private static final String ID_LINK_CONTAINER = "linkContainer";
 	private static final String ID_PASSWORD_SET = "passwordSet";
 	private static final String ID_PASSWORD_REMOVE = "passwordRemove";
+	public static final String ID_PASSWORD_GENERATED ="passwordGenerated";
 	private static final String ID_CHANGE_PASSWORD_LINK = "changePasswordLink";
 	private static final String ID_REMOVE_PASSWORD_LINK = "removePasswordLink";
+	private static final String ID_RESET_PASSWORD_LINK = "resetPasswordLink";
 	private static final String ID_REMOVE_BUTTON_CONTAINER = "removeButtonContainer";
+	public static final String ID_RESET_BUTTON_CONTAINER = "resetButtonContainer";
+//	public static final String ID_PWGENERATED_CONTAINER ="passwordGeneratedContainer";
 	private static final String ID_INPUT_CONTAINER = "inputContainer";
     private static final String ID_PASSWORD_ONE = "password1";
     private static final String ID_PASSWORD_TWO = "password2";
     
+
+    
+    
     private static final Trace LOGGER = TraceManager.getTrace(PasswordPanel.class);
     
     private boolean passwordInputVisble;
+    private boolean passGeneratedVisble;
 
     public PasswordPanel(String id, IModel<ProtectedStringType> model) {
         this(id, model, false, false);
@@ -73,7 +82,7 @@ public class PasswordPanel extends InputPanel {
 
     private void initLayout(final IModel<ProtectedStringType> model, final boolean isReadOnly, boolean showRemoveButton) {
     	setOutputMarkupId(true);
-
+    	passGeneratedVisble = false;
     	passwordInputVisble = model.getObject() == null;
     	// TODO: remove
 //    	LOGGER.trace("PASSWORD model: {}", model.getObject());
@@ -119,6 +128,14 @@ public class PasswordPanel extends InputPanel {
 				return !passwordInputVisble;
 			}
 		};
+		
+//		final WebMarkupContainer passwordGeneratedContainer = new WebMarkupContainer(ID_PWGENERATED_CONTAINER){
+//			@Override
+//			public boolean isVisible() {
+//				return passGeneratedVisble;
+//			}
+//		};
+		
 		inputContainer.setOutputMarkupId(true);
         linkContainer.setOutputMarkupId(true);
 		add(linkContainer);
@@ -129,6 +146,9 @@ public class PasswordPanel extends InputPanel {
 		final Label passwordRemoveLabel = new Label(ID_PASSWORD_REMOVE, new ResourceModel("passwordPanel.passwordRemoveLabel"));
         passwordRemoveLabel.setVisible(false);
 		linkContainer.add(passwordRemoveLabel);
+		
+		
+		
 
         AjaxLink link = new AjaxLink(ID_CHANGE_PASSWORD_LINK) {
 			@Override
@@ -165,6 +185,36 @@ public class PasswordPanel extends InputPanel {
         removePassword.setOutputMarkupId(true);
         removeButtonContainer.add(removePassword);
         add(removeButtonContainer);
+        
+        final WebMarkupContainer resetButtonContainer = new WebMarkupContainer(ID_RESET_BUTTON_CONTAINER);
+        AjaxLink resetPassword = new AjaxLink(ID_RESET_PASSWORD_LINK){
+        	
+			@Override
+			public void onClick(AjaxRequestTarget target) {
+				// TODO Auto-generated method stub
+
+				PasswordPanel.this.onResetPassword(model,target);
+		
+				
+			}
+			
+        };
+        final Label passwordGeneratedLabel = new Label(ID_PASSWORD_GENERATED, new ResourceModel("passwordPanel.passwordGeneratedLabel"));
+		passwordGeneratedLabel.setVisible(false);
+		resetPassword.setBody(new ResourceModel("passwordPanel.passwordGenerate"));
+		resetPassword.setOutputMarkupId(true);
+		resetButtonContainer.setOutputMarkupId(true);
+        resetButtonContainer.add(passwordGeneratedLabel);
+        resetButtonContainer.add(resetPassword);
+        add(resetButtonContainer);
+      
+        
+    }
+    
+    protected void onResetPassword(IModel<ProtectedStringType> model, AjaxRequestTarget target){
+    	get(ID_RESET_BUTTON_CONTAINER).get(ID_PASSWORD_GENERATED).setVisible(true);
+    	passGeneratedVisble= true;
+    	target.add(this);
     }
     
 	private void onLinkClick(AjaxRequestTarget target) {
