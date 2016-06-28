@@ -81,7 +81,7 @@ public class ReindexTaskHandler extends AbstractSearchIterativeTaskHandler<Objec
 
     @Override
     protected Class<? extends ObjectType> getType(Task task) {
-        return ObjectType.class;
+		return getTypeFromTask(task, ObjectType.class);
     }
 
     @Override
