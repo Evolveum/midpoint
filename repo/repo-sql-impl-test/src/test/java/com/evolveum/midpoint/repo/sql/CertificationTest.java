@@ -27,6 +27,7 @@ import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.repo.api.RepoAddOptions;
+import com.evolveum.midpoint.repo.api.RepoModifyOptions;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
@@ -91,7 +92,11 @@ public class CertificationTest extends BaseSQLRepoTest {
     private String campaign2Oid;
     private PrismObjectDefinition<AccessCertificationCampaignType> campaignDef;
 
-    @Test
+	protected RepoModifyOptions getModifyOptions() {
+		return null;
+	}
+
+	@Test
     public void test100AddCampaignNonOverwrite() throws Exception {
         PrismObject<AccessCertificationCampaignType> campaign = prismContext.parseObject(CAMPAIGN_1_FILE);
         campaignDef = campaign.getDefinition();
@@ -488,11 +493,16 @@ public class CertificationTest extends BaseSQLRepoTest {
     }
 
     protected void executeAndCheckModification(List<ItemDelta<?,?>> modifications, OperationResult result, int versionDelta) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException, IOException {
-        PrismObject<AccessCertificationCampaignType> before = getFullCampaign(campaign1Oid, result);
+		RepoModifyOptions modifyOptions = getModifyOptions();
+		if (RepoModifyOptions.isExecuteIfNoChanges(modifyOptions) && versionDelta == 0) {
+			versionDelta = 1;
+		}
+
+		PrismObject<AccessCertificationCampaignType> before = getFullCampaign(campaign1Oid, result);
         int expectedVersion = Integer.parseInt(before.getVersion()) + versionDelta;
         List<ItemDelta> savedModifications = (List) CloneUtil.cloneCollectionMembers(modifications);
 
-        repositoryService.modifyObject(AccessCertificationCampaignType.class, campaign1Oid, modifications, result);
+		repositoryService.modifyObject(AccessCertificationCampaignType.class, campaign1Oid, modifications, modifyOptions, result);
 
         checkCampaign(campaign1Oid, result, before, savedModifications, expectedVersion);
     }

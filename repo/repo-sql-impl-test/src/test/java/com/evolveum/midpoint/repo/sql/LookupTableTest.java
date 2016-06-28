@@ -23,6 +23,7 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.api.RepoAddOptions;
+import com.evolveum.midpoint.repo.api.RepoModifyOptions;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -63,7 +64,11 @@ public class LookupTableTest extends BaseSQLRepoTest {
 
     private String tableOid;
 
-    @Test
+	protected RepoModifyOptions getModifyOptions() {
+		return null;
+	}
+
+	@Test
     public void test100AddTableNonOverwrite() throws Exception {
         PrismObject<LookupTableType> table = prismContext.parseObject(new File(TEST_DIR, "table-1.xml"));
         OperationResult result = new OperationResult("test100AddTableNonOverwrite");
@@ -247,9 +252,13 @@ public class LookupTableTest extends BaseSQLRepoTest {
     }
 
     protected void executeAndCheckModification(List<ItemDelta<?,?>> modifications, OperationResult result, int versionDelta) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException, IOException {
-        PrismObject<LookupTableType> before = getFullTable(tableOid, result);
+		RepoModifyOptions modifyOptions = getModifyOptions();
+		if (RepoModifyOptions.isExecuteIfNoChanges(modifyOptions) && versionDelta == 0) {
+			versionDelta = 1;
+		}
+		PrismObject<LookupTableType> before = getFullTable(tableOid, result);
 
-        repositoryService.modifyObject(LookupTableType.class, tableOid, modifications, result);
+        repositoryService.modifyObject(LookupTableType.class, tableOid, modifications, modifyOptions, result);
 
         checkTable(tableOid, result, before, modifications, Integer.parseInt(before.getVersion()) + versionDelta);
     }
