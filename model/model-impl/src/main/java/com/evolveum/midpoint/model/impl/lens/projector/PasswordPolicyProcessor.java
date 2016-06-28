@@ -176,7 +176,7 @@ public class PasswordPolicyProcessor {
 	}
 	
 	//TODO: maybe some caching of orgs?????
-	private <T extends ObjectType, F extends ObjectType> ValuePolicyType determineValuePolicy(ObjectDelta<UserType> userDelta, PrismObject<T> object, LensContext<F> context, Task task, OperationResult result) throws SchemaException{
+	protected <T extends ObjectType, F extends FocusType> ValuePolicyType determineValuePolicy(ObjectDelta<F> userDelta, PrismObject<T> object, LensContext<F> context, Task task, OperationResult result) throws SchemaException{
 		//check the modification of organization first
 		ValuePolicyType valuePolicy = determineValuePolicy(userDelta, task, result);
 		
@@ -197,7 +197,7 @@ public class PasswordPolicyProcessor {
 		return valuePolicy;
 	}
 	
-	private ValuePolicyType determineValuePolicy(ObjectDelta<UserType> userDelta, Task task, OperationResult result)
+	protected <F extends FocusType> ValuePolicyType determineValuePolicy(ObjectDelta<F> userDelta, Task task, OperationResult result)
 			throws SchemaException {
 		ReferenceDelta orgDelta = userDelta.findReferenceModification(UserType.F_PARENT_ORG_REF);
 
