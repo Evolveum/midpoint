@@ -1,0 +1,361 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2016 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<resource xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+          xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+          xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+          xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+          xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-3"
+          oid="746ecf5e-3e8c-11e6-b2f9-3c970e44b9e2">
+    <name>Medusa Active Directory (LDAP)</name>
+
+    <connectorRef type="ConnectorType">
+        <filter>
+            <q:equal>
+                <q:path>c:connectorType</q:path>
+                <q:value>com.evolveum.polygon.connector.ldap.ad.AdLdapConnector</q:value>
+            </q:equal>
+        </filter>
+    </connectorRef>
+    
+    <connectorConfiguration xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
+        <icfc:configurationProperties xmlns:icfcldap="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-ldap/com.evolveum.polygon.connector.ldap.ad.AdLdapConnector">
+            <icfcldap:host>medusa.lab.evolveum.com</icfcldap:host>
+            <icfcldap:port>636</icfcldap:port>
+            <icfcldap:baseContext>DC=win,DC=evolveum,DC=com</icfcldap:baseContext>
+            <icfcldap:bindDn>CN=midpoint admin1,CN=Users,DC=win,DC=evolveum,DC=com</icfcldap:bindDn>
+            <icfcldap:connectionSecurity>ssl</icfcldap:connectionSecurity>
+            <icfcldap:bindPassword>
+                <t:clearValue>secret</t:clearValue>
+            </icfcldap:bindPassword>
+            <icfcldap:pagingBlockSize>5</icfcldap:pagingBlockSize> <!-- ridiculously small, just to test paging -->
+        </icfc:configurationProperties>
+        <icfc:resultsHandlerConfiguration>
+			<icfc:enableNormalizingResultsHandler>false</icfc:enableNormalizingResultsHandler>
+			<icfc:enableFilteredResultsHandler>false</icfc:enableFilteredResultsHandler>
+			<icfc:enableAttributesToGetSearchResultsHandler>false</icfc:enableAttributesToGetSearchResultsHandler>
+		</icfc:resultsHandlerConfiguration>
+    </connectorConfiguration>
+
+    <schema>
+        <!-- workaround to MID-2723 -->
+        <generationConstraints>
+            <generateObjectClass>ri:user</generateObjectClass>
+            <generateObjectClass>ri:group</generateObjectClass>
+        </generationConstraints>
+    </schema>
+
+
+    <schemaHandling>
+
+        <!-- handling of user accounts -->
+
+        <objectType>
+            <kind>account</kind>
+            <displayName>Default Account</displayName>
+            <default>true</default>
+            <objectClass>ri:user</objectClass>
+
+			<attribute>
+				<ref>ri:dn</ref>
+				<displayName>Distinguished Name</displayName>
+				<matchingRule>mr:distinguishedName</matchingRule>
+				<outbound>
+				    <source>
+				    	<path>$user/fullName</path>
+				    </source>
+					<expression>
+						<script>
+							<code>
+								'CN=' + fullName + iterationToken + ',CN=Users,DC=win,DC=evolveum,DC=com'
+							</code>
+						</script>
+					</expression>
+				</outbound>
+			</attribute>
+			
+			<attribute>
+					<ref>ri:sAMAccountName</ref>
+					<displayName>Login name</displayName>
+					<outbound>
+						<source>
+							<path>$user/name</path>
+						</source>
+					</outbound>
+			</attribute>
+			
+			<attribute>
+				<ref>ri:cn</ref>
+				<limitations>
+					<minOccurs>0</minOccurs>
+				</limitations>
+				<outbound>
+					<source>
+						<path>fullName</path>
+					</source>
+				</outbound>
+			</attribute>
+
+			<attribute>
+				<ref>ri:sn</ref>
+				<limitations>
+					<minOccurs>0</minOccurs>
+				</limitations>
+				<outbound>
+					<source>
+						<path>familyName</path>
+					</source>
+				</outbound>
+			</attribute>
+
+			<attribute>
+				<ref>ri:givenName</ref>
+				<outbound>
+					<source>
+						<path>givenName</path>
+					</source>
+				</outbound>
+			</attribute>
+
+			<attribute>
+					<ref>ri:userPrincipalName</ref>
+					<outbound>
+				    <source>
+				    	<path>$user/name</path>
+				    </source>
+					<expression>
+						<script>
+							<code>
+								name + iterationToken + '@win.evolveum.com'
+							</code>
+						</script>
+					</expression>
+				</outbound>
+			</attribute>
+			
+			<attribute><!-- Password expired: -1: not expired; 0: expired ("User must change password at next logon") -->
+					<ref>ri:pwdLastSet</ref>
+					<outbound>
+					<expression>
+						<value>-1</value>
+					</expression>
+				</outbound>
+			</attribute>
+			
+			<attribute>
+				<ref>ri:createTimeStamp</ref>
+				<fetchStrategy>explicit</fetchStrategy>
+			</attribute>
+						
+			<attribute>
+				<ref>ri:nTSecurityDescriptor</ref>
+				<!-- This is defined as mandatory in top object class.
+                                     But it is not really mandatory. Well done Microsoft. -->
+				<limitations>
+					<minOccurs>0</minOccurs>
+				</limitations>
+			</attribute>
+
+			<attribute>
+				<ref>ri:instanceType</ref>
+				<!-- This is defined as mandatory in top object class.
+                                     But it is not really mandatory. Well done Microsoft. -->
+				<limitations>
+					<minOccurs>0</minOccurs>
+				</limitations>
+			</attribute>
+
+			<attribute>
+				<ref>ri:objectCategory</ref>
+				<!-- This is defined as mandatory in top object class.
+                                     But it is not really mandatory. Well done Microsoft. -->
+                                <!-- Be sure to update the suffix/value for your domain !!! -->
+				<limitations>
+					<minOccurs>0</minOccurs>
+				</limitations>
+				<outbound>
+					<expression>
+						<value>CN=Person,CN=Schema,CN=Configuration,DC=win,DC=evolveum,DC=com</value>
+					</expression>
+				</outbound>
+			</attribute>
+			
+<!--
+			<attribute>
+				<ref>ri:showInAdvancedViewOnly</ref>
+				<outbound>
+					<source>
+						<path>extension/showInAdvancedViewOnly</path>
+					</source>
+				</outbound>
+			</attribute>
+-->
+            <association>
+                <ref>ri:group</ref>
+                <displayName>AD Group Membership</displayName>
+                <kind>entitlement</kind>
+                <intent>group</intent>
+                <direction>objectToSubject</direction>
+                <associationAttribute>ri:member</associationAttribute>
+                <valueAttribute>ri:dn</valueAttribute>
+                <shortcutAssociationAttribute>ri:memberOf</shortcutAssociationAttribute>
+            	<shortcutValueAttribute>ri:dn</shortcutValueAttribute>
+            </association>
+            
+		<activation>
+			<administrativeStatus>
+				<outbound/>
+			</administrativeStatus>
+		</activation>
+
+            <credentials>
+                <password>
+                    <outbound/>
+                </password>
+            </credentials>
+
+        </objectType>
+
+        <objectType>
+            <kind>entitlement</kind>
+            <intent>group</intent>
+            <displayName>AD Group</displayName>
+            <default>true</default>
+            <objectClass>ri:group</objectClass>
+            <attribute>
+                <ref>dn</ref>
+                <matchingRule>mr:stringIgnoreCase</matchingRule>
+                <outbound>
+                    <source>
+                        <path>$focus/name</path>
+                    </source>
+                    <expression>
+                        <script>
+                            <code>
+                                'CN=' + name + ',CN=Users,DC=win,DC=evolveum,DC=com'
+                            </code>
+                        </script>
+                    </expression>
+                </outbound>
+            </attribute>
+            <attribute>
+                <ref>ri:cn</ref>
+                <matchingRule>mr:stringIgnoreCase</matchingRule>
+                <outbound>
+                    <source>
+                        <path>$focus/name</path>
+                    </source>
+                </outbound>
+                <inbound>
+					<target>
+						<path>name</path>
+					</target>
+				</inbound>
+            </attribute>
+            <attribute>
+                <ref>ri:description</ref>
+                <outbound>
+                    <strength>strong</strength>
+                    <source>
+                        <path>description</path>
+                    </source>
+                </outbound>
+                <inbound>
+					<target>
+						<path>description</path>
+					</target>
+				</inbound>
+            </attribute>
+        </objectType>
+
+    </schemaHandling>
+    
+    	<synchronization>
+
+		<objectSynchronization>
+			<name>Account sync</name>
+			<objectClass>ri:user</objectClass>
+			<kind>account</kind>
+			<intent>default</intent>
+			<focusType>UserType</focusType>
+			<enabled>true</enabled>
+			<correlation>
+				<q:equal>
+					<q:path>c:name</q:path>
+					<expression>
+						<path>$shadow/attributes/sAMAccountName</path>
+					</expression>
+				</q:equal>
+			</correlation>
+			
+			<reaction>
+	            <situation>linked</situation>
+	            <synchronize>true</synchronize>
+	        </reaction>
+	        <reaction>
+	            <situation>deleted</situation>
+	            <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#unlink"/>
+	        </reaction>
+	        <reaction>
+	            <situation>unlinked</situation>
+	            <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#link"/>
+	        </reaction>
+	        <reaction>
+	            <situation>unmatched</situation>
+<!--                    <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#addFocus"/>-->
+	        </reaction>
+
+		</objectSynchronization>
+		
+		<objectSynchronization>
+			<name>Group sync</name>
+			<objectClass>ri:group</objectClass>
+			<kind>entitlement</kind>
+			<intent>group</intent>
+			<focusType>RoleType</focusType>
+			<enabled>true</enabled>
+			<correlation>
+				<q:equal>
+					<q:path>c:name</q:path>
+					<expression>
+						<path>$shadow/attributes/cn</path>
+					</expression>
+				</q:equal>
+			</correlation>
+			
+			<reaction>
+	            <situation>linked</situation>
+	            <synchronize>true</synchronize>
+	        </reaction>
+	        <reaction>
+	            <situation>deleted</situation>
+	            <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#unlink"/>
+	        </reaction>
+	        <reaction>
+	            <situation>unlinked</situation>
+	            <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#link"/>
+	        </reaction>
+	        <reaction>
+	            <situation>unmatched</situation>
+<!--                    <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#addFocus"/>-->
+	        </reaction>
+
+		</objectSynchronization>
+	</synchronization>
+
+</resource>
