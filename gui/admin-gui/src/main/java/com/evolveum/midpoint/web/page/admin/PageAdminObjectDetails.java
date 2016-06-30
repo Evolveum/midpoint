@@ -487,6 +487,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 				} catch (Exception ex) {
 					result.recordFatalError(getString("pageFocus.message.cantCreateFocus"), ex);
 					LoggingUtils.logUnexpectedException(LOGGER, "Create user failed", ex);
+					showResult(result);
 				}
 				break;
 
@@ -532,7 +533,15 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 						}
 						progressReporter.executeChanges(deltas, previewOnly, options, task, result, target);
 					} else {
-						result.recordSuccess();
+						progressReporter.clearProgressPanel();			// from previous attempts (useful only if we would call finishProcessing at the end, but that's not the case now)
+						if (!previewOnly) {
+							result.recordWarning(getString("PageAdminObjectDetails.noChangesSave"));
+							showResult(result);
+							redirectBack();
+						} else {
+							warn(getString("PageAdminObjectDetails.noChangesPreview"));
+							target.add(getFeedbackPanel());
+						}
 					}
 
 				} catch (Exception ex) {
@@ -542,6 +551,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 					} else {
 						result.recomputeStatus();
 					}
+					showResult(result);
 				}
 				break;
 			// support for add/delete containers (e.g. delete credentials)
@@ -549,12 +559,12 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 				error(getString("pageAdminFocus.message.unsupportedState", objectWrapper.getStatus()));
 		}
 
-		result.recomputeStatus();
-
-		if (!result.isInProgress()) {
-			LOGGER.trace("Result NOT in progress, calling finishProcessing");
-			finishProcessing(target, result);
-		}
+//		result.recomputeStatus();
+//
+//		if (!result.isInProgress()) {
+//			LOGGER.trace("Result NOT in progress, calling finishProcessing");
+//			finishProcessing(target, result, false);
+//		}
 		
 		LOGGER.trace("returning from saveOrPreviewPerformed");
 	}

@@ -41,7 +41,7 @@ public interface ProgressReportingAwarePage {
 
 	void startProcessing(AjaxRequestTarget target, OperationResult result);
 	
-    void finishProcessing(AjaxRequestTarget target, OperationResult result);
+    void finishProcessing(AjaxRequestTarget target, OperationResult result, boolean returningFromAsync);
 
     // things from PageBase (todo factor this out eventually)
 
