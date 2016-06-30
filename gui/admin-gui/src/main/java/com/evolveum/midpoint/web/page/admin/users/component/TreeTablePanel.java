@@ -194,7 +194,7 @@ public class TreeTablePanel extends BasePanel<String> {
 
 					@Override
 					public void onClick(AjaxRequestTarget target) {
-						deleteRootPerformed(getRowModel().getObject(), target);
+						deleteNodePerformed(getRowModel().getObject(), target);
 					}
 				});
 		items.add(item);
@@ -448,7 +448,7 @@ public class TreeTablePanel extends BasePanel<String> {
 		getTreePanel().refreshTabbedPanel(target);
 	}
 
-	private void deleteRootPerformed(final SelectableBean<OrgType> orgToDelete, AjaxRequestTarget target) {
+	private void deleteNodePerformed(final SelectableBean<OrgType> orgToDelete, AjaxRequestTarget target) {
 
 		ConfirmationPanel confirmationPanel = new ConfirmationPanel(getPageBase().getMainPopupBodyId(),
 				new AbstractReadOnlyModel<String>() {
@@ -471,7 +471,7 @@ public class TreeTablePanel extends BasePanel<String> {
 
 			@Override
 			public void yesPerformed(AjaxRequestTarget target) {
-					deleteRootConfirmedPerformed(orgToDelete, target);
+					deleteNodeConfirmedPerformed(orgToDelete, target);
 			}
 		};
 
@@ -496,7 +496,7 @@ public class TreeTablePanel extends BasePanel<String> {
 	}
 
 
-	private void deleteRootConfirmedPerformed(SelectableBean<OrgType> orgToDelete, AjaxRequestTarget target) {
+	private void deleteNodeConfirmedPerformed(SelectableBean<OrgType> orgToDelete, AjaxRequestTarget target) {
 		getPageBase().hideMainPopup(target);
 		OperationResult result = new OperationResult(OPERATION_DELETE_OBJECT);
 
@@ -511,26 +511,16 @@ public class TreeTablePanel extends BasePanel<String> {
 		result.computeStatusIfUnknown();
 		page.showResult(result);
 
-		// The following code determines if we deleted a root; if so, we refresh and reload whole page
-		// TODO consider if we couldn't skip this parent checking and simply refresh whole page
-		boolean isRoot = true;
-		for (ObjectReferenceType parentRef : orgToDelete.getValue().getParentOrgRef()) {
-			Task task = getPageBase().createSimpleTask(OPERATION_CHECK_PARENTS);
-			try {
-				getPageBase().getModelService().getObject(OrgType.class, parentRef.getOid(), null, task, task.getResult());
-				isRoot = false;
-				break;
-			} catch (CommonException|RuntimeException e) {
-				LoggingUtils.logExceptionAsWarning(LOGGER, "Exception while checking existence of org's {} parent: {}", e, oidToDelete, parentRef.getOid());
-			}
-		}
-
-		if (isRoot) {
-			// TODO is this ok? (target.add(getPage()) is not sufficient) [pmed]
-			throw new RestartResponseException(getPage().getClass());
-		} else {
-			getTreePanel().refreshTabbedPanel(target);
-		}
+		// even if we theoretically could refresh page only if non-leaf node is deleted,
+		// for simplicity we do it each time
+		//
+		// Instruction to refresh only the part would be:
+		//  - getTreePanel().refreshTabbedPanel(target);
+		//
+		// But how to refresh whole page? target.add(getPage()) is not sufficient - content is unchanged;
+		// so we use the following.
+		// TODO is this ok? [pmed]
+		throw new RestartResponseException(getPage().getClass());
 	}
 
 	private void editRootPerformed(SelectableBean<OrgType> root, AjaxRequestTarget target) {
