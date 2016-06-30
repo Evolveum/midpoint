@@ -28,7 +28,26 @@ function initEditor(textAreaId, readonly, minSize) {
     $(jqEditor).text($(jqTextArea).val());
     $(jqTextArea).hide();
 
+    var langTools = ace.require("ace/ext/language_tools");
+    //todo implement completer based
+    // var completer = {
+    //    
+    //     getCompletions: function(editor, session, pos, prefix, callback) {
+    //         //example
+    //         var completions = [];
+    //         completions.push({ name:"testing1", value:"testing1", meta: "code1" });
+    //         completions.push({ name:"testing2", value:"testing2", meta: "code2" });
+    //         callback(null, completions);
+    //     }
+    // }
+    // langTools.addCompleter(completer);
+    
     var editor = ace.edit(editorId);
+
+    editor.setOptions({
+        enableBasicAutocompletion: true
+    });
+
     editor.setTheme("ace/theme/eclipse");
     editor.getSession().setMode("ace/mode/xml");
     editor.setShowPrintMargin(false);
