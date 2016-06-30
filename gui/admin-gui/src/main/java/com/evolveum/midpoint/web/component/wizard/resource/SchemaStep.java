@@ -99,8 +99,12 @@ public class SchemaStep extends WizardStep {
     }
 
     private IModel<String> createXmlEditorModel() {
-        return new AbstractReadOnlyModel<String>() {
-            @Override
+        return new IModel<String>() {
+			@Override
+			public void detach() {
+			}
+
+			@Override
             public String getObject() {
                 PrismObject<ResourceType> resource = model.getObject();
                 PrismContainer xmlSchema = resource.findContainer(ResourceType.F_SCHEMA);
@@ -117,7 +121,12 @@ public class SchemaStep extends WizardStep {
 					return WebComponentUtil.exceptionToString("Couldn't serialize resource schema", ex);
                 }
             }
-        };
+
+			@Override
+			public void setObject(String object) {
+				// ignore (it's interesting that this is called sometimes, even when the ACE is set to be read only)
+			}
+		};
     }
 
     private void reloadPerformed(AjaxRequestTarget target) {

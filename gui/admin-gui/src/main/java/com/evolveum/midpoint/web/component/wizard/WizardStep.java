@@ -57,7 +57,7 @@ public class WizardStep extends org.apache.wicket.extensions.wizard.WizardStep {
     public WizardStep(PageBase pageBase) {
         this.pageBase = pageBase;
         String key = getClass().getSimpleName() + ".title";
-        setTitleModel(PageBase.createStringResourceStatic(this, key));
+        setTitleModel(pageBase.createStringResource(key));
     }
 
     @Override

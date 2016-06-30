@@ -154,7 +154,7 @@ public class SynchronizationStep extends WizardStep {
 		}
 
 		ResourceSynchronizationDto dto = new ResourceSynchronizationDto(resourceModel.getObject().asObjectable().getSynchronization().getObjectSynchronization());
-        dto.setObjectClassList(loadResourceObjectClassList(resourceModel, LOGGER, getString("SynchronizationStep.message.errorLoadingObjectSyncList")));
+        dto.setObjectClassList(loadResourceObjectClassList(resourceModel, LOGGER, parentPage.getString("SynchronizationStep.message.errorLoadingObjectSyncList")));
         return dto;
     }
 
