@@ -17,12 +17,16 @@
 
 <beans:beans xmlns="http://www.springframework.org/schema/security"
              xmlns:beans="http://www.springframework.org/schema/beans"
+             xmlns:context="http://www.springframework.org/schema/context"
              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
              xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.1.xsd
-http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security-4.1.xsd">
+http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security-4.1.xsd
+http://www.springframework.org/schema/context
+     http://www.springframework.org/schema/context/spring-context-3.0.xsd">
 
 
     <global-method-security secured-annotations="enabled"/>
+    
 
 	<!-- Web services have their own authentication and authorization using CXF interceptors. -->
     <http pattern="/model/**" security="none"/>
@@ -39,7 +43,7 @@ http://www.springframework.org/schema/security http://www.springframework.org/sc
     <http pattern="/wicket/resource/**" security="none"/>
 
 	<!-- add following: entry-point-ref="casEntryPoint"  to the http element before create-session attribute -->
-    <http create-session="never" auto-config="true" use-expressions="false" access-decision-manager-ref="accessDecisionManager">
+    <http entry-point-ref="casEntryPoint" create-session="never" auto-config="true" use-expressions="false" access-decision-manager-ref="accessDecisionManager">
         <intercept-url pattern="/j_spring_security_check" />
         <intercept-url pattern="/spring_security_login" />
 
@@ -60,14 +64,13 @@ http://www.springframework.org/schema/security http://www.springframework.org/sc
 		<!-- For SSO integration use the following: -->
         <!-- <custom-filter position="PRE_AUTH_FILTER" ref="requestHeaderAuthenticationFilter" />  -->
 		
-		<!-- For SSO CAS integration uncomment  following -->
-		<!--
+		<!-- For CAS Authentication uncomment following		 -->
 		<custom-filter position="CAS_FILTER" ref="casFilter" />
 		<logout logout-success-url="/cas-logout.jsp"/>
 		<custom-filter ref="requestSingleLogoutFilter" before="LOGOUT_FILTER"/>
-		<custom-filter ref="singleLogoutFilter" before="CAS_FILTER"/>
-		-->
-		
+<!-- 		<custom-filter ref="singleLogoutFilter" before="CAS_FILTER"/> -->
+
+				
 		<!-- login-processing-url must NOT be /login. Otherwise the requests from AJAX components
 			 on the login page will be interpreted as login form sumbit and there will be faux errors. -->
         <form-login login-page="/login" login-processing-url="/spring_security_login"
@@ -93,13 +96,9 @@ http://www.springframework.org/schema/security http://www.springframework.org/sc
     </beans:bean>
     
     <beans:bean id="logoutHandler" class="com.evolveum.midpoint.web.security.AuditedLogoutHandler">
-        <beans:property name="defaultTargetUrl" value="/"/>
+        <beans:property name="defaultTargetUrl" value="${auth.logout.url}"/>
     </beans:bean>
 
-    <beans:bean id="midPointAuthenticationProvider"
-                class="com.evolveum.midpoint.web.security.MidPointAuthenticationProvider">
-    </beans:bean>
-    
     <!-- Following bean is used with pre-authentication based on HTTP headers (e.g. for SSO integration) -->
     <beans:bean id="requestHeaderAuthenticationFilter"
                 class="org.springframework.security.web.authentication.preauth.RequestHeaderAuthenticationFilter">
@@ -107,96 +106,7 @@ http://www.springframework.org/schema/security http://www.springframework.org/sc
 	    <beans:property name="authenticationManager" ref="authenticationManager" />
 	</beans:bean>
 
-	<beans:bean id="contextSource"
-		class="org.springframework.security.ldap.DefaultSpringSecurityContextSource">
-		<beans:constructor-arg value="ldap://192.168.56.101:389/dc=example,dc=com" />
-		<beans:property name="userDn" value="cn=admin,dc=example,dc=com" />
-		<beans:property name="password" value="secret" />
-	</beans:bean>
-
-	<beans:bean id="ldapAuthProvider"
-		class="org.springframework.security.ldap.authentication.LdapAuthenticationProvider">
-		<beans:constructor-arg>
-			<beans:bean
-				class="org.springframework.security.ldap.authentication.BindAuthenticator">
-				<beans:constructor-arg ref="contextSource" />
-				<beans:property name="userDnPatterns">
-					<beans:list>
-						<beans:value>uid={0},ou=people</beans:value>
-					</beans:list>
-				</beans:property>
-			</beans:bean>
-		</beans:constructor-arg>
-
-		<beans:property name="userDetailsContextMapper"
-					ref="userDetailsService" />
-	</beans:bean>
-
 	<authentication-manager alias="authenticationManager">
-		<!-- <authentication-provider ref="midPointAuthenticationProvider"/> -->
-		<authentication-provider ref="ldapAuthProvider" />
-
-	</authentication-manager>
-	
-	<!-- For SSO CAS integration uncomment following and set CASSERVER address   and   change service url according to your needs-->
-	<!-- CAS CONFIG -->
-	<!--
-	<beans:bean id="serviceProperties"
-        class="org.springframework.security.cas.ServiceProperties">
-    <beans:property name="service"
-        value="http://localhost:8080/midpoint/j_spring_cas_security_check"/>
-    <beans:property name="sendRenew" value="false"/>
-  </beans:bean>
-  
-  <beans:bean id="casFilter"
-        class="org.springframework.security.cas.web.CasAuthenticationFilter">
-    <beans:property name="authenticationManager" ref="authenticationManager"/>
-  </beans:bean>
-
-  <beans:bean id="casEntryPoint"
-      class="org.springframework.security.cas.web.CasAuthenticationEntryPoint">
-    <beans:property name="loginUrl" value="https://CASSERVER/cas/login"/>
-    <beans:property name="serviceProperties" ref="serviceProperties"/>
-  </beans:bean>
-  
-  <authentication-manager alias="authenticationManager">
-    <authentication-provider ref="casAuthenticationProvider" />
-  </authentication-manager>
-
-  <beans:bean id="casAuthenticationProvider"
-      class="org.springframework.security.cas.authentication.CasAuthenticationProvider">
-    <beans:property name="authenticationUserDetailsService">
-      <beans:bean class="org.springframework.security.core.userdetails.UserDetailsByNameServiceWrapper">
-        <beans:constructor-arg ref="userDetailsService" />
-      </beans:bean>
-    </beans:property>
-    <beans:property name="serviceProperties" ref="serviceProperties" />
-    <beans:property name="ticketValidator">
-      <beans:bean class="org.jasig.cas.client.validation.Cas20ServiceTicketValidator">
-        <beans:constructor-arg index="0" value="https://CASSERVER/cas" />
-      </beans:bean>
-    </beans:property>
-    <beans:property name="key" value="CAS_ID"/>
-  </beans:bean>
- 
--->
-
-	<!-- For SLO CAS integration uncomment following and set CASSERVER address-->
-	<!-- LOGOUT -->
-	
-  <!-- This filter handles a Single Logout Request from the CAS Server -->
-  <!--<beans:bean id="singleLogoutFilter" class="org.jasig.cas.client.session.SingleSignOutFilter"/> -->
-  <!-- This filter redirects to the CAS Server to signal Single Logout should be performed -->
-  <!--<beans:bean id="requestSingleLogoutFilter"
-        class="org.springframework.security.web.authentication.logout.LogoutFilter">
-    <beans:constructor-arg value="https://CASSERVER/cas/logout"/>
-    <beans:constructor-arg>
-      <beans:bean class=
-          "org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler"/>
-    </beans:constructor-arg>
-    <beans:property name="filterProcessesUrl" value="/j_spring_cas_security_logout"/>
-  </beans:bean>
-  -->
-  
-  
+		<authentication-provider ref="midPointAuthenticationProvider"/>
+	</authentication-manager>  
 </beans:beans>

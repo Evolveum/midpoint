@@ -65,6 +65,7 @@
         <slf4j.version>1.7.12</slf4j.version>
         <spring.version>4.2.5.RELEASE</spring.version>
         <spring.security.version>4.1.0.RELEASE</spring.security.version>
+        <cas.client.version>3.4.1</cas.client.version>
         <testng.version>6.8.8</testng.version>
         <xml.resolver.version>1.2</xml.resolver.version>
         <xmlunit.version>2.1.1</xmlunit.version>
