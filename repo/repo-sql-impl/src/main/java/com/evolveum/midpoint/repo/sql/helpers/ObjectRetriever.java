@@ -155,9 +155,7 @@ public class ObjectRetriever {
 				lockOptions.setLockMode(LockMode.PESSIMISTIC_WRITE);
 				lockedForUpdateViaHibernate = true;
 			} else if (getConfiguration().isLockForUpdateViaSql()) {
-				if (LOGGER.isTraceEnabled()) {
-					LOGGER.trace("Trying to lock object " + oid + " for update (via SQL)");
-				}
+				LOGGER.trace("Trying to lock object {} for update (via SQL)", oid);
 				long time = System.currentTimeMillis();
 				SQLQuery q = session.createSQLQuery("select oid from m_object where oid = ? for update");
 				q.setString(0, oid);
@@ -166,7 +164,7 @@ public class ObjectRetriever {
 					return throwObjectNotFoundException(type, oid);
 				}
 				if (LOGGER.isTraceEnabled()) {
-					LOGGER.trace("Locked via SQL (in " + (System.currentTimeMillis() - time) + " ms)");
+					LOGGER.trace("Locked via SQL (in {} ms)", System.currentTimeMillis() - time);
 				}
 				lockedForUpdateViaSql = true;
 			}
@@ -174,11 +172,11 @@ public class ObjectRetriever {
 
 		if (LOGGER.isTraceEnabled()) {
 			if (lockedForUpdateViaHibernate) {
-				LOGGER.trace("Getting object " + oid + " with locking for update (via hibernate)");
+				LOGGER.trace("Getting object {} with locking for update (via hibernate)", oid);
 			} else if (lockedForUpdateViaSql) {
-				LOGGER.trace("Getting object " + oid + ", already locked for update (via SQL)");
+				LOGGER.trace("Getting object {}, already locked for update (via SQL)", oid);
 			} else {
-				LOGGER.trace("Getting object " + oid + " without locking for update");
+				LOGGER.trace("Getting object {} without locking for update", oid);
 			}
 		}
 

@@ -160,7 +160,7 @@ public class ProgressReporter implements Serializable {
                 result.recordFatalError(e.getMessage(), e);
             }
         }
-        parentPage.finishProcessing(target, result);
+        parentPage.finishProcessing(target, result, false);
     }
 
     private void executeChangesAsync(final Collection<ObjectDelta<? extends ObjectType>> deltas, final boolean previewOnly,
@@ -227,7 +227,7 @@ public class ProgressReporter implements Serializable {
 
                         stopRefreshingProgressPanel();
 
-                        parentPage.finishProcessing(target, asyncOperationResult);
+                        parentPage.finishProcessing(target, asyncOperationResult, true);
                         asyncOperationResult = null;
                     }
                 }

@@ -170,7 +170,7 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 	}
 
 	@Override
-	public void finishProcessing(AjaxRequestTarget target, OperationResult result) {
+	public void finishProcessing(AjaxRequestTarget target, OperationResult result, boolean returningFromAsync) {
 
 		if (previewRequested) {
 			finishPreviewProcessing(target, result);
@@ -187,32 +187,33 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
                     setTimeZone(WebModelServiceUtils.getTimezone(user));
             LOGGER.debug("Using {} as time zone", WebSession.get().getClientInfo().getProperties().getTimeZone());
         }
-		boolean userAdded = getDelta() != null && getDelta().isAdd() && StringUtils.isNotEmpty(getDelta().getOid());
-		if (!isKeepDisplayingResults() && getProgressReporter().isAllSuccess()
-				&& (userAdded || !result.isFatalError())) { // TODO
+		boolean focusAddAttempted = getDelta() != null && getDelta().isAdd();
+		boolean focusAddSucceeded = focusAddAttempted && StringUtils.isNotEmpty(getDelta().getOid());
+
+		// we don't want to allow resuming editing if a new focal object was created (on second 'save' there would be a conflict with itself)
+		// and also in case of partial errors, like those related to projections (many deltas would be already executed, and this could cause problems on second 'save').
+		boolean canContinueEditing = !focusAddSucceeded && result.isFatalError();
+
+		boolean canExitPage;
+		if (returningFromAsync) {
+			canExitPage = getProgressReporter().isAllSuccess();			// if there's at least a warning in the progress table, we would like to keep the table open
+		} else {
+			canExitPage = !canContinueEditing;							// no point in staying on page if we cannot continue editing (in synchronous case i.e. no progress table present)
+		}
+
+		if (!isKeepDisplayingResults() && canExitPage) {
 			showResult(result);
-			// todo refactor this...what is this for? why it's using some
-			// "shadow" param from result???
-			PrismObject<F> focus = getObjectWrapper().getObject();
-			F focusType = focus.asObjectable();
-			for (ObjectReferenceType ref : focusType.getLinkRef()) {
-				Object o = findParam("shadow", ref.getOid(), result);
-				if (o != null && o instanceof ShadowType) {
-					ShadowType accountType = (ShadowType) o;
-					OperationResultType fetchResult = accountType.getFetchResult();
-						showResult(OperationResult.createOperationResult(fetchResult), false);
-					
-				}
-			}
 			redirectBack();
 		} else {
-            getProgressReporter().showBackButton(target);
-            getProgressReporter().hideAbortButton(target);
+			if (returningFromAsync) {
+				getProgressReporter().showBackButton(target);
+				getProgressReporter().hideAbortButton(target);
+			}
             showResult(result);
 			target.add(getFeedbackPanel());
 
-			if (!userAdded && result.isFatalError()) {
-				getProgressReporter().hideBackButton(target);				// not to confuse the user
+			if (canContinueEditing) {
+				getProgressReporter().hideBackButton(target);
 				getProgressReporter().showContinueEditingButton(target);
 			}
 		}

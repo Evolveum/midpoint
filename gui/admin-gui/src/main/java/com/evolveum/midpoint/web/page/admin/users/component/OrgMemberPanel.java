@@ -117,6 +117,7 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 
 	public OrgMemberPanel(String id, IModel<OrgType> model, PageBase parentPage) {
 		super(id, TableId.ORG_MEMEBER_PANEL, model, parentPage);
+		setOutputMarkupId(true);
 	}
 
 	@Override
@@ -233,7 +234,7 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 							.get(ID_MANAGER_SUMMARY);
 					removeManagerPerformed(summary.getModelObject(), target);
 					getParent().setVisible(false);
-					target.add(getParent());
+					target.add(OrgMemberPanel.this);
 
 				}
 			};
@@ -247,9 +248,6 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 					FocusSummaryPanel<FocusType> summary = (FocusSummaryPanel<FocusType>) getParent()
 							.get(ID_MANAGER_SUMMARY);
 					deleteManagerPerformed(summary.getModelObject(), this, target);
-//					getParent().setVisible(false);
-//					target.add(getParent());
-
 				}
 			};
 			deleteManager.setOutputMarkupId(true);
@@ -320,7 +318,7 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 			public void yesPerformed(AjaxRequestTarget target) {
 				OrgMemberPanel.this.deleteManagerConfirmPerformed(manager, target);
 				summary.getParent().setVisible(false);
-				target.add(summary.getParent());
+				target.add(OrgMemberPanel.this);
 			}
 		};
 		
