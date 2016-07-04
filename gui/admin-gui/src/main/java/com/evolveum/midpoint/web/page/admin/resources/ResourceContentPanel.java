@@ -15,15 +15,13 @@
  */
 package com.evolveum.midpoint.web.page.admin.resources;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import org.apache.commons.collections.IteratorUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
@@ -467,9 +465,13 @@ public abstract class ResourceContentPanel extends Panel {
 		if (addAdditionalOptions() != null) {
 			opts.add(addAdditionalOptions());
 		}
-		provider.setUseObjectCounting(isUseObjectCounting());
+        boolean useObjectCounting = isUseObjectCounting();
+		provider.setUseObjectCounting(useObjectCounting);
 		provider.setOptions(opts);
-	}
+        if (!useObjectCounting) {
+            provider.iterator(0, provider.size());
+        }
+    }
 
 	private StringResourceModel createStringResource(String key) {
 		return pageBase.createStringResource(key);

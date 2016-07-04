@@ -21,6 +21,7 @@ import java.util.Map;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
@@ -57,7 +58,8 @@ public class ResourceContentResourcePanel extends ResourceContentPanel {
 
 	@Override
 	protected boolean isUseObjectCounting() {
-		return false;
+		boolean useObjectCounting = ResourceTypeUtil.isCountObjectsCapabilityEnabled(getResourceModel().getObject().asObjectable());
+        return useObjectCounting;
 	}
 
 	@Override
