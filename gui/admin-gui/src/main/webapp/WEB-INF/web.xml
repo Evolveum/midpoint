@@ -39,10 +39,15 @@
             classpath:ctx-certification.xml,
             classpath:ctx-interceptor.xml,
             classpath*:ctx-overlay.xml,
-<!--             classpath:ctx-camel-imports.xml, -->
-            /WEB-INF/ctx-webapp.xml,
-            /WEB-INF/ctx-web-security.xml,
-            /WEB-INF/ctx-init.xml
+            /WEB-INF/ctx-init.xml,
+            /WEB-INF/ctx-webapp.xml  
+            /WEB-INF/ctx-web-security.xml
+            <!-- Comment this if you use another authentication method such as LDAP or CAS -->
+            /WEB-INF/ctx-web-security-basic.xml  
+            <!-- USE THIS CONTEXT IN ADDITION TO THE ctx-web-security.xml FOR LDAP AUTH -->
+<!--             /WEB-INF/ctx-web-security-ldap.xml -->
+			<!-- USE THIS CONTEXT IN ADDITION TO THE ctx-web-security.xml FOR CAS AUTH --> 
+<!--             /WEB-INF/ctx-web-security-cas.xml  -->
         </param-value>
     </context-param>
 
@@ -70,7 +75,7 @@
     </filter-mapping>
 
 	<!-- For CAS SLO integration uncomment following -->
-<!--
+<!-- 
 	 <filter>
     <filter-name>characterEncodingFilter</filter-name>
     <filter-class>org.springframework.web.filter.CharacterEncodingFilter</filter-class>
@@ -86,7 +91,7 @@
   <listener>
     <listener-class>org.jasig.cas.client.session.SingleSignOutHttpSessionListener</listener-class>
   </listener>
-	-->
+ -->
     <filter>
         <filter-name>wicket</filter-name>
         <filter-class>org.apache.wicket.protocol.http.WicketFilter</filter-class>
