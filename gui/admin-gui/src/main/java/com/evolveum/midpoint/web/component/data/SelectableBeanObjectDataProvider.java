@@ -192,7 +192,12 @@ public class SelectableBeanObjectDataProvider<O extends ObjectType> extends Base
     protected int internalSize() {
         LOGGER.trace("begin::internalSize()");
         if (!isUseObjectCounting()) {
-            return Integer.MAX_VALUE;
+            //try to find out the actual size of provider and return it as a size
+            if (getAvailableData().size() > 0){
+                return getAvailableData().size();
+            } else {
+                return Integer.MAX_VALUE;
+            }
         }
         int count = 0;
         OperationResult result = new OperationResult(OPERATION_COUNT_OBJECTS);
