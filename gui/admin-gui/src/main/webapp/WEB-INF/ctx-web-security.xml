@@ -43,7 +43,7 @@ http://www.springframework.org/schema/context
     <http pattern="/wicket/resource/**" security="none"/>
 
 	<!-- add following: entry-point-ref="casEntryPoint"  to the http element before create-session attribute -->
-    <http entry-point-ref="casEntryPoint" create-session="never" auto-config="true" use-expressions="false" access-decision-manager-ref="accessDecisionManager">
+    <http create-session="never" auto-config="true" use-expressions="false" access-decision-manager-ref="accessDecisionManager">
         <intercept-url pattern="/j_spring_security_check" />
         <intercept-url pattern="/spring_security_login" />
 
@@ -65,9 +65,9 @@ http://www.springframework.org/schema/context
         <!-- <custom-filter position="PRE_AUTH_FILTER" ref="requestHeaderAuthenticationFilter" />  -->
 		
 		<!-- For CAS Authentication uncomment following		 -->
-		<custom-filter position="CAS_FILTER" ref="casFilter" />
-		<logout logout-success-url="/cas-logout.jsp"/>
-		<custom-filter ref="requestSingleLogoutFilter" before="LOGOUT_FILTER"/>
+<!-- 		<custom-filter position="CAS_FILTER" ref="casFilter" /> -->
+<!-- 		<logout logout-success-url="/cas-logout.jsp"/> -->
+<!-- 		<custom-filter ref="requestSingleLogoutFilter" before="LOGOUT_FILTER"/> -->
 <!-- 		<custom-filter ref="singleLogoutFilter" before="CAS_FILTER"/> -->
 
 				
