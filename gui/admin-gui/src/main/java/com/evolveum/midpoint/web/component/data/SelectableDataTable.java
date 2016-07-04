@@ -35,55 +35,6 @@ public class SelectableDataTable<T> extends DataTable<T, String> {
         final Item<T> rowItem = new SelectableRowItem<T>(id, index, model);
 
         rowItem.setOutputMarkupId(true);
-
-//        rowItem.add(new AttributeAppender("class", new AbstractReadOnlyModel<String>() {
-//
-//            @Override
-//            public String getObject() {
-//                T object = rowItem.getModel().getObject();
-//                if (!(object instanceof Selectable)) {
-//                    return "";
-//                }
-//
-//                Selectable selectable = (Selectable) object;
-//                return selectable.isSelected() ? "selectedRow" : "";
-//            }
-//        }));
-//
-//        rowItem.add(new AjaxEventBehavior("click") {
-//
-//            @Override
-//            protected void onEvent(AjaxRequestTarget target) {
-//                T object = rowItem.getModel().getObject();
-//                if (!(object instanceof Selectable)) {
-//                    return;
-//                }
-//
-//                Selectable selectable = (Selectable) object;
-//                selectable.setSelected(!selectable.isSelected());
-//
-//                //update table row
-//                target.add(rowItem);
-//                //update checkbox header column, if we found some
-//                CheckBoxPanel headerCheck = CheckBoxHeaderColumn.findCheckBoxColumnHeader(SelectableDataTable.this);
-//                if (headerCheck == null) {
-//                    return;
-//                }
-//
-//                headerCheck.getPanelComponent().setModelObject(
-//                        CheckBoxHeaderColumn.shoulBeHeaderSelected(SelectableDataTable.this));
-//                target.add(headerCheck);
-//            }
-//
-//            @Override
-//            protected void updateAjaxAttributes(AjaxRequestAttributes attributes) {
-//                super.updateAjaxAttributes(attributes);
-//
-//                attributes.getAjaxCallListeners().add(
-//                        new AjaxCallListener().onPrecondition("return !dropClickEvent(attrs);"));
-//            }
-//        });
-
         return rowItem;
     }
 

@@ -337,17 +337,20 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 		
 	@SuppressWarnings("deprecation")
 	private void searchPerformed(ObjectQuery query, AjaxRequestTarget target) {
+
 		BaseSortableDataProvider<SelectableBean<O>> provider = getDataProvider();
+
+		// note: we ignore 'query' parameter, as the 'customQuery' already contains its content (MID-3271)
 		ObjectQuery customQuery = getQuery();
-		
-		if (customQuery == null){
-			customQuery = query;
-		} else {
-			if (query != null){
-				customQuery.addFilter(query.getFilter());
-			}
-			
-		}
+
+//		if (customQuery == null){
+//			customQuery = query;
+//		} else {
+//			if (query != null){
+//				customQuery.addFilter(query.getFilter());
+//			}
+//		}
+
 		provider.setQuery(customQuery);
 		String storageKey = getStorageKey();
 		if (StringUtils.isNotEmpty(storageKey)) {

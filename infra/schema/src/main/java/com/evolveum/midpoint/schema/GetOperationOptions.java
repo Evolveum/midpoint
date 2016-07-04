@@ -83,6 +83,13 @@ public class GetOperationOptions implements Serializable, Cloneable {
 	private Boolean raw;
 	
 	/**
+	 * Tolerate "raw" data in returned object. In some cases, raw data are tolerated by default (e.g. if raw=true
+	 * and the object is ResourceType or ShadowType). But generally, toleration of raw data can be explicitly requested
+	 * by setting this flag to TRUE.
+	 */
+	private Boolean tolerateRawData;
+
+	/**
 	 * Force to get object from the resource even if some of the error occurred.
 	 * If the any copy of the shadow is fetched, we can't delete this object
 	 * from the gui, for example
@@ -244,6 +251,30 @@ public class GetOperationOptions implements Serializable, Cloneable {
 		opts.setResolveNames(true);
 		return opts;
 	}
+
+    public Boolean getTolerateRawData() {
+        return tolerateRawData;
+    }
+
+    public void setTolerateRawData(Boolean value) {
+        this.tolerateRawData = value;
+    }
+
+    public static boolean isTolerateRawData(GetOperationOptions options) {
+        if (options == null) {
+            return false;
+        }
+        if (options.tolerateRawData == null) {
+            return false;
+        }
+        return options.tolerateRawData;
+    }
+
+    public static GetOperationOptions createTolerateRawData() {
+        GetOperationOptions opts = new GetOperationOptions();
+        opts.setTolerateRawData(true);
+        return opts;
+    }
 
     public Boolean getRaw() {
         return raw;

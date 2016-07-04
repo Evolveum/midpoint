@@ -516,10 +516,10 @@ public class SchemaTransformer {
 				return;
 			}
 			Class<T> type = object.getCompileTimeClass();
-			boolean tolerateRaw = false;
+			boolean tolerateRaw = GetOperationOptions.isTolerateRawData(options);
 			if (type == ResourceType.class || ShadowType.class.isAssignableFrom(type) || type == ReportType.class) {
-				// We tolarate raw values for resource and shadows in case the user has requested so
-				tolerateRaw = options.isRaw(options);
+				// We tolerate raw values for resource and shadows in case the user has requested so
+				tolerateRaw = GetOperationOptions.isRaw(options);
 			}
 			if (hasError(object, result)) {
 				// If there is an error then the object might not be complete.

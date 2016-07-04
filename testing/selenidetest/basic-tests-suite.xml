@@ -23,11 +23,11 @@
             <class name="com.evolveum.midpoint.testing.selenide.tests.basictests.LoginTest"/>
         </classes>
     </test>
-    <!--<test name="Simple User Tests" parallel="false" preserve-order="true" verbose="10">-->
-        <!--<classes>-->
-            <!--<class name="com.evolveum.midpoint.testing.selenide.tests.basictests.SimpleUserTests"/>-->
-        <!--</classes>-->
-    <!--</test>-->
+    <test name="Simple User Tests" parallel="false" preserve-order="true" verbose="10">
+        <classes>
+            <class name="com.evolveum.midpoint.testing.selenide.tests.basictests.SimpleUserTests"/>
+        </classes>
+    </test>
     <!--<test name="End User Tests" parallel="false" preserve-order="true" verbose="10">-->
         <!--<classes>-->
             <!--<class name="com.evolveum.midpoint.testing.selenide.tests.basictests.EndUserTests"/>-->

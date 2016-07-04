@@ -306,7 +306,7 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
 				from = table.getCurrentPage() * table.getItemsPerPage() + 1;
 				to = from + table.getItemsPerPage() - 1;
 				long itemCount = table.getItemCount();
-				if (to > itemCount) {
+                if (to > itemCount) {
 					to = itemCount;
 				}
 				count = itemCount;
@@ -320,10 +320,6 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
 
 				return PageBase.createStringResourceStatic(PagingFooter.this, "CountToolbar.label",
 						new Object[] { from, to, count }).getString();
-
-				// new StringResourceModel("CountToolbar.label",
-				// PagingFooter.this, null,
-				// new Object[]{from, to, count}).getString();
 			}
 
 			return PageBase
