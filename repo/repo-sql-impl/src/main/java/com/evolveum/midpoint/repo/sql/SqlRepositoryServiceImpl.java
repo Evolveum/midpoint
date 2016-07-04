@@ -61,6 +61,7 @@ import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.internal.SessionFactoryImpl;
 import org.hibernate.jdbc.Work;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
@@ -225,15 +226,10 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             if (filter instanceof NoneFilter) {
                 subResult.recordSuccess();
                 return new SearchResultList(new ArrayList<PrismObject<T>>(0));
-            } else if (filter instanceof AllFilter) {
-                query = query.cloneEmpty();
-                query.setFilter(null);
             } else {
-                query = query.cloneEmpty();
-                query.setFilter(filter);
-            }
-
-        }
+				query = replaceSimplifiedFilter(query, filter);
+			}
+		}
 
         SqlPerformanceMonitor pm = getPerformanceMonitor();
         long opHandle = pm.registerOperationStart("searchObjects");
@@ -254,7 +250,14 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         }
     }
 
-    @Override
+	@NotNull
+	private ObjectQuery replaceSimplifiedFilter(ObjectQuery query, ObjectFilter filter) {
+		query = query.cloneEmpty();
+		query.setFilter(filter instanceof AllFilter ? null : filter);
+		return query;
+	}
+
+	@Override
     public <T extends Containerable> SearchResultList<T> searchContainers(Class<T> type, ObjectQuery query,
                                                                           Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult)
             throws SchemaException {
@@ -273,14 +276,10 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             if (filter instanceof NoneFilter) {
                 result.recordSuccess();
                 return new SearchResultList(new ArrayList<T>(0));
-            } else if (filter instanceof AllFilter) {
-                query = query.cloneEmpty();
-                query.setFilter(null);
             } else {
-                query = query.cloneEmpty();
-                query.setFilter(filter);
-            }
-        }
+				query = replaceSimplifiedFilter(query, filter);
+			}
+		}
 
         SqlPerformanceMonitor pm = getPerformanceMonitor();
         long opHandle = pm.registerOperationStart("searchContainers");
@@ -747,15 +746,10 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             if (filter instanceof NoneFilter) {
                 subResult.recordSuccess();
                 return null;
-                //shouldn't be this in ObjectQueryUtil.simplify?
-            } else if (filter instanceof AllFilter){
-            	query = query.cloneEmpty();
-            	query.setFilter(null);
             } else {
-            	query = query.cloneEmpty();
-            	query.setFilter(filter);
-            }
-        }
+				query = replaceSimplifiedFilter(query, filter);
+			}
+		}
 
         if (getConfiguration().isIterativeSearchByPaging()) {
             if (strictlySequential) {

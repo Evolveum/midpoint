@@ -757,6 +757,38 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
         }
     }
 
+    @Test(expectedExceptions = UnsupportedOperationException.class)
+    public void test080QueryExistsAssignmentAll() throws Exception {
+        Session session = open();
+
+        try {
+            ObjectQuery query = QueryBuilder.queryFor(UserType.class, prismContext)
+                    .exists(F_ASSIGNMENT).all()
+                    .asc(F_NAME)
+                    .build();
+
+			query.setFilter(ObjectQueryUtil.simplify(query.getFilter()));
+
+            String real = getInterpretedQuery2(session, UserType.class, query);
+			// this doesn't work as expected ... maybe inner join would be better! Until implemented, we should throw UOO
+            String expected = "select\n" +
+                    "  u.fullObject,\n" +
+                    "  u.stringsCount,\n" +
+                    "  u.longsCount,\n" +
+                    "  u.datesCount,\n" +
+                    "  u.referencesCount,\n" +
+                    "  u.polysCount,\n" +
+                    "  u.booleansCount\n" +
+                    "from\n" +
+                    "  RUser u\n" +
+                    "    left join u.assignments a with a.assignmentOwner = :assignmentOwner\n" +
+                    "order by u.name.orig asc\n";
+            assertEqualsIgnoreWhitespace(expected, real);
+        } finally {
+            close(session);
+        }
+    }
+
     @Test
     public void test090QuerySingleAssignmentWithTargetAndTenant() throws Exception {
         Session session = open();
