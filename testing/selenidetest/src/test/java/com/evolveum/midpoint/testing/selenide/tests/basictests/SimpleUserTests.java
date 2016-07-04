@@ -38,14 +38,10 @@ public class SimpleUserTests extends AbstractSelenideTest {
         close();
         login();
 
-        //check if welcome message appears after user logged in
-        $(byText("welcome to midPoint")).shouldBe(visible);
-
+        checkLoginIsPerformed();
         //create user with filled user name only
         createUser(SIMPLE_USER_NAME, new HashMap<String, String>());
-
-        //check if Success message appears after user saving
-        $(byText("Success")).shouldBe(visible);
+        checkOperationStatusOk("Save (GUI)");
 
         //search for the created in users list
         searchForElement(SIMPLE_USER_NAME);
@@ -57,16 +53,14 @@ public class SimpleUserTests extends AbstractSelenideTest {
      */
     @Test (priority = 1)
     public void test002createUserWithAllFieldsTest() {
-        //click elsewhere
-        $(By.partialLinkText("Dashboard")).click();
+        close();
+        login();
 
         //create user with filled user name only
         Map<String, String> userAttributesMap = getAllUserAttributesMap();
         createUser(ALL_FIELDS_USER_NAME, userAttributesMap);
 
-        //check if Success message appears after user saving
-        $(byText("Success")).shouldBe(visible);
-
+        checkOperationStatusOk("Save (GUI)");
         //search for the created user in users list
         searchForElement(ALL_FIELDS_USER_NAME);
         //check if all fields are saved with values
@@ -79,14 +73,12 @@ public class SimpleUserTests extends AbstractSelenideTest {
      */
     @Test(priority = 2)
     public void test003editUserTest() {
+        close();
+        login();
         //open user's Edit page
         openUsersEditPage(SIMPLE_USER_NAME);
-
-        //click on the menu icon in the User details section
-        $(byText("Details")).parent().parent().find(byAttribute("about", "dropdownMenu"))
-                .shouldBe(visible).click();
-        //click on Show empty fields menu item
-        $(By.linkText("Show empty fields")).shouldBe(visible).click();
+        $(byAttribute("about", "showEmptyFields")).shouldBe(visible).click();
+        findAttributeValueFiledByDisplayName(NICKNAME_FIELD_NAME, "input").shouldBe(visible);
 
         Map<String, String> userFieldsMap = new HashMap<>();
         userFieldsMap.put(USER_NAME_FIELD_NAME, SIMPLE_USER_NAME + UPDATED_STRING);
@@ -99,9 +91,7 @@ public class SimpleUserTests extends AbstractSelenideTest {
         setFieldValues(userFieldsMap);
         //click Save button
         $(By.linkText("Save")).shouldBe(visible).click();
-
-        //check if Success message appears after user saving
-        $(byText("Success")).shouldBe(visible);
+        checkOperationStatusOk("Save (GUI)");
 
         //search for user in users list
         searchForElement(SIMPLE_USER_NAME + UPDATED_STRING);
@@ -123,21 +113,20 @@ public class SimpleUserTests extends AbstractSelenideTest {
      */
     @Test(priority = 3)
     public void test004cancelUserUpdateTest() {
+        close();
+        login();
         //create user
         createUser(NOT_UPDATED_USER_NAME, new HashMap<String, String>());
         //open user's Edit page
         openUsersEditPage(NOT_UPDATED_USER_NAME);
-        //click on the menu icon in the User details section
-        $(byText("Details")).parent().parent().find(byAttribute("about", "dropdownMenu"))
-                .shouldBe(visible).click();
-        //click on Show empty fields menu item
-        $(By.linkText("Show empty fields")).shouldBe(visible).click();
+        $(byAttribute("about", "showEmptyFields")).shouldBe(visible).click();
+        findAttributeValueFiledByDisplayName(NICKNAME_FIELD_NAME, "input").shouldBe(visible);
 
         //update Name field
-        $(By.name(AbstractSelenideTest.USER_NAME_FIELD_NAME))
+        findAttributeValueFiledByDisplayName(USER_NAME_FIELD_NAME, "input")
                 .shouldBe(visible).clear();
-        $(By.name(AbstractSelenideTest.USER_NAME_FIELD_NAME))
-                .shouldBe(visible).setValue(NOT_UPDATED_USER_NAME + "_updated");
+        findAttributeValueFiledByDisplayName(USER_NAME_FIELD_NAME, "input")
+                .shouldBe(visible).setValue(NOT_UPDATED_USER_NAME.substring(0, NOT_UPDATED_USER_NAME.length() - 2));
 
         //click Back button
         $(By.linkText("Back")).shouldBe(visible).click();
@@ -160,7 +149,7 @@ public class SimpleUserTests extends AbstractSelenideTest {
         createUser("", new HashMap<String, String>());
 
         //check if error message appears after user saving
-        $(byAttribute("title", "Partial error")).shouldHave(text("No name in new object"));
+        getFeedbackPanel().find(byText("No name in new object"));
     }
 
     /**
@@ -168,18 +157,21 @@ public class SimpleUserTests extends AbstractSelenideTest {
      */
     @Test(alwaysRun = true, priority = 5)
     public void test006createUserWithExistingNameTest() {
-        //create user
+        close();
+        login();
+//      create user
         createUser(EXISTING_USER_NAME, new HashMap<String, String>());
-        //check if Success message appears after user saving
-        $(byText("Success")).shouldBe(visible);
+        checkOperationStatusOk("Save (GUI)");
         //try to create user with the same name
         createUser(EXISTING_USER_NAME, new HashMap<String, String>());
         //check if error message appears
-        $(byAttribute("title", "Partial error")).find(By.tagName("span")).shouldHave(text("Error processing focus"));
+        getFeedbackPanel().find(byText("Error processing focus"));
     }
 
     @Test(alwaysRun = true, priority = 6)
     public void test007deleteUserTest() {
+        close();
+        login();
         //open Users -> List users
         openListUsersPage();
 
@@ -187,7 +179,7 @@ public class SimpleUserTests extends AbstractSelenideTest {
         searchForElement(SIMPLE_USER_NAME + UPDATED_STRING);
 
         //select checkbox next to the found user
-        $(byAttribute("about", "table")).find(By.tagName("tbody")).find(By.tagName("input")).shouldBe(visible).click();
+        $(byAttribute("about", "table")).find(By.tagName("tbody")).find(By.tagName("input")).shouldBe(visible).setSelected(true);
 
         //click on the menu icon in the upper right corner of the users list
         $(byAttribute("about", "dropdownMenu")).shouldBe(visible).click();
@@ -197,8 +189,7 @@ public class SimpleUserTests extends AbstractSelenideTest {
         //click on Yes button in the opened "Confirm delete" window
         $(By.linkText("Yes")).shouldBe(visible).click();
 
-        //check if operation success message appears
-        $(byText("Success")).shouldBe(visible);
+        checkOperationStatusOk("Delete users (Gui)");
         //search for user in users list
         searchForElement(SIMPLE_USER_NAME + UPDATED_STRING);
         //check the user was not found during user search
@@ -207,7 +198,8 @@ public class SimpleUserTests extends AbstractSelenideTest {
 
     @Test (priority = 7)
     public void test008pagingThroughUsersList(){
-//        login();
+        close();
+        login();
 
         //import 100 users from xml file
         importObjectFromFile(USER_LIST_XML_FILEPATH);
@@ -220,15 +212,15 @@ public class SimpleUserTests extends AbstractSelenideTest {
         //check that administrator user isn't present on the second list user page
         $(By.linkText("name0")).shouldNotBe(visible);
         //check paging message shows the correct page numbers
-        $(By.className("dataTables_info")).shouldHave(text("Displaying 11 to 20"));
+        $(By.className("dataTables_info")).shouldHave(text("21 to 40"));
         //click on the next  page button
         $(By.linkText(">")).shouldBe(visible).click();
         //check paging message shows the correct page numbers
-        $(By.className("dataTables_info")).shouldHave(text("Displaying 21 to 30"));
+        $(By.className("dataTables_info")).shouldHave(text("41 to 60"));
         //click on the previous page button
         $(By.linkText("<")).shouldBe(visible).click();
-        //check paging message shows the correct page numbers
-        $(By.className("dataTables_info")).shouldHave(text("Displaying 11 to 20"));
+        //check panging message shows the correct page numbers
+        $(By.className("dataTables_info")).shouldHave(text("21 to 40"));
 
     }
 
