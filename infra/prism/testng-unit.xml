@@ -26,6 +26,7 @@
 			<class name="com.evolveum.midpoint.prism.TestPrismParsingXml"/>
 			<class name="com.evolveum.midpoint.prism.TestPrismParsingJson"/>
 			<class name="com.evolveum.midpoint.prism.TestPrismParsingYaml"/>
+			<class name="com.evolveum.midpoint.prism.TestUnknownItems"/>
 			<class name="com.evolveum.midpoint.prism.TestCompare"/>
 			<class name="com.evolveum.midpoint.prism.TestCompareXml"/>
 			<class name="com.evolveum.midpoint.prism.TestCompareJson"/>

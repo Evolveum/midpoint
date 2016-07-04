@@ -201,6 +201,12 @@ public class PrismContext {
 		return xnodeProcessor.parseObject(xnode, newParsingContext());
 	}
 
+	public <T extends Objectable> PrismObject<T> parseObject(File file, ParsingContext context) throws SchemaException, IOException {
+		Parser parser = findParser(file);
+		XNode xnode = parser.parse(file);
+		return xnodeProcessor.parseObject(xnode, context);
+	}
+
 	/**
 	 * Parses a file and creates a prism from it.
 	 */

@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2016 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<user oid="c0c010c0-d34d-b33f-f00d-111111113333"
+		xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+		xmlns:xsd='http://www.w3.org/2001/XMLSchema'
+		xmlns='http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd'
+		xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
+		xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+		xmlns:adhoc="http://midpoint.evolveum.com/xml/ns/test/adhoc-1.xsd"
+		xmlns:ext="http://midpoint.evolveum.com/xml/ns/test/extension">
+    
+    <name>will</name>
+    
+    <extension>
+    	<ext:stringType_Wrong>FOObar</ext:stringType_Wrong>
+	</extension>
+	
+    <fullName>Will Turner</fullName>
+    <givenName>William</givenName>
+    <familyName>Turner</familyName>
+
+</user>
