@@ -470,6 +470,7 @@ public abstract class ResourceContentPanel extends Panel {
 		provider.setOptions(opts);
         if (!useObjectCounting) {
             provider.iterator(0, provider.size());
+            provider.setSize(provider.getAvailableData().size());
         }
     }
 

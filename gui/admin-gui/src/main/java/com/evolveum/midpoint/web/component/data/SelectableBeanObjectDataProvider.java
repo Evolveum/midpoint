@@ -61,7 +61,7 @@ public class SelectableBeanObjectDataProvider<O extends ObjectType> extends Base
     
     private boolean emptyListOnNullQuery = false;
     private boolean useObjectCounting = true;
-    
+    private int size = Integer.MAX_VALUE;
     private Class<? extends O> type;
     private Collection<SelectorOptions<GetOperationOptions>> options;
 
@@ -192,12 +192,7 @@ public class SelectableBeanObjectDataProvider<O extends ObjectType> extends Base
     protected int internalSize() {
         LOGGER.trace("begin::internalSize()");
         if (!isUseObjectCounting()) {
-            //try to find out the actual size of provider and return it as a size
-            if (getAvailableData().size() > 0){
-                return getAvailableData().size();
-            } else {
-                return Integer.MAX_VALUE;
-            }
+            return size;
         }
         int count = 0;
         OperationResult result = new OperationResult(OPERATION_COUNT_OBJECTS);
@@ -261,4 +256,12 @@ public class SelectableBeanObjectDataProvider<O extends ObjectType> extends Base
     public void setEmptyListOnNullQuery(boolean emptyListOnNullQuery) {
 		this.emptyListOnNullQuery = emptyListOnNullQuery;
 	}
+
+    public int getSize() {
+        return size;
+    }
+
+    public void setSize(int size) {
+        this.size = size;
+    }
 }
