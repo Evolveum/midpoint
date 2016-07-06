@@ -64,7 +64,11 @@ public class TypeFilter extends ObjectFilter {
         return new TypeFilter(type, f);
     }
 
-    // untested; TODO test this method
+	public TypeFilter cloneEmpty() {
+		return new TypeFilter(type, null);
+	}
+
+	// untested; TODO test this method
     @Override
     public boolean match(PrismContainerValue value, MatchingRuleRegistry matchingRuleRegistry) throws SchemaException {
         if (value == null) {

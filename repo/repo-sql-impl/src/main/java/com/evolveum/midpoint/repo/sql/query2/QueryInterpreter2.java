@@ -21,32 +21,12 @@ import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.prism.query.AllFilter;
-import com.evolveum.midpoint.prism.query.AndFilter;
-import com.evolveum.midpoint.prism.query.ExistsFilter;
-import com.evolveum.midpoint.prism.query.InOidFilter;
-import com.evolveum.midpoint.prism.query.NoneFilter;
-import com.evolveum.midpoint.prism.query.NotFilter;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.prism.query.ObjectOrdering;
-import com.evolveum.midpoint.prism.query.ObjectPaging;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.OrFilter;
-import com.evolveum.midpoint.prism.query.OrderDirection;
-import com.evolveum.midpoint.prism.query.OrgFilter;
-import com.evolveum.midpoint.prism.query.PropertyValueFilter;
-import com.evolveum.midpoint.prism.query.RefFilter;
-import com.evolveum.midpoint.prism.query.TypeFilter;
-import com.evolveum.midpoint.prism.query.UndefinedFilter;
+import com.evolveum.midpoint.prism.query.*;
+import com.evolveum.midpoint.repo.sql.ObjectPagingAfterOid;
 import com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
-import com.evolveum.midpoint.repo.sql.query2.definition.JpaAnyContainerDefinition;
-import com.evolveum.midpoint.repo.sql.query2.definition.JpaAnyPropertyDefinition;
-import com.evolveum.midpoint.repo.sql.query2.definition.JpaEntityDefinition;
-import com.evolveum.midpoint.repo.sql.query2.definition.JpaPropertyDefinition;
-import com.evolveum.midpoint.repo.sql.query2.definition.JpaReferenceDefinition;
-import com.evolveum.midpoint.repo.sql.query2.definition.JpaDataNodeDefinition;
+import com.evolveum.midpoint.repo.sql.query2.definition.*;
 import com.evolveum.midpoint.repo.sql.query2.hqm.ProjectionElement;
 import com.evolveum.midpoint.repo.sql.query2.hqm.RootHibernateQuery;
 import com.evolveum.midpoint.repo.sql.query2.hqm.condition.Condition;
@@ -56,17 +36,7 @@ import com.evolveum.midpoint.repo.sql.query2.matcher.PolyStringMatcher;
 import com.evolveum.midpoint.repo.sql.query2.matcher.StringMatcher;
 import com.evolveum.midpoint.repo.sql.query2.resolution.ItemPathResolver;
 import com.evolveum.midpoint.repo.sql.query2.resolution.ProperDataSearchResult;
-import com.evolveum.midpoint.repo.sql.query2.restriction.AndRestriction;
-import com.evolveum.midpoint.repo.sql.query2.restriction.AnyPropertyRestriction;
-import com.evolveum.midpoint.repo.sql.query2.restriction.ExistsRestriction;
-import com.evolveum.midpoint.repo.sql.query2.restriction.InOidRestriction;
-import com.evolveum.midpoint.repo.sql.query2.restriction.NotRestriction;
-import com.evolveum.midpoint.repo.sql.query2.restriction.OrRestriction;
-import com.evolveum.midpoint.repo.sql.query2.restriction.OrgRestriction;
-import com.evolveum.midpoint.repo.sql.query2.restriction.PropertyRestriction;
-import com.evolveum.midpoint.repo.sql.query2.restriction.ReferenceRestriction;
-import com.evolveum.midpoint.repo.sql.query2.restriction.Restriction;
-import com.evolveum.midpoint.repo.sql.query2.restriction.TypeRestriction;
+import com.evolveum.midpoint.repo.sql.query2.restriction.*;
 import com.evolveum.midpoint.repo.sql.util.GetContainerableResult;
 import com.evolveum.midpoint.repo.sql.util.GetObjectResult;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -80,8 +50,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-
-import com.evolveum.midpoint.repo.sql.ObjectPagingAfterOid;
 
 /**
  * Interprets midPoint queries by translating them to hibernate (HQL) ones.
@@ -180,7 +148,7 @@ public class QueryInterpreter2 {
     private void interpretQueryFilter(InterpretationContext context, ObjectQuery query) throws QueryException {
         if (query != null && query.getFilter() != null) {
             Condition c = interpretFilter(context, query.getFilter(), null);
-            context.getHibernateQuery().addCondition(c);
+			context.getHibernateQuery().addCondition(c);
         }
     }
 

@@ -21,6 +21,8 @@ import java.util.*;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.query.*;
+import com.evolveum.midpoint.prism.query.Visitor;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.commons.lang.mutable.MutableBoolean;
@@ -31,21 +33,6 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
 import com.evolveum.midpoint.prism.polystring.PrismDefaultPolyStringNormalizer;
-import com.evolveum.midpoint.prism.query.AllFilter;
-import com.evolveum.midpoint.prism.query.AndFilter;
-import com.evolveum.midpoint.prism.query.EqualFilter;
-import com.evolveum.midpoint.prism.query.NaryLogicalFilter;
-import com.evolveum.midpoint.prism.query.NoneFilter;
-import com.evolveum.midpoint.prism.query.NotFilter;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.OrFilter;
-import com.evolveum.midpoint.prism.query.OrgFilter;
-import com.evolveum.midpoint.prism.query.RefFilter;
-import com.evolveum.midpoint.prism.query.TypeFilter;
-import com.evolveum.midpoint.prism.query.UndefinedFilter;
-import com.evolveum.midpoint.prism.query.ValueFilter;
-import com.evolveum.midpoint.prism.query.Visitor;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -317,9 +304,11 @@ public class ObjectQueryUtil {
 	}
 	
 	public static boolean isNone(ObjectFilter filter) {
-		return filter != null && filter instanceof NoneFilter;
+		return filter instanceof NoneFilter;
 	}
 
+	// returns ALL, NONE only at the top level (never inside the filter)
+	// never returns UNDEFINED
 	public static ObjectFilter simplify(ObjectFilter filter) {
 		if (filter == null) {
 			return null;
@@ -335,18 +324,22 @@ public class ObjectQueryUtil {
 					// AND with "true", just skip it
 				} else {
 					ObjectFilter simplifiedSubfilter = simplify(subfilter);
-					simplifiedFilter.addCondition(simplifiedSubfilter);
+					if (simplifiedSubfilter instanceof NoneFilter) {
+						return NoneFilter.createNone();
+					} else if (simplifiedSubfilter == null || simplifiedSubfilter instanceof AllFilter) {
+						// skip
+					} else {
+						simplifiedFilter.addCondition(simplifiedSubfilter);
+					}
 				}
 			}
 			if (simplifiedFilter.isEmpty()) {
 				return AllFilter.createAll();
-			}
-			
-			if (simplifiedFilter.getConditions().size() == 1){
+			} else if (simplifiedFilter.getConditions().size() == 1) {
 				return simplifiedFilter.getConditions().iterator().next();
+			} else {
+				return simplifiedFilter;
 			}
-			
-			return simplifiedFilter;
 			
 		} else if (filter instanceof OrFilter) {
 			List<ObjectFilter> conditions = ((OrFilter)filter).getConditions();
@@ -359,27 +352,29 @@ public class ObjectQueryUtil {
 					return AllFilter.createAll();
 				} else {
 					ObjectFilter simplifiedSubfilter = simplify(subfilter);
-					simplifiedFilter.addCondition(simplifiedSubfilter);
+					if (simplifiedSubfilter instanceof NoneFilter) {
+						// skip
+					} else if (simplifiedSubfilter == null || simplifiedSubfilter instanceof AllFilter) {
+						return NoneFilter.createNone();
+					} else {
+						simplifiedFilter.addCondition(simplifiedSubfilter);
+					}
 				}
 			}
 			if (simplifiedFilter.isEmpty()) {
-				return AllFilter.createAll();
-			}
-			
-			if (simplifiedFilter.getConditions().size() == 1){
+				return NoneFilter.createNone();
+			} else if (simplifiedFilter.getConditions().size() == 1) {
 				return simplifiedFilter.getConditions().iterator().next();
+			} else {
+				return simplifiedFilter;
 			}
-			
-			return simplifiedFilter;
- 
+
 		} else if (filter instanceof NotFilter) {
 			ObjectFilter subfilter = ((NotFilter)filter).getFilter();
 			ObjectFilter simplifiedSubfilter = simplify(subfilter);
-			if (subfilter instanceof UndefinedFilter){
-				return null;
-			} else if (subfilter instanceof NoneFilter) {
+			if (simplifiedSubfilter instanceof NoneFilter) {
 				return AllFilter.createAll();
-			} else if (subfilter instanceof AllFilter) {
+			} else if (simplifiedSubfilter == null || simplifiedSubfilter instanceof AllFilter) {
 				return NoneFilter.createNone();
 			} else {
 				NotFilter simplifiedFilter = ((NotFilter)filter).cloneEmpty();
@@ -389,7 +384,23 @@ public class ObjectQueryUtil {
 		} else if (filter instanceof TypeFilter) {
 			ObjectFilter subFilter = ((TypeFilter) filter).getFilter();
 			ObjectFilter simplifiedSubfilter = simplify(subFilter);
-			TypeFilter simplifiedFilter = (TypeFilter) ((TypeFilter) filter).clone();
+			if (simplifiedSubfilter instanceof AllFilter) {
+				simplifiedSubfilter = null;
+			} else if (simplifiedSubfilter instanceof NoneFilter) {
+				return NoneFilter.createNone();
+			}
+			TypeFilter simplifiedFilter = ((TypeFilter) filter).cloneEmpty();
+			simplifiedFilter.setFilter(simplifiedSubfilter);
+			return simplifiedFilter;
+		} else if (filter instanceof ExistsFilter) {
+			ObjectFilter subFilter = ((ExistsFilter) filter).getFilter();
+			ObjectFilter simplifiedSubfilter = simplify(subFilter);
+			if (simplifiedSubfilter instanceof AllFilter) {
+				simplifiedSubfilter = null;
+			} else if (simplifiedSubfilter instanceof NoneFilter) {
+				return NoneFilter.createNone();
+			}
+			ExistsFilter simplifiedFilter = ((ExistsFilter) filter).cloneEmpty();
 			simplifiedFilter.setFilter(simplifiedSubfilter);
 			return simplifiedFilter;
 		} else if (filter instanceof UndefinedFilter || filter instanceof AllFilter) {

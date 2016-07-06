@@ -47,7 +47,12 @@ public class ExistsRestriction extends ItemRestriction<ExistsFilter> {
 
         InterpretationContext context = getContext();
         QueryInterpreter2 interpreter = context.getInterpreter();
-        return interpreter.interpretFilter(context, filter.getFilter(), this);
+
+		if (filter.getFilter() != null) {
+			return interpreter.interpretFilter(context, filter.getFilter(), this);
+		} else {
+			throw new UnsupportedOperationException("Exists filter with 'all' subfilter is currently not supported");
+		}
     }
 
     @Override

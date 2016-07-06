@@ -61,7 +61,11 @@ public class ExistsFilter extends ObjectFilter {
         return filter;
     }
 
-    public static <C extends Containerable> ExistsFilter createExists(ItemPath itemPath, PrismContainerDefinition<C> containerDef,
+	public void setFilter(ObjectFilter filter) {
+		this.filter = filter;
+	}
+
+	public static <C extends Containerable> ExistsFilter createExists(ItemPath itemPath, PrismContainerDefinition<C> containerDef,
                                                                       ObjectFilter filter) throws SchemaException {
         ItemDefinition itemDefinition = FilterUtils.findItemDefinition(itemPath, containerDef);
         return new ExistsFilter(itemPath, itemDefinition, filter);
@@ -79,7 +83,11 @@ public class ExistsFilter extends ObjectFilter {
         return new ExistsFilter(fullPath, definition, f);
     }
 
-    @Override
+	public ExistsFilter cloneEmpty() {
+		return new ExistsFilter(fullPath, definition, null);
+	}
+
+	@Override
     public boolean match(PrismContainerValue value, MatchingRuleRegistry matchingRuleRegistry) throws SchemaException {
         throw new UnsupportedOperationException();
     }
