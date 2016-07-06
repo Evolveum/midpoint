@@ -30,8 +30,7 @@ public class EndUserTests extends AbstractSelenideTest{
         //log in to midPoint
         login();
 
-        //check if welcome message appears after user logged in
-        $(byText("welcome to midPoint")).shouldBe(visible);
+        checkLoginIsPerformed();
         //create user, set password fields for him
         Map<String, String> userAttributes = new HashMap<>();
         userAttributes.put(PASSWORD1_FIELD_NAME, PASSWORD1_FIELD_VALUE);
@@ -50,7 +49,8 @@ public class EndUserTests extends AbstractSelenideTest{
         //click on the found user link
         $(By.linkText(END_USER_NAME)).shouldBe(visible).click();
 
-        //check if assigned role is displayed in the Assignments section
+        //check if assigned role is displayed on the Assignments tab
+        openAssignmentsTab();
         $(By.linkText(ENDUSER_ROLE_NAME));
 
     }
@@ -59,38 +59,39 @@ public class EndUserTests extends AbstractSelenideTest{
     public void test002loginAsEnduserTest() {
         close();
         login(END_USER_NAME, PASSWORD1_FIELD_VALUE);
-        //check if welcome message appears after user logged in
-        $(byText("SELF SERVICE")).shouldBe(visible);
+        checkLoginIsPerformed();
         //click to Profile
         $(By.partialLinkText("Profile")).shouldBe(visible).click();
         //check if End user role s displayed in My Assignments section
+        openAssignmentsTab();
         $(byText(ENDUSER_ROLE_NAME)).shouldBe(visible);
 
     }
 
     @Test(dependsOnMethods = {"test002loginAsEnduserTest"}, priority = 2)
     public void test003changePasswordAndLoginTest() {
-        //select Reset passwords menu item
+        close();
+        login(END_USER_NAME, PASSWORD1_FIELD_VALUE);
+        checkLoginIsPerformed();
+        //select Credentials menu item
         $(byText("Credentials")).shouldBe(visible).click();
         //set new password value
         $(byAttribute("name", "tabPanel:panel:oldPassword")).shouldBe(visible).setValue(PASSWORD1_FIELD_VALUE);
         $(byAttribute("about", "password2")).shouldBe(visible).setValue(NEW_PASSWORD_VALUE);
         $(byAttribute("about", "password1")).shouldBe(visible).setValue(NEW_PASSWORD_VALUE);
-        //select MidPoint account // default is selected
-//        $(By.name("accounts:table:body:rows:1:cells:1:cell:check")).shouldBe(visible).click();
         //click Save button
         $(By.linkText("Save")).shouldBe(visible).click();
         //check if Success message appears
-        $(byText("Success")).shouldBe(visible);
+        $(byText("Password is successfully changed")).shouldBe(visible);
         //log out
         logout();
         //log in with new password
         login(END_USER_NAME, NEW_PASSWORD_VALUE);
-        //check if welcome message appears after user logged in
-        $(byText("SELF SERVICE")).shouldBe(visible);
+        checkLoginIsPerformed();
         //click to Profile
         $(By.partialLinkText("Profile")).shouldBe(visible).click();
         //check if End user role s displayed in My Assignments section
+        openAssignmentsTab();
         $(byText(ENDUSER_ROLE_NAME)).shouldBe(visible);
 
     }

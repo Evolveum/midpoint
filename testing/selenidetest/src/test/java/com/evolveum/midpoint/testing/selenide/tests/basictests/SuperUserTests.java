@@ -6,6 +6,7 @@ import org.springframework.stereotype.Component;
 import org.testng.annotations.Test;
 
 import java.util.HashMap;
+import java.util.Map;
 
 import static com.codeborne.selenide.Selectors.byAttribute;
 import static com.codeborne.selenide.Selectors.byText;
@@ -20,7 +21,6 @@ import static com.codeborne.selenide.Selenide.close;
 public class SuperUserTests extends AbstractSelenideTest {
     public static final String SUPER_ROLE_NAME = "Superuser";
     public static final String SUPER_USER_NAME = "SuperUser";
-    public static final String ASSIGN_ROLE_LINKTEXT = "Assign Role";
 
     /**
      * Create user with assigned Superuser role.
@@ -28,36 +28,20 @@ public class SuperUserTests extends AbstractSelenideTest {
     @Test(priority = 0)
     public void test001createSuperUserTest() {
         close();
-        //log in to midPoint
         login();
-        //check if welcome message appears after user logged in
-        $(byText("welcome to midPoint")).shouldBe(visible);
-        //create user
-        createUser(SUPER_USER_NAME, new HashMap<String, String>());
-        //search for the created user in users list
-        searchForElement(SUPER_USER_NAME);
-        //click on the found user link
-        $(By.linkText(SUPER_USER_NAME)).shouldBe(visible).click();
-
-        //click on the menu icon in the User details section
-        $(byText("Details")).parent().parent().find(byAttribute("about", "dropdownMenu"))
-                .shouldBe(visible).click();
-        //click on Show empty fields menu item
-        $(By.linkText("Show empty fields")).shouldBe(visible).click();
-        //set Password fields with value
-        $(By.name(AbstractSelenideTest.PASSWORD1_FIELD_NAME))
-                .shouldBe(visible).setValue(PASSWORD1_FIELD_VALUE);
-        $(By.name(AbstractSelenideTest.PASSWORD2_FIELD_NAME))
-                .shouldBe(visible).setValue(PASSWORD1_FIELD_VALUE);
+        checkLoginIsPerformed();
+        Map<String, String> userAttributes = new HashMap<String, String>();
+        userAttributes.put(PASSWORD1_FIELD_NAME, PASSWORD1_FIELD_VALUE);
+        userAttributes.put(PASSWORD2_FIELD_NAME, PASSWORD2_FIELD_VALUE);
+        createUser(SUPER_USER_NAME, userAttributes);
+        //open user's Edit page
+        openUsersEditPage(SUPER_USER_NAME);
 
         //assign Superuser role to user
         assignObjectToUser(ASSIGN_ROLE_LINKTEXT, SUPER_ROLE_NAME);
 
-        //search for the user in users list
-        searchForElement(SUPER_USER_NAME);
-        //click on the found user link
-        $(By.linkText(SUPER_USER_NAME)).shouldBe(visible).click();
-
+        openUsersEditPage(SUPER_USER_NAME);
+        openAssignmentsTab();
         //check if assigned role is displayed in the Assignments section
         $(By.linkText(SUPER_ROLE_NAME)).shouldBe(visible);
 
@@ -68,8 +52,7 @@ public class SuperUserTests extends AbstractSelenideTest {
     public void test002loginAsSuperuserTest() {
         close();
         login(SUPER_USER_NAME, PASSWORD1_FIELD_VALUE);
-        //check if welcome message appears after user logged in
-        $(byText("welcome to midPoint")).shouldBe(visible);
+        checkLoginIsPerformed();
 
     }
 
@@ -77,8 +60,7 @@ public class SuperUserTests extends AbstractSelenideTest {
     public void test003disableSuperuserAndLoginTest() {
         close();
         login();
-        //check if welcome message appears after user logged in
-        $(byText("welcome to midPoint")).shouldBe(visible);
+        checkLoginIsPerformed();
         //open Users list page
         openListUsersPage();
         //search for the super user in users list
@@ -92,7 +74,7 @@ public class SuperUserTests extends AbstractSelenideTest {
         //click on Disable menu item
         $(By.linkText("Disable")).shouldBe(visible).click();
         //check if success operation messages are shown
-        $(byText("Success")).shouldBe(visible);
+        $(byText("Disable users (Gui)")).shouldBe(visible);
 
         //log out
         logout();
@@ -108,8 +90,7 @@ public class SuperUserTests extends AbstractSelenideTest {
     public void test004enableSuperuserAndLoginTest() {
         close();
         login();
-        //check if welcome message appears after user logged in
-        $(byText("welcome to midPoint")).shouldBe(visible);
+        checkLoginIsPerformed();
         //open Users list page
         openListUsersPage();
         //search for the super user in users list
@@ -123,7 +104,7 @@ public class SuperUserTests extends AbstractSelenideTest {
         //click on Disable menu item
         $(By.linkText("Enable")).shouldBe(visible).click();
         //check if success operation messages are shown
-        $(byText("Success")).shouldBe(visible);
+        $(byText("Enable users (Gui)")).shouldBe(visible);
 
         //log out
         logout();
@@ -131,8 +112,7 @@ public class SuperUserTests extends AbstractSelenideTest {
         //log in to the system after super user was enabled
         login(SUPER_USER_NAME, PASSWORD1_FIELD_VALUE);
 
-        //check if welcome message appears after user logged in
-        $(byText("welcome to midPoint")).shouldBe(visible);
+        checkLoginIsPerformed();
     }
 
 }

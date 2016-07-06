@@ -235,7 +235,7 @@ public class AbstractSelenideTest{
      * @param objectName        the name of the object to be assigned
      */
     public void assignObjectToUser(String linkText, String objectName){
-        $(byAttribute("class", "tab2")).shouldBe(visible).click();
+        openAssignmentsTab();
         $(byAttribute("about", "dropdownMenu")).click();
         //click Assign menu item with the specified linkText
         $(By.linkText(linkText)).shouldBe(visible).click();
@@ -249,12 +249,17 @@ public class AbstractSelenideTest{
         $(By.linkText("Add")).shouldBe(visible).click();
         $(By.linkText("Add")).should(disappear);
 
-        //switch to main window
-//        switchTo().defaultContent();
         //click Save button
         $(By.linkText("Save")).click();
     }
 
+    protected void openAssignmentsTab(){
+        $(byAttribute("class", "tab2")).shouldBe(visible).click();
+    }
+
+    protected void openProjectionsTab(){
+        $(byAttribute("class", "tab1")).shouldBe(visible).click();
+    }
     /**
      * opens Edit page for the specified user with userName
      * @param userName
@@ -314,7 +319,7 @@ public class AbstractSelenideTest{
         $(byAttribute("about", "importFileButton")).shouldBe(visible).click();
 
         //check if Success message appears after resource importing
-        $(byText("Success")).shouldBe(visible);
+        $(byText("Import file (Gui)")).shouldBe(visible);
 
     }
 
@@ -373,8 +378,8 @@ public class AbstractSelenideTest{
     }
 
     protected void checkLoginIsPerformed(){
-        $(byText("Personal info")).shouldBe(visible);
-        $(byText("System status")).shouldBe(visible);
+        $(By.partialLinkText("Home")).click();
+        $(byText("My work items")).shouldBe(visible);
     }
 
     protected SelenideElement findAttributeValueFiledByDisplayName(String displayName, String fieldTagName){
