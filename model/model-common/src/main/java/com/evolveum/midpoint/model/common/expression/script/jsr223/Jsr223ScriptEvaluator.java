@@ -139,59 +139,25 @@ public class Jsr223ScriptEvaluator implements ScriptEvaluator {
         
 		List<V> pvals = new ArrayList<V>();
 		
-		// TODO: cleanup copy&paste block..and what about PrismContianer and
+		// TODO: what about PrismContainer and
 		// PrismReference? Shouldn't they be processed in the same way as
 		// PrismProperty?
 		if (evalRawResult instanceof Collection) {
-			for(Object evalRawResultElement : (Collection)evalRawResult) {
+			for (Object evalRawResultElement : (Collection)evalRawResult) {
 				T evalResult = convertScalarResult(javaReturnType, evalRawResultElement, contextDescription);
-				V pval = null;
-				if (allowEmptyValues || !isEmpty(evalResult)) {
-					if (outputDefinition instanceof PrismReferenceDefinition){
-						pval = (V) ((ObjectReferenceType)evalResult).asReferenceValue();
-					} else if (outputDefinition instanceof PrismContainerDefinition){
-						try {
-							prismContext.adopt((Containerable)evalResult);
-							((Containerable)evalResult).asPrismContainerValue().applyDefinition(outputDefinition);
-						} catch (SchemaException e) {
-							throw new ExpressionEvaluationException(e.getMessage() + " " + contextDescription, e);
-						}
-						pval = (V) ((Containerable)evalResult).asPrismContainerValue();
-					} else {
-						pval = (V) new PrismPropertyValue<T>(evalResult);
-					}
-					pvals.add(pval);
+				if (allowEmptyValues || !ExpressionUtil.isEmpty(evalResult)) {
+					pvals.add((V) ExpressionUtil.convertToPrismValue(evalResult, outputDefinition, contextDescription, prismContext));
 				}
 			}
 		} else if (evalRawResult instanceof PrismProperty<?>) {
 			pvals.addAll((Collection<? extends V>) PrismPropertyValue.cloneCollection(((PrismProperty<T>)evalRawResult).getValues()));
 		} else {
 			T evalResult = convertScalarResult(javaReturnType, evalRawResult, contextDescription);
-			V pval = null;
-			if (allowEmptyValues || !isEmpty(evalResult)) {
-				if (outputDefinition instanceof PrismReferenceDefinition){
-					pval = (V) ((ObjectReferenceType)evalResult).asReferenceValue();
-				} else if (outputDefinition instanceof PrismContainerDefinition){
-					try {
-						prismContext.adopt((Containerable)evalResult);
-						((Containerable)evalResult).asPrismContainerValue().applyDefinition(outputDefinition);
-					} catch (SchemaException e) {
-						throw new ExpressionEvaluationException(e.getMessage() + " " + contextDescription, e);
-					}
-					
-					pval = (V) ((Containerable)evalResult).asPrismContainerValue();
-				} else {
-					pval = (V) new PrismPropertyValue<T>(evalResult);
-				}
-				pvals.add(pval);
+			if (allowEmptyValues || !ExpressionUtil.isEmpty(evalResult)) {
+				pvals.add((V) ExpressionUtil.convertToPrismValue(evalResult, outputDefinition, contextDescription, prismContext));
 			}
 		}
 		
-//		ScriptExpressionReturnTypeType definedReturnType = expressionType.getReturnType();
-//		if (definedReturnType == ScriptExpressionReturnTypeType.LIST) {
-//			
-//		}
-				
 		return pvals;
 	}
 	
@@ -250,90 +216,12 @@ public class Jsr223ScriptEvaluator implements ScriptEvaluator {
 		}
 	}
 	
-	private <T> boolean isEmpty(T val) {
-		if (val == null) {
-			return true;
-		}
-		if (val instanceof String && ((String)val).isEmpty()) {
-			return true;
-		}
-		if (val instanceof PolyString && ((PolyString)val).isEmpty()) {
-			return true;
-		}
-		return false;
-	}
-	
 	private Bindings convertToBindings(ExpressionVariables variables, ObjectResolver objectResolver,
 									   Collection<FunctionLibrary> functions,
 									   String contextDescription, Task task, OperationResult result) throws ExpressionSyntaxException, ObjectNotFoundException {
 		Bindings bindings = scriptEngine.createBindings();
-		// Functions
-		if (functions != null) {
-			for (FunctionLibrary funcLib: functions) {
-				bindings.put(funcLib.getVariableName(), funcLib.getGenericFunctions());
-			}
-		}
-		// Variables
-		if (variables != null) {
-			for (Entry<QName, Object> variableEntry: variables.entrySet()) {
-				if (variableEntry.getKey() == null) {
-					// This is the "root" node. We have no use for it in JSR223, just skip it
-					continue;
-				}
-				String variableName = variableEntry.getKey().getLocalPart();
-				Object variableValue = convertVariableValue(variableEntry.getValue(), variableName, objectResolver, contextDescription, task, result);
-				bindings.put(variableName, variableValue);
-			}
-		}
+		bindings.putAll(ExpressionUtil.prepareScriptVariables(variables, objectResolver, functions, contextDescription, task, result));
 		return bindings;
-	}
-
-	private Object convertVariableValue(Object originalValue, String variableName, ObjectResolver objectResolver,
-										String contextDescription, Task task, OperationResult result) throws ExpressionSyntaxException, ObjectNotFoundException {
-		if (originalValue instanceof ObjectReferenceType) {
-			originalValue = resolveReference((ObjectReferenceType)originalValue, objectResolver, variableName, 
-					contextDescription, task, result);
-		}
-		if (originalValue instanceof PrismObject<?>) {
-			return ((PrismObject<?>)originalValue).asObjectable();
-		}
-		if (originalValue instanceof PrismContainerValue<?>) {
-			return ((PrismContainerValue<?>)originalValue).asContainerable();
-		}
-		if (originalValue instanceof PrismPropertyValue<?>) {
-			return ((PrismPropertyValue<?>)originalValue).getValue();
-		}
-		if (originalValue instanceof PrismProperty<?>) {
-			PrismProperty<?> prop = (PrismProperty<?>)originalValue;
-			PrismPropertyDefinition<?> def = prop.getDefinition();
-			if (def != null) {
-				if (def.isSingleValue()) {
-					return prop.getRealValue();
-				} else {
-					return prop.getRealValues();
-				}
-			} else {
-				return prop.getValues();
-			}
-		}
-		return originalValue;
-	}
-
-	private Object resolveReference(ObjectReferenceType ref, ObjectResolver objectResolver, String name, String contextDescription,
-									Task task, OperationResult result) throws ExpressionSyntaxException, ObjectNotFoundException {
-		if (ref.getOid() == null) {
-    		throw new ExpressionSyntaxException("Null OID in reference in variable "+name+" in "+contextDescription);
-    	} else {
-	    	try {
-	    		
-				return objectResolver.resolve(ref, ObjectType.class, null, contextDescription, task, result);
-				
-			} catch (ObjectNotFoundException e) {
-				throw new ObjectNotFoundException("Object not found during variable "+name+" resolution in "+contextDescription+": "+e.getMessage(),e, ref.getOid());
-			} catch (SchemaException e) {
-				throw new ExpressionSyntaxException("Schema error during variable "+name+" resolution in "+contextDescription+": "+e.getMessage(), e);
-			}
-    	}
 	}
 
 	/* (non-Javadoc)
