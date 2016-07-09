@@ -34,6 +34,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.EventOperationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.EventStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import org.apache.commons.lang.StringUtils;
 
 import javax.xml.namespace.QName;
 import java.util.ArrayList;
@@ -192,4 +193,20 @@ public class ModelEvent extends BaseEvent {
     public boolean isUserRelated() {
         return hasFocusOfType(UserType.class);
     }
+
+	public String getFocusTypeName() {
+		if (getFocusContext() == null || getFocusContext().getObjectTypeClass() == null) {
+			return null;
+		}
+		String simpleName = getFocusContext().getObjectTypeClass().getSimpleName();
+		return StringUtils.substringBeforeLast(simpleName, "Type");         // should usually work ;)
+	}
+
+	public String getContentAsFormattedList() {
+		return getContentAsFormattedList(false, false);
+	}
+
+	public String getContentAsFormattedList(boolean showSynchronizationItems, boolean showAuxiliaryAttributes) {
+		return getNotificationFunctions().getContentAsFormattedList(this, showSynchronizationItems, showAuxiliaryAttributes);
+	}
 }

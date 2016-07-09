@@ -39,10 +39,7 @@ import org.apache.velocity.app.Velocity;
 
 import javax.xml.namespace.QName;
 import java.io.StringWriter;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Expression evaluator that is using Apache Velocity engine.
@@ -60,7 +57,9 @@ public class VelocityScriptEvaluator implements ScriptEvaluator {
 	public VelocityScriptEvaluator(PrismContext prismContext, Protector protector) {
 		this.prismContext = prismContext;
 		this.protector = protector;
-		Velocity.init();
+		Properties properties = new Properties();
+//		properties.put("runtime.references.strict", "true");
+		Velocity.init(properties);
 	}
 	
 	@Override

@@ -24,26 +24,28 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import org.apache.commons.lang.Validate;
 
 /**
+ * TODO change to ObjectReferenceType
+ *
  * @author mederly
  */
 public class SimpleObjectRefImpl implements SimpleObjectRef {
     private String oid;
     private ObjectType objectType;
-    private NotificationsUtil notificationsUtil;        // used to resolve object refs
+    private NotificationFuctionsImpl notificationsUtil;        // used to resolve object refs
 
-    public SimpleObjectRefImpl(NotificationsUtil notificationsUtil, ObjectType objectType) {
+    public SimpleObjectRefImpl(NotificationFuctionsImpl notificationsUtil, ObjectType objectType) {
         this.oid = objectType.getOid();
         this.objectType = objectType;
         this.notificationsUtil = notificationsUtil;
     }
 
-    public SimpleObjectRefImpl(NotificationsUtil notificationsUtil, PrismObject object) {
+    public SimpleObjectRefImpl(NotificationFuctionsImpl notificationsUtil, PrismObject object) {
         this.oid = object.getOid();
         this.objectType = (ObjectType) object.asObjectable();
         this.notificationsUtil = notificationsUtil;
     }
 
-    public SimpleObjectRefImpl(NotificationsUtil notificationsUtil, ObjectReferenceType ref) {
+    public SimpleObjectRefImpl(NotificationFuctionsImpl notificationsUtil, ObjectReferenceType ref) {
         Validate.notNull(ref);
         this.oid = ref.getOid();
         if (ref.asReferenceValue().getObject() != null) {
@@ -52,7 +54,7 @@ public class SimpleObjectRefImpl implements SimpleObjectRef {
         this.notificationsUtil = notificationsUtil;
     }
 
-    public SimpleObjectRefImpl(NotificationsUtil notificationsUtil, String oid) {
+    public SimpleObjectRefImpl(NotificationFuctionsImpl notificationsUtil, String oid) {
         this.oid = oid;
         this.notificationsUtil = notificationsUtil;
     }
