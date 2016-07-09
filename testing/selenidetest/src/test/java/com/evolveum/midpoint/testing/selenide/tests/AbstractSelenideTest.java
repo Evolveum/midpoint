@@ -74,6 +74,7 @@ public class AbstractSelenideTest{
     public static final String UPDATED_VALUE = "_updated";
     //Assign role link text
     public static final String ASSIGN_ROLE_LINKTEXT = "Assign";
+    public static final String ASSIGN_DEFAULT_OBJECT_TYPE = "RoleType";
 
     Logger LOGGER = LoggerFactory.getLogger(AbstractSelenideTest.class);
 
@@ -228,18 +229,27 @@ public class AbstractSelenideTest{
         $(By.partialLinkText("List users")).shouldBe(visible).click();
     }
 
+    public void assignObjectToUser(String linkText, String objectName) {
+        assignObjectToUser(linkText, "", objectName);
+    }
     /**
      * Prerequirement: user's Edit page is to be opened
      * Assign the specified roleName role to user
      * @param linkText          the text of the menu item from the Assignments section menu
      * @param objectName        the name of the object to be assigned
      */
-    public void assignObjectToUser(String linkText, String objectName){
+    public void assignObjectToUser(String linkText, String objectType, String objectName){
         openAssignmentsTab();
         $(byAttribute("about", "dropdownMenu")).click();
         //click Assign menu item with the specified linkText
         $(By.linkText(linkText)).shouldBe(visible).click();
 
+        if (objectType != null && !(objectType.trim().isEmpty())){
+            $(byAttribute("class", "form-inline search-form")).find(By.tagName("select")).shouldBe(visible).click();
+            $(byText(objectType)).shouldBe(visible).click();
+            $(byAttribute("class", "form-inline search-form")).find(By.tagName("select")).shouldNotHave(text(ASSIGN_DEFAULT_OBJECT_TYPE));
+//            $(byText(ASSIGN_DEFAULT_OBJECT_TYPE)).shouldNotBe(visible);
+        }
         //search for object by objectName in the opened Select object(s) window
         searchForElement(objectName, "searchText");
         //select checkbox for the found object

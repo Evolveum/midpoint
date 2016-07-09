@@ -138,6 +138,7 @@ public abstract class ResourceContentPanel extends Panel {
 	private ShadowKindType kind;
 	private String intent;
 	private QName objectClass;
+    private SelectableBeanObjectDataProvider<ShadowType> provider;
 
 	IModel<PrismObject<ResourceType>> resourceModel;
 
@@ -224,7 +225,7 @@ public abstract class ResourceContentPanel extends Panel {
 
 			@Override
 			protected BaseSortableDataProvider<SelectableBean<ShadowType>> initProvider() {
-				SelectableBeanObjectDataProvider<ShadowType> provider = (SelectableBeanObjectDataProvider<ShadowType>) super.initProvider();
+				provider = (SelectableBeanObjectDataProvider<ShadowType>) super.initProvider();
 				provider.setEmptyListOnNullQuery(true);
 				provider.setSort(null);
 				createSearchOptions(provider);
@@ -244,16 +245,20 @@ public abstract class ResourceContentPanel extends Panel {
 				if (customQuery != null && customQuery.getFilter() != null) {
 					filters.add(customQuery.getFilter());
 				}
-
+                ObjectQuery query = new ObjectQuery();
 				if (filters.size() == 1) {
-					return ObjectQuery.createObjectQuery(filters.iterator().next());
+                    query = ObjectQuery.createObjectQuery(filters.iterator().next());
+                    setProviderAvailableDataSize(query);
+					return query;
 				}
 
 				if (filters.size() == 0) {
+                    setProviderAvailableDataSize(query);
 					return null;
 				}
-
-				return ObjectQuery.createObjectQuery(AndFilter.createAnd(filters));
+                query = ObjectQuery.createObjectQuery(AndFilter.createAnd(filters));
+                setProviderAvailableDataSize(query);
+                return query;
 			}
 
 			@Override
@@ -469,7 +474,7 @@ public abstract class ResourceContentPanel extends Panel {
 		provider.setUseObjectCounting(useObjectCounting);
 		provider.setOptions(opts);
         if (!useObjectCounting) {
-            provider.iterator(0, provider.size());
+            provider.iterator(0, Integer.MAX_VALUE);
             provider.setSize(provider.getAvailableData().size());
         }
     }
@@ -1091,6 +1096,14 @@ public abstract class ResourceContentPanel extends Panel {
         return selectedShadow;
     }
 
+    private void setProviderAvailableDataSize(ObjectQuery query){
+        if (provider != null && !provider.isUseObjectCounting()) {
+            provider.setQuery(query);
+            provider.iterator(0, Integer.MAX_VALUE);
+            provider.setSize(provider.getAvailableData().size());
+        }
+
+    }
 	protected abstract SelectorOptions<GetOperationOptions> addAdditionalOptions();
 
 	protected abstract boolean isUseObjectCounting();
