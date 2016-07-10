@@ -158,6 +158,9 @@ public abstract class BaseEvent implements Event {
     }
 
 	public ObjectType getRequesteeObject() {
+		if (requestee == null) {
+			return null;
+		}
 		return requestee.resolveObjectType(new OperationResult(BaseEvent.class + ".getRequesteeObject"), true);
 	}
 
