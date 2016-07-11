@@ -1091,6 +1091,7 @@ public abstract class ResourceContentPanel extends Panel {
             selectedShadow = new ArrayList<>();
             selectedShadow.add(shadow);
         } else {
+            provider.clearSelectedObjects();
             selectedShadow = getTable().getSelectedObjects();
         }
         return selectedShadow;
