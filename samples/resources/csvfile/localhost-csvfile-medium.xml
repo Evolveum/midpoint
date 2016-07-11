@@ -223,11 +223,17 @@ using an Identity Connector Framework connector.
 				</reaction>
 				<reaction>
 					<situation>deleted</situation>
-					<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#deleteFocus"/>
+					<synchronize>true</synchronize>
+					<action>
+						<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#unlink</handlerUri>
+					</action>
 				</reaction>
 				<reaction>
 					<situation>unlinked</situation>
-					<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#link"/>
+					<synchronize>true</synchronize>
+					<action>
+						<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#link</handlerUri>
+					</action>
 				</reaction>
 				<reaction>
 					<situation>unmatched</situation>
