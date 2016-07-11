@@ -23,6 +23,7 @@ import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -297,8 +298,16 @@ public class CredentialsProcessor {
 
 		LensFocusContext<F> focusContext = context.getFocusContext();
 
+		ObjectDelta<F> focusDelta = focusContext.getDelta();
+		PrismObject<F> focus = focusContext.getObjectAny();
+//		if (focus == null) {
+//			focus = focusContext.getObjectCurrent();
+//		}
+//		if (focus == null) {
+//			focus = focusContext.getObjectNew();
+//		}
 		if (focusContext.isAdd()) {
-			PrismObject<F> focus = focusContext.getObjectNew();
+			focus = focusContext.getObjectAny();
 			PrismContainer<AbstractCredentialType> credentialsContainer = focus
 					.findContainer(credentialsPath);
 			if (credentialsContainer != null) {
@@ -307,14 +316,6 @@ public class CredentialsProcessor {
 				}
 			}
 		} else if (focusContext.isModify()) {
-			ObjectDelta<F> focusDelta = focusContext.getDelta();
-			PrismObject<F> focus = focusContext.getObjectOld();
-			if (focus == null) {
-				focus = focusContext.getObjectCurrent();
-			}
-			if (focus == null) {
-				focus = focusContext.getObjectNew();
-			}
 			ContainerDelta<AbstractCredentialType> containerDelta = focusDelta
 					.findContainerDelta(credentialsPath);
 			if (containerDelta != null) {
@@ -338,10 +339,14 @@ public class CredentialsProcessor {
 						context.getFocusContext().swallowToSecondaryDelta(metaDelta);
 					}
 					
-					processPasswordHistoryDeltas(focus, context, now, task, result);
+					
 				}
 			}
 		}
+		if (focusContext.isDelete()){
+			return;
+		}
+		processPasswordHistoryDeltas(focus, context, now, task, result);
 	}
 
 	private <F extends FocusType> int getMaxPasswordsToSave(LensFocusContext<F> focusContext,
@@ -410,6 +415,7 @@ public class CredentialsProcessor {
 	private <F extends FocusType> void processPasswordHistoryDeltas(PrismObject<F> focus,
 			LensContext<F> context, XMLGregorianCalendar now, Task task, OperationResult result)
 					throws SchemaException {
+		Validate.notNull(focus, "Focus object must not be null");
 		if (focus.getCompileTimeClass().equals(UserType.class)) {
 			PrismContainer<PasswordType> password = focus
 					.findOrCreateContainer(new ItemPath(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD));
@@ -419,8 +425,13 @@ public class CredentialsProcessor {
 			PrismContainer<PasswordHistoryEntryType> historyEntries = password
 					.findOrCreateContainer(PasswordType.F_HISTORY_ENTRY);
 
+			int maxPasswordsToSave = getMaxPasswordsToSave(context.getFocusContext(), context, task, result);
+			
 			List<PasswordHistoryEntryType> historyEntryValues = getSortedHistoryList(historyEntries);
-			createDeleteHistoryDeltasIfNeeded(historyEntryValues, context, task, result);
+			createDeleteHistoryDeltasIfNeeded(historyEntryValues, maxPasswordsToSave, context, task, result);
+			if (maxPasswordsToSave == 0) {
+				return;
+			}
 			createAddHistoryDelta(context, password, now);
 
 		}
@@ -449,15 +460,17 @@ public class CredentialsProcessor {
 	}
 
 	private <F extends FocusType> void createDeleteHistoryDeltasIfNeeded(
-			List<PasswordHistoryEntryType> historyEntryValues, LensContext<F> context, Task task,
+			List<PasswordHistoryEntryType> historyEntryValues, int maxPasswordsToSave, LensContext<F> context, Task task,
 			OperationResult result) throws SchemaException {
-
-		int maxPasswordsToSave = getMaxPasswordsToSave(context.getFocusContext(), context, task, result);
+		
+		if (historyEntryValues.size() == 0) {
+			return;
+		}
 
 		int numberOfHistoryEntriesToDelete = historyEntryValues.size() - maxPasswordsToSave;
-
+		
 		if (numberOfHistoryEntriesToDelete >= 0) {
-			for (int i = 0; i < numberOfHistoryEntriesToDelete; i++) {
+			for (int i = 0; i <= numberOfHistoryEntriesToDelete; i++) {
 				ContainerDelta<PasswordHistoryEntryType> deleteHistoryDelta = ContainerDelta
 						.createModificationDelete(
 								new ItemPath(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD,
