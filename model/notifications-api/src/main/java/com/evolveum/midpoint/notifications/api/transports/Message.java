@@ -16,12 +16,15 @@
 
 package com.evolveum.midpoint.notifications.api.transports;
 
+import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.DebugUtil;
+
 import java.util.List;
 
 /**
  * @author mederly
  */
-public class Message {
+public class Message implements DebugDumpable {
 
     private List<String> to;
     private String subject;
@@ -69,4 +72,25 @@ public class Message {
                 ", body='" + body + '\'' +
                 '}';
     }
+
+	@Override
+	public String debugDump() {
+		return debugDump(0);
+	}
+
+	@Override
+	public String debugDump(int indent) {
+		StringBuilder rv = new StringBuilder();
+		DebugUtil.debugDumpLabel(rv, "Message", indent);
+		rv.append("\n");
+
+		DebugUtil.debugDumpWithLabel(rv, "To", to, indent+1);
+		rv.append("\n");
+
+		DebugUtil.debugDumpWithLabel(rv, "Subject", subject, indent+1);
+		rv.append("\n");
+
+		DebugUtil.debugDumpWithLabel(rv, "Body", body, indent+1);
+		return rv.toString();
+	}
 }

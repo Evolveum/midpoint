@@ -21,6 +21,8 @@ import com.evolveum.midpoint.notifications.api.transports.Message;
 import com.evolveum.midpoint.notifications.api.transports.Transport;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
@@ -39,7 +41,7 @@ import java.util.Map;
  * @author mederly
  */
 @Component
-public class DummyTransport implements Transport {
+public class DummyTransport implements Transport, DebugDumpable {
 
     private static final Trace LOGGER = TraceManager.getTrace(DummyTransport.class);
 
@@ -60,7 +62,7 @@ public class DummyTransport implements Transport {
         }
     }
 
-    private Map<String,List<Message>> messages = new HashMap<String,List<Message>>();
+    private Map<String,List<Message>> messages = new HashMap<>();
 
     @Override
     public void send(Message message, String name, Task task, OperationResult parentResult) {
@@ -94,4 +96,14 @@ public class DummyTransport implements Transport {
     public String getName() {
         return "dummy";
     }
+
+	@Override
+	public String debugDump() {
+		return debugDump(0);
+	}
+
+	@Override
+	public String debugDump(int indent) {
+		return DebugUtil.debugDump(messages, indent);
+	}
 }

@@ -26,14 +26,16 @@ import static com.codeborne.selenide.Selenide.switchTo;
 public class ResourceUserAccountTests extends AbstractSelenideTest {
 
     public static final String USER_NAME = "UserWithOpendjAccount";
-    public static final String OPENDJ_RESOURCE_NAME = "Localhost OpenDJ";
-    public static final String OPENDJ_RESOURCE_PATH = "../../samples/resources/opendj/opendj-localhost-resource-sync-advanced.xml";
+    public static final String OPENDJ_RESOURCE_NAME = "Localhost OpenDJ (no extension schema) test";
+    public static final String OPENDJ_RESOURCE_PATH = "../../samples/resources/opendj/opendj-localhost-resource-sync-no-extension-advanced-test.xml";
     public static final String USER_ADMINISTRATOR_ROLE_NAME = "User Administrator";
     public static final String AUTHORIZATION_ROLES_XML_PATH = "../../samples/roles/authorization-roles.xml";
     public static final String END_USER_ROLE_NAME = "End user";
-    public static final String ACCOUNT_SURNAME_VALUE = "Surname";
-    public static final String ACCOUNT_PASSWORD_VALUE = "Common name";
-    public static final String ACCOUNT_COMMON_NAME_VALUE = "Common name";
+    public static final String ACCOUNT_SURNAME_VALUE = "sn value";
+    public static final String ACCOUNT_SURNAME_FIELD = "Surname";
+    public static final String ACCOUNT_PASSWORD_VALUE = "password";
+    public static final String ACCOUNT_COMMON_NAME_VALUE = "cm value";
+    public static final String ACCOUNT_COMMON_NAME_FIELD = "Common Name";
 
     /**
      * Import OpenDJ resource test (file "opendj-localhost-resource-sync-no-extension-advanced.xml" is used)
@@ -74,15 +76,11 @@ public class ResourceUserAccountTests extends AbstractSelenideTest {
         $(By.linkText(OPENDJ_RESOURCE_NAME)).click();
 
         //click Test connection button
-        $(By.linkText("Test connection")).click();
+        $(By.linkText("Test connection")).shouldBe(visible).click();
 
         //check if all statuses are succeeded
+        $(byText("Test connection result(s)")).shouldBe(visible);
         assertEquals(4, $$(byAttribute("class", "feedback-message box box-solid  box-success")).size());
-//        $(byText("Configuration validation")).parent().find(byAttribute("class", "feedback-message box box-solid  box-success")).find.shouldBe(visible);
-//        $(byText("Connector initialization")).parent().find(byAttribute("class", "feedback-message box box-solid  box-success")).shouldBe(visible);
-//        $(byText("Connector connection test")).parent().find(byAttribute("class", "feedback-message box box-solid  box-success")).shouldBe(visible);
-//        $(byText("Connector schema")).parent().find(byAttribute("class", "feedback-message box box-solid  box-success")).shouldBe(visible);
-
     }
 
     /**
@@ -105,45 +103,19 @@ public class ResourceUserAccountTests extends AbstractSelenideTest {
         //click on the Add projection menu item
         $(By.linkText("Add projection")).shouldBe(visible).click();
 
-//        //switch to the opened modal window
-//        switchToInnerFrame();
-        //search for resource in resources list in the opened Select resource(s) window
-//        $(byText(OPENDJ_RESOURCE_NAME)).shouldBe(visible).parent().parent().findElementByTagName("input").click();
         searchForElement(OPENDJ_RESOURCE_NAME);
         $(byAttribute("about", "table")).find(By.tagName("tbody")).find(By.tagName("input")).shouldBe(visible).setSelected(true);
-
-//        //check if Localhost OpenDJ resource was found
-//        $(byText(OPENDJ_RESOURCE_NAME)).shouldBe(visible);
-//
-//        //select check box in the first row for "Localhost OpenDJ (no extension schema)" resource
-//        $(byAttribute("about", "resourcePopupTable")).find(By.tagName("tbody")).find(By.tagName("input"))
-//                .shouldBe(visible).click();
-//
-//        $(byAttribute("about", "resourcePopupTable")).find(By.tagName("tbody")).find(By.tagName("input"))
-//                .shouldBe(selected);
-
-        //click Add resource(s) button
         $(By.linkText("Add")).shouldBe(enabled).click();
 
-//        //switch to main window
-//        switchTo().defaultContent();
+        $(By.linkText(OPENDJ_RESOURCE_NAME)).shouldBe(visible).click();
 
         //Fill in account fields: Common name, Surname, first and second password fields
         Map<String, String> fieldsMap = new HashMap<String, String>();
-        fieldsMap.put("Common name", ACCOUNT_COMMON_NAME_VALUE);
-        fieldsMap.put("Surname", ACCOUNT_SURNAME_VALUE);
+        fieldsMap.put(ACCOUNT_COMMON_NAME_FIELD, ACCOUNT_COMMON_NAME_VALUE);
+        fieldsMap.put(ACCOUNT_SURNAME_FIELD, ACCOUNT_SURNAME_VALUE);
         fieldsMap.put(PASSWORD1_FIELD_NAME, ACCOUNT_PASSWORD_VALUE);
         fieldsMap.put(PASSWORD2_FIELD_NAME, ACCOUNT_PASSWORD_VALUE);
         setFieldValues(fieldsMap);
-//        $(By.name("tabPanel:panel:shadows:shadowList:0:shadow:body:containers:0:container:properties:3:property:values:0:value:valueContainer:input:input"))
-//                .shouldBe(visible).setValue(ACCOUNT_COMMON_NAME_VALUE);
-//        $(By.name("tabPanel:panel:shadows:shadowList:0:shadow:body:containers:0:container:properties:42:property:values:0:value:valueContainer:input:input"))
-//                .shouldBe(visible).setValue(ACCOUNT_SURNAME_VALUE);
-//        $(By.name("tabPanel:panel:shadows:shadowList:0:shadow:body:containers:6:container:properties:0:property:values:0:value:valueContainer:input:inputContainer:password1"))
-//                .shouldBe(visible).setValue(ACCOUNT_PASSWORD_VALUE);
-//        $(By.name("tabPanel:panel:shadows:shadowList:0:shadow:body:containers:6:container:properties:0:property:values:0:value:valueContainer:input:inputContainer:password2"))
-//                .shouldBe(visible).setValue(ACCOUNT_PASSWORD_VALUE);
-
         //click Save button
         $(By.linkText("Save")).shouldBe(visible).click();
         checkOperationStatusOk("Save (GUI)");
@@ -173,26 +145,12 @@ public class ResourceUserAccountTests extends AbstractSelenideTest {
         $(By.linkText(OPENDJ_RESOURCE_NAME)).shouldBe(visible).click();
 
         Map<String, String> fieldsMap = new HashMap<String, String>();
-        fieldsMap.put("Common name", ACCOUNT_COMMON_NAME_VALUE + UPDATED_VALUE);
-        fieldsMap.put("Surname", ACCOUNT_SURNAME_VALUE + UPDATED_VALUE);
+        fieldsMap.put(ACCOUNT_COMMON_NAME_FIELD, ACCOUNT_COMMON_NAME_VALUE + UPDATED_VALUE);
+        fieldsMap.put(ACCOUNT_SURNAME_FIELD, ACCOUNT_SURNAME_VALUE + UPDATED_VALUE);
         setFieldValues(fieldsMap);
-
-
-//        //update Common Name field
-//        $(By.name("tabPanel:panel:shadows:shadowList:0:shadow:body:containers:0:container:properties:3:property:values:0:value:valueContainer:input:input"))
-//                .shouldBe(visible).setValue(ACCOUNT_COMMON_NAME_VALUE + UPDATED_VALUE);
-//
-//        //update Surname field
-//        $(By.name("tabPanel:panel:shadows:shadowList:0:shadow:body:containers:0:container:properties:42:property:values:0:value:valueContainer:input:input"))
-//                .shouldBe(visible).setValue(ACCOUNT_SURNAME_VALUE + UPDATED_VALUE);
-//
         //click Save button
         $(By.linkText("Save")).shouldBe(visible).click();
         checkOperationStatusOk("Save (GUI)");
-//
-//        //check if Success message appears after user saving
-//        $(byText("Success")).shouldBe(visible);
-//
         //search for user in users list
         searchForElement(USER_NAME);
 
@@ -206,8 +164,7 @@ public class ResourceUserAccountTests extends AbstractSelenideTest {
         //click on the account link to expand its fields
         $(By.linkText(OPENDJ_RESOURCE_NAME)).shouldBe(visible).click();
         //check if account's attributes were updated
-        $(byText(ACCOUNT_SURNAME_VALUE + UPDATED_VALUE)).shouldBe(visible);
-        $(byText(ACCOUNT_COMMON_NAME_VALUE + UPDATED_VALUE)).shouldBe(visible);
+        checkObjectAttributesValues(fieldsMap);
     }
 
 

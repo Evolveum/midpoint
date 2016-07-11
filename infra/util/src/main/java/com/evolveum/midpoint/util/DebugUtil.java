@@ -242,17 +242,17 @@ public class DebugUtil {
 		sb.append("\n");
 	}
 
-	public static void debugDumpWithLabel(StringBuilder sb, String label, Collection<? extends DebugDumpable> dds, int indent) {
+	public static void debugDumpWithLabel(StringBuilder sb, String label, Collection<?> values, int indent) {
 		debugDumpLabel(sb, label, indent);
-		if (dds == null) {
+		if (values == null) {
 			sb.append(" null");
-		} else if (dds.isEmpty()) {
+		} else if (values.isEmpty()) {
 			sb.append(" ");
-			sb.append(getCollectionOpeningSymbol(dds));
-			sb.append(getCollectionClosingSymbol(dds));
+			sb.append(getCollectionOpeningSymbol(values));
+			sb.append(getCollectionClosingSymbol(values));
 		} else {
 			sb.append("\n");
-			sb.append(debugDump(dds, indent + 1));
+			sb.append(debugDump(values, indent + 1));
 		}
 	}
 	

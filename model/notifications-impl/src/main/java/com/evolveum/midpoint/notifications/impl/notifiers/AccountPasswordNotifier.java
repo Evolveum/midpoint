@@ -17,20 +17,16 @@
 package com.evolveum.midpoint.notifications.impl.notifiers;
 
 import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
-import com.evolveum.midpoint.notifications.api.events.ResourceObjectEvent;
 import com.evolveum.midpoint.notifications.api.events.Event;
-import com.evolveum.midpoint.prism.crypto.EncryptionException;
+import com.evolveum.midpoint.notifications.api.events.ResourceObjectEvent;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.provisioning.api.ResourceOperationDescription;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccountPasswordNotifierType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.GeneralNotifierType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -76,16 +72,7 @@ public class AccountPasswordNotifier extends GeneralNotifier {
             LOGGER.trace("Object delta is null, exiting. Event = " + event);
             return false;
         }
-        return getPasswordFromDelta(delta) != null;
-    }
-
-    private String getPasswordFromDelta(ObjectDelta<? extends ShadowType> delta) {
-        try {
-            return midpointFunctions.getPlaintextAccountPasswordFromDelta(delta);
-        } catch (EncryptionException e) {
-            LoggingUtils.logException(LOGGER, "Couldn't decrypt password from shadow delta: {}", e, delta.debugDump());
-            return null;
-        }
+        return notificationsUtil.getPlaintextPasswordFromDelta(delta) != null;
     }
 
     @Override
@@ -95,21 +82,16 @@ public class AccountPasswordNotifier extends GeneralNotifier {
 
     @Override
     protected String getBody(Event event, GeneralNotifierType generalNotifierType, String transport, Task task, OperationResult result) {
-
         StringBuilder body = new StringBuilder();
-
         ResourceObjectEvent resourceObjectEvent = (ResourceObjectEvent) event;
 
-        ResourceOperationDescription rod = resourceObjectEvent.getAccountOperationDescription();
-        ObjectDelta<ShadowType> delta = (ObjectDelta<ShadowType>) rod.getObjectDelta();
-
         body.append("Password for account ");
-        String name = notificationsUtil.getShadowName(rod.getCurrentShadow());
+		String name = resourceObjectEvent.getShadowName();
         if (name != null) {
-            body.append(name + " ");
+            body.append(name).append(" ");
         }
-        body.append("on " + rod.getResource().asObjectable().getName());
-        body.append(" is: " + getPasswordFromDelta(delta));
+        body.append("on ").append(resourceObjectEvent.getResourceName());
+        body.append(" is: ").append(resourceObjectEvent.getPlaintextPassword());
         return body.toString();
     }
 

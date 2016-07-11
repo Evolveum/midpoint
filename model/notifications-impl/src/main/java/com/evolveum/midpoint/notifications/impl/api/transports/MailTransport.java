@@ -34,8 +34,7 @@ import org.springframework.stereotype.Component;
 import com.evolveum.midpoint.notifications.api.NotificationManager;
 import com.evolveum.midpoint.notifications.api.transports.Message;
 import com.evolveum.midpoint.notifications.api.transports.Transport;
-import com.evolveum.midpoint.notifications.impl.NotificationsUtil;
-import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.notifications.impl.NotificationFuctionsImpl;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -85,7 +84,7 @@ public class MailTransport implements Transport {
         result.addCollectionOfSerializablesAsParam("mailMessage recipient(s)", mailMessage.getTo());
         result.addParam("mailMessage subject", mailMessage.getSubject());
 
-        SystemConfigurationType systemConfiguration = NotificationsUtil.getSystemConfiguration(cacheRepositoryService, new OperationResult("dummy"));
+        SystemConfigurationType systemConfiguration = NotificationFuctionsImpl.getSystemConfiguration(cacheRepositoryService, new OperationResult("dummy"));
         if (systemConfiguration == null || systemConfiguration.getNotificationConfiguration() == null
                 || systemConfiguration.getNotificationConfiguration().getMail() == null) {
             String msg = "No notifications are configured. Mail notification to " + mailMessage.getTo() + " will not be sent.";
