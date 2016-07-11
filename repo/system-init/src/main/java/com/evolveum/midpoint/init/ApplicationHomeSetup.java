@@ -80,6 +80,7 @@ public class ApplicationHomeSetup {
 		} catch (URISyntaxException | IOException e) {
 			LOGGER.error("Error copying the content of initial-midpoint-home to {}: {}", midpointHomePath, e.getMessage(), e);
 		}
+    	
     }
 
 
