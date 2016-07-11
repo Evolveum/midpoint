@@ -30,6 +30,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.EventStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.apache.commons.lang.StringUtils;
 
 /**
@@ -143,4 +144,28 @@ public class ResourceObjectEvent extends BaseEvent {
                 '}';
     }
 
+	public String getShadowName() {
+		return getNotificationFunctions().getShadowName(getAccountOperationDescription().getCurrentShadow());
+	}
+
+	public PolyStringType getResourceName() {
+		return getAccountOperationDescription().getResource().asObjectable().getName();
+	}
+
+	public String getResourceOid() {
+		return getAccountOperationDescription().getResource().getOid();
+	}
+
+	public String getPlaintextPassword() {
+		ObjectDelta delta = getAccountOperationDescription().getObjectDelta();
+		return delta != null ? getNotificationFunctions().getPlaintextPasswordFromDelta(delta) : null;
+	}
+
+	public String getContentAsFormattedList() {
+		return getContentAsFormattedList(false, false);
+	}
+
+	public String getContentAsFormattedList(boolean showSynchronizationItems, boolean showAuxiliaryAttributes) {
+		return getNotificationFunctions().getContentAsFormattedList(this, showSynchronizationItems, showAuxiliaryAttributes);
+	}
 }

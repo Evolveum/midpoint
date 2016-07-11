@@ -79,16 +79,16 @@ public class JavaTypeConverter {
 			return (T) ((Boolean)rawValue);
 		}
 		if (expectedType == Boolean.class && rawValue instanceof String) {
-			return (T) (Boolean)Boolean.parseBoolean(((String)rawValue));
+			return (T) (Boolean)Boolean.parseBoolean((((String)rawValue)).trim());
 		}
 		if (expectedType == Boolean.class && rawValue instanceof PolyString) {
-			return (T) (Boolean)Boolean.parseBoolean(((PolyString)rawValue).toString());
+			return (T) (Boolean)Boolean.parseBoolean((rawValue.toString().trim()));
 		}
 		if (expectedType == boolean.class && rawValue instanceof String) {
-			return (T) (Boolean)Boolean.parseBoolean(((String)rawValue));
+			return (T) (Boolean)Boolean.parseBoolean(((String)rawValue).trim());
 		}
 		if (expectedType == boolean.class && rawValue instanceof PolyString) {
-			return (T) (Boolean)Boolean.parseBoolean(((PolyString)rawValue).toString());
+			return (T) (Boolean)Boolean.parseBoolean((rawValue).toString().trim());
 		}
 		if (expectedType == String.class && rawValue instanceof Boolean) {
 			return (T) rawValue.toString();
@@ -99,10 +99,10 @@ public class JavaTypeConverter {
 			return (T)((Integer)rawValue);
 		}
 		if (expectedType == Integer.class && rawValue instanceof String) {
-			return (T) (Integer)Integer.parseInt(((String)rawValue));
+			return (T) (Integer)Integer.parseInt(((String)rawValue).trim());
 		}
 		if (expectedType == int.class && rawValue instanceof String) {
-			return (T) (Integer)Integer.parseInt(((String)rawValue));
+			return (T) (Integer)Integer.parseInt(((String)rawValue).trim());
 		}
 		if (expectedType == String.class && rawValue instanceof Integer) {
 			return (T) rawValue.toString();
@@ -112,13 +112,13 @@ public class JavaTypeConverter {
 		}
 		
 		if (expectedType == long.class && rawValue instanceof Long) {
-			return (T)((Long)rawValue);
+			return (T)(rawValue);
 		}
 		if (expectedType == Long.class && rawValue instanceof String) {
-			return (T) (Long)Long.parseLong(((String)rawValue));
+			return (T) (Long)Long.parseLong(((String)rawValue).trim());
 		}
 		if (expectedType == long.class && rawValue instanceof String) {
-			return (T) (Long)Long.parseLong(((String)rawValue));
+			return (T) (Long)Long.parseLong(((String)rawValue).trim());
 		}
 		if (expectedType == String.class && rawValue instanceof Long) {
 			return (T) rawValue.toString();
@@ -128,10 +128,10 @@ public class JavaTypeConverter {
 			return (T)((Float)rawValue);
 		}
 		if (expectedType == Float.class && rawValue instanceof String) {
-			return (T) (Float)Float.parseFloat(((String)rawValue));
+			return (T) (Float)Float.parseFloat(((String)rawValue).trim());
 		}
 		if (expectedType == float.class && rawValue instanceof String) {
-			return (T) (Float)Float.parseFloat(((String)rawValue));
+			return (T) (Float)Float.parseFloat(((String)rawValue).trim());
 		}
 		if (expectedType == String.class && rawValue instanceof Float) {
 			return (T) rawValue.toString();
@@ -141,10 +141,10 @@ public class JavaTypeConverter {
 			return (T)((Double)rawValue);
 		}
 		if (expectedType == Double.class && rawValue instanceof String) {
-			return (T) (Double)Double.parseDouble(((String)rawValue));
+			return (T) (Double)Double.parseDouble(((String)rawValue).trim());
 		}
 		if (expectedType == double.class && rawValue instanceof String) {
-			return (T) (Double)Double.parseDouble(((String)rawValue));
+			return (T) (Double)Double.parseDouble(((String)rawValue).trim());
 		}
 		if (expectedType == String.class && rawValue instanceof Float) {
 			return (T) rawValue.toString();
@@ -164,17 +164,17 @@ public class JavaTypeConverter {
 		}
 
 		if (expectedType == BigInteger.class && rawValue instanceof String) {
-			return (T) new BigInteger(((String)rawValue));
+			return (T) new BigInteger(((String)rawValue).trim());
 		}
 		if (expectedType == String.class && rawValue instanceof BigInteger) {
-			return (T) ((BigInteger)rawValue).toString();
+			return (T) rawValue.toString().trim();
 		}
 		
 		if (expectedType == BigDecimal.class && rawValue instanceof String) {
-			return (T) new BigDecimal(((String)rawValue));
+			return (T) new BigDecimal(((String)rawValue).trim());
 		}
 		if (expectedType == String.class && rawValue instanceof BigDecimal) {
-			return (T) ((BigDecimal)rawValue).toString();
+			return (T) ((BigDecimal)rawValue).toString().trim();
 		}
 		
 		if (expectedType == PolyString.class && rawValue instanceof String) {
@@ -224,7 +224,7 @@ public class JavaTypeConverter {
 		
 		// XML Enums (JAXB)
 		if (expectedType.isEnum() && expectedType.getAnnotation(XmlEnum.class) != null && rawValue instanceof String) {
-			return XmlTypeConverter.toXmlEnum(expectedType, (String)rawValue);
+			return XmlTypeConverter.toXmlEnum(expectedType, ((String)rawValue).trim());
 		}
 		if (expectedType == String.class && rawValue.getClass().isEnum() && rawValue.getClass().getAnnotation(XmlEnum.class) != null) {
 			return (T) XmlTypeConverter.fromXmlEnum(rawValue);
@@ -232,7 +232,7 @@ public class JavaTypeConverter {
 		
 		// Java Enums
 		if (expectedType.isEnum() && rawValue instanceof String) {
-			return (T) Enum.valueOf((Class<Enum>)expectedType, (String)rawValue);
+			return (T) Enum.valueOf((Class<Enum>)expectedType, ((String)rawValue).trim());
 		}
 		if (expectedType == String.class && rawValue.getClass().isEnum()) {
 			return (T) rawValue.toString();
@@ -243,7 +243,7 @@ public class JavaTypeConverter {
 			return (T) rawValue;
 		}
 		if (expectedType == QName.class && rawValue instanceof String){
-			return (T) QNameUtil.uriToQName((String)rawValue);
+			return (T) QNameUtil.uriToQName(((String)rawValue).trim());
 		}
 		
 		throw new IllegalArgumentException("Expected "+expectedType+" type, but got "+rawValue.getClass());

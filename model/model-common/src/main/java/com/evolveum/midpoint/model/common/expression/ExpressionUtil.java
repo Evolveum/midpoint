@@ -22,27 +22,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import javax.script.Bindings;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.common.expression.functions.BasicExpressionFunctions;
 import com.evolveum.midpoint.model.common.expression.functions.BasicExpressionFunctionsXPath;
 import com.evolveum.midpoint.model.common.expression.functions.FunctionLibrary;
 import com.evolveum.midpoint.model.common.expression.functions.LogExpressionFunctions;
-import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.Objectable;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.prism.Structured;
-import com.evolveum.midpoint.prism.Visitable;
-import com.evolveum.midpoint.prism.Visitor;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
@@ -51,6 +38,7 @@ import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.AllFilter;
 import com.evolveum.midpoint.prism.query.ExpressionWrapper;
 import com.evolveum.midpoint.prism.query.InOidFilter;
@@ -242,6 +230,67 @@ public class ExpressionUtil {
 					"Unexpected root " + root + " (relative path:" + relativePath + ") in " + shortDesc);
 		}
 	}
+
+	public static Object convertVariableValue(Object originalValue, String variableName, ObjectResolver objectResolver,
+			String contextDescription, Task task, OperationResult result) throws ExpressionSyntaxException, ObjectNotFoundException {
+		if (originalValue instanceof ObjectReferenceType) {
+			try {
+				originalValue = resolveReference((ObjectReferenceType)originalValue, objectResolver, variableName,
+						contextDescription, task, result);
+			} catch (SchemaException e) {
+				throw new ExpressionSyntaxException("Schema error during variable "+variableName+" resolution in "+contextDescription+": "+e.getMessage(), e);
+			}
+		}
+		if (originalValue instanceof PrismObject<?>) {
+			return ((PrismObject<?>)originalValue).asObjectable();
+		}
+		if (originalValue instanceof PrismContainerValue<?>) {
+			return ((PrismContainerValue<?>)originalValue).asContainerable();
+		}
+		if (originalValue instanceof PrismPropertyValue<?>) {
+			return ((PrismPropertyValue<?>)originalValue).getValue();
+		}
+		if (originalValue instanceof PrismProperty<?>) {
+			PrismProperty<?> prop = (PrismProperty<?>)originalValue;
+			PrismPropertyDefinition<?> def = prop.getDefinition();
+			if (def != null) {
+				if (def.isSingleValue()) {
+					return prop.getRealValue();
+				} else {
+					return prop.getRealValues();
+				}
+			} else {
+				return prop.getValues();
+			}
+		}
+		return originalValue;
+	}
+
+	public static Map<String,Object> prepareScriptVariables(ExpressionVariables variables, ObjectResolver objectResolver,
+			Collection<FunctionLibrary> functions,
+			String contextDescription, Task task, OperationResult result) throws ExpressionSyntaxException, ObjectNotFoundException {
+		Map<String,Object> scriptVariables = new HashMap<>();
+		// Functions
+		if (functions != null) {
+			for (FunctionLibrary funcLib: functions) {
+				scriptVariables.put(funcLib.getVariableName(), funcLib.getGenericFunctions());
+			}
+		}
+		// Variables
+		if (variables != null) {
+			for (Entry<QName, Object> variableEntry: variables.entrySet()) {
+				if (variableEntry.getKey() == null) {
+					// This is the "root" node. We have no use for it in JSR223, just skip it
+					continue;
+				}
+				String variableName = variableEntry.getKey().getLocalPart();
+				Object variableValue = ExpressionUtil.convertVariableValue(variableEntry.getValue(), variableName, objectResolver, contextDescription, task, result);
+				scriptVariables.put(variableName, variableValue);
+			}
+		}
+		return scriptVariables;
+	}
+
 
 	private static PrismObject<?> resolveReference(ObjectReferenceType ref, ObjectResolver objectResolver,
 			String varDesc, String contextDescription, Task task, OperationResult result)
@@ -813,4 +862,32 @@ public class ExpressionUtil {
 		}
 	}
 
+	public static <T> boolean isEmpty(T val) {
+		if (val == null) {
+			return true;
+		}
+		if (val instanceof String && ((String)val).isEmpty()) {
+			return true;
+		}
+		if (val instanceof PolyString && ((PolyString)val).isEmpty()) {
+			return true;
+		}
+		return false;
+	}
+
+	public static <T, V extends PrismValue> V convertToPrismValue(T value, ItemDefinition definition, String contextDescription, PrismContext prismContext) throws ExpressionEvaluationException {
+		if (definition instanceof PrismReferenceDefinition) {
+			return (V) ((ObjectReferenceType) value).asReferenceValue();
+		} else if (definition instanceof PrismContainerDefinition) {
+			try {
+				prismContext.adopt((Containerable) value);
+				((Containerable) value).asPrismContainerValue().applyDefinition(definition);
+			} catch (SchemaException e) {
+				throw new ExpressionEvaluationException(e.getMessage() + " " + contextDescription, e);
+			}
+			return (V) ((Containerable) value).asPrismContainerValue();
+		} else {
+			return (V) new PrismPropertyValue<>(value);
+		}
+	}
 }

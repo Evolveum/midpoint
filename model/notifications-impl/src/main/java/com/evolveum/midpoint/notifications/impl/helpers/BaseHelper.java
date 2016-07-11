@@ -24,7 +24,7 @@ import com.evolveum.midpoint.model.impl.expr.ModelExpressionThreadLocalHolder;
 import com.evolveum.midpoint.notifications.api.NotificationManager;
 import com.evolveum.midpoint.notifications.api.events.Event;
 import com.evolveum.midpoint.notifications.impl.NotificationManagerImpl;
-import com.evolveum.midpoint.notifications.impl.NotificationsUtil;
+import com.evolveum.midpoint.notifications.impl.NotificationFuctionsImpl;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
@@ -68,7 +68,7 @@ public abstract class BaseHelper {
     protected NotificationManagerImpl notificationManager;
 
     @Autowired
-    protected NotificationsUtil notificationsUtil;
+    protected NotificationFuctionsImpl notificationsUtil;
 
     @Autowired
     protected PrismContext prismContext;

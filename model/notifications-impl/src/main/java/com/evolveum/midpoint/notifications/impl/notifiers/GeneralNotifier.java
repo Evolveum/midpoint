@@ -22,12 +22,12 @@ import com.evolveum.midpoint.notifications.api.NotificationManager;
 import com.evolveum.midpoint.notifications.api.events.Event;
 import com.evolveum.midpoint.notifications.api.events.ModelEvent;
 import com.evolveum.midpoint.notifications.api.events.SimpleObjectRef;
-import com.evolveum.midpoint.notifications.impl.NotificationsUtil;
+import com.evolveum.midpoint.notifications.api.transports.Message;
+import com.evolveum.midpoint.notifications.api.transports.Transport;
+import com.evolveum.midpoint.notifications.impl.NotificationFuctionsImpl;
 import com.evolveum.midpoint.notifications.impl.formatters.TextFormatter;
 import com.evolveum.midpoint.notifications.impl.handlers.AggregatedEventHandler;
 import com.evolveum.midpoint.notifications.impl.handlers.BaseHandler;
-import com.evolveum.midpoint.notifications.api.transports.Message;
-import com.evolveum.midpoint.notifications.api.transports.Transport;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -42,16 +42,12 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
 import org.apache.cxf.common.util.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
-
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
 import static com.evolveum.midpoint.model.api.ProgressInformation.ActivityType.NOTIFICATIONS;
@@ -69,28 +65,13 @@ public class GeneralNotifier extends BaseHandler {
     protected NotificationManager notificationManager;
 
     @Autowired
-    protected NotificationsUtil notificationsUtil;
+    protected NotificationFuctionsImpl notificationsUtil;
 
     @Autowired
     protected TextFormatter textFormatter;
 
     @Autowired
     protected AggregatedEventHandler aggregatedEventHandler;
-
-    protected static final List<ItemPath> auxiliaryPaths = Collections.unmodifiableList(Arrays.asList(
-            new ItemPath(ShadowType.F_METADATA),
-            new ItemPath(ShadowType.F_ACTIVATION, ActivationType.F_VALIDITY_STATUS),                // works for user activation as well
-            new ItemPath(ShadowType.F_ACTIVATION, ActivationType.F_VALIDITY_CHANGE_TIMESTAMP),
-            new ItemPath(ShadowType.F_ACTIVATION, ActivationType.F_EFFECTIVE_STATUS),
-            new ItemPath(ShadowType.F_ACTIVATION, ActivationType.F_DISABLE_TIMESTAMP),
-            new ItemPath(ShadowType.F_ACTIVATION, ActivationType.F_ARCHIVE_TIMESTAMP),
-            new ItemPath(ShadowType.F_ACTIVATION, ActivationType.F_ENABLE_TIMESTAMP),
-            new ItemPath(ShadowType.F_ITERATION),
-            new ItemPath(ShadowType.F_ITERATION_TOKEN),
-            new ItemPath(UserType.F_LINK_REF),
-            new ItemPath(ShadowType.F_TRIGGER))
-    );
-
 
     @PostConstruct
     public void init() {
@@ -155,7 +136,7 @@ public class GeneralNotifier extends BaseHandler {
                                 Message message = new Message();
                                 message.setBody(body != null ? body : "");
                                 //message.setContentType("text/plain");           // todo make more flexible
-                                message.setSubject(subject != null ? subject : "");
+                                message.setSubject(subject);
                                 message.setTo(recipientsAddresses);                      // todo cc/bcc recipients
 
                                 getLogger().trace("Sending notification via transport {}:\n{}", transportName, message);
@@ -209,7 +190,7 @@ public class GeneralNotifier extends BaseHandler {
 
     protected List<String> getRecipientsAddresses(Event event, GeneralNotifierType generalNotifierType, ExpressionVariables variables, 
     		UserType defaultRecipient, String transportName, Transport transport, Task task, OperationResult result) {
-        List<String> addresses = new ArrayList<String>();
+        List<String> addresses = new ArrayList<>();
         if (!generalNotifierType.getRecipientExpression().isEmpty()) {
             for (ExpressionType expressionType : generalNotifierType.getRecipientExpression()) {
                 List<String> r = evaluateExpressionChecked(expressionType, variables, "notification recipient", task, result);
@@ -275,7 +256,7 @@ public class GeneralNotifier extends BaseHandler {
     protected boolean deltaContainsOtherPathsThan(ObjectDelta<? extends ObjectType> delta, List<ItemPath> paths) {
 
         for (ItemDelta itemDelta : delta.getModifications()) {
-            if (!NotificationsUtil.isAmongHiddenPaths(itemDelta.getPath(), paths)) {
+            if (!NotificationFuctionsImpl.isAmongHiddenPaths(itemDelta.getPath(), paths)) {
                 return true;
             }
         }
@@ -290,7 +271,7 @@ public class GeneralNotifier extends BaseHandler {
 
         boolean showValues = !Boolean.FALSE.equals(showValuesBoolean);
         for (ItemDelta<?,?> itemDelta : delta.getModifications()) {
-            if (NotificationsUtil.isAmongHiddenPaths(itemDelta.getPath(), hiddenPaths)) {
+            if (NotificationFuctionsImpl.isAmongHiddenPaths(itemDelta.getPath(), hiddenPaths)) {
                 continue;
             }
             body.append(" - ");
@@ -348,10 +329,6 @@ public class GeneralNotifier extends BaseHandler {
         ExpressionVariables variables = super.getDefaultVariables(event, result);
         variables.addVariableDefinition(SchemaConstants.C_TEXT_FORMATTER, textFormatter);
         return variables;
-    }
-
-    public static List<ItemPath> getAuxiliaryPaths() {
-        return auxiliaryPaths;
     }
 
     public String formatRequester(Event event, OperationResult result) {

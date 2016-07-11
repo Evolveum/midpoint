@@ -16,7 +16,7 @@
 
 package com.evolveum.midpoint.notifications.impl.formatters;
 
-import com.evolveum.midpoint.notifications.impl.NotificationsUtil;
+import com.evolveum.midpoint.notifications.impl.NotificationFuctionsImpl;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -190,7 +190,10 @@ public class TextFormatter {
         if (shadowType.getAssociation() != null) {
             boolean first = true;
             for (ShadowAssociationType shadowAssociationType : shadowType.getAssociation()) {
-                if (first) retval.append("\n"); else first = false;
+                if (first) {
+					first = false;
+					retval.append("\n");
+				}
                 retval.append("Association:\n");
                 formatContainerValue(retval, "  ", shadowAssociationType.asPrismContainerValue(), false, hiddenAttributes, showOperationalAttributes);
                 retval.append("\n");
@@ -432,7 +435,8 @@ public class TextFormatter {
         List<QName> noDefinition = new ArrayList<>();
         for (ItemDelta itemDelta: objectDelta.getModifications()) {
             if (itemDelta.getDefinition() != null) {
-                if ((showOperationalAttributes || !itemDelta.getDefinition().isOperational()) && !NotificationsUtil.isAmongHiddenPaths(itemDelta.getPath(), hiddenPaths)) {
+                if ((showOperationalAttributes || !itemDelta.getDefinition().isOperational()) && !NotificationFuctionsImpl
+						.isAmongHiddenPaths(itemDelta.getPath(), hiddenPaths)) {
                     toBeDisplayed.add(itemDelta);
                 }
             } else {
@@ -476,7 +480,7 @@ public class TextFormatter {
         List<QName> noDefinition = new ArrayList<>();
         for (Item item : items) {
             if (item.getDefinition() != null) {
-                boolean isHidden = NotificationsUtil.isAmongHiddenPaths(item.getPath(), hiddenPaths);
+                boolean isHidden = NotificationFuctionsImpl.isAmongHiddenPaths(item.getPath(), hiddenPaths);
                 if (!isHidden && (showOperationalAttributes || !item.getDefinition().isOperational())) {
                     toBeDisplayed.add(item);
                 }

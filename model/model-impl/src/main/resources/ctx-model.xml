@@ -105,7 +105,13 @@
           <constructor-arg name="prismContext" ref="prismContext"/>
           <constructor-arg name="protector" ref="protector"/>
     </bean>
-    
+
+    <bean id="velocityScriptEvaluator" class="com.evolveum.midpoint.model.common.expression.script.velocity.VelocityScriptEvaluator"
+          scope="singleton">
+          <constructor-arg name="prismContext" ref="prismContext"/>
+          <constructor-arg name="protector" ref="protector"/>
+    </bean>
+
     <bean id="scriptExpressionFactory" class="com.evolveum.midpoint.model.common.expression.script.ScriptExpressionFactory"
           scope="singleton">
         <constructor-arg ref="modelObjectResolver"/>
@@ -124,6 +130,7 @@
         		<ref bean="javascriptScriptEvaluator"/>
         		<ref bean="groovyScriptEvaluator"/>
         		<ref bean="pythonScriptEvaluator"/>
+        		<ref bean="velocityScriptEvaluator"/>
         	</list>
         </property>
     </bean>

@@ -21,7 +21,7 @@ import com.evolveum.midpoint.notifications.api.events.WorkItemEvent;
 import com.evolveum.midpoint.notifications.api.events.WorkflowEvent;
 import com.evolveum.midpoint.notifications.api.events.WorkflowEventCreator;
 import com.evolveum.midpoint.notifications.api.events.WorkflowProcessEvent;
-import com.evolveum.midpoint.notifications.impl.NotificationsUtil;
+import com.evolveum.midpoint.notifications.impl.NotificationFuctionsImpl;
 import com.evolveum.midpoint.notifications.impl.SimpleObjectRefImpl;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -42,7 +42,7 @@ public class DefaultWorkflowEventCreator implements WorkflowEventCreator {
     private LightweightIdentifierGenerator lightweightIdentifierGenerator;
 
     @Autowired
-    private NotificationsUtil notificationsUtil;
+    private NotificationFuctionsImpl notificationsUtil;
 
     @Autowired
     private NotificationManager notificationManager;

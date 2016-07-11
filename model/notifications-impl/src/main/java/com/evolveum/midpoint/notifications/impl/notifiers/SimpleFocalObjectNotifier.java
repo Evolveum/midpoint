@@ -25,19 +25,16 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
 import org.apache.commons.lang.StringUtils;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
-
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -81,7 +78,7 @@ public class SimpleFocalObjectNotifier extends GeneralNotifier {
         }
 
         for (ObjectDelta<FocusType> delta : deltas) {
-            if (!delta.isModify() || deltaContainsOtherPathsThan(delta, auxiliaryPaths)) {
+            if (!delta.isModify() || deltaContainsOtherPathsThan(delta, notificationsUtil.getAuxiliaryPaths())) {
                 return true;
             }
         }
@@ -92,7 +89,8 @@ public class SimpleFocalObjectNotifier extends GeneralNotifier {
     @Override
     protected String getSubject(Event event, GeneralNotifierType generalNotifierType, String transport, Task task, OperationResult result) {
 
-        String typeName = getFocusTypeName(event);
+		final ModelEvent modelEvent = (ModelEvent) event;
+        String typeName = modelEvent.getFocusTypeName();
 
         if (event.isAdd()) {
             return typeName + " creation notification";
@@ -105,21 +103,17 @@ public class SimpleFocalObjectNotifier extends GeneralNotifier {
         }
     }
 
-    // assuming the quick availability check was passed
-    private String getFocusTypeName(Event event) {
-        String simpleName = ((ModelEvent) event).getFocusContext().getObjectTypeClass().getSimpleName();
-        return StringUtils.substringBeforeLast(simpleName, "Type");         // should usually work ;)
-    }
-
     @Override
     protected String getBody(Event event, GeneralNotifierType generalNotifierType, String transport, Task task, OperationResult result) throws SchemaException {
 
-        String typeName = getFocusTypeName(event);
+		final ModelEvent modelEvent = (ModelEvent) event;
+
+		String typeName = modelEvent.getFocusTypeName();
         String typeNameLower = typeName.toLowerCase();
 
         boolean techInfo = Boolean.TRUE.equals(generalNotifierType.isShowTechnicalInformation());
 
-        ModelContext<FocusType> modelContext = (ModelContext) ((ModelEvent) event).getModelContext();
+		ModelContext<FocusType> modelContext = (ModelContext) modelEvent.getModelContext();
         ModelElementContext<FocusType> focusContext = modelContext.getFocusContext();
         PrismObject<FocusType> focus = focusContext.getObjectNew() != null ? focusContext.getObjectNew() : focusContext.getObjectOld();
         FocusType userType = focus.asObjectable();
@@ -138,41 +132,28 @@ public class SimpleFocalObjectNotifier extends GeneralNotifier {
             fullName = "";          // "null" is not nice in notifications
         }
 
-        ObjectDelta<FocusType> delta = ObjectDelta.summarize(((ModelEvent) event).getFocusDeltas());
+        ObjectDelta<FocusType> delta = ObjectDelta.summarize(modelEvent.getFocusDeltas());
 
         StringBuilder body = new StringBuilder();
 
-        String status;
-        if (event.isSuccess()) {
-            status = "SUCCESS";
-        } else if (event.isOnlyFailure()) {
-            status = "FAILURE";
-        } else if (event.isFailure()) {
-            status = "PARTIAL FAILURE";
-        } else if (event.isInProgress()) {
-            status = "IN PROGRESS";
-        } else {
-            status = "UNKNOWN";
-        }
-
+		String status = modelEvent.getStatusAsText();
         String attemptedTo = event.isSuccess() ? "" : "(attempted to be) ";
 
-        body.append("Notification about ").append(typeNameLower).append("-related operation (status: " + status + ")\n\n");
-        body.append(typeName).append(": " + fullName + " (" + userType.getName() + ", oid " + oid + ")\n");
-        body.append("Notification created on: " + new Date() + "\n\n");
+        body.append("Notification about ").append(typeNameLower).append("-related operation (status: ").append(status).append(")\n\n");
+        body.append(typeName).append(": ").append(fullName).append(" (").append(userType.getName()).append(", oid ").append(oid).append(")\n");
+        body.append("Notification created on: ").append(new Date()).append("\n\n");
 
-        List<ItemPath> hiddenPaths = isWatchAuxiliaryAttributes(generalNotifierType) ? new ArrayList<ItemPath>() : auxiliaryPaths;
-        if (delta.isAdd()) {
-            body.append("The ").append(typeNameLower).append(" record was " + attemptedTo + "created with the following data:\n");
-            body.append(textFormatter.formatObject(delta.getObjectToAdd(), hiddenPaths, isWatchAuxiliaryAttributes(generalNotifierType)));
-            body.append("\n");
+		final boolean watchAuxiliaryAttributes = isWatchAuxiliaryAttributes(generalNotifierType);
+		if (delta.isAdd()) {
+            body.append("The ").append(typeNameLower).append(" record was ").append(attemptedTo).append("created with the following data:\n");
+            body.append(modelEvent.getContentAsFormattedList(false, watchAuxiliaryAttributes));
         } else if (delta.isModify()) {
-            body.append("The ").append(typeNameLower).append(" record was " + attemptedTo + "modified. Modified attributes are:\n");
-            body.append(textFormatter.formatObjectModificationDelta(delta, hiddenPaths, isWatchAuxiliaryAttributes(generalNotifierType), focusContext.getObjectOld(), focusContext.getObjectNew()));
-            body.append("\n");
+            body.append("The ").append(typeNameLower).append(" record was ").append(attemptedTo).append("modified. Modified attributes are:\n");
+			body.append(modelEvent.getContentAsFormattedList(false, watchAuxiliaryAttributes));
         } else if (delta.isDelete()) {
-            body.append("The ").append(typeNameLower).append(" record was " + attemptedTo + "removed.\n\n");
+            body.append("The ").append(typeNameLower).append(" record was ").append(attemptedTo).append("removed.\n");
         }
+		body.append("\n");
 
         if (!event.isSuccess()) {
             body.append("More information about the status of the request was displayed and/or is present in log files.\n\n");
@@ -189,7 +170,7 @@ public class SimpleFocalObjectNotifier extends GeneralNotifier {
         return body.toString();
     }
 
-    @Override
+	@Override
     protected Trace getLogger() {
         return LOGGER;
     }

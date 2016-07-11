@@ -17,7 +17,9 @@
 package com.evolveum.midpoint.notifications.impl;
 
 import com.evolveum.midpoint.notifications.api.EventHandler;
+import com.evolveum.midpoint.notifications.api.NotificationFunctions;
 import com.evolveum.midpoint.notifications.api.NotificationManager;
+import com.evolveum.midpoint.notifications.api.events.BaseEvent;
 import com.evolveum.midpoint.notifications.api.events.Event;
 import com.evolveum.midpoint.notifications.api.events.WorkflowEventCreator;
 import com.evolveum.midpoint.notifications.api.transports.Transport;
@@ -50,12 +52,15 @@ public class NotificationManagerImpl implements NotificationManager {
     private static final Trace LOGGER = TraceManager.getTrace(NotificationManager.class);
 	private static final String OPERATION_PROCESS_EVENT = NotificationManager.class + ".processEvent";
 
-	@Autowired(required = true)
+	@Autowired
     @Qualifier("cacheRepositoryService")
     private transient RepositoryService cacheRepositoryService;
 
     @Autowired
     private DefaultWorkflowEventCreator defaultWorkflowEventCreator;
+
+	@Autowired
+	private NotificationFunctions notificationFunctions;
 
 	@Autowired
 	private TaskManager taskManager;
@@ -113,9 +118,13 @@ public class NotificationManagerImpl implements NotificationManager {
             return;
         }
 
+		if (event instanceof BaseEvent) {
+			((BaseEvent) event).setNotificationFunctions(notificationFunctions);
+		}
+
 		LOGGER.trace("NotificationManager processing event {}", event);
 
-        SystemConfigurationType systemConfigurationType = NotificationsUtil.getSystemConfiguration(cacheRepositoryService, result);
+        SystemConfigurationType systemConfigurationType = NotificationFuctionsImpl.getSystemConfiguration(cacheRepositoryService, result);
         if (systemConfigurationType == null) {      // something really wrong happened (or we are doing initial import of objects)
             return;
         }

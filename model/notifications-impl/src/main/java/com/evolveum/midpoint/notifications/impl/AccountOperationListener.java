@@ -65,7 +65,7 @@ public class AccountOperationListener implements ResourceOperationListener {
     private transient RepositoryService cacheRepositoryService;
 
     @Autowired
-    private NotificationsUtil notificationsUtil;
+    private NotificationFuctionsImpl notificationsUtil;
 
     @PostConstruct
     public void init() {
