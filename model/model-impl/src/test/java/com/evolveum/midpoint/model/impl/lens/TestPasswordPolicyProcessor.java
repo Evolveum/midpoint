@@ -14,6 +14,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
+import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -62,7 +63,7 @@ public class TestPasswordPolicyProcessor extends AbstractLensTest {
 
 		repoAddObjectFromFile(PASSWORD_HISTORY_POLICY_FILE, ValuePolicyType.class, initResult);
 		repoAddObjectFromFile(PASSWORD_NO_HISTORY_POLICY_FILE, ValuePolicyType.class, initResult);
-		
+
 		deleteObject(UserType.class, USER_JACK_OID);
 
 	}
@@ -213,6 +214,25 @@ public class TestPasswordPolicyProcessor extends AbstractLensTest {
 		checkHistoryEntriesValue(historyEntriesTypeAfterSecondChange,
 				new String[] { "ch4nGedP433w0rd", "ch4nGedPa33w0rd", "ch4nGedPa33word" });
 
+	}
+
+	@Test
+	public void test104modifyUserPasswordSamePassword() throws Exception {
+		String title = "test103modifyUserPasswordAgain";
+		Task task = taskManager.createTaskInstance(title);
+		OperationResult result = task.getResult();
+
+		// WHEN
+		ProtectedStringType newValue = new ProtectedStringType();
+		newValue.setClearValue("ch4nGedP433w0rd");
+		try {
+			modifyObjectReplaceProperty(UserType.class, USER_JACK_OID,
+					new ItemPath(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD, PasswordType.F_VALUE),
+					task, result, newValue);
+			fail("Expected PolicyViolationException but didn't get one.");
+		} catch (PolicyViolationException ex) {
+			// THIS IS OK
+		}
 	}
 
 	@Test

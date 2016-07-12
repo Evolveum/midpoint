@@ -15,9 +15,9 @@
  */
 package com.evolveum.midpoint.common.policy;
 
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
@@ -28,6 +28,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CharacterClassType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LimitationsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordLifeTimeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.StringLimitType;
@@ -43,8 +44,8 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 public class PasswordPolicyUtils {
 	private static final transient Trace LOGGER = TraceManager.getTrace(PasswordPolicyUtils.class);
 
-    private static final String DOT_CLASS = PasswordPolicyUtils.class.getName() + ".";
-    private static final String OPERATION_PASSWORD_VALIDATION = DOT_CLASS + "passwordValidation";
+	private static final String DOT_CLASS = PasswordPolicyUtils.class.getName() + ".";
+	private static final String OPERATION_PASSWORD_VALIDATION = DOT_CLASS + "passwordValidation";
 
 	/**
 	 * add defined default values
@@ -75,8 +76,6 @@ public class PasswordPolicyUtils {
 		return;
 	}
 
-	
-
 	/**
 	 * Check provided password against provided policy
 	 * 
@@ -90,48 +89,50 @@ public class PasswordPolicyUtils {
 	 *         met
 	 */
 
-	public static boolean validatePassword(String password, List <ValuePolicyType> policies, OperationResult result) {
-		boolean ret=true;
-		//iterate through policies 
-		for (ValuePolicyType pp: policies) {
-			OperationResult op = validatePassword(password, pp);
+	public static boolean validatePassword(String password, List<String> historyEntries, List<ValuePolicyType> policies,
+			OperationResult result) {
+		boolean ret = true;
+		// iterate through policies
+		for (ValuePolicyType pp : policies) {
+			OperationResult op = validatePassword(password, historyEntries, pp);
 			result.addSubresult(op);
-			//if one fail then result is failure
-			if (ret == true && ! op.isSuccess()) {
+			// if one fail then result is failure
+			if (ret == true && !op.isSuccess()) {
 				ret = false;
 			}
 		}
 		return ret;
 	}
-	
-	public static boolean validatePassword(String password, List<PrismObject<ValuePolicyType>> policies) {
-		boolean ret=true;
-		//iterate through policies 
-		for (PrismObject<ValuePolicyType> pp: policies) {
-			OperationResult op = validatePassword(password, pp.asObjectable());
-//			result.addSubresult(op);
-			//if one fail then result is failure
-			if (ret == true && ! op.isSuccess()) {
+
+	public static boolean validatePassword(String password, List<String> historyEntries, List<PrismObject<ValuePolicyType>> policies) {
+		boolean ret = true;
+		// iterate through policies
+		for (PrismObject<ValuePolicyType> pp : policies) {
+			OperationResult op = validatePassword(password, historyEntries, pp.asObjectable());
+			// result.addSubresult(op);
+			// if one fail then result is failure
+			if (ret == true && !op.isSuccess()) {
 				ret = false;
 			}
 		}
 		return ret;
 	}
-	
-	public static boolean validatePassword(ProtectedStringType password, List<PrismObject<ValuePolicyType>> policies) {
-		boolean ret=true;
-		//iterate through policies 
-		for (PrismObject<ValuePolicyType> pp: policies) {
-			OperationResult op = validatePassword(password.getClearValue(), pp.asObjectable());
-//			result.addSubresult(op);
-			//if one fail then result is failure
-			if (ret == true && ! op.isSuccess()) {
+
+	public static boolean validatePassword(ProtectedStringType password, List<String> historyEntries,
+			List<PrismObject<ValuePolicyType>> policies) {
+		boolean ret = true;
+		// iterate through policies
+		for (PrismObject<ValuePolicyType> pp : policies) {
+			OperationResult op = validatePassword(password.getClearValue(), historyEntries, pp.asObjectable());
+			// result.addSubresult(op);
+			// if one fail then result is failure
+			if (ret == true && !op.isSuccess()) {
 				ret = false;
 			}
 		}
 		return ret;
 	}
-	
+
 	/**
 	 * Check provided password against provided policy
 	 * 
@@ -145,12 +146,12 @@ public class PasswordPolicyUtils {
 	 *         met
 	 */
 
-	public static boolean validatePassword(String password, ValuePolicyType pp, OperationResult result) {
-		OperationResult op = validatePassword(password, pp);
+	public static boolean validatePassword(String password, List<String> historyEntries, ValuePolicyType pp, OperationResult result) {
+		OperationResult op = validatePassword(password, historyEntries, pp);
 		result.addSubresult(op);
 		return op.isSuccess();
 	}
-	
+
 	/**
 	 * Check provided password against provided policy
 	 * 
@@ -160,199 +161,259 @@ public class PasswordPolicyUtils {
 	 *            - Password policy used
 	 * @return - Operation result of this validation
 	 */
-	public static OperationResult validatePassword(String password, ValuePolicyType pp) {
+	public static OperationResult validatePassword(String password, List<String> historyEntries, ValuePolicyType pp) {
 
 		Validate.notNull(pp, "Password policy must not be null.");
-		
-        OperationResult ret = new OperationResult(OPERATION_PASSWORD_VALIDATION);
-        ret.addParam("policyName", pp.getName());
+
+		OperationResult ret = new OperationResult(OPERATION_PASSWORD_VALIDATION);
+		ret.addParam("policyName", pp.getName());
 		normalize(pp);
-		
-		if (password == null && pp.getMinOccurs() != null && XsdTypeMapper.multiplicityToInteger(pp.getMinOccurs()) == 0) {
+
+		if (password == null && pp.getMinOccurs() != null
+				&& XsdTypeMapper.multiplicityToInteger(pp.getMinOccurs()) == 0) {
 			// No password is allowed
 			ret.recordSuccess();
 			return ret;
 		}
-		
+
 		if (password == null) {
 			password = "";
 		}
-		
+
 		LimitationsType lims = pp.getStringPolicy().getLimitations();
 
 		StringBuilder message = new StringBuilder();
-		
-		// Test minimal length
-		if (lims.getMinLength() == null){
-			lims.setMinLength(0);
-		}
-		if (lims.getMinLength() > password.length()) {
-			String msg = "Required minimal size (" + lims.getMinLength() + ") of password is not met (password length: "
-							+ password.length() + ")";
-			ret.addSubresult(new OperationResult("Check global minimal length", OperationResultStatus.FATAL_ERROR,
-					msg));
-			message.append(msg);
-			message.append("\n");
-		} 
-//		else {
-//			ret.addSubresult(new OperationResult("Check global minimal length. Minimal length of password OK.",
-//					OperationResultStatus.SUCCESS, "PASSED"));
-//		}
 
-		// Test maximal length
-		if (lims.getMaxLength() != null) {
-			if (lims.getMaxLength() < password.length()) {
-				String msg = "Required maximal size (" + lims.getMaxLength()
-						+ ") of password was exceeded (password length: " + password.length() + ").";
-				ret.addSubresult(new OperationResult("Check global maximal length", OperationResultStatus.FATAL_ERROR,
-						msg));
-				message.append(msg);
-				message.append("\n");
-			} 
-//			else {
-//				ret.addSubresult(new OperationResult("Check global maximal length. Maximal length of password OK.",
-//						OperationResultStatus.SUCCESS, "PASSED"));
-//			}
-		}
-		// Test uniqueness criteria
-		HashSet<String> tmp = new HashSet<String>(StringPolicyUtils.stringTokenizer(password));
-		if (lims.getMinUniqueChars() != null) {
-			if (lims.getMinUniqueChars() > tmp.size()) {
-				String msg = "Required minimal count of unique characters ("
-						+ lims.getMinUniqueChars()
-						+ ") in password are not met (unique characters in password " + tmp.size() + ")";
-				ret.addSubresult(new OperationResult("Check minimal count of unique chars",
-						OperationResultStatus.FATAL_ERROR, msg));
-				message.append(msg);
-				message.append("\n");
-			} 
-//			else {
-//				ret.addSubresult(new OperationResult(
-//						"Check minimal count of unique chars. Password satisfies minimal required unique characters.",
-//						OperationResultStatus.SUCCESS, "PASSED"));
-//			}
-		}
+		testMinimalLength(password, lims, ret, message);
+		testMaximalLength(password, lims, ret, message);
 
-		// check limitation
-		HashSet<String> allValidChars = new HashSet<String>(128);
-		ArrayList<String> validChars = null;
-		ArrayList<String> passwd = StringPolicyUtils.stringTokenizer(password);
+		testMinimalUniqueCharacters(password, lims, ret, message);
+		testPasswordHistoryEntries(password, historyEntries, ret, message);
 		
-		if (lims.getLimit() == null || lims.getLimit().isEmpty()){
-			if (message.toString() == null || message.toString().isEmpty()){
+
+		if (lims.getLimit() == null || lims.getLimit().isEmpty()) {
+			if (message.toString() == null || message.toString().isEmpty()) {
 				ret.computeStatus();
 			} else {
 				ret.computeStatus(message.toString());
-				
+
 			}
-			
+
 			return ret;
 		}
-		for (StringLimitType l : lims.getLimit()) {
-			OperationResult limitResult = new OperationResult("Tested limitation: " + l.getDescription());
-			if (null != l.getCharacterClass().getValue()) {
-				validChars = StringPolicyUtils.stringTokenizer(l.getCharacterClass().getValue());
-			} else {
-				validChars = StringPolicyUtils.stringTokenizer(StringPolicyUtils.collectCharacterClass(pp
-						.getStringPolicy().getCharacterClass(), l.getCharacterClass().getRef()));
-			}
-			// memorize validChars
+
+		// check limitation
+		HashSet<String> validChars = null;
+		HashSet<String> allValidChars = new HashSet<>();
+		List<String> passwd = StringPolicyUtils.stringTokenizer(password);
+		for (StringLimitType stringLimitationType : lims.getLimit()) {
+			OperationResult limitResult = new OperationResult(
+					"Tested limitation: " + stringLimitationType.getDescription());
+
+			validChars = getValidCharacters(stringLimitationType.getCharacterClass(), pp);
+			int count = countValidCharacters(validChars, passwd);
 			allValidChars.addAll(validChars);
+			testMinimalOccurence(stringLimitationType, count, limitResult, message);
+			testMaximalOccurence(stringLimitationType, count, limitResult, message);
+			testMustBeFirst(stringLimitationType, count, limitResult, message, password, validChars);
 
-			// Count how many character for this limitation are there
-			int count = 0;
-			for (String s : passwd) {
-				if (validChars.contains(s)) {
-					count++;
-				}
-			}
-
-			// Test minimal occurrence
-			if (l.getMinOccurs() == null){
-				l.setMinOccurs(0);
-			}
-			if (l.getMinOccurs() > count) {
-				String msg = "Required minimal occurrence (" + l.getMinOccurs()
-						+ ") of characters ("+l.getDescription()+") in password is not met (occurrence of characters in password "
-						+ count + ").";
-				limitResult.addSubresult(new OperationResult("Check minimal occurrence of characters",
-						OperationResultStatus.FATAL_ERROR, msg));
-				message.append(msg);
-				message.append("\n");
-			} 
-//			else {
-//				limitResult.addSubresult(new OperationResult("Check minimal occurrence of characters in password OK.",
-//						OperationResultStatus.SUCCESS, "PASSED"));
-//			}
-
-			// Test maximal occurrence
-			if (l.getMaxOccurs() != null) {
-
-				if (l.getMaxOccurs() < count) {
-					String msg = "Required maximal occurrence (" + l.getMaxOccurs()
-							+ ") of characters ("+l.getDescription()+") in password was exceeded (occurrence of characters in password "
-							+ count + ").";
-					limitResult.addSubresult(new OperationResult("Check maximal occurrence of characters",
-							OperationResultStatus.FATAL_ERROR, msg));
-					message.append(msg);
-					message.append("\n");
-				} 
-//				else {
-//					limitResult.addSubresult(new OperationResult(
-//							"Check maximal occurrence of characters in password OK.", OperationResultStatus.SUCCESS,
-//							"PASSED"));
-//				}
-			}
-			// test if first character is valid
-			if (l.isMustBeFirst() == null){
-				l.setMustBeFirst(false);
-			}
-			// we check mustBeFirst only for non-empty passwords
-			if (StringUtils.isNotEmpty(password) && l.isMustBeFirst() && !validChars.contains(password.substring(0, 1))) {
-				String msg = "First character is not from allowed set. Allowed set: "
-						+ validChars.toString();
-				limitResult.addSubresult(new OperationResult("Check valid first char",
-						OperationResultStatus.FATAL_ERROR, msg));
-				message.append(msg);
-				message.append("\n");
-			} 
-//			else {
-//				limitResult.addSubresult(new OperationResult("Check valid first char in password OK.",
-//						OperationResultStatus.SUCCESS, "PASSED"));
-//			}
 			limitResult.computeStatus();
 			ret.addSubresult(limitResult);
 		}
+		testInvalidCharacters(passwd, allValidChars, ret, message);
 
-		// Check if there is no invalid character
-		StringBuilder sb = new StringBuilder();
-		for (String s : passwd) {
-			if (!allValidChars.contains(s)) {
-				// memorize all invalid characters
-				sb.append(s);
-			}
-		}
-		if (sb.length() > 0) {
-			String msg = "Characters [ " + sb
-					+ " ] are not allowed in password";
-			ret.addSubresult(new OperationResult("Check if password does not contain invalid characters",
-					OperationResultStatus.FATAL_ERROR, msg));
-			message.append(msg);
-			message.append("\n");
-		} 
-//		else {
-//			ret.addSubresult(new OperationResult("Check if password does not contain invalid characters OK.",
-//					OperationResultStatus.SUCCESS, "PASSED"));
-//		}
-
-		if (message.toString() == null || message.toString().isEmpty()){
+		if (message.toString() == null || message.toString().isEmpty()) {
 			ret.computeStatus();
 		} else {
 			ret.computeStatus(message.toString());
-			
+
+		}
+
+		return ret;
+	}
+
+	private static void testPasswordHistoryEntries(String password, List<String> historyEntries,
+			OperationResult result, StringBuilder message) {
+
+		if (historyEntries == null || historyEntries.isEmpty()) {
+			return;
 		}
 		
-		return ret;
+		if (historyEntries.contains(password)) {
+			String msg = "Password couldn't be changed to the same value. Please select another password.";
+			result.addSubresult(new OperationResult("Check if password does not contain invalid characters",
+					OperationResultStatus.FATAL_ERROR, msg));
+			message.append(msg);
+			message.append("\n");
+		}
+		
+	}
+
+	private static void testInvalidCharacters(List<String> password, HashSet<String> validChars,
+			OperationResult result, StringBuilder message) {
+
+		// Check if there is no invalid character
+		StringBuilder invalidCharacters = new StringBuilder();
+		for (String s : password) {
+			if (!validChars.contains(s)) {
+				// memorize all invalid characters
+				invalidCharacters.append(s);
+			}
+		}
+		if (invalidCharacters.length() > 0) {
+			String msg = "Characters [ " + invalidCharacters + " ] are not allowed in password";
+			result.addSubresult(new OperationResult("Check if password does not contain invalid characters",
+					OperationResultStatus.FATAL_ERROR, msg));
+			message.append(msg);
+			message.append("\n");
+		}
+		// else {
+		// ret.addSubresult(new OperationResult("Check if password does not
+		// contain invalid characters OK.",
+		// OperationResultStatus.SUCCESS, "PASSED"));
+		// }
+
+	}
+
+	private static void testMustBeFirst(StringLimitType stringLimitationType, int count,
+			OperationResult limitResult, StringBuilder message, String password, Set<String> validChars) {
+		// test if first character is valid
+		if (stringLimitationType.isMustBeFirst() == null) {
+			stringLimitationType.setMustBeFirst(false);
+		}
+		// we check mustBeFirst only for non-empty passwords
+		if (StringUtils.isNotEmpty(password) && stringLimitationType.isMustBeFirst()
+				&& !validChars.contains(password.substring(0, 1))) {
+			String msg = "First character is not from allowed set. Allowed set: " + validChars.toString();
+			limitResult.addSubresult(
+					new OperationResult("Check valid first char", OperationResultStatus.FATAL_ERROR, msg));
+			message.append(msg);
+			message.append("\n");
+		}
+		// else {
+		// limitResult.addSubresult(new OperationResult("Check valid first char
+		// in password OK.",
+		// OperationResultStatus.SUCCESS, "PASSED"));
+		// }
+
+	}
+
+	private static void testMaximalOccurence(StringLimitType stringLimitationType, int count,
+			OperationResult limitResult, StringBuilder message) {
+		// Test maximal occurrence
+		if (stringLimitationType.getMaxOccurs() != null) {
+
+			if (stringLimitationType.getMaxOccurs() < count) {
+				String msg = "Required maximal occurrence (" + stringLimitationType.getMaxOccurs()
+						+ ") of characters (" + stringLimitationType.getDescription()
+						+ ") in password was exceeded (occurrence of characters in password " + count + ").";
+				limitResult.addSubresult(new OperationResult("Check maximal occurrence of characters",
+						OperationResultStatus.FATAL_ERROR, msg));
+				message.append(msg);
+				message.append("\n");
+			}
+			// else {
+			// limitResult.addSubresult(new OperationResult(
+			// "Check maximal occurrence of characters in password OK.",
+			// OperationResultStatus.SUCCESS,
+			// "PASSED"));
+			// }
+		}
+
+	}
+
+	private static void testMinimalOccurence(StringLimitType stringLimitation, int count,
+			OperationResult result, StringBuilder message) {
+		// Test minimal occurrence
+		if (stringLimitation.getMinOccurs() == null) {
+			stringLimitation.setMinOccurs(0);
+		}
+		if (stringLimitation.getMinOccurs() > count) {
+			String msg = "Required minimal occurrence (" + stringLimitation.getMinOccurs()
+					+ ") of characters (" + stringLimitation.getDescription()
+					+ ") in password is not met (occurrence of characters in password " + count + ").";
+			result.addSubresult(new OperationResult("Check minimal occurrence of characters",
+					OperationResultStatus.FATAL_ERROR, msg));
+			message.append(msg);
+			message.append("\n");
+		}
+	}
+
+	private static int countValidCharacters(Set<String> validChars, List<String> password) {
+		int count = 0;
+		for (String s : password) {
+			if (validChars.contains(s)) {
+				count++;
+			}
+		}
+		return count;
+	}
+
+	private static HashSet<String> getValidCharacters(CharacterClassType characterClassType,
+			ValuePolicyType passwordPolicy) {
+		if (null != characterClassType.getValue()) {
+			return new HashSet<String>(StringPolicyUtils.stringTokenizer(characterClassType.getValue()));
+		} else {
+			return new HashSet<String>(StringPolicyUtils.stringTokenizer(StringPolicyUtils
+					.collectCharacterClass(passwordPolicy.getStringPolicy().getCharacterClass(),
+							characterClassType.getRef())));
+		}
+	}
+
+	private static void testMinimalUniqueCharacters(String password, LimitationsType limitations,
+			OperationResult result, StringBuilder message) {
+		// Test uniqueness criteria
+		HashSet<String> tmp = new HashSet<String>(StringPolicyUtils.stringTokenizer(password));
+		if (limitations.getMinUniqueChars() != null) {
+			if (limitations.getMinUniqueChars() > tmp.size()) {
+				String msg = "Required minimal count of unique characters (" + limitations.getMinUniqueChars()
+						+ ") in password are not met (unique characters in password " + tmp.size() + ")";
+				result.addSubresult(new OperationResult("Check minimal count of unique chars",
+						OperationResultStatus.FATAL_ERROR, msg));
+				message.append(msg);
+				message.append("\n");
+			}
+
+		}
+	}
+
+	private static void testMinimalLength(String password, LimitationsType limitations,
+			OperationResult result, StringBuilder message) {
+		// Test minimal length
+		if (limitations.getMinLength() == null) {
+			limitations.setMinLength(0);
+		}
+		if (limitations.getMinLength() > password.length()) {
+			String msg = "Required minimal size (" + limitations.getMinLength()
+					+ ") of password is not met (password length: " + password.length() + ")";
+			result.addSubresult(new OperationResult("Check global minimal length",
+					OperationResultStatus.FATAL_ERROR, msg));
+			message.append(msg);
+			message.append("\n");
+		}
+	}
+
+	private static void testMaximalLength(String password, LimitationsType limitations,
+			OperationResult result, StringBuilder message) {
+		// Test maximal length
+		if (limitations.getMaxLength() != null) {
+			if (limitations.getMaxLength() < password.length()) {
+				String msg = "Required maximal size (" + limitations.getMaxLength()
+						+ ") of password was exceeded (password length: " + password.length() + ").";
+				result.addSubresult(new OperationResult("Check global maximal length",
+						OperationResultStatus.FATAL_ERROR, msg));
+				message.append(msg);
+				message.append("\n");
+			}
+		}
+	}
+
+	private static void buildMessageAndResult(StringBuilder messageBuilder, String message,
+			String operationSummary, OperationResult result) {
+		messageBuilder.append(message);
+		messageBuilder.append("\n");
+		result.addSubresult(new OperationResult("Check global maximal length",
+				OperationResultStatus.FATAL_ERROR, message));
 	}
 
 }
