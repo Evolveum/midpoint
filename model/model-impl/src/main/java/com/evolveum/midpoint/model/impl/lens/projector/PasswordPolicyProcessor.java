@@ -19,10 +19,6 @@ package com.evolveum.midpoint.model.impl.lens.projector;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
-
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -34,6 +30,8 @@ import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.model.impl.lens.LensObjectDeltaOperation;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
+import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismReference;
@@ -44,21 +42,27 @@ import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordHistoryEntryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ValuePolicyType;
+import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 
 @Component
@@ -139,11 +143,11 @@ public class PasswordPolicyProcessor {
 			passwordPolicy = focusContext.getOrgPasswordPolicy();
 		}
 		
-		processPasswordPolicy(passwordPolicy, passwordValueProperty, result);
+		processPasswordPolicy(passwordPolicy, focusContext.getObjectOld(), passwordValueProperty, result);
 
 	}
 	
-	private void processPasswordPolicy(ValuePolicyType passwordPolicy, PrismProperty<ProtectedStringType> passwordProperty, OperationResult result)
+	private <F extends FocusType> void processPasswordPolicy(ValuePolicyType passwordPolicy, PrismObject<F> focus, PrismProperty<ProtectedStringType> passwordProperty, OperationResult result)
 			throws PolicyViolationException, SchemaException {
 
 		if (passwordPolicy == null) {
@@ -152,13 +156,40 @@ public class PasswordPolicyProcessor {
 		}
 
         String passwordValue = determinePasswordValue(passwordProperty);
-
-        boolean isValid = PasswordPolicyUtils.validatePassword(passwordValue, passwordPolicy, result);
+        List<String> oldPasswords = determineOldPasswordValues(focus);
+       
+        boolean isValid = PasswordPolicyUtils.validatePassword(passwordValue, oldPasswords, passwordPolicy, result);
 
 		if (!isValid) {
 			result.computeStatus();
 			throw new PolicyViolationException("Provided password does not satisfy password policies. " + result.getMessage());
 		}
+	}
+
+	private <F extends FocusType> List<String> determineOldPasswordValues(PrismObject<F> focus) {
+		if (focus == null) {
+			return null;
+		}
+		List<String> oldPasswords = null;
+		if (focus.getCompileTimeClass().equals(UserType.class)) {
+			
+        	PrismContainer<PasswordHistoryEntryType> historyEntries = focus.findContainer(new ItemPath(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD, PasswordType.F_HISTORY_ENTRY));
+        	if (historyEntries == null || historyEntries.isEmpty()) {
+        		return null;
+        	}
+        	
+        	List<PasswordHistoryEntryType> historyEntryValues = PrismContainerValue.fromPcvList(historyEntries.getValues());
+        	oldPasswords = new ArrayList<>(historyEntryValues.size());
+        	for (PasswordHistoryEntryType historyEntryValue : historyEntryValues) {
+        		try {
+					oldPasswords.add(protector.decryptString(historyEntryValue.getValue()));
+				} catch (EncryptionException e) { //TODO: do we want to fail when we can't decrypt old values?
+					throw new SystemException("Failed to process password for user: " , e);
+				}
+        	}
+        	
+        }
+		return oldPasswords;
 	}
 
 	private <F extends FocusType> boolean wasExecuted(ObjectDelta<UserType> userDelta, LensFocusContext<F> focusContext){
@@ -176,7 +207,7 @@ public class PasswordPolicyProcessor {
 	}
 	
 	//TODO: maybe some caching of orgs?????
-	private <T extends ObjectType, F extends ObjectType> ValuePolicyType determineValuePolicy(ObjectDelta<UserType> userDelta, PrismObject<T> object, LensContext<F> context, Task task, OperationResult result) throws SchemaException{
+	protected <T extends ObjectType, F extends FocusType> ValuePolicyType determineValuePolicy(ObjectDelta<F> userDelta, PrismObject<T> object, LensContext<F> context, Task task, OperationResult result) throws SchemaException{
 		//check the modification of organization first
 		ValuePolicyType valuePolicy = determineValuePolicy(userDelta, task, result);
 		
@@ -197,8 +228,11 @@ public class PasswordPolicyProcessor {
 		return valuePolicy;
 	}
 	
-	private ValuePolicyType determineValuePolicy(ObjectDelta<UserType> userDelta, Task task, OperationResult result)
+	protected <F extends FocusType> ValuePolicyType determineValuePolicy(ObjectDelta<F> userDelta, Task task, OperationResult result)
 			throws SchemaException {
+		if (userDelta == null) {
+			return null;
+		}
 		ReferenceDelta orgDelta = userDelta.findReferenceModification(UserType.F_PARENT_ORG_REF);
 
 		LOGGER.trace("Determining password policy from org delta.");
@@ -347,7 +381,7 @@ public class PasswordPolicyProcessor {
 			passwordPolicy = projectionContext.getEffectivePasswordPolicy();
 		}
 		
-		processPasswordPolicy(passwordPolicy, password, result);
+		processPasswordPolicy(passwordPolicy, null, password, result);
 	}
 	
 	private <F extends ObjectType> boolean isCheckOrgPolicy(LensContext<F> context) throws SchemaException{

@@ -17,6 +17,8 @@ package com.evolveum.midpoint.common.policy;
 
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 import javax.xml.namespace.QName;
 
@@ -102,13 +104,13 @@ public class StringPolicyUtils {
 		return new StrBuilder().appendAll(h).toString();
 	}
 	
-	/**
+	/**z
 	 * Convert string to array 
 	 * @param in
 	 * @return ArrayList
 	 */
-	public static ArrayList<String> stringTokenizer(String in) {
-		ArrayList<String> l = new ArrayList<String>();
+	public static List<String> stringTokenizer(String in) {
+		List<String> l = new ArrayList<String>();
 		for (String a: in.split("")) {
 			if (!a.isEmpty()) {
 				l.add(a);

@@ -87,24 +87,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestAssignmentEvaluator extends TestAbstractAssignmentEvaluator {
 
-//	@Autowired(required=true)
-//	private RepositoryService repositoryService;
-//	
-//	@Autowired(required=true)
-//	private ObjectResolver objectResolver;
-//	
-//	@Autowired(required=true)
-//	private Clock clock;
-//	
-//	@Autowired(required=true)
-//	private ActivationComputer activationComputer;
-//
-//	@Autowired(required=true)
-//	private MappingFactory mappingFactory;
-//	
-//	@Autowired(required=true)
-//	private MappingEvaluator mappingEvaluator;
-
+	
 	 protected static final File[] ROLE_CORP_FILES = {
 	            ROLE_CORP_GENERIC_METAROLE_FILE,
 	            ROLE_CORP_JOB_METAROLE_FILE,

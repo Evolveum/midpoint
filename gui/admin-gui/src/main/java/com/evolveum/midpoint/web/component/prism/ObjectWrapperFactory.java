@@ -248,7 +248,10 @@ public class ObjectWrapperFactory {
             if (ApprovalSchemaType.COMPLEX_TYPE.equals(def.getTypeName())) {
                 continue;
             }
-
+            if (PasswordHistoryEntryType.COMPLEX_TYPE.equals(def.getTypeName())) {
+            	continue;
+            }
+       
             LOGGER.trace("ObjectWrapper.createContainerWrapper processing definition: {}", def);
 
             PrismContainerDefinition containerDef = (PrismContainerDefinition) def;
