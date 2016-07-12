@@ -24,6 +24,7 @@ public class ObjectTemplateTests extends AbstractSelenideTest {
     public void test001supplyUserAttributesByObjectTemplateTest(){
         close();
         login();
+        checkLoginIsPerformed();
         //import object template from file object-template-default.xml
         importObjectFromFile(OBJECT_TEMPLATE_FILE_PATH);
         //update SystemConfiguration, insert reference on the default template
@@ -37,10 +38,10 @@ public class ObjectTemplateTests extends AbstractSelenideTest {
         //check if Full name and Nickname attributes are filled with values
         openUsersEditPage(USER_NAME_VALUE);
         //check if Full Name and Nickname fields were filled in according to user template rules
-        $(By.name(AbstractSelenideTest.FULL_NAME_FIELD_NAME))
-                .shouldHave(value(USER_GIVEN_NAME_VALUE + " " + USER_FAMILY_NAME_VALUE));
-        $(By.name(AbstractSelenideTest.NICKNAME_FIELD_NAME))
-                .shouldHave(value("nick_" + USER_GIVEN_NAME_VALUE));
+        Map<String, String> userAttributesToCheck = new HashMap<>();
+        userAttributesToCheck.put(FULL_NAME_FIELD_NAME, USER_GIVEN_NAME_VALUE + " " + USER_FAMILY_NAME_VALUE);
+        userAttributesToCheck.put(NICKNAME_FIELD_NAME, "nick_" + USER_GIVEN_NAME_VALUE);
+        checkObjectAttributesValues(userAttributesToCheck);
     }
 
 }

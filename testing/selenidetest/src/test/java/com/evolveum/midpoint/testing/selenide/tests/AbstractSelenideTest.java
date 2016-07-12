@@ -26,7 +26,7 @@ public class AbstractSelenideTest{
 //        extends AbstractTestNGSpringContextTests {
     public static final String SITE_URL = "/";
     public static final String ADMIN_LOGIN = "administrator";
-    public static final String ADMIN_PASSWORD = "administrator";
+    public static final String ADMIN_PASSWORD = "5ecr3t";
     //User's attributes' fields' names
     public static final String USER_NAME_FIELD_NAME = "Name";
 
@@ -205,13 +205,24 @@ public class AbstractSelenideTest{
             $(By.partialLinkText("Users")).shouldBe(visible).click();
 
         //click New user menu item
-        $(By.partialLinkText("New user")).click();
+        $(By.partialLinkText("New user")).shouldBe(visible).click();
 
         //set value to Name field
         findAttributeValueFiledByDisplayName(USER_NAME_FIELD_NAME, "input")
                 .shouldBe(visible).setValue(userName);
         //fill in user's attributes with values if userFields map is not empty
         setFieldValues(userFields);
+        //click Save button
+        $(By.linkText("Save")).shouldBe(visible).click();
+
+    }
+
+     public void createRole(Map<String, String> roleFields){
+        if (!$(By.partialLinkText("New role")).isDisplayed())
+            $(By.partialLinkText("Roles")).shouldBe(visible).click();
+
+        $(By.partialLinkText("New role")).shouldBe(visible).click();
+        setFieldValues(roleFields);
         //click Save button
         $(By.linkText("Save")).shouldBe(visible).click();
 
@@ -247,8 +258,7 @@ public class AbstractSelenideTest{
         if (objectType != null && !(objectType.trim().isEmpty())){
             $(byAttribute("class", "form-inline search-form")).find(By.tagName("select")).shouldBe(visible).click();
             $(byText(objectType)).shouldBe(visible).click();
-            $(byAttribute("class", "form-inline search-form")).find(By.tagName("select")).shouldNotHave(text(ASSIGN_DEFAULT_OBJECT_TYPE));
-//            $(byText(ASSIGN_DEFAULT_OBJECT_TYPE)).shouldNotBe(visible);
+            $(byAttribute("class", "form-inline search-form")).find(By.tagName("select")).find(byAttribute("selected", "selected")).shouldHave(text(objectType));
         }
         //search for object by objectName in the opened Select object(s) window
         searchForElement(objectName, "searchText");
@@ -342,21 +352,19 @@ public class AbstractSelenideTest{
      * @param propertyConstraintList
      */
     public void editObjectPolicy(String objectType, String objectTemplate, List<String> propertyConstraintList){
-        //click Configuration menu
-//        $(By.partialLinkText("Configuration")).shouldBe(visible).click(); // clicked in previous step
-        //click Basic menu item
-        $(By.partialLinkText("System")).click();
+        if (!$(By.partialLinkText("System")).isDisplayed()) {
+            $(By.partialLinkText("Configuration")).shouldBe(visible).click(); // clicked in previous step
+        }
+        $(By.partialLinkText("System")).shouldBe(visible).click();
         //click on the Edit button in the Object Policies row
         //Note: this Edit button click affects only modifying of the first row
         //of Object Policies
-        $(byAttribute("placeholder", "Insert object policy")).parent().find(By.tagName("button"))
+        $(byText("Object policies")).parent().find(By.tagName("button"))
                 .shouldBe(visible).click();
         //select Object Type value from drop-down list
-        $(By.name("tabPanel:panel:objectPolicyEditor:templateConfigModal:content:mainForm:type:selectWrapper:select"))
-                .shouldBe(visible).selectOption(objectType);
+        $(byText("Object type")).parent().parent().find(By.tagName("select")).shouldBe(visible).selectOption(objectType);
         //select Object Template value from drop-down list
-        $(By.name("tabPanel:panel:objectPolicyEditor:templateConfigModal:content:mainForm:objectTemplate:selectWrapper:select"))
-                .shouldBe(visible).selectOption(objectTemplate);
+        $(byText("Object template")).parent().parent().find(By.tagName("select")).shouldBe(visible).selectOption(objectTemplate);
         if (propertyConstraintList != null && propertyConstraintList.size() > 0){
             for (int i = 0; i < propertyConstraintList.size(); i++){
                 $(By.name("tabPanel:panel:mainForm:objectPolicyEditor:templateConfigModal:content:mainForm:repeater:" + i + ":textWrapper:oidBound"))
@@ -372,7 +380,7 @@ public class AbstractSelenideTest{
         //click Save button on the Configuration for midPoint page
         $(By.linkText("Save")).shouldBe(enabled).click();
         //check if Success message appears
-        $(byText("Success")).shouldBe(visible);
+        checkOperationStatusOk("Update system configuration (GUI)");
     }
 
 
