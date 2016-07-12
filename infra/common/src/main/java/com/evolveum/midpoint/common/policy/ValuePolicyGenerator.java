@@ -26,6 +26,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Random;
 
 import javax.xml.namespace.QName;
@@ -77,7 +79,7 @@ public class ValuePolicyGenerator {
 
 		// Optimize usage of limits ass hashmap of limitas and key is set of
 		// valid chars for each limitation
-		HashMap<StringLimitType, ArrayList<String>> lims = new HashMap<StringLimitType, ArrayList<String>>();
+		Map<StringLimitType, List<String>> lims = new HashMap<StringLimitType, List<String>>();
 		for (StringLimitType l : policy.getLimitations().getLimit()) {
 			if (null != l.getCharacterClass().getValue()) {
 				lims.put(l, StringPolicyUtils.stringTokenizer(l.getCharacterClass().getValue()));
@@ -128,7 +130,7 @@ public class ValuePolicyGenerator {
 		/* **********************************
 		 * Try to find best characters to be first in password
 		 */
-		HashMap<StringLimitType, ArrayList<String>> mustBeFirst = new HashMap<StringLimitType, ArrayList<String>>();
+		Map<StringLimitType, List<String>> mustBeFirst = new HashMap<StringLimitType, List<String>>();
 		for (StringLimitType l : lims.keySet()) {
 			if (l.isMustBeFirst() != null && l.isMustBeFirst()) {
 				mustBeFirst.put(l, lims.get(l));
@@ -137,10 +139,10 @@ public class ValuePolicyGenerator {
 
 		// If any limitation was found to be first
 		if (!mustBeFirst.isEmpty()) {
-			HashMap<Integer, ArrayList<String>> posibleFirstChars = cardinalityCounter(mustBeFirst, null, false, false,
+			Map<Integer, List<String>> posibleFirstChars = cardinalityCounter(mustBeFirst, null, false, false,
 					generatorResult);
 			int intersectionCardinality = mustBeFirst.keySet().size();
-			ArrayList<String> intersectionCharacters = posibleFirstChars.get(intersectionCardinality);
+			List<String> intersectionCharacters = posibleFirstChars.get(intersectionCardinality);
 			// If no intersection was found then raise error
 			if (null == intersectionCharacters || intersectionCharacters.size() == 0) {
 				generatorResult
@@ -178,7 +180,7 @@ public class ValuePolicyGenerator {
 		boolean uniquenessReached = false;
 
 		// Count cardinality of elements
-		HashMap<Integer, ArrayList<String>> chars;
+		Map<Integer, List<String>> chars;
 		for (int i = 0; i < minLen; i++) {
 
 			// Check if still unique chars are needed
@@ -200,9 +202,8 @@ public class ValuePolicyGenerator {
 			// Find lowest possible cardinality and then generate char
 			for (int card = 1; card < lims.keySet().size(); card++) {
 				if (chars.containsKey(card)) {
-					ArrayList<String> validChars = chars.get(card);
+					List<String> validChars = chars.get(card);
 					password.append(validChars.get(rand.nextInt(validChars.size())));
-//					LOGGER.trace(password.toString());
 					break;
 				}
 			}
@@ -265,9 +266,8 @@ public class ValuePolicyGenerator {
 			// Find lowest possible cardinality and then generate char
 			for (int card = 1; card <= lims.keySet().size(); card++) {
 				if (chars.containsKey(card)) {
-					ArrayList<String> validChars = chars.get(card);
+					List<String> validChars = chars.get(card);
 					password.append(validChars.get(rand.nextInt(validChars.size())));
-//					LOGGER.trace(password.toString());
 					break;
 				}
 			}
@@ -285,7 +285,7 @@ public class ValuePolicyGenerator {
 
 		// Shuffle output to solve pattern like output
 		StrBuilder sb = new StrBuilder(password.substring(0, 1));
-		ArrayList<String> shuffleBuffer = StringPolicyUtils.stringTokenizer(password.substring(1));
+		List<String> shuffleBuffer = StringPolicyUtils.stringTokenizer(password.substring(1));
 		Collections.shuffle(shuffleBuffer);
 		sb.appendAll(shuffleBuffer);
 
@@ -299,14 +299,14 @@ public class ValuePolicyGenerator {
 	/**
 	 * Count cardinality
 	 */
-	private static HashMap<Integer, ArrayList<String>> cardinalityCounter(
-			HashMap<StringLimitType, ArrayList<String>> lims, ArrayList<String> password, Boolean skipMatchedLims,
+	private static Map<Integer, List<String>> cardinalityCounter(
+			Map<StringLimitType, List<String>> lims, List<String> password, Boolean skipMatchedLims,
 			boolean uniquenessReached, OperationResult op) {
 		HashMap<String, Integer> counter = new HashMap<String, Integer>();
 
 		for (StringLimitType l : lims.keySet()) {
 			int counterKey = 1;
-			ArrayList<String> chars = lims.get(l);
+			List<String> chars = lims.get(l);
 			int i = 0;
 			if (null != password) {
 				i = charIntersectionCounter(lims.get(l), password);
@@ -358,7 +358,7 @@ public class ValuePolicyGenerator {
 		}
 
 		// Transpone to better format
-		HashMap<Integer, ArrayList<String>> ret = new HashMap<Integer, ArrayList<String>>();
+		Map<Integer, List<String>> ret = new HashMap<Integer, List<String>>();
 		for (String s : counter.keySet()) {
 			// if not there initialize
 			if (null == ret.get(counter.get(s))) {
@@ -369,7 +369,7 @@ public class ValuePolicyGenerator {
 		return ret;
 	}
 
-	private static int charIntersectionCounter(ArrayList<String> a, ArrayList<String> b) {
+	private static int charIntersectionCounter(List<String> a, List<String> b) {
 		int ret = 0;
 		for (String s : b) {
 			if (a.contains(s)) {

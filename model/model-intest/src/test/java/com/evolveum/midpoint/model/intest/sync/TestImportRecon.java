@@ -1575,7 +1575,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         
         PrismObject<ValuePolicyType> passwordPolicy = getObjectViaRepo(ValuePolicyType.class, PASSWORD_POLICY_LOWER_CASE_ALPHA_AZURE_OID);
         
-        OperationResult satisfyPolicyResult = PasswordPolicyUtils.validatePassword(stringPassword, passwordPolicy.asObjectable());
+        OperationResult satisfyPolicyResult = PasswordPolicyUtils.validatePassword(stringPassword, null, passwordPolicy.asObjectable());
         assertTrue("Password doesn't satisfy password policy, generated password: " + stringPassword, satisfyPolicyResult.isSuccess());
         /////////
         
