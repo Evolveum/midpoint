@@ -22,13 +22,13 @@ script: mvn clean install
 
 addons:
   hostname: localhost # workaround for short hostname
-  #apt:
-   # packages:
-    #  - oracle-java8-installer # install newest JDK8
+  apt:
+    packages:
+      - oracle-java8-installer # install newest JDK8
       #- openjdk-8-jdk
 
 jdk:
   - openjdk7
   - oraclejdk7
   #- openjdk8
-  #- oraclejdk8
+  - oraclejdk8
