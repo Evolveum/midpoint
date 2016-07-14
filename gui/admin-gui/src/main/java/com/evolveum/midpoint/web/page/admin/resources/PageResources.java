@@ -84,20 +84,17 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 		@AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_RESOURCES_URL, label = "PageResources.auth.resources.label", description = "PageResources.auth.resources.description") })
 public class PageResources extends PageAdminResources {
 
+	private static final long serialVersionUID = 1L;
 	private static final Trace LOGGER = TraceManager.getTrace(PageResources.class);
 	private static final String DOT_CLASS = PageResources.class.getName() + ".";
 	private static final String OPERATION_TEST_RESOURCE = DOT_CLASS + "testResource";
-	private static final String OPERATION_SYNC_STATUS = DOT_CLASS + "syncStatus";
 	private static final String OPERATION_DELETE_RESOURCES = DOT_CLASS + "deleteResources";
-	private static final String OPERATION_DELETE_HOSTS = DOT_CLASS + "deleteHosts";
-	private static final String OPERATION_CONNECTOR_DISCOVERY = DOT_CLASS + "connectorDiscovery";
 
 	private static final String ID_MAIN_FORM = "mainForm";
 	private static final String ID_TABLE = "table";
 	private static final String ID_CONNECTOR_TABLE = "connectorTable";
 
 	private IModel<Search> searchModel;
-	private IModel<Search> chSearchModel;
 	private ResourceType singleDelete;
 
 	public PageResources() {
@@ -115,6 +112,7 @@ public class PageResources extends PageAdminResources {
 	public PageResources(boolean clearSessionPaging, String searchText) {
 		searchModel = new LoadableModel<Search>(false) {
 
+			private static final long serialVersionUID = 1L;
 			@Override
 			protected Search load() {
 				ResourcesStorage storage = getSessionStorage().getResources();
@@ -126,15 +124,6 @@ public class PageResources extends PageAdminResources {
 				}
 
 				return dto;
-			}
-		};
-
-		chSearchModel = new LoadableModel<Search>(false) {
-
-			@Override
-			protected Search load() {
-				return SearchFactory.createSearch(ConnectorHostType.class, getPrismContext(),
-						getModelInteractionService());
 			}
 		};
 
@@ -198,26 +187,6 @@ public class PageResources extends PageAdminResources {
 		resourceListPanel.setAdditionalBoxCssClasses(GuiStyleConstants.CLASS_OBJECT_RESOURCE_BOX_CSS_CLASSES);
 		mainForm.add(resourceListPanel);
 
-		BoxedTablePanel connectorHosts = new BoxedTablePanel(ID_CONNECTOR_TABLE,
-				new ObjectDataProvider(PageResources.this, ConnectorHostType.class),
-				initConnectorHostsColumns(), UserProfileStorage.TableId.PAGE_RESOURCES_CONNECTOR_HOSTS,
-				(int) getItemsPerPage(UserProfileStorage.TableId.PAGE_RESOURCES_CONNECTOR_HOSTS)) {
-			private static final long serialVersionUID = 1L;
-			
-			@Override
-			protected WebMarkupContainer createHeader(String headerId) {
-				return new SearchFormPanel(headerId, chSearchModel) {
-					private static final long serialVersionUID = 1L;
-
-					@Override
-					protected void searchPerformed(ObjectQuery query, AjaxRequestTarget target) {
-						PageResources.this.searchHostPerformed(query, target);
-					}
-				};
-			}
-		};
-		connectorHosts.setOutputMarkupId(true);
-		mainForm.add(connectorHosts);
 	}
 
 	private List<InlineMenuItem> createRowMenuItems() {
@@ -305,87 +274,11 @@ public class PageResources extends PageAdminResources {
 		return headerMenuItems;
 	}
 
-	private List<IColumn<ConnectorHostType, String>> initConnectorHostsColumns() {
-		List<IColumn<ConnectorHostType, String>> columns = new ArrayList<>();
-
-		IColumn column = new CheckBoxHeaderColumn<ConnectorHostType>();
-		columns.add(column);
-
-		column = new LinkColumn<SelectableBean<ConnectorHostType>>(
-				createStringResource("pageResources.connector.name"), "name", "value.name") {
-
-			@Override
-			public void onClick(AjaxRequestTarget target,
-					IModel<SelectableBean<ConnectorHostType>> rowModel) {
-				ConnectorHostType host = rowModel.getObject().getValue();
-				// resourceDetailsPerformed(target, host.getOid());
-			}
-		};
-		columns.add(column);
-
-		columns.add(new PropertyColumn(createStringResource("pageResources.connector.hostname"),
-				"value.hostname"));
-		columns.add(new PropertyColumn(createStringResource("pageResources.connector.port"), "value.port"));
-		columns.add(
-				new PropertyColumn(createStringResource("pageResources.connector.timeout"), "value.timeout"));
-		columns.add(new CheckBoxColumn(createStringResource("pageResources.connector.protectConnection"),
-				"value.protectConnection"));
-
-		InlineMenuHeaderColumn menu = new InlineMenuHeaderColumn(initInlineHostsMenu());
-		columns.add(menu);
-
-		return columns;
-	}
-
-	private List<InlineMenuItem> initInlineHostsMenu() {
-		List<InlineMenuItem> headerMenuItems = new ArrayList<>();
-		headerMenuItems.add(new InlineMenuItem(createStringResource("PageBase.button.delete"),
-				new HeaderMenuAction(this) {
-
-					@Override
-					public void onClick(AjaxRequestTarget target) {
-						deleteHostPerformed(target);
-					}
-				}));
-		headerMenuItems.add(new InlineMenuItem(createStringResource("pageResources.button.discoveryRemote"),
-				new HeaderMenuAction(this) {
-
-					@Override
-					public void onClick(AjaxRequestTarget target) {
-						discoveryRemotePerformed(target);
-					}
-				}));
-
-		return headerMenuItems;
-	}
-
 	private void resourceDetailsPerformed(AjaxRequestTarget target, String oid) {
 		PageParameters parameters = new PageParameters();
 		parameters.add(OnePageParameterEncoder.PARAMETER, oid);
 		setResponsePage(PageResource.class, parameters);
 	}
-
-	private void deleteHostPerformed(AjaxRequestTarget target) {
-		List<SelectableBean<ConnectorHostType>> selected = WebComponentUtil
-				.getSelectedData(getConnectorHostTable());
-		if (selected.isEmpty()) {
-			warn(getString("pageResources.message.noHostSelected"));
-			target.add(getFeedbackPanel());
-			return;
-		}
-
-        ConfirmationPanel dialog = new ConfirmationPanel(((PageBase)getPage()).getMainPopupBodyId(),
-                createDeleteConfirmString("pageResources.message.deleteHostConfirm",
-                "pageResources.message.deleteHostsConfirm", false)){
-            @Override
-            public void yesPerformed(AjaxRequestTarget target) {
-                ((PageBase)getPage()).hideMainPopup(target);
-                deleteHostConfirmedPerformed(target);
-            }
-        };
-        ((PageBase)getPage()).showMainPopup(dialog, target);
-
-    }
 
 	private List<ResourceType> isAnyResourceSelected(AjaxRequestTarget target, ResourceType single) {
 		List<ResourceType> selected = null;
@@ -445,61 +338,22 @@ public class PageResources extends PageAdminResources {
 			@Override
 			public String getObject() {
 				List selected = new ArrayList();
-				if (resources) {
 					if (singleDelete != null) {
 						selected.add(singleDelete);
 					} else {
 						selected = getResourceTable().getSelectedObjects();
 					}
-				} else {
-					selected = WebComponentUtil.getSelectedData(getConnectorHostTable());
-				}
-
+				
 				switch (selected.size()) {
 					case 1:
 						Object first = selected.get(0);
-						String name = resources ? WebComponentUtil.getName(((ResourceType) first))
-								: WebComponentUtil
-										.getName(((SelectableBean<ConnectorHostType>) first).getValue());
+						String name = WebComponentUtil.getName(((ResourceType) first));
 						return createStringResource(oneDeleteKey, name).getString();
 					default:
 						return createStringResource(moreDeleteKey, selected.size()).getString();
 				}
 			}
 		};
-	}
-
-	private void deleteHostConfirmedPerformed(AjaxRequestTarget target) {
-		Table hostTable = getConnectorHostTable();
-		List<SelectableBean<ConnectorHostType>> selected = WebComponentUtil.getSelectedData(hostTable);
-
-		OperationResult result = new OperationResult(OPERATION_DELETE_HOSTS);
-		for (SelectableBean<ConnectorHostType> selectable : selected) {
-			try {
-				Task task = createSimpleTask(OPERATION_DELETE_HOSTS);
-
-				ObjectDelta<ConnectorHostType> delta = ObjectDelta.createDeleteDelta(ConnectorHostType.class,
-						selectable.getValue().getOid(), getPrismContext());
-				getModelService().executeChanges(WebComponentUtil.createDeltaCollection(delta), null, task,
-						result);
-			} catch (Exception ex) {
-				result.recordPartialError("Couldn't delete host.", ex);
-				LoggingUtils.logUnexpectedException(LOGGER, "Couldn't delete host", ex);
-			}
-		}
-
-		result.recomputeStatus();
-		if (result.isSuccess()) {
-			result.recordStatus(OperationResultStatus.SUCCESS,
-					"The resource(s) have been successfully deleted.");
-		}
-
-		BaseSortableDataProvider provider = (BaseSortableDataProvider) hostTable.getDataTable()
-				.getDataProvider();
-		provider.clearCache();
-
-		showResult(result);
-		target.add(getFeedbackPanel(), (Component) hostTable);
 	}
 
 	private void deleteResourceConfirmedPerformed(AjaxRequestTarget target) {
@@ -536,33 +390,6 @@ public class PageResources extends PageAdminResources {
 
 		showResult(result);
 		target.add(getFeedbackPanel(), (Component) getResourceTable());
-	}
-
-	private void discoveryRemotePerformed(AjaxRequestTarget target) {
-		target.add(getFeedbackPanel());
-
-		PageBase page = (PageBase) getPage();
-		Task task = page.createSimpleTask(OPERATION_CONNECTOR_DISCOVERY);
-		OperationResult result = task.getResult();
-		List<SelectableBean<ConnectorHostType>> selected = WebComponentUtil
-				.getSelectedData(getConnectorHostTable());
-		if (selected.isEmpty()) {
-			warn(getString("pageResources.message.noHostSelected"));
-			return;
-		}
-
-		for (SelectableBean<ConnectorHostType> bean : selected) {
-			ConnectorHostType host = bean.getValue();
-			try {
-				getModelService().discoverConnectors(host, task, result);
-			} catch (Exception ex) {
-				result.recordFatalError("Fail to discover connectors on host '" + host.getHostname() + ":"
-						+ host.getPort() + "'", ex);
-			}
-		}
-
-		result.recomputeStatus();
-		showResult(result);
 	}
 
 	private void testResourcePerformed(AjaxRequestTarget target, ResourceType resourceType) {
@@ -604,17 +431,6 @@ public class PageResources extends PageAdminResources {
 		target.add(getResourceTable());
 	}
 
-	private void searchHostPerformed(ObjectQuery query, AjaxRequestTarget target) {
-		target.add(getFeedbackPanel());
-
-		Table panel = getConnectorHostTable();
-		DataTable table = panel.getDataTable();
-		ObjectDataProvider provider = (ObjectDataProvider) table.getDataProvider();
-		provider.setQuery(query);
-		provider.setOptions(SelectorOptions.createCollection(GetOperationOptions.createNoFetch()));
-
-		target.add((Component) panel);
-	}
 
 	private void deleteResourceSyncTokenPerformed(AjaxRequestTarget target, ResourceType resourceType) {
 		deleteSyncTokenPerformed(target, resourceType);

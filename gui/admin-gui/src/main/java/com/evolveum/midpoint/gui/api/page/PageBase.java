@@ -141,6 +141,7 @@ import com.evolveum.midpoint.web.page.admin.reports.PageCreatedReports;
 import com.evolveum.midpoint.web.page.admin.reports.PageNewReport;
 import com.evolveum.midpoint.web.page.admin.reports.PageReport;
 import com.evolveum.midpoint.web.page.admin.reports.PageReports;
+import com.evolveum.midpoint.web.page.admin.resources.PageConnectorHosts;
 import com.evolveum.midpoint.web.page.admin.resources.PageImportResource;
 import com.evolveum.midpoint.web.page.admin.resources.PageResource;
 import com.evolveum.midpoint.web.page.admin.resources.PageResourceWizard;
@@ -1082,6 +1083,9 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 				PageImportResource.class);
 		submenu.add(n);
 
+		MenuItem connectorHostsList = new MenuItem(createStringResource("PageAdmin.menu.top.connectorHosts.list"),
+				PageConnectorHosts.class);
+		submenu.add(connectorHostsList);
 		return item;
 	}
 
