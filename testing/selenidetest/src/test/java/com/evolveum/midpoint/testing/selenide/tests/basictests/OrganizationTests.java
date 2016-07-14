@@ -18,14 +18,14 @@ import static com.codeborne.selenide.Condition.*;
  */
 public class OrganizationTests extends AbstractSelenideTest {
     //Organization fields' names
-    public static final String ORGANIZATION_NAME_FIELD = "tabPanel:panel:focusForm:body:containers:0:container:properties:0:property:values:0:value:valueContainer:input:input";
-    public static final String ORGANIZATION_DISPLAY_NAME_FIELD = "tabPanel:panel:focusForm:body:containers:0:container:properties:1:property:values:0:value:valueContainer:input:input";
-    public static final String ORGANIZATION_DESCRIPTION_FIELD = "tabPanel:panel:focusForm:body:containers:0:container:properties:2:property:values:0:value:valueContainer:input:input";
-    public static final String ORGANIZATION_ORG_TYPE_FIELD = "tabPanel:panel:focusForm:body:containers:0:container:properties:4:property:values:0:value:valueContainer:input:input";
-    public static final String ORGANIZATION_IDENTIFIER_FIELD = "tabPanel:panel:focusForm:body:containers:0:container:properties:3:property:values:0:value:valueContainer:input:input";
-    public static final String ORGANIZATION_COST_CENTER_FIELD = "tabPanel:panel:focusForm:body:containers:0:container:properties:6:property:values:0:value:valueContainer:input:input";
-    public static final String ORGANIZATION_LOCALITY_FIELD = "tabPanel:panel:focusForm:body:containers:0:container:properties:7:property:values:0:value:valueContainer:input:input";
-    public static final String ORGANIZATION_MAIL_DOMAIN_FIELD = "tabPanel:panel:focusForm:body:containers:0:container:properties:8:property:values:0:value:valueContainer:input:input";
+    public static final String ORGANIZATION_NAME_FIELD = "Name";
+    public static final String ORGANIZATION_DISPLAY_NAME_FIELD = "Display Name";
+    public static final String ORGANIZATION_DESCRIPTION_FIELD = "Description";
+    public static final String ORGANIZATION_ORG_TYPE_FIELD = "Type";
+    public static final String ORGANIZATION_IDENTIFIER_FIELD = "Identifier";
+    public static final String ORGANIZATION_COST_CENTER_FIELD = "Cost Center";
+    public static final String ORGANIZATION_LOCALITY_FIELD = "Locality";
+    public static final String ORGANIZATION_MAIL_DOMAIN_FIELD = "Mail Domain";
     //Organization fields' values
     public static final String ORGANIZATION_NAME_VALUE = "TestOrganization";
     public static final String SUB_ORGANIZATION_NAME_VALUE = "TestSubOrganization";
@@ -46,6 +46,7 @@ public class OrganizationTests extends AbstractSelenideTest {
     public void test001createOrganisationTest(){
         close();
         login();
+        checkLoginIsPerformed();
         //fill in organization fields
         organizationFieldsMap.put(ORGANIZATION_NAME_FIELD, ORGANIZATION_NAME_VALUE);
         organizationFieldsMap.put(ORGANIZATION_DISPLAY_NAME_FIELD, ORGANIZATION_DISPLAY_NAME_VALUE);
@@ -55,37 +56,37 @@ public class OrganizationTests extends AbstractSelenideTest {
         organizationFieldsMap.put(ORGANIZATION_COST_CENTER_FIELD, ORGANIZATION_COST_CENTER_VALUE);
         organizationFieldsMap.put(ORGANIZATION_LOCALITY_FIELD, ORGANIZATION_LOCALITY_VALUE);
         organizationFieldsMap.put(ORGANIZATION_MAIL_DOMAIN_FIELD, ORGANIZATION_MAIL_DOMAIN_VALUE);
-        // TODO: display order, risk level, ...
-        //click Org. structure menu
-        $(By.partialLinkText("Org. structure")).shouldBe(visible).click();
         //create organization
         createOrganization(organizationFieldsMap, "");
-        //check if Success message appears
-        $(byText("Success")).shouldBe(visible);
+        checkOperationStatusOk("Save (GUI)");
         //open created organization tab
         $(By.linkText(ORGANIZATION_DISPLAY_NAME_VALUE)).shouldBe(visible).click();
-        //click on menu icon in the Org. hierarchy row
-        $(byAttribute("about", "treeMenu")).find(byAttribute("class", "dropdown-toggle")).shouldBe(visible).click();
-        //Click Edit root menu item
-        $(By.linkText("Edit root")).shouldBe(visible).click();
+        $(byAttribute("class", "box-body org-tree-container")).shouldBe(visible).find(byAttribute("class", "cog")).shouldBe(visible).click();
+        $(By.linkText("Edit")).shouldBe(visible).click();
         //check role attributes are filled in with correct values
         checkObjectAttributesValues(organizationFieldsMap);
     }
 
     @Test(priority = 1, dependsOnMethods = {"test001createOrganisationTest"})
     public void test002createSubOrganizationTest(){
+        close();
+        login();
+        checkLoginIsPerformed();
         //create sub organization
         subOrganizationFieldsMap.put(ORGANIZATION_NAME_FIELD, SUB_ORGANIZATION_NAME_VALUE);
         subOrganizationFieldsMap.put(ORGANIZATION_DISPLAY_NAME_FIELD, SUB_ORGANIZATION_DISPLAY_NAME_VALUE);
         createOrganization(subOrganizationFieldsMap, ORGANIZATION_DISPLAY_NAME_VALUE);
         //check if Success message appears
-        $(byText("Success")).shouldBe(visible);
+        checkOperationStatusOk("Save (GUI)");
         //check if sub organization appeared in the Children org. units section
         $(byAttribute("about", "childUnitTable")).find(By.linkText(SUB_ORGANIZATION_DISPLAY_NAME_VALUE));
     }
 
-    @Test(priority = 2, dependsOnMethods = {"test001createOrganisationTest"})
+    @Test(priority = 2, dependsOnMethods = {"test001createOrganisationTest", "test002createSubOrganizationTest"} )
     public void test003updateOrganizationTest(){
+        close();
+        login();
+        checkLoginIsPerformed();
         //fill in updated organization fields map
         updatedOrganizationFieldsMap.put(ORGANIZATION_NAME_FIELD, ORGANIZATION_NAME_VALUE + UPDATED_VALUE);
         updatedOrganizationFieldsMap.put(ORGANIZATION_DISPLAY_NAME_FIELD, ORGANIZATION_DISPLAY_NAME_VALUE + UPDATED_VALUE);
@@ -103,9 +104,10 @@ public class OrganizationTests extends AbstractSelenideTest {
         //open created organization tab
         $(By.linkText(ORGANIZATION_DISPLAY_NAME_VALUE)).shouldBe(visible).click();
         //click on menu icon in the Org. hierarchy row
-        $(byAttribute("about", "treeMenu")).find(byAttribute("class", "dropdown-toggle")).shouldBe(visible).click();
-        //Click Edit root menu item
-        $(By.linkText("Edit root")).shouldBe(visible).click();
+        $(byAttribute("class", "box-body org-tree-container")).shouldBe(visible).find(byAttribute("class", "cog")).hover();
+        $(byAttribute("class", "box-body org-tree-container")).shouldBe(visible).find(byAttribute("class", "cog")).shouldBe(visible).click();
+        //Click Edit  menu item
+        $(By.linkText("Edit")).shouldBe(visible).click();
         //fill in fields with updated values
         setFieldValues(updatedOrganizationFieldsMap);
         //click Save button
@@ -117,20 +119,27 @@ public class OrganizationTests extends AbstractSelenideTest {
 
     @Test (priority = 3, dependsOnMethods = {"test001createOrganisationTest", "test003updateOrganizationTest"})
     public void test004deleteOrganizationTest(){
+        close();
+        login();
+        checkLoginIsPerformed();
         //click Organization tree menu item
+        if (!$(By.partialLinkText("Organization tree")).isDisplayed())
+            $(By.partialLinkText("Org. structure")).shouldBe(visible).click();
         $(By.partialLinkText("Organization tree")).shouldBe(visible).click();
         //open created organization tab
-        $(By.linkText(ORGANIZATION_DISPLAY_NAME_VALUE + UPDATED_VALUE)).shouldBe(visible).click();
+        $(By.partialLinkText(ORGANIZATION_DISPLAY_NAME_VALUE)).shouldBe(visible).click();
         //click on menu icon in the Org. hierarchy row
-        $(byAttribute("about", "treeMenu")).find(byAttribute("class", "dropdown-toggle")).shouldBe(visible).click();
-        //Click Edit root menu item
-        $(By.linkText("Delete root")).shouldBe(visible).click();
+        $(byAttribute("class", "box-body org-tree-container")).shouldBe(visible).find(byAttribute("class", "cog")).hover();
+        $(byAttribute("class", "box-body org-tree-container")).shouldBe(visible).find(byAttribute("class", "cog")).shouldBe(visible).click();
+
+        //Click Delete menu item
+        $(By.linkText("Delete")).shouldBe(visible).click();
         //Click Yes button in the Confirm delete window
         $(By.linkText("Yes")).shouldBe(visible).click();
         //check Confirm delete window disappears
         $(byText("Confirm delete")).should(disappear);
         //check if Success message appears
-        $(byText("Success")).shouldBe(visible);
+        checkOperationStatusOk("Delete object (Gui)");
         //open created organization tab
         $(By.linkText(ORGANIZATION_DISPLAY_NAME_VALUE + UPDATED_VALUE)).shouldNot(exist);
     }
@@ -140,15 +149,17 @@ public class OrganizationTests extends AbstractSelenideTest {
         // must go over Organization tree
         if (parentOrgDisplayName != null && !parentOrgDisplayName.isEmpty()){
             // click Organization tree
+            if (!$(By.partialLinkText("Organization tree")).isDisplayed()) {
+                $(By.partialLinkText("Org. structure")).shouldBe(visible).click();
+            }
             $(By.partialLinkText("Organization tree")).shouldBe(visible).click();
             // click to organization
             $(By.linkText(parentOrgDisplayName)).shouldBe(visible).click();
 
             //click on the menu icon in the Organisation section
-            $(By.xpath("/html/body/div[1]/div/section[2]/div[2]/div/div/div[4]/div[3]/div/div/form/div[2]/div[2]/table/thead/tr/th[6]/div/span[1]/ul/li/a"))
-                    .shouldBe(visible).click();
+            $(byAttribute("class", "box-body org-tree-container")).shouldBe(visible).find(byAttribute("class", "cog")).shouldBe(visible).click();
             //click Add org. unit (root is selected)
-            $(By.linkText("Add org. unit")).shouldBe(visible).click();
+            $(By.linkText("Create child")).shouldBe(visible).click();
 
             setFieldValues(organizationFieldsMap);
             //click Save button
@@ -156,7 +167,9 @@ public class OrganizationTests extends AbstractSelenideTest {
         }
         // create root org
         else {
-            //click New organization menu
+            if (!$(By.partialLinkText("New organization")).isDisplayed()) {
+                $(By.partialLinkText("Org. structure")).shouldBe(visible).click();
+            }
             $(By.partialLinkText("New organization")).shouldBe(visible).click();
             setFieldValues(organizationFieldsMap);
             //click Save button

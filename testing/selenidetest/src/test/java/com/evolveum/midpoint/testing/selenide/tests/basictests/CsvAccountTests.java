@@ -35,11 +35,11 @@ public class CsvAccountTests extends AbstractSelenideTest {
     public static final String CSV_RESOURCE_NAME = "Localhost CSVfile";
     public static final String CSV_FILE_PATH = "target/test-classes/mp-resources/midpoint-flatfile.csv";
     //csv account fields
-    public static final String ACCOUNT_FIRST_NAME_FIELD = "tabPanel:panel:shadows:shadowList:0:shadow:body:containers:0:container:properties:1:property:values:0:value:valueContainer:input:input";
-    public static final String ACCOUNT_LAST_NAME_FIELD = "tabPanel:panel:shadows:shadowList:0:shadow:body:containers:0:container:properties:2:property:values:0:value:valueContainer:input:input";
-    public static final String ACCOUNT_NAME_FIELD = "tabPanel:panel:shadows:shadowList:0:shadow:body:containers:0:container:properties:3:property:values:0:value:valueContainer:input:input";
-    public static final String ACCOUNT_PASSWORD2_FIELD = "accounts:accountList:0:account:body:containers:5:container:properties:0:property:values:0:value:valueContainer:input:password2";
-    public static final String ACCOUNT_PASSWORD1_FIELD = "accounts:accountList:0:account:body:containers:5:container:properties:0:property:values:0:value:valueContainer:input:password1";
+    public static final String ACCOUNT_FIRST_NAME_FIELD = "Name";
+    public static final String ACCOUNT_LAST_NAME_FIELD = "First name";
+    public static final String ACCOUNT_NAME_FIELD = "Last name";
+    public static final String ACCOUNT_PASSWORD2_FIELD = "password2";
+    public static final String ACCOUNT_PASSWORD1_FIELD = "password1";
     //csv account values
     public static final String ACCOUNT_FIRST_NAME_VALUE = "AccountFirstName";
     public static final String ACCOUNT_LAST_NAME_VALUE = "AccountLastName";
@@ -52,8 +52,7 @@ public class CsvAccountTests extends AbstractSelenideTest {
     public void test001createCsvAccount() {
         close();
         login();
-        //check if welcome message appears after user logged in
-        $(byText("welcome to midPoint")).shouldBe(visible);
+        checkLoginIsPerformed();
         //import csv resource localhost-csvfile-resource-advanced-sync
         updateCsvFilePath();
         importObjectFromFile(CSV_RESOURCE_XML_PATH);
@@ -61,29 +60,16 @@ public class CsvAccountTests extends AbstractSelenideTest {
         createUser(USER_WITH_CSV_ACCOUNT_NAME, new HashMap<String, String>());
         //open user's Edit page
         openUsersEditPage(USER_WITH_CSV_ACCOUNT_NAME);
-        //click on the menu icon in the Projections section
-//        $(byAttribute("about", "accountMenu")).find(byAttribute("class", "dropdown-toggle")).shouldBe(visible).click();
-        $(By.xpath("/html/body/div[1]/div/section[2]/form/div[4]/div/div/div[7]/div[2]/div[1]/div/div[2]/ul/li/a"))
-                .shouldBe(visible).click();
+        openProjectionsTab();
+        //click on the menu icon in the Projection section
+        $(byAttribute("about", "dropdownMenu")).shouldBe(visible).click();
         //click on the Add projection menu item
         $(By.linkText("Add projection")).shouldBe(visible).click();
 
-        //switch to the opened modal window
-        switchToInnerFrame();
-        //search for resource in resources list in the opened Select resource(s) window
         searchForElement(CSV_RESOURCE_NAME);
-        //check if Localhost CSVfile resource was found
-        $(byText(CSV_RESOURCE_NAME)).shouldBe(visible);
-
-        //select check box in the first row for "Localhost CSVfile" resource
-        $(byAttribute("about", "resourcePopupTable")).find(By.tagName("tbody")).find(By.tagName("input"))
-                .shouldBe(visible).click();
-
-        //click Add resource(s) button
-        $(By.linkText("Add resource(s)")).shouldBe(enabled).click();
-
-        //switch to main window
-        switchTo().defaultContent();
+        $(byAttribute("about", "table")).find(By.tagName("tbody")).find(By.tagName("input")).shouldBe(visible).setSelected(true);
+        $(By.linkText("Add")).shouldBe(enabled).click();
+        $(By.linkText(CSV_RESOURCE_NAME)).shouldBe(enabled).click();
 
         //fill in account fields map
         accountFieldsMap.put(ACCOUNT_FIRST_NAME_FIELD, ACCOUNT_FIRST_NAME_VALUE);
@@ -94,17 +80,15 @@ public class CsvAccountTests extends AbstractSelenideTest {
         $(byAttribute("about", "password1")).shouldBe(visible).setValue(PASSWORD1_FIELD_VALUE);
         //click Save button
         $(By.linkText("Save")).shouldBe(visible).click();
-        //check if Success message appears
         // if error occured, copy midpoint\testing\selenidetest\src\test\resources\mp-resources\midpoint-flatfile-orig.csv to midpoint-flatfile.csv
-        $(byText("Success")).shouldBe(visible);
+        checkOperationStatusOk("Save (GUI)");
         //open user's Edit page by account name value
-        openUsersEditPage(ACCOUNT_NAME_VALUE);
+        openUsersEditPage(ACCOUNT_FIRST_NAME_VALUE);
+        openProjectionsTab();
         //check that account is displayed in the Accounts section
-        $(By.linkText(CSV_RESOURCE_NAME)).shouldBe(visible);
+        $(By.linkText(CSV_RESOURCE_NAME)).shouldBe(visible).click();
         //check that user's attributes were updated by account's attributes
-        $(By.name(USER_NAME_FIELD_NAME)).shouldHave(value(ACCOUNT_NAME_VALUE));
-        $(By.name(GIVEN_NAME_FIELD_NAME)).shouldHave(value(ACCOUNT_FIRST_NAME_VALUE));
-        $(By.name(FAMILY_NAME_FIELD_NAME)).shouldHave(value(ACCOUNT_LAST_NAME_VALUE));
+        checkObjectAttributesValues(accountFieldsMap);
         //check if account was created in the csv file
         //TODO
         System.out.println(isAccountExistInCsvFile(CSV_FILE_PATH, ACCOUNT_NAME_VALUE, ACCOUNT_FIRST_NAME_VALUE, ACCOUNT_LAST_NAME_VALUE, ACCOUNT_PASSWORD_VALUE));

@@ -22,12 +22,12 @@ import static com.codeborne.selenide.Selenide.close;
  */
 public class RoleTests extends AbstractSelenideTest {
     //role fields
-    public static final String ROLE_NAME_FIELD = "tabPanel:panel:focusForm:body:containers:0:container:properties:0:property:values:0:value:valueContainer:input:input";
-    public static final String ROLE_DISPLAY_NAME_FIELD = "tabPanel:panel:focusForm:body:containers:0:container:properties:1:property:values:0:value:valueContainer:input:input";
-    public static final String ROLE_DESCRIPTION_FIELD = "tabPanel:panel:focusForm:body:containers:0:container:properties:2:property:values:0:value:valueContainer:input:input";
-    public static final String ROLE_TYPE_FIELD = "tabPanel:panel:focusForm:body:containers:0:container:properties:15:property:values:0:value:valueContainer:input:input";
-    public static final String ROLE_IDENTIFIER_FIELD = "tabPanel:panel:focusForm:body:containers:0:container:properties:3:property:values:0:value:valueContainer:input:input";
-    public static final String ROLE_RISK_LEVEL_FIELD = "tabPanel:panel:focusForm:body:containers:0:container:properties:12:property:values:0:value:valueContainer:input:input";
+    public static final String ROLE_NAME_FIELD = "Name";
+    public static final String ROLE_DISPLAY_NAME_FIELD = "Display Name";
+    public static final String ROLE_DESCRIPTION_FIELD = "Description";
+    public static final String ROLE_TYPE_FIELD = "Role Type";
+    public static final String ROLE_IDENTIFIER_FIELD = "Identifier";
+    public static final String ROLE_RISK_LEVEL_FIELD = "Risk Level";
     //role values
     public static final String ROLE_NAME_VALUE = "TestRole";
     public static final String ROLE_DISPLAY_NAME_VALUE = "RoleDisplayName";
@@ -42,10 +42,7 @@ public class RoleTests extends AbstractSelenideTest {
     public void test001createRoleTest(){
         close();
         login();
-        //click Roles menu
-        $(By.partialLinkText("Roles")).shouldBe(visible).click();
-        //click New role menu item
-        $(By.partialLinkText("New role")).shouldBe(visible).click();
+        checkLoginIsPerformed();
         //set new role attributes
         roleAttributes.put(ROLE_NAME_FIELD, ROLE_NAME_VALUE);
         roleAttributes.put(ROLE_DISPLAY_NAME_FIELD, ROLE_DISPLAY_NAME_VALUE);
@@ -53,11 +50,9 @@ public class RoleTests extends AbstractSelenideTest {
         roleAttributes.put(ROLE_TYPE_FIELD, ROLE_TYPE_VALUE);
         roleAttributes.put(ROLE_IDENTIFIER_FIELD, ROLE_IDENTIFIER_VALUE);
         roleAttributes.put(ROLE_RISK_LEVEL_FIELD, ROLE_RISK_LEVEL_VALUE);
-        setFieldValues(roleAttributes);
-        //click Save button
-        $(By.linkText("Save")).shouldBe(visible).click();
-        //check if Success message appears
-        $(byText("Success")).shouldBe(visible);
+        createRole(roleAttributes);
+        //check  message appears
+        checkOperationStatusOk("Save (GUI)");
         //search for newly created role
         searchForElement(ROLE_NAME_VALUE);
         //click on the found role
@@ -69,8 +64,12 @@ public class RoleTests extends AbstractSelenideTest {
 
     @Test(priority = 1, dependsOnMethods = {"test001createRoleTest"})
     public void test002updateRoleTest(){
-        //click Roles menu
-//        $(By.partialLinkText("Roles")).shouldBe(visible).click(); // clicked in previous test
+        close();
+        login();
+        checkLoginIsPerformed();
+        if (!$(By.partialLinkText("List roles")).isDisplayed()) {
+            $(By.partialLinkText("Roles")).shouldBe(visible).click();
+        }
         //click List roles menu item
         $(By.partialLinkText("List roles")).shouldBe(visible).click();
         //search for newly created role
@@ -86,8 +85,7 @@ public class RoleTests extends AbstractSelenideTest {
         setFieldValues(roleAttributesUpdated);
         //click Save button
         $(By.linkText("Save")).shouldBe(visible).click();
-        //check if Success message appears
-        $(byText("Success")).shouldBe(visible);
+        checkOperationStatusOk("Save (GUI)");
         //search for newly created role
         searchForElement(ROLE_NAME_VALUE + UPDATED_VALUE);
         //click on the found role
@@ -98,22 +96,24 @@ public class RoleTests extends AbstractSelenideTest {
 
     @Test (priority = 2, dependsOnMethods = {"test001createRoleTest"})
     public void test003deleteRoleTest(){
-        //click Roles menu
-//        $(By.partialLinkText("Roles")).shouldBe(visible).click(); // clicked in previous test
-        //click List roles menu item
+        close();
+        login();
+        checkLoginIsPerformed();
+        if (!$(By.partialLinkText("List roles")).isDisplayed()) {
+            $(By.partialLinkText("Roles")).shouldBe(visible).click();
+        }
         $(By.partialLinkText("List roles")).shouldBe(visible).click();
         //search for created role
         searchForElement(ROLE_NAME_VALUE + UPDATED_VALUE);
         //select found role checkbox
-        $(byAttribute("type", "checkbox")).shouldBe(visible).click();
+        $(By.tagName("tbody")).find(byAttribute("type", "checkbox")).shouldBe(visible).setSelected(true);
         //click on the menu icon in the upper right corner of the roles list
-        $(By.className("cog")).find(By.className("caret")).shouldBe(visible).click();
+        $(byAttribute("class", "cog")).shouldBe(visible).click();
         //click Delete menu item
         $(By.linkText("Delete")).shouldBe(visible).click();
         //click Yes button in the Confirm delete window
         $(By.linkText("Yes")).shouldBe(visible).click();
-        //check if success message appears after role deletion
-        $(byText("The role(s) have been successfully deleted.")).shouldBe(visible);
+        checkOperationStatusOk("Delete roles (GUI)");
     }
 
 }
