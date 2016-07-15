@@ -19,6 +19,15 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.api.ModelInteractionService;
+import com.evolveum.midpoint.model.api.RoleSelectionSpecification;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.security.SecurityUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
@@ -66,13 +75,19 @@ public class TypedAssignablePanel<T extends ObjectType> extends BasePanel<T> imp
 	
 	private static final String ID_BUTTON_ASSIGN = "assignButton";
 
-	private IModel<QName> typeModel;
+    private static final String DOT_CLASS = TypedAssignablePanel.class.getName();
+    private static final Trace LOGGER = TraceManager.getTrace(TypedAssignablePanel.class);
+    private static final String OPERATION_LOAD_ASSIGNABLE_ROLES = DOT_CLASS + "loadAssignableRoles";
+
+    private IModel<QName> typeModel;
+    private PageBase parentPage;
 
 //	private PageBase parentPage;
 
 	public TypedAssignablePanel(String id, final Class<T> type, boolean multiselect, PageBase parentPage) {
 		super(id);
-		setParent(parentPage);
+        this.parentPage = parentPage;
+        setParent(parentPage);
 		typeModel = new LoadableModel<QName>(false) {
 
 			@Override
@@ -177,6 +192,35 @@ public class TypedAssignablePanel<T extends ObjectType> extends BasePanel<T> imp
 			protected void onUpdateCheckbox(AjaxRequestTarget target) {
 				refreshCounts(target);
 			}
+
+
+            @Override
+            protected ObjectQuery addFilterToContentQuery(ObjectQuery query) {
+                if (type.equals(RoleType.COMPLEX_TYPE)) {
+                    LOGGER.debug("Loading roles which the current user has right to assign");
+                    OperationResult result = new OperationResult(OPERATION_LOAD_ASSIGNABLE_ROLES);
+                    ObjectFilter filter = null;
+                    try {
+                        ModelInteractionService mis = parentPage.getModelInteractionService();
+                        RoleSelectionSpecification roleSpec =
+                                mis.getAssignableRoleSpecification(SecurityUtils.getPrincipalUser().getUser().asPrismObject(), result);
+                        filter = roleSpec.getFilter();
+                    } catch (Exception ex) {
+                        LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load available roles", ex);
+                        result.recordFatalError("Couldn't load available roles", ex);
+                    } finally {
+                        result.recomputeStatus();
+                    }
+                    if (!result.isSuccess() && !result.isHandledError()) {
+                        parentPage.showResult(result);
+                    }
+                    if (query == null){
+                        query = new ObjectQuery();
+                    }
+                    query.addFilter(filter);
+                }
+                return query;
+            }
 		
 		};
 
