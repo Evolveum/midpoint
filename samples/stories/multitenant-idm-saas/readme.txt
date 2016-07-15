@@ -148,7 +148,8 @@ your CSV file with customer info!
 - Import password policies
 - Import object templates
 - Import resources
-- Import roles
+- Import roles (Please do not import/use "role-meta-ldap-customer-group.xml",
+it's work in progress.)
 - System Configuration: Object Policies: UserType = "User Template"
 - System Configuration: Object Policies: OrgType = "Organization Object Template"
 - Resource "CRM Simulation" - click Content, and import any of the entries by
