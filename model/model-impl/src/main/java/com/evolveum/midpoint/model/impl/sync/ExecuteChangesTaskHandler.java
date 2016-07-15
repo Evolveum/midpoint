@@ -104,6 +104,9 @@ public class ExecuteChangesTaskHandler extends AbstractSearchIterativeTaskHandle
 
 		ObjectDelta delta = createDeltaFromTask(coordinatorTask);
 		delta.setOid(focalObject.getOid());
+		if (focalObject.getCompileTimeClass() != null) {
+			delta.setObjectTypeClass(focalObject.getCompileTimeClass());
+		}
 		prismContext.adopt(delta);
 		
 		Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();

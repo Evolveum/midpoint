@@ -23,10 +23,12 @@ import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.Referencable;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 public class MidPointDataSource implements JRDataSource{
 
@@ -76,7 +78,9 @@ public class MidPointDataSource implements JRDataSource{
 			return ((PrismContainer) parent1).getParent();
 		}
 
-		Item i = currentObject.findItem(new QName(fieldName));
+		ItemPathType itemPathType = new ItemPathType(fieldName);
+		ItemPath path = itemPathType.getItemPath();
+		Item i = currentObject.findItem(path);
 		if (i == null) {
 			return null;
 		}
