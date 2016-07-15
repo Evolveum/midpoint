@@ -527,14 +527,8 @@ public class ColumnUtils {
 		List<IColumn<SelectableBean<T>, String>> columns = new ArrayList<IColumn<SelectableBean<T>, String>>();
 
 		List<ColumnTypeDto<String>> columnsDefs = Arrays.asList(
-				// new ColumnTypeDto("AbstractRoleType.displayName",
-				// SelectableBean.F_VALUE + ".displayName",
-				// true, false),
-				new ColumnTypeDto<String>("AbstractRoleType.description", ResourceType.F_DESCRIPTION.getLocalPart(),
+				new ColumnTypeDto<String>("AbstractRoleType.description", null,
 						SelectableBean.F_VALUE + ".description", false)
-		// new ColumnTypeDto("AbstractRoleType.identifier",
-		// SelectableBean.F_VALUE + ".identifier", true,
-		// false)
 
 		);
 
