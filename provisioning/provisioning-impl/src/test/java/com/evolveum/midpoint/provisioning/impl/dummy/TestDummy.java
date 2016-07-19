@@ -109,6 +109,7 @@ import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.statistics.ConnectorOperationalStatus;
 import com.evolveum.midpoint.schema.util.ConnectorTypeUtil;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
@@ -993,7 +994,10 @@ public class TestDummy extends AbstractDummyTest {
 		// THEN
 		testResult.computeStatus();
 		IntegrationTestTools.display(testResult);
-		TestUtil.assertSuccess(testResult);
+		display("test result", testResult);
+		if (testResult.getStatus() != OperationResultStatus.SUCCESS && testResult.getStatus() != OperationResultStatus.WARNING) {
+			AssertJUnit.fail("Self-test failed: "+testResult);
+		}
 	}
 
 	// The account must exist to test this with modify delta. So we postpone the
