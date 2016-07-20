@@ -18,6 +18,7 @@ package com.evolveum.midpoint.web.page.admin.resources;
 import com.evolveum.midpoint.gui.api.component.result.OpResult;
 import com.evolveum.midpoint.gui.api.component.tabs.PanelTab;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
@@ -42,11 +43,12 @@ import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import org.apache.commons.lang.StringUtils;
+import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.model.IModel;
+import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.util.ListModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
@@ -340,55 +342,68 @@ public class PageResource extends PageAdminResources {
 	}
 
 	private void testConnectionPerformed(AjaxRequestTarget target) {
-		PrismObject<ResourceType> dto = resourceModel.getObject();
+		final PrismObject<ResourceType> dto = resourceModel.getObject();
 		if (dto == null || StringUtils.isEmpty(dto.getOid())) {
 			error(getString("pageResource.message.oidNotDefined"));
 			target.add(getFeedbackPanel());
 			return;
 		}
 
-		OperationResult result = new OperationResult(OPERATION_TEST_CONNECTION);
-		List<OpResult>  resultsDto = new ArrayList<>();
-		try {
-			Task task = createSimpleTask(OPERATION_TEST_CONNECTION);
+        final TestConnectionResultPanel testConnectionPanel =
+                new TestConnectionResultPanel(getMainPopupBodyId(), new ListModel<>(new ArrayList<OpResult>()), getPage(), true) {
+                    private static final long serialVersionUID = 1L;
 
-			result = getModelService().testResource(dto.getOid(), task);
+                    @Override
+                    protected void okPerformed(AjaxRequestTarget target) {
+                        refreshStatus(target);
+                    }
 
-			resultsDto = WebComponentUtil.getTestConnectionResults(result, this);
+                    @Override
+                    protected void initOnFocusBehavior() {
+                        setOnFocusBehavior(new AjaxEventBehavior("onfocus") {
+                            @Override
+                            protected void onEvent(AjaxRequestTarget target) {
+                                removeOnFocusBehavior(getOkButton());
+                                OperationResult result = new OperationResult(OPERATION_TEST_CONNECTION);
+                                List<OpResult>  resultsDto = new ArrayList<>();
+                                try {
+                                    Task task = createSimpleTask(OPERATION_TEST_CONNECTION);
+                                    result = getModelService().testResource(dto.getOid(), task);
+                                    resultsDto = WebComponentUtil.getTestConnectionResults(result,(PageBase) getPage());
 
-			getModelService().getObject(ResourceType.class, dto.getOid(), null, task, result);
-		} catch (ObjectNotFoundException | SchemaException | SecurityViolationException
-				| CommunicationException | ConfigurationException e) {
-			result.recordFatalError("Failed to test resource connection", e);
-		}
+                                    getModelService().getObject(ResourceType.class, dto.getOid(), null, task, result);
+                                } catch (ObjectNotFoundException | SchemaException | SecurityViolationException
+                                        | CommunicationException | ConfigurationException e) {
+                                    result.recordFatalError("Failed to test resource connection", e);
+                                }
 
-		// // a bit of hack: result of TestConnection contains a result of
-		// getObject as a subresult
-		// // so in case of TestConnection succeeding we recompute the result to
-		// show any (potential) getObject problems
-		if (result.isSuccess()) {
-			result.recomputeStatus();
-		}
+                                if (result.isSuccess()) {
+                                    result.recomputeStatus();
+                                }
+                                setModelObject(resultsDto);
+                                initResultsPanel((RepeatingView) getResultsComponent(), getPage());
+                                setWaitForResults(false);
+                                target.add(getContentPanel());
+                            }
+                        });
+                    }
+                };
+        testConnectionPanel.setOutputMarkupId(true);
 
-		TestConnectionResultPanel testConnectionPanel = new TestConnectionResultPanel(getMainPopupBodyId(), new ListModel<>(resultsDto), getPage()) {
-			private static final long serialVersionUID = 1L;
+        getMainPopup().setCloseButtonCallback(new ModalWindow.CloseButtonCallback() {
+            private static final long serialVersionUID = 1L;
 
-			@Override
-			protected void okPerformed(AjaxRequestTarget target) {
-				refreshStatus(target);
-			}
-		};
-		testConnectionPanel.setOutputMarkupId(true);
-		getMainPopup().setCloseButtonCallback(new ModalWindow.CloseButtonCallback() {
-			private static final long serialVersionUID = 1L;
-
-			@Override
+            @Override
             public boolean onCloseButtonClicked(AjaxRequestTarget target) {
                 return false;
             }
         });
 
-		showMainPopup(testConnectionPanel, target);
+        showMainPopup(testConnectionPanel, target);
+        if (!testConnectionPanel.isFocusSet()) {
+            testConnectionPanel.setFocusSet(true);
+            testConnectionPanel.setFocusOnComponent(testConnectionPanel.getOkButton(), target);
+        }
 
 	}
 	
