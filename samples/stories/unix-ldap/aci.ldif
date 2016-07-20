@@ -1,0 +1,13 @@
+# sudo ldapmodify  -Y EXTERNAL -H ldapi:/// -f ~/Work/Documents/Evolveum/evolveum/samples/customer-openldap-da/aci.ldif 
+# !!!!!!!!!!!!!!!!!!!!!!!
+# BE ADVISED THE {2}mdb DEPENDS ON YOUR OpenLDAP INSTALLATION/SETUP
+# !!!!!!!!!!!!!!!!!!!!!!!
+dn: olcDatabase={2}mdb,cn=config
+changetype: modify
+replace: olcAccess
+olcAccess: to attrs=userPassword,shadowLastChange by dn="cn=idm,ou=Administrators,dc=example,dc=com" write by dn.exact=gidNumber=0+uidNumber=0,cn=peercred,cn=external,cn=auth write by anonymous auth by self write by * none
+olcAccess: to dn.base="" by * read
+olcAccess: to dn.subtree="ou=people,dc=example,dc=com" by dn="cn=idm,ou=Administrators,dc=example,dc=com" write
+olcAccess: to dn.subtree="ou=groups,dc=example,dc=com" by dn="cn=idm,ou=Administrators,dc=example,dc=com" write
+olcAccess: to dn.subtree="ou=unixgroups,dc=example,dc=com" by dn="cn=idm,ou=Administrators,dc=example,dc=com" write
+olcAccess: to * by dn.exact=gidNumber=0+uidNumber=0,cn=peercred,cn=external,cn=auth write by dn="cn=idm,ou=Administrators,dc=example,dc=com" read by self read by * none

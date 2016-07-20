@@ -1,0 +1,166 @@
+<!--
+  ~ Copyright (c) 2015 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<!-- This is a meta-role. A Role indented to be assigned to other roles.
+     I really mean assigned, not included or induced. -->
+
+<role oid="31ea66ac-1a8e-11e5-8ab8-001e8c717e5b"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:posix="http://sample.evolveum.com/xml/ns/sample-idm/extension"
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
+    <name>LDAP Unix Group Metarole</name>
+    <description>If assigning this metarole, role's identifier is group name (use: servername-users value).</description>
+    
+    <inducement>
+    	<description>UNIXGROUP-I</description>
+    	<construction>
+    		<description>UNIXGROUP-I</description>
+    		<resourceRef oid="9d5d62a6-49bb-11e6-ac4d-3c970e44b9e2" type="c:ResourceType"/>
+    		<kind>entitlement</kind>
+            <intent>unixGroup</intent>
+    	</construction>
+    </inducement>
+ 
+    <inducement>
+    	<description>UNIXGROUP-I2</description>
+    	<construction>
+    		<description>UNIXGROUP-I2</description>
+    		<resourceRef oid="9d5d62a6-49bb-11e6-ac4d-3c970e44b9e2" type="c:ResourceType"/>
+    		<kind>account</kind>
+    		<intent>default</intent>
+                <attribute>
+			<ref>ri:uidNumber</ref>
+			<outbound>
+				<strength>strong</strength>
+				<source>
+					<path>extension/posix:uidNumber</path>
+				</source>
+			</outbound>
+		</attribute>
+    		<attribute>
+                <ref>ri:gidNumber</ref>
+			<outbound>
+				<strength>strong</strength>
+				<source>
+					<path>extension/posix:uidNumber</path>
+				</source>
+			</outbound>
+		</attribute>
+    		<attribute>
+			<ref>ri:homeDirectory</ref>
+			<outbound>
+				<strength>strong</strength>
+				<source>
+					<path>name</path>
+				</source>
+				<expression>
+					<script>
+                				<code>'/home/' + name</code>
+	                		</script>
+                		</expression>
+			</outbound>
+		</attribute>
+    		<attribute>
+			<ref>ri:gecos</ref>
+			<outbound>
+				<strength>strong</strength>
+				<source>
+					<path>fullName</path>
+				</source>
+				<expression><!-- Strip diacritics and Capitalize String (assumed fullname) -->
+					<script>
+						<code>basic.norm(basic.stringify(fullName))?.replaceAll(/\w+/, { it[0].toUpperCase() + ((it.size() > 1) ? it[1..-1] : '') })</code>
+					</script>
+				</expression>
+			</outbound>
+		</attribute>
+    		<association>
+			<ref>ri:unixGroup</ref>
+			<outbound>
+				<expression>
+					<associationFromLink>
+						<projectionDiscriminator>
+							<kind>entitlement</kind>
+							<intent>unixGroup</intent>
+						</projectionDiscriminator>
+					</associationFromLink>
+				</expression>
+			</outbound>
+		</association>
+                <auxiliaryObjectClass>ri:posixAccount</auxiliaryObjectClass>
+<!--                <auxiliaryObjectClass>ri:shadowAccount</auxiliaryObjectClass>-->
+    	</construction>  
+    	<order>2</order>
+    </inducement>
+
+	<inducement>
+		<focusMappings><!-- Generate role description (weak) -->
+			<mapping>
+				<name>role description</name>
+				<strength>weak</strength>
+				<source>
+					<path>$focus/identifier</path>
+				</source>
+				<expression>
+					<script>
+						<code>return 'LDAP Unix Group for users authorized to login to server ' + basic.stringify(identifier).tokenize('-')[0]</code>
+					</script>
+				</expression>
+				<target>
+					<path>$focus/description</path>
+				</target>
+			</mapping>
+		</focusMappings>
+	</inducement>
+
+	<inducement>
+		<focusMappings><!-- Generate uid (sequence) and store it in user extension -->
+			<mapping>
+				<name>sequenceUID</name>
+				<strength>weak</strength>
+				<expression>
+					<sequentialValue>
+						<sequenceRef oid="7d4acb8c-65e3-11e5-9ef4-6382ba96fe6c"/>
+					</sequentialValue>
+				</expression>
+				<target>
+					<path>extension/posix:uidNumber</path>
+				</target>
+			</mapping>
+		</focusMappings>
+		<order>2</order><!-- Generate for user with the role with this metarole -->
+	</inducement>
+
+	<inducement>
+		<focusMappings><!-- Generate gid (sequence) and store it in role extension -->
+			<mapping>
+				<name>sequenceGID</name>
+				<strength>weak</strength>
+				<expression>
+					<sequentialValue>
+						<sequenceRef oid="02cb7caa-6618-11e5-87a5-7b6c6776a63e"/>
+					</sequentialValue>
+				</expression>
+				<target>
+					<path>extension/posix:gidNumber</path>
+				</target>
+			</mapping>
+		</focusMappings>
+	</inducement>
+
+</role>

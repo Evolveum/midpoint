@@ -1,0 +1,70 @@
+<!-- (c) 2011-2016 Evolveum, All rights reserved -->
+
+<!-- This is a meta-role. A Role indented to be assigned to other roles.
+     I really mean assigned, not included or induced. -->
+
+<role oid="1568ec1e-36cc-11e6-a052-3c970e44b9e2"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
+    <name>LDAP Group Metarole</name>
+    <description>If assigning this metarole, role's identifier is group name.</description>
+    
+    <inducement>
+    	<description>LDAPGROUP-I</description>
+    	<construction>
+    		<description>LDAPGROUP-I</description>
+    		<resourceRef oid="9d5d62a6-49bb-11e6-ac4d-3c970e44b9e2" type="c:ResourceType"/>
+    		<kind>entitlement</kind>
+            <intent>ldapGroup</intent>
+    	</construction>
+    </inducement>
+ 
+    <inducement>
+    	<description>LDAPGROUP-I2</description>
+    	<construction>
+    		<description>LDAPGROUP-I2</description>
+    		<resourceRef oid="9d5d62a6-49bb-11e6-ac4d-3c970e44b9e2" type="c:ResourceType"/>
+    		<kind>account</kind>
+    		<intent>default</intent>
+    		<association>
+			<ref>ri:ldapGroup</ref>
+			<outbound>
+				<strength>strong</strength>
+				<expression>
+					<associationFromLink>
+						<projectionDiscriminator>
+							<kind>entitlement</kind>
+							<intent>ldapGroup</intent>
+						</projectionDiscriminator>
+					</associationFromLink>
+				</expression>
+			</outbound>
+		</association>
+    	</construction>  
+    	<order>2</order>
+    </inducement>
+
+	<inducement>
+		<focusMappings><!-- Generate role description (weak) -->
+			<mapping>
+				<name>role description</name>
+				<strength>weak</strength>
+				<source>
+					<path>$focus/identifier</path>
+				</source>
+				<expression>
+					<script>
+						<code>return 'LDAP Group named: ' + basic.stringify(identifier)</code>
+					</script>
+				</expression>
+				<target>
+					<path>$focus/description</path>
+				</target>
+			</mapping>
+		</focusMappings>
+	</inducement>
+
+
+</role>
