@@ -295,6 +295,11 @@ public class ContainerWrapperFactory {
 
                 Collection<ItemDefinition> propertyDefinitions = definition.getDefinitions();
                 for (ItemDefinition itemDef : propertyDefinitions) {
+                    //TODO temporary decision to hide adminGuiConfiguration attribute (MID-3305)
+                    if (itemDef != null && itemDef.getName() != null && itemDef.getName().getLocalPart() != null &&
+                            itemDef.getName().getLocalPart().equals("adminGuiConfiguration")){
+                        continue;
+                    }
                     if (itemDef instanceof PrismPropertyDefinition) {
 
                         PrismPropertyDefinition def = (PrismPropertyDefinition) itemDef;
