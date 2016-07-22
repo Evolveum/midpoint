@@ -995,6 +995,8 @@ public class TestDummy extends AbstractDummyTest {
 		testResult.computeStatus();
 		IntegrationTestTools.display(testResult);
 		display("test result", testResult);
+        // There may be warning about illegal key size on some platforms. As far as it is warning and not error we are OK
+        // the system will fall back to a interoperable key size
 		if (testResult.getStatus() != OperationResultStatus.SUCCESS && testResult.getStatus() != OperationResultStatus.WARNING) {
 			AssertJUnit.fail("Self-test failed: "+testResult);
 		}
