@@ -1160,7 +1160,13 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		}
 
 		// Get UID from the set of identifiers
-		Uid uid = getUid(objectClassDefinition, identifiers);
+		Uid uid;
+		try {
+			uid = getUid(objectClassDefinition, identifiers);
+		} catch (SchemaException e) {
+			result.recordFatalError(e);
+			throw e;
+		}
 		if (uid == null) {
 			result.recordFatalError("Required attribute UID not found in identification set while attempting to fetch object identified by "
 					+ identifiers + " from " + description);
@@ -1579,7 +1585,14 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 
 		ObjectClass objClass = icfNameMapper.objectClassToIcf(objectClassDef, getSchemaNamespace(), connectorType, legacySchema);
 		
-		Uid uid = getUid(objectClassDef, identifiers);
+		Uid uid;
+		try {
+			uid = getUid(objectClassDef, identifiers);
+		} catch (SchemaException e) {
+			result.recordFatalError(e);
+			throw e;
+		}
+		
 		if (uid == null) {
 			result.recordFatalError("No UID in identifiers: " + identifiers);
 			throw new IllegalArgumentException("No UID in identifiers: " + identifiers);
@@ -2001,8 +2014,8 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 
 	@Override
 	public void deleteObject(ObjectClassComplexTypeDefinition objectClass, Collection<Operation> additionalOperations, Collection<? extends ResourceAttribute<?>> identifiers, StateReporter reporter,
-							 OperationResult parentResult) throws ObjectNotFoundException, CommunicationException,
-			GenericFrameworkException {
+							 OperationResult parentResult) 
+			throws ObjectNotFoundException, CommunicationException, GenericFrameworkException, SchemaException {
 		Validate.notNull(objectClass, "No objectclass");
 
 		OperationResult result = parentResult.createSubresult(ConnectorInstance.class.getName()
@@ -2010,7 +2023,13 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		result.addCollectionOfSerializablesAsParam("identifiers", identifiers);
 
 		ObjectClass objClass = icfNameMapper.objectClassToIcf(objectClass, getSchemaNamespace(), connectorType, legacySchema);
-		Uid uid = getUid(objectClass, identifiers);
+		Uid uid;
+		try {
+			uid = getUid(objectClass, identifiers);
+		} catch (SchemaException e) {
+			result.recordFatalError(e);
+			throw e;
+		}
 
 		checkAndExecuteAdditionalOperation(reporter, additionalOperations, BeforeAfterType.BEFORE, result);
 		
@@ -2602,12 +2621,16 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 	 *            midPoint resource object identifiers
 	 * @return ICF UID or null
 	 */
-	private Uid getUid(ObjectClassComplexTypeDefinition objectClass, Collection<? extends ResourceAttribute<?>> identifiers) {
+	private Uid getUid(ObjectClassComplexTypeDefinition objectClass, Collection<? extends ResourceAttribute<?>> identifiers) throws SchemaException {
 		if (identifiers.size() == 0) {
 			return null;
 		}
 		if (identifiers.size() == 1) {
-			return new Uid((String) identifiers.iterator().next().getRealValue());
+			try {
+				return new Uid((String) identifiers.iterator().next().getRealValue());
+			} catch (IllegalArgumentException e) {
+				throw new SchemaException(e.getMessage(), e);
+			}
 		}
 		for (ResourceAttribute<?> attr : identifiers) {
 			if (objectClass.isPrimaryIdentifier(attr.getElementName())) {

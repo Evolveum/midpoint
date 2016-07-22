@@ -3,8 +3,10 @@ objectClass: top
 objectClass: ldapSubentry
 objectClass: subschema
 cn: schema
-ds-sync-generation-id: 8408
 attributeTypes: ( 2.25.81407072025111374527560065493494091452 NAME 'uuidIdentifiedAttribute' DESC 'Test attribute identified by UUID-based OID' SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 X-ORIGIN 'user-defined')
 objectClasses: ( 2.25.134951510715688957323197151744826468655 NAME 'uuidIdentifiedObjectClass' DESC 'Test auxiliary objectclass identified by UUID-based OID' SUP top AUXILIARY MAY ( uuidIdentifiedAttribute) X-ORIGIN 'user-defined' )
-objectClasses: ( 1.3.6.1.4.1.45689.1.4.110 NAME 'hybridTestingObjectClass' DESC 'Test auxiliary objectclass with a mix of strange attributes' SUP top AUXILIARY MAY ( cn $ uuidIdentifiedAttribute) X-ORIGIN 'user-defined' )
 objectClasses: ( 1.3.6.1.4.1.45689.1.4.100 NAME 'normalTestingObjectClass' DESC 'Test auxiliary objectclass with normal attributes' SUP top AUXILIARY MAY ( cn $ uid $ description ) X-ORIGIN 'user-defined' )
+objectClasses: ( 1.3.6.1.4.1.45689.1.4.110 NAME 'hybridTestingObjectClass' DESC 'Test auxiliary objectclass with a mix of strange attributes' SUP top AUXILIARY MAY ( cn $ uuidIdentifiedAttribute) X-ORIGIN 'user-defined' )
+ds-sync-state: 0000015611f11bf3441e00000001
+ds-sync-generation-id: 8408
+

@@ -10976,3 +10976,73 @@
 [06/Mar/2015:19:18:44 +0100] UNBIND REQ conn=2 op=24 msgID=25
 [06/Mar/2015:19:18:44 +0100] DISCONNECT conn=2 reason="Client Unbind"
 [06/Mar/2015:19:18:45 +0100] DISCONNECT conn=3 reason="Server Shutdown" msg="This client connection is being deregistered from the associated request handler because the Directory Server is shutting down"
+[22/Jul/2016:11:30:30 +0200] MODIFY REQ conn=-1 op=64 msgID=65 dn="cn=schema" type=synchronization
+[22/Jul/2016:11:30:30 +0200] MODIFY REQ conn=-1 op=63 msgID=64 dn="dc=example,dc=com" type=synchronization
+[22/Jul/2016:11:30:30 +0200] MODIFY RES conn=-1 op=63 msgID=64 result=0 etime=6
+[22/Jul/2016:11:30:30 +0200] MODIFY RES conn=-1 op=64 msgID=65 result=0 etime=62
+[22/Jul/2016:11:30:32 +0200] CONNECT conn=0 from=10.1.1.50:49618 to=10.1.1.50:10389 protocol=LDAP
+[22/Jul/2016:11:30:32 +0200] BIND REQ conn=0 op=0 msgID=1 version=3 type=SIMPLE dn="cn=Directory Manager"
+[22/Jul/2016:11:30:32 +0200] BIND RES conn=0 op=0 msgID=1 result=0 authDN="cn=Directory Manager,cn=Root DNs,cn=config" etime=3
+[22/Jul/2016:11:30:32 +0200] SEARCH REQ conn=0 op=1 msgID=2 base="" scope=baseObject filter="(objectClass=*)" attrs="subschemaSubentry"
+[22/Jul/2016:11:30:32 +0200] SEARCH RES conn=0 op=1 msgID=2 result=0 nentries=1 etime=2
+[22/Jul/2016:11:30:32 +0200] SEARCH REQ conn=0 op=2 msgID=3 base="cn=schema" scope=baseObject filter="(objectClass=subschema)" attrs="createTimestamp,modifyTimestamp"
+[22/Jul/2016:11:30:32 +0200] SEARCH RES conn=0 op=2 msgID=3 result=0 nentries=1 etime=1
+[22/Jul/2016:11:30:32 +0200] SEARCH REQ conn=0 op=3 msgID=4 base="cn=schema" scope=baseObject filter="(objectClass=subschema)" attrs="objectClasses,attributeTypes,ldapSyntaxes,matchingRules,matchingRuleUse,createTimestamp,modifyTimestamp"
+[22/Jul/2016:11:30:32 +0200] SEARCH RES conn=0 op=3 msgID=4 result=0 nentries=1 etime=5
+[22/Jul/2016:11:30:32 +0200] SEARCH REQ conn=0 op=4 msgID=5 base="" scope=baseObject filter="(objectClass=*)" attrs="namingContexts,subschemaSubentry,supportedLDAPVersion,supportedSASLMechanisms,supportedExtension,supportedControl,supportedFeatures,vendorName,vendorVersion,+,objectClass"
+[22/Jul/2016:11:30:32 +0200] SEARCH RES conn=0 op=4 msgID=5 result=0 nentries=1 etime=7
+[22/Jul/2016:11:30:32 +0200] SEARCH REQ conn=0 op=5 msgID=6 base="" scope=baseObject filter="(objectClass=*)" attrs="*"
+[22/Jul/2016:11:30:32 +0200] SEARCH RES conn=0 op=5 msgID=6 result=0 nentries=1 etime=1
+[22/Jul/2016:11:30:32 +0200] SEARCH REQ conn=0 op=6 msgID=7 base="cn=admin data" scope=baseObject filter="(objectClass=*)" attrs="hasSubordinates,objectClass"
+[22/Jul/2016:11:30:32 +0200] SEARCH RES conn=0 op=6 msgID=7 result=0 nentries=1 etime=1
+[22/Jul/2016:11:30:32 +0200] SEARCH REQ conn=0 op=7 msgID=8 base="cn=changelog" scope=baseObject filter="(objectClass=*)" attrs="hasSubordinates,objectClass"
+[22/Jul/2016:11:30:32 +0200] SEARCH RES conn=0 op=7 msgID=8 result=0 nentries=1 etime=7
+[22/Jul/2016:11:30:32 +0200] SEARCH REQ conn=0 op=8 msgID=9 base="cn=backups" scope=baseObject filter="(objectClass=*)" attrs="hasSubordinates,objectClass"
+[22/Jul/2016:11:30:32 +0200] SEARCH RES conn=0 op=8 msgID=9 result=0 nentries=1 etime=0
+[22/Jul/2016:11:30:32 +0200] SEARCH REQ conn=0 op=9 msgID=10 base="cn=monitor" scope=baseObject filter="(objectClass=*)" attrs="hasSubordinates,objectClass"
+[22/Jul/2016:11:30:32 +0200] SEARCH RES conn=0 op=9 msgID=10 result=0 nentries=1 etime=2
+[22/Jul/2016:11:30:32 +0200] SEARCH REQ conn=0 op=10 msgID=11 base="cn=Default Password Policy,cn=Password Policies,cn=config" scope=baseObject filter="(objectClass=*)" attrs="hasSubordinates,objectClass"
+[22/Jul/2016:11:30:32 +0200] SEARCH RES conn=0 op=10 msgID=11 result=0 nentries=1 etime=1
+[22/Jul/2016:11:30:32 +0200] SEARCH REQ conn=0 op=11 msgID=12 base="dc=replicationChanges" scope=baseObject filter="(objectClass=*)" attrs="hasSubordinates,objectClass"
+[22/Jul/2016:11:30:32 +0200] SEARCH RES conn=0 op=11 msgID=12 result=0 nentries=0 etime=1
+[22/Jul/2016:11:30:32 +0200] SEARCH REQ conn=0 op=12 msgID=13 base="cn=schema" scope=baseObject filter="(objectClass=*)" attrs="hasSubordinates,objectClass"
+[22/Jul/2016:11:30:32 +0200] SEARCH RES conn=0 op=12 msgID=13 result=0 nentries=1 etime=1
+[22/Jul/2016:11:30:32 +0200] SEARCH REQ conn=0 op=13 msgID=14 base="cn=tasks" scope=baseObject filter="(objectClass=*)" attrs="hasSubordinates,objectClass"
+[22/Jul/2016:11:30:32 +0200] SEARCH RES conn=0 op=13 msgID=14 result=0 nentries=1 etime=0
+[22/Jul/2016:11:30:32 +0200] SEARCH REQ conn=0 op=14 msgID=15 base="dc=example,dc=com" scope=baseObject filter="(objectClass=*)" attrs="hasSubordinates,objectClass"
+[22/Jul/2016:11:30:32 +0200] SEARCH RES conn=0 op=14 msgID=15 result=0 nentries=1 etime=1
+[22/Jul/2016:11:30:32 +0200] SEARCH REQ conn=0 op=15 msgID=16 base="cn=config" scope=baseObject filter="(objectClass=*)" attrs="hasSubordinates,objectClass"
+[22/Jul/2016:11:30:32 +0200] SEARCH RES conn=0 op=15 msgID=16 result=0 nentries=1 etime=1
+[22/Jul/2016:11:30:32 +0200] SEARCH REQ conn=0 op=16 msgID=17 base="cn=ads-truststore" scope=baseObject filter="(objectClass=*)" attrs="hasSubordinates,objectClass"
+[22/Jul/2016:11:30:32 +0200] SEARCH RES conn=0 op=16 msgID=17 result=0 nentries=1 etime=1
+[22/Jul/2016:11:30:34 +0200] SEARCH REQ conn=0 op=17 msgID=18 base="dc=example,dc=com" scope=singleLevel filter="(objectClass=*)" attrs="hasSubordinates,objectClass"
+[22/Jul/2016:11:30:34 +0200] SEARCH RES conn=0 op=17 msgID=18 result=0 nentries=3 etime=2
+[22/Jul/2016:11:30:35 +0200] SEARCH REQ conn=0 op=18 msgID=19 base="ou=Groups,dc=example,dc=com" scope=baseObject filter="(objectClass=*)" attrs="*"
+[22/Jul/2016:11:30:35 +0200] SEARCH RES conn=0 op=18 msgID=19 result=0 nentries=1 etime=0
+[22/Jul/2016:11:30:37 +0200] SEARCH REQ conn=0 op=19 msgID=20 base="ou=People,dc=example,dc=com" scope=singleLevel filter="(objectClass=*)" attrs="hasSubordinates,objectClass"
+[22/Jul/2016:11:30:37 +0200] SEARCH RES conn=0 op=19 msgID=20 result=0 nentries=3 etime=2
+[22/Jul/2016:11:30:37 +0200] SEARCH REQ conn=0 op=20 msgID=21 base="uid=hbarbossa,ou=People,dc=example,dc=com" scope=baseObject filter="(objectClass=*)" attrs="*"
+[22/Jul/2016:11:30:37 +0200] SEARCH RES conn=0 op=20 msgID=21 result=0 nentries=1 etime=1
+[22/Jul/2016:11:30:39 +0200] SEARCH REQ conn=0 op=21 msgID=22 base="ou=Groups,dc=example,dc=com" scope=singleLevel filter="(objectClass=*)" attrs="hasSubordinates,objectClass"
+[22/Jul/2016:11:30:39 +0200] SEARCH RES conn=0 op=21 msgID=22 result=0 nentries=1 etime=1
+[22/Jul/2016:11:30:40 +0200] SEARCH REQ conn=0 op=22 msgID=23 base="cn=Pirates,ou=Groups,dc=example,dc=com" scope=baseObject filter="(objectClass=*)" attrs="*"
+[22/Jul/2016:11:30:40 +0200] SEARCH RES conn=0 op=22 msgID=23 result=0 nentries=1 etime=1
+[22/Jul/2016:11:30:51 +0200] SEARCH REQ conn=0 op=23 msgID=24 base="ou=Groups,dc=example,dc=com" scope=baseObject filter="(objectClass=*)" attrs="*,+"
+[22/Jul/2016:11:30:51 +0200] SEARCH RES conn=0 op=23 msgID=24 result=0 nentries=1 etime=1
+[22/Jul/2016:11:31:00 +0200] MODIFY REQ conn=0 op=24 msgID=25 dn="ou=Groups,dc=example,dc=com"
+[22/Jul/2016:11:31:00 +0200] MODIFY RES conn=0 op=24 msgID=25 result=0 etime=7
+[22/Jul/2016:11:31:00 +0200] SEARCH REQ conn=0 op=25 msgID=26 base="ou=Groups,dc=example,dc=com" scope=baseObject filter="(objectClass=*)" attrs="*,+"
+[22/Jul/2016:11:31:00 +0200] SEARCH RES conn=0 op=25 msgID=26 result=0 nentries=1 etime=2
+[22/Jul/2016:11:31:00 +0200] MODIFY REQ conn=-1 op=65 msgID=66 dn="dc=example,dc=com" type=synchronization
+[22/Jul/2016:11:31:00 +0200] MODIFY RES conn=-1 op=65 msgID=66 result=0 etime=1
+[22/Jul/2016:11:31:02 +0200] SEARCH REQ conn=0 op=26 msgID=27 base="ou=People,dc=example,dc=com" scope=baseObject filter="(objectClass=*)" attrs="*"
+[22/Jul/2016:11:31:02 +0200] SEARCH RES conn=0 op=26 msgID=27 result=0 nentries=1 etime=0
+[22/Jul/2016:11:31:06 +0200] SEARCH REQ conn=0 op=27 msgID=28 base="ou=People,dc=example,dc=com" scope=baseObject filter="(objectClass=*)" attrs="*,+"
+[22/Jul/2016:11:31:06 +0200] SEARCH RES conn=0 op=27 msgID=28 result=0 nentries=1 etime=1
+[22/Jul/2016:11:31:17 +0200] MODIFY REQ conn=0 op=28 msgID=29 dn="ou=People,dc=example,dc=com"
+[22/Jul/2016:11:31:17 +0200] MODIFY RES conn=0 op=28 msgID=29 result=0 etime=2
+[22/Jul/2016:11:31:17 +0200] SEARCH REQ conn=0 op=29 msgID=30 base="ou=People,dc=example,dc=com" scope=baseObject filter="(objectClass=*)" attrs="*,+"
+[22/Jul/2016:11:31:17 +0200] SEARCH RES conn=0 op=29 msgID=30 result=0 nentries=1 etime=1
+[22/Jul/2016:11:31:17 +0200] MODIFY REQ conn=-1 op=66 msgID=67 dn="dc=example,dc=com" type=synchronization
+[22/Jul/2016:11:31:17 +0200] MODIFY RES conn=-1 op=66 msgID=67 result=0 etime=0
+[22/Jul/2016:11:31:23 +0200] DISCONNECT conn=0 reason="Client Disconnect"

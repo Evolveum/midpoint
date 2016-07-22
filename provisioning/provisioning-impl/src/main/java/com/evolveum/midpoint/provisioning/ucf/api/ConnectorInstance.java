@@ -267,7 +267,7 @@ public interface ConnectorInstance {
 	
 	void deleteObject(ObjectClassComplexTypeDefinition objectClass, Collection<Operation> additionalOperations, Collection<? extends ResourceAttribute<?>> identifiers, StateReporter reporter,
 							 OperationResult parentResult)
-					throws ObjectNotFoundException, CommunicationException, GenericFrameworkException;
+					throws ObjectNotFoundException, CommunicationException, GenericFrameworkException, SchemaException;
 	
 	Object executeScript(ExecuteProvisioningScriptOperation scriptOperation, StateReporter reporter, OperationResult parentResult) throws CommunicationException, GenericFrameworkException;
 	

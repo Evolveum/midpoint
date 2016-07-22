@@ -88,6 +88,7 @@ import com.evolveum.midpoint.schema.processor.ResourceObjectIdentification;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.processor.SearchHierarchyConstraints;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
@@ -143,6 +144,9 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationSt
  */
 @Component
 public class ResourceObjectConverter {
+	
+	private static final String DOT_CLASS = ResourceObjectConverter.class.getName() + ".";
+	public static final String OPERATION_MODIFY_ENTITLEMENT = DOT_CLASS + "modifyEntitlement";
 	
 	@Autowired(required=true)
 	private EntitlementConverter entitlementConverter;
@@ -359,7 +363,8 @@ public class ResourceObjectConverter {
 		
 		LOGGER.trace("Added resource object {}", shadow);
 
-		parentResult.recordSuccess();
+		computeResultStatus(parentResult);
+		
 		return shadow;
 	}
 
@@ -410,8 +415,8 @@ public class ResourceObjectConverter {
 
 			connector.deleteObject(ctx.getObjectClassDefinition(), additionalOperations, identifiers, ctx, parentResult);
 
-			LOGGER.debug("PROVISIONING DELETE successful");
-			parentResult.recordSuccess();
+			computeResultStatus(parentResult);
+			LOGGER.debug("PROVISIONING DELETE: {}", parentResult.getStatus());
 
 		} catch (ObjectNotFoundException ex) {
 			parentResult.recordFatalError("Can't delete object " + shadow
@@ -514,7 +519,7 @@ public class ResourceObjectConverter {
 					"Unable to modify object in the resource. Probably it has not been created yet because of previous unavailability of the resource.");
 		}
 		
-		if (hasVolatilityTriggerModification || ResourceTypeUtil.isAvoidDuplicateValues(ctx.getResource()) || isRename(operations)) {
+		if (hasVolatilityTriggerModification || ResourceTypeUtil.isAvoidDuplicateValues(ctx.getResource()) || isRename(ctx, operations)) {
 			// We need to filter out the deltas that add duplicate values or remove values that are not there
 			LOGGER.trace("Pre-reading resource shadow");
 			preReadShadow = preReadShadow(ctx, identifiers, operations, true, parentResult);  // yes, we need associations here
@@ -593,7 +598,8 @@ public class ResourceObjectConverter {
         
         LOGGER.trace("Modified resource object {}", repoShadow);
         
-		parentResult.recordSuccess();
+        computeResultStatus(parentResult);
+        
 		return sideEffectDeltas;
 	}
 	
@@ -611,7 +617,9 @@ public class ResourceObjectConverter {
 
 	private Collection<PropertyModificationOperation> executeModify(ProvisioningContext ctx, 
 			PrismObject<ShadowType> currentShadow, Collection<? extends ResourceAttribute<?>> identifiers, 
-					Collection<Operation> operations, OperationResult parentResult) throws ObjectNotFoundException, CommunicationException, SchemaException, SecurityViolationException, ConfigurationException, ObjectAlreadyExistsException {
+			Collection<Operation> operations, OperationResult parentResult) 
+			throws ObjectNotFoundException, CommunicationException, SchemaException, SecurityViolationException, ConfigurationException, ObjectAlreadyExistsException {
+		
 		Collection<PropertyModificationOperation> sideEffectChanges = new HashSet<>();
 
 		RefinedObjectClassDefinition objectClassDefinition = ctx.getObjectClassDefinition();
@@ -620,6 +628,14 @@ public class ResourceObjectConverter {
 			return new ArrayList<>();
 		} else {
 			LOGGER.trace("Resource object modification operations: {}", operations);
+		}
+		
+		if (!ShadowUtil.hasPrimaryIdentifier(identifiers, objectClassDefinition)) {
+			Collection<? extends ResourceAttribute<?>> primaryIdentifiers = resourceObjectReferenceResolver.resolvePrimaryIdentifier(ctx, identifiers, "modification of resource object "+identifiers, parentResult);
+			if (primaryIdentifiers == null) {
+				throw new ObjectNotFoundException("Cannot find repository shadow for identifiers "+identifiers);
+			}
+			identifiers = primaryIdentifiers;
 		}
 		
 		// Invoke ICF
@@ -667,7 +683,7 @@ public class ResourceObjectConverter {
 				LOGGER.debug(
 						"PROVISIONING MODIFY operation on {}\n MODIFY object, object class {}, identified by:\n{}\n changes:\n{}",
 						new Object[] { ctx.getResource(), objectClassDefinition.getHumanReadableName(),
-								SchemaDebugUtil.debugDump(identifiers,1), SchemaDebugUtil.debugDump(operations,1) });
+								SchemaDebugUtil.debugDump(identifiers, 1), SchemaDebugUtil.debugDump(operations, 1) });
 			}
 			
 			if (!ResourceTypeUtil.isUpdateCapabilityEnabled(ctx.getResource())){
@@ -927,17 +943,22 @@ public class ResourceObjectConverter {
 		return retval;
 	}
 
-	private boolean isRename(Collection<Operation> modifications){
+	private boolean isRename(ProvisioningContext ctx, Collection<Operation> modifications) throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException {
 		for (Operation op : modifications){
-			if (!(op instanceof PropertyModificationOperation)){
+			if (!(op instanceof PropertyModificationOperation)) {
 				continue;
 			}
 			
-			if (((PropertyModificationOperation)op).getPropertyDelta().getPath().equivalent(new ItemPath(ShadowType.F_ATTRIBUTES, ConnectorFactoryIcfImpl.ICFS_NAME))){
+			if (isIdentifierDelta(ctx, ((PropertyModificationOperation)op).getPropertyDelta())) {
 				return true;
 			}
 		}
 		return false;
+	}
+
+	private <T> boolean isIdentifierDelta(ProvisioningContext ctx, PropertyDelta<T> propertyDelta) throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException {
+		return ctx.getObjectClassDefinition().isPrimaryIdentifier(propertyDelta.getElementName()) ||
+				ctx.getObjectClassDefinition().isSecondaryIdentifier(propertyDelta.getElementName());
 	}
 
 	private PrismObject<ShadowType> executeEntitlementChangesAdd(ProvisioningContext ctx, PrismObject<ShadowType> shadow, OperationProvisioningScriptsType scripts,
@@ -959,6 +980,7 @@ public class ResourceObjectConverter {
 		Map<ResourceObjectDiscriminator, ResourceObjectOperations> roMap = new HashMap<>();
 		
 		for (ItemDelta subjectDelta : subjectDeltas) {
+			
 			if (new ItemPath(ShadowType.F_ASSOCIATION).equivalent(subjectDelta.getPath())) {
 				ContainerDelta<ShadowAssociationType> containerDelta = (ContainerDelta<ShadowAssociationType>)subjectDelta;				
 				subjectShadowAfter = entitlementConverter.collectEntitlementsAsObjectOperation(ctx, roMap, containerDelta,
@@ -975,7 +997,7 @@ public class ResourceObjectConverter {
 
 				// Delete + re-add association values that should ensure correct functioning in case of rename
 				// This has to be done only for associations that require explicit referential integrity.
-				// For these that do not, it is harmful (), so it must be skipped.
+				// For these that do not, it is harmful, so it must be skipped.
 				for (PrismContainerValue<ShadowAssociationType> associationValue : associationContainer.getValues()) {
 					QName associationName = associationValue.asContainerable().getName();
 					if (associationName == null) {
@@ -1043,14 +1065,39 @@ public class ResourceObjectConverter {
 	
 	private void executeEntitlements(ProvisioningContext subjectCtx,
 			Map<ResourceObjectDiscriminator, ResourceObjectOperations> roMap, OperationResult parentResult) throws ObjectNotFoundException, CommunicationException, SchemaException, SecurityViolationException, ConfigurationException, ObjectAlreadyExistsException {
+		
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace("Excuting entitlement chanes, roMap:\n{}", DebugUtil.debugDump(roMap, 1));
+		}
+		
 		for (Entry<ResourceObjectDiscriminator,ResourceObjectOperations> entry: roMap.entrySet()) {
 			ResourceObjectDiscriminator disc = entry.getKey();
 			ProvisioningContext entitlementCtx = entry.getValue().getResourceObjectContext();
 			Collection<? extends ResourceAttribute<?>> identifiers = disc.getIdentifiers();
 			Collection<Operation> operations = entry.getValue().getOperations();
 			
-			// TODO: better handling of result, partial failures, etc.
-			executeModify(entitlementCtx, entry.getValue().getCurrentShadow(), identifiers, operations, parentResult);
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("Excuting entitlement change identifiers={}:", identifiers, DebugUtil.debugDump(operations, 1));
+			}
+			
+			OperationResult result = parentResult.createMinorSubresult(OPERATION_MODIFY_ENTITLEMENT);
+			try {
+				
+				executeModify(entitlementCtx, entry.getValue().getCurrentShadow(), identifiers, operations, result);
+				
+				result.recordSuccess();
+				
+			} catch (ObjectNotFoundException | CommunicationException | SchemaException | SecurityViolationException | ConfigurationException | ObjectAlreadyExistsException e) {
+				// We need to handle this specially. 
+				// E.g. ObjectNotFoundException means that the entitlement object was not found,
+				// not that the subject was not found. It we throw ObjectNotFoundException here it may be
+				// interpreted by the consistency code to mean that the subject is missing. Which is not
+				// true. And that may cause really strange reactions. In fact we do not want to throw the
+				// exception at all, because the primary operation was obviously successful. So just 
+				// properly record the operation in the result.
+				LOGGER.error("Error while modifying entitlement {} of {}: {}", entitlementCtx, subjectCtx, e.getMessage(), e);
+				result.recordFatalError(e);
+			}
 			
 		}
 	}
@@ -1144,9 +1191,10 @@ public class ResourceObjectConverter {
 			}
 		}
 
-		LOGGER.trace("Searching resource objects done");
+		computeResultStatus(parentResult);
+
+		LOGGER.trace("Searching resource objects done: {}", parentResult.getStatus());
 		
-		parentResult.recordSuccess();
 		return metadata;
 	}
 
@@ -1173,7 +1221,9 @@ public class ResourceObjectConverter {
 		}
 
 		LOGGER.trace("Got last token: {}", SchemaDebugUtil.prettyPrint(lastToken));
-		parentResult.recordSuccess();
+		
+		computeResultStatus(parentResult);
+		
 		return lastToken;
 	}
 
@@ -1609,7 +1659,8 @@ public class ResourceObjectConverter {
 			LOGGER.trace("Processed change\n:{}", change.debugDump());
 		}
 
-		parentResult.recordSuccess();
+		computeResultStatus(parentResult);
+		
 		LOGGER.trace("END fetch changes ({} changes)", changes == null ? "null" : changes.size());
 		return changes;
 	}
@@ -2165,5 +2216,17 @@ public class ResourceObjectConverter {
 		}
 	}
 	
+	private void computeResultStatus(OperationResult parentResult) {
+		OperationResultStatus status = OperationResultStatus.SUCCESS;
+		for (OperationResult subresult: parentResult.getSubresults()) {
+			if (OPERATION_MODIFY_ENTITLEMENT.equals(subresult.getOperation()) && subresult.isError()) {
+				status = OperationResultStatus.PARTIAL_ERROR;
+			} else if (subresult.isError()) {
+				status = OperationResultStatus.FATAL_ERROR;
+			}
+		}
+		parentResult.setStatus(status);
+	}
+
 	
 }

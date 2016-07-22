@@ -1011,7 +1011,7 @@ public abstract class ShadowCache {
 					CommunicationException, SecurityViolationException, GenericConnectorException {
 
 		PrismObject<ShadowType> repoShadow;
-		PrismObject<ShadowType> conflictingShadow = shadowManager.lookupShadowBySecondaryIdentifiers(ctx,
+		PrismObject<ShadowType> conflictingShadow = shadowManager.lookupConflictingShadowBySecondaryIdentifiers(ctx,
 				resourceShadow, parentResult);
 		if (conflictingShadow != null) {
 			applyAttributesDefinition(ctx, conflictingShadow);

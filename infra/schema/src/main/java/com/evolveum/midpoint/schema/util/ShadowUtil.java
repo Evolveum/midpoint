@@ -16,7 +16,6 @@
 package com.evolveum.midpoint.schema.util;
 
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
@@ -86,6 +85,19 @@ public class ShadowUtil {
 			throw new SchemaException("Too many secondary identifiers in "+shadow+": "+secondaryIdentifiers);
 		}
 		return (ResourceAttribute<String>) secondaryIdentifiers.iterator().next();
+	}
+	
+	public static Collection<ResourceAttribute<?>> getSecondaryIdentifiers(Collection<? extends ResourceAttribute<?>> identifiers, ObjectClassComplexTypeDefinition objectClassDefinition) throws SchemaException {
+		if (identifiers == null) {
+			return null;
+		}
+		Collection<ResourceAttribute<?>> secondaryIdentifiers = new ArrayList<>();
+		for (ResourceAttribute<?> identifier: identifiers) {
+			if (objectClassDefinition.isSecondaryIdentifier(identifier.getElementName())) {
+				secondaryIdentifiers.add(identifier);
+			}
+		}
+		return secondaryIdentifiers;
 	}
 	
 	public static String getSecondaryIdentifierRealValue(PrismObject<? extends ShadowType> shadow) throws SchemaException {
@@ -627,4 +639,28 @@ public class ShadowUtil {
 		return (ShadowType.F_ATTRIBUTES.equals(ItemPath.getFirstName(path)) && 
 				QNameUtil.match(ItemPath.getFirstName(path.rest()), attributeName));
 	}
+
+	public static boolean hasPrimaryIdentifier(Collection<? extends ResourceAttribute<?>> identifiers,
+			ObjectClassComplexTypeDefinition objectClassDefinition) {
+		for (ResourceAttribute identifier: identifiers) {
+			if (objectClassDefinition.isPrimaryIdentifier(identifier.getElementName())) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	public static ResourceAttribute<?> fixAttributePath(ResourceAttribute<?> attribute) throws SchemaException {
+		if (attribute == null) {
+			return null;
+		}
+		if (ShadowType.F_ATTRIBUTES.equals(ItemPath.getFirstName(attribute.getPath()))) {
+			return attribute;
+		}
+		ResourceAttribute<?> fixedAttribute = attribute.clone();
+		ResourceAttributeContainer container = new ResourceAttributeContainer(ShadowType.F_ATTRIBUTES, null, attribute.getPrismContext());
+		container.createNewValue().add(fixedAttribute);
+		return fixedAttribute;
+	}
+
 }

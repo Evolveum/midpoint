@@ -102,6 +102,7 @@ import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.schema.util.SchemaTestConstants;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -167,10 +168,13 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
 
 	protected String account0Oid;
 	protected String accountBarbossaOid;
+	protected String accountBarbossaDn;
 	protected String accountBarbossaEntryId;
 	protected String accountLechuckOid;
 	protected String accountLechuckDn;
 
+	protected String groupEvilShadowOid;
+	
     @Autowired
     protected ReconciliationTaskHandler reconciliationTaskHandler;
     
@@ -1223,6 +1227,145 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
         Entry ldapEntryUndead = getLdapEntry(toGroupDn(GROUP_UNDEAD_CN));
         display("Undead group", ldapEntryUndead);
         
+        assertLdapConnectorInstances(1, 2);
+	}
+	
+	@Test
+    public void test310SeachGroupEvilByCn() throws Exception {
+		final String TEST_NAME = "test310SeachGroupEvilByCn";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        
+        // GIVEN
+        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+		ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(getResourceOid(), getGroupObjectClass(), prismContext);
+		ObjectQueryUtil.filterAnd(query.getFilter(), createAttributeFilter("cn", GROUP_EVIL_CN));
+        
+		rememberConnectorOperationCount();
+		rememberConnectorSimulatedPagingSearchCount();
+		
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+		SearchResultList<PrismObject<ShadowType>> shadows = modelService.searchObjects(ShadowType.class, query, null, task, result);
+        
+        assertEquals("Unexpected search result: "+shadows, 1, shadows.size());
+        
+        PrismObject<ShadowType> shadow = shadows.get(0);
+        assertGroupShadow(shadow, toGroupDn(GROUP_EVIL_CN));
+        groupEvilShadowOid = shadow.getOid();
+        
+        assertConnectorOperationIncrement(1, 2);
+        assertConnectorSimulatedPagingSearchIncrement(0);
+        
+        SearchResultMetadata metadata = shadows.getMetadata();
+        if (metadata != null) {
+        	assertFalse(metadata.isPartialResults());
+        }
+        
+        assertLdapConnectorInstances(1);
+	}
+	
+	/**
+	 *  MID-3209: Rename does not change group membership for associations, when resource does not implement its own referential integrity
+	 */
+	@Test
+    public void test312AssignRoleEvilToBarbossa() throws Exception {
+		final String TEST_NAME = "test312AssignRoleEvilToBarbossa";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        assignRole(USER_BARBOSSA_OID, ROLE_EVIL_OID, task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        Entry entry = assertLdapAccount(USER_CPTBARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME);
+        display("Account LDAP entry", entry);
+        
+        PrismObject<UserType> user = getUser(USER_BARBOSSA_OID);
+        String shadowOid = getSingleLinkOid(user);
+        PrismObject<ShadowType> shadow = getShadowModel(shadowOid);
+        display("Shadow (model)", shadow);
+        accountBarbossaOid = shadow.getOid();
+        accountBarbossaDn = entry.getDn().toString();
+        assertNotNull(accountBarbossaDn);
+        
+        Collection<ResourceAttribute<?>> identifiers = ShadowUtil.getPrimaryIdentifiers(shadow);
+        accountBarbossaEntryId = (String) identifiers.iterator().next().getRealValue();
+        assertNotNull("No identifier in "+shadow, accountBarbossaEntryId);
+
+        Entry ldapEntryEvil = getLdapEntry(toGroupDn(GROUP_EVIL_CN));
+        display("Evil group", ldapEntryEvil);
+        Entry ldapEntryUndead = getLdapEntry(toGroupDn(GROUP_UNDEAD_CN));
+        display("Undead group", ldapEntryUndead);
+        
+        assertLdapGroupMember(entry, GROUP_EVIL_CN);
+        assertLdapNoGroupMember(entry, GROUP_UNDEAD_CN);
+
+        IntegrationTestTools.assertAssociation(shadow, getAssociationGroupName(), groupEvilShadowOid);
+        
+        assertLdapConnectorInstances(1, 2);
+	}
+
+	/**
+	 *  MID-3209: Rename does not change group membership for associations, when resource does not implement its own referential integrity
+	 */
+	@Test
+    public void test314ModifyUserBarbossaRenameBack() throws Exception {
+		final String TEST_NAME = "test314ModifyUserBarbossaRenameBack";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        PrismObject<UserType> userBefore = getUser(USER_BARBOSSA_OID);
+        display("user defore", userBefore);
+        assertNotNull(userBefore);
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        modifyUserReplace(USER_BARBOSSA_OID, UserType.F_NAME, task, result, PrismTestUtil.createPolyString(USER_BARBOSSA_USERNAME));
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+
+        Entry entry = assertLdapAccount(USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME);
+        display("LDAP entry after", entry);
+        assertEquals("Wrong DN", toAccountDn(USER_BARBOSSA_USERNAME), entry.getDn().toString());
+        
+        PrismObject<UserType> user = getUser(USER_BARBOSSA_OID);
+        String shadowOid = getSingleLinkOid(user);
+        assertEquals("Shadows have moved", accountBarbossaOid, shadowOid);
+        
+        PrismObject<ShadowType> repoShadow = repositoryService.getObject(ShadowType.class, shadowOid, null, result);
+        display("Repo shadow after rename", repoShadow);
+        
+        String repoPrimaryIdentifier = ShadowUtil.getAttributeValue(repoShadow, getPrimaryIdentifierAttributeQName());
+        if ("dn".equals(getPrimaryIdentifierAttributeName())) {
+        	assertEquals("Entry DN (primary identifier) was not updated in the shadow", toAccountDn(USER_BARBOSSA_USERNAME).toLowerCase(), repoPrimaryIdentifier);
+        } else {
+        	assertEquals("Entry ID changed after rename", accountBarbossaEntryId, repoPrimaryIdentifier);
+        }
+                
+        Entry ldapEntryEvil = getLdapEntry(toGroupDn(GROUP_EVIL_CN));
+        display("Evil group", ldapEntryEvil);
+        Entry ldapEntryUndead = getLdapEntry(toGroupDn(GROUP_UNDEAD_CN));
+        display("Undead group", ldapEntryUndead);
+        
+        assertLdapGroupMember(entry, GROUP_EVIL_CN);
+        assertLdapNoGroupMember(accountBarbossaDn, GROUP_EVIL_CN);
+        assertLdapNoGroupMember(entry, GROUP_UNDEAD_CN);
+
         assertLdapConnectorInstances(1, 2);
 	}
 	

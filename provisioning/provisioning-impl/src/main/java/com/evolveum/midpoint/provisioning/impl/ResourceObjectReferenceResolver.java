@@ -15,7 +15,9 @@
  */
 package com.evolveum.midpoint.provisioning.impl;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Set;
 
 import javax.xml.namespace.QName;
 
@@ -23,9 +25,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
+import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -42,6 +48,7 @@ import com.evolveum.midpoint.schema.processor.ResourceObjectIdentification;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
+import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -73,6 +80,9 @@ public class ResourceObjectReferenceResolver {
 	@Autowired(required = true)
 	@Qualifier("shadowCacheProvisioner")
 	private ShadowCache shadowCache;
+	
+	@Autowired(required = true)
+	private ShadowManager shadowManager;
 	
 	PrismObject<ShadowType> resolve(ProvisioningContext ctx, ResourceObjectReferenceType resourceObjectReference, 
 			QName objectClass, final String desc, OperationResult result) 
@@ -130,6 +140,40 @@ public class ResourceObjectReferenceResolver {
 		ShadowType shadowType = shadowHolder.getValue();
 		return shadowType==null?null:shadowType.asPrismObject();
 	}
+	
+	/**
+	 * Resolve primary identifier from a collection of identifiers that may contain only secondary identifiers. 
+	 */
+	Collection<? extends ResourceAttribute<?>> resolvePrimaryIdentifier(ProvisioningContext ctx,
+			Collection<? extends ResourceAttribute<?>> identifiers, final String desc, OperationResult result) 
+					throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, 
+					SecurityViolationException {
+		if (identifiers == null) {
+			return null;
+		}
+		Collection<ResourceAttribute<?>> secondaryIdentifiers = ShadowUtil.getSecondaryIdentifiers(identifiers, ctx.getObjectClassDefinition());
+		PrismObject<ShadowType> repoShadow = shadowManager.lookupShadowBySecondaryIdentifiers(ctx, secondaryIdentifiers, result);
+		if (repoShadow == null) {
+			return null;
+		}
+		PrismContainer<Containerable> attributesContainer = repoShadow.findContainer(ShadowType.F_ATTRIBUTES);
+		if (attributesContainer == null) {
+			return null;
+		}
+		RefinedObjectClassDefinition ocDef = ctx.getObjectClassDefinition();
+		Collection primaryIdentifiers = new ArrayList<>();
+		for (PrismProperty<?> property: attributesContainer.getValue().getProperties()) {
+			if (ocDef.isPrimaryIdentifier(property.getElementName())) {
+				RefinedAttributeDefinition<?> attrDef = ocDef.findAttributeDefinition(property.getElementName());
+				ResourceAttribute<?> primaryIdentifier = new ResourceAttribute<>(property.getElementName(), 
+						attrDef, prismContext);
+				primaryIdentifier.setRealValue(property.getRealValue());
+				primaryIdentifiers.add(primaryIdentifier);
+			}
+		}
+		return primaryIdentifiers;
+	}
+	
 	
 	public PrismObject<ShadowType> fetchResourceObject(ProvisioningContext ctx,
 			Collection<? extends ResourceAttribute<?>> identifiers, 

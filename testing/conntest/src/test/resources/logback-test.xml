@@ -40,7 +40,7 @@
 	<logger name="com.evolveum.midpoint.common.expression" level="TRACE" />
 	<logger name="com.evolveum.midpoint.common.expression.MidPointFunctions" level="TRACE" />
 	
-	<!--<logger name="com.evolveum.midpoint.provisioning" level="TRACE" />z
+	<logger name="com.evolveum.midpoint.provisioning" level="TRACE" />
 	<!--<logger name="com.evolveum.midpoint.common" level="TRACE" />-->
 	<!-- <logger name="com.evolveum.midpoint.repo" level="TRACE" />  -->
 	

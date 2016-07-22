@@ -48,17 +48,20 @@ objectClass: ds-cfg-dsee-compat-access-control-handler
 objectClass: top
 ds-cfg-enabled: true
 ds-cfg-java-class: org.opends.server.authorization.dseecompat.AciHandler
-cn: Access Control Handler
 ds-cfg-global-aci: (extop="1.3.6.1.4.1.26027.1.6.1 || 1.3.6.1.4.1.26027.1.6.3 || 1.3.6.1.4.1.4203.1.11.1 || 1.3.6.1.4.1.1466.20037 || 1.3.6.1.4.1.4203.1.11.3") (version 3.0; acl "Anonymous extended operation access"; allow(read) userdn="ldap:///anyone";)
-ds-cfg-global-aci: (targetcontrol="2.16.840.1.113730.3.4.2 || 2.16.840.1.113730.3.4.17 || 2.16.840.1.113730.3.4.19 || 1.3.6.1.4.1.4203.1.10.2 || 1.3.6.1.4.1.42.2.27.8.5.1 || 2.16.840.1.113730.3.4.16 || 1.2.840.113556.1.4.1413") (version 3.0; acl "Anonymous control access"; allow(read) userdn="ldap:///anyone";)
-ds-cfg-global-aci: (targetcontrol="1.3.6.1.1.12 || 1.3.6.1.1.13.1 || 1.3.6.1.1.13.2 || 1.2.840.113556.1.4.319 || 1.2.826.0.1.3344810.2.3 || 2.16.840.1.113730.3.4.18 || 2.16.840.1.113730.3.4.9 || 1.2.840.113556.1.4.473 || 1.3.6.1.4.1.42.2.27.9.5.9") (version 3.0; acl "Authenticated users control access"; allow(read) userdn="ldap:///all";)
+ds-cfg-global-aci: (target="ldap:///")(targetattr="changeLog || firstChangeNumber || lastChangeNumber")(version 3.0; acl "IDM Access to ChangeLog"; allow (read,search,compare) userdn="ldap:///uid=idm,ou=Administrators,dc=example,dc=com";)
+ds-cfg-global-aci: (target="ldap:///")(targetscope="base")(targetattr="objectClass||namingContexts||supportedAuthPasswordSchemes||supportedControl||supportedExtension||supportedFeatures||supportedLDAPVersion||supportedSASLMechanisms||supportedTLSCiphers||supportedTLSProtocols||vendorName||vendorVersion")(version 3.0; acl "User-Visible Root DSE Operational Attributes"; allow (read,search,compare) userdn="ldap:///anyone";)
+ds-cfg-global-aci: (target="ldap:///cn=schema")(targetscope="base")(targetattr="objectClass||attributeTypes||dITContentRules||dITStructureRules||ldapSyntaxes||matchingRules||matchingRuleUse||nameForms||objectClasses")(version 3.0; acl "User-Visible Schema Operational Attributes"; allow (read,search,compare) userdn="ldap:///anyone";)
+ds-cfg-global-aci: (target="ldap:///dc=replicationchanges")(targetattr="*")(version 3.0; acl "Replication backend access"; deny (all) userdn="ldap:///anyone";)
 ds-cfg-global-aci: (targetattr!="userPassword||authPassword||changes||changeNumber||changeType||changeTime||targetDN||newRDN||newSuperior||deleteOldRDN")(version 3.0; acl "Anonymous read access"; allow (read,search,compare) userdn="ldap:///anyone";)
 ds-cfg-global-aci: (targetattr="audio||authPassword||description||displayName||givenName||homePhone||homePostalAddress||initials||jpegPhoto||labeledURI||mobile||pager||postalAddress||postalCode||preferredLanguage||telephoneNumber||userPassword")(version 3.0; acl "Self entry modification"; allow (write) userdn="ldap:///self";)
-ds-cfg-global-aci: (targetattr="userPassword||authPassword")(version 3.0; acl "Self entry read"; allow (read,search,compare) userdn="ldap:///self";)
-ds-cfg-global-aci: (target="ldap:///cn=schema")(targetscope="base")(targetattr="objectClass||attributeTypes||dITContentRules||dITStructureRules||ldapSyntaxes||matchingRules||matchingRuleUse||nameForms||objectClasses")(version 3.0; acl "User-Visible Schema Operational Attributes"; allow (read,search,compare) userdn="ldap:///anyone";)
-ds-cfg-global-aci: (target="ldap:///")(targetscope="base")(targetattr="objectClass||namingContexts||supportedAuthPasswordSchemes||supportedControl||supportedExtension||supportedFeatures||supportedLDAPVersion||supportedSASLMechanisms||supportedTLSCiphers||supportedTLSProtocols||vendorName||vendorVersion")(version 3.0; acl "User-Visible Root DSE Operational Attributes"; allow (read,search,compare) userdn="ldap:///anyone";)
 ds-cfg-global-aci: (targetattr="createTimestamp||creatorsName||modifiersName||modifyTimestamp||entryDN||entryUUID||subschemaSubentry||etag||governingStructureRule||structuralObjectClass||hasSubordinates||numSubordinates")(version 3.0; acl "User-Visible Operational Attributes"; allow (read,search,compare) userdn="ldap:///anyone";)
-ds-cfg-global-aci: (target="ldap:///dc=replicationchanges")(targetattr="*")(version 3.0; acl "Replication backend access"; deny (all) userdn="ldap:///anyone";)
+ds-cfg-global-aci: (targetattr="userPassword||authPassword")(version 3.0; acl "Self entry read"; allow (read,search,compare) userdn="ldap:///self";)
+ds-cfg-global-aci: (targetcontrol="1.3.6.1.1.12 || 1.3.6.1.1.13.1 || 1.3.6.1.1.13.2 || 1.2.840.113556.1.4.319 || 1.2.826.0.1.3344810.2.3 || 2.16.840.1.113730.3.4.18 || 2.16.840.1.113730.3.4.9 || 1.2.840.113556.1.4.473 || 1.3.6.1.4.1.42.2.27.9.5.9") (version 3.0; acl "Authenticated users control access"; allow(read) userdn="ldap:///all";)
+ds-cfg-global-aci: (targetcontrol="2.16.840.1.113730.3.4.2 || 2.16.840.1.113730.3.4.17 || 2.16.840.1.113730.3.4.19 || 1.3.6.1.4.1.4203.1.10.2 || 1.3.6.1.4.1.42.2.27.8.5.1 || 2.16.840.1.113730.3.4.16 || 1.2.840.113556.1.4.1413") (version 3.0; acl "Anonymous control access"; allow(read) userdn="ldap:///anyone";)
+cn: Access Control Handler
+modifyTimestamp: 20150306181728Z
+modifiersName: cn=Directory Manager,cn=Root DNs,cn=config
 
 dn: cn=Account Status Notification Handlers,cn=config
 objectClass: top
@@ -251,25 +254,27 @@ ds-cfg-disk-low-threshold: 200 megabytes
 ds-cfg-db-directory: db
 ds-cfg-base-dn: dc=example,dc=com
 ds-cfg-backend-id: userRoot
-ds-cfg-enabled: true
+ds-cfg-enabled: TRUE
 ds-cfg-index-entry-limit: 4000
 ds-cfg-java-class: org.opends.server.backends.jeb.BackendImpl
 ds-cfg-writability-mode: enabled
-ds-cfg-db-cache-percent: 50
+ds-cfg-db-cache-percent: 1
 ds-cfg-db-evictor-lru-only: false
 ds-cfg-entries-compressed: false
-ds-cfg-db-cache-size: 0 megabytes
+ds-cfg-db-cache-size: 5 megabytes
 ds-cfg-db-directory-permissions: 700
 ds-cfg-db-cleaner-min-utilization: 50
 ds-cfg-db-logging-file-handler-on: true
 ds-cfg-db-log-file-max: 100 megabytes
 ds-cfg-db-evictor-nodes-per-scan: 10
-ds-cfg-db-evictor-max-threads: 10
+ds-cfg-db-evictor-max-threads: 2
 ds-cfg-db-log-filecache-size: 100
 ds-cfg-db-evictor-core-threads: 1
-ds-cfg-db-run-cleaner: true
+ds-cfg-db-run-cleaner: false
 ds-cfg-db-txn-no-sync: false
 ds-cfg-db-txn-write-no-sync: true
+modifyTimestamp: 20150306181507Z
+modifiersName: cn=Internal Client,cn=Root DNs,cn=config
 
 dn: cn=Index,ds-cfg-backend-id=userRoot,cn=Backends,cn=config
 objectClass: top
@@ -1853,7 +1858,7 @@ dn: cn=UID Unique Attribute,cn=Plugins,cn=config
 objectClass: ds-cfg-unique-attribute-plugin
 objectClass: ds-cfg-plugin
 objectClass: top
-ds-cfg-enabled: false
+ds-cfg-enabled: true
 ds-cfg-java-class: org.opends.server.plugins.UniqueAttributePlugin
 ds-cfg-plugin-type: preOperationAdd
 ds-cfg-plugin-type: preOperationModify

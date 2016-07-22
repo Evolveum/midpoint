@@ -245,43 +245,13 @@ public class ShadowManager {
 		return shadow;
 	}
 
-	public PrismObject<ShadowType> lookupShadowBySecondaryIdentifiers( 
-			ProvisioningContext ctx, PrismObject<ShadowType> resourceShadow, OperationResult parentResult) 
+	public PrismObject<ShadowType> lookupConflictingShadowBySecondaryIdentifiers( 
+			ProvisioningContext ctx, PrismObject<ShadowType> resourceShadow, OperationResult parentResult)
 					throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException {
-
+		
 		Collection<ResourceAttribute<?>> secondaryIdentifiers = ShadowUtil.getSecondaryIdentifiers(resourceShadow);
-//		ResourceAttribute<?> secondaryIdentifier = null;
-		if (secondaryIdentifiers.size() < 1){
-			LOGGER.trace("Shadow does not contain secondary identifier. Skipping lookup shadows according to name.");
-			return null;
-		}
+		List<PrismObject<ShadowType>> results = lookupShadowsBySecondaryIdentifiers(ctx, secondaryIdentifiers, parentResult);
 		
-		List<EqualFilter> secondaryEquals = new ArrayList<>();
-		for (ResourceAttribute<?> secondaryIdentifier : secondaryIdentifiers){
-			secondaryEquals.add(createAttributeEqualFilter(ctx, secondaryIdentifier));
-		}
-		
-		ObjectFilter secondaryIdentifierFilter = null;
-		if (secondaryEquals.size() > 1){
-			secondaryIdentifierFilter = OrFilter.createOr((List) secondaryEquals);
-		} else {
-			secondaryIdentifierFilter = secondaryEquals.iterator().next();
-		}
-				
-		AndFilter filter = AndFilter.createAnd(
-				RefFilter.createReferenceEqual(ShadowType.F_RESOURCE_REF, ShadowType.class, ctx.getResource()), secondaryIdentifierFilter);
-		ObjectQuery query = ObjectQuery.createObjectQuery(filter);
-		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("Searching for shadow using filter on secondary identifier:\n{}",
-					query.debugDump());
-		}
-
-		// TODO: check for errors
-		List<PrismObject<ShadowType>> results = repositoryService.searchObjects(ShadowType.class, query, null, parentResult);
-		MiscSchemaUtil.reduceSearchResult(results);
-
-		LOGGER.trace("lookupShadow found {} objects", results.size());
-
 		if (results.size() == 0) {
 			return null;
 		}
@@ -309,19 +279,79 @@ public class ShadowManager {
 			for (PrismObject<ShadowType> result : conflictingShadows) {
 				LOGGER.trace("Search result:\n{}", result.debugDump());
 			}
-			LOGGER.error("More than one shadow found for " + resourceShadow);
+			LOGGER.error("More than one shadow found for " + secondaryIdentifiers);
 			if (LOGGER.isDebugEnabled()) {
 				for (PrismObject<ShadowType> conflictingShadow: conflictingShadows) {
 					LOGGER.debug("Conflicting shadow:\n{}", conflictingShadow.debugDump());
 				}
 			}
 			// TODO: Better error handling later
-			throw new IllegalStateException("More than one shadows found for " + resourceShadow);
+			throw new IllegalStateException("More than one shadows found for " + secondaryIdentifiers);
 		}
 
 		PrismObject<ShadowType> shadow = conflictingShadows.get(0);
 		checkConsistency(shadow);
 		return shadow;
+
+	}
+	
+	
+	public PrismObject<ShadowType> lookupShadowBySecondaryIdentifiers( 
+			ProvisioningContext ctx, Collection<ResourceAttribute<?>> secondaryIdentifiers, OperationResult parentResult)
+					throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException {
+		List<PrismObject<ShadowType>> shadows = lookupShadowsBySecondaryIdentifiers(ctx, secondaryIdentifiers, parentResult);
+		if (shadows == null || shadows.isEmpty()) {
+			return null;
+		}
+		if (shadows.size() > 1) {
+			LOGGER.error("Too many shadows ({}) for secondary identifiers {}: ", shadows.size(), secondaryIdentifiers, 
+					shadows);
+			throw new ConfigurationException("Too many shadows ("+shadows.size()+") for secondary identifiers "+secondaryIdentifiers);
+		}
+		return shadows.get(0);
+	}
+
+		
+	private List<PrismObject<ShadowType>> lookupShadowsBySecondaryIdentifiers( 
+			ProvisioningContext ctx, Collection<ResourceAttribute<?>> secondaryIdentifiers, OperationResult parentResult)
+					throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException {
+			
+		if (secondaryIdentifiers.size() < 1){
+			LOGGER.trace("Shadow does not contain secondary identifier. Skipping lookup shadows according to name.");
+			return null;
+		}
+		
+		List<EqualFilter> secondaryEquals = new ArrayList<>();
+		for (ResourceAttribute<?> secondaryIdentifier : secondaryIdentifiers) {
+			// There may be identifiers that come from associations and they will have parent set to association/identifiers
+			// For the search to succeed we need all attribute to have "attributes" parent path.
+			secondaryIdentifier = ShadowUtil.fixAttributePath(secondaryIdentifier);
+			secondaryEquals.add(createAttributeEqualFilter(ctx, secondaryIdentifier));
+		}
+		
+		ObjectFilter secondaryIdentifierFilter = null;
+		if (secondaryEquals.size() > 1){
+			secondaryIdentifierFilter = OrFilter.createOr((List) secondaryEquals);
+		} else {
+			secondaryIdentifierFilter = secondaryEquals.iterator().next();
+		}
+				
+		AndFilter filter = AndFilter.createAnd(
+				RefFilter.createReferenceEqual(ShadowType.F_RESOURCE_REF, ShadowType.class, ctx.getResource()), secondaryIdentifierFilter);
+		ObjectQuery query = ObjectQuery.createObjectQuery(filter);
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace("Searching for shadow using filter on secondary identifier:\n{}",
+					query.debugDump());
+		}
+
+		// TODO: check for errors
+		List<PrismObject<ShadowType>> results = repositoryService.searchObjects(ShadowType.class, query, null, parentResult);
+		MiscSchemaUtil.reduceSearchResult(results);
+
+		LOGGER.trace("lookupShadow found {} objects", results.size());
+		
+		return results;
+
 	}
 
 	private void checkConsistency(PrismObject<ShadowType> shadow) {

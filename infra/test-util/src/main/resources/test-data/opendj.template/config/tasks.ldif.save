@@ -22,11 +22,13 @@ dn: ds-task-id=dsreplication-reset-generation-id-1,cn=Scheduled Tasks,cn=Tasks
 objectClass: ds-task-reset-generation-id
 objectClass: ds-task
 objectClass: top
-ds-task-state: RUNNING
-ds-task-class-name: org.opends.server.tasks.SetGenerationIdTask
 ds-task-log-message: [06/Mar/2015:19:15:10 +0100] severity="NOTICE" msgCount=0 msgID=9896349 message="Set Generation ID task dsreplication-reset-generation-id-1 started execution"
+ds-task-log-message: [06/Mar/2015:19:15:10 +0100] severity="NOTICE" msgCount=1 msgID=9896350 message="Set Generation ID task dsreplication-reset-generation-id-1 finished execution"
 ds-task-id: dsreplication-reset-generation-id-1
 ds-task-actual-start-time: 20150306181510Z
+ds-task-completion-time: 20150306181510Z
+ds-task-state: COMPLETED_SUCCESSFULLY
+ds-task-class-name: org.opends.server.tasks.SetGenerationIdTask
 ds-task-reset-generation-id-domain-base-dn: dc=example,dc=com
 creatorsName: cn=Directory Manager,cn=Root DNs,cn=config
 createTimestamp: 20150306181510Z

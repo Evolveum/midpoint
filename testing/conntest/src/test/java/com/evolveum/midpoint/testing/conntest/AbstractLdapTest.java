@@ -332,6 +332,10 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
 		return true;
 	}
 	
+	protected QName getAssociationGroupName() {
+		return new QName(MidPointConstants.NS_RI, "group");
+	}
+	
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		super.initSystem(initTask, initResult);
@@ -667,7 +671,7 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
 	}
 	
 	protected List<Entry> ldapSearch(LdapNetworkConnection connection, String filter) throws LdapException, CursorException {
-		return ldapSearch(connection, getLdapSuffix(), filter, SearchScope.SUBTREE, "*", getPrimaryIdentifierAttributeName());
+		return ldapSearch(connection, getLdapSuffix(), filter, SearchScope.SUBTREE, "*", "isMemberOf", "memberof", "isMemberOf", getPrimaryIdentifierAttributeName());
 	}
 	
 	protected List<Entry> ldapSearch(LdapNetworkConnection connection, String baseDn, String filter, SearchScope scope, String... attributes) throws LdapException, CursorException {
@@ -866,6 +870,10 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
 	
 	protected void assertAccountRepoShadow(PrismObject<ShadowType> shadow, String dn) throws SchemaException {
 		assertShadowCommon(shadow, null, dnMatchingRule.normalize(dn), resourceType, getAccountObjectClass(), ciMatchingRule, false);
+	}
+	
+	protected void assertGroupShadow(PrismObject<ShadowType> shadow, String dn) throws SchemaException {
+		assertShadowCommon(shadow, null, dn, resourceType, getGroupObjectClass(), ciMatchingRule, false);
 	}
 
 	protected long roundTsDown(long ts) {

@@ -55,6 +55,9 @@ public final class ResourceAttributeContainer extends PrismContainer {
 	@Override
 	public ResourceAttributeContainerDefinition getDefinition() {
         PrismContainerDefinition prismContainerDefinition = super.getDefinition();
+        if (prismContainerDefinition == null) {
+        	return null;
+        }
         if (prismContainerDefinition instanceof ResourceAttributeContainerDefinition) {
 		    return (ResourceAttributeContainerDefinition) prismContainerDefinition;
         } else {

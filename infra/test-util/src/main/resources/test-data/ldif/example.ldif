@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2010-2013 Evolveum
+# Copyright (c) 2010-2016 Evolveum
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -30,7 +30,7 @@ dn: ou=People, dc=example,dc=com
 objectclass: top
 objectclass: organizationalunit
 ou: People
-aci: (targetattr="*")(version 3.0; acl "IDM Access"; allow (all)
+aci: (targetattr="*||+")(version 3.0; acl "IDM Access"; allow (all)
   userdn="ldap:///uid=idm,ou=Administrators,dc=example,dc=com";)
 
 dn: uid=jgibbs, ou=People, dc=example,dc=com
@@ -89,7 +89,7 @@ dn: ou=Groups, dc=example,dc=com
 objectclass: top
 objectclass: organizationalunit
 ou: Groups
-aci: (targetattr="*")(version 3.0; acl "IDM Access"; allow (all)
+aci: (targetattr="*||+")(version 3.0; acl "IDM Access"; allow (all)
   userdn="ldap:///uid=idm,ou=Administrators,dc=example,dc=com";)
 
 dn: cn=Pirates,ou=groups,dc=example,dc=com
