@@ -1254,7 +1254,7 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
         assertGroupShadow(shadow, toGroupDn(GROUP_EVIL_CN));
         groupEvilShadowOid = shadow.getOid();
         
-        assertConnectorOperationIncrement(1, 2);
+        assertConnectorOperationIncrement(1, 1);
         assertConnectorSimulatedPagingSearchIncrement(0);
         
         SearchResultMetadata metadata = shadows.getMetadata();
@@ -1262,7 +1262,7 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
         	assertFalse(metadata.isPartialResults());
         }
         
-        assertLdapConnectorInstances(1);
+        assertLdapConnectorInstances(1, 2);
 	}
 	
 	/**
