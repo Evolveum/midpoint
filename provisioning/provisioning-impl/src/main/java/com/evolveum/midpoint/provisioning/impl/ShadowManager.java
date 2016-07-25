@@ -252,7 +252,7 @@ public class ShadowManager {
 		Collection<ResourceAttribute<?>> secondaryIdentifiers = ShadowUtil.getSecondaryIdentifiers(resourceShadow);
 		List<PrismObject<ShadowType>> results = lookupShadowsBySecondaryIdentifiers(ctx, secondaryIdentifiers, parentResult);
 		
-		if (results.size() == 0) {
+		if (results == null || results.size() == 0) {
 			return null;
 		}
 
