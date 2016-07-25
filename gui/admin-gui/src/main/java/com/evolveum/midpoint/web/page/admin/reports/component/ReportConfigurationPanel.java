@@ -15,6 +15,7 @@
  */
 package com.evolveum.midpoint.web.page.admin.reports.component;
 
+import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.web.component.form.DropDownFormGroup;
 import com.evolveum.midpoint.web.component.form.TextAreaFormGroup;
@@ -37,7 +38,7 @@ import java.util.List;
  * @author lazyman
  *
  */
-public class ReportConfigurationPanel extends SimplePanel<ReportDto> {
+public class ReportConfigurationPanel extends BasePanel<ReportDto> {
 
     private static final String ID_NAME = "name";
     private static final String ID_DESCRIPTION = "description";
@@ -56,9 +57,9 @@ public class ReportConfigurationPanel extends SimplePanel<ReportDto> {
 
     public ReportConfigurationPanel(String id, IModel<ReportDto> model) {
         super(id, model);
+		initLayout();
     }
 
-    @Override
     protected void initLayout() {
         TextFormGroup name = new TextFormGroup(ID_NAME, new PropertyModel<String>(getModel(), ID_NAME),
                 createStringResource("ObjectType.name"), ID_LABEL_SIZE, ID_INPUT_SIZE, true);
