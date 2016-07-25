@@ -112,6 +112,7 @@ import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
@@ -473,7 +474,12 @@ public class TestSanityLegacy extends AbstractModelIntegrationTest {
         OperationResult provisioningSelfTestResult = modelDiagnosticService.provisioningSelfTest(task);
 
         // THEN
-        assertSuccess("Provisioning self test", provisioningSelfTestResult);
+        display("Repository self test result", provisioningSelfTestResult);
+        // There may be warning about illegal key size on some platforms. As far as it is warning and not error we are OK
+        // the system will fall back to a interoperable key size
+		if (provisioningSelfTestResult.getStatus() != OperationResultStatus.SUCCESS && provisioningSelfTestResult.getStatus() != OperationResultStatus.WARNING) {
+			AssertJUnit.fail("Provisioning self-test failed: "+provisioningSelfTestResult);
+		}
 }
 
     
