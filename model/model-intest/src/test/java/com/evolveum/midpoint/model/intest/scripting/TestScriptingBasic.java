@@ -33,23 +33,19 @@ import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ActionExpressionType;
-import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ExpressionPipelineType;
-import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ExpressionSequenceType;
-import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ObjectFactory;
-import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ScriptingExpressionType;
-import com.evolveum.midpoint.xml.ns._public.model.scripting_3.SearchExpressionType;
-
+import com.evolveum.midpoint.xml.ns._public.model.scripting_3.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
-
-import javax.xml.bind.JAXBElement;
+import org.testng.collections.Sets;
 
 import java.io.File;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertTrue;
@@ -82,6 +78,7 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
     private static final File ASSIGN_TO_JACK_2_FILE = new File(TEST_DIR, "assign-to-jack-2.xml");
     private static final File PURGE_DUMMY_BLACK_SCHEMA_FILE = new File(TEST_DIR, "purge-dummy-black-schema.xml");
     private static final File TEST_DUMMY_RESOURCE_FILE = new File(TEST_DIR, "test-dummy-resource.xml");
+	private static final File SCRIPTING_USERS_FILE = new File(TEST_DIR, "scripting-users.xml");
 
     @Autowired
     private ScriptingExpressionEvaluator scriptingExpressionEvaluator;
@@ -559,7 +556,38 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
         assertEquals("Tested resource:10000000-0000-0000-0000-000000000004(Dummy Resource): SUCCESS\n", output.getConsoleOutput());
     }
 
-    private void assertNoOutputData(ExecutionContext output) {
+	@Test
+	public void test500ScriptingUsers() throws Exception {
+		final String TEST_NAME = "test500ScriptingUsers";
+		TestUtil.displayTestTile(this, TEST_NAME);
+
+		// GIVEN
+		OperationResult result = new OperationResult(DOT_CLASS + TEST_NAME);
+		PrismProperty<ScriptingExpressionType> expression = (PrismProperty) prismContext.parseAnyData(SCRIPTING_USERS_FILE);
+
+		// WHEN
+		ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(expression.getAnyValue().getValue(), result);
+
+		// THEN
+		TestUtil.assertSuccess(result);
+		Data data = output.getFinalOutput();
+		assertEquals("Unexpected # of items in output", 5, data.getData().size());
+		Set<String> realOids = new HashSet<>();
+		for (Item item : data.getData()) {
+			PrismObject<UserType> user = (PrismObject<UserType>) item;
+			assertEquals("Description not set", "Test", user.asObjectable().getDescription());
+			realOids.add(user.getOid());
+		}
+		assertEquals("Unexpected OIDs in output",
+				Sets.newHashSet(Arrays.asList(USER_ADMINISTRATOR_OID, USER_JACK_OID, USER_BARBOSSA_OID, USER_GUYBRUSH_OID, USER_ELAINE_OID)),
+				realOids);
+		IntegrationTestTools.display("stdout", output.getConsoleOutput());
+		IntegrationTestTools.display(result);
+		result.computeStatus();
+	}
+
+
+	private void assertNoOutputData(ExecutionContext output) {
         assertTrue("Script returned unexpected data", output.getFinalOutput() == null || output.getFinalOutput().getData().isEmpty());
     }
 

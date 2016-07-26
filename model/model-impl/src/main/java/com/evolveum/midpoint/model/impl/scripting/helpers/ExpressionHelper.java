@@ -20,6 +20,9 @@ import com.evolveum.midpoint.model.impl.scripting.Data;
 import com.evolveum.midpoint.model.impl.scripting.ExecutionContext;
 import com.evolveum.midpoint.model.api.ScriptExecutionException;
 import com.evolveum.midpoint.model.impl.scripting.ScriptingExpressionEvaluator;
+import com.evolveum.midpoint.prism.Item;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ActionParameterValueType;
 
@@ -36,75 +39,114 @@ import java.util.List;
 @Component
 public class ExpressionHelper {
 
-    @Autowired
-    private ScriptingExpressionEvaluator scriptingExpressionEvaluator;
+	@Autowired
+	private ScriptingExpressionEvaluator scriptingExpressionEvaluator;
 
-//    public JAXBElement<?> getArgument(ActionExpressionType actionExpression, String parameterName) throws ScriptExecutionException {
-//        return getArgument(actionExpression.getParameter(), parameterName, false, false, actionExpression.getType());
-//    }
+	//    public JAXBElement<?> getArgument(ActionExpressionType actionExpression, String parameterName) throws ScriptExecutionException {
+	//        return getArgument(actionExpression.getParameter(), parameterName, false, false, actionExpression.getType());
+	//    }
 
-    public ActionParameterValueType getArgument(List<ActionParameterValueType> arguments, String parameterName, boolean required, boolean requiredNonNull, String context) throws ScriptExecutionException {
-        for (ActionParameterValueType parameterValue : arguments) {
-            if (parameterName.equals(parameterValue.getName())) {
-                if (parameterValue.getExpression() != null || parameterValue.getValue() != null) {
-                    return parameterValue;
-                } else {
-                    if (requiredNonNull) {
-                        throw new ScriptExecutionException("Required parameter " + parameterName + " is null in invocation of \"" + context + "\"");
-                    } else {
-                        return null;
-                    }
-                }
-            }
-        }
-        if (required) {
-            throw new ScriptExecutionException("Required parameter " + parameterName + " not present in invocation of \"" + context + "\"");
-        } else {
-            return null;
-        }
-    }
+	public ActionParameterValueType getArgument(List<ActionParameterValueType> arguments, String parameterName, boolean required,
+			boolean requiredNonNull, String context) throws ScriptExecutionException {
+		for (ActionParameterValueType parameterValue : arguments) {
+			if (parameterName.equals(parameterValue.getName())) {
+				if (parameterValue.getExpression() != null || parameterValue.getValue() != null) {
+					return parameterValue;
+				} else {
+					if (requiredNonNull) {
+						throw new ScriptExecutionException("Required parameter " + parameterName + " is null in invocation of \"" + context + "\"");
+					} else {
+						return null;
+					}
+				}
+			}
+		}
+		if (required) {
+			throw new ScriptExecutionException("Required parameter " + parameterName + " not present in invocation of \"" + context + "\"");
+		} else {
+			return null;
+		}
+	}
 
-    public String getArgumentAsString(List<ActionParameterValueType> arguments, String argumentName, Data input, ExecutionContext context, String defaultValue, String contextName, OperationResult parentResult) throws ScriptExecutionException {
-        ActionParameterValueType parameterValue = getArgument(arguments, argumentName, false, false, contextName);
-        if (parameterValue != null) {
-            if (parameterValue.getExpression() != null) {
-                Data data = scriptingExpressionEvaluator.evaluateExpression(parameterValue.getExpression(), input, context, parentResult);
-                if (data != null) {
-                    return data.getDataAsSingleString();
-                }
-            } else if (parameterValue.getValue() != null) {
-                Data data = scriptingExpressionEvaluator.evaluateConstantExpression((RawType) parameterValue.getValue(), context, parentResult);
-                if (data != null) {
-                    return data.getDataAsSingleString();
-                }
-            } else {
-                throw new IllegalStateException("No expression nor value specified");
-            }
-        }
-        return defaultValue;
-    }
+	public String getArgumentAsString(List<ActionParameterValueType> arguments, String argumentName, Data input, ExecutionContext context,
+			String defaultValue, String contextName, OperationResult parentResult) throws ScriptExecutionException {
+		ActionParameterValueType parameterValue = getArgument(arguments, argumentName, false, false, contextName);
+		if (parameterValue != null) {
+			if (parameterValue.getExpression() != null) {
+				Data data = scriptingExpressionEvaluator.evaluateExpression(parameterValue.getExpression(), input, context, parentResult);
+				if (data != null) {
+					return data.getDataAsSingleString();
+				}
+			} else if (parameterValue.getValue() != null) {
+				Data data = scriptingExpressionEvaluator.evaluateConstantExpression((RawType) parameterValue.getValue(), context, parentResult);
+				if (data != null) {
+					return data.getDataAsSingleString();
+				}
+			} else {
+				throw new IllegalStateException("No expression nor value specified");
+			}
+		}
+		return defaultValue;
+	}
 
-    public Boolean getArgumentAsBoolean(List<ActionParameterValueType> arguments, String argumentName, Data input, ExecutionContext context, Boolean defaultValue, String contextName, OperationResult parentResult) throws ScriptExecutionException {
-        String stringValue = getArgumentAsString(arguments, argumentName, input, context, null, contextName, parentResult);
-        if (stringValue == null) {
-            return defaultValue;
-        } else if ("true".equals(stringValue)) {
-            return Boolean.TRUE;
-        } else if ("false".equals(stringValue)) {
-            return Boolean.FALSE;
-        } else {
-            throw new ScriptExecutionException("Invalid value for a boolean parameter '" + argumentName + "': " + stringValue);
-        }
-    }
+	public Boolean getArgumentAsBoolean(List<ActionParameterValueType> arguments, String argumentName, Data input, ExecutionContext context,
+			Boolean defaultValue, String contextName, OperationResult parentResult) throws ScriptExecutionException {
+		String stringValue = getArgumentAsString(arguments, argumentName, input, context, null, contextName, parentResult);
+		if (stringValue == null) {
+			return defaultValue;
+		} else if ("true".equals(stringValue)) {
+			return Boolean.TRUE;
+		} else if ("false".equals(stringValue)) {
+			return Boolean.FALSE;
+		} else {
+			throw new ScriptExecutionException("Invalid value for a boolean parameter '" + argumentName + "': " + stringValue);
+		}
+	}
 
-    public Data evaluateParameter(ActionParameterValueType parameter, Data input, ExecutionContext context, OperationResult result) throws ScriptExecutionException {
-        Validate.notNull(parameter, "parameter");
-        if (parameter.getExpression() != null) {
-            return scriptingExpressionEvaluator.evaluateExpression(parameter.getExpression(), input, context, result);
-        } else if (parameter.getValue() != null) {
-            return scriptingExpressionEvaluator.evaluateConstantExpression((RawType) parameter.getValue(), context, result);
-        } else {
-            throw new IllegalStateException("No expression nor value specified");
-        }
-    }
+	public Data evaluateParameter(ActionParameterValueType parameter, Data input, ExecutionContext context, OperationResult result)
+			throws ScriptExecutionException {
+		Validate.notNull(parameter, "parameter");
+		if (parameter.getExpression() != null) {
+			return scriptingExpressionEvaluator.evaluateExpression(parameter.getExpression(), input, context, result);
+		} else if (parameter.getValue() != null) {
+			return scriptingExpressionEvaluator.evaluateConstantExpression((RawType) parameter.getValue(), context, result);
+		} else {
+			throw new IllegalStateException("No expression nor value specified");
+		}
+	}
+
+	public <T> T getSingleArgumentValue(List<ActionParameterValueType> arguments, String parameterName, boolean required,
+			boolean requiredNonNull, String context, Data input, ExecutionContext executionContext, Class<T> clazz, OperationResult result) throws ScriptExecutionException {
+		ActionParameterValueType paramValue = getArgument(arguments, parameterName, required, requiredNonNull, context);
+		if (paramValue == null) {
+			return null;
+		}
+		Data paramData = evaluateParameter(paramValue, input, executionContext, result);
+		if (paramData.getData().size() != 1) {
+			throw new ScriptExecutionException("Exactly one item was expected in '" + parameterName + "' parameter. Got " + paramData.getData().size());
+		}
+		Item<? extends PrismValue,?> paramItem = paramData.getData().get(0);
+		if (paramItem == null || paramItem.getValues().size() == 0 || (paramItem.getValues().size() == 1 && paramItem.getValues().get(0) == null)) {
+			if (requiredNonNull) {
+				throw new ScriptExecutionException("A non-null value was expected in '" + parameterName + "' parameter");
+			}
+			return null;
+		}
+		if (paramItem.getValues().size() > 1) {
+			throw new ScriptExecutionException("Exactly one value was expected in '" + parameterName + "' parameter. Got " + paramItem.getValues().size() + ".");
+		}
+		PrismValue prismValue = paramItem.getValues().get(0);
+		if (!(prismValue instanceof PrismPropertyValue)) {
+			throw new ScriptExecutionException("A prism property value was expected in '" + parameterName + "' parameter. Got " + prismValue.getClass().getName() + " instead.");
+		}
+		Object value = ((PrismPropertyValue) prismValue).getValue();
+		if (clazz.isAssignableFrom(value.getClass())) {
+			@SuppressWarnings("unchecked")
+			T rv = (T) value;
+			return rv;
+		} else {
+			throw new ScriptExecutionException("A value of " + clazz.getName() + " was expected in '" + parameterName
+					+ "' parameter. Got " + value.getClass().getName() + " instead.");
+		}
+	}
 }

@@ -30,13 +30,11 @@ import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
+import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 
 /**
  * Data that are passed between individual scripting actions.
@@ -54,7 +52,7 @@ public class Data implements DebugDumpable {
 
     private static final QName PLAIN_STRING_ELEMENT_NAME = new QName(SchemaConstants.NS_C, "string");
 
-    private List<Item> data;
+    private final List<Item> data = new ArrayList<>();			// all items are not null
 
     // we want clients to use explicit constructors
     private Data() {
@@ -62,10 +60,6 @@ public class Data implements DebugDumpable {
 
     public List<Item> getData() {
         return data;
-    }
-
-    public void setData(List<Item> data) {
-        this.data = data;
     }
 
     @Override
@@ -85,23 +79,23 @@ public class Data implements DebugDumpable {
     }
 
     public static Data createEmpty() {
-        Data d = new Data();
-        d.data = new ArrayList<>();
-        return d;
+        return new Data();
     }
 
     public void addAllFrom(Data data) {
         if (data != null) {
-            this.data.addAll(data.getData());
+        	for (Item item : data.getData()) {
+        		addItem(item);
+			}
         }
     }
 
-    public void addItem(Item item) {
+    public void addItem(@NotNull Item item) {
         data.add(item);
     }
 
     public String getDataAsSingleString() throws ScriptExecutionException {
-        if (data != null && !data.isEmpty()) {
+        if (!data.isEmpty()) {
             if (data.size() == 1) {
                 return (String) ((PrismProperty) data.get(0)).getRealValue();       // todo implement some diagnostics when this would fail
             } else {
@@ -113,7 +107,7 @@ public class Data implements DebugDumpable {
     }
 
     public static Data createProperty(Object object, PrismContext prismContext) {
-        return createProperty(Arrays.asList(object), object.getClass(), prismContext);
+        return createProperty(Collections.singletonList(object), object.getClass(), prismContext);
     }
 
     public static Data createProperty(List<Object> objects, Class<?> clazz, PrismContext prismContext) {
@@ -129,8 +123,8 @@ public class Data implements DebugDumpable {
         } else {
             throw new IllegalStateException("Unsupported data class (to be put into scripting data as property): " + clazz);
         }
-        PrismPropertyDefinition propertyDefinition = new PrismPropertyDefinition<>(elementName, typeName, prismContext);
-        PrismProperty property = propertyDefinition.instantiate();
+        PrismPropertyDefinition<Object> propertyDefinition = new PrismPropertyDefinition<>(elementName, typeName, prismContext);
+        PrismProperty<Object> property = propertyDefinition.instantiate();
         for (Object object : objects) {
             property.addRealValue(object);
         }
@@ -138,7 +132,7 @@ public class Data implements DebugDumpable {
     }
 
     public Collection<ObjectReferenceType> getDataAsReferences(QName defaultTargetType) throws ScriptExecutionException {
-        Collection<ObjectReferenceType> retval = new ArrayList<ObjectReferenceType>(data.size());
+        Collection<ObjectReferenceType> retval = new ArrayList<>(data.size());
         for (Item item : data) {
             if (item instanceof PrismObject) {
                 ObjectReferenceType ref = new ObjectReferenceType();

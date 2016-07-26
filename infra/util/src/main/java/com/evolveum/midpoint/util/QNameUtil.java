@@ -70,7 +70,11 @@ public class QNameUtil {
         return sb.toString();
     }
 
-    public static QName uriToQName(String uri) {
+	public static QName uriToQName(String uri) {
+		return uriToQName(uri, false);
+	}
+
+    public static QName uriToQName(String uri, boolean allowUnqualified) {
 
         if (uri == null) {
             throw new IllegalArgumentException("URI is null");
@@ -90,7 +94,11 @@ public class QNameUtil {
             String name = uri.substring(index+1);
             return new QName(ns,name);
         }
-        throw new IllegalArgumentException("The URI ("+uri+") does not contain slash character");
+        if (allowUnqualified) {
+        	return new QName(uri);
+		} else {
+			throw new IllegalArgumentException("The URI (" + uri + ") does not contain slash character");
+		}
     }
 	
 	public static QName getNodeQName(Node node) {
