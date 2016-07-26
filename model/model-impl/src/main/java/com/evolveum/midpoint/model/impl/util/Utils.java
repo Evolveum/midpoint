@@ -33,6 +33,7 @@ import com.evolveum.midpoint.model.impl.ModelConstants;
 import com.evolveum.midpoint.model.impl.importer.ObjectImporter;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
+import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
@@ -501,6 +502,22 @@ public final class Utils {
 		return dryRun.booleanValue(); 
     }
     
+	public static ExpressionVariables getDefaultExpressionVariables(LensContext<?> context, LensProjectionContext projCtx) throws SchemaException {
+		ExpressionVariables variables = new ExpressionVariables();
+		if (context.getFocusContext() != null) {
+			variables.addVariableDefinition(ExpressionConstants.VAR_FOCUS, context.getFocusContext().getObjectDeltaObject());
+			variables.addVariableDefinition(ExpressionConstants.VAR_USER, context.getFocusContext().getObjectDeltaObject());
+		}
+		if (projCtx != null) {
+			variables.addVariableDefinition(ExpressionConstants.VAR_PROJECTION, projCtx.getObjectDeltaObject());
+			variables.addVariableDefinition(ExpressionConstants.VAR_SHADOW, projCtx.getObjectDeltaObject());
+			variables.addVariableDefinition(ExpressionConstants.VAR_ACCOUNT, projCtx.getObjectDeltaObject());
+			variables.addVariableDefinition(ExpressionConstants.VAR_RESOURCE, projCtx.getResource());
+		}
+		variables.addVariableDefinition(ExpressionConstants.VAR_CONFIGURATION, context.getSystemConfiguration());
+		return variables;
+	}
+
     public static ExpressionVariables getDefaultExpressionVariables(ObjectType focusType,
     		ShadowType shadowType, ResourceType resourceType, SystemConfigurationType configurationType) {
     	PrismObject<? extends ObjectType> focus = null;

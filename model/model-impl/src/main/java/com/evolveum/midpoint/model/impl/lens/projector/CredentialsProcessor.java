@@ -33,6 +33,7 @@ import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.impl.lens.LensUtil;
+import com.evolveum.midpoint.model.impl.util.Utils;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
@@ -193,6 +194,7 @@ public class CredentialsProcessor {
         ItemDeltaItem<PrismPropertyValue<PasswordType>,PrismPropertyDefinition<ProtectedStringType>> userPasswordIdi = focusContext.getObjectDeltaObject().findIdi(SchemaConstants.PATH_PASSWORD_VALUE);
         Source<PrismPropertyValue<PasswordType>,PrismPropertyDefinition<ProtectedStringType>> source = new Source<>(userPasswordIdi, ExpressionConstants.VAR_INPUT);
 		passwordMapping.setDefaultSource(source);
+		passwordMapping.addVariableDefinitions(Utils.getDefaultExpressionVariables(context, accCtx).getMap());
 		passwordMapping.setOriginType(OriginType.OUTBOUND);
 		passwordMapping.setOriginObject(accCtx.getResource());
 		

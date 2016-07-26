@@ -52,13 +52,6 @@ public class ExpressionVariables implements DebugDumpable {
     public void addVariableDefinitions(Map<QName, Object> extraVariables) {
         for (Entry<QName, Object> entry : extraVariables.entrySet()) {
         	Object value = entry.getValue();
-        	if (value instanceof ObjectDeltaObject<?>) {
-        		ObjectDeltaObject<?> odo = (ObjectDeltaObject<?>)value;
-        		if (odo.getObjectDelta() != null) {
-        			throw new IllegalArgumentException("Cannot use variables with deltas in addVariableDefinitions, use addVariableDefinitionsOld or addVariableDefinitionsNew");
-        		}
-        		value = odo.getOldObject();
-        	}
             variables.put(entry.getKey(), value);
         }
     }
