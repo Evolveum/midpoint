@@ -52,7 +52,7 @@ public class ExpressionVariables implements DebugDumpable {
     public void addVariableDefinitions(Map<QName, Object> extraVariables) {
         for (Entry<QName, Object> entry : extraVariables.entrySet()) {
         	Object value = entry.getValue();
-        	if (value instanceof ObjectDeltaObject<?>) {
+        	if (!areDeltasAllowed() && value instanceof ObjectDeltaObject<?>) {
         		ObjectDeltaObject<?> odo = (ObjectDeltaObject<?>)value;
         		if (odo.getObjectDelta() != null) {
         			throw new IllegalArgumentException("Cannot use variables with deltas in addVariableDefinitions, use addVariableDefinitionsOld or addVariableDefinitionsNew");
@@ -62,8 +62,16 @@ public class ExpressionVariables implements DebugDumpable {
             variables.put(entry.getKey(), value);
         }
     }
-    
-    public void addVariableDefinitions(ExpressionVariables extraVariables) {
+
+    // TODO There are situations where we do not want to be any relative data (ObjectDeltaObject, ItemDeltaItem) here.
+	// Namely, when this class is used in lower layers of evaluation (e.g. script evaluation). However, as of 3.4.1,
+	// we don't want to start a big cleanup of this functionality, so - for now - let us just put a placeholder here.
+	// The plan is to distinguish "real" ExpressionVariables that may contain deltas and ScriptVariables that may not.
+	private boolean areDeltasAllowed() {
+		return true;
+	}
+
+	public void addVariableDefinitions(ExpressionVariables extraVariables) {
     	addVariableDefinitions(extraVariables.getMap());
     }
 

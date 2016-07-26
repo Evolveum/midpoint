@@ -15,18 +15,6 @@
  */
 package com.evolveum.midpoint.model.impl.lens.projector;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-import javax.xml.datatype.XMLGregorianCalendar;
-import javax.xml.namespace.QName;
-
-import org.apache.commons.lang.Validate;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
@@ -39,26 +27,9 @@ import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.impl.lens.LensUtil;
-import com.evolveum.midpoint.prism.ComplexTypeDefinition;
-import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.OriginType;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.prism.delta.ChangeType;
-import com.evolveum.midpoint.prism.delta.ContainerDelta;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.PartiallyResolvedDelta;
-import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.model.impl.util.Utils;
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
@@ -70,20 +41,15 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractCredentialType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingStrengthType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordHistoryEntryType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.StringPolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ValuePolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
+import org.apache.commons.lang.Validate;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import javax.xml.datatype.XMLGregorianCalendar;
+import javax.xml.namespace.QName;
+import java.util.*;
 
 /**
  * Processor that takes password from user and synchronizes it to accounts.
@@ -99,16 +65,16 @@ public class CredentialsProcessor {
 
 	private static final Trace LOGGER = TraceManager.getTrace(CredentialsProcessor.class);
 
-	@Autowired(required = true)
+	@Autowired
 	private PrismContext prismContext;
 
-	@Autowired(required = true)
+	@Autowired
 	private MappingFactory mappingFactory;
 
-	@Autowired(required = true)
+	@Autowired
 	private MappingEvaluator mappingEvaluator;
 
-	@Autowired(required = true)
+	@Autowired
 	private PasswordPolicyProcessor passwordPolicyProcessor;
 
 	public <F extends ObjectType> void processFocusCredentials(LensContext<F> context,
@@ -190,17 +156,13 @@ public class CredentialsProcessor {
 			// user password was changed. synchronize it regardless of the
 			// account change.
 		} else {
-			LOGGER.trace(
-					"No change in password and the account is not added, skipping credentials processing for account "
-							+ rat);
+			LOGGER.trace("No change in password and the account is not added, skipping credentials processing for account {}", rat);
 			return;
 		}
 
 		RefinedObjectClassDefinition refinedAccountDef = accCtx.getStructuralObjectClassDefinition();
 		if (refinedAccountDef == null) {
-			LOGGER.trace(
-					"No RefinedAccountDefinition, therefore also no password outbound definition, skipping credentials processing for account "
-							+ rat);
+			LOGGER.trace("No RefinedAccountDefinition, therefore also no password outbound definition, skipping credentials processing for account {}", rat);
 			return;
 		}
 
@@ -225,6 +187,7 @@ public class CredentialsProcessor {
 		Source<PrismPropertyValue<PasswordType>, PrismPropertyDefinition<ProtectedStringType>> source = new Source<>(
 				userPasswordIdi, ExpressionConstants.VAR_INPUT);
 		passwordMapping.setDefaultSource(source);
+		passwordMapping.addVariableDefinitions(Utils.getDefaultExpressionVariables(context, accCtx).getMap());
 		passwordMapping.setOriginType(OriginType.OUTBOUND);
 		passwordMapping.setOriginObject(accCtx.getResource());
 

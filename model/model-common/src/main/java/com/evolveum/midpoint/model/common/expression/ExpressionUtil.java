@@ -622,7 +622,7 @@ public class ExpressionUtil {
 			ExpressionFactory expressionFactory, String shortDesc, Task task, OperationResult parentResult)
 					throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
 
-		// TODO rafactor after new query engine is implemented
+		// TODO refactor after new query engine is implemented
 		ItemDefinition outputDefinition = null;
 		if (filter instanceof ValueFilter) {
 			outputDefinition = ((ValueFilter) filter).getDefinition();
