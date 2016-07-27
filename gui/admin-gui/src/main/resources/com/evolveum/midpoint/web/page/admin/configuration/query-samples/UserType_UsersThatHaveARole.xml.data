@@ -1,0 +1,10 @@
+<query>
+    <filter>
+        <ref>
+            <path>roleMembershipRef</path>
+            <value oid="00000000-0000-0000-0000-000000000004"/>
+        </ref>
+    </filter>
+</query>
+
+<!-- Note: direct or indirect ACTIVE assignments are reported -->

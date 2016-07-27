@@ -39,11 +39,10 @@ import com.evolveum.midpoint.repo.sql.query.QueryEngine;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.query.RQuery;
 import com.evolveum.midpoint.repo.sql.query2.QueryEngine2;
+import com.evolveum.midpoint.repo.sql.query2.RQueryImpl;
+import com.evolveum.midpoint.repo.sql.query2.hqm.QueryParameterValue;
 import com.evolveum.midpoint.repo.sql.util.*;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.ResultHandler;
-import com.evolveum.midpoint.schema.SearchResultList;
-import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -67,6 +66,7 @@ import org.hibernate.ScrollMode;
 import org.hibernate.ScrollableResults;
 import org.hibernate.Session;
 import org.hibernate.criterion.Restrictions;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -360,7 +360,6 @@ public class ObjectRetriever {
                                                                                         Collection<SelectorOptions<GetOperationOptions>> options,
                                                                                         OperationResult result) throws SchemaException {
         LOGGER_PERFORMANCE.debug("> search objects {}", new Object[]{type.getSimpleName()});
-        List<PrismObject<T>> list = new ArrayList<>();
         Session session = null;
         try {
             session = baseHelper.beginReadOnlyTransaction();
@@ -374,25 +373,36 @@ public class ObjectRetriever {
                 rQuery = engine.interpret(query, type, options, false, session);
             }
 
-            List<GetObjectResult> objects = rQuery.list();
-            LOGGER.trace("Found {} objects, translating to JAXB.", new Object[]{(objects != null ? objects.size() : 0)});
+            List<GetObjectResult> queryResult = rQuery.list();
+            LOGGER.trace("Found {} objects, translating to JAXB.", new Object[]{(queryResult != null ? queryResult.size() : 0)});
 
-            for (GetObjectResult object : objects) {
-                PrismObject<T> prismObject = updateLoadedObject(object, type, options, session, result);
-                list.add(prismObject);
-            }
-
+			List<PrismObject<T>> list = queryResultToPrismObjects(queryResult, type, options, session, result);
             session.getTransaction().commit();
+			return new SearchResultList<>(list);
+
         } catch (QueryException | RuntimeException ex) {
             baseHelper.handleGeneralException(ex, session, result);
+			throw new IllegalStateException("shouldn't get here");
         } finally {
             baseHelper.cleanupSessionAndResult(session, result);
         }
-
-        return new SearchResultList<PrismObject<T>>(list);
     }
 
-    public <C extends Containerable> SearchResultList<C> searchContainersAttempt(Class<C> type, ObjectQuery query,
+	@NotNull
+	private <T extends ObjectType> List<PrismObject<T>> queryResultToPrismObjects(List<GetObjectResult> objects, Class<T> type,
+			Collection<SelectorOptions<GetOperationOptions>> options,
+			Session session, OperationResult result) throws SchemaException {
+		List<PrismObject<T>> rv = new ArrayList<>();
+		if (objects != null) {
+			for (GetObjectResult object : objects) {
+				PrismObject<T> prismObject = updateLoadedObject(object, type, options, session, result);
+				rv.add(prismObject);
+			}
+		}
+		return rv;
+	}
+
+	public <C extends Containerable> SearchResultList<C> searchContainersAttempt(Class<C> type, ObjectQuery query,
                                                                                  Collection<SelectorOptions<GetOperationOptions>> options,
                                                                                  OperationResult result) throws SchemaException {
 
@@ -788,47 +798,50 @@ main:       for (;;) {
         throw new SystemException("isAnySubordinateAttempt failed somehow, this really should not happen.");
     }
 
-    public String executeArbitraryQueryAttempt(String queryString, OperationResult result) {
-        LOGGER_PERFORMANCE.debug("> execute query {}", queryString);
+    public RepositoryQueryDiagResponse executeQueryDiagnosticsRequest(RepositoryQueryDiagRequest request, OperationResult result) {
+        LOGGER_PERFORMANCE.debug("> execute query diagnostics {}", request);
 
         Session session = null;
-        StringBuffer answer = new StringBuffer();
-        try {
+		try {
             session = baseHelper.beginReadOnlyTransaction();       // beware, not all databases support read-only transactions!
 
-            Query query = session.createQuery(queryString);
-            List results = query.list();
-            if (results != null) {
-                answer.append("Result: ").append(results.size()).append(" item(s):\n\n");
-                for (Object item : results) {
-                    if (item instanceof Object[]) {
-                        boolean first = true;
-                        for (Object item1 : (Object[]) item) {
-                            if (first) {
-                                first = false;
-                            } else {
-                                answer.append(",");
-                            }
-                            answer.append(item1);
-                        }
-                    } else {
-                        answer.append(item);
-                    }
-                    answer.append("\n");
-                }
-            }
+			final String implementationLevelQuery;
+			final Map<String, RepositoryQueryDiagResponse.ParameterValue> implementationLevelQueryParameters;
+			final Query query;
+			final boolean isMidpointQuery = request.getImplementationLevelQuery() == null;
+			if (isMidpointQuery) {
+				QueryEngine2 engine = new QueryEngine2(getConfiguration(), prismContext);
+				RQueryImpl rQuery = (RQueryImpl) engine.interpret(request.getQuery(), request.getType(), null, false, session);
+				query = rQuery.getQuery();
+				implementationLevelQuery = query.getQueryString();
+				implementationLevelQueryParameters = new HashMap<>();
+				for (Map.Entry<String, QueryParameterValue> entry : rQuery.getQuerySource().getParameters().entrySet()) {
+					implementationLevelQueryParameters.put(entry.getKey(),
+							new RepositoryQueryDiagResponse.ParameterValue(entry.getValue().getValue(), entry.getValue().toString()));
+				}
+			} else {
+				implementationLevelQuery = (String) request.getImplementationLevelQuery();
+				implementationLevelQueryParameters = new HashMap<>();
+				query = session.createQuery(implementationLevelQuery);
+			}
+
+			List<?> objects = request.isCompileOnly() ? null : query.list();
+			if (isMidpointQuery && objects != null) {
+				// raw GetObjectResult instances are useless outside repo-sql-impl module, so we'll convert them to objects
+				@SuppressWarnings("unchecked")
+				List<GetObjectResult> listOfGetObjectResults = (List<GetObjectResult>) objects;
+				objects = queryResultToPrismObjects(listOfGetObjectResults, request.getType(), null, session, result);
+			}
+
+			RepositoryQueryDiagResponse response = new RepositoryQueryDiagResponse(objects, implementationLevelQuery, implementationLevelQueryParameters);
             session.getTransaction().rollback();
-        } catch (RuntimeException ex) {
+			return response;
+        } catch (SchemaException | QueryException | RuntimeException ex) {
             baseHelper.handleGeneralException(ex, session, result);
+			throw new IllegalStateException("shouldn't get here");
         } finally {
             baseHelper.cleanupSessionAndResult(session, result);
         }
-
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Executed query:\n{}\nwith result:\n{}", queryString, answer);
-        }
-
-        return answer.toString();
     }
 
     private boolean isUseNewQueryInterpreter(ObjectQuery query) {

@@ -136,9 +136,7 @@
     <xsd:simpleType name="OrderDirectionType">
         <xsd:annotation>
             <xsd:documentation>
-                Type of an operation (change). It defines operations to change          
-                object, it is not limited to object modifications.
-                TODO: How to handle renames?
+                Direction of an ordering.
             </xsd:documentation>
         </xsd:annotation>
         <xsd:restriction base="xsd:string">

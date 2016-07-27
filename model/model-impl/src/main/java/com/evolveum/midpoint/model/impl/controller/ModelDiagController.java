@@ -22,6 +22,8 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.impl.dataModel.DataModelVisualizer;
 import com.evolveum.midpoint.schema.ProvisioningDiag;
+import com.evolveum.midpoint.schema.RepositoryQueryDiagRequest;
+import com.evolveum.midpoint.schema.RepositoryQueryDiagResponse;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.api.SecurityEnforcer;
 import com.evolveum.midpoint.util.exception.*;
@@ -137,12 +139,11 @@ public class ModelDiagController implements ModelDiagnosticService {
     }
 
 	@Override
-	public String executeRepositoryQuery(String query, Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException {
-		OperationResult result = parentResult.createSubresult(REPOSITORY_EXECUTE_QUERY);
+	public RepositoryQueryDiagResponse executeRepositoryQuery(RepositoryQueryDiagRequest request, Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException {
+		OperationResult result = parentResult.createSubresult(EXECUTE_REPOSITORY_QUERY);
 		try {
 			securityEnforcer.authorize(AuthorizationConstants.AUTZ_ALL_URL, null, null, null, null, null, result);	// only admin can do this
-			String answer = repositoryService.executeArbitraryQuery(query, result);
-			return answer;
+			return repositoryService.executeQueryDiagnostics(request, result);
 		} catch (Throwable t) {
 			result.recordFatalError(t);
 			throw t;

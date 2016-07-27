@@ -36,13 +36,7 @@ import com.evolveum.midpoint.repo.api.RepoAddOptions;
 import com.evolveum.midpoint.repo.api.RepoModifyOptions;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.sql.helpers.*;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.LabeledString;
-import com.evolveum.midpoint.schema.RepositoryDiag;
-import com.evolveum.midpoint.schema.ResultHandler;
-import com.evolveum.midpoint.schema.SearchResultList;
-import com.evolveum.midpoint.schema.SearchResultMetadata;
-import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
@@ -882,25 +876,25 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 	}
 
     @Override
-    public String executeArbitraryQuery(String query, OperationResult result) {
-        Validate.notEmpty(query, "Query must not be empty.");
+    public RepositoryQueryDiagResponse executeQueryDiagnostics(RepositoryQueryDiagRequest request, OperationResult result) {
+        Validate.notNull(request, "Request must not be null.");
         Validate.notNull(result, "Operation result must not be null.");
 
-        LOGGER.debug("Executing arbitrary query '{}'.", query);
+        LOGGER.debug("Executing arbitrary query '{}'.", request);
 
         final String operation = "querying";
         int attempt = 1;
 
-        OperationResult subResult = result.createMinorSubresult(EXECUTE_ARBITRARY_QUERY);
-        subResult.addParam("query", query);
+        OperationResult subResult = result.createMinorSubresult(EXECUTE_QUERY_DIAGNOSTICS);
+        subResult.addParam("query", request);
 
         SqlPerformanceMonitor pm = getPerformanceMonitor();
-        long opHandle = pm.registerOperationStart("executeArbitraryQuery");
+        long opHandle = pm.registerOperationStart("executeQueryDiagnostics");
 
         try {
             while (true) {
                 try {
-                    return objectRetriever.executeArbitraryQueryAttempt(query, subResult);
+                    return objectRetriever.executeQueryDiagnosticsRequest(request, subResult);
                 } catch (RuntimeException ex) {
                     attempt = baseHelper.logOperationAttempt(null, operation, attempt, ex, subResult);
                     pm.registerOperationNewTrial(opHandle, attempt);

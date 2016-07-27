@@ -19,6 +19,8 @@ import java.util.Collection;
 
 import com.evolveum.midpoint.schema.ProvisioningDiag;
 import com.evolveum.midpoint.schema.RepositoryDiag;
+import com.evolveum.midpoint.schema.RepositoryQueryDiagRequest;
+import com.evolveum.midpoint.schema.RepositoryQueryDiagResponse;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -44,20 +46,20 @@ public interface ModelDiagnosticService {
 	String CLASS_NAME_WITH_DOT = ModelDiagnosticService.class.getName() + ".";
 	String REPOSITORY_SELF_TEST = CLASS_NAME_WITH_DOT + "repositorySelfTest";
     String REPOSITORY_TEST_ORG_CLOSURE_CONSISTENCY = CLASS_NAME_WITH_DOT + "repositoryTestOrgClosureConsistency";
-	String REPOSITORY_EXECUTE_QUERY = CLASS_NAME_WITH_DOT + "repositoryExecuteQuery";
+	String EXECUTE_REPOSITORY_QUERY = CLASS_NAME_WITH_DOT + "executeRepositoryQuery";
 	String PROVISIONING_SELF_TEST = CLASS_NAME_WITH_DOT + "provisioningSelfTest";
 	
 	/**
 	 * Provide repository run-time configuration and diagnostic information.
 	 */
-	public RepositoryDiag getRepositoryDiag(Task task, OperationResult parentResult);
+	RepositoryDiag getRepositoryDiag(Task task, OperationResult parentResult);
 	
 	/**
 	 * Runs a short, non-destructive repository self test.
 	 * This methods should never throw a (checked) exception. All the results
 	 * should be in the returned result structure (including fatal errors).
 	 */
-	public OperationResult repositorySelfTest(Task task);
+	OperationResult repositorySelfTest(Task task);
 
     /**
      * Checks a org closure table for consistency, repairing any problems found.
@@ -73,25 +75,26 @@ public interface ModelDiagnosticService {
      *
      * TODO this method is SQL service specific; it should be generalized/fixed somehow.
      */
-    public void repositoryTestOrgClosureConsistency(Task task, boolean repairIfNecessary, OperationResult result) throws SchemaException, SecurityViolationException;
+	void repositoryTestOrgClosureConsistency(Task task, boolean repairIfNecessary, OperationResult result) throws SchemaException, SecurityViolationException;
 
     /**
 	 * Runs a short, non-destructive internal provisioning test. It tests provisioning framework and
 	 * general setup. Use ModelService.testResource for testing individual resource configurations.
 	 */
-	public OperationResult provisioningSelfTest(Task task);
+	OperationResult provisioningSelfTest(Task task);
 
     /**
      * Provide provisioning run-time configuration and diagnostic information.
      */
-    public ProvisioningDiag getProvisioningDiag(Task task, OperationResult parentResult);
+	ProvisioningDiag getProvisioningDiag(Task task, OperationResult parentResult);
 
 	/**
 	 * Execute arbitrary implementation-specific query. In current implementation this means hibernate query.
 	 *
 	 * EXPERIMENTAL.
 	 */
-	public String executeRepositoryQuery(String query, Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException;
+	RepositoryQueryDiagResponse executeRepositoryQuery(RepositoryQueryDiagRequest request, Task task, OperationResult parentResult)
+			throws SchemaException, SecurityViolationException;
 
 	/**
 	 * Exports data model

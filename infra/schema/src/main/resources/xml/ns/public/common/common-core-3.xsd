@@ -1897,9 +1897,6 @@
                                   for efficient search of all current role members, e.g. for the purpose of displaying this
                                   information in the GUI.
                                 </p>
-                                <p>
-                                	TODO. NOT IMPLEMENTED YET.
-                                </p>
                             </xsd:documentation>
                             <xsd:appinfo>
                     			<a:objectReferenceTargetType>tns:AbstractRoleType</a:objectReferenceTargetType>

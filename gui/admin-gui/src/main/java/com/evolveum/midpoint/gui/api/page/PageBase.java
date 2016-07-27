@@ -1158,11 +1158,6 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 		menu = new MenuItem(createStringResource("PageAdmin.menu.top.configuration.repositoryObjectView"),
 				PageDebugView.class, null, createVisibleDisabledBehaviorForEditMenu(PageDebugView.class));
 		submenu.add(menu);
-		if (SystemConfigurationHolder.isExperimentalCodeEnabled()) {
-			menu = new MenuItem(createStringResource("PageAdmin.menu.top.configuration.repoQuery"),
-					PageRepoQuery.class);
-			submenu.add(menu);
-		}
 
 		PageParameters params = new PageParameters();
 		params.add(PageSystemConfiguration.SELECTED_TAB_INDEX, PageSystemConfiguration.CONFIGURATION_TAB_BASIC);
@@ -1253,6 +1248,10 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 				PageAccounts.class);
 		submenu.add(menu);
 		menu = new MenuItem(createStringResource("PageAdmin.menu.top.configuration.internals"), PageInternals.class);
+		submenu.add(menu);
+
+		menu = new MenuItem(createStringResource("PageAdmin.menu.top.configuration.repoQuery"),
+				PageRepoQuery.class);
 		submenu.add(menu);
 
 		menu = new MenuItem(createStringResource("PageAdmin.menu.top.configuration.about"), PageAbout.class);

@@ -18,20 +18,45 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:wicket="http://wicket.apache.org">
 <body>
 <wicket:extend>
-    <form wicket:id="mainForm" class="form-horizontal">
-        <div class="form-group">
-            <div class="col-md-12">
-                <textarea wicket:id="editor"></textarea>
+    <form wicket:id="mainForm" class="form-inline" role="form">
+
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col-md-6">
+                    <h3><wicket:message key="PageRepoQuery.midPoint"/></h3>
+                    <div class="form-group" style="margin-bottom: 15px">
+                        <label for="objectType"><wicket:message key="PageRepoQuery.objectType"/></label>
+                        <select id="objectType" wicket:id="objectType" class="input-sm form-control"></select>
+                    </div>
+                    <br/> <!-- couldn't put this into form-group, so leaving it standalone -->
+                    <textarea wicket:id="editorMidPoint" style="margin-bottom: 10px"></textarea>
+                    <div class="form-group" style="margin-top: 10px">
+                        <label for="querySample" class="small"><wicket:message key="PageRepoQuery.chooseSample"/></label>
+                        <select id="querySample" class="input-sm form-control" wicket:id="querySample"/>
+                    </div>
+                    <p class="small" style="margin-top: 5px"><wicket:message key="PageRepoQuery.queryVsFilterNote"/></p>
+                    <div class="main-button-bar">
+                        <a class="btn btn-primary" wicket:id="executeMidPoint"/>
+                        <a class="btn btn-default" wicket:id="compileMidPoint"/>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <h3><wicket:message key="PageRepoQuery.hibernateQuery"/></h3>
+                    <textarea wicket:id="editorHibernate"></textarea>
+                    <h4><wicket:message key="PageRepoQuery.hibernateParameters"/></h4>
+                    <p class="small"><wicket:message key="PageRepoQuery.hibernateParametersNote"/></p>
+                    <textarea wicket:id="hibernateParameters"></textarea>
+                    <div class="form-group" style="margin-top: 15px">
+                        <a class="btn btn-primary" wicket:id="executeHibernate"/>
+                    </div>
+                </div>
             </div>
-        </div>
 
-        <div class="main-button-bar">
-            <a class="btn btn-primary" wicket:id="execute"/>
-        </div>
-
-        <div class="form-group">
-            <div class="col-md-12">
-                <textarea wicket:id="answer" rows="50" cols="120"></textarea>
+            <div class="row">
+                <div class="col-md-12">
+                    <h3 wicket:id="resultLabel"/>
+                    <textarea wicket:id="resultText"></textarea>
+                </div>
             </div>
         </div>
     </form>

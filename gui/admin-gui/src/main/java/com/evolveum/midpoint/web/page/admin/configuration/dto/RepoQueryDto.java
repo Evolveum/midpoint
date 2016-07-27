@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.web.page.admin.configuration.dto;
 
+import javax.xml.namespace.QName;
 import java.io.Serializable;
 
 /**
@@ -23,25 +24,71 @@ import java.io.Serializable;
  */
 public class RepoQueryDto implements Serializable {
 
-    public static final String F_QUERY = "query";
-    public static final String F_ANSWER = "answer";
+    public static final String F_OBJECT_TYPE = "objectType";
+    public static final String F_MIDPOINT_QUERY = "midPointQuery";
+    public static final String F_HIBERNATE_QUERY = "hibernateQuery";
+    public static final String F_HIBERNATE_PARAMETERS = "hibernateParameters";
+    public static final String F_QUERY_RESULT_TEXT = "queryResultText";
+    public static final String F_QUERY_RESULT_OBJECT = "queryResultObject";
 
-    private String query;
-    private String answer;
+	private static final String EMPTY_RESULT = "";			// TODO change to 'null' after visibility of result will not be required
 
-    public String getQuery() {
-        return query;
+	private QName objectType;
+    private String midPointQuery = "";
+    private String hibernateQuery = "";
+    private String hibernateParameters = "";
+    private String queryResultText = EMPTY_RESULT;
+    private Object queryResultObject = null;
+
+	public QName getObjectType() {
+		return objectType;
+	}
+
+	public void setObjectType(QName objectType) {
+		this.objectType = objectType;
+	}
+
+	public String getMidPointQuery() {
+		return midPointQuery;
+	}
+
+	public void setMidPointQuery(String midPointQuery) {
+		this.midPointQuery = midPointQuery;
+	}
+
+	public String getHibernateQuery() {
+        return hibernateQuery;
     }
 
-    public void setQuery(String query) {
-        this.query = query;
+    public void setHibernateQuery(String hibernateQuery) {
+        this.hibernateQuery = hibernateQuery;
     }
 
-    public String getAnswer() {
-        return answer;
+	public String getHibernateParameters() {
+		return hibernateParameters;
+	}
+
+	public void setHibernateParameters(String hibernateParameters) {
+		this.hibernateParameters = hibernateParameters;
+	}
+
+	public String getQueryResultText() {
+        return queryResultText;
     }
 
-    public void setAnswer(String answer) {
-        this.answer = answer;
+    public void setQueryResultText(String queryResultText) {
+        this.queryResultText = queryResultText;
     }
+
+	public Object getQueryResultObject() {
+		return queryResultObject;
+	}
+
+	public void setQueryResultObject(Object queryResultObject) {
+		this.queryResultObject = queryResultObject;
+	}
+
+	public void resetQueryResultText() {
+		setQueryResultText(EMPTY_RESULT);
+	}
 }

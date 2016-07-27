@@ -159,6 +159,7 @@ public class BaseHelper {
 		} else {
 			handleGeneralCheckedException(ex, session, result);
 		}
+		throw new IllegalStateException("Shouldn't get here");			// just a marker to be obvious that this method never returns normally
 	}
 
 	public void handleGeneralRuntimeException(RuntimeException ex, Session session, OperationResult result) {
