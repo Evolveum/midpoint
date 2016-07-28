@@ -31,6 +31,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 
 import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertTrue;
@@ -87,12 +88,19 @@ public class TestTextFormatter extends AbstractTestNGSpringContextTests {
     @Autowired
     private PrismContext prismContext;
 
+    static {
+        // We set the locale to US to avoid translation of item names.
+        // It is crucial that this method is called before TextFormatter class is loaded.
+        // Currently this solution suffices but it is quite fragile. If something would change
+        // in this respect and breaking it, a different mechanism to set correct locale would need to be used.
+        Locale.setDefault(Locale.US);
+    }
+
     @BeforeSuite
     public void setup() throws SchemaException, SAXException, IOException {
         PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
         PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
     }
-
 
     @Test
     public void test010FormatUser() throws Exception {
