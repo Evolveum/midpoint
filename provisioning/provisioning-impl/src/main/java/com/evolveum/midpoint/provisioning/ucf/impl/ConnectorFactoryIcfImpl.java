@@ -504,7 +504,8 @@ public class ConnectorFactoryIcfImpl implements ConnectorFactory {
 
 				// hack to split MANIFEST from name
 				try {
-					URL tmp = new URL(toUrl(u.getPath().split("!")[0]));
+                                        String upath = u.getPath();
+					URL tmp = new URL(toUrl(upath.substring(0, upath.lastIndexOf("!"))));
 					if (isThisBundleCompatible(tmp)) {
 						bundle.add(tmp);
 					} else {
