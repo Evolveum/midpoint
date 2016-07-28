@@ -18,7 +18,7 @@ var ACE_EDITOR_POSTFIX = "_editor";
 var DISABLED_CLASS = "disabled";
 $.aceEditors = {};
 
-function initEditor(textAreaId, readonly, minSize) {
+function initEditor(textAreaId, readonly, resize, height, minHeight) {
     var jqTextArea = '#' + textAreaId;
     var editorId = textAreaId + ACE_EDITOR_POSTFIX;
     var jqEditor = '#' + editorId;
@@ -64,19 +64,35 @@ function initEditor(textAreaId, readonly, minSize) {
     //todo handle readonly for text area [lazyman] add "disabled" class to .ace_scroller
 
     $(document).ready(function () {
-        //38 + 1 + 21 is menu outer height
-        var newHeight = $(document).innerHeight() - $('section.content-header').outerHeight(true)
-            - $('section.content').outerHeight(true) - $('footer.main-footer').outerHeight(true)
-            - $('header.main-header').outerHeight(true);
-        if (newHeight < minSize) {
-            newHeight = minSize;
+        if (height < minHeight) {
+            height = minHeight;
         }
 
-        $('#' + editorId).height(newHeight.toString() + "px");
-        $('#' + editorId + '-section').height(newHeight.toString() + "px");
-
-        editor.resize();
+        if (resize) {
+            resizeToMaxHeight(editorId, minHeight);
+        } else {
+            resizeToFixedHeight(editorId, height);
+        }
     });
+}
+
+function resizeToMaxHeight(editorId, minHeight) {
+    //38 + 1 + 21 is menu outer height
+    var newHeight = $(document).innerHeight() - $('section.content-header').outerHeight(true)
+        - $('section.content').outerHeight(true) - $('footer.main-footer').outerHeight(true)
+        - $('header.main-header').outerHeight(true);
+    if (newHeight < minHeight) {
+        newHeight = minHeight;
+    }
+
+    resizeToFixedHeight(editorId, newHeight);
+}
+
+function resizeToFixedHeight(editorId, height) {
+    $('#' + editorId).height(height.toString() + "px");
+    $('#' + editorId + '-section').height(height.toString() + "px");
+
+    $.aceEditors[editorId].resize();
 }
 
 function refreshReadonly(textAreaId, readonly) {

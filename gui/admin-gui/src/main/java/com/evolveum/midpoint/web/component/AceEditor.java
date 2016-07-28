@@ -26,7 +26,11 @@ import org.apache.wicket.model.Model;
 public class AceEditor extends TextArea<String> {
 
     private IModel<Boolean> readonly = new Model(false);
-    private int minSize = 200;
+
+    private boolean resizeToMaxHeight = true;
+
+    private int minHeight = 200;
+    private int height = minHeight;
 
     public AceEditor(String id, IModel<String> model) {
         super(id, model);
@@ -40,18 +44,36 @@ public class AceEditor extends TextArea<String> {
         StringBuilder sb = new StringBuilder();
         sb.append("initEditor('").append(getMarkupId());
         sb.append("',").append(readonly.getObject());
-        sb.append(",").append(minSize);
+        sb.append(",").append(resizeToMaxHeight);
+        sb.append(",").append(height);
+        sb.append(",").append(minHeight);
         sb.append(");");
 
         response.render(OnDomReadyHeaderItem.forScript(sb.toString()));
     }
 
-    public int getMinSize() {
-        return minSize;
+    public int getMinHeight() {
+        return minHeight;
     }
 
-    public void setMinSize(int minSize) {
-        this.minSize = minSize;
+    public void setMinHeight(int minHeight) {
+        this.minHeight = minHeight;
+    }
+
+    public boolean isResizeToMaxHeight() {
+        return resizeToMaxHeight;
+    }
+
+    public void setResizeToMaxHeight(boolean resizeToMaxHeight) {
+        this.resizeToMaxHeight = resizeToMaxHeight;
+    }
+
+    public int getHeight() {
+        return height;
+    }
+
+    public void setHeight(int height) {
+        this.height = height;
     }
 
     public void setReadonly(boolean readonly) {

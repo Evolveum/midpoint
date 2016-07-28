@@ -143,16 +143,19 @@ public class PageRepoQuery extends PageAdminConfiguration {
 		mainForm.add(resultText);
 
 		AceEditor editorMidPoint = new AceEditor(ID_EDITOR_MIDPOINT, new PropertyModel<String>(model, RepoQueryDto.F_MIDPOINT_QUERY));
-		editorMidPoint.setMinSize(400);
+		editorMidPoint.setHeight(400);
+		editorMidPoint.setResizeToMaxHeight(false);
         mainForm.add(editorMidPoint);
 
 		AceEditor editorHibernate = new AceEditor(ID_EDITOR_HIBERNATE, new PropertyModel<String>(model, RepoQueryDto.F_HIBERNATE_QUERY));
-		editorHibernate.setMinSize(300);
+		editorHibernate.setHeight(300);
+		editorHibernate.setResizeToMaxHeight(false);
 		mainForm.add(editorHibernate);
 
 		AceEditor hibernateParameters = new AceEditor(ID_HIBERNATE_PARAMETERS, new PropertyModel<String>(model, RepoQueryDto.F_HIBERNATE_PARAMETERS));
 		hibernateParameters.setReadonly(true);
-		hibernateParameters.setMinSize(100);
+		hibernateParameters.setHeight(100);
+		hibernateParameters.setResizeToMaxHeight(false);
 		mainForm.add(hibernateParameters);
 
 		AjaxSubmitButton executeMidPoint = new AjaxSubmitButton(ID_EXECUTE_MIDPOINT, createStringResource("PageRepoQuery.button.translateAndExecute")) {

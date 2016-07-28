@@ -61,7 +61,7 @@ public class AceEditorDialog extends BasePanel<String> {
 	    private AceEditor createAceEditor(){
 	    	AceEditor acePanel = new AceEditor(ID_RESULT, xmlModel);
 	    	acePanel.setReadonly(true);
-	    	acePanel.setMinSize(500);
+	    	acePanel.setMinHeight(500);
 	    	return acePanel;
 	    }
 	    

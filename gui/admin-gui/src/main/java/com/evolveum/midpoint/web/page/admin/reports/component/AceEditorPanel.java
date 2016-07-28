@@ -53,7 +53,7 @@ public class AceEditorPanel extends BasePanel<String> {
         AceEditor editor = new AceEditor(ID_EDITOR, getModel());
         editor.setReadonly(false);
         if (minSize > 0) {
-            editor.setMinSize(minSize);
+            editor.setMinHeight(minSize);
         }
         add(editor);
     }
