@@ -154,6 +154,7 @@ public class PageRepoQuery extends PageAdminConfiguration {
 
 		AceEditor hibernateParameters = new AceEditor(ID_HIBERNATE_PARAMETERS, new PropertyModel<String>(model, RepoQueryDto.F_HIBERNATE_PARAMETERS));
 		hibernateParameters.setReadonly(true);
+		hibernateParameters.setMinHeight(100);
 		hibernateParameters.setHeight(100);
 		hibernateParameters.setResizeToMaxHeight(false);
 		mainForm.add(hibernateParameters);
