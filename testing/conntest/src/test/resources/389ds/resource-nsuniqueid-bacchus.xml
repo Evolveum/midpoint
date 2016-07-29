@@ -51,7 +51,6 @@
 			<icfcldap:uidAttribute>nsUniqueId</icfcldap:uidAttribute>
 			<icfcldap:pagingStrategy>auto</icfcldap:pagingStrategy>
 			<icfcldap:vlvSortAttribute>uid</icfcldap:vlvSortAttribute>
-			<icfcldap:operationalAttributes>memberOf</icfcldap:operationalAttributes>
 			<icfcldap:operationalAttributes>createTimestamp</icfcldap:operationalAttributes>
 			<icfcldap:operationalAttributes>nsAccountLock</icfcldap:operationalAttributes>
 		</icfc:configurationProperties>
@@ -163,10 +162,6 @@
 					</source>
 				</outbound>
 			</attribute>
-			<attribute>
-				<ref>ri:memberOf</ref>
-				<fetchStrategy>explicit</fetchStrategy>
-			</attribute>
 			
 			 <association>
             	<ref>ri:group</ref>
@@ -176,8 +171,6 @@
             	<direction>objectToSubject</direction>
             	<associationAttribute>ri:uniqueMember</associationAttribute>
             	<valueAttribute>ri:dn</valueAttribute>
-            	<shortcutAssociationAttribute>ri:memberOf</shortcutAssociationAttribute>
-            	<shortcutValueAttribute>ri:dn</shortcutValueAttribute>
             	<explicitReferentialIntegrity>true</explicitReferentialIntegrity>
             </association>
             
