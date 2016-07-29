@@ -99,7 +99,9 @@ public class PageRepoQuery extends PageAdminConfiguration {
 			"OrgType_AllRootOrgs",
 			"OrgType_OrgOfType1",
 			"ObjectType_AllObjectsInASubtree",
-			"ObjectType_AllObjectsInAnOrg"
+			"ObjectType_AllObjectsInAnOrg",
+			"ShadowType_ShadowsOnGivenResource",
+			"UserType_UsersWithShadowOnGivenResource"
 	);
 
 	private final IModel<RepoQueryDto> model = new Model<>(new RepoQueryDto());
