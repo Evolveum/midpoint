@@ -1,6 +1,5 @@
-package com.evolveum.midpoint.testing.story;
 /*
- * Copyright (c) 2013 Evolveum
+ * Copyright (c) 2016 mythoss, Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,6 +13,7 @@ package com.evolveum.midpoint.testing.story;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.evolveum.midpoint.testing.story;
 
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static org.testng.AssertJUnit.assertEquals;
@@ -294,8 +294,9 @@ public class TestNullAttribute extends AbstractStoryTest {
 	 * remove extension/ship
 	 * role ShipNWeapon should be unassigned (beacause of objecttemplate)
 	 * in resource account only value for fullname should still exist, ship and weapon should have been removed
+	 * MID-3325
 	 */
-	@Test
+	@Test(enabled=false) // MID-3325
 	public void test030UserSmackRemoveAttribute() throws Exception {
 		final String TEST_NAME = "test030UserSmackRemoveAttribute";
 		TestUtil.displayTestTile(this, TEST_NAME);
@@ -306,32 +307,37 @@ public class TestNullAttribute extends AbstractStoryTest {
         dummyAuditService.clear();
 			
 		
-		 // WHEN
 		//TODO: best way to set extension properties?
-        PrismObject<UserType> userPrism = getUser(USER_SMACK_OID);
-		PrismObject<UserType> userNewPrism = userPrism.clone();
+        PrismObject<UserType> userBefore = getUser(USER_SMACK_OID);
+        display("User before", userBefore);
+		PrismObject<UserType> userNewPrism = userBefore.clone();
 		prismContext.adopt(userNewPrism);	
 		if (userNewPrism.getExtension()==null)userNewPrism.createExtension();		
 		PrismContainer<?> ext = userNewPrism.getExtension();
 		ext.setPropertyRealValue(new QName(EXTENSION_NS, "ship"), null);
 
-		ObjectDelta<UserType> delta = userPrism.diff(userNewPrism);
+		ObjectDelta<UserType> delta = userBefore.diff(userNewPrism);
+		display("Modifying user with delta", delta);
 		
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(delta);
+		
+		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
 		modelService.executeChanges(deltas, null, task, result);
         
 		
 		// THEN
+		TestUtil.displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
         
-        PrismObject<UserType> user = getUser(USER_SMACK_OID);
-        display("User smack after deleting attribute piracy:ship", user);
+        PrismObject<UserType> userAfter = getUser(USER_SMACK_OID);
+        display("User smack after deleting attribute piracy:ship", userAfter);
         
-        assertAssignedRole(user, ROLE_ACCOUNTONLY_OID);
-        assertNotAssignedRole(user, ROLE_SHIPNWEAPON_OID);
+        assertAssignedRole(userAfter, ROLE_ACCOUNTONLY_OID);
+        assertNotAssignedRole(userAfter, ROLE_SHIPNWEAPON_OID);
         
-        String accountOid = getLinkRefOid(user, RESOURCE_DUMMY_OID);
+        String accountOid = getLinkRefOid(userAfter, RESOURCE_DUMMY_OID);
         
         // Check shadow
         PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
