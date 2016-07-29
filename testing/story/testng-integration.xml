@@ -34,6 +34,7 @@
             <class name="com.evolveum.midpoint.testing.story.TestLdapHierarchical"/>
             <class name="com.evolveum.midpoint.testing.story.TestLdapDeeplyHierarchical"/>
             <class name="com.evolveum.midpoint.testing.story.TestRetirement"/>
+            <class name="com.evolveum.midpoint.testing.story.TestNullAttribute"/>
         </classes>
     </test>
 </suite>
