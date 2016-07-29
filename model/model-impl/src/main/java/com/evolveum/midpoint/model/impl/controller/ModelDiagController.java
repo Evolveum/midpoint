@@ -21,13 +21,11 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.impl.dataModel.DataModelVisualizer;
-import com.evolveum.midpoint.schema.ProvisioningDiag;
-import com.evolveum.midpoint.schema.RepositoryQueryDiagRequest;
-import com.evolveum.midpoint.schema.RepositoryQueryDiagResponse;
+import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.api.SecurityEnforcer;
 import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -43,7 +41,6 @@ import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.schema.RepositoryDiag;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -51,8 +48,6 @@ import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.RandomString;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 /**
@@ -64,6 +59,7 @@ public class ModelDiagController implements ModelDiagnosticService {
 	
 	public static final String CLASS_NAME_WITH_DOT = ModelDiagController.class.getName() + ".";
 	private static final String REPOSITORY_SELF_TEST_USER = CLASS_NAME_WITH_DOT + "repositorySelfTest.user";
+	private static final String REPOSITORY_SELF_TEST_LOOKUP_TABLE = CLASS_NAME_WITH_DOT + "repositorySelfTest.lookupTable";
 	private static final String EXPORT_DATA_MODEL = CLASS_NAME_WITH_DOT + "exportDataModel";
 
 	private static final String NAME_PREFIX = "selftest";
@@ -119,7 +115,8 @@ public class ModelDiagController implements ModelDiagnosticService {
 		repositoryService.repositorySelfTest(testResult);
 		
 		repositorySelfTestUser(task, testResult);
-		
+		repositorySelfTestLookupTable(task, testResult);
+
 		testResult.computeStatus();
 		return testResult;
 	}
@@ -196,13 +193,7 @@ public class ModelDiagController implements ModelDiagnosticService {
 		String oid;
 		try {
 			oid = repositoryService.addObject(user, null, result);
-		} catch (ObjectAlreadyExistsException e) {
-			result.recordFatalError(e);
-			return;
-		} catch (SchemaException e) {
-			result.recordFatalError(e);
-			return;
-		} catch (RuntimeException e) {
+		} catch (ObjectAlreadyExistsException | SchemaException | RuntimeException e) {
 			result.recordFatalError(e);
 			return;
 		}
@@ -215,13 +206,7 @@ public class ModelDiagController implements ModelDiagnosticService {
 				PrismObject<UserType> userRetrieved;
 				try {
 					userRetrieved = repositoryService.getObject(UserType.class, oid, null, subresult);
-				} catch (ObjectNotFoundException e) {
-					result.recordFatalError(e);
-					return;
-				} catch (SchemaException e) {
-					result.recordFatalError(e);
-					return;
-				} catch (RuntimeException e) {
+				} catch (ObjectNotFoundException | SchemaException | RuntimeException e) {
 					result.recordFatalError(e);
 					return;
 				}
@@ -254,10 +239,7 @@ public class ModelDiagController implements ModelDiagnosticService {
 					checkUser(userRetrieved, name, subresult);
 					
 					subresult.recordSuccessIfUnknown();
-				} catch (SchemaException e) {
-					subresult.recordFatalError(e);
-					return;
-				} catch (RuntimeException e) {
+				} catch (SchemaException | RuntimeException e) {
 					subresult.recordFatalError(e);
 					return;
 				}
@@ -283,16 +265,13 @@ public class ModelDiagController implements ModelDiagnosticService {
 					checkUser(userRetrieved, name, subresult);
 					
 					subresult.recordSuccessIfUnknown();
-				} catch (SchemaException e) {
-					subresult.recordFatalError(e);
-					return;
-				} catch (RuntimeException e) {
+				} catch (SchemaException | RuntimeException e) {
 					subresult.recordFatalError(e);
 					return;
 				}
 			}
 			
-// MID-1116
+			// MID-1116
 			{
 				OperationResult subresult = result.createSubresult(result.getOperation()+".searchObjects.organization");
 				try {
@@ -302,7 +281,7 @@ public class ModelDiagController implements ModelDiagnosticService {
 							toPolyString(USER_ORGANIZATION[1]));
 					query.setFilter(filter);
 					subresult.addParam("query", query);
-					List<PrismObject<UserType>> foundObjects = repositoryService.searchObjects(UserType.class, query , null, subresult);
+					List<PrismObject<UserType>> foundObjects = repositoryService.searchObjects(UserType.class, query, null, subresult);
 					if (LOGGER.isTraceEnabled()) {
 						LOGGER.trace("Self-test:user searchObjects:\n{}", DebugUtil.debugDump(foundObjects));
 					}
@@ -312,10 +291,7 @@ public class ModelDiagController implements ModelDiagnosticService {
 					checkUser(userRetrieved, name, subresult);
 					
 					subresult.recordSuccessIfUnknown();
-				} catch (SchemaException e) {
-					subresult.recordFatalError(e);
-					return;
-				} catch (RuntimeException e) {
+				} catch (SchemaException | RuntimeException e) {
 					subresult.recordFatalError(e);
 					return;
 				}
@@ -326,28 +302,120 @@ public class ModelDiagController implements ModelDiagnosticService {
 			
 			try {
 				repositoryService.deleteObject(UserType.class, oid, testResult);
-			} catch (ObjectNotFoundException e) {
-				result.recordFatalError(e);
-				return;
-			} catch (RuntimeException e) {
+			} catch (ObjectNotFoundException | RuntimeException e) {
 				result.recordFatalError(e);
 				return;
 			}
-			
+
 			result.computeStatus();
 		}
 		
 	}
 
 	private void checkUser(PrismObject<UserType> userRetrieved, String name, OperationResult subresult) {
-		checkUserPropertyPolyString(userRetrieved, UserType.F_NAME, subresult, name);
-		checkUserProperty(userRetrieved, UserType.F_DESCRIPTION, subresult, SelfTestData.POLICIJA);
-		checkUserPropertyPolyString(userRetrieved, UserType.F_FULL_NAME, subresult, USER_FULL_NAME);
-		checkUserPropertyPolyString(userRetrieved, UserType.F_GIVEN_NAME, subresult, USER_GIVEN_NAME);
-		checkUserPropertyPolyString(userRetrieved, UserType.F_FAMILY_NAME, subresult, USER_FAMILY_NAME);
-		checkUserPropertyPolyString(userRetrieved, UserType.F_TITLE, subresult, INSANE_NATIONAL_STRING);
-		checkUserProperty(userRetrieved, UserType.F_EMPLOYEE_TYPE, subresult, USER_EMPLOYEE_TYPE);
-		checkUserPropertyPolyString(userRetrieved, UserType.F_ORGANIZATION, subresult, USER_ORGANIZATION);
+		checkObjectPropertyPolyString(userRetrieved, UserType.F_NAME, subresult, name);
+		checkObjectProperty(userRetrieved, UserType.F_DESCRIPTION, subresult, SelfTestData.POLICIJA);
+		checkObjectPropertyPolyString(userRetrieved, UserType.F_FULL_NAME, subresult, USER_FULL_NAME);
+		checkObjectPropertyPolyString(userRetrieved, UserType.F_GIVEN_NAME, subresult, USER_GIVEN_NAME);
+		checkObjectPropertyPolyString(userRetrieved, UserType.F_FAMILY_NAME, subresult, USER_FAMILY_NAME);
+		checkObjectPropertyPolyString(userRetrieved, UserType.F_TITLE, subresult, INSANE_NATIONAL_STRING);
+		checkObjectProperty(userRetrieved, UserType.F_EMPLOYEE_TYPE, subresult, USER_EMPLOYEE_TYPE);
+		checkObjectPropertyPolyString(userRetrieved, UserType.F_ORGANIZATION, subresult, USER_ORGANIZATION);
+	}
+
+	private void repositorySelfTestLookupTable(Task task, OperationResult testResult) {
+		OperationResult result = testResult.createSubresult(REPOSITORY_SELF_TEST_LOOKUP_TABLE);
+
+		PrismObject<LookupTableType> lookupTable;
+		try {
+			lookupTable = getObjectDefinition(LookupTableType.class).instantiate();
+		} catch (SchemaException e) {
+			result.recordFatalError(e);
+			return;
+		}
+		LookupTableType lookupTableType = lookupTable.asObjectable();
+
+		String name = generateRandomName();
+		PolyStringType namePolyStringType = toPolyStringType(name);
+		lookupTableType.setName(namePolyStringType);
+		result.addContext("name", name);
+		lookupTableType.setDescription(SelfTestData.POLICIJA);
+
+		LookupTableRowType rowType = new LookupTableRowType(prismContext);
+		rowType.setKey(INSANE_NATIONAL_STRING);
+		rowType.setValue(INSANE_NATIONAL_STRING);
+		rowType.setLabel(toPolyStringType(INSANE_NATIONAL_STRING));
+		lookupTableType.getRow().add(rowType);
+
+		String oid;
+		try {
+			oid = repositoryService.addObject(lookupTable, null, result);
+		} catch (ObjectAlreadyExistsException | SchemaException | RuntimeException e) {
+			result.recordFatalError(e);
+			return;
+		}
+
+		try {
+			{
+				OperationResult subresult = result.createSubresult(result.getOperation()+".getObject");
+
+				PrismObject<LookupTableType> lookupTableRetrieved;
+				try {
+					Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(LookupTableType.F_ROW,
+							GetOperationOptions.createRetrieve());
+					lookupTableRetrieved = repositoryService.getObject(LookupTableType.class, oid, options, subresult);
+				} catch (ObjectNotFoundException | SchemaException | RuntimeException e) {
+					result.recordFatalError(e);
+					return;
+				}
+				if (LOGGER.isTraceEnabled()) {
+					LOGGER.trace("Self-test:lookupTable getObject:\n{}", lookupTableRetrieved.debugDump());
+				}
+				checkLookupTable(lookupTableRetrieved, name, subresult);
+				subresult.recordSuccessIfUnknown();
+			}
+
+			{
+				OperationResult subresult = result.createSubresult(result.getOperation()+".getObject.key");
+				try {
+
+					RelationalValueSearchQuery subquery = new RelationalValueSearchQuery(LookupTableRowType.F_KEY, INSANE_NATIONAL_STRING, RelationalValueSearchType.EXACT);
+					Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(LookupTableType.F_ROW,
+							GetOperationOptions.createRetrieve(subquery));
+					PrismObject<LookupTableType> lookupTableRetrieved = repositoryService.getObject(LookupTableType.class, oid, options, result);
+
+					subresult.addParam("subquery", subquery);
+					if (LOGGER.isTraceEnabled()) {
+						LOGGER.trace("Self-test:lookupTable getObject by row key:\n{}", DebugUtil.debugDump(lookupTableRetrieved));
+					}
+					checkLookupTable(lookupTableRetrieved, name, subresult);
+					subresult.recordSuccessIfUnknown();
+				} catch (ObjectNotFoundException | SchemaException | RuntimeException e) {
+					subresult.recordFatalError(e);
+					return;
+				}
+			}
+
+		} finally {
+			try {
+				repositoryService.deleteObject(LookupTableType.class, oid, testResult);
+			} catch (ObjectNotFoundException | RuntimeException e) {
+				result.recordFatalError(e);
+				return;
+			}
+			result.computeStatus();
+		}
+	}
+
+	private void checkLookupTable(PrismObject<LookupTableType> lookupTable, String name, OperationResult subresult) {
+		checkObjectPropertyPolyString(lookupTable, LookupTableType.F_NAME, subresult, name);
+		checkObjectProperty(lookupTable, LookupTableType.F_DESCRIPTION, subresult, SelfTestData.POLICIJA);
+		LookupTableType lookupTableType = lookupTable.asObjectable();
+		assertEquals("Unexpected number of rows", 1, lookupTableType.getRow().size(), subresult);
+		LookupTableRowType rowType = lookupTableType.getRow().get(0);
+		assertEquals("Unexpected key value", INSANE_NATIONAL_STRING, rowType.getKey(), subresult);
+		assertEquals("Unexpected 'value' value", INSANE_NATIONAL_STRING, rowType.getValue(), subresult);
+		assertPolyStringType("Unexpected label value", INSANE_NATIONAL_STRING, rowType.getLabel(), subresult);
 	}
 
 	private void assertSingleSearchResult(String objectTypeMessage, List<PrismObject<UserType>> foundObjects, OperationResult parentResult) {
@@ -357,9 +425,9 @@ public class ModelDiagController implements ModelDiagnosticService {
 		result.recordSuccessIfUnknown();
 	}
 	
-	private <O extends ObjectType,T> void checkUserProperty(PrismObject<O> object, QName propQName, OperationResult parentResult, T... expectedValues) {
+	private <O extends ObjectType,T> void checkObjectProperty(PrismObject<O> object, QName propQName, OperationResult parentResult, T... expectedValues) {
 		String propName = propQName.getLocalPart();
-		OperationResult result = parentResult.createSubresult(parentResult.getOperation() + "." + propName);
+		OperationResult result = parentResult.createSubresult(parentResult.getOperation() + ".checkObjectProperty." + propName);
 		PrismProperty<T> prop = object.findProperty(propQName);
 		Collection<T> actualValues = prop.getRealValues();
 		result.addArbitraryCollectionAsParam("actualValues", actualValues);
@@ -387,7 +455,7 @@ public class ModelDiagController implements ModelDiagnosticService {
 		}
 	}
 
-	private <O extends ObjectType> void checkUserPropertyPolyString(PrismObject<O> object, QName propQName, OperationResult parentResult, String... expectedValues) {
+	private <O extends ObjectType> void checkObjectPropertyPolyString(PrismObject<O> object, QName propQName, OperationResult parentResult, String... expectedValues) {
 		String propName = propQName.getLocalPart();
 		OperationResult result = parentResult.createSubresult(parentResult.getOperation() + "." + propName);
 		PrismProperty<PolyString> prop = object.findProperty(propQName);

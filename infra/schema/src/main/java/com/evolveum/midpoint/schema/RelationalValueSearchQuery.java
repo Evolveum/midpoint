@@ -19,11 +19,13 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 
+import java.io.Serializable;
+
 /**
  * @author semancik
  *
  */
-public class RelationalValueSearchQuery {
+public class RelationalValueSearchQuery implements Serializable {
 	private QName column;
 	private String searchValue;
 	private RelationalValueSearchType searchType;
