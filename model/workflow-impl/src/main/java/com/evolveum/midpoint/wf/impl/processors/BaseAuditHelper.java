@@ -92,31 +92,35 @@ public class BaseAuditHelper {
         AuditEventRecord auditEventRecord = new AuditEventRecord();
         auditEventRecord.setEventType(AuditEventType.WORK_ITEM);
         auditEventRecord.setEventStage(stage);
-		auditEventRecord.setInitiator(wfTask.getRequesterIfExists(result));
+
+        if (stage == AuditEventStage.REQUEST) {
+            auditEventRecord.setInitiator(wfTask.getRequesterIfExists(result));
+            auditEventRecord.setTargetOwner((PrismObject<UserType>) ObjectTypeUtil.getPrismObjectFromReference(workItem.getAssigneeRef()));
+        } else {
+            try {
+                @SuppressWarnings("unchecked")
+                PrismObject<UserType> principal = securityEnforcer.getPrincipal().getUser().asPrismObject();
+                auditEventRecord.setInitiator(principal);
+                auditEventRecord.setTargetOwner(principal);
+            } catch (SecurityViolationException e) {
+                auditEventRecord.setInitiator(null);
+                auditEventRecord.setTargetOwner(null);
+                LOGGER.warn("No initiator and target owner known for auditing work item completion: " + e.getMessage(), e);
+            }
+        }
 
         PrismObject<GenericObjectType> targetObject = new PrismObject<>(GenericObjectType.COMPLEX_TYPE, GenericObjectType.class);
         targetObject.asObjectable().setName(new PolyStringType(workItem.getName()));
         targetObject.asObjectable().setOid(workItem.getWorkItemId());
         auditEventRecord.setTarget(targetObject);
 
-        if (stage == AuditEventStage.REQUEST) {
-			auditEventRecord.setTargetOwner((PrismObject<UserType>) ObjectTypeUtil.getPrismObjectFromReference(workItem.getAssigneeRef()));
-        } else {
-            MidPointPrincipal principal;
-			try {
-				principal = securityEnforcer.getPrincipal();
-				auditEventRecord.setTargetOwner(principal.getUser().asPrismObject());
-			} catch (SecurityViolationException e) {
-				LOGGER.warn("Not recording user in the audit record because there is no user: "+e.getMessage(), e);
-			}
-        }
-
         auditEventRecord.setOutcome(OperationResultStatus.SUCCESS);
         if (stage == AuditEventStage.EXECUTION) {
 			DecisionType decision = workItem.getDecision();
 			if (decision != null) {
 				auditEventRecord.setResult(decision.getResultAsString());
-				auditEventRecord.setMessage(decision.getComment());
+                String comment = decision.getComment() != null ? ": " + decision.getComment() : "";
+				auditEventRecord.setMessage(decision.getResultAsString() + comment);
 			}
         }
 

@@ -88,9 +88,7 @@ public class WorkItemManager {
 
 			final Map<String, String> propertiesToSubmit = new HashMap<>();
 			propertiesToSubmit.put(CommonProcessVariableNames.FORM_FIELD_DECISION, decision);
-			if (comment != null) {
-				propertiesToSubmit.put(CommonProcessVariableNames.FORM_FIELD_COMMENT, comment);
-			}
+			propertiesToSubmit.put(CommonProcessVariableNames.FORM_FIELD_COMMENT, comment);
 
 			// we also fill-in the corresponding 'button' property (if there's one that corresponds to the decision)
 			for (FormProperty formProperty : data.getFormProperties()) {
