@@ -31,7 +31,7 @@ public class RepoQueryDto implements Serializable {
     public static final String F_QUERY_RESULT_TEXT = "queryResultText";
     public static final String F_QUERY_RESULT_OBJECT = "queryResultObject";
 
-	private static final String EMPTY_RESULT = "";			// TODO change to 'null' after visibility of result will not be required
+	private static final String EMPTY_RESULT = null;
 
 	private QName objectType;
     private String midPointQuery = "";

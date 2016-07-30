@@ -16,14 +16,13 @@
 
 package com.evolveum.midpoint.schema;
 
-import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 import java.io.Serializable;
 
 /**
- * Query diagnostics request: contains query to be executed (or at least compiled) and some options.
+ * Query diagnostics request: contains query to be executed (or at least translated) and some options.
  *
  * EXPERIMENTAL, will probably change
  *
@@ -36,7 +35,7 @@ public class RepositoryQueryDiagRequest implements Serializable {
 
 	private Serializable implementationLevelQuery;				// this is used if specified
 
-	private boolean compileOnly;
+	private boolean translateOnly;
 
 	public Class<? extends ObjectType> getType() {
 		return type;
@@ -62,11 +61,11 @@ public class RepositoryQueryDiagRequest implements Serializable {
 		this.implementationLevelQuery = implementationLevelQuery;
 	}
 
-	public boolean isCompileOnly() {
-		return compileOnly;
+	public boolean isTranslateOnly() {
+		return translateOnly;
 	}
 
-	public void setCompileOnly(boolean compileOnly) {
-		this.compileOnly = compileOnly;
+	public void setTranslateOnly(boolean translateOnly) {
+		this.translateOnly = translateOnly;
 	}
 }

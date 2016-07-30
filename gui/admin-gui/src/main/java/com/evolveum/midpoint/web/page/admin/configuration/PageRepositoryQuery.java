@@ -19,13 +19,15 @@ package com.evolveum.midpoint.web.page.admin.configuration;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.query.QueryJaxbConvertor;
+import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.RepositoryQueryDiagRequest;
 import com.evolveum.midpoint.schema.RepositoryQueryDiagResponse;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -34,6 +36,7 @@ import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AceEditor;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.input.QNameChoiceRenderer;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.RepoQueryDto;
 import com.evolveum.midpoint.web.util.StringResourceChoiceRenderer;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
@@ -42,6 +45,7 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.Form;
@@ -60,15 +64,17 @@ import java.util.*;
  * @author lazyman
  * @author mederly
  */
-@PageDescriptor(url = "/admin/config/repoQuery", action = {
-        @AuthorizationAction(actionUri = PageAdminConfiguration.AUTH_CONFIGURATION_ALL,
-                label = PageAdminConfiguration.AUTH_CONFIGURATION_ALL_LABEL, description = PageAdminConfiguration.AUTH_CONFIGURATION_ALL_DESCRIPTION)
+@PageDescriptor(url = "/admin/config/repositoryQuery", action = {
+		@AuthorizationAction(actionUri = PageAdminConfiguration.AUTH_CONFIGURATION_ALL,
+				label = PageAdminConfiguration.AUTH_CONFIGURATION_ALL_LABEL, description = PageAdminConfiguration.AUTH_CONFIGURATION_ALL_DESCRIPTION),
+		@AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_CONFIGURATION_REPOSITORY_QUERY_URL,
+                label = "PageRepositoryQuery.auth.query.label", description = "PageRepositoryQuery.auth.query.description")
 })
-public class PageRepoQuery extends PageAdminConfiguration {
+public class PageRepositoryQuery extends PageAdminConfiguration {
 
-    private static final Trace LOGGER = TraceManager.getTrace(PageRepoQuery.class);
+    private static final Trace LOGGER = TraceManager.getTrace(PageRepositoryQuery.class);
 
-    private static final String DOT_CLASS = PageRepoQuery.class.getName() + ".";
+    private static final String DOT_CLASS = PageRepositoryQuery.class.getName() + ".";
 
     private static final String OPERATION_TRANSLATE_QUERY = DOT_CLASS + "translateQuery";
     private static final String OPERATION_EXECUTE_QUERY = DOT_CLASS + "executeQuery";
@@ -84,6 +90,8 @@ public class PageRepoQuery extends PageAdminConfiguration {
     private static final String ID_RESULT_TEXT = "resultText";
 	private static final String ID_QUERY_SAMPLE = "querySample";
 	private static final String ID_OBJECT_TYPE = "objectType";
+	private static final String ID_HIBERNATE_PARAMETERS_NOTE = "hibernateParametersNote";
+	private static final String ID_INCOMPLETE_RESULTS_NOTE = "incompleteResultsNote";
 
 	private static final String SAMPLES_DIR = "query-samples";
 	private static final List<String> SAMPLES = Arrays.asList(
@@ -105,10 +113,20 @@ public class PageRepoQuery extends PageAdminConfiguration {
 	);
 
 	private final IModel<RepoQueryDto> model = new Model<>(new RepoQueryDto());
+	private final boolean isAdmin;
 
 	enum Action {TRANSLATE_ONLY, EXECUTE_MIDPOINT, EXECUTE_HIBERNATE }
 
-    public PageRepoQuery() {
+    public PageRepositoryQuery() {
+		boolean admin;
+		try {
+			admin = getSecurityEnforcer().isAuthorized(AuthorizationConstants.AUTZ_ALL_URL, null, null, null, null, null);
+		} catch (SchemaException | RuntimeException e) {
+			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't determine admin authorization -- continuing as non-admin", e);
+			admin = false;
+		}
+		isAdmin = admin;
+
         initLayout();
     }
 
@@ -131,19 +149,6 @@ public class PageRepoQuery extends PageAdminConfiguration {
 		objectTypeChoice.setNullValid(true);
 		mainForm.add(objectTypeChoice);
 
-		AceEditor resultText = new AceEditor(ID_RESULT_TEXT, new PropertyModel<String>(model, RepoQueryDto.F_QUERY_RESULT_TEXT));
-		resultText.setReadonly(true);
-		// Temporary hack: this editor has to be visible - and inserted as first one - in order to stop automatic
-		// resizing of other editors on this page. Will be removed after automatic resizing will be configurable.
-
-//		resultText.add(new VisibleEnableBehaviour() {
-//			@Override
-//			public boolean isVisible() {
-//				return model.getObject().getQueryResultText() != null;
-//			}
-//		});
-		mainForm.add(resultText);
-
 		AceEditor editorMidPoint = new AceEditor(ID_EDITOR_MIDPOINT, new PropertyModel<String>(model, RepoQueryDto.F_MIDPOINT_QUERY));
 		editorMidPoint.setHeight(400);
 		editorMidPoint.setResizeToMaxHeight(false);
@@ -152,16 +157,20 @@ public class PageRepoQuery extends PageAdminConfiguration {
 		AceEditor editorHibernate = new AceEditor(ID_EDITOR_HIBERNATE, new PropertyModel<String>(model, RepoQueryDto.F_HIBERNATE_QUERY));
 		editorHibernate.setHeight(300);
 		editorHibernate.setResizeToMaxHeight(false);
+		editorHibernate.setReadonly(!isAdmin);
 		mainForm.add(editorHibernate);
 
 		AceEditor hibernateParameters = new AceEditor(ID_HIBERNATE_PARAMETERS, new PropertyModel<String>(model, RepoQueryDto.F_HIBERNATE_PARAMETERS));
 		hibernateParameters.setReadonly(true);
-		hibernateParameters.setMinHeight(100);
 		hibernateParameters.setHeight(100);
 		hibernateParameters.setResizeToMaxHeight(false);
 		mainForm.add(hibernateParameters);
 
-		AjaxSubmitButton executeMidPoint = new AjaxSubmitButton(ID_EXECUTE_MIDPOINT, createStringResource("PageRepoQuery.button.translateAndExecute")) {
+		WebMarkupContainer hibernateParametersNote = new WebMarkupContainer(ID_HIBERNATE_PARAMETERS_NOTE);
+		hibernateParametersNote.setVisible(isAdmin);
+		mainForm.add(hibernateParametersNote);
+
+		AjaxSubmitButton executeMidPoint = new AjaxSubmitButton(ID_EXECUTE_MIDPOINT, createStringResource("PageRepositoryQuery.button.translateAndExecute")) {
             @Override
             protected void onError(AjaxRequestTarget target, Form<?> form) {
                 target.add(getFeedbackPanel());
@@ -174,7 +183,7 @@ public class PageRepoQuery extends PageAdminConfiguration {
         };
         mainForm.add(executeMidPoint);
 
-        AjaxSubmitButton compileMidPoint = new AjaxSubmitButton(ID_COMPILE_MIDPOINT, createStringResource("PageRepoQuery.button.translate")) {
+        AjaxSubmitButton compileMidPoint = new AjaxSubmitButton(ID_COMPILE_MIDPOINT, createStringResource("PageRepositoryQuery.button.translate")) {
             @Override
             protected void onError(AjaxRequestTarget target, Form<?> form) {
                 target.add(getFeedbackPanel());
@@ -195,7 +204,7 @@ public class PageRepoQuery extends PageAdminConfiguration {
 						return SAMPLES;
 					}
 				},
-				new StringResourceChoiceRenderer("PageRepoQuery.sample"));
+				new StringResourceChoiceRenderer("PageRepositoryQuery.sample"));
 		sampleChoice.setNullValid(true);
 		sampleChoice.add(new OnChangeAjaxBehavior() {
 			@Override
@@ -205,7 +214,7 @@ public class PageRepoQuery extends PageAdminConfiguration {
 					return;
 				}
 				String resourceName = SAMPLES_DIR + "/" + sampleName + ".xml.data";
-				InputStream is = PageRepoQuery.class.getResourceAsStream(resourceName);
+				InputStream is = PageRepositoryQuery.class.getResourceAsStream(resourceName);
 				if (is != null) {
 					try {
 						String localTypeName = StringUtils.substringBefore(sampleName, "_");
@@ -215,7 +224,7 @@ public class PageRepoQuery extends PageAdminConfiguration {
 						model.getObject().setHibernateParameters("");
 						model.getObject().setQueryResultObject(null);
 						model.getObject().resetQueryResultText();
-						target.add(PageRepoQuery.this);
+						target.add(PageRepositoryQuery.this);
 					} catch (IOException e) {
 						LoggingUtils.logUnexpectedException(LOGGER, "Couldn't read sample from resource {}", e, resourceName);
 					}
@@ -226,7 +235,7 @@ public class PageRepoQuery extends PageAdminConfiguration {
 		});
 		mainForm.add(sampleChoice);
 
-        AjaxSubmitButton executeHibernate = new AjaxSubmitButton(ID_EXECUTE_HIBERNATE, createStringResource("PageRepoQuery.button.execute")) {
+        AjaxSubmitButton executeHibernate = new AjaxSubmitButton(ID_EXECUTE_HIBERNATE, createStringResource("PageRepositoryQuery.button.execute")) {
             @Override
             protected void onError(AjaxRequestTarget target, Form<?> form) {
                 target.add(getFeedbackPanel());
@@ -237,26 +246,50 @@ public class PageRepoQuery extends PageAdminConfiguration {
                 queryPerformed(Action.EXECUTE_HIBERNATE, target);
             }
         };
+		executeHibernate.setVisible(isAdmin);
         mainForm.add(executeHibernate);
 
 		Label resultLabel = new Label(ID_RESULT_LABEL, new AbstractReadOnlyModel<String>() {
 			@Override
 			public String getObject() {
-				// TODO hide label when result text is not visible (after it will be possible)
+				if (model.getObject().getQueryResultText() == null) {
+					return "";
+				}
 				Object queryResult = model.getObject().getQueryResultObject();
 				if (queryResult instanceof List) {
-					return getString("PageRepoQuery.resultObjects", ((List) queryResult).size());
+					return getString("PageRepositoryQuery.resultObjects", ((List) queryResult).size());
 				} else if (queryResult instanceof Throwable) {
-					return getString("PageRepoQuery.resultException", queryResult.getClass().getName());
+					return getString("PageRepositoryQuery.resultException", queryResult.getClass().getName());
 				} else {
 					// including null
-					return getString("PageRepoQuery.result");
+					return getString("PageRepositoryQuery.result");
 				}
 			}
 		});
 		mainForm.add(resultLabel);
 
-    }
+		WebMarkupContainer incompleteResultsNote = new WebMarkupContainer(ID_INCOMPLETE_RESULTS_NOTE);
+		incompleteResultsNote.add(new VisibleEnableBehaviour() {
+			@Override
+			public boolean isVisible() {
+				return !isAdmin && model.getObject().getQueryResultText() != null;
+			}
+		});
+		mainForm.add(incompleteResultsNote);
+
+		AceEditor resultText = new AceEditor(ID_RESULT_TEXT, new PropertyModel<String>(model, RepoQueryDto.F_QUERY_RESULT_TEXT));
+		resultText.setReadonly(true);
+		resultText.setHeight(300);
+		resultText.setResizeToMaxHeight(false);
+		resultText.add(new VisibleEnableBehaviour() {
+			@Override
+			public boolean isVisible() {
+				return model.getObject().getQueryResultText() != null;
+			}
+		});
+		mainForm.add(resultText);
+
+	}
 
     private void queryPerformed(Action action, AjaxRequestTarget target) {
     	String opName = action == Action.TRANSLATE_ONLY ? OPERATION_TRANSLATE_QUERY : OPERATION_EXECUTE_QUERY;
@@ -276,7 +309,7 @@ public class PageRepoQuery extends PageAdminConfiguration {
 					request.setImplementationLevelQuery(hqlText);
 					break;
 				case TRANSLATE_ONLY:
-					request.setCompileOnly(true);
+					request.setTranslateOnly(true);
 				case EXECUTE_MIDPOINT:
 					String queryText = dto.getMidPointQuery();
 					queryPresent = StringUtils.isNotBlank(queryText);
@@ -297,12 +330,30 @@ public class PageRepoQuery extends PageAdminConfiguration {
 			}
 
 			if (!queryPresent) {
-				warn(getString("PageRepoQuery.message.emptyString"));
+				warn(getString("PageRepositoryQuery.message.emptyString"));
 				target.add(getFeedbackPanel());
 				return;
 			}
 
-			RepositoryQueryDiagResponse response = getModelDiagnosticService().executeRepositoryQuery(request, task, result);
+			RepositoryQueryDiagResponse response;
+			List<?> queryResult;
+
+			if (isAdmin) {
+				response = getModelDiagnosticService().executeRepositoryQuery(request, task, result);
+				queryResult = response.getQueryResult();
+			} else {
+				request.setTranslateOnly(true);
+				request.setImplementationLevelQuery(null);	// just to be sure
+				response = getModelDiagnosticService().executeRepositoryQuery(request, task, result);
+
+				if (action != Action.TRANSLATE_ONLY) {
+					// not an admin, so have to fetch objects via model
+					queryResult = getModelService().searchObjects(request.getType(), request.getQuery(),
+							GetOperationOptions.createRawCollection(), task, result);
+				} else {
+					queryResult = null;
+				}
+			}
 
 			if (action != Action.EXECUTE_HIBERNATE) {
 				dto.setHibernateQuery(String.valueOf(response.getImplementationLevelQuery()));
@@ -315,14 +366,13 @@ public class PageRepoQuery extends PageAdminConfiguration {
 				dto.setHibernateParameters("");
 			}
 			if (action != Action.TRANSLATE_ONLY) {
-				final List<?> queryResult = response.getQueryResult();
 				dto.setQueryResultText(formatQueryResult(queryResult));
 				dto.setQueryResultObject(queryResult);
 			} else {
 				dto.resetQueryResultText();
 				dto.setQueryResultObject(null);
 			}
-        } catch (SecurityViolationException|SchemaException|RuntimeException e) {
+        } catch (CommonException | RuntimeException e) {
             result.recordFatalError("Couldn't execute query", e);
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't execute query", e);
             dto.setQueryResultText(e.getMessage());

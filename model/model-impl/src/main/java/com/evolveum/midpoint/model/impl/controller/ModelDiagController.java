@@ -139,8 +139,21 @@ public class ModelDiagController implements ModelDiagnosticService {
 	public RepositoryQueryDiagResponse executeRepositoryQuery(RepositoryQueryDiagRequest request, Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException {
 		OperationResult result = parentResult.createSubresult(EXECUTE_REPOSITORY_QUERY);
 		try {
-			securityEnforcer.authorize(AuthorizationConstants.AUTZ_ALL_URL, null, null, null, null, null, result);	// only admin can do this
-			return repositoryService.executeQueryDiagnostics(request, result);
+			boolean isAdmin;
+			if (request.getImplementationLevelQuery() == null && request.isTranslateOnly()) {
+				// special case - no hibernate query and translate-only: does not require authorization
+				isAdmin = false;
+			} else {
+				// otherwise admin authorization is required
+				securityEnforcer.authorize(AuthorizationConstants.AUTZ_ALL_URL, null, null, null, null, null, result);
+				isAdmin = true;
+			}
+			RepositoryQueryDiagResponse response = repositoryService.executeQueryDiagnostics(request, result);
+			if (!isAdmin && response.getQueryResult() != null) {
+				// double check we don't leak any data
+				throw new IllegalStateException("Unauthorized access yields returning data from the repository");
+			}
+			return response;
 		} catch (Throwable t) {
 			result.recordFatalError(t);
 			throw t;

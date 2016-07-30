@@ -825,7 +825,7 @@ main:       for (;;) {
 				query = session.createQuery(implementationLevelQuery);
 			}
 
-			List<?> objects = request.isCompileOnly() ? null : query.list();
+			List<?> objects = request.isTranslateOnly() ? null : query.list();
 			if (isMidpointQuery && objects != null) {
 				// raw GetObjectResult instances are useless outside repo-sql-impl module, so we'll convert them to objects
 				@SuppressWarnings("unchecked")
