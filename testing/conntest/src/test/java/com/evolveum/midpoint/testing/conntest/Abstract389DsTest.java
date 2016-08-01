@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2014-2015 Evolveum
+ * Copyright (c) 2014-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -103,6 +103,11 @@ public abstract class Abstract389DsTest extends AbstractLdapConnTest {
 	@Override
 	protected boolean isVlvSearchBeyondEndResurnsLastEntry() {
 		return true;
+	}
+	
+	@Override
+	protected boolean hasAssociationShortcut() {
+		return false;
 	}
 
 	@Override
