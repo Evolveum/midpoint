@@ -16,20 +16,28 @@
 
 package com.evolveum.midpoint.web.page.admin.configuration;
 
+import com.evolveum.midpoint.gui.api.model.NonEmptyModel;
+import com.evolveum.midpoint.gui.api.model.NonEmptyWrapperModel;
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.model.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.model.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.parser.QueryConvertor;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.QueryJaxbConvertor;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.RepositoryQueryDiagRequest;
 import com.evolveum.midpoint.schema.RepositoryQueryDiagResponse;
+import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -39,11 +47,17 @@ import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AceEditor;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.input.QNameChoiceRenderer;
+import com.evolveum.midpoint.web.component.search.Search;
+import com.evolveum.midpoint.web.component.search.SearchFactory;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.RepoQueryDto;
+import com.evolveum.midpoint.web.security.MidPointAuthWebSession;
+import com.evolveum.midpoint.web.session.PageStorage;
+import com.evolveum.midpoint.web.session.SessionStorage;
 import com.evolveum.midpoint.web.util.StringResourceChoiceRenderer;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.query_3.QueryType;
+import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -53,7 +67,6 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.AbstractReadOnlyModel;
-import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.util.ListModel;
@@ -79,12 +92,15 @@ public class PageRepositoryQuery extends PageAdminConfiguration {
 
     private static final String DOT_CLASS = PageRepositoryQuery.class.getName() + ".";
 
+    private static final String OPERATION_CHECK_QUERY = DOT_CLASS + "checkQuery";
     private static final String OPERATION_TRANSLATE_QUERY = DOT_CLASS + "translateQuery";
     private static final String OPERATION_EXECUTE_QUERY = DOT_CLASS + "executeQuery";
 
     private static final String ID_MAIN_FORM = "mainForm";
+	private static final String ID_MIDPOINT_QUERY_BUTTON_BAR = "midPointQueryButtonBar";
     private static final String ID_EXECUTE_MIDPOINT = "executeMidPoint";
     private static final String ID_COMPILE_MIDPOINT = "compileMidPoint";
+    private static final String ID_USE_IN_OBJECT_LIST = "useInObjectList";
     private static final String ID_EXECUTE_HIBERNATE = "executeHibernate";
     private static final String ID_EDITOR_MIDPOINT = "editorMidPoint";
     private static final String ID_EDITOR_HIBERNATE = "editorHibernate";
@@ -114,13 +130,26 @@ public class PageRepositoryQuery extends PageAdminConfiguration {
 			"ShadowType_ShadowsOnGivenResource",
 			"UserType_UsersWithShadowOnGivenResource"
 	);
+	private static final Set<QName> USE_IN_OBJECT_LIST_AVAILABLE_FOR = new HashSet<>(Arrays.asList(
+			UserType.COMPLEX_TYPE,
+			RoleType.COMPLEX_TYPE,
+			ServiceType.COMPLEX_TYPE,
+			ResourceType.COMPLEX_TYPE
+	));
 
-	private final IModel<RepoQueryDto> model = new Model<>(new RepoQueryDto());
+	private final NonEmptyModel<RepoQueryDto> model = new NonEmptyWrapperModel<>(new Model<>(new RepoQueryDto()));
 	private final boolean isAdmin;
 
 	enum Action {TRANSLATE_ONLY, EXECUTE_MIDPOINT, EXECUTE_HIBERNATE }
 
     public PageRepositoryQuery() {
+    	this(null, null);
+	}
+
+    public PageRepositoryQuery(QName objectType, String queryText) {
+    	model.getObject().setObjectType(objectType);
+		model.getObject().setMidPointQuery(queryText);
+
 		boolean admin;
 		try {
 			admin = getSecurityEnforcer().isAuthorized(AuthorizationConstants.AUTZ_ALL_URL, null, null, null, null, null);
@@ -150,6 +179,12 @@ public class PageRepositoryQuery extends PageAdminConfiguration {
 				new QNameChoiceRenderer());
 		objectTypeChoice.setOutputMarkupId(true);
 		objectTypeChoice.setNullValid(true);
+		objectTypeChoice.add(new OnChangeAjaxBehavior() {
+			@Override
+			protected void onUpdate(AjaxRequestTarget target) {
+				target.add(get(ID_MAIN_FORM).get(ID_MIDPOINT_QUERY_BUTTON_BAR));
+			}
+		});
 		mainForm.add(objectTypeChoice);
 
 		AceEditor editorMidPoint = new AceEditor(ID_EDITOR_MIDPOINT, new PropertyModel<String>(model, RepoQueryDto.F_MIDPOINT_QUERY));
@@ -175,6 +210,10 @@ public class PageRepositoryQuery extends PageAdminConfiguration {
 		hibernateParametersNote.setVisible(isAdmin);
 		mainForm.add(hibernateParametersNote);
 
+		WebMarkupContainer midPointQueryButtonBar = new WebMarkupContainer(ID_MIDPOINT_QUERY_BUTTON_BAR);
+		midPointQueryButtonBar.setOutputMarkupId(true);
+		mainForm.add(midPointQueryButtonBar);
+
 		AjaxSubmitButton executeMidPoint = new AjaxSubmitButton(ID_EXECUTE_MIDPOINT, createStringResource("PageRepositoryQuery.button.translateAndExecute")) {
             @Override
             protected void onError(AjaxRequestTarget target, Form<?> form) {
@@ -186,7 +225,7 @@ public class PageRepositoryQuery extends PageAdminConfiguration {
                 queryPerformed(Action.EXECUTE_MIDPOINT, target);
             }
         };
-        mainForm.add(executeMidPoint);
+        midPointQueryButtonBar.add(executeMidPoint);
 
         AjaxSubmitButton compileMidPoint = new AjaxSubmitButton(ID_COMPILE_MIDPOINT, createStringResource("PageRepositoryQuery.button.translate")) {
             @Override
@@ -199,7 +238,25 @@ public class PageRepositoryQuery extends PageAdminConfiguration {
                 queryPerformed(Action.TRANSLATE_ONLY, target);
             }
         };
-        mainForm.add(compileMidPoint);
+		midPointQueryButtonBar.add(compileMidPoint);
+
+		AjaxSubmitButton useInObjectList = new AjaxSubmitButton(ID_USE_IN_OBJECT_LIST, createStringResource("PageRepositoryQuery.button.useInObjectList")) {
+            @Override
+            protected void onError(AjaxRequestTarget target, Form<?> form) {
+                target.add(getFeedbackPanel());
+            }
+            @Override
+            protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
+                useInObjectListPerformed(target);
+            }
+        };
+        useInObjectList.add(new VisibleEnableBehaviour() {
+			@Override
+			public boolean isVisible() {
+				return USE_IN_OBJECT_LIST_AVAILABLE_FOR.contains(model.getObject().getObjectType());
+			}
+		});
+		midPointQueryButtonBar.add(useInObjectList);
 
 		final DropDownChoice<String> sampleChoice = new DropDownChoice<>(ID_QUERY_SAMPLE,
 				Model.of(""),
@@ -297,13 +354,66 @@ public class PageRepositoryQuery extends PageAdminConfiguration {
 
 	}
 
-    private void queryPerformed(Action action, AjaxRequestTarget target) {
+	private void useInObjectListPerformed(AjaxRequestTarget target) {
+		final RepoQueryDto dto = model.getObject();
+		String queryText = dto.getMidPointQuery();
+		if (StringUtils.isBlank(queryText)) {
+			queryText = "<query/>";
+		}
+		RepositoryQueryDiagRequest request = new RepositoryQueryDiagRequest();
+		Task task = createSimpleTask(OPERATION_CHECK_QUERY);
+		OperationResult result = task.getResult();
+		try {
+			updateRequestWithMidpointQuery(request, dto.getObjectType(), queryText, task, result);			// just to parse the query
+
+			ObjectFilter parsedFilter = request.getQuery().getFilter();
+			String filterAsString;
+			if (parsedFilter != null) {
+				SearchFilterType filterType = QueryConvertor.createSearchFilterType(parsedFilter, getPrismContext());
+				filterAsString = getPrismContext().serializeAtomicValue(filterType, SchemaConstantsGenerated.Q_FILTER, PrismContext.LANG_XML);
+				// TODO remove extra xmlns from serialized value
+			} else {
+				filterAsString = "";
+			}
+
+			Class<? extends PageBase> listPageClass = WebComponentUtil.getObjectListPage(request.getType());
+			String storageKey = listPageClass != null ? WebComponentUtil.getStorageKeyForPage(listPageClass) : null;
+			if (storageKey == null) {
+				// shouldn't occur because of button visibility
+				error("No page to redirect for " + dto.getObjectType());
+				target.add(getFeedbackPanel());
+				return;
+			}
+			Search search = SearchFactory.createSearch(request.getType(), getPrismContext(), getModelInteractionService());
+			search.setAdvancedQuery(filterAsString);
+			search.setShowAdvanced(true);
+			if (!search.isAdvancedQueryValid(getPrismContext())) {
+				// shouldn't occur because the query was already parsed
+				error("Query is not valid: " + search.getAdvancedError());
+				target.add(getFeedbackPanel());
+				return;
+			}
+
+			SessionStorage sessionStorage = ((MidPointAuthWebSession) getSession()).getSessionStorage();
+			PageStorage storage = sessionStorage.getPageStorageMap().get(storageKey);
+			if (storage == null) {
+				storage = sessionStorage.initPageStorage(storageKey);
+			}
+			storage.setSearch(search);
+			setResponsePage(listPageClass);
+		} catch (CommonException | RuntimeException e) {
+			result.recordFatalError("Couldn't parse query: " + e.getMessage(), e);
+			showResult(result);
+			target.add(this);
+		}
+	}
+
+	private void queryPerformed(Action action, AjaxRequestTarget target) {
     	String opName = action == Action.TRANSLATE_ONLY ? OPERATION_TRANSLATE_QUERY : OPERATION_EXECUTE_QUERY;
 		Task task = createSimpleTask(opName);
 		OperationResult result = new OperationResult(opName);
 
 		RepoQueryDto dto = model.getObject();
-		PrismContext prismContext = getPrismContext();
         try {
 			boolean queryPresent;
 			RepositoryQueryDiagRequest request = new RepositoryQueryDiagRequest();
@@ -317,21 +427,9 @@ public class PageRepositoryQuery extends PageAdminConfiguration {
 				case TRANSLATE_ONLY:
 					request.setTranslateOnly(true);
 				case EXECUTE_MIDPOINT:
-					String queryText = dto.getMidPointQuery();
-					queryPresent = StringUtils.isNotBlank(queryText);
+					queryPresent = StringUtils.isNotBlank(dto.getMidPointQuery());
 					if (queryPresent) {
-						QName objectType = dto.getObjectType() != null ? dto.getObjectType() : ObjectType.COMPLEX_TYPE;
-						@SuppressWarnings("unchecked")
-						Class<? extends ObjectType> clazz = (Class<? extends ObjectType>) prismContext.getSchemaRegistry().getCompileTimeClassForObjectType(objectType);
-						if (clazz == null) {
-							throw new SchemaException("Couldn't find compile-time class for object type of " + objectType);
-						}
-						QueryType queryType = prismContext.parseAtomicValue(queryText, QueryType.COMPLEX_TYPE, PrismContext.LANG_XML);
-						request.setType(clazz);
-						ObjectQuery objectQuery = QueryJaxbConvertor.createObjectQuery(clazz, queryType, prismContext);
-						ObjectQuery queryWithExprEvaluated = ExpressionUtil.evaluateQueryExpressions(objectQuery, new ExpressionVariables(),
-								getExpressionFactory(), getPrismContext(), "evaluate query expressions", task, result);
-						request.setQuery(queryWithExprEvaluated);
+						updateRequestWithMidpointQuery(request, dto.getObjectType(), dto.getMidPointQuery(), task, result);
 					}
 					break;
 				default:
@@ -339,8 +437,7 @@ public class PageRepositoryQuery extends PageAdminConfiguration {
 			}
 
 			if (!queryPresent) {
-				warn(getString("PageRepositoryQuery.message.emptyString"));
-				target.add(getFeedbackPanel());
+				warnNoQuery(target);
 				return;
 			}
 
@@ -393,6 +490,30 @@ public class PageRepositoryQuery extends PageAdminConfiguration {
         showResult(result);
         target.add(this);
     }
+
+	private void warnNoQuery(AjaxRequestTarget target) {
+		warn(getString("PageRepositoryQuery.message.emptyString"));
+		target.add(getFeedbackPanel());
+	}
+
+	private void updateRequestWithMidpointQuery(RepositoryQueryDiagRequest request, QName objectType, String queryText,
+			Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
+		PrismContext prismContext = getPrismContext();
+		if (objectType == null) {
+			objectType = ObjectType.COMPLEX_TYPE;
+		}
+		@SuppressWarnings("unchecked")
+		Class<? extends ObjectType> clazz = (Class<? extends ObjectType>) prismContext.getSchemaRegistry().getCompileTimeClassForObjectType(objectType);
+		if (clazz == null) {
+			throw new SchemaException("Couldn't find compile-time class for object type of " + objectType);
+		}
+		QueryType queryType = prismContext.parseAtomicValue(queryText, QueryType.COMPLEX_TYPE, PrismContext.LANG_XML);
+		request.setType(clazz);
+		ObjectQuery objectQuery = QueryJaxbConvertor.createObjectQuery(clazz, queryType, prismContext);
+		ObjectQuery queryWithExprEvaluated = ExpressionUtil.evaluateQueryExpressions(objectQuery, new ExpressionVariables(),
+				getExpressionFactory(), getPrismContext(), "evaluate query expressions", task, result);
+		request.setQuery(queryWithExprEvaluated);
+	}
 
 	private String formatQueryResult(List<?> objects) {
 		StringBuilder sb = new StringBuilder();

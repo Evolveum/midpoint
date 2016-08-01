@@ -195,17 +195,28 @@ public final class WebComponentUtil {
 	private static final Trace LOGGER = TraceManager.getTrace(WebComponentUtil.class);
 	private static DatatypeFactory df = null;
 
-	private static Map<Class<?>, Class<? extends PageBase>> objectDetailsMap;
+	private static Map<Class<?>, Class<? extends PageBase>> objectDetailsPageMap;
 
 	static {
-		objectDetailsMap = new HashMap<>();
-		objectDetailsMap.put(UserType.class, PageUser.class);
-		objectDetailsMap.put(OrgType.class, PageOrgUnit.class);
-		objectDetailsMap.put(RoleType.class, PageRole.class);
-		objectDetailsMap.put(ServiceType.class, PageService.class);
-		objectDetailsMap.put(ResourceType.class, PageResource.class);
-		objectDetailsMap.put(TaskType.class, PageTaskEdit.class);
-		objectDetailsMap.put(ReportType.class, PageReport.class);
+		objectDetailsPageMap = new HashMap<>();
+		objectDetailsPageMap.put(UserType.class, PageUser.class);
+		objectDetailsPageMap.put(OrgType.class, PageOrgUnit.class);
+		objectDetailsPageMap.put(RoleType.class, PageRole.class);
+		objectDetailsPageMap.put(ServiceType.class, PageService.class);
+		objectDetailsPageMap.put(ResourceType.class, PageResource.class);
+		objectDetailsPageMap.put(TaskType.class, PageTaskEdit.class);
+		objectDetailsPageMap.put(ReportType.class, PageReport.class);
+	}
+
+	// only pages that support 'advanced search' are currently listed here (TODO: generalize)
+	private static Map<Class<?>, Class<? extends PageBase>> objectListPageMap;
+
+	static {
+		objectListPageMap = new HashMap<>();
+		objectListPageMap.put(UserType.class, PageUsers.class);
+		objectListPageMap.put(RoleType.class, PageRoles.class);
+		objectListPageMap.put(ServiceType.class, PageServices.class);
+		objectListPageMap.put(ResourceType.class, PageResources.class);
 	}
 
 	private static Map<Class<?>, String> storageKeyMap;
@@ -1546,7 +1557,7 @@ public final class WebComponentUtil {
 
 	// shows the actual object that is passed via parameter (not its state in repository)
 	public static void dispatchToObjectDetailsPage(PrismObject obj, Component component) {
-		Class newObjectPageClass = objectDetailsMap.get(obj.getCompileTimeClass());
+		Class newObjectPageClass = getObjectDetailsPage(obj.getCompileTimeClass());
 		if (newObjectPageClass == null) {
 			throw new IllegalArgumentException("Cannot determine details page for "+obj.getCompileTimeClass());
 		}
@@ -1574,11 +1585,10 @@ public final class WebComponentUtil {
 	public static void dispatchToObjectDetailsPage(Class<? extends ObjectType> objectClass, String oid, Component component, boolean failIfUnsupported) {
 		PageParameters parameters = new PageParameters();
 		parameters.add(OnePageParameterEncoder.PARAMETER, oid);
-		Class<? extends PageBase> page = objectDetailsMap.get(objectClass);
+		Class<? extends PageBase> page = getObjectDetailsPage(objectClass);
 		if (page != null) {
 			component.setResponsePage(page, parameters);
 		} else if (failIfUnsupported) {
-			// todo maybe we could use "error" + RestartResponseException, as it was e.g. in AbstractRoleMemberPanel before refactoring (MID-3233)
 			throw new SystemException("Cannot determine details page for "+objectClass);
 		}
 	}
@@ -1589,7 +1599,7 @@ public final class WebComponentUtil {
 	}
 
 	public static boolean hasDetailsPage(Class<?> clazz) {
-		return objectDetailsMap.containsKey(clazz);
+		return objectDetailsPageMap.containsKey(clazz);
 	}
 
 	public static boolean hasDetailsPage(ObjectReferenceType ref) {
@@ -1601,6 +1611,26 @@ public final class WebComponentUtil {
 			return false;
 		}
 		return hasDetailsPage(t.getClassDefinition());
+	}
+
+	public static String getStorageKeyForPage(Class<?> pageClass) {
+		return storageKeyMap.get(pageClass);
+	}
+
+	public static Class<? extends PageBase> getObjectDetailsPage(Class<? extends ObjectType> type) {
+		return objectDetailsPageMap.get(type);
+	}
+
+	public static Class<? extends PageBase> getObjectListPage(Class<? extends ObjectType> type) {
+		return objectListPageMap.get(type);
+	}
+
+	public static String getStorageKeyForObjectClass(Class<? extends ObjectType> type) {
+		Class<? extends PageBase> listPageClass = getObjectListPage(type);
+		if (listPageClass == null) {
+			return null;
+		}
+		return getStorageKeyForPage(listPageClass);
 	}
 
 	@NotNull
@@ -1731,9 +1761,4 @@ public final class WebComponentUtil {
 
 		tabbed.setSelectedTab(tabIndex);
 	}
-
-	public static String getStorageKeyForPage(Class<?> pageClass) {
-		return storageKeyMap.get(pageClass);
-	}
-
 }

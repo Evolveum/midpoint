@@ -22,12 +22,15 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
+import com.evolveum.midpoint.web.component.data.column.LinkIconPanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-
+import com.evolveum.midpoint.web.page.admin.configuration.PageRepositoryQuery;
+import com.evolveum.midpoint.web.security.SecurityUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -36,7 +39,6 @@ import org.apache.wicket.ajax.attributes.AjaxRequestAttributes;
 import org.apache.wicket.ajax.attributes.ThrottlingSettings;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
-import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.behavior.Behavior;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -53,6 +55,7 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.util.time.Duration;
 
+import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -83,10 +86,12 @@ public class SearchPanel extends BasePanel<Search> {
     private static final String ID_MORE_GROUP = "moreGroup";
     private static final String ID_ADVANCED_AREA = "advancedArea";
     private static final String ID_ADVANCED_CHECK = "advancedCheck";
+    private static final String ID_ADVANCED_DEBUG = "advancedDebug";
     private static final String ID_ADVANCED_ERROR= "advancedError";
 
     private LoadableModel<MoreDialogDto> moreDialogModel;
     boolean advancedSearch = true;
+	boolean queryPlagroundAccessible;
 
     public SearchPanel(String id, IModel<Search> model) {
         this(id, model, true);
@@ -95,6 +100,7 @@ public class SearchPanel extends BasePanel<Search> {
     public SearchPanel(String id, IModel<Search> model, boolean advancedSearch) {
         super(id, model);
         this.advancedSearch = advancedSearch;
+		queryPlagroundAccessible = SecurityUtils.isPageAuthorized(PageRepositoryQuery.class);
         initLayout();
     }
 
@@ -203,6 +209,30 @@ public class SearchPanel extends BasePanel<Search> {
         Label advancedCheck = new Label(ID_ADVANCED_CHECK);
         advancedCheck.add(AttributeAppender.append("class", createAdvancedGroupLabelStyle()));
         advancedGroup.add(advancedCheck);
+
+		final LinkIconPanel advancedDebug = new LinkIconPanel(ID_ADVANCED_DEBUG, new Model("fa fa-lg fa-bug"), createStringResource("SearchPanel.debug")) {
+			@Override
+			protected void onClickPerformed(AjaxRequestTarget target) {
+				Search search = getModelObject();
+				PageRepositoryQuery pageQuery;
+				if (search != null) {
+					ObjectTypes type = search.getType() != null ? ObjectTypes.getObjectType(search.getType()) : null;
+					QName typeName = type != null ? type.getTypeQName() : null;
+					String inner = search.getAdvancedQuery();
+					if (StringUtils.isNotBlank(inner)) {
+						inner = "\n" + inner + "\n";
+					} else if (inner == null) {
+						inner = "";
+					}
+					pageQuery = new PageRepositoryQuery(typeName, "<query>" + inner + "</query>");
+				} else {
+					pageQuery = new PageRepositoryQuery();
+				}
+				SearchPanel.this.setResponsePage(pageQuery);
+			}
+		};
+		advancedDebug.setVisible(queryPlagroundAccessible);
+		advancedGroup.add(advancedDebug);
 
         final TextArea advancedArea = new TextArea(ID_ADVANCED_AREA,
                 new PropertyModel(getModel(), Search.F_ADVANCED_QUERY));

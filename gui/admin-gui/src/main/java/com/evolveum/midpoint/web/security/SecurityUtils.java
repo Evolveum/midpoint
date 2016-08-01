@@ -66,15 +66,15 @@ public class SecurityUtils {
 
     public static boolean isMenuAuthorized(MainMenuItem item) {
         Class clazz = item.getPage();
-        return clazz == null || isMenuAuthorizedByPage(clazz);
+        return clazz == null || isPageAuthorized(clazz);
     }
 
     public static boolean isMenuAuthorized(MenuItem item) {
         Class clazz = item.getPage();
-        return isMenuAuthorizedByPage(clazz);
+        return isPageAuthorized(clazz);
     }
 
-    private static boolean isMenuAuthorizedByPage(Class page) {
+    public static boolean isPageAuthorized(Class page) {
         if (page == null) {
             return false;
         }
