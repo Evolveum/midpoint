@@ -21,7 +21,6 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.apache.commons.collections.IteratorUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
@@ -103,7 +102,6 @@ import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAc
 import com.evolveum.midpoint.web.page.admin.resources.ResourceContentTabPanel.Operation;
 import com.evolveum.midpoint.web.page.admin.resources.content.PageAccount;
 import com.evolveum.midpoint.web.page.admin.server.PageTaskAdd;
-import com.evolveum.midpoint.web.page.admin.users.PageUser;
 import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 
@@ -627,11 +625,7 @@ public abstract class ResourceContentPanel extends Panel {
 		if (owner == null) {
 			return;
 		}
-
-		PageParameters parameters = new PageParameters();
-		parameters.add(OnePageParameterEncoder.PARAMETER, owner.getOid());
-		Class<? extends PageBase> page = WebComponentUtil.getObjectDetailsPage(owner.getClass());
-		setResponsePage(page, parameters);
+		WebComponentUtil.dispatchToObjectDetailsPage(owner.getClass(), owner.getOid(), this, true);
 	}
 
 	private <F extends FocusType> F loadShadowOwner(IModel<SelectableBean<ShadowType>> model) {

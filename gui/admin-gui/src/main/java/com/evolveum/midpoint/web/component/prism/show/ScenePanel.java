@@ -40,7 +40,6 @@ import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.*;
 
-import java.io.Serializable;
 import java.util.List;
 
 /**
@@ -149,7 +148,7 @@ public class ScenePanel extends BasePanel<SceneDto> {
 				PrismContainerValue<?> value = getModelObject().getScene().getSourceValue();
 				if (value != null && value.getParent() instanceof PrismObject) {
 					PrismObject<? extends ObjectType> object = (PrismObject<? extends ObjectType>) value.getParent();
-					WebComponentUtil.dispatchToObjectDetailsPage(ObjectTypeUtil.createObjectRef(object), getPageBase());
+					WebComponentUtil.dispatchToObjectDetailsPage(ObjectTypeUtil.createObjectRef(object), getPageBase(), false);
 				}
 			}
 		};

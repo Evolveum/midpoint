@@ -82,7 +82,7 @@ public class SceneItemValuePanel extends BasePanel<SceneItemValue> {
 				PrismReferenceValue refValue = (PrismReferenceValue) getModelObject().getSourceValue();
 				ObjectReferenceType ort = new ObjectReferenceType();
 				ort.setupReferenceValue(refValue);
-				WebComponentUtil.dispatchToObjectDetailsPage(ort, getPageBase());
+				WebComponentUtil.dispatchToObjectDetailsPage(ort, getPageBase(), false);
 			}
 		};
 		link.add(visibleIfReference);

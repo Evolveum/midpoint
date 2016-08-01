@@ -158,7 +158,7 @@ public class OperationResultPanel extends BasePanel<OpResult> implements Popupab
 					return; // just for safety
 				}
 				ObjectReferenceType ref = ObjectTypeUtil.createObjectRef(oid, ObjectTypes.TASK);
-				WebComponentUtil.dispatchToObjectDetailsPage(ref, getPageBase());
+				WebComponentUtil.dispatchToObjectDetailsPage(ref, getPageBase(), false);
 			}
 		};
 		backgroundTask.add(new VisibleEnableBehaviour() {

@@ -56,7 +56,7 @@ public class DefaultHandlerPanel<D extends HandlerDto> extends BasePanel<D> {
 			public void onClick(AjaxRequestTarget target) {
 				ObjectReferenceType ref = getModelObject().getObjectRef();
 				if (ref != null) {
-					WebComponentUtil.dispatchToObjectDetailsPage(ref, parentPage);
+					WebComponentUtil.dispatchToObjectDetailsPage(ref, parentPage, false);
 				}
 			}
 			@Override

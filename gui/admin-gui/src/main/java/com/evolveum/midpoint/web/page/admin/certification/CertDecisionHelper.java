@@ -57,7 +57,7 @@ public class CertDecisionHelper implements Serializable {
             @Override
             public void onClick(AjaxRequestTarget target, IModel<CertCaseOrDecisionDto> rowModel) {
                 CertCaseOrDecisionDto dto = rowModel.getObject();
-                dispatchToObjectDetailsPage(dto.getCertCase().getObjectRef(), page);
+                dispatchToObjectDetailsPage(dto.getCertCase().getObjectRef(), page, false);
             }
         };
         return column;
@@ -99,7 +99,7 @@ public class CertDecisionHelper implements Serializable {
             @Override
             public void onClick(AjaxRequestTarget target, IModel<CertCaseOrDecisionDto> rowModel) {
                 CertCaseOrDecisionDto dto = rowModel.getObject();
-                dispatchToObjectDetailsPage(dto.getCertCase().getTargetRef(), page);
+                dispatchToObjectDetailsPage(dto.getCertCase().getTargetRef(), page, false);
             }
         };
         return column;

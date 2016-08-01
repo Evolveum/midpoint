@@ -1,14 +1,33 @@
 package com.evolveum.midpoint.web.page.admin.users.component;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import javax.xml.namespace.QName;
-
+import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
+import com.evolveum.midpoint.gui.api.component.ObjectBrowserPanel;
+import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.query.AndFilter;
+import com.evolveum.midpoint.prism.query.InOidFilter;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.data.column.InlineMenuHeaderColumn;
+import com.evolveum.midpoint.web.component.dialog.ChooseFocusTypeDialogPanel;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
+import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
+import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -20,53 +39,10 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
-import org.apache.wicket.request.mapper.parameter.PageParameters;
 
-import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.api.component.ObjectBrowserPanel;
-import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
-import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.PrismReferenceDefinition;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.query.AndFilter;
-import com.evolveum.midpoint.prism.query.InOidFilter;
-import com.evolveum.midpoint.prism.query.NotFilter;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.RefFilter;
-import com.evolveum.midpoint.prism.query.TypeFilter;
-import com.evolveum.midpoint.schema.constants.ObjectTypes;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskCategory;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SystemException;
-import com.evolveum.midpoint.util.logging.LoggingUtils;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.data.column.InlineMenuHeaderColumn;
-import com.evolveum.midpoint.web.component.dialog.ChooseFocusTypeDialogPanel;
-import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
-import com.evolveum.midpoint.web.component.util.SelectableBean;
-import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
-import com.evolveum.midpoint.web.page.admin.resources.PageResource;
-import com.evolveum.midpoint.web.page.admin.roles.PageRole;
-import com.evolveum.midpoint.web.page.admin.server.PageTaskEdit;
-import com.evolveum.midpoint.web.page.admin.services.PageService;
-import com.evolveum.midpoint.web.page.admin.users.PageOrgUnit;
-import com.evolveum.midpoint.web.page.admin.users.PageUser;
-import com.evolveum.midpoint.web.page.admin.users.component.AbstractRoleMemberPanel.QueryScope;
-import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
-import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
+import javax.xml.namespace.QName;
+import java.util.ArrayList;
+import java.util.List;
 
 public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extends BasePanel<T>{
 
@@ -78,18 +54,6 @@ public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extend
 		ADD, REMOVE, RECOMPUTE;
 	}
 	
-	protected static Map<Class, Class> objectDetailsMap;
-
-	static {
-		objectDetailsMap = new HashMap<>();
-		objectDetailsMap.put(UserType.class, PageUser.class);
-		objectDetailsMap.put(OrgType.class, PageOrgUnit.class);
-		objectDetailsMap.put(RoleType.class, PageRole.class);
-		objectDetailsMap.put(ServiceType.class, PageService.class);
-		objectDetailsMap.put(ResourceType.class, PageResource.class);
-		objectDetailsMap.put(TaskType.class, PageTaskEdit.class);
-	}
-
 	private static final Trace LOGGER = TraceManager.getTrace(AbstractRoleMemberPanel.class);
 	
 	protected static final String ID_FORM = "form";
@@ -133,13 +97,20 @@ public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extend
 			@Override
 			protected void objectDetailsPerformed(AjaxRequestTarget target, ObjectType object) {
 				detailsPerformed(target, object);
+			}
 
+			@Override
+			protected boolean isClickable(IModel<SelectableBean<ObjectType>> rowModel) {
+				if (rowModel == null || rowModel.getObject() == null || rowModel.getObject().getValue() == null) {
+					return false;
+				}
+				Class<?> objectClass = rowModel.getObject().getValue().getClass();
+				return WebComponentUtil.hasDetailsPage(objectClass);
 			}
 
 			@Override
 			protected void newObjectPerformed(AjaxRequestTarget target) {
 				AbstractRoleMemberPanel.this.createFocusMemberPerformed(null, target);
-
 			}
 
 			@Override
@@ -291,28 +262,8 @@ public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extend
 		} else {
 			objType.getParentOrgRef().add(parentOrgRef.clone());
 		}
-		
-		Class newObjectPageClass = objectDetailsMap.get(obj.getCompileTimeClass());
 
-		Constructor constructor = null;
-		try {
-			constructor = newObjectPageClass.getConstructor(PrismObject.class);
-
-		} catch (NoSuchMethodException | SecurityException e) {
-			throw new SystemException("Unable to locate constructor (PrismObject) in " + newObjectPageClass
-					+ ": " + e.getMessage(), e);
-		}
-
-		PageBase page;
-		try {
-			page = (PageBase) constructor.newInstance(obj);
-		} catch (InstantiationException | IllegalAccessException | IllegalArgumentException
-				| InvocationTargetException e) {
-			throw new SystemException("Error instantiating " + newObjectPageClass + ": " + e.getMessage(), e);
-		}
-
-		setResponsePage(page);
-
+		WebComponentUtil.dispatchToObjectDetailsPage(obj, this);
 	}
 
 	protected void addMembers(final QName relation, AjaxRequestTarget target) {
@@ -401,16 +352,13 @@ public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extend
 		return ref;
 	}
 	
-	protected void detailsPerformed(AjaxRequestTarget targer, ObjectType object) {
-		Class responsePage = objectDetailsMap.get(object.getClass());
-		if (responsePage == null) {
+	protected void detailsPerformed(AjaxRequestTarget target, ObjectType object) {
+		if (WebComponentUtil.hasDetailsPage(object.getClass())) {
+			WebComponentUtil.dispatchToObjectDetailsPage(object.getClass(), object.getOid(), this, true);
+		} else {
 			error("Could not find proper response page");
 			throw new RestartResponseException(getPageBase());
 		}
-
-		PageParameters parameters = new PageParameters();
-		parameters.add(OnePageParameterEncoder.PARAMETER, object.getOid());
-		setResponsePage(responsePage, parameters);
 	}
 	
 	private List<IColumn<SelectableBean<ObjectType>, String>> createMembersColumns() {

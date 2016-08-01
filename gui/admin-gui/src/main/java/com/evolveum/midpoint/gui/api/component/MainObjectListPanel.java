@@ -29,9 +29,7 @@ import org.apache.wicket.model.Model;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
-import com.evolveum.midpoint.web.component.data.Table;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
-import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.component.data.column.ObjectNameColumn;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.configuration.PageImportObject;
@@ -68,10 +66,19 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
                 O object = rowModel.getObject().getValue();
                 MainObjectListPanel.this.objectDetailsPerformed(target, object);
             }
-        };
+
+			@Override
+			public boolean isClickable(IModel<SelectableBean<O>> rowModel) {
+				return MainObjectListPanel.this.isClickable(rowModel);
+			}
+		};
     }
 
-    protected abstract void objectDetailsPerformed(AjaxRequestTarget target, O object);
+	protected boolean isClickable(IModel<SelectableBean<O>> rowModel) {
+		return true;
+	}
+
+	protected abstract void objectDetailsPerformed(AjaxRequestTarget target, O object);
 
     protected abstract void newObjectPerformed(AjaxRequestTarget target);
 
