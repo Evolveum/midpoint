@@ -25,12 +25,15 @@ import org.apache.wicket.model.Model;
 
 public class AceEditor extends TextArea<String> {
 
+	public static final String MODE_XML = "ace/mode/xml";
+
     private IModel<Boolean> readonly = new Model(false);
 
     private boolean resizeToMaxHeight = true;
 
     private int minHeight = 200;
     private int height = minHeight;
+	private String mode = MODE_XML;
 
     public AceEditor(String id, IModel<String> model) {
         super(id, model);
@@ -47,6 +50,7 @@ public class AceEditor extends TextArea<String> {
         sb.append(",").append(resizeToMaxHeight);
         sb.append(",").append(height);
         sb.append(",").append(minHeight);
+        sb.append(",").append(mode != null ? "'"+mode+"'" : "null");
         sb.append(");");
 
         response.render(OnDomReadyHeaderItem.forScript(sb.toString()));
@@ -76,7 +80,15 @@ public class AceEditor extends TextArea<String> {
         this.height = height;
     }
 
-    public void setReadonly(boolean readonly) {
+	public String getMode() {
+		return mode;
+	}
+
+	public void setMode(String mode) {
+		this.mode = mode;
+	}
+
+	public void setReadonly(boolean readonly) {
         this.readonly.setObject(readonly);
     }
 

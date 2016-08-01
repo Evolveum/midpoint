@@ -18,7 +18,7 @@ var ACE_EDITOR_POSTFIX = "_editor";
 var DISABLED_CLASS = "disabled";
 $.aceEditors = {};
 
-function initEditor(textAreaId, readonly, resize, height, minHeight) {
+function initEditor(textAreaId, readonly, resize, height, minHeight, mode) {
     var jqTextArea = '#' + textAreaId;
     var editorId = textAreaId + ACE_EDITOR_POSTFIX;
     var jqEditor = '#' + editorId;
@@ -41,7 +41,7 @@ function initEditor(textAreaId, readonly, resize, height, minHeight) {
     //     }
     // }
     // langTools.addCompleter(completer);
-    
+
     var editor = ace.edit(editorId);
 
     editor.setOptions({
@@ -49,7 +49,9 @@ function initEditor(textAreaId, readonly, resize, height, minHeight) {
     });
 
     editor.setTheme("ace/theme/eclipse");
-    editor.getSession().setMode("ace/mode/xml");
+    if (mode != null) {
+        editor.getSession().setMode(mode);
+    }
     editor.setShowPrintMargin(false);
     editor.setFadeFoldWidgets(false);
     setReadonly(jqEditor, editor, readonly);

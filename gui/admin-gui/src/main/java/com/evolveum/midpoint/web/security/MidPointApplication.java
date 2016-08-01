@@ -33,6 +33,7 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
+import com.evolveum.midpoint.model.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -184,6 +185,8 @@ public class MidPointApplication extends AuthenticatedWebApplication {
     transient TaskService taskService;
     @Autowired
     transient PrismContext prismContext;
+	@Autowired
+	transient ExpressionFactory expressionFactory;
     @Autowired
     transient TaskManager taskManager;
 	@Autowired
@@ -323,6 +326,10 @@ public class MidPointApplication extends AuthenticatedWebApplication {
     public PrismContext getPrismContext() {
         return prismContext;
     }
+
+    public ExpressionFactory getExpressionFactory() {
+    	return expressionFactory;
+	}
 
     public Protector getProtector() {
         return protector;

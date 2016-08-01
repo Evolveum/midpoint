@@ -17,7 +17,10 @@
 package com.evolveum.midpoint.web.page.admin.configuration;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.model.common.expression.ExpressionUtil;
+import com.evolveum.midpoint.model.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.QueryJaxbConvertor;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.RepositoryQueryDiagRequest;
@@ -158,12 +161,14 @@ public class PageRepositoryQuery extends PageAdminConfiguration {
 		editorHibernate.setHeight(300);
 		editorHibernate.setResizeToMaxHeight(false);
 		editorHibernate.setReadonly(!isAdmin);
+		editorHibernate.setMode(null);
 		mainForm.add(editorHibernate);
 
 		AceEditor hibernateParameters = new AceEditor(ID_HIBERNATE_PARAMETERS, new PropertyModel<String>(model, RepoQueryDto.F_HIBERNATE_PARAMETERS));
 		hibernateParameters.setReadonly(true);
 		hibernateParameters.setHeight(100);
 		hibernateParameters.setResizeToMaxHeight(false);
+		hibernateParameters.setMode(null);
 		mainForm.add(hibernateParameters);
 
 		WebMarkupContainer hibernateParametersNote = new WebMarkupContainer(ID_HIBERNATE_PARAMETERS_NOTE);
@@ -281,6 +286,7 @@ public class PageRepositoryQuery extends PageAdminConfiguration {
 		resultText.setReadonly(true);
 		resultText.setHeight(300);
 		resultText.setResizeToMaxHeight(false);
+		resultText.setMode(null);
 		resultText.add(new VisibleEnableBehaviour() {
 			@Override
 			public boolean isVisible() {
@@ -322,7 +328,10 @@ public class PageRepositoryQuery extends PageAdminConfiguration {
 						}
 						QueryType queryType = prismContext.parseAtomicValue(queryText, QueryType.COMPLEX_TYPE, PrismContext.LANG_XML);
 						request.setType(clazz);
-						request.setQuery(QueryJaxbConvertor.createObjectQuery(clazz, queryType, prismContext));
+						ObjectQuery objectQuery = QueryJaxbConvertor.createObjectQuery(clazz, queryType, prismContext);
+						ObjectQuery queryWithExprEvaluated = ExpressionUtil.evaluateQueryExpressions(objectQuery, new ExpressionVariables(),
+								getExpressionFactory(), getPrismContext(), "evaluate query expressions", task, result);
+						request.setQuery(queryWithExprEvaluated);
 					}
 					break;
 				default:

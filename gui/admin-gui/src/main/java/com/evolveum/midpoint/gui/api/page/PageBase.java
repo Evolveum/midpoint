@@ -28,6 +28,7 @@ import javax.management.MBeanServerFactory;
 import javax.management.ObjectName;
 
 import com.evolveum.midpoint.model.api.validator.ResourceValidator;
+import com.evolveum.midpoint.model.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.web.page.admin.server.PageTasksCertScheduling;
@@ -365,6 +366,10 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
 	public PrismContext getPrismContext() {
 		return getMidpointApplication().getPrismContext();
+	}
+
+	public ExpressionFactory getExpressionFactory() {
+		return getMidpointApplication().getExpressionFactory();
 	}
 
 	public MatchingRuleRegistry getMatchingRuleRegistry() {

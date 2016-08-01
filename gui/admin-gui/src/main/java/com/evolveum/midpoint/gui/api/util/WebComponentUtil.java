@@ -32,6 +32,12 @@ import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.web.page.admin.reports.PageReports;
+import com.evolveum.midpoint.web.page.admin.resources.PageResources;
+import com.evolveum.midpoint.web.page.admin.roles.PageRoles;
+import com.evolveum.midpoint.web.page.admin.services.PageServices;
+import com.evolveum.midpoint.web.page.admin.users.PageUsers;
+import com.evolveum.midpoint.web.session.SessionStorage;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.Component;
@@ -200,6 +206,17 @@ public final class WebComponentUtil {
 		objectDetailsMap.put(ResourceType.class, PageResource.class);
 		objectDetailsMap.put(TaskType.class, PageTaskEdit.class);
 		objectDetailsMap.put(ReportType.class, PageReport.class);
+	}
+
+	private static Map<Class<?>, String> storageKeyMap;
+
+	static {
+		storageKeyMap = new HashMap<>();
+		storageKeyMap.put(PageUsers.class, SessionStorage.KEY_USERS);
+		storageKeyMap.put(PageResources.class, SessionStorage.KEY_RESOURCES);
+		storageKeyMap.put(PageReports.class, SessionStorage.KEY_REPORTS);
+		storageKeyMap.put(PageRoles.class, SessionStorage.KEY_ROLES);
+		storageKeyMap.put(PageServices.class, SessionStorage.KEY_SERVICES);
 	}
 
 	public enum Channel {
@@ -1713,6 +1730,10 @@ public final class WebComponentUtil {
 		}
 
 		tabbed.setSelectedTab(tabIndex);
+	}
+
+	public static String getStorageKeyForPage(Class<?> pageClass) {
+		return storageKeyMap.get(pageClass);
 	}
 
 }
