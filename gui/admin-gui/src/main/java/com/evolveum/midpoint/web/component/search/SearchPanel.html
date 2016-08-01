@@ -20,7 +20,6 @@
         <div class="form-group has-feedback" wicket:id="advancedGroup">
             <label class="control-label" style="vertical-align: top;">
                 <i class="fa fa-lg" wicket:id="advancedCheck"/>
-                <div wicket:id="advancedDebug"/>
             </label>
             <textarea class="form-control input-sm" rows="2" wicket:id="advancedArea"
                       style="width: 220px; height: 60px; overflow: hidden;"
@@ -40,10 +39,22 @@
             </a>
         </div>
 
-        <div class="form-group" style="vertical-align: top;">
-            <a wicket:id="search" class="btn btn-sm btn-primary">
+        <div class="form-group" style="vertical-align: top;" wicket:id="searchContainer">
+            <a wicket:id="searchSimple" class="btn btn-sm btn-primary">
                 <i class="fa fa-search fa-lg"/>
             </a>
+            <div wicket:id="searchDropdown">
+                <div class="btn-group"/>
+                <button type="button" class="btn btn-primary" wicket:id="searchButtonBeforeDropdown"><i class="fa fa-search fa-lg"></i></button><button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    <span class="caret"></span>
+                    <span class="sr-only">Toggle Dropdown</span>
+                </button>
+                <ul class="dropdown-menu pull-right" role="menu">
+                    <li wicket:id="menuItem">
+                        <div wicket:id="menuItemBody"/>
+                    </li>
+                </ul>
+            </div>
         </div>
 
         <div class="form-group" style="vertical-align: top;">
