@@ -142,11 +142,11 @@ public class ProvisioningUtil {
 		scriptOperation.setLanguage(scriptType.getLanguage());
 		scriptOperation.setTextCode(scriptType.getCode());
 
-		if (scriptType.getHost().equals(ProvisioningScriptHostType.CONNECTOR)) {
+		if (scriptType.getHost() != null && scriptType.getHost().equals(ProvisioningScriptHostType.CONNECTOR)) {
 			scriptOperation.setConnectorHost(true);
 			scriptOperation.setResourceHost(false);
 		}
-		if (scriptType.getHost().equals(ProvisioningScriptHostType.RESOURCE)) {
+		if (scriptType.getHost() == null || scriptType.getHost().equals(ProvisioningScriptHostType.RESOURCE)) {
 			scriptOperation.setConnectorHost(false);
 			scriptOperation.setResourceHost(true);
 		}
