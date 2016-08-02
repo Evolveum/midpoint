@@ -22,12 +22,18 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
+import com.evolveum.midpoint.web.component.data.column.LinkIconPanel;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
+import com.evolveum.midpoint.web.component.menu.cog.MenuLinkPanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-
+import com.evolveum.midpoint.web.page.admin.configuration.PageRepositoryQuery;
+import com.evolveum.midpoint.web.security.SecurityUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -36,7 +42,6 @@ import org.apache.wicket.ajax.attributes.AjaxRequestAttributes;
 import org.apache.wicket.ajax.attributes.ThrottlingSettings;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
-import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.behavior.Behavior;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -53,6 +58,7 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.util.time.Duration;
 
+import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -67,7 +73,10 @@ public class SearchPanel extends BasePanel<Search> {
     private static final String ID_FORM = "form";
     private static final String ID_ITEMS = "items";
     private static final String ID_ITEM = "item";
-    private static final String ID_SEARCH = "search";
+    private static final String ID_SEARCH_CONTAINER = "searchContainer";
+    private static final String ID_SEARCH_SIMPLE = "searchSimple";
+    private static final String ID_SEARCH_BUTTON_BEFORE_DROPDOWN = "searchButtonBeforeDropdown";
+    private static final String ID_SEARCH_DROPDOWN = "searchDropdown";
     private static final String ID_MORE = "more";
     private static final String ID_POPOVER = "popover";
     private static final String ID_ADD_TEXT = "addText";
@@ -84,9 +93,12 @@ public class SearchPanel extends BasePanel<Search> {
     private static final String ID_ADVANCED_AREA = "advancedArea";
     private static final String ID_ADVANCED_CHECK = "advancedCheck";
     private static final String ID_ADVANCED_ERROR= "advancedError";
+	private static final String ID_MENU_ITEM = "menuItem";
+	private static final String ID_MENU_ITEM_BODY = "menuItemBody";
 
-    private LoadableModel<MoreDialogDto> moreDialogModel;
+	private LoadableModel<MoreDialogDto> moreDialogModel;
     boolean advancedSearch = true;
+	boolean queryPlagroundAccessible;
 
     public SearchPanel(String id, IModel<Search> model) {
         this(id, model, true);
@@ -95,6 +107,7 @@ public class SearchPanel extends BasePanel<Search> {
     public SearchPanel(String id, IModel<Search> model, boolean advancedSearch) {
         super(id, model);
         this.advancedSearch = advancedSearch;
+		queryPlagroundAccessible = SecurityUtils.isPageAuthorized(PageRepositoryQuery.class);
         initLayout();
     }
 
@@ -149,7 +162,11 @@ public class SearchPanel extends BasePanel<Search> {
         more.setOutputMarkupId(true);
         moreGroup.add(more);
 
-        AjaxSubmitButton search = new AjaxSubmitButton(ID_SEARCH) {
+		WebMarkupContainer searchContainer = new WebMarkupContainer(ID_SEARCH_CONTAINER);
+		searchContainer.setOutputMarkupId(true);
+		form.add(searchContainer);
+
+        AjaxSubmitButton searchSimple = new AjaxSubmitButton(ID_SEARCH_SIMPLE) {
 
             @Override
             protected void onError(AjaxRequestTarget target, Form<?> form) {
@@ -161,7 +178,7 @@ public class SearchPanel extends BasePanel<Search> {
                 searchPerformed(target);
             }
         };
-        search.add(new VisibleEnableBehaviour() {
+        searchSimple.add(new VisibleEnableBehaviour() {
 
             @Override
             public boolean isEnabled() {
@@ -173,11 +190,82 @@ public class SearchPanel extends BasePanel<Search> {
                 PrismContext ctx = getPageBase().getPrismContext();
                 return search.isAdvancedQueryValid(ctx);
             }
-        });
-        search.setOutputMarkupId(true);
-        form.add(search);
 
-        AjaxButton advanced = new AjaxButton(ID_ADVANCED, createAdvancedModel()) {
+			@Override
+			public boolean isVisible() {
+				return !getModelObject().isShowAdvanced() || !queryPlagroundAccessible;
+			}
+		});
+        searchSimple.setOutputMarkupId(true);
+        searchContainer.add(searchSimple);
+
+		WebMarkupContainer searchDropdown = new WebMarkupContainer(ID_SEARCH_DROPDOWN);
+		searchDropdown.add(new VisibleEnableBehaviour() {
+			@Override
+			public boolean isVisible() {
+				return getModelObject().isShowAdvanced() && queryPlagroundAccessible;
+			}
+		});
+		searchContainer.add(searchDropdown);
+
+		AjaxSubmitButton searchButtonBeforeDropdown = new AjaxSubmitButton(ID_SEARCH_BUTTON_BEFORE_DROPDOWN) {
+			@Override
+			protected void onError(AjaxRequestTarget target, Form<?> form) {
+				target.add(form);
+			}
+			@Override
+			protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
+				searchPerformed(target);
+			}
+		};
+		searchButtonBeforeDropdown.add(new VisibleEnableBehaviour() {
+			@Override
+			public boolean isEnabled() {
+				Search search = getModelObject();
+				if (!search.isShowAdvanced()) {
+					return true;
+				}
+				PrismContext ctx = getPageBase().getPrismContext();
+				return search.isAdvancedQueryValid(ctx);
+			}
+		});
+		searchDropdown.add(searchButtonBeforeDropdown);
+
+		List<InlineMenuItem> searchItems = new ArrayList<>();
+
+		InlineMenuItem searchItem = new InlineMenuItem(
+				createStringResource("SearchPanel.search"),
+				new InlineMenuItemAction() {
+					@Override
+					public void onClick(AjaxRequestTarget target) {
+						PrismContext ctx = getPageBase().getPrismContext();
+						if (getModelObject().isAdvancedQueryValid(ctx)) {
+							searchPerformed(target);
+						}
+					}
+				});
+		searchItems.add(searchItem);
+
+		searchItem = new InlineMenuItem(createStringResource("SearchPanel.debug"),
+				new InlineMenuItemAction() {
+					@Override
+					public void onClick(AjaxRequestTarget target) {
+						debugPerformed();
+					}
+				});
+		searchItems.add(searchItem);
+
+		ListView<InlineMenuItem> li = new ListView<InlineMenuItem>(ID_MENU_ITEM, Model.ofList(searchItems)) {
+			@Override
+			protected void populateItem(ListItem<InlineMenuItem> item) {
+				WebMarkupContainer menuItemBody = new MenuLinkPanel(ID_MENU_ITEM_BODY, item.getModel());
+				menuItemBody.setRenderBodyOnly(true);
+				item.add(menuItemBody);
+			}
+		};
+		searchDropdown.add(li);
+
+		AjaxButton advanced = new AjaxButton(ID_ADVANCED, createAdvancedModel()) {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
@@ -241,7 +329,26 @@ public class SearchPanel extends BasePanel<Search> {
         advancedGroup.add(advancedError);
     }
 
-    private IModel<String> createAdvancedGroupLabelStyle() {
+	private void debugPerformed() {
+		Search search = getModelObject();
+		PageRepositoryQuery pageQuery;
+		if (search != null) {
+			ObjectTypes type = search.getType() != null ? ObjectTypes.getObjectType(search.getType()) : null;
+			QName typeName = type != null ? type.getTypeQName() : null;
+			String inner = search.getAdvancedQuery();
+			if (StringUtils.isNotBlank(inner)) {
+				inner = "\n" + inner + "\n";
+			} else if (inner == null) {
+				inner = "";
+			}
+			pageQuery = new PageRepositoryQuery(typeName, "<query>" + inner + "</query>");
+		} else {
+			pageQuery = new PageRepositoryQuery();
+		}
+		SearchPanel.this.setResponsePage(pageQuery);
+	}
+
+	private IModel<String> createAdvancedGroupLabelStyle() {
         return new AbstractReadOnlyModel<String>() {
 
             @Override
@@ -482,6 +589,6 @@ public class SearchPanel extends BasePanel<Search> {
 
         target.add(
                 get(createComponentPath(ID_FORM, ID_ADVANCED_GROUP)),
-                get(createComponentPath(ID_FORM, ID_SEARCH)));
+                get(createComponentPath(ID_FORM, ID_SEARCH_CONTAINER)));
     }
 }

@@ -15,23 +15,6 @@
  */
 package com.evolveum.midpoint.web.page.admin.users.component;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.util.exception.*;
-import org.apache.wicket.RestartResponseException;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.model.AbstractReadOnlyModel;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
-import org.apache.wicket.request.mapper.parameter.PageParameters;
-
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
@@ -49,6 +32,7 @@ import com.evolveum.midpoint.prism.query.OrgFilter.Scope;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -58,24 +42,20 @@ import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.orgs.OrgTreeAssignablePanel;
 import com.evolveum.midpoint.web.page.admin.orgs.OrgTreePanel;
-import com.evolveum.midpoint.web.page.admin.resources.PageResource;
-import com.evolveum.midpoint.web.page.admin.roles.PageRole;
-import com.evolveum.midpoint.web.page.admin.server.PageTaskEdit;
-import com.evolveum.midpoint.web.page.admin.services.PageService;
 import com.evolveum.midpoint.web.page.admin.users.PageOrgTree;
 import com.evolveum.midpoint.web.page.admin.users.PageOrgUnit;
-import com.evolveum.midpoint.web.page.admin.users.PageUser;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ServiceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import org.apache.wicket.RestartResponseException;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.model.AbstractReadOnlyModel;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
+
+import javax.xml.namespace.QName;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Used as a main component of the Org tree page.
@@ -241,18 +221,6 @@ public class TreeTablePanel extends BasePanel<String> {
 		return items;
 	}
 
-	protected static Map<Class, Class> objectDetailsMap;
-
-	static {
-		objectDetailsMap = new HashMap<>();
-		objectDetailsMap.put(UserType.class, PageUser.class);
-		objectDetailsMap.put(OrgType.class, PageOrgUnit.class);
-		objectDetailsMap.put(RoleType.class, PageRole.class);
-		objectDetailsMap.put(ServiceType.class, PageService.class);
-		objectDetailsMap.put(ResourceType.class, PageResource.class);
-		objectDetailsMap.put(TaskType.class, PageTaskEdit.class);
-	}
-
 	// TODO: merge this with AbstractRoleMemeberPanel.initObjectForAdd, also see MID-3233
 	private void initObjectForAdd(ObjectReferenceType parentOrgRef, QName type, QName relation,
 			AjaxRequestTarget target) throws SchemaException {
@@ -281,30 +249,7 @@ public class TreeTablePanel extends BasePanel<String> {
 			objType.getParentOrgRef().add(parentOrgRef.clone());
 		}
 
-		Class newObjectPageClass = objectDetailsMap.get(obj.getCompileTimeClass());
-		
-		if (LOGGER.isDebugEnabled()) {
-			LOGGER.debug("Adding child by using page {}:\n{}", newObjectPageClass.getSimpleName(), obj.debugDump(1));
-		}
-
-		Constructor constructor = null;
-		try {
-			constructor = newObjectPageClass.getConstructor(PrismObject.class);
-
-		} catch (NoSuchMethodException | SecurityException e) {
-			throw new SystemException("Unable to locate constructor (PrismObject) in " + newObjectPageClass
-					+ ": " + e.getMessage(), e);
-		}
-
-		PageBase page;
-		try {
-			page = (PageBase) constructor.newInstance(obj);
-		} catch (InstantiationException | IllegalAccessException | IllegalArgumentException
-				| InvocationTargetException e) {
-			throw new SystemException("Error instantiating " + newObjectPageClass + ": " + e.getMessage(), e);
-		}
-
-		setResponsePage(page);
+		WebComponentUtil.dispatchToObjectDetailsPage(obj, this);
 
 	}
 

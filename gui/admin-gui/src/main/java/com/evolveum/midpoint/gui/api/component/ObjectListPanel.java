@@ -21,6 +21,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -89,17 +90,6 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 		return type;
 	}
 
-	private static Map<Class<?>, String> storageMap;
-
-	static {
-		storageMap = new HashMap<Class<?>, String>();
-		storageMap.put(PageUsers.class, SessionStorage.KEY_USERS);
-		storageMap.put(PageResources.class, SessionStorage.KEY_RESOURCES);
-		storageMap.put(PageReports.class, SessionStorage.KEY_REPORTS);
-		storageMap.put(PageRoles.class, SessionStorage.KEY_ROLES);
-		storageMap.put(PageServices.class, SessionStorage.KEY_SERVICES);
-	}
-	
 	/**
 	 * @param defaultType specifies type of the object that will be selected by default. It can be changed.
 	 */
@@ -309,9 +299,9 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 	}
 	
 	private String getStorageKey() {
-		return storageMap.get(parentPage.getClass());
+		return WebComponentUtil.getStorageKeyForPage(parentPage.getClass());
 	}
-	
+
 	private PageStorage getPageStorage(String storageKey){
 		PageStorage storage = getSession().getSessionStorage().getPageStorageMap().get(storageKey);
 		if (storage == null) {

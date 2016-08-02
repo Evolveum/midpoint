@@ -22,21 +22,22 @@ import java.io.StringWriter;
 import java.lang.management.ManagementFactory;
 import java.lang.management.MemoryMXBean;
 import java.lang.management.RuntimeMXBean;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Locale;
+import java.util.*;
 
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.web.page.admin.reports.PageReports;
+import com.evolveum.midpoint.web.page.admin.resources.PageResources;
+import com.evolveum.midpoint.web.page.admin.roles.PageRoles;
+import com.evolveum.midpoint.web.page.admin.services.PageServices;
+import com.evolveum.midpoint.web.page.admin.users.PageUsers;
+import com.evolveum.midpoint.web.session.SessionStorage;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.Component;
@@ -75,7 +76,6 @@ import com.evolveum.midpoint.gui.api.component.result.OpResult;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.model.NonEmptyModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerValue;
@@ -194,6 +194,41 @@ public final class WebComponentUtil {
 
 	private static final Trace LOGGER = TraceManager.getTrace(WebComponentUtil.class);
 	private static DatatypeFactory df = null;
+
+	private static Map<Class<?>, Class<? extends PageBase>> objectDetailsPageMap;
+
+	static {
+		objectDetailsPageMap = new HashMap<>();
+		objectDetailsPageMap.put(UserType.class, PageUser.class);
+		objectDetailsPageMap.put(OrgType.class, PageOrgUnit.class);
+		objectDetailsPageMap.put(RoleType.class, PageRole.class);
+		objectDetailsPageMap.put(ServiceType.class, PageService.class);
+		objectDetailsPageMap.put(ResourceType.class, PageResource.class);
+		objectDetailsPageMap.put(TaskType.class, PageTaskEdit.class);
+		objectDetailsPageMap.put(ReportType.class, PageReport.class);
+	}
+
+	// only pages that support 'advanced search' are currently listed here (TODO: generalize)
+	private static Map<Class<?>, Class<? extends PageBase>> objectListPageMap;
+
+	static {
+		objectListPageMap = new HashMap<>();
+		objectListPageMap.put(UserType.class, PageUsers.class);
+		objectListPageMap.put(RoleType.class, PageRoles.class);
+		objectListPageMap.put(ServiceType.class, PageServices.class);
+		objectListPageMap.put(ResourceType.class, PageResources.class);
+	}
+
+	private static Map<Class<?>, String> storageKeyMap;
+
+	static {
+		storageKeyMap = new HashMap<>();
+		storageKeyMap.put(PageUsers.class, SessionStorage.KEY_USERS);
+		storageKeyMap.put(PageResources.class, SessionStorage.KEY_RESOURCES);
+		storageKeyMap.put(PageReports.class, SessionStorage.KEY_REPORTS);
+		storageKeyMap.put(PageRoles.class, SessionStorage.KEY_ROLES);
+		storageKeyMap.put(PageServices.class, SessionStorage.KEY_SERVICES);
+	}
 
 	public enum Channel {
 		// TODO: move this to schema component
@@ -1510,29 +1545,51 @@ public final class WebComponentUtil {
 		return (T) object;
 	}
 
-	public static void dispatchToObjectDetailsPage(ObjectReferenceType objectRef, PageBase page) {
+	public static void dispatchToObjectDetailsPage(ObjectReferenceType objectRef, Component component, boolean failIfUnsupported) {
 		if (objectRef == null) {
 			return; // should not occur
 		}
-		QName type = objectRef.getType();
+		Validate.notNull(objectRef.getOid(), "No OID in objectRef");
+		Validate.notNull(objectRef.getType(), "No type in objectRef");
+		Class<? extends ObjectType> targetClass = ObjectTypes.getObjectTypeFromTypeQName(objectRef.getType()).getClassDefinition();
+		dispatchToObjectDetailsPage(targetClass, objectRef.getOid(), component, failIfUnsupported);
+	}
+
+	// shows the actual object that is passed via parameter (not its state in repository)
+	public static void dispatchToObjectDetailsPage(PrismObject obj, Component component) {
+		Class newObjectPageClass = getObjectDetailsPage(obj.getCompileTimeClass());
+		if (newObjectPageClass == null) {
+			throw new IllegalArgumentException("Cannot determine details page for "+obj.getCompileTimeClass());
+		}
+
+		Constructor constructor;
+		try {
+			constructor = newObjectPageClass.getConstructor(PrismObject.class);
+
+		} catch (NoSuchMethodException | SecurityException e) {
+			throw new SystemException("Unable to locate constructor (PrismObject) in " + newObjectPageClass
+					+ ": " + e.getMessage(), e);
+		}
+
+		PageBase page;
+		try {
+			page = (PageBase) constructor.newInstance(obj);
+		} catch (InstantiationException | IllegalAccessException | IllegalArgumentException
+				| InvocationTargetException e) {
+			throw new SystemException("Error instantiating " + newObjectPageClass + ": " + e.getMessage(), e);
+		}
+
+		component.setResponsePage(page);
+	}
+
+	public static void dispatchToObjectDetailsPage(Class<? extends ObjectType> objectClass, String oid, Component component, boolean failIfUnsupported) {
 		PageParameters parameters = new PageParameters();
-		parameters.add(OnePageParameterEncoder.PARAMETER, objectRef.getOid());
-		if (RoleType.COMPLEX_TYPE.equals(type)) {
-			page.setResponsePage(PageRole.class, parameters);
-		} else if (OrgType.COMPLEX_TYPE.equals(type)) {
-			page.setResponsePage(PageOrgUnit.class, parameters);
-		} else if (ServiceType.COMPLEX_TYPE.equals(type)) {
-			page.setResponsePage(PageService.class, parameters);
-		} else if (UserType.COMPLEX_TYPE.equals(type)) {
-			page.setResponsePage(PageUser.class, parameters);
-		} else if (ResourceType.COMPLEX_TYPE.equals(type)) {
-			page.setResponsePage(PageResource.class, parameters);
-		} else if (TaskType.COMPLEX_TYPE.equals(type)) {
-			page.setResponsePage(PageTaskEdit.class, parameters);
-		} else if (ReportType.COMPLEX_TYPE.equals(type)) {
-			page.setResponsePage(PageReport.class, parameters);
-		} else {
-			// nothing to do
+		parameters.add(OnePageParameterEncoder.PARAMETER, oid);
+		Class<? extends PageBase> page = getObjectDetailsPage(objectClass);
+		if (page != null) {
+			component.setResponsePage(page, parameters);
+		} else if (failIfUnsupported) {
+			throw new SystemException("Cannot determine details page for "+objectClass);
 		}
 	}
 
@@ -1542,12 +1599,7 @@ public final class WebComponentUtil {
 	}
 
 	public static boolean hasDetailsPage(Class<?> clazz) {
-		if (clazz == null) {
-			return false;
-		}
-		return AbstractRoleType.class.isAssignableFrom(clazz) || UserType.class.isAssignableFrom(clazz)
-				|| ResourceType.class.isAssignableFrom(clazz) || TaskType.class.isAssignableFrom(clazz)
-				|| ReportType.class.isAssignableFrom(clazz);
+		return objectDetailsPageMap.containsKey(clazz);
 	}
 
 	public static boolean hasDetailsPage(ObjectReferenceType ref) {
@@ -1559,6 +1611,26 @@ public final class WebComponentUtil {
 			return false;
 		}
 		return hasDetailsPage(t.getClassDefinition());
+	}
+
+	public static String getStorageKeyForPage(Class<?> pageClass) {
+		return storageKeyMap.get(pageClass);
+	}
+
+	public static Class<? extends PageBase> getObjectDetailsPage(Class<? extends ObjectType> type) {
+		return objectDetailsPageMap.get(type);
+	}
+
+	public static Class<? extends PageBase> getObjectListPage(Class<? extends ObjectType> type) {
+		return objectListPageMap.get(type);
+	}
+
+	public static String getStorageKeyForObjectClass(Class<? extends ObjectType> type) {
+		Class<? extends PageBase> listPageClass = getObjectListPage(type);
+		if (listPageClass == null) {
+			return null;
+		}
+		return getStorageKeyForPage(listPageClass);
 	}
 
 	@NotNull
@@ -1689,23 +1761,4 @@ public final class WebComponentUtil {
 
 		tabbed.setSelectedTab(tabIndex);
 	}
-
-	public static <O extends ObjectType> Class<? extends PageBase> getObjectDetailsPage(Class<O> type) {
-		if (type == UserType.class) {
-			return PageUser.class;
-		} else if (type == OrgType.class) {
-			return PageOrgUnit.class;
-		} else if (type == RoleType.class) {
-			return PageRole.class;
-		} else if (type == ServiceType.class) {
-			return PageService.class;
-		} else if (type == ResourceType.class) {
-			return PageResource.class;
-		} else if (type == TaskType.class) {
-			return PageTaskEdit.class;
-		} else {
-			throw new IllegalArgumentException("Cannot determine details page for "+type);
-		}
-	}
-
 }

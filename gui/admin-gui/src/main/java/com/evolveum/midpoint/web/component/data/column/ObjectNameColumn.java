@@ -19,6 +19,7 @@ import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
+import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
@@ -76,34 +77,33 @@ public class ObjectNameColumn<O extends ObjectType> extends AbstractColumn<Selec
 				}
 			} 
 		};
-		
-		cellItem.add(new LinkPanel(componentId, labelModel) {
-        	private static final long serialVersionUID = 1L;
-        	
-        	@Override
-            public void onClick(AjaxRequestTarget target) {
-        		SelectableBean<O> selectableBean = rowModel.getObject();
-				O value = selectableBean.getValue();
-				if (value == null) {
-					OperationResult result = selectableBean.getResult();
-					throw new RestartResponseException(new PageOperationResult(result));
-				} else {
-					if (selectableBean.getResult() != null){
-						throw new RestartResponseException(new PageOperationResult(selectableBean.getResult()));
+
+		if (isClickable(rowModel)) {		// beware: rowModel is very probably resolved at this moment; but it seems to cause no problems
+			cellItem.add(new LinkPanel(componentId, labelModel) {
+				private static final long serialVersionUID = 1L;
+
+				@Override
+				public void onClick(AjaxRequestTarget target) {
+					SelectableBean<O> selectableBean = rowModel.getObject();
+					O value = selectableBean.getValue();
+					if (value == null) {
+						OperationResult result = selectableBean.getResult();
+						throw new RestartResponseException(new PageOperationResult(result));
 					} else {
-						ObjectNameColumn.this.onClick(target, rowModel);
+						if (selectableBean.getResult() != null) {
+							throw new RestartResponseException(new PageOperationResult(selectableBean.getResult()));
+						} else {
+							ObjectNameColumn.this.onClick(target, rowModel);
+						}
 					}
 				}
-            }
-
-            @Override
-            public boolean isEnabled() {
-                return ObjectNameColumn.this.isEnabled(rowModel);
-            }
-		});
+			});
+		} else {
+			cellItem.add(new Label(componentId, labelModel));
+		}
 	}
 	
-	public boolean isEnabled(IModel<SelectableBean<O>> rowModel) {
+	public boolean isClickable(IModel<SelectableBean<O>> rowModel) {
         return true;
     }
 

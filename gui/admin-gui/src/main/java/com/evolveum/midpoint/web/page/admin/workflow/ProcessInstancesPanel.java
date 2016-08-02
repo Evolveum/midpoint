@@ -208,7 +208,7 @@ public class ProcessInstancesPanel extends BasePanel {
 			@Override
 			public void onClick(AjaxRequestTarget target, IModel<ProcessInstanceDto> rowModel) {
 				ProcessInstanceDto dto = rowModel.getObject();
-				dispatchToObjectDetailsPage(dto.getObjectRef(), getPageBase());
+				dispatchToObjectDetailsPage(dto.getObjectRef(), getPageBase(), false);
 			}
 		};
 	}
@@ -219,7 +219,7 @@ public class ProcessInstancesPanel extends BasePanel {
 			@Override
 			public void onClick(AjaxRequestTarget target, IModel<ProcessInstanceDto> rowModel) {
 				ProcessInstanceDto dto = rowModel.getObject();
-				dispatchToObjectDetailsPage(dto.getTargetRef(), getPageBase());
+				dispatchToObjectDetailsPage(dto.getTargetRef(), getPageBase(), false);
 			}
 		};
 	}

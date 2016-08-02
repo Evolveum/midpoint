@@ -184,7 +184,7 @@ public class WorkItemsPanel extends BasePanel {
 			@Override
 			public void onClick(AjaxRequestTarget target, IModel<WorkItemDto> rowModel) {
 				WorkItemDto dto = rowModel.getObject();
-				dispatchToObjectDetailsPage(dto.getObjectRef(), getPageBase());
+				dispatchToObjectDetailsPage(dto.getObjectRef(), getPageBase(), false);
 			}
 		};
 	}
@@ -195,7 +195,7 @@ public class WorkItemsPanel extends BasePanel {
 			@Override
 			public void onClick(AjaxRequestTarget target, IModel<WorkItemDto> rowModel) {
 				WorkItemDto dto = rowModel.getObject();
-				dispatchToObjectDetailsPage(dto.getTargetRef(), getPageBase());
+				dispatchToObjectDetailsPage(dto.getTargetRef(), getPageBase(), false);
 			}
 		};
 	}
