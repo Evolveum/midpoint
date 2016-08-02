@@ -696,6 +696,8 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
 				}
 			}
 			searchCursor.close();
+		} catch (IOException e) {
+			throw new IllegalStateException("IO Error: "+e.getMessage(), e);
 		} catch (CursorLdapReferralException e) {
 			throw new IllegalStateException("Got referral to: "+e.getReferralInfo(), e);
 		}
