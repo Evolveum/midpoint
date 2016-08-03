@@ -55,6 +55,7 @@
 				<clearValue>whatever</clearValue>
 			</icfi:uselessGuardedString>
 			<icfi:minPasswordLength>3</icfi:minPasswordLength>
+			<icfi:addConnectorStateAttributes>true</icfi:addConnectorStateAttributes>
 		</icfc:configurationProperties>
 
 	</connectorConfiguration>
