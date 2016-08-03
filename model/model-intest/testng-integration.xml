@@ -34,7 +34,7 @@
             <class name="com.evolveum.midpoint.model.intest.TestSchemalessResource"/>
             <class name="com.evolveum.midpoint.model.intest.TestPassword"/>
             <class name="com.evolveum.midpoint.model.intest.TestActivation"/>
-            <class name="com.evolveum.midpoint.model.intest.TestMultiConnector"/>
+            <class name="com.evolveum.midpoint.model.intest.TestConnectorDummyFake"/>
             <class name="com.evolveum.midpoint.model.intest.TestStrangeCases"/>
             <class name="com.evolveum.midpoint.model.intest.TestMisc"/>
             <class name="com.evolveum.midpoint.model.intest.TestResources"/>
