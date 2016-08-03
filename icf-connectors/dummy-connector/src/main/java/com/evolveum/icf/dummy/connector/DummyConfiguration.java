@@ -57,6 +57,7 @@ public class DummyConfiguration extends AbstractConfiguration {
 	private boolean useLegacySchema = true;
 	private String requiredBaseContextOrgName = null;
 	private Integer minPasswordLength = null;
+	private boolean addConnectorStateAttributes = false;
 
 	/**
      * Defines name of the dummy resource instance. There may be several dummy resource running in
@@ -324,6 +325,14 @@ public class DummyConfiguration extends AbstractConfiguration {
 
 	public void setMinPasswordLength(Integer minPasswordLength) {
 		this.minPasswordLength = minPasswordLength;
+	}
+
+	public boolean isAddConnectorStateAttributes() {
+		return addConnectorStateAttributes;
+	}
+
+	public void setAddConnectorStateAttributes(boolean addConnectorStateAttributes) {
+		this.addConnectorStateAttributes = addConnectorStateAttributes;
 	}
 
 	/**

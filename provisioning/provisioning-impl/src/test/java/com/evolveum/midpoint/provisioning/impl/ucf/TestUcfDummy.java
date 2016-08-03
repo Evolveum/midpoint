@@ -103,70 +103,30 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
  * this is a lesser evil for now (MID-392)
  */
 @ContextConfiguration(locations = { "classpath:ctx-provisioning-test-no-repo.xml" })
-public class TestUcfDummy extends AbstractTestNGSpringContextTests {
-
-	private static final File RESOURCE_DUMMY_FILE = new File(ProvisioningTestUtil.COMMON_TEST_DIR_FILE, "resource-dummy.xml");
-	private static final File CONNECTOR_DUMMY_FILE = new File(ProvisioningTestUtil.TEST_DIR_UCF_FILE, "connector-dummy.xml");
-	private static final String ACCOUNT_JACK_USERNAME = "jack";
-
-	private ConnectorFactory connectorFactory;
-	private PrismObject<ResourceType> resource;
-	private ResourceType resourceType;
-	private ConnectorType connectorType;
-	private ConnectorInstance cc;
-	private ResourceSchema resourceSchema;
-	private static DummyResource dummyResource;
-	private static DummyResourceContoller dummyResourceCtl;
-
-	@Autowired(required = true)
-	private ConnectorFactory connectorFactoryIcfImpl;
-	@Autowired(required = true)
-	private PrismContext prismContext;
+public class TestUcfDummy extends AbstractUcfDummyTest {
 	
 	private static Trace LOGGER = TraceManager.getTrace(TestUcfDummy.class);
 	
-	@BeforeClass
-	public void setup() throws Exception {
-		TestUtil.displayTestTile("setup");
-		System.setProperty("midpoint.home", "target/midPointHome/");
-
-		PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
-		PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
-		
-		dummyResourceCtl = DummyResourceContoller.create(null);
-		dummyResourceCtl.setResource(resource);
-		dummyResourceCtl.extendSchemaPirate();
-		dummyResource = dummyResourceCtl.getDummyResource();
-				
-		connectorFactory = connectorFactoryIcfImpl;
-
-		resource = PrismTestUtil.parseObject(RESOURCE_DUMMY_FILE);
-		resourceType = resource.asObjectable();
-
-		PrismObject<ConnectorType> connector = PrismTestUtil.parseObject(CONNECTOR_DUMMY_FILE);
-		connectorType = connector.asObjectable();
-	}
-		
 	@Test
 	public void test000PrismContextSanity() throws Exception {
-		TestUtil.displayTestTile("test000PrismContextSanity");
+		final String TEST_NAME = "test000PrismContextSanity";
+		TestUtil.displayTestTile(TEST_NAME);
 		
 		SchemaRegistry schemaRegistry = PrismTestUtil.getPrismContext().getSchemaRegistry();
 		PrismSchema schemaIcfc = schemaRegistry.findSchemaByNamespace(ConnectorFactoryIcfImpl.NS_ICF_CONFIGURATION);
 		assertNotNull("ICFC schema not found in the context ("+ConnectorFactoryIcfImpl.NS_ICF_CONFIGURATION+")", schemaIcfc);
-		PrismContainerDefinition configurationPropertiesDef = 
+		PrismContainerDefinition<ConnectorConfigurationType> configurationPropertiesDef = 
 			schemaIcfc.findContainerDefinitionByElementName(ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_ELEMENT_QNAME);
 		assertNotNull("icfc:configurationProperties not found in icfc schema ("+
 				ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_ELEMENT_QNAME+")", configurationPropertiesDef);
 		PrismSchema schemaIcfs = schemaRegistry.findSchemaByNamespace(ConnectorFactoryIcfImpl.NS_ICF_SCHEMA);
-		assertNotNull("ICFS schema not found in the context ("+ConnectorFactoryIcfImpl.NS_ICF_SCHEMA+")", schemaIcfs);
-	
-		//"http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/configuration-1.xsd";
+		assertNotNull("ICFS schema not found in the context ("+ConnectorFactoryIcfImpl.NS_ICF_SCHEMA+")", schemaIcfs);	
 	}
 	
 	@Test
 	public void test001ResourceSanity() throws Exception {
-		TestUtil.displayTestTile("test001ResourceSanity");
+		final String TEST_NAME = "test001ResourceSanity";
+		TestUtil.displayTestTile(TEST_NAME);
 		
 		display("Resource", resource);
 		
@@ -198,7 +158,8 @@ public class TestUcfDummy extends AbstractTestNGSpringContextTests {
 
 	@Test
 	public void test002ConnectorSchema() throws Exception {
-		TestUtil.displayTestTile("test002ConnectorSchema");
+		final String TEST_NAME = "test002ConnectorSchema";
+		TestUtil.displayTestTile(TEST_NAME);
 		
 		ConnectorInstance cc = connectorFactory.createConnectorInstance(connectorType, ResourceTypeUtil.getResourceNamespace(resourceType),
 				"test connector");
@@ -251,25 +212,23 @@ public class TestUcfDummy extends AbstractTestNGSpringContextTests {
 	}
 	
 	@Test
-	public void test020CreateConfiguredConnector() throws Exception,
-			ObjectNotFoundException, CommunicationException,
-			GenericFrameworkException, SchemaException, ConfigurationException {
-		TestUtil.displayTestTile("test004CreateConfiguredConnector");
+	public void test020CreateConfiguredConnector() throws Exception {
+		final String TEST_NAME = "test020CreateConfiguredConnector";
+		TestUtil.displayTestTile(TEST_NAME);
 		
 		cc = connectorFactory.createConnectorInstance(connectorType, ResourceTypeUtil.getResourceNamespace(resourceType),
 				"test connector");
 		assertNotNull("Failed to instantiate connector", cc);
-		OperationResult result = new OperationResult(TestUcfDummy.class.getName() + ".testCreateConfiguredConnector");
-		PrismContainerValue configContainer = resourceType.getConnectorConfiguration().asPrismContainerValue();
+		OperationResult result = new OperationResult(TestUcfDummy.class.getName() + "." + TEST_NAME);
+		PrismContainerValue<ConnectorConfigurationType> configContainer = resourceType.getConnectorConfiguration().asPrismContainerValue();
 		display("Configuration container", configContainer);
 		
 		// WHEN
 		cc.configure(configContainer, result);
 		
 		// THEN
-		result.computeStatus("test failed");
-		TestUtil.assertSuccess("Connector configuration failed", result);
-		// TODO: assert something
+		result.computeStatus();
+		TestUtil.assertSuccess(result);
 	}
 	
 	@Test
@@ -306,7 +265,7 @@ public class TestUcfDummy extends AbstractTestNGSpringContextTests {
 				"test connector");
 		assertNotNull("Failed to instantiate connector", cc);
 		
-		PrismContainerValue configContainer = resourceType.getConnectorConfiguration().asPrismContainerValue();
+		PrismContainerValue<ConnectorConfigurationType> configContainer = resourceType.getConnectorConfiguration().asPrismContainerValue();
 		display("Configuration container", configContainer);
 		cc.configure(configContainer, result);
 		
@@ -342,7 +301,7 @@ public class TestUcfDummy extends AbstractTestNGSpringContextTests {
 		cc = connectorFactory.createConnectorInstance(connectorType, ResourceTypeUtil.getResourceNamespace(resourceType), "test connector");
 		assertNotNull("Failed to instantiate connector", cc);
 		
-		PrismContainerValue configContainer = resourceType.getConnectorConfiguration().asPrismContainerValue();
+		PrismContainerValue<ConnectorConfigurationType> configContainer = resourceType.getConnectorConfiguration().asPrismContainerValue();
 		display("Configuration container", configContainer);
 		cc.configure(configContainer, result);
 		
@@ -386,9 +345,10 @@ public class TestUcfDummy extends AbstractTestNGSpringContextTests {
 	
 	@Test
 	public void test040AddAccount() throws Exception {
-		TestUtil.displayTestTile(this, "test040AddAccount");
+		final String TEST_NAME = "test040AddAccount";
+		TestUtil.displayTestTile(this, TEST_NAME);
 
-		OperationResult result = new OperationResult(this.getClass().getName() + ".test040AddAccount");
+		OperationResult result = new OperationResult(this.getClass().getName() + "." + TEST_NAME);
 
 		ObjectClassComplexTypeDefinition defaultAccountDefinition = resourceSchema.findDefaultObjectClassDefinition(ShadowKindType.ACCOUNT);
 		ShadowType shadowType = new ShadowType();
@@ -415,7 +375,8 @@ public class TestUcfDummy extends AbstractTestNGSpringContextTests {
 	
 	@Test
 	public void test050Search() throws Exception {
-		TestUtil.displayTestTile("test050Search");
+		final String TEST_NAME = "test050Search";
+		TestUtil.displayTestTile(TEST_NAME);
 		// GIVEN
 
 		final ObjectClassComplexTypeDefinition accountDefinition = resourceSchema.findDefaultObjectClassDefinition(ShadowKindType.ACCOUNT);
@@ -427,14 +388,14 @@ public class TestUcfDummy extends AbstractTestNGSpringContextTests {
 
 			@Override
 			public boolean handle(PrismObject<ShadowType> shadow) {
-				System.out.println("Search: found: " + shadow);
+				display("Search: found", shadow);
 				checkUcfShadow(shadow, accountDefinition);
 				searchResults.add(shadow);
 				return true;
 			}
 		};
 
-		OperationResult result = new OperationResult(this.getClass().getName() + ".testSearch");
+		OperationResult result = new OperationResult(this.getClass().getName() + "." + TEST_NAME);
 
 		// WHEN
 		cc.search(accountDefinition, new ObjectQuery(), handler, null, null, null, null, result);
@@ -453,20 +414,21 @@ public class TestUcfDummy extends AbstractTestNGSpringContextTests {
 	
 	@Test
 	public void test100FetchEmptyChanges() throws Exception {
-		TestUtil.displayTestTile(this, "test100FetchEmptyChanges");
+		final String TEST_NAME = "test100FetchEmptyChanges";
+		TestUtil.displayTestTile(this, TEST_NAME);
 
-		OperationResult result = new OperationResult(this.getClass().getName() + ".test100FetchEmptyChanges");
+		OperationResult result = new OperationResult(this.getClass().getName() + "." + TEST_NAME);
 		ObjectClassComplexTypeDefinition accountDefinition = resourceSchema.findDefaultObjectClassDefinition(ShadowKindType.ACCOUNT);
 		
 		// WHEN
-		PrismProperty<?> lastToken = cc.fetchCurrentToken(accountDefinition, null, result);
+		PrismProperty<Integer> lastToken = cc.fetchCurrentToken(accountDefinition, null, result);
 
 		assertNotNull("No last sync token", lastToken);
 		
 		System.out.println("Property:");
 		System.out.println(lastToken.debugDump());
 		
-		PrismPropertyDefinition lastTokenDef = lastToken.getDefinition();
+		PrismPropertyDefinition<Integer> lastTokenDef = lastToken.getDefinition();
 		assertNotNull("No last sync token definition", lastTokenDef);
 		assertEquals("Last sync token definition has wrong type", DOMUtil.XSD_INT, lastTokenDef.getTypeName());
 		assertTrue("Last sync token definition is NOT dynamic", lastTokenDef.isDynamic());
@@ -479,9 +441,10 @@ public class TestUcfDummy extends AbstractTestNGSpringContextTests {
 	
 	@Test
 	public void test101FetchAddChange() throws Exception {
-		TestUtil.displayTestTile(this, "test101FetchAddChange");
+		final String TEST_NAME = "test101FetchAddChange";
+		TestUtil.displayTestTile(this, TEST_NAME);
 
-		OperationResult result = new OperationResult(this.getClass().getName() + ".test101FetchAddChange");
+		OperationResult result = new OperationResult(this.getClass().getName() + "." + TEST_NAME);
 		ObjectClassComplexTypeDefinition accountDefinition = resourceSchema.findDefaultObjectClassDefinition(ShadowKindType.ACCOUNT);
 		
 		PrismProperty<?> lastToken = cc.fetchCurrentToken(accountDefinition, null, result);
@@ -499,7 +462,7 @@ public class TestUcfDummy extends AbstractTestNGSpringContextTests {
 		List<Change<ShadowType>> changes = cc.fetchChanges(accountDefinition, lastToken, null, null, result);
 		
 		AssertJUnit.assertEquals(1, changes.size());
-		Change change = changes.get(0);
+		Change<ShadowType> change = changes.get(0);
 		assertNotNull("null change", change);
 		PrismObject<? extends ShadowType> currentShadow = change.getCurrentShadow();
 		assertNotNull("null current shadow", currentShadow);
@@ -527,21 +490,4 @@ public class TestUcfDummy extends AbstractTestNGSpringContextTests {
 		TestUtil.assertSuccess(testResult);
 	}
 
-
-	private void assertPropertyDefinition(PrismContainer<?> container, String propName, QName xsdType, int minOccurs,
-			int maxOccurs) {
-		QName propQName = new QName(SchemaConstantsGenerated.NS_COMMON, propName);
-		PrismAsserts.assertPropertyDefinition(container, propQName, xsdType, minOccurs, maxOccurs);
-	}
-	
-	public static void assertPropertyValue(PrismContainer<?> container, String propName, Object propValue) {
-		QName propQName = new QName(SchemaConstantsGenerated.NS_COMMON, propName);
-		PrismAsserts.assertPropertyValue(container, propQName, propValue);
-	}
-	
-	private void assertContainerDefinition(PrismContainer container, String contName, QName xsdType, int minOccurs,
-			int maxOccurs) {
-		QName qName = new QName(SchemaConstantsGenerated.NS_COMMON, contName);
-		PrismAsserts.assertDefinition(container.getDefinition(), qName, xsdType, minOccurs, maxOccurs);
-	}
 }

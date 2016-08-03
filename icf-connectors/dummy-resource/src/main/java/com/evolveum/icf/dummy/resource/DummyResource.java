@@ -71,6 +71,10 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 public class DummyResource implements DebugDumpable {
 	
 	private static final Trace LOGGER = TraceManager.getTrace(DummyResource.class);
+	
+	public static final String ATTRIBUTE_CONNECTOR_TO_STRING = "connectorToString";
+	public static final String ATTRIBUTE_CONNECTOR_STATIC_VAL = "connectorStaticVal";
+	public static final String ATTRIBUTE_CONNECTOR_CONFIGURATION_TO_STRING = "connectorConfigurationToString";
 
 	private String instanceName;
 	private Map<String,DummyObject> allObjects;
@@ -100,6 +104,8 @@ public class DummyResource implements DebugDumpable {
 	private BreakMode addBreakMode = BreakMode.NONE;
 	private BreakMode modifyBreakMode = BreakMode.NONE;
 	private BreakMode deleteBreakMode = BreakMode.NONE;
+	
+	private boolean blockOperations = false;
 
 	private boolean generateAccountDescriptionOnCreate = false;		   // simulates volatile behavior (on create)
 	private boolean generateAccountDescriptionOnUpdate = false;        // simulates volatile behavior (on update)
@@ -252,6 +258,14 @@ public class DummyResource implements DebugDumpable {
 		setBreakMode(BreakMode.NONE);
 	}
 
+	public boolean isBlockOperations() {
+		return blockOperations;
+	}
+
+	public void setBlockOperations(boolean blockOperations) {
+		this.blockOperations = blockOperations;
+	}
+
 	public String getUselessString() {
 		return uselessString;
 	}
@@ -370,6 +384,7 @@ public class DummyResource implements DebugDumpable {
 	}
 
 	public Collection<DummyAccount> listAccounts() throws ConnectException, FileNotFoundException, SchemaViolationException {
+		checkBlockOperations();
 		if (getBreakMode == BreakMode.NONE) {
 			return accounts.values();
 		} else if (schemaBreakMode == BreakMode.NETWORK) {
@@ -481,6 +496,7 @@ public class DummyResource implements DebugDumpable {
 	}
 
 	public Collection<DummyGroup> listGroups() throws ConnectException, FileNotFoundException, SchemaViolationException {
+		checkBlockOperations();
 		if (getBreakMode == BreakMode.NONE) {
 			return groups.values();
 		} else if (schemaBreakMode == BreakMode.NETWORK) {
@@ -504,6 +520,7 @@ public class DummyResource implements DebugDumpable {
 	}
 	
 	public Collection<DummyPrivilege> listPrivileges() throws ConnectException, FileNotFoundException, SchemaViolationException {
+		checkBlockOperations();
 		if (getBreakMode == BreakMode.NONE) {
 			return privileges.values();
 		} else if (schemaBreakMode == BreakMode.NETWORK) {
@@ -527,6 +544,7 @@ public class DummyResource implements DebugDumpable {
 	}
 	
 	public Collection<DummyOrg> listOrgs() throws ConnectException, FileNotFoundException, SchemaViolationException {
+		checkBlockOperations();
 		if (getBreakMode == BreakMode.NONE) {
 			return orgs.values();
 		} else if (schemaBreakMode == BreakMode.NETWORK) {
@@ -550,6 +568,7 @@ public class DummyResource implements DebugDumpable {
 	}
 	
 	private synchronized <T extends DummyObject> String addObject(Map<String,T> map, T newObject) throws ObjectAlreadyExistsException, ConnectException, FileNotFoundException, SchemaViolationException {
+		checkBlockOperations();
 		if (addBreakMode == BreakMode.NONE) {
 			// just go on
 		} else if (addBreakMode == BreakMode.NETWORK) {
@@ -616,6 +635,7 @@ public class DummyResource implements DebugDumpable {
 	
 
 	private synchronized <T extends DummyObject> void deleteObjectByName(Class<T> type, Map<String,T> map, String name) throws ObjectDoesNotExistException, ConnectException, FileNotFoundException, SchemaViolationException {
+		checkBlockOperations();
 		if (deleteBreakMode == BreakMode.NONE) {
 			// go on
 		} else if (deleteBreakMode == BreakMode.NETWORK) {
@@ -676,6 +696,7 @@ public class DummyResource implements DebugDumpable {
 	}
 
 	private synchronized <T extends DummyObject> void deleteObjectById(Class<T> type, Map<String,T> map, String id) throws ObjectDoesNotExistException, ConnectException, FileNotFoundException, SchemaViolationException {
+		checkBlockOperations();
 		if (deleteBreakMode == BreakMode.NONE) {
 			// go on
 		} else if (deleteBreakMode == BreakMode.NETWORK) {
@@ -730,6 +751,7 @@ public class DummyResource implements DebugDumpable {
 	}
 
 	private <T extends DummyObject> void renameObject(Class<T> type, Map<String,T> map, String id, String oldName, String newName) throws ObjectDoesNotExistException, ObjectAlreadyExistsException, ConnectException, FileNotFoundException, SchemaViolationException {
+		checkBlockOperations();
 		if (modifyBreakMode == BreakMode.NONE) {
 			// go on
 		} else if (modifyBreakMode == BreakMode.NETWORK) {
@@ -772,7 +794,7 @@ public class DummyResource implements DebugDumpable {
 			changeDescriptionIfNeeded((DummyAccount) existingObject);
 		}
 	}
-	
+
 	public String addAccount(DummyAccount newAccount) throws ObjectAlreadyExistsException, ConnectException, FileNotFoundException, SchemaViolationException {
 		if (generateAccountDescriptionOnCreate && newAccount.getAttributeValue(DummyAccount.ATTR_DESCRIPTION_NAME) == null) {
 			newAccount.addAttributeValue(DummyAccount.ATTR_DESCRIPTION_NAME, "Description of " + newAccount.getName());
@@ -923,6 +945,28 @@ public class DummyResource implements DebugDumpable {
 			}
 		}
 		return result;
+	}
+	
+	private synchronized void checkBlockOperations() {
+		if (blockOperations) {
+			try {
+				LOGGER.info("Thread {} blocked", Thread.currentThread().getName());
+				this.wait();
+				LOGGER.info("Thread {} unblocked", Thread.currentThread().getName());
+			} catch (InterruptedException e) {
+				LOGGER.debug("Wait interrupted", e);
+			}
+		}
+	}
+	
+	public synchronized void unblock() {
+		LOGGER.info("Unblocking");
+		this.notify();
+	}
+	
+	public synchronized void unblockAll() {
+		LOGGER.info("Unblocking all");
+		this.notifyAll();
 	}
 	
 	private void traceOperation(String opName, long counter) {

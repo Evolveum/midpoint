@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,8 +22,6 @@ import static org.testng.AssertJUnit.assertTrue;
 
 import java.util.Collection;
 import java.util.List;
-
-import javax.xml.bind.JAXBException;
 
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -59,12 +57,15 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
+ * Test various connector change and usage scenarios with dummy connector and
+ * fake dummy connector. Test upgrades and downgrades of connector version.
+ * 
  * @author semancik
  *
  */
 @ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
-public class TestMultiConnector extends AbstractConfiguredModelIntegrationTest {
+public class TestConnectorDummyFake extends AbstractConfiguredModelIntegrationTest {
 			
 	private String connectorDummyOid;
 	private String connectorDummyFakeOid;
@@ -75,10 +76,6 @@ public class TestMultiConnector extends AbstractConfiguredModelIntegrationTest {
 	private DummyResourceContoller dummyResourceCtl;
 	protected static DummyResource dummyResource;
 
-	public TestMultiConnector() throws JAXBException {
-		super();
-	}
-		
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		// Make sure that the connectors are discovered
@@ -100,10 +97,11 @@ public class TestMultiConnector extends AbstractConfiguredModelIntegrationTest {
 	
 	@Test
     public void test010ListConnectors() throws Exception {
+		final String TEST_NAME = "";
         TestUtil.displayTestTile(this, "test010ListConnectors");
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestMultiConnector.class.getName() + ".test010ListConnectors");
+        Task task = taskManager.createTaskInstance(TestConnectorDummyFake.class.getName() + ".test010ListConnectors");
         OperationResult result = task.getResult();
         
 		// WHEN
@@ -137,10 +135,11 @@ public class TestMultiConnector extends AbstractConfiguredModelIntegrationTest {
 	
 	@Test
     public void test020ImportFakeResource() throws Exception {
-        TestUtil.displayTestTile(this, "test020ImportFakeResource");
+		final String TEST_NAME = "test020ImportFakeResource";
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestMultiConnector.class.getName() + ".test020ImportFakeResource");
+        Task task = taskManager.createTaskInstance(TestConnectorDummyFake.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         
 		// WHEN
@@ -161,10 +160,11 @@ public class TestMultiConnector extends AbstractConfiguredModelIntegrationTest {
 	
 	@Test
     public void test021TestFakeResource() throws Exception {
-        TestUtil.displayTestTile(this, "test021TestFakeResource");
+		final String TEST_NAME = "test021TestFakeResource";
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestMultiConnector.class.getName() + ".test021TestFakeResource");
+        Task task = taskManager.createTaskInstance(TestConnectorDummyFake.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         
 		// WHEN
@@ -177,10 +177,11 @@ public class TestMultiConnector extends AbstractConfiguredModelIntegrationTest {
 	
 	@Test
     public void test022ListAccountsFakeResource() throws Exception {
-        TestUtil.displayTestTile(this, "test022ListAccountsFakeResource");
+		final String TEST_NAME = "test022ListAccountsFakeResource";
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestMultiConnector.class.getName() + ".test022ListAccountsFakeResource");
+        Task task = taskManager.createTaskInstance(TestConnectorDummyFake.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         
 		// WHEN
@@ -196,10 +197,11 @@ public class TestMultiConnector extends AbstractConfiguredModelIntegrationTest {
 
 	@Test
     public void test030ImportDummyResource() throws Exception {
-        TestUtil.displayTestTile(this, "test030ImportDummyResource");
+		final String TEST_NAME = "test030ImportDummyResource";
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestMultiConnector.class.getName() + ".test030ImportDummyResource");
+        Task task = taskManager.createTaskInstance(TestConnectorDummyFake.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         
 		// WHEN
@@ -220,10 +222,11 @@ public class TestMultiConnector extends AbstractConfiguredModelIntegrationTest {
 	
 	@Test
     public void test031TestDummyResource() throws Exception {
-        TestUtil.displayTestTile(this, "test031TestDummyResource");
+		final String TEST_NAME = "test031TestDummyResource";
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestMultiConnector.class.getName() + ".test031TestDummyResource");
+        Task task = taskManager.createTaskInstance(TestConnectorDummyFake.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         
 		// WHEN
@@ -236,10 +239,11 @@ public class TestMultiConnector extends AbstractConfiguredModelIntegrationTest {
 	
 	@Test
     public void test032ListAccountsDummyResource() throws Exception {
-        TestUtil.displayTestTile(this, "test032ListAccountsDummyResource");
+		final String TEST_NAME = "test032ListAccountsDummyResource";
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestMultiConnector.class.getName() + ".test032ListAccountsDummyResource");
+        Task task = taskManager.createTaskInstance(TestConnectorDummyFake.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         
 		// WHEN
@@ -263,7 +267,7 @@ public class TestMultiConnector extends AbstractConfiguredModelIntegrationTest {
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestMultiConnector.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestConnectorDummyFake.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         
         PrismObject<ResourceType> dummyResourceModelBefore = modelService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, task, result);
@@ -296,10 +300,11 @@ public class TestMultiConnector extends AbstractConfiguredModelIntegrationTest {
 		
 	@Test
     public void test150DowngradeModelAddDelete() throws Exception {
-        TestUtil.displayTestTile(this, "test150DowngradeModelAddDelete");
+		final String TEST_NAME = "test150DowngradeModelAddDelete";
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestMultiConnector.class.getName() + ".test150DowngradeModelAddDelete");
+        Task task = taskManager.createTaskInstance(TestConnectorDummyFake.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         
         PrismObject<ResourceType> dummyResourceModelBefore = modelService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, task, result);
@@ -327,10 +332,11 @@ public class TestMultiConnector extends AbstractConfiguredModelIntegrationTest {
 	
 	@Test
     public void test200UpgradeModelReplace() throws Exception {
-        TestUtil.displayTestTile(this, "test200UpgradeModelReplace");
+		final String TEST_NAME = "test200UpgradeModelReplace";
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestMultiConnector.class.getName() + ".test200UpgradeModelReplace");
+        Task task = taskManager.createTaskInstance(TestConnectorDummyFake.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         
         PrismObject<ResourceType> dummyResourceModelBefore = modelService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, task, result);
@@ -356,10 +362,11 @@ public class TestMultiConnector extends AbstractConfiguredModelIntegrationTest {
 		
 	@Test
     public void test250DowngradeModelReplace() throws Exception {
-        TestUtil.displayTestTile(this, "test250DowngradeModelReplace");
+		final String TEST_NAME = "test250DowngradeModelReplace";
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestMultiConnector.class.getName() + ".test250DowngradeModelReplace");
+        Task task = taskManager.createTaskInstance(TestConnectorDummyFake.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         
         PrismObject<ResourceType> dummyResourceModelBefore = modelService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, task, result);
@@ -384,10 +391,11 @@ public class TestMultiConnector extends AbstractConfiguredModelIntegrationTest {
 	
 	@Test
     public void test300UpgradeRawAddDelete() throws Exception {
-        TestUtil.displayTestTile(this, "test100UpgradeModelAddDelete");
+		final String TEST_NAME = "test300UpgradeRawAddDelete";
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestMultiConnector.class.getName() + ".test100UpgradeModelAddDelete");
+        Task task = taskManager.createTaskInstance(TestConnectorDummyFake.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         
         PrismObject<ResourceType> dummyResourceModelBefore = modelService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, task, result);
@@ -418,10 +426,11 @@ public class TestMultiConnector extends AbstractConfiguredModelIntegrationTest {
 		
 	@Test
     public void test350DowngradeRawAddDelete() throws Exception {
-        TestUtil.displayTestTile(this, "test150DowngradeModelAddDelete");
+		final String TEST_NAME = "test350DowngradeRawAddDelete";
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestMultiConnector.class.getName() + ".test150DowngradeModelAddDelete");
+        Task task = taskManager.createTaskInstance(TestConnectorDummyFake.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         
         PrismObject<ResourceType> dummyResourceModelBefore = modelService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, task, result);
@@ -451,10 +460,11 @@ public class TestMultiConnector extends AbstractConfiguredModelIntegrationTest {
 	
 	@Test
     public void test400UpgradeRawReplace() throws Exception {
-        TestUtil.displayTestTile(this, "test400UpgradeRawReplace");
+		final String TEST_NAME = "test400UpgradeRawReplace";
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestMultiConnector.class.getName() + ".test400UpgradeRawReplace");
+        Task task = taskManager.createTaskInstance(TestConnectorDummyFake.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         
         PrismObject<ResourceType> dummyResourceModelBefore = modelService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, task, result);
@@ -482,10 +492,11 @@ public class TestMultiConnector extends AbstractConfiguredModelIntegrationTest {
 		
 	@Test
     public void test450DowngradeRawReplace() throws Exception {
-        TestUtil.displayTestTile(this, "test450DowngradeRawReplace");
+		final String TEST_NAME = "test450DowngradeRawReplace";
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestMultiConnector.class.getName() + ".test450DowngradeRawReplace");
+        Task task = taskManager.createTaskInstance(TestConnectorDummyFake.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         
         PrismObject<ResourceType> dummyResourceModelBefore = modelService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, task, result);
@@ -511,7 +522,7 @@ public class TestMultiConnector extends AbstractConfiguredModelIntegrationTest {
 	}
 
 	private void assertUpgrade(PrismObject<ResourceType> dummyResourceModelBefore) throws ObjectNotFoundException, SchemaException, SecurityViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException {
-        Task task = taskManager.createTaskInstance(TestMultiConnector.class.getName() + ".assertUpgrade");
+        Task task = taskManager.createTaskInstance(TestConnectorDummyFake.class.getName() + ".assertUpgrade");
         OperationResult result = task.getResult();
                 
         // Check if the changes went well in the repo
@@ -544,7 +555,7 @@ public class TestMultiConnector extends AbstractConfiguredModelIntegrationTest {
 	}
 
 	private void assertDowngrade(PrismObject<ResourceType> dummyResourceModelBefore) throws ObjectNotFoundException, SchemaException, SecurityViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException {
-        Task task = taskManager.createTaskInstance(TestMultiConnector.class.getName() + ".assertDowngrade");
+        Task task = taskManager.createTaskInstance(TestConnectorDummyFake.class.getName() + ".assertDowngrade");
         OperationResult result = task.getResult();
         // Check if the changes went well in the repo
         PrismObject<ResourceType> repoResource = repositoryService.getObject(ResourceType.class, RESOURCE_DUMMY_FAKE_OID, null, result);
@@ -574,7 +585,7 @@ public class TestMultiConnector extends AbstractConfiguredModelIntegrationTest {
 	}
 
 	private void testResources(int numDummyAccounts, int numFakeAccounts) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
-        Task task = taskManager.createTaskInstance(TestMultiConnector.class.getName() + ".testResources");
+        Task task = taskManager.createTaskInstance(TestConnectorDummyFake.class.getName() + ".testResources");
         
         // We have to purge fake resource schema here. As the new connector provides a different schema
         purgeResourceSchema(RESOURCE_DUMMY_FAKE_OID);
@@ -592,7 +603,7 @@ public class TestMultiConnector extends AbstractConfiguredModelIntegrationTest {
 	}
 	
 	private void assertResourceAccounts(PrismObject<ResourceType> resource, int numAccounts) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException {
-		Task task = taskManager.createTaskInstance(TestMultiConnector.class.getName() + ".assertResourceAccounts");
+		Task task = taskManager.createTaskInstance(TestConnectorDummyFake.class.getName() + ".assertResourceAccounts");
         OperationResult result = task.getResult();
         
 		// WHEN
