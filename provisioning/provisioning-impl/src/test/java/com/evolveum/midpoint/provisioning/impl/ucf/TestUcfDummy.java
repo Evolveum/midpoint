@@ -103,48 +103,10 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
  * this is a lesser evil for now (MID-392)
  */
 @ContextConfiguration(locations = { "classpath:ctx-provisioning-test-no-repo.xml" })
-public class TestUcfDummy extends AbstractTestNGSpringContextTests {
-
-	private static final File RESOURCE_DUMMY_FILE = new File(ProvisioningTestUtil.COMMON_TEST_DIR_FILE, "resource-dummy.xml");
-	private static final File CONNECTOR_DUMMY_FILE = new File(ProvisioningTestUtil.TEST_DIR_UCF_FILE, "connector-dummy.xml");
-	private static final String ACCOUNT_JACK_USERNAME = "jack";
-
-	private ConnectorFactory connectorFactory;
-	private PrismObject<ResourceType> resource;
-	private ResourceType resourceType;
-	private ConnectorType connectorType;
-	private ConnectorInstance cc;
-	private ResourceSchema resourceSchema;
-	private static DummyResource dummyResource;
-	private static DummyResourceContoller dummyResourceCtl;
-
-	@Autowired(required = true)
-	private ConnectorFactory connectorFactoryIcfImpl;
-	
-	@Autowired(required = true)
-	private PrismContext prismContext;
+public class TestUcfDummy extends AbstractUcfDummyTest {
 	
 	private static Trace LOGGER = TraceManager.getTrace(TestUcfDummy.class);
 	
-	@BeforeClass
-	public void setup() throws Exception {
-		PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
-		PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
-		
-		dummyResourceCtl = DummyResourceContoller.create(null);
-		dummyResourceCtl.setResource(resource);
-		dummyResourceCtl.extendSchemaPirate();
-		dummyResource = dummyResourceCtl.getDummyResource();
-				
-		connectorFactory = connectorFactoryIcfImpl;
-
-		resource = PrismTestUtil.parseObject(RESOURCE_DUMMY_FILE);
-		resourceType = resource.asObjectable();
-
-		PrismObject<ConnectorType> connector = PrismTestUtil.parseObject(CONNECTOR_DUMMY_FILE);
-		connectorType = connector.asObjectable();
-	}
-		
 	@Test
 	public void test000PrismContextSanity() throws Exception {
 		final String TEST_NAME = "test000PrismContextSanity";
@@ -158,9 +120,7 @@ public class TestUcfDummy extends AbstractTestNGSpringContextTests {
 		assertNotNull("icfc:configurationProperties not found in icfc schema ("+
 				ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_ELEMENT_QNAME+")", configurationPropertiesDef);
 		PrismSchema schemaIcfs = schemaRegistry.findSchemaByNamespace(ConnectorFactoryIcfImpl.NS_ICF_SCHEMA);
-		assertNotNull("ICFS schema not found in the context ("+ConnectorFactoryIcfImpl.NS_ICF_SCHEMA+")", schemaIcfs);
-	
-		//"http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/configuration-1.xsd";
+		assertNotNull("ICFS schema not found in the context ("+ConnectorFactoryIcfImpl.NS_ICF_SCHEMA+")", schemaIcfs);	
 	}
 	
 	@Test
@@ -267,9 +227,8 @@ public class TestUcfDummy extends AbstractTestNGSpringContextTests {
 		cc.configure(configContainer, result);
 		
 		// THEN
-		result.computeStatus("test failed");
-		TestUtil.assertSuccess("Connector configuration failed", result);
-		// TODO: assert something
+		result.computeStatus();
+		TestUtil.assertSuccess(result);
 	}
 	
 	@Test
@@ -429,7 +388,7 @@ public class TestUcfDummy extends AbstractTestNGSpringContextTests {
 
 			@Override
 			public boolean handle(PrismObject<ShadowType> shadow) {
-				System.out.println("Search: found: " + shadow);
+				display("Search: found", shadow);
 				checkUcfShadow(shadow, accountDefinition);
 				searchResults.add(shadow);
 				return true;
@@ -531,21 +490,4 @@ public class TestUcfDummy extends AbstractTestNGSpringContextTests {
 		TestUtil.assertSuccess(testResult);
 	}
 
-
-	private void assertPropertyDefinition(PrismContainer<?> container, String propName, QName xsdType, int minOccurs,
-			int maxOccurs) {
-		QName propQName = new QName(SchemaConstantsGenerated.NS_COMMON, propName);
-		PrismAsserts.assertPropertyDefinition(container, propQName, xsdType, minOccurs, maxOccurs);
-	}
-	
-	public static void assertPropertyValue(PrismContainer<?> container, String propName, Object propValue) {
-		QName propQName = new QName(SchemaConstantsGenerated.NS_COMMON, propName);
-		PrismAsserts.assertPropertyValue(container, propQName, propValue);
-	}
-	
-	private void assertContainerDefinition(PrismContainer<?> container, String contName, QName xsdType, int minOccurs,
-			int maxOccurs) {
-		QName qName = new QName(SchemaConstantsGenerated.NS_COMMON, contName);
-		PrismAsserts.assertDefinition(container.getDefinition(), qName, xsdType, minOccurs, maxOccurs);
-	}
 }

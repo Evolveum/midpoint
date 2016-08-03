@@ -122,6 +122,8 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
     private DummyConfiguration configuration;
     
 	private DummyResource resource;
+	
+	private static String staticVal;
 
     /**
      * Gets the Configuration context for this connector.
@@ -174,6 +176,10 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
         }
         
         resource.connect();
+        
+        if (staticVal == null) {
+        	staticVal = this.toString();
+        }
         
         log.info("Connected to dummy resource instance {0} ({1} connections open)", resource, resource.getConnectionCount());
     }
@@ -991,6 +997,12 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
     		
     		objClassBuilder.addAttributeInfo(OperationalAttributeInfos.LOCK_OUT);
     	}
+    	
+    	if (configuration.isAddConnectorStateAttributes()) {
+    		objClassBuilder.addAttributeInfo(AttributeInfoBuilder.build(DummyResource.ATTRIBUTE_CONNECTOR_TO_STRING, String.class));
+    		objClassBuilder.addAttributeInfo(AttributeInfoBuilder.build(DummyResource.ATTRIBUTE_CONNECTOR_STATIC_VAL, String.class));
+    		objClassBuilder.addAttributeInfo(AttributeInfoBuilder.build(DummyResource.ATTRIBUTE_CONNECTOR_CONFIGURATION_TO_STRING, String.class));
+    	}
         
     	// __NAME__ will be added by default
         return objClassBuilder;
@@ -1525,7 +1537,13 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 					(attributesToGet == null || attributesToGet.contains(OperationalAttributes.DISABLE_DATE_NAME))) {
 				builder.addAttribute(OperationalAttributes.DISABLE_DATE_NAME, convertToLong(dummyObject.getValidTo()));
 			}
-		}	
+		}
+		
+		if (configuration.isAddConnectorStateAttributes()) {
+			builder.addAttribute(DummyResource.ATTRIBUTE_CONNECTOR_TO_STRING, this.toString());
+			builder.addAttribute(DummyResource.ATTRIBUTE_CONNECTOR_STATIC_VAL, staticVal);
+			builder.addAttribute(DummyResource.ATTRIBUTE_CONNECTOR_CONFIGURATION_TO_STRING, configuration.toString());
+		}
 		
 		return builder;
    }
