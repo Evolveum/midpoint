@@ -331,7 +331,7 @@ public class TestConnectorMultiInstance extends AbstractConfiguredModelIntegrati
        
        assertConnectorToStringDifferent(shadowYellow2, dummyResourceCtlYellow, getConnectorToString(shadowYellow1, dummyResourceCtlYellow));
 
-       assertConnectorStaticVal(shadowYellow1, dummyResourceCtlYellow, initialConnectorToString);
+       assertConnectorStaticVal(shadowYellow1, dummyResourceCtlYellow, initialConnectorStaticVal);
        assertConnectorStaticVal(shadowYellow2, dummyResourceCtlYellow, initialConnectorStaticVal);
        
        assertDummyAccount(RESOURCE_DUMMY_YELLOW_NAME, ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
