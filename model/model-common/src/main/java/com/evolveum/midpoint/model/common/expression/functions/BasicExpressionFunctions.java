@@ -27,6 +27,8 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.naming.InvalidNameException;
 import javax.naming.NamingEnumeration;
@@ -86,6 +88,8 @@ public class BasicExpressionFunctions {
 	public static final String NAME_SEPARATOR = " ";
 	
 	public static final Trace LOGGER = TraceManager.getTrace(BasicExpressionFunctions.class);
+	
+	public static Pattern PATTERN_FULL_NAME_SIMPLE = Pattern.compile("^\\s*(\\S+)\\s+(\\S+)\\s*$");
 	
 	private PrismContext prismContext;
 	private Protector protector;
@@ -653,6 +657,39 @@ public class BasicExpressionFunctions {
     
     public XMLGregorianCalendar currentDateTime() {
     	return XmlTypeConverter.createXMLGregorianCalendar(System.currentTimeMillis());
+    }
+    
+    // TODO: more patterns
+    private ParsedFullName parseFullName(String fullName) {
+    	if (StringUtils.isBlank(fullName)) {
+    		return null;
+    	}
+    	Matcher m = PATTERN_FULL_NAME_SIMPLE.matcher(fullName);
+    	if (m.matches()) {
+    		ParsedFullName p = new ParsedFullName();
+    		p.setGivenName(m.group(1));
+    		p.setFamilyName(m.group(2));
+    		return p;
+    	}
+		throw new IllegalArgumentException("Cannot parse full name '"+fullName+"'");
+    }
+    
+    public String parseGivenName(Object fullName) {
+    	ParsedFullName p = parseFullName(stringify(fullName));
+    	if (p == null) {
+    		return null;
+    	} else {
+    		return p.getGivenName();
+    	}
+    }
+        
+    public String parseFamilyName(Object fullName) {
+    	ParsedFullName p = parseFullName(stringify(fullName));
+    	if (p == null) {
+    		return null;
+    	} else {
+    		return p.getFamilyName();
+    	}
     }
     
     public String decrypt(ProtectedStringType protectedString) {

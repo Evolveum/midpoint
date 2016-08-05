@@ -488,4 +488,16 @@ public class TestExpressionFunctions {
 		assertEquals(null, basic.composeDnWithSuffix("   "));
 	}
 	
+	@Test
+	public void testParseFullName() throws Exception {
+		final String TEST_NAME = "testParseFullName";
+		TestUtil.displayTestTile(TEST_NAME);
+		BasicExpressionFunctions basic = createBasicFunctions();
+		
+		assertEquals("Jack", basic.parseGivenName("Jack Sparrow"));
+		assertEquals("Sparrow", basic.parseFamilyName("Jack Sparrow"));
+		assertEquals(null, basic.parseGivenName((String)null));
+		assertEquals(null, basic.parseGivenName("   "));
+	}
+	
 }
