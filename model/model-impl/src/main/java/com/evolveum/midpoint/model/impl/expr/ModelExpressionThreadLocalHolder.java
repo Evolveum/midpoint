@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013 Evolveum
+ * Copyright (c) 2013-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -52,6 +52,10 @@ public class ModelExpressionThreadLocalHolder {
 			stack = new ArrayDeque<LensContext<ObjectType>>();
 			lensContextStackTl.set(stack);
 		}
+		if (ctx == null) {
+			// Deque cannot hold null elements. So we need to create a placeholder
+			ctx =  new LensContextPlaceholder<>(null);
+		}
 		stack.push((LensContext<ObjectType>)ctx);
 	}
 	
@@ -65,7 +69,12 @@ public class ModelExpressionThreadLocalHolder {
 		if (stack == null) {
 			return null;
 		}
-		return (LensContext<F>) stack.peek();
+		LensContext<F> ctx = (LensContext<F>) stack.peek();
+		if (ctx instanceof LensContextPlaceholder) {
+			return null;
+		} else {
+			return ctx;
+		}
 	}
 	
 	public static void pushCurrentResult(OperationResult result) {

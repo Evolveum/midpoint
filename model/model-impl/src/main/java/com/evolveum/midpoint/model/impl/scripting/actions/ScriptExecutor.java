@@ -24,6 +24,7 @@ import com.evolveum.midpoint.model.common.expression.script.ScriptExpression;
 import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionFactory;
 import com.evolveum.midpoint.model.impl.scripting.Data;
 import com.evolveum.midpoint.model.impl.scripting.ExecutionContext;
+import com.evolveum.midpoint.model.impl.util.Utils;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -162,7 +163,9 @@ public class ScriptExecutor extends BaseActionExecutor {
 		variables.addVariableDefinition(ExpressionConstants.VAR_INPUT, inputItem);
 		variables.addVariableDefinition(ExpressionConstants.VAR_PRISM_CONTEXT, prismContext);
 		ExpressionUtil.addActorVariable(variables, securityEnforcer);
-		List<?> rv = scriptExpression.evaluate(variables, ScriptExpressionReturnTypeType.SCALAR, true, "script action", context.getTask(), result);
+		
+		List<?> rv = Utils.evaluateScript(scriptExpression, null, variables, true, "script action", context.getTask(), result);
+		
 		if (rv == null || rv.size() == 0) {
 			return null;
 		} else if (rv.size() == 1) {
