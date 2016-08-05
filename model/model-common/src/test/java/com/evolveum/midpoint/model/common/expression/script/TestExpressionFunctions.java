@@ -494,10 +494,28 @@ public class TestExpressionFunctions {
 		TestUtil.displayTestTile(TEST_NAME);
 		BasicExpressionFunctions basic = createBasicFunctions();
 		
-		assertEquals("Jack", basic.parseGivenName("Jack Sparrow"));
-		assertEquals("Sparrow", basic.parseFamilyName("Jack Sparrow"));
-		assertEquals(null, basic.parseGivenName((String)null));
+		assertEquals(null, basic.parseGivenName(null));
 		assertEquals(null, basic.parseGivenName("   "));
+		
+		assertEquals("Jack", basic.parseGivenName("Jack Sparrow"));
+		assertEquals("Jack", basic.parseGivenName(" Jack     Sparrow  "));
+		assertEquals("Jack", basic.parseGivenName(new PolyString("Jack Sparrow")));
+		assertEquals("Sparrow", basic.parseFamilyName("Jack Sparrow"));
+		assertEquals("Sparrow", basic.parseFamilyName("   Jack    Sparrow   "));
+		
+		assertEquals("Tim", basic.parseGivenName("Tim Berners-Lee"));
+		assertEquals("Berners-Lee", basic.parseFamilyName("Tim Berners-Lee"));
+		
+		assertEquals("Cassius", basic.parseGivenName("Cassius Marcellus \"Muhammad Ali\" Clay, Jr."));
+		assertEquals("Marcellus", basic.parseAdditionalName("Cassius Marcellus \"Muhammad Ali\" Clay, Jr."));
+		assertEquals("Clay", basic.parseFamilyName("Cassius Marcellus \"Muhammad Ali\" Clay, Jr."));
+		assertEquals("Muhammad Ali", basic.parseNickName("Cassius Marcellus \"Muhammad Ali\" Clay, Jr."));
+		assertEquals("Jr.", basic.parseHonorificSuffix("Cassius Marcellus \"Muhammad Ali\" Clay, Jr."));
+		
+		assertEquals("Radovan", basic.parseGivenName("Ing. Radovan Semančík, PhD."));
+		assertEquals("Semančík", basic.parseFamilyName("Ing. Radovan Semančík, PhD."));
+		assertEquals("Ing.", basic.parseHonorificPrefix("Ing. Radovan Semančík, PhD."));
+		assertEquals("PhD.", basic.parseHonorificSuffix("Ing. Radovan Semančík, PhD."));
 	}
 	
 }

@@ -25,6 +25,8 @@ public class ParsedFullName {
 	private String familyName;
 	private String nickName;
 	private String additionalName;
+	private String honorificPrefix;
+	private String honorificSuffix;
 	
 	public String getGivenName() {
 		return givenName;
@@ -58,10 +60,29 @@ public class ParsedFullName {
 		this.additionalName = additionalName;
 	}
 
+	public String getHonorificPrefix() {
+		return honorificPrefix;
+	}
+
+	public void setHonorificPrefix(String honorificPrefix) {
+		this.honorificPrefix = honorificPrefix;
+	}
+
+	public String getHonorificSuffix() {
+		return honorificSuffix;
+	}
+
+	public void setHonorificSuffix(String honorificSuffix) {
+		this.honorificSuffix = honorificSuffix;
+	}
+
 	@Override
 	public String toString() {
 		return "ParsedFullName(givenName=" + givenName + ", familyName=" + familyName + ", nickName="
-				+ nickName + ", additionalName=" + additionalName + ")";
+				+ nickName + ", additionalName=" + additionalName + ", honorificPrefix=" + honorificPrefix
+				+ ", honorificSuffix=" + honorificSuffix + ")";
 	}
+
+	
 	
 }
