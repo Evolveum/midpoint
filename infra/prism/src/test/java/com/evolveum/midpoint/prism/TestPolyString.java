@@ -92,7 +92,7 @@ public class TestPolyString {
 	}
 	
 	@Test
-	public void testRecompute() throws SchemaException, SAXException, IOException {
+	public void testRecompute() throws Exception {
 		System.out.println("===[ testRecompute ]===");
 		
 		// GIVEN
@@ -111,6 +111,24 @@ public class TestPolyString {
 		// THEN
 		assertEquals("Changed orig", orig, polyName.getOrig());
 		assertEquals("Wrong norm", "lala ho papluha", polyName.getNorm());
+		
+	}
+	
+	@Test
+	public void testCompareTo() throws Exception {
+		System.out.println("===[ testCompareTo ]===");
+		
+		// GIVEN
+		String orig = "Ľala ho papľuha";
+		PolyString polyName = new PolyString(orig);
+		
+		// WHEN, THEN
+		assertTrue(polyName.compareTo("Ľala ho papľuha") == 0);
+		assertTrue(polyName.compareTo(new PolyString("Ľala ho papľuha")) == 0);
+		assertTrue(polyName.compareTo("something different") != 0);
+		assertTrue(polyName.compareTo(new PolyString("something different")) != 0);
+		assertTrue(polyName.compareTo("") != 0);
+		assertTrue(polyName.compareTo(null) != 0);
 		
 	}
 	

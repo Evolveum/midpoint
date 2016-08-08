@@ -5166,6 +5166,15 @@
         	</xsd:element>
             <xsd:element ref="tns:description" minOccurs="0" maxOccurs="1"/>
             <xsd:element ref="tns:extension" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="trace" type="xsd:boolean" minOccurs="0" maxOccurs="1">
+            	<xsd:annotation>
+            		<xsd:documentation>
+            			Explicitly trace the execution of this mapping. The execution will be
+            			logged on INFO level if this property is set to true to make sure that it
+            			will be visible in the logs. 
+            		</xsd:documentation>
+            	</xsd:annotation>
+            </xsd:element>
             <xsd:element name="authoritative" minOccurs="0" type="xsd:boolean" default="true">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -5407,6 +5416,15 @@
         <xsd:sequence>
             <xsd:element ref="tns:description" minOccurs="0" maxOccurs="1"/>
             <xsd:element ref="tns:extension" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="trace" type="xsd:boolean" minOccurs="0" maxOccurs="1">
+            	<xsd:annotation>
+            		<xsd:documentation>
+            			Explicitly trace the execution of this expression. The execution will be
+            			logged on INFO level if this property is set to true to make sure that it
+            			will be visible in the logs. 
+            		</xsd:documentation>
+            	</xsd:annotation>
+            </xsd:element>
             <xsd:element name="stringFilter" type="tns:StringFilterType" minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="variable" type="tns:ExpressionVariableDefinitionType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
@@ -5715,6 +5733,15 @@
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element ref="tns:description" minOccurs="0"/>
+            <xsd:element name="trace" type="xsd:boolean" minOccurs="0" maxOccurs="1">
+            	<xsd:annotation>
+            		<xsd:documentation>
+            			Explicitly trace the execution of this expression. The execution will be
+            			logged on INFO level if this property is set to true to make sure that it
+            			will be visible in the logs. 
+            		</xsd:documentation>
+            	</xsd:annotation>
+            </xsd:element>
             <xsd:element name="relativityMode" type="tns:TransformExpressionRelativityModeType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
