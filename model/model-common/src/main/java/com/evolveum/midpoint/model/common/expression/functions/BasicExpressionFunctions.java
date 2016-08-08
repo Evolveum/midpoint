@@ -719,7 +719,7 @@ public class BasicExpressionFunctions {
     		rootNameWords.remove(rootNameWords.size() - 1);
     		p.setGivenName(rootNameWords.get(0));
     		rootNameWords.remove(0);
-    		p.setAdditionalName(String.join(" ", rootNameWords));
+    		p.setAdditionalName(StringUtils.join(rootNameWords, " "));
     	} else if (rootNameWords.size() == 1) {
     		p.setFamilyName(rootNameWords.get(0)); 
     	}
