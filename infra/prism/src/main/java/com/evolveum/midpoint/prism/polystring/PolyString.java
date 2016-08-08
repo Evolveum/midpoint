@@ -33,6 +33,8 @@ import java.util.regex.Pattern;
 
 import javax.xml.namespace.QName;
 
+import org.apache.commons.lang.StringUtils;
+
 /**
  * Polymorphic string. String that may have more than one representation at
  * the same time. The primary representation is the original version that is
@@ -46,7 +48,7 @@ import javax.xml.namespace.QName;
  * 				
  * @author Radovan Semancik
  */
-public class PolyString implements Matchable<PolyString>, Recomputable, Structured, DebugDumpable, Serializable {
+public class PolyString implements Matchable<PolyString>, Recomputable, Structured, DebugDumpable, Serializable, Comparable<Object> {
 	private static final long serialVersionUID = -5070443143609226661L;
 
 	public static final QName F_ORIG = new QName(PrismConstants.NS_TYPES, "orig");
@@ -134,6 +136,15 @@ public class PolyString implements Matchable<PolyString>, Recomputable, Structur
 	// Groovy operator overload
 	public PolyString getAt(int index) {
 		return new PolyString(this.orig.substring(index, index+1));
+	}
+	
+	@Override
+	public int compareTo(Object other) {
+		if (other == null) {
+			return 1;
+		}
+		String otherString = other.toString();
+		return this.orig.compareTo(otherString);
 	}
 	
 //	public PolyString getAt(Range at) {
