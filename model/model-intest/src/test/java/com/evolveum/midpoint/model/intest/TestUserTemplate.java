@@ -162,9 +162,11 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         deltas.add(userDelta);
                 
 		// WHEN
+        TestUtil.displayWhen(TEST_NAME);
 		modelService.executeChanges(deltas, null, task, result);
 
 		// THEN
+		TestUtil.displayThen(TEST_NAME);
 		result.computeStatus();
         TestUtil.assertSuccess(result);
         
@@ -1042,6 +1044,103 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 		PrismAsserts.assertPropertyValue(org, OrgType.F_DESCRIPTION, "Created on demand from user "+user.asObjectable().getName());
 		assertAssignedOrg(user, org.getOid());
         assertHasOrg(user, org.getOid());		
+	}
+	
+	/**
+	 * Setting employee type to THIEF is just one part of the condition to assign
+	 * the Thief role. The role should not be assigned now.
+	 */
+	@Test
+    public void test170ModifyUserGuybrushEmployeeTypeThief() throws Exception {
+		final String TEST_NAME = "test170ModifyUserGuybrushEmployeeTypeThief";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestUserTemplate.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        PrismObject<UserType> userBefore = getUser(USER_GUYBRUSH_OID);
+        display("User before", userBefore);
+        assertAssignedNoRole(userBefore);
+    
+		// WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        modifyUserReplace(USER_GUYBRUSH_OID, UserType.F_EMPLOYEE_TYPE, task, result, "THIEF");
+
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+		result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+		PrismObject<UserType> userAfter = modelService.getObject(UserType.class, USER_GUYBRUSH_OID, null, task, result);
+		display("User after", userAfter);
+        
+		assertAssignedNoRole(userAfter);
+	}
+	
+	/**
+	 * Setting honorificPrefix satisfies the condition to assign
+	 * the Thief role.
+	 */
+	@Test
+    public void test172ModifyUserGuybrushHonorificPrefix() throws Exception {
+		final String TEST_NAME = "test172ModifyUserGuybrushHonorificPrefix";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestUserTemplate.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        PrismObject<UserType> userBefore = getUser(USER_GUYBRUSH_OID);
+        display("User before", userBefore);
+        assertAssignedNoRole(userBefore);
+    
+		// WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        modifyUserReplace(USER_GUYBRUSH_OID, UserType.F_HONORIFIC_PREFIX, task, result, 
+        		PrismTestUtil.createPolyString("Thf."));
+
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+		result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+		PrismObject<UserType> userAfter = modelService.getObject(UserType.class, USER_GUYBRUSH_OID, null, task, result);
+		display("User after", userAfter);
+        
+		assertAssignedRole(userAfter, ROLE_THIEF_OID);
+	}
+	
+	/**
+	 * Removing honorificPrefix should make the condition false again, which should cause
+	 * that Thief role is unassigned.
+	 */
+	@Test
+    public void test174ModifyUserGuybrushHonorificPrefixNone() throws Exception {
+		final String TEST_NAME = "test174ModifyUserGuybrushHonorificPrefixNone";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestUserTemplate.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        PrismObject<UserType> userBefore = getUser(USER_GUYBRUSH_OID);
+        display("User before", userBefore);
+        assertAssignedRole(userBefore, ROLE_THIEF_OID);
+    
+		// WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        modifyUserReplace(USER_GUYBRUSH_OID, UserType.F_HONORIFIC_PREFIX, task, result);
+
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+		result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+		PrismObject<UserType> userAfter = modelService.getObject(UserType.class, USER_GUYBRUSH_OID, null, task, result);
+		display("User after", userAfter);
+        
+		assertAssignedNoRole(userAfter);
 	}
 	
 	@Test

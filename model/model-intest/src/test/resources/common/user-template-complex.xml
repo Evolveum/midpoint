@@ -188,6 +188,39 @@
 		</condition>
     </mapping>
     
+    <!-- similar mapping with assignmentTargetSearch and more sources -->
+    <mapping>
+    	<trace>false</trace>
+    	<authoritative>true</authoritative>
+    	<source>
+    		<path>employeeType</path>
+    	</source>
+    	<source>
+    		<path>honorificPrefix</path>
+    	</source>
+    	<expression>
+            <assignmentTargetSearch>
+                <targetType>RoleType</targetType>
+                <filter>
+                    <q:equal>
+                        <q:path>name</q:path>
+                        <q:value>Thief</q:value>
+                    </q:equal>
+                </filter>
+            </assignmentTargetSearch>
+    	</expression>
+    	<target>
+    		<path>assignment</path>
+    	</target>
+    	<condition>
+    		<trace>false</trace>
+    		<script>
+    			<trace>false</trace>
+            	<code>employeeType == 'THIEF' &amp;&amp; basic.stringify(honorificPrefix) == 'Thf.'</code>
+            </script>
+		</condition>
+    </mapping>
+    
     <!-- This is quite a stupid way how to add the same role for many values of user property.
          A single mapping with a condition that has an '||' operator internally will be more efficient.
          But this is using this way to check for situation in which the same value is added and removed at the same time. -->
