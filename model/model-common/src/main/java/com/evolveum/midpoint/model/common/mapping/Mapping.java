@@ -572,7 +572,7 @@ public class Mapping<V extends PrismValue,D extends ItemDefinition> implements D
 
 	private void traceSuccess(boolean conditionResultOld, boolean conditionResultNew) {
 		traceEvaluationEnd();
-		if (!LOGGER.isTraceEnabled()) {
+		if (!isTrace()) {
 			return;
 		}
 		StringBuilder sb = new StringBuilder();
@@ -595,12 +595,12 @@ public class Mapping<V extends PrismValue,D extends ItemDefinition> implements D
 			sb.append(" ms");
 		}
 		appendTraceFooter(sb);
-		LOGGER.trace(sb.toString());
+		trace(sb.toString());
 	}
 	
 	private void traceDeferred() {
 		traceEvaluationEnd();
-		if (!LOGGER.isTraceEnabled()) {
+		if (!isTrace()) {
 			return;
 		}
 		StringBuilder sb = new StringBuilder();
@@ -618,13 +618,13 @@ public class Mapping<V extends PrismValue,D extends ItemDefinition> implements D
 			sb.append(" ms");
 		}
 		appendTraceFooter(sb);
-		LOGGER.trace(sb.toString());
+		trace(sb.toString());
 	}
 	
 	private void traceFailure(Throwable e) {
 		LOGGER.error("Error evaluating {}: {}", new Object[]{getMappingContextDescription(), e.getMessage(), e});
 		traceEvaluationEnd();
-		if (!LOGGER.isTraceEnabled()) {
+		if (!isTrace()) {
 			return;
 		}
 		StringBuilder sb = new StringBuilder();
@@ -637,7 +637,19 @@ public class Mapping<V extends PrismValue,D extends ItemDefinition> implements D
 			sb.append(" ms");
 		}
 		appendTraceFooter(sb);
-		LOGGER.trace(sb.toString());
+		trace(sb.toString());
+	}
+	
+	private boolean isTrace() {
+		return LOGGER.isTraceEnabled() || (mappingType != null && mappingType.isTrace() == Boolean.TRUE); 
+	}
+	
+	private void trace(String msg) {
+		if (mappingType != null && mappingType.isTrace() == Boolean.TRUE) {
+			LOGGER.info(msg);
+		} else {
+			LOGGER.trace(msg);
+		}
 	}
 
 	private void appendTraceHeader(StringBuilder sb) {
