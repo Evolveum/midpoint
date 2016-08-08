@@ -42,12 +42,6 @@
             /WEB-INF/ctx-init.xml,
             /WEB-INF/ctx-webapp.xml  
             /WEB-INF/ctx-web-security.xml
-            <!-- Comment this if you use another authentication method such as LDAP or CAS -->
-            /WEB-INF/ctx-web-security-basic.xml  
-            <!-- USE THIS CONTEXT IN ADDITION TO THE ctx-web-security.xml FOR LDAP AUTH -->
-<!--             /WEB-INF/ctx-web-security-ldap.xml -->
-			<!-- USE THIS CONTEXT IN ADDITION TO THE ctx-web-security.xml FOR CAS AUTH --> 
-<!--             /WEB-INF/ctx-web-security-cas.xml  -->
         </param-value>
     </context-param>
 
