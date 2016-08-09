@@ -668,20 +668,20 @@ public class BasicExpressionFunctions {
     	String root = fullName.trim();
     	ParsedFullName p = new ParsedFullName();
     	
-    	LOGGER.trace("(1) root=", root);
+//    	LOGGER.trace("(1) root=", root);
     	
     	Matcher m = PATTERN_NICK_NAME.matcher(root);
     	if (m.matches()) {
     		String nickName = m.group(2).trim();
     		p.setNickName(nickName);
     		root = m.group(1) + " " + m.group(3);
-    		LOGGER.trace("nick={}, root={}", nickName, root);
+//    		LOGGER.trace("nick={}, root={}", nickName, root);
     	}
     	
     	String[] words = root.split(STRING_PATTERN_WHITESPACE);
     	int i = 0;
     	
-    	LOGGER.trace("(2) i={}, words={}", i, Arrays.toString(words));
+//    	LOGGER.trace("(2) i={}, words={}", i, Arrays.toString(words));
     	
     	StringBuilder honorificPrefixBuilder = new StringBuilder();
     	while (i < words.length && words[i].matches(STRING_PATTERN_HONORIFIC_PREFIX_ENDS_WITH_DOT)) {
@@ -694,7 +694,7 @@ public class BasicExpressionFunctions {
     		p.setHonorificPrefix(honorificPrefixBuilder.toString());
     	}
     	
-    	LOGGER.trace("(3) i={}, words={}", i, Arrays.toString(words));
+//    	LOGGER.trace("(3) i={}, words={}", i, Arrays.toString(words));
     	
     	List<String> rootNameWords = new ArrayList<>();
     	while (i < words.length && !words[i].endsWith(",")) {
@@ -711,15 +711,15 @@ public class BasicExpressionFunctions {
     		}
     	}
     	
-    	LOGGER.trace("(4) i={}, words={}", i, Arrays.toString(words));
-    	LOGGER.trace("(4) rootNameWords={}", rootNameWords);
+//    	LOGGER.trace("(4) i={}, words={}", i, Arrays.toString(words));
+//    	LOGGER.trace("(4) rootNameWords={}", rootNameWords);
     	
     	if (rootNameWords.size() > 1) {
     		p.setFamilyName(rootNameWords.get(rootNameWords.size() - 1)); 
     		rootNameWords.remove(rootNameWords.size() - 1);
     		p.setGivenName(rootNameWords.get(0));
     		rootNameWords.remove(0);
-    		p.setAdditionalName(String.join(" ", rootNameWords));
+    		p.setAdditionalName(StringUtils.join(rootNameWords, " "));
     	} else if (rootNameWords.size() == 1) {
     		p.setFamilyName(rootNameWords.get(0)); 
     	}
