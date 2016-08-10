@@ -39,6 +39,7 @@ import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxTabbedPanel;
 import com.evolveum.midpoint.web.page.admin.configuration.PageDebugView;
 import com.evolveum.midpoint.web.page.admin.resources.component.TestConnectionResultPanel;
+import com.evolveum.midpoint.web.page.admin.resources.content.dto.ResourceContentSearchDto;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
@@ -320,6 +321,8 @@ public class PageResource extends PageAdminResources {
 		resourceTabs.setOutputMarkupId(true);
 		return resourceTabs;
 	}
+	
+	
 
 	private void refreshSchemaPerformed(AjaxRequestTarget target) {
 

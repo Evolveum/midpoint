@@ -15,16 +15,16 @@
  */
 package com.evolveum.midpoint.web.page.admin.reports.dto;
 
-import com.evolveum.midpoint.web.component.util.Selectable;
-
 import java.io.Serializable;
 
 /**
  *  @author shood
  * */
 public class ReportSearchDto implements Serializable{
-
-    public static final String F_SEARCH_TEXT = "text";
+	
+	private static final long serialVersionUID = 1L;
+	
+	public static final String F_SEARCH_TEXT = "text";
     public static final String F_PARENT = "parent";
 
     private String text;
