@@ -117,13 +117,11 @@ public class JobExecutor implements InterruptableJob {
                 if (task.getNode() != null) {
                     task.setNodeImmediate(null, executionResult);
                 }
-            } catch (ObjectNotFoundException e) {
-                LoggingUtils.logException(LOGGER, "Cannot reset executing-at-node information for recovering task {}", e, task);
-            } catch (SchemaException e) {
+            } catch (ObjectNotFoundException | SchemaException e) {
                 LoggingUtils.logException(LOGGER, "Cannot reset executing-at-node information for recovering task {}", e, task);
             }
 
-            if (!processTaskRecovery(executionResult)) {
+			if (!processTaskRecovery(executionResult)) {
                 return;
             }
             isRecovering = true;
@@ -131,9 +129,7 @@ public class JobExecutor implements InterruptableJob {
 		
         executingThread = Thread.currentThread();
 
-        if (LOGGER.isTraceEnabled()) {
-		    LOGGER.trace("execute called; task = {}, thread = {}, isRecovering = {}", new Object[] {task, executingThread, isRecovering});
-        }
+		LOGGER.trace("execute called; task = {}, thread = {}, isRecovering = {}", task, executingThread, isRecovering);
 
         TaskHandler handler = null;
 		try {
@@ -255,7 +251,7 @@ public class JobExecutor implements InterruptableJob {
             taskManagerImpl.scheduleRunnableTaskNow(task, executionResult);
         } else if (task.getThreadStopAction() == ThreadStopActionType.RESCHEDULE) {
             if (task.getRecurrenceStatus() == TaskRecurrence.RECURRING && task.isLooselyBound()) {
-                ; // nothing to do, task will be automatically started by Quartz on next trigger fire time
+				// nothing to do, task will be automatically started by Quartz on next trigger fire time
             } else {
                 taskManagerImpl.scheduleRunnableTaskNow(task, executionResult);     // for tightly-bound tasks we do not know next schedule time, so we run them immediately
             }
@@ -268,12 +264,10 @@ public class JobExecutor implements InterruptableJob {
         LOGGER.info("Closing flawed task {}", task);
         try {
             task.setResultImmediate(result, result);
-        } catch (ObjectNotFoundException e) {
-            LoggingUtils.logException(LOGGER, "Couldn't store operation result into the task {}", e, task);
-        } catch (SchemaException e) {
+        } catch (ObjectNotFoundException | SchemaException e) {
             LoggingUtils.logException(LOGGER, "Couldn't store operation result into the task {}", e, task);
         }
-        closeTask(task, result);
+		closeTask(task, result);
     }
 
     private void closeTask(TaskQuartzImpl task, OperationResult result) {
@@ -294,7 +288,7 @@ public class JobExecutor implements InterruptableJob {
 
 		try {
 			
-			TaskRunResult runResult = null;
+			TaskRunResult runResult;
 
 			recordCycleRunStart(executionResult, handler);
             runResult = executeHandler(handler, executionResult);        // exceptions thrown by handler are handled in executeHandler()
@@ -419,7 +413,7 @@ mainCycle:
 				}
 
                 long lastRunStartTime = task.getLastRunStartTimestamp() == null ? 0 : task.getLastRunStartTimestamp();
-				long sleepFor = lastRunStartTime + (interval.intValue() * 1000) - System.currentTimeMillis();
+				long sleepFor = lastRunStartTime + (interval * 1000) - System.currentTimeMillis();
 				if (sleepFor < 0)
 					sleepFor = 0;
 				
@@ -457,10 +451,10 @@ mainCycle:
 			// This is supposed to run in a thread, so this kind of heavy artillery is needed. If throwable won't be
 			// caught here, nobody will catch it and it won't even get logged.
 			if (task.canRun()) {
-				LOGGER.error("CycleRunner got unexpected exception: {}: {}; task = {}",new Object[] { t.getClass().getName(),t.getMessage(),task,t});
+				LOGGER.error("CycleRunner got unexpected exception: {}: {}; task = {}", t.getClass().getName(), t.getMessage(), task, t);
 			} else {
-				LOGGER.info("CycleRunner got unexpected exception while shutting down: {}: {}; task = {}",new Object[] { t.getClass().getName(),t.getMessage(), task});
-				LOGGER.trace("CycleRunner got unexpected exception while shutting down: {}: {}; task = {}",new Object[] { t.getClass().getName(),t.getMessage(),task,t});
+				LOGGER.info("CycleRunner got unexpected exception while shutting down: {}: {}; task = {}", t.getClass().getName(), t.getMessage(), task);
+				LOGGER.trace("CycleRunner got unexpected exception while shutting down: {}: {}; task = {}", t.getClass().getName(), t.getMessage(), task, t);
 			}
 			//throw new JobExecutionException("An exception occurred during processing of task " + task, t);
 		}
@@ -482,7 +476,7 @@ mainCycle:
 				runResult = createFailureTaskRunResult("Unable to record run finish: task returned null result", null);
 			}
     	} catch (Throwable t) {
-			LOGGER.error("Task handler threw unexpected exception: {}: {}; task = {}", new Object[] { t.getClass().getName(), t.getMessage(), task, t});
+			LOGGER.error("Task handler threw unexpected exception: {}: {}; task = {}", t.getClass().getName(), t.getMessage(), task, t);
             runResult = createFailureTaskRunResult("Task handler threw unexpected exception: " + t.getMessage(), t);
     	}
 
@@ -552,9 +546,10 @@ mainCycle:
                 try {
 					OperationResult taskResult = runResult.getOperationResult().clone();
                     taskResult.cleanupResult();
+					taskResult.summarize(true);
 					task.setResult(taskResult);
                 } catch (Throwable ex) {
-                    LoggingUtils.logUnexpectedException(LOGGER, "Problem with task result cleanup - continuing with non-cleaned result", ex);
+                    LoggingUtils.logUnexpectedException(LOGGER, "Problem with task result cleanup/summarize - continuing with raw result", ex);
 					task.setResult(runResult.getOperationResult());
                 }
             }
@@ -595,12 +590,12 @@ mainCycle:
         }
 	}
 
-    public void sendThreadInterrupt() {
+    void sendThreadInterrupt() {
         sendThreadInterrupt(true);
     }
 
     // beware: Do not touch task prism here, because this method can be called asynchronously
-    public void sendThreadInterrupt(boolean alsoSubtasks) {
+	private void sendThreadInterrupt(boolean alsoSubtasks) {
         if (executingThread != null) {			// in case this method would be (mistakenly?) called after the execution is over
             LOGGER.trace("Calling Thread.interrupt on thread {}.", executingThread);
             executingThread.interrupt();

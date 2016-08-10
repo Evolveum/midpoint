@@ -8852,6 +8852,7 @@
             <xsd:element name="operation" type="xsd:string"/>
             <xsd:element name="status" type="tns:OperationResultStatusType"/>
             <xsd:element name="count" type="xsd:int" minOccurs="0" default="1"/>
+            <xsd:element name="hiddenRecordsCount" type="xsd:int" minOccurs="0" default="0"/>
             <xsd:element name="params" type="tns:ParamsType" minOccurs="0"/>
             <xsd:element name="context" type="tns:ParamsType" minOccurs="0"/>
             <xsd:element name="returns" type="tns:ParamsType" minOccurs="0"/>
