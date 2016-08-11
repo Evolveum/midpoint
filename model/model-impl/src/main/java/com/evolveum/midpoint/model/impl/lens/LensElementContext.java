@@ -274,6 +274,16 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
 		return false;
 	}
 
+	public SimpleOperationName getOperation() {
+		if (isAdd()) {
+			return SimpleOperationName.ADD;
+		}
+		if (isDelete()) {
+			return SimpleOperationName.DELETE;
+		}
+		return SimpleOperationName.MODIFY;
+	}
+	
     @Override
 	public List<LensObjectDeltaOperation<O>> getExecutedDeltas() {
 		return executedDeltas;

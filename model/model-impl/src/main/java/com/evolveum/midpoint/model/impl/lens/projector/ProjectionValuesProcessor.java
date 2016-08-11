@@ -525,9 +525,10 @@ public class ProjectionValuesProcessor {
 	}
 		
 	private <F extends ObjectType> ExpressionVariables createExpressionVariables(LensContext<F> context, 
-			LensProjectionContext accountContext) {
-		return Utils.getDefaultExpressionVariables(context.getFocusContext().getObjectNew(), accountContext.getObjectNew(),
-				accountContext.getResourceShadowDiscriminator(), accountContext.getResource().asPrismObject(), context.getSystemConfiguration());
+			LensProjectionContext projectionContext) {
+		return Utils.getDefaultExpressionVariables(context.getFocusContext().getObjectNew(), projectionContext.getObjectNew(),
+				projectionContext.getResourceShadowDiscriminator(), projectionContext.getResource().asPrismObject(), 
+				context.getSystemConfiguration(), projectionContext);
 	}
 
 	private <F extends ObjectType> boolean evaluateIterationCondition(LensContext<F> context, 
