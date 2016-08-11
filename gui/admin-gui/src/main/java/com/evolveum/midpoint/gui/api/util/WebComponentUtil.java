@@ -38,6 +38,8 @@ import com.evolveum.midpoint.web.page.admin.roles.PageRoles;
 import com.evolveum.midpoint.web.page.admin.services.PageServices;
 import com.evolveum.midpoint.web.page.admin.users.PageUsers;
 import com.evolveum.midpoint.web.session.SessionStorage;
+import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.Component;
@@ -228,6 +230,17 @@ public final class WebComponentUtil {
 		storageKeyMap.put(PageReports.class, SessionStorage.KEY_REPORTS);
 		storageKeyMap.put(PageRoles.class, SessionStorage.KEY_ROLES);
 		storageKeyMap.put(PageServices.class, SessionStorage.KEY_SERVICES);
+	}
+	
+	private static Map<TableId, String> storageTableIdMap;
+
+	static {
+		storageTableIdMap = new HashMap<>();
+		storageTableIdMap.put(TableId.PAGE_RESOURCE_ACCOUNTS_PANEL, SessionStorage.KEY_RESOURCE_ACCOUNT_CONTENT);
+		storageTableIdMap.put(TableId.PAGE_RESOURCE_ENTITLEMENT_PANEL, SessionStorage.KEY_RESOURCE_ENTITLEMENT_CONTENT);
+		storageTableIdMap.put(TableId.PAGE_RESOURCE_GENERIC_PANEL, SessionStorage.KEY_RESOURCE_GENERIC_CONTENT);
+		storageTableIdMap.put(TableId.PAGE_RESOURCE_OBJECT_CLASS_PANEL, SessionStorage.KEY_RESOURCE_OBJECT_CLASS_CONTENT);
+		
 	}
 
 	public enum Channel {
@@ -1615,6 +1628,10 @@ public final class WebComponentUtil {
 
 	public static String getStorageKeyForPage(Class<?> pageClass) {
 		return storageKeyMap.get(pageClass);
+	}
+	
+	public static String getStorageKeyForTableId(TableId tableId) {
+		return storageTableIdMap.get(tableId);
 	}
 
 	public static Class<? extends PageBase> getObjectDetailsPage(Class<? extends ObjectType> type) {

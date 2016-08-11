@@ -9,78 +9,47 @@ public class ResourceContentStorage implements PageStorage {
 
 	private static final long serialVersionUID = 1L;
 	
-	private ResourceContentSearchDto accountContentSearch;
-	private ResourceContentSearchDto entitlementContentSearch;
-	private ResourceContentSearchDto genericContentSearch;
-	private ResourceContentSearchDto objectClassContentSearch;
+	private ResourceContentSearchDto contentSearch;
 
+	private Search attributeSearch;
+	private ObjectPaging paging;
+	
+	private ShadowKindType kind;
+	
+	public ResourceContentStorage(ShadowKindType kind) {
+		this.kind = kind;
+	}
+	
 	@Override
 	public Search getSearch() {
-		// TODO Auto-generated method stub
-		return null;
+		return attributeSearch;
 	}
 
 	@Override
 	public void setSearch(Search search) {
-		// TODO Auto-generated method stub
-		
+		this.attributeSearch = search;
 	}
 
 	@Override
 	public void setPaging(ObjectPaging paging) {
-		// TODO Auto-generated method stub
+		this.paging = paging;
 		
 	}
 
 	@Override
 	public ObjectPaging getPaging() {
-		// TODO Auto-generated method stub
-		return null;
+		return paging;
 	}
 	
-	public ResourceContentSearchDto getAccountContentSearch() {
-		if (accountContentSearch == null) {
-			return new ResourceContentSearchDto(ShadowKindType.ACCOUNT);
+	public ResourceContentSearchDto getContentSearch() {
+		if (contentSearch == null) {
+			return new ResourceContentSearchDto(kind);
 		}
-		return accountContentSearch;
+		return contentSearch;
 	}
 	
-	public void setAccountContentSearch(ResourceContentSearchDto accountContentSearch) {
-		this.accountContentSearch = accountContentSearch;
+	public void setContentSearch(ResourceContentSearchDto contentSearch) {
+		this.contentSearch = contentSearch;
 	}
 	
-	public ResourceContentSearchDto getEntitlementContentSearch() {
-		if (entitlementContentSearch == null) {
-			return new ResourceContentSearchDto(ShadowKindType.ENTITLEMENT);
-		}
-		return entitlementContentSearch;
-	}
-	
-	public void setEntitlementContentSearch(ResourceContentSearchDto entitlementContentSearch) {
-		this.entitlementContentSearch = entitlementContentSearch;
-	}
-	
-	public ResourceContentSearchDto getGenericContentSearch() {
-		if (genericContentSearch == null) {
-			return new ResourceContentSearchDto(ShadowKindType.GENERIC);
-		}
-		return genericContentSearch;
-	}
-	
-	public void setGenericContentSearch(ResourceContentSearchDto genericContentSearch) {
-		this.genericContentSearch = genericContentSearch;
-	}
-	
-	public ResourceContentSearchDto getObjectClassContentSearch() {
-		if (objectClassContentSearch == null) {
-			return new ResourceContentSearchDto(null);
-		}
-		return objectClassContentSearch;
-	}
-	
-	public void setObjectClassContentSearch(ResourceContentSearchDto objectClassContentSearch) {
-		this.objectClassContentSearch = objectClassContentSearch;
-	}
-	
-
 }

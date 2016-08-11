@@ -17,6 +17,8 @@
 package com.evolveum.midpoint.web.session;
 
 import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
+
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.Page;
 import org.apache.wicket.markup.html.WebPage;
@@ -44,7 +46,10 @@ public class SessionStorage implements Serializable {
     public static final String KEY_ROLES = "roles";
     public static final String KEY_SERVICES = "services";
     public static final String KEY_ROLE_MEMBERS = "roleMembers";
-    public static final String KEY_RESOURCE_CONTENT = "resourceContent";
+    public static final String KEY_RESOURCE_ACCOUNT_CONTENT = "resourceAccountContent";
+    public static final String KEY_RESOURCE_ENTITLEMENT_CONTENT = "resourceEntitlementContent";
+    public static final String KEY_RESOURCE_GENERIC_CONTENT = "resourceGenericContent";
+    public static final String KEY_RESOURCE_OBJECT_CLASS_CONTENT = "resourceObjectClassContent";
     
     private static final String KEY_TASKS = "tasks";
 
@@ -100,12 +105,35 @@ public class SessionStorage implements Serializable {
         return (RoleMembersStorage)pageStorageMap.get(KEY_ROLE_MEMBERS);
     }
     
-    public ResourceContentStorage getResourceContentStorage() {
-    	if (pageStorageMap.get(KEY_RESOURCE_CONTENT) == null) {
-            pageStorageMap.put(KEY_RESOURCE_CONTENT, new ResourceContentStorage());
+    public ResourceContentStorage getResourceContentStorage(ShadowKindType kind) {
+    	String key = getContentStorageKey(kind);
+    	if (pageStorageMap.get(key) == null) {
+            pageStorageMap.put(key, new ResourceContentStorage(kind));
         }
-        return (ResourceContentStorage)pageStorageMap.get(KEY_RESOURCE_CONTENT);
+        return (ResourceContentStorage)pageStorageMap.get(key);
+		
+	}
+    
+    private String getContentStorageKey(ShadowKindType kind) {
+    	if (kind == null) {
+			return KEY_RESOURCE_OBJECT_CLASS_CONTENT;
+		}
+
+		switch (kind) {
+			case ACCOUNT:
+				return KEY_RESOURCE_ACCOUNT_CONTENT;
+
+			case ENTITLEMENT:
+				return KEY_RESOURCE_ENTITLEMENT_CONTENT;
+
+			case GENERIC:
+				return KEY_RESOURCE_GENERIC_CONTENT;
+			default:
+				return KEY_RESOURCE_OBJECT_CLASS_CONTENT;
+
+		}
     }
+   
 
     public TasksStorage getTasks() {
         if (pageStorageMap.get(KEY_TASKS) == null) {

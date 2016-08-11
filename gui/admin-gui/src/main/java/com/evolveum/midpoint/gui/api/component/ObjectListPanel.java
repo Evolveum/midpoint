@@ -133,14 +133,14 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 		Form<O> mainForm = new Form<O>(ID_MAIN_FORM);
 		add(mainForm);
 
-		searchModel = createSearchModel();
+		searchModel = initSearchModel();
 
 		BoxedTablePanel<SelectableBean<O>> table = createTable();
 		mainForm.add(table);
 
 	}
 	
-	protected LoadableModel<Search> createSearchModel(){
+	private LoadableModel<Search> initSearchModel(){
 		return new LoadableModel<Search>(false) {
 
 			private static final long serialVersionUID = 1L;
@@ -156,12 +156,16 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 					}
 				}
 				if (search == null) {
-					search = SearchFactory.createSearch(type, parentPage.getPrismContext(),
-							parentPage.getModelInteractionService());
+					search = createSearch();
 				}
 				return search;
 			}
 		};
+	}
+	
+	protected Search createSearch() {
+		return SearchFactory.createSearch(type, parentPage.getPrismContext(),
+				parentPage.getModelInteractionService());
 	}
 	
 	private BoxedTablePanel<SelectableBean<O>> createTable() {
@@ -299,7 +303,13 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 	}
 	
 	private String getStorageKey() {
-		return WebComponentUtil.getStorageKeyForPage(parentPage.getClass());
+		String storageKey =  WebComponentUtil.getStorageKeyForPage(parentPage.getClass());
+		if (storageKey == null) {
+			storageKey = WebComponentUtil.getStorageKeyForTableId(tableId);
+		}
+		
+		return storageKey;
+		
 	}
 
 	private PageStorage getPageStorage(String storageKey){

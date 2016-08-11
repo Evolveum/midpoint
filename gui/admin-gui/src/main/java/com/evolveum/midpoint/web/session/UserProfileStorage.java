@@ -19,6 +19,7 @@ package com.evolveum.midpoint.web.session;
 import org.apache.commons.lang.Validate;
 
 import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 
 import java.io.Serializable;
 import java.util.HashMap;
@@ -30,7 +31,9 @@ import java.util.Map;
  */
 public class UserProfileStorage implements Serializable {
 
-    public static final int DEFAULT_PAGING_SIZE = 20;
+	
+	private static final long serialVersionUID = 1L;
+	public static final int DEFAULT_PAGING_SIZE = 20;
 
     /*
     *   Enum containing IDs of all tables. where paging size can be adjusted
@@ -52,6 +55,9 @@ public class UserProfileStorage implements Serializable {
         PAGE_RESOURCES_PANEL,
         PAGE_RESOURCE_TASKS_PANEL,
         PAGE_RESOURCE_ACCOUNTS_PANEL,
+        PAGE_RESOURCE_ENTITLEMENT_PANEL,
+        PAGE_RESOURCE_GENERIC_PANEL,
+        PAGE_RESOURCE_OBJECT_CLASS_PANEL,
         PAGE_TASKS_PANEL,
         PAGE_TASKS_NODES_PANEL,
         PAGE_USERS_PANEL,
@@ -83,4 +89,5 @@ public class UserProfileStorage implements Serializable {
 
         tables.put(key, size);
     }
+    
 }
