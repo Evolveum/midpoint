@@ -58,8 +58,7 @@ public class ResourceContentResourcePanel extends ResourceContentPanel {
 
 	@Override
 	protected boolean isUseObjectCounting() {
-		boolean useObjectCounting = ResourceTypeUtil.isCountObjectsCapabilityEnabled(getResourceModel().getObject().asObjectable());
-        return useObjectCounting;
+		return ResourceTypeUtil.isCountObjectsCapabilityEnabled(getResourceModel().getObject().asObjectable());
 	}
 
 	@Override
