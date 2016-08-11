@@ -1743,7 +1743,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		
 		PrismContainerValue<ObjectPolicyConfigurationType> oldValue = null;
 		for (ObjectPolicyConfigurationType focusPolicyType: systemConfig.asObjectable().getDefaultObjectPolicyConfiguration()) {
-			if (QNameUtil.match(objectType, focusPolicyType.getType()) && MiscUtil.equals(subType, focusPolicyType.getSubType())) {
+			if (QNameUtil.match(objectType, focusPolicyType.getType()) && MiscUtil.equals(subType, focusPolicyType.getSubtype())) {
 				oldValue = focusPolicyType.asPrismContainerValue();
 			}
 		}
@@ -1761,7 +1761,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 			if (oldValue == null) {
 				newFocusPolicyType = new ObjectPolicyConfigurationType();
 				newFocusPolicyType.setType(objectType);
-				newFocusPolicyType.setSubType(subType);
+				newFocusPolicyType.setSubtype(subType);
 				addDelta = ContainerDelta.createModificationAdd(SystemConfigurationType.F_DEFAULT_OBJECT_POLICY_CONFIGURATION, 
 						SystemConfigurationType.class, prismContext, newFocusPolicyType);
 			} else {

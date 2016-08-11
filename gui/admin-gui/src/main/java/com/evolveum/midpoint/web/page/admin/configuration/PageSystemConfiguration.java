@@ -312,6 +312,7 @@ public class PageSystemConfiguration extends PageAdminConfiguration {
 			}
 			newObjectPolicyConfig = new ObjectPolicyConfigurationType();
 			newObjectPolicyConfig.setType(o.getType());
+			newObjectPolicyConfig.setSubtype(o.getSubtype());
 			newObjectPolicyConfig.setObjectTemplateRef(o.getTemplateRef());
 
 			List<PropertyConstraintType> constraintList = new ArrayList<>();

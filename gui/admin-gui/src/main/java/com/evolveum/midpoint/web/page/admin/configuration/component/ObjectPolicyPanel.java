@@ -86,6 +86,7 @@ public class ObjectPolicyPanel extends BasePanel<ObjectPolicyDialogDto> implemen
 
 	private static final String ID_FORM = "mainForm";
 	private static final String ID_TYPE = "type";
+	private static final String ID_SUBTYPE = "subtype";
 	private static final String ID_OBJECT_TEMPLATE = "objectTemplate";
 	private static final String ID_BUTTON_SAVE = "saveButton";
 	private static final String ID_BUTTON_CANCEL = "cancelButton";
@@ -169,6 +170,10 @@ public class ObjectPolicyPanel extends BasePanel<ObjectPolicyDialogDto> implemen
 		form.add(type);
 		type.getInput().setNullValid(false);
 		type.getInput().setRequired(true);
+		
+		TextField<String> fieldSubtype = new TextField<>(ID_SUBTYPE, new PropertyModel<String>(model, ObjectPolicyDialogDto.F_SUBTYPE));
+		form.add(fieldSubtype);
+		form.add(fieldSubtype);
 
 		DropDownFormGroup template = new DropDownFormGroup<>(ID_OBJECT_TEMPLATE,
 				new PropertyModel<ObjectTemplateConfigTypeReferenceDto>(model, ObjectPolicyDialogDto.F_TEMPLATE_REF),

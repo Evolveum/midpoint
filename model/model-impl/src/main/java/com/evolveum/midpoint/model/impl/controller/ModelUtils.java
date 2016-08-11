@@ -118,7 +118,7 @@ public class ModelUtils {
 				throw new ConfigurationException("Unknown type "+typeQName+" in default object policy definition in system configuration");
 			}
 			if (objectType.getClassDefinition() == objectClass) {
-				String aSubType = aPolicyConfigurationType.getSubType();
+				String aSubType = aPolicyConfigurationType.getSubtype();
 				if (aSubType == null) {
 					if (applicablePolicyConfigurationType == null) {
 						applicablePolicyConfigurationType = aPolicyConfigurationType;
