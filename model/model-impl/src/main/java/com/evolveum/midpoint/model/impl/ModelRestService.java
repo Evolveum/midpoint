@@ -29,7 +29,6 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
-import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
@@ -38,6 +37,7 @@ import javax.ws.rs.core.UriInfo;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.api.ModelInteractionService;
+import com.evolveum.midpoint.model.impl.util.RestServiceUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -46,12 +46,7 @@ import org.apache.cxf.jaxrs.ext.MessageContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.evolveum.midpoint.audit.api.AuditEventRecord;
-import com.evolveum.midpoint.audit.api.AuditEventStage;
-import com.evolveum.midpoint.audit.api.AuditEventType;
-import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
-import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.impl.rest.PATCH;
 import com.evolveum.midpoint.model.impl.security.SecurityHelper;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -62,26 +57,16 @@ import com.evolveum.midpoint.prism.query.QueryJaxbConvertor;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.result.OperationResultStatus;
-import com.evolveum.midpoint.security.api.ConnectionEnvironment;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ConsistencyViolationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectListType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectModificationType;
 import com.evolveum.prism.xml.ns._public.query_3.QueryType;
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 /**
  * @author katkav
@@ -123,9 +108,7 @@ public class ModelRestService {
 	private static final Trace LOGGER = TraceManager.getTrace(ModelRestService.class);
 	
 	public static final long WAIT_FOR_TASK_STOP = 2000L;
-	private static final String QUERY_PARAMETER_OPTIONS = "options";
-	public static final String MESSAGE_PROPERTY_TASK_NAME = "task";
-	
+
 	public ModelRestService() {
 		// nothing to do
 	}
@@ -135,7 +118,7 @@ public class ModelRestService {
 	public Response getValuePolicyForUser(@PathParam("id") String oid, @Context MessageContext mc) {
 		LOGGER.info("getValuePolicyForUser start");
 
-		Task task = initRequest(mc);
+		Task task = RestServiceUtil.initRequest(mc);
 		OperationResult parentResult = task.getResult().createSubresult(OPERATION_GET);
 
 		Response response;
@@ -150,7 +133,7 @@ public class ModelRestService {
 			builder.entity(policy);
 			response = builder.build();
 		} catch (Exception ex) {
-			response = handleException(ex);
+			response = RestServiceUtil.handleException(ex);
 		}
 
 		parentResult.computeStatus();
@@ -161,48 +144,13 @@ public class ModelRestService {
 		return response;
 	}
 
-	private Response handleException(Exception ex) {
-		if (ex instanceof ObjectNotFoundException) {
-			return buildErrorResponse(Status.NOT_FOUND, ex);
-		}
-
-		if (ex instanceof CommunicationException) {
-			return buildErrorResponse(Status.GATEWAY_TIMEOUT, ex);
-		}
-
-		if (ex instanceof SecurityViolationException) {
-			return buildErrorResponse(Status.FORBIDDEN, ex);
-		}
-
-		if (ex instanceof ConfigurationException) {
-			return buildErrorResponse(Status.BAD_GATEWAY, ex);
-		}
-
-		if (ex instanceof SchemaException
-				|| ex instanceof PolicyViolationException
-				|| ex instanceof ConsistencyViolationException
-				|| ex instanceof ObjectAlreadyExistsException) {
-			return buildErrorResponse(Status.CONFLICT, ex);
-		}
-
-		return buildErrorResponse(Status.INTERNAL_SERVER_ERROR, ex);
-	}
-
-	private Response buildErrorResponse(Status status, Exception ex) {
-		return buildErrorResponse(status, ex.getMessage());
-	}
-
-	private Response buildErrorResponse(Status status, String message) {
-		return Response.status(status).entity(message).type(MediaType.TEXT_PLAIN).build();
-	}
-	
 	@GET
 	@Path("/{type}/{id}")
 	public <T extends ObjectType> Response getObject(@PathParam("type") String type, @PathParam("id") String id,
 			@Context MessageContext mc){
 		LOGGER.info("model rest service for get operation start");
 		
-		Task task = initRequest(mc);
+		Task task = RestServiceUtil.initRequest(mc);
 		OperationResult parentResult = task.getResult().createSubresult(OPERATION_GET);
 		
 		Class<T> clazz = ObjectTypes.getClassFromRestType(type);
@@ -214,7 +162,7 @@ public class ModelRestService {
 			builder.entity(object);
 			response = builder.build();
 		} catch (Exception ex) {
-			response = handleException(ex);
+			response = RestServiceUtil.handleException(ex);
 		}
 		
 		parentResult.computeStatus();
@@ -232,13 +180,13 @@ public class ModelRestService {
 			@Context UriInfo uriInfo, @Context MessageContext mc) {
 		LOGGER.info("model rest service for add operation start");
 		
-		Task task = initRequest(mc);
+		Task task = RestServiceUtil.initRequest(mc);
 		OperationResult parentResult = task.getResult().createSubresult(OPERATION_ADD_OBJECT);
 		
 		Class clazz = ObjectTypes.getClassFromRestType(type);
 		if (!object.getCompileTimeClass().equals(clazz)){
 			finishRequest(task);
-			return buildErrorResponse(Status.BAD_REQUEST, "Request to add object of type "
+			return RestServiceUtil.buildErrorResponse(Status.BAD_REQUEST, "Request to add object of type "
 					+ object.getCompileTimeClass().getSimpleName() + " to the collection of " + type);
 		}
 		
@@ -264,7 +212,7 @@ public class ModelRestService {
 			
 			response = builder.build();
 		} catch (Exception ex) {
-			response = handleException(ex);
+			response = RestServiceUtil.handleException(ex);
 		}
 		
 		parentResult.computeStatus();
@@ -281,13 +229,13 @@ public class ModelRestService {
 	
 		LOGGER.info("model rest service for add operation start");
 
-		Task task = initRequest(mc);
+		Task task = RestServiceUtil.initRequest(mc);
 		OperationResult parentResult = task.getResult().createSubresult(OPERATION_ADD_OBJECT);
 		
 		Class clazz = ObjectTypes.getClassFromRestType(type);
 		if (!object.getCompileTimeClass().equals(clazz)){
 			finishRequest(task);
-			return buildErrorResponse(Status.BAD_REQUEST, "Request to add object of type "
+			return RestServiceUtil.buildErrorResponse(Status.BAD_REQUEST, "Request to add object of type "
 					+ object.getCompileTimeClass().getSimpleName()
 					+ " to the collection of " + type);
 		}
@@ -313,7 +261,7 @@ public class ModelRestService {
 		} catch (ObjectAlreadyExistsException e) {
 			response = Response.serverError().entity(e.getMessage()).build();
 		} catch (Exception ex) {
-			response = handleException(ex);
+			response = RestServiceUtil.handleException(ex);
 		}
 		
 		parentResult.computeStatus();
@@ -329,7 +277,7 @@ public class ModelRestService {
 
 		LOGGER.info("model rest service for delete operation start");
 		
-		Task task = initRequest(mc);
+		Task task = RestServiceUtil.initRequest(mc);
 		OperationResult parentResult = task.getResult().createSubresult(OPERATION_DELETE_OBJECT);
 		
 		Class clazz = ObjectTypes.getClassFromRestType(type);
@@ -352,7 +300,7 @@ public class ModelRestService {
 			model.deleteObject(clazz, id, modelExecuteOptions, task, parentResult);
 			response = Response.noContent().build();
 		} catch (Exception ex) {
-			response = handleException(ex);
+			response = RestServiceUtil.handleException(ex);
 		}
 		
 		parentResult.computeStatus();
@@ -375,7 +323,7 @@ public class ModelRestService {
 		
 		LOGGER.info("model rest service for modify operation start");
 		
-		Task task = initRequest(mc);
+		Task task = RestServiceUtil.initRequest(mc);
 		OperationResult parentResult = task.getResult().createSubresult(OPERATION_MODIFY_OBJECT);
 		
 		Class clazz = ObjectTypes.getClassFromRestType(type);
@@ -386,7 +334,7 @@ public class ModelRestService {
 			model.modifyObject(clazz, oid, modifications, modelExecuteOptions, task, parentResult);
 			response = Response.noContent().build();
 		} catch (Exception ex) {
-			response = handleException(ex);
+			response = RestServiceUtil.handleException(ex);
 		}
 		
 		parentResult.computeStatus();
@@ -401,7 +349,7 @@ public class ModelRestService {
 		LOGGER.info("model rest service for notify change operation start");
 		Validate.notNull(changeDescription, "Chnage description must not be null");
 		
-		Task task = initRequest(mc);
+		Task task = RestServiceUtil.initRequest(mc);
 		OperationResult parentResult = task.getResult().createSubresult(OPERATION_NOTIFY_CHANGE);
 		
 		Response response;
@@ -417,7 +365,7 @@ public class ModelRestService {
 //			}
 //			response = Response.seeOther((uriInfo.getBaseUriBuilder().path(this.getClass(), "getObject").build(ObjectTypes.TASK.getRestType(), task.getOid()))).build();
 		} catch (Exception ex) {
-			response = handleException(ex);
+			response = RestServiceUtil.handleException(ex);
 		}
 		
 		parentResult.computeStatus();
@@ -434,7 +382,7 @@ public class ModelRestService {
 		
 		LOGGER.info("model rest service for find shadow owner operation start");
 
-		Task task = initRequest(mc);
+		Task task = RestServiceUtil.initRequest(mc);
 		OperationResult parentResult = task.getResult().createSubresult(OPERATION_FIND_SHADOW_OWNER);
 		
 		Response response;
@@ -442,9 +390,9 @@ public class ModelRestService {
 			PrismObject<UserType> user = model.findShadowOwner(shadowOid, task, parentResult);
 			response = Response.ok().entity(user).build();
 		} catch (ConfigurationException e) {
-			response = buildErrorResponse(Status.INTERNAL_SERVER_ERROR, e.getMessage());
+			response = RestServiceUtil.buildErrorResponse(Status.INTERNAL_SERVER_ERROR, e.getMessage());
 		} catch (Exception ex) {
-			response = handleException(ex);
+			response = RestServiceUtil.handleException(ex);
 		}
 		
 		parentResult.computeStatus();
@@ -459,7 +407,7 @@ public class ModelRestService {
 	
 		LOGGER.info("model rest service for find shadow owner operation start");
 
-		Task task = initRequest(mc);
+		Task task = RestServiceUtil.initRequest(mc);
 		OperationResult parentResult = task.getResult().createSubresult(OPERATION_SEARCH_OBJECTS);
 
 		Class clazz = ObjectTypes.getClassFromRestType(type);
@@ -476,7 +424,7 @@ public class ModelRestService {
 		
 			response = Response.ok().entity(listType).build();
 		} catch (Exception ex) {
-			response = handleException(ex);
+			response = RestServiceUtil.handleException(ex);
 		}
 		
 		parentResult.computeStatus();
@@ -491,7 +439,7 @@ public class ModelRestService {
 			@Context MessageContext mc, @Context UriInfo uriInfo) {	
 		LOGGER.info("model rest service for import from resource operation start");
 
-		Task task = initRequest(mc);
+		Task task = RestServiceUtil.initRequest(mc);
 		OperationResult parentResult = task.getResult().createSubresult(OPERATION_IMPORT_FROM_RESOURCE);
 
 		QName objClass = new QName(MidPointConstants.NS_RI, objectClass);
@@ -501,7 +449,7 @@ public class ModelRestService {
 			response = Response.seeOther((uriInfo.getBaseUriBuilder().path(this.getClass(), "getObject")
 					.build(ObjectTypes.TASK.getRestType(), task.getOid()))).build();
 		} catch (Exception ex) {
-			response = handleException(ex);
+			response = RestServiceUtil.handleException(ex);
 		}
 		
 		parentResult.computeStatus();
@@ -515,7 +463,7 @@ public class ModelRestService {
 	public Response testResource(@PathParam("resourceOid") String resourceOid, @Context MessageContext mc) {
 		LOGGER.info("model rest service for test resource operation start");
 
-		Task task = initRequest(mc);
+		Task task = RestServiceUtil.initRequest(mc);
 		OperationResult parentResult = task.getResult().createSubresult(OPERATION_TEST_RESOURCE);
 
 		Response response;
@@ -524,7 +472,7 @@ public class ModelRestService {
 			testResult = model.testResource(resourceOid, task);
 			response = Response.ok(testResult).build();
 		} catch (Exception ex) {
-			response = handleException(ex);
+			response = RestServiceUtil.handleException(ex);
 		}
 	
 		if (testResult != null) {
@@ -539,7 +487,7 @@ public class ModelRestService {
 	@Path("/tasks/{oid}/suspend")
     public Response suspendTasks(@PathParam("oid") String taskOid, @Context MessageContext mc) {
 		
-		Task task = initRequest(mc);
+		Task task = RestServiceUtil.initRequest(mc);
 		OperationResult parentResult = task.getResult().createSubresult(OPERATION_SUSPEND_TASKS);
 		
 		Response response;
@@ -553,7 +501,7 @@ public class ModelRestService {
 				response = Response.status(Status.INTERNAL_SERVER_ERROR).entity(parentResult.getMessage()).build();
 			}
 		} catch (Exception ex) {
-			response = handleException(ex);
+			response = RestServiceUtil.handleException(ex);
 		}
 
 		finishRequest(task);
@@ -564,7 +512,7 @@ public class ModelRestService {
 //	@Path("tasks/{oid}/suspend")
     public Response suspendAndDeleteTasks(@PathParam("oid") String taskOid, @Context MessageContext mc) {
     	
-    	Task task = initRequest(mc);
+    	Task task = RestServiceUtil.initRequest(mc);
 		OperationResult parentResult = task.getResult().createSubresult(OPERATION_SUSPEND_AND_DELETE_TASKS);
 				
 		Response response;
@@ -579,7 +527,7 @@ public class ModelRestService {
 				response = Response.status(Status.INTERNAL_SERVER_ERROR).entity(parentResult.getMessage()).build();
 			}
 		} catch (Exception ex) {
-			response = handleException(ex);
+			response = RestServiceUtil.handleException(ex);
 		}
         
 		finishRequest(task);
@@ -590,7 +538,7 @@ public class ModelRestService {
 	@Path("/tasks/{oid}/resume")
     public Response resumeTasks(@PathParam("oid") String taskOid, @Context MessageContext mc) {
 		
-		Task task = initRequest(mc);
+		Task task = RestServiceUtil.initRequest(mc);
 		OperationResult parentResult = task.getResult().createSubresult(OPERATION_RESUME_TASKS);
 		
 		Response response;
@@ -606,7 +554,7 @@ public class ModelRestService {
 				response = Response.status(Status.INTERNAL_SERVER_ERROR).entity(parentResult.getMessage()).build();
 			}
 		} catch (Exception ex) {
-			response = handleException(ex);
+			response = RestServiceUtil.handleException(ex);
 		}
 
 		finishRequest(task);
@@ -618,7 +566,7 @@ public class ModelRestService {
 	@Path("tasks/{oid}/run")
     public Response scheduleTasksNow(@PathParam("oid") String taskOid, @Context MessageContext mc) {
 		
-		Task task = initRequest(mc);
+		Task task = RestServiceUtil.initRequest(mc);
 		OperationResult parentResult = task.getResult().createSubresult(OPERATION_SCHEDULE_TASKS_NOW);
 
 		Collection<String> taskOids = MiscUtil.createCollection(taskOid);
@@ -635,7 +583,7 @@ public class ModelRestService {
 				response = Response.status(Status.INTERNAL_SERVER_ERROR).entity(parentResult.getMessage()).build();
 			}
 		} catch (Exception ex) {
-			response = handleException(ex);
+			response = RestServiceUtil.handleException(ex);
 		}
 
 		finishRequest(task);
@@ -680,23 +628,8 @@ public class ModelRestService {
 //    	model.synchronizeTasks(parentResult);
 //    }
 
-
-	private ModelExecuteOptions getOptions(UriInfo uriInfo){
-    	List<String> options = uriInfo.getQueryParameters().get(QUERY_PARAMETER_OPTIONS);
-		return ModelExecuteOptions.fromRestOptions(options);
-    }
-    
-	private Task initRequest(MessageContext mc) {
-		Task task = (Task) mc.get(MESSAGE_PROPERTY_TASK_NAME);
-		// No need to audit login. it was already audited during authentication
-		return task;
-	}
-
 	private void finishRequest(Task task) {
-		task.getResult().computeStatus();
-		ConnectionEnvironment connEnv = new ConnectionEnvironment();
-		connEnv.setChannel(SchemaConstants.CHANNEL_REST_URI);
-		connEnv.setSessionId(task.getTaskIdentifier());
-		securityHelper.auditLogout(connEnv, task);
+		RestServiceUtil.finishRequest(task, securityHelper);
 	}
+
 }

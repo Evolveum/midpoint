@@ -213,7 +213,7 @@ public class SchemaTransformer {
 		
 		ObjectTemplateType objectTemplateType;
 		try {
-			objectTemplateType = determineObjectTemplate(object.getCompileTimeClass(), AuthorizationPhaseType.REQUEST, result);
+			objectTemplateType = determineObjectTemplate(object, AuthorizationPhaseType.REQUEST, result);
 		} catch (ConfigurationException | ObjectNotFoundException e) {
 			result.recordFatalError(e);
 			throw e;
@@ -382,14 +382,29 @@ public class SchemaTransformer {
     	}
 	}
     
-    
-    
-    public <O extends ObjectType> ObjectTemplateType determineObjectTemplate(Class<O> objectType, AuthorizationPhaseType phase, OperationResult result) throws SchemaException, ConfigurationException, ObjectNotFoundException {
+    public <O extends ObjectType> ObjectTemplateType determineObjectTemplate(PrismObject<O> object, AuthorizationPhaseType phase, OperationResult result) throws SchemaException, ConfigurationException, ObjectNotFoundException {
     	PrismObject<SystemConfigurationType> systemConfiguration = Utils.getSystemConfiguration(cacheRepositoryService, result);
     	if (systemConfiguration == null) {
     		return null;
     	}
-    	ObjectPolicyConfigurationType objectPolicyConfiguration = ModelUtils.determineObjectPolicyConfiguration(objectType, systemConfiguration.asObjectable());
+    	ObjectPolicyConfigurationType objectPolicyConfiguration = ModelUtils.determineObjectPolicyConfiguration(object, systemConfiguration.asObjectable());
+    	if (objectPolicyConfiguration == null) {
+    		return null;
+    	}
+    	ObjectReferenceType objectTemplateRef = objectPolicyConfiguration.getObjectTemplateRef();
+    	if (objectTemplateRef == null) {
+    		return null;
+    	}
+    	PrismObject<ObjectTemplateType> template = cacheRepositoryService.getObject(ObjectTemplateType.class, objectTemplateRef.getOid(), null, result);
+    	return template.asObjectable();
+    }
+    
+    public <O extends ObjectType> ObjectTemplateType determineObjectTemplate(Class<O> objectClass, AuthorizationPhaseType phase, OperationResult result) throws SchemaException, ConfigurationException, ObjectNotFoundException {
+    	PrismObject<SystemConfigurationType> systemConfiguration = Utils.getSystemConfiguration(cacheRepositoryService, result);
+    	if (systemConfiguration == null) {
+    		return null;
+    	}
+    	ObjectPolicyConfigurationType objectPolicyConfiguration = ModelUtils.determineObjectPolicyConfiguration(objectClass, null, systemConfiguration.asObjectable());
     	if (objectPolicyConfiguration == null) {
     		return null;
     	}
