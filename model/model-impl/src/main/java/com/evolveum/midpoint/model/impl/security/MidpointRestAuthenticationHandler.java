@@ -24,6 +24,7 @@ import javax.ws.rs.container.ContainerResponseFilter;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import com.evolveum.midpoint.model.impl.util.RestServiceUtil;
 import org.apache.cxf.configuration.security.AuthorizationPolicy;
 import org.apache.cxf.jaxrs.utils.JAXRSUtils;
 import org.apache.cxf.message.Message;
@@ -115,7 +116,7 @@ public class MidpointRestAuthenticationHandler implements ContainerRequestFilter
         UserType user = ((MidPointPrincipal)token.getPrincipal()).getUser();
         task.setOwner(user.asPrismObject());
         
-        m.put(ModelRestService.MESSAGE_PROPERTY_TASK_NAME, task);
+        m.put(RestServiceUtil.MESSAGE_PROPERTY_TASK_NAME, task);
         securityEnforcer.setupPreAuthenticatedSecurityContext(user.asPrismObject());
         
         LOGGER.trace("Authenticated to REST service as {}", user);
