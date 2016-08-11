@@ -29,13 +29,16 @@ import java.util.List;
  *  @author shpood
  * */
 public class ObjectPolicyConfigurationTypeDto implements Serializable{
+	private static final long serialVersionUID = 1L;
 
-    public static final String F_TEMPLATE_REF = "templateRef";
+	public static final String F_TEMPLATE_REF = "templateRef";
     public static final String F_TYPE = "type";
+    public static final String F_SUBTYPE = "subtype";
     public static final String F_CONSTRAINTS = "constraints";
 
     private ObjectReferenceType templateRef;
     private QName type;
+    private String subtype;
     private List<PropertyConstraintTypeDto> constraints;
 
     public ObjectPolicyConfigurationTypeDto(){}
@@ -43,6 +46,7 @@ public class ObjectPolicyConfigurationTypeDto implements Serializable{
     public ObjectPolicyConfigurationTypeDto(ObjectPolicyConfigurationType policyConfig){
         templateRef = policyConfig.getObjectTemplateRef();
         type = policyConfig.getType();
+        subtype = policyConfig.getSubtype();
 
         constraints = new ArrayList<>();
         if(policyConfig.getPropertyConstraint() != null){
@@ -74,7 +78,15 @@ public class ObjectPolicyConfigurationTypeDto implements Serializable{
         this.type = type;
     }
 
-    public List<PropertyConstraintTypeDto> getConstraints() {
+    public String getSubtype() {
+		return subtype;
+	}
+
+	public void setSubtype(String subtype) {
+		this.subtype = subtype;
+	}
+
+	public List<PropertyConstraintTypeDto> getConstraints() {
         return constraints;
     }
 
@@ -83,28 +95,68 @@ public class ObjectPolicyConfigurationTypeDto implements Serializable{
     }
     
     public boolean isEmpty(){
-    	return type == null && constraints == null && templateRef == null; 
+    	return type == null && subtype == null && constraints == null && templateRef == null; 
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof ObjectPolicyConfigurationTypeDto)) return false;
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((constraints == null) ? 0 : constraints.hashCode());
+		result = prime * result + ((subtype == null) ? 0 : subtype.hashCode());
+		result = prime * result + ((templateRef == null) ? 0 : templateRef.hashCode());
+		result = prime * result + ((type == null) ? 0 : type.hashCode());
+		return result;
+	}
 
-        ObjectPolicyConfigurationTypeDto that = (ObjectPolicyConfigurationTypeDto) o;
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+		if (obj == null) {
+			return false;
+		}
+		if (getClass() != obj.getClass()) {
+			return false;
+		}
+		ObjectPolicyConfigurationTypeDto other = (ObjectPolicyConfigurationTypeDto) obj;
+		if (constraints == null) {
+			if (other.constraints != null) {
+				return false;
+			}
+		} else if (!constraints.equals(other.constraints)) {
+			return false;
+		}
+		if (subtype == null) {
+			if (other.subtype != null) {
+				return false;
+			}
+		} else if (!subtype.equals(other.subtype)) {
+			return false;
+		}
+		if (templateRef == null) {
+			if (other.templateRef != null) {
+				return false;
+			}
+		} else if (!templateRef.equals(other.templateRef)) {
+			return false;
+		}
+		if (type == null) {
+			if (other.type != null) {
+				return false;
+			}
+		} else if (!type.equals(other.type)) {
+			return false;
+		}
+		return true;
+	}
 
-        if (constraints != null ? !constraints.equals(that.constraints) : that.constraints != null) return false;
-        if (templateRef != null ? !templateRef.equals(that.templateRef) : that.templateRef != null) return false;
-        if (type != null ? !type.equals(that.type) : that.type != null) return false;
+	@Override
+	public String toString() {
+		return "ObjectPolicyConfigurationTypeDto(templateRef=" + templateRef + ", type=" + type
+				+ ", subtype=" + subtype + ", constraints=" + constraints + ")";
+	}
 
-        return true;
-    }
-
-    @Override
-    public int hashCode() {
-        int result = templateRef != null ? templateRef.hashCode() : 0;
-        result = 31 * result + (type != null ? type.hashCode() : 0);
-        result = 31 * result + (constraints != null ? constraints.hashCode() : 0);
-        return result;
-    }
+    
 }

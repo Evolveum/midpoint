@@ -27,6 +27,8 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.naming.InvalidNameException;
 import javax.naming.NamingEnumeration;
@@ -86,6 +88,10 @@ public class BasicExpressionFunctions {
 	public static final String NAME_SEPARATOR = " ";
 	
 	public static final Trace LOGGER = TraceManager.getTrace(BasicExpressionFunctions.class);
+	
+	private static String STRING_PATTERN_WHITESPACE = "\\s+";
+	private static String STRING_PATTERN_HONORIFIC_PREFIX_ENDS_WITH_DOT = "^(\\S+\\.)$";
+	private static Pattern PATTERN_NICK_NAME = Pattern.compile("^([^\"]*)\"([^\"]+)\"([^\"]*)$");
 	
 	private PrismContext prismContext;
 	private Protector protector;
@@ -653,6 +659,139 @@ public class BasicExpressionFunctions {
     
     public XMLGregorianCalendar currentDateTime() {
     	return XmlTypeConverter.createXMLGregorianCalendar(System.currentTimeMillis());
+    }
+    
+    private ParsedFullName parseFullName(String fullName) {
+    	if (StringUtils.isBlank(fullName)) {
+    		return null;
+    	}
+    	String root = fullName.trim();
+    	ParsedFullName p = new ParsedFullName();
+    	
+//    	LOGGER.trace("(1) root=", root);
+    	
+    	Matcher m = PATTERN_NICK_NAME.matcher(root);
+    	if (m.matches()) {
+    		String nickName = m.group(2).trim();
+    		p.setNickName(nickName);
+    		root = m.group(1) + " " + m.group(3);
+//    		LOGGER.trace("nick={}, root={}", nickName, root);
+    	}
+    	
+    	String[] words = root.split(STRING_PATTERN_WHITESPACE);
+    	int i = 0;
+    	
+//    	LOGGER.trace("(2) i={}, words={}", i, Arrays.toString(words));
+    	
+    	StringBuilder honorificPrefixBuilder = new StringBuilder();
+    	while (i < words.length && words[i].matches(STRING_PATTERN_HONORIFIC_PREFIX_ENDS_WITH_DOT)) {
+    		honorificPrefixBuilder.append(words[i]);
+    		honorificPrefixBuilder.append(" ");
+    		i++;
+    	}
+    	if (honorificPrefixBuilder.length() > 0) {
+    		honorificPrefixBuilder.setLength(honorificPrefixBuilder.length() - 1);
+    		p.setHonorificPrefix(honorificPrefixBuilder.toString());
+    	}
+    	
+//    	LOGGER.trace("(3) i={}, words={}", i, Arrays.toString(words));
+    	
+    	List<String> rootNameWords = new ArrayList<>();
+    	while (i < words.length && !words[i].endsWith(",")) {
+    		rootNameWords.add(words[i]);
+    		i++;
+    	}
+    		
+    	if (i < words.length && words[i].endsWith(",")) {
+    		String word = words[i];
+    		i++;
+    		if (!word.equals(",")) {
+    			word = word.substring(0, word.length() - 1);
+    			rootNameWords.add(word);
+    		}
+    	}
+    	
+//    	LOGGER.trace("(4) i={}, words={}", i, Arrays.toString(words));
+//    	LOGGER.trace("(4) rootNameWords={}", rootNameWords);
+    	
+    	if (rootNameWords.size() > 1) {
+    		p.setFamilyName(rootNameWords.get(rootNameWords.size() - 1)); 
+    		rootNameWords.remove(rootNameWords.size() - 1);
+    		p.setGivenName(rootNameWords.get(0));
+    		rootNameWords.remove(0);
+    		p.setAdditionalName(StringUtils.join(rootNameWords, " "));
+    	} else if (rootNameWords.size() == 1) {
+    		p.setFamilyName(rootNameWords.get(0)); 
+    	}
+    	
+    	StringBuilder honorificSuffixBuilder = new StringBuilder();
+    	while (i < words.length) {
+    		honorificSuffixBuilder.append(words[i]);
+    		honorificSuffixBuilder.append(" ");
+    		i++;
+    	}
+    	if (honorificSuffixBuilder.length() > 0) {
+    		honorificSuffixBuilder.setLength(honorificSuffixBuilder.length() - 1);
+    		p.setHonorificSuffix(honorificSuffixBuilder.toString());
+    	}
+
+    	LOGGER.trace("Parsed full name '{}' as {}", fullName, p);
+    	
+    	return p;
+    }
+    
+    public String parseGivenName(Object fullName) {
+    	ParsedFullName p = parseFullName(stringify(fullName));
+    	if (p == null) {
+    		return null;
+    	} else {
+    		return p.getGivenName();
+    	}
+    }
+        
+    public String parseFamilyName(Object fullName) {
+    	ParsedFullName p = parseFullName(stringify(fullName));
+    	if (p == null) {
+    		return null;
+    	} else {
+    		return p.getFamilyName();
+    	}
+    }
+    
+    public String parseAdditionalName(Object fullName) {
+    	ParsedFullName p = parseFullName(stringify(fullName));
+    	if (p == null) {
+    		return null;
+    	} else {
+    		return p.getAdditionalName();
+    	}
+    }
+    
+    public String parseNickName(Object fullName) {
+    	ParsedFullName p = parseFullName(stringify(fullName));
+    	if (p == null) {
+    		return null;
+    	} else {
+    		return p.getNickName();
+    	}
+    }
+    
+    public String parseHonorificPrefix(Object fullName) {
+    	ParsedFullName p = parseFullName(stringify(fullName));
+    	if (p == null) {
+    		return null;
+    	} else {
+    		return p.getHonorificPrefix();
+    	}
+    }
+    
+    public String parseHonorificSuffix(Object fullName) {
+    	ParsedFullName p = parseFullName(stringify(fullName));
+    	if (p == null) {
+    		return null;
+    	} else {
+    		return p.getHonorificSuffix();
+    	}
     }
     
     public String decrypt(ProtectedStringType protectedString) {

@@ -485,7 +485,7 @@ public class Clockwork {
 		}
 		variables.addVariableDefinition(ExpressionConstants.VAR_FOCUS, focus);
 		
-		LensUtil.evaluateScript(scriptExpression, context, variables, shortDesc, task, result);
+		Utils.evaluateScript(scriptExpression, context, variables, false, shortDesc, task, result);
 	}
 
     private <F extends ObjectType> void processInitialToPrimary(LensContext<F> context, Task task, OperationResult result) {

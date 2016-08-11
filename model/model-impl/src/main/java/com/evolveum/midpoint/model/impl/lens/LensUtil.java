@@ -595,23 +595,6 @@ public class LensUtil {
 		}
 	}
 
-    public static <V extends PrismValue, F extends ObjectType> void evaluateScript(
-            ScriptExpression scriptExpression, LensContext<F> lensContext, ExpressionVariables variables, String shortDesc, Task task, OperationResult parentResult) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
-        ModelExpressionThreadLocalHolder.pushLensContext(lensContext);
-        ModelExpressionThreadLocalHolder.pushCurrentResult(parentResult);
-        ModelExpressionThreadLocalHolder.pushCurrentTask(task);
-        try {
-            scriptExpression.evaluate(variables, ScriptExpressionReturnTypeType.SCALAR, false, shortDesc, task, parentResult);
-        } finally {
-            ModelExpressionThreadLocalHolder.popLensContext();
-            ModelExpressionThreadLocalHolder.popCurrentResult();
-            ModelExpressionThreadLocalHolder.popCurrentTask();
-//			if (lensContext.getDebugListener() != null) {
-//				lensContext.getDebugListener().afterScriptEvaluation(lensContext, scriptExpression);
-//			}
-        }
-    }
-
 	public static Object getIterationVariableValue(LensProjectionContext accCtx) {
 		Integer iterationOld = null;
 		PrismObject<ShadowType> shadowCurrent = accCtx.getObjectCurrent();

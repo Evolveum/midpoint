@@ -79,6 +79,8 @@ http://www.springframework.org/schema/context
         <csrf disabled="true"/>
         <headers disabled="true"/>
     </http>
+    
+    <beans:import resource="ctx-web-security-${auth.method.type:basic}.xml"/>
 
     <beans:bean id="authenticationSuccessHandler"
                 class="com.evolveum.midpoint.web.security.MidPointAuthenticationSuccessHandler">

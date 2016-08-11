@@ -15,9 +15,7 @@
  */
 package com.evolveum.midpoint.schema.result;
 
-import java.io.BufferedReader;
 import java.io.Serializable;
-import java.io.StringReader;
 import java.util.*;
 import java.util.Map.Entry;
 
@@ -40,7 +38,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LocalizedMessageType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ParamsType;
 
 /**
  * Nested Operation Result.
@@ -101,6 +98,7 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 	private List<Serializable> localizationArguments;
 	private Throwable cause;
 	private int count = 1;
+	private int hiddenRecordsCount;
 	private List<OperationResult> subresults;
 	private List<String> details;
 	private boolean summarizeErrors;
@@ -185,7 +183,7 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 		this.localizationArguments = localizationArguments;
 		this.cause = cause;
 		this.subresults = subresults;
-		this.details = new ArrayList<String>();
+		this.details = new ArrayList<>();
 	}
 
 	public OperationResult createSubresult(String operation) {
@@ -222,6 +220,18 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 	
 	public void incrementCount() {
 		this.count++;
+	}
+
+	public int getHiddenRecordsCount() {
+		return hiddenRecordsCount;
+	}
+
+	public void setHiddenRecordsCount(int hiddenRecordsCount) {
+		this.hiddenRecordsCount = hiddenRecordsCount;
+	}
+
+	public boolean representsHiddenRecords() {
+		return this.hiddenRecordsCount > 0;
 	}
 
 	public boolean isSummarizeErrors() {
@@ -262,7 +272,7 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 	 */
 	public List<OperationResult> getSubresults() {
 		if (subresults == null) {
-			subresults = new ArrayList<OperationResult>();
+			subresults = new ArrayList<>();
 		}
 		return subresults;
 	}
@@ -666,7 +676,7 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 	 */
 	public Map<String, Serializable> getParams() {
 		if (params == null) {
-			params = new HashMap<String, Serializable>();
+			params = new HashMap<>();
 		}
 		return params;
 	}
@@ -681,16 +691,16 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 
     // Copies a collection to a OperationResult's param field. Primarily used to overcome the fact that Collection is not Serializable
     public void addCollectionOfSerializablesAsParam(String paramName, Collection<? extends Serializable> paramValue) {
-        addParam(paramName, paramValue != null ? new ArrayList(paramValue) : null);
+        addParam(paramName, paramValue != null ? new ArrayList<>(paramValue) : null);
     }
 
     public void addCollectionOfSerializablesAsReturn(String name, Collection<? extends Serializable> value) {
-        addReturn(name, value != null ? new ArrayList(value) : null);
+        addReturn(name, value != null ? new ArrayList<>(value) : null);
     }
 
     public void addArbitraryCollectionAsParam(String paramName, Collection values) {
         if (values != null) {
-            ArrayList<String> valuesAsStrings = new ArrayList<String>();
+            ArrayList<String> valuesAsStrings = new ArrayList<>();
             for (Object value : values) {
                 valuesAsStrings.add(String.valueOf(value));
             }
@@ -714,7 +724,7 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 
 	public Map<String, Serializable> getContext() {
 		if (context == null) {
-			context = new HashMap<String, Serializable>();
+			context = new HashMap<>();
 		}
 		return context;
 	}
@@ -947,32 +957,12 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
         }
 
 		Map<String, Serializable> params = ParamsTypeUtil.fromParamsType(result.getParams());
-//		if (result.getParams() != null) {
-//			params = new HashMap<String, Serializable>();
-//			for (EntryType entry : result.getParams().getEntry()) {
-//				params.put(entry.getKey(), (Serializable) entry.getEntryValue());
-//			}
-//		}
-		
 		Map<String, Serializable> context = ParamsTypeUtil.fromParamsType(result.getContext());
-//		if (result.getContext() != null) {
-//			context = new HashMap<String, Serializable>();
-//			for (EntryType entry : result.getContext().getEntry()) {
-//				context.put(entry.getKey(), (Serializable) entry.getEntryValue());
-//			}
-//		}
-		
 		Map<String, Serializable> returns = ParamsTypeUtil.fromParamsType(result.getReturns());
-//		if (result.getReturns() != null) {
-//			returns = new HashMap<String, Serializable>();
-//			for (EntryType entry : result.getReturns().getEntry()) {
-//				returns.put(entry.getKey(), (Serializable) entry.getEntryValue());
-//			}
-//		}
 
 		List<OperationResult> subresults = null;
 		if (!result.getPartialResults().isEmpty()) {
-			subresults = new ArrayList<OperationResult>();
+			subresults = new ArrayList<>();
 			for (OperationResultType subResult : result.getPartialResults()) {
 				subresults.add(createOperationResult(subResult));
 			}
@@ -989,6 +979,9 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 		if (result.getCount() != null) {
 			opResult.setCount(result.getCount());
 		}
+		if (result.getHiddenRecordsCount() != null) {
+			opResult.setHiddenRecordsCount(result.getHiddenRecordsCount());
+		}
 		return opResult;
 	}
 
@@ -1002,6 +995,9 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 		result.setStatus(OperationResultStatus.createStatusType(opResult.getStatus()));
 		if (opResult.getCount() != 1) {
 			result.setCount(opResult.getCount());
+		}
+		if (opResult.getHiddenRecordsCount() != 0) {
+			result.setHiddenRecordsCount(opResult.getHiddenRecordsCount());
 		}
 		result.setOperation(opResult.getOperation());
 		result.setMessage(opResult.getMessage());
@@ -1026,8 +1022,8 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 				detailsb.append(ex.getMessage());
 				detailsb.append("\n");
 				StackTraceElement[] stackTrace = ex.getStackTrace();
-				for (int i = 0; i < stackTrace.length; i++) {
-					detailsb.append(stackTrace[i].toString());
+				for (StackTraceElement aStackTrace : stackTrace) {
+					detailsb.append(aStackTrace.toString());
 					detailsb.append("\n");
 				}
 			}
@@ -1044,35 +1040,9 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 			result.setLocalizedMessage(message);
 		}
 
-//		Set<Entry<String, Serializable>> params = opResult.getParams();
-//		if (!params.isEmpty()) {
-			ParamsType paramsType = ParamsTypeUtil.toParamsType(opResult.getParams());
-			result.setParams(paramsType);
-
-//			for (Entry<String, Serializable> entry : params) {
-//				paramsType.getEntry().add(createEntryElement(entry.getKey(),entry.getValue()));
-//			}
-//		}
-
-//		Set<Entry<String, Serializable>> context = opResult.getContext().entrySet();
-//		if (!context.isEmpty()) {
-			paramsType = ParamsTypeUtil.toParamsType(opResult.getContext());
-			result.setContext(paramsType);
-
-//			for (Entry<String, Serializable> entry : context) {
-//				paramsType.getEntry().add(createEntryElement(entry.getKey(),entry.getValue()));
-//			}
-//		}
-
-//		Set<Entry<String, Serializable>> returns = opResult.getReturns().entrySet();
-//		if (!returns.isEmpty()) {
-			paramsType = ParamsTypeUtil.toParamsType(opResult.getReturns());
-			result.setReturns(paramsType);
-
-//			for (Entry<String, Serializable> entry : returns) {
-//				paramsType.getEntry().add(createEntryElement(entry.getKey(),entry.getValue()));
-//			}
-//		}
+		result.setParams(ParamsTypeUtil.toParamsType(opResult.getParams()));
+		result.setContext(ParamsTypeUtil.toParamsType(opResult.getContext()));
+		result.setReturns(ParamsTypeUtil.toParamsType(opResult.getReturns()));
 
 		for (OperationResult subResult : opResult.getSubresults()) {
 			result.getPartialResults().add(opResult.createOperationResultType(subResult));
@@ -1081,73 +1051,13 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 		return result;
 	}
 
-//	/**
-//	 * Temporary workaround, brutally hacked -- so that the conversion 
-//	 * of OperationResult into OperationResultType 'somehow' works, at least to the point
-//	 * where when we:
-//	 * - have OR1
-//	 * - serialize it into ORT1
-//	 * - then deserialize into OR2
-//	 * - serialize again into ORT2
-//	 * so we get ORT1.equals(ORT2) - at least in our simple test case :)
-//	 * 
-//	 * FIXME: this should be definitely reworked
-//	 * 
-//	 * @param entry
-//	 * @return
-//	 */
-//	private EntryType createEntryElement(String key, Serializable value) {
-//		EntryType entryType = new EntryType();
-//		entryType.setKey(key);
-//		if (value != null) {
-//			Document doc = DOMUtil.getDocument();
-//			if (value instanceof ObjectType && ((ObjectType)value).getOid() != null) {
-//				// Store only reference on the OID. This is faster and getObject can be used to retrieve
-//				// the object if needed. Although is does not provide 100% accuracy, it is a good tradeoff.
-//				setObjectReferenceEntry(entryType, ((ObjectType)value));
-//			// these values should be put 'as they are', in order to be deserialized into themselves
-//			} else if (value instanceof String || value instanceof Integer || value instanceof Long) {
-//				entryType.setEntryValue(new JAXBElement<Serializable>(SchemaConstants.C_PARAM_VALUE, Serializable.class, value));
-//			} else if (XmlTypeConverter.canConvert(value.getClass())) {
-////				try {
-////					entryType.setEntryValue(new JXmlTypeConverter.toXsdElement(value, SchemaConstants.C_PARAM_VALUE, doc, true));
-////				} catch (SchemaException e) {
-////					LOGGER.error("Cannot convert value {} to XML: {}",value,e.getMessage());
-////					setUnknownJavaObjectEntry(entryType, value);
-////				}
-//			} else if (value instanceof Element || value instanceof JAXBElement<?>) {
-//				entryType.setEntryValue((JAXBElement<?>) value);
-//			// FIXME: this is really bad code ... it means that 'our' JAXB object should be put as is
-//			} else if ("com.evolveum.midpoint.xml.ns._public.common.common_2".equals(value.getClass().getPackage().getName())) {
-//				JAXBElement<Object> o = new JAXBElement<Object>(SchemaConstants.C_PARAM_VALUE, Object.class, value);
-//				entryType.setEntryValue(o);
-//			} else {
-//				setUnknownJavaObjectEntry(entryType, value);
-//			}
-//		}
-//		return entryType;
-//	}
-//
-//	private void setObjectReferenceEntry(EntryType entryType, ObjectType objectType) {
-//		ObjectReferenceType objRefType = new ObjectReferenceType();
-//		objRefType.setOid(objectType.getOid());
-//		ObjectTypes type = ObjectTypes.getObjectType(objectType.getClass());
-//		if (type != null) {
-//			objRefType.setType(type.getTypeQName());
-//		}
-//		JAXBElement<ObjectReferenceType> element = new JAXBElement<ObjectReferenceType>(
-//				SchemaConstants.C_OBJECT_REF, ObjectReferenceType.class, objRefType);
-////		entryType.setAny(element);
-//	}
-//
-//	private void setUnknownJavaObjectEntry(EntryType entryType, Serializable value) {
-//		UnknownJavaObjectType ujo = new UnknownJavaObjectType();
-//		ujo.setClazz(value.getClass().getName());
-//		ujo.setToString(value.toString());
-//		entryType.setEntryValue(new ObjectFactory().createUnknownJavaObject(ujo));
-//	}
-	
 	public void summarize() {
+		summarize(false);
+	}
+
+	public void summarize(boolean alsoSubresults) {
+
+		// first phase: summarizing records if explicitly requested
 		Iterator<OperationResult> iterator = getSubresults().iterator();
 		while (iterator.hasNext()) {
 			OperationResult subresult = iterator.next();
@@ -1173,24 +1083,62 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 			iterator.remove();
 		}
 
-        // subresult stripping if necessary
-        // we strip subresults that have same operation name and status, if there are more of them than threshold
-        Map<OperationStatusKey, Integer> counter = new HashMap<OperationStatusKey, Integer>();
-        iterator = getSubresults().iterator();
-        while (iterator.hasNext()) {
-            OperationResult sr = iterator.next();
-            OperationStatusKey key = new OperationStatusKey(sr.getOperation(), sr.getStatus());
-            if (counter.containsKey(key)) {
-                int count = counter.get(key);
-                if (count > SUBRESULT_STRIP_THRESHOLD) {
-                    iterator.remove();
-                } else {
-                   counter.put(key, ++count);
-                }
-            } else {
-                counter.put(key, 1);
-            }
-        }
+		// second phase: summarizing (better said, eliminating or hiding) subresults if there are too many of them
+		// (we strip subresults that have same operation name and status, if there are more of them than given threshold)
+		//
+		// We implement quite a complex algorithm to ensure "incremental stripping", i.e. calling summarize() repeatedly
+		// on an OperationResult to which new standard entries are continually added. The requirement is that there must
+		// be at most one summarization record, and it must be placed after all standard records of given type.
+		Map<OperationStatusKey, OperationStatusCounter> recordsCounters = new HashMap<>();
+		iterator = getSubresults().iterator();
+		while (iterator.hasNext()) {
+			OperationResult sr = iterator.next();
+			OperationStatusKey key = new OperationStatusKey(sr.getOperation(), sr.getStatus());
+			if (recordsCounters.containsKey(key)) {
+				OperationStatusCounter counter = recordsCounters.get(key);
+				if (!sr.representsHiddenRecords()) {
+					if (counter.shownRecords < SUBRESULT_STRIP_THRESHOLD) {
+						counter.shownRecords++;
+						counter.shownCount += sr.count;
+					} else {
+						counter.hiddenCount += sr.count;
+						iterator.remove();
+					}
+				} else {
+					counter.hiddenCount += sr.hiddenRecordsCount;
+					iterator.remove();		// will be re-added at the end (potentially with records counters)
+				}
+			} else {
+				OperationStatusCounter counter = new OperationStatusCounter();
+				if (!sr.representsHiddenRecords()) {
+					counter.shownRecords = 1;
+					counter.shownCount = sr.count;
+				} else {
+					counter.hiddenCount = sr.hiddenRecordsCount;
+					iterator.remove();		// will be re-added at the end (potentially with records counters)
+				}
+				recordsCounters.put(key, counter);
+			}
+		}
+		for (Map.Entry<OperationStatusKey, OperationStatusCounter> repeatingEntry : recordsCounters.entrySet()) {
+			int shownCount = repeatingEntry.getValue().shownCount;
+			int hiddenCount = repeatingEntry.getValue().hiddenCount;
+			if (hiddenCount > 0) {
+				OperationStatusKey key = repeatingEntry.getKey();
+				OperationResult hiddenRecordsEntry = new OperationResult(key.operation, key.status,
+						hiddenCount + " record(s) were hidden to save space. Total number of records: " + (shownCount + hiddenCount));
+				hiddenRecordsEntry.setHiddenRecordsCount(hiddenCount);
+				addSubresult(hiddenRecordsEntry);
+			}
+		}
+
+		// And now, summarize each of the subresults
+		if (alsoSubresults) {
+			iterator = getSubresults().iterator();
+			while (iterator.hasNext()) {
+				iterator.next().summarize(true);
+			}
+		}
 	}
 
 	private void merge(OperationResult target, OperationResult source) {
@@ -1204,7 +1152,7 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 		for (Entry<String, Serializable> targetEntry: targetMap.entrySet()) {
 			String targetKey = targetEntry.getKey();
 			Serializable targetValue = targetEntry.getValue();
-			if (targetValue != null && targetValue instanceof VariousValues) {
+			if (targetValue instanceof VariousValues) {
 				continue;
 			}
 			Serializable sourceValue = sourceMap.get(targetKey);
@@ -1397,14 +1345,7 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 			Element element = (Element)value;
 			if (SchemaConstants.C_VALUE.equals(DOMUtil.getQName(element))) {
 				try {
-					String cvalue = null;
-					if (value == null) {
-						cvalue = "null";
-					} else if (value instanceof Element) {
-						cvalue = SchemaDebugUtil.prettyPrint(XmlTypeConverter.toJavaValue((Element)value));
-					} else {
-						cvalue = SchemaDebugUtil.prettyPrint(value);
-					}
+					String cvalue = SchemaDebugUtil.prettyPrint(XmlTypeConverter.toJavaValue(element));
 					return DebugUtil.fixIndentInMultiline(indent, INDENT_STRING, cvalue);
 				} catch (Exception e) {
 					return DebugUtil.fixIndentInMultiline(indent, INDENT_STRING, "value: " + element.getTextContent());
@@ -1431,11 +1372,11 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 	}
 
 	private static void dumpStackTrace(StringBuilder sb, StackTraceElement[] stackTrace, int indent) {
-		for (int i = 0; i < stackTrace.length; i++) {
+		for (StackTraceElement aStackTrace : stackTrace) {
 			for (int j = 0; j < indent; j++) {
 				sb.append(INDENT_STRING);
 			}
-			StackTraceElement element = stackTrace[i];
+			StackTraceElement element = aStackTrace;
 			sb.append(element.toString());
 			sb.append("\n");
 		}
@@ -1486,6 +1427,12 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
         }
     }
 
+    private static class OperationStatusCounter {
+    	private int shownRecords;		// how many actual records will be shown (after this wave of stripping)
+		private int shownCount;			// how many entries will be shown (after this wave of stripping)
+		private int hiddenCount;		// how many entries will be hidden (after this wave of stripping)
+	}
+
     public OperationResult clone() {
         OperationResult clone = new OperationResult(operation);
 
@@ -1500,6 +1447,7 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
         clone.localizationArguments = CloneUtil.clone(localizationArguments);
         clone.cause = CloneUtil.clone(cause);
         clone.count = count;
+		clone.hiddenRecordsCount = hiddenRecordsCount;
         if (subresults != null) {
             clone.subresults = new ArrayList<>(subresults.size());
             for (OperationResult subresult : subresults) {

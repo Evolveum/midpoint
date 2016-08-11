@@ -15,6 +15,9 @@
  */
 package com.evolveum.midpoint.model.impl.controller;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
@@ -31,6 +34,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectPolicyConfigur
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ServiceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
@@ -97,8 +103,14 @@ public class ModelUtils {
 		}
 		throw new IllegalArgumentException("Unknown delta type "+delta);
 	}
+
+	public static <O extends ObjectType> ObjectPolicyConfigurationType determineObjectPolicyConfiguration(PrismObject<O> object, SystemConfigurationType systemConfigurationType) throws ConfigurationException {
+		List<String> subTypes = determineSubTypes(object);
+		return determineObjectPolicyConfiguration(object.getCompileTimeClass(), subTypes, systemConfigurationType);
+	}
 	
-	public static <O extends ObjectType> ObjectPolicyConfigurationType determineObjectPolicyConfiguration(Class<O> objectClass, SystemConfigurationType systemConfigurationType) throws ConfigurationException {
+	public static <O extends ObjectType> ObjectPolicyConfigurationType determineObjectPolicyConfiguration(Class<O> objectClass, List<String> objectSubtypes, SystemConfigurationType systemConfigurationType) throws ConfigurationException {
+		ObjectPolicyConfigurationType applicablePolicyConfigurationType = null;
 		for (ObjectPolicyConfigurationType aPolicyConfigurationType: systemConfigurationType.getDefaultObjectPolicyConfiguration()) {
 			QName typeQName = aPolicyConfigurationType.getType();
 			ObjectTypes objectType = ObjectTypes.getObjectTypeFromTypeQName(typeQName);
@@ -106,8 +118,18 @@ public class ModelUtils {
 				throw new ConfigurationException("Unknown type "+typeQName+" in default object policy definition in system configuration");
 			}
 			if (objectType.getClassDefinition() == objectClass) {
-				return aPolicyConfigurationType;
+				String aSubType = aPolicyConfigurationType.getSubtype();
+				if (aSubType == null) {
+					if (applicablePolicyConfigurationType == null) {
+						applicablePolicyConfigurationType = aPolicyConfigurationType;
+					}
+				} else if (objectSubtypes != null && objectSubtypes.contains(aSubType)) {
+					applicablePolicyConfigurationType = aPolicyConfigurationType;
+				}
 			}
+		}
+		if (applicablePolicyConfigurationType != null) {
+			return applicablePolicyConfigurationType;
 		}
 
 		// Deprecated
@@ -133,6 +155,30 @@ public class ModelUtils {
 			return policy;
 		}
 		
+		return null;
+	}
+	
+	public static <O extends ObjectType> List<String> determineSubTypes(PrismObject<O> object) {
+		if (object == null) {
+			return null;
+		}
+		
+		// TODO: get subType (from ObjectType)
+		
+		if (object.canRepresent(UserType.class)) {
+			return (((UserType)object.asObjectable()).getEmployeeType());
+		}
+		if (object.canRepresent(OrgType.class)) {
+			return (((OrgType)object.asObjectable()).getOrgType());
+		}
+		if (object.canRepresent(RoleType.class)) {
+			List<String> roleTypes = new ArrayList<>(1);
+			roleTypes.add((((RoleType)object.asObjectable()).getRoleType()));
+			return roleTypes;
+		}
+		if (object.canRepresent(ServiceType.class)) {
+			return (((ServiceType)object.asObjectable()).getServiceType());
+		}
 		return null;
 	}
 

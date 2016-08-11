@@ -1729,7 +1729,13 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		TestUtil.assertSuccess("Aplying default object template failed (result)", result);
 	}
 	
-	protected void setDefaultObjectTemplate(QName objectType, String userTemplateOid, OperationResult parentResult)
+
+	protected void setDefaultObjectTemplate(QName objectType, String objectTemplateOid, OperationResult parentResult)
+			throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
+		setDefaultObjectTemplate(objectType, null, objectTemplateOid, parentResult);
+	}
+	
+	protected void setDefaultObjectTemplate(QName objectType, String subType, String objectTemplateOid, OperationResult parentResult)
 			throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
 
 		PrismObject<SystemConfigurationType> systemConfig = repositoryService.getObject(SystemConfigurationType.class,
@@ -1737,7 +1743,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		
 		PrismContainerValue<ObjectPolicyConfigurationType> oldValue = null;
 		for (ObjectPolicyConfigurationType focusPolicyType: systemConfig.asObjectable().getDefaultObjectPolicyConfiguration()) {
-			if (QNameUtil.match(objectType, focusPolicyType.getType())) {
+			if (QNameUtil.match(objectType, focusPolicyType.getType()) && MiscUtil.equals(subType, focusPolicyType.getSubtype())) {
 				oldValue = focusPolicyType.asPrismContainerValue();
 			}
 		}
@@ -1749,23 +1755,26 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 			((Collection)modifications).add(deleteDelta);
 		}
 		
-		ObjectPolicyConfigurationType newFocusPolicyType;
-		ContainerDelta<ObjectPolicyConfigurationType> addDelta;
-		if (oldValue == null) {
-			newFocusPolicyType = new ObjectPolicyConfigurationType();
-			newFocusPolicyType.setType(objectType);
-			addDelta = ContainerDelta.createModificationAdd(SystemConfigurationType.F_DEFAULT_OBJECT_POLICY_CONFIGURATION, 
-					SystemConfigurationType.class, prismContext, newFocusPolicyType);
-		} else {
-			PrismContainerValue<ObjectPolicyConfigurationType> newValue = oldValue.clone();
-			addDelta = ContainerDelta.createModificationAdd(SystemConfigurationType.F_DEFAULT_OBJECT_POLICY_CONFIGURATION, 
-					SystemConfigurationType.class, prismContext, newValue);
-			newFocusPolicyType = newValue.asContainerable();
+		if (objectTemplateOid != null) {
+			ObjectPolicyConfigurationType newFocusPolicyType;
+			ContainerDelta<ObjectPolicyConfigurationType> addDelta;
+			if (oldValue == null) {
+				newFocusPolicyType = new ObjectPolicyConfigurationType();
+				newFocusPolicyType.setType(objectType);
+				newFocusPolicyType.setSubtype(subType);
+				addDelta = ContainerDelta.createModificationAdd(SystemConfigurationType.F_DEFAULT_OBJECT_POLICY_CONFIGURATION, 
+						SystemConfigurationType.class, prismContext, newFocusPolicyType);
+			} else {
+				PrismContainerValue<ObjectPolicyConfigurationType> newValue = oldValue.clone();
+				addDelta = ContainerDelta.createModificationAdd(SystemConfigurationType.F_DEFAULT_OBJECT_POLICY_CONFIGURATION, 
+						SystemConfigurationType.class, prismContext, newValue);
+				newFocusPolicyType = newValue.asContainerable();
+			}
+			ObjectReferenceType templateRef = new ObjectReferenceType();
+			templateRef.setOid(objectTemplateOid);
+			newFocusPolicyType.setObjectTemplateRef(templateRef);
+			((Collection)modifications).add(addDelta);
 		}
-		ObjectReferenceType templateRef = new ObjectReferenceType();
-		templateRef.setOid(userTemplateOid);
-		newFocusPolicyType.setObjectTemplateRef(templateRef);
-		((Collection)modifications).add(addDelta);
 		
 		repositoryService.modifyObject(SystemConfigurationType.class,
 				SystemObjectsType.SYSTEM_CONFIGURATION.value(), modifications, parentResult);

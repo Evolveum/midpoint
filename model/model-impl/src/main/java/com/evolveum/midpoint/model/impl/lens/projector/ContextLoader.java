@@ -118,9 +118,10 @@ public class ContextLoader {
     	if (focusContext != null) {
 			loadObjectCurrent(context, result);
 			
-	        loadFromSystemConfig(context, result);
-	        context.recomputeFocus();
-	    	
+			context.recomputeFocus();
+	        
+			loadFromSystemConfig(context, result);
+	        
 	    	if (FocusType.class.isAssignableFrom(context.getFocusClass())) {
 		        // this also removes the accountRef deltas
 		        loadLinkRefs((LensContext<? extends FocusType>)context, task, result);
@@ -378,9 +379,13 @@ public class ContextLoader {
 		SystemConfigurationType systemConfigurationType = systemConfiguration.asObjectable();
 
         if (context.getFocusContext() != null) {
+        	PrismObject<F> object = context.getFocusContext().getObjectAny();
             if (context.getFocusContext().getObjectPolicyConfigurationType() == null) {
-                ObjectPolicyConfigurationType policyConfigurationType =
-                        ModelUtils.determineObjectPolicyConfiguration(context.getFocusContext().getObjectTypeClass(), systemConfigurationType);
+                List<String> subTypes = ModelUtils.determineSubTypes(object);
+				ObjectPolicyConfigurationType policyConfigurationType =
+                        ModelUtils.determineObjectPolicyConfiguration(context.getFocusContext().getObjectTypeClass(), subTypes, 
+                        		systemConfigurationType);
+				LOGGER.trace("Selected policy configuration: {}", policyConfigurationType);
                 context.getFocusContext().setObjectPolicyConfigurationType(policyConfigurationType);
             }
         }

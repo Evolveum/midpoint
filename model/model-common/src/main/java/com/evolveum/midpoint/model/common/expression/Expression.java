@@ -166,7 +166,7 @@ public class Expression<V extends PrismValue,D extends ItemDefinition> {
 	}
 	
 	private void traceSuccess(ExpressionEvaluationContext context, ExpressionVariables processedVariables, PrismValueDeltaSetTriple<V> outputTriple) {
-		if (!LOGGER.isTraceEnabled()) {
+		if (!isTrace()) {
 			return;
 		}
 		StringBuilder sb = new StringBuilder();
@@ -179,12 +179,12 @@ public class Expression<V extends PrismValue,D extends ItemDefinition> {
 			sb.append(outputTriple.toHumanReadableString());
 		}
 		appendTraceFooter(sb);
-		LOGGER.trace(sb.toString());
+		trace(sb.toString());
 	}
-	
+
 	private void traceFailure(ExpressionEvaluationContext context, ExpressionVariables processedVariables, Exception e) {
 		LOGGER.error("Error evaluating expression in {}: {}", new Object[]{context.getContextDescription(), e.getMessage(), e});
-		if (!LOGGER.isTraceEnabled()) {
+		if (!isTrace()) {
 			return;
 		}
 		StringBuilder sb = new StringBuilder();
@@ -192,9 +192,21 @@ public class Expression<V extends PrismValue,D extends ItemDefinition> {
 		appendTraceHeader(sb, context, processedVariables);
 		sb.append("\nERROR: ").append(e.getClass().getSimpleName()).append(": ").append(e.getMessage());
 		appendTraceFooter(sb);
-		LOGGER.trace(sb.toString());
+		trace(sb.toString());
 	}
 
+	private boolean isTrace() {
+		return LOGGER.isTraceEnabled() || (expressionType != null && expressionType.isTrace() == Boolean.TRUE); 
+	}
+	
+	private void trace(String msg) {
+		if (expressionType != null && expressionType.isTrace() == Boolean.TRUE) {
+			LOGGER.info(msg);
+		} else {
+			LOGGER.trace(msg);
+		}
+	}
+	
 	private void appendTraceHeader(StringBuilder sb, ExpressionEvaluationContext context, ExpressionVariables processedVariables) {
 		sb.append("---[ EXPRESSION in ");
 		sb.append(context.getContextDescription());

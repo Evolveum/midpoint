@@ -21,7 +21,9 @@ import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.common.expression.ExpressionVariables;
+import com.evolveum.midpoint.model.common.expression.script.ScriptExpression;
 import com.evolveum.midpoint.model.impl.ModelConstants;
+import com.evolveum.midpoint.model.impl.expr.ModelExpressionThreadLocalHolder;
 import com.evolveum.midpoint.model.impl.importer.ObjectImporter;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
@@ -46,6 +48,7 @@ import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.Handler;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
@@ -73,9 +76,6 @@ public final class Utils {
 	private static final String OPERATION_RESOLVE_REFERENCE = ObjectImporter.class.getName()
 	            + ".resolveReference";
 	
-    private Utils() {
-    }
-
 	@Deprecated	// use RepositoryService.objectSearchIterative instead
 	public static <T extends ObjectType> void searchIterative(RepositoryService repositoryService, Class<T> type, ObjectQuery query, 
 			Handler<PrismObject<T>> handler, int blockSize, OperationResult opResult) throws SchemaException {
@@ -610,5 +610,21 @@ public final class Utils {
 		return targetRef;
 	}
 	
+	public static <V extends PrismValue, F extends ObjectType> List<V> evaluateScript(
+            ScriptExpression scriptExpression, LensContext<F> lensContext, ExpressionVariables variables, boolean useNew, String shortDesc, Task task, OperationResult parentResult) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+        ModelExpressionThreadLocalHolder.pushLensContext(lensContext);
+        ModelExpressionThreadLocalHolder.pushCurrentResult(parentResult);
+        ModelExpressionThreadLocalHolder.pushCurrentTask(task);
+        try {
+            return scriptExpression.evaluate(variables, ScriptExpressionReturnTypeType.SCALAR, useNew, shortDesc, task, parentResult);
+        } finally {
+            ModelExpressionThreadLocalHolder.popLensContext();
+            ModelExpressionThreadLocalHolder.popCurrentResult();
+            ModelExpressionThreadLocalHolder.popCurrentTask();
+//			if (lensContext.getDebugListener() != null) {
+//				lensContext.getDebugListener().afterScriptEvaluation(lensContext, scriptExpression);
+//			}
+        }
+    }
 	
 }
