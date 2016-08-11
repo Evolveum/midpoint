@@ -24,18 +24,14 @@ import javax.xml.namespace.QName;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
-import org.apache.wicket.event.IEvent;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
-import org.apache.wicket.model.util.ListModel;
 
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
@@ -48,12 +44,9 @@ import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
-import com.evolveum.midpoint.web.component.input.QNameChoiceRenderer;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.resources.content.dto.ResourceContentSearchDto;
 import com.evolveum.midpoint.web.session.ResourceContentStorage;
-import com.evolveum.midpoint.web.session.ResourcesStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 
@@ -81,7 +74,6 @@ public class ResourceContentTabPanel extends Panel {
 	private static final String ID_RESOURCE_SEARCH = "resourceSearch";
 
 	private static final String ID_TABLE = "table";
-	// private static final String ID_RESOURCE_TABLE = "resourceTable";
 
 	private PageBase parentPage;
 	private ShadowKindType kind;
@@ -89,10 +81,6 @@ public class ResourceContentTabPanel extends Panel {
 	private boolean useObjectClass;
 
 	private IModel<ResourceContentSearchDto> resourceContentSearch;
-
-	// private IModel<String> intentModel;
-
-	// private IModel<QName> objectClassModel;
 
 	public ResourceContentTabPanel(String id, final ShadowKindType kind,
 			final IModel<PrismObject<ResourceType>> model, PageBase parentPage) {
@@ -190,9 +178,6 @@ public class ResourceContentTabPanel extends Panel {
 					RefinedResourceSchema refinedSchema = RefinedResourceSchema
 							.getRefinedSchema(model.getObject(), parentPage.getPrismContext());
 					if (refinedSchema == null) {
-						// warn("No schema found in resource. Please check your
-						// configuration and try to test connection for the
-						// resource.");
 						return "NO SCHEMA DEFINED";
 					}
 					ocDef = refinedSchema.getRefinedDefinition(getKind(), getIntent());
@@ -269,7 +254,6 @@ public class ResourceContentTabPanel extends Panel {
 			public void onClick(AjaxRequestTarget target) {
 				updateResourceContentSearch();
 				resourceContentSearch.getObject().setResourceSearch(Boolean.TRUE);
-				// resourceSearchModel.setObject(Boolean.TRUE);
 				mainForm.addOrReplace(initResourceContent(model));
 				target.add(getParent().addOrReplace(mainForm));
 				target.add(this.add(AttributeModifier.append("class", " active")));
@@ -329,16 +313,6 @@ public class ResourceContentTabPanel extends Panel {
 		return repositoryContent;
 	}
 
-	private IModel<String> createDeleteConfirmString() {
-		return new AbstractReadOnlyModel<String>() {
-			@Override
-			public String getObject() {
-				return "asdasd";
-
-			}
-		};
-	}
-
 	private ShadowKindType getKind() {
 		return resourceContentSearch.getObject().getKind();
 	}
@@ -359,7 +333,6 @@ public class ResourceContentTabPanel extends Panel {
 		return resourceContentSearch.getObject().isResourceSearch();
 	}
 
-	//
 	private boolean isUseObjectClass() {
 		return resourceContentSearch.getObject().isUseObjectClass();
 	}

@@ -89,17 +89,21 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
 
     private static class ButtonBar extends Fragment {
 
-        public ButtonBar(String id, String markupId, MainObjectListPanel markupProvider) {
+    	private static final long serialVersionUID = 1L;
+
+		public <O extends ObjectType> ButtonBar(String id, String markupId, MainObjectListPanel<O> markupProvider) {
             super(id, markupId, markupProvider);
 
             initLayout(markupProvider);
         }
 
-        private void initLayout(final MainObjectListPanel mainObjectListPanel) {
+        private <O extends ObjectType> void initLayout(final MainObjectListPanel<O> mainObjectListPanel) {
             AjaxIconButton refreshIcon = new AjaxIconButton(ID_REFRESH, new Model<>("fa fa-refresh"),
                     mainObjectListPanel.createStringResource("MainObjectListPanel.refresh")) {
 
-                @Override
+             			private static final long serialVersionUID = 1L;
+
+				@Override
                 public void onClick(AjaxRequestTarget target) {
                 	mainObjectListPanel.clearCache();
                 	mainObjectListPanel.refreshTable(mainObjectListPanel.getType(), target);
@@ -112,6 +116,8 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
             AjaxIconButton newObjectIcon = new AjaxIconButton(ID_NEW_OBJECT, new Model<>("fa fa-plus"),
                     mainObjectListPanel.createStringResource("MainObjectListPanel.newObject")) {
 
+            	private static final long serialVersionUID = 1L;
+            	
                 @Override
                 public void onClick(AjaxRequestTarget target) {
                     mainObjectListPanel.newObjectPerformed(target);
@@ -122,6 +128,8 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
             AjaxIconButton importObject = new AjaxIconButton(ID_IMPORT_OBJECT, new Model<>("fa fa-upload"),
                     mainObjectListPanel.createStringResource("MainObjectListPanel.import")) {
 
+            	private static final long serialVersionUID = 1L;
+            	
                 @Override
                 public void onClick(AjaxRequestTarget target) {
                     setResponsePage(PageImportObject.class);

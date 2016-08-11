@@ -312,6 +312,7 @@ public class PageResource extends PageAdminResources {
 		});
 
 		AjaxTabbedPanel<ITab> resourceTabs = new AjaxTabbedPanel<ITab>(ID_TAB_PANEL, tabs) {
+			private static final long serialVersionUID = 1L;
 
 			@Override
 			protected void onTabChange(int index) {
@@ -364,6 +365,7 @@ public class PageResource extends PageAdminResources {
                     @Override
                     protected void initOnFocusBehavior() {
                         setOnFocusBehavior(new AjaxEventBehavior("onfocus") {
+                        	private static final long serialVersionUID = 1L;
                             @Override
                             protected void onEvent(AjaxRequestTarget target) {
                                 removeOnFocusBehavior(getOkButton());

@@ -17,11 +17,8 @@ package com.evolveum.midpoint.gui.api.component;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -32,6 +29,7 @@ import org.apache.wicket.model.StringResourceModel;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -50,13 +48,7 @@ import com.evolveum.midpoint.web.component.search.SearchFactory;
 import com.evolveum.midpoint.web.component.search.SearchFormPanel;
 import com.evolveum.midpoint.web.component.util.ListDataProvider2;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
-import com.evolveum.midpoint.web.page.admin.reports.PageReports;
-import com.evolveum.midpoint.web.page.admin.resources.PageResources;
-import com.evolveum.midpoint.web.page.admin.roles.PageRoles;
-import com.evolveum.midpoint.web.page.admin.services.PageServices;
-import com.evolveum.midpoint.web.page.admin.users.PageUsers;
 import com.evolveum.midpoint.web.session.PageStorage;
-import com.evolveum.midpoint.web.session.SessionStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
@@ -73,7 +65,7 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 
 	private static final Trace LOGGER = TraceManager.getTrace(ObjectListPanel.class);
 
-	private Class<? extends O> type;
+	private Class<O> type;
 	private PageBase parentPage;
 
 	private LoadableModel<Search> searchModel;
@@ -86,14 +78,14 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 
 	private String addutionalBoxCssClasses;
 
-	public Class<? extends O> getType() {
+	public Class<O> getType() {
 		return type;
 	}
 
 	/**
 	 * @param defaultType specifies type of the object that will be selected by default. It can be changed.
 	 */
-	public ObjectListPanel(String id, Class<? extends O> defaultType, TableId tableId, Collection<SelectorOptions<GetOperationOptions>> options,
+	public ObjectListPanel(String id, Class<O> defaultType, TableId tableId, Collection<SelectorOptions<GetOperationOptions>> options,
 			PageBase parentPage) {
 		super(id);
 		this.type = defaultType;
@@ -106,7 +98,7 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 	/**
 	 * @param defaultType specifies type of the object that will be selected by default. It can be changed.
 	 */
-	ObjectListPanel(String id, Class<? extends O> defaultType, boolean multiselect, PageBase parentPage) {
+	ObjectListPanel(String id, Class<O> defaultType, boolean multiselect, PageBase parentPage) {
 		super(id);
 		this.type = defaultType;
 		this.parentPage = parentPage;

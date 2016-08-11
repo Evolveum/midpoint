@@ -16,23 +16,25 @@
 
 package com.evolveum.midpoint.web.session;
 
-import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
+import java.io.Serializable;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Stack;
 
 import org.apache.commons.lang.Validate;
-import org.apache.wicket.Page;
-import org.apache.wicket.markup.html.WebPage;
-import org.apache.wicket.request.mapper.parameter.PageParameters;
 
-import java.io.Serializable;
-import java.util.*;
+import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 
 /**
  * @author lazyman
  */
 public class SessionStorage implements Serializable {
 
-    private List<Breadcrumb> breadcrumbs;
+   private static final long serialVersionUID = 1L;
+
+	private List<Breadcrumb> breadcrumbs;
 
     /**
      * place to store information in session for various pages
