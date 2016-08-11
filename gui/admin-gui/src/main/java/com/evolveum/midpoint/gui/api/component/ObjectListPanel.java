@@ -65,7 +65,7 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 
 	private static final Trace LOGGER = TraceManager.getTrace(ObjectListPanel.class);
 
-	private Class<O> type;
+	private Class<? extends O> type;
 	private PageBase parentPage;
 
 	private LoadableModel<Search> searchModel;
@@ -78,14 +78,14 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 
 	private String addutionalBoxCssClasses;
 
-	public Class<O> getType() {
+	public Class<? extends O> getType() {
 		return type;
 	}
 
 	/**
 	 * @param defaultType specifies type of the object that will be selected by default. It can be changed.
 	 */
-	public ObjectListPanel(String id, Class<O> defaultType, TableId tableId, Collection<SelectorOptions<GetOperationOptions>> options,
+	public ObjectListPanel(String id, Class<? extends O> defaultType, TableId tableId, Collection<SelectorOptions<GetOperationOptions>> options,
 			PageBase parentPage) {
 		super(id);
 		this.type = defaultType;
@@ -98,7 +98,7 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 	/**
 	 * @param defaultType specifies type of the object that will be selected by default. It can be changed.
 	 */
-	ObjectListPanel(String id, Class<O> defaultType, boolean multiselect, PageBase parentPage) {
+	ObjectListPanel(String id, Class<? extends O> defaultType, boolean multiselect, PageBase parentPage) {
 		super(id);
 		this.type = defaultType;
 		this.parentPage = parentPage;

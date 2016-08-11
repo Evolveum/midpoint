@@ -106,7 +106,7 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
 				@Override
                 public void onClick(AjaxRequestTarget target) {
                 	mainObjectListPanel.clearCache();
-                	mainObjectListPanel.refreshTable(mainObjectListPanel.getType(), target);
+                	mainObjectListPanel.refreshTable((Class<O>) mainObjectListPanel.getType(), target);
                     
                     target.add((Component) mainObjectListPanel.getTable());
                 }
