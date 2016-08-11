@@ -24,31 +24,29 @@ import javax.xml.namespace.QName;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
-import org.apache.wicket.event.IEvent;
+import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
-import org.apache.wicket.model.util.ListModel;
+import org.apache.wicket.model.PropertyModel;
 
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.gui.api.component.autocomplete.AutoCompleteQNamePanel;
 import com.evolveum.midpoint.gui.api.component.autocomplete.AutoCompleteTextPanel;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.AjaxButton;
-import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
-import com.evolveum.midpoint.web.component.input.QNameChoiceRenderer;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.page.admin.resources.content.dto.ResourceContentSearchDto;
+import com.evolveum.midpoint.web.session.ResourceContentStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 
@@ -76,40 +74,50 @@ public class ResourceContentTabPanel extends Panel {
 	private static final String ID_RESOURCE_SEARCH = "resourceSearch";
 
 	private static final String ID_TABLE = "table";
-//	private static final String ID_RESOURCE_TABLE = "resourceTable";
-
 
 	private PageBase parentPage;
 	private ShadowKindType kind;
-	
+
 	private boolean useObjectClass;
 
-	
-	private Model<Boolean> resourceSearchModel = new Model<Boolean>(false);
+	private IModel<ResourceContentSearchDto> resourceContentSearch;
 
-	private IModel<String> intentModel;
-	
-	private IModel<QName> objectClassModel;
-
-
-	public ResourceContentTabPanel(String id, ShadowKindType kind,
+	public ResourceContentTabPanel(String id, final ShadowKindType kind,
 			final IModel<PrismObject<ResourceType>> model, PageBase parentPage) {
 		super(id, model);
 		this.parentPage = parentPage;
-		
-		if (kind == null){
-			useObjectClass = true;
-		} else {
-			this.kind = kind;
-		}
 
-		intentModel = new Model<String>();
-		objectClassModel = new Model<QName>();
-	
+		this.resourceContentSearch = createContentSearchModel(kind);
+
+		this.kind = kind;
+
 		initLayout(model, parentPage);
 	}
 
-	
+	private IModel<ResourceContentSearchDto> createContentSearchModel(final ShadowKindType kind) {
+		return new LoadableModel<ResourceContentSearchDto>(true) {
+
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			protected ResourceContentSearchDto load() {
+				return getContentStorage(kind).getContentSearch();
+
+			}
+
+		};
+
+	}
+
+	private void updateResourceContentSearch() {
+		ResourceContentSearchDto searchDto = resourceContentSearch.getObject();
+		getContentStorage(kind).setContentSearch(searchDto);
+	}
+
+	private ResourceContentStorage getContentStorage(ShadowKindType kind) {
+		return parentPage.getSessionStorage().getResourceContentStorage(kind);
+	}
+
 	private void initLayout(final IModel<PrismObject<ResourceType>> model, final PageBase parentPage) {
 		setOutputMarkupId(true);
 
@@ -117,9 +125,9 @@ public class ResourceContentTabPanel extends Panel {
 		mainForm.setOutputMarkupId(true);
 		mainForm.addOrReplace(initTable(model));
 		add(mainForm);
-		
-		AutoCompleteTextPanel<String> intent = new AutoCompleteTextPanel<String>(ID_INTENT, intentModel,
-				String.class) {
+
+		AutoCompleteTextPanel<String> intent = new AutoCompleteTextPanel<String>(ID_INTENT,
+				new PropertyModel<String>(resourceContentSearch, "intent"), String.class) {
 			private static final long serialVersionUID = 1L;
 
 			@Override
@@ -132,11 +140,10 @@ public class ResourceContentTabPanel extends Panel {
 				} catch (SchemaException e) {
 					return new ArrayList<String>().iterator();
 				}
-				return RefinedResourceSchema.getIntentsForKind(refinedSchema, kind).iterator();
+				return RefinedResourceSchema.getIntentsForKind(refinedSchema, getKind()).iterator();
 
 			}
-			
-			
+
 		};
 		intent.getBaseFormComponent().add(new OnChangeAjaxBehavior() {
 			private static final long serialVersionUID = 1L;
@@ -144,6 +151,7 @@ public class ResourceContentTabPanel extends Panel {
 			@Override
 			protected void onUpdate(AjaxRequestTarget target) {
 				target.add(get(ID_REAL_OBJECT_CLASS));
+				updateResourceContentSearch();
 				mainForm.addOrReplace(initTable(model));
 				target.add(mainForm);
 
@@ -152,14 +160,14 @@ public class ResourceContentTabPanel extends Panel {
 		intent.setOutputMarkupId(true);
 		intent.add(new VisibleEnableBehaviour() {
 			private static final long serialVersionUID = 1L;
-			
+
 			@Override
 			public boolean isVisible() {
-				return !useObjectClass;
+				return !isUseObjectClass();
 			}
 		});
 		add(intent);
-		
+
 		Label realObjectClassLabel = new Label(ID_REAL_OBJECT_CLASS, new AbstractReadOnlyModel<String>() {
 			private static final long serialVersionUID = 1L;
 
@@ -170,10 +178,9 @@ public class ResourceContentTabPanel extends Panel {
 					RefinedResourceSchema refinedSchema = RefinedResourceSchema
 							.getRefinedSchema(model.getObject(), parentPage.getPrismContext());
 					if (refinedSchema == null) {
-//						warn("No schema found in resource. Please check your configuration and try to test connection for the resource.");
 						return "NO SCHEMA DEFINED";
 					}
-					ocDef = refinedSchema.getRefinedDefinition(kind, intentModel.getObject());
+					ocDef = refinedSchema.getRefinedDefinition(getKind(), getIntent());
 					if (ocDef != null) {
 						return ocDef.getObjectClassDefinition().getTypeName().getLocalPart();
 					}
@@ -185,98 +192,106 @@ public class ResourceContentTabPanel extends Panel {
 		});
 		realObjectClassLabel.setOutputMarkupId(true);
 		add(realObjectClassLabel);
-		
-		AutoCompleteQNamePanel objectClassPanel = new AutoCompleteQNamePanel(ID_OBJECT_CLASS, objectClassModel) {
+
+		AutoCompleteQNamePanel objectClassPanel = new AutoCompleteQNamePanel(ID_OBJECT_CLASS,
+				new PropertyModel<QName>(resourceContentSearch, "objectClass")) {
 			private static final long serialVersionUID = 1L;
 
 			@Override
 			public Collection<QName> loadChoices() {
 				return createObjectClassChoices(model);
 			}
-			
+
 			@Override
 			protected void onChange(AjaxRequestTarget target) {
-				LOGGER.trace("Object class panel update: {}", objectClassModel.getObject());
+				LOGGER.trace("Object class panel update: {}", isUseObjectClass());
+				updateResourceContentSearch();
 				mainForm.addOrReplace(initTable(model));
 				target.add(mainForm);
 			}
-			
+
 		};
-		
+
 		objectClassPanel.add(new VisibleEnableBehaviour() {
 			private static final long serialVersionUID = 1L;
-			
+
 			@Override
 			public boolean isVisible() {
-				return useObjectClass;
+				return isUseObjectClass();
 			}
 		});
 		add(objectClassPanel);
-		
-		AjaxButton repoSearch = new AjaxButton(ID_REPO_SEARCH) {
+
+		AjaxLink<Boolean> repoSearch = new AjaxLink<Boolean>(ID_REPO_SEARCH,
+				new PropertyModel<Boolean>(resourceContentSearch, "resourceSearch")) {
 			private static final long serialVersionUID = 1L;
-			
+
 			@Override
 			public void onClick(AjaxRequestTarget target) {
-				resourceSearchModel.setObject(Boolean.FALSE);
+				resourceContentSearch.getObject().setResourceSearch(Boolean.FALSE);
+				updateResourceContentSearch();
 				mainForm.addOrReplace(initRepoContent(model));
 				target.add(getParent().addOrReplace(mainForm));
 				target.add(this);
-				target.add(getParent().get(ID_RESOURCE_SEARCH).add(AttributeModifier.replace("class", "btn btn-sm btn-default")));
+				target.add(getParent().get(ID_RESOURCE_SEARCH)
+						.add(AttributeModifier.replace("class", "btn btn-sm btn-default")));
 			}
-			
-			@Override
-			protected void onBeforeRender() {
-				super.onBeforeRender();
-				if (!ResourceContentTabPanel.this.resourceSearchModel.getObject()) add(AttributeModifier.replace("class", "btn btn-sm btn-default active"));
-			}
-		};
-		add(repoSearch);
-		
-		AjaxButton resourceSearch = new AjaxButton(ID_RESOURCE_SEARCH) {
-			private static final long serialVersionUID = 1L;
-			
-			@Override
-			public void onClick(AjaxRequestTarget target) {
-				resourceSearchModel.setObject(Boolean.TRUE);
-				mainForm.addOrReplace(initResourceContent(model));
-				target.add(getParent().addOrReplace(mainForm));
-				target.add(this.add(AttributeModifier.append("class", " active")));
-				target.add(getParent().get(ID_REPO_SEARCH).add(AttributeModifier.replace("class", "btn btn-sm btn-default")));
-			}
-			
 
 			@Override
 			protected void onBeforeRender() {
 				super.onBeforeRender();
-				if (ResourceContentTabPanel.this.resourceSearchModel.getObject()) add(AttributeModifier.replace("class", "btn btn-sm btn-default active"));
+				if (!getModelObject().booleanValue())
+					add(AttributeModifier.replace("class", "btn btn-sm btn-default active"));
+			}
+		};
+		add(repoSearch);
+
+		AjaxLink<Boolean> resourceSearch = new AjaxLink<Boolean>(ID_RESOURCE_SEARCH,
+				new PropertyModel<Boolean>(resourceContentSearch, "resourceSearch")) {
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public void onClick(AjaxRequestTarget target) {
+				updateResourceContentSearch();
+				resourceContentSearch.getObject().setResourceSearch(Boolean.TRUE);
+				mainForm.addOrReplace(initResourceContent(model));
+				target.add(getParent().addOrReplace(mainForm));
+				target.add(this.add(AttributeModifier.append("class", " active")));
+				target.add(getParent().get(ID_REPO_SEARCH)
+						.add(AttributeModifier.replace("class", "btn btn-sm btn-default")));
+			}
+
+			@Override
+			protected void onBeforeRender() {
+				super.onBeforeRender();
+				getModelObject().booleanValue();
+				if (getModelObject().booleanValue())
+					add(AttributeModifier.replace("class", "btn btn-sm btn-default active"));
 			}
 		};
 		add(resourceSearch);
 
 	}
-	
-	
+
 	private List<QName> createObjectClassChoices(IModel<PrismObject<ResourceType>> model) {
 		RefinedResourceSchema refinedSchema;
 		try {
-			refinedSchema = RefinedResourceSchema
-					.getRefinedSchema(model.getObject(),parentPage.getPrismContext());
+			refinedSchema = RefinedResourceSchema.getRefinedSchema(model.getObject(),
+					parentPage.getPrismContext());
 		} catch (SchemaException e) {
 			warn("Could not determine defined obejct classes for resource");
 			return new ArrayList<QName>();
 		}
 		Collection<ObjectClassComplexTypeDefinition> defs = refinedSchema.getObjectClassDefinitions();
 		List<QName> objectClasses = new ArrayList<QName>(defs.size());
-		for (ObjectClassComplexTypeDefinition def : defs ) { 
+		for (ObjectClassComplexTypeDefinition def : defs) {
 			objectClasses.add(def.getTypeName());
 		}
 		return objectClasses;
 	}
 
-
-	private ResourceContentPanel initTable(IModel<PrismObject<ResourceType>> model){
-		if (resourceSearchModel.getObject()){
+	private ResourceContentPanel initTable(IModel<PrismObject<ResourceType>> model) {
+		if (isResourceSearch()) {
 			return initResourceContent(model);
 		} else {
 			return initRepoContent(model);
@@ -284,27 +299,42 @@ public class ResourceContentTabPanel extends Panel {
 	}
 
 	private ResourceContentResourcePanel initResourceContent(IModel<PrismObject<ResourceType>> model) {
-		ResourceContentResourcePanel resourceContent = new ResourceContentResourcePanel(ID_TABLE, model, objectClassModel.getObject(), kind, intentModel.getObject(), parentPage);
+		ResourceContentResourcePanel resourceContent = new ResourceContentResourcePanel(ID_TABLE, model,
+				getObjectClass(), getKind(), getIntent(), parentPage);
 		resourceContent.setOutputMarkupId(true);
 		return resourceContent;
-		
+
 	}
-	
+
 	private ResourceContentRepositoryPanel initRepoContent(IModel<PrismObject<ResourceType>> model) {
-		ResourceContentRepositoryPanel repositoryContent = new ResourceContentRepositoryPanel(ID_TABLE, model, objectClassModel.getObject(), kind, intentModel.getObject(), parentPage);
+		ResourceContentRepositoryPanel repositoryContent = new ResourceContentRepositoryPanel(ID_TABLE, model,
+				getObjectClass(), getKind(), getIntent(), parentPage);
 		repositoryContent.setOutputMarkupId(true);
 		return repositoryContent;
 	}
 
+	private ShadowKindType getKind() {
+		return resourceContentSearch.getObject().getKind();
+	}
 
-	private IModel<String> createDeleteConfirmString() {
-		return new AbstractReadOnlyModel<String>() {
-			@Override
-			public String getObject() {
-				return "asdasd";
-				
-			}
-		};
+	private String getIntent() {
+		return resourceContentSearch.getObject().getIntent();
+	}
+
+	private QName getObjectClass() {
+		return resourceContentSearch.getObject().getObjectClass();
+	}
+
+	private boolean isResourceSearch() {
+		Boolean isResourceSearch = resourceContentSearch.getObject().isResourceSearch();
+		if (isResourceSearch == null) {
+			return false;
+		}
+		return resourceContentSearch.getObject().isResourceSearch();
+	}
+
+	private boolean isUseObjectClass() {
+		return resourceContentSearch.getObject().isUseObjectClass();
 	}
 
 }

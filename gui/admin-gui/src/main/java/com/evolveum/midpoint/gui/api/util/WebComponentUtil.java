@@ -25,19 +25,21 @@ import java.lang.management.RuntimeMXBean;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.web.page.admin.reports.PageReports;
-import com.evolveum.midpoint.web.page.admin.resources.PageResources;
-import com.evolveum.midpoint.web.page.admin.roles.PageRoles;
-import com.evolveum.midpoint.web.page.admin.services.PageServices;
-import com.evolveum.midpoint.web.page.admin.users.PageUsers;
-import com.evolveum.midpoint.web.session.SessionStorage;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.Component;
@@ -137,15 +139,22 @@ import com.evolveum.midpoint.web.page.PageDialog;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnChangeAjaxFormUpdatingBehavior;
 import com.evolveum.midpoint.web.page.admin.reports.PageReport;
+import com.evolveum.midpoint.web.page.admin.reports.PageReports;
 import com.evolveum.midpoint.web.page.admin.resources.PageResource;
+import com.evolveum.midpoint.web.page.admin.resources.PageResources;
 import com.evolveum.midpoint.web.page.admin.roles.PageRole;
+import com.evolveum.midpoint.web.page.admin.roles.PageRoles;
 import com.evolveum.midpoint.web.page.admin.server.PageTaskEdit;
 import com.evolveum.midpoint.web.page.admin.server.dto.OperationResultStatusPresentationProperties;
 import com.evolveum.midpoint.web.page.admin.services.PageService;
+import com.evolveum.midpoint.web.page.admin.services.PageServices;
 import com.evolveum.midpoint.web.page.admin.users.PageOrgUnit;
 import com.evolveum.midpoint.web.page.admin.users.PageUser;
+import com.evolveum.midpoint.web.page.admin.users.PageUsers;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.web.security.SecurityUtils;
+import com.evolveum.midpoint.web.session.SessionStorage;
+import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
@@ -228,6 +237,17 @@ public final class WebComponentUtil {
 		storageKeyMap.put(PageReports.class, SessionStorage.KEY_REPORTS);
 		storageKeyMap.put(PageRoles.class, SessionStorage.KEY_ROLES);
 		storageKeyMap.put(PageServices.class, SessionStorage.KEY_SERVICES);
+	}
+	
+	private static Map<TableId, String> storageTableIdMap;
+
+	static {
+		storageTableIdMap = new HashMap<>();
+		storageTableIdMap.put(TableId.PAGE_RESOURCE_ACCOUNTS_PANEL, SessionStorage.KEY_RESOURCE_ACCOUNT_CONTENT);
+		storageTableIdMap.put(TableId.PAGE_RESOURCE_ENTITLEMENT_PANEL, SessionStorage.KEY_RESOURCE_ENTITLEMENT_CONTENT);
+		storageTableIdMap.put(TableId.PAGE_RESOURCE_GENERIC_PANEL, SessionStorage.KEY_RESOURCE_GENERIC_CONTENT);
+		storageTableIdMap.put(TableId.PAGE_RESOURCE_OBJECT_CLASS_PANEL, SessionStorage.KEY_RESOURCE_OBJECT_CLASS_CONTENT);
+		
 	}
 
 	public enum Channel {
@@ -1615,6 +1635,10 @@ public final class WebComponentUtil {
 
 	public static String getStorageKeyForPage(Class<?> pageClass) {
 		return storageKeyMap.get(pageClass);
+	}
+	
+	public static String getStorageKeyForTableId(TableId tableId) {
+		return storageTableIdMap.get(tableId);
 	}
 
 	public static Class<? extends PageBase> getObjectDetailsPage(Class<? extends ObjectType> type) {

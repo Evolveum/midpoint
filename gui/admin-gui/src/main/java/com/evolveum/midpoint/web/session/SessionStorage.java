@@ -16,21 +16,25 @@
 
 package com.evolveum.midpoint.web.session;
 
-import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
-import org.apache.commons.lang.Validate;
-import org.apache.wicket.Page;
-import org.apache.wicket.markup.html.WebPage;
-import org.apache.wicket.request.mapper.parameter.PageParameters;
-
 import java.io.Serializable;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Stack;
+
+import org.apache.commons.lang.Validate;
+
+import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 
 /**
  * @author lazyman
  */
 public class SessionStorage implements Serializable {
 
-    private List<Breadcrumb> breadcrumbs;
+   private static final long serialVersionUID = 1L;
+
+	private List<Breadcrumb> breadcrumbs;
 
     /**
      * place to store information in session for various pages
@@ -44,6 +48,10 @@ public class SessionStorage implements Serializable {
     public static final String KEY_ROLES = "roles";
     public static final String KEY_SERVICES = "services";
     public static final String KEY_ROLE_MEMBERS = "roleMembers";
+    public static final String KEY_RESOURCE_ACCOUNT_CONTENT = "resourceAccountContent";
+    public static final String KEY_RESOURCE_ENTITLEMENT_CONTENT = "resourceEntitlementContent";
+    public static final String KEY_RESOURCE_GENERIC_CONTENT = "resourceGenericContent";
+    public static final String KEY_RESOURCE_OBJECT_CLASS_CONTENT = "resourceObjectClassContent";
     
     private static final String KEY_TASKS = "tasks";
 
@@ -84,6 +92,7 @@ public class SessionStorage implements Serializable {
         return (RolesStorage)pageStorageMap.get(KEY_ROLES);
     }
     
+    
     public ServicesStorage getServices() {
         if (pageStorageMap.get(KEY_SERVICES) == null) {
             pageStorageMap.put(KEY_SERVICES, new ServicesStorage());
@@ -97,6 +106,36 @@ public class SessionStorage implements Serializable {
         }
         return (RoleMembersStorage)pageStorageMap.get(KEY_ROLE_MEMBERS);
     }
+    
+    public ResourceContentStorage getResourceContentStorage(ShadowKindType kind) {
+    	String key = getContentStorageKey(kind);
+    	if (pageStorageMap.get(key) == null) {
+            pageStorageMap.put(key, new ResourceContentStorage(kind));
+        }
+        return (ResourceContentStorage)pageStorageMap.get(key);
+		
+	}
+    
+    private String getContentStorageKey(ShadowKindType kind) {
+    	if (kind == null) {
+			return KEY_RESOURCE_OBJECT_CLASS_CONTENT;
+		}
+
+		switch (kind) {
+			case ACCOUNT:
+				return KEY_RESOURCE_ACCOUNT_CONTENT;
+
+			case ENTITLEMENT:
+				return KEY_RESOURCE_ENTITLEMENT_CONTENT;
+
+			case GENERIC:
+				return KEY_RESOURCE_GENERIC_CONTENT;
+			default:
+				return KEY_RESOURCE_OBJECT_CLASS_CONTENT;
+
+		}
+    }
+   
 
     public TasksStorage getTasks() {
         if (pageStorageMap.get(KEY_TASKS) == null) {

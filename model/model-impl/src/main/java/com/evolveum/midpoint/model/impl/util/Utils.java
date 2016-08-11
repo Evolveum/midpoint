@@ -26,6 +26,7 @@ import com.evolveum.midpoint.model.impl.ModelConstants;
 import com.evolveum.midpoint.model.impl.expr.ModelExpressionThreadLocalHolder;
 import com.evolveum.midpoint.model.impl.importer.ObjectImporter;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
+import com.evolveum.midpoint.model.impl.lens.LensElementContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.prism.*;
@@ -482,20 +483,20 @@ public final class Utils {
     	if (configurationType != null) {
     		configuration = configurationType.asPrismObject();
     	}
-		return getDefaultExpressionVariables(focus, shadow, null, resource, configuration);
+		return getDefaultExpressionVariables(focus, shadow, null, resource, configuration, null);
     }
     
-    public static ExpressionVariables getDefaultExpressionVariables(PrismObject<? extends ObjectType> focus,
+    public static <O extends ObjectType> ExpressionVariables getDefaultExpressionVariables(PrismObject<? extends ObjectType> focus,
     		PrismObject<? extends ShadowType> shadow, ResourceShadowDiscriminator discr, 
-    		PrismObject<ResourceType> resource, PrismObject<SystemConfigurationType> configuration) {
+    		PrismObject<ResourceType> resource, PrismObject<SystemConfigurationType> configuration, LensElementContext<O> affectedElementContext) {
     	ExpressionVariables variables = new ExpressionVariables();
-    	addDefaultExpressionVariables(variables, focus, shadow, discr, resource, configuration);
+    	addDefaultExpressionVariables(variables, focus, shadow, discr, resource, configuration, affectedElementContext);
     	return variables;
     }
     
-    public static void addDefaultExpressionVariables(ExpressionVariables variables, PrismObject<? extends ObjectType> focus,
+    public static <O extends ObjectType> void addDefaultExpressionVariables(ExpressionVariables variables, PrismObject<? extends ObjectType> focus,
     		PrismObject<? extends ShadowType> shadow, ResourceShadowDiscriminator discr, 
-    		PrismObject<ResourceType> resource, PrismObject<SystemConfigurationType> configuration) {
+    		PrismObject<ResourceType> resource, PrismObject<SystemConfigurationType> configuration, LensElementContext<O> affectedElementContext) {
 
         // Legacy. And convenience/understandability.
         if (focus == null || focus.canRepresent(UserType.class) || (discr != null && discr.getKind() == ShadowKindType.ACCOUNT)) {
@@ -507,6 +508,10 @@ public final class Utils {
 		variables.addVariableDefinition(ExpressionConstants.VAR_SHADOW, shadow);
 		variables.addVariableDefinition(ExpressionConstants.VAR_RESOURCE, resource);
 		variables.addVariableDefinition(ExpressionConstants.VAR_CONFIGURATION, configuration);
+		
+		if (affectedElementContext != null) {
+			variables.addVariableDefinition(ExpressionConstants.VAR_OPERATION, affectedElementContext.getOperation().getValue());
+		}
 	}
 
 	public static String getPolicyDesc(ObjectSynchronizationType synchronizationPolicy) {

@@ -429,7 +429,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 		ExpressionType conditionExpressionType = synchronizationPolicy.getCondition();
 		String desc = "condition in object synchronization " + synchronizationPolicy.getName();
 		ExpressionVariables variables = Utils.getDefaultExpressionVariables(null, currentShadow, null,
-				resource, configuration);
+				resource, configuration, null);
 		PrismPropertyValue<Boolean> evaluateCondition = ExpressionUtil.evaluateCondition(variables,
 				conditionExpressionType, expressionFactory, desc, task, result);
 		return evaluateCondition.getValue();

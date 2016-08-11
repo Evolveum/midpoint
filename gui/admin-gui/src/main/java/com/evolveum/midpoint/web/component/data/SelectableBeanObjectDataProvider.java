@@ -61,7 +61,14 @@ public class SelectableBeanObjectDataProvider<O extends ObjectType> extends Base
     
     private boolean emptyListOnNullQuery = false;
     private boolean useObjectCounting = true;
+    
+    /**
+     *  The number of all objects that the query can return. Defaults to a really big number
+     *  if we cannot count the number of objects.
+     *  TODO: make this default more reasonable. -1 or something like that (MID-3339)
+     */
     private int size = Integer.MAX_VALUE;
+    
     private Class<? extends O> type;
     private Collection<SelectorOptions<GetOperationOptions>> options;
 
@@ -114,14 +121,18 @@ public class SelectableBeanObjectDataProvider<O extends ObjectType> extends Base
     
    
     @Override
-    public Iterator<SelectableBean<O>> internalIterator(long first, long count) {
-        LOGGER.trace("begin::iterator() from {} count {}.", new Object[]{first, count});
+    public Iterator<SelectableBean<O>> internalIterator(long offset, long pageSize) {
+        LOGGER.trace("begin::iterator() offset {} pageSize {}.", new Object[]{offset, pageSize});
+        if (pageSize > 1000000) {
+        	// Failsafe. Do not even try this. This can have huge impact on the resource. (MID-3336)
+        	throw new IllegalArgumentException("Requested huge page size: "+pageSize);
+        }
         
         preprocessSelectedData();
         
         OperationResult result = new OperationResult(OPERATION_SEARCH_OBJECTS);
         try {
-            ObjectPaging paging = createPaging(first, count);
+            ObjectPaging paging = createPaging(offset, pageSize);
             Task task = getPage().createSimpleTask(OPERATION_SEARCH_OBJECTS);
             
             ObjectQuery query = getQuery();
