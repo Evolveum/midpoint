@@ -15,6 +15,8 @@
   ~ limitations under the License.
   -->
 
+<!-- Iteration with token expression, pre-iteration condition and post-iteration condition -->
+
 <resource oid="10000000-0000-0000-0000-00000000a204"
 		  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
           xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"

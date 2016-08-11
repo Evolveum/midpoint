@@ -179,10 +179,11 @@ public class FocusProcessor {
 			ObjectPolicyConfigurationType objectPolicyConfigurationType = focusContext.getObjectPolicyConfigurationType();
 			applyObjectPolicyConstraints(focusContext, objectPolicyConfigurationType);
 		
-			ExpressionVariables variables = Utils.getDefaultExpressionVariables(focusContext.getObjectNew(), null, null, null, context.getSystemConfiguration());
+			ExpressionVariables variablesPreIteration = Utils.getDefaultExpressionVariables(focusContext.getObjectNew(), 
+					null, null, null, context.getSystemConfiguration(), focusContext);
 			if (iterationToken == null) {
 				iterationToken = LensUtil.formatIterationToken(context, focusContext, 
-						iterationSpecificationType, iteration, expressionFactory, variables, task, result);
+						iterationSpecificationType, iteration, expressionFactory, variablesPreIteration, task, result);
 			}
 			
 			// We have to remember the token and iteration in the context.
@@ -198,7 +199,7 @@ public class FocusProcessor {
 			
 			String conflictMessage;
 			if (!LensUtil.evaluateIterationCondition(context, focusContext, 
-					iterationSpecificationType, iteration, iterationToken, true, expressionFactory, variables, task, result)) {
+					iterationSpecificationType, iteration, iterationToken, true, expressionFactory, variablesPreIteration, task, result)) {
 				
 				conflictMessage = "pre-iteration condition was false";
 				LOGGER.debug("Skipping iteration {}, token '{}' for {} because the pre-iteration condition was false",
@@ -285,9 +286,10 @@ public class FocusProcessor {
 		        checker.check(previewObjectNew, result);
 		        if (checker.isSatisfiesConstraints()) {
 		        	LOGGER.trace("Current focus satisfies uniqueness constraints. Iteration {}, token '{}'", iteration, iterationToken);
-		        	
+		        	ExpressionVariables variablesPostIteration = Utils.getDefaultExpressionVariables(focusContext.getObjectNew(), 
+		        			null, null, null, context.getSystemConfiguration(), focusContext);		        	
 		        	if (LensUtil.evaluateIterationCondition(context, focusContext, 
-		        			iterationSpecificationType, iteration, iterationToken, false, expressionFactory, variables, 
+		        			iterationSpecificationType, iteration, iterationToken, false, expressionFactory, variablesPostIteration, 
 		        			task, result)) {
 	    				// stop the iterations
 	    				break;

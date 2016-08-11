@@ -1077,16 +1077,6 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 		}
 		return false;
 	}
-	
-	public AccountOperation getOperation() {
-		if (isAdd()) {
-			return AccountOperation.ADD;
-		}
-		if (isDelete()) {
-			return AccountOperation.DELETE;
-		}
-		return AccountOperation.MODIFY;
-	}
 
     @Override
 	public void checkEncrypted() {
