@@ -9413,7 +9413,17 @@
 			<xsd:element name="type" type="xsd:QName">
 				<xsd:annotation>
 					<xsd:documentation>
-						Specification of the type (class) of the object to apply this template to.
+						Specification of the type (class) of the object to apply this definition to.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="subType" type="xsd:string" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Specification of the subtype of the object to apply this template to.
+						If no subtype is specified then this definition will be applied to all subtypes.
+						The subtype is compared agains the subType property but it is also compared to the
+						deprecated employeeType, roleType, orgType and serviceType properties.
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>

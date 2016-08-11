@@ -265,7 +265,7 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
 		
 		// User Templates
 		repoAddObjectFromFile(USER_TEMPLATE_FILENAME, ObjectTemplateType.class, initResult);
-		repoAddObjectFromFile(USER_TEMPLATE_COMPLEX_FILENAME, ObjectTemplateType.class, initResult);
+		repoAddObjectFromFile(USER_TEMPLATE_COMPLEX_FILE, ObjectTemplateType.class, initResult);
 		repoAddObjectFromFile(USER_TEMPLATE_INBOUNDS_FILENAME, ObjectTemplateType.class, initResult);
 		repoAddObjectFromFile(USER_TEMPLATE_COMPLEX_INCLUDE_FILENAME, ObjectTemplateType.class, initResult);
         repoAddObjectFromFile(USER_TEMPLATE_ORG_ASSIGNMENT_FILENAME, ObjectTemplateType.class, initResult);
@@ -384,30 +384,7 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
 		
 	protected void setDefaultUserTemplate(String userTemplateOid)
 			throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
-
-		PrismObjectDefinition<SystemConfigurationType> objectDefinition = prismContext.getSchemaRegistry()
-				.findObjectDefinitionByCompileTimeClass(SystemConfigurationType.class);
-
-		Collection<? extends ItemDelta> modifications;
-		
-		if (userTemplateOid == null) {
-			modifications = ReferenceDelta.createModificationReplaceCollection(
-					SystemConfigurationType.F_DEFAULT_USER_TEMPLATE_REF,
-					objectDefinition, null);
-		} else {
-			PrismReferenceValue userTemplateRefVal = new PrismReferenceValue(userTemplateOid);
-			modifications = ReferenceDelta.createModificationReplaceCollection(
-						SystemConfigurationType.F_DEFAULT_USER_TEMPLATE_REF,
-						objectDefinition, userTemplateRefVal);
-		}
-
-		OperationResult result = new OperationResult("Aplying default user template");
-
-		repositoryService.modifyObject(SystemConfigurationType.class,
-				SystemObjectsType.SYSTEM_CONFIGURATION.value(), modifications, result);
-		display("Aplying default user template result", result);
-		result.computeStatus();
-		TestUtil.assertSuccess("Aplying default user template failed (result)", result);
+		setDefaultObjectTemplate(UserType.COMPLEX_TYPE, userTemplateOid);
 	}
 
 	protected void assertMonkeyIslandOrgSanity() throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException {

@@ -244,7 +244,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 		
 		ObjectTemplateType objectTemplateType;
 		try {
-			objectTemplateType = schemaTransformer.determineObjectTemplate(object.getCompileTimeClass(), phase, result);
+			objectTemplateType = schemaTransformer.determineObjectTemplate(object, phase, result);
 		} catch (ConfigurationException | ObjectNotFoundException e) {
 			result.recordFatalError(e);
 			throw e;

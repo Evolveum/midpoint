@@ -63,6 +63,7 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
@@ -81,9 +82,15 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 	
 	protected static final File ROLE_RASTAMAN_FILE = new File(TEST_DIR, "role-rastaman.xml");
 	protected static final String ROLE_RASTAMAN_OID = "81ac6b8c-225c-11e6-ab0f-87a169c85cca";
+	
+	protected static final File USER_TEMPLATE_MAROONED_FILE = new File(TEST_DIR, "user-template-marooned.xml");
+	protected static final String USER_TEMPLATE_MAROONED_OID = "766215e8-5f1e-11e6-94bb-c3b21af53235";
+
 
 	private static final String ACCOUNT_STAN_USERNAME = "stan";
 	private static final String ACCOUNT_STAN_FULLNAME = "Stan the Salesman";
+
+	private static final String EMPLOYEE_TYPE_MAROONED = "marooned";
 
 	private static String jackEmployeeNumber;
 	
@@ -94,7 +101,9 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         
         repoAddObjectFromFile(ROLE_RASTAMAN_FILE, RoleType.class, initResult);
         
-		setDefaultUserTemplate(USER_TEMPLATE_COMPLEX_OID);
+        repoAddObjectFromFile(USER_TEMPLATE_MAROONED_FILE, ObjectTemplateType.class, initResult);
+		setDefaultObjectTemplate(UserType.COMPLEX_TYPE, USER_TEMPLATE_COMPLEX_OID, initResult);
+		setDefaultObjectTemplate(UserType.COMPLEX_TYPE, EMPLOYEE_TYPE_MAROONED, USER_TEMPLATE_MAROONED_OID, initResult);
 	}
 		
 	@Test
@@ -1140,6 +1149,39 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 		PrismObject<UserType> userAfter = modelService.getObject(UserType.class, USER_GUYBRUSH_OID, null, task, result);
 		display("User after", userAfter);
         
+		assertAssignedNoRole(userAfter);
+	}
+	
+	/**
+	 * Setting employee type to marooned. This should cause switch to different user template.
+	 */
+	@Test
+    public void test180ModifyUserGuybrushEmployeeTypeMarooned() throws Exception {
+		final String TEST_NAME = "test180ModifyUserGuybrushEmployeeTypeMarooned";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestUserTemplate.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        PrismObject<UserType> userBefore = getUser(USER_GUYBRUSH_OID);
+        display("User before", userBefore);
+        assertAssignedNoRole(userBefore);
+    
+		// WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        modifyUserReplace(USER_GUYBRUSH_OID, UserType.F_EMPLOYEE_TYPE, task, result, EMPLOYEE_TYPE_MAROONED);
+
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+		result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+		PrismObject<UserType> userAfter = modelService.getObject(UserType.class, USER_GUYBRUSH_OID, null, task, result);
+		display("User after", userAfter);
+        
+		assertEquals("Wrong costCenter", "NOCOST", userAfter.asObjectable().getCostCenter());
+		
 		assertAssignedNoRole(userAfter);
 	}
 	
