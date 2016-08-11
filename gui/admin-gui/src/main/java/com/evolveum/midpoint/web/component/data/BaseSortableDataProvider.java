@@ -173,7 +173,7 @@ public abstract class BaseSortableDataProvider<T extends Serializable> extends S
         };
     }
 
-    protected ObjectPaging createPaging(long first, long count) {
+    protected ObjectPaging createPaging(long offset, long pageSize) {
         SortParam sortParam = getSort();
         if (sortParam != null) {
             OrderDirection order;
@@ -183,10 +183,10 @@ public abstract class BaseSortableDataProvider<T extends Serializable> extends S
                 order = OrderDirection.DESCENDING;
             }
 
-            return ObjectPaging.createPaging(WebComponentUtil.safeLongToInteger(first), WebComponentUtil.safeLongToInteger(count),
+            return ObjectPaging.createPaging(WebComponentUtil.safeLongToInteger(offset), WebComponentUtil.safeLongToInteger(pageSize),
                     (String) sortParam.getProperty(), SchemaConstantsGenerated.NS_COMMON, order);
         } else {
-            return ObjectPaging.createPaging(WebComponentUtil.safeLongToInteger(first), WebComponentUtil.safeLongToInteger(count));
+            return ObjectPaging.createPaging(WebComponentUtil.safeLongToInteger(offset), WebComponentUtil.safeLongToInteger(pageSize));
         }
     }
 
