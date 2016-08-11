@@ -80,7 +80,7 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 	protected static final String USER_TEMPLATE_FILENAME = COMMON_DIR + "/user-template.xml";
 	protected static final String USER_TEMPLATE_OID = "10000000-0000-0000-0000-000000000002";
 	
-	protected static final String USER_TEMPLATE_COMPLEX_FILENAME = COMMON_DIR + "/user-template-complex.xml";
+	protected static final File USER_TEMPLATE_COMPLEX_FILE = new File(COMMON_DIR, "user-template-complex.xml");
 	protected static final String USER_TEMPLATE_COMPLEX_OID = "10000000-0000-0000-0000-000000000222";
 	
 	protected static final String USER_TEMPLATE_INBOUNDS_FILENAME = COMMON_DIR + "/user-template-inbounds.xml";
