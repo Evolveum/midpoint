@@ -17,11 +17,8 @@ package com.evolveum.midpoint.gui.api.component;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -32,6 +29,7 @@ import org.apache.wicket.model.StringResourceModel;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -50,13 +48,7 @@ import com.evolveum.midpoint.web.component.search.SearchFactory;
 import com.evolveum.midpoint.web.component.search.SearchFormPanel;
 import com.evolveum.midpoint.web.component.util.ListDataProvider2;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
-import com.evolveum.midpoint.web.page.admin.reports.PageReports;
-import com.evolveum.midpoint.web.page.admin.resources.PageResources;
-import com.evolveum.midpoint.web.page.admin.roles.PageRoles;
-import com.evolveum.midpoint.web.page.admin.services.PageServices;
-import com.evolveum.midpoint.web.page.admin.users.PageUsers;
 import com.evolveum.midpoint.web.session.PageStorage;
-import com.evolveum.midpoint.web.session.SessionStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
@@ -133,14 +125,14 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 		Form<O> mainForm = new Form<O>(ID_MAIN_FORM);
 		add(mainForm);
 
-		searchModel = createSearchModel();
+		searchModel = initSearchModel();
 
 		BoxedTablePanel<SelectableBean<O>> table = createTable();
 		mainForm.add(table);
 
 	}
 	
-	protected LoadableModel<Search> createSearchModel(){
+	private LoadableModel<Search> initSearchModel(){
 		return new LoadableModel<Search>(false) {
 
 			private static final long serialVersionUID = 1L;
@@ -156,12 +148,16 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 					}
 				}
 				if (search == null) {
-					search = SearchFactory.createSearch(type, parentPage.getPrismContext(),
-							parentPage.getModelInteractionService());
+					search = createSearch();
 				}
 				return search;
 			}
 		};
+	}
+	
+	protected Search createSearch() {
+		return SearchFactory.createSearch(type, parentPage.getPrismContext(),
+				parentPage.getModelInteractionService());
 	}
 	
 	private BoxedTablePanel<SelectableBean<O>> createTable() {
@@ -299,7 +295,13 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 	}
 	
 	private String getStorageKey() {
-		return WebComponentUtil.getStorageKeyForPage(parentPage.getClass());
+		String storageKey =  WebComponentUtil.getStorageKeyForPage(parentPage.getClass());
+		if (storageKey == null) {
+			storageKey = WebComponentUtil.getStorageKeyForTableId(tableId);
+		}
+		
+		return storageKey;
+		
 	}
 
 	private PageStorage getPageStorage(String storageKey){

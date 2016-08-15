@@ -14,6 +14,9 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
+  
+  <!-- Iteration with token expression (sequential) and post-condition that checks for e-mail uniquness. -->
+  
 <objectTemplate oid="10000000-0000-0000-0000-0000000d0004"
    xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
    xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'

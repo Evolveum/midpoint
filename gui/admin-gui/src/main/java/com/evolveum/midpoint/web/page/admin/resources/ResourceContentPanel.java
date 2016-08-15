@@ -15,12 +15,13 @@
  */
 package com.evolveum.midpoint.web.page.admin.resources;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
@@ -41,13 +42,12 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
-import com.evolveum.midpoint.gui.api.component.ObjectBrowserPanel;
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
+import com.evolveum.midpoint.gui.api.component.ObjectBrowserPanel;
 import com.evolveum.midpoint.gui.api.component.button.DropdownButtonDto;
 import com.evolveum.midpoint.gui.api.component.button.DropdownButtonPanel;
 import com.evolveum.midpoint.gui.api.component.result.OpResult;
 import com.evolveum.midpoint.gui.api.component.result.OperationResultPanel;
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
@@ -93,6 +93,7 @@ import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
 import com.evolveum.midpoint.web.component.data.column.InlineMenuHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.component.data.column.ObjectLinkColumn;
+import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.search.Search;
@@ -104,6 +105,15 @@ import com.evolveum.midpoint.web.page.admin.resources.content.PageAccount;
 import com.evolveum.midpoint.web.page.admin.server.PageTaskAdd;
 import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
  * Implementation classes : ResourceContentResourcePanel,
@@ -136,7 +146,7 @@ public abstract class ResourceContentPanel extends Panel {
 	private ShadowKindType kind;
 	private String intent;
 	private QName objectClass;
-    private SelectableBeanObjectDataProvider<ShadowType> provider;
+	private SelectableBeanObjectDataProvider<ShadowType> provider;
 
 	IModel<PrismObject<ResourceType>> resourceModel;
 
@@ -193,10 +203,29 @@ public abstract class ResourceContentPanel extends Panel {
 
 	}
 
+	private TableId getTableId() {
+		if (kind == null) {
+			return TableId.PAGE_RESOURCE_OBJECT_CLASS_PANEL;
+		}
+
+		switch (kind) {
+			case ACCOUNT:
+				return TableId.PAGE_RESOURCE_ACCOUNTS_PANEL;
+			case GENERIC:
+				return TableId.PAGE_RESOURCE_GENERIC_PANEL;
+			case ENTITLEMENT:
+				return TableId.PAGE_RESOURCE_ENTITLEMENT_PANEL;
+
+			default:
+				return TableId.PAGE_RESOURCE_OBJECT_CLASS_PANEL;
+		}
+
+	}
+
 	private void initLayout() {
 
 		MainObjectListPanel<ShadowType> shadowListPanel = new MainObjectListPanel<ShadowType>(ID_TABLE,
-				ShadowType.class, TableId.PAGE_RESOURCE_ACCOUNTS_PANEL, null, pageBase) {
+				ShadowType.class, getTableId(), null, pageBase) {
 			private static final long serialVersionUID = 1L;
 
 			@Override
@@ -243,34 +272,28 @@ public abstract class ResourceContentPanel extends Panel {
 				if (customQuery != null && customQuery.getFilter() != null) {
 					filters.add(customQuery.getFilter());
 				}
-                ObjectQuery query = new ObjectQuery();
+				ObjectQuery query = new ObjectQuery();
 				if (filters.size() == 1) {
-                    query = ObjectQuery.createObjectQuery(filters.iterator().next());
-                    setProviderAvailableDataSize(query);
+					query = ObjectQuery.createObjectQuery(filters.iterator().next());
+//					setProviderAvailableDataSize(query);
 					return query;
 				}
 
 				if (filters.size() == 0) {
-                    setProviderAvailableDataSize(query);
+//					setProviderAvailableDataSize(query);
 					return null;
 				}
-                query = ObjectQuery.createObjectQuery(AndFilter.createAnd(filters));
-                setProviderAvailableDataSize(query);
-                return query;
+				query = ObjectQuery.createObjectQuery(AndFilter.createAnd(filters));
+//				setProviderAvailableDataSize(query);
+				return query;
 			}
 
 			@Override
-			protected LoadableModel<Search> createSearchModel() {
-				return new LoadableModel<Search>(false) {
-					private static final long serialVersionUID = 1L;
+			protected Search createSearch() {
+				return ResourceContentPanel.this.createSearch();
 
-					@Override
-					public Search load() {
-
-						return ResourceContentPanel.this.createSearch();
-					}
-				};
 			}
+
 		};
 		shadowListPanel.setOutputMarkupId(true);
 		shadowListPanel.add(new VisibleEnableBehaviour() {
@@ -453,7 +476,8 @@ public abstract class ResourceContentPanel extends Panel {
 				}
 			}
 		} catch (SchemaException ex) {
-			LoggingUtils.logUnexpectedException(LOGGER, "Could not crate query for shadows: " + ex.getMessage(), ex);
+			LoggingUtils.logUnexpectedException(LOGGER,
+					"Could not crate query for shadows: " + ex.getMessage(), ex);
 		}
 		return baseQuery;
 	}
@@ -468,14 +492,11 @@ public abstract class ResourceContentPanel extends Panel {
 		if (addAdditionalOptions() != null) {
 			opts.add(addAdditionalOptions());
 		}
-        boolean useObjectCounting = isUseObjectCounting();
-		provider.setUseObjectCounting(useObjectCounting);
+	
+		provider.setUseObjectCounting(isUseObjectCounting());
 		provider.setOptions(opts);
-        if (!useObjectCounting) {
-            provider.iterator(0, Integer.MAX_VALUE);
-            provider.setSize(provider.getAvailableData().size());
-        }
-    }
+		
+	}
 
 	private StringResourceModel createStringResource(String key) {
 		return pageBase.createStringResource(key);
@@ -518,7 +539,7 @@ public abstract class ResourceContentPanel extends Panel {
 		columns.add(identifiersColumn);
 
 		columns.addAll((Collection) ColumnUtils.createColumns(columnDefs));
-		
+
 		ObjectLinkColumn<SelectableBean<ShadowType>> ownerColumn = new ObjectLinkColumn<SelectableBean<ShadowType>>(
 				createStringResource("pageContentAccounts.owner")) {
 			private static final long serialVersionUID = 1L;
@@ -542,8 +563,9 @@ public abstract class ResourceContentPanel extends Panel {
 			}
 
 			@Override
-			public void onClick(AjaxRequestTarget target, IModel<SelectableBean<ShadowType>> rowModel, ObjectType targetObjectType) {
-				ownerDetailsPerformed(target, (FocusType)targetObjectType);
+			public void onClick(AjaxRequestTarget target, IModel<SelectableBean<ShadowType>> rowModel,
+					ObjectType targetObjectType) {
+				ownerDetailsPerformed(target, (FocusType) targetObjectType);
 			}
 		};
 		columns.add(ownerColumn);
@@ -573,8 +595,7 @@ public abstract class ResourceContentPanel extends Panel {
 						ResourceContentPanel.this.getPageBase().getMainPopupBodyId(),
 						new Model<OpResult>(OpResult.getOpResult(pageBase, result)), getPage());
 				body.setOutputMarkupId(true);
-				ResourceContentPanel.this.getPageBase().showMainPopup(body,
-						target);
+				ResourceContentPanel.this.getPageBase().showMainPopup(body, target);
 
 			}
 		});
@@ -670,7 +691,8 @@ public abstract class ResourceContentPanel extends Panel {
 			// accounts
 		} catch (Exception ex) {
 			result.recordFatalError(pageBase.getString("PageAccounts.message.ownerNotFound", shadowOid), ex);
-			LoggingUtils.logUnexpectedException(LOGGER, "Could not load owner of account with oid: " + shadowOid, ex);
+			LoggingUtils.logUnexpectedException(LOGGER,
+					"Could not load owner of account with oid: " + shadowOid, ex);
 		} finally {
 			result.computeStatusIfUnknown();
 		}
@@ -864,8 +886,8 @@ public abstract class ResourceContentPanel extends Panel {
 
 	// TODO: as a task?
 	protected void deleteResourceObjectPerformed(ShadowType selected, AjaxRequestTarget target) {
-        final List<ShadowType> selectedShadow = getSelectedShadowsList(selected);
-        final OperationResult result = new OperationResult(OPERATION_DELETE_OBJECT);
+		final List<ShadowType> selectedShadow = getSelectedShadowsList(selected);
+		final OperationResult result = new OperationResult(OPERATION_DELETE_OBJECT);
 
 		if (selectedShadow == null || selectedShadow.isEmpty()) {
 			result.recordWarning("Nothing selected to delete");
@@ -874,72 +896,73 @@ public abstract class ResourceContentPanel extends Panel {
 			return;
 		}
 
-        ConfirmationPanel dialog = new ConfirmationPanel(((PageBase)getPage()).getMainPopupBodyId(),
-                createDeleteConfirmString(selected, "pageContentAccounts.message.deleteConfirmation",
-                        "pageContentAccounts.message.deleteConfirmationSingle")){
-            @Override
-            public void yesPerformed(AjaxRequestTarget target) {
-                ((PageBase)getPage()).hideMainPopup(target);
-                deleteAccountConfirmedPerformed(target, result, selectedShadow);
-            }
-        };
-        ((PageBase)getPage()).showMainPopup(dialog, target);
-
+		ConfirmationPanel dialog = new ConfirmationPanel(((PageBase) getPage()).getMainPopupBodyId(),
+				createDeleteConfirmString(selected, "pageContentAccounts.message.deleteConfirmation",
+						"pageContentAccounts.message.deleteConfirmationSingle")) {
+			@Override
+			public void yesPerformed(AjaxRequestTarget target) {
+				((PageBase) getPage()).hideMainPopup(target);
+				deleteAccountConfirmedPerformed(target, result, selectedShadow);
+			}
+		};
+		((PageBase) getPage()).showMainPopup(dialog, target);
 
 	}
 
-    private void deleteAccountConfirmedPerformed(AjaxRequestTarget target, OperationResult result, List<ShadowType> selected){
-        Task task = pageBase.createSimpleTask(OPERATION_DELETE_OBJECT);
-        ModelExecuteOptions opts = createModelOptions();
+	private void deleteAccountConfirmedPerformed(AjaxRequestTarget target, OperationResult result,
+			List<ShadowType> selected) {
+		Task task = pageBase.createSimpleTask(OPERATION_DELETE_OBJECT);
+		ModelExecuteOptions opts = createModelOptions();
 
-        for (ShadowType shadow : selected) {
-            try {
-                ObjectDelta<ShadowType> deleteDelta = ObjectDelta.createDeleteDelta(ShadowType.class,
-                        shadow.getOid(), getPageBase().getPrismContext());
-                getPageBase().getModelService().executeChanges(
-                        WebComponentUtil.createDeltaCollection(deleteDelta), opts, task, result);
-            } catch (ObjectAlreadyExistsException | ObjectNotFoundException | SchemaException
-                    | ExpressionEvaluationException | CommunicationException | ConfigurationException
-                    | PolicyViolationException | SecurityViolationException e) {
-                result.recordPartialError("Could not delete object " + shadow, e);
-                LOGGER.error("Could not delete {}, using option {}", shadow, opts, e);
-                continue;
-            }
-        }
+		for (ShadowType shadow : selected) {
+			try {
+				ObjectDelta<ShadowType> deleteDelta = ObjectDelta.createDeleteDelta(ShadowType.class,
+						shadow.getOid(), getPageBase().getPrismContext());
+				getPageBase().getModelService().executeChanges(
+						WebComponentUtil.createDeltaCollection(deleteDelta), opts, task, result);
+			} catch (ObjectAlreadyExistsException | ObjectNotFoundException | SchemaException
+					| ExpressionEvaluationException | CommunicationException | ConfigurationException
+					| PolicyViolationException | SecurityViolationException e) {
+				result.recordPartialError("Could not delete object " + shadow, e);
+				LOGGER.error("Could not delete {}, using option {}", shadow, opts, e);
+				continue;
+			}
+		}
 
-        result.computeStatusIfUnknown();
-        getPageBase().showResult(result);
-        getTable().refreshTable(null, target);
-        target.add(getPageBase().getFeedbackPanel());
+		result.computeStatusIfUnknown();
+		getPageBase().showResult(result);
+		getTable().refreshTable(null, target);
+		target.add(getPageBase().getFeedbackPanel());
 
+	}
 
-    }
+	private IModel<String> createDeleteConfirmString(final ShadowType selected, final String oneDeleteKey,
+			final String moreDeleteKey) {
+		return new AbstractReadOnlyModel<String>() {
 
-    private IModel<String> createDeleteConfirmString(final ShadowType selected, final String oneDeleteKey, final String moreDeleteKey) {
-        return new AbstractReadOnlyModel<String>() {
+			@Override
+			public String getObject() {
+				List<ShadowType> selectedShadow = getSelectedShadowsList(selected);
+				switch (selectedShadow.size()) {
+					case 1:
+						Object first = selectedShadow.get(0);
+						String name = WebComponentUtil.getName(((ShadowType) first));
+						return getPageBase().createStringResource(oneDeleteKey, name).getString();
+					default:
+						return getPageBase().createStringResource(moreDeleteKey, selectedShadow.size())
+								.getString();
+				}
+			}
+		};
+	}
 
-            @Override
-            public String getObject() {
-                List<ShadowType> selectedShadow = getSelectedShadowsList(selected);
-                switch (selectedShadow.size()) {
-                    case 1:
-                        Object first = selectedShadow.get(0);
-                        String name = WebComponentUtil.getName(((ShadowType) first));
-                        return getPageBase().createStringResource(oneDeleteKey, name).getString();
-                    default:
-                        return getPageBase().createStringResource(moreDeleteKey, selectedShadow.size()).getString();
-                }
-            }
-        };
-    }
-
-    protected abstract ModelExecuteOptions createModelOptions();
+	protected abstract ModelExecuteOptions createModelOptions();
 
 	protected void updateResourceObjectStatusPerformed(ShadowType selected, AjaxRequestTarget target,
 			boolean enabled) {
-        List<ShadowType> selectedShadow = getSelectedShadowsList(selected);
+		List<ShadowType> selectedShadow = getSelectedShadowsList(selected);
 
-        OperationResult result = new OperationResult(OPERATION_UPDATE_STATUS);
+		OperationResult result = new OperationResult(OPERATION_UPDATE_STATUS);
 		Task task = pageBase.createSimpleTask(OPERATION_UPDATE_STATUS);
 
 		if (selectedShadow == null || selectedShadow.isEmpty()) {
@@ -1079,26 +1102,18 @@ public abstract class ResourceContentPanel extends Panel {
 		target.add(ResourceContentPanel.this);
 	}
 
-    private List<ShadowType> getSelectedShadowsList(ShadowType shadow){
-        List<ShadowType> selectedShadow = null;
-        if (shadow != null) {
-            selectedShadow = new ArrayList<>();
-            selectedShadow.add(shadow);
-        } else {
-            provider.clearSelectedObjects();
-            selectedShadow = getTable().getSelectedObjects();
-        }
-        return selectedShadow;
-    }
+	private List<ShadowType> getSelectedShadowsList(ShadowType shadow) {
+		List<ShadowType> selectedShadow = null;
+		if (shadow != null) {
+			selectedShadow = new ArrayList<>();
+			selectedShadow.add(shadow);
+		} else {
+			provider.clearSelectedObjects();
+			selectedShadow = getTable().getSelectedObjects();
+		}
+		return selectedShadow;
+	}
 
-    private void setProviderAvailableDataSize(ObjectQuery query){
-        if (provider != null && !provider.isUseObjectCounting()) {
-            provider.setQuery(query);
-            provider.iterator(0, Integer.MAX_VALUE);
-            provider.setSize(provider.getAvailableData().size());
-        }
-
-    }
 	protected abstract SelectorOptions<GetOperationOptions> addAdditionalOptions();
 
 	protected abstract boolean isUseObjectCounting();

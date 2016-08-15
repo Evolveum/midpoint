@@ -1473,7 +1473,7 @@ public class ChangeExecutor {
 				.getResourceShadowDiscriminator();
 
 		ExpressionVariables variables = Utils.getDefaultExpressionVariables(user, resourceObject, discr,
-				resource.asPrismObject(), context.getSystemConfiguration());
+				resource.asPrismObject(), context.getSystemConfiguration(), objectContext);
 		return evaluateScript(resourceScripts, discr, operation, null, variables, task, result);
 
 	}
@@ -1607,7 +1607,7 @@ public class ChangeExecutor {
 
 		ExpressionVariables variables = Utils.getDefaultExpressionVariables(user, shadow,
 				projContext.getResourceShadowDiscriminator(), resource.asPrismObject(),
-				context.getSystemConfiguration());
+				context.getSystemConfiguration(), projContext);
 		OperationProvisioningScriptsType evaluatedScript = evaluateScript(resourceScripts,
 				projContext.getResourceShadowDiscriminator(), ProvisioningOperationTypeType.RECONCILE, order,
 				variables, task, parentResult);

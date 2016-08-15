@@ -18,6 +18,7 @@ package com.evolveum.midpoint.web.session;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.web.component.search.Search;
 import com.evolveum.midpoint.web.page.admin.resources.content.dto.AccountContentSearchDto;
+import com.evolveum.midpoint.web.page.admin.resources.content.dto.ResourceContentSearchDto;
 
 /**
  * @author shood
@@ -37,7 +38,9 @@ public class ResourcesStorage implements PageStorage {
     /**
      * DTO used for search in {@link com.evolveum.midpoint.web.page.admin.resources.content.PageContentAccounts}
      */
-    private AccountContentSearchDto accountContentSearch;
+//    private AccountContentSearchDto accountContentSearch;
+    
+    private ResourceContentSearchDto resourceContentSearch;
 
     /**
      * Paging DTO used in table on page {@link com.evolveum.midpoint.web.page.admin.resources.content.PageContentAccounts}
@@ -64,14 +67,7 @@ public class ResourcesStorage implements PageStorage {
         this.resourcePaging = resourcePaging;
     }
 
-    public AccountContentSearchDto getAccountContentSearch() {
-        return accountContentSearch;
-    }
-
-    public void setAccountContentSearch(AccountContentSearchDto accountContentSearch) {
-        this.accountContentSearch = accountContentSearch;
-    }
-
+    
     public ObjectPaging getAccountContentPaging() {
         return accountContentPaging;
     }
@@ -79,4 +75,12 @@ public class ResourcesStorage implements PageStorage {
     public void setAccountContentPaging(ObjectPaging accountContentPaging) {
         this.accountContentPaging = accountContentPaging;
     }
+    
+    public ResourceContentSearchDto getResourceContentSearch() {
+		return resourceContentSearch;
+	}
+    
+    public void setResourceContentSearch(ResourceContentSearchDto resourceContentSearch) {
+		this.resourceContentSearch = resourceContentSearch;
+	}
 }

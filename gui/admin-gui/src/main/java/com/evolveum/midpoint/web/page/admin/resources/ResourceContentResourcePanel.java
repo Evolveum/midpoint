@@ -21,7 +21,6 @@ import java.util.Map;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
@@ -34,6 +33,7 @@ import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.search.Search;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
@@ -58,8 +58,7 @@ public class ResourceContentResourcePanel extends ResourceContentPanel {
 
 	@Override
 	protected boolean isUseObjectCounting() {
-		boolean useObjectCounting = ResourceTypeUtil.isCountObjectsCapabilityEnabled(getResourceModel().getObject().asObjectable());
-        return useObjectCounting;
+		return ResourceTypeUtil.isCountObjectsCapabilityEnabled(getResourceModel().getObject().asObjectable());
 	}
 
 	@Override
