@@ -275,16 +275,16 @@ public abstract class ResourceContentPanel extends Panel {
 				ObjectQuery query = new ObjectQuery();
 				if (filters.size() == 1) {
 					query = ObjectQuery.createObjectQuery(filters.iterator().next());
-					setProviderAvailableDataSize(query);
+//					setProviderAvailableDataSize(query);
 					return query;
 				}
 
 				if (filters.size() == 0) {
-					setProviderAvailableDataSize(query);
+//					setProviderAvailableDataSize(query);
 					return null;
 				}
 				query = ObjectQuery.createObjectQuery(AndFilter.createAnd(filters));
-				setProviderAvailableDataSize(query);
+//				setProviderAvailableDataSize(query);
 				return query;
 			}
 
@@ -492,13 +492,10 @@ public abstract class ResourceContentPanel extends Panel {
 		if (addAdditionalOptions() != null) {
 			opts.add(addAdditionalOptions());
 		}
-		boolean useObjectCounting = isUseObjectCounting();
-		provider.setUseObjectCounting(useObjectCounting);
+	
+		provider.setUseObjectCounting(isUseObjectCounting());
 		provider.setOptions(opts);
-		if (!useObjectCounting) {
-			provider.iterator(0, Integer.MAX_VALUE);
-			provider.setSize(provider.getAvailableData().size());
-		}
+		
 	}
 
 	private StringResourceModel createStringResource(String key) {
@@ -1115,15 +1112,6 @@ public abstract class ResourceContentPanel extends Panel {
 			selectedShadow = getTable().getSelectedObjects();
 		}
 		return selectedShadow;
-	}
-
-	private void setProviderAvailableDataSize(ObjectQuery query) {
-		if (provider != null && !provider.isUseObjectCounting()) {
-			provider.setQuery(query);
-			provider.iterator(0, Integer.MAX_VALUE);
-			provider.setSize(provider.getAvailableData().size());
-		}
-
 	}
 
 	protected abstract SelectorOptions<GetOperationOptions> addAdditionalOptions();

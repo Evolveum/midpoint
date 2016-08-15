@@ -286,9 +286,6 @@ public class FocusProcessor {
 		        checker.check(previewObjectNew, result);
 		        if (checker.isSatisfiesConstraints()) {
 		        	LOGGER.trace("Current focus satisfies uniqueness constraints. Iteration {}, token '{}'", iteration, iterationToken);
-		        	
-		        	LOGGER.info("XXXXXXXXXXXX2\n{}", focusContext.debugDump(1));
-		        	
 		        	ExpressionVariables variablesPostIteration = Utils.getDefaultExpressionVariables(focusContext.getObjectNew(), 
 		        			null, null, null, context.getSystemConfiguration(), focusContext);		        	
 		        	if (LensUtil.evaluateIterationCondition(context, focusContext, 
