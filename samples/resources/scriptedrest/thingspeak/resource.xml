@@ -1,0 +1,174 @@
+<!--
+  ~ Copyright (c) 2010-2016 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<resource xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+          xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+          xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+          xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+          oid="275ea738-5bb6-40ce-96fb-5941dbbc6dd5">
+   <name>ThingSpeak channels</name>
+   <description>Resource for managing channels of a ThingSpeak user</description>
+   <connectorRef type="c:ConnectorType">
+      <filter>
+         <q:equal>
+            <q:path>c:connectorType</q:path>
+            <q:value>org.forgerock.openicf.connectors.scriptedrest.ScriptedRESTConnector</q:value>
+         </q:equal>
+      </filter>
+   </connectorRef>
+   <connectorConfiguration xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
+      <icfc:configurationProperties xmlns:gen4="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.forgerock.openicf.connectors.scriptedrest-connector/org.forgerock.openicf.connectors.scriptedrest.ScriptedRESTConnector">
+         <gen4:createScriptFileName>CreateScript.groovy</gen4:createScriptFileName>
+         <gen4:reloadScriptOnExecution>true</gen4:reloadScriptOnExecution>
+         <gen4:schemaScriptFileName>SchemaScript.groovy</gen4:schemaScriptFileName>
+         <gen4:defaultContentType>JSON</gen4:defaultContentType>
+         <gen4:endPoint>https://api.thingspeak.com/channels</gen4:endPoint>
+         <gen4:defaultAuthMethod>OAUTH</gen4:defaultAuthMethod>
+         <gen4:testScriptFileName>TestScript.groovy</gen4:testScriptFileName>
+         <gen4:deleteScriptFileName>DeleteScript.groovy</gen4:deleteScriptFileName>
+         <gen4:searchScriptFileName>SearchScript.groovy</gen4:searchScriptFileName>
+         <gen4:updateScriptFileName>UpdateScript.groovy</gen4:updateScriptFileName>
+         <gen4:login>dummy</gen4:login>
+         <gen4:password><clearValue>INSERT HERE ACCOUNT API KEY</clearValue></gen4:password>
+      </icfc:configurationProperties>
+   </connectorConfiguration>
+   <schemaHandling>
+      <objectType>
+         <kind>generic</kind>
+         <intent>channel</intent>
+         <displayName>Channel</displayName>
+         <default>false</default>
+         <objectClass>ri:channel</objectClass>
+         <attribute>
+            <c:ref>icfs:name</c:ref>
+            <displayName>Channel name</displayName>
+            <tolerant>true</tolerant>
+            <exclusiveStrong>false</exclusiveStrong>
+            <outbound>
+               <authoritative>true</authoritative>
+               <exclusive>false</exclusive>
+               <strength>strong</strength>
+               <source>
+                  <c:path>name</c:path>
+               </source>
+            </outbound>
+         </attribute>
+         <attribute>
+            <c:ref>ri:description</c:ref>
+            <tolerant>true</tolerant>
+            <exclusiveStrong>false</exclusiveStrong>
+            <outbound>
+               <authoritative>true</authoritative>
+               <exclusive>false</exclusive>
+               <strength>strong</strength>
+               <source>
+                  <c:path>description</c:path>
+               </source>
+            </outbound>
+         </attribute>
+         <attribute>
+            <c:ref>ri:field1</c:ref>
+            <tolerant>true</tolerant>
+            <exclusiveStrong>false</exclusiveStrong>
+            <outbound>
+               <authoritative>true</authoritative>
+               <exclusive>false</exclusive>
+               <strength>strong</strength>
+               <expression>
+                  <value>Temperature</value>
+               </expression>
+            </outbound>
+         </attribute>
+         <attribute>
+            <c:ref>icfs:uid</c:ref>
+            <tolerant>true</tolerant>
+            <exclusiveStrong>false</exclusiveStrong>
+            <inbound>
+               <authoritative>true</authoritative>
+               <exclusive>false</exclusive>
+               <strength>strong</strength>
+               <target>
+                  <c:path>identifier</c:path>
+               </target>
+            </inbound>
+         </attribute>
+         <attribute>
+            <c:ref>ri:readKey</c:ref>
+            <displayName>Read API Key</displayName>
+            <tolerant>true</tolerant>
+            <inbound>
+               <authoritative>true</authoritative>
+               <exclusive>false</exclusive>
+               <strength>strong</strength>
+               <target>
+                  <c:path>extension/readKey</c:path>
+               </target>
+            </inbound>
+         </attribute>
+         <attribute>
+            <c:ref>ri:writeKey</c:ref>
+            <displayName>Write API Key</displayName>
+            <tolerant>true</tolerant>
+            <exclusiveStrong>false</exclusiveStrong>
+            <inbound>
+               <authoritative>true</authoritative>
+               <exclusive>false</exclusive>
+               <strength>strong</strength>
+               <target>
+                  <c:path>extension/writeKey</c:path>
+               </target>
+            </inbound>
+         </attribute>
+      </objectType>
+   </schemaHandling>
+   <capabilities>
+      <configured xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">
+         <cap:addRemoveAttributeValues>
+            <cap:enabled>false</cap:enabled>
+         </cap:addRemoveAttributeValues>
+      </configured>
+   </capabilities>
+   <synchronization>
+      <objectSynchronization>
+         <kind>generic</kind>
+         <intent>channel</intent>
+         <focusType>c:ServiceType</focusType>
+         <enabled>true</enabled>
+         <correlation>
+            <q:equal>
+               <q:path>identifier</q:path>
+               <expression>
+                  <path>$account/attributes/icfs:uid</path>
+               </expression>
+            </q:equal>
+         </correlation>
+         <reconcile>false</reconcile>
+         <reaction>
+            <situation>unlinked</situation>
+            <action>
+               <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#link</handlerUri>
+            </action>
+         </reaction>
+         <reaction>
+            <situation>linked</situation>
+            <synchronize>true</synchronize>
+            <reconcile>false</reconcile>
+         </reaction>
+      </objectSynchronization>
+   </synchronization>
+</resource>
