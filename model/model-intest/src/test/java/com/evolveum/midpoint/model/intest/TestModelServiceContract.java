@@ -42,6 +42,7 @@ import com.evolveum.midpoint.prism.query.EqualFilter;
 import com.evolveum.midpoint.prism.query.NotFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
+import com.evolveum.midpoint.repo.sql.query.definition.PropertyDefinition;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
@@ -471,6 +472,33 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 				.item(ShadowType.F_RESOURCE_REF).ref(RESOURCE_DUMMY_OID)
 				.and().item(ShadowType.F_OBJECT_CLASS).eq(accountObjectClassQName)
 				.and().item(new ItemPath(ShadowType.F_ATTRIBUTES, weaponQName), weaponDefinition).eq("rum")
+				.build();
+
+		// WHEN
+		List<PrismObject<ShadowType>> list = modelService.searchObjects(ShadowType.class, q, null, task, result);
+
+		// THEN
+		display("Accounts", list);
+		assertEquals("Wrong # of objects returned", 1, list.size());
+	}
+
+	@Test
+	public void test106SearchAccountWithoutResourceSchema() throws Exception {
+		TestUtil.displayTestTile(this, "test106SearchAccountWithoutResourceSchema");
+
+		// GIVEN
+		Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test106SearchAccountWithoutResourceSchema");
+		OperationResult result = task.getResult();
+
+		// create weapon attribute definition - NOT SUPPORTED, use only when you know what you're doing!
+		QName accountObjectClassQName = dummyResourceCtl.getAccountObjectClassQName();
+		QName weaponQName = dummyResourceCtl.getAttributeWeaponQName();
+		PrismPropertyDefinition weaponFakeDef = new PrismPropertyDefinition(weaponQName, DOMUtil.XSD_STRING, prismContext);
+
+		ObjectQuery q = QueryBuilder.queryFor(ShadowType.class, prismContext)
+				.item(ShadowType.F_RESOURCE_REF).ref(RESOURCE_DUMMY_OID)
+				.and().item(ShadowType.F_OBJECT_CLASS).eq(accountObjectClassQName)
+				.and().item(new ItemPath(ShadowType.F_ATTRIBUTES, weaponQName), weaponFakeDef).eq("rum")
 				.build();
 
 		// WHEN
