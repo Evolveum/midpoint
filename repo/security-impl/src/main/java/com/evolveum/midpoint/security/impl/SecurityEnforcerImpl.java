@@ -541,6 +541,9 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 	}
 
 	private <O extends ObjectType> boolean isAncestor(PrismObject<O> object, String oid) throws SchemaException {
+		if (object.getOid() == null) {
+			return false;
+		}
 		Collection<String> oidList = new ArrayList<>(1);
 		oidList.add(oid);
 		return repositoryService.isAnySubordinate(object.getOid(), oidList);
