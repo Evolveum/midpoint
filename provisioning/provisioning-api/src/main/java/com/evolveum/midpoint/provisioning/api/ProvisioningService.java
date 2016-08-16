@@ -452,7 +452,7 @@ public interface ProvisioningService {
     /**
 	 * Applies appropriate definition to the shadow.
 	 */
-	<T extends ObjectType> void applyDefinition(PrismObject<T> shadow, OperationResult parentResult) 
+	<T extends ObjectType> void applyDefinition(PrismObject<T> object, OperationResult parentResult)
 		throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException;
 	
 	/**

@@ -1035,7 +1035,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 										} else if (specOrgRelation.getScope() == OrgScopeType.DIRECT_DESCENDANTS) {
 											orgFilter = OrgFilter.createOrg(subjectParentOrgRef.getOid(), OrgFilter.Scope.ONE_LEVEL);
 										} else if (specOrgRelation.getScope() == OrgScopeType.ALL_ANCESTORS) {
-											throw new UnsupportedOperationException("orgRelation scope "+specOrgRelation.getScope()+" is not supported yet");
+											orgFilter = OrgFilter.createOrg(subjectParentOrgRef.getOid(), OrgFilter.Scope.ANCESTORS);
 										} else {
 											throw new UnsupportedOperationException("Unknown orgRelation scope "+specOrgRelation.getScope());
 										}
