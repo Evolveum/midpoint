@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,8 @@
 
 package com.evolveum.midpoint.web.page.admin.configuration.dto;
 
+import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FailedOperationTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 
@@ -26,7 +28,8 @@ import java.util.List;
 /**
  *  @author shood
  * */
-public class AccountDetailsSearchDto implements Serializable{
+public class AccountDetailsSearchDto implements Serializable, DebugDumpable {
+	private static final long serialVersionUID = 1L;
 
     public static final String F_SEARCH_TEXT = "text";
     public static final String F_KIND = "kind";
@@ -88,5 +91,24 @@ public class AccountDetailsSearchDto implements Serializable{
     
     public void setFailedOperationType(FailedOperationTypeType failedOperationType) {
 		this.failedOperationType = failedOperationType;
+	}
+
+	@Override
+	public String debugDump() {
+		return debugDump(0);
+	}
+
+	@Override
+	public String debugDump(int indent) {
+		StringBuilder sb = new StringBuilder();
+		DebugUtil.indentDebugDump(sb, indent);
+		sb.append("AccountDetailsSearchDto\n");
+		DebugUtil.debugDumpWithLabelLn(sb, "text", text, indent+1);
+		DebugUtil.debugDumpWithLabelLn(sb, "kind", kind==null?null:kind.toString(), indent+1);
+		DebugUtil.debugDumpWithLabelLn(sb, "intent", intent, indent+1);
+		DebugUtil.debugDumpWithLabelLn(sb, "objectClass", objectClass, indent+1);
+		DebugUtil.debugDumpWithLabelLn(sb, "objectClassList", objectClassList, indent+1);
+		DebugUtil.debugDumpWithLabel(sb, "failedOperationType", failedOperationType==null?null:failedOperationType.toString(), indent+1);
+		return sb.toString();
 	}
 }

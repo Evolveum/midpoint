@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 package com.evolveum.midpoint.web.session;
 
 import com.evolveum.midpoint.prism.query.ObjectPaging;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.web.component.search.Search;
 import com.evolveum.midpoint.web.page.admin.server.dto.TasksSearchDto;
 
@@ -23,10 +24,6 @@ import com.evolveum.midpoint.web.page.admin.server.dto.TasksSearchDto;
  *  @author shood
  * */
 public class TasksStorage implements PageStorage{
-
-    /**
-	 * 
-	 */
 	private static final long serialVersionUID = 1L;
 
 	/**
@@ -69,4 +66,20 @@ public class TasksStorage implements PageStorage{
     	this.search = search;
     	
     }
+
+    @Override
+	public String debugDump() {
+		return debugDump(0);
+	}
+
+	@Override
+	public String debugDump(int indent) {
+		StringBuilder sb = new StringBuilder();
+		DebugUtil.indentDebugDump(sb, indent);
+		sb.append("TasksStorage\n");
+		DebugUtil.debugDumpWithLabelLn(sb, "tasksSearch", tasksSearch, indent+1);
+		DebugUtil.debugDumpWithLabelLn(sb, "tasksPaging", tasksPaging, indent+1);
+		DebugUtil.debugDumpWithLabel(sb, "search", search, indent+1);
+		return sb.toString();
+	}
 }

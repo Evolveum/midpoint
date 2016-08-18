@@ -25,6 +25,8 @@ import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
 import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -43,7 +45,7 @@ import java.util.Map;
 /**
  * @author Viliam Repan (lazyman)
  */
-public class Search implements Serializable {
+public class Search implements Serializable, DebugDumpable {
 
     public static final String F_AVAILABLE_DEFINITIONS = "availableDefinitions";
     public static final String F_ITEMS = "items";
@@ -305,4 +307,24 @@ public class Search implements Serializable {
                 .append("items", items)
                 .toString();
     }
+
+	@Override
+	public String debugDump() {
+		return debugDump(0);
+	}
+
+	@Override
+	public String debugDump(int indent) {
+		StringBuilder sb = new StringBuilder();
+		DebugUtil.indentDebugDump(sb, indent);
+		sb.append("Search\n");
+		DebugUtil.debugDumpWithLabelLn(sb, "showAdvanced", showAdvanced, indent+1);
+		DebugUtil.debugDumpWithLabelLn(sb, "advancedQuery", advancedQuery, indent+1);
+		DebugUtil.debugDumpWithLabelLn(sb, "advancedError", advancedError, indent+1);
+		DebugUtil.debugDumpWithLabelLn(sb, "type", type, indent+1);
+		DebugUtil.debugDumpWithLabelLn(sb, "allDefinitions", allDefinitions, indent+1);
+		DebugUtil.debugDumpWithLabelLn(sb, "availableDefinitions", availableDefinitions, indent+1);
+		DebugUtil.debugDumpWithLabel(sb, "items", items, indent+1);
+		return sb.toString();
+	}
 }

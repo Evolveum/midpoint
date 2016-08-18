@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,8 @@ package com.evolveum.midpoint.web.session;
 import java.util.Set;
 
 import com.evolveum.midpoint.prism.query.ObjectPaging;
+import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.web.component.search.Search;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.users.dto.OrgUnitSearchDto;
@@ -28,7 +30,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 /**
  * @author lazyman
  */
-public class UsersStorage implements PageStorage {
+public class UsersStorage implements PageStorage, DebugDumpable {
 
     /**
 	 * 
@@ -127,4 +129,25 @@ public class UsersStorage implements PageStorage {
     public void setCollapsedItem(SelectableBean<OrgType> collapsedItem) {
         this.collapsedItem = collapsedItem;
     }
+
+	@Override
+	public String debugDump() {
+		return debugDump(0);
+	}
+
+	@Override
+	public String debugDump(int indent) {
+		StringBuilder sb = new StringBuilder();
+		DebugUtil.indentDebugDump(sb, indent);
+		sb.append("UsersStorage\n");
+		DebugUtil.debugDumpWithLabelLn(sb, "usersSearch", usersSearch, indent+1);
+		DebugUtil.debugDumpWithLabelLn(sb, "orgUnitSearch", orgUnitSearch, indent+1);
+		DebugUtil.debugDumpWithLabelLn(sb, "orgUnitPaging", orgUnitPaging, indent+1);
+		DebugUtil.debugDumpWithLabelLn(sb, "usersPaging", usersPaging, indent+1);
+		DebugUtil.debugDumpWithLabelLn(sb, "selectedItem", selectedItem, indent+1);
+		DebugUtil.debugDumpWithLabelLn(sb, "expandedItems", expandedItems, indent+1);
+		DebugUtil.debugDumpWithLabelLn(sb, "selectedTabId", selectedTabId, indent+1);
+		DebugUtil.debugDumpWithLabel(sb, "collapsedItem", collapsedItem, indent+1);
+		return sb.toString();
+	}
 }
