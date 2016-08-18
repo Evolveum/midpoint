@@ -761,7 +761,7 @@ public abstract class ShadowCache {
 	}
 	
 	//we need to remove resolved identifiers form the ShadowAssociationType before we save it to the shadow as an unfinished operation. 
-	private void normalizeAssociationDeltasBeforeSave(Collection<PrismContainerValue<ShadowAssociationType>> associationContainers) {
+	void normalizeAssociationDeltasBeforeSave(Collection<PrismContainerValue<ShadowAssociationType>> associationContainers) {
 		if (associationContainers == null) {
 			return;
 		}
