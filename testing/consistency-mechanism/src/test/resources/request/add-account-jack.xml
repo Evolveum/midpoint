@@ -21,7 +21,7 @@
 	xmlns='http://midpoint.evolveum.com/xml/ns/public/common/api-types-3'
 	xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
 	xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
-	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"
+	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
 
 	xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3">
 	<!-- No OID for account. The OID will be generated once the account shadow 

@@ -1,0 +1,3 @@
+dn: cn=admins,ou=groups,dc=example,dc=com
+objectclass: groupOfUniqueNames
+cn: admins
