@@ -16,6 +16,8 @@
 
 package com.evolveum.midpoint.web.component.breadcrumbs;
 
+import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import org.apache.wicket.Component;
@@ -28,14 +30,26 @@ import java.io.Serializable;
 import java.util.Arrays;
 
 /**
+ * Breadcrumb object that is stored in the session. It represents the way "back" to the main menu.
+ * 
+ * We need to be extra careful about the memory references here. This object goes in the session.
+ * Therefore we cannot allow models to be stored in the session. The models may have references
+ * to (possibly big) pages and other rich objects. The references are there mostly to load the
+ * models. But we do not want that. We want to store only the values. Therefore the model values
+ * are copied to simple strings on model detach().
+ * 
  * @author Viliam Repan (lazyman)
+ * @author semancik
  */
-public class Breadcrumb implements Serializable {
+public class Breadcrumb implements Serializable, DebugDumpable {
+	private static final long serialVersionUID = 1L;
 
-    private static final Trace LOG = TraceManager.getTrace(Breadcrumb.class);
+	private static final Trace LOG = TraceManager.getTrace(Breadcrumb.class);
 
-    private IModel<String> label;
-    private IModel<String> icon;
+    transient private IModel<String> labelModel;
+    private String label;
+    transient private IModel<String> iconModel;
+    private String icon;
     private boolean useLink = false;
     private boolean visible = true;
 
@@ -56,19 +70,87 @@ public class Breadcrumb implements Serializable {
     }
 
     public IModel<String> getLabel() {
-        return label;
+    	if (labelModel == null && label != null) {
+    		labelModel = new AbstractReadOnlyModel<String>() {
+    			private static final long serialVersionUID = 1L;
+    			@Override
+                public String getObject() {
+    				return label;
+    			}
+    		};
+    	}
+    	return labelModel;
     }
 
-    public void setLabel(IModel<String> label) {
-        this.label = wrapModel(label);
+    public void setLabel(final IModel<String> label) {
+    	if (label == null) {
+    		this.labelModel = null;
+            return;
+        }
+
+    	this.labelModel = new AbstractReadOnlyModel<String>() {
+			private static final long serialVersionUID = 1L;
+
+			@Override
+            public String getObject() {
+                try {
+                    return label.getObject();
+                } catch (Exception ex) {
+                    LOG.warn("Couldn't load breadcrumb model value", ex);
+                    return null;
+                }
+            }
+
+			@Override
+			public void detach() {
+				super.detach();
+				Breadcrumb.this.label = label.getObject();
+				Breadcrumb.this.labelModel = null;
+			}
+            
+        };
     }
 
     public IModel<String> getIcon() {
-        return icon;
+    	if (iconModel == null && icon != null) {
+    		iconModel = new AbstractReadOnlyModel<String>() {
+    			private static final long serialVersionUID = 1L;
+    			@Override
+                public String getObject() {
+    				return icon;
+    			}
+    		};
+    	}
+    	return iconModel;
     }
 
-    public void setIcon(IModel<String> icon) {
-        this.icon = wrapModel(icon);
+    public void setIcon(final IModel<String> icon) {
+    	if (icon == null) {
+    		this.iconModel = null;
+            return;
+        }
+
+    	this.iconModel = new AbstractReadOnlyModel<String>() {
+			private static final long serialVersionUID = 1L;
+
+			@Override
+            public String getObject() {
+                try {
+                    return icon.getObject();
+                } catch (Exception ex) {
+                    LOG.warn("Couldn't load breadcrumb model value", ex);
+                    return null;
+                }
+            }
+
+			@Override
+			public void detach() {
+				super.detach();
+				Breadcrumb.this.icon = icon.getObject();
+				Breadcrumb.this.iconModel = null;
+			}
+            
+        };
     }
 
     public boolean isUseLink() {
@@ -110,6 +192,13 @@ public class Breadcrumb implements Serializable {
                     return null;
                 }
             }
+
+			@Override
+			public void detach() {
+				super.detach();
+				model.getObject();
+			}
+            
         };
     }
 
@@ -124,6 +213,31 @@ public class Breadcrumb implements Serializable {
 
     @Override
     public int hashCode() {
-        return Arrays.hashCode(new Object[]{label, icon});
+        return Arrays.hashCode(new Object[]{labelModel, iconModel});
     }
+
+	@Override
+	public String debugDump() {
+		return debugDump(0);
+	}
+
+	@Override
+	public String debugDump(int indent) {
+		StringBuilder sb = new StringBuilder();
+		DebugUtil.indentDebugDump(sb, indent);
+		sb.append(this.getClass().getSimpleName());
+		sb.append("\n");
+		DebugUtil.debugDumpWithLabelLn(sb, "labelModel", labelModel==null?"":labelModel.toString(), indent+1);
+		DebugUtil.debugDumpWithLabelLn(sb, "label", label, indent+1);
+		DebugUtil.debugDumpWithLabelLn(sb, "iconModel", iconModel==null?"":iconModel.toString(), indent+1);
+		DebugUtil.debugDumpWithLabelLn(sb, "icon", icon, indent+1);
+		DebugUtil.debugDumpWithLabelLn(sb, "useLink", useLink, indent+1);
+		DebugUtil.debugDumpWithLabel(sb, "visible", visible, indent+1);
+		extendsDebugDump(sb, indent);
+		return sb.toString();
+	}
+
+	protected void extendsDebugDump(StringBuilder sb, int indent) {
+		
+	}
 }

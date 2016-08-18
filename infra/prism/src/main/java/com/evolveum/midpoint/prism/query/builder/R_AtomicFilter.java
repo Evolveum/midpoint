@@ -125,6 +125,11 @@ public class R_AtomicFilter implements S_ConditionEntry, S_MatchingRuleEntry, S_
     }
 
     @Override
+    public S_MatchingRuleEntry eqPoly(String orig) {
+        return new R_AtomicFilter(this, EqualFilter.createEqual(itemPath, propertyDefinition, null, new PolyString(orig)));
+    }
+
+    @Override
     public S_MatchingRuleEntry gt(Object value) throws SchemaException {
         return new R_AtomicFilter(this, GreaterFilter.createGreater(itemPath, propertyDefinition, value, false));
     }

@@ -246,14 +246,10 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
 
         try {
             /*
-             *  ### user: Equal (organization, "asdf", PolyStringNorm)
+             *  ### user: Equal (organization, "...", PolyStringNorm)
              */
-            ObjectFilter filter = EqualFilter.createEqual(UserType.F_ORGANIZATION, UserType.class, prismContext,
-                    PolyStringNormMatchingRule.NAME, new PolyString("asdf", "asdf"));
-            ObjectQuery query0 = ObjectQuery.createObjectQuery(filter);
-
             ObjectQuery query = QueryBuilder.queryFor(UserType.class, prismContext)
-                    .item(UserType.F_ORGANIZATION).eqPoly("asdf", "asdf").matchingNorm().build();
+                    .item(UserType.F_ORGANIZATION).eqPoly("guľôčka v jamôčke").matchingNorm().build();
 
             String expected = "select\n" +
                     "  u.fullObject, u.stringsCount, u.longsCount, u.datesCount, u.referencesCount, u.polysCount, u.booleansCount\n" +
@@ -263,8 +259,11 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     "where\n" +
                     "  o.norm = :norm";
 
-            String real = getInterpretedQuery2(session, UserType.class, query);
+            RQueryImpl rQuery = (RQueryImpl) getInterpretedQuery2Whole(session, UserType.class, query, false);
+            String real = rQuery.getQuery().getQueryString();
             assertEqualsIgnoreWhitespace(expected, real);
+
+            assertEquals("Wrong parameter value", "gulocka v jamocke", rQuery.getQuerySource().getParameters().get("norm").getValue());
         } finally {
             close(session);
         }
@@ -2028,6 +2027,15 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
         checkQueryResult(UserType.class, "00000000-8888-6666-0000-200000000002", OrgFilter.Scope.SUBTREE, 2);
         checkQueryResult(UserType.class, "00000000-8888-6666-0000-200000000001", OrgFilter.Scope.ONE_LEVEL, 1);
         checkQueryResult(UserType.class, "00000000-8888-6666-0000-200000000001", OrgFilter.Scope.SUBTREE, 1);
+        checkQueryResult(OrgType.class, "00000000-8888-6666-0000-100000000001", OrgFilter.Scope.ANCESTORS, 0);
+        checkQueryResult(OrgType.class, "00000000-8888-6666-0000-100000000002", OrgFilter.Scope.ANCESTORS, 1);
+        checkQueryResult(OrgType.class, "00000000-8888-6666-0000-100000000003", OrgFilter.Scope.ANCESTORS, 1);
+        checkQueryResult(OrgType.class, "00000000-8888-6666-0000-100000000004", OrgFilter.Scope.ANCESTORS, 1);
+        checkQueryResult(OrgType.class, "00000000-8888-6666-0000-100000000005", OrgFilter.Scope.ANCESTORS, 2);
+        checkQueryResult(OrgType.class, "00000000-8888-6666-0000-100000000006", OrgFilter.Scope.ANCESTORS, 3);
+        checkQueryResult(OrgType.class, "00000000-8888-6666-0000-200000000000", OrgFilter.Scope.ANCESTORS, 0);
+        checkQueryResult(OrgType.class, "00000000-8888-6666-0000-200000000001", OrgFilter.Scope.ANCESTORS, 1);
+        checkQueryResult(OrgType.class, "00000000-8888-6666-0000-200000000002", OrgFilter.Scope.ANCESTORS, 1);
     }
 
     private <T extends ObjectType> void checkQueryResult(Class<T> type, String oid, OrgFilter.Scope scope, int count)

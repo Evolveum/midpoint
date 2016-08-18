@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,8 +19,11 @@ package com.evolveum.midpoint.web.security;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.security.api.Authorization;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
+import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.web.session.SessionStorage;
 import org.apache.wicket.Session;
 import org.apache.wicket.authroles.authentication.AuthenticatedWebSession;
@@ -31,11 +34,12 @@ import org.apache.wicket.protocol.http.WebSession;
 import org.apache.wicket.request.Request;
 
 import java.util.Locale;
+import java.util.Map.Entry;
 
 /**
  * @author lazyman
  */
-public class MidPointAuthWebSession extends AuthenticatedWebSession {
+public class MidPointAuthWebSession extends AuthenticatedWebSession implements DebugDumpable {
 
     private static final Trace LOGGER = TraceManager.getTrace(MidPointAuthWebSession.class);
 
@@ -102,4 +106,28 @@ public class MidPointAuthWebSession extends AuthenticatedWebSession {
 
         LOGGER.debug("Using {} as time zone", props.getTimeZone());
     }
+
+	@Override
+	public String debugDump() {
+		return debugDump(0);
+	}
+
+	@Override
+	public String debugDump(int indent) {
+		StringBuilder sb = new StringBuilder();
+		DebugUtil.indentDebugDump(sb, indent);
+		sb.append("MidPointAuthWebSession\n");
+		DebugUtil.debugDumpWithLabel(sb, "sessionStorage", sessionStorage, indent+1);
+		return sb.toString();
+	}
+	
+	public String dumpSizeEstimates(int indent) {
+		StringBuilder sb = new StringBuilder();
+		DebugUtil.dumpObjectSizeEstimate(sb, "MidPointAuthWebSession", this, indent);
+		if (sessionStorage != null) {
+			sb.append("\n");
+			sessionStorage.dumpSizeEstimates(sb, indent + 1);
+		}
+		return sb.toString();
+	}
 }

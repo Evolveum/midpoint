@@ -44,6 +44,8 @@ public interface S_AtomicFilterEntry {
     S_AtomicFilterExit isChildOf(PrismReferenceValue value) throws SchemaException;
     S_AtomicFilterExit isDirectChildOf(String oid) throws SchemaException;
     S_AtomicFilterExit isChildOf(String oid) throws SchemaException;
+    S_AtomicFilterExit isParentOf(PrismReferenceValue value) throws SchemaException;            // reference should point to OrgType
+    S_AtomicFilterExit isParentOf(String oid) throws SchemaException;                           // oid should be of an OrgType
     S_AtomicFilterExit isRoot() throws SchemaException;
     S_FilterEntryOrEmpty block();
     S_FilterEntry type(Class<? extends Containerable> type) throws SchemaException;
