@@ -65,12 +65,12 @@ public class SecurityUtils {
     }
 
     public static boolean isMenuAuthorized(MainMenuItem item) {
-        Class clazz = item.getPage();
+        Class clazz = item.getPageClass();
         return clazz == null || isPageAuthorized(clazz);
     }
 
     public static boolean isMenuAuthorized(MenuItem item) {
-        Class clazz = item.getPage();
+        Class clazz = item.getPageClass();
         return isPageAuthorized(clazz);
     }
 

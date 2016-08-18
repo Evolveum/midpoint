@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.gui.api.page;
 
 import java.io.Serializable;
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -31,6 +32,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
+import org.apache.wicket.MarkupContainer;
 import org.apache.wicket.Page;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.RuntimeConfigurationType;
@@ -97,6 +99,7 @@ import com.evolveum.midpoint.security.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskCategory;
 import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.Producer;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -185,6 +188,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType;
  * @author semancik
  */
 public abstract class PageBase extends WebPage implements ModelServiceLocator {
+	private static final long serialVersionUID = 1L;
 
 	private static final String DOT_CLASS = PageBase.class.getName() + ".";
 	private static final String OPERATION_LOAD_USER = DOT_CLASS + "loadUser";
@@ -218,49 +222,49 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 	private static final Trace LOGGER = TraceManager.getTrace(PageBase.class);
 
 	@SpringBean(name = "modelController")
-	private ScriptingService scriptingService;
+	private transient ScriptingService scriptingService;
 
 	@SpringBean(name = "modelController")
-	private ModelService modelService;
+	private transient ModelService modelService;
 
 	@SpringBean(name = "modelInteractionService")
-	private ModelInteractionService modelInteractionService;
+	private transient ModelInteractionService modelInteractionService;
 
 	@SpringBean(name = "modelController")
-	private TaskService taskService;
+	private transient TaskService taskService;
 
 	@SpringBean(name = "modelDiagController")
-	private ModelDiagnosticService modelDiagnosticService;
+	private transient ModelDiagnosticService modelDiagnosticService;
 
 	@SpringBean(name = "taskManager")
-	private TaskManager taskManager;
+	private transient TaskManager taskManager;
 
 	@SpringBean(name = "modelController")
-	private WorkflowService workflowService;
+	private transient WorkflowService workflowService;
 
 	@SpringBean(name = "workflowManager")
-	private WorkflowManager workflowManager;
+	private transient WorkflowManager workflowManager;
 
 	@SpringBean(name = "midpointConfiguration")
-	private MidpointConfiguration midpointConfiguration;
+	private transient MidpointConfiguration midpointConfiguration;
 
 	@SpringBean(name = "reportManager")
-	private ReportManager reportManager;
+	private transient ReportManager reportManager;
 
 	@SpringBean(name = "resourceValidator")
-	private ResourceValidator resourceValidator;
+	private transient ResourceValidator resourceValidator;
 
 	// @SpringBean(name = "certificationManager")
 	// private CertificationManager certificationManager;
 
 	@SpringBean(name = "modelController")
-	private AccessCertificationService certficationService;
+	private transient AccessCertificationService certficationService;
 
 	@SpringBean(name = "accessDecisionManager")
-	private SecurityEnforcer securityEnforcer;
+	private transient SecurityEnforcer securityEnforcer;
 
 	@SpringBean
-	private MidpointFormValidatorRegistry formValidatorRegistry;
+	private transient MidpointFormValidatorRegistry formValidatorRegistry;
 
 	private boolean initialized = false;
 
@@ -280,7 +284,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
 		initializeModel();
 		
-		initLayout();
+		initLayout();		
 	}
 
 	@Override
@@ -306,7 +310,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 					ObjectQuery query = QueryBuilder.queryFor(WorkItemType.class, getPrismContext())
 					        .item(WorkItemType.F_ASSIGNEE_REF).ref(getPrincipal().getOid())
 					        .build();
-					return modelService.countContainers(WorkItemType.class, query, null, task, task.getResult());
+					return getModelService().countContainers(WorkItemType.class, query, null, task, task.getResult());
 				} catch (SchemaException|SecurityViolationException e) {
 					LoggingUtils.logExceptionAsWarning(LOGGER, "Couldn't load work item count", e);
 					return null;
@@ -1360,8 +1364,9 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 	}
 
 	private void createFocusPageNewEditMenu(List<MenuItem> submenu, String newKey, String editKey,
-			final Class<? extends PageAdmin> newPageType) {
-		MenuItem edit = new MenuItem(createStringResource(editKey), newPageType, null, new VisibleEnableBehaviour() {
+			final Class<? extends PageAdmin> newPageClass) {
+		MenuItem edit = new MenuItem(createStringResource(editKey), newPageClass, null, new VisibleEnableBehaviour() {
+			private static final long serialVersionUID = 1L;
 
 			@Override
 			public boolean isEnabled() {
@@ -1370,7 +1375,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
 			@Override
 			public boolean isVisible() {
-				if (!getPage().getClass().equals(newPageType)) {
+				if (!getPage().getClass().equals(newPageClass)) {
 					return false;
 				}
 
@@ -1386,11 +1391,12 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 			}
 		});
 		submenu.add(edit);
-		MenuItem newMenu = new MenuItem(createStringResource(newKey), newPageType) {
+		MenuItem newMenu = new MenuItem(createStringResource(newKey), newPageClass) {
+			private static final long serialVersionUID = 1L;
 
 			@Override
 			protected boolean isMenuActive() {
-				if (!PageBase.this.getPage().getClass().equals(newPageType)) {
+				if (!PageBase.this.getPage().getClass().equals(newPageClass)) {
 					return false;
 				}
 
@@ -1411,6 +1417,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 	private void createFocusPageViewMenu(List<MenuItem> submenu, String viewKey,
 			final Class<? extends PageBase> newPageType) {
 		MenuItem view = new MenuItem(createStringResource(viewKey), newPageType, null, new VisibleEnableBehaviour() {
+			private static final long serialVersionUID = 1L;
 
 			@Override
 			public boolean isEnabled() {
