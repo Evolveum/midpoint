@@ -56,12 +56,12 @@ public class Breadcrumb implements Serializable, DebugDumpable {
     public Breadcrumb() {
     }
 
-    public Breadcrumb(IModel<String> label) {
-        this(label, null);
+    public Breadcrumb(IModel<String> labelModel) {
+        this(labelModel, null);
     }
 
-    public Breadcrumb(IModel<String> label, IModel<String> icon) {
-        setLabel(label);
+    public Breadcrumb(IModel<String> labelModel, IModel<String> icon) {
+        setLabel(labelModel);
         setIcon(icon);
     }
 

@@ -20,6 +20,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.util.Collection;
 import java.util.Date;
 import java.util.Iterator;
@@ -29,6 +31,9 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 import javax.xml.namespace.QName;
+
+import org.springframework.util.ReflectionUtils;
+import org.springframework.util.ReflectionUtils.FieldCallback;
 
 /**
  *
@@ -480,6 +485,9 @@ public class DebugUtil {
 	}
 
 	public static int estimateObjectSize(Serializable o) {
+		if (o == null) {
+			return 0;
+		}
 		try {
 			ByteArrayOutputStream baos = new ByteArrayOutputStream();
 			ObjectOutputStream oos = new ObjectOutputStream(baos);
@@ -500,5 +508,39 @@ public class DebugUtil {
 		indentDebugDump(sb, indent);
 		sb.append(label).append(": ");
 		sb.append(estimateObjectSize(o));
+	}
+	
+	public static String dumpObjectFieldsSizeEstimate(final Serializable o) {
+		final StringBuilder sb = new StringBuilder();
+		sb.append(o).append(": ").append(estimateObjectSize(o)).append("\n");
+		ReflectionUtils.doWithFields(o.getClass(), new FieldCallback() {
+			@Override
+			public void doWith(Field field) throws IllegalArgumentException, IllegalAccessException {
+				int mods = field.getModifiers();
+				if (Modifier.isStatic(mods) && Modifier.isFinal(mods)) {
+					return;
+				}
+				if (Modifier.isTransient(mods)) {
+					return;
+				}
+				field.setAccessible(true);
+				sb.append("\n");
+				DebugUtil.indentDebugDump(sb, 1);
+				sb.append(field.getName());
+				if (Modifier.isStatic(mods)) {
+					sb.append(" (static)");
+				}
+				sb.append(": ");
+				Object value = field.get(o);
+				if (value == null) {
+					sb.append("null");
+				} else if (value instanceof Serializable) {
+					sb.append(estimateObjectSize((Serializable)value));
+				} else {
+					sb.append("non-serializable ("+value.getClass()+")");
+				}
+			}
+		});
+		return sb.toString();
 	}
 }
