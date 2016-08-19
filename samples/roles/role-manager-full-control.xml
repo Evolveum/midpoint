@@ -24,6 +24,11 @@
     	the units that he is managing. And it can change all the contained objects.
     </description>
     <authorization>
+    	<name>gui</name>
+    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#orgAll</action>
+    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#usersAll</action>
+    </authorization>
+    <authorization>
     	<name>autz-read</name>
     	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
     	<object>
