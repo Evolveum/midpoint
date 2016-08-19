@@ -132,7 +132,8 @@ public class ChooseTypePanel<T extends ObjectType> extends BasePanel<ObjectViewD
     	Class<T> type = getObjectTypeClass();
     	List<QName> supportedTypes = new ArrayList<>();
     	supportedTypes.add(WebComponentUtil.classToQName(getPageBase().getPrismContext(), type));
-    	ObjectBrowserPanel<T> objectBrowserPanel = new ObjectBrowserPanel<T>(getPageBase().getMainPopupBodyId(), type, supportedTypes, false, getPageBase()){
+    	ObjectBrowserPanel<T> objectBrowserPanel = new ObjectBrowserPanel<T>(getPageBase().getMainPopupBodyId(),
+                type, supportedTypes, false, getPageBase(), getChooseQuery() != null ? getChooseQuery().getFilter() : null){
     		private static final long serialVersionUID = 1L;
 
 			@Override
