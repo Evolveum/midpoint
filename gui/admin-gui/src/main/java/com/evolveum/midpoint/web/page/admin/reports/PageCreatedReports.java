@@ -103,6 +103,7 @@ public class PageCreatedReports extends PageAdminReports {
     private static final String DOT_CLASS = PageCreatedReports.class.getName() + ".";
     private static final String OPERATION_DELETE = DOT_CLASS + "deleteReportOutput";
     private static final String OPERATION_DOWNLOAD_REPORT = DOT_CLASS + "downloadReport";
+    private static final String OPERATION_GET_REPORT_FILENAME = DOT_CLASS + "getReportFilename";
 
     private static final String ID_MAIN_FORM = "mainForm";
     private static final String ID_CREATED_REPORTS_TABLE = "table";
@@ -191,6 +192,11 @@ public class PageCreatedReports extends PageAdminReports {
             @Override
             protected InputStream initStream() {
                 return createReport(this);
+            }
+
+            @Override
+           public String getFileName(){
+              return getReportFileName();
             }
         };
 
@@ -628,5 +634,21 @@ public class PageCreatedReports extends PageAdminReports {
             reportTypeSelect.setNullValid(true);
             searchForm.add(reportTypeSelect);
         }
+    }
+
+    private String getReportFileName(){
+        try {
+            OperationResult result = new OperationResult(OPERATION_GET_REPORT_FILENAME);
+            ReportOutputType reportOutput = WebModelServiceUtils.loadObject(ReportOutputType.class, currentReport.getOid(), getPageBase(),
+                    null, result).asObjectable();
+            String fileName = reportOutput.getFilePath();
+            if (fileName.contains("/")) {
+                fileName = fileName.substring(fileName.lastIndexOf("/") + 1);
+            }
+            return fileName;
+        } catch (Exception ex){
+            //nothing to do
+        }
+        return null;
     }
 }
