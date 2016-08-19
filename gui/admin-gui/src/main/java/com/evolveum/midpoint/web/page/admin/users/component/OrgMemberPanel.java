@@ -492,9 +492,6 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 
 	@Override
 	protected void addMembersPerformed(QName type, QName relation, List selected, AjaxRequestTarget target) {
-		// "Add managers: " +
-		// WebComponentUtil.getEffectiveName(getModelObject(),
-		// AbstractRoleType.F_DISPLAY_NAME)
 		Task operationalTask = getPageBase().createSimpleTask(getTaskName("Add", null, false));
 		ObjectDelta delta = prepareDelta(MemberOperation.ADD, type, relation, operationalTask.getResult(),
 				target);
@@ -646,26 +643,6 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 		OrgType org = getModelObject();
 		
 			return ObjectQuery.createObjectQuery(OrgFilter.createOrg(org.getOid(), getScope(scope)));
-		
-//		if (!isFocus) {
-//
-//			PrismReferenceDefinition def = org.asPrismObject().getDefinition()
-//					.findReferenceDefinition(UserType.F_PARENT_ORG_REF);
-//			ObjectFilter orgFilter = RefFilter.createReferenceEqual(new ItemPath(ObjectType.F_PARENT_ORG_REF),
-//					def, createReference(relation).asReferenceValue());
-//			TypeFilter typeFilter = TypeFilter.createType(FocusType.COMPLEX_TYPE, null);
-//			return ObjectQuery
-//					.createObjectQuery(AndFilter.createAnd(NotFilter.createNot(typeFilter), orgFilter));
-//
-//		}
-//
-//		PrismReferenceDefinition def = org.asPrismObject().getDefinition()
-//				.findReferenceDefinition(new ItemPath(OrgType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF));
-//		ObjectFilter orgASsignmentFilter = RefFilter.createReferenceEqual(
-//				new ItemPath(FocusType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF), def,
-//				createReference(relation).asReferenceValue());
-//		return ObjectQuery
-//				.createObjectQuery(TypeFilter.createType(FocusType.COMPLEX_TYPE, orgASsignmentFilter));
 
 	}
 	
@@ -673,17 +650,6 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 		return QueryScope.ALL == queryScope ? Scope.SUBTREE : Scope.ONE_LEVEL;
 	}
 
-	// private ObjectQuery createQueryForRecompute() {
-	//
-	// List<ObjectType> objects = getMemberTable().getSelectedObjects();
-	// List<String> oids = new ArrayList<>();
-	// for (ObjectType object : objects) {
-	// oids.add(object.getOid());
-	//
-	// }
-	//
-	// return ObjectQuery.createObjectQuery(InOidFilter.createInOid(oids));
-	// }
 
 	protected ObjectDelta createMemberDelta(MemberOperation operation, QName type, QName relation)
 			throws SchemaException {

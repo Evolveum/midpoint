@@ -161,16 +161,7 @@ public class RoleMemberPanel extends AbstractRoleMemberPanel<RoleType> {
 		}
 
 	}
-//	private void addFilter(ObjectFilter filter, List<ObjectFilter> conditions, boolean isNot) {
-//		if (isNot) {
-//			ObjectFilter notFilter = NotFilter.createNot(filter);
-//			conditions.add(notFilter);
-//		} else {
-//			conditions.add(filter);
-//		}
-//	}
 
-	
 	private MainObjectListPanel<FocusType> getMemberTable() {
 		return (MainObjectListPanel<FocusType>) get(createComponentPath(ID_FORM, ID_CONTAINER_MEMBER, ID_MEMBER_TABLE));
 	}

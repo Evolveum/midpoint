@@ -15,45 +15,39 @@
   ~ limitations under the License.
   -->
 
-<html xmlns="http://www.w3.org/1999/xhtml" xmlns:wicket="http://wicket.apache.org">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:wicket="http://wicket.apache.org">
 <body>
-<wicket:panel>
+	<wicket:panel>
 
-<div class="form-inline search-form">
-<!--         <row class="form-inline pull-right search-form"> -->
-        <div class="form-group">
-            <label><wicket:message key="roleMemberPanel.type"/></label>
-            <select class="form-control input-sm" wicket:id="type"/>
-        </div>
-        <div class="form-group">
-            <label><wicket:message key="roleMemberPanel.tenant"/></label>
-            <select class="form-control input-sm" wicket:id="tenant"/>
-        </div>
-        <div class="form-group">
-            <label><wicket:message key="roleMemberPanel.project"/></label>
-            <select class="form-control input-sm" wicket:id="project"/>
-        </div>
-        
-         <div class="form-group">
-            <label><wicket:message key="roleMemberPanel.indirectMembers"/></label>
-            <span wicket:id="indirectMembers"/>
-        </div>
-        
-       
-        
-        
-<!--             <div wicket:id="basicSearch" /> -->
-<!--         </row> -->
-    </div>
+		<div class="form-inline search-form">
+			<div class="form-group">
+				<label><wicket:message key="roleMemberPanel.type" /></label> 
+				<select class="form-control input-sm" wicket:id="type" />
+			</div>
+			<div class="form-group">
+				<label><wicket:message key="roleMemberPanel.tenant" /></label> 
+				<select class="form-control input-sm" wicket:id="tenant" />
+			</div>
+			<div class="form-group">
+				<label><wicket:message key="roleMemberPanel.project" /></label> 
+				<select class="form-control input-sm" wicket:id="project" />
+			</div>
 
-<form class="clearfix form-horizontal" wicket:id="form">
-      
-        <div wicket:id="memberContainer">
-	 <div wicket:id="memberTable"/>
-	 </div>
-	 </form>
-    
-</wicket:panel>
+			<div class="form-group">
+				<label><wicket:message key="roleMemberPanel.indirectMembers" /></label>
+				<span wicket:id="indirectMembers" />
+			</div>
+		</div>
+
+		<form class="clearfix form-horizontal" wicket:id="form">
+
+			<div wicket:id="memberContainer">
+				<div wicket:id="memberTable" />
+			</div>
+		</form>
+
+	</wicket:panel>
 </body>
 </html>
 

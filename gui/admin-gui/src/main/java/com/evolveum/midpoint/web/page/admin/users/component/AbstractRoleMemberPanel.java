@@ -449,10 +449,6 @@ public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extend
 
 	protected abstract ObjectQuery createMemberQuery();
 
-	// protected Class qnameToClass(QName type) {
-	// return
-	// getPageBase().getPrismContext().getSchemaRegistry().determineCompileTimeClass(type);
-	// }
 
 	protected String getTaskName(String operation, QueryScope scope, boolean managers) {
 		StringBuilder nameBuilder = new StringBuilder(operation);
