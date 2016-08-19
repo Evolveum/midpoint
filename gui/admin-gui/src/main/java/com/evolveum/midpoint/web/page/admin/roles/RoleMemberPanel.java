@@ -57,6 +57,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.data.column.CheckBoxPanel;
 import com.evolveum.midpoint.web.component.input.ObjectTypeChoiceRenderer;
 import com.evolveum.midpoint.web.component.input.QNameChoiceRenderer;
 import com.evolveum.midpoint.web.page.admin.users.component.AbstractRoleMemberPanel;
@@ -77,6 +78,7 @@ public class RoleMemberPanel extends AbstractRoleMemberPanel<RoleType> {
 	private static String ID_OBJECT_TYPE = "type";
 	private static String ID_TENANT = "tenant";
 	private static String ID_PROJECT = "project";
+	private static String ID_INDIRECT_MEMBERS = "indirectMembers";
 	
 	public RoleMemberPanel(String id, IModel<RoleType> model, PageBase pageBase) {
 		super(id, TableId.ROLE_MEMEBER_PANEL, model, pageBase);
@@ -194,7 +196,9 @@ public class RoleMemberPanel extends AbstractRoleMemberPanel<RoleType> {
 	private ObjectQuery getActionQuery(QueryScope scope) {
 		switch (scope) {
 			case ALL:
-				return createMemberQuery();
+				return createAllMemberQuery();
+			case ALL_DIRECT:
+				return createDirectMemberQuery();
 			case SELECTED:
 				return createRecomputeQuery();
 		}
@@ -202,6 +206,9 @@ public class RoleMemberPanel extends AbstractRoleMemberPanel<RoleType> {
 		return null;
 	}
 
+	private ObjectQuery createAllMemberQuery() {
+		return ObjectQuery.createObjectQuery(RefFilter.createReferenceEqual(FocusType.F_ROLE_MEMBERSHIP_REF, FocusType.class, getModelObject()));
+	}
 
 	private ObjectQuery createRecomputeQuery() {
 		Set<String> oids = getFocusOidToRecompute();
@@ -239,6 +246,16 @@ public class RoleMemberPanel extends AbstractRoleMemberPanel<RoleType> {
 		DropDownChoice<OrgType> project = createDropDown(ID_PROJECT, new Model(),
 				createProjectList(), new ObjectTypeChoiceRenderer<OrgType>());
 		add(project);
+		
+		CheckBoxPanel includeIndirectMembers = new CheckBoxPanel(ID_INDIRECT_MEMBERS, new Model<Boolean>(false)) {
+			private static final long serialVersionUID = 1L;
+
+			public void onUpdate(AjaxRequestTarget target) {
+				refreshTable(target);
+			};
+		};
+		add(includeIndirectMembers);
+		
 
 	}
 
@@ -294,6 +311,13 @@ public class RoleMemberPanel extends AbstractRoleMemberPanel<RoleType> {
 
 	@Override
 	protected ObjectQuery createMemberQuery() {
+		CheckBoxPanel indirectMembers = (CheckBoxPanel) get(createComponentPath(ID_INDIRECT_MEMBERS));
+		boolean indirect = indirectMembers.getValue();
+		return indirect ? createAllMemberQuery() : createDirectMemberQuery();  
+		
+	}
+
+	private ObjectQuery createDirectMemberQuery() {
 		ObjectQuery query = null;
 
 		String oid = getModelObject().getOid();
@@ -340,5 +364,4 @@ public class RoleMemberPanel extends AbstractRoleMemberPanel<RoleType> {
 
 		return ObjectQuery.createObjectQuery(TypeFilter.createType(objectType, query.getFilter()));
 	}
-
 }

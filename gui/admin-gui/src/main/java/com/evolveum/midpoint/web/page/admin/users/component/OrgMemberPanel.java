@@ -57,6 +57,7 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.OrgFilter;
 import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.prism.query.TypeFilter;
+import com.evolveum.midpoint.prism.query.OrgFilter.Scope;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.RetrieveOption;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -618,8 +619,9 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 
 				query = ObjectQuery.createObjectQuery(InOidFilter.createInOid(oids));
 				break;
-			case ALL:
-				query = createQueryForAll(isFocus, orgRelation);
+			case ALL_DIRECT:
+			case ALL: 
+				query = createQueryForAll(scope, isFocus, orgRelation);
 				break;
 			default:
 				break;
@@ -640,28 +642,35 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 		return false;
 	}
 
-	private ObjectQuery createQueryForAll(boolean isFocus, QName relation) {
+	private ObjectQuery createQueryForAll(QueryScope scope, boolean isFocus, QName relation) {
 		OrgType org = getModelObject();
-		if (!isFocus) {
+		
+			return ObjectQuery.createObjectQuery(OrgFilter.createOrg(org.getOid(), getScope(scope)));
+		
+//		if (!isFocus) {
+//
+//			PrismReferenceDefinition def = org.asPrismObject().getDefinition()
+//					.findReferenceDefinition(UserType.F_PARENT_ORG_REF);
+//			ObjectFilter orgFilter = RefFilter.createReferenceEqual(new ItemPath(ObjectType.F_PARENT_ORG_REF),
+//					def, createReference(relation).asReferenceValue());
+//			TypeFilter typeFilter = TypeFilter.createType(FocusType.COMPLEX_TYPE, null);
+//			return ObjectQuery
+//					.createObjectQuery(AndFilter.createAnd(NotFilter.createNot(typeFilter), orgFilter));
+//
+//		}
+//
+//		PrismReferenceDefinition def = org.asPrismObject().getDefinition()
+//				.findReferenceDefinition(new ItemPath(OrgType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF));
+//		ObjectFilter orgASsignmentFilter = RefFilter.createReferenceEqual(
+//				new ItemPath(FocusType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF), def,
+//				createReference(relation).asReferenceValue());
+//		return ObjectQuery
+//				.createObjectQuery(TypeFilter.createType(FocusType.COMPLEX_TYPE, orgASsignmentFilter));
 
-			PrismReferenceDefinition def = org.asPrismObject().getDefinition()
-					.findReferenceDefinition(UserType.F_PARENT_ORG_REF);
-			ObjectFilter orgFilter = RefFilter.createReferenceEqual(new ItemPath(ObjectType.F_PARENT_ORG_REF),
-					def, createReference(relation).asReferenceValue());
-			TypeFilter typeFilter = TypeFilter.createType(FocusType.COMPLEX_TYPE, null);
-			return ObjectQuery
-					.createObjectQuery(AndFilter.createAnd(NotFilter.createNot(typeFilter), orgFilter));
-
-		}
-
-		PrismReferenceDefinition def = org.asPrismObject().getDefinition()
-				.findReferenceDefinition(new ItemPath(OrgType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF));
-		ObjectFilter orgASsignmentFilter = RefFilter.createReferenceEqual(
-				new ItemPath(FocusType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF), def,
-				createReference(relation).asReferenceValue());
-		return ObjectQuery
-				.createObjectQuery(TypeFilter.createType(FocusType.COMPLEX_TYPE, orgASsignmentFilter));
-
+	}
+	
+	private Scope getScope(QueryScope queryScope) {
+		return QueryScope.ALL == queryScope ? Scope.SUBTREE : Scope.ONE_LEVEL;
 	}
 
 	// private ObjectQuery createQueryForRecompute() {
