@@ -452,16 +452,19 @@ public class ResourceAttributeEditor extends BasePanel<ResourceAttributeDefiniti
         List<ItemPathType> references = new ArrayList<>();
 
         ResourceSchema schema = loadResourceSchema();
-        if (schema == null) {
+        if (schema == null || objectType == null) {
             return references;
         }
 
-        for(ObjectClassComplexTypeDefinition def: schema.getObjectClassDefinitions()){
-            if(objectType != null && def.getTypeName().equals(objectType.getObjectClass())){
-
+        for (ObjectClassComplexTypeDefinition def: schema.getObjectClassDefinitions()) {
+            if (objectType.getObjectClass().equals(def.getTypeName()) ||
+                    objectType.getAuxiliaryObjectClass().contains(def.getTypeName())) {
                 for (ResourceAttributeDefinition attributeDefinition : def.getAttributeDefinitions()) {
                     ItemPath itemPath = new ItemPath(attributeDefinition.getName());
-                    references.add(new ItemPathType(itemPath));
+                    ItemPathType itemPathType = new ItemPathType(itemPath);
+                    if (!references.contains(itemPathType)) {
+                        references.add(itemPathType);
+                    }
                 }
             }
         }
