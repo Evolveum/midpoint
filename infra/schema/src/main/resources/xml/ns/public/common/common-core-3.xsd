@@ -2544,7 +2544,13 @@
         	<xsd:extension base="tns:AbstractCredentialType">
         		<xsd:sequence>
             		<xsd:element name="value" type="t:ProtectedStringType" minOccurs="0"/>
-            		<xsd:element name="historyEntry" type="tns:PasswordHistoryEntryType" minOccurs="0" maxOccurs="unbounded"/>
+            		<xsd:element name="historyEntry" type="tns:PasswordHistoryEntryType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:appinfo>
+                                <a:operational/>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
             	</xsd:sequence>
         	</xsd:extension>
         </xsd:complexContent>
