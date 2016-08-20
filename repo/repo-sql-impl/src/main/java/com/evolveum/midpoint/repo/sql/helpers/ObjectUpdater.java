@@ -199,8 +199,8 @@ public class ObjectUpdater {
 
         updateFullObject(rObject, object);
         RObject merged = (RObject) session.merge(rObject);
-        lookupTableHelper.addLookupTableRows(session, rObject, modifications != null);
-        caseHelper.addCertificationCampaignCases(session, rObject, modifications != null);
+        lookupTableHelper.addLookupTableRows(session, rObject, oldObject != null);
+        caseHelper.addCertificationCampaignCases(session, rObject, oldObject != null);
 
         if (closureManager.isEnabled()) {
             OrgClosureManager.Operation operation;

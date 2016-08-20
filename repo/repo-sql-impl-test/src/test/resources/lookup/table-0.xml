@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+
+<!--
+  ~ Copyright (c) 2010-2015 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<lookupTable xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+             xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <name>first lookup</name>
+    <description>description of lookuptable</description>
+    <row id="1">
+        <key>first key</key>
+        <value>first value</value>
+        <label>first label</label>
+        <lastChangeTimestamp>2013-05-07T10:38:21.350+02:00</lastChangeTimestamp>
+    </row>
+    <row id="2">
+        <key>2 key MODIFIED</key>
+        <value>2 value MODIFIED</value>
+        <lastChangeTimestamp>2013-05-07T10:38:21.350+02:00</lastChangeTimestamp>
+    </row>
+    <row id="3">
+        <key>3 key</key>
+        <value>3 value MODIFIED</value>
+        <label>
+            <t:orig>3 label</t:orig>
+            <t:norm>3 label</t:norm>
+        </label>
+        <lastChangeTimestamp>2013-05-07T10:38:21.350+02:00</lastChangeTimestamp>
+    </row>
+</lookupTable>
