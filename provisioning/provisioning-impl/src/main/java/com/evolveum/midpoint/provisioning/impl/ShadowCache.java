@@ -50,6 +50,7 @@ import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.Visitable;
 import com.evolveum.midpoint.prism.Visitor;
 import com.evolveum.midpoint.prism.delta.ChangeType;
+import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
@@ -470,9 +471,11 @@ public abstract class ShadowCache {
 			accessChecker.checkModify(ctx.getResource(), repoShadow, modifications,
 					ctx.getObjectClassDefinition(), parentResult);
 
+			modifications = beforeModifyOnResource(repoShadow, options, modifications);
+			
 			preprocessEntitlements(ctx, modifications, "delta for shadow " + oid, parentResult);
 
-			modifications = beforeModifyOnResource(repoShadow, options, modifications);
+			
 
 			if (LOGGER.isTraceEnabled()) {
 				LOGGER.trace("Applying change: {}", DebugUtil.debugDump(modifications));
@@ -734,16 +737,39 @@ public abstract class ShadowCache {
 		shadowType.setResource(resource);
 
 		if (modifications != null) {
+			
 			ObjectDelta<? extends ObjectType> objectDelta = ObjectDelta.createModifyDelta(shadow.getOid(),
 					modifications, shadowType.getClass(), prismContext);
 			if (LOGGER.isTraceEnabled()) {
 				LOGGER.trace("Storing delta to shadow:\n{}", objectDelta.debugDump());
 			}
+			
+			ContainerDelta<ShadowAssociationType> associationDelta = objectDelta.findContainerDelta(ShadowType.F_ASSOCIATION);
+			if (associationDelta != null) {
+				normalizeAssociationDeltasBeforeSave(associationDelta.getValuesToAdd());
+				normalizeAssociationDeltasBeforeSave(associationDelta.getValuesToReplace());
+				normalizeAssociationDeltasBeforeSave(associationDelta.getValuesToDelete());
+				
+			}
+			
+			
 			ObjectDeltaType objectDeltaType = DeltaConvertor.toObjectDeltaType(objectDelta);
 
 			shadowType.setObjectChange(objectDeltaType);
 		}
 		return shadow;
+	}
+	
+	//we need to remove resolved identifiers form the ShadowAssociationType before we save it to the shadow as an unfinished operation. 
+	void normalizeAssociationDeltasBeforeSave(Collection<PrismContainerValue<ShadowAssociationType>> associationContainers) {
+		if (associationContainers == null) {
+			return;
+		}
+		for (PrismContainerValue<ShadowAssociationType> associationContainer : associationContainers) {
+			if (associationContainer.contains(ShadowAssociationType.F_IDENTIFIERS) && associationContainer.contains(ShadowAssociationType.F_SHADOW_REF)) {
+				associationContainer.removeContainer(ShadowAssociationType.F_IDENTIFIERS);
+			}
+		}
 	}
 
 	////////////////////////////////////////////////////////////////////////////

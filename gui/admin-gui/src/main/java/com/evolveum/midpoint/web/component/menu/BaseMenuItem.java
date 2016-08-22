@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,14 +22,16 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import java.io.Serializable;
+import java.util.Arrays;
 
 /**
  * @author Viliam Repan (lazyman)
  */
 public class BaseMenuItem implements Serializable {
+	private static final long serialVersionUID = 1L;
 
-    private IModel<String> name;
-    private Class<? extends WebPage> page;
+	private IModel<String> nameModel;
+    private Class<? extends WebPage> pageClass;
     private PageParameters params;
     private VisibleEnableBehaviour visibleEnable;
     private Class<? extends WebPage>[] aliases;
@@ -38,12 +40,12 @@ public class BaseMenuItem implements Serializable {
         this(name, page, null, null);
     }
 
-    public BaseMenuItem(IModel<String> name, Class<? extends WebPage> page,
+    public BaseMenuItem(IModel<String> nameModel, Class<? extends WebPage> pageClass,
                         PageParameters params, VisibleEnableBehaviour visibleEnable,
                         Class<? extends WebPage>... aliases) {
         this.aliases = aliases;
-        this.name = name;
-        this.page = page;
+        this.nameModel = nameModel;
+        this.pageClass = pageClass;
         this.params = params;
         this.visibleEnable = visibleEnable;
     }
@@ -55,12 +57,12 @@ public class BaseMenuItem implements Serializable {
         return aliases;
     }
 
-    public IModel<String> getName() {
-        return name;
+    public IModel<String> getNameModel() {
+        return nameModel;
     }
 
-    public Class<? extends WebPage> getPage() {
-        return page;
+    public Class<? extends WebPage> getPageClass() {
+        return pageClass;
     }
 
     public PageParameters getParams() {
@@ -78,13 +80,13 @@ public class BaseMenuItem implements Serializable {
 
         Class pageClass = page.getClass();
 
-        if (this.page == null) {
+        if (this.pageClass == null) {
             return false;
         }
 
         boolean isMenuActive = isMenuActive();
 
-        if (pageClass.equals(this.page)) {
+        if (pageClass.equals(this.pageClass)) {
             return isMenuActive;
         }
 
@@ -104,4 +106,12 @@ public class BaseMenuItem implements Serializable {
     protected boolean isMenuActive() {
         return true;
     }
+
+	@Override
+	public String toString() {
+		return "BaseMenuItem(nameModel=" + nameModel + ", pageClass=" + pageClass + ", params=" + params
+				+ ", visibleEnable=" + visibleEnable + ", aliases=" + Arrays.toString(aliases) + ")";
+	}
+    
+    
 }

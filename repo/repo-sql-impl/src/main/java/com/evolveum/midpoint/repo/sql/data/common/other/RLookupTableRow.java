@@ -9,6 +9,7 @@ import com.evolveum.midpoint.repo.sql.query2.definition.IdQueryProperty;
 import com.evolveum.midpoint.repo.sql.query2.definition.NotQueryable;
 import com.evolveum.midpoint.repo.sql.type.XMLGregorianCalendarType;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableRowType;
 import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.GenericGenerator;
@@ -170,21 +171,24 @@ public class RLookupTableRow implements Container<RLookupTable> {
         return row;
     }
 
-    public static RLookupTableRow toRepo(RLookupTable owner, LookupTableRowType row) {
+    public static RLookupTableRow toRepo(RLookupTable owner, LookupTableRowType row) throws SchemaException {
         RLookupTableRow rRow = toRepo(row);
         rRow.setOwner(owner);
         return rRow;
     }
 
-    public static RLookupTableRow toRepo(String ownerOid, LookupTableRowType row) {
+    public static RLookupTableRow toRepo(String ownerOid, LookupTableRowType row) throws SchemaException {
         RLookupTableRow rRow = toRepo(row);
         rRow.setOwnerOid(ownerOid);
         return rRow;
     }
 
-    private static RLookupTableRow toRepo(LookupTableRowType row) {
+    private static RLookupTableRow toRepo(LookupTableRowType row) throws SchemaException {
         RLookupTableRow rRow = new RLookupTableRow();
         rRow.setId(RUtil.toInteger(row.getId()));
+        if (row.getKey() == null) {
+            throw new SchemaException("Attempt to insert a row with no key");
+        }
         rRow.setKey(row.getKey());
         rRow.setLabel(RPolyString.copyFromJAXB(row.getLabel()));
         rRow.setLastChangeTimestamp(row.getLastChangeTimestamp());

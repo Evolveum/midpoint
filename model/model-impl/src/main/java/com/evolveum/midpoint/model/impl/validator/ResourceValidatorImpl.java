@@ -300,15 +300,27 @@ public class ResourceValidatorImpl implements ResourceValidator {
 		QName ref = itemRefToName(attributeDef.getRef());
 		checkSchemaHandlingItem(ctx, path, objectType, attributeDef);
 		ResourceAttributeDefinition<?> rad = null;
-		if (ocdef != null) {
-			if (ref != null) {
-				rad = ocdef.findAttributeDefinition(ref, ResourceTypeUtil.isCaseIgnoreAttributeNames(ctx.resourceObject.asObjectable()));
-				if (rad == null) {
-					ctx.validationResult.add(Issue.Severity.ERROR,
-							CAT_SCHEMA_HANDLING, C_UNKNOWN_ATTRIBUTE_NAME,
-							getString(ctx.bundle, CLASS_DOT + C_UNKNOWN_ATTRIBUTE_NAME, getName(objectType), ref, objectType.getObjectClass()),
-							ctx.resourceRef, path.append(ResourceItemDefinitionType.F_REF));
+		if (ref != null) {
+			boolean caseIgnoreAttributeNames = ResourceTypeUtil.isCaseIgnoreAttributeNames(ctx.resourceObject.asObjectable());
+			if (ocdef != null) {
+				rad = ocdef.findAttributeDefinition(ref, caseIgnoreAttributeNames);
+			}
+			if (rad == null) {
+				for (QName auxOcName : objectType.getAuxiliaryObjectClass()) {
+					ObjectClassComplexTypeDefinition auxOcDef = ctx.resourceSchema.findObjectClassDefinition(auxOcName);
+					if (auxOcDef != null) {
+						rad = auxOcDef.findAttributeDefinition(ref, caseIgnoreAttributeNames);
+						if (rad != null) {
+							break;
+						}
+					}
 				}
+			}
+			if (rad == null) {
+				ctx.validationResult.add(Issue.Severity.ERROR,
+						CAT_SCHEMA_HANDLING, C_UNKNOWN_ATTRIBUTE_NAME,
+						getString(ctx.bundle, CLASS_DOT + C_UNKNOWN_ATTRIBUTE_NAME, getName(objectType), ref, objectType.getObjectClass()),
+						ctx.resourceRef, path.append(ResourceItemDefinitionType.F_REF));
 			}
 		}
 		checkItemRef(ctx, path, objectType, attributeDef, C_NO_ATTRIBUTE_REF);

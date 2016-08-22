@@ -23,14 +23,17 @@ import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
+import com.evolveum.midpoint.util.DebugUtil;
+
 import java.util.Arrays;
 
 /**
  * @author Viliam Repan (lazyman)
  */
 public class BreadcrumbPageClass extends Breadcrumb {
+	private static final long serialVersionUID = 1L;
 
-    private Class<? extends WebPage> page;
+	private Class<? extends WebPage> page;
     private PageParameters parameters;
 
     public BreadcrumbPageClass(IModel<String> label, Class<? extends WebPage> page, PageParameters parameters) {
@@ -98,4 +101,16 @@ public class BreadcrumbPageClass extends Breadcrumb {
     public int hashCode() {
         return Arrays.hashCode(new Object[]{page, parameters});
     }
+
+	@Override
+	protected void extendsDebugDump(StringBuilder sb, int indent) {
+		super.extendsDebugDump(sb, indent);
+		sb.append("\n");
+		DebugUtil.debugDumpWithLabelLn(sb, "page", page, indent+1);
+		DebugUtil.debugDumpWithLabel(sb, "parameters", parameters==null?null:parameters.toString(), indent+1);
+	}
+
+	
+    
+    
 }

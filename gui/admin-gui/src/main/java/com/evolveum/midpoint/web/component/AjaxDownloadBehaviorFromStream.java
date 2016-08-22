@@ -20,6 +20,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AbstractAjaxBehavior;
 import org.apache.wicket.request.IRequestCycle;
@@ -34,6 +35,7 @@ public abstract class AjaxDownloadBehaviorFromStream extends AbstractAjaxBehavio
 
 	private boolean addAntiCache;
 	private String contentType = "text";
+	private String fileName = null;
 
 	public AjaxDownloadBehaviorFromStream() {
 		this(true);
@@ -84,14 +86,17 @@ public abstract class AjaxDownloadBehaviorFromStream extends AbstractAjaxBehavio
 			}
 			
 		};
-		getComponent().getRequestCycle().scheduleRequestHandlerAfterCurrent(
-				new ResourceStreamRequestHandler(resourceStream) {
-					@Override
-					public void respond(IRequestCycle requestCycle) {
-						super.respond(requestCycle);
-					}
-				}.setContentDisposition(ContentDisposition.ATTACHMENT)
-						.setCacheDuration(Duration.ONE_SECOND));
+        ResourceStreamRequestHandler reqHandler = new ResourceStreamRequestHandler(resourceStream) {
+            @Override
+            public void respond(IRequestCycle requestCycle) {
+                super.respond(requestCycle);
+            }
+        }.setContentDisposition(ContentDisposition.ATTACHMENT)
+                .setCacheDuration(Duration.ONE_SECOND);
+        if (StringUtils.isNotEmpty(getFileName())){
+            reqHandler.setFileName(getFileName());
+        }
+		getComponent().getRequestCycle().scheduleRequestHandlerAfterCurrent(reqHandler);
 	}
 	
 	public void setContentType(String contentType) {
@@ -99,4 +104,12 @@ public abstract class AjaxDownloadBehaviorFromStream extends AbstractAjaxBehavio
 	}
 
     protected abstract InputStream initStream();
+
+    public String getFileName() {
+        return fileName;
+    }
+
+    public void setFileName(String fileName) {
+        this.fileName = fileName;
+    }
 }

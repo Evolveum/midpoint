@@ -25,7 +25,7 @@
 	xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-3"
 	xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
 	xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
-	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff">
+	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
 	<t:changeType>modify</t:changeType>
 	<t:objectType>c:ResourceType</t:objectType>
 	<t:oid>ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff</t:oid>
@@ -65,7 +65,7 @@
                               <expression>
                                 <path>
                                 declare default namespace "http://midpoint.evolveum.com/xml/ns/public/common/common-3";
-			                    declare namespace ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff";
+			                    declare namespace ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3";
 			                    $account/attributes/ri:employeeNumber</path>
                               </expression>
 	                </q:equal>

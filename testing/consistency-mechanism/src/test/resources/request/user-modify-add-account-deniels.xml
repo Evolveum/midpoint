@@ -26,7 +26,7 @@
 		<t:modificationType>add</t:modificationType>
 		<t:value>
 			<c:link xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
-				xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"> 
+				xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"> 
 				<!-- No OID for account. The OID will be generated once the account shadow is added to the repository. -->
 				<!-- No name here. We expect that it will be generated -->
 				<c:resourceRef oid="ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"/>

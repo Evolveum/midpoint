@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,26 +20,23 @@ import java.io.Serializable;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 import java.util.Stack;
 
 import org.apache.commons.lang.Validate;
 
+import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 
 /**
  * @author lazyman
  */
-public class SessionStorage implements Serializable {
+public class SessionStorage implements Serializable, DebugDumpable {
 
    private static final long serialVersionUID = 1L;
-
-	private List<Breadcrumb> breadcrumbs;
-
-    /**
-     * place to store information in session for various pages
-     */
-    private Map<String, PageStorage> pageStorageMap = new HashMap<>();
 
     public static final String KEY_CONFIGURATION = "configuration";
     public static final String KEY_USERS = "users";
@@ -59,6 +56,13 @@ public class SessionStorage implements Serializable {
     *   Store session information for user preferences about paging size in midPoint GUI
     * */
     private UserProfileStorage userProfile;
+
+	private List<Breadcrumb> breadcrumbs;
+
+    /**
+     * place to store information in session for various pages
+     */
+    private Map<String, PageStorage> pageStorageMap = new HashMap<>();
 
     public Map<String, PageStorage> getPageStorageMap() {
 		return pageStorageMap;
@@ -212,4 +216,43 @@ public class SessionStorage implements Serializable {
     public void clearBreadcrumbs() {
         getBreadcrumbs().clear();
     }
+
+	@Override
+	public String debugDump() {
+		return debugDump(0);
+	}
+
+	@Override
+	public String debugDump(int indent) {
+		StringBuilder sb = new StringBuilder();
+		DebugUtil.indentDebugDump(sb, indent);
+		sb.append("SessionStorage\n");
+		DebugUtil.debugDumpWithLabelLn(sb, "userProfile", userProfile, indent+1);
+		DebugUtil.debugDumpWithLabelLn(sb, "breadcrumbs", breadcrumbs, indent+1);
+		DebugUtil.debugDumpWithLabel(sb, "pageStorageMap", pageStorageMap, indent+1);
+		return sb.toString();
+	}
+	
+	public void dumpSizeEstimates(StringBuilder sb, int indent) {
+		DebugUtil.dumpObjectSizeEstimate(sb, "SessionStorage", this, indent);
+		if (userProfile != null) {
+			sb.append("\n");
+			DebugUtil.dumpObjectSizeEstimate(sb, "userProfile", userProfile, indent + 1);
+		}
+		if (breadcrumbs != null) {
+			sb.append("\n");
+			DebugUtil.dumpObjectSizeEstimate(sb, "breadcrumbs", (Serializable)breadcrumbs, indent + 1);
+			for (Breadcrumb breadcrumb: breadcrumbs) {
+				sb.append("\n");
+				DebugUtil.dumpObjectSizeEstimate(sb, breadcrumb.getClass().getName(), breadcrumb, indent + 2);
+			}
+		}
+		sb.append("\n");
+		DebugUtil.dumpObjectSizeEstimate(sb, "pageStorageMap", (Serializable)pageStorageMap, indent + 1);
+		for (Entry<String,PageStorage> entry: pageStorageMap.entrySet()) {
+			sb.append("\n");
+			DebugUtil.dumpObjectSizeEstimate(sb, entry.getKey(), entry.getValue(), indent + 2);
+		}
+
+	}
 }

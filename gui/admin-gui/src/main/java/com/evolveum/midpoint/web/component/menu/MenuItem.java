@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,12 +25,12 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
  */
 public class MenuItem extends BaseMenuItem {
 
-    public MenuItem(IModel<String> name, Class<? extends WebPage> page) {
-        this(name, page, null, null);
+    public MenuItem(IModel<String> nameModel, Class<? extends WebPage> pageClass) {
+        this(nameModel, pageClass, null, null);
     }
 
-    public MenuItem(IModel<String> name, Class<? extends WebPage> page,
+    public MenuItem(IModel<String> nameModel, Class<? extends WebPage> pageClass,
                     PageParameters params, VisibleEnableBehaviour visibleEnable, Class<? extends WebPage>... aliases) {
-        super(name, page, params, visibleEnable, aliases);
+        super(nameModel, pageClass, params, visibleEnable, aliases);
     }
 }

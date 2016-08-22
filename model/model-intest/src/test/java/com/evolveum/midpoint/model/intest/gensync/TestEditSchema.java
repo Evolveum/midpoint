@@ -613,12 +613,12 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         } catch (ObjectAlreadyExistsException ex) {
             exception = true;
         }
-        AssertJUnit.assertTrue(exception);
+        AssertJUnit.assertFalse(exception);     // as per description in https://wiki.evolveum.com/display/midPoint/Development+with+LookupTable
 		
 		// THEN
 		TestUtil.displayThen(TEST_NAME);
 		result.computeStatus();
-		TestUtil.assertFailure(result);
+		TestUtil.assertSuccess(result);
 
         task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
         result = task.getResult();
@@ -642,18 +642,15 @@ public class TestEditSchema extends AbstractGenericSyncTest {
 		assertLookupRow(tableContainer, "gi_GI", "gi", "Gibberish");
 		assertLookupRow(tableContainer, "gi_GO", null, "Gobbledygook");
 		
-		assertLookupRow(tableContainer, "gi_HU", "gi", null);
+		assertLookupRow(tableContainer, "gi_HU", "gi", "Humbug");
 		
         assertSteadyResources();
     }
 
     /**
-     * disabled because we can't delete container based on it's properties. It's against prism containers
-     * identification concepts - prism container is identified by object OID and container ID attribute.
-     *
      * @throws Exception
      */
-    @Test(enabled = false)
+    @Test
     public void test162LookupLanguagesDeleteRowFullNoId() throws Exception {
 		final String TEST_NAME="test162LookupLanguagesDeleteRowFullNoId";
         TestUtil.displayTestTile(this, TEST_NAME);
@@ -738,15 +735,14 @@ public class TestEditSchema extends AbstractGenericSyncTest {
 		
 		PrismContainer<LookupTableRowType> tableContainer = lookup.findContainer(LookupTableType.F_ROW);
 		assertNotNull("Table container missing", tableContainer);
-		assertEquals("Unexpected table container size", 6, tableContainer.size());
+		assertEquals("Unexpected table container size", 5, tableContainer.size());
 
 		assertLookupRow(tableContainer, "en_PR", "en", "English (pirate)");
 		assertLookupRow(tableContainer, "tr_TR", "tr", "Turkish");
 		assertLookupRow(tableContainer, "gi_GI", "gi", "Gibberish");
 		assertLookupRow(tableContainer, "gi_GO", null, "Gobbledygook");
-		assertLookupRow(tableContainer, "gi_HU", "gi", null);
-        assertLookupRow(tableContainer, "sk_SK", "sk", "Slovak");
-		
+		assertLookupRow(tableContainer, "gi_HU", "gi", "Humbug");
+
         assertSteadyResources();
     }
     
@@ -760,7 +756,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         OperationResult result = task.getResult();
         
         LookupTableRowType row = new LookupTableRowType();
-        row.setId(3L);
+        row.setId(2L);
         ObjectDelta<LookupTableType> delta = ObjectDelta.createModificationDeleteContainer(LookupTableType.class,
         		LOOKUP_LANGUAGES_OID, LookupTableType.F_ROW, prismContext, row);
         
@@ -784,24 +780,17 @@ public class TestEditSchema extends AbstractGenericSyncTest {
 		
 		PrismContainer<LookupTableRowType> tableContainer = lookup.findContainer(LookupTableType.F_ROW);
 		assertNotNull("Table container missing", tableContainer);
-		assertEquals("Unexpected table container size", 5, tableContainer.size());
+		assertEquals("Unexpected table container size", 4, tableContainer.size());
 
-		assertLookupRow(tableContainer, "en_PR", "en", "English (pirate)");
 		assertLookupRow(tableContainer, "gi_GI", "gi", "Gibberish");
 		assertLookupRow(tableContainer, "gi_GO", null, "Gobbledygook");
-		assertLookupRow(tableContainer, "gi_HU", "gi", null);
+		assertLookupRow(tableContainer, "gi_HU", "gi", "Humbug");
         assertLookupRow(tableContainer, "tr_TR", "tr", "Turkish");
 		
         assertSteadyResources();
     }
 
-    /**
-     * disabled because we can't delete container based on it's properties. It's against prism containers
-     * identification concepts - prism container is identified by object OID and container ID attribute.
-     *
-     * @throws Exception
-     */
-    @Test(enabled = false)
+    @Test
     public void test168LookupLanguagesDeleteRowByKey() throws Exception {
 		final String TEST_NAME="test168LookupLanguagesDeleteRowByKey";
         TestUtil.displayTestTile(this, TEST_NAME);
@@ -837,10 +826,10 @@ public class TestEditSchema extends AbstractGenericSyncTest {
 		assertNotNull("Table container missing", tableContainer);
 		assertEquals("Unexpected table container size", 3, tableContainer.size());
 
-		assertLookupRow(tableContainer, "en_PR", "en", "English (pirate)");
-		assertLookupRow(tableContainer, "gi_GO", null, "Gobbledygook");
-		assertLookupRow(tableContainer, "gi_HU", "gi", "Humbug");
-		
+        assertLookupRow(tableContainer, "gi_GO", null, "Gobbledygook");
+        assertLookupRow(tableContainer, "gi_HU", "gi", "Humbug");
+        assertLookupRow(tableContainer, "tr_TR", "tr", "Turkish");
+
         assertSteadyResources();
     }
 

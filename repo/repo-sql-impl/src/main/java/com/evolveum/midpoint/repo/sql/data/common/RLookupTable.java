@@ -9,6 +9,7 @@ import com.evolveum.midpoint.repo.sql.util.MidPointJoinedPersister;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableRowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
 import org.hibernate.annotations.ForeignKey;
@@ -50,7 +51,7 @@ public class RLookupTable extends RObject<LookupTableType> {
     }
 
     public static void copyFromJAXB(LookupTableType jaxb, RLookupTable repo, PrismContext prismContext,
-                                    IdGeneratorResult generatorResult) throws DtoTranslationException {
+                                    IdGeneratorResult generatorResult) throws DtoTranslationException, SchemaException {
         RObject.copyFromJAXB(jaxb, repo, prismContext, generatorResult);
 
         repo.setName(RPolyString.copyFromJAXB(jaxb.getName()));
