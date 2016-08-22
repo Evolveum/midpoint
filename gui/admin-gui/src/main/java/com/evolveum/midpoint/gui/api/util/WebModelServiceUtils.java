@@ -244,6 +244,11 @@ public class WebModelServiceUtils {
         	LOGGER.debug("User {} is not authorized to read {} {}",
                     task.getOwner() != null ? task.getOwner().getName() : null, type.getSimpleName(), oid);
         	return null;
+        } catch (ObjectNotFoundException e) {
+        	// Object does not exist. It was deleted in the meanwhile, or not created yet. This could happen quite often.
+			subResult.recordHandledError(e);
+			LOGGER.debug("{} {} does not exist", type.getSimpleName(), oid, e);
+			return null;
         } catch (Exception ex) {
             subResult.recordFatalError("WebModelUtils.couldntLoadObject", ex);
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load object", ex);

@@ -141,7 +141,7 @@ public class PageWorkItem extends PageAdminWorkItems {
 					LoggingUtils.logExceptionOnDebugLevel(LOGGER, "Access to the task {} was denied", e, taskOid);
 				}
 
-				if (taskType != null) {
+				if (taskType != null && taskType.getParent() != null) {
 					final ObjectQuery relatedTasksQuery = QueryBuilder.queryFor(TaskType.class, getPrismContext())
 							.item(F_PARENT).eq(taskType.getParent())
 							.build();

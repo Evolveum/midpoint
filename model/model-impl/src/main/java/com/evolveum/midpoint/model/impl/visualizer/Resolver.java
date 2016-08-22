@@ -128,7 +128,10 @@ public class Resolver {
 					if (!originalObjectFetched && oid != null) {
 						try {
 							originalObject = modelService.getObject(clazz, oid, createCollection(createNoFetch()), task, result);
-						} catch (RuntimeException | SchemaException | ConfigurationException | CommunicationException | SecurityViolationException | ObjectNotFoundException e) {
+						} catch (ObjectNotFoundException e) {
+							result.recordHandledError(e);
+							LoggingUtils.logExceptionOnDebugLevel(LOGGER, "Object {} does not exist", e, oid);
+						} catch (RuntimeException | SchemaException | ConfigurationException | CommunicationException | SecurityViolationException e) {
 							LoggingUtils.logUnexpectedException(LOGGER, "Couldn't resolve object {}", e, oid);
 							warn(result, "Couldn't resolve object " + oid + ": " + e.getMessage(), e);
 						}
