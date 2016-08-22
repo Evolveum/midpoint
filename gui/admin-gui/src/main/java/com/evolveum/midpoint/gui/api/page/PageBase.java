@@ -221,50 +221,59 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
 	private static final Trace LOGGER = TraceManager.getTrace(PageBase.class);
 
+	// Strictly speaking following fields should be transient.
+	// But making them transient is causing problems on some
+	// JVM version or tomcat configurations (MID-3357). 
+	// It seems to be somehow related to session persistence.
+	// But honestly I have no idea about the real cause.
+	// Anyway, setting these fields to non-transient seems to
+	// fix it. And surprisingly it does not affect the session
+	// size.
+	
 	@SpringBean(name = "modelController")
-	private transient ScriptingService scriptingService;
+	private ScriptingService scriptingService;
 
 	@SpringBean(name = "modelController")
-	private transient ModelService modelService;
+	private ModelService modelService;
 
 	@SpringBean(name = "modelInteractionService")
-	private transient ModelInteractionService modelInteractionService;
+	private ModelInteractionService modelInteractionService;
 
 	@SpringBean(name = "modelController")
-	private transient TaskService taskService;
+	private TaskService taskService;
 
 	@SpringBean(name = "modelDiagController")
-	private transient ModelDiagnosticService modelDiagnosticService;
+	private ModelDiagnosticService modelDiagnosticService;
 
 	@SpringBean(name = "taskManager")
-	private transient TaskManager taskManager;
+	private TaskManager taskManager;
 
 	@SpringBean(name = "modelController")
-	private transient WorkflowService workflowService;
+	private WorkflowService workflowService;
 
 	@SpringBean(name = "workflowManager")
-	private transient WorkflowManager workflowManager;
+	private WorkflowManager workflowManager;
 
 	@SpringBean(name = "midpointConfiguration")
-	private transient MidpointConfiguration midpointConfiguration;
+	private MidpointConfiguration midpointConfiguration;
 
 	@SpringBean(name = "reportManager")
-	private transient ReportManager reportManager;
+	private ReportManager reportManager;
 
 	@SpringBean(name = "resourceValidator")
-	private transient ResourceValidator resourceValidator;
+	private ResourceValidator resourceValidator;
 
 	// @SpringBean(name = "certificationManager")
 	// private CertificationManager certificationManager;
 
 	@SpringBean(name = "modelController")
-	private transient AccessCertificationService certficationService;
+	private AccessCertificationService certficationService;
 
 	@SpringBean(name = "accessDecisionManager")
-	private transient SecurityEnforcer securityEnforcer;
+	private SecurityEnforcer securityEnforcer;
 
 	@SpringBean
-	private transient MidpointFormValidatorRegistry formValidatorRegistry;
+	private MidpointFormValidatorRegistry formValidatorRegistry;
 
 	private boolean initialized = false;
 
