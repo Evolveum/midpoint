@@ -300,6 +300,7 @@ public class ResourceValidatorImpl implements ResourceValidator {
 		QName ref = itemRefToName(attributeDef.getRef());
 		checkSchemaHandlingItem(ctx, path, objectType, attributeDef);
 		ResourceAttributeDefinition<?> rad = null;
+		// TODO rewrite using CompositeRefinedObjectClassDefinition
 		if (ref != null) {
 			boolean caseIgnoreAttributeNames = ResourceTypeUtil.isCaseIgnoreAttributeNames(ctx.resourceObject.asObjectable());
 			if (ocdef != null) {
