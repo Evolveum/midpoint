@@ -22,6 +22,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityPolicyType;
 
 import org.apache.commons.lang.Validate;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import com.evolveum.midpoint.util.DebugDumpable;
@@ -39,13 +40,13 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 public class MidPointPrincipal implements UserDetails,  DebugDumpable {
 	
 	private static final long serialVersionUID = 8299738301872077768L;
-    private UserType user;
-    private Collection<Authorization> authorizations = new ArrayList<Authorization>();
+    @NotNull private final UserType user;
+    private Collection<Authorization> authorizations = new ArrayList<>();
     private ActivationStatusType effectiveActivationStatus;
     private AdminGuiConfigurationType adminGuiConfiguration;
     private SecurityPolicyType applicableSecurityPolicy;
 
-    public MidPointPrincipal(UserType user) {
+    public MidPointPrincipal(@NotNull UserType user) {
         Validate.notNull(user, "User must not be null.");
         this.user = user;
     }
@@ -121,6 +122,7 @@ public class MidPointPrincipal implements UserDetails,  DebugDumpable {
 		return effectiveActivationStatus == ActivationStatusType.ENABLED;
 	}
 
+	@NotNull
 	public UserType getUser() {
         return user;
     }
@@ -210,7 +212,7 @@ public class MidPointPrincipal implements UserDetails,  DebugDumpable {
 	}
 
     public ObjectReferenceType toObjectReference() {
-        if (user == null || user.getOid() == null) {
+        if (user.getOid() == null) {
             return null;
         }
         ObjectReferenceType rv = new ObjectReferenceType();

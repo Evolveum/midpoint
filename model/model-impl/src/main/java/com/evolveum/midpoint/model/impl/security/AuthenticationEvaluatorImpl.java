@@ -15,26 +15,6 @@
  */
 package com.evolveum.midpoint.model.impl.security;
 
-import java.util.Collection;
-
-import javax.xml.datatype.Duration;
-import javax.xml.datatype.XMLGregorianCalendar;
-
-import org.apache.commons.lang.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.access.AccessDeniedException;
-import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
-import org.springframework.security.authentication.AuthenticationServiceException;
-import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.authentication.CredentialsExpiredException;
-import org.springframework.security.authentication.DisabledException;
-import org.springframework.security.authentication.LockedException;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
-import org.springframework.stereotype.Component;
-
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.model.api.AuthenticationEvaluator;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
@@ -48,18 +28,20 @@ import com.evolveum.midpoint.security.api.UserProfileService;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractCredentialPolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractCredentialType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsPolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LockoutStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LoginEventType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordCredentialsPolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityPolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
+import org.apache.commons.lang.StringUtils;
+import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.authentication.*;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
+import org.springframework.stereotype.Component;
+
+import javax.xml.datatype.Duration;
+import javax.xml.datatype.XMLGregorianCalendar;
+import java.util.Collection;
 
 /**
  * @author semancik
@@ -70,17 +52,17 @@ public class AuthenticationEvaluatorImpl implements AuthenticationEvaluator {
 	
 	private static final Trace LOGGER = TraceManager.getTrace(AuthenticationEvaluatorImpl.class);
 	
-	@Autowired(required = true)
+	@Autowired
 	private Protector protector;
 	
-	@Autowired(required = true)
+	@Autowired
 	private Clock clock;
 	
 	// Has to be package-private so the tests can manipulate it
-	@Autowired(required = true)
+	@Autowired
 	UserProfileService userProfileService;
 	
-	@Autowired(required = true)
+	@Autowired
 	private SecurityHelper securityHelper;
 	
 	@Override
@@ -97,7 +79,7 @@ public class AuthenticationEvaluatorImpl implements AuthenticationEvaluator {
 		UserType userType = principal.getUser();
 		CredentialsType credentials = userType.getCredentials();
 		if (credentials == null) {
-			recordAuthenticationFailure(enteredUsername, connEnv, "no credentials in user");
+			recordAuthenticationFailure(principal, connEnv, "no credentials in user");
 			throw new AuthenticationCredentialsNotFoundException("web.security.provider.invalid");
 		}
 		PasswordType passwordType = credentials.getPassword();
@@ -125,7 +107,7 @@ public class AuthenticationEvaluatorImpl implements AuthenticationEvaluator {
 		// Password age
 		checkPasswordValidityAndAge(connEnv, principal, passwordType, passwordCredentialsPolicy);
 		
-		if (passwordMatches(connEnv, principal, passwordType, passwordCredentialsPolicy, enteredPassword)) {
+		if (passwordMatches(connEnv, principal, passwordType, enteredPassword)) {
 			
 			recordPasswordAuthenticationSuccess(principal, connEnv, passwordType, passwordCredentialsPolicy);
 			UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(principal, 
@@ -154,7 +136,7 @@ public class AuthenticationEvaluatorImpl implements AuthenticationEvaluator {
 		UserType userType = principal.getUser();
 		CredentialsType credentials = userType.getCredentials();
 		if (credentials == null) {
-			recordAuthenticationFailure(enteredUsername, connEnv, "no credentials in user");
+			recordAuthenticationFailure(principal, connEnv, "no credentials in user");
 			throw new AuthenticationCredentialsNotFoundException("web.security.provider.invalid");
 		}
 		PasswordType passwordType = credentials.getPassword();
@@ -182,7 +164,7 @@ public class AuthenticationEvaluatorImpl implements AuthenticationEvaluator {
 		// Password age
 		checkPasswordValidityAndAge(connEnv, principal, passwordType, passwordCredentialsPolicy);
 		
-		return getPassword(connEnv, principal, passwordType, passwordCredentialsPolicy);
+		return getPassword(connEnv, principal, passwordType);
 	}
 	
 	@Override
@@ -204,6 +186,7 @@ public class AuthenticationEvaluatorImpl implements AuthenticationEvaluator {
 		return token;
 	}
 
+	@NotNull
 	private MidPointPrincipal getAndCheckPrincipal(ConnectionEnvironment connEnv, String enteredUsername) {
 		
 		if (StringUtils.isBlank(enteredUsername)) {
@@ -219,13 +202,13 @@ public class AuthenticationEvaluatorImpl implements AuthenticationEvaluator {
 			throw new UsernameNotFoundException("web.security.provider.invalid");
 		}
 		
-		if (principal == null || principal.getUser() == null) {
+		if (principal == null) {
 			recordAuthenticationFailure(enteredUsername, connEnv, "no user");
 			throw new UsernameNotFoundException("web.security.provider.invalid");
 		}
 
 		if (!principal.isEnabled()) {
-			recordAuthenticationFailure(enteredUsername, connEnv, "user disabled");
+			recordAuthenticationFailure(principal, connEnv, "user disabled");
 			throw new DisabledException("web.security.provider.disabled");
 		}
 		return principal;
@@ -244,7 +227,7 @@ public class AuthenticationEvaluatorImpl implements AuthenticationEvaluator {
 		return false;
 	}
 
-	private void checkPasswordValidityAndAge(ConnectionEnvironment connEnv, MidPointPrincipal principal, PasswordType passwordType,
+	private void checkPasswordValidityAndAge(ConnectionEnvironment connEnv, @NotNull MidPointPrincipal principal, PasswordType passwordType,
 			PasswordCredentialsPolicyType passwordCredentialsPolicy) {
 		ProtectedStringType protectedString = passwordType.getValue();
 		if (protectedString == null) {
@@ -267,27 +250,13 @@ public class AuthenticationEvaluatorImpl implements AuthenticationEvaluator {
 		}
 	}
 
-	private boolean passwordMatches(ConnectionEnvironment connEnv, MidPointPrincipal principal, PasswordType passwordType,
-			PasswordCredentialsPolicyType passwordCredentialsPolicy, String enteredPassword) {
-		ProtectedStringType protectedString = passwordType.getValue();
-		String decryptedPassword;
-		if (protectedString.getEncryptedDataType() != null) {
-			try {
-				decryptedPassword = protector.decryptString(protectedString);
-			} catch (EncryptionException e) {
-				recordAuthenticationFailure(principal, connEnv, "error decrypting password: "+e.getMessage());
-				throw new AuthenticationServiceException("web.security.provider.unavailable", e);
-			}
-		} else {
-			LOGGER.warn("Authenticating user based on clear value. Please check objects, "
-					+ "this should not happen. Protected string should be encrypted.");
-			decryptedPassword = protectedString.getClearValue();
-		}
-		return (enteredPassword.equals(decryptedPassword));
+	private boolean passwordMatches(ConnectionEnvironment connEnv, @NotNull MidPointPrincipal principal, PasswordType passwordType,
+			String enteredPassword) {
+		String decryptedPassword = getPassword(connEnv, principal, passwordType);
+		return enteredPassword.equals(decryptedPassword);
 	}
 	
-	private String getPassword(ConnectionEnvironment connEnv, MidPointPrincipal principal, PasswordType passwordType,
-			PasswordCredentialsPolicyType passwordCredentialsPolicy) {
+	private String getPassword(ConnectionEnvironment connEnv, @NotNull MidPointPrincipal principal, PasswordType passwordType) {
 		ProtectedStringType protectedString = passwordType.getValue();
 		String decryptedPassword;
 		if (protectedString.getEncryptedDataType() != null) {
@@ -336,7 +305,7 @@ public class AuthenticationEvaluatorImpl implements AuthenticationEvaluator {
 		return clock.isPast(lockedUntilTimestamp);
 	}
 
-	private void recordPasswordAuthenticationSuccess(MidPointPrincipal principal, ConnectionEnvironment connEnv, 
+	private void recordPasswordAuthenticationSuccess(MidPointPrincipal principal, ConnectionEnvironment connEnv,
 			PasswordType passwordType, PasswordCredentialsPolicyType passwordCredentialsPolicy) {
 		Integer failedLogins = passwordType.getFailedLogins();
 		if (failedLogins != null && failedLogins > 0) {
@@ -360,12 +329,12 @@ public class AuthenticationEvaluatorImpl implements AuthenticationEvaluator {
 		recordAuthenticationSuccess(principal, connEnv);
 	}
 	
-	private void recordAuthenticationSuccess(MidPointPrincipal principal, ConnectionEnvironment connEnv) {
-		securityHelper.auditLoginSuccess(principal.getUsername(), connEnv);
+	private void recordAuthenticationSuccess(@NotNull MidPointPrincipal principal, @NotNull ConnectionEnvironment connEnv) {
+		securityHelper.auditLoginSuccess(principal.getUser(), connEnv);
 	}
 	
-	private void recordPasswordAuthenticationFailure(MidPointPrincipal principal, ConnectionEnvironment connEnv,
-			PasswordType passwordType, PasswordCredentialsPolicyType passwordCredentialsPolicy, String reason) {
+	private void recordPasswordAuthenticationFailure(@NotNull MidPointPrincipal principal, @NotNull ConnectionEnvironment connEnv,
+			@NotNull PasswordType passwordType, PasswordCredentialsPolicyType passwordCredentialsPolicy, String reason) {
 		Integer failedLogins = passwordType.getFailedLogins();
 		LoginEventType lastFailedLogin = passwordType.getLastFailedLogin();
 		XMLGregorianCalendar lastFailedLoginTs = null;
@@ -421,12 +390,12 @@ public class AuthenticationEvaluatorImpl implements AuthenticationEvaluator {
 		recordAuthenticationFailure(principal, connEnv, reason);
 	}
 	
-	private void recordAuthenticationFailure(MidPointPrincipal principal, ConnectionEnvironment connEnv, String reason) {
-		securityHelper.auditLoginFailure(principal==null?null:principal.getUsername(), connEnv, reason);
+	private void recordAuthenticationFailure(@NotNull MidPointPrincipal principal, ConnectionEnvironment connEnv, String reason) {
+		securityHelper.auditLoginFailure(principal.getUsername(), principal.getUser(), connEnv, reason);
 	}
 	
 	private void recordAuthenticationFailure(String username, ConnectionEnvironment connEnv, String reason) {
-		securityHelper.auditLoginFailure(username, connEnv, reason);
+		securityHelper.auditLoginFailure(username, null, connEnv, reason);
 	}
 		
 }

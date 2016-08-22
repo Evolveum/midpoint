@@ -63,7 +63,7 @@ public class WsFaultListener implements FaultListener {
 	    	String username = securityHelper.getUsernameFromMessage(saajSoapMessage);
 	    	ConnectionEnvironment connEnv = new ConnectionEnvironment();
         	connEnv.setChannel(SchemaConstants.CHANNEL_WEB_SERVICE_URI);
-			securityHelper.auditLoginFailure(username, connEnv, auditMessage);
+			securityHelper.auditLoginFailure(username, null, connEnv, auditMessage);
 		} catch (WSSecurityException e) {
 			// Ignore
 			LOGGER.trace("Exception getting username from soap message (probably safe to ignore)", e);
