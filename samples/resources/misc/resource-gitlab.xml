@@ -1,0 +1,200 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2014-2016 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+         xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+         xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+         xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+         xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"
+         xmlns:my="http://whatever.com/my"
+         xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+         xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-3">
+
+		 
+    <resource oid="4e2950a0-6856-11e6-9625-93ba92789fbe">
+
+        <name>GitLab</name>
+        <connectorRef type="ConnectorType">
+            <filter>
+                <q:equal>
+			<q:path>c:connectorType</q:path>
+                    <q:value>com.evolveum.polygon.connector.gitlab.GitlabConnector</q:value>
+                </q:equal>
+            </filter>
+        </connectorRef>
+	<connectorConfiguration>
+		<icfc:configurationProperties
+			xmlns:icfcc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-gitlab/com.evolveum.polygon.connector.gitlab.GitlabConnector">
+			<icfcc:hostUrl>https://gitlab.evolveum.com/</icfcc:hostUrl>
+			<icfcc:apiToken>XXXXXXXXXXXXXXX</icfcc:apiToken>
+		</icfc:configurationProperties>
+
+		<icfc:resultsHandlerConfiguration>
+                	<icfc:enableCaseInsensitiveFilter>true</icfc:enableCaseInsensitiveFilter>
+		</icfc:resultsHandlerConfiguration>
+	</connectorConfiguration>
+       
+	<schemaHandling>
+		<objectType>
+			<kind>account</kind>
+			<default>true</default>
+			<objectClass>ri:AccountObjectClass</objectClass>
+			<attribute>
+				<ref>icfs:name</ref>
+				<matchingRule>mr:stringIgnoreCase</matchingRule>
+				<limitations>
+					<minOccurs>0</minOccurs>
+				</limitations>
+				<outbound>
+					<source>
+						<path>$user/name</path>
+					</source>
+				</outbound>
+			</attribute>
+			<attribute>
+				<ref>icfs:uid</ref>
+				<matchingRule>mr:stringIgnoreCase</matchingRule>
+			</attribute>
+			<attribute>
+				<ref>ri:fullName</ref>
+				<outbound>
+					<source>
+						<path>fullName</path>
+					</source>
+				</outbound>
+			</attribute>
+			<attribute>
+				<ref>ri:email</ref>
+				<outbound>
+					<source>
+						<path>emailAddress</path>
+					</source>
+				</outbound>
+			</attribute>
+
+			<association>
+				<ref>ri:group</ref>
+				<displayName>Group Membership</displayName>
+				<kind>entitlement</kind>
+				<intent>group</intent>
+				<direction>objectToSubject</direction>
+				<associationAttribute>ri:member</associationAttribute>
+				<valueAttribute>icfs:uid</valueAttribute>
+			</association>
+
+			<association>
+				<ref>ri:project</ref>
+				<displayName>Project Membership</displayName>
+				<kind>entitlement</kind>
+				<intent>project</intent>
+				<direction>objectToSubject</direction>
+				<associationAttribute>ri:member</associationAttribute>
+				<valueAttribute>icfs:uid</valueAttribute>
+			</association>
+			
+			<protected>
+				<icfs:name>idmadmin</icfs:name>
+			</protected>
+			<protected>
+				<icfs:name>root</icfs:name>
+			</protected>
+			
+			<credentials>
+				<password>
+				    <outbound/>
+				</password>
+			</credentials>
+
+		</objectType>
+
+		<objectType>
+			<kind>entitlement</kind>
+			<intent>group</intent>
+			<displayName>Group</displayName>
+			<objectClass>ri:GroupObjectClass</objectClass>
+			<attribute>
+				<ref>icfs:name</ref>
+				<matchingRule>mr:stringIgnoreCase</matchingRule>
+				<outbound>
+					<source>
+						<path>$focus/name</path>
+					</source>
+				</outbound>
+			</attribute>
+			<attribute>
+				<ref>ri:member</ref>
+			</attribute>
+			<attribute>
+				<ref>ri:path</ref>
+				<matchingRule>mr:stringIgnoreCase</matchingRule>
+				<outbound>
+					<strength>weak</strength>
+					<source>
+						<path>$focus/name/norm</path>
+					</source>
+				</outbound>
+			</attribute>
+		</objectType>
+
+		<objectType>
+			<kind>entitlement</kind>
+			<intent>project</intent>
+			<displayName>Project</displayName>
+			<objectClass>ri:CustomProjectObjectClass</objectClass>
+			<attribute>
+				<ref>icfs:name</ref>
+				<matchingRule>mr:stringIgnoreCase</matchingRule>
+				<outbound>
+					<source>
+						<path>name</path>
+					</source>
+				</outbound>
+			</attribute>
+			<attribute>
+				<ref>ri:member</ref>
+			</attribute>
+			<attribute>
+				<ref>ri:namespace</ref>
+				<outbound>
+					<strength>weak</strength>
+					<source>
+						<path>$focus/parentOrgRef</path>
+					</source>
+					<expression>
+						<script>
+							<code>basic.getIdentifierValue(midpoint.getLinkedShadow(midpoint.getParentOrgByOrgType(focus,'customer'),resource))</code>
+						</script>
+					</expression>
+				</outbound>
+			</attribute>
+			<attribute>
+				<ref>ri:description</ref>
+				<outbound>
+					<source>
+						<path>description</path>
+					</source>
+				</outbound>
+			</attribute>
+		</objectType>
+
+	</schemaHandling>
+
+    </resource>
+
+</objects>
