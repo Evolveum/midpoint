@@ -546,12 +546,12 @@ public class Construction<F extends FocusType> implements DebugDumpable, Seriali
 					+ getIntent() + ", " + ObjectTypeUtil.toShortString(getResource(task, result))
 					+ " as definied in " + ObjectTypeUtil.toShortString(source), attrName);
 		}
-		Mapping<PrismPropertyValue<T>, ResourceAttributeDefinition<T>> mapping = mappingFactory.createMapping(
+		Mapping.Builder<PrismPropertyValue<T>, ResourceAttributeDefinition<T>> builder = mappingFactory.createMappingBuilder(
 				outboundMappingType,
 				"for attribute " + PrettyPrinter.prettyPrint(attrName) + " in " + source);
 
 		Mapping<PrismPropertyValue<T>, ResourceAttributeDefinition<T>> evaluatedMapping = evaluateMapping(
-				mapping, attrName, outputDefinition, null, task, result);
+				builder, attrName, outputDefinition, null, task, result);
 
 		LOGGER.trace("Evaluated mapping for attribute " + attrName + ": " + evaluatedMapping);
 		return evaluatedMapping;
@@ -624,11 +624,13 @@ public class Construction<F extends FocusType> implements DebugDumpable, Seriali
 					+ " in construction in " + source);
 		}
 		PrismContainerDefinition<ShadowAssociationType> outputDefinition = getAssociationContainerDefinition();
-		Mapping<PrismContainerValue<ShadowAssociationType>, PrismContainerDefinition<ShadowAssociationType>> mapping = mappingFactory
-				.createMapping(outboundMappingType,
-						"for association " + PrettyPrinter.prettyPrint(assocName) + " in " + source);
-		mapping.setOriginType(OriginType.ASSIGNMENTS);
-		mapping.setOriginObject(source);
+
+		Mapping.Builder<PrismContainerValue<ShadowAssociationType>, PrismContainerDefinition<ShadowAssociationType>> mappingBuilder =
+				mappingFactory.<PrismContainerValue<ShadowAssociationType>, PrismContainerDefinition<ShadowAssociationType>>createMappingBuilder()
+						.mappingType(outboundMappingType)
+						.contextDescription("for association " + PrettyPrinter.prettyPrint(assocName) + " in " + source)
+						.originType(OriginType.ASSIGNMENTS)
+						.originObject(source);
 
 		RefinedAssociationDefinition rAssocDef = refinedObjectClassDefinition.findAssociation(assocName);
 		if (rAssocDef == null) {
@@ -637,42 +639,42 @@ public class Construction<F extends FocusType> implements DebugDumpable, Seriali
 		}
 
 		Mapping<PrismContainerValue<ShadowAssociationType>, PrismContainerDefinition<ShadowAssociationType>> evaluatedMapping = evaluateMapping(
-				mapping, assocName, outputDefinition, rAssocDef.getAssociationTarget(), task, result);
+				mappingBuilder, assocName, outputDefinition, rAssocDef.getAssociationTarget(), task, result);
 
 		LOGGER.trace("Evaluated mapping for association " + assocName + ": " + evaluatedMapping);
 		return evaluatedMapping;
 	}
 
 	private <V extends PrismValue, D extends ItemDefinition> Mapping<V, D> evaluateMapping(
-			Mapping<V, D> mapping, QName mappingQName, D outputDefinition,
+			Mapping.Builder<V, D> builder, QName mappingQName, D outputDefinition,
 			RefinedObjectClassDefinition assocTargetObjectClassDefinition, Task task, OperationResult result)
 					throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
 
-		if (!mapping.isApplicableToChannel(channel)) {
+		if (!builder.isApplicableToChannel(channel)) {
 			return null;
 		}
 
-		mapping.addVariableDefinition(ExpressionConstants.VAR_USER, focusOdo);
-		mapping.addVariableDefinition(ExpressionConstants.VAR_FOCUS, focusOdo);
-		mapping.addVariableDefinition(ExpressionConstants.VAR_SOURCE, source);
-		mapping.setMappingQName(mappingQName);
-		mapping.setSourceContext(focusOdo);
-		mapping.setRootNode(focusOdo);
-		mapping.setDefaultTargetDefinition(outputDefinition);
-		mapping.setOriginType(originType);
-		mapping.setOriginObject(source);
-		mapping.setRefinedObjectClassDefinition(refinedObjectClassDefinition);
+		builder = builder.mappingQName(mappingQName)
+				.sourceContext(focusOdo)
+				.defaultTargetDefinition(outputDefinition)
+				.originType(originType)
+				.originObject(source)
+				.refinedObjectClassDefinition(refinedObjectClassDefinition)
+				.rootNode(focusOdo)
+				.addVariableDefinition(ExpressionConstants.VAR_USER, focusOdo)
+				.addVariableDefinition(ExpressionConstants.VAR_FOCUS, focusOdo)
+				.addVariableDefinition(ExpressionConstants.VAR_SOURCE, source)
+				.addVariableDefinition(ExpressionConstants.VAR_CONTAINING_OBJECT, source)
+				.addVariableDefinition(ExpressionConstants.VAR_ORDER_ONE_OBJECT, orderOneObject);
 
-		mapping.addVariableDefinition(ExpressionConstants.VAR_CONTAINING_OBJECT, source);
-		mapping.addVariableDefinition(ExpressionConstants.VAR_ORDER_ONE_OBJECT, orderOneObject);
 		if (assocTargetObjectClassDefinition != null) {
-			mapping.addVariableDefinition(ExpressionConstants.VAR_ASSOCIATION_TARGET_OBJECT_CLASS_DEFINITION,
+			builder = builder.addVariableDefinition(ExpressionConstants.VAR_ASSOCIATION_TARGET_OBJECT_CLASS_DEFINITION,
 					assocTargetObjectClassDefinition);
 		}
-		mapping.addVariableDefinition(ExpressionConstants.VAR_RESOURCE, resource);
-		LensUtil.addAssignmentPathVariables(mapping, assignmentPathVariables);
+		builder = builder.addVariableDefinition(ExpressionConstants.VAR_RESOURCE, resource);
+		builder = LensUtil.addAssignmentPathVariables(builder, assignmentPathVariables);
 		if (getSystemConfiguration() != null) {
-			mapping.addVariableDefinition(ExpressionConstants.VAR_CONFIGURATION, getSystemConfiguration());
+			builder = builder.addVariableDefinition(ExpressionConstants.VAR_CONFIGURATION, getSystemConfiguration());
 		}
 		// TODO: other variables ?
 
@@ -681,12 +683,13 @@ public class Construction<F extends FocusType> implements DebugDumpable, Seriali
 		// (e.g. in old values in ADD situations and new values in DELETE
 		// situations).
 		if (focusOdo.getOldObject() == null) {
-			mapping.setConditionMaskOld(false);
+			builder = builder.conditionMaskOld(false);
 		}
 		if (focusOdo.getNewObject() == null) {
-			mapping.setConditionMaskNew(false);
+			builder = builder.conditionMaskNew(false);
 		}
 
+		Mapping<V, D> mapping = builder.build();
 		mappingEvaluator.evaluateMapping(mapping, lensContext, task, result);
 
 		return mapping;
