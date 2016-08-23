@@ -229,10 +229,8 @@ public class ObjectTemplateProcessor {
 		ObjectDelta<F> focusDelta = focusOdo.getObjectDelta();
 		PrismObject<F> focusNew = focusOdo.getNewObject();
 		
-		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("Computing deltas in {}, focusDelta:\n{}", contextDesc, focusDelta==null?null:focusDelta.toString());
-		}
-		
+		LOGGER.trace("Computing deltas in {}, focusDelta:\n{}", contextDesc, focusDelta);
+
 		boolean addUnchangedValues = false;
 		if (focusDelta != null && focusDelta.isAdd()) {
 			addUnchangedValues = true;
@@ -450,7 +448,7 @@ public class ObjectTemplateProcessor {
             }
 			DeltaSetTriple<ItemValueWithOrigin<V,D>> outputTriple = ItemValueWithOrigin.createOutputTriple(mapping);
 			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("Output tripple for {}:\n{}", mapping, outputTriple==null?null:outputTriple.debugDump());
+				LOGGER.trace("Output triple for {}:\n{}", mapping, DebugUtil.debugDump(outputTriple));
 			}
 			if (outputTriple == null) {
 				continue;

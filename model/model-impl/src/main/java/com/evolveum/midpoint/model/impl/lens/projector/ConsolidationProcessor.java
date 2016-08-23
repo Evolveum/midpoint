@@ -133,7 +133,6 @@ public class ConsolidationProcessor {
         } else {
             // This is ADD, KEEP, UNLINK or null. All are in fact the same as KEEP
             consolidateValuesModifyProjection(context, accCtx, task, result);
-            if (consistencyChecks) context.checkConsistence();
         }
         if (consistencyChecks) context.checkConsistence();
     }

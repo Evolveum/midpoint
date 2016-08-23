@@ -364,8 +364,8 @@ public class AssignmentEvaluator<F extends FocusType> {
 		AssignmentType assignmentTypeNew = LensUtil.getAssignmentType(assignmentPathSegment.getAssignmentIdi(), evaluateOld);
 		MappingsType mappingsType = assignmentTypeNew.getFocusMappings();
 		
-		LOGGER.trace("Evaluate focus mappings '{}' in {} ({} mappings)", 
-				new Object[]{mappingsType.getDescription(), source, mappingsType.getMapping().size()});
+		LOGGER.trace("Evaluate focus mappings '{}' in {} ({} mappings)",
+				mappingsType.getDescription(), source, mappingsType.getMapping().size());
 		AssignmentPathVariables assignmentPathVariables = LensUtil.computeAssignmentPathVariables(assignmentPath);
 
 		for (MappingType mappingType: mappingsType.getMapping()) {
