@@ -1,0 +1,19 @@
+<mapping>
+	<strength>weak</strength>
+	<source>
+		<path>givenName</path>
+	</source>
+	<source>
+		<path>familyName</path>
+	</source>
+	<expression>
+		<script>
+			<code>
+				givenName + ' ' + familyName
+			</code>
+		</script>
+	</expression>
+	<target>
+		<path>fullName</path>
+	</target>
+</mapping>

@@ -414,7 +414,7 @@ public class Mapping<V extends PrismValue,D extends ItemDefinition> implements D
 		}
 	}
 	
-	public boolean isSatisfyCondition(){
+	public boolean isSatisfyCondition() {
 		boolean conditionOutputOld = computeConditionResult(conditionOutputTriple.getNonPositiveValues());
 		boolean conditionResultOld = conditionOutputOld && conditionMaskOld;
 		
@@ -422,7 +422,11 @@ public class Mapping<V extends PrismValue,D extends ItemDefinition> implements D
 		boolean conditionResultNew = conditionOutputNew && conditionMaskNew;
 		return (conditionResultOld || conditionResultNew);
 	}
-	
+
+	public PrismValueDeltaSetTriple<PrismPropertyValue<Boolean>> getConditionOutputTriple() {
+		return conditionOutputTriple;
+	}
+
 	private void traceEvaluationStart() {
 		if (profiling) {
 			evaluationStartTime = System.currentTimeMillis();

@@ -28,6 +28,8 @@ import javax.management.MBeanServer;
 import javax.management.MBeanServerFactory;
 import javax.management.ObjectName;
 
+import com.evolveum.midpoint.common.SystemConfigurationHolder;
+import com.evolveum.midpoint.web.page.admin.configuration.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.AttributeModifier;
@@ -128,15 +130,6 @@ import com.evolveum.midpoint.web.page.admin.certification.PageCertCampaigns;
 import com.evolveum.midpoint.web.page.admin.certification.PageCertDecisions;
 import com.evolveum.midpoint.web.page.admin.certification.PageCertDefinition;
 import com.evolveum.midpoint.web.page.admin.certification.PageCertDefinitions;
-import com.evolveum.midpoint.web.page.admin.configuration.PageAbout;
-import com.evolveum.midpoint.web.page.admin.configuration.PageAccounts;
-import com.evolveum.midpoint.web.page.admin.configuration.PageBulkAction;
-import com.evolveum.midpoint.web.page.admin.configuration.PageDebugList;
-import com.evolveum.midpoint.web.page.admin.configuration.PageDebugView;
-import com.evolveum.midpoint.web.page.admin.configuration.PageImportObject;
-import com.evolveum.midpoint.web.page.admin.configuration.PageInternals;
-import com.evolveum.midpoint.web.page.admin.configuration.PageRepositoryQuery;
-import com.evolveum.midpoint.web.page.admin.configuration.PageSystemConfiguration;
 import com.evolveum.midpoint.web.page.admin.home.PageDashboard;
 import com.evolveum.midpoint.web.page.admin.reports.PageCreatedReports;
 import com.evolveum.midpoint.web.page.admin.reports.PageNewReport;
@@ -1275,6 +1268,12 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 		menu = new MenuItem(createStringResource("PageAdmin.menu.top.configuration.repoQuery"),
 				PageRepositoryQuery.class);
 		submenu.add(menu);
+
+		if (SystemConfigurationHolder.isExperimentalCodeEnabled()) {
+			menu = new MenuItem(createStringResource("PageAdmin.menu.top.configuration.executeMapping"),
+					PageExecuteMapping.class);
+			submenu.add(menu);
+		}
 
 		menu = new MenuItem(createStringResource("PageAdmin.menu.top.configuration.about"), PageAbout.class);
 		submenu.add(menu);
