@@ -60,6 +60,7 @@
                 </value>
             </equal>
         </filter>
+        <resolutionTime>import</resolutionTime>
         <description>Reference to the ICF LDAP connector.</description>
     </connectorRef>
 

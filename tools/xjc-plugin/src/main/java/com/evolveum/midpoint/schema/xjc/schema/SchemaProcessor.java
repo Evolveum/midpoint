@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -289,6 +289,7 @@ public class SchemaProcessor implements Processor {
         updateObjectReferenceRelation(definedClass, getReference);
         updateObjectReferenceDescription(definedClass, getReference);
         updateObjectReferenceFilter(definedClass, getReference);
+        updateObjectReferenceResolutionTime(definedClass, getReference);
     }
 
     private void updateObjectReferenceType(JDefinedClass definedClass, JMethod getReference) {
@@ -386,6 +387,20 @@ public class SchemaProcessor implements Processor {
         invocation.arg(JExpr.invoke(asReferenceValue));
         invocation.arg(setFilter.listParams()[0]);
         body.add(invocation);
+    }
+    
+    private void updateObjectReferenceResolutionTime(JDefinedClass definedClass, JMethod getReference) {
+        JFieldVar typeField = definedClass.fields().get("resolutionTime");
+        JMethod getType = recreateMethod(findMethod(definedClass, "getResolutionTime"), definedClass);
+        copyAnnotations(getType, typeField);
+        JBlock body = getType.body();
+        body._return(JExpr.invoke(JExpr.invoke(getReference), "getResolutionTime"));
+
+        definedClass.removeField(typeField);
+        JMethod setType = recreateMethod(findMethod(definedClass, "setResolutionTime"), definedClass);
+        body = setType.body();
+        JInvocation invocation = body.invoke(JExpr.invoke(getReference), "setResolutionTime");
+        invocation.arg(setType.listParams()[0]);
     }
 
     private JMethod findMethod(JDefinedClass definedClass, String methodName) {

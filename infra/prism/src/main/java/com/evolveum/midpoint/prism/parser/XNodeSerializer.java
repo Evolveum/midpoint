@@ -49,6 +49,7 @@ import com.evolveum.midpoint.prism.xnode.RootXNode;
 import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.prism.xml.ns._public.types_3.EvaluationTimeType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedDataType;
 
@@ -287,6 +288,11 @@ public class XNodeSerializer {
         if (filter != null) {
             XNode xsubnode = filter.serializeToXNode();
             xmap.put(createReferenceQName(XNode.KEY_REFERENCE_FILTER, namespace), xsubnode);
+        }
+        EvaluationTimeType resolutionTime = value.getResolutionTime();
+        if (resolutionTime != null) {
+        	xmap.put(createReferenceQName(XNode.KEY_REFERENCE_RESOLUTION_TIME, namespace), 
+        			createPrimitiveXNode(resolutionTime.value(), DOMUtil.XSD_STRING));
         }
         if (value.getTargetName() != null) {
             if (SerializationContext.isSerializeReferenceNames(ctx)) {
