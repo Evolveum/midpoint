@@ -124,7 +124,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
- * Assignment processor is recomputing user assignments. It recomputes all the assignements whether they are direct
+ * Assignment processor is recomputing user assignments. It recomputes all the assignments whether they are direct
  * or indirect (roles). 
  * 
  * Processor does not do the complete recompute. Only the account "existence" is recomputed. I.e. the processor determines
@@ -141,29 +141,29 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 @Component
 public class AssignmentProcessor {
 
-    @Autowired(required = true)
+    @Autowired
     @Qualifier("cacheRepositoryService")
     private RepositoryService repositoryService;
 
-    @Autowired(required = true)
+    @Autowired
     private ObjectResolver objectResolver;
 
-    @Autowired(required = true)
+    @Autowired
     private PrismContext prismContext;
 
-    @Autowired(required = true)
+    @Autowired
     private MappingFactory mappingFactory;
     
-    @Autowired(required = true)
+    @Autowired
     private MappingEvaluator mappingEvaluator;
     
-    @Autowired(required = true)
+    @Autowired
     private ProvisioningService provisioningService;
     
-    @Autowired(required = true)
+    @Autowired
 	private ActivationComputer activationComputer;
     
-    @Autowired(required = true)
+    @Autowired
     private ObjectTemplateProcessor objectTemplateProcessor;
 
     private static final Trace LOGGER = TraceManager.getTrace(AssignmentProcessor.class);
