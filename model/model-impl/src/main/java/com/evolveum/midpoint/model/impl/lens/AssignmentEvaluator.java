@@ -249,7 +249,7 @@ public class AssignmentEvaluator<F extends FocusType> {
             }
 		}
 		
-		LOGGER.info("TTTTTTTTTT in {}: {}", source, targets);
+		LOGGER.trace("Targets in {}: {}", source, targets);
 		if (targets != null) {
 			for (PrismObject<O> target: targets) {
 				evaluateAssignmentTarget(evalAssignment, assignmentPathSegment, evaluateOld, mode, isParentValid, source, 
