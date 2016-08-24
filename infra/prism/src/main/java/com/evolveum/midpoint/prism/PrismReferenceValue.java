@@ -34,7 +34,7 @@ import java.io.Serializable;
 import javax.xml.namespace.QName;
 
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
-
+import com.evolveum.prism.xml.ns._public.types_3.EvaluationTimeType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.w3c.dom.Element;
 
@@ -42,8 +42,9 @@ import org.w3c.dom.Element;
  * @author Radovan Semancik
  */
 public class PrismReferenceValue extends PrismValue implements DebugDumpable, Serializable {
+	private static final long serialVersionUID = 1L;
 
-    private static final QName F_OID = new QName(PrismConstants.NS_TYPES, "oid");
+	private static final QName F_OID = new QName(PrismConstants.NS_TYPES, "oid");
     private static final QName F_TYPE = new QName(PrismConstants.NS_TYPES, "type");
     private static final QName F_RELATION = new QName(PrismConstants.NS_TYPES, "relation");
 	private String oid = null;
@@ -52,8 +53,8 @@ public class PrismReferenceValue extends PrismValue implements DebugDumpable, Se
     private QName relation = null;
     private String description = null;
     private SearchFilterType filter = null;
+    private EvaluationTimeType resolutionTime;
     private PolyString targetName = null;
-    
     
     private Referencable referencable;
     
@@ -204,7 +205,15 @@ public class PrismReferenceValue extends PrismValue implements DebugDumpable, Se
 	public void setFilter(SearchFilterType filter) {
 		this.filter = filter;
 	}
-	
+
+	public EvaluationTimeType getResolutionTime() {
+		return resolutionTime;
+	}
+
+	public void setResolutionTime(EvaluationTimeType resolutionTime) {
+		this.resolutionTime = resolutionTime;
+	}
+
 	@Override
 	public PrismReferenceDefinition getDefinition() {
 		return (PrismReferenceDefinition) super.getDefinition();
@@ -344,6 +353,7 @@ public class PrismReferenceValue extends PrismValue implements DebugDumpable, Se
 		can.setTargetType(getTargetType());
 		can.setRelation(getRelation());
 		can.setFilter(getFilter());
+		can.setResolutionTime(getResolutionTime());
 		can.setDescription(getDescription());
 		return can;
 	}
@@ -472,6 +482,9 @@ public class PrismReferenceValue extends PrismValue implements DebugDumpable, Se
 		if (filter != null) {
 			sb.append(", (filter)");
 		}
+		if (resolutionTime != null) {
+			sb.append(", resolutionTime=").append(resolutionTime);
+		}
 		if (object != null) {
 			sb.append(", (object)");
 		}
@@ -534,6 +547,7 @@ public class PrismReferenceValue extends PrismValue implements DebugDumpable, Se
 		}
 		clone.description = this.description;
 		clone.filter = this.filter;
+		clone.resolutionTime = this.resolutionTime;
         clone.relation = this.relation;
         clone.targetName = this.targetName;
 	}

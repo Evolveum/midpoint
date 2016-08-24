@@ -403,7 +403,31 @@
 				            Filter that can be used to dynamically lookup the reference OID e.g. during imports.
 				            It must not be used for normal operations. The filter may be stored in the repository
 				            to avoid data loss. But even if it is stored it will not be used beyond initial
-				            import or unless explicitly requested.
+				            import or unless explicitly requested (e.g. by setting resolutionTime).
+			            </p>
+			            <p>
+			            	Note: The filter will NOT be used if the OID in the reference is set. The OID always takes
+			            	precedence.
+			            </p>
+			        </xsd:documentation>
+			    </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="resolutionTime" type="t:EvaluationTimeType" minOccurs="0" maxOccurs="1" default="import">
+			    <xsd:annotation>
+			        <xsd:documentation>
+			        	<p>
+				            Definition of the "time" when the reference will be resolved. Resolving the reference means using
+				            the filter to get object(s) or OID(s).
+				        </p>
+				        <p>
+				            Import-time resolution means that the reference will be resolved once when the file is imported.
+				            OID will be recorded in the reference and then only the OID will be used to follow the reference.
+				            This is a very efficient method and it is the default.
+			            </p>
+				        <p>
+				            Run-time resolution means that the reference will be resolved every time that the reference is
+				            evaluated. This is less efficient but it provides great flexibility as the filter may contain
+				            expressions and therefore the reference target may dynamically change.
 			            </p>
 			        </xsd:documentation>
 			    </xsd:annotation>
@@ -462,7 +486,7 @@
             </xsd:annotation>
         </xsd:attribute>
     </xsd:complexType>
-    <xsd:element name="objectRef" type="tns:ObjectReferenceType"/>
+    <xsd:element name="objectRef" type="tns:ObjectReferenceType"/>    
 
     <xsd:complexType name="ExtensionType">
         <xsd:annotation>

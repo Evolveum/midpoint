@@ -425,14 +425,19 @@ public class SchemaTransformer {
 			applyObjectTemplateToDefinition(objectDefinition, subTemplate.asObjectable(), result);
 		}
 		for (ObjectTemplateItemDefinitionType templateItemDefType: objectTemplateType.getItem()) {
-			ItemPathType ref = templateItemDefType.getRef();
-			if (ref == null) {
+                ItemPathType ref = templateItemDefType.getRef();
+                if (ref == null) {
 				throw new SchemaException("No 'ref' in item definition in "+objectTemplateType);
-			}
-			ItemPath itemPath = ref.getItemPath();
-			ItemDefinition itemDef = objectDefinition.findItemDefinition(itemPath);
-			applyObjectTemplateItem(itemDef, templateItemDefType, "item "+itemPath+" in object type "+objectDefinition.getTypeName()+" as specified in item definition in "+objectTemplateType);
-			
+                }
+                ItemPath itemPath = ref.getItemPath();
+                ItemDefinition itemDef = objectDefinition.findItemDefinition(itemPath);
+                if (itemDef != null) {
+                    applyObjectTemplateItem(itemDef, templateItemDefType, "item " + itemPath + " in object type " + objectDefinition.getTypeName() + " as specified in item definition in " + objectTemplateType);
+                } else {
+                    OperationResult subResult = result.createMinorSubresult(ModelController.class.getName() + ".applyObjectTemplateToDefinition");
+                    subResult.recordPartialError("No definition for item " + itemPath + " in object type " + objectDefinition.getTypeName() + " as specified in item definition in " + objectTemplateType);
+                    continue;
+                }
 		}
 	}
 	
@@ -451,8 +456,15 @@ public class SchemaTransformer {
 			}
 			ItemPath itemPath = ref.getItemPath();
 			ItemDefinition itemDefFromObject = object.getDefinition().findItemDefinition(itemPath);
-			applyObjectTemplateItem(itemDefFromObject, templateItemDefType, "item "+itemPath+" in " + object
-					+ " as specified in item definition in "+objectTemplateType);
+            if (itemDefFromObject != null) {
+                applyObjectTemplateItem(itemDefFromObject, templateItemDefType, "item " + itemPath + " in " + object
+                        + " as specified in item definition in " + objectTemplateType);
+            } else {
+                OperationResult subResult = result.createMinorSubresult(ModelController.class.getName() + ".applyObjectTemplateToObject");
+                subResult.recordPartialError("No definition for item " + itemPath + " in " + object
+                        + " as specified in item definition in " + objectTemplateType);
+                continue;
+            }
 			Item<?, ?> item = object.findItem(itemPath);
 			if (item != null) {
 				ItemDefinition itemDef = item.getDefinition();

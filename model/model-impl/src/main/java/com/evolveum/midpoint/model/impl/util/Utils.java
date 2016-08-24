@@ -57,6 +57,8 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
+import com.evolveum.prism.xml.ns._public.types_3.EvaluationTimeType;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.NotNull;
@@ -108,7 +110,7 @@ public final class Utils {
 	 * @param result
 	 */
 	public static <T extends ObjectType> void resolveReferences(final PrismObject<T> object, final RepositoryService repository,
-	    		final boolean enforceReferentialIntegrity, final boolean forceFilterReevaluation,
+	    		final boolean enforceReferentialIntegrity, final boolean forceFilterReevaluation, final EvaluationTimeType resolutionTime,
 				final PrismContext prismContext, final OperationResult result) {
 	    	
 	    	Visitor visitor = new Visitor() {
@@ -117,7 +119,8 @@ public final class Utils {
 					if (!(visitable instanceof PrismReferenceValue)) {
 						return;
 					}
-					resolveRef((PrismReferenceValue)visitable, repository, enforceReferentialIntegrity, forceFilterReevaluation, prismContext, object.toString(), result);
+					resolveRef((PrismReferenceValue)visitable, repository, enforceReferentialIntegrity, forceFilterReevaluation,
+							resolutionTime, prismContext, object.toString(), result);
 				}
 			};
 			object.accept(visitor);
@@ -130,6 +133,7 @@ public final class Utils {
 
 	public static <T extends ObjectType> void resolveReferences(final ObjectDelta<T> objectDelta, final RepositoryService repository,
 																final boolean enforceReferentialIntegrity, final boolean forceFilterReevaluation,
+																final EvaluationTimeType resolutionTime,
 																final PrismContext prismContext, final OperationResult result) {
 
 		Visitor visitor = new Visitor() {
@@ -138,7 +142,8 @@ public final class Utils {
 				if (!(visitable instanceof PrismReferenceValue)) {
 					return;
 				}
-				resolveRef((PrismReferenceValue)visitable, repository, enforceReferentialIntegrity, forceFilterReevaluation, prismContext, objectDelta.toString(), result);
+				resolveRef((PrismReferenceValue)visitable, repository, enforceReferentialIntegrity, forceFilterReevaluation,
+						resolutionTime, prismContext, objectDelta.toString(), result);
 			}
 		};
 		// We could use objectDelta.accept(visitor), but we want to visit only values to add and replace
@@ -177,10 +182,17 @@ public final class Utils {
 	}
 
 	private static void resolveRef(PrismReferenceValue refVal, RepositoryService repository,
-									   boolean enforceReferentialIntegrity, boolean forceFilterReevaluation,
+									   boolean enforceReferentialIntegrity, boolean forceFilterReevaluation, EvaluationTimeType evaluationTimeType,
 									   PrismContext prismContext, String contextDesc, OperationResult parentResult) {
 			QName refName = refVal.getParent().getElementName();
-	        OperationResult result = parentResult.createSubresult(OPERATION_RESOLVE_REFERENCE);
+			
+			if ((refVal.getResolutionTime() != null && refVal.getResolutionTime() != evaluationTimeType) ||
+					(refVal.getResolutionTime() == null && evaluationTimeType != EvaluationTimeType.IMPORT)) {
+				LOGGER.trace("Skipping resolution of reference {} in {} because the resolutionTime is set to {}", refName, contextDesc, refVal.getResolutionTime());
+				return;
+			}
+			
+	        OperationResult result = parentResult.createMinorSubresult(OPERATION_RESOLVE_REFERENCE);
 	        result.addContext(OperationResult.CONTEXT_ITEM, refName);
 
 	        QName typeQName = null;

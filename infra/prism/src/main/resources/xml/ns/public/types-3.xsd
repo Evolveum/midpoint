@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <!--
-  ~ Copyright (c) 2010-2015 Evolveum
+  ~ Copyright (c) 2010-2016 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -31,7 +31,7 @@
         <xsd:documentation>
             Basic Prism types.
             
-            Version: 3.3
+            Version: 3.4.1-SNAPSHOT
             Recommended namespace prefix: t
         </xsd:documentation>
     </xsd:annotation>
@@ -307,6 +307,26 @@
                 		<xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
                 	</xsd:sequence>
                 </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="resolutionTime" type="tns:EvaluationTimeType" minOccurs="0" maxOccurs="1" default="import">
+			    <xsd:annotation>
+			        <xsd:documentation>
+			        	<p>
+				            Definition of the "time" when the reference will be resolved. Resolving the reference means using
+				            the filter to get object(s) or OID(s).
+				        </p>
+				        <p>
+				            Import-time resolution means that the reference will be resolved once when the file is imported.
+				            OID will be recorded in the reference and then only the OID will be used to follow the reference.
+				            This is a very efficient method and it is the default.
+			            </p>
+				        <p>
+				            Run-time resolution means that the reference will be resolved every time that the reference is
+				            evaluated. This is less efficient but it provides great flexibility as the filter may contain
+				            expressions and therefore the reference target may dynamically change.
+			            </p>
+			        </xsd:documentation>
+			    </xsd:annotation>
             </xsd:element>
             <xsd:element name="targetName" type="tns:PolyStringType" minOccurs="0" maxOccurs="1">
 			    <xsd:annotation>
@@ -622,7 +642,44 @@
         </xsd:restriction>
     </xsd:simpleType>
     
-    
+    <xsd:simpleType name="EvaluationTimeType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Enumeration that defines when a specific expression is evaluated, filter is resolved, etc.
+                It defines the "time" when such evaluation happens, such as import-time, run-time, etc.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="import">
+                <xsd:annotation>
+                	<xsd:documentation>
+                		<p>
+                			Import-time. Evaluation happens when the object is imported
+                			into the system.
+                		</p>
+                	</xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="IMPORT"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="run">
+                <xsd:annotation>
+                	<xsd:documentation>
+                		<p>
+	                		Run-time. Evaluation happens every time when the object is used.
+                		</p>
+                	</xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="RUN"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
 
 </xsd:schema>
 
