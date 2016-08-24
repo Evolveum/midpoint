@@ -249,9 +249,15 @@ public class AssignmentEvaluator<F extends FocusType> {
             }
 		}
 		
-		for (PrismObject<O> target: targets) {
+		LOGGER.info("TTTTTTTTTT in {}: {}", source, targets);
+		if (targets != null) {
+			for (PrismObject<O> target: targets) {
+				evaluateAssignmentTarget(evalAssignment, assignmentPathSegment, evaluateOld, mode, isParentValid, source, 
+						sourceDescription, assignmentPath, assignmentType, target, task, result);
+			}
+		} else {
 			evaluateAssignmentTarget(evalAssignment, assignmentPathSegment, evaluateOld, mode, isParentValid, source, 
-					sourceDescription, assignmentPath, assignmentType, target, task, result);
+					sourceDescription, assignmentPath, assignmentType, null, task, result);
 		}
 		
 	}

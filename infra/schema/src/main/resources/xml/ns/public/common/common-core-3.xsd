@@ -412,7 +412,7 @@
 			        </xsd:documentation>
 			    </xsd:annotation>
             </xsd:element>
-            <xsd:element name="resolutionTime" type="c:EvaluationTimeType" minOccurs="0" maxOccurs="1" default="import">
+            <xsd:element name="resolutionTime" type="t:EvaluationTimeType" minOccurs="0" maxOccurs="1" default="import">
 			    <xsd:annotation>
 			        <xsd:documentation>
 			        	<p>
@@ -486,47 +486,7 @@
             </xsd:annotation>
         </xsd:attribute>
     </xsd:complexType>
-    <xsd:element name="objectRef" type="tns:ObjectReferenceType"/>
-    
-    <xsd:simpleType name="EvaluationTimeType">
-        <xsd:annotation>
-            <xsd:documentation>
-                Enumeration that defines when a specific expression is evaluated, filter is resolved, etc.
-                It defines the "time" when such evaluation happens, such as import-time, run-time, etc.
-            </xsd:documentation>
-            <xsd:appinfo>
-                <jaxb:typesafeEnumClass/>
-            </xsd:appinfo>
-        </xsd:annotation>
-        <xsd:restriction base="xsd:string">
-            <xsd:enumeration value="import">
-                <xsd:annotation>
-                	<xsd:documentation>
-                		<p>
-                			Import-time. Evaluation happens when the object is imported
-                			into midPoint repository.
-                		</p>
-                	</xsd:documentation>
-                    <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="IMPORT"/>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:enumeration>
-            <xsd:enumeration value="run">
-                <xsd:annotation>
-                	<xsd:documentation>
-                		<p>
-	                		Run-time. Evaluation happens every time when the object is used.
-                		</p>
-                	</xsd:documentation>
-                    <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="RUN"/>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:enumeration>
-        </xsd:restriction>
-    </xsd:simpleType>
-    
+    <xsd:element name="objectRef" type="tns:ObjectReferenceType"/>    
 
     <xsd:complexType name="ExtensionType">
         <xsd:annotation>

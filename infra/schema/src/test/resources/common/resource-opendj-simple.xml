@@ -42,6 +42,7 @@
                 <q:value>org.identityconnectors.ldap.LdapConnector</q:value>
             </q:equal>
         </filter>
+        <resolutionTime>run</resolutionTime>
     </connectorRef>
 
     <!-- Resource configuration section -->

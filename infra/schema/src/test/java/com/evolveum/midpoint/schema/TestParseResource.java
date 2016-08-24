@@ -45,6 +45,7 @@ import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
+import com.evolveum.prism.xml.ns._public.types_3.EvaluationTimeType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
@@ -455,6 +456,12 @@ public class TestParseResource {
             PrismPropertyValue filterValue = (PrismPropertyValue) equalFilter.getValues().get(0);
             assertEquals("Wrong filter value", "org.identityconnectors.ldap.LdapConnector", ((String) filterValue.getValue()).trim());
         }
+        EvaluationTimeType resolutionTime = connectorRefVal.getResolutionTime();
+        if (isSimple) {
+        	assertEquals("Wrong resolution time in connectorRef value", EvaluationTimeType.RUN, resolutionTime);
+        } else {
+        	assertEquals("Wrong resolution time in connectorRef value", EvaluationTimeType.IMPORT, resolutionTime);
+        }
 
         PrismContainer<?> configurationContainer = resource.findContainer(ResourceType.F_CONNECTOR_CONFIGURATION);
 		assertContainerDefinition(configurationContainer, "configuration", ConnectorConfigurationType.COMPLEX_TYPE, 1, 1);
@@ -534,6 +541,12 @@ public class TestParseResource {
     	assertNotNull("No filter in connectorRef (JAXB)", filter);
     	MapXNode filterElement = filter.getFilterClauseXNode();
     	assertNotNull("No filter element in connectorRef (JAXB)", filterElement);
+    	EvaluationTimeType resolutionTime = connectorRef.getResolutionTime();
+    	if (isSimple) {
+    		assertEquals("Wrong resolution time in connectorRef (JAXB)", EvaluationTimeType.RUN, resolutionTime);
+    	} else {
+    		assertEquals("Wrong resolution time in connectorRef (JAXB)", EvaluationTimeType.IMPORT, resolutionTime);
+    	}
     	
     	XmlSchemaType xmlSchemaType = resourceType.getSchema();
     	SchemaHandlingType schemaHandling = resourceType.getSchemaHandling();

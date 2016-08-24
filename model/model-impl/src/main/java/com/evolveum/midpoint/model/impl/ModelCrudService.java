@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -71,6 +71,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectShadow
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.prism.xml.ns._public.types_3.EvaluationTimeType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 
 /**
@@ -265,7 +266,7 @@ public class ModelCrudService {
 		// Task task = taskManager.createTaskInstance(); // in the future, this
 		// task instance will come from GUI
 
-		Utils.resolveReferences(object, repository, false, false, prismContext, result);
+		Utils.resolveReferences(object, repository, false, false, EvaluationTimeType.IMPORT, prismContext, result);
         
 		
 		RepositoryCache.enter();
