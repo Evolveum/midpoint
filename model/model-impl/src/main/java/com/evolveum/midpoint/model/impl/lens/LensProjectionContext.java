@@ -154,18 +154,31 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
      * 
      * Intermediary computation result. It is stored to allow re-computing of account constructions during
      * iterative computations.
+	 *
+	 * Source: AssignmentProcessor
+	 * Target: ConsolidationProcessor / ReconciliationProcessor (via squeezed structures)
      */
     private transient PrismValueDeltaSetTriple<PrismPropertyValue<Construction>> constructionDeltaSetTriple;
+
+	/**
+	 * Triples for outbound mappings; similar to the above.
+	 * Source: OutboundProcessor
+	 * Target: ConsolidationProcessor / ReconciliationProcessor (via squeezed structures)
+	 */
+	private transient Construction outboundConstruction;
     
-    private transient Construction outboundConstruction;
-    
-    private transient Collection<ResourceObjectTypeDependencyType> dependencies = null;
-    
-    private transient Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismPropertyValue<?>,PrismPropertyDefinition<?>>>> squeezedAttributes;
+	/**
+	 * Postprocessed triples from the above two properties.
+	 * Source: ConsolidationProcessor
+	 * Target: ReconciliationProcessor
+	 */
+	private transient Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismPropertyValue<?>,PrismPropertyDefinition<?>>>> squeezedAttributes;
     private transient Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismContainerValue<ShadowAssociationType>,PrismContainerDefinition<ShadowAssociationType>>>> squeezedAssociations;
     private transient Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismPropertyValue<QName>,PrismPropertyDefinition<QName>>>> squeezedAuxiliaryObjectClasses;
-    
-    // Cached copy, to avoid constructing it over and over again
+
+	private transient Collection<ResourceObjectTypeDependencyType> dependencies = null;
+
+	// Cached copy, to avoid constructing it over and over again
     private transient PrismObjectDefinition<ShadowType> shadowDefinition = null;
     
     private transient RefinedObjectClassDefinition structuralObjectClassDefinition;

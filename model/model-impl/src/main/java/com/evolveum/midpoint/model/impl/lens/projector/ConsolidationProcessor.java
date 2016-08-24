@@ -101,13 +101,13 @@ public class ConsolidationProcessor {
     
     private PrismContainerDefinition<ShadowAssociationType> associationDefinition;
     
-    @Autowired(required=true)
+    @Autowired
     private ContextLoader contextLoader;
     
-    @Autowired(required=true)
+    @Autowired
 	private MatchingRuleRegistry matchingRuleRegistry;
 
-    @Autowired(required=true)
+    @Autowired
     PrismContext prismContext;
     
     /**
@@ -508,7 +508,7 @@ public class ConsolidationProcessor {
         }
         
         LOGGER.trace("CONSOLIDATE {}\n({}) completeShadow={}, addUnchangedValues={}, forceAddUnchangedValues={}",
-        		new Object[]{ itemDesc, discr, completeShadow, addUnchangedValues, forceAddUnchangedValues});
+				itemDesc, discr, completeShadow, addUnchangedValues, forceAddUnchangedValues);
         
         // Use this common utility method to do the computation. It does most of the work.
 		ItemDelta<V,D> itemDelta = LensUtil.consolidateTripleToDelta(
@@ -779,10 +779,9 @@ public class ConsolidationProcessor {
 
 	private <V extends PrismValue, D extends ItemDefinition, F extends FocusType> Map<QName, DeltaSetTriple<ItemValueWithOrigin<V,D>>> sqeeze(
 			LensProjectionContext accCtx, MappingExtractor<V,D,F> extractor) {
-		Map<QName, DeltaSetTriple<ItemValueWithOrigin<V,D>>> squeezedMap 
-						= new HashMap<QName, DeltaSetTriple<ItemValueWithOrigin<V,D>>>();
+		Map<QName, DeltaSetTriple<ItemValueWithOrigin<V,D>>> squeezedMap = new HashMap<>();
 		if (accCtx.getConstructionDeltaSetTriple() != null) {
-			sqeezeAttributesFromConstructionTriple(squeezedMap, (PrismValueDeltaSetTriple)accCtx.getConstructionDeltaSetTriple(), extractor);		
+			sqeezeAttributesFromConstructionTriple(squeezedMap, (PrismValueDeltaSetTriple)accCtx.getConstructionDeltaSetTriple(), extractor);
 		}
 		if (accCtx.getOutboundConstruction() != null) {
 			// The plus-minus-zero status of outbound account construction is determined by the type of account delta
