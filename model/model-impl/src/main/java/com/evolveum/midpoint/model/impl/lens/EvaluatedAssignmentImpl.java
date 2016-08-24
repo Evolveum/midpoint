@@ -304,7 +304,9 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 			sb.append("\n");
 			DebugUtil.debugDumpWithLabel(sb, "Target", target.toString(), indent+1);
 		}
+		sb.append("\n");
 		DebugUtil.debugDumpWithLabel(sb, "Present in old object", isPresentInOldObject(), indent+1);
+		sb.append("\n");
 		DebugUtil.debugDumpWithLabel(sb, "Present in current object", isPresentInCurrentObject(), indent+1);
 		return sb.toString();
 	}

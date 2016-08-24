@@ -252,17 +252,20 @@ public class AssignmentEvaluator<F extends FocusType> {
 		LOGGER.trace("Targets in {}: {}", source, targets);
 		if (targets != null) {
 			for (PrismObject<O> target: targets) {
-				evaluateAssignmentTarget(evalAssignment, assignmentPathSegment, evaluateOld, mode, isParentValid, source, 
+				evaluateAssignmentWithResolvedTarget(evalAssignment, assignmentPathSegment, evaluateOld, mode, isParentValid, source,
 						sourceDescription, assignmentPath, assignmentType, target, task, result);
 			}
 		} else {
-			evaluateAssignmentTarget(evalAssignment, assignmentPathSegment, evaluateOld, mode, isParentValid, source, 
+			evaluateAssignmentWithResolvedTarget(evalAssignment, assignmentPathSegment, evaluateOld, mode, isParentValid, source,
 					sourceDescription, assignmentPath, assignmentType, null, task, result);
 		}
-		
 	}
-	
-	private <O extends ObjectType> void evaluateAssignmentTarget(EvaluatedAssignmentImpl<F> evalAssignment, AssignmentPathSegment assignmentPathSegment, 
+
+	/**
+	 *  Continues with assignment evaluation: Either there is a non-null (resolved) target, passed in "target" parameter,
+	 *  or traditional options stored in assignmentType (construction or focus mappings). TargetRef from assignmentType is ignored.
+ 	 */
+	private <O extends ObjectType> void evaluateAssignmentWithResolvedTarget(EvaluatedAssignmentImpl<F> evalAssignment, AssignmentPathSegment assignmentPathSegment,
 			boolean evaluateOld, PlusMinusZero mode, boolean isParentValid, ObjectType source, String sourceDescription,
 			AssignmentPath assignmentPath, AssignmentType assignmentType, PrismObject<O> target, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, PolicyViolationException {
 		if (target != null && evalAssignment.getTarget() == null) {
@@ -496,6 +499,11 @@ public class AssignmentEvaluator<F extends FocusType> {
 			boolean evaluateOld, PlusMinusZero mode, boolean isValid, AbstractRoleType roleType, ObjectType source, String sourceDescription,
 			AssignmentPath assignmentPath, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, PolicyViolationException {
 		assertSource(source, assignment);
+
+		if (!LensUtil.isValid(roleType, now, activationComputer)) {
+			LOGGER.trace("Skipping evaluation of " + roleType + " because it is not valid");
+			return false;
+		}
 		
 		MappingType conditionType = roleType.getCondition();
 		if (conditionType != null) {

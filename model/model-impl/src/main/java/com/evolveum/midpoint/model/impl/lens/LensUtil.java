@@ -882,7 +882,14 @@ public class LensUtil {
 	}
     
     public static boolean isValid(AssignmentType assignmentType, XMLGregorianCalendar now, ActivationComputer activationComputer) {
-		ActivationType activationType = assignmentType.getActivation();
+		return isValid(assignmentType.getActivation(), now, activationComputer);
+	}
+
+	public static boolean isValid(FocusType focus, XMLGregorianCalendar now, ActivationComputer activationComputer) {
+		return isValid(focus.getActivation(), now, activationComputer);
+	}
+
+	private static boolean isValid(ActivationType activationType, XMLGregorianCalendar now, ActivationComputer activationComputer) {
 		if (activationType == null) {
 			return true;
 		}
@@ -890,7 +897,7 @@ public class LensUtil {
 		ActivationStatusType effectiveStatus = activationComputer.getEffectiveStatus(activationType, validityStatus, ActivationStatusType.ENABLED);
 		return effectiveStatus == ActivationStatusType.ENABLED;
 	}
-    
+
     public static <V extends PrismValue, D extends ItemDefinition , F extends FocusType> Mapping<V, D> createFocusMapping(final MappingFactory mappingFactory,
     		final LensContext<F> context, final MappingType mappingType, ObjectType originObject, 
 			ObjectDeltaObject<F> focusOdo, AssignmentPathVariables assignmentPathVariables, PrismObject<SystemConfigurationType> configuration,
