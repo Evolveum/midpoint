@@ -21,6 +21,7 @@ import java.util.List;
 import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.util.exception.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -51,10 +52,6 @@ import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.PrettyPrinter;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
@@ -81,13 +78,13 @@ public class OutboundProcessor {
 
     private PrismContainerDefinition<ShadowAssociationType> associationContainerDefinition;
 
-    @Autowired(required = true)
+    @Autowired
     private PrismContext prismContext;
 
-    @Autowired(required = true)
+    @Autowired
     private MappingFactory mappingFactory;
     
-    @Autowired(required = true)
+    @Autowired
     private MappingEvaluator mappingEvaluator;
 
     public <F extends FocusType> void processOutbound(LensContext<F> context, LensProjectionContext projCtx, Task task, OperationResult result) throws SchemaException,
@@ -138,12 +135,12 @@ public class OutboundProcessor {
 				continue;
 			}
 			
-			Mapping<PrismPropertyValue<?>,RefinedAttributeDefinition<?>> mapping = mappingFactory.createMapping(outboundMappingType, 
+			Mapping.Builder<PrismPropertyValue<?>,RefinedAttributeDefinition<?>> builder = mappingFactory.createMappingBuilder(outboundMappingType,
 			        "outbound mapping for " + PrettyPrinter.prettyPrint(refinedAttributeDefinition.getName())
 			        + " in " + rOcDef.getResourceType());
-			mapping.setOriginObject(rOcDef.getResourceType());
-			mapping.setOriginType(OriginType.OUTBOUND);
-			Mapping<PrismPropertyValue<?>,RefinedAttributeDefinition<?>> evaluatedMapping = evaluateMapping(mapping, attributeName, refinedAttributeDefinition,
+			builder = builder.originObject(rOcDef.getResourceType())
+					.originType(OriginType.OUTBOUND);
+			Mapping<PrismPropertyValue<?>,RefinedAttributeDefinition<?>> evaluatedMapping = evaluateMapping(builder, attributeName, refinedAttributeDefinition,
 					focusOdo, projectionOdo, operation, rOcDef, null, context, projCtx, task, result);
 			
 			if (evaluatedMapping != null) {
@@ -164,12 +161,12 @@ public class OutboundProcessor {
 //				continue;
 //			}
 			
-			Mapping<PrismContainerValue<ShadowAssociationType>,PrismContainerDefinition<ShadowAssociationType>> mapping = mappingFactory.createMapping(outboundMappingType, 
+			Mapping.Builder<PrismContainerValue<ShadowAssociationType>,PrismContainerDefinition<ShadowAssociationType>> mappingBuilder = mappingFactory.createMappingBuilder(outboundMappingType,
 			        "outbound mapping for " + PrettyPrinter.prettyPrint(associationDefinition.getName())
 			        + " in " + rOcDef.getResourceType());
 
 			PrismContainerDefinition<ShadowAssociationType> outputDefinition = getAssociationContainerDefinition();
-			Mapping<PrismContainerValue<ShadowAssociationType>,PrismContainerDefinition<ShadowAssociationType>> evaluatedMapping = (Mapping) evaluateMapping(mapping, 
+			Mapping<PrismContainerValue<ShadowAssociationType>,PrismContainerDefinition<ShadowAssociationType>> evaluatedMapping = (Mapping) evaluateMapping(mappingBuilder,
 					assocName, outputDefinition, focusOdo, projectionOdo, operation, rOcDef, 
 					associationDefinition.getAssociationTarget(), context, projCtx, task, result);
 			
@@ -181,12 +178,12 @@ public class OutboundProcessor {
         projCtx.setOutboundConstruction(outboundConstruction);
     }
     
-    private <F extends FocusType, V extends PrismValue, D extends ItemDefinition> Mapping<V, D> evaluateMapping(final Mapping<V,D> mapping, QName mappingQName,
+    private <F extends FocusType, V extends PrismValue, D extends ItemDefinition> Mapping<V, D> evaluateMapping(final Mapping.Builder<V,D> mappingBuilder, QName mappingQName,
     		D targetDefinition, ObjectDeltaObject<F> focusOdo, ObjectDeltaObject<ShadowType> projectionOdo,
     		String operation, RefinedObjectClassDefinition rOcDef, RefinedObjectClassDefinition assocTargetObjectClassDefinition,
     		LensContext<F> context, LensProjectionContext projCtx, final Task task, OperationResult result)
     				throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
-		if (!mapping.isApplicableToChannel(context.getChannel())) {
+		if (!mappingBuilder.isApplicableToChannel(context.getChannel())) {
 			LOGGER.trace("Skipping outbound mapping for {} because the channel does not match", mappingQName);
 			return null;
 		}
@@ -195,31 +192,31 @@ public class OutboundProcessor {
 		
 		// This is just supposed to be an optimization. The consolidation should deal with the weak mapping
 		// even if it is there. But in that case we do not need to evaluate it at all.
-		if (mapping.getStrength() == MappingStrengthType.WEAK && projCtx.hasValueForAttribute(mappingQName)) {
+		if (mappingBuilder.getStrength() == MappingStrengthType.WEAK && projCtx.hasValueForAttribute(mappingQName)) {
 			LOGGER.trace("Skipping outbound mapping for {} because it is weak", mappingQName);
 			return null;
 		}
 		
-		mapping.setDefaultTargetDefinition(targetDefinition);
-		mapping.setSourceContext(focusOdo);
-		mapping.setMappingQName(mappingQName);
-		mapping.addVariableDefinition(ExpressionConstants.VAR_USER, focusOdo);
-		mapping.addVariableDefinition(ExpressionConstants.VAR_FOCUS, focusOdo);
-		mapping.addVariableDefinition(ExpressionConstants.VAR_ACCOUNT, projectionOdo);
-		mapping.addVariableDefinition(ExpressionConstants.VAR_PROJECTION, projectionOdo);
-		mapping.addVariableDefinition(ExpressionConstants.VAR_CONFIGURATION, context.getSystemConfiguration());
-		mapping.addVariableDefinition(ExpressionConstants.VAR_ITERATION, 
+		mappingBuilder.setDefaultTargetDefinition(targetDefinition);
+		mappingBuilder.setSourceContext(focusOdo);
+		mappingBuilder.setMappingQName(mappingQName);
+		mappingBuilder.addVariableDefinition(ExpressionConstants.VAR_USER, focusOdo);
+		mappingBuilder.addVariableDefinition(ExpressionConstants.VAR_FOCUS, focusOdo);
+		mappingBuilder.addVariableDefinition(ExpressionConstants.VAR_ACCOUNT, projectionOdo);
+		mappingBuilder.addVariableDefinition(ExpressionConstants.VAR_PROJECTION, projectionOdo);
+		mappingBuilder.addVariableDefinition(ExpressionConstants.VAR_CONFIGURATION, context.getSystemConfiguration());
+		mappingBuilder.addVariableDefinition(ExpressionConstants.VAR_ITERATION,
 				LensUtil.getIterationVariableValue(projCtx));
-		mapping.addVariableDefinition(ExpressionConstants.VAR_ITERATION_TOKEN, 
+		mappingBuilder.addVariableDefinition(ExpressionConstants.VAR_ITERATION_TOKEN,
 				LensUtil.getIterationTokenVariableValue(projCtx));
-		mapping.addVariableDefinition(ExpressionConstants.VAR_RESOURCE, projCtx.getResource());
-		mapping.addVariableDefinition(ExpressionConstants.VAR_OPERATION, operation);
+		mappingBuilder.addVariableDefinition(ExpressionConstants.VAR_RESOURCE, projCtx.getResource());
+		mappingBuilder.addVariableDefinition(ExpressionConstants.VAR_OPERATION, operation);
 		if (assocTargetObjectClassDefinition != null) {
-			mapping.addVariableDefinition(ExpressionConstants.VAR_ASSOCIATION_TARGET_OBJECT_CLASS_DEFINITION, assocTargetObjectClassDefinition);
+			mappingBuilder.addVariableDefinition(ExpressionConstants.VAR_ASSOCIATION_TARGET_OBJECT_CLASS_DEFINITION, assocTargetObjectClassDefinition);
 		}
-		mapping.setRootNode(focusOdo);
-		mapping.setOriginType(OriginType.OUTBOUND);
-		mapping.setRefinedObjectClassDefinition(rOcDef);
+		mappingBuilder.setRootNode(focusOdo);
+		mappingBuilder.setOriginType(OriginType.OUTBOUND);
+		mappingBuilder.setRefinedObjectClassDefinition(rOcDef);
 		
 		StringPolicyResolver stringPolicyResolver = new StringPolicyResolver() {
 			private ItemPath outputPath;
@@ -237,42 +234,40 @@ public class OutboundProcessor {
 			@Override
 			public StringPolicyType resolve() {
 				
-				if (mapping.getMappingType().getExpression() != null){
-					List<JAXBElement<?>> evaluators = mapping.getMappingType().getExpression().getExpressionEvaluator();
-					if (evaluators != null){
-						for (JAXBElement jaxbEvaluator : evaluators){
-							Object object = jaxbEvaluator.getValue();
-							if (object != null && object instanceof GenerateExpressionEvaluatorType && ((GenerateExpressionEvaluatorType) object).getValuePolicyRef() != null){
-								ObjectReferenceType ref = ((GenerateExpressionEvaluatorType) object).getValuePolicyRef();
-								try{
-								ValuePolicyType valuePolicyType = mappingFactory.getObjectResolver().resolve(ref, ValuePolicyType.class, 
+				if (mappingBuilder.getMappingType().getExpression() != null) {
+					List<JAXBElement<?>> evaluators = mappingBuilder.getMappingType().getExpression().getExpressionEvaluator();
+					for (JAXBElement jaxbEvaluator : evaluators) {
+						Object object = jaxbEvaluator.getValue();
+						if (object instanceof GenerateExpressionEvaluatorType && ((GenerateExpressionEvaluatorType) object).getValuePolicyRef() != null) {
+							ObjectReferenceType ref = ((GenerateExpressionEvaluatorType) object).getValuePolicyRef();
+							try {
+								ValuePolicyType valuePolicyType = mappingBuilder.getObjectResolver().resolve(ref, ValuePolicyType.class,
 										null, "resolving value policy for generate attribute "+ outputDefinition.getName()+"value", task, new OperationResult("Resolving value policy"));
-								if (valuePolicyType != null){
+								if (valuePolicyType != null) {
 									return valuePolicyType.getStringPolicy();
 								}
-								} catch (Exception ex){
-									throw new SystemException(ex.getMessage(), ex);
-								}
+							} catch (CommonException ex) {
+								throw new SystemException(ex.getMessage(), ex);
 							}
 						}
-						
 					}
 				}
 				return null;
 			}
 		};
-		mapping.setStringPolicyResolver(stringPolicyResolver);
+		mappingBuilder.setStringPolicyResolver(stringPolicyResolver);
 		// TODO: other variables?
 		
 		// Set condition masks. There are used as a brakes to avoid evaluating to nonsense values in case user is not present
 		// (e.g. in old values in ADD situations and new values in DELETE situations).
 		if (focusOdo.getOldObject() == null) {
-			mapping.setConditionMaskOld(false);
+			mappingBuilder.setConditionMaskOld(false);
 		}
 		if (focusOdo.getNewObject() == null) {
-			mapping.setConditionMaskNew(false);
+			mappingBuilder.setConditionMaskNew(false);
 		}
-		
+
+		Mapping<V,D> mapping = mappingBuilder.build();
 		mappingEvaluator.evaluateMapping(mapping, context, task, result);
     	
 		return mapping;

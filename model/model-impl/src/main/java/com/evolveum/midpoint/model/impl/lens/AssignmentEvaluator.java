@@ -502,14 +502,13 @@ public class AssignmentEvaluator<F extends FocusType> {
 			PlusMinusZero condMode = ExpressionUtil.computeConditionResultMode(condOld, condNew);
 			if (condMode == null || (condMode == PlusMinusZero.ZERO && !condNew)) {
 				LOGGER.trace("Skipping evaluation of "+roleType+" because of condition result ({} -> {}: {})",
-						new Object[]{ condOld, condNew, condMode });
+						condOld, condNew, condMode);
 				return false;
 			}
 			PlusMinusZero origMode = mode;
 			mode = PlusMinusZero.compute(mode, condMode);
-			LOGGER.trace("Evaluated condition in {}: {} -> {}: {} + {} = {}", new Object[]{
-					roleType, condOld, condNew, origMode, condMode, mode });
-
+			LOGGER.trace("Evaluated condition in {}: {} -> {}: {} + {} = {}", roleType, condOld, condNew,
+					origMode, condMode, mode);
 		}
 		
 		EvaluatedAbstractRoleImpl evalRole = new EvaluatedAbstractRoleImpl();
@@ -690,21 +689,21 @@ public class AssignmentEvaluator<F extends FocusType> {
 		} else {
 			desc = "condition in assignment in " + source;
 		}
-		Mapping<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> mapping = mappingFactory.createMapping(conditionType,
-				desc);
-		
-		mapping.addVariableDefinition(ExpressionConstants.VAR_USER, focusOdo);
-		mapping.addVariableDefinition(ExpressionConstants.VAR_FOCUS, focusOdo);
-		mapping.addVariableDefinition(ExpressionConstants.VAR_SOURCE, source);
-		mapping.setSourceContext(focusOdo);
-		mapping.setRootNode(focusOdo);
-		mapping.setOriginType(OriginType.ASSIGNMENTS);
-		mapping.setOriginObject(source);
+		Mapping.Builder<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> builder = mappingFactory.createMappingBuilder();
+		builder = builder.mappingType(conditionType)
+				.contextDescription(desc)
+				.sourceContext(focusOdo)
+				.originType(OriginType.ASSIGNMENTS)
+				.originObject(source)
+				.defaultTargetDefinition(new PrismPropertyDefinition<Boolean>(CONDITION_OUTPUT_NAME, DOMUtil.XSD_BOOLEAN, prismContext));
 
-        LensUtil.addAssignmentPathVariables(mapping, assignmentPathVariables);
+		builder.addVariableDefinition(ExpressionConstants.VAR_USER, focusOdo);
+		builder.addVariableDefinition(ExpressionConstants.VAR_FOCUS, focusOdo);
+		builder.addVariableDefinition(ExpressionConstants.VAR_SOURCE, source);
+		builder.setRootNode(focusOdo);
+        LensUtil.addAssignmentPathVariables(builder, assignmentPathVariables);
 
-        PrismPropertyDefinition<Boolean> outputDefinition = new PrismPropertyDefinition<Boolean>(CONDITION_OUTPUT_NAME, DOMUtil.XSD_BOOLEAN, prismContext);
-		mapping.setDefaultTargetDefinition(outputDefinition);
+		Mapping<PrismPropertyValue<Boolean>, PrismPropertyDefinition<Boolean>> mapping = builder.build();
 
 		mappingEvaluator.evaluateMapping(mapping, lensContext, task, result);
 		

@@ -113,64 +113,74 @@ public class MappingTestEvaluator {
 	}
 
 	public <T> Mapping<PrismPropertyValue<T>, PrismPropertyDefinition<T>> createMapping(String filename, String testName, final StringPolicyType policy, String defaultTargetPropertyName, ObjectDelta<UserType> userDelta) throws SchemaException, IOException, JAXBException, EncryptionException  {
-		return createMapping(filename, testName, policy, toPath(defaultTargetPropertyName), userDelta);
+		return this.<T>createMappingBuilder(filename, testName, policy, toPath(defaultTargetPropertyName), userDelta).build();
 	}
 	
 	public <T> Mapping<PrismPropertyValue<T>, PrismPropertyDefinition<T>> createMapping(String filename, String testName, String defaultTargetPropertyName, 
 			ObjectDelta<UserType> userDelta) throws SchemaException, IOException, JAXBException, EncryptionException  {
-		return createMapping(filename, testName, null, toPath(defaultTargetPropertyName), userDelta);
+		return this.<T>createMappingBuilder(filename, testName, null, toPath(defaultTargetPropertyName), userDelta).build();
 	}
 	
-	public <T> Mapping<PrismPropertyValue<T>, PrismPropertyDefinition<T>> createMapping(String filename, String testName, QName defaultTargetPropertyName, 
+	public <T> Mapping.Builder<PrismPropertyValue<T>, PrismPropertyDefinition<T>> createMappingBuilder(String filename, String testName, String defaultTargetPropertyName,
 			ObjectDelta<UserType> userDelta) throws SchemaException, IOException, JAXBException, EncryptionException  {
-		return createMapping(filename, testName, null, toPath(defaultTargetPropertyName), userDelta);
+		return createMappingBuilder(filename, testName, null, toPath(defaultTargetPropertyName), userDelta);
+	}
+
+	public <T> Mapping<PrismPropertyValue<T>, PrismPropertyDefinition<T>> createMapping(String filename, String testName, QName defaultTargetPropertyName,
+			ObjectDelta<UserType> userDelta) throws SchemaException, IOException, JAXBException, EncryptionException  {
+		return this.<T>createMappingBuilder(filename, testName, null, toPath(defaultTargetPropertyName), userDelta).build();
 	}
 	
 	public <T> Mapping<PrismPropertyValue<T>, PrismPropertyDefinition<T>> createMapping(String filename, String testName, String defaultTargetPropertyName, 
 			ObjectDelta<UserType> userDelta, PrismObject<UserType> userOld) throws SchemaException, IOException, JAXBException  {
-		return createMapping(filename, testName, null, toPath(defaultTargetPropertyName), userDelta, userOld);
+		return this.<T>createMappingBuilder(filename, testName, null, toPath(defaultTargetPropertyName), userDelta, userOld).build();
 	}
 	
+	public <T> Mapping.Builder<PrismPropertyValue<T>, PrismPropertyDefinition<T>> createMappingBuilder(String filename, String testName, String defaultTargetPropertyName,
+			ObjectDelta<UserType> userDelta, PrismObject<UserType> userOld) throws SchemaException, IOException, JAXBException  {
+		return this.createMappingBuilder(filename, testName, null, toPath(defaultTargetPropertyName), userDelta, userOld);
+	}
+
 	public <T> Mapping<PrismPropertyValue<T>, PrismPropertyDefinition<T>> createMapping(String filename, String testName, ItemPath defaultTargetPropertyName, ObjectDelta<UserType> userDelta) throws SchemaException, IOException, JAXBException, EncryptionException  {
-		return createMapping(filename, testName, null, defaultTargetPropertyName, userDelta);
+		return this.<T>createMappingBuilder(filename, testName, null, defaultTargetPropertyName, userDelta).build();
 	}
 	
-	public <T> Mapping<PrismPropertyValue<T>, PrismPropertyDefinition<T>> createMapping(String filename, String testName, final StringPolicyType policy, 
+	public <T> Mapping.Builder<PrismPropertyValue<T>, PrismPropertyDefinition<T>> createMappingBuilder(String filename, String testName, final StringPolicyType policy,
 			ItemPath defaultTargetPropertyPath, ObjectDelta<UserType> userDelta)
             throws SchemaException, IOException, JAXBException, EncryptionException  {
 		PrismObject<UserType> userOld = null;
         if (userDelta == null || !userDelta.isAdd()) {
         	userOld = getUserOld();
         }
-		return createMapping(filename, testName, policy, defaultTargetPropertyPath, userDelta, userOld);
+		return createMappingBuilder(filename, testName, policy, defaultTargetPropertyPath, userDelta, userOld);
 	}
 	
-	public <T> Mapping<PrismPropertyValue<T>, PrismPropertyDefinition<T>> createMapping(String filename, String testName, final StringPolicyType policy, 
+	public <T> Mapping.Builder<PrismPropertyValue<T>, PrismPropertyDefinition<T>> createMappingBuilder(String filename, String testName, final StringPolicyType policy,
 			ItemPath defaultTargetPropertyPath, ObjectDelta<UserType> userDelta,  PrismObject<UserType> userOld)
             throws SchemaException, IOException, JAXBException  {
     
         MappingType mappingType = PrismTestUtil.parseAtomicValue(
                 new File(TEST_DIR, filename), MappingType.COMPLEX_TYPE);
 
-        Mapping<PrismPropertyValue<T>,PrismPropertyDefinition<T>> mapping = mappingFactory.createMapping(mappingType, testName);
+        Mapping.Builder<PrismPropertyValue<T>,PrismPropertyDefinition<T>> mappingBuilder = mappingFactory.createMappingBuilder(mappingType, testName);
         
         // Source context: user
-		ObjectDeltaObject<UserType> userOdo = new ObjectDeltaObject<UserType>(userOld , userDelta, null);
+		ObjectDeltaObject<UserType> userOdo = new ObjectDeltaObject<>(userOld, userDelta, null);
         userOdo.recompute();
-		mapping.setSourceContext(userOdo);
+		mappingBuilder.setSourceContext(userOdo);
 		
 		// Variable $user
-		mapping.addVariableDefinition(ExpressionConstants.VAR_USER, userOdo);
+		mappingBuilder.addVariableDefinition(ExpressionConstants.VAR_USER, userOdo);
 		
 		// Variable $account
 		PrismObject<ShadowType> account = getAccount();
 		ObjectDeltaObject<ShadowType> accountOdo = new ObjectDeltaObject<ShadowType>(account , null, null);
 		accountOdo.recompute();
-		mapping.addVariableDefinition(ExpressionConstants.VAR_ACCOUNT, accountOdo);
+		mappingBuilder.addVariableDefinition(ExpressionConstants.VAR_ACCOUNT, accountOdo);
         
 		// Target context: user
 		PrismObjectDefinition<UserType> userDefinition = getUserDefinition();
-		mapping.setTargetContext(userDefinition);
+		mappingBuilder.setTargetContext(userDefinition);
 		
 		
 		StringPolicyResolver stringPolicyResolver = new StringPolicyResolver() {
@@ -193,17 +203,17 @@ public class MappingTestEvaluator {
 			}
 		};
 		
-		mapping.setStringPolicyResolver(stringPolicyResolver);
+		mappingBuilder.setStringPolicyResolver(stringPolicyResolver);
 		// Default target
 		if (defaultTargetPropertyPath != null) {
 			PrismPropertyDefinition<T> targetDefDefinition = userDefinition.findItemDefinition(defaultTargetPropertyPath);
 			if (targetDefDefinition == null) {
 				throw new IllegalArgumentException("The item path '"+defaultTargetPropertyPath+"' does not have a definition in "+userDefinition);
 			}
-			mapping.setDefaultTargetDefinition(targetDefDefinition);
+			mappingBuilder.setDefaultTargetDefinition(targetDefDefinition);
 		}
 		
-        return mapping;
+        return mappingBuilder;
     }
 	
 	public  <T> Mapping<PrismPropertyValue<T>, PrismPropertyDefinition<T>> createInboudMapping(String filename, String testName, ItemDelta delta, UserType user, ShadowType account, ResourceType resource, final StringPolicyType policy) throws SchemaException, IOException, JAXBException{
@@ -211,17 +221,17 @@ public class MappingTestEvaluator {
 		MappingType mappingType = PrismTestUtil.parseAtomicValue(
                 new File(TEST_DIR, filename), MappingType.COMPLEX_TYPE);
 
-		Mapping<PrismPropertyValue<T>,PrismPropertyDefinition<T>> mapping = mappingFactory.createMapping(mappingType,testName);
+		Mapping.Builder<PrismPropertyValue<T>,PrismPropertyDefinition<T>> builder = mappingFactory.createMappingBuilder(mappingType, testName);
     	
     	
     	Source<PrismPropertyValue<T>,PrismPropertyDefinition<T>> defaultSource = new Source<>(null, delta, null, ExpressionConstants.VAR_INPUT);
     	defaultSource.recompute();
-		mapping.setDefaultSource(defaultSource);
-		mapping.setTargetContext(getUserDefinition());
-    	mapping.addVariableDefinition(ExpressionConstants.VAR_USER, user);
-    	mapping.addVariableDefinition(ExpressionConstants.VAR_FOCUS, user);
-    	mapping.addVariableDefinition(ExpressionConstants.VAR_ACCOUNT, account.asPrismObject());
-    	mapping.addVariableDefinition(ExpressionConstants.VAR_SHADOW, account.asPrismObject());
+		builder.setDefaultSource(defaultSource);
+		builder.setTargetContext(getUserDefinition());
+    	builder.addVariableDefinition(ExpressionConstants.VAR_USER, user);
+    	builder.addVariableDefinition(ExpressionConstants.VAR_FOCUS, user);
+    	builder.addVariableDefinition(ExpressionConstants.VAR_ACCOUNT, account.asPrismObject());
+    	builder.addVariableDefinition(ExpressionConstants.VAR_SHADOW, account.asPrismObject());
 		
     	StringPolicyResolver stringPolicyResolver = new StringPolicyResolver() {
 			ItemPath outputPath;
@@ -243,12 +253,12 @@ public class MappingTestEvaluator {
 			}
 		};
 		
-		mapping.setStringPolicyResolver(stringPolicyResolver);
+		builder.setStringPolicyResolver(stringPolicyResolver);
 
-		mapping.setOriginType(OriginType.INBOUND);
-		mapping.setOriginObject(resource);
+		builder.setOriginType(OriginType.INBOUND);
+		builder.setOriginObject(resource);
 		
-		return mapping;
+		return builder.build();
 	}
 	
 	protected PrismObject<UserType> getUserOld() throws SchemaException, EncryptionException, IOException {
