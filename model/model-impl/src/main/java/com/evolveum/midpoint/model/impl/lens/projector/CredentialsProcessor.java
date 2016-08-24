@@ -30,6 +30,7 @@ import com.evolveum.midpoint.model.impl.lens.LensUtil;
 import com.evolveum.midpoint.model.impl.util.Utils;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
+import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
@@ -50,6 +51,9 @@ import org.springframework.stereotype.Component;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 import java.util.*;
+
+import static com.evolveum.midpoint.prism.delta.ChangeType.MODIFY;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.MappingStrengthType.WEAK;
 
 /**
  * Processor that takes password from user and synchronizes it to accounts.
@@ -94,13 +98,15 @@ public class CredentialsProcessor {
 		passwordPolicyProcessor.processPasswordPolicy(focusContext, context, task, result);
 	}
 
-	public <F extends ObjectType> void processProjectionCredentials(LensContext<F> context,
+	<F extends ObjectType> void processProjectionCredentials(LensContext<F> context,
 			LensProjectionContext projectionContext, XMLGregorianCalendar now, Task task,
 			OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException,
 					SchemaException, PolicyViolationException {
 		LensFocusContext<F> focusContext = context.getFocusContext();
 		if (focusContext != null && FocusType.class.isAssignableFrom(focusContext.getObjectTypeClass())) {
-			processProjectionPassword((LensContext<? extends FocusType>) context, projectionContext, now,
+			@SuppressWarnings("unchecked")
+			LensContext<? extends FocusType> contextOfFocus = (LensContext<? extends FocusType>) context;
+			processProjectionPassword(contextOfFocus, projectionContext, now,
 					task, result);
 		}
 
@@ -108,98 +114,63 @@ public class CredentialsProcessor {
 	}
 
 	private <F extends FocusType> void processProjectionPassword(LensContext<F> context,
-			final LensProjectionContext accCtx, XMLGregorianCalendar now, Task task, OperationResult result)
+			final LensProjectionContext projCtx, XMLGregorianCalendar now, Task task, OperationResult result)
 					throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
 		LensFocusContext<F> focusContext = context.getFocusContext();
-		ObjectDelta<F> focusDelta = focusContext.getDelta();
-
-		PropertyDelta<PasswordType> userPasswordValueDelta = null;
-		if (focusDelta != null) {
-			userPasswordValueDelta = focusDelta.findPropertyDelta(SchemaConstants.PATH_PASSWORD_VALUE);
-		}
 
 		PrismObject<F> userNew = focusContext.getObjectNew();
 		if (userNew == null) {
-			// This must be a user delete or something similar. No point in
-			// proceeding
+			// This must be a user delete or something similar. No point in proceeding
 			LOGGER.trace("userNew is null, skipping credentials processing");
 			return;
 		}
 
 		PrismObjectDefinition<ShadowType> accountDefinition = prismContext.getSchemaRegistry()
 				.findObjectDefinitionByCompileTimeClass(ShadowType.class);
-		PrismPropertyDefinition<ProtectedStringType> accountPasswordPropertyDefinition = accountDefinition
+		PrismPropertyDefinition<ProtectedStringType> projPasswordPropertyDefinition = accountDefinition
 				.findPropertyDefinition(SchemaConstants.PATH_PASSWORD_VALUE);
 
-		ResourceShadowDiscriminator rat = accCtx.getResourceShadowDiscriminator();
+		ResourceShadowDiscriminator rsd = projCtx.getResourceShadowDiscriminator();
 
-		ObjectDelta<ShadowType> accountDelta = accCtx.getDelta();
-		PropertyDelta<ProtectedStringType> accountPasswordValueDelta = null;
-		if (accountDelta != null) {
-			accountPasswordValueDelta = accountDelta.findPropertyDelta(SchemaConstants.PATH_PASSWORD_VALUE);
-		}
-		if (accountDelta != null && accountDelta.getChangeType() == ChangeType.MODIFY) {
-			if (accountPasswordValueDelta != null
-					&& (accountPasswordValueDelta.isAdd() || accountDelta.isDelete())) {
-				throw new SchemaException("Password for account " + rat
-						+ " cannot be added or deleted, it can only be replaced");
-			}
-		}
-		if (accountDelta != null && (accountDelta.getChangeType() == ChangeType.ADD
-				|| accCtx.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.ADD)) {
-			// adding new account, synchronize password regardless whether the
-			// password was changed or not.
-		} else if (userPasswordValueDelta != null) {
-			// user password was changed. synchronize it regardless of the
-			// account change.
-		} else {
-			LOGGER.trace("No change in password and the account is not added, skipping credentials processing for account {}", rat);
+		RefinedObjectClassDefinition refinedProjDef = projCtx.getStructuralObjectClassDefinition();
+		if (refinedProjDef == null) {
+			LOGGER.trace("No RefinedObjectClassDefinition, therefore also no password outbound definition, skipping credentials processing for projection {}", rsd);
 			return;
 		}
 
-		RefinedObjectClassDefinition refinedAccountDef = accCtx.getStructuralObjectClassDefinition();
-		if (refinedAccountDef == null) {
-			LOGGER.trace("No RefinedAccountDefinition, therefore also no password outbound definition, skipping credentials processing for account {}", rat);
-			return;
-		}
-
-		MappingType outboundMappingType = refinedAccountDef.getPasswordOutbound();
-
+		MappingType outboundMappingType = refinedProjDef.getPasswordOutbound();
 		if (outboundMappingType == null) {
-			LOGGER.trace(
-					"No outbound definition in password definition in credentials in account type {}, skipping credentials processing",
-					rat);
+			LOGGER.trace("No outbound definition in password definition in credentials in account type {}, skipping credentials processing", rsd);
 			return;
 		}
 
-		Mapping.Builder<PrismPropertyValue<ProtectedStringType>, PrismPropertyDefinition<ProtectedStringType>> builder = mappingFactory
-				.createMappingBuilder(outboundMappingType, "outbound password mapping in account type " + rat);
-		if (!builder.isApplicableToChannel(context.getChannel())) {
+		final ObjectDelta<ShadowType> projDelta = projCtx.getDelta();
+		final PropertyDelta<ProtectedStringType> projPasswordDelta;
+		if (projDelta != null && projDelta.getChangeType() == MODIFY) {
+			projPasswordDelta = projDelta.findPropertyDelta(SchemaConstants.PATH_PASSWORD_VALUE);
+		} else {
+			projPasswordDelta = null;
+		}
+		checkExistingDeltaSanity(projCtx, projPasswordDelta);
+
+		if (outboundMappingType.getStrength() == WEAK && projPasswordDelta != null) {
+			LOGGER.trace("Outbound password is weak and a priori projection password delta exists; skipping credentials processing for {}", rsd);
 			return;
 		}
 
-		ItemDeltaItem<PrismPropertyValue<PasswordType>, PrismPropertyDefinition<ProtectedStringType>> userPasswordIdi = focusContext
+		final ItemDeltaItem<PrismPropertyValue<PasswordType>, PrismPropertyDefinition<ProtectedStringType>> userPasswordIdi = focusContext
 				.getObjectDeltaObject().findIdi(SchemaConstants.PATH_PASSWORD_VALUE);
-		Source<PrismPropertyValue<PasswordType>, PrismPropertyDefinition<ProtectedStringType>> source = new Source<>(
-				userPasswordIdi, ExpressionConstants.VAR_INPUT);
 
 		StringPolicyResolver stringPolicyResolver = new StringPolicyResolver() {
-			private ItemPath outputPath;
-			private ItemDefinition outputDefinition;
-
 			@Override
 			public void setOutputPath(ItemPath outputPath) {
-				this.outputPath = outputPath;
 			}
-
 			@Override
 			public void setOutputDefinition(ItemDefinition outputDefinition) {
-				this.outputDefinition = outputDefinition;
 			}
-
 			@Override
 			public StringPolicyType resolve() {
-				ValuePolicyType passwordPolicy = accCtx.getEffectivePasswordPolicy();
+				ValuePolicyType passwordPolicy = projCtx.getEffectivePasswordPolicy();
 				if (passwordPolicy == null) {
 					return null;
 				}
@@ -207,52 +178,71 @@ public class CredentialsProcessor {
 			}
 		};
 
-		Mapping<PrismPropertyValue<ProtectedStringType>, PrismPropertyDefinition<ProtectedStringType>> passwordMapping =
-				builder.defaultTargetDefinition(accountPasswordPropertyDefinition)
-				.defaultSource(source)
-				.originType(OriginType.OUTBOUND)
-				.originObject(accCtx.getResource())
-				.stringPolicyResolver(stringPolicyResolver)
-				.addVariableDefinitions(Utils.getDefaultExpressionVariables(context, accCtx).getMap())
-				.build();
+		Mapping<PrismPropertyValue<ProtectedStringType>, PrismPropertyDefinition<ProtectedStringType>> mapping =
+				mappingFactory.<PrismPropertyValue<ProtectedStringType>, PrismPropertyDefinition<ProtectedStringType>>createMappingBuilder()
+						.mappingType(outboundMappingType)
+						.contextDescription("outbound password mapping in account type " + rsd)
+						.defaultTargetDefinition(projPasswordPropertyDefinition)
+						.defaultSource(new Source<>(userPasswordIdi, ExpressionConstants.VAR_INPUT))
+						.sourceContext(focusContext.getObjectDeltaObject())
+						.originType(OriginType.OUTBOUND)
+						.originObject(projCtx.getResource())
+						.stringPolicyResolver(stringPolicyResolver)
+						.addVariableDefinitions(Utils.getDefaultExpressionVariables(context, projCtx).getMap())
+						.build();
 
-		if (passwordMapping.getStrength() != MappingStrengthType.STRONG) {
-			if (accountPasswordValueDelta != null && !accountPasswordValueDelta.isEmpty()) {
-				return;
-			}
+		if (!mapping.isApplicableToChannel(context.getChannel())) {
+			return;
 		}
 
-		mappingEvaluator.evaluateMapping(passwordMapping, context, task, result);
+		mappingEvaluator.evaluateMapping(mapping, context, task, result);
+		final PrismValueDeltaSetTriple<PrismPropertyValue<ProtectedStringType>> outputTriple = mapping.getOutputTriple();
 
 		// TODO review all this code !! MID-3156
-		// Originally here was "do nothing if output is null or empty".
-		// But because of MID-3111 we have to be a bit more cautious
-		PrismProperty<ProtectedStringType> accountPasswordNew = (PrismProperty) passwordMapping.getOutput();
-		if (accountPasswordNew == null || accountPasswordNew.isEmpty()) {
-			if (passwordMapping.getOutputTriple() == null) {
-				LOGGER.trace(
-						"Credentials 'password' expression resulted in null output triple, skipping credentials processing for {}",
-						rat);
-				return;
-			}
-			if (passwordMapping.getStrength() != MappingStrengthType.STRONG) {
-				LOGGER.trace(
-						"Credentials 'password' expression resulted in 'no value' via non-strong mapping, skipping credentials processing for {}",
-						rat);
-				return;
-			}
+		if (outputTriple == null) {
+			LOGGER.trace("Credentials 'password' expression resulted in null output triple, skipping credentials processing for {}", rsd);
+			return;
 		}
-		PropertyDelta<ProtectedStringType> accountPasswordDeltaNew = new PropertyDelta<>(
-				SchemaConstants.PATH_PASSWORD_VALUE, accountPasswordPropertyDefinition, prismContext);
-		if (accountPasswordNew != null) {
-			accountPasswordDeltaNew.setValuesToReplace(accountPasswordNew.getClonedValues());
-		} else {
-			accountPasswordDeltaNew
-					.setValuesToReplace(Collections.<PrismPropertyValue<ProtectedStringType>> emptyList());
-		}
-		LOGGER.trace("Adding new password delta for account {}", rat);
-		accCtx.swallowToSecondaryDelta(accountPasswordDeltaNew);
 
+		boolean projectionIsNew = projDelta != null && (projDelta.getChangeType() == ChangeType.ADD
+				|| projCtx.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.ADD);
+
+		final Collection<PrismPropertyValue<ProtectedStringType>> newValues;
+		if (outputTriple.hasPlusSet()) {
+			newValues = outputTriple.getPlusSet();
+		} else if (projectionIsNew) {
+			// when adding new account, synchronize password regardless of whether the source data was changed or not.
+			newValues = outputTriple.getNonNegativeValues();
+		} else if (outputTriple.hasMinusSet()) {
+			// Also, if the password value is to be removed, let's trigger its change (presumably to an empty value); except for WEAK mappings.
+			// (We cannot check if the value being removed is the same as the current value. So let's take the risk and do it.)
+			if (mapping.getStrength() != WEAK) {
+				newValues = outputTriple.getNonNegativeValues();
+			} else {
+				LOGGER.trace("Credentials 'password' expression resulting in password deletion but the mapping is weak: skipping credentials processing for {}", rsd);
+				return;
+			}
+		} else {
+			// no plus set, no minus set
+			LOGGER.trace("Credentials 'password' expression resulted in no change, skipping credentials processing for {}", rsd);
+			return;
+		}
+		assert newValues != null;
+
+		ItemDelta<?,?> projPasswordDeltaNew =
+				DeltaBuilder.deltaFor(ShadowType.class, prismContext)
+						.item(SchemaConstants.PATH_PASSWORD_VALUE).replace(newValues)
+						.asItemDelta();
+		LOGGER.trace("Adding new password delta for account {}", rsd);
+		projCtx.swallowToSecondaryDelta(projPasswordDeltaNew);
+	}
+
+	private void checkExistingDeltaSanity(LensProjectionContext projCtx,
+			PropertyDelta<ProtectedStringType> passwordDelta) throws SchemaException {
+		if (passwordDelta != null && (passwordDelta.isAdd() || passwordDelta.isDelete())) {
+			throw new SchemaException("Password for projection " + projCtx.getResourceShadowDiscriminator()
+					+ " cannot be added or deleted, it can only be replaced");
+		}
 	}
 
 	private <F extends FocusType> void processFocusCredentialsCommon(LensContext<F> context,
