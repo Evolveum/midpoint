@@ -145,7 +145,8 @@ public class PrismBeanConverter {
             SchemaDefinitionType schemaDefType = unmarshalSchemaDefinitionType(xnode);
             return (T) schemaDefType;
         } else if (prismContext.getSchemaRegistry().determineDefinitionFromClass(beanClass) != null) {
-			return (T) prismContext.getXnodeProcessor().parseObject(xnode, pc).asObjectable();
+        	PrismObjectDefinition def = prismContext.getSchemaRegistry().determineDefinitionFromClass(beanClass);
+			return (T) prismContext.getXnodeProcessor().parseObject(xnode, def, pc).asObjectable();
 		} else if (XmlAsStringType.class.equals(beanClass)) {
             // reading a string represented a XML-style content
             // used e.g. when reading report templates (embedded XML)

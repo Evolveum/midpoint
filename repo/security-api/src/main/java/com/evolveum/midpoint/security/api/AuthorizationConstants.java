@@ -170,6 +170,9 @@ public class AuthorizationConstants {
     public static final QName AUTZ_UI_CONFIGURATION_REPOSITORY_QUERY = new QName(NS_AUTHORIZATION_UI, "configRepositoryQuery");
 	public static final String AUTZ_UI_CONFIGURATION_REPOSITORY_QUERY_URL = NS_AUTHORIZATION_UI + "#configRepositoryQuery";
 
+    public static final QName AUTZ_UI_CONFIGURATION_EXECUTE_MAPPING = new QName(NS_AUTHORIZATION_UI, "configExecuteMapping");
+	public static final String AUTZ_UI_CONFIGURATION_EXECUTE_MAPPING_URL = NS_AUTHORIZATION_UI + "#configExecuteMapping";
+
 	//Roles
 	public static final QName AUTZ_UI_ROLES_ALL_QNAME = new QName(NS_AUTHORIZATION_UI, "rolesAll");
 	public static final String AUTZ_UI_ROLES_ALL_URL = NS_AUTHORIZATION_UI + "#rolesAll";

@@ -110,7 +110,7 @@ public class XNodeProcessor {
         return parseObject(xmap, objectDefinition, pc);
     }
 
-    private <O extends Objectable> PrismObject<O> parseObject(MapXNode xnode, PrismObjectDefinition<O> objectDefinition, ParsingContext pc) throws SchemaException {
+    public <O extends Objectable> PrismObject<O> parseObject(MapXNode xnode, PrismObjectDefinition<O> objectDefinition, ParsingContext pc) throws SchemaException {
         QName elementName;
         if (objectDefinition != null) {
             elementName = objectDefinition.getName();

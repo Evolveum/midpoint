@@ -30,6 +30,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.polystring.PrismDefaultPolyStringNormalizer;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 
 import org.apache.commons.lang.BooleanUtils;
@@ -74,13 +75,6 @@ import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
@@ -930,25 +924,77 @@ public class LensUtil {
 			ObjectDeltaObject<F> focusOdo, AssignmentPathVariables assignmentPathVariables, 
 			Integer iteration, String iterationToken, PrismObject<SystemConfigurationType> configuration,
 			XMLGregorianCalendar now, String contextDesc, final Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
-		Mapping<V,D> mapping = mappingFactory.createMapping(mappingType, contextDesc);
-		
-		if (!mapping.isApplicableToChannel(context.getChannel())) {
-			LOGGER.trace("Mapping {} not applicable to channel {}, skipping.", mapping, context.getChannel());
+
+		if (!Mapping.isApplicableToChannel(mappingType, context.getChannel())) {
+			LOGGER.trace("Mapping {} not applicable to channel {}, skipping.", mappingType, context.getChannel());
 			return null;
 		}
-		
-		mapping.setSourceContext(focusOdo);
-		mapping.setTargetContext(context.getFocusContext().getObjectDefinition());
-		mapping.setRootNode(focusOdo);
-		mapping.addVariableDefinition(ExpressionConstants.VAR_USER, focusOdo);
-		mapping.addVariableDefinition(ExpressionConstants.VAR_FOCUS, focusOdo);
-		mapping.addVariableDefinition(ExpressionConstants.VAR_ITERATION, iteration);
-		mapping.addVariableDefinition(ExpressionConstants.VAR_ITERATION_TOKEN, iterationToken);
-		mapping.addVariableDefinition(ExpressionConstants.VAR_CONFIGURATION, configuration);
-		addAssignmentPathVariables(mapping, assignmentPathVariables);
-		mapping.setOriginType(OriginType.USER_POLICY);
-		mapping.setOriginObject(originObject);
-		mapping.setNow(now);
+
+		StringPolicyResolver stringPolicyResolver = new StringPolicyResolver() {
+			private ItemPath outputPath;
+			private ItemDefinition outputDefinition;
+			@Override
+			public void setOutputPath(ItemPath outputPath) {
+				this.outputPath = outputPath;
+			}
+
+			@Override
+			public void setOutputDefinition(ItemDefinition outputDefinition) {
+				this.outputDefinition = outputDefinition;
+			}
+
+			@Override
+			public StringPolicyType resolve() {
+				if (outputDefinition.getName().equals(PasswordType.F_VALUE)) {
+					ValuePolicyType passwordPolicy = context.getEffectivePasswordPolicy();
+					if (passwordPolicy == null) {
+						return null;
+					}
+					return passwordPolicy.getStringPolicy();
+				}
+				if (mappingType.getExpression() != null){
+					List<JAXBElement<?>> evaluators = mappingType.getExpression().getExpressionEvaluator();
+					if (evaluators != null) {
+						for (JAXBElement jaxbEvaluator : evaluators) {
+							Object object = jaxbEvaluator.getValue();
+							if (object instanceof GenerateExpressionEvaluatorType && ((GenerateExpressionEvaluatorType) object).getValuePolicyRef() != null) {
+								ObjectReferenceType ref = ((GenerateExpressionEvaluatorType) object).getValuePolicyRef();
+								try {
+									ValuePolicyType valuePolicyType = mappingFactory.getObjectResolver().resolve(ref, ValuePolicyType.class,
+											null, "resolving value policy for generate attribute "+ outputDefinition.getName()+" value", task, new OperationResult("Resolving value policy"));
+									if (valuePolicyType != null) {
+										return valuePolicyType.getStringPolicy();
+									}
+								} catch (CommonException ex) {
+									throw new SystemException(ex.getMessage(), ex);
+								}
+							}
+						}
+
+					}
+				}
+				return null;
+
+			}
+		};
+
+		Mapping.Builder<V,D> mappingBuilder = mappingFactory.<V,D>createMappingBuilder(mappingType, contextDesc)
+				.sourceContext(focusOdo)
+				.targetContext(context.getFocusContext().getObjectDefinition())
+				.originType(OriginType.USER_POLICY)
+				.originObject(originObject)
+				.stringPolicyResolver(stringPolicyResolver)
+				.rootNode(focusOdo)
+				.addVariableDefinition(ExpressionConstants.VAR_USER, focusOdo)
+				.addVariableDefinition(ExpressionConstants.VAR_FOCUS, focusOdo)
+				.addVariableDefinition(ExpressionConstants.VAR_ITERATION, iteration)
+				.addVariableDefinition(ExpressionConstants.VAR_ITERATION_TOKEN, iterationToken)
+				.addVariableDefinition(ExpressionConstants.VAR_CONFIGURATION, configuration)
+				.now(now);
+
+		mappingBuilder = addAssignmentPathVariables(mappingBuilder, assignmentPathVariables);
+
+		Mapping<V,D> mapping = mappingBuilder.build();
 
 		ItemPath itemPath = mapping.getOutputPath();
         if (itemPath == null) {
@@ -967,55 +1013,6 @@ public class LensUtil {
 				return null;
 			}
 		}
-
-		StringPolicyResolver stringPolicyResolver = new StringPolicyResolver() {
-			private ItemPath outputPath;
-			private ItemDefinition outputDefinition;
-			@Override
-			public void setOutputPath(ItemPath outputPath) {
-				this.outputPath = outputPath;
-			}
-			
-			@Override
-			public void setOutputDefinition(ItemDefinition outputDefinition) {
-				this.outputDefinition = outputDefinition;
-			}
-			
-			@Override
-			public StringPolicyType resolve() {
-				if (outputDefinition.getName().equals(PasswordType.F_VALUE)) {
-					ValuePolicyType passwordPolicy = context.getEffectivePasswordPolicy();
-					if (passwordPolicy == null) {
-						return null;
-					}
-					return passwordPolicy.getStringPolicy();
-				}
-				if (mappingType.getExpression() != null){
-					List<JAXBElement<?>> evaluators = mappingType.getExpression().getExpressionEvaluator();
-					if (evaluators != null){
-						for (JAXBElement jaxbEvaluator : evaluators){
-							Object object = jaxbEvaluator.getValue();
-							if (object != null && object instanceof GenerateExpressionEvaluatorType && ((GenerateExpressionEvaluatorType) object).getValuePolicyRef() != null){
-								ObjectReferenceType ref = ((GenerateExpressionEvaluatorType) object).getValuePolicyRef();
-								try{
-								ValuePolicyType valuePolicyType = mappingFactory.getObjectResolver().resolve(ref, ValuePolicyType.class, 
-										null, "resolving value policy for generate attribute "+ outputDefinition.getName()+" value", task, new OperationResult("Resolving value policy"));
-								if (valuePolicyType != null){
-									return valuePolicyType.getStringPolicy();
-								}
-								} catch (Exception ex){
-									throw new SystemException(ex.getMessage(), ex);
-								}
-							}
-						}
-						
-					}
-				}
-				return null;
-				
-			}
-		};
-		mapping.setStringPolicyResolver(stringPolicyResolver);
 
 		return mapping;
 	}
@@ -1123,13 +1120,16 @@ public class LensUtil {
 		}
 	}
     
-    public static <V extends PrismValue,D extends ItemDefinition> void addAssignmentPathVariables(Mapping<V,D> mapping, AssignmentPathVariables assignmentPathVariables) {
+    public static <V extends PrismValue,D extends ItemDefinition> Mapping.Builder<V,D> addAssignmentPathVariables(Mapping.Builder<V,D> builder, AssignmentPathVariables assignmentPathVariables) {
     	if (assignmentPathVariables != null ) {
-			mapping.addVariableDefinition(ExpressionConstants.VAR_ASSIGNMENT, assignmentPathVariables.getMagicAssignment());
-			mapping.addVariableDefinition(ExpressionConstants.VAR_IMMEDIATE_ASSIGNMENT, assignmentPathVariables.getImmediateAssignment());
-			mapping.addVariableDefinition(ExpressionConstants.VAR_THIS_ASSIGNMENT, assignmentPathVariables.getThisAssignment());
-			mapping.addVariableDefinition(ExpressionConstants.VAR_FOCUS_ASSIGNMENT, assignmentPathVariables.getFocusAssignment());
-			mapping.addVariableDefinition(ExpressionConstants.VAR_IMMEDIATE_ROLE, assignmentPathVariables.getImmediateRole());
+			return builder
+					.addVariableDefinition(ExpressionConstants.VAR_ASSIGNMENT, assignmentPathVariables.getMagicAssignment())
+					.addVariableDefinition(ExpressionConstants.VAR_IMMEDIATE_ASSIGNMENT, assignmentPathVariables.getImmediateAssignment())
+					.addVariableDefinition(ExpressionConstants.VAR_THIS_ASSIGNMENT, assignmentPathVariables.getThisAssignment())
+					.addVariableDefinition(ExpressionConstants.VAR_FOCUS_ASSIGNMENT, assignmentPathVariables.getFocusAssignment())
+					.addVariableDefinition(ExpressionConstants.VAR_IMMEDIATE_ROLE, assignmentPathVariables.getImmediateRole());
+		} else {
+			return builder;
 		}
     }
     

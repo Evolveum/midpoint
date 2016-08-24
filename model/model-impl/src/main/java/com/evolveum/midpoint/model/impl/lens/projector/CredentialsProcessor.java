@@ -77,13 +77,10 @@ public class CredentialsProcessor {
 	@Autowired
 	private PasswordPolicyProcessor passwordPolicyProcessor;
 
-	public <F extends ObjectType> void processFocusCredentials(LensContext<F> context,
+	public <F extends FocusType> void processFocusCredentials(LensContext<F> context,
 			XMLGregorianCalendar now, Task task, OperationResult result) throws ExpressionEvaluationException,
 					ObjectNotFoundException, SchemaException, PolicyViolationException {
-		LensFocusContext<F> focusContext = context.getFocusContext();
-		if (focusContext != null && FocusType.class.isAssignableFrom(focusContext.getObjectTypeClass())) {
-			processFocusPassword((LensContext<? extends FocusType>) context, now, task, result);
-		}
+		processFocusPassword(context, now, task, result);
 	}
 
 	private <F extends FocusType> void processFocusPassword(LensContext<F> context, XMLGregorianCalendar now,
@@ -175,27 +172,16 @@ public class CredentialsProcessor {
 			return;
 		}
 
-		Mapping<PrismPropertyValue<ProtectedStringType>, PrismPropertyDefinition<ProtectedStringType>> passwordMapping = mappingFactory
-				.createMapping(outboundMappingType, "outbound password mapping in account type " + rat);
-		if (!passwordMapping.isApplicableToChannel(context.getChannel())) {
+		Mapping.Builder<PrismPropertyValue<ProtectedStringType>, PrismPropertyDefinition<ProtectedStringType>> builder = mappingFactory
+				.createMappingBuilder(outboundMappingType, "outbound password mapping in account type " + rat);
+		if (!builder.isApplicableToChannel(context.getChannel())) {
 			return;
 		}
 
-		passwordMapping.setDefaultTargetDefinition(accountPasswordPropertyDefinition);
 		ItemDeltaItem<PrismPropertyValue<PasswordType>, PrismPropertyDefinition<ProtectedStringType>> userPasswordIdi = focusContext
 				.getObjectDeltaObject().findIdi(SchemaConstants.PATH_PASSWORD_VALUE);
 		Source<PrismPropertyValue<PasswordType>, PrismPropertyDefinition<ProtectedStringType>> source = new Source<>(
 				userPasswordIdi, ExpressionConstants.VAR_INPUT);
-		passwordMapping.setDefaultSource(source);
-		passwordMapping.addVariableDefinitions(Utils.getDefaultExpressionVariables(context, accCtx).getMap());
-		passwordMapping.setOriginType(OriginType.OUTBOUND);
-		passwordMapping.setOriginObject(accCtx.getResource());
-
-		if (passwordMapping.getStrength() != MappingStrengthType.STRONG) {
-			if (accountPasswordValueDelta != null && !accountPasswordValueDelta.isEmpty()) {
-				return;
-			}
-		}
 
 		StringPolicyResolver stringPolicyResolver = new StringPolicyResolver() {
 			private ItemPath outputPath;
@@ -220,7 +206,21 @@ public class CredentialsProcessor {
 				return passwordPolicy.getStringPolicy();
 			}
 		};
-		passwordMapping.setStringPolicyResolver(stringPolicyResolver);
+
+		Mapping<PrismPropertyValue<ProtectedStringType>, PrismPropertyDefinition<ProtectedStringType>> passwordMapping =
+				builder.defaultTargetDefinition(accountPasswordPropertyDefinition)
+				.defaultSource(source)
+				.originType(OriginType.OUTBOUND)
+				.originObject(accCtx.getResource())
+				.stringPolicyResolver(stringPolicyResolver)
+				.addVariableDefinitions(Utils.getDefaultExpressionVariables(context, accCtx).getMap())
+				.build();
+
+		if (passwordMapping.getStrength() != MappingStrengthType.STRONG) {
+			if (accountPasswordValueDelta != null && !accountPasswordValueDelta.isEmpty()) {
+				return;
+			}
+		}
 
 		mappingEvaluator.evaluateMapping(passwordMapping, context, task, result);
 
@@ -260,17 +260,8 @@ public class CredentialsProcessor {
 					throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
 
 		LensFocusContext<F> focusContext = context.getFocusContext();
-
-		ObjectDelta<F> focusDelta = focusContext.getDelta();
 		PrismObject<F> focus = focusContext.getObjectAny();
-//		if (focus == null) {
-//			focus = focusContext.getObjectCurrent();
-//		}
-//		if (focus == null) {
-//			focus = focusContext.getObjectNew();
-//		}
 		if (focusContext.isAdd()) {
-			focus = focusContext.getObjectAny();
 			PrismContainer<AbstractCredentialType> credentialsContainer = focus
 					.findContainer(credentialsPath);
 			if (credentialsContainer != null) {
@@ -279,6 +270,7 @@ public class CredentialsProcessor {
 				}
 			}
 		} else if (focusContext.isModify()) {
+			ObjectDelta<F> focusDelta = focusContext.getDelta();
 			ContainerDelta<AbstractCredentialType> containerDelta = focusDelta
 					.findContainerDelta(credentialsPath);
 			if (containerDelta != null) {
@@ -301,8 +293,6 @@ public class CredentialsProcessor {
 					for (ItemDelta<?, ?> metaDelta : metaDeltas) {
 						context.getFocusContext().swallowToSecondaryDelta(metaDelta);
 					}
-					
-					
 				}
 			}
 		}
@@ -335,7 +325,7 @@ public class CredentialsProcessor {
 			return 0;
 		}
 
-		return passwordPolicy.getLifetime().getPasswordHistoryLength().intValue();
+		return passwordPolicy.getLifetime().getPasswordHistoryLength();
 	}
 
 	private <F extends FocusType> boolean hasValueDelta(ObjectDelta<F> focusDelta, ItemPath credentialsPath) {
@@ -381,7 +371,7 @@ public class CredentialsProcessor {
 		Validate.notNull(focus, "Focus object must not be null");
 		if (focus.getCompileTimeClass().equals(UserType.class)) {
 			PrismContainer<PasswordType> password = focus
-					.findOrCreateContainer(new ItemPath(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD));
+					.findContainer(new ItemPath(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD));
 			if (password == null || password.isEmpty()) {
 				return;
 			}
@@ -392,13 +382,10 @@ public class CredentialsProcessor {
 			
 			List<PasswordHistoryEntryType> historyEntryValues = getSortedHistoryList(historyEntries);
 			createDeleteHistoryDeltasIfNeeded(historyEntryValues, maxPasswordsToSave, context, task, result);
-			if (maxPasswordsToSave == 0) {
-				return;
+			if (maxPasswordsToSave > 0) {
+				createAddHistoryDelta(context, password, now);
 			}
-			createAddHistoryDelta(context, password, now);
-
 		}
-
 	}
 
 	private <F extends FocusType> void createAddHistoryDelta(LensContext<F> context,
@@ -449,7 +436,7 @@ public class CredentialsProcessor {
 	private List<PasswordHistoryEntryType> getSortedHistoryList(
 			PrismContainer<PasswordHistoryEntryType> historyEntries) {
 		if (historyEntries.isEmpty()) {
-			return new ArrayList<PasswordHistoryEntryType>();
+			return new ArrayList<>();
 		}
 		List<PasswordHistoryEntryType> historyEntryValues = PrismContainerValue
 				.fromPcvList(historyEntries.getValues());
