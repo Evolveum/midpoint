@@ -1800,6 +1800,8 @@ public class TestUnix extends AbstractStoryTest {
 
 		assertGroupAssociation(shadow, groupRangersOid);
 		assertGroupAssociation(shadow, groupMonkeyIslandOid);
+
+		display("Rangers", getShadowModel(groupRangersOid));
 	}
 
 	@Test
@@ -1844,6 +1846,23 @@ public class TestUnix extends AbstractStoryTest {
 
 		assertNoGroupAssociation(shadow, groupRangersOid);
 		assertGroupAssociation(shadow, groupMonkeyIslandOid);
+
+		display("Rangers", getShadowModel(groupRangersOid));
+
+		/*
+
+		  Actually, stan is technically still a member of Rangers.
+		  (Although not shown to midPoint, as he is no longer "posixAccount".)
+		  This can be avoided by setting the associations as non-tolerant.
+
+		attributes:
+        dn:
+          cn=rangers,ou=unixgroups,dc=example,dc=com
+        cn: [ rangers ]
+        gidNumber: 998
+        memberUid: [ stan ]
+        entryUUID: 8647ca7a-2b7a-4948-9e9b-a1657028fbfe
+		 */
 	}
 
 	private PrismObject<UserType> createUser(String username, String givenName, String familyName, String roleOid) throws SchemaException {
