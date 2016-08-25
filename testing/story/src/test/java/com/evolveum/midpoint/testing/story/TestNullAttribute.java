@@ -296,7 +296,7 @@ public class TestNullAttribute extends AbstractStoryTest {
 	 * in resource account only value for fullname should still exist, ship and weapon should have been removed
 	 * MID-3325
 	 */
-	@Test(enabled=false) // MID-3325
+	@Test // MID-3325
 	public void test030UserSmackRemoveAttribute() throws Exception {
 		final String TEST_NAME = "test030UserSmackRemoveAttribute";
 		TestUtil.displayTestTile(this, TEST_NAME);
