@@ -104,11 +104,12 @@ public class Resolver {
 			PrismObject<O> originalObject = null;
 			boolean originalObjectFetched = false;
 			final Class<O> clazz = objectDelta.getObjectTypeClass();
+			boolean managedByProvisioning = ResourceType.class.isAssignableFrom(clazz) || ShadowType.class.isAssignableFrom(clazz);
 			PrismObjectDefinition<O> objectDefinition = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(clazz);
 			if (objectDefinition == null) {
 				warn(result, "Definition for " + clazz + " couldn't be found");
 			} else {
-				if (ResourceType.class.isAssignableFrom(clazz) || ShadowType.class.isAssignableFrom(clazz)) {
+				if (managedByProvisioning) {
 					try {
 						provisioningService.applyDefinition(objectDelta, result);
 					} catch (ObjectNotFoundException | CommunicationException | ConfigurationException e) {
@@ -117,7 +118,7 @@ public class Resolver {
 				}
 			}
 			for (ItemDelta itemDelta : objectDelta.getModifications()) {
-				if (objectDefinition != null) {
+				if (objectDefinition != null && !managedByProvisioning) {
 					ItemDefinition<?> def = objectDefinition.findItemDefinition(itemDelta.getPath());
 					if (def != null) {
 						itemDelta.applyDefinition(def);
