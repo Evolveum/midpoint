@@ -54,15 +54,18 @@ public class ApplicationHomeSetup {
     	if (!checkDirectoryExistence(midpointHomePath)) {
             createDir(midpointHomePath);
         }
-    	
+
+        if (!midpointHomePath.endsWith("/")){
+            midpointHomePath = midpointHomePath + "/";
+        }
         String[] directories = {
-                midpointHomePath + "/icf-connectors",
-                midpointHomePath + "/idm-legacy",
-                midpointHomePath + "/log",
-                midpointHomePath + "/schema",
-                midpointHomePath + "/import",
-                midpointHomePath + "/export",
-                midpointHomePath + "/tmp"
+                midpointHomePath + "icf-connectors",
+                midpointHomePath + "idm-legacy",
+                midpointHomePath + "log",
+                midpointHomePath + "schema",
+                midpointHomePath + "import",
+                midpointHomePath + "export",
+                midpointHomePath + "tmp"
         };
 
         for (String directory : directories) {
