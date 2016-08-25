@@ -317,13 +317,13 @@ public class AssignmentEvaluator<F extends FocusType> {
 			} else if (assignmentType.getFocusMappings() != null) {
 				
 				if (evaluateConstructions && assignmentPathSegment.isEvaluateConstructions()) {
-					evaluateFocusMappings(evalAssignment, assignmentPathSegment, evaluateOld, source, sourceDescription, 
+					evaluateFocusMappings(evalAssignment, assignmentPathSegment, evaluateOld, source, sourceDescription,
 							assignmentPath, assignmentPathSegment.getOrderOneObject(), task, result);
 				}
 				
 			} else if (target != null) {
 				
-				evaluateTarget(evalAssignment, assignmentPathSegment, evaluateOld, mode, isValid, target, source, assignmentType.getTargetRef().getRelation(), sourceDescription,
+				evaluateTarget(evalAssignment, assignmentPathSegment, evaluateOld, mode, isParentValid && isValid, target, source, assignmentType.getTargetRef().getRelation(), sourceDescription,
 						assignmentPath, task, result);
 				
 			} else {
