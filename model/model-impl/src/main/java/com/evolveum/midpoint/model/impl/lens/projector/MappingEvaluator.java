@@ -68,10 +68,10 @@ public class MappingEvaluator {
 	
 	private static final Trace LOGGER = TraceManager.getTrace(MappingEvaluator.class);
 	
-	@Autowired(required = true)
+	@Autowired
     private PrismContext prismContext;
 
-    @Autowired(required = true)
+    @Autowired
     private MappingFactory mappingFactory;
 
     public <V extends PrismValue, D extends ItemDefinition, F extends ObjectType> void evaluateMapping(
@@ -326,7 +326,7 @@ public class MappingEvaluator {
 		        	continue;
 		        }
 		        
-		        LOGGER.trace("{} adding new delta for {}: {}", new Object[]{mappingDesc, targetContext, targetItemDelta});
+		        LOGGER.trace("{} adding new delta for {}: {}", mappingDesc, targetContext, targetItemDelta);
 		        targetContext.swallowToSecondaryDelta(targetItemDelta);
 			}
 			
