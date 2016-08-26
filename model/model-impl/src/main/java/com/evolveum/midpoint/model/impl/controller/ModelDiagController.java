@@ -92,7 +92,7 @@ public class ModelDiagController implements ModelDiagnosticService {
 	private SecurityEnforcer securityEnforcer;
 
 	@Autowired
-	private MappingDiagExecutor mappingDiagExecutor;
+	private MappingDiagEvaluator mappingDiagEvaluator;
 
 	private RandomString randomString;
 
@@ -166,14 +166,14 @@ public class ModelDiagController implements ModelDiagnosticService {
 	}
 
 	@Override
-	public MappingExecutionResponseType executeMapping(MappingExecutionRequestType request, Task task,
+	public MappingEvaluationResponseType evaluateMapping(MappingEvaluationRequestType request, Task task,
 			OperationResult parentResult)
 			throws SchemaException, SecurityViolationException, ExpressionEvaluationException,
 			ObjectNotFoundException {
 		OperationResult result = parentResult.createSubresult(EXECUTE_REPOSITORY_QUERY);
 		try {
 			securityEnforcer.authorize(AuthorizationConstants.AUTZ_ALL_URL, null, null, null, null, null, result);
-			return mappingDiagExecutor.executeMapping(request, task, result);
+			return mappingDiagEvaluator.evaluateMapping(request, task, result);
 		} catch (Throwable t) {
 			result.recordFatalError(t);
 			throw t;

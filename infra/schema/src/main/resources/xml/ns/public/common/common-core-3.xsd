@@ -12050,14 +12050,14 @@
         </xsd:sequence>
     </xsd:complexType>
 
-	<xsd:complexType name="MappingExecutionRequestType">
+	<xsd:complexType name="MappingEvaluationRequestType">
 		<xsd:annotation>
 			<xsd:documentation>
 				TODO ... EXPERIMENTAL
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:sequence>
-			<xsd:element name="sourceContext" type="c:MappingExecutionSourceContextType" minOccurs="0" >
+			<xsd:element name="sourceContext" type="c:MappingEvaluationSourceContextType" minOccurs="0" >
 				<xsd:annotation>
 					<xsd:documentation>
 						TODO
@@ -12071,14 +12071,14 @@
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
-			<xsd:element name="variable" type="c:MappingExecutionVariableType" minOccurs="0" maxOccurs="unbounded">
+			<xsd:element name="variable" type="c:MappingEvaluationVariableType" minOccurs="0" maxOccurs="unbounded">
 				<xsd:annotation>
 					<xsd:documentation>
 						TODO
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
-			<xsd:element name="options" type="c:MappingExecutionOptionsType" minOccurs="0" maxOccurs="unbounded">
+			<xsd:element name="options" type="c:MappingEvaluationOptionsType" minOccurs="0" maxOccurs="unbounded">
 				<xsd:annotation>
 					<xsd:documentation>
 						TODO
@@ -12094,9 +12094,9 @@
 			</xsd:element>
 		</xsd:sequence>
 	</xsd:complexType>
-	<xsd:element name="mappingExecutionRequest" type="tns:MappingExecutionRequestType"/>
+	<xsd:element name="MappingEvaluationRequest" type="tns:MappingEvaluationRequestType"/>
 
-	<xsd:complexType name="MappingExecutionSourceContextType">
+	<xsd:complexType name="MappingEvaluationSourceContextType">
 		<xsd:sequence>
 			<xsd:element name="name" type="xsd:string" minOccurs="0"/>
 			<xsd:choice>
@@ -12107,20 +12107,20 @@
 		</xsd:sequence>
 	</xsd:complexType>
 
-	<xsd:complexType name="MappingExecutionVariableType">
+	<xsd:complexType name="MappingEvaluationVariableType">
 		<xsd:sequence>
 			<xsd:element name="name" type="xsd:string" minOccurs="0"/>
 			<xsd:element ref="c:value" minOccurs="0"/>
 		</xsd:sequence>
 	</xsd:complexType>
 
-	<xsd:complexType name="MappingExecutionOptionsType">
+	<xsd:complexType name="MappingEvaluationOptionsType">
 		<xsd:sequence>
 			<xsd:element name="now" type="xsd:dateTime" minOccurs="0"/>
 		</xsd:sequence>
 	</xsd:complexType>
 
-	<xsd:complexType name="MappingExecutionResponseType">
+	<xsd:complexType name="MappingEvaluationResponseType">
 		<xsd:annotation>
 			<xsd:documentation>
 				TODO ... EXPERIMENTAL
@@ -12136,6 +12136,6 @@
 			</xsd:element>
 		</xsd:sequence>
 	</xsd:complexType>
-	<xsd:element name="mappingExecutionResponse" type="tns:MappingExecutionResponseType"/>
+	<xsd:element name="MappingEvaluationResponse" type="tns:MappingEvaluationResponseType"/>
 
 </xsd:schema>

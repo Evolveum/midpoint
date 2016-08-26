@@ -32,8 +32,8 @@ import com.evolveum.midpoint.web.component.AceEditor;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.ExecuteMappingDto;
 import com.evolveum.midpoint.web.util.StringResourceChoiceRenderer;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingExecutionRequestType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingExecutionResponseType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingEvaluationRequestType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingEvaluationResponseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -55,19 +55,19 @@ import java.util.List;
 /**
  * @author mederly
  */
-@PageDescriptor(url = "/admin/config/executeMapping", action = {
+@PageDescriptor(url = "/admin/config/evaluateMapping", action = {
 		@AuthorizationAction(actionUri = PageAdminConfiguration.AUTH_CONFIGURATION_ALL,
 				label = PageAdminConfiguration.AUTH_CONFIGURATION_ALL_LABEL, description = PageAdminConfiguration.AUTH_CONFIGURATION_ALL_DESCRIPTION),
-		@AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_CONFIGURATION_EXECUTE_MAPPING_URL,
-                label = "PageExecuteMapping.auth.mapping.label", description = "PageExecuteMapping.auth.mapping.description")
+		@AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_CONFIGURATION_EVALUATE_MAPPING_URL,
+                label = "PageEvaluateMapping.auth.mapping.label", description = "PageEvaluateMapping.auth.mapping.description")
 })
-public class PageExecuteMapping extends PageAdminConfiguration {
+public class PageEvaluateMapping extends PageAdminConfiguration {
 
-    private static final Trace LOGGER = TraceManager.getTrace(PageExecuteMapping.class);
+    private static final Trace LOGGER = TraceManager.getTrace(PageEvaluateMapping.class);
 
-    private static final String DOT_CLASS = PageExecuteMapping.class.getName() + ".";
+    private static final String DOT_CLASS = PageEvaluateMapping.class.getName() + ".";
 
-    private static final String OPERATION_EXECUTE_MAPPING = DOT_CLASS + "executeMapping";
+    private static final String OPERATION_EXECUTE_MAPPING = DOT_CLASS + "evaluateMapping";
 
     private static final String ID_MAIN_FORM = "mainForm";
     private static final String ID_EXECUTE = "execute";
@@ -81,12 +81,13 @@ public class PageExecuteMapping extends PageAdminConfiguration {
 			"FullName_NoDelta",
 			"FullName_Delta",
 			"FullName_Delta_Ref",
-			"FullName_Delta_Cond"
+			"FullName_Delta_Cond",
+			"OrgName"
 	);
 
 	private final NonEmptyModel<ExecuteMappingDto> model = new NonEmptyWrapperModel<>(new Model<>(new ExecuteMappingDto()));
 
-    public PageExecuteMapping() {
+    public PageEvaluateMapping() {
         initLayout();
     }
 
@@ -106,7 +107,7 @@ public class PageExecuteMapping extends PageAdminConfiguration {
 		editorRequest.setResizeToMaxHeight(false);
 		mainForm.add(editorRequest);
 
-		AjaxSubmitButton executeMapping = new AjaxSubmitButton(ID_EXECUTE, createStringResource("PageExecuteMapping.button.executeMapping")) {
+		AjaxSubmitButton evaluateMapping = new AjaxSubmitButton(ID_EXECUTE, createStringResource("PageEvaluateMapping.button.evaluateMapping")) {
             @Override
             protected void onError(AjaxRequestTarget target, Form<?> form) {
                 target.add(getFeedbackPanel());
@@ -117,7 +118,7 @@ public class PageExecuteMapping extends PageAdminConfiguration {
                 executeMappingPerformed(target);
             }
         };
-        mainForm.add(executeMapping);
+        mainForm.add(evaluateMapping);
 
 		final DropDownChoice<String> sampleChoice = new DropDownChoice<>(ID_MAPPING_SAMPLE,
 				Model.of(""),
@@ -127,7 +128,7 @@ public class PageExecuteMapping extends PageAdminConfiguration {
 						return SAMPLES;
 					}
 				},
-				new StringResourceChoiceRenderer("PageExecuteMapping.sample"));
+				new StringResourceChoiceRenderer("PageEvaluateMapping.sample"));
 		sampleChoice.setNullValid(true);
 		sampleChoice.add(new OnChangeAjaxBehavior() {
 			@Override
@@ -139,11 +140,11 @@ public class PageExecuteMapping extends PageAdminConfiguration {
 				model.getObject().setMapping(readResource(SAMPLES_DIR + "/" + sampleName + ".map.xml.data"));
 				model.getObject().setRequest(readResource(SAMPLES_DIR + "/" + sampleName + ".req.xml.data"));
 				model.getObject().setResultText("");
-				target.add(PageExecuteMapping.this);
+				target.add(PageEvaluateMapping.this);
 			}
 
 			private String readResource(String name) {
-				InputStream is = PageExecuteMapping.class.getResourceAsStream(name);
+				InputStream is = PageEvaluateMapping.class.getResourceAsStream(name);
 				if (is != null) {
 					try {
 						return IOUtils.toString(is, "UTF-8");
@@ -175,16 +176,16 @@ public class PageExecuteMapping extends PageAdminConfiguration {
 
 		ExecuteMappingDto dto = model.getObject();
 		if (StringUtils.isBlank(dto.getMapping())) {
-			warn(getString("PageExecuteMapping.message.emptyString"));
+			warn(getString("PageEvaluateMapping.message.emptyString"));
 			target.add(getFeedbackPanel());
 			return;
 		}
         try {
-			MappingExecutionRequestType request;
+			MappingEvaluationRequestType request;
 			if (StringUtils.isNotBlank(dto.getRequest())) {
-				request = getPrismContext().parseAtomicValue(dto.getRequest(), MappingExecutionRequestType.COMPLEX_TYPE, PrismContext.LANG_XML);
+				request = getPrismContext().parseAtomicValue(dto.getRequest(), MappingEvaluationRequestType.COMPLEX_TYPE, PrismContext.LANG_XML);
 			} else {
-				request = new MappingExecutionRequestType();
+				request = new MappingEvaluationRequestType();
 			}
 
 			if (StringUtils.isNotBlank(dto.getMapping())) {
@@ -192,7 +193,7 @@ public class PageExecuteMapping extends PageAdminConfiguration {
 						.parseAtomicValue(dto.getMapping(), MappingType.COMPLEX_TYPE, PrismContext.LANG_XML));
 			}
 
-			MappingExecutionResponseType response = getModelDiagnosticService().executeMapping(request, task, result);
+			MappingEvaluationResponseType response = getModelDiagnosticService().evaluateMapping(request, task, result);
 			dto.setResultText(response.getResponse());
 
         } catch (CommonException | RuntimeException e) {

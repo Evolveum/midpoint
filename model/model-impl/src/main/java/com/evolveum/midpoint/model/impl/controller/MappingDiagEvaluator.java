@@ -22,6 +22,7 @@ import com.evolveum.midpoint.model.common.expression.ObjectDeltaObject;
 import com.evolveum.midpoint.model.common.mapping.Mapping;
 import com.evolveum.midpoint.model.common.mapping.MappingFactory;
 import com.evolveum.midpoint.model.impl.ModelObjectResolver;
+import com.evolveum.midpoint.model.impl.expr.ModelExpressionThreadLocalHolder;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
@@ -44,7 +45,7 @@ import org.springframework.stereotype.Component;
  * @author mederly
  */
 @Component
-public class MappingDiagExecutor {
+public class MappingDiagEvaluator {
 
 	@Autowired
 	private MappingFactory mappingFactory;
@@ -61,7 +62,7 @@ public class MappingDiagExecutor {
 	@Autowired
 	private Clock clock;
 
-	public MappingExecutionResponseType executeMapping(@NotNull MappingExecutionRequestType request, @NotNull Task task,
+	public MappingEvaluationResponseType evaluateMapping(@NotNull MappingEvaluationRequestType request, @NotNull Task task,
 			@NotNull OperationResult result)
 			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
 
@@ -79,7 +80,14 @@ public class MappingDiagExecutor {
 
 		Mapping<?,?> mapping = builder.build();
 
-		mapping.evaluate(task, result);
+		ModelExpressionThreadLocalHolder.pushCurrentResult(result);
+		ModelExpressionThreadLocalHolder.pushCurrentTask(task);
+		try {
+			mapping.evaluate(task, result);
+		} finally {
+			ModelExpressionThreadLocalHolder.popCurrentResult();
+			ModelExpressionThreadLocalHolder.popCurrentTask();
+		}
 
 		StringBuilder sb = new StringBuilder();
 		sb.append("Output triple: ");
@@ -91,7 +99,7 @@ public class MappingDiagExecutor {
 		sb.append("\n");
 		sb.append("Evaluation time: ").append(mapping.getEtime()).append(" ms\n");
 
-		MappingExecutionResponseType response = new MappingExecutionResponseType();
+		MappingEvaluationResponseType response = new MappingEvaluationResponseType();
 		response.setResponse(sb.toString());
 		return response;
 	}
@@ -104,19 +112,19 @@ public class MappingDiagExecutor {
 		}
 	}
 
-	private PrismObjectDefinition<?> createTargetContext(MappingExecutionRequestType request, ObjectDeltaObject<?> sourceContext) {
+	private PrismObjectDefinition<?> createTargetContext(MappingEvaluationRequestType request, ObjectDeltaObject<?> sourceContext) {
 		if (request.getTargetContext() == null) {
 			return sourceContext.getDefinition();
 		}
 		return prismContext.getSchemaRegistry().findObjectDefinitionByType(request.getTargetContext());
 	}
 
-	private ObjectDeltaObject<?> createSourceContext(MappingExecutionRequestType request, Task task,
+	private ObjectDeltaObject<?> createSourceContext(MappingEvaluationRequestType request, Task task,
 			OperationResult result) throws SchemaException, ObjectNotFoundException {
 		if (request.getSourceContext() == null) {
 			return null;
 		}
-		MappingExecutionSourceContextType ctx = request.getSourceContext();
+		MappingEvaluationSourceContextType ctx = request.getSourceContext();
 
 		PrismObject<?> oldObject;
 		if (ctx.getObject() != null) {

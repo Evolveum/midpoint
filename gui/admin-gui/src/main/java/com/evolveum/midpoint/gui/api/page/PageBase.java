@@ -17,7 +17,6 @@
 package com.evolveum.midpoint.gui.api.page;
 
 import java.io.Serializable;
-import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -34,7 +33,6 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
-import org.apache.wicket.MarkupContainer;
 import org.apache.wicket.Page;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.RuntimeConfigurationType;
@@ -101,7 +99,6 @@ import com.evolveum.midpoint.security.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskCategory;
 import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.Producer;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -1270,8 +1267,8 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 		submenu.add(menu);
 
 		if (SystemConfigurationHolder.isExperimentalCodeEnabled()) {
-			menu = new MenuItem(createStringResource("PageAdmin.menu.top.configuration.executeMapping"),
-					PageExecuteMapping.class);
+			menu = new MenuItem(createStringResource("PageAdmin.menu.top.configuration.evaluateMapping"),
+					PageEvaluateMapping.class);
 			submenu.add(menu);
 		}
 
