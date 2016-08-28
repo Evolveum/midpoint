@@ -2,9 +2,6 @@ sudo: false
 dist: trusty
 language: java
 
-#skips default install - see script bellow
-install: true
-
 cache:
   directories:
     - $HOME/.m2
@@ -18,8 +15,10 @@ before_install:
   - export MAVEN_OPTS='-Xmx2g -XX:MaxPermSize=256m'
 
 # custom script is used so build and tests are done in one mvn command, separating it (as Travis does by default) leads to problem with ConnId (notably DummyResource)
-install: mvn clean install -T 10 -DskipTests=true
-script: mvn test
+install:
+- mvn clean install -T 10 -DskipTests=true
+script: 
+- mvn test
 
 addons:
   hostname: localhost # workaround for short hostname
