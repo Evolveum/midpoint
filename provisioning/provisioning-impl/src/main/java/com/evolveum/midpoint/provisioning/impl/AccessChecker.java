@@ -58,11 +58,11 @@ public class AccessChecker {
 			throws SchemaException, SecurityViolationException, ConfigurationException, ObjectNotFoundException, CommunicationException {
 		OperationResult result = parentResult.createMinorSubresult(OPERATION_NAME);
 		ResourceAttributeContainer attributeCont = ShadowUtil.getAttributesContainer(shadow);
-		
+
 		for (ResourceAttribute<?> attribute: attributeCont.getAttributes()) {
 			RefinedAttributeDefinition attrDef = ctx.getObjectClassDefinition().findAttributeDefinition(attribute.getElementName());
 			// Need to check model layer, not schema. Model means IDM logic which can be overridden in schemaHandling,
-			// schema layer is the original one. 
+			// schema layer is the original one.
 			if (attrDef == null) {
 				String msg = "No definition for attribute "+attribute.getElementName()+" in "+ctx.getObjectClassDefinition();
 				result.recordFatalError(msg);
@@ -150,7 +150,9 @@ public class AccessChecker {
 			QName attrName = attribute.getElementName();
 			RefinedAttributeDefinition attrDef = objectClassDefinition.findAttributeDefinition(attrName);
 			if (attrDef == null) {
-				throw new SchemaException("Unknown attribute "+attrName+" in objectclass "+objectClassDefinition);
+				String message = "Unknown attribute " + attrName + " in objectclass " + objectClassDefinition;
+				result.recordFatalError(message);
+				throw new SchemaException(message);
 			}
 			// Need to check model layer, not schema. Model means IDM logic which can be overridden in schemaHandling,
 			// schema layer is the original one. 

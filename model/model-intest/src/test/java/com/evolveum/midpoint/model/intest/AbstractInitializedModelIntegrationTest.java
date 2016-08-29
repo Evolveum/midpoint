@@ -217,6 +217,7 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
 		
 		dummyResourceCtlEmerald = DummyResourceContoller.create(RESOURCE_DUMMY_EMERALD_NAME, resourceDummyEmerald);
 		dummyResourceCtlEmerald.extendSchemaPirate();
+		dummyResourceCtlEmerald.extendSchemaPosix();
 		dummyResourceEmerald = dummyResourceCtlEmerald.getDummyResource();
 		resourceDummyEmerald = importAndGetObjectFromFile(ResourceType.class, getResourceDummyEmeraldFile(), RESOURCE_DUMMY_EMERALD_OID, initTask, initResult); 
 		resourceDummyEmeraldType = resourceDummyEmerald.asObjectable();

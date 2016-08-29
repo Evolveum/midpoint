@@ -48,7 +48,9 @@ public abstract class DummyObject implements DebugDumpable {
 	private Date validFrom = null;
 	private Date validTo = null;
 	protected DummyResource resource;
-	
+
+	private final Set<String> auxiliaryObjectClassNames = new HashSet<>();
+
 	private BreakMode modifyBreakMode = null;
 
 	public DummyObject() {
@@ -284,7 +286,32 @@ public abstract class DummyObject implements DebugDumpable {
 		
 		recordModify();
 	}
-	
+
+	public Set<String> getAuxiliaryObjectClassNames() {
+		return auxiliaryObjectClassNames;
+	}
+
+	public void addAuxiliaryObjectClassName(String name) {
+		auxiliaryObjectClassNames.add(name);
+	}
+
+	public void replaceAuxiliaryObjectClassNames(List<?> values) {
+		auxiliaryObjectClassNames.clear();
+		addAuxiliaryObjectClassNames(values);
+	}
+
+	public void deleteAuxiliaryObjectClassNames(List<?> values) {
+		for (Object value : values) {
+			auxiliaryObjectClassNames.remove(String.valueOf(value));
+		}
+	}
+
+	public void addAuxiliaryObjectClassNames(List<?> values) {
+		for (Object value : values) {
+			auxiliaryObjectClassNames.add(String.valueOf(value));
+		}
+	}
+
 	private void checkIfExist(Collection<Object> valuesToDelete, Set<Object> currentValues) throws SchemaViolationException{
 		for (Object valueToDelete : valuesToDelete) {
 			boolean found = false;
@@ -359,7 +386,7 @@ public abstract class DummyObject implements DebugDumpable {
 			// Nothing to check
 			return;
 		}
-		DummyAttributeDefinition attributeDefinition = accountObjectClass.getAttributeDefinition(attrName);
+		DummyAttributeDefinition attributeDefinition = getAttributeDefinition(attrName);
 		if (attributeDefinition == null) {
 			throw new SchemaViolationException("Attribute "+attrName+" is not defined in resource schema");
 		}
@@ -371,7 +398,27 @@ public abstract class DummyObject implements DebugDumpable {
 		}
 	}
 
+	public DummyAttributeDefinition getAttributeDefinition(String attrName) {
+		DummyAttributeDefinition def = getObjectClassNoExceptions().getAttributeDefinition(attrName);
+		if (def != null) {
+			return def;
+		}
+		for (String auxClassName : getAuxiliaryObjectClassNames()) {
+			DummyObjectClass auxObjectClass = resource.getAuxiliaryObjectClassMap().get(auxClassName);
+			if (auxObjectClass == null) {
+				throw new IllegalStateException("Auxiliary object class " + auxClassName + " couldn't be found");
+			}
+			def = auxObjectClass.getAttributeDefinition(attrName);
+			if (def != null) {
+				return def;
+			}
+		}
+		return null;
+	}
+
 	abstract protected DummyObjectClass getObjectClass() throws ConnectException, FileNotFoundException, SchemaViolationException;
+
+	abstract protected DummyObjectClass getObjectClassNoExceptions();
 
 	public abstract String getShortTypeName();
 	
@@ -394,6 +441,10 @@ public abstract class DummyObject implements DebugDumpable {
 		StringBuilder sb = new StringBuilder();
 		DebugUtil.indentDebugDump(sb, indent);
 		sb.append("DummyAccount: ").append(name).append("\n");
+		if (!auxiliaryObjectClassNames.isEmpty()) {
+			DebugUtil.debugDumpWithLabelToString(sb, "Auxiliary object classes", auxiliaryObjectClassNames, indent + 1);
+		}
+		sb.append("\n");
 		DebugUtil.debugDumpWithLabelToString(sb, "Enabled", enabled, indent + 1);
 		if (validFrom != null || validTo != null) {
 			sb.append("\n");
@@ -409,5 +460,14 @@ public abstract class DummyObject implements DebugDumpable {
 	protected void extendDebugDump(StringBuilder sb, int indent) {
 		// Nothing to do
 	}
-	
+
+	public boolean isReturnedByDefault(String attrName) {
+		final DummyAttributeDefinition attributeDefinition = getAttributeDefinition(attrName);
+		if (attributeDefinition != null) {
+			return attributeDefinition.isReturnedByDefault();
+		} else {
+			System.out.println("Warning: attribute " + attrName + " is not defined in " + this);
+			return false;
+		}
+	}
 }

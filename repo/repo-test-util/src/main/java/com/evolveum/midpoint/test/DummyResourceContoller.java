@@ -27,10 +27,8 @@ import java.net.ConnectException;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.Validate;
 
 import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.icf.dummy.resource.DummyAttributeDefinition;
@@ -50,7 +48,6 @@ import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.util.SchemaTestConstants;
 import com.evolveum.midpoint.test.ldap.AbstractResourceController;
-import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
@@ -91,8 +88,10 @@ public class DummyResourceContoller extends AbstractResourceController {
     public static final String DUMMY_ACCOUNT_ATTRIBUTE_AD_DESCRIPTION_NAME = "description";
     public static final String DUMMY_ACCOUNT_ATTRIBUTE_AD_ACCOUNT_EXPIRES_NAME = "accountExpires";
     public static final String DUMMY_ACCOUNT_ATTRIBUTE_AD_GROUPS_NAME = "groups";
-    
-    
+
+	public static final String DUMMY_ACCOUNT_ATTRIBUTE_POSIX_UID_NUMBER = "uidNumber";
+	public static final String DUMMY_ACCOUNT_ATTRIBUTE_POSIX_GID_NUMBER = "gidNumber";
+
     public static final String DUMMY_GROUP_MEMBERS_ATTRIBUTE_NAME = "members";
 	public static final String DUMMY_GROUP_ATTRIBUTE_DESCRIPTION = "description";
     public static final String DUMMY_GROUP_ATTRIBUTE_CC = "cc";
@@ -109,7 +108,9 @@ public class DummyResourceContoller extends AbstractResourceController {
 	public static final String ORG_TOP_NAME = "top";
 	
 	public static final String OBJECTCLASS_ORG_LOCAL_PART = "CustomorgObjectClass";
-	
+
+	public static final String DUMMY_POSIX_ACCOUNT_OBJECT_CLASS_NAME = "posixAccount";
+
 	private DummyResource dummyResource;
 	private boolean isExtendedSchema = false;
 	private String instanceName;
@@ -194,6 +195,17 @@ public class DummyResourceContoller extends AbstractResourceController {
 		// This should in fact be icfs:groups but this is OK for now
 		addAttrDef(accountObjectClass, DUMMY_ACCOUNT_ATTRIBUTE_AD_GROUPS_NAME, String.class, false, true);
 		
+		isExtendedSchema = true;
+	}
+
+	/**
+	 * Extend dummy schema to have an auxiliary OC.
+	 */
+	public void extendSchemaPosix() throws ConnectException, FileNotFoundException, SchemaViolationException {
+		DummyObjectClass posixAccount = new DummyObjectClass();
+		addAttrDef(posixAccount, DUMMY_ACCOUNT_ATTRIBUTE_POSIX_UID_NUMBER, Integer.class, false, false);			// uid and gid are temporarily not required
+		addAttrDef(posixAccount, DUMMY_ACCOUNT_ATTRIBUTE_POSIX_GID_NUMBER, Integer.class, false, false);
+		dummyResource.addAuxiliaryObjectClass(DUMMY_POSIX_ACCOUNT_OBJECT_CLASS_NAME, posixAccount);
 		isExtendedSchema = true;
 	}
 
@@ -301,7 +313,7 @@ public class DummyResourceContoller extends AbstractResourceController {
 		assertTrue("Account definition in not default", accountDef.isDefaultInAKind());
 		assertNull("Non-null intent in account definition", accountDef.getIntent());
 		assertFalse("Account definition is deprecated", accountDef.isDeprecated());
-		assertFalse("Account definition in auxiliary", accountDef.isAuxiliary());
+		assertFalse("Account definition is auxiliary", accountDef.isAuxiliary());
 	}
 
 	public void assertRefinedSchemaSanity(RefinedResourceSchema refinedSchema) {

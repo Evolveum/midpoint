@@ -340,7 +340,10 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 		        	} else if (attr.is(OperationalAttributes.LOCK_OUT_NAME)) {
 		        		account.setLockout(getBoolean(attr));
 
-		        	} else {
+		        	} else if (PredefinedAttributes.AUXILIARY_OBJECT_CLASS_NAME.equalsIgnoreCase(attr.getName())) {
+						account.replaceAuxiliaryObjectClassNames(attr.getValue());
+
+					} else {
 			        	String name = attr.getName();
 			        	try {
 							account.replaceAttributeValues(name, attr.getValue());
@@ -542,7 +545,10 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 		        	} else if (attr.is(OperationalAttributes.ENABLE_NAME)) {
 		        		throw new IllegalArgumentException("Attempt to add value for enable attribute");
 		        		
-		        	} else {
+		        	} else if (PredefinedAttributes.AUXILIARY_OBJECT_CLASS_NAME.equalsIgnoreCase(attr.getName())) {
+						account.addAuxiliaryObjectClassNames(attr.getValue());
+
+					} else {
 			        	String name = attr.getName();
 			        	try {
 							account.addAttributeValues(name, attr.getValue());
@@ -724,7 +730,9 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 		        		throw new UnsupportedOperationException("Removing password value is not supported");
 		        	} else if (attr.is(OperationalAttributes.ENABLE_NAME)) {
 		        		throw new IllegalArgumentException("Attempt to remove value from enable attribute");
-		        	} else {
+		        	} else if (PredefinedAttributes.AUXILIARY_OBJECT_CLASS_NAME.equalsIgnoreCase(attr.getName())) {
+		        		account.deleteAuxiliaryObjectClassNames(attr.getValue());
+					} else {
 			        	String name = attr.getName();
 			        	try {
 							account.removeAttributeValues(name, attr.getValue());
@@ -952,9 +960,17 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 			builder.defineObjectClass(createGroupObjectClass(configuration.getSupportActivation()));
 			builder.defineObjectClass(createPrivilegeObjectClass());
 			builder.defineObjectClass(createOrgObjectClass());
+			for (ObjectClassInfo auxObjectClass : createAuxiliaryObjectClasses()) {
+				builder.defineObjectClass(auxObjectClass);
+			}
 			
 		} catch (SchemaViolationException e) {
 			throw new InvalidAttributeValueException(e.getMessage(), e);
+		}
+
+		if (configuration.isSupportReturnDefaultAttributes()) {
+			builder.defineOperationOption(OperationOptionInfoBuilder.buildReturnDefaultAttributes(), SearchOp.class,
+					SyncOp.class);
 		}
 
         log.info("schema::end");
@@ -1050,6 +1066,16 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
         return objClassBuilder.build();
 	}
 
+	private List<ObjectClassInfo> createAuxiliaryObjectClasses() {
+		List<ObjectClassInfo> rv = new ArrayList<>();
+		for (Map.Entry<String, DummyObjectClass> entry : resource.getAuxiliaryObjectClassMap().entrySet()) {
+			ObjectClassInfoBuilder builder = createCommonObjectClassBuilder(entry.getKey(), entry.getValue(), false);
+			builder.setAuxiliary(true);
+			rv.add(builder.build());
+		}
+		return rv;
+	}
+
 	private void buildAttributes(ObjectClassInfoBuilder icfObjClassBuilder, DummyObjectClass dummyObjectClass) {
 		for (DummyAttributeDefinition dummyAttrDef : dummyObjectClass.getAttributeDefinitions()) {
         	AttributeInfoBuilder attrBuilder = new AttributeInfoBuilder(dummyAttrDef.getAttributeName(), dummyAttrDef.getAttributeType());
@@ -1139,7 +1165,7 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 		        for (DummyAccount account : accounts) {
 		        	ConnectorObject co = convertToConnectorObject(account, attributesToGet);
 		        	if (matches(query, co)) {
-		        		co = filterOutAttributesToGet(co, attributesToGet);
+						co = filterOutAttributesToGet(co, account, attributesToGet, options.getReturnDefaultAttributes());
 		        		handler.handle(co);
 		        	}
 		        }
@@ -1153,7 +1179,7 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 		        		if (attributesToGetHasAttribute(attributesToGet, DummyGroup.ATTR_MEMBERS_NAME)) {
 		        			resource.recordGroupMembersReadCount();
 		        		}
-		        		co = filterOutAttributesToGet(co, attributesToGet);
+		        		co = filterOutAttributesToGet(co, group, attributesToGet, options.getReturnDefaultAttributes());
 		        		handler.handle(co);
 		        	}
 		        }
@@ -1164,7 +1190,7 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 		        for (DummyPrivilege priv : privs) {
 		        	ConnectorObject co = convertToConnectorObject(priv, attributesToGet);
 		        	if (matches(query, co)) {
-		        		co = filterOutAttributesToGet(co, attributesToGet);
+		        		co = filterOutAttributesToGet(co, priv, attributesToGet, options.getReturnDefaultAttributes());
 		        		handler.handle(co);
 		        	}
 		        }
@@ -1175,7 +1201,7 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 		        for (DummyOrg org : orgs) {
 		        	ConnectorObject co = convertToConnectorObject(org, attributesToGet);
 		        	if (matches(query, co)) {
-		        		co = filterOutAttributesToGet(co, attributesToGet);
+		        		co = filterOutAttributesToGet(co, org, attributesToGet, options.getReturnDefaultAttributes());
 		        		handler.handle(co);
 		        	}
 		        }
@@ -1297,7 +1323,8 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
         }
     }
 
-	private ConnectorObject filterOutAttributesToGet(ConnectorObject co, Collection<String> attributesToGet) {
+	private ConnectorObject filterOutAttributesToGet(ConnectorObject co, DummyObject dummyObject,
+			Collection<String> attributesToGet, Boolean returnDefaultAttributes) {
 		if (attributesToGet == null) {
 			return co;
 		}
@@ -1305,13 +1332,14 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
         cob.setUid(co.getUid());
         cob.setName(co.getName());
         cob.setObjectClass(co.getObjectClass());
-        Set<Attribute> attrs = new HashSet<Attribute>(co.getAttributes().size());
         for (Attribute attr : co.getAttributes()) {
-            if (containsAttribute(attributesToGet,attr.getName())) {
+            if (containsAttribute(attributesToGet, attr.getName()) ||
+					Boolean.TRUE.equals(returnDefaultAttributes) &&
+							(attr.getName().startsWith("__") ||			// brutal hack
+							 dummyObject.isReturnedByDefault(attr.getName()))) {
             	cob.addAttribute(attr);
             }
         }
-        cob.addAttributes(attrs);
         return cob.build();
 	}
 
@@ -1504,7 +1532,7 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 		builder.addAttribute(Name.NAME, dummyObject.getName());
 		
 		for (String name : dummyObject.getAttributeNames()) {
-			DummyAttributeDefinition attrDef = objectClass.getAttributeDefinition(name);
+			DummyAttributeDefinition attrDef = dummyObject.getAttributeDefinition(name);
 			if (attrDef == null) {
 				throw new IllegalArgumentException("Unknown account attribute '"+name+"'");
 			}
@@ -1544,8 +1572,12 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 			builder.addAttribute(DummyResource.ATTRIBUTE_CONNECTOR_STATIC_VAL, staticVal);
 			builder.addAttribute(DummyResource.ATTRIBUTE_CONNECTOR_CONFIGURATION_TO_STRING, configuration.toString());
 		}
-		
-		return builder;
+
+	   if (!dummyObject.getAuxiliaryObjectClassNames().isEmpty()) {
+		   builder.addAttribute(PredefinedAttributes.AUXILIARY_OBJECT_CLASS_NAME, dummyObject.getAuxiliaryObjectClassNames());
+	   }
+
+	   return builder;
    }
 
 	private String varyLetterCase(String name) {

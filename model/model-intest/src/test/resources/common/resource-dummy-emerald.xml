@@ -48,7 +48,12 @@
 		<icfc:configurationProperties>
 			<icfi:instanceId>emerald</icfi:instanceId> <!-- Default instance. -->
 			<icfi:supportValidity>false</icfi:supportValidity>
+			<icfi:supportReturnDefaultAttributes>true</icfi:supportReturnDefaultAttributes>
 		</icfc:configurationProperties>
+		<icfc:resultsHandlerConfiguration>
+			<!-- this result handler doesn't support ReturnDefaultAttributes flag, so it has to be disabled (MID-3376) -->
+			<icfc:enableAttributesToGetSearchResultsHandler>false</icfc:enableAttributesToGetSearchResultsHandler>
+		</icfc:resultsHandlerConfiguration>
 
 	</connectorConfiguration>
 	

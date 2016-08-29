@@ -1234,7 +1234,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		}
 
 		PrismObjectDefinition<T> shadowDefinition = toShadowDefinition(objectClassDefinition);
-		PrismObject<T> shadow = icfConvertor.convertToResourceObject(co, shadowDefinition, false, caseIgnoreAttributeNames);
+		PrismObject<T> shadow = icfConvertor.convertToResourceObject(co, shadowDefinition, false, caseIgnoreAttributeNames, legacySchema);
 
 		result.recordSuccess();
 		return shadow;
@@ -2325,7 +2325,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				}
 				PrismObject<T> resourceObject;
 				try {
-					resourceObject = icfConvertor.convertToResourceObject(connectorObject, objectDefinition, false, caseIgnoreAttributeNames);
+					resourceObject = icfConvertor.convertToResourceObject(connectorObject, objectDefinition, false, caseIgnoreAttributeNames, legacySchema);
 				} catch (SchemaException e) {
 					recordResume();
 					throw new IntermediateException(e);
@@ -2826,7 +2826,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				
 				LOGGER.trace("START creating delta of type CREATE");
 				PrismObject<ShadowType> currentShadow = icfConvertor.convertToResourceObject(icfDelta.getObject(),
-						objectDefinition, false, caseIgnoreAttributeNames);
+						objectDefinition, false, caseIgnoreAttributeNames, legacySchema);
 
 				if (LOGGER.isTraceEnabled()) {
 					LOGGER.trace("Got current shadow: {}", currentShadow.debugDump());
@@ -2850,7 +2850,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				
 				LOGGER.trace("START creating delta of type {}", icfDeltaType);
 				PrismObject<ShadowType> currentShadow = icfConvertor.convertToResourceObject(icfDelta.getObject(),
-						objectDefinition, false, caseIgnoreAttributeNames);
+						objectDefinition, false, caseIgnoreAttributeNames, legacySchema);
 
 				if (LOGGER.isTraceEnabled()) {
 					LOGGER.trace("Got current shadow: {}", currentShadow.debugDump());

@@ -106,7 +106,8 @@ public class IcfConvertor {
 	 * @throws SchemaException
 	 */
 	<T extends ShadowType> PrismObject<T> convertToResourceObject(ConnectorObject co,
-			PrismObjectDefinition<T> objectDefinition, boolean full, boolean caseIgnoreAttributeNames) throws SchemaException {
+			PrismObjectDefinition<T> objectDefinition, boolean full, boolean caseIgnoreAttributeNames,
+			boolean legacySchema) throws SchemaException {
 
 		PrismObject<T> shadowPrism = null;
 		if (objectDefinition != null) {
@@ -135,11 +136,11 @@ public class IcfConvertor {
 			if (icfAttr.is(PredefinedAttributes.AUXILIARY_OBJECT_CLASS_NAME)) {
 				List<QName> auxiliaryObjectClasses = shadow.getAuxiliaryObjectClass();
 				for (Object auxiliaryIcfObjectClass: icfAttr.getValue()) {
-					QName auxiliaryObjectClassQname = icfNameMapper.objectClassToQname(new ObjectClass((String)auxiliaryIcfObjectClass), resourceSchemaNamespace, false);
+					QName auxiliaryObjectClassQname = icfNameMapper.objectClassToQname(new ObjectClass((String)auxiliaryIcfObjectClass), resourceSchemaNamespace, legacySchema);
 					auxiliaryObjectClasses.add(auxiliaryObjectClassQname);
 					ObjectClassComplexTypeDefinition auxiliaryObjectClassDefinition = icfNameMapper.getResourceSchema().findObjectClassDefinition(auxiliaryObjectClassQname);
 					if (auxiliaryObjectClassDefinition == null) {
-						throw new SchemaException("Resource object "+co+" refers to auxiliary objetc class "+auxiliaryObjectClassQname+" which is not in the schema");
+						throw new SchemaException("Resource object "+co+" refers to auxiliary object class "+auxiliaryObjectClassQname+" which is not in the schema");
 					}
 					auxiliaryObjectClassDefinitions.add(auxiliaryObjectClassDefinition);
 				}
