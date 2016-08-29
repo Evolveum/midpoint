@@ -22,6 +22,7 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.web.session.SessionStorage;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
@@ -144,6 +145,7 @@ public abstract class ResourceContentPanel extends Panel {
 
 	private PageBase pageBase;
 	private ShadowKindType kind;
+    private String searchMode;
 	private String intent;
 	private QName objectClass;
 	private SelectableBeanObjectDataProvider<ShadowType> provider;
@@ -151,10 +153,11 @@ public abstract class ResourceContentPanel extends Panel {
 	IModel<PrismObject<ResourceType>> resourceModel;
 
 	public ResourceContentPanel(String id, IModel<PrismObject<ResourceType>> resourceModel, QName objectClass,
-			ShadowKindType kind, String intent, PageBase pageBase) {
+			ShadowKindType kind, String intent, String searchMode, PageBase pageBase) {
 		super(id);
 		this.pageBase = pageBase;
 		this.kind = kind;
+        this.searchMode = searchMode;
 		this.resourceModel = resourceModel;
 		this.intent = intent;
 		this.objectClass = objectClass;
@@ -208,18 +211,36 @@ public abstract class ResourceContentPanel extends Panel {
 			return TableId.PAGE_RESOURCE_OBJECT_CLASS_PANEL;
 		}
 
-		switch (kind) {
-			case ACCOUNT:
-				return TableId.PAGE_RESOURCE_ACCOUNTS_PANEL;
-			case GENERIC:
-				return TableId.PAGE_RESOURCE_GENERIC_PANEL;
-			case ENTITLEMENT:
-				return TableId.PAGE_RESOURCE_ENTITLEMENT_PANEL;
+        if (searchMode == null) {
+            searchMode = SessionStorage.KEY_RESOURCE_PAGE_REPOSITORY_CONTENT;
+        }
 
-			default:
-				return TableId.PAGE_RESOURCE_OBJECT_CLASS_PANEL;
-		}
+        if (searchMode.equals(SessionStorage.KEY_RESOURCE_PAGE_REPOSITORY_CONTENT)) {
+            switch (kind) {
+                case ACCOUNT:
+                    return TableId.PAGE_RESOURCE_ACCOUNTS_PANEL_REPOSITORY_MODE;
+                case GENERIC:
+                    return TableId.PAGE_RESOURCE_GENERIC_PANEL_REPOSITORY_MODE;
+                case ENTITLEMENT:
+                    return TableId.PAGE_RESOURCE_ENTITLEMENT_PANEL_REPOSITORY_MODE;
 
+                default:
+                    return TableId.PAGE_RESOURCE_OBJECT_CLASS_PANEL;
+            }
+        } else if (searchMode.equals(SessionStorage.KEY_RESOURCE_PAGE_RESOURCE_CONTENT)){
+            switch (kind) {
+                case ACCOUNT:
+                    return TableId.PAGE_RESOURCE_ACCOUNTS_PANEL_RESOURCE_MODE;
+                case GENERIC:
+                    return TableId.PAGE_RESOURCE_GENERIC_PANEL_RESOURCE_MODE;
+                case ENTITLEMENT:
+                    return TableId.PAGE_RESOURCE_ENTITLEMENT_PANEL_RESOURCE_MODE;
+
+                default:
+                    return TableId.PAGE_RESOURCE_OBJECT_CLASS_PANEL;
+            }
+        }
+        return TableId.PAGE_RESOURCE_OBJECT_CLASS_PANEL;
 	}
 
 	private void initLayout() {

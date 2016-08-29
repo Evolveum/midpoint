@@ -47,8 +47,8 @@ public class ResourceContentResourcePanel extends ResourceContentPanel {
 	private static final String DOT_CLASS = ResourceContentResourcePanel.class.getName() + ".";
 
 	public ResourceContentResourcePanel(String id, IModel<PrismObject<ResourceType>> resourceModel,
-			QName objectClass, ShadowKindType kind, String intent, PageBase pageBase) {
-		super(id, resourceModel, objectClass, kind, intent, pageBase);
+			QName objectClass, ShadowKindType kind, String intent, String searchMode, PageBase pageBase) {
+		super(id, resourceModel, objectClass, kind, intent, searchMode, pageBase);
 	}
 
 	@Override
