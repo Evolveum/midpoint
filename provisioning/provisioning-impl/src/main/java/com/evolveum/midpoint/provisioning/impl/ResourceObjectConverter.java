@@ -35,6 +35,7 @@ import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.JavaTypeConverter;
 import com.evolveum.midpoint.prism.util.PrismUtil;
+import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.provisioning.api.GenericConnectorException;
 import com.evolveum.midpoint.provisioning.ucf.api.*;
 import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
@@ -1384,7 +1385,7 @@ public class ResourceObjectConverter {
 				ResourceAttribute<?> newSimulatedAttr = getSimulatedActivationAdministrativeStatusAttribute(ctx, shadow,
 						capActStatus, result);
 				if (newSimulatedAttr != null) {
-					Class<?> simulatedAttrValueClass = getAttributeValueClass(ctx, shadow, newSimulatedAttr);
+					Class<?> simulatedAttrValueClass = getAttributeValueClass(ctx, shadow, newSimulatedAttr, capActStatus);
 
 					Object newSimulatedAttrRealValue;
 					if (activation.getAdministrativeStatus() == ActivationStatusType.ENABLED) {
@@ -1448,16 +1449,25 @@ public class ResourceObjectConverter {
 	}
 
 	@NotNull
-	private Class<?> getAttributeValueClass(ProvisioningContext ctx, ShadowType shadow, ResourceAttribute<?> attribute)
+	private Class<?> getAttributeValueClass(ProvisioningContext ctx, ShadowType shadow, ResourceAttribute<?> attribute,
+			@NotNull ActivationStatusCapabilityType capActStatus)
 			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
-		ResourceAttributeDefinition attributeDefinition = attribute.getDefinition();
-		Class<?> attributeValueClass = attributeDefinition != null ? attributeDefinition.getTypeClassIfKnown() : null;
-		if (attributeValueClass == null) {
-			LOGGER.warn("No definition for simulated administrative status attribute {} for shadow {} on {}, assuming String",
-					attribute, shadow, ctx.getResource());
-			attributeValueClass = String.class;
+
+		// After things will be fixed (see comment regarding capActStatus.attributeType) we'll re-enable fetching definition from the attribute itself
+//		ResourceAttributeDefinition attributeDefinition = attribute.getDefinition();
+//		Class<?> attributeValueClass = attributeDefinition != null ? attributeDefinition.getTypeClassIfKnown() : null;
+//		if (attributeValueClass == null) {
+//			LOGGER.warn("No definition for simulated administrative status attribute {} for shadow {} on {}, assuming String",
+//					attribute, shadow, ctx.getResource());
+//			attributeValueClass = String.class;
+//		}
+//		return attributeValueClass;
+
+		if (capActStatus.getAttributeType() == null) {
+			return String.class;
+		} else {
+			return XsdTypeMapper.toJavaType(capActStatus.getAttributeType());
 		}
-		return attributeValueClass;
 	}
 
 	private boolean isBlank(Object realValue) {
@@ -1978,7 +1988,7 @@ public class ResourceObjectConverter {
 			return null;
 		}
 
-		Class<?> simulatedAttrValueClass = getAttributeValueClass(ctx, shadow, simulatedAttribute);
+		Class<?> simulatedAttrValueClass = getAttributeValueClass(ctx, shadow, simulatedAttribute, capActStatus);
 
 		PropertyDelta<?> simulatedAttrDelta;
 		if (status == null && activationDelta.isDelete()){

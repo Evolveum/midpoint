@@ -546,6 +546,10 @@ public class OpenDJController extends AbstractResourceController {
 	}
 
 	public static String getAttributeValue(Entry response, String name) {
+		return getAttributeValue(response, name, String.class);
+	}
+
+	public static <T> T getAttributeValue(Entry response, String name, Class<T> clazz) {
 		List<Attribute> attrs = response.getAttribute(name.toLowerCase());
 		if (attrs == null || attrs.size() == 0) {
 			return null;
@@ -553,13 +557,17 @@ public class OpenDJController extends AbstractResourceController {
 		assertEquals("Too many attributes for name "+name+": ",
 				1, attrs.size());
 		Attribute attribute = attrs.get(0);
-		return getAttributeValue(attribute);
+		return getAttributeValue(attribute, clazz);
 	}
-	
+
 	public static String getAttributeValue(Attribute attribute) {
-		return attribute.iterator().next().getValue().toString();
+		return getAttributeValue(attribute, String.class);
 	}
 	
+	public static <T> T getAttributeValue(Attribute attribute, Class<T> clazz) {
+		return (T) attribute.iterator().next().getValue().toString();
+	}
+
 	public static byte[] getAttributeValueBinary(Entry response, String name) {
 		List<Attribute> attrs = response.getAttribute(name.toLowerCase());
 		if (attrs == null || attrs.size() == 0) {
