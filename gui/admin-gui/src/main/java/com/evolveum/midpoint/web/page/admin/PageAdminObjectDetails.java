@@ -627,7 +627,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 
 		if (object == null) {
 			if (getObjectWrapper() != null && getObjectWrapper().getObject() != null) {
-				object = getObjectWrapper().getObject();
+				object = getObjectWrapper().getObject().clone();		// otherwise original object could get corrupted e.g. by applying the delta below
 
 				for (ObjectDelta delta : deltas) {
 					// because among deltas there can be also ShadowType deltas
@@ -636,6 +636,8 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 					}
 				}
 			}
+		} else {
+			object = object.clone();
 		}
 
 		performAdditionalValidation(object, deltas, errors);

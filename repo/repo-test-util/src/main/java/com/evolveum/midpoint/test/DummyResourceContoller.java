@@ -196,7 +196,7 @@ public class DummyResourceContoller extends AbstractResourceController {
 		
 		isExtendedSchema = true;
 	}
-	
+
 	public DummyAttributeDefinition addAttrDef(DummyObjectClass accountObjectClass, String attrName, Class<?> type, boolean isRequired, boolean isMulti) {
 		DummyAttributeDefinition attrDef = new DummyAttributeDefinition(attrName, type, isRequired, isMulti);
 		accountObjectClass.add(attrDef);
@@ -244,7 +244,7 @@ public class DummyResourceContoller extends AbstractResourceController {
 	}
 
 	private void assertExtendedSchema() {
-		assert isExtendedSchema : "Resource "+resource+" does not have extended schema yet an extedned attribute was requested";
+		assert isExtendedSchema : "Resource "+resource+" does not have extended schema yet an extended attribute was requested";
 	}
 	
 	public void assertDummyResourceSchemaSanity(ResourceSchema resourceSchema) {

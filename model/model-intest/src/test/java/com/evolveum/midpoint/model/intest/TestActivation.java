@@ -15,6 +15,7 @@
  */
 package com.evolveum.midpoint.model.intest;
 
+import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.cast;
 import static org.testng.AssertJUnit.assertFalse;
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static org.testng.AssertJUnit.assertEquals;
@@ -30,9 +31,13 @@ import java.util.Date;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.icf.dummy.resource.DummyObjectClass;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
+import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.prism.path.ItemPath;
 
+import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -90,11 +95,16 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 	protected static final String RESOURCE_DUMMY_KHAKI_OID = "10000000-0000-0000-0000-0000000a1004";
 	protected static final String RESOURCE_DUMMY_KHAKI_NAME = "khaki";
 	protected static final String RESOURCE_DUMMY_KHAKI_NAMESPACE = MidPointConstants.NS_RI;
-	
+
+	protected static final File RESOURCE_DUMMY_CORAL_FILE = new File(TEST_DIR, "resource-dummy-coral.xml");
+	protected static final String RESOURCE_DUMMY_CORAL_OID = "10000000-0000-0000-0000-0000000b1004";
+	protected static final String RESOURCE_DUMMY_CORAL_NAME = "coral";
+
 	protected static final String ACCOUNT_MANCOMB_DUMMY_USERNAME = "mancomb";
 	private static final Date ACCOUNT_MANCOMB_VALID_FROM_DATE = MiscUtil.asDate(2011, 2, 3, 4, 5, 6);
 	private static final Date ACCOUNT_MANCOMB_VALID_TO_DATE = MiscUtil.asDate(2066, 5, 4, 3, 2, 1);
-	
+	private static final String SUSPENDED_ATTRIBUTE_NAME = "suspended";
+
 	private String accountOid;
 	private String accountRedOid;
     private String accountYellowOid;
@@ -107,7 +117,12 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 	protected DummyResourceContoller dummyResourceCtlKhaki;
 	protected ResourceType resourceDummyKhakiType;
 	protected PrismObject<ResourceType> resourceDummyKhaki;
-	
+
+	protected DummyResource dummyResourceCoral;
+	protected DummyResourceContoller dummyResourceCtlCoral;
+	protected ResourceType resourceDummyCoralType;
+	protected PrismObject<ResourceType> resourceDummyCoral;
+
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult)
 			throws Exception {
@@ -119,9 +134,15 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 		resourceDummyKhaki = importAndGetObjectFromFile(ResourceType.class, RESOURCE_DUMMY_KHAKI_FILE, RESOURCE_DUMMY_KHAKI_OID, initTask, initResult); 
 		resourceDummyKhakiType = resourceDummyKhaki.asObjectable();
 		dummyResourceCtlKhaki.setResource(resourceDummyKhaki);
+
+		dummyResourceCtlCoral = DummyResourceContoller.create(RESOURCE_DUMMY_CORAL_NAME, resourceDummyCoral);
+		DummyObjectClass accountObjectClass = dummyResourceCtlCoral.getDummyResource().getAccountObjectClass();
+		dummyResourceCtlCoral.addAttrDef(accountObjectClass, SUSPENDED_ATTRIBUTE_NAME, Boolean.class, false, false);
+		dummyResourceCoral = dummyResourceCtlCoral.getDummyResource();
+		resourceDummyCoral = importAndGetObjectFromFile(ResourceType.class, RESOURCE_DUMMY_CORAL_FILE, RESOURCE_DUMMY_CORAL_OID, initTask, initResult);
+		resourceDummyCoralType = resourceDummyCoral.asObjectable();
+		dummyResourceCtlCoral.setResource(resourceDummyCoral);
 	}
-	
-	
 
 	@Test
     public void test050CheckJackEnabled() throws Exception {
@@ -1788,8 +1809,78 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         display("Audit", dummyAuditService);
         dummyAuditService.assertNoRecord();
 	}
-	
-		
+
+	// attempt to simulate MID-3348 (unsuccessful for now)
+	@Test
+	public void test600AddUser1() throws Exception {
+		final String TEST_NAME = "test600AddUser1";
+		TestUtil.displayTestTile(this, TEST_NAME);
+
+		// GIVEN
+		Task task = taskManager.createTaskInstance(TestActivation.class.getName() + "." + TEST_NAME);
+		OperationResult result = task.getResult();
+
+		PrismObject<UserType> user1 = prismContext.createObject(UserType.class);
+		DeltaBuilder.deltaFor(UserType.class, prismContext)
+				.item(UserType.F_NAME).replace(new PolyString("user1"))
+				.item(UserType.F_ASSIGNMENT).add(ObjectTypeUtil.createAssignmentTo(resourceDummyCoral).asPrismContainerValue())
+				.item(ACTIVATION_ADMINISTRATIVE_STATUS_PATH).replace(ActivationStatusType.DISABLED)
+				.asObjectDelta(null)
+				.applyTo((PrismObject) user1);
+
+		ObjectDelta<UserType> addDelta = user1.createAddDelta();
+		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(addDelta);
+
+		// WHEN
+		modelService.executeChanges(deltas, null, task, result);
+
+		// THEN
+		user1 = getUser(user1.getOid());
+		display("User after change execution", user1);
+
+		DummyAccount dummyAccount = dummyResourceCoral.getAccountByUsername("user1");
+		display("Dummy account", dummyAccount);
+
+		String accountOid = getSingleLinkOid(user1);
+		PrismObject<ShadowType> shadow = getShadowModel(accountOid);
+		display("Shadow: ", shadow);
+
+		// TODO check real state of the account and shadow
+	}
+
+	@Test
+	public void test610EnableUser1() throws Exception {
+		final String TEST_NAME = "test610EnableUser1";
+		TestUtil.displayTestTile(this, TEST_NAME);
+
+		// GIVEN
+		PrismObject<UserType> user1 = findUserByUsername("user1");
+
+		Task task = taskManager.createTaskInstance(TestActivation.class.getName() + "." + TEST_NAME);
+		OperationResult result = task.getResult();
+
+		Collection<ObjectDelta<? extends ObjectType>> deltas =
+				cast(DeltaBuilder.deltaFor(UserType.class, prismContext)
+						.item(ACTIVATION_ADMINISTRATIVE_STATUS_PATH).replace(ActivationStatusType.ENABLED)
+						.asObjectDeltas(user1.getOid()));
+
+		// WHEN
+		modelService.executeChanges(deltas, null, task, result);
+
+		// THEN
+		user1 = getUser(user1.getOid());
+		display("User after change execution", user1);
+
+		DummyAccount dummyAccount = dummyResourceCoral.getAccountByUsername("user1");
+		display("Dummy account", dummyAccount);
+
+		String accountOid = getSingleLinkOid(user1);
+		PrismObject<ShadowType> shadow = getShadowModel(accountOid);
+		display("Shadow: ", shadow);
+
+		// TODO check real state of the account and shadow
+	}
+
 	private void assertDummyActivationEnabledState(String userId, boolean expectedEnabled) throws SchemaViolationException {
 		assertDummyActivationEnabledState(null, userId, expectedEnabled);
 	}
