@@ -1840,12 +1840,20 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 
 		DummyAccount dummyAccount = dummyResourceCoral.getAccountByUsername("user1");
 		display("Dummy account", dummyAccount);
+		checkSuspendedAttribute(dummyAccount, Boolean.TRUE);
 
 		String accountOid = getSingleLinkOid(user1);
 		PrismObject<ShadowType> shadow = getShadowModel(accountOid);
 		display("Shadow: ", shadow);
 
 		// TODO check real state of the account and shadow
+	}
+
+	private void checkSuspendedAttribute(DummyAccount dummyAccount, Boolean expectedValue) {
+		Object suspendedAttributeValue = dummyAccount.getAttributeValue("suspended", Object.class);
+		System.out.println("\nsuspended: " + suspendedAttributeValue + ", class: " + suspendedAttributeValue.getClass());
+		assertEquals("Wrong type of 'suspended' attribute", Boolean.class, suspendedAttributeValue.getClass());
+		assertEquals("Wrong typed value of 'suspended' attribute", expectedValue, suspendedAttributeValue);
 	}
 
 	@Test
@@ -1873,6 +1881,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 
 		DummyAccount dummyAccount = dummyResourceCoral.getAccountByUsername("user1");
 		display("Dummy account", dummyAccount);
+		checkSuspendedAttribute(dummyAccount, Boolean.FALSE);
 
 		String accountOid = getSingleLinkOid(user1);
 		PrismObject<ShadowType> shadow = getShadowModel(accountOid);
