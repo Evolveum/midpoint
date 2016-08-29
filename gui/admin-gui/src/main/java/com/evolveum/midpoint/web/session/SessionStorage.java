@@ -49,7 +49,9 @@ public class SessionStorage implements Serializable, DebugDumpable {
     public static final String KEY_RESOURCE_ENTITLEMENT_CONTENT = "resourceEntitlementContent";
     public static final String KEY_RESOURCE_GENERIC_CONTENT = "resourceGenericContent";
     public static final String KEY_RESOURCE_OBJECT_CLASS_CONTENT = "resourceObjectClassContent";
-    
+    public static final String KEY_RESOURCE_PAGE_RESOURCE_CONTENT = "Resource";
+    public static final String KEY_RESOURCE_PAGE_REPOSITORY_CONTENT = "Repository";
+
     private static final String KEY_TASKS = "tasks";
 
     /**
@@ -111,8 +113,8 @@ public class SessionStorage implements Serializable, DebugDumpable {
         return (RoleMembersStorage)pageStorageMap.get(KEY_ROLE_MEMBERS);
     }
     
-    public ResourceContentStorage getResourceContentStorage(ShadowKindType kind) {
-    	String key = getContentStorageKey(kind);
+    public ResourceContentStorage getResourceContentStorage(ShadowKindType kind, String searchMode) {
+    	String key = getContentStorageKey(kind, searchMode);
     	if (pageStorageMap.get(key) == null) {
             pageStorageMap.put(key, new ResourceContentStorage(kind));
         }
@@ -120,20 +122,20 @@ public class SessionStorage implements Serializable, DebugDumpable {
 		
 	}
     
-    private String getContentStorageKey(ShadowKindType kind) {
+    private String getContentStorageKey(ShadowKindType kind, String searchMode) {
     	if (kind == null) {
 			return KEY_RESOURCE_OBJECT_CLASS_CONTENT;
 		}
 
 		switch (kind) {
 			case ACCOUNT:
-				return KEY_RESOURCE_ACCOUNT_CONTENT;
+				return KEY_RESOURCE_ACCOUNT_CONTENT + searchMode;
 
 			case ENTITLEMENT:
-				return KEY_RESOURCE_ENTITLEMENT_CONTENT;
+				return KEY_RESOURCE_ENTITLEMENT_CONTENT + searchMode;
 
 			case GENERIC:
-				return KEY_RESOURCE_GENERIC_CONTENT;
+				return KEY_RESOURCE_GENERIC_CONTENT + searchMode;
 			default:
 				return KEY_RESOURCE_OBJECT_CLASS_CONTENT;
 
@@ -255,4 +257,14 @@ public class SessionStorage implements Serializable, DebugDumpable {
 		}
 
 	}
+
+    public void clearResourceContentStorage(){
+        pageStorageMap.remove(KEY_RESOURCE_ACCOUNT_CONTENT + KEY_RESOURCE_PAGE_REPOSITORY_CONTENT);
+        pageStorageMap.remove(KEY_RESOURCE_ACCOUNT_CONTENT + KEY_RESOURCE_PAGE_RESOURCE_CONTENT);
+        pageStorageMap.remove(KEY_RESOURCE_ENTITLEMENT_CONTENT + KEY_RESOURCE_PAGE_REPOSITORY_CONTENT);
+        pageStorageMap.remove(KEY_RESOURCE_ENTITLEMENT_CONTENT + KEY_RESOURCE_PAGE_RESOURCE_CONTENT);
+        pageStorageMap.remove(KEY_RESOURCE_GENERIC_CONTENT + KEY_RESOURCE_PAGE_REPOSITORY_CONTENT);
+        pageStorageMap.remove(KEY_RESOURCE_GENERIC_CONTENT + KEY_RESOURCE_PAGE_RESOURCE_CONTENT);
+        pageStorageMap.remove(KEY_RESOURCE_OBJECT_CLASS_CONTENT);
+    }
 }
