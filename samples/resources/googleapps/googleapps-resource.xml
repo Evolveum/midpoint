@@ -803,6 +803,7 @@
          <cap:activation>
             <cap:status>
                <cap:attribute>ri:suspended</cap:attribute>
+               <cap:attributeType xmlns:xsd="http://www.w3.org/2001/XMLSchema">xsd:boolean</cap:attributeType>
                <cap:enableValue>false</cap:enableValue>
                <cap:disableValue>true</cap:disableValue>
             </cap:status>
