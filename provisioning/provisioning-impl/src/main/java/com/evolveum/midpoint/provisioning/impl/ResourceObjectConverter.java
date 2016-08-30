@@ -1453,21 +1453,14 @@ public class ResourceObjectConverter {
 			@NotNull ActivationStatusCapabilityType capActStatus)
 			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
 
-		// After things will be fixed (see comment regarding capActStatus.attributeType) we'll re-enable fetching definition from the attribute itself
-//		ResourceAttributeDefinition attributeDefinition = attribute.getDefinition();
-//		Class<?> attributeValueClass = attributeDefinition != null ? attributeDefinition.getTypeClassIfKnown() : null;
-//		if (attributeValueClass == null) {
-//			LOGGER.warn("No definition for simulated administrative status attribute {} for shadow {} on {}, assuming String",
-//					attribute, shadow, ctx.getResource());
-//			attributeValueClass = String.class;
-//		}
-//		return attributeValueClass;
-
-		if (capActStatus.getAttributeType() == null) {
-			return String.class;
-		} else {
-			return XsdTypeMapper.toJavaType(capActStatus.getAttributeType());
+		ResourceAttributeDefinition attributeDefinition = attribute.getDefinition();
+		Class<?> attributeValueClass = attributeDefinition != null ? attributeDefinition.getTypeClassIfKnown() : null;
+		if (attributeValueClass == null) {
+			LOGGER.warn("No definition for simulated administrative status attribute {} for shadow {} on {}, assuming String",
+					attribute, shadow, ctx.getResource());
+			attributeValueClass = String.class;
 		}
+		return attributeValueClass;
 	}
 
 	private boolean isBlank(Object realValue) {

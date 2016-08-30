@@ -99,7 +99,6 @@
 	        <cap:activation>
 	            <cap:status>
 	                <cap:attribute>ri:suspended</cap:attribute>
-					<cap:attributeType>xsd:boolean</cap:attributeType>
 	                <cap:enableValue>false</cap:enableValue>
 	                <cap:disableValue>true</cap:disableValue>
 	            </cap:status>

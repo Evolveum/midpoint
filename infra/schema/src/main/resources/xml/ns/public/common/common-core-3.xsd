@@ -3574,7 +3574,7 @@
                        this definition should be marked as auxiliary.
                    </xsd:documentation>
                </xsd:annotation>
-           </xsd:element>
+			</xsd:element>
             <xsd:element name="baseContext" type="tns:ResourceObjectReferenceType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>

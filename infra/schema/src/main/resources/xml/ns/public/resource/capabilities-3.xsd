@@ -135,23 +135,6 @@
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:element>
-					<xsd:element name="attributeType" type="xsd:QName" minOccurs="0">
-						<xsd:annotation>
-							<xsd:documentation>
-								EXPERIMENTAL / TEMPORARY
-
-								Type of the attribute to use for account enable/disable.
-								Normally the data type should be derived from schema. However, at least
-								one major platform (OpenDJ) treats ds-pwp-account-disabled very strangely:
-								declared as boolean, but in fact behaving as string. The best solution would
-								be to introduce "attributeTypeOverride" here; but in order not to break
-								backwards compatibility in maintenance release (3.4.1) we decided to
-								do it the way around: declare type explicitly here.
-
-								Use this only if really needed. It will be most probably removed soon.
-							</xsd:documentation>
-						</xsd:annotation>
-					</xsd:element>
 					<xsd:element name="enableValue" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
 						<xsd:annotation>
 							<xsd:documentation>
