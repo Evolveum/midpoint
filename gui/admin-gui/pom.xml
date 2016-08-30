@@ -784,22 +784,22 @@
                 <activeByDefault>true</activeByDefault>
             </activation>
 
-	    <dependencies>
-		<dependency>
-                        <artifactId>jaxb-impl</artifactId>
-                        <groupId>com.sun.xml.bind</groupId>
-                        <scope>runtime</scope>
+            <dependencies>
+                <dependency>
+                    <artifactId>jaxb-impl</artifactId>
+                    <groupId>com.sun.xml.bind</groupId>
+                    <scope>runtime</scope>
                 </dependency>
                 <dependency>
-                        <artifactId>jaxb-api</artifactId>
-                        <groupId>javax.xml.bind</groupId>
+                    <artifactId>jaxb-api</artifactId>
+                    <groupId>javax.xml.bind</groupId>
                 </dependency>
                 <dependency>
-                        <artifactId>jaxb-core</artifactId>
-                        <groupId>com.sun.xml.bind</groupId>
-                        <scope>runtime</scope>
-		</dependency>
-	    </dependencies>
+                    <artifactId>jaxb-core</artifactId>
+                    <groupId>com.sun.xml.bind</groupId>
+                    <scope>runtime</scope>
+                </dependency>
+            </dependencies>
 
         </profile>
 
