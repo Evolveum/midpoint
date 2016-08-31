@@ -61,6 +61,14 @@ public class OrgRestriction extends Restriction<OrgFilter> {
                               "ref.referenceType = " + nameOf(RReferenceOwner.OBJECT_PARENT_ORG) + " and " +
                               "ref.targetOid = :" + orgOidParamName;
                 break;
+            case ANCESTORS:
+                oidQueryText =
+                        "select c.ancestorOid " +
+                            "from ROrgClosure c " +
+                        "where " +
+                            "c.ancestorOid != :" + orgOidParamName + " and " +
+                            "c.descendantOid = :" + orgOidParamName;
+                break;
             case SUBTREE:
             default:
                 oidQueryText =

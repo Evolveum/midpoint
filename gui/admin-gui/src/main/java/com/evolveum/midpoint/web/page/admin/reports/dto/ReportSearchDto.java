@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,11 +17,13 @@ package com.evolveum.midpoint.web.page.admin.reports.dto;
 
 import java.io.Serializable;
 
+import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.DebugUtil;
+
 /**
  *  @author shood
  * */
-public class ReportSearchDto implements Serializable{
-	
+public class ReportSearchDto implements Serializable, DebugDumpable {
 	private static final long serialVersionUID = 1L;
 	
 	public static final String F_SEARCH_TEXT = "text";
@@ -45,4 +47,19 @@ public class ReportSearchDto implements Serializable{
     public void setParent(Boolean parent) {
         this.parent = parent;
     }
+    
+    @Override
+	public String debugDump() {
+		return debugDump(0);
+	}
+
+	@Override
+	public String debugDump(int indent) {
+		StringBuilder sb = new StringBuilder();
+		DebugUtil.indentDebugDump(sb, indent);
+		sb.append("DebugSearchDto\n");
+		DebugUtil.debugDumpWithLabelLn(sb, "text", text, indent+1);
+		DebugUtil.debugDumpWithLabel(sb, "parent", parent, indent+1);
+		return sb.toString();
+	}
 }

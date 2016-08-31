@@ -127,11 +127,11 @@ public class MidpointRestAuthenticationHandler implements ContainerRequestFilter
         try {
 			securityEnforcer.authorize(AuthorizationConstants.AUTZ_REST_ALL_URL, null, null, null, null, null, authorizeResult);
 		} catch (SecurityViolationException e){
-			securityHelper.auditLoginFailure(enteredUsername, connEnv, "Not authorized");
+			securityHelper.auditLoginFailure(enteredUsername, user, connEnv, "Not authorized");
 			requestCtx.abortWith(Response.status(403).build());
 			return;
 		} catch (SchemaException e) {
-			securityHelper.auditLoginFailure(enteredUsername, connEnv, "Schema error: "+e.getMessage());
+			securityHelper.auditLoginFailure(enteredUsername, user, connEnv, "Schema error: "+e.getMessage());
 			requestCtx.abortWith(Response.status(Status.BAD_REQUEST).build());
 			return;
 		}

@@ -30,6 +30,8 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.polystring.PrismDefaultPolyStringNormalizer;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
+import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 
 import org.apache.commons.lang.BooleanUtils;
@@ -74,13 +76,6 @@ import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
@@ -226,12 +221,10 @@ public class LensUtil {
 		}
 		
 		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("Consolidating {} triple:\n{}\nApriori Delta:\n{}\nExisting item:\n{}", 
-					new Object[]{
-						itemPath, triple.debugDump(1), 
-						aprioriItemDelta==null?"null":aprioriItemDelta.debugDump(1),
-						itemExisting==null?"null":itemExisting.debugDump(1),
-					});
+			LOGGER.trace("Consolidating {} triple:\n{}\nApriori Delta:\n{}\nExisting item:\n{}",
+					itemPath, triple.debugDump(1),
+					DebugUtil.debugDump(aprioriItemDelta, 1),
+					DebugUtil.debugDump(itemExisting, 1));
 		}
 		
         Collection<V> allValues = collectAllValues(triple, valueMatcher);
@@ -256,7 +249,6 @@ public class LensUtil {
         	// Check what to do with the value using the usual "triple routine". It means that if a value is
         	// in zero set than we need no delta, plus set means add delta and minus set means delete delta.
         	// The first set that the value is present determines the result.
-			// TODO shouldn't we use valueMatcher here? [med]
             Collection<ItemValueWithOrigin<V,D>> zeroPvwos =
                     collectPvwosFromSet(value, triple.getZeroSet(), valueMatcher);
             Collection<ItemValueWithOrigin<V,D>> plusPvwos =
@@ -266,7 +258,7 @@ public class LensUtil {
             
             if (LOGGER.isTraceEnabled()) {
             	LOGGER.trace("PVWOs for value {}:\nzero = {}\nplus = {}\nminus = {}",
-            			new Object[]{value, zeroPvwos, plusPvwos, minusPvwos});
+						value, zeroPvwos, plusPvwos, minusPvwos);
             }
             
             boolean zeroHasStrong = false;
@@ -324,12 +316,12 @@ public class LensUtil {
                 if (weakOnly) {
                     // Postpone processing of weak values until we process all other values
                     LOGGER.trace("Value {} mapping is weak in item {}, postponing processing in {}",
-                    		new Object[]{value, itemPath, contextDescription});
+							value, itemPath, contextDescription);
                     continue;
                 }
                 if (!hasStrong && ignoreNormalMappings) {
                 	LOGGER.trace("Value {} mapping is normal in item {} and we have exclusiveStrong, skipping processing in {}",
-                    		new Object[]{value, itemPath, contextDescription});
+							value, itemPath, contextDescription);
                     continue;
                 }
                 if (hasStrong && aprioriItemDelta != null && aprioriItemDelta.isValueToDelete(value, true)) {
@@ -339,15 +331,15 @@ public class LensUtil {
                 if (!hasStrong && (aprioriItemDelta != null && !aprioriItemDelta.isEmpty())) {
                     // There is already a delta, skip this
                     LOGGER.trace("Value {} mapping is not strong and the item {} already has a delta that is more concrete, " +
-                    		"skipping adding in {}", new Object[]{value, itemPath, contextDescription});
+                    		"skipping adding in {}", value, itemPath, contextDescription);
                     continue;
                 }
                 if (filterExistingValues && hasValue(itemExisting, value, valueMatcher, comparator)) {
                 	LOGGER.trace("Value {} NOT added to delta for item {} because the item already has that value in {}",
-                			new Object[]{value, itemPath, contextDescription});
+							value, itemPath, contextDescription);
                 	continue;
                 }
-                LOGGER.trace("Value {} added to delta as ADD for item {} in {}", new Object[]{value, itemPath, contextDescription});
+                LOGGER.trace("Value {} added to delta as ADD for item {} in {}", value, itemPath, contextDescription);
                 itemDelta.addValueToAdd((V)value.clone());
                 continue;
             }
@@ -374,35 +366,35 @@ public class LensUtil {
                 }
                 if (!hasAuthoritative) {
                 	LOGGER.trace("Value {} has no authoritative mapping for item {}, skipping deletion in {}",
-                			new Object[]{value, itemPath, contextDescription});
+							value, itemPath, contextDescription);
                 	continue;
                 }
                 if (!hasStrong && (aprioriItemDelta != null && !aprioriItemDelta.isEmpty())) {
                     // There is already a delta, skip this
                     LOGGER.trace("Value {} mapping is not strong and the item {} already has a delta that is more concrete, skipping deletion in {}",
-                    		new Object[]{value, itemPath, contextDescription});
+							value, itemPath, contextDescription);
                     continue;
                 }
                 if (weakOnly && (itemExisting != null && !itemExisting.isEmpty())) {
                     // There is already a value, skip this
                     LOGGER.trace("Value {} mapping is weak and the item {} already has a value, skipping deletion in {}",
-                    		new Object[]{value, itemPath, contextDescription});
+							value, itemPath, contextDescription);
                     continue;
                 }
                 
                 if (weakOnly && !applyWeak && (itemExisting == null || itemExisting.isEmpty())){
                 	 // There is a weak mapping on a property, but we do not have full account available, so skipping deletion of the value is better way
                     LOGGER.trace("Value {} mapping is weak and the full account could not be fetched, skipping deletion in {}",
-                    		new Object[]{value, itemPath, contextDescription});
+							value, itemPath, contextDescription);
                     continue;
                 }
                 if (filterExistingValues && !hasValue(itemExisting, value, valueMatcher, comparator)) {
                 	LOGGER.trace("Value {} NOT add to delta as DELETE because item {} the item does not have that value in {} (matcher: {})",
-                			new Object[]{value, itemPath, contextDescription, valueMatcher});
+							value, itemPath, contextDescription, valueMatcher);
                 	continue;
                 }
                 LOGGER.trace("Value {} added to delta as DELETE for item {} in {}",
-                		new Object[]{ value, itemPath, contextDescription});
+						value, itemPath, contextDescription);
                 itemDelta.addValueToDelete((V)value.clone());
             }
             
@@ -428,7 +420,8 @@ public class LensUtil {
 	            if (aprioriItemDelta != null && aprioriItemDelta.isReplace()) {
 	            	// Any strong mappings in the zero set needs to be re-applied as otherwise the replace will destroy it
 	                if (hasStrong) {
-	                	LOGGER.trace("Value {} added to delta for item {} in {} because there is strong mapping in the zero set", new Object[]{value, itemPath, contextDescription});
+	                	LOGGER.trace("Value {} added to delta for item {} in {} because there is strong mapping in the zero set",
+								value, itemPath, contextDescription);
 	                    itemDelta.addValueToAdd((V)value.clone());
 	                    continue;
 	                }
@@ -451,7 +444,7 @@ public class LensUtil {
 				valuesToAdd = addWeakValues(nonNegativePvwos, null, applyWeak);
 			}
 			LOGGER.trace("No value for item {} in {}, weak mapping processing yielded values: {}",
-					new Object[]{itemPath, contextDescription, valuesToAdd});
+					itemPath, contextDescription, valuesToAdd);
 			itemDelta.addValuesToAdd(valuesToAdd);
 		} else {
 			LOGGER.trace("Existing values for item {} in {}, weak mapping processing skipped",
@@ -461,14 +454,6 @@ public class LensUtil {
         return itemDelta;
         
     }
-	
-	public static boolean isSyncChannel(String channel){
-		if (channel == null){
-			return false;
-		}
-		
-		return (channel.equals(SchemaConstants.CHANGE_CHANNEL_LIVE_SYNC_URI) || channel.equals(SchemaConstants.CHANGE_CHANNEL_RECON_URI));
-	}
 	
 	private static <V extends PrismValue, D extends ItemDefinition> boolean hasValue(Item<V,D> item, ItemDelta<V,D> itemDelta) throws SchemaException {
 		if (item == null || item.isEmpty()) {
@@ -897,7 +882,14 @@ public class LensUtil {
 	}
     
     public static boolean isValid(AssignmentType assignmentType, XMLGregorianCalendar now, ActivationComputer activationComputer) {
-		ActivationType activationType = assignmentType.getActivation();
+		return isValid(assignmentType.getActivation(), now, activationComputer);
+	}
+
+	public static boolean isValid(FocusType focus, XMLGregorianCalendar now, ActivationComputer activationComputer) {
+		return isValid(focus.getActivation(), now, activationComputer);
+	}
+
+	private static boolean isValid(ActivationType activationType, XMLGregorianCalendar now, ActivationComputer activationComputer) {
 		if (activationType == null) {
 			return true;
 		}
@@ -905,7 +897,7 @@ public class LensUtil {
 		ActivationStatusType effectiveStatus = activationComputer.getEffectiveStatus(activationType, validityStatus, ActivationStatusType.ENABLED);
 		return effectiveStatus == ActivationStatusType.ENABLED;
 	}
-    
+
     public static <V extends PrismValue, D extends ItemDefinition , F extends FocusType> Mapping<V, D> createFocusMapping(final MappingFactory mappingFactory,
     		final LensContext<F> context, final MappingType mappingType, ObjectType originObject, 
 			ObjectDeltaObject<F> focusOdo, AssignmentPathVariables assignmentPathVariables, PrismObject<SystemConfigurationType> configuration,
@@ -930,25 +922,77 @@ public class LensUtil {
 			ObjectDeltaObject<F> focusOdo, AssignmentPathVariables assignmentPathVariables, 
 			Integer iteration, String iterationToken, PrismObject<SystemConfigurationType> configuration,
 			XMLGregorianCalendar now, String contextDesc, final Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
-		Mapping<V,D> mapping = mappingFactory.createMapping(mappingType, contextDesc);
-		
-		if (!mapping.isApplicableToChannel(context.getChannel())) {
-			LOGGER.trace("Mapping {} not applicable to channel {}, skipping.", mapping, context.getChannel());
+
+		if (!Mapping.isApplicableToChannel(mappingType, context.getChannel())) {
+			LOGGER.trace("Mapping {} not applicable to channel {}, skipping.", mappingType, context.getChannel());
 			return null;
 		}
-		
-		mapping.setSourceContext(focusOdo);
-		mapping.setTargetContext(context.getFocusContext().getObjectDefinition());
-		mapping.setRootNode(focusOdo);
-		mapping.addVariableDefinition(ExpressionConstants.VAR_USER, focusOdo);
-		mapping.addVariableDefinition(ExpressionConstants.VAR_FOCUS, focusOdo);
-		mapping.addVariableDefinition(ExpressionConstants.VAR_ITERATION, iteration);
-		mapping.addVariableDefinition(ExpressionConstants.VAR_ITERATION_TOKEN, iterationToken);
-		mapping.addVariableDefinition(ExpressionConstants.VAR_CONFIGURATION, configuration);
-		addAssignmentPathVariables(mapping, assignmentPathVariables);
-		mapping.setOriginType(OriginType.USER_POLICY);
-		mapping.setOriginObject(originObject);
-		mapping.setNow(now);
+
+		StringPolicyResolver stringPolicyResolver = new StringPolicyResolver() {
+			private ItemPath outputPath;
+			private ItemDefinition outputDefinition;
+			@Override
+			public void setOutputPath(ItemPath outputPath) {
+				this.outputPath = outputPath;
+			}
+
+			@Override
+			public void setOutputDefinition(ItemDefinition outputDefinition) {
+				this.outputDefinition = outputDefinition;
+			}
+
+			@Override
+			public StringPolicyType resolve() {
+				if (outputDefinition.getName().equals(PasswordType.F_VALUE)) {
+					ValuePolicyType passwordPolicy = context.getEffectivePasswordPolicy();
+					if (passwordPolicy == null) {
+						return null;
+					}
+					return passwordPolicy.getStringPolicy();
+				}
+				if (mappingType.getExpression() != null){
+					List<JAXBElement<?>> evaluators = mappingType.getExpression().getExpressionEvaluator();
+					if (evaluators != null) {
+						for (JAXBElement jaxbEvaluator : evaluators) {
+							Object object = jaxbEvaluator.getValue();
+							if (object instanceof GenerateExpressionEvaluatorType && ((GenerateExpressionEvaluatorType) object).getValuePolicyRef() != null) {
+								ObjectReferenceType ref = ((GenerateExpressionEvaluatorType) object).getValuePolicyRef();
+								try {
+									ValuePolicyType valuePolicyType = mappingFactory.getObjectResolver().resolve(ref, ValuePolicyType.class,
+											null, "resolving value policy for generate attribute "+ outputDefinition.getName()+" value", task, new OperationResult("Resolving value policy"));
+									if (valuePolicyType != null) {
+										return valuePolicyType.getStringPolicy();
+									}
+								} catch (CommonException ex) {
+									throw new SystemException(ex.getMessage(), ex);
+								}
+							}
+						}
+
+					}
+				}
+				return null;
+
+			}
+		};
+
+		Mapping.Builder<V,D> mappingBuilder = mappingFactory.<V,D>createMappingBuilder(mappingType, contextDesc)
+				.sourceContext(focusOdo)
+				.targetContext(context.getFocusContext().getObjectDefinition())
+				.originType(OriginType.USER_POLICY)
+				.originObject(originObject)
+				.stringPolicyResolver(stringPolicyResolver)
+				.rootNode(focusOdo)
+				.addVariableDefinition(ExpressionConstants.VAR_USER, focusOdo)
+				.addVariableDefinition(ExpressionConstants.VAR_FOCUS, focusOdo)
+				.addVariableDefinition(ExpressionConstants.VAR_ITERATION, iteration)
+				.addVariableDefinition(ExpressionConstants.VAR_ITERATION_TOKEN, iterationToken)
+				.addVariableDefinition(ExpressionConstants.VAR_CONFIGURATION, configuration)
+				.now(now);
+
+		mappingBuilder = addAssignmentPathVariables(mappingBuilder, assignmentPathVariables);
+
+		Mapping<V,D> mapping = mappingBuilder.build();
 
 		ItemPath itemPath = mapping.getOutputPath();
         if (itemPath == null) {
@@ -967,55 +1011,6 @@ public class LensUtil {
 				return null;
 			}
 		}
-
-		StringPolicyResolver stringPolicyResolver = new StringPolicyResolver() {
-			private ItemPath outputPath;
-			private ItemDefinition outputDefinition;
-			@Override
-			public void setOutputPath(ItemPath outputPath) {
-				this.outputPath = outputPath;
-			}
-			
-			@Override
-			public void setOutputDefinition(ItemDefinition outputDefinition) {
-				this.outputDefinition = outputDefinition;
-			}
-			
-			@Override
-			public StringPolicyType resolve() {
-				if (outputDefinition.getName().equals(PasswordType.F_VALUE)) {
-					ValuePolicyType passwordPolicy = context.getEffectivePasswordPolicy();
-					if (passwordPolicy == null) {
-						return null;
-					}
-					return passwordPolicy.getStringPolicy();
-				}
-				if (mappingType.getExpression() != null){
-					List<JAXBElement<?>> evaluators = mappingType.getExpression().getExpressionEvaluator();
-					if (evaluators != null){
-						for (JAXBElement jaxbEvaluator : evaluators){
-							Object object = jaxbEvaluator.getValue();
-							if (object != null && object instanceof GenerateExpressionEvaluatorType && ((GenerateExpressionEvaluatorType) object).getValuePolicyRef() != null){
-								ObjectReferenceType ref = ((GenerateExpressionEvaluatorType) object).getValuePolicyRef();
-								try{
-								ValuePolicyType valuePolicyType = mappingFactory.getObjectResolver().resolve(ref, ValuePolicyType.class, 
-										null, "resolving value policy for generate attribute "+ outputDefinition.getName()+" value", task, new OperationResult("Resolving value policy"));
-								if (valuePolicyType != null){
-									return valuePolicyType.getStringPolicy();
-								}
-								} catch (Exception ex){
-									throw new SystemException(ex.getMessage(), ex);
-								}
-							}
-						}
-						
-					}
-				}
-				return null;
-				
-			}
-		};
-		mapping.setStringPolicyResolver(stringPolicyResolver);
 
 		return mapping;
 	}
@@ -1123,13 +1118,16 @@ public class LensUtil {
 		}
 	}
     
-    public static <V extends PrismValue,D extends ItemDefinition> void addAssignmentPathVariables(Mapping<V,D> mapping, AssignmentPathVariables assignmentPathVariables) {
+    public static <V extends PrismValue,D extends ItemDefinition> Mapping.Builder<V,D> addAssignmentPathVariables(Mapping.Builder<V,D> builder, AssignmentPathVariables assignmentPathVariables) {
     	if (assignmentPathVariables != null ) {
-			mapping.addVariableDefinition(ExpressionConstants.VAR_ASSIGNMENT, assignmentPathVariables.getMagicAssignment());
-			mapping.addVariableDefinition(ExpressionConstants.VAR_IMMEDIATE_ASSIGNMENT, assignmentPathVariables.getImmediateAssignment());
-			mapping.addVariableDefinition(ExpressionConstants.VAR_THIS_ASSIGNMENT, assignmentPathVariables.getThisAssignment());
-			mapping.addVariableDefinition(ExpressionConstants.VAR_FOCUS_ASSIGNMENT, assignmentPathVariables.getFocusAssignment());
-			mapping.addVariableDefinition(ExpressionConstants.VAR_IMMEDIATE_ROLE, assignmentPathVariables.getImmediateRole());
+			return builder
+					.addVariableDefinition(ExpressionConstants.VAR_ASSIGNMENT, assignmentPathVariables.getMagicAssignment())
+					.addVariableDefinition(ExpressionConstants.VAR_IMMEDIATE_ASSIGNMENT, assignmentPathVariables.getImmediateAssignment())
+					.addVariableDefinition(ExpressionConstants.VAR_THIS_ASSIGNMENT, assignmentPathVariables.getThisAssignment())
+					.addVariableDefinition(ExpressionConstants.VAR_FOCUS_ASSIGNMENT, assignmentPathVariables.getFocusAssignment())
+					.addVariableDefinition(ExpressionConstants.VAR_IMMEDIATE_ROLE, assignmentPathVariables.getImmediateRole());
+		} else {
+			return builder;
 		}
     }
     

@@ -17,36 +17,28 @@
 package com.evolveum.midpoint.schema.util;
 
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.parser.XPathHolder;
 import com.evolveum.midpoint.prism.parser.XPathSegment;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.ItemPathUtil;
-import com.evolveum.midpoint.prism.xml.GlobalDynamicNamespacePrefixMapper;
-import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemDeltaType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
-import com.evolveum.prism.xml.ns._public.types_3.ModificationTypeType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_3.SchemaDefinitionType;
-
 import org.apache.commons.lang.Validate;
-import org.w3c.dom.Document;
+import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Element;
 
-import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
-
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -189,6 +181,32 @@ public class ObjectTypeUtil {
         } else {
             return type.getSimpleName();
         }
+	}
+
+	@NotNull
+	public static <T extends ObjectType> AssignmentType createAssignmentTo(@NotNull ObjectReferenceType ref) {
+		AssignmentType assignment = new AssignmentType();
+		if (QNameUtil.match(ref.getType(), ResourceType.COMPLEX_TYPE)) {
+			ConstructionType construction = new ConstructionType();
+			construction.setResourceRef(ref);
+			assignment.setConstruction(construction);
+		} else {
+			assignment.setTargetRef(ref);
+		}
+		return assignment;
+	}
+
+	@NotNull
+	public static <T extends ObjectType> AssignmentType createAssignmentTo(@NotNull PrismObject<T> object) {
+		AssignmentType assignment = new AssignmentType(object.getPrismContext());
+		if (object.asObjectable() instanceof ResourceType) {
+			ConstructionType construction = new ConstructionType(object.getPrismContext());
+			construction.setResourceRef(createObjectRef(object));
+			assignment.setConstruction(construction);
+		} else {
+			assignment.setTargetRef(createObjectRef(object));
+		}
+		return assignment;
 	}
 
 	public static ObjectReferenceType createObjectRef(PrismReferenceValue prv) {
@@ -458,6 +476,18 @@ public class ObjectTypeUtil {
 		}
 		return ref.asReferenceValue().getObject();
 	}
-	
-	
+
+	public static List<ObjectDelta<? extends ObjectType>> toDeltaList(ObjectDelta<?> delta) {
+		@SuppressWarnings("unchecked")
+		ObjectDelta<? extends ObjectType> objectDelta = (ObjectDelta<? extends ObjectType>) delta;
+		return Collections.<ObjectDelta<? extends ObjectType>>singletonList(objectDelta);
+	}
+
+	// Hack: because DeltaBuilder cannot provide ObjectDelta<? extends ObjectType> (it is from schema)
+	public static Collection<ObjectDelta<? extends ObjectType>> cast(Collection<ObjectDelta<?>> deltas) {
+		@SuppressWarnings("unchecked")
+		final Collection<ObjectDelta<? extends ObjectType>> deltas1 = (Collection) deltas;
+		return deltas1;
+	}
+
 }

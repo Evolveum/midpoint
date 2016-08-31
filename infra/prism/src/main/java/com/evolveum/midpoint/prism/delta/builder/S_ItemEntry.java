@@ -34,6 +34,7 @@ public interface S_ItemEntry {
     S_ValuesEntry item(ItemPath path);
     S_ValuesEntry item(ItemPath path, ItemDefinition itemDefinition);
 
+    List<ObjectDelta<?>> asObjectDeltas(String oid);
     ObjectDelta<?> asObjectDelta(String oid);
     ItemDelta<?,?> asItemDelta();
     List<ItemDelta<?,?>> asItemDeltas();

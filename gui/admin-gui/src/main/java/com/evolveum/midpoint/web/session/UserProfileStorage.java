@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,8 @@ package com.evolveum.midpoint.web.session;
 
 import org.apache.commons.lang.Validate;
 
+import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 
@@ -29,7 +31,7 @@ import java.util.Map;
  * @author shood
  * @author Viliam Repan (lazyman)
  */
-public class UserProfileStorage implements Serializable {
+public class UserProfileStorage implements Serializable, DebugDumpable {
 
 	
 	private static final long serialVersionUID = 1L;
@@ -54,9 +56,12 @@ public class UserProfileStorage implements Serializable {
         PAGE_RESOURCE_PANEL,
         PAGE_RESOURCES_PANEL,
         PAGE_RESOURCE_TASKS_PANEL,
-        PAGE_RESOURCE_ACCOUNTS_PANEL,
-        PAGE_RESOURCE_ENTITLEMENT_PANEL,
-        PAGE_RESOURCE_GENERIC_PANEL,
+        PAGE_RESOURCE_ACCOUNTS_PANEL_REPOSITORY_MODE,
+        PAGE_RESOURCE_ACCOUNTS_PANEL_RESOURCE_MODE,
+        PAGE_RESOURCE_ENTITLEMENT_PANEL_REPOSITORY_MODE,
+        PAGE_RESOURCE_ENTITLEMENT_PANEL_RESOURCE_MODE,
+        PAGE_RESOURCE_GENERIC_PANEL_REPOSITORY_MODE,
+        PAGE_RESOURCE_GENERIC_PANEL_RESOURCE_MODE,
         PAGE_RESOURCE_OBJECT_CLASS_PANEL,
         PAGE_TASKS_PANEL,
         PAGE_TASKS_NODES_PANEL,
@@ -89,5 +94,19 @@ public class UserProfileStorage implements Serializable {
 
         tables.put(key, size);
     }
+
+	@Override
+	public String debugDump() {
+		return debugDump(0);
+	}
+
+	@Override
+	public String debugDump(int indent) {
+		StringBuilder sb = new StringBuilder();
+		DebugUtil.indentDebugDump(sb, indent);
+		sb.append("UserProfileStorage\n");
+		DebugUtil.debugDumpWithLabel(sb, "tables", tables, indent+1);
+		return sb.toString();
+	}
     
 }

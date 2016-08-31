@@ -74,10 +74,12 @@ public class TestMappingTime {
     	ObjectDelta<UserType> delta = ObjectDelta.createModificationReplaceProperty(UserType.class, evaluator.USER_OLD_OID, 
     			UserType.F_EMPLOYEE_TYPE, evaluator.getPrismContext(), "CAPTAIN");
     	
-		Mapping<PrismPropertyValue<PolyString>,PrismPropertyDefinition<PolyString>> mapping = evaluator.createMapping(
+		Mapping.Builder<PrismPropertyValue<PolyString>,PrismPropertyDefinition<PolyString>> builder = evaluator.createMappingBuilder(
 				MAPPING_TIME_FROM_TO_FILENAME, 
     			TEST_NAME, "title", delta);
-		mapping.setNow(TIME_PAST);
+		builder.setNow(TIME_PAST);
+
+		Mapping<PrismPropertyValue<PolyString>,PrismPropertyDefinition<PolyString>> mapping = builder.build();
 		
     	OperationResult opResult = new OperationResult(TEST_NAME);
     	    	
@@ -99,12 +101,14 @@ public class TestMappingTime {
     	ObjectDelta<UserType> delta = ObjectDelta.createModificationReplaceProperty(UserType.class, evaluator.USER_OLD_OID, 
     			UserType.F_EMPLOYEE_TYPE, evaluator.getPrismContext(), "CAPTAIN");
     	
-		Mapping<PrismPropertyValue<PolyString>,PrismPropertyDefinition<PolyString>> mapping = evaluator.createMapping(
+		Mapping.Builder<PrismPropertyValue<PolyString>,PrismPropertyDefinition<PolyString>> builder = evaluator.createMappingBuilder(
 				MAPPING_TIME_FROM_TO_FILENAME, 
     			TEST_NAME, "title", delta);
-		mapping.setNow(TIME_BETWEEN);
-		
-    	OperationResult opResult = new OperationResult(TEST_NAME);
+		builder.setNow(TIME_BETWEEN);
+
+		Mapping<PrismPropertyValue<PolyString>,PrismPropertyDefinition<PolyString>> mapping = builder.build();
+
+		OperationResult opResult = new OperationResult(TEST_NAME);
     	    	
     	// WHEN
 		mapping.evaluate(null, opResult);
@@ -127,10 +131,12 @@ public class TestMappingTime {
     	ObjectDelta<UserType> delta = ObjectDelta.createModificationReplaceProperty(UserType.class, evaluator.USER_OLD_OID, 
     			UserType.F_EMPLOYEE_TYPE, evaluator.getPrismContext(), "CAPTAIN");
     	
-		Mapping<PrismPropertyValue<PolyString>,PrismPropertyDefinition<PolyString>> mapping = evaluator.createMapping(
+		Mapping.Builder<PrismPropertyValue<PolyString>,PrismPropertyDefinition<PolyString>> builder = evaluator.createMappingBuilder(
 				MAPPING_TIME_FROM_TO_FILENAME, 
     			TEST_NAME, "title", delta);
-		mapping.setNow(TIME_FUTURE);
+		builder.setNow(TIME_FUTURE);
+
+		Mapping<PrismPropertyValue<PolyString>,PrismPropertyDefinition<PolyString>> mapping = builder.build();
 		
     	OperationResult opResult = new OperationResult(TEST_NAME);
     	    	
@@ -150,16 +156,18 @@ public class TestMappingTime {
     	System.out.println("===[ "+TEST_NAME+"]===");
     	
     	// GIVEN
-		Mapping<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> mapping = evaluator.createMapping(
+		Mapping.Builder<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> builder = evaluator.createMappingBuilder(
 				MAPPING_TIME_ACTIVATION, 
     			TEST_NAME, "title", null);
 		
-		mapping.setNow(TIME_PAST);
+		builder.setNow(TIME_PAST);
 		
 		PrismPropertyDefinition<Boolean> existenceDef = new PrismPropertyDefinition<Boolean>(
 				ExpressionConstants.OUTPUT_ELMENT_NAME, 
 				DOMUtil.XSD_BOOLEAN, evaluator.getPrismContext());
-		mapping.setDefaultTargetDefinition(existenceDef);
+		builder.setDefaultTargetDefinition(existenceDef);
+
+		Mapping<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> mapping = builder.build();
 		
     	OperationResult opResult = new OperationResult(TEST_NAME);
     	    	
@@ -179,17 +187,19 @@ public class TestMappingTime {
     	System.out.println("===[ "+TEST_NAME+"]===");
     	
     	// GIVEN
-		Mapping<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> mapping = evaluator.createMapping(
+		Mapping.Builder<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> builder = evaluator.createMappingBuilder(
 				MAPPING_TIME_ACTIVATION, 
     			TEST_NAME, "title", null);
-		
-		mapping.setNow(TIME_FUTURE);
+
+		builder.setNow(TIME_FUTURE);
 		
 		PrismPropertyDefinition<Boolean> existenceDef = new PrismPropertyDefinition<Boolean>(
 				ExpressionConstants.OUTPUT_ELMENT_NAME, 
 				DOMUtil.XSD_BOOLEAN, evaluator.getPrismContext());
-		mapping.setDefaultTargetDefinition(existenceDef);
-		
+		builder.setDefaultTargetDefinition(existenceDef);
+
+		Mapping<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> mapping = builder.build();
+
     	OperationResult opResult = new OperationResult(TEST_NAME);
     	    	
     	// WHEN
@@ -214,18 +224,20 @@ public class TestMappingTime {
     	PrismObject<UserType> userOld = evaluator.getUserOld();
 		userOld.asObjectable().getActivation().setDisableTimestamp(null);
     	
-		Mapping<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> mapping = evaluator.createMapping(
+		Mapping.Builder<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> builder = evaluator.createMappingBuilder(
 				MAPPING_TIME_ACTIVATION, 
     			TEST_NAME, "title", null, userOld);
 		
-		mapping.setNow(TIME_PAST);
+		builder.setNow(TIME_PAST);
 		
 		PrismPropertyDefinition<Boolean> existenceDef = new PrismPropertyDefinition<Boolean>(
 				ExpressionConstants.OUTPUT_ELMENT_NAME, 
 				DOMUtil.XSD_BOOLEAN, evaluator.getPrismContext());
-		mapping.setDefaultTargetDefinition(existenceDef);
-		
-    	OperationResult opResult = new OperationResult(TEST_NAME);
+		builder.setDefaultTargetDefinition(existenceDef);
+
+		Mapping<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> mapping = builder.build();
+
+		OperationResult opResult = new OperationResult(TEST_NAME);
     	    	
     	// WHEN
 		mapping.evaluate(null, opResult);
@@ -252,18 +264,20 @@ public class TestMappingTime {
     			new ItemPath(UserType.F_ACTIVATION, ActivationType.F_DISABLE_TIMESTAMP), evaluator.getPrismContext(),
     			disableTimestamp);
     	
-		Mapping<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> mapping = evaluator.createMapping(
+		Mapping.Builder<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> builder = evaluator.createMappingBuilder(
 				MAPPING_TIME_ACTIVATION, 
     			TEST_NAME, "title", delta, userOld);
 		
-		mapping.setNow(TIME_PAST);
+		builder.setNow(TIME_PAST);
 		
 		PrismPropertyDefinition<Boolean> existenceDef = new PrismPropertyDefinition<Boolean>(
 				ExpressionConstants.OUTPUT_ELMENT_NAME, 
 				DOMUtil.XSD_BOOLEAN, evaluator.getPrismContext());
-		mapping.setDefaultTargetDefinition(existenceDef);
-		
-    	OperationResult opResult = new OperationResult(TEST_NAME);
+		builder.setDefaultTargetDefinition(existenceDef);
+
+		Mapping<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> mapping = builder.build();
+
+		OperationResult opResult = new OperationResult(TEST_NAME);
     	    	
     	// WHEN
 		mapping.evaluate(null, opResult);
@@ -289,18 +303,20 @@ public class TestMappingTime {
     			new ItemPath(UserType.F_ACTIVATION, ActivationType.F_DISABLE_TIMESTAMP), evaluator.getPrismContext(),
     			disableTimestamp);
     	
-		Mapping<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> mapping = evaluator.createMapping(
+		Mapping.Builder<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> builder = evaluator.createMappingBuilder(
 				MAPPING_TIME_ACTIVATION, 
     			TEST_NAME, "title", delta, userOld);
 		
-		mapping.setNow(TIME_FUTURE);
+		builder.setNow(TIME_FUTURE);
 		
 		PrismPropertyDefinition<Boolean> existenceDef = new PrismPropertyDefinition<Boolean>(
 				ExpressionConstants.OUTPUT_ELMENT_NAME, 
 				DOMUtil.XSD_BOOLEAN, evaluator.getPrismContext());
-		mapping.setDefaultTargetDefinition(existenceDef);
-		
-    	OperationResult opResult = new OperationResult(TEST_NAME);
+		builder.setDefaultTargetDefinition(existenceDef);
+
+		Mapping<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> mapping = builder.build();
+
+		OperationResult opResult = new OperationResult(TEST_NAME);
     	    	
     	// WHEN
 		mapping.evaluate(null, opResult);

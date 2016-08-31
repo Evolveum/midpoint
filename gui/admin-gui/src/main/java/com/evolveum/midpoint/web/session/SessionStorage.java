@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,26 +20,23 @@ import java.io.Serializable;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 import java.util.Stack;
 
 import org.apache.commons.lang.Validate;
 
+import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 
 /**
  * @author lazyman
  */
-public class SessionStorage implements Serializable {
+public class SessionStorage implements Serializable, DebugDumpable {
 
    private static final long serialVersionUID = 1L;
-
-	private List<Breadcrumb> breadcrumbs;
-
-    /**
-     * place to store information in session for various pages
-     */
-    private Map<String, PageStorage> pageStorageMap = new HashMap<>();
 
     public static final String KEY_CONFIGURATION = "configuration";
     public static final String KEY_USERS = "users";
@@ -52,13 +49,22 @@ public class SessionStorage implements Serializable {
     public static final String KEY_RESOURCE_ENTITLEMENT_CONTENT = "resourceEntitlementContent";
     public static final String KEY_RESOURCE_GENERIC_CONTENT = "resourceGenericContent";
     public static final String KEY_RESOURCE_OBJECT_CLASS_CONTENT = "resourceObjectClassContent";
-    
+    public static final String KEY_RESOURCE_PAGE_RESOURCE_CONTENT = "Resource";
+    public static final String KEY_RESOURCE_PAGE_REPOSITORY_CONTENT = "Repository";
+
     private static final String KEY_TASKS = "tasks";
 
     /**
     *   Store session information for user preferences about paging size in midPoint GUI
     * */
     private UserProfileStorage userProfile;
+
+	private List<Breadcrumb> breadcrumbs;
+
+    /**
+     * place to store information in session for various pages
+     */
+    private Map<String, PageStorage> pageStorageMap = new HashMap<>();
 
     public Map<String, PageStorage> getPageStorageMap() {
 		return pageStorageMap;
@@ -107,8 +113,8 @@ public class SessionStorage implements Serializable {
         return (RoleMembersStorage)pageStorageMap.get(KEY_ROLE_MEMBERS);
     }
     
-    public ResourceContentStorage getResourceContentStorage(ShadowKindType kind) {
-    	String key = getContentStorageKey(kind);
+    public ResourceContentStorage getResourceContentStorage(ShadowKindType kind, String searchMode) {
+    	String key = getContentStorageKey(kind, searchMode);
     	if (pageStorageMap.get(key) == null) {
             pageStorageMap.put(key, new ResourceContentStorage(kind));
         }
@@ -116,20 +122,20 @@ public class SessionStorage implements Serializable {
 		
 	}
     
-    private String getContentStorageKey(ShadowKindType kind) {
+    private String getContentStorageKey(ShadowKindType kind, String searchMode) {
     	if (kind == null) {
 			return KEY_RESOURCE_OBJECT_CLASS_CONTENT;
 		}
 
 		switch (kind) {
 			case ACCOUNT:
-				return KEY_RESOURCE_ACCOUNT_CONTENT;
+				return KEY_RESOURCE_ACCOUNT_CONTENT + searchMode;
 
 			case ENTITLEMENT:
-				return KEY_RESOURCE_ENTITLEMENT_CONTENT;
+				return KEY_RESOURCE_ENTITLEMENT_CONTENT + searchMode;
 
 			case GENERIC:
-				return KEY_RESOURCE_GENERIC_CONTENT;
+				return KEY_RESOURCE_GENERIC_CONTENT + searchMode;
 			default:
 				return KEY_RESOURCE_OBJECT_CLASS_CONTENT;
 
@@ -211,5 +217,54 @@ public class SessionStorage implements Serializable {
 
     public void clearBreadcrumbs() {
         getBreadcrumbs().clear();
+    }
+
+	@Override
+	public String debugDump() {
+		return debugDump(0);
+	}
+
+	@Override
+	public String debugDump(int indent) {
+		StringBuilder sb = new StringBuilder();
+		DebugUtil.indentDebugDump(sb, indent);
+		sb.append("SessionStorage\n");
+		DebugUtil.debugDumpWithLabelLn(sb, "userProfile", userProfile, indent+1);
+		DebugUtil.debugDumpWithLabelLn(sb, "breadcrumbs", breadcrumbs, indent+1);
+		DebugUtil.debugDumpWithLabel(sb, "pageStorageMap", pageStorageMap, indent+1);
+		return sb.toString();
+	}
+	
+	public void dumpSizeEstimates(StringBuilder sb, int indent) {
+		DebugUtil.dumpObjectSizeEstimate(sb, "SessionStorage", this, indent);
+		if (userProfile != null) {
+			sb.append("\n");
+			DebugUtil.dumpObjectSizeEstimate(sb, "userProfile", userProfile, indent + 1);
+		}
+		if (breadcrumbs != null) {
+			sb.append("\n");
+			DebugUtil.dumpObjectSizeEstimate(sb, "breadcrumbs", (Serializable)breadcrumbs, indent + 1);
+			for (Breadcrumb breadcrumb: breadcrumbs) {
+				sb.append("\n");
+				DebugUtil.dumpObjectSizeEstimate(sb, breadcrumb.getClass().getName(), breadcrumb, indent + 2);
+			}
+		}
+		sb.append("\n");
+		DebugUtil.dumpObjectSizeEstimate(sb, "pageStorageMap", (Serializable)pageStorageMap, indent + 1);
+		for (Entry<String,PageStorage> entry: pageStorageMap.entrySet()) {
+			sb.append("\n");
+			DebugUtil.dumpObjectSizeEstimate(sb, entry.getKey(), entry.getValue(), indent + 2);
+		}
+
+	}
+
+    public void clearResourceContentStorage(){
+        pageStorageMap.remove(KEY_RESOURCE_ACCOUNT_CONTENT + KEY_RESOURCE_PAGE_REPOSITORY_CONTENT);
+        pageStorageMap.remove(KEY_RESOURCE_ACCOUNT_CONTENT + KEY_RESOURCE_PAGE_RESOURCE_CONTENT);
+        pageStorageMap.remove(KEY_RESOURCE_ENTITLEMENT_CONTENT + KEY_RESOURCE_PAGE_REPOSITORY_CONTENT);
+        pageStorageMap.remove(KEY_RESOURCE_ENTITLEMENT_CONTENT + KEY_RESOURCE_PAGE_RESOURCE_CONTENT);
+        pageStorageMap.remove(KEY_RESOURCE_GENERIC_CONTENT + KEY_RESOURCE_PAGE_REPOSITORY_CONTENT);
+        pageStorageMap.remove(KEY_RESOURCE_GENERIC_CONTENT + KEY_RESOURCE_PAGE_RESOURCE_CONTENT);
+        pageStorageMap.remove(KEY_RESOURCE_OBJECT_CLASS_CONTENT);
     }
 }

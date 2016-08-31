@@ -24,7 +24,11 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 
 public class OrgFilter extends ObjectFilter {
 
-    public enum Scope {ONE_LEVEL, SUBTREE}
+    public enum Scope {
+        ONE_LEVEL,
+        SUBTREE,
+        ANCESTORS       // EXPERIMENTAL; OID has to belong to an OrgType!
+    }
 
     private PrismReferenceValue baseOrgRef;
     private Scope scope;

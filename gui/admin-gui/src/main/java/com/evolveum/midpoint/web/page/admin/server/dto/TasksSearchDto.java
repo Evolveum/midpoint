@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,12 +18,16 @@ package com.evolveum.midpoint.web.page.admin.server.dto;
 
 import java.io.Serializable;
 
+import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.DebugUtil;
+
 /**
  * @author lazyman
  */
-public class TasksSearchDto implements Serializable {
+public class TasksSearchDto implements Serializable, DebugDumpable {
+	private static final long serialVersionUID = 1L;
 
-    public static final String F_STATUS = "status";
+	public static final String F_STATUS = "status";
     public static final String F_CATEGORY = "category";
     public static final String F_SHOW_SUBTASKS = "showSubtasks";
 
@@ -54,4 +58,20 @@ public class TasksSearchDto implements Serializable {
     public void setStatus(TaskDtoExecutionStatusFilter status) {
         this.status = status;
     }
+    
+    @Override
+	public String debugDump() {
+		return debugDump(0);
+	}
+
+	@Override
+	public String debugDump(int indent) {
+		StringBuilder sb = new StringBuilder();
+		DebugUtil.indentDebugDump(sb, indent);
+		sb.append("TasksSearchDto\n");
+		DebugUtil.debugDumpWithLabelLn(sb, "status", status==null?null:status.toString(), indent+1);
+		DebugUtil.debugDumpWithLabelLn(sb, "category", category, indent+1);
+		DebugUtil.debugDumpWithLabel(sb, "showSubtasks", showSubtasks, indent+1);
+		return sb.toString();
+	}
 }

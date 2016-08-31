@@ -17,23 +17,23 @@
 package com.evolveum.midpoint.repo.sql.helpers;
 
 import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.path.NameItemPathSegment;
+import com.evolveum.midpoint.prism.path.*;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.polystring.PrismDefaultPolyStringNormalizer;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.repo.sql.data.common.RLookupTable;
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
+import com.evolveum.midpoint.repo.sql.data.common.id.RContainerId;
 import com.evolveum.midpoint.repo.sql.data.common.other.RLookupTableRow;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ObjectSelector;
 import com.evolveum.midpoint.schema.RelationalValueSearchQuery;
 import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -49,6 +49,7 @@ import org.hibernate.criterion.Restrictions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -71,13 +72,13 @@ public class LookupTableHelper {
     @Autowired
     private GeneralHelper generalHelper;
 
-    public void addLookupTableRows(Session session, RObject object, boolean merge) {
+    public void addLookupTableRows(Session session, RObject object, boolean deleteBeforeAdd) {
         if (!(object instanceof RLookupTable)) {
             return;
         }
         RLookupTable table = (RLookupTable) object;
 
-        if (merge) {
+        if (deleteBeforeAdd) {
             deleteLookupTableRows(session, table.getOid());
         }
         if (table.getRows() != null) {
@@ -87,11 +88,13 @@ public class LookupTableHelper {
         }
     }
 
-    public void addLookupTableRows(Session session, String tableOid, Collection<PrismContainerValue> values, int currentId) {
+    private void addLookupTableRows(Session session, String tableOid, Collection<PrismContainerValue> values, int currentId, boolean deleteBeforeAdd) throws SchemaException {
         for (PrismContainerValue value : values) {
             LookupTableRowType rowType = new LookupTableRowType();
             rowType.setupContainerValue(value);
-
+            if (deleteBeforeAdd) {
+                deleteRowByKey(session, tableOid, rowType.getKey());
+            }
             RLookupTableRow row = RLookupTableRow.toRepo(tableOid, rowType);
             row.setId(currentId);
             currentId++;
@@ -111,36 +114,70 @@ public class LookupTableHelper {
         query.executeUpdate();
     }
 
-    public void updateLookupTableData(Session session, String tableOid, Collection<? extends ItemDelta> modifications) {
+    public void updateLookupTableData(Session session, String tableOid, Collection<? extends ItemDelta> modifications)
+            throws SchemaException {
         if (modifications.isEmpty()) {
             return;
         }
 
         for (ItemDelta delta : modifications) {
-            if (!(delta instanceof ContainerDelta) || delta.getPath().size() != 1) {
-                throw new IllegalStateException("Wrong table delta sneaked into updateLookupTableData: class=" + delta.getClass() + ", path=" + delta.getPath());
-            }
-            // one "table" container modification
-            ContainerDelta containerDelta = (ContainerDelta) delta;
-
-            if (containerDelta.getValuesToDelete() != null) {
-                // todo do 'bulk' delete like delete from ... where oid=? and id in (...)
-                for (PrismContainerValue value : (Collection<PrismContainerValue>) containerDelta.getValuesToDelete()) {
-                    Query query = session.getNamedQuery("delete.lookupTableDataRow");
-                    query.setString("oid", tableOid);
-                    query.setInteger("id", RUtil.toInteger(value.getId()));
-                    query.executeUpdate();
+            if (delta.getPath().size() == 1) {  // whole row add/delete/replace
+                if (!(delta instanceof ContainerDelta)) {
+                    throw new IllegalStateException("Wrong table delta sneaked into updateLookupTableData: class=" + delta.getClass() + ", path=" + delta.getPath());
                 }
-            }
-            if (containerDelta.getValuesToAdd() != null) {
-                int currentId = generalHelper.findLastIdInRepo(session, tableOid, "get.lookupTableLastId") + 1;
-                addLookupTableRows(session, tableOid, containerDelta.getValuesToAdd(), currentId);
-            }
-            if (containerDelta.getValuesToReplace() != null) {
-                deleteLookupTableRows(session, tableOid);
-                addLookupTableRows(session, tableOid, containerDelta.getValuesToReplace(), 1);
+                // one "table" container modification
+                ContainerDelta containerDelta = (ContainerDelta) delta;
+
+                if (containerDelta.getValuesToDelete() != null) {
+                    // todo do 'bulk' delete like delete from ... where oid=? and id in (...)
+                    for (PrismContainerValue<LookupTableRowType> value : (Collection<PrismContainerValue>) containerDelta.getValuesToDelete()) {
+                        if (value.getId() != null) {
+                            deleteRowById(session, tableOid, value.getId());
+                        } else if (value.asContainerable().getKey() != null) {
+                            deleteRowByKey(session, tableOid, value.asContainerable().getKey());
+                        } else {
+                            // ignore (or throw an exception?)
+                        }
+                    }
+                }
+                if (containerDelta.getValuesToAdd() != null) {
+                    int currentId = generalHelper.findLastIdInRepo(session, tableOid, "get.lookupTableLastId") + 1;
+                    addLookupTableRows(session, tableOid, containerDelta.getValuesToAdd(), currentId, true);
+                }
+                if (containerDelta.getValuesToReplace() != null) {
+                    deleteLookupTableRows(session, tableOid);
+                    addLookupTableRows(session, tableOid, containerDelta.getValuesToReplace(), 1, false);
+                }
+            } else if (delta.getPath().size() == 3) {  // row segment modification (structure is already checked)
+                List<ItemPathSegment> segments = delta.getPath().getSegments();
+                Long rowId = ((IdItemPathSegment) segments.get(1)).getId();
+                QName name = ((NameItemPathSegment) segments.get(2)).getName();
+
+                RLookupTableRow row = (RLookupTableRow) session.get(RLookupTableRow.class, new RContainerId(RUtil.toInteger(rowId), tableOid));
+                LookupTableRowType rowType = row.toJAXB();
+                delta.setParentPath(ItemPath.EMPTY_PATH);
+                delta.applyTo(rowType.asPrismContainerValue());
+                if (!QNameUtil.match(name, LookupTableRowType.F_LAST_CHANGE_TIMESTAMP)) {
+                    rowType.setLastChangeTimestamp(null);   // in order to get filled in via toRepo call below
+                }
+                RLookupTableRow rowUpdated = RLookupTableRow.toRepo(tableOid, rowType);
+                session.merge(rowUpdated);
             }
         }
+    }
+
+    private void deleteRowById(Session session, String tableOid, Long id) {
+        Query query = session.getNamedQuery("delete.lookupTableDataRow");
+        query.setString("oid", tableOid);
+        query.setInteger("id", RUtil.toInteger(id));
+        query.executeUpdate();
+    }
+
+    private void deleteRowByKey(Session session, String tableOid, String key) {
+        Query query = session.getNamedQuery("delete.lookupTableDataRowByKey");
+        query.setString("oid", tableOid);
+        query.setString("key", key);
+        query.executeUpdate();
     }
 
     public GetOperationOptions findLookupTableGetOption(Collection<SelectorOptions<GetOperationOptions>> options) {
@@ -256,16 +293,22 @@ public class LookupTableHelper {
             return tableDelta;
         }
 
-        ItemPath tablePath = new ItemPath(LookupTableType.F_ROW);
+        ItemPath rowPath = new ItemPath(LookupTableType.F_ROW);
         for (ItemDelta delta : modifications) {
             ItemPath path = delta.getPath();
             if (path.isEmpty()) {
                 throw new UnsupportedOperationException("Lookup table cannot be modified via empty-path modification");
-            } else if (path.equivalent(tablePath)) {
+            } else if (path.equivalent(rowPath)) {
                 tableDelta.add(delta);
-            } else if (path.isSuperPath(tablePath)) {
-                // todo - what about modifications with path like table[id] or table[id]/xxx where xxx=key|value|label?
-                throw new UnsupportedOperationException("Lookup table row can be modified only by specifying path=table");
+            } else if (path.isSuperPath(rowPath)) {
+                // should be row[id]/xxx where xxx=key|value|label?
+                List<ItemPathSegment> segments = path.getSegments();
+                if (segments.size() != 3
+                        || !(segments.get(1) instanceof IdItemPathSegment)
+                        || !(segments.get(2) instanceof NameItemPathSegment)) {
+                    throw new UnsupportedOperationException("Unsupported modification path for lookup tables: " + path);
+                }
+                tableDelta.add(delta);
             }
         }
 

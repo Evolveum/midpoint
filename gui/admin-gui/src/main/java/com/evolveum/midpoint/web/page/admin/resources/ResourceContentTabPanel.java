@@ -22,6 +22,7 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.web.session.SessionStorage;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
@@ -79,6 +80,7 @@ public class ResourceContentTabPanel extends Panel {
 	private ShadowKindType kind;
 
 	private boolean useObjectClass;
+	private boolean isRepoSearch = true;
 
 	private IModel<ResourceContentSearchDto> resourceContentSearch;
 
@@ -101,7 +103,9 @@ public class ResourceContentTabPanel extends Panel {
 
 			@Override
 			protected ResourceContentSearchDto load() {
-				return getContentStorage(kind).getContentSearch();
+                isRepoSearch  = !getContentStorage(kind, SessionStorage.KEY_RESOURCE_PAGE_REPOSITORY_CONTENT).getResourceSearch();
+                return getContentStorage(kind, isRepoSearch ? SessionStorage.KEY_RESOURCE_PAGE_REPOSITORY_CONTENT :
+                        SessionStorage.KEY_RESOURCE_PAGE_RESOURCE_CONTENT).getContentSearch();
 
 			}
 
@@ -111,11 +115,12 @@ public class ResourceContentTabPanel extends Panel {
 
 	private void updateResourceContentSearch() {
 		ResourceContentSearchDto searchDto = resourceContentSearch.getObject();
-		getContentStorage(kind).setContentSearch(searchDto);
+		getContentStorage(kind, isRepoSearch ? SessionStorage.KEY_RESOURCE_PAGE_REPOSITORY_CONTENT :
+                SessionStorage.KEY_RESOURCE_PAGE_RESOURCE_CONTENT).setContentSearch(searchDto);
 	}
 
-	private ResourceContentStorage getContentStorage(ShadowKindType kind) {
-		return parentPage.getSessionStorage().getResourceContentStorage(kind);
+	private ResourceContentStorage getContentStorage(ShadowKindType kind, String searchMode) {
+		return parentPage.getSessionStorage().getResourceContentStorage(kind, searchMode);
 	}
 
 	private void initLayout(final IModel<PrismObject<ResourceType>> model, final PageBase parentPage) {
@@ -228,7 +233,11 @@ public class ResourceContentTabPanel extends Panel {
 
 			@Override
 			public void onClick(AjaxRequestTarget target) {
-				resourceContentSearch.getObject().setResourceSearch(Boolean.FALSE);
+                isRepoSearch = true;
+                getContentStorage(kind, SessionStorage.KEY_RESOURCE_PAGE_REPOSITORY_CONTENT).setResourceSearch(Boolean.FALSE);
+                getContentStorage(kind, SessionStorage.KEY_RESOURCE_PAGE_RESOURCE_CONTENT).setResourceSearch(Boolean.FALSE);
+
+                resourceContentSearch.getObject().setResourceSearch(Boolean.FALSE);
 				updateResourceContentSearch();
 				mainForm.addOrReplace(initRepoContent(model));
 				target.add(getParent().addOrReplace(mainForm));
@@ -252,8 +261,11 @@ public class ResourceContentTabPanel extends Panel {
 
 			@Override
 			public void onClick(AjaxRequestTarget target) {
-				updateResourceContentSearch();
-				resourceContentSearch.getObject().setResourceSearch(Boolean.TRUE);
+                isRepoSearch = false;
+                getContentStorage(kind, SessionStorage.KEY_RESOURCE_PAGE_REPOSITORY_CONTENT).setResourceSearch(Boolean.TRUE);
+                getContentStorage(kind, SessionStorage.KEY_RESOURCE_PAGE_RESOURCE_CONTENT).setResourceSearch(Boolean.TRUE);
+                updateResourceContentSearch();
+                resourceContentSearch.getObject().setResourceSearch(Boolean.TRUE);
 				mainForm.addOrReplace(initResourceContent(model));
 				target.add(getParent().addOrReplace(mainForm));
 				target.add(this.add(AttributeModifier.append("class", " active")));
@@ -299,16 +311,20 @@ public class ResourceContentTabPanel extends Panel {
 	}
 
 	private ResourceContentResourcePanel initResourceContent(IModel<PrismObject<ResourceType>> model) {
+        String searchMode = isRepoSearch ? SessionStorage.KEY_RESOURCE_PAGE_REPOSITORY_CONTENT :
+                SessionStorage.KEY_RESOURCE_PAGE_RESOURCE_CONTENT;
 		ResourceContentResourcePanel resourceContent = new ResourceContentResourcePanel(ID_TABLE, model,
-				getObjectClass(), getKind(), getIntent(), parentPage);
+				getObjectClass(), getKind(), getIntent(), searchMode, parentPage);
 		resourceContent.setOutputMarkupId(true);
 		return resourceContent;
 
 	}
 
 	private ResourceContentRepositoryPanel initRepoContent(IModel<PrismObject<ResourceType>> model) {
+        String searchMode = isRepoSearch ? SessionStorage.KEY_RESOURCE_PAGE_REPOSITORY_CONTENT :
+                SessionStorage.KEY_RESOURCE_PAGE_RESOURCE_CONTENT;
 		ResourceContentRepositoryPanel repositoryContent = new ResourceContentRepositoryPanel(ID_TABLE, model,
-				getObjectClass(), getKind(), getIntent(), parentPage);
+				getObjectClass(), getKind(), getIntent(), searchMode, parentPage);
 		repositoryContent.setOutputMarkupId(true);
 		return repositoryContent;
 	}

@@ -67,31 +67,31 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 @Component
 public class Projector {
 	
-	@Autowired(required = true)
+	@Autowired
 	private ContextLoader contextLoader;
 	
-	@Autowired(required = true)
+	@Autowired
     private FocusProcessor focusProcessor;
 
-    @Autowired(required = true)
+    @Autowired
     private AssignmentProcessor assignmentProcessor;
     
-    @Autowired(required = true)
+    @Autowired
     private ProjectionValuesProcessor projectionValuesProcessor;
 
-    @Autowired(required = true)
+    @Autowired
     private ReconciliationProcessor reconciliationProcessor;
 
-    @Autowired(required = true)
+    @Autowired
     private CredentialsProcessor credentialsProcessor;
 
-    @Autowired(required = true)
+    @Autowired
     private ActivationProcessor activationProcessor;
     
-    @Autowired(required = true)
+    @Autowired
     private DependencyProcessor dependencyProcessor;
     
-    @Autowired(required = true)
+    @Autowired
     private Clock clock;
 	
 	private static final Trace LOGGER = TraceManager.getTrace(Projector.class);
@@ -197,8 +197,8 @@ public class Projector {
 	        	
                 context.checkAbortRequested();
 
-	        	LOGGER.trace("WAVE {} (maxWaves={}, executionWave={})", new Object[]{
-	        			context.getProjectionWave(), maxWaves, context.getExecutionWave()});
+	        	LOGGER.trace("WAVE {} (maxWaves={}, executionWave={})",
+						context.getProjectionWave(), maxWaves, context.getExecutionWave());
 	        	
 	        	//just make sure everything is loaded and set as needed
 				dependencyProcessor.preprocessDependencies(context);
@@ -306,28 +306,8 @@ public class Projector {
 	        
 	        computeResultStatus(now, result);
 	        
-		} catch (SchemaException e) {
-			recordFatalError(e, now, result);
-			throw e;
-		} catch (PolicyViolationException e) {
-			recordFatalError(e, now, result);
-			throw e;
-		} catch (ExpressionEvaluationException e) {
-			recordFatalError(e, now, result);
-			throw e;
-		} catch (ObjectNotFoundException e) {
-			recordFatalError(e, now, result);
-			throw e;
-		} catch (ObjectAlreadyExistsException e) {
-			recordFatalError(e, now, result);
-			throw e;
-		} catch (CommunicationException e) {
-			recordFatalError(e, now, result);
-			throw e;
-		} catch (ConfigurationException e) {
-			recordFatalError(e, now, result);
-			throw e;
-		} catch (SecurityViolationException e) {
+		} catch (SchemaException | PolicyViolationException | ExpressionEvaluationException | ObjectAlreadyExistsException |
+				ObjectNotFoundException | CommunicationException | ConfigurationException | SecurityViolationException e) {
 			recordFatalError(e, now, result);
 			throw e;
 		} catch (RuntimeException e) {
@@ -358,16 +338,14 @@ public class Projector {
     	}
 	}
 
-	// TODO projectionValuesProcessor is a singleton so its conflictingContexts property is de-facto a global variable!
 	private <F extends ObjectType> void addConflictingContexts(LensContext<F> context) {
-		List<LensProjectionContext> conflictingContexts = projectionValuesProcessor.getConflictingContexts();
-		if (conflictingContexts != null || !conflictingContexts.isEmpty()){
+		List<LensProjectionContext> conflictingContexts = context.getConflictingProjectionContexts();
+		if (conflictingContexts != null && !conflictingContexts.isEmpty()){
 			for (LensProjectionContext conflictingContext : conflictingContexts){
 				LOGGER.trace("Adding conflicting projection context {}", conflictingContext.getHumanReadableName());
 				context.addProjectionContext(conflictingContext);
 			}
-		
-			projectionValuesProcessor.getConflictingContexts().clear();
+			context.clearConflictingProjectionContexts();
 		}
 		
 	}

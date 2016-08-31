@@ -15,6 +15,9 @@
  */
 package com.evolveum.midpoint.model.impl.lens;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
@@ -216,25 +219,26 @@ public class AssignmentEvaluator<F extends FocusType> {
 		return evalAssignment;
 	}
 	
-	private void evaluateAssignment(EvaluatedAssignmentImpl<F> evalAssignment, AssignmentPathSegment assignmentPathSegment, 
+	private <O extends ObjectType> void evaluateAssignment(EvaluatedAssignmentImpl<F> evalAssignment, AssignmentPathSegment assignmentPathSegment, 
 			boolean evaluateOld, PlusMinusZero mode, boolean isParentValid, ObjectType source, String sourceDescription,
 			AssignmentPath assignmentPath, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, PolicyViolationException {
 		assertSource(source, evalAssignment);
 		
-		LOGGER.trace("Evaluate assignment {} (eval constr: {}, mode: {})", new Object[]{
-				assignmentPath, assignmentPathSegment.isEvaluateConstructions(), mode});
+		LOGGER.trace("Evaluate assignment {} (eval constr: {}, mode: {})", assignmentPath, assignmentPathSegment.isEvaluateConstructions(),
+				mode);
 		
 		ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi = assignmentPathSegment.getAssignmentIdi();
 		AssignmentType assignmentType = LensUtil.getAssignmentType(assignmentIdi, evaluateOld);
 		
 		checkSchema(assignmentType, sourceDescription);
 		
-		PrismObject<?> target = null;
+		List<PrismObject<O>> targets = null;
 		if (assignmentType.getTarget() != null) {
-			target = assignmentType.getTarget().asPrismObject();
+			targets = new ArrayList<>(1);
+			targets.add(assignmentType.getTarget().asPrismObject());
 		} else if (assignmentType.getTargetRef() != null) {
             try {
-                target = resolveTarget(assignmentType, source, sourceDescription, task, result);
+                targets = resolveTargets(assignmentType, source, sourceDescription, task, result);
             } catch (ObjectNotFoundException ex) {
                 // Do not throw an exception. We don't have referential integrity. Therefore if a role is deleted then throwing
                 // an exception would prohibit any operations with the users that have the role, including removal of the reference.
@@ -244,6 +248,26 @@ public class AssignmentEvaluator<F extends FocusType> {
                 evalAssignment.setForceRecon(true);
             }
 		}
+		
+		LOGGER.trace("Targets in {}: {}", source, targets);
+		if (targets != null) {
+			for (PrismObject<O> target: targets) {
+				evaluateAssignmentWithResolvedTarget(evalAssignment, assignmentPathSegment, evaluateOld, mode, isParentValid, source,
+						sourceDescription, assignmentPath, assignmentType, target, task, result);
+			}
+		} else {
+			evaluateAssignmentWithResolvedTarget(evalAssignment, assignmentPathSegment, evaluateOld, mode, isParentValid, source,
+					sourceDescription, assignmentPath, assignmentType, null, task, result);
+		}
+	}
+
+	/**
+	 *  Continues with assignment evaluation: Either there is a non-null (resolved) target, passed in "target" parameter,
+	 *  or traditional options stored in assignmentType (construction or focus mappings). TargetRef from assignmentType is ignored.
+ 	 */
+	private <O extends ObjectType> void evaluateAssignmentWithResolvedTarget(EvaluatedAssignmentImpl<F> evalAssignment, AssignmentPathSegment assignmentPathSegment,
+			boolean evaluateOld, PlusMinusZero mode, boolean isParentValid, ObjectType source, String sourceDescription,
+			AssignmentPath assignmentPath, AssignmentType assignmentType, PrismObject<O> target, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, PolicyViolationException {
 		if (target != null && evalAssignment.getTarget() == null) {
 			evalAssignment.setTarget(target);
 		}
@@ -252,7 +276,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 			if (target.getOid().equals(source.getOid())) {
 				throw new PolicyViolationException("The "+source+" refers to itself in assignment/inducement");
 			}
-			if (assignmentPath.containsTarget((ObjectType) target.asObjectable())) {
+			if (assignmentPath.containsTarget(target.asObjectable())) {
 				throw new PolicyViolationException("Attempt to assign "+target+" creates a role cycle");
 			}
 		}
@@ -269,15 +293,14 @@ public class AssignmentEvaluator<F extends FocusType> {
 			PlusMinusZero condMode = ExpressionUtil.computeConditionResultMode(condOld, condNew);
 			if (condMode == null || (condMode == PlusMinusZero.ZERO && !condNew)) {
 				LOGGER.trace("Skipping evaluation of "+assignmentType+" because of condition result ({} -> {}: {})",
-						new Object[]{ condOld, condNew, condMode });
+						condOld, condNew, condMode);
 				assignmentPath.remove(assignmentPathSegment);
 				evalAssignment.setValid(false);
 				return;
 			}
 			PlusMinusZero origMode = mode;
 			mode = PlusMinusZero.compute(mode, condMode);
-			LOGGER.trace("Evaluated condition in assignment {} -> {}: {} + {} = {}", new Object[]{
-					condOld, condNew, origMode, condMode, mode });
+			LOGGER.trace("Evaluated condition in assignment {} -> {}: {} + {} = {}", condOld, condNew, origMode, condMode, mode);
 		}
 		
 		boolean isValid = LensUtil.isValid(assignmentType, now, activationComputer);
@@ -294,13 +317,13 @@ public class AssignmentEvaluator<F extends FocusType> {
 			} else if (assignmentType.getFocusMappings() != null) {
 				
 				if (evaluateConstructions && assignmentPathSegment.isEvaluateConstructions()) {
-					evaluateFocusMappings(evalAssignment, assignmentPathSegment, evaluateOld, source, sourceDescription, 
+					evaluateFocusMappings(evalAssignment, assignmentPathSegment, evaluateOld, source, sourceDescription,
 							assignmentPath, assignmentPathSegment.getOrderOneObject(), task, result);
 				}
 				
 			} else if (target != null) {
 				
-				evaluateTarget(evalAssignment, assignmentPathSegment, evaluateOld, mode, isValid, target, source, assignmentType.getTargetRef().getRelation(), sourceDescription,
+				evaluateTarget(evalAssignment, assignmentPathSegment, evaluateOld, mode, isParentValid && isValid, target, source, assignmentType.getTargetRef().getRelation(), sourceDescription,
 						assignmentPath, task, result);
 				
 			} else {
@@ -328,7 +351,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 		
 		LOGGER.trace("Preparing construction '{}' in {}", constructionType.getDescription(), source);
 
-		Construction<F> construction = new Construction<F>(constructionType, source);
+		Construction<F> construction = new Construction<>(constructionType, source);
 		// We have to clone here as the path is constantly changing during evaluation
 		construction.setAssignmentPath(assignmentPath.clone());
 		construction.setFocusOdo(focusOdo);
@@ -364,8 +387,8 @@ public class AssignmentEvaluator<F extends FocusType> {
 		AssignmentType assignmentTypeNew = LensUtil.getAssignmentType(assignmentPathSegment.getAssignmentIdi(), evaluateOld);
 		MappingsType mappingsType = assignmentTypeNew.getFocusMappings();
 		
-		LOGGER.trace("Evaluate focus mappings '{}' in {} ({} mappings)", 
-				new Object[]{mappingsType.getDescription(), source, mappingsType.getMapping().size()});
+		LOGGER.trace("Evaluate focus mappings '{}' in {} ({} mappings)",
+				mappingsType.getDescription(), source, mappingsType.getMapping().size());
 		AssignmentPathVariables assignmentPathVariables = LensUtil.computeAssignmentPathVariables(assignmentPath);
 
 		for (MappingType mappingType: mappingsType.getMapping()) {
@@ -380,20 +403,20 @@ public class AssignmentEvaluator<F extends FocusType> {
 		}
 	}
 
-	private PrismObject<?> resolveTarget(AssignmentType assignmentType, ObjectType source, String sourceDescription, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
+	private <O extends ObjectType> List<PrismObject<O>> resolveTargets(AssignmentType assignmentType, ObjectType source, String sourceDescription, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
 		ObjectReferenceType targetRef = assignmentType.getTargetRef();
 		String oid = targetRef.getOid();
 		
 		// Target is referenced, need to fetch it
-				Class<? extends ObjectType> clazz = null;
-				if (targetRef.getType() != null) {
-					clazz = (Class) prismContext.getSchemaRegistry().determineCompileTimeClass(targetRef.getType());
-					if (clazz == null) {
-						throw new SchemaException("Cannot determine type from " + targetRef.getType() + " in target reference in " + assignmentType + " in " + sourceDescription);
-					}
-				} else {
-					throw new SchemaException("Missing type in target reference in " + assignmentType + " in " + sourceDescription);
-				}
+		Class<O> clazz = null;
+		if (targetRef.getType() != null) {
+			clazz = (Class) prismContext.getSchemaRegistry().determineCompileTimeClass(targetRef.getType());
+			if (clazz == null) {
+				throw new SchemaException("Cannot determine type from " + targetRef.getType() + " in target reference in " + assignmentType + " in " + sourceDescription);
+			}
+		} else {
+			throw new SchemaException("Missing type in target reference in " + assignmentType + " in " + sourceDescription);
+		}
 		
 		if (oid == null) {
 			
@@ -401,27 +424,31 @@ public class AssignmentEvaluator<F extends FocusType> {
 				throw new SchemaException("The OID and filter are both null in assignment targetRef in "+source);
 			}
 			
-			PrismObject<? extends ObjectType> target = resolveTarget(clazz, source, targetRef.getFilter(), sourceDescription, task, result);
-	        assignmentType.getTargetRef().setOid(target.getOid());
-			// Handling ObjectNotFoundException - we just pass it to the caller
+			List<PrismObject<O>> targets = resolveTargetsFromFilter(clazz, source, targetRef.getFilter(), sourceDescription, task, result);
+			return targets;
 			
+		} else {
+		
+			PrismObject<O> target = null;
+			try {
+				target = repository.getObject(clazz, oid, null, result);
+	        } catch (SchemaException e) {
+	        	throw new SchemaException(e.getMessage() + " in " + sourceDescription, e);
+	        }
+			// Not handling object not found exception here. Caller will handle that.
+			
+	        if (target == null) {
+	            throw new IllegalArgumentException("Got null target from repository, oid:"+oid+", class:"+clazz+" (should not happen, probably a bug) in "+sourceDescription);
+	        }
+	        
+	        List<PrismObject<O>> targets = new ArrayList<>(1);
+	        targets.add(target);
+	        return targets;
 		}
 		
-		PrismObject<? extends ObjectType> target = null;
-		try {
-			target = repository.getObject(clazz, oid, null, result);
-        } catch (SchemaException e) {
-        	throw new SchemaException(e.getMessage() + " in " + sourceDescription, e);
-        }
-        if (target == null) {
-            throw new IllegalArgumentException("Got null target from repository, oid:"+oid+", class:"+clazz+" (should not happen, probably a bug) in "+sourceDescription);
-        }
-        // Handling ObjectNotFoundException - we just pass it to the caller
-
-		return target;
 	}
 	
-	private PrismObject<? extends ObjectType> resolveTarget(Class clazz, ObjectType source, SearchFilterType filter, String sourceDescription, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException{
+	private <O extends ObjectType> List<PrismObject<O>> resolveTargetsFromFilter(Class<O> clazz, ObjectType source, SearchFilterType filter, String sourceDescription, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException{
 //		SearchFilterType filter = targetRef.getFilter();
 		ExpressionVariables variables = Utils.getDefaultExpressionVariables(source, null, null, LensUtil.getSystemConfiguration(lensContext, repository, result).asObjectable());
 
@@ -433,20 +460,13 @@ public class AssignmentEvaluator<F extends FocusType> {
 		}
 		
 		
-        SearchResultList<?> results = repository.searchObjects(clazz, ObjectQuery.createObjectQuery(evaluatedFilter), null, result);
+        SearchResultList<PrismObject<O>> targets = repository.searchObjects(clazz, ObjectQuery.createObjectQuery(evaluatedFilter), null, result);
         
-        if (org.apache.commons.collections.CollectionUtils.isEmpty(results)){
+        if (org.apache.commons.collections.CollectionUtils.isEmpty(targets)){
         	throw new IllegalArgumentException("Got null target from repository, filter:"+evaluatedFilter+", class:"+clazz+" (should not happen, probably a bug) in "+sourceDescription);
         }
         
-        if (results.size() > 1){
-        	throw new IllegalArgumentException("Got more than one target from repository, filter:"+evaluatedFilter+", class:"+clazz+" (should not happen, probably a bug) in "+sourceDescription);
-        }
-        
-        PrismObject<? extends ObjectType> target = (PrismObject<? extends ObjectType>) results.iterator().next();
-        
-//        assignmentType.getTargetRef().setOid(target.getOid());
-        return target;
+        return targets;
 	}
 
 
@@ -479,6 +499,11 @@ public class AssignmentEvaluator<F extends FocusType> {
 			boolean evaluateOld, PlusMinusZero mode, boolean isValid, AbstractRoleType roleType, ObjectType source, String sourceDescription,
 			AssignmentPath assignmentPath, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, PolicyViolationException {
 		assertSource(source, assignment);
+
+		if (!LensUtil.isValid(roleType, now, activationComputer)) {
+			LOGGER.trace("Skipping evaluation of " + roleType + " because it is not valid");
+			return false;
+		}
 		
 		MappingType conditionType = roleType.getCondition();
 		if (conditionType != null) {
@@ -490,14 +515,13 @@ public class AssignmentEvaluator<F extends FocusType> {
 			PlusMinusZero condMode = ExpressionUtil.computeConditionResultMode(condOld, condNew);
 			if (condMode == null || (condMode == PlusMinusZero.ZERO && !condNew)) {
 				LOGGER.trace("Skipping evaluation of "+roleType+" because of condition result ({} -> {}: {})",
-						new Object[]{ condOld, condNew, condMode });
+						condOld, condNew, condMode);
 				return false;
 			}
 			PlusMinusZero origMode = mode;
 			mode = PlusMinusZero.compute(mode, condMode);
-			LOGGER.trace("Evaluated condition in {}: {} -> {}: {} + {} = {}", new Object[]{
-					roleType, condOld, condNew, origMode, condMode, mode });
-
+			LOGGER.trace("Evaluated condition in {}: {} -> {}: {} + {} = {}", roleType, condOld, condNew,
+					origMode, condMode, mode);
 		}
 		
 		EvaluatedAbstractRoleImpl evalRole = new EvaluatedAbstractRoleImpl();
@@ -536,7 +560,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 			if (inducementOrder == evaluationOrder) {
 				if (LOGGER.isTraceEnabled()) {
 					LOGGER.trace("E{}: evaluate inducement({}) {} in {}",
-						new Object[]{evaluationOrder, inducementOrder, dumpAssignment(roleInducement), roleType});
+							evaluationOrder, inducementOrder, dumpAssignment(roleInducement), roleType);
 				}
 				roleAssignmentPathSegment.setEvaluateConstructions(true);
 				roleAssignmentPathSegment.setEvaluationOrder(evaluationOrder);
@@ -551,14 +575,14 @@ public class AssignmentEvaluator<F extends FocusType> {
 			} else {
 				if (LOGGER.isTraceEnabled()) {
 					LOGGER.trace("E{}: NOT evaluate inducement({}) {} in {}",
-						new Object[]{evaluationOrder, inducementOrder, dumpAssignment(roleInducement), roleType});
+							evaluationOrder, inducementOrder, dumpAssignment(roleInducement), roleType);
 				}
 			}
 		}
 		for (AssignmentType roleAssignment : roleType.getAssignment()) {
 			if (LOGGER.isTraceEnabled()) {
 				LOGGER.trace("E{}: follow assignment {} in {}",
-					new Object[]{evaluationOrder, dumpAssignment(roleAssignment), roleType});
+						evaluationOrder, dumpAssignment(roleAssignment), roleType);
 			}
 			ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> roleAssignmentIdi = new ItemDeltaItem<>();
 			roleAssignmentIdi.setItemOld(LensUtil.createAssignmentSingleValueContainerClone(roleAssignment));
@@ -602,7 +626,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 		if (!focusClass.equals(lensContext.getFocusClass())) {
 			if (LOGGER.isTraceEnabled()) {
 				LOGGER.trace("Skipping evaluation of {} because it is applicable only for {} and not for {}",
-						new Object[] { roleType, focusClass, lensContext.getFocusClass()});
+						roleType, focusClass, lensContext.getFocusClass());
 			}
 			return false;
 		}
@@ -616,7 +640,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 	public static String dumpAssignment(AssignmentType assignmentType) { 
 		StringBuilder sb = new StringBuilder();
 		if (assignmentType.getConstruction() != null) {
-			sb.append("Constr '"+assignmentType.getConstruction().getDescription()+"' ");
+			sb.append("Constr '").append(assignmentType.getConstruction().getDescription()).append("' ");
 		}
 		if (assignmentType.getTargetRef() != null) {
 			sb.append("-> ").append(assignmentType.getTargetRef().getOid());
@@ -678,21 +702,21 @@ public class AssignmentEvaluator<F extends FocusType> {
 		} else {
 			desc = "condition in assignment in " + source;
 		}
-		Mapping<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> mapping = mappingFactory.createMapping(conditionType,
-				desc);
-		
-		mapping.addVariableDefinition(ExpressionConstants.VAR_USER, focusOdo);
-		mapping.addVariableDefinition(ExpressionConstants.VAR_FOCUS, focusOdo);
-		mapping.addVariableDefinition(ExpressionConstants.VAR_SOURCE, source);
-		mapping.setSourceContext(focusOdo);
-		mapping.setRootNode(focusOdo);
-		mapping.setOriginType(OriginType.ASSIGNMENTS);
-		mapping.setOriginObject(source);
+		Mapping.Builder<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> builder = mappingFactory.createMappingBuilder();
+		builder = builder.mappingType(conditionType)
+				.contextDescription(desc)
+				.sourceContext(focusOdo)
+				.originType(OriginType.ASSIGNMENTS)
+				.originObject(source)
+				.defaultTargetDefinition(new PrismPropertyDefinition<Boolean>(CONDITION_OUTPUT_NAME, DOMUtil.XSD_BOOLEAN, prismContext));
 
-        LensUtil.addAssignmentPathVariables(mapping, assignmentPathVariables);
+		builder.addVariableDefinition(ExpressionConstants.VAR_USER, focusOdo);
+		builder.addVariableDefinition(ExpressionConstants.VAR_FOCUS, focusOdo);
+		builder.addVariableDefinition(ExpressionConstants.VAR_SOURCE, source);
+		builder.setRootNode(focusOdo);
+        LensUtil.addAssignmentPathVariables(builder, assignmentPathVariables);
 
-        PrismPropertyDefinition<Boolean> outputDefinition = new PrismPropertyDefinition<Boolean>(CONDITION_OUTPUT_NAME, DOMUtil.XSD_BOOLEAN, prismContext);
-		mapping.setDefaultTargetDefinition(outputDefinition);
+		Mapping<PrismPropertyValue<Boolean>, PrismPropertyDefinition<Boolean>> mapping = builder.build();
 
 		mappingEvaluator.evaluateMapping(mapping, lensContext, task, result);
 		

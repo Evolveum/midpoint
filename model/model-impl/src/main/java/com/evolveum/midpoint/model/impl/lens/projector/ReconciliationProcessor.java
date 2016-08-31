@@ -104,17 +104,16 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 @Component
 public class ReconciliationProcessor {
 
-	@Autowired(required = true)
+	@Autowired
 	private ProvisioningService provisioningService;
 
-	@Autowired(required = true)
+	@Autowired
 	PrismContext prismContext;
 
-	@Autowired(required = true)
+	@Autowired
 	private MatchingRuleRegistry matchingRuleRegistry;
 
-	public static final String PROCESS_RECONCILIATION = ReconciliationProcessor.class.getName()
-			+ ".processReconciliation";
+	private static final String PROCESS_RECONCILIATION = ReconciliationProcessor.class.getName() + ".processReconciliation";
 	private static final Trace LOGGER = TraceManager.getTrace(ReconciliationProcessor.class);
 
 	<F extends ObjectType> void processReconciliation(LensContext<F> context,
@@ -204,10 +203,7 @@ public class ReconciliationProcessor {
             
             reconcileMissingAuxiliaryObjectClassAttributes(projCtx);
 
-		} catch (RuntimeException e) {
-			subResult.recordFatalError(e);
-			throw e;
-		} catch (SchemaException e) {
+		} catch (RuntimeException | SchemaException e) {
 			subResult.recordFatalError(e);
 			throw e;
 		} finally {
@@ -392,7 +388,6 @@ public class ReconciliationProcessor {
 		if (attributeDefinition == null) {
 			String msg = "No definition for attribute " + attrName + " in "
 					+ projCtx.getResourceShadowDiscriminator();
-//			LOGGER.error("{}, structuralOC:\n{}", msg, projCtx.getStructuralObjectClassDefinition().debugDump());
 			throw new SchemaException(msg);
 		}
 
@@ -421,7 +416,7 @@ public class ReconciliationProcessor {
 			}
 		}
 
-		Collection<ItemValueWithOrigin<PrismPropertyValue<T>,PrismPropertyDefinition<T>>> shouldBePValues = null;
+		Collection<ItemValueWithOrigin<PrismPropertyValue<T>,PrismPropertyDefinition<T>>> shouldBePValues;
 		if (pvwoTriple == null) {
 			shouldBePValues = new ArrayList<>();
 		} else {
@@ -438,7 +433,7 @@ public class ReconciliationProcessor {
 		}
 
 		PrismProperty<T> attribute = attributesContainer.findProperty(attrName);
-		Collection<PrismPropertyValue<T>> arePValues = null;
+		Collection<PrismPropertyValue<T>> arePValues;
 		if (attribute != null) {
 			arePValues = attribute.getValues();
 		} else {
@@ -759,8 +754,8 @@ public class ReconciliationProcessor {
 					new ItemPath(parentPath, attrDef.getName()));
 		}
 		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("Reconciliation will {} value of attribute {}: {} because {}", new Object[] { changeType, 
-					PrettyPrinter.prettyPrint(attrDef.getName()), value, reason});
+			LOGGER.trace("Reconciliation will {} value of attribute {}: {} because {}", changeType,
+					PrettyPrinter.prettyPrint(attrDef.getName()), value, reason);
 		}
 
 		PropertyDelta<T> attrDelta = new PropertyDelta<T>(parentPath, attrDef.getName(),

@@ -209,6 +209,12 @@ public class R_Filter implements S_FilterEntryOrEmpty, S_AtomicFilterExit {
     }
 
     @Override
+    public S_AtomicFilterExit isParentOf(PrismReferenceValue value) throws SchemaException {
+        OrgFilter orgFilter = OrgFilter.createOrg(value, OrgFilter.Scope.ANCESTORS);
+        return addSubfilter(orgFilter);
+    }
+
+    @Override
     public S_AtomicFilterExit isDirectChildOf(String oid) throws SchemaException {
         OrgFilter orgFilter = OrgFilter.createOrg(oid, OrgFilter.Scope.ONE_LEVEL);
         return addSubfilter(orgFilter);
@@ -217,6 +223,12 @@ public class R_Filter implements S_FilterEntryOrEmpty, S_AtomicFilterExit {
     @Override
     public S_AtomicFilterExit isChildOf(String oid) throws SchemaException {
         OrgFilter orgFilter = OrgFilter.createOrg(oid, OrgFilter.Scope.SUBTREE);
+        return addSubfilter(orgFilter);
+    }
+
+    @Override
+    public S_AtomicFilterExit isParentOf(String oid) throws SchemaException {
+        OrgFilter orgFilter = OrgFilter.createOrg(oid, OrgFilter.Scope.ANCESTORS);
         return addSubfilter(orgFilter);
     }
 

@@ -44,6 +44,7 @@ import java.util.Iterator;
  */
 public class DeltaSetTriple<T> implements DebugDumpable, Serializable, SimpleVisitable<T>, Foreachable<T> {
 
+	// TODO decide if these sets can be null (and make them final)
     /**
      * Collection of values that were not changed.
      */
@@ -321,7 +322,7 @@ public class DeltaSetTriple<T> implements DebugDumpable, Serializable, SimpleVis
 	protected void copyValues(DeltaSetTriple<T> clone, Cloner<T> cloner) {
 		clone.zeroSet = cloneSet(this.zeroSet, cloner);
 		clone.plusSet = cloneSet(this.plusSet, cloner);
-		clone.minusSet = cloneSet(this.minusSet, cloner);		
+		clone.minusSet = cloneSet(this.minusSet, cloner);
 	}
 
 	private Collection<T> cloneSet(Collection<T> origSet, Cloner<T> cloner) {

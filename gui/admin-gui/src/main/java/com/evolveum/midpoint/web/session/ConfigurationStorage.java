@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package com.evolveum.midpoint.web.session;
 
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.web.component.search.Search;
 import com.evolveum.midpoint.web.component.search.SearchFactory;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.AccountDetailsSearchDto;
@@ -28,8 +29,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
  * @author lazyman
  */
 public class ConfigurationStorage implements PageStorage {
+	private static final long serialVersionUID = 1L;
 
-    private DebugSearchDto debugSearchDto;
+	private DebugSearchDto debugSearchDto;
     private AccountDetailsSearchDto accountSearchDto;
 
     private ObjectPaging debugSearchPaging;
@@ -82,4 +84,21 @@ public class ConfigurationStorage implements PageStorage {
     public void setAccountDetailsPaging(ObjectPaging accountDetailsPaging) {
         this.accountDetailsPaging = accountDetailsPaging;
     }
+
+	@Override
+	public String debugDump() {
+		return debugDump(0);
+	}
+
+	@Override
+	public String debugDump(int indent) {
+		StringBuilder sb = new StringBuilder();
+		DebugUtil.indentDebugDump(sb, indent);
+		sb.append("ConfigurationStorage\n");
+		DebugUtil.debugDumpWithLabelLn(sb, "debugSearchDto", debugSearchDto, indent+1);
+		DebugUtil.debugDumpWithLabelLn(sb, "accountSearchDto", accountSearchDto, indent+1);
+		DebugUtil.debugDumpWithLabelLn(sb, "debugSearchPaging", debugSearchPaging, indent+1);
+		DebugUtil.debugDumpWithLabel(sb, "accountDetailsPaging", accountDetailsPaging, indent+1);
+		return sb.toString();
+	}
 }

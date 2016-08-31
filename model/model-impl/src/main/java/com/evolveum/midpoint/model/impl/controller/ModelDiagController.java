@@ -78,19 +78,22 @@ public class ModelDiagController implements ModelDiagnosticService {
 	@Autowired
 	private DataModelVisualizer dataModelVisualizer;
 	
-	@Autowired(required = true)
+	@Autowired
 	private PrismContext prismContext;
 	
-	@Autowired(required = true)
+	@Autowired
 	@Qualifier("repositoryService")
 	private transient RepositoryService repositoryService;
 	
-	@Autowired(required = true)
+	@Autowired
 	private ProvisioningService provisioningService;
 
 	@Autowired
 	private SecurityEnforcer securityEnforcer;
-	
+
+	@Autowired
+	private MappingDiagEvaluator mappingDiagEvaluator;
+
 	private RandomString randomString;
 
 	ModelDiagController() {
@@ -154,6 +157,23 @@ public class ModelDiagController implements ModelDiagnosticService {
 				throw new IllegalStateException("Unauthorized access yields returning data from the repository");
 			}
 			return response;
+		} catch (Throwable t) {
+			result.recordFatalError(t);
+			throw t;
+		} finally {
+			result.computeStatusIfUnknown();
+		}
+	}
+
+	@Override
+	public MappingEvaluationResponseType evaluateMapping(MappingEvaluationRequestType request, Task task,
+			OperationResult parentResult)
+			throws SchemaException, SecurityViolationException, ExpressionEvaluationException,
+			ObjectNotFoundException {
+		OperationResult result = parentResult.createSubresult(EXECUTE_REPOSITORY_QUERY);
+		try {
+			securityEnforcer.authorize(AuthorizationConstants.AUTZ_ALL_URL, null, null, null, null, null, result);
+			return mappingDiagEvaluator.evaluateMapping(request, task, result);
 		} catch (Throwable t) {
 			result.recordFatalError(t);
 			throw t;

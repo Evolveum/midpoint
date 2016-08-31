@@ -17,6 +17,8 @@ package com.evolveum.midpoint.web.component.menu;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
 import com.evolveum.midpoint.web.component.breadcrumbs.BreadcrumbPageClass;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
@@ -57,6 +59,8 @@ public class MainMenuPanel extends BasePanel<MainMenuItem> {
     private static final String ID_SUB_ITEM = "subItem";
     private static final String ID_SUB_LINK = "subLink";
     private static final String ID_SUB_LABEL = "subLabel";
+    
+    private static final Trace LOGGER = TraceManager.getTrace(MainMenuPanel.class);
 
     public MainMenuPanel(String id, IModel<MainMenuItem> model) {
         super(id, model);
@@ -88,8 +92,9 @@ public class MainMenuPanel extends BasePanel<MainMenuItem> {
         add(item);
 
         WebMarkupContainer link;
-        if (menu.getPage() != null) {
+        if (menu.getPageClass() != null) {
             link = new AjaxLink(ID_LINK) {
+            	private static final long serialVersionUID = 1L;
 
                 @Override
                 public void onClick(AjaxRequestTarget target) {
@@ -105,7 +110,7 @@ public class MainMenuPanel extends BasePanel<MainMenuItem> {
         icon.add(AttributeModifier.replace("class", new PropertyModel<>(menu, MainMenuItem.F_ICON_CLASS)));
         link.add(icon);
 
-        Label label = new Label(ID_LABEL, menu.getName());
+        Label label = new Label(ID_LABEL, menu.getNameModel());
         link.add(label);
         
         final PropertyModel<String> bubbleModel = new PropertyModel<>(menu, MainMenuItem.F_BUBBLE_LABEL);
@@ -154,30 +159,32 @@ public class MainMenuPanel extends BasePanel<MainMenuItem> {
     }
 
     private void createSubmenu(final ListItem<MenuItem> listItem) {
-        final MenuItem menu = listItem.getModelObject();
+        final MenuItem menuItem = listItem.getModelObject();
 
         listItem.add(AttributeModifier.replace("class", new AbstractReadOnlyModel<String>() {
+        	private static final long serialVersionUID = 1L;
 
             @Override
             public String getObject() {
-                return menu.isMenuActive((WebPage) getPage()) ? "active" : null;
+                return menuItem.isMenuActive((WebPage) getPage()) ? "active" : null;
             }
         }));
 
-        Link subLink = new Link(ID_SUB_LINK) {
-
+        Link<String> subLink = new Link<String>(ID_SUB_LINK) {
+        	private static final long serialVersionUID = 1L;
 
             @Override
             public void onClick() {
-                menuItemPerformed(menu);
+                menuItemPerformed(menuItem);
             }
         };
         listItem.add(subLink);
 
-        Label subLabel = new Label(ID_SUB_LABEL, menu.getName());
+        Label subLabel = new Label(ID_SUB_LABEL, menuItem.getNameModel());
         subLink.add(subLabel);
 
         listItem.add(new VisibleEnableBehaviour() {
+        	private static final long serialVersionUID = 1L;
 
             @Override
             public boolean isVisible() {
@@ -205,11 +212,20 @@ public class MainMenuPanel extends BasePanel<MainMenuItem> {
     }
 
     private void menuItemPerformed(MenuItem menu) {
+    	LOGGER.trace("menuItemPerformed: {}", menu);
         SessionStorage storage = getPageBase().getSessionStorage();
         storage.clearBreadcrumbs();
-
+        
+        // IMPORTANT: we need to re-bundle the name to a new models
+        // that will not be connected to the old page reference
+        // otherwise the old page will somehow remain in the memory
+        // I have no idea how it could do that and especially how
+        // several old pages can remain in memory. But if the model
+        // is not re-bundled here then the page size grows and never
+        // falls.
         MainMenuItem mainMenuItem = getModelObject();
-        Breadcrumb bc = new Breadcrumb(mainMenuItem.getName());
+        String name = mainMenuItem.getNameModel().getObject();
+        Breadcrumb bc = new Breadcrumb(new Model<>(name));
         bc.setIcon(new Model<>(mainMenuItem.getIconClass()));
         storage.pushBreadcrumb(bc);
 
@@ -217,23 +233,25 @@ public class MainMenuPanel extends BasePanel<MainMenuItem> {
         if (!items.isEmpty()) {
             MenuItem first = items.get(0);
 
-            BreadcrumbPageClass invisibleBc = new BreadcrumbPageClass(first.getName(), first.getPage(),
+            IModel<String> nameModel = first.getNameModel();
+            BreadcrumbPageClass invisibleBc = new BreadcrumbPageClass(new Model<>(nameModel.getObject()), first.getPageClass(),
                     first.getParams());
             invisibleBc.setVisible(false);
             storage.pushBreadcrumb(invisibleBc);
         }
 
-        setResponsePage(menu.getPage(), menu.getParams());
+        setResponsePage(menu.getPageClass(), menu.getParams());
     }
 
     private void mainMenuPerformed(MainMenuItem menu) {
+    	LOGGER.trace("mainMenuPerformed: {}", menu);
         SessionStorage storage = getPageBase().getSessionStorage();
         storage.clearBreadcrumbs();
 
         if (menu.getParams() == null) {
-            setResponsePage(menu.getPage());
+            setResponsePage(menu.getPageClass());
         } else {
-            setResponsePage(menu.getPage(), menu.getParams());
+            setResponsePage(menu.getPageClass(), menu.getParams());
         }
     }
 }

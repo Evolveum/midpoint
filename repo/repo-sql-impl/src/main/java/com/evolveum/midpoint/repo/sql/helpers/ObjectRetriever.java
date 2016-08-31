@@ -346,6 +346,8 @@ public class ObjectRetriever {
             }
             LOGGER.trace("Found {} objects.", longCount);
             count = longCount != null ? longCount.intValue() : 0;
+
+            session.getTransaction().commit();
         } catch (QueryException | RuntimeException ex) {
             baseHelper.handleGeneralException(ex, session, result);
         } finally {
@@ -609,6 +611,7 @@ public class ObjectRetriever {
                         + "' with oid '" + oid + "' was not found.");
             }
             version = versionLong.toString();
+            session.getTransaction().commit();
         } catch (RuntimeException ex) {
             baseHelper.handleGeneralRuntimeException(ex, session, result);
         } finally {
@@ -775,7 +778,7 @@ main:       for (;;) {
     public boolean isAnySubordinateAttempt(String upperOrgOid, Collection<String> lowerObjectOids) {
         Session session = null;
         try {
-            session = baseHelper.beginTransaction();
+            session = baseHelper.beginReadOnlyTransaction();
 
             Query query;
             if (lowerObjectOids.size() == 1) {
@@ -788,6 +791,8 @@ main:       for (;;) {
             query.setString("aOid", upperOrgOid);
 
             Number number = (Number) query.uniqueResult();
+            session.getTransaction().commit();
+
             return number != null && number.longValue() != 0L;
         } catch (RuntimeException ex) {
             baseHelper.handleGeneralException(ex, session, null);

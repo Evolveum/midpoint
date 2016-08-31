@@ -25,8 +25,7 @@
           xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
           xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"
-          xmlns:dj="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"
+          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
           xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
           xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"
           xmlns:my="http://whatever.com/my">
@@ -69,7 +68,7 @@
 
 
 	<!-- Resource namespace -->
-    <namespace>http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff</namespace>
+<!--     <namespace>http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff</namespace> -->
     
     <!-- No schema. It will be generated from the resource. -->
 
@@ -395,7 +394,7 @@
 	                		<language>http://www.w3.org/TR/xpath/</language>
 		                    <code>
 			                    declare namespace c="http://midpoint.evolveum.com/xml/ns/public/common/common-3";
-			                    declare namespace dj="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff";
+			                    declare namespace dj="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3";
 			                    $c:account/c:attributes/dj:uid
 		                    </code>
 						</script>

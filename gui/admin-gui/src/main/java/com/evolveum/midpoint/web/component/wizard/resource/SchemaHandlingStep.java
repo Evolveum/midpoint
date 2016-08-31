@@ -149,7 +149,7 @@ public class SchemaHandlingStep extends WizardStep {
 
 			@Override
 			public void reset() {
-				LOGGER.info("Resetting schemaHandlingDtoModel {}", schemaHandlingDtoModel);
+				LOGGER.trace("Resetting schemaHandlingDtoModel {}", schemaHandlingDtoModel);
 				super.reset();
 			}
 		};

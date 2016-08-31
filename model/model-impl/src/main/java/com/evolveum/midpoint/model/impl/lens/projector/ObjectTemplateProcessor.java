@@ -31,6 +31,7 @@ import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.util.ItemPathUtil;
 import com.evolveum.midpoint.prism.util.PrismUtil;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -93,29 +94,29 @@ public class ObjectTemplateProcessor {
 
 	private static final Trace LOGGER = TraceManager.getTrace(ObjectTemplateProcessor.class);
 
-	@Autowired(required = true)
+	@Autowired
 	private MappingFactory mappingFactory;
 
-	@Autowired(required = true)
+	@Autowired
 	private PrismContext prismContext;
 
-	@Autowired(required = true)
+	@Autowired
 	private PasswordPolicyProcessor passwordPolicyProcessor;
 	
-	@Autowired(required = true)
+	@Autowired
 	private ModelObjectResolver modelObjectResolver;
 	
-	@Autowired(required = true)
+	@Autowired
 	private ActivationComputer activationComputer;
 	
-	@Autowired(required = true)
+	@Autowired
 	private ExpressionFactory expressionFactory;
 
-	@Autowired(required = true)
+	@Autowired
 	@Qualifier("cacheRepositoryService")
 	private transient RepositoryService cacheRepositoryService;
 	
-	@Autowired(required = true)
+	@Autowired
     private MappingEvaluator mappingEvaluator;
 
 	@Autowired
@@ -142,8 +143,8 @@ public class ObjectTemplateProcessor {
 		ObjectDeltaObject<F> focusOdo = focusContext.getObjectDeltaObject();
 		PrismObjectDefinition<F> focusDefinition = getFocusDefinition(focusContext.getObjectTypeClass());
 						
-		LOGGER.trace("Applying {} to {}, iteration {} ({}), phase {}", 
-				new Object[]{objectTemplate, focusContext.getObjectNew(), iteration, iterationToken, phase});
+		LOGGER.trace("Applying {} to {}, iteration {} ({}), phase {}",
+				objectTemplate, focusContext.getObjectNew(), iteration, iterationToken, phase);
 						
 		Map<ItemPath,DeltaSetTriple<? extends ItemValueWithOrigin<?,?>>> outputTripleMap = new HashMap<>();
 
@@ -222,17 +223,15 @@ public class ObjectTemplateProcessor {
 	}
 
 	<F extends FocusType> Collection<ItemDelta<?,?>> computeItemDeltas(Map<ItemPath, DeltaSetTriple<? extends ItemValueWithOrigin<?,?>>> outputTripleMap,
-			Map<ItemPath,ObjectTemplateItemDefinitionType> itemDefinitionsMap,	// may be null
+			@Nullable Map<ItemPath,ObjectTemplateItemDefinitionType> itemDefinitionsMap,
 			ObjectDeltaObject<F> focusOdo, PrismObjectDefinition<F> focusDefinition, String contextDesc) throws ExpressionEvaluationException, PolicyViolationException, SchemaException {
 		
 		Collection<ItemDelta<?,?>> itemDeltas = new ArrayList<>();
 		ObjectDelta<F> focusDelta = focusOdo.getObjectDelta();
 		PrismObject<F> focusNew = focusOdo.getNewObject();
 		
-		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("Computing deltas in {}, focusDelta:\n{}", contextDesc, focusDelta==null?null:focusDelta.toString());
-		}
-		
+		LOGGER.trace("Computing deltas in {}, focusDelta:\n{}", contextDesc, focusDelta);
+
 		boolean addUnchangedValues = false;
 		if (focusDelta != null && focusDelta.isAdd()) {
 			addUnchangedValues = true;
@@ -244,9 +243,11 @@ public class ObjectTemplateProcessor {
 			if (LOGGER.isTraceEnabled()) {
 				LOGGER.trace("Computed triple for {}:\n{}", itemPath, outputTriple.debugDump());
 			}
-			ObjectTemplateItemDefinitionType templateItemDefinition = null;
+			final ObjectTemplateItemDefinitionType templateItemDefinition;
 			if (itemDefinitionsMap != null) {
 				templateItemDefinition = ItemPathUtil.getFromMap(itemDefinitionsMap, itemPath);
+			} else {
+				templateItemDefinition = null;
 			}
 			boolean isNonTolerant = templateItemDefinition != null && Boolean.FALSE.equals(templateItemDefinition.isTolerant());
 
@@ -450,7 +451,7 @@ public class ObjectTemplateProcessor {
             }
 			DeltaSetTriple<ItemValueWithOrigin<V,D>> outputTriple = ItemValueWithOrigin.createOutputTriple(mapping);
 			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("Output tripple for {}:\n{}", mapping, outputTriple==null?null:outputTriple.debugDump());
+				LOGGER.trace("Output triple for {}:\n{}", mapping, DebugUtil.debugDump(outputTriple));
 			}
 			if (outputTriple == null) {
 				continue;

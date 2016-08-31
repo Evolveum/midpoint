@@ -115,28 +115,26 @@ public class PasswordPolicyProcessor {
 			}
 		} else if (ChangeType.MODIFY == userDelta.getChangeType()) {
 			PropertyDelta<ProtectedStringType> passwordValueDelta;
-			if (userDelta != null) {
-				passwordValueDelta = userDelta.findPropertyDelta(SchemaConstants.PATH_PASSWORD_VALUE);
-				if (passwordValueDelta == null) {
-					LOGGER.trace("Skipping processing password policies. User delta does not contain password change.");
-					return;
-				}
-				if (userDelta.getChangeType() == ChangeType.MODIFY && passwordValueDelta != null) {
-					if (passwordValueDelta.isAdd()) {
-						passwordValueProperty = (PrismProperty<ProtectedStringType>) passwordValueDelta.getItemNewMatchingPath(null);
-					} else if (passwordValueDelta.isDelete()) {
-						passwordValueProperty = null;
-					} else {
-						passwordValueProperty = (PrismProperty<ProtectedStringType>) passwordValueDelta.getItemNewMatchingPath(null);
-					}
+			passwordValueDelta = userDelta.findPropertyDelta(SchemaConstants.PATH_PASSWORD_VALUE);
+			if (passwordValueDelta == null) {
+				LOGGER.trace("Skipping processing password policies. User delta does not contain password change.");
+				return;
+			}
+			if (userDelta.getChangeType() == ChangeType.MODIFY) {
+				if (passwordValueDelta.isAdd()) {
+					passwordValueProperty = (PrismProperty<ProtectedStringType>) passwordValueDelta.getItemNewMatchingPath(null);
+				} else if (passwordValueDelta.isDelete()) {
+					passwordValueProperty = null;
 				} else {
 					passwordValueProperty = (PrismProperty<ProtectedStringType>) passwordValueDelta.getItemNewMatchingPath(null);
 				}
+			} else {
+				passwordValueProperty = (PrismProperty<ProtectedStringType>) passwordValueDelta.getItemNewMatchingPath(null);
 			}
 		}
 		
 		ValuePolicyType passwordPolicy;
-		if (focusContext.getOrgPasswordPolicy() == null){
+		if (focusContext.getOrgPasswordPolicy() == null) {
 			passwordPolicy = determineValuePolicy(userDelta, focusContext.getObjectAny(), context, task, result);
 			focusContext.setOrgPasswordPolicy(passwordPolicy);
 		} else {
@@ -346,34 +344,30 @@ public class PasswordPolicyProcessor {
 			return;
 		}
 		
-		PrismObject<ShadowType> accountShadow = null;
+		PrismObject<ShadowType> accountShadow;
 		PrismProperty<ProtectedStringType> password = null;
 		if (ChangeType.ADD == accountDelta.getChangeType()){
 			accountShadow = accountDelta.getObjectToAdd();
 			if (accountShadow != null){
 				password = accountShadow.findProperty(SchemaConstants.PATH_PASSWORD_VALUE);
-				
 			}
 		}
 		if (ChangeType.MODIFY == accountDelta.getChangeType() || password == null) {
-			PropertyDelta<ProtectedStringType> passwordValueDelta = null;
-			if (accountDelta != null) {
-				passwordValueDelta = accountDelta.findPropertyDelta(SchemaConstants.PATH_PASSWORD_VALUE);
-				// Modification sanity check
-				if (accountDelta.getChangeType() == ChangeType.MODIFY && passwordValueDelta != null
-						&& (passwordValueDelta.isAdd() || passwordValueDelta.isDelete())) {
-					throw new SchemaException("Shadow password value cannot be added or deleted, it can only be replaced");
-				}
-				if (passwordValueDelta == null) {
-					LOGGER.trace("Skipping processing password policies. Shadow delta does not contain password change.");
-					return;
-				}
-				password = (PrismProperty<ProtectedStringType>) passwordValueDelta.getItemNewMatchingPath(null);
+			PropertyDelta<ProtectedStringType> passwordValueDelta =
+					accountDelta.findPropertyDelta(SchemaConstants.PATH_PASSWORD_VALUE);
+			// Modification sanity check
+			if (accountDelta.getChangeType() == ChangeType.MODIFY && passwordValueDelta != null
+					&& (passwordValueDelta.isAdd() || passwordValueDelta.isDelete())) {
+				throw new SchemaException("Shadow password value cannot be added or deleted, it can only be replaced");
 			}
+			if (passwordValueDelta == null) {
+				LOGGER.trace("Skipping processing password policies. Shadow delta does not contain password change.");
+				return;
+			}
+			password = (PrismProperty<ProtectedStringType>) passwordValueDelta.getItemNewMatchingPath(null);
 		}
 
-//		PrismProperty<PasswordType> password = getPassword(projectionContext);
-		ValuePolicyType passwordPolicy = null;
+		ValuePolicyType passwordPolicy;
 		if (isCheckOrgPolicy(context)){
 			passwordPolicy = determineValuePolicy(context.getFocusContext().getObjectAny(), task, result);
 			context.getFocusContext().setOrgPasswordPolicy(passwordPolicy);

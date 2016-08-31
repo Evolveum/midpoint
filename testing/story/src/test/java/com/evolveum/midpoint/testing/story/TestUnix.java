@@ -24,14 +24,16 @@ import static org.testng.AssertJUnit.assertNull;
 import static org.testng.AssertJUnit.assertTrue;
 
 import java.io.File;
-import java.util.Collection;
 import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import org.jetbrains.annotations.Nullable;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
-import org.opends.server.types.SearchResultEntry;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -40,26 +42,18 @@ import org.testng.AssertJUnit;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.Test;
 
-import com.evolveum.icf.dummy.resource.DummyAccount;
-import com.evolveum.icf.dummy.resource.DummyObjectClass;
-import com.evolveum.icf.dummy.resource.DummyResource;
-import com.evolveum.icf.dummy.resource.DummySyncStyle;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.model.impl.sync.ReconciliationTaskHandler;
 import com.evolveum.midpoint.model.impl.util.DebugReconciliationTaskResultListener;
-import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
-import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
@@ -69,32 +63,12 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SequenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 /**
@@ -188,11 +162,15 @@ public class TestUnix extends AbstractStoryTest {
 
 	public static final File SEQUENCE_GIDNUMBER_FILE = new File(TEST_DIR, "sequence-gidnumber.xml");
 	public static final String SEQUENCE_GIDNUMBER_OID = "02cb7caa-6618-11e5-87a5-7b6c6776a63e";
-	
-	
-	
-	
-	
+
+	private static final String USER_STAN_USERNAME = "stan";
+	private static final String USER_STAN_FIST_NAME = "Stan";
+	private static final String USER_STAN_LAST_NAME = "Salesman";
+
+
+
+
+
 	private static final String ACCOUNT_LEMONHEAD_USERNAME = "lemonhead";
 	private static final String ACCOUNT_LEMONHEAD_FIST_NAME = "Lemonhead";
 	private static final String ACCOUNT_LEMONHEAD_LAST_NAME = "Canibal";
@@ -235,7 +213,7 @@ public class TestUnix extends AbstractStoryTest {
 		
 	protected ResourceType resourceOpenDjType;
 	protected PrismObject<ResourceType> resourceOpenDj;
-	
+
 	private String accountMancombOid;
 	private String accountMancombDn;
 	
@@ -250,7 +228,8 @@ public class TestUnix extends AbstractStoryTest {
 	
 	private String roleMonkeyIslandOid; 
 	private String groupMonkeyIslandDn;
-	
+	private String groupMonkeyIslandOid;
+
 	private String roleVillainsOid;
 	private String groupVillainsDn;
 	
@@ -262,7 +241,6 @@ public class TestUnix extends AbstractStoryTest {
 	private String groupSealsDn;
 	private String groupSealsOid;
 
-	
 	@Override
     protected void startResources() throws Exception {
         openDJController.startCleanServer();
@@ -399,7 +377,7 @@ public class TestUnix extends AbstractStoryTest {
         result.computeStatus();
         TestUtil.assertSuccess(result);
         PrismObject<UserType> userAfter = findUserByUsername(USER_MANCOMB_USERNAME);
-        assertNotNull("No herman user", userAfter);
+        assertNotNull("No mancomb user", userAfter);
         display("User after", userAfter);
         assertUserPosix(userAfter, USER_MANCOMB_USERNAME, USER_MANCOMB_FIST_NAME, USER_MANCOMB_LAST_NAME, 1001);
         accountMancombOid = getSingleLinkOid(userAfter);
@@ -1091,9 +1069,9 @@ public class TestUnix extends AbstractStoryTest {
         display("Role after", roleAfter);
         assertObject(roleAfter);
         roleMonkeyIslandOid = roleAfter.getOid();
-        String ldapGroupOid = getSingleLinkOid(roleAfter);
+        groupMonkeyIslandOid = getSingleLinkOid(roleAfter);
         
-        PrismObject<ShadowType> shadow = getShadowModel(ldapGroupOid);
+        PrismObject<ShadowType> shadow = getShadowModel(groupMonkeyIslandOid);
         display("Shadow (model)", shadow);
         groupMonkeyIslandDn = assertLdapGroup(shadow);
 	}
@@ -1363,7 +1341,7 @@ public class TestUnix extends AbstractStoryTest {
         //openDJController.assertAttribute(groupRangers, "memberUid", Integer.toString(USER_RANGER_UID_NUMBER));
         openDJController.assertAttribute(groupRangers, "memberUid", USER_RANGER_USERNAME);
         
-        assertPosixGroupAssociation(shadow, groupRangersOid);
+        assertGroupAssociation(shadow, groupRangersOid);
         
         PrismObject<ShadowType> repoShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
         display("Shadow (repo)", repoShadow);
@@ -1403,8 +1381,8 @@ public class TestUnix extends AbstractStoryTest {
         //openDJController.assertAttribute(groupSeals, "memberUid", Integer.toString(USER_RANGER_UID_NUMBER));
         openDJController.assertAttribute(groupSeals, "memberUid", USER_RANGER_USERNAME);
         
-        assertPosixGroupAssociation(shadow, groupRangersOid);
-        assertPosixGroupAssociation(shadow, groupSealsOid);
+        assertGroupAssociation(shadow, groupRangersOid);
+        assertGroupAssociation(shadow, groupSealsOid);
 	}
 
 	@Test
@@ -1581,7 +1559,7 @@ public class TestUnix extends AbstractStoryTest {
         result.computeStatus();
         TestUtil.assertSuccess(result);
         PrismObject<UserType> userAfter = findUserByUsername(USER_WALLY_USERNAME);
-        assertNotNull("No herman user", userAfter);
+        assertNotNull("No wally user", userAfter);
         display("User after", userAfter);
         assertUserPosix(userAfter, USER_WALLY_USERNAME, USER_WALLY_FIST_NAME, USER_WALLY_LAST_NAME, USER_WALLY_UID_NUMBER);
         accountWallyOid = getSingleLinkOid(userAfter);
@@ -1641,7 +1619,7 @@ public class TestUnix extends AbstractStoryTest {
 //        PrismAsserts.assertPropertyValue(repoShadow, ShadowType.F_AUXILIARY_OBJECT_CLASS);
         
         PrismObject<UserType> userAfter = findUserByUsername(USER_WALLY_USERNAME);
-        assertNotNull("No herman user", userAfter);
+        assertNotNull("No wally user", userAfter);
         display("User after", userAfter);
         assertUserPosix(userAfter, USER_WALLY_USERNAME, USER_WALLY_FIST_NAME, USER_WALLY_LAST_NAME, USER_WALLY_UID_NUMBER);
         accountMancombOid = getSingleLinkOid(userAfter);        
@@ -1691,7 +1669,7 @@ public class TestUnix extends AbstractStoryTest {
         PrismAsserts.assertPropertyValue(repoShadow, ShadowType.F_AUXILIARY_OBJECT_CLASS, OPENDJ_ACCOUNT_POSIX_AUXILIARY_OBJECTCLASS_NAME);
         
         PrismObject<UserType> userAfter = findUserByUsername(USER_WALLY_USERNAME);
-        assertNotNull("No herman user", userAfter);
+        assertNotNull("No wally user", userAfter);
         display("User after", userAfter);
         assertUserPosix(userAfter, USER_WALLY_USERNAME, USER_WALLY_FIST_NAME, USER_WALLY_LAST_NAME, USER_WALLY_UID_NUMBER);
         accountMancombOid = getSingleLinkOid(userAfter);        
@@ -1792,24 +1770,126 @@ public class TestUnix extends AbstractStoryTest {
         assertEquals("Wrong number of objects found", 3, objects.size());
 	}
 
-	
+	@Test
+	public void test500AddUserStan() throws Exception {
+		final String TEST_NAME = "test500AddUserStan";
+		TestUtil.displayTestTile(this, TEST_NAME);
+		Task task = taskManager.createTaskInstance(TestUnix.class.getName() + "." + TEST_NAME);
+		OperationResult result = task.getResult();
+
+		PrismObject<UserType> user = createUser(USER_STAN_USERNAME, USER_STAN_FIST_NAME, USER_STAN_LAST_NAME, roleRangersOid);
+		addRoleAssignment(user, roleMonkeyIslandOid);
+
+		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
+		addObject(user, task, result);
+
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+		result.computeStatus();
+		TestUtil.assertSuccess(result);
+		PrismObject<UserType> userAfter = findUserByUsername(USER_STAN_USERNAME);
+		assertNotNull("No stan user", userAfter);
+		display("User after", userAfter);
+		assertUserStan(userAfter);
+		String accountOid = getSingleLinkOid(userAfter);
+
+		PrismObject<ShadowType> shadow = getShadowModel(accountOid);
+		display("Shadow (model)", shadow);
+		assertPosixAccount(shadow, null);
+
+		assertGroupAssociation(shadow, groupRangersOid);
+		assertGroupAssociation(shadow, groupMonkeyIslandOid);
+
+		display("Rangers", getShadowModel(groupRangersOid));
+	}
+
+	@Test
+	public void test510StanDisablePosixAssocAndReconcile() throws Exception {
+		final String TEST_NAME = "test510StanDisablePosixAssocAndReconcile";
+		TestUtil.displayTestTile(this, TEST_NAME);
+		Task task = taskManager.createTaskInstance(TestUnix.class.getName() + "." + TEST_NAME);
+		OperationResult result = task.getResult();
+
+		PrismObject<UserType> userStan = findUserByUsername(USER_STAN_USERNAME);
+		Long rangersAssignmentId = null;
+		for (AssignmentType assignment : userStan.asObjectable().getAssignment()) {
+			if (assignment.getTargetRef() != null && roleRangersOid.equals(assignment.getTargetRef().getOid())) {
+				rangersAssignmentId = assignment.getId();
+			}
+		}
+		assertNotNull("No 'rangers' assignment for stan", rangersAssignmentId);
+		final List<ItemDelta<?, ?>> itemDeltas = DeltaBuilder.deltaFor(UserType.class, prismContext)
+				.item(UserType.F_ASSIGNMENT, rangersAssignmentId, AssignmentType.F_ACTIVATION,
+						ActivationType.F_ADMINISTRATIVE_STATUS)
+				.replace(ActivationStatusType.DISABLED)
+				.asItemDeltas();
+		repositoryService.modifyObject(UserType.class, userStan.getOid(), itemDeltas, result);
+
+		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
+		reconcileUser(userStan.getOid(), task, result);
+
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+		result.computeStatus();
+		TestUtil.assertSuccess(result);
+		PrismObject<UserType> userAfter = findUserByUsername(USER_STAN_USERNAME);
+		assertNotNull("No stan user", userAfter);
+		display("User after", userAfter);
+		assertUserStan(userAfter);
+		String accountOid = getSingleLinkOid(userAfter);
+
+		PrismObject<ShadowType> shadow = getShadowModel(accountOid);
+		display("Shadow (model)", shadow);
+		assertBasicAccount(shadow);
+
+		assertNoGroupAssociation(shadow, groupRangersOid);
+		assertGroupAssociation(shadow, groupMonkeyIslandOid);
+
+		display("Rangers", getShadowModel(groupRangersOid));
+
+		/*
+
+		  Actually, stan is technically still a member of Rangers.
+		  (Although not shown to midPoint, as he is no longer "posixAccount".)
+		  This can be avoided by setting the associations as non-tolerant.
+
+		attributes:
+        dn:
+          cn=rangers,ou=unixgroups,dc=example,dc=com
+        cn: [ rangers ]
+        gidNumber: 998
+        memberUid: [ stan ]
+        entryUUID: 8647ca7a-2b7a-4948-9e9b-a1657028fbfe
+		 */
+	}
+
 	private PrismObject<UserType> createUser(String username, String givenName, String familyName, String roleOid) throws SchemaException {
 		PrismObject<UserType> user = createUser(username, givenName, familyName, true);
 		if (roleOid != null) {
-	        AssignmentType roleAssignemnt = new AssignmentType();
-	        ObjectReferenceType roleTargetRef = new ObjectReferenceType();
-	        roleTargetRef.setOid(roleOid);
-	        roleTargetRef.setType(RoleType.COMPLEX_TYPE);
-			roleAssignemnt.setTargetRef(roleTargetRef);
-			user.asObjectable().getAssignment().add(roleAssignemnt);
+			addRoleAssignment(user, roleOid);
 		}
 		return user;
+	}
+
+	private void addRoleAssignment(PrismObject<UserType> user, String roleOid) {
+		AssignmentType roleAssignemnt = new AssignmentType();
+		ObjectReferenceType roleTargetRef = new ObjectReferenceType();
+		roleTargetRef.setOid(roleOid);
+		roleTargetRef.setType(RoleType.COMPLEX_TYPE);
+		roleAssignemnt.setTargetRef(roleTargetRef);
+		user.asObjectable().getAssignment().add(roleAssignemnt);
 	}
 
 	protected void assertUserHerman(PrismObject<UserType> user) {
 		assertUser(user, USER_HERMAN_USERNAME, USER_HERMAN_FIST_NAME, USER_HERMAN_LAST_NAME);
 	}
 	
+	protected void assertUserStan(PrismObject<UserType> user) {
+		assertUser(user, USER_STAN_USERNAME, USER_STAN_FIST_NAME, USER_STAN_LAST_NAME);
+	}
+
 	protected void assertUser(PrismObject<UserType> user, String username, String firstName, String lastName) {
 		assertUser(user, user.getOid(), username, firstName + " " + lastName,
 				firstName, lastName);
@@ -1839,29 +1919,50 @@ public class TestUnix extends AbstractStoryTest {
 		return entry.getDN().toString();
 	}
 	
-	private String assertPosixAccount(PrismObject<ShadowType> shadow, int expectedUid) throws DirectoryException {
+	private String assertPosixAccount(PrismObject<ShadowType> shadow, Integer expectedUid) throws DirectoryException {
 		ShadowType shadowType = shadow.asObjectable();
 		assertEquals("Wrong objectclass in "+shadow, OPENDJ_ACCOUNT_STRUCTURAL_OBJECTCLASS_NAME, shadowType.getObjectClass());
 		PrismAsserts.assertEqualsCollectionUnordered("Wrong auxiliary objectclasses in "+shadow, 
 				shadowType.getAuxiliaryObjectClass(), OPENDJ_ACCOUNT_POSIX_AUXILIARY_OBJECTCLASS_NAME);
 		String dn = (String) ShadowUtil.getSecondaryIdentifiers(shadow).iterator().next().getRealValue();
-		ResourceAttribute<Integer> uidNumberAttr = ShadowUtil.getAttribute(shadow, new QName(RESOURCE_OPENDJ_NAMESPACE, OPENDJ_UIDNUMBER_ATTRIBUTE_NAME));
-		PrismAsserts.assertPropertyValue(uidNumberAttr, expectedUid);
-		ResourceAttribute<Integer> gidNumberAttr = ShadowUtil.getAttribute(shadow, new QName(RESOURCE_OPENDJ_NAMESPACE, OPENDJ_GIDNUMBER_ATTRIBUTE_NAME));
-		PrismAsserts.assertPropertyValue(gidNumberAttr, expectedUid);
+		if (expectedUid != null) {
+			ResourceAttribute<Integer> uidNumberAttr = ShadowUtil
+					.getAttribute(shadow, new QName(RESOURCE_OPENDJ_NAMESPACE, OPENDJ_UIDNUMBER_ATTRIBUTE_NAME));
+			PrismAsserts.assertPropertyValue(uidNumberAttr, expectedUid);
+			ResourceAttribute<Integer> gidNumberAttr = ShadowUtil
+					.getAttribute(shadow, new QName(RESOURCE_OPENDJ_NAMESPACE, OPENDJ_GIDNUMBER_ATTRIBUTE_NAME));
+			PrismAsserts.assertPropertyValue(gidNumberAttr, expectedUid);
+		}
 
 		Entry entry = openDJController.fetchEntry(dn);
 		assertNotNull("No ou LDAP entry for "+dn);
 		display("Posix account entry", entry);
 		openDJController.assertObjectClass(entry, OPENDJ_ACCOUNT_STRUCTURAL_OBJECTCLASS_NAME.getLocalPart());
 		openDJController.assertObjectClass(entry, OPENDJ_ACCOUNT_POSIX_AUXILIARY_OBJECTCLASS_NAME.getLocalPart());
-		openDJController.assertAttribute(entry, OPENDJ_UIDNUMBER_ATTRIBUTE_NAME, Integer.toString(expectedUid));
-		openDJController.assertAttribute(entry, OPENDJ_GIDNUMBER_ATTRIBUTE_NAME, Integer.toString(expectedUid));
+		if (expectedUid != null) {
+			openDJController.assertAttribute(entry, OPENDJ_UIDNUMBER_ATTRIBUTE_NAME, Integer.toString(expectedUid));
+			openDJController.assertAttribute(entry, OPENDJ_GIDNUMBER_ATTRIBUTE_NAME, Integer.toString(expectedUid));
+		}
 		
 		return entry.getDN().toString();
 	}
 	
-	private ShadowAssociationType assertPosixGroupAssociation(PrismObject<ShadowType> accountShadow, String groupShadowOid) {
+	private ShadowAssociationType assertGroupAssociation(PrismObject<ShadowType> accountShadow, String groupShadowOid) {
+		ShadowAssociationType association = findAssociation(accountShadow, groupShadowOid);
+		if (association != null) {
+			return association;
+		}
+		AssertJUnit.fail("No association for "+groupShadowOid+" in "+accountShadow);
+		return null; // NOT REACHED
+	}
+
+	private void assertNoGroupAssociation(PrismObject<ShadowType> accountShadow, String groupShadowOid) {
+		ShadowAssociationType association = findAssociation(accountShadow, groupShadowOid);
+		assertNull("Unexpected association for "+groupShadowOid+" in "+accountShadow, association);
+	}
+
+	@Nullable
+	private ShadowAssociationType findAssociation(PrismObject<ShadowType> accountShadow, String groupShadowOid) {
 		ShadowType accountShadowType = accountShadow.asObjectable();
 		for (ShadowAssociationType association: accountShadowType.getAssociation()) {
 			assertNotNull("Association without shadowRef in "+accountShadow+": "+association, association.getShadowRef());
@@ -1870,10 +1971,9 @@ public class TestUnix extends AbstractStoryTest {
 				return association;
 			}
 		}
-		AssertJUnit.fail("No association for "+groupShadowOid+" in "+accountShadow);
-		return null; // NOT REACHED
+		return null;
 	}
-	
+
 	private PrismObject<RoleType> createLdapGroupRole(String name) throws SchemaException {
 		PrismObject<RoleType> role = getRoleDefinition().instantiate();
 		RoleType roleType = role.asObjectable();

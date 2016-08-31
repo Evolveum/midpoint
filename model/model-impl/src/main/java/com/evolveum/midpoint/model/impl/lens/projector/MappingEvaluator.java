@@ -68,10 +68,10 @@ public class MappingEvaluator {
 	
 	private static final Trace LOGGER = TraceManager.getTrace(MappingEvaluator.class);
 	
-	@Autowired(required = true)
+	@Autowired
     private PrismContext prismContext;
 
-    @Autowired(required = true)
+    @Autowired
     private MappingFactory mappingFactory;
 
     public <V extends PrismValue, D extends ItemDefinition, F extends ObjectType> void evaluateMapping(
@@ -124,26 +124,27 @@ public class MappingEvaluator {
 
 		for (MappingType mappingType: mappingTypes) {
 			
-			Mapping<V,D> mapping = mappingFactory.createMapping(mappingType, mappingDesc);
+			Mapping.Builder<V,D> mappingBuilder = mappingFactory.createMappingBuilder(mappingType, mappingDesc);
 		
-			if (!mapping.isApplicableToChannel(params.getContext().getChannel())) {
+			if (!mappingBuilder.isApplicableToChannel(params.getContext().getChannel())) {
 	        	continue;
 	        }
 			
-			mapping.setNow(params.getNow());
+			mappingBuilder.setNow(params.getNow());
 			if (defaultTargetItemPath != null && targetObjectDefinition != null) {
 				D defaultTargetItemDef = targetObjectDefinition.findItemDefinition(defaultTargetItemPath);
-				mapping.setDefaultTargetDefinition(defaultTargetItemDef);
-				mapping.setDefaultTargetPath(defaultTargetItemPath);
+				mappingBuilder.setDefaultTargetDefinition(defaultTargetItemDef);
+				mappingBuilder.setDefaultTargetPath(defaultTargetItemPath);
 			} else {
-				mapping.setDefaultTargetDefinition(params.getTargetItemDefinition());
-				mapping.setDefaultTargetPath(defaultTargetItemPath);
+				mappingBuilder.setDefaultTargetDefinition(params.getTargetItemDefinition());
+				mappingBuilder.setDefaultTargetPath(defaultTargetItemPath);
 			}
-			mapping.setTargetContext(targetObjectDefinition);
+			mappingBuilder.setTargetContext(targetObjectDefinition);
 			
 			// Initialize mapping (using Inversion of Control)
-			params.getInitializer().initialize(mapping);
-			
+			mappingBuilder = params.getInitializer().initialize(mappingBuilder);
+
+			Mapping<V,D> mapping = mappingBuilder.build();
 			Boolean timeConstraintValid = mapping.evaluateTimeConstraintValid(task, result);
 			
 			if (params.getEvaluateCurrent() != null) {
@@ -325,7 +326,7 @@ public class MappingEvaluator {
 		        	continue;
 		        }
 		        
-		        LOGGER.trace("{} adding new delta for {}: {}", new Object[]{mappingDesc, targetContext, targetItemDelta});
+		        LOGGER.trace("{} adding new delta for {}: {}", mappingDesc, targetContext, targetItemDelta);
 		        targetContext.swallowToSecondaryDelta(targetItemDelta);
 			}
 			

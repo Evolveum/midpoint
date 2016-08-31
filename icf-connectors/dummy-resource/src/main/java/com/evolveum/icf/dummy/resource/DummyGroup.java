@@ -70,6 +70,11 @@ public class DummyGroup extends DummyObject {
 	}
 
 	@Override
+	protected DummyObjectClass getObjectClassNoExceptions() {
+		return resource.getGroupObjectClass();
+	}
+
+	@Override
 	public String getShortTypeName() {
 		return "group";
 	}

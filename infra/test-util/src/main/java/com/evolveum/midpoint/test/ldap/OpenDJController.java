@@ -539,7 +539,7 @@ public class OpenDJController extends AbstractResourceController {
 
 	public boolean isAccountEnabled(Entry ldapEntry) {
 		String pwpAccountDisabled = getAttributeValue(ldapEntry, "ds-pwp-account-disabled");
-		if (pwpAccountDisabled != null && pwpAccountDisabled.equals("true")) {
+		if (pwpAccountDisabled != null && pwpAccountDisabled.equalsIgnoreCase("true")) {
 			return false;
 		}
 		return true;

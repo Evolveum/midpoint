@@ -231,11 +231,12 @@ public class Visualizer {
 			object = modelService.getObject(objectTypeClass, oid, createCollection(createNoFetch()), task, result);
 			context.putObject(object);
 			return object;
-		} catch (RuntimeException|SchemaException|ConfigurationException|CommunicationException|SecurityViolationException e) {
-			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't resolve object {}", e, oid);
-			result.recordWarning("Couldn't resolve object " + oid + ": " + e.getMessage(), e);
-			return null;
 		} catch (ObjectNotFoundException e) {
+			// Not a big problem: object does not exist (was already deleted or was not yet created).
+			LoggingUtils.logExceptionOnDebugLevel(LOGGER, "Object {} does not exist", e, oid);
+			result.recordHandledError(e);
+			return null;
+		} catch (RuntimeException|SchemaException|ConfigurationException|CommunicationException|SecurityViolationException e) {
 			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't resolve object {}", e, oid);
 			result.recordWarning("Couldn't resolve object " + oid + ": " + e.getMessage(), e);
 			return null;

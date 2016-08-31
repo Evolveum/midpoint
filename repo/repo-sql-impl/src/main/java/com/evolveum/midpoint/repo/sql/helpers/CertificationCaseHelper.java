@@ -81,13 +81,13 @@ public class CertificationCaseHelper {
     @Autowired
     private ObjectRetriever objectRetriever;
 
-    public void addCertificationCampaignCases(Session session, RObject object, boolean merge) {
+    public void addCertificationCampaignCases(Session session, RObject object, boolean deleteBeforeAdd) {
         if (!(object instanceof RAccessCertificationCampaign)) {
             return;
         }
         RAccessCertificationCampaign campaign = (RAccessCertificationCampaign) object;
 
-        if (merge) {
+        if (deleteBeforeAdd) {
             LOGGER.trace("Deleting existing cases for {}", campaign.getOid());
             deleteCertificationCampaignCases(session, campaign.getOid());
         }

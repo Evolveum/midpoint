@@ -665,6 +665,7 @@ public class ShadowManager {
 			// TODO TODO TODO TODO: set matching rule instead of null
 			PrismPropertyDefinition def = identifier.getDefinition();
 			filter = AndFilter.createAnd(
+					EqualFilter.createEqual(new ItemPath(ShadowType.F_OBJECT_CLASS), resourceShadow.findProperty(ShadowType.F_OBJECT_CLASS)),
 					RefFilter.createReferenceEqual(ShadowType.F_RESOURCE_REF, ShadowType.class, ctx.getResource()), 
 					EqualFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES, def.getName()), def, getNormalizedValue(identifier, ctx.getObjectClassDefinition())));
 		} catch (SchemaException e) {
@@ -872,7 +873,7 @@ public class ShadowManager {
 	public PrismObject<ShadowType> updateShadow(ProvisioningContext ctx, PrismObject<ShadowType> currentResourceShadow, 
 			PrismObject<ShadowType> oldRepoShadow, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException, ConfigurationException, CommunicationException {
 		
-		RefinedObjectClassDefinition ocDef = ctx.getObjectClassDefinition();
+		RefinedObjectClassDefinition ocDef = ctx.computeCompositeObjectClassDefinition(currentResourceShadow);
 		ObjectDelta<ShadowType> shadowDelta = oldRepoShadow.createModifyDelta();
 		PrismContainer<Containerable> currentResourceAttributesContainer = currentResourceShadow.findContainer(ShadowType.F_ATTRIBUTES);
 		PrismContainer<Containerable> oldRepoAttributesContainer = oldRepoShadow.findContainer(ShadowType.F_ATTRIBUTES);

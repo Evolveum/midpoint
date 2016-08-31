@@ -124,7 +124,7 @@ public class SpringAuthenticationInjectorInterceptor implements PhaseInterceptor
         	
             if (StringUtils.isBlank(username)) {
             	message.put(SecurityHelper.CONTEXTUAL_PROPERTY_AUDITED_NAME, true);
-            	securityHelper.auditLoginFailure(username, connEnv, "Empty username");
+            	securityHelper.auditLoginFailure(username, null, connEnv, "Empty username");
             	throw createFault(WSSecurityException.ErrorCode.FAILED_AUTHENTICATION);
             }
             
@@ -132,7 +132,7 @@ public class SpringAuthenticationInjectorInterceptor implements PhaseInterceptor
         	LOGGER.trace("Principal: {}", principal);
         	if (principal == null) {
         		message.put(SecurityHelper.CONTEXTUAL_PROPERTY_AUDITED_NAME, true);
-        		securityHelper.auditLoginFailure(username, connEnv, "No user");
+        		securityHelper.auditLoginFailure(username, null, connEnv, "No user");
             	throw createFault(WSSecurityException.ErrorCode.FAILED_AUTHENTICATION);
         	}
         	
@@ -146,10 +146,10 @@ public class SpringAuthenticationInjectorInterceptor implements PhaseInterceptor
 			try {
 				operationName = DOMUtil.getFirstChildElement(saajSoapMessage.getSOAPBody()).getLocalName();
 			} catch (SOAPException e) {
-				LOGGER.debug("Access to web service denied for user '{}': SOAP error: {}", 
-	        			new Object[]{username, e.getMessage(), e});
+				LOGGER.debug("Access to web service denied for user '{}': SOAP error: {}",
+						username, e.getMessage(), e);
 				message.put(SecurityHelper.CONTEXTUAL_PROPERTY_AUDITED_NAME, true);
-				securityHelper.auditLoginFailure(username, connEnv, "SOAP error: "+e.getMessage());
+				securityHelper.auditLoginFailure(username, principal.getUser(), connEnv, "SOAP error: "+e.getMessage());
 				throw new Fault(e);
 			}
 			
@@ -160,10 +160,10 @@ public class SpringAuthenticationInjectorInterceptor implements PhaseInterceptor
 				isAuthorized = securityEnforcer.isAuthorized(AuthorizationConstants.AUTZ_WS_ALL_URL, AuthorizationPhaseType.REQUEST, null, null, null, null);
 				LOGGER.trace("Determined authorization for web service access (action: {}): {}", AuthorizationConstants.AUTZ_WS_ALL_URL, isAuthorized);
 			} catch (SchemaException e) {
-				LOGGER.debug("Access to web service denied for user '{}': schema error: {}", 
-	        			new Object[]{username, e.getMessage(), e});
+				LOGGER.debug("Access to web service denied for user '{}': schema error: {}",
+						username, e.getMessage(), e);
 				message.put(SecurityHelper.CONTEXTUAL_PROPERTY_AUDITED_NAME, true);
-				securityHelper.auditLoginFailure(username, connEnv, "Schema error: "+e.getMessage());
+				securityHelper.auditLoginFailure(username, principal.getUser(), connEnv, "Schema error: "+e.getMessage());
 				throw createFault(WSSecurityException.ErrorCode.FAILURE);
 			}
 			if (!isAuthorized) {
@@ -172,32 +172,31 @@ public class SpringAuthenticationInjectorInterceptor implements PhaseInterceptor
 					isAuthorized = securityEnforcer.isAuthorized(action, AuthorizationPhaseType.REQUEST, null, null, null, null);
 					LOGGER.trace("Determined authorization for web service operation {} (action: {}): {}", operationName, action, isAuthorized);
 				} catch (SchemaException e) {
-					LOGGER.debug("Access to web service denied for user '{}': schema error: {}", 
-		        			new Object[]{username, e.getMessage(), e});
+					LOGGER.debug("Access to web service denied for user '{}': schema error: {}",
+							username, e.getMessage(), e);
 					message.put(SecurityHelper.CONTEXTUAL_PROPERTY_AUDITED_NAME, true);
-					securityHelper.auditLoginFailure(username, connEnv, "Schema error: "+e.getMessage());
+					securityHelper.auditLoginFailure(username, principal.getUser(), connEnv, "Schema error: "+e.getMessage());
 					throw createFault(WSSecurityException.ErrorCode.FAILURE);
 				}
 			}
             if (!isAuthorized) {
-            	LOGGER.debug("Access to web service denied for user '{}': not authorized", 
-            			new Object[]{username});
+            	LOGGER.debug("Access to web service denied for user '{}': not authorized", username);
             	message.put(SecurityHelper.CONTEXTUAL_PROPERTY_AUDITED_NAME, true);
-            	securityHelper.auditLoginFailure(username, connEnv, "Not authorized");
+            	securityHelper.auditLoginFailure(username, principal.getUser(), connEnv, "Not authorized");
             	throw createFault(WSSecurityException.ErrorCode.FAILED_AUTHENTICATION);
             }
             
         } catch (WSSecurityException e) {
-        	LOGGER.debug("Access to web service denied for user '{}': security exception: {}", 
-        			new Object[]{username, e.getMessage(), e});
+        	LOGGER.debug("Access to web service denied for user '{}': security exception: {}",
+					username, e.getMessage(), e);
         	message.put(SecurityHelper.CONTEXTUAL_PROPERTY_AUDITED_NAME, true);
-        	securityHelper.auditLoginFailure(username, connEnv, "Security exception: "+e.getMessage());
+        	securityHelper.auditLoginFailure(username, null, connEnv, "Security exception: "+e.getMessage());
             throw new Fault(e, e.getFaultCode());
         } catch (ObjectNotFoundException e) {
-        	LOGGER.debug("Access to web service denied for user '{}': object not found: {}", 
-        			new Object[]{username, e.getMessage(), e});
+        	LOGGER.debug("Access to web service denied for user '{}': object not found: {}",
+					username, e.getMessage(), e);
         	message.put(SecurityHelper.CONTEXTUAL_PROPERTY_AUDITED_NAME, true);
-        	securityHelper.auditLoginFailure(username, connEnv, "No user");
+        	securityHelper.auditLoginFailure(username, null, connEnv, "No user");
             throw createFault(WSSecurityException.ErrorCode.FAILED_AUTHENTICATION);
 		}
 

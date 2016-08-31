@@ -28,7 +28,6 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
@@ -623,7 +622,7 @@ public class TestMappingDynamicSimple {
     @Test
     public void testScriptExtraVariablesRef() throws Exception {
     	// GIVEN
-    	Mapping<PrismPropertyValue<String>,PrismPropertyDefinition<String>> mapping = evaluator.createMapping("mapping-script-extra-variables.xml",
+    	Mapping.Builder<PrismPropertyValue<String>,PrismPropertyDefinition<String>> builder = evaluator.createMappingBuilder("mapping-script-extra-variables.xml",
 				"testScriptExtraVariablesRef", "employeeType", null);
     	
     	Map<QName, Object> vars = new HashMap<QName, Object>();
@@ -631,7 +630,9 @@ public class TestMappingDynamicSimple {
         	"c0c010c0-d34d-b33f-f00d-111111111112",
         	UserType.COMPLEX_TYPE);
         vars.put(new QName(SchemaConstants.NS_C, "sailor"), ref);
-        mapping.addVariableDefinitions(vars);
+        builder.addVariableDefinitions(vars);
+
+		Mapping<PrismPropertyValue<String>,PrismPropertyDefinition<String>> mapping = builder.build();
         
     	OperationResult opResult = new OperationResult("testScriptExtraVariablesRef");
     	    	
@@ -651,15 +652,16 @@ public class TestMappingDynamicSimple {
     	// GIVEN
     	final String TEST_NAME = "testScriptExtraVariablesJaxb";
     	TestUtil.displayTestTile(TEST_NAME);
-    	Mapping<PrismPropertyValue<String>,PrismPropertyDefinition<String>> mapping = evaluator.createMapping("mapping-script-extra-variables.xml", 
+    	Mapping.Builder<PrismPropertyValue<String>,PrismPropertyDefinition<String>> builder = evaluator.createMappingBuilder("mapping-script-extra-variables.xml",
     			TEST_NAME, "employeeType", null);
     	
     	Map<QName, Object> vars = new HashMap<QName, Object>();
     	UserType userType = (UserType) PrismTestUtil.parseObject(
                 new File(MidPointTestConstants.OBJECTS_DIR, "c0c010c0-d34d-b33f-f00d-111111111112.xml")).asObjectable();
         vars.put(new QName(SchemaConstants.NS_C, "sailor"), userType);
-        mapping.addVariableDefinitions(vars);
-        
+        builder.addVariableDefinitions(vars);
+		Mapping<PrismPropertyValue<String>,PrismPropertyDefinition<String>> mapping = builder.build();
+
     	OperationResult opResult = new OperationResult(TEST_NAME);
     	    	
     	// WHEN
@@ -858,13 +860,13 @@ public class TestMappingDynamicSimple {
     	// GIVEN
     	final String TEST_NAME = "testScriptRootNodeRef";
     	TestUtil.displayTestTile(TEST_NAME);
-    	Mapping<PrismPropertyValue<PolyString>,PrismPropertyDefinition<PolyString>> mapping = evaluator.createMapping("mapping-script-root-node.xml", 
-    			TEST_NAME, "locality", null);
+    	Mapping<PrismPropertyValue<PolyString>,PrismPropertyDefinition<PolyString>> mapping =
+				evaluator.<PolyString>createMappingBuilder("mapping-script-root-node.xml", TEST_NAME, "locality", null)
+				.rootNode(MiscSchemaUtil.createObjectReference(
+						"c0c010c0-d34d-b33f-f00d-111111111111",
+						UserType.COMPLEX_TYPE))
+				.build();
     	
-        mapping.setRootNode(MiscSchemaUtil.createObjectReference(
-            	"c0c010c0-d34d-b33f-f00d-111111111111",
-            	UserType.COMPLEX_TYPE));
-        
     	OperationResult opResult = new OperationResult(TEST_NAME);
     	    	
     	// WHEN
@@ -883,12 +885,14 @@ public class TestMappingDynamicSimple {
     	// GIVEN
     	final String TEST_NAME = "testScriptRootNodeJaxb";
     	TestUtil.displayTestTile(TEST_NAME);
-    	Mapping<PrismPropertyValue<PolyString>,PrismPropertyDefinition<PolyString>> mapping = evaluator.createMapping("mapping-script-root-node.xml", 
-    			TEST_NAME, "locality", null);
-    	
-    	PrismObject<UserType> user = PrismTestUtil.parseObject(new File(MidPointTestConstants.OBJECTS_DIR, "c0c010c0-d34d-b33f-f00d-111111111111.xml"));
-        mapping.setRootNode(user.asObjectable());
-        
+		PrismObject<UserType> user = PrismTestUtil.parseObject(new File(MidPointTestConstants.OBJECTS_DIR, "c0c010c0-d34d-b33f-f00d-111111111111.xml"));
+
+		Mapping<PrismPropertyValue<PolyString>,PrismPropertyDefinition<PolyString>> mapping =
+				evaluator.<PolyString>createMappingBuilder("mapping-script-root-node.xml",
+						TEST_NAME, "locality", null)
+						.rootNode(user.asObjectable())
+						.build();
+
     	OperationResult opResult = new OperationResult(TEST_NAME);
     	    	
     	// WHEN
@@ -1296,10 +1300,11 @@ public class TestMappingDynamicSimple {
     			new File(MidPointTestConstants.OBJECTS_DIR, policyFileName));
     	final StringPolicyType stringPolicy = valuePolicy.asObjectable().getStringPolicy();
     	// GIVEN
-    	Mapping<PrismPropertyValue<T>,PrismPropertyDefinition<T>> mapping = evaluator.createMapping(mappingFileName, 
+    	Mapping<PrismPropertyValue<T>,PrismPropertyDefinition<T>> mapping = evaluator.<T>createMappingBuilder(mappingFileName,
     			TEST_NAME, stringPolicy, new ItemPath(
     					UserType.F_EXTENSION,
-    					new QName(NS_EXTENSION, extensionPropName)), null);
+    					new QName(NS_EXTENSION, extensionPropName)), null)
+				.build();
     	    	
 		OperationResult opResult = new OperationResult(TEST_NAME);
     	

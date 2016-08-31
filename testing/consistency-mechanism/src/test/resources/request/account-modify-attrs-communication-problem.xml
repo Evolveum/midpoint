@@ -20,7 +20,7 @@
 <objectDelta
 	xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
 	xmlns="http://prism.evolveum.com/xml/ns/public/types-3"
-	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff">
+	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
 	<changeType>modify</changeType>
 	<objectType>c:ShadowType</objectType>
 	<oid>will be replaced by the test code</oid>

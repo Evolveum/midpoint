@@ -139,6 +139,12 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
     
     private Map<String,Long> sequences = new HashMap<>();
 
+	/**
+	 * Moved from ProjectionValuesProcessor
+	 * TODO consider if necessary to serialize to XML
+	 */
+	private List<LensProjectionContext> conflictingProjectionContexts = new ArrayList<>();
+
     public LensContext(Class<F> focusClass, PrismContext prismContext, ProvisioningService provisioningService) {
 		Validate.notNull(prismContext, "No prismContext");
 		
@@ -1014,5 +1020,17 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 	
 	public void setSequenceCounter(String sequenceOid, long counter) {
 		sequences.put(sequenceOid, counter);
+	}
+
+	public List<LensProjectionContext> getConflictingProjectionContexts() {
+		return conflictingProjectionContexts;
+	}
+
+	public void addConflictingProjectionContext(LensProjectionContext conflictingContext) {
+		conflictingProjectionContexts.add(conflictingContext);
+	}
+
+	public void clearConflictingProjectionContexts() {
+		conflictingProjectionContexts.clear();
 	}
 }

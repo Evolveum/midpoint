@@ -1236,6 +1236,8 @@ public class ContextLoader {
 									PrismObject<ShadowType> newLinkRepoShadow = cacheRepositoryService.getObject(ShadowType.class, linkRef.getOid(), null, result);
 									if (ShadowUtil.matches(newLinkRepoShadow, projCtx.getResourceShadowDiscriminator())) {
 										LOGGER.trace("Found new matching link: {}, updating projection context", newLinkRepoShadow);
+										LOGGER.trace("Applying definition from provisioning first.");		// MID-3317
+										provisioningService.applyDefinition(newLinkRepoShadow, result);
 										projCtx.setObjectCurrent(newLinkRepoShadow);
 										projCtx.setOid(newLinkRepoShadow.getOid());
 										projCtx.recompute();

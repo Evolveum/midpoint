@@ -47,6 +47,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatu
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import org.apache.commons.lang.StringUtils;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -158,7 +159,9 @@ public class DefaultGuiProgressListener implements ProgressListener, Serializabl
         si.setActivityType(progressInformation.getActivityType());
         si.setResourceShadowDiscriminator(progressInformation.getResourceShadowDiscriminator());
         if (progressInformation.getResourceShadowDiscriminator() != null) {
-            si.setResourceName(getResourceName(progressInformation.getResourceShadowDiscriminator().getResourceOid()));
+            String resourceOid = progressInformation.getResourceShadowDiscriminator().getResourceOid();
+            String resourceName = resourceOid != null ? getResourceName(resourceOid) : "";
+            si.setResourceName(resourceName);
         }
         if (progressInformation.getStateType() == null) {
             si.setStatus(null);
@@ -179,7 +182,9 @@ public class DefaultGuiProgressListener implements ProgressListener, Serializabl
 
         // information about modifications on a resource
         if (progressInformation.getActivityType() == RESOURCE_OBJECT_OPERATION &&
-                progressInformation.getStateType() == EXITING && progressInformation.getResourceShadowDiscriminator() != null) {
+                progressInformation.getStateType() == EXITING &&
+                progressInformation.getResourceShadowDiscriminator() != null &&
+                progressInformation.getResourceShadowDiscriminator().getResourceOid() != null) {
             ModelProjectionContext mpc = modelContext.findProjectionContext(progressInformation.getResourceShadowDiscriminator());
             if (mpc != null) {      // it shouldn't be null!
 
@@ -231,7 +236,7 @@ public class DefaultGuiProgressListener implements ProgressListener, Serializabl
 
     private Map<String,String> nameCache = new HashMap<>();
 
-    private String getResourceName(String oid) {
+    private String getResourceName(@NotNull String oid) {
         String name = nameCache.get(oid);
         if (name != null) {
             return name;

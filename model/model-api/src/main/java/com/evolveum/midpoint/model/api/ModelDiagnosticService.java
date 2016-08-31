@@ -23,11 +23,9 @@ import com.evolveum.midpoint.schema.RepositoryQueryDiagRequest;
 import com.evolveum.midpoint.schema.RepositoryQueryDiagResponse;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingEvaluationRequestType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingEvaluationResponseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 
 /**
@@ -47,6 +45,7 @@ public interface ModelDiagnosticService {
 	String REPOSITORY_SELF_TEST = CLASS_NAME_WITH_DOT + "repositorySelfTest";
     String REPOSITORY_TEST_ORG_CLOSURE_CONSISTENCY = CLASS_NAME_WITH_DOT + "repositoryTestOrgClosureConsistency";
 	String EXECUTE_REPOSITORY_QUERY = CLASS_NAME_WITH_DOT + "executeRepositoryQuery";
+	String EXECUTE_MAPPING = CLASS_NAME_WITH_DOT + "evaluateMapping";
 	String PROVISIONING_SELF_TEST = CLASS_NAME_WITH_DOT + "provisioningSelfTest";
 	
 	/**
@@ -96,6 +95,14 @@ public interface ModelDiagnosticService {
 	RepositoryQueryDiagResponse executeRepositoryQuery(RepositoryQueryDiagRequest request, Task task, OperationResult parentResult)
 			throws SchemaException, SecurityViolationException;
 
+	/**
+	 * Execute arbitrary mapping.
+	 *
+	 * EXPERIMENTAL
+	 */
+	MappingEvaluationResponseType evaluateMapping(MappingEvaluationRequestType request, Task task, OperationResult parentResult)
+			throws SchemaException, SecurityViolationException, ExpressionEvaluationException,
+			ObjectNotFoundException;
 	/**
 	 * Exports data model
 	 *

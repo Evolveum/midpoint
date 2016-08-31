@@ -27,6 +27,8 @@ import javax.management.MBeanServer;
 import javax.management.MBeanServerFactory;
 import javax.management.ObjectName;
 
+import com.evolveum.midpoint.common.SystemConfigurationHolder;
+import com.evolveum.midpoint.web.page.admin.configuration.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.AttributeModifier;
@@ -125,15 +127,6 @@ import com.evolveum.midpoint.web.page.admin.certification.PageCertCampaigns;
 import com.evolveum.midpoint.web.page.admin.certification.PageCertDecisions;
 import com.evolveum.midpoint.web.page.admin.certification.PageCertDefinition;
 import com.evolveum.midpoint.web.page.admin.certification.PageCertDefinitions;
-import com.evolveum.midpoint.web.page.admin.configuration.PageAbout;
-import com.evolveum.midpoint.web.page.admin.configuration.PageAccounts;
-import com.evolveum.midpoint.web.page.admin.configuration.PageBulkAction;
-import com.evolveum.midpoint.web.page.admin.configuration.PageDebugList;
-import com.evolveum.midpoint.web.page.admin.configuration.PageDebugView;
-import com.evolveum.midpoint.web.page.admin.configuration.PageImportObject;
-import com.evolveum.midpoint.web.page.admin.configuration.PageInternals;
-import com.evolveum.midpoint.web.page.admin.configuration.PageRepositoryQuery;
-import com.evolveum.midpoint.web.page.admin.configuration.PageSystemConfiguration;
 import com.evolveum.midpoint.web.page.admin.home.PageDashboard;
 import com.evolveum.midpoint.web.page.admin.reports.PageCreatedReports;
 import com.evolveum.midpoint.web.page.admin.reports.PageNewReport;
@@ -185,6 +178,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType;
  * @author semancik
  */
 public abstract class PageBase extends WebPage implements ModelServiceLocator {
+	private static final long serialVersionUID = 1L;
 
 	private static final String DOT_CLASS = PageBase.class.getName() + ".";
 	private static final String OPERATION_LOAD_USER = DOT_CLASS + "loadUser";
@@ -217,6 +211,15 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
 	private static final Trace LOGGER = TraceManager.getTrace(PageBase.class);
 
+	// Strictly speaking following fields should be transient.
+	// But making them transient is causing problems on some
+	// JVM version or tomcat configurations (MID-3357). 
+	// It seems to be somehow related to session persistence.
+	// But honestly I have no idea about the real cause.
+	// Anyway, setting these fields to non-transient seems to
+	// fix it. And surprisingly it does not affect the session
+	// size.
+	
 	@SpringBean(name = "modelController")
 	private ScriptingService scriptingService;
 
@@ -280,7 +283,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
 		initializeModel();
 		
-		initLayout();
+		initLayout();		
 	}
 
 	@Override
@@ -306,7 +309,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 					ObjectQuery query = QueryBuilder.queryFor(WorkItemType.class, getPrismContext())
 					        .item(WorkItemType.F_ASSIGNEE_REF).ref(getPrincipal().getOid())
 					        .build();
-					return modelService.countContainers(WorkItemType.class, query, null, task, task.getResult());
+					return getModelService().countContainers(WorkItemType.class, query, null, task, task.getResult());
 				} catch (SchemaException|SecurityViolationException e) {
 					LoggingUtils.logExceptionAsWarning(LOGGER, "Couldn't load work item count", e);
 					return null;
@@ -1263,6 +1266,12 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 				PageRepositoryQuery.class);
 		submenu.add(menu);
 
+		if (SystemConfigurationHolder.isExperimentalCodeEnabled()) {
+			menu = new MenuItem(createStringResource("PageAdmin.menu.top.configuration.evaluateMapping"),
+					PageEvaluateMapping.class);
+			submenu.add(menu);
+		}
+
 		menu = new MenuItem(createStringResource("PageAdmin.menu.top.configuration.about"), PageAbout.class);
 		submenu.add(menu);
 
@@ -1360,8 +1369,9 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 	}
 
 	private void createFocusPageNewEditMenu(List<MenuItem> submenu, String newKey, String editKey,
-			final Class<? extends PageAdmin> newPageType) {
-		MenuItem edit = new MenuItem(createStringResource(editKey), newPageType, null, new VisibleEnableBehaviour() {
+			final Class<? extends PageAdmin> newPageClass) {
+		MenuItem edit = new MenuItem(createStringResource(editKey), newPageClass, null, new VisibleEnableBehaviour() {
+			private static final long serialVersionUID = 1L;
 
 			@Override
 			public boolean isEnabled() {
@@ -1370,7 +1380,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
 			@Override
 			public boolean isVisible() {
-				if (!getPage().getClass().equals(newPageType)) {
+				if (!getPage().getClass().equals(newPageClass)) {
 					return false;
 				}
 
@@ -1386,11 +1396,12 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 			}
 		});
 		submenu.add(edit);
-		MenuItem newMenu = new MenuItem(createStringResource(newKey), newPageType) {
+		MenuItem newMenu = new MenuItem(createStringResource(newKey), newPageClass) {
+			private static final long serialVersionUID = 1L;
 
 			@Override
 			protected boolean isMenuActive() {
-				if (!PageBase.this.getPage().getClass().equals(newPageType)) {
+				if (!PageBase.this.getPage().getClass().equals(newPageClass)) {
 					return false;
 				}
 
@@ -1411,6 +1422,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 	private void createFocusPageViewMenu(List<MenuItem> submenu, String viewKey,
 			final Class<? extends PageBase> newPageType) {
 		MenuItem view = new MenuItem(createStringResource(viewKey), newPageType, null, new VisibleEnableBehaviour() {
+			private static final long serialVersionUID = 1L;
 
 			@Override
 			public boolean isEnabled() {

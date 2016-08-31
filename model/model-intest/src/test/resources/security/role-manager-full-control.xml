@@ -18,6 +18,11 @@
         xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
         xmlns:org='http://midpoint.evolveum.com/xml/ns/public/common/org-3'>
     <name>Manager Full Control</name>    
+    <description>
+    	Role that gives access to the organizational units and objects stored
+    	there for organizational unit managers. A manager can read everything in
+    	the units that he is managing. And it can change all the contained objects.
+    </description>
     <authorization>
     	<name>autz-read</name>
     	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>

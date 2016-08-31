@@ -76,6 +76,8 @@ import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
@@ -83,6 +85,8 @@ import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
 import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorFactoryIcfImpl;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
+import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -94,6 +98,7 @@ import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
+import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.SchemaTestConstants;
@@ -164,14 +169,20 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 	
 	private static final String ROLE_SUPERUSER_FILENAME = REPO_DIR_NAME + "role-superuser.xml";
     private static final String ROLE_SUPERUSER_OID = "00000000-0000-0000-0000-000000000004";
+    
+    private static final String ROLE_LDAP_ADMINS_FILENAME = REPO_DIR_NAME + "role-admins.xml";
+    private static final String ROLE_LDAP_ADMINS_OID = "88888888-8888-8888-8888-000000000009";
+    
+    
 
 	private static final String SAMPLE_CONFIGURATION_OBJECT_FILENAME = REPO_DIR_NAME + "sample-configuration-object.xml";
     private static final String SAMPLE_CONFIGURATION_OBJECT_OID = "c0c010c0-d34d-b33f-f00d-999111111111";
 	
 	private static final String RESOURCE_OPENDJ_FILENAME = REPO_DIR_NAME + "resource-opendj.xml";
 	private static final String RESOURCE_OPENDJ_OID = "ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff";
-	private static final String RESOURCE_OPENDJ_NS = "http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff";
+	private static final String RESOURCE_OPENDJ_NS = "http://midpoint.evolveum.com/xml/ns/public/resource/instance-3";
 	private static final QName RESOURCE_OPENDJ_ACCOUNT_OBJECTCLASS = new QName(RESOURCE_OPENDJ_NS,"inetOrgPerson");
+	private static final QName RESOURCE_OPENDJ_GROUP_OBJECTCLASS = new QName(RESOURCE_OPENDJ_NS,"groupOfUniqueNames");
 	private static final String RESOURCE_OPENDJ_PRIMARY_IDENTIFIER_LOCAL_NAME = "entryUUID";
 	private static final String RESOURCE_OPENDJ_SECONDARY_IDENTIFIER_LOCAL_NAME = "dn";
 	private static final QName RESOURCE_OPENDJ_SECONDARY_IDENTIFIER = new QName(RESOURCE_OPENDJ_NS, RESOURCE_OPENDJ_SECONDARY_IDENTIFIER_LOCAL_NAME);
@@ -267,7 +278,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 	private static final String REQUEST_USER_MODIFY_ADD_ACCOUNT_DIRECTLY = "src/test/resources/request/user-modify-add-account-directly.xml";
 	private static final String REQUEST_USER_MODIFY_DELETE_ACCOUNT = "src/test/resources/request/user-modify-delete-account.xml";
 	private static final String REQUEST_USER_MODIFY_DELETE_ACCOUNT_COMMUNICATION_PROBLEM = "src/test/resources/request/user-modify-delete-account-communication-problem.xml";
-	
+	private static final String REQUEST_USER_MODIFY_ASSIGN_ROLE_ADMINS = "src/test/resources/request/user-modify-assign-role-admin.xml";
 	
 	private static final String REQUEST_ACCOUNT_MODIFY_NOT_FOUND_DELETE_ACCOUNT = "src/test/resources/request/account-guybrush-modify-attributes.xml";
 	private static final String REQUEST_ACCOUNT_MODIFY_COMMUNICATION_PROBLEM = "src/test/resources/request/account-modify-attrs-communication-problem.xml";
@@ -288,6 +299,8 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 	private static final String LDIF_DISCOVERY_FILENAME = "src/test/resources/request/discovery.ldif";
 	
 	private static final String LDIF_CREATE_USERS_OU_FILENAME = "src/test/resources/request/usersOu.ldif";
+	private static final String LDIF_CREATE_ADMINS_GROUP_FILENAME = "src/test/resources/request/adminsGroup.ldif";
+	
 	
 	private static final String LDIF_MODIFY_RENAME_FILENAME = "src/test/resources/request/modify-rename.ldif";
 
@@ -307,6 +320,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		super.initSystem(initTask, initResult);
 		
 		repoAddObjectFromFile(ROLE_SUPERUSER_FILENAME, RoleType.class, initResult);
+		repoAddObjectFromFile(ROLE_LDAP_ADMINS_FILENAME, RoleType.class, initResult);
 		repoAddObjectFromFile(USER_ADMINISTRATOR_FILENAME, UserType.class, initResult);
 
 		// This should discover the connectors
@@ -1589,6 +1603,96 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 	
 		//TODO: check on user if it was processed successfully (add this check also to previous (30) test..
 	}
+	
+	@Test
+	public void test283GetObjectNoFetchShadowAndRecompute() throws Exception {
+		final String TEST_NAME = "test283GetObjectNoFetchShadowAndRecompute";
+		TestUtil.displayTestTile(TEST_NAME);
+		
+		// GIVEN
+		openDJController.assumeRunning();
+		OperationResult parentResult = new OperationResult(TEST_NAME);
+		
+		String accountOid = assertUserOneAccountRef(USER_DONALD_OID);
+				
+		Task task = taskManager.createTaskInstance();
+		
+		// Get user's account with noFetch option - changes shouldn't be applied, bud should be still saved in shadow
+		PrismObject<ShadowType> johnAccount = modelService.getObject(ShadowType.class, accountOid, GetOperationOptions.createNoFetchCollection(), task, parentResult);
+		
+		ShadowType johnAccountType = checkPostponedAccountBasic(johnAccount, FailedOperationTypeType.MODIFY, true, parentResult);
+		ObjectDelta deltaInAccount = DeltaConvertor.createObjectDelta(johnAccountType.getObjectChange(), prismContext);
+		assertTrue("Delta stored in account must contain given name modification", deltaInAccount.hasItemDelta(new ItemPath(ShadowType.F_ATTRIBUTES, new QName(resourceTypeOpenDjrepo.getNamespace(), "givenName"))));
+		assertFalse("Delta stored in account must not contain employeeType modification", deltaInAccount.hasItemDelta(new ItemPath(ShadowType.F_ATTRIBUTES, new QName(resourceTypeOpenDjrepo.getNamespace(), "employeeType"))));
+		assertNotNull("Donald's account must contain reference on the resource", johnAccountType.getResourceRef());
+		
+		
+		//THEN recompute the user - postponed changes should be applied
+		LOGGER.info("recompute user - account with weak mapping after stopping opendj.");
+		ObjectDelta<UserType> emptyDelta = ObjectDelta.createEmptyModifyDelta(UserType.class, USER_DONALD_OID, prismContext);
+		Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
+		deltas.add(emptyDelta);
+		modelService.executeChanges(deltas, ModelExecuteOptions.createReconcile(), task, parentResult);
+		
+		
+		accountOid = assertUserOneAccountRef(USER_DONALD_OID);
+		johnAccountType = checkNormalizedShadowWithAttributes(accountOid, "donald", "don", "trump", "donald trump", false, task, parentResult);
+		
+		//TODO: check on user if it was processed successfully (add this check also to previous (30) test..
+	}
+	
+	@Test
+	public void test284ModifyObjectAssignToGroupCommunicationProblem() throws Exception {
+		final String TEST_NAME = "test284ModifyObjectAssignToGroupCommunicationProblem";
+		TestUtil.displayTestTile(TEST_NAME);
+		Task task = taskManager.createTaskInstance();
+		OperationResult parentResult = new OperationResult(TEST_NAME);
+		// GIVEN
+		openDJController.addEntriesFromLdifFile(LDIF_CREATE_ADMINS_GROUP_FILENAME);
+		ObjectQuery filter = ObjectQueryUtil.createResourceAndObjectClassQuery(RESOURCE_OPENDJ_OID, RESOURCE_OPENDJ_GROUP_OBJECTCLASS, prismContext);
+		SearchResultList<PrismObject<ShadowType>> shadows = modelService.searchObjects(ShadowType.class, filter, null, task, parentResult);
+		
+		for (PrismObject<ShadowType> shadow : shadows) {
+			LOGGER.info("SHADOW ===> {}", shadow.debugDump() );
+		}
+		
+		// WHEN
+		openDJController.assumeStopped();
+		
+		
+		String accountOid = assertUserOneAccountRef(USER_DONALD_OID);
+				
+		
+		requestToExecuteChanges(REQUEST_USER_MODIFY_ASSIGN_ROLE_ADMINS, USER_DONALD_OID, UserType.class, task, null, parentResult);
+		
+	
+		// Get user's account with noFetch option - changes shouldn't be applied, bud should be still saved in shadow
+		PrismObject<ShadowType> johnAccount = modelService.getObject(ShadowType.class, accountOid, GetOperationOptions.createNoFetchCollection(), task, parentResult);
+		
+		ShadowType johnAccountType = checkPostponedAccountBasic(johnAccount, FailedOperationTypeType.MODIFY, true, parentResult);
+		ObjectDelta deltaInAccount = DeltaConvertor.createObjectDelta(johnAccountType.getObjectChange(), prismContext);
+		assertTrue("Delta stored in account must contain association modification", deltaInAccount.hasItemDelta(new ItemPath(ShadowType.F_ASSOCIATION)));
+//		assertFalse("Delta stored in account must not contain employeeType modification", deltaInAccount.hasItemDelta(new ItemPath(ShadowType.F_ATTRIBUTES, new QName(resourceTypeOpenDjrepo.getNamespace(), "employeeType"))));
+		assertNotNull("Donald's account must contain reference on the resource", johnAccountType.getResourceRef());
+		
+		
+		//THEN recompute the user - postponed changes should be applied
+		openDJController.assumeRunning();
+		LOGGER.info("recompute user - account with weak mapping after stopping opendj.");
+		ObjectDelta<UserType> emptyDelta = ObjectDelta.createEmptyModifyDelta(UserType.class, USER_DONALD_OID, prismContext);
+		Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
+		deltas.add(emptyDelta);
+		modelService.executeChanges(deltas, ModelExecuteOptions.createReconcile(), task, parentResult);
+		
+		
+		accountOid = assertUserOneAccountRef(USER_DONALD_OID);
+		johnAccountType = checkNormalizedShadowWithAttributes(accountOid, "donald", "donalld", "trump", "donald trump", false, task, parentResult);
+	
+		openDJController.assertUniqueMember("cn=admins,ou=groups,dc=example,dc=com", "uid=donald,ou=people,dc=example,dc=com");
+		//TODO: check on user if it was processed successfully (add this check also to previous (30) test..
+	}
+	
+	
 
 	//TODO: enable after notify failure will be implemented..
 	@Test(enabled = false)
@@ -2425,10 +2529,9 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		return failedAccountType;
 	}
 	
-	private ShadowType checkPostponedAccountBasic(String accountOid, FailedOperationTypeType failedOperation, boolean modify, OperationResult parentResult) throws Exception{
-		PrismObject<ShadowType> faieldAccount = repositoryService.getObject(ShadowType.class, accountOid, null, parentResult);
-		assertNotNull("Shadow must not be null", faieldAccount);
-		ShadowType failedAccountType = faieldAccount.asObjectable();
+	private ShadowType checkPostponedAccountBasic(PrismObject<ShadowType> failedAccount, FailedOperationTypeType failedOperation, boolean modify, OperationResult parentResult) throws Exception{
+		assertNotNull("Shadow must not be null", failedAccount);
+		ShadowType failedAccountType = failedAccount.asObjectable();
 		assertNotNull(failedAccountType);
 		displayJaxb("shadow from the repository: ", failedAccountType, ShadowType.COMPLEX_TYPE);
 		assertEquals("Failed operation saved with account differt from  the expected value.",
@@ -2439,8 +2542,13 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		if (modify){
 			assertNotNull("Null object change in shadow", failedAccountType.getObjectChange());
 		}
-		display("Shadow with postponed operation", faieldAccount);
+		display("Shadow with postponed operation", failedAccount);
 		return failedAccountType;
+	}
+	
+	private ShadowType checkPostponedAccountBasic(String accountOid, FailedOperationTypeType failedOperation, boolean modify, OperationResult parentResult) throws Exception{
+		PrismObject<ShadowType> faieldAccount = repositoryService.getObject(ShadowType.class, accountOid, null, parentResult);
+		return checkPostponedAccountBasic(faieldAccount, failedOperation, modify, parentResult);
 	}
 	
 	private void requestToExecuteChanges(String requestFilename, String objectOid,

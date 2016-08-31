@@ -81,6 +81,8 @@ public class OrgRestriction extends Restriction<OrgFilter> {
                 detached.setProjection(Projections.distinct(Projections.property("p.ownerOid")));
                 detached.add(Restrictions.eq("p.targetOid", filter.getOrgRef().getOid()));
                 break;
+            case ANCESTORS:
+                throw new UnsupportedOperationException("ANCESTORS query is not supported in this query interpreter");
             case SUBTREE:
             default:
                 detached = DetachedCriteria.forClass(RObjectReference.class, "p");

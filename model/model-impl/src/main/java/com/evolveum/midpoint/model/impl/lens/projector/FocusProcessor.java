@@ -95,38 +95,38 @@ public class FocusProcessor {
 	private PrismContainerDefinition<ActivationType> activationDefinition;
 	private PrismPropertyDefinition<Integer> failedLoginsDefinition;
 	
-	@Autowired(required = true)
+	@Autowired
     private InboundProcessor inboundProcessor;
 	
-	@Autowired(required = true)
+	@Autowired
     private AssignmentProcessor assignmentProcessor;
 	
-	@Autowired(required = true)
+	@Autowired
 	private ObjectTemplateProcessor objectTemplateProcessor;
 	
-	@Autowired(required = true)
+	@Autowired
 	private MappingFactory mappingFactory;
 
-	@Autowired(required = true)
+	@Autowired
 	private PrismContext prismContext;
 
-	@Autowired(required = true)
+	@Autowired
 	private CredentialsProcessor credentialsProcessor;
 	
-	@Autowired(required = true)
+	@Autowired
 	private ModelObjectResolver modelObjectResolver;
 	
-	@Autowired(required = true)
+	@Autowired
 	private ActivationComputer activationComputer;
 	
-	@Autowired(required = true)
+	@Autowired
 	private ExpressionFactory expressionFactory;
 
-	@Autowired(required = true)
+	@Autowired
 	@Qualifier("cacheRepositoryService")
 	private transient RepositoryService cacheRepositoryService;
 	
-	@Autowired(required = true)
+	@Autowired
     private MappingEvaluator mappingHelper;
 
 	<O extends ObjectType, F extends FocusType> void processFocus(LensContext<O> context, String activityDescription, 
@@ -195,7 +195,7 @@ public class FocusProcessor {
 			// if the context is re-projected.
 			focusContext.setIteration(iteration);
 			focusContext.setIterationToken(iterationToken);
-			LOGGER.trace("Focus {} processing, iteration {}, token '{}'", new Object[]{focusContext.getHumanReadableName(), iteration, iterationToken});
+			LOGGER.trace("Focus {} processing, iteration {}, token '{}'", focusContext.getHumanReadableName(), iteration, iterationToken);
 			
 			String conflictMessage;
 			if (!LensUtil.evaluateIterationCondition(context, focusContext, 
@@ -203,7 +203,7 @@ public class FocusProcessor {
 				
 				conflictMessage = "pre-iteration condition was false";
 				LOGGER.debug("Skipping iteration {}, token '{}' for {} because the pre-iteration condition was false",
-						new Object[]{iteration, iterationToken, focusContext.getHumanReadableName()});
+						iteration, iterationToken, focusContext.getHumanReadableName());
 			} else {
 				
 				// INBOUND
@@ -296,11 +296,11 @@ public class FocusProcessor {
 	    			} else {
 	    				conflictMessage = "post-iteration condition was false";
 	    				LOGGER.debug("Skipping iteration {}, token '{}' for {} because the post-iteration condition was false",
-	    						new Object[]{iteration, iterationToken, focusContext.getHumanReadableName()});
+								iteration, iterationToken, focusContext.getHumanReadableName());
 	    			}
 		        } else {
 			        LOGGER.trace("Current focus does not satisfy constraints. Conflicting object: {}; iteration={}, maxIterations={}",
-			        		new Object[]{checker.getConflictingObject(), iteration, maxIterations});
+							checker.getConflictingObject(), iteration, maxIterations);
 			        conflictMessage = checker.getMessages();
 		        }
 		        
@@ -350,7 +350,7 @@ public class FocusProcessor {
 			return;
 		}
 		
-		PrismObject<F> focusNew = focusContext.getObjectNew();
+		final PrismObject<F> focusNew = focusContext.getObjectNew();
 		if (focusNew == null) {
 			// This is delete. Nothing to do.
 			return;
@@ -388,21 +388,19 @@ public class FocusProcessor {
 		// Deprecated
 		if (BooleanUtils.isTrue(objectPolicyConfigurationType.isOidNameBoundMode())) {
 			// Generate the name now - unless it is already present
-			if (focusNew != null) {
-				PolyStringType focusNewName = focusNew.asObjectable().getName();
-				if (focusNewName == null) {
-					String newValue = focusNew.getOid();
-					if (newValue == null) {
-						newValue = OidUtil.generateOid();
-					}
-					LOGGER.trace("Generating new name (bound to OID): {}", newValue);
-					PrismObjectDefinition<F> focusDefinition = focusContext.getObjectDefinition();
-					PrismPropertyDefinition<PolyString> focusNameDef = focusDefinition.findPropertyDefinition(FocusType.F_NAME);
-					PropertyDelta<PolyString> nameDelta = focusNameDef.createEmptyDelta(new ItemPath(FocusType.F_NAME));
-					nameDelta.setValueToReplace(new PrismPropertyValue<PolyString>(new PolyString(newValue), OriginType.USER_POLICY, null));
-					focusContext.swallowToSecondaryDelta(nameDelta);
-					focusContext.recompute();
+			PolyStringType focusNewName = focusNew.asObjectable().getName();
+			if (focusNewName == null) {
+				String newValue = focusNew.getOid();
+				if (newValue == null) {
+					newValue = OidUtil.generateOid();
 				}
+				LOGGER.trace("Generating new name (bound to OID): {}", newValue);
+				PrismObjectDefinition<F> focusDefinition = focusContext.getObjectDefinition();
+				PrismPropertyDefinition<PolyString> focusNameDef = focusDefinition.findPropertyDefinition(FocusType.F_NAME);
+				PropertyDelta<PolyString> nameDelta = focusNameDef.createEmptyDelta(new ItemPath(FocusType.F_NAME));
+				nameDelta.setValueToReplace(new PrismPropertyValue<PolyString>(new PolyString(newValue), OriginType.USER_POLICY, null));
+				focusContext.swallowToSecondaryDelta(nameDelta);
+				focusContext.recompute();
 			}
 		}
 	}

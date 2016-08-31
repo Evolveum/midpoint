@@ -35,12 +35,16 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.icf.dummy.resource.BreakMode;
 import com.evolveum.midpoint.notifications.api.transports.Message;
-import com.evolveum.midpoint.prism.ConsistencyCheckScope;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.match.PolyStringOrigMatchingRule;
 import com.evolveum.midpoint.prism.query.EqualFilter;
 import com.evolveum.midpoint.prism.query.NotFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
+import com.evolveum.midpoint.repo.sql.query.definition.PropertyDefinition;
+import com.evolveum.midpoint.schema.*;
+import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
 
@@ -64,15 +68,6 @@ import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.common.expression.evaluator.LiteralExpressionEvaluatorFactory;
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.Objectable;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
@@ -80,15 +75,8 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.ObjectDeltaOperation;
-import com.evolveum.midpoint.schema.ResultHandler;
-import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.processor.ResourceAttribute;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
@@ -460,6 +448,65 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         TestUtil.assertSuccess("getObject result", result);
         
         assertSteadyResources();
+	}
+
+	@Test
+	public void test105SearchAccount() throws Exception {
+		TestUtil.displayTestTile(this, "test105SearchAccount");
+
+		// GIVEN
+		Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test105SearchAccount");
+		OperationResult result = task.getResult();
+
+		// get weapon attribute definition
+		PrismObject<ResourceType> dummyResource = repositoryService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, result);
+		ResourceSchema resourceSchema = RefinedResourceSchema.getResourceSchema(dummyResource, prismContext);
+		assertResourceSchemaParseCountIncrement(1);
+
+		QName accountObjectClassQName = dummyResourceCtl.getAccountObjectClassQName();
+		ObjectClassComplexTypeDefinition accountObjectClassDefinition = resourceSchema.findObjectClassDefinition(accountObjectClassQName);
+		QName weaponQName = dummyResourceCtl.getAttributeWeaponQName();
+		ItemDefinition weaponDefinition = accountObjectClassDefinition.findAttributeDefinition(weaponQName);
+
+		ObjectQuery q = QueryBuilder.queryFor(ShadowType.class, prismContext)
+				.item(ShadowType.F_RESOURCE_REF).ref(RESOURCE_DUMMY_OID)
+				.and().item(ShadowType.F_OBJECT_CLASS).eq(accountObjectClassQName)
+				.and().item(new ItemPath(ShadowType.F_ATTRIBUTES, weaponQName), weaponDefinition).eq("rum")
+				.build();
+
+		// WHEN
+		List<PrismObject<ShadowType>> list = modelService.searchObjects(ShadowType.class, q, null, task, result);
+
+		// THEN
+		display("Accounts", list);
+		assertEquals("Wrong # of objects returned", 1, list.size());
+	}
+
+	@Test
+	public void test106SearchAccountWithoutResourceSchema() throws Exception {
+		TestUtil.displayTestTile(this, "test106SearchAccountWithoutResourceSchema");
+
+		// GIVEN
+		Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test106SearchAccountWithoutResourceSchema");
+		OperationResult result = task.getResult();
+
+		// create weapon attribute definition - NOT SUPPORTED, use only when you know what you're doing!
+		QName accountObjectClassQName = dummyResourceCtl.getAccountObjectClassQName();
+		QName weaponQName = dummyResourceCtl.getAttributeWeaponQName();
+		PrismPropertyDefinition weaponFakeDef = new PrismPropertyDefinition(weaponQName, DOMUtil.XSD_STRING, prismContext);
+
+		ObjectQuery q = QueryBuilder.queryFor(ShadowType.class, prismContext)
+				.item(ShadowType.F_RESOURCE_REF).ref(RESOURCE_DUMMY_OID)
+				.and().item(ShadowType.F_OBJECT_CLASS).eq(accountObjectClassQName)
+				.and().item(new ItemPath(ShadowType.F_ATTRIBUTES, weaponQName), weaponFakeDef).eq("rum")
+				.build();
+
+		// WHEN
+		List<PrismObject<ShadowType>> list = modelService.searchObjects(ShadowType.class, q, null, task, result);
+
+		// THEN
+		display("Accounts", list);
+		assertEquals("Wrong # of objects returned", 1, list.size());
 	}
 
 	@Test

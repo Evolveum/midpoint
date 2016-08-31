@@ -21,6 +21,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.web.component.data.column.InlineMenuable;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
@@ -28,7 +30,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
 /**
  * @author lazyman
  */
-public class SelectableBean<T extends Serializable> extends Selectable implements InlineMenuable {
+public class SelectableBean<T extends Serializable> extends Selectable implements InlineMenuable, DebugDumpable {
 	private static final long serialVersionUID = 1L;
 
 	public static final String F_VALUE = "value";
@@ -115,6 +117,22 @@ public class SelectableBean<T extends Serializable> extends Selectable implement
 			return false;
 		}
 		return true;
+	}
+
+	@Override
+	public String debugDump() {
+		return debugDump(0);
+	}
+
+	@Override
+	public String debugDump(int indent) {
+		StringBuilder sb = new StringBuilder();
+		DebugUtil.indentDebugDump(sb, indent);
+		sb.append("SelectableBean\n");
+		DebugUtil.debugDumpWithLabelLn(sb, "value", value==null?null:value.toString(), indent+1);
+		DebugUtil.debugDumpWithLabelLn(sb, "result", result==null?null:result.toString(), indent+1);
+		DebugUtil.debugDumpWithLabel(sb, "menuItems", menuItems, indent+1);
+		return sb.toString();
 	}
 
 }

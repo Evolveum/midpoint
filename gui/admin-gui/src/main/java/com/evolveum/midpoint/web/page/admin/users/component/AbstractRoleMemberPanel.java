@@ -1,5 +1,21 @@
 package com.evolveum.midpoint.web.page.admin.users.component;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.xml.namespace.QName;
+
+import org.apache.wicket.RestartResponseException;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.markup.repeater.Item;
+import org.apache.wicket.model.IModel;
+
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
 import com.evolveum.midpoint.gui.api.component.ObjectBrowserPanel;
@@ -28,64 +44,60 @@ import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
 import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.apache.wicket.RestartResponseException;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.markup.repeater.Item;
-import org.apache.wicket.model.IModel;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
-import javax.xml.namespace.QName;
-import java.util.ArrayList;
-import java.util.List;
+public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extends BasePanel<T> {
 
-public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extends BasePanel<T>{
+	private static final long serialVersionUID = 1L;
 
 	protected enum QueryScope {
-		SELECTED, ALL;
+		SELECTED, ALL, ALL_DIRECT;
 	}
-	
+
 	protected enum MemberOperation {
 		ADD, REMOVE, RECOMPUTE;
 	}
-	
+
 	private static final Trace LOGGER = TraceManager.getTrace(AbstractRoleMemberPanel.class);
-	
+
 	protected static final String ID_FORM = "form";
 	protected static final String ID_CONTAINER_MANAGER = "managerContainer";
 	protected static final String ID_CONTAINER_MEMBER = "memberContainer";
 	protected static final String ID_CHILD_TABLE = "childUnitTable";
 	protected static final String ID_MANAGER_TABLE = "managerTable";
 	protected static final String ID_MEMBER_TABLE = "memberTable";
-	
+
 	public AbstractRoleMemberPanel(String id, TableId tableId, IModel<T> model, PageBase parentPage) {
 		super(id, model);
 		setParent(parentPage);
 		initLayout(tableId);
 	}
-	
-	private void initLayout(TableId tableId){
+
+	private void initLayout(TableId tableId) {
 		Form form = new Form(ID_FORM);
 		form.setOutputMarkupId(true);
 		add(form);
 
 		initSearch(form);
-		
+
 		initMemberTable(tableId, form);
-		
+
 		initCustomLayout(form);
 	}
-	
+
 	protected abstract void initCustomLayout(Form form);
-	
+
 	protected abstract void initSearch(Form form);
 
-	private void initMemberTable(TableId tableId, Form form){
+	private void initMemberTable(TableId tableId, Form form) {
 		WebMarkupContainer memberContainer = new WebMarkupContainer(ID_CONTAINER_MEMBER);
 		memberContainer.setOutputMarkupId(true);
 		memberContainer.setOutputMarkupPlaceholderTag(true);
@@ -94,6 +106,8 @@ public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extend
 		MainObjectListPanel<ObjectType> childrenListPanel = new MainObjectListPanel<ObjectType>(
 				ID_MEMBER_TABLE, ObjectType.class, tableId, null, getPageBase()) {
 
+			private static final long serialVersionUID = 1L;
+
 			@Override
 			protected void objectDetailsPerformed(AjaxRequestTarget target, ObjectType object) {
 				detailsPerformed(target, object);
@@ -101,7 +115,8 @@ public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extend
 
 			@Override
 			protected boolean isClickable(IModel<SelectableBean<ObjectType>> rowModel) {
-				if (rowModel == null || rowModel.getObject() == null || rowModel.getObject().getValue() == null) {
+				if (rowModel == null || rowModel.getObject() == null
+						|| rowModel.getObject().getValue() == null) {
 					return false;
 				}
 				Class<?> objectClass = rowModel.getObject().getValue().getClass();
@@ -149,12 +164,12 @@ public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extend
 		childrenListPanel.setOutputMarkupId(true);
 		memberContainer.add(childrenListPanel);
 	}
-	
-	
+
 	protected List<InlineMenuItem> createMembersHeaderInlineMenu() {
 		List<InlineMenuItem> headerMenuItems = new ArrayList<>();
 		headerMenuItems.add(new InlineMenuItem(createStringResource("TreeTablePanel.menu.createMember"),
 				false, new HeaderMenuAction(this) {
+					private static final long serialVersionUID = 1L;
 
 					@Override
 					public void onClick(AjaxRequestTarget target) {
@@ -162,22 +177,22 @@ public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extend
 					}
 				}));
 
-		
-
 		headerMenuItems.add(new InlineMenuItem(createStringResource("TreeTablePanel.menu.addMembers"), false,
 				new HeaderMenuAction(this) {
+					private static final long serialVersionUID = 1L;
 
 					@Override
 					public void onClick(AjaxRequestTarget target) {
 						addMembers(null, target);
 					}
 				}));
-		
+
 		headerMenuItems.add(new InlineMenuItem());
 
 		headerMenuItems
 				.add(new InlineMenuItem(createStringResource("TreeTablePanel.menu.removeMembersSelected"),
 						false, new HeaderMenuAction(this) {
+							private static final long serialVersionUID = 1L;
 
 							@Override
 							public void onClick(AjaxRequestTarget target) {
@@ -186,6 +201,7 @@ public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extend
 						}));
 		headerMenuItems.add(new InlineMenuItem(createStringResource("TreeTablePanel.menu.removeMembersAll"),
 				false, new HeaderMenuAction(this) {
+					private static final long serialVersionUID = 1L;
 
 					@Override
 					public void onClick(AjaxRequestTarget target) {
@@ -196,6 +212,7 @@ public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extend
 		headerMenuItems
 				.add(new InlineMenuItem(createStringResource("TreeTablePanel.menu.recomputeMembersSelected"),
 						false, new HeaderMenuAction(this) {
+							private static final long serialVersionUID = 1L;
 
 							@Override
 							public void onClick(AjaxRequestTarget target) {
@@ -203,23 +220,37 @@ public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extend
 							}
 						}));
 		headerMenuItems
+				.add(new InlineMenuItem(createStringResource("TreeTablePanel.menu.recomputeMembersAllDirect"),
+						false, new HeaderMenuAction(this) {
+							private static final long serialVersionUID = 1L;
+
+							@Override
+							public void onClick(AjaxRequestTarget target) {
+								recomputeMembersPerformed(QueryScope.ALL_DIRECT, target);
+
+							}
+						}));
+
+		headerMenuItems
 				.add(new InlineMenuItem(createStringResource("TreeTablePanel.menu.recomputeMembersAll"),
 						false, new HeaderMenuAction(this) {
+							private static final long serialVersionUID = 1L;
 
 							@Override
 							public void onClick(AjaxRequestTarget target) {
 								recomputeMembersPerformed(QueryScope.ALL, target);
+
 							}
 						}));
 
 		return headerMenuItems;
 	}
-	
-	
+
 	protected void createFocusMemberPerformed(final QName relation, AjaxRequestTarget target) {
 
 		ChooseFocusTypeDialogPanel chooseTypePopupContent = new ChooseFocusTypeDialogPanel(
 				getPageBase().getMainPopupBodyId()) {
+			private static final long serialVersionUID = 1L;
 
 			protected void okPerformed(QName type, AjaxRequestTarget target) {
 				try {
@@ -234,7 +265,7 @@ public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extend
 		getPageBase().showMainPopup(chooseTypePopupContent, target);
 
 	}
-	
+
 	// TODO: merge this with TreeTablePanel.initObjectForAdd, also see MID-3233
 	private void initObjectForAdd(ObjectReferenceType parentOrgRef, QName type, QName relation,
 			AjaxRequestTarget target) throws SchemaException {
@@ -250,8 +281,8 @@ public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extend
 			AssignmentType assignment = new AssignmentType();
 			assignment.setTargetRef(parentOrgRef);
 			((FocusType) objType).getAssignment().add(assignment);
-		} 
-		
+		}
+
 		// Set parentOrgRef in any case. This is not strictly correct.
 		// The parentOrgRef should be added by the projector. But
 		// this is needed to successfully pass through security
@@ -274,6 +305,7 @@ public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extend
 
 		ObjectBrowserPanel<ObjectType> browser = new ObjectBrowserPanel(getPageBase().getMainPopupBodyId(),
 				UserType.class, types, true, getPageBase()) {
+			private static final long serialVersionUID = 1L;
 
 			@Override
 			protected void addPerformed(AjaxRequestTarget target, QName type, List selected) {
@@ -287,7 +319,7 @@ public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extend
 		getPageBase().showMainPopup(browser, target);
 
 	}
-	
+
 	protected ObjectQuery createQueryForAdd(List selected) {
 		List<String> oids = new ArrayList<>();
 		for (Object selectable : selected) {
@@ -299,32 +331,33 @@ public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extend
 
 		return ObjectQuery.createObjectQuery(InOidFilter.createInOid(oids));
 	}
-	
-	protected abstract void addMembersPerformed(QName type, QName relation, List selected, AjaxRequestTarget target);
+
+	protected abstract void addMembersPerformed(QName type, QName relation, List selected,
+			AjaxRequestTarget target);
+
 	protected abstract void removeMembersPerformed(QueryScope scope, AjaxRequestTarget target);
+
 	protected abstract void recomputeMembersPerformed(QueryScope scope, AjaxRequestTarget target);
-	
-	
-	
-	
-	protected void executeMemberOperation(Task operationalTask, QName type, ObjectQuery memberQuery, ObjectDelta delta, String category, AjaxRequestTarget target) {
-		
+
+	protected void executeMemberOperation(Task operationalTask, QName type, ObjectQuery memberQuery,
+			ObjectDelta delta, String category, AjaxRequestTarget target) {
+
 		OperationResult parentResult = operationalTask.getResult();
 
 		try {
-			TaskType task = WebComponentUtil.createSingleRecurenceTask(parentResult.getOperation(),
-					type, memberQuery, delta, category,
-					getPageBase());
+			TaskType task = WebComponentUtil.createSingleRecurenceTask(parentResult.getOperation(), type,
+					memberQuery, delta, category, getPageBase());
 			WebModelServiceUtils.runTask(task, operationalTask, parentResult, getPageBase());
 		} catch (SchemaException e) {
 			parentResult.recordFatalError(parentResult.getOperation(), e);
-			LoggingUtils.logUnexpectedException(LOGGER, "Failed to execute operaton " + parentResult.getOperation(), e);
+			LoggingUtils.logUnexpectedException(LOGGER,
+					"Failed to execute operaton " + parentResult.getOperation(), e);
 			target.add(getPageBase().getFeedbackPanel());
 		}
 
 		target.add(getPageBase().getFeedbackPanel());
 	}
-	
+
 	protected AssignmentType createAssignmentToModify(QName relation) throws SchemaException {
 
 		AssignmentType assignmentToModify = new AssignmentType();
@@ -335,23 +368,23 @@ public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extend
 
 		return assignmentToModify;
 	}
-	
+
 	protected ObjectReferenceType createReference(QName relation) {
 		ObjectReferenceType ref = ObjectTypeUtil.createObjectRef(getModelObject());
 		ref.setRelation(relation);
 		return ref;
 	}
-	
+
 	protected ObjectReferenceType createReference() {
 		ObjectReferenceType ref = ObjectTypeUtil.createObjectRef(getModelObject());
 		return ref;
 	}
-	
+
 	protected ObjectReferenceType createReference(ObjectType obj) {
 		ObjectReferenceType ref = ObjectTypeUtil.createObjectRef(obj);
 		return ref;
 	}
-	
+
 	protected void detailsPerformed(AjaxRequestTarget target, ObjectType object) {
 		if (WebComponentUtil.hasDetailsPage(object.getClass())) {
 			WebComponentUtil.dispatchToObjectDetailsPage(object.getClass(), object.getOid(), this, true);
@@ -360,12 +393,13 @@ public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extend
 			throw new RestartResponseException(getPageBase());
 		}
 	}
-	
+
 	private List<IColumn<SelectableBean<ObjectType>, String>> createMembersColumns() {
 		List<IColumn<SelectableBean<ObjectType>, String>> columns = new ArrayList<>();
 
 		IColumn<SelectableBean<ObjectType>, String> column = new AbstractColumn<SelectableBean<ObjectType>, String>(
 				createStringResource("TreeTablePanel.fullName.displayName")) {
+			private static final long serialVersionUID = 1L;
 
 			@Override
 			public void populateItem(Item<ICellPopulator<SelectableBean<ObjectType>>> cellItem,
@@ -389,6 +423,7 @@ public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extend
 
 		column = new AbstractColumn<SelectableBean<ObjectType>, String>(
 				createStringResource("TreeTablePanel.identifier.description")) {
+			private static final long serialVersionUID = 1L;
 
 			@Override
 			public void populateItem(Item<ICellPopulator<SelectableBean<ObjectType>>> cellItem,
@@ -411,17 +446,14 @@ public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extend
 		columns.add(new InlineMenuHeaderColumn(createMembersHeaderInlineMenu()));
 		return columns;
 	}
-	
+
 	protected abstract ObjectQuery createMemberQuery();
-	
-//	protected Class qnameToClass(QName type) {
-//		return getPageBase().getPrismContext().getSchemaRegistry().determineCompileTimeClass(type);
-//	}
-	
-	protected String getTaskName(String operation, QueryScope scope, boolean managers){
+
+
+	protected String getTaskName(String operation, QueryScope scope, boolean managers) {
 		StringBuilder nameBuilder = new StringBuilder(operation);
 		nameBuilder.append(" ");
-		if (scope != null){
+		if (scope != null) {
 			nameBuilder.append(scope.name());
 			nameBuilder.append(" ");
 		}
@@ -430,11 +462,12 @@ public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extend
 		} else {
 			nameBuilder.append("members: ");
 		}
-		nameBuilder.append(WebComponentUtil.getEffectiveName(getModelObject(), AbstractRoleType.F_DISPLAY_NAME));
+		nameBuilder
+				.append(WebComponentUtil.getEffectiveName(getModelObject(), AbstractRoleType.F_DISPLAY_NAME));
 		return nameBuilder.toString();
 	}
-	
-	protected String getTaskName(String operation, QueryScope scope){
+
+	protected String getTaskName(String operation, QueryScope scope) {
 		return getTaskName(operation, scope, false);
 	}
 

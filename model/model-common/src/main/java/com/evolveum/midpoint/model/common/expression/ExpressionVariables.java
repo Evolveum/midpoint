@@ -15,10 +15,7 @@
  */
 package com.evolveum.midpoint.model.common.expression;
 
-import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
-import com.evolveum.midpoint.schema.util.ObjectResolver;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -26,21 +23,22 @@ import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-
 import org.apache.commons.lang.StringUtils;
 import org.w3c.dom.Element;
 
 import javax.xml.namespace.QName;
-
-import java.util.*;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 
 /**
  * @author Radovan Semancik
  */
 public class ExpressionVariables implements DebugDumpable {
 
-    private Map<QName, Object> variables = new HashMap<QName, Object>();
+    private final Map<QName, Object> variables = new HashMap<>();
 
     private static final Trace LOGGER = TraceManager.getTrace(ExpressionVariables.class);
 

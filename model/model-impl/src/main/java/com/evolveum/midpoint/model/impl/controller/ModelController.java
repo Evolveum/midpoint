@@ -66,6 +66,8 @@ import com.evolveum.midpoint.wf.api.WorkflowManager;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ImportOptionsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ScriptingExpressionType;
+import com.evolveum.prism.xml.ns._public.types_3.EvaluationTimeType;
+
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -370,13 +372,13 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 		// 3) for MODIFY operation: filters contained in deltas -> these have to be treated here, because if OID is missing from such a delta, the change would be rejected by the repository
 		if (ModelExecuteOptions.isReevaluateSearchFilters(options)) {
 			for (ObjectDelta<? extends ObjectType> delta : deltas) {
-				Utils.resolveReferences(delta, cacheRepositoryService, false, true, prismContext, result);
+				Utils.resolveReferences(delta, cacheRepositoryService, false, true, EvaluationTimeType.IMPORT, prismContext, result);
 			}
 		} else if (ModelExecuteOptions.isIsImport(options)) {
 			// if plain import is requested, we simply evaluate filters in ADD operation (and we do not force reevaluation if OID is already set)
 			for (ObjectDelta<? extends ObjectType> delta : deltas) {
 				if (delta.isAdd()) {
-					Utils.resolveReferences(delta.getObjectToAdd(), cacheRepositoryService, false, false, prismContext, result);
+					Utils.resolveReferences(delta.getObjectToAdd(), cacheRepositoryService, false, false, EvaluationTimeType.IMPORT, prismContext, result);
 				}
 			}
 		}
@@ -604,7 +606,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 		try {
 			PrismObject<T> storedObject = cacheRepositoryService.getObject(objectTypeClass, oid, null, result);
 			PrismObject<T> updatedObject = storedObject.clone();
-			Utils.resolveReferences(updatedObject, cacheRepositoryService, false, true, prismContext, result);
+			Utils.resolveReferences(updatedObject, cacheRepositoryService, false, true, EvaluationTimeType.IMPORT, prismContext, result);
 			ObjectDelta<T> delta = storedObject.diff(updatedObject);
 			if (LOGGER.isTraceEnabled()) {
 				LOGGER.trace("reevaluateSearchFilters found delta: {}", delta.debugDump());
@@ -808,6 +810,17 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 
 		} finally {
 			RepositoryCache.exit();
+		}
+
+		// postprocessing objects that weren't handled by their correct provider (e.g. searching for ObjectType, and retrieving tasks, resources, shadows)
+		// currently only resources and shadows are handled in this way
+		// TODO generalize this approach somehow (something like "postprocess" in task/provisioning interface)
+		if (searchProvider == ObjectTypes.ObjectManager.REPOSITORY && !GetOperationOptions.isRaw(rootOptions)) {
+			for (PrismObject<T> object : list) {
+				if (object.asObjectable() instanceof ResourceType || object.asObjectable() instanceof ShadowType) {
+					provisioning.applyDefinition(object, result);
+				}
+			}
 		}
 		
 		schemaTransformer.applySchemasAndSecurityToObjects(list, rootOptions, null, task, result);

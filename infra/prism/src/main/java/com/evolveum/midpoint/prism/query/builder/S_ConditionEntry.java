@@ -29,6 +29,7 @@ public interface S_ConditionEntry {
     S_MatchingRuleEntry eq(Object... values);
     S_RightHandItemEntry eq();
     S_MatchingRuleEntry eqPoly(String orig, String norm);
+    S_MatchingRuleEntry eqPoly(String orig);
     S_MatchingRuleEntry gt(Object value) throws SchemaException;
     S_RightHandItemEntry gt();
     S_MatchingRuleEntry ge(Object value) throws SchemaException;

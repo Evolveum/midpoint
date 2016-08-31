@@ -47,6 +47,7 @@ import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.prism.xml.ns._public.types_3.EvaluationTimeType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
@@ -110,7 +111,7 @@ public class XNodeProcessor {
         return parseObject(xmap, objectDefinition, pc);
     }
 
-    private <O extends Objectable> PrismObject<O> parseObject(MapXNode xnode, PrismObjectDefinition<O> objectDefinition, ParsingContext pc) throws SchemaException {
+    public <O extends Objectable> PrismObject<O> parseObject(MapXNode xnode, PrismObjectDefinition<O> objectDefinition, ParsingContext pc) throws SchemaException {
         QName elementName;
         if (objectDefinition != null) {
             elementName = objectDefinition.getName();
@@ -779,6 +780,12 @@ public class XNodeProcessor {
         refVal.setDescription((String) xmap.getParsedPrimitiveValue(XNode.KEY_REFERENCE_DESCRIPTION, DOMUtil.XSD_STRING));
 
         refVal.setFilter(parseFilter(xmap.get(XNode.KEY_REFERENCE_FILTER), pc));
+        
+        String resolutionTimeString = (String) xmap.getParsedPrimitiveValue(XNode.KEY_REFERENCE_RESOLUTION_TIME, DOMUtil.XSD_STRING);
+        if (resolutionTimeString != null) {
+        	EvaluationTimeType resolutionTime = EvaluationTimeType.fromValue(resolutionTimeString);
+        	refVal.setResolutionTime(resolutionTime);
+        }
 
         XNode xnodeForTargetName = xmap.get(XNode.KEY_REFERENCE_TARGET_NAME);
         if (xnodeForTargetName != null) {

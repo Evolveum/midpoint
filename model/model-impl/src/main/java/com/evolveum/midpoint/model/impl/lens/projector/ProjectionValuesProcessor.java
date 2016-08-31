@@ -17,10 +17,8 @@ package com.evolveum.midpoint.model.impl.lens.projector;
 
 import static com.evolveum.midpoint.common.InternalsConfig.consistencyChecks;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
-import java.util.List;
 
 import com.evolveum.midpoint.model.impl.sync.SynchronizationService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -118,8 +116,6 @@ public class ProjectionValuesProcessor {
 	@Autowired
 	private ProvisioningService provisioningService;
 	
-	private List<LensProjectionContext> conflictingAccountContexts = new ArrayList<LensProjectionContext>();
-	
 	public <O extends ObjectType> void process(LensContext<O> context,
 			LensProjectionContext projectionContext, String activityDescription, Task task, OperationResult result)
 			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException,
@@ -197,7 +193,8 @@ public class ProjectionValuesProcessor {
 			projContext.setSqueezedAttributes(null);
 			projContext.setSqueezedAssociations(null);
 			
-			LOGGER.trace("Projection values iteration {}, token '{}' for {}", new Object[]{iteration, iterationToken, projContext.getHumanReadableName()});
+			LOGGER.trace("Projection values iteration {}, token '{}' for {}",
+					iteration, iterationToken, projContext.getHumanReadableName());
 			
 //			LensUtil.traceContext(LOGGER, activityDescription, "values (start)", false, context, true);
 			
@@ -205,7 +202,7 @@ public class ProjectionValuesProcessor {
 				
 				conflictMessage = "pre-iteration condition was false";
 				LOGGER.debug("Skipping iteration {}, token '{}' for {} because the pre-iteration condition was false",
-						new Object[]{iteration, iterationToken, projContext.getHumanReadableName()});
+						iteration, iterationToken, projContext.getHumanReadableName());
 			} else {
 							
 				if (consistencyChecks) context.checkConsistence();
@@ -365,7 +362,7 @@ public class ProjectionValuesProcessor {
 													conflictingAccountContext.getDependencies().clear();
 													conflictingAccountContext.getDependencies().addAll(projContext.getDependencies());
 													conflictingAccountContext.setWave(projContext.getWave());
-													conflictingAccountContexts.add(conflictingAccountContext);
+													context.addConflictingProjectionContext(conflictingAccountContext);
 												}
 												
 												projContext.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.BROKEN);
@@ -451,11 +448,6 @@ public class ProjectionValuesProcessor {
 		
 					
 	}
-	
-	public <P extends ObjectType> List<LensProjectionContext> getConflictingContexts(){
-		return conflictingAccountContexts;
-	}
-	
 	
 	private boolean willResetIterationCounter(LensProjectionContext projectionContext) throws SchemaException {
 		ObjectDelta<ShadowType> accountDelta = projectionContext.getDelta();
