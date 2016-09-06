@@ -124,7 +124,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
- * Assignment processor is recomputing user assignments. It recomputes all the assignements whether they are direct
+ * Assignment processor is recomputing user assignments. It recomputes all the assignments whether they are direct
  * or indirect (roles). 
  * 
  * Processor does not do the complete recompute. Only the account "existence" is recomputed. I.e. the processor determines
@@ -141,29 +141,29 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 @Component
 public class AssignmentProcessor {
 
-    @Autowired(required = true)
+    @Autowired
     @Qualifier("cacheRepositoryService")
     private RepositoryService repositoryService;
 
-    @Autowired(required = true)
+    @Autowired
     private ObjectResolver objectResolver;
 
-    @Autowired(required = true)
+    @Autowired
     private PrismContext prismContext;
 
-    @Autowired(required = true)
+    @Autowired
     private MappingFactory mappingFactory;
     
-    @Autowired(required = true)
+    @Autowired
     private MappingEvaluator mappingEvaluator;
     
-    @Autowired(required = true)
+    @Autowired
     private ProvisioningService provisioningService;
     
-    @Autowired(required = true)
+    @Autowired
 	private ActivationComputer activationComputer;
     
-    @Autowired(required = true)
+    @Autowired
     private ObjectTemplateProcessor objectTemplateProcessor;
 
     private static final Trace LOGGER = TraceManager.getTrace(AssignmentProcessor.class);
@@ -569,9 +569,7 @@ public class AssignmentProcessor {
             // Dump the maps
             LOGGER.trace("constructionMapTriple:\n{}", constructionMapTriple.debugDump());
         }
-        
-        
-        
+
         // Now we are processing constructions from all the three sets once again. We will create projection contexts
         // for them if not yet created. Now we will do the usual routing for converting the delta triples to deltas. 
         // I.e. zero means unchanged, plus means added, minus means deleted. That will be recorded in the SynchronizationPolicyDecision.
@@ -597,7 +595,7 @@ public class AssignmentProcessor {
 					continue;
 				}
 				
-				if (SchemaConstants.CHANGE_CHANNEL_DISCOVERY.equals(QNameUtil.uriToQName(context.getChannel()))){
+				if (SchemaConstants.CHANGE_CHANNEL_DISCOVERY.equals(QNameUtil.uriToQName(context.getChannel()))) {
 					LOGGER.trace("Processing of shadow identified by {} will be skipped because of limitation for discovery channel.");	// TODO is this message OK? [med]
 					processOnlyExistingProjCxts = true;
 				}
@@ -1200,9 +1198,9 @@ public class AssignmentProcessor {
 			
 			if (LOGGER.isTraceEnabled()) {
 				LOGGER.trace("Finishing legal decision for {}, thombstone {}, enforcement mode {}, legalize {}: {} -> {}",
-						new Object[]{projectionContext.toHumanReadableString(), projectionContext.isThombstone(),
-								projectionContext.getAssignmentPolicyEnforcementType(),
-								projectionContext.isLegalize(), projectionContext.isLegalOld(), projectionContext.isLegal()});
+						projectionContext.toHumanReadableString(), projectionContext.isThombstone(),
+						projectionContext.getAssignmentPolicyEnforcementType(),
+						projectionContext.isLegalize(), projectionContext.isLegalOld(), projectionContext.isLegal());
 			}
 			
 			propagateLegalDecisionToHigherOrders(context, projectionContext);
@@ -1504,7 +1502,6 @@ public class AssignmentProcessor {
 				}
 			} else if (evaluatedAssignmentTriple.presentInZeroSet(assignment)) {
 				// No need to check anything here. Maintain status quo.
-//				checkAssigneeConstraints(context, assignment, PlusMinusZero.ZERO, result);
 			} else {
 				if (assignment.isPresentInCurrentObject()) {
 					checkAssigneeConstraints(context, assignment, PlusMinusZero.MINUS, result);		// only assignments that are really deleted
@@ -1599,7 +1596,7 @@ public class AssignmentProcessor {
     }
     
 	private <F extends FocusType> Collection<? extends ItemDelta<?,?>> getExecutionWaveAssignmentItemDeltas(LensFocusContext<F> focusContext, Long id) throws SchemaException {
-        ObjectDelta<? extends FocusType> focusDelta = (ObjectDelta<? extends FocusType>) focusContext.getWaveDelta(focusContext.getLensContext().getExecutionWave());
+        ObjectDelta<? extends FocusType> focusDelta = focusContext.getWaveDelta(focusContext.getLensContext().getExecutionWave());
         if (focusDelta == null) {
             return null;
         }
@@ -1608,7 +1605,7 @@ public class AssignmentProcessor {
 	}
 
     private <F extends FocusType> ContainerDelta<AssignmentType> createEmptyAssignmentDelta(LensFocusContext<F> focusContext) {
-        return new ContainerDelta<AssignmentType>(getAssignmentContainerDefinition(focusContext), prismContext);
+        return new ContainerDelta<>(getAssignmentContainerDefinition(focusContext), prismContext);
     }
     
     private <F extends FocusType> PrismContainerDefinition<AssignmentType> getAssignmentContainerDefinition(LensFocusContext<F> focusContext) {

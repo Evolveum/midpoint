@@ -22,9 +22,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 import javax.xml.namespace.QName;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 
 /**
  * Grammar:
@@ -120,6 +118,11 @@ public class DeltaBuilder<T extends Containerable> implements S_ItemEntry, S_May
     @Override
     public ObjectDelta asObjectDelta(String oid) {
         return ObjectDelta.createModifyDelta(oid, getAllDeltas(), (Class) objectClass, prismContext);
+    }
+
+    @Override
+    public List<ObjectDelta<?>> asObjectDeltas(String oid) {
+        return Collections.<ObjectDelta<?>>singletonList(ObjectDelta.createModifyDelta(oid, getAllDeltas(), (Class) objectClass, prismContext));
     }
 
     @Override

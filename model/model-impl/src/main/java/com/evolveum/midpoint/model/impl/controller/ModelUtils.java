@@ -105,7 +105,12 @@ public class ModelUtils {
 	}
 
 	public static <O extends ObjectType> ObjectPolicyConfigurationType determineObjectPolicyConfiguration(PrismObject<O> object, SystemConfigurationType systemConfigurationType) throws ConfigurationException {
-		List<String> subTypes = determineSubTypes(object);
+		List<String> subTypes;
+        if (object.getOid() == null){
+            subTypes = new ArrayList<>();
+        } else {
+            subTypes = determineSubTypes(object);
+        }
 		return determineObjectPolicyConfiguration(object.getCompileTimeClass(), subTypes, systemConfigurationType);
 	}
 	

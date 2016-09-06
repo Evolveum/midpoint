@@ -34,19 +34,27 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriInfo;
+import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.model.api.ModelInteractionService;
+import com.evolveum.midpoint.model.api.*;
 import com.evolveum.midpoint.model.impl.util.RestServiceUtil;
+import com.evolveum.midpoint.prism.Item;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_3.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.model.model_3.ExecuteScriptsResponseType;
+import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ItemListType;
+import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ScriptingExpressionType;
+import com.evolveum.prism.xml.ns._public.types_3.RawType;
 import org.apache.commons.lang.Validate;
 import org.apache.cxf.jaxrs.ext.MessageContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.impl.rest.PATCH;
 import com.evolveum.midpoint.model.impl.security.SecurityHelper;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -64,8 +72,6 @@ import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectListType;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectModificationType;
 import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 
 /**
@@ -91,18 +97,26 @@ public class ModelRestService {
 	public static final String OPERATION_SUSPEND_AND_DELETE_TASKS = CLASS_DOT + "suspendAndDeleteTasks";
 	public static final String OPERATION_RESUME_TASKS = CLASS_DOT + "resumeTasks";
 	public static final String OPERATION_SCHEDULE_TASKS_NOW = CLASS_DOT + "scheduleTasksNow";
+	public static final String OPERATION_EXECUTE_SCRIPT = CLASS_DOT + "executeScript";
+	public static final String OPERATION_COMPARE = CLASS_DOT + "compare";
 
 	
-	@Autowired(required=true)
+	@Autowired
 	private ModelCrudService model;
 
-	@Autowired(required=true)
+	@Autowired
+	private ScriptingService scriptingService;
+
+	@Autowired
+	private ModelService modelService;
+
+	@Autowired
 	private ModelInteractionService modelInteraction;
 	
-	@Autowired(required=true)
+	@Autowired
 	private PrismContext prismContext;
 	
-	@Autowired(required=true)
+	@Autowired
 	private SecurityHelper securityHelper;
 	
 	private static final Trace LOGGER = TraceManager.getTrace(ModelRestService.class);
@@ -589,8 +603,101 @@ public class ModelRestService {
 		finishRequest(task);
 		return response;
     }
-	
-//    @GET
+
+	@POST
+	@Path("/scriptExecutions")
+	//	@Produces({"text/html", "application/xml"})
+	@Consumes({"application/xml" })
+	public <T extends ObjectType> Response executeScript(ScriptingExpressionType scriptingExpression,
+			@QueryParam("asynchronous") Boolean asynchronous,
+			@Context UriInfo uriInfo, @Context MessageContext mc) {
+
+		Task task = RestServiceUtil.initRequest(mc);
+		OperationResult result = task.getResult().createSubresult(OPERATION_EXECUTE_SCRIPT);
+
+		String oid;
+		Response response;
+		try {
+			ResponseBuilder builder;
+			if (Boolean.TRUE.equals(asynchronous)) {
+				scriptingService.evaluateExpression(scriptingExpression, task, result);
+				URI resourceUri = uriInfo.getAbsolutePathBuilder().path(task.getOid()).build(task.getOid());
+				builder = Response.created(resourceUri);
+			} else {
+				ScriptExecutionResult executionResult = scriptingService.evaluateExpression(scriptingExpression, task, result);
+
+				ExecuteScriptsResponseType operationOutput = new ExecuteScriptsResponseType();
+				operationOutput.setResult(result.createOperationResultType());
+				ScriptOutputsType outputs = new ScriptOutputsType();
+				operationOutput.setOutputs(outputs);
+				SingleScriptOutputType output = new SingleScriptOutputType();
+				output.setTextOutput(executionResult.getConsoleOutput());
+				output.setXmlData(prepareXmlData(executionResult.getDataOutput()));
+				outputs.getOutput().add(output);
+
+				builder = Response.ok();
+				builder.entity(operationOutput);
+			}
+
+			response = builder.build();
+		} catch (Exception ex) {
+			response = RestServiceUtil.handleException(ex);
+		}
+
+		result.computeStatus();
+		finishRequest(task);
+		return response;
+	}
+
+	private ItemListType prepareXmlData(List<Item> output) throws JAXBException, SchemaException {
+		ItemListType itemListType = new ItemListType();
+		if (output != null) {
+			for (Item item : output) {
+				RawType rawType = prismContext.toRawType(item);
+				itemListType.getItem().add(rawType);
+			}
+		}
+		return itemListType;
+	}
+
+	@POST
+	@Path("/comparisons")
+	//	@Produces({"text/html", "application/xml"})
+	@Consumes({"application/xml" })
+	public <T extends ObjectType> Response compare(PrismObject<T> clientObject,
+			@QueryParam("readOptions") List<String> restReadOptions,
+			@QueryParam("compareOptions") List<String> restCompareOptions,
+			@QueryParam("ignoreItems") List<String> restIgnoreItems,
+			@Context MessageContext mc) {
+
+		Task task = RestServiceUtil.initRequest(mc);
+		OperationResult result = task.getResult().createSubresult(OPERATION_COMPARE);
+
+		Response response;
+		try {
+			ResponseBuilder builder;
+			List<ItemPath> ignoreItemPaths = ItemPath.fromStringList(restIgnoreItems);
+			final GetOperationOptions getOpOptions = GetOperationOptions.fromRestOptions(restReadOptions);
+			Collection<SelectorOptions<GetOperationOptions>> readOptions =
+					getOpOptions != null ? SelectorOptions.createCollection(getOpOptions) : null;
+			ModelCompareOptions compareOptions = ModelCompareOptions.fromRestOptions(restCompareOptions);
+			CompareResultType compareResult = modelService.compareObject(clientObject, readOptions, compareOptions, ignoreItemPaths, task, result);
+
+			builder = Response.ok();
+			builder.entity(compareResult);
+
+			response = builder.build();
+		} catch (Exception ex) {
+			response = RestServiceUtil.handleException(ex);
+		}
+
+		result.computeStatus();
+		finishRequest(task);
+		return response;
+	}
+
+
+	//    @GET
 //    @Path("tasks/{oid}")
 //    public Response getTaskByIdentifier(@PathParam("oid") String identifier) throws SchemaException, ObjectNotFoundException {
 //    	OperationResult parentResult = new OperationResult("getTaskByIdentifier");

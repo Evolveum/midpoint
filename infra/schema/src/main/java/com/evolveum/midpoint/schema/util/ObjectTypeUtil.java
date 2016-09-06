@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.schema.util;
 
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.parser.XPathHolder;
 import com.evolveum.midpoint.prism.parser.XPathSegment;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -37,6 +38,7 @@ import org.w3c.dom.Element;
 import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -474,6 +476,18 @@ public class ObjectTypeUtil {
 		}
 		return ref.asReferenceValue().getObject();
 	}
-	
-	
+
+	public static List<ObjectDelta<? extends ObjectType>> toDeltaList(ObjectDelta<?> delta) {
+		@SuppressWarnings("unchecked")
+		ObjectDelta<? extends ObjectType> objectDelta = (ObjectDelta<? extends ObjectType>) delta;
+		return Collections.<ObjectDelta<? extends ObjectType>>singletonList(objectDelta);
+	}
+
+	// Hack: because DeltaBuilder cannot provide ObjectDelta<? extends ObjectType> (it is from schema)
+	public static Collection<ObjectDelta<? extends ObjectType>> cast(Collection<ObjectDelta<?>> deltas) {
+		@SuppressWarnings("unchecked")
+		final Collection<ObjectDelta<? extends ObjectType>> deltas1 = (Collection) deltas;
+		return deltas1;
+	}
+
 }

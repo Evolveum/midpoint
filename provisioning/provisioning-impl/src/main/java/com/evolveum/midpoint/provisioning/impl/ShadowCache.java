@@ -1762,6 +1762,8 @@ public abstract class ShadowCache {
 		ShadowType repoShadowType = repoShadow.asObjectable();
 		ShadowType resourceShadowType = resourceShadow.asObjectable();
 
+		Collection<QName> auxObjectClassQNames = new ArrayList<>();
+
 		// Always take auxiliary object classes from the resource. Unlike
 		// structural object classes
 		// the auxiliary object classes may change.
@@ -1772,6 +1774,7 @@ public abstract class ShadowCache {
 			PrismProperty<QName> resultAuxOcProp = resultShadow
 					.findOrCreateProperty(ShadowType.F_AUXILIARY_OBJECT_CLASS);
 			resultAuxOcProp.addAll(PrismPropertyValue.cloneCollection(resourceAuxOcProp.getValues()));
+			auxObjectClassQNames.addAll(resultAuxOcProp.getRealValues());
 		}
 
 		resultShadowType.setName(new PolyStringType(ShadowUtil.determineShadowName(resourceShadow)));
@@ -1785,7 +1788,7 @@ public abstract class ShadowCache {
 		// Attributes
 		resultShadow.removeContainer(ShadowType.F_ATTRIBUTES);
 		ResourceAttributeContainer resultAttibutes = resourceAttributesContainer.clone();
-		accessChecker.filterGetAttributes(resultAttibutes, ctx.getObjectClassDefinition(), parentResult);
+		accessChecker.filterGetAttributes(resultAttibutes, ctx.computeCompositeObjectClassDefinition(auxObjectClassQNames), parentResult);
 		resultShadow.add(resultAttibutes);
 
 		resultShadowType.setIgnored(resourceShadowType.isIgnored());

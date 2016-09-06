@@ -27,6 +27,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -46,6 +47,7 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_3.CompareResultType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ImportOptionsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorHostType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
@@ -53,6 +55,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * <p>
@@ -85,6 +88,7 @@ public interface ModelService {
 	// Constants for OperationResult
 	static final String CLASS_NAME_WITH_DOT = ModelService.class.getName() + ".";
 	static final String GET_OBJECT = CLASS_NAME_WITH_DOT + "getObject";
+	static final String COMPARE_OBJECT = CLASS_NAME_WITH_DOT + "compareObject";
 	static final String SEARCH_OBJECTS = CLASS_NAME_WITH_DOT + "searchObjects";
 	static final String SEARCH_CONTAINERS = CLASS_NAME_WITH_DOT + "searchContainers";
 	static final String COUNT_CONTAINERS = CLASS_NAME_WITH_DOT + "countContainers";
@@ -627,4 +631,27 @@ public interface ModelService {
 	 * up.
 	 */
 	void postInit(OperationResult parentResult);
+
+	/**
+	 * TODO
+	 *
+	 * @param object
+	 * @param readOptions
+	 * @param compareOptions
+	 * @param ignoreItemPaths
+	 * @param task
+	 * @param result
+	 * @param <T>
+	 * @return
+	 * @throws SchemaException
+	 * @throws ObjectNotFoundException
+	 * @throws SecurityViolationException
+	 * @throws CommunicationException
+	 * @throws ConfigurationException
+	 */
+	<T extends ObjectType> CompareResultType compareObject(PrismObject<T> object,
+			Collection<SelectorOptions<GetOperationOptions>> readOptions, ModelCompareOptions compareOptions,
+			@NotNull List<ItemPath> ignoreItemPaths, Task task, OperationResult result)
+			throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException,
+			ConfigurationException;
 }

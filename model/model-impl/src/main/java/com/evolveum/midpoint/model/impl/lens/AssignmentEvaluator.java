@@ -226,8 +226,8 @@ public class AssignmentEvaluator<F extends FocusType> {
 			AssignmentPath assignmentPath, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, PolicyViolationException {
 		assertSource(source, evalAssignment);
 		
-		LOGGER.trace("Evaluate assignment {} (eval constr: {}, mode: {})", new Object[]{
-				assignmentPath, assignmentPathSegment.isEvaluateConstructions(), mode});
+		LOGGER.trace("Evaluate assignment {} (eval constr: {}, mode: {})", assignmentPath, assignmentPathSegment.isEvaluateConstructions(),
+				mode);
 		
 		ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi = assignmentPathSegment.getAssignmentIdi();
 		AssignmentType assignmentType = LensUtil.getAssignmentType(assignmentIdi, evaluateOld);
@@ -255,20 +255,23 @@ public class AssignmentEvaluator<F extends FocusType> {
             }
 		}
 		
-		LOGGER.info("TTTTTTTTTT in {}: {}", source, targets);
+		LOGGER.trace("Targets in {}: {}", source, targets);
 		if (targets != null) {
 			for (PrismObject<O> target: targets) {
-				evaluateAssignmentTarget(evalAssignment, assignmentPathSegment, evaluateOld, mode, isParentValid, source, 
+				evaluateAssignmentWithResolvedTarget(evalAssignment, assignmentPathSegment, evaluateOld, mode, isParentValid, source,
 						sourceDescription, assignmentPath, assignmentType, target, task, result);
 			}
 		} else {
-			evaluateAssignmentTarget(evalAssignment, assignmentPathSegment, evaluateOld, mode, isParentValid, source, 
+			evaluateAssignmentWithResolvedTarget(evalAssignment, assignmentPathSegment, evaluateOld, mode, isParentValid, source,
 					sourceDescription, assignmentPath, assignmentType, null, task, result);
 		}
-		
 	}
-	
-	private <O extends ObjectType> void evaluateAssignmentTarget(EvaluatedAssignmentImpl<F> evalAssignment, AssignmentPathSegment assignmentPathSegment, 
+
+	/**
+	 *  Continues with assignment evaluation: Either there is a non-null (resolved) target, passed in "target" parameter,
+	 *  or traditional options stored in assignmentType (construction or focus mappings). TargetRef from assignmentType is ignored.
+ 	 */
+	private <O extends ObjectType> void evaluateAssignmentWithResolvedTarget(EvaluatedAssignmentImpl<F> evalAssignment, AssignmentPathSegment assignmentPathSegment,
 			boolean evaluateOld, PlusMinusZero mode, boolean isParentValid, ObjectType source, String sourceDescription,
 			AssignmentPath assignmentPath, AssignmentType assignmentType, PrismObject<O> target, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, PolicyViolationException {
 		if (target != null && evalAssignment.getTarget() == null) {
@@ -279,8 +282,10 @@ public class AssignmentEvaluator<F extends FocusType> {
 			if (target.getOid().equals(source.getOid())) {
 				throw new PolicyViolationException("The "+source+" refers to itself in assignment/inducement");
 			}
+
 			LOGGER.trace("Checking for role cycle, comparing actual order {} with evaluation order {}", assignmentPathSegment.getEvaluationOrder(), assignmentPath.getEvaluationOrder());
 			if (assignmentPath.containsTarget((ObjectType) target.asObjectable()) && assignmentPathSegment.getEvaluationOrder() == assignmentPath.getEvaluationOrder()) {
+
 				throw new PolicyViolationException("Attempt to assign "+target+" creates a role cycle");
 			}
 		}
@@ -297,15 +302,14 @@ public class AssignmentEvaluator<F extends FocusType> {
 			PlusMinusZero condMode = ExpressionUtil.computeConditionResultMode(condOld, condNew);
 			if (condMode == null || (condMode == PlusMinusZero.ZERO && !condNew)) {
 				LOGGER.trace("Skipping evaluation of "+assignmentType+" because of condition result ({} -> {}: {})",
-						new Object[]{ condOld, condNew, condMode });
+						condOld, condNew, condMode);
 				assignmentPath.remove(assignmentPathSegment);
 				evalAssignment.setValid(false);
 				return;
 			}
 			PlusMinusZero origMode = mode;
 			mode = PlusMinusZero.compute(mode, condMode);
-			LOGGER.trace("Evaluated condition in assignment {} -> {}: {} + {} = {}", new Object[]{
-					condOld, condNew, origMode, condMode, mode });
+			LOGGER.trace("Evaluated condition in assignment {} -> {}: {} + {} = {}", condOld, condNew, origMode, condMode, mode);
 		}
 		
 		boolean isValid = LensUtil.isValid(assignmentType, now, activationComputer);
@@ -322,13 +326,13 @@ public class AssignmentEvaluator<F extends FocusType> {
 			} else if (assignmentType.getFocusMappings() != null) {
 				
 				if (evaluateConstructions && assignmentPathSegment.isEvaluateConstructions()) {
-					evaluateFocusMappings(evalAssignment, assignmentPathSegment, evaluateOld, source, sourceDescription, 
+					evaluateFocusMappings(evalAssignment, assignmentPathSegment, evaluateOld, source, sourceDescription,
 							assignmentPath, assignmentPathSegment.getOrderOneObject(), task, result);
 				}
 				
 			} else if (target != null) {
 				
-				evaluateTarget(evalAssignment, assignmentPathSegment, evaluateOld, mode, isValid, target, source, assignmentType.getTargetRef().getRelation(), sourceDescription,
+				evaluateTarget(evalAssignment, assignmentPathSegment, evaluateOld, mode, isParentValid && isValid, target, source, assignmentType.getTargetRef().getRelation(), sourceDescription,
 						assignmentPath, task, result);
 				
 			} else {
@@ -356,7 +360,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 		
 		LOGGER.trace("Preparing construction '{}' in {}", constructionType.getDescription(), source);
 
-		Construction<F> construction = new Construction<F>(constructionType, source);
+		Construction<F> construction = new Construction<>(constructionType, source);
 		// We have to clone here as the path is constantly changing during evaluation
 		construction.setAssignmentPath(assignmentPath.clone());
 		construction.setFocusOdo(focusOdo);
@@ -392,8 +396,8 @@ public class AssignmentEvaluator<F extends FocusType> {
 		AssignmentType assignmentTypeNew = LensUtil.getAssignmentType(assignmentPathSegment.getAssignmentIdi(), evaluateOld);
 		MappingsType mappingsType = assignmentTypeNew.getFocusMappings();
 		
-		LOGGER.trace("Evaluate focus mappings '{}' in {} ({} mappings)", 
-				new Object[]{mappingsType.getDescription(), source, mappingsType.getMapping().size()});
+		LOGGER.trace("Evaluate focus mappings '{}' in {} ({} mappings)",
+				mappingsType.getDescription(), source, mappingsType.getMapping().size());
 		AssignmentPathVariables assignmentPathVariables = LensUtil.computeAssignmentPathVariables(assignmentPath);
 
 		for (MappingType mappingType: mappingsType.getMapping()) {
@@ -517,6 +521,11 @@ public class AssignmentEvaluator<F extends FocusType> {
 			boolean evaluateOld, PlusMinusZero mode, boolean isValid, AbstractRoleType roleType, ObjectType source, String sourceDescription,
 			AssignmentPath assignmentPath, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, PolicyViolationException {
 		assertSource(source, assignment);
+
+		if (!LensUtil.isValid(roleType, now, activationComputer)) {
+			LOGGER.trace("Skipping evaluation of " + roleType + " because it is not valid");
+			return false;
+		}
 		
 		MappingType conditionType = roleType.getCondition();
 		if (conditionType != null) {
@@ -576,7 +585,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 			if (inducementOrder == evaluationOrder) {
 				if (LOGGER.isTraceEnabled()) {
 					LOGGER.trace("E{}: evaluate inducement({}) {} in {}",
-						new Object[]{evaluationOrder, inducementOrder, dumpAssignment(roleInducement), roleType});
+							evaluationOrder, inducementOrder, dumpAssignment(roleInducement), roleType);
 				}
 				roleAssignmentPathSegment.setEvaluateConstructions(true);
 				roleAssignmentPathSegment.setEvaluationOrder(evaluationOrder);
@@ -592,14 +601,14 @@ public class AssignmentEvaluator<F extends FocusType> {
 			} else {
 				if (LOGGER.isTraceEnabled()) {
 					LOGGER.trace("E{}: NOT evaluate inducement({}) {} in {}",
-						new Object[]{evaluationOrder, inducementOrder, dumpAssignment(roleInducement), roleType});
+							evaluationOrder, inducementOrder, dumpAssignment(roleInducement), roleType);
 				}
 			}
 		}
 		for (AssignmentType roleAssignment : roleType.getAssignment()) {
 			if (LOGGER.isTraceEnabled()) {
 				LOGGER.trace("E{}: follow assignment {} in {}",
-					new Object[]{evaluationOrder, dumpAssignment(roleAssignment), roleType});
+						evaluationOrder, dumpAssignment(roleAssignment), roleType);
 			}
 			ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> roleAssignmentIdi = new ItemDeltaItem<>();
 			roleAssignmentIdi.setItemOld(LensUtil.createAssignmentSingleValueContainerClone(roleAssignment));
@@ -643,7 +652,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 		if (!focusClass.equals(lensContext.getFocusClass())) {
 			if (LOGGER.isTraceEnabled()) {
 				LOGGER.trace("Skipping evaluation of {} because it is applicable only for {} and not for {}",
-						new Object[] { roleType, focusClass, lensContext.getFocusClass()});
+						roleType, focusClass, lensContext.getFocusClass());
 			}
 			return false;
 		}
@@ -657,7 +666,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 	public static String dumpAssignment(AssignmentType assignmentType) { 
 		StringBuilder sb = new StringBuilder();
 		if (assignmentType.getConstruction() != null) {
-			sb.append("Constr '"+assignmentType.getConstruction().getDescription()+"' ");
+			sb.append("Constr '").append(assignmentType.getConstruction().getDescription()).append("' ");
 		}
 		if (assignmentType.getTargetRef() != null) {
 			sb.append("-> ").append(assignmentType.getTargetRef().getOid());

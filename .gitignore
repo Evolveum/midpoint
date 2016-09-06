@@ -4,6 +4,7 @@
 .settings
 .idea
 *.iml
+*.log
 *.versionsBackup
 target
 rebel.xml

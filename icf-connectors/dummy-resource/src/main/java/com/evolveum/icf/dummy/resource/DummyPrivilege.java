@@ -36,6 +36,11 @@ public class DummyPrivilege extends DummyObject {
 	}
 
 	@Override
+	protected DummyObjectClass getObjectClassNoExceptions() {
+		return resource.getPrivilegeObjectClass();
+	}
+
+	@Override
 	public String getShortTypeName() {
 		return "priv";
 	}

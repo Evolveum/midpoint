@@ -34,8 +34,8 @@ public class ResourceContentRepositoryPanel extends ResourceContentPanel {
 	private static final long serialVersionUID = 1L;
 
 	public ResourceContentRepositoryPanel(String id, IModel<PrismObject<ResourceType>> resourceModel,
-			QName objectClass, ShadowKindType kind, String intent, PageBase pageBase) {
-		super(id, resourceModel, objectClass, kind, intent, pageBase);
+			QName objectClass, ShadowKindType kind, String intent, String searchMode, PageBase pageBase) {
+		super(id, resourceModel, objectClass, kind, intent, searchMode, pageBase);
 	}
 
 	@Override

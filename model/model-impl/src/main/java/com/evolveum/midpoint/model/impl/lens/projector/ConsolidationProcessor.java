@@ -101,13 +101,13 @@ public class ConsolidationProcessor {
     
     private PrismContainerDefinition<ShadowAssociationType> associationDefinition;
     
-    @Autowired(required=true)
+    @Autowired
     private ContextLoader contextLoader;
     
-    @Autowired(required=true)
+    @Autowired
 	private MatchingRuleRegistry matchingRuleRegistry;
 
-    @Autowired(required=true)
+    @Autowired
     PrismContext prismContext;
     
     /**
@@ -133,7 +133,6 @@ public class ConsolidationProcessor {
         } else {
             // This is ADD, KEEP, UNLINK or null. All are in fact the same as KEEP
             consolidateValuesModifyProjection(context, accCtx, task, result);
-            if (consistencyChecks) context.checkConsistence();
         }
         if (consistencyChecks) context.checkConsistence();
     }
@@ -394,24 +393,7 @@ public class ConsolidationProcessor {
         	return null;
         }
 
-        // when this code is enabled, attempts to modify unmodifiable attributes
-        // seemingly succeed (without actually modifying anything)
-//        PropertyLimitations limitations = attributeDefinition.getLimitations(LayerType.MODEL);
-//        if (limitations != null) {
-//        	PropertyAccessType access = limitations.getAccess();
-//        	if (access != null) {
-//        		if (projCtx.isAdd() && (access.isAdd() == null || !access.isAdd())) {
-//        			LOGGER.trace("Skipping processing mappings for attribute {} because it is non-createable", itemName);
-//                	return null;
-//        		}
-//        		if (projCtx.isModify() && (access.isModify() == null || !access.isModify())) {
-//        			LOGGER.trace("Skipping processing mappings for attribute {} because it is non-updateable", itemName);
-//                	return null;
-//        		}
-//        	}
-//        }
-       
-        ValueMatcher<T> valueMatcher = ValueMatcher.createMatcher(attributeDefinition, matchingRuleRegistry); 
+        ValueMatcher<T> valueMatcher = ValueMatcher.createMatcher(attributeDefinition, matchingRuleRegistry);
        
         return (PropertyDelta<T>) consolidateItem(rOcDef, discr, existingDelta, projCtx, addUnchangedValues, completeShadow, 
         		attributeDefinition.isExlusiveStrong(), itemPath, attributeDefinition, triple, valueMatcher, null, "attribute "+itemName);
@@ -509,7 +491,7 @@ public class ConsolidationProcessor {
         }
         
         LOGGER.trace("CONSOLIDATE {}\n({}) completeShadow={}, addUnchangedValues={}, forceAddUnchangedValues={}",
-        		new Object[]{ itemDesc, discr, completeShadow, addUnchangedValues, forceAddUnchangedValues});
+				itemDesc, discr, completeShadow, addUnchangedValues, forceAddUnchangedValues);
         
         // Use this common utility method to do the computation. It does most of the work.
 		ItemDelta<V,D> itemDelta = LensUtil.consolidateTripleToDelta(
@@ -780,10 +762,9 @@ public class ConsolidationProcessor {
 
 	private <V extends PrismValue, D extends ItemDefinition, F extends FocusType> Map<QName, DeltaSetTriple<ItemValueWithOrigin<V,D>>> sqeeze(
 			LensProjectionContext accCtx, MappingExtractor<V,D,F> extractor) {
-		Map<QName, DeltaSetTriple<ItemValueWithOrigin<V,D>>> squeezedMap 
-						= new HashMap<QName, DeltaSetTriple<ItemValueWithOrigin<V,D>>>();
+		Map<QName, DeltaSetTriple<ItemValueWithOrigin<V,D>>> squeezedMap = new HashMap<>();
 		if (accCtx.getConstructionDeltaSetTriple() != null) {
-			sqeezeAttributesFromConstructionTriple(squeezedMap, (PrismValueDeltaSetTriple)accCtx.getConstructionDeltaSetTriple(), extractor);		
+			sqeezeAttributesFromConstructionTriple(squeezedMap, (PrismValueDeltaSetTriple)accCtx.getConstructionDeltaSetTriple(), extractor);
 		}
 		if (accCtx.getOutboundConstruction() != null) {
 			// The plus-minus-zero status of outbound account construction is determined by the type of account delta
@@ -805,8 +786,18 @@ public class ConsolidationProcessor {
 		sqeezeAttributesFromAccountConstructionSet(squeezedMap, constructionDeltaSetTriple.getZeroSet(), extractor);
 		// Plus accounts: zero and plus values go to plus
 		sqeezeAttributesFromAccountConstructionSetNonminusToPlus(squeezedMap, constructionDeltaSetTriple.getPlusSet(), extractor);
-		// Minus accounts: zero and plus values go to minus
-		sqeezeAttributesFromConstructionSetNonminusToMinus(squeezedMap, constructionDeltaSetTriple.getMinusSet(), extractor);
+		// Minus accounts: all values go to minus
+		sqeezeAttributesFromConstructionSetAllToMinus(squeezedMap, constructionDeltaSetTriple.getMinusSet(), extractor);
+
+		// Why all values in the last case: imagine that mapping M evaluated to "minus: A" on delta D.
+		// The mapping itself is in minus set, so it disappears when delta D is applied. Therefore, value of A
+		// was originally produced by the mapping M, and the mapping was originally active. So originally there was value of A
+		// present, and we have to remove it. See MID-3325 / TestNullAttribute story.
+		//
+		// The same argument is valid for zero set of mapping output.
+		//
+		// Finally, the plus set of mapping output goes to resulting minus just for historical reasons... it was implemented
+		// in this way for a long time. It seems to be unnecessary but also harmless. So let's keep it there, for now.
 	}
 
 	private <V extends PrismValue, D extends ItemDefinition, F extends FocusType> void sqeezeAttributesFromAccountConstructionSet(
@@ -839,6 +830,17 @@ public class ConsolidationProcessor {
 		}
 		for (PrismPropertyValue<Construction<F>> construction: constructionSet) {
 			sqeezeAttributesFromConstructionNonminusToMinus(squeezedMap, construction.getValue(), extractor);
+		}
+	}
+
+	private <V extends PrismValue, D extends ItemDefinition, F extends FocusType> void sqeezeAttributesFromConstructionSetAllToMinus(
+			Map<QName, DeltaSetTriple<ItemValueWithOrigin<V,D>>> squeezedMap,
+			Collection<PrismPropertyValue<Construction<F>>> constructionSet, MappingExtractor<V,D,F> extractor) {
+		if (constructionSet == null) {
+			return;
+		}
+		for (PrismPropertyValue<Construction<F>> construction: constructionSet) {
+			sqeezeAttributesFromConstructionAllToMinus(squeezedMap, construction.getValue(), extractor);
 		}
 	}
 
@@ -887,6 +889,22 @@ public class ConsolidationProcessor {
 													= getSqueezeMapTriple(squeezedMap, name);
 			convertSqueezeSet(vcTriple.getZeroSet(), squeezeTriple.getMinusSet(), mapping, construction);
 			convertSqueezeSet(vcTriple.getPlusSet(), squeezeTriple.getMinusSet(), mapping, construction);
+		}
+	}
+
+	private <V extends PrismValue, D extends ItemDefinition, F extends FocusType> void sqeezeAttributesFromConstructionAllToMinus(
+			Map<QName, DeltaSetTriple<ItemValueWithOrigin<V,D>>> squeezedMap,
+			Construction<F> construction, MappingExtractor<V,D,F> extractor) {
+		for (PrismValueDeltaSetTripleProducer<V, D> mapping: extractor.getMappings(construction)) {
+			PrismValueDeltaSetTriple<V> vcTriple = mapping.getOutputTriple();
+			if (vcTriple == null) {
+				continue;
+			}
+			QName name = mapping.getMappingQName();
+			DeltaSetTriple<ItemValueWithOrigin<V,D>> squeezeTriple = getSqueezeMapTriple(squeezedMap, name);
+			convertSqueezeSet(vcTriple.getZeroSet(), squeezeTriple.getMinusSet(), mapping, construction);
+			convertSqueezeSet(vcTriple.getPlusSet(), squeezeTriple.getMinusSet(), mapping, construction);
+			convertSqueezeSet(vcTriple.getMinusSet(), squeezeTriple.getMinusSet(), mapping, construction);
 		}
 	}
 

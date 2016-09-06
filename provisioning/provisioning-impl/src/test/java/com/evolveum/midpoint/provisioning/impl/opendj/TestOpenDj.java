@@ -650,8 +650,8 @@ public class TestOpenDj extends AbstractOpenDjTest {
 
 		assertShadows(1);
 	}
-	
-	
+
+
 	@Test
 	public void test020ListResourceObjects() throws Exception {
 		final String TEST_NAME = "test020ListResourceObjects";
@@ -1346,7 +1346,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 
         display("ds-pwp-account-disabled after change: " + disabled);
 
-        assertEquals("ds-pwp-account-disabled not set to \"true\"", "true", disabled);
+        assertEquals("ds-pwp-account-disabled not set to \"TRUE\"", "TRUE", disabled);
         
         PrismObject<ShadowType> repoShadow = repositoryService.getObject(ShadowType.class, ACCOUNT_DISABLE_SIMULATED_OID, null, result);
         ActivationType repoActivation = repoShadow.asObjectable().getActivation();
@@ -1395,7 +1395,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 
         System.out.println("ds-pwp-account-disabled after change: " + disabled);
 
-        assertEquals("ds-pwp-account-disabled not set to \"true\"", "true", disabled);
+        assertEquals("ds-pwp-account-disabled not set to \"TRUE\"", "TRUE", disabled);
         
         ActivationType repoActivation = accountType.getActivation();
         assertNotNull("No activation in repo", repoActivation);
@@ -1442,7 +1442,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		display("LDAP account", response);
 		
 		String disabled = openDJController.getAttributeValue(response, "ds-pwp-account-disabled");
-		assertNull("unexpected ds-pwp-account-disabled attribute in account "+uid, disabled);
+		assertEquals("ds-pwp-account-disabled not set to \"FALSE\"", "FALSE", disabled);
 	}
 	
 	@Test

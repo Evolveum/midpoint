@@ -15,6 +15,7 @@
  */
 package com.evolveum.midpoint.provisioning.impl;
 
+import com.evolveum.midpoint.common.refinery.CompositeRefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -29,8 +30,10 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
+import java.util.ArrayList;
 import java.util.Collection;
 
 /**
@@ -148,7 +151,30 @@ public class ProvisioningContext extends StateReporter {
 		}
 		return objectClassDefinition;
 	}
-	
+
+	// we don't use additionalAuxiliaryObjectClassQNames as we don't know if they are initialized correctly [med] TODO: reconsider this
+	public CompositeRefinedObjectClassDefinition computeCompositeObjectClassDefinition(@NotNull Collection<QName> auxObjectClassQNames)
+			throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException {
+		RefinedObjectClassDefinition structuralObjectClassDefinition = getObjectClassDefinition();
+		if (structuralObjectClassDefinition == null) {
+			return null;
+		}
+		Collection<RefinedObjectClassDefinition> auxiliaryObjectClassDefinitions = new ArrayList<>(auxObjectClassQNames.size());
+		for (QName auxObjectClassQName : auxObjectClassQNames) {
+			RefinedObjectClassDefinition auxObjectClassDef = refinedSchema.getRefinedDefinition(auxObjectClassQName);
+			if (auxObjectClassDef == null) {
+				throw new SchemaException("Auxiliary object class " + auxObjectClassQName + " specified in " + this + " does not exist");
+			}
+			auxiliaryObjectClassDefinitions.add(auxObjectClassDef);
+		}
+		return new CompositeRefinedObjectClassDefinition(structuralObjectClassDefinition, auxiliaryObjectClassDefinitions);
+	}
+
+	public RefinedObjectClassDefinition computeCompositeObjectClassDefinition(PrismObject<ShadowType> shadow)
+			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException {
+		return computeCompositeObjectClassDefinition(shadow.asObjectable().getAuxiliaryObjectClass());
+	}
+
 	public String getChannel() {
 		return getTask()==null?null:getTask().getChannel();
 	}
@@ -239,7 +265,14 @@ public class ProvisioningContext extends StateReporter {
 			ConnectorInstance connector = connectorManager.getConfiguredConnectorInstance(getResource().asPrismObject(), false, parentResult);
 			connectorResult.recordSuccess();
 			return connector;
-		} catch (ObjectNotFoundException | SchemaException |  CommunicationException | ConfigurationException | SystemException e){
+		} catch (ObjectNotFoundException | SchemaException e){
+			connectorResult.recordPartialError("Could not get connector instance " + getDesc() + ": " +  e.getMessage(),  e);
+			// Wrap those exceptions to a configuration exception. In the context of the provisioning operation we really cannot throw
+			// ObjectNotFoundException exception. If we do that then the consistency code will interpret that as if the resource object
+			// (shadow) is missing. But that's wrong. We do not have connector therefore we do not know anything about the shadow. We cannot
+			// throw ObjectNotFoundException here.
+			throw new ConfigurationException(e.getMessage(), e);
+		} catch (CommunicationException | ConfigurationException | SystemException e){
 			connectorResult.recordPartialError("Could not get connector instance " + getDesc() + ": " +  e.getMessage(),  e);
 			throw e;
 		}

@@ -21,7 +21,7 @@ import static org.testng.AssertJUnit.assertNotNull;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -32,13 +32,11 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
 import com.evolveum.icf.dummy.resource.DummyAccount;
-import com.evolveum.icf.dummy.resource.DummyResource;
 import com.evolveum.midpoint.model.intest.AbstractInitializedModelIntegrationTest;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
@@ -70,7 +68,9 @@ public abstract class AbstractInboundSyncTest extends AbstractInitializedModelIn
 	protected static final String ACCOUNT_MANCOMB_DUMMY_USERNAME = "mancomb";
 	protected static final Date ACCOUNT_MANCOMB_VALID_FROM_DATE = MiscUtil.asDate(2011, 2, 3, 4, 5, 6);
 	protected static final Date ACCOUNT_MANCOMB_VALID_TO_DATE = MiscUtil.asDate(2066, 5, 4, 3, 2, 1);
-	
+
+	protected static final String ACCOUNT_POSIXUSER_DUMMY_USERNAME = "posixuser";
+
 	protected static String userWallyOid;
 	
 	protected boolean allwaysCheckTimestamp = false;
@@ -519,6 +519,116 @@ public abstract class AbstractInboundSyncTest extends AbstractInitializedModelIn
 
 	@Test
     public abstract void test199DeleteDummyEmeraldAccountMancomb() throws Exception;
+
+	@Test
+	public void test300AddDummyEmeraldAccountPosixUser() throws Exception {
+		final String TEST_NAME = "test300AddDummyEmeraldAccountPosixUser";
+		TestUtil.displayTestTile(this, TEST_NAME);
+
+		// GIVEN
+		Task task = createTask(AbstractInboundSyncTest.class.getName() + "." + TEST_NAME);
+		OperationResult result = task.getResult();
+		rememberTimeBeforeSync();
+		prepareNotifications();
+
+		// Preconditions
+		assertUsers(6);
+
+		DummyAccount account = new DummyAccount(ACCOUNT_POSIXUSER_DUMMY_USERNAME);
+		account.setEnabled(true);
+		account.addAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Posix User");
+		account.addAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, "Melee Island");
+		account.addAuxiliaryObjectClassName(DummyResourceContoller.DUMMY_POSIX_ACCOUNT_OBJECT_CLASS_NAME);
+		account.addAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_POSIX_UID_NUMBER, Collections.<Object>singleton(1001));
+		account.addAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_POSIX_GID_NUMBER, Collections.<Object>singleton(10001));
+
+		/// WHEN
+		TestUtil.displayWhen(TEST_NAME);
+
+		display("Adding dummy account", account.debugDump());
+
+		dummyResourceEmerald.addAccount(account);
+
+		waitForSyncTaskNextRun(resourceDummyEmerald);
+
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+
+		PrismObject<ShadowType> accountPosixUser = findAccountByUsername(ACCOUNT_POSIXUSER_DUMMY_USERNAME, resourceDummyEmerald);
+		display("Account posixuser", accountPosixUser);
+		assertNotNull("No posixuser account shadow", accountPosixUser);
+		assertEquals("Wrong resourceRef in posixuser account", RESOURCE_DUMMY_EMERALD_OID,
+				accountPosixUser.asObjectable().getResourceRef().getOid());
+		assertShadowOperationalData(accountPosixUser, SynchronizationSituationType.LINKED);
+
+		PrismObject<UserType> userPosixUser = findUserByUsername(ACCOUNT_POSIXUSER_DUMMY_USERNAME);
+		display("User posixuser", userPosixUser);
+		assertNotNull("User posixuser was not created", userPosixUser);
+		assertLinks(userPosixUser, 1);
+		assertAdministrativeStatusEnabled(userPosixUser);
+		assertLinked(userPosixUser, accountPosixUser);
+
+		assertUsers(7);
+
+		// notifications
+		notificationManager.setDisabled(true);
+		
+		// TODO create and test inbounds for uid and gid numbers; also other attributes
+		// (Actually I'm not sure it will work, as even now the auxiliary object class is
+		// removed right during the livesync. This has to be solved somehow...)
+	}
+
+	@Test
+	public void test310ModifyDummyEmeraldAccountPosixUserUidNumber() throws Exception {
+		final String TEST_NAME = "test310ModifyDummyEmeraldAccountPosixUserUidNumber";
+		TestUtil.displayTestTile(this, TEST_NAME);
+
+		// GIVEN
+		Task task = createTask(AbstractInboundSyncTest.class.getName() + "." + TEST_NAME);
+		OperationResult result = task.getResult();
+		rememberTimeBeforeSync();
+		prepareNotifications();
+
+		// Preconditions
+		assertUsers(7);
+
+		DummyAccount account = dummyResourceEmerald.getAccountByUsername(ACCOUNT_POSIXUSER_DUMMY_USERNAME);
+
+		/// WHEN
+		TestUtil.displayWhen(TEST_NAME);
+
+		account.replaceAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_POSIX_UID_NUMBER, 1002);
+
+		display("Modified dummy account", account.debugDump());
+
+		waitForSyncTaskNextRun(resourceDummyEmerald);
+
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+
+		PrismObject<ShadowType> accountAfter = findAccountByUsername(ACCOUNT_POSIXUSER_DUMMY_USERNAME, resourceDummyEmerald);
+		display("Account posixuser", accountAfter);
+		assertNotNull("No posixuser account shadow", accountAfter);
+		assertEquals("Wrong resourceRef in posixuser account", RESOURCE_DUMMY_EMERALD_OID,
+				accountAfter.asObjectable().getResourceRef().getOid());
+		assertShadowOperationalData(accountAfter, SynchronizationSituationType.LINKED);
+
+		PrismObject<UserType> userAfter = findUserByUsername(ACCOUNT_POSIXUSER_DUMMY_USERNAME);
+		display("User posixuser", userAfter);
+		assertNotNull("User posixuser was not created", userAfter);
+		assertLinks(userAfter, 1);
+		assertAdministrativeStatusEnabled(userAfter);
+
+		assertLinked(userAfter, accountAfter);
+
+		assertUsers(7);
+
+		// notifications
+		notificationManager.setDisabled(true);
+
+		// TODO create and test inbounds for uid and gid numbers; also other attributes
+	}
+
 
 	protected void waitForSyncTaskStart(PrismObject<ResourceType> resource) throws Exception {
 		waitForTaskStart(getSyncTaskOid(resource), false, getWaitTimeout());

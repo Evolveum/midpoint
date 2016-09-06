@@ -54,14 +54,14 @@ public class SceneItemValuePanel extends BasePanel<SceneItemValue> {
 			@Override
 			public boolean isVisible() {
 				SceneItemValue object = getModelObject();
-				return object != null && object.getSourceValue() instanceof PrismReferenceValue;
+				return hasValidReferenceValue(object);
 			}
 		};
 		final VisibleEnableBehaviour visibleIfNotReference = new VisibleEnableBehaviour() {
 			@Override
 			public boolean isVisible() {
 				SceneItemValue object = getModelObject();
-				return object == null || !(object.getSourceValue() instanceof PrismReferenceValue);
+				return !hasValidReferenceValue(object);
 			}
 		};
 
@@ -83,10 +83,16 @@ public class SceneItemValuePanel extends BasePanel<SceneItemValue> {
 				ObjectReferenceType ort = new ObjectReferenceType();
 				ort.setupReferenceValue(refValue);
 				WebComponentUtil.dispatchToObjectDetailsPage(ort, getPageBase(), false);
+
 			}
 		};
 		link.add(visibleIfReference);
 		add(link);
+	}
+
+	private boolean hasValidReferenceValue(SceneItemValue object) {
+		return object != null && object.getSourceValue() instanceof PrismReferenceValue
+				&& ((PrismReferenceValue) object.getSourceValue()).getTargetType() != null;
 	}
 
 	private ObjectTypeGuiDescriptor getObjectTypeDescriptor() {

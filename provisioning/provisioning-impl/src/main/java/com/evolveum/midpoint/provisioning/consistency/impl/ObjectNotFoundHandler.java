@@ -19,6 +19,7 @@ package com.evolveum.midpoint.provisioning.consistency.impl;
 import java.util.Collection;
 import java.util.List;
 
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -123,11 +124,13 @@ public class ObjectNotFoundHandler extends ErrorHandler {
 			} catch (ObjectNotFoundException e) {
 				LOGGER.debug("Cannot delete {} in consistency compensation (discovery): {} - this is probably harmless", shadow, e.getMessage());
 			}
-			parentResult.recordHandledError("Object was not found on the "
-							+ ObjectTypeUtil.toShortString(shadow.getResource())
-							+ ". Shadow deleted from the repository to equalize the state on the resource and in the repository.");
+			String message = "Object was not found on the "
+					+ ObjectTypeUtil.toShortString(shadow.getResource())
+					+ ". Shadow deleted from the repository to equalize the state on the resource and in the repository.";
+			parentResult.recordHandledError(message);
 			LOGGER.trace("Shadow deleted from the repository. Inconsistencies are now removed.");
 			result.computeStatus();
+			result.setStatus(OperationResultStatus.HANDLED_ERROR);		// parentResult status can be recomputed by the caller method
 			delta = ObjectDelta.createDeleteDelta(shadow.getClass(), shadow.getOid(), prismContext);
 			ResourceOperationDescription operationDescritpion = createOperationDescription(shadow, ex, shadow.getResource(), delta, task, result);
 			changeNotificationDispatcher.notifySuccess(operationDescritpion, task, result);
@@ -202,6 +205,10 @@ public class ObjectNotFoundHandler extends ErrorHandler {
 
 			}
 			result.computeStatus();
+			if (parentResult.isHandledError()) {
+				// Ugly hack. We shouldn't set parentResult status in the first place, as it can be overriden by computeStatus/recomputeStatus called in the parent.
+				result.setStatus(OperationResultStatus.HANDLED_ERROR);
+			}
 			if (oid != null){
 				shadowModifications.setOid(oid);
 				shadow.setOid(oid);
@@ -283,10 +290,12 @@ public class ObjectNotFoundHandler extends ErrorHandler {
                 LOGGER.debug("DISCOVERY: object {} re-created as {}. GET operation handler done: returning new shadow", shadow, newShadow);
 				shadow = (T) newShadow.asObjectable();
 				parentResult.recordHandledError("Object was re-created by the discovery.");
+				result.setStatus(OperationResultStatus.HANDLED_ERROR);		// parentResult status can be recomputed by the caller method
 				return shadow;
 			} else {
 				parentResult.recordHandledError("Object was deleted by the discovery and the invalid link was removed from the user.");
 				result.computeStatus();
+				result.setStatus(OperationResultStatus.HANDLED_ERROR);		// parentResult status can be recomputed by the caller method
 				LOGGER.debug("DISCOVERY: object {} was deleted. GET operation handler done: throwing ObjectNotFoundException", shadow);
 				throw new ObjectNotFoundException(ex.getMessage(), ex);
 			}

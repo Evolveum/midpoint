@@ -86,6 +86,7 @@ public class DummyResource implements DebugDumpable {
 	private DummyObjectClass accountObjectClass;
 	private DummyObjectClass groupObjectClass;
 	private DummyObjectClass privilegeObjectClass;
+	private final Map<String,DummyObjectClass> auxiliaryObjectClassMap = new HashMap<>();
 	private DummySyncStyle syncStyle;
 	private List<DummyDelta> deltas;
 	private int latestSyncToken;
@@ -372,7 +373,10 @@ public class DummyResource implements DebugDumpable {
 			// This is a real error. Use this strange thing to make sure it passes up
 			throw new RuntimeException("Unknown schema break mode "+schemaBreakMode);
 		}
-		
+	}
+
+	public DummyObjectClass getAccountObjectClassNoExceptions() {
+		return accountObjectClass;
 	}
 
 	public DummyObjectClass getGroupObjectClass() {
@@ -381,6 +385,14 @@ public class DummyResource implements DebugDumpable {
 	
 	public DummyObjectClass getPrivilegeObjectClass() {
 		return privilegeObjectClass;
+	}
+
+	public Map<String,DummyObjectClass> getAuxiliaryObjectClassMap() {
+		return auxiliaryObjectClassMap;
+	}
+
+	public void addAuxiliaryObjectClass(String name, DummyObjectClass objectClass) {
+		auxiliaryObjectClassMap.put(name, objectClass);
 	}
 
 	public Collection<DummyAccount> listAccounts() throws ConnectException, FileNotFoundException, SchemaViolationException {

@@ -75,6 +75,11 @@ public class DummyAccount extends DummyObject {
 	}
 
 	@Override
+	protected DummyObjectClass getObjectClassNoExceptions() {
+		return resource.getAccountObjectClassNoExceptions();
+	}
+
+	@Override
 	public String getShortTypeName() {
 		return "account";
 	}

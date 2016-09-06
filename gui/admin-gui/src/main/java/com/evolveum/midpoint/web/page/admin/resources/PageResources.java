@@ -275,7 +275,9 @@ public class PageResources extends PageAdminResources {
 	}
 
 	private void resourceDetailsPerformed(AjaxRequestTarget target, String oid) {
-		PageParameters parameters = new PageParameters();
+        clearSessionStorageForResourcePage();
+
+        PageParameters parameters = new PageParameters();
 		parameters.add(OnePageParameterEncoder.PARAMETER, oid);
 		setResponsePage(PageResource.class, parameters);
 	}
@@ -448,4 +450,9 @@ public class PageResources extends PageAdminResources {
 		parameters.add(PageDebugView.PARAM_OBJECT_TYPE, ResourceType.class.getSimpleName());
 		setResponsePage(PageDebugView.class, parameters);
 	}
+
+    private void clearSessionStorageForResourcePage() {
+        ((PageBase) getPage()).getSessionStorage().clearResourceContentStorage();
+    }
+
 }
