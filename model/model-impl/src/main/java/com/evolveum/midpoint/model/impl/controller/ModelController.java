@@ -1710,8 +1710,23 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 			OperationResult result)
 			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
 			SecurityViolationException {
+
+		if (readOptions == null) {
+			readOptions = new ArrayList<>();
+		}
+		GetOperationOptions root = SelectorOptions.findRootOptions(readOptions);
+		if (root == null) {
+			readOptions.add(SelectorOptions.create(GetOperationOptions.createAllowNotFound()));
+		} else {
+			root.setAllowNotFound(true);
+		}
+
 		if (oid != null) {
-			return getObject(type, oid, readOptions, task, result);
+			try {
+				return getObject(type, oid, readOptions, task, result);
+			} catch (ObjectNotFoundException e) {
+				return null;
+			}
 		}
 		if (name == null || name.getOrig() == null) {
 			throw new IllegalArgumentException("Neither OID nor name of the object is known.");
@@ -1730,6 +1745,9 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 	}
 
 	private <T extends ObjectType> void removeIgnoredItems(PrismObject<T> object, List<ItemPath> ignoreItems) {
+		if (object == null) {
+			return;
+		}
 		for (ItemPath path : ignoreItems) {
 			object.removeItem(path, Item.class);
 		}
