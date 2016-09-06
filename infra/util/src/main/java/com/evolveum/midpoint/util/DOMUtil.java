@@ -519,6 +519,11 @@ public class DOMUtil {
 		return true;
 	}
 
+	public static void removeXsiType(Element element) {
+		element.removeAttributeNS(XSI_TYPE.getNamespaceURI(), XSI_TYPE.getLocalPart());
+		element.removeAttribute(HACKED_XSI_TYPE);
+	}
+
 	public static void setXsiType(Element element, QName type) {
 		if (hasXsiType(element)) {
 			throw new IllegalArgumentException("Element already has a type");
