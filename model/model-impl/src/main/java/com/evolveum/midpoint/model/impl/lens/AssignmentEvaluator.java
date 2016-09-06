@@ -589,7 +589,13 @@ public class AssignmentEvaluator<F extends FocusType> {
 				}
 				roleAssignmentPathSegment.setEvaluateConstructions(true);
 				roleAssignmentPathSegment.setEvaluationOrder(evaluationOrder);
-				ObjectType sourceObject = (evaluationOrder > 0 ? assignmentPath.last().getSource() : roleType);
+				ObjectType sourceObject = null;
+				if (evaluationOrder > 0 && assignmentPath.last().getSource() instanceof AbstractRoleType) {
+					sourceObject = assignmentPath.last().getSource();
+				} else {
+					sourceObject = assignmentPath.last().getTarget();
+				}
+//				ObjectType sourceObject = (evaluationOrder > 0 ? assignmentPath.last().getSource() : roleType);
 				roleAssignmentPathSegment.setOrderOneObject(sourceObject);
 				evaluateAssignment(assignment, roleAssignmentPathSegment, evaluateOld, mode, isValid, roleType, subSourceDescription, assignmentPath, task, result);
 //			} else if (inducementOrder < assignmentPath.getEvaluationOrder()) {
