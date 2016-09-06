@@ -451,5 +451,45 @@
         </xsd:sequence>
     </xsd:complexType>
 
+    <xsd:complexType name="CompareResultType">
+        <xsd:annotation>
+            <xsd:documentation>
+                EXPERIMENTAL. TODO.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="currentToProvided" type="t:ObjectDeltaType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Delta that would change the current object (in midPoint) into the client-provided one.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="providedToCurrent" type="t:ObjectDeltaType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Delta that would change the client-provided object to the current object (in midPoint).
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="normalizedObject" type="c:ObjectType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        "Normalized version" of provided object (i.e. the one that is created by parsing and re-serializing the object.)
+                        Items to be ignored are left out from it.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="currentObject" type="c:ObjectType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Current version of object, as stored in midPoint.
+                        Items to be ignored are left out from it.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
 </xsd:schema>
 

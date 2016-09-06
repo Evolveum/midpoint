@@ -40,6 +40,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.model.api.*;
 import com.evolveum.midpoint.model.impl.util.RestServiceUtil;
 import com.evolveum.midpoint.prism.Item;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -97,6 +98,7 @@ public class ModelRestService {
 	public static final String OPERATION_RESUME_TASKS = CLASS_DOT + "resumeTasks";
 	public static final String OPERATION_SCHEDULE_TASKS_NOW = CLASS_DOT + "scheduleTasksNow";
 	public static final String OPERATION_EXECUTE_SCRIPT = CLASS_DOT + "executeScript";
+	public static final String OPERATION_COMPARE = CLASS_DOT + "compare";
 
 	
 	@Autowired
@@ -104,6 +106,9 @@ public class ModelRestService {
 
 	@Autowired
 	private ScriptingService scriptingService;
+
+	@Autowired
+	private ModelService modelService;
 
 	@Autowired
 	private ModelInteractionService modelInteraction;
@@ -655,6 +660,41 @@ public class ModelRestService {
 		return itemListType;
 	}
 
+	@POST
+	@Path("/comparisons")
+	//	@Produces({"text/html", "application/xml"})
+	@Consumes({"application/xml" })
+	public <T extends ObjectType> Response compare(PrismObject<T> clientObject,
+			@QueryParam("readOptions") List<String> restReadOptions,
+			@QueryParam("compareOptions") List<String> restCompareOptions,
+			@QueryParam("ignoreItems") List<String> restIgnoreItems,
+			@Context MessageContext mc) {
+
+		Task task = RestServiceUtil.initRequest(mc);
+		OperationResult result = task.getResult().createSubresult(OPERATION_COMPARE);
+
+		Response response;
+		try {
+			ResponseBuilder builder;
+			List<ItemPath> ignoreItemPaths = ItemPath.fromStringList(restIgnoreItems);
+			final GetOperationOptions getOpOptions = GetOperationOptions.fromRestOptions(restReadOptions);
+			Collection<SelectorOptions<GetOperationOptions>> readOptions =
+					getOpOptions != null ? SelectorOptions.createCollection(getOpOptions) : null;
+			ModelCompareOptions compareOptions = ModelCompareOptions.fromRestOptions(restCompareOptions);
+			CompareResultType compareResult = modelService.compareObject(clientObject, readOptions, compareOptions, ignoreItemPaths, task, result);
+
+			builder = Response.ok();
+			builder.entity(compareResult);
+
+			response = builder.build();
+		} catch (Exception ex) {
+			response = RestServiceUtil.handleException(ex);
+		}
+
+		result.computeStatus();
+		finishRequest(task);
+		return response;
+	}
 
 
 	//    @GET
