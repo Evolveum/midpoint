@@ -10776,7 +10776,46 @@
         </xsd:sequence>
     </xsd:complexType>
 
-    <xsd:simpleType name="SynchronizationIntentType">
+	<xsd:complexType name="ModelCompareOptionsType">
+		<xsd:annotation>
+			<xsd:documentation>
+				EXPERIMENTAL.
+				TODO
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="computeCurrentToProvided" type="xsd:boolean" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Computes current-to-provided delta. ("Current" means the object that is currently available in the midPoint.)
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="computeProvidedToCurrent" type="xsd:boolean" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Computes provided-to-current delta.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="returnNormalized" type="xsd:boolean" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Returns the normalized version of provided object.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="returnCurrent" type="xsd:boolean" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Returns the current version of provided object.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+
+	<xsd:simpleType name="SynchronizationIntentType">
         <xsd:annotation>
             <xsd:documentation>
                 TODO
