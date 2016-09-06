@@ -30,6 +30,7 @@ import com.evolveum.midpoint.model.common.expression.ItemDeltaItem;
 import com.evolveum.midpoint.model.common.expression.ObjectDeltaObject;
 import com.evolveum.midpoint.model.common.mapping.Mapping;
 import com.evolveum.midpoint.model.common.mapping.MappingFactory;
+import com.evolveum.midpoint.model.impl.expr.ModelExpressionThreadLocalHolder;
 import com.evolveum.midpoint.model.impl.lens.projector.MappingEvaluator;
 import com.evolveum.midpoint.model.impl.util.Utils;
 import com.evolveum.midpoint.prism.Containerable;
@@ -69,6 +70,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionVariableDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingsType;
@@ -230,15 +232,19 @@ public class AssignmentEvaluator<F extends FocusType> {
 		ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi = assignmentPathSegment.getAssignmentIdi();
 		AssignmentType assignmentType = LensUtil.getAssignmentType(assignmentIdi, evaluateOld);
 		
+		LOGGER.trace("Found assignment: {}", assignmentType);
+		
 		checkSchema(assignmentType, sourceDescription);
 		
 		List<PrismObject<O>> targets = null;
 		if (assignmentType.getTarget() != null) {
+			LOGGER.trace("Target already exists in assignment: {}", assignmentType.getTarget());
 			targets = new ArrayList<>(1);
 			targets.add(assignmentType.getTarget().asPrismObject());
 		} else if (assignmentType.getTargetRef() != null) {
+			LOGGER.trace("Target doesn't exists in assignment, resolving using target ref: {}", assignmentType.getTargetRef());
             try {
-                targets = resolveTargets(assignmentType, source, sourceDescription, task, result);
+                targets = resolveTargets(assignmentType, assignmentPathSegment, source, sourceDescription, task, result);
             } catch (ObjectNotFoundException ex) {
                 // Do not throw an exception. We don't have referential integrity. Therefore if a role is deleted then throwing
                 // an exception would prohibit any operations with the users that have the role, including removal of the reference.
@@ -273,7 +279,8 @@ public class AssignmentEvaluator<F extends FocusType> {
 			if (target.getOid().equals(source.getOid())) {
 				throw new PolicyViolationException("The "+source+" refers to itself in assignment/inducement");
 			}
-			if (assignmentPath.containsTarget((ObjectType) target.asObjectable())) {
+			LOGGER.trace("Checking for role cycle, comparing actual order {} with evaluation order {}", assignmentPathSegment.getEvaluationOrder(), assignmentPath.getEvaluationOrder());
+			if (assignmentPath.containsTarget((ObjectType) target.asObjectable()) && assignmentPathSegment.getEvaluationOrder() == assignmentPath.getEvaluationOrder()) {
 				throw new PolicyViolationException("Attempt to assign "+target+" creates a role cycle");
 			}
 		}
@@ -401,7 +408,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 		}
 	}
 
-	private <O extends ObjectType> List<PrismObject<O>> resolveTargets(AssignmentType assignmentType, ObjectType source, String sourceDescription, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
+	private <O extends ObjectType> List<PrismObject<O>> resolveTargets(AssignmentType assignmentType, AssignmentPathSegment assignmentPathSegment, ObjectType source, String sourceDescription, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
 		ObjectReferenceType targetRef = assignmentType.getTargetRef();
 		String oid = targetRef.getOid();
 		
@@ -417,16 +424,16 @@ public class AssignmentEvaluator<F extends FocusType> {
 		}
 		
 		if (oid == null) {
-			
+			LOGGER.trace("Resolving dynamic target ref");
 			if (targetRef.getFilter() == null){
 				throw new SchemaException("The OID and filter are both null in assignment targetRef in "+source);
 			}
 			
-			List<PrismObject<O>> targets = resolveTargetsFromFilter(clazz, source, targetRef.getFilter(), sourceDescription, task, result);
+			List<PrismObject<O>> targets = resolveTargetsFromFilter(clazz, assignmentPathSegment, source, targetRef.getFilter(), sourceDescription, task, result);
 			return targets;
 			
 		} else {
-		
+			LOGGER.trace("Resolving target from repository");
 			PrismObject<O> target = null;
 			try {
 				target = repository.getObject(clazz, oid, null, result);
@@ -446,9 +453,14 @@ public class AssignmentEvaluator<F extends FocusType> {
 		
 	}
 	
-	private <O extends ObjectType> List<PrismObject<O>> resolveTargetsFromFilter(Class<O> clazz, ObjectType source, SearchFilterType filter, String sourceDescription, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException{
+	private <O extends ObjectType> List<PrismObject<O>> resolveTargetsFromFilter(Class<O> clazz, AssignmentPathSegment assignmentPathSegment, ObjectType source, SearchFilterType filter, String sourceDescription, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException{
 //		SearchFilterType filter = targetRef.getFilter();
+		ModelExpressionThreadLocalHolder.pushLensContext(lensContext);
+		ModelExpressionThreadLocalHolder.pushCurrentResult(result);
+		ModelExpressionThreadLocalHolder.pushCurrentTask(task);
+		try {
 		ExpressionVariables variables = Utils.getDefaultExpressionVariables(source, null, null, LensUtil.getSystemConfiguration(lensContext, repository, result).asObjectable());
+		variables.addVariableDefinition(ExpressionConstants.VAR_SOURCE, assignmentPathSegment.getOrderOneObject());
 
 		ObjectFilter origFilter = QueryConvertor.parseFilter(filter, clazz, prismContext);
 		ObjectFilter evaluatedFilter = ExpressionUtil.evaluateFilterExpressions(origFilter, variables, getMappingFactory().getExpressionFactory(), prismContext, " evaluating resource filter expression ", task, result);
@@ -465,6 +477,14 @@ public class AssignmentEvaluator<F extends FocusType> {
         }
         
         return targets;
+        
+		} finally {
+			ModelExpressionThreadLocalHolder.popLensContext();
+			ModelExpressionThreadLocalHolder.popCurrentResult();
+			ModelExpressionThreadLocalHolder.popCurrentTask();
+		}
+        
+        
 	}
 
 
@@ -526,6 +546,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 		
 		int evaluationOrder = assignmentPath.getEvaluationOrder();
 		ObjectType orderOneObject;
+		
 		if (evaluationOrder == 1) {
 			orderOneObject = roleType;
 		} else {
@@ -536,6 +557,8 @@ public class AssignmentEvaluator<F extends FocusType> {
 				orderOneObject = roleType;
 			}
 		}
+		LOGGER.trace("Order one object {}", orderOneObject);
+		LOGGER.trace("All assignment segments: {}", assignmentPath.getSegments());
 		for (AssignmentType roleInducement : roleType.getInducement()) {
 			if (!isApplicable(roleInducement.getFocusType(), roleType)){
 				continue;
@@ -557,7 +580,8 @@ public class AssignmentEvaluator<F extends FocusType> {
 				}
 				roleAssignmentPathSegment.setEvaluateConstructions(true);
 				roleAssignmentPathSegment.setEvaluationOrder(evaluationOrder);
-				roleAssignmentPathSegment.setOrderOneObject(orderOneObject);
+				ObjectType sourceObject = (evaluationOrder > 0 ? assignmentPath.last().getSource() : roleType);
+				roleAssignmentPathSegment.setOrderOneObject(sourceObject);
 				evaluateAssignment(assignment, roleAssignmentPathSegment, evaluateOld, mode, isValid, roleType, subSourceDescription, assignmentPath, task, result);
 //			} else if (inducementOrder < assignmentPath.getEvaluationOrder()) {
 //				LOGGER.trace("Follow({}) inducement({}) in role {}",
