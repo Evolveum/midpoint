@@ -34,9 +34,11 @@ import com.evolveum.midpoint.model.impl.util.Utils;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.ChangeType;
+import com.evolveum.midpoint.prism.delta.DiffUtil;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathSegment;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
@@ -63,6 +65,7 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.api.WorkflowManager;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_3.CompareResultType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ImportOptionsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ScriptingExpressionType;
@@ -70,6 +73,7 @@ import com.evolveum.prism.xml.ns._public.types_3.EvaluationTimeType;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.Validate;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -1648,7 +1652,108 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 		result.cleanupResult();
 	}
 
-    private <O extends ObjectType> ObjectQuery preProcessQuerySecurity(Class<O> objectType, ObjectQuery origQuery) throws SchemaException {
+	@Override
+	public <T extends ObjectType> CompareResultType compareObject(PrismObject<T> provided,
+			Collection<SelectorOptions<GetOperationOptions>> readOptions, ModelCompareOptions compareOptions,
+			@NotNull List<ItemPath> ignoreItems, Task task, OperationResult parentResult)
+			throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException,
+			ConfigurationException {
+		Validate.notNull(provided, "Object must not be null or empty.");
+		Validate.notNull(parentResult, "Operation result must not be null.");
+
+		OperationResult result = parentResult.createMinorSubresult(COMPARE_OBJECT);
+		result.addParam("oid", provided.getOid());
+		result.addParam("name", provided.getName());
+		result.addCollectionOfSerializablesAsParam("readOptions", readOptions);
+		result.addParam("compareOptions", compareOptions);
+		result.addCollectionOfSerializablesAsParam("ignoreItems", ignoreItems);
+
+		CompareResultType rv = new CompareResultType();
+
+		try {
+			boolean c2p = ModelCompareOptions.isComputeCurrentToProvided(compareOptions);
+			boolean p2c = ModelCompareOptions.isComputeProvidedToCurrent(compareOptions);
+			boolean returnC = ModelCompareOptions.isReturnCurrent(compareOptions);
+			boolean returnP = ModelCompareOptions.isReturnNormalized(compareOptions);
+
+			if (!c2p && !p2c && !returnC && !returnP) {
+				return rv;
+			}
+			PrismObject<T> current = null;
+			if (c2p || p2c || returnC) {
+				current = fetchCurrentObject(provided.getCompileTimeClass(), provided.getOid(), provided.getName(), readOptions, task, result);
+				removeIgnoredItems(current, ignoreItems);
+			}
+			removeIgnoredItems(provided, ignoreItems);
+
+			if (c2p) {
+				rv.setCurrentToProvided(DeltaConvertor.toObjectDeltaType(DiffUtil.diff(current, provided)));
+			}
+			if (p2c) {
+				rv.setProvidedToCurrent(DeltaConvertor.toObjectDeltaType(DiffUtil.diff(provided, current)));
+			}
+			if (returnC && current != null) {
+				rv.setCurrentObject(current.asObjectable());
+			}
+			if (returnP) {
+				rv.setNormalizedObject(provided.asObjectable());
+			}
+		} finally {
+			result.computeStatus();
+			result.cleanupResult();
+		}
+		return rv;
+	}
+
+	private <T extends ObjectType> PrismObject<T> fetchCurrentObject(Class<T> type, String oid, PolyString name,
+			Collection<SelectorOptions<GetOperationOptions>> readOptions, Task task,
+			OperationResult result)
+			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
+			SecurityViolationException {
+
+		if (readOptions == null) {
+			readOptions = new ArrayList<>();
+		}
+		GetOperationOptions root = SelectorOptions.findRootOptions(readOptions);
+		if (root == null) {
+			readOptions.add(SelectorOptions.create(GetOperationOptions.createAllowNotFound()));
+		} else {
+			root.setAllowNotFound(true);
+		}
+
+		if (oid != null) {
+			try {
+				return getObject(type, oid, readOptions, task, result);
+			} catch (ObjectNotFoundException e) {
+				return null;
+			}
+		}
+		if (name == null || name.getOrig() == null) {
+			throw new IllegalArgumentException("Neither OID nor name of the object is known.");
+		}
+		ObjectQuery nameQuery = QueryBuilder.queryFor(type, prismContext)
+				.item(ObjectType.F_NAME).eqPoly(name.getOrig())
+				.build();
+		List<PrismObject<T>> objects = searchObjects(type, nameQuery, readOptions, task, result);
+		if (objects.isEmpty()) {
+			return null;
+		} else if (objects.size() == 1) {
+			return objects.get(0);
+		} else {
+			throw new SchemaException("More than 1 object of type " + type + " with the name of " + name + ": There are " + objects.size() + " of them.");
+		}
+	}
+
+	private <T extends ObjectType> void removeIgnoredItems(PrismObject<T> object, List<ItemPath> ignoreItems) {
+		if (object == null) {
+			return;
+		}
+		for (ItemPath path : ignoreItems) {
+			object.removeItem(path, Item.class);
+		}
+	}
+
+	private <O extends ObjectType> ObjectQuery preProcessQuerySecurity(Class<O> objectType, ObjectQuery origQuery) throws SchemaException {
     	ObjectFilter origFilter = null;
     	if (origQuery != null) {
     		origFilter = origQuery.getFilter();

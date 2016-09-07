@@ -10776,7 +10776,46 @@
         </xsd:sequence>
     </xsd:complexType>
 
-    <xsd:simpleType name="SynchronizationIntentType">
+	<xsd:complexType name="ModelCompareOptionsType">
+		<xsd:annotation>
+			<xsd:documentation>
+				EXPERIMENTAL.
+				TODO
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="computeCurrentToProvided" type="xsd:boolean" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Computes current-to-provided delta. ("Current" means the object that is currently available in the midPoint.)
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="computeProvidedToCurrent" type="xsd:boolean" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Computes provided-to-current delta.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="returnNormalized" type="xsd:boolean" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Returns the normalized version of provided object.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="returnCurrent" type="xsd:boolean" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Returns the current version of provided object.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+
+	<xsd:simpleType name="SynchronizationIntentType">
         <xsd:annotation>
             <xsd:documentation>
                 TODO
@@ -12137,5 +12176,33 @@
 		</xsd:sequence>
 	</xsd:complexType>
 	<xsd:element name="MappingEvaluationResponse" type="tns:MappingEvaluationResponseType"/>
+
+	<xsd:complexType name="LogFileContentType">
+		<xsd:sequence>
+			<xsd:element name="content" type="xsd:string"/>
+			<xsd:element name="at" type="xsd:long">
+				<xsd:annotation>
+					<xsd:documentation>
+						Position of this fragment in the log file.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="complete" type="xsd:boolean">
+				<xsd:annotation>
+					<xsd:documentation>
+						Is the fragment we are returning the complete content of the log file (starting from the given position)?
+						I.e. if false, there are some data after this fragment.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="logFileSize" type="xsd:long">
+				<xsd:annotation>
+					<xsd:documentation>
+						Current log file size, in bytes.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
 
 </xsd:schema>

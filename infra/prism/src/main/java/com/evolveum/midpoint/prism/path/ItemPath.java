@@ -19,6 +19,7 @@ import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import org.apache.commons.lang.Validate;
+import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
 import java.io.Serializable;
@@ -432,6 +433,17 @@ public class ItemPath implements Serializable, Cloneable {
 
 	public ItemPath append(ItemPath childPath) {
 		return new ItemPath(this, childPath);
+	}
+
+	@NotNull
+	public static List<ItemPath> fromStringList(List<String> pathsAsStrings) {
+		List<ItemPath> rv = new ArrayList<>();
+		if (pathsAsStrings != null) {
+			for (String pathAsString : pathsAsStrings) {
+				rv.add(new ItemPathType(pathAsString).getItemPath());
+			}
+		}
+		return rv;
 	}
 
 	public enum CompareResult {

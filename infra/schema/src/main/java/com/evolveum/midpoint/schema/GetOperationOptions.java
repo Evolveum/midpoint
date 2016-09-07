@@ -16,6 +16,7 @@
 package com.evolveum.midpoint.schema;
 
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_3.GetOperationOptionsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 import javax.xml.namespace.QName;
@@ -23,6 +24,7 @@ import javax.xml.namespace.QName;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 /**
  * @author semancik
@@ -484,5 +486,27 @@ public class GetOperationOptions implements Serializable, Cloneable {
 			sb.append(",");
 		}
 	}
+
+	public static GetOperationOptions fromRestOptions(List<String> options){
+		if (options == null || options.isEmpty()){
+			return null;
+		}
+
+		GetOperationOptions rv = new GetOperationOptions();
+		for (String option : options) {
+			if (GetOperationOptionsType.F_RAW.getLocalPart().equals(option)) {
+				rv.setRaw(true);
+			}
+			if (GetOperationOptionsType.F_NO_FETCH.getLocalPart().equals(option)) {
+				rv.setNoFetch(true);
+			}
+			if (GetOperationOptionsType.F_NO_DISCOVERY.getLocalPart().equals(option)) {
+				rv.setDoNotDiscovery(true);
+			}
+		}
+
+		return rv;
+	}
+
 
 }
