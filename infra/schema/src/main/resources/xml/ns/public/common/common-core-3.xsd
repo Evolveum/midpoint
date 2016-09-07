@@ -12177,4 +12177,32 @@
 	</xsd:complexType>
 	<xsd:element name="MappingEvaluationResponse" type="tns:MappingEvaluationResponseType"/>
 
+	<xsd:complexType name="LogFileContentType">
+		<xsd:sequence>
+			<xsd:element name="content" type="xsd:string"/>
+			<xsd:element name="at" type="xsd:long">
+				<xsd:annotation>
+					<xsd:documentation>
+						Position of this fragment in the log file.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="complete" type="xsd:boolean">
+				<xsd:annotation>
+					<xsd:documentation>
+						Is the fragment we are returning the complete content of the log file (starting from the given position)?
+						I.e. if false, there are some data after this fragment.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="logFileSize" type="xsd:long">
+				<xsd:annotation>
+					<xsd:documentation>
+						Current log file size, in bytes.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+
 </xsd:schema>

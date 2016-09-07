@@ -15,17 +15,23 @@
  */
 package com.evolveum.midpoint.model.impl.controller;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.util.Collection;
 import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.model.impl.dataModel.DataModelVisualizer;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.api.SecurityEnforcer;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import org.apache.commons.configuration.Configuration;
+import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -74,6 +80,7 @@ public class ModelDiagController implements ModelDiagnosticService {
 	private static final String INSANE_NATIONAL_STRING = "Pørúga ném nå väšȍm apârátula";
 	
 	private static final Trace LOGGER = TraceManager.getTrace(ModelDiagController.class);
+	private static final String LOG_FILE_CONFIG_KEY = "logFile";
 
 	@Autowired
 	private DataModelVisualizer dataModelVisualizer;
@@ -93,6 +100,9 @@ public class ModelDiagController implements ModelDiagnosticService {
 
 	@Autowired
 	private MappingDiagEvaluator mappingDiagEvaluator;
+
+	@Autowired
+	private MidpointConfiguration midpointConfiguration;
 
 	private RandomString randomString;
 
@@ -597,6 +607,86 @@ public class ModelDiagController implements ModelDiagnosticService {
 			result.recordFatalError(t.getMessage(), t);
 			throw t;
 		}
+	}
+
+	@Override
+	public LogFileContentType getLogFileContent(Long fromPosition, Long maxSize, Task task, OperationResult parentResult)
+			throws SecurityViolationException, IOException, SchemaException {
+		OperationResult result = parentResult.createSubresult(GET_LOG_FILE_CONTENT);
+		try {
+			securityEnforcer.authorize(AuthorizationConstants.AUTZ_ALL_URL, null, null, null, null, null, result);
+			File logFile = getLogFile();
+			LogFileContentType rv = getLogFileFragment(logFile, fromPosition, maxSize);
+			result.recordSuccess();
+			return rv;
+		} catch (Throwable t) {
+			result.recordFatalError(t.getMessage(), t);
+			throw t;
+		}
+	}
+
+	private LogFileContentType getLogFileFragment(File logFile, Long fromPosition, Long maxSize) throws IOException {
+		LogFileContentType rv = new LogFileContentType();
+		RandomAccessFile log = null;
+		try {
+			log = new RandomAccessFile(logFile, "r");
+			long currentLength = log.length();
+			rv.setLogFileSize(currentLength);
+
+			long start;
+			if (fromPosition == null) {
+				start = 0;
+			} else if (fromPosition >= 0) {
+				start = fromPosition;
+			} else {
+				start = Math.max(currentLength + fromPosition, 0);
+			}
+			rv.setAt(start);
+			log.seek(start);
+			long bytesToRead = Math.max(currentLength - start, 0);
+			if (maxSize != null && maxSize < bytesToRead) {
+				bytesToRead = maxSize;
+				rv.setComplete(false);
+			} else {
+				rv.setComplete(true);
+			}
+			if (bytesToRead == 0) {
+				return rv;
+			} else if (bytesToRead > Integer.MAX_VALUE) {
+				throw new IllegalStateException("Too many bytes to read from log file: " + bytesToRead);
+			}
+			byte[] buffer = new byte[(int) bytesToRead];
+			log.readFully(buffer);
+			rv.setContent(new String(buffer));
+			return rv;
+		} finally {
+			if (log != null) {
+				IOUtils.closeQuietly(log);
+			}
+		}
+	}
+
+	@Override
+	public long getLogFileSize(Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException {
+		OperationResult result = parentResult.createSubresult(GET_LOG_FILE_SIZE);
+		try {
+			securityEnforcer.authorize(AuthorizationConstants.AUTZ_ALL_URL, null, null, null, null, null, result);
+			File logFile = getLogFile();
+			long size = logFile.length();
+			result.recordSuccess();
+			return size;
+		} catch (Throwable t) {
+			result.recordFatalError(t.getMessage(), t);
+			throw t;
+		}
+	}
+
+	private File getLogFile() throws SchemaException {
+		Configuration c = midpointConfiguration.getConfiguration(MidpointConfiguration.SYSTEM_CONFIGURATION_SECTION);
+		if (c == null || !c.containsKey(LOG_FILE_CONFIG_KEY)) {
+			throw new SchemaException("No log file specified in system configuration. Please set logFile in <midpoint><system> section.");
+		}
+		return new File(c.getString(LOG_FILE_CONFIG_KEY));
 	}
 
 }

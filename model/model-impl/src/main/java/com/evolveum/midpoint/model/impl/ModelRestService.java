@@ -44,6 +44,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.xml.ns._public.model.model_3.ExecuteScriptsResponseType;
@@ -99,6 +100,8 @@ public class ModelRestService {
 	public static final String OPERATION_SCHEDULE_TASKS_NOW = CLASS_DOT + "scheduleTasksNow";
 	public static final String OPERATION_EXECUTE_SCRIPT = CLASS_DOT + "executeScript";
 	public static final String OPERATION_COMPARE = CLASS_DOT + "compare";
+	public static final String OPERATION_GET_LOG_FILE_CONTENT = CLASS_DOT + "getLogFileContent";
+	public static final String OPERATION_GET_LOG_FILE_SIZE = CLASS_DOT + "getLogFileSize";
 
 	
 	@Autowired
@@ -109,6 +112,9 @@ public class ModelRestService {
 
 	@Autowired
 	private ModelService modelService;
+
+	@Autowired
+	private ModelDiagnosticService modelDiagnosticService;
 
 	@Autowired
 	private ModelInteractionService modelInteraction;
@@ -688,6 +694,59 @@ public class ModelRestService {
 
 			response = builder.build();
 		} catch (Exception ex) {
+			response = RestServiceUtil.handleException(ex);
+		}
+
+		result.computeStatus();
+		finishRequest(task);
+		return response;
+	}
+
+	@GET
+	@Path("/log/size")
+	@Produces({"text/plain"})
+	public Response getLogFileSize(@Context MessageContext mc) {
+
+		Task task = RestServiceUtil.initRequest(mc);
+		OperationResult result = task.getResult().createSubresult(OPERATION_GET_LOG_FILE_SIZE);
+
+		Response response;
+		try {
+			long size = modelDiagnosticService.getLogFileSize(task, result);
+
+			ResponseBuilder builder = Response.ok();
+			builder.entity(String.valueOf(size));
+			response = builder.build();
+		} catch (Exception ex) {
+			response = RestServiceUtil.handleException(ex);
+		}
+
+		result.computeStatus();
+		finishRequest(task);
+		return response;
+	}
+
+	@GET
+	@Path("/log")
+	@Produces({"text/plain"})
+	public Response getLog(@QueryParam("fromPosition") Long fromPosition, @QueryParam("maxSize") Long maxSize, @Context MessageContext mc) {
+
+		Task task = RestServiceUtil.initRequest(mc);
+		OperationResult result = task.getResult().createSubresult(OPERATION_GET_LOG_FILE_CONTENT);
+
+		Response response;
+		try {
+			LogFileContentType content = modelDiagnosticService.getLogFileContent(fromPosition, maxSize, task, result);
+
+			ResponseBuilder builder = Response.ok();
+			builder.entity(content.getContent());
+			builder.header("ReturnedDataPosition", content.getAt());
+			builder.header("ReturnedDataComplete", content.isComplete());
+			builder.header("CurrentLogFileSize", content.getLogFileSize());
+
+			response = builder.build();
+		} catch (Exception ex) {
+			LoggingUtils.logUnexpectedException(LOGGER, "Cannot get log file content: fromPosition={}, maxSize={}", ex, fromPosition, maxSize);
 			response = RestServiceUtil.handleException(ex);
 		}
 

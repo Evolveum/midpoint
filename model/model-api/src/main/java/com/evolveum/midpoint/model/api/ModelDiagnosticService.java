@@ -15,6 +15,7 @@
  */
 package com.evolveum.midpoint.model.api;
 
+import java.io.IOException;
 import java.util.Collection;
 
 import com.evolveum.midpoint.schema.ProvisioningDiag;
@@ -24,6 +25,7 @@ import com.evolveum.midpoint.schema.RepositoryQueryDiagResponse;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LogFileContentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingEvaluationRequestType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingEvaluationResponseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
@@ -45,8 +47,10 @@ public interface ModelDiagnosticService {
 	String REPOSITORY_SELF_TEST = CLASS_NAME_WITH_DOT + "repositorySelfTest";
     String REPOSITORY_TEST_ORG_CLOSURE_CONSISTENCY = CLASS_NAME_WITH_DOT + "repositoryTestOrgClosureConsistency";
 	String EXECUTE_REPOSITORY_QUERY = CLASS_NAME_WITH_DOT + "executeRepositoryQuery";
-	String EXECUTE_MAPPING = CLASS_NAME_WITH_DOT + "evaluateMapping";
+	String EVALUATE_MAPPING = CLASS_NAME_WITH_DOT + "evaluateMapping";
 	String PROVISIONING_SELF_TEST = CLASS_NAME_WITH_DOT + "provisioningSelfTest";
+	String GET_LOG_FILE_CONTENT = CLASS_NAME_WITH_DOT + "getLogFileContent";
+	String GET_LOG_FILE_SIZE = CLASS_NAME_WITH_DOT + "getLogFileSize";
 	
 	/**
 	 * Provide repository run-time configuration and diagnostic information.
@@ -113,4 +117,19 @@ public interface ModelDiagnosticService {
 
 	String exportDataModel(ResourceType resource, Task task, OperationResult parentResult)
 			throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, SecurityViolationException;
+
+	// EXPERIMENTAL
+
+	/**
+	 * Returns the contents of the log file.
+	 *
+	 * @param fromPosition From absolute log file position (if non-negative); or counted from the end (if negative).
+	 * @param maxSize Max number of bytes to return.
+	 * @param task
+	 * @param parentResult
+	 */
+	LogFileContentType getLogFileContent(Long fromPosition, Long maxSize, Task task, OperationResult parentResult)
+			throws SecurityViolationException, IOException, SchemaException;
+
+	long getLogFileSize(Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException;
 }
