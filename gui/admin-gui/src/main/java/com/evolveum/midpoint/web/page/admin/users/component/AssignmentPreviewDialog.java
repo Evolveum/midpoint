@@ -105,6 +105,7 @@ public class AssignmentPreviewDialog extends Panel implements Popupable {
 
             @Override
             public void onClick(AjaxRequestTarget ajaxRequestTarget) {
+                ((PageBase)getPage()).hideMainPopup(ajaxRequestTarget);
             }
         };
         content.add(cancelButton);
