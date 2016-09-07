@@ -400,8 +400,6 @@ public class ModelRestService {
 //	@Produces({"text/html", "application/xml"})
 	public Response findShadowOwner(@PathParam("oid") String shadowOid, @Context MessageContext mc){
 		
-		LOGGER.info("model rest service for find shadow owner operation start");
-
 		Task task = RestServiceUtil.initRequest(mc);
 		OperationResult parentResult = task.getResult().createSubresult(OPERATION_FIND_SHADOW_OWNER);
 		
@@ -425,8 +423,6 @@ public class ModelRestService {
 //	@Produces({"text/html", "application/xml"})
 	public Response searchObjects(@PathParam("type") String type, QueryType queryType, @Context MessageContext mc){
 	
-		LOGGER.info("model rest service for find shadow owner operation start");
-
 		Task task = RestServiceUtil.initRequest(mc);
 		OperationResult parentResult = task.getResult().createSubresult(OPERATION_SEARCH_OBJECTS);
 
