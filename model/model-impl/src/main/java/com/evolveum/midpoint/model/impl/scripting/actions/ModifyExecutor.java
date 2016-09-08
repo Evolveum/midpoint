@@ -58,6 +58,7 @@ public class ModifyExecutor extends BaseActionExecutor {
     public Data execute(ActionExpressionType expression, Data input, ExecutionContext context, OperationResult result) throws ScriptExecutionException {
 
         boolean raw = getParamRaw(expression, input, context, result);
+        boolean dryRun = getParamDryRun(expression, input, context, result);
 
         ActionParameterValueType deltaParameterValue = expressionHelper.getArgument(expression.getParameter(), PARAM_DELTA, true, true, NAME);
         Data deltaData = expressionHelper.evaluateParameter(deltaParameterValue, input, context, result);
@@ -68,13 +69,13 @@ public class ModifyExecutor extends BaseActionExecutor {
                 ObjectType objectType = prismObject.asObjectable();
                 long started = operationsHelper.recordStart(context, objectType);
                 try {
-                    operationsHelper.applyDelta(createDelta(objectType, deltaData), operationsHelper.createExecutionOptions(raw), context, result);
+                    operationsHelper.applyDelta(createDelta(objectType, deltaData), operationsHelper.createExecutionOptions(raw), dryRun, context, result);
                     operationsHelper.recordEnd(context, objectType, started, null);
                 } catch (Throwable ex) {
                     operationsHelper.recordEnd(context, objectType, started, ex);
                     throw ex;
                 }
-                context.println("Modified " + item.toString() + rawSuffix(raw));
+                context.println("Modified " + item.toString() + rawDrySuffix(raw, dryRun));
             } else {
                 throw new ScriptExecutionException("Item could not be modified, because it is not a PrismObject: " + item.toString());
             }

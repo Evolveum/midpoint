@@ -16,11 +16,8 @@
 
 package com.evolveum.midpoint.model.impl.scripting.helpers;
 
-import com.evolveum.midpoint.model.api.ModelExecuteOptions;
-import com.evolveum.midpoint.model.api.ModelService;
-import com.evolveum.midpoint.model.api.PolicyViolationException;
+import com.evolveum.midpoint.model.api.*;
 import com.evolveum.midpoint.model.impl.scripting.ExecutionContext;
-import com.evolveum.midpoint.model.api.ScriptExecutionException;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -59,6 +56,9 @@ public class OperationsHelper {
     private ModelService modelService;
 
     @Autowired
+    private ModelInteractionService modelInteractionService;
+
+    @Autowired
     private PrismContext prismContext;
 
     public void applyDelta(ObjectDelta delta, ExecutionContext context, OperationResult result) throws ScriptExecutionException {
@@ -68,6 +68,18 @@ public class OperationsHelper {
     public void applyDelta(ObjectDelta delta, ModelExecuteOptions options, ExecutionContext context, OperationResult result) throws ScriptExecutionException {
         try {
             modelService.executeChanges((Collection) Collections.singleton(delta), options, context.getTask(), result);
+        } catch (ObjectAlreadyExistsException|ObjectNotFoundException|SchemaException|ExpressionEvaluationException|CommunicationException|ConfigurationException|PolicyViolationException|SecurityViolationException e) {
+            throw new ScriptExecutionException("Couldn't modify object: " + e.getMessage(), e);
+        }
+    }
+
+    public void applyDelta(ObjectDelta delta, ModelExecuteOptions options, boolean dryRun, ExecutionContext context, OperationResult result) throws ScriptExecutionException {
+        try {
+            if (dryRun) {
+                modelInteractionService.previewChanges((Collection) Collections.singleton(delta), options, context.getTask(), result);
+            } else {
+                modelService.executeChanges((Collection) Collections.singleton(delta), options, context.getTask(), result);
+            }
         } catch (ObjectAlreadyExistsException|ObjectNotFoundException|SchemaException|ExpressionEvaluationException|CommunicationException|ConfigurationException|PolicyViolationException|SecurityViolationException e) {
             throw new ScriptExecutionException("Couldn't modify object: " + e.getMessage(), e);
         }
