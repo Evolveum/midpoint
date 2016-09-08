@@ -32,6 +32,7 @@ import com.evolveum.midpoint.model.impl.scripting.ExecutionContext;
 import com.evolveum.midpoint.model.impl.scripting.ScriptingExpressionEvaluator;
 import com.evolveum.midpoint.model.impl.util.Utils;
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.Visitor;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.DiffUtil;
@@ -1675,6 +1676,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 			boolean p2c = ModelCompareOptions.isComputeProvidedToCurrent(compareOptions);
 			boolean returnC = ModelCompareOptions.isReturnCurrent(compareOptions);
 			boolean returnP = ModelCompareOptions.isReturnNormalized(compareOptions);
+			boolean ignoreOperational = ModelCompareOptions.isIgnoreOperationalItems(compareOptions);
 
 			if (!c2p && !p2c && !returnC && !returnP) {
 				return rv;
@@ -1683,8 +1685,14 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 			if (c2p || p2c || returnC) {
 				current = fetchCurrentObject(provided.getCompileTimeClass(), provided.getOid(), provided.getName(), readOptions, task, result);
 				removeIgnoredItems(current, ignoreItems);
+				if (ignoreOperational) {
+					removeOperationalItems(current);
+				}
 			}
 			removeIgnoredItems(provided, ignoreItems);
+			if (ignoreOperational) {
+				removeOperationalItems(provided);
+			}
 
 			if (c2p) {
 				rv.setCurrentToProvided(DeltaConvertor.toObjectDeltaType(DiffUtil.diff(current, provided)));
@@ -1754,6 +1762,28 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 				object.removeItem(item.getPath(), Item.class);
 			}
 		}
+	}
+
+	// TODO write in cleaner way
+	private <T extends ObjectType> void removeOperationalItems(PrismObject<T> object) {
+		if (object == null) {
+			return;
+		}
+		final List<ItemPath> operationalItems = new ArrayList<>();
+		object.accept(new Visitor() {
+			@Override
+			public void visit(Visitable visitable) {
+				if (visitable instanceof Item) {
+					Item item = ((Item) visitable);
+					if (item.getDefinition() != null && item.getDefinition().isOperational()) {
+						operationalItems.add(item.getPath());
+						// it would be nice if we could stop visiting children here but that's not possible now
+					}
+				}
+			}
+		});
+		LOGGER.trace("Operational items: {}", operationalItems);
+		removeIgnoredItems(object, operationalItems);
 	}
 
 	private <O extends ObjectType> ObjectQuery preProcessQuerySecurity(Class<O> objectType, ObjectQuery origQuery) throws SchemaException {
