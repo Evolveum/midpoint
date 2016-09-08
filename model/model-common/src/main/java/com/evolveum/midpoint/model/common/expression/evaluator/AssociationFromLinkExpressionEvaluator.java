@@ -89,6 +89,8 @@ public class AssociationFromLinkExpressionEvaluator
 		}
 		AbstractRoleType thisRole = (AbstractRoleType)orderOneObject;
 		
+		LOGGER.trace("Evaluating association from link on: {}", thisRole); 
+		
 		RefinedObjectClassDefinition rAssocTargetDef = (RefinedObjectClassDefinition) params.getVariables().get(ExpressionConstants.VAR_ASSOCIATION_TARGET_OBJECT_CLASS_DEFINITION);
 		if (rAssocTargetDef == null) {
 			throw new ExpressionEvaluationException("No association target object class definition variable in "+desc+"; the expression may be used in a wrong place. It is only supposed to create an association.");

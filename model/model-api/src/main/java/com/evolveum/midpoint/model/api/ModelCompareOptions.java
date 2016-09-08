@@ -50,6 +50,11 @@ public class ModelCompareOptions implements Serializable, Cloneable {
 	 */
 	Boolean returnCurrent;
 
+	/**
+	 * Should the items marked as operational be ignored?
+	 */
+	Boolean ignoreOperationalItems;
+
 	public Boolean getComputeCurrentToProvided() {
 		return computeCurrentToProvided;
 	}
@@ -98,12 +103,25 @@ public class ModelCompareOptions implements Serializable, Cloneable {
 		return options != null && options.returnCurrent != null && options.returnCurrent;
 	}
 
+	public Boolean getIgnoreOperationalItems() {
+		return ignoreOperationalItems;
+	}
+
+	public void setIgnoreOperationalItems(Boolean ignoreOperationalItems) {
+		this.ignoreOperationalItems = ignoreOperationalItems;
+	}
+
+	public static boolean isIgnoreOperationalItems(ModelCompareOptions options) {
+		return options != null && options.ignoreOperationalItems != null && options.ignoreOperationalItems;
+	}
+
 	public ModelCompareOptionsType toModelCompareOptionsType() {
 		ModelCompareOptionsType retval = new ModelCompareOptionsType();
         retval.setComputeCurrentToProvided(computeCurrentToProvided);
 		retval.setComputeProvidedToCurrent(computeProvidedToCurrent);
 		retval.setReturnNormalized(returnNormalized);
 		retval.setReturnCurrent(returnCurrent);
+		retval.setIgnoreOperationalItems(ignoreOperationalItems);
         return retval;
     }
 
@@ -116,6 +134,7 @@ public class ModelCompareOptions implements Serializable, Cloneable {
 		retval.setComputeCurrentToProvided(type.isComputeCurrentToProvided());
 		retval.setReturnNormalized(type.isReturnNormalized());
 		retval.setReturnCurrent(type.isReturnCurrent());
+		retval.setIgnoreOperationalItems(type.isIgnoreOperationalItems());
         return retval;
     }
     
@@ -138,6 +157,9 @@ public class ModelCompareOptions implements Serializable, Cloneable {
     		if (ModelCompareOptionsType.F_RETURN_CURRENT.getLocalPart().equals(option)){
     			rv.setReturnCurrent(true);
     		}
+			if (ModelCompareOptionsType.F_IGNORE_OPERATIONAL_ITEMS.getLocalPart().equals(option)){
+				rv.setIgnoreOperationalItems(true);
+			}
     	}
     	return rv;
     }
@@ -149,6 +171,7 @@ public class ModelCompareOptions implements Serializable, Cloneable {
     	appendFlag(sb, "computeProvidedToCurrent", computeProvidedToCurrent);
     	appendFlag(sb, "returnNormalized", returnNormalized);
     	appendFlag(sb, "returnCurrent", returnCurrent);
+		appendFlag(sb, "ignoreOperationalItems", ignoreOperationalItems);
     	if (sb.charAt(sb.length() - 1) == ',') {
 			sb.deleteCharAt(sb.length() - 1);
 		}

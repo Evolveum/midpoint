@@ -18,6 +18,7 @@ package com.evolveum.midpoint.schema;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.GetOperationOptionsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import org.apache.commons.collections.CollectionUtils;
 
 import javax.xml.namespace.QName;
 
@@ -131,6 +132,10 @@ public class GetOperationOptions implements Serializable, Cloneable {
 
 	public static GetOperationOptions createRetrieve() {
 		return createRetrieve(RetrieveOption.INCLUDE);
+	}
+
+	public static GetOperationOptions createDontRetrieve() {
+		return createRetrieve(RetrieveOption.EXCLUDE);
 	}
 
     public static GetOperationOptions createRetrieve(RelationalValueSearchQuery query) {
@@ -485,6 +490,24 @@ public class GetOperationOptions implements Serializable, Cloneable {
 			sb.append(val);
 			sb.append(",");
 		}
+	}
+
+	public static Collection<SelectorOptions<GetOperationOptions>> fromRestOptions(List<String> options, List<String> include, List<String> exclude) {
+		if (CollectionUtils.isEmpty(options) && CollectionUtils.isEmpty(include) && CollectionUtils.isEmpty(exclude)) {
+			return null;
+		}
+		Collection<SelectorOptions<GetOperationOptions>> rv = new ArrayList<>();
+		GetOperationOptions rootOptions = fromRestOptions(options);
+		if (rootOptions != null) {
+			rv.add(SelectorOptions.create(rootOptions));
+		}
+		for (ItemPath includePath : ItemPath.fromStringList(include)) {
+			rv.add(SelectorOptions.create(includePath, GetOperationOptions.createRetrieve()));
+		}
+		for (ItemPath excludePath : ItemPath.fromStringList(exclude)) {
+			rv.add(SelectorOptions.create(excludePath, GetOperationOptions.createDontRetrieve()));
+		}
+		return rv;
 	}
 
 	public static GetOperationOptions fromRestOptions(List<String> options){

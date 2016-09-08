@@ -1,12 +1,12 @@
-midPoint 3.4 "Heisenberg"
--------------------------------
+midPoint 3.4 "Heisenberg Update 1"
+----------------------------------
 
-Release 3.4 is a seventeenth midPoint release code-named Heisenberg.
+Release 3.4.1 is a seventeenth midPoint release code-named Heisenberg.
 The 3.4 release brings identity governance features and significant user 
 interface improvements. MidPoint 3.4 is one of the major milestones in 
 midPoint project history.
 
-Release date: 24th June 2016
+Release date: TODO September 2016
 
 Changes with respect to version 3.3:
     Access certification (production quality)
@@ -52,5 +52,28 @@ Changes with respect to version 3.3:
     Full support for Java 8 environment (both build and runtime)
     Diagnostics improvements (connector statistics, logging improvements)
     Improved documentation
+    LDAP-based AD connector support invocation of commands and powershell 
+      scripts by using the WinRM interface.
+    Object templates can be specified for user, role, org and service subtypes.
+    Dynamic resolution of targetRef in assignment/inducement
+    Password history
+    Support for expression tracing for any individual expression
+    Reindex task
+    Minor GUI improvements
+    Java 7 platform support is deprecated
+    .NET-based exchange connector is deprecated
 
+Changes with respect to version 3.4:
+    LDAP-based AD connector support invocation of commands and powershell 
+      scripts by using the WinRM interface.
+    Object templates can be specified for user, role, org and service subtypes.
+    Dynamic resolution of targetRef in assignment/inducement
+    Password history
+    Support for expression tracing for any individual expression
+    Reindex task
+    Minor GUI improvements
+    Java 7 platform support is deprecated
+    .NET-based exchange connector is deprecated
+
+Java 7 platform is still supported but it is deprecated.
 XPath2 scripting is deprecated and it is not supported in Java8 environment.
