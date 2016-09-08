@@ -1749,7 +1749,10 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 			return;
 		}
 		for (ItemPath path : ignoreItems) {
-			object.removeItem(path, Item.class);
+			Item item = object.findItem(path);		// reduce to "removeItem" after fixing that method implementation
+			if (item != null) {
+				object.removeItem(item.getPath(), Item.class);
+			}
 		}
 	}
 

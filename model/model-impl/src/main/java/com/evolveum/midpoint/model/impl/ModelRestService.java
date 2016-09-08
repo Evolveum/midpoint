@@ -136,7 +136,7 @@ public class ModelRestService {
 	@GET
 	@Path("/users/{id}/policy")
 	public Response getValuePolicyForUser(@PathParam("id") String oid, @Context MessageContext mc) {
-		LOGGER.info("getValuePolicyForUser start");
+		LOGGER.debug("getValuePolicyForUser start");
 
 		Task task = RestServiceUtil.initRequest(mc);
 		OperationResult parentResult = task.getResult().createSubresult(OPERATION_GET);
@@ -159,7 +159,7 @@ public class ModelRestService {
 		parentResult.computeStatus();
 		finishRequest(task);
 
-		LOGGER.info("getValuePolicyForUser finish");
+		LOGGER.debug("getValuePolicyForUser finish");
 
 		return response;
 	}
@@ -167,17 +167,23 @@ public class ModelRestService {
 	@GET
 	@Path("/{type}/{id}")
 	public <T extends ObjectType> Response getObject(@PathParam("type") String type, @PathParam("id") String id,
+			@QueryParam("options") List<String> options,
+			@QueryParam("include") List<String> include,
+			@QueryParam("exclude") List<String> exclude,
 			@Context MessageContext mc){
-		LOGGER.info("model rest service for get operation start");
+		LOGGER.debug("model rest service for get operation start");
 		
 		Task task = RestServiceUtil.initRequest(mc);
 		OperationResult parentResult = task.getResult().createSubresult(OPERATION_GET);
 		
 		Class<T> clazz = ObjectTypes.getClassFromRestType(type);
+		Collection<SelectorOptions<GetOperationOptions>> getOptions = GetOperationOptions.fromRestOptions(options, include, exclude);
 		Response response;
 		
 		try {
-			PrismObject<T> object = model.getObject(clazz, id, null, task, parentResult);
+			PrismObject<T> object = model.getObject(clazz, id, getOptions, task, parentResult);
+			removeExcludes(object, exclude);		// temporary measure until fixed in repo
+
 			ResponseBuilder builder = Response.ok();
 			builder.entity(object);
 			response = builder.build();
@@ -198,7 +204,7 @@ public class ModelRestService {
 	public <T extends ObjectType> Response addObject(@PathParam("type") String type, PrismObject<T> object,
 													 @QueryParam("options") List<String> options,
 			@Context UriInfo uriInfo, @Context MessageContext mc) {
-		LOGGER.info("model rest service for add operation start");
+		LOGGER.debug("model rest service for add operation start");
 		
 		Task task = RestServiceUtil.initRequest(mc);
 		OperationResult parentResult = task.getResult().createSubresult(OPERATION_ADD_OBJECT);
@@ -217,7 +223,7 @@ public class ModelRestService {
 		Response response;
 		try {
 			oid = model.addObject(object, modelExecuteOptions, task, parentResult);
-			LOGGER.info("returned oid :  {}", oid );
+			LOGGER.debug("returned oid :  {}", oid );
 
 			ResponseBuilder builder;
 
@@ -247,7 +253,7 @@ public class ModelRestService {
 			PrismObject<T> object, @QueryParam("options") List<String> options, @Context UriInfo uriInfo, 
 			@Context Request request, @Context MessageContext mc){
 	
-		LOGGER.info("model rest service for add operation start");
+		LOGGER.debug("model rest service for add operation start");
 
 		Task task = RestServiceUtil.initRequest(mc);
 		OperationResult parentResult = task.getResult().createSubresult(OPERATION_ADD_OBJECT);
@@ -271,7 +277,7 @@ public class ModelRestService {
 		Response response;
 		try {
 			oid = model.addObject(object, modelExecuteOptions, task, parentResult);
-			LOGGER.info("returned oid :  {}", oid );
+			LOGGER.debug("returned oid :  {}", oid );
 			
 			URI resourceURI = uriInfo.getAbsolutePathBuilder().path(oid).build(oid);
 			ResponseBuilder builder = clazz.isAssignableFrom(TaskType.class) ?
@@ -295,7 +301,7 @@ public class ModelRestService {
 	public Response deleteObject(@PathParam("type") String type, @PathParam("id") String id, 
 			@QueryParam("options") List<String> options, @Context MessageContext mc){
 
-		LOGGER.info("model rest service for delete operation start");
+		LOGGER.debug("model rest service for delete operation start");
 		
 		Task task = RestServiceUtil.initRequest(mc);
 		OperationResult parentResult = task.getResult().createSubresult(OPERATION_DELETE_OBJECT);
@@ -341,7 +347,7 @@ public class ModelRestService {
 	public <T extends ObjectType> Response modifyObjectPatch(@PathParam("type") String type, @PathParam("oid") String oid, 
 			ObjectModificationType modificationType, @QueryParam("options") List<String> options, @Context MessageContext mc) {
 		
-		LOGGER.info("model rest service for modify operation start");
+		LOGGER.debug("model rest service for modify operation start");
 		
 		Task task = RestServiceUtil.initRequest(mc);
 		OperationResult parentResult = task.getResult().createSubresult(OPERATION_MODIFY_OBJECT);
@@ -366,7 +372,7 @@ public class ModelRestService {
 	@Path("/notifyChange")
 	public Response notifyChange(ResourceObjectShadowChangeDescriptionType changeDescription, 
 			@Context UriInfo uriInfo, @Context MessageContext mc) {
-		LOGGER.info("model rest service for notify change operation start");
+		LOGGER.debug("model rest service for notify change operation start");
 		Validate.notNull(changeDescription, "Chnage description must not be null");
 		
 		Task task = RestServiceUtil.initRequest(mc);
@@ -421,7 +427,11 @@ public class ModelRestService {
 	@POST
 	@Path("/{type}/search")
 //	@Produces({"text/html", "application/xml"})
-	public Response searchObjects(@PathParam("type") String type, QueryType queryType, @Context MessageContext mc){
+	public Response searchObjects(@PathParam("type") String type, QueryType queryType,
+			@QueryParam("options") List<String> options,
+			@QueryParam("include") List<String> include,
+			@QueryParam("exclude") List<String> exclude,
+			@Context MessageContext mc){
 	
 		Task task = RestServiceUtil.initRequest(mc);
 		OperationResult parentResult = task.getResult().createSubresult(OPERATION_SEARCH_OBJECTS);
@@ -430,11 +440,12 @@ public class ModelRestService {
 		Response response;
 		try {	
 			ObjectQuery query = QueryJaxbConvertor.createObjectQuery(clazz, queryType, prismContext);
-		
-			List<PrismObject<? extends ShadowType>> objects = model.searchObjects(clazz, query, null, task, parentResult);
+			Collection<SelectorOptions<GetOperationOptions>> searchOptions = GetOperationOptions.fromRestOptions(options, include, exclude);
+			List<PrismObject<? extends ShadowType>> objects = model.searchObjects(clazz, query, searchOptions, task, parentResult);
 		
 			ObjectListType listType = new ObjectListType();
 			for (PrismObject<? extends ObjectType> o : objects) {
+				removeExcludes(o, exclude);		// temporary measure until fixed in repo
 				listType.getObject().add(o.asObjectable());
 			}
 		
@@ -448,12 +459,21 @@ public class ModelRestService {
 		return response;
 	}
 
+	private void removeExcludes(PrismObject<? extends ObjectType> object, List<String> exclude) {
+		for (ItemPath path : ItemPath.fromStringList(exclude)) {
+			Item item = object.findItem(path);		// reduce to "removeItem" after fixing that method implementation
+			if (item != null) {
+				object.removeItem(item.getPath(), Item.class);
+			}
+		}
+	}
+
 	@POST
 	@Path("/resources/{resourceOid}/import/{objectClass}")
 //	@Produces({"text/html", "application/xml"})
 	public Response importFromResource(@PathParam("resourceOid") String resourceOid, @PathParam("objectClass") String objectClass, 
 			@Context MessageContext mc, @Context UriInfo uriInfo) {	
-		LOGGER.info("model rest service for import from resource operation start");
+		LOGGER.debug("model rest service for import from resource operation start");
 
 		Task task = RestServiceUtil.initRequest(mc);
 		OperationResult parentResult = task.getResult().createSubresult(OPERATION_IMPORT_FROM_RESOURCE);
@@ -477,7 +497,7 @@ public class ModelRestService {
 	@Path("/resources/{resourceOid}/test")
 //	@Produces({"text/html", "application/xml"})
 	public Response testResource(@PathParam("resourceOid") String resourceOid, @Context MessageContext mc) {
-		LOGGER.info("model rest service for test resource operation start");
+		LOGGER.debug("model rest service for test resource operation start");
 
 		Task task = RestServiceUtil.initRequest(mc);
 		OperationResult parentResult = task.getResult().createSubresult(OPERATION_TEST_RESOURCE);
