@@ -341,7 +341,7 @@ public class PageReport extends PageAdminReports {
 
         if (WebComponentUtil.isSuccessOrHandledError(result)) {
             showResult(result);
-            setResponsePage(PageReports.class);
+            redirectBack();
         } else {
             showResult(result);
             target.add(getFeedbackPanel());
