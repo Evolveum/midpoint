@@ -66,8 +66,6 @@ public class GetOperationOptions implements Serializable, Cloneable {
     /**
      * Resolve the object reference names. (Currently applicable only as a top-level option.)
      *
-     * Names of referenced objects are provided as PrismValue userData entries.
-     *
      * EXPERIMENTAL.
      */
 	private Boolean resolveNames;
@@ -525,6 +523,9 @@ public class GetOperationOptions implements Serializable, Cloneable {
 			}
 			if (GetOperationOptionsType.F_NO_DISCOVERY.getLocalPart().equals(option)) {
 				rv.setDoNotDiscovery(true);
+			}
+			if (GetOperationOptionsType.F_RESOLVE_NAMES.getLocalPart().equals(option)) {
+				rv.setResolveNames(true);
 			}
 		}
 

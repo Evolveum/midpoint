@@ -423,6 +423,7 @@
         <xsd:sequence>
             <xsd:element name="retrieve" type="tns:RetrieveOptionType" minOccurs="0"/>
             <xsd:element name="resolve" type="xsd:boolean" minOccurs="0"/>
+            <xsd:element name="resolveNames" type="xsd:boolean" minOccurs="0"/>
             <xsd:element name="noFetch" type="xsd:boolean" minOccurs="0"/>
             <xsd:element name="raw" type="xsd:boolean" minOccurs="0"/>
             <xsd:element name="noDiscovery" type="xsd:boolean" minOccurs="0"/>
