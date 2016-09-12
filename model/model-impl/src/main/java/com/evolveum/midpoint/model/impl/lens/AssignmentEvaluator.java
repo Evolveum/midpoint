@@ -232,17 +232,13 @@ public class AssignmentEvaluator<F extends FocusType> {
 		ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi = assignmentPathSegment.getAssignmentIdi();
 		AssignmentType assignmentType = LensUtil.getAssignmentType(assignmentIdi, evaluateOld);
 		
-		LOGGER.trace("Found assignment: {}", assignmentType);
-		
 		checkSchema(assignmentType, sourceDescription);
 		
 		List<PrismObject<O>> targets = null;
 		if (assignmentType.getTarget() != null) {
-			LOGGER.trace("Target already exists in assignment: {}", assignmentType.getTarget());
 			targets = new ArrayList<>(1);
 			targets.add(assignmentType.getTarget().asPrismObject());
 		} else if (assignmentType.getTargetRef() != null) {
-			LOGGER.trace("Target doesn't exists in assignment, resolving using target ref: {}", assignmentType.getTargetRef());
             try {
                 targets = resolveTargets(assignmentType, assignmentPathSegment, source, sourceDescription, task, result);
             } catch (ObjectNotFoundException ex) {
@@ -560,14 +556,18 @@ public class AssignmentEvaluator<F extends FocusType> {
 			orderOneObject = roleType;
 		} else {
 			AssignmentPathSegment last = assignmentPath.last();
-			if (last != null && last.getOrderOneObject() != null) {
-				orderOneObject = last.getOrderOneObject();
+			if (last != null && last.getSource() != null) {
+				orderOneObject = last.getSource();
 			} else {
 				orderOneObject = roleType;
 			}
+//			if (last != null && last.getOrderOneObject() != null) {
+//				orderOneObject = last.getOrderOneObject();
+//			} else {
+//				orderOneObject = roleType;
+//			}
 		}
-		LOGGER.trace("Order one object {}", orderOneObject);
-		LOGGER.trace("All assignment segments: {}", assignmentPath.getSegments());
+	
 		for (AssignmentType roleInducement : roleType.getInducement()) {
 			if (!isApplicable(roleInducement.getFocusType(), roleType)){
 				continue;
@@ -589,14 +589,18 @@ public class AssignmentEvaluator<F extends FocusType> {
 				}
 				roleAssignmentPathSegment.setEvaluateConstructions(true);
 				roleAssignmentPathSegment.setEvaluationOrder(evaluationOrder);
-				ObjectType sourceObject = null;
-				if (evaluationOrder > 0 && assignmentPath.last().getSource() instanceof AbstractRoleType) {
-					sourceObject = assignmentPath.last().getSource();
-				} else {
-					sourceObject = assignmentPath.last().getTarget();
-				}
+//				ObjectType sourceObject = null;
+//				if (evaluationOrder > 1) {
+//					if (assignmentPath.last().getSource() instanceof AbstractRoleType) {
+//						sourceObject = assignmentPath.last().getSource();
+//					} else {
+//						sourceObject = orderOneObject;
+//					}
+//				} else {
+//					sourceObject = orderOneObject;
+//				}
 //				ObjectType sourceObject = (evaluationOrder > 0 ? assignmentPath.last().getSource() : roleType);
-				roleAssignmentPathSegment.setOrderOneObject(sourceObject);
+				roleAssignmentPathSegment.setOrderOneObject(orderOneObject);
 				evaluateAssignment(assignment, roleAssignmentPathSegment, evaluateOld, mode, isValid, roleType, subSourceDescription, assignmentPath, task, result);
 //			} else if (inducementOrder < assignmentPath.getEvaluationOrder()) {
 //				LOGGER.trace("Follow({}) inducement({}) in role {}",
