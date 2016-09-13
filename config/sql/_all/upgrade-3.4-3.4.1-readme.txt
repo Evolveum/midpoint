@@ -1,0 +1,2 @@
+There was no change in the DB scripts between midPoint 3.4 and 3.4.1.
+No DB upgrade is needed.
