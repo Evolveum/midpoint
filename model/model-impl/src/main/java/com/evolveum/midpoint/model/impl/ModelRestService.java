@@ -627,7 +627,7 @@ public class ModelRestService {
     }
 
 	@POST
-	@Path("/scriptExecutions")
+	@Path("/rpc/executeScript")
 	//	@Produces({"text/html", "application/xml"})
 	@Consumes({"application/xml" })
 	public <T extends ObjectType> Response executeScript(ScriptingExpressionType scriptingExpression,
@@ -683,7 +683,7 @@ public class ModelRestService {
 	}
 
 	@POST
-	@Path("/comparisons")
+	@Path("/rpc/compare")
 	//	@Produces({"text/html", "application/xml"})
 	@Consumes({"application/xml" })
 	public <T extends ObjectType> Response compare(PrismObject<T> clientObject,
