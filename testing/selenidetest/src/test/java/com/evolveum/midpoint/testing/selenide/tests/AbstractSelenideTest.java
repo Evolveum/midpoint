@@ -24,7 +24,7 @@ import static com.codeborne.selenide.Selenide.open;
 //@ContextConfiguration(locations = {"classpath:spring-module.xml"})
 public class AbstractSelenideTest{
 //        extends AbstractTestNGSpringContextTests {
-    public static final String SITE_URL = "/";
+    public static final String SITE_URL = "/midpoint";
     public static final String ADMIN_LOGIN = "administrator";
     public static final String ADMIN_PASSWORD = "5ecr3t";
     //User's attributes' fields' names
@@ -223,6 +223,17 @@ public class AbstractSelenideTest{
 
         $(By.partialLinkText("New role")).shouldBe(visible).click();
         setFieldValues(roleFields);
+        //click Save button
+        $(By.linkText("Save")).shouldBe(visible).click();
+
+    }
+
+     public void createService(Map<String, String> servviceFields){
+        if (!$(By.partialLinkText("New service")).isDisplayed())
+            $(By.partialLinkText("Services")).shouldBe(visible).click();
+
+        $(By.partialLinkText("New service")).shouldBe(visible).click();
+        setFieldValues(servviceFields);
         //click Save button
         $(By.linkText("Save")).shouldBe(visible).click();
 
