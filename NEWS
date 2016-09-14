@@ -1,12 +1,13 @@
 midPoint 3.4 "Heisenberg Update 1"
 ----------------------------------
 
-Release 3.4.1 is a seventeenth midPoint release code-named Heisenberg.
-The 3.4 release brings identity governance features and significant user 
-interface improvements. MidPoint 3.4 is one of the major milestones in 
-midPoint project history.
+Release 3.4.1 is a seventeenth midPoint release. It is a first maintenance
+update for 3.4.x version family code-named Heisenberg. The Heisenberg 
+release brings identity governance features and significant user interface
+improvements. This maintenance update brings a number of fixes and minor
+improvements.
 
-Release date: TODO September 2016
+Release date: 13th September 2016
 
 Changes with respect to version 3.3:
     Access certification (production quality)

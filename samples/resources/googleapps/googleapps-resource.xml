@@ -782,7 +782,7 @@
             <cap:enabled>true</cap:enabled>
          </cap:update>
          <cap:addRemoveAttributeValues>
-            <cap:enabled>true</cap:enabled>
+            <cap:enabled>false</cap:enabled> <!-- adding and removing values from multi-value attribute at the same time would cause problem if this is 'true'. Google API takes some small time to propagate changes between two consequent updates. -->
          </cap:addRemoveAttributeValues>
          <cap:credentials>
             <cap:enabled>true</cap:enabled>
