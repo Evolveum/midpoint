@@ -76,6 +76,9 @@ public class AbstractSelenideTest{
     public static final String ASSIGN_ROLE_LINKTEXT = "Assign";
     public static final String ASSIGN_DEFAULT_OBJECT_TYPE = "RoleType";
 
+    public static final String ASSIGNMENT_TAB_NAME = "Assignments";
+    public static final String INDUCEMENT_TAB_NAME = "Inducements";
+
     Logger LOGGER = LoggerFactory.getLogger(AbstractSelenideTest.class);
 
     private static final String PARAM_SITE_URL = "site.url";
@@ -251,8 +254,12 @@ public class AbstractSelenideTest{
         $(By.partialLinkText("List users")).shouldBe(visible).click();
     }
 
-    public void assignObjectToUser(String linkText, String objectName) {
-        assignObjectToUser(linkText, "", objectName);
+    public void assignObjectToFocusObject(String linkText, String objectName) {
+        assignObjectToFocusObject(linkText, "", objectName);
+    }
+
+    public void assignObjectToFocusObject(String linkText, String objectType, String objectName) {
+        assignObjectToFocusObject(linkText, "", objectName, ASSIGNMENT_TAB_NAME);
     }
     /**
      * Prerequirement: user's Edit page is to be opened
@@ -260,8 +267,12 @@ public class AbstractSelenideTest{
      * @param linkText          the text of the menu item from the Assignments section menu
      * @param objectName        the name of the object to be assigned
      */
-    public void assignObjectToUser(String linkText, String objectType, String objectName){
-        openAssignmentsTab();
+    public void assignObjectToFocusObject(String linkText, String objectType, String objectName, String tabName){
+        if (tabName != null && tabName.equals(INDUCEMENT_TAB_NAME)){
+            openInducementsTab();
+        } else {
+            openAssignmentsTab();
+        }
         $(byAttribute("about", "dropdownMenu")).click();
         //click Assign menu item with the specified linkText
         $(By.linkText(linkText)).shouldBe(visible).click();
@@ -286,6 +297,10 @@ public class AbstractSelenideTest{
 
     protected void openAssignmentsTab(){
         $(byAttribute("class", "tab2")).shouldBe(visible).click();
+    }
+
+    protected void openInducementsTab(){
+        $(byAttribute("class", "tab5")).shouldBe(visible).click();
     }
 
     protected void openProjectionsTab(){

@@ -42,7 +42,7 @@ public class EndUserTests extends AbstractSelenideTest{
         $(By.linkText(END_USER_NAME)).shouldBe(visible).click();
 
         //assign End user role to user
-        assignObjectToUser(ASSIGN_ROLE_LINKTEXT, ENDUSER_ROLE_NAME);
+        assignObjectToFocusObject(ASSIGN_ROLE_LINKTEXT, ENDUSER_ROLE_NAME);
 
         //search for the user in users list
         searchForElement(END_USER_NAME);

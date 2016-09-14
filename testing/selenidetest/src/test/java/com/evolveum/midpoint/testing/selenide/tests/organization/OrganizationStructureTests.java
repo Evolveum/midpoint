@@ -57,7 +57,7 @@ public class OrganizationStructureTests extends AbstractSelenideTest {
         //open user's Edit page
         openUsersEditPage(USER_NAME);
         //assign F0002 org unit (Ministry of Defense) to the user
-        assignObjectToUser(ASSIGN_ORG_UNIT_LINKTEXT, "OrgType", ORG_UNIT_NAME);
+        assignObjectToFocusObject(ASSIGN_ORG_UNIT_LINKTEXT, "OrgType", ORG_UNIT_NAME);
         //open user's Edit page
         openUsersEditPage(USER_NAME);
         openAssignmentsTab();
