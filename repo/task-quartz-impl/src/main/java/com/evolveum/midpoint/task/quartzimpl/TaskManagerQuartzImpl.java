@@ -57,6 +57,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStatusT
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.quartz.JobKey;
 import org.quartz.Scheduler;
@@ -1028,6 +1029,11 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
     }
 
 	public List<PrismObject<TaskType>> listSubtasksForTask(String taskIdentifier, OperationResult result) throws SchemaException {
+
+		if (StringUtils.isEmpty(taskIdentifier)) {
+			return new ArrayList<>();
+		}
+
 		ObjectFilter filter = null;
 		filter = EqualFilter.createEqual(TaskType.F_PARENT, TaskType.class, prismContext, null, taskIdentifier);
 		ObjectQuery query = ObjectQuery.createObjectQuery(filter);
