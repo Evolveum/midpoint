@@ -140,23 +140,23 @@ public class ClusterManager {
                         checkClusterConfiguration(result);                          // if error, the scheduler will be stopped
                         nodeRegistrar.updateNodeObject(result);    // however, we want to update repo even in that case
                     } catch (Throwable t) {
-                        LoggingUtils.logException(LOGGER, "Unexpected exception while checking cluster configuration; continuing execution.", t);
+                        LoggingUtils.logUnexpectedException(LOGGER, "Unexpected exception while checking cluster configuration; continuing execution.", t);
                     }
 
                     try {
                         checkWaitingTasks(result);
                     } catch (Throwable t) {
-                        LoggingUtils.logException(LOGGER, "Unexpected exception while checking waiting tasks; continuing execution.", t);
+                        LoggingUtils.logUnexpectedException(LOGGER, "Unexpected exception while checking waiting tasks; continuing execution.", t);
                     }
 
                     try {
                         checkStalledTasks(result);
                     } catch (Throwable t) {
-                        LoggingUtils.logException(LOGGER, "Unexpected exception while checking stalled tasks; continuing execution.", t);
+                        LoggingUtils.logUnexpectedException(LOGGER, "Unexpected exception while checking stalled tasks; continuing execution.", t);
                     }
 
                 } catch(Throwable t) {
-                    LoggingUtils.logException(LOGGER, "Unexpected exception in ClusterManager thread; continuing execution.", t);
+                    LoggingUtils.logUnexpectedException(LOGGER, "Unexpected exception in ClusterManager thread; continuing execution.", t);
                 }
 
                 LOGGER.trace("ClusterManager thread sleeping for " + delay + " msec");
@@ -187,7 +187,7 @@ public class ClusterManager {
             try {
                 clusterManagerThread.join(waitTime);
             } catch (InterruptedException e) {
-                LoggingUtils.logException(LOGGER, "Waiting for ClusterManagerThread shutdown was interrupted", e);
+                LoggingUtils.logUnexpectedException(LOGGER, "Waiting for ClusterManagerThread shutdown was interrupted", e);
             }
             if (clusterManagerThread.isAlive()) {
                 result.recordWarning("ClusterManagerThread shutdown requested but after " + waitTime + " ms it is still running.");
