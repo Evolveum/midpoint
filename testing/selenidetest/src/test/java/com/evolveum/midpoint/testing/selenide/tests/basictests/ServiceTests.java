@@ -36,6 +36,8 @@ public class ServiceTests extends AbstractSelenideTest {
     public static final String SERVICE_IDENTIFIER_VALUE = "ServiceIdentifier";
     public static final String SERVICE_RISK_LEVEL_VALUE = "ServiceRiskLevel";
 
+    public static final String SERVICE_TEST_USER = "ServiceTestUser";
+
     private Map<String, String> serviceAttributes = new HashMap<>();
 
     @Test(priority = 0)
@@ -94,8 +96,64 @@ public class ServiceTests extends AbstractSelenideTest {
         checkObjectAttributesValues(serviceAttributesUpdated);
     }
 
-    @Test (priority = 2, dependsOnMethods = {"test001createServiceTest"})
-    public void test003deleteServiceTest(){
+    @Test(priority = 2, dependsOnMethods = {"test001createServiceTest"})
+    public void test003assignInducementForRoleTest(){
+        close();
+        login();
+        checkLoginIsPerformed();
+        if (!$(By.partialLinkText("List services")).isDisplayed()) {
+            $(By.partialLinkText("Services")).shouldBe(visible).click();
+        }
+        //click List services menu item
+        $(By.partialLinkText("List services")).shouldBe(visible).click();
+        //search for newly created service
+        searchForElement(SERVICE_NAME_VALUE + UPDATED_VALUE);
+        //click on the found service
+        $(By.linkText(SERVICE_NAME_VALUE + UPDATED_VALUE)).shouldBe(visible).click();
+
+        assignObjectToFocusObject(ASSIGN_ROLE_LINKTEXT, null, EndUserTests.ENDUSER_ROLE_NAME, INDUCEMENT_TAB_NAME);
+
+        checkOperationStatusOk("Save (GUI)");
+        searchForElement(SERVICE_NAME_VALUE + UPDATED_VALUE);
+        $(By.linkText(SERVICE_NAME_VALUE + UPDATED_VALUE)).shouldBe(visible).click();
+        openInducementsTab();
+        $(By.linkText(EndUserTests.ENDUSER_ROLE_NAME)).shouldBe(visible);
+    }
+
+
+    @Test(priority = 3, dependsOnMethods = {"test001createServiceTest"})
+    public void test004assignServiceToUserTest(){
+        close();
+        login();
+        checkLoginIsPerformed();
+
+        Map<String, String> usersMap = new HashMap<>();
+        createUser(SERVICE_TEST_USER, usersMap);
+        //search for the created user in users list
+        searchForElement(SERVICE_TEST_USER);
+        //click on the found user link
+        $(By.linkText(SERVICE_TEST_USER)).shouldBe(visible).click();
+
+        //assign End user role to user
+        assignObjectToFocusObject(ASSIGN_ROLE_LINKTEXT, "ServiceType", SERVICE_NAME_VALUE + UPDATED_VALUE, null);
+
+        //search for the user in users list
+        searchForElement(SERVICE_TEST_USER);
+        //click on the found user link
+        $(By.linkText(SERVICE_TEST_USER)).shouldBe(visible).click();
+
+        //check if assigned role is displayed on the Assignments tab
+        openAssignmentsTab();
+        $(byAttribute("about", "dropdownMenu")).click();
+        $(By.linkText("Show all assignments")).shouldBe(visible).click();
+
+        SelenideElement element = $(byAttribute("class", "wicket-modal"));
+        element.find(By.linkText(SERVICE_DISPLAY_NAME_VALUE + UPDATED_VALUE)).shouldBe(visible);
+        element.find(By.linkText(EndUserTests.ENDUSER_ROLE_NAME)).shouldBe(visible);
+    }
+
+    @Test (priority = 4, dependsOnMethods = {"test001createServiceTest", "test002updateServiceTest"})
+    public void test005deleteServiceTest(){
         close();
         login();
         checkLoginIsPerformed();

@@ -38,7 +38,7 @@ public class SuperUserTests extends AbstractSelenideTest {
         openUsersEditPage(SUPER_USER_NAME);
 
         //assign Superuser role to user
-        assignObjectToUser(ASSIGN_ROLE_LINKTEXT, SUPER_ROLE_NAME);
+        assignObjectToFocusObject(ASSIGN_ROLE_LINKTEXT, SUPER_ROLE_NAME);
 
         openUsersEditPage(SUPER_USER_NAME);
         openAssignmentsTab();

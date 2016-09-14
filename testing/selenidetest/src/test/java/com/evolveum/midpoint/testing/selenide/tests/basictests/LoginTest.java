@@ -104,7 +104,7 @@ public class LoginTest extends AbstractSelenideTest {
         $(By.linkText(USER_WITHOUT_PASSWORD)).shouldBe(visible).click();
 
         //assign End user role to user
-        assignObjectToUser(ASSIGN_ROLE_LINKTEXT, EndUserTests.ENDUSER_ROLE_NAME);
+        assignObjectToFocusObject(ASSIGN_ROLE_LINKTEXT, EndUserTests.ENDUSER_ROLE_NAME);
         checkOperationStatusOk("Save (GUI)");
         logout();
         close();
