@@ -79,6 +79,12 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
 
     public static final File ROLE_DEFENDER_FILE = new File(TEST_DIR, "role-defender.xml");
     public static final String ROLE_DEFENDER_OID = "12345111-1111-2222-1111-121212111567";
+    
+    public static final File ROLE_META_DEFENDER_FILE = new File(TEST_DIR, "role-meta-defender.xml");
+    public static final String ROLE_META_DEFENDER_OID = "12345111-1111-2222-1111-121212111568";
+    
+    public static final File ROLE_OFFENDER_FILE = new File(TEST_DIR, "role-offender.xml");
+    public static final String ROLE_OFFENDER_OID = "12345111-1111-2222-1111-121212111569";
 
     public static final File ORG_TEMP_FILE = new File(TEST_DIR, "org-temp.xml");
     public static final String ORG_TEMP_OID = "43214321-4311-0952-4762-854392584320";
@@ -90,6 +96,8 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
         addObject(ROLE_DEFENDER_FILE);
+        addObject(ROLE_META_DEFENDER_FILE);
+        addObject(ROLE_OFFENDER_FILE);
         addObject(USER_HERMAN_FILE);
         setDefaultUserTemplate(USER_TEMPLATE_ORG_ASSIGNMENT_OID);       // used for tests 4xx
         //DebugUtil.setDetailedDebugDump(true);
@@ -1280,6 +1288,34 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
         assertUserAssignedOrgs(userJack, ORG_MINISTRY_OF_OFFENSE_OID);
         assertUserHasOrgs(userJack, ORG_MINISTRY_OF_OFFENSE_OID);
 
+        // Postcondition
+        assertMonkeyIslandOrgSanity();
+    }
+    
+    
+    @Test
+    public void test500JackAssignMetaroleOffender() throws Exception {
+    	final String TEST_NAME = "test500JackAssignMetaroleOffender";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        Task task = taskManager.createTaskInstance(TestOrgStruct.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+
+        Collection<ItemDelta<?,?>> modifications = new ArrayList<>();
+        modifications.add(createAssignmentModification(ROLE_OFFENDER_OID, RoleType.COMPLEX_TYPE, null, null, null, true));
+        ObjectDelta<UserType> userDelta = ObjectDelta.createModifyDelta(USER_JACK_OID, modifications, UserType.class, prismContext);
+        Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
+
+        // WHEN
+        modelService.executeChanges(deltas, null, task, result);
+
+        
+        // THEN
+        PrismObject<UserType> userJack = getUser(USER_JACK_OID);
+        display("User jack after", userJack);
+        assertUserAssignedOrgs(userJack, ORG_MINISTRY_OF_OFFENSE_OID);
+        assertUserHasOrgs(userJack, ORG_MINISTRY_OF_OFFENSE_OID, ORG_MINISTRY_OF_DEFENSE_OID);
+       
         // Postcondition
         assertMonkeyIslandOrgSanity();
     }
