@@ -498,7 +498,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 		if (targetType instanceof AbstractRoleType) {
 			boolean roleConditionTrue = evaluateAbstractRole(assignment, assignmentPathSegment, evaluateOld, mode, isValid, (AbstractRoleType)targetType, source, sourceDescription, 
 					assignmentPath, task, result);
-			if (roleConditionTrue && mode != PlusMinusZero.MINUS) {
+			if (roleConditionTrue && mode != PlusMinusZero.MINUS && assignmentPathSegment.isEvaluateConstructions()) {
 				PrismReferenceValue refVal = new PrismReferenceValue();
 				refVal.setObject(targetType.asPrismObject());
 				refVal.setTargetType(ObjectTypes.getObjectType(targetType.getClass()).getTypeQName());
@@ -562,11 +562,6 @@ public class AssignmentEvaluator<F extends FocusType> {
 			} else {
 				orderOneObject = roleType;
 			}
-//			if (last != null && last.getOrderOneObject() != null) {
-//				orderOneObject = last.getOrderOneObject();
-//			} else {
-//				orderOneObject = roleType;
-//			}
 		}
 	
 		for (AssignmentType roleInducement : roleType.getInducement()) {
@@ -590,17 +585,6 @@ public class AssignmentEvaluator<F extends FocusType> {
 				}
 				roleAssignmentPathSegment.setEvaluateConstructions(true);
 				roleAssignmentPathSegment.setEvaluationOrder(evaluationOrder);
-//				ObjectType sourceObject = null;
-//				if (evaluationOrder > 1) {
-//					if (assignmentPath.last().getSource() instanceof AbstractRoleType) {
-//						sourceObject = assignmentPath.last().getSource();
-//					} else {
-//						sourceObject = orderOneObject;
-//					}
-//				} else {
-//					sourceObject = orderOneObject;
-//				}
-//				ObjectType sourceObject = (evaluationOrder > 0 ? assignmentPath.last().getSource() : roleType);
 				roleAssignmentPathSegment.setOrderOneObject(orderOneObject);
 				evaluateAssignment(assignment, roleAssignmentPathSegment, evaluateOld, mode, isValid, roleType, subSourceDescription, assignmentPath, task, result);
 //			} else if (inducementOrder < assignmentPath.getEvaluationOrder()) {
