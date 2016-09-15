@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.model.impl.lens.projector;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
@@ -176,7 +177,7 @@ public class PasswordPolicyProcessor {
         		return null;
         	}
         	
-        	List<PasswordHistoryEntryType> historyEntryValues = PrismContainerValue.fromPcvList(historyEntries.getValues());
+        	Collection<PasswordHistoryEntryType> historyEntryValues = historyEntries.getRealValues();
         	oldPasswords = new ArrayList<>(historyEntryValues.size());
         	for (PasswordHistoryEntryType historyEntryValue : historyEntryValues) {
         		try {
