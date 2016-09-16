@@ -75,7 +75,7 @@ public abstract class BaseActionExecutor implements ActionExecutor {
         return raw ? " (raw)" : "";
     }
 
-    private String drySuffix(boolean dry) {
+    protected String drySuffix(boolean dry) {
         return dry ? " (dry run)" : "";
     }
 
