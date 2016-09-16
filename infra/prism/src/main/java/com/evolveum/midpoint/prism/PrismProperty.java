@@ -129,6 +129,7 @@ public class PrismProperty<T> extends Item<PrismPropertyValue<T>,PrismPropertyDe
         return (List) getValues();
     }
 
+    @Override
     public Collection<T> getRealValues() {
 		Collection<T> realValues = new ArrayList<T>(getValues().size());
 		for (PrismPropertyValue<T> pValue: getValues()) {
@@ -140,6 +141,7 @@ public class PrismProperty<T> extends Item<PrismPropertyValue<T>,PrismPropertyDe
     /**
      * Type override, also for compatibility.
      */
+    
 	public <X> Collection<X> getRealValues(Class<X> type) {
 		Collection<X> realValues = new ArrayList<X>(getValues().size());
 		for (PrismPropertyValue<T> pValue: getValues()) {
@@ -164,6 +166,7 @@ public class PrismProperty<T> extends Item<PrismPropertyValue<T>,PrismPropertyDe
         return values.iterator().next();
     }
 
+    @Override
     public T getRealValue() {
 		if (getValue() == null) {
             return null;

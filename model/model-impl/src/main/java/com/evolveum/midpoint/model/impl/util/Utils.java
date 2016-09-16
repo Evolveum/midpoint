@@ -25,6 +25,7 @@ import com.evolveum.midpoint.model.common.expression.script.ScriptExpression;
 import com.evolveum.midpoint.model.impl.ModelConstants;
 import com.evolveum.midpoint.model.impl.expr.ModelExpressionThreadLocalHolder;
 import com.evolveum.midpoint.model.impl.importer.ObjectImporter;
+import com.evolveum.midpoint.model.impl.lens.AssignmentPathVariables;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensElementContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
@@ -525,6 +526,14 @@ public final class Utils {
 			variables.addVariableDefinition(ExpressionConstants.VAR_OPERATION, affectedElementContext.getOperation().getValue());
 		}
 	}
+    
+    public static void addAssignmentPathVariables(AssignmentPathVariables assignmentPathVariables, ExpressionVariables expressionVariables) {
+    	expressionVariables.addVariableDefinition(ExpressionConstants.VAR_ASSIGNMENT, assignmentPathVariables.getMagicAssignment());
+    	expressionVariables.addVariableDefinition(ExpressionConstants.VAR_IMMEDIATE_ASSIGNMENT, assignmentPathVariables.getImmediateAssignment());
+    	expressionVariables.addVariableDefinition(ExpressionConstants.VAR_THIS_ASSIGNMENT, assignmentPathVariables.getThisAssignment());
+    	expressionVariables.addVariableDefinition(ExpressionConstants.VAR_FOCUS_ASSIGNMENT, assignmentPathVariables.getFocusAssignment());
+    	expressionVariables.addVariableDefinition(ExpressionConstants.VAR_IMMEDIATE_ROLE, assignmentPathVariables.getImmediateRole());
+    }
 
 	public static String getPolicyDesc(ObjectSynchronizationType synchronizationPolicy) {
 		if (synchronizationPolicy == null) {
