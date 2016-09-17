@@ -39,6 +39,7 @@
                 <value>provisioningService</value>
                 <value>synchronizationService</value>
                 <value>modelController</value>
+                <value>modelInteractionService</value>
             </list>
         </constructor-arg>
     </bean>
