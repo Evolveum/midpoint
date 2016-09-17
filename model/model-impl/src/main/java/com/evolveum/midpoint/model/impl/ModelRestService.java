@@ -41,8 +41,11 @@ import com.evolveum.midpoint.model.api.*;
 import com.evolveum.midpoint.model.impl.util.RestServiceUtil;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.*;
@@ -102,8 +105,8 @@ public class ModelRestService {
 	public static final String OPERATION_COMPARE = CLASS_DOT + "compare";
 	public static final String OPERATION_GET_LOG_FILE_CONTENT = CLASS_DOT + "getLogFileContent";
 	public static final String OPERATION_GET_LOG_FILE_SIZE = CLASS_DOT + "getLogFileSize";
+	private static final String CURRENT = "current";
 
-	
 	@Autowired
 	private ModelCrudService model;
 
@@ -124,6 +127,9 @@ public class ModelRestService {
 	
 	@Autowired
 	private SecurityHelper securityHelper;
+
+	@Autowired
+	private TaskManager taskManager;
 	
 	private static final Trace LOGGER = TraceManager.getTrace(ModelRestService.class);
 	
@@ -181,7 +187,23 @@ public class ModelRestService {
 		Response response;
 		
 		try {
-			PrismObject<T> object = model.getObject(clazz, id, getOptions, task, parentResult);
+			PrismObject<T> object;
+			if (NodeType.class.equals(clazz) && CURRENT.equals(id)) {
+				String nodeId = taskManager.getNodeId();
+				ObjectQuery query = QueryBuilder.queryFor(NodeType.class, prismContext)
+						.item(NodeType.F_NODE_IDENTIFIER).eq(nodeId)
+						.build();
+			 	List<PrismObject<NodeType>> objects = model.searchObjects(NodeType.class, query, getOptions, task, parentResult);
+				if (objects.isEmpty()) {
+					throw new ObjectNotFoundException("Current node (id " + nodeId + ") couldn't be found.");
+				} else if (objects.size() > 1) {
+					throw new IllegalStateException("More than one 'current' node (id " + nodeId + ") found.");
+				} else {
+					object = (PrismObject<T>) objects.get(0);
+				}
+			} else {
+				object = model.getObject(clazz, id, getOptions, task, parentResult);
+			}
 			removeExcludes(object, exclude);		// temporary measure until fixed in repo
 
 			ResponseBuilder builder = Response.ok();

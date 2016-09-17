@@ -911,6 +911,13 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
+					<xsd:element name="build" type="tns:BuildInformationType" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation>
+								Information about midPoint build running on this node.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -12256,4 +12263,31 @@
 		</xsd:sequence>
 	</xsd:complexType>
 
+	<xsd:complexType name="BuildInformationType">
+		<xsd:annotation>
+			<xsd:documentation>
+				TODO
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:container/>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="version" type="xsd:string" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Version taken from POM file, e.g. 3.4.1 or 3.5-SNAPSHOT.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="revision" type="xsd:string" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Revision, i.e. output of git describe command. Example: git-v3.5devel-314-g02f4792.
+						May not be known, depending on how midPoint was built.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
 </xsd:schema>
