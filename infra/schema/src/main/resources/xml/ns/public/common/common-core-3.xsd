@@ -12290,4 +12290,82 @@
 			</xsd:element>
 		</xsd:sequence>
 	</xsd:complexType>
+
+	<xsd:complexType name="ValidationResultType">
+		<xsd:annotation>
+			<xsd:documentation>
+				TODO
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:container/>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="issue" type="tns:ValidationIssueType" minOccurs="0" maxOccurs="unbounded">
+				<xsd:annotation>
+					<xsd:documentation>
+						TODO
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:element name="validationResult" type="tns:ValidationResultType"/>
+
+	<xsd:complexType name="ValidationIssueType">
+		<xsd:annotation>
+			<xsd:documentation>
+				TODO
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:container/>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="severity" type="tns:ValidationIssueSeverityType" />
+			<xsd:element name="category" type="xsd:string" />
+			<xsd:element name="code" type="xsd:string" />
+			<xsd:element name="text" type="xsd:string" />
+			<xsd:element name="objectRef" type="tns:ObjectReferenceType" minOccurs="0" />
+			<xsd:element name="itemPath" type="xsd:string" minOccurs="0" />					<!-- ItemPathType is problem within containers -->
+		</xsd:sequence>
+	</xsd:complexType>
+
+	<xsd:simpleType name="ValidationIssueSeverityType">
+		<xsd:annotation>
+			<xsd:documentation>
+				TODO
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="error">
+				<xsd:annotation>
+					<xsd:documentation>
+					</xsd:documentation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="ERROR"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+			<xsd:enumeration value="warning">
+				<xsd:annotation>
+					<xsd:documentation>
+					</xsd:documentation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="WARNING"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+			<xsd:enumeration value="info">
+				<xsd:annotation>
+					<xsd:documentation>
+					</xsd:documentation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="INFO"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+		</xsd:restriction>
+	</xsd:simpleType>
+
 </xsd:schema>

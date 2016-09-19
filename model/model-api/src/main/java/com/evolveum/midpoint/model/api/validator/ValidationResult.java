@@ -18,6 +18,7 @@ package com.evolveum.midpoint.model.api.validator;
 
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ValidationResultType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -52,4 +53,13 @@ public class ValidationResult {
 	public List<Issue> getIssues() {
 		return issues;
 	}
+
+	public ValidationResultType toValidationResultType() {
+		ValidationResultType rv = new ValidationResultType();
+		for (Issue issue : issues) {
+			rv.getIssue().add(issue.toValidationIssueType());
+		}
+		return rv;
+	}
+
 }
