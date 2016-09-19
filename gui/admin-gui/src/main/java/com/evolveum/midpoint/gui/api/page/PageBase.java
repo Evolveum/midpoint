@@ -28,6 +28,7 @@ import javax.management.MBeanServerFactory;
 import javax.management.ObjectName;
 
 import com.evolveum.midpoint.common.SystemConfigurationHolder;
+import com.evolveum.midpoint.web.component.menu.*;
 import com.evolveum.midpoint.web.page.admin.configuration.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
@@ -113,11 +114,6 @@ import com.evolveum.midpoint.web.component.breadcrumbs.BreadcrumbPageClass;
 import com.evolveum.midpoint.web.component.breadcrumbs.BreadcrumbPageInstance;
 import com.evolveum.midpoint.web.component.dialog.MainPopupDialog;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
-import com.evolveum.midpoint.web.component.menu.MainMenuItem;
-import com.evolveum.midpoint.web.component.menu.MenuItem;
-import com.evolveum.midpoint.web.component.menu.SideBarMenuItem;
-import com.evolveum.midpoint.web.component.menu.SideBarMenuPanel;
-import com.evolveum.midpoint.web.component.menu.UserMenuPanel;
 import com.evolveum.midpoint.web.component.menu.top.LocalePanel;
 import com.evolveum.midpoint.web.component.message.FeedbackAlerts;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
@@ -1317,9 +1313,9 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
             if (menuList != null && menuList.size() > 0 && urlClassMap != null && urlClassMap.size() > 0) {
                 for (RichHyperlinkType link : menuList) {
                     if (link.getTargetUrl() != null && !link.getTargetUrl().trim().equals("")) {
-                        MainMenuItem item = new MainMenuItem(link.getIcon() == null ? "" : link.getIcon().getCssClass(),
+                        AdditionalMenuItem item = new AdditionalMenuItem(link.getIcon() == null ? "" : link.getIcon().getCssClass(),
                                 getAdditionalMenuItemNameModel(link.getLabel()),
-                                urlClassMap.get(link.getTargetUrl()));
+                                link.getTargetUrl(), urlClassMap.get(link.getTargetUrl()));
                         menu.getItems().add(item);
                     }
                 }
