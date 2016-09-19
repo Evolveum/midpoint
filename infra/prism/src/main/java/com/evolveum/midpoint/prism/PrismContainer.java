@@ -112,6 +112,28 @@ public class PrismContainer<C extends Containerable> extends Item<PrismContainer
     public List<PrismContainerValue<C>> getValues() {
     	return (List<PrismContainerValue<C>>) super.getValues();
     }
+    
+    @Override
+    public Collection<C> getRealValues() {
+		if (getValues() == null) {
+			return null;
+		}
+		List<C> realValues = new ArrayList<>(getValues().size());
+		for (PrismContainerValue<C> value : getValues()) {
+			realValues.add(value.asContainerable());
+		}
+		
+		return realValues;
+		
+	}
+    
+    @Override
+    public C getRealValue() {
+    	if (getValue() == null) {
+    		return null;
+    	}
+    	return getValue().asContainerable();
+    }
    
     public PrismContainerValue<C> getValue() {
     	if (getValues().size() == 1) {

@@ -428,8 +428,7 @@ public class CredentialsProcessor {
 		if (historyEntries.isEmpty()) {
 			return new ArrayList<>();
 		}
-		List<PasswordHistoryEntryType> historyEntryValues = PrismContainerValue
-				.fromPcvList(historyEntries.getValues());
+		List<PasswordHistoryEntryType> historyEntryValues = (List<PasswordHistoryEntryType>) historyEntries.getRealValues();
 
 		Collections.sort(historyEntryValues, new Comparator<PasswordHistoryEntryType>() {
 

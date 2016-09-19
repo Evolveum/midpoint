@@ -15,6 +15,7 @@
  */
 package com.evolveum.midpoint.model.common.expression;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -250,6 +251,9 @@ public class ExpressionUtil {
 		if (originalValue instanceof PrismPropertyValue<?>) {
 			return ((PrismPropertyValue<?>)originalValue).getValue();
 		}
+		if (originalValue instanceof PrismReferenceValue) {
+			return ((PrismReferenceValue)originalValue).asReferencable();
+		}
 		if (originalValue instanceof PrismProperty<?>) {
 			PrismProperty<?> prop = (PrismProperty<?>)originalValue;
 			PrismPropertyDefinition<?> def = prop.getDefinition();
@@ -263,6 +267,34 @@ public class ExpressionUtil {
 				return prop.getValues();
 			}
 		}
+		if (originalValue instanceof PrismReference) {
+			PrismReference prop = (PrismReference)originalValue;
+			PrismReferenceDefinition def = prop.getDefinition();
+			if (def != null) {
+				if (def.isSingleValue()) {
+					return prop.getRealValue();
+				} else {
+					return prop.getRealValues();
+				}
+			} else {
+				return prop.getValues();
+			}
+		}
+		if (originalValue instanceof PrismContainer<?>) {
+			PrismContainer<?> container = (PrismContainer<?>)originalValue;
+			PrismContainerDefinition<?> def = container.getDefinition();
+			if (def != null) {
+				if (def.isSingleValue()) {
+					return container.getRealValue();
+				} else {
+					return container.getRealValues();
+					
+				}
+			} else {
+				return container.getValues();
+			}
+		}
+		
 		return originalValue;
 	}
 

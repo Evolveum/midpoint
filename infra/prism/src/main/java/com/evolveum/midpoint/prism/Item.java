@@ -237,6 +237,10 @@ public abstract class Item<V extends PrismValue, D extends ItemDefinition> imple
 		return values.get(index);
 	}
     
+    public abstract <X> X getRealValue();
+    
+    public abstract <X> Collection<X> getRealValues();
+    
     public boolean hasValue(PrismValue value, boolean ignoreMetadata) {
     	return (findValue(value, ignoreMetadata) != null);
     }

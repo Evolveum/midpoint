@@ -1583,16 +1583,4 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
 		return rv;
 	}
 	
-	public static <T extends Containerable> List<T> fromPcvList(List<PrismContainerValue<T>> values) {
-		if (values == null) {
-			return null;
-		}
-		List<T> realValues = new ArrayList<>(values.size());
-		for (PrismContainerValue<T> value : values) {
-			realValues.add(value.asContainerable());
-		}
-		
-		return realValues;
-		
-	}
 }

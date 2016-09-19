@@ -63,6 +63,8 @@ public class EnableDisableExecutor extends BaseActionExecutor {
     public Data execute(ActionExpressionType expression, Data input, ExecutionContext context, OperationResult result) throws ScriptExecutionException {
 
         boolean isEnable = NAME_ENABLE.equals(expression.getType());
+        boolean raw = getParamRaw(expression, input, context, result);
+        boolean dryRun = getParamDryRun(expression, input, context, result);
 
         for (Item item : input.getData()) {
             if (item instanceof PrismObject) {
@@ -71,11 +73,11 @@ public class EnableDisableExecutor extends BaseActionExecutor {
                 long started = operationsHelper.recordStart(context, objectType);
                 try {
                     if (objectType instanceof FocusType) {
-                        operationsHelper.applyDelta(createEnableDisableDelta((FocusType) objectType, isEnable), context, result);
-                        context.println((isEnable ? "Enabled " : "Disabled ") + item.toString());
+                        operationsHelper.applyDelta(createEnableDisableDelta((FocusType) objectType, isEnable), operationsHelper.createExecutionOptions(raw), dryRun, context, result);
+                        context.println((isEnable ? "Enabled " : "Disabled ") + item.toString() + rawDrySuffix(raw, dryRun));
                     } else if (objectType instanceof ShadowType) {
                         operationsHelper.applyDelta(createEnableDisableDelta((ShadowType) objectType, isEnable), context, result);
-                        context.println((isEnable ? "Enabled " : "Disabled ") + item.toString());
+                        context.println((isEnable ? "Enabled " : "Disabled ") + item.toString() + rawDrySuffix(raw, dryRun));
                     } else {
                         throw new ScriptExecutionException("Item could not be enabled/disabled, because it is not a FocusType nor ShadowType: " + item.toString());
                     }

@@ -240,7 +240,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 			targets.add(assignmentType.getTarget().asPrismObject());
 		} else if (assignmentType.getTargetRef() != null) {
             try {
-                targets = resolveTargets(assignmentType, assignmentPathSegment, source, sourceDescription, task, result);
+                targets = resolveTargets(assignmentType, assignmentPathSegment, source, sourceDescription, assignmentPath, task, result);
             } catch (ObjectNotFoundException ex) {
                 // Do not throw an exception. We don't have referential integrity. Therefore if a role is deleted then throwing
                 // an exception would prohibit any operations with the users that have the role, including removal of the reference.
@@ -408,7 +408,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 		}
 	}
 
-	private <O extends ObjectType> List<PrismObject<O>> resolveTargets(AssignmentType assignmentType, AssignmentPathSegment assignmentPathSegment, ObjectType source, String sourceDescription, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
+	private <O extends ObjectType> List<PrismObject<O>> resolveTargets(AssignmentType assignmentType, AssignmentPathSegment assignmentPathSegment, ObjectType source, String sourceDescription, AssignmentPath assignmentPath, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
 		ObjectReferenceType targetRef = assignmentType.getTargetRef();
 		String oid = targetRef.getOid();
 		
@@ -429,7 +429,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 				throw new SchemaException("The OID and filter are both null in assignment targetRef in "+source);
 			}
 			
-			List<PrismObject<O>> targets = resolveTargetsFromFilter(clazz, assignmentPathSegment, source, targetRef.getFilter(), sourceDescription, task, result);
+			List<PrismObject<O>> targets = resolveTargetsFromFilter(clazz, assignmentPathSegment, source, targetRef.getFilter(), sourceDescription, assignmentPath, task, result);
 			return targets;
 			
 		} else {
@@ -453,7 +453,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 		
 	}
 	
-	private <O extends ObjectType> List<PrismObject<O>> resolveTargetsFromFilter(Class<O> clazz, AssignmentPathSegment assignmentPathSegment, ObjectType source, SearchFilterType filter, String sourceDescription, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException{
+	private <O extends ObjectType> List<PrismObject<O>> resolveTargetsFromFilter(Class<O> clazz, AssignmentPathSegment assignmentPathSegment, ObjectType source, SearchFilterType filter, String sourceDescription, AssignmentPath assignmentPath, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException{
 //		SearchFilterType filter = targetRef.getFilter();
 		ModelExpressionThreadLocalHolder.pushLensContext(lensContext);
 		ModelExpressionThreadLocalHolder.pushCurrentResult(result);
@@ -461,6 +461,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 		try {
 		ExpressionVariables variables = Utils.getDefaultExpressionVariables(source, null, null, LensUtil.getSystemConfiguration(lensContext, repository, result).asObjectable());
 		variables.addVariableDefinition(ExpressionConstants.VAR_SOURCE, assignmentPathSegment.getOrderOneObject());
+		Utils.addAssignmentPathVariables(LensUtil.computeAssignmentPathVariables(assignmentPath), variables);
 
 		ObjectFilter origFilter = QueryConvertor.parseFilter(filter, clazz, prismContext);
 		ObjectFilter evaluatedFilter = ExpressionUtil.evaluateFilterExpressions(origFilter, variables, getMappingFactory().getExpressionFactory(), prismContext, " evaluating resource filter expression ", task, result);
@@ -497,7 +498,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 		if (targetType instanceof AbstractRoleType) {
 			boolean roleConditionTrue = evaluateAbstractRole(assignment, assignmentPathSegment, evaluateOld, mode, isValid, (AbstractRoleType)targetType, source, sourceDescription, 
 					assignmentPath, task, result);
-			if (roleConditionTrue && mode != PlusMinusZero.MINUS && assignmentPath.getEvaluationOrder() == 1) {
+			if (roleConditionTrue && mode != PlusMinusZero.MINUS && assignmentPathSegment.isEvaluateConstructions()) {
 				PrismReferenceValue refVal = new PrismReferenceValue();
 				refVal.setObject(targetType.asPrismObject());
 				refVal.setTargetType(ObjectTypes.getObjectType(targetType.getClass()).getTypeQName());
@@ -561,11 +562,6 @@ public class AssignmentEvaluator<F extends FocusType> {
 			} else {
 				orderOneObject = roleType;
 			}
-//			if (last != null && last.getOrderOneObject() != null) {
-//				orderOneObject = last.getOrderOneObject();
-//			} else {
-//				orderOneObject = roleType;
-//			}
 		}
 	
 		for (AssignmentType roleInducement : roleType.getInducement()) {
@@ -589,17 +585,6 @@ public class AssignmentEvaluator<F extends FocusType> {
 				}
 				roleAssignmentPathSegment.setEvaluateConstructions(true);
 				roleAssignmentPathSegment.setEvaluationOrder(evaluationOrder);
-//				ObjectType sourceObject = null;
-//				if (evaluationOrder > 1) {
-//					if (assignmentPath.last().getSource() instanceof AbstractRoleType) {
-//						sourceObject = assignmentPath.last().getSource();
-//					} else {
-//						sourceObject = orderOneObject;
-//					}
-//				} else {
-//					sourceObject = orderOneObject;
-//				}
-//				ObjectType sourceObject = (evaluationOrder > 0 ? assignmentPath.last().getSource() : roleType);
 				roleAssignmentPathSegment.setOrderOneObject(orderOneObject);
 				evaluateAssignment(assignment, roleAssignmentPathSegment, evaluateOld, mode, isValid, roleType, subSourceDescription, assignmentPath, task, result);
 //			} else if (inducementOrder < assignmentPath.getEvaluationOrder()) {
