@@ -39,6 +39,7 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.request.cycle.RequestCycle;
+import org.apache.wicket.request.flow.RedirectToUrlException;
 
 import java.io.Serializable;
 import java.util.List;
@@ -99,6 +100,15 @@ public class MainMenuPanel extends BasePanel<MainMenuItem> {
                 @Override
                 public void onClick(AjaxRequestTarget target) {
                     mainMenuPerformed(menu);
+                }
+            };
+        } else if (menu instanceof AdditionalMenuItem){
+            link = new AjaxLink(ID_LINK) {
+                private static final long serialVersionUID = 1L;
+
+                @Override
+                public void onClick(AjaxRequestTarget target) {
+                    additionalMenuPerformed(menu);
                 }
             };
         } else {
@@ -252,6 +262,18 @@ public class MainMenuPanel extends BasePanel<MainMenuItem> {
             setResponsePage(menu.getPageClass());
         } else {
             setResponsePage(menu.getPageClass(), menu.getParams());
+        }
+    }
+
+    private void additionalMenuPerformed(MainMenuItem menu) {
+    	LOGGER.trace("additionalMenuPerformed: {}", menu);
+        SessionStorage storage = getPageBase().getSessionStorage();
+        storage.clearBreadcrumbs();
+
+        if (menu.getPageClass() != null) {
+            setResponsePage(menu.getPageClass());
+        } else {
+            throw new RedirectToUrlException(((AdditionalMenuItem)menu).getTargetUrl());
         }
     }
 }
