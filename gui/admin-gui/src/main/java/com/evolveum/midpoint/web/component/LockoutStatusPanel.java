@@ -2,13 +2,18 @@ package com.evolveum.midpoint.web.component;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.prism.Item;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.web.component.prism.ItemWrapper;
+import com.evolveum.midpoint.web.component.prism.PropertyWrapper;
+import com.evolveum.midpoint.web.component.prism.ValueStatus;
+import com.evolveum.midpoint.web.component.prism.ValueWrapper;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LockoutStatusType;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.panel.FeedbackPanel;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 
@@ -21,17 +26,17 @@ public class LockoutStatusPanel extends Panel {
     private static final String ID_BUTTON = "button";
     private static final String ID_FEEDBACK = "feedback";
     private boolean isInitialState = true;
-    private boolean isUndo = false;
+    private LockoutStatusType initialValue;
+    private ValueWrapper valueWrapper;
 
     public LockoutStatusPanel(String id){
-        this(id, null);
+        this(id, null, null);
     }
 
-    public LockoutStatusPanel(String id, IModel<LockoutStatusType> model){
+    public LockoutStatusPanel(String id, ValueWrapper valueWrapper, IModel<LockoutStatusType> model){
         super(id);
-        LockoutStatusType l = model.getObject();
-        isUndo = l != null && model.getObject().value() != null &&
-                model.getObject().equals(LockoutStatusType.LOCKED);
+        initialValue = model.getObject();
+        this.valueWrapper = valueWrapper;
         initLayout(model);
     }
 
@@ -68,10 +73,16 @@ public class LockoutStatusPanel extends Panel {
         AjaxButton button = new AjaxButton(ID_BUTTON, getButtonModel()) {
             @Override
             public void onClick(AjaxRequestTarget ajaxRequestTarget) {
+                PrismPropertyValue oldValue = (PrismPropertyValue)valueWrapper.getOldValue();
                 if (!isInitialState){
-                    model.setObject(LockoutStatusType.LOCKED);
+                    model.setObject(initialValue);
+                    oldValue.setValue(initialValue);
+                    valueWrapper.setStatus(ValueStatus.NOT_CHANGED);
                 } else {
                     model.setObject(LockoutStatusType.NORMAL);
+                    if (oldValue.getValue() != null) {
+                        oldValue.setValue(null);
+                    }
                 }
                 isInitialState = !isInitialState;
                 ajaxRequestTarget.add(getButton());
@@ -81,7 +92,7 @@ public class LockoutStatusPanel extends Panel {
         button.add(new VisibleEnableBehaviour(){
             @Override
         public boolean isVisible(){
-                return isUndo;
+                return true;
             }
         });
         button.setOutputMarkupId(true);
