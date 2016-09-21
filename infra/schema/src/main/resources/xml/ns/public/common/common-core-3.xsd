@@ -911,6 +911,13 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
+					<xsd:element name="build" type="tns:BuildInformationType" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation>
+								Information about midPoint build running on this node.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -5300,6 +5307,19 @@
             <xsd:element name="condition" type="tns:ExpressionType" minOccurs="0" maxOccurs="1"/>
             <xsd:element name="inputFilter" type="tns:ValueFilterType" minOccurs="0"/>
             <xsd:element name="outputFilter" type="tns:ValueFilterType" minOccurs="0"/>
+            <xsd:element name="range" minOccurs="0" type="tns:ValueSetSpecificationType">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                        	Specifies the range of the mapping (in mathematical sense). I.e. this specifies the values
+                        	that the mapping can produce. Range specification makes sense only for authoritative mappings.
+                        	If the range is specified then the mapping will scan existing values of the target property.
+                        	It will look for values that are there and that are also in the range of the mapping. If such
+                        	values are not in the expression results, then such values will be removed (placed in the minus set).
+                        </p>
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
     <xsd:element name="mapping" type="tns:MappingType"/>
@@ -5416,6 +5436,9 @@
                 are faulty and the ability of filters to do "technical" things
                 may come handy.
             </xsd:documentation>
+            <xsd:appinfo>
+            	<a:deprecated>true</a:deprecated>
+            </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
             <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax">
@@ -5435,6 +5458,34 @@
                 </xsd:documentation>
             </xsd:annotation>
         </xsd:attribute>
+    </xsd:complexType>
+    
+    <xsd:complexType name="ValueSetSpecificationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Specifies set of prism item values. E.g. specifies a set of string values,
+                container values (e.g. assignments) and so on. It is used at places where
+                we need to select particular values based on a flexible set of criteria.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element ref="tns:description" minOccurs="0" maxOccurs="1"/>
+           	<xsd:element name="isInSetExpression" type="tns:ExpressionType" minOccurs="0" maxOccurs="1">
+           		<xsd:annotation>
+           			<xsd:documentation>
+           				Expression that is evaluated for each candidate value. 
+           				The value is passed to the expression in the 'input' variable.
+           				If this expression returns true then the value is part of the set.
+           				If it returns false (or no value) then the value is not part of the set. 
+           			</xsd:documentation>
+           		</xsd:annotation>
+           	</xsd:element>
+           	<!-- More criteria specification may come here in the future.
+           	     E.g. expression that generates all possible values, 
+           	     reference to lookup that has all the values, 
+           	     query that works on top of the values,
+           	     string patterns, etc. -->
+        </xsd:sequence>
     </xsd:complexType>
 
     <xsd:complexType name="ExpressionType">
@@ -8216,9 +8267,72 @@
                    </xsd:documentation>
                </xsd:annotation>
            </xsd:element>
+           <xsd:element name="strength" type="tns:ConstructionStrengthType" minOccurs="0" maxOccurs="1" default="strong">
+               <xsd:annotation>
+                   <xsd:documentation>
+                       Strength of the construction defines how aggressively will
+	                	the construction be applied. Strong constructions are applied
+    	            	all the time (relative changes, reconciliation, ...).
+        	        	Weak constructions are applied only if there is another
+            	    	strong construction.
+                   </xsd:documentation>
+                   <xsd:appinfo>
+					<a:since>3.5</a:since>
+                   </xsd:appinfo>
+               </xsd:annotation>
+           </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
     <xsd:element name="construction" type="tns:ConstructionType"/>
+    
+    <xsd:simpleType name="ConstructionStrengthType">
+        <xsd:annotation>
+            <xsd:documentation>
+                <p>
+                	Strength of the construction defines how aggressively will
+                	the construction be applied. Strong constructions are applied
+                	all the time (relative changes, reconciliation, ...).
+                	Weak constructions are applied only if there is another
+                	strong construction.
+                </p>
+            </xsd:documentation>
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="strong">
+                <xsd:annotation>
+                	<xsd:documentation>
+                		<p>
+                			Always applied, regardless of context.
+                		</p>
+                	</xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="STRONG"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="weak">
+                <xsd:annotation>
+                	<xsd:documentation>
+                		<p>
+                			Construction is applied only if there is another
+                			strong construction for the same project. I.e.
+                			weak construction do not entitle the focus to anything
+                			just by themselves. There must be another reason for the
+                			projection to exist. If there is, then the weak construction
+                			will be also applied. If it is not then the weak construction
+                			is ignored.
+                		</p>
+                	</xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="WEAK"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+             </xsd:restriction>
+    </xsd:simpleType>
 
 
     <xsd:complexType name="ObjectTemplateType">
@@ -12211,5 +12325,110 @@
 			</xsd:element>
 		</xsd:sequence>
 	</xsd:complexType>
+
+	<xsd:complexType name="BuildInformationType">
+		<xsd:annotation>
+			<xsd:documentation>
+				TODO
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:container/>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="version" type="xsd:string" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Version taken from POM file, e.g. 3.4.1 or 3.5-SNAPSHOT.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="revision" type="xsd:string" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Revision, i.e. output of git describe command. Example: git-v3.5devel-314-g02f4792.
+						May not be known, depending on how midPoint was built.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+
+	<xsd:complexType name="ValidationResultType">
+		<xsd:annotation>
+			<xsd:documentation>
+				TODO
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:container/>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="issue" type="tns:ValidationIssueType" minOccurs="0" maxOccurs="unbounded">
+				<xsd:annotation>
+					<xsd:documentation>
+						TODO
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:element name="validationResult" type="tns:ValidationResultType"/>
+
+	<xsd:complexType name="ValidationIssueType">
+		<xsd:annotation>
+			<xsd:documentation>
+				TODO
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:container/>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="severity" type="tns:ValidationIssueSeverityType" />
+			<xsd:element name="category" type="xsd:string" />
+			<xsd:element name="code" type="xsd:string" />
+			<xsd:element name="text" type="xsd:string" />
+			<xsd:element name="objectRef" type="tns:ObjectReferenceType" minOccurs="0" />
+			<xsd:element name="itemPath" type="xsd:string" minOccurs="0" />					<!-- ItemPathType is problem within containers -->
+		</xsd:sequence>
+	</xsd:complexType>
+
+	<xsd:simpleType name="ValidationIssueSeverityType">
+		<xsd:annotation>
+			<xsd:documentation>
+				TODO
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="error">
+				<xsd:annotation>
+					<xsd:documentation>
+					</xsd:documentation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="ERROR"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+			<xsd:enumeration value="warning">
+				<xsd:annotation>
+					<xsd:documentation>
+					</xsd:documentation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="WARNING"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+			<xsd:enumeration value="info">
+				<xsd:annotation>
+					<xsd:documentation>
+					</xsd:documentation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="INFO"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+		</xsd:restriction>
+	</xsd:simpleType>
 
 </xsd:schema>

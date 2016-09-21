@@ -38,11 +38,17 @@ import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.api.*;
+import com.evolveum.midpoint.model.api.validator.ResourceValidator;
+import com.evolveum.midpoint.model.api.validator.Scope;
+import com.evolveum.midpoint.model.api.validator.ValidationResult;
 import com.evolveum.midpoint.model.impl.util.RestServiceUtil;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.*;
@@ -82,7 +88,7 @@ import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 @Service
 @Produces({"application/xml", "application/json"})
 public class ModelRestService {
-	
+
 	public static final String CLASS_DOT = ModelRestService.class.getName() + ".";
 	public static final String OPERATION_REST_SERVICE = CLASS_DOT + "restService";
 	public static final String OPERATION_GET = CLASS_DOT + "get";
@@ -102,8 +108,9 @@ public class ModelRestService {
 	public static final String OPERATION_COMPARE = CLASS_DOT + "compare";
 	public static final String OPERATION_GET_LOG_FILE_CONTENT = CLASS_DOT + "getLogFileContent";
 	public static final String OPERATION_GET_LOG_FILE_SIZE = CLASS_DOT + "getLogFileSize";
+	private static final String CURRENT = "current";
+	private static final String VALIDATE = "validate";
 
-	
 	@Autowired
 	private ModelCrudService model;
 
@@ -118,15 +125,21 @@ public class ModelRestService {
 
 	@Autowired
 	private ModelInteractionService modelInteraction;
-	
+
 	@Autowired
 	private PrismContext prismContext;
-	
+
 	@Autowired
 	private SecurityHelper securityHelper;
-	
+
+	@Autowired
+	private TaskManager taskManager;
+
+	@Autowired
+	private ResourceValidator resourceValidator;
+
 	private static final Trace LOGGER = TraceManager.getTrace(ModelRestService.class);
-	
+
 	public static final long WAIT_FOR_TASK_STOP = 2000L;
 
 	public ModelRestService() {
@@ -172,16 +185,32 @@ public class ModelRestService {
 			@QueryParam("exclude") List<String> exclude,
 			@Context MessageContext mc){
 		LOGGER.debug("model rest service for get operation start");
-		
+
 		Task task = RestServiceUtil.initRequest(mc);
 		OperationResult parentResult = task.getResult().createSubresult(OPERATION_GET);
-		
+
 		Class<T> clazz = ObjectTypes.getClassFromRestType(type);
 		Collection<SelectorOptions<GetOperationOptions>> getOptions = GetOperationOptions.fromRestOptions(options, include, exclude);
 		Response response;
-		
+
 		try {
-			PrismObject<T> object = model.getObject(clazz, id, getOptions, task, parentResult);
+			PrismObject<T> object;
+			if (NodeType.class.equals(clazz) && CURRENT.equals(id)) {
+				String nodeId = taskManager.getNodeId();
+				ObjectQuery query = QueryBuilder.queryFor(NodeType.class, prismContext)
+						.item(NodeType.F_NODE_IDENTIFIER).eq(nodeId)
+						.build();
+			 	List<PrismObject<NodeType>> objects = model.searchObjects(NodeType.class, query, getOptions, task, parentResult);
+				if (objects.isEmpty()) {
+					throw new ObjectNotFoundException("Current node (id " + nodeId + ") couldn't be found.");
+				} else if (objects.size() > 1) {
+					throw new IllegalStateException("More than one 'current' node (id " + nodeId + ") found.");
+				} else {
+					object = (PrismObject<T>) objects.get(0);
+				}
+			} else {
+				object = model.getObject(clazz, id, getOptions, task, parentResult);
+			}
 			removeExcludes(object, exclude);		// temporary measure until fixed in repo
 
 			ResponseBuilder builder = Response.ok();
@@ -190,7 +219,7 @@ public class ModelRestService {
 		} catch (Exception ex) {
 			response = RestServiceUtil.handleException(ex);
 		}
-		
+
 		parentResult.computeStatus();
 		finishRequest(task);
 		return response;
@@ -205,20 +234,20 @@ public class ModelRestService {
 													 @QueryParam("options") List<String> options,
 			@Context UriInfo uriInfo, @Context MessageContext mc) {
 		LOGGER.debug("model rest service for add operation start");
-		
+
 		Task task = RestServiceUtil.initRequest(mc);
 		OperationResult parentResult = task.getResult().createSubresult(OPERATION_ADD_OBJECT);
-		
+
 		Class clazz = ObjectTypes.getClassFromRestType(type);
 		if (!object.getCompileTimeClass().equals(clazz)){
 			finishRequest(task);
 			return RestServiceUtil.buildErrorResponse(Status.BAD_REQUEST, "Request to add object of type "
 					+ object.getCompileTimeClass().getSimpleName() + " to the collection of " + type);
 		}
-		
-		
+
+
 		ModelExecuteOptions modelExecuteOptions = ModelExecuteOptions.fromRestOptions(options);
-		
+
 		String oid;
 		Response response;
 		try {
@@ -229,35 +258,47 @@ public class ModelRestService {
 
 			if (oid != null) {
 				URI resourceURI = uriInfo.getAbsolutePathBuilder().path(oid).build(oid);
-				builder = clazz.isAssignableFrom(TaskType.class) ?
+				builder = clazz.isAssignableFrom(TaskType.class) ?		// TODO not the other way around?
 						Response.accepted().location(resourceURI) : Response.created(resourceURI);
 			} else {
 				// OID might be null e.g. if the object creation is a subject of workflow approval
 				builder = Response.accepted();			// TODO is this ok ?
 			}
-			
+			// (not used currently)
+			//validateIfRequested(object, options, builder, task, parentResult);
 			response = builder.build();
 		} catch (Exception ex) {
 			response = RestServiceUtil.handleException(ex);
 		}
-		
+
 		parentResult.computeStatus();
 		finishRequest(task);
 		return response;
 	}
 
+	// currently unused; but potentially useful in future
+	private <T extends ObjectType> void validateIfRequested(PrismObject<?> object,
+			List<String> options, ResponseBuilder builder, Task task,
+			OperationResult parentResult) {
+		if (options != null && options.contains(VALIDATE) && object.asObjectable() instanceof ResourceType) {
+			ValidationResult validationResult = resourceValidator
+					.validate((PrismObject<ResourceType>) object, Scope.THOROUGH, null, task, parentResult);
+			builder.entity(validationResult.toValidationResultType());			// TODO move to parentResult, and return the result!
+		}
+	}
+
 	@PUT
 	@Path("/{type}/{id}")
 //	@Produces({"text/html", "application/xml"})
-	public <T extends ObjectType> Response addObject(@PathParam("type") String type, @PathParam("id") String id, 
-			PrismObject<T> object, @QueryParam("options") List<String> options, @Context UriInfo uriInfo, 
+	public <T extends ObjectType> Response addObject(@PathParam("type") String type, @PathParam("id") String id,
+			PrismObject<T> object, @QueryParam("options") List<String> options, @Context UriInfo uriInfo,
 			@Context Request request, @Context MessageContext mc){
-	
+
 		LOGGER.debug("model rest service for add operation start");
 
 		Task task = RestServiceUtil.initRequest(mc);
 		OperationResult parentResult = task.getResult().createSubresult(OPERATION_ADD_OBJECT);
-		
+
 		Class clazz = ObjectTypes.getClassFromRestType(type);
 		if (!object.getCompileTimeClass().equals(clazz)){
 			finishRequest(task);
@@ -265,47 +306,49 @@ public class ModelRestService {
 					+ object.getCompileTimeClass().getSimpleName()
 					+ " to the collection of " + type);
 		}
-		
+
 		ModelExecuteOptions modelExecuteOptions = ModelExecuteOptions.fromRestOptions(options);
 		if (modelExecuteOptions == null) {
 			modelExecuteOptions = ModelExecuteOptions.createOverwrite();
 		} else if (!ModelExecuteOptions.isOverwrite(modelExecuteOptions)){
 			modelExecuteOptions.setOverwrite(Boolean.TRUE);
 		}
-		
+
 		String oid;
 		Response response;
 		try {
 			oid = model.addObject(object, modelExecuteOptions, task, parentResult);
 			LOGGER.debug("returned oid :  {}", oid );
-			
+
 			URI resourceURI = uriInfo.getAbsolutePathBuilder().path(oid).build(oid);
 			ResponseBuilder builder = clazz.isAssignableFrom(TaskType.class) ?
 					Response.accepted().location(resourceURI) : Response.created(resourceURI);
-			
+
+			// (not used currently)
+			//validateIfRequested(object, options, builder, task, parentResult);
 			response = builder.build();
 		} catch (ObjectAlreadyExistsException e) {
 			response = Response.serverError().entity(e.getMessage()).build();
 		} catch (Exception ex) {
 			response = RestServiceUtil.handleException(ex);
 		}
-		
+
 		parentResult.computeStatus();
 		finishRequest(task);
 		return response;
 	}
-	
+
 	@DELETE
 	@Path("/{type}/{id}")
 //	@Produces({"text/html", "application/xml"})
-	public Response deleteObject(@PathParam("type") String type, @PathParam("id") String id, 
+	public Response deleteObject(@PathParam("type") String type, @PathParam("id") String id,
 			@QueryParam("options") List<String> options, @Context MessageContext mc){
 
 		LOGGER.debug("model rest service for delete operation start");
-		
+
 		Task task = RestServiceUtil.initRequest(mc);
 		OperationResult parentResult = task.getResult().createSubresult(OPERATION_DELETE_OBJECT);
-		
+
 		Class clazz = ObjectTypes.getClassFromRestType(type);
 		Response response;
 		try {
@@ -316,42 +359,42 @@ public class ModelRestService {
 				if (parentResult.isSuccess()){
 					return Response.noContent().build();
 				}
-				
+
 				return Response.serverError().entity(parentResult.getMessage()).build();
-				
-			} 
-			
+
+			}
+
 			ModelExecuteOptions modelExecuteOptions = ModelExecuteOptions.fromRestOptions(options);
-			
+
 			model.deleteObject(clazz, id, modelExecuteOptions, task, parentResult);
 			response = Response.noContent().build();
 		} catch (Exception ex) {
 			response = RestServiceUtil.handleException(ex);
 		}
-		
+
 		parentResult.computeStatus();
 		finishRequest(task);
 		return response;
 	}
-	
+
 	@POST
 	@Path("/{type}/{oid}")
-	public <T extends ObjectType> Response modifyObjectPost(@PathParam("type") String type, @PathParam("oid") String oid, 
+	public <T extends ObjectType> Response modifyObjectPost(@PathParam("type") String type, @PathParam("oid") String oid,
 			ObjectModificationType modificationType, @QueryParam("options") List<String> options, @Context MessageContext mc) {
 		return modifyObjectPatch(type, oid, modificationType, options, mc);
 	}
-	
+
 	@PATCH
 	@Path("/{type}/{oid}")
 //	@Produces({"text/html", "application/xml"})
-	public <T extends ObjectType> Response modifyObjectPatch(@PathParam("type") String type, @PathParam("oid") String oid, 
+	public <T extends ObjectType> Response modifyObjectPatch(@PathParam("type") String type, @PathParam("oid") String oid,
 			ObjectModificationType modificationType, @QueryParam("options") List<String> options, @Context MessageContext mc) {
-		
+
 		LOGGER.debug("model rest service for modify operation start");
-		
+
 		Task task = RestServiceUtil.initRequest(mc);
 		OperationResult parentResult = task.getResult().createSubresult(OPERATION_MODIFY_OBJECT);
-		
+
 		Class clazz = ObjectTypes.getClassFromRestType(type);
 		Response response;
 		try {
@@ -362,22 +405,22 @@ public class ModelRestService {
 		} catch (Exception ex) {
 			response = RestServiceUtil.handleException(ex);
 		}
-		
+
 		parentResult.computeStatus();
 		finishRequest(task);
 		return response;
 	}
-	
+
 	@POST
 	@Path("/notifyChange")
-	public Response notifyChange(ResourceObjectShadowChangeDescriptionType changeDescription, 
+	public Response notifyChange(ResourceObjectShadowChangeDescriptionType changeDescription,
 			@Context UriInfo uriInfo, @Context MessageContext mc) {
 		LOGGER.debug("model rest service for notify change operation start");
 		Validate.notNull(changeDescription, "Chnage description must not be null");
-		
+
 		Task task = RestServiceUtil.initRequest(mc);
 		OperationResult parentResult = task.getResult().createSubresult(OPERATION_NOTIFY_CHANGE);
-		
+
 		Response response;
 		try {
 			model.notifyChange(changeDescription, parentResult, task);
@@ -393,22 +436,22 @@ public class ModelRestService {
 		} catch (Exception ex) {
 			response = RestServiceUtil.handleException(ex);
 		}
-		
+
 		parentResult.computeStatus();
 		finishRequest(task);
 		return response;
 	}
 
 
-	
+
 	@GET
 	@Path("/shadows/{oid}/owner")
 //	@Produces({"text/html", "application/xml"})
 	public Response findShadowOwner(@PathParam("oid") String shadowOid, @Context MessageContext mc){
-		
+
 		Task task = RestServiceUtil.initRequest(mc);
 		OperationResult parentResult = task.getResult().createSubresult(OPERATION_FIND_SHADOW_OWNER);
-		
+
 		Response response;
 		try {
 			PrismObject<UserType> user = model.findShadowOwner(shadowOid, task, parentResult);
@@ -418,7 +461,7 @@ public class ModelRestService {
 		} catch (Exception ex) {
 			response = RestServiceUtil.handleException(ex);
 		}
-		
+
 		parentResult.computeStatus();
 		finishRequest(task);
 		return response;
@@ -432,28 +475,28 @@ public class ModelRestService {
 			@QueryParam("include") List<String> include,
 			@QueryParam("exclude") List<String> exclude,
 			@Context MessageContext mc){
-	
+
 		Task task = RestServiceUtil.initRequest(mc);
 		OperationResult parentResult = task.getResult().createSubresult(OPERATION_SEARCH_OBJECTS);
 
 		Class clazz = ObjectTypes.getClassFromRestType(type);
 		Response response;
-		try {	
+		try {
 			ObjectQuery query = QueryJaxbConvertor.createObjectQuery(clazz, queryType, prismContext);
 			Collection<SelectorOptions<GetOperationOptions>> searchOptions = GetOperationOptions.fromRestOptions(options, include, exclude);
 			List<PrismObject<? extends ShadowType>> objects = model.searchObjects(clazz, query, searchOptions, task, parentResult);
-		
+
 			ObjectListType listType = new ObjectListType();
 			for (PrismObject<? extends ObjectType> o : objects) {
 				removeExcludes(o, exclude);		// temporary measure until fixed in repo
 				listType.getObject().add(o.asObjectable());
 			}
-		
+
 			response = Response.ok().entity(listType).build();
 		} catch (Exception ex) {
 			response = RestServiceUtil.handleException(ex);
 		}
-		
+
 		parentResult.computeStatus();
 		finishRequest(task);
 		return response;
@@ -471,8 +514,8 @@ public class ModelRestService {
 	@POST
 	@Path("/resources/{resourceOid}/import/{objectClass}")
 //	@Produces({"text/html", "application/xml"})
-	public Response importFromResource(@PathParam("resourceOid") String resourceOid, @PathParam("objectClass") String objectClass, 
-			@Context MessageContext mc, @Context UriInfo uriInfo) {	
+	public Response importFromResource(@PathParam("resourceOid") String resourceOid, @PathParam("objectClass") String objectClass,
+			@Context MessageContext mc, @Context UriInfo uriInfo) {
 		LOGGER.debug("model rest service for import from resource operation start");
 
 		Task task = RestServiceUtil.initRequest(mc);
@@ -487,7 +530,7 @@ public class ModelRestService {
 		} catch (Exception ex) {
 			response = RestServiceUtil.handleException(ex);
 		}
-		
+
 		parentResult.computeStatus();
 		finishRequest(task);
 		return response;
@@ -510,22 +553,22 @@ public class ModelRestService {
 		} catch (Exception ex) {
 			response = RestServiceUtil.handleException(ex);
 		}
-	
+
 		if (testResult != null) {
 			parentResult.getSubresults().add(testResult);
 		}
-		
+
 		finishRequest(task);
 		return response;
 	}
-	
+
 	@POST
 	@Path("/tasks/{oid}/suspend")
     public Response suspendTasks(@PathParam("oid") String taskOid, @Context MessageContext mc) {
-		
+
 		Task task = RestServiceUtil.initRequest(mc);
 		OperationResult parentResult = task.getResult().createSubresult(OPERATION_SUSPEND_TASKS);
-		
+
 		Response response;
 		Collection<String> taskOids = MiscUtil.createCollection(taskOid);
 		try {
@@ -547,10 +590,10 @@ public class ModelRestService {
 //	@DELETE
 //	@Path("tasks/{oid}/suspend")
     public Response suspendAndDeleteTasks(@PathParam("oid") String taskOid, @Context MessageContext mc) {
-    	
+
     	Task task = RestServiceUtil.initRequest(mc);
 		OperationResult parentResult = task.getResult().createSubresult(OPERATION_SUSPEND_AND_DELETE_TASKS);
-				
+
 		Response response;
 		Collection<String> taskOids = MiscUtil.createCollection(taskOid);
 		try {
@@ -565,18 +608,18 @@ public class ModelRestService {
 		} catch (Exception ex) {
 			response = RestServiceUtil.handleException(ex);
 		}
-        
+
 		finishRequest(task);
 		return response;
     }
-	
+
 	@POST
 	@Path("/tasks/{oid}/resume")
     public Response resumeTasks(@PathParam("oid") String taskOid, @Context MessageContext mc) {
-		
+
 		Task task = RestServiceUtil.initRequest(mc);
 		OperationResult parentResult = task.getResult().createSubresult(OPERATION_RESUME_TASKS);
-		
+
 		Response response;
 		Collection<String> taskOids = MiscUtil.createCollection(taskOid);
 		try {
@@ -601,7 +644,7 @@ public class ModelRestService {
 	@POST
 	@Path("tasks/{oid}/run")
     public Response scheduleTasksNow(@PathParam("oid") String taskOid, @Context MessageContext mc) {
-		
+
 		Task task = RestServiceUtil.initRequest(mc);
 		OperationResult parentResult = task.getResult().createSubresult(OPERATION_SCHEDULE_TASKS_NOW);
 

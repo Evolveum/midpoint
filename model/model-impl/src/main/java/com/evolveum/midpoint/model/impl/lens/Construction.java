@@ -76,6 +76,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionStrengthType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LayerType;
@@ -259,6 +260,10 @@ public class Construction<F extends FocusType> implements DebugDumpable, Seriali
 
 	public Object getDescription() {
 		return constructionType.getDescription();
+	}
+	
+	public boolean isWeak() {
+		return constructionType.getStrength() == ConstructionStrengthType.WEAK;
 	}
 
 	public boolean isValid() {
@@ -788,6 +793,9 @@ public class Construction<F extends FocusType> implements DebugDumpable, Seriali
 			}
 		} else {
 			sb.append(refinedObjectClassDefinition.getShadowDiscriminator());
+		}
+		if (constructionType != null && constructionType.getStrength() == ConstructionStrengthType.WEAK) {
+			sb.append(" weak");
 		}
 		sb.append("\n");
 		DebugUtil.debugDumpWithLabel(sb, "isValid", isValid, indent + 1);

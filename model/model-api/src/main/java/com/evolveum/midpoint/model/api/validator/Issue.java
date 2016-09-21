@@ -18,6 +18,9 @@ package com.evolveum.midpoint.model.api.validator;
 
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ValidationIssueSeverityType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ValidationIssueType;
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -34,6 +37,15 @@ public class Issue implements Serializable {
 
 		public boolean isAtLeast(@NotNull Severity other) {
 			return ordinal() <= other.ordinal();
+		}
+
+		public ValidationIssueSeverityType toSeverityType() {
+			switch (this) {
+				case ERROR: return ValidationIssueSeverityType.ERROR;
+				case WARNING: return ValidationIssueSeverityType.WARNING;
+				case INFO: return ValidationIssueSeverityType.INFO;
+				default: throw new AssertionError("Invalid issue value: " + this);
+			}
 		}
 	}
 
@@ -97,5 +109,18 @@ public class Issue implements Serializable {
 			}
 		}
 		return max;
+	}
+
+	public ValidationIssueType toValidationIssueType() {
+		ValidationIssueType rv = new ValidationIssueType();
+		rv.setSeverity(severity.toSeverityType());
+		rv.setCategory(category);
+		rv.setCode(code);
+		rv.setText(text);
+		rv.setObjectRef(objectRef);
+		if (itemPath != null) {
+			rv.setItemPath(itemPath.toString());
+		}
+		return rv;
 	}
 }

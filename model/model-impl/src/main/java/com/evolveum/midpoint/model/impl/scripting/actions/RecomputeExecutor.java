@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.model.impl.scripting.actions;
 
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.impl.lens.Clockwork;
 import com.evolveum.midpoint.model.impl.lens.ContextFactory;
@@ -25,6 +26,8 @@ import com.evolveum.midpoint.model.impl.scripting.ExecutionContext;
 import com.evolveum.midpoint.model.api.ScriptExecutionException;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ChangeType;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -67,24 +70,27 @@ public class RecomputeExecutor extends BaseActionExecutor {
 
     @Override
     public Data execute(ActionExpressionType expression, Data input, ExecutionContext context, OperationResult result) throws ScriptExecutionException {
+
+        boolean dryRun = getParamDryRun(expression, input, context, result);
+
         for (Item item : input.getData()) {
             if (item instanceof PrismObject && FocusType.class.isAssignableFrom(((PrismObject) item).getCompileTimeClass())) {
                 PrismObject<FocusType> focalPrismObject = (PrismObject) item;
                 FocusType focusType = focalPrismObject.asObjectable();
                 long started = operationsHelper.recordStart(context, focusType);
                 try {
-                    LensContext<FocusType> syncContext = contextFactory.createRecomputeContext(focalPrismObject, context.getTask(), result);
                     if (LOGGER.isTraceEnabled()) {
-                        LOGGER.trace("Recomputing object {}: context:\n{}", focalPrismObject, syncContext.debugDump());
+                        LOGGER.trace("Recomputing object {} with dryRun={}: context:\n{}", focalPrismObject, dryRun);
                     }
-                    clockwork.run(syncContext, context.getTask(), result);
+                    ObjectDelta<? extends FocusType> emptyDelta = ObjectDelta.createEmptyDelta(focusType.getClass(), focusType.getOid(), prismContext, ChangeType.MODIFY);
+                    operationsHelper.applyDelta(emptyDelta, ModelExecuteOptions.createReconcile(), dryRun, context, result);
                     LOGGER.trace("Recomputing of object {}: {}", focalPrismObject, result.getStatus());
                     operationsHelper.recordEnd(context, focusType, started, null);
-                } catch (ObjectNotFoundException|ConfigurationException|SecurityViolationException|PolicyViolationException|ExpressionEvaluationException|ObjectAlreadyExistsException|CommunicationException|SchemaException|RuntimeException e) {
+                } catch (Throwable e) {
                     operationsHelper.recordEnd(context, focusType, started, e);
-                    throw new ScriptExecutionException("Couldn't recompute object " + focalPrismObject + ": " + e.getMessage(), e);
+                    throw e;
                 }
-                context.println("Recomputed " + item.toString());
+                context.println("Recomputed " + item.toString() + drySuffix(dryRun));
             } else {
                 throw new ScriptExecutionException("Item could not be recomputed, because it is not a focal PrismObject: " + item.toString());
             }

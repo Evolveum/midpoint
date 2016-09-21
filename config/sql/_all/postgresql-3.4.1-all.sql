@@ -1365,13 +1365,6 @@ create table ACT_GE_PROPERTY (
     primary key (NAME_)
 );
 
-create table ACT_GE_PROPERTY (
-    NAME_ varchar(64),
-    VALUE_ varchar(300),
-    REV_ integer,
-    primary key (NAME_)
-);
-
 insert into ACT_GE_PROPERTY
 values ('schema.version', '5.20.0.1', 1);
 

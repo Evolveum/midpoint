@@ -65,6 +65,7 @@ public class AssignExecutor extends BaseActionExecutor {
     public Data execute(ActionExpressionType expression, Data input, ExecutionContext context, OperationResult result) throws ScriptExecutionException {
 
         boolean raw = getParamRaw(expression, input, context, result);
+        boolean dryRun = getParamDryRun(expression, input, context, result);
 
         ActionParameterValueType resourceParameterValue = expressionHelper.getArgument(expression.getParameter(), PARAM_RESOURCE, false, false, NAME);
         ActionParameterValueType roleParameterValue = expressionHelper.getArgument(expression.getParameter(), PARAM_ROLE, false, false, NAME);
@@ -95,13 +96,13 @@ public class AssignExecutor extends BaseActionExecutor {
                 ObjectType objectType = prismObject.asObjectable();
                 long started = operationsHelper.recordStart(context, objectType);
                 try {
-                    operationsHelper.applyDelta(createDelta(objectType, resources, roles), operationsHelper.createExecutionOptions(raw), context, result);
+                    operationsHelper.applyDelta(createDelta(objectType, resources, roles), operationsHelper.createExecutionOptions(raw), dryRun, context, result);
                     operationsHelper.recordEnd(context, objectType, started, null);
                 } catch (Throwable ex) {
                     operationsHelper.recordEnd(context, objectType, started, ex);
                     throw ex;       // TODO reconsider this
                 }
-                context.println("Modified " + item.toString() + rawSuffix(raw));
+                context.println("Modified " + item.toString() + rawDrySuffix(raw, dryRun));
             } else {
                 throw new ScriptExecutionException("Item could not be modified, because it is not a PrismObject of FocusType: " + item.toString());
             }
