@@ -26,9 +26,14 @@ import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
+import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.security.api.SecurityEnforcer;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
+import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.common.InternalsConfig;
@@ -44,18 +49,6 @@ import com.evolveum.midpoint.model.common.expression.ItemDeltaItem;
 import com.evolveum.midpoint.model.common.expression.ObjectDeltaObject;
 import com.evolveum.midpoint.model.common.expression.Source;
 import com.evolveum.midpoint.model.common.expression.StringPolicyResolver;
-import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.prism.OriginType;
-import com.evolveum.midpoint.prism.Visitable;
-import com.evolveum.midpoint.prism.Visitor;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -73,16 +66,6 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionVariableDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingSourceDeclarationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingStrengthType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingTargetDeclarationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingTimeDeclarationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ValueFilterType;
 
 /**
  * 
@@ -99,17 +82,21 @@ public class Mapping<V extends PrismValue,D extends ItemDefinition> implements D
 	private static final QName CONDITION_OUTPUT_NAME = new QName(SchemaConstants.NS_C, "condition");
 
 	// configuration properties (unmodifiable)
+	private final MappingType mappingType;
 	private final ExpressionFactory expressionFactory;
 	private final ExpressionVariables variables;
-	private final MappingType mappingType;
+
+	private final ObjectDeltaObject<?> sourceContext;
+	private final Collection<Source<?,?>> sources;
+	private final Source<?,?> defaultSource;
+
+	private final PrismObjectDefinition<?> targetContext;
+	private final ItemPath defaultTargetPath;
+	private final D defaultTargetDefinition;
+	private final Collection<V> originalTargetValues;
+
 	private final ObjectResolver objectResolver;
     private final SecurityEnforcer securityEnforcer;          // in order to get c:actor variable
-	private final Source<?,?> defaultSource;
-	private final D defaultTargetDefinition;
-	private final ItemPath defaultTargetPath;
-	private final ObjectDeltaObject<?> sourceContext;
-	private final PrismObjectDefinition<?> targetContext;
-	private final Collection<Source<?,?>> sources;
 	private final OriginType originType;
 	private final ObjectType originObject;
 	private final FilterManager<Filter> filterManager;
@@ -117,13 +104,12 @@ public class Mapping<V extends PrismValue,D extends ItemDefinition> implements D
 	private final boolean conditionMaskOld;
 	private final boolean conditionMaskNew;
 	private final XMLGregorianCalendar defaultReferenceTime;
+	private final XMLGregorianCalendar now;
 	private final boolean profiling;
 	private final String contextDescription;
-	private final XMLGregorianCalendar now;
 
-	// This is sometimes used to identify the element that mapping produces
-	// if it is different from itemName. E.g. this happens with associations.
-	private final QName mappingQName;
+	private final QName mappingQName;						// This is sometimes used to identify the element that mapping produces
+															// if it is different from itemName. E.g. this happens with associations.
 	private final RefinedObjectClassDefinition refinedObjectClassDefinition;
 
 	// working and output properties
@@ -154,6 +140,7 @@ public class Mapping<V extends PrismValue,D extends ItemDefinition> implements D
 		defaultSource = builder.defaultSource;
 		defaultTargetDefinition = builder.defaultTargetDefinition;
 		defaultTargetPath = builder.defaultTargetPath;
+		originalTargetValues = builder.originalTargetValues;
 		sourceContext = builder.sourceContext;
 		targetContext = builder.targetContext;
 		sources = builder.sources;
@@ -392,18 +379,17 @@ public class Mapping<V extends PrismValue,D extends ItemDefinition> implements D
 			boolean conditionOutputNew = computeConditionResult(conditionOutputTriple.getNonNegativeValues());
 			boolean conditionResultNew = conditionOutputNew && conditionMaskNew;
 			
-			if (!conditionResultOld && !conditionResultNew) {
-				result.recordSuccess();
-				traceSuccess(conditionResultOld, conditionResultNew);
-				return;
+			if (conditionResultOld || conditionResultNew) {
+				// TODO: input filter
+				evaluateExpression(task, result, conditionResultOld, conditionResultNew);
+				fixDefinition();
+				recomputeValues();
+				setOrigin();
+				// TODO: output filter
 			}
-			// TODO: input filter
-			evaluateExpression(task, result, conditionResultOld, conditionResultNew);
-			fixDefinition();
-			recomputeValues();
-			setOrigin();
-			// TODO: output filter
-			
+
+			checkRange(task, result);
+
 			result.recordSuccess();
 			traceSuccess(conditionResultOld, conditionResultNew);
 			
@@ -413,7 +399,56 @@ public class Mapping<V extends PrismValue,D extends ItemDefinition> implements D
 			throw e;
 		}
 	}
-	
+
+	private void checkRange(Task task, OperationResult result)
+			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+		if (mappingType.getRange() == null) {
+			return;
+		}
+		if (originalTargetValues == null) {
+			throw new IllegalStateException("Couldn't check range for mapping in " + contextDescription + ", as original target values are not known.");
+		}
+		for (V originalValue : originalTargetValues) {
+			if (!isInRange(originalValue, task, result)) {
+				continue;
+			}
+			if (outputTriple != null && (outputTriple.presentInPlusSet(originalValue) || outputTriple.presentInZeroSet(originalValue))) {
+				continue;
+			}
+			// remove it!
+			if (outputTriple == null) {
+				outputTriple = new PrismValueDeltaSetTriple<>();
+			}
+			LOGGER.trace("Original value is not in the mapping range, adding it to minus set: {}", originalValue);
+			outputTriple.addToMinusSet(originalValue);
+		}
+	}
+
+	private boolean isInRange(V value, Task task, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+		@NotNull ValueSetSpecificationType range = mappingType.getRange();
+		if (range.getIsInSetExpression() == null) {
+			return false;
+		}
+		ExpressionVariables variables = new ExpressionVariables();
+		variables.addVariableDefinitions(this.variables);			// TODO is this ok?
+
+		if (value instanceof PrismContainerValue) {
+			// artifically create parent for PCV in order to pass it to expression
+			PrismContainer.createParentIfNeeded((PrismContainerValue) value, outputDefinition);
+		}
+		variables.addVariableDefinition(ExpressionConstants.VAR_VALUE, value);
+
+		PrismPropertyDefinition<Boolean> outputDef = new PrismPropertyDefinition<>(SchemaConstantsGenerated.C_VALUE, DOMUtil.XSD_BOOLEAN, getPrismContext(), null, false);
+		PrismPropertyValue<Boolean> rv = ExpressionUtil.evaluateExpression(variables, outputDef, range.getIsInSetExpression(), expressionFactory, "isInSet expression in " + contextDescription, task, result);
+
+		// but now remove the parent!
+		if (value.getParent() != null) {
+			value.setParent(null);
+		}
+
+		return rv != null && rv.getValue() != null ? rv.getValue() : Boolean.FALSE;
+	}
+
 	public boolean isSatisfyCondition() {
 		boolean conditionOutputOld = computeConditionResult(conditionOutputTriple.getNonPositiveValues());
 		boolean conditionResultOld = conditionOutputOld && conditionMaskOld;
@@ -1147,6 +1182,7 @@ public class Mapping<V extends PrismValue,D extends ItemDefinition> implements D
 		private Source<?, ?> defaultSource;
 		private D defaultTargetDefinition;
 		private ItemPath defaultTargetPath;
+		private Collection<V> originalTargetValues;
 		private ObjectDeltaObject<?> sourceContext;
 		private PrismObjectDefinition<?> targetContext;
 		private Collection<Source<?, ?>> sources = new ArrayList<>();
@@ -1202,6 +1238,11 @@ public class Mapping<V extends PrismValue,D extends ItemDefinition> implements D
 
 		public Builder<V,D> defaultTargetPath(ItemPath val) {
 			defaultTargetPath = val;
+			return this;
+		}
+
+		public Builder<V,D> originalTargetValues(Collection<V> values) {
+			originalTargetValues = values;
 			return this;
 		}
 
@@ -1319,6 +1360,10 @@ public class Mapping<V extends PrismValue,D extends ItemDefinition> implements D
 
 		public ItemPath getDefaultTargetPath() {
 			return defaultTargetPath;
+		}
+
+		public Collection<V> getOriginalTargetValues() {
+			return originalTargetValues;
 		}
 
 		public ObjectDeltaObject<?> getSourceContext() {

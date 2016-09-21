@@ -5300,6 +5300,19 @@
             <xsd:element name="condition" type="tns:ExpressionType" minOccurs="0" maxOccurs="1"/>
             <xsd:element name="inputFilter" type="tns:ValueFilterType" minOccurs="0"/>
             <xsd:element name="outputFilter" type="tns:ValueFilterType" minOccurs="0"/>
+            <xsd:element name="range" minOccurs="0" type="tns:ValueSetSpecificationType">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                        	Specifies the range of the mapping (in mathematical sense). I.e. this specifies the values
+                        	that the mapping can produce. Range specification makes sense only for authoritative mappings.
+                        	If the range is specified then the mapping will scan existing values of the target property.
+                        	It will look for values that are there and that are also in the range of the mapping. If such
+                        	values are not in the expression results, then such values will be removed (placed in the minus set).
+                        </p>
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
     <xsd:element name="mapping" type="tns:MappingType"/>
@@ -5416,6 +5429,9 @@
                 are faulty and the ability of filters to do "technical" things
                 may come handy.
             </xsd:documentation>
+            <xsd:appinfo>
+            	<a:deprecated>true</a:deprecated>
+            </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
             <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax">
@@ -5435,6 +5451,34 @@
                 </xsd:documentation>
             </xsd:annotation>
         </xsd:attribute>
+    </xsd:complexType>
+    
+    <xsd:complexType name="ValueSetSpecificationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Specifies set of prism item values. E.g. specifies a set of string values,
+                container values (e.g. assignments) and so on. It is used at places where
+                we need to select particular values based on a flexible set of criteria.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element ref="tns:description" minOccurs="0" maxOccurs="1"/>
+           	<xsd:element name="isInSetExpression" type="tns:ExpressionType" minOccurs="0" maxOccurs="1">
+           		<xsd:annotation>
+           			<xsd:documentation>
+           				Expression that is evaluated for each candidate value. 
+           				The value is passed to the expression in the 'input' variable.
+           				If this expression returns true then the value is part of the set.
+           				If it returns false (or no value) then the value is not part of the set. 
+           			</xsd:documentation>
+           		</xsd:annotation>
+           	</xsd:element>
+           	<!-- More criteria specification may come here in the future.
+           	     E.g. expression that generates all possible values, 
+           	     reference to lookup that has all the values, 
+           	     query that works on top of the values,
+           	     string patterns, etc. -->
+        </xsd:sequence>
     </xsd:complexType>
 
     <xsd:complexType name="ExpressionType">

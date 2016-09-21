@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2016 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<objectTemplate oid="f486e3a7-6970-416e-8fe2-995358f59c46"
+				xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+				xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+				xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+				xmlns:t='http://prism.evolveum.com/xml/ns/public/types-3'
+				xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+				xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3"
+				xmlns:piracy='http://midpoint.evolveum.com/xml/ns/samples/piracy'>
+    <name>User Template With Ranges</name>
+    
+    <item>
+    	<ref>assignment</ref>
+		<mapping>
+			<expression>
+				<assignmentTargetSearch>
+					<targetType>OrgType</targetType>
+					<filter>
+						<q:equal>
+							<q:path>extension/managerId</q:path>
+							<expression>
+								<script>
+									<code>
+										user.employeeNumber
+									</code>
+								</script>
+							</expression>
+						</q:equal>
+					</filter>
+					<relation>org:manager</relation>
+				</assignmentTargetSearch>
+			</expression>
+			<condition>
+				<script>
+					<code>
+						user.employeeNumber != null
+					</code>
+				</script>
+			</condition>
+			<range>
+				<isInSetExpression>
+					<script>
+						<code>
+							import com.evolveum.midpoint.schema.constants.*
+							value.targetRef != null &amp;&amp; value.targetRef.relation == SchemaConstants.ORG_MANAGER
+						</code>
+					</script>
+				</isInSetExpression>
+			</range>
+		</mapping>
+    </item>
+
+	<item>
+		<ref>organization</ref>
+		<mapping>
+			<strength>strong</strength>
+			<source>
+				<path>organizationalUnit</path>
+			</source>
+			<source>
+				<path>employeeNumber</path>
+			</source>
+			<expression>
+				<script>
+					<code>
+						organizationalUnit != null ? 'OU: ' + organizationalUnit + ' ' + employeeNumber : null
+					</code>
+				</script>
+			</expression>
+			<condition>
+				<script>
+					<code>
+						employeeNumber != null
+					</code>
+				</script>
+			</condition>
+			<range>
+				<isInSetExpression>
+					<script>
+						<code>
+							basic.stringify(value).startsWith('OU: ')
+						</code>
+					</script>
+				</isInSetExpression>
+			</range>
+		</mapping>
+	</item>
+
+</objectTemplate>

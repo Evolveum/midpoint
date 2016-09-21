@@ -1429,7 +1429,11 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	protected <O extends ObjectType> void assertHasOrg(PrismObject<O> user, String orgOid, QName relation) {
 		MidPointAsserts.assertHasOrg(user, orgOid, relation);
 	}
-	
+
+	protected <O extends ObjectType> void assertHasNoOrg(PrismObject<O> user, String orgOid, QName relation) {
+		MidPointAsserts.assertHasNoOrg(user, orgOid, relation);
+	}
+
 	protected <O extends ObjectType> void assertHasNoOrg(PrismObject<O> user) {
 		MidPointAsserts.assertHasNoOrg(user);
 	}

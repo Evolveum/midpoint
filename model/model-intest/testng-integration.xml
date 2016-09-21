@@ -29,6 +29,7 @@
             <class name="com.evolveum.midpoint.model.intest.TestSegregationOfDuties"/>
             <class name="com.evolveum.midpoint.model.intest.TestMultiResource"/>
             <class name="com.evolveum.midpoint.model.intest.TestUserTemplate"/>
+            <class name="com.evolveum.midpoint.model.intest.TestUserTemplateWithRanges"/>
             <class name="com.evolveum.midpoint.model.intest.TestOrgStruct"/>
             <class name="com.evolveum.midpoint.model.intest.TestOrgStructMeta"/>
             <class name="com.evolveum.midpoint.model.intest.TestSchemalessResource"/>

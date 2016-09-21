@@ -192,14 +192,22 @@ public class MidPointAsserts {
 		AssertJUnit.fail(object + " does not have org " + orgOid);
 	}
 	
-	public static <O extends ObjectType> void assertHasOrg(PrismObject<O> user, String orgOid, QName relation) {
+	public static <O extends ObjectType> boolean hasOrg(PrismObject<O> user, String orgOid, QName relation) {
 		for (ObjectReferenceType orgRef: user.asObjectable().getParentOrgRef()) {
 			if (orgOid.equals(orgRef.getOid()) &&
 					MiscSchemaUtil.compareRelation(orgRef.getRelation(), relation)) {
-				return;
+				return true;
 			}
 		}
-		AssertJUnit.fail(user + " does not have org " + orgOid + ", relation "+relation);
+		return false;
+	}
+
+	public static <O extends ObjectType> void assertHasOrg(PrismObject<O> user, String orgOid, QName relation) {
+		AssertJUnit.assertTrue(user + " does not have org " + orgOid + ", relation "+relation, hasOrg(user, orgOid, relation));
+	}
+
+	public static <O extends ObjectType> void assertHasNoOrg(PrismObject<O> user, String orgOid, QName relation) {
+		AssertJUnit.assertFalse(user + " has org " + orgOid + ", relation "+relation+ " even if should NOT have it", hasOrg(user, orgOid, relation));
 	}
 	
 	public static <O extends ObjectType> void assertHasNoOrg(PrismObject<O> user) {

@@ -27,6 +27,7 @@ import javax.xml.bind.JAXBElement;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.common.expression.*;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.polystring.PrismDefaultPolyStringNormalizer;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
@@ -34,6 +35,8 @@ import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.mutable.MutableBoolean;
 
@@ -41,15 +44,6 @@ import com.evolveum.midpoint.common.ActivationComputer;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
-import com.evolveum.midpoint.model.common.expression.Expression;
-import com.evolveum.midpoint.model.common.expression.ExpressionEvaluationContext;
-import com.evolveum.midpoint.model.common.expression.ExpressionFactory;
-import com.evolveum.midpoint.model.common.expression.ExpressionVariables;
-import com.evolveum.midpoint.model.common.expression.ItemDeltaItem;
-import com.evolveum.midpoint.model.common.expression.ObjectDeltaObject;
-import com.evolveum.midpoint.model.common.expression.Source;
-import com.evolveum.midpoint.model.common.expression.StringPolicyResolver;
-import com.evolveum.midpoint.model.common.expression.script.ScriptExpression;
 import com.evolveum.midpoint.model.common.mapping.Mapping;
 import com.evolveum.midpoint.model.common.mapping.MappingFactory;
 import com.evolveum.midpoint.model.common.mapping.PrismValueDeltaSetTripleProducer;
@@ -78,32 +72,6 @@ import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.GenerateExpressionEvaluatorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.IterationSpecificationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LayerType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingStrengthType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectPolicyConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PropertyConstraintType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDependencyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptExpressionReturnTypeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.StringPolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TimeIntervalStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ValuePolicyType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 /**
@@ -976,18 +944,24 @@ public class LensUtil {
 			}
 		};
 
+		ExpressionVariables variables = new ExpressionVariables();
+		variables.addVariableDefinition(ExpressionConstants.VAR_USER, focusOdo);
+		variables.addVariableDefinition(ExpressionConstants.VAR_FOCUS, focusOdo);
+		variables.addVariableDefinition(ExpressionConstants.VAR_ITERATION, iteration);
+		variables.addVariableDefinition(ExpressionConstants.VAR_ITERATION_TOKEN, iterationToken);
+		variables.addVariableDefinition(ExpressionConstants.VAR_CONFIGURATION, configuration);
+
+		Collection<V> targetValues = computeTargetValues(mappingType.getTarget(), focusOdo, variables, mappingFactory.getObjectResolver(), contextDesc, task, result);
+
 		Mapping.Builder<V,D> mappingBuilder = mappingFactory.<V,D>createMappingBuilder(mappingType, contextDesc)
 				.sourceContext(focusOdo)
 				.targetContext(context.getFocusContext().getObjectDefinition())
+				.variables(variables)
+				.originalTargetValues(targetValues)
 				.originType(OriginType.USER_POLICY)
 				.originObject(originObject)
 				.stringPolicyResolver(stringPolicyResolver)
 				.rootNode(focusOdo)
-				.addVariableDefinition(ExpressionConstants.VAR_USER, focusOdo)
-				.addVariableDefinition(ExpressionConstants.VAR_FOCUS, focusOdo)
-				.addVariableDefinition(ExpressionConstants.VAR_ITERATION, iteration)
-				.addVariableDefinition(ExpressionConstants.VAR_ITERATION_TOKEN, iterationToken)
-				.addVariableDefinition(ExpressionConstants.VAR_CONFIGURATION, configuration)
 				.now(now);
 
 		mappingBuilder = addAssignmentPathVariables(mappingBuilder, assignmentPathVariables);
@@ -1014,8 +988,37 @@ public class LensUtil {
 
 		return mapping;
 	}
-    
-    public static AssignmentPathVariables computeAssignmentPathVariables(AssignmentPath assignmentPath) throws SchemaException {
+
+	private static <V extends PrismValue, F extends FocusType> Collection<V> computeTargetValues(MappingTargetDeclarationType target,
+			ObjectDeltaObject<F> defaultSource, ExpressionVariables variables, ObjectResolver objectResolver, String contextDesc,
+			Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
+		if (target == null) {
+			return null;
+		}
+
+		ItemPathType itemPathType = target.getPath();
+		if (itemPathType == null) {
+			throw new SchemaException("No path in target definition in "+contextDesc);
+		}
+		ItemPath path = itemPathType.getItemPath();
+
+		Object object = ExpressionUtil.resolvePath(path, variables, defaultSource, objectResolver, contextDesc, task, result);
+		if (object == null) {
+			return new ArrayList<>();
+		} else if (object instanceof Item) {
+			return ((Item) object).getValues();
+		} else if (object instanceof PrismValue) {
+			return (List<V>) Collections.singletonList((PrismValue) object);
+		} else if (object instanceof ItemDeltaItem) {
+			ItemDeltaItem<V, ?> idi = (ItemDeltaItem<V, ?>) object;
+			PrismValueDeltaSetTriple<V> triple = idi.toDeltaSetTriple();
+			return triple != null ? triple.getNonNegativeValues() : new ArrayList<V>();
+		} else {
+			throw new IllegalStateException("Unsupported target value(s): " + object.getClass() + " (" + object + ")");
+		}
+	}
+
+	public static AssignmentPathVariables computeAssignmentPathVariables(AssignmentPath assignmentPath) throws SchemaException {
     	if (assignmentPath == null || assignmentPath.isEmpty()) {
     		return null;
     	}
