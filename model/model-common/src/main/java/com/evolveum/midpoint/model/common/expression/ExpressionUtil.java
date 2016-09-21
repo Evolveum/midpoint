@@ -252,7 +252,9 @@ public class ExpressionUtil {
 			return ((PrismPropertyValue<?>)originalValue).getValue();
 		}
 		if (originalValue instanceof PrismReferenceValue) {
-			return ((PrismReferenceValue)originalValue).asReferencable();
+			if (((PrismReferenceValue) originalValue).getDefinition() != null) {
+				return ((PrismReferenceValue) originalValue).asReferencable();
+			}
 		}
 		if (originalValue instanceof PrismProperty<?>) {
 			PrismProperty<?> prop = (PrismProperty<?>)originalValue;
