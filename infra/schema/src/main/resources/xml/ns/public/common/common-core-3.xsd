@@ -5311,7 +5311,7 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         <p>
-                        	Specifies the range of the mapping (in matheatical sense). I.e. this specifies the values
+                        	Specifies the range of the mapping (in mathematical sense). I.e. this specifies the values
                         	that the mapping can produce. Range specification makes sense only for authoritative mappings.
                         	If the range is specified then the mapping will scan existing values of the target property.
                         	It will look for values that are there and that are also in the range of the mapping. If such

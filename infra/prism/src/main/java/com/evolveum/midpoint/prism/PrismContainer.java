@@ -18,11 +18,8 @@ package com.evolveum.midpoint.prism;
 
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.IdItemPathSegment;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.path.ItemPathSegment;
-import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -877,4 +874,14 @@ public class PrismContainer<C extends Containerable> extends Item<PrismContainer
         return "PC";
     }
 
+	public static <V extends PrismContainerValue> void createParentIfNeeded(V value, ItemDefinition definition) throws SchemaException {
+		if (value.getParent() != null) {
+			return;
+		}
+		if (!(definition instanceof PrismContainerDefinition)) {
+			throw new SchemaException("Missing or invalid definition for a PrismContainer: " + definition);
+		}
+		PrismContainer<?> rv = (PrismContainer) definition.instantiate();
+		rv.add(value);
+	}
 }
