@@ -135,7 +135,11 @@
         <servlet-class>
             org.apache.cxf.transport.servlet.CXFServlet
         </servlet-class>
-        <load-on-startup>1</load-on-startup>
+        <init-param>
+			<param-name>service-list-path</param-name>
+			<param-value>midpointservices</param-value>
+		</init-param>
+	<load-on-startup>1</load-on-startup>
     </servlet>
     <servlet-mapping>
     	<!-- Deprecated -->
