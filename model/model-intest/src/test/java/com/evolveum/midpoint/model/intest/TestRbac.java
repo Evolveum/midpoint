@@ -115,6 +115,9 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
 	protected static final File ROLE_PROJECT_OMNINAMAGER_FILE = new File(TEST_DIR, "role-project-omnimanager.xml");
 	protected static final String ROLE_PROJECT_OMNINAMAGER_OID = "f23ab26c-69df-11e6-8330-979c643ea51c";
 	
+	protected static final File ROLE_WEAK_GOSSIPER_FILE = new File(TEST_DIR, "role-weak-gossiper.xml");
+	protected static final String ROLE_WEAK_GOSSIPER_OID = "e8fb2226-7f48-11e6-8cf1-630ce5c3f80b";
+	
 	protected static final File ORG_PROJECT_RECLAIM_BLACK_PEARL_FILE = new File(TEST_DIR, "org-project-reclaim-black-pearl.xml");
 	protected static final String ORG_PROJECT_RECLAIM_BLACK_PEARL_OID = "00000000-8888-6666-0000-200000005000";
 
@@ -153,6 +156,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
 		repoAddObjectFromFile(ROLE_GOVERNOR_FILE, RoleType.class, initResult);
 		repoAddObjectFromFile(ROLE_CANIBAL_FILE, RoleType.class, initResult);
 		repoAddObjectFromFile(ROLE_PROJECT_OMNINAMAGER_FILE, RoleType.class, initResult);
+		repoAddObjectFromFile(ROLE_WEAK_GOSSIPER_FILE, RoleType.class, initResult);
 	}
 	
 	@Test
@@ -2276,5 +2280,385 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         
         assertHasNoOrg(userAfter);
 	}
+	
+	/**
+	 * MID-2850
+	 */
+	@Test
+    public void test760JackAssignRoleWeakGossiper() throws Exception {
+		final String TEST_NAME = "test760JackAssignRoleWeakGossiper";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+
+        Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+        task.setOwner(getUser(USER_ADMINISTRATOR_OID));
+        OperationResult result = task.getResult();
+        
+        PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
+        display("User jack before", userBefore);
+        assertAssignedNoRole(userBefore);
+        
+        assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        assignRole(USER_JACK_OID, ROLE_WEAK_GOSSIPER_OID, task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+        display("User jack after", userAfter);
+        
+        assertAssignedRole(userAfter, ROLE_WEAK_GOSSIPER_OID);
+        
+        assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
+	}
+
+	/**
+	 * MID-2850
+	 */
+	@Test
+    public void test762JackAssignRoleSailor() throws Exception {
+		final String TEST_NAME = "test762JackAssignRoleSailor";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+
+        Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+        task.setOwner(getUser(USER_ADMINISTRATOR_OID));
+        OperationResult result = task.getResult();
+        
+        PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
+        display("User jack before", userBefore);
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        assignRole(USER_JACK_OID, ROLE_SAILOR_OID, task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+        display("User jack after", userAfter);
+        
+        assertAssignedRole(userAfter, ROLE_WEAK_GOSSIPER_OID);
+        assertAssignedRole(userAfter, ROLE_SAILOR_OID);
+        
+        assertDummyAccount(null, ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
+        assertDummyAccountAttribute(null, ACCOUNT_JACK_DUMMY_USERNAME, 
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, RESOURCE_DUMMY_DRINK, ROLE_SAILOR_DRINK);
+        assertDummyAccountAttribute(null, ACCOUNT_JACK_DUMMY_USERNAME, 
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME, "Pssst! hear this: dead men tell no tales");
+
+	}
+	
+	/**
+	 * MID-2850
+	 */
+	@Test
+    public void test767JackUnAssignRoleWeakGossiper() throws Exception {
+		final String TEST_NAME = "test767JackUnAssignRoleWeakGossiper";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+
+        Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+        task.setOwner(getUser(USER_ADMINISTRATOR_OID));
+        OperationResult result = task.getResult();
+        
+        PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
+        display("User jack before", userBefore);
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        unassignRole(USER_JACK_OID, ROLE_WEAK_GOSSIPER_OID, task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+        display("User jack after", userAfter);
+        
+        assertAssignedRole(userAfter, ROLE_SAILOR_OID);
+        
+        assertDummyAccount(null, ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
+        assertDummyAccountAttribute(null, ACCOUNT_JACK_DUMMY_USERNAME, 
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, RESOURCE_DUMMY_DRINK, ROLE_SAILOR_DRINK);
+        assertNoDummyAccountAttribute(null, ACCOUNT_JACK_DUMMY_USERNAME, 
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME);
+
+	}
+	
+	/**
+	 * MID-2850
+	 */
+	@Test
+    public void test769JackUnAssignRoleSailor() throws Exception {
+		final String TEST_NAME = "test762JackAssignRoleSailor";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+
+        Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+        task.setOwner(getUser(USER_ADMINISTRATOR_OID));
+        OperationResult result = task.getResult();
+        
+        PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
+        display("User jack before", userBefore);
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        unassignRole(USER_JACK_OID, ROLE_SAILOR_OID, task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+        display("User jack after", userAfter);
+        
+        assertAssignedNoRole(userAfter);
+        
+        assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
+
+	}
+	
+	/**
+	 * MID-2850
+	 */
+	@Test
+    public void test770JackAssignRoleSailor() throws Exception {
+		final String TEST_NAME = "test770JackAssignRoleSailor";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+
+        Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+        task.setOwner(getUser(USER_ADMINISTRATOR_OID));
+        OperationResult result = task.getResult();
+        
+        PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
+        display("User jack before", userBefore);
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        assignRole(USER_JACK_OID, ROLE_SAILOR_OID, task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+        display("User jack after", userAfter);
+        
+        assertAssignedRole(userAfter, ROLE_SAILOR_OID);
+        
+        assertDummyAccount(null, ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
+        assertDummyAccountAttribute(null, ACCOUNT_JACK_DUMMY_USERNAME, 
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, RESOURCE_DUMMY_DRINK, ROLE_SAILOR_DRINK);
+        assertNoDummyAccountAttribute(null, ACCOUNT_JACK_DUMMY_USERNAME, 
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME);
+
+	}
+	
+	/**
+	 * MID-2850
+	 */
+	@Test
+    public void test772JackAssignRoleGossiper() throws Exception {
+		final String TEST_NAME = "test772JackAssignRoleGossiper";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+
+        Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+        task.setOwner(getUser(USER_ADMINISTRATOR_OID));
+        OperationResult result = task.getResult();
+        
+        PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
+        display("User jack before", userBefore);
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        assignRole(USER_JACK_OID, ROLE_WEAK_GOSSIPER_OID, task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+        display("User jack after", userAfter);
+        
+        assertAssignedRole(userAfter, ROLE_WEAK_GOSSIPER_OID);
+        assertAssignedRole(userAfter, ROLE_SAILOR_OID);
+        
+        assertDummyAccount(null, ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
+        assertDummyAccountAttribute(null, ACCOUNT_JACK_DUMMY_USERNAME, 
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, RESOURCE_DUMMY_DRINK, ROLE_SAILOR_DRINK);
+        assertDummyAccountAttribute(null, ACCOUNT_JACK_DUMMY_USERNAME, 
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME, "Pssst! hear this: dead men tell no tales");
+
+	}
+	
+	/**
+	 * MID-2850
+	 */
+	@Test
+    public void test777JackUnAssignRoleSailor() throws Exception {
+		final String TEST_NAME = "test777JackUnAssignRoleSailor";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+
+        Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+        task.setOwner(getUser(USER_ADMINISTRATOR_OID));
+        OperationResult result = task.getResult();
+        
+        PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
+        display("User jack before", userBefore);
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        unassignRole(USER_JACK_OID, ROLE_SAILOR_OID, task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+        display("User jack after", userAfter);
+        
+        assertAssignedRole(userAfter, ROLE_WEAK_GOSSIPER_OID);
+        
+        assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
+
+	}
+	
+	/**
+	 * MID-2850
+	 */
+	@Test
+    public void test779JackUnAssignRoleGossiper() throws Exception {
+		final String TEST_NAME = "test779JackUnAssignRoleGossiper";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+
+        Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+        task.setOwner(getUser(USER_ADMINISTRATOR_OID));
+        OperationResult result = task.getResult();
+        
+        PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
+        display("User jack before", userBefore);
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        unassignRole(USER_JACK_OID, ROLE_WEAK_GOSSIPER_OID, task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+        display("User jack after", userAfter);
+        
+        assertAssignedNoRole(userAfter);
+        
+        assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
+
+	}
+	
+	
+	/**
+	 * MID-2850
+	 */
+	@Test
+    public void test780JackAssignRoleGossiperAndSailor() throws Exception {
+		final String TEST_NAME = "test780JackAssignRoleGossiperAndSailor";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+
+        Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+        task.setOwner(getUser(USER_ADMINISTRATOR_OID));
+        OperationResult result = task.getResult();
+        
+        PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
+        display("User jack before", userBefore);
+        
+        
+        ObjectDelta<UserType> userDelta = createAssignmentUserDelta(USER_JACK_OID, ROLE_WEAK_GOSSIPER_OID, RoleType.COMPLEX_TYPE,
+        		null, null, null, true);
+        userDelta.addModification(createAssignmentModification(ROLE_SAILOR_OID, RoleType.COMPLEX_TYPE,
+        		null, null, null, true));
+		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
+		
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        modelService.executeChanges(deltas, null, task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+        display("User jack after", userAfter);
+        
+        assertAssignedRole(userAfter, ROLE_WEAK_GOSSIPER_OID);
+        assertAssignedRole(userAfter, ROLE_SAILOR_OID);
+        
+        assertDummyAccount(null, ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
+        assertDummyAccountAttribute(null, ACCOUNT_JACK_DUMMY_USERNAME, 
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, RESOURCE_DUMMY_DRINK, ROLE_SAILOR_DRINK);
+        assertDummyAccountAttribute(null, ACCOUNT_JACK_DUMMY_USERNAME, 
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME, "Pssst! hear this: dead men tell no tales");
+
+	}
+	
+	/**
+	 * MID-2850
+	 */
+	@Test
+    public void test789JackUnassignRoleGossiperAndSailor() throws Exception {
+		final String TEST_NAME = "test789JackUnassignRoleGossiperAndSailor";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+
+        Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+        task.setOwner(getUser(USER_ADMINISTRATOR_OID));
+        OperationResult result = task.getResult();
+        
+        PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
+        display("User jack before", userBefore);
+        
+        
+        ObjectDelta<UserType> userDelta = createAssignmentUserDelta(USER_JACK_OID, ROLE_WEAK_GOSSIPER_OID, RoleType.COMPLEX_TYPE,
+        		null, null, null, false);
+        userDelta.addModification(createAssignmentModification(ROLE_SAILOR_OID, RoleType.COMPLEX_TYPE,
+        		null, null, null, false));
+		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
+		
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        modelService.executeChanges(deltas, null, task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+        display("User jack after", userAfter);
+        
+        assertAssignedNoRole(userAfter);
+        assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
+
+	}
+
 
 }

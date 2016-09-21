@@ -603,11 +603,30 @@ public class AssignmentProcessor {
             
             String desc = rat.toHumanReadableString();
 
+            ConstructionPack zeroConstructionPack = constructionMapTriple.getZeroMap().get(rat);
+            ConstructionPack plusConstructionPack = constructionMapTriple.getPlusMap().get(rat);
+            
+            if (LOGGER.isTraceEnabled()) {
+	            if (zeroConstructionPack == null) {
+	            	LOGGER.trace("ZERO construction pack: null");
+	            } else {
+	            	LOGGER.trace("ZERO construction pack (hasValidAssignment={}, hasStrongConstruction={})\n{}",
+	            		new Object[]{zeroConstructionPack.hasValidAssignment(), zeroConstructionPack.hasStrongConstruction(), 
+	            				zeroConstructionPack.debugDump(1)});
+	            }
+	            if (plusConstructionPack == null) {
+	            	LOGGER.trace("PLUS construction pack: null");
+	            } else {
+	            	LOGGER.trace("PLUS construction pack (hasValidAssignment={}, hasStrongConstruction={})\n{}",
+	            		new Object[]{plusConstructionPack.hasValidAssignment(), plusConstructionPack.hasStrongConstruction(), 
+	            				plusConstructionPack.debugDump(1)});
+	            }
+            }
+
             // SITUATION: The projection is ASSIGNED
-            if (constructionMapTriple.getPlusMap().containsKey(rat)) {
+            if (plusConstructionPack != null && plusConstructionPack.hasStrongConstruction()) {
         	
-	        	ConstructionPack constructionPack = constructionMapTriple.getPlusMap().get(rat);
-	            if (constructionPack.hasValidAssignment()) {
+	            if (plusConstructionPack.hasValidAssignment()) {
 	            	LensProjectionContext projectionContext = LensUtil.getOrCreateProjectionContext(context, rat);
 	            	projectionContext.setAssigned(true);
                     projectionContext.setAssignedOld(false);
@@ -623,7 +642,7 @@ public class AssignmentProcessor {
 	            }
             
             // SITUATION: The projection should exist (is valid), there is NO CHANGE in assignments
-            } else if (constructionMapTriple.getZeroMap().containsKey(rat) && constructionMapTriple.getZeroMap().get(rat).hasValidAssignment()) {
+            } else if (zeroConstructionPack != null && zeroConstructionPack.hasValidAssignment() && zeroConstructionPack.hasStrongConstruction()) {
             	
                 LensProjectionContext projectionContext = context.findProjectionContext(rat);
                 if (projectionContext == null) {
@@ -767,22 +786,34 @@ public class AssignmentProcessor {
             	projectionContext.setLegalOld(false);
             	projectionContext.setAssigned(false);
                 projectionContext.setAssignedOld(false);
+                
+            // This is a legal state. We do not need to do anything. But we want to log the message
+            // and we do not want the "looney" error below.
+            } else if (plusConstructionPack != null && !plusConstructionPack.hasStrongConstruction()) {
+            	
+        		// Just ignore it, do not even create projection context
+            	LOGGER.trace("Projection {} ignoring: assigned (weak only)", desc);
 
+            	
             } else {
                 throw new IllegalStateException("Projection " + desc + " went looney");
             }
 
-            PrismValueDeltaSetTriple<PrismPropertyValue<Construction>> accountDeltaSetTriple = 
+            PrismValueDeltaSetTriple<PrismPropertyValue<Construction>> projectionConstructionDeltaSetTriple = 
             		new PrismValueDeltaSetTriple<PrismPropertyValue<Construction>>(
             				getConstructions(constructionMapTriple.getZeroMap().get(rat), true),
             				getConstructions(constructionMapTriple.getPlusMap().get(rat), true),
             				getConstructions(constructionMapTriple.getMinusMap().get(rat), false));
-            LensProjectionContext accountContext = context.findProjectionContext(rat);
-            if (accountContext != null) {
+            LensProjectionContext projectionContext = context.findProjectionContext(rat);
+            if (projectionContext != null) {
             	// This can be null in a exotic case if we delete already deleted account
-            	accountContext.setConstructionDeltaSetTriple(accountDeltaSetTriple);
+            	if (LOGGER.isTraceEnabled()) {
+            		LOGGER.trace("Construction delta set triple for {}:\n{}", rat,
+            				projectionConstructionDeltaSetTriple.debugDump(1));
+            	}
+            	projectionContext.setConstructionDeltaSetTriple(projectionConstructionDeltaSetTriple);
             	if (isForceRecon(constructionMapTriple.getZeroMap().get(rat)) || isForceRecon(constructionMapTriple.getPlusMap().get(rat)) || isForceRecon(constructionMapTriple.getMinusMap().get(rat))) {
-            		accountContext.setDoReconciliation(true);
+            		projectionContext.setDoReconciliation(true);
             	}
             }
 
@@ -935,7 +966,7 @@ public class AssignmentProcessor {
     	collectToConstructionMapFromEvaluatedAssignments(context, evaluatedAssignmentTriple.getMinusSet(), constructionMapTriple, PlusMinusZero.MINUS, task, result);
     }
     
-    private <F extends FocusType> void collectToConstructionMapFromEvaluatedAssignments(LensContext<F> context,
+	private <F extends FocusType> void collectToConstructionMapFromEvaluatedAssignments(LensContext<F> context,
     		Collection<EvaluatedAssignmentImpl<F>> evaluatedAssignments,
     		DeltaMapTriple<ResourceShadowDiscriminator, ConstructionPack> constructionMapTriple, PlusMinusZero mode, Task task,
     		OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
@@ -987,9 +1018,6 @@ public class AssignmentProcessor {
             }
         }
 	}
-    
-    
-
     
 	private Collection<PrismContainerValue<AssignmentType>> mergeAssignments(
 			Collection<PrismContainerValue<AssignmentType>> currentAssignments,

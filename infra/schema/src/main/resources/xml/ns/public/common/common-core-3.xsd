@@ -8260,9 +8260,72 @@
                    </xsd:documentation>
                </xsd:annotation>
            </xsd:element>
+           <xsd:element name="strength" type="tns:ConstructionStrengthType" minOccurs="0" maxOccurs="1" default="strong">
+               <xsd:annotation>
+                   <xsd:documentation>
+                       Strength of the construction defines how aggressively will
+	                	the construction be applied. Strong constructions are applied
+    	            	all the time (relative changes, reconciliation, ...).
+        	        	Weak constructions are applied only if there is another
+            	    	strong construction.
+                   </xsd:documentation>
+                   <xsd:appinfo>
+					<a:since>3.5</a:since>
+                   </xsd:appinfo>
+               </xsd:annotation>
+           </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
     <xsd:element name="construction" type="tns:ConstructionType"/>
+    
+    <xsd:simpleType name="ConstructionStrengthType">
+        <xsd:annotation>
+            <xsd:documentation>
+                <p>
+                	Strength of the construction defines how aggressively will
+                	the construction be applied. Strong constructions are applied
+                	all the time (relative changes, reconciliation, ...).
+                	Weak constructions are applied only if there is another
+                	strong construction.
+                </p>
+            </xsd:documentation>
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="strong">
+                <xsd:annotation>
+                	<xsd:documentation>
+                		<p>
+                			Always applied, regardless of context.
+                		</p>
+                	</xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="STRONG"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="weak">
+                <xsd:annotation>
+                	<xsd:documentation>
+                		<p>
+                			Construction is applied only if there is another
+                			strong construction for the same project. I.e.
+                			weak construction do not entitle the focus to anything
+                			just by themselves. There must be another reason for the
+                			projection to exist. If there is, then the weak construction
+                			will be also applied. If it is not then the weak construction
+                			is ignored.
+                		</p>
+                	</xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="WEAK"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+             </xsd:restriction>
+    </xsd:simpleType>
 
 
     <xsd:complexType name="ObjectTemplateType">
