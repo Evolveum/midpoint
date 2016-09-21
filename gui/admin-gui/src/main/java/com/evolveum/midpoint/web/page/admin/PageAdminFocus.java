@@ -590,6 +590,12 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 				continue;
 			}
 
+			if (UserDtoStatus.MODIFY.equals(projection.getStatus())) {
+				// this is legal e.g. when child org is being create (one assignment comes pre-created)
+				// TODO do we need more specific checks here?
+				continue;
+			}
+
 			if (!UserDtoStatus.ADD.equals(projection.getStatus())) {
 				warn(getString("pageAdminFocus.message.illegalAccountState", projection.getStatus()));
 				continue;
