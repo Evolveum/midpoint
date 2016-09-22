@@ -47,7 +47,7 @@ public class JdbcPingTaskHandler implements TaskHandler {
 	@Autowired
 	private TaskManager taskManager;
 
-	@Autowired
+	@Autowired(required = false)							// during some tests the repo is not available
 	private SqlRepositoryFactory sqlRepositoryFactory;
 
 	@PostConstruct
@@ -91,13 +91,13 @@ public class JdbcPingTaskHandler implements TaskHandler {
 
 		int tests = get(task, SchemaConstants.JDBC_PING_TESTS_QNAME, 0);
 		int interval = get(task, SchemaConstants.JDBC_PING_INTERVAL_QNAME, 10);
-		String testQuery = get(task, SchemaConstants.JDBC_PING_TEST_QUERY_QNAME, "select 1=1");
+		String testQuery = get(task, SchemaConstants.JDBC_PING_TEST_QUERY_QNAME, "select 1");
 
-		SqlRepositoryConfiguration config = sqlRepositoryFactory.getSqlConfiguration();
-		String jdbcDriver = get(task, SchemaConstants.JDBC_PING_DRIVER_CLASS_NAME_QNAME, config.getDriverClassName());
-		String jdbcUrl = get(task, SchemaConstants.JDBC_PING_JDBC_URL_QNAME, config.getJdbcUrl());
-		String jdbcUsername = get(task, SchemaConstants.JDBC_PING_JDBC_USERNAME_QNAME, config.getJdbcUsername());
-		String jdbcPassword = get(task, SchemaConstants.JDBC_PING_JDBC_PASSWORD_QNAME, config.getJdbcPassword());
+		SqlRepositoryConfiguration config = sqlRepositoryFactory != null ? sqlRepositoryFactory.getSqlConfiguration() : null;
+		String jdbcDriver = get(task, SchemaConstants.JDBC_PING_DRIVER_CLASS_NAME_QNAME, config != null ? config.getDriverClassName() : "");
+		String jdbcUrl = get(task, SchemaConstants.JDBC_PING_JDBC_URL_QNAME, config != null ? config.getJdbcUrl() : "");
+		String jdbcUsername = get(task, SchemaConstants.JDBC_PING_JDBC_USERNAME_QNAME, config != null ? config.getJdbcUsername() : "");
+		String jdbcPassword = get(task, SchemaConstants.JDBC_PING_JDBC_PASSWORD_QNAME, config != null ? config.getJdbcPassword() : "");
 		boolean logOnInfoLevel = get(task, SchemaConstants.JDBC_PING_LOG_ON_INFO_LEVEL_QNAME, true);
 
         LOGGER.info("JdbcPingTaskHandler run starting; with progress = {}", progress);

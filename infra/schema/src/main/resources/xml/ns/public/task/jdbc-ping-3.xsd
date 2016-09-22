@@ -60,7 +60,7 @@
     <xsd:element name="testQuery" type="xsd:string">
         <xsd:annotation>
             <xsd:documentation>
-                SQL query to be executed during the test. Default is 'SELECT 1=1'.
+                SQL query to be executed during the test. Default is 'SELECT 1'.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:displayName>Test SQL query</a:displayName>
