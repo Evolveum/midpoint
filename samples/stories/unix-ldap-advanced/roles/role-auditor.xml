@@ -1,0 +1,94 @@
+<role xmlns:apti="http://midpoint.evolveum.com/xml/ns/public/common/api-types-3" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:gen635="http://prism.evolveum.com/xml/ns/public/debug" xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3" xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3" xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3" xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" oid="56d4c66e-5a63-4eeb-8637-4eca6b13e7da" version="12" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+      <name>auditor</name>
+      <description>Gives users for all machines in selected set</description>
+      <assignment id="1">
+         <targetRef oid="15cdcbba-74ab-46d6-90e7-54e701a176be" type="c:RoleType"/>
+      </assignment>
+      <displayName>Machine Auditor</displayName>
+      <inducement id="4">
+         <targetRef oid="00000000-0000-0000-0000-00000000000b" type="c:RoleType"/>
+      </inducement>
+       <approverExpression>
+         <description>Get user's managers (except the user itself)</description>
+         <script>
+            <code>
+                
+                import com.evolveum.midpoint.prism.*
+                import com.evolveum.midpoint.prism.delta.*
+                import com.evolveum.midpoint.xml.ns._public.common.common_3.*
+                
+                ContainerDelta roleDelta = objectDelta.findContainerDelta(UserType.F_ASSIGNMENT);
+                Collection assignmnetsToModify = new ArrayList();
+                if (roleDelta != null){
+                  if (roleDelta.getValuesToAdd() != null) {
+                      assignmnetsToModify.addAll(roleDelta.getValuesToAdd());
+                  }
+                  if (roleDelta.getValuesToReplace() != null) {
+                      assignmnetsToModify.addAll(roleDelta.getValuesToAdd());
+                  }
+                  if (roleDelta.getValuesToDelete() != null) {
+                      assignmnetsToModify.addAll(roleDelta.getValuesToAdd());
+                  }
+                }
+                
+                managers = []
+                for (PrismContainerValue assignment in assignmnetsToModify) {
+                	AssignmentType ass = assignment.asContainerable();
+                	if (ass.getTargetRef() != null &amp;&amp; ass.getTargetRef().getOid().equals("6aaaa771-3267-454f-b399-4a84ddfc78f8")) {
+                		if (ass.getOrgRef() != null) {
+                			users = midpoint.getManagersOfOrg(ass.getOrgRef().getOid());
+                            for (user in users){
+                                managers.add(user.getOid())
+                            }
+                		}
+                	}
+                	
+                }
+                
+                return managers
+                
+            </code>
+         </script>
+      </approverExpression>
+      <automaticallyApproved>
+         <description>If the user works in F0006 (Scumm Bar), the assignment of this role is automatically approved for him.</description>
+         <script>
+            <code>
+            
+                 import com.evolveum.midpoint.prism.*
+                import com.evolveum.midpoint.prism.delta.*
+                import com.evolveum.midpoint.xml.ns._public.common.common_3.*
+                
+                ContainerDelta roleDelta = objectDelta.findContainerDelta(UserType.F_ASSIGNMENT);
+                Collection assignmnetsToModify = new ArrayList();
+                if (roleDelta != null){
+                  if (roleDelta.getValuesToAdd() != null) {
+                      assignmnetsToModify.addAll(roleDelta.getValuesToAdd());
+                  }
+                  if (roleDelta.getValuesToReplace() != null) {
+                      assignmnetsToModify.addAll(roleDelta.getValuesToAdd());
+                  }
+                  if (roleDelta.getValuesToDelete() != null) {
+                      assignmnetsToModify.addAll(roleDelta.getValuesToAdd());
+                  }
+                }
+                
+                isManager = false
+                for (PrismContainerValue assignment in assignmnetsToModify) {
+                    AssignmentType ass = assignment.asContainerable();
+                	if (ass.getTargetRef() != null &amp;&amp; ass.getTargetRef().getOid().equals("6aaaa771-3267-454f-b399-4a84ddfc78f8")) {
+                		if (ass.getOrgRef() != null) {
+                			isManager = midpoint.isManagerOf(requester, midpoint.getOrgByOid(ass.getOrgRef().getOid()).getOid())
+                            log.info('######is Manager : ' + isManager)
+                		}
+                	}
+                	
+                }
+                
+                return isManager
+                
+            </code>
+         </script>
+      </automaticallyApproved>
+      <roleType>access</roleType>
+   </role>

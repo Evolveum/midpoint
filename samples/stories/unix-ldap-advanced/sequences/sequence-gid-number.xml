@@ -1,0 +1,6 @@
+<sequence xmlns:apti="http://midpoint.evolveum.com/xml/ns/public/common/api-types-3" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:gen635="http://prism.evolveum.com/xml/ns/public/debug" xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3" xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3" xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3" xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" oid="02cb7caa-6618-11e5-87a5-7b6c6776a63e" version="66" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+      <name>Unix GID numbers</name>
+      <description>Real GID is 1000 - counter value</description>
+      <counter>25</counter>
+      <maxUnusedValues>10</maxUnusedValues>
+   </sequence>

@@ -1,0 +1,141 @@
+<role xmlns:apti="http://midpoint.evolveum.com/xml/ns/public/common/api-types-3" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:gen635="http://prism.evolveum.com/xml/ns/public/debug" xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3" xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3" xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3" xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" oid="6aaaa771-3267-454f-b399-4a84ddfc78f8" version="44" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+      <name>admin</name>
+      <description>Gives users root for all machines in selected set</description>
+      <assignment id="1">
+         <targetRef oid="15cdcbba-74ab-46d6-90e7-54e701a176be" type="c:RoleType"/>
+      </assignment>
+      <displayName>Machine Admin</displayName>
+      <authorization id="5">
+         <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-3#guiAll</action>
+      </authorization>
+      <authorization id="4">
+         <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-3#all</action>
+         <object>
+            <orgRelation>
+               <subjectRelation xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3">org:manager</subjectRelation>
+               <includeReferenceOrg>true</includeReferenceOrg>
+            </orgRelation>
+         </object>
+      </authorization>
+      <authorization id="6">
+         <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+         <object>
+            <type>OrgType</type>
+            <filter>
+               <q:or>
+                  <q:equal>
+                     <q:path>name</q:path>
+                     <q:value>Machines-new</q:value>
+                  </q:equal>
+               </q:or>
+            </filter>
+         </object>
+      </authorization>
+      <authorization id="7">
+         <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+         <object>
+            <type>ShadowType</type>
+         </object>
+         <object>
+            <type>ResourceType</type>
+         </object>
+         <object>
+            <type>TaskType</type>
+         </object>
+         <object>
+            <type>RoleType</type>
+         </object>
+         <object>
+            <type>ServiceType</type>
+         </object>
+      </authorization>
+      <authorization id="8">
+         <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-3#add</action>
+         <object>
+            <type>UserType</type>
+         </object>
+      </authorization>
+      <approverExpression>
+         <description>Get user's managers (except the user itself)</description>
+         <script>
+            <code>
+                
+                import com.evolveum.midpoint.prism.*
+                import com.evolveum.midpoint.prism.delta.*
+                import com.evolveum.midpoint.xml.ns._public.common.common_3.*
+                
+                ContainerDelta roleDelta = objectDelta.findContainerDelta(UserType.F_ASSIGNMENT);
+                Collection assignmnetsToModify = new ArrayList();
+                if (roleDelta != null){
+                  if (roleDelta.getValuesToAdd() != null) {
+                      assignmnetsToModify.addAll(roleDelta.getValuesToAdd());
+                  }
+                  if (roleDelta.getValuesToReplace() != null) {
+                      assignmnetsToModify.addAll(roleDelta.getValuesToAdd());
+                  }
+                  if (roleDelta.getValuesToDelete() != null) {
+                      assignmnetsToModify.addAll(roleDelta.getValuesToAdd());
+                  }
+                }
+                
+                managers = []
+                for (PrismContainerValue assignment in assignmnetsToModify) {
+                	AssignmentType ass = assignment.asContainerable();
+                	if (ass.getTargetRef() != null &amp;&amp; ass.getTargetRef().getOid().equals("6aaaa771-3267-454f-b399-4a84ddfc78f8")) {
+                		if (ass.getOrgRef() != null) {
+                			users = midpoint.getManagersOfOrg(ass.getOrgRef().getOid());
+                            for (user in users){
+                                managers.add(user.getOid())
+                            }
+                		}
+                	}
+                	
+                }
+                
+                return managers
+                
+            </code>
+         </script>
+      </approverExpression>
+      <automaticallyApproved>
+         <description>If the user works in F0006 (Scumm Bar), the assignment of this role is automatically approved for him.</description>
+         <script>
+            <code>
+            
+                 import com.evolveum.midpoint.prism.*
+                import com.evolveum.midpoint.prism.delta.*
+                import com.evolveum.midpoint.xml.ns._public.common.common_3.*
+                
+                ContainerDelta roleDelta = objectDelta.findContainerDelta(UserType.F_ASSIGNMENT);
+                Collection assignmnetsToModify = new ArrayList();
+                if (roleDelta != null){
+                  if (roleDelta.getValuesToAdd() != null) {
+                      assignmnetsToModify.addAll(roleDelta.getValuesToAdd());
+                  }
+                  if (roleDelta.getValuesToReplace() != null) {
+                      assignmnetsToModify.addAll(roleDelta.getValuesToAdd());
+                  }
+                  if (roleDelta.getValuesToDelete() != null) {
+                      assignmnetsToModify.addAll(roleDelta.getValuesToAdd());
+                  }
+                }
+                
+                isManager = false
+                for (PrismContainerValue assignment in assignmnetsToModify) {
+                    AssignmentType ass = assignment.asContainerable();
+                	if (ass.getTargetRef() != null &amp;&amp; ass.getTargetRef().getOid().equals("6aaaa771-3267-454f-b399-4a84ddfc78f8")) {
+                		if (ass.getOrgRef() != null) {
+                			isManager = midpoint.isManagerOf(requester, midpoint.getOrgByOid(ass.getOrgRef().getOid()).getOid())
+                            log.info('######is Manager : ' + isManager)
+                		}
+                	}
+                	
+                }
+                
+                return isManager
+                
+            </code>
+         </script>
+      </automaticallyApproved>
+      <roleType>access</roleType>
+   </role>

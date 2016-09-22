@@ -1,0 +1,18 @@
+<role xmlns:apti="http://midpoint.evolveum.com/xml/ns/public/common/api-types-3" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:gen635="http://prism.evolveum.com/xml/ns/public/debug" xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3" xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3" xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3" xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" oid="00000000-0000-0000-0000-000000000004" version="0" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+      <name>Superuser</name>
+      <description>Role that gives user full authorization in MidPoint.</description>
+      <metadata>
+         <createTimestamp>2016-02-17T23:55:35.266Z</createTimestamp>
+         <createChannel>http://midpoint.evolveum.com/xml/ns/public/gui/channels-3#init</createChannel>
+      </metadata>
+      <activation>
+         <effectiveStatus>enabled</effectiveStatus>
+         <enableTimestamp>2016-02-17T23:55:35.227Z</enableTimestamp>
+      </activation>
+      <iteration>0</iteration>
+      <iterationToken/>
+      <authorization id="1">
+         <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-3#all</action>
+      </authorization>
+      <roleType>system</roleType>
+   </role>

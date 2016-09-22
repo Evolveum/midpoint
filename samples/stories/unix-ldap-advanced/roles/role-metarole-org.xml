@@ -1,0 +1,95 @@
+<role xmlns:apti="http://midpoint.evolveum.com/xml/ns/public/common/api-types-3" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:gen635="http://prism.evolveum.com/xml/ns/public/debug" xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3" xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3" xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3" xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" oid="9c6d1dbe-1a87-11e5-b107-001e8c717e5b" version="41" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+      <name>Metarole for Org</name>
+         <inducement id="1">
+         <description>LDAPGROUP-ORg</description>
+         <construction>
+            <description>LDAPGROUP-Org</description>
+            <resourceRef oid="d0811790-1d80-11e4-86b2-3c970e467874" type="c:ResourceType"/>
+            <kind>entitlement</kind>
+            <intent>ldapGroup</intent>
+         </construction>
+         <order>1</order>
+         <focusType>OrgType</focusType>
+      </inducement>
+      <inducement id="3">
+         <description>LDAPGROUP-Org</description>
+         <targetRef type="c:ServiceType">
+            <filter>
+               <q:inOid>
+                  <expression>
+                     <script>
+                        <code>
+                            import com.evolveum.midpoint.prism.query.*
+                            	import com.evolveum.midpoint.prism.query.OrgFilter.Scope;
+								import com.evolveum.midpoint.xml.ns._public.common.common_3.*
+							
+								filter = OrgFilter.createOrg(source.getOid(), Scope.ONE_LEVEL)
+								
+								query = ObjectQuery.createObjectQuery(filter)
+								objects = midpoint.searchObjects(ServiceType.class, query)
+								
+								resultSet = [];
+								for (org in objects) {
+									resultSet.add(org.getOid())
+								}
+								return resultSet
+                       </code>
+                     </script>
+                  </expression>
+               </q:inOid>
+            </filter>
+            <resolutionTime>run</resolutionTime>
+         </targetRef>
+         <order>3</order>
+         <focusType>UserType</focusType>
+      </inducement>
+      <inducement id="2">
+         <description>LDAPGROUP ADMIN-ORg</description>
+         <construction>
+            <description>LDAPGROUP ADMIN-Org</description>
+            <resourceRef oid="d0811790-1d80-11e4-86b2-3c970e467874" type="c:ResourceType"/>
+            <kind>entitlement</kind>
+            <intent>unixGroup-admin</intent>
+         </construction>
+         <order>1</order>
+         <focusType>OrgType</focusType>
+      </inducement>
+      <inducement id="4">
+         <description>LDAPGROUP AUDITOR-ORg</description>
+         <construction>
+            <description>LDAPGROUP AUDITOR-Org</description>
+            <resourceRef oid="d0811790-1d80-11e4-86b2-3c970e467874" type="c:ResourceType"/>
+            <kind>entitlement</kind>
+            <intent>unixGroup-auditor</intent>
+         </construction>
+         <order>1</order>
+         <focusType>OrgType</focusType>
+      </inducement>
+      <inducement id="6">
+         <description>LDAPGROUP USER-ORg</description>
+         <construction>
+            <description>LDAPGROUP USER-Org</description>
+            <resourceRef oid="d0811790-1d80-11e4-86b2-3c970e467874" type="c:ResourceType"/>
+            <kind>entitlement</kind>
+            <intent>unixGroup-user</intent>
+         </construction>
+         <order>1</order>
+         <focusType>OrgType</focusType>
+      </inducement>
+      <inducement id="7">
+         <focusMappings>
+            <mapping>
+               <name>sequenceGID</name>
+               <strength>weak</strength>
+               <expression>
+                  <sequentialValue>
+                     <sequenceRef oid="02cb7caa-6618-11e5-87a5-7b6c6776a63e"/>
+                  </sequentialValue>
+               </expression>
+               <target>
+                  <c:path xmlns:posix="http://example.com/xml/ns/mySchema">extension/posix:gidNumber</c:path>
+               </target>
+            </mapping>
+         </focusMappings>
+      </inducement>
+   </role>

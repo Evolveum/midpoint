@@ -1,0 +1,115 @@
+<role xmlns:apti="http://midpoint.evolveum.com/xml/ns/public/common/api-types-3" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:gen635="http://prism.evolveum.com/xml/ns/public/debug" xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3" xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3" xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3" xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" oid="00000000-0000-0000-0000-00000000000b" version="5" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+      <name>Reviewer</name>
+      <description>Role authorizing users to make decisions on certification cases.</description>
+      <metadata>
+         <createTimestamp>2016-06-24T19:39:50.887Z</createTimestamp>
+         <createChannel>http://midpoint.evolveum.com/xml/ns/public/gui/channels-3#init</createChannel>
+      </metadata>
+      <activation>
+         <effectiveStatus>enabled</effectiveStatus>
+         <enableTimestamp>2016-06-24T19:39:50.783Z</enableTimestamp>
+      </activation>
+      <iteration>0</iteration>
+      <iterationToken/>
+      <authorization id="1">
+         <name>gui-reviewer-access</name>
+         <description>
+    		Allow access to list of certification cases in GUI. Allow access to pages that show object details,
+    		so the reviewer may examine data related to the request.
+    	</description>
+         <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#certificationDecisions</action>
+         <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#userDetails</action>
+         <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#roleDetails</action>
+         <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#orgUnit</action>
+         <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#service</action>
+         <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#users</action>
+      </authorization>
+      <authorization id="2">
+         <name>read-and-make-decisions</name>
+         <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#readOwnCertificationDecisions</action>
+         <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#recordCertificationDecision</action>
+      </authorization>
+      <authorization id="7">
+         <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#selfAll</action>
+      </authorization>
+      <authorization id="8">
+         <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+         <object>
+            <orgRelation>
+               <subjectRelation>q:any</subjectRelation>
+            </orgRelation>
+         </object>
+      </authorization>
+      <authorization id="9">
+         <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+         <object>
+            <type>ShadowType</type>
+         </object>
+      </authorization>
+      <authorization id="10">
+         <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#changeCredentials</action>
+         <phase>request</phase>
+         <c:item>credentials</c:item>
+      </authorization>
+      <authorization id="11">
+         <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#changeCredentials</action>
+         <phase>request</phase>
+         <object>
+            <type>ShadowType</type>
+         </object>
+         <c:item>credentials</c:item>
+      </authorization>
+      <authorization id="12">
+         <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#modify</action>
+         <phase>execution</phase>
+         <c:item>credentials</c:item>
+      </authorization>
+      <authorization id="13">
+         <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#modify</action>
+         <phase>execution</phase>
+         <object>
+            <type>ShadowType</type>
+         </object>
+         <c:item>credentials</c:item>
+      </authorization>
+      <authorization id="14">
+         <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+         <object>
+            <type>OrgType</type>
+         </object>
+         <object>
+            <type>ResourceType</type>
+         </object>
+         <object>
+            <type>RoleType</type>
+         </object>
+         <object>
+            <type>ServiceType</type>
+         </object>
+      </authorization>
+      <authorization id="15">
+         <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#modify</action>
+         <object>
+            <type>UserType</type>
+         </object>
+         <c:item>name</c:item>
+         <c:item>fullName</c:item>
+         <c:item>familyName</c:item>
+         <c:item>givenName</c:item>
+         <c:item>emailAddress</c:item>
+         <c:item>locality</c:item>
+      </authorization>
+      <authorization id="16">
+         <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#assign</action>
+         <target>
+            <type>RoleType</type>
+            <filter>
+               <q:equal>
+                  <q:path>roleType</q:path>
+                  <q:value>access</q:value>
+               </q:equal>
+            </filter>
+         </target>
+      </authorization>
+      <roleType>system</roleType>
+   </role>

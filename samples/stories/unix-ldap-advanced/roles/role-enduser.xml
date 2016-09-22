@@ -1,0 +1,110 @@
+<role xmlns:apti="http://midpoint.evolveum.com/xml/ns/public/common/api-types-3" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:gen635="http://prism.evolveum.com/xml/ns/public/debug" xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3" xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3" xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3" xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" oid="00000000-0000-0000-0000-000000000008" version="3" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+      <name>End user</name>
+      <description>Role authorizing end users to log in, change their passwords and review assigned accounts.</description>
+      <metadata>
+         <createTimestamp>2016-02-17T23:55:35.609Z</createTimestamp>
+         <createChannel>http://midpoint.evolveum.com/xml/ns/public/gui/channels-3#init</createChannel>
+      </metadata>
+      <activation>
+         <effectiveStatus>enabled</effectiveStatus>
+         <enableTimestamp>2016-02-17T23:55:35.399Z</enableTimestamp>
+      </activation>
+      <iteration>0</iteration>
+      <iterationToken/>
+      <authorization id="1">
+         <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#selfAll</action>
+      </authorization>
+      <authorization id="2">
+         <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+         <object>
+            <special>self</special>
+         </object>
+      </authorization>
+      <authorization id="3">
+         <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+         <object>
+            <type>ShadowType</type>
+            <owner>
+               <special>self</special>
+            </owner>
+         </object>
+      </authorization>
+      <authorization id="4">
+         <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#changeCredentials</action>
+         <phase>request</phase>
+         <object>
+            <special>self</special>
+         </object>
+         <c:item>credentials</c:item>
+      </authorization>
+      <authorization id="5">
+         <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#changeCredentials</action>
+         <phase>request</phase>
+         <object>
+            <type>ShadowType</type>
+            <owner>
+               <special>self</special>
+            </owner>
+         </object>
+         <c:item>credentials</c:item>
+      </authorization>
+      <authorization id="6">
+         <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#modify</action>
+         <phase>execution</phase>
+         <object>
+            <special>self</special>
+         </object>
+         <c:item>credentials</c:item>
+      </authorization>
+      <authorization id="7">
+         <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#modify</action>
+         <phase>execution</phase>
+         <object>
+            <type>ShadowType</type>
+            <owner>
+               <special>self</special>
+            </owner>
+         </object>
+         <c:item>credentials</c:item>
+      </authorization>
+      <authorization id="8">
+         <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+         <object>
+            <type>OrgType</type>
+         </object>
+         <object>
+            <type>ResourceType</type>
+         </object>
+         <object>
+            <type>RoleType</type>
+         </object>
+         <object>
+            <type>ServiceType</type>
+         </object>
+      </authorization>
+      <authorization id="9">
+         <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#modify</action>
+         <object>
+            <special>self</special>
+         </object>
+         <c:item>name</c:item>
+         <c:item>fullName</c:item>
+         <c:item>familyName</c:item>
+         <c:item>givenName</c:item>
+         <c:item>emailAddress</c:item>
+         <c:item>locality</c:item>
+      </authorization>
+      <authorization id="10">
+         <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#assign</action>
+         <target>
+            <type>RoleType</type>
+            <filter>
+               <q:equal>
+                  <q:path>roleType</q:path>
+                  <q:value>access</q:value>
+               </q:equal>
+            </filter>
+         </target>
+      </authorization>
+      <roleType>system</roleType>
+   </role>

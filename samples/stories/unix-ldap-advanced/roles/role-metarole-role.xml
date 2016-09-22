@@ -1,0 +1,94 @@
+<role xmlns:apti="http://midpoint.evolveum.com/xml/ns/public/common/api-types-3" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:gen635="http://prism.evolveum.com/xml/ns/public/debug" xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3" xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3" xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3" xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" oid="15cdcbba-74ab-46d6-90e7-54e701a176be" version="110" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+      <name>Metarole for Role</name>
+      <inducement id="1">
+         <description>Create user account decorated with posixAccount auxiliary object class</description>
+         <targetRef oid="744a54f8-18e5-11e5-808f-001e8c717e5b" type="c:RoleType"/>
+         <order>2</order>
+         <focusType>UserType</focusType>
+      </inducement>
+      <inducement id="2">
+         <description>Assign user to the group</description>
+         <construction>
+            <description>LDAPGROUP-I2</description>
+            <resourceRef oid="d0811790-1d80-11e4-86b2-3c970e467874" type="c:ResourceType"/>
+            <kind>account</kind>
+            <intent>default</intent>
+            <association>
+               <c:ref>ri:unixGroup</c:ref>
+               <outbound>
+                  <strength>strong</strength>
+                  <source>
+                     <name>parent</name>
+                     <c:path>$assignment/c:orgRef</c:path>
+                  </source>
+                  <expression>
+                     <associationTargetSearch>
+                        <filter>
+                           <q:equal>
+                              <q:matching>stringIgnoreCase</q:matching>
+                              <q:path>attributes/ri:dn</q:path>
+                              <expression>
+                                 <script>
+                                    <code>
+            					    org = midpoint.getOrgByOid(parent.getOid());
+                                    return 'cn='+org.getIdentifier() + immediateRole.getName() +',ou=groups,dc=example,dc=com'
+							</code>
+                                 </script>
+                              </expression>
+                           </q:equal>
+                        </filter>
+                        <searchStrategy>onResourceIfNeeded</searchStrategy>
+                     </associationTargetSearch>
+                  </expression>
+               </outbound>
+            </association>
+         </construction>
+         <order>2</order>
+         <focusType>UserType</focusType>
+      </inducement>
+      <inducement id="3">
+         <targetRef type="c:OrgType">
+            <filter>
+               <q:inOid>
+                  <expression>
+                     <returnMultiplicity>multi</returnMultiplicity>
+                     <script>
+                        <code>
+								return focusAssignment?.getOrgRef()?.getOid()
+						</code>
+                     </script>
+                  </expression>
+               </q:inOid>
+            </filter>
+         </targetRef>
+         <order>2</order>
+         <focusType>UserType</focusType>
+      </inducement>
+      <inducement id="4">
+         <targetRef xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3" relation="org:manager" type="c:OrgType">
+            <filter>
+               <q:inOid>
+                  <expression>
+                     <returnMultiplicity>multi</returnMultiplicity>
+                     <script>
+                        <code>
+								return focusAssignment?.getOrgRef()?.getOid()
+						</code>
+                     </script>
+                  </expression>
+               </q:inOid>
+            </filter>
+         </targetRef>
+         <order>2</order>
+         <focusType>UserType</focusType>
+         <condition>
+            <expression>
+               <script>
+                  <code>
+                  immediateRole?.getName()?.getOrig()?.equals('admin')
+              </code>
+               </script>
+            </expression>
+         </condition>
+      </inducement>
+   </role>

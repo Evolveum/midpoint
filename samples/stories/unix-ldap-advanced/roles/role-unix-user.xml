@@ -1,0 +1,148 @@
+<role xmlns:apti="http://midpoint.evolveum.com/xml/ns/public/common/api-types-3" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:gen635="http://prism.evolveum.com/xml/ns/public/debug" xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3" xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3" xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3" xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" oid="744a54f8-18e5-11e5-808f-001e8c717e5b" version="8" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+      <name>Unix User</name>
+        <inducement id="1">
+         <construction>
+            <resourceRef oid="d0811790-1d80-11e4-86b2-3c970e467874" type="c:ResourceType"/>
+            <kind>account</kind>
+            <attribute>
+               <c:ref>ri:homeDirectory</c:ref>
+               <outbound>
+                  <strength>strong</strength>
+                  <source>
+                     <c:path>name</c:path>
+                  </source>
+                  <expression>
+                     <script>
+                        <code>'/home/' + name</code>
+                     </script>
+                  </expression>
+               </outbound>
+            </attribute>
+            <attribute>
+               <c:ref>ri:uidNumber</c:ref>
+               <outbound>
+                  <strength>strong</strength>
+                  <source>
+                     <c:path xmlns:posix="http://example.com/xml/ns/mySchema">extension/posix:uidNumber</c:path>
+                  </source>
+               </outbound>
+            </attribute>
+            <attribute>
+               <c:ref>ri:gidNumber</c:ref>
+               <outbound>
+                  <strength>strong</strength>
+                  <source>
+                     <c:path xmlns:posix="http://example.com/xml/ns/mySchema">extension/posix:uidNumber</c:path>
+                  </source>
+               </outbound>
+            </attribute>
+            <attribute>
+               <c:ref>ri:loginShell</c:ref>
+               <displayName>Login Shell</displayName>
+               <limitations>
+                  <maxOccurs>1</maxOccurs>
+               </limitations>
+               <outbound>
+                  <source>
+                     <c:path xmlns:posix="http://example.com/xml/ns/mySchema">extension/posix:loginShell</c:path>
+                  </source>
+               </outbound>
+            </attribute>
+            <attribute>
+               <c:ref>ri:gecos</c:ref>
+               <displayName>Gecos</displayName>
+               <limitations>
+                  <maxOccurs>1</maxOccurs>
+               </limitations>
+               <outbound>
+                  <source>
+                     <c:path xmlns:posix="http://example.com/xml/ns/mySchema">extension/posix:gecos</c:path>
+                  </source>
+               </outbound>
+            </attribute>
+            <auxiliaryObjectClass>ri:posixAccount</auxiliaryObjectClass>
+         </construction>
+         <order>2</order>
+      </inducement>
+      <inducement id="2">
+         <construction>
+            <resourceRef oid="d0811790-1d80-11e4-86b2-3c970e467874" type="c:ResourceType"/>
+            <kind>account</kind>
+            <attribute>
+               <c:ref>ri:homeDirectory</c:ref>
+               <outbound>
+                  <strength>strong</strength>
+                  <source>
+                     <c:path>name</c:path>
+                  </source>
+                  <expression>
+                     <script>
+                        <code>'/home/' + name</code>
+                     </script>
+                  </expression>
+               </outbound>
+            </attribute>
+            <attribute>
+               <c:ref>ri:uidNumber</c:ref>
+               <outbound>
+                  <strength>strong</strength>
+                  <source>
+                     <c:path xmlns:posix="http://example.com/xml/ns/mySchema">extension/posix:uidNumber</c:path>
+                  </source>
+               </outbound>
+            </attribute>
+            <attribute>
+               <c:ref>ri:gidNumber</c:ref>
+               <outbound>
+                  <strength>strong</strength>
+                  <source>
+                     <c:path xmlns:posix="http://example.com/xml/ns/mySchema">extension/posix:uidNumber</c:path>
+                  </source>
+               </outbound>
+            </attribute>
+            <attribute>
+               <c:ref>ri:loginShell</c:ref>
+               <displayName>Login Shell</displayName>
+               <limitations>
+                  <maxOccurs>1</maxOccurs>
+               </limitations>
+               <outbound>
+                  <source>
+                     <c:path xmlns:posix="http://example.com/xml/ns/mySchema">extension/posix:loginShell</c:path>
+                  </source>
+               </outbound>
+            </attribute>
+            <attribute>
+               <c:ref>ri:gecos</c:ref>
+               <displayName>Gecos</displayName>
+               <limitations>
+                  <maxOccurs>1</maxOccurs>
+               </limitations>
+               <outbound>
+                  <source>
+                     <c:path xmlns:posix="http://example.com/xml/ns/mySchema">extension/posix:gecos</c:path>
+                  </source>
+               </outbound>
+            </attribute>
+            <auxiliaryObjectClass>ri:posixAccount</auxiliaryObjectClass>
+         </construction>
+      </inducement>
+      <inducement id="5">
+         <description>Generate uidNumber</description>
+         <focusMappings>
+            <mapping>
+               <name>sequenceUID</name>
+               <strength>weak</strength>
+               <expression>
+                  <sequentialValue>
+                     <sequenceRef oid="7d4acb8c-65e3-11e5-9ef4-6382ba96fe6c"/>
+                  </sequentialValue>
+               </expression>
+               <target>
+                  <c:path xmlns:posix="http://example.com/xml/ns/mySchema">extension/posix:uidNumber</c:path>
+               </target>
+            </mapping>
+         </focusMappings>
+         <order>2</order>
+      </inducement>
+   </role>

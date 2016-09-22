@@ -1,0 +1,27 @@
+<objectTemplate xmlns:apti="http://midpoint.evolveum.com/xml/ns/public/common/api-types-3" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:gen635="http://prism.evolveum.com/xml/ns/public/debug" xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3" xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3" xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3" xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" oid="86d3b03a-5585-4662-8029-da556efa3d2a" version="3" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+      <name>User Template - unix</name>
+       <mapping>
+         <name>User-Unix account mapping</name>
+         <strength>strong</strength>
+         <source>
+            <name>uidNumber</name>
+            <c:path>$user/extension/uidNumber</c:path>
+         </source>
+         <expression>
+            <assignmentTargetSearch>
+               <targetType>c:RoleType</targetType>
+               <oid>744a54f8-18e5-11e5-808f-001e8c717e5b</oid>
+            </assignmentTargetSearch>
+         </expression>
+         <target>
+            <c:path>assignment</c:path>
+         </target>
+         <condition>
+            <script>
+               <code>
+                  uidNumber != null
+              </code>
+            </script>
+         </condition>
+      </mapping>
+   </objectTemplate>

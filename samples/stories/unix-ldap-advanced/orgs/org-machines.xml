@@ -1,0 +1,5 @@
+<org xmlns:apti="http://midpoint.evolveum.com/xml/ns/public/common/api-types-3" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:gen635="http://prism.evolveum.com/xml/ns/public/debug" xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3" xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3" xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3" xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" oid="d10c1e42-7cda-44e0-9df9-45210194647b" version="8" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+      <name>machines</name>
+      <displayName>Machines</displayName>
+      <orgType>machines</orgType>
+   </org>

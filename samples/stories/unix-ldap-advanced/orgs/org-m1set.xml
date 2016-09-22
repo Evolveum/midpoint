@@ -1,0 +1,16 @@
+<org xmlns:apti="http://midpoint.evolveum.com/xml/ns/public/common/api-types-3" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:gen635="http://prism.evolveum.com/xml/ns/public/debug" xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3" xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3" xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3" xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" oid="af5ea4a1-bd88-40de-978d-50a7c263d38e" version="34" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+      <name>m1set</name>
+      <description>Members are dn's of all ldap machine groups in set 1.</description>
+      <extension xmlns:gen897="http://example.com/xml/ns/mySchema">
+         <gen897:gidNumber>13</gen897:gidNumber>
+      </extension>
+      <assignment id="1">
+         <targetRef oid="9c6d1dbe-1a87-11e5-b107-001e8c717e5b" type="c:RoleType"/>
+      </assignment>
+      <assignment id="2">
+         <targetRef oid="d10c1e42-7cda-44e0-9df9-45210194647b" type="c:OrgType"/>
+      </assignment>
+       <displayName>Machine Set 1</displayName>
+      <identifier>m1</identifier>
+      <orgType>machines</orgType>
+   </org>

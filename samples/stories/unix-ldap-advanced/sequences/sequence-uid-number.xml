@@ -1,0 +1,5 @@
+<sequence xmlns:apti="http://midpoint.evolveum.com/xml/ns/public/common/api-types-3" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:gen635="http://prism.evolveum.com/xml/ns/public/debug" xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3" xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3" xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3" xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" oid="7d4acb8c-65e3-11e5-9ef4-6382ba96fe6c" version="70" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+      <name>Unix UID numbers</name>
+      <counter>1045</counter>
+      <maxUnusedValues>10</maxUnusedValues>
+   </sequence>

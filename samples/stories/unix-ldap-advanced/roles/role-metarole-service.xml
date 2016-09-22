@@ -1,0 +1,105 @@
+<role xmlns:apti="http://midpoint.evolveum.com/xml/ns/public/common/api-types-3" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:gen635="http://prism.evolveum.com/xml/ns/public/debug" xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3" xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3" xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3" xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" oid="4340faa4-c635-47ce-96a6-03eb25bb3edf" version="29" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+      <name>Metarole for Services</name>
+         <inducement id="2">
+         <description>LDAPGROUP-User to Service</description>
+         <construction>
+            <description>LDAPGROUP-User to Service</description>
+            <resourceRef oid="d0811790-1d80-11e4-86b2-3c970e467874" type="c:ResourceType"/>
+            <association>
+               <c:ref>ri:unixGroup</c:ref>
+               <outbound>
+                  <strength>strong</strength>
+                  <expression>
+                     <associationFromLink>
+                        <projectionDiscriminator>
+                           <kind>entitlement</kind>
+                           <intent>unixGroup</intent>
+                        </projectionDiscriminator>
+                     </associationFromLink>
+                  </expression>
+               </outbound>
+            </association>
+            <auxiliaryObjectClass>ri:posixAccount</auxiliaryObjectClass>
+         </construction>
+         <order>4</order>
+         <focusType>UserType</focusType>
+      </inducement>
+      <inducement id="1">
+         <description>LDAPGROUP-Service Group</description>
+         <construction>
+            <description>LDAPGROUP-I</description>
+            <resourceRef oid="d0811790-1d80-11e4-86b2-3c970e467874" type="c:ResourceType"/>
+            <kind>entitlement</kind>
+            <intent>unixGroup</intent>
+            <association>
+               <c:ref>ri:ldapGroup</c:ref>
+               <outbound>
+                  <strength>strong</strength>
+                  <source>
+                     <name>parent</name>
+                     <c:path>parentOrgRef</c:path>
+                  </source>
+                  <expression>
+                     <associationTargetSearch>
+                        <filter>
+                           <q:equal>
+                              <q:path>attributes/ri:cn</q:path>
+                              <expression>
+                                 <script>
+                                    <code>
+    								if (!basic.isEmpty(parent)) {
+										org = midpoint.getOrgByOid(parent?.getOid())
+										org?.getName()?.getOrig()
+									}
+									</code>
+                                 </script>
+                              </expression>
+                           </q:equal>
+                        </filter>
+                        <searchStrategy>onResourceIfNeeded</searchStrategy>
+                     </associationTargetSearch>
+                  </expression>
+               </outbound>
+            </association>
+         </construction>
+         <order>1</order>
+      </inducement>
+      <inducement id="3">
+         <focusMappings>
+            <mapping>
+               <name>sequenceUID</name>
+               <strength>weak</strength>
+               <expression>
+                  <sequentialValue>
+                     <sequenceRef oid="7d4acb8c-65e3-11e5-9ef4-6382ba96fe6c"/>
+                  </sequentialValue>
+               </expression>
+               <target>
+                  <c:path xmlns:posix="http://example.com/xml/ns/mySchema">extension/posix:uidNumber</c:path>
+               </target>
+            </mapping>
+         </focusMappings>
+         <order>4</order>
+      </inducement>
+      <inducement id="5">
+         <targetRef oid="744a54f8-18e5-11e5-808f-001e8c717e5b" type="c:RoleType"/>
+         <order>4</order>
+         <focusType>UserType</focusType>
+      </inducement>
+      <inducement id="4">
+         <focusMappings>
+            <mapping>
+               <name>sequenceGID</name>
+               <strength>weak</strength>
+               <expression>
+                  <sequentialValue>
+                     <sequenceRef oid="02cb7caa-6618-11e5-87a5-7b6c6776a63e"/>
+                  </sequentialValue>
+               </expression>
+               <target>
+                  <c:path xmlns:posix="http://example.com/xml/ns/mySchema">extension/posix:gidNumber</c:path>
+               </target>
+            </mapping>
+         </focusMappings>
+      </inducement>
+   </role>
