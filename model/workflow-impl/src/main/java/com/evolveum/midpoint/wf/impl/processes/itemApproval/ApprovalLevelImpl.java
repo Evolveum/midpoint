@@ -120,6 +120,9 @@ public class ApprovalLevelImpl implements ApprovalLevel, Serializable {
     public List<ExpressionType> getApproverExpressions() {
         List<ExpressionType> retval = new ArrayList<>();
         for (SerializationSafeContainer<ExpressionType> approverExpression : approverExpressions) {
+            if (prismContext != null && approverExpression.getPrismContext() == null) {
+                approverExpression.setPrismContext(prismContext);
+            }
             retval.add(approverExpression.getValue());
         }
         return Collections.unmodifiableList(retval);
