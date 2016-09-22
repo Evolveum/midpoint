@@ -787,12 +787,21 @@ public class AssignmentProcessor {
             	projectionContext.setAssigned(false);
                 projectionContext.setAssignedOld(false);
                 
-            // This is a legal state. We do not need to do anything. But we want to log the message
+            // This is a legal state: projection was assigned, but it only has weak construction (no strong) 
+            // We do not need to do anything. But we want to log the message
             // and we do not want the "looney" error below.
             } else if (plusConstructionPack != null && !plusConstructionPack.hasStrongConstruction()) {
             	
         		// Just ignore it, do not even create projection context
             	LOGGER.trace("Projection {} ignoring: assigned (weak only)", desc);
+            	
+        	// This is a legal state: projection is unchanged, but it only has weak construction (no strong)
+            // We do not need to do anything. But we want to log the message
+            // and we do not want the "looney" error below.
+            } else if (zeroConstructionPack != null && !zeroConstructionPack.hasStrongConstruction()) {
+            	
+        		// Just ignore it, do not even create projection context
+            	LOGGER.trace("Projection {} ignoring: unchanged (weak only)", desc);
 
             	
             } else {
