@@ -47,7 +47,7 @@
 					   
 		<icfc:configurationProperties>
 			<icfi:instanceId>black</icfi:instanceId>
-			<icfi:supportValidity>black</icfi:supportValidity>
+			<icfi:supportValidity>true</icfi:supportValidity>
 			<icfi:addConnectorStateAttributes>true</icfi:addConnectorStateAttributes>
 		</icfc:configurationProperties>
 
@@ -151,7 +151,6 @@
 			<activation>
             	<administrativeStatus>
             		<outbound>
-            			<strength>weak</strength>
                     	<expression>
                         	<asIs/>
                         </expression>
@@ -159,7 +158,6 @@
             	</administrativeStatus>
             	<validFrom>
             		<outbound>
-            			<strength>weak</strength>
                     	<expression>
                         	<asIs/>
                         </expression>
@@ -167,7 +165,6 @@
             	</validFrom>
             	<validTo>
             		<outbound>
-            			<strength>weak</strength>
                     	<expression>
                         	<asIs/>
                         </expression>

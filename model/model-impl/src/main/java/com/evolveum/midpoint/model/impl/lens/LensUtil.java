@@ -514,7 +514,7 @@ public class LensUtil {
     public static PropertyDelta<XMLGregorianCalendar> createActivationTimestampDelta(ActivationStatusType status, XMLGregorianCalendar now,
     		PrismContainerDefinition<ActivationType> activationDefinition, OriginType origin) {
     	QName timestampPropertyName;
-		if (status == ActivationStatusType.ENABLED) {
+		if (status == null || status == ActivationStatusType.ENABLED) {
 			timestampPropertyName = ActivationType.F_ENABLE_TIMESTAMP;
 		} else if (status == ActivationStatusType.DISABLED) {
 			timestampPropertyName = ActivationType.F_DISABLE_TIMESTAMP;

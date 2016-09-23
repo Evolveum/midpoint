@@ -349,6 +349,9 @@ public class IcfConvertor {
 				throw new SchemaException("Expected single value for " + icfAttr.getName());
 			}
 			Object val = convertValueFromIcf(values.get(0), null);
+			if (val == null) {
+				return null;
+			}
 			if (type.isAssignableFrom(val.getClass())) {
 				return (T) val;
 			} else {
@@ -357,7 +360,6 @@ public class IcfConvertor {
 			}
 		} else {
 			return null;
-//			throw new SchemaException("Empty value for " + icfAttr.getName());
 		}
 
 	}
