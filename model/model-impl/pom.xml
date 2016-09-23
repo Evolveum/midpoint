@@ -130,7 +130,7 @@
 		<dependency>
 			<groupId>com.evolveum.midpoint.model</groupId>
 			<artifactId>notifications-api</artifactId>
-			<version>3.5-SNAPSHOT</version>
+			<version>3.4.2-SNAPSHOT</version>
 		</dependency>
 
 		<dependency>
