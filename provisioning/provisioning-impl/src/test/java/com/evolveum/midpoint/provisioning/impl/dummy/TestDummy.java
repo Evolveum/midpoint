@@ -2209,10 +2209,12 @@ public class TestDummy extends AbstractDummyTest {
 		delta.checkConsistence();
 
 		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
 		provisioningService.modifyObject(ShadowType.class, delta.getOid(), delta.getModifications(),
 				new OperationProvisioningScriptsType(), null, task, result);
 
 		// THEN
+		TestUtil.displayThen(TEST_NAME);
 		result.computeStatus();
 		display("modifyObject result", result);
 		TestUtil.assertSuccess(result);
@@ -2220,7 +2222,8 @@ public class TestDummy extends AbstractDummyTest {
 		delta.checkConsistence();
 		// check if activation was changed
 		dummyAccount = getDummyAccountAssert(transformNameFromResource(ACCOUNT_WILL_USERNAME), willIcfUid);
-		assertFalse("Dummy account "+transformNameFromResource(ACCOUNT_WILL_USERNAME)+" is enabled, expected disabled", dummyAccount.isEnabled());
+		assertEquals("Wrong dummy account "+transformNameFromResource(ACCOUNT_WILL_USERNAME)+" enabled flag", 
+				null, dummyAccount.isEnabled());
 		
 		syncServiceMock.assertNotifySuccessOnly();
 		
@@ -2242,7 +2245,7 @@ public class TestDummy extends AbstractDummyTest {
 		display("Retrieved account shadow", accountType);
 
 		DummyAccount dummyAccount = getDummyAccountAssert(transformNameFromResource(ACCOUNT_WILL_USERNAME), willIcfUid);
-		assertFalse("Account is not disabled", dummyAccount.isEnabled());
+		assertEquals("Wrong dummy account enabled flag", null, dummyAccount.isEnabled());
 		
 		syncServiceMock.reset();
 

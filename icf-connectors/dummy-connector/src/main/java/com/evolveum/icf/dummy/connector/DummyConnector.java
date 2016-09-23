@@ -338,7 +338,7 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 		        		account.setValidTo(getDate(attr));
 
 		        	} else if (attr.is(OperationalAttributes.LOCK_OUT_NAME)) {
-		        		account.setLockout(getBoolean(attr));
+		        		account.setLockout(getBooleanNotNull(attr));
 
 		        	} else if (PredefinedAttributes.AUXILIARY_OBJECT_CLASS_NAME.equalsIgnoreCase(attr.getName())) {
 						account.replaceAuxiliaryObjectClassNames(attr.getValue());
@@ -385,7 +385,7 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 		        		throw new IllegalArgumentException("Attempt to change password on group");
 		        	
 		        	} else if (attr.is(OperationalAttributes.ENABLE_NAME)) {
-		        		group.setEnabled(getBoolean(attr));
+		        		group.setEnabled(getBooleanNotNull(attr));
 		        		
 		        	} else {
 			        	String name = attr.getName();
@@ -1691,7 +1691,7 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 				}
 				
 			} else if (attr.is(OperationalAttributeInfos.LOCK_OUT.getName())) {
-				Boolean lockout = getBoolean(attr);
+				Boolean lockout = getBooleanNotNull(attr);
 				newAccount.setLockout(lockout);
 				
 			} else {
@@ -1733,7 +1733,7 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 				throw new IllegalArgumentException("Password specified for a group");
 				
 			} else if (attr.is(OperationalAttributeInfos.ENABLE.getName())) {
-				enabled = getBoolean(attr);
+				enabled = getBooleanNotNull(attr);
 				newGroup.setEnabled(enabled);
 				
 			} else if (attr.is(OperationalAttributeInfos.ENABLE_DATE.getName())) {
@@ -1829,7 +1829,18 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 		return newOrg;
 	}
 
-	private boolean getBoolean(Attribute attr) {
+	private Boolean getBoolean(Attribute attr) {
+		if (attr.getValue() == null || attr.getValue().isEmpty()) {
+			return null;
+		}
+		Object object = attr.getValue().get(0);
+		if (!(object instanceof Boolean)) {
+			throw new IllegalArgumentException("Attribute "+attr.getName()+" was provided as "+object.getClass().getName()+" while expecting boolean");
+		}
+		return ((Boolean)object).booleanValue();
+	}
+	
+	private boolean getBooleanNotNull(Attribute attr) {
 		if (attr.getValue() == null || attr.getValue().isEmpty()) {
 			throw new IllegalArgumentException("Empty "+attr.getName()+" attribute was provided");
 		}

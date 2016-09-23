@@ -2555,7 +2555,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		assertDummyAccount(null, username, fullname, active);
 	}
 	
-	protected DummyAccount assertDummyAccount(String dummyInstanceName, String username, String fullname, boolean active) throws SchemaViolationException {
+	protected DummyAccount assertDummyAccount(String dummyInstanceName, String username, String fullname, Boolean active) throws SchemaViolationException {
 		DummyAccount account = getDummyAccount(dummyInstanceName, username);
 		assertNotNull("No dummy("+dummyInstanceName+") account for username "+username, account);
 		assertEquals("Wrong fullname for dummy("+dummyInstanceName+") account "+username, fullname, account.getAttributeValue("fullname"));
@@ -2578,7 +2578,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		assertNull("Dummy(" + dummyInstanceName + ") account for id " + id + " exists while not expecting it", account);
 	}
 	
-	protected void assertDummyAccountActivation(String dummyInstanceName, String username, boolean active) throws SchemaViolationException {
+	protected void assertDummyAccountActivation(String dummyInstanceName, String username, Boolean active) throws SchemaViolationException {
 		DummyAccount account = getDummyAccount(dummyInstanceName, username);
 		assertNotNull("No dummy("+dummyInstanceName+") account for username "+username, account);
 		assertEquals("Wrong activation for dummy(" + dummyInstanceName + ") account " + username, active, account.isEnabled());
@@ -2661,7 +2661,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		assertEquals("Wrong fullname for dummy(" + dummyInstanceName + ") group " + groupname, description,
 				group.getAttributeValue(DummyResourceContoller.DUMMY_GROUP_ATTRIBUTE_DESCRIPTION));
 		if (active != null) {
-			assertEquals("Wrong activation for dummy("+dummyInstanceName+") group "+groupname, (boolean)active, group.isEnabled());
+			assertEquals("Wrong activation for dummy("+dummyInstanceName+") group "+groupname, active, group.isEnabled());
 		}
 	}
 

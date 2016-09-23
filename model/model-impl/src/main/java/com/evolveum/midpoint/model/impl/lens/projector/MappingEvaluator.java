@@ -183,6 +183,10 @@ public class MappingEvaluator {
 			evaluateMapping(mapping, params.getContext(), task, result);
 			
 			PrismValueDeltaSetTriple<V> mappingOutputTriple = mapping.getOutputTriple();
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("Output triple of mapping {}\n{}", mapping.getContextDescription(),
+						mappingOutputTriple==null?null:mappingOutputTriple.debugDump(1));
+			}
 			if (mappingOutputTriple != null) {
 
 				MappingOutputStruct<V> mappingOutputStruct = outputTripleMap.get(mappingOutputPath);
@@ -279,6 +283,13 @@ public class MappingEvaluator {
 					aPrioriTargetItem = aPrioriTargetObject.findItem(mappingOutputPath);
 				}
 				
+				// WARNING
+				// Following code seems to be wrong. It is not very relativisic. It seems to always
+				// go for replace.
+				// It seems that it is only used for activation mappings (outbout and inbound). As
+				// these are quite special single-value properties then it seems to work fine
+				// (with the exception of MID-3418). Todo: make it more relativistic: MID-3419
+				
 				if (targetContext.isAdd()) {
 		        	
 		        	Collection<V> nonNegativeValues = outputTriple.getNonNegativeValues();
@@ -304,6 +315,12 @@ public class MappingEvaluator {
 		            } else {
 		                valuesToReplace = outputTriple.getPlusSet();
 		            }
+		            
+		            if (LOGGER.isTraceEnabled()) {
+		            	LOGGER.trace("{}: hasFullTargetObject={}, isStrongMappingWasUsed={}, valuesToReplace={}", 
+		            			new Object[]{mappingDesc, params.hasFullTargetObject(), 
+		            					mappingOutputStruct.isStrongMappingWasUsed(), valuesToReplace});
+		            }
 	
 		        	if (valuesToReplace != null && !valuesToReplace.isEmpty()) {
 	
@@ -318,6 +335,13 @@ public class MappingEvaluator {
 		                	}
 		                }
 		                targetItemDelta.setValuesToReplace(PrismValue.cloneCollection(valuesToReplace));
+		                
+		        	} else if (outputTriple.hasMinusSet()) {
+		        		LOGGER.trace("{} resulted in null or empty value for {} and there is a minus set, resetting it (replace with empty)", mappingDesc, targetContext);
+		        		targetItemDelta.setValueToReplace();
+		        		
+		        	} else {
+		        		LOGGER.trace("{} resulted in null or empty value for {}, skipping", mappingDesc, targetContext);
 		        	}
 		        	
 		        }
