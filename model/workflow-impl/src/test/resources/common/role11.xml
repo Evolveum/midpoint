@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2016 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+      oid="00000001-d34d-b33f-f00d-000000000011">
+
+    <!-- Auto approval with firstDecides strategy (MID-3240) -->
+
+    <name>Role11</name>
+    <approvalSchema>
+        <level>
+            <approverRef type="c:UserType">
+                <filter>
+                    <q:equal>
+                        <q:path>c:name</q:path>
+                        <q:value>r2boss</q:value>
+                    </q:equal>
+                </filter>
+            </approverRef>
+            <evaluationStrategy>firstDecides</evaluationStrategy>
+            <automaticallyApproved>
+                <description>Assignment of this role is always automatically approved.</description>
+                <script>
+                    <code>true</code>
+                </script>
+            </automaticallyApproved>
+        </level>
+    </approvalSchema>
+
+</role>

@@ -42,15 +42,11 @@ public class SummarizeDecisionsInLevel implements JavaDelegate {
         Validate.notNull(level, "level is null");
         level.setPrismContext(SpringApplicationContextHolder.getPrismContext());
 
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("****************************************** Summarizing decisions in level " + level.getName() + " (level evaluation strategy = " + level.getEvaluationStrategy() + "): ");
-        }
+        LOGGER.trace("****************************************** Summarizing decisions in level {} (level evaluation strategy = {}): ", level.getName(), level.getEvaluationStrategy());
 
         boolean allApproved = true;
         for (Decision decision : decisionList) {
-            if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace(" - " + decision.toString());
-            }
+            LOGGER.trace(" - {}", decision);
             allApproved &= decision.isApproved();
         }
 
@@ -58,13 +54,15 @@ public class SummarizeDecisionsInLevel implements JavaDelegate {
         if (level.getEvaluationStrategy() == null || level.getEvaluationStrategy() == LevelEvaluationStrategyType.ALL_MUST_AGREE) {
             approved = allApproved;
         } else if (level.getEvaluationStrategy() == LevelEvaluationStrategyType.FIRST_DECIDES) {
-            approved = decisionList.get(0).isApproved();
+            if (!decisionList.isEmpty()) {
+                approved = decisionList.get(0).isApproved();
+            } else {
+                approved = true;        // either there were no approvers defined at this level, or auto-approval was done
+            }
         } else {
             throw new IllegalStateException("Unknown level evaluation strategy: " + level.getEvaluationStrategy());
         }
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("approved at this level = " + approved);
-        }
+        LOGGER.trace("approved at this level = {}", approved);
 
         execution.setVariable(ProcessVariableNames.LOOP_LEVELS_STOP, !approved);
     }
