@@ -91,11 +91,15 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 
 	private static final File TEST_DIR = new File("src/test/resources/activation");
 	
+	// This resource does not support native activation. It has simulated activation instead.
+    // + unusual validTo and validFrom mappings
 	protected static final File RESOURCE_DUMMY_KHAKI_FILE = new File(TEST_DIR, "resource-dummy-khaki.xml");
 	protected static final String RESOURCE_DUMMY_KHAKI_OID = "10000000-0000-0000-0000-0000000a1004";
 	protected static final String RESOURCE_DUMMY_KHAKI_NAME = "khaki";
 	protected static final String RESOURCE_DUMMY_KHAKI_NAMESPACE = MidPointConstants.NS_RI;
 
+	// This resource does not support native activation. It has simulated activation instead.
+    // + unusual validTo and validFrom mappings 
 	protected static final File RESOURCE_DUMMY_CORAL_FILE = new File(TEST_DIR, "resource-dummy-coral.xml");
 	protected static final String RESOURCE_DUMMY_CORAL_OID = "10000000-0000-0000-0000-0000000b1004";
 	protected static final String RESOURCE_DUMMY_CORAL_NAME = "coral";
@@ -194,8 +198,39 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 	}
 	
 	@Test
-    public void test052ModifyUserJackEnable() throws Exception {
-		final String TEST_NAME = "test052ModifyUserJackEnable";
+    public void test052ModifyUserJackNull() throws Exception {
+		final String TEST_NAME = "test052ModifyUserJackNull";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestActivation.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+        
+        XMLGregorianCalendar start = clock.currentTimeXMLGregorianCalendar();
+        
+		// WHEN
+        modifyUserReplace(USER_JACK_OID, ACTIVATION_ADMINISTRATIVE_STATUS_PATH, task, result);
+		
+		// THEN
+        XMLGregorianCalendar end = clock.currentTimeXMLGregorianCalendar();
+		result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        PrismObject<UserType> userJack = getUser(USER_JACK_OID);
+		display("User after change execution", userJack);
+		assertUserJack(userJack, "Jack Sparrow");
+        
+		assertAdministrativeStatus(userJack, null);
+		assertValidity(userJack, null);
+		assertEffectiveStatus(userJack, ActivationStatusType.ENABLED);
+		
+		TestUtil.assertModifyTimestamp(userJack, start, end);
+	}
+	
+	@Test
+    public void test055ModifyUserJackEnable() throws Exception {
+		final String TEST_NAME = "test055ModifyUserJackEnable";
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
@@ -460,10 +495,10 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
-		assertUserJack(userJack, "Jack Sparrow");
+		assertUserJack(userJack, USER_JACK_FULL_NAME);
         
 		assertAdministrativeStatusEnabled(userJack);
-		assertDummyEnabled("jack");
+		assertDummyEnabled(ACCOUNT_JACK_DUMMY_USERNAME);
 		assertEnableTimestampFocus(userJack, startTime, endTime);
 		
 		assertAccounts(USER_JACK_OID, 1);
@@ -474,12 +509,52 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 	}
 	
 	/**
+	 * Re-enabling the user should enable the account as well. Even if the user is already enabled.
+	 */
+	@Test
+    public void test115ModifyUserJackAdministrativeStatusNull() throws Exception {
+		final String TEST_NAME = "test115ModifyUserJackAdministrativeStatusNull";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestActivation.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+        XMLGregorianCalendar startTime = clock.currentTimeXMLGregorianCalendar();
+        
+		// WHEN
+        modifyUserReplace(USER_JACK_OID, ACTIVATION_ADMINISTRATIVE_STATUS_PATH, task, result);
+		
+		// THEN
+		result.computeStatus();
+        TestUtil.assertSuccess("executeChanges result", result);
+        XMLGregorianCalendar endTime = clock.currentTimeXMLGregorianCalendar();
+        
+        PrismObject<UserType> userJack = getUser(USER_JACK_OID);
+		display("User after change execution", userJack);
+		DummyAccount account = getDummyAccount(null, ACCOUNT_JACK_DUMMY_USERNAME);
+		display("Account after change", account);
+		
+		assertUserJack(userJack, USER_JACK_FULL_NAME);
+        
+		assertAdministrativeStatus(userJack, null);
+		// Dummy account should still be enabled. It does not support validity, therefore
+		// the account/administrativeStatus is mapped from user.effectiveStatus
+		assertDummyActivationEnabledState(ACCOUNT_JACK_DUMMY_USERNAME, true);
+		
+		assertAccounts(USER_JACK_OID, 1);
+        PrismObject<ShadowType> shadow = getShadowModel(accountOid);
+        assertAccountShadowModel(shadow, accountOid, ACCOUNT_JACK_DUMMY_USERNAME, resourceDummyType);
+        assertAdministrativeStatus(shadow, ActivationStatusType.ENABLED);
+	}
+	
+	/**
 	 * Modify both user and account activation. As password outbound mapping is weak the user should have its own state
 	 * and account should have its own state.
 	 */
 	@Test
-    public void test115ModifyJackActivationUserAndAccount() throws Exception {
-		final String TEST_NAME = "test115ModifyJackActivationUserAndAccount";
+    public void test118ModifyJackActivationUserAndAccount() throws Exception {
+		final String TEST_NAME = "test118ModifyJackActivationUserAndAccount";
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
@@ -1550,6 +1625,74 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 	}
 	
 	@Test
+    public void test352AssignMancombBlackAccount() throws Exception {
+		final String TEST_NAME = "test352AssignMancombBlackAccount";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+		// WHEN
+        assignAccount(userMancombOid, RESOURCE_DUMMY_BLACK_OID, null, task, result);
+		
+		// THEN
+		result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        PrismObject<UserType> userMancomb = getUser(userMancombOid);
+		display("User after change execution", userMancomb);
+		assertAccounts(userMancombOid, 3);
+        
+		DummyAccount mancombBlueAccount = getDummyAccount(RESOURCE_DUMMY_BLUE_NAME, ACCOUNT_MANCOMB_DUMMY_USERNAME);
+		assertNotNull("No mancomb blue account", mancombBlueAccount);
+		assertTrue("mancomb blue account not enabled", mancombBlueAccount.isEnabled());
+		assertEquals("Wrong validFrom in mancomb blue account", ACCOUNT_MANCOMB_VALID_FROM_DATE, mancombBlueAccount.getValidFrom());
+		assertEquals("Wrong validTo in mancomb blue account", ACCOUNT_MANCOMB_VALID_TO_DATE, mancombBlueAccount.getValidTo());
+		
+		DummyAccount mancombBlackAccount = getDummyAccount(RESOURCE_DUMMY_BLACK_NAME, ACCOUNT_MANCOMB_DUMMY_USERNAME);
+		assertNotNull("No mancomb black account", mancombBlackAccount);
+		assertTrue("mancomb black account not enabled", mancombBlackAccount.isEnabled());
+		assertEquals("Wrong validFrom in mancomb black account", ACCOUNT_MANCOMB_VALID_FROM_DATE, mancombBlackAccount.getValidFrom());
+		assertEquals("Wrong validTo in mancomb black account", ACCOUNT_MANCOMB_VALID_TO_DATE, mancombBlackAccount.getValidTo());
+	}
+	
+	@Test
+    public void test355MancombModifyAdministrativeStatusNull() throws Exception {
+		final String TEST_NAME = "test355MancombModifyAdministrativeStatusNull";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+		// WHEN
+        modifyUserReplace(userMancombOid, ACTIVATION_ADMINISTRATIVE_STATUS_PATH, task, result);
+		
+		// THEN
+		result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        PrismObject<UserType> userMancomb = getUser(userMancombOid);
+		display("User after change execution", userMancomb);
+		assertAccounts(userMancombOid, 3);
+        
+		DummyAccount mancombBlueAccount = getDummyAccount(RESOURCE_DUMMY_BLUE_NAME, ACCOUNT_MANCOMB_DUMMY_USERNAME);
+		assertNotNull("No mancomb blue account", mancombBlueAccount);
+		// Blue resouce has only weak administrativeStatus mapping. The values is not reset to null.
+		// This does not work now: MID-3418
+//		assertEquals("Wring mancomb blue account enabled flag", Boolean.TRUE, mancombBlueAccount.isEnabled());
+		assertEquals("Wrong validFrom in mancomb blue account", ACCOUNT_MANCOMB_VALID_FROM_DATE, mancombBlueAccount.getValidFrom());
+		assertEquals("Wrong validTo in mancomb blue account", ACCOUNT_MANCOMB_VALID_TO_DATE, mancombBlueAccount.getValidTo());
+		
+		DummyAccount mancombBlackAccount = getDummyAccount(RESOURCE_DUMMY_BLACK_NAME, ACCOUNT_MANCOMB_DUMMY_USERNAME);
+		assertNotNull("No mancomb black account", mancombBlackAccount);
+		assertEquals("Wring mancomb black account enabled flag", null, mancombBlackAccount.isEnabled());
+		assertEquals("Wrong validFrom in mancomb black account", ACCOUNT_MANCOMB_VALID_FROM_DATE, mancombBlackAccount.getValidFrom());
+		assertEquals("Wrong validTo in mancomb black account", ACCOUNT_MANCOMB_VALID_TO_DATE, mancombBlackAccount.getValidTo());
+	}
+	
+	@Test
     public void test400AddHerman() throws Exception {
 		final String TEST_NAME = "test400AddHerman";
         TestUtil.displayTestTile(this, TEST_NAME);
@@ -1890,11 +2033,11 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 		// TODO check real state of the account and shadow
 	}
 
-	private void assertDummyActivationEnabledState(String userId, boolean expectedEnabled) throws SchemaViolationException {
+	private void assertDummyActivationEnabledState(String userId, Boolean expectedEnabled) throws SchemaViolationException {
 		assertDummyActivationEnabledState(null, userId, expectedEnabled);
 	}
 	
-	private void assertDummyActivationEnabledState(String instance, String userId, boolean expectedEnabled) throws SchemaViolationException {
+	private void assertDummyActivationEnabledState(String instance, String userId, Boolean expectedEnabled) throws SchemaViolationException {
 		DummyAccount account = getDummyAccount(instance, userId);
 		assertNotNull("No dummy account "+userId, account);
 		assertEquals("Wrong enabled flag in dummy '"+instance+"' account "+userId, expectedEnabled, account.isEnabled());

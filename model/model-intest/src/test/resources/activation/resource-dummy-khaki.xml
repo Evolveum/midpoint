@@ -47,7 +47,7 @@
 	               xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
 					   
 		<icfc:configurationProperties>
-			<icfi:instanceId>khaki</icfi:instanceId> <!-- Default instance. -->
+			<icfi:instanceId>khaki</icfi:instanceId>
 			<icfi:requireExplicitEnable>false</icfi:requireExplicitEnable>
 			<icfi:supportActivation>false</icfi:supportActivation>
 		</icfc:configurationProperties>
