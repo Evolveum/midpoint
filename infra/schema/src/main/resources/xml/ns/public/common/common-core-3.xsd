@@ -9194,10 +9194,11 @@
                                 System-global password policy settings. These will be used if there is no specific settings 
                                 (e.g. per account)
 
-                                TODO: better documentation
+                                DEPRECATED: use equivalent setting in security policy
                             </xsd:documentation>
                             <xsd:appinfo>
                     			<a:objectReference>tns:globalPasswordPolicyRef</a:objectReference>
+                    			<a:deprecated>true</a:deprecated>
                     		</xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -9206,10 +9207,11 @@
                             <xsd:documentation>
                                 Reference to the global password policy settings.
 
-                                TODO: better documentation
+                                DEPRECATED: use equivalent setting in security policy
                             </xsd:documentation>
                             <xsd:appinfo>
                     			<a:objectReferenceTargetType>tns:ValuePolicyType</a:objectReferenceTargetType>
+                    			<a:deprecated>true</a:deprecated>
                     		</xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -9328,6 +9330,14 @@
                         <xsd:annotation>
                             <xsd:documentation>
                                 A configuration for access certifications.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    
+                    <xsd:element name="roleManagement" type="tns:RoleManagementConfigurationType" minOccurs="0" maxOccurs="1">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                A configuration for role management: role catalog, role assignments, etc.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
@@ -10117,6 +10127,29 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
+    
+    <xsd:complexType name="RoleManagementConfigurationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                A configuration for role management: role catalog, role assignments, etc.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+        	<xsd:element name="description" type="xsd:string" minOccurs="0"/>
+        	<xsd:element name="roleCatalogRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="1">
+			    <xsd:annotation>
+			        <xsd:documentation>
+			            Reference to the root object of the role catalog.
+			        </xsd:documentation>
+			        <xsd:appinfo>
+						<a:objectReferenceTargetType>tns:OrgType</a:objectReferenceTargetType>
+					</xsd:appinfo>
+			    </xsd:annotation>
+			</xsd:element>
+			<!-- TODO: role assignment mode: multiple, single, parametric-multiple -->
+        </xsd:sequence>
+    </xsd:complexType>
+    
 
     <xsd:complexType name="SecurityPolicyType">
         <xsd:annotation>
