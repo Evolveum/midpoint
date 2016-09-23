@@ -1,0 +1,9 @@
+dn: uid=syncUser,ou=People,dc=example,dc=com
+uid: syncUser
+cn: Sync User
+sn: User
+givenname: Sync
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson

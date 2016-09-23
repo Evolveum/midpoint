@@ -1,0 +1,13 @@
+<objectModification
+	xmlns='http://midpoint.evolveum.com/xml/ns/public/common/api-types-3'
+	xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+	xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
+	<itemDelta>
+		<t:modificationType>add</t:modificationType>
+		<t:path>assignment</t:path>
+		<t:value>
+				<c:targetRef oid="56d4c66e-5a63-4eeb-8637-4eca6b13e7da" type="RoleType"/>
+				<c:orgRef oid="25ebc06c-592e-4094-905f-03117eb1a1e8" type="OrgType" />
+		</t:value>
+	</itemDelta>
+</objectModification>
