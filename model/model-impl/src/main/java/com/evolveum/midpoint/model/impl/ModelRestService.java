@@ -707,6 +707,7 @@ public class ModelRestService {
 			response = builder.build();
 		} catch (Exception ex) {
 			response = RestServiceUtil.handleException(ex);
+			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't execute script.", ex);
 		}
 
 		result.computeStatus();

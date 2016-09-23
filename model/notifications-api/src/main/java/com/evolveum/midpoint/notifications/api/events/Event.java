@@ -103,4 +103,10 @@ public interface Event {
     boolean isRelatedToItem(ItemPath itemPath);
 
     String getChannel();
+
+    /**
+     * If needed, we can prescribe the handler that should process this event. It is recommended only for ad-hoc situations.
+     * A better is to define handlers in system configuration.
+     */
+    EventHandlerType getAdHocHandler();
 }

@@ -539,6 +539,13 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
+            <xsd:enumeration value="customEvent">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="CUSTOM_EVENT"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
         </xsd:restriction>
     </xsd:simpleType>
 
@@ -821,7 +828,6 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-
 
     <xsd:complexType name="DummyNotifierType">
         <xsd:annotation>

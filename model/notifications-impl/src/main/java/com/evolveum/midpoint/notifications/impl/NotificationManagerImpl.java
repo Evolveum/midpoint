@@ -124,12 +124,16 @@ public class NotificationManagerImpl implements NotificationManager {
 
 		LOGGER.trace("NotificationManager processing event {}", event);
 
+        if (event.getAdHocHandler() != null) {
+            processEvent(event, event.getAdHocHandler(), task, result);
+        }
+
         SystemConfigurationType systemConfigurationType = NotificationFuctionsImpl.getSystemConfiguration(cacheRepositoryService, result);
         if (systemConfigurationType == null) {      // something really wrong happened (or we are doing initial import of objects)
             return;
         }
         if (systemConfigurationType.getNotificationConfiguration() == null) {
-			LOGGER.trace("No notification configuration in repository, exiting the change listener.");
+			LOGGER.trace("No notification configuration in repository, finished event processing.");
             return;
         }
 
