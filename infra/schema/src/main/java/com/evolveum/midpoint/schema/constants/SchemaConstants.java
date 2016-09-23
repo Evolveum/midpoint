@@ -232,6 +232,16 @@ public abstract class SchemaConstants {
 	public static final QName NOOP_DELAY_QNAME = new QName(NOOP_SCHEMA_URI, "delay");
 	public static final QName NOOP_STEPS_QNAME = new QName(NOOP_SCHEMA_URI, "steps");
 
+	public static final String JDBC_PING_SCHEMA_URI = NS_MIDPOINT_PUBLIC + "/task/jdbc-ping/handler-3";
+	public static final QName JDBC_PING_TESTS_QNAME = new QName(JDBC_PING_SCHEMA_URI, "tests");
+	public static final QName JDBC_PING_INTERVAL_QNAME = new QName(JDBC_PING_SCHEMA_URI, "interval");
+	public static final QName JDBC_PING_TEST_QUERY_QNAME = new QName(JDBC_PING_SCHEMA_URI, "testQuery");
+	public static final QName JDBC_PING_DRIVER_CLASS_NAME_QNAME = new QName(JDBC_PING_SCHEMA_URI, "driverClassName");
+	public static final QName JDBC_PING_JDBC_URL_QNAME = new QName(JDBC_PING_SCHEMA_URI, "jdbcUrl");
+	public static final QName JDBC_PING_JDBC_USERNAME_QNAME = new QName(JDBC_PING_SCHEMA_URI, "jdbcUsername");
+	public static final QName JDBC_PING_JDBC_PASSWORD_QNAME = new QName(JDBC_PING_SCHEMA_URI, "jdbcPassword");
+	public static final QName JDBC_PING_LOG_ON_INFO_LEVEL_QNAME = new QName(JDBC_PING_SCHEMA_URI, "logOnInfoLevel");
+
 	public static final String NS_GUI = NS_MIDPOINT_PUBLIC + "/gui";
 	public static final String NS_GUI_CHANNEL = NS_GUI + "/channels-3";
 	public static final QName CHANNEL_GUI_INIT_QNAME = new QName(NS_GUI_CHANNEL, "init");

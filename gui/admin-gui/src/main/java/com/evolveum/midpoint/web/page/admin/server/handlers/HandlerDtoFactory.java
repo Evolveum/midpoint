@@ -73,8 +73,17 @@ public class HandlerDtoFactory {
 					item(SchemaConstants.NOOP_DELAY_QNAME, Integer.class)), pageBase);
 		} else if (taskDto.isReportCreate()) {
 			return new ReportCreateHandlerDto(taskDto);
-		}
-		else {
+		} else if (taskDto.isJdbcPing()) {
+			return new GenericHandlerDto(taskDto, Arrays.asList(
+					item(SchemaConstants.JDBC_PING_TESTS_QNAME, Integer.class),
+					item(SchemaConstants.JDBC_PING_INTERVAL_QNAME, Integer.class),
+					item(SchemaConstants.JDBC_PING_TEST_QUERY_QNAME, String.class),
+					item(SchemaConstants.JDBC_PING_JDBC_URL_QNAME, String.class),
+					item(SchemaConstants.JDBC_PING_JDBC_USERNAME_QNAME, String.class),
+					//item(SchemaConstants.JDBC_PING_JDBC_PASSWORD_QNAME, String.class),
+					item(SchemaConstants.JDBC_PING_LOG_ON_INFO_LEVEL_QNAME, Boolean.class)
+			), pageBase);
+		} else {
 			return new HandlerDto(taskDto);
 		}
 	}

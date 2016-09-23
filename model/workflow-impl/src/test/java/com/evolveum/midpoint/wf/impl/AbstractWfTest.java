@@ -131,6 +131,12 @@ public class AbstractWfTest extends AbstractInternalModelIntegrationTest {
     public static final String USER_BILL_FILENAME = AbstractIntegrationTest.COMMON_DIR_PATH + "/user-bill.xml";
     public static final String USER_BILL_OID = "c0c010c0-d34d-b33f-f00d-11111111111a";
     public static final String ROLE_R10_OID = "00000001-d34d-b33f-f00d-000000000010";
+    public static final File ROLE_R11_FILE = new File(AbstractIntegrationTest.COMMON_DIR, "role11.xml");
+    public static final String ROLE_R11_OID = "00000001-d34d-b33f-f00d-000000000011";
+    public static final File ROLE_R12_FILE = new File(AbstractIntegrationTest.COMMON_DIR, "role12.xml");
+    public static final String ROLE_R12_OID = "00000001-d34d-b33f-f00d-000000000012";
+    public static final File ROLE_R13_FILE = new File(AbstractIntegrationTest.COMMON_DIR, "role13.xml");
+    public static final String ROLE_R13_OID = "00000001-d34d-b33f-f00d-000000000013";
 
     public static final String R1BOSS_OID = "00000000-d34d-b33f-f00d-111111111111";
     public static final String R2BOSS_OID = "00000000-d34d-b33f-f00d-111111111112";
@@ -160,6 +166,9 @@ public class AbstractWfTest extends AbstractInternalModelIntegrationTest {
 
 		super.initSystem(initTask, initResult);
         importObjectFromFile(USERS_AND_ROLES_FILENAME, initResult);
+        importObjectFromFile(ROLE_R11_FILE, initResult);
+        importObjectFromFile(ROLE_R12_FILE, initResult);
+        importObjectFromFile(ROLE_R13_FILE, initResult);
 
         // add dummyboss as approver for Dummy Resource
         ResourceBusinessConfigurationType businessConfigurationType = new ResourceBusinessConfigurationType(prismContext);

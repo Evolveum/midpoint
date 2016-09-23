@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2013 Evolveum
+  ~ Copyright (c) 2010-2016 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -15,13 +15,11 @@
   ~ limitations under the License.
   -->
 
-<objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3" 
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns:xsd="http://www.w3.org/2001/XMLSchema">
-
-    <role oid="00000001-d34d-b33f-f00d-123000000001">
-        <name>Role R1</name>
-        <approverRef oid="00000000-0000-0000-0000-000000000002" type="UserType"/>
-    </role>
-
-</objects>
+<task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+	<name>JDBC Ping</name>
+	<ownerRef oid="00000000-0000-0000-0000-000000000002"/>
+	<executionStatus>runnable</executionStatus>
+	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/task/jdbc-ping/handler-3</handlerUri>
+	<recurrence>single</recurrence>
+	<binding>tight</binding>
+</task>

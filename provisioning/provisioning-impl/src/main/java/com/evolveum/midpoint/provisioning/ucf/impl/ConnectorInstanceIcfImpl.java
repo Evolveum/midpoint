@@ -1998,7 +1998,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		StringBuilder sb = new StringBuilder();
 		for (Attribute attr : attributes) {
 			sb.append("\n");
-			if (attr.getValue().isEmpty()) {
+			if (attr.getValue() == null || attr.getValue().isEmpty()) {
 				sb.append(attr.getName());
 				sb.append(" (empty)");
 			} else {
@@ -2697,9 +2697,11 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		for (PropertyDelta<?> propDelta : activationDeltas) {
 			if (propDelta.getElementName().equals(ActivationType.F_ADMINISTRATIVE_STATUS)) {
 				ActivationStatusType status = getPropertyNewValue(propDelta, ActivationStatusType.class);
-				
-				// Not entirely correct, TODO: refactor later
-				updateAttributes.add(AttributeBuilder.build(OperationalAttributes.ENABLE_NAME, status == ActivationStatusType.ENABLED));
+				if (status == null) {
+					updateAttributes.add(AttributeBuilder.build(OperationalAttributes.ENABLE_NAME));
+				} else {
+					updateAttributes.add(AttributeBuilder.build(OperationalAttributes.ENABLE_NAME, status == ActivationStatusType.ENABLED));
+				}
 			} else if (propDelta.getElementName().equals(ActivationType.F_VALID_FROM)) {
 				XMLGregorianCalendar xmlCal = getPropertyNewValue(propDelta, XMLGregorianCalendar.class);//propDelta.getPropertyNew().getValue(XMLGregorianCalendar.class).getValue();
 				updateAttributes.add(AttributeBuilder.build(OperationalAttributes.ENABLE_DATE_NAME, xmlCal != null ? XmlTypeConverter.toMillis(xmlCal) : null));

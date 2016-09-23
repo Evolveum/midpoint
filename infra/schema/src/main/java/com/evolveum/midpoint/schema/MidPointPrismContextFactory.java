@@ -156,6 +156,9 @@ public class MidPointPrismContextFactory implements PrismContextFactory {
 
         schemaRegistry.registerPrismSchemaResource("xml/ns/public/task/noop-3.xsd", "noop");
 
+
+		schemaRegistry.registerPrismSchemaResource("xml/ns/public/task/jdbc-ping-3.xsd", "jping");
+
         schemaRegistry.registerPrismSchemaResource("xml/ns/public/task/extension-3.xsd", "taskext");
 
         schemaRegistry.registerPrismSchemaResource("xml/ns/public/connector/icf-1/connector-extension-3.xsd", "connext");

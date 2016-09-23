@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+  ~ Copyright (c) 2010-2016 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<xsd:schema targetNamespace="http://midpoint.evolveum.com/xml/ns/public/task/jdbc-ping/handler-3"
+            xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/task/jdbc-ping/handler-3"
+            xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
+            xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+            xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+            elementFormDefault="qualified">
+
+    <xsd:annotation>
+        <xsd:documentation>
+            TODO
+        </xsd:documentation>
+    </xsd:annotation>
+
+    <xsd:element name="tests" type="xsd:int">
+        <xsd:annotation>
+            <xsd:documentation>
+                How many tests to execute (0 means run indefinitely i.e. until task is stopped). Default is 0.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:displayName>Number of tests (0 means unlimited)</a:displayName>
+                <a:displayOrder>100</a:displayOrder>
+                <a:minOccurs>0</a:minOccurs>
+                <a:maxOccurs>1</a:maxOccurs>
+            </xsd:appinfo>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="interval" type="xsd:int">
+        <xsd:annotation>
+            <xsd:documentation>
+                Interval between tests (in seconds). Default is 10.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:displayName>Interval between tests (seconds)</a:displayName>
+                <a:displayOrder>110</a:displayOrder>
+                <a:minOccurs>0</a:minOccurs>
+                <a:maxOccurs>1</a:maxOccurs>
+            </xsd:appinfo>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="testQuery" type="xsd:string">
+        <xsd:annotation>
+            <xsd:documentation>
+                SQL query to be executed during the test. Default is 'SELECT 1'.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:displayName>Test SQL query</a:displayName>
+                <a:displayOrder>120</a:displayOrder>
+                <a:minOccurs>0</a:minOccurs>
+                <a:maxOccurs>1</a:maxOccurs>
+            </xsd:appinfo>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="driverClassName" type="xsd:string">
+        <xsd:annotation>
+            <xsd:documentation>
+                JDBC driver class name. Default is the one used by the repository.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:displayName>JDBC driver class name</a:displayName>
+                <a:displayOrder>130</a:displayOrder>
+                <a:minOccurs>0</a:minOccurs>
+                <a:maxOccurs>1</a:maxOccurs>
+            </xsd:appinfo>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="jdbcUrl" type="xsd:string">
+        <xsd:annotation>
+            <xsd:documentation>
+                JDBC URL to be tested. Default is the one used by the repository.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:displayName>JDBC URL</a:displayName>
+                <a:displayOrder>140</a:displayOrder>
+                <a:minOccurs>0</a:minOccurs>
+                <a:maxOccurs>1</a:maxOccurs>
+            </xsd:appinfo>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="jdbcUsername" type="xsd:string">
+        <xsd:annotation>
+            <xsd:documentation>
+                User name to be used when connecting to the database. Default is the one used by the repository.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:displayName>JDBC user name</a:displayName>
+                <a:displayOrder>150</a:displayOrder>
+                <a:minOccurs>0</a:minOccurs>
+                <a:maxOccurs>1</a:maxOccurs>
+            </xsd:appinfo>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="jdbcPassword" type="xsd:string">
+        <xsd:annotation>
+            <xsd:documentation>
+                Password to be used when connecting to the database. Default is the one used by the repository.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:displayName>JDBC password</a:displayName>
+                <a:displayOrder>160</a:displayOrder>
+                <a:minOccurs>0</a:minOccurs>
+                <a:maxOccurs>1</a:maxOccurs>
+            </xsd:appinfo>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="logOnInfoLevel" type="xsd:boolean">
+        <xsd:annotation>
+            <xsd:documentation>
+                Whether to log detailed messages at INFO level. Default is true.
+                If false, only the final message is logged as INFO.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:displayName>Log on info level</a:displayName>
+                <a:displayOrder>170</a:displayOrder>
+                <a:minOccurs>0</a:minOccurs>
+                <a:maxOccurs>1</a:maxOccurs>
+            </xsd:appinfo>
+        </xsd:annotation>
+    </xsd:element>
+</xsd:schema>
+

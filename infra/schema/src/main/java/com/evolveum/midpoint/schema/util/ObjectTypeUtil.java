@@ -33,6 +33,7 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_3.SchemaDefinitionType;
 import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
 
 import javax.xml.namespace.QName;
@@ -183,9 +184,23 @@ public class ObjectTypeUtil {
         }
 	}
 
+	// TODO remove this ugly hacking during prism cleanup
+	// The problem is that we need to provide targetRef/construction definition. It is done by instantiating AssignmentType
+	// with a parent (bringing the definition), but removing the parent just before returning, to provide a "free" (parent-less)
+	// instance of AssignmentType.
+	// This has to be done by allowing PCVs to carry their CTD without having to have a parent.
 	@NotNull
-	public static <T extends ObjectType> AssignmentType createAssignmentTo(@NotNull ObjectReferenceType ref) {
-		AssignmentType assignment = new AssignmentType();
+	public static <T extends ObjectType> AssignmentType createAssignmentTo(@NotNull ObjectReferenceType ref, @Nullable PrismContext prismContext) {
+		AssignmentType assignment;
+		if (prismContext == null) {
+			assignment = new AssignmentType();
+		} else {
+			try {
+				assignment = prismContext.getSchemaRegistry().findContainerDefinitionByCompileTimeClass(AssignmentType.class).instantiate().createNewValue().asContainerable();
+			} catch (SchemaException e) {
+				throw new IllegalStateException("Couldn't instantiate AssignmentType: " + e.getMessage(), e);
+			}
+		}
 		if (QNameUtil.match(ref.getType(), ResourceType.COMPLEX_TYPE)) {
 			ConstructionType construction = new ConstructionType();
 			construction.setResourceRef(ref);
@@ -193,7 +208,12 @@ public class ObjectTypeUtil {
 		} else {
 			assignment.setTargetRef(ref);
 		}
-		return assignment;
+		return prismContext != null ? assignment.clone() : assignment;
+	}
+
+	@NotNull
+	public static <T extends ObjectType> AssignmentType createAssignmentTo(@NotNull String oid, @NotNull ObjectTypes type, @Nullable PrismContext prismContext) {
+		return createAssignmentTo(createObjectRef(oid, type), prismContext);
 	}
 
 	@NotNull

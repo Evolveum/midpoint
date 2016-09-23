@@ -44,7 +44,7 @@ public abstract class DummyObject implements DebugDumpable {
 //	private int internalId = -1;
 	private String name;
 	private Map<String,Set<Object>> attributes = new HashMap<String, Set<Object>>();
-	private boolean enabled = true;
+	private Boolean enabled = true;
 	private Date validFrom = null;
 	private Date validTo = null;
 	protected DummyResource resource;
@@ -84,11 +84,11 @@ public abstract class DummyObject implements DebugDumpable {
 		this.name = username;
 	}
 	
-	public boolean isEnabled() {
+	public Boolean isEnabled() {
 		return enabled;
 	}
 
-	public void setEnabled(boolean enabled) throws ConnectException, FileNotFoundException, SchemaViolationException {
+	public void setEnabled(Boolean enabled) throws ConnectException, FileNotFoundException, SchemaViolationException {
 		checkModifyBreak();
 		this.enabled = enabled;
 	}

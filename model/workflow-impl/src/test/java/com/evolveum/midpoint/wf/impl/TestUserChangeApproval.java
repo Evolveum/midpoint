@@ -27,6 +27,7 @@ import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.prism.path.IdItemPathSegment;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
@@ -35,6 +36,7 @@ import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -781,6 +783,139 @@ public class TestUserChangeApproval extends AbstractWfTest {
 
         });
     }
+
+    @Test
+    public void test062UserModifyAddRoleAutoApprovalFirstDecides() throws Exception {
+        TestUtil.displayTestTile(this, "test062UserModifyAddRoleAutoApprovalFirstDecides");
+        login(userAdministrator);
+        executeTest("test062UserModifyAddRoleAutoApprovalFirstDecides", USER_JACK_OID, new TestDetails() {
+            @Override int subtaskCount() { return 1; }
+            @Override boolean immediate() { return false; }
+            @Override boolean checkObjectOnSubtasks() { return true; }
+
+            @Override boolean approvedAutomatically() { return true; }
+
+            @Override
+            public LensContext createModelContext(OperationResult result) throws Exception {
+                LensContext<UserType> context = createUserAccountContext();
+                fillContextWithUser(context, USER_JACK_OID, result);
+                addFocusDeltaToContext(context,
+                        (ObjectDelta) DeltaBuilder.deltaFor(UserType.class, prismContext)
+                                .item(UserType.F_ASSIGNMENT).add(
+                                        ObjectTypeUtil.createAssignmentTo(ROLE_R11_OID, ObjectTypes.ROLE, prismContext).asPrismContainerValue())
+                            .asObjectDelta(USER_JACK_OID));
+                return context;
+            }
+
+            @Override
+            public void assertsAfterClockworkRun(Task rootTask, List<Task> wfSubtasks, OperationResult result) throws Exception {
+                // todo perhaps the role should be assigned even at this point?
+            }
+
+            @Override
+            void assertsRootTaskFinishes(Task task, List<Task> subtasks, OperationResult result) throws Exception {
+                PrismObject<UserType> jack = repositoryService.getObject(UserType.class, USER_JACK_OID, null, result);
+                assertAssignedRole(jack, ROLE_R11_OID);
+
+                checkDummyTransportMessages("simpleUserNotifier", 1);
+            }
+
+            @Override
+            boolean decideOnApproval(String executionId) throws Exception {
+                throw new AssertionError("Decision should not be acquired in this scenario.");
+            }
+
+        });
+    }
+
+    @Test
+    public void test064UserModifyAddRoleNoApproversAllMustAgree() throws Exception {
+        TestUtil.displayTestTile(this, "test064UserModifyAddRoleNoApproversAllMustAgree");
+        login(userAdministrator);
+        executeTest("test064UserModifyAddRoleNoApproversAllMustAgree", USER_JACK_OID, new TestDetails() {
+            @Override int subtaskCount() { return 1; }
+            @Override boolean immediate() { return false; }
+            @Override boolean checkObjectOnSubtasks() { return true; }
+
+            @Override boolean approvedAutomatically() { return true; }
+
+            @Override
+            public LensContext createModelContext(OperationResult result) throws Exception {
+                LensContext<UserType> context = createUserAccountContext();
+                fillContextWithUser(context, USER_JACK_OID, result);
+                addFocusDeltaToContext(context,
+                        (ObjectDelta) DeltaBuilder.deltaFor(UserType.class, prismContext)
+                                .item(UserType.F_ASSIGNMENT).add(
+                                        ObjectTypeUtil.createAssignmentTo(ROLE_R12_OID, ObjectTypes.ROLE, prismContext).asPrismContainerValue())
+                                .asObjectDelta(USER_JACK_OID));
+                return context;
+            }
+
+            @Override
+            public void assertsAfterClockworkRun(Task rootTask, List<Task> wfSubtasks, OperationResult result) throws Exception {
+                // todo perhaps the role should be assigned even at this point?
+            }
+
+            @Override
+            void assertsRootTaskFinishes(Task task, List<Task> subtasks, OperationResult result) throws Exception {
+                PrismObject<UserType> jack = repositoryService.getObject(UserType.class, USER_JACK_OID, null, result);
+                assertAssignedRole(jack, ROLE_R12_OID);
+
+                checkDummyTransportMessages("simpleUserNotifier", 1);
+            }
+
+            @Override
+            boolean decideOnApproval(String executionId) throws Exception {
+                throw new AssertionError("Decision should not be acquired in this scenario.");
+            }
+
+        });
+    }
+
+    @Test
+    public void test065UserModifyAddRoleNoApproversFirstDecides() throws Exception {
+        TestUtil.displayTestTile(this, "test065UserModifyAddRoleNoApproversFirstDecides");
+        login(userAdministrator);
+        executeTest("test065UserModifyAddRoleNoApproversFirstDecides", USER_JACK_OID, new TestDetails() {
+            @Override int subtaskCount() { return 1; }
+            @Override boolean immediate() { return false; }
+            @Override boolean checkObjectOnSubtasks() { return true; }
+
+            @Override boolean approvedAutomatically() { return true; }
+
+            @Override
+            public LensContext createModelContext(OperationResult result) throws Exception {
+                LensContext<UserType> context = createUserAccountContext();
+                fillContextWithUser(context, USER_JACK_OID, result);
+                addFocusDeltaToContext(context,
+                        (ObjectDelta) DeltaBuilder.deltaFor(UserType.class, prismContext)
+                                .item(UserType.F_ASSIGNMENT).add(
+                                        ObjectTypeUtil.createAssignmentTo(ROLE_R13_OID, ObjectTypes.ROLE, prismContext).asPrismContainerValue())
+                                .asObjectDelta(USER_JACK_OID));
+                return context;
+            }
+
+            @Override
+            public void assertsAfterClockworkRun(Task rootTask, List<Task> wfSubtasks, OperationResult result) throws Exception {
+                // todo perhaps the role should be assigned even at this point?
+            }
+
+            @Override
+            void assertsRootTaskFinishes(Task task, List<Task> subtasks, OperationResult result) throws Exception {
+                PrismObject<UserType> jack = repositoryService.getObject(UserType.class, USER_JACK_OID, null, result);
+                assertAssignedRole(jack, ROLE_R13_OID);
+
+                checkDummyTransportMessages("simpleUserNotifier", 1);
+            }
+
+            @Override
+            boolean decideOnApproval(String executionId) throws Exception {
+                throw new AssertionError("Decision should not be acquired in this scenario.");
+            }
+
+        });
+    }
+
 
     @Test(enabled = true)
     public void test070UserModifyAssignment() throws Exception {
