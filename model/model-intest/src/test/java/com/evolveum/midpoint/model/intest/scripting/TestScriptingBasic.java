@@ -21,6 +21,7 @@ import com.evolveum.midpoint.model.impl.scripting.Data;
 import com.evolveum.midpoint.model.impl.scripting.ExecutionContext;
 import com.evolveum.midpoint.model.impl.scripting.ScriptingExpressionEvaluator;
 import com.evolveum.midpoint.model.intest.AbstractInitializedModelIntegrationTest;
+import com.evolveum.midpoint.notifications.api.transports.Message;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
@@ -78,6 +79,8 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
     private static final File ASSIGN_TO_JACK_2_FILE = new File(TEST_DIR, "assign-to-jack-2.xml");
     private static final File PURGE_DUMMY_BLACK_SCHEMA_FILE = new File(TEST_DIR, "purge-dummy-black-schema.xml");
     private static final File TEST_DUMMY_RESOURCE_FILE = new File(TEST_DIR, "test-dummy-resource.xml");
+    private static final File NOTIFICATION_ABOUT_JACK_FILE = new File(TEST_DIR, "notification-about-jack.xml");
+    private static final File NOTIFICATION_ABOUT_JACK_TYPE2_FILE = new File(TEST_DIR, "notification-about-jack-type2.xml");
 	private static final File SCRIPTING_USERS_FILE = new File(TEST_DIR, "scripting-users.xml");
 
     @Autowired
@@ -556,7 +559,68 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
         assertEquals("Tested resource:10000000-0000-0000-0000-000000000004(Dummy Resource): SUCCESS\n", output.getConsoleOutput());
     }
 
-	@Test
+    @Test
+    public void test420NotificationAboutJack() throws Exception {
+        final String TEST_NAME = "test420NotificationAboutJack";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        OperationResult result = new OperationResult(DOT_CLASS + TEST_NAME);
+        PrismProperty<ScriptingExpressionType> expression = (PrismProperty) prismContext.parseAnyData(NOTIFICATION_ABOUT_JACK_FILE);
+        prepareNotifications();
+
+        // WHEN
+        ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(expression.getAnyValue().getValue(), result);
+
+        // THEN
+        IntegrationTestTools.display("output", output.getFinalOutput());
+        IntegrationTestTools.display("stdout", output.getConsoleOutput());
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        assertEquals(0, output.getFinalOutput().getData().size());
+        assertEquals("Produced 1 event(s)\n", output.getConsoleOutput());
+
+        IntegrationTestTools.display("Dummy transport", dummyTransport);
+        checkDummyTransportMessages("Custom", 1);
+        Message m = dummyTransport.getMessages("dummy:Custom").get(0);
+        assertEquals("Wrong message body", "jack/" + USER_JACK_OID, m.getBody());
+        assertEquals("Wrong message subject", "Ad hoc notification", m.getSubject());
+    }
+
+    @Test
+    public void test430NotificationAboutJackType2() throws Exception {
+        final String TEST_NAME = "test430NotificationAboutJackType2";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        OperationResult result = new OperationResult(DOT_CLASS + TEST_NAME);
+        PrismProperty<ScriptingExpressionType> expression = (PrismProperty) prismContext.parseAnyData(NOTIFICATION_ABOUT_JACK_TYPE2_FILE);
+        prepareNotifications();
+
+        // WHEN
+        ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(expression.getAnyValue().getValue(), result);
+
+        // THEN
+        IntegrationTestTools.display("output", output.getFinalOutput());
+        IntegrationTestTools.display("stdout", output.getConsoleOutput());
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        assertEquals(0, output.getFinalOutput().getData().size());
+        assertEquals("Produced 1 event(s)\n", output.getConsoleOutput());
+
+        IntegrationTestTools.display("Dummy transport", dummyTransport);
+        checkDummyTransportMessages("Custom", 1);
+        Message m = dummyTransport.getMessages("dummy:Custom").get(0);
+        assertEquals("Wrong message body", "1", m.getBody());
+        assertEquals("Wrong message subject", "Ad hoc notification 2", m.getSubject());
+
+        checkDummyTransportMessages("CustomType2", 1);
+        m = dummyTransport.getMessages("dummy:CustomType2").get(0);
+        assertEquals("Wrong message body", "[user:c0c010c0-d34d-b33f-f00d-111111111111(jack)]", m.getBody());
+        assertEquals("Wrong message subject", "Failure notification of type 2", m.getSubject());
+    }
+
+    @Test
 	public void test500ScriptingUsers() throws Exception {
 		final String TEST_NAME = "test500ScriptingUsers";
 		TestUtil.displayTestTile(this, TEST_NAME);

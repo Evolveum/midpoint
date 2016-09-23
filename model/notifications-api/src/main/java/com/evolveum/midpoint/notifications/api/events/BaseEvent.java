@@ -44,6 +44,12 @@ public abstract class BaseEvent implements Event {
     private LightweightIdentifier id;               // randomly generated event ID
     private SimpleObjectRef requester;              // who requested this operation (null if unknown)
 
+	/**
+	 * If needed, we can prescribe the handler that should process this event. It is recommended only for ad-hoc situations.
+	 * A better is to define handlers in system configuration.
+	 */
+	protected final EventHandlerType adHocHandler;
+
 	private transient NotificationFunctions notificationFunctions;	// needs not be set when creating an event ... it is set in NotificationManager
 
     // about who is this operation (null if unknown);
@@ -57,10 +63,15 @@ public abstract class BaseEvent implements Event {
     private String channel;
 
     public BaseEvent(LightweightIdentifierGenerator lightweightIdentifierGenerator) {
-        id = lightweightIdentifierGenerator.generate();
+        this(lightweightIdentifierGenerator, null);
     }
 
-    public LightweightIdentifier getId() {
+	public BaseEvent(LightweightIdentifierGenerator lightweightIdentifierGenerator, EventHandlerType adHocHandler) {
+		id = lightweightIdentifierGenerator.generate();
+		this.adHocHandler = adHocHandler;
+	}
+
+	public LightweightIdentifier getId() {
         return id;
     }
 
@@ -350,4 +361,8 @@ public abstract class BaseEvent implements Event {
 		}
 	}
 
+	@Override
+	public EventHandlerType getAdHocHandler() {
+		return adHocHandler;
+	}
 }

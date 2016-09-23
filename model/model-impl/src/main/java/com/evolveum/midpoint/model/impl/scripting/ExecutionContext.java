@@ -34,7 +34,7 @@ import java.util.Map;
 public class ExecutionContext {
     private static final Trace LOGGER = TraceManager.getTrace(ExecutionContext.class);
 
-    private Task task;
+    private final Task task;
     private StringBuilder consoleOutput = new StringBuilder();
     private Map<String, Data> variables = new HashMap<>();
     private Data finalOutput;                                        // used only when passing result to external clients (TODO do this more cleanly)
@@ -46,11 +46,6 @@ public class ExecutionContext {
     public Task getTask() {
         return task;
     }
-
-    public void setTask(Task task) {
-        this.task = task;
-    }
-
 
     public Data getVariable(String variableName) {
         return variables.get(variableName);
@@ -90,5 +85,9 @@ public class ExecutionContext {
         }
         ScriptExecutionResult result = new ScriptExecutionResult(getConsoleOutput(), items);
         return result;
+    }
+
+    public String getChannel() {
+        return task != null ? task.getChannel() : null;
     }
 }
