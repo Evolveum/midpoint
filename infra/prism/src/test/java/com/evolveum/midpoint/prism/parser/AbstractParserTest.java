@@ -33,6 +33,7 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.foo.EventHandlerChainType;
 import com.evolveum.midpoint.prism.foo.EventHandlerType;
+import com.evolveum.midpoint.prism.marshaller.XNodeProcessor;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_3.SchemaDefinitionType;
 

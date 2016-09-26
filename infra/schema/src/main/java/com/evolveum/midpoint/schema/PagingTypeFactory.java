@@ -17,10 +17,8 @@ package com.evolveum.midpoint.schema;
 
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import org.apache.commons.lang.StringUtils;
-import org.w3c.dom.Element;
 
-import com.evolveum.midpoint.prism.parser.XPathHolder;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.prism.marshaller.XPathHolder;
 import com.evolveum.prism.xml.ns._public.query_3.OrderDirectionType;
 import com.evolveum.prism.xml.ns._public.query_3.PagingType;
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2015 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.evolveum.midpoint.prism.parser;
+package com.evolveum.midpoint.prism.marshaller;
 
 import java.util.Collection;
 import java.util.Map.Entry;
