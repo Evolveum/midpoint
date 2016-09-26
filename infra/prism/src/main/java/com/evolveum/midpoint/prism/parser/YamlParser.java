@@ -16,14 +16,13 @@ import com.evolveum.midpoint.prism.parser.json.ItemPathSerializer;
 import com.evolveum.midpoint.prism.parser.json.PolyStringSerializer;
 import com.evolveum.midpoint.prism.parser.json.QNameSerializer;
 import com.evolveum.midpoint.prism.parser.json.XmlGregorialCalendarSerializer;
-import com.evolveum.midpoint.prism.parser.yaml.MidpoinYAMLGenerator;
+import com.evolveum.midpoint.prism.parser.yaml.MidpointYAMLGenerator;
 import com.evolveum.midpoint.prism.parser.yaml.MidpointYAMLFactory;
 import com.evolveum.midpoint.prism.parser.yaml.MidpointYAMLParser;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
 import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.fasterxml.jackson.annotation.JsonTypeInfo.As;
 import com.fasterxml.jackson.core.JsonGenerationException;
@@ -39,7 +38,7 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
 import com.fasterxml.jackson.dataformat.yaml.YAMLParser;
 //import com.fasterxml.jackson.core.YAMLGenerator;
 
-public class YamlParser extends AbstractParser{
+public class YamlParser extends AbstractParser {
 	
 	
 	//------------------------END OF METHODS FOR SERIALIZATION -------------------------------
@@ -63,13 +62,13 @@ public class YamlParser extends AbstractParser{
 	public YAMLGenerator createGenerator(StringWriter out) throws SchemaException{
 		try {
 			MidpointYAMLFactory factory = new MidpointYAMLFactory();
-			MidpoinYAMLGenerator generator = (MidpoinYAMLGenerator) factory.createGenerator(out);
+			MidpointYAMLGenerator generator = (MidpointYAMLGenerator) factory.createGenerator(out);
 			generator.setPrettyPrinter(new DefaultPrettyPrinter());
 			generator.setCodec(configureMapperForSerialization());
-//			MidpoinYAMLGenerator myg = new MidpoinYAMLGenerator(generator., jsonFeatures, yamlFeatures, codec, out, version)
+//			MidpointYAMLGenerator myg = new MidpointYAMLGenerator(generator., jsonFeatures, yamlFeatures, codec, out, version)
 //			generator.
 			generator.configure(com.fasterxml.jackson.dataformat.yaml.YAMLGenerator.Feature.CANONICAL_OUTPUT, false);
-			YAMLParser parser = factory.createParser(out.toString());
+//			YAMLParser parser = factory.createParser(out.toString());
 //			parser.
 			return generator;
 		} catch (IOException ex){
@@ -88,7 +87,7 @@ public class YamlParser extends AbstractParser{
 		mapper.registerModule(createSerializerModule());
 		mapper.enableDefaultTyping(DefaultTyping.NON_CONCRETE_AND_ARRAYS);
 		mapper.enableDefaultTyping(DefaultTyping.NON_FINAL, As.EXISTING_PROPERTY);
-		mapper.enableDefaultTyping(DefaultTyping.NON_FINAL, As.EXTERNAL_PROPERTY);
+		//mapper.enableDefaultTyping(DefaultTyping.NON_FINAL, As.EXTERNAL_PROPERTY);
 		mapper.enableDefaultTyping(DefaultTyping.NON_FINAL, As.PROPERTY);
 		
 		return mapper;
@@ -105,19 +104,13 @@ public class YamlParser extends AbstractParser{
 		return module;
 	}
 	
-	@Override
-	protected MidpointYAMLParser createParser(File file) throws SchemaException, IOException {
-        return createParser(new FileInputStream(file));
-	}
-
     @Override
     protected MidpointYAMLParser createParser(InputStream stream) throws SchemaException, IOException {
         MidpointYAMLFactory factory = new MidpointYAMLFactory();
         try {
             MidpointYAMLParser p = (MidpointYAMLParser) factory.createParser(stream);
 //			p.enable(Feature.BOGUS);
-            String oid = p.getObjectId();
-            p.enable(com.fasterxml.jackson.core.JsonParser.Feature.ALLOW_YAML_COMMENTS);
+//            String oid = p.getObjectId();
             return p;
         } catch (IOException e) {
             throw e;

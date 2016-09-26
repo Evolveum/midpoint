@@ -12,10 +12,10 @@ import com.fasterxml.jackson.core.ObjectCodec;
 import com.fasterxml.jackson.core.io.IOContext;
 import com.fasterxml.jackson.core.util.BufferRecycler;
 import com.fasterxml.jackson.dataformat.yaml.YAMLParser;
-import com.fasterxml.jackson.dataformat.yaml.snakeyaml.events.CollectionStartEvent;
-import com.fasterxml.jackson.dataformat.yaml.snakeyaml.events.ScalarEvent;
+import org.yaml.snakeyaml.events.CollectionStartEvent;
+import org.yaml.snakeyaml.events.ScalarEvent;
 
-public class MidpointYAMLParser extends YAMLParser{
+public class MidpointYAMLParser extends YAMLParser {
 
 	public MidpointYAMLParser(IOContext ctxt, BufferRecycler br, int parserFeatures, int csvFeatures,
 			ObjectCodec codec, Reader reader) {

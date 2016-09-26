@@ -1,9 +1,6 @@
 package com.evolveum.midpoint.prism.parser;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.StringWriter;
+import java.io.*;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.ListIterator;
@@ -56,10 +53,13 @@ public abstract class AbstractParser implements Parser {
 	protected static final String TYPE_DEFINITION = "@typeDef";
 	protected static final String VALUE_FIELD = "@value";
 	
-	
-	protected abstract JsonParser createParser(String dataString)  throws SchemaException;
+	protected abstract JsonParser createParser(String dataString) throws SchemaException;
     protected abstract JsonParser createParser(InputStream stream) throws SchemaException, IOException;
-	protected abstract JsonParser createParser(File file)  throws SchemaException, IOException;
+
+	protected JsonParser createParser(File file) throws SchemaException, IOException {
+		return createParser(new FileInputStream(file));
+	}
+
 	public abstract JsonGenerator createGenerator(StringWriter out) throws SchemaException;
 	
 	@Override

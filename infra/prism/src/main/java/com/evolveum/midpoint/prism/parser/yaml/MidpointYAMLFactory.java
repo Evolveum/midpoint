@@ -5,40 +5,32 @@ import java.io.InputStream;
 import java.io.Reader;
 import java.io.Writer;
 
+import com.fasterxml.jackson.core.JsonParser;
+
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.io.IOContext;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
-import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
-import com.fasterxml.jackson.dataformat.yaml.YAMLParser;
 
-public class MidpointYAMLFactory extends YAMLFactory{
+public class MidpointYAMLFactory extends YAMLFactory {
 
-	  @Override
-	    protected MidpoinYAMLGenerator _createGenerator(Writer out, IOContext ctxt)
-	        throws IOException
-	    {
-	        int feats = _yamlGeneratorFeatures;
-	        MidpoinYAMLGenerator gen = new MidpoinYAMLGenerator(ctxt, _generatorFeatures, feats,
-	                _objectCodec, out, _version);
-	        // any other initializations? No?
-	        return gen;
-	    }
-	  
-	  @SuppressWarnings("resource")
-	    @Override
-	    protected MidpointYAMLParser _createParser(InputStream in, IOContext ctxt)
-	        throws IOException, JsonParseException
-	    {
-	        Reader r = _createReader(in, null, ctxt);
-	        return new MidpointYAMLParser(ctxt, _getBufferRecycler(), _parserFeatures, _yamlParserFeatures,
-	                _objectCodec, r);
-	    }
-	  
-	  @Override
-	    protected MidpointYAMLParser _createParser(Reader r, IOContext ctxt)
-	        throws IOException, JsonParseException
-	    {
-	        return new MidpointYAMLParser(ctxt, _getBufferRecycler(), _parserFeatures, _yamlParserFeatures,
-	                _objectCodec, r);
-	    }
+	@Override
+	protected MidpointYAMLGenerator _createGenerator(Writer out, IOContext ctxt) throws IOException {
+		int feats = _yamlGeneratorFeatures;
+		MidpointYAMLGenerator gen = new MidpointYAMLGenerator(ctxt, _generatorFeatures, feats, _objectCodec, out, _version);
+		// any other initializations? No?
+		return gen;
+	}
+
+	@SuppressWarnings("resource")
+	@Override
+	protected MidpointYAMLParser _createParser(InputStream in, IOContext ctxt) throws IOException, JsonParseException {
+		return _createParser(_createReader(in, null, ctxt), ctxt);
+	}
+
+	@Override
+	protected MidpointYAMLParser _createParser(Reader r, IOContext ctxt) throws IOException, JsonParseException {
+		MidpointYAMLParser p = new MidpointYAMLParser(ctxt, _getBufferRecycler(), _parserFeatures, _yamlParserFeatures, _objectCodec, r);
+		p.enable(JsonParser.Feature.ALLOW_YAML_COMMENTS);
+		return p;
+	}
 }

@@ -14,18 +14,19 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
 import org.apache.commons.lang.StringUtils;
+import org.jetbrains.annotations.NotNull;
 
 public class JsonValueParser<T> implements ValueParser<T> {
 
-	private final JsonParser parser;
+	@NotNull private final JsonParser parser;
 	private JsonNode node;
 		
-	public JsonValueParser(JsonParser parser, JsonNode node) {
+	public JsonValueParser(@NotNull JsonParser parser, JsonNode node) {
 		this.parser = parser;
 		this.node = node;
 	}
 	
-	public JsonValueParser(final JsonParser parser) {
+	public JsonValueParser(@NotNull JsonParser parser) {
 		this.parser = parser;
 	}
 	
@@ -37,7 +38,7 @@ public class JsonValueParser<T> implements ValueParser<T> {
 		ObjectMapper mapper = (ObjectMapper) parser.getCodec();
 		Class clazz = XsdTypeMapper.toJavaType(typeName);
 			
-		ObjectReader r = mapper.reader(clazz);
+		ObjectReader r = mapper.readerFor(clazz);
 	    try {
 //	    	if (parser.getCurrentToken() == null){
 //	    		JsonToken t = parser.nextToken();
@@ -55,13 +56,12 @@ public class JsonValueParser<T> implements ValueParser<T> {
 	
 	@Override
 	public boolean isEmpty() {
-		return node == null || parser == null ||
-				StringUtils.isBlank(node.asText());			// to be consistent with PrimitiveXNode.isEmpty for parsed values
+		return node == null || StringUtils.isBlank(node.asText());			// to be consistent with PrimitiveXNode.isEmpty for parsed values
 	}
 
 	@Override
 	public String getStringValue() {
-		if (node == null){
+		if (node == null) {
 			return null;
 		}
 		return node.asText();

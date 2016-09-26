@@ -67,13 +67,14 @@ user:
         value:
         - "captain"
   special: "got it!"
-  singleActivation:
-  multiActivation:
+  # TODO fix this test
+  singleActivation: { }
+  multiActivation: { }
   multiActivationCopy:
-  -
+  - { }
   - enabled: true
-  singleConstruction:
-  multiConstruction:
+  singleConstruction: { }
+  multiConstruction: [ { } ]
   multiConstructionCopy:
-  -
+  - { }
   - howto: abc

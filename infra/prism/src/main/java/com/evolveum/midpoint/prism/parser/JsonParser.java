@@ -29,13 +29,7 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.module.jaxb.JaxbAnnotationIntrospector;
 
-public class JsonParser extends AbstractParser{
-	
-//	private static final String PROP_NAMESPACE = "@ns";
-//	private static final String TYPE_DEFINITION = "@typeDef";
-//	private static final String VALUE_FIELD = "@value";
-//	
-//	
+public class JsonParser extends AbstractParser {
 	
 	@Override
 	public boolean canParse(File file) throws IOException {
@@ -53,11 +47,6 @@ public class JsonParser extends AbstractParser{
 		return dataString.startsWith("{");
 	}
 	
-	@Override
-	protected com.fasterxml.jackson.core.JsonParser createParser(File file) throws SchemaException, IOException {
-		return createParser(new FileInputStream(file));
-	}
-
     @Override
     protected com.fasterxml.jackson.core.JsonParser createParser(InputStream stream) throws SchemaException, IOException {
         JsonFactory factory = new JsonFactory();
