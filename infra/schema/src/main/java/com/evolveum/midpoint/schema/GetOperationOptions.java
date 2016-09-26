@@ -32,7 +32,8 @@ import java.util.List;
  *
  */
 public class GetOperationOptions implements Serializable, Cloneable {
-	
+	private static final long serialVersionUID = 1L;
+
 	/**
 	 * Specifies whether to return specific items. It is used for optimizations.
 	 * Some requests only needs a subset of items therefore fetching them all is a waste
@@ -106,6 +107,14 @@ public class GetOperationOptions implements Serializable, Cloneable {
 	 * information..
 	 */
 	Boolean allowNotFound;
+	
+	/**
+	 * Return read-only object. The returned object will be only read by the client. The client will not modify it.
+	 * Immutable object is returned if it is possible.
+	 * This option allows to turn on internal optimization (e.g. avoid cloning the values). It should be used
+	 * at all times when the client do not plan to modify the returned object.
+	 */
+	private Boolean readOnly;
 
 	public RetrieveOption getRetrieve() {
 		return retrieve;
@@ -331,6 +340,12 @@ public class GetOperationOptions implements Serializable, Cloneable {
 		return options.doNotDiscovery;
 	}
 	
+	public static GetOperationOptions createDoNotDiscovery() {
+		GetOperationOptions opts = new GetOperationOptions();
+		opts.setDoNotDiscovery(true);
+		return opts;
+	}
+	
 	public static GetOperationOptions createAllowNotFound() {
 		GetOperationOptions opts = new GetOperationOptions();
 		opts.setAllowNotFound(true);
@@ -355,12 +370,30 @@ public class GetOperationOptions implements Serializable, Cloneable {
 		return options.allowNotFound;
 	}
 	
-	public static GetOperationOptions createDoNotDiscovery() {
+	public static GetOperationOptions createReadOnly() {
 		GetOperationOptions opts = new GetOperationOptions();
-		opts.setDoNotDiscovery(true);
+		opts.setReadOnly(true);
 		return opts;
 	}
+	
+	public Boolean getReadOnly() {
+		return readOnly;
+	}
 
+	public void setReadOnly(Boolean readOnly) {
+		this.readOnly = readOnly;
+	}
+	
+	public static boolean isReadOnly(GetOperationOptions options) {
+		if (options == null) {
+			return false;
+		}
+		if (options.readOnly == null) {
+			return false;
+		}
+		return options.readOnly;
+	}
+	
 	public RelationalValueSearchQuery getRelationalValueSearchQuery() {
 		return relationalValueSearchQuery;
 	}
@@ -443,6 +476,7 @@ public class GetOperationOptions implements Serializable, Cloneable {
         clone.resolveNames = this.resolveNames;
         clone.retrieve = this.retrieve;
         clone.allowNotFound = this.allowNotFound;
+        clone.readOnly = this.readOnly;
         if (this.relationalValueSearchQuery != null) {
         	clone.relationalValueSearchQuery = this.relationalValueSearchQuery.clone();
         }
@@ -459,6 +493,7 @@ public class GetOperationOptions implements Serializable, Cloneable {
 		appendFlag(sb, "doNotDiscovery", doNotDiscovery);
 		appendVal(sb, "retrieve", retrieve);
 		appendFlag(sb, "allowNotFound", allowNotFound);
+		appendFlag(sb, "readOnly", readOnly);
 		appendVal(sb, "relationalValueSearchQuery", relationalValueSearchQuery);
 		if (sb.charAt(sb.length() - 1) == ',') {
 			sb.deleteCharAt(sb.length() - 1);

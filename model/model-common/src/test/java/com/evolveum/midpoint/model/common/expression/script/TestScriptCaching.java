@@ -15,7 +15,6 @@
  */
 package com.evolveum.midpoint.model.common.expression.script;
 
-import com.evolveum.midpoint.common.monitor.InternalMonitor;
 import com.evolveum.midpoint.model.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.model.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.model.common.expression.functions.FunctionLibrary;
@@ -29,6 +28,7 @@ import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
+import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
 import com.evolveum.midpoint.test.util.DirectoryFileObjectResolver;

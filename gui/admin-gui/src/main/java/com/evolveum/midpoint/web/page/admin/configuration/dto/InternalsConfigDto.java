@@ -16,7 +16,7 @@
 
 package com.evolveum.midpoint.web.page.admin.configuration.dto;
 
-import com.evolveum.midpoint.common.InternalsConfig;
+import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 

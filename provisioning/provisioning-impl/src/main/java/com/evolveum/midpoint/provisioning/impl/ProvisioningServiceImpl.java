@@ -29,7 +29,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 
-import com.evolveum.midpoint.common.InternalsConfig;
 import com.evolveum.midpoint.common.crypto.CryptoUtil;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.prism.Objectable;
@@ -64,6 +63,7 @@ import com.evolveum.midpoint.schema.SearchResultMetadata;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ConnectorTestOperation;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.statistics.ConnectorOperationalStatus;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
@@ -558,7 +558,11 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
 		// TODO: should searching connectors trigger rediscovery?
 
-		repoObjects = getCacheRepositoryService().searchObjects(type, query, null, result);
+		Collection<SelectorOptions<GetOperationOptions>> repoOptions = null;
+		if (GetOperationOptions.isReadOnly(SelectorOptions.findRootOptions(options))) {
+			repoOptions = SelectorOptions.createCollection(GetOperationOptions.createReadOnly());
+		}
+		repoObjects = getCacheRepositoryService().searchObjects(type, query, repoOptions, result);
 
 		SearchResultList<PrismObject<T>> newObjListType = new SearchResultList(new ArrayList<PrismObject<T>>());
 		for (PrismObject<T> repoObject : repoObjects) {
@@ -1132,11 +1136,15 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 				}
 			};
 			
+			Collection<SelectorOptions<GetOperationOptions>> repoOptions = null;
+			if (GetOperationOptions.isReadOnly(rootOptions)) {
+				repoOptions = SelectorOptions.createCollection(GetOperationOptions.createReadOnly());
+			}
 			
 			SearchResultMetadata metadata = null;
 			try {
 				
-				metadata = getCacheRepositoryService().searchObjectsIterative(type, query, internalHandler, null, false, result);	// TODO think about strictSequential flag
+				metadata = getCacheRepositoryService().searchObjectsIterative(type, query, internalHandler, repoOptions, false, result);	// TODO think about strictSequential flag
 				
 				result.computeStatus();
 				result.recordSuccessIfUnknown();

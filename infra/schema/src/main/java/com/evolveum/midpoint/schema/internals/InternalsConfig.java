@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.evolveum.midpoint.common;
+package com.evolveum.midpoint.schema.internals;
 
 /**
  * @author semancik
@@ -33,21 +33,34 @@ public class InternalsConfig {
 	// inside midpoint (e.g. change of SystemConfiguration object) will be ignored.
 	// DO NOT USE IN PRODUCTION CODE
 	public static boolean avoidLoggingChange = false;
+	
+	private static boolean prismMonitoring = false;
+
+	public static boolean isPrismMonitoring() {
+		return prismMonitoring;
+	}
+
+	public static void setPrismMonitoring(boolean prismMonitoring) {
+		InternalsConfig.prismMonitoring = prismMonitoring;
+	}
 
 	public static void setDevelopmentMode() {
 		consistencyChecks = true;
 		encryptionChecks = true;
+		prismMonitoring = true;
 	}
 	
 	public static void turnOffAllChecks() {
 		consistencyChecks = false;
 		encryptionChecks = false;
 		readEncryptionChecks = false;
+		prismMonitoring = false;
 	}
 
 	public static void turnOnAllChecks() {
 		consistencyChecks = true;
 		encryptionChecks = true;
 		encryptionChecks = true;
+		prismMonitoring = true;
 	}
 }

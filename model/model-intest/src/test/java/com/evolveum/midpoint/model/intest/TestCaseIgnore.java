@@ -16,7 +16,6 @@
 package com.evolveum.midpoint.model.intest;
 
 import com.evolveum.icf.dummy.resource.DummyGroup;
-import com.evolveum.midpoint.common.monitor.InternalMonitor;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.match.MatchingRule;
@@ -28,6 +27,7 @@ import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorFactoryIcfImpl;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;

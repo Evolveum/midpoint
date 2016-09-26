@@ -26,6 +26,8 @@ import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ValueDisplayUtil;
@@ -339,7 +341,8 @@ public class TextFormatter {
 
     private PrismObject<? extends ObjectType> getPrismObject(String oid, boolean mightBeRemoved, OperationResult result) {
         try {
-            return cacheRepositoryService.getObject(ObjectType.class, oid, null, result);
+            Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createReadOnly());
+			return cacheRepositoryService.getObject(ObjectType.class, oid, options, result);
         } catch (ObjectNotFoundException e) {
             if (!mightBeRemoved) {
                 LoggingUtils.logException(LOGGER, "Couldn't resolve reference when displaying object name within a notification (it might be already removed)", e);

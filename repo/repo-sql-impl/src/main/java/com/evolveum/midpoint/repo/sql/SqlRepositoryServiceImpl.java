@@ -16,7 +16,6 @@
 
 package com.evolveum.midpoint.repo.sql;
 
-import com.evolveum.midpoint.common.InternalsConfig;
 import com.evolveum.midpoint.common.crypto.CryptoUtil;
 import com.evolveum.midpoint.prism.ConsistencyCheckScope;
 import com.evolveum.midpoint.prism.Containerable;
@@ -37,6 +36,7 @@ import com.evolveum.midpoint.repo.api.RepoModifyOptions;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.sql.helpers.*;
 import com.evolveum.midpoint.schema.*;
+import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;

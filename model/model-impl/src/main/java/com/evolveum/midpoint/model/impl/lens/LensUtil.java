@@ -61,7 +61,9 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -92,21 +94,22 @@ public class LensUtil {
         }
     }
 
-	public static <F extends ObjectType> ResourceType getResource(LensContext<F> context,
+	public static <F extends ObjectType> ResourceType getResourceReadOnly(LensContext<F> context,
 																  String resourceOid, ProvisioningService provisioningService, Task task, OperationResult result) throws ObjectNotFoundException,
 			CommunicationException, SchemaException, ConfigurationException, SecurityViolationException {
 		ResourceType resourceType = context.getResource(resourceOid);
 		if (resourceType == null) {
 			// Fetching from provisioning to take advantage of caching and
 			// pre-parsed schema
-			resourceType = provisioningService.getObject(ResourceType.class, resourceOid, null, task, result)
+			Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createReadOnly());
+			resourceType = provisioningService.getObject(ResourceType.class, resourceOid, options, task, result)
 					.asObjectable();
 			context.rememberResource(resourceType);
 		}
 		return resourceType;
 	}
 
-	public static <F extends ObjectType> ResourceType getResource(LensContext<F> context, String resourceOid, ObjectResolver objectResolver,
+	public static <F extends ObjectType> ResourceType getResourceReadOnly(LensContext<F> context, String resourceOid, ObjectResolver objectResolver,
 																  Task task, OperationResult result) throws ObjectNotFoundException,
 			CommunicationException, SchemaException, ConfigurationException, SecurityViolationException {
 		ResourceType resourceType = context.getResource(resourceOid);
@@ -114,7 +117,8 @@ public class LensUtil {
 			ObjectReferenceType ref = new ObjectReferenceType();
 			ref.setType(ResourceType.COMPLEX_TYPE);
 			ref.setOid(resourceOid);
-			resourceType = objectResolver.resolve(ref, ResourceType.class, null, "resource fetch in lens", task, result);
+			Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createReadOnly());
+			resourceType = objectResolver.resolve(ref, ResourceType.class, options, "resource fetch in lens", task, result);
 			context.rememberResource(resourceType);
 		}
 		return resourceType;
@@ -145,7 +149,7 @@ public class LensUtil {
 																				   ProvisioningService provisioningService, PrismContext prismContext,
 																				   Task task, OperationResult result) throws ObjectNotFoundException,
 			CommunicationException, SchemaException, ConfigurationException, SecurityViolationException {
-		ResourceType resource = getResource(context, resourceOid, provisioningService, task, result);
+		ResourceType resource = getResourceReadOnly(context, resourceOid, provisioningService, task, result);
 		String refinedIntent = refineProjectionIntent(kind, intent, resource, prismContext);
 		ResourceShadowDiscriminator rsd = new ResourceShadowDiscriminator(resourceOid, kind, refinedIntent);
 		return context.findProjectionContext(rsd);
@@ -729,10 +733,10 @@ public class LensUtil {
 		}
 	}
 
-	public static PrismObject<SystemConfigurationType> getSystemConfiguration(LensContext context, RepositoryService repositoryService, OperationResult result) throws ObjectNotFoundException, SchemaException {
+	public static PrismObject<SystemConfigurationType> getSystemConfigurationReadOnly(LensContext context, RepositoryService repositoryService, OperationResult result) throws ObjectNotFoundException, SchemaException {
 		PrismObject<SystemConfigurationType> systemConfiguration = context.getSystemConfiguration();
 		if (systemConfiguration == null) {
-			systemConfiguration = Utils.getSystemConfiguration(repositoryService, result);
+			systemConfiguration = Utils.getSystemConfigurationReadOnly(repositoryService, result);
 			context.setSystemConfiguration(systemConfiguration);
 		}
 		return systemConfiguration;
