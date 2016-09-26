@@ -251,7 +251,7 @@ public class Clockwork {
 	}
 
 	private <F extends ObjectType> int getMaxClicks(LensContext<F> context, OperationResult result) throws SchemaException, ObjectNotFoundException {
-		PrismObject<SystemConfigurationType> sysconfigObject = LensUtil.getSystemConfiguration(context, repositoryService, result);
+		PrismObject<SystemConfigurationType> sysconfigObject = LensUtil.getSystemConfigurationReadOnly(context, repositoryService, result);
 		Integer maxClicks = SystemConfigurationTypeUtil.getMaxModelClicks(sysconfigObject);
 		if (maxClicks == null) {
 			return DEFAULT_MAX_CLICKS;
@@ -388,7 +388,7 @@ public class Clockwork {
     	// TODO: following two parts should be merged together in later versions
     	
     	// Execute configured scripting hooks
-    	PrismObject<SystemConfigurationType> systemConfiguration = LensUtil.getSystemConfiguration(context, repositoryService, result);
+    	PrismObject<SystemConfigurationType> systemConfiguration = LensUtil.getSystemConfigurationReadOnly(context, repositoryService, result);
     	// systemConfiguration may be null in some tests
     	if (systemConfiguration != null) {
 	    	ModelHooksType modelHooks = systemConfiguration.asObjectable().getModelHooks();

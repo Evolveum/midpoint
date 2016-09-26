@@ -130,6 +130,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 		InternalMonitor.reset();
 //		InternalMonitor.setTraceShadowFetchOperation(true);
 //		InternalMonitor.setTraceResourceSchemaOperations(true);
+		InternalMonitor.setTracePrismObjectClone(true);
 	}
 		
 	@Test
@@ -1123,6 +1124,8 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         OperationResult result = task.getResult();
         preTestCleanup(AssignmentPolicyEnforcementType.FULL);
         
+        rememberPrismObjectCloneCount();
+        
         XMLGregorianCalendar startTime = clock.currentTimeXMLGregorianCalendar();
                   
 		// WHEN
@@ -1135,6 +1138,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         TestUtil.assertSuccess("executeChanges result", result);
         XMLGregorianCalendar endTime = clock.currentTimeXMLGregorianCalendar();
         assertShadowFetchOperationCountIncrement(0);
+        assertPrismObjectCloneIncrement(55);
         
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);

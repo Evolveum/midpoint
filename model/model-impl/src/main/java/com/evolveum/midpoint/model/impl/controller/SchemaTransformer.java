@@ -383,7 +383,7 @@ public class SchemaTransformer {
 	}
     
     public <O extends ObjectType> ObjectTemplateType determineObjectTemplate(PrismObject<O> object, AuthorizationPhaseType phase, OperationResult result) throws SchemaException, ConfigurationException, ObjectNotFoundException {
-    	PrismObject<SystemConfigurationType> systemConfiguration = Utils.getSystemConfiguration(cacheRepositoryService, result);
+    	PrismObject<SystemConfigurationType> systemConfiguration = Utils.getSystemConfigurationReadOnly(cacheRepositoryService, result);
     	if (systemConfiguration == null) {
     		return null;
     	}
@@ -400,7 +400,7 @@ public class SchemaTransformer {
     }
     
     public <O extends ObjectType> ObjectTemplateType determineObjectTemplate(Class<O> objectClass, AuthorizationPhaseType phase, OperationResult result) throws SchemaException, ConfigurationException, ObjectNotFoundException {
-    	PrismObject<SystemConfigurationType> systemConfiguration = Utils.getSystemConfiguration(cacheRepositoryService, result);
+    	PrismObject<SystemConfigurationType> systemConfiguration = Utils.getSystemConfigurationReadOnly(cacheRepositoryService, result);
     	if (systemConfiguration == null) {
     		return null;
     	}

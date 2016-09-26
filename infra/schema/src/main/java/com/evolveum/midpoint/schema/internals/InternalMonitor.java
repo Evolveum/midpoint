@@ -63,6 +63,7 @@ public class InternalMonitor implements PrismMonitor {
 	
 	private static long prismObjectCloneCount = 0;
 	private static long prismObjectCloneDurationMillis = 0;
+	private static boolean tracePrismObjectClone = false;
 	
 	public static long getResourceSchemaParseCount() {
 		return resourceSchemaParseCount;
@@ -223,15 +224,31 @@ public class InternalMonitor implements PrismMonitor {
 		provisioningAllExtOperationCount++;
 	}
 	
+	public static long getPrismObjectCloneDurationMillis() {
+		return prismObjectCloneDurationMillis;
+	}
+
+	public static void setPrismObjectCloneDurationMillis(long prismObjectCloneDurationMillis) {
+		InternalMonitor.prismObjectCloneDurationMillis = prismObjectCloneDurationMillis;
+	}
+
+	public static boolean isTracePrismObjectClone() {
+		return tracePrismObjectClone;
+	}
+
+	public static void setTracePrismObjectClone(boolean tracePrismObjectClone) {
+		InternalMonitor.tracePrismObjectClone = tracePrismObjectClone;
+	}
+
 	@Override
-	public synchronized <O extends Objectable> void beforeObjectClone(PrismObject<O> orig) {
+	public <O extends Objectable> void beforeObjectClone(PrismObject<O> orig) {
 		LOGGER.trace("MONITOR prism object clone start: {}", orig);
-		prismObjectCloneCount++;
 		orig.setUserData(CLONE_START_TIMESTAMP_KEY, System.currentTimeMillis());
 	}
 	
 	@Override
 	public synchronized <O extends Objectable> void afterObjectClone(PrismObject<O> orig, PrismObject<O> clone) {
+		prismObjectCloneCount++;
 		Object cloneStartObject = orig.getUserData(CLONE_START_TIMESTAMP_KEY);
 		if (cloneStartObject != null && cloneStartObject instanceof Long) {
 			long cloneDurationMillis = System.currentTimeMillis() - (Long)cloneStartObject;
@@ -239,6 +256,9 @@ public class InternalMonitor implements PrismMonitor {
 			LOGGER.debug("MONITOR prism object clone end: {} (duration {} ms)", orig, cloneDurationMillis);
 		} else {
 			LOGGER.debug("MONITOR prism object clone end: {}", orig);
+		}
+		if (tracePrismObjectClone) {
+			traceOperation("prism object clone", prismObjectCloneCount);
 		}
 	}
 	
