@@ -1,4 +1,4 @@
-package com.evolveum.midpoint.prism.parser.yaml;
+package com.evolveum.midpoint.prism.parser.json.yaml;
 
 import java.io.IOException;
 import java.io.Reader;

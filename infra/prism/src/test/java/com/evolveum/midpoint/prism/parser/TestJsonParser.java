@@ -1,8 +1,7 @@
 package com.evolveum.midpoint.prism.parser;
 
+import com.evolveum.midpoint.prism.parser.json.JsonParser;
 import org.testng.annotations.Test;
-
-import com.evolveum.midpoint.prism.util.PrismTestUtil;
 
 public class TestJsonParser  extends AbstractParserTest {
 	

@@ -1,5 +1,6 @@
 package com.evolveum.midpoint.prism.parser;
 
+import com.evolveum.midpoint.prism.parser.json.YamlParser;
 import org.testng.annotations.Test;
 
 public class TestYamlParser extends AbstractParserTest{

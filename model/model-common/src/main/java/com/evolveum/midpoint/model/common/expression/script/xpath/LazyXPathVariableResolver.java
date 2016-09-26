@@ -22,7 +22,7 @@ import java.util.List;
 import javax.xml.namespace.QName;
 import javax.xml.xpath.XPathVariableResolver;
 
-import com.evolveum.midpoint.prism.parser.DomParser;
+import com.evolveum.midpoint.prism.parser.dom.DomParser;
 
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;

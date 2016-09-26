@@ -26,7 +26,7 @@ import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.parser.DomParser;
+import com.evolveum.midpoint.prism.parser.dom.DomParser;
 import com.evolveum.midpoint.prism.marshaller.PrismBeanConverter;
 import com.evolveum.midpoint.prism.marshaller.XNodeProcessor;
 import com.evolveum.midpoint.prism.polystring.PolyString;

@@ -1,4 +1,4 @@
-package com.evolveum.midpoint.prism.parser.yaml;
+package com.evolveum.midpoint.prism.parser.json.yaml;
 
 import com.fasterxml.jackson.core.ObjectCodec;
 import com.fasterxml.jackson.core.io.IOContext;
