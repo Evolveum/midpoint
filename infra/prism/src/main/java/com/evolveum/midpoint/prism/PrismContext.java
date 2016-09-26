@@ -23,6 +23,7 @@ import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
 import com.evolveum.midpoint.prism.polystring.PrismDefaultPolyStringNormalizer;
 import com.evolveum.midpoint.prism.schema.SchemaDefinitionFactory;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
+import com.evolveum.midpoint.prism.util.PrismMonitor;
 import com.evolveum.midpoint.prism.xnode.RootXNode;
 import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -64,6 +65,8 @@ public class PrismContext {
 	private SchemaDefinitionFactory definitionFactory;
 	private PolyStringNormalizer defaultPolyStringNormalizer;
 	private Map<String, Parser> parserMap;
+	private PrismMonitor monitor = null;
+	
 	@Autowired
 	private Protector defaultProtector;
 	
@@ -187,10 +190,18 @@ public class PrismContext {
 	public void setDefaultProtector(Protector defaultProtector) {
 		this.defaultProtector = defaultProtector;
 	}
-	
+
+    public PrismMonitor getMonitor() {
+		return monitor;
+	}
+
+	public void setMonitor(PrismMonitor monitor) {
+		this.monitor = monitor;
+	}
+
     //endregion
 
-    //region Parsing Prism objects
+	//region Parsing Prism objects
 	/**
 	 * Parses a file and creates a prism from it. Autodetect language.
 	 * @throws IOException 

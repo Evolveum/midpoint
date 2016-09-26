@@ -38,8 +38,6 @@ import org.w3c.dom.Element;
 
 import com.evolveum.icf.dummy.connector.DummyConnector;
 import com.evolveum.icf.dummy.resource.DummyResource;
-import com.evolveum.midpoint.common.InternalsConfig;
-import com.evolveum.midpoint.common.monitor.InternalMonitor;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.prism.Containerable;
@@ -63,6 +61,8 @@ import com.evolveum.midpoint.repo.sql.testing.SqlRepoTestUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.internals.InternalMonitor;
+import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
@@ -153,6 +153,9 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
 		InternalsConfig.encryptionChecks = false;
 	}
 	
+	/**
+	 * MID-3424
+	 */
 	@Test
     public void test050GetResourceRaw() throws Exception {
 		final String TEST_NAME = "test050GetResourceRaw";
@@ -169,6 +172,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
         assertConnectorCapabilitiesFetchIncrement(0);
 		assertConnectorInitializationCountIncrement(0);
         assertConnectorSchemaParseIncrement(0);
+        rememberPrismObjectCloneCount();
         
 		Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createRaw());
 		
@@ -181,6 +185,8 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
         
         display("Resource", resource);
         
+        assertPrismObjectCloneIncrement(4);
+        
 		assertResourceDummy(resource, false);
         
         assertNull("Schema sneaked in", ResourceTypeUtil.getResourceXsdSchema(resource));
@@ -192,6 +198,9 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
         assertConnectorSchemaParseIncrement(1);
 	}
 	
+	/**
+	 * MID-3424
+	 */
 	@Test
     public void test052GetResourceNoFetch() throws Exception {
 		final String TEST_NAME = "test052GetResourceNoFetch";
@@ -208,6 +217,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
         assertConnectorCapabilitiesFetchIncrement(0);
 		assertConnectorInitializationCountIncrement(0);
         assertConnectorSchemaParseIncrement(0);
+        rememberPrismObjectCloneCount();
         
 		Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createNoFetch());
 		
@@ -220,6 +230,8 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
         
         display("Resource", resource);
         
+        assertPrismObjectCloneIncrement(2);
+        
 		assertResourceDummy(resource, false);
         
         assertNull("Schema sneaked in", ResourceTypeUtil.getResourceXsdSchema(resource));
@@ -231,6 +243,9 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
         assertConnectorSchemaParseIncrement(0);
 	}
 	
+	/**
+	 * MID-3424
+	 */
 	@Test
     public void test100SearchResourcesNoFetch() throws Exception {
 		final String TEST_NAME = "test100SearchResourcesNoFetch";
@@ -243,6 +258,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
         
         // precondition
         assertSteadyResources();
+        rememberPrismObjectCloneCount();
         
         Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createNoFetch());
         
@@ -258,6 +274,8 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
         
         result.computeStatus();
         TestUtil.assertSuccess("searchObjects result", result);
+        
+        assertPrismObjectCloneIncrement(4);
 
         for (PrismObject<ResourceType> resource: resources) {
         	assertResource(resource, false);
@@ -272,6 +290,9 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
         assertSteadyResources();
 	}
 	
+	/**
+	 * MID-3424
+	 */
 	@Test
     public void test105SearchResourcesIterativeNoFetch() throws Exception {
 		final String TEST_NAME = "test105SearchResourcesIterativeNoFetch";
@@ -284,6 +305,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
         
         // precondition
         assertSteadyResources();
+        rememberPrismObjectCloneCount();
 
         final List<PrismObject<ResourceType>> resources = new ArrayList<PrismObject<ResourceType>>();
         		
@@ -308,6 +330,8 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
         assertFalse("Empty search return", resources.isEmpty());
         assertEquals("Unexpected number of resources found", 2, resources.size());
         
+        assertPrismObjectCloneIncrement(4);
+        
         assertResourceSchemaFetchIncrement(0);
         assertResourceSchemaParseCountIncrement(0);
         assertConnectorCapabilitiesFetchIncrement(0);
@@ -327,14 +351,18 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
         OperationResult result = task.getResult();
         preTestCleanup(AssignmentPolicyEnforcementType.POSITIVE);
         
+        rememberPrismObjectCloneCount();
+        
 		// WHEN
 		PrismObject<ResourceType> resource = modelService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null , task, result);
 		
 		// THEN
-		assertResourceDummy(resource, true);
-		
         result.computeStatus();
         TestUtil.assertSuccess("getObject result", result);
+
+        assertPrismObjectCloneIncrement(6);
+        
+        assertResourceDummy(resource, true);
         
         assertResourceSchemaFetchIncrement(1);
         assertResourceSchemaParseCountIncrement(1);

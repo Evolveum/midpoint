@@ -23,8 +23,6 @@ import static org.testng.AssertJUnit.assertTrue;
 import com.evolveum.icf.dummy.resource.DummyResource;
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.common.crypto.CryptoUtil;
-import com.evolveum.midpoint.common.monitor.CachingStatistics;
-import com.evolveum.midpoint.common.monitor.InternalMonitor;
 import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
@@ -58,6 +56,9 @@ import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.internals.CachingStatistics;
+import com.evolveum.midpoint.schema.internals.InternalMonitor;
+import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
@@ -144,6 +145,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 	private long lastConnectorOperationCount = 0;
 	private long lastConnectorSimulatedPagingSearchCount = 0;
 	private long lastDummyResourceGroupMembersReadCount = 0;
+	private long lastPrismObjectCloneCount = 0;
 
 	@Autowired(required = true)
 	@Qualifier("cacheRepositoryService")
@@ -186,11 +188,17 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 			LOGGER.trace("initSystemConditional: invoking initSystem");
 			Task initTask = taskManager.createTaskInstance(this.getClass().getName() + ".initSystem");
 			OperationResult result = initTask.getResult();
+			
 			InternalMonitor.reset();
+			InternalsConfig.setPrismMonitoring(true);
+			prismContext.setMonitor(new InternalMonitor());
+			
 			initSystem(initTask, result);
+			
 			result.computeStatus();
 			IntegrationTestTools.display("initSystem result", result);
 			TestUtil.assertSuccessOrWarning("initSystem failed (result)", result, 1);
+			
 			setSystemInitialized();
 		}
 	}
@@ -827,6 +835,26 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		long actualIncrement = currentStats.getMisses() - lastStats.getMisses();
 		assertEquals("Unexpected increment in "+desc+" miss count", (long)expectedIncrement, actualIncrement);
 		lastStats.setMisses(currentStats.getMisses());
+	}
+	
+	protected void rememberPrismObjectCloneCount() {
+		lastPrismObjectCloneCount = InternalMonitor.getPrismObjectCloneCount();
+	}
+
+	protected void assertPrismObjectCloneIncrement(int expectedIncrement) {
+		long currentCount = InternalMonitor.getPrismObjectCloneCount();
+		long actualIncrement = currentCount - lastPrismObjectCloneCount;
+		assertEquals("Unexpected increment in prism object clone count", (long)expectedIncrement, actualIncrement);
+		lastPrismObjectCloneCount = currentCount;
+	}
+	
+	protected void assertPrismObjectCloneIncrement(int expectedIncrementMin, int expectedIncrementMax) {
+		long currentCount = InternalMonitor.getPrismObjectCloneCount();
+		long actualIncrement = currentCount - lastPrismObjectCloneCount;
+		assertTrue("Unexpected increment in prism object clone count. Expected "
+		+expectedIncrementMin+"-"+expectedIncrementMax+" but was "+actualIncrement, 
+		actualIncrement >= expectedIncrementMin && actualIncrement <= expectedIncrementMax);
+		lastPrismObjectCloneCount = currentCount;
 	}
 	
 	protected void assertSteadyResources() {

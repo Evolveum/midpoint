@@ -51,7 +51,6 @@ import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.icf.dummy.resource.DummyObjectClass;
 import com.evolveum.icf.dummy.resource.DummyResource;
 import com.evolveum.icf.dummy.resource.DummySyncStyle;
-import com.evolveum.midpoint.common.InternalsConfig;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.ShadowDiscriminatorObjectDelta;
@@ -83,9 +82,11 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
@@ -342,6 +343,96 @@ public class TestVillage extends AbstractStoryTest {
         waitForTaskStart(TASK_TRIGGER_SCANNER_OID, true);
         waitForTaskStart(TASK_VALIDITY_SCANNER_OID, true);
         waitForTaskStart(TASK_LIVE_SYNC_DUMMY_SOURCE_OID, false);
+	}
+	
+	/**
+	 * MID-3424
+	 */
+	@Test
+    public void test020ResourceOpenDjGet() throws Exception {
+		final String TEST_NAME = "test020ResourceOpenDjGet";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        rememberResourceSchemaFetchCount();
+        rememberResourceSchemaParseCount();
+        rememberConnectorCapabilitiesFetchCount();
+        rememberConnectorInitializationCount();
+        rememberConnectorSchemaParseCount();
+        rememberPrismObjectCloneCount();
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        modelService.getObject(ResourceType.class, RESOURCE_OPENDJ_OID, null, task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        // variable number of clones because of trigger scanner task
+        assertPrismObjectCloneIncrement(4, 5);
+        
+        assertResourceSchemaFetchIncrement(0);
+        assertResourceSchemaParseCountIncrement(0);
+        assertConnectorCapabilitiesFetchIncrement(0);
+		assertConnectorInitializationCountIncrement(0);
+        assertConnectorSchemaParseIncrement(0);
+	}
+	
+	/**
+	 * MID-3424
+	 */
+	@Test
+    public void test022ResourceOpenDjRefinedSchema() throws Exception {
+		final String TEST_NAME = "test022ResourceOpenDjRefinedSchema";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        PrismObject<ResourceType> resourceBefore = modelService.getObject(ResourceType.class, RESOURCE_OPENDJ_OID, null, task, result);
+        ResourceSchema resourceSchemaBefore = RefinedResourceSchema.getResourceSchema(resourceBefore, prismContext);
+        RefinedResourceSchema refinedSchemaBefore = RefinedResourceSchema.getRefinedSchema(resourceBefore);
+        
+        rememberResourceSchemaFetchCount();
+        rememberResourceSchemaParseCount();
+        rememberConnectorCapabilitiesFetchCount();
+        rememberConnectorInitializationCount();
+        rememberConnectorSchemaParseCount();
+        rememberPrismObjectCloneCount();
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        long t0 = System.currentTimeMillis();
+        PrismObject<ResourceType> resourceAfter = modelService.getObject(ResourceType.class, RESOURCE_OPENDJ_OID, null, task, result);
+        long t1 = System.currentTimeMillis();
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        long t2 = System.currentTimeMillis();
+        ResourceSchema resourceSchemaAfter = RefinedResourceSchema.getResourceSchema(resourceAfter, prismContext);
+        long t3 = System.currentTimeMillis();
+        RefinedResourceSchema refinedSchemaAfter = RefinedResourceSchema.getRefinedSchema(resourceAfter);
+        long t4 = System.currentTimeMillis();
+        
+        display("Times", "getObject(RESOURCE_OPENDJ_OID): "+(t1-t0)+"ms\ngetResourceSchema: "+(t3-t2)
+        		+"ms\ngetRefinedSchema: "+(t4-t3)+"ms");
+        
+        // variable number of clones: 3 or 4 because of trigger scanner task
+        assertPrismObjectCloneIncrement(3,4);
+        
+        assertResourceSchemaFetchIncrement(0);
+        assertResourceSchemaParseCountIncrement(0);
+        assertConnectorCapabilitiesFetchIncrement(0);
+		assertConnectorInitializationCountIncrement(0);
+        assertConnectorSchemaParseIncrement(0);
+        
+        assertTrue("Resource schema has changed", resourceSchemaBefore == resourceSchemaAfter );
+        assertTrue("Refined schema has changed", refinedSchemaBefore == refinedSchemaAfter );
 	}
 	
 	@Test

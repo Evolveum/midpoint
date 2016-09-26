@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,8 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.evolveum.midpoint.common.monitor;
+package com.evolveum.midpoint.schema.internals;
 
+import com.evolveum.midpoint.prism.Objectable;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.util.PrismMonitor;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
@@ -26,9 +29,11 @@ import com.evolveum.midpoint.util.logging.TraceManager;
  * @author Radovan Semancik
  *
  */
-public class InternalMonitor {
+public class InternalMonitor implements PrismMonitor {
 	
 	private static final Trace LOGGER = TraceManager.getTrace(InternalMonitor.class);
+
+	private static final String CLONE_START_TIMESTAMP_KEY = InternalMonitor.class.getName()+".cloneStartTimestamp";
 	
 	private static long resourceSchemaParseCount = 0;
 	private static long resourceSchemaFetchCount = 0;
@@ -55,6 +60,9 @@ public class InternalMonitor {
 	 * All provisioning operations that reach out to the resources.
 	 */
 	private static long provisioningAllExtOperationCount = 0;
+	
+	private static long prismObjectCloneCount = 0;
+	private static long prismObjectCloneDurationMillis = 0;
 	
 	public static long getResourceSchemaParseCount() {
 		return resourceSchemaParseCount;
@@ -215,6 +223,33 @@ public class InternalMonitor {
 		provisioningAllExtOperationCount++;
 	}
 	
+	@Override
+	public synchronized <O extends Objectable> void beforeObjectClone(PrismObject<O> orig) {
+		LOGGER.trace("MONITOR prism object clone start: {}", orig);
+		prismObjectCloneCount++;
+		orig.setUserData(CLONE_START_TIMESTAMP_KEY, System.currentTimeMillis());
+	}
+	
+	@Override
+	public synchronized <O extends Objectable> void afterObjectClone(PrismObject<O> orig, PrismObject<O> clone) {
+		Object cloneStartObject = orig.getUserData(CLONE_START_TIMESTAMP_KEY);
+		if (cloneStartObject != null && cloneStartObject instanceof Long) {
+			long cloneDurationMillis = System.currentTimeMillis() - (Long)cloneStartObject;
+			prismObjectCloneDurationMillis += cloneDurationMillis;
+			LOGGER.debug("MONITOR prism object clone end: {} (duration {} ms)", orig, cloneDurationMillis);
+		} else {
+			LOGGER.debug("MONITOR prism object clone end: {}", orig);
+		}
+	}
+	
+	public static long getPrismObjectCloneCount() {
+		return prismObjectCloneCount;
+	}
+
+	public static void setPrismObjectCloneCount(long prismObjectCloneCount) {
+		InternalMonitor.prismObjectCloneCount = prismObjectCloneCount;
+	}
+
 	public static void reset() {
 		LOGGER.info("MONITOR reset");
 		resourceSchemaParseCount = 0;
@@ -257,4 +292,5 @@ public class InternalMonitor {
 			LOGGER.trace("MONITOR {} ({}):\n{}", new Object[]{opName, counter, sb});
 		}
 	}
+
 }
