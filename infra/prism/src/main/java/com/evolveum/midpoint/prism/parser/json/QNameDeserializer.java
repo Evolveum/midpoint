@@ -67,7 +67,7 @@ public class QNameDeserializer extends JsonDeserializer<QName>{
 	
 	private QName deserializeFromString(JsonNode node){
 		String qnameUri = node.asText();
-		return QNameUtil.uriToQName(qnameUri);
+		return QNameUtil.uriToQName(qnameUri, true);
 //		return new QName(node.asText());
 	}
 	

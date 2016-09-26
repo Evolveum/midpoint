@@ -74,7 +74,9 @@ public class PrismInternalTestUtil implements PrismContextFactory {
 	// User: jack
 	public static final String USER_JACK_FILE_BASENAME = "user-jack";
 	public static final File USER_JACK_FILE_XML = new File(COMMON_DIR_XML, USER_JACK_FILE_BASENAME+".xml");
-	
+
+	public static final String USER_JACK_NO_NS_BASENAME = "user-jack-no-ns";
+
 	public static final String USER_JACK_OBJECT_BASENAME = "user-jack-object";
 	public static final File USER_JACK_OBJECT_FILE = new File(COMMON_DIR_XML, "user-jack-object.xml");
 	

@@ -321,6 +321,8 @@ public abstract class AbstractParserTest {
 		assertEquals("Bad schema element name", DOMUtil.XSD_SCHEMA_ELEMENT, DOMUtil.getQName(schemaElement));
 		Element complexTypeElement = DOMUtil.getChildElement(schemaElement, XSD_COMPLEX_TYPE_ELEMENT_NAME);
 		assertNotNull("No complexType element in schema element in schema property in resource", complexTypeElement);
+		String complexTypeName = complexTypeElement.getAttribute("name");
+		assertEquals("Wrong name of complex type", "BarrelType", complexTypeName);
 	}
 
 	private PrismObject findObjectFromAccountRef(PrismObject<UserType> user) {
