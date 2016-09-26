@@ -64,6 +64,7 @@ import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.CapabilityUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ConnectorTestOperation;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
@@ -119,7 +120,7 @@ public class ResourceManager {
 	public PrismObject<ResourceType> getResource(PrismObject<ResourceType> repositoryObject, GetOperationOptions options, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException{
 		InternalMonitor.getResourceCacheStats().recordRequest();
 		
-		PrismObject<ResourceType> cachedResource = resourceCache.get(repositoryObject);
+		PrismObject<ResourceType> cachedResource = resourceCache.get(repositoryObject, options);
 		if (cachedResource != null) {
 			InternalMonitor.getResourceCacheStats().recordHit();
 			return cachedResource;
@@ -135,7 +136,7 @@ public class ResourceManager {
 		InternalMonitor.getResourceCacheStats().recordRequest();
 		
 		String version = repositoryService.getVersion(ResourceType.class, oid, parentResult);
-		PrismObject<ResourceType> cachedResource = resourceCache.get(oid, version);
+		PrismObject<ResourceType> cachedResource = resourceCache.get(oid, version, options);
 		if (cachedResource != null) {
 			InternalMonitor.getResourceCacheStats().recordHit();
 			if (LOGGER.isTraceEnabled()){
@@ -149,7 +150,11 @@ public class ResourceManager {
 					new Object[]{oid, version, resourceCache.getVersion(oid)});
 		}
 		
-		PrismObject<ResourceType> repositoryObject = repositoryService.getObject(ResourceType.class, oid, null, parentResult);
+		Collection<SelectorOptions<GetOperationOptions>> repoOptions = null;
+		if (GetOperationOptions.isReadOnly(options)) {
+			repoOptions = SelectorOptions.createCollection(GetOperationOptions.createReadOnly());
+		}
+		PrismObject<ResourceType> repositoryObject = repositoryService.getObject(ResourceType.class, oid, repoOptions, parentResult);
 		
 		return loadAndCacheResource(repositoryObject, options, parentResult);
 	}
@@ -523,7 +528,7 @@ public class ResourceManager {
 	private void applyConnectorSchemaToResource(PrismObject<ResourceType> resource, OperationResult result)
 			throws SchemaException, ObjectNotFoundException {
 		
-		ConnectorType connectorType = connectorTypeManager.getConnectorType(resource.asObjectable(), result);
+		ConnectorType connectorType = connectorTypeManager.getConnectorTypeReadOnly(resource.asObjectable(), result);
 		PrismSchema connectorSchema = connectorTypeManager.getConnectorSchema(connectorType);
 		if (connectorSchema == null) {
 			throw new SchemaException("No connector schema in "+connectorType);

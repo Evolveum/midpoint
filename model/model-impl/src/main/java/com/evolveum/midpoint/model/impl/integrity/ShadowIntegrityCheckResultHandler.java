@@ -225,7 +225,7 @@ public class ShadowIntegrityCheckResultHandler extends AbstractSearchIterativeRe
         }
 
         try {
-            configuration = Utils.getSystemConfiguration(repositoryService, result);
+            configuration = Utils.getSystemConfigurationReadOnly(repositoryService, result);
         } catch (SchemaException e) {
             throw new SystemException("Couldn't get system configuration", e);
         }

@@ -237,6 +237,13 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 			ref.setType(ObjectTypes.getObjectType(clazz).getTypeQName());
             Utils.clearRequestee(task);
 
+//            Specal-purpose code to hunt down read-write resource fetch from GUI.
+//            Normally the code is not active. It is too brutal. Just for MID-3424.
+//            if (ResourceType.class == clazz && !GetOperationOptions.isRaw(rootOptions) && !GetOperationOptions.isReadOnly(rootOptions)) {
+//            	LOGGER.info("READWRITE resource get: {} {}:\n{}", oid, options, 
+//            			LoggingUtils.dumpStackTrace());
+//            }
+
             object = objectResolver.getObject(clazz, oid, options, task, result).asPrismObject();
 
             schemaTransformer.applySchemasAndSecurity(object, rootOptions, null, task, result);

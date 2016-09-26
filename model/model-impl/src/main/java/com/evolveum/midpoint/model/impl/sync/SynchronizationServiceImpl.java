@@ -153,7 +153,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 
 			ResourceType resourceType = change.getResource().asObjectable();
 			PrismObject<SystemConfigurationType> configuration = Utils
-					.getSystemConfiguration(repositoryService, subResult);
+					.getSystemConfigurationReadOnly(repositoryService, subResult);
 
 			ObjectSynchronizationType synchronizationPolicy = determineSynchronizationPolicy(resourceType,
 					applicableShadow, configuration, task, subResult);

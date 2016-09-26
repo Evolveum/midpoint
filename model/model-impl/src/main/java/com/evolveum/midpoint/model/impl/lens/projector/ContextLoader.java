@@ -262,7 +262,7 @@ public class ContextLoader {
 			}
 			ResourceType resource = projectionContext.getResource();
 			if (resource == null) {
-				resource = LensUtil.getResource(context, resourceOid, provisioningService, task, result);
+				resource = LensUtil.getResourceReadOnly(context, resourceOid, provisioningService, task, result);
 				projectionContext.setResource(resource);
 			}
             String refinedIntent = LensUtil.refineProjectionIntent(kind, intent, resource, prismContext);
@@ -371,7 +371,7 @@ public class ContextLoader {
 	
 	private <F extends ObjectType> void loadFromSystemConfig(LensContext<F> context, OperationResult result)
 			throws ObjectNotFoundException, SchemaException, ConfigurationException {
-		PrismObject<SystemConfigurationType> systemConfiguration = LensUtil.getSystemConfiguration(context, cacheRepositoryService, result);
+		PrismObject<SystemConfigurationType> systemConfiguration = LensUtil.getSystemConfigurationReadOnly(context, cacheRepositoryService, result);
 		if (systemConfiguration == null) {
 			// This happens in some tests. And also during first startup.
 			return;
@@ -790,7 +790,7 @@ public class ContextLoader {
 					if (resourceOid == null) {
 						throw new IllegalArgumentException("No resource OID in " + shadow);
 					}
-					ResourceType resourceType = LensUtil.getResource(context, resourceOid, provisioningService, task, result);
+					ResourceType resourceType = LensUtil.getResourceReadOnly(context, resourceOid, provisioningService, task, result);
 					projCtx.setResource(resourceType);
 				}
 				projCtx.setFresh(true);
@@ -822,7 +822,7 @@ public class ContextLoader {
 		if (projectionContext == null) {
 			String intent = ShadowUtil.getIntent(accountType);
 			ShadowKindType kind = ShadowUtil.getKind(accountType);
-			ResourceType resource = LensUtil.getResource(context, resourceOid, provisioningService, task, result);
+			ResourceType resource = LensUtil.getResourceReadOnly(context, resourceOid, provisioningService, task, result);
 			intent = LensUtil.refineProjectionIntent(kind, intent, resource, prismContext);
 			ResourceShadowDiscriminator rsd = new ResourceShadowDiscriminator(resourceOid, kind, intent);
 			projectionContext = LensUtil.getOrCreateProjectionContext(context, rsd);
@@ -899,7 +899,7 @@ public class ContextLoader {
 		}
 		String intent = ShadowUtil.getIntent(shadowType);
 		ShadowKindType kind = ShadowUtil.getKind(shadowType);
-		ResourceType resource = LensUtil.getResource(context, resourceOid, provisioningService, task, result);
+		ResourceType resource = LensUtil.getResourceReadOnly(context, resourceOid, provisioningService, task, result);
 		String accountIntent = LensUtil.refineProjectionIntent(kind, intent, resource, prismContext);
 		ResourceShadowDiscriminator rsd = new ResourceShadowDiscriminator(resourceOid, kind, accountIntent);
 		LensProjectionContext accountSyncContext = context.findProjectionContext(rsd);
@@ -1092,7 +1092,7 @@ public class ContextLoader {
 		
 		// Load resource
 		if (resourceType == null && resourceOid != null) {
-			resourceType = LensUtil.getResource(context, resourceOid, provisioningService, task, result);
+			resourceType = LensUtil.getResourceReadOnly(context, resourceOid, provisioningService, task, result);
 			projContext.setResource(resourceType);
 		}
 		
