@@ -208,8 +208,17 @@ public class PrismObject<O extends Objectable> extends PrismContainer<O> {
 
 	@Override
 	public PrismObject<O> clone() {
+		if (prismContext != null && prismContext.getMonitor() != null) {
+			prismContext.getMonitor().beforeObjectClone(this);
+		}
+		
 		PrismObject<O> clone = new PrismObject<O>(getElementName(), getDefinition(), prismContext);
 		copyValues(clone);
+		
+		if (prismContext != null && prismContext.getMonitor() != null) {
+			prismContext.getMonitor().afterObjectClone(this, clone);
+		}
+		
 		return clone;
 	}
 

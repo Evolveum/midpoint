@@ -23,6 +23,9 @@ import java.io.IOException;
 import java.util.Arrays;
 
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.internals.InternalMonitor;
+import com.evolveum.midpoint.schema.internals.InternalsConfig;
+
 import org.xml.sax.SAXException;
 
 import com.evolveum.midpoint.prism.PrismContext;
@@ -60,6 +63,11 @@ public class MidPointPrismContextFactory implements PrismContextFactory {
 		SchemaRegistry schemaRegistry = createSchemaRegistry();
 		PrismContext context = PrismContext.create(schemaRegistry);
 		context.setDefinitionFactory(createDefinitionFactory());
+		
+		if (InternalsConfig.isPrismMonitoring()) {
+			context.setMonitor(new InternalMonitor());
+		}
+		
 		return context;
 	}
 	
