@@ -541,7 +541,7 @@ public final class Utils {
 	private static final long CACHED_SYSTEM_CONFIGURATION_TTL = 120000L;		// just to avoid stalled data if version is not incremented for any reason
 
 	private static final String NO_SYSTEM_CONFIG_MSG = "System configuration object was not found (should not happen in production except for initial repository loading)";
-	public static PrismObject<SystemConfigurationType> getSystemConfiguration(RepositoryService repositoryService, OperationResult result) throws SchemaException {
+	public static PrismObject<SystemConfigurationType> getSystemConfigurationReadOnly(RepositoryService repositoryService, OperationResult result) throws SchemaException {
 		PrismObject<SystemConfigurationType> systemConfiguration = null;
 		if (cachedSystemConfiguration != null && cachedSystemConfigurationRetrieveTimestamp + CACHED_SYSTEM_CONFIGURATION_TTL >= System.currentTimeMillis()) {
 			String currentVersion;
@@ -554,13 +554,15 @@ public final class Utils {
 			}
 			if (currentVersion != null && currentVersion.equals(cachedSystemConfiguration.getVersion())) {
 				LOGGER.trace("Using cached system configuration object; version = {}", currentVersion);
-				return cachedSystemConfiguration.clone();
+				return cachedSystemConfiguration;
 			}
 		}
 		try {
 			LOGGER.trace("Cache miss: reading system configuration from the repository");
+			GetOperationOptions option = GetOperationOptions.createAllowNotFound();
+			option.setReadOnly(true);
 			systemConfiguration = repositoryService.getObject(SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(),
-					SelectorOptions.createCollection(GetOperationOptions.createAllowNotFound()), result);
+					SelectorOptions.createCollection(option), result);
 		} catch (ObjectNotFoundException e) {
 			// just go on ... we will return and continue
 			// This is needed e.g. to set up new system configuration is the old one gets deleted
@@ -571,7 +573,7 @@ public final class Utils {
 		    LOGGER.warn(NO_SYSTEM_CONFIG_MSG);
 		    return null;
 		}
-		cachedSystemConfiguration = systemConfiguration.clone();
+		cachedSystemConfiguration = systemConfiguration;
 		cachedSystemConfigurationRetrieveTimestamp = System.currentTimeMillis();
 		return systemConfiguration;
 	}

@@ -1008,7 +1008,7 @@ public class AssignmentProcessor {
             String resourceOid = construction.getResource(task, result).getOid();
             String intent = construction.getIntent();
             ShadowKindType kind = construction.getKind();
-            ResourceType resource = LensUtil.getResource(context, resourceOid, provisioningService, task, result);
+            ResourceType resource = LensUtil.getResourceReadOnly(context, resourceOid, provisioningService, task, result);
             intent = LensUtil.refineProjectionIntent(kind, intent, resource, prismContext);
             ResourceShadowDiscriminator rat = new ResourceShadowDiscriminator(resourceOid, kind, intent);
             ConstructionPack constructionPack = null;
