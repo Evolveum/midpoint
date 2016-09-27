@@ -3,7 +3,7 @@ package com.evolveum.midpoint.prism.parser;
 import com.evolveum.midpoint.prism.parser.json.YamlParser;
 import org.testng.annotations.Test;
 
-public class TestYamlParser extends AbstractParserTest{
+public class TestYamlParser extends AbstractParserTest {
  
 	
 	@Override
@@ -21,7 +21,4 @@ public class TestYamlParser extends AbstractParserTest{
 		return new YamlParser();
 	}
 
-	@Test
-	public void f() {
-	}
 }

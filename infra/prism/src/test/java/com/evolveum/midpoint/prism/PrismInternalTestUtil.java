@@ -100,6 +100,8 @@ public class PrismInternalTestUtil implements PrismContextFactory {
 	public static final String USER_WILL_FILE_BASENAME = "user-will";
 	public static final File USER_WILL_FILE = new File(COMMON_DIR_XML, "user-will.xml");
 
+	public static final String USER_ELISABETH_FILE_BASENAME = "user-elisabeth";
+
 	public static final String RESOURCE_RUM_FILE_BASENAME = "resource-rum";
 	public static final String RESOURCE_RUM_OID = "c0c010c0-d34d-b33f-f00d-222222220001";
 	
@@ -110,6 +112,7 @@ public class PrismInternalTestUtil implements PrismContextFactory {
 	public static final String NS_USER_EXT = "http://example.com/xml/ns/user-extension";
 	public static final String NS_ROOT = "http://example.com/xml/ns/test/root.xsd";
 	public static final String NS_EXTENSION = "http://midpoint.evolveum.com/xml/ns/test/extension";
+	public static final String NS_EXTENSION_SECONDARY = "http://midpoint.evolveum.com/xml/ns/test/extension/secondary";
 	public static final String NS_ADHOC = "http://midpoint.evolveum.com/xml/ns/test/adhoc-1.xsd";
 	public static final String NS_WEAPONS = "http://midpoint.evolveum.com/xml/ns/test/weapons";
 	public static final String NS_WEAPONS_PREFIX = "w";
@@ -185,7 +188,11 @@ public class PrismInternalTestUtil implements PrismContextFactory {
 	public static final QName EXTENSION_MELEE_CONTEXT_TYPE_QNAME = new QName(NS_EXTENSION, "MeleeContextType");
 	public static final QName EXTENSION_MELEE_CONTEXT_OPPONENT_REF_ELEMENT = new QName(NS_EXTENSION, "opponentRef");
 	public static final QName EXTENSION_MELEE_CONTEXT_OPPONENT_ELEMENT = new QName(NS_EXTENSION, "opponent");
-	
+
+	// extension-secondary.xsd
+	public static final QName EXTENSION_SECONDARY_STRING_TYPE_ELEMENT = new QName(NS_EXTENSION_SECONDARY, "stringType");
+	public static final QName EXTENSION_SECONDARY_SECONDARY_STRING_TYPE_ELEMENT = new QName(NS_EXTENSION_SECONDARY, "secondaryStringType");
+
 	// These are NOT in the extension.xsd but are used as dynamic elements
 	public static final QName EXTENSION_BAR_ELEMENT = new QName(NS_EXTENSION, "bar");
 	public static final QName EXTENSION_FOOBAR_ELEMENT = new QName(NS_EXTENSION, "foobar");

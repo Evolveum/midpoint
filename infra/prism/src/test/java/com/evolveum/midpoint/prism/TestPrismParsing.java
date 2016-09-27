@@ -365,6 +365,44 @@ public abstract class TestPrismParsing {
 		
 	}
 	
+	@Test
+	public void testUserElisabethRoundTrip() throws Exception {
+		final String TEST_NAME = "testUserElisabethRoundTrip";
+		PrismInternalTestUtil.displayTestTitle(TEST_NAME);
+
+		// GIVEN
+		PrismContext prismContext = constructInitializedPrismContext();
+
+		// WHEN
+		PrismObject<UserType> user = prismContext.parseObject(getFile(USER_ELISABETH_FILE_BASENAME));
+
+		// THEN
+		System.out.println("User:");
+		System.out.println(user.debugDump());
+		assertNotNull(user);
+
+		assertUserElisabeth(user);
+
+		// WHEN
+		String serialized = prismContext.serializeObjectToString(user, getOutputFormat());
+
+		// THEN
+		assertNotNull(serialized);
+		System.out.println("Serialized user:");
+		System.out.println(serialized);
+
+		// WHEN
+		PrismObject<UserType> reparsedUser = prismContext.parseObject(serialized);
+
+		// THEN
+		System.out.println("Re-parsed user:");
+		System.out.println(reparsedUser.debugDump());
+		assertNotNull(reparsedUser);
+
+		assertUserElisabeth(reparsedUser);
+
+	}
+
 	protected void assertUserAdhoc(PrismObject<UserType> user) throws SchemaException {
 		user.checkConsistence();
 		assertUserJackContent(user);
@@ -493,7 +531,35 @@ public abstract class TestPrismParsing {
 		assertEquals("Multi",3,multiPVals.size());
 
     }
-	
+
+	private void assertUserElisabeth(PrismObject<UserType> user) throws SchemaException {
+		user.checkConsistence();
+		user.assertDefinitions("test");
+		assertUserElisabethExtension(user);
+		//assertVisitor(user,55);
+	}
+
+	private void assertUserElisabethExtension(PrismObject<UserType> user) {
+
+		PrismContainer<?> extension = user.getExtension();
+		assertContainerDefinition(extension, "extension", DOMUtil.XSD_ANY, 0, 1);
+		PrismContainerValue<?> extensionValue = extension.getValue();
+		assertTrue("Extension parent", extensionValue.getParent() == extension);
+		assertNull("Extension ID", extensionValue.getId());
+
+//		PrismProperty<String> stringType = extension.findProperty(EXTENSION_STRING_TYPE_ELEMENT);
+//		PrismAsserts.assertPropertyValue(stringType, "BARbar", "FOObar");
+//		PrismPropertyDefinition stringTypePropertyDef = stringType.getDefinition();
+//		PrismAsserts.assertDefinition(stringTypePropertyDef, EXTENSION_STRING_TYPE_ELEMENT, DOMUtil.XSD_STRING, 0, -1);
+//		assertNull("'Indexed' attribute on 'stringType' property is not null", stringTypePropertyDef.isIndexed());
+
+		PrismProperty<String> secondaryStringType = extension.findProperty(EXTENSION_SECONDARY_SECONDARY_STRING_TYPE_ELEMENT);
+		PrismAsserts.assertPropertyValue(secondaryStringType, "string1");
+		PrismPropertyDefinition secondaryStringTypePropertyDef = secondaryStringType.getDefinition();
+		PrismAsserts.assertDefinition(secondaryStringTypePropertyDef, EXTENSION_SINGLE_STRING_TYPE_ELEMENT, DOMUtil.XSD_STRING, 0, -1);
+		assertNull("'Indexed' attribute on 'secondaryStringType' property is not null", secondaryStringTypePropertyDef.isIndexed());
+	}
+
 	protected void validateXml(String xmlString, PrismContext prismContext) throws SAXException, IOException {
 	}
 	
