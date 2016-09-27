@@ -17,6 +17,8 @@ package com.evolveum.midpoint.web.component.objectdetails;
 
 import java.util.List;
 
+import com.evolveum.midpoint.gui.api.util.FocusTabVisibleBehavior;
+import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 
@@ -52,8 +54,11 @@ public class AbstractRoleMainPanel<R extends AbstractRoleType> extends FocusMain
 	@Override
 	protected List<ITab> createTabs(final PageAdminObjectDetails<R> parentPage) {
 		List<ITab> tabs = super.createTabs(parentPage);
-		
-		tabs.add(new CountablePanelTab(parentPage.createStringResource("FocusType.inducement")) {
+
+		FocusTabVisibleBehavior authorization = new FocusTabVisibleBehavior(unwrapModel(),
+				AuthorizationConstants.AUTZ_UI_FOCUS_INDUCEMENTS_URL);
+		tabs.add(new CountablePanelTab(parentPage.createStringResource("FocusType.inducement"), authorization)
+		{
 			private static final long serialVersionUID = 1L;
 			
 			@Override

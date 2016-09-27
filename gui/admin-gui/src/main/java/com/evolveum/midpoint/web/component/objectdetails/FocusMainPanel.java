@@ -19,7 +19,10 @@ import com.evolveum.midpoint.gui.api.component.tabs.CountablePanelTab;
 import com.evolveum.midpoint.gui.api.component.tabs.PanelTab;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.FocusTabVisibleBehavior;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.*;
+import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -39,6 +42,8 @@ import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.model.AbstractReadOnlyModel;
+import org.apache.wicket.model.IModel;
 import org.apache.wicket.util.string.StringValue;
 
 import java.lang.reflect.Constructor;
@@ -204,10 +209,23 @@ public class FocusMainPanel<F extends FocusType> extends AbstractObjectMainPanel
 		return new RequestAssignmentTabPanel<F>(panelId, getMainForm(), getObjectModel(), assignmentsModel, parentPage);
 	}
 
+	protected IModel<PrismObject<F>> unwrapModel() {
+		return new AbstractReadOnlyModel<PrismObject<F>>() {
+
+				@Override
+			public PrismObject<F> getObject() {
+				return getObjectWrapper().getObject();
+			}
+		};
+	}
+
 	protected void addDefaultTabs(final PageAdminObjectDetails<F> parentPage, List<ITab> tabs) {
+		FocusTabVisibleBehavior authorization = new FocusTabVisibleBehavior(unwrapModel(),
+				AuthorizationConstants.AUTZ_UI_FOCUS_BASIC_URL);
 
 		tabs.add(
-				new PanelTab(parentPage.createStringResource("pageAdminFocus.basic")){
+				new PanelTab(parentPage.createStringResource("pageAdminFocus.basic"), authorization){
+
 					private static final long serialVersionUID = 1L;
 
 					@Override
@@ -216,8 +234,10 @@ public class FocusMainPanel<F extends FocusType> extends AbstractObjectMainPanel
 					}
 				});
 
+		authorization = new FocusTabVisibleBehavior(unwrapModel(), AuthorizationConstants.AUTZ_UI_FOCUS_PROJECTIONS_URL);
 		tabs.add(
-                new CountablePanelTab(parentPage.createStringResource("pageAdminFocus.projections")){
+                new CountablePanelTab(parentPage.createStringResource("pageAdminFocus.projections"), authorization){
+
                 	private static final long serialVersionUID = 1L;
 
 					@Override
@@ -231,8 +251,10 @@ public class FocusMainPanel<F extends FocusType> extends AbstractObjectMainPanel
 					}
 				});
 
+		authorization = new FocusTabVisibleBehavior(unwrapModel(), AuthorizationConstants.AUTZ_UI_FOCUS_ASSIGNMENTS_URL);
 		tabs.add(
-				new CountablePanelTab(parentPage.createStringResource("pageAdminFocus.assignments")) {
+				new CountablePanelTab(parentPage.createStringResource("pageAdminFocus.assignments"), authorization) {
+
 					private static final long serialVersionUID = 1L;
 
 					@Override
@@ -246,8 +268,10 @@ public class FocusMainPanel<F extends FocusType> extends AbstractObjectMainPanel
 					}
 				});
 
+		authorization = new FocusTabVisibleBehavior(unwrapModel(), AuthorizationConstants.AUTZ_UI_FOCUS_TASKS_URL);
 		tabs.add(
-				new CountablePanelTab(parentPage.createStringResource("pageAdminFocus.tasks")) {
+				new CountablePanelTab(parentPage.createStringResource("pageAdminFocus.tasks"), authorization) {
+
 					private static final long serialVersionUID = 1L;
 
 					@Override
@@ -262,8 +286,10 @@ public class FocusMainPanel<F extends FocusType> extends AbstractObjectMainPanel
 				});
 
         if (!(parentPage instanceof PageSelfProfile)) {
+			authorization = new FocusTabVisibleBehavior(unwrapModel(), AuthorizationConstants.AUTZ_UI_FOCUS_REQUEST_ROLE_URL);
             tabs.add(
-                    new PanelTab(parentPage.createStringResource("pageAdminFocus.request")) {
+                    new PanelTab(parentPage.createStringResource("pageAdminFocus.request"), authorization) {
+
                     	private static final long serialVersionUID = 1L;
 
                         @Override

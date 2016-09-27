@@ -305,4 +305,27 @@ public class AuthorizationConstants {
     public static final QName AUTZ_UI_UNASSIGN_ACTION_QNAME = new QName(NS_AUTHORIZATION_MODEL, "unassign");
     public static final String AUTZ_UI_UNASSIGN_ACTION_URL = NS_AUTHORIZATION_MODEL + "#unassign";
 
+	// UI - Tabs for focus objects
+	public static final QName AUTZ_UI_FOCUS_BASIC = new QName(NS_AUTHORIZATION_UI, "focusTabBasic");
+	public static final String AUTZ_UI_FOCUS_BASIC_URL = QNameUtil.qNameToUri(AUTZ_UI_FOCUS_BASIC);
+	public static final QName AUTZ_UI_FOCUS_PROJECTIONS = new QName(NS_AUTHORIZATION_UI, "focusTabProjections");
+	public static final String AUTZ_UI_FOCUS_PROJECTIONS_URL = QNameUtil.qNameToUri(AUTZ_UI_FOCUS_PROJECTIONS);
+	public static final QName AUTZ_UI_FOCUS_ASSIGNMENTS = new QName(NS_AUTHORIZATION_UI, "focusTabAssignments");
+	public static final String AUTZ_UI_FOCUS_ASSIGNMENTS_URL = QNameUtil.qNameToUri(AUTZ_UI_FOCUS_ASSIGNMENTS);
+	public static final QName AUTZ_UI_FOCUS_TASKS = new QName(NS_AUTHORIZATION_UI, "focusTabTasks");
+	public static final String AUTZ_UI_FOCUS_TASKS_URL = QNameUtil.qNameToUri(AUTZ_UI_FOCUS_TASKS);
+	public static final QName AUTZ_UI_FOCUS_REQUEST_ROLE = new QName(NS_AUTHORIZATION_UI, "focusTabRequestRole");
+	public static final String AUTZ_UI_FOCUS_REQUEST_ROLE_URL = QNameUtil.qNameToUri(AUTZ_UI_FOCUS_REQUEST_ROLE);
+	public static final QName AUTZ_UI_FOCUS_INDUCEMENTS = new QName(NS_AUTHORIZATION_UI, "focusTabInducements");
+	public static final String AUTZ_UI_FOCUS_INDUCEMENTS_URL = QNameUtil.qNameToUri(AUTZ_UI_FOCUS_INDUCEMENTS);
+	public static final QName AUTZ_UI_ROLE_POLICY_CONSTRAINTS = new QName(NS_AUTHORIZATION_UI, "focusTabPolicyConstraints");
+	public static final String AUTZ_UI_ROLE_POLICY_CONSTRAINTS_URL = QNameUtil.qNameToUri(AUTZ_UI_ROLE_POLICY_CONSTRAINTS);
+	public static final QName AUTZ_UI_ROLE_MEMBERS = new QName(NS_AUTHORIZATION_UI, "focusTabMembers");
+	public static final String AUTZ_UI_ROLE_MEMBERS_URL = QNameUtil.qNameToUri(AUTZ_UI_ROLE_MEMBERS);
+
+	public static final QName AUTZ_UI_OBJECT_DETAILS_BARE = new QName(NS_AUTHORIZATION_UI, "objectDetailsBare");
+	public static final String AUTZ_UI_OBJECT_DETAILS_BARE_URL = NS_AUTHORIZATION_UI + "#objectDetailsBare";
+	public static final QName AUTZ_UI_OBJECT_CREATE_BARE = new QName(NS_AUTHORIZATION_UI, "objectCreateBare");
+	public static final String AUTZ_UI_OBJECT_CREATE_BARE_URL = NS_AUTHORIZATION_UI + "#objectCreateBare";
+
 }
