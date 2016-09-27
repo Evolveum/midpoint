@@ -20,7 +20,6 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 import org.w3c.dom.Element;
@@ -45,7 +44,8 @@ public abstract class PrismValue implements Visitable, PathVisitable, Serializab
     private Objectable originObject;
     private Itemable parent;
     protected Element domElement = null;
-    private transient Map<String,Object> userData = new HashMap<>();;
+    private transient Map<String,Object> userData = new HashMap<>();
+	protected boolean immutable;
 
     PrismValue() {
 		super();
@@ -145,10 +145,12 @@ public abstract class PrismValue implements Visitable, PathVisitable, Serializab
     }
 	
 	public void applyDefinition(ItemDefinition definition) throws SchemaException {
+		checkMutability();		// TODO reconsider
 		applyDefinition(definition, true);
 	}
 	
 	public void applyDefinition(ItemDefinition definition, boolean force) throws SchemaException {
+		checkMutability();		// TODO reconsider
 		// Do nothing by default
 	}
 	
@@ -239,7 +241,7 @@ public abstract class PrismValue implements Visitable, PathVisitable, Serializab
 		}
 		return clonedCollection;
 	}
-	
+
 	public abstract PrismValue clone();
 	
 	protected void copyValues(PrismValue clone) {
@@ -248,6 +250,7 @@ public abstract class PrismValue implements Visitable, PathVisitable, Serializab
 		// Do not clone parent. The clone will most likely go to a different prism
 		// and setting the parent will make it difficult to add it there.
 		clone.parent = null;
+		// Do not clone immutable flag.
 	}
 	
 	public static <T extends PrismValue> Collection<T> cloneCollection(Collection<T> values) {
@@ -281,6 +284,7 @@ public abstract class PrismValue implements Visitable, PathVisitable, Serializab
 	
 	public boolean equalsComplex(PrismValue other, boolean ignoreMetadata, boolean isLiteral) {
 		// parent is not considered at all. it is not relevant.
+		// neither the immutable flag
 		if (!ignoreMetadata) {
 			if (originObject == null) {
 				if (other.originObject != null)
@@ -382,4 +386,19 @@ public abstract class PrismValue implements Visitable, PathVisitable, Serializab
         }
         return retval;
     }
+
+	public boolean isImmutable() {
+		return immutable;
+	}
+
+	public void setImmutable(boolean immutable) {
+		this.immutable = immutable;
+	}
+
+	protected void checkMutability() {
+		if (immutable) {
+			throw new IllegalStateException("An attempt to modify an immutable value of " + toHumanReadableString());
+		}
+	}
+
 }

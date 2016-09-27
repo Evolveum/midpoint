@@ -29,14 +29,7 @@ import javax.xml.namespace.QName;
 
 import java.io.Serializable;
 import java.lang.reflect.Constructor;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-
+import java.util.*;
 
 /**
  * Item is a common abstraction of Property and PropertyContainer.
@@ -60,6 +53,8 @@ public abstract class Item<V extends PrismValue, D extends ItemDefinition> imple
     protected D definition;
     private List<V> values = new ArrayList<V>();
     private transient Map<String,Object> userData = new HashMap<>();;
+
+	protected boolean immutable;
     
     protected transient PrismContext prismContext;          // beware, this one can easily be null
 
@@ -134,9 +129,10 @@ public abstract class Item<V extends PrismValue, D extends ItemDefinition> imple
      * <p/>
      * The name is the QName of XML element in the XML representation.
      *
-     * @param name the name to set
+     * @param elementName the name to set
      */
     public void setElementName(QName elementName) {
+		checkMutability();
         this.elementName = elementName;
     }
 
@@ -146,6 +142,7 @@ public abstract class Item<V extends PrismValue, D extends ItemDefinition> imple
      * @param definition the definition to set
      */
     public void setDefinition(D definition) {
+		checkMutability();
     	checkDefinition(definition);
         this.definition = definition;
     }
@@ -201,6 +198,8 @@ public abstract class Item<V extends PrismValue, D extends ItemDefinition> imple
     	if (this.parent != null && parentValue != null && this.parent != parentValue) {
     		throw new IllegalStateException("Attempt to reset parent of item "+this+" from "+this.parent+" to "+parentValue);
     	}
+    	// Immutability check can be skipped, as setting the parent doesn't alter this object.
+		// However, if existing parent itself is immutable, adding/removing its child item will cause the exception.
     	this.parent = parentValue;
     }
     
@@ -215,14 +214,20 @@ public abstract class Item<V extends PrismValue, D extends ItemDefinition> imple
 		if (userData == null) {
 			userData = new HashMap<>();
 		}
-		return userData;
+		if (immutable) {
+			return Collections.unmodifiableMap(userData);			// TODO beware, objects in userData themselves are mutable
+		} else {
+			return userData;
+		}
 	}
     
     public Object getUserData(String key) {
+		// TODO make returned data immutable (?)
 		return getUserData().get(key);
 	}
     
     public void setUserData(String key, Object value) {
+		checkMutability();
     	getUserData().put(key, value);
     }
 
@@ -370,6 +375,7 @@ public abstract class Item<V extends PrismValue, D extends ItemDefinition> imple
     }
     
     public boolean addAll(Collection<V> newValues) throws SchemaException {
+		checkMutability();			// TODO consider weaker condition, like testing if there's a real change
     	boolean changed = false;
     	for (V val: newValues) {
     		if (add(val)) {
@@ -384,6 +390,7 @@ public abstract class Item<V extends PrismValue, D extends ItemDefinition> imple
     }
     
     public boolean add(V newValue, boolean checkUniqueness) throws SchemaException {
+		checkMutability();
     	newValue.setParent(this);
     	if (checkUniqueness && containsEquivalentValue(newValue)) {
     		return false;
@@ -395,6 +402,7 @@ public abstract class Item<V extends PrismValue, D extends ItemDefinition> imple
     }
     
     public boolean removeAll(Collection<V> newValues) {
+		checkMutability();					// TODO consider if there is real change
     	boolean changed = false;
     	for (V val: newValues) {
     		if (remove(val)) {
@@ -405,6 +413,7 @@ public abstract class Item<V extends PrismValue, D extends ItemDefinition> imple
     }
 
     public boolean remove(V newValue) {
+		checkMutability();					// TODO consider if there is real change
     	boolean changed = false;
     	Iterator<V> iterator = values.iterator();
     	while (iterator.hasNext()) {
@@ -418,26 +427,31 @@ public abstract class Item<V extends PrismValue, D extends ItemDefinition> imple
     }
     
     public V remove(int index) {
+		checkMutability();					// TODO consider if there is real change
     	return values.remove(index);
     }
 
     public void replaceAll(Collection<V> newValues) throws SchemaException {
+		checkMutability();					// TODO consider if there is real change
     	values.clear();
     	addAll(newValues);
     }
 
     public void replace(V newValue) {
+		checkMutability();					// TODO consider if there is real change
     	values.clear();
         newValue.setParent(this);
     	values.add(newValue);
     }
     
     public void clear() {
-    	values.clear();
+		checkMutability();					// TODO consider if there is real change
+		values.clear();
     }
     
     public void normalize() {
-    	Iterator<V> iterator = values.iterator();
+		checkMutability();					// TODO consider if there is real change
+		Iterator<V> iterator = values.iterator();
     	while (iterator.hasNext()) {
     		V value = iterator.next();
     		value.normalize();
@@ -570,6 +584,7 @@ public abstract class Item<V extends PrismValue, D extends ItemDefinition> imple
 	}
 	
 	public void applyDefinition(D definition, boolean force) throws SchemaException {
+		checkMutability();					// TODO consider if there is real change
 		if (definition != null) {
 			checkDefinition(definition);
 		}
@@ -607,6 +622,7 @@ public abstract class Item<V extends PrismValue, D extends ItemDefinition> imple
         // another item
         clone.parent = null;
         clone.userData = MiscUtil.cloneMap(this.userData);
+		// Also do not copy 'immutable' flag so the clone is free to be modified
     }
     
     protected void propagateDeepCloneDefinition(boolean ultraDeep, D clonedDefinition) {
@@ -887,11 +903,27 @@ public abstract class Item<V extends PrismValue, D extends ItemDefinition> imple
         return sb.toString();
     }
 
-    /**
+	/**
      * Return a human readable name of this class suitable for logs.
      */
     protected String getDebugDumpClassName() {
         return "Item";
     }
-    
+
+	public boolean isImmutable() {
+		return immutable;
+	}
+
+	public void setImmutable(boolean immutable) {
+		this.immutable = immutable;
+		for (V value : getValues()) {
+			value.setImmutable(immutable);
+		}
+	}
+
+	protected void checkMutability() {
+		if (immutable) {
+			throw new IllegalStateException("An attempt to modify an immutable item: " + toString());
+		}
+	}
 }

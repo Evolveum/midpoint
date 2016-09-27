@@ -170,6 +170,7 @@ public class PrismContainer<C extends Containerable> extends Item<PrismContainer
     }
     
     public void setValue(PrismContainerValue<C> value) throws SchemaException {
+		checkMutability();
     	if (getDefinition() != null) {
 			if (getDefinition().isSingleValue()) {
 				clear();
@@ -185,6 +186,7 @@ public class PrismContainer<C extends Containerable> extends Item<PrismContainer
 
     @Override
     public boolean add(PrismContainerValue newValue, boolean checkUniqueness) throws SchemaException {
+		checkMutability();
         // when a context-less item is added to a contextful container, it is automatically adopted
         if (newValue.getPrismContext() == null && this.prismContext != null) {
             prismContext.adopt(newValue);
@@ -232,6 +234,7 @@ public class PrismContainer<C extends Containerable> extends Item<PrismContainer
     }
     
     public void setPropertyRealValue(QName propertyName, Object realValue) throws SchemaException {
+		checkMutability();
     	PrismProperty<?> property = findOrCreateProperty(propertyName);
     	property.setRealValue(realValue);
     }
@@ -252,10 +255,12 @@ public class PrismContainer<C extends Containerable> extends Item<PrismContainer
      * Convenience method. Works only on single-valued containers.
      */
     public void add(Item<?,?> item) throws SchemaException {
+		checkMutability();
     	getValue().add(item);
     }
     
     public PrismContainerValue<C> createNewValue() {
+		checkMutability();
     	PrismContainerValue<C> pValue = new PrismContainerValue<C>(prismContext);
     	try {
     		// No need to check uniqueness, we know that this value is new and therefore
@@ -281,6 +286,7 @@ public class PrismContainer<C extends Containerable> extends Item<PrismContainer
     }
     
 	public void mergeValue(PrismContainerValue<C> otherValue) throws SchemaException {
+		checkMutability();
 		Iterator<PrismContainerValue<C>> iterator = getValues().iterator();
 		while (iterator.hasNext()) {
 			PrismContainerValue<C> thisValue = iterator.next();
@@ -304,10 +310,11 @@ public class PrismContainer<C extends Containerable> extends Item<PrismContainer
      * Remove all empty values
      */
     public void trim() {
-    	Iterator<PrismContainerValue<C>> iterator = getValues().iterator();
+		Iterator<PrismContainerValue<C>> iterator = getValues().iterator();
     	while (iterator.hasNext()) {
     		PrismContainerValue<C> pval = iterator.next();
     		if (pval.isEmpty()) {
+				checkMutability();
     			iterator.remove();
     		}
     	}
@@ -331,11 +338,13 @@ public class PrismContainer<C extends Containerable> extends Item<PrismContainer
      * @param definition the definition to set
      */
     public void setDefinition(PrismContainerDefinition<C> definition) {
-        this.definition = definition;
+		checkMutability();
+		this.definition = definition;
     }
     
     @Override
 	public void applyDefinition(PrismContainerDefinition<C> definition) throws SchemaException {
+		checkMutability();
     	if (definition == null) {
     		return;
     	}
@@ -840,7 +849,7 @@ public class PrismContainer<C extends Containerable> extends Item<PrismContainer
 	            sb.append(")");
 	        }
         }
-        Iterator<PrismContainerValue<C>> i = getValues().iterator();
+		Iterator<PrismContainerValue<C>> i = getValues().iterator();
         if (i.hasNext()) {
             sb.append("\n");
         }

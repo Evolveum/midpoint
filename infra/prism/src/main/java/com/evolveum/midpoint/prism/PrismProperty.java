@@ -24,8 +24,6 @@ import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
@@ -96,6 +94,7 @@ public class PrismProperty<T> extends Item<PrismPropertyValue<T>,PrismPropertyDe
      * @param definition the definition to set
      */
     public void setDefinition(PrismPropertyDefinition<T> definition) {
+		checkMutability();
         this.definition = definition;
     }
 
@@ -230,7 +229,7 @@ public class PrismProperty<T> extends Item<PrismPropertyValue<T>,PrismPropertyDe
      * Will remove all existing values.
      */
     public void setValue(PrismPropertyValue<T> value) {
-    	getValues().clear();
+		clear();
         addValue(value);
     }
 
@@ -253,7 +252,8 @@ public class PrismProperty<T> extends Item<PrismPropertyValue<T>,PrismPropertyDe
     }
 
     public void addValue(PrismPropertyValue<T> pValueToAdd) {
-    	pValueToAdd.checkValue();
+		checkMutability();
+		pValueToAdd.checkValue();
     	Iterator<PrismPropertyValue<T>> iterator = getValues().iterator();
     	while (iterator.hasNext()) {
     		PrismPropertyValue<T> pValue = iterator.next();
@@ -273,7 +273,8 @@ public class PrismProperty<T> extends Item<PrismPropertyValue<T>,PrismPropertyDe
     }
     
     public boolean deleteValues(Collection<PrismPropertyValue<T>> pValuesToDelete) {
-        boolean changed = false;
+		checkMutability();
+		boolean changed = false;
     	for (PrismPropertyValue<T> pValue: pValuesToDelete) {
             if (!changed) {
     		    changed = deleteValue(pValue);
@@ -285,7 +286,8 @@ public class PrismProperty<T> extends Item<PrismPropertyValue<T>,PrismPropertyDe
     }
 
     public boolean deleteValue(PrismPropertyValue<T> pValueToDelete) {
-    	Iterator<PrismPropertyValue<T>> iterator = getValues().iterator();
+		checkMutability();
+		Iterator<PrismPropertyValue<T>> iterator = getValues().iterator();
     	boolean found = false;
     	while (iterator.hasNext()) {
     		PrismPropertyValue<T> pValue = iterator.next();
@@ -303,7 +305,7 @@ public class PrismProperty<T> extends Item<PrismPropertyValue<T>,PrismPropertyDe
     }
 
     public void replaceValues(Collection<PrismPropertyValue<T>> valuesToReplace) {
-    	getValues().clear();
+    	clear();
         addValues(valuesToReplace);
     }
 

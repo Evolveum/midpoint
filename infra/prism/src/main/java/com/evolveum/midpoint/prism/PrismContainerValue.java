@@ -205,6 +205,7 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
 	}
 
 	public void setId(Long id) {
+		checkMutability();
 		this.id = id;
 	}
 	
@@ -347,6 +348,7 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
      * @throws IllegalArgumentException an attempt to add value that already exists
      */
     public <IV extends PrismValue,ID extends ItemDefinition> boolean add(Item<IV,ID> item, boolean checkUniquness) throws SchemaException {
+		checkMutability();
     	if (item.getElementName() == null) {
     		throw new IllegalArgumentException("Cannot add item without a name to value of container "+getParent());
     	}
@@ -372,6 +374,7 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
      * Returns true if new item or value was added.
      */
 	public <IV extends PrismValue,ID extends ItemDefinition> boolean merge(Item<IV,ID> item) throws SchemaException {
+		checkMutability();
 		Item<IV, ID> exisingItem = findItem(item.getElementName(), Item.class);
 		if (exisingItem == null) {
 			return add(item);
@@ -387,11 +390,12 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
 	}
 	
 	/**
-     * Substract the provided item from this item. The values of the provided item are deleted
+     * Subtract the provided item from this item. The values of the provided item are deleted
      * from this item.
      * Returns true if this item was changed.
      */
 	public <IV extends PrismValue,ID extends ItemDefinition> boolean substract(Item<IV,ID> item) throws SchemaException {
+		checkMutability();
 		Item<IV,ID> exisingItem = findItem(item.getElementName(), Item.class);
 		if (exisingItem == null) {
 			return false;
@@ -412,6 +416,7 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
      * @param item item to add.
      */
     public <IV extends PrismValue,ID extends ItemDefinition> void addReplaceExisting(Item<IV,ID> item) throws SchemaException {
+		checkMutability();
     	if (item == null){
     		return;
     	}
@@ -425,6 +430,7 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
     
     public <IV extends PrismValue,ID extends ItemDefinition> void remove(Item<IV,ID> item) {
         Validate.notNull(item, "Item must not be null.");
+		checkMutability();
 
         Item<IV,ID> existingItem = findItem(item.getElementName(),  Item.class);
         if (existingItem != null && items != null) {
@@ -434,6 +440,7 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
     }
     
     public void removeAll() {
+		checkMutability();
     	if (items == null){
     		return;
     	}
@@ -463,6 +470,7 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
      * @param itemsToAdd items to add
      */
     public void addAllReplaceExisting(Collection<? extends Item<?,?>> itemsToAdd) throws SchemaException {
+		checkMutability();
         // Check for conflicts, remove conflicting values
         for (Item<?,?> item : itemsToAdd) {
             Item<?,?> existingItem = findItem(item.getElementName(), Item.class);
@@ -494,6 +502,7 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
 //    }
     
     public void clear() {
+		checkMutability();
     	if (items != null) {
     		items.clear();
     	}
@@ -730,6 +739,7 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
     }
 
 	private <IV extends PrismValue,ID extends ItemDefinition,I extends Item<IV,ID>> I createSubItem(QName name, Class<I> type, ID itemDefinition) throws SchemaException {
+		checkMutability();
     	// the item with specified name does not exist, create it now
 		I newItem = null;
 		
@@ -815,6 +825,7 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
 //    }
 
     public <X extends Containerable> PrismContainer<X> createContainer(QName containerName) throws SchemaException {
+		checkMutability();
         if (getActualDefinition() == null) {
             throw new IllegalStateException("No definition of container "+containerName);
         }
@@ -828,6 +839,7 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
     }
 
     public <X> PrismProperty<X> createProperty(QName propertyName) throws SchemaException {
+		checkMutability();
         PrismPropertyDefinition propertyDefinition = null;
         if (getActualDefinition() != null) {
         	propertyDefinition = getActualDefinition().findPropertyDefinition(propertyName);
@@ -885,6 +897,7 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
 
     // Expects that "self" path is NOT present in propPath
 	<IV extends PrismValue,ID extends ItemDefinition,I extends Item<IV,ID>> void removeItem(ItemPath propPath, Class<I> itemType) {
+		checkMutability();
 		if (items == null){
     		return;
     	}
@@ -914,6 +927,7 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
     }
     
     public void setPropertyRealValue(QName propertyName, Object realValue, PrismContext prismContext) throws SchemaException {
+		checkMutability();
     	PrismProperty<?> property = findOrCreateProperty(propertyName);
     	property.setRealValue(realValue);
         if (property.getPrismContext() == null) {
@@ -1059,6 +1073,7 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
 	}
 		
 	public boolean addRawElement(Object element) throws SchemaException {
+		checkMutability();
 		PrismContainerDefinition<C> definition = getDefinition();
 		if (definition == null) {
 			// We cannot do much better. We do not even have prism context here.
@@ -1077,6 +1092,7 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
 	}
 	
 	public boolean deleteRawElement(Object element) throws SchemaException {
+		checkMutability();
 		PrismContainerDefinition<C> definition = getDefinition();
 		if (definition == null) {
 			// We cannot do much better. We do not even have prism context here.
@@ -1093,6 +1109,7 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
 
 	
 	public boolean removeRawElement(Object element) {
+		checkMutability();
 		return rawElements.remove(element);
 	}
 
@@ -1162,6 +1179,7 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
 
 	@Override
 	public void applyDefinition(ItemDefinition definition, boolean force) throws SchemaException {
+		checkMutability();
 		if (!(definition instanceof PrismContainerDefinition)) {
     		throw new IllegalArgumentException("Cannot apply "+definition+" to container " + this);
     	}
@@ -1169,6 +1187,7 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
 	}
 
 	public void applyDefinition(PrismContainerDefinition<C> containerDef, boolean force) throws SchemaException {
+		checkMutability();
         PrismContainerDefinition valueDefinition = getConcreteTypeDefinition();
         if (valueDefinition == null) {
             valueDefinition = containerDef;
@@ -1256,6 +1275,7 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
     
     @Override
 	public void normalize() {
+		checkMutability();
     	if (items != null) {
 	    	Iterator<Item<?,?>> iterator = items.iterator();
 	    	while (iterator.hasNext()) {
@@ -1469,7 +1489,7 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
         	sb.append("id=").append(PrettyPrinter.prettyPrint(getId()));
         }
         appendOriginDump(sb);
-        List<Item<?,?>> items = getItems();
+		List<Item<?,?>> items = getItems();
         if (items != null) {
 	        Iterator<Item<?,?>> i = getItems().iterator();
 	        if (wasIndent && i.hasNext()) {
@@ -1582,5 +1602,14 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
 		}
 		return rv;
 	}
-	
+
+	@Override
+	public void setImmutable(boolean immutable) {
+		super.setImmutable(immutable);
+		if (items != null) {
+			for (Item item : items) {
+				item.setImmutable(immutable);
+			}
+		}
+	}
 }
