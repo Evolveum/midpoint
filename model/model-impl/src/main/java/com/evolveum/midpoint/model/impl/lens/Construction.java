@@ -400,7 +400,7 @@ public class Construction<F extends FocusType> implements DebugDumpable, Seriali
 					if (constructionType.getResourceRef().getOid() == null) {
 						resource = resolveTarget(" resolving resource ", task, result);
 					} else {
-						resource = LensUtil.getResource(lensContext,
+						resource = LensUtil.getResourceReadOnly(lensContext,
 								constructionType.getResourceRef().getOid(), objectResolver, task, result);
 					}
 				} catch (ObjectNotFoundException e) {

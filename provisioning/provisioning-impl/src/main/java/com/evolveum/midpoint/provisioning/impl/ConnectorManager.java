@@ -31,7 +31,6 @@ import org.springframework.stereotype.Component;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
-import com.evolveum.midpoint.common.monitor.InternalMonitor;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -44,7 +43,10 @@ import com.evolveum.midpoint.provisioning.ucf.api.ConnectorFactory;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.statistics.ConnectorOperationalStatus;
@@ -144,7 +146,7 @@ public class ConnectorManager {
 			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
 		ResourceType resourceType = resource.asObjectable();
 		
-		ConnectorType connectorType = getConnectorType(resourceType, result);
+		ConnectorType connectorType = getConnectorTypeReadOnly(resourceType, result);
 		ConnectorInstance connector = null;
 		try {
 
@@ -192,7 +194,7 @@ public class ConnectorManager {
 		return connector;
 	}
 
-	public ConnectorType getConnectorType(ResourceType resourceType, OperationResult result)
+	public ConnectorType getConnectorTypeReadOnly(ResourceType resourceType, OperationResult result)
 			throws ObjectNotFoundException, SchemaException {
 		ConnectorType connectorType = resourceType.getConnector();
 		if (connectorType == null) {
@@ -205,13 +207,16 @@ public class ConnectorManager {
 			String connOid = resourceType.getConnectorRef().getOid();
 			connectorType = connectorTypeCache.get(connOid);
 			if (connectorType == null) {
-				PrismObject<ConnectorType> repoConnector = repositoryService.getObject(ConnectorType.class, connOid, null, result);
+				Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createReadOnly());
+				PrismObject<ConnectorType> repoConnector = repositoryService.getObject(ConnectorType.class, connOid, 
+						options, result);
 				connectorType = repoConnector.asObjectable();
 				connectorTypeCache.put(connOid, connectorType);
 			} else {
 				String currentConnectorVersion = repositoryService.getVersion(ConnectorType.class, connOid, result);
 				if (!currentConnectorVersion.equals(connectorType.getVersion())) {
-					PrismObject<ConnectorType> repoConnector = repositoryService.getObject(ConnectorType.class, connOid, null, result);
+					Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createReadOnly());
+					PrismObject<ConnectorType> repoConnector = repositoryService.getObject(ConnectorType.class, connOid, options, result);
 					connectorType = repoConnector.asObjectable();
 					connectorTypeCache.put(connOid, connectorType);
 				}

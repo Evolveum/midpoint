@@ -2,14 +2,21 @@ package com.evolveum.midpoint.web.component.data;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.web.component.AjaxButton;
+import com.evolveum.midpoint.web.component.assignment.AssignmentDetailsPanel;
 import com.evolveum.midpoint.web.component.assignment.AssignmentEditorDto;
+import com.evolveum.midpoint.web.component.assignment.AssignmentEditorDtoType;
+import com.evolveum.midpoint.web.component.assignment.AssignmentEditorPanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
+import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
 
@@ -21,7 +28,10 @@ import java.util.List;
 public class MultiButtonTable extends BasePanel<List<AssignmentEditorDto>> {
     private static final String ID_ROW = "row";
     private static final String ID_CELL = "cell";
-    private static final String ID_BUTTON = "button";
+    private static final String ID_BUTTON_TYPE_ICON = "typeIcon";
+    private static final String ID_BUTTON_LABEL = "buttonLabel";
+    private static final String ID_BUTTON_PLUS_ICON = "plusIcon";
+    private static final String ID_BUTTON = "assignmentButton";
 
     private int itemsCount = 0;
     private int itemsPerRow = 0;
@@ -29,6 +39,7 @@ public class MultiButtonTable extends BasePanel<List<AssignmentEditorDto>> {
     public MultiButtonTable (String id){
         super(id);
     }
+
     public MultiButtonTable (String id, int itemsPerRow, IModel<List<AssignmentEditorDto>> model){
         super(id, model);
         this.itemsPerRow = itemsPerRow;
@@ -52,9 +63,8 @@ public class MultiButtonTable extends BasePanel<List<AssignmentEditorDto>> {
                 for (int colNumber = 0; colNumber < itemsPerRow; colNumber++){
                     WebMarkupContainer colContainer = new WebMarkupContainer(columns.newChildId());
                     columns.add(colContainer);
-                    ObjectReferenceType targetRef = assignmentsList.get(index).getTargetRef();
 
-                    colContainer.add(populateCell(Integer.toString(index)));
+                    populateCell(colContainer, assignmentsList.get(index));
                     index++;
                     if (index >= assignmentsList.size()){
                         break;
@@ -65,46 +75,63 @@ public class MultiButtonTable extends BasePanel<List<AssignmentEditorDto>> {
         }
     }
 
-    protected Component populateCell(final String caption){
-        IModel<String> captionModel = new IModel<String>() {
-            @Override
-            public String getObject() {
-                return caption;
-            }
+    protected void populateCell(WebMarkupContainer cellContainer, final AssignmentEditorDto assignment){
+        AjaxLink assignmentButton = new AjaxLink(ID_BUTTON) {
+            private static final long serialVersionUID = 1L;
 
             @Override
-            public void setObject(String s) {
-            }
+            public void onClick(AjaxRequestTarget ajaxRequestTarget) {
+                IModel<AssignmentEditorDto> assignmentModel = new IModel<AssignmentEditorDto>() {
+                    @Override
+                    public AssignmentEditorDto getObject() {
+                        return null;
+                    }
 
-            @Override
-            public void detach() {
-            }
-        };
-        AjaxButton button = new AjaxButton(ID_BUTTON, captionModel) {
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                clickPerformed(target);
-            }
-            @Override
-            public boolean isEnabled(){
-                return true;
-            }
-            @Override
-            public boolean isVisible(){
-                return true;
+                    @Override
+                    public void setObject(AssignmentEditorDto assignmentEditorDto) {
+
+                    }
+
+                    @Override
+                    public void detach() {
+
+                    }
+                };
+//                getPageBase().showMainPopup(new AssignmentDetailsPanel(getPageBase().getMainPopupBodyId(), assignmentModel), ajaxRequestTarget);
             }
         };
-        button.add(new AttributeAppender("class", getButtonCssClass()));
-        return button;
+        Label plusLabel = new Label(ID_BUTTON_PLUS_ICON, "+");
+//        plusLabel.add(new AttributeAppender("title", getPageBase().createStringResource("MultiButtonPanel.plusIconTitle")));
+        assignmentButton.add(plusLabel);
+
+        WebMarkupContainer icon = new WebMarkupContainer(ID_BUTTON_TYPE_ICON);
+        icon.add(new AttributeAppender("class", getIconClass(assignment.getType())));
+        assignmentButton.add(icon);
+
+        Label nameLabel = new Label(ID_BUTTON_LABEL, assignment.getName());
+//        nameLabel.add(new AjaxEventBehavior("click") {
+//            private static final long serialVersionUID = 1L;
+//            @Override
+//            protected void onEvent(AjaxRequestTarget ajaxRequestTarget) {
+//
+//            }
+//        });
+        assignmentButton.add(nameLabel);
+        cellContainer.add(assignmentButton);
     }
 
-
-
-    protected String getButtonCssClass(){
-        return "col-sm-3 small-box bg-yellow";
+    protected void assignmentDetailsPerformed(AjaxRequestTarget target){
     }
 
-    protected void clickPerformed(AjaxRequestTarget target){
+    private String getIconClass(AssignmentEditorDtoType type){
+        if (AssignmentEditorDtoType.ROLE.equals(type)){
+            return "fa fa-street-view object-role-color";
+        }else if (AssignmentEditorDtoType.SERVICE.equals(type)){
+            return "fa fa-cloud object-service-color";
+        }else if (AssignmentEditorDtoType.ORG_UNIT.equals(type)){
+            return "fa fa-building object-org-color";
+        } else {
+            return "";
+        }
     }
-
 }

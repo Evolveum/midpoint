@@ -79,7 +79,7 @@ public class BaseConfigurationHelper {
         }
         PrismObject<SystemConfigurationType> systemConfigurationTypePrismObject = null;
         try {
-            systemConfigurationTypePrismObject = Utils.getSystemConfiguration(repositoryService, result);
+            systemConfigurationTypePrismObject = Utils.getSystemConfigurationReadOnly(repositoryService, result);
         } catch (SchemaException e) {
             throw new SystemException("Couldn't get system configuration because of schema exception - cannot continue", e);
         }

@@ -25,6 +25,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.marshaller.QueryConvertor;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.QueryJaxbConvertor;
 import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -67,7 +68,13 @@ public class SearchEvaluator extends BaseExpressionEvaluator {
         Class<T> objectClass = (Class) ObjectTypes.getObjectTypeFromTypeQName(searchExpression.getType()).getClassDefinition();
 
         ObjectQuery objectQuery = null;
-        if (searchExpression.getSearchFilter() != null) {
+        if (searchExpression.getQuery() != null) {
+            try {
+                objectQuery = QueryJaxbConvertor.createObjectQuery(objectClass, searchExpression.getQuery(), prismContext);
+            } catch (SchemaException e) {
+                throw new ScriptExecutionException("Couldn't parse object query due to schema exception", e);
+            }
+        } else if (searchExpression.getSearchFilter() != null) {
             // todo resolve variable references in the filter
             objectQuery = new ObjectQuery();
             try {

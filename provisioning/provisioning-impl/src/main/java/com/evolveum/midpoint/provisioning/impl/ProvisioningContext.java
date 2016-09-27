@@ -21,6 +21,7 @@ import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
 import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
+import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -109,7 +110,8 @@ public class ProvisioningContext extends StateReporter {
 			if (getResourceOid() == null) {
 				throw new SchemaException("Null resource OID "+getDesc());
 			}
-			resource = resourceManager.getResource(getResourceOid(), null, parentResult).asObjectable();
+			GetOperationOptions options = GetOperationOptions.createReadOnly();
+			resource = resourceManager.getResource(getResourceOid(), options, parentResult).asObjectable();
 			updateResourceName();
 		}
 		return resource;

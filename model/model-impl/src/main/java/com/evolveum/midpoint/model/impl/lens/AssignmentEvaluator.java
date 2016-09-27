@@ -458,7 +458,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 		ModelExpressionThreadLocalHolder.pushCurrentResult(result);
 		ModelExpressionThreadLocalHolder.pushCurrentTask(task);
 		try {
-		ExpressionVariables variables = Utils.getDefaultExpressionVariables(source, null, null, LensUtil.getSystemConfiguration(lensContext, repository, result).asObjectable());
+		ExpressionVariables variables = Utils.getDefaultExpressionVariables(source, null, null, LensUtil.getSystemConfigurationReadOnly(lensContext, repository, result).asObjectable());
 		variables.addVariableDefinition(ExpressionConstants.VAR_SOURCE, assignmentPathSegment.getOrderOneObject());
 		Utils.addAssignmentPathVariables(LensUtil.computeAssignmentPathVariables(assignmentPath), variables);
 

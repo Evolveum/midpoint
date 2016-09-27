@@ -26,6 +26,7 @@ import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
+import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
@@ -85,11 +86,11 @@ public class ResourceCache {
 		return version1.equals(version2);
 	}
 
-	public synchronized PrismObject<ResourceType> get(PrismObject<ResourceType> resource) throws SchemaException {
-		return get(resource.getOid(), resource.getVersion());
+	public synchronized PrismObject<ResourceType> get(PrismObject<ResourceType> resource, GetOperationOptions options) throws SchemaException {
+		return get(resource.getOid(), resource.getVersion(), options);
 	}
 	
-	public synchronized PrismObject<ResourceType> get(String oid, String version) throws SchemaException {
+	public synchronized PrismObject<ResourceType> get(String oid, String version, GetOperationOptions options) throws SchemaException {
 		if (oid == null) {
 			return null;
 		}
@@ -103,7 +104,12 @@ public class ResourceCache {
 			return null;
 		}
 		
-		return cachedResource.clone();
+		if (GetOperationOptions.isReadOnly(options)) {
+			// TODO: make sure it is immutable
+			return cachedResource;
+		} else {
+			return cachedResource.clone();
+		}
 	}
 	
 	/**

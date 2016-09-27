@@ -23,6 +23,7 @@ import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.util.QNameUtil;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 
@@ -88,9 +89,8 @@ public class SynchronizationUtils {
 				return false;
 			}
 		}
-		// TODO relaxed QName match [med]
 		if (policyObjectClasses != null && !policyObjectClasses.isEmpty()) {
-			if (!policyObjectClasses.contains(objectClass)) {
+			if (!QNameUtil.contains(policyObjectClasses, objectClass)) {
 				return false;
 			}
 		}
