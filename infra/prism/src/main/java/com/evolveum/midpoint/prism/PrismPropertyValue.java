@@ -94,11 +94,12 @@ public class PrismPropertyValue<T> extends PrismValue implements DebugDumpable, 
 
 
     public void setValue(T value) {
+		checkMutability();
         this.value = value;
         checkValue();
     }
 
-    public T getValue() {
+	public T getValue() {
     	if (rawElement != null) {
     		ItemDefinition def = null;
     		Itemable parent = getParent();
@@ -196,6 +197,7 @@ public class PrismPropertyValue<T> extends PrismValue implements DebugDumpable, 
 		if (realValue == null) {
 			return;
 		}
+		checkMutability();			// TODO reconsider this
 		PrismUtil.recomputeRealValue(realValue, prismContext);
 	}
 

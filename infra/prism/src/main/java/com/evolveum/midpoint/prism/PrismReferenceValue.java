@@ -20,7 +20,6 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -36,7 +35,6 @@ import javax.xml.namespace.QName;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 import com.evolveum.prism.xml.ns._public.types_3.EvaluationTimeType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
-import org.w3c.dom.Element;
 
 /**
  * @author Radovan Semancik
@@ -95,6 +93,7 @@ public class PrismReferenceValue extends PrismValue implements DebugDumpable, Se
 	}
 
 	public void setOid(String oid) {
+		checkMutability();
 		this.oid = oid;
 	}
 	
@@ -103,6 +102,7 @@ public class PrismReferenceValue extends PrismValue implements DebugDumpable, Se
 	}
 
 	public void setObject(PrismObject object) {
+		checkMutability();
 		this.object = object;
 	}
 
@@ -133,6 +133,7 @@ public class PrismReferenceValue extends PrismValue implements DebugDumpable, Se
      * @param allowEmptyNamespace This is an ugly hack. See comment in DOMUtil.validateNonEmptyQName.
      */
 	public void setTargetType(QName targetType, boolean allowEmptyNamespace) {
+		checkMutability();
 		// Null value is OK
 		if (targetType != null) {
 			// But non-empty is not ..
@@ -162,10 +163,12 @@ public class PrismReferenceValue extends PrismValue implements DebugDumpable, Se
 	}
 	
 	public void setTargetName(PolyString name) {
+		checkMutability();
 		this.targetName = name;
 	}
 
 	public void setTargetName(PolyStringType name) {
+		checkMutability();
 		if (name == null) {
 			this.targetName = null;
 		} else {
@@ -187,6 +190,7 @@ public class PrismReferenceValue extends PrismValue implements DebugDumpable, Se
 	}
 
 	public void setRelation(QName relation) {
+		checkMutability();
 		this.relation = relation;
 	}
 
@@ -195,6 +199,7 @@ public class PrismReferenceValue extends PrismValue implements DebugDumpable, Se
 	}
 
 	public void setDescription(String description) {
+		checkMutability();
 		this.description = description;
 	}
 
@@ -203,6 +208,7 @@ public class PrismReferenceValue extends PrismValue implements DebugDumpable, Se
 	}
 
 	public void setFilter(SearchFilterType filter) {
+		checkMutability();
 		this.filter = filter;
 	}
 
@@ -211,6 +217,7 @@ public class PrismReferenceValue extends PrismValue implements DebugDumpable, Se
 	}
 
 	public void setResolutionTime(EvaluationTimeType resolutionTime) {
+		checkMutability();
 		this.resolutionTime = resolutionTime;
 	}
 
