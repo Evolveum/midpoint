@@ -75,13 +75,13 @@ public class AssignmentShoppingCartPanel<F extends FocusType> extends BasePanel<
 
     }
 
-    private void selectTreeItemPerformed(SelectableBean<OrgType> selected, AjaxRequestTarget target){
+    private void selectTreeItemPerformed(SelectableBean<OrgType> selected, AjaxRequestTarget target) {
         final OrgType selectedOgr = selected.getValue();
         final ObjectDataProvider<AssignmentEditorDto, FocusType> provider = initProvider(selectedOgr.getOid());
-if (provider != null){
-    long s = provider.size();
-    provider.internalIterator(0, s);
-}
+        if (provider != null) {
+            long s = provider.size();
+            provider.internalIterator(0, s);
+        }
         MultiButtonTable assignmentsTable = new MultiButtonTable(ID_ASSIGNMENTS_PANEL, 3, new IModel<List<AssignmentEditorDto>>() {
             @Override
             public List<AssignmentEditorDto> getObject() {
