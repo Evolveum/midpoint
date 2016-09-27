@@ -28,6 +28,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.EventHandlerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 import org.jetbrains.annotations.NotNull;
@@ -120,6 +121,9 @@ public class Data implements DebugDumpable {
         } else if (ObjectDeltaType.class.isAssignableFrom(clazz)) {
             elementName = SchemaConstants.T_OBJECT_DELTA;
             typeName = SchemaConstants.T_OBJECT_DELTA_TYPE;
+        } else if (EventHandlerType.class.isAssignableFrom(clazz)) {
+            elementName = SchemaConstants.C_EVENT_HANDLER;
+            typeName = EventHandlerType.COMPLEX_TYPE;
         } else {
             throw new IllegalStateException("Unsupported data class (to be put into scripting data as property): " + clazz);
         }

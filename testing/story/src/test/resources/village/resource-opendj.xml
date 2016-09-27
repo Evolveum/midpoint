@@ -312,6 +312,863 @@
             </attribute>
         </objectType>
         
+        
+        
+       <!-- Lots of object type definitions here. They are not really used. They are
+            here just to make the resource definition bigger and the clone slower.
+            MID-3424 --> 
+        
+       <objectType>
+			<kind>account</kind>
+            <intent>fake01</intent>
+            <displayName>Fake Account</displayName>
+            <default>false</default>
+            <objectClass>ri:inetOrgPerson</objectClass>
+            <attribute>
+                <ref>ri:dn</ref>
+                <displayName>Distinguished Name</displayName>
+                <matchingRule>mr:stringIgnoreCase</matchingRule>
+                <outbound>
+                    <!-- Name cannot be weak. Changes in name trigger object rename. -->
+					<source>
+						<path>$user/name</path>
+					</source>
+                    <expression>
+                    	<script>
+	                        <code>
+	                        	import javax.naming.ldap.Rdn
+	                        	import javax.naming.ldap.LdapName
+	                        	
+	                        	dn = new LdapName('ou=people,dc=example,dc=com')
+	                        	dn.add(new Rdn('uid',name.toString()))
+	                        	return dn.toString()
+	                        </code>
+                        </script>
+                    </expression>
+                </outbound>
+            </attribute>
+            <attribute>
+                <ref>ri:cn</ref>
+                <displayName>Common Name</displayName>
+                <outbound>
+                	<source>
+	                    <path>$user/fullName</path>
+                    </source>
+                </outbound>
+            </attribute>
+            <attribute>
+                <ref>ri:sn</ref>                
+                <outbound>
+                	<source>
+                		<path>familyName</path>
+                	</source>
+                </outbound>
+            </attribute>
+            <attribute>
+                <ref>ri:givenName</ref>
+                <outbound>
+                	<source>
+                		<path>givenName</path>
+                	</source>
+                </outbound>
+            </attribute>
+            <attribute>
+                <ref>ri:uid</ref>
+                <matchingRule>mr:stringIgnoreCase</matchingRule>
+                <outbound>
+                	<strength>weak</strength>
+                	<source>
+                		<path>$user/name</path>
+                	</source>
+                </outbound>
+            </attribute>
+            <association>
+            	<ref>ri:group</ref>
+            	<displayName>LDAP Group Membership</displayName>
+            	<kind>entitlement</kind>
+            	<intent>ldapGroup</intent>
+            	<direction>objectToSubject</direction>
+            	<associationAttribute>ri:uniqueMember</associationAttribute>
+            	<valueAttribute>ri:dn</valueAttribute>
+            </association>            
+            <activation>
+                <administrativeStatus>
+                    <outbound/>
+                </administrativeStatus>
+            </activation>
+            <credentials>
+                <password>
+                    <outbound/>
+                </password>
+            </credentials>
+        </objectType>
+        
+        
+        <objectType>
+			<kind>account</kind>
+            <intent>fake02</intent>
+            <displayName>Fake Account</displayName>
+            <default>false</default>
+            <objectClass>ri:inetOrgPerson</objectClass>
+            <attribute>
+                <ref>ri:dn</ref>
+                <displayName>Distinguished Name</displayName>
+                <matchingRule>mr:stringIgnoreCase</matchingRule>
+                <outbound>
+                    <!-- Name cannot be weak. Changes in name trigger object rename. -->
+					<source>
+						<path>$user/name</path>
+					</source>
+                    <expression>
+                    	<script>
+	                        <code>
+	                        	import javax.naming.ldap.Rdn
+	                        	import javax.naming.ldap.LdapName
+	                        	
+	                        	dn = new LdapName('ou=people,dc=example,dc=com')
+	                        	dn.add(new Rdn('uid',name.toString()))
+	                        	return dn.toString()
+	                        </code>
+                        </script>
+                    </expression>
+                </outbound>
+            </attribute>
+            <attribute>
+                <ref>ri:cn</ref>
+                <displayName>Common Name</displayName>
+                <outbound>
+                	<source>
+	                    <path>$user/fullName</path>
+                    </source>
+                </outbound>
+            </attribute>
+            <attribute>
+                <ref>ri:sn</ref>                
+                <outbound>
+                	<source>
+                		<path>familyName</path>
+                	</source>
+                </outbound>
+            </attribute>
+            <attribute>
+                <ref>ri:givenName</ref>
+                <outbound>
+                	<source>
+                		<path>givenName</path>
+                	</source>
+                </outbound>
+            </attribute>
+            <attribute>
+                <ref>ri:uid</ref>
+                <matchingRule>mr:stringIgnoreCase</matchingRule>
+                <outbound>
+                	<strength>weak</strength>
+                	<source>
+                		<path>$user/name</path>
+                	</source>
+                </outbound>
+            </attribute>
+            <association>
+            	<ref>ri:group</ref>
+            	<displayName>LDAP Group Membership</displayName>
+            	<kind>entitlement</kind>
+            	<intent>ldapGroup</intent>
+            	<direction>objectToSubject</direction>
+            	<associationAttribute>ri:uniqueMember</associationAttribute>
+            	<valueAttribute>ri:dn</valueAttribute>
+            </association>            
+            <activation>
+                <administrativeStatus>
+                    <outbound/>
+                </administrativeStatus>
+            </activation>
+            <credentials>
+                <password>
+                    <outbound/>
+                </password>
+            </credentials>
+        </objectType>
+        
+        <objectType>
+			<kind>account</kind>
+            <intent>fake03</intent>
+            <displayName>Fake Account</displayName>
+            <default>false</default>
+            <objectClass>ri:inetOrgPerson</objectClass>
+            <attribute>
+                <ref>ri:dn</ref>
+                <displayName>Distinguished Name</displayName>
+                <matchingRule>mr:stringIgnoreCase</matchingRule>
+                <outbound>
+                    <!-- Name cannot be weak. Changes in name trigger object rename. -->
+					<source>
+						<path>$user/name</path>
+					</source>
+                    <expression>
+                    	<script>
+	                        <code>
+	                        	import javax.naming.ldap.Rdn
+	                        	import javax.naming.ldap.LdapName
+	                        	
+	                        	dn = new LdapName('ou=people,dc=example,dc=com')
+	                        	dn.add(new Rdn('uid',name.toString()))
+	                        	return dn.toString()
+	                        </code>
+                        </script>
+                    </expression>
+                </outbound>
+            </attribute>
+            <attribute>
+                <ref>ri:cn</ref>
+                <displayName>Common Name</displayName>
+                <outbound>
+                	<source>
+	                    <path>$user/fullName</path>
+                    </source>
+                </outbound>
+            </attribute>
+            <attribute>
+                <ref>ri:sn</ref>                
+                <outbound>
+                	<source>
+                		<path>familyName</path>
+                	</source>
+                </outbound>
+            </attribute>
+            <attribute>
+                <ref>ri:givenName</ref>
+                <outbound>
+                	<source>
+                		<path>givenName</path>
+                	</source>
+                </outbound>
+            </attribute>
+            <attribute>
+                <ref>ri:uid</ref>
+                <matchingRule>mr:stringIgnoreCase</matchingRule>
+                <outbound>
+                	<strength>weak</strength>
+                	<source>
+                		<path>$user/name</path>
+                	</source>
+                </outbound>
+            </attribute>
+            <association>
+            	<ref>ri:group</ref>
+            	<displayName>LDAP Group Membership</displayName>
+            	<kind>entitlement</kind>
+            	<intent>ldapGroup</intent>
+            	<direction>objectToSubject</direction>
+            	<associationAttribute>ri:uniqueMember</associationAttribute>
+            	<valueAttribute>ri:dn</valueAttribute>
+            </association>            
+            <activation>
+                <administrativeStatus>
+                    <outbound/>
+                </administrativeStatus>
+            </activation>
+            <credentials>
+                <password>
+                    <outbound/>
+                </password>
+            </credentials>
+        </objectType>
+        
+        <objectType>
+			<kind>account</kind>
+            <intent>fake04</intent>
+            <displayName>Fake Account</displayName>
+            <default>false</default>
+            <objectClass>ri:inetOrgPerson</objectClass>
+            <attribute>
+                <ref>ri:dn</ref>
+                <displayName>Distinguished Name</displayName>
+                <matchingRule>mr:stringIgnoreCase</matchingRule>
+                <outbound>
+                    <!-- Name cannot be weak. Changes in name trigger object rename. -->
+					<source>
+						<path>$user/name</path>
+					</source>
+                    <expression>
+                    	<script>
+	                        <code>
+	                        	import javax.naming.ldap.Rdn
+	                        	import javax.naming.ldap.LdapName
+	                        	
+	                        	dn = new LdapName('ou=people,dc=example,dc=com')
+	                        	dn.add(new Rdn('uid',name.toString()))
+	                        	return dn.toString()
+	                        </code>
+                        </script>
+                    </expression>
+                </outbound>
+            </attribute>
+            <attribute>
+                <ref>ri:cn</ref>
+                <displayName>Common Name</displayName>
+                <outbound>
+                	<source>
+	                    <path>$user/fullName</path>
+                    </source>
+                </outbound>
+            </attribute>
+            <attribute>
+                <ref>ri:sn</ref>                
+                <outbound>
+                	<source>
+                		<path>familyName</path>
+                	</source>
+                </outbound>
+            </attribute>
+            <attribute>
+                <ref>ri:givenName</ref>
+                <outbound>
+                	<source>
+                		<path>givenName</path>
+                	</source>
+                </outbound>
+            </attribute>
+            <attribute>
+                <ref>ri:uid</ref>
+                <matchingRule>mr:stringIgnoreCase</matchingRule>
+                <outbound>
+                	<strength>weak</strength>
+                	<source>
+                		<path>$user/name</path>
+                	</source>
+                </outbound>
+            </attribute>
+            <association>
+            	<ref>ri:group</ref>
+            	<displayName>LDAP Group Membership</displayName>
+            	<kind>entitlement</kind>
+            	<intent>ldapGroup</intent>
+            	<direction>objectToSubject</direction>
+            	<associationAttribute>ri:uniqueMember</associationAttribute>
+            	<valueAttribute>ri:dn</valueAttribute>
+            </association>            
+            <activation>
+                <administrativeStatus>
+                    <outbound/>
+                </administrativeStatus>
+            </activation>
+            <credentials>
+                <password>
+                    <outbound/>
+                </password>
+            </credentials>
+        </objectType>
+        
+        <objectType>
+			<kind>account</kind>
+            <intent>fake05</intent>
+            <displayName>Fake Account</displayName>
+            <default>false</default>
+            <objectClass>ri:inetOrgPerson</objectClass>
+            <attribute>
+                <ref>ri:dn</ref>
+                <displayName>Distinguished Name</displayName>
+                <matchingRule>mr:stringIgnoreCase</matchingRule>
+                <outbound>
+                    <!-- Name cannot be weak. Changes in name trigger object rename. -->
+					<source>
+						<path>$user/name</path>
+					</source>
+                    <expression>
+                    	<script>
+	                        <code>
+	                        	import javax.naming.ldap.Rdn
+	                        	import javax.naming.ldap.LdapName
+	                        	
+	                        	dn = new LdapName('ou=people,dc=example,dc=com')
+	                        	dn.add(new Rdn('uid',name.toString()))
+	                        	return dn.toString()
+	                        </code>
+                        </script>
+                    </expression>
+                </outbound>
+            </attribute>
+            <attribute>
+                <ref>ri:cn</ref>
+                <displayName>Common Name</displayName>
+                <outbound>
+                	<source>
+	                    <path>$user/fullName</path>
+                    </source>
+                </outbound>
+            </attribute>
+            <attribute>
+                <ref>ri:sn</ref>                
+                <outbound>
+                	<source>
+                		<path>familyName</path>
+                	</source>
+                </outbound>
+            </attribute>
+            <attribute>
+                <ref>ri:givenName</ref>
+                <outbound>
+                	<source>
+                		<path>givenName</path>
+                	</source>
+                </outbound>
+            </attribute>
+            <attribute>
+                <ref>ri:uid</ref>
+                <matchingRule>mr:stringIgnoreCase</matchingRule>
+                <outbound>
+                	<strength>weak</strength>
+                	<source>
+                		<path>$user/name</path>
+                	</source>
+                </outbound>
+            </attribute>
+            <association>
+            	<ref>ri:group</ref>
+            	<displayName>LDAP Group Membership</displayName>
+            	<kind>entitlement</kind>
+            	<intent>ldapGroup</intent>
+            	<direction>objectToSubject</direction>
+            	<associationAttribute>ri:uniqueMember</associationAttribute>
+            	<valueAttribute>ri:dn</valueAttribute>
+            </association>            
+            <activation>
+                <administrativeStatus>
+                    <outbound/>
+                </administrativeStatus>
+            </activation>
+            <credentials>
+                <password>
+                    <outbound/>
+                </password>
+            </credentials>
+        </objectType>
+        
+        <objectType>
+			<kind>account</kind>
+            <intent>fake06</intent>
+            <displayName>Fake Account</displayName>
+            <default>false</default>
+            <objectClass>ri:inetOrgPerson</objectClass>
+            <attribute>
+                <ref>ri:dn</ref>
+                <displayName>Distinguished Name</displayName>
+                <matchingRule>mr:stringIgnoreCase</matchingRule>
+                <outbound>
+                    <!-- Name cannot be weak. Changes in name trigger object rename. -->
+					<source>
+						<path>$user/name</path>
+					</source>
+                    <expression>
+                    	<script>
+	                        <code>
+	                        	import javax.naming.ldap.Rdn
+	                        	import javax.naming.ldap.LdapName
+	                        	
+	                        	dn = new LdapName('ou=people,dc=example,dc=com')
+	                        	dn.add(new Rdn('uid',name.toString()))
+	                        	return dn.toString()
+	                        </code>
+                        </script>
+                    </expression>
+                </outbound>
+            </attribute>
+            <attribute>
+                <ref>ri:cn</ref>
+                <displayName>Common Name</displayName>
+                <outbound>
+                	<source>
+	                    <path>$user/fullName</path>
+                    </source>
+                </outbound>
+            </attribute>
+            <attribute>
+                <ref>ri:sn</ref>                
+                <outbound>
+                	<source>
+                		<path>familyName</path>
+                	</source>
+                </outbound>
+            </attribute>
+            <attribute>
+                <ref>ri:givenName</ref>
+                <outbound>
+                	<source>
+                		<path>givenName</path>
+                	</source>
+                </outbound>
+            </attribute>
+            <attribute>
+                <ref>ri:uid</ref>
+                <matchingRule>mr:stringIgnoreCase</matchingRule>
+                <outbound>
+                	<strength>weak</strength>
+                	<source>
+                		<path>$user/name</path>
+                	</source>
+                </outbound>
+            </attribute>
+            <association>
+            	<ref>ri:group</ref>
+            	<displayName>LDAP Group Membership</displayName>
+            	<kind>entitlement</kind>
+            	<intent>ldapGroup</intent>
+            	<direction>objectToSubject</direction>
+            	<associationAttribute>ri:uniqueMember</associationAttribute>
+            	<valueAttribute>ri:dn</valueAttribute>
+            </association>            
+            <activation>
+                <administrativeStatus>
+                    <outbound/>
+                </administrativeStatus>
+            </activation>
+            <credentials>
+                <password>
+                    <outbound/>
+                </password>
+            </credentials>
+        </objectType>
+        
+        <objectType>
+			<kind>account</kind>
+            <intent>fake07</intent>
+            <displayName>Fake Account</displayName>
+            <default>false</default>
+            <objectClass>ri:inetOrgPerson</objectClass>
+            <attribute>
+                <ref>ri:dn</ref>
+                <displayName>Distinguished Name</displayName>
+                <matchingRule>mr:stringIgnoreCase</matchingRule>
+                <outbound>
+                    <!-- Name cannot be weak. Changes in name trigger object rename. -->
+					<source>
+						<path>$user/name</path>
+					</source>
+                    <expression>
+                    	<script>
+	                        <code>
+	                        	import javax.naming.ldap.Rdn
+	                        	import javax.naming.ldap.LdapName
+	                        	
+	                        	dn = new LdapName('ou=people,dc=example,dc=com')
+	                        	dn.add(new Rdn('uid',name.toString()))
+	                        	return dn.toString()
+	                        </code>
+                        </script>
+                    </expression>
+                </outbound>
+            </attribute>
+            <attribute>
+                <ref>ri:cn</ref>
+                <displayName>Common Name</displayName>
+                <outbound>
+                	<source>
+	                    <path>$user/fullName</path>
+                    </source>
+                </outbound>
+            </attribute>
+            <attribute>
+                <ref>ri:sn</ref>                
+                <outbound>
+                	<source>
+                		<path>familyName</path>
+                	</source>
+                </outbound>
+            </attribute>
+            <attribute>
+                <ref>ri:givenName</ref>
+                <outbound>
+                	<source>
+                		<path>givenName</path>
+                	</source>
+                </outbound>
+            </attribute>
+            <attribute>
+                <ref>ri:uid</ref>
+                <matchingRule>mr:stringIgnoreCase</matchingRule>
+                <outbound>
+                	<strength>weak</strength>
+                	<source>
+                		<path>$user/name</path>
+                	</source>
+                </outbound>
+            </attribute>
+            <association>
+            	<ref>ri:group</ref>
+            	<displayName>LDAP Group Membership</displayName>
+            	<kind>entitlement</kind>
+            	<intent>ldapGroup</intent>
+            	<direction>objectToSubject</direction>
+            	<associationAttribute>ri:uniqueMember</associationAttribute>
+            	<valueAttribute>ri:dn</valueAttribute>
+            </association>            
+            <activation>
+                <administrativeStatus>
+                    <outbound/>
+                </administrativeStatus>
+            </activation>
+            <credentials>
+                <password>
+                    <outbound/>
+                </password>
+            </credentials>
+        </objectType>
+        
+        <objectType>
+			<kind>account</kind>
+            <intent>fake08</intent>
+            <displayName>Fake Account</displayName>
+            <default>false</default>
+            <objectClass>ri:inetOrgPerson</objectClass>
+            <attribute>
+                <ref>ri:dn</ref>
+                <displayName>Distinguished Name</displayName>
+                <matchingRule>mr:stringIgnoreCase</matchingRule>
+                <outbound>
+                    <!-- Name cannot be weak. Changes in name trigger object rename. -->
+					<source>
+						<path>$user/name</path>
+					</source>
+                    <expression>
+                    	<script>
+	                        <code>
+	                        	import javax.naming.ldap.Rdn
+	                        	import javax.naming.ldap.LdapName
+	                        	
+	                        	dn = new LdapName('ou=people,dc=example,dc=com')
+	                        	dn.add(new Rdn('uid',name.toString()))
+	                        	return dn.toString()
+	                        </code>
+                        </script>
+                    </expression>
+                </outbound>
+            </attribute>
+            <attribute>
+                <ref>ri:cn</ref>
+                <displayName>Common Name</displayName>
+                <outbound>
+                	<source>
+	                    <path>$user/fullName</path>
+                    </source>
+                </outbound>
+            </attribute>
+            <attribute>
+                <ref>ri:sn</ref>                
+                <outbound>
+                	<source>
+                		<path>familyName</path>
+                	</source>
+                </outbound>
+            </attribute>
+            <attribute>
+                <ref>ri:givenName</ref>
+                <outbound>
+                	<source>
+                		<path>givenName</path>
+                	</source>
+                </outbound>
+            </attribute>
+            <attribute>
+                <ref>ri:uid</ref>
+                <matchingRule>mr:stringIgnoreCase</matchingRule>
+                <outbound>
+                	<strength>weak</strength>
+                	<source>
+                		<path>$user/name</path>
+                	</source>
+                </outbound>
+            </attribute>
+            <association>
+            	<ref>ri:group</ref>
+            	<displayName>LDAP Group Membership</displayName>
+            	<kind>entitlement</kind>
+            	<intent>ldapGroup</intent>
+            	<direction>objectToSubject</direction>
+            	<associationAttribute>ri:uniqueMember</associationAttribute>
+            	<valueAttribute>ri:dn</valueAttribute>
+            </association>            
+            <activation>
+                <administrativeStatus>
+                    <outbound/>
+                </administrativeStatus>
+            </activation>
+            <credentials>
+                <password>
+                    <outbound/>
+                </password>
+            </credentials>
+        </objectType>
+        
+        <objectType>
+			<kind>account</kind>
+            <intent>fake09</intent>
+            <displayName>Fake Account</displayName>
+            <default>false</default>
+            <objectClass>ri:inetOrgPerson</objectClass>
+            <attribute>
+                <ref>ri:dn</ref>
+                <displayName>Distinguished Name</displayName>
+                <matchingRule>mr:stringIgnoreCase</matchingRule>
+                <outbound>
+                    <!-- Name cannot be weak. Changes in name trigger object rename. -->
+					<source>
+						<path>$user/name</path>
+					</source>
+                    <expression>
+                    	<script>
+	                        <code>
+	                        	import javax.naming.ldap.Rdn
+	                        	import javax.naming.ldap.LdapName
+	                        	
+	                        	dn = new LdapName('ou=people,dc=example,dc=com')
+	                        	dn.add(new Rdn('uid',name.toString()))
+	                        	return dn.toString()
+	                        </code>
+                        </script>
+                    </expression>
+                </outbound>
+            </attribute>
+            <attribute>
+                <ref>ri:cn</ref>
+                <displayName>Common Name</displayName>
+                <outbound>
+                	<source>
+	                    <path>$user/fullName</path>
+                    </source>
+                </outbound>
+            </attribute>
+            <attribute>
+                <ref>ri:sn</ref>                
+                <outbound>
+                	<source>
+                		<path>familyName</path>
+                	</source>
+                </outbound>
+            </attribute>
+            <attribute>
+                <ref>ri:givenName</ref>
+                <outbound>
+                	<source>
+                		<path>givenName</path>
+                	</source>
+                </outbound>
+            </attribute>
+            <attribute>
+                <ref>ri:uid</ref>
+                <matchingRule>mr:stringIgnoreCase</matchingRule>
+                <outbound>
+                	<strength>weak</strength>
+                	<source>
+                		<path>$user/name</path>
+                	</source>
+                </outbound>
+            </attribute>
+            <association>
+            	<ref>ri:group</ref>
+            	<displayName>LDAP Group Membership</displayName>
+            	<kind>entitlement</kind>
+            	<intent>ldapGroup</intent>
+            	<direction>objectToSubject</direction>
+            	<associationAttribute>ri:uniqueMember</associationAttribute>
+            	<valueAttribute>ri:dn</valueAttribute>
+            </association>            
+            <activation>
+                <administrativeStatus>
+                    <outbound/>
+                </administrativeStatus>
+            </activation>
+            <credentials>
+                <password>
+                    <outbound/>
+                </password>
+            </credentials>
+        </objectType>
+        
+        <objectType>
+			<kind>account</kind>
+            <intent>fake10</intent>
+            <displayName>Fake Account</displayName>
+            <default>false</default>
+            <objectClass>ri:inetOrgPerson</objectClass>
+            <attribute>
+                <ref>ri:dn</ref>
+                <displayName>Distinguished Name</displayName>
+                <matchingRule>mr:stringIgnoreCase</matchingRule>
+                <outbound>
+                    <!-- Name cannot be weak. Changes in name trigger object rename. -->
+					<source>
+						<path>$user/name</path>
+					</source>
+                    <expression>
+                    	<script>
+	                        <code>
+	                        	import javax.naming.ldap.Rdn
+	                        	import javax.naming.ldap.LdapName
+	                        	
+	                        	dn = new LdapName('ou=people,dc=example,dc=com')
+	                        	dn.add(new Rdn('uid',name.toString()))
+	                        	return dn.toString()
+	                        </code>
+                        </script>
+                    </expression>
+                </outbound>
+            </attribute>
+            <attribute>
+                <ref>ri:cn</ref>
+                <displayName>Common Name</displayName>
+                <outbound>
+                	<source>
+	                    <path>$user/fullName</path>
+                    </source>
+                </outbound>
+            </attribute>
+            <attribute>
+                <ref>ri:sn</ref>                
+                <outbound>
+                	<source>
+                		<path>familyName</path>
+                	</source>
+                </outbound>
+            </attribute>
+            <attribute>
+                <ref>ri:givenName</ref>
+                <outbound>
+                	<source>
+                		<path>givenName</path>
+                	</source>
+                </outbound>
+            </attribute>
+            <attribute>
+                <ref>ri:uid</ref>
+                <matchingRule>mr:stringIgnoreCase</matchingRule>
+                <outbound>
+                	<strength>weak</strength>
+                	<source>
+                		<path>$user/name</path>
+                	</source>
+                </outbound>
+            </attribute>
+            <association>
+            	<ref>ri:group</ref>
+            	<displayName>LDAP Group Membership</displayName>
+            	<kind>entitlement</kind>
+            	<intent>ldapGroup</intent>
+            	<direction>objectToSubject</direction>
+            	<associationAttribute>ri:uniqueMember</associationAttribute>
+            	<valueAttribute>ri:dn</valueAttribute>
+            </association>            
+            <activation>
+                <administrativeStatus>
+                    <outbound/>
+                </administrativeStatus>
+            </activation>
+            <credentials>
+                <password>
+                    <outbound/>
+                </password>
+            </credentials>
+        </objectType>
+        
     </schemaHandling>
 
     <capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">

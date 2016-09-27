@@ -20,6 +20,7 @@ import java.util.*;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.schema.SearchResultList;
+import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import org.apache.commons.lang.Validate;
@@ -27,7 +28,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.common.InternalsConfig;
 import com.evolveum.midpoint.common.crypto.CryptoUtil;
 import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.model.impl.util.Utils;
@@ -383,7 +383,7 @@ public class SchemaTransformer {
 	}
     
     public <O extends ObjectType> ObjectTemplateType determineObjectTemplate(PrismObject<O> object, AuthorizationPhaseType phase, OperationResult result) throws SchemaException, ConfigurationException, ObjectNotFoundException {
-    	PrismObject<SystemConfigurationType> systemConfiguration = Utils.getSystemConfiguration(cacheRepositoryService, result);
+    	PrismObject<SystemConfigurationType> systemConfiguration = Utils.getSystemConfigurationReadOnly(cacheRepositoryService, result);
     	if (systemConfiguration == null) {
     		return null;
     	}
@@ -400,7 +400,7 @@ public class SchemaTransformer {
     }
     
     public <O extends ObjectType> ObjectTemplateType determineObjectTemplate(Class<O> objectClass, AuthorizationPhaseType phase, OperationResult result) throws SchemaException, ConfigurationException, ObjectNotFoundException {
-    	PrismObject<SystemConfigurationType> systemConfiguration = Utils.getSystemConfiguration(cacheRepositoryService, result);
+    	PrismObject<SystemConfigurationType> systemConfiguration = Utils.getSystemConfigurationReadOnly(cacheRepositoryService, result);
     	if (systemConfiguration == null) {
     		return null;
     	}

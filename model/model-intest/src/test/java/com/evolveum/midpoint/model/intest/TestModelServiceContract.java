@@ -60,7 +60,6 @@ import org.w3c.dom.Element;
 import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.common.StaticExpressionUtil;
-import com.evolveum.midpoint.common.monitor.InternalMonitor;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.ShadowDiscriminatorObjectDelta;
@@ -77,6 +76,7 @@ import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
@@ -130,6 +130,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 		InternalMonitor.reset();
 //		InternalMonitor.setTraceShadowFetchOperation(true);
 //		InternalMonitor.setTraceResourceSchemaOperations(true);
+		InternalMonitor.setTracePrismObjectClone(true);
 	}
 		
 	@Test
@@ -1123,6 +1124,8 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         OperationResult result = task.getResult();
         preTestCleanup(AssignmentPolicyEnforcementType.FULL);
         
+        rememberPrismObjectCloneCount();
+        
         XMLGregorianCalendar startTime = clock.currentTimeXMLGregorianCalendar();
                   
 		// WHEN
@@ -1135,6 +1138,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         TestUtil.assertSuccess("executeChanges result", result);
         XMLGregorianCalendar endTime = clock.currentTimeXMLGregorianCalendar();
         assertShadowFetchOperationCountIncrement(0);
+        assertPrismObjectCloneIncrement(55);
         
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);

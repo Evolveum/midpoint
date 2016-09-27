@@ -16,7 +16,6 @@
 
 package com.evolveum.midpoint.repo.sql.helpers;
 
-import com.evolveum.midpoint.common.InternalsConfig;
 import com.evolveum.midpoint.common.crypto.CryptoUtil;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.parser.XNodeProcessorEvaluationMode;
@@ -43,6 +42,7 @@ import com.evolveum.midpoint.repo.sql.query2.RQueryImpl;
 import com.evolveum.midpoint.repo.sql.query2.hqm.QueryParameterValue;
 import com.evolveum.midpoint.repo.sql.util.*;
 import com.evolveum.midpoint.schema.*;
+import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;

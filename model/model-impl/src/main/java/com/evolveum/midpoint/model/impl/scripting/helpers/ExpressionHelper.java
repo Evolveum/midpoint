@@ -16,16 +16,16 @@
 
 package com.evolveum.midpoint.model.impl.scripting.helpers;
 
+import com.evolveum.midpoint.model.api.ScriptExecutionException;
 import com.evolveum.midpoint.model.impl.scripting.Data;
 import com.evolveum.midpoint.model.impl.scripting.ExecutionContext;
-import com.evolveum.midpoint.model.api.ScriptExecutionException;
 import com.evolveum.midpoint.model.impl.scripting.ScriptingExpressionEvaluator;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.util.JavaTypeConverter;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ActionParameterValueType;
-
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -140,13 +140,10 @@ public class ExpressionHelper {
 			throw new ScriptExecutionException("A prism property value was expected in '" + parameterName + "' parameter. Got " + prismValue.getClass().getName() + " instead.");
 		}
 		Object value = ((PrismPropertyValue) prismValue).getValue();
-		if (clazz.isAssignableFrom(value.getClass())) {
-			@SuppressWarnings("unchecked")
-			T rv = (T) value;
-			return rv;
-		} else {
-			throw new ScriptExecutionException("A value of " + clazz.getName() + " was expected in '" + parameterName
-					+ "' parameter. Got " + value.getClass().getName() + " instead.");
+		try {
+			return JavaTypeConverter.convert(clazz, value);
+		} catch (Throwable t) {
+			throw new ScriptExecutionException("Couldn't retrieve value of parameter '" + parameterName + "': " + t.getMessage(), t);
 		}
 	}
 }
