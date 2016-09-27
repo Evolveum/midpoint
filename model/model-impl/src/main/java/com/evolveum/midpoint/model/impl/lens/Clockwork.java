@@ -20,7 +20,6 @@ import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.audit.api.AuditEventType;
 import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.common.Clock;
-import com.evolveum.midpoint.common.InternalsConfig;
 import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
@@ -67,6 +66,7 @@ import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.SystemConfigurationTypeUtil;
@@ -251,7 +251,7 @@ public class Clockwork {
 	}
 
 	private <F extends ObjectType> int getMaxClicks(LensContext<F> context, OperationResult result) throws SchemaException, ObjectNotFoundException {
-		PrismObject<SystemConfigurationType> sysconfigObject = LensUtil.getSystemConfiguration(context, repositoryService, result);
+		PrismObject<SystemConfigurationType> sysconfigObject = LensUtil.getSystemConfigurationReadOnly(context, repositoryService, result);
 		Integer maxClicks = SystemConfigurationTypeUtil.getMaxModelClicks(sysconfigObject);
 		if (maxClicks == null) {
 			return DEFAULT_MAX_CLICKS;
@@ -388,7 +388,7 @@ public class Clockwork {
     	// TODO: following two parts should be merged together in later versions
     	
     	// Execute configured scripting hooks
-    	PrismObject<SystemConfigurationType> systemConfiguration = LensUtil.getSystemConfiguration(context, repositoryService, result);
+    	PrismObject<SystemConfigurationType> systemConfiguration = LensUtil.getSystemConfigurationReadOnly(context, repositoryService, result);
     	// systemConfiguration may be null in some tests
     	if (systemConfiguration != null) {
 	    	ModelHooksType modelHooks = systemConfiguration.asObjectable().getModelHooks();

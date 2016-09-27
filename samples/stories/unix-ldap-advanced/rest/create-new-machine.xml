@@ -1,0 +1,41 @@
+<service xmlns:apti="http://midpoint.evolveum.com/xml/ns/public/common/api-types-3" 
+xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" 
+xmlns:gen780="http://prism.evolveum.com/xml/ns/public/debug" 
+xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3" 
+xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3" xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3" xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+      <name>m1011</name>
+      <description>Members will be user dn's who have access to this machine.</description>
+      <parentOrgRef oid="af5ea4a1-bd88-40de-978d-50a7c263d38e" type="c:OrgType">
+      	<filter>
+      		<q:equal>
+      			<q:path>name</q:path>
+      			<q:value>m1set</q:value>
+      		</q:equal>
+      	</filter> 
+      </parentOrgRef>
+      <extension xmlns:gen885="http://example.com/xml/ns/mySchema">
+         <gen885:gidNumber>5</gen885:gidNumber>
+      </extension>
+      <assignment id="2" xsi:type="c:AssignmentType">
+         <targetRef oid="af5ea4a1-bd88-40de-978d-50a7c263d38e" type="c:OrgType">
+         	<filter>
+	      		<q:equal>
+	      			<q:path>name</q:path>
+	      			<q:value>m1set</q:value>
+	      		</q:equal>
+	      	</filter> 
+         </targetRef>
+      </assignment>
+      <assignment id="3" xsi:type="c:AssignmentType">
+         <targetRef oid="4340faa4-c635-47ce-96a6-03eb25bb3edf" type="c:RoleType">
+         	<filter>
+      		<q:equal>
+      			<q:path>name</q:path>
+      			<q:value>Metarole for Services</q:value>
+      		</q:equal>
+      	</filter> 
+         </targetRef>
+      </assignment>
+      <displayName>Set 1 Machine 001</displayName>
+      <identifier>m1</identifier>
+   </service>

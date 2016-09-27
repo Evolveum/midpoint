@@ -135,6 +135,33 @@
                 <transport>dummy:simpleUserNotifier-FAILURE</transport>
             </simpleUserNotifier>
         </handler>
+        <handler>
+            <category>customEvent</category>
+            <operation>delete</operation>
+            <status>failure</status>
+            <expressionFilter>
+                <script>
+                    <code>
+                        event.subtype == 'type2'
+                    </code>
+                </script>
+            </expressionFilter>
+            <generalNotifier>
+                <recipientExpression>
+                    <value>recipient@evolveum.com</value>
+                </recipientExpression>
+                <subjectExpression>
+                    <value>Failure notification of type 2</value>
+                </subjectExpression>
+                <bodyExpression>
+                    <script>
+                        <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#velocity</language>
+                        <code>$event.object</code>
+                    </script>
+                </bodyExpression>
+                <transport>dummy:CustomType2</transport>
+            </generalNotifier>
+        </handler>
         <mail>
             <redirectToFile>target/mail-notifications.log</redirectToFile>
         </mail>

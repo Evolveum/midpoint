@@ -79,7 +79,7 @@
  	<logger name="com.evolveum.midpoint.model.common.expression.evaluator.AbstractSearchExpressionEvaluator" level="DEBUG" />
  	<logger name="com.evolveum.midpoint.model.common.expression.evaluator.AssignmentExpressionEvaluator" level="DEBUG" />
  	<logger name="com.evolveum.midpoint.model.common.expression.evaluator.AssociationExpressionEvaluator" level="DEBUG" />
-	<logger name="com.evolveum.midpoint.common.monitor" level="DEBUG" />
+	<logger name="com.evolveum.midpoint.schema.internals.InternalMonitor" level="TRACE" />
 	<logger name="com.evolveum.midpoint.model.controller.SystemConfigurationHandler" level="DEBUG" />
     <logger name="com.evolveum.midpoint.notifications" level="DEBUG" />
     <logger name="com.evolveum.midpoint.security" level="DEBUG" />
@@ -95,6 +95,7 @@
     <logger name="com.evolveum.midpoint.model.impl.expr" level="DEBUG" />
     <logger name="com.evolveum.midpoint.model.impl.util.DeleteTaskHandler" level="DEBUG" />
 	<logger name="com.evolveum.midpoint.repo" level="INFO" />
+	<logger name="com.evolveum.midpoint.repo.cache" level="TRACE" />
 	
 	<logger name="org.identityconnectors.framework" level="TRACE" />
 	<logger name="com.evolveum.icf.dummy.connector" level="TRACE" />

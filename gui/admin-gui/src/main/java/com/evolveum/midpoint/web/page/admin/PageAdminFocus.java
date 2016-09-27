@@ -299,8 +299,10 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 		try {
 			Collection<SelectorOptions<GetOperationOptions>> loadOptions = null;
 			if (ShadowType.class.equals(type)) {
+				GetOperationOptions resourceOption = GetOperationOptions.createResolve();
+				resourceOption.setReadOnly(true);
 				loadOptions = SelectorOptions.createCollection(ShadowType.F_RESOURCE,
-						GetOperationOptions.createResolve());
+						resourceOption);
 			} 
 			
 			if (noFetch) {
