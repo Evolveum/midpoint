@@ -87,6 +87,7 @@ public abstract class AbstractTreeTablePanel extends BasePanel<String> {
     protected static final String ID_ADD_DELETE_POPUP = "addDeletePopup";
     protected static final String ID_TREE_MENU = "treeMenu";
     protected static final String ID_TREE_HEADER = "treeHeader";
+    protected static final String ID_TREE_TITLE = "treeTitle";
     protected static final String ID_SEARCH_FORM = "searchForm";
     protected static final String ID_BASIC_SEARCH = "basicSearch";
     protected static final String ID_SEARCH_SCOPE = "searchScope";
