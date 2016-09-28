@@ -1835,7 +1835,7 @@ public abstract class ShadowCache {
 							.getAttributes();
 					if (entitlementIdentifiers == null || entitlementIdentifiers.isEmpty()) {
 						throw new IllegalStateException(
-								"No entitlement identifiers present for association " + associationCVal + ctx.getDesc());
+								"No entitlement identifiers present for association " + associationCVal + " " + ctx.getDesc());
 					}
 					ShadowAssociationType shadowAssociationType = associationCVal.asContainerable();
 					QName associationName = shadowAssociationType.getName();
@@ -1848,7 +1848,7 @@ public abstract class ShadowCache {
 											resourceShadow.debugDump(1), repoShadow==null?null:repoShadow.debugDump(1)});
 						}
 						throw new SchemaException("Entitlement association with name " + associationName
-								+ " couldn't be found in " + ctx.getObjectClassDefinition() + ctx.getDesc());
+								+ " couldn't be found in " + ctx.getObjectClassDefinition() + " " + ctx.getDesc());
 					}
 					for (String intent : rEntitlementAssociation.getIntents()) {
 						ProvisioningContext ctxEntitlement = ctx.spawn(ShadowKindType.ENTITLEMENT, intent);
