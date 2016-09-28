@@ -60,7 +60,7 @@ public class JsonParser extends AbstractParser {
 	}
 	
     @Override
-    protected com.fasterxml.jackson.core.JsonParser createParser(InputStream stream) throws SchemaException, IOException {
+    protected com.fasterxml.jackson.core.JsonParser createJacksonParser(InputStream stream) throws SchemaException, IOException {
         JsonFactory factory = new JsonFactory();
         try {
             return factory.createParser(stream);
@@ -70,7 +70,7 @@ public class JsonParser extends AbstractParser {
     }
 
     @Override
-	protected com.fasterxml.jackson.core.JsonParser createParser(String dataString) throws SchemaException {
+	protected com.fasterxml.jackson.core.JsonParser createJacksonParser(String dataString) throws SchemaException {
 		JsonFactory factory = new JsonFactory();
 		try {
 			return factory.createParser(dataString);
@@ -79,7 +79,7 @@ public class JsonParser extends AbstractParser {
 		}
 		
 	}
-	public JsonGenerator createGenerator(StringWriter out) throws SchemaException{
+	public JsonGenerator createJacksonGenerator(StringWriter out) throws SchemaException{
 		return createJsonGenerator(out);
 	}
 	private JsonGenerator createJsonGenerator(StringWriter out) throws SchemaException{

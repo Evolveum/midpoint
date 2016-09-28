@@ -83,7 +83,8 @@ import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.module.jaxb.JaxbAnnotationIntrospector;
 import com.fasterxml.jackson.module.jaxb.deser.DomElementJsonDeserializer;
 
-public class PrismJasonProcessor {
+@Deprecated
+public class PrismJasonProcessorDeprecated {
 	
 	private SchemaRegistry schemaRegistry;
 	private PrismContext prismContext;

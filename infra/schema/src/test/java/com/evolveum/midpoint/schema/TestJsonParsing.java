@@ -10,6 +10,7 @@ import java.io.FileOutputStream;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.json.PrismJasonProcessorDeprecated;
 import org.testng.annotations.Test;
 import org.w3c.dom.Element;
 
@@ -21,7 +22,6 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismReference;
-import com.evolveum.midpoint.prism.json.PrismJasonProcessor;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
@@ -32,16 +32,17 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
+@Deprecated
 public class TestJsonParsing {
 
-	// private PrismJasonProcessor jsonProcessor;
+	// private PrismJasonProcessorDeprecated jsonProcessor;
 
 	
 	@Test(enabled = false)
 	public void test000SerializeUserJson() throws Exception {
 		System.out.println("===[ testParseUserJson ]===");
 //		PrismContext prismContext = PrismInternalTestUtil.constructInitializedPrismContext();
-		PrismJasonProcessor jsonProcessor = new PrismJasonProcessor();
+		PrismJasonProcessorDeprecated jsonProcessor = new PrismJasonProcessorDeprecated();
 		PrismContext prismContext = MidPointPrismContextFactory.FACTORY
 				.createInitializedPrismContext();
 //		prismContext.initialize();
@@ -74,7 +75,7 @@ public class TestJsonParsing {
 	@Test(enabled = false)
 	public void test001ParseUserJson() throws Exception {
 		System.out.println("===[ testParseUserJson ]===");
-		PrismJasonProcessor jsonProcessor = new PrismJasonProcessor();
+		PrismJasonProcessorDeprecated jsonProcessor = new PrismJasonProcessorDeprecated();
 		PrismContext prismContext = MidPointPrismContextFactory.FACTORY
 				.createInitializedPrismContext();
 		prismContext.initialize();
@@ -115,7 +116,7 @@ public class TestJsonParsing {
 	@Test(enabled = false)
 	public void test002ParseResourceJson() throws Exception {
 		System.out.println("===[ test002ParseResourceJson ]===");
-		PrismJasonProcessor jsonProcessor = new PrismJasonProcessor();
+		PrismJasonProcessorDeprecated jsonProcessor = new PrismJasonProcessorDeprecated();
 		PrismContext prismContext = MidPointPrismContextFactory.FACTORY
 				.createInitializedPrismContext();
 		jsonProcessor.setPrismContext(prismContext);
@@ -156,7 +157,7 @@ System.out.println("=====================objectTYPE");
 	@Test(enabled = false)
 	public void test003ParseResourceJson() throws Exception {
 		System.out.println("===[ testParseUserJson ]===");
-		PrismJasonProcessor jsonProcessor = new PrismJasonProcessor();
+		PrismJasonProcessorDeprecated jsonProcessor = new PrismJasonProcessorDeprecated();
 		PrismContext prismContext = MidPointPrismContextFactory.FACTORY
 				.createInitializedPrismContext();
 		prismContext.initialize();

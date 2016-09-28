@@ -35,7 +35,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 
-public abstract class AbstractParser implements Parser {
+@Deprecated
+public abstract class AbstractParserDeprecated implements Parser {
 	
 	private static final String PROP_NAMESPACE = "@ns";
 	private static final String TYPE_DEFINITION = "@typeDef";

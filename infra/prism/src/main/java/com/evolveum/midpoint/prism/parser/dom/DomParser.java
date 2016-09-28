@@ -32,6 +32,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.marshaller.XNodeProcessorEvaluationMode;
 import com.evolveum.midpoint.prism.marshaller.XPathHolder;
 import com.evolveum.midpoint.prism.parser.Parser;
+import com.evolveum.midpoint.prism.parser.ParserUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import org.apache.commons.lang.StringUtils;
@@ -424,17 +425,11 @@ public class DomParser implements Parser {
 	@Override
 	public String serializeToString(XNode xnode, QName rootElementName) throws SchemaException {
 		DomSerializer serializer = new DomSerializer(this, schemaRegistry);
-		RootXNode xroot;
-		if (xnode instanceof RootXNode) {
-			xroot = (RootXNode) xnode;
-		} else {
-			xroot = new RootXNode(rootElementName);
-			xroot.setSubnode(xnode);
-		}
+		RootXNode xroot = ParserUtils.createRootXNode(xnode, rootElementName);
 		Element element = serializer.serialize(xroot);
 		return DOMUtil.serializeDOMToString(element);
 	}
-	
+
 	@Override
 	public String serializeToString(RootXNode xnode) throws SchemaException {
 		DomSerializer serializer = new DomSerializer(this, schemaRegistry);
@@ -444,13 +439,7 @@ public class DomParser implements Parser {
 	
 	public Element serializeUnderElement(XNode xnode, QName rootElementName, Element parentElement) throws SchemaException {
 		DomSerializer serializer = new DomSerializer(this, schemaRegistry);
-		RootXNode xroot;
-		if (xnode instanceof RootXNode) {
-			xroot = (RootXNode) xnode;
-		} else {
-			xroot = new RootXNode(rootElementName);
-			xroot.setSubnode(xnode);
-		}
+		RootXNode xroot = ParserUtils.createRootXNode(xnode, rootElementName);
 		return serializer.serializeUnderElement(xroot, parentElement);
 	}
 

@@ -25,6 +25,7 @@ import java.util.Map.Entry;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.parser.Parser;
+import com.evolveum.midpoint.prism.parser.ParserUtils;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -52,7 +53,6 @@ import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.JsonToken;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
@@ -64,57 +64,47 @@ public abstract class AbstractParser implements Parser {
 	private static final String PROP_NAMESPACE = "@ns";
 	protected static final String TYPE_DEFINITION = "@typeDef";
 	protected static final String VALUE_FIELD = "@value";
-	
-	protected abstract JsonParser createParser(String dataString) throws SchemaException;
-    protected abstract JsonParser createParser(InputStream stream) throws SchemaException, IOException;
 
-	protected JsonParser createParser(File file) throws SchemaException, IOException {
-		return createParser(new FileInputStream(file));
-	}
+	// Public interface
 
-	public abstract JsonGenerator createGenerator(StringWriter out) throws SchemaException;
-	
-	@Override
-	public Collection<XNode> parseCollection(File file) throws SchemaException, IOException {
-		throw new UnsupportedOperationException("Parse objects not supported for json and yaml.");
-	}
-	
-	@Override
-	public Collection<XNode> parseCollection(String dataString) throws SchemaException {
-		throw new UnsupportedOperationException("Parse objects not supported for json and yaml.");
-	}
-	
-	@Override
-	public Collection<XNode> parseCollection(InputStream stream) throws SchemaException, IOException {
-		// TODO Auto-generated method stub
-		return null;
-	}
-	
 	@Override
 	public XNode parse(File file) throws SchemaException, IOException {
-		JsonParser parser = createParser(file);
-		return parseObject(parser);
+		try (FileInputStream fis = new FileInputStream(file)) {
+			JsonParser parser = createJacksonParser(fis);
+			return parse(parser);
+		}
 	}
 
-    @Override
-    public XNode parse(InputStream stream) throws SchemaException, IOException {
-        JsonParser parser = createParser(stream);
-        return parseObject(parser);
-    }
+	@Override
+	public XNode parse(InputStream stream) throws SchemaException, IOException {
+		JsonParser parser = createJacksonParser(stream);
+		return parse(parser);
+	}
 
-    @Override
+	@Override
 	public XNode parse(String dataString) throws SchemaException {
-		JsonParser parser = createParser(dataString);
-		return parseObject(parser);
+		JsonParser parser = createJacksonParser(dataString);
+		return parse(parser);
 	}
 
-	private boolean root = true;
+	@Override
+	public Collection<XNode> parseCollection(File file) throws SchemaException, IOException {
+		throw new UnsupportedOperationException("Parse objects not supported for json and yaml.");			// why?
+	}
+
+	@Override
+	public Collection<XNode> parseCollection(InputStream stream) throws SchemaException, IOException {
+		throw new UnsupportedOperationException("Parse objects not supported for json and yaml.");			// why?
+	}
+
+	@Override
+	public Collection<XNode> parseCollection(String dataString) throws SchemaException {
+		throw new UnsupportedOperationException("Parse objects not supported for json and yaml.");			// why?
+	}
+
 	@Override
 	public String serializeToString(XNode xnode, QName rootElementName) throws SchemaException {
-		if (xnode instanceof RootXNode){
-			xnode = ((RootXNode) xnode).getSubnode();
-		}
-		return serialize(xnode, null, rootElementName);
+		return serializeToString(ParserUtils.createRootXNode(xnode, rootElementName));
 	}
 
 	@Override
@@ -123,7 +113,72 @@ public abstract class AbstractParser implements Parser {
 		QName explicitType = xnode.getTypeQName();
 		return serialize(xnode.getSubnode(), explicitType, rootElementName);
 	}
-	
+
+	// Parsing implementation
+
+	protected abstract JsonParser createJacksonParser(String dataString) throws SchemaException;
+    protected abstract JsonParser createJacksonParser(InputStream stream) throws SchemaException, IOException;
+
+	private XNode parse(JsonParser parser) throws SchemaException {
+		try {
+			configureParser(parser);
+			JsonToken t = parser.currentToken();
+			if (t == null) {
+				parser.nextToken();
+			}
+			RootXNode rootXNode = new RootXNode();
+			while (parser.nextToken() != null) {
+				parse(rootXNode, null, parser);
+			}
+			return rootXNode;
+		} catch (IOException e) {
+			throw new SchemaException("Cannot parse from JSON: " + e.getMessage(), e);
+		}
+	}
+
+	private <T> void parse(XNode xnode, QName propertyName, JsonParser parser) throws SchemaException {
+		try{
+			JsonToken token = parser.getCurrentToken();
+
+			if (token == null){
+				return;
+			}
+			propertyName = parseFieldName(xnode, propertyName, parser);
+
+			switch (parser.getCurrentToken()){
+				case START_OBJECT:
+					parseToMap(propertyName, xnode, parser);
+					break;
+				case START_ARRAY:
+					parseToList(propertyName, xnode, parser);
+					break;
+				case VALUE_STRING:
+				case VALUE_TRUE:
+				case VALUE_FALSE:
+				case VALUE_NUMBER_FLOAT:
+				case VALUE_NUMBER_INT:
+					parseToPrimitive(propertyName, xnode, parser);
+					break;
+				default:
+					//				System.out.println("DEFAULT SWICH NODE");
+					break;
+
+			}
+		} catch (Exception e){
+			//TODO:
+			throw new SchemaException("Error ", e);
+		}
+	}
+
+
+	// Serialization implementation
+
+	protected abstract JsonGenerator createJacksonGenerator(StringWriter out) throws SchemaException;
+
+
+
+	private boolean root = true;
+
 	protected abstract void writeExplicitType(QName explicitType, JsonGenerator generator) throws JsonGenerationException, IOException;
 	
 	// ------------------- METHODS FOR SERIALIZATION ------------------------------
@@ -132,7 +187,7 @@ public abstract class AbstractParser implements Parser {
 		StringWriter out = new StringWriter();
 		try { 
 			
-			generator = createGenerator(out);
+			generator = createJacksonGenerator(out);
 
 			generator.writeStartObject();
 			generator.writeStringField(PROP_NAMESPACE, rootElement.getNamespaceURI());
@@ -324,36 +379,7 @@ public abstract class AbstractParser implements Parser {
 	}
 	
 	//------------------------ METHODS FOR PARSING -------------------------------------------
-	public XNode parseObject(JsonParser parser) throws SchemaException{
-		
-		try {
-			configureParser(parser);
 
-			JsonToken t = parser.getCurrentToken();
-			if (t == null){
-				t = parser.nextToken();
-			}
-			
-			if (t == null){
-				t = parser.nextToken();
-			}
-						
-			RootXNode xmap = new RootXNode();
-//			xmap.
-			
-			while (parser.nextToken() != null){
-				parse(xmap, null, parser);
-			}
-			 return xmap;
-		} catch (JsonParseException e) {
-			throw new SchemaException("Cannot parse from JSON: " + e.getMessage(), e);
-		} catch (JsonMappingException e) {
-			throw new SchemaException("Cannot parse from JSON: " + e.getMessage(), e);
-		} catch (IOException e) {
-			throw new SchemaException("Cannot parse from JSON: " + e.getMessage(), e);
-		}
-	}
-	
 	private QName parseFieldName(XNode xnode, QName propertyName, JsonParser parser) throws JsonParseException, IOException{
 		
 		JsonToken token = parser.getCurrentToken();
@@ -382,40 +408,7 @@ public abstract class AbstractParser implements Parser {
 		
 	}
 		
-	private <T> void parse(XNode xmap, QName propertyName, JsonParser parser) throws SchemaException {
-		try{
-			JsonToken token = parser.getCurrentToken();
-			
-			if (token == null){
-				return;
-			}
-			propertyName = parseFieldName(xmap, propertyName, parser);
-			
-		switch (parser.getCurrentToken()){
-			case START_OBJECT:
-				parseToMap(propertyName, xmap, parser);
-				break;				
-			case START_ARRAY:
-				parseToList(propertyName, xmap, parser);
-				break;
-			case VALUE_STRING:
-			case VALUE_TRUE:
-			case VALUE_FALSE:
-			case VALUE_NUMBER_FLOAT:
-			case VALUE_NUMBER_INT:
-				parseToPrimitive(propertyName, xmap, parser);
-				break;
-			default:
-//				System.out.println("DEFAULT SWICH NODE");
-				break;
-				
-		}
-		} catch (Exception e){
-			//TODO: 
-			throw new SchemaException("Error ", e);
-		}
-	}
-	
+
 	private void parseToMap(QName propertyName, XNode parent, JsonParser parser) throws SchemaException, JsonParseException, IOException{
 
 //		System.out.println("parseToMap - propertyName " + propertyName);

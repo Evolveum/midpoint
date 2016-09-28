@@ -66,7 +66,7 @@ public class YamlParser extends AbstractParser {
 		return dataString.startsWith("---");
 	}
 	
-	public YAMLGenerator createGenerator(StringWriter out) throws SchemaException{
+	public YAMLGenerator createJacksonGenerator(StringWriter out) throws SchemaException{
 		try {
 			MidpointYAMLFactory factory = new MidpointYAMLFactory();
 			MidpointYAMLGenerator generator = (MidpointYAMLGenerator) factory.createGenerator(out);
@@ -112,7 +112,7 @@ public class YamlParser extends AbstractParser {
 	}
 	
     @Override
-    protected MidpointYAMLParser createParser(InputStream stream) throws SchemaException, IOException {
+    protected MidpointYAMLParser createJacksonParser(InputStream stream) throws SchemaException, IOException {
         MidpointYAMLFactory factory = new MidpointYAMLFactory();
         try {
             MidpointYAMLParser p = (MidpointYAMLParser) factory.createParser(stream);
@@ -125,7 +125,7 @@ public class YamlParser extends AbstractParser {
     }
 
     @Override
-	protected MidpointYAMLParser createParser(String dataString) throws SchemaException {
+	protected MidpointYAMLParser createJacksonParser(String dataString) throws SchemaException {
 		MidpointYAMLFactory factory = new MidpointYAMLFactory();
 		try {
 			return (MidpointYAMLParser) factory.createParser(dataString);
