@@ -257,9 +257,10 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 			PrismObject<ShadowType> shadow = (PrismObject<ShadowType>)object;
 			String resourceOid = ShadowUtil.getResourceOid(shadow);
 			if (resourceOid != null) {
+				Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createReadOnly());
 				PrismObject<ResourceType> resource;
 				try {
-					resource = provisioning.getObject(ResourceType.class, resourceOid, null, null, result);			// TODO include task here
+					resource = provisioning.getObject(ResourceType.class, resourceOid, options, null, result);			// TODO include task here
 				} catch (CommunicationException | SecurityViolationException e) {
 					throw new ConfigurationException(e.getMessage(), e);
 				}
