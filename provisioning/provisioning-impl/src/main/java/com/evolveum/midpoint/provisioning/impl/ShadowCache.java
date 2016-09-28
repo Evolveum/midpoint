@@ -1841,6 +1841,10 @@ public abstract class ShadowCache {
 					QName associationName = shadowAssociationType.getName();
 					RefinedAssociationDefinition rEntitlementAssociation = ctx.getObjectClassDefinition()
 							.findEntitlementAssociation(associationName);
+					if (rEntitlementAssociation == null) {
+						throw new IllegalStateException("Entitlement association with name " + associationName
+								+ " couldn't be found in " + ctx.getObjectClassDefinition());
+					}
 					for (String intent : rEntitlementAssociation.getIntents()) {
 						ProvisioningContext ctxEntitlement = ctx.spawn(ShadowKindType.ENTITLEMENT, intent);
 
