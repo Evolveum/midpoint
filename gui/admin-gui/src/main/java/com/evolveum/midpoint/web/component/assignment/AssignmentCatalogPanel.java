@@ -1,58 +1,95 @@
 package com.evolveum.midpoint.web.component.assignment;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.*;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.SelectorOptions;
-import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
+import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.data.MultiButtonTable;
 import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
-import com.evolveum.midpoint.web.component.data.SelectableBeanObjectDataProvider;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
-import com.evolveum.midpoint.web.component.search.Search;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.orgs.OrgTreePanel;
-import com.evolveum.midpoint.web.page.admin.users.component.TreeTablePanel;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
-import com.evolveum.midpoint.web.session.PageStorage;
+import com.evolveum.midpoint.web.session.SessionStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.form.DropDownChoice;
+import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
 
-import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Created by Kate on 20.09.2016.
+ * Created by honchar.
  */
-public class AssignmentShoppingCartPanel<F extends FocusType> extends BasePanel<String> {
+public class AssignmentCatalogPanel<F extends FocusType> extends BasePanel<String> {
     private static String ID_TREE_PANEL = "treePanel";
     private static String ID_ASSIGNMENTS_PANEL = "assignmentsPanel";
+    private static String ID_CART_BUTTON = "cartButton";
+    private static String ID_CART_ITEMS_COUNT = "itemsCount";
 
-    public AssignmentShoppingCartPanel(String id) {
+    public AssignmentCatalogPanel(String id) {
         super(id);
     }
 
-    public AssignmentShoppingCartPanel(String id, IModel<String> rootOidModel) {
+    public AssignmentCatalogPanel(String id, IModel<String> rootOidModel) {
         super(id, rootOidModel);
         initLayout();
     }
 
     private void initLayout() {
         setOutputMarkupId(true);
-        OrgTreePanel treePanel = new OrgTreePanel(ID_TREE_PANEL, getModel(), false) {
+
+        AjaxButton cartButton = new AjaxButton(ID_CART_BUTTON) {
+            @Override
+            public void onClick(AjaxRequestTarget ajaxRequestTarget) {
+
+            }
+        };
+        cartButton.setOutputMarkupId(true);
+        add(cartButton);
+
+        Label cartItemsCount = new Label(ID_CART_ITEMS_COUNT, new IModel<String>() {
+            @Override
+            public String getObject() {
+                SessionStorage storage = getPageBase().getSessionStorage();
+                return Integer.toString(storage.getUsers().getAssignmentShoppingCart().size());
+            }
+
+            @Override
+            public void setObject(String s) {
+
+
+            }
+
+            @Override
+            public void detach() {
+
+            }
+        });
+        cartItemsCount.add(new VisibleEnableBehaviour(){
+            @Override
+        public boolean isVisible(){
+                SessionStorage storage = getPageBase().getSessionStorage();
+                if (storage.getUsers().getAssignmentShoppingCart().size() == 0){
+                    return false;
+                } else {
+                    return true;
+                }
+            }
+        });
+        cartItemsCount.setOutputMarkupId(true);
+        cartButton.add(cartItemsCount);
+
+        OrgTreePanel treePanel = new OrgTreePanel(ID_TREE_PANEL, getModel(), false, "AssignmentShoppingCartPanel.treeTitle") {
             private static final long serialVersionUID = 1L;
 
             @Override
             protected void selectTreeItemPerformed(SelectableBean<OrgType> selected,
                                                    AjaxRequestTarget target) {
-                AssignmentShoppingCartPanel.this.selectTreeItemPerformed(selected, target);
+                AssignmentCatalogPanel.this.selectTreeItemPerformed(selected, target);
             }
 
             protected List<InlineMenuItem> createTreeMenu() {
@@ -137,19 +174,19 @@ public class AssignmentShoppingCartPanel<F extends FocusType> extends BasePanel<
         return createMemberQuery(oid);
     }
 
-    protected ObjectQuery createMemberQuery(String oid) {
-        ObjectQuery query = null;
+    private ObjectQuery createMemberQuery(String oid) {
         ObjectFilter filter = OrgFilter.createOrg(oid, OrgFilter.Scope.ONE_LEVEL);
-        query = ObjectQuery.createObjectQuery(AndFilter.createAnd(filter));
 
-//        TypeFilter roleTypeFilter = TypeFilter.createType(RoleType.COMPLEX_TYPE, filter);
-//        TypeFilter orgTypeFilter = TypeFilter.createType(OrgType.COMPLEX_TYPE, filter);
-//        TypeFilter serviceTypeFilter = TypeFilter.createType(ServiceType.COMPLEX_TYPE, filter);
-//        query = ObjectQuery.createObjectQuery(OrFilter.createOr(roleTypeFilter, orgTypeFilter, serviceTypeFilter));
-        return ObjectQuery.createObjectQuery(TypeFilter.createType(RoleType.COMPLEX_TYPE, query.getFilter()));
+        TypeFilter roleTypeFilter = TypeFilter.createType(RoleType.COMPLEX_TYPE, filter);
+        TypeFilter orgTypeFilter = TypeFilter.createType(OrgType.COMPLEX_TYPE, filter);
+        TypeFilter serviceTypeFilter = TypeFilter.createType(ServiceType.COMPLEX_TYPE, filter);
+        ObjectQuery query = ObjectQuery.createObjectQuery(OrFilter.createOr(roleTypeFilter, orgTypeFilter, serviceTypeFilter));
+        return query;
 
     }
 
-
+    public void reloadCartButton(AjaxRequestTarget target){
+        target.add(get(ID_CART_BUTTON));
+    }
 }
 

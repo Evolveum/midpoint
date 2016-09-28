@@ -10,8 +10,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
-import com.evolveum.midpoint.web.component.assignment.AssignmentShoppingCartPanel;
-import com.evolveum.midpoint.web.component.assignment.MultipleAssignmentSelectorPanel;
+import com.evolveum.midpoint.web.component.assignment.AssignmentCatalogPanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.IModel;
@@ -39,7 +38,7 @@ public class PageAssignmentShoppingKart extends PageSelf{
     private void initLayout(){
         Form mainForm = new org.apache.wicket.markup.html.form.Form(ID_MAIN_FORM);
         add(mainForm);
-        AssignmentShoppingCartPanel panel = new AssignmentShoppingCartPanel(ID_MAIN_PANEL, new IModel<String>() {
+        AssignmentCatalogPanel panel = new AssignmentCatalogPanel(ID_MAIN_PANEL, new IModel<String>() {
             @Override
             public String getObject() {
                 Task task = getPageBase().createAnonymousTask(OPERATION_LOAD_QUESTION_POLICY);

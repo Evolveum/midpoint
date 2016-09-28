@@ -2,10 +2,11 @@ package com.evolveum.midpoint.web.component.data;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.web.component.AjaxButton;
-import com.evolveum.midpoint.web.component.assignment.AssignmentDetailsPanel;
-import com.evolveum.midpoint.web.component.assignment.AssignmentEditorDto;
-import com.evolveum.midpoint.web.component.assignment.AssignmentEditorDtoType;
-import com.evolveum.midpoint.web.component.assignment.AssignmentEditorPanel;
+import com.evolveum.midpoint.web.component.assignment.*;
+import com.evolveum.midpoint.web.page.admin.roles.PageRole;
+import com.evolveum.midpoint.web.page.self.PageAssignmentDetails;
+import com.evolveum.midpoint.web.session.SessionStorage;
+import com.evolveum.midpoint.web.session.UsersStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
@@ -20,6 +21,7 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -36,6 +38,8 @@ public class MultiButtonTable extends BasePanel<List<AssignmentEditorDto>> {
     private int itemsCount = 0;
     private int itemsPerRow = 0;
 
+    private boolean plusIconClicked = false;
+
     public MultiButtonTable (String id){
         super(id);
     }
@@ -48,10 +52,9 @@ public class MultiButtonTable extends BasePanel<List<AssignmentEditorDto>> {
 
     private void initLayout(){
         itemsCount = getModel() != null ? (getModel().getObject() != null ? getModel().getObject().size() : 0) : 0;
+        RepeatingView rows = new RepeatingView(ID_ROW);
+        rows.setOutputMarkupId(true);
         if (itemsCount > 0){
-            RepeatingView rows = new RepeatingView(ID_ROW);
-            rows.setOutputMarkupId(true);
-            add(rows);
             int index = 0;
             List<AssignmentEditorDto> assignmentsList = getModelObject();
             for (int rowNumber = 0; rowNumber <= itemsCount / itemsPerRow; rowNumber++){
@@ -73,6 +76,7 @@ public class MultiButtonTable extends BasePanel<List<AssignmentEditorDto>> {
                 }
             }
         }
+        add(rows);
     }
 
     protected void populateCell(WebMarkupContainer cellContainer, final AssignmentEditorDto assignment){
@@ -81,27 +85,41 @@ public class MultiButtonTable extends BasePanel<List<AssignmentEditorDto>> {
 
             @Override
             public void onClick(AjaxRequestTarget ajaxRequestTarget) {
-                IModel<AssignmentEditorDto> assignmentModel = new IModel<AssignmentEditorDto>() {
-                    @Override
-                    public AssignmentEditorDto getObject() {
-                        return null;
-                    }
+                if (!plusIconClicked) {
+                    IModel<AssignmentEditorDto> assignmentModel = new IModel<AssignmentEditorDto>() {
+                        @Override
+                        public AssignmentEditorDto getObject() {
+                            assignment.setMinimized(false);
+                            assignment.setSimpleView(true);
+                            return assignment;
+                        }
 
-                    @Override
-                    public void setObject(AssignmentEditorDto assignmentEditorDto) {
+                        @Override
+                        public void setObject(AssignmentEditorDto assignmentEditorDto) {
 
-                    }
+                        }
 
-                    @Override
-                    public void detach() {
+                        @Override
+                        public void detach() {
 
-                    }
-                };
-//                getPageBase().showMainPopup(new AssignmentDetailsPanel(getPageBase().getMainPopupBodyId(), assignmentModel), ajaxRequestTarget);
+                        }
+                    };
+                    setResponsePage(new PageAssignmentDetails(assignmentModel));
+                } else {
+                    plusIconClicked = false;
+                }
             }
         };
         Label plusLabel = new Label(ID_BUTTON_PLUS_ICON, "+");
 //        plusLabel.add(new AttributeAppender("title", getPageBase().createStringResource("MultiButtonPanel.plusIconTitle")));
+        plusLabel.add(new AjaxEventBehavior("click") {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected void onEvent(AjaxRequestTarget target) {
+                addAssignmentPerformed(assignment, target);
+            }
+        });
         assignmentButton.add(plusLabel);
 
         WebMarkupContainer icon = new WebMarkupContainer(ID_BUTTON_TYPE_ICON);
@@ -133,5 +151,19 @@ public class MultiButtonTable extends BasePanel<List<AssignmentEditorDto>> {
         } else {
             return "";
         }
+    }
+
+    private void addAssignmentPerformed(AssignmentEditorDto assignment, AjaxRequestTarget target){
+        plusIconClicked = true;
+        UsersStorage storage = getPageBase().getSessionStorage().getUsers();
+        if (storage.getAssignmentShoppingCart() == null){
+            storage.setAssignmentShoppingCart(new ArrayList<AssignmentEditorDto>());
+        }
+        List<AssignmentEditorDto> assignmentsToAdd = storage.getAssignmentShoppingCart();
+        assignmentsToAdd.add(assignment);
+        storage.setAssignmentShoppingCart(assignmentsToAdd);
+        AssignmentCatalogPanel parent = (AssignmentCatalogPanel)MultiButtonTable.this.getParent();
+        parent.reloadCartButton(target);
+
     }
 }

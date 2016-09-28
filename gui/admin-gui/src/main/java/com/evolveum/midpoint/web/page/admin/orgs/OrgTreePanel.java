@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Set;
 
 import com.evolveum.midpoint.web.page.admin.users.PageOrgTree;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -33,6 +34,7 @@ import org.apache.wicket.extensions.markup.html.repeater.tree.theme.WindowsTheme
 import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.markup.repeater.ReuseIfModelsEqualStrategy;
 import org.apache.wicket.model.AbstractReadOnlyModel;
@@ -58,10 +60,16 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 public class OrgTreePanel extends AbstractTreeTablePanel {
 
 	private boolean selectable;
+    private String treeTitleKey = "";
 
 	public OrgTreePanel(String id, IModel<String> rootOid, boolean selectable) {
+        this(id, rootOid, selectable, "");
+    }
+
+	public OrgTreePanel(String id, IModel<String> rootOid, boolean selectable, String treeTitleKey) {
 		super(id, rootOid);
 
+        this.treeTitleKey = treeTitleKey;
 		this.selectable = selectable;
 		selected = new LoadableModel<SelectableBean<OrgType>>() {
 			@Override
@@ -108,6 +116,10 @@ public class OrgTreePanel extends AbstractTreeTablePanel {
 		WebMarkupContainer treeHeader = new WebMarkupContainer(ID_TREE_HEADER);
 		treeHeader.setOutputMarkupId(true);
 		add(treeHeader);
+
+        String title = StringUtils.isEmpty(treeTitleKey) ? "TreeTablePanel.hierarchy" : treeTitleKey;
+        Label treeTitle = new Label(ID_TREE_TITLE, createStringResource(title));
+        treeHeader.add(treeTitle);
 
 		InlineMenu treeMenu = new InlineMenu(ID_TREE_MENU,
 				new Model<>((Serializable) createTreeMenuInternal()));
