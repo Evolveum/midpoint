@@ -16,11 +16,14 @@
 
 package com.evolveum.midpoint.web.session;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.web.component.assignment.AssignmentEditorDto;
 import com.evolveum.midpoint.web.component.search.Search;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.users.dto.OrgUnitSearchDto;
@@ -56,6 +59,8 @@ public class UsersStorage implements PageStorage, DebugDumpable {
      * Paging DTO used in table on page {@link com.evolveum.midpoint.web.page.admin.users.PageUsers}
      */
     private ObjectPaging usersPaging;
+
+    private List<AssignmentEditorDto> assignmentShoppingCart;
 
     private SelectableBean<OrgType> selectedItem;                //selected tree item on the Org. structure page
     private TreeStateSet<SelectableBean<OrgType>> expandedItems; //expanded tree items on the Org. structure page
@@ -130,7 +135,15 @@ public class UsersStorage implements PageStorage, DebugDumpable {
         this.collapsedItem = collapsedItem;
     }
 
-	@Override
+    public List<AssignmentEditorDto> getAssignmentShoppingCart() {
+        return assignmentShoppingCart == null ? new ArrayList<AssignmentEditorDto>() : assignmentShoppingCart;
+    }
+
+    public void setAssignmentShoppingCart(List<AssignmentEditorDto> assignmentShoppingCart) {
+        this.assignmentShoppingCart = assignmentShoppingCart;
+    }
+
+    @Override
 	public String debugDump() {
 		return debugDump(0);
 	}

@@ -282,6 +282,9 @@ public class AuthorizationConstants {
 	public static final QName AUTZ_UI_SELF_ASSIGNMENT_SHOP_KART_QNAME = new QName(NS_AUTHORIZATION_UI, "selfRequestAssignment");
 	public static final String AUTZ_UI_SELF_ASSIGNMENT_SHOP_KART_URL = NS_AUTHORIZATION_UI + "#selfRequestAssignment";
 
+	public static final QName AUTZ_UI_SELF_ASSIGNMENT_DETAILS_QNAME = new QName(NS_AUTHORIZATION_UI, "assignmentDetails");
+	public static final String AUTZ_UI_SELF_ASSIGNMENT_DETAILS_URL = NS_AUTHORIZATION_UI + "#assignmentDetails";
+
 	public static final QName AUTZ_UI_SELF_DASHBOARD_QNAME = new QName(NS_AUTHORIZATION_UI, "selfDashboard");
 	public static final String AUTZ_UI_SELF_DASHBOARD_URL = NS_AUTHORIZATION_UI + "#selfDashboard";
 
