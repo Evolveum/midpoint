@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2014-2015 Evolveum
+ * Copyright (c) 2014-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -160,7 +160,7 @@ public class SchemaTransformer {
 	}
 
 	protected <T extends ObjectType> void applySchemaAndSecurityToObject(PrismObject<T> object, GetOperationOptions options, AuthorizationPhaseType phase, Task task) {
-		OperationResult subresult = new OperationResult(ModelController.class.getName()+".applySchemasAndSecurityToObjects");
+		OperationResult subresult = new OperationResult(SchemaTransformer.class.getName()+".applySchemasAndSecurityToObjects");
 		try {
             applySchemasAndSecurity(object, options, phase, task, subresult);
         } catch (IllegalArgumentException|IllegalStateException|SchemaException |SecurityViolationException |ConfigurationException |ObjectNotFoundException e) {
@@ -184,7 +184,7 @@ public class SchemaTransformer {
 	public <O extends ObjectType> void applySchemasAndSecurity(PrismObject<O> object, GetOperationOptions rootOptions,
 			AuthorizationPhaseType phase, Task task, OperationResult parentResult) 
 					throws SchemaException, SecurityViolationException, ConfigurationException, ObjectNotFoundException {
-    	OperationResult result = parentResult.createMinorSubresult(ModelController.class.getName()+".applySchemasAndSecurity");
+    	OperationResult result = parentResult.createMinorSubresult(SchemaTransformer.class.getName()+".applySchemasAndSecurity");
     	validateObject(object, rootOptions, result);
     	
     	PrismObjectDefinition<O> objectDefinition = object.deepCloneDefinition(true);
@@ -434,7 +434,7 @@ public class SchemaTransformer {
                 if (itemDef != null) {
                     applyObjectTemplateItem(itemDef, templateItemDefType, "item " + itemPath + " in object type " + objectDefinition.getTypeName() + " as specified in item definition in " + objectTemplateType);
                 } else {
-                    OperationResult subResult = result.createMinorSubresult(ModelController.class.getName() + ".applyObjectTemplateToDefinition");
+                    OperationResult subResult = result.createMinorSubresult(SchemaTransformer.class.getName() + ".applyObjectTemplateToDefinition");
                     subResult.recordPartialError("No definition for item " + itemPath + " in object type " + objectDefinition.getTypeName() + " as specified in item definition in " + objectTemplateType);
                     continue;
                 }
@@ -460,7 +460,7 @@ public class SchemaTransformer {
                 applyObjectTemplateItem(itemDefFromObject, templateItemDefType, "item " + itemPath + " in " + object
                         + " as specified in item definition in " + objectTemplateType);
             } else {
-                OperationResult subResult = result.createMinorSubresult(ModelController.class.getName() + ".applyObjectTemplateToObject");
+                OperationResult subResult = result.createMinorSubresult(SchemaTransformer.class.getName() + ".applyObjectTemplateToObject");
                 subResult.recordPartialError("No definition for item " + itemPath + " in " + object
                         + " as specified in item definition in " + objectTemplateType);
                 continue;
