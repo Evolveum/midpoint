@@ -115,11 +115,14 @@ public class FocusMainPanel<F extends FocusType> extends AbstractObjectMainPanel
 	protected List<ITab> createTabs(final PageAdminObjectDetails<F> parentPage) {
 		List<ITab> tabs = new ArrayList<>();
 
-
 		List<ObjectFormType> objectFormTypes = parentPage.getObjectFormTypes();
 		// default tabs are always added to component structure, visibility is decided later in
 		// visible behavior based on adminGuiConfiguration
 		addDefaultTabs(parentPage, tabs);
+
+		if (objectFormTypes == null) {
+			return tabs;
+		}
 
 		for (ObjectFormType objectFormType : objectFormTypes) {
 			final FormSpecificationType formSpecificationType = objectFormType.getFormSpecification();
