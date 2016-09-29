@@ -95,6 +95,7 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
 	private boolean showEmpty = false;
 	private boolean minimized = true;
 	private boolean editable = true;
+	private boolean simpleView = false;
 
 	private Boolean isOrgUnitManager = Boolean.FALSE;
 	private AssignmentType newAssignment;
@@ -612,7 +613,15 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
 		this.altName = altName;
 	}
 
-	@Override
+    public boolean isSimpleView() {
+        return simpleView;
+    }
+
+    public void setSimpleView(boolean simpleView) {
+        this.simpleView = simpleView;
+    }
+
+    @Override
 	public boolean equals(Object o) {
 		if (this == o)
 			return true;
@@ -628,6 +637,8 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
 		if (showEmpty != that.showEmpty)
 			return false;
 		if (editable != that.editable)
+			return false;
+		if (simpleView != that.simpleView)
 			return false;
 		if (altName != null ? !altName.equals(that.altName) : that.altName != null)
 			return false;
@@ -662,6 +673,7 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
 		result = 31 * result + (orgRef != null ? orgRef.hashCode() : 0);
 		result = 31 * result + (showEmpty ? 1 : 0);
 		result = 31 * result + (minimized ? 1 : 0);
+		result = 31 * result + (simpleView ? 1 : 0);
 		result = 31 * result + (isOrgUnitManager ? 1 : 0);
 		result = 31 * result + (newAssignment != null ? newAssignment.hashCode() : 0);
 		result = 31 * result + (attributes != null ? attributes.hashCode() : 0);
