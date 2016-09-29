@@ -34,6 +34,7 @@ import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
+import com.evolveum.midpoint.model.common.SystemObjectCache;
 import com.evolveum.midpoint.model.impl.controller.ModelUtils;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensElementContext;
@@ -88,6 +89,9 @@ public class ContextLoader {
 	@Autowired(required = true)
     @Qualifier("cacheRepositoryService")
     private transient RepositoryService cacheRepositoryService;
+	
+	@Autowired(required = true)
+	private SystemObjectCache systemObjectCache;
 	
 	@Autowired(required = true)
     private ProvisioningService provisioningService;
@@ -371,11 +375,12 @@ public class ContextLoader {
 	
 	private <F extends ObjectType> void loadFromSystemConfig(LensContext<F> context, OperationResult result)
 			throws ObjectNotFoundException, SchemaException, ConfigurationException {
-		PrismObject<SystemConfigurationType> systemConfiguration = LensUtil.getSystemConfigurationReadOnly(context, cacheRepositoryService, result);
+		PrismObject<SystemConfigurationType> systemConfiguration = systemObjectCache.getSystemConfiguration(result);
 		if (systemConfiguration == null) {
 			// This happens in some tests. And also during first startup.
 			return;
 		}
+		context.setSystemConfiguration(systemConfiguration);
 		SystemConfigurationType systemConfigurationType = systemConfiguration.asObjectable();
 
         if (context.getFocusContext() != null) {

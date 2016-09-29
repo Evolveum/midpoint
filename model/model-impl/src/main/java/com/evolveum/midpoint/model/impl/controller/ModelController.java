@@ -23,6 +23,7 @@ import com.evolveum.midpoint.certification.api.CertificationManager;
 import com.evolveum.midpoint.model.api.*;
 import com.evolveum.midpoint.model.api.hooks.HookRegistry;
 import com.evolveum.midpoint.model.api.hooks.ReadHook;
+import com.evolveum.midpoint.model.common.SystemObjectCache;
 import com.evolveum.midpoint.model.impl.ModelObjectResolver;
 import com.evolveum.midpoint.model.impl.importer.ImportAccountsFromResourceTaskHandler;
 import com.evolveum.midpoint.model.impl.importer.ObjectImporter;
@@ -122,32 +123,32 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 
 	private static final Trace LOGGER = TraceManager.getTrace(ModelController.class);
 
-	@Autowired
+	@Autowired(required = true)
 	private Clockwork clockwork;
 
-	@Autowired
+	@Autowired(required = true)
 	PrismContext prismContext;
 
-	@Autowired
+	@Autowired(required = true)
 	private ProvisioningService provisioning;
 
-	@Autowired
+	@Autowired(required = true)
 	private ModelObjectResolver objectResolver;
 
-	@Autowired
+	@Autowired(required = true)
 	@Qualifier("cacheRepositoryService")
 	private transient RepositoryService cacheRepositoryService;
 
-	@Autowired
+	@Autowired(required = true)
 	private transient ImportAccountsFromResourceTaskHandler importAccountsFromResourceTaskHandler;
 
-	@Autowired
+	@Autowired(required = true)
 	private transient ObjectImporter objectImporter;
 
 	@Autowired(required = false)
 	private HookRegistry hookRegistry;
 
-	@Autowired
+	@Autowired(required = true)
 	private TaskManager taskManager;
 
     @Autowired(required = false)                        // not required in all circumstances
@@ -156,41 +157,44 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 	@Autowired(required = false)                        // not required in all circumstances
 	private CertificationManager certificationManager;
 
-    @Autowired
+    @Autowired(required = true)
     private ScriptingExpressionEvaluator scriptingExpressionEvaluator;
 
-	@Autowired
+	@Autowired(required = true)
 	private ChangeExecutor changeExecutor;
 
-	@Autowired
+	@Autowired(required = true)
 	SystemConfigurationHandler systemConfigurationHandler;
 
-	@Autowired
+	@Autowired(required = true)
 	private AuditService auditService;
 
-	@Autowired
+	@Autowired(required = true)
 	private SecurityEnforcer securityEnforcer;
 	
-	@Autowired
+	@Autowired(required = true)
 	private AuthenticationEvaluator authenticationEvaluator;
 
-	@Autowired
+	@Autowired(required = true)
 	private UserProfileService userProfileService;
 
-	@Autowired
+	@Autowired(required = true)
 	Projector projector;
 
-	@Autowired
+	@Autowired(required = true)
 	Protector protector;
 
-	@Autowired
+	@Autowired(required = true)
 	ModelDiagController modelDiagController;
 
-	@Autowired
+	@Autowired(required = true)
 	ContextFactory contextFactory;
 
-	@Autowired
+	@Autowired(required = true)
 	private SchemaTransformer schemaTransformer;
+	
+	@Autowired(required = true)
+	private SystemObjectCache systemObjectCache;
 
 	public ModelObjectResolver getObjectResolver() {
 		return objectResolver;
@@ -586,6 +590,8 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 					task.markObjectActionExecutedBoundary();
 				}
 			}
+			
+			invalidateCaches(executedDeltas);
 
 		} catch (RuntimeException e) {		// just for sure (TODO split this method into two: raw and non-raw case)
 			ModelUtils.recordFatalError(result, e);
@@ -593,9 +599,24 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 		} finally {
 			RepositoryCache.exit();
 		}
+		
         return executedDeltas;
 	}
 
+
+	private void invalidateCaches(Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas) {
+		if (executedDeltas == null) {
+			return;
+		}
+		for (ObjectDeltaOperation<? extends ObjectType> executedDelta: executedDeltas) {
+			ObjectDelta<? extends ObjectType> objectDelta = executedDelta.getObjectDelta();
+			if (objectDelta != null) {
+				if (objectDelta.getObjectTypeClass() == SystemConfigurationType.class) {
+					systemObjectCache.invalidateCaches();
+				}
+			}
+		}
+	}
 
 	protected void cleanupOperationResult(OperationResult result) {
 		// Clockwork.run sets "in-progress" flag just at the root level
@@ -1624,7 +1645,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 	 */
 	@Override
 	public void postInit(OperationResult parentResult) {
-		Utils.clearSystemConfigurationCache();        // necessary for testing situations where we re-import different system configurations with the same version (on system init)
+		systemObjectCache.invalidateCaches(); // necessary for testing situations where we re-import different system configurations with the same version (on system init)        
 
 		RepositoryCache.enter();
 		OperationResult result = parentResult.createSubresult(POST_INIT);

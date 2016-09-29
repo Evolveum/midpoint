@@ -27,6 +27,7 @@ import javax.xml.bind.JAXBElement;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.common.SystemObjectCache;
 import com.evolveum.midpoint.model.common.expression.*;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.polystring.PrismDefaultPolyStringNormalizer;
@@ -731,15 +732,6 @@ public class LensUtil {
 				aProjCtx.setOid(oid);
 			}
 		}
-	}
-
-	public static PrismObject<SystemConfigurationType> getSystemConfigurationReadOnly(LensContext context, RepositoryService repositoryService, OperationResult result) throws ObjectNotFoundException, SchemaException {
-		PrismObject<SystemConfigurationType> systemConfiguration = context.getSystemConfiguration();
-		if (systemConfiguration == null) {
-			systemConfiguration = Utils.getSystemConfigurationReadOnly(repositoryService, result);
-			context.setSystemConfiguration(systemConfiguration);
-		}
-		return systemConfiguration;
 	}
 
     public static <F extends FocusType> PrismObjectDefinition<F> getFocusDefinition(LensContext<F> context) {

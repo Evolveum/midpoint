@@ -30,6 +30,7 @@ import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.common.crypto.CryptoUtil;
 import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
+import com.evolveum.midpoint.model.common.SystemObjectCache;
 import com.evolveum.midpoint.model.impl.util.Utils;
 import com.evolveum.midpoint.prism.ConsistencyCheckScope;
 import com.evolveum.midpoint.prism.Item;
@@ -96,6 +97,9 @@ public class SchemaTransformer {
 	
 	@Autowired(required = true)
 	private SecurityEnforcer securityEnforcer;
+	
+	@Autowired(required = true)
+	private SystemObjectCache systemObjectCache;
 
 	@Autowired
 	private PrismContext prismContext;
@@ -383,7 +387,7 @@ public class SchemaTransformer {
 	}
     
     public <O extends ObjectType> ObjectTemplateType determineObjectTemplate(PrismObject<O> object, AuthorizationPhaseType phase, OperationResult result) throws SchemaException, ConfigurationException, ObjectNotFoundException {
-    	PrismObject<SystemConfigurationType> systemConfiguration = Utils.getSystemConfigurationReadOnly(cacheRepositoryService, result);
+    	PrismObject<SystemConfigurationType> systemConfiguration = systemObjectCache.getSystemConfiguration(result);
     	if (systemConfiguration == null) {
     		return null;
     	}
@@ -400,7 +404,7 @@ public class SchemaTransformer {
     }
     
     public <O extends ObjectType> ObjectTemplateType determineObjectTemplate(Class<O> objectClass, AuthorizationPhaseType phase, OperationResult result) throws SchemaException, ConfigurationException, ObjectNotFoundException {
-    	PrismObject<SystemConfigurationType> systemConfiguration = Utils.getSystemConfigurationReadOnly(cacheRepositoryService, result);
+    	PrismObject<SystemConfigurationType> systemConfiguration = systemObjectCache.getSystemConfiguration(result);
     	if (systemConfiguration == null) {
     		return null;
     	}

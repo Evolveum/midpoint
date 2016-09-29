@@ -154,6 +154,9 @@ public interface ModelInteractionService {
      */
     AdminGuiConfigurationType getAdminGuiConfiguration(Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
     
+	AccessCertificationConfigurationType getCertificationConfiguration(OperationResult parentResult)
+			throws ObjectNotFoundException, SchemaException;
+    
     /**
      * Checks if the supplied password matches with current user password. This method is NOT subject to any
      * password expiration policies, it does not update failed login counters, it does not change any data or meta-data.
@@ -176,4 +179,5 @@ public interface ModelInteractionService {
 	
 	ConnectorOperationalStatus getConnectorOperationalStatus(String resourceOid, OperationResult parentResult)
 			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException;
+
 }

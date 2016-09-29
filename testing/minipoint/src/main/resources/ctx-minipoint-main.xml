@@ -36,6 +36,7 @@
 	
 	<import resource="classpath*:ctx-minipoint.xml"/>
     <import resource="classpath*:ctx-model.xml"/>
+    <import resource="classpath*:ctx-model-common.xml"/>
     <import resource="classpath*:ctx-repository.xml"/>
     <import resource="classpath*:ctx-repo-cache.xml"/>
     <import resource="classpath*:ctx-configuration-test.xml"/>

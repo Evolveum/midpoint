@@ -185,7 +185,8 @@ public class PageWorkItem extends PageAdminWorkItems {
         VisibleEnableBehaviour isAllowedToSubmit = new VisibleEnableBehaviour() {
             @Override
             public boolean isVisible() {
-                return getWorkflowManager().isCurrentUserAuthorizedToSubmit(workItemDtoModel.getObject().getWorkItem());
+            	OperationResult result = new OperationResult("initButtons");
+                return getWorkflowManager().isCurrentUserAuthorizedToSubmit(workItemDtoModel.getObject().getWorkItem(), result);
             }
         };
 
