@@ -17,6 +17,7 @@ package com.evolveum.midpoint.web.component.objectdetails;
 
 import java.util.List;
 
+import com.evolveum.midpoint.gui.api.ComponentConstants;
 import com.evolveum.midpoint.gui.api.util.FocusTabVisibleBehavior;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
@@ -56,7 +57,7 @@ public class RoleMainPanel extends AbstractRoleMainPanel<RoleType> {
 		List<ITab> tabs = super.createTabs(parentPage);
 
 		FocusTabVisibleBehavior authorization = new FocusTabVisibleBehavior(unwrapModel(),
-				AuthorizationConstants.AUTZ_UI_ROLE_POLICY_CONSTRAINTS_URL);
+				ComponentConstants.UI_FOCUS_TAB_POLICY_CONSTRAINTS_URL);
 
 		tabs.add(new PanelTab(parentPage.createStringResource("AbstractRoleType.policyConstraints"), authorization) {
 
@@ -69,7 +70,7 @@ public class RoleMainPanel extends AbstractRoleMainPanel<RoleType> {
 		});
 
 		authorization = new FocusTabVisibleBehavior(unwrapModel(),
-				AuthorizationConstants.AUTZ_UI_ROLE_MEMBERS_URL);
+				ComponentConstants.UI_FOCUS_TAB_MEMBERS_URL);
 
 		tabs.add(new PanelTab(parentPage.createStringResource("pageRole.members"), authorization) {
 

@@ -15,6 +15,7 @@
  */
 package com.evolveum.midpoint.web.component.objectdetails;
 
+import com.evolveum.midpoint.gui.api.ComponentConstants;
 import com.evolveum.midpoint.gui.api.component.tabs.CountablePanelTab;
 import com.evolveum.midpoint.gui.api.component.tabs.PanelTab;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
@@ -222,7 +223,7 @@ public class FocusMainPanel<F extends FocusType> extends AbstractObjectMainPanel
 
 	protected void addDefaultTabs(final PageAdminObjectDetails<F> parentPage, List<ITab> tabs) {
 		FocusTabVisibleBehavior authorization = new FocusTabVisibleBehavior(unwrapModel(),
-				AuthorizationConstants.AUTZ_UI_FOCUS_BASIC_URL);
+				ComponentConstants.UI_FOCUS_TAB_BASIC_URL);
 
 		tabs.add(
 				new PanelTab(parentPage.createStringResource("pageAdminFocus.basic"), authorization){
@@ -235,7 +236,7 @@ public class FocusMainPanel<F extends FocusType> extends AbstractObjectMainPanel
 					}
 				});
 
-		authorization = new FocusTabVisibleBehavior(unwrapModel(), AuthorizationConstants.AUTZ_UI_FOCUS_PROJECTIONS_URL);
+		authorization = new FocusTabVisibleBehavior(unwrapModel(), ComponentConstants.UI_FOCUS_TAB_PROJECTIONS_URL);
 		tabs.add(
                 new CountablePanelTab(parentPage.createStringResource("pageAdminFocus.projections"), authorization){
 
@@ -252,7 +253,7 @@ public class FocusMainPanel<F extends FocusType> extends AbstractObjectMainPanel
 					}
 				});
 
-		authorization = new FocusTabVisibleBehavior(unwrapModel(), AuthorizationConstants.AUTZ_UI_FOCUS_ASSIGNMENTS_URL);
+		authorization = new FocusTabVisibleBehavior(unwrapModel(), ComponentConstants.UI_FOCUS_TAB_ASSIGNMENTS_URL);
 		tabs.add(
 				new CountablePanelTab(parentPage.createStringResource("pageAdminFocus.assignments"), authorization) {
 
@@ -269,7 +270,7 @@ public class FocusMainPanel<F extends FocusType> extends AbstractObjectMainPanel
 					}
 				});
 
-		authorization = new FocusTabVisibleBehavior(unwrapModel(), AuthorizationConstants.AUTZ_UI_FOCUS_TASKS_URL);
+		authorization = new FocusTabVisibleBehavior(unwrapModel(), ComponentConstants.UI_FOCUS_TAB_TASKS_URL);
 		tabs.add(
 				new CountablePanelTab(parentPage.createStringResource("pageAdminFocus.tasks"), authorization) {
 
@@ -287,7 +288,7 @@ public class FocusMainPanel<F extends FocusType> extends AbstractObjectMainPanel
 				});
 
         if (!(parentPage instanceof PageSelfProfile)) {
-			authorization = new FocusTabVisibleBehavior(unwrapModel(), AuthorizationConstants.AUTZ_UI_FOCUS_REQUEST_ROLE_URL);
+			authorization = new FocusTabVisibleBehavior(unwrapModel(), ComponentConstants.UI_FOCUS_TAB_REQUEST_ROLE_URL);
             tabs.add(
                     new PanelTab(parentPage.createStringResource("pageAdminFocus.request"), authorization) {
 
