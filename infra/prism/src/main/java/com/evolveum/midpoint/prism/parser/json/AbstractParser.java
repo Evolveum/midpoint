@@ -17,9 +17,7 @@
 package com.evolveum.midpoint.prism.parser.json;
 
 import java.io.*;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.ListIterator;
+import java.util.*;
 import java.util.Map.Entry;
 
 import javax.xml.namespace.QName;
@@ -30,6 +28,9 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.Validate;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -62,6 +63,7 @@ public abstract class AbstractParser implements Parser {
 	private static final Trace LOGGER = TraceManager.getTrace(AbstractParser.class);
 	
 	private static final String PROP_NAMESPACE = "@ns";
+	private static final String PROP_TYPE = "@type";
 	protected static final String TYPE_DEFINITION = "@typeDef";
 	protected static final String VALUE_FIELD = "@value";
 
@@ -69,23 +71,23 @@ public abstract class AbstractParser implements Parser {
 	//region Parsing implementation
 
 	@Override
-	public XNode parse(File file) throws SchemaException, IOException {
+	public RootXNode parse(File file) throws SchemaException, IOException {
 		try (FileInputStream fis = new FileInputStream(file)) {
-			JsonParser parser = configureParser(createJacksonParser(fis));
-			return parseJsonObject(parser);
+			JsonParser parser = createJacksonParser(fis);
+			return parseFromStart(parser);
 		}
 	}
 
 	@Override
-	public XNode parse(InputStream stream) throws SchemaException, IOException {
-		JsonParser parser = configureParser(createJacksonParser(stream));
-		return parseJsonObject(parser);
+	public RootXNode parse(InputStream stream) throws SchemaException, IOException {
+		JsonParser parser = createJacksonParser(stream);
+		return parseFromStart(parser);
 	}
 
 	@Override
-	public XNode parse(String dataString) throws SchemaException {
-		JsonParser parser = configureParser(createJacksonParser(dataString));
-		return parseJsonObject(parser);
+	public RootXNode parse(String dataString) throws SchemaException {
+		JsonParser parser = createJacksonParser(dataString);
+		return parseFromStart(parser);
 	}
 
 	@Override
@@ -105,6 +107,174 @@ public abstract class AbstractParser implements Parser {
 
 	protected abstract JsonParser createJacksonParser(String dataString) throws SchemaException;
     protected abstract JsonParser createJacksonParser(InputStream stream) throws SchemaException, IOException;
+
+	private class ParsingContext {
+		@NotNull final JsonParser parser;
+		@NotNull final Map<MapXNode, String> defaultNamespaces = new HashMap<>();
+		ParsingContext(@NotNull JsonParser parser) {
+			this.parser = parser;
+		}
+	}
+
+	@NotNull
+	private RootXNode parseFromStart(JsonParser unconfiguredParser) throws SchemaException {
+		try {
+			JsonParser parser = configureParser(unconfiguredParser);
+			parser.nextToken();
+			if (parser.currentToken() == null) {
+				throw new SchemaException("Nothing to parse: the input is empty.");
+			}
+			ParsingContext ctx = new ParsingContext(parser);
+			XNode xnode = parseValue(ctx);
+			if (!(xnode instanceof MapXNode) || ((MapXNode) xnode).size() != 1) {
+				throw new SchemaException("Expected MapXNode with a single key; got " + xnode + " instead.");
+			}
+			processDefaultNamespaces(xnode, null, ctx);
+			Entry<QName, XNode> entry = ((MapXNode) xnode).entrySet().iterator().next();
+			RootXNode root = new RootXNode(entry.getKey(), entry.getValue());
+			if (entry.getValue() != null) {
+				root.setTypeQName(entry.getValue().getTypeQName());			// TODO - ok ????
+			}
+			return root;
+		} catch (IOException e) {
+			throw new SchemaException("Cannot parse JSON/YAML object: " + e.getMessage(), e);
+		}
+	}
+
+	private void processDefaultNamespaces(XNode xnode, String parentDefault, ParsingContext ctx) {
+		if (xnode instanceof MapXNode) {
+			MapXNode map = (MapXNode) xnode;
+			final String currentDefault = ctx.defaultNamespaces.containsKey(map) ? ctx.defaultNamespaces.get(map) : parentDefault;
+			for (Entry<QName, XNode> entry : map.entrySet()) {
+				QName fieldName = entry.getKey();
+				XNode subnode = entry.getValue();
+				if (StringUtils.isNotEmpty(currentDefault) && StringUtils.isEmpty(fieldName.getNamespaceURI())) {
+					map.qualifyKey(fieldName, currentDefault);
+				}
+				processDefaultNamespaces(subnode, currentDefault, ctx);
+			}
+		} else if (xnode instanceof ListXNode) {
+			for (XNode item : (ListXNode) xnode) {
+				processDefaultNamespaces(item, parentDefault, ctx);
+			}
+		}
+	}
+
+	@Nullable	// TODO: ok?
+	private XNode parseValue(ParsingContext ctx) throws IOException, SchemaException {
+		Validate.notNull(ctx.parser.currentToken());
+
+		switch (ctx.parser.currentToken()) {
+			case START_OBJECT:
+				return parseToMap(ctx);
+			case START_ARRAY:
+				return parseToList(ctx);
+			case VALUE_STRING:
+			case VALUE_TRUE:
+			case VALUE_FALSE:
+			case VALUE_NUMBER_FLOAT:
+			case VALUE_NUMBER_INT:
+				return parseToPrimitive(ctx);
+			case VALUE_NULL:
+				return null;		// TODO...
+			default:
+				throw new SchemaException("Unexpected current token: " + ctx.parser.currentToken());
+		}
+	}
+
+	@NotNull
+	private MapXNode parseToMap(ParsingContext ctx) throws SchemaException, IOException {
+		Validate.notNull(ctx.parser.currentToken());
+
+		final MapXNode map = new MapXNode();
+		boolean defaultNamespaceDefined = false;
+		QName currentFieldName = null;
+		for (;;) {
+			JsonToken token = ctx.parser.nextToken();
+			if (token == null) {
+				throw new SchemaException("Unexpected end of data while parsing a map structure");
+			} else if (token == JsonToken.END_OBJECT) {
+				break;
+			} else if (token == JsonToken.FIELD_NAME) {
+				String newFieldName = ctx.parser.getCurrentName();
+				if (currentFieldName != null) {
+					throw new SchemaException("Two field names in succession: " + currentFieldName + " and " + newFieldName);
+				}
+				currentFieldName = QNameUtil.uriToQName(newFieldName, true);
+			} else {
+				XNode valueXNode = parseValue(ctx);
+				if (new QName(PROP_NAMESPACE).equals(currentFieldName)) {
+					if (valueXNode instanceof PrimitiveXNode) {
+						ctx.defaultNamespaces.put(map, ((PrimitiveXNode) valueXNode).getStringValue());
+						if (defaultNamespaceDefined) {
+							throw new SchemaException("Default namespace defined more than once at " + getPositionSuffix(ctx));
+						}
+					} else {
+						throw new SchemaException("Value of '" + PROP_NAMESPACE + "' attribute must be a primitive one. It is " + valueXNode + " instead.");
+					}
+				} else if (new QName(PROP_TYPE).equals(currentFieldName)) {
+					if (valueXNode instanceof PrimitiveXNode) {
+						if (map.getTypeQName() != null) {
+							throw new SchemaException("Value type defined more than once at " + getPositionSuffix(ctx));
+						}
+						map.setTypeQName(QNameUtil.uriToQName(((PrimitiveXNode) valueXNode).getStringValue(), true));
+					} else {
+						throw new SchemaException("Value of '" + PROP_TYPE + "' attribute must be a primitive one. It is " + valueXNode + " instead.");
+					}
+				} else {
+					map.put(currentFieldName, valueXNode);
+				}
+				currentFieldName = null;
+			}
+		}
+		return map;
+	}
+
+	private String getPositionSuffix(ParsingContext ctx) {
+		return String.valueOf(ctx.parser.getCurrentLocation());
+	}
+
+	private ListXNode parseToList(ParsingContext ctx) throws SchemaException, IOException {
+		Validate.notNull(ctx.parser.currentToken());
+
+		ListXNode list = new ListXNode();
+		for (;;) {
+			JsonToken token = ctx.parser.nextToken();
+			if (token == null) {
+				throw new SchemaException("Unexpected end of data while parsing a list structure");
+			} else if (token == JsonToken.END_ARRAY) {
+				return list;
+			} else {
+				list.add(parseValue(ctx));
+			}
+		}
+	}
+
+	private <T> PrimitiveXNode<T> parseToPrimitive(ParsingContext ctx) throws IOException {
+		PrimitiveXNode<T> primitive = createPrimitiveXNode(ctx.parser, null);
+		return primitive;
+	}
+
+	private <T> PrimitiveXNode<T> createPrimitiveXNode(JsonParser parser, QName typeDefinition) throws IOException {
+		PrimitiveXNode<T> primitive = new PrimitiveXNode<T>();
+		Object tid = parser.getTypeId();
+		if (tid != null) {
+			if (tid.equals("http://www.w3.org/2001/XMLSchema/string")) {
+				typeDefinition = DOMUtil.XSD_STRING;
+			} else if (tid.equals("http://www.w3.org/2001/XMLSchema/int")) {
+				typeDefinition = DOMUtil.XSD_INT;
+			}
+		}
+		if (typeDefinition != null) {
+			primitive.setExplicitTypeDeclaration(true);
+			primitive.setTypeQName(typeDefinition);
+		}
+		JsonNode jn = parser.readValueAs(JsonNode.class);
+		ValueParser<T> vp = new JsonValueParser<T>(parser, jn);
+		primitive.setValueParser(vp);
+
+		return primitive;
+	}
 
 	private RootXNode parseJsonObject(JsonParser parser) throws SchemaException {
 		try {
@@ -594,7 +764,7 @@ public abstract class AbstractParser implements Parser {
 					parser.nextToken();
 				}
 
-				PrimitiveXNode<T> primitive = createPrimitiveXNode(parser, typeDefinition);
+				PrimitiveXNode<T> primitive = createPrimitiveXNode1(parser, typeDefinition);
 				addXNode(propertyName, xmap, primitive);
 				parser.nextToken();
 			}
@@ -612,7 +782,7 @@ public abstract class AbstractParser implements Parser {
 		return createPrimitiveXNode(parser, null);
 	}
 	
-	private <T> PrimitiveXNode<T> createPrimitiveXNode(final JsonParser parser, QName typeDefinition) throws JsonProcessingException, IOException{
+	private <T> PrimitiveXNode<T> createPrimitiveXNode1(final JsonParser parser, QName typeDefinition) throws JsonProcessingException, IOException{
 		PrimitiveXNode<T> primitive = new PrimitiveXNode<T>();
 		Object tid = parser.getTypeId();
 //		System.out.println("tag: " + tid);		

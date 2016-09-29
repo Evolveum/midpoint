@@ -34,6 +34,8 @@ import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Validate;
 
 public class MapXNode extends XNode implements Map<QName,XNode>, Serializable {
 	
@@ -342,6 +344,14 @@ public class MapXNode extends XNode implements Map<QName,XNode>, Serializable {
 		}
 		return sb.toString();
 	}
+
+	public void qualifyKey(QName key, String newNamespace) {
+		for (Entry entry : subnodes) {
+			if (key.equals(entry.getKey())) {
+				entry.qualifyKey(newNamespace);
+			}
+		}
+	}
 	
 	private class Entry implements Map.Entry<QName, XNode>, Serializable {
 
@@ -357,6 +367,14 @@ public class MapXNode extends XNode implements Map<QName,XNode>, Serializable {
 			super();
 			this.key = key;
 			this.value = value;
+		}
+
+		public void qualifyKey(String newNamespace) {
+			Validate.notNull(key, "Key is null");
+			if (StringUtils.isNotEmpty(key.getNamespaceURI())) {
+				throw new IllegalStateException("Cannot qualify already qualified key: " + key);
+			}
+			key = new QName(newNamespace, key.getLocalPart());
 		}
 
 		@Override
@@ -408,7 +426,7 @@ public class MapXNode extends XNode implements Map<QName,XNode>, Serializable {
 
         @Override
         public int hashCode() {
-            int result = key != null ? key.hashCode() : 0;
+            int result = key != null && key.getLocalPart() != null ? key.getLocalPart().hashCode() : 0;
             result = 31 * result + (value != null ? value.hashCode() : 0);
             return result;
         }
