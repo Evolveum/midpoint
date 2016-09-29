@@ -54,8 +54,10 @@ public class AuthorizationConstants {
     public static final String AUTZ_GUI_ALL_URL = QNameUtil.qNameToUri(AUTZ_GUI_ALL_QNAME);
     public static final String AUTZ_GUI_ALL_LABEL = "Authorization.constants.guiAll.label";
     public static final String AUTZ_GUI_ALL_DESCRIPTION = "Authorization.constants.guiAll.description";
-    
+
+	@Deprecated
     public static final QName AUTZ_GUI_ALL_DEPRECATED_QNAME = new QName(NS_AUTHORIZATION, "guiAll");
+	@Deprecated
     public static final String AUTZ_GUI_ALL_DEPRECATED_URL = QNameUtil.qNameToUri(AUTZ_GUI_ALL_DEPRECATED_QNAME);
     
     
@@ -328,10 +330,5 @@ public class AuthorizationConstants {
 	public static final String AUTZ_UI_ROLE_POLICY_CONSTRAINTS_URL = QNameUtil.qNameToUri(AUTZ_UI_ROLE_POLICY_CONSTRAINTS);
 	public static final QName AUTZ_UI_ROLE_MEMBERS = new QName(NS_AUTHORIZATION_UI, "focusTabMembers");
 	public static final String AUTZ_UI_ROLE_MEMBERS_URL = QNameUtil.qNameToUri(AUTZ_UI_ROLE_MEMBERS);
-
-	public static final QName AUTZ_UI_OBJECT_DETAILS_BARE = new QName(NS_AUTHORIZATION_UI, "objectDetailsBare");
-	public static final String AUTZ_UI_OBJECT_DETAILS_BARE_URL = NS_AUTHORIZATION_UI + "#objectDetailsBare";
-	public static final QName AUTZ_UI_OBJECT_CREATE_BARE = new QName(NS_AUTHORIZATION_UI, "objectCreateBare");
-	public static final String AUTZ_UI_OBJECT_CREATE_BARE_URL = NS_AUTHORIZATION_UI + "#objectCreateBare";
 
 }

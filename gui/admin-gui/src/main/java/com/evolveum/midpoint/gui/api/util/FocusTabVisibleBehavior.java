@@ -16,21 +16,33 @@
 
 package com.evolveum.midpoint.gui.api.util;
 
+import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.security.api.AuthorizationConstants;
-import com.evolveum.midpoint.security.api.SecurityEnforcer;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.security.MidPointApplication;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.web.security.SecurityUtils;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import org.apache.commons.lang.BooleanUtils;
+import org.apache.commons.lang.ObjectUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.model.IModel;
+
+import javax.xml.namespace.QName;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by Viliam Repan (lazyman).
  */
 public class FocusTabVisibleBehavior<T extends ObjectType> extends VisibleEnableBehaviour {
+
+    private static final String OPERATION_LOAD_GUI_CONFIGURATION = FocusTabVisibleBehavior.class.getName() + ".loadGuiConfiguration";
 
     private IModel<PrismObject<T>> objectModel;
     private String uiAuthorizationUrl;
@@ -40,51 +52,80 @@ public class FocusTabVisibleBehavior<T extends ObjectType> extends VisibleEnable
         this.uiAuthorizationUrl = uiAuthorizationUrl;
     }
 
-    private SecurityEnforcer getEnforcer() {
-        return ((MidPointApplication) MidPointApplication.get()).getSecurityEnforcer();
+    private ModelInteractionService getModelInteractionService() {
+        return ((MidPointApplication) MidPointApplication.get()).getModelInteractionService();
+    }
+
+    private TaskManager getTaskManager() {
+        return ((MidPointApplication) MidPointApplication.get()).getTaskManager();
     }
 
     @Override
     public boolean isVisible() {
-        if (1 == 1) {
+        PrismObject obj = objectModel.getObject();
+        if (obj == null) {
             return true;
         }
 
-        //todo implement proper authorization
+        QName type = obj.getDefinition().getTypeName();
 
-        PrismObject obj = objectModel.getObject();
+        Task task = WebModelServiceUtils.createSimpleTask(OPERATION_LOAD_GUI_CONFIGURATION,
+                SecurityUtils.getPrincipalUser().getUser().asPrismObject(), getTaskManager());
+        OperationResult result = task.getResult();
 
+        AdminGuiConfigurationType config;
         try {
-//            ObjectTypes type = ObjectTypes.getObjectType(obj.getCompileTimeClass());
-//            boolean allowAll = false;
-//            switch (type) {
-//                case USER:
-//                    allowAll = securityEnforcer.isAuthorized(authorization, AuthorizationPhaseType.REQUEST, obj, null,
-//                            null, null);
-//                    break;
-//                case ROLE:
-//
-//                    break;
-//                case ORG:
-//
-//                    break;
-//                case SERVICE:
-//
-//                    break;
-//                default:
-//            }
-
-            boolean objectCreateBare = getEnforcer().isAuthorized(AuthorizationConstants.AUTZ_UI_OBJECT_CREATE_BARE_URL,
-                    AuthorizationPhaseType.REQUEST, obj, null, null, null);
-            boolean objectDetailsBare = getEnforcer().isAuthorized(AuthorizationConstants.AUTZ_UI_OBJECT_DETAILS_BARE_URL,
-                    AuthorizationPhaseType.REQUEST, obj, null, null, null);
-
-            boolean tabEnabled = getEnforcer().isAuthorized(uiAuthorizationUrl,
-                    AuthorizationPhaseType.REQUEST, obj, null, null, null);
-
-            return tabEnabled;
-        } catch (SchemaException ex) {
-            throw new SystemException(ex);
+            config = getModelInteractionService().getAdminGuiConfiguration(task, result);
+        } catch (ObjectNotFoundException | SchemaException e) {
+            throw new SystemException("Cannot load GUI configuration: " + e.getMessage(), e);
         }
+
+        // find all object form definitions for specified type, if there is none we'll show all default tabs
+        List<ObjectFormType> forms = findObjectForm(config, type);
+        if (forms.isEmpty()) {
+            return true;
+        }
+
+        // we'll try to find includeDefault, if there is includeDefault=true, we can return true (all tabs visible)
+        for (ObjectFormType form : forms) {
+            if (BooleanUtils.isTrue(form.isIncludeDefaultForms())) {
+                return true;
+            }
+        }
+
+        for (ObjectFormType form : forms) {
+            FormSpecificationType spec = form.getFormSpecification();
+            if (spec == null || StringUtils.isEmpty(spec.getPanelUri())) {
+                continue;
+            }
+
+            if (ObjectUtils.equals(uiAuthorizationUrl, spec.getPanelUri())) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private List<ObjectFormType> findObjectForm(AdminGuiConfigurationType config, QName type) {
+        List<ObjectFormType> result = new ArrayList<>();
+
+        if (config == null || config.getObjectForms() == null) {
+            return result;
+        }
+
+        ObjectFormsType forms = config.getObjectForms();
+        List<ObjectFormType> list = forms.getObjectForm();
+        if (list.isEmpty()) {
+            return result;
+        }
+
+        for (ObjectFormType form : list) {
+            if (type.equals(form.getType())) {
+                result.add(form);
+            }
+        }
+
+        return result;
     }
 }

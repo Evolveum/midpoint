@@ -447,25 +447,6 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 		return e.getDeclaringClass().getSimpleName() + "." + e.name();
 	}
 
-	public Task createSimpleTask(String operation, PrismObject<UserType> owner) {
-		TaskManager manager = getTaskManager();
-		Task task = manager.createTaskInstance(operation);
-
-		if (owner == null) {
-			MidPointPrincipal user = SecurityUtils.getPrincipalUser();
-			if (user == null) {
-				throw new RestartResponseException(PageLogin.class);
-			} else {
-				owner = user.getUser().asPrismObject();
-			}
-		}
-
-		task.setOwner(owner);
-		task.setChannel(SchemaConstants.CHANNEL_GUI_USER_URI);
-
-		return task;
-	}
-	
 	public Task createAnonymousTask(String operation) {
 		TaskManager manager = getTaskManager();
 		Task task = manager.createTaskInstance(operation);
@@ -480,7 +461,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 		if (user == null) {
 			throw new RestartResponseException(PageLogin.class);
 		}
-		return createSimpleTask(operation, user.getUser().asPrismObject());
+		return WebModelServiceUtils.createSimpleTask(operation, user.getUser().asPrismObject(), getTaskManager());
 	}
 
 	public MidpointConfiguration getMidpointConfiguration() {

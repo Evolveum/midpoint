@@ -38,7 +38,7 @@ import com.evolveum.midpoint.web.page.admin.users.dto.FocusSubwrapperDto;
 import com.evolveum.midpoint.web.page.self.PageSelfProfile;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.apache.commons.lang.BooleanUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -115,25 +115,25 @@ public class FocusMainPanel<F extends FocusType> extends AbstractObjectMainPanel
 	protected List<ITab> createTabs(final PageAdminObjectDetails<F> parentPage) {
 		List<ITab> tabs = new ArrayList<>();
 
+
 		List<ObjectFormType> objectFormTypes = parentPage.getObjectFormTypes();
-		if (objectFormTypes == null || objectFormTypes.isEmpty()) {
-			addDefaultTabs(parentPage, tabs);
-			return tabs;
-		}
-		for (ObjectFormType objectFormType: objectFormTypes) {
-			if (BooleanUtils.isTrue(objectFormType.isIncludeDefaultForms())) {
-				addDefaultTabs(parentPage, tabs);
-				break;
-			}
-		}
-		for (ObjectFormType objectFormType: objectFormTypes) {
+		// default tabs are always added to component structure, visibility is decided later in
+		// visible behavior based on adminGuiConfiguration
+		addDefaultTabs(parentPage, tabs);
+
+		for (ObjectFormType objectFormType : objectFormTypes) {
 			final FormSpecificationType formSpecificationType = objectFormType.getFormSpecification();
 			String title = formSpecificationType.getTitle();
 			if (title == null) {
 				title = "pageAdminFocus.extended";
 			}
+
+			if (StringUtils.isEmpty(formSpecificationType.getPanelClass())) {
+				continue;
+			}
+
 			tabs.add(
-					new PanelTab(parentPage.createStringResource(title)){
+					new PanelTab(parentPage.createStringResource(title)) {
 						private static final long serialVersionUID = 1L;
 
 						@Override
@@ -149,9 +149,7 @@ public class FocusMainPanel<F extends FocusType> extends AbstractObjectMainPanel
 	protected WebMarkupContainer createTabPanel(String panelId, FormSpecificationType formSpecificationType,
 			PageAdminObjectDetails<F> parentPage) {
 		String panelClassName = formSpecificationType.getPanelClass();
-		if (panelClassName == null) {
-			throw new SystemException("No panel class specified in admin GUI configuration");
-		}
+
 		Class<?> panelClass;
 		try {
 			panelClass = Class.forName(panelClassName);
