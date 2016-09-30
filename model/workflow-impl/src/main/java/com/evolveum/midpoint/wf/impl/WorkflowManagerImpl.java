@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.wf.impl;
 
 import com.evolveum.midpoint.model.api.ModelInteractionService;
+import com.evolveum.midpoint.model.common.SystemObjectCache;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -63,34 +64,37 @@ public class WorkflowManagerImpl implements WorkflowManager, TaskDeletionListene
 
     private static final transient Trace LOGGER = TraceManager.getTrace(WorkflowManagerImpl.class);
 
-    @Autowired
+    @Autowired(required = true)
     private PrismContext prismContext;
     
-    @Autowired
+    @Autowired(required = true)
     private WfConfiguration wfConfiguration;
 
-    @Autowired
+    @Autowired(required = true)
     private ProcessInstanceProvider processInstanceProvider;
 
-    @Autowired
+    @Autowired(required = true)
     private ProcessInstanceManager processInstanceManager;
 
-    @Autowired
+    @Autowired(required = true)
     private WfTaskController wfTaskController;
 
-    @Autowired
+    @Autowired(required = true)
     private WorkItemProvider workItemProvider;
 
-    @Autowired
+    @Autowired(required = true)
     private WorkItemManager workItemManager;
 
-    @Autowired
+    @Autowired(required = true)
     private WfTaskUtil wfTaskUtil;
 
-    @Autowired
+    @Autowired(required = true)
     private MiscDataUtil miscDataUtil;
+    
+    @Autowired(required = true)
+	private SystemObjectCache systemObjectCache;
 
-	@Autowired
+	@Autowired(required = true)
 	private TaskManager taskManager;
 
     private static final String DOT_INTERFACE = WorkflowManager.class.getName() + ".";
@@ -237,8 +241,8 @@ public class WorkflowManagerImpl implements WorkflowManager, TaskDeletionListene
     }
 
     @Override
-    public boolean isCurrentUserAuthorizedToSubmit(WorkItemType workItem) {
-        return miscDataUtil.isAuthorizedToSubmit(workItem);
+    public boolean isCurrentUserAuthorizedToSubmit(WorkItemType workItem, OperationResult result) {
+        return miscDataUtil.isAuthorizedToSubmit(workItem, systemObjectCache, result);
     }
 
     @Override

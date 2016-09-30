@@ -35,6 +35,7 @@
     <import resource="classpath:ctx-audit.xml" />
     <import resource="classpath:ctx-security.xml" />
     <import resource="classpath:ctx-model.xml" />
+    <import resource="classpath:ctx-model-common.xml" />
     <import resource="classpath:ctx-model-test.xml" />
     <import resource="classpath*:ctx-workflow.xml" />
     <import resource="classpath*:ctx-notifications.xml" />

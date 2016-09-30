@@ -37,6 +37,7 @@ import com.evolveum.midpoint.model.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.security.api.SecurityEnforcer;
 import com.evolveum.midpoint.web.page.error.*;
 import com.evolveum.midpoint.wf.api.WorkflowManager;
 import org.apache.commons.configuration.Configuration;
@@ -201,6 +202,8 @@ public class MidPointApplication extends AuthenticatedWebApplication {
     transient Protector protector;
 	@Autowired
 	transient MatchingRuleRegistry matchingRuleRegistry;
+    @Autowired
+    transient SecurityEnforcer securityEnforcer;
 
     private WebApplicationConfiguration webApplicationConfiguration;
 
@@ -305,6 +308,10 @@ public class MidPointApplication extends AuthenticatedWebApplication {
             webApplicationConfiguration = new WebApplicationConfiguration(config);
         }
         return webApplicationConfiguration;
+    }
+
+    public SecurityEnforcer getSecurityEnforcer() {
+        return securityEnforcer;
     }
 
     public ModelService getModel() {

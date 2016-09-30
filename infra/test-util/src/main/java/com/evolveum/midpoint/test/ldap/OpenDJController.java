@@ -802,6 +802,16 @@ public class OpenDJController extends AbstractResourceController {
         return executeLdifChange(ldif);
     }
 	
+	public ChangeRecordEntry modifyAdd(String entryDn, String attributeName, String value) throws IOException, LDIFException {
+        String ldif = "dn: " + entryDn + "\nchangetype: modify\nadd: "+attributeName+"\n"+attributeName+": " + value;
+        return executeLdifChange(ldif);
+    }
+	
+	public ChangeRecordEntry modifyDelete(String entryDn, String attributeName, String value) throws IOException, LDIFException {
+        String ldif = "dn: " + entryDn + "\nchangetype: modify\ndelete: "+attributeName+"\n"+attributeName+": " + value;
+        return executeLdifChange(ldif);
+    }
+	
 	public void delete(String entryDn) {
 		DeleteOperation deleteOperation = getInternalConnection().processDelete(entryDn);
 		if (ResultCode.SUCCESS != deleteOperation.getResultCode()) {

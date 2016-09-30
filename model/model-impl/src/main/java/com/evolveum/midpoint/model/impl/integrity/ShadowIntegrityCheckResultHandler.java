@@ -18,6 +18,7 @@ package com.evolveum.midpoint.model.impl.integrity;
 
 import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
+import com.evolveum.midpoint.model.common.SystemObjectCache;
 import com.evolveum.midpoint.model.impl.sync.SynchronizationService;
 import com.evolveum.midpoint.model.impl.util.AbstractSearchIterativeResultHandler;
 import com.evolveum.midpoint.model.impl.util.Utils;
@@ -102,6 +103,7 @@ public class ShadowIntegrityCheckResultHandler extends AbstractSearchIterativeRe
     private MatchingRuleRegistry matchingRuleRegistry;
     private RepositoryService repositoryService;
     private SynchronizationService synchronizationService;
+    private SystemObjectCache systemObjectCache;
 
     // derived from task extension diagnose/fix values at instantiation
     private boolean checkIntents;
@@ -145,6 +147,7 @@ public class ShadowIntegrityCheckResultHandler extends AbstractSearchIterativeRe
                                              String contextDesc, TaskManager taskManager, PrismContext prismContext,
                                              ProvisioningService provisioningService, MatchingRuleRegistry matchingRuleRegistry,
                                              RepositoryService repositoryService, SynchronizationService synchronizationService,
+                                             SystemObjectCache systemObjectCache,
                                              OperationResult result) {
         super(coordinatorTask, taskOperationPrefix, processShortName, contextDesc, taskManager);
         this.prismContext = prismContext;
@@ -152,6 +155,7 @@ public class ShadowIntegrityCheckResultHandler extends AbstractSearchIterativeRe
         this.matchingRuleRegistry = matchingRuleRegistry;
         this.repositoryService = repositoryService;
         this.synchronizationService = synchronizationService;
+        this.systemObjectCache = systemObjectCache;
         setStopOnError(false);
         setLogErrors(false);            // we do log errors ourselves
 
@@ -225,7 +229,7 @@ public class ShadowIntegrityCheckResultHandler extends AbstractSearchIterativeRe
         }
 
         try {
-            configuration = Utils.getSystemConfigurationReadOnly(repositoryService, result);
+            configuration = systemObjectCache.getSystemConfiguration(result);
         } catch (SchemaException e) {
             throw new SystemException("Couldn't get system configuration", e);
         }

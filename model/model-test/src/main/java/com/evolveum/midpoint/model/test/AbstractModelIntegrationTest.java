@@ -33,6 +33,7 @@ import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.context.ModelProjectionContext;
 import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
 import com.evolveum.midpoint.model.api.hooks.HookRegistry;
+import com.evolveum.midpoint.model.common.SystemObjectCache;
 import com.evolveum.midpoint.notifications.api.NotificationManager;
 import com.evolveum.midpoint.notifications.api.transports.Message;
 import com.evolveum.midpoint.prism.Containerable;
@@ -220,6 +221,9 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	
 	@Autowired(required = true)
 	protected RepositoryService repositoryService;
+	
+	@Autowired(required = true)
+	private SystemObjectCache systemObjectCache;
 	
 	@Autowired(required = true)
 	protected ProvisioningService provisioningService;
@@ -1780,9 +1784,20 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 			((Collection)modifications).add(addDelta);
 		}
 		
-		repositoryService.modifyObject(SystemConfigurationType.class,
+		modifySystemObjectInRepo(SystemConfigurationType.class,
 				SystemObjectsType.SYSTEM_CONFIGURATION.value(), modifications, parentResult);
 		
+	}
+	
+	protected <O extends ObjectType> void modifySystemObjectInRepo(Class<O> type, String oid, Collection<? extends ItemDelta> modifications, OperationResult parentResult)
+			throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
+		repositoryService.modifyObject(type, oid, modifications, parentResult);
+		invalidateSystemObjectsCache();
+	}
+	
+	@Override
+	protected void invalidateSystemObjectsCache() {
+		systemObjectCache.invalidateCaches();
 	}
 	
 	protected ItemPath getIcfsNameAttributePath() {

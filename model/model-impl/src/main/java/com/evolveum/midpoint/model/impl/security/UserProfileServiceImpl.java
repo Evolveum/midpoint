@@ -20,6 +20,7 @@ import com.evolveum.midpoint.common.ActivationComputer;
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.api.context.EvaluatedAssignment;
+import com.evolveum.midpoint.model.common.SystemObjectCache;
 import com.evolveum.midpoint.model.common.expression.ItemDeltaItem;
 import com.evolveum.midpoint.model.common.expression.ObjectDeltaObject;
 import com.evolveum.midpoint.model.common.mapping.MappingFactory;
@@ -89,6 +90,9 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
     
     @Autowired(required = true)
     private ObjectResolver objectResolver;
+    
+    @Autowired(required = true)
+	private SystemObjectCache systemObjectCache;
     
     @Autowired(required = true)
     private MappingFactory mappingFactory;
@@ -204,6 +208,7 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
         assignmentEvaluator.setFocusOdo(new ObjectDeltaObject<UserType>(userType.asPrismObject(), null, userType.asPrismObject()));
         assignmentEvaluator.setChannel(null);
         assignmentEvaluator.setObjectResolver(objectResolver);
+        assignmentEvaluator.setSystemObjectCache(systemObjectCache);
         assignmentEvaluator.setPrismContext(prismContext);
         assignmentEvaluator.setMappingFactory(mappingFactory);
         assignmentEvaluator.setMappingEvaluator(mappingEvaluator);

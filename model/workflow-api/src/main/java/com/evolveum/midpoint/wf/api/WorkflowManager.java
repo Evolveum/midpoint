@@ -93,7 +93,7 @@ public interface WorkflowManager {
 
 	List<? extends ObjectReferenceType> getApprovedBy(Task task, OperationResult result) throws SchemaException;
 
-	boolean isCurrentUserAuthorizedToSubmit(WorkItemType workItem);
+	boolean isCurrentUserAuthorizedToSubmit(WorkItemType workItem, OperationResult result);
 
 	boolean isCurrentUserAuthorizedToClaim(WorkItemType workItem);
 

@@ -25,9 +25,7 @@ import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.ObjectSecurityConstraints;
 import com.evolveum.midpoint.security.api.OwnerResolver;
 import com.evolveum.midpoint.security.api.SecurityEnforcer;
-import com.evolveum.midpoint.security.api.SecurityUtil;
 import com.evolveum.midpoint.security.api.UserProfileService;
-import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.util.Producer;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -49,10 +47,8 @@ import org.springframework.security.web.FilterInvocation;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Map;
-import java.util.Set;
 
 public class MidPointGuiAuthorizationEvaluator implements SecurityEnforcer {
 	
@@ -180,7 +176,10 @@ public class MidPointGuiAuthorizationEvaluator implements SecurityEnforcer {
                 return;
             }
 
-            guiConfigAttr.add(new SecurityConfig(actionUri));
+            SecurityConfig config = new SecurityConfig(actionUri);
+			if (!guiConfigAttr.contains(config)) {
+				guiConfigAttr.add(config);
+			}
         }
     }
 
@@ -205,8 +204,4 @@ public class MidPointGuiAuthorizationEvaluator implements SecurityEnforcer {
 	public <T> T runPrivileged(Producer<T> producer) {
 		return securityEnforcer.runPrivileged(producer);
 	}
-
-	
-    
-    
 }
