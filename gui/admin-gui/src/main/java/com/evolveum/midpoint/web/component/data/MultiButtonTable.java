@@ -1,8 +1,13 @@
 package com.evolveum.midpoint.web.component.data;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.assignment.*;
+import com.evolveum.midpoint.web.component.search.Search;
+import com.evolveum.midpoint.web.component.search.SearchFactory;
+import com.evolveum.midpoint.web.component.search.SearchPanel;
 import com.evolveum.midpoint.web.page.admin.roles.PageRole;
 import com.evolveum.midpoint.web.page.self.PageAssignmentDetails;
 import com.evolveum.midpoint.web.session.SessionStorage;
@@ -10,6 +15,7 @@ import com.evolveum.midpoint.web.session.UsersStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxEventBehavior;
@@ -18,6 +24,7 @@ import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
 
@@ -47,10 +54,12 @@ public class MultiButtonTable extends BasePanel<List<AssignmentEditorDto>> {
     public MultiButtonTable (String id, int itemsPerRow, IModel<List<AssignmentEditorDto>> model){
         super(id, model);
         this.itemsPerRow = itemsPerRow;
-        initLayout();
+
+         initLayout();
     }
 
     private void initLayout(){
+
         itemsCount = getModel() != null ? (getModel().getObject() != null ? getModel().getObject().size() : 0) : 0;
         RepeatingView rows = new RepeatingView(ID_ROW);
         rows.setOutputMarkupId(true);
@@ -162,8 +171,11 @@ public class MultiButtonTable extends BasePanel<List<AssignmentEditorDto>> {
         List<AssignmentEditorDto> assignmentsToAdd = storage.getAssignmentShoppingCart();
         assignmentsToAdd.add(assignment);
         storage.setAssignmentShoppingCart(assignmentsToAdd);
-        AssignmentCatalogPanel parent = (AssignmentCatalogPanel)MultiButtonTable.this.getParent();
+        AssignmentCatalogPanel parent = (AssignmentCatalogPanel)MultiButtonTable.this.getParent().getParent();
         parent.reloadCartButton(target);
 
     }
+
+
+
 }

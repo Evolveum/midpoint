@@ -29,7 +29,7 @@ public class PageAssignmentShoppingKart extends PageSelf{
     private static final String ID_MAIN_PANEL = "mainPanel";
     private static final String ID_MAIN_FORM = "mainForm";
     private static final String DOT_CLASS = PageAssignmentShoppingKart.class.getName() + ".";
-    private static final String OPERATION_LOAD_QUESTION_POLICY = DOT_CLASS + "loadRoleCatalogReference";
+    private static final String OPERATION_LOAD_ROLE_CATALOG_REFERENCE = DOT_CLASS + "loadRoleCatalogReference";
     private static final Trace LOGGER = TraceManager.getTrace(PageAssignmentShoppingKart.class);
 
     public PageAssignmentShoppingKart(){
@@ -41,23 +41,7 @@ public class PageAssignmentShoppingKart extends PageSelf{
         AssignmentCatalogPanel panel = new AssignmentCatalogPanel(ID_MAIN_PANEL, new IModel<String>() {
             @Override
             public String getObject() {
-                Task task = getPageBase().createAnonymousTask(OPERATION_LOAD_QUESTION_POLICY);
-                OperationResult result = task.getResult();
-
-                PrismObject<SystemConfigurationType> config;
-                try {
-                    config = getPageBase().getModelService().getObject(SystemConfigurationType.class,
-                            SystemObjectsType.SYSTEM_CONFIGURATION.value(), null, task, result);
-                } catch (ObjectNotFoundException | SchemaException | SecurityViolationException
-                        | CommunicationException | ConfigurationException e) {
-                    LOGGER.error("Error getting system configuration: {}", e.getMessage(), e);
-                    return null;
-                }
-                if (config != null && config.asObjectable().getRoleManagement() != null &&
-                        config.asObjectable().getRoleManagement().getRoleCatalogRef() != null){
-                    return config.asObjectable().getRoleManagement().getRoleCatalogRef().getOid();
-                }
-                return "";
+                return getRoleCatalogOid();
             }
 
             @Override
@@ -69,12 +53,32 @@ public class PageAssignmentShoppingKart extends PageSelf{
             public void detach() {
 
             }
-        });
+        }, PageAssignmentShoppingKart.this);
         mainForm.add(panel);
 
     }
 
     private PageBase getPageBase(){
         return (PageBase) getPage();
+    }
+
+    private String getRoleCatalogOid(){
+        Task task = getPageBase().createAnonymousTask(OPERATION_LOAD_ROLE_CATALOG_REFERENCE);
+        OperationResult result = task.getResult();
+
+        PrismObject<SystemConfigurationType> config;
+        try {
+            config = getPageBase().getModelService().getObject(SystemConfigurationType.class,
+                    SystemObjectsType.SYSTEM_CONFIGURATION.value(), null, task, result);
+        } catch (ObjectNotFoundException | SchemaException | SecurityViolationException
+                | CommunicationException | ConfigurationException e) {
+            LOGGER.error("Error getting system configuration: {}", e.getMessage(), e);
+            return null;
+        }
+        if (config != null && config.asObjectable().getRoleManagement() != null &&
+                config.asObjectable().getRoleManagement().getRoleCatalogRef() != null){
+            return config.asObjectable().getRoleManagement().getRoleCatalogRef().getOid();
+        }
+        return "";
     }
 }

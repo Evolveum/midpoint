@@ -1,20 +1,15 @@
 package com.evolveum.midpoint.web.component.assignment;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.query.*;
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.web.component.AjaxButton;
-import com.evolveum.midpoint.web.component.data.MultiButtonTable;
-import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.orgs.OrgTreePanel;
-import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
 import com.evolveum.midpoint.web.session.SessionStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
 
@@ -26,16 +21,19 @@ import java.util.List;
  */
 public class AssignmentCatalogPanel<F extends FocusType> extends BasePanel<String> {
     private static String ID_TREE_PANEL = "treePanel";
-    private static String ID_ASSIGNMENTS_PANEL = "assignmentsPanel";
     private static String ID_CART_BUTTON = "cartButton";
     private static String ID_CART_ITEMS_COUNT = "itemsCount";
+    private static String ID_CATALOG_ITEMS_PANEL = "catalogItemsPanel";
+
+    private PageBase pageBase;
 
     public AssignmentCatalogPanel(String id) {
         super(id);
     }
 
-    public AssignmentCatalogPanel(String id, IModel<String> rootOidModel) {
+    public AssignmentCatalogPanel(String id, IModel<String> rootOidModel, PageBase pageBase) {
         super(id, rootOidModel);
+        this.pageBase = pageBase;
         initLayout();
     }
 
@@ -69,11 +67,11 @@ public class AssignmentCatalogPanel<F extends FocusType> extends BasePanel<Strin
 
             }
         });
-        cartItemsCount.add(new VisibleEnableBehaviour(){
+        cartItemsCount.add(new VisibleEnableBehaviour() {
             @Override
-        public boolean isVisible(){
+            public boolean isVisible() {
                 SessionStorage storage = getPageBase().getSessionStorage();
-                if (storage.getUsers().getAssignmentShoppingCart().size() == 0){
+                if (storage.getUsers().getAssignmentShoppingCart().size() == 0) {
                     return false;
                 } else {
                     return true;
@@ -105,28 +103,21 @@ public class AssignmentCatalogPanel<F extends FocusType> extends BasePanel<Strin
         treePanel.setOutputMarkupId(true);
         add(treePanel);
 
-
-        WebMarkupContainer initAssignmentsPanel = new WebMarkupContainer(ID_ASSIGNMENTS_PANEL);
-        initAssignmentsPanel.setOutputMarkupId(true);
-        add(initAssignmentsPanel);
-
+        CatalogItemsPanel catalogItemsPanel = new CatalogItemsPanel(ID_CATALOG_ITEMS_PANEL, getModel(), getModelObject(), pageBase);
+        catalogItemsPanel.setOutputMarkupId(true);
+        add(catalogItemsPanel);
     }
 
     private void selectTreeItemPerformed(SelectableBean<OrgType> selected, AjaxRequestTarget target) {
         final OrgType selectedOgr = selected.getValue();
-        final ObjectDataProvider<AssignmentEditorDto, FocusType> provider = initProvider(selectedOgr.getOid());
-        if (provider != null) {
-            long s = provider.size();
-            provider.internalIterator(0, s);
-        }
-        MultiButtonTable assignmentsTable = new MultiButtonTable(ID_ASSIGNMENTS_PANEL, 3, new IModel<List<AssignmentEditorDto>>() {
+        CatalogItemsPanel catalogItemsPanel = new CatalogItemsPanel(ID_CATALOG_ITEMS_PANEL, new IModel<String>() {
             @Override
-            public List<AssignmentEditorDto> getObject() {
-                return provider.getAvailableData();
+            public String getObject() {
+                return selectedOgr.getOid();
             }
 
             @Override
-            public void setObject(List<AssignmentEditorDto> assignmentTypeList) {
+            public void setObject(String s) {
 
             }
 
@@ -134,58 +125,15 @@ public class AssignmentCatalogPanel<F extends FocusType> extends BasePanel<Strin
             public void detach() {
 
             }
-        });
-        assignmentsTable.setOutputMarkupId(true);
-        replace(assignmentsTable);
-        target.add(this);
+        }, selectedOgr.getOid(), pageBase);
+        catalogItemsPanel.setOutputMarkupId(true);
+        addOrReplace(catalogItemsPanel);
+        target.add(catalogItemsPanel);
+        target.add(catalogItemsPanel.getParent());
     }
 
-    protected ObjectDataProvider<AssignmentEditorDto, FocusType> initProvider(final String oid) {
 
-        ObjectDataProvider<AssignmentEditorDto, FocusType> provider = new ObjectDataProvider<AssignmentEditorDto, FocusType>(getPageBase(), FocusType.class) {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public AssignmentEditorDto createDataObjectWrapper(PrismObject<FocusType> obj) {
-                return AssignmentEditorDto.createDtoFromObject(obj.asObjectable(), UserDtoStatus.MODIFY, getPageBase());
-            }
-
-            @Override
-            public void setQuery(ObjectQuery query) {
-                super.setQuery(query);
-            }
-
-            @Override
-            public ObjectQuery getQuery() {
-
-                return createContentQuery(oid);
-            }
-        };
-        provider.setQuery(createContentQuery(oid));
-
-        return provider;
-    }
-
-    protected ObjectQuery createContentQuery(String oid) {
-//        Search search = searchModel.getObject();
-//        ObjectQuery query = search.createObjectQuery(parentPage.getPrismContext());
-//        query = addFilterToContentQuery(query);
-//        return query;
-        return createMemberQuery(oid);
-    }
-
-    private ObjectQuery createMemberQuery(String oid) {
-        ObjectFilter filter = OrgFilter.createOrg(oid, OrgFilter.Scope.ONE_LEVEL);
-
-        TypeFilter roleTypeFilter = TypeFilter.createType(RoleType.COMPLEX_TYPE, filter);
-        TypeFilter orgTypeFilter = TypeFilter.createType(OrgType.COMPLEX_TYPE, filter);
-        TypeFilter serviceTypeFilter = TypeFilter.createType(ServiceType.COMPLEX_TYPE, filter);
-        ObjectQuery query = ObjectQuery.createObjectQuery(OrFilter.createOr(roleTypeFilter, orgTypeFilter, serviceTypeFilter));
-        return query;
-
-    }
-
-    public void reloadCartButton(AjaxRequestTarget target){
+    public void reloadCartButton(AjaxRequestTarget target) {
         target.add(get(ID_CART_BUTTON));
     }
 }
