@@ -291,10 +291,18 @@ public class IcfConvertor {
 
 		}
 		
-		// Add Uid if it is not there already. It can be already present, e.g. if Uid and Name represent the same attribute
+		// Add Uid if it is not there already. It can be already present, 
+		// e.g. if Uid and Name represent the same attribute
 		Uid uid = co.getUid();
-		ResourceAttribute<String> uidRoa = IcfUtil.createUidAttribute(uid, IcfUtil.getUidDefinition(attributesContainerDefinition.getComplexTypeDefinition()));
-		if (attributesContainer.getValue().findItem(uidRoa.getElementName()) == null) {
+		ObjectClassComplexTypeDefinition ocDef = attributesContainerDefinition.getComplexTypeDefinition();
+		ResourceAttributeDefinition<String> uidDefinition = IcfUtil.getUidDefinition(ocDef);
+		if (uidDefinition == null) {
+			throw new SchemaException("No definition for ConnId UID attribute found in definition "
+					+ ocDef);
+		}
+		if (attributesContainer.getValue().findItem(uidDefinition.getName()) == null) {
+			ResourceAttribute<String> uidRoa = uidDefinition.instantiate();
+			uidRoa.setValue(new PrismPropertyValue<String>(uid.getUidValue()));
 			attributesContainer.getValue().add(uidRoa);
 		}
 

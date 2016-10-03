@@ -110,6 +110,8 @@ public class DummyResource implements DebugDumpable {
 
 	private boolean generateAccountDescriptionOnCreate = false;		   // simulates volatile behavior (on create)
 	private boolean generateAccountDescriptionOnUpdate = false;        // simulates volatile behavior (on update)
+	
+	private boolean disableNameHintChecks = false;
 
 	// Following two properties are just copied from the connector
 	// configuration and can be checked later. They are otherwise
@@ -313,6 +315,14 @@ public class DummyResource implements DebugDumpable {
 
 	public void setGenerateAccountDescriptionOnUpdate(boolean generateAccountDescriptionOnUpdate) {
 		this.generateAccountDescriptionOnUpdate = generateAccountDescriptionOnUpdate;
+	}
+
+	public boolean isDisableNameHintChecks() {
+		return disableNameHintChecks;
+	}
+
+	public void setDisableNameHintChecks(boolean disableNameHintChecks) {
+		this.disableNameHintChecks = disableNameHintChecks;
 	}
 
 	public Collection<String> getForbiddenNames() {

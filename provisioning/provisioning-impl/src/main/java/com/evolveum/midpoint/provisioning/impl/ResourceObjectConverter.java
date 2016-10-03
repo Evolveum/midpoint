@@ -319,7 +319,7 @@ public class ResourceObjectConverter {
 		LOGGER.trace("Deleting resource object {}", shadow);
 
 		Collection<? extends ResourceAttribute<?>> identifiers = ShadowUtil
-				.getPrimaryIdentifiers(shadow);
+				.getAllIdentifiers(shadow);
 
 		if (ProvisioningUtil.isProtectedShadow(ctx.getObjectClassDefinition(), shadow, matchingRuleRegistry)) {
 			LOGGER.error("Attempt to delete protected resource object " + ctx.getObjectClassDefinition() + ": "
@@ -392,7 +392,7 @@ public class ResourceObjectConverter {
 		RefinedObjectClassDefinition objectClassDefinition = ctx.getObjectClassDefinition();
 		Collection<Operation> operations = new ArrayList<Operation>();
 		
-		Collection<? extends ResourceAttribute<?>> identifiers = ShadowUtil.getPrimaryIdentifiers(repoShadow);
+		Collection<? extends ResourceAttribute<?>> identifiers = ShadowUtil.getAllIdentifiers(repoShadow);
 		
 
 		if (ProvisioningUtil.isProtectedShadow(ctx.getObjectClassDefinition(), repoShadow, matchingRuleRegistry)) {
@@ -1016,17 +1016,22 @@ public class ResourceObjectConverter {
 		for (Entry<ResourceObjectDiscriminator,ResourceObjectOperations> entry: roMap.entrySet()) {
 			ResourceObjectDiscriminator disc = entry.getKey();
 			ProvisioningContext entitlementCtx = entry.getValue().getResourceObjectContext();
-			Collection<? extends ResourceAttribute<?>> identifiers = disc.getIdentifiers();
-			Collection<Operation> operations = entry.getValue().getOperations();
+			Collection<? extends ResourceAttribute<?>> primaryIdentifiers = disc.getPrimaryIdentifiers();
+			ResourceObjectOperations resourceObjectOperations = entry.getValue();
+			Collection<? extends ResourceAttribute<?>> allIdentifiers = resourceObjectOperations.getAllIdentifiers();
+			if (allIdentifiers == null || allIdentifiers.isEmpty()) {
+				allIdentifiers = primaryIdentifiers;
+			}
+			Collection<Operation> operations = resourceObjectOperations.getOperations();
 			
 			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("Excuting entitlement change identifiers={}:", identifiers, DebugUtil.debugDump(operations, 1));
+				LOGGER.trace("Excuting entitlement change identifiers={}:", allIdentifiers, DebugUtil.debugDump(operations, 1));
 			}
 			
 			OperationResult result = parentResult.createMinorSubresult(OPERATION_MODIFY_ENTITLEMENT);
 			try {
 				
-				executeModify(entitlementCtx, entry.getValue().getCurrentShadow(), identifiers, operations, result);
+				executeModify(entitlementCtx, entry.getValue().getCurrentShadow(), allIdentifiers, operations, result);
 				
 				result.recordSuccess();
 				
@@ -1040,6 +1045,10 @@ public class ResourceObjectConverter {
 				// properly record the operation in the result.
 				LOGGER.error("Error while modifying entitlement {} of {}: {}", entitlementCtx, subjectCtx, e.getMessage(), e);
 				result.recordFatalError(e);
+			} catch (RuntimeException | Error e) {
+				LOGGER.error("Error while modifying entitlement {} of {}: {}", entitlementCtx, subjectCtx, e.getMessage(), e);
+				result.recordFatalError(e);
+				throw e;
 			}
 			
 		}

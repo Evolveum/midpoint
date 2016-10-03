@@ -49,6 +49,7 @@ import org.identityconnectors.framework.common.objects.filter.EndsWithFilter;
 import org.identityconnectors.framework.common.objects.filter.EqualsFilter;
 import org.identityconnectors.framework.common.objects.filter.Filter;
 import org.identityconnectors.framework.common.objects.filter.FilterTranslator;
+import org.identityconnectors.framework.common.objects.filter.FilterVisitor;
 import org.identityconnectors.framework.common.objects.filter.GreaterThanFilter;
 import org.identityconnectors.framework.common.objects.filter.GreaterThanOrEqualFilter;
 import org.identityconnectors.framework.common.objects.filter.LessThanFilter;
@@ -289,6 +290,7 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
     public Uid update(ObjectClass objectClass, Uid uid, Set<Attribute> replaceAttributes, OperationOptions options) {
         log.info("update::begin");
         validate(objectClass);
+        validate(uid);
         
         try {
         	
@@ -514,6 +516,7 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
      */
     public Uid addAttributeValues(ObjectClass objectClass, Uid uid, Set<Attribute> valuesToAdd, OperationOptions options) {
         validate(objectClass);
+        validate(uid);
 
         try {
         
@@ -705,6 +708,7 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
      */
     public Uid removeAttributeValues(ObjectClass objectClass, Uid uid, Set<Attribute> valuesToRemove, OperationOptions options) {
         validate(objectClass);
+        validate(uid);
 
         try {
         
@@ -881,10 +885,12 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
     public void delete(final ObjectClass objectClass, final Uid uid, final OperationOptions options) {
         log.info("delete::begin");
         validate(objectClass);
+        validate(uid);
         
         String id = uid.getUidValue();
         
         try {
+        	
         	if (ObjectClass.ACCOUNT.is(objectClass.getObjectClassValue())) {
         		if (configuration.getUidMode().equals(DummyConfiguration.UID_MODE_NAME)) {
         			resource.deleteAccountByName(id);
@@ -1142,6 +1148,7 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
     public void executeQuery(ObjectClass objectClass, Filter query, ResultsHandler handler, OperationOptions options) {
         log.info("executeQuery({0},{1},{2},{3})", objectClass, query, handler, options);
         validate(objectClass);
+        validate(query);
         notNull(handler, "Results handled object can't be null.");
         
         Collection<String> attributesToGet = getAttrsToGet(options);
@@ -1442,7 +1449,11 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 	        	if (configuration.getUidMode().equals(DummyConfiguration.UID_MODE_NAME)) {
 		        	uid = new Uid(delta.getObjectName());
 		        } else if (configuration.getUidMode().equals(DummyConfiguration.UID_MODE_UUID)) {
-		        	uid = new Uid(delta.getObjectId());
+		        	if (nameHintChecksEnabled()) {
+		        		uid = new Uid(delta.getObjectId(), new Name(delta.getObjectName()));
+		        	} else {
+		        		uid = new Uid(delta.getObjectId());
+		        	}
 		        } else {
 		        	throw new IllegalStateException("Unknown UID mode "+configuration.getUidMode());
 		        }
@@ -1896,6 +1907,115 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 			return true;
 		}
 		return attributesToGet.contains(attrName);
+	}
+
+	public void validate(ObjectClass oc) {
+        if (oc == null) {
+            throw new IllegalArgumentException("Object class must not be null.");
+        }
+    }
+    
+    public void validate(Uid uid) {
+    	if (uid == null) {
+    		throw new IllegalArgumentException("Uid must not be null.");
+    	}
+    	if (nameHintChecksEnabled()) {
+    		if (uid.getNameHint() == null) {
+    			throw new IllegalArgumentException("Uid name hint must not be null.");
+    		}
+    		if (StringUtils.isBlank(uid.getNameHintValue())) {
+    			throw new IllegalArgumentException("Uid name hint must not be empty.");
+    		}
+    	}
+    }
+    
+	private void validate(Filter filter) {
+		if (filter == null) {
+    		return;
+    	}
+		if (nameHintChecksEnabled()) {
+			filter.accept(new FilterVisitor<String,String>() {
+	
+				@Override
+				public String visitAndFilter(String p, AndFilter filter) {
+					return null;
+				}
+	
+				@Override
+				public String visitContainsFilter(String p, ContainsFilter filter) {
+					return null;
+				}
+	
+				@Override
+				public String visitContainsAllValuesFilter(String p, ContainsAllValuesFilter filter) {
+					return null;
+				}
+	
+				@Override
+				public String visitEqualsFilter(String p, EqualsFilter filter) {
+					if (filter.getAttribute().is(Uid.NAME)) {
+						Uid uid = (Uid)filter.getAttribute();
+						if (uid.getNameHint() == null) {
+			    			throw new IllegalArgumentException("Uid name hint must not be null in filter "+filter);
+			    		}
+			    		if (StringUtils.isBlank(uid.getNameHintValue())) {
+			    			throw new IllegalArgumentException("Uid name hint must not be empty in filter "+filter);
+			    		}
+					}
+					return null;
+				}
+	
+				@Override
+				public String visitExtendedFilter(String p, Filter filter) {
+					return null;
+				}
+	
+				@Override
+				public String visitGreaterThanFilter(String p, GreaterThanFilter filter) {
+					return null;
+				}
+	
+				@Override
+				public String visitGreaterThanOrEqualFilter(String p, GreaterThanOrEqualFilter filter) {
+					return null;
+				}
+	
+				@Override
+				public String visitLessThanFilter(String p, LessThanFilter filter) {
+					return null;
+				}
+	
+				@Override
+				public String visitLessThanOrEqualFilter(String p, LessThanOrEqualFilter filter) {
+					return null;
+				}
+	
+				@Override
+				public String visitNotFilter(String p, NotFilter filter) {
+					return null;
+				}
+	
+				@Override
+				public String visitOrFilter(String p, OrFilter filter) {
+					return null;
+				}
+	
+				@Override
+				public String visitStartsWithFilter(String p, StartsWithFilter filter) {
+					return null;
+				}
+	
+				@Override
+				public String visitEndsWithFilter(String p, EndsWithFilter filter) {
+					return null;
+				}
+				
+			}, null);
+		}
+	}
+	
+	private boolean nameHintChecksEnabled() {
+		return configuration.isRequireNameHint() && !resource.isDisableNameHintChecks();
 	}
 
 }
