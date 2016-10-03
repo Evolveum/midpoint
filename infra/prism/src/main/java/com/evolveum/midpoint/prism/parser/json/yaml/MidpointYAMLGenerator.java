@@ -18,24 +18,24 @@ public class MidpointYAMLGenerator extends YAMLGenerator {
 	}
 
 	@Override
-	protected void _writeScalar(String value, String type, Character style) throws IOException {
-		_emitter.emit(_scalarEvent(value, style));
-	}
-
-	@Override
 	protected ScalarEvent _scalarEvent(String value, Character style) {
-		ImplicitTuple implicitTuple = new ImplicitTuple(true, false);
+		if (value.contains("\n")) {
+			style = Character.valueOf('|');
+		}
+
+		ImplicitTuple implicit;
 		String yamlTag = _typeId;
-		if (yamlTag == null) {
-			// to avoid of writing default "!" when typing is not needed
-			implicitTuple = new ImplicitTuple(true, true);
-			//	        	yamlTag = "ADDEDSPECIAL";
-			//	            _typeId = null;
+		if (yamlTag != null) {
+			_typeId = null;
+			implicit = new ImplicitTuple(false, false);			// we want to always preserve the tags (if they are present)
+		} else {
+			implicit = new ImplicitTuple(true, true);
 		}
 		String anchor = _objectId;
 		if (anchor != null) {
-			//	            _objectId = null;
+			_objectId = null;
 		}
-		return new ScalarEvent(anchor, yamlTag, implicitTuple, value, null, null, style);
+		return new ScalarEvent(anchor, yamlTag, implicit, value, null, null, style);
 	}
+
 }

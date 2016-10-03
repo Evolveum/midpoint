@@ -40,8 +40,19 @@ public class RootXNode extends XNode {
         this.subnode = subnode;
     }
 
+    // TODO consider if this is clean enough... The whole concept of root node (as child of XNode) has to be thought out
+	@Override
+	public QName getTypeQName() {
+		if (typeQName != null) {
+			return typeQName;
+		} else if (subnode != null) {
+			return subnode.getTypeQName();
+		} else {
+			return null;
+		}
+	}
 
-    public QName getRootElementName() {
+	public QName getRootElementName() {
 		return rootElementName;
 	}
 
@@ -118,4 +129,13 @@ public class RootXNode extends XNode {
         result = 31 * result + (subnode != null ? subnode.hashCode() : 0);
         return result;
     }
+
+	public MapXNode asMapXNode() {
+		MapXNode map = new MapXNode();
+		map.put(rootElementName, subnode);
+		if (subnode.getTypeQName() == null) {
+			subnode.setTypeQName(getTypeQName());
+		}
+		return map;
+	}
 }

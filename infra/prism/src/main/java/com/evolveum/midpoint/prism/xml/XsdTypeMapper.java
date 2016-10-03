@@ -98,8 +98,7 @@ public class XsdTypeMapper {
     }
 
     private static void addMapping(Class javaClass, QName xsdType, boolean both) {
-        LOGGER.trace("Adding XSD type mapping {} {} {} ", new Object[]{javaClass, both ? "<->" : " ->",
-                xsdType});
+        LOGGER.trace("Adding XSD type mapping {} {} {} ", javaClass, both ? "<->" : " ->", xsdType);
         javaToXsdTypeMap.put(javaClass, xsdType);
         if (both) {
             xsdToJavaTypeMap.put(xsdType, javaClass);
@@ -179,6 +178,15 @@ public class XsdTypeMapper {
 
     private static <T> Class<T> toJavaType(QName xsdType, boolean errorIfNoMapping) {
         Class<T> javaType = xsdToJavaTypeMap.get(xsdType);
+		if (javaType == null && xsdType != null && StringUtils.isEmpty(xsdType.getNamespaceURI())) {
+			// TODO check uniqueness w.r.t. other types...
+			for (Map.Entry<QName,Class> entry : xsdToJavaTypeMap.entrySet()) {
+				if (QNameUtil.match(entry.getKey(), xsdType)) {
+					javaType = entry.getValue();
+					break;
+				}
+			}
+		}
         if (javaType == null) {
             if (errorIfNoMapping && xsdType.getNamespaceURI().equals(XMLConstants.W3C_XML_SCHEMA_NS_URI)) {
                 throw new IllegalArgumentException("No type mapping for XSD type " + xsdType);

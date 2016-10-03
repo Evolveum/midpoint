@@ -11,21 +11,21 @@
       "singleStringType" : "foobar",
       "indexedString" : [ "alpha", "bravo" ],
       "bar" : [ {
-        "@typeDef" : "http://www.w3.org/2001/XMLSchema#string",
+        "@type" : "http://www.w3.org/2001/XMLSchema#string",
         "@value" : "BAR"
       } ],
       "num" : [ {
-        "@typeDef" : "http://www.w3.org/2001/XMLSchema#int",
+        "@type" : "int",
         "@value" : 42
       } ],
       "multi" : [ {
-        "@typeDef" : "http://www.w3.org/2001/XMLSchema#string",
+        "@type" : "string",
         "@value" : "raz"
       }, {
-        "@typeDef" : "http://www.w3.org/2001/XMLSchema#string",
+        "@type" : "string",
         "@value" : "dva"
       }, {
-        "@typeDef" : "http://www.w3.org/2001/XMLSchema#string",
+        "@type" : "http://www.w3.org/2001/XMLSchema#string",
         "@value" : "tri"
       } ]
     },

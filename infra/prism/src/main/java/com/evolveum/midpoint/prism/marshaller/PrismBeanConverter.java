@@ -158,7 +158,7 @@ public class PrismBeanConverter {
             } else {
                 Map.Entry<QName,XNode> entry = xnode.entrySet().iterator().next();
                 DomParser domParser = prismContext.getParserDom();
-                String value = domParser.serializeToString(entry.getValue(), entry.getKey());
+                String value = domParser.serializeToString(entry.getValue(), entry.getKey(), null);
                 return (T) new XmlAsStringType(value);
             }
         }
@@ -443,8 +443,10 @@ public class PrismBeanConverter {
 			}
 			
 			if (setter != null) {
+				Object value = null;
 				try {
-					setter.invoke(bean, prepareValueToBeStored(propValue, wrapInJaxbElement, objectFactory, elementMethod, propName, beanClass, pc));
+					value = prepareValueToBeStored(propValue, wrapInJaxbElement, objectFactory, elementMethod, propName, beanClass, pc);
+					setter.invoke(bean, value);
 				} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
 					throw new SystemException("Cannot invoke setter "+setter+" on bean of type "+beanClass+": "+e.getMessage(), e);
 				}

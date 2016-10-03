@@ -29,6 +29,8 @@ import java.util.regex.Pattern;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.ParsingContext;
+import com.evolveum.midpoint.prism.SerializationContext;
 import com.evolveum.midpoint.prism.marshaller.XNodeProcessorEvaluationMode;
 import com.evolveum.midpoint.prism.marshaller.XPathHolder;
 import com.evolveum.midpoint.prism.parser.Parser;
@@ -70,13 +72,13 @@ public class DomParser implements Parser {
 	}
 	
 	@Override
-	public Collection<XNode> parseCollection(File file) throws SchemaException, IOException {
+	public Collection<XNode> parseCollection(File file, ParsingContext parsingContext) throws SchemaException, IOException {
 		Document document = DOMUtil.parseFile(file);
 		return parseCollection(document);
 	}
 
 	@Override
-	public Collection<XNode> parseCollection(InputStream stream) throws SchemaException, IOException {
+	public Collection<XNode> parseCollection(InputStream stream, ParsingContext parsingContext) throws SchemaException, IOException {
 		Document document = DOMUtil.parse(stream);
 		return parseCollection(document);
 	}
@@ -94,25 +96,25 @@ public class DomParser implements Parser {
 	}
 	
 	@Override
-	public Collection<XNode> parseCollection(String dataString) throws SchemaException {
+	public Collection<XNode> parseCollection(String dataString, ParsingContext parsingContext) throws SchemaException {
 		throw new UnsupportedOperationException();
 	}
 	
 	@Override
-	public XNode parse(File file) throws SchemaException {
+	public XNode parse(File file, ParsingContext parsingContext) throws SchemaException {
 		Document document = DOMUtil.parseFile(file);
 		return parse(document);
 	}
 
     @Override
-    public XNode parse(InputStream stream) throws SchemaException, IOException {
+    public XNode parse(InputStream stream, ParsingContext parsingContext) throws SchemaException, IOException {
         Document document = DOMUtil.parse(stream);
         return parse(document);
     }
 
 
     @Override
-	public XNode parse(String dataString) throws SchemaException {
+	public XNode parse(String dataString, ParsingContext parsingContext) throws SchemaException {
 		Document document = DOMUtil.parseDocument(dataString);
 		return parse(document);
 	}
@@ -423,7 +425,7 @@ public class DomParser implements Parser {
 	}
 
 	@Override
-	public String serializeToString(XNode xnode, QName rootElementName) throws SchemaException {
+	public String serializeToString(XNode xnode, QName rootElementName, SerializationContext serializationContext) throws SchemaException {
 		DomSerializer serializer = new DomSerializer(this, schemaRegistry);
 		RootXNode xroot = ParserUtils.createRootXNode(xnode, rootElementName);
 		Element element = serializer.serialize(xroot);
@@ -431,7 +433,7 @@ public class DomParser implements Parser {
 	}
 
 	@Override
-	public String serializeToString(RootXNode xnode) throws SchemaException {
+	public String serializeToString(RootXNode xnode, SerializationContext serializationContext) throws SchemaException {
 		DomSerializer serializer = new DomSerializer(this, schemaRegistry);
 		Element element = serializer.serialize(xnode);
 		return DOMUtil.serializeDOMToString(element);

@@ -50,8 +50,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
  *
  */
 public abstract class TestPrismParsing {
-		
-	
+
 	protected abstract String getSubdirName();
 	
 	protected abstract String getFilenameSuffix();
@@ -72,8 +71,8 @@ public abstract class TestPrismParsing {
 	protected abstract String getOutputFormat();
 	
 	@Test
-	public void testPrismParseFile() throws Exception {
-		final String TEST_NAME = "testPrismParseFile";
+	public void test100PrismParseFile() throws Exception {
+		final String TEST_NAME = "test100PrismParseFile";
 		PrismInternalTestUtil.displayTestTitle(TEST_NAME);
 		// GIVEN
 		PrismContext prismContext = constructInitializedPrismContext();
@@ -90,8 +89,8 @@ public abstract class TestPrismParsing {
 	}
 	
 	@Test
-	public void testPrismParseFileNoNs() throws Exception {
-		final String TEST_NAME = "testPrismParseFileNoNs";
+	public void test110PrismParseFileNoNs() throws Exception {
+		final String TEST_NAME = "test110PrismParseFileNoNs";
 		PrismInternalTestUtil.displayTestTitle(TEST_NAME);
 		// GIVEN
 		PrismContext prismContext = constructInitializedPrismContext();
@@ -108,8 +107,8 @@ public abstract class TestPrismParsing {
 	}
 
 	@Test
-	public void testPrismParseFileObject() throws Exception {
-		final String TEST_NAME = "testPrismParseFileObject";
+	public void test120PrismParseFileObject() throws Exception {
+		final String TEST_NAME = "test120PrismParseFileObject";
 		PrismInternalTestUtil.displayTestTitle(TEST_NAME);
 		
 		// GIVEN
@@ -125,23 +124,50 @@ public abstract class TestPrismParsing {
 		
 		assertUserJack(user);
 	}
-	
-		
+
 	@Test
-	public void testRoundTrip() throws Exception {
-		final String TEST_NAME = "testRoundTrip";
+	public void test130PrismParseFileAdhoc() throws Exception {
+		final String TEST_NAME = "test130PrismParseFileAdhoc";
+		PrismInternalTestUtil.displayTestTitle(TEST_NAME);
+
+		// GIVEN
+		PrismContext prismContext = constructInitializedPrismContext();
+
+		// WHEN
+		PrismObject<UserType> user = prismContext.parseObject(getFile(USER_JACK_ADHOC_BASENAME));
+
+		// THEN
+		System.out.println("User:");
+		System.out.println(user.debugDump());
+		assertNotNull(user);
+
+		assertUserAdhoc(user);
+	}
+
+	@Test
+	public void test200RoundTrip() throws Exception {
+		final String TEST_NAME = "test200RoundTrip";
 		PrismInternalTestUtil.displayTestTitle(TEST_NAME);
 		
 		roundTrip(getFile(USER_JACK_FILE_BASENAME));
 	}
 
 	@Test
-	public void testRoundTripObject() throws Exception {
-		final String TEST_NAME = "testRoundTripObject";
+	public void test210RoundTripNoNs() throws Exception {
+		final String TEST_NAME = "test210RoundTripNoNs";
+		PrismInternalTestUtil.displayTestTitle(TEST_NAME);
+
+		roundTrip(getFile(USER_JACK_NO_NS_BASENAME));
+	}
+
+	@Test
+	public void test220RoundTripObject() throws Exception {
+		final String TEST_NAME = "test220RoundTripObject";
 		PrismInternalTestUtil.displayTestTitle(TEST_NAME);
 		
 		roundTrip(getFile(USER_JACK_OBJECT_BASENAME));
 	}
+
 
 	private void roundTrip(File file) throws SchemaException, SAXException, IOException {
 		
@@ -184,29 +210,10 @@ public abstract class TestPrismParsing {
 		assertTrue("Users not equal", originalUser.equals(parsedUser));
 	}
 	
+
 	@Test
-	public void testPrismParseFileAdhoc() throws Exception {
-		final String TEST_NAME = "testPrismParseFileAdhoc";
-		PrismInternalTestUtil.displayTestTitle(TEST_NAME);
-		
-		// GIVEN
-		PrismContext prismContext = constructInitializedPrismContext();
-		
-		// WHEN
-		PrismObject<UserType> user = prismContext.parseObject(getFile(USER_JACK_ADHOC_BASENAME));
-		
-		// THEN
-		System.out.println("User:");
-		System.out.println(user.debugDump());
-		assertNotNull(user);
-		
-		assertUserAdhoc(user);
-	}
-	
-	
-	@Test
-	public void testRoundTripAdhoc() throws Exception {
-		final String TEST_NAME = "testRoundTripAdhoc";
+	public void test230RoundTripAdhoc() throws Exception {
+		final String TEST_NAME = "test230RoundTripAdhoc";
 		PrismInternalTestUtil.displayTestTitle(TEST_NAME);
 		
 		roundTripAdhoc(getFile(USER_JACK_ADHOC_BASENAME));
@@ -248,8 +255,8 @@ public abstract class TestPrismParsing {
 	
 
 	@Test
-	public void testMeleeContext() throws Exception {
-		final String TEST_NAME = "testMeleeContext";
+	public void test300MeleeContext() throws Exception {
+		final String TEST_NAME = "test300MeleeContext";
 		PrismInternalTestUtil.displayTestTitle(TEST_NAME);
 		
 		// GIVEN
@@ -309,8 +316,8 @@ public abstract class TestPrismParsing {
 	}
 	
 	@Test
-	public void testUserWill() throws Exception {
-		final String TEST_NAME = "testUserWill";
+	public void test400UserWill() throws Exception {
+		final String TEST_NAME = "test400UserWill";
 		PrismInternalTestUtil.displayTestTitle(TEST_NAME);
 		
 		// GIVEN
@@ -328,8 +335,8 @@ public abstract class TestPrismParsing {
 	}
 	
 	@Test
-	public void testUserWillRoundTrip() throws Exception {
-		final String TEST_NAME = "testUserWillRoundTrip";
+	public void test410UserWillRoundTrip() throws Exception {
+		final String TEST_NAME = "test410UserWillRoundTrip";
 		PrismInternalTestUtil.displayTestTitle(TEST_NAME);
 		
 		// GIVEN
@@ -366,8 +373,8 @@ public abstract class TestPrismParsing {
 	}
 	
 	@Test
-	public void testUserElisabethRoundTrip() throws Exception {
-		final String TEST_NAME = "testUserElisabethRoundTrip";
+	public void test500UserElisabethRoundTrip() throws Exception {
+		final String TEST_NAME = "test500UserElisabethRoundTrip";
 		PrismInternalTestUtil.displayTestTitle(TEST_NAME);
 
 		// GIVEN

@@ -55,15 +55,24 @@ public class QNameUtil {
     private static ThreadLocal<Boolean> temporarilyTolerateUndeclaredPrefixes = new ThreadLocal<>();
 
     public static String qNameToUri(QName qname) {
+		return qNameToUri(qname, true);
+	}
+
+    public static String qNameToUri(QName qname, boolean unqualifiedStartsWithHash) {
+		return qNameToUri(qname, unqualifiedStartsWithHash, '#');
+	}
+
+    public static String qNameToUri(QName qname, boolean unqualifiedStartsWithHash, char separatorChar) {
         String qUri = qname.getNamespaceURI();
         StringBuilder sb = new StringBuilder(qUri);
 
         // TODO: Check if there's already a fragment
         // e.g. http://foo/bar#baz
 
-
         if (!qUri.endsWith("#") && !qUri.endsWith("/")) {
-            sb.append("#");
+			if (unqualifiedStartsWithHash || !qUri.isEmpty()) {
+				sb.append(separatorChar);
+			}
         }
         sb.append(qname.getLocalPart());
 
@@ -90,7 +99,7 @@ public class QNameUtil {
         // if the matched slash is not a beginning of authority
         // section
         if (index != -1) {
-            String ns = uri.substring(0, index+1);
+            String ns = uri.substring(0, index);
             String name = uri.substring(index+1);
             return new QName(ns,name);
         }

@@ -16,13 +16,6 @@
 
 package com.evolveum.midpoint.prism.parser.json;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.StringWriter;
-
-import javax.xml.namespace.QName;
-
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
@@ -30,7 +23,6 @@ import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.core.JsonFactory;
-import com.fasterxml.jackson.core.JsonGenerationException;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.Version;
@@ -41,7 +33,13 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.module.jaxb.JaxbAnnotationIntrospector;
 
-public class JsonParser extends AbstractParser {
+import javax.xml.namespace.QName;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.StringWriter;
+
+public class JsonParser extends AbstractJsonParser {
 	
 	@Override
 	public boolean canParse(File file) throws IOException {
@@ -116,15 +114,16 @@ public class JsonParser extends AbstractParser {
 	}
 
 	@Override
-	protected boolean serializeExplicitType(PrimitiveXNode primitive, QName explicitType, JsonGenerator generator) throws JsonGenerationException, IOException {
+	protected <T> void serializeFromPrimitive(PrimitiveXNode<T> primitive, AbstractJsonParser.JsonSerializationContext ctx) throws IOException {
+		QName explicitType = getExplicitType(primitive);
 		if (explicitType != null) {
-				generator.writeStartObject();
-				generator.writeStringField(TYPE_DEFINITION, QNameUtil.qNameToUri(primitive.getTypeQName()));
-				generator.writeObjectField(VALUE_FIELD, primitive.getValue());
-				generator.writeEndObject();
-				return true;
-			}
-		return false;
+			ctx.generator.writeStartObject();
+			ctx.generator.writeStringField(PROP_TYPE, QNameUtil.qNameToUri(primitive.getTypeQName()));
+			ctx.generator.writeObjectField(PROP_VALUE, primitive.getValue());
+			ctx.generator.writeEndObject();
+		} else {
+			serializePrimitiveTypeLessValue(primitive, ctx);
+		}
 	}
 
 	@Override
@@ -132,7 +131,8 @@ public class JsonParser extends AbstractParser {
 		generator.writeObjectField("@type", explicitType);
 	}
 
-	
-	
-
+	@Override
+	protected QName tagToTypeName(Object tid, AbstractJsonParser.JsonParsingContext ctx) {
+		return null;
+	}
 }

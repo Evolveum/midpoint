@@ -834,6 +834,10 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Debug
 	public <T> Class<T> determineCompileTimeClass(QName typeName) {
 		if (StringUtils.isEmpty(typeName.getNamespaceURI())) {
             ComplexTypeDefinition ctd = resolveGlobalTypeDefinitionWithoutNamespace(typeName.getLocalPart());
+			if (ctd == null) {
+				return null;
+//				throw new IllegalArgumentException("Cannot find type definition for type " + typeName);
+			}
             return (Class) ctd.getCompileTimeClass();
         }
 		SchemaDescription desc = findSchemaDescriptionByNamespace(typeName.getNamespaceURI());

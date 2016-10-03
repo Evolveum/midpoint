@@ -29,15 +29,15 @@
 		<indexedString>bravo</indexedString>
     
     	<!-- Dynamic string type -->
-		<bar xsi:type="xsd:string">BAR</bar>
+		<bar xsi:type="string">BAR</bar>
 		
 		<!-- Dynamic int type -->
-		<num xsi:type="xsd:int">42</num>
+		<num xsiType="int">42</num>
 		
 		<!-- Dynamic multivalued string type -->
-		<multi xsi:type="xsd:string">raz</multi>
-		<multi xsi:type="xsd:string">dva</multi>
-		<multi xsi:type="xsd:string">tri</multi>
+		<multi xsiType="string">raz</multi>
+		<multi xsi:type="string">dva</multi>
+		<multi xsi:type="string">tri</multi>
 		
 	<!--	<foo:password xsi:type="ProtectedStringType">
 			<clearValue>openS3zam3</clearValue>

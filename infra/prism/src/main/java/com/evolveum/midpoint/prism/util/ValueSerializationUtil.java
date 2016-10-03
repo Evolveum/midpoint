@@ -57,14 +57,14 @@ public class ValueSerializationUtil {
 							throw new IllegalArgumentException("must be a map");
 						}
 						
-						String s = prismContext.getParserDom().serializeToString(sub, parentName);
+						String s = prismContext.getParserDom().serializeToString(sub, parentName, null);
 //						System.out.println("serialized: " + s);
 						return s;
 						
 					}else{
 						MapXNode xmap = new MapXNode();
 						xmap.put(itemName, xList);
-						String s = prismContext.getParserDom().serializeToString(xmap, parentName);
+						String s = prismContext.getParserDom().serializeToString(xmap, parentName, null);
 //						System.out.println("serialized: " + s);
 						return s;
 //						throw new IllegalArgumentException("Check your data.");
@@ -74,7 +74,7 @@ public class ValueSerializationUtil {
 //					xmap.put(def.getName(), xList);
 					
 				}
-				String s = prismContext.getParserDom().serializeToString(node, def.getName());
+				String s = prismContext.getParserDom().serializeToString(node, def.getName(), null);
 //				System.out.println("serialized: " + s);
 				return s;
 			} else if (def instanceof PrismContainerDefinition){
@@ -89,11 +89,11 @@ public class ValueSerializationUtil {
 					ListXNode xList = (ListXNode) node;
 					MapXNode xmap = new MapXNode();
 					xmap.put(def.getName(), xList);
-					String s = prismContext.getParserDom().serializeToString(xmap, parentName);
+					String s = prismContext.getParserDom().serializeToString(xmap, parentName, null);
 //					System.out.println("serialized: " + s);
 					return s;
 				}
-				String s = prismContext.getParserDom().serializeToString(node, def.getName());
+				String s = prismContext.getParserDom().serializeToString(node, def.getName(), null);
 //				System.out.println("serialized: " + s);
 				return s;
 			}
@@ -122,7 +122,7 @@ public class ValueSerializationUtil {
 		
 		
 		XNode node = serializer.serializeItemValue(pVal, def);
-		String s = prismContext.getParserDom().serializeToString(node, itemName);
+		String s = prismContext.getParserDom().serializeToString(node, itemName, null);
 //		System.out.println("serialized: " + s);
 		return s;
 //		throw new UnsupportedOperationException("need to be implemented");
@@ -155,7 +155,7 @@ public class ValueSerializationUtil {
 		}		
 		
 		XNode node = serializer.serializeItemValue(pVal, null);
-		String s = prismContext.getParserDom().serializeToString(node, itemName);
+		String s = prismContext.getParserDom().serializeToString(node, itemName, null);
 //		System.out.println("serialized: " + s);
 		return s;
 //		throw new UnsupportedOperationException("need to be implemented");

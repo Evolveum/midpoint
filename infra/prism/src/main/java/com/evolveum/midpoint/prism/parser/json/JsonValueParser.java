@@ -15,6 +15,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 
 public class JsonValueParser<T> implements ValueParser<T> {
 
@@ -26,30 +28,24 @@ public class JsonValueParser<T> implements ValueParser<T> {
 		this.node = node;
 	}
 	
-	public JsonValueParser(@NotNull JsonParser parser) {
-		this.parser = parser;
-	}
-	
+	@NotNull
 	public JsonParser getParser() {
 		return parser;
 	}
+
 	@Override
 	public T parse(QName typeName, XNodeProcessorEvaluationMode mode) throws SchemaException {
 		ObjectMapper mapper = (ObjectMapper) parser.getCodec();
 		Class clazz = XsdTypeMapper.toJavaType(typeName);
+		if (clazz == null) {
+			throw new SchemaException("Unsupported type " + typeName);
+		}
 			
 		ObjectReader r = mapper.readerFor(clazz);
 	    try {
-//	    	if (parser.getCurrentToken() == null){
-//	    		JsonToken t = parser.nextToken();
-//	    		if (t == null){
-//	    			t = parser.nextToken();
-//	    		}
-//	    	}
 			return r.readValue(node);
 			// TODO implement COMPAT mode
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			throw new SchemaException("Cannot parse value: " + e.getMessage(), e);
 		}
 	}
@@ -76,4 +72,10 @@ public class JsonValueParser<T> implements ValueParser<T> {
     public Map<String, String> getPotentiallyRelevantNamespaces() {
         return null;                // TODO implement
     }
+
+    Element asDomElement() throws IOException {
+		ObjectMapper mapper = (ObjectMapper) parser.getCodec();
+		ObjectReader r = mapper.readerFor(Document.class);
+		return ((Document) r.readValue(node)).getDocumentElement();
+	}
 }

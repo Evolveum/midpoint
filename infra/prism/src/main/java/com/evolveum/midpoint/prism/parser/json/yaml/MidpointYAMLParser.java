@@ -23,29 +23,29 @@ public class MidpointYAMLParser extends YAMLParser {
 		// TODO Auto-generated constructor stub
 	}
 	
-	  @Override
-	    public String getTypeId() throws IOException, JsonGenerationException
-	    {
-		  String tag = null;
-	        if (_lastEvent instanceof CollectionStartEvent) {
-	        	tag = ((CollectionStartEvent) _lastEvent).getTag();
-	        } else if (_lastEvent instanceof ScalarEvent){
-	        	tag = ((ScalarEvent) _lastEvent).getTag();
-	        }
-	        
-	             
-	            if (tag != null) {
-	                /* 04-Aug-2013, tatu: Looks like YAML parser's expose these in...
-	                 *   somewhat exotic ways sometimes. So let's prepare to peel off
-	                 *   some wrappings:
-	                 */
-	                while (tag.startsWith("!")) {
-	                    tag = tag.substring(1);
-	                }
-	                return tag;
-	            }
-	       
-	        return null;
-	    }
+//	  @Override
+//	    public String getTypeId() throws IOException, JsonGenerationException
+//	    {
+//		  String tag = null;
+//	        if (_lastEvent instanceof CollectionStartEvent) {
+//	        	tag = ((CollectionStartEvent) _lastEvent).getTag();
+//	        } else if (_lastEvent instanceof ScalarEvent){
+//	        	tag = ((ScalarEvent) _lastEvent).getTag();
+//	        }
+//
+//
+//	            if (tag != null) {
+//	                /* 04-Aug-2013, tatu: Looks like YAML parser's expose these in...
+//	                 *   somewhat exotic ways sometimes. So let's prepare to peel off
+//	                 *   some wrappings:
+//	                 */
+//	                while (tag.startsWith("!")) {
+//	                    tag = tag.substring(1);
+//	                }
+//	                return tag;
+//	            }
+//
+//	        return null;
+//	    }
 
 }

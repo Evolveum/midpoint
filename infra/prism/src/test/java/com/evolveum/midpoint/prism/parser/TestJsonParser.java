@@ -20,8 +20,4 @@ public class TestJsonParser  extends AbstractParserTest {
 		return new JsonParser();
 	}
 
-	@Test
-	public void test(){
-		
-	}
 }

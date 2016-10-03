@@ -97,7 +97,7 @@ public abstract class AbstractParserTest {
 		XNodeProcessor processor = new XNodeProcessor(prismContext);
 
 		// WHEN (parse to xnode)
-		XNode xnode = parser.parse(getFile(USER_JACK_FILE_BASENAME));
+		XNode xnode = parser.parse(getFile(USER_JACK_FILE_BASENAME), ParsingContext.createDefault());
 		System.out.println("XNode after parsing:");
 		System.out.println(xnode.debugDump());
 		
@@ -125,7 +125,7 @@ public abstract class AbstractParserTest {
 		XNodeProcessor processor = new XNodeProcessor(prismContext);
 
 		// WHEN (parse)
-		XNode xnode = parser.parse(getFile(USER_JACK_FILE_BASENAME));
+		XNode xnode = parser.parse(getFile(USER_JACK_FILE_BASENAME), ParsingContext.createDefault());
 		System.out.println("\nParsed xnode:");
 		System.out.println(xnode.debugDump());
 		PrismObject<UserType> user = processor.parseObject(xnode, ParsingContext.createDefault());
@@ -138,7 +138,7 @@ public abstract class AbstractParserTest {
 		
 		// WHEN (re-serialize to XNode)
 		XNode serializedXNode = processor.serializeObject(user, true);
-		String serializedString = parser.serializeToString(serializedXNode, new QName(NS_FOO, "user"));
+		String serializedString = parser.serializeToString(serializedXNode, new QName(NS_FOO, "user"), null);
 		
 		// THEN
 				System.out.println("\nXNode after re-serialization:");
@@ -171,7 +171,7 @@ public abstract class AbstractParserTest {
 		validateUserSchema(serializedString, prismContext);
 		
 		// WHEN (re-parse)
-		XNode reparsedXnode = parser.parse(serializedString);
+		XNode reparsedXnode = parser.parse(serializedString, ParsingContext.createDefault());
 		PrismObject<UserType> reparsedUser = processor.parseObject(reparsedXnode, ParsingContext.createDefault());
 		
 		// THEN
@@ -209,7 +209,7 @@ public abstract class AbstractParserTest {
 		XNodeProcessor processor = new XNodeProcessor(prismContext);
 		
 		// WHEN (parse to xnode)
-		XNode xnode = parser.parse(getFile(RESOURCE_RUM_FILE_BASENAME));
+		XNode xnode = parser.parse(getFile(RESOURCE_RUM_FILE_BASENAME), ParsingContext.createDefault());
 		System.out.println("XNode after parsing:");
 		System.out.println(xnode.debugDump());
 		
@@ -235,7 +235,7 @@ public abstract class AbstractParserTest {
 		XNodeProcessor processor = new XNodeProcessor(prismContext);
 		
 		// WHEN (parse)
-		XNode xnode = parser.parse(getFile(RESOURCE_RUM_FILE_BASENAME));
+		XNode xnode = parser.parse(getFile(RESOURCE_RUM_FILE_BASENAME), ParsingContext.createDefault());
 		PrismObject<ResourceType> resource = processor.parseObject(xnode, ParsingContext.createDefault());
 		
 		// THEN
@@ -246,7 +246,7 @@ public abstract class AbstractParserTest {
 		
 		// WHEN (re-serialize to XNode)
 		XNode serializedXNode = processor.serializeObject(resource, true);
-		String serializedString = parser.serializeToString(serializedXNode, new QName(NS_FOO, "resource"));
+		String serializedString = parser.serializeToString(serializedXNode, new QName(NS_FOO, "resource"), null);
 				
 		// THEN
 		System.out.println("\nXNode after re-serialization:");
@@ -280,7 +280,7 @@ public abstract class AbstractParserTest {
 		validateResourceSchema(serializedString, prismContext);
 		
 		// WHEN (re-parse)
-		XNode reparsedXnode = parser.parse(serializedString);
+		XNode reparsedXnode = parser.parse(serializedString, ParsingContext.createDefault());
 		PrismObject<ResourceType> reparsedResource = processor.parseObject(reparsedXnode, ParsingContext.createDefault());
 		
 		// THEN
@@ -387,7 +387,7 @@ public abstract class AbstractParserTest {
 		XNodeProcessor processor = new XNodeProcessor(prismContext);
 
         // WHEN (parse to xnode)
-        RootXNode xnode = (RootXNode) parser.parse(getFile(EVENT_HANDLER_FILE_BASENAME));
+        RootXNode xnode = (RootXNode) parser.parse(getFile(EVENT_HANDLER_FILE_BASENAME), ParsingContext.createDefault());
         System.out.println("XNode after parsing:");
         System.out.println(xnode.debugDump());
 

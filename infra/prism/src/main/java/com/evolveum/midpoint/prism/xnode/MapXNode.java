@@ -36,6 +36,7 @@ import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
+import org.jetbrains.annotations.NotNull;
 
 public class MapXNode extends XNode implements Map<QName,XNode>, Serializable {
 	
@@ -147,6 +148,7 @@ public class MapXNode extends XNode implements Map<QName,XNode>, Serializable {
 		return found;
 	}
 
+	@NotNull
 	public Set<java.util.Map.Entry<QName, XNode>> entrySet() {
 		Set<java.util.Map.Entry<QName, XNode>> entries = new Set<Map.Entry<QName,XNode>>() {
 

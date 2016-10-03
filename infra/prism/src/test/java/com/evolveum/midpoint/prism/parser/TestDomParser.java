@@ -26,6 +26,7 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.validation.Schema;
 import javax.xml.validation.Validator;
 
+import com.evolveum.midpoint.prism.ParsingContext;
 import com.evolveum.midpoint.prism.parser.dom.DomParser;
 import org.testng.annotations.Test;
 import org.w3c.dom.Document;
@@ -71,7 +72,7 @@ public class TestDomParser extends AbstractParserTest {
 		DomParser parser = createParser();
 		
 		// WHEN
-		XNode xnode = parser.parse(getFile(USER_JACK_FILE_BASENAME));
+		XNode xnode = parser.parse(getFile(USER_JACK_FILE_BASENAME), ParsingContext.createDefault());
 		
 		// THEN
 		System.out.println("Parsed XNode:");

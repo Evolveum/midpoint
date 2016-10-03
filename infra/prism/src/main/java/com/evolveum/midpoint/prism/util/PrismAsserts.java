@@ -32,6 +32,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 
+import com.evolveum.midpoint.util.QNameUtil;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
@@ -266,6 +267,14 @@ public class PrismAsserts {
 	public static void assertDefinition(ItemDefinition definition, QName itemName, QName type, int minOccurs, int maxOccurs) {
 		assertNotNull("No definition for "+itemName, definition);
 		assertEquals("Wrong definition type for "+itemName, type, definition.getTypeName());
+		assertEquals("Wrong definition minOccurs for "+itemName, minOccurs, definition.getMinOccurs());
+		assertEquals("Wrong definition maxOccurs for "+itemName, maxOccurs, definition.getMaxOccurs());
+	}
+
+	public static void assertDefinitionTypeLoose(ItemDefinition definition, QName itemName, QName type, int minOccurs, int maxOccurs) {
+		assertNotNull("No definition for "+itemName, definition);
+		assertTrue("Wrong definition type for "+itemName+": expected: " + type + ", real: " + definition.getTypeName(),
+				QNameUtil.match(type, definition.getTypeName()));
 		assertEquals("Wrong definition minOccurs for "+itemName, minOccurs, definition.getMinOccurs());
 		assertEquals("Wrong definition maxOccurs for "+itemName, maxOccurs, definition.getMaxOccurs());
 	}

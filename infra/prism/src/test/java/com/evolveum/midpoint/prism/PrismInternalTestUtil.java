@@ -449,12 +449,12 @@ public class PrismInternalTestUtil implements PrismContextFactory {
 		PrismAsserts.assertPropertyValue(barProperty, "BAR");
 		PrismPropertyDefinition barPropertyDef = barProperty.getDefinition();
 		assertNotNull("No definition for bar", barPropertyDef);
-		PrismAsserts.assertDefinition(barPropertyDef, EXTENSION_BAR_ELEMENT, DOMUtil.XSD_STRING, 1, -1);
+		PrismAsserts.assertDefinitionTypeLoose(barPropertyDef, EXTENSION_BAR_ELEMENT, DOMUtil.XSD_STRING, 1, -1);
 		assertNull("'Indexed' attribute on 'bar' property is not null", barPropertyDef.isIndexed());
 
         PrismProperty<?> multi = extension.findProperty(EXTENSION_MULTI_ELEMENT);
         PrismPropertyDefinition multiPropertyDef = multi.getDefinition();
-        PrismAsserts.assertDefinition(multiPropertyDef, EXTENSION_MULTI_ELEMENT, DOMUtil.XSD_STRING, 1, -1);
+        PrismAsserts.assertDefinitionTypeLoose(multiPropertyDef, EXTENSION_MULTI_ELEMENT, DOMUtil.XSD_STRING, 1, -1);
         assertNull("'Indexed' attribute on 'multi' property is not null", multiPropertyDef.isIndexed());
 
     }

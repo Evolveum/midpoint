@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<user oid="c0c010c0-d34d-b33f-f00d-111111114444">
+	<name>elisabeth</name>
+	<extension>
+		<stringType xmlns="http://midpoint.evolveum.com/xml/ns/test/extension">string</stringType>
+		<secondaryStringType>string1</secondaryStringType>
+		<intType>142</intType>
+	</extension>
+	<fullName>Elisabeth Turner</fullName>
+	<givenName>Elisabeth</givenName>
+	<familyName>Turner</familyName>
+</user>

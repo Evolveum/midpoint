@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.prism;
 
 import com.evolveum.midpoint.prism.marshaller.XNodeProcessorEvaluationMode;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 
 import java.util.ArrayList;
@@ -77,6 +78,15 @@ public class ParsingContext {
 	public void warn(Trace logger, String message) {
 		logger.warn("{}", message);
 		warn(message);
+	}
+
+	public void warnOrThrow(Trace logger, String message) throws SchemaException {
+		if (isCompat()) {
+			logger.warn("{}", message);
+			warn(message);
+		} else {
+			throw new SchemaException(message);
+		}
 	}
 
 	public void warn(String message) {

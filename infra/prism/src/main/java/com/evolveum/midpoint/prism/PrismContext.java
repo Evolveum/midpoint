@@ -212,13 +212,14 @@ public class PrismContext {
 	 */
 	public <T extends Objectable> PrismObject<T> parseObject(File file) throws SchemaException, IOException {
 		Parser parser = findParser(file);
-		XNode xnode = parser.parse(file);
-		return xnodeProcessor.parseObject(xnode, newParsingContext());
+		ParsingContext pc = newParsingContext();
+		XNode xnode = parser.parse(file, pc);
+		return xnodeProcessor.parseObject(xnode, pc);
 	}
 
 	public <T extends Objectable> PrismObject<T> parseObject(File file, ParsingContext context) throws SchemaException, IOException {
 		Parser parser = findParser(file);
-		XNode xnode = parser.parse(file);
+		XNode xnode = parser.parse(file, context);
 		return xnodeProcessor.parseObject(xnode, context);
 	}
 
@@ -226,16 +227,18 @@ public class PrismContext {
 	 * Parses a file and creates a prism from it.
 	 */
 	public <T extends Objectable> PrismObject<T> parseObject(File file, String language) throws SchemaException, IOException {
-        XNode xnode = parseToXNode(file, language);
-		return xnodeProcessor.parseObject(xnode, newParsingContext());
+		ParsingContext pc = newParsingContext();
+        XNode xnode = parseToXNode(file, language, pc);
+		return xnodeProcessor.parseObject(xnode, pc);
 	}
 
     /**
      * Parses data from an input stream and creates a prism from it.
      */
     public <T extends Objectable> PrismObject<T> parseObject(InputStream stream, String language) throws SchemaException, IOException {
-        XNode xnode = parseToXNode(stream, language);
-        return xnodeProcessor.parseObject(xnode, newParsingContext());
+		ParsingContext pc = newParsingContext();
+        XNode xnode = parseToXNode(stream, language, pc);
+		return xnodeProcessor.parseObject(xnode, pc);
     }
 
     /**
@@ -244,8 +247,9 @@ public class PrismContext {
 	 */
 	public <T extends Objectable> PrismObject<T> parseObject(String dataString) throws SchemaException {
 		Parser parser = findParser(dataString);
-		XNode xnode = parser.parse(dataString);
-		return xnodeProcessor.parseObject(xnode, newParsingContext());
+		ParsingContext pc = newParsingContext();
+		XNode xnode = parser.parse(dataString, pc);
+		return xnodeProcessor.parseObject(xnode, pc);
 	}
 	
 	/**
@@ -254,14 +258,15 @@ public class PrismContext {
 	 */
 	public <T extends Objectable> PrismObject<T> parseObject(String dataString, XNodeProcessorEvaluationMode mode) throws SchemaException {
 		Parser parser = findParser(dataString);
-		XNode xnode = parser.parse(dataString);
+		ParsingContext pc = ParsingContext.forMode(mode);
+		XNode xnode = parser.parse(dataString, pc);
 		XNodeProcessor myXnodeProcessor = new XNodeProcessor(this);
-		return myXnodeProcessor.parseObject(xnode, ParsingContext.forMode(mode));
+		return myXnodeProcessor.parseObject(xnode, pc);
 	}
 
 	public <T extends Objectable> PrismObject<T> parseObject(String dataString, ParsingContext parsingContext) throws SchemaException {
 		Parser parser = findParser(dataString);
-		XNode xnode = parser.parse(dataString);
+		XNode xnode = parser.parse(dataString, parsingContext);
 		XNodeProcessor myXnodeProcessor = new XNodeProcessor(this);
 		return myXnodeProcessor.parseObject(xnode, parsingContext);
 	}
@@ -270,8 +275,9 @@ public class PrismContext {
 	 * Parses a string and creates a prism from it. Used mostly for testing, but can also be used for built-in editors, etc.
 	 */
 	public <T extends Objectable> PrismObject<T> parseObject(String dataString, String language) throws SchemaException {
-		XNode xnode = parseToXNode(dataString, language);
-		return xnodeProcessor.parseObject(xnode, newParsingContext());
+		ParsingContext pc = newParsingContext();
+		XNode xnode = parseToXNode(dataString, language, pc);
+		return xnodeProcessor.parseObject(xnode, pc);
 	}
 
     /**
@@ -279,18 +285,20 @@ public class PrismContext {
      */
     @Deprecated
     public <T extends Objectable> PrismObject<T> parseObject(Element objectElement) throws SchemaException {
+		ParsingContext pc = newParsingContext();
         RootXNode xroot = parserDom.parseElementAsRoot(objectElement);
-        return xnodeProcessor.parseObject(xroot, newParsingContext());
+        return xnodeProcessor.parseObject(xroot, pc);
     }
 
     public List<PrismObject<? extends Objectable>> parseObjects(File file) throws SchemaException, IOException {
-        Parser parser = findParser(file);
-        Collection<XNode> nodes = parser.parseCollection(file);
+		ParsingContext pc = newParsingContext();
+		Parser parser = findParser(file);
+        Collection<XNode> nodes = parser.parseCollection(file, pc);
         Iterator<XNode> nodesIterator = nodes.iterator();
         List<PrismObject<? extends Objectable>> objects = new ArrayList<>();
         while (nodesIterator.hasNext()){
             XNode node = nodesIterator.next();
-            PrismObject object = xnodeProcessor.parseObject(node, newParsingContext());
+            PrismObject object = xnodeProcessor.parseObject(node, pc);
             objects.add(object);
         }
         return objects;
@@ -298,38 +306,34 @@ public class PrismContext {
     
     public Collection<XNode> parseObjects(InputStream stream, String language) throws SchemaException, IOException {
         Parser parser = getParserNotNull(language);
-        Collection<XNode> nodes = parser.parseCollection(stream);
+        Collection<XNode> nodes = parser.parseCollection(stream, ParsingContext.createDefault());
         return nodes;
-//        Iterator<XNode> nodesIterator = nodes.iterator();
-//        List<PrismObject<? extends Objectable>> objects = new ArrayList<PrismObject<? extends Objectable>>();
-//        while (nodesIterator.hasNext()){
-//            XNode node = nodesIterator.next();
-//            PrismObject object = xnodeProcessor.parseObject(node);
-//            objects.add(object);
-//        }
-//        return objects;
     }
     //endregion
 
     //region Parsing prism containers
     public <C extends Containerable> PrismContainer<C> parseContainer(File file, Class<C> type, String language) throws SchemaException, IOException {
-        XNode xnode = parseToXNode(file, language);
-		return xnodeProcessor.parseContainer(xnode, type, newParsingContext());
+		ParsingContext pc = newParsingContext();
+		XNode xnode = parseToXNode(file, language, pc);
+		return xnodeProcessor.parseContainer(xnode, type, pc);
 	}
 
     public <C extends Containerable> PrismContainer<C> parseContainer(File file, PrismContainerDefinition<C> containerDef, String language) throws SchemaException, IOException {
-        XNode xnode = parseToXNode(file, language);
-		return xnodeProcessor.parseContainer(xnode, containerDef, newParsingContext());
+		ParsingContext pc = newParsingContext();
+		XNode xnode = parseToXNode(file, language, pc);
+		return xnodeProcessor.parseContainer(xnode, containerDef, pc);
 	}
 	
 	public <C extends Containerable> PrismContainer<C> parseContainer(String dataString, Class<C> type, String language) throws SchemaException {
-        XNode xnode = parseToXNode(dataString, language);
-		return xnodeProcessor.parseContainer(xnode, type, newParsingContext());
+		ParsingContext pc = newParsingContext();
+		XNode xnode = parseToXNode(dataString, language, pc);
+		return xnodeProcessor.parseContainer(xnode, type, pc);
 	}
 	
 	public <C extends Containerable> PrismContainer<C> parseContainer(String dataString, PrismContainerDefinition<C> containerDef, String language) throws SchemaException {
-		XNode xnode = parseToXNode(dataString, language);
-		return xnodeProcessor.parseContainer(xnode, containerDef, newParsingContext());
+		ParsingContext pc = newParsingContext();
+		XNode xnode = parseToXNode(dataString, language, pc);
+		return xnodeProcessor.parseContainer(xnode, containerDef, pc);
 	}
 
     /**
@@ -341,9 +345,9 @@ public class PrismContext {
      * @return
      * @throws SchemaException
      */
-    public <C extends Containerable> PrismContainer<C> parseContainer(String dataString, String language) throws SchemaException {
-        XNode xnode = parseToXNode(dataString, language);
-        return xnodeProcessor.parseContainer(xnode, newParsingContext());
+    public <C extends Containerable> PrismContainer<C> parseContainer(String dataString, String language, ParsingContext pc) throws SchemaException {
+		XNode xnode = parseToXNode(dataString, language, pc);
+        return xnodeProcessor.parseContainer(xnode, pc);
     }
     //endregion
 
@@ -352,23 +356,27 @@ public class PrismContext {
      * Parses an atomic value - i.e. something that could present a property value, if such a property would exist.
      */
     public <T> T parseAtomicValue(String dataString, QName typeName, String language) throws SchemaException {
-        XNode xnode = parseToXNode(dataString, language);
-        return xnodeProcessor.parseAtomicValue(xnode, typeName, newParsingContext());
+		ParsingContext pc = newParsingContext();
+		XNode xnode = parseToXNode(dataString, language, pc);
+        return xnodeProcessor.parseAtomicValue(xnode, typeName, pc);
     }
 
     public <T> T parseAtomicValue(String dataString, QName typeName) throws SchemaException {
-        XNode xnode = parseToXNode(dataString);
-        return xnodeProcessor.parseAtomicValue(xnode, typeName, newParsingContext());
+		ParsingContext pc = newParsingContext();
+		XNode xnode = parseToXNode(dataString, pc);
+        return xnodeProcessor.parseAtomicValue(xnode, typeName, pc);
     }
 
     public <T> T parseAtomicValue(File file, QName typeName, String language) throws SchemaException, IOException {
-        XNode xnode = parseToXNode(file, language);
-        return xnodeProcessor.parseAtomicValue(xnode, typeName, newParsingContext());
+		ParsingContext pc = newParsingContext();
+		XNode xnode = parseToXNode(file, language, pc);
+        return xnodeProcessor.parseAtomicValue(xnode, typeName, pc);
     }
 
     public <T> T parseAtomicValue(File file, QName typeName) throws SchemaException, IOException {
-        XNode xnode = parseToXNode(file);
-        return xnodeProcessor.parseAtomicValue(xnode, typeName, newParsingContext());
+		ParsingContext pc = newParsingContext();
+		XNode xnode = parseToXNode(file, pc);
+        return xnodeProcessor.parseAtomicValue(xnode, typeName, pc);
     }
 
     //endregion
@@ -385,13 +393,15 @@ public class PrismContext {
      * @throws SchemaException
      */
     public Object parseAnyData(String dataString, String language) throws SchemaException {
-        XNode xnode = parseToXNode(dataString, language);
-        return xnodeProcessor.parseAnyData(xnode, newParsingContext());
+		ParsingContext pc = newParsingContext();
+		XNode xnode = parseToXNode(dataString, language, pc);
+        return xnodeProcessor.parseAnyData(xnode, pc);
     }
 
     public Object parseAnyData(File file) throws SchemaException, IOException {
-        XNode xnode = parseToXNode(file);
-        return xnodeProcessor.parseAnyData(xnode, newParsingContext());
+		ParsingContext pc = newParsingContext();
+		XNode xnode = parseToXNode(file, pc);
+        return xnodeProcessor.parseAnyData(xnode, pc);
     }
     /**
      * Emulates JAXB unmarshal method.
@@ -402,65 +412,70 @@ public class PrismContext {
      * @throws SchemaException
      */
     public <T> T parseAnyValue(File file) throws SchemaException, IOException {
-        XNode xnode = parseToXNode(file);
-        return xnodeProcessor.parseAnyValue(xnode, newParsingContext());
+		ParsingContext pc = newParsingContext();
+		XNode xnode = parseToXNode(file, pc);
+        return xnodeProcessor.parseAnyValue(xnode, pc);
     }
 
     public <T> T parseAnyValue(Element element) throws SchemaException {
-        XNode xnode = parseToXNode(element);
-        return xnodeProcessor.parseAnyValue(xnode, newParsingContext());
+		ParsingContext pc = newParsingContext();
+		XNode xnode = parseToXNode(element, pc);
+        return xnodeProcessor.parseAnyValue(xnode, pc);
     }
 
     public <T> T parseAnyValue(InputStream inputStream, String language) throws SchemaException, IOException {
-        XNode xnode = parseToXNode(inputStream, language);
-        return xnodeProcessor.parseAnyValue(xnode, newParsingContext());
+		ParsingContext pc = newParsingContext();
+		XNode xnode = parseToXNode(inputStream, language, pc);
+        return xnodeProcessor.parseAnyValue(xnode, pc);
     }
 
     public <T> T parseAnyValue(String dataString, String language) throws SchemaException {
-        XNode xnode = parseToXNode(dataString, language);
-        return xnodeProcessor.parseAnyValue(xnode, newParsingContext());
+		ParsingContext pc = newParsingContext();
+		XNode xnode = parseToXNode(dataString, language, pc);
+        return xnodeProcessor.parseAnyValue(xnode, pc);
     }
 
     // experimental!
     public <T> JAXBElement<T> parseAnyValueAsJAXBElement(String dataString, String language) throws SchemaException {
-        XNode xnode = parseToXNode(dataString, language);
-        return xnodeProcessor.parseAnyValueAsJAXBElement(xnode, newParsingContext());
+		ParsingContext pc = newParsingContext();
+		XNode xnode = parseToXNode(dataString, language, pc);
+        return xnodeProcessor.parseAnyValueAsJAXBElement(xnode, pc);
     }
     //endregion
 
     //region Parsing to XNode
-    private XNode parseToXNode(String dataString) throws SchemaException {
+    private XNode parseToXNode(String dataString, ParsingContext pc) throws SchemaException {
         Parser parser = findParser(dataString);
-        return parser.parse(dataString);
+        return parser.parse(dataString, pc);
     }
 
-    public XNode parseToXNode(String dataString, String language) throws SchemaException {
+    public XNode parseToXNode(String dataString, String language, ParsingContext pc) throws SchemaException {
         Parser parser = getParserNotNull(language);
-        return parser.parse(dataString);
+        return parser.parse(dataString, pc);
     }
 
-    private XNode parseToXNode(File file) throws SchemaException, IOException {
+    private XNode parseToXNode(File file, ParsingContext pc) throws SchemaException, IOException {
         Parser parser = findParser(file);
-        return parser.parse(file);
+        return parser.parse(file, pc);
     }
 
-    private XNode parseToXNode(File file, String language) throws SchemaException, IOException {
+    private XNode parseToXNode(File file, String language, ParsingContext parsingContext) throws SchemaException, IOException {
         Parser parser = getParserNotNull(language);
-        return parser.parse(file);
+        return parser.parse(file, parsingContext);
     }
 
-    private XNode parseToXNode(InputStream stream, String language) throws SchemaException, IOException {
+    private XNode parseToXNode(InputStream stream, String language, ParsingContext pc) throws SchemaException, IOException {
         Parser parser = getParserNotNull(language);
-        return parser.parse(stream);
+        return parser.parse(stream, pc);
     }
 
-    private XNode parseToXNode(Element domElement) throws SchemaException {
+    private XNode parseToXNode(Element domElement, ParsingContext pc) throws SchemaException {
         return parserDom.parse(domElement);
     }
 
     public String serializeXNodeToString(RootXNode xroot, String language) throws SchemaException {
         Parser parser = getParserNotNull(language);
-        return parser.serializeToString(xroot);
+        return parser.serializeToString(xroot, null);
     }
 
     private Parser findParser(File file) throws IOException{
@@ -544,7 +559,7 @@ public class PrismContext {
 	public <O extends Objectable> String serializeObjectToString(PrismObject<O> object, String language) throws SchemaException {
 		Parser parser = getParserNotNull(language);
 		RootXNode xroot = xnodeProcessor.serializeObject(object);
-		return parser.serializeToString(xroot);
+		return parser.serializeToString(xroot, null);
 	}
 	
 	public <C extends Containerable> String serializeContainerValueToString(PrismContainerValue<C> cval, QName elementName, String language) throws SchemaException {
@@ -552,7 +567,7 @@ public class PrismContext {
 		
 		RootXNode xroot = xnodeProcessor.serializeItemValueAsRoot(cval, elementName);
 		//System.out.println("serialized to xnode: " + xroot.debugDump());
-		return parser.serializeToString(xroot);
+		return parser.serializeToString(xroot, null);
 	}
 
     /**
@@ -573,14 +588,15 @@ public class PrismContext {
 
 	public String serializeAtomicValue(Object value, QName elementName, String language, SerializationOptions serializationOptions) throws SchemaException {
 		Parser parser = getParserNotNull(language);
-		RootXNode xnode = xnodeProcessor.serializeAtomicValue(value, elementName, new SerializationContext(serializationOptions));
-		return parser.serializeToString(xnode);
+		SerializationContext sc = new SerializationContext(serializationOptions);
+		RootXNode xnode = xnodeProcessor.serializeAtomicValue(value, elementName, sc);
+		return parser.serializeToString(xnode, sc);
 	}
 
     public String serializeAtomicValue(JAXBElement<?> element, String language) throws SchemaException {
         Parser parser = getParserNotNull(language);
         RootXNode xnode = xnodeProcessor.serializeAtomicValue(element);
-        return parser.serializeToString(xnode);
+        return parser.serializeToString(xnode, null, null);
     }
 
 
@@ -597,13 +613,13 @@ public class PrismContext {
     public String serializeAnyData(Object object, String language) throws SchemaException {
         Parser parser = getParserNotNull(language);
         RootXNode xnode = xnodeProcessor.serializeAnyData(object, null);
-        return parser.serializeToString(xnode);
+        return parser.serializeToString(xnode, null);
     }
 
     public String serializeAnyData(Object object, QName defaultRootElementName, String language) throws SchemaException {
         Parser parser = getParserNotNull(language);
         RootXNode xnode = xnodeProcessor.serializeAnyData(object, defaultRootElementName, null);
-        return parser.serializeToString(xnode);
+        return parser.serializeToString(xnode, null);
     }
 
     public Element serializeAnyDataToElement(Object object, QName defaultRootElementName) throws SchemaException {

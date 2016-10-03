@@ -9,6 +9,8 @@ import java.util.Map.Entry;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.ParsingContext;
+import com.evolveum.midpoint.prism.SerializationContext;
 import org.apache.commons.lang.StringUtils;
 
 import com.evolveum.midpoint.prism.parser.Parser;
@@ -44,7 +46,7 @@ public abstract class AbstractParserDeprecated implements Parser {
 	
 	
 	@Override
-	public XNode parse(File file) throws SchemaException, IOException {
+	public XNode parse(File file, ParsingContext parsingContext) throws SchemaException, IOException {
 		JsonParser parser = createParser(file);
 		return parseObject(parser);
 	}
@@ -53,7 +55,7 @@ public abstract class AbstractParserDeprecated implements Parser {
 	protected abstract JsonParser createParser(File file)  throws SchemaException, IOException ;
 	
 	@Override
-	public XNode parse(String dataString) throws SchemaException {
+	public XNode parse(String dataString, ParsingContext parsingContext) throws SchemaException {
 //		JsonFactory factory = new JsonFactory();
 //		JsonParser parser = null;
 //		try {
@@ -82,7 +84,7 @@ public abstract class AbstractParserDeprecated implements Parser {
 	}
 
 	@Override
-	public String serializeToString(XNode xnode, QName rootElementName) throws SchemaException {
+	public String serializeToString(XNode xnode, QName rootElementName, SerializationContext serializationContext) throws SchemaException {
 		if (xnode instanceof RootXNode){
 			xnode = ((RootXNode) xnode).getSubnode();
 		}
@@ -90,7 +92,7 @@ public abstract class AbstractParserDeprecated implements Parser {
 	}
 
 	@Override
-	public String serializeToString(RootXNode xnode) throws SchemaException {
+	public String serializeToString(RootXNode xnode, SerializationContext serializationContext) throws SchemaException {
 		QName rootElementName = xnode.getRootElementName();
 		return serializeToJson(xnode.getSubnode(), rootElementName);
 	}

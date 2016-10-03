@@ -48,7 +48,7 @@ public abstract class XNode implements DebugDumpable, Visitable, Cloneable, Seri
 	public static final QName KEY_REFERENCE_OBJECT = new QName(null, "object");
 
 	// Common fields
-	private XNode parent;
+	protected XNode parent;
 	
 	/**
 	 * If set to true that the element came from the explicit type definition
@@ -65,8 +65,8 @@ public abstract class XNode implements DebugDumpable, Visitable, Cloneable, Seri
 	
 	// These may be detected in parsed file and
 	// are also used for serialization
-	private QName typeQName;
-	private Integer maxOccurs;
+	protected QName typeQName;
+	protected Integer maxOccurs;
 
     // a comment that could be stored into formats that support these (e.g. XML or YAML)
     private String comment;

@@ -22,6 +22,10 @@ package com.evolveum.midpoint.prism;
 public class SerializationOptions {
 
     private boolean serializeReferenceNames;
+	private NameQualificationStrategy itemNameQualificationStrategy;
+	private NameQualificationStrategy itemTypeQualificationStrategy;
+	private NameQualificationStrategy itemPathQualificationStrategy;
+	private NameQualificationStrategy genericQualificationStrategy;
 
     public boolean isSerializeReferenceNames() {
         return serializeReferenceNames;
@@ -40,4 +44,36 @@ public class SerializationOptions {
     public static boolean isSerializeReferenceNames(SerializationOptions options) {
         return options != null && options.isSerializeReferenceNames();
     }
+
+	public NameQualificationStrategy getItemNameQualificationStrategy() {
+		return itemNameQualificationStrategy;
+	}
+
+	public void setItemNameQualificationStrategy(NameQualificationStrategy itemNameQualificationStrategy) {
+		this.itemNameQualificationStrategy = itemNameQualificationStrategy;
+	}
+
+	public NameQualificationStrategy getItemTypeQualificationStrategy() {
+		return itemTypeQualificationStrategy;
+	}
+
+	public void setItemTypeQualificationStrategy(NameQualificationStrategy itemTypeQualificationStrategy) {
+		this.itemTypeQualificationStrategy = itemTypeQualificationStrategy;
+	}
+
+	public NameQualificationStrategy getItemPathQualificationStrategy() {
+		return itemPathQualificationStrategy;
+	}
+
+	public void setItemPathQualificationStrategy(NameQualificationStrategy itemPathQualificationStrategy) {
+		this.itemPathQualificationStrategy = itemPathQualificationStrategy;
+	}
+
+	public NameQualificationStrategy getGenericQualificationStrategy() {
+		return genericQualificationStrategy;
+	}
+
+	public void setGenericQualificationStrategy(NameQualificationStrategy genericQualificationStrategy) {
+		this.genericQualificationStrategy = genericQualificationStrategy;
+	}
 }

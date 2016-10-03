@@ -22,6 +22,8 @@ import java.util.Collection;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.ParsingContext;
+import com.evolveum.midpoint.prism.SerializationContext;
 import com.evolveum.midpoint.prism.xnode.RootXNode;
 import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -32,24 +34,24 @@ import com.evolveum.midpoint.util.exception.SchemaException;
  */
 public interface Parser {
 	
-	XNode parse(File file) throws SchemaException, IOException;
+	XNode parse(File file, ParsingContext parsingContext) throws SchemaException, IOException;
 
-    XNode parse(InputStream stream) throws SchemaException, IOException;
+    XNode parse(InputStream stream, ParsingContext parsingContext) throws SchemaException, IOException;
 	
-	XNode parse(String dataString) throws SchemaException;
+	XNode parse(String dataString, ParsingContext parsingContext) throws SchemaException;
 	
-	Collection<XNode> parseCollection(File file) throws SchemaException, IOException;
+	Collection<XNode> parseCollection(File file, ParsingContext parsingContext) throws SchemaException, IOException;
 	
-	Collection<XNode> parseCollection(InputStream stream) throws SchemaException, IOException;
+	Collection<XNode> parseCollection(InputStream stream, ParsingContext parsingContext) throws SchemaException, IOException;
 	
-	Collection<XNode> parseCollection(String dataString) throws SchemaException;
+	Collection<XNode> parseCollection(String dataString, ParsingContext parsingContext) throws SchemaException;
 	
 	boolean canParse(File file) throws IOException;
 	
 	boolean canParse(String dataString);
 
-	String serializeToString(XNode xnode, QName rootElementName) throws SchemaException;
+	String serializeToString(XNode xnode, QName rootElementName, SerializationContext serializationContext) throws SchemaException;
 	
-	String serializeToString(RootXNode xnode) throws SchemaException;
+	String serializeToString(RootXNode xnode, SerializationContext serializationContext) throws SchemaException;
 
 }
