@@ -2686,9 +2686,11 @@ public class TestDummy extends AbstractDummyTest {
 	public void test175SearchUidExact() throws Exception {
 		final String TEST_NAME = "test175SearchUidExact";
 		TestUtil.displayTestTile(TEST_NAME);
+		dummyResource.setDisableNameHintChecks(true);
 		testSeachIterativeSingleAttrFilter(TEST_NAME,
 				ConnectorFactoryIcfImpl.ICFS_UID, willIcfUid, null, true,
 				transformNameFromResource("Will"));
+		dummyResource.setDisableNameHintChecks(false);
 	}
 	
 	@Test

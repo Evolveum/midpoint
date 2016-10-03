@@ -255,7 +255,7 @@ public abstract class ShadowCache {
 
 			// Let's get all the identifiers from the Shadow <attributes> part
 			Collection<? extends ResourceAttribute<?>> identifiers = ShadowUtil
-					.getPrimaryIdentifiers(repositoryShadow);
+					.getAllIdentifiers(repositoryShadow);
 
 			if (identifiers == null || identifiers.isEmpty()) {
 				// check if the account is not only partially created (exist
