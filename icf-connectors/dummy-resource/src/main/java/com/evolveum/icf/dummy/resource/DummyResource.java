@@ -130,7 +130,7 @@ public class DummyResource implements DebugDumpable {
 		groupObjectClass = new DummyObjectClass();
 		privilegeObjectClass = new DummyObjectClass();
 		syncStyle = DummySyncStyle.NONE;
-		deltas = new ArrayList<DummyDelta>();
+		deltas = Collections.synchronizedList(new ArrayList<DummyDelta>());
 		latestSyncToken = 0;
 	}
 	
