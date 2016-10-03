@@ -19,7 +19,7 @@ import java.util.List;
 /**
  * Created by honchar.
  */
-public class AssignmentCatalogPanel<F extends FocusType> extends BasePanel<String> {
+public class AssignmentCatalogPanel<F extends AbstractRoleType> extends BasePanel<String> {
     private static String ID_TREE_PANEL = "treePanel";
     private static String ID_CART_BUTTON = "cartButton";
     private static String ID_CART_ITEMS_COUNT = "itemsCount";
