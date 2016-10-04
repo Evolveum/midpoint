@@ -28,6 +28,7 @@ import com.evolveum.midpoint.model.api.context.ModelState;
 import com.evolveum.midpoint.model.api.hooks.ChangeHook;
 import com.evolveum.midpoint.model.api.hooks.HookOperationMode;
 import com.evolveum.midpoint.model.api.hooks.HookRegistry;
+import com.evolveum.midpoint.model.common.SystemObjectCache;
 import com.evolveum.midpoint.model.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.model.common.expression.evaluator.caching.AssociationSearchExpressionEvaluatorCache;
 import com.evolveum.midpoint.model.common.expression.script.ScriptExpression;
@@ -160,6 +161,9 @@ public class Clockwork {
     
     @Autowired(required = true)
 	private ModelObjectResolver objectResolver;
+    
+    @Autowired(required = true)
+	private SystemObjectCache systemObjectCache;
 
 	@Autowired
 	private transient ProvisioningService provisioningService;
@@ -250,8 +254,8 @@ public class Clockwork {
 	}
 
 	private <F extends ObjectType> int getMaxClicks(LensContext<F> context, OperationResult result) throws SchemaException, ObjectNotFoundException {
-		PrismObject<SystemConfigurationType> sysconfigObject = LensUtil.getSystemConfigurationReadOnly(context, repositoryService, result);
-		Integer maxClicks = SystemConfigurationTypeUtil.getMaxModelClicks(sysconfigObject);
+		PrismObject<SystemConfigurationType> systemConfiguration = systemObjectCache.getSystemConfiguration(result);
+		Integer maxClicks = SystemConfigurationTypeUtil.getMaxModelClicks(systemConfiguration);
 		if (maxClicks == null) {
 			return DEFAULT_MAX_CLICKS;
 		} else {
@@ -387,7 +391,7 @@ public class Clockwork {
     	// TODO: following two parts should be merged together in later versions
     	
     	// Execute configured scripting hooks
-    	PrismObject<SystemConfigurationType> systemConfiguration = LensUtil.getSystemConfigurationReadOnly(context, repositoryService, result);
+    	PrismObject<SystemConfigurationType> systemConfiguration = systemObjectCache.getSystemConfiguration(result);
     	// systemConfiguration may be null in some tests
     	if (systemConfiguration != null) {
 	    	ModelHooksType modelHooks = systemConfiguration.asObjectable().getModelHooks();

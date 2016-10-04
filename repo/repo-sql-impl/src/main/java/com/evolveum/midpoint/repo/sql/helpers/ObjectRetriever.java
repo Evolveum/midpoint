@@ -213,7 +213,7 @@ public class ObjectRetriever {
 		}
 
 		LOGGER.trace("Transforming data to JAXB type.");
-		PrismObject<T> prismObject = updateLoadedObject(fullObject, type, options, session, operationResult);
+		PrismObject<T> prismObject = updateLoadedObject(fullObject, type, oid, options, session, operationResult);
 		validateObjectType(prismObject, type);
 
 		// this was implemented to allow report parsing errors as warnings to upper layers;
@@ -265,7 +265,7 @@ public class ObjectRetriever {
             }
 
             GetObjectResult focus = focuses.get(0);
-            owner = updateLoadedObject(focus, (Class<F>) FocusType.class, options, session, result);
+            owner = updateLoadedObject(focus, (Class<F>) FocusType.class, null, options, session, result);
 
             session.getTransaction().commit();
 
@@ -304,7 +304,7 @@ public class ObjectRetriever {
             }
 
             GetObjectResult user = users.get(0);
-            userType = updateLoadedObject(user, UserType.class, null, session, result);
+            userType = updateLoadedObject(user, UserType.class, null, null, session, result);
 
             session.getTransaction().commit();
         } catch (SchemaException | RuntimeException ex) {
@@ -378,7 +378,7 @@ public class ObjectRetriever {
             List<GetObjectResult> queryResult = rQuery.list();
             LOGGER.trace("Found {} objects, translating to JAXB.", new Object[]{(queryResult != null ? queryResult.size() : 0)});
 
-			List<PrismObject<T>> list = queryResultToPrismObjects(queryResult, type, options, session, result);
+			List<PrismObject<T>> list = queryResultToPrismObjects(queryResult, type, null, options, session, result);
             session.getTransaction().commit();
 			return new SearchResultList<>(list);
 
@@ -392,12 +392,12 @@ public class ObjectRetriever {
 
 	@NotNull
 	private <T extends ObjectType> List<PrismObject<T>> queryResultToPrismObjects(List<GetObjectResult> objects, Class<T> type,
-			Collection<SelectorOptions<GetOperationOptions>> options,
+			String oid, Collection<SelectorOptions<GetOperationOptions>> options,
 			Session session, OperationResult result) throws SchemaException {
 		List<PrismObject<T>> rv = new ArrayList<>();
 		if (objects != null) {
 			for (GetObjectResult object : objects) {
-				PrismObject<T> prismObject = updateLoadedObject(object, type, options, session, result);
+				PrismObject<T> prismObject = updateLoadedObject(object, type, oid, options, session, result);
 				rv.add(prismObject);
 			}
 		}
@@ -444,7 +444,7 @@ public class ObjectRetriever {
      * This method provides object parsing from String and validation.
      */
     private <T extends ObjectType> PrismObject<T> updateLoadedObject(GetObjectResult result, Class<T> type,
-			Collection<SelectorOptions<GetOperationOptions>> options,
+    		String oid, Collection<SelectorOptions<GetOperationOptions>> options,
 			Session session, OperationResult operationResult) throws SchemaException {
 
         String xml = RUtil.getXmlFromByteArray(result.getFullObject(), getConfiguration().isUseZip());
@@ -459,11 +459,11 @@ public class ObjectRetriever {
 //					operationResult.createSubresult("parseObject").recordWarning(warning);
 //				}
 //			}
-        } catch (SchemaException e) {
-            LOGGER.debug("Couldn't parse object because of schema exception ({}):\nObject: {}", e, xml);
-            throw e;
-        } catch (RuntimeException e) {
-            LOGGER.debug("Couldn't parse object because of unexpected exception ({}):\nObject: {}", e, xml);
+        } catch (SchemaException | RuntimeException | Error e) {
+        	// This is a serious thing. We have corrupted XML in the repo. This may happen even
+        	// during system init. We want really loud and detailed error here.
+            LOGGER.error("Couldn't parse object {} {}: {}: {}\n{}", 
+            		type.getSimpleName(), oid, e.getClass().getName(), e.getMessage(), xml, e);
             throw e;
         }
 
@@ -565,7 +565,7 @@ public class ObjectRetriever {
 
             if (shadows != null) {
                 for (GetObjectResult shadow : shadows) {
-                    PrismObject<T> prismObject = updateLoadedObject(shadow, resourceObjectShadowType, null, session, result);
+                    PrismObject<T> prismObject = updateLoadedObject(shadow, resourceObjectShadowType, null, null, session, result);
                     list.add(prismObject);
                 }
             }
@@ -643,7 +643,7 @@ public class ObjectRetriever {
                 while (iterator.hasNext()) {
                     GetObjectResult object = iterator.next();
 
-                    PrismObject<T> prismObject = updateLoadedObject(object, type, options, session, result);
+                    PrismObject<T> prismObject = updateLoadedObject(object, type, null, options, session, result);
                     if (!handler.handle(prismObject, result)) {
                         break;
                     }
@@ -835,7 +835,7 @@ main:       for (;;) {
 				// raw GetObjectResult instances are useless outside repo-sql-impl module, so we'll convert them to objects
 				@SuppressWarnings("unchecked")
 				List<GetObjectResult> listOfGetObjectResults = (List<GetObjectResult>) objects;
-				objects = queryResultToPrismObjects(listOfGetObjectResults, request.getType(), null, session, result);
+				objects = queryResultToPrismObjects(listOfGetObjectResults, request.getType(), null, null, session, result);
 			}
 
 			RepositoryQueryDiagResponse response = new RepositoryQueryDiagResponse(objects, implementationLevelQuery, implementationLevelQueryParameters);

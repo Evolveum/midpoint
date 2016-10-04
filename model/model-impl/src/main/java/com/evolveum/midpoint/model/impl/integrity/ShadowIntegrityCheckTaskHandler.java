@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.model.impl.integrity;
 
 import com.evolveum.midpoint.model.api.ModelPublicConstants;
+import com.evolveum.midpoint.model.common.SystemObjectCache;
 import com.evolveum.midpoint.model.impl.sync.SynchronizationService;
 import com.evolveum.midpoint.model.impl.util.AbstractSearchIterativeTaskHandler;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
@@ -65,14 +66,17 @@ public class ShadowIntegrityCheckTaskHandler extends AbstractSearchIterativeTask
  	// Therefore it must not have task-specific fields. It can only contain fields specific to
  	// all tasks of a specified type
 
-    @Autowired
+    @Autowired(required = true)
     private ProvisioningService provisioningService;
 
-    @Autowired
+    @Autowired(required = true)
     private MatchingRuleRegistry matchingRuleRegistry;
 
-    @Autowired
+    @Autowired(required = true)
     private SynchronizationService synchronizationService;
+    
+    @Autowired(required = true)
+	private SystemObjectCache systemObjectCache;
 
     private static final Trace LOGGER = TraceManager.getTrace(ShadowIntegrityCheckTaskHandler.class);
 
@@ -91,7 +95,7 @@ public class ShadowIntegrityCheckTaskHandler extends AbstractSearchIterativeTask
 	protected ShadowIntegrityCheckResultHandler createHandler(TaskRunResult runResult, Task coordinatorTask, OperationResult opResult) {
         return new ShadowIntegrityCheckResultHandler(coordinatorTask, ShadowIntegrityCheckTaskHandler.class.getName(),
 				"check shadow integrity", "check shadow integrity", taskManager, prismContext, provisioningService,
-                matchingRuleRegistry, repositoryService, synchronizationService, opResult);
+                matchingRuleRegistry, repositoryService, synchronizationService, systemObjectCache, opResult);
 	}
 	
 	@Override

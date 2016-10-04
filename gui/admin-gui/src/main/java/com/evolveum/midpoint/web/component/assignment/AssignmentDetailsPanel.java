@@ -24,31 +24,9 @@ public class AssignmentDetailsPanel extends BasePanel<AssignmentEditorDto> {
 
     private void initLayout() {
         setOutputMarkupId(true);
-
-//        AssignmentEditorDto aa = assignmentModel.getObject();
-//        if (aa == null){}
-        AssignmentEditorPanel assignmentDetailsPanel = new AssignmentEditorPanel(ID_DETAILS_PANEL, getModel()) {
-
-        };
+        AssignmentEditorPanel assignmentDetailsPanel = new AssignmentEditorPanel(ID_DETAILS_PANEL, getModel());
         assignmentDetailsPanel.setOutputMarkupId(true);
         add(assignmentDetailsPanel);
 
     }
-
-    public int getWidth() {
-        return 900;
-    }
-
-    public int getHeight() {
-        return 600;
-    }
-
-    public StringResourceModel getTitle() {
-        return createStringResource("MultiButtonPanel.assignmentDetailsPopupTitle");
-    }
-
-    public Component getComponent() {
-        return this;
-    }
-
 }

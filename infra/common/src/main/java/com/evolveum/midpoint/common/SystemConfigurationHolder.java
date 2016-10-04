@@ -31,6 +31,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.WfConfigurationType;
  *
  * @author mederly
  */
+@Deprecated
 public class SystemConfigurationHolder {
 
     private static SystemConfigurationType currentConfiguration;

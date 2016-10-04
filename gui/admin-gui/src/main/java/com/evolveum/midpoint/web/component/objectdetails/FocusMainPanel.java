@@ -15,11 +15,15 @@
  */
 package com.evolveum.midpoint.web.component.objectdetails;
 
+import com.evolveum.midpoint.gui.api.ComponentConstants;
 import com.evolveum.midpoint.gui.api.component.tabs.CountablePanelTab;
 import com.evolveum.midpoint.gui.api.component.tabs.PanelTab;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.FocusTabVisibleBehavior;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.*;
+import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -35,10 +39,12 @@ import com.evolveum.midpoint.web.page.admin.users.dto.FocusSubwrapperDto;
 import com.evolveum.midpoint.web.page.self.PageSelfProfile;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.apache.commons.lang.BooleanUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.model.AbstractReadOnlyModel;
+import org.apache.wicket.model.IModel;
 import org.apache.wicket.util.string.StringValue;
 
 import java.lang.reflect.Constructor;
@@ -111,24 +117,27 @@ public class FocusMainPanel<F extends FocusType> extends AbstractObjectMainPanel
 		List<ITab> tabs = new ArrayList<>();
 
 		List<ObjectFormType> objectFormTypes = parentPage.getObjectFormTypes();
-		if (objectFormTypes == null || objectFormTypes.isEmpty()) {
-			addDefaultTabs(parentPage, tabs);
+		// default tabs are always added to component structure, visibility is decided later in
+		// visible behavior based on adminGuiConfiguration
+		addDefaultTabs(parentPage, tabs);
+
+		if (objectFormTypes == null) {
 			return tabs;
 		}
-		for (ObjectFormType objectFormType: objectFormTypes) {
-			if (BooleanUtils.isTrue(objectFormType.isIncludeDefaultForms())) {
-				addDefaultTabs(parentPage, tabs);
-				break;
-			}
-		}
-		for (ObjectFormType objectFormType: objectFormTypes) {
+
+		for (ObjectFormType objectFormType : objectFormTypes) {
 			final FormSpecificationType formSpecificationType = objectFormType.getFormSpecification();
 			String title = formSpecificationType.getTitle();
 			if (title == null) {
 				title = "pageAdminFocus.extended";
 			}
+
+			if (StringUtils.isEmpty(formSpecificationType.getPanelClass())) {
+				continue;
+			}
+
 			tabs.add(
-					new PanelTab(parentPage.createStringResource(title)){
+					new PanelTab(parentPage.createStringResource(title)) {
 						private static final long serialVersionUID = 1L;
 
 						@Override
@@ -144,9 +153,7 @@ public class FocusMainPanel<F extends FocusType> extends AbstractObjectMainPanel
 	protected WebMarkupContainer createTabPanel(String panelId, FormSpecificationType formSpecificationType,
 			PageAdminObjectDetails<F> parentPage) {
 		String panelClassName = formSpecificationType.getPanelClass();
-		if (panelClassName == null) {
-			throw new SystemException("No panel class specified in admin GUI configuration");
-		}
+
 		Class<?> panelClass;
 		try {
 			panelClass = Class.forName(panelClassName);
@@ -204,10 +211,23 @@ public class FocusMainPanel<F extends FocusType> extends AbstractObjectMainPanel
 		return new RequestAssignmentTabPanel<F>(panelId, getMainForm(), getObjectModel(), assignmentsModel, parentPage);
 	}
 
+	protected IModel<PrismObject<F>> unwrapModel() {
+		return new AbstractReadOnlyModel<PrismObject<F>>() {
+
+				@Override
+			public PrismObject<F> getObject() {
+				return getObjectWrapper().getObject();
+			}
+		};
+	}
+
 	protected void addDefaultTabs(final PageAdminObjectDetails<F> parentPage, List<ITab> tabs) {
+		FocusTabVisibleBehavior authorization = new FocusTabVisibleBehavior(unwrapModel(),
+				ComponentConstants.UI_FOCUS_TAB_BASIC_URL);
 
 		tabs.add(
-				new PanelTab(parentPage.createStringResource("pageAdminFocus.basic")){
+				new PanelTab(parentPage.createStringResource("pageAdminFocus.basic"), authorization){
+
 					private static final long serialVersionUID = 1L;
 
 					@Override
@@ -216,8 +236,10 @@ public class FocusMainPanel<F extends FocusType> extends AbstractObjectMainPanel
 					}
 				});
 
+		authorization = new FocusTabVisibleBehavior(unwrapModel(), ComponentConstants.UI_FOCUS_TAB_PROJECTIONS_URL);
 		tabs.add(
-                new CountablePanelTab(parentPage.createStringResource("pageAdminFocus.projections")){
+                new CountablePanelTab(parentPage.createStringResource("pageAdminFocus.projections"), authorization){
+
                 	private static final long serialVersionUID = 1L;
 
 					@Override
@@ -231,8 +253,10 @@ public class FocusMainPanel<F extends FocusType> extends AbstractObjectMainPanel
 					}
 				});
 
+		authorization = new FocusTabVisibleBehavior(unwrapModel(), ComponentConstants.UI_FOCUS_TAB_ASSIGNMENTS_URL);
 		tabs.add(
-				new CountablePanelTab(parentPage.createStringResource("pageAdminFocus.assignments")) {
+				new CountablePanelTab(parentPage.createStringResource("pageAdminFocus.assignments"), authorization) {
+
 					private static final long serialVersionUID = 1L;
 
 					@Override
@@ -246,8 +270,10 @@ public class FocusMainPanel<F extends FocusType> extends AbstractObjectMainPanel
 					}
 				});
 
+		authorization = new FocusTabVisibleBehavior(unwrapModel(), ComponentConstants.UI_FOCUS_TAB_TASKS_URL);
 		tabs.add(
-				new CountablePanelTab(parentPage.createStringResource("pageAdminFocus.tasks")) {
+				new CountablePanelTab(parentPage.createStringResource("pageAdminFocus.tasks"), authorization) {
+
 					private static final long serialVersionUID = 1L;
 
 					@Override
@@ -262,8 +288,10 @@ public class FocusMainPanel<F extends FocusType> extends AbstractObjectMainPanel
 				});
 
         if (!(parentPage instanceof PageSelfProfile)) {
+			authorization = new FocusTabVisibleBehavior(unwrapModel(), ComponentConstants.UI_FOCUS_TAB_REQUEST_ROLE_URL);
             tabs.add(
-                    new PanelTab(parentPage.createStringResource("pageAdminFocus.request")) {
+                    new PanelTab(parentPage.createStringResource("pageAdminFocus.request"), authorization) {
+
                     	private static final long serialVersionUID = 1L;
 
                         @Override

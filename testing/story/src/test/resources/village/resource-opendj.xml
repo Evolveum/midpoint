@@ -143,6 +143,7 @@
             	<displayName>LDAP Group Membership</displayName>
             	<kind>entitlement</kind>
             	<intent>ldapGroup</intent>
+            	<intent>projAdmGroup</intent>
             	<direction>objectToSubject</direction>
             	<associationAttribute>ri:uniqueMember</associationAttribute>
             	<valueAttribute>ri:dn</valueAttribute>
@@ -161,6 +162,7 @@
             </credentials>
 
         </objectType>
+        
         
         <objectType>
         	<kind>entitlement</kind>
@@ -255,6 +257,15 @@
 				<kind>generic</kind>
 				<intent>projOu</intent>
 			</dependency>
+			<association>
+            	<ref>ri:group</ref>
+            	<displayName>LDAP Group Membership</displayName>
+            	<kind>entitlement</kind>
+            	<intent>ldapGroup</intent>
+            	<direction>objectToSubject</direction>
+            	<associationAttribute>ri:uniqueMember</associationAttribute>
+            	<valueAttribute>ri:dn</valueAttribute>
+            </association>
         </objectType>
         
         <objectType>

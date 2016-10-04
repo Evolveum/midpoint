@@ -598,8 +598,8 @@ public class Construction<F extends FocusType> implements DebugDumpable, Seriali
 				throw new SchemaException("No outbound section in definition of association " + assocName
 						+ " in construction in " + source);
 			}
-			Mapping<PrismContainerValue<ShadowAssociationType>, PrismContainerDefinition<ShadowAssociationType>> assocMapping = evaluateAssociation(
-					associationDefinitionType, task, result);
+			Mapping<PrismContainerValue<ShadowAssociationType>, PrismContainerDefinition<ShadowAssociationType>> assocMapping = 
+					evaluateAssociation(associationDefinitionType, task, result);
 			if (assocMapping != null) {
 				associationMappings.add(assocMapping);
 			}

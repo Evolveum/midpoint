@@ -24,6 +24,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.common.ActivationComputer;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.api.context.EvaluatedAssignment;
+import com.evolveum.midpoint.model.common.SystemObjectCache;
 import com.evolveum.midpoint.model.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.model.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.model.common.expression.ItemDeltaItem;
@@ -94,6 +95,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 	private LensContext<F> lensContext;
 	private String channel;
 	private ObjectResolver objectResolver;
+	private SystemObjectCache systemObjectCache;
 	private PrismContext prismContext;
 	private MappingFactory mappingFactory;
 	private ActivationComputer activationComputer;
@@ -140,6 +142,14 @@ public class AssignmentEvaluator<F extends FocusType> {
 
 	public void setObjectResolver(ObjectResolver objectResolver) {
 		this.objectResolver = objectResolver;
+	}
+
+	public SystemObjectCache getSystemObjectCache() {
+		return systemObjectCache;
+	}
+
+	public void setSystemObjectCache(SystemObjectCache systemObjectCache) {
+		this.systemObjectCache = systemObjectCache;
 	}
 
 	public PrismContext getPrismContext() {
@@ -458,25 +468,27 @@ public class AssignmentEvaluator<F extends FocusType> {
 		ModelExpressionThreadLocalHolder.pushCurrentResult(result);
 		ModelExpressionThreadLocalHolder.pushCurrentTask(task);
 		try {
-		ExpressionVariables variables = Utils.getDefaultExpressionVariables(source, null, null, LensUtil.getSystemConfigurationReadOnly(lensContext, repository, result).asObjectable());
-		variables.addVariableDefinition(ExpressionConstants.VAR_SOURCE, assignmentPathSegment.getOrderOneObject());
-		Utils.addAssignmentPathVariables(LensUtil.computeAssignmentPathVariables(assignmentPath), variables);
-
-		ObjectFilter origFilter = QueryConvertor.parseFilter(filter, clazz, prismContext);
-		ObjectFilter evaluatedFilter = ExpressionUtil.evaluateFilterExpressions(origFilter, variables, getMappingFactory().getExpressionFactory(), prismContext, " evaluating resource filter expression ", task, result);
-		
-		if (evaluatedFilter == null){
-			throw new SchemaException("The OID is null and filter could not be evaluated in assignment targetRef in "+source);
-		}
-		
-		
-        SearchResultList<PrismObject<O>> targets = repository.searchObjects(clazz, ObjectQuery.createObjectQuery(evaluatedFilter), null, result);
-        
-        if (org.apache.commons.collections.CollectionUtils.isEmpty(targets)){
-        	throw new IllegalArgumentException("Got null target from repository, filter:"+evaluatedFilter+", class:"+clazz+" (should not happen, probably a bug) in "+sourceDescription);
-        }
-        
-        return targets;
+			
+			PrismObject<SystemConfigurationType> systemConfiguration = systemObjectCache.getSystemConfiguration(result);
+			ExpressionVariables variables = Utils.getDefaultExpressionVariables(source, null, null, systemConfiguration.asObjectable());
+			variables.addVariableDefinition(ExpressionConstants.VAR_SOURCE, assignmentPathSegment.getOrderOneObject());
+			Utils.addAssignmentPathVariables(LensUtil.computeAssignmentPathVariables(assignmentPath), variables);
+	
+			ObjectFilter origFilter = QueryConvertor.parseFilter(filter, clazz, prismContext);
+			ObjectFilter evaluatedFilter = ExpressionUtil.evaluateFilterExpressions(origFilter, variables, getMappingFactory().getExpressionFactory(), prismContext, " evaluating resource filter expression ", task, result);
+			
+			if (evaluatedFilter == null){
+				throw new SchemaException("The OID is null and filter could not be evaluated in assignment targetRef in "+source);
+			}
+			
+			
+	        SearchResultList<PrismObject<O>> targets = repository.searchObjects(clazz, ObjectQuery.createObjectQuery(evaluatedFilter), null, result);
+	        
+	        if (org.apache.commons.collections.CollectionUtils.isEmpty(targets)){
+	        	throw new IllegalArgumentException("Got null target from repository, filter:"+evaluatedFilter+", class:"+clazz+" (should not happen, probably a bug) in "+sourceDescription);
+	        }
+	        
+	        return targets;
         
 		} finally {
 			ModelExpressionThreadLocalHolder.popLensContext();

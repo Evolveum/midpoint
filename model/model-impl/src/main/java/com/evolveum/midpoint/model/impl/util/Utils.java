@@ -544,52 +544,6 @@ public final class Utils {
 		}
 		return synchronizationPolicy.toString();
 	}
-
-	private static PrismObject<SystemConfigurationType> cachedSystemConfiguration = null;
-	private static long cachedSystemConfigurationRetrieveTimestamp = 0;
-	private static final long CACHED_SYSTEM_CONFIGURATION_TTL = 120000L;		// just to avoid stalled data if version is not incremented for any reason
-
-	private static final String NO_SYSTEM_CONFIG_MSG = "System configuration object was not found (should not happen in production except for initial repository loading)";
-	public static PrismObject<SystemConfigurationType> getSystemConfigurationReadOnly(RepositoryService repositoryService, OperationResult result) throws SchemaException {
-		PrismObject<SystemConfigurationType> systemConfiguration = null;
-		if (cachedSystemConfiguration != null && cachedSystemConfigurationRetrieveTimestamp + CACHED_SYSTEM_CONFIGURATION_TTL >= System.currentTimeMillis()) {
-			String currentVersion;
-			try {
-				currentVersion = repositoryService.getVersion(SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(), result);
-			} catch (ObjectNotFoundException e) {
-				// see below
-				LOGGER.warn(NO_SYSTEM_CONFIG_MSG);
-				return null;
-			}
-			if (currentVersion != null && currentVersion.equals(cachedSystemConfiguration.getVersion())) {
-				LOGGER.trace("Using cached system configuration object; version = {}", currentVersion);
-				return cachedSystemConfiguration;
-			}
-		}
-		try {
-			LOGGER.trace("Cache miss: reading system configuration from the repository");
-			GetOperationOptions option = GetOperationOptions.createAllowNotFound();
-			option.setReadOnly(true);
-			systemConfiguration = repositoryService.getObject(SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(),
-					SelectorOptions.createCollection(option), result);
-		} catch (ObjectNotFoundException e) {
-			// just go on ... we will return and continue
-			// This is needed e.g. to set up new system configuration is the old one gets deleted
-		}
-		if (systemConfiguration == null) {
-		    // throw new SystemException("System configuration object is null (should not happen!)");
-		    // This should not happen, but it happens in tests. And it is a convenient short cut. Tolerate it for now.
-		    LOGGER.warn(NO_SYSTEM_CONFIG_MSG);
-		    return null;
-		}
-		cachedSystemConfiguration = systemConfiguration;
-		cachedSystemConfigurationRetrieveTimestamp = System.currentTimeMillis();
-		return systemConfiguration;
-	}
-
-	public static void clearSystemConfigurationCache() {
-		cachedSystemConfiguration = null;
-	}
 	
 	public static PrismReferenceValue determineAuditTargetDeltaOps(Collection<ObjectDeltaOperation<? extends ObjectType>> deltaOps) {
 		if (deltaOps == null || deltaOps.isEmpty()) {

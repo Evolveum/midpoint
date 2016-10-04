@@ -167,6 +167,12 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 				// do we want to update something?
 			}
 		};
+        selected.add(new VisibleEnableBehaviour(){
+            @Override
+        public boolean isVisible(){
+                return !getModel().getObject().isSimpleView();
+            }
+        });
 		headerRow.add(selected);
 
 		WebMarkupContainer typeImage = new WebMarkupContainer(ID_TYPE_IMAGE);
@@ -233,6 +239,12 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 				return !AssignmentEditorPanel.this.getModelObject().isMinimized();
 			}
 		};
+        expandButton.add(new VisibleEnableBehaviour(){
+            @Override
+            public boolean isVisible(){
+                return !getModel().getObject().isSimpleView();
+            }
+        });
 		headerRow.add(expandButton);
 
 		WebMarkupContainer body = new WebMarkupContainer(ID_BODY);

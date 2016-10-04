@@ -21,6 +21,7 @@ import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.context.ModelElementContext;
+import com.evolveum.midpoint.model.common.SystemObjectCache;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.prism.*;
@@ -258,12 +259,13 @@ public class MiscDataUtil {
         }
     }
 
-    public boolean isAuthorizedToSubmit(WorkItemType workItem) {
+    public boolean isAuthorizedToSubmit(WorkItemType workItem, SystemObjectCache systemObjectCache, OperationResult result) {
         return isAuthorizedToSubmit(workItem.getWorkItemId(),
-                workItem.getAssigneeRef() != null ? workItem.getAssigneeRef().getOid() : null);
+                workItem.getAssigneeRef() != null ? workItem.getAssigneeRef().getOid() : null,
+                		systemObjectCache, result);
     }
 
-    public boolean isAuthorizedToSubmit(String taskId, String assigneeOid) {
+    public boolean isAuthorizedToSubmit(String taskId, String assigneeOid, SystemObjectCache systemObjectCache, OperationResult result) {
         MidPointPrincipal principal;
 		try {
 			principal = securityEnforcer.getPrincipal();
@@ -281,7 +283,7 @@ public class MiscDataUtil {
         }
         // 2) is the current user allowed to approve any item?
         try {
-			WfConfigurationType wfConfig = SystemConfigurationHolder.getWorkflowConfiguration();
+			WfConfigurationType wfConfig = getWorkflowConfiguration(systemObjectCache, result);
 			boolean allowedOthersItemsApproval = wfConfig != null && wfConfig.isAllowCompleteOthersItems() != null ? wfConfig.isAllowCompleteOthersItems() : true;
 			if (allowedOthersItemsApproval
 					&& securityEnforcer.isAuthorized(ModelAuthorizationAction.COMPLETE_ALL_WORK_ITEMS.getUrl(), null, null, null, null, null)) {
@@ -292,6 +294,14 @@ public class MiscDataUtil {
 		}
         // 3) is the current user in one of candidate users or groups?
         return isAmongCandidates(principal, taskId);
+    }
+    
+    public WfConfigurationType getWorkflowConfiguration(SystemObjectCache systemObjectCache, OperationResult result) throws SchemaException {
+    	PrismObject<SystemConfigurationType> systemConfiguration = systemObjectCache.getSystemConfiguration(result);
+    	if (systemConfiguration == null) {
+    		return null;
+    	}
+    	return systemConfiguration.asObjectable().getWorkflowConfiguration();
     }
 
     // principal != null, principal.getOid() != null, principal.getUser() != null

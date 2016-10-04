@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,6 +40,7 @@ import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.api.context.EvaluatedAssignment;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
+import com.evolveum.midpoint.model.common.SystemObjectCache;
 import com.evolveum.midpoint.model.common.expression.ItemDeltaItem;
 import com.evolveum.midpoint.model.common.expression.ObjectDeltaObject;
 import com.evolveum.midpoint.model.common.mapping.Mapping;
@@ -141,29 +142,32 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 @Component
 public class AssignmentProcessor {
 
-    @Autowired
+    @Autowired(required = true)
     @Qualifier("cacheRepositoryService")
     private RepositoryService repositoryService;
 
-    @Autowired
+    @Autowired(required = true)
     private ObjectResolver objectResolver;
+    
+    @Autowired(required = true)
+	private SystemObjectCache systemObjectCache;
 
-    @Autowired
+    @Autowired(required = true)
     private PrismContext prismContext;
 
-    @Autowired
+    @Autowired(required = true)
     private MappingFactory mappingFactory;
     
-    @Autowired
+    @Autowired(required = true)
     private MappingEvaluator mappingEvaluator;
     
-    @Autowired
+    @Autowired(required = true)
     private ProvisioningService provisioningService;
     
-    @Autowired
+    @Autowired(required = true)
 	private ActivationComputer activationComputer;
     
-    @Autowired
+    @Autowired(required = true)
     private ObjectTemplateProcessor objectTemplateProcessor;
 
     private static final Trace LOGGER = TraceManager.getTrace(AssignmentProcessor.class);
@@ -275,6 +279,7 @@ public class AssignmentProcessor {
         assignmentEvaluator.setLensContext(context);
         assignmentEvaluator.setChannel(context.getChannel());
         assignmentEvaluator.setObjectResolver(objectResolver);
+        assignmentEvaluator.setSystemObjectCache(systemObjectCache);
         assignmentEvaluator.setPrismContext(prismContext);
         assignmentEvaluator.setMappingFactory(mappingFactory);
         assignmentEvaluator.setMappingEvaluator(mappingEvaluator);

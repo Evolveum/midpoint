@@ -39,6 +39,14 @@ sub parse {
       my $halfline = $';
       processHalfline($halfline,\%logdata);
     }
+    if ($line =~ /^(\S+)\s+(\S+)\s+(\w+):/) {
+      my %logdata = ();
+      $logdata{date} = $1;
+      $logdata{time} = $2;
+      $logdata{level} = $3;
+      my $halfline = $';
+      processHalfline($halfline,\%logdata);
+    }
     if ($line =~ /^(\S+)\s+(\S+)\s+\[([^]]+)\]\s+\[([^]]+)\]\s+(\w+)/) {
       my %logdata = ();
       $logdata{date} = $1;
@@ -66,8 +74,8 @@ sub processHalfline {
     $op->{op} = $2;
     if ($logdata->{subsystem}) {
       $op->{subsystem} = $logdata->{subsystem};
-    } elsif ($op->{op} =~ /com\.evolveum\.midpoint\.(\w+)\./) {
-      $op->{subsystem} = $packageToSubsystem{$1};
+    } else {
+      $op->{subsystem} = packageToSubsystem($op->{op});
     }
     $ops{$opkey} = $op;
     push @{$threads{$thread}},$op;
@@ -100,6 +108,17 @@ sub processHalfline {
   
 }
 
+sub packageToSubsystem {
+  my ($op) = @_;
+  
+  foreach my $key (keys %packageToSubsystem) {
+    if ($op =~ $key) {
+      return $packageToSubsystem{$key};
+    }
+  }
+  return undef;
+}
+
 sub count {
   my ($op,$parentop) = @_;
   
@@ -128,7 +147,7 @@ sub count {
 
 sub displayIndividualTimes {
   foreach my $op (sort { $a->{etime} <=> $b->{etime} } values %ops) {
-    printf "%40s(%4s): total: %-15f own: %-15f\n",$op->{op},$op->{key},$op->{etime},$op->{ownTime};
+    printf "%40s(%4s): total: %-15f own: %-15f : ",$op->{op},$op->{key},$op->{etime},$op->{ownTime};
 #    print $op->{etime}.": ".$op->{key}." ".$op->{op}."\n";
     foreach my $args (@{$op->{args}}) {
       print "  ".$args."\n";
