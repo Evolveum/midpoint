@@ -81,9 +81,9 @@ public class MapXNode extends XNode implements Map<QName,XNode>, Serializable {
     }
 
 	public XNode put(QName key, XNode value) {
-		removeEntry(key);
+		XNode previous = removeEntry(key);
 		subnodes.add(new Entry(key, value));
-		return value;
+		return previous;
 	}
 
 	public Entry putReturningEntry(QName key, XNode value) {
@@ -362,14 +362,15 @@ public class MapXNode extends XNode implements Map<QName,XNode>, Serializable {
 		}
 	}
 
-	public void replace(QName key, XNode value) {
+	public XNode replace(QName key, XNode value) {
 		for (Entry entry : subnodes) {
 			if (entry.getKey().equals(key)) {
+				XNode previous = entry.getValue();
 				entry.setValue(value);
-				return;
+				return previous;
 			}
 		}
-		put(key, value);
+		return put(key, value);
 	}
 
 	private class Entry implements Map.Entry<QName, XNode>, Serializable {
