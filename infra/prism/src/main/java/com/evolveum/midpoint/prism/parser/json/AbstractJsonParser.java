@@ -104,7 +104,11 @@ public abstract class AbstractJsonParser implements Parser {
 	class JsonParsingContext {
 		@NotNull final JsonParser parser;
 		@NotNull final ParsingContext prismParsingContext;
+		// Definitions of namespaces ('@ns') within maps; to be applied after parsing.
 		@NotNull final IdentityHashMap<MapXNode, String> defaultNamespaces = new IdentityHashMap<>();
+		// Entries that should be skipped when filling-in default namespaces - those that are explicitly set with no-NS ('#name').
+		// (Values for these entries are not important. Only key presence is relevant.)
+		@NotNull final IdentityHashMap<Entry<QName,XNode>, Object> noNamespaceEntries = new IdentityHashMap<>();
 		JsonParsingContext(@NotNull JsonParser parser, @NotNull ParsingContext prismParsingContext) {
 			this.parser = parser;
 			this.prismParsingContext = prismParsingContext;
@@ -149,7 +153,9 @@ public abstract class AbstractJsonParser implements Parser {
 			for (Entry<QName, XNode> entry : map.entrySet()) {
 				QName fieldName = entry.getKey();
 				XNode subnode = entry.getValue();
-				if (StringUtils.isNotEmpty(currentDefault) && StringUtils.isEmpty(fieldName.getNamespaceURI())) {
+				if (StringUtils.isNotEmpty(currentDefault)
+						&& StringUtils.isEmpty(fieldName.getNamespaceURI())
+						&& !ctx.noNamespaceEntries.containsKey(entry)) {
 					map.qualifyKey(fieldName, currentDefault);
 				}
 				processDefaultNamespaces(subnode, currentDefault, ctx);
@@ -229,14 +235,13 @@ public abstract class AbstractJsonParser implements Parser {
 
 		Object tid = ctx.parser.getTypeId();
 		if (tid != null) {
-//			System.out.println("tid for object = '" + tid + "' for " + ctx.parser.getText());
 			typeName = tagToTypeName(tid, ctx);
 		}
 
 		final MapXNode map = new MapXNode();
 		PrimitiveXNode<?> primitiveValue = null;
 		boolean defaultNamespaceDefined = false;
-		QName currentFieldName = null;
+		QNameUtil.QNameInfo currentFieldNameInfo = null;
 		for (;;) {
 			JsonToken token = ctx.parser.nextToken();
 			if (token == null) {
@@ -246,33 +251,33 @@ public abstract class AbstractJsonParser implements Parser {
 				break;
 			} else if (token == JsonToken.FIELD_NAME) {
 				String newFieldName = ctx.parser.getCurrentName();
-				if (currentFieldName != null) {
-					ctx.prismParsingContext.warnOrThrow(LOGGER, "Two field names in succession: " + currentFieldName + " and " + newFieldName);
+				if (currentFieldNameInfo != null) {
+					ctx.prismParsingContext.warnOrThrow(LOGGER, "Two field names in succession: " + currentFieldNameInfo + " and " + newFieldName);
 				}
-				currentFieldName = QNameUtil.uriToQName(newFieldName, true);
+				currentFieldNameInfo = QNameUtil.uriToQNameInfo(newFieldName, true);
 			} else {
 				XNode valueXNode = parseValue(ctx);
-				if (isSpecial(currentFieldName)) {
+				if (isSpecial(currentFieldNameInfo.name)) {
 					String stringValue;
 					if (!(valueXNode instanceof PrimitiveXNode)) {
-						ctx.prismParsingContext.warnOrThrow(LOGGER, "Value of '" + currentFieldName + "' attribute must be a primitive one. It is " + valueXNode + " instead. At " + getPositionSuffix(ctx));
+						ctx.prismParsingContext.warnOrThrow(LOGGER, "Value of '" + currentFieldNameInfo + "' attribute must be a primitive one. It is " + valueXNode + " instead. At " + getPositionSuffix(ctx));
 						stringValue = "";
 					} else {
 						stringValue = ((PrimitiveXNode<?>) valueXNode).getStringValue();
 					}
 
-					if (isNamespaceDeclaration(currentFieldName)) {
+					if (isNamespaceDeclaration(currentFieldNameInfo.name)) {
 						if (defaultNamespaceDefined) {
 							ctx.prismParsingContext.warnOrThrow(LOGGER, "Default namespace defined more than once at " + getPositionSuffix(ctx));
 						}
 						ctx.defaultNamespaces.put(map, stringValue);
 						defaultNamespaceDefined = true;
-					} else if (isTypeDeclaration(currentFieldName)) {
+					} else if (isTypeDeclaration(currentFieldNameInfo.name)) {
 						if (typeName != null) {
 							ctx.prismParsingContext.warnOrThrow(LOGGER, "Value type defined more than once at " + getPositionSuffix(ctx));
 						}
 						typeName = QNameUtil.uriToQName(stringValue, true);
-					} else if (isValue(currentFieldName)) {
+					} else if (isValue(currentFieldNameInfo.name)) {
 						if (primitiveValue != null) {
 							ctx.prismParsingContext.warnOrThrow(LOGGER, "Primitive value ('" + PROP_VALUE + "') defined more than once at " + getPositionSuffix(ctx));
 						}
@@ -281,9 +286,12 @@ public abstract class AbstractJsonParser implements Parser {
 						}
 					}
 				} else {
-					map.put(currentFieldName, valueXNode);
+					Map.Entry<QName, XNode> entry = map.putReturningEntry(currentFieldNameInfo.name, valueXNode);
+					if (currentFieldNameInfo.explicitEmptyNamespace) {
+						ctx.noNamespaceEntries.put(entry, null);
+					}
 				}
-				currentFieldName = null;
+				currentFieldNameInfo = null;
 			}
 		}
 		// Return either map or primitive value (in case of @type/@value)
@@ -347,7 +355,6 @@ public abstract class AbstractJsonParser implements Parser {
 
 		Object tid = ctx.parser.getTypeId();
 		if (tid != null) {
-//			System.out.println("tid = '" + tid + "' for " + ctx.parser.getText());
 			QName typeName = tagToTypeName(tid, ctx);
 			primitive.setTypeQName(typeName);
 			primitive.setExplicitTypeDeclaration(true);
@@ -479,17 +486,72 @@ public abstract class AbstractJsonParser implements Parser {
 		if (explicitType != null) {
 			writeExplicitType(explicitType, ctx.generator);
 		}
+		String oldDefaultNamespace = ctx.currentNamespace;
+		generateNsDeclarationIfNeeded(map, ctx);
 		for (Entry<QName,XNode> entry : map.entrySet()) {
-			ctx.generator.writeFieldName(createKeyUri(entry.getKey(), ctx));
+			ctx.generator.writeFieldName(createKeyUri(entry, ctx));
 			serialize(entry.getValue(), ctx);
 		}
 		ctx.generator.writeEndObject();
+		ctx.currentNamespace = oldDefaultNamespace;
 	}
 
-	private String createKeyUri(QName key, JsonSerializationContext ctx) {
-		final SerializationOptions opts = ctx.prismSerializationContext.getOptions();
-		if (SerializationOptions.isFullItemNameUris(opts)) {
-			return QNameUtil.qNameToUri(key, false);
+	private void generateNsDeclarationIfNeeded(MapXNode map, JsonSerializationContext ctx) throws IOException {
+		SerializationOptions opts = ctx.prismSerializationContext.getOptions();
+		if (!SerializationOptions.isUseNsProperty(opts) || map.isEmpty()) {
+			return;
+		}
+		String namespace = determineNewCurrentNamespace(map, ctx);
+		if (namespace != null && !StringUtils.equals(namespace, ctx.currentNamespace)) {
+			ctx.currentNamespace = namespace;
+			ctx.generator.writeFieldName(PROP_NAMESPACE);
+			ctx.generator.writeString(namespace);
+		}
+	}
+
+	private String determineNewCurrentNamespace(MapXNode map, JsonSerializationContext ctx) {
+		Map<String,Integer> counts = new HashMap<>();
+		for (QName childName : map.keySet()) {
+			String childNs = childName.getNamespaceURI();
+			if (StringUtils.isEmpty(childNs)) {
+				continue;
+			}
+			if (childNs.equals(ctx.currentNamespace)) {
+				return ctx.currentNamespace;					// found existing => continue with it
+			}
+			Integer c = counts.get(childNs);
+			counts.put(childNs, c != null ? c+1 : 1);
+		}
+		// otherwise, take the URI that occurs the most in the map
+		Entry<String,Integer> max = null;
+		for (Entry<String,Integer> count : counts.entrySet()) {
+			if (max == null || count.getValue() > max.getValue()) {
+				max = count;
+			}
+		}
+		return max != null ? max.getKey() : null;
+	}
+
+	private String createKeyUri(Entry<QName,XNode> entry, JsonSerializationContext ctx) {
+		QName key = entry.getKey();
+		if (namespaceMatch(ctx.currentNamespace, key.getNamespaceURI())) {
+			return key.getLocalPart();
+		} else if (StringUtils.isNotEmpty(ctx.currentNamespace) && !isAttribute(entry.getValue())) {
+			return QNameUtil.qNameToUri(key, true);		// items with no namespace should be written as such (starting with '#')
+		} else {
+			return QNameUtil.qNameToUri(key, false);	// items with no namespace can be written in plain
+		}
+	}
+
+	private boolean isAttribute(XNode node) {
+		return node instanceof PrimitiveXNode && ((PrimitiveXNode) node).isAttribute();
+	}
+
+	private boolean namespaceMatch(String currentNamespace, String itemNamespace) {
+		if (StringUtils.isEmpty(currentNamespace)) {
+			return StringUtils.isEmpty(itemNamespace);
+		} else {
+			return currentNamespace.equals(itemNamespace);
 		}
 	}
 

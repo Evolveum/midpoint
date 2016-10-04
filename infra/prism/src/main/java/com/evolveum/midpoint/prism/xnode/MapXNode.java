@@ -86,6 +86,13 @@ public class MapXNode extends XNode implements Map<QName,XNode>, Serializable {
 		return value;
 	}
 
+	public Entry putReturningEntry(QName key, XNode value) {
+		removeEntry(key);
+		Entry e = new Entry(key, value);
+		subnodes.add(e);
+		return e;
+	}
+
 	public XNode remove(Object key) {
 		if (!(key instanceof QName)) {
 			throw new IllegalArgumentException("Key must be QName, but it is "+key);
@@ -354,7 +361,17 @@ public class MapXNode extends XNode implements Map<QName,XNode>, Serializable {
 			}
 		}
 	}
-	
+
+	public void replace(QName key, XNode value) {
+		for (Entry entry : subnodes) {
+			if (entry.getKey().equals(key)) {
+				entry.setValue(value);
+				return;
+			}
+		}
+		put(key, value);
+	}
+
 	private class Entry implements Map.Entry<QName, XNode>, Serializable {
 
 		private QName key;
