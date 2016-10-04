@@ -14,29 +14,17 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.schema;
+package com.evolveum.midpoint.schema.parser.resource;
 
-import com.evolveum.midpoint.prism.PrismContext;
-
-public class TestParseUserYaml extends TestParseUser {
+public class TestParseResourceXmlNoNs extends TestParseResourceXml {
 
 	@Override
 	protected String getSubdirName() {
-		return "yaml/ns";
-	}
-
-	@Override
-	protected String getLanguage() {
-		return PrismContext.LANG_YAML;
-	}
-
-	@Override
-	protected String getFilenameSuffix() {
-		return "yaml";
+		return "xml/no-ns";
 	}
 
 	@Override
 	protected boolean hasNamespaces() {
-		return true;
+		return false;
 	}
 }

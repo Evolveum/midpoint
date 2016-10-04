@@ -530,7 +530,8 @@ public class TestJaxbConstruction {
 	private MapXNode createFilter(){
 
         MapXNode filter = new MapXNode();
-        MapXNode equalsElement = (MapXNode) filter.put(new QName(SchemaConstantsGenerated.NS_QUERY, "equal"), new MapXNode());
+        MapXNode equalsElement = new MapXNode();
+		filter.put(new QName(SchemaConstantsGenerated.NS_QUERY, "equal"), equalsElement);
 
         PrimitiveXNode<ItemPathType> pathElement = new PrimitiveXNode<>(new ItemPathType(new ItemPath(new QName("name"))));
         equalsElement.put(new QName(SchemaConstantsGenerated.NS_QUERY, "path"), pathElement);

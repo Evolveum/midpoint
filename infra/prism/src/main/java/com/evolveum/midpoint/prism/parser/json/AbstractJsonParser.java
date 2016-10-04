@@ -202,7 +202,7 @@ public abstract class AbstractJsonParser implements Parser {
 		}
 	}
 
-	@Nullable	// TODO: ok?
+	@NotNull
 	private XNode parseValue(JsonParsingContext ctx) throws IOException, SchemaException {
 		Validate.notNull(ctx.parser.currentToken());
 
@@ -218,7 +218,7 @@ public abstract class AbstractJsonParser implements Parser {
 			case VALUE_NUMBER_INT:
 				return parseToPrimitive(ctx);
 			case VALUE_NULL:
-				return null;		// TODO...
+				return parseToEmptyPrimitive();
 			default:
 				throw new SchemaException("Unexpected current token: " + ctx.parser.currentToken());
 		}
@@ -371,6 +371,12 @@ public abstract class AbstractJsonParser implements Parser {
 		return primitive;
 	}
 
+	private <T> PrimitiveXNode<T> parseToEmptyPrimitive() throws IOException, SchemaException {
+		PrimitiveXNode<T> primitive = new PrimitiveXNode<T>();
+		primitive.setValueParser(new JsonNullValueParser<T>());
+		return primitive;
+	}
+
 	// TODO remove if not needed
 	private QName getCurrentTypeName(JsonParsingContext ctx) throws IOException, SchemaException {
 		switch (ctx.parser.currentToken()) {
@@ -489,6 +495,9 @@ public abstract class AbstractJsonParser implements Parser {
 		String oldDefaultNamespace = ctx.currentNamespace;
 		generateNsDeclarationIfNeeded(map, ctx);
 		for (Entry<QName,XNode> entry : map.entrySet()) {
+			if (entry.getValue() == null) {
+				continue;
+			}
 			ctx.generator.writeFieldName(createKeyUri(entry, ctx));
 			serialize(entry.getValue(), ctx);
 		}

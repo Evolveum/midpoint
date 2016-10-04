@@ -393,7 +393,7 @@ public class PrismBeanConverter {
 			}
 			
 			//check for subclasses???
-			if (!storeAsRawType && xsubnode.getTypeQName() != null) {
+			if (!storeAsRawType && xsubnode != null && xsubnode.getTypeQName() != null) {
 				Class explicitParamType = getSchemaRegistry().determineCompileTimeClass(xsubnode.getTypeQName());
 				if (explicitParamType == null){
 					explicitParamType = XsdTypeMapper.toJavaTypeIfKnown(xsubnode.getTypeQName());
@@ -650,7 +650,9 @@ public class PrismBeanConverter {
 	private Object convertSinglePropValue(XNode xsubnode, String fieldName, Class paramType, boolean storeAsRawType,
 			Class classType, String schemaNamespace, ParsingContext pc) throws SchemaException {
 		Object propValue;
-		if (paramType.equals(XNode.class)) {
+		if (xsubnode == null) {
+			return null;
+		} else if (paramType.equals(XNode.class)) {
 			propValue = xsubnode;
 		} else if (storeAsRawType || paramType.equals(RawType.class)) {
             propValue = new RawType(xsubnode, prismContext);

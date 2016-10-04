@@ -14,29 +14,17 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.schema;
+package com.evolveum.midpoint.schema.parser.resource;
 
-import com.evolveum.midpoint.prism.ParsingContext;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.parser.dom.DomParser;
-import com.evolveum.midpoint.prism.util.PrismTestUtil;
-import com.evolveum.midpoint.prism.xnode.XNode;
-import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import org.testng.annotations.Test;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-
-public class TestParseResourceXmlNs extends TestParseResourceXml {
+public class TestParseResourceYamlNoNs extends TestParseResourceYaml {
 
 	@Override
 	protected String getSubdirName() {
-		return "xml/ns";
+		return "yaml/no-ns";
 	}
 
 	@Override
 	protected boolean hasNamespaces() {
-		return true;
+		return false;
 	}
 }

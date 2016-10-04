@@ -14,25 +14,25 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.schema;
+package com.evolveum.midpoint.schema.parser.user;
 
 import com.evolveum.midpoint.prism.PrismContext;
 
-public class TestParseUserJsonNoNs extends TestParseUser {
+public class TestParseUserXmlNoNs extends TestParseUser {
 
 	@Override
 	protected String getSubdirName() {
-		return "json/no-ns";
+		return "xml/no-ns";
 	}
 
 	@Override
 	protected String getLanguage() {
-		return PrismContext.LANG_JSON;
+		return PrismContext.LANG_XML;
 	}
 
 	@Override
 	protected String getFilenameSuffix() {
-		return "json";
+		return "xml";
 	}
 
 	@Override

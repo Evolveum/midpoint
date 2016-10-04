@@ -362,7 +362,7 @@ public class TestResourceSchema {
 	public void testParseResource() throws Exception {
 		System.out.println("===[ testParseResource ]===");
 		// WHEN
-		PrismObject<ResourceType> resource = PrismTestUtil.parseObject(new File("src/test/resources/common/resource-opendj.xml"));
+		PrismObject<ResourceType> resource = PrismTestUtil.parseObject(new File("src/test/resources/common/xml/ns/resource-opendj.xml"));
 		
 		// THEN
 		assertCapabilities(resource.asObjectable());
@@ -372,7 +372,7 @@ public class TestResourceSchema {
 	public void testUnmarshallResource() throws Exception {
 		System.out.println("===[ testUnmarshallResource ]===");
 		// WHEN
-		ResourceType resourceType = (ResourceType) PrismTestUtil.parseObject(new File("src/test/resources/common/resource-opendj.xml")).asObjectable();
+		ResourceType resourceType = (ResourceType) PrismTestUtil.parseObject(new File("src/test/resources/common/xml/ns/resource-opendj.xml")).asObjectable();
 		
 		// THEN
 		assertCapabilities(resourceType);

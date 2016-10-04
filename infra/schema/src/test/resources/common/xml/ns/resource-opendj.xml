@@ -80,8 +80,7 @@
             <icfcldap:baseContexts>dc=example,dc=com</icfcldap:baseContexts>
             <icfcldap:principal>cn=directory manager</icfcldap:principal>
             <icfcldap:credentials>
-                <clearValue>secret</clearValue>
-
+                <t:clearValue>secret</t:clearValue>
             </icfcldap:credentials>
             <icfcldap:vlvSortAttribute>uid</icfcldap:vlvSortAttribute>
             <icfcldap:accountOperationalAttributes>ds-pwp-account-disabled</icfcldap:accountOperationalAttributes>
