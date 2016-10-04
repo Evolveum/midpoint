@@ -17,18 +17,22 @@
       xmlns:wicket="http://wicket.apache.org">
 <body>
 <wicket:panel>
-    <div class="row">
-        <form class="form-inline search-form pull-right" wicket:id="searchForm">
+    <div wicket:id="headerPanel" class="box-header">
+        <form class="form-inline search-form pull-left" wicket:id="searchForm">
             <div wicket:id="search"/>
         </form>
+        <a wicket:id="cartButton" class="col-md-1 pull-right" style="font-size: 24px">
+            <i class="fa fa-shopping-cart" style="width: 50%;"></i>
+            <span wicket:id="itemsCount" class="badge bg-red" style="font-size: 10px; position: absolute; top: -1px; right: 50%;"></span>
+        </a>
     </div>
-    <div class="row" wicket:id="multiButtonTable"/>
-    <div class="box-footer" wicket:id="footer"/>
+    <div class="row" wicket:id="multiButtonTable" style="min-height: 460px; margin-left: 15px;"/>
+    <div wicket:id="footer"/>
 </wicket:panel>
 
 <wicket:fragment wicket:id="pagingFooter">
     <div class="boxed-table-footer">
-        <div class="boxed-table-footer-paging" wicket:id="footerContainer">
+        <div class="boxed-table-footer-paging-center" align="center" wicket:id="footerContainer">
             <div class="dataTables_info" wicket:id="count"/>
             <div class="paging_bootstrap" wicket:id="paging" />
         </div>

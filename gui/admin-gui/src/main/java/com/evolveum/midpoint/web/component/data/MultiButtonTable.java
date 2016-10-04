@@ -4,6 +4,7 @@ import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.web.component.assignment.*;
 import com.evolveum.midpoint.web.page.self.PageAssignmentDetails;
 import com.evolveum.midpoint.web.session.UsersStorage;
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
@@ -106,6 +107,7 @@ public class MultiButtonTable extends BasePanel<List<AssignmentEditorDto>> {
                 }
             }
         };
+//        assignmentButton.add(new AttributeModifier("class", "col-md-4"));
         Label plusLabel = new Label(ID_BUTTON_PLUS_ICON, "+");
 //        plusLabel.add(new AttributeAppender("title", getPageBase().createStringResource("MultiButtonPanel.plusIconTitle")));
         plusLabel.add(new AjaxEventBehavior("click") {
@@ -158,7 +160,7 @@ public class MultiButtonTable extends BasePanel<List<AssignmentEditorDto>> {
         List<AssignmentEditorDto> assignmentsToAdd = storage.getAssignmentShoppingCart();
         assignmentsToAdd.add(assignment);
         storage.setAssignmentShoppingCart(assignmentsToAdd);
-        AssignmentCatalogPanel parent = (AssignmentCatalogPanel)MultiButtonTable.this.getParent().getParent();
+        CatalogItemsPanel parent = MultiButtonTable.this.findParent(CatalogItemsPanel.class);
         parent.reloadCartButton(target);
 
     }

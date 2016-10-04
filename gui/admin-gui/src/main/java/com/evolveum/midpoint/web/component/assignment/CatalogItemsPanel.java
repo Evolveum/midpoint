@@ -6,11 +6,14 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.*;
+import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.data.*;
 import com.evolveum.midpoint.web.component.search.Search;
 import com.evolveum.midpoint.web.component.search.SearchFactory;
 import com.evolveum.midpoint.web.component.search.SearchPanel;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
+import com.evolveum.midpoint.web.session.SessionStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.wicket.Component;
@@ -43,6 +46,9 @@ public class CatalogItemsPanel extends BasePanel<String> implements IPageableIte
     private static final String ID_FOOTER_CONTAINER = "footerContainer";
     private static final String ID_BUTTON_TOOLBAR = "buttonToolbar";
     private static final String ID_FOOTER = "footer";
+    private static final String ID_CART_BUTTON = "cartButton";
+    private static String ID_CART_ITEMS_COUNT = "itemsCount";
+    private static final String ID_HEADER_PANEL = "headerPanel";
 
     private IModel<Search> searchModel;
     private ObjectDataProvider<AssignmentEditorDto, AbstractRoleType> provider;
@@ -70,7 +76,13 @@ public class CatalogItemsPanel extends BasePanel<String> implements IPageableIte
     private void initLayout() {
         setOutputMarkupId(true);
 
-        initSearchPanel();
+        WebMarkupContainer headerPanel = new WebMarkupContainer(ID_HEADER_PANEL);
+        headerPanel.setOutputMarkupId(true);
+        add(headerPanel);
+
+        initCartButton(headerPanel);
+        initSearchPanel(headerPanel);
+
         MultiButtonTable assignmentsTable = new MultiButtonTable(ID_MULTI_BUTTON_TABLE, ITEMS_PER_ROW, itemsListModel);
         assignmentsTable.setOutputMarkupId(true);
         add(assignmentsTable);
@@ -138,9 +150,9 @@ public class CatalogItemsPanel extends BasePanel<String> implements IPageableIte
         };
     }
 
-    private void initSearchPanel() {
+    private void initSearchPanel(WebMarkupContainer headerPanel) {
         final Form searchForm = new Form(ID_SEARCH_FORM);
-        add(searchForm);
+        headerPanel.add(searchForm);
         searchForm.setOutputMarkupId(true);
 
         SearchPanel search = new SearchPanel(ID_SEARCH, (IModel) searchModel, false) {
@@ -361,6 +373,53 @@ public class CatalogItemsPanel extends BasePanel<String> implements IPageableIte
     @Override
     public long getItemCount() {
         return 0l;
+    }
+
+    private void initCartButton(WebMarkupContainer headerPanel){
+        AjaxButton cartButton = new AjaxButton(ID_CART_BUTTON) {
+            @Override
+            public void onClick(AjaxRequestTarget ajaxRequestTarget) {
+
+            }
+        };
+        cartButton.setOutputMarkupId(true);
+        headerPanel.add(cartButton);
+
+        Label cartItemsCount = new Label(ID_CART_ITEMS_COUNT, new IModel<String>() {
+            @Override
+            public String getObject() {
+                SessionStorage storage = pageBase.getSessionStorage();
+                return Integer.toString(storage.getUsers().getAssignmentShoppingCart().size());
+            }
+
+            @Override
+            public void setObject(String s) {
+
+
+            }
+
+            @Override
+            public void detach() {
+
+            }
+        });
+        cartItemsCount.add(new VisibleEnableBehaviour() {
+            @Override
+            public boolean isVisible() {
+                SessionStorage storage = pageBase.getSessionStorage();
+                if (storage.getUsers().getAssignmentShoppingCart().size() == 0) {
+                    return false;
+                } else {
+                    return true;
+                }
+            }
+        });
+        cartItemsCount.setOutputMarkupId(true);
+        cartButton.add(cartItemsCount);
+    }
+
+    public void reloadCartButton(AjaxRequestTarget target) {
+        target.add(get(ID_HEADER_PANEL).get(ID_CART_BUTTON));
     }
 
 }

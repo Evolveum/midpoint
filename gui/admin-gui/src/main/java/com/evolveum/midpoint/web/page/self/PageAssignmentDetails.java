@@ -10,10 +10,14 @@ import com.evolveum.midpoint.web.component.assignment.AssignmentDetailsPanel;
 import com.evolveum.midpoint.web.component.assignment.AssignmentEditorDto;
 import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.page.admin.roles.PageAdminRoles;
+import com.evolveum.midpoint.web.session.UsersStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.IModel;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by honchar.
@@ -39,7 +43,7 @@ public class PageAssignmentDetails extends PageBase{
         initLayout(assignmentModel);
     }
 
-    public void initLayout(IModel<AssignmentEditorDto> assignmentModel) {
+    public void initLayout(final IModel<AssignmentEditorDto> assignmentModel) {
         setOutputMarkupId(true);
 
         Form mainForm = new Form(ID_FORM);
@@ -65,6 +69,14 @@ public class PageAssignmentDetails extends PageBase{
 
             @Override
             public void onClick(AjaxRequestTarget target) {
+                UsersStorage storage = getSessionStorage().getUsers();
+                if (storage.getAssignmentShoppingCart() == null){
+                    storage.setAssignmentShoppingCart(new ArrayList<AssignmentEditorDto>());
+                }
+                List<AssignmentEditorDto> assignmentsToAdd = storage.getAssignmentShoppingCart();
+                assignmentsToAdd.add(assignmentModel.getObject());
+                storage.setAssignmentShoppingCart(assignmentsToAdd);
+
                 redirectBack();
             }
 
