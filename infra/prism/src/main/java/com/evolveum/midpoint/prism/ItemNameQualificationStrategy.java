@@ -19,8 +19,10 @@ package com.evolveum.midpoint.prism;
 /**
  * @author mederly
  */
-public enum NameQualificationStrategy {
-	ALWAYS,
-	IF_AMBIGUOUS,
-	IF_NOT_COMMON_OR_AMBIGUOUS;
+public enum ItemNameQualificationStrategy {
+
+	ALWAYS_USE_FULL_URI,
+	USE_NS_PROPERTY
+	//UNQUALIFIED_IF_NOT_AMBIGUOUS
+
 }

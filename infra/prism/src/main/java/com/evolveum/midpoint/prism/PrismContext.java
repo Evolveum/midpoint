@@ -561,7 +561,13 @@ public class PrismContext {
 		RootXNode xroot = xnodeProcessor.serializeObject(object);
 		return parser.serializeToString(xroot, null);
 	}
-	
+
+	public <O extends Objectable> String serializeObjectToString(PrismObject<O> object, String language, SerializationOptions options) throws SchemaException {
+		Parser parser = getParserNotNull(language);
+		RootXNode xroot = xnodeProcessor.serializeObject(object);
+		return parser.serializeToString(xroot, SerializationContext.forOptions(options));
+	}
+
 	public <C extends Containerable> String serializeContainerValueToString(PrismContainerValue<C> cval, QName elementName, String language) throws SchemaException {
 		Parser parser = getParserNotNull(language);
 		

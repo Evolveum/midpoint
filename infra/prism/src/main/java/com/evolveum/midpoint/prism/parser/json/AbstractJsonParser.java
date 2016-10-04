@@ -24,10 +24,13 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.ParsingContext;
 import com.evolveum.midpoint.prism.SerializationContext;
+import com.evolveum.midpoint.prism.SerializationOptions;
 import com.evolveum.midpoint.prism.parser.Parser;
 import com.evolveum.midpoint.prism.parser.ParserUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.fasterxml.jackson.core.*;
+import com.fasterxml.jackson.core.JsonParser;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
@@ -46,11 +49,6 @@ import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
-import com.fasterxml.jackson.core.JsonGenerationException;
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
@@ -482,10 +480,17 @@ public abstract class AbstractJsonParser implements Parser {
 			writeExplicitType(explicitType, ctx.generator);
 		}
 		for (Entry<QName,XNode> entry : map.entrySet()) {
-			ctx.generator.writeFieldName(QNameUtil.qNameToUri(entry.getKey(), false));
+			ctx.generator.writeFieldName(createKeyUri(entry.getKey(), ctx));
 			serialize(entry.getValue(), ctx);
 		}
 		ctx.generator.writeEndObject();
+	}
+
+	private String createKeyUri(QName key, JsonSerializationContext ctx) {
+		final SerializationOptions opts = ctx.prismSerializationContext.getOptions();
+		if (SerializationOptions.isFullItemNameUris(opts)) {
+			return QNameUtil.qNameToUri(key, false);
+		}
 	}
 
 	private void serializeFromList(ListXNode list, JsonSerializationContext ctx) throws IOException {

@@ -47,6 +47,7 @@ import org.apache.xml.resolver.Catalog;
 import org.apache.xml.resolver.CatalogManager;
 import org.apache.xml.resolver.tools.CatalogResolver;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -1032,7 +1033,7 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Debug
 		return findItemDefinitionByElementName(elementName, null);
     }
 
-	public ItemDefinition findItemDefinitionByElementName(QName elementName, List<String> ignoredNamespaces) {
+	public ItemDefinition findItemDefinitionByElementName(QName elementName, @Nullable List<String> ignoredNamespaces) {
 		if (StringUtils.isEmpty(elementName.getNamespaceURI())) {
 			return resolveGlobalItemDefinitionWithoutNamespace(elementName.getLocalPart(), ItemDefinition.class, true, ignoredNamespaces);
 		}
@@ -1195,7 +1196,7 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Debug
 		String elementNamespace = elementQName.getNamespaceURI();
 		if (StringUtils.isEmpty(elementNamespace)) {
 			List<String> ignoredNamespaces = containerDefinition != null ?
-					containerDefinition.getComplexTypeDefinition().getIgnoredNamespaces() :
+					containerDefinition.getIgnoredNamespaces() :
 					null;
 			return resolveGlobalItemDefinitionWithoutNamespace(elementQName.getLocalPart(), ItemDefinition.class, true, ignoredNamespaces);
 		}
@@ -1211,7 +1212,7 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Debug
         return resolveGlobalItemDefinitionWithoutNamespace(localPart, definitionClass, true, null);
     }
 
-    private <T extends ItemDefinition> T resolveGlobalItemDefinitionWithoutNamespace(String localPart, Class<T> definitionClass, boolean exceptionIfAmbiguous, List<String> ignoredNamespaces) {
+    private <T extends ItemDefinition> T resolveGlobalItemDefinitionWithoutNamespace(String localPart, Class<T> definitionClass, boolean exceptionIfAmbiguous, @Nullable List<String> ignoredNamespaces) {
         ItemDefinition found = null;
         for (SchemaDescription schemaDescription : parsedSchemas.values()) {
             PrismSchema schema = schemaDescription.getSchema();
@@ -1238,7 +1239,7 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Debug
         return (T) found;
     }
 
-	private boolean namespaceMatches(String namespace, List<String> ignoredNamespaces) {
+	private boolean namespaceMatches(String namespace, @Nullable List<String> ignoredNamespaces) {
 		if (ignoredNamespaces == null) {
 			return false;
 		}

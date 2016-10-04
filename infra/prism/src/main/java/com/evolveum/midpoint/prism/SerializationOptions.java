@@ -22,7 +22,7 @@ package com.evolveum.midpoint.prism;
 public class SerializationOptions {
 
     private boolean serializeReferenceNames;
-	private NameQualificationStrategy itemNameQualificationStrategy;
+	private ItemNameQualificationStrategy itemNameQualificationStrategy;
 	private NameQualificationStrategy itemTypeQualificationStrategy;
 	private NameQualificationStrategy itemPathQualificationStrategy;
 	private NameQualificationStrategy genericQualificationStrategy;
@@ -45,11 +45,11 @@ public class SerializationOptions {
         return options != null && options.isSerializeReferenceNames();
     }
 
-	public NameQualificationStrategy getItemNameQualificationStrategy() {
+	public ItemNameQualificationStrategy getItemNameQualificationStrategy() {
 		return itemNameQualificationStrategy;
 	}
 
-	public void setItemNameQualificationStrategy(NameQualificationStrategy itemNameQualificationStrategy) {
+	public void setItemNameQualificationStrategy(ItemNameQualificationStrategy itemNameQualificationStrategy) {
 		this.itemNameQualificationStrategy = itemNameQualificationStrategy;
 	}
 
@@ -75,5 +75,22 @@ public class SerializationOptions {
 
 	public void setGenericQualificationStrategy(NameQualificationStrategy genericQualificationStrategy) {
 		this.genericQualificationStrategy = genericQualificationStrategy;
+	}
+
+	public static SerializationOptions createQualifiedNames() {
+		SerializationOptions opts = new SerializationOptions();
+		opts.itemNameQualificationStrategy = ItemNameQualificationStrategy.ALWAYS_USE_FULL_URI;
+		opts.itemPathQualificationStrategy = NameQualificationStrategy.ALWAYS;
+		opts.itemTypeQualificationStrategy = NameQualificationStrategy.ALWAYS;
+		opts.genericQualificationStrategy = NameQualificationStrategy.ALWAYS;
+		return opts;
+	}
+
+	public static boolean isFullItemNameUris(SerializationOptions opts) {
+		return opts != null && opts.itemNameQualificationStrategy != ItemNameQualificationStrategy.ALWAYS_USE_FULL_URI;
+	}
+
+	public static boolean isUseNsProperty(SerializationOptions opts) {
+		return opts == null || opts.itemNameQualificationStrategy == null || opts.itemNameQualificationStrategy == ItemNameQualificationStrategy.USE_NS_PROPERTY;
 	}
 }

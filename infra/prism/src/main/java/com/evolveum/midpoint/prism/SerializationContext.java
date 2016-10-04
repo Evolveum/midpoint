@@ -41,4 +41,8 @@ public class SerializationContext {
     public static boolean isSerializeReferenceNames(SerializationContext ctx) {
         return ctx != null && SerializationOptions.isSerializeReferenceNames(ctx.getOptions());
     }
+
+    public static SerializationContext forOptions(SerializationOptions options) {
+        return new SerializationContext(options);
+    }
 }

@@ -193,17 +193,25 @@ public class PrismContainerDefinition<C extends Containerable> extends ItemDefin
         return itemDefinition;
     }
 
+    public String getDefaultNamespace() {
+		return complexTypeDefinition != null ? complexTypeDefinition.getDefaultNamespace() : null;
+	}
+
+	public List<String> getIgnoredNamespaces() {
+		return complexTypeDefinition != null ? complexTypeDefinition.getIgnoredNamespaces() : null;
+	}
+
     private <D extends ItemDefinition> D findRuntimeItemDefinition(QName firstName, ItemPath rest, Class<D> clazz) {
         if (prismContext == null) {
             return null;            // should not occur
         }
 		ItemDefinition definition = null;
-		if (StringUtils.isEmpty(firstName.getNamespaceURI()) && StringUtils.isNotEmpty(complexTypeDefinition.getDefaultNamespace())) {
+		if (StringUtils.isEmpty(firstName.getNamespaceURI()) && StringUtils.isNotEmpty(getDefaultNamespace())) {
 			definition = prismContext.getSchemaRegistry().findItemDefinitionByElementName(
-					new QName(complexTypeDefinition.getDefaultNamespace(), firstName.getLocalPart()));
+					new QName(getDefaultNamespace(), firstName.getLocalPart()));
 		}
 		if (definition == null) {
-			definition = prismContext.getSchemaRegistry().findItemDefinitionByElementName(firstName, complexTypeDefinition.getIgnoredNamespaces());
+			definition = prismContext.getSchemaRegistry().findItemDefinitionByElementName(firstName, getIgnoredNamespaces());
 		}
         if (definition == null) {
             return null;
