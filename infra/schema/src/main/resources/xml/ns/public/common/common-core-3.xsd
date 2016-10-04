@@ -4898,6 +4898,7 @@
             </xsd:documentation>
             <xsd:appinfo>
             	<a:container/>
+				<a:defaultNamespace>http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3</a:defaultNamespace>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>

@@ -28,10 +28,7 @@
         xmlns:foo="http://www.example.com/foo"
         xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
         xmlns:ext="http://midpoint.evolveum.com/xml/ns/test/extension">
-    <name>
-    	<t:orig>jack</t:orig>
-    	<t:norm>jack</t:norm>
-    </name>
+    <name>jack</name>
     
     <extension>
 		<foo:bar xsi:type="xsd:string">BAR</foo:bar>
@@ -73,7 +70,7 @@
     		<!-- Following filter is a logical nonsense. It is there just to test parsing of filters. -->
             <q:equal>
             	<q:path>connectorType</q:path>
-                <q:value>>org.identityconnectors.ldap.LdapConnector</q:value>
+                <q:value>org.identityconnectors.ldap.LdapConnector</q:value>
             </q:equal>
     	</filter>
     </linkRef>
@@ -91,31 +88,13 @@
         <administrativeStatus>enabled</administrativeStatus>
     </activation>
 
-    <fullName>
-        <t:orig>Jack Sparrow</t:orig>
-        <t:norm>jack sparrow</t:norm>
-    </fullName>
-    <givenName>
-    	<t:orig>Jack</t:orig>
-        <t:norm>jack</t:norm>
-    </givenName>
-    <familyName>
-        <t:orig>Sparrow</t:orig>
-        <t:norm>sparrow</t:norm>
-	</familyName>
-    <honorificPrefix>
-    	<t:orig>Cpt.</t:orig>
-        <t:norm>cpt</t:norm>
-    </honorificPrefix>
+    <fullName>Jack Sparrow</fullName>
+    <givenName>Jack</givenName>
+    <familyName>Sparrow</familyName>
+    <honorificPrefix>Cpt.</honorificPrefix>
     <emailAddress></emailAddress>
-    <organizationalUnit>
-    	<t:orig>Brethren of the Coast</t:orig>
-    	<t:norm>brethren of the coast</t:norm>
-    </organizationalUnit>
-    <organizationalUnit>
-    	<t:orig>Davie Jones' Locker</t:orig>
-    	<t:norm>davie jones locker</t:norm>
-    </organizationalUnit>
+    <organizationalUnit>Brethren of the Coast</organizationalUnit>
+    <organizationalUnit>Davie Jones' Locker</organizationalUnit>
     <locality></locality>
     
     <credentials>

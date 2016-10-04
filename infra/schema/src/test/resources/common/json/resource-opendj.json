@@ -1,105 +1,88 @@
 {
- "_ns" : "http://midpoint.evolveum.com/xml/ns/public/common/common-3",
- "_type" : "resource",
- "_oid" : "ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff",
-          "name" : "Embedded Test OpenDJ",
-
-    "connectorRef" : {
-     "_type" : "ConnectorType",
-		"filter" : {
-            "equal" : {
-                "value" : "org.identityconnectors.ldap.LdapConnector"
-                    }
-                    }
+    "@ns" : "http://midpoint.evolveum.com/xml/ns/public/common/common-3",
+    "resource" :
+    {
+        "oid": "ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff",
+        "name": "Embedded Test OpenDJ",
+        "connectorRef": {
+            "type": "ConnectorType",
+            "filter": {
+                "description": "...a filter description...",
+                "equal": {
+                    "path": "declare namespace x='http://x/'; extension/x:extConnType",
+                    "value": "org.identityconnectors.ldap.LdapConnector"
+                }
+            }
+        },
+        "connectorConfiguration": {
+            "@ns" : "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3",
+            "configurationProperties": {
+                "@ns" : "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.forgerock.openicf.connectors.ldap.ldap/org.identityconnectors.ldap.LdapConnector",
+                "port": "10389",
+                "host": "localhost",
+                "baseContexts": "dc=example,dc=com",
+                "principal": "cn=directory manager",
+                "credentials": {
+                    "clearValue": "secret"
+                },
+                "vlvSortAttribute": "uid",
+                "accountOperationalAttributes": "ds-pwp-account-disabled"
             },
-    "connectorConfiguration" : {
-            
-            
-
-        "configurationProperties":
-        {
-        "_ns" : "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-2",
-        
-	        "_ns" : "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.forgerock.openicf.connectors.ldap.ldap/org.identityconnectors.ldap.LdapConnector",
-            "port" : "10389",
-            "host" : "localhost",
-            "baseContexts" : "dc=example,dc=com",
-            "principal" : "cn=directory manager",
-            "credentials" :{
-                "clearValue" : "secret"
-			},
-            "vlvSortAttribute" : "uid",
-            "accountOperationalAttributes" : "ds-pwp-account-disabled"
+            "connectorPoolConfiguration": {
+                "minEvictableIdleTimeMillis": "120000",
+                "minIdle": "1",
+                "maxIdle": "10",
+                "maxObjects": "10",
+                "maxWait": "150000"
+            },
+            "producerBufferSize": "100",
+            "timeouts": {
+                "create": "-1",
+                "get": "-1",
+                "update": "-1",
+                "delete": "-1",
+                "test": "-1",
+                "scriptOnConnector": "-1",
+                "scriptOnResource": "-1",
+                "authentication": "-1",
+                "search": "-1",
+                "validate": "-1",
+                "sync": "-1",
+                "schema": "-1"
+            }
         },
-        
-        "connectorPoolConfiguration" : {
-            "minEvictableIdleTimeMillis" : "120000",
-            "minIdle" : "1",
-            "maxIdle" : "10",
-            "maxObjects" : "10",
-            "maxWait" : "150000"
-        },
-
-        "producerBufferSize" : "100",
-
-        "timeouts" : {
-            "create" : "-1",
-            "get" : "-1",
-            "update" : "-1",
-            "delete" : "-1",
-            "test" : "-1",
-
-            "scriptOnConnector" : "-1",
-            "scriptOnResource" : "-1",
-            "authentication" : "-1",
-            "search" : "-1",
-            "validate" : "-1",
-            "sync" : "-1",
-            "schema" : "-1"
-        }
-
-    },
-	
-   
-    "schemaHandling" : {
-        "accountType" : {
-
-            "name" : "default",
-            "displayName" : "Default Account",
-            "default" : "true",
-           
-            "objectClass" : "{http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff}AccountObjectClass",
-            "attribute" : {
-                "ref" : "{http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2}name",
-                "displayName" : "Distinguished Name",
-                
-                "access" : ["create", "read"],
-                
-                "outbound" : {
-                    "strength" : "weak",
-                    "expression" : {
-                      
+        "schemaHandling": {
+            "accountType": {
+                "name": "default",
+                "displayName": "Default Account",
+                "default": "true",
+                "objectClass": "http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff#AccountObjectClass",
+                "attribute": {
+                    "ref": "name",
+                    "displayName": "Distinguished Name",
+                    "access": [
+                        "create",
+                        "read"
+                    ],
+                    "outbound": {
+                        "strength": "weak",
+                        "expression": {
                         }
-                }
-			},
-            
-            
-            "credentials" : {
-                "password" : {
-                    "outbound" : {
-                        "asIs" : ""
-                        },
-                    "inbound" : {
-                    	"source": {
-                            "strength" : "weak"
-                    		
                     }
-                    
+                },
+                "credentials": {
+                    "password": {
+                        "outbound": {
+                            "asIs": ""
+                        },
+                        "inbound": {
+                            "source": {
+                                "strength": "weak"
+                            }
+                        }
+                    }
                 }
-                }
-                }
-                
-            
-    }}
-    
+            }
+        }
     }
+}

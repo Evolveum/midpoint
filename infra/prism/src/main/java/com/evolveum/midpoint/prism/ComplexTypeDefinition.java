@@ -22,16 +22,14 @@ import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.path.ObjectReferencePathSegment;
 import com.evolveum.midpoint.prism.path.ParentPathSegment;
-import com.evolveum.midpoint.prism.path.ReferencePathSegment;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.PrettyPrinter;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import javax.xml.namespace.QName;
 
@@ -50,6 +48,8 @@ public class ComplexTypeDefinition extends Definition {
 	private boolean xsdAnyMarker;
 	private QName extensionForType;
 	private Class<?> compileTimeClass;
+	private String defaultNamespace;
+	@NotNull private List<String> ignoredNamespaces = new ArrayList<>();
 
 	public ComplexTypeDefinition(QName typeName, PrismContext prismContext) {
 		super(typeName, prismContext);
@@ -133,6 +133,23 @@ public class ComplexTypeDefinition extends Definition {
 
 	public void setXsdAnyMarker(boolean xsdAnyMarker) {
 		this.xsdAnyMarker = xsdAnyMarker;
+	}
+
+	public String getDefaultNamespace() {
+		return defaultNamespace;
+	}
+
+	public void setDefaultNamespace(String defaultNamespace) {
+		this.defaultNamespace = defaultNamespace;
+	}
+
+	@NotNull
+	public List<String> getIgnoredNamespaces() {
+		return ignoredNamespaces;
+	}
+
+	public void setIgnoredNamespaces(@NotNull List<String> ignoredNamespaces) {
+		this.ignoredNamespaces = ignoredNamespaces;
 	}
 
 	public QName getSuperType() {

@@ -227,8 +227,15 @@ public abstract class AbstractJsonParser implements Parser {
 	private XNode parseJsonObject(JsonParsingContext ctx) throws SchemaException, IOException {
 		Validate.notNull(ctx.parser.currentToken());
 
-		final MapXNode map = new MapXNode();
 		QName typeName = null;
+
+		Object tid = ctx.parser.getTypeId();
+		if (tid != null) {
+//			System.out.println("tid for object = '" + tid + "' for " + ctx.parser.getText());
+			typeName = tagToTypeName(tid, ctx);
+		}
+
+		final MapXNode map = new MapXNode();
 		PrimitiveXNode<?> primitiveValue = null;
 		boolean defaultNamespaceDefined = false;
 		QName currentFieldName = null;
@@ -293,7 +300,10 @@ public abstract class AbstractJsonParser implements Parser {
 		} else {
 			rv = map;
 		}
-		rv.setTypeQName(typeName);
+		if (typeName != null) {
+			rv.setTypeQName(typeName);
+			rv.setExplicitTypeDeclaration(true);
+		}
 		return rv;
 	}
 
@@ -339,7 +349,7 @@ public abstract class AbstractJsonParser implements Parser {
 
 		Object tid = ctx.parser.getTypeId();
 		if (tid != null) {
-			System.out.println("tid = '" + tid + "' for " + ctx.parser.getText());
+//			System.out.println("tid = '" + tid + "' for " + ctx.parser.getText());
 			QName typeName = tagToTypeName(tid, ctx);
 			primitive.setTypeQName(typeName);
 			primitive.setExplicitTypeDeclaration(true);
@@ -455,10 +465,14 @@ public abstract class AbstractJsonParser implements Parser {
 		} else if (xnode instanceof SchemaXNode) {
 			serializeFromSchema((SchemaXNode) xnode, ctx);
 		} else if (xnode == null) {
-			// nothing to serialize
+			serializeFromNull(ctx);
 		} else {
 			throw new UnsupportedOperationException("Cannot serialize from " + xnode);
 		}
+	}
+
+	private void serializeFromNull(JsonSerializationContext ctx) throws IOException {
+		ctx.generator.writeNull();
 	}
 
 	private void serializeFromMap(MapXNode map, JsonSerializationContext ctx) throws IOException {

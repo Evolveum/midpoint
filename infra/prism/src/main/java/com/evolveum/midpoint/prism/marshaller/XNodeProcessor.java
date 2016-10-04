@@ -452,11 +452,11 @@ public class XNodeProcessor {
 
     private <T> T parseAtomicValueFromPrimitive(PrimitiveXNode<T> xprim, PrismPropertyDefinition def, QName typeName, ParsingContext pc) throws SchemaException {
         T realValue = null;
-        if (ItemPathType.COMPLEX_TYPE.equals(typeName)) {
+        if (QNameUtil.match(ItemPathType.COMPLEX_TYPE, typeName)) {
             return (T) parseItemPathType(xprim, pc);
-        } else if (ProtectedStringType.COMPLEX_TYPE.equals(typeName)) {
+        } else if (QNameUtil.match(ProtectedStringType.COMPLEX_TYPE, typeName)) {
             return (T) parseProtectedTypeFromPrimitive(xprim, pc);
-        } else if (getBeanConverter().canProcess(typeName) && !typeName.equals(PolyStringType.COMPLEX_TYPE) && !typeName.equals(ItemPathType.COMPLEX_TYPE)) {
+        } else if (getBeanConverter().canProcess(typeName) && !QNameUtil.match(typeName, PolyStringType.COMPLEX_TYPE)) {
             // Primitive elements may also have complex Java representations (e.g. enums)
             return getBeanConverter().unmarshallPrimitive(xprim, typeName, pc);
         } else if (def != null && def.isRuntimeSchema() && def.getAllowedValues() != null && def.getAllowedValues().size() > 0) {
@@ -953,7 +953,7 @@ public class XNodeProcessor {
     private <T extends Containerable> ItemDefinition resolveGlobalItemDefinition(
             PrismContainerDefinition<T> containerDefinition, QName elementQName, XNode xnode)
             throws SchemaException {
-        return prismContext.getSchemaRegistry().resolveGlobalItemDefinition(elementQName);
+        return prismContext.getSchemaRegistry().resolveGlobalItemDefinition(elementQName, containerDefinition);
     }
     //endregion
 

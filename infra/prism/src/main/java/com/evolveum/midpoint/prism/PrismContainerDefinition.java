@@ -197,7 +197,14 @@ public class PrismContainerDefinition<C extends Containerable> extends ItemDefin
         if (prismContext == null) {
             return null;            // should not occur
         }
-        ItemDefinition definition = prismContext.getSchemaRegistry().findItemDefinitionByElementName(firstName);
+		ItemDefinition definition = null;
+		if (StringUtils.isEmpty(firstName.getNamespaceURI()) && StringUtils.isNotEmpty(complexTypeDefinition.getDefaultNamespace())) {
+			definition = prismContext.getSchemaRegistry().findItemDefinitionByElementName(
+					new QName(complexTypeDefinition.getDefaultNamespace(), firstName.getLocalPart()));
+		}
+		if (definition == null) {
+			definition = prismContext.getSchemaRegistry().findItemDefinitionByElementName(firstName, complexTypeDefinition.getIgnoredNamespaces());
+		}
         if (definition == null) {
             return null;
         }

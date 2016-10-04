@@ -1240,7 +1240,7 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
 				// found it is still OK. This is runtime container. We tolerate quite a lot here.
 				PrismContext prismContext = getPrismContext();
 				if (prismContext != null) {
-					itemDefinition = (ID) prismContext.getSchemaRegistry().resolveGlobalItemDefinition(itemName);
+					itemDefinition = (ID) prismContext.getSchemaRegistry().resolveGlobalItemDefinition(itemName, containerDefinition);
 				}
 			} else {
 				throw new SchemaException("No definition for item " + itemName + " in " + getParent());

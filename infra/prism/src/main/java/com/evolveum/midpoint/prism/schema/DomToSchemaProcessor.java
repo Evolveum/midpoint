@@ -16,31 +16,7 @@
 
 package com.evolveum.midpoint.prism.schema;
 
-import static com.evolveum.midpoint.prism.PrismConstants.A_ACCESS;
-import static com.evolveum.midpoint.prism.PrismConstants.A_ACCESS_CREATE;
-import static com.evolveum.midpoint.prism.PrismConstants.A_ACCESS_READ;
-import static com.evolveum.midpoint.prism.PrismConstants.A_ACCESS_UPDATE;
-import static com.evolveum.midpoint.prism.PrismConstants.A_COMPOSITE;
-import static com.evolveum.midpoint.prism.PrismConstants.A_DEPRECATED;
-import static com.evolveum.midpoint.prism.PrismConstants.A_DISPLAY_NAME;
-import static com.evolveum.midpoint.prism.PrismConstants.A_DISPLAY_ORDER;
-import static com.evolveum.midpoint.prism.PrismConstants.A_EXTENSION;
-import static com.evolveum.midpoint.prism.PrismConstants.A_EXTENSION_REF;
-import static com.evolveum.midpoint.prism.PrismConstants.A_HELP;
-import static com.evolveum.midpoint.prism.PrismConstants.A_IGNORE;
-import static com.evolveum.midpoint.prism.PrismConstants.A_EMPHASIZED;
-import static com.evolveum.midpoint.prism.PrismConstants.A_INDEXED;
-import static com.evolveum.midpoint.prism.PrismConstants.A_MATCHING_RULE;
-import static com.evolveum.midpoint.prism.PrismConstants.A_VALUE_ENUMERATION_REF;
-import static com.evolveum.midpoint.prism.PrismConstants.A_MAX_OCCURS;
-import static com.evolveum.midpoint.prism.PrismConstants.A_OBJECT;
-import static com.evolveum.midpoint.prism.PrismConstants.A_OBJECT_REFERENCE;
-import static com.evolveum.midpoint.prism.PrismConstants.A_OBJECT_REFERENCE_TARGET_TYPE;
-import static com.evolveum.midpoint.prism.PrismConstants.A_OPERATIONAL;
-import static com.evolveum.midpoint.prism.PrismConstants.A_PROPERTY_CONTAINER;
-import static com.evolveum.midpoint.prism.PrismConstants.A_TYPE;
-import static com.evolveum.midpoint.prism.PrismConstants.SCHEMA_DOCUMENTATION;
-import static com.evolveum.midpoint.prism.PrismConstants.SCHEMA_APP_INFO;
+import static com.evolveum.midpoint.prism.PrismConstants.*;
 import static javax.xml.XMLConstants.W3C_XML_SCHEMA_NS_URI;
 
 import java.io.ByteArrayInputStream;
@@ -63,6 +39,7 @@ import javax.xml.transform.stream.StreamResult;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
+import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.xml.sax.EntityResolver;
@@ -381,6 +358,9 @@ class DomToSchemaProcessor {
 		if (isPropertyContainer(complexType)) {
 			ctd.setContainerMarker(true);
 		}
+
+		ctd.setDefaultNamespace(getDefaultNamespace(complexType));
+		ctd.setIgnoredNamespaces(getIgnoredNamespaces(complexType));
 
 		if (isAny(complexType)) {
 			ctd.setXsdAnyMarker(true);
@@ -806,6 +786,30 @@ class DomToSchemaProcessor {
 			return isPropertyContainer(xsType.getBaseType());
 		}
 		return false;
+	}
+
+	private String getDefaultNamespace(XSType xsType) {
+		Element annoElement = SchemaProcessorUtil.getAnnotationElement(xsType.getAnnotation(), A_DEFAULT_NAMESPACE);
+		if (annoElement != null) {
+			return annoElement.getTextContent();
+		}
+		if (xsType.getBaseType() != null && !xsType.getBaseType().equals(xsType)) {
+			return getDefaultNamespace(xsType.getBaseType());
+		}
+		return null;
+	}
+
+	@NotNull
+	private List<String> getIgnoredNamespaces(XSType xsType) {
+		List<String> rv = new ArrayList<>();
+		List<Element> annoElements = SchemaProcessorUtil.getAnnotationElements(xsType.getAnnotation(), A_IGNORED_NAMESPACE);
+		for (Element annoElement : annoElements) {
+			rv.add(annoElement.getTextContent());
+		}
+		if (xsType.getBaseType() != null && !xsType.getBaseType().equals(xsType)) {
+			rv.addAll(getIgnoredNamespaces(xsType.getBaseType()));
+		}
+		return rv;
 	}
 
 	private boolean isObjectReference(XSElementDecl xsElementDecl, XSType xsType) {

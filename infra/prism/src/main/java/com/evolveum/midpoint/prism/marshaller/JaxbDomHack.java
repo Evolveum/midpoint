@@ -170,7 +170,7 @@ public class JaxbDomHack {
 			throws SchemaException {
 		// Object firstElement = valueElements.get(0);
 		// QName elementQName = JAXBUtil.getElementQName(firstElement);
-		return prismContext.getSchemaRegistry().resolveGlobalItemDefinition(elementQName);
+		return prismContext.getSchemaRegistry().resolveGlobalItemDefinition(elementQName, containerDefinition);
 	}
 	
 	/**

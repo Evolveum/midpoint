@@ -19,26 +19,10 @@
      It is used in internal midPoint tests, mostly in "integration"
      tests. -->
 
-<resource oid="ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"
-          xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-          xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
-          xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
-          xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
-          xmlns:ra="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-3"
-          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"
-          xmlns:dj="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"
-          xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
-          xmlns:my="http://myself.me/schemas/whatever"
-          xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-          xmlns:mr="http://midpoint.evolveum.com/xml/ns/public/common/matching-rule-3">
+<resource oid="ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff">
 
     <!-- Resource printable name -->
-    <name>
-    	<t:orig>Embedded Test OpenDJ</t:orig>
-    	<t:norm>embedded test opendj</t:norm>
-    </name>
+    <name>Embedded Test OpenDJ</name>
 
     <!-- To check 'clazz' serialization -->
     <fetchResult>
@@ -58,73 +42,68 @@
           OID during import. -->
     <connectorRef type="ConnectorType">
 		<filter>
-            <q:description>...a filter description...</q:description>
-            <q:equal>
-            	<q:path xmlns:x="http://x/">extension/x:extConnType</q:path>        <!-- testing namespace processing in RawType -->
-                <q:value>
-                    org.identityconnectors.ldap.LdapConnector
-                </q:value>
-            </q:equal>
+            <description>...a filter description...</description>
+            <equal>
+            	<path>extension/extConnType</path>
+                <value>org.identityconnectors.ldap.LdapConnector</value>
+            </equal>
         </filter>
         <resolutionTime>import</resolutionTime>
         <description>Reference to the ICF LDAP connector.</description>
     </connectorRef>
 
     <!-- Resource configuration section -->
-    <connectorConfiguration
-            xmlns:icfcldap="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.forgerock.openicf.connectors.ldap.ldap/org.identityconnectors.ldap.LdapConnector"
-            xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
+    <connectorConfiguration>
 
         <!-- Configuration specific for the LDAP connector -->
-        <icfc:configurationProperties>
+        <configurationProperties>
 
-            <icfcldap:port>10389</icfcldap:port>
-            <icfcldap:host>localhost</icfcldap:host>
-            <icfcldap:baseContexts>dc=example,dc=com</icfcldap:baseContexts>
-            <icfcldap:principal>cn=directory manager</icfcldap:principal>
-            <icfcldap:credentials>
+            <port>10389</port>
+            <host>localhost</host>
+            <baseContexts>dc=example,dc=com</baseContexts>
+            <principal>cn=directory manager</principal>
+            <credentials>
                 <clearValue>secret</clearValue>
-
-            </icfcldap:credentials>
-            <icfcldap:vlvSortAttribute>uid</icfcldap:vlvSortAttribute>
-            <icfcldap:accountOperationalAttributes>ds-pwp-account-disabled</icfcldap:accountOperationalAttributes>
-        </icfc:configurationProperties>
+            </credentials>
+            <vlvSortAttribute>uid</vlvSortAttribute>
+            <accountOperationalAttributes>ds-pwp-account-disabled</accountOperationalAttributes>
+        </configurationProperties>
 
         <!-- Generic ICF configuration -->
 
-        <icfc:connectorPoolConfiguration>
-            <icfc:minEvictableIdleTimeMillis>120000</icfc:minEvictableIdleTimeMillis>
+        <connectorPoolConfiguration>
+            <minEvictableIdleTimeMillis>120000</minEvictableIdleTimeMillis>
+            <minIdle>1</minIdle>
+            <maxIdle>10</maxIdle>
+            <maxObjects>10</maxObjects>
+            <maxWait>150000</maxWait>
+        </connectorPoolConfiguration>
 
-            <icfc:minIdle>1</icfc:minIdle>
-            <icfc:maxIdle>10</icfc:maxIdle>
-            <icfc:maxObjects>10</icfc:maxObjects>
-            <icfc:maxWait>150000</icfc:maxWait>
-        </icfc:connectorPoolConfiguration>
+        <producerBufferSize>100</producerBufferSize>
 
-        <icfc:producerBufferSize>100</icfc:producerBufferSize>
-
-        <icfc:timeouts>
-            <icfc:create>-1</icfc:create>
-            <icfc:get>-1</icfc:get>
-            <icfc:update>-1</icfc:update>
-            <icfc:delete>-1</icfc:delete>
-            <icfc:test>-1</icfc:test>
-
-            <icfc:scriptOnConnector>-1</icfc:scriptOnConnector>
-            <icfc:scriptOnResource>-1</icfc:scriptOnResource>
-            <icfc:authentication>-1</icfc:authentication>
-            <icfc:search>-1</icfc:search>
-            <icfc:validate>-1</icfc:validate>
-            <icfc:sync>-1</icfc:sync>
-
-            <icfc:schema>-1</icfc:schema>
-        </icfc:timeouts>
+        <timeouts>
+            <create>-1</create>
+            <get>-1</get>
+            <update>-1</update>
+            <delete>-1</delete>
+            <test>-1</test>
+            <scriptOnConnector>-1</scriptOnConnector>
+            <scriptOnResource>-1</scriptOnResource>
+            <authentication>-1</authentication>
+            <search>-1</search>
+            <validate>-1</validate>
+            <sync>-1</sync>
+            <schema>-1</schema>
+        </timeouts>
 
     </connectorConfiguration>
 
     <namespace>http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff</namespace>
     
-    <schema>
+    <schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+			xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+			xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+			xmlns:ra="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-3">
 		<definition>
 			  <xsd:schema elementFormDefault="qualified"
 			  xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
@@ -234,7 +213,6 @@
 		</definition>
 	</schema>
 
-
     <schemaHandling>
 
         <!-- Definition of default account type.
@@ -250,12 +228,12 @@ This is now the only account type that midPoint can work with. -->
             <!-- Reference to the Resource Schema specifying
       object class for this account type -->
 
-            <objectClass>ri:AccountObjectClass</objectClass>
+            <objectClass>AccountObjectClass</objectClass>
 
             <!-- Definition of __NAME__ attribute handling.
      ICF will put entry DN into __NAME__ attribute.-->
             <attribute>
-                <ref>icfs:name</ref>
+                <ref>name</ref>
 
                 <!-- Readable name for the attribute. This will be used in GUI -->
                 <displayName>Distinguished Name</displayName>
@@ -310,7 +288,7 @@ This is now the only account type that midPoint can work with. -->
            configuration. Please see connector documentation for
            more details.-->
             <attribute>
-                <ref>icfs:uid</ref>
+                <ref>declare namespace icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"; icfs:uid</ref>
 
                 <!-- Readable name for the attribute. This will be used in GUI -->
                 <displayName>Entry UUID</displayName>
@@ -339,7 +317,7 @@ This is now the only account type that midPoint can work with. -->
             <!-- Definition of cn attribute handling. -->
             <attribute>
 
-                <ref>ri:cn</ref>
+                <ref>cn</ref>
                 <displayName>Common Name</displayName>
 <!--                 <access>create</access> -->
 <!--                 <access>read</access> -->
@@ -378,7 +356,7 @@ This is now the only account type that midPoint can work with. -->
 
             <!-- Definition of sn attribute handling. -->
             <attribute>
-                <ref>ri:sn</ref>
+                <ref>sn</ref>
 
                 <displayName>Surname</displayName>
                  <limitations>
@@ -405,7 +383,7 @@ This is now the only account type that midPoint can work with. -->
 
             <!-- Definition of givenName attribute handling. -->
             <attribute>
-                <ref>ri:givenName</ref>
+                <ref>givenName</ref>
                 <displayName>Given Name</displayName>
                 <limitations>
 <!-- 					<minOccurs>0</minOccurs> -->
@@ -422,12 +400,12 @@ This is now the only account type that midPoint can work with. -->
                 <outbound>
 					<source>
 						<!-- Full namespace prefixes can be used in the path -->
-						<path>$c:user/c:givenName</path>
+						<path>$user/givenName</path>
 					</source>
 				</outbound>
 				<inbound>
 					<target>
-						<path>$c:user/c:givenName</path>
+						<path>$user/givenName</path>
 					</target>
 				</inbound>
 			</attribute>
@@ -435,9 +413,9 @@ This is now the only account type that midPoint can work with. -->
             <!-- Definition of uid attribute handling.
        Do not confuse with __UID__! -->
             <attribute>
-				<ref>ri:uid</ref>
+				<ref>declare namespace ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"; ri:uid</ref>
 				<displayName>Login Name</displayName>
-				<matchingRule>mr:stringIgnoreCase</matchingRule>
+				<matchingRule>stringIgnoreCase</matchingRule>
 				<outbound>
 					<strength>weak</strength>
 					<source>
@@ -448,14 +426,14 @@ This is now the only account type that midPoint can work with. -->
 				<inbound>
 					<target>
 						<description>Targets may have description</description>
-						<path>$c:user/c:name</path>
+						<path>$user/name</path>
                     </target>
 				</inbound>
 			</attribute>
 
             <!-- Definition of description attribute handling. -->
             <attribute>
-                <ref>ri:description</ref>
+                <ref>description</ref>
 
                 <!-- This outbound expression is not really an expression.
               It is using a fixed literal insead of dynamically
@@ -504,7 +482,7 @@ This is now the only account type that midPoint can work with. -->
 <!--                 No inbound expression for description. We don't want to synchronize that -->
 <!--             </attribute> -->
 			<attribute>
-				<ref>ri:employeeType</ref>
+				<ref>employeeType</ref>
 				<displayName>Employee Type</displayName>
 				<tolerant>false</tolerant>
 				<outbound>
@@ -514,12 +492,12 @@ This is now the only account type that midPoint can work with. -->
 				</outbound>
 			</attribute>
 			<attribute>
-				<ref>ri:departmentNumber</ref>
+				<ref>departmentNumber</ref>
 				<displayName>Department Number</displayName>
 				<tolerant>true</tolerant>
 				<outbound>
 					<source>
-						<path xmlns:z="http://z/">$user/extension/z:dept</path>
+						<path>$user/extension/dept</path>
 					</source>
 				</outbound>
 			</attribute>
@@ -529,24 +507,24 @@ This is now the only account type that midPoint can work with. -->
             <!-- This attribute is using a lookup table to translate the values
  valid for user to a values valid for the resource account. -->
             <attribute>
-                <ref>ri:l</ref>
-                <c:tolerant>false</c:tolerant>
+                <ref>l</ref>
+                <tolerant>false</tolerant>
 
                 <!-- Outbound expression definition. This expression is using
               a configuration object (set into an XPath variable) to
               translate values. -->
                 <outbound>
 					<expression>
-						<variable xmlns:my="http://whatever.com/my">
-							<name>my:defaultLocation</name>
-							<value xsi:type="xsd:string">middle of nowhere</value>
+						<variable>
+							<name>defaultLocation</name>
+							<value xsiType="string">middle of nowhere</value>
 						</variable>
 						<script>
 							<description>XPath expression that is using a variable declared above</description>
 							<language>http://www.w3.org/TR/xpath/</language>
 							<returnType>scalar</returnType>
-							<code xmlns:my="http://whatever.com/my">
-									$my:defaultLocation
+							<code>
+									$defaultLocation
 							</code>
 						</script>
 					</expression>
@@ -582,30 +560,30 @@ This is now the only account type that midPoint can work with. -->
             </activation>
             
             <protected>
-		    	<icfs:name>uid=idm,ou=Administrators,dc=example,dc=com</icfs:name>
+		    	<name>uid=idm,ou=Administrators,dc=example,dc=com</name>
 		    </protected>
         </objectType>
     </schemaHandling>
 
-    <capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">
+    <capabilities>
     	<native>
-	        <cap:credentials>
-	            <cap:password/>
-	        </cap:credentials>
-	        <cap:liveSync/>
-	        <cap:testConnection/>    	
+	        <credentials>
+	            <password/>
+	        </credentials>
+	        <liveSync/>
+	        <testConnection/>
     	</native>
     	<configured>
-	        <cap:activation>
-	            <cap:status>
-	                <cap:attribute>ri:ds-pwp-account-disabled</cap:attribute>
-	                <cap:enableValue/>
-	                <cap:disableValue>true</cap:disableValue>
-	            </cap:status>
-	        </cap:activation>
-	        <cap:liveSync>
-	        	<cap:enabled>false</cap:enabled>
-	        </cap:liveSync>
+	        <activation>
+	            <status>
+	                <attribute>ds-pwp-account-disabled</attribute>
+	                <enableValue/>
+	                <disableValue>true</disableValue>
+	            </status>
+	        </activation>
+	        <liveSync>
+	        	<enabled>false</enabled>
+	        </liveSync>
 		</configured>
     </capabilities>
 
@@ -625,17 +603,17 @@ This is now the only account type that midPoint can work with. -->
 	           It will be used to find appropriate user entry for an account.
 	        -->
 	        <correlation> <!-- Correlation rule is a search query -->
-                <q:description>
+                <description>
                     ...
-                </q:description>
-                <q:equal>
-                    <q:path>c:name</q:path>
-                    <expression>        <!-- testing namespace processing in RawTypes (my:yyy) -->
+                </description>
+                <equal>
+                    <path>name</path>
+                    <expression>
                         <path>
-                            $account/c:attributes/my:yyy
+                            $account/attributes/yyy
                         </path>
                     </expression>
-                </q:equal>
+                </equal>
                 <condition>
                     <value>true</value>
                 </condition>
@@ -657,22 +635,22 @@ This is now the only account type that midPoint can work with. -->
 	        <reaction>
 	            <situation>deleted</situation>
 	            <action>
-	            	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#unlinkAccount</handlerUri>
+	            	<handlerUri>unlinkAccount</handlerUri>
 	            </action>
 	        </reaction>
-	        <c:reaction>
-	            <c:situation>unlinked</c:situation>
-	            <c:action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#linkAccount"/>
-	        </c:reaction>
-	        <c:reaction>
-	            <c:situation>unmatched</c:situation>
-	            <c:action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#addUser">
+	        <reaction>
+	            <situation>unlinked</situation>
+	            <action ref="linkAccount"/>
+	        </reaction>
+	        <reaction>
+	            <situation>unmatched</situation>
+	            <action ref="addUser">
 	                <!-- Reference to the User Template is here. If the user would be
 	             created as a result of this action, it will be created according
 	             to this template. -->
-	                <c:userTemplateRef oid="c0c010c0-d34d-b33f-f00d-777111111111"/>
-	            </c:action>
-	        </c:reaction>
+	                <userTemplateRef oid="c0c010c0-d34d-b33f-f00d-777111111111"/>
+	            </action>
+	        </reaction>
 		</objectSynchronization>
 
     </synchronization>

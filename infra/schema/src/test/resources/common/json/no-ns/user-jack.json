@@ -1,64 +1,73 @@
 {
-  "@ns" : "http://midpoint.evolveum.com/xml/ns/public/common/common-3",
   "object" : {
-    "@type" : "http://midpoint.evolveum.com/xml/ns/public/common/common-3#UserType",
+    "@type" : "UserType",
     "oid" : "2f9b9299-6f45-498f-bc8e-8d17c6b93b20",
     "name" : "jack",
     "extension" : {
-      "@ns" : "http://www.example.com/foo",
       "bar" : [ {
-        "@typeDef" : "http://www.w3.org/2001/XMLSchema#string",
+        "@type" : "string",
         "@value" : "BAR"
       } ],
       "num" : [ {
-        "@typeDef" : "http://www.w3.org/2001/XMLSchema#int",
+        "@type" : "int",
         "@value" : 42
       } ],
       "multi" : [ {
-        "@typeDef" : "http://www.w3.org/2001/XMLSchema#string",
+        "@type" : "string",
         "@value" : "raz"
       }, {
-        "@typeDef" : "http://www.w3.org/2001/XMLSchema#string",
+        "@type" : "string",
         "@value" : "dva"
       }, {
-        "@typeDef" : "http://www.w3.org/2001/XMLSchema#string",
+        "@type" : "string",
         "@value" : "tri"
       } ],
-      "password" : [ { } ]
+      "password" : {
+        "@type" : "ProtectedStringType",
+        "clearValue" : "openS3zam3"
+      }
     },
-    "linkRef" : [ {
+    "link" : [ {
       "oid" : "2f9b9299-6f45-498f-aaaa-000000001111",
-      "type" : "http://midpoint.evolveum.com/xml/ns/public/common/common-3#ShadowType"
+      "name" : "jsparrow",
+      "resourceRef" : { "oid" : "2f9b9299-5555-5555-5555-000000001111" },
+      "objectClass" : "AccountObjectClass"
     }, {
       "oid" : "2f9b9299-6f45-498f-aaaa-000000002222",
-      "type" : "http://midpoint.evolveum.com/xml/ns/public/common/common-3#ShadowType"
-    }, {
+      "name" : "captain",
+      "resource" : {
+        "oid" : "2f9b9299-5555-5555-5555-000000001111",
+        "name" : "Rum Supply System",
+        "connectorRef" : { "oid" : "2f9b9299-cccc-cccc-cccc-000000002222" },
+        "connectorConfiguration" : { },
+        "namespace" : "http://midpoint.evolveum.com/xml/ns/public/resource/instance/2f9b9299-5555-5555-5555-000000002222"
+      },
+      "objectClass" : "AccountObjectClass"
+    } ],
+    "linkRef" : {
       "oid" : "2f9b9299-6f45-498f-aaaa-000000003333",
-      "type" : "http://midpoint.evolveum.com/xml/ns/public/common/common-3#ShadowType",
+      "type" : "ShadowType",
       "description" : "This is third accountRef",
       "filter" : {
-        "@ns" : "http://prism.evolveum.com/xml/ns/public/query-3",
         "equal" : {
-          "path" : "c:connectorType",
-          "value" : [ ">org.identityconnectors.ldap.LdapConnector" ]
+          "path" : "connectorType",
+          "value" : [ "org.identityconnectors.ldap.LdapConnector" ]
         }
       }
-    } ],
+    },
     "assignment" : [ {
       "id" : 111,
       "extension" : {
-        "@ns" : "http://midpoint.evolveum.com/xml/ns/test/extension",
         "intType" : "42"
       },
      "construction" : {
          "resourceRef" : {
-          "oid" : "2f9b9299-5555-5555-5555-000000001111",
-          "type" : "http://midpoint.evolveum.com/xml/ns/public/common/common-3#ResourceType"
+          "oid" : "2f9b9299-5555-5555-5555-000000001111"
         }
       }
     } ],
     "activation" : {
-      "administrativeStatus" : { }
+      "administrativeStatus" : "enabled"
     },
     "fullName" : "Jack Sparrow",
     "givenName" : "Jack",
@@ -70,10 +79,9 @@
     "credentials" : {
       "password" : {
         "value" : {
-          "@ns" : "http://prism.evolveum.com/xml/ns/public/types-3",
           "encryptedData" : {
             "encryptionMethod" : {
-              "algorithm" : "http://www.w3.org/2001/04/xmlenc#aes256-cbc\""
+              "algorithm" : "http://www.w3.org/2001/04/xmlenc#aes256-cbc"
             },
             "keyInfo" : {
               "keyName" : "HF6JRsNMeJt6alihT44CXKgpe0c="

@@ -1029,19 +1029,26 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Debug
 	}
 
 	public ItemDefinition findItemDefinitionByElementName(QName elementName) {
-        if (StringUtils.isEmpty(elementName.getNamespaceURI())) {
-            return resolveGlobalItemDefinitionWithoutNamespace(elementName.getLocalPart(), ItemDefinition.class);
-        }
-        PrismSchema schema = findSchemaByNamespace(elementName.getNamespaceURI());
-        if (schema == null) {
-            return null;
-        }
-        return schema.findItemDefinition(elementName, ItemDefinition.class);
+		return findItemDefinitionByElementName(elementName, null);
     }
 
-    public ItemDefinition findItemDefinitionByType(QName typeName) {
+	public ItemDefinition findItemDefinitionByElementName(QName elementName, List<String> ignoredNamespaces) {
+		if (StringUtils.isEmpty(elementName.getNamespaceURI())) {
+			return resolveGlobalItemDefinitionWithoutNamespace(elementName.getLocalPart(), ItemDefinition.class, true, ignoredNamespaces);
+		}
+		PrismSchema schema = findSchemaByNamespace(elementName.getNamespaceURI());
+		if (schema == null) {
+			return null;
+		}
+		return schema.findItemDefinition(elementName, ItemDefinition.class);
+	}
+
+	public ItemDefinition findItemDefinitionByType(QName typeName) {
         if (StringUtils.isEmpty(typeName.getNamespaceURI())) {
             ComplexTypeDefinition ctd = resolveGlobalTypeDefinitionWithoutNamespace(typeName.getLocalPart());
+			if (ctd == null) {
+				return null;
+			}
             typeName = ctd.getTypeName();
         }
         PrismSchema schema = findSchemaByNamespace(typeName.getNamespaceURI());
@@ -1161,7 +1168,7 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Debug
         if (StringUtils.isNotEmpty(elementName.getNamespaceURI())) {
             return elementName;
         }
-        ItemDefinition itemDef = resolveGlobalItemDefinitionWithoutNamespace(elementName.getLocalPart(), ItemDefinition.class, exceptionIfAmbiguous);
+        ItemDefinition itemDef = resolveGlobalItemDefinitionWithoutNamespace(elementName.getLocalPart(), ItemDefinition.class, exceptionIfAmbiguous, null);
         if (itemDef != null) {
             return itemDef.getName();
         } else {
@@ -1181,9 +1188,16 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Debug
 	 * Looks for a top-level definition for the specified element name (in all schemas). 
 	 */
 	public ItemDefinition resolveGlobalItemDefinition(QName elementQName) throws SchemaException {
+		return resolveGlobalItemDefinition(elementQName, null);
+	}
+
+	public ItemDefinition resolveGlobalItemDefinition(QName elementQName, PrismContainerDefinition<?> containerDefinition) throws SchemaException {
 		String elementNamespace = elementQName.getNamespaceURI();
 		if (StringUtils.isEmpty(elementNamespace)) {
-			return resolveGlobalItemDefinitionWithoutNamespace(elementQName.getLocalPart(), ItemDefinition.class);
+			List<String> ignoredNamespaces = containerDefinition != null ?
+					containerDefinition.getComplexTypeDefinition().getIgnoredNamespaces() :
+					null;
+			return resolveGlobalItemDefinitionWithoutNamespace(elementQName.getLocalPart(), ItemDefinition.class, true, ignoredNamespaces);
 		}
 		PrismSchema schema = findSchemaByNamespace(elementNamespace);
 		if (schema == null) {
@@ -1194,16 +1208,19 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Debug
 	}
 
     private <T extends ItemDefinition> T resolveGlobalItemDefinitionWithoutNamespace(String localPart, Class<T> definitionClass) {
-        return resolveGlobalItemDefinitionWithoutNamespace(localPart, definitionClass, true);
+        return resolveGlobalItemDefinitionWithoutNamespace(localPart, definitionClass, true, null);
     }
 
-    private <T extends ItemDefinition> T resolveGlobalItemDefinitionWithoutNamespace(String localPart, Class<T> definitionClass, boolean exceptionIfAmbiguous) {
+    private <T extends ItemDefinition> T resolveGlobalItemDefinitionWithoutNamespace(String localPart, Class<T> definitionClass, boolean exceptionIfAmbiguous, List<String> ignoredNamespaces) {
         ItemDefinition found = null;
         for (SchemaDescription schemaDescription : parsedSchemas.values()) {
             PrismSchema schema = schemaDescription.getSchema();
             if (schema == null) {       // is this possible?
                 continue;
             }
+            if (namespaceMatches(schema.getNamespace(), ignoredNamespaces)) {
+				continue;
+			}
             ItemDefinition def = schema.findItemDefinition(localPart, definitionClass);
             if (def != null) {
                 if (found != null) {
@@ -1221,7 +1238,19 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Debug
         return (T) found;
     }
 
-    private ComplexTypeDefinition resolveGlobalTypeDefinitionWithoutNamespace(String typeLocalName) {
+	private boolean namespaceMatches(String namespace, List<String> ignoredNamespaces) {
+		if (ignoredNamespaces == null) {
+			return false;
+		}
+		for (String ignored : ignoredNamespaces) {
+			if (namespace.startsWith(ignored)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	private ComplexTypeDefinition resolveGlobalTypeDefinitionWithoutNamespace(String typeLocalName) {
         ComplexTypeDefinition found = null;
         for (SchemaDescription schemaDescription : parsedSchemas.values()) {
             PrismSchema schema = schemaDescription.getSchema();

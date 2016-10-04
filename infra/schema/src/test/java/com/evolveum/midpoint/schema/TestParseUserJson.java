@@ -6,25 +6,25 @@ import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.prism.PrismContext;
 
-public class TestParseUserJson extends TestParseUser{
-	
-  @Test
-  public void f() {
-  }
+public class TestParseUserJson extends TestParseUser {
 
+	@Override
+	protected String getSubdirName() {
+		return "json/ns";
+	}
 
-@Override
-protected String getSubdirName() {
-	return "json";
-}
+	@Override
+	protected String getLanguage() {
+		return PrismContext.LANG_JSON;
+	}
 
-@Override
-protected String getLanguage() {
-	return PrismContext.LANG_JSON;
-}
+	@Override
+	protected String getFilenameSuffix() {
+		return "json";
+	}
 
-@Override
-protected String getFilenameSuffix() {
-	return "json";
-}
+	@Override
+	protected boolean hasNamespaces() {
+		return true;
+	}
 }

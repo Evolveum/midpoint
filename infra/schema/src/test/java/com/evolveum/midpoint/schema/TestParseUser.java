@@ -268,10 +268,14 @@ public abstract class TestParseUser {
 		assertNotNull("No "+message+" filter", filterElement);
 		System.out.println("Filter element "+message);
 		System.out.println(DOMUtil.serializeDOMToString(filterElement));
-		assertEquals("Wrong "+message+" filter namespace", PrismConstants.NS_QUERY, filterElement.getNamespaceURI());
+		if (hasNamespaces()) {
+			assertEquals("Wrong " + message + " filter namespace", PrismConstants.NS_QUERY, filterElement.getNamespaceURI());
+		}
 		assertEquals("Wrong "+message+" filter localName", "equal", filterElement.getLocalName());
 	}
-	
+
+	protected abstract boolean hasNamespaces();
+
 	private void assertFilter(String message, SearchFilterType filter) {
 		assertNotNull("No "+message+" filter", filter);
 	}
