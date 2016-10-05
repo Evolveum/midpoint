@@ -30,6 +30,7 @@ import javax.management.ObjectName;
 import com.evolveum.midpoint.common.SystemConfigurationHolder;
 import com.evolveum.midpoint.web.component.menu.*;
 import com.evolveum.midpoint.web.page.admin.configuration.*;
+import com.evolveum.midpoint.web.page.self.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.AttributeModifier;
@@ -152,10 +153,6 @@ import com.evolveum.midpoint.web.page.admin.workflow.PageWorkItemsAll;
 import com.evolveum.midpoint.web.page.admin.workflow.PageWorkItemsAllocatedToMe;
 import com.evolveum.midpoint.web.page.admin.workflow.PageWorkItemsClaimable;
 import com.evolveum.midpoint.web.page.login.PageLogin;
-import com.evolveum.midpoint.web.page.self.PageRequestRole;
-import com.evolveum.midpoint.web.page.self.PageSelfCredentials;
-import com.evolveum.midpoint.web.page.self.PageSelfDashboard;
-import com.evolveum.midpoint.web.page.self.PageSelfProfile;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.web.security.MidPointAuthWebSession;
 import com.evolveum.midpoint.web.security.SecurityUtils;
@@ -1281,7 +1278,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 				PageSelfCredentials.class);
 		menu.getItems().add(item);
 		item = new MainMenuItem("fa  fa-pencil-square-o", createStringResource("PageAdmin.menu.request"),
-                PageRequestRole.class);
+                PageAssignmentShoppingKart.class);
 		menu.getItems().add(item);
 	}
 
