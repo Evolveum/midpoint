@@ -142,7 +142,7 @@ public class OpResult implements Serializable, Visitable {
         try {
         	OperationResultType resultType = result.createOperationResultType();
         	ObjectFactory of = new ObjectFactory();
-			opResult.xml = page.getPrismContext().serializeAtomicValue(of.createOperationResult(resultType), PrismContext.LANG_XML);
+			opResult.xml = page.getPrismContext().xmlSerializer().serializeAtomicValue(of.createOperationResult(resultType));
 		} catch (SchemaException|RuntimeException ex) {
             String m = "Can't create xml: " + ex;
 //			error(m);

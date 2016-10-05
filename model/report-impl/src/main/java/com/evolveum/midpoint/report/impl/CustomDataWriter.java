@@ -47,7 +47,7 @@ public class CustomDataWriter implements DataWriter<XMLStreamWriter>{
 		QName rootElement = part.getElementQName();
 		Element serialized;
 		try {
-			serialized = prismContex.serializeAnyDataToElement(obj, rootElement);
+			serialized = prismContex.domSerializer().serializeAnyData(obj, rootElement);
 			StaxUtils.copy(serialized, output);
 //			output.writeCharacters(serialized);
 		} catch (SchemaException | XMLStreamException e) {

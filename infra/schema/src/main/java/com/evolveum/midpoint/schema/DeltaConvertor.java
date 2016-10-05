@@ -248,7 +248,7 @@ public class DeltaConvertor {
         ObjectDeltaType objectDeltaType = toObjectDeltaType(delta, options);
         SerializationOptions serializationOptions = new SerializationOptions();
         serializationOptions.setSerializeReferenceNames(DeltaConversionOptions.isSerializeReferenceNames(options));
-        return delta.getPrismContext().xmlSerializer().root(SchemaConstants.T_OBJECT_DELTA).options(serializationOptions).serializeAtomicValue(objectDeltaType);
+        return delta.getPrismContext().xmlSerializer().options(serializationOptions).serializeAtomicValue(objectDeltaType, SchemaConstants.T_OBJECT_DELTA);
     }
 
 

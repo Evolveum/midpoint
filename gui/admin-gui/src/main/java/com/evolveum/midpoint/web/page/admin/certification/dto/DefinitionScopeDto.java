@@ -46,7 +46,7 @@ public class DefinitionScopeDto implements Serializable {
 
         try {
             RootXNode clause = searchFilterType.getFilterClauseAsRootXNode();
-            searchFilterText = prismContext.serializeXNodeToString(clause, PrismContext.LANG_XML);
+            searchFilterText = prismContext.xmlSerializer().serialize(clause);
         } catch (SchemaException e) {
             throw new SystemException("Cannot serialize search filter " + searchFilterType + ": " + e.getMessage(), e);
         }

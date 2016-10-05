@@ -113,7 +113,7 @@ public class SchemaStep extends WizardStep {
                 PageBase page = (PageBase) SchemaStep.this.getPage();
 
                 try {
-                    return page.getPrismContext().xmlSerializer().root(SchemaConstantsGenerated.C_SCHEMA).serialize(xmlSchema.getValue());
+                    return page.getPrismContext().xmlSerializer().serialize(xmlSchema.getValue(), SchemaConstantsGenerated.C_SCHEMA);
                 } catch (SchemaException|RuntimeException ex) {
 					LoggingUtils.logUnexpectedException(LOGGER, "Couldn't serialize resource schema", ex);
 					return WebComponentUtil.exceptionToString("Couldn't serialize resource schema", ex);

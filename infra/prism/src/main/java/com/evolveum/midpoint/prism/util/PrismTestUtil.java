@@ -144,11 +144,11 @@ public class PrismTestUtil {
     }
 
     public static String serializeAtomicValue(Object object, QName elementName) throws SchemaException {
-        return getPrismContext().xmlSerializer().root(elementName).serializeAtomicValue(object);
+        return getPrismContext().xmlSerializer().serializeAtomicValue(object, elementName);
     }
 
     public static String serializeAnyData(Object o, QName defaultRootElementName) throws SchemaException {
-        return getPrismContext().serializeAnyData(o, defaultRootElementName, PrismContext.LANG_XML);
+        return getPrismContext().xmlSerializer().serializeAnyData(o, defaultRootElementName);
     }
 
     public static String serializeJaxbElementToString(JAXBElement element) throws SchemaException {
@@ -245,7 +245,7 @@ public class PrismTestUtil {
         LOGGER.info(dumpX);
         System.out.println(dumpX);
 
-        String dumpXml = prismContext.serializeXNodeToString(new RootXNode(new QName("query"), mapXNode), PrismContext.LANG_XML);
+        String dumpXml = prismContext.xmlSerializer().serialize(new RootXNode(new QName("query"), mapXNode));
         System.out.println(dumpXml);
 	}
 }

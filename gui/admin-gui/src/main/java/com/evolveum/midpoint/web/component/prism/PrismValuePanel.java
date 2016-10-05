@@ -587,7 +587,7 @@ public class PrismValuePanel extends Panel {
 						  }
 						  PrismContext prismContext = ((PageBase) getPage()).getPrismContext();
 						  try {
-							  return prismContext.serializeAnyData(ppv.getValue(), name, PrismContext.LANG_XML);
+							  return prismContext.xmlSerializer().serializeAnyData(ppv.getValue(), name);
 						  } catch (SchemaException e) {
 							  throw new SystemException("Couldn't serialize property value of type: " + valueType + ": " + e.getMessage(), e);
 						  }

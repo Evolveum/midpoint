@@ -306,7 +306,7 @@ public class PrismContextImpl implements PrismContext {
 
 	@Override
 	public PrismSerializer<String> serializerFor(String language) {
-		return new PrismSerializerImpl(parserHelpers, language);
+		return new PrismSerializerImpl<>(new SerializerStringTarget(parserHelpers, language), null, null);
 	}
 
 	@Override
@@ -326,82 +326,13 @@ public class PrismContextImpl implements PrismContext {
 
 	@Override
 	public PrismSerializer<Element> domSerializer() {
-		return new PrismDomSerializerImpl();
+		return new PrismSerializerImpl<>(new SerializerDomTarget(parserHelpers), null, null);
 	}
 
 	@Override
 	public PrismSerializer<XNode> xnodeSerializer() {
-		return new PrismXNodeSerializerImpl();
+		return new PrismSerializerImpl<>(new SerializerXNodeTarget(parserHelpers), null, null);
 	}
-
-	@Override
-	public <O extends Objectable> String serializeObjectToString(PrismObject<O> object, String language,
-			SerializationOptions options) throws SchemaException {
-		Parser parser = getParserNotNull(language);
-		RootXNode xroot = xnodeProcessor.serializeObject(object);
-		return parser.serializeToString(xroot, SerializationContext.forOptions(options));
-	}
-
-
-	@Override
-	public String serializeXNodeToString(RootXNode root, String language) throws SchemaException {
-		Parser parser = getParserNotNull(language);
-		return parser.serializeToString(root, null);
-	}
-
-
-	@Override
-	public String serializeAtomicValue(Object value, QName elementName, String language,
-			SerializationOptions serializationOptions) throws SchemaException {
-		Parser parser = getParserNotNull(language);
-		SerializationContext sc = new SerializationContext(serializationOptions);
-		RootXNode xnode = xnodeProcessor.serializeAtomicValue(value, elementName, sc);
-		return parser.serializeToString(xnode, sc);
-	}
-
-    @Override
-	public String serializeAtomicValue(JAXBElement<?> element, String language) throws SchemaException {
-        Parser parser = getParserNotNull(language);
-        RootXNode xnode = xnodeProcessor.serializeAtomicValue(element);
-        return parser.serializeToString(xnode, null, null);
-    }
-
-
-    /**
-     * Serializes any data - i.e. either Item or an atomic value.
-     * Does not support PrismValues: TODO: implement that!
-     *
-     * @param object
-     * @param language
-     * @return
-     * @throws SchemaException
-     */
-
-    @Override
-	public String serializeAnyData(Object object, String language) throws SchemaException {
-        Parser parser = getParserNotNull(language);
-        RootXNode xnode = xnodeProcessor.serializeAnyData(object, null);
-        return parser.serializeToString(xnode, null);
-    }
-
-    @Override
-	public String serializeAnyData(Object object, QName defaultRootElementName, String language) throws SchemaException {
-        Parser parser = getParserNotNull(language);
-        RootXNode xnode = xnodeProcessor.serializeAnyData(object, defaultRootElementName, null);
-        return parser.serializeToString(xnode, null);
-    }
-
-    @Override
-	public Element serializeAnyDataToElement(Object object, QName defaultRootElementName) throws SchemaException {
-        RootXNode xnode = xnodeProcessor.serializeAnyData(object, defaultRootElementName, null);
-        return getParserDom().serializeXRootToElement(xnode);
-    }
-    
-    @Override
-	public Element serializeAnyDataToElement(Object object, QName defaultRootElementName, SerializationContext ctx) throws SchemaException {
-        RootXNode xnode = xnodeProcessor.serializeAnyData(object, defaultRootElementName, ctx);
-        return getParserDom().serializeXRootToElement(xnode);
-    }
 
     @Override
 	public boolean canSerialize(Object value) {
@@ -422,20 +353,6 @@ public class PrismContextImpl implements PrismContext {
 //        RootXNode xroot = xnodeProcessor.serializeItemAsRoot(property);
 //        return parser.serializeToString(xroot);
 //    }
-
-    @Override
-	@Deprecated
-	public <O extends Objectable> Element serializeToDom(PrismObject<O> object) throws SchemaException {
-		RootXNode xroot = xnodeProcessor.serializeObject(object);
-		return getParserDom().serializeXRootToElement(xroot);
-	}
-
-    @Override
-	@Deprecated
-    public Element serializeValueToDom(PrismValue pval, QName elementName) throws SchemaException {
-        RootXNode xroot = xnodeProcessor.serializeItemValueAsRoot(pval, elementName);
-        return getParserDom().serializeXRootToElement(xroot);
-    }
 
     @Override
 	@Deprecated

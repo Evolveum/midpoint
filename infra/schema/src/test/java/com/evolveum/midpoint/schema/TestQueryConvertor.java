@@ -315,7 +315,7 @@ public class TestQueryConvertor {
 	}
 
 	private String toXml(QueryType q1jaxb) throws SchemaException {
-		return getPrismContext().xmlSerializer().root(SchemaConstantsGenerated.Q_QUERY).serializeAtomicValue(q1jaxb);
+		return getPrismContext().xmlSerializer().serializeAtomicValue(q1jaxb, SchemaConstantsGenerated.Q_QUERY);
 	}
 
 	@Test

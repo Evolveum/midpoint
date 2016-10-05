@@ -197,7 +197,7 @@ public abstract class TestParseResource {
 
 		// SERIALIZE
 		
-		String serializesSchema = prismContext.serializerFor(getLanguage()).root(new QName("fakeNs", "fake")).serialize(schemaContainer.getValue());
+		String serializesSchema = prismContext.serializerFor(getLanguage()).serialize(schemaContainer.getValue(), new QName("fakeNs", "fake"));
 		
 		System.out.println("serialized schema:");
 		System.out.println(serializesSchema);

@@ -120,44 +120,10 @@ public interface PrismContext {
 
 	<O extends Objectable> String serializeObjectToString(PrismObject<O> object, String language) throws SchemaException;
 
-	/**
-	 * Serializes an atomic value - i.e. something that fits into a prism property (if such a property would exist).
-	 *
-	 * @param value Value to be serialized.
-	 * @param elementName Element name to be used.
-	 * @param language
-	 * @return
-	 * @throws SchemaException
-	 *
-	 * BEWARE, currently works only for values that can be processed via PrismBeanConvertor - i.e. not for special
-	 * cases like PolyStringType, ProtectedStringType, etc.
-	 */
-
-	String serializeAtomicValue(Object value, QName elementName, String language, SerializationOptions serializationOptions) throws SchemaException;
-
-	String serializeAtomicValue(JAXBElement<?> element, String language) throws SchemaException;
-
-	String serializeAnyData(Object object, String language) throws SchemaException;
-
-	String serializeAnyData(Object object, QName defaultRootElementName, String language) throws SchemaException;
-
-	Element serializeAnyDataToElement(Object object, QName defaultRootElementName) throws SchemaException;
-
-	Element serializeAnyDataToElement(Object object, QName defaultRootElementName, SerializationContext ctx) throws SchemaException;
-
 	boolean canSerialize(Object value);
 
 	@Deprecated
-	<O extends Objectable> Element serializeToDom(PrismObject<O> object) throws SchemaException;
-
-	@Deprecated
-	Element serializeValueToDom(PrismValue pval, QName elementName) throws SchemaException;
-
-	@Deprecated
 	Element serializeValueToDom(PrismValue pval, QName elementName, Document document) throws SchemaException;
-
-	@Deprecated
-	String serializeXNodeToString(RootXNode query, String langXml) throws SchemaException;
 
 	RawType toRawType(Item item) throws SchemaException;
 

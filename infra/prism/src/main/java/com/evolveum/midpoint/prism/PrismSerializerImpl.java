@@ -16,50 +16,40 @@
 
 package com.evolveum.midpoint.prism;
 
-import com.evolveum.midpoint.prism.parser.Parser;
-import com.evolveum.midpoint.prism.parser.ParserHelpers;
 import com.evolveum.midpoint.prism.xnode.RootXNode;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import org.jetbrains.annotations.NotNull;
 
+import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
 /**
- * TODO eliminate code duplication within three implementations of PrismSerializer
- *
  * @author mederly
  */
-public class PrismSerializerImpl implements PrismSerializer<String> {
+public class PrismSerializerImpl<T> implements PrismSerializer<T> {
 
-	@NotNull private final ParserHelpers parserHelpers;
-	@NotNull private final String language;
+	@NotNull private final SerializerTarget<T> target;
 	private final QName elementName;
 	private final SerializationContext context;
 
-	public PrismSerializerImpl(@NotNull ParserHelpers parserHelpers, @NotNull String language, QName elementName, SerializationContext context) {
-		this.parserHelpers = parserHelpers;
-		this.language = language;
+	public PrismSerializerImpl(@NotNull SerializerTarget<T> target, QName elementName, SerializationContext context) {
+		this.target = target;
 		this.elementName = elementName;
 		this.context = context;
 	}
 
-	@NotNull
-	public String getLanguage() {
-		return language;
+	@Override
+	public PrismSerializerImpl<T> context(SerializationContext context) {
+		return new PrismSerializerImpl<>(this.target, elementName, context);
 	}
 
 	@Override
-	public PrismSerializerImpl context(SerializationContext context) {
-		return new PrismSerializerImpl(this.parserHelpers, this.language, elementName, context);
+	public PrismSerializerImpl<T> root(QName elementName) {
+		return new PrismSerializerImpl<>(this.target, elementName, this.context);
 	}
 
 	@Override
-	public PrismSerializerImpl root(QName elementName) {
-		return new PrismSerializerImpl(this.parserHelpers, this.language, elementName, this.context);
-	}
-
-	@Override
-	public PrismSerializerImpl options(SerializationOptions options) {
+	public PrismSerializerImpl<T> options(SerializationOptions options) {
 		SerializationContext context;
 		if (this.context != null) {
 			context = this.context.clone();
@@ -67,32 +57,60 @@ public class PrismSerializerImpl implements PrismSerializer<String> {
 		} else {
 			context = new SerializationContext(options);
 		}
-		return new PrismSerializerImpl(this.parserHelpers, this.language, this.elementName, context);
+		return new PrismSerializerImpl<>(this.target, this.elementName, context);
 	}
 
 	@Override
-	public <O extends Objectable> String serialize(PrismObject<O> object) throws SchemaException {
-		RootXNode xroot = parserHelpers.xnodeProcessor.serializeObject(object, false, context);			// TODO serialize composite objects?
+	public <O extends Objectable> T serialize(PrismObject<O> object) throws SchemaException {
+		RootXNode xroot = target.parserHelpers.xnodeProcessor.serializeObject(object, false, context);			// TODO serialize composite objects?
 		if (elementName != null) {
 			xroot.setRootElementName(elementName);		// TODO what about the type?
 		}
-		return getParser().serializeToString(xroot, context);
-	}
-
-	private Parser getParser() {
-		return parserHelpers.parserRegistry.parserFor(language);
+		return target.serialize(xroot, context);
 	}
 
 	@Override
-	public <C extends Containerable> String serialize(PrismContainerValue<C> cval) throws SchemaException {
-		RootXNode xroot = parserHelpers.xnodeProcessor.serializeItemValueAsRoot(cval, elementName);	// TODO context
-		return getParser().serializeToString(xroot, context);
+	public T serialize(PrismValue value) throws SchemaException {
+		return serialize(value, elementName);
 	}
 
 	@Override
-	public String serializeAtomicValue(Object value) throws SchemaException {
-		RootXNode xroot = parserHelpers.xnodeProcessor.serializeAtomicValue(value, elementName, context);
-		return getParser().serializeToString(xroot, context);
+	public T serialize(PrismValue value, QName rootElementName) throws SchemaException {
+		RootXNode xroot = target.parserHelpers.xnodeProcessor.serializeItemValueAsRoot(value, elementName);	// TODO context
+		return target.serialize(xroot, context);
+	}
+
+	@Override
+	public T serialize(RootXNode xnode) throws SchemaException {
+		return target.serialize(xnode, context);
+	}
+
+	@Override
+	public T serializeAtomicValue(Object value) throws SchemaException {
+		return serializeAtomicValue(value, elementName);
+	}
+
+	@Override
+	public T serializeAtomicValue(Object value, QName rootElementName) throws SchemaException {
+		RootXNode xnode = target.parserHelpers.xnodeProcessor.serializeAtomicValue(value, rootElementName, context);
+		return target.serialize(xnode, context);
+	}
+
+	@Override
+	public T serializeAtomicValue(JAXBElement<?> value) throws SchemaException {
+		RootXNode xnode = target.parserHelpers.xnodeProcessor.serializeAtomicValue(value);	// TODO context
+		return target.serialize(xnode, context);
+	}
+
+	@Override
+	public T serializeAnyData(Object value) throws SchemaException {
+		return serializeAnyData(value, elementName);
+	}
+
+	@Override
+	public T serializeAnyData(Object value, QName rootName) throws SchemaException {
+		RootXNode xnode = target.parserHelpers.xnodeProcessor.serializeAnyData(value, rootName, context);
+		return target.serialize(xnode, context);
 	}
 
 

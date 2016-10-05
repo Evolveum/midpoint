@@ -230,9 +230,9 @@ public class ExpressionUtil {
 		if (element.getValue() instanceof RawType) {
 			RawType raw = (RawType) element.getValue();
 			RootXNode rootNode = new RootXNode(element.getName(), raw.serializeToXNode());
-			xml = prismContext.serializeXNodeToString(rootNode, PrismContext.LANG_XML);
+			xml = prismContext.xmlSerializer().serialize(rootNode);
 		} else {
-			xml = prismContext.serializeAtomicValue(element, PrismContext.LANG_XML);
+			xml = prismContext.xmlSerializer().serializeAtomicValue(element);
 		}
 		return WebXmlUtil.stripNamespaceDeclarations(xml);
 	}

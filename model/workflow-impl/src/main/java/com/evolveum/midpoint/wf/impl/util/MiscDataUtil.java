@@ -184,7 +184,7 @@ public class MiscDataUtil {
     public static String serializeContainerableToXml(Containerable containerable, PrismContext prismContext) {
         try {
             PrismContainerValue value = containerable.asPrismContainerValue();
-            return prismContext.xmlSerializer().root(value.getContainer().getElementName()).serialize(value);
+            return prismContext.xmlSerializer().serialize(value, value.getContainer().getElementName());
         } catch (SchemaException e) {
             throw new SystemException("Couldn't serialize a Containerable " + containerable + " into XML", e);
         }

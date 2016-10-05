@@ -139,14 +139,14 @@ public class LazyXPathVariableResolver implements XPathVariableResolver {
 	        
 	        if (variableValue instanceof PrismObject) {
 	        	PrismObject<?> prismObject = (PrismObject<?>)variableValue;
-	        	variableValue = prismObject.getPrismContext().serializeToDom(prismObject);
+	        	variableValue = prismObject.getPrismContext().domSerializer().serialize(prismObject);
 
 	        } else if (variableValue instanceof PrismProperty<?>) {
 	        	PrismProperty<?> prismProperty = (PrismProperty<?>)variableValue;
 	        	DomParser domProcessor = prismProperty.getPrismContext().getParserDom();
 	        	final List<Element> elementList = new ArrayList<Element>();
 	        	for (PrismPropertyValue<?> value: prismProperty.getValues()) {
-	        		Element valueElement = prismContext.serializeValueToDom(value, prismProperty.getElementName());
+	        		Element valueElement = prismContext.domSerializer().serialize(value, prismProperty.getElementName());
 	        		elementList.add(valueElement);
 	        	}
 	        	NodeList nodeList = new NodeList() {
@@ -188,7 +188,7 @@ public class LazyXPathVariableResolver implements XPathVariableResolver {
 						}
 					});
 	        	}
-	        	variableValue = prismContext.serializeValueToDom(pval, variableName);
+	        	variableValue = prismContext.domSerializer().serialize(pval, variableName);
 	        }
 	        
 	        if (!((variableValue instanceof Node)||variableValue instanceof NodeList) 

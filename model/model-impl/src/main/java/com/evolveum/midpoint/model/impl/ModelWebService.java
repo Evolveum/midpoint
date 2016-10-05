@@ -268,7 +268,7 @@ public class ModelWebService extends AbstractModelWebService implements ModelPor
                 } else {
                     // temporarily we send serialized XML in the case of MSL output
                     ItemListType jaxbOutput = prepareXmlData(executionResult.getDataOutput());
-                    output.setMslData(prismContext.serializeAnyData(jaxbOutput, SchemaConstants.C_VALUE, PrismContext.LANG_XML));
+                    output.setMslData(prismContext.xmlSerializer().serializeAnyData(jaxbOutput, SchemaConstants.C_VALUE));
                 }
             }
             result.computeStatusIfUnknown();

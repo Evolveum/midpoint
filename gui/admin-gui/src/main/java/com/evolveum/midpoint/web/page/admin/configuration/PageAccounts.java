@@ -700,7 +700,7 @@ public class PageAccounts extends PageAdminConfiguration {
     	
     	
 		try {
-			xml = getPrismContext().xmlSerializer().root(ShadowType.F_RESULT).serializeAtomicValue(result);
+			xml = getPrismContext().xmlSerializer().serializeAtomicValue(result, ShadowType.F_RESULT);
 			aceEditor.updateModel(new Model<String>(xml));
 		} catch (SchemaException e) {
 			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't parse result", e);

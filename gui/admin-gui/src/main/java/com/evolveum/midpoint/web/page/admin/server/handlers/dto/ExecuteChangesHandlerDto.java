@@ -45,7 +45,7 @@ public class ExecuteChangesHandlerDto extends QueryBasedHandlerDto {
 		PrismContext prismContext = ((MidPointApplication) Application.get()).getPrismContext();
 		try {
 			return WebXmlUtil.stripNamespaceDeclarations(
-					prismContext.serializeAnyData(objectDeltaType, SchemaConstants.MODEL_EXTENSION_OBJECT_DELTA, PrismContext.LANG_XML));
+					prismContext.xmlSerializer().serializeAnyData(objectDeltaType, SchemaConstants.MODEL_EXTENSION_OBJECT_DELTA));
 		} catch (SchemaException e) {
 			throw new SystemException("Couldn't serialize object delta: " + e.getMessage(), e);
 		}

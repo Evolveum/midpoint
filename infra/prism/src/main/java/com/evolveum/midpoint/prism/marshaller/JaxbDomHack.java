@@ -424,9 +424,9 @@ public class JaxbDomHack {
             if (object instanceof Objectable) {
                 xml = prismContext.serializeObjectToString(((Objectable) object).asPrismObject(), PrismContext.LANG_XML);
             } else if (object instanceof Containerable) {
-                xml = prismContext.xmlSerializer().root(fakeQName).serialize(((Containerable) object).asPrismContainerValue());
+                xml = prismContext.xmlSerializer().serialize(((Containerable) object).asPrismContainerValue(), fakeQName);
             } else {
-                xml = prismContext.serializeAnyData(object, fakeQName, PrismContext.LANG_XML);
+                xml = prismContext.xmlSerializer().serializeAnyData(object, fakeQName);
             }
         } catch (Exception ex) {
             Trace log = logger != null ? logger : LOGGER;

@@ -396,7 +396,7 @@ public class RAccessCertificationCase implements Container {
         PrismContainerValue<AccessCertificationCaseType> cvalue = case1.asPrismContainerValue();
         String xml;
         try {
-            xml = prismContext.xmlSerializer().root(new QName("value")).serialize(cvalue);
+            xml = prismContext.xmlSerializer().serialize(cvalue, new QName("value"));
         } catch (SchemaException e) {
             throw new IllegalStateException("Couldn't serialize certification case to string", e);
         }

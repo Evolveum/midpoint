@@ -147,7 +147,7 @@ public class ModelWebServiceRaw implements Provider<DOMSource> {
                 GetObjectResponseType gr = new GetObjectResponseType();
                 gr.setObject(objectTypeHolder.value);
                 gr.setResult(operationResultTypeHolder.value);
-                response = prismContext.serializeAnyDataToElement(gr, ModelPort.GET_OBJECT_RESPONSE);
+                response = prismContext.domSerializer().serializeAnyData(gr, ModelPort.GET_OBJECT_RESPONSE);
             } else if (requestObject instanceof SearchObjectsType) {
                 SearchObjectsType s = (SearchObjectsType) requestObject;
                 Holder<ObjectListType> objectListTypeHolder = new Holder<>();
@@ -155,13 +155,13 @@ public class ModelWebServiceRaw implements Provider<DOMSource> {
                 SearchObjectsResponseType sr = new SearchObjectsResponseType();
                 sr.setObjectList(objectListTypeHolder.value);
                 sr.setResult(operationResultTypeHolder.value);
-                response = prismContext.serializeAnyDataToElement(sr, ModelPort.SEARCH_OBJECTS_RESPONSE);
+                response = prismContext.domSerializer().serializeAnyData(sr, ModelPort.SEARCH_OBJECTS_RESPONSE);
             } else if (requestObject instanceof ExecuteChangesType) {
                 ExecuteChangesType e = (ExecuteChangesType) requestObject;
                 ObjectDeltaOperationListType objectDeltaOperationListType = ws.executeChanges(e.getDeltaList(), e.getOptions());
                 ExecuteChangesResponseType er = new ExecuteChangesResponseType();
                 er.setDeltaOperationList(objectDeltaOperationListType);
-                response = prismContext.serializeAnyDataToElement(er, ModelPort.EXECUTE_CHANGES_RESPONSE);
+                response = prismContext.domSerializer().serializeAnyData(er, ModelPort.EXECUTE_CHANGES_RESPONSE);
             } else if (requestObject instanceof FindShadowOwnerType) {
                 FindShadowOwnerType f = (FindShadowOwnerType) requestObject;
                 Holder<UserType> userTypeHolder = new Holder<>();
@@ -169,29 +169,29 @@ public class ModelWebServiceRaw implements Provider<DOMSource> {
                 FindShadowOwnerResponseType fsr = new FindShadowOwnerResponseType();
                 fsr.setUser(userTypeHolder.value);
                 fsr.setResult(operationResultTypeHolder.value);
-                response = prismContext.serializeAnyDataToElement(fsr, ModelPort.FIND_SHADOW_OWNER_RESPONSE);
+                response = prismContext.domSerializer().serializeAnyData(fsr, ModelPort.FIND_SHADOW_OWNER_RESPONSE);
             } else if (requestObject instanceof TestResourceType) {
                 TestResourceType tr = (TestResourceType) requestObject;
                 OperationResultType operationResultType = ws.testResource(tr.getResourceOid());
                 TestResourceResponseType trr = new TestResourceResponseType();
                 trr.setResult(operationResultType);
-                response = prismContext.serializeAnyDataToElement(trr, ModelPort.TEST_RESOURCE_RESPONSE);
+                response = prismContext.domSerializer().serializeAnyData(trr, ModelPort.TEST_RESOURCE_RESPONSE);
             } else if (requestObject instanceof ExecuteScriptsType) {
                 ExecuteScriptsType es = (ExecuteScriptsType) requestObject;
                 ExecuteScriptsResponseType esr = ws.executeScripts(es);
-                response = prismContext.serializeAnyDataToElement(esr, ModelPort.EXECUTE_SCRIPTS_RESPONSE);
+                response = prismContext.domSerializer().serializeAnyData(esr, ModelPort.EXECUTE_SCRIPTS_RESPONSE);
             } else if (requestObject instanceof ImportFromResourceType) {
                 ImportFromResourceType ifr = (ImportFromResourceType) requestObject;
                 TaskType taskType = ws.importFromResource(ifr.getResourceOid(), ifr.getObjectClass());
                 ImportFromResourceResponseType ifrr = new ImportFromResourceResponseType();
                 ifrr.setTask(taskType);
-                response = prismContext.serializeAnyDataToElement(ifrr, ModelPort.IMPORT_FROM_RESOURCE_RESPONSE);
+                response = prismContext.domSerializer().serializeAnyData(ifrr, ModelPort.IMPORT_FROM_RESOURCE_RESPONSE);
             } else if (requestObject instanceof NotifyChangeType) {
                 NotifyChangeType nc = (NotifyChangeType) requestObject;
                 TaskType taskType = ws.notifyChange(nc.getChangeDescription());
                 NotifyChangeResponseType ncr = new NotifyChangeResponseType();
                 ncr.setTask(taskType);
-                response = prismContext.serializeAnyDataToElement(ncr, ModelPort.NOTIFY_CHANGE_RESPONSE);
+                response = prismContext.domSerializer().serializeAnyData(ncr, ModelPort.NOTIFY_CHANGE_RESPONSE);
             } else {
                 throw ws.createIllegalArgumentFault("Unsupported request type: " + requestObject);
             }

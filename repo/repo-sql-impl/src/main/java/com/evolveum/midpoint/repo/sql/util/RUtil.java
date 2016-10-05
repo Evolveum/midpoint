@@ -57,6 +57,7 @@ import org.hibernate.metadata.ClassMetadata;
 import org.hibernate.persister.entity.AbstractEntityPersister;
 import org.hibernate.tuple.IdentifierProperty;
 import org.hibernate.tuple.entity.EntityMetamodel;
+import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Element;
 
 import javax.persistence.Table;
@@ -122,16 +123,8 @@ public final class RUtil {
         }
     }
 
-    public static <T> String toRepo(ItemDefinition parentDefinition, QName itemName, T value,
+    public static String toRepo(ItemDefinition parentDefinition, QName itemName, @NotNull OperationResultType value,
                                     PrismContext prismContext) throws SchemaException, JAXBException {
-        if (value == null) {
-            return null;
-        }
-
-        if (value instanceof Objectable) {
-            return prismContext.serializeObjectToString(((Objectable) value).asPrismObject(),
-                    PrismContext.LANG_XML);
-        }
 
         ItemDefinition definition = null;
         if (parentDefinition instanceof PrismContainerDefinition) {

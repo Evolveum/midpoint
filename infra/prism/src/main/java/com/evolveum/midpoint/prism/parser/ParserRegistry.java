@@ -16,10 +16,7 @@
 
 package com.evolveum.midpoint.prism.parser;
 
-import com.evolveum.midpoint.prism.ParserElementSource;
-import com.evolveum.midpoint.prism.ParserFileSource;
-import com.evolveum.midpoint.prism.ParserSource;
-import com.evolveum.midpoint.prism.ParserStringSource;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.parser.dom.DomParser;
 import com.evolveum.midpoint.prism.parser.json.JsonParser;
 import com.evolveum.midpoint.prism.parser.json.YamlParser;
@@ -75,6 +72,11 @@ public class ParserRegistry {
         }
 		throw new SystemException("No parser for data '"+ DebugUtil.excerpt(data,16)+"' (autodetect)");
     }
+
+	@NotNull
+	public DomParser domParser() {
+		return (DomParser) parserFor(PrismContext.LANG_XML);
+	}
 
 	public Parser parserFor(String language) {
 		Parser parser = parserMap.get(language);

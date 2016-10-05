@@ -542,8 +542,8 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
             // TODO: createFakeParentElement??? why we don't use the real
             // name???
             return prismContext.xmlSerializer()
-                    .root(QNameUtil.getNodeQName(RUtil.createFakeParentElement()))
-                    .serialize(((Containerable) value).asPrismContainerValue());
+                    .serialize(((Containerable) value).asPrismContainerValue(),
+                            QNameUtil.getNodeQName(RUtil.createFakeParentElement()));
         }
 
 
