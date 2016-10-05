@@ -349,6 +349,9 @@ public class ShadowManager {
 		MiscSchemaUtil.reduceSearchResult(results);
 
 		LOGGER.trace("lookupShadow found {} objects", results.size());
+		if (LOGGER.isTraceEnabled() && results.size() == 1) {
+			LOGGER.trace("lookupShadow found\n{}", results.get(0).debugDump(1));
+		}
 		
 		return results;
 

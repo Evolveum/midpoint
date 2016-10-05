@@ -1144,13 +1144,13 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			throws ObjectNotFoundException, CommunicationException, GenericFrameworkException,
 			SchemaException, SecurityViolationException, ConfigurationException {
 
-		Collection<? extends ResourceAttribute<?>> identifiers = resourceObjectIdentification.getPrimaryIdentifiers();
+		Validate.notNull(resourceObjectIdentification, "Null primary identifiers");
 		ObjectClassComplexTypeDefinition objectClassDefinition = resourceObjectIdentification.getObjectClassDefinition();
 		// Result type for this operation
 		OperationResult result = parentResult.createMinorSubresult(ConnectorInstance.class.getName()
 				+ ".fetchObject");
 		result.addParam("resourceObjectDefinition", objectClassDefinition);
-		result.addCollectionOfSerializablesAsParam("identifiers", identifiers);
+		result.addParam("identification", resourceObjectIdentification);
 		result.addContext("connector", connectorType);
 
 		if (connIdConnectorFacade == null) {
@@ -1162,28 +1162,28 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		// Get UID from the set of identifiers
 		Uid uid;
 		try {
-			uid = getUid(objectClassDefinition, identifiers);
+			uid = getUid(resourceObjectIdentification);
 		} catch (SchemaException e) {
 			result.recordFatalError(e);
 			throw e;
 		}
 		if (uid == null) {
 			result.recordFatalError("Required attribute UID not found in identification set while attempting to fetch object identified by "
-					+ identifiers + " from " + description);
+					+ resourceObjectIdentification + " from " + description);
 			throw new IllegalArgumentException(
 					"Required attribute UID not found in identification set while attempting to fetch object identified by "
-							+ identifiers + " from " + description);
+							+ resourceObjectIdentification + " from " + description);
 		}
 
 		ObjectClass icfObjectClass = icfNameMapper.objectClassToIcf(objectClassDefinition, getSchemaNamespace(), connectorType, legacySchema);
 		if (icfObjectClass == null) {
 			result.recordFatalError("Unable to determine object class from QName "
 					+ objectClassDefinition.getTypeName()
-					+ " while attempting to fetch object identified by " + identifiers + " from "
+					+ " while attempting to fetch object identified by " + resourceObjectIdentification + " from "
 					+ description);
 			throw new IllegalArgumentException("Unable to determine object class from QName "
 					+ objectClassDefinition.getTypeName()
-					+ " while attempting to fetch object identified by " + identifiers + " from "
+					+ " while attempting to fetch object identified by " + resourceObjectIdentification + " from "
 					+ description);
 		}
 		
@@ -1217,7 +1217,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			throw ex;
 		} catch (ObjectNotFoundException ex) {
 			result.recordFatalError("Object not found");
-			throw new ObjectNotFoundException("Object identified by " + identifiers + " (ConnId UID "+uid+"), objectClass " + objectClassDefinition.getTypeName() + "  was not found in "
+			throw new ObjectNotFoundException("Object identified by " + resourceObjectIdentification + " (ConnId UID "+uid+"), objectClass " + objectClassDefinition.getTypeName() + "  was not found in "
 					+ description);
 		} catch (SchemaException ex) {
 			result.recordFatalError(ex);
@@ -1229,7 +1229,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 
 		if (co == null) {
 			result.recordFatalError("Object not found");
-			throw new ObjectNotFoundException("Object identified by " + identifiers + " (ConnId UID "+uid+"), objectClass " + objectClassDefinition.getTypeName() + " was not in "
+			throw new ObjectNotFoundException("Object identified by " + resourceObjectIdentification + " (ConnId UID "+uid+"), objectClass " + objectClassDefinition.getTypeName() + " was not in "
 					+ description);
 		}
 
@@ -1593,8 +1593,8 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		}
 		
 		if (uid == null) {
-			result.recordFatalError("No UID in identifiers: " + identifiers);
-			throw new IllegalArgumentException("No UID in identifiers: " + identifiers);
+			result.recordFatalError("Cannot detemine UID from identifiers: " + identifiers);
+			throw new IllegalArgumentException("Cannot detemine UID from identifiers: " + identifiers);
 		}
 		String originalUid = uid.getUidValue();
 
@@ -2609,7 +2609,26 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 
     // UTILITY METHODS
 
-	
+    private Uid getUid(ResourceObjectIdentification resourceObjectIdentification) throws SchemaException {
+    	ResourceAttribute<String> primaryIdentifier = resourceObjectIdentification.getPrimaryIdentifier();
+		if (primaryIdentifier == null) {
+			return null;
+		}
+		String uidValue = primaryIdentifier.getRealValue();
+		String nameValue = null;
+		Collection<? extends ResourceAttribute<?>> secondaryIdentifiers = resourceObjectIdentification.getSecondaryIdentifiers();
+		if (secondaryIdentifiers != null && secondaryIdentifiers.size() == 1) {
+			nameValue = (String) secondaryIdentifiers.iterator().next().getRealValue();
+		}
+		if (uidValue != null) {
+			if (nameValue == null) {
+				return new Uid(uidValue);
+			} else {
+				return new Uid(uidValue, new Name(nameValue));
+			}
+		}
+		return null;
+	}
 
 	/**
 	 * Looks up ConnId Uid identifier in a (potentially multi-valued) set of

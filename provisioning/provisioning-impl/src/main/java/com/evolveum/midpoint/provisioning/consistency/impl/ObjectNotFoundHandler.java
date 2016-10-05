@@ -38,6 +38,8 @@ import com.evolveum.midpoint.provisioning.impl.ConstraintsChecker;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.DeltaConvertor;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -109,7 +111,7 @@ public class ObjectNotFoundHandler extends ErrorHandler {
 			result.addParam("exception", ex.getMessage());
 		}
 
-		LOGGER.trace("Start compensating object not found situation while execution operation: {}", op.name());
+		LOGGER.trace("Start compensating object not found situation while execution operation: {}", op.name(), ex);
 //		Task task = taskManager.createTaskInstance();
 		ObjectDelta delta = null;
 		switch (op) {
@@ -180,6 +182,7 @@ public class ObjectNotFoundHandler extends ErrorHandler {
 				try {
 					ProvisioningOperationOptions options = new ProvisioningOperationOptions();
 					options.setCompletePostponed(false);
+					options.setDoDiscovery(false);
 					provisioningService.modifyObject(ShadowType.class, oid, modifications, null, options, task, 
 							result);
 					parentResult.recordHandledError(
@@ -282,8 +285,18 @@ public class ObjectNotFoundHandler extends ErrorHandler {
                 PrismObject newShadow;
                 try {
                 	LOGGER.trace("DISCOVERY: retrieving shadow  {}", oid);
-				    newShadow = provisioningService.getObject(shadow.getClass(), oid, null, task, result);
+				    Collection<SelectorOptions<GetOperationOptions>> options = 
+				    		SelectorOptions.createCollection(GetOperationOptions.createDoNotDiscovery());
+					newShadow = provisioningService.getObject(shadow.getClass(), oid, options, task, result);
 				    LOGGER.trace("DISCOVERY: retrieved {}", newShadow);
+                } catch (ObjectNotFoundException e) {
+                	String msg = "Strange thing did happen: new shadow ("+oid
+                			+") was supposedly created for old shadow "+shadow+", however the new shadow was not found: "
+                			+e.getMessage();
+                	LOGGER.error(msg);
+                	result.recordFatalError(msg, e);
+                	parentResult.recordFatalError(msg);
+                	throw new ObjectNotFoundException(msg, ex);
                 } finally {
                     result.computeStatus();
                 }

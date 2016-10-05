@@ -1921,10 +1921,10 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
     	}
     	if (nameHintChecksEnabled()) {
     		if (uid.getNameHint() == null) {
-    			throw new IllegalArgumentException("Uid name hint must not be null.");
+    			throw new InvalidAttributeValueException("Uid name hint must not be null.");
     		}
     		if (StringUtils.isBlank(uid.getNameHintValue())) {
-    			throw new IllegalArgumentException("Uid name hint must not be empty.");
+    			throw new InvalidAttributeValueException("Uid name hint must not be empty.");
     		}
     	}
     }
@@ -1956,10 +1956,10 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 					if (filter.getAttribute().is(Uid.NAME)) {
 						Uid uid = (Uid)filter.getAttribute();
 						if (uid.getNameHint() == null) {
-			    			throw new IllegalArgumentException("Uid name hint must not be null in filter "+filter);
+			    			throw new InvalidAttributeValueException("Uid name hint must not be null in filter "+filter);
 			    		}
 			    		if (StringUtils.isBlank(uid.getNameHintValue())) {
-			    			throw new IllegalArgumentException("Uid name hint must not be empty in filter "+filter);
+			    			throw new InvalidAttributeValueException("Uid name hint must not be empty in filter "+filter);
 			    		}
 					}
 					return null;
