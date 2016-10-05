@@ -21,7 +21,6 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.model.api.util.ResourceUtils;
 import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -43,7 +42,6 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.tabs.AbstractTab;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.jetbrains.annotations.NotNull;
 
@@ -115,7 +113,7 @@ public class SchemaStep extends WizardStep {
                 PageBase page = (PageBase) SchemaStep.this.getPage();
 
                 try {
-                    return page.getPrismContext().serializeContainerValueToString(xmlSchema.getValue(), SchemaConstantsGenerated.C_SCHEMA, PrismContext.LANG_XML);
+                    return page.getPrismContext().xmlSerializer().root(SchemaConstantsGenerated.C_SCHEMA).serialize(xmlSchema.getValue());
                 } catch (SchemaException|RuntimeException ex) {
 					LoggingUtils.logUnexpectedException(LOGGER, "Couldn't serialize resource schema", ex);
 					return WebComponentUtil.exceptionToString("Couldn't serialize resource schema", ex);

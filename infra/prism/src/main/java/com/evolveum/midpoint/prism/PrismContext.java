@@ -28,6 +28,7 @@ import com.evolveum.midpoint.prism.schema.SchemaDefinitionFactory;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.util.PrismMonitor;
 import com.evolveum.midpoint.prism.xnode.RootXNode;
+import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
 import org.w3c.dom.Document;
@@ -73,19 +74,20 @@ public interface PrismContext {
 
 	void setMonitor(PrismMonitor monitor);
 
+	//region Parsing
 	PrismParser parserFor(File file);
 	PrismParser parserFor(InputStream stream);
 	PrismParserNoIO parserFor(String data);
-
-	@Deprecated
-	PrismParserNoIO parserFor(Element element);
+	@Deprecated PrismParserNoIO parserFor(Element element);
 
 	@Deprecated	// user parserFor + parse instead
 	<T extends Objectable> PrismObject<T> parseObject(File file) throws SchemaException, IOException;
 
 	@Deprecated	// user parserFor + parse instead
 	<T extends Objectable> PrismObject<T> parseObject(String dataString) throws SchemaException;
+	//endregion
 
+	//region Adopt methods
 	<T extends Objectable> void adopt(PrismObject<T> object, Class<T> declaredType) throws SchemaException;
 
 	<T extends Objectable> void adopt(PrismObject<T> object) throws SchemaException;
@@ -105,16 +107,31 @@ public interface PrismContext {
 
 	<C extends Containerable, O extends Objectable> void adopt(PrismContainerValue<C> prismContainerValue, QName typeName,
 			ItemPath path) throws SchemaException;
+	//endregion
 
 	//region Serializing objects, containers, atomic values (properties)
+
+	PrismSerializer<String> serializerFor(String language);
+	PrismSerializer<String> xmlSerializer();
+	PrismSerializer<String> jsonSerializer();
+	PrismSerializer<String> yamlSerializer();
+	PrismSerializer<Element> domSerializer();
+	PrismSerializer<XNode> xnodeSerializer();
+
 	<O extends Objectable> String serializeObjectToString(PrismObject<O> object, String language) throws SchemaException;
 
-	<O extends Objectable> String serializeObjectToString(PrismObject<O> object, String language, SerializationOptions options) throws SchemaException;
-
-	<C extends Containerable> String serializeContainerValueToString(PrismContainerValue<C> cval, QName elementName,
-			String language) throws SchemaException;
-
-	String serializeAtomicValue(Object value, QName elementName, String language) throws SchemaException;
+	/**
+	 * Serializes an atomic value - i.e. something that fits into a prism property (if such a property would exist).
+	 *
+	 * @param value Value to be serialized.
+	 * @param elementName Element name to be used.
+	 * @param language
+	 * @return
+	 * @throws SchemaException
+	 *
+	 * BEWARE, currently works only for values that can be processed via PrismBeanConvertor - i.e. not for special
+	 * cases like PolyStringType, ProtectedStringType, etc.
+	 */
 
 	String serializeAtomicValue(Object value, QName elementName, String language, SerializationOptions serializationOptions) throws SchemaException;
 
@@ -139,12 +156,13 @@ public interface PrismContext {
 	@Deprecated
 	Element serializeValueToDom(PrismValue pval, QName elementName, Document document) throws SchemaException;
 
+	@Deprecated
+	String serializeXNodeToString(RootXNode query, String langXml) throws SchemaException;
+
 	RawType toRawType(Item item) throws SchemaException;
 
 	<T extends Objectable> PrismObject<T> createObject(Class<T> clazz) throws SchemaException;
 
 	<T extends Objectable> T createObjectable(Class<T> clazz) throws SchemaException;
 
-	@Deprecated
-	String serializeXNodeToString(RootXNode query, String langXml) throws SchemaException;
 }

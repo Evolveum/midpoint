@@ -34,12 +34,12 @@ import java.util.List;
  */
 public abstract class PrismParserImpl implements PrismParser {
 
-	private final ParserSource source;
+	@NotNull private final ParserSource source;
 	private final String language;
 	@NotNull private final ParsingContext context;
-	private final ParserHelpers helpers;
+	@NotNull private final ParserHelpers helpers;
 
-	public PrismParserImpl(ParserSource source, String language, @NotNull ParsingContext context, ParserHelpers helpers) {
+	public PrismParserImpl(@NotNull ParserSource source, String language, @NotNull ParsingContext context, @NotNull ParserHelpers helpers) {
 		this.source = source;
 		this.language = language;
 		this.context = context;

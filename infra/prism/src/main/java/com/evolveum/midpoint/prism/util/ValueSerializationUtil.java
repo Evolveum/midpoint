@@ -21,14 +21,11 @@ import com.evolveum.midpoint.prism.xnode.MapXNode;
 import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
+@Deprecated
 public class ValueSerializationUtil {
 	
-	public static <T> String serializeValue(T value, ItemDefinition def, QName itemName, PrismContext prismContext, String language) throws SchemaException{
-		return serializeValue(value, def, itemName, null, prismContext, language);
-	}
-	
+
 	public static <T> String serializeValue(T value, ItemDefinition def, QName itemName, QName parentName, PrismContext prismContext, String language) throws SchemaException{
-//		System.out.println("value serialization");
 		if (value == null){
 			return null;
 		}

@@ -184,7 +184,7 @@ public abstract class TestPrismParsing {
 		
 		// WHEN
 		// We need to serialize with composite objects during roundtrip, otherwise the result will not be equal
-		String userXml = prismContext.serializeObjectToString(originalUser, getOutputFormat(), null);
+		String userXml = prismContext.serializerFor(getOutputFormat()).serialize(originalUser);
 	
 		// THEN
 		System.out.println("Serialized user:");

@@ -57,7 +57,7 @@ public class ReportCreateHandlerDto extends HandlerDto {
 		PrismContext prismContext = ((MidPointApplication) Application.get()).getPrismContext();
 		try {
 			return WebXmlUtil.stripNamespaceDeclarations(
-					prismContext.serializeContainerValueToString(pcv, ReportConstants.REPORT_PARAMS_PROPERTY_NAME, PrismContext.LANG_XML));
+					prismContext.xmlSerializer().root(ReportConstants.REPORT_PARAMS_PROPERTY_NAME).serialize(pcv));
 		} catch (SchemaException e) {
 			throw new SystemException("Couldn't serialize report parameters: " + e.getMessage(), e);
 		}

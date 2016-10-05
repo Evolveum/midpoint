@@ -541,9 +541,9 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
         if (value instanceof Containerable) {
             // TODO: createFakeParentElement??? why we don't use the real
             // name???
-            return prismContext.serializeContainerValueToString(
-                    ((Containerable) value).asPrismContainerValue(),
-                    QNameUtil.getNodeQName(RUtil.createFakeParentElement()), prismContext.LANG_XML);
+            return prismContext.xmlSerializer()
+                    .root(QNameUtil.getNodeQName(RUtil.createFakeParentElement()))
+                    .serialize(((Containerable) value).asPrismContainerValue());
         }
 
 

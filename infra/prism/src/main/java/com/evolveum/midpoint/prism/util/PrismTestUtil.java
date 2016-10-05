@@ -144,7 +144,7 @@ public class PrismTestUtil {
     }
 
     public static String serializeAtomicValue(Object object, QName elementName) throws SchemaException {
-        return getPrismContext().serializeAtomicValue(object, elementName, PrismContext.LANG_XML);
+        return getPrismContext().xmlSerializer().root(elementName).serializeAtomicValue(object);
     }
 
     public static String serializeAnyData(Object o, QName defaultRootElementName) throws SchemaException {

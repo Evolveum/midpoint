@@ -370,7 +370,7 @@ public class PageRepositoryQuery extends PageAdminConfiguration {
 			String filterAsString;
 			if (parsedFilter != null) {
 				SearchFilterType filterType = QueryConvertor.createSearchFilterType(parsedFilter, getPrismContext());
-				filterAsString = getPrismContext().serializeAtomicValue(filterType, SchemaConstantsGenerated.Q_FILTER, PrismContext.LANG_XML);
+				filterAsString = getPrismContext().xmlSerializer().root(SchemaConstantsGenerated.Q_FILTER).serializeAtomicValue(filterType);
 				// TODO remove extra xmlns from serialized value
 			} else {
 				filterAsString = "";

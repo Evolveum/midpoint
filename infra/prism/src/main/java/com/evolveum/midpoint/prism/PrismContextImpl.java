@@ -32,6 +32,7 @@ import com.evolveum.midpoint.prism.schema.SchemaDefinitionFactory;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.util.PrismMonitor;
 import com.evolveum.midpoint.prism.xnode.RootXNode;
+import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -300,9 +301,37 @@ public class PrismContextImpl implements PrismContext {
     //region Serializing objects, containers, atomic values (properties)
 	@Override
 	public <O extends Objectable> String serializeObjectToString(PrismObject<O> object, String language) throws SchemaException {
-		Parser parser = getParserNotNull(language);
-		RootXNode xroot = xnodeProcessor.serializeObject(object);
-		return parser.serializeToString(xroot, null);
+		return serializerFor(language).serialize(object);
+	}
+
+	@Override
+	public PrismSerializer<String> serializerFor(String language) {
+		return new PrismSerializerImpl(parserHelpers, language);
+	}
+
+	@Override
+	public PrismSerializer<String> xmlSerializer() {
+		return serializerFor(LANG_XML);
+	}
+
+	@Override
+	public PrismSerializer<String> jsonSerializer() {
+		return serializerFor(LANG_JSON);
+	}
+
+	@Override
+	public PrismSerializer<String> yamlSerializer() {
+		return serializerFor(LANG_YAML);
+	}
+
+	@Override
+	public PrismSerializer<Element> domSerializer() {
+		return new PrismDomSerializerImpl();
+	}
+
+	@Override
+	public PrismSerializer<XNode> xnodeSerializer() {
+		return new PrismXNodeSerializerImpl();
 	}
 
 	@Override
@@ -313,15 +342,6 @@ public class PrismContextImpl implements PrismContext {
 		return parser.serializeToString(xroot, SerializationContext.forOptions(options));
 	}
 
-	@Override
-	public <C extends Containerable> String serializeContainerValueToString(PrismContainerValue<C> cval, QName elementName,
-			String language) throws SchemaException {
-		Parser parser = getParserNotNull(language);
-		
-		RootXNode xroot = xnodeProcessor.serializeItemValueAsRoot(cval, elementName);
-		//System.out.println("serialized to xnode: " + xroot.debugDump());
-		return parser.serializeToString(xroot, null);
-	}
 
 	@Override
 	public String serializeXNodeToString(RootXNode root, String language) throws SchemaException {
@@ -329,22 +349,6 @@ public class PrismContextImpl implements PrismContext {
 		return parser.serializeToString(root, null);
 	}
 
-	/**
-     * Serializes an atomic value - i.e. something that fits into a prism property (if such a property would exist).
-     *
-     * @param value Value to be serialized.
-     * @param elementName Element name to be used.
-     * @param language
-     * @return
-     * @throws SchemaException
-     *
-     * BEWARE, currently works only for values that can be processed via PrismBeanConvertor - i.e. not for special
-     * cases like PolyStringType, ProtectedStringType, etc.
-     */
-    @Override
-	public String serializeAtomicValue(Object value, QName elementName, String language) throws SchemaException {
-        return serializeAtomicValue(value, elementName, language, null);
-    }
 
 	@Override
 	public String serializeAtomicValue(Object value, QName elementName, String language,
