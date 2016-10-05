@@ -393,7 +393,7 @@ public class ResourceObjectConverter {
 		Collection<Operation> operations = new ArrayList<Operation>();
 		
 		Collection<? extends ResourceAttribute<?>> identifiers = ShadowUtil.getAllIdentifiers(repoShadow);
-		
+		Collection<? extends ResourceAttribute<?>> primaryIdentifiers = ShadowUtil.getPrimaryIdentifiers(repoShadow);
 
 		if (ProvisioningUtil.isProtectedShadow(ctx.getObjectClassDefinition(), repoShadow, matchingRuleRegistry)) {
 			if (hasChangesOnResource(itemDeltas)) {
@@ -457,7 +457,7 @@ public class ResourceObjectConverter {
 		Collection<PropertyModificationOperation> sideEffectOperations = null;
 		
 		//check identifier if it is not null
-		if (identifiers.isEmpty() && repoShadow.asObjectable().getFailedOperationType()!= null){
+		if (primaryIdentifiers.isEmpty() && repoShadow.asObjectable().getFailedOperationType()!= null){
 			throw new GenericConnectorException(
 					"Unable to modify object in the resource. Probably it has not been created yet because of previous unavailability of the resource.");
 		}
@@ -575,7 +575,7 @@ public class ResourceObjectConverter {
 		
 		if (!ShadowUtil.hasPrimaryIdentifier(identifiers, objectClassDefinition)) {
 			Collection<? extends ResourceAttribute<?>> primaryIdentifiers = resourceObjectReferenceResolver.resolvePrimaryIdentifier(ctx, identifiers, "modification of resource object "+identifiers, parentResult);
-			if (primaryIdentifiers == null) {
+			if (primaryIdentifiers == null || primaryIdentifiers.isEmpty()) {
 				throw new ObjectNotFoundException("Cannot find repository shadow for identifiers "+identifiers);
 			}
 			identifiers = primaryIdentifiers;
@@ -1621,8 +1621,9 @@ public class ResourceObjectConverter {
 					if (ctx.isWildcard()) {
 						if (!MiscUtil.equals(shadowAttrsToReturn, attrsToReturn)) {
 							// re-fetch the shadow if necessary (if attributesToGet does not match)
-							ResourceObjectIdentification identification = new ResourceObjectIdentification(shadowCtx.getObjectClassDefinition(), 
-									change.getIdentifiers(), null);
+							ResourceObjectIdentification identification = ResourceObjectIdentification.create(shadowCtx.getObjectClassDefinition(), 
+									change.getIdentifiers());
+							identification.validatePrimaryIdenfiers();
 							LOGGER.trace("Re-fetching object {} because of attrsToReturn", identification);
 							currentShadow = connector.fetchObject(ShadowType.class, identification, shadowAttrsToReturn, ctx, parentResult);
 						}

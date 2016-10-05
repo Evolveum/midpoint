@@ -253,24 +253,27 @@ public abstract class ShadowCache {
 		PrismObject<ShadowType> resourceShadow = null;
 		try {
 
-			// Let's get all the identifiers from the Shadow <attributes> part
-			Collection<? extends ResourceAttribute<?>> identifiers = ShadowUtil
-					.getAllIdentifiers(repositoryShadow);
+			Collection<? extends ResourceAttribute<?>> primaryIdentifiers = ShadowUtil
+					.getPrimaryIdentifiers(repositoryShadow);
 
-			if (identifiers == null || identifiers.isEmpty()) {
+			if (primaryIdentifiers == null || primaryIdentifiers.isEmpty()) {
 				// check if the account is not only partially created (exist
 				// only in repo so far)
 				if (repositoryShadow.asObjectable().getFailedOperationType() != null) {
 					throw new GenericConnectorException(
 							"Unable to get object from the resource. Probably it has not been created yet because of previous unavailability of the resource.");
 				}
+				
 				// No identifiers found
-				SchemaException ex = new SchemaException("No identifiers found in the repository shadow "
+				SchemaException ex = new SchemaException("No primary identifiers found in the repository shadow "
 						+ repositoryShadow + " with respect to " + resource);
 				parentResult.recordFatalError(
-						"No identifiers found in the repository shadow " + repositoryShadow, ex);
+						"No prmary identifiers found in the repository shadow " + repositoryShadow, ex);
 				throw ex;
 			}
+			
+			Collection<? extends ResourceAttribute<?>> identifiers = ShadowUtil
+					.getAllIdentifiers(repositoryShadow);
 
 			resourceShadow = resouceObjectConverter.getResourceObject(ctx, identifiers, true, parentResult);
 
