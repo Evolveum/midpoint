@@ -54,37 +54,13 @@ public class JaxbDomHack {
 	
 	private PrismContext prismContext;
 	private DomParser domParser;
-//	private JAXBContext jaxbContext;
 
 	public JaxbDomHack(DomParser domParser, PrismContext prismContext) {
 		super();
 		this.domParser = domParser;
 		this.prismContext = prismContext;
-//		initializeJaxbContext();
 	}
 
-//	private void initializeJaxbContext() {
-//		StringBuilder sb = new StringBuilder();
-//		Iterator<Package> iterator = prismContext.getSchemaRegistry().getCompileTimePackages().iterator();
-//		while (iterator.hasNext()) {
-//			Package jaxbPackage = iterator.next();
-//			sb.append(jaxbPackage.getName());
-//			if (iterator.hasNext()) {
-//				sb.append(":");
-//			}
-//		}
-//		String jaxbPaths = sb.toString();
-//		if (jaxbPaths.isEmpty()) {
-//			LOGGER.debug("No JAXB paths, skipping creation of JAXB context");
-//		} else {
-//			try {
-//				jaxbContext = JAXBContext.newInstance(jaxbPaths);
-//			} catch (JAXBException ex) {
-//				throw new SystemException("Couldn't create JAXBContext for: " + jaxbPaths, ex);
-//			}
-//		}
-//	}
-	
 	private <T extends Containerable> ItemDefinition locateItemDefinition(
 			PrismContainerDefinition<T> containerDefinition, QName elementQName, Object valueElements)
 			throws SchemaException {
@@ -237,24 +213,6 @@ public class JaxbDomHack {
 		return subItem;
 	}
 	
-//	public <V extends PrismValue, C extends Containerable> Collection<Item<V>> fromAny(List<Object> anyObjects, PrismContainerDefinition<C> definition) throws SchemaException {
-//		Collection<Item<V>> items = new ArrayList<>();
-//		for (Object anyObject: anyObjects) {
-//			Item<V> newItem = parseRawElement(anyObject, definition);
-//			boolean merged = false;
-//			for (Item<V> existingItem: items) {
-//				if (newItem.getElementName().equals(existingItem.getElementName())) {
-//					existingItem.merge(newItem);
-//					merged = true;
-//					break;
-//				}
-//			}
-//			if (!merged) {
-//				items.add(newItem);
-//			}
-//		}
-//		return items;
-//	}
 
 	/**
 	 * Serializes prism value to JAXB "any" format as returned by JAXB getAny() methods. 
@@ -312,162 +270,6 @@ public class JaxbDomHack {
         return xmlValue;
 	}
 
-//	public <O extends Objectable> PrismObject<O> parseObjectFromJaxb(Object objectElement) throws SchemaException {
-//		if (objectElement instanceof Element) {
-//			// DOM
-//			XNode objectXNode = domParser.parseElementContent((Element)objectElement);
-//			return prismContext.getXnodeProcessor().parseObject(objectXNode);
-//		} else if (objectElement instanceof JAXBElement<?>) {
-//			O jaxbValue = ((JAXBElement<O>)objectElement).getValue();
-//			prismContext.adopt(jaxbValue);
-//			return jaxbValue.asPrismObject();
-//		} else {
-//			throw new IllegalArgumentException("Unknown element type "+objectElement.getClass());
-//		}
-//	}
-		
-//	public <O extends Objectable> Element serializeObjectToJaxb(PrismObject<O> object) throws SchemaException {
-//		RootXNode xroot = prismContext.getXnodeProcessor().serializeObject(object);
-//		return domParser.serializeXRootToElement(xroot);
-//	}
-	
-//	public <T> Element marshalJaxbObjectToDom(T jaxbObject, QName elementQName) throws JAXBException {
-//        return marshalJaxbObjectToDom(jaxbObject, elementQName, (Document) null);
-//    }
-	
-//	public <T> Element marshalJaxbObjectToDom(T jaxbObject, QName elementQName, Document doc) throws JAXBException {
-//		if (doc == null) {
-//			doc = DOMUtil.getDocument();
-//		}
-//
-//		JAXBElement<T> jaxbElement = new JAXBElement<T>(elementQName, (Class<T>) jaxbObject.getClass(),
-//				jaxbObject);
-//		Element element = doc.createElementNS(elementQName.getNamespaceURI(), elementQName.getLocalPart());
-//		marshalElementToDom(jaxbElement, element);
-//
-//		return (Element) element.getFirstChild();
-//	}
-	
-//	private void marshalElementToDom(JAXBElement<?> jaxbElement, Node parentNode) throws JAXBException {
-//		createMarshaller(null).marshal(jaxbElement, parentNode);
-//	}
-	
-//	private Marshaller createMarshaller(Map<String, Object> jaxbProperties) throws JAXBException {
-//		Marshaller marshaller = jaxbContext.createMarshaller();
-//		// set default properties
-//		marshaller.setProperty(Marshaller.JAXB_ENCODING, "UTF-8");
-//		marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
-//		DynamicNamespacePrefixMapper namespacePrefixMapper = prismContext.getSchemaRegistry().getNamespacePrefixMapper().clone();
-//		namespacePrefixMapper.setAlwaysExplicit(true);
-//		marshaller.setProperty("com.sun.xml.bind.namespacePrefixMapper", namespacePrefixMapper);
-//		// set custom properties
-//		if (jaxbProperties != null) {
-//			for (Entry<String, Object> property : jaxbProperties.entrySet()) {
-//				marshaller.setProperty(property.getKey(), property.getValue());
-//			}
-//		}
-//
-//		return marshaller;
-//	}
 
-//    public <T> T toJavaValue(Element element, Class<T> typeClass) throws JAXBException {
-//        QName type = JAXBUtil.getTypeQName(typeClass);
-//        return (T) toJavaValue(element, type);
-//    }
-
-    /**
-     * Used to convert property values from DOM
-     */
-//    private Object toJavaValue(Element element, QName xsdType) throws JAXBException {
-//        Class<?> declaredType = prismContext.getSchemaRegistry().getCompileTimeClass(xsdType);
-//        if (declaredType == null) {
-//            // This may happen if the schema is runtime and there is no associated compile-time class
-//            throw new SystemException("Cannot determine Java type for "+xsdType);
-//        }
-//        JAXBElement<?> jaxbElement = createUnmarshaller().unmarshal(element, declaredType);
-//        Object object = jaxbElement.getValue();
-//        return object;
-//    }
-
-//    private Unmarshaller createUnmarshaller() throws JAXBException {
-//        return jaxbContext.createUnmarshaller();
-//    }
-
-//    public JAXBElement unmarshalJaxbElement(File input) throws JAXBException, IOException {
-//        return (JAXBElement) createUnmarshaller().unmarshal(input);
-//    }
-
-//    public <T> T unmarshalObject(InputStream input) throws JAXBException, SchemaException {
-//        Object object = createUnmarshaller().unmarshal(input);
-//        JAXBElement<T> jaxbElement = (JAXBElement<T>) object;
-//        adopt(jaxbElement);
-//
-//        if (jaxbElement == null) {
-//            return null;
-//        } else {
-//            return jaxbElement.getValue();
-//        }
-//    }
-
-//    private void adopt(Object object) throws SchemaException {
-//        if (object instanceof JAXBElement) {
-//            adopt(((JAXBElement)object).getValue());
-//        } else if (object instanceof Objectable) {
-//            prismContext.adopt(((Objectable) (object)));
-//        }
-//    }
-
-    public String silentMarshalObject(Object object, Trace logger) {
-        String xml = null;
-        try {
-            QName fakeQName=new QName(PrismConstants.NS_PREFIX + "debug", "debugPrintObject");
-            if (object instanceof Objectable) {
-                xml = prismContext.serializeObjectToString(((Objectable) object).asPrismObject(), PrismContext.LANG_XML);
-            } else if (object instanceof Containerable) {
-                xml = prismContext.xmlSerializer().serialize(((Containerable) object).asPrismContainerValue(), fakeQName);
-            } else {
-                xml = prismContext.xmlSerializer().serializeAnyData(object, fakeQName);
-            }
-        } catch (Exception ex) {
-            Trace log = logger != null ? logger : LOGGER;
-            LoggingUtils.logException(log, "Couldn't marshal element to string {}", ex, object);
-        }
-        return xml;
-    }
-
-//    public String marshalElementToString(JAXBElement<?> jaxbElement) throws JAXBException {
-//        return marshalElementToString(jaxbElement, new HashMap<String, Object>());
-//    }
-
-//    public String marshalElementToString(JAXBElement<?> jaxbElement, Map<String, Object> properties) throws JAXBException {
-//        StringWriter writer = new StringWriter();
-//        Marshaller marshaller = createMarshaller(null);
-//        for (Entry<String, Object> entry : properties.entrySet()) {
-//            marshaller.setProperty(entry.getKey(), entry.getValue());
-//        }
-//        marshaller.marshal(jaxbElement, writer);
-//        return writer.getBuffer().toString();
-//    }
-
-//    public boolean isJaxbClass(Class<?> clazz) {
-//        if (clazz == null) {
-//            throw new IllegalArgumentException("No class, no fun");
-//        }
-//        if (clazz.getPackage() == null) {
-//            // No package: this is most likely a primitive type and definitely
-//            // not a JAXB class
-//            return false;
-//        }
-//        for (Package jaxbPackage: prismContext.getSchemaRegistry().getCompileTimePackages()) {
-//            if (jaxbPackage.equals(clazz.getPackage())) {
-//                return true;
-//            }
-//        }
-//        return false;
-//    }
-
-//    public boolean canConvert(Class<?> clazz) {
-//        return isJaxbClass(clazz);
-//    }
 
 }
