@@ -76,7 +76,7 @@ public class PrismSerializerImpl<T> implements PrismSerializer<T> {
 
 	@Override
 	public T serialize(PrismValue value, QName rootElementName) throws SchemaException {
-		RootXNode xroot = target.parserHelpers.xnodeProcessor.serializeItemValueAsRoot(value, elementName);	// TODO context
+		RootXNode xroot = target.parserHelpers.xnodeProcessor.serializeItemValueAsRoot(value, rootElementName);	// TODO context
 		return target.serialize(xroot, context);
 	}
 

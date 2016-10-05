@@ -24,7 +24,6 @@ import com.evolveum.midpoint.prism.query.LogicalFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.OrgFilter;
-import com.evolveum.midpoint.prism.util.ValueSerializationUtil;
 import com.evolveum.midpoint.repo.sql.data.audit.RObjectDeltaOperation;
 import com.evolveum.midpoint.repo.sql.data.common.*;
 import com.evolveum.midpoint.repo.sql.data.common.any.*;
@@ -121,22 +120,6 @@ public final class RUtil {
         } catch (SchemaException ex) {
             throw new DtoTranslationException(ex.getMessage(), ex);
         }
-    }
-
-    public static String toRepo(ItemDefinition parentDefinition, QName itemName, @NotNull OperationResultType value,
-                                    PrismContext prismContext) throws SchemaException, JAXBException {
-
-        ItemDefinition definition = null;
-        if (parentDefinition instanceof PrismContainerDefinition) {
-            definition = ((PrismContainerDefinition) parentDefinition).findItemDefinition(itemName);
-            if (definition == null) {
-                definition = parentDefinition;
-            }
-        } else {
-            definition = parentDefinition;
-        }
-
-        return ValueSerializationUtil.serializeValue(value, definition, itemName, parentDefinition.getName(), prismContext, PrismContext.LANG_XML);
     }
 
     public static Element createFakeParentElement() {
@@ -305,7 +288,8 @@ public final class RUtil {
         repo.setStatus(getRepoEnumValue(jaxb.getStatus(), ROperationResultStatus.class));
         if (repo instanceof OperationResultFull) {
             try {
-                ((OperationResultFull) repo).setFullResult(RUtil.toRepo(parentDef, itemName, jaxb, prismContext));
+                String full = prismContext.xmlSerializer().serializeAtomicValue(jaxb, itemName);
+                ((OperationResultFull) repo).setFullResult(full);
             } catch (Exception ex) {
                 throw new DtoTranslationException(ex.getMessage(), ex);
             }

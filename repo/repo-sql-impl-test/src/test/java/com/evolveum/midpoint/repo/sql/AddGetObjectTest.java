@@ -49,7 +49,6 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
-import com.evolveum.midpoint.prism.util.ValueSerializationUtil;
 import com.evolveum.midpoint.repo.sql.type.XMLGregorianCalendarType;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.DeltaConvertor;
@@ -496,60 +495,36 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
         return token;
     }
 
-    @Test(enabled = false)
-    public void deltaOperationSerializationPerformanceTest() throws Exception {
-        List<PrismObject<? extends Objectable>> elements =
-                prismContext.parserFor(new File(FOLDER_BASIC, "objects.xml")).parseObjects();
+//    @Test(enabled = false)
+//    public void deltaOperationSerializationPerformanceTest() throws Exception {
+//        List<PrismObject<? extends Objectable>> elements =
+//                prismContext.parserFor(new File(FOLDER_BASIC, "objects.xml")).parseObjects();
+//
+//        //get user from objects.xml
+//        ObjectDelta delta = ObjectDelta.createAddDelta(elements.get(0));
+//
+//        final int COUNT = 10000;
+//        //first conversion option
+//        System.out.println(DeltaConvertor.toObjectDeltaTypeXml(delta));
+//        //second conversion option
+//        //System.out.println("\n" + toRepo(DeltaConvertor.toObjectDeltaType(delta), prismContext));
+//
+//        long time = System.currentTimeMillis();
+//        for (int i = 0; i < COUNT; i++) {
+//            String xml = DeltaConvertor.toObjectDeltaTypeXml(delta);
+//        }
+//        time = System.currentTimeMillis() - time;
+//        System.out.println(">>> " + time);
+//
+//        time = System.currentTimeMillis();
+//        for (int i = 0; i < COUNT; i++) {
+//            ObjectDeltaType type = DeltaConvertor.toObjectDeltaType(delta);
+//            String xml = toRepo(type, prismContext);
+//        }
+//        time = System.currentTimeMillis() - time;
+//        System.out.println(">>> " + time);
+//    }
 
-        //get user from objects.xml
-        ObjectDelta delta = ObjectDelta.createAddDelta(elements.get(0));
-
-        final int COUNT = 10000;
-        //first conversion option
-        System.out.println(DeltaConvertor.toObjectDeltaTypeXml(delta));
-        //second conversion option
-        System.out.println("\n" + toRepo(DeltaConvertor.toObjectDeltaType(delta), prismContext));
-
-        long time = System.currentTimeMillis();
-        for (int i = 0; i < COUNT; i++) {
-            String xml = DeltaConvertor.toObjectDeltaTypeXml(delta);
-        }
-        time = System.currentTimeMillis() - time;
-        System.out.println(">>> " + time);
-
-        time = System.currentTimeMillis();
-        for (int i = 0; i < COUNT; i++) {
-            ObjectDeltaType type = DeltaConvertor.toObjectDeltaType(delta);
-            String xml = toRepo(type, prismContext);
-        }
-        time = System.currentTimeMillis() - time;
-        System.out.println(">>> " + time);
-    }
-
-    private <T> String toRepo(T value, PrismContext prismContext)
-            throws SchemaException, JAXBException {
-        if (value == null) {
-            return null;
-        }
-
-        // PrismDomProcessor domProcessor = prismContext.getPrismDomProcessor();
-        if (value instanceof Objectable) {
-            return prismContext.serializeObjectToString(((Objectable) value).asPrismObject(),
-                    PrismContext.LANG_XML);
-        }
-
-        if (value instanceof Containerable) {
-            // TODO: createFakeParentElement??? why we don't use the real
-            // name???
-            return prismContext.xmlSerializer()
-                    .serialize(((Containerable) value).asPrismContainerValue(),
-                            QNameUtil.getNodeQName(RUtil.createFakeParentElement()));
-        }
-
-
-        return ValueSerializationUtil.serializeValue(value, new QName("fake"), prismContext, PrismContext.LANG_XML);
-
-    }
 
     @Test
     public void test() throws Exception {
