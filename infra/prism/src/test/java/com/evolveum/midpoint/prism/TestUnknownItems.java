@@ -69,7 +69,7 @@ public class TestUnknownItems {
 		PrismContext prismContext = constructInitializedPrismContext();
 
 		// WHEN
-		PrismObject<UserType> user = prismContext.parseObject(WRONG_ITEM_FILE, ParsingContext.forMode(XNodeProcessorEvaluationMode.COMPAT));
+		PrismObject<UserType> user = prismContext.parserFor(WRONG_ITEM_FILE).compat().parse();
 
 		// THEN
 		System.out.println("User:");
@@ -103,7 +103,7 @@ public class TestUnknownItems {
 		PrismContext prismContext = constructInitializedPrismContext();
 
 		// WHEN
-		PrismObject<UserType> user = prismContext.parseObject(WRONG_NAMESPACE_FILE, ParsingContext.forMode(XNodeProcessorEvaluationMode.COMPAT));
+		PrismObject<UserType> user = prismContext.parserFor(WRONG_NAMESPACE_FILE).compat().parse();
 
 		// THEN
 		System.out.println("User:");

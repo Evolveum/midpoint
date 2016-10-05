@@ -18,6 +18,7 @@ package com.evolveum.midpoint.prism.maven;
 
 import com.evolveum.midpoint.prism.ComplexTypeDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismContextImpl;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.prism.schema.SchemaDefinitionFactory;
@@ -261,7 +262,7 @@ public class SchemaDocMojo extends AbstractMojo {
                 schemaRegistry.setCatalogFiles(catalogFiles);
             }
 
-            PrismContext context = PrismContext.create(schemaRegistry);
+            PrismContextImpl context = PrismContextImpl.create(schemaRegistry);
             context.setDefinitionFactory(new SchemaDefinitionFactory());
             context.initialize();
 

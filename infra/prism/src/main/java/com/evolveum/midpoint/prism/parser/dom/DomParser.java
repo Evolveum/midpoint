@@ -15,6 +15,28 @@
  */
 package com.evolveum.midpoint.prism.parser.dom;
 
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.marshaller.XNodeProcessorEvaluationMode;
+import com.evolveum.midpoint.prism.marshaller.XPathHolder;
+import com.evolveum.midpoint.prism.parser.Parser;
+import com.evolveum.midpoint.prism.parser.ParserUtils;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.schema.SchemaRegistry;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.prism.xnode.*;
+import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.PrettyPrinter;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.Validate;
+import org.w3c.dom.Attr;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+
+import javax.xml.namespace.QName;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -26,37 +48,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.prism.ParsingContext;
-import com.evolveum.midpoint.prism.SerializationContext;
-import com.evolveum.midpoint.prism.marshaller.XNodeProcessorEvaluationMode;
-import com.evolveum.midpoint.prism.marshaller.XPathHolder;
-import com.evolveum.midpoint.prism.parser.Parser;
-import com.evolveum.midpoint.prism.parser.ParserUtils;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.Validate;
-import org.w3c.dom.Attr;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-
-import com.evolveum.midpoint.prism.PrismConstants;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.schema.SchemaRegistry;
-import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.prism.xnode.ListXNode;
-import com.evolveum.midpoint.prism.xnode.MapXNode;
-import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
-import com.evolveum.midpoint.prism.xnode.RootXNode;
-import com.evolveum.midpoint.prism.xnode.SchemaXNode;
-import com.evolveum.midpoint.prism.xnode.ValueParser;
-import com.evolveum.midpoint.prism.xnode.XNode;
-import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.PrettyPrinter;
-import com.evolveum.midpoint.util.exception.SchemaException;
 
 public class DomParser implements Parser {
 
@@ -71,18 +62,41 @@ public class DomParser implements Parser {
 		this.schemaRegistry = schemaRegistry;
 	}
 	
-	@Override
-	public Collection<XNode> parseCollection(File file, ParsingContext parsingContext) throws SchemaException, IOException {
-		Document document = DOMUtil.parseFile(file);
-		return parseCollection(document);
+	@Deprecated
+	public XNode parse(File file, ParsingContext parsingContext) throws SchemaException, IOException {
+		return parse(new ParserFileSource(file), parsingContext);
 	}
 
 	@Override
-	public Collection<XNode> parseCollection(InputStream stream, ParsingContext parsingContext) throws SchemaException, IOException {
-		Document document = DOMUtil.parse(stream);
-		return parseCollection(document);
+	public XNode parse(ParserSource source, ParsingContext parsingContext) throws SchemaException, IOException {
+		if (source instanceof ParserElementSource) {
+			return parse(((ParserElementSource) source).getElement());
+		}
+
+		InputStream is = source.getInputStream();
+		try {
+			Document document = DOMUtil.parse(is);
+			return parse(document);
+		} finally {
+			if (source.closeAfterParsing()) {
+				IOUtils.closeQuietly(is);
+			}
+		}
 	}
-	
+
+	@Override
+	public Collection<XNode> parseCollection(ParserSource source, ParsingContext parsingContext) throws SchemaException, IOException {
+		InputStream is = source.getInputStream();
+		try {
+			Document document = DOMUtil.parse(is);
+			return parseCollection(document);
+		} finally {
+			if (source.closeAfterParsing()) {
+				IOUtils.closeQuietly(is);
+			}
+		}
+	}
+
 	private Collection<XNode> parseCollection(Document document) throws SchemaException{
 		Element root = DOMUtil.getFirstChildElement(document);
 		// TODO: maybe some check if this is a collection of other objects???
@@ -93,30 +107,6 @@ public class DomParser implements Parser {
 			nodes.add(xroot);
 		}
 		return nodes;
-	}
-	
-	@Override
-	public Collection<XNode> parseCollection(String dataString, ParsingContext parsingContext) throws SchemaException {
-		throw new UnsupportedOperationException();
-	}
-	
-	@Override
-	public XNode parse(File file, ParsingContext parsingContext) throws SchemaException {
-		Document document = DOMUtil.parseFile(file);
-		return parse(document);
-	}
-
-    @Override
-    public XNode parse(InputStream stream, ParsingContext parsingContext) throws SchemaException, IOException {
-        Document document = DOMUtil.parse(stream);
-        return parse(document);
-    }
-
-
-    @Override
-	public XNode parse(String dataString, ParsingContext parsingContext) throws SchemaException {
-		Document document = DOMUtil.parseDocument(dataString);
-		return parse(document);
 	}
 
 	public RootXNode parse(Document document) throws SchemaException {

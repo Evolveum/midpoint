@@ -359,7 +359,7 @@ public class Validator {
 				return EventResult.skipObject();
 			}
 
-			PrismObject<? extends Objectable> object = prismContext.parseObject(objectElement);
+			PrismObject<? extends Objectable> object = prismContext.parserFor(objectElement).parse();
 			
 			try {
 				object.checkConsistence();

@@ -352,7 +352,7 @@ public class TestGeneralChangeProcessor extends AbstractInternalModelIntegration
 
         OperationResult result = new OperationResult("test000LoadContext");
 
-        LensContextType lensContextType = prismContext.parseContainer(new File("src/test/resources/model-contexts/context-dummy-resource.xml"), LensContextType.class, PrismContext.LANG_XML).getValues().get(0).asContainerable();
+        LensContextType lensContextType = prismContext.parserFor(new File("src/test/resources/model-contexts/context-dummy-resource.xml")).xml().parseContainer(LensContextType.class).getValues().get(0).asContainerable();
         display("LensContextType", lensContextType);
         LensContext<?> lensContext = LensContext.fromLensContextType(lensContextType, prismContext, provisioningService, result);
         display("LensContext", lensContext);

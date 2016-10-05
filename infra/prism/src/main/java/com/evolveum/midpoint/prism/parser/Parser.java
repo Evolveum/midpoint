@@ -22,6 +22,7 @@ import java.util.Collection;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.ParserSource;
 import com.evolveum.midpoint.prism.ParsingContext;
 import com.evolveum.midpoint.prism.SerializationContext;
 import com.evolveum.midpoint.prism.xnode.RootXNode;
@@ -33,18 +34,10 @@ import com.evolveum.midpoint.util.exception.SchemaException;
  *
  */
 public interface Parser {
-	
-	XNode parse(File file, ParsingContext parsingContext) throws SchemaException, IOException;
 
-    XNode parse(InputStream stream, ParsingContext parsingContext) throws SchemaException, IOException;
-	
-	XNode parse(String dataString, ParsingContext parsingContext) throws SchemaException;
-	
-	Collection<XNode> parseCollection(File file, ParsingContext parsingContext) throws SchemaException, IOException;
-	
-	Collection<XNode> parseCollection(InputStream stream, ParsingContext parsingContext) throws SchemaException, IOException;
-	
-	Collection<XNode> parseCollection(String dataString, ParsingContext parsingContext) throws SchemaException;
+	XNode parse(ParserSource source, ParsingContext parsingContext) throws SchemaException, IOException;
+
+	Collection<XNode> parseCollection(ParserSource source, ParsingContext parsingContext) throws SchemaException, IOException;
 	
 	boolean canParse(File file) throws IOException;
 	

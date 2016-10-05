@@ -60,7 +60,7 @@ public class DefinitionScopeDto implements Serializable {
         SearchFilterType rv = new SearchFilterType();
         RootXNode filterClauseNode;
         try {
-            filterClauseNode = (RootXNode) context.parseToXNode(searchFilterText, PrismContext.LANG_XML, null);
+            filterClauseNode = (RootXNode) context.parserFor(searchFilterText).xml().parseToXNode();
         } catch (SchemaException e) {
             throw new SystemException("Cannot parse search filter " + searchFilterText + ": " + e.getMessage(), e);
         }

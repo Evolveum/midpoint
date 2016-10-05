@@ -21,19 +21,7 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.PrismReference;
-import com.evolveum.midpoint.prism.PrismReferenceDefinition;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
-import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
 
@@ -47,7 +35,7 @@ public class RawTypeUtil {
 		List<IV> parsedValues = new ArrayList<IV>();
 		for (RawType rawValue : values){
 			if (itemDefinition == null && containerDef != null){
-				itemDefinition = (ID) containerDef.getPrismContext().getXnodeProcessor().locateItemDefinition(containerDef, elementQName, rawValue.getXnode());
+				itemDefinition = (ID) ((PrismContextImpl) containerDef.getPrismContext()).getXnodeProcessor().locateItemDefinition(containerDef, elementQName, rawValue.getXnode());
 			}
 			IV parsed = rawValue.getParsedValue(itemDefinition, elementQName);
 			if (parsed != null){

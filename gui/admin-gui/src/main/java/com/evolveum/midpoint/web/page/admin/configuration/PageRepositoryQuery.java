@@ -507,7 +507,7 @@ public class PageRepositoryQuery extends PageAdminConfiguration {
 		if (clazz == null) {
 			throw new SchemaException("Couldn't find compile-time class for object type of " + objectType);
 		}
-		QueryType queryType = prismContext.parseAtomicValue(queryText, QueryType.COMPLEX_TYPE, PrismContext.LANG_XML);
+		QueryType queryType = prismContext.parserFor(queryText).xml().parseAtomicValue(QueryType.COMPLEX_TYPE);
 		request.setType(clazz);
 		ObjectQuery objectQuery = QueryJaxbConvertor.createObjectQuery(clazz, queryType, prismContext);
 		ObjectQuery queryWithExprEvaluated = ExpressionUtil.evaluateQueryExpressions(objectQuery, new ExpressionVariables(),

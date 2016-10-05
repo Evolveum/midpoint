@@ -452,7 +452,7 @@ public class ObjectRetriever {
         try {
             // "Postel mode": be tolerant what you read. We need this to tolerate (custom) schema changes
 			ParsingContext parsingContext = ParsingContext.forMode(XNodeProcessorEvaluationMode.COMPAT);
-            prismObject = prismContext.parseObject(xml, parsingContext);
+            prismObject = prismContext.parserFor(xml).context(parsingContext).parse();
 			// TODO enable if needed
 //			if (parsingContext.hasWarnings()) {
 //				for (String warning : parsingContext.getWarnings()) {

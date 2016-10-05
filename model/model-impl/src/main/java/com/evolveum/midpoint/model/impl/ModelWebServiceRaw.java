@@ -132,7 +132,7 @@ public class ModelWebServiceRaw implements Provider<DOMSource> {
 
         Object requestObject;
         try {
-            requestObject = prismContext.parseAnyValue(rootElement);
+            requestObject = prismContext.parserFor(rootElement).parseAnyValue();
         } catch (SchemaException e) {
             throw ws.createIllegalArgumentFault("Couldn't parse SOAP request body because of schema exception: " + e.getMessage());
         }

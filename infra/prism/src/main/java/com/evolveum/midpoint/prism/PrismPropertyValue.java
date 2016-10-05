@@ -112,7 +112,7 @@ public class PrismPropertyValue<T> extends PrismValue implements DebugDumpable, 
         		// throw new IllegalStateException("Attempt to get value withot a type from raw value of property "+getParent());
     			if (parent != null && parent.getPrismContext() != null) {
     				def = SchemaRegistry.createDefaultItemDefinition(parent.getElementName(), parent.getPrismContext());
-    			} else if (PrismContext.isAllowSchemalessSerialization()) {
+    			} else if (PrismContextImpl.isAllowSchemalessSerialization()) {
     				if (rawElement instanceof Element) {
         				// Do the most stupid thing possible. Assume string value. And there will be no definition.
     					value = (T) ((Element)rawElement).getTextContent();

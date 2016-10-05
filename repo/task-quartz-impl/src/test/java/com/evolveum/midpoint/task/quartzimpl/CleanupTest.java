@@ -77,13 +77,11 @@ public class CleanupTest extends AbstractTestNGSpringContextTests {
 
         // GIVEN
         final File file = new File(FOLDER_REPO, "tasks-for-cleanup.xml");
-        List<PrismObject<? extends Objectable>> elements = prismContext.parseObjects(file);
+        List<PrismObject<? extends Objectable>> elements = prismContext.parserFor(file).parseObjects();
 
         OperationResult result = new OperationResult("tasks cleanup");
-        for (int i = 0; i < elements.size(); i++) {
-            PrismObject object = elements.get(i);
-
-            String oid = repositoryService.addObject(object, null, result);
+        for (PrismObject<? extends Objectable> object : elements) {
+            String oid = repositoryService.addObject((PrismObject) object, null, result);
             AssertJUnit.assertTrue(StringUtils.isNotEmpty(oid));
         }
 

@@ -241,11 +241,11 @@ public class TestJaxbParsing {
 
         // THEN
 
-        Object oAsIs = prismContext.parseAnyValueAsJAXBElement(dataAsIs, PrismContext.LANG_XML);
+        Object oAsIs = prismContext.parserFor(dataAsIs).xml().parseAnyValueAsJAXBElement();
         System.out.println("Parsed expression evaluator: "  + dataAsIs + " as " + oAsIs);
         AssertJUnit.assertTrue("result is of wrong class (not JAXBElement): " + oAsIs.getClass(), oAsIs instanceof JAXBElement);
 
-        Object oValue = prismContext.parseAnyValueAsJAXBElement(dataValue, PrismContext.LANG_XML);
+        Object oValue = prismContext.parserFor(dataValue).xml().parseAnyValueAsJAXBElement();
         System.out.println("Parsed expression evaluator: " + dataValue + " as " + oValue);
         AssertJUnit.assertTrue("result is of wrong class (not JAXBElement): " + oValue.getClass(), oValue instanceof JAXBElement);
     }
@@ -260,7 +260,7 @@ public class TestJaxbParsing {
         
         // WHEN
 
-        Object parsedObject = prismContext.parseAnyValue(rootElement);
+        Object parsedObject = prismContext.parserFor(rootElement).parseAnyValue();
 
         // THEN
         System.out.println("Parsed object: "  + parsedObject);

@@ -47,7 +47,7 @@ public class TestPrismParsingXml extends TestPrismParsing {
 		PrismContext prismContext = constructInitializedPrismContext();
 		
 		// WHEN
-		PrismObject<UserType> user = prismContext.parseObject(userElement);
+		PrismObject<UserType> user = prismContext.parserFor(userElement).parse();
 		
 		// THEN
 		System.out.println("User:");
@@ -69,7 +69,7 @@ public class TestPrismParsingXml extends TestPrismParsing {
 		PrismContext prismContext = constructInitializedPrismContext();
 		
 		// WHEN
-		PrismObject<UserType> user = prismContext.parseObject(userElement);
+		PrismObject<UserType> user = prismContext.parserFor(userElement).parse();
 		
 		// THEN
 		System.out.println("User:");

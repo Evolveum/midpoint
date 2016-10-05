@@ -22,6 +22,7 @@ import java.util.Map.Entry;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.ParserSource;
 import com.evolveum.midpoint.prism.ParsingContext;
 import com.evolveum.midpoint.prism.SerializationContext;
 import com.evolveum.midpoint.prism.SerializationOptions;
@@ -31,6 +32,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.fasterxml.jackson.core.*;
 import com.fasterxml.jackson.core.JsonParser;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
@@ -64,37 +66,20 @@ public abstract class AbstractJsonParser implements Parser {
 	//region Parsing implementation
 
 	@Override
-	public RootXNode parse(File file, ParsingContext parsingContext) throws SchemaException, IOException {
-		try (FileInputStream fis = new FileInputStream(file)) {
-			JsonParser parser = createJacksonParser(fis);
+	public RootXNode parse(ParserSource source, ParsingContext parsingContext) throws SchemaException, IOException {
+		InputStream is = source.getInputStream();
+		try {
+			JsonParser parser = createJacksonParser(is);
 			return parseFromStart(parser, parsingContext);
+		} finally {
+			if (source.closeAfterParsing()) {
+				IOUtils.closeQuietly(is);
+			}
 		}
 	}
 
 	@Override
-	public RootXNode parse(InputStream stream, ParsingContext parsingContext) throws SchemaException, IOException {
-		JsonParser parser = createJacksonParser(stream);
-		return parseFromStart(parser, parsingContext);
-	}
-
-	@Override
-	public RootXNode parse(String dataString, ParsingContext parsingContext) throws SchemaException {
-		JsonParser parser = createJacksonParser(dataString);
-		return parseFromStart(parser, parsingContext);
-	}
-
-	@Override
-	public Collection<XNode> parseCollection(File file, ParsingContext parsingContext) throws SchemaException, IOException {
-		throw new UnsupportedOperationException("Parse objects not supported for json and yaml.");			// why?
-	}
-
-	@Override
-	public Collection<XNode> parseCollection(InputStream stream, ParsingContext parsingContext) throws SchemaException, IOException {
-		throw new UnsupportedOperationException("Parse objects not supported for json and yaml.");			// why?
-	}
-
-	@Override
-	public Collection<XNode> parseCollection(String dataString, ParsingContext parsingContext) throws SchemaException {
+	public Collection<XNode> parseCollection(ParserSource source, ParsingContext parsingContext) throws SchemaException, IOException {
 		throw new UnsupportedOperationException("Parse objects not supported for json and yaml.");			// why?
 	}
 

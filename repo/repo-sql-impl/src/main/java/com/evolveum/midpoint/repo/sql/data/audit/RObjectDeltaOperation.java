@@ -284,11 +284,11 @@ public class RObjectDeltaOperation implements OperationResultFull, EntityState {
         ObjectDeltaOperation odo = new ObjectDeltaOperation();
         try {
             if (operation.getDelta() != null) {
-                ObjectDeltaType delta = prismContext.parseAtomicValue(operation.getDelta(), ObjectDeltaType.COMPLEX_TYPE);
+                ObjectDeltaType delta = prismContext.parserFor(operation.getDelta()).parseAtomicValue(ObjectDeltaType.COMPLEX_TYPE);
                 odo.setObjectDelta(DeltaConvertor.createObjectDelta(delta, prismContext));
             }
             if (operation.getFullResult() != null) {
-                OperationResultType resultType = prismContext.parseAtomicValue(operation.getFullResult(), OperationResultType.COMPLEX_TYPE);
+                OperationResultType resultType = prismContext.parserFor(operation.getFullResult()).parseAtomicValue(OperationResultType.COMPLEX_TYPE);
                 odo.setExecutionResult(OperationResult.createOperationResult(resultType));
             }
             odo.setObjectName(RPolyString.fromRepo(operation.getObjectName()));

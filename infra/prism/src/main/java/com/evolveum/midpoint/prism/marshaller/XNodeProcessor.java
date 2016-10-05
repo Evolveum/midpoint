@@ -451,6 +451,9 @@ public class XNodeProcessor {
     }
 
     private <T> T parseAtomicValueFromPrimitive(PrimitiveXNode<T> xprim, PrismPropertyDefinition def, QName typeName, ParsingContext pc) throws SchemaException {
+        if (xprim == null) {
+            throw new IllegalArgumentException("XNode is null while parsing def=" + def + ", type=" + typeName);
+        }
         T realValue = null;
         if (QNameUtil.match(ItemPathType.COMPLEX_TYPE, typeName)) {
             return (T) parseItemPathType(xprim, pc);

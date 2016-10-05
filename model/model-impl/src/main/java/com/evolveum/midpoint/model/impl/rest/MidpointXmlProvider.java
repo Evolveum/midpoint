@@ -115,9 +115,9 @@ public class MidpointXmlProvider<T> extends AbstractConfigurableProvider impleme
 		try {
 			
 			if (type.isAssignableFrom(PrismObject.class)){
-				object = (T) prismContext.parseObject(entityStream, PrismContext.LANG_XML);
+				object = (T) prismContext.parserFor(entityStream).xml().parse();
 			} else {
-                object = prismContext.parseAnyValue(entityStream, PrismContext.LANG_XML);
+                object = prismContext.parserFor(entityStream).xml().parseAnyValue();
 				//object = (T) prismContext.getJaxbDomHack().unmarshalObject(entityStream);
 			}
 			

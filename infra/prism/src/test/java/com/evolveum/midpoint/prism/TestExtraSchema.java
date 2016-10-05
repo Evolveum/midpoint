@@ -123,7 +123,7 @@ public class TestExtraSchema {
 		context.initialize();
 		
 		// Parsing user
-		PrismObject<UserType> user = context.parseObject(DOMUtil.getFirstChildElement(dataDoc));
+		PrismObject<UserType> user = context.parserFor(DOMUtil.getFirstChildElement(dataDoc)).parse();
 		assertNotNull("No definition for user", user.getDefinition());
 	
 		System.out.println("Parsed root object:");

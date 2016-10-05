@@ -268,7 +268,7 @@ public class Search implements Serializable, DebugDumpable {
             return null;
         }
 
-        SearchFilterType search = ctx.parseAtomicValue(advancedQuery, SearchFilterType.COMPLEX_TYPE);
+        SearchFilterType search = ctx.parserFor(advancedQuery).parseAtomicValue(SearchFilterType.COMPLEX_TYPE);
         return QueryConvertor.parseFilter(search, type, ctx);
     }
 

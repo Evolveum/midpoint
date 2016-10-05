@@ -146,8 +146,8 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
 
         PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
 
-        List<PrismObject<? extends Objectable>> objects = prismContext.parseObjects(
-                new File(FOLDER_BASIC, "objects.xml"));
+        List<PrismObject<? extends Objectable>> objects = prismContext.parserFor(
+                new File(FOLDER_BASIC, "objects.xml")).parseObjects();
         OperationResult result = new OperationResult("add objects");
         for (PrismObject object : objects) {
             repositoryService.addObject(object, null, result);
@@ -2004,7 +2004,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
     public void test500OrgQuery() throws Exception {
         File objects = new File("src/test/resources/orgstruct/org-monkey-island.xml");
         OperationResult opResult = new OperationResult("test500OrgQuery");
-        List<PrismObject<? extends Objectable>> orgStruct = prismContext.parseObjects(objects);
+        List<PrismObject<? extends Objectable>> orgStruct = prismContext.parserFor(objects).parseObjects();
 
         for (PrismObject<? extends Objectable> o : orgStruct) {
             repositoryService.addObject((PrismObject<ObjectType>) o, null, opResult);

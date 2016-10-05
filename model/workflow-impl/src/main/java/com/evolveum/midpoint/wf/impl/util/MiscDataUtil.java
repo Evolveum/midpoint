@@ -192,19 +192,19 @@ public class MiscDataUtil {
 
     public static ObjectType deserializeObjectFromXml(String xml, PrismContext prismContext) {
         try {
-            return (ObjectType) prismContext.parseObject(xml, PrismContext.LANG_XML).asObjectable();
+            return (ObjectType) prismContext.parserFor(xml).xml().parse().asObjectable();
         } catch (SchemaException e) {
             throw new SystemException("Couldn't deserialize a PrismObject from XML", e);
         }
     }
 
-    public static PrismContainer deserializeContainerFromXml(String xml, PrismContext prismContext) {
-        try {
-            return prismContext.parseContainer(xml, (Class) null, PrismContext.LANG_XML);
-        } catch (SchemaException e) {
-            throw new SystemException("Couldn't deserialize a Containerable from XML", e);
-        }
-    }
+//    public static PrismContainer deserializeContainerFromXml(String xml, PrismContext prismContext) {
+//        try {
+//            return prismContext.parserFor(xml).xml().parseContainer(null);			// TODO will 'null' work?
+//        } catch (SchemaException e) {
+//            throw new SystemException("Couldn't deserialize a Containerable from XML", e);
+//        }
+//    }
 
     public void resolveAssignmentTargetReferences(PrismObject<? extends UserType> object, OperationResult result) {
         for (AssignmentType assignmentType : object.asObjectable().getAssignment()) {

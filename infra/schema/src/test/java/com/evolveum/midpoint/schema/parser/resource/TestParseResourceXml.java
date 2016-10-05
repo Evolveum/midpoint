@@ -72,7 +72,7 @@ public abstract class TestParseResourceXml extends TestParseResource {
 		Element resourceElement = DOMUtil.getFirstChildElement(document);
 
 		// WHEN
-		PrismObject<ResourceType> resource = prismContext.parseObject(resourceElement);
+		PrismObject<ResourceType> resource = prismContext.parserFor(resourceElement).parse();
 
 		// THEN
 		System.out.println("Parsed resource:");

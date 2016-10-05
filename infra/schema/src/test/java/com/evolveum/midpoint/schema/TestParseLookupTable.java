@@ -48,7 +48,7 @@ public class TestParseLookupTable {
         PrismContext prismContext = PrismTestUtil.getPrismContext();
 
         // WHEN
-        PrismObject<LookupTableType> table = prismContext.parseObject(LOOKUP_TABLE_FILE, PrismContext.LANG_XML);
+        PrismObject<LookupTableType> table = prismContext.parserFor(LOOKUP_TABLE_FILE).xml().parse();
 
         // THEN
         System.out.println("Parsed table:");

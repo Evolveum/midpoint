@@ -119,7 +119,7 @@ public class PrismTestUtil {
     
     @Deprecated
     public static <T extends Objectable> PrismObject<T> parseObject(Element element) throws SchemaException {
-    	return getPrismContext().parseObject(element);
+    	return getPrismContext().parserFor(element).parse();
     }
 
     public static <T extends Objectable> T parseObjectable(File file, Class<T> clazz) throws SchemaException, IOException {
@@ -128,7 +128,7 @@ public class PrismTestUtil {
 
 
     public static List<PrismObject<? extends Objectable>> parseObjects(File file) throws SchemaException, IOException {
-    	return getPrismContext().parseObjects(file);
+    	return getPrismContext().parserFor(file).parseObjects();
     }
     
     // ==========================
@@ -166,15 +166,15 @@ public class PrismTestUtil {
     // ==========================
 
     public static <T> T parseAtomicValue(File file, QName type) throws SchemaException, IOException {
-        return getPrismContext().parseAtomicValue(file, type);
+        return getPrismContext().parserFor(file).parseAtomicValue(type);
     }
 
     public static <T> T parseAtomicValue(String data, QName type) throws SchemaException {
-        return getPrismContext().parseAtomicValue(data, type);
+        return getPrismContext().parserFor(data).parseAtomicValue(type);
     }
 
     public static <T> T parseAnyValue(File file) throws SchemaException, IOException {
-        return getPrismContext().parseAnyValue(file);
+        return getPrismContext().parserFor(file).parseAnyValue();
     }
 
     public static <T extends Objectable> PrismObjectDefinition<T> getObjectDefinition(Class<T> compileTimeClass) {
@@ -205,7 +205,7 @@ public class PrismTestUtil {
 	}
 	
 	public static SearchFilterType unmarshalFilter(File file) throws Exception {
-		return prismContext.parseAtomicValue(file, SearchFilterType.COMPLEX_TYPE);
+		return prismContext.parserFor(file).parseAtomicValue(SearchFilterType.COMPLEX_TYPE);
 	}
 	
 	public static ObjectFilter getFilterCondition(ObjectFilter filter, int index) {

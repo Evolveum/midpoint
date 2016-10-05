@@ -75,8 +75,7 @@ public class TestParseModelContext {
 		PrismContext prismContext = PrismTestUtil.getPrismContext();
 		
 		// WHEN
-        PrismContainer<LensContextType> lensContextType = prismContext.parseContainer(MODEL_CONTEXT_FILE,
-        		LensContextType.class, PrismContext.LANG_XML);
+        PrismContainer<LensContextType> lensContextType = prismContext.parserFor(MODEL_CONTEXT_FILE).xml().parseContainer(LensContextType.class);
 
         // THEN
         System.out.println("Parsed LensContextType: " + lensContextType.getValue().asContainerable());

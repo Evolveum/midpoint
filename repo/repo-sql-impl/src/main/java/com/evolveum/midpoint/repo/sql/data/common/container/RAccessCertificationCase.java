@@ -415,8 +415,7 @@ public class RAccessCertificationCase implements Container {
         String xml = RUtil.getXmlFromByteArray(fullObject, false);
         PrismContainer<AccessCertificationCaseType> caseContainer;
         try {
-            // TODO tolerant mode
-            caseContainer = prismContext.parseContainer(xml, AccessCertificationCaseType.class, PrismContext.LANG_XML);
+            caseContainer = prismContext.parserFor(xml).xml().compat().parseContainer(AccessCertificationCaseType.class);
         } catch (SchemaException e) {
             LOGGER.debug("Couldn't parse certification case because of schema exception ({}):\nData: {}", e, xml);
             throw e;

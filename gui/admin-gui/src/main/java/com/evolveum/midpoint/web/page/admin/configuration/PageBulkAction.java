@@ -110,7 +110,7 @@ public class PageBulkAction extends PageAdminConfiguration {
 
         ScriptingExpressionType expression = null;
         try {
-            Object parsed = getPrismContext().parseAnyValue(bulkActionDto.getScript(), PrismContext.LANG_XML);
+            Object parsed = getPrismContext().parserFor(bulkActionDto.getScript()).xml().parseAnyValue();
             if (parsed == null) {
                 result.recordFatalError("No bulk action object was provided.");
             }

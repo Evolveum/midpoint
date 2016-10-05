@@ -244,7 +244,7 @@ public class PrismInternalTestUtil implements PrismContextFactory {
 		}
 		prefixMapper.registerPrefix(PrismConstants.NS_ANNOTATION, PrismConstants.PREFIX_NS_ANNOTATION, false);
 		prefixMapper.registerPrefix(PrismInternalTestUtil.NS_WEAPONS, PrismInternalTestUtil.NS_WEAPONS_PREFIX, false);
-		PrismContext context = PrismContext.create(schemaRegistry);
+		PrismContext context = PrismContextImpl.create(schemaRegistry);
 		return context;
 	}
 

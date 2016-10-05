@@ -88,7 +88,7 @@ public class AddOverwriteTest extends BaseSQLRepoTest {
 
     @Test
     public void addWithOverwrite() throws Exception {
-        List<PrismObject<?>> objects = prismContext.parseObjects(new File(ORG_STRUCT_OBJECTS));
+        List<PrismObject<?>> objects = prismContext.parserFor(new File(ORG_STRUCT_OBJECTS)).parseObjects();
         
     
         OperationResult opResult = new OperationResult("Import file");
@@ -109,7 +109,7 @@ public class AddOverwriteTest extends BaseSQLRepoTest {
         AssertJUnit.assertNotNull(oid);
 
         //reimport carla, oid should stay the same, version must be incremented
-        objects = prismContext.parseObjects(new File(IMPORT_OVERWRITE));
+        objects = prismContext.parserFor(new File(IMPORT_OVERWRITE)).parseObjects();
         PrismObject newCarla = objects.get(0);
         newCarla.setOid(oid);
 

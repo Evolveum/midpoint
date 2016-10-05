@@ -203,7 +203,7 @@ public class DomSerializer {
         }
 
         if (typeQName == null) {    // this means that either xprim is unparsed or it is empty
-			if (com.evolveum.midpoint.prism.PrismContext.isAllowSchemalessSerialization()) {
+			if (com.evolveum.midpoint.prism.PrismContextImpl.isAllowSchemalessSerialization()) {
 				// We cannot correctly serialize without a type. But this is needed
 				// sometimes. So just default to string
 				String stringValue = xprim.getStringValue();

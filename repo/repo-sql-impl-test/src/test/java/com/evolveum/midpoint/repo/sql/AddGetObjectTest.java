@@ -98,8 +98,7 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
         stats.setStatisticsEnabled(true);
 
         final File OBJECTS_FILE = new File("./src/test/resources/10k-users.xml");
-        List<PrismObject<? extends Objectable>> elements = prismContext.parseObjects(
-                OBJECTS_FILE);
+        List<PrismObject<? extends Objectable>> elements = prismContext.parserFor(OBJECTS_FILE).parseObjects();
 
         long previousCycle = 0;
         long time = System.currentTimeMillis();
@@ -160,7 +159,7 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
     }
 
     private void addGetCompare(File file) throws Exception {
-        List<PrismObject<? extends Objectable>> elements = prismContext.parseObjects(file);
+        List<PrismObject<? extends Objectable>> elements = prismContext.parserFor(file).parseObjects();
         List<String> oids = new ArrayList<String>();
 
         OperationResult result = new OperationResult("Simple Add Get Test");
@@ -175,7 +174,7 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
                 (System.currentTimeMillis() - time),});
 
         int count = 0;
-        elements = prismContext.parseObjects(file);
+        elements = prismContext.parserFor(file).parseObjects();
         for (int i = 0; i < elements.size(); i++) {
             try {
                 PrismObject object = elements.get(i);
@@ -311,13 +310,12 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
     public void addUserWithAssignmentExtension() throws Exception {
         LOGGER.info("===[ addUserWithAssignmentExtension ]===");
         File file = new File(FOLDER_BASIC, "user-assignment-extension.xml");
-        List<PrismObject<? extends Objectable>> elements = prismContext.parseObjects(file);
+        List<PrismObject<? extends Objectable>> elements = prismContext.parserFor(file).parseObjects();
 
         OperationResult result = new OperationResult("ADD");
         String oid = repositoryService.addObject((PrismObject) elements.get(0), null, result);
 
-        PrismObject<UserType> fileUser = (PrismObject<UserType>) prismContext.parseObjects(file)
-                .get(0);
+        PrismObject<UserType> fileUser = (PrismObject<UserType>) prismContext.parserFor(file).parseObjects().get(0);
         long id = 1;
         for (AssignmentType assignment : fileUser.asObjectable().getAssignment()) {
             assignment.setId(id);
@@ -501,7 +499,7 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
     @Test(enabled = false)
     public void deltaOperationSerializationPerformanceTest() throws Exception {
         List<PrismObject<? extends Objectable>> elements =
-                prismContext.parseObjects(new File(FOLDER_BASIC, "objects.xml"));
+                prismContext.parserFor(new File(FOLDER_BASIC, "objects.xml")).parseObjects();
 
         //get user from objects.xml
         ObjectDelta delta = ObjectDelta.createAddDelta(elements.get(0));

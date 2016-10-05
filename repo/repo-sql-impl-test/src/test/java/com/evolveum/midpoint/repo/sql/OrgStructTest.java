@@ -113,7 +113,7 @@ public class OrgStructTest extends BaseSQLRepoTest {
     @Test
     public void test001addOrgStructObjects() throws Exception {
         OperationResult opResult = new OperationResult("test001addOrgStructObjects");
-        List<PrismObject<? extends Objectable>> orgStruct = prismContext.parseObjects(new File(ORG_STRUCT_OBJECTS));
+        List<PrismObject<? extends Objectable>> orgStruct = prismContext.parserFor(new File(ORG_STRUCT_OBJECTS)).parseObjects();
 
         for (PrismObject<? extends Objectable> o : orgStruct) {
             repositoryService.addObject((PrismObject<ObjectType>) o, null, opResult);
@@ -238,8 +238,8 @@ public class OrgStructTest extends BaseSQLRepoTest {
     public void test001addOrgStructObjectsIncorrect() throws Exception {
         OperationResult opResult = new OperationResult("test001addOrgStructObjectsIncorrect");
 
-        List<PrismObject<? extends Objectable>> orgStructIncorrect = prismContext.parseObjects(
-                new File(ORG_STRUCT_OBJECTS_INCORRECT));
+        List<PrismObject<? extends Objectable>> orgStructIncorrect = prismContext.parserFor(
+                new File(ORG_STRUCT_OBJECTS_INCORRECT)).parseObjects();
 
         for (PrismObject<? extends Objectable> o : orgStructIncorrect) {
             repositoryService.addObject((PrismObject<ObjectType>) o, null, opResult);

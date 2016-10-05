@@ -70,7 +70,7 @@ public class TestParseTaskBulkAction {
 		PrismContext prismContext = PrismTestUtil.getPrismContext();
 		
 		// WHEN
-		PrismObject<TaskType> task = prismContext.parseObject(TASK_FILE, PrismContext.LANG_XML);
+		PrismObject<TaskType> task = prismContext.parserFor(TASK_FILE).xml().parse();
 		
 		// THEN
 		System.out.println("Parsed task:");

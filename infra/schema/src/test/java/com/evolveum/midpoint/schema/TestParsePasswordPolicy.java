@@ -73,7 +73,7 @@ public class TestParsePasswordPolicy {
 		PrismContext prismContext = PrismTestUtil.getPrismContext();
 		
 		// WHEN
-		PrismObject<ValuePolicyType> policy = prismContext.parseObject(FILE, PrismContext.LANG_XML);
+		PrismObject<ValuePolicyType> policy = prismContext.parserFor(FILE).xml().parse();
 		
 		// THEN
 		System.out.println("Parsed policy:");

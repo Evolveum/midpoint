@@ -246,7 +246,7 @@ public class ExpressionUtil {
 		if (xml != null && StringUtils.isNotBlank(xml)) {
 			xml = WebXmlUtil.wrapInElement("expression", xml);
 			LOGGER.info("Expression to serialize: {}", xml);
-			JAXBElement<?> newElement = context.parseAnyValueAsJAXBElement(xml, PrismContext.LANG_XML);
+			JAXBElement<?> newElement = context.parserFor(xml).xml().parseAnyValueAsJAXBElement();
 			expressionObject.getExpressionEvaluator().addAll(((ExpressionType) (newElement.getValue())).getExpressionEvaluator());
 		}
 	}

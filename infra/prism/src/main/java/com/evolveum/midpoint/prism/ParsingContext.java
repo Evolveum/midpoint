@@ -26,7 +26,7 @@ import java.util.List;
 /**
  * @author mederly
  */
-public class ParsingContext {
+public class ParsingContext implements Cloneable {
 
 	private XNodeProcessorEvaluationMode evaluationMode = XNodeProcessorEvaluationMode.STRICT;
 	private boolean allowMissingRefTypes;
@@ -99,5 +99,28 @@ public class ParsingContext {
 
 	public boolean hasWarnings() {
 		return !warnings.isEmpty();
+	}
+
+	public ParsingContext clone() {
+		ParsingContext clone;
+		try {
+			clone = (ParsingContext) super.clone();
+		} catch (CloneNotSupportedException e) {
+			throw new IllegalStateException(e);
+		}
+		clone.evaluationMode = evaluationMode;
+		clone.allowMissingRefTypes = allowMissingRefTypes;
+		clone.warnings.addAll(warnings);
+		return clone;
+	}
+
+	public ParsingContext strict() {
+		this.setEvaluationMode(XNodeProcessorEvaluationMode.STRICT);
+		return this;
+	}
+
+	public ParsingContext compat() {
+		this.setEvaluationMode(XNodeProcessorEvaluationMode.COMPAT);
+		return this;
 	}
 }

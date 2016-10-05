@@ -73,7 +73,7 @@ public class SearchShadowOwnerTest extends BaseSQLRepoTest {
 
         //insert sample data
         final File OBJECTS_FILE = new File(FOLDER_BASIC, "objects.xml");
-        List<PrismObject<? extends Objectable>> elements = prismContext.parseObjects(OBJECTS_FILE);
+        List<PrismObject<? extends Objectable>> elements = prismContext.parserFor(OBJECTS_FILE).parseObjects();
         for (int i = 0; i < elements.size(); i++) {
             PrismObject object = elements.get(i);
             repositoryService.addObject(object, null, result);

@@ -22,6 +22,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Arrays;
 
+import com.evolveum.midpoint.prism.PrismContextImpl;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
@@ -61,7 +62,7 @@ public class MidPointPrismContextFactory implements PrismContextFactory {
 	@Override
 	public PrismContext createPrismContext() throws SchemaException, FileNotFoundException {
 		SchemaRegistry schemaRegistry = createSchemaRegistry();
-		PrismContext context = PrismContext.create(schemaRegistry);
+		PrismContextImpl context = PrismContextImpl.create(schemaRegistry);
 		context.setDefinitionFactory(createDefinitionFactory());
 		
 		if (InternalsConfig.isPrismMonitoring()) {
@@ -73,7 +74,7 @@ public class MidPointPrismContextFactory implements PrismContextFactory {
 	
 	public PrismContext createEmptyPrismContext() throws SchemaException, FileNotFoundException {
 		SchemaRegistry schemaRegistry = createSchemaRegistry();
-		PrismContext context = PrismContext.createEmptyContext(schemaRegistry);
+		PrismContextImpl context = PrismContextImpl.createEmptyContext(schemaRegistry);
 		context.setDefinitionFactory(createDefinitionFactory());
 		return context;
 	}

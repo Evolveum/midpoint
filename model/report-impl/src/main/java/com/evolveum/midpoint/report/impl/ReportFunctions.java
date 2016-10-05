@@ -297,7 +297,7 @@ public class ReportFunctions {
     }
     
     Object parseObjectFromXML (String xml) throws SchemaException {
-        return prismContext.parseAnyData(xml, PrismContext.LANG_XML);
+        return prismContext.parserFor(xml).xml().parseAnyData();
     }
 
     /**
