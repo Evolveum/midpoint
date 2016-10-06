@@ -199,8 +199,8 @@ class EntitlementConverter {
             ResourceAttributeContainer identifiersContainer = new ResourceAttributeContainer(
                     ShadowAssociationType.F_IDENTIFIERS, entitlementDef.toResourceAttributeContainerDefinition(), prismContext);
             associationCVal.add(identifiersContainer);
-            LOGGER.trace("Assocciation attribute value resolved to valueAtrribute {}  and identifiers container {}", valueAttribute, identifiersContainer);
             identifiersContainer.add(valueAttribute);
+            LOGGER.trace("Assocciation attribute value resolved to valueAtrribute {}  and identifiers container {}", valueAttribute, identifiersContainer);
         }
     }
 	
@@ -660,9 +660,9 @@ class EntitlementConverter {
 			
 			ResourceAttributeContainer identifiersContainer = 
 					ShadowUtil.getAttributesContainer(associationCVal, ShadowAssociationType.F_IDENTIFIERS);
-			Collection<ResourceAttribute<?>> entitlementIdentifiers = identifiersContainer.getAttributes();
+			Collection<ResourceAttribute<?>> entitlementIdentifiersFromAssociation = identifiersContainer.getAttributes();
 			
-			ResourceObjectDiscriminator disc = new ResourceObjectDiscriminator(entitlementOcDef.getTypeName(), entitlementIdentifiers);
+			ResourceObjectDiscriminator disc = new ResourceObjectDiscriminator(entitlementOcDef.getTypeName(), entitlementIdentifiersFromAssociation);
 			ResourceObjectOperations operations = roMap.get(disc);
 			if (operations == null) {
 				operations = new ResourceObjectOperations();
@@ -741,8 +741,8 @@ class EntitlementConverter {
 			if (ResourceTypeUtil.isAvoidDuplicateValues(resource)) {
 				PrismObject<ShadowType> currentObjectShadow = operations.getCurrentShadow();
 				if (currentObjectShadow == null) {
-					LOGGER.trace("Fetching entitlement shadow {} to avoid value duplication (intent={})", entitlementIdentifiers, entitlementIntent);
-					currentObjectShadow = resourceObjectReferenceResolver.fetchResourceObject(entitlementCtx, entitlementIdentifiers, null, result);
+					LOGGER.trace("Fetching entitlement shadow {} to avoid value duplication (intent={})", entitlementIdentifiersFromAssociation, entitlementIntent);
+					currentObjectShadow = resourceObjectReferenceResolver.fetchResourceObject(entitlementCtx, entitlementIdentifiersFromAssociation, null, result);
 					operations.setCurrentShadow(currentObjectShadow);
 				}
 				// TODO it seems that duplicate values are checked twice: once here and the second time in ResourceObjectConverter.executeModify
