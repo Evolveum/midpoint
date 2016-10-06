@@ -922,9 +922,14 @@ public class ResourceObjectConverter {
 		
 		Map<ResourceObjectDiscriminator, ResourceObjectOperations> roMap = new HashMap<>();
 		
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace("executeEntitlementChangesModify, old shadow:\n{}", subjectShadowBefore.debugDump(1));
+		}
+		
 		for (ItemDelta subjectDelta : subjectDeltas) {
+			ItemPath subjectItemPath = subjectDelta.getPath();
 			
-			if (new ItemPath(ShadowType.F_ASSOCIATION).equivalent(subjectDelta.getPath())) {
+			if (new ItemPath(ShadowType.F_ASSOCIATION).equivalent(subjectItemPath)) {
 				ContainerDelta<ShadowAssociationType> containerDelta = (ContainerDelta<ShadowAssociationType>)subjectDelta;				
 				subjectShadowAfter = entitlementConverter.collectEntitlementsAsObjectOperation(ctx, roMap, containerDelta,
                         subjectShadowBefore, subjectShadowAfter, parentResult);
@@ -934,8 +939,11 @@ public class ResourceObjectConverter {
 				ContainerDelta<ShadowAssociationType> associationDelta = ContainerDelta.createDelta(ShadowType.F_ASSOCIATION, subjectShadowBefore.getDefinition());
 				PrismContainer<ShadowAssociationType> associationContainer = subjectShadowBefore.findContainer(ShadowType.F_ASSOCIATION);
 				if (associationContainer == null || associationContainer.isEmpty()){
-					LOGGER.trace("No shadow association container in old shadow. Skipping processing entitlements change.");
+					LOGGER.trace("No shadow association container in old shadow. Skipping processing entitlements change for {}.", subjectItemPath);
 					continue;
+				}
+				if (LOGGER.isTraceEnabled()) {
+					LOGGER.trace("Processing association container in old shadow for {}:\n{}", subjectItemPath, associationContainer.debugDump(1));
 				}
 
 				// Delete + re-add association values that should ensure correct functioning in case of rename
@@ -954,12 +962,15 @@ public class ResourceObjectConverter {
 						continue;
 					}
 					QName valueAttributeName = associationDefinition.getResourceObjectAssociationType().getValueAttribute();
-					if (!ShadowUtil.matchesAttribute(subjectDelta.getPath(), valueAttributeName)) {
+					if (!ShadowUtil.matchesAttribute(subjectItemPath, valueAttributeName)) {
 						continue;
 					}
 					LOGGER.trace("Processing association {} on rename", associationName);
 					associationDelta.addValuesToDelete(associationValue.clone());
 					associationDelta.addValuesToAdd(associationValue.clone());
+				}
+				if (LOGGER.isTraceEnabled()) {
+					LOGGER.trace("Resulting association delta for {}:\n{}", subjectItemPath, associationDelta.debugDump(1));
 				}
 				if (!associationDelta.isEmpty()) {
 					entitlementConverter.collectEntitlementsAsObjectOperation(ctx, roMap, associationDelta, subjectShadowBefore, subjectShadowAfter, parentResult);

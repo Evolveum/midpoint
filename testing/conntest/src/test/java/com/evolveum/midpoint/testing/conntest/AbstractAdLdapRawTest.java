@@ -16,6 +16,7 @@
 package com.evolveum.midpoint.testing.conntest;
 
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
+import static com.evolveum.midpoint.testing.conntest.AdUtils.*;
 import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertTrue;
 

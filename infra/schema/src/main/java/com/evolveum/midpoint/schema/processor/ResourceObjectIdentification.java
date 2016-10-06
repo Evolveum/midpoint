@@ -77,6 +77,9 @@ public class ResourceObjectIdentification implements Serializable {
 	
 	public static ResourceObjectIdentification create(ObjectClassComplexTypeDefinition objectClassDefinition, 
 			Collection<? extends ResourceAttribute<?>> allIdentifiers) throws SchemaException {
+		if (allIdentifiers == null) {
+			throw new IllegalArgumentException("Cannot create ResourceObjectIdentification with null identifiers");
+		}
 		Collection<? extends ResourceAttribute<?>> primaryIdentifiers =  null;
 		Collection<? extends ResourceAttribute<?>> secondaryIdentifiers = null;
 		for (ResourceAttribute<?> identifier: allIdentifiers) {
@@ -118,9 +121,13 @@ public class ResourceObjectIdentification implements Serializable {
 	}
 	
 	public void validatePrimaryIdenfiers() {
-		if (primaryIdentifiers == null || primaryIdentifiers.isEmpty()) {
+		if (!hasPrimaryIdentifiers()) {
 			throw new IllegalStateException("No primary identifiers in " + this);
 		}
+	}
+	
+	public boolean hasPrimaryIdentifiers() {
+		return primaryIdentifiers != null && !primaryIdentifiers.isEmpty();
 	}
 	
 	@Override

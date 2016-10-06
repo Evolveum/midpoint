@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <!--
-  ~ Copyright (c) 2010-2015 Evolveum
+  ~ Copyright (c) 2010-2016 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -66,6 +66,10 @@
         <classLogger>
 	        <level>DEBUG</level>
 	        <package>com.evolveum.polygon.connector.ldap.schema.SchemaTranslator</package>
+      	</classLogger>
+        <classLogger>
+	        <level>DEBUG</level>
+	        <package>com.evolveum.polygon.connector.ldap.ConnectionManager</package>
       	</classLogger>
         <classLogger>
 	        <level>DEBUG</level>
