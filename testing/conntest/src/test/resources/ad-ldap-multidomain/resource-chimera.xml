@@ -160,6 +160,15 @@
 					</target>
 				</inbound>
 			</attribute>
+			
+			<attribute>
+				<ref>ri:title</ref>
+				<outbound>
+					<source>
+						<path>title</path>
+					</source>
+				</outbound>
+			</attribute>
 
 			<attribute>
 					<ref>ri:userPrincipalName</ref>
@@ -387,6 +396,15 @@
 						<path>givenName</path>
 					</target>
 				</inbound>
+			</attribute>
+			
+			<attribute>
+				<ref>ri:title</ref>
+				<outbound>
+					<source>
+						<path>title</path>
+					</source>
+				</outbound>
 			</attribute>
 
 			<attribute>
