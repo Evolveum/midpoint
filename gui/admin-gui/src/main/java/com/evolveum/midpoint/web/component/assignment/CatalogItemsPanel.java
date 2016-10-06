@@ -3,11 +3,13 @@ package com.evolveum.midpoint.web.component.assignment;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.RoleSelectionSpecification;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -18,6 +20,8 @@ import com.evolveum.midpoint.web.component.search.SearchFactory;
 import com.evolveum.midpoint.web.component.search.SearchPanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
+import com.evolveum.midpoint.web.page.self.PageAssignmentDetails;
+import com.evolveum.midpoint.web.page.self.PageAssignmentsList;
 import com.evolveum.midpoint.web.security.SecurityUtils;
 import com.evolveum.midpoint.web.session.SessionStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -59,12 +63,13 @@ public class CatalogItemsPanel extends BasePanel implements IPageableItems {
     private static final String DOT_CLASS = CatalogItemsPanel.class.getName();
     private static final Trace LOGGER = TraceManager.getTrace(CatalogItemsPanel.class);
     private static final String OPERATION_LOAD_ASSIGNABLE_ROLES = DOT_CLASS + "loadAssignableRoles";
+    private static final String OPERATION_LOAD_USER = DOT_CLASS + "loadUser";
 
     private IModel<Search> searchModel;
     private ObjectDataProvider<AssignmentEditorDto, AbstractRoleType> provider;
     private IModel<List<AssignmentEditorDto>> itemsListModel;
 
-    private static final long ITEMS_PER_ROW = 3;
+    private long itemsPerRow = 3;
     private static final long DEFAULT_ROWS_COUNT = 5;
     private PageBase pageBase;
     private QName focusTypeClass;
@@ -76,10 +81,16 @@ public class CatalogItemsPanel extends BasePanel implements IPageableItems {
     }
 
     public CatalogItemsPanel(String id, QName focusTypeClass, PageBase pageBase) {
+        this (id, focusTypeClass, pageBase, 0);
+    }
+    public CatalogItemsPanel(String id, QName focusTypeClass, PageBase pageBase, long itemsPerRow) {
         super(id);
         this.pageBase = pageBase;
         this.focusTypeClass = focusTypeClass;
         this.catalogOid = null;
+        if (itemsPerRow > 0){
+            this.itemsPerRow = itemsPerRow;
+        }
         initProvider();
         initSearchModel();
         initItemListModel();
@@ -107,7 +118,7 @@ public class CatalogItemsPanel extends BasePanel implements IPageableItems {
         initCartButton(headerPanel);
         initSearchPanel(headerPanel);
 
-        MultiButtonTable assignmentsTable = new MultiButtonTable(ID_MULTI_BUTTON_TABLE, ITEMS_PER_ROW, itemsListModel);
+        MultiButtonTable assignmentsTable = new MultiButtonTable(ID_MULTI_BUTTON_TABLE, itemsPerRow, itemsListModel);
         assignmentsTable.setOutputMarkupId(true);
         add(assignmentsTable);
 
@@ -191,17 +202,6 @@ public class CatalogItemsPanel extends BasePanel implements IPageableItems {
     }
 
     private void searchPerformed(ObjectQuery query, AjaxRequestTarget target) {
-//        MultipleAssignmentSelector.this.searchQuery = query;
-//        if (filterModel != null && filterModel.getObject() != null) {
-//            if (query == null){
-//                query = new ObjectQuery();
-//            }
-//            query.addFilter(filterModel.getObject());
-//            filterObjectIsAdded = true;
-//        }
-//        BoxedTablePanel panel = getTable();
-//        panel.setCurrentPage(null);
-//        provider.setQuery(query);
         setCurrentPage(0);
         provider.setQuery(createContentQuery(query));
         refreshItemsPanel();
@@ -272,10 +272,10 @@ public class CatalogItemsPanel extends BasePanel implements IPageableItems {
             if (provider.getAvailableData() != null){
                 provider.getAvailableData().clear();
             }
-            long from  = currentPage * ITEMS_PER_ROW * DEFAULT_ROWS_COUNT;
-            provider.internalIterator(from, ITEMS_PER_ROW * DEFAULT_ROWS_COUNT);
+            long from  = currentPage * itemsPerRow * DEFAULT_ROWS_COUNT;
+            provider.internalIterator(from, itemsPerRow * DEFAULT_ROWS_COUNT);
         }
-        MultiButtonTable assignmentsTable = new MultiButtonTable(ID_MULTI_BUTTON_TABLE, ITEMS_PER_ROW, itemsListModel);
+        MultiButtonTable assignmentsTable = new MultiButtonTable(ID_MULTI_BUTTON_TABLE, itemsPerRow, itemsListModel);
         assignmentsTable.setOutputMarkupId(true);
         replace(assignmentsTable);
     }
@@ -394,11 +394,11 @@ public class CatalogItemsPanel extends BasePanel implements IPageableItems {
     @Override
     public void setCurrentPage(long page) {
         currentPage = page;
-        long from  = page * ITEMS_PER_ROW * DEFAULT_ROWS_COUNT;
+        long from  = page * itemsPerRow * DEFAULT_ROWS_COUNT;
         if (provider.getAvailableData() != null){
             provider.getAvailableData().clear();
         }
-        provider.internalIterator(from, ITEMS_PER_ROW * DEFAULT_ROWS_COUNT);
+        provider.internalIterator(from, itemsPerRow * DEFAULT_ROWS_COUNT);
     }
 
     @Override
@@ -422,7 +422,7 @@ public class CatalogItemsPanel extends BasePanel implements IPageableItems {
 
     @Override
     public long getItemsPerPage() {
-        return DEFAULT_ROWS_COUNT * ITEMS_PER_ROW;
+        return DEFAULT_ROWS_COUNT * itemsPerRow;
     }
 
     @Override
@@ -434,7 +434,7 @@ public class CatalogItemsPanel extends BasePanel implements IPageableItems {
         AjaxButton cartButton = new AjaxButton(ID_CART_BUTTON) {
             @Override
             public void onClick(AjaxRequestTarget ajaxRequestTarget) {
-
+                setResponsePage(new PageAssignmentsList(loadUser()));
             }
         };
         cartButton.setOutputMarkupId(true);
@@ -475,6 +475,30 @@ public class CatalogItemsPanel extends BasePanel implements IPageableItems {
 
     public void reloadCartButton(AjaxRequestTarget target) {
         target.add(get(ID_HEADER_PANEL).get(ID_CART_BUTTON));
+    }
+
+    private PrismObject<UserType> loadUser() {
+        LOGGER.debug("Loading user and accounts.");
+        OperationResult result = new OperationResult(OPERATION_LOAD_USER);
+        PrismObject<UserType> user = null;
+        try {
+            String userOid = SecurityUtils.getPrincipalUser().getOid();
+            Task task = pageBase.createSimpleTask(OPERATION_LOAD_USER);
+            user = WebModelServiceUtils.loadObject(UserType.class, userOid, null, (PageBase) getPage(),
+                    task, result);
+            result.recordSuccessIfUnknown();
+
+            result.recordSuccessIfUnknown();
+        } catch (Exception ex) {
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load accounts", ex);
+            result.recordFatalError("Couldn't load accounts", ex);
+        } finally {
+            result.recomputeStatus();
+        }
+        if (!result.isSuccess() && !result.isHandledError()) {
+            pageBase.showResult(result);
+        }
+        return user;
     }
 
 }

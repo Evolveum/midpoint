@@ -24,7 +24,9 @@ import java.util.List;
  * Created by honchar.
  */
 public class AssignmentCatalogPanel<F extends AbstractRoleType> extends BasePanel {
+    private static String ID_TREE_PANEL_CONTAINER = "treePanelContainer";
     private static String ID_TREE_PANEL = "treePanel";
+    private static String ID_CATALOG_ITEMS_PANEL_CONTAINER = "catalogItemsPanelContainer";
     private static String ID_CATALOG_ITEMS_PANEL = "catalogItemsPanel";
 
     private PageBase pageBase;
@@ -47,6 +49,9 @@ public class AssignmentCatalogPanel<F extends AbstractRoleType> extends BasePane
 
     private void initLayout(QName viewTypeClass, final String rootOid) {
         setOutputMarkupId(true);
+        WebMarkupContainer treePanelContainer = new WebMarkupContainer(ID_TREE_PANEL_CONTAINER);
+        treePanelContainer.setOutputMarkupId(true);
+        add(treePanelContainer);
         if (rootOid != null) {
             OrgTreePanel treePanel = new OrgTreePanel(ID_TREE_PANEL, new IModel<String>() {
                 @Override
@@ -83,35 +88,38 @@ public class AssignmentCatalogPanel<F extends AbstractRoleType> extends BasePane
 
             };
             treePanel.setOutputMarkupId(true);
-            treePanel.add(new AttributeAppender("class", "col-md-3"));
-            add(treePanel);
-
+            treePanelContainer.add(new AttributeAppender("class", "col-md-3"));
+            treePanelContainer.add(treePanel);
         } else {
             WebMarkupContainer treePanel = new WebMarkupContainer(ID_TREE_PANEL);
             treePanel.setVisible(false);
             treePanel.setOutputMarkupId(true);
-            add(treePanel);
+            treePanelContainer.add(treePanel);
         }
+
+        WebMarkupContainer catalogItemsPanelContainer = new WebMarkupContainer(ID_CATALOG_ITEMS_PANEL_CONTAINER);
+        catalogItemsPanelContainer.setOutputMarkupId(true);
+        add(catalogItemsPanelContainer);
 
         CatalogItemsPanel catalogItemsPanel;
         if (rootOid != null) {
             catalogItemsPanel = new CatalogItemsPanel(ID_CATALOG_ITEMS_PANEL, rootOid, pageBase);
-            catalogItemsPanel.add(new AttributeAppender("class", "col-md-9"));
+            catalogItemsPanelContainer.add(new AttributeAppender("class", "col-md-9"));
         } else {
             catalogItemsPanel = new CatalogItemsPanel(ID_CATALOG_ITEMS_PANEL, viewTypeClass, pageBase);
-            catalogItemsPanel.add(new AttributeAppender("class", "col-md-12"));
+            catalogItemsPanelContainer.add(new AttributeAppender("class", "col-md-12"));
         }
         catalogItemsPanel.setOutputMarkupId(true);
-        add(catalogItemsPanel);
+        catalogItemsPanelContainer.add(catalogItemsPanel);
     }
 
     private void selectTreeItemPerformed(SelectableBean<OrgType> selected, AjaxRequestTarget target) {
         final OrgType selectedOgr = selected.getValue();
         CatalogItemsPanel catalogItemsPanel = new CatalogItemsPanel(ID_CATALOG_ITEMS_PANEL, selectedOgr.getOid(), pageBase);
         catalogItemsPanel.setOutputMarkupId(true);
-        addOrReplace(catalogItemsPanel);
+        ((WebMarkupContainer) get(ID_CATALOG_ITEMS_PANEL_CONTAINER)).addOrReplace(catalogItemsPanel);
         target.add(catalogItemsPanel);
-        target.add(catalogItemsPanel.getParent());
+        target.add(get(ID_CATALOG_ITEMS_PANEL_CONTAINER));
     }
 
 }

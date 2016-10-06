@@ -15,9 +15,12 @@ import com.evolveum.midpoint.web.component.input.QNameChoiceRenderer;
 import com.evolveum.midpoint.web.component.wizard.resource.dto.SynchronizationActionTypeDto;
 import com.evolveum.midpoint.web.page.self.dto.AssignmentViewType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import org.apache.commons.lang.StringUtils;
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.EnumChoiceRenderer;
 import org.apache.wicket.markup.html.form.Form;
@@ -60,7 +63,6 @@ public class PageAssignmentShoppingKart extends PageSelf {
         add(mainForm);
 
         catalogOid = getRoleCatalogOid();
-
         viewModel = new IModel<AssignmentViewType>() {
             @Override
             public AssignmentViewType getObject() {
@@ -79,9 +81,7 @@ public class PageAssignmentShoppingKart extends PageSelf {
         };
         initButtonPanel(mainForm);
 
-        AssignmentCatalogPanel panel = new AssignmentCatalogPanel(ID_MAIN_PANEL, catalogOid, PageAssignmentShoppingKart.this);
-        panel.setOutputMarkupId(true);
-        mainForm.add(panel);
+        mainForm.add(initMainPanel());
 
     }
 
@@ -121,13 +121,12 @@ public class PageAssignmentShoppingKart extends PageSelf {
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
                 QName viewTypeClass = getViewTypeClass();
-                AssignmentCatalogPanel panel;
+                Component panel;
                 if (viewTypeClass != null) {
                     panel = new AssignmentCatalogPanel(ID_MAIN_PANEL, viewTypeClass, PageAssignmentShoppingKart.this);
                     panel.setOutputMarkupId(true);
                 } else {
-                    panel = new AssignmentCatalogPanel(ID_MAIN_PANEL, catalogOid, PageAssignmentShoppingKart.this);
-                    panel.setOutputMarkupId(true);
+                    panel = initMainPanel();
                 }
                 ((Form) PageAssignmentShoppingKart.this.get(ID_MAIN_FORM)).addOrReplace(panel);
                 target.add(get(ID_MAIN_FORM));
@@ -158,5 +157,17 @@ public class PageAssignmentShoppingKart extends PageSelf {
             return ServiceType.COMPLEX_TYPE;
         }
         return null;
+    }
+
+    private Component initMainPanel(){
+        if (StringUtils.isEmpty(catalogOid)) {
+            Label panel = new Label(ID_MAIN_PANEL, createStringResource("PageAssignmentShoppingKart.roleCatalogIsNotConfigured"));
+            panel.setOutputMarkupId(true);
+            return panel;
+        } else {
+            AssignmentCatalogPanel panel = new AssignmentCatalogPanel(ID_MAIN_PANEL, catalogOid, PageAssignmentShoppingKart.this);
+            panel.setOutputMarkupId(true);
+            return panel;
+        }
     }
 }
