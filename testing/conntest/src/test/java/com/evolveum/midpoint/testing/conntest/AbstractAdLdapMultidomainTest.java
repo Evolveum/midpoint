@@ -133,12 +133,23 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
 
 	protected static final File USER_SUBMAN_FILE = new File(TEST_DIR, "user-subman.xml");
 	private static final String USER_SUBMAN_OID ="910ac45a-8bd6-11e6-9122-ef88d95095f0";
-	private static final String USER_SUBMAN_NAME = "subman";
+	private static final String USER_SUBMAN_USERNAME = "subman";
 	private static final String USER_SUBMAN_GIVEN_NAME = "Sub";
 	private static final String USER_SUBMAN_FAMILY_NAME = "Man";
 	private static final String USER_SUBMAN_FULL_NAME = "Sub Man";
 	private static final String USER_SUBMAN_PASSWORD = "sub.123";
+
+	private static final String USER_SUBDOG_USERNAME = "subdog";
+	private static final String USER_SUBDOG_GIVEN_NAME = "Sub";
+	private static final String USER_SUBDOG_FAMILY_NAME = "Dog";
+	private static final String USER_SUBDOG_FULL_NAME = "Sub Dog";
 	
+	protected static final File USER_SUBMARINE_FILE = new File(TEST_DIR, "user-submarine.xml");
+	private static final String USER_SUBMARINE_OID ="c4377f86-8be9-11e6-8ef5-c3c56ff64b09";
+	private static final String USER_SUBMARINE_USERNAME = "submarine";
+	private static final String USER_SUBMARINE_GIVEN_NAME = "Sub";
+	private static final String USER_SUBMARINE_FAMILY_NAME = "Marine";
+	private static final String USER_SUBMARINE_FULL_NAME = "Sub Marine";
 	
 	private boolean allowDuplicateSearchResults = false;
 	
@@ -150,6 +161,8 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
 	protected String groupMeleeOid;
 
 	private String accountSubmanOid;
+
+	private String accountSubmarineOid;
 	
 	@Override
 	public String getStartSystemCommand() {
@@ -269,6 +282,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
 		repoAddObjectFromFile(USER_BARBOSSA_FILE, UserType.class, initResult);
 		repoAddObjectFromFile(USER_GUYBRUSH_FILE, UserType.class, initResult);
 		repoAddObjectFromFile(USER_SUBMAN_FILE, UserType.class, initResult);
+		repoAddObjectFromFile(USER_SUBMARINE_FILE, UserType.class, initResult);
 		
 		// Roles
 		repoAddObjectFromFile(ROLE_PIRATES_FILE, RoleType.class, initResult);
@@ -286,7 +300,9 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
 		cleanupDelete(toAccountDn(USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME));
 		cleanupDelete(toAccountDn(USER_CPTBARBOSSA_USERNAME, USER_CPTBARBOSSA_FULL_NAME));
 		cleanupDelete(toAccountDn(USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME));
-		cleanupDelete(getSubLdapConnectionConfig(), toAccountSubDn(USER_SUBMAN_NAME, USER_SUBMAN_FULL_NAME));
+		cleanupDelete(getSubLdapConnectionConfig(), toAccountSubDn(USER_SUBMAN_USERNAME, USER_SUBMAN_FULL_NAME));
+		cleanupDelete(getSubLdapConnectionConfig(), toAccountSubDn(USER_SUBDOG_USERNAME, USER_SUBDOG_FULL_NAME));
+		cleanupDelete(getSubLdapConnectionConfig(), toAccountSubDn(USER_SUBMARINE_USERNAME, USER_SUBMARINE_FULL_NAME));
 		cleanupDelete(toGroupDn(GROUP_MELEE_ISLAND_NAME));
 	}
 
@@ -1273,7 +1289,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
         
         long tsEnd = System.currentTimeMillis();
 
-        Entry entry = assertLdapSubAccount(USER_SUBMAN_NAME, USER_SUBMAN_FULL_NAME);
+        Entry entry = assertLdapSubAccount(USER_SUBMAN_USERNAME, USER_SUBMAN_FULL_NAME);
         display("Sub entry", entry);
         assertAttribute(entry, "title", null);
         
@@ -1290,7 +1306,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
         		AdUtils.formatGuidToDashedNotation(MiscUtil.binaryToHex(entry.get(getPrimaryIdentifierAttributeName()).getBytes())),
         		accountBarbossaIcfUid);
         
-        assertLdapPassword(getSubLdapConnectionConfig(), USER_SUBMAN_NAME, USER_SUBMAN_FULL_NAME, USER_SUBMAN_PASSWORD);
+        assertLdapPassword(getSubLdapConnectionConfig(), USER_SUBMAN_USERNAME, USER_SUBMAN_FULL_NAME, USER_SUBMAN_PASSWORD);
         
         assertAttribute(entry, ATTRIBUTE_USER_ACCOUNT_CONTROL_NAME, "512");
         
@@ -1299,6 +1315,295 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
         Long createTimestamp = createTimestampAttribute.getRealValue();
         // LDAP server may be on a different host. Allow for some clock offset.
         TestUtil.assertBetween("Wrong createTimestamp in "+shadow, roundTsDown(tsStart)-120000, roundTsUp(tsEnd)+120000, createTimestamp);
+        
+//        assertLdapConnectorInstances(2);
+	}
+	
+	@Test
+    public void test610ModifyUserSubmanTitle() throws Exception {
+		final String TEST_NAME = "test610ModifyUserSubmanTitle";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        modifyUserReplace(USER_SUBMAN_OID, UserType.F_TITLE, task, result, 
+        		PrismTestUtil.createPolyString("Underdog"));
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        Entry entry = assertLdapSubAccount(USER_SUBMAN_USERNAME, USER_SUBMAN_FULL_NAME);
+        display("Sub entry", entry);
+        assertAttribute(entry, "title", "Underdog");
+        assertAttribute(entry, ATTRIBUTE_USER_ACCOUNT_CONTROL_NAME, "512");
+        
+        PrismObject<UserType> user = getUser(USER_SUBMAN_OID);
+        String shadowOid = getSingleLinkOid(user);
+        assertEquals("Shadows have moved", accountSubmanOid, shadowOid);
+        
+//        assertLdapConnectorInstances(2);
+	}
+	
+	@Test
+    public void test620ModifyUserSubmanPassword() throws Exception {
+		final String TEST_NAME = "test620ModifyUserSubmanPassword";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        ProtectedStringType userPasswordPs = new ProtectedStringType();
+        userPasswordPs.setClearValue("SuB.321");
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        modifyUserReplace(USER_SUBMAN_OID, 
+        		new ItemPath(UserType.F_CREDENTIALS,  CredentialsType.F_PASSWORD, PasswordType.F_VALUE), 
+        		task, result, userPasswordPs);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+
+        Entry entry = assertLdapSubAccount(USER_SUBMAN_USERNAME, USER_SUBMAN_FULL_NAME);
+        assertAttribute(entry, "title", "Underdog");
+        assertLdapPassword(getSubLdapConnectionConfig(), USER_SUBMAN_USERNAME, USER_SUBMAN_FULL_NAME, "SuB.321");
+        assertAttribute(entry, ATTRIBUTE_USER_ACCOUNT_CONTROL_NAME, "512");
+        
+        PrismObject<UserType> user = getUser(USER_SUBMAN_OID);
+        String shadowOid = getSingleLinkOid(user);
+        assertEquals("Shadows have moved", accountSubmanOid, shadowOid);
+        
+//        assertLdapConnectorInstances(2);
+	}
+	
+	@Test
+    public void test630DisableUserSubman() throws Exception {
+		final String TEST_NAME = "test630DisableUserSubman";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        modifyUserReplace(USER_SUBMAN_OID, 
+        		new ItemPath(UserType.F_ACTIVATION,  ActivationType.F_ADMINISTRATIVE_STATUS), 
+        		task, result, ActivationStatusType.DISABLED);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+//        assertLdapConnectorInstances(2);
+        
+        PrismObject<UserType> user = getUser(USER_SUBMAN_OID);
+        assertAdministrativeStatus(user, ActivationStatusType.DISABLED);
+
+        Entry entry = assertLdapSubAccount(USER_SUBMAN_USERNAME, USER_SUBMAN_FULL_NAME);
+        assertAttribute(entry, ATTRIBUTE_USER_ACCOUNT_CONTROL_NAME, "514");
+                
+        String shadowOid = getSingleLinkOid(user);
+        PrismObject<ShadowType> shadow = getObject(ShadowType.class, shadowOid);
+        assertAccountDisabled(shadow);
+        
+        try {
+        	assertLdapPassword(getSubLdapConnectionConfig(), USER_SUBMAN_USERNAME, USER_SUBMAN_FULL_NAME, "SuB.321");
+        	AssertJUnit.fail("Password authentication works, but it should fail");
+        } catch (SecurityException e) {
+        	// this is expected
+        }
+        
+//        assertLdapConnectorInstances(2);
+	}
+
+	@Test
+    public void test639EnableUserSubman() throws Exception {
+		final String TEST_NAME = "test639EnableUserBarbossa";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        modifyUserReplace(USER_SUBMAN_OID, 
+        		new ItemPath(UserType.F_ACTIVATION,  ActivationType.F_ADMINISTRATIVE_STATUS), 
+        		task, result, ActivationStatusType.ENABLED);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        PrismObject<UserType> user = getUser(USER_SUBMAN_OID);
+        assertAdministrativeStatus(user, ActivationStatusType.ENABLED);
+
+        Entry entry = assertLdapSubAccount(USER_SUBMAN_USERNAME, USER_SUBMAN_FULL_NAME);
+        assertAttribute(entry, ATTRIBUTE_USER_ACCOUNT_CONTROL_NAME, "512");
+        
+        String shadowOid = getSingleLinkOid(user);
+        PrismObject<ShadowType> shadow = getObject(ShadowType.class, shadowOid);
+        assertAccountEnabled(shadow);
+        
+//        assertLdapConnectorInstances(2);
+	}
+	
+	@Test
+    public void test690ModifyUserSubmanRename() throws Exception {
+		final String TEST_NAME = "test690ModifyUserSubmanRename";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        ObjectDelta<UserType> objectDelta = createModifyUserReplaceDelta(USER_SUBMAN_OID, UserType.F_NAME, 
+        		PrismTestUtil.createPolyString(USER_SUBDOG_USERNAME));
+        objectDelta.addModificationReplaceProperty(UserType.F_FULL_NAME,
+        		PrismTestUtil.createPolyString(USER_SUBDOG_FULL_NAME));
+		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(objectDelta);
+		
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        modelService.executeChanges(deltas, null, task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+
+        Entry entry = assertLdapSubAccount(USER_SUBDOG_USERNAME, USER_SUBDOG_FULL_NAME);
+        assertAttribute(entry, "title", "Underdog");
+        
+        PrismObject<UserType> user = getUser(USER_SUBMAN_OID);
+        String shadowOid = getSingleLinkOid(user);
+        assertEquals("Shadows have moved", accountSubmanOid, shadowOid);
+        PrismObject<ShadowType> shadow = getObject(ShadowType.class, shadowOid);
+        display("Shadow after rename (model)", shadow);
+        
+        PrismObject<ShadowType> repoShadow = repositoryService.getObject(ShadowType.class, shadowOid, null, result);
+        display("Shadow after rename (repo)", repoShadow);
+        
+        assertNoLdapSubAccount(USER_SUBMAN_USERNAME, USER_SUBMAN_FULL_NAME);
+        
+//        assertLdapConnectorInstances(2);
+	}
+	
+	@Test
+    public void test699UnAssignAccountSubdog() throws Exception {
+		final String TEST_NAME = "test699UnAssignAccountSubdog";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        unassignRole(USER_SUBMAN_OID, ROLE_SUBMISSIVE_OID, task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+
+        assertNoLdapSubAccount(USER_SUBMAN_USERNAME, USER_SUBMAN_FULL_NAME);
+        assertNoLdapSubAccount(USER_SUBDOG_USERNAME, USER_SUBDOG_FULL_NAME);
+        
+        PrismObject<UserType> user = getUser(USER_SUBMAN_OID);
+        assertNoLinkedAccount(user);
+        
+//        assertLdapConnectorInstances(2);
+	}
+	
+	/**
+	 * Create account and modify it in a very quick succession.
+	 * This test is designed to check if we can live with a long
+	 * global catalog update delay.
+	 * MID-2926
+	 */
+	@Test
+    public void test700AssignAccountSubmarineAndModify() throws Exception {
+		final String TEST_NAME = "test700AssignAccountSubmarineAndModify";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        
+        // GIVEN
+        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+                
+        long tsStart = System.currentTimeMillis();
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        assignRole(USER_SUBMARINE_OID, ROLE_SUBMISSIVE_OID, task, result);
+        
+        modifyUserReplace(USER_SUBMARINE_OID, UserType.F_TITLE, task, result, 
+        		PrismTestUtil.createPolyString("Underseadog"));
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        long tsEnd = System.currentTimeMillis();
+
+        Entry entry = assertLdapSubAccount(USER_SUBMARINE_USERNAME, USER_SUBMARINE_FULL_NAME);
+        display("Sub entry", entry);
+        assertAttribute(entry, "title", "Underseadog");
+        
+        PrismObject<UserType> userAfter = getUser(USER_SUBMARINE_OID);
+        String shadowOid = getSingleLinkOid(userAfter);
+        PrismObject<ShadowType> shadow = getShadowModel(shadowOid);
+        display("Shadow (model)", shadow);
+        accountSubmarineOid = shadow.getOid();
+        Collection<ResourceAttribute<?>> identifiers = ShadowUtil.getPrimaryIdentifiers(shadow);
+        String accountIcfUid = (String) identifiers.iterator().next().getRealValue();
+        assertNotNull("No identifier in "+shadow, accountIcfUid);
+        
+        assertEquals("Wrong ICFS UID", 
+        		AdUtils.formatGuidToDashedNotation(MiscUtil.binaryToHex(entry.get(getPrimaryIdentifierAttributeName()).getBytes())),
+        		accountIcfUid);
+        
+        assertAttribute(entry, ATTRIBUTE_USER_ACCOUNT_CONTROL_NAME, "512");
+        
+//        assertLdapConnectorInstances(2);
+	}
+	
+	@Test
+    public void test809UnAssignAccountSubmarine() throws Exception {
+		final String TEST_NAME = "test809UnAssignAccountSubmarine";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        unassignRole(USER_SUBMARINE_OID, ROLE_SUBMISSIVE_OID, task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+
+        assertNoLdapSubAccount(USER_SUBMARINE_USERNAME, USER_SUBMARINE_FULL_NAME);
+        
+        PrismObject<UserType> user = getUser(USER_SUBMARINE_OID);
+        assertNoLinkedAccount(user);
         
 //        assertLdapConnectorInstances(2);
 	}
@@ -1333,9 +1638,17 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
 	}
 	
 	protected void assertNoLdapAccount(String uid, String cn) throws LdapException, IOException, CursorException {
-		LdapNetworkConnection connection = ldapConnect();
-		List<Entry> entriesCn = ldapSearch(connection, "(cn="+cn+")");
-		List<Entry> entriesSamAccountName = ldapSearch(connection, "(sAMAccountName="+uid+")");
+		assertNoLdapAccount(null, uid, cn);
+	}
+	
+	protected void assertNoLdapSubAccount(String uid, String cn) throws LdapException, IOException, CursorException {
+		assertNoLdapAccount(getSubLdapConnectionConfig(), uid, cn);
+	}
+	
+	protected void assertNoLdapAccount(UserLdapConnectionConfig config, String uid, String cn) throws LdapException, IOException, CursorException {
+		LdapNetworkConnection connection = ldapConnect(config);
+		List<Entry> entriesCn = ldapSearch(config, connection, "(cn="+cn+")");
+		List<Entry> entriesSamAccountName = ldapSearch(config, connection, "(sAMAccountName="+uid+")");
 		ldapDisconnect(connection);
 
 		assertEquals("Unexpected number of entries for cn="+cn+": "+entriesCn, 0, entriesCn.size());
