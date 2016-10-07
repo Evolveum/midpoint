@@ -421,9 +421,8 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 						SchemaDebugUtil.prettyPrint(tokenProperty));
 			}
 
-			LOGGER.trace("Calling shadow cache to synchronize");
 			processedChanges = getShadowCache(Mode.STANDARD).synchronize(shadowCoordinates, tokenProperty, task, result);
-			LOGGER.trace("shadow cache to synchronized {} entries", processedChanges);
+			LOGGER.debug("Synchronization of {} done, token {}, {} changes", resource, tokenProperty, processedChanges);
 
 		} catch (ObjectNotFoundException e) {
 			ProvisioningUtil.recordFatalError(LOGGER, result, "Synchronization error: object not found: " + e.getMessage(), e);

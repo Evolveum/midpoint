@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,20 +33,20 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 public class ResourceObjectDiscriminator {
 	
 	private QName objectClass;
-	private Collection<? extends ResourceAttribute<?>> identifiers;
+	private Collection<? extends ResourceAttribute<?>> primaryIdentifiers;
 	
-	public ResourceObjectDiscriminator(QName objectClass, Collection<? extends ResourceAttribute<?>> identifiers) {
+	public ResourceObjectDiscriminator(QName objectClass, Collection<? extends ResourceAttribute<?>> primaryIdentifiers) {
 		super();
 		this.objectClass = objectClass;
-		this.identifiers = identifiers;
+		this.primaryIdentifiers = primaryIdentifiers;
 	}
 	
 	public QName getObjectClass() {
 		return objectClass;
 	}
 
-	public Collection<? extends ResourceAttribute<?>> getIdentifiers() {
-		return identifiers;
+	public Collection<? extends ResourceAttribute<?>> getPrimaryIdentifiers() {
+		return primaryIdentifiers;
 	}
 	
 	public boolean matches(PrismObject<ShadowType> shadow) {
@@ -55,14 +55,14 @@ public class ResourceObjectDiscriminator {
 			return false;
 		}
 		Collection<ResourceAttribute<?>> shadowIdentifiers = ShadowUtil.getPrimaryIdentifiers(shadow);
-		return PrismProperty.compareCollectionRealValues(identifiers, shadowIdentifiers);
+		return PrismProperty.compareCollectionRealValues(primaryIdentifiers, shadowIdentifiers);
 	}
 
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + ((identifiers == null) ? 0 : identifiers.hashCode());
+		result = prime * result + ((primaryIdentifiers == null) ? 0 : primaryIdentifiers.hashCode());
 		result = prime * result + ((objectClass == null) ? 0 : objectClass.hashCode());
 		return result;
 	}
@@ -76,10 +76,10 @@ public class ResourceObjectDiscriminator {
 		if (getClass() != obj.getClass())
 			return false;
 		ResourceObjectDiscriminator other = (ResourceObjectDiscriminator) obj;
-		if (identifiers == null) {
-			if (other.identifiers != null)
+		if (primaryIdentifiers == null) {
+			if (other.primaryIdentifiers != null)
 				return false;
-		} else if (!identifiers.equals(other.identifiers))
+		} else if (!primaryIdentifiers.equals(other.primaryIdentifiers))
 			return false;
 		if (objectClass == null) {
 			if (other.objectClass != null)
@@ -91,7 +91,7 @@ public class ResourceObjectDiscriminator {
 
 	@Override
 	public String toString() {
-		return "ResourceObjectDiscriminator(" + objectClass + ": " + identifiers + ")";
+		return "ResourceObjectDiscriminator(" + objectClass + ": " + primaryIdentifiers + ")";
 	}
 
 }

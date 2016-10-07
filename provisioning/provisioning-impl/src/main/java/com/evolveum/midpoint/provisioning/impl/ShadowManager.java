@@ -210,7 +210,7 @@ public class ShadowManager {
 			OperationResult parentResult) 
 					throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException {
 
-		ObjectQuery query = createSearchShadowQuery(ctx, identifierContainer.getValue().getItems(), prismContext,
+		ObjectQuery query = createSearchShadowQuery(ctx, identifierContainer.getValue().getItems(), false, prismContext,
 				parentResult);
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("Searching for shadow using filter (repo):\n{}",
@@ -349,6 +349,9 @@ public class ShadowManager {
 		MiscSchemaUtil.reduceSearchResult(results);
 
 		LOGGER.trace("lookupShadow found {} objects", results.size());
+		if (LOGGER.isTraceEnabled() && results.size() == 1) {
+			LOGGER.trace("lookupShadow found\n{}", results.get(0).debugDump(1));
+		}
 		
 		return results;
 
@@ -578,23 +581,24 @@ public class ShadowManager {
 	private List<PrismObject<ShadowType>> searchShadowByIdenifiers(ProvisioningContext ctx, Change<ShadowType> change, OperationResult parentResult)
 			throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException {
 
-		ObjectQuery query = createSearchShadowQuery(ctx, change.getIdentifiers(), prismContext, parentResult);
+		Collection<ResourceAttribute<?>> identifiers = change.getIdentifiers();
+		ObjectQuery query = createSearchShadowQuery(ctx, identifiers, true, prismContext, parentResult);
 
 		List<PrismObject<ShadowType>> accountList = null;
 		try {
 			accountList = repositoryService.searchObjects(ShadowType.class, query, null, parentResult);
 		} catch (SchemaException ex) {
 			parentResult.recordFatalError(
-					"Failed to search shadow according to the identifiers: " + change.getIdentifiers() + ". Reason: "
+					"Failed to search shadow according to the identifiers: " + identifiers + ". Reason: "
 							+ ex.getMessage(), ex);
 			throw new SchemaException("Failed to search shadow according to the identifiers: "
-					+ change.getIdentifiers() + ". Reason: " + ex.getMessage(), ex);
+					+ identifiers + ". Reason: " + ex.getMessage(), ex);
 		}
 		MiscSchemaUtil.reduceSearchResult(accountList);
 		return accountList;
 	}
 	
-	private ObjectQuery createSearchShadowQuery(ProvisioningContext ctx, Collection<ResourceAttribute<?>> identifiers,
+	private ObjectQuery createSearchShadowQuery(ProvisioningContext ctx, Collection<ResourceAttribute<?>> identifiers, boolean primaryIdentifiersOnly,
 			PrismContext prismContext, OperationResult parentResult) throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException {
 		List<ObjectFilter> conditions = new ArrayList<ObjectFilter>();
 		RefinedObjectClassDefinition objectClassDefinition = ctx.getObjectClassDefinition();
@@ -607,9 +611,16 @@ public class ShadowManager {
 				// definition from any of them.
 				RefinedObjectClassDefinition anyDefinition = ctx.getRefinedSchema().getRefinedDefinitions().iterator().next();
 				rAttrDef = anyDefinition.findAttributeDefinition(identifier.getElementName());
+				if (primaryIdentifiersOnly && !anyDefinition.isPrimaryIdentifier(identifier.getElementName())) {
+					continue;
+				}
 			} else {
+				if (primaryIdentifiersOnly && !objectClassDefinition.isPrimaryIdentifier(identifier.getElementName())) {
+					continue;
+				}
 				rAttrDef = objectClassDefinition.findAttributeDefinition(identifier.getElementName());
 			}
+
 			String normalizedIdentifierValue = (String) getNormalizedAttributeValue(identifierValue, rAttrDef);
 			//new ItemPath(ShadowType.F_ATTRIBUTES)
 			PrismPropertyDefinition<String> def = (PrismPropertyDefinition<String>) identifier.getDefinition();
