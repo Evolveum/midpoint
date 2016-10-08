@@ -577,7 +577,11 @@ public class AssignmentEvaluator<F extends FocusType> {
 		}
 	
 		for (AssignmentType roleInducement : roleType.getInducement()) {
-			if (!isApplicable(roleInducement.getFocusType(), roleType)){
+			if (!isApplicable(roleInducement.getFocusType(), roleType)) {
+				if (LOGGER.isTraceEnabled()) {
+					LOGGER.trace("Skipping application of inducement {} because the focusType does not match (specified: {}, actual: {})",
+						dumpAssignment(roleInducement), roleInducement.getFocusType(), roleType.getClass().getSimpleName());
+				}
 				continue;
 			}
 			ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> roleInducementIdi = new ItemDeltaItem<>();

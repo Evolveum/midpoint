@@ -62,4 +62,31 @@
 		<orgType>piracy</orgType>
 	</org>
 	
+	<org oid="00000000-8888-6666-0000-c00000000005">
+		<name>C0005</name>
+		<parentOrgRef oid="00000000-8888-6666-0000-c00000000003"/>
+		<assignment>
+			<targetRef oid="00000000-8888-6666-0000-c00000000003" type="OrgType"/>
+		</assignment>
+		<displayName>Department of People</displayName>
+		<identifier>C005</identifier>
+		<orgType>piracy</orgType>
+		<inducement>
+			<!-- Monkey Island Scumm Bar -->
+			<targetRef oid="00000000-8888-6666-0000-100000000006" type="OrgType"/>
+			<focusType>UserType</focusType>
+		</inducement>
+	</org>
+	
+	<org oid="00000000-8888-6666-0000-c00000000006">
+		<name>C0006</name>
+		<parentOrgRef oid="00000000-8888-6666-0000-c00000000005"/>
+		<assignment>
+			<targetRef oid="00000000-8888-6666-0000-c00000000005" type="OrgType"/>
+		</assignment>
+		<displayName>Entertainment Section</displayName>
+		<identifier>C006</identifier>
+		<orgType>piracy</orgType>
+	</org>
+	
 </objects>

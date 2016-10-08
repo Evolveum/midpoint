@@ -87,6 +87,8 @@ public class TestOrgStructCaribbean extends AbstractInitializedModelIntegrationT
 	protected static final String ORG_CARIBBEAN_THE_CROWN_OID = "00000000-8888-6666-0000-c00000000002";
 	protected static final String ORG_CARIBBEAN_JAMAICA_OID = "00000000-8888-6666-0000-c00000000003";
 	protected static final String ORG_CARIBBEAN_DEPARTMENT_OF_THINGS_OID = "00000000-8888-6666-0000-c00000000004";
+	protected static final String ORG_CARIBBEAN_DEPARTMENT_OF_PEOPLE_OID = "00000000-8888-6666-0000-c00000000005";
+	protected static final String ORG_CARIBBEAN_ENTERTAINMENT_SECTION_OID = "00000000-8888-6666-0000-c00000000006";
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -256,6 +258,9 @@ public class TestOrgStructCaribbean extends AbstractInitializedModelIntegrationT
     }
     
     /**
+     * Jamaica has an inducement to Monkey Island Governor Office.
+     * Sub-orgs of Jamaica should appear under Governor office. 
+     * 
      * MID-3448
      */
     @Test
@@ -325,6 +330,79 @@ public class TestOrgStructCaribbean extends AbstractInitializedModelIntegrationT
         display("Department of Things", orgDoT);
         assertAssignedOrgs(orgDoT, ORG_CARIBBEAN_JAMAICA_OID);
         assertHasOrgs(orgDoT, ORG_CARIBBEAN_JAMAICA_OID, ORG_GOVERNOR_OFFICE_OID);
+    }
+    
+    /**
+     * Department of People (DoP) has in inducement to Monkey Island Scumm Bar.
+     * But that inducement is limited to UserType. Therefore sub-orgs of
+     * DoP should not not appear under Scumm Bar.
+     * 
+     * Related to MID-3448
+     */
+    @Test
+    public void test110RecomputeDoP() throws Exception {
+        final String TEST_NAME = "test110RecomputeDoP";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        
+        Task task = taskManager.createTaskInstance(TestOrgStructCaribbean.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        modelService.recompute(OrgType.class, ORG_CARIBBEAN_DEPARTMENT_OF_PEOPLE_OID, task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        PrismObject<OrgType> orgEntertainmentSection = getObject(OrgType.class, ORG_CARIBBEAN_ENTERTAINMENT_SECTION_OID);
+        display("Entertainment Section", orgEntertainmentSection);
+        assertHasNoOrg(orgEntertainmentSection, ORG_SCUMM_BAR_OID);
+        
+        PrismObject<OrgType> orgScummBar = getObject(OrgType.class, ORG_SCUMM_BAR_OID);
+        display("Scumm Bar", orgScummBar);
+        assertHasNoOrg(orgScummBar, ORG_CARIBBEAN_ENTERTAINMENT_SECTION_OID);
+        
+    }
+    
+    /**
+     * Department of People (DoP) has in inducement to Monkey Island Scumm Bar.
+     * That inducement is limited to UserType. Therefore sub-orgs of
+     * DoP should not not appear under Scumm Bar. But when Jack is assigned
+     * to the DoP he should also appear under Scumm Bar.
+     * 
+     * Related to MID-3448
+     */
+    @Test
+    public void test115AssignJackToDoP() throws Exception {
+        final String TEST_NAME = "test115AssignJackToDoP";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        
+        Task task = taskManager.createTaskInstance(TestOrgStructCaribbean.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        assignOrg(USER_JACK_OID, ORG_CARIBBEAN_DEPARTMENT_OF_PEOPLE_OID, null);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        PrismObject<OrgType> orgEntertainmentSection = getObject(OrgType.class, ORG_CARIBBEAN_ENTERTAINMENT_SECTION_OID);
+        display("Entertainment Section", orgEntertainmentSection);
+        assertHasNoOrg(orgEntertainmentSection, ORG_SCUMM_BAR_OID);
+        
+        PrismObject<OrgType> orgScummBar = getObject(OrgType.class, ORG_SCUMM_BAR_OID);
+        display("Scumm Bar", orgScummBar);
+        assertHasNoOrg(orgScummBar, ORG_CARIBBEAN_ENTERTAINMENT_SECTION_OID);
+        
+        PrismObject<UserType> userJackAfter = getUser(USER_JACK_OID);
+        display("User Jack after", userJackAfter);
+        assertHasOrgs(userJackAfter, ORG_CARIBBEAN_DEPARTMENT_OF_PEOPLE_OID, ORG_SCUMM_BAR_OID);
+        
     }
    
 
