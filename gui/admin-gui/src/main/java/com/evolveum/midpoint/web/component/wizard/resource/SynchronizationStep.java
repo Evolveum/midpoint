@@ -342,6 +342,7 @@ public class SynchronizationStep extends WizardStep {
 		parentPage.addEditingEnabledBehavior(editorObjectClass);
         editor.add(editorObjectClass);
 
+        // TODO: switch to ObjectTypeSelectPanel
         DropDownChoice editorFocus = new DropDownChoice<>(ID_EDITOR_FOCUS, new PropertyModel<QName>(syncDtoModel,
                 ResourceSynchronizationDto.F_SELECTED + ".focusType"),
                 new AbstractReadOnlyModel<List<QName>>() {
