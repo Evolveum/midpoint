@@ -72,7 +72,7 @@ public class InternalMonitor implements PrismMonitor {
 	public synchronized static void recordResourceSchemaParse() {
 		resourceSchemaParseCount++;
 		if (traceShadowFetchOperation) {
-			traceOperation("resource schema parse", resourceSchemaParseCount);
+			traceOperation("resource schema parse", resourceSchemaParseCount, true);
 		}
 	}
 	
@@ -92,7 +92,7 @@ public class InternalMonitor implements PrismMonitor {
 		resourceSchemaFetchCount++;
 		provisioningAllExtOperationCount++;
 		if (traceShadowFetchOperation) {
-			traceOperation("resource schema fetch", resourceSchemaFetchCount);
+			traceOperation("resource schema fetch", resourceSchemaFetchCount, true);
 		}
 	}
 
@@ -153,7 +153,7 @@ public class InternalMonitor implements PrismMonitor {
 		shadowFetchOperationCount++;
 		provisioningAllExtOperationCount++;
 		if (traceShadowFetchOperation) {
-			traceOperation("shadow fetch", shadowFetchOperationCount);
+			traceOperation("shadow fetch", shadowFetchOperationCount, true);
 		}
 	}
 
@@ -192,7 +192,7 @@ public class InternalMonitor implements PrismMonitor {
 	public static void recordConnectorOperation(String name) {
 		connectorOperationCount++;
 		if (traceConnectorOperation) {
-			traceOperation("connector "+name, connectorOperationCount);
+			traceOperation("connector "+name, connectorOperationCount, true);
 		}
 	}
 	
@@ -203,7 +203,7 @@ public class InternalMonitor implements PrismMonitor {
 	public static void recordConnectorSimulatedPagingSearchCount() {
 		connectorSimulatedPagingSearchCount++;
 		if (traceConnectorOperation) {
-			traceOperation("simulated paged search", connectorSimulatedPagingSearchCount);
+			traceOperation("simulated paged search", connectorSimulatedPagingSearchCount, true);
 		}
 	}
 
@@ -258,7 +258,7 @@ public class InternalMonitor implements PrismMonitor {
 			LOGGER.debug("MONITOR prism object clone end: {}", orig);
 		}
 		if (tracePrismObjectClone) {
-			traceOperation("prism object clone", prismObjectCloneCount);
+			traceOperation("prism object clone", prismObjectCloneCount, false);
 		}
 	}
 	
@@ -288,7 +288,7 @@ public class InternalMonitor implements PrismMonitor {
 		connectorOperationCount = 0;
 	}
 
-	private static void traceOperation(String opName, long counter) {
+	private static void traceOperation(String opName, long counter, boolean traceAndDebug) {
 		LOGGER.info("MONITOR {} ({})", opName, counter);
 		if (LOGGER.isDebugEnabled()) {
 			StackTraceElement[] fullStack = Thread.currentThread().getStackTrace();
@@ -308,7 +308,9 @@ public class InternalMonitor implements PrismMonitor {
 				sb.append(stackElement.toString());
 				sb.append("\n");
 			}
-			LOGGER.debug("MONITOR {} ({}): {} {}", new Object[]{opName, counter, immediateClass, immediateMethod});
+			if (traceAndDebug) {
+				LOGGER.debug("MONITOR {} ({}): {} {}", new Object[]{opName, counter, immediateClass, immediateMethod});
+			}
 			LOGGER.trace("MONITOR {} ({}):\n{}", new Object[]{opName, counter, sb});
 		}
 	}

@@ -30,8 +30,9 @@
             <class name="com.evolveum.midpoint.model.intest.TestMultiResource"/>
             <class name="com.evolveum.midpoint.model.intest.TestUserTemplate"/>
             <class name="com.evolveum.midpoint.model.intest.TestUserTemplateWithRanges"/>
-            <class name="com.evolveum.midpoint.model.intest.TestOrgStruct"/>
-            <class name="com.evolveum.midpoint.model.intest.TestOrgStructMeta"/>
+            <class name="com.evolveum.midpoint.model.intest.orgstruct.TestOrgStruct"/>
+            <class name="com.evolveum.midpoint.model.intest.orgstruct.TestOrgStructMeta"/>
+            <class name="com.evolveum.midpoint.model.intest.orgstruct.TestOrgStructCaribbean"/>
             <class name="com.evolveum.midpoint.model.intest.TestSchemalessResource"/>
             <class name="com.evolveum.midpoint.model.intest.TestPassword"/>
             <class name="com.evolveum.midpoint.model.intest.TestActivation"/>

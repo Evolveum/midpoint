@@ -319,7 +319,7 @@ public class ResourceObjectConverter {
 		LOGGER.trace("Deleting resource object {}", shadow);
 
 		Collection<? extends ResourceAttribute<?>> identifiers = ShadowUtil
-				.getPrimaryIdentifiers(shadow);
+				.getAllIdentifiers(shadow);
 
 		if (ProvisioningUtil.isProtectedShadow(ctx.getObjectClassDefinition(), shadow, matchingRuleRegistry)) {
 			LOGGER.error("Attempt to delete protected resource object " + ctx.getObjectClassDefinition() + ": "
@@ -392,8 +392,8 @@ public class ResourceObjectConverter {
 		RefinedObjectClassDefinition objectClassDefinition = ctx.getObjectClassDefinition();
 		Collection<Operation> operations = new ArrayList<Operation>();
 		
-		Collection<? extends ResourceAttribute<?>> identifiers = ShadowUtil.getPrimaryIdentifiers(repoShadow);
-		
+		Collection<? extends ResourceAttribute<?>> identifiers = ShadowUtil.getAllIdentifiers(repoShadow);
+		Collection<? extends ResourceAttribute<?>> primaryIdentifiers = ShadowUtil.getPrimaryIdentifiers(repoShadow);
 
 		if (ProvisioningUtil.isProtectedShadow(ctx.getObjectClassDefinition(), repoShadow, matchingRuleRegistry)) {
 			if (hasChangesOnResource(itemDeltas)) {
@@ -457,7 +457,7 @@ public class ResourceObjectConverter {
 		Collection<PropertyModificationOperation> sideEffectOperations = null;
 		
 		//check identifier if it is not null
-		if (identifiers.isEmpty() && repoShadow.asObjectable().getFailedOperationType()!= null){
+		if (primaryIdentifiers.isEmpty() && repoShadow.asObjectable().getFailedOperationType()!= null){
 			throw new GenericConnectorException(
 					"Unable to modify object in the resource. Probably it has not been created yet because of previous unavailability of the resource.");
 		}
@@ -575,7 +575,7 @@ public class ResourceObjectConverter {
 		
 		if (!ShadowUtil.hasPrimaryIdentifier(identifiers, objectClassDefinition)) {
 			Collection<? extends ResourceAttribute<?>> primaryIdentifiers = resourceObjectReferenceResolver.resolvePrimaryIdentifier(ctx, identifiers, "modification of resource object "+identifiers, parentResult);
-			if (primaryIdentifiers == null) {
+			if (primaryIdentifiers == null || primaryIdentifiers.isEmpty()) {
 				throw new ObjectNotFoundException("Cannot find repository shadow for identifiers "+identifiers);
 			}
 			identifiers = primaryIdentifiers;
@@ -922,9 +922,14 @@ public class ResourceObjectConverter {
 		
 		Map<ResourceObjectDiscriminator, ResourceObjectOperations> roMap = new HashMap<>();
 		
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace("executeEntitlementChangesModify, old shadow:\n{}", subjectShadowBefore.debugDump(1));
+		}
+		
 		for (ItemDelta subjectDelta : subjectDeltas) {
+			ItemPath subjectItemPath = subjectDelta.getPath();
 			
-			if (new ItemPath(ShadowType.F_ASSOCIATION).equivalent(subjectDelta.getPath())) {
+			if (new ItemPath(ShadowType.F_ASSOCIATION).equivalent(subjectItemPath)) {
 				ContainerDelta<ShadowAssociationType> containerDelta = (ContainerDelta<ShadowAssociationType>)subjectDelta;				
 				subjectShadowAfter = entitlementConverter.collectEntitlementsAsObjectOperation(ctx, roMap, containerDelta,
                         subjectShadowBefore, subjectShadowAfter, parentResult);
@@ -934,8 +939,11 @@ public class ResourceObjectConverter {
 				ContainerDelta<ShadowAssociationType> associationDelta = ContainerDelta.createDelta(ShadowType.F_ASSOCIATION, subjectShadowBefore.getDefinition());
 				PrismContainer<ShadowAssociationType> associationContainer = subjectShadowBefore.findContainer(ShadowType.F_ASSOCIATION);
 				if (associationContainer == null || associationContainer.isEmpty()){
-					LOGGER.trace("No shadow association container in old shadow. Skipping processing entitlements change.");
+					LOGGER.trace("No shadow association container in old shadow. Skipping processing entitlements change for {}.", subjectItemPath);
 					continue;
+				}
+				if (LOGGER.isTraceEnabled()) {
+					LOGGER.trace("Processing association container in old shadow for {}:\n{}", subjectItemPath, associationContainer.debugDump(1));
 				}
 
 				// Delete + re-add association values that should ensure correct functioning in case of rename
@@ -954,12 +962,15 @@ public class ResourceObjectConverter {
 						continue;
 					}
 					QName valueAttributeName = associationDefinition.getResourceObjectAssociationType().getValueAttribute();
-					if (!ShadowUtil.matchesAttribute(subjectDelta.getPath(), valueAttributeName)) {
+					if (!ShadowUtil.matchesAttribute(subjectItemPath, valueAttributeName)) {
 						continue;
 					}
 					LOGGER.trace("Processing association {} on rename", associationName);
 					associationDelta.addValuesToDelete(associationValue.clone());
 					associationDelta.addValuesToAdd(associationValue.clone());
+				}
+				if (LOGGER.isTraceEnabled()) {
+					LOGGER.trace("Resulting association delta for {}:\n{}", subjectItemPath, associationDelta.debugDump(1));
 				}
 				if (!associationDelta.isEmpty()) {
 					entitlementConverter.collectEntitlementsAsObjectOperation(ctx, roMap, associationDelta, subjectShadowBefore, subjectShadowAfter, parentResult);
@@ -1016,17 +1027,22 @@ public class ResourceObjectConverter {
 		for (Entry<ResourceObjectDiscriminator,ResourceObjectOperations> entry: roMap.entrySet()) {
 			ResourceObjectDiscriminator disc = entry.getKey();
 			ProvisioningContext entitlementCtx = entry.getValue().getResourceObjectContext();
-			Collection<? extends ResourceAttribute<?>> identifiers = disc.getIdentifiers();
-			Collection<Operation> operations = entry.getValue().getOperations();
+			Collection<? extends ResourceAttribute<?>> primaryIdentifiers = disc.getPrimaryIdentifiers();
+			ResourceObjectOperations resourceObjectOperations = entry.getValue();
+			Collection<? extends ResourceAttribute<?>> allIdentifiers = resourceObjectOperations.getAllIdentifiers();
+			if (allIdentifiers == null || allIdentifiers.isEmpty()) {
+				allIdentifiers = primaryIdentifiers;
+			}
+			Collection<Operation> operations = resourceObjectOperations.getOperations();
 			
 			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("Excuting entitlement change identifiers={}:", identifiers, DebugUtil.debugDump(operations, 1));
+				LOGGER.trace("Excuting entitlement change identifiers={}:", allIdentifiers, DebugUtil.debugDump(operations, 1));
 			}
 			
 			OperationResult result = parentResult.createMinorSubresult(OPERATION_MODIFY_ENTITLEMENT);
 			try {
 				
-				executeModify(entitlementCtx, entry.getValue().getCurrentShadow(), identifiers, operations, result);
+				executeModify(entitlementCtx, entry.getValue().getCurrentShadow(), allIdentifiers, operations, result);
 				
 				result.recordSuccess();
 				
@@ -1040,6 +1056,10 @@ public class ResourceObjectConverter {
 				// properly record the operation in the result.
 				LOGGER.error("Error while modifying entitlement {} of {}: {}", entitlementCtx, subjectCtx, e.getMessage(), e);
 				result.recordFatalError(e);
+			} catch (RuntimeException | Error e) {
+				LOGGER.error("Error while modifying entitlement {} of {}: {}", entitlementCtx, subjectCtx, e.getMessage(), e);
+				result.recordFatalError(e);
+				throw e;
 			}
 			
 		}
@@ -1612,8 +1632,9 @@ public class ResourceObjectConverter {
 					if (ctx.isWildcard()) {
 						if (!MiscUtil.equals(shadowAttrsToReturn, attrsToReturn)) {
 							// re-fetch the shadow if necessary (if attributesToGet does not match)
-							ResourceObjectIdentification identification = new ResourceObjectIdentification(shadowCtx.getObjectClassDefinition(), 
-									change.getIdentifiers(), null);
+							ResourceObjectIdentification identification = ResourceObjectIdentification.create(shadowCtx.getObjectClassDefinition(), 
+									change.getIdentifiers());
+							identification.validatePrimaryIdenfiers();
 							LOGGER.trace("Re-fetching object {} because of attrsToReturn", identification);
 							currentShadow = connector.fetchObject(ShadowType.class, identification, shadowAttrsToReturn, ctx, parentResult);
 						}

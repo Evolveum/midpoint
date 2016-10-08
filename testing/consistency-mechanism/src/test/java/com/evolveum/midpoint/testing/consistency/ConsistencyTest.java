@@ -1127,9 +1127,11 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		String accountOid = assertUserOneAccountRef(USER_E_OID);
 		 
 		//WHEN
+		TestUtil.displayWhen(TEST_NAME);
 		requestToExecuteChanges(REQUEST_ACCOUNT_MODIFY_COMMUNICATION_PROBLEM, accountOid, ShadowType.class, task, null, parentResult);
 		
 		//THEN
+		TestUtil.displayThen(TEST_NAME);
 		checkPostponedAccountWithAttributes(accountOid, "e", "Jackkk", "e", "e", "emp4321", FailedOperationTypeType.ADD, false, task, parentResult);
 	}
 
@@ -1145,9 +1147,13 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		String accountOid = assertUserOneAccountRef(USER_JACK_OID);
 
 		Task task = taskManager.createTaskInstance();
+		
 		//WHEN
+		TestUtil.displayWhen(TEST_NAME);
 		requestToExecuteChanges(REQUEST_ACCOUNT_MODIFY_COMMUNICATION_PROBLEM, accountOid, ShadowType.class, task, null, parentResult);
 		
+		//THEN
+		TestUtil.displayThen(TEST_NAME);
 		checkPostponedAccountBasic(accountOid, FailedOperationTypeType.MODIFY, true, parentResult);
 	}
 
@@ -2518,6 +2524,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 	
 	private void checkPostponedAccountWithAttributes(String accountOid, String uid, String givenName, String sn, String cn, String employeeNumber, FailedOperationTypeType failedOperation, boolean modify, Task task, OperationResult parentResult) throws Exception{
 		ShadowType account = checkPostponedAccountWithAttributes(accountOid, uid, givenName, sn, cn, failedOperation, modify, task, parentResult);
+		display("account shadow (postponed operation)", account);
 		assertAttribute(account, resourceTypeOpenDjrepo, "employeeNumber", employeeNumber);
 	}
 	

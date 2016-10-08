@@ -113,7 +113,7 @@ public class CommunicationExceptionHandler extends ErrorHandler {
 		ResourceOperationDescription operationDescription = null;
 		switch (op) {
 		case ADD:
-			// if it is firt time, just store the whole account to the repo
+			// if it is first time, just store the whole account to the repo
 			LOGGER.trace("Postponing ADD operation for {}", ObjectTypeUtil.toShortString(shadow));
 			ResourceType resource = shadow.getResource();
 			if (shadow.getFailedOperationType() == null) {
@@ -137,6 +137,9 @@ public class CommunicationExceptionHandler extends ErrorHandler {
 				// It is needed for shadow creation during error recovery.
 				String oid = cacheRepositoryService.addObject(shadow.asPrismObject(), null, operationResult);
 				shadow.setOid(oid);
+				if (LOGGER.isTraceEnabled()) {
+					LOGGER.trace("Stored new shadow for unfinished operation:\n{}", shadow.asPrismObject().debugDump(1));
+				}
 			
 				// if it is seccond time ,just increade the attempt number
 			} else {

@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2016 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+ 
+<objects xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+         xmlns:org='http://midpoint.evolveum.com/xml/ns/public/common/org-3'>
+
+	<org oid="00000000-8888-6666-0000-c00000000001">
+		<name>C0001</name>
+		<displayName>The Golden Age of Piracy</displayName>
+		<identifier>C001</identifier>
+		<orgType>piracy</orgType>
+	</org>
+
+	<org oid="00000000-8888-6666-0000-c00000000002">
+		<name>C0002</name>
+		<parentOrgRef oid="00000000-8888-6666-0000-c00000000001"/>
+		<assignment>
+			<targetRef oid="00000000-8888-6666-0000-c00000000001" type="OrgType"/>
+		</assignment>
+		<displayName>The Crown</displayName>
+		<identifier>C002</identifier>
+		<orgType>piracy</orgType>
+	</org>
+
+	<org oid="00000000-8888-6666-0000-c00000000003">
+		<name>C0003</name>
+		<parentOrgRef oid="00000000-8888-6666-0000-c00000000002"/>
+		<assignment>
+			<targetRef oid="00000000-8888-6666-0000-c00000000002" type="OrgType"/>
+		</assignment>
+		<displayName>Government of Jamaica</displayName>
+		<identifier>C003</identifier>
+		<orgType>piracy</orgType>
+		<inducement>
+			<!-- Monkey Island Governor Office -->
+			<targetRef oid="00000000-8888-6666-0000-100000000001" type="OrgType"/>
+		</inducement>
+	</org>
+
+	<org oid="00000000-8888-6666-0000-c00000000004">
+		<name>C0004</name>
+		<parentOrgRef oid="00000000-8888-6666-0000-c00000000003"/>
+		<assignment>
+			<targetRef oid="00000000-8888-6666-0000-c00000000003" type="OrgType"/>
+		</assignment>
+		<displayName>Department of Things</displayName>
+		<identifier>C004</identifier>
+		<orgType>piracy</orgType>
+	</org>
+	
+	<org oid="00000000-8888-6666-0000-c00000000005">
+		<name>C0005</name>
+		<parentOrgRef oid="00000000-8888-6666-0000-c00000000003"/>
+		<assignment>
+			<targetRef oid="00000000-8888-6666-0000-c00000000003" type="OrgType"/>
+		</assignment>
+		<displayName>Department of People</displayName>
+		<identifier>C005</identifier>
+		<orgType>piracy</orgType>
+		<inducement>
+			<!-- Monkey Island Scumm Bar -->
+			<targetRef oid="00000000-8888-6666-0000-100000000006" type="OrgType"/>
+			<focusType>UserType</focusType>
+		</inducement>
+	</org>
+	
+	<org oid="00000000-8888-6666-0000-c00000000006">
+		<name>C0006</name>
+		<parentOrgRef oid="00000000-8888-6666-0000-c00000000005"/>
+		<assignment>
+			<targetRef oid="00000000-8888-6666-0000-c00000000005" type="OrgType"/>
+		</assignment>
+		<displayName>Entertainment Section</displayName>
+		<identifier>C006</identifier>
+		<orgType>piracy</orgType>
+	</org>
+	
+</objects>

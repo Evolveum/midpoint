@@ -1,0 +1,31 @@
+<!--
+  ~ Copyright (c) 2016 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<role oid="0c0c81b2-d0a1-11e5-b51e-0309a826745e" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+	xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
+    <name>Submissive</name>
+    <description>Role that creates account in AD subdomain</description>
+    <inducement>
+    	<construction>
+    		<resourceRef oid="eced6d24-73e3-11e5-8457-93eff15a6b85" type="c:ResourceType"/>
+		<kind>account</kind>
+		<intent>sub</intent>
+	</construction>
+    </inducement>
+</role>
