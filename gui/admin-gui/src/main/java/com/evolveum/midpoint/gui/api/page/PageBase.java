@@ -27,9 +27,11 @@ import javax.management.MBeanServer;
 import javax.management.MBeanServerFactory;
 import javax.management.ObjectName;
 
+import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.common.SystemConfigurationHolder;
 import com.evolveum.midpoint.web.component.menu.*;
 import com.evolveum.midpoint.web.page.admin.configuration.*;
+import com.evolveum.midpoint.web.page.admin.reports.*;
 import com.evolveum.midpoint.web.page.self.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
@@ -125,10 +127,6 @@ import com.evolveum.midpoint.web.page.admin.certification.PageCertDecisions;
 import com.evolveum.midpoint.web.page.admin.certification.PageCertDefinition;
 import com.evolveum.midpoint.web.page.admin.certification.PageCertDefinitions;
 import com.evolveum.midpoint.web.page.admin.home.PageDashboard;
-import com.evolveum.midpoint.web.page.admin.reports.PageCreatedReports;
-import com.evolveum.midpoint.web.page.admin.reports.PageNewReport;
-import com.evolveum.midpoint.web.page.admin.reports.PageReport;
-import com.evolveum.midpoint.web.page.admin.reports.PageReports;
 import com.evolveum.midpoint.web.page.admin.resources.PageConnectorHosts;
 import com.evolveum.midpoint.web.page.admin.resources.PageImportResource;
 import com.evolveum.midpoint.web.page.admin.resources.PageResource;
@@ -231,7 +229,10 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 	@SpringBean(name = "taskManager")
 	private TaskManager taskManager;
 
-	@SpringBean(name = "modelController")
+    @SpringBean(name = "auditService")
+    private AuditService auditService;
+
+    @SpringBean(name = "modelController")
 	private WorkflowService workflowService;
 
 	@SpringBean(name = "workflowManager")
@@ -397,6 +398,10 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 		return reportManager;
 	}
 
+	public AuditService getAuditService() {
+		return auditService;
+	}
+
 	public AccessCertificationService getCertificationService() {
 		return certficationService;
 	}
@@ -472,9 +477,9 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 		// this attaches jquery.js as first header item, which is used in our
 		// scripts.
 		CoreLibrariesContributor.contribute(getApplication(), response);
-	}
+    }
 
-	@Override
+    @Override
 	protected void onBeforeRender() {
 		super.onBeforeRender();
 		FeedbackMessages messages = getSession().getFeedbackMessages();
@@ -805,9 +810,9 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 	 * resources during maven build. "describe" variable is not replaced.
 	 *
 	 * @return "unknown" instead of "git describe" for current build.
-	 */
-	@Deprecated
-	public String getDescribe() {
+     */
+    @Deprecated
+    public String getDescribe() {
 		return getString("pageBase.unknownBuildNumber");
 	}
 
@@ -1063,7 +1068,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 		MenuItem list = new MenuItem(createStringResource("PageAdmin.menu.top.resources.list"), PageResources.class);
 		submenu.add(list);
 		createFocusPageViewMenu(submenu, "PageAdmin.menu.top.resources.view", PageResource.class);
-		createFocusPageNewEditMenu(submenu, "PageAdmin.menu.top.resources.new", "PageAdmin.menu.top.resources.edit",
+        createFocusPageNewEditMenu(submenu, "PageAdmin.menu.top.resources.new", "PageAdmin.menu.top.resources.edit",
 				PageResourceWizard.class);
 		MenuItem n = new MenuItem(createStringResource("PageAdmin.menu.top.resources.import"),
 				PageImportResource.class);
@@ -1091,6 +1096,9 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 		submenu.add(created);
 		MenuItem n = new MenuItem(createStringResource("PageAdmin.menu.top.reports.new"), PageNewReport.class);
 		submenu.add(n);
+        MenuItem auditLogViewer = new MenuItem(createStringResource("PageAuditLogViewer.menuName"),
+                PageAuditLogViewer.class);
+        submenu.add(auditLogViewer);
 
 		return item;
 	}
