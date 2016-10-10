@@ -11,6 +11,7 @@ import com.evolveum.midpoint.web.component.input.DatePanel;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.configuration.PageAdminConfiguration;
+import com.evolveum.midpoint.web.page.admin.reports.dto.AuditEventRecordProvider;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
@@ -43,8 +44,6 @@ public class PageAuditLogViewer extends PageBase{
     private static final String ID_FROM = "fromField";
     private static final String ID_MAIN_FORM = "mainForm";
 
-    private static final String AUDIT_RECORDS_QUERY = "from RAuditEventRecord as aer where 1=1 and ";
-    private static final String AUDIT_RECORDS_QUERY_COUNT = "select count(*) from RAuditEventRecord as aer where 1=1 and ";
 
     public PageAuditLogViewer(){
         initLayout();
@@ -85,23 +84,7 @@ public class PageAuditLogViewer extends PageBase{
     }
 
     private void initTable(Form mainForm){
-        IModel<List<AuditEventRecordType>> model = new IModel<List<AuditEventRecordType>>() {
-            @Override
-            public List<AuditEventRecordType> getObject() {
-                return getAuditEventRecordList();
-            }
-
-            @Override
-            public void setObject(List<AuditEventRecordType> auditEventRecord) {
-
-            }
-
-            @Override
-            public void detach() {
-
-            }
-        };
-        ListDataProvider provider = new ListDataProvider<AuditEventRecordType>(PageAuditLogViewer.this, model);
+        AuditEventRecordProvider provider = new AuditEventRecordProvider(PageAuditLogViewer.this);
         BoxedTablePanel table = new BoxedTablePanel(ID_TABLE, provider,
                 initColumns(),
                 UserProfileStorage.TableId.PAGE_AUDIT_LOG_VIEWER,
@@ -113,24 +96,6 @@ public class PageAuditLogViewer extends PageBase{
         mainForm.add(table);
     }
 
-    private List<AuditEventRecordType> getAuditEventRecordList(){
-        String parameterQuery = generateFullQuery(AUDIT_RECORDS_QUERY);
-        List<AuditEventRecord> auditRecords = getAuditService().listRecords(parameterQuery + " order by aer.timestamp asc", params);
-        if (auditRecords == null){
-            auditRecords = new ArrayList<>();
-        }
-        List<AuditEventRecordType> auditRecordList = new ArrayList<>();
-        for (AuditEventRecord record : auditRecords){
-            AuditEventRecordType newRecord = getAuditEventRecordType(record);
-            auditRecordList.add(newRecord);
-        }
-//        parameterQuery = generateFullQuery(AUDIT_RECORDS_QUERY_COUNT);
-//        long count = getAuditService().countObjects(parameterQuery, params);
-//        if (count != 0){
-//
-//        }
-        return auditRecordList;
-    }
 
     private List<IColumn<SelectableBean<AuditEventRecordType>, String>> initColumns() {
         List<IColumn<SelectableBean<AuditEventRecordType>, String>> columns = new ArrayList<>();
@@ -145,51 +110,4 @@ public class PageAuditLogViewer extends PageBase{
         return columns;
     }
 
-    private AuditEventRecordType getAuditEventRecordType(AuditEventRecord record){
-        AuditEventRecordType newRecord = new AuditEventRecordType();
-        newRecord.setTimestamp(MiscUtil.asXMLGregorianCalendar(new Date(record.getTimestamp())));
-        //TODO fill in others fields
-        return newRecord;
-    }
-
-    private String generateFullQuery(String query){
-        if (params.get("from") != null) {
-            query += "(aer.timestamp >= :from) and ";
-        } else {
-            params.remove("from");
-        }
-        if (params.get("to") != null) {
-            query += "(aer.timestamp <= :to) and ";
-        } else {
-            params.remove("to");
-        }
-        if (params.get("eventType") != null) {
-            query += "(aer.eventType = :eventType) and ";
-        } else {
-            params.remove("eventType");
-        }
-        if (params.get("eventStage") != null) {
-            query += "(aer.eventStage = :eventStage) and ";
-        } else {
-            params.remove("eventStage");
-        }
-        if (params.get("outcome") != null) {
-            query += "(aer.outcome = :outcome) and ";
-        } else {
-            params.remove("outcome");
-        }
-        if (params.get("initiatorName") != null) {
-            query += "(aer.initiatorName = :initiatorName) and ";
-        } else {
-            params.remove("initiatorName");
-        }
-        if (params.get("targetName") != null) {
-            query += "(aer.targetName = :targetName) and ";
-        } else {
-            params.remove("targetName");
-        }
-
-        query = query.substring(0, query.length()-5); // remove trailing and
-return query;
-    }
 }
