@@ -15,6 +15,7 @@
  */
 package com.evolveum.midpoint.model.test;
 
+import com.evolveum.icf.dummy.resource.ConflictException;
 import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.icf.dummy.resource.DummyGroup;
 import com.evolveum.icf.dummy.resource.DummyResource;
@@ -2529,7 +2530,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         assertTrue("Number of messages recorded in dummy transport '" + name + "' (" + messages.size() + ") is not at least " + expectedCount, messages.size() >= expectedCount);
     }
     
-    protected DummyAccount getDummyAccount(String dummyInstanceName, String username) throws SchemaViolationException {
+    protected DummyAccount getDummyAccount(String dummyInstanceName, String username) throws SchemaViolationException, ConflictException {
 		DummyResource dummyResource = DummyResource.getInstance(dummyInstanceName);
 		try {
 			return dummyResource.getAccountByUsername(username);
@@ -2540,7 +2541,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		}
 	}
     
-    protected DummyAccount getDummyAccountById(String dummyInstanceName, String id) throws SchemaViolationException {
+    protected DummyAccount getDummyAccountById(String dummyInstanceName, String id) throws SchemaViolationException, ConflictException {
 		DummyResource dummyResource = DummyResource.getInstance(dummyInstanceName);
 		try {
 			return dummyResource.getAccountById(id);
@@ -2551,11 +2552,11 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		}
 	}
 	
-	protected void assertDefaultDummyAccount(String username, String fullname, boolean active) throws SchemaViolationException {
+	protected void assertDefaultDummyAccount(String username, String fullname, boolean active) throws SchemaViolationException, ConflictException {
 		assertDummyAccount(null, username, fullname, active);
 	}
 	
-	protected DummyAccount assertDummyAccount(String dummyInstanceName, String username, String fullname, Boolean active) throws SchemaViolationException {
+	protected DummyAccount assertDummyAccount(String dummyInstanceName, String username, String fullname, Boolean active) throws SchemaViolationException, ConflictException {
 		DummyAccount account = getDummyAccount(dummyInstanceName, username);
 		assertNotNull("No dummy("+dummyInstanceName+") account for username "+username, account);
 		assertEquals("Wrong fullname for dummy("+dummyInstanceName+") account "+username, fullname, account.getAttributeValue("fullname"));
@@ -2563,41 +2564,41 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		return account;
 	}
 	
-	protected void assertDummyAccount(String dummyInstanceName, String username) throws SchemaViolationException {
+	protected void assertDummyAccount(String dummyInstanceName, String username) throws SchemaViolationException, ConflictException {
 		DummyAccount account = getDummyAccount(dummyInstanceName, username);
 		assertNotNull("No dummy(" + dummyInstanceName + ") account for username " + username, account);
 	}
 	
-	protected void assertDummyAccountById(String dummyInstanceName, String id) throws SchemaViolationException {
+	protected void assertDummyAccountById(String dummyInstanceName, String id) throws SchemaViolationException, ConflictException {
 		DummyAccount account = getDummyAccountById(dummyInstanceName, id);
 		assertNotNull("No dummy("+dummyInstanceName+") account for id "+id, account);
 	}
 	
-	protected void assertNoDummyAccountById(String dummyInstanceName, String id) throws SchemaViolationException {
+	protected void assertNoDummyAccountById(String dummyInstanceName, String id) throws SchemaViolationException, ConflictException {
 		DummyAccount account = getDummyAccountById(dummyInstanceName, id);
 		assertNull("Dummy(" + dummyInstanceName + ") account for id " + id + " exists while not expecting it", account);
 	}
 	
-	protected void assertDummyAccountActivation(String dummyInstanceName, String username, Boolean active) throws SchemaViolationException {
+	protected void assertDummyAccountActivation(String dummyInstanceName, String username, Boolean active) throws SchemaViolationException, ConflictException {
 		DummyAccount account = getDummyAccount(dummyInstanceName, username);
 		assertNotNull("No dummy("+dummyInstanceName+") account for username "+username, account);
 		assertEquals("Wrong activation for dummy(" + dummyInstanceName + ") account " + username, active, account.isEnabled());
 	}
 
-	protected void assertNoDummyAccount(String username) throws SchemaViolationException {
+	protected void assertNoDummyAccount(String username) throws SchemaViolationException, ConflictException {
 		assertNoDummyAccount(null, username);
 	}
 	
-	protected void assertNoDummyAccount(String dummyInstanceName, String username) throws SchemaViolationException {
+	protected void assertNoDummyAccount(String dummyInstanceName, String username) throws SchemaViolationException, ConflictException {
 		DummyAccount account = getDummyAccount(dummyInstanceName, username);
 		assertNull("Dummy account for username " + username + " exists while not expecting it (" + dummyInstanceName + ")", account);
 	}
 	
-	protected void assertDefaultDummyAccountAttribute(String username, String attributeName, Object... expectedAttributeValues) throws SchemaViolationException {
+	protected void assertDefaultDummyAccountAttribute(String username, String attributeName, Object... expectedAttributeValues) throws SchemaViolationException, ConflictException {
 		assertDummyAccountAttribute(null, username, attributeName, expectedAttributeValues);
 	}
 	
-	protected void assertDummyAccountAttribute(String dummyInstanceName, String username, String attributeName, Object... expectedAttributeValues) throws SchemaViolationException {
+	protected void assertDummyAccountAttribute(String dummyInstanceName, String username, String attributeName, Object... expectedAttributeValues) throws SchemaViolationException, ConflictException {
 		DummyAccount account = getDummyAccount(dummyInstanceName, username);
 		assertNotNull("No dummy account for username "+username, account);
 		Set<Object> values = account.getAttributeValues(attributeName, Object.class);
@@ -2616,7 +2617,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		}
 	}
 
-	protected void assertNoDummyAccountAttribute(String dummyInstanceName, String username, String attributeName) throws SchemaViolationException {
+	protected void assertNoDummyAccountAttribute(String dummyInstanceName, String username, String attributeName) throws SchemaViolationException, ConflictException {
 		DummyAccount account = getDummyAccount(dummyInstanceName, username);
 		assertNotNull("No dummy account for username "+username, account);
 		Set<Object> values = account.getAttributeValues(attributeName, Object.class);
@@ -2627,7 +2628,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 				". Values found: " + values);
 	}
 
-	protected void assertDummyAccountAttributeGenerated(String dummyInstanceName, String username) throws SchemaViolationException {
+	protected void assertDummyAccountAttributeGenerated(String dummyInstanceName, String username) throws SchemaViolationException, ConflictException {
 		DummyAccount account = getDummyAccount(dummyInstanceName, username);
 		assertNotNull("No dummy account for username "+username, account);
 		Integer generated = account.getAttributeValue(DummyAccount.ATTR_INTERNAL_ID, Integer.class);
@@ -2636,7 +2637,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		}
 	}
 
-	protected DummyGroup getDummyGroup(String dummyInstanceName, String name) throws SchemaViolationException {
+	protected DummyGroup getDummyGroup(String dummyInstanceName, String name) throws SchemaViolationException, ConflictException {
 		DummyResource dummyResource = DummyResource.getInstance(dummyInstanceName);
 		try {
 			return dummyResource.getGroupByName(name);
@@ -2647,15 +2648,15 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		}
 	}
 	
-	protected void assertDummyGroup(String username, String description) throws SchemaViolationException {
+	protected void assertDummyGroup(String username, String description) throws SchemaViolationException, ConflictException {
 		assertDummyGroup(null, username, description, null);
 	}
 	
-	protected void assertDummyGroup(String username, String description, Boolean active) throws SchemaViolationException {
+	protected void assertDummyGroup(String username, String description, Boolean active) throws SchemaViolationException, ConflictException {
 		assertDummyGroup(null, username, description, active);
 	}
 	
-	protected void assertDummyGroup(String dummyInstanceName, String groupname, String description, Boolean active) throws SchemaViolationException {
+	protected void assertDummyGroup(String dummyInstanceName, String groupname, String description, Boolean active) throws SchemaViolationException, ConflictException {
 		DummyGroup group = getDummyGroup(dummyInstanceName, groupname);
 		assertNotNull("No dummy("+dummyInstanceName+") group for name "+groupname, group);
 		assertEquals("Wrong fullname for dummy(" + dummyInstanceName + ") group " + groupname, description,
@@ -2665,16 +2666,16 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		}
 	}
 
-	protected void assertNoDummyGroup(String groupname) throws SchemaViolationException {
+	protected void assertNoDummyGroup(String groupname) throws SchemaViolationException, ConflictException {
 		assertNoDummyGroup(null, groupname);
 	}
 	
-	protected void assertNoDummyGroup(String dummyInstanceName, String groupname) throws SchemaViolationException {
+	protected void assertNoDummyGroup(String dummyInstanceName, String groupname) throws SchemaViolationException, ConflictException {
 		DummyGroup group = getDummyGroup(dummyInstanceName, groupname);
 		assertNull("Dummy group '" + groupname + "' exists while not expecting it (" + dummyInstanceName + ")", group);
     }
 
-    protected void assertDummyGroupAttribute(String dummyInstanceName, String groupname, String attributeName, Object... expectedAttributeValues) throws SchemaViolationException {
+    protected void assertDummyGroupAttribute(String dummyInstanceName, String groupname, String attributeName, Object... expectedAttributeValues) throws SchemaViolationException, ConflictException {
         DummyGroup group = getDummyGroup(dummyInstanceName, groupname);
         assertNotNull("No dummy group for groupname "+groupname, group);
         Set<Object> values = group.getAttributeValues(attributeName, Object.class);
@@ -2691,27 +2692,27 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         }
     }
 
-    protected void assertDummyGroupMember(String dummyInstanceName, String dummyGroupName, String accountId) throws ConnectException, FileNotFoundException, SchemaViolationException {
+    protected void assertDummyGroupMember(String dummyInstanceName, String dummyGroupName, String accountId) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
     	DummyResource dummyResource = DummyResource.getInstance(dummyInstanceName);
 		DummyGroup group = dummyResource.getGroupByName(dummyGroupName);
 		IntegrationTestTools.assertGroupMember(group, accountId);
 	}
 	
-	protected void assertDefaultDummyGroupMember(String dummyGroupName, String accountId) throws ConnectException, FileNotFoundException, SchemaViolationException {
+	protected void assertDefaultDummyGroupMember(String dummyGroupName, String accountId) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
 		assertDummyGroupMember(null, dummyGroupName, accountId);
 	}
 
-	protected void assertNoDummyGroupMember(String dummyInstanceName, String dummyGroupName, String accountId) throws ConnectException, FileNotFoundException, SchemaViolationException {
+	protected void assertNoDummyGroupMember(String dummyInstanceName, String dummyGroupName, String accountId) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
 		DummyResource dummyResource = DummyResource.getInstance(dummyInstanceName);
 		DummyGroup group = dummyResource.getGroupByName(dummyGroupName);
 		IntegrationTestTools.assertNoGroupMember(group, accountId);
 	}
 	
-	protected void assertNoDefaultDummyGroupMember(String dummyGroupName, String accountId) throws ConnectException, FileNotFoundException, SchemaViolationException {
+	protected void assertNoDefaultDummyGroupMember(String dummyGroupName, String accountId) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
 		assertNoDummyGroupMember(null, dummyGroupName, accountId);
 	}
     
-	protected void assertDummyAccountNoAttribute(String dummyInstanceName, String username, String attributeName) throws SchemaViolationException {
+	protected void assertDummyAccountNoAttribute(String dummyInstanceName, String username, String attributeName) throws SchemaViolationException, ConflictException {
 		DummyAccount account = getDummyAccount(dummyInstanceName, username);
 		assertNotNull("No dummy account for username "+username, account);
 		Set<Object> values = account.getAttributeValues(attributeName, Object.class);
@@ -3255,7 +3256,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		}
 	}
 	
-	protected void assertDummyPassword(String instance, String userId, String expectedClearPassword) throws SchemaViolationException {
+	protected void assertDummyPassword(String instance, String userId, String expectedClearPassword) throws SchemaViolationException, ConflictException {
 		DummyAccount account = getDummyAccount(instance, userId);
 		assertNotNull("No dummy account "+userId, account);
 		assertEquals("Wrong password in dummy '"+instance+"' account "+userId, expectedClearPassword, account.getPassword());

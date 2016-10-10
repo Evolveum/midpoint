@@ -63,12 +63,18 @@ public class ObjectAlreadyExistHandler extends ErrorHandler {
 	private static final Trace LOGGER = TraceManager.getTrace(ObjectAlreadyExistHandler.class);
 
 	@Override
-	public <T extends ShadowType> T handleError(T shadow, FailedOperation op, Exception ex, boolean compensate, 
+	public <T extends ShadowType> T handleError(T shadow, FailedOperation op, Exception ex, 
+			boolean doDiscovery, boolean compensate, 
 			Task task, OperationResult parentResult) throws SchemaException, GenericFrameworkException, CommunicationException,
 			ObjectNotFoundException, ObjectAlreadyExistsException, ConfigurationException, SecurityViolationException {
 
-		if (!isDoDiscovery(shadow.getResource())){
-			throw new ObjectAlreadyExistsException();
+		if (!doDiscovery) {
+			parentResult.recordFatalError(ex);
+			if (ex instanceof ObjectAlreadyExistsException) {
+				throw (ObjectAlreadyExistsException)ex;
+			} else {
+				throw new ObjectAlreadyExistsException(ex.getMessage(), ex);
+			}
 		}
 		
 		LOGGER.trace("Start to hanlde ObjectAlreadyExitsException.");
@@ -113,7 +119,7 @@ public class ObjectAlreadyExistHandler extends ErrorHandler {
 		}
 		
 		if (compensate){
-		throw new ObjectAlreadyExistsException(ex.getMessage(), ex);
+			throw new ObjectAlreadyExistsException(ex.getMessage(), ex);
 		}
 	
 		return shadow;
