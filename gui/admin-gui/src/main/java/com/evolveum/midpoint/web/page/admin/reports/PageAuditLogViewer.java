@@ -1,47 +1,25 @@
 package com.evolveum.midpoint.web.page.admin.reports;
 
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
-import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.prism.query.ObjectPaging;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
-import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
-import com.evolveum.midpoint.web.component.DateLabelComponent;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
-import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
 import com.evolveum.midpoint.web.component.input.DatePanel;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.configuration.PageAdminConfiguration;
-import com.evolveum.midpoint.web.page.admin.server.dto.TaskAddDto;
-import com.evolveum.midpoint.web.session.ReportsStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportOutputType;
-import org.apache.wicket.datetime.markup.html.form.DateTextField;
-import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
-import org.apache.wicket.extensions.yui.calendar.DateTimeField;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.markup.repeater.Item;
-import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.PropertyModel;
-import org.springframework.beans.factory.annotation.Autowired;
 
-import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
-import javax.xml.namespace.QName;
-import java.math.BigDecimal;
-import java.math.BigInteger;
 import java.util.*;
 
 /**
@@ -119,9 +97,7 @@ public class PageAuditLogViewer extends PageBase{
 
             }
         };
-        ListDataProvider provider = new ListDataProvider<AuditEventRecordType>(PageAuditLogViewer.this, model) {
-
-        };
+        ListDataProvider provider = new ListDataProvider<AuditEventRecordType>(PageAuditLogViewer.this, model);
         BoxedTablePanel table = new BoxedTablePanel(ID_TABLE, provider,
                 initColumns(),
                 UserProfileStorage.TableId.PAGE_AUDIT_LOG_VIEWER,
@@ -140,8 +116,7 @@ public class PageAuditLogViewer extends PageBase{
         }
         List<AuditEventRecordType> auditRecordList = new ArrayList<>();
         for (AuditEventRecord record : auditRecords){
-            AuditEventRecordType newRecord = new AuditEventRecordType();
-            newRecord.setTimestamp(MiscUtil.asXMLGregorianCalendar(new Date(record.getTimestamp())));
+            AuditEventRecordType newRecord = getAuditEventRecordType(record);
             auditRecordList.add(newRecord);
         }
         return auditRecordList;
