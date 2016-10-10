@@ -719,7 +719,7 @@ public class ChangeExecutor {
 			Utils.setRequestee(task, focusContext);
 			ProvisioningOperationOptions options = ProvisioningOperationOptions
 					.createCompletePostponed(false);
-			options.setDoDiscovery(false);
+			options.setDoNotDiscovery(true);
 			String changedOid = provisioning.modifyObject(ShadowType.class, projectionOid,
 					syncSituationDeltas, null, options, task, result);
 			// modifyProvisioningObject(AccountShadowType.class, accountRef,
@@ -1051,6 +1051,31 @@ public class ChangeExecutor {
 		provisioningOptions.setOverwrite(options.getOverwrite());
 		return provisioningOptions;
 	}
+	
+	private <F extends ObjectType> ProvisioningOperationOptions getProvisioningOptions(LensContext<F> context,  
+			ModelExecuteOptions modelOptions) {
+		if (modelOptions == null && context != null) {
+			modelOptions = context.getOptions();
+		}
+		ProvisioningOperationOptions provisioningOptions = copyFromModelOptions(modelOptions);
+		
+		if (context != null && context.getChannel() != null) {
+			
+			if (context.getChannel().equals(QNameUtil.qNameToUri(SchemaConstants.CHANGE_CHANNEL_RECON))) {
+				// TODO: this is probably wrong. We should not have special case
+				// for recon channel! This should be handled by the provisioning task
+				// setting the right options there.
+				provisioningOptions.setCompletePostponed(false);
+			}
+			
+			if (context.getChannel().equals(SchemaConstants.CHANGE_CHANNEL_DISCOVERY_URI)) {
+				// We want to avoid endless loops in error handling.
+				provisioningOptions.setDoNotDiscovery(true);
+			}
+		}
+		
+		return provisioningOptions;
+	}
 
 	private <T extends ObjectType, F extends ObjectType> void logDeltaExecution(ObjectDelta<T> objectDelta,
 			LensContext<F> context, ResourceType resource, OperationResult result, Task task) {
@@ -1122,14 +1147,8 @@ public class ChangeExecutor {
 			} else if (objectTypeToAdd instanceof NodeType) {
 				throw new UnsupportedOperationException("NodeType cannot be added using model interface");
 			} else if (ObjectTypes.isManagedByProvisioning(objectTypeToAdd)) {
-				ProvisioningOperationOptions provisioningOptions = copyFromModelOptions(options);
-
-				// TODO: this is probably wrong. We should not have special case
-				// for a channel!
-				if (context != null && context.getChannel() != null && context.getChannel()
-						.equals(QNameUtil.qNameToUri(SchemaConstants.CHANGE_CHANNEL_RECON))) {
-					provisioningOptions.setCompletePostponed(false);
-				}
+				
+				ProvisioningOperationOptions provisioningOptions = getProvisioningOptions(context, options);
 
 				oid = addProvisioningObject(objectToAdd, context, objectContext, provisioningOptions,
 						resource, task, result);
@@ -1184,14 +1203,7 @@ public class ChangeExecutor {
 			} else if (NodeType.class.isAssignableFrom(objectTypeClass)) {
 				taskManager.deleteNode(oid, result);
 			} else if (ObjectTypes.isClassManagedByProvisioning(objectTypeClass)) {
-				if (options == null) {
-					options = context.getOptions();
-				}
-				ProvisioningOperationOptions provisioningOptions = copyFromModelOptions(options);
-				if (context != null && context.getChannel() != null && context.getChannel()
-						.equals(QNameUtil.qNameToUri(SchemaConstants.CHANGE_CHANNEL_RECON))) {
-					provisioningOptions.setCompletePostponed(false);
-				}
+				ProvisioningOperationOptions provisioningOptions = getProvisioningOptions(context, options);
 				try {
 					deleteProvisioningObject(objectTypeClass, oid, context, objectContext,
 							provisioningOptions, resource, task, result);
@@ -1250,14 +1262,7 @@ public class ChangeExecutor {
 			} else if (NodeType.class.isAssignableFrom(objectTypeClass)) {
 				throw new UnsupportedOperationException("NodeType is not modifiable using model interface");
 			} else if (ObjectTypes.isClassManagedByProvisioning(objectTypeClass)) {
-				if (options == null && context != null) {
-					options = context.getOptions();
-				}
-				ProvisioningOperationOptions provisioningOptions = copyFromModelOptions(options);
-				if (context != null && context.getChannel() != null && context.getChannel()
-						.equals(QNameUtil.qNameToUri(SchemaConstants.CHANGE_CHANNEL_RECON))) {
-					provisioningOptions.setCompletePostponed(false);
-				}
+				ProvisioningOperationOptions provisioningOptions = getProvisioningOptions(context, options);
 				String oid = modifyProvisioningObject(objectTypeClass, change.getOid(),
 						change.getModifications(), context, objectContext, provisioningOptions, resource,
 						task, result);
@@ -1441,6 +1446,7 @@ public class ChangeExecutor {
 					ProvisioningOperationTypeType.MODIFY, resource, task, result);
 		}
 		Utils.setRequestee(task, context);
+		LOGGER.info("MOD options {}", options);
 		String changedOid = provisioning.modifyObject(objectTypeClass, oid, modifications, scripts, options,
 				task, result);
 		Utils.clearRequestee(task);

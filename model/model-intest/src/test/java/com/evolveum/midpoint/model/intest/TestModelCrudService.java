@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,6 +36,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
+import com.evolveum.icf.dummy.resource.ConflictException;
 import com.evolveum.icf.dummy.resource.SchemaViolationException;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.impl.ModelCrudService;
@@ -156,9 +157,7 @@ public class TestModelCrudService extends AbstractInitializedModelIntegrationTes
 	}
 		
 	@Test
-    public void test119ModifyUserDeleteAccount() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
-            IOException, JAXBException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException,
-            PolicyViolationException, SecurityViolationException, SchemaViolationException {
+    public void test119ModifyUserDeleteAccount() throws Exception {
         TestUtil.displayTestTile(this, "test119ModifyUserDeleteAccount");
 
         // GIVEN
@@ -198,9 +197,7 @@ public class TestModelCrudService extends AbstractInitializedModelIntegrationTes
 	}
 	
 	@Test
-    public void test120AddAccount() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
-            IOException, JAXBException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException,
-            PolicyViolationException, SecurityViolationException, SchemaViolationException {
+    public void test120AddAccount() throws Exception {
         TestUtil.displayTestTile(this, "test120AddAccount");
 
         // GIVEN
@@ -233,9 +230,7 @@ public class TestModelCrudService extends AbstractInitializedModelIntegrationTes
 	}
 	
 	@Test
-    public void test121ModifyUserAddAccountRef() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, 
-    		FileNotFoundException, JAXBException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, 
-    		PolicyViolationException, SecurityViolationException, SchemaViolationException {
+    public void test121ModifyUserAddAccountRef() throws Exception {
         TestUtil.displayTestTile(this, "test121ModifyUserAddAccountRef");
 
         // GIVEN
@@ -271,9 +266,7 @@ public class TestModelCrudService extends AbstractInitializedModelIntegrationTes
 
 	
 	@Test
-    public void test128ModifyUserDeleteAccountRef() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
-            IOException, JAXBException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException,
-            PolicyViolationException, SecurityViolationException, SchemaViolationException {
+    public void test128ModifyUserDeleteAccountRef() throws Exception {
         TestUtil.displayTestTile(this, "test128ModifyUserDeleteAccountRef");
 
         // GIVEN
@@ -311,9 +304,7 @@ public class TestModelCrudService extends AbstractInitializedModelIntegrationTes
 	}
 	
 	@Test
-    public void test129DeleteAccount() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, 
-    		FileNotFoundException, JAXBException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, 
-    		PolicyViolationException, SecurityViolationException, ConsistencyViolationException, SchemaViolationException {
+    public void test129DeleteAccount() throws Exception {
         TestUtil.displayTestTile(this, "test129DeleteAccount");
 
         // GIVEN

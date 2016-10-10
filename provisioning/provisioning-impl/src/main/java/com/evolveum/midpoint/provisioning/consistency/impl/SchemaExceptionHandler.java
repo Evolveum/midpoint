@@ -51,9 +51,19 @@ public class SchemaExceptionHandler extends ErrorHandler{
 	private RepositoryService cacheRepositoryService;
 	
 	@Override
-	public <T extends ShadowType> T handleError(T shadow, FailedOperation op, Exception ex, boolean compensate, 
+	public <T extends ShadowType> T handleError(T shadow, FailedOperation op, Exception ex, 
+			boolean doDiscovery, boolean compensate, 
 			Task task, OperationResult parentResult) throws SchemaException, GenericFrameworkException, CommunicationException,
 			ObjectNotFoundException, ObjectAlreadyExistsException, ConfigurationException, SecurityViolationException {
+		
+		if (!doDiscovery) {
+			parentResult.recordFatalError(ex);
+			if (ex instanceof SchemaException) {
+				throw (SchemaException)ex;
+			} else {
+				throw new SchemaException(ex.getMessage(), ex);
+			}
+		}
 		
 		ObjectDelta delta = null;
 		switch (op) {

@@ -44,6 +44,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
+import com.evolveum.icf.dummy.resource.ConflictException;
 import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.icf.dummy.resource.DummyResource;
 import com.evolveum.icf.dummy.resource.SchemaViolationException;
@@ -2033,29 +2034,29 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 		// TODO check real state of the account and shadow
 	}
 
-	private void assertDummyActivationEnabledState(String userId, Boolean expectedEnabled) throws SchemaViolationException {
+	private void assertDummyActivationEnabledState(String userId, Boolean expectedEnabled) throws SchemaViolationException, ConflictException {
 		assertDummyActivationEnabledState(null, userId, expectedEnabled);
 	}
 	
-	private void assertDummyActivationEnabledState(String instance, String userId, Boolean expectedEnabled) throws SchemaViolationException {
+	private void assertDummyActivationEnabledState(String instance, String userId, Boolean expectedEnabled) throws SchemaViolationException, ConflictException {
 		DummyAccount account = getDummyAccount(instance, userId);
 		assertNotNull("No dummy account "+userId, account);
 		assertEquals("Wrong enabled flag in dummy '"+instance+"' account "+userId, expectedEnabled, account.isEnabled());
 	}
 	
-	private void assertDummyEnabled(String userId) throws SchemaViolationException {
+	private void assertDummyEnabled(String userId) throws SchemaViolationException, ConflictException {
 		assertDummyActivationEnabledState(userId, true);
 	}
 	
-	private void assertDummyDisabled(String userId) throws SchemaViolationException {
+	private void assertDummyDisabled(String userId) throws SchemaViolationException, ConflictException {
 		assertDummyActivationEnabledState(userId, false);
 	}
 	
-	private void assertDummyEnabled(String instance, String userId) throws SchemaViolationException {
+	private void assertDummyEnabled(String instance, String userId) throws SchemaViolationException, ConflictException {
 		assertDummyActivationEnabledState(instance, userId, true);
 	}
 	
-	private void assertDummyDisabled(String instance, String userId) throws SchemaViolationException {
+	private void assertDummyDisabled(String instance, String userId) throws SchemaViolationException, ConflictException {
 		assertDummyActivationEnabledState(instance, userId, false);
 	}
 	

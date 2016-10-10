@@ -30,6 +30,7 @@ import com.evolveum.midpoint.schema.constants.MidPointConstants;
 
 import org.apache.commons.lang.StringUtils;
 
+import com.evolveum.icf.dummy.resource.ConflictException;
 import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.icf.dummy.resource.DummyAttributeDefinition;
 import com.evolveum.icf.dummy.resource.DummyGroup;
@@ -147,7 +148,7 @@ public class DummyResourceContoller extends AbstractResourceController {
 	/**
 	 * Extend schema in piratey fashion. Arr! This is used in many tests. Lots of attributes, various combination of types, etc.  
 	 */
-	public void extendSchemaPirate() throws ConnectException, FileNotFoundException, SchemaViolationException {
+	public void extendSchemaPirate() throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
 		populateWithDefaultSchema();
 		DummyObjectClass accountObjectClass = dummyResource.getAccountObjectClass();
 		addAttrDef(accountObjectClass, DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, String.class, false, true);
@@ -174,9 +175,9 @@ public class DummyResourceContoller extends AbstractResourceController {
 	}
 	
 	/**
-	 * Extend dummy schema to look like AD
+	 * Extend dummy schema to look like AD 
 	 */
-	public void extendSchemaAd() throws ConnectException, FileNotFoundException, SchemaViolationException {
+	public void extendSchemaAd() throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
 		DummyObjectClass accountObjectClass = dummyResource.getAccountObjectClass();
 		addAttrDef(accountObjectClass, DUMMY_ACCOUNT_ATTRIBUTE_AD_GIVEN_NAME_NAME, String.class, false, false);
 		addAttrDef(accountObjectClass, DUMMY_ACCOUNT_ATTRIBUTE_AD_SN_NAME, String.class, false, false);
@@ -357,13 +358,13 @@ public class DummyResourceContoller extends AbstractResourceController {
 		
 	}
 	
-	public DummyOrg addOrgTop() throws ConnectException, FileNotFoundException, ObjectAlreadyExistsException, SchemaViolationException {
+	public DummyOrg addOrgTop() throws ConnectException, FileNotFoundException, ObjectAlreadyExistsException, SchemaViolationException, ConflictException {
 		DummyOrg org = new DummyOrg(ORG_TOP_NAME);
 		dummyResource.addOrg(org);
 		return org;
 	}
 
-	public DummyAccount addAccount(String userId, String fullName) throws ObjectAlreadyExistsException, SchemaViolationException, ConnectException, FileNotFoundException {
+	public DummyAccount addAccount(String userId, String fullName) throws ObjectAlreadyExistsException, SchemaViolationException, ConnectException, FileNotFoundException, ConflictException {
 		DummyAccount account = new DummyAccount(userId);
 		account.setEnabled(true);
 		account.addAttributeValues(DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, fullName);
@@ -371,7 +372,7 @@ public class DummyResourceContoller extends AbstractResourceController {
 		return account;
 	}
 
-	public void addAccount(String userId, String fullName, String location) throws ObjectAlreadyExistsException, SchemaViolationException, ConnectException, FileNotFoundException {
+	public void addAccount(String userId, String fullName, String location) throws ObjectAlreadyExistsException, SchemaViolationException, ConnectException, FileNotFoundException, ConflictException {
 		assertExtendedSchema();
 		DummyAccount account = new DummyAccount(userId);
 		account.setEnabled(true);
@@ -380,7 +381,7 @@ public class DummyResourceContoller extends AbstractResourceController {
 		dummyResource.addAccount(account);
 	}
 	
-	public void addGroup(String name) throws ObjectAlreadyExistsException, SchemaViolationException, ConnectException, FileNotFoundException {
+	public void addGroup(String name) throws ObjectAlreadyExistsException, SchemaViolationException, ConnectException, FileNotFoundException, ConflictException {
 		assertExtendedSchema();
 		DummyGroup group = new DummyGroup(name);
 		group.setEnabled(true);
