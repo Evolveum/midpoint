@@ -26,6 +26,7 @@ import java.util.Map;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.impl.expr.ModelExpressionThreadLocalHolder;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.NotNull;
@@ -430,10 +431,16 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 		String desc = "condition in object synchronization " + synchronizationPolicy.getName();
 		ExpressionVariables variables = Utils.getDefaultExpressionVariables(null, currentShadow, null,
 				resource, configuration, null);
-		PrismPropertyValue<Boolean> evaluateCondition = ExpressionUtil.evaluateCondition(variables,
-				conditionExpressionType, expressionFactory, desc, task, result);
-		return evaluateCondition.getValue();
-
+		try {
+			ModelExpressionThreadLocalHolder.pushCurrentTask(task);
+			ModelExpressionThreadLocalHolder.pushCurrentResult(result);
+			PrismPropertyValue<Boolean> evaluateCondition = ExpressionUtil.evaluateCondition(variables,
+					conditionExpressionType, expressionFactory, desc, task, result);
+			return evaluateCondition.getValue();
+		} finally {
+			ModelExpressionThreadLocalHolder.popCurrentResult();
+			ModelExpressionThreadLocalHolder.popCurrentTask();
+		}
 	}
 
 	private boolean isLogDebug(ResourceObjectShadowChangeDescription change) {
