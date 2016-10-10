@@ -24,6 +24,8 @@ import org.apache.wicket.behavior.Behavior;
  */
 public class VisibleEnableBehaviour extends Behavior {
 
+    public static final VisibleEnableBehaviour ALWAYS_VISIBLE_ENABLED = new VisibleEnableBehaviour();
+
     public boolean isVisible() {
         return true;
     }

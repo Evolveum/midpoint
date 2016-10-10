@@ -148,7 +148,6 @@ public class PageRequestRole extends PageSelf {
 
     private void loadUser() {
         LOGGER.debug("Loading user and accounts.");
-        MyPasswordsDto dto = new MyPasswordsDto();
         OperationResult result = new OperationResult(OPERATION_LOAD_USER);
         try {
             String userOid = SecurityUtils.getPrincipalUser().getOid();

@@ -253,24 +253,27 @@ public abstract class ShadowCache {
 		PrismObject<ShadowType> resourceShadow = null;
 		try {
 
-			// Let's get all the identifiers from the Shadow <attributes> part
-			Collection<? extends ResourceAttribute<?>> identifiers = ShadowUtil
+			Collection<? extends ResourceAttribute<?>> primaryIdentifiers = ShadowUtil
 					.getPrimaryIdentifiers(repositoryShadow);
 
-			if (identifiers == null || identifiers.isEmpty()) {
+			if (primaryIdentifiers == null || primaryIdentifiers.isEmpty()) {
 				// check if the account is not only partially created (exist
 				// only in repo so far)
 				if (repositoryShadow.asObjectable().getFailedOperationType() != null) {
 					throw new GenericConnectorException(
 							"Unable to get object from the resource. Probably it has not been created yet because of previous unavailability of the resource.");
 				}
+				
 				// No identifiers found
-				SchemaException ex = new SchemaException("No identifiers found in the repository shadow "
+				SchemaException ex = new SchemaException("No primary identifiers found in the repository shadow "
 						+ repositoryShadow + " with respect to " + resource);
 				parentResult.recordFatalError(
-						"No identifiers found in the repository shadow " + repositoryShadow, ex);
+						"No prmary identifiers found in the repository shadow " + repositoryShadow, ex);
 				throw ex;
 			}
+			
+			Collection<? extends ResourceAttribute<?>> identifiers = ShadowUtil
+					.getAllIdentifiers(repositoryShadow);
 
 			resourceShadow = resouceObjectConverter.getResourceObject(ctx, identifiers, true, parentResult);
 
@@ -1835,15 +1838,20 @@ public abstract class ShadowCache {
 							.getAttributes();
 					if (entitlementIdentifiers == null || entitlementIdentifiers.isEmpty()) {
 						throw new IllegalStateException(
-								"No entitlement identifiers present for association " + associationCVal);
+								"No entitlement identifiers present for association " + associationCVal + " " + ctx.getDesc());
 					}
 					ShadowAssociationType shadowAssociationType = associationCVal.asContainerable();
 					QName associationName = shadowAssociationType.getName();
 					RefinedAssociationDefinition rEntitlementAssociation = ctx.getObjectClassDefinition()
 							.findEntitlementAssociation(associationName);
 					if (rEntitlementAssociation == null) {
-						throw new IllegalStateException("Entitlement association with name " + associationName
-								+ " couldn't be found in " + ctx.getObjectClassDefinition());
+						if (LOGGER.isTraceEnabled()) {
+							LOGGER.trace("Entitlement association with name {} couldn't be found in {} {}\nresource shadow:\n{}\nrepo shadow:\n{}",
+									new Object[]{ associationName, ctx.getObjectClassDefinition(), ctx.getDesc(), 
+											resourceShadow.debugDump(1), repoShadow==null?null:repoShadow.debugDump(1)});
+						}
+						throw new SchemaException("Entitlement association with name " + associationName
+								+ " couldn't be found in " + ctx.getObjectClassDefinition() + " " + ctx.getDesc());
 					}
 					for (String intent : rEntitlementAssociation.getIntents()) {
 						ProvisioningContext ctxEntitlement = ctx.spawn(ShadowKindType.ENTITLEMENT, intent);

@@ -1253,6 +1253,7 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
         PrismObject<ShadowType> shadow = shadows.get(0);
         assertGroupShadow(shadow, toGroupDn(GROUP_EVIL_CN));
         groupEvilShadowOid = shadow.getOid();
+        assertNotNull(groupEvilShadowOid);
         
         assertConnectorOperationIncrement(1, 1);
         assertConnectorSimulatedPagingSearchIncrement(0);

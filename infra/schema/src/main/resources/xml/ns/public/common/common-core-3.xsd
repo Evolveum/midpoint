@@ -11930,6 +11930,13 @@
        					</xsd:documentation>
        				</xsd:annotation>
        			</xsd:element>
+                <xsd:element name="panelUri" type="xsd:anyURI" minOccurs="0" maxOccurs="1">
+                    <xsd:annotation>
+                        <xsd:documentation>
+                            URI identificator of java component that will be used as the form implementation.
+                        </xsd:documentation>
+                    </xsd:annotation>
+                </xsd:element>
            	</xsd:sequence>	
     </xsd:complexType>
     

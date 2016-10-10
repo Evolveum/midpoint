@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,6 +47,7 @@ public class AvailableResponses implements Serializable {
     public AvailableResponses(Page page) {
         this.page = page;
 
+        // TODO: use ModelInteractionService.getCertificationConfiguration() instead
         AccessCertificationConfigurationType config = SystemConfigurationHolder.getCertificationConfiguration();
 
         responseKeys = new ArrayList<>(6);

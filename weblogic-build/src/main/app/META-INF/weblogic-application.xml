@@ -1,4 +1,4 @@
- <?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <weblogic-application xmlns="http://xmlns.oracle.com/weblogic/weblogic-application”
 xmlns:xsi=”http://www.w3.org/2001/XMLSchema-instance
 xsi:schemaLocation=”http://xmlns.oracle.com/weblogic/weblogic-application
@@ -23,9 +23,10 @@ http://xmlns.oracle.com/weblogic/weblogic-application/1.0/weblogic-application.x
         <!--package-name>com.sun.xml.*</package-name-->
         <!-- // for apache commons lang/io  -->
         <package-name>org.apache.commons.*</package-name>
-  <!-- // for spring/hibernate -->
+  	<!-- // for spring/hibernate -->
         <package-name>antlr.*</package-name>
         <package-name>org.springframework.*</package-name>
+        <package-name>org.hibernate.*</package-name>
         <!-- // for jstl -->
         <package-name>javax.servlet.jsp.jstl.*</package-name>
         <!-- // for jax-ws -->

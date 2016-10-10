@@ -820,6 +820,9 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 		}
         sb.append(" changes, ");
         sb.append("fresh=").append(isFresh);
+        if (systemConfiguration == null) {
+        	sb.append(" null-system-configuration");
+        }
         sb.append("\n");
 
         DebugUtil.debugDumpLabel(sb, "Channel", indent + 1);

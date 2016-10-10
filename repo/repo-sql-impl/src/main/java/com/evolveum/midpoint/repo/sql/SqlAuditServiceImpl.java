@@ -115,6 +115,16 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
             session = baseHelper.beginTransaction();
             session.setFlushMode(FlushMode.MANUAL);
             Query q = session.createQuery(query);
+            if (params != null){
+                if (params.containsKey("setFirstResult")){
+                    q.setFirstResult((int)params.get("setFirstResult"));
+                    params.remove("setFirstResult");
+                }
+                if (params.containsKey("setMaxResults")){
+                    q.setMaxResults((int)params.get("setMaxResults"));
+                    params.remove("setMaxResults");
+                }
+            }
             Set<Entry<String, Object>> paramSet = params.entrySet();
             for (Entry<String, Object> p : paramSet) {
                 if (p.getValue() == null) {

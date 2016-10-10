@@ -18,6 +18,9 @@ package com.evolveum.midpoint.gui.api.util;
 
 import java.util.*;
 
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.web.page.login.PageLogin;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import org.apache.commons.lang.LocaleUtils;
 import org.apache.commons.lang.StringUtils;
@@ -62,6 +65,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 import ch.qos.logback.classic.Logger;
 
+import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.Session;
 import org.apache.wicket.protocol.http.WebSession;
 import org.jetbrains.annotations.Nullable;
@@ -301,7 +305,7 @@ public class WebModelServiceUtils {
         }
         List<PrismObject<T>> objects = new ArrayList<PrismObject<T>>();
         try {
-            Task task = page.createSimpleTask(subResult.getOperation(), principal);
+            Task task = createSimpleTask(subResult.getOperation(), principal, page.getTaskManager());
             List<PrismObject<T>> list = page.getModelService().searchObjects(type, query, options, task, subResult);
             if (list != null) {
                 objects.addAll(list);
@@ -361,7 +365,7 @@ public class WebModelServiceUtils {
             subResult = new OperationResult(OPERATION_DELETE_OBJECT);
         }
         try {
-            Task task = page.createSimpleTask(result.getOperation(), principal);
+            Task task = createSimpleTask(result.getOperation(), principal, page.getTaskManager());
 
             ObjectDelta delta = new ObjectDelta(type, ChangeType.DELETE, page.getPrismContext());
             delta.setOid(oid);
@@ -521,4 +525,21 @@ public class WebModelServiceUtils {
         return null;
     }
 
+    public static Task createSimpleTask(String operation, PrismObject<UserType> owner, TaskManager manager) {
+        Task task = manager.createTaskInstance(operation);
+
+        if (owner == null) {
+            MidPointPrincipal user = SecurityUtils.getPrincipalUser();
+            if (user == null) {
+                throw new RestartResponseException(PageLogin.class);
+            } else {
+                owner = user.getUser().asPrismObject();
+            }
+        }
+
+        task.setOwner(owner);
+        task.setChannel(SchemaConstants.CHANNEL_GUI_USER_URI);
+
+        return task;
+    }
 }

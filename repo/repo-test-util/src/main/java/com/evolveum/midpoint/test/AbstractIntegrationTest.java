@@ -527,11 +527,16 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		OperationResult result = new OperationResult("Aplying sync settings");
 
 		repositoryService.modifyObject(clazz, oid, modifications, result);
+		invalidateSystemObjectsCache();
 		display("Aplying sync settings result", result);
 		result.computeStatus();
 		TestUtil.assertSuccess("Aplying sync settings failed (result)", result);
 	}
 	
+	protected void invalidateSystemObjectsCache() {
+		// Nothing to do here. For subclasses in model-common and higher components.
+	}
+
 	protected void assertNoChanges(ObjectDelta<?> delta) {
         assertNull("Unexpected changes: "+ delta, delta);
 	}

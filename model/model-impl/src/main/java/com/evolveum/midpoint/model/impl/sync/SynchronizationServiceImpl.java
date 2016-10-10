@@ -37,6 +37,7 @@ import org.springframework.stereotype.Service;
 import com.evolveum.midpoint.common.SynchronizationUtils;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
+import com.evolveum.midpoint.model.common.SystemObjectCache;
 import com.evolveum.midpoint.model.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.model.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.model.common.expression.ExpressionVariables;
@@ -111,19 +112,28 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 public class SynchronizationServiceImpl implements SynchronizationService {
 
 	private static final Trace LOGGER = TraceManager.getTrace(SynchronizationServiceImpl.class);
+	
 	@Autowired(required = true)
 	private ActionManager<Action> actionManager;
+	
 	@Autowired
 	private CorrelationConfirmationEvaluator correlationConfirmationEvaluator;
+	
 	@Autowired(required = true)
 	@Qualifier("cacheRepositoryService")
 	private RepositoryService repositoryService;
+	
 	@Autowired(required = true)
 	private ContextFactory contextFactory;
+	
 	@Autowired(required = true)
 	private Clockwork clockwork;
+	
 	@Autowired(required = true)
 	private ExpressionFactory expressionFactory;
+	
+	@Autowired(required = true)
+	private SystemObjectCache systemObjectCache;
 
 	@Override
 	public void notifyChange(ResourceObjectShadowChangeDescription change, Task task,
@@ -153,8 +163,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 		try {
 
 			ResourceType resourceType = change.getResource().asObjectable();
-			PrismObject<SystemConfigurationType> configuration = Utils
-					.getSystemConfigurationReadOnly(repositoryService, subResult);
+			PrismObject<SystemConfigurationType> configuration = systemObjectCache.getSystemConfiguration(subResult);
 
 			ObjectSynchronizationType synchronizationPolicy = determineSynchronizationPolicy(resourceType,
 					applicableShadow, configuration, task, subResult);

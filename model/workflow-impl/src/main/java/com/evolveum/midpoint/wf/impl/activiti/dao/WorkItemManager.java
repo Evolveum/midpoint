@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.wf.impl.activiti.dao;
 
+import com.evolveum.midpoint.model.common.SystemObjectCache;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.SecurityEnforcer;
@@ -52,14 +53,17 @@ public class WorkItemManager {
 
     private static final transient Trace LOGGER = TraceManager.getTrace(WorkItemManager.class);
 
-    @Autowired
+    @Autowired(required = true)
     private ActivitiEngine activitiEngine;
 
-    @Autowired
+    @Autowired(required = true)
     private MiscDataUtil miscDataUtil;
     
-    @Autowired
+    @Autowired(required = true)
     private SecurityEnforcer securityEnforcer;
+    
+    @Autowired(required = true)
+	private SystemObjectCache systemObjectCache;
 
     private static final String DOT_INTERFACE = WorkflowManager.class.getName() + ".";
 
@@ -82,7 +86,7 @@ public class WorkItemManager {
 			TaskFormData data = activitiEngine.getFormService().getTaskFormData(workItemId);
 
 			String assigneeOid = data.getTask().getAssignee();
-			if (!miscDataUtil.isAuthorizedToSubmit(workItemId, assigneeOid)) {
+			if (!miscDataUtil.isAuthorizedToSubmit(workItemId, assigneeOid, systemObjectCache, result)) {
 				throw new SecurityViolationException("You are not authorized to complete this work item.");
 			}
 

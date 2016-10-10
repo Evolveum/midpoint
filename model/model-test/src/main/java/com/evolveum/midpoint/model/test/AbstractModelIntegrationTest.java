@@ -33,6 +33,7 @@ import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.context.ModelProjectionContext;
 import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
 import com.evolveum.midpoint.model.api.hooks.HookRegistry;
+import com.evolveum.midpoint.model.common.SystemObjectCache;
 import com.evolveum.midpoint.notifications.api.NotificationManager;
 import com.evolveum.midpoint.notifications.api.transports.Message;
 import com.evolveum.midpoint.prism.Containerable;
@@ -220,6 +221,9 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	
 	@Autowired(required = true)
 	protected RepositoryService repositoryService;
+	
+	@Autowired(required = true)
+	private SystemObjectCache systemObjectCache;
 	
 	@Autowired(required = true)
 	protected ProvisioningService provisioningService;
@@ -1409,9 +1413,15 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		MidPointAsserts.assertAssignedOrg(focus, orgOid, relation);
 	}
 	
-	protected void assertAssignedOrg(PrismObject<? extends FocusType> focus, String orgOid) {
+	protected <F extends FocusType> void assertAssignedOrg(PrismObject<F> focus, String orgOid) {
 		MidPointAsserts.assertAssignedOrg(focus, orgOid);
 	}
+	
+	protected <F extends FocusType> void assertAssignedOrgs(PrismObject<F> user, String... orgOids) throws Exception {
+        for (String orgOid: orgOids) {
+            assertAssignedOrg(user, orgOid);
+        }
+    }
 
 	protected void assertAssignedOrg(PrismObject<UserType> user, PrismObject<OrgType> org) {
 		MidPointAsserts.assertAssignedOrg(user, org.getOid());
@@ -1422,6 +1432,13 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		assertAssignedOrg(user, orgOid);
 	}
 	
+    protected <F extends FocusType> void assertHasOrgs(PrismObject<F> user, String... orgOids) throws Exception {
+        for (String orgOid: orgOids) {
+            assertHasOrg(user, orgOid);
+        }
+        assertHasOrgs(user, orgOids.length);
+    }
+	
 	protected <O extends ObjectType> void assertHasOrg(PrismObject<O> focus, String orgOid) {
 		MidPointAsserts.assertHasOrg(focus, orgOid);
 	}
@@ -1430,6 +1447,10 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		MidPointAsserts.assertHasOrg(user, orgOid, relation);
 	}
 
+	protected <O extends ObjectType> void assertHasNoOrg(PrismObject<O> user, String orgOid) {
+		MidPointAsserts.assertHasNoOrg(user, orgOid, null);
+	}
+	
 	protected <O extends ObjectType> void assertHasNoOrg(PrismObject<O> user, String orgOid, QName relation) {
 		MidPointAsserts.assertHasNoOrg(user, orgOid, relation);
 	}
@@ -1780,9 +1801,20 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 			((Collection)modifications).add(addDelta);
 		}
 		
-		repositoryService.modifyObject(SystemConfigurationType.class,
+		modifySystemObjectInRepo(SystemConfigurationType.class,
 				SystemObjectsType.SYSTEM_CONFIGURATION.value(), modifications, parentResult);
 		
+	}
+	
+	protected <O extends ObjectType> void modifySystemObjectInRepo(Class<O> type, String oid, Collection<? extends ItemDelta> modifications, OperationResult parentResult)
+			throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
+		repositoryService.modifyObject(type, oid, modifications, parentResult);
+		invalidateSystemObjectsCache();
+	}
+	
+	@Override
+	protected void invalidateSystemObjectsCache() {
+		systemObjectCache.invalidateCaches();
 	}
 	
 	protected ItemPath getIcfsNameAttributePath() {

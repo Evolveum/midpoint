@@ -21,6 +21,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.api.*;
 import com.evolveum.midpoint.model.api.visualizer.Scene;
+import com.evolveum.midpoint.model.common.SystemObjectCache;
 import com.evolveum.midpoint.model.impl.visualizer.Visualizer;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.Validate;
@@ -117,6 +118,9 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 	@Autowired(required = true)
 	@Qualifier("cacheRepositoryService")
 	private transient RepositoryService cacheRepositoryService;
+	
+	@Autowired(required = true)
+	private SystemObjectCache systemObjectCache;
 	
 	@Autowired(required = true)
 	private Protector protector;
@@ -227,7 +231,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 			// Re-read the object from the repository to make sure we have all the properties.
 			// the object from method parameters may be already processed by the security code
 			// and properties needed to evaluate authorizations may not be there
-			// MID-3126
+			// MID-3126, see also MID-3435
 			baseObject = cacheRepositoryService.getObject(object.getCompileTimeClass(), object.getOid(), null, result);
 		}
 		
@@ -591,8 +595,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 		
 		OperationResult result = parentResult.createMinorSubresult(GET_CREDENTIALS_POLICY);
 		try {
-			PrismObject<SystemConfigurationType> systemConfiguration = 
-					objectResolver.getSystemConfiguration(result);
+			PrismObject<SystemConfigurationType> systemConfiguration = systemObjectCache.getSystemConfiguration(result);
 			if (systemConfiguration == null) {
 				result.recordNotApplicableIfUnknown();
 				return null;
@@ -628,7 +631,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 		}
 		
 		if (principal == null) {
-			PrismObject<SystemConfigurationType> systemConfiguration = objectResolver.getSystemConfiguration(parentResult);
+			PrismObject<SystemConfigurationType> systemConfiguration = systemObjectCache.getSystemConfiguration(parentResult);
 			if (systemConfiguration == null) {
 				return null;
 			}
@@ -636,6 +639,15 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 		} else {
 			return principal.getAdminGuiConfiguration();
 		}
+	}
+	
+	@Override
+	public AccessCertificationConfigurationType getCertificationConfiguration(OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
+		PrismObject<SystemConfigurationType> systemConfiguration = systemObjectCache.getSystemConfiguration(parentResult);
+		if (systemConfiguration == null) {
+			return null;
+		}
+		return systemConfiguration.asObjectable().getAccessCertification();
 	}
 
 	@Override

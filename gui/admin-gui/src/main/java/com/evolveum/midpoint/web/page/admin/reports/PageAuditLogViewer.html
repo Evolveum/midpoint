@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2016 Evolveum
+  ~ Copyright (c) 2010-2013 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -14,17 +14,19 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-
-<html xmlns="http://www.w3.org/1999/xhtml"
-      xmlns:wicket="http://wicket.apache.org">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:wicket="http://wicket.apache.org">
 <body>
-<wicket:panel>
-    <div class="col-md-4">
-        <div wicket:id="treePanel"/>
-    </div>
-    <div class="col-md-8">
-        <div wicket:id="assignmentsPanel"/>
-    </div>
-</wicket:panel>
+<wicket:extend>
+    <form wicket:id="mainForm" class="form-inline">
+        <div wicket:id="parametersPanel">
+            <div class="row">
+                <label class="col-md-1"><wicket:message key="PageAuditLogViewer.timeLabel" /></label>
+                <label class="col-md-1"><wicket:message key="PageAuditLogViewer.fromLabel" /></label>
+                <span  class="col-md-3" wicket:id="fromField" />
+            </div>
+            </div>
+        <div wicket:id="table"/>
+    </form>
+</wicket:extend>
 </body>
 </html>
