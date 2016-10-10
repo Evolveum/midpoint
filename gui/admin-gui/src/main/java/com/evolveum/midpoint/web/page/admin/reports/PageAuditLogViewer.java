@@ -8,18 +8,20 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.DateLabelComponent;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
+import com.evolveum.midpoint.web.component.input.DatePanel;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.configuration.PageAdminConfiguration;
-import com.evolveum.midpoint.web.page.admin.reports.dto.AuditEventRecordDto;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskAddDto;
 import com.evolveum.midpoint.web.session.ReportsStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
+import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportOutputType;
 import org.apache.wicket.datetime.markup.html.form.DateTextField;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
@@ -35,6 +37,11 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import javax.xml.datatype.Duration;
+import javax.xml.datatype.XMLGregorianCalendar;
+import javax.xml.namespace.QName;
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.*;
 
 /**
@@ -74,15 +81,15 @@ public class PageAuditLogViewer extends PageBase{
         mainForm.add(parametersPanel);
 
 
-        final DateTimeField from = new DateTimeField(ID_FROM,
-                new IModel<Date>() {
+        final DatePanel from = new DatePanel(ID_FROM,
+                new IModel<XMLGregorianCalendar>() {
                     @Override
-                    public Date getObject() {
+                    public XMLGregorianCalendar getObject() {
                         return null;
                     }
 
                     @Override
-                    public void setObject(Date date) {
+                    public void setObject(XMLGregorianCalendar date) {
 
                     }
 
@@ -90,25 +97,20 @@ public class PageAuditLogViewer extends PageBase{
                     public void detach() {
 
                     }
-                }) {
-            @Override
-            protected DateTextField newDateTextField(String id, PropertyModel dateFieldModel) {
-                return DateTextField.forDatePattern(id, dateFieldModel, "dd/MMM/yyyy"); // todo i18n
-            }
-        };
+                });
         from.setOutputMarkupId(true);
         parametersPanel.add(from);
     }
 
     private void initTable(Form mainForm){
-        IModel<List<AuditEventRecordDto>> model = new IModel<List<AuditEventRecordDto>>() {
+        IModel<List<AuditEventRecordType>> model = new IModel<List<AuditEventRecordType>>() {
             @Override
-            public List<AuditEventRecordDto> getObject() {
+            public List<AuditEventRecordType> getObject() {
                 return getAuditEventRecordList();
             }
 
             @Override
-            public void setObject(List<AuditEventRecordDto> auditEventRecord) {
+            public void setObject(List<AuditEventRecordType> auditEventRecord) {
 
             }
 
@@ -117,61 +119,52 @@ public class PageAuditLogViewer extends PageBase{
 
             }
         };
-        ListDataProvider provider = new ListDataProvider<AuditEventRecordDto>(PageAuditLogViewer.this, model) {
+        ListDataProvider provider = new ListDataProvider<AuditEventRecordType>(PageAuditLogViewer.this, model) {
 
         };
         BoxedTablePanel table = new BoxedTablePanel(ID_TABLE, provider,
                 initColumns(),
-                UserProfileStorage.TableId.PAGE_CREATED_REPORTS_PANEL,
-                (int) getItemsPerPage(UserProfileStorage.TableId.PAGE_CREATED_REPORTS_PANEL)) {
+                UserProfileStorage.TableId.PAGE_AUDIT_LOG_VIEWER,
+                (int) getItemsPerPage(UserProfileStorage.TableId.PAGE_AUDIT_LOG_VIEWER)) {
 
-//            @Override
-//            protected WebMarkupContainer createHeader(String headerId) {
-//                return new SearchFragment(headerId, ID_TABLE_HEADER, Page.this, searchModel);
-//            }
         };
         table.setShowPaging(true);
         table.setOutputMarkupId(true);
         mainForm.add(table);
     }
 
-    private List<AuditEventRecordDto> getAuditEventRecordList(){
+    private List<AuditEventRecordType> getAuditEventRecordList(){
         List<AuditEventRecord> auditRecords = getAuditService().listRecords("from RAuditEventRecord as aer where 1=1 order by aer.timestamp asc", params);
         if (auditRecords == null){
             auditRecords = new ArrayList<>();
         }
-        List<AuditEventRecordDto> auditRecordDtoList = new ArrayList<>();
+        List<AuditEventRecordType> auditRecordList = new ArrayList<>();
         for (AuditEventRecord record : auditRecords){
-            AuditEventRecordDto dto = new AuditEventRecordDto(record);
-            auditRecordDtoList.add(dto);
+            AuditEventRecordType newRecord = new AuditEventRecordType();
+            newRecord.setTimestamp(MiscUtil.asXMLGregorianCalendar(new Date(record.getTimestamp())));
+            auditRecordList.add(newRecord);
         }
-        return auditRecordDtoList;
+        return auditRecordList;
     }
 
-    private List<IColumn<SelectableBean<AuditEventRecordDto>, String>> initColumns() {
-        List<IColumn<SelectableBean<AuditEventRecordDto>, String>> columns = new ArrayList<>();
+    private List<IColumn<SelectableBean<AuditEventRecordType>, String>> initColumns() {
+        List<IColumn<SelectableBean<AuditEventRecordType>, String>> columns = new ArrayList<>();
 
         IColumn column;
-
-        column = new AbstractColumn<SelectableBean<AuditEventRecordDto>, String>(
-                createStringResource("pageCreatedReports.table.time"),
-                "timestamp") {
-
-            @Override
-            public void populateItem(Item<ICellPopulator<SelectableBean<AuditEventRecordDto>>> cellItem,
-                                     String componentId, final IModel<SelectableBean<AuditEventRecordDto>> rowModel) {
-                cellItem.add(new DateLabelComponent(componentId, new AbstractReadOnlyModel<Date>() {
-
-                    @Override
-                    public Date getObject() {
-                        Object object = rowModel.getObject();
-                        return new Date(((AuditEventRecordDto)object).getTimestamp());                   }
-                }, DateLabelComponent.LONG_MEDIUM_STYLE));
-            }
-        };
+        column = new PropertyColumn(
+                createStringResource("PageAuditLogViewer.column.time"), "timestamp");
         columns.add(column);
 
+        //TODO add columns
+
         return columns;
+    }
+
+    private AuditEventRecordType getAuditEventRecordType(AuditEventRecord record){
+        AuditEventRecordType newRecord = new AuditEventRecordType();
+        newRecord.setTimestamp(MiscUtil.asXMLGregorianCalendar(new Date(record.getTimestamp())));
+        //TODO fill in others fields
+        return newRecord;
     }
 
 }
