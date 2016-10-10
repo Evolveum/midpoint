@@ -1082,9 +1082,11 @@ public class TestDummy extends AbstractDummyTest {
 		display("Adding shadow", account);
 
 		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
 		String addedObjectOid = provisioningService.addObject(account, null, null, task, result);
 
 		// THEN
+		TestUtil.displayThen(TEST_NAME);
 		result.computeStatus();
 		display("add object result", result);
 		TestUtil.assertSuccess("addObject has failed (result)", result);
@@ -1119,8 +1121,10 @@ public class TestDummy extends AbstractDummyTest {
 		ActivationType activationProvisioning = accountTypeProvisioning.getActivation();
 		if (supportsActivation()) {
 			assertNotNull("No activation in "+accountProvisioning+" (provisioning)", activationProvisioning);
-			assertEquals("Wrong activation administrativeStatus in "+accountProvisioning+" (provisioning)", ActivationStatusType.ENABLED, activationProvisioning.getAdministrativeStatus());
-			TestUtil.assertEqualsTimestamp("Wrong activation enableTimestamp in "+accountProvisioning+" (provisioning)", ACCOUNT_WILL_ENABLE_TIMESTAMP, activationProvisioning.getEnableTimestamp());
+			assertEquals("Wrong activation administrativeStatus in "+accountProvisioning+" (provisioning)", 
+					ActivationStatusType.ENABLED, activationProvisioning.getAdministrativeStatus());
+			TestUtil.assertEqualsTimestamp("Wrong activation enableTimestamp in "+accountProvisioning+" (provisioning)", 
+					ACCOUNT_WILL_ENABLE_TIMESTAMP, activationProvisioning.getEnableTimestamp());
 		} else {
 			assertNull("Activation sneaked in (provisioning)", activationProvisioning);
 		}
@@ -2686,9 +2690,11 @@ public class TestDummy extends AbstractDummyTest {
 	public void test175SearchUidExact() throws Exception {
 		final String TEST_NAME = "test175SearchUidExact";
 		TestUtil.displayTestTile(TEST_NAME);
+		dummyResource.setDisableNameHintChecks(true);
 		testSeachIterativeSingleAttrFilter(TEST_NAME,
 				ConnectorFactoryIcfImpl.ICFS_UID, willIcfUid, null, true,
 				transformNameFromResource("Will"));
+		dummyResource.setDisableNameHintChecks(false);
 	}
 	
 	@Test

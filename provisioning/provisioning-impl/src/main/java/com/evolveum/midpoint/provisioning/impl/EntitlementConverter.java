@@ -199,8 +199,8 @@ class EntitlementConverter {
             ResourceAttributeContainer identifiersContainer = new ResourceAttributeContainer(
                     ShadowAssociationType.F_IDENTIFIERS, entitlementDef.toResourceAttributeContainerDefinition(), prismContext);
             associationCVal.add(identifiersContainer);
-            LOGGER.trace("Assocciation attribute value resolved to valueAtrribute {}  and identifiers container {}", valueAttribute, identifiersContainer);
             identifiersContainer.add(valueAttribute);
+            LOGGER.trace("Assocciation attribute value resolved to valueAtrribute {}  and identifiers container {}", valueAttribute, identifiersContainer);
         }
     }
 	
@@ -460,13 +460,6 @@ class EntitlementConverter {
 				
 				ObjectQuery query = createQuery(assocDefType, assocAttrDef, valueAttr);
 				
-	//			ObjectFilter filter = EqualsFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES), assocAttrDef, valueAttr.getValue());
-	//			ObjectFilter filter = InFilter.createIn(new ItemPath(ShadowType.F_ATTRIBUTES, assocAttrDef.getName()), assocAttrDef, valueAttr.getValue());
-	//			ObjectFilter filter = EqualsFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES, assocAttrDef.getName()), assocAttrDef, valueAttr.getValue());
-	//			ObjectQuery query = ObjectQuery.createObjectQuery(filter); 
-	//					new ObjectQuery();
-	//			query.setFilter(filter);
-				
 				AttributesToReturn attributesToReturn = ProvisioningUtil.createAttributesToReturn(entitlementCtx);
 				
 				SearchHierarchyConstraints searchHierarchyConstraints = null;
@@ -482,13 +475,15 @@ class EntitlementConverter {
 				ResultHandler<ShadowType> handler = new ResultHandler<ShadowType>() {
 					@Override
 					public boolean handle(PrismObject<ShadowType> entitlementShadow) {
-						Collection<? extends ResourceAttribute<?>> identifiers = ShadowUtil.getPrimaryIdentifiers(entitlementShadow);
-						ResourceObjectDiscriminator disc = new ResourceObjectDiscriminator(entitlementOcDef.getTypeName(), identifiers);
+						Collection<? extends ResourceAttribute<?>> primaryIdentifiers = ShadowUtil.getPrimaryIdentifiers(entitlementShadow);
+						ResourceObjectDiscriminator disc = new ResourceObjectDiscriminator(entitlementOcDef.getTypeName(), primaryIdentifiers);
 						ResourceObjectOperations operations = roMap.get(disc);
 						if (operations == null) {
 							operations = new ResourceObjectOperations();
 							roMap.put(disc, operations);
 							operations.setResourceObjectContext(entitlementCtx);
+							Collection<? extends ResourceAttribute<?>> allIdentifiers = ShadowUtil.getAllIdentifiers(entitlementShadow);
+							operations.setAllIdentifiers(allIdentifiers);
 						}
 						
 						PropertyDelta<T> attributeDelta = null;
@@ -665,9 +660,9 @@ class EntitlementConverter {
 			
 			ResourceAttributeContainer identifiersContainer = 
 					ShadowUtil.getAttributesContainer(associationCVal, ShadowAssociationType.F_IDENTIFIERS);
-			Collection<ResourceAttribute<?>> entitlementIdentifiers = identifiersContainer.getAttributes();
+			Collection<ResourceAttribute<?>> entitlementIdentifiersFromAssociation = identifiersContainer.getAttributes();
 			
-			ResourceObjectDiscriminator disc = new ResourceObjectDiscriminator(entitlementOcDef.getTypeName(), entitlementIdentifiers);
+			ResourceObjectDiscriminator disc = new ResourceObjectDiscriminator(entitlementOcDef.getTypeName(), entitlementIdentifiersFromAssociation);
 			ResourceObjectOperations operations = roMap.get(disc);
 			if (operations == null) {
 				operations = new ResourceObjectOperations();
@@ -706,7 +701,7 @@ class EntitlementConverter {
 			ResourceAttribute<TV> valueAttr = ShadowUtil.getAttribute(subjectShadow, valueAttrName);
 			if (valueAttr == null) {
 				if (!ShadowUtil.isFullShadow(subjectShadow)) {
-					Collection<ResourceAttribute<?>> subjectIdentifiers = ShadowUtil.getPrimaryIdentifiers(subjectShadow);
+					Collection<ResourceAttribute<?>> subjectIdentifiers = ShadowUtil.getAllIdentifiers(subjectShadow);
 					LOGGER.trace("Fetching {} ({})", subjectShadow, subjectIdentifiers);
 					subjectShadow = resourceObjectReferenceResolver.fetchResourceObject(subjectCtx, subjectIdentifiers, null, result);
 					subjectShadowAfter = subjectShadow;
@@ -746,8 +741,8 @@ class EntitlementConverter {
 			if (ResourceTypeUtil.isAvoidDuplicateValues(resource)) {
 				PrismObject<ShadowType> currentObjectShadow = operations.getCurrentShadow();
 				if (currentObjectShadow == null) {
-					LOGGER.trace("Fetching entitlement shadow {} to avoid value duplication (intent={})", entitlementIdentifiers, entitlementIntent);
-					currentObjectShadow = resourceObjectReferenceResolver.fetchResourceObject(entitlementCtx, entitlementIdentifiers, null, result);
+					LOGGER.trace("Fetching entitlement shadow {} to avoid value duplication (intent={})", entitlementIdentifiersFromAssociation, entitlementIntent);
+					currentObjectShadow = resourceObjectReferenceResolver.fetchResourceObject(entitlementCtx, entitlementIdentifiersFromAssociation, null, result);
 					operations.setCurrentShadow(currentObjectShadow);
 				}
 				// TODO it seems that duplicate values are checked twice: once here and the second time in ResourceObjectConverter.executeModify

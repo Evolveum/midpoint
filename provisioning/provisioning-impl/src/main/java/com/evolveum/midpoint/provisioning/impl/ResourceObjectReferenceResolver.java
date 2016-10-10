@@ -56,6 +56,8 @@ import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectReferenceResolutionFrequencyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectReferenceType;
@@ -69,6 +71,8 @@ import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
  */
 @Component
 public class ResourceObjectReferenceResolver {
+	
+	private static final Trace LOGGER = TraceManager.getTrace(ResourceObjectReferenceResolver.class);
 	
 	@Autowired(required = true)
 	private PrismContext prismContext;
@@ -171,7 +175,47 @@ public class ResourceObjectReferenceResolver {
 				primaryIdentifiers.add(primaryIdentifier);
 			}
 		}
+		LOGGER.trace("Resolved identifiers {} to primary identifiers {} (object class {})", identifiers, primaryIdentifiers, ocDef);
 		return primaryIdentifiers;
+	}
+	
+	/**
+	 * Resolve primary identifier from a collection of identifiers that may contain only secondary identifiers. 
+	 */
+	private ResourceObjectIdentification resolvePrimaryIdentifiers(ProvisioningContext ctx,
+			ResourceObjectIdentification identification, OperationResult result) 
+					throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, 
+					SecurityViolationException {
+		if (identification == null) {
+			return identification;
+		}
+		if (identification.hasPrimaryIdentifiers()) {
+			return identification;
+		}
+		Collection<ResourceAttribute<?>> secondaryIdentifiers = (Collection<ResourceAttribute<?>>) identification.getSecondaryIdentifiers();
+		PrismObject<ShadowType> repoShadow = shadowManager.lookupShadowBySecondaryIdentifiers(ctx, secondaryIdentifiers, result);
+		if (repoShadow == null) {
+			// TODO: we should attempt resource search here
+			throw new ObjectNotFoundException("No repository shadow for "+secondaryIdentifiers+", cannot resolve identifiers");
+		}
+		PrismContainer<Containerable> attributesContainer = repoShadow.findContainer(ShadowType.F_ATTRIBUTES);
+		if (attributesContainer == null) {
+			throw new SchemaException("No attributes in "+repoShadow+", cannot resolve identifiers "+secondaryIdentifiers);
+		}
+		RefinedObjectClassDefinition ocDef = ctx.getObjectClassDefinition();
+		Collection primaryIdentifiers = new ArrayList<>();
+		for (PrismProperty<?> property: attributesContainer.getValue().getProperties()) {
+			if (ocDef.isPrimaryIdentifier(property.getElementName())) {
+				RefinedAttributeDefinition<?> attrDef = ocDef.findAttributeDefinition(property.getElementName());
+				ResourceAttribute<?> primaryIdentifier = new ResourceAttribute<>(property.getElementName(), 
+						attrDef, prismContext);
+				primaryIdentifier.setRealValue(property.getRealValue());
+				primaryIdentifiers.add(primaryIdentifier);
+			}
+		}
+		LOGGER.trace("Resolved {} to primary identifiers {} (object class {})", identification, primaryIdentifiers, ocDef);
+		return new ResourceObjectIdentification(identification.getObjectClassDefinition(), primaryIdentifiers, 
+				identification.getSecondaryIdentifiers());
 	}
 	
 	
@@ -190,7 +234,9 @@ public class ResourceObjectReferenceResolver {
 				throw new UnsupportedOperationException("Resource does not support 'read' operation");
 			}
 			
-			ResourceObjectIdentification identification = new ResourceObjectIdentification(objectClassDefinition, identifiers, null);
+			ResourceObjectIdentification identification = ResourceObjectIdentification.create(objectClassDefinition, identifiers);
+			identification = resolvePrimaryIdentifiers(ctx, identification, parentResult);
+			identification.validatePrimaryIdenfiers();
 			return connector.fetchObject(ShadowType.class, identification, attributesToReturn, ctx,
 					parentResult);
 		} catch (ObjectNotFoundException e) {

@@ -3,9 +3,16 @@ package com.evolveum.midpoint.web.component.assignment;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.model.api.ModelInteractionService;
+import com.evolveum.midpoint.model.api.RoleSelectionSpecification;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.*;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.data.*;
 import com.evolveum.midpoint.web.component.search.Search;
@@ -13,8 +20,10 @@ import com.evolveum.midpoint.web.component.search.SearchFactory;
 import com.evolveum.midpoint.web.component.search.SearchPanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
+import com.evolveum.midpoint.web.page.self.PageAssignmentDetails;
+import com.evolveum.midpoint.web.page.self.PageAssignmentsList;
+import com.evolveum.midpoint.web.security.SecurityUtils;
 import com.evolveum.midpoint.web.session.SessionStorage;
-import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -29,13 +38,14 @@ import org.apache.wicket.markup.repeater.data.DataViewBase;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 
+import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
  * Created by honchar
  */
-public class CatalogItemsPanel extends BasePanel<String> implements IPageableItems {
+public class CatalogItemsPanel extends BasePanel implements IPageableItems {
     private static String ID_MULTI_BUTTON_TABLE = "multiButtonTable";
     private static final String ID_SEARCH_FORM = "searchForm";
     private static final String ID_SEARCH = "search";
@@ -50,24 +60,49 @@ public class CatalogItemsPanel extends BasePanel<String> implements IPageableIte
     private static String ID_CART_ITEMS_COUNT = "itemsCount";
     private static final String ID_HEADER_PANEL = "headerPanel";
 
+    private static final String DOT_CLASS = CatalogItemsPanel.class.getName();
+    private static final Trace LOGGER = TraceManager.getTrace(CatalogItemsPanel.class);
+    private static final String OPERATION_LOAD_ASSIGNABLE_ROLES = DOT_CLASS + "loadAssignableRoles";
+    private static final String OPERATION_LOAD_USER = DOT_CLASS + "loadUser";
+
     private IModel<Search> searchModel;
     private ObjectDataProvider<AssignmentEditorDto, AbstractRoleType> provider;
     private IModel<List<AssignmentEditorDto>> itemsListModel;
 
-    private static final long ITEMS_PER_ROW = 3;
+    private long itemsPerRow = 3;
     private static final long DEFAULT_ROWS_COUNT = 5;
     private PageBase pageBase;
-    private boolean providerSizeSet = false;
+    private QName focusTypeClass;
+    private String catalogOid;
     private long currentPage = 0;
 
     public CatalogItemsPanel(String id) {
         super(id);
     }
 
-    public CatalogItemsPanel(String id, IModel<String> oidModel, String oid, PageBase pageBase) {
-        super(id, oidModel);
+    public CatalogItemsPanel(String id, QName focusTypeClass, PageBase pageBase) {
+        this (id, focusTypeClass, pageBase, 0);
+    }
+    public CatalogItemsPanel(String id, QName focusTypeClass, PageBase pageBase, long itemsPerRow) {
+        super(id);
         this.pageBase = pageBase;
-        initProvider(oid);
+        this.focusTypeClass = focusTypeClass;
+        this.catalogOid = null;
+        if (itemsPerRow > 0){
+            this.itemsPerRow = itemsPerRow;
+        }
+        initProvider();
+        initSearchModel();
+        initItemListModel();
+        initLayout();
+    }
+
+    public CatalogItemsPanel(String id, String catalogOid, PageBase pageBase) {
+        super(id);
+        this.pageBase = pageBase;
+        this.catalogOid = catalogOid;
+        this.focusTypeClass = null;
+        initProvider();
         initSearchModel();
         initItemListModel();
         initLayout();
@@ -83,7 +118,7 @@ public class CatalogItemsPanel extends BasePanel<String> implements IPageableIte
         initCartButton(headerPanel);
         initSearchPanel(headerPanel);
 
-        MultiButtonTable assignmentsTable = new MultiButtonTable(ID_MULTI_BUTTON_TABLE, ITEMS_PER_ROW, itemsListModel);
+        MultiButtonTable assignmentsTable = new MultiButtonTable(ID_MULTI_BUTTON_TABLE, itemsPerRow, itemsListModel);
         assignmentsTable.setOutputMarkupId(true);
         add(assignmentsTable);
 
@@ -91,7 +126,7 @@ public class CatalogItemsPanel extends BasePanel<String> implements IPageableIte
 
     }
 
-    protected void initProvider(final String oid) {
+    protected void initProvider() {
 
         provider = new ObjectDataProvider<AssignmentEditorDto, AbstractRoleType>(pageBase, AbstractRoleType.class) {
             private static final long serialVersionUID = 1L;
@@ -110,7 +145,7 @@ public class CatalogItemsPanel extends BasePanel<String> implements IPageableIte
             @Override
             public ObjectQuery getQuery() {
 
-                return createContentQuery(oid, null);
+                return createContentQuery(null);
             }
         };
         setCurrentPage(0);
@@ -167,25 +202,19 @@ public class CatalogItemsPanel extends BasePanel<String> implements IPageableIte
     }
 
     private void searchPerformed(ObjectQuery query, AjaxRequestTarget target) {
-//        MultipleAssignmentSelector.this.searchQuery = query;
-//        if (filterModel != null && filterModel.getObject() != null) {
-//            if (query == null){
-//                query = new ObjectQuery();
-//            }
-//            query.addFilter(filterModel.getObject());
-//            filterObjectIsAdded = true;
-//        }
-//        BoxedTablePanel panel = getTable();
-//        panel.setCurrentPage(null);
-//        provider.setQuery(query);
         setCurrentPage(0);
-        provider.setQuery(createContentQuery(getModelObject(), query));
+        provider.setQuery(createContentQuery(query));
         refreshItemsPanel();
         target.add(CatalogItemsPanel.this);
     }
 
-    protected ObjectQuery createContentQuery(String oid, ObjectQuery searchQuery) {
-        ObjectQuery memberQuery = createMemberQuery(oid);
+    protected ObjectQuery createContentQuery(ObjectQuery searchQuery) {
+        ObjectQuery memberQuery;
+        if (catalogOid != null){
+            memberQuery = createMemberQuery(catalogOid);
+        } else {
+            memberQuery = createMemberQuery(focusTypeClass);
+        }
         if (memberQuery == null) {
             memberQuery = new ObjectQuery();
         }
@@ -199,6 +228,32 @@ public class CatalogItemsPanel extends BasePanel<String> implements IPageableIte
             memberQuery.addFilter(searchQuery.getFilter());
         }
         return memberQuery;
+    }
+
+    private ObjectQuery createMemberQuery(QName focusTypeClass) {
+        ObjectQuery query = new ObjectQuery();
+        ObjectFilter filter = null;
+        if (focusTypeClass.equals(RoleType.COMPLEX_TYPE)) {
+            LOGGER.debug("Loading roles which the current user has right to assign");
+            OperationResult result = new OperationResult(OPERATION_LOAD_ASSIGNABLE_ROLES);
+            try {
+                ModelInteractionService mis = pageBase.getModelInteractionService();
+                RoleSelectionSpecification roleSpec =
+                        mis.getAssignableRoleSpecification(SecurityUtils.getPrincipalUser().getUser().asPrismObject(), result);
+                filter = roleSpec.getFilter();
+            } catch (Exception ex) {
+                LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load available roles", ex);
+                result.recordFatalError("Couldn't load available roles", ex);
+            } finally {
+                result.recomputeStatus();
+            }
+            if (!result.isSuccess() && !result.isHandledError()) {
+                pageBase.showResult(result);
+            }
+        }
+        query.addFilter(TypeFilter.createType(focusTypeClass, filter));
+        return query;
+
     }
 
     private ObjectQuery createMemberQuery(String oid) {
@@ -217,10 +272,10 @@ public class CatalogItemsPanel extends BasePanel<String> implements IPageableIte
             if (provider.getAvailableData() != null){
                 provider.getAvailableData().clear();
             }
-            long from  = currentPage * ITEMS_PER_ROW * DEFAULT_ROWS_COUNT;
-            provider.internalIterator(from, ITEMS_PER_ROW * DEFAULT_ROWS_COUNT);
+            long from  = currentPage * itemsPerRow * DEFAULT_ROWS_COUNT;
+            provider.internalIterator(from, itemsPerRow * DEFAULT_ROWS_COUNT);
         }
-        MultiButtonTable assignmentsTable = new MultiButtonTable(ID_MULTI_BUTTON_TABLE, ITEMS_PER_ROW, itemsListModel);
+        MultiButtonTable assignmentsTable = new MultiButtonTable(ID_MULTI_BUTTON_TABLE, itemsPerRow, itemsListModel);
         assignmentsTable.setOutputMarkupId(true);
         replace(assignmentsTable);
     }
@@ -339,11 +394,11 @@ public class CatalogItemsPanel extends BasePanel<String> implements IPageableIte
     @Override
     public void setCurrentPage(long page) {
         currentPage = page;
-        long from  = page * ITEMS_PER_ROW * DEFAULT_ROWS_COUNT;
+        long from  = page * itemsPerRow * DEFAULT_ROWS_COUNT;
         if (provider.getAvailableData() != null){
             provider.getAvailableData().clear();
         }
-        provider.internalIterator(from, ITEMS_PER_ROW * DEFAULT_ROWS_COUNT);
+        provider.internalIterator(from, itemsPerRow * DEFAULT_ROWS_COUNT);
     }
 
     @Override
@@ -367,7 +422,7 @@ public class CatalogItemsPanel extends BasePanel<String> implements IPageableIte
 
     @Override
     public long getItemsPerPage() {
-        return DEFAULT_ROWS_COUNT * ITEMS_PER_ROW;
+        return DEFAULT_ROWS_COUNT * itemsPerRow;
     }
 
     @Override
@@ -379,7 +434,7 @@ public class CatalogItemsPanel extends BasePanel<String> implements IPageableIte
         AjaxButton cartButton = new AjaxButton(ID_CART_BUTTON) {
             @Override
             public void onClick(AjaxRequestTarget ajaxRequestTarget) {
-
+                setResponsePage(new PageAssignmentsList(loadUser()));
             }
         };
         cartButton.setOutputMarkupId(true);
@@ -420,6 +475,30 @@ public class CatalogItemsPanel extends BasePanel<String> implements IPageableIte
 
     public void reloadCartButton(AjaxRequestTarget target) {
         target.add(get(ID_HEADER_PANEL).get(ID_CART_BUTTON));
+    }
+
+    private PrismObject<UserType> loadUser() {
+        LOGGER.debug("Loading user and accounts.");
+        OperationResult result = new OperationResult(OPERATION_LOAD_USER);
+        PrismObject<UserType> user = null;
+        try {
+            String userOid = SecurityUtils.getPrincipalUser().getOid();
+            Task task = pageBase.createSimpleTask(OPERATION_LOAD_USER);
+            user = WebModelServiceUtils.loadObject(UserType.class, userOid, null, (PageBase) getPage(),
+                    task, result);
+            result.recordSuccessIfUnknown();
+
+            result.recordSuccessIfUnknown();
+        } catch (Exception ex) {
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load accounts", ex);
+            result.recordFatalError("Couldn't load accounts", ex);
+        } finally {
+            result.recomputeStatus();
+        }
+        if (!result.isSuccess() && !result.isHandledError()) {
+            pageBase.showResult(result);
+        }
+        return user;
     }
 
 }

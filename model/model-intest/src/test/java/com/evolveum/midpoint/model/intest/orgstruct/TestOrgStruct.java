@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.evolveum.midpoint.model.intest;
+package com.evolveum.midpoint.model.intest.orgstruct;
 
 import static org.testng.AssertJUnit.assertNotNull;
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
@@ -26,6 +26,7 @@ import java.util.List;
 
 import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.impl.expr.ModelExpressionThreadLocalHolder;
+import com.evolveum.midpoint.model.intest.AbstractInitializedModelIntegrationTest;
 import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
@@ -37,12 +38,14 @@ import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
+import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.prism.PrismObject;
@@ -74,6 +77,7 @@ import javax.xml.namespace.QName;
  */
 @ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
+@Listeners({ com.evolveum.midpoint.tools.testng.AlphabeticalMethodInterceptor.class })
 public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
 	
 	public static final File TEST_DIR = new File("src/test/resources/orgstruct");
@@ -317,8 +321,8 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
         // THEN
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         display("User jack after", userJack);
-        assertUserAssignedOrgs(userJack, ORG_MINISTRY_OF_OFFENSE_OID);
-        assertUserHasOrgs(userJack, ORG_MINISTRY_OF_OFFENSE_OID, ORG_MINISTRY_OF_DEFENSE_OID);
+        assertAssignedOrgs(userJack, ORG_MINISTRY_OF_OFFENSE_OID);
+        assertHasOrgs(userJack, ORG_MINISTRY_OF_OFFENSE_OID, ORG_MINISTRY_OF_DEFENSE_OID);
         
         // Postcondition
         assertMonkeyIslandOrgSanity();
@@ -338,8 +342,8 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
         // THEN
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         display("User jack after", userJack);
-        assertUserAssignedOrgs(userJack, ORG_MINISTRY_OF_OFFENSE_OID);
-        assertUserHasOrgs(userJack, ORG_MINISTRY_OF_OFFENSE_OID, ORG_MINISTRY_OF_OFFENSE_OID, ORG_MINISTRY_OF_DEFENSE_OID);
+        assertAssignedOrgs(userJack, ORG_MINISTRY_OF_OFFENSE_OID);
+        assertHasOrgs(userJack, ORG_MINISTRY_OF_OFFENSE_OID, ORG_MINISTRY_OF_OFFENSE_OID, ORG_MINISTRY_OF_DEFENSE_OID);
         assertAssignedOrg(userJack, ORG_MINISTRY_OF_OFFENSE_OID, SchemaConstants.ORG_MANAGER);
         assertHasOrg(userJack, ORG_MINISTRY_OF_OFFENSE_OID, SchemaConstants.ORG_MANAGER);
         assertAssignedOrg(userJack, ORG_MINISTRY_OF_OFFENSE_OID, null);
@@ -364,9 +368,9 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
         // THEN
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         display("User jack after", userJack);
-        assertUserAssignedOrgs(userJack, ORG_MINISTRY_OF_OFFENSE_OID);
+        assertAssignedOrgs(userJack, ORG_MINISTRY_OF_OFFENSE_OID);
         assertAssignedOrg(userJack, ORG_MINISTRY_OF_OFFENSE_OID, SchemaConstants.ORG_MANAGER);
-        assertUserHasOrgs(userJack, ORG_MINISTRY_OF_OFFENSE_OID, ORG_MINISTRY_OF_DEFENSE_OID);
+        assertHasOrgs(userJack, ORG_MINISTRY_OF_OFFENSE_OID, ORG_MINISTRY_OF_DEFENSE_OID);
         assertHasOrg(userJack, ORG_MINISTRY_OF_OFFENSE_OID, SchemaConstants.ORG_MANAGER);
         
         // Postcondition
@@ -388,7 +392,7 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         display("User jack after", userJack);
         assertAssignedNoOrg(userJack);
-        assertUserHasOrgs(userJack, ORG_MINISTRY_OF_DEFENSE_OID);
+        assertHasOrgs(userJack, ORG_MINISTRY_OF_DEFENSE_OID);
         
         // Postcondition
         assertMonkeyIslandOrgSanity();
@@ -408,8 +412,8 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
         // THEN
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         display("User jack after", userJack);
-        assertUserAssignedOrgs(userJack, ORG_MINISTRY_OF_OFFENSE_OID);
-        assertUserHasOrgs(userJack, ORG_MINISTRY_OF_OFFENSE_OID, ORG_MINISTRY_OF_DEFENSE_OID);
+        assertAssignedOrgs(userJack, ORG_MINISTRY_OF_OFFENSE_OID);
+        assertHasOrgs(userJack, ORG_MINISTRY_OF_OFFENSE_OID, ORG_MINISTRY_OF_DEFENSE_OID);
         assertAssignedOrg(userJack, ORG_MINISTRY_OF_OFFENSE_OID, null);
         assertHasOrg(userJack, ORG_MINISTRY_OF_OFFENSE_OID, null);
 
@@ -441,8 +445,8 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
         // THEN
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         display("User jack after", userJack);
-        assertUserAssignedOrgs(userJack, ORG_MINISTRY_OF_OFFENSE_OID, ORG_SCUMM_BAR_OID, ORG_SAVE_ELAINE_OID);
-        assertUserHasOrgs(userJack, ORG_MINISTRY_OF_OFFENSE_OID, ORG_SCUMM_BAR_OID, ORG_SAVE_ELAINE_OID, ORG_MINISTRY_OF_DEFENSE_OID);
+        assertAssignedOrgs(userJack, ORG_MINISTRY_OF_OFFENSE_OID, ORG_SCUMM_BAR_OID, ORG_SAVE_ELAINE_OID);
+        assertHasOrgs(userJack, ORG_MINISTRY_OF_OFFENSE_OID, ORG_SCUMM_BAR_OID, ORG_SAVE_ELAINE_OID, ORG_MINISTRY_OF_DEFENSE_OID);
 
         // Postcondition
         assertMonkeyIslandOrgSanity();
@@ -491,8 +495,8 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
         // THEN
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         display("User jack after", userJack);
-        assertUserAssignedOrgs(userJack, ORG_MINISTRY_OF_OFFENSE_OID, ORG_SCUMM_BAR_OID, ORG_SAVE_ELAINE_OID);
-        assertUserHasOrgs(userJack, ORG_MINISTRY_OF_OFFENSE_OID, ORG_SCUMM_BAR_OID, ORG_SAVE_ELAINE_OID, ORG_MINISTRY_OF_DEFENSE_OID);
+        assertAssignedOrgs(userJack, ORG_MINISTRY_OF_OFFENSE_OID, ORG_SCUMM_BAR_OID, ORG_SAVE_ELAINE_OID);
+        assertHasOrgs(userJack, ORG_MINISTRY_OF_OFFENSE_OID, ORG_SCUMM_BAR_OID, ORG_SAVE_ELAINE_OID, ORG_MINISTRY_OF_DEFENSE_OID);
         assertAssignedOrg(userJack, ORG_MINISTRY_OF_OFFENSE_OID, SchemaConstants.ORG_MANAGER);
         assertHasOrg(userJack, ORG_MINISTRY_OF_OFFENSE_OID, SchemaConstants.ORG_MANAGER);
         assertAssignedOrg(userJack, ORG_SCUMM_BAR_OID, null);
@@ -637,11 +641,11 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
         // THEN
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         display("User jack after", userJack);
-        assertUserAssignedOrgs(userJack, ORG_MINISTRY_OF_DEFENSE_OID);
+        assertAssignedOrgs(userJack, ORG_MINISTRY_OF_DEFENSE_OID);
         assertAssignedOrg(userJack, ORG_MINISTRY_OF_DEFENSE_OID, SchemaConstants.ORG_MANAGER);
         assertNotAssignedOrg(userJack, ORG_MINISTRY_OF_DEFENSE_OID, null);
 
-        assertUserHasOrgs(userJack, ORG_MINISTRY_OF_DEFENSE_OID, ORG_MINISTRY_OF_DEFENSE_OID);
+        assertHasOrgs(userJack, ORG_MINISTRY_OF_DEFENSE_OID, ORG_MINISTRY_OF_DEFENSE_OID);
         assertHasOrg(userJack, ORG_MINISTRY_OF_DEFENSE_OID, SchemaConstants.ORG_MANAGER);
         assertHasOrg(userJack, ORG_MINISTRY_OF_DEFENSE_OID, null);
 
@@ -669,12 +673,12 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
         // THEN
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         display("User jack after", userJack);
-        assertUserAssignedOrgs(userJack, ORG_MINISTRY_OF_DEFENSE_OID);
+        assertAssignedOrgs(userJack, ORG_MINISTRY_OF_DEFENSE_OID);
         assertAssignedOrg(userJack, ORG_MINISTRY_OF_DEFENSE_OID, SchemaConstants.ORG_MANAGER);
         assertNotAssignedOrg(userJack, ORG_MINISTRY_OF_DEFENSE_OID, null);
         assertNotAssignedRole(userJack, ROLE_DEFENDER_OID);
 
-        assertUserHasOrgs(userJack, ORG_MINISTRY_OF_DEFENSE_OID);
+        assertHasOrgs(userJack, ORG_MINISTRY_OF_DEFENSE_OID);
         assertHasOrg(userJack, ORG_MINISTRY_OF_DEFENSE_OID, SchemaConstants.ORG_MANAGER);
 
         // Postcondition
@@ -766,8 +770,8 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
         // THEN
         userJack = getUser(USER_JACK_OID);
         display("User jack after", userJack);
-        assertUserAssignedOrgs(userJack, ORG_MINISTRY_OF_OFFENSE_OID);
-        assertUserHasOrgs(userJack, ORG_MINISTRY_OF_OFFENSE_OID, ORG_MINISTRY_OF_OFFENSE_OID);
+        assertAssignedOrgs(userJack, ORG_MINISTRY_OF_OFFENSE_OID);
+        assertHasOrgs(userJack, ORG_MINISTRY_OF_OFFENSE_OID, ORG_MINISTRY_OF_OFFENSE_OID);
         assertAssignedOrg(userJack, ORG_MINISTRY_OF_OFFENSE_OID, SchemaConstants.ORG_MANAGER);
         assertHasOrg(userJack, ORG_MINISTRY_OF_OFFENSE_OID, SchemaConstants.ORG_MANAGER);
         assertAssignedOrg(userJack, ORG_MINISTRY_OF_OFFENSE_OID, null);
@@ -798,8 +802,8 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
         // THEN
         PrismObject<UserType> userElaine = getUser(USER_ELAINE_OID);
         display("User jack after", userElaine);
-        assertUserAssignedOrgs(userElaine, ORG_GOVERNOR_OFFICE_OID);
-        assertUserHasOrgs(userElaine, ORG_GOVERNOR_OFFICE_OID);
+        assertAssignedOrgs(userElaine, ORG_GOVERNOR_OFFICE_OID);
+        assertHasOrgs(userElaine, ORG_GOVERNOR_OFFICE_OID);
         assertAssignedOrg(userElaine, ORG_GOVERNOR_OFFICE_OID, SchemaConstants.ORG_MANAGER);
         assertHasOrg(userElaine, ORG_GOVERNOR_OFFICE_OID, SchemaConstants.ORG_MANAGER);
         
@@ -835,8 +839,8 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
         // THEN
         PrismObject<UserType> userElaine = getUser(USER_ELAINE_OID);
         display("User jack after", userElaine);
-        assertUserAssignedOrgs(userElaine, ORG_GOVERNOR_OFFICE_OID, ORG_GOVERNOR_OFFICE_OID);
-        assertUserHasOrgs(userElaine, ORG_GOVERNOR_OFFICE_OID, ORG_GOVERNOR_OFFICE_OID);
+        assertAssignedOrgs(userElaine, ORG_GOVERNOR_OFFICE_OID, ORG_GOVERNOR_OFFICE_OID);
+        assertHasOrgs(userElaine, ORG_GOVERNOR_OFFICE_OID, ORG_GOVERNOR_OFFICE_OID);
         assertAssignedOrg(userElaine, ORG_GOVERNOR_OFFICE_OID, SchemaConstants.ORG_MANAGER);
         assertAssignedOrg(userElaine, ORG_GOVERNOR_OFFICE_OID);
         assertHasOrg(userElaine, ORG_GOVERNOR_OFFICE_OID, SchemaConstants.ORG_MANAGER);
@@ -873,8 +877,8 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
         // THEN
         PrismObject<UserType> userGuybrush = getUser(USER_GUYBRUSH_OID);
         display("User jack after", userGuybrush);
-        assertUserAssignedOrgs(userGuybrush, ORG_SWASHBUCKLER_SECTION_OID);
-        assertUserHasOrgs(userGuybrush, ORG_SWASHBUCKLER_SECTION_OID);
+        assertAssignedOrgs(userGuybrush, ORG_SWASHBUCKLER_SECTION_OID);
+        assertHasOrgs(userGuybrush, ORG_SWASHBUCKLER_SECTION_OID);
         assertAssignedOrg(userGuybrush, ORG_SWASHBUCKLER_SECTION_OID);
         assertHasOrg(userGuybrush, ORG_SWASHBUCKLER_SECTION_OID);
         
@@ -917,8 +921,8 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
         // THEN
         PrismObject<UserType> userGuybrush = getUser(USER_GUYBRUSH_OID);
         display("User jack after", userGuybrush);
-        assertUserAssignedOrgs(userGuybrush, ORG_SWASHBUCKLER_SECTION_OID, ORG_SWASHBUCKLER_SECTION_OID);
-        assertUserHasOrgs(userGuybrush, ORG_SWASHBUCKLER_SECTION_OID, ORG_SWASHBUCKLER_SECTION_OID);
+        assertAssignedOrgs(userGuybrush, ORG_SWASHBUCKLER_SECTION_OID, ORG_SWASHBUCKLER_SECTION_OID);
+        assertHasOrgs(userGuybrush, ORG_SWASHBUCKLER_SECTION_OID, ORG_SWASHBUCKLER_SECTION_OID);
         assertAssignedOrg(userGuybrush, ORG_SWASHBUCKLER_SECTION_OID);
         assertAssignedOrg(userGuybrush, ORG_SWASHBUCKLER_SECTION_OID, SchemaConstants.ORG_MANAGER);
         assertHasOrg(userGuybrush, ORG_SWASHBUCKLER_SECTION_OID);
@@ -963,8 +967,8 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
         // THEN
         PrismObject<UserType> userBarbossa = getUser(USER_BARBOSSA_OID);
         display("User jack after", userBarbossa);
-        assertUserAssignedOrgs(userBarbossa, ORG_MINISTRY_OF_OFFENSE_OID);
-        assertUserHasOrgs(userBarbossa, ORG_MINISTRY_OF_OFFENSE_OID);
+        assertAssignedOrgs(userBarbossa, ORG_MINISTRY_OF_OFFENSE_OID);
+        assertHasOrgs(userBarbossa, ORG_MINISTRY_OF_OFFENSE_OID);
         assertAssignedOrg(userBarbossa, ORG_MINISTRY_OF_OFFENSE_OID);
         assertHasOrg(userBarbossa, ORG_MINISTRY_OF_OFFENSE_OID);
         
@@ -1016,8 +1020,8 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
         // THEN
         userHerman = getUser(USER_HERMAN_OID);
         display("User jack after", userHerman);
-        assertUserAssignedOrgs(userHerman, ORG_SWASHBUCKLER_SECTION_OID);
-        assertUserHasOrgs(userHerman, ORG_SWASHBUCKLER_SECTION_OID);
+        assertAssignedOrgs(userHerman, ORG_SWASHBUCKLER_SECTION_OID);
+        assertHasOrgs(userHerman, ORG_SWASHBUCKLER_SECTION_OID);
         assertAssignedOrg(userHerman, ORG_SWASHBUCKLER_SECTION_OID);
         assertHasOrg(userHerman, ORG_SWASHBUCKLER_SECTION_OID);
         
@@ -1091,8 +1095,8 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
         // THEN
         userJack = getUser(USER_JACK_OID);
         display("User jack after", userJack);
-        assertUserAssignedOrgs(userJack, ORG_MINISTRY_OF_OFFENSE_OID);
-        assertUserHasOrgs(userJack, ORG_MINISTRY_OF_OFFENSE_OID);
+        assertAssignedOrgs(userJack, ORG_MINISTRY_OF_OFFENSE_OID);
+        assertHasOrgs(userJack, ORG_MINISTRY_OF_OFFENSE_OID);
         assertAssignedOrg(userJack, ORG_MINISTRY_OF_OFFENSE_OID, null);
         assertHasOrg(userJack, ORG_MINISTRY_OF_OFFENSE_OID, null);
 
@@ -1124,11 +1128,11 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
         // THEN
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         display("User jack after", userJack);
-        assertUserAssignedOrgs(userJack, ORG_MINISTRY_OF_OFFENSE_OID);
+        assertAssignedOrgs(userJack, ORG_MINISTRY_OF_OFFENSE_OID);
         // No assignment from object template. The object template mapping is normal. It will NOT be applied
         // because there is primary delta.
         assertAssignedOrg(userJack, ORG_MINISTRY_OF_OFFENSE_OID, SchemaConstants.ORG_MANAGER);  // because of the modification
-        assertUserHasOrgs(userJack, ORG_MINISTRY_OF_OFFENSE_OID);
+        assertHasOrgs(userJack, ORG_MINISTRY_OF_OFFENSE_OID);
         assertHasOrg(userJack, ORG_MINISTRY_OF_OFFENSE_OID, SchemaConstants.ORG_MANAGER);
 
         // Postcondition
@@ -1159,9 +1163,9 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
         // THEN
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         display("User jack after", userJack);
-        assertUserAssignedOrgs(userJack, ORG_MINISTRY_OF_OFFENSE_OID);
+        assertAssignedOrgs(userJack, ORG_MINISTRY_OF_OFFENSE_OID);
         assertAssignedOrg(userJack, ORG_MINISTRY_OF_OFFENSE_OID, null);                         // because of object template and the modification
-        assertUserHasOrgs(userJack, ORG_MINISTRY_OF_OFFENSE_OID);
+        assertHasOrgs(userJack, ORG_MINISTRY_OF_OFFENSE_OID);
         assertHasOrg(userJack, ORG_MINISTRY_OF_OFFENSE_OID, null);
 
         // Postcondition
@@ -1200,8 +1204,8 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
         // THEN
         userJack = getUser(USER_JACK_OID);
         display("User jack after", userJack);
-        assertUserAssignedOrgs(userJack, ORG_MINISTRY_OF_OFFENSE_OID);
-        assertUserHasOrgs(userJack, ORG_MINISTRY_OF_OFFENSE_OID);
+        assertAssignedOrgs(userJack, ORG_MINISTRY_OF_OFFENSE_OID);
+        assertHasOrgs(userJack, ORG_MINISTRY_OF_OFFENSE_OID);
         assertAssignedOrg(userJack, ORG_MINISTRY_OF_OFFENSE_OID, null);
         assertHasOrg(userJack, ORG_MINISTRY_OF_OFFENSE_OID, null);
 
@@ -1270,8 +1274,8 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
         // THEN
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         display("User jack after", userJack);
-        assertUserAssignedOrgs(userJack, ORG_MINISTRY_OF_OFFENSE_OID, ORG_TEMP_OID);
-        assertUserHasOrgs(userJack, ORG_MINISTRY_OF_OFFENSE_OID, ORG_TEMP_OID);
+        assertAssignedOrgs(userJack, ORG_MINISTRY_OF_OFFENSE_OID, ORG_TEMP_OID);
+        assertHasOrgs(userJack, ORG_MINISTRY_OF_OFFENSE_OID, ORG_TEMP_OID);
 
         // Postcondition
         assertMonkeyIslandOrgSanity();
@@ -1292,10 +1296,13 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
         unassignOrg(USER_JACK_OID, ORG_TEMP_OID, task, result);
 
         // THEN
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         display("User jack after", userJack);
-        assertUserAssignedOrgs(userJack, ORG_MINISTRY_OF_OFFENSE_OID);
-        assertUserHasOrgs(userJack, ORG_MINISTRY_OF_OFFENSE_OID);
+        assertAssignedOrgs(userJack, ORG_MINISTRY_OF_OFFENSE_OID);
+        assertHasOrgs(userJack, ORG_MINISTRY_OF_OFFENSE_OID);
 
         // Postcondition
         assertMonkeyIslandOrgSanity();
@@ -1320,10 +1327,13 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
 
         
         // THEN
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         display("User jack after", userJack);
-        assertUserAssignedOrgs(userJack, ORG_MINISTRY_OF_OFFENSE_OID);
-        assertUserHasOrgs(userJack, ORG_MINISTRY_OF_OFFENSE_OID, ORG_MINISTRY_OF_DEFENSE_OID);
+        assertAssignedOrgs(userJack, ORG_MINISTRY_OF_OFFENSE_OID);
+        assertHasOrgs(userJack, ORG_MINISTRY_OF_OFFENSE_OID, ORG_MINISTRY_OF_DEFENSE_OID);
        
         // Postcondition
         assertMonkeyIslandOrgSanity();
@@ -1349,8 +1359,8 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
         // THEN
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         display("User jack after", userJack);
-        assertUserAssignedOrgs(userJack, ORG_MINISTRY_OF_OFFENSE_OID);
-        assertUserHasOrgs(userJack, ORG_MINISTRY_OF_OFFENSE_OID, ORG_MINISTRY_OF_DEFENSE_OID, ORG_MINISTRY_OF_DEFENSE_OID);
+        assertAssignedOrgs(userJack, ORG_MINISTRY_OF_OFFENSE_OID);
+        assertHasOrgs(userJack, ORG_MINISTRY_OF_OFFENSE_OID, ORG_MINISTRY_OF_DEFENSE_OID, ORG_MINISTRY_OF_DEFENSE_OID);
         MidPointAsserts.assertHasOrg(userJack, ORG_MINISTRY_OF_DEFENSE_OID, SchemaConstants.ORG_MANAGER);
         
         // Postcondition
@@ -1370,12 +1380,11 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
 
         executeDeleteJack(TEST_NAME);
     }
-
-
+    
+    
     // BEWARE, tests 800+ are executed in TestOrgStructMeta, so this class has to end with test799 and no jack present
     // ---------------------------------------------------------------------------------------------------------------
-
-
+   
     protected void assertUserOrg(PrismObject<UserType> user, String... orgOids) throws Exception {
 		for (String orgOid: orgOids) {
 			assertAssignedOrg(user, orgOid);
@@ -1383,19 +1392,6 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
 		}
 		assertHasOrgs(user, orgOids.length);
 	}
-
-    protected void assertUserAssignedOrgs(PrismObject<UserType> user, String... orgOids) throws Exception {
-        for (String orgOid: orgOids) {
-            assertAssignedOrg(user, orgOid);
-        }
-    }
-
-    protected void assertUserHasOrgs(PrismObject<UserType> user, String... orgOids) throws Exception {
-        for (String orgOid: orgOids) {
-            assertHasOrg(user, orgOid);
-        }
-        assertHasOrgs(user, orgOids.length);
-    }
 	
 	protected void assertUserNoOrg(PrismObject<UserType> user) throws Exception {
 		assertAssignedNoOrg(user);

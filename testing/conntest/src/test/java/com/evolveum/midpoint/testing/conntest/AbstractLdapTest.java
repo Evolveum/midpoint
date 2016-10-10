@@ -514,12 +514,20 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
 	}
 	
 	protected Entry getLdapAccountByCn(String cn) throws LdapException, IOException, CursorException {
-		return searchLdapAccount("(cn="+cn+")");
+		return getLdapAccountByCn(null, cn);
+	}
+	
+	protected Entry getLdapAccountByCn(UserLdapConnectionConfig config, String cn) throws LdapException, IOException, CursorException {
+		return searchLdapAccount(config, "(cn="+cn+")");
 	}
 	
 	protected Entry searchLdapAccount(String filter) throws LdapException, IOException, CursorException {
-		LdapNetworkConnection connection = ldapConnect();
-		List<Entry> entries = ldapSearch(connection, filter);
+		return searchLdapAccount(null, filter);
+	}
+	
+	protected Entry searchLdapAccount(UserLdapConnectionConfig config, String filter) throws LdapException, IOException, CursorException {
+		LdapNetworkConnection connection = ldapConnect(config);
+		List<Entry> entries = ldapSearch(config, connection, filter);
 		ldapDisconnect(connection);
 
 		assertEquals("Unexpected number of entries for "+filter+": "+entries, 1, entries.size());
@@ -671,7 +679,15 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
 	}
 	
 	protected List<Entry> ldapSearch(LdapNetworkConnection connection, String filter) throws LdapException, CursorException {
-		return ldapSearch(connection, getLdapSuffix(), filter, SearchScope.SUBTREE, "*", "isMemberOf", "memberof", "isMemberOf", getPrimaryIdentifierAttributeName());
+		return ldapSearch(null, connection, filter);
+	}
+	
+	protected List<Entry> ldapSearch(UserLdapConnectionConfig config, LdapNetworkConnection connection, String filter) throws LdapException, CursorException {
+		String baseContext = getLdapSuffix();
+		if (config != null && config.getBaseContext() != null) {
+			baseContext = config.getBaseContext();
+		}
+		return ldapSearch(connection, baseContext, filter, SearchScope.SUBTREE, "*", "isMemberOf", "memberof", "isMemberOf", getPrimaryIdentifierAttributeName());
 	}
 	
 	protected List<Entry> ldapSearch(LdapNetworkConnection connection, String baseDn, String filter, SearchScope scope, String... attributes) throws LdapException, CursorException {
@@ -710,7 +726,11 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
 	}
 	
 	protected void assertLdapPassword(Entry entry, String password) throws LdapException, IOException, CursorException {
-		LdapNetworkConnection conn = ldapConnect(entry.getDn().toString(), password);
+		assertLdapPassword(null, entry, password);
+	}
+	
+	protected void assertLdapPassword(UserLdapConnectionConfig config, Entry entry, String password) throws LdapException, IOException, CursorException {
+		LdapNetworkConnection conn = ldapConnect(config, entry.getDn().toString(), password);
 		assertTrue("Not connected", conn.isConnected());
 		assertTrue("Not authenticated", conn.isAuthenticated());
 		ldapDisconnect(conn);
@@ -773,7 +793,14 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
 	 * Silent delete. Used to clean up after previous test runs.
 	 */
 	protected void cleanupDelete(String dn) throws LdapException, IOException, CursorException {
-		LdapNetworkConnection connection = ldapConnect();
+		cleanupDelete(null, dn);
+	}
+	
+	/**
+	 * Silent delete. Used to clean up after previous test runs.
+	 */
+	protected void cleanupDelete(UserLdapConnectionConfig config, String dn) throws LdapException, IOException, CursorException {
+		LdapNetworkConnection connection = ldapConnect(config);
 		Entry entry = getLdapEntry(connection, dn);
 		if (entry != null) {
 			connection.delete(dn);
@@ -815,11 +842,37 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
 	}
 	
 	protected LdapNetworkConnection ldapConnect(String bindDn, String bindPassword) throws LdapException, IOException {
-		LOGGER.trace("LDAP connect to {}:{} as {}",
-				getLdapServerHost(), getLdapServerPort(), bindDn);
-		LdapConnectionConfig config = new LdapConnectionConfig();
+		UserLdapConnectionConfig config = new UserLdapConnectionConfig();
 		config.setLdapHost(getLdapServerHost());
 		config.setLdapPort(getLdapServerPort());
+		config.setBindDn(bindDn);
+		config.setBindPassword(bindPassword);
+		
+		return ldapConnect(config);
+	}
+
+	protected LdapNetworkConnection ldapConnect(UserLdapConnectionConfig config, String bindDn, String bindPassword) throws LdapException, IOException {
+		if (config == null) {
+			config = new UserLdapConnectionConfig();
+			config.setLdapHost(getLdapServerHost());
+			config.setLdapPort(getLdapServerPort());
+		}
+		config.setBindDn(bindDn);
+		config.setBindPassword(bindPassword);
+		
+		return ldapConnect(config);
+	}
+	
+	protected LdapNetworkConnection ldapConnect(UserLdapConnectionConfig config) throws LdapException, IOException {
+		if (config == null) {
+			config = new UserLdapConnectionConfig();
+			config.setLdapHost(getLdapServerHost());
+			config.setLdapPort(getLdapServerPort());
+			config.setBindDn(getLdapBindDn());
+			config.setBindPassword(getLdapBindPassword());
+		}
+		LOGGER.trace("LDAP connect to {}:{} as {}",
+				config.getLdapHost(), config.getLdapPort(), config.getBindDn());
 		
 		if (useSsl()) {
 			config.setUseSsl(true);
@@ -843,21 +896,21 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
 		LdapNetworkConnection connection = new LdapNetworkConnection(config);
 		boolean connected = connection.connect();
 		if (!connected) {
-			AssertJUnit.fail("Cannot connect to LDAP server "+getLdapServerHost()+":"+getLdapServerPort());
+			AssertJUnit.fail("Cannot connect to LDAP server "+config.getLdapHost()+":"+config.getLdapPort());
 		}
 		LOGGER.trace("LDAP connected to {}:{}, executing bind as {}",
-				getLdapServerHost(), getLdapServerPort(), bindDn);
+				config.getLdapHost(), config.getLdapPort(), config.getBindDn());
 		BindRequest bindRequest = new BindRequestImpl();
-		bindRequest.setDn(new Dn(bindDn));
-		bindRequest.setCredentials(bindPassword);
+		bindRequest.setDn(new Dn(config.getBindDn()));
+		bindRequest.setCredentials(config.getBindPassword());
 		bindRequest.setSimple(true);
 		BindResponse bindResponse = connection.bind(bindRequest);
 		if (bindResponse.getLdapResult().getResultCode() != ResultCodeEnum.SUCCESS) {
 			ldapDisconnect(connection);
-			throw new SecurityException("Bind as "+bindDn+" failed: "+bindResponse.getLdapResult().getDiagnosticMessage()+" ("+bindResponse.getLdapResult().getResultCode()+")");
+			throw new SecurityException("Bind as "+config.getBindDn()+" failed: "+bindResponse.getLdapResult().getDiagnosticMessage()+" ("+bindResponse.getLdapResult().getResultCode()+")");
 		}
 		LOGGER.trace("LDAP connected to {}:{}, bound as {}",
-				getLdapServerHost(), getLdapServerPort(), bindDn);
+				config.getLdapHost(), config.getLdapPort(), config.getBindDn());
 		return connection;
 	}
 

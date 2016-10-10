@@ -20,6 +20,7 @@ import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.component.objecttypeselect.ObjectTypeSelectPanel;
 import com.evolveum.midpoint.gui.api.component.togglebutton.ToggleIconButton;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
@@ -108,6 +109,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 	private static final String ID_BODY = "body";
 	private static final String ID_DESCRIPTION = "description";
 	private static final String ID_RELATION_CONTAINER = "relationContainer";
+	private static final String ID_FOCUS_TYPE = "focusType";
 	private static final String ID_RELATION = "relation";
 	private static final String ID_RELATION_LABEL = "relationLabel";
 	private static final String ID_ADMINISTRATIVE_STATUS = "administrativeStatus";
@@ -370,7 +372,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 	}
 
 	private void initBodyLayout(WebMarkupContainer body) {
-		TextArea description = new TextArea<>(ID_DESCRIPTION,
+		TextArea<String> description = new TextArea<>(ID_DESCRIPTION,
 				new PropertyModel<String>(getModel(), AssignmentEditorDto.F_DESCRIPTION));
 		description.setEnabled(getModel().getObject().isEditable());
 		body.add(description);
@@ -393,6 +395,10 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 			}
 		});
 		body.add(relationContainer);
+		
+		ObjectTypeSelectPanel<FocusType> focusType = new ObjectTypeSelectPanel<>(ID_FOCUS_TYPE,
+				new PropertyModel<QName>(getModel(), AssignmentEditorDto.F_FOCUS_TYPE), FocusType.class);
+		body.add(focusType);
 
 		TwoStateBooleanPanel relation = new TwoStateBooleanPanel(ID_RELATION,
 				new PropertyModel<Boolean>(getModel(), AssignmentEditorDto.F_IS_ORG_UNIT_MANAGER),

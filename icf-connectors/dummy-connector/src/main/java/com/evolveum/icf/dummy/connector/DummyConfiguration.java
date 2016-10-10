@@ -59,6 +59,7 @@ public class DummyConfiguration extends AbstractConfiguration {
 	private Integer minPasswordLength = null;
 	private boolean addConnectorStateAttributes = false;
 	private boolean supportReturnDefaultAttributes = false;				// used e.g. for livesync vs. auxiliary object classes test
+	private boolean requireNameHint = false;
 
 	/**
      * Defines name of the dummy resource instance. There may be several dummy resource running in
@@ -343,6 +344,15 @@ public class DummyConfiguration extends AbstractConfiguration {
 
 	public void setSupportReturnDefaultAttributes(boolean supportReturnDefaultAttributes) {
 		this.supportReturnDefaultAttributes = supportReturnDefaultAttributes;
+	}
+
+	@ConfigurationProperty
+	public boolean isRequireNameHint() {
+		return requireNameHint;
+	}
+
+	public void setRequireNameHint(boolean requireNameHint) {
+		this.requireNameHint = requireNameHint;
 	}
 
 	/**
