@@ -158,7 +158,7 @@ public class PrismBeanConverter {
             } else {
                 Map.Entry<QName,XNode> entry = xnode.entrySet().iterator().next();
                 DomLexicalProcessor domParser = prismContext.getParserDom();
-                String value = domParser.serializeToString(entry.getValue(), entry.getKey(), null);
+                String value = domParser.write(entry.getValue(), entry.getKey(), null);
                 return (T) new XmlAsStringType(value);
             }
         }

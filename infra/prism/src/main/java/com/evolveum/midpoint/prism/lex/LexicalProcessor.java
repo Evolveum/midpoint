@@ -34,16 +34,16 @@ import com.evolveum.midpoint.util.exception.SchemaException;
  */
 public interface LexicalProcessor {
 
-	XNode parse(ParserSource source, ParsingContext parsingContext) throws SchemaException, IOException;
+	XNode read(ParserSource source, ParsingContext parsingContext) throws SchemaException, IOException;
 
-	Collection<XNode> parseCollection(ParserSource source, ParsingContext parsingContext) throws SchemaException, IOException;
+	Collection<XNode> readCollection(ParserSource source, ParsingContext parsingContext) throws SchemaException, IOException;
 	
-	boolean canParse(File file) throws IOException;
+	boolean canRead(File file) throws IOException;
 	
-	boolean canParse(String dataString);
+	boolean canRead(String dataString);
 
-	String serializeToString(XNode xnode, QName rootElementName, SerializationContext serializationContext) throws SchemaException;
+	String write(XNode xnode, QName rootElementName, SerializationContext serializationContext) throws SchemaException;
 	
-	String serializeToString(RootXNode xnode, SerializationContext serializationContext) throws SchemaException;
+	String write(RootXNode xnode, SerializationContext serializationContext) throws SchemaException;
 
 }

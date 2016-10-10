@@ -64,11 +64,11 @@ public class DomLexicalProcessor implements LexicalProcessor {
 	
 	@Deprecated
 	public XNode parse(File file, ParsingContext parsingContext) throws SchemaException, IOException {
-		return parse(new ParserFileSource(file), parsingContext);
+		return read(new ParserFileSource(file), parsingContext);
 	}
 
 	@Override
-	public XNode parse(ParserSource source, ParsingContext parsingContext) throws SchemaException, IOException {
+	public XNode read(ParserSource source, ParsingContext parsingContext) throws SchemaException, IOException {
 		if (source instanceof ParserElementSource) {
 			return parse(((ParserElementSource) source).getElement());
 		}
@@ -85,7 +85,7 @@ public class DomLexicalProcessor implements LexicalProcessor {
 	}
 
 	@Override
-	public Collection<XNode> parseCollection(ParserSource source, ParsingContext parsingContext) throws SchemaException, IOException {
+	public Collection<XNode> readCollection(ParserSource source, ParsingContext parsingContext) throws SchemaException, IOException {
 		InputStream is = source.getInputStream();
 		try {
 			Document document = DOMUtil.parse(is);
@@ -391,7 +391,7 @@ public class DomLexicalProcessor implements LexicalProcessor {
 	}
 
 	@Override
-	public boolean canParse(File file) throws IOException {
+	public boolean canRead(File file) throws IOException {
 		if (file == null) {
 			return false;
 		}
@@ -399,7 +399,7 @@ public class DomLexicalProcessor implements LexicalProcessor {
 	}
 
 	@Override
-	public boolean canParse(String dataString) {
+	public boolean canRead(String dataString) {
 		if (dataString == null) {
 			return false;
 		}
@@ -415,7 +415,7 @@ public class DomLexicalProcessor implements LexicalProcessor {
 	}
 
 	@Override
-	public String serializeToString(XNode xnode, QName rootElementName, SerializationContext serializationContext) throws SchemaException {
+	public String write(XNode xnode, QName rootElementName, SerializationContext serializationContext) throws SchemaException {
 		DomLexicalWriter serializer = new DomLexicalWriter(this, schemaRegistry);
 		RootXNode xroot = LexicalUtils.createRootXNode(xnode, rootElementName);
 		Element element = serializer.serialize(xroot);
@@ -423,7 +423,7 @@ public class DomLexicalProcessor implements LexicalProcessor {
 	}
 
 	@Override
-	public String serializeToString(RootXNode xnode, SerializationContext serializationContext) throws SchemaException {
+	public String write(RootXNode xnode, SerializationContext serializationContext) throws SchemaException {
 		DomLexicalWriter serializer = new DomLexicalWriter(this, schemaRegistry);
 		Element element = serializer.serialize(xnode);
 		return DOMUtil.serializeDOMToString(element);

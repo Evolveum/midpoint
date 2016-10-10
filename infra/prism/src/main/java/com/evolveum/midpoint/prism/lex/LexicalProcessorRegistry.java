@@ -55,7 +55,7 @@ public class LexicalProcessorRegistry {
 	public LexicalProcessor findParser(File file) throws IOException {
 		for (Map.Entry<String,LexicalProcessor> entry: parserMap.entrySet()) {
 			LexicalProcessor aLexicalProcessor = entry.getValue();
-			if (aLexicalProcessor.canParse(file)) {
+			if (aLexicalProcessor.canRead(file)) {
 				return aLexicalProcessor;
 			}
 		}
@@ -66,7 +66,7 @@ public class LexicalProcessorRegistry {
 	public LexicalProcessor findParser(String data){
         for (Map.Entry<String,LexicalProcessor> entry: parserMap.entrySet()) {
             LexicalProcessor aLexicalProcessor = entry.getValue();
-            if (aLexicalProcessor.canParse(data)) {
+            if (aLexicalProcessor.canRead(data)) {
                 return aLexicalProcessor;
             }
         }

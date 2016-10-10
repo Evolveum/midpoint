@@ -58,7 +58,7 @@ public class YamlLexicalProcessor extends AbstractJsonLexicalProcessor {
 	//------------------------END OF METHODS FOR SERIALIZATION -------------------------------
 	
 	@Override
-	public boolean canParse(File file) throws IOException {
+	public boolean canRead(File file) throws IOException {
 		if (file == null) {
 			return false;
 		}
@@ -66,7 +66,7 @@ public class YamlLexicalProcessor extends AbstractJsonLexicalProcessor {
 	}
 
 	@Override
-	public boolean canParse(String dataString) {
+	public boolean canRead(String dataString) {
 		if (dataString == null) {
 			return false;
 		}

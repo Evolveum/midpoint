@@ -97,7 +97,7 @@ public abstract class AbstractLexicalProcessorTest {
 		XNodeProcessor processor = new XNodeProcessor(prismContext);
 
 		// WHEN (parse to xnode)
-		XNode xnode = lexicalProcessor.parse(getFileSource(USER_JACK_FILE_BASENAME), ParsingContext.createDefault());
+		XNode xnode = lexicalProcessor.read(getFileSource(USER_JACK_FILE_BASENAME), ParsingContext.createDefault());
 		System.out.println("XNode after parsing:");
 		System.out.println(xnode.debugDump());
 		
@@ -129,7 +129,7 @@ public abstract class AbstractLexicalProcessorTest {
 		XNodeProcessor processor = new XNodeProcessor(prismContext);
 
 		// WHEN (parse)
-		XNode xnode = lexicalProcessor.parse(getFileSource(USER_JACK_FILE_BASENAME), ParsingContext.createDefault());
+		XNode xnode = lexicalProcessor.read(getFileSource(USER_JACK_FILE_BASENAME), ParsingContext.createDefault());
 		System.out.println("\nParsed xnode:");
 		System.out.println(xnode.debugDump());
 		PrismObject<UserType> user = processor.parseObject(xnode, ParsingContext.createDefault());
@@ -142,7 +142,7 @@ public abstract class AbstractLexicalProcessorTest {
 		
 		// WHEN (re-serialize to XNode)
 		XNode serializedXNode = processor.serializeObject(user, true);
-		String serializedString = lexicalProcessor.serializeToString(serializedXNode, new QName(NS_FOO, "user"), null);
+		String serializedString = lexicalProcessor.write(serializedXNode, new QName(NS_FOO, "user"), null);
 		
 		// THEN
 				System.out.println("\nXNode after re-serialization:");
@@ -175,7 +175,7 @@ public abstract class AbstractLexicalProcessorTest {
 		validateUserSchema(serializedString, prismContext);
 		
 		// WHEN (re-parse)
-		XNode reparsedXnode = lexicalProcessor.parse(new ParserStringSource(serializedString), ParsingContext.createDefault());
+		XNode reparsedXnode = lexicalProcessor.read(new ParserStringSource(serializedString), ParsingContext.createDefault());
 		PrismObject<UserType> reparsedUser = processor.parseObject(reparsedXnode, ParsingContext.createDefault());
 		
 		// THEN
@@ -213,7 +213,7 @@ public abstract class AbstractLexicalProcessorTest {
 		XNodeProcessor processor = new XNodeProcessor(prismContext);
 		
 		// WHEN (parse to xnode)
-		XNode xnode = lexicalProcessor.parse(getFileSource(RESOURCE_RUM_FILE_BASENAME), ParsingContext.createDefault());
+		XNode xnode = lexicalProcessor.read(getFileSource(RESOURCE_RUM_FILE_BASENAME), ParsingContext.createDefault());
 		System.out.println("XNode after parsing:");
 		System.out.println(xnode.debugDump());
 		
@@ -239,7 +239,7 @@ public abstract class AbstractLexicalProcessorTest {
 		XNodeProcessor processor = new XNodeProcessor(prismContext);
 		
 		// WHEN (parse)
-		XNode xnode = lexicalProcessor.parse(getFileSource(RESOURCE_RUM_FILE_BASENAME), ParsingContext.createDefault());
+		XNode xnode = lexicalProcessor.read(getFileSource(RESOURCE_RUM_FILE_BASENAME), ParsingContext.createDefault());
 		PrismObject<ResourceType> resource = processor.parseObject(xnode, ParsingContext.createDefault());
 		
 		// THEN
@@ -250,7 +250,7 @@ public abstract class AbstractLexicalProcessorTest {
 		
 		// WHEN (re-serialize to XNode)
 		XNode serializedXNode = processor.serializeObject(resource, true);
-		String serializedString = lexicalProcessor.serializeToString(serializedXNode, new QName(NS_FOO, "resource"), null);
+		String serializedString = lexicalProcessor.write(serializedXNode, new QName(NS_FOO, "resource"), null);
 				
 		// THEN
 		System.out.println("\nXNode after re-serialization:");
@@ -284,7 +284,7 @@ public abstract class AbstractLexicalProcessorTest {
 		validateResourceSchema(serializedString, prismContext);
 		
 		// WHEN (re-parse)
-		XNode reparsedXnode = lexicalProcessor.parse(new ParserStringSource(serializedString), ParsingContext.createDefault());
+		XNode reparsedXnode = lexicalProcessor.read(new ParserStringSource(serializedString), ParsingContext.createDefault());
 		PrismObject<ResourceType> reparsedResource = processor.parseObject(reparsedXnode, ParsingContext.createDefault());
 		
 		// THEN
@@ -391,7 +391,7 @@ public abstract class AbstractLexicalProcessorTest {
 		XNodeProcessor processor = new XNodeProcessor(prismContext);
 
         // WHEN (parse to xnode)
-        RootXNode xnode = (RootXNode) lexicalProcessor.parse(getFileSource(EVENT_HANDLER_FILE_BASENAME), ParsingContext.createDefault());
+        RootXNode xnode = (RootXNode) lexicalProcessor.read(getFileSource(EVENT_HANDLER_FILE_BASENAME), ParsingContext.createDefault());
         System.out.println("XNode after parsing:");
         System.out.println(xnode.debugDump());
 

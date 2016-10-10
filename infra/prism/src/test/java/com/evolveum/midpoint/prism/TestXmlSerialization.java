@@ -60,12 +60,12 @@ public class TestXmlSerialization {
 
         // THEN
 
-        String ok = prismContext.getParserDom().serializeToString(valOkNode, new QName("ok"), null);
+        String ok = prismContext.getParserDom().write(valOkNode, new QName("ok"), null);
         System.out.println("correct value serialized to: " + ok);
         assertEquals("Wrong serialization", "<ok>abcdef</ok>", ok.trim());         // todo make this less brittle with regards to serialization style
 
         try {
-            String wrong = prismContext.getParserDom().serializeToString(valWrongNode, new QName("wrong"), null);
+            String wrong = prismContext.getParserDom().write(valWrongNode, new QName("wrong"), null);
             System.out.println("wrong value serialized to: " + wrong);
             assert false : "Wrong value serialization had to fail but it didn't!";
         } catch (RuntimeException e) {

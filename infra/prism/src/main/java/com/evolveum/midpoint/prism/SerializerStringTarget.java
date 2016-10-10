@@ -19,6 +19,6 @@ public class SerializerStringTarget extends SerializerTarget<String> {
 
     @Override
     public String serialize(RootXNode xroot, SerializationContext context) throws SchemaException {
-        return lexicalHelpers.lexicalProcessorRegistry.parserFor(language).serializeToString(xroot, context);
+        return lexicalHelpers.lexicalProcessorRegistry.parserFor(language).write(xroot, context);
     }
 }
