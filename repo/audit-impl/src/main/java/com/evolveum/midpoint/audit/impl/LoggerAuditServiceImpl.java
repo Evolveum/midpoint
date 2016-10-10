@@ -170,4 +170,8 @@ public class LoggerAuditServiceImpl implements AuditService {
 		LoggingConfigurationManager.getCurrentlyUsedVersion();
 	}
 
+    @Override
+    public long countObjects(String query, Map<String, Object> params){
+        return 0;
+    }
 }

@@ -236,4 +236,14 @@ public class AuditServiceProxy implements AuditService, AuditServiceRegistry {
 		}
 		return result;
 	}
+
+    @Override
+    public long countObjects(String query, Map<String, Object> params){
+        long count = 0;
+        for (AuditService service : services){
+            long c = service.countObjects(query, params);
+            count += c;
+        }
+        return count;
+    }
 }

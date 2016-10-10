@@ -415,4 +415,8 @@ public class DummyAuditService implements AuditService, DebugDumpable {
 		return null;
 	}
 
+    @Override
+    public long countObjects(String query, Map<String, Object> params){
+        return 0;
+    }
 }
