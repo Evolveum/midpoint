@@ -20,6 +20,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import javax.xml.namespace.QName;
+
 import org.apache.commons.lang.Validate;
 
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
@@ -79,6 +81,7 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
 	public static final String F_DESCRIPTION = "description";
 	public static final String F_ACTIVATION = "activation";
 	public static final String F_RELATION = "relation";
+	public static final String F_FOCUS_TYPE = "focusType";
 	public static final String F_TENANT_REF = "tenantRef";
 	public static final String F_ORG_REF = "orgRef";
 	public static final String F_ALT_NAME = "altName";
@@ -536,6 +539,10 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
 	public String getDescription() {
 		return newAssignment.getDescription();
 	}
+	
+	public QName getFocusType() {
+		return newAssignment.getFocusType();
+	}
 
 	public String getRelation() {
 		ObjectReferenceType ref = newAssignment.getTargetRef();
@@ -550,6 +557,10 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
 		newAssignment.setDescription(description);
 	}
 
+	public void setFocusType(QName focusType) {
+		newAssignment.setFocusType(focusType);
+	}
+	
 	public Boolean isOrgUnitManager() {
 		return isOrgUnitManager;
 	}

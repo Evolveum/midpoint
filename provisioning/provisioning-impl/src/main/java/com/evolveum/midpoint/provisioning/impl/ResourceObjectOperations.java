@@ -35,6 +35,7 @@ public class ResourceObjectOperations {
 	private Collection<Operation> operations = new ArrayList<>();
 	private PrismObject<ShadowType> currentShadow = null;
 	private ProvisioningContext resourceObjectContext = null;
+	private Collection<? extends ResourceAttribute<?>> allIdentifiers;
 	
 	public PrismObject<ShadowType> getCurrentShadow() {
 		return currentShadow;
@@ -54,6 +55,14 @@ public class ResourceObjectOperations {
 
 	public Collection<Operation> getOperations() {
 		return operations;
+	}
+
+	public Collection<? extends ResourceAttribute<?>> getAllIdentifiers() {
+		return allIdentifiers;
+	}
+
+	public void setAllIdentifiers(Collection<? extends ResourceAttribute<?>> allIdentifiers) {
+		this.allIdentifiers = allIdentifiers;
 	}
 
 	@Override

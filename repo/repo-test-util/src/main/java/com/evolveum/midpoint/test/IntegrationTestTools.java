@@ -910,6 +910,7 @@ public class IntegrationTestTools {
 		assertFalse("Empty associations in "+shadow, associations.isEmpty());
 		for (ShadowAssociationType association: associations) {
 			if (associationName.equals(association.getName()) &&
+					association.getShadowRef() != null &&
 					entitlementOid.equals(association.getShadowRef().getOid())) {
 				return association;
 			}

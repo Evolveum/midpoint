@@ -280,10 +280,11 @@ public abstract class AbstractSearchExpressionEvaluator<V extends PrismValue,D e
 
 		final List<V> list = new ArrayList<V>();
 		
-		Collection<SelectorOptions<GetOperationOptions>> options = null;
+		Collection<SelectorOptions<GetOperationOptions>> options = new ArrayList<>();
 		if (!searchOnResource) {
-			options = SelectorOptions.createCollection(GetOperationOptions.createNoFetch());
+			options.add(SelectorOptions.create(GetOperationOptions.createNoFetch()));
 		}
+		extendOptions(options, searchOnResource);
 		
 		ResultHandler<O> handler = new ResultHandler<O>() {
 			@Override
@@ -337,6 +338,10 @@ public abstract class AbstractSearchExpressionEvaluator<V extends PrismValue,D e
 		return list;
 	}
 	
+	protected void extendOptions(Collection<SelectorOptions<GetOperationOptions>> options, boolean searchOnResource) {
+		// Nothing to do. To be overridden by subclasses
+	}
+
 	protected abstract V createPrismValue(String oid, QName targetTypeQName, ExpressionEvaluationContext params);
 	
 	private <O extends ObjectType> String createOnDemand(Class<O> targetTypeClass, ExpressionVariables variables, 

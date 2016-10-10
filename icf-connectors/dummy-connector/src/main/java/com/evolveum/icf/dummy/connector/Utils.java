@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-201ž Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -57,12 +57,6 @@ public class Utils {
 		}
 		return null;
 	}
-
-    public static void validate(ObjectClass oc) {
-        if (oc == null) {
-            throw new IllegalArgumentException("Object class must not be null.");
-        }
-    }
 
     public static void notNull(Object object, String message) {
         if (object == null) {

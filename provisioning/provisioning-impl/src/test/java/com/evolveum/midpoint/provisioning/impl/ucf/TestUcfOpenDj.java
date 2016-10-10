@@ -332,7 +332,8 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 
 		cc.deleteObject(accountDefinition, null, identifiers, null, result);
 		
-		ResourceObjectIdentification identification = new ResourceObjectIdentification(accountDefinition, identifiers, null);
+		ResourceObjectIdentification identification = ResourceObjectIdentification.createFromAttributes(
+				accountDefinition, identifiers);
 		PrismObject<ShadowType> resObj = null;
 		try {
 			resObj = cc.fetchObject(ShadowType.class, identification, null, null,
@@ -364,7 +365,8 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 
 		cc.modifyObject(accountDefinition, identifiers, changes, null, result);
 
-		ResourceObjectIdentification identification = new ResourceObjectIdentification(accountDefinition, identifiers, null);
+		ResourceObjectIdentification identification = ResourceObjectIdentification.createFromAttributes(
+				accountDefinition, identifiers);
 		PrismObject<ShadowType> shadow = cc.fetchObject(ShadowType.class, identification, null, null, result);
 		ResourceAttributeContainer resObj = ShadowUtil.getAttributesContainer(shadow);
 
