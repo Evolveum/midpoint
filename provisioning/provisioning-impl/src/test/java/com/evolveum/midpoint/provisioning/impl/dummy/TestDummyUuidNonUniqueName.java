@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2015 Evolveum
+ * Copyright (c) 2013-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,6 +31,7 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
+import com.evolveum.icf.dummy.resource.ConflictException;
 import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.icf.dummy.resource.SchemaViolationException;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -123,7 +124,7 @@ public class TestDummyUuidNonUniqueName extends TestDummyUuid {
 		// DO nothing. This test is meaningless in non-unique environment
 	}
 
-	private String addFettucini(final String TEST_NAME, File file, String oid, String expectedFullName) throws SchemaException, ObjectAlreadyExistsException, CommunicationException, ObjectNotFoundException, ConfigurationException, SecurityViolationException, IOException, SchemaViolationException {
+	private String addFettucini(final String TEST_NAME, File file, String oid, String expectedFullName) throws SchemaException, ObjectAlreadyExistsException, CommunicationException, ObjectNotFoundException, ConfigurationException, SecurityViolationException, IOException, SchemaViolationException, ConflictException {
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestDummy.class.getName()
 				+ "." + TEST_NAME);
