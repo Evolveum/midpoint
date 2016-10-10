@@ -16,7 +16,7 @@
 package com.evolveum.midpoint.prism.marshaller;
 
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.parser.dom.DomParser;
+import com.evolveum.midpoint.prism.lex.dom.DomLexicalProcessor;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
@@ -157,7 +157,7 @@ public class PrismBeanConverter {
                 return (T) new XmlAsStringType();
             } else {
                 Map.Entry<QName,XNode> entry = xnode.entrySet().iterator().next();
-                DomParser domParser = prismContext.getParserDom();
+                DomLexicalProcessor domParser = prismContext.getParserDom();
                 String value = domParser.serializeToString(entry.getValue(), entry.getKey(), null);
                 return (T) new XmlAsStringType(value);
             }

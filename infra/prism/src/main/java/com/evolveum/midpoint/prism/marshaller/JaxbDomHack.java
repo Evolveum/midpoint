@@ -21,8 +21,7 @@ import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.parser.dom.DomParser;
-import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.prism.lex.dom.DomLexicalProcessor;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
@@ -53,9 +52,9 @@ public class JaxbDomHack {
 	private static final Trace LOGGER = TraceManager.getTrace(JaxbDomHack.class);
 	
 	private PrismContext prismContext;
-	private DomParser domParser;
+	private DomLexicalProcessor domParser;
 
-	public JaxbDomHack(DomParser domParser, PrismContext prismContext) {
+	public JaxbDomHack(DomLexicalProcessor domParser, PrismContext prismContext) {
 		super();
 		this.domParser = domParser;
 		this.prismContext = prismContext;
@@ -169,7 +168,7 @@ public class JaxbDomHack {
 		Item<IV,ID> subItem;
 		if (element instanceof Element) {
 			// DOM Element
-			DomParser domParser = prismContext.getParserDom();
+			DomLexicalProcessor domParser = prismContext.getParserDom();
 			XNode xnode = domParser.parseElementContent((Element)element);
 			subItem = (Item<IV, ID>) prismContext.getXnodeProcessor().parseItem(xnode, elementName, itemDefinition, ParsingContext.createDefault());
 		} else if (element instanceof JAXBElement<?>) {

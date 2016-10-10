@@ -17,7 +17,7 @@
 package com.evolveum.midpoint.prism.xjc;
 
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.parser.dom.DomParser;
+import com.evolveum.midpoint.prism.lex.dom.DomLexicalProcessor;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.xnode.MapXNode;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -443,12 +443,12 @@ public final class PrismForJAXBUtil {
         }
     }
 
-    private static DomParser getDomParser(PrismValue pval) {
+    private static DomLexicalProcessor getDomParser(PrismValue pval) {
 		PrismContext prismContext = pval.getPrismContext();
 		if (prismContext != null) {
 			return prismContext.getParserDom();
 		} else {
-			DomParser parser = new DomParser(null);
+			DomLexicalProcessor parser = new DomLexicalProcessor(null);
 			return parser;
 		}
 	}

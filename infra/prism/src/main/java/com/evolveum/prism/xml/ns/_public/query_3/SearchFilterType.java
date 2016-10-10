@@ -41,7 +41,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.parser.dom.DomParser;
+import com.evolveum.midpoint.prism.lex.dom.DomLexicalProcessor;
 import com.evolveum.midpoint.prism.marshaller.QueryConvertor;
 import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.prism.xnode.MapXNode;
@@ -167,7 +167,7 @@ public class SearchFilterType implements Serializable, Cloneable, Equals, HashCo
         if (filterClauseXNode == null) {
             return null;
         }
-        DomParser domParser = PrismUtil.getDomParser(null);
+        DomLexicalProcessor domParser = PrismUtil.getDomParser(null);
         return domParser.serializeSingleElementMapToElement(filterClauseXNode);
     }
 

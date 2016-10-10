@@ -16,7 +16,7 @@
 
 package com.evolveum.midpoint.prism;
 
-import com.evolveum.midpoint.prism.parser.ParserHelpers;
+import com.evolveum.midpoint.prism.lex.LexicalHelpers;
 import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
@@ -30,7 +30,7 @@ import java.util.List;
  */
 public class PrismParserImplIO extends PrismParserImpl {
 
-	public PrismParserImplIO(ParserSource source, String language, ParsingContext context, ParserHelpers helpers) {
+	public PrismParserImplIO(ParserSource source, String language, ParsingContext context, LexicalHelpers helpers) {
 		super(source, language, context, helpers);
 	}
 

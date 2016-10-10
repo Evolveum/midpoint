@@ -21,13 +21,12 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.marshaller.JaxbDomHack;
 import com.evolveum.midpoint.prism.marshaller.PrismBeanConverter;
 import com.evolveum.midpoint.prism.marshaller.XNodeProcessor;
-import com.evolveum.midpoint.prism.parser.dom.DomParser;
+import com.evolveum.midpoint.prism.lex.dom.DomLexicalProcessor;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
 import com.evolveum.midpoint.prism.schema.SchemaDefinitionFactory;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.util.PrismMonitor;
-import com.evolveum.midpoint.prism.xnode.RootXNode;
 import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
@@ -35,7 +34,6 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
 
-import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 import java.io.File;
 import java.io.IOException;
@@ -58,7 +56,7 @@ public interface PrismContext {
 
 	XNodeProcessor getXnodeProcessor();
 
-	DomParser getParserDom();
+	DomLexicalProcessor getParserDom();
 
 	PrismBeanConverter getBeanConverter();
 

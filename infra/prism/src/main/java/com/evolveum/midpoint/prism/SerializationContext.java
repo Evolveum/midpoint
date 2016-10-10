@@ -48,7 +48,7 @@ public class SerializationContext implements Cloneable {
 
     @Override
     protected SerializationContext clone() {
-        SerializationContext clone = null;
+        SerializationContext clone;
         try {
             clone = (SerializationContext) super.clone();
         } catch (CloneNotSupportedException e) {

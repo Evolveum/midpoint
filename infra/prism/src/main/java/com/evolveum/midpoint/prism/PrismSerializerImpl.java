@@ -62,7 +62,7 @@ public class PrismSerializerImpl<T> implements PrismSerializer<T> {
 
 	@Override
 	public <O extends Objectable> T serialize(PrismObject<O> object) throws SchemaException {
-		RootXNode xroot = target.parserHelpers.xnodeProcessor.serializeObject(object, false, context);			// TODO serialize composite objects?
+		RootXNode xroot = target.lexicalHelpers.xnodeProcessor.serializeObject(object, false, context);			// TODO serialize composite objects?
 		if (elementName != null) {
 			xroot.setRootElementName(elementName);		// TODO what about the type?
 		}
@@ -76,7 +76,7 @@ public class PrismSerializerImpl<T> implements PrismSerializer<T> {
 
 	@Override
 	public T serialize(PrismValue value, QName rootElementName) throws SchemaException {
-		RootXNode xroot = target.parserHelpers.xnodeProcessor.serializeItemValueAsRoot(value, rootElementName);	// TODO context
+		RootXNode xroot = target.lexicalHelpers.xnodeProcessor.serializeItemValueAsRoot(value, rootElementName);	// TODO context
 		return target.serialize(xroot, context);
 	}
 
@@ -92,13 +92,13 @@ public class PrismSerializerImpl<T> implements PrismSerializer<T> {
 
 	@Override
 	public T serializeAtomicValue(Object value, QName rootElementName) throws SchemaException {
-		RootXNode xnode = target.parserHelpers.xnodeProcessor.serializeAtomicValue(value, rootElementName, context);
+		RootXNode xnode = target.lexicalHelpers.xnodeProcessor.serializeAtomicValue(value, rootElementName, context);
 		return target.serialize(xnode, context);
 	}
 
 	@Override
 	public T serializeAtomicValue(JAXBElement<?> value) throws SchemaException {
-		RootXNode xnode = target.parserHelpers.xnodeProcessor.serializeAtomicValue(value);	// TODO context
+		RootXNode xnode = target.lexicalHelpers.xnodeProcessor.serializeAtomicValue(value);	// TODO context
 		return target.serialize(xnode, context);
 	}
 
@@ -109,7 +109,7 @@ public class PrismSerializerImpl<T> implements PrismSerializer<T> {
 
 	@Override
 	public T serializeAnyData(Object value, QName rootName) throws SchemaException {
-		RootXNode xnode = target.parserHelpers.xnodeProcessor.serializeAnyData(value, rootName, context);
+		RootXNode xnode = target.lexicalHelpers.xnodeProcessor.serializeAnyData(value, rootName, context);
 		return target.serialize(xnode, context);
 	}
 

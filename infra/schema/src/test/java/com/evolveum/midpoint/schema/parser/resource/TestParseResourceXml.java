@@ -19,7 +19,7 @@ package com.evolveum.midpoint.schema.parser.resource;
 import com.evolveum.midpoint.prism.ParsingContext;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.parser.dom.DomParser;
+import com.evolveum.midpoint.prism.lex.dom.DomLexicalProcessor;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.schema.TestConstants;
@@ -50,7 +50,7 @@ public abstract class TestParseResourceXml extends TestParseResource {
 		PrismContext prismContext = PrismTestUtil.getPrismContext();
 
 		// WHEN
-		DomParser parserDom = prismContext.getParserDom();
+		DomLexicalProcessor parserDom = prismContext.getParserDom();
 		XNode xnode = parserDom.parse(getFile(TestConstants.RESOURCE_FILE_BASENAME), null);
 		PrismObject<ResourceType> resource = prismContext.getXnodeProcessor().parseObject(xnode, ParsingContext.createDefault());
 

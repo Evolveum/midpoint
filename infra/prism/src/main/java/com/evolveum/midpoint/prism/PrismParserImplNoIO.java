@@ -16,7 +16,7 @@
 
 package com.evolveum.midpoint.prism;
 
-import com.evolveum.midpoint.prism.parser.ParserHelpers;
+import com.evolveum.midpoint.prism.lex.LexicalHelpers;
 import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import org.jetbrains.annotations.NotNull;
@@ -32,7 +32,7 @@ import java.util.List;
 public class PrismParserImplNoIO extends PrismParserImpl implements PrismParserNoIO {
 
 	public PrismParserImplNoIO(ParserSource source, String language, ParsingContext context,
-			ParserHelpers helpers) {
+			LexicalHelpers helpers) {
 		super(source, language, context, helpers);
 	}
 

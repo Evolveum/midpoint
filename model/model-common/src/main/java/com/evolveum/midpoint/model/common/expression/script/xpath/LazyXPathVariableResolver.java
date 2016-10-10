@@ -22,7 +22,7 @@ import java.util.List;
 import javax.xml.namespace.QName;
 import javax.xml.xpath.XPathVariableResolver;
 
-import com.evolveum.midpoint.prism.parser.dom.DomParser;
+import com.evolveum.midpoint.prism.lex.dom.DomLexicalProcessor;
 
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -143,7 +143,7 @@ public class LazyXPathVariableResolver implements XPathVariableResolver {
 
 	        } else if (variableValue instanceof PrismProperty<?>) {
 	        	PrismProperty<?> prismProperty = (PrismProperty<?>)variableValue;
-	        	DomParser domProcessor = prismProperty.getPrismContext().getParserDom();
+	        	DomLexicalProcessor domProcessor = prismProperty.getPrismContext().getParserDom();
 	        	final List<Element> elementList = new ArrayList<Element>();
 	        	for (PrismPropertyValue<?> value: prismProperty.getValues()) {
 	        		Element valueElement = prismContext.domSerializer().serialize(value, prismProperty.getElementName());
@@ -163,7 +163,7 @@ public class LazyXPathVariableResolver implements XPathVariableResolver {
 				
 	        } else if (variableValue instanceof PrismValue) {
 	        	PrismValue pval = (PrismValue)variableValue;
-	        	DomParser domProcessor = prismContext.getParserDom();
+	        	DomLexicalProcessor domProcessor = prismContext.getParserDom();
 	        	if (pval.getParent() == null) {
 	        		// Set a fake parent to allow serialization
 	        		pval.setParent(new Itemable() {

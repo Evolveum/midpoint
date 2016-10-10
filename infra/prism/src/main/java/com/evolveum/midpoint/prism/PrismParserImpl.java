@@ -16,8 +16,8 @@
 
 package com.evolveum.midpoint.prism;
 
-import com.evolveum.midpoint.prism.parser.Parser;
-import com.evolveum.midpoint.prism.parser.ParserHelpers;
+import com.evolveum.midpoint.prism.lex.LexicalProcessor;
+import com.evolveum.midpoint.prism.lex.LexicalHelpers;
 import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import org.jetbrains.annotations.NotNull;
@@ -37,16 +37,16 @@ public abstract class PrismParserImpl implements PrismParser {
 	@NotNull private final ParserSource source;
 	private final String language;
 	@NotNull private final ParsingContext context;
-	@NotNull private final ParserHelpers helpers;
+	@NotNull private final LexicalHelpers helpers;
 
-	public PrismParserImpl(@NotNull ParserSource source, String language, @NotNull ParsingContext context, @NotNull ParserHelpers helpers) {
+	public PrismParserImpl(@NotNull ParserSource source, String language, @NotNull ParsingContext context, @NotNull LexicalHelpers helpers) {
 		this.source = source;
 		this.language = language;
 		this.context = context;
 		this.helpers = helpers;
 	}
 
-	private PrismParser create(ParserSource source, String language, @NotNull ParsingContext context, ParserHelpers helpers) {
+	private PrismParser create(ParserSource source, String language, @NotNull ParsingContext context, LexicalHelpers helpers) {
 		return source.isIO() ?
 				new PrismParserImplIO(source, language, context, helpers) :
 				new PrismParserImplNoIO(source, language, context, helpers);
@@ -88,24 +88,24 @@ public abstract class PrismParserImpl implements PrismParser {
 	}
 
 	protected <O extends Objectable> PrismObject<O> doParse() throws SchemaException, IOException {
-		Parser parser = getParser();
-		XNode xnode = parser.parse(source, context);
+		LexicalProcessor lexicalProcessor = getParser();
+		XNode xnode = lexicalProcessor.parse(source, context);
 		return helpers.xnodeProcessor.parseObject(xnode, context);
 	}
 
-	private Parser getParser() throws IOException {
-		Parser parser;
+	private LexicalProcessor getParser() throws IOException {
+		LexicalProcessor lexicalProcessor;
 		if (language != null) {
-			parser = helpers.parserRegistry.parserFor(language);
+			lexicalProcessor = helpers.lexicalProcessorRegistry.parserFor(language);
 		} else {
-			parser = helpers.parserRegistry.findParser(source);
+			lexicalProcessor = helpers.lexicalProcessorRegistry.findParser(source);
 		}
-		return parser;
+		return lexicalProcessor;
 	}
 
 	protected List<PrismObject<? extends Objectable>> doParseObjects() throws IOException, SchemaException {
-		Parser parser = getParser();
-		Collection<XNode> xnodes = parser.parseCollection(source, context);
+		LexicalProcessor lexicalProcessor = getParser();
+		Collection<XNode> xnodes = lexicalProcessor.parseCollection(source, context);
 		List<PrismObject<? extends Objectable>> objects = new ArrayList<>();
 		for (XNode xnode : xnodes) {
 			PrismObject<? extends Objectable> object = helpers.xnodeProcessor.parseObject(xnode, context);
@@ -115,38 +115,38 @@ public abstract class PrismParserImpl implements PrismParser {
 	}
 
 	protected <C extends Containerable> PrismContainer<C> doParseContainer(Class<C> clazz) throws SchemaException, IOException {
-		Parser parser = getParser();
-		XNode xnode = parser.parse(source, context);
+		LexicalProcessor lexicalProcessor = getParser();
+		XNode xnode = lexicalProcessor.parse(source, context);
 		return helpers.xnodeProcessor.parseContainer(xnode, clazz, context);
 	}
 
 	protected <C extends Containerable> PrismContainer<C> doParseContainer(PrismContainerDefinition<C> definition) throws SchemaException, IOException {
-		Parser parser = getParser();
-		XNode xnode = parser.parse(source, context);
+		LexicalProcessor lexicalProcessor = getParser();
+		XNode xnode = lexicalProcessor.parse(source, context);
 		return helpers.xnodeProcessor.parseContainer(xnode, definition, context);
 	}
 
 	protected <T> T doParseAtomicValue(QName typeName) throws IOException, SchemaException {
-		Parser parser = getParser();
-		XNode xnode = parser.parse(source, context);
+		LexicalProcessor lexicalProcessor = getParser();
+		XNode xnode = lexicalProcessor.parse(source, context);
 		return helpers.xnodeProcessor.parseAtomicValue(xnode, typeName, context);
 	}
 
 	protected Object doParseAnyData() throws IOException, SchemaException {
-		Parser parser = getParser();
-		XNode xnode = parser.parse(source, context);
+		LexicalProcessor lexicalProcessor = getParser();
+		XNode xnode = lexicalProcessor.parse(source, context);
 		return helpers.xnodeProcessor.parseAnyData(xnode, context);
 	}
 
 	protected <T> T doParseAnyValue() throws IOException, SchemaException {
-		Parser parser = getParser();
-		XNode xnode = parser.parse(source, context);
+		LexicalProcessor lexicalProcessor = getParser();
+		XNode xnode = lexicalProcessor.parse(source, context);
 		return helpers.xnodeProcessor.parseAnyValue(xnode, context);
 	}
 
 	protected <T> JAXBElement<T> doParseAnyValueAsJAXBElement() throws IOException, SchemaException {
-		Parser parser = getParser();
-		XNode xnode = parser.parse(source, context);
+		LexicalProcessor lexicalProcessor = getParser();
+		XNode xnode = lexicalProcessor.parse(source, context);
 		return helpers.xnodeProcessor.parseAnyValueAsJAXBElement(xnode, context);
 	}
 

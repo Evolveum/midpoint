@@ -1,6 +1,6 @@
 package com.evolveum.midpoint.prism;
 
-import com.evolveum.midpoint.prism.parser.ParserHelpers;
+import com.evolveum.midpoint.prism.lex.LexicalHelpers;
 import com.evolveum.midpoint.prism.xnode.RootXNode;
 import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -11,8 +11,8 @@ import org.jetbrains.annotations.NotNull;
  */
 public class SerializerXNodeTarget extends SerializerTarget<XNode> {
 
-    public SerializerXNodeTarget(@NotNull ParserHelpers parserHelpers) {
-        super(parserHelpers);
+    public SerializerXNodeTarget(@NotNull LexicalHelpers lexicalHelpers) {
+        super(lexicalHelpers);
     }
 
     @Override

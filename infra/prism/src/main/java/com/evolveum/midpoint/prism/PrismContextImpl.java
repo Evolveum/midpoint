@@ -21,10 +21,10 @@ import com.evolveum.midpoint.prism.marshaller.JaxbDomHack;
 import com.evolveum.midpoint.prism.marshaller.PrismBeanConverter;
 import com.evolveum.midpoint.prism.marshaller.PrismBeanInspector;
 import com.evolveum.midpoint.prism.marshaller.XNodeProcessor;
-import com.evolveum.midpoint.prism.parser.Parser;
-import com.evolveum.midpoint.prism.parser.ParserHelpers;
-import com.evolveum.midpoint.prism.parser.ParserRegistry;
-import com.evolveum.midpoint.prism.parser.dom.DomParser;
+import com.evolveum.midpoint.prism.lex.LexicalProcessor;
+import com.evolveum.midpoint.prism.lex.LexicalHelpers;
+import com.evolveum.midpoint.prism.lex.LexicalProcessorRegistry;
+import com.evolveum.midpoint.prism.lex.dom.DomLexicalProcessor;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
 import com.evolveum.midpoint.prism.polystring.PrismDefaultPolyStringNormalizer;
@@ -43,7 +43,6 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
 
-import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 import java.io.File;
 import java.io.IOException;
@@ -64,8 +63,8 @@ public class PrismContextImpl implements PrismContext {
 	private PrismBeanConverter beanConverter;
 	private SchemaDefinitionFactory definitionFactory;
 	private PolyStringNormalizer defaultPolyStringNormalizer;
-	private ParserRegistry parserRegistry;
-	private ParserHelpers parserHelpers;
+	private LexicalProcessorRegistry lexicalProcessorRegistry;
+	private LexicalHelpers lexicalHelpers;
 	private PrismMonitor monitor = null;
 	
 	@Autowired
@@ -88,10 +87,10 @@ public class PrismContextImpl implements PrismContext {
 		PrismBeanInspector inspector = new PrismBeanInspector(prismContext);
 		prismContext.beanConverter = new PrismBeanConverter(prismContext, inspector);
 
-		prismContext.parserRegistry = new ParserRegistry(schemaRegistry);
-		prismContext.jaxbDomHack = new JaxbDomHack((DomParser) prismContext.parserRegistry.parserFor(PrismContext.LANG_XML), prismContext);
+		prismContext.lexicalProcessorRegistry = new LexicalProcessorRegistry(schemaRegistry);
+		prismContext.jaxbDomHack = new JaxbDomHack((DomLexicalProcessor) prismContext.lexicalProcessorRegistry.parserFor(PrismContext.LANG_XML), prismContext);
 
-		prismContext.parserHelpers = new ParserHelpers(prismContext.parserRegistry, prismContext.xnodeProcessor, prismContext.beanConverter);
+		prismContext.lexicalHelpers = new LexicalHelpers(prismContext.lexicalProcessorRegistry, prismContext.xnodeProcessor, prismContext.beanConverter);
 		
 		return prismContext;
 	}
@@ -138,8 +137,8 @@ public class PrismContextImpl implements PrismContext {
 	 * WARNING! This is not really public method. It should NOT not used outside the prism implementation.
 	 */
 	@Override
-	public DomParser getParserDom() {
-		return (DomParser) parserHelpers.parserRegistry.parserFor(LANG_XML);
+	public DomLexicalProcessor getParserDom() {
+		return (DomLexicalProcessor) lexicalHelpers.lexicalProcessorRegistry.parserFor(LANG_XML);
 	}
 
 	@Override
@@ -173,16 +172,16 @@ public class PrismContextImpl implements PrismContext {
 		this.defaultPolyStringNormalizer = defaultPolyStringNormalizer;
 	}
 
-	private Parser getParser(String language) {
-		return parserRegistry.parserFor(language);
+	private LexicalProcessor getParser(String language) {
+		return lexicalProcessorRegistry.parserFor(language);
 	}
 
-	private Parser getParserNotNull(String language) {
-		Parser parser = getParser(language);
-		if (parser == null) {
+	private LexicalProcessor getParserNotNull(String language) {
+		LexicalProcessor lexicalProcessor = getParser(language);
+		if (lexicalProcessor == null) {
 			throw new SystemException("No parser for language '"+language+"'");
 		}
-		return parser;
+		return lexicalProcessor;
 	}
 
 	@Override
@@ -209,23 +208,23 @@ public class PrismContextImpl implements PrismContext {
 	//region Parsing
 	@Override
 	public PrismParser parserFor(File file) {
-		return new PrismParserImplIO(new ParserFileSource(file), null, ParsingContext.createDefault(), parserHelpers);
+		return new PrismParserImplIO(new ParserFileSource(file), null, ParsingContext.createDefault(), lexicalHelpers);
 	}
 
 	@Override
 	public PrismParser parserFor(InputStream stream) {
-		return new PrismParserImplIO(new ParserInputStreamSource(stream), null, ParsingContext.createDefault(), parserHelpers);
+		return new PrismParserImplIO(new ParserInputStreamSource(stream), null, ParsingContext.createDefault(), lexicalHelpers);
 	}
 
 	@Override
 	public PrismParserNoIO parserFor(String data) {
-		return new PrismParserImplNoIO(new ParserStringSource(data), null, ParsingContext.createDefault(), parserHelpers);
+		return new PrismParserImplNoIO(new ParserStringSource(data), null, ParsingContext.createDefault(), lexicalHelpers);
 	}
 
 	@Deprecated
 	@Override
 	public PrismParserNoIO parserFor(Element data) {
-		return new PrismParserImplNoIO(new ParserElementSource(data), null, ParsingContext.createDefault(), parserHelpers);
+		return new PrismParserImplNoIO(new ParserElementSource(data), null, ParsingContext.createDefault(), lexicalHelpers);
 	}
 
 	@Deprecated
@@ -306,7 +305,7 @@ public class PrismContextImpl implements PrismContext {
 
 	@Override
 	public PrismSerializer<String> serializerFor(String language) {
-		return new PrismSerializerImpl<>(new SerializerStringTarget(parserHelpers, language), null, null);
+		return new PrismSerializerImpl<>(new SerializerStringTarget(lexicalHelpers, language), null, null);
 	}
 
 	@Override
@@ -326,12 +325,12 @@ public class PrismContextImpl implements PrismContext {
 
 	@Override
 	public PrismSerializer<Element> domSerializer() {
-		return new PrismSerializerImpl<>(new SerializerDomTarget(parserHelpers), null, null);
+		return new PrismSerializerImpl<>(new SerializerDomTarget(lexicalHelpers), null, null);
 	}
 
 	@Override
 	public PrismSerializer<XNode> xnodeSerializer() {
-		return new PrismSerializerImpl<>(new SerializerXNodeTarget(parserHelpers), null, null);
+		return new PrismSerializerImpl<>(new SerializerXNodeTarget(lexicalHelpers), null, null);
 	}
 
     @Override
