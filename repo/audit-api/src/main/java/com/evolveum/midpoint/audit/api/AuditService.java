@@ -39,5 +39,7 @@ public interface AuditService {
     public void cleanupAudit(CleanupPolicyType policy, OperationResult parentResult);
 
     public List<AuditEventRecord> listRecords(String query, Map<String, Object> params);
-    
+
+    public long countObjects(String query, Map<String, Object> params);
+
 }

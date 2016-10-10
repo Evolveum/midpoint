@@ -228,6 +228,7 @@
                 <valueAttribute>ri:dn</valueAttribute>
                 <shortcutAssociationAttribute>ri:memberOf</shortcutAssociationAttribute>
             	<shortcutValueAttribute>ri:dn</shortcutValueAttribute>
+            	<explicitReferentialIntegrity>false</explicitReferentialIntegrity>
             </association>
             
             <activation>
@@ -480,6 +481,7 @@
                 <valueAttribute>ri:dn</valueAttribute>
                 <shortcutAssociationAttribute>ri:memberOf</shortcutAssociationAttribute>
             	<shortcutValueAttribute>ri:dn</shortcutValueAttribute>
+            	<explicitReferentialIntegrity>false</explicitReferentialIntegrity>
             </association>
             
             <activation>

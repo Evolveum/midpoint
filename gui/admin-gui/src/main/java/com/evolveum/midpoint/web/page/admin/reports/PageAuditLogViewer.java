@@ -20,6 +20,7 @@ import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.IModel;
 
 import javax.xml.datatype.XMLGregorianCalendar;
+import java.sql.Timestamp;
 import java.util.*;
 
 /**
@@ -41,6 +42,9 @@ public class PageAuditLogViewer extends PageBase{
     private static final String ID_TABLE = "table";
     private static final String ID_FROM = "fromField";
     private static final String ID_MAIN_FORM = "mainForm";
+
+    private static final String AUDIT_RECORDS_QUERY = "from RAuditEventRecord as aer where 1=1 and ";
+    private static final String AUDIT_RECORDS_QUERY_COUNT = "select count(*) from RAuditEventRecord as aer where 1=1 and ";
 
     public PageAuditLogViewer(){
         initLayout();
@@ -110,7 +114,8 @@ public class PageAuditLogViewer extends PageBase{
     }
 
     private List<AuditEventRecordType> getAuditEventRecordList(){
-        List<AuditEventRecord> auditRecords = getAuditService().listRecords("from RAuditEventRecord as aer where 1=1 order by aer.timestamp asc", params);
+        String parameterQuery = generateFullQuery(AUDIT_RECORDS_QUERY);
+        List<AuditEventRecord> auditRecords = getAuditService().listRecords(parameterQuery + " order by aer.timestamp asc", params);
         if (auditRecords == null){
             auditRecords = new ArrayList<>();
         }
@@ -119,6 +124,11 @@ public class PageAuditLogViewer extends PageBase{
             AuditEventRecordType newRecord = getAuditEventRecordType(record);
             auditRecordList.add(newRecord);
         }
+//        parameterQuery = generateFullQuery(AUDIT_RECORDS_QUERY_COUNT);
+//        long count = getAuditService().countObjects(parameterQuery, params);
+//        if (count != 0){
+//
+//        }
         return auditRecordList;
     }
 
@@ -142,4 +152,44 @@ public class PageAuditLogViewer extends PageBase{
         return newRecord;
     }
 
+    private String generateFullQuery(String query){
+        if (params.get("from") != null) {
+            query += "(aer.timestamp >= :from) and ";
+        } else {
+            params.remove("from");
+        }
+        if (params.get("to") != null) {
+            query += "(aer.timestamp <= :to) and ";
+        } else {
+            params.remove("to");
+        }
+        if (params.get("eventType") != null) {
+            query += "(aer.eventType = :eventType) and ";
+        } else {
+            params.remove("eventType");
+        }
+        if (params.get("eventStage") != null) {
+            query += "(aer.eventStage = :eventStage) and ";
+        } else {
+            params.remove("eventStage");
+        }
+        if (params.get("outcome") != null) {
+            query += "(aer.outcome = :outcome) and ";
+        } else {
+            params.remove("outcome");
+        }
+        if (params.get("initiatorName") != null) {
+            query += "(aer.initiatorName = :initiatorName) and ";
+        } else {
+            params.remove("initiatorName");
+        }
+        if (params.get("targetName") != null) {
+            query += "(aer.targetName = :targetName) and ";
+        } else {
+            params.remove("targetName");
+        }
+
+        query = query.substring(0, query.length()-5); // remove trailing and
+return query;
+    }
 }

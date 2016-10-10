@@ -21,6 +21,9 @@ import com.evolveum.midpoint.audit.api.AuditEventType;
 import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.marshaller.XNodeProcessorEvaluationMode;
+import com.evolveum.midpoint.prism.query.NoneFilter;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.sql.data.audit.RAuditEventRecord;
 import com.evolveum.midpoint.repo.sql.data.audit.RAuditEventStage;
 import com.evolveum.midpoint.repo.sql.data.audit.RAuditEventType;
@@ -30,6 +33,7 @@ import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.GetObjectResult;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.MiscUtil;
@@ -39,6 +43,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CleanupPolicyType;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import org.apache.commons.lang.Validate;
 import org.hibernate.Query;
 import org.hibernate.SQLQuery;
@@ -115,33 +120,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
             session = baseHelper.beginTransaction();
             session.setFlushMode(FlushMode.MANUAL);
             Query q = session.createQuery(query);
-            if (params != null){
-                if (params.containsKey("setFirstResult")){
-                    q.setFirstResult((int)params.get("setFirstResult"));
-                    params.remove("setFirstResult");
-                }
-                if (params.containsKey("setMaxResults")){
-                    q.setMaxResults((int)params.get("setMaxResults"));
-                    params.remove("setMaxResults");
-                }
-            }
-            Set<Entry<String, Object>> paramSet = params.entrySet();
-            for (Entry<String, Object> p : paramSet) {
-                if (p.getValue() == null) {
-                    q.setParameter(p.getKey(), null);
-                    continue;
-                }
-                if (XMLGregorianCalendar.class.isAssignableFrom(p.getValue().getClass())) {
-                    q.setParameter(p.getKey(), MiscUtil.asDate((XMLGregorianCalendar) p.getValue()));
-                } else if (p.getValue() instanceof AuditEventType) {
-                    q.setParameter(p.getKey(), RAuditEventType.toRepo((AuditEventType) p.getValue()));
-                } else if (p.getValue() instanceof AuditEventStage) {
-                    q.setParameter(p.getKey(), RAuditEventStage.toRepo((AuditEventStage) p.getValue()));
-                } else {
-                    q.setParameter(p.getKey(), p.getValue());
-                }
-            }
-
+            setParametersToQuery(q, params);
 //            q.setResultTransformer(Transformers.aliasToBean(RAuditEventRecord.class));
             List resultList = q.list();
 
@@ -173,6 +152,35 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
         }
         return auditRecords;
 
+    }
+
+    private void setParametersToQuery(Query q,  Map<String, Object> params){
+        if (params != null){
+            if (params.containsKey("setFirstResult")){
+                q.setFirstResult((int)params.get("setFirstResult"));
+                params.remove("setFirstResult");
+            }
+            if (params.containsKey("setMaxResults")){
+                q.setMaxResults((int)params.get("setMaxResults"));
+                params.remove("setMaxResults");
+            }
+        }
+        Set<Entry<String, Object>> paramSet = params.entrySet();
+        for (Entry<String, Object> p : paramSet) {
+            if (p.getValue() == null) {
+                q.setParameter(p.getKey(), null);
+                continue;
+            }
+            if (XMLGregorianCalendar.class.isAssignableFrom(p.getValue().getClass())) {
+                q.setParameter(p.getKey(), MiscUtil.asDate((XMLGregorianCalendar) p.getValue()));
+            } else if (p.getValue() instanceof AuditEventType) {
+                q.setParameter(p.getKey(), RAuditEventType.toRepo((AuditEventType) p.getValue()));
+            } else if (p.getValue() instanceof AuditEventStage) {
+                q.setParameter(p.getKey(), RAuditEventStage.toRepo((AuditEventStage) p.getValue()));
+            } else {
+                q.setParameter(p.getKey(), p.getValue());
+            }
+        }
     }
 
     private PrismObject resolve(Session session, String oid) throws SchemaException {
@@ -385,4 +393,23 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
 
         return sb.toString();
     }
+
+    public long countObjects(String query, Map<String, Object> params) {
+        Session session = null;
+        long count = 0;
+        try {
+            session = baseHelper.beginTransaction();
+            session.setFlushMode(FlushMode.MANUAL);
+            Query q = session.createQuery(query);
+
+            setParametersToQuery(q, params);
+            count = (Long) q.uniqueResult();
+        }  catch (RuntimeException ex) {
+            baseHelper.handleGeneralRuntimeException(ex, session, null);
+        } finally {
+            baseHelper.cleanupSessionAndResult(session, null);
+        }
+        return count;
+    }
+
 }
