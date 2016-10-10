@@ -25,6 +25,8 @@ import com.evolveum.midpoint.prism.path.ParentPathSegment;
 import com.evolveum.midpoint.prism.path.ReferencePathSegment;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.PrettyPrinter;
+import com.evolveum.midpoint.util.QNameUtil;
+import org.apache.commons.lang.StringUtils;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -256,12 +258,19 @@ public class ComplexTypeDefinition extends Definition {
 
 	// path starts with NamedItemPathSegment
 	private <ID extends ItemDefinition> ID findNamedItemDefinition(QName firstName, ItemPath rest, Class<ID> clazz) {
+		ID found = null;
 		for (ItemDefinition def : getDefinitions()) {
-            if (firstName != null && firstName.equals(def.getName())) {
-                return (ID) def.findItemDefinition(rest, clazz);
+            if (firstName != null && QNameUtil.match(firstName, def.getName())) {
+				if (found != null) {
+					throw new IllegalStateException("More definitions found for " + firstName + "/" + rest + " in " + this);
+				}
+                found = (ID) def.findItemDefinition(rest, clazz);
+				if (StringUtils.isNotEmpty(firstName.getNamespaceURI())) {
+					return found;			// if qualified then there's no risk of matching more entries
+				}
             }
         }
-		return null;
+		return found;
 	}
 
 	private <T extends ItemDefinition> boolean isItemValid(ItemDefinition def, QName name, Class<T> clazz, boolean caseInsensitive) {
