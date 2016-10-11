@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2014 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -88,7 +88,7 @@ public abstract class DummyObject implements DebugDumpable {
 		return enabled;
 	}
 
-	public void setEnabled(Boolean enabled) throws ConnectException, FileNotFoundException, SchemaViolationException {
+	public void setEnabled(Boolean enabled) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
 		checkModifyBreak();
 		this.enabled = enabled;
 	}
@@ -97,7 +97,7 @@ public abstract class DummyObject implements DebugDumpable {
 		return validFrom;
 	}
 
-	public void setValidFrom(Date validFrom) throws ConnectException, FileNotFoundException, SchemaViolationException {
+	public void setValidFrom(Date validFrom) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
 		checkModifyBreak();
 		this.validFrom = validFrom;
 	}
@@ -106,7 +106,7 @@ public abstract class DummyObject implements DebugDumpable {
 		return validTo;
 	}
 
-	public void setValidTo(Date validTo) throws ConnectException, FileNotFoundException, SchemaViolationException {
+	public void setValidTo(Date validTo) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
 		checkModifyBreak();
 		this.validTo = validTo;
 	}
@@ -143,13 +143,13 @@ public abstract class DummyObject implements DebugDumpable {
 		return getAttributeValue(attrName,String.class);
 	}
 
-	public void replaceAttributeValue(String name, Object value) throws SchemaViolationException, ConnectException, FileNotFoundException, SchemaViolationException {
+	public void replaceAttributeValue(String name, Object value) throws SchemaViolationException, ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
 		Collection<Object> values = new ArrayList<Object>(1);
 		values.add(value);
 		replaceAttributeValues(name, values);
 	}
 	
-	public void replaceAttributeValues(String name, Collection<Object> values) throws SchemaViolationException, ConnectException, FileNotFoundException, SchemaViolationException {
+	public void replaceAttributeValues(String name, Collection<Object> values) throws SchemaViolationException, ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
 		checkModifyBreak();
 		Set<Object> currentValues = attributes.get(name);
 		if (currentValues == null) {
@@ -163,7 +163,7 @@ public abstract class DummyObject implements DebugDumpable {
 		recordModify();
 	}
 	
-	public void replaceAttributeValues(String name, Object... values) throws SchemaViolationException, ConnectException, FileNotFoundException, SchemaViolationException {
+	public void replaceAttributeValues(String name, Object... values) throws SchemaViolationException, ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
 		checkModifyBreak();
 		Set<Object> currentValues = attributes.get(name);
 		if (currentValues == null) {
@@ -181,13 +181,13 @@ public abstract class DummyObject implements DebugDumpable {
 		recordModify();
 	}
 	
-	public void addAttributeValue(String name, Object value) throws SchemaViolationException, ConnectException, FileNotFoundException, SchemaViolationException {
+	public void addAttributeValue(String name, Object value) throws SchemaViolationException, ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
 		Collection<Object> values = new ArrayList<Object>(1);
 		values.add(value);
 		addAttributeValues(name, values);
 	}
 
-	public void addAttributeValues(String name, Collection<Object> valuesToAdd) throws SchemaViolationException, ConnectException, FileNotFoundException, SchemaViolationException {
+	public void addAttributeValues(String name, Collection<Object> valuesToAdd) throws SchemaViolationException, ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
 		checkModifyBreak();
 		Set<Object> currentValues = attributes.get(name);
 		if (currentValues == null) {
@@ -200,7 +200,7 @@ public abstract class DummyObject implements DebugDumpable {
 		recordModify();
 	}
 	
-	public void addAttributeValues(String name, String... valuesToAdd) throws SchemaViolationException, ConnectException, FileNotFoundException, SchemaViolationException {
+	public void addAttributeValues(String name, String... valuesToAdd) throws SchemaViolationException, ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
 		checkModifyBreak();
 		Set<Object> currentValues = attributes.get(name);
 		if (currentValues == null) {
@@ -213,7 +213,7 @@ public abstract class DummyObject implements DebugDumpable {
 		recordModify();
 	}
 	
-	private void addAttributeValue(String attrName, Set<Object> currentValues, Object valueToAdd) throws SchemaViolationException, ConnectException, FileNotFoundException, SchemaViolationException {
+	private void addAttributeValue(String attrName, Set<Object> currentValues, Object valueToAdd) throws SchemaViolationException, ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
 		checkModifyBreak();
 		if (resource != null && !resource.isTolerateDuplicateValues()) {
 			for (Object currentValue: currentValues) {
@@ -236,13 +236,13 @@ public abstract class DummyObject implements DebugDumpable {
 		currentValues.add(valueToAdd);
 	}
 	
-	public void removeAttributeValue(String name, Object value) throws SchemaViolationException, ConnectException, FileNotFoundException, SchemaViolationException {
+	public void removeAttributeValue(String name, Object value) throws SchemaViolationException, ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
 		Collection<Object> values = new ArrayList<Object>();
 		values.add(value);
 		removeAttributeValues(name, values);
 	}
 
-	public void removeAttributeValues(String name, Collection<Object> values) throws SchemaViolationException, ConnectException, FileNotFoundException, SchemaViolationException {
+	public void removeAttributeValues(String name, Collection<Object> values) throws SchemaViolationException, ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
 		checkModifyBreak();
 		Set<Object> currentValues = attributes.get(name);
 		if (currentValues == null) {
@@ -335,7 +335,7 @@ public abstract class DummyObject implements DebugDumpable {
 		}
 	}
 
-	protected void checkModifyBreak() throws ConnectException, FileNotFoundException, SchemaViolationException {
+	protected void checkModifyBreak() throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
 		if (resource == null) {
 			return;
 		}
@@ -351,6 +351,8 @@ public abstract class DummyObject implements DebugDumpable {
 			throw new FileNotFoundException("IO error (simulated error)");
 		} else if (modifyBreakMode == BreakMode.SCHEMA) {
 			throw new SchemaViolationException("Schema violation (simulated error)");
+		} else if (modifyBreakMode == BreakMode.CONFLICT) {
+			throw new ConflictException("Conflict (simulated error)");
 		} else if (modifyBreakMode == BreakMode.GENERIC) {
 			// The connector will react with generic exception
 			throw new IllegalArgumentException("Generic error (simulated error)");
@@ -416,7 +418,7 @@ public abstract class DummyObject implements DebugDumpable {
 		return null;
 	}
 
-	abstract protected DummyObjectClass getObjectClass() throws ConnectException, FileNotFoundException, SchemaViolationException;
+	abstract protected DummyObjectClass getObjectClass() throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException;
 
 	abstract protected DummyObjectClass getObjectClassNoExceptions();
 

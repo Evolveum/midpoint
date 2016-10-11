@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.web.component.data;
 
+import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
@@ -114,6 +115,11 @@ public abstract class BaseSortableDataProvider<T extends Serializable> extends S
     protected WorkflowService getWorkflowService() {
         MidPointApplication application = (MidPointApplication) MidPointApplication.get();
         return application.getWorkflowService();
+    }
+
+    protected AuditService getAuditService() {
+        MidPointApplication application = (MidPointApplication) MidPointApplication.get();
+        return application.getAuditService();
     }
 
 	protected WorkflowManager getWorkflowManager() {

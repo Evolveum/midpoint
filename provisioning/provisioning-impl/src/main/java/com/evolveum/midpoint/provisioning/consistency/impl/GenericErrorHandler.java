@@ -74,9 +74,19 @@ public class GenericErrorHandler extends ErrorHandler{
 	
 	
 	@Override
-	public <T extends ShadowType> T handleError(T shadow, FailedOperation op, Exception ex, boolean compensate, 
+	public <T extends ShadowType> T handleError(T shadow, FailedOperation op, Exception ex, 
+			boolean doDiscovery, boolean compensate, 
 			Task task, OperationResult parentResult) throws SchemaException, GenericFrameworkException, CommunicationException,
 			ObjectNotFoundException, ObjectAlreadyExistsException, ConfigurationException, SecurityViolationException {
+		
+		if (!doDiscovery) {
+			parentResult.recordFatalError(ex);
+			if (ex instanceof GenericFrameworkException) {
+				throw (GenericFrameworkException)ex;
+			} else {
+				throw new GenericFrameworkException(ex.getMessage(), ex);
+			}
+		}
 		
 //		OperationResult result = OperationResult.createOperationResult(shadow.getResult());
 		String operation = (shadow.getFailedOperationType() == null ? "null" : shadow.getFailedOperationType().name());

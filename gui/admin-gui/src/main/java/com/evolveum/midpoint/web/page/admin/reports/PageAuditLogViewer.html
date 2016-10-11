@@ -20,11 +20,21 @@
     <form wicket:id="mainForm" class="form-inline">
         <div wicket:id="parametersPanel">
             <div class="row">
-                <label class="col-md-1"><wicket:message key="PageAuditLogViewer.timeLabel" /></label>
                 <label class="col-md-1"><wicket:message key="PageAuditLogViewer.fromLabel" /></label>
-                <span  class="col-md-3" wicket:id="fromField" />
+                <span  class="col-md-5" wicket:id="fromField"/>
+                <label class="col-md-1"><wicket:message key="PageAuditLogViewer.toLabel" /></label>
+                <span  class="col-md-5" wicket:id="toField" />
+                <label class="col-md-1"><wicket:message key="PageAuditLogViewer.initiatorLabel" /></label>
+                <span  class="col-md-5" wicket:id="initiatorField" style="width:200px"/>
+                <label class="col-md-1"><wicket:message key="PageAuditLogViewer.propertyLabel" /></label>
+                <span  class="col-md-5" wicket:id="propertyField" style="width:200px"/>
+                <label class="col-md-1"><wicket:message key="PageAuditLogViewer.channelLabel" /></label>
+                <span  class="col-md-5" wicket:id="channelField" />
             </div>
-            </div>
+            <div class="row">
+                <a class="btn btn-primary" wicket:id="searchButton"/>
+			</div>
+        </div>
         <div wicket:id="table"/>
     </form>
 </wicket:extend>

@@ -87,10 +87,20 @@ public class CommunicationExceptionHandler extends ErrorHandler {
 	}
 
 	@Override
-	public <T extends ShadowType> T handleError(T shadow, FailedOperation op, Exception ex, boolean compensate, 
+	public <T extends ShadowType> T handleError(T shadow, FailedOperation op, Exception ex, 
+			boolean doDiscovery, boolean compensate, 
 			Task task, OperationResult parentResult) throws SchemaException, GenericFrameworkException, CommunicationException,
 			ObjectNotFoundException, ObjectAlreadyExistsException, ConfigurationException {
 
+		if (!doDiscovery) {
+			parentResult.recordFatalError(ex);
+			if (ex instanceof CommunicationException) {
+				throw (CommunicationException)ex;
+			} else {
+				throw new CommunicationException(ex.getMessage(), ex);
+			}
+		}
+		
 		Validate.notNull(shadow, "Shadow must not be null.");
 		
 		OperationResult operationResult = parentResult.createSubresult("com.evolveum.midpoint.provisioning.consistency.impl.CommunicationExceptionHandler.handleError." + op.name());

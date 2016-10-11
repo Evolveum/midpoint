@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -48,7 +48,7 @@ public class DummyGroup extends DummyObject {
 		return getAttributeValues(ATTR_MEMBERS_NAME, String.class);
 	}
 	
-	public void addMember(String newMember) throws SchemaViolationException, ConnectException, FileNotFoundException {
+	public void addMember(String newMember) throws SchemaViolationException, ConnectException, FileNotFoundException, ConflictException {
 		addAttributeValue(ATTR_MEMBERS_NAME, newMember);
 	}
 
@@ -60,7 +60,7 @@ public class DummyGroup extends DummyObject {
 		return members.contains(member);			// TODO ok? what about case ignoring scenarios?
 	}
 
-	public void removeMember(String newMember) throws SchemaViolationException, ConnectException, FileNotFoundException {
+	public void removeMember(String newMember) throws SchemaViolationException, ConnectException, FileNotFoundException, ConflictException {
 		removeAttributeValue(ATTR_MEMBERS_NAME, newMember);
 	}
 	

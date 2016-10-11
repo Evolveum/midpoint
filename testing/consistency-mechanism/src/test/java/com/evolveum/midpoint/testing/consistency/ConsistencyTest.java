@@ -1562,7 +1562,9 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		
 		requestToExecuteChanges(REQUEST_USER_MODIFY_WEAK_MAPPING_COMMUNICATION_PROBLEM, USER_JOHN_WEAK_OID, UserType.class, task, null, parentResult);
 
-		checkNormalizedShadowBasic(accountOid, "john", true, SelectorOptions.createCollection(GetOperationOptions.createDoNotDiscovery()), task, parentResult);
+		// TODO: [RS] not 100% sure about this. But if you do not expect an error you should not set doNotDiscovery. Server is still not running.
+		checkNormalizedShadowBasic(accountOid, "john", true, null, task, parentResult);
+//		checkNormalizedShadowBasic(accountOid, "john", true, SelectorOptions.createCollection(GetOperationOptions.createDoNotDiscovery()), task, parentResult);
 	}
 
 	
