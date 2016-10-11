@@ -113,7 +113,7 @@ public class PageAuditLogViewer extends PageBase{
 		AjaxButton ajaxButton = new AjaxButton(ID_SEARCH_BUTTON, createStringResource("BasicSearchPanel.search")) {
 			@Override
 			public void onClick(AjaxRequestTarget arg0) {
-				Form mainForm = (Form)get(ID_MAIN_FORM);
+				Form mainForm = (Form)getParent().getParent();
 				initTable(mainForm);
 				arg0.add(mainForm);
 				// TODO Auto-generated method stub
@@ -131,7 +131,8 @@ public class PageAuditLogViewer extends PageBase{
 				(int) getItemsPerPage(UserProfileStorage.TableId.PAGE_AUDIT_LOG_VIEWER));
 		table.setShowPaging(true);
 		table.setOutputMarkupId(true);
-		mainForm.add(table);
+		// mainForm.add(table);
+		mainForm.addOrReplace(table);
 	}
 
 	private List<IColumn<SelectableBean<AuditEventRecordType>, String>> initColumns() {
