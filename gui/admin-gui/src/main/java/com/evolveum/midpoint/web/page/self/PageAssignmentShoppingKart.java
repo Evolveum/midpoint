@@ -53,6 +53,7 @@ public class PageAssignmentShoppingKart extends PageSelf {
     private IModel<AssignmentViewType> viewModel;
     private AssignmentViewType currentViewType = AssignmentViewType.ROLE_CATALOG_VIEW;
     private String catalogOid = null;
+    private boolean isFirstInit = true;
 
     public PageAssignmentShoppingKart() {
         initLayout();
@@ -161,9 +162,17 @@ public class PageAssignmentShoppingKart extends PageSelf {
 
     private Component initMainPanel(){
         if (StringUtils.isEmpty(catalogOid)) {
-            Label panel = new Label(ID_MAIN_PANEL, createStringResource("PageAssignmentShoppingKart.roleCatalogIsNotConfigured"));
-            panel.setOutputMarkupId(true);
-            return panel;
+            if (isFirstInit){
+                isFirstInit = false;
+                currentViewType = AssignmentViewType.ROLE_TYPE;
+                AssignmentCatalogPanel panel = new AssignmentCatalogPanel(ID_MAIN_PANEL, getViewTypeClass(), PageAssignmentShoppingKart.this);
+                panel.setOutputMarkupId(true);
+                return panel;
+            } else {
+                Label panel = new Label(ID_MAIN_PANEL, createStringResource("PageAssignmentShoppingKart.roleCatalogIsNotConfigured"));
+                panel.setOutputMarkupId(true);
+                return panel;
+            }
         } else {
             AssignmentCatalogPanel panel = new AssignmentCatalogPanel(ID_MAIN_PANEL, catalogOid, PageAssignmentShoppingKart.this);
             panel.setOutputMarkupId(true);
