@@ -1,3 +1,18 @@
+/*
+ * Copyright (c) 2016 Evolveum
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.evolveum.midpoint.web.component.assignment;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
@@ -46,7 +61,9 @@ import java.util.List;
  * Created by honchar
  */
 public class CatalogItemsPanel extends BasePanel implements IPageableItems {
-    private static String ID_MULTI_BUTTON_TABLE = "multiButtonTable";
+	private static final long serialVersionUID = 1L;
+
+	private static final String ID_MULTI_BUTTON_TABLE = "multiButtonTable";
     private static final String ID_SEARCH_FORM = "searchForm";
     private static final String ID_SEARCH = "search";
     private static final String ID_PAGING_FOOTER = "pagingFooter";
@@ -57,7 +74,7 @@ public class CatalogItemsPanel extends BasePanel implements IPageableItems {
     private static final String ID_BUTTON_TOOLBAR = "buttonToolbar";
     private static final String ID_FOOTER = "footer";
     private static final String ID_CART_BUTTON = "cartButton";
-    private static String ID_CART_ITEMS_COUNT = "itemsCount";
+    private static final String ID_CART_ITEMS_COUNT = "itemsCount";
     private static final String ID_HEADER_PANEL = "headerPanel";
 
     private static final String DOT_CLASS = CatalogItemsPanel.class.getName();

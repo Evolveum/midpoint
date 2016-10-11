@@ -59,14 +59,15 @@ public class AuditEventRecordProvider extends BaseSortableDataProvider<AuditEven
 
     @Override
     public Iterator<AuditEventRecordType> internalIterator(long first, long count) {
-        if (parameters.containsKey(SET_FIRST_RESULT_PARAMETER)){
-            parameters.remove(SET_FIRST_RESULT_PARAMETER);
+        Map<String, Object> queryParameters = getParameters();
+        if (queryParameters.containsKey(SET_FIRST_RESULT_PARAMETER)){
+            queryParameters.remove(SET_FIRST_RESULT_PARAMETER);
         }
-        parameters.put(SET_FIRST_RESULT_PARAMETER, ((Long) first).intValue());
-        if (parameters.containsKey(SET_MAX_RESULTS_PARAMETER)){
-            parameters.remove(SET_MAX_RESULTS_PARAMETER);
+        queryParameters.put(SET_FIRST_RESULT_PARAMETER, ((Long) first).intValue());
+        if (queryParameters.containsKey(SET_MAX_RESULTS_PARAMETER)){
+            queryParameters.remove(SET_MAX_RESULTS_PARAMETER);
         }
-        parameters.put(SET_MAX_RESULTS_PARAMETER, ((Long) count).intValue());
+        queryParameters.put(SET_MAX_RESULTS_PARAMETER, ((Long) count).intValue());
 
         List<AuditEventRecordType> recordsList = listRecords(auditEventQuery, true);
         return recordsList.iterator();
@@ -75,15 +76,17 @@ public class AuditEventRecordProvider extends BaseSortableDataProvider<AuditEven
 
     @Override
     protected int internalSize(){
+        Map<String, Object> queryParameters = getParameters();
         String query = generateFullQuery(AUDIT_RECORDS_QUERY_COUNT + auditEventQuery, false);
-        long count = getAuditService().countObjects(query, parameters);
+        long count = getAuditService().countObjects(query, queryParameters);
 
         return ((Long)count).intValue();
     }
 
     private List<AuditEventRecordType> listRecords(String query, boolean orderBy){
+        Map<String, Object> queryParameters = getParameters();
         String parameterQuery = generateFullQuery(query, orderBy);
-        List<AuditEventRecord> auditRecords = getAuditService().listRecords(parameterQuery, parameters);
+        List<AuditEventRecord> auditRecords = getAuditService().listRecords(parameterQuery, queryParameters);
         if (auditRecords == null){
             auditRecords = new ArrayList<>();
         }
@@ -104,40 +107,41 @@ public class AuditEventRecordProvider extends BaseSortableDataProvider<AuditEven
     }
 
     private String generateFullQuery(String query, boolean orderBy){
-        if (parameters.get("from") != null) {
+        Map<String, Object> queryParameters = getParameters();
+        if (queryParameters.get("from") != null) {
             query += "(aer.timestamp >= :from) and ";
         } else {
-            parameters.remove("from");
+            queryParameters.remove("from");
         }
-        if (parameters.get("to") != null) {
+        if (queryParameters.get("to") != null) {
             query += "(aer.timestamp <= :to) and ";
         } else {
-            parameters.remove("to");
+            queryParameters.remove("to");
         }
-        if (parameters.get("eventType") != null) {
+        if (queryParameters.get("eventType") != null) {
             query += "(aer.eventType = :eventType) and ";
         } else {
-            parameters.remove("eventType");
+            queryParameters.remove("eventType");
         }
-        if (parameters.get("eventStage") != null) {
+        if (queryParameters.get("eventStage") != null) {
             query += "(aer.eventStage = :eventStage) and ";
         } else {
-            parameters.remove("eventStage");
+            queryParameters.remove("eventStage");
         }
-        if (parameters.get("outcome") != null) {
+        if (queryParameters.get("outcome") != null) {
             query += "(aer.outcome = :outcome) and ";
         } else {
-            parameters.remove("outcome");
+            queryParameters.remove("outcome");
         }
-        if (parameters.get("initiatorName") != null) {
+        if (queryParameters.get("initiatorName") != null) {
             query += "(aer.initiatorName = :initiatorName) and ";
         } else {
-            parameters.remove("initiatorName");
+            queryParameters.remove("initiatorName");
         }
-        if (parameters.get("targetName") != null) {
+        if (queryParameters.get("targetName") != null) {
             query += "(aer.targetName = :targetName) and ";
         } else {
-            parameters.remove("targetName");
+            queryParameters.remove("targetName");
         }
 
         query = query.substring(0, query.length()-5); // remove trailing and
