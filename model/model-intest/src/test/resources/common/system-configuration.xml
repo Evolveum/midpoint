@@ -207,6 +207,28 @@
     		<left>take</left>
     		<right>take</right>
     	</item>
+    	<item>
+    		<ref>organization</ref>
+    		<left>take</left>
+    		<right>take</right>
+    	</item>
+    	<item>
+    		<ref>organizationalUnit</ref>
+    		<left>take</left>
+    	</item>
+    	<item>
+    		<ref>activation</ref>
+    		<left>take</left>
+    	</item>
+    	<item>
+    		<ref>assignment</ref>
+    		<left>take</left>
+    		<right>take</right>
+    	</item>
+    	<item> <!-- TODO !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! -->
+    		<ref>linkRef</ref>
+    		<left>take</left>
+    	</item>    	
     	<default>
     		<right>take</right>
     	</default>

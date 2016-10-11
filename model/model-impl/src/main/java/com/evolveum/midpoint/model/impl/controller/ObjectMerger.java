@@ -28,14 +28,17 @@ import com.evolveum.midpoint.model.impl.ModelObjectResolver;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.Visitable;
 import com.evolveum.midpoint.prism.Visitor;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.ItemPath.CompareResult;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
@@ -157,10 +160,11 @@ public class ObjectMerger {
 												
 						boolean found = false;
 						for (ItemPath processedPath: processedPaths) {
-							// TODO: We might need to check for super-paths here.
+							// Need to check for super-paths here.
 							// E.g. if we have already processed metadata, we do not want to process
 							// metadata/modifyTimestamp
-							if (processedPath.equivalent(itemPath)) {
+							CompareResult compareResult = processedPath.compareComplex(itemPath);
+							if (compareResult == CompareResult.EQUIVALENT || compareResult == CompareResult.SUBPATH) {
 								found = true;
 								break;
 							}
@@ -225,6 +229,11 @@ public class ObjectMerger {
 		} else {
 			itemDefinition = itemRight.getDefinition();
 		}
+		if (itemDefinition.isOperational()) {
+			// Skip operational attributes. There are automatically computed, 
+			// we do not want to modify them explicitly.
+			return null;
+		}
 		ItemDelta itemDelta = itemDefinition.createEmptyDelta(itemPath);
 		MergeStategyType leftStrategy = itemMergeConfig.getLeft();
 		MergeStategyType rightStrategy = itemMergeConfig.getRight();
@@ -262,8 +271,24 @@ public class ObjectMerger {
 						return null;
 					}
 				} else {
-					itemDelta.addValuesToAdd(itemRight.getClonedValues());
-					return itemDelta;
+					if (itemLeft == null) {
+						itemDelta.addValuesToAdd(itemRight.getClonedValues());
+						return itemDelta;
+					} else {
+						// We want to add only those values that are not yet there.
+						// E.g. adding assignments that are there can cause unneccesary churn
+						List<PrismValue> valuesRight = itemRight.getValues();
+						for (PrismValue valueRight: valuesRight) {
+							if (!itemLeft.containsEquivalentValue(valueRight)) {
+								PrismValue clonedValue = valueRight.clone();
+								if (clonedValue instanceof PrismContainerValue<?>) {
+									((PrismContainerValue)clonedValue).setId(null);
+								}
+								itemDelta.addValueToAdd(clonedValue);
+							}
+						}
+						return itemDelta;
+					}
 				}
 			}
 		}
