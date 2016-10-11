@@ -95,12 +95,18 @@ public class ObjectNotFoundHandler extends ErrorHandler {
 	}
 
 	@Override
-	public <T extends ShadowType> T handleError(T shadow, FailedOperation op, Exception ex, boolean compensate,
+	public <T extends ShadowType> T handleError(T shadow, FailedOperation op, Exception ex, 
+			boolean doDiscovery, boolean compensate,
 			Task task, OperationResult parentResult) throws SchemaException, GenericFrameworkException, CommunicationException,
 			ObjectNotFoundException, ObjectAlreadyExistsException, ConfigurationException, SecurityViolationException {
 
-		if (!isDoDiscovery(shadow.getResource())){
-			throw new ObjectNotFoundException(ex.getMessage(), ex);
+		if (!doDiscovery) {
+			parentResult.recordFatalError(ex);
+			if (ex instanceof ObjectNotFoundException) {
+				throw (ObjectNotFoundException)ex;
+			} else {
+				throw new ObjectNotFoundException(ex.getMessage(), ex);
+			}
 		}
 		
 		OperationResult result = parentResult
@@ -182,7 +188,7 @@ public class ObjectNotFoundHandler extends ErrorHandler {
 				try {
 					ProvisioningOperationOptions options = new ProvisioningOperationOptions();
 					options.setCompletePostponed(false);
-					options.setDoDiscovery(false);
+					options.setDoNotDiscovery(true);
 					provisioningService.modifyObject(ShadowType.class, oid, modifications, null, options, task, 
 							result);
 					parentResult.recordHandledError(

@@ -76,6 +76,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -535,6 +536,55 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
 		
 		// The change should be propagated here normally
         assertDummyAccount(RESOURCE_DUMMY_RED_NAME, "jack", "Cpt. Jack Sparrow", true);
+	}
+	
+	/**
+	 * Cause modification that will be mapped to the account and that will cause
+	 * conflict (AlreadyExistsException). Make sure that midpoint does not end up
+	 * in endless loop.
+	 * MID-3451
+	 */
+	@Test
+    public void test220ModifyUserJackBrokenConflict() throws Exception {
+		final String TEST_NAME = "test220ModifyUserJackBrokenConflict";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        dummyAuditService.clear();
+        
+        dummyResource.setModifyBreakMode(BreakMode.CONFLICT);
+                        
+		// WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        modifyUserReplace(USER_JACK_OID, UserType.F_LOCALITY, task, result, 
+        		PrismTestUtil.createPolyString("High seas"));
+		
+		// THEN
+        TestUtil.displayThen(TEST_NAME);
+		result.computeStatus();
+		display("Result", result);
+		TestUtil.assertPartialError(result);
+        
+		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
+		display("User after change execution", userJack);
+		PrismAsserts.assertPropertyValue(userJack, UserType.F_LOCALITY, 
+				PrismTestUtil.createPolyString("High seas"));
+        
+		assertLinks(userJack, 2);
+		String accountJackRedOidAfter = getLinkRefOid(userJack, RESOURCE_DUMMY_RED_OID);
+		assertNotNull(accountJackRedOidAfter);
+        
+		// The change was not propagated here because of schema violation error
+		assertDefaultDummyAccount("jack", "Jack Sparrow", true);
+		assertDefaultDummyAccountAttribute("jack", 
+				DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, "Caribbean");
+		
+		// The change should be propagated here normally
+        assertDummyAccount(RESOURCE_DUMMY_RED_NAME, "jack", "Cpt. Jack Sparrow", true);
+        assertDummyAccountAttribute(RESOURCE_DUMMY_RED_NAME, "jack", 
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, "High seas");
 	}
 
 	// Lets test various extension magic and border cases now. This is maybe quite hight in the architecture for
