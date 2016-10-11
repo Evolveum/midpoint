@@ -25,6 +25,7 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
+import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
@@ -321,7 +322,7 @@ public class ShadowManager {
 			return null;
 		}
 		
-		List<EqualFilter> secondaryEquals = new ArrayList<>();
+		List<ObjectFilter> secondaryEquals = new ArrayList<>();
 		for (ResourceAttribute<?> secondaryIdentifier : secondaryIdentifiers) {
 			// There may be identifiers that come from associations and they will have parent set to association/identifiers
 			// For the search to succeed we need all attribute to have "attributes" parent path.
@@ -361,10 +362,12 @@ public class ShadowManager {
 		ProvisioningUtil.checkShadowActivationConsistency(shadow);
 	}
 	
-	private <T> EqualFilter<T> createAttributeEqualFilter(ProvisioningContext ctx,
+	private <T> ObjectFilter createAttributeEqualFilter(ProvisioningContext ctx,
 			ResourceAttribute<T> secondaryIdentifier) throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException {
-		return EqualFilter.createEqual(secondaryIdentifier.getPath(), secondaryIdentifier.getDefinition(),
-				null, getNormalizedValue(secondaryIdentifier, ctx.getObjectClassDefinition()));
+		return QueryBuilder.queryFor(ShadowType.class, prismContext)
+				.item(secondaryIdentifier.getPath(), secondaryIdentifier.getDefinition())
+				.eq(getNormalizedValue(secondaryIdentifier, ctx.getObjectClassDefinition()))
+				.buildFilter();
 	}
 	
 	private <T> List<PrismPropertyValue<T>> getNormalizedValue(PrismProperty<T> attr, RefinedObjectClassDefinition rObjClassDef) throws SchemaException {
@@ -618,10 +621,10 @@ public class ShadowManager {
 			}
 
 			String normalizedIdentifierValue = (String) getNormalizedAttributeValue(identifierValue, rAttrDef);
-			//new ItemPath(ShadowType.F_ATTRIBUTES)
 			PrismPropertyDefinition<String> def = (PrismPropertyDefinition<String>) identifier.getDefinition();
-			EqualFilter<String> filter = EqualFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES, def.getName()), 
-					def, new PrismPropertyValue<>(normalizedIdentifierValue));
+			ObjectFilter filter = QueryBuilder.queryFor(ShadowType.class, prismContext)
+					.itemWithDef(def, ShadowType.F_ATTRIBUTES, def.getName()).eq(normalizedIdentifierValue)
+					.buildFilter();
 			conditions.add(filter);
 		}
 
@@ -667,21 +670,17 @@ public class ShadowManager {
 		}
 
 		// We have all the data, we can construct the filter now
-		ObjectFilter filter = null;
 		try {
 			// TODO TODO TODO TODO: set matching rule instead of null
 			PrismPropertyDefinition def = identifier.getDefinition();
-			filter = AndFilter.createAnd(
-					EqualFilter.createEqual(new ItemPath(ShadowType.F_OBJECT_CLASS), resourceShadow.findProperty(ShadowType.F_OBJECT_CLASS)),
-					RefFilter.createReferenceEqual(ShadowType.F_RESOURCE_REF, ShadowType.class, ctx.getResource()), 
-					EqualFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES, def.getName()), def, getNormalizedValue(identifier, ctx.getObjectClassDefinition())));
+			return QueryBuilder.queryFor(ShadowType.class, prismContext)
+					.itemWithDef(def, ShadowType.F_ATTRIBUTES, def.getName()).eq(getNormalizedValue(identifier, ctx.getObjectClassDefinition()))
+					.and().item(ShadowType.F_OBJECT_CLASS).eq(resourceShadow.getPropertyRealValue(ShadowType.F_OBJECT_CLASS, QName.class))
+					.and().item(ShadowType.F_RESOURCE_REF).ref(ctx.getResourceOid())
+					.build();
 		} catch (SchemaException e) {
 			throw new SchemaException("Schema error while creating search filter: " + e.getMessage(), e);
 		}
-
-		ObjectQuery query = ObjectQuery.createObjectQuery(filter);
-
-		return query;
 	}
 	
 	public SearchResultMetadata searchObjectsIterativeRepository(

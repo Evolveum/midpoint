@@ -2167,8 +2167,10 @@ public class TestDummy extends AbstractDummyTest {
 		OperationResult result = task.getResult();
 
 		ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(RESOURCE_DUMMY_OID, ProvisioningTestUtil.getDefaultAccountObjectClass(resourceType), prismContext);
-        ObjectQueryUtil.filterAnd(query.getFilter(), 
-        		EqualFilter.createEqual(new ItemPath(ShadowType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS), getShadowDefinition(), ActivationStatusType.DISABLED));
+        ObjectQueryUtil.filterAnd(query.getFilter(),
+				QueryBuilder.queryFor(ShadowType.class, prismContext)
+						.item(ShadowType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS).eq(ActivationStatusType.DISABLED)
+						.buildFilter());
 		
 		syncServiceMock.reset();
 
@@ -2289,9 +2291,11 @@ public class TestDummy extends AbstractDummyTest {
 		OperationResult result = task.getResult();
 
 		ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(RESOURCE_DUMMY_OID, ProvisioningTestUtil.getDefaultAccountObjectClass(resourceType), prismContext);
-        ObjectQueryUtil.filterAnd(query.getFilter(), 
-        		EqualFilter.createEqual(new ItemPath(ShadowType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS), getShadowDefinition(), ActivationStatusType.DISABLED));
-		
+        ObjectQueryUtil.filterAnd(query.getFilter(),
+				QueryBuilder.queryFor(ShadowType.class, prismContext)
+						.item(ShadowType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS).eq(ActivationStatusType.DISABLED)
+						.buildFilter());
+
 		syncServiceMock.reset();
 
 		// WHEN
@@ -2505,8 +2509,10 @@ public class TestDummy extends AbstractDummyTest {
 		OperationResult result = task.getResult();
 
 		ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(RESOURCE_DUMMY_OID, ProvisioningTestUtil.getDefaultAccountObjectClass(resourceType), prismContext);
-        ObjectQueryUtil.filterAnd(query.getFilter(), 
-        		EqualFilter.createEqual(new ItemPath(ShadowType.F_ACTIVATION, ActivationType.F_LOCKOUT_STATUS), getShadowDefinition(), LockoutStatusType.LOCKED));
+        ObjectQueryUtil.filterAnd(query.getFilter(),
+				QueryBuilder.queryFor(ShadowType.class, prismContext)
+						.item(ShadowType.F_ACTIVATION, ActivationType.F_LOCKOUT_STATUS).eq(LockoutStatusType.LOCKED)
+						.buildFilter());
 		
 		syncServiceMock.reset();
 
@@ -2620,8 +2626,10 @@ public class TestDummy extends AbstractDummyTest {
 		OperationResult result = task.getResult();
 
 		ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(RESOURCE_DUMMY_OID, ProvisioningTestUtil.getDefaultAccountObjectClass(resourceType), prismContext);
-        ObjectQueryUtil.filterAnd(query.getFilter(), 
-        		EqualFilter.createEqual(new ItemPath(ShadowType.F_ACTIVATION, ActivationType.F_LOCKOUT_STATUS), getShadowDefinition(), LockoutStatusType.LOCKED));
+		ObjectQueryUtil.filterAnd(query.getFilter(),
+				QueryBuilder.queryFor(ShadowType.class, prismContext)
+						.item(ShadowType.F_ACTIVATION, ActivationType.F_LOCKOUT_STATUS).eq(LockoutStatusType.LOCKED)
+						.buildFilter());
 		
 		syncServiceMock.reset();
 
@@ -2849,9 +2857,9 @@ public class TestDummy extends AbstractDummyTest {
 		
 		ResourceAttributeDefinition<String> attrDef = objectClassDef.findAttributeDefinition(
 				dummyResourceCtl.getAttributeQName(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME));
-		ObjectFilter attrFilter = EqualFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES, attrDef.getName()), attrDef, 
-				"Sea Monkey");
-		
+		ObjectFilter attrFilter = QueryBuilder.queryFor(ShadowType.class, prismContext)
+				.itemWithDef(attrDef, ShadowType.F_ATTRIBUTES, attrDef.getName()).eq("Sea Monkey")
+				.buildFilter();
 		ObjectFilter deadFilter = EqualFilter.createEqual(ShadowType.F_DEAD, ShadowType.class, prismContext, Boolean.TRUE);
 		
 		ObjectFilter filter = AndFilter.createAnd(query.getFilter(), attrFilter, deadFilter);

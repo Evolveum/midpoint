@@ -36,6 +36,7 @@ import javax.xml.bind.JAXBException;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.test.annotation.DirtiesContext;
@@ -706,19 +707,17 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
                      
         // Simple query
-        ObjectFilter filter = EqualFilter.createEqual(new ItemPath(UserType.F_EXTENSION, propName), UserType.class, prismContext, 
-        		propValue);
-        ObjectQuery query = new ObjectQuery();
-		query.setFilter(filter);
+        ObjectQuery query = QueryBuilder.queryFor(UserType.class, prismContext)
+                .item(UserType.F_EXTENSION, propName).eq(propValue)
+                .build();
 		// WHEN, THEN
 		searchDeGhoulash(testName, query, task, result);
 		
 		// Complex query, combine with a name. This results in join down in the database
-		filter = AndFilter.createAnd(
-				EqualFilter.createEqual(UserType.F_NAME, UserType.class, prismContext, null, USER_DEGHOULASH_NAME),
-				EqualFilter.createEqual(new ItemPath(UserType.F_EXTENSION, propName), UserType.class, prismContext, propValue)
-			);
-		query.setFilter(filter);
+        query = QueryBuilder.queryFor(UserType.class, prismContext)
+                .item(UserType.F_NAME).eq(USER_DEGHOULASH_NAME)
+                .and().item(UserType.F_EXTENSION, propName).eq(propValue)
+                .build();
 		// WHEN, THEN
 		searchDeGhoulash(testName, query, task, result);
 	}

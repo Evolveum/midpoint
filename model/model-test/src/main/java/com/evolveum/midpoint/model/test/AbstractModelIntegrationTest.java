@@ -64,6 +64,7 @@ import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.OrgFilter;
 import com.evolveum.midpoint.prism.query.RefFilter;
+import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
@@ -1237,13 +1238,11 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         assert identifierDefs.size() == 1 : "Unexpected identifier set in "+resource+" refined schema: "+identifierDefs;
         ResourceAttributeDefinition identifierDef = identifierDefs.iterator().next();
         //TODO: set matching rule instead of null
-        EqualFilter idFilter = EqualFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES, identifierDef.getName()), identifierDef, username);
-        EqualFilter ocFilter = EqualFilter.createEqual(ShadowType.F_OBJECT_CLASS, ShadowType.class, prismContext, 
-        		rAccount.getObjectClassDefinition().getTypeName());
-        RefFilter resourceRefFilter = RefFilter.createReferenceEqual(ShadowType.F_RESOURCE_REF, ShadowType.class, 
-        		resource);
-        AndFilter filter = AndFilter.createAnd(idFilter, ocFilter, resourceRefFilter);
-        return ObjectQuery.createObjectQuery(filter);
+		return QueryBuilder.queryFor(ShadowType.class, prismContext)
+				.itemWithDef(identifierDef, ShadowType.F_ATTRIBUTES, identifierDef.getName()).eq(username)
+				.and().item(ShadowType.F_OBJECT_CLASS).eq(rAccount.getObjectClassDefinition().getTypeName())
+				.and().item(ShadowType.F_RESOURCE_REF).ref(resource.getOid())
+				.build();
 	}
 
 	protected <F extends FocusType> String getSingleLinkOid(PrismObject<F> focus) {

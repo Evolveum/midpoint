@@ -47,6 +47,7 @@ import com.evolveum.midpoint.prism.query.EqualFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.RefFilter;
+import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.repo.api.RepoAddOptions;
@@ -978,12 +979,11 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
         assert identifierDefs.size() == 1 : "Unexpected identifier set in "+resource+" refined schema: "+identifierDefs;
         ResourceAttributeDefinition identifierDef = identifierDefs.iterator().next();
         //TODO: set matching rule instead of null
-        EqualFilter idFilter = EqualFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES, identifierDef.getName()), identifierDef, identifier);
-        EqualFilter ocFilter = EqualFilter.createEqual(ShadowType.F_OBJECT_CLASS, ShadowType.class, prismContext, null, 
-        		rAccount.getObjectClassDefinition().getTypeName());
-        RefFilter resourceRefFilter = RefFilter.createReferenceEqual(ShadowType.F_RESOURCE_REF, ShadowType.class, resource);
-        AndFilter filter = AndFilter.createAnd(idFilter, ocFilter, resourceRefFilter);
-        return ObjectQuery.createObjectQuery(filter);
+		return QueryBuilder.queryFor(ShadowType.class, prismContext)
+				.itemWithDef(identifierDef, ShadowType.F_ATTRIBUTES, identifierDef.getName()).eq(identifier)
+				.and().item(ShadowType.F_OBJECT_CLASS).eq(rAccount.getObjectClassDefinition().getTypeName())
+				.and().item(ShadowType.F_RESOURCE_REF).ref(resource.getOid())
+				.build();
 	}
 	
 	protected ObjectQuery createAccountShadowQuerySecondaryIdentifier(String identifier, PrismObject<ResourceType> resource) throws SchemaException {
@@ -996,13 +996,12 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
         Collection<? extends ResourceAttributeDefinition> identifierDefs = rAccount.getSecondaryIdentifiers();
         assert identifierDefs.size() == 1 : "Unexpected identifier set in "+resource+" refined schema: "+identifierDefs;
         ResourceAttributeDefinition identifierDef = identifierDefs.iterator().next();
-        //TODO: set matching rule instead of null
-        EqualFilter idFilter = EqualFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES, identifierDef.getName()), identifierDef, identifier);
-        EqualFilter ocFilter = EqualFilter.createEqual(ShadowType.F_OBJECT_CLASS, ShadowType.class, prismContext, null, 
-        		rAccount.getTypeName());
-        RefFilter resourceRefFilter = RefFilter.createReferenceEqual(ShadowType.F_RESOURCE_REF, ShadowType.class, resource);
-        AndFilter filter = AndFilter.createAnd(idFilter, ocFilter, resourceRefFilter);
-        return ObjectQuery.createObjectQuery(filter);
+		//TODO: set matching rule instead of null
+		return QueryBuilder.queryFor(ShadowType.class, prismContext)
+				.itemWithDef(identifierDef, ShadowType.F_ATTRIBUTES, identifierDef.getName()).eq(identifier)
+				.and().item(ShadowType.F_OBJECT_CLASS).eq(rAccount.getTypeName())
+				.and().item(ShadowType.F_RESOURCE_REF).ref(resource.getOid())
+				.build();
 	}
 		
 	protected PrismObjectDefinition<UserType> getUserDefinition() {

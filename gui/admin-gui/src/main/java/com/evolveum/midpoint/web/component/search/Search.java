@@ -23,6 +23,7 @@ import com.evolveum.midpoint.prism.marshaller.QueryConvertor;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
 import com.evolveum.midpoint.prism.query.*;
+import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
@@ -196,7 +197,8 @@ public class Search implements Serializable, DebugDumpable {
             //or if it's boolean value
             DisplayableValue displayableValue = (DisplayableValue) searchValue.getValue();
             Object value = displayableValue.getValue();
-            return EqualFilter.createEqual(path, propDef, value);
+            return QueryBuilder.queryFor(ObjectType.class, ctx)
+                    .item(path, propDef).eq(value).buildFilter();
         } else if (DOMUtil.XSD_INT.equals(propDef.getTypeName())
                 || DOMUtil.XSD_INTEGER.equals(propDef.getTypeName())
                 || DOMUtil.XSD_LONG.equals(propDef.getTypeName())
@@ -208,7 +210,8 @@ public class Search implements Serializable, DebugDumpable {
                 return null;
             }
             Object value = Long.parseLong((String) searchValue.getValue());
-            return EqualFilter.createEqual(path, propDef, value);
+            return QueryBuilder.queryFor(ObjectType.class, ctx)
+                    .item(path, propDef).eq(value).buildFilter();
         } else if (DOMUtil.XSD_STRING.equals(propDef.getTypeName())) {
             String text = (String) searchValue.getValue();
             return SubstringFilter.createSubstring(path, propDef, StringIgnoreCaseMatchingRule.NAME, text);

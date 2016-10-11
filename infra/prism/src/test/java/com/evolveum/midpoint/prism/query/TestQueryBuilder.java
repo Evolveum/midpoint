@@ -486,11 +486,11 @@ public class TestQueryBuilder {
         ObjectQuery actual = QueryBuilder.queryFor(UserType.class, getPrismContext())
                 .item(UserType.F_LOCALITY).eq().item(UserType.F_NAME)
                 .build();
+        PrismContainerDefinition userPcd = getPrismContext().getSchemaRegistry().findContainerDefinitionByCompileTimeClass(UserType.class);
         ObjectQuery expected = ObjectQuery.createObjectQuery(
                 EqualFilter.createEqual(
                         new ItemPath(UserType.F_LOCALITY),
-                        UserType.class,
-                        getPrismContext(),
+                        userPcd.findPropertyDefinition(UserType.F_LOCALITY),
                         null,
                         new ItemPath(UserType.F_NAME),
                         null

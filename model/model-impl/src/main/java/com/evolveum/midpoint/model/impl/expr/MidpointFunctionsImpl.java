@@ -506,12 +506,11 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     	RefinedResourceSchema rSchema = RefinedResourceSchema.getRefinedSchema(resourceType);
         RefinedObjectClassDefinition rAccountDef = rSchema.getDefaultRefinedDefinition(ShadowKindType.ACCOUNT);
         RefinedAttributeDefinition attrDef = rAccountDef.findAttributeDefinition(attributeName);
-        EqualFilter idFilter = EqualFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES, attrDef.getName()), attrDef, attributeValue);
-        EqualFilter ocFilter = EqualFilter.createEqual(ShadowType.F_OBJECT_CLASS, ShadowType.class, prismContext, null,
-        		rAccountDef.getObjectClassDefinition().getTypeName());
-        RefFilter resourceRefFilter = RefFilter.createReferenceEqual(ShadowType.F_RESOURCE_REF, ShadowType.class, resourceType);
-        AndFilter filter = AndFilter.createAnd(idFilter, ocFilter, resourceRefFilter);
-        ObjectQuery query = ObjectQuery.createObjectQuery(filter);
+		ObjectQuery query = QueryBuilder.queryFor(ShadowType.class, prismContext)
+				.itemWithDef(attrDef, ShadowType.F_ATTRIBUTES, attrDef.getName()).eq(attributeValue)
+				.and().item(ShadowType.F_OBJECT_CLASS).eq(rAccountDef.getObjectClassDefinition().getTypeName())
+				.and().item(ShadowType.F_RESOURCE_REF).ref(resourceType.getOid())
+				.build();
 		return modelObjectResolver.countObjects(ShadowType.class, query, null, task, result);
     }
 
@@ -606,13 +605,14 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     	RefinedResourceSchema rSchema = RefinedResourceSchema.getRefinedSchema(resourceType);
         RefinedObjectClassDefinition rAccountDef = rSchema.getDefaultRefinedDefinition(ShadowKindType.ACCOUNT);
         RefinedAttributeDefinition attrDef = rAccountDef.findAttributeDefinition(attributeName);
-        EqualFilter idFilter = EqualFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES, attrDef.getName()), attrDef, attributeValue);
-        EqualFilter ocFilter = EqualFilter.createEqual(ShadowType.F_OBJECT_CLASS, ShadowType.class, prismContext, 
-        		null, rAccountDef.getObjectClassDefinition().getTypeName());
-        RefFilter resourceRefFilter = RefFilter.createReferenceEqual(ShadowType.F_RESOURCE_REF, ShadowType.class, resourceType);
-        AndFilter filter = AndFilter.createAnd(idFilter, ocFilter, resourceRefFilter);
-        ObjectQuery query = ObjectQuery.createObjectQuery(filter);
-        LOGGER.trace("Determining uniqueness of attribute {} using query:\n{}", attributeName, query.debugDump());
+		ObjectQuery query = QueryBuilder.queryFor(ShadowType.class, prismContext)
+				.itemWithDef(attrDef, ShadowType.F_ATTRIBUTES, attrDef.getName()).eq(attributeValue)
+				.and().item(ShadowType.F_OBJECT_CLASS).eq(rAccountDef.getObjectClassDefinition().getTypeName())
+				.and().item(ShadowType.F_RESOURCE_REF).ref(resourceType.getOid())
+				.build();
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace("Determining uniqueness of attribute {} using query:\n{}", attributeName, query.debugDump());
+		}
         
         final Holder<Boolean> isUniqueHolder = new Holder<Boolean>(true);
         ResultHandler<ShadowType> handler = new ResultHandler<ShadowType>() {

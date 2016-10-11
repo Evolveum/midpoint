@@ -1212,11 +1212,9 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
     public void test170QueryAssignmentActivationAdministrativeStatus() throws Exception {
         Session session = open();
         try {
-            SchemaRegistry registry = prismContext.getSchemaRegistry();
-            PrismObjectDefinition objectDef = registry.findObjectDefinitionByCompileTimeClass(UserType.class);
-            ItemPath activationPath = new ItemPath(F_ASSIGNMENT, AssignmentType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS);
-            ObjectFilter filter = EqualFilter.createEqual(activationPath, objectDef, ActivationStatusType.ENABLED);
-            ObjectQuery query = ObjectQuery.createObjectQuery(filter);
+            ObjectQuery query = QueryBuilder.queryFor(UserType.class, prismContext)
+                    .item(F_ASSIGNMENT, AssignmentType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS).eq(ActivationStatusType.ENABLED)
+                    .build();
             String real = getInterpretedQuery2(session, UserType.class, query);
 
             String expected = "select\n" +
@@ -1250,11 +1248,10 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
              *          a.assignmentOwner = RAssignmentOwner.ABSTRACT_ROLE and                  <--- this differentiates inducements from assignments
              *          a.activation.administrativeStatus = RActivationStatus.ENABLED
              */
-            SchemaRegistry registry = prismContext.getSchemaRegistry();
-            PrismObjectDefinition objectDef = registry.findObjectDefinitionByCompileTimeClass(RoleType.class);
-            ItemPath activationPath = new ItemPath(RoleType.F_INDUCEMENT, AssignmentType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS);
-            ObjectFilter filter = EqualFilter.createEqual(activationPath, objectDef, ActivationStatusType.ENABLED);
-            ObjectQuery query = ObjectQuery.createObjectQuery(filter);
+            ObjectQuery query = QueryBuilder.queryFor(UserType.class, prismContext)
+                    .item(RoleType.F_INDUCEMENT, AssignmentType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS).eq(ActivationStatusType.ENABLED)
+                    .build();
+
             String real = getInterpretedQuery2(session, RoleType.class, query);
 
             String expected = "select\n" +
@@ -1286,18 +1283,10 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
              * ### Role: Or (Equal (assignment/activation/administrativeStatus, RActivationStatus.ENABLED),
              *               Equal (inducement/activation/administrativeStatus, RActivationStatus.ENABLED))
              */
-            SchemaRegistry registry = prismContext.getSchemaRegistry();
-            PrismObjectDefinition objectDef = registry.findObjectDefinitionByCompileTimeClass(RoleType.class);
-
-            //filter1
-            ItemPath activationPath1 = new ItemPath(F_ASSIGNMENT, AssignmentType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS);
-            ObjectFilter filter1 = EqualFilter.createEqual(activationPath1, objectDef, ActivationStatusType.ENABLED);
-
-            //filter2
-            ItemPath activationPath2 = new ItemPath(RoleType.F_INDUCEMENT, AssignmentType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS);
-            ObjectFilter filter2 = EqualFilter.createEqual(activationPath2, objectDef, ActivationStatusType.ENABLED);
-
-            ObjectQuery query = ObjectQuery.createObjectQuery(OrFilter.createOr(filter1, filter2));
+            ObjectQuery query = QueryBuilder.queryFor(RoleType.class, prismContext)
+                    .item(F_ASSIGNMENT, AssignmentType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS).eq(ActivationStatusType.ENABLED)
+                    .or().item(RoleType.F_INDUCEMENT, AssignmentType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS).eq(ActivationStatusType.ENABLED)
+                    .build();
             String real = getInterpretedQuery2(session, RoleType.class, query);
 
             String expected = "select\n" +
@@ -1337,14 +1326,10 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
              * ==> select u from RUser u where u.activation.administrativeStatus = RActivationStatus.ENABLED and
              *                                 u.activation.validFrom = ...
              */
-            SchemaRegistry registry = prismContext.getSchemaRegistry();
-            PrismObjectDefinition objectDef = registry.findObjectDefinitionByCompileTimeClass(UserType.class);
-            ObjectFilter filter1 = EqualFilter.createEqual(new ItemPath(AssignmentType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS), objectDef,
-                    ActivationStatusType.ENABLED);
-            ObjectFilter filter2 = EqualFilter.createEqual(new ItemPath(AssignmentType.F_ACTIVATION, ActivationType.F_VALID_FROM), objectDef,
-                    XmlTypeConverter.createXMLGregorianCalendar(NOW.getTime()));
-
-            ObjectQuery query = ObjectQuery.createObjectQuery(AndFilter.createAnd(filter1, filter2));
+            ObjectQuery query = QueryBuilder.queryFor(UserType.class, prismContext)
+                    .item(AssignmentType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS).eq(ActivationStatusType.ENABLED)
+                    .or().item(AssignmentType.F_ACTIVATION, ActivationType.F_VALID_FROM).eq(XmlTypeConverter.createXMLGregorianCalendar(NOW.getTime()))
+                    .build();
             String real = getInterpretedQuery2(session, UserType.class, query);
 
             String expected = "select\n" +
@@ -3278,14 +3263,9 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
             /*
              * ### User: preferredLanguage = costCenter
              */
-            ObjectQuery query = ObjectQuery.createObjectQuery(
-                    EqualFilter.createEqual(
-                            new ItemPath(UserType.F_PREFERRED_LANGUAGE),
-                            UserType.class,
-                            prismContext,
-                            null,
-                            new ItemPath(UserType.F_COST_CENTER)));
-
+            ObjectQuery query = QueryBuilder.queryFor(UserType.class, prismContext)
+                    .item(UserType.F_PREFERRED_LANGUAGE).eq(UserType.F_COST_CENTER)
+                    .build();
             String real = getInterpretedQuery2(session, UserType.class, query);
             String expected = "select\n" +
                     "  u.fullObject,\n" +
@@ -3319,14 +3299,9 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
             /*
              * ### User: organization = costCenter
              */
-            ObjectQuery query = ObjectQuery.createObjectQuery(
-                    EqualFilter.createEqual(
-                            new ItemPath(UserType.F_ORGANIZATION),
-                            UserType.class,
-                            prismContext,
-                            null,
-                            new ItemPath(UserType.F_COST_CENTER)));
-
+            ObjectQuery query = QueryBuilder.queryFor(UserType.class, prismContext)
+                    .item(UserType.F_ORGANIZATION).eq(UserType.F_COST_CENTER)
+                    .build();
             String real = getInterpretedQuery2(session, UserType.class, query);
 //            assertEqualsIgnoreWhitespace(expected, real);
         } finally {

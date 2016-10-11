@@ -33,6 +33,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.PrismContext;
 
+import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.testng.AssertJUnit;
 import org.w3c.dom.Element;
@@ -285,8 +286,9 @@ public abstract class AbstractDummyTest extends AbstractIntegrationTest {
 		
 		LOGGER.info("item definition: {}", itemDef.debugDump());
 		//TODO: matching rule
-		EqualFilter equal = EqualFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES, itemDef.getName()), itemDef, getWillRepoIcfName());
-		ObjectQuery query = ObjectQuery.createObjectQuery(equal);
+		ObjectQuery query = QueryBuilder.queryFor(ShadowType.class, prismContext)
+				.itemWithDef(itemDef, ShadowType.F_ATTRIBUTES, itemDef.getName()).eq(getWillRepoIcfName())
+				.build();
 		
 		System.out.println("Looking for shadows of \"" + getWillRepoIcfName() + "\" with filter "
 				+ query.debugDump());

@@ -28,6 +28,7 @@ import com.evolveum.midpoint.prism.query.EqualFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.OrFilter;
 import com.evolveum.midpoint.prism.query.RefFilter;
+import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.provisioning.api.ConstraintViolationConfirmer;
 import com.evolveum.midpoint.provisioning.api.ConstraintsCheckingResult;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
@@ -165,18 +166,17 @@ public class ConstraintsChecker {
 			throw new SchemaException("Empty identifier "+identifier+" while checking uniqueness of "+oid+" ("+resourceType+")");
 		}
 
-		OrFilter isNotDead = OrFilter.createOr(
-				EqualFilter.createEqual(ShadowType.F_DEAD, ShadowType.class, prismContext, false),
-				EqualFilter.createEqual(ShadowType.F_DEAD, ShadowType.class, prismContext, null));
 		//TODO: set matching rule instead of null
-		ObjectQuery query = ObjectQuery.createObjectQuery(
-				AndFilter.createAnd(
-						RefFilter.createReferenceEqual(ShadowType.F_RESOURCE_REF, ShadowType.class, prismContext, resourceType.getOid()),
-						EqualFilter.createEqual(ShadowType.F_OBJECT_CLASS, ShadowType.class, prismContext, accountDefinition.getTypeName()),
-						EqualFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES, identifier.getDefinition().getName()), identifier.getDefinition(), 
-								PrismPropertyValue.cloneCollection(identifierValues)),
-						isNotDead));
-
+		ObjectQuery query = QueryBuilder.queryFor(ShadowType.class, prismContext)
+				.itemWithDef(identifier.getDefinition(), ShadowType.F_ATTRIBUTES, identifier.getDefinition().getName())
+						.eq(PrismPropertyValue.cloneCollection(identifierValues))
+				.and().item(ShadowType.F_OBJECT_CLASS).eq(accountDefinition.getObjectClassDefinition().getTypeName())
+				.and().item(ShadowType.F_RESOURCE_REF).ref(resourceType.getOid())
+				.and().block()
+					.item(ShadowType.F_DEAD).eq(false)
+					.or().item(ShadowType.F_DEAD).isNull()
+				.endBlock()
+				.build();
 		boolean unique = checkUniqueness(oid, identifier, query, task, result);
 		return unique;
 	}
