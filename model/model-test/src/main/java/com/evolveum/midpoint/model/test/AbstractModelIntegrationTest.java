@@ -1363,6 +1363,14 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		MidPointAsserts.assertAssignedRole(user, roleOid);
 	}
 	
+	protected static <F extends FocusType> void assertAssignedRoles(PrismObject<F> user, String... roleOids) {
+		MidPointAsserts.assertAssignedRoles(user, roleOids);
+	}
+	
+	protected static <F extends FocusType> void assertAssignedOrgs(PrismObject<F> user, String... orgOids) {
+		MidPointAsserts.assertAssignedOrgs(user, orgOids);
+	}
+	
 	protected <F extends FocusType> void assertRoleMembershipRef(PrismObject<F> focus, String... roleOids) {
 		List<String> refOids = new ArrayList<String>();
 		for (ObjectReferenceType ref: focus.asObjectable().getRoleMembershipRef()) {
