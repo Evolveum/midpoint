@@ -14,6 +14,7 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
+import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.util.ListModel;
 
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
@@ -30,6 +31,7 @@ import com.evolveum.midpoint.web.component.input.TextPanel;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.configuration.PageAdminConfiguration;
 import com.evolveum.midpoint.web.page.admin.reports.dto.AuditEventRecordProvider;
+import com.evolveum.midpoint.web.page.admin.reports.dto.AuditSearchDto;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 
@@ -59,20 +61,26 @@ public class PageAuditLogViewer extends PageBase{
 	private static final String ID_MAIN_FORM = "mainForm";
 	private static final String ID_SEARCH_BUTTON = "searchButton";
 
+	/*
 	private IModel<XMLGregorianCalendar> fromModel;
 	private IModel<XMLGregorianCalendar> toModel;
 	private IModel<String> initiatorModel;
 	private IModel<String> channelModel;
 	private IModel<String> channelListModel;
 	private IModel<String> propertyModel;
-
+	*/
+	
+	private IModel<AuditSearchDto> auditSearchDto;
+	
 	public PageAuditLogViewer(){
+		/*
 		fromModel = new Model();
 		toModel = new Model();
 		initiatorModel = new Model();
 		channelModel = new Model();
 		channelListModel = new ListModel(new WebComponentUtil().getChannelList());
 		propertyModel = new Model();
+		*/		
 		initLayout();
 	}
 	
@@ -90,6 +98,14 @@ public class PageAuditLogViewer extends PageBase{
 		parametersPanel.setOutputMarkupId(true);
 		mainForm.add(parametersPanel);
 
+		IModel<XMLGregorianCalendar> fromModel = new PropertyModel<>(auditSearchDto, "fromGreg");
+		IModel<XMLGregorianCalendar> toModel = new PropertyModel<>(auditSearchDto, "toGreg");
+		IModel<String> initiatorModel = new PropertyModel<>(auditSearchDto, "initiator");
+		IModel<String> channelModel = new PropertyModel<>(auditSearchDto, "channel");
+		IModel<String> propertyModel = new PropertyModel<>(auditSearchDto, "property");
+		
+		IModel<String> channelListModel = new ListModel(new WebComponentUtil().getChannelList());
+		
 		final DatePanel from = new DatePanel(ID_FROM, fromModel);
 		from.setOutputMarkupId(true);
 		parametersPanel.add(from);
