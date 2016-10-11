@@ -52,6 +52,9 @@ public class TestMerge extends AbstractInitializedModelIntegrationTest {
 				"SAILOR", "PIRATE WANNABE");
 	}
 
+	/**
+	 * MID-3460
+	 */
 	@Test
     public void test100MergeJackGuybrushPreviewDelta() throws Exception {
 		final String TEST_NAME = "test100MergeJackGuybrushPreviewDelta";
@@ -87,6 +90,9 @@ public class TestMerge extends AbstractInitializedModelIntegrationTest {
         
 	}
 	
+	/**
+	 * MID-3460
+	 */
 	@Test
     public void test102MergeJackGuybrushPreviewObject() throws Exception {
 		final String TEST_NAME = "test102MergeJackGuybrushPreviewObject";
@@ -123,6 +129,9 @@ public class TestMerge extends AbstractInitializedModelIntegrationTest {
         
 	}
 	
+	/**
+	 * MID-3460
+	 */
 	@Test
     public void test110MergeGuybrushJackPreviewDelta() throws Exception {
 		final String TEST_NAME = "test110MergeGuybrushJackPreviewDelta";
@@ -165,6 +174,9 @@ public class TestMerge extends AbstractInitializedModelIntegrationTest {
         
 	}
 	
+	/**
+	 * MID-3460
+	 */
 	@Test
     public void test112MergeGuybrushJackPreviewObject() throws Exception {
 		final String TEST_NAME = "test112MergeGuybrushJackPreviewObject";
@@ -202,6 +214,9 @@ public class TestMerge extends AbstractInitializedModelIntegrationTest {
         
 	}
 	
+	/**
+	 * MID-3460
+	 */
 	@Test
     public void test200MergeJackGuybrush() throws Exception {
 		final String TEST_NAME = "test200MergeJackGuybrush";
