@@ -26,6 +26,7 @@ import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.web.component.input.DatePanel;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
+import com.evolveum.midpoint.web.component.input.TextPanel;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.configuration.PageAdminConfiguration;
 import com.evolveum.midpoint.web.page.admin.reports.dto.AuditEventRecordProvider;
@@ -43,6 +44,7 @@ import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 		label = "PageAuditLogViewer.auth.auditLogViewer.label",
 		description = "PageAuditLogViewer.auth.auditLogViewer.description")})
 public class PageAuditLogViewer extends PageBase{
+	
 	private List<AuditEventRecord> auditEventRecordList;
 
 	Map<String, Object> params = new HashMap<>();
@@ -56,7 +58,6 @@ public class PageAuditLogViewer extends PageBase{
 	private static final String ID_PROPERTY = "propertyField";
 	private static final String ID_MAIN_FORM = "mainForm";
 	private static final String ID_SEARCH_BUTTON = "searchButton";
-
 
 	private IModel<XMLGregorianCalendar> fromModel;
 	private IModel<XMLGregorianCalendar> toModel;
@@ -74,6 +75,7 @@ public class PageAuditLogViewer extends PageBase{
 		propertyModel = new Model();
 		initLayout();
 	}
+	
 	private void initLayout(){
 		Form mainForm = new Form(ID_MAIN_FORM);
 		mainForm.setOutputMarkupId(true);
@@ -87,7 +89,7 @@ public class PageAuditLogViewer extends PageBase{
 		WebMarkupContainer parametersPanel = new WebMarkupContainer(ID_PARAMETERS_PANEL);
 		parametersPanel.setOutputMarkupId(true);
 		mainForm.add(parametersPanel);
-		
+
 		final DatePanel from = new DatePanel(ID_FROM, fromModel);
 		from.setOutputMarkupId(true);
 		parametersPanel.add(from);
@@ -99,15 +101,15 @@ public class PageAuditLogViewer extends PageBase{
 		final TextPanel initiator = new TextPanel(ID_INITIATOR, initiatorModel);
 		initiator.setOutputMarkupId(true);
 		parametersPanel.add(initiator);
-		
+
 		final DropDownChoicePanel channel = new DropDownChoicePanel(ID_CHANNEL, channelModel, channelListModel);
 		channel.setOutputMarkupId(true);
 		parametersPanel.add(channel);
-		
+
 		final TextPanel property = new TextPanel(ID_PROPERTY, propertyModel);
 		property.setOutputMarkupId(true);
 		parametersPanel.add(property);
-		
+
 		AjaxButton ajaxButton = new AjaxButton(ID_SEARCH_BUTTON, createStringResource("BasicSearchPanel.search")) {
 			@Override
 			public void onClick(AjaxRequestTarget arg0) {
@@ -122,26 +124,18 @@ public class PageAuditLogViewer extends PageBase{
 	}
 
 	private void initTable(Form mainForm){
-		IModel<List<AuditEventRecordType>> model = new IModel<List<AuditEventRecordType>>() {
-			@Override
-			public List<AuditEventRecordType> getObject() {
-				return getAuditEventRecordList();
-			}
+		AuditEventRecordProvider provider = new AuditEventRecordProvider(PageAuditLogViewer.this);
+		BoxedTablePanel table = new BoxedTablePanel(ID_TABLE, provider,
+				initColumns(),
+				UserProfileStorage.TableId.PAGE_AUDIT_LOG_VIEWER,
+				(int) getItemsPerPage(UserProfileStorage.TableId.PAGE_AUDIT_LOG_VIEWER));
+		table.setShowPaging(true);
+		table.setOutputMarkupId(true);
+		mainForm.add(table);
+	}
 
-			@Override
-			public void setObject(List<AuditEventRecordType> auditEventRecord) {
-
-			}
-
-    private void initTable(Form mainForm){
-        AuditEventRecordProvider provider = new AuditEventRecordProvider(PageAuditLogViewer.this);
-        BoxedTablePanel table = new BoxedTablePanel(ID_TABLE, provider,
-                initColumns(),
-                UserProfileStorage.TableId.PAGE_AUDIT_LOG_VIEWER,
-                (int) getItemsPerPage(UserProfileStorage.TableId.PAGE_AUDIT_LOG_VIEWER)) {
 	private List<IColumn<SelectableBean<AuditEventRecordType>, String>> initColumns() {
 		List<IColumn<SelectableBean<AuditEventRecordType>, String>> columns = new ArrayList<>();
-
 		IColumn timeColumn = new PropertyColumn(createStringResource("PageAuditLogViewer.column.time"), "timestamp");
 		columns.add(timeColumn);
 		IColumn initiatorColumn = new PropertyColumn(createStringResource("PageAuditLogViewer.column.initiatorRef"), "initiatorRef");
@@ -152,57 +146,7 @@ public class PageAuditLogViewer extends PageBase{
 		columns.add(channelColumn);
 		IColumn deltaColumn = new PropertyColumn(createStringResource("PageAuditLogViewer.column.delta"), "delta");
 		columns.add(deltaColumn);
-
-
 		return columns;
 	}
-
-	private AuditEventRecordType getAuditEventRecordType(AuditEventRecord record){
-		AuditEventRecordType recordType = record.createAuditEventRecordType();	
-		// AuditEventRecordType newRecord = new AuditEventRecordType();
-		// newRecord.setTimestamp(MiscUtil.asXMLGregorianCalendar(new Date(record.getTimestamp())));
-		// TODO fill in others fields
-		return recordType;
-	}
-
-	private String generateFullQuery(String query){
-		if (params.get("from") != null) {
-			query += "(aer.timestamp >= :from) and ";
-		} else {
-			params.remove("from");
-		}
-		if (params.get("to") != null) {
-			query += "(aer.timestamp <= :to) and ";
-		} else {
-			params.remove("to");
-		}
-		if (params.get("eventType") != null) {
-			query += "(aer.eventType = :eventType) and ";
-		} else {
-			params.remove("eventType");
-		}
-		if (params.get("eventStage") != null) {
-			query += "(aer.eventStage = :eventStage) and ";
-		} else {
-			params.remove("eventStage");
-		}
-		if (params.get("outcome") != null) {
-			query += "(aer.outcome = :outcome) and ";
-		} else {
-			params.remove("outcome");
-		}
-		if (params.get("initiatorName") != null) {
-			query += "(aer.initiatorName = :initiatorName) and ";
-		} else {
-			params.remove("initiatorName");
-		}
-		if (params.get("targetName") != null) {
-			query += "(aer.targetName = :targetName) and ";
-		} else {
-			params.remove("targetName");
-		}
-
-        return columns;
-    }
 
 }
