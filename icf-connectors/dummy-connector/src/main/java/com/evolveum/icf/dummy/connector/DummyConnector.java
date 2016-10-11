@@ -71,6 +71,7 @@ import org.identityconnectors.framework.spi.operations.SyncOp;
 import org.identityconnectors.framework.spi.operations.TestOp;
 import org.identityconnectors.framework.spi.operations.UpdateAttributeValuesOp;
 
+import com.evolveum.icf.dummy.resource.ConflictException;
 import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.icf.dummy.resource.DummyAttributeDefinition;
 import com.evolveum.icf.dummy.resource.DummyDelta;
@@ -268,6 +269,8 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 			throw new ConnectorIOException(e.getMessage(), e);
 		} catch (SchemaViolationException e) {
 			throw new InvalidAttributeValueException(e);
+		} catch (ConflictException e) {
+			throw new AlreadyExistsException(e);
 		}
         
         String id;
@@ -505,6 +508,9 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 		} catch (SchemaViolationException e) {
 			log.info("update::exception "+e);
 			throw new InvalidAttributeValueException(e.getMessage(), e);
+		} catch (ConflictException e) {
+			log.info("update::exception "+e);
+			throw new AlreadyExistsException(e);
 		}
         
         log.info("update::end");
@@ -698,6 +704,9 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 		} catch (SchemaViolationException e) {
 			log.info("addAttributeValues::exception "+e);
 			throw new InvalidAttributeValueException(e.getMessage(), e);
+		} catch (ConflictException e) {
+			log.info("addAttributeValues::exception "+e);
+			throw new AlreadyExistsException(e);
 		}
         
         return uid;
@@ -874,6 +883,9 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 		} catch (SchemaViolationException e) {
 			log.info("removeAttributeValues::exception "+e);
 			throw new InvalidAttributeValueException(e.getMessage(), e);
+		} catch (ConflictException e) {
+			log.info("removeAttributeValues::exception "+e);
+			throw new AlreadyExistsException(e);
 		}
 
         return uid;
@@ -942,6 +954,9 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 		} catch (SchemaViolationException e) {
 			log.info("delete::exception "+e);
 			throw new InvalidAttributeValueException(e.getMessage(), e);
+		} catch (ConflictException e) {
+			log.info("delete::exception "+e);
+			throw new AlreadyExistsException(e);
 		}
         
         log.info("delete::end");
@@ -972,6 +987,8 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 			
 		} catch (SchemaViolationException e) {
 			throw new InvalidAttributeValueException(e.getMessage(), e);
+		} catch (ConflictException e) {
+			throw new AlreadyExistsException(e);
 		}
 
 		if (configuration.isSupportReturnDefaultAttributes()) {
@@ -1030,7 +1047,7 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
         return objClassBuilder;
     }
     
-	private ObjectClassInfo createAccountObjectClass(boolean supportsActivation) throws SchemaViolationException {
+	private ObjectClassInfo createAccountObjectClass(boolean supportsActivation) throws SchemaViolationException, ConflictException {
 		// __ACCOUNT__ objectclass
         
         DummyObjectClass dummyAccountObjectClass;
@@ -1226,6 +1243,9 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 		} catch (SchemaViolationException e) {
 			log.info("executeQuery::exception "+e);
 			throw new InvalidAttributeValueException(e.getMessage(), e);
+		} catch (ConflictException e) {
+			log.info("executeQuery::exception "+e);
+			throw new AlreadyExistsException(e);
 		}
         
         log.info("executeQuery::end");
@@ -1473,6 +1493,9 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 		} catch (SchemaViolationException e) {
 			log.info("sync::exception "+e);
 			throw new InvalidAttributeValueException(e.getMessage(), e);
+		} catch (ConflictException e) {
+			log.info("sync::exception "+e);
+			throw new AlreadyExistsException(e);
 		}
         
         log.info("sync::end");
@@ -1623,6 +1646,9 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 		} catch (FileNotFoundException e) {
 			log.error(e, e.getMessage());
 			throw new ConnectorIOException(e.getMessage(), e);
+		} catch (ConflictException e) {
+			log.error(e, e.getMessage());
+			throw new AlreadyExistsException(e);
 		}
 		
 		ConnectorObjectBuilder builder = createConnectorObjectBuilderCommon(account, objectClass, attributesToGet, true);
@@ -1663,7 +1689,7 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
         return builder.build();
 	}
 	
-	private DummyAccount convertToAccount(Set<Attribute> createAttributes) throws ConnectException, FileNotFoundException, SchemaViolationException {
+	private DummyAccount convertToAccount(Set<Attribute> createAttributes) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
 		log.ok("Create attributes: {0}", createAttributes);
 		String userName = Utils.getMandatoryStringAttribute(createAttributes, Name.NAME);
 		if (configuration.getUpCaseName()) {
@@ -1725,7 +1751,7 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 		return newAccount;
 	}
 	
-	private DummyGroup convertToGroup(Set<Attribute> createAttributes) throws ConnectException, FileNotFoundException, SchemaViolationException {
+	private DummyGroup convertToGroup(Set<Attribute> createAttributes) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
 		String icfName = Utils.getMandatoryStringAttribute(createAttributes,Name.NAME);
 		if (configuration.getUpCaseName()) {
 			icfName = StringUtils.upperCase(icfName);
@@ -1774,7 +1800,7 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 		return newGroup;
 	}
 	
-	private DummyPrivilege convertToPriv(Set<Attribute> createAttributes) throws ConnectException, FileNotFoundException {
+	private DummyPrivilege convertToPriv(Set<Attribute> createAttributes) throws ConnectException, FileNotFoundException, ConflictException {
 		String icfName = Utils.getMandatoryStringAttribute(createAttributes,Name.NAME);
 		if (configuration.getUpCaseName()) {
 			icfName = StringUtils.upperCase(icfName);
@@ -1807,7 +1833,7 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 		return newPriv;
 	}
 	
-	private DummyOrg convertToOrg(Set<Attribute> createAttributes) throws ConnectException, FileNotFoundException {
+	private DummyOrg convertToOrg(Set<Attribute> createAttributes) throws ConnectException, FileNotFoundException, ConflictException {
 		String icfName = Utils.getMandatoryStringAttribute(createAttributes,Name.NAME);
 		if (configuration.getUpCaseName()) {
 			icfName = StringUtils.upperCase(icfName);
@@ -1879,7 +1905,7 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 	}
 
 
-	private void changePassword(final DummyAccount account, Attribute attr) throws ConnectException, FileNotFoundException, SchemaViolationException {
+	private void changePassword(final DummyAccount account, Attribute attr) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
 		final String[] passwdArray = { null };
 		if (attr.getValue() != null && !attr.getValue().isEmpty()) {
 			Object passwdObject = attr.getValue().get(0);

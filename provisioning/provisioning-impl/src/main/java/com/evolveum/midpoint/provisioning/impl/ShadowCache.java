@@ -319,7 +319,7 @@ public abstract class ShadowCache {
 			try {
 
 				resourceShadow = handleError(ctx, ex, repositoryShadow, FailedOperation.GET, null,
-						isCompensate(rootOptions), parentResult);
+						isDoDiscovery(resource, rootOptions), isCompensate(rootOptions), parentResult);
 				if (parentResult.getStatus() == OperationResultStatus.FATAL_ERROR) {
 					// We are going to return an object. Therefore this cannot
 					// be fatal error, as at least some information
@@ -348,9 +348,36 @@ public abstract class ShadowCache {
 	}
 
 	private boolean isCompensate(GetOperationOptions rootOptions) {
-		return GetOperationOptions.isDoNotDiscovery(rootOptions) ? false : true;
+		return !GetOperationOptions.isDoNotDiscovery(rootOptions);
 	}
 
+	private boolean isCompensate(ProvisioningOperationOptions options) {
+		return ProvisioningOperationOptions.isCompletePostponed(options);
+	}
+	
+	private boolean isDoDiscovery(ResourceType resource, GetOperationOptions rootOptions) {
+		return !GetOperationOptions.isDoNotDiscovery(rootOptions) && isDoDiscovery(resource);
+	}
+
+	private boolean isDoDiscovery(ResourceType resource, ProvisioningOperationOptions options) {
+		return !ProvisioningOperationOptions.isDoNotDiscovery(options) && isDoDiscovery(resource);
+	}
+	
+	private boolean isDoDiscovery (ResourceType resource) {
+		if (resource == null) {
+			return true;
+		}
+		if (resource.getConsistency() == null) {
+			return true;
+		}
+		
+		if (resource.getConsistency().isDiscovery() == null) {
+			return true;
+		}
+		
+		return resource.getConsistency().isDiscovery();
+	}
+	
 	public abstract String afterAddOnResource(ProvisioningContext ctx, PrismObject<ShadowType> shadow,
 			OperationResult parentResult) throws SchemaException, ObjectAlreadyExistsException,
 					ObjectNotFoundException, ConfigurationException, CommunicationException;
@@ -372,7 +399,8 @@ public abstract class ShadowCache {
 		try {
 			ctx.assertDefinition();
 		} catch (SchemaException e) {
-			handleError(ctx, e, shadow, FailedOperation.ADD, null, true, parentResult);
+			handleError(ctx, e, shadow, FailedOperation.ADD, null, 
+					isDoDiscovery(resource, options), true, parentResult);
 			return null;
 		}
 
@@ -385,7 +413,8 @@ public abstract class ShadowCache {
 			SchemaException e = new SchemaException(
 					"Attempt to add shadow without any attributes: " + shadow);
 			parentResult.recordFatalError(e);
-			handleError(ctx, e, shadow, FailedOperation.ADD, null, true, parentResult);
+			handleError(ctx, e, shadow, FailedOperation.ADD, null, 
+					isDoDiscovery(resource, options), true, parentResult);
 			return null;
 		}
 
@@ -399,7 +428,7 @@ public abstract class ShadowCache {
 
 		} catch (Exception ex) {
 			shadow = handleError(ctx, ex, shadow, FailedOperation.ADD, null,
-					ProvisioningOperationOptions.isCompletePostponed(options), parentResult);
+					isDoDiscovery(resource, options), isCompensate(options), parentResult);
 			return shadow.getOid();
 		}
 
@@ -491,7 +520,7 @@ public abstract class ShadowCache {
 					new Object[] { ex.getClass(), ex.getMessage(), ex });
 			try {
 				repoShadow = handleError(ctx, ex, repoShadow, FailedOperation.MODIFY, modifications,
-						ProvisioningOperationOptions.isCompletePostponed(options), parentResult);
+						isDoDiscovery(ctx.getResource(), options), isCompensate(options), parentResult);
 				parentResult.computeStatus();
 			} catch (ObjectAlreadyExistsException e) {
 				parentResult.recordFatalError(
@@ -558,7 +587,7 @@ public abstract class ShadowCache {
 			} catch (Exception ex) {
 				try {
 					handleError(ctx, ex, shadow, FailedOperation.DELETE, null,
-							ProvisioningOperationOptions.isCompletePostponed(options), parentResult);
+							isDoDiscovery(ctx.getResource(), options), isCompensate(options), parentResult);
 				} catch (ObjectAlreadyExistsException e) {
 					e.printStackTrace();
 				}
@@ -702,12 +731,12 @@ public abstract class ShadowCache {
 	@SuppressWarnings("rawtypes")
 	protected PrismObject<ShadowType> handleError(ProvisioningContext ctx, Exception ex,
 			PrismObject<ShadowType> shadow, FailedOperation op, Collection<? extends ItemDelta> modifications,
-			boolean compensate, OperationResult parentResult) throws SchemaException,
+			boolean doDiscovery, boolean compensate, OperationResult parentResult) throws SchemaException,
 					GenericFrameworkException, CommunicationException, ObjectNotFoundException,
 					ObjectAlreadyExistsException, ConfigurationException, SecurityViolationException {
 
 		// do not set result in the shadow in case of get operation, it will
-		// resilted to misleading information
+		// resulted to misleading information
 		// by get operation we do not modify the result in the shadow, so only
 		// fetch result in this case needs to be set
 		if (FailedOperation.GET != op) {
@@ -722,12 +751,13 @@ public abstract class ShadowCache {
 			throw new SystemException(ex.getMessage(), ex);
 		}
 
-		LOGGER.debug("Handling provisioning exception {}:{}",
+		LOGGER.debug("Handling provisioning exception {}: {}",
 				new Object[] { ex.getClass(), ex.getMessage() });
-		LOGGER.trace("Handling provisioning exception {}:{}",
-				new Object[] { ex.getClass(), ex.getMessage(), ex });
+		LOGGER.trace("Handling provisioning exception {}: {}\ndoDiscovery={}, compensate={}",
+				new Object[] { ex.getClass(), ex.getMessage(), 
+						doDiscovery, compensate, ex });
 
-		return handler.handleError(shadow.asObjectable(), op, ex, compensate, ctx.getTask(), parentResult)
+		return handler.handleError(shadow.asObjectable(), op, ex, doDiscovery, compensate, ctx.getTask(), parentResult)
 				.asPrismObject();
 
 	}

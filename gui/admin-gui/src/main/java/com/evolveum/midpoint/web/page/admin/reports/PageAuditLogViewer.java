@@ -28,6 +28,7 @@ import com.evolveum.midpoint.web.component.input.DatePanel;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.configuration.PageAdminConfiguration;
+import com.evolveum.midpoint.web.page.admin.reports.dto.AuditEventRecordProvider;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 
@@ -56,8 +57,6 @@ public class PageAuditLogViewer extends PageBase{
 	private static final String ID_MAIN_FORM = "mainForm";
 	private static final String ID_SEARCH_BUTTON = "searchButton";
 
-	private static final String AUDIT_RECORDS_QUERY = "from RAuditEventRecord as aer where 1=1 and ";
-	private static final String AUDIT_RECORDS_QUERY_COUNT = "select count(*) from RAuditEventRecord as aer where 1=1 and ";
 
 	private IModel<XMLGregorianCalendar> fromModel;
 	private IModel<XMLGregorianCalendar> toModel;
@@ -134,42 +133,12 @@ public class PageAuditLogViewer extends PageBase{
 
 			}
 
-			@Override
-			public void detach() {
-
-			}
-		};
-		ListDataProvider provider = new ListDataProvider<AuditEventRecordType>(PageAuditLogViewer.this, model);
-		BoxedTablePanel table = new BoxedTablePanel(ID_TABLE, provider,
-				initColumns(),
-				UserProfileStorage.TableId.PAGE_AUDIT_LOG_VIEWER,
-				(int) getItemsPerPage(UserProfileStorage.TableId.PAGE_AUDIT_LOG_VIEWER)) {
-
-		};
-		table.setShowPaging(true);
-		table.setOutputMarkupId(true);
-		mainForm.add(table);
-	}
-
-	private List<AuditEventRecordType> getAuditEventRecordList(){
-		String parameterQuery = generateFullQuery(AUDIT_RECORDS_QUERY);
-		List<AuditEventRecord> auditRecords = getAuditService().listRecords(parameterQuery + " order by aer.timestamp asc", params);
-		if (auditRecords == null){
-			auditRecords = new ArrayList<>();
-		}
-		List<AuditEventRecordType> auditRecordList = new ArrayList<>();
-		for (AuditEventRecord record : auditRecords){
-			AuditEventRecordType newRecord = getAuditEventRecordType(record);
-			auditRecordList.add(newRecord);
-		}
-		//        parameterQuery = generateFullQuery(AUDIT_RECORDS_QUERY_COUNT);
-		//        long count = getAuditService().countObjects(parameterQuery, params);
-		//        if (count != 0){
-		//
-		//        }
-		return auditRecordList;
-	}
-
+    private void initTable(Form mainForm){
+        AuditEventRecordProvider provider = new AuditEventRecordProvider(PageAuditLogViewer.this);
+        BoxedTablePanel table = new BoxedTablePanel(ID_TABLE, provider,
+                initColumns(),
+                UserProfileStorage.TableId.PAGE_AUDIT_LOG_VIEWER,
+                (int) getItemsPerPage(UserProfileStorage.TableId.PAGE_AUDIT_LOG_VIEWER)) {
 	private List<IColumn<SelectableBean<AuditEventRecordType>, String>> initColumns() {
 		List<IColumn<SelectableBean<AuditEventRecordType>, String>> columns = new ArrayList<>();
 
@@ -184,7 +153,6 @@ public class PageAuditLogViewer extends PageBase{
 		IColumn deltaColumn = new PropertyColumn(createStringResource("PageAuditLogViewer.column.delta"), "delta");
 		columns.add(deltaColumn);
 
-		//TODO add columns
 
 		return columns;
 	}
@@ -234,7 +202,7 @@ public class PageAuditLogViewer extends PageBase{
 			params.remove("targetName");
 		}
 
-		query = query.substring(0, query.length()-5); // remove trailing and
-		return query;
-	}
+        return columns;
+    }
+
 }
