@@ -38,6 +38,11 @@
             <artifactId>util</artifactId>
             <version>3.5-SNAPSHOT</version>
         </dependency>
+		<dependency>
+			<groupId>com.evolveum.midpoint.infra</groupId>
+			<artifactId>prism-api</artifactId>
+			<version>3.5-SNAPSHOT</version>
+		</dependency>
         <dependency>
             <groupId>com.sun.xml.bind</groupId>
             <artifactId>jaxb-xjc</artifactId>

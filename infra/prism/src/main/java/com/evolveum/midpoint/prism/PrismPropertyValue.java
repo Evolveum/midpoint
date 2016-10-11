@@ -150,7 +150,7 @@ public class PrismPropertyValue<T> extends PrismValue implements DebugDumpable, 
 		return realValues;
     }
 
-    public Object getRawElement() {
+    public XNode getRawElement() {
 		return rawElement;
 	}
 

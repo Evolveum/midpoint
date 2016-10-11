@@ -338,29 +338,6 @@ public class PrismContextImpl implements PrismContext {
         return xnodeProcessor.canSerialize(value);
     }
 
-
-//    public <T> String serializeAtomicValues(QName elementName, String language, T... values) throws SchemaException {
-//        Parser parser = getParserNotNull(language);
-//        PrismPropertyDefinition<T> definition = schemaRegistry.findPropertyDefinitionByElementName(elementName);
-//        if (definition == null) {
-//            throw new SchemaException("Prism property with name " + elementName + " couldn't be found");
-//        }
-//        PrismProperty property = definition.instantiate();
-//        for (T value : values) {
-//            property.addRealValue(value);
-//        }
-//        RootXNode xroot = xnodeProcessor.serializeItemAsRoot(property);
-//        return parser.serializeToString(xroot);
-//    }
-
-    @Override
-	@Deprecated
-    public Element serializeValueToDom(PrismValue pval, QName elementName, Document document) throws SchemaException {
-        RootXNode xroot = xnodeProcessor.serializeItemValueAsRoot(pval, elementName);
-        return getParserDom().serializeXRootToElement(xroot, document);
-    }
-
-
     //endregion
 
     /**

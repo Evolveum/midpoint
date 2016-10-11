@@ -201,7 +201,6 @@ public class AnyArrayList<C extends Containerable> extends AbstractList<Object> 
 		} catch (SchemaException e) {
 			throw new SystemException("Unexpected schema problem: "+e.getMessage(),e);
 		}
-		// return itemValue.asDomElement();
 	}
 	
 

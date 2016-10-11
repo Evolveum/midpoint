@@ -25,7 +25,6 @@ import com.evolveum.midpoint.prism.lex.dom.DomLexicalProcessor;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
-import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
@@ -214,61 +213,65 @@ public class JaxbDomHack {
 	
 
 	/**
-	 * Serializes prism value to JAXB "any" format as returned by JAXB getAny() methods. 
+	 * Serializes prism value to JAXB "any" format as returned by JAXB getAny() methods.
 	 */
 	public Object toAny(PrismValue value) throws SchemaException {
-		Document document = DOMUtil.getDocument();
 		if (value == null) {
-			return value;
+			return null;
 		}
-		QName elementName = value.getParent().getElementName();
-		Object xmlValue;
+		Itemable parent = value.getParent();
+		if (parent == null) {
+			throw new IllegalStateException("Couldn't convert parent-less prism value to xsd:any: " + value);
+		}
+		QName elementName = parent.getElementName();
 		if (value instanceof PrismPropertyValue) {
 			PrismPropertyValue<Object> pval = (PrismPropertyValue)value;
-			if (pval.isRaw() && (pval.getParent() == null || pval.getParent().getDefinition() == null)) {
-				Object rawElement = pval.getRawElement();
-				if (rawElement instanceof Element) {
-					return ((Element)rawElement).cloneNode(true);
-				} else if (rawElement instanceof MapXNode) {
+			if (pval.isRaw() && parent.getDefinition() == null) {
+				XNode rawElement = pval.getRawElement();
+				if (rawElement instanceof MapXNode) {
 					return domParser.serializeXMapToElement((MapXNode)rawElement, elementName);
 				} else if (rawElement instanceof PrimitiveXNode<?>) {
 					PrimitiveXNode<?> xprim = (PrimitiveXNode<?>)rawElement;
 					String stringValue = xprim.getStringValue();
-					Element element = DOMUtil.createElement(document, elementName);
+					Element element = DOMUtil.createElement(DOMUtil.getDocument(), elementName);
 					element.setTextContent(stringValue);
                     DOMUtil.setNamespaceDeclarations(element, xprim.getRelevantNamespaceDeclarations());
 					return element;
 				} else {
 					throw new IllegalArgumentException("Cannot convert raw element "+rawElement+" to xsd:any");
 				}
+			} else {
+				Object realValue = pval.getValue();
+				if (XmlTypeConverter.canConvert(realValue.getClass())) {
+					// Always record xsi:type. This is FIXME, but should work OK for now (until we put definition into deltas)
+					return XmlTypeConverter.toXsdElement(realValue, elementName, DOMUtil.getDocument(), true);
+				} else {
+					return wrapIfNeeded(realValue, elementName);
+				}
 			}
-			Object realValue = pval.getValue();
-        	xmlValue = realValue;
-        	if (XmlTypeConverter.canConvert(realValue.getClass())) {
-        		// Always record xsi:type. This is FIXME, but should work OK for now (until we put definition into deltas)
-        		xmlValue = XmlTypeConverter.toXsdElement(realValue, elementName, document, true);
-        	}
 		} else if (value instanceof PrismReferenceValue) {
-			PrismReferenceValue rval = (PrismReferenceValue)value;
-			xmlValue = prismContext.serializeValueToDom(rval, elementName, document);
+			return prismContext.domSerializer().serialize(value, elementName);
 		} else if (value instanceof PrismContainerValue<?>) {
 			PrismContainerValue<?> pval = (PrismContainerValue<?>)value;
 			if (pval.getParent().getCompileTimeClass() == null) {
 				// This has to be runtime schema without a compile-time representation.
 				// We need to convert it to DOM
-				xmlValue = prismContext.serializeValueToDom(pval, elementName, document);
+				return prismContext.domSerializer().serialize(pval, elementName);
 			} else {
-				xmlValue = pval.asContainerable();
+				return wrapIfNeeded(pval.asContainerable(), elementName);
 			}
 		} else {
 			throw new IllegalArgumentException("Unknown type "+value);
 		}
-		if (!(xmlValue instanceof Element) && !(xmlValue instanceof JAXBElement)) {
-    		xmlValue = new JAXBElement(elementName, xmlValue.getClass(), xmlValue);
-    	}
-        return xmlValue;
+
 	}
 
-
+	private Object wrapIfNeeded(Object value, QName elementName) {
+		if (value instanceof Element || value instanceof JAXBElement) {
+			return value;
+		} else {
+			return new JAXBElement(elementName, value.getClass(), value);
+		}
+	}
 
 }

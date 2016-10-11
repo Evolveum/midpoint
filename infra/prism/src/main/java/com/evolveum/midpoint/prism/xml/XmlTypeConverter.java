@@ -226,9 +226,9 @@ public class XmlTypeConverter {
      * @param doc
      * @param recordType
      * @return created element
-     * @throws JAXBException
+     * @throws SchemaException
      */
-    public static Object toXsdElement(Object val, QName elementName, Document doc, boolean recordType) throws SchemaException {
+    public static Element toXsdElement(Object val, QName elementName, Document doc, boolean recordType) throws SchemaException {
         if (val == null) {
             // if no value is specified, do not create element
             return null;

@@ -120,9 +120,6 @@ public interface PrismContext {
 
 	boolean canSerialize(Object value);
 
-	@Deprecated
-	Element serializeValueToDom(PrismValue pval, QName elementName, Document document) throws SchemaException;
-
 	RawType toRawType(Item item) throws SchemaException;
 
 	<T extends Objectable> PrismObject<T> createObject(Class<T> clazz) throws SchemaException;

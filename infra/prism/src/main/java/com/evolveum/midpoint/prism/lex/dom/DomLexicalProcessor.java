@@ -450,13 +450,6 @@ public class DomLexicalProcessor implements LexicalProcessor {
 		return serializer.serialize(xroot);
 	}
 
-    // used only by JaxbDomHack.toAny(..) - hopefully it will disappear soon
-    @Deprecated
-    public Element serializeXRootToElement(RootXNode xroot, Document document) throws SchemaException {
-        DomLexicalWriter serializer = new DomLexicalWriter(this, schemaRegistry);
-        return serializer.serialize(xroot, document);
-    }
-
     private Element serializeToElement(XNode xnode, QName elementName) throws SchemaException {
         Validate.notNull(xnode);
         Validate.notNull(elementName);

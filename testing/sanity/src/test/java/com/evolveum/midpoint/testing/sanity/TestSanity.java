@@ -50,6 +50,7 @@ import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 import javax.xml.ws.Holder;
 
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.task.api.TaskManagerException;
 import com.evolveum.midpoint.util.exception.*;
 import org.apache.commons.lang.StringUtils;
@@ -80,14 +81,6 @@ import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.model.test.AbstractModelIntegrationTest;
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
@@ -709,14 +702,21 @@ public class TestSanity extends AbstractModelIntegrationTest {
         display("DB Connector: ", dbConnector);
 
         // Check if password was encrypted during import
+        // via JAXB
         Object configurationPropertiesElement = JAXBUtil.findElement(derbyResource.asObjectable().getConnectorConfiguration().getAny(),
                 new QName(dbConnector.asObjectable().getNamespace(), "configurationProperties"));
         Object passwordElement = JAXBUtil.findElement(JAXBUtil.listChildElements(configurationPropertiesElement),
                 new QName(dbConnector.asObjectable().getNamespace(), "password"));
         System.out.println("Password element: " + passwordElement);
 
-
-        
+        // via prisms
+        PrismContainerValue configurationProperties = derbyResource.findContainer(
+                new ItemPath(
+                        ResourceType.F_CONNECTOR_CONFIGURATION,
+                        new QName("configurationProperties")))
+                .getValue();
+        PrismProperty password = configurationProperties.findProperty(new QName(dbConnector.asObjectable().getNamespace(), "password"));
+        System.out.println("Password property: " + password);
 	}
 
     private void addObjectViaModelWS(ObjectType objectType, ModelExecuteOptionsType options, Holder<String> oidHolder, Holder<OperationResultType> resultHolder) throws FaultMessage {

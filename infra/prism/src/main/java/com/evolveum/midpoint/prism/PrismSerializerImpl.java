@@ -38,16 +38,19 @@ public class PrismSerializerImpl<T> implements PrismSerializer<T> {
 		this.context = context;
 	}
 
+	@NotNull
 	@Override
 	public PrismSerializerImpl<T> context(SerializationContext context) {
 		return new PrismSerializerImpl<>(this.target, elementName, context);
 	}
 
+	@NotNull
 	@Override
 	public PrismSerializerImpl<T> root(QName elementName) {
 		return new PrismSerializerImpl<>(this.target, elementName, this.context);
 	}
 
+	@NotNull
 	@Override
 	public PrismSerializerImpl<T> options(SerializationOptions options) {
 		SerializationContext context;
@@ -60,8 +63,9 @@ public class PrismSerializerImpl<T> implements PrismSerializer<T> {
 		return new PrismSerializerImpl<>(this.target, this.elementName, context);
 	}
 
+	@NotNull
 	@Override
-	public <O extends Objectable> T serialize(PrismObject<O> object) throws SchemaException {
+	public <O extends Objectable> T serialize(@NotNull PrismObject<O> object) throws SchemaException {
 		RootXNode xroot = target.lexicalHelpers.xnodeProcessor.serializeObject(object, false, context);			// TODO serialize composite objects?
 		if (elementName != null) {
 			xroot.setRootElementName(elementName);		// TODO what about the type?
@@ -69,13 +73,15 @@ public class PrismSerializerImpl<T> implements PrismSerializer<T> {
 		return target.serialize(xroot, context);
 	}
 
+	@NotNull
 	@Override
-	public T serialize(PrismValue value) throws SchemaException {
+	public T serialize(@NotNull PrismValue value) throws SchemaException {
 		return serialize(value, elementName);
 	}
 
+	@NotNull
 	@Override
-	public T serialize(PrismValue value, QName rootElementName) throws SchemaException {
+	public T serialize(@NotNull PrismValue value, @NotNull QName rootElementName) throws SchemaException {
 		RootXNode xroot = target.lexicalHelpers.xnodeProcessor.serializeItemValueAsRoot(value, rootElementName);	// TODO context
 		return target.serialize(xroot, context);
 	}
