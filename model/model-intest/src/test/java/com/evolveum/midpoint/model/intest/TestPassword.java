@@ -38,6 +38,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
+import com.evolveum.icf.dummy.resource.ConflictException;
 import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.icf.dummy.resource.SchemaViolationException;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
@@ -894,7 +895,7 @@ public class TestPassword extends AbstractInitializedModelIntegrationTest {
 	}
 
 
-	private void assertDummyPassword(String userId, String expectedClearPassword) throws SchemaViolationException {
+	private void assertDummyPassword(String userId, String expectedClearPassword) throws SchemaViolationException, ConflictException {
 		assertDummyPassword(null, userId, expectedClearPassword);
 	}
 	

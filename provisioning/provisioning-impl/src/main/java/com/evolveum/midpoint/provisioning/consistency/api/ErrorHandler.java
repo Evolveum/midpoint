@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -71,19 +71,9 @@ public abstract class ErrorHandler {
 		return resource.getConsistency().isPostpone();
 	}
 	
-	protected boolean isDoDiscovery(ResourceType resource){
-		if (resource.getConsistency() == null){
-			return true;
-		}
-		
-		if (resource.getConsistency().isDiscovery() == null){
-			return true;
-		}
-		
-		return resource.getConsistency().isDiscovery();
-	}
-	
-	public abstract <T extends ShadowType> T handleError(T shadow, FailedOperation op, Exception ex, boolean compensate, Task task, OperationResult parentResult) throws SchemaException, GenericFrameworkException, CommunicationException, ObjectNotFoundException, ObjectAlreadyExistsException, ConfigurationException, SecurityViolationException;
+	public abstract <T extends ShadowType> T handleError(T shadow, FailedOperation op, Exception ex, 
+			boolean doDiscovery, boolean compensate, Task task, OperationResult parentResult) 
+					throws SchemaException, GenericFrameworkException, CommunicationException, ObjectNotFoundException, ObjectAlreadyExistsException, ConfigurationException, SecurityViolationException;
 
 	
 	protected <T extends ShadowType> Collection<ItemDelta> createAttemptModification(T shadow,

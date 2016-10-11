@@ -51,9 +51,19 @@ public class SecurityViolationHandler extends ErrorHandler{
 	private RepositoryService cacheRepositoryService;
 	
 	@Override
-	public <T extends ShadowType> T handleError(T shadow, FailedOperation op, Exception ex, boolean compensate,
+	public <T extends ShadowType> T handleError(T shadow, FailedOperation op, Exception ex, 
+			boolean doDiscovery, boolean compensate,
 			Task task, OperationResult parentResult) throws SchemaException, GenericFrameworkException, CommunicationException,
 			ObjectNotFoundException, ObjectAlreadyExistsException, ConfigurationException, SecurityViolationException {
+		
+		if (!doDiscovery) {
+			parentResult.recordFatalError(ex);
+			if (ex instanceof SecurityViolationException) {
+				throw (SecurityViolationException)ex;
+			} else {
+				throw new SecurityViolationException(ex.getMessage(), ex);
+			}
+		}
 		
 		ObjectDelta delta = null;
 		switch(op){

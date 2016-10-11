@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,15 +19,22 @@ package com.evolveum.icf.dummy.resource;
  * @author semancik
  *
  */
-public enum BreakMode {
-	
-	NONE,
-	NETWORK,
-	IO,
-	SCHEMA,
-	CONFLICT, // results in AlreadyExists exceptions
-	GENERIC,
-	UNSUPPORTED,
-	RUNTIME;
+public class ConflictException extends Exception {
+
+	public ConflictException() {
+		super();
+	}
+
+	public ConflictException(String message, Throwable cause) {
+		super(message, cause);
+	}
+
+	public ConflictException(String message) {
+		super(message);
+	}
+
+	public ConflictException(Throwable cause) {
+		super(cause);
+	}
 
 }

@@ -54,10 +54,20 @@ public class ConfigurationExceptionHandler extends ErrorHandler {
 	private RepositoryService cacheRepositoryService;
 	
 	@Override
-	public <T extends ShadowType> T handleError(T shadow, FailedOperation op, Exception ex, boolean compensate,
+	public <T extends ShadowType> T handleError(T shadow, FailedOperation op, Exception ex, 
+			boolean doDiscovery, boolean compensate,
 			Task task, OperationResult parentResult) throws SchemaException, GenericFrameworkException, CommunicationException,
 			ObjectNotFoundException, ObjectAlreadyExistsException, ConfigurationException {
 
+		if (!doDiscovery) {
+			parentResult.recordFatalError(ex);
+			if (ex instanceof ConfigurationException) {
+				throw (ConfigurationException)ex;
+			} else {
+				throw new ConfigurationException(ex.getMessage(), ex);
+			}
+		}
+		
         ObjectDelta delta = null;
 		switch (op) {
             case ADD:

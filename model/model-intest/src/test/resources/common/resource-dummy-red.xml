@@ -119,6 +119,18 @@
 				</outbound>
 			</attribute>
 			<attribute>
+				<ref>ri:location</ref>
+				<displayName>Location</displayName>
+				<outbound>
+					<strength>strong</strength>
+					<source>
+						<path>
+							$user/locality
+						</path>
+					</source>
+				</outbound>
+			</attribute>
+			<attribute>
 				<ref>ri:ship</ref>
 				<displayName>Ship</displayName>
 				<outbound>

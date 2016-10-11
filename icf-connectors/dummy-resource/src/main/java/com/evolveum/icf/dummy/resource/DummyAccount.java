@@ -55,7 +55,7 @@ public class DummyAccount extends DummyObject {
 		return password;
 	}
 
-	public void setPassword(String password) throws ConnectException, FileNotFoundException, SchemaViolationException {
+	public void setPassword(String password) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
 		checkModifyBreak();
 		this.password = password;
 	}
@@ -64,13 +64,13 @@ public class DummyAccount extends DummyObject {
 		return lockout;
 	}
 
-	public void setLockout(boolean lockout) throws ConnectException, FileNotFoundException, SchemaViolationException {
+	public void setLockout(boolean lockout) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
 		checkModifyBreak();
 		this.lockout = lockout;
 	}
 
 	@Override
-	protected DummyObjectClass getObjectClass() throws ConnectException, FileNotFoundException, SchemaViolationException {
+	protected DummyObjectClass getObjectClass() throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
 		return resource.getAccountObjectClass();
 	}
 
