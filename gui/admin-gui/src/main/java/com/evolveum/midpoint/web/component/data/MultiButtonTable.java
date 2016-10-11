@@ -1,3 +1,18 @@
+/*
+ * Copyright (c) 2016 Evolveum
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.evolveum.midpoint.web.component.data;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
@@ -22,12 +37,15 @@ import java.util.List;
  * Created honchar.
  */
 public class MultiButtonTable extends BasePanel<List<AssignmentEditorDto>> {
-    private static final String ID_ROW = "row";
+	private static final long serialVersionUID = 1L;
+
+	private static final String ID_ROW = "row";
     private static final String ID_CELL = "cell";
-    private static final String ID_BUTTON_TYPE_ICON = "typeIcon";
-    private static final String ID_BUTTON_LABEL = "buttonLabel";
-    private static final String ID_BUTTON_PLUS_ICON = "plusIcon";
-    private static final String ID_BUTTON = "assignmentButton";
+    private static final String ID_INNER = "inner";
+    private static final String ID_INNER_LABEL = "innerLabel";
+    private static final String ID_TYPE_ICON = "typeIcon";
+    private static final String ID_ADD_TO_CART_LINK = "addToCartLink";
+    private static final String ID_DETAILS_LINK = "detailsLink";
 
     private long itemsCount = 0;
     private long itemsPerRow = 0;
@@ -77,7 +95,7 @@ public class MultiButtonTable extends BasePanel<List<AssignmentEditorDto>> {
     }
 
     protected void populateCell(WebMarkupContainer cellContainer, final AssignmentEditorDto assignment){
-        AjaxLink assignmentButton = new AjaxLink(ID_BUTTON) {
+        AjaxLink inner = new AjaxLink(ID_INNER) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -107,45 +125,51 @@ public class MultiButtonTable extends BasePanel<List<AssignmentEditorDto>> {
                 }
             }
         };
-//        assignmentButton.add(new AttributeModifier("class", "col-md-4"));
-        Label plusLabel = new Label(ID_BUTTON_PLUS_ICON, "+");
-//        plusLabel.add(new AttributeAppender("title", getPageBase().createStringResource("MultiButtonPanel.plusIconTitle")));
-        plusLabel.add(new AjaxEventBehavior("click") {
-            private static final long serialVersionUID = 1L;
+        cellContainer.add(inner);
+        
+        Label nameLabel = new Label(ID_INNER_LABEL, assignment.getName());
+        inner.add(nameLabel);
+        
+        AjaxLink detailsLink = new AjaxLink(ID_DETAILS_LINK) {
+			private static final long serialVersionUID = 1L;
 
-            @Override
-            protected void onEvent(AjaxRequestTarget target) {
-                addAssignmentPerformed(assignment, target);
-            }
-        });
-        assignmentButton.add(plusLabel);
+			@Override
+			public void onClick(AjaxRequestTarget target) {
+				// TODO
+			}
+        	
+        };
+        cellContainer.add(detailsLink);
+        
+        AjaxLink addToCartLink = new AjaxLink(ID_ADD_TO_CART_LINK) {
+			private static final long serialVersionUID = 1L;
 
-        WebMarkupContainer icon = new WebMarkupContainer(ID_BUTTON_TYPE_ICON);
+			@Override
+			public void onClick(AjaxRequestTarget target) {
+				addAssignmentPerformed(assignment, target);
+			}
+        	
+        };
+        cellContainer.add(addToCartLink);
+        
+
+        WebMarkupContainer icon = new WebMarkupContainer(ID_TYPE_ICON);
         icon.add(new AttributeAppender("class", getIconClass(assignment.getType())));
-        assignmentButton.add(icon);
+        cellContainer.add(icon);
 
-        Label nameLabel = new Label(ID_BUTTON_LABEL, assignment.getName());
-//        nameLabel.add(new AjaxEventBehavior("click") {
-//            private static final long serialVersionUID = 1L;
-//            @Override
-//            protected void onEvent(AjaxRequestTarget ajaxRequestTarget) {
-//
-//            }
-//        });
-        assignmentButton.add(nameLabel);
-        cellContainer.add(assignmentButton);
     }
 
     protected void assignmentDetailsPerformed(AjaxRequestTarget target){
     }
 
     private String getIconClass(AssignmentEditorDtoType type){
+    	// TODO: switch to icon constants
         if (AssignmentEditorDtoType.ROLE.equals(type)){
-            return "fa fa-street-view object-role-color";
+            return "fa fa-street-view";
         }else if (AssignmentEditorDtoType.SERVICE.equals(type)){
-            return "fa fa-cloud object-service-color";
+            return "fa fa-cloud";
         }else if (AssignmentEditorDtoType.ORG_UNIT.equals(type)){
-            return "fa fa-building object-org-color";
+            return "fa fa-building";
         } else {
             return "";
         }
