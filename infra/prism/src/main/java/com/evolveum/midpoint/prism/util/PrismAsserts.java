@@ -417,11 +417,15 @@ public class PrismAsserts {
 		assertSet("delta "+propertyDelta+" for "+propertyPath.last(), "delete", propertyDelta.getValuesToDelete(), expectedValues);
 	}
 	
-	public static void assertNoItemDelta(ObjectDelta<?> userDelta, ItemPath propertyPath) {
-		if (userDelta == null) {
+	public static void assertNoItemDelta(ObjectDelta<?> objectDelta, QName itemName) {
+		assertNoItemDelta(objectDelta, new ItemPath(itemName));
+	}
+	
+	public static void assertNoItemDelta(ObjectDelta<?> objectDelta, ItemPath itemPath) {
+		if (objectDelta == null) {
 			return;
 		}
-		assert !userDelta.hasItemDelta(propertyPath) : "Delta for item "+propertyPath+" present while not expecting it";
+		assert !objectDelta.hasItemDelta(itemPath) : "Delta for item "+itemPath+" present while not expecting it";
 	}
 	
 	public static ContainerDelta<?> assertContainerAdd(ObjectDelta<?> objectDelta, QName name) {
