@@ -9360,6 +9360,20 @@
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
+                    
+                    <xsd:element name="mergeConfiguration" type="tns:MergeConfigurationType" minOccurs="0" maxOccurs="1">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Configuration for object merging. E.g. for merging two users.
+                                Note: this is a single-valued item now. But it will most likely be
+                                switched to multi-valued item in future midPoint versions.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                            	<a:since>3.5</a:since>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -12318,5 +12332,83 @@
 			</xsd:element>
 		</xsd:sequence>
 	</xsd:complexType>
+	
+	<xsd:complexType name="MergeConfigurationType">
+		<xsd:annotation>
+			<xsd:documentation>
+				TODO
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:container/>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="name" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+			<xsd:element name="description" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+			<xsd:element name="item" type="tns:ItemRefMergeConfigurationType" minOccurs="0" maxOccurs="unbounded"/>
+			<xsd:element name="default" type="tns:ItemMergeConfigurationType" minOccurs="0" maxOccurs="1"/>
+		</xsd:sequence>
+	</xsd:complexType>
+	
+	<xsd:complexType name="ItemMergeConfigurationType">
+		<xsd:annotation>
+			<xsd:documentation>
+				TODO
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:container/>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="left" type="tns:MergeStategyType" minOccurs="0" maxOccurs="1"/>
+			<xsd:element name="right" type="tns:MergeStategyType" minOccurs="0" maxOccurs="1"/>
+		</xsd:sequence>
+	</xsd:complexType>
+	
+	<xsd:complexType name="ItemRefMergeConfigurationType">
+		<xsd:annotation>
+			<xsd:documentation>
+				TODO
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:container/>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:complexContent>
+			<xsd:extension base="tns:ItemMergeConfigurationType">
+				<xsd:sequence>
+					<xsd:element name="ref" type="t:ItemPathType" minOccurs="1" maxOccurs="1"/>
+				</xsd:sequence>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+	
+	<xsd:simpleType name="MergeStategyType">
+		<xsd:annotation>
+			<xsd:documentation>
+				TODO
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="ignore">
+				<xsd:annotation>
+					<xsd:documentation>
+					</xsd:documentation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="IGNORE"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+			<xsd:enumeration value="take">
+				<xsd:annotation>
+					<xsd:documentation>
+					</xsd:documentation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="TAKE"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+		</xsd:restriction>
+	</xsd:simpleType>
 
 </xsd:schema>

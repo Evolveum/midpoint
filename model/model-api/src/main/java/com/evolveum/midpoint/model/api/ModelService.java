@@ -107,6 +107,7 @@ public interface ModelService {
 	static final String IMPORT_OBJECTS_FROM_STREAM = CLASS_NAME_WITH_DOT + "importObjectsFromStream";
 	static final String POST_INIT = CLASS_NAME_WITH_DOT + "postInit";
 	static final String DISCOVER_CONNECTORS = CLASS_NAME_WITH_DOT + "discoverConnectors";
+	static final String MERGE_OBJECTS = CLASS_NAME_WITH_DOT + "mergeObjects";
 
 	static final String AUTZ_NAMESPACE = AuthorizationConstants.NS_AUTHORIZATION_MODEL;
 	
@@ -641,7 +642,7 @@ public interface ModelService {
 	 * @param ignoreItemPaths
 	 * @param task
 	 * @param result
-	 * @param <T>
+	 * @param <O>
 	 * @return
 	 * @throws SchemaException
 	 * @throws ObjectNotFoundException
@@ -649,9 +650,24 @@ public interface ModelService {
 	 * @throws CommunicationException
 	 * @throws ConfigurationException
 	 */
-	<T extends ObjectType> CompareResultType compareObject(PrismObject<T> object,
+	<O extends ObjectType> CompareResultType compareObject(PrismObject<O> object,
 			Collection<SelectorOptions<GetOperationOptions>> readOptions, ModelCompareOptions compareOptions,
 			@NotNull List<ItemPath> ignoreItemPaths, Task task, OperationResult result)
 			throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException,
 			ConfigurationException;
+	
+	/**
+	 * Merge two objects into one.
+	 * 
+	 * EXPERIMENTAL feature. The method signature is likely to change in the future.
+	 * 
+	 * @param type object type
+	 * @param leftOid left-side object OID
+	 * @param rightOid  right-side object OID
+	 * @param task
+	 * @param result
+	 * @return 
+	 */
+	<O extends ObjectType> Collection<ObjectDeltaOperation<? extends ObjectType>> mergeObjects(Class<O> type, String leftOid, String rightOid, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, ConfigurationException, ObjectAlreadyExistsException, ExpressionEvaluationException, CommunicationException, PolicyViolationException, SecurityViolationException;
+	
 }

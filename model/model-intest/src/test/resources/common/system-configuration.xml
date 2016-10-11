@@ -184,4 +184,31 @@
     	</objectForms>
     	<defaultTimezone>Jamaica</defaultTimezone>
     </adminGuiConfiguration>
+    <mergeConfiguration>
+    	<name>default</name>
+    	<item>
+    		<ref>name</ref>
+    		<left>take</left>
+    	</item>
+    	<item>
+    		<ref>givenName</ref>
+    		<left>take</left>
+    		<right>ignore</right>
+    	</item>
+    	<item>
+    		<ref>familyName</ref>
+    	</item>
+    	<item>
+    		<ref>fullName</ref>
+    		<right>take</right>
+    	</item>
+    	<item>
+    		<ref>employeeType</ref>
+    		<left>take</left>
+    		<right>take</right>
+    	</item>
+    	<default>
+    		<right>take</right>
+    	</default>
+    </mergeConfiguration>
 </systemConfiguration>
