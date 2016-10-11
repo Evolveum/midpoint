@@ -722,12 +722,6 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
             /*
              * ### UserType: Exists (assignment, Equal (activation/administrativeStatus = Enabled))
              */
-            ExistsFilter filter = ExistsFilter.createExists(new ItemPath(F_ASSIGNMENT), UserType.class, prismContext,
-                    EqualFilter.createEqual(new ItemPath(AssignmentType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS),
-                            AssignmentType.class, prismContext, null, ActivationStatusType.ENABLED));
-            ObjectQuery query0 = ObjectQuery.createObjectQuery(filter);
-            query0.setPaging(ObjectPaging.createPaging(F_NAME, ASCENDING));
-
             ObjectQuery query = QueryBuilder.queryFor(UserType.class, prismContext)
                     .exists(F_ASSIGNMENT)
                         .item(AssignmentType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS)
@@ -2735,11 +2729,9 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
             PrismContainerDefinition assignmentDef = userDef.findContainerDefinition(F_ASSIGNMENT);
             PrismPropertyDefinition propDef = assignmentDef.createPropertyDefinition(SKIP_AUTOGENERATION, DOMUtil.XSD_BOOLEAN);
 
-            EqualFilter eq = EqualFilter.createEqual(
-                    new ItemPath(F_ASSIGNMENT, AssignmentType.F_EXTENSION, SKIP_AUTOGENERATION),
-                    propDef, null, true);
-
-            ObjectQuery objectQuery = ObjectQuery.createObjectQuery(eq);
+            ObjectQuery objectQuery = QueryBuilder.queryFor(UserType.class, prismContext)
+                    .itemWithDef(propDef, F_ASSIGNMENT, AssignmentType.F_EXTENSION, SKIP_AUTOGENERATION).eq(true)
+                    .build();
             objectQuery.setUseNewQueryInterpreter(true);
 
             String real = getInterpretedQuery2(session, UserType.class, objectQuery);

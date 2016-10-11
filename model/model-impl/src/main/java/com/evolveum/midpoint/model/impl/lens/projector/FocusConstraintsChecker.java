@@ -126,7 +126,7 @@ public class FocusConstraintsChecker<F extends FocusType> {
 		String oid = objectNew.getOid();
 		
 		ObjectQuery query = ObjectQuery.createObjectQuery(
-				EqualFilter.createEqual(propPath, property.clone()));
+				EqualFilter.createEqual(propPath, property));
 		
 		List<PrismObject<F>> foundObjects = repositoryService.searchObjects(objectNew.getCompileTimeClass(), query, null, result);
 		if (LOGGER.isTraceEnabled()) {

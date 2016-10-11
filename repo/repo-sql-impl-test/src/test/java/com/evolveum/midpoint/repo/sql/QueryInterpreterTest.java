@@ -22,6 +22,7 @@ import com.evolveum.midpoint.prism.match.PolyStringOrigMatchingRule;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.*;
+import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
@@ -1831,18 +1832,17 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
             PrismContainerDefinition assignmentDef = userDef.findContainerDefinition(UserType.F_ASSIGNMENT);
             PrismPropertyDefinition propDef = assignmentDef.createPropertyDefinition(SKIP_AUTOGENERATION, DOMUtil.XSD_BOOLEAN);
 
-            EqualFilter eq = EqualFilter.createEqual(
-                    new ItemPath(UserType.F_ASSIGNMENT, AssignmentType.F_EXTENSION, SKIP_AUTOGENERATION),
-                    propDef, null, true);
+            ObjectQuery objectQuery = QueryBuilder.queryFor(UserType.class, prismContext)
+                    .itemWithDef(propDef, UserType.F_ASSIGNMENT, AssignmentType.F_EXTENSION, SKIP_AUTOGENERATION).eq(true)
+                    .build();
 
-            String real = getInterpretedQuery(session, UserType.class, ObjectQuery.createObjectQuery(eq));
+            String real = getInterpretedQuery(session, UserType.class, objectQuery);
 
             LOGGER.info("exp. query>\n{}\nreal query>\n{}", new Object[]{expected, real});
             AssertJUnit.assertEquals(expected, real);
 
             OperationResult result = new OperationResult("search");
-            List<PrismObject<UserType>> objects = repositoryService.searchObjects(UserType.class,
-                    ObjectQuery.createObjectQuery(eq), null, result);
+            List<PrismObject<UserType>> objects = repositoryService.searchObjects(UserType.class, objectQuery, null, result);
             result.computeStatus();
             AssertJUnit.assertTrue(result.isSuccess());
 
@@ -1853,7 +1853,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
             AssertJUnit.assertTrue(obj.getCompileTimeClass().equals(UserType.class));
 
             result = new OperationResult("count");
-            long count = repositoryService.countObjects(UserType.class, ObjectQuery.createObjectQuery(eq), result);
+            long count = repositoryService.countObjects(UserType.class, objectQuery, result);
             result.computeStatus();
             AssertJUnit.assertTrue(result.isSuccess());
             AssertJUnit.assertEquals(1, count);

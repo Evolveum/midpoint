@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.prism.query;
 
+import java.util.Collection;
 import java.util.List;
 
 import javax.xml.namespace.QName;
@@ -24,8 +25,6 @@ import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
-
-import org.apache.commons.lang.Validate;
 
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Item;
@@ -36,158 +35,125 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-public class EqualFilter<T extends Object> extends PropertyValueFilter<PrismPropertyValue<T>> implements Itemable {
+public class EqualFilter<T> extends PropertyValueFilter<PrismPropertyValue<T>> implements Itemable {
 	private static final long serialVersionUID = 3284478412180258355L;
 	
 	public static final QName ELEMENT_NAME = new QName(PrismConstants.NS_QUERY, "equal");
 
-	EqualFilter() {	
-	}
-	
-	EqualFilter(ItemPath parentPath, PrismPropertyDefinition<T> definition, QName matchingRule, List<PrismPropertyValue<T>> values) {
-		super(parentPath, definition, matchingRule, values);
-	}
-
-	EqualFilter(ItemPath parentPath, PrismPropertyDefinition<T> definition, QName matchingRule, ItemPath rightSidePath, ItemDefinition rightSideDefinition) {
+	private EqualFilter(@NotNull ItemPath parentPath, PrismPropertyDefinition<T> definition, QName matchingRule,
+			@NotNull ItemPath rightSidePath, ItemDefinition rightSideDefinition) {
 		super(parentPath, definition, matchingRule, rightSidePath, rightSideDefinition);
 	}
 
-	private EqualFilter(ItemPath parentPath, PrismPropertyDefinition<T> definition, QName matchingRule) {
-		super(parentPath, definition, matchingRule);
-	}
-		
-	EqualFilter(ItemPath parentPath, PrismPropertyDefinition<T> definition, QName matchingRule, ExpressionWrapper expression) {
-		super(parentPath, definition, matchingRule, expression);
-	}
-	
-	public static <T> EqualFilter<T> createEqual(ItemPath path, PrismPropertyDefinition<T> definition, 
-			QName matchingRule, ExpressionWrapper expression) {
-		Validate.notNull(path, "Path must not be null");
-		// Do not check definition. We may want queries for which the definition is supplied later.
-		return new EqualFilter<>(path, definition, matchingRule, expression);
+	private EqualFilter(@NotNull ItemPath fullPath, PrismPropertyDefinition<T> definition, QName matchingRule,
+			List<PrismPropertyValue<T>> values, ExpressionWrapper expression) {
+		super(fullPath, definition, matchingRule, values, expression);
 	}
 
 	//factory methods
-	public static <T> EqualFilter<T> createEqual(ItemPath path, PrismProperty<T> item) {
-		return createEqual(path, item, null);
+	// Do not require definition. We may want queries for which the definition is supplied later.
+
+	// expression-related
+	@NotNull
+	public static <T> EqualFilter<T> createEqual(@NotNull ItemPath path, @Nullable PrismPropertyDefinition<T> definition,
+			@Nullable QName matchingRule, @Nullable ExpressionWrapper expression) {
+		return new EqualFilter<>(path, definition, matchingRule, null, expression);
 	}
-	
-	public static <T> EqualFilter<T> createEqual(ItemPath path, PrismProperty<T> item, 
-			QName matchingRule) {
-		List<PrismPropertyValue<T>> clonedValues = (List<PrismPropertyValue<T>>) PrismPropertyValue.cloneCollection(item.getValues());
-		return createEqual(path, item.getDefinition(), matchingRule, clonedValues);
+
+	// Collection<PPV>
+	@NotNull
+	public static <T> EqualFilter<T> createEqual(@NotNull ItemPath path, @Nullable PrismPropertyDefinition<T> definition,
+			@Nullable QName matchingRule, @NotNull List<PrismPropertyValue<T>> values) {
+		return new EqualFilter<T>(path, definition, matchingRule, values, null);
 	}
-	
-	public static <T> EqualFilter<T> createEqual(ItemPath path, PrismPropertyDefinition<T> definition, 
-			QName matchingRule, List<PrismPropertyValue<T>> values) {
-		Validate.notNull(values, "values must not be null");
-		Validate.notNull(path, "Path must not be null");
-		EqualFilter<T> equalFilter = new EqualFilter<T>(path, definition, matchingRule, values);
-		for (PrismPropertyValue<T> value: values) {
-			value.setParent(equalFilter);
-		}
-		return equalFilter;
+
+	// -------------------------------- PPV
+	// canonical
+
+	@NotNull
+	public static <T> EqualFilter<T> createEqual(@NotNull ItemPath path, @NotNull PrismPropertyDefinition<T> itemDefinition, PrismPropertyValue<T> value) {
+		List<PrismPropertyValue<T>> pValues = createPropertyList(itemDefinition, value);
+		return new EqualFilter<>(path, itemDefinition, null, pValues, null);
 	}
-	
-	public static <T> EqualFilter<T> createEqual(ItemPath path, PrismPropertyDefinition<T> itemDefinition, T realValue){
+
+
+	// List<values>
+	// Array of values
+
+	@NotNull
+	@SafeVarargs
+	public static <T> EqualFilter<T> createEqualMultiple(@NotNull ItemPath path, @NotNull PrismPropertyDefinition<T> definition,
+			@Nullable QName matchingRule, T... realValues) {
+		return new EqualFilter<>(path, definition, matchingRule, createPropertyListFromArray(definition, realValues), null);
+	}
+
+	// -------------------------------- single value
+	// ------------------- with matching rule
+	// canonical
+	@NotNull
+	public static <T> EqualFilter<T> createEqual(@NotNull ItemPath path, @NotNull PrismPropertyDefinition<T> definition,
+			@Nullable QName matchingRule, @Nullable T realValue) {
+		return new EqualFilter<>(path, definition, matchingRule, realValueToPropertyList(definition, realValue), null);
+	}
+
+	// ------------------- without matching rule
+	@NotNull
+	public static <T> EqualFilter<T> createEqual(@NotNull ItemPath path, @NotNull PrismPropertyDefinition<T> itemDefinition, @Nullable T realValue) {
 		return createEqual(path, itemDefinition, null, realValue);
 	}
-	
-	public static <T> EqualFilter<T> createEqual(ItemPath path, PrismPropertyDefinition<T> itemDefinition, QName matchingRule, T realValue){
-		Validate.notNull(itemDefinition, "Item definition in the filter must not be null");
-		Validate.notNull(path, "Path in the filter must not be null");
-		if (realValue == null){
-			//TODO: create null filter
-			return createNullEqual(path, itemDefinition, matchingRule);
-		}
-		List<PrismPropertyValue<T>> pVals = createPropertyList(itemDefinition, realValue);
-		EqualFilter<T> equalFilter = new EqualFilter<>(path, itemDefinition, matchingRule, pVals);
-		for (PrismPropertyValue<T> value: pVals) {
-			value.setParent(equalFilter);
-		}
-		return equalFilter;
+
+	// definition from container
+	private static <C extends Containerable, T> EqualFilter<T> createEqual(@NotNull ItemPath propertyPath, @NotNull Class<C> type, @NotNull PrismContext prismContext,
+			@Nullable QName matchingRule, T realValue) {
+		@SuppressWarnings("unchecked")
+		PrismPropertyDefinition<T> propertyDefinition = (PrismPropertyDefinition) FilterUtils.findItemDefinition(propertyPath, type, prismContext);
+		return createEqual(propertyPath, propertyDefinition, matchingRule, realValue);
 	}
 
-	public static <T> EqualFilter<T> createEqualMultiple(ItemPath path, PrismPropertyDefinition<T> itemDefinition, QName matchingRule, T... realValues) {
-		Validate.notNull(itemDefinition, "Item definition in the filter must not be null");
-		Validate.notNull(path, "Path in the filter must not be null");
-		if (realValues.length == 0 || (realValues.length == 1 && realValues[0] == null)) {
-			return createNullEqual(path, itemDefinition, matchingRule);
-		}
-		List<PrismPropertyValue<T>> pVals = createPropertyListFromArray(itemDefinition, realValues);
-		EqualFilter<T> equalFilter = new EqualFilter<>(path, itemDefinition, matchingRule, pVals);
-		for (PrismPropertyValue<T> value: pVals) {
-			value.setParent(equalFilter);
-		}
-		return equalFilter;
-	}
-	
-	public static <T> EqualFilter<T> createEqual(QName propertyName, PrismPropertyDefinition<T> propertyDefinition, QName matchingRule, T realValue){
-		return createEqual(new ItemPath(propertyName), propertyDefinition, matchingRule, realValue);
-	}
-	
-	public static <T> EqualFilter<T> createEqual(QName propertyName, PrismPropertyDefinition<T> propertyDefinition, T realValues){
-		return createEqual(new ItemPath(propertyName), propertyDefinition, null, realValues);
-	}
-	
-	public static <T> EqualFilter<T> createEqual(ItemPath path, PrismPropertyDefinition<T> itemDefinition, PrismPropertyValue<T> values) {
-		return createEqual(path, itemDefinition, null, values);
-	}
-	
-	public static <T> EqualFilter<T> createEqual(ItemPath path, PrismPropertyDefinition<T> itemDefinition, QName matchingRule, PrismPropertyValue<T> values){
-		Validate.notNull(itemDefinition, "Item definition in the filter must not be null");
-		Validate.notNull(path, "Path in the filter must not be null");
-		if (values == null){
-			//TODO: create null filter
-			return createNullEqual(path, itemDefinition, matchingRule);
-		}
-		
-		List<PrismPropertyValue<T>> pValues = createPropertyList(itemDefinition, values);
-		
-		EqualFilter<T> equalFilter = new EqualFilter<>(path, itemDefinition, matchingRule, pValues);
-		for (PrismPropertyValue<T> value: pValues) {
-			value.setParent(equalFilter);
-		}
-		return equalFilter;
-	}
-	
-	public static <C extends Containerable, T> EqualFilter<T> createEqual(ItemPath parentPath, PrismContainerDefinition<C> containerDef,
-			PrismPropertyValue<T> values) throws SchemaException {
-		PrismPropertyDefinition<T> propertyDef = (PrismPropertyDefinition) FilterUtils.findItemDefinition(parentPath, containerDef);
-		return createEqual(parentPath, propertyDef, values);
+	@NotNull
+	public static <C extends Containerable, T> EqualFilter<T> createEqual(@NotNull ItemPath propertyPath, @NotNull Class<C> type, @NotNull PrismContext prismContext, T realValue)
+			throws SchemaException {
+		return createEqual(propertyPath, type, prismContext, null, realValue);
 	}
 
-	public static <C extends Containerable, T> EqualFilter<T> createEqual(ItemPath itemPath, PrismContainerDefinition<C> containerDef,
+	@NotNull
+	public static <C extends Containerable, T> EqualFilter<T> createEqual(@NotNull QName propertyName, @NotNull Class<C> type, @NotNull PrismContext prismContext,
+			QName matchingRule, T realValues) {
+		return createEqual(new ItemPath(propertyName), type, prismContext, matchingRule, realValues);
+	}
+
+	@NotNull
+	public static <C extends Containerable, T> EqualFilter<T> createEqual(@NotNull QName propertyName, @NotNull Class<C> type, @NotNull PrismContext prismContext, T realValue)
+			throws SchemaException {
+		return createEqual(propertyName, type, prismContext, null, realValue);
+	}
+
+
+	// taking values from existing item (item's values are cloned)
+	@NotNull
+	public static <T> EqualFilter<T> createEqual(@NotNull ItemPath path, @NotNull PrismProperty<T> item) {
+		List<PrismPropertyValue<T>> clonedValues = (List<PrismPropertyValue<T>>) PrismPropertyValue.cloneCollection(item.getValues());
+		return createEqual(path, item.getDefinition(), null, clonedValues);
+	}
+
+
+
+
+
+
+	@NotNull
+	public static <C extends Containerable, T> EqualFilter<T> createEqual(@NotNull ItemPath itemPath, @NotNull PrismContainerDefinition<C> containerDef,
 			T realValues) throws SchemaException {
 		PrismPropertyDefinition<T> propertyDef = (PrismPropertyDefinition) FilterUtils.findItemDefinition(itemPath, containerDef);
 		return createEqual(itemPath, propertyDef, realValues);
 	}
 
-	public static <C extends Containerable, T> EqualFilter<T> createEqual(QName propertyName, Class<C> type, PrismContext prismContext, T realValues)
-			throws SchemaException {
-		return createEqual(propertyName, type, prismContext, null, realValues);
-	}
-	
-	 public static <C extends Containerable, T> EqualFilter<T> createEqual(QName propertyName, Class<C> type, PrismContext prismContext,
-             QName matchingRule, T realValues) {
-		 
-		return createEqual(new ItemPath(propertyName), type, prismContext, matchingRule, realValues);
-	 }
-	
-	public static <C extends Containerable, T> EqualFilter<T> createEqual(ItemPath propertyPath, Class<C> type, PrismContext prismContext, T realValue)
-			throws SchemaException {
-		return createEqual(propertyPath, type, prismContext, null, realValue);
-	}
-	
-	public static <C extends Containerable, T> EqualFilter<T> createEqual(ItemPath propertyPath, Class<C> type, PrismContext prismContext, QName matchingRule, T realValue) {
-		PrismPropertyDefinition propertyDefinition = (PrismPropertyDefinition) FilterUtils.findItemDefinition(propertyPath, type, prismContext);
-		return createEqual(propertyPath, propertyDefinition, matchingRule, realValue);
-	}
 
 	public static <C extends Containerable, T> EqualFilter<T> createEqual(ItemPath propertyPath, Class<C> type, PrismContext prismContext, QName matchingRule, ItemPath rightSidePath) {
 		PrismPropertyDefinition propertyDefinition = (PrismPropertyDefinition) FilterUtils.findItemDefinition(propertyPath, type, prismContext);
@@ -207,13 +173,13 @@ public class EqualFilter<T extends Object> extends PropertyValueFilter<PrismProp
 	}
 
 	public static <T> EqualFilter<T> createNullEqual(ItemPath itemPath, PrismPropertyDefinition<T> propertyDef, QName matchingRule){
-		return new EqualFilter(itemPath, propertyDef, matchingRule);
+		return new EqualFilter(itemPath, propertyDef, matchingRule, (List) null, null);
 		
 	}
 
     @Override
 	public EqualFilter<T> clone() {
-		EqualFilter<T> clone = new EqualFilter<>(getFullPath(), getDefinition(), getMatchingRule(), (List<PrismPropertyValue<T>>) getValues());
+		EqualFilter<T> clone = new EqualFilter<>(getFullPath(), getDefinition(), getMatchingRule(), (List<PrismPropertyValue<T>>) getValues(), null);
 		clone.setExpression(getExpression());
 		cloneValues(clone);
 		clone.copyRightSideThingsFrom(this);

@@ -24,6 +24,7 @@ import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.*;
+import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.repo.sql.data.common.ROrgClosure;
@@ -131,9 +132,10 @@ public class OrgStructTest extends BaseSQLRepoTest {
         PrismObjectDefinition<UserType> userObjectDef = prismContext.getSchemaRegistry()
                 .findObjectDefinitionByCompileTimeClass(UserType.class);
 
-        EqualFilter equals = EqualFilter.createEqual(UserType.F_NAME, userObjectDef.findPropertyDefinition(UserType.F_NAME), null, ELAINE_NAME);
-        List<PrismObject<UserType>> users = repositoryService.searchObjects(UserType.class,
-                ObjectQuery.createObjectQuery(equals), null, opResult);
+        ObjectQuery query = QueryBuilder.queryFor(UserType.class, prismContext)
+                .item(UserType.F_NAME).eq(ELAINE_NAME)
+                .build();
+        List<PrismObject<UserType>> users = repositoryService.searchObjects(UserType.class, query, null, opResult);
 
         AssertJUnit.assertEquals(1, users.size());
         ELAINE_OID = users.get(0).getOid();
@@ -270,11 +272,9 @@ public class OrgStructTest extends BaseSQLRepoTest {
             orgClosure = criteria.list();
             AssertJUnit.assertEquals(3, orgClosure.size());
 
-
-        ObjectQuery query = new ObjectQuery();
-        PrismObjectDefinition<UserType> userObjectDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
-        query.setFilter(EqualFilter.createEqual(UserType.F_NAME, userObjectDef.findPropertyDefinition(UserType.F_NAME), null, ELAINE_NAME1));
-
+            ObjectQuery query = QueryBuilder.queryFor(UserType.class, prismContext)
+                    .item(UserType.F_NAME).eq(ELAINE_NAME1)
+                    .build();
             List<PrismObject<UserType>> users = repositoryService.searchObjects(UserType.class, query, null, opResult);
 
             AssertJUnit.assertNotNull(users);

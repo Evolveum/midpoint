@@ -20,6 +20,7 @@ import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.xml.namespace.QName;
 import java.io.Serializable;
@@ -210,7 +211,8 @@ public class ItemPath implements Serializable, Cloneable {
         }
         return null;
     }
-	
+
+    @Nullable
 	public ItemPathSegment last() {
 		if (segments.size() == 0) {
 			return null;
@@ -242,6 +244,7 @@ public class ItemPath implements Serializable, Cloneable {
 	/**
 	 * Returns a path containing all segments except the last one.
 	 */
+	@NotNull
 	public ItemPath allExceptLast() {
 		if (segments.size() == 0) {
 			return EMPTY_PATH;

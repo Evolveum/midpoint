@@ -160,9 +160,7 @@ public class RefFilter extends PropertyValueFilter<PrismReferenceValue> {
 
 	@Override
 	public RefFilter clone() {
-		RefFilter clone = new RefFilter(getFullPath(), (PrismReferenceDefinition) getDefinition(), getExpression(), (List<PrismReferenceValue>) getValues());
-		cloneValues(clone);
-		return clone;
+		return new RefFilter(getFullPath(), getDefinition(), getExpression(), getCloneValuesList());
 	}
 
 	@Override
@@ -231,11 +229,6 @@ public class RefFilter extends PropertyValueFilter<PrismReferenceValue> {
 			// TODO compare relation and target type as well (see repo implementation in ReferenceRestriction)
 		}
 		return false;
-	}
-
-	@Override
-	public QName getElementName() {
-		return getDefinition().getName();
 	}
 
 	@Override

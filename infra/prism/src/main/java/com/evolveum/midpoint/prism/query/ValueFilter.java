@@ -29,110 +29,89 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import org.apache.commons.lang.Validate;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.xml.namespace.QName;
 
 public abstract class ValueFilter<T extends PrismValue> extends ObjectFilter {
 	private static final long serialVersionUID = 1L;
-	private ItemPath fullPath;
-	private ItemDefinition definition;
-	private QName matchingRule;
-	
-	public ValueFilter() {
-		super();
+
+	@NotNull private final ItemPath fullPath;
+	/**
+	 * Definition is not required and not final, because it can be filled-in after creation of the filter (e.g. in provisioning)
+	 */
+	@Nullable private ItemDefinition definition;
+	@Nullable private QName matchingRule;
+
+	// path is not empty
+	protected ValueFilter(@NotNull ItemPath fullPath, @Nullable ItemDefinition definition) {
+		this(fullPath, definition, null);
 	}
-	
-	public ValueFilter(ItemPath parentPath, ItemDefinition definition){
-		this.fullPath = parentPath;
-		this.definition = definition;
-	}
-	
-	public ValueFilter(ItemPath parentPath, ItemDefinition definition, QName matchingRule){
-		this.fullPath = parentPath;
+
+	protected ValueFilter(@NotNull ItemPath fullPath, @Nullable ItemDefinition definition, @Nullable QName matchingRule) {
+		Validate.isTrue(!ItemPath.isNullOrEmpty(fullPath), "path in filter is null or empty");
+		this.fullPath = fullPath;
 		this.definition = definition;
 		this.matchingRule = matchingRule;
 	}
 		
+	@Nullable
 	public ItemDefinition getDefinition() {
 		return definition;
 	}
-	
-	public void setDefinition(ItemDefinition definition) {
+
+	public void setDefinition(@Nullable ItemDefinition definition) {
 		this.definition = definition;
 	}
 	
+	@NotNull
 	public ItemPath getFullPath() {
 		return fullPath;
 	}
 	
-	public void setFullPath(ItemPath path) {
-		this.fullPath = path;
-	}
-	
+	@Nullable
 	public QName getMatchingRule() {
 		return matchingRule;
 	}
 	
-	public void setMatchingRule(QName matchingRule) {
+	public void setMatchingRule(@Nullable QName matchingRule) {
 		this.matchingRule = matchingRule;
 	}
-	
-	public ItemPath getParentPath(){
-		if (fullPath == null){
-			return null;
-		}
-		ItemPath parentPath = fullPath.allExceptLast();
-		
-		if (parentPath == null || parentPath.isEmpty()){
-			return null;
-		}
-		
-		return parentPath; 
+
+	@NotNull
+	public ItemPath getParentPath() {
+		return fullPath.allExceptLast();
 	}
-	
-	public QName getElementName(){
-		if (fullPath == null){
-			return null;
+
+	@NotNull
+	public QName getElementName() {
+		if (definition != null) {
+			return definition.getName();		// this is more precise, as the name in path can be unqualified
 		}
 		ItemPathSegment lastPathSegement = fullPath.last();
-		
-		if (lastPathSegement == null) {
-			return null;
-		}
-		
 		if (lastPathSegement instanceof NameItemPathSegment) {
 			return ((NameItemPathSegment)lastPathSegement).getName();
+		} else if (lastPathSegement == null) {
+			throw new IllegalStateException("Empty full path in filter "+this);
 		} else {
 			throw new IllegalStateException("Got "+lastPathSegement+" as a last path segment in value filter "+this);
 		}
 	}
 	
-	public MatchingRule getMatchingRuleFromRegistry(MatchingRuleRegistry matchingRuleRegistry, Item filterItem){
-		MatchingRule matching = null;
-		try{
-		matching = matchingRuleRegistry.getMatchingRule(matchingRule, filterItem.getDefinition().getTypeName());
+	protected MatchingRule getMatchingRuleFromRegistry(MatchingRuleRegistry matchingRuleRegistry, Item filterItem) {
+		try {
+			return matchingRuleRegistry.getMatchingRule(matchingRule, filterItem.getDefinition().getTypeName());
 		} catch (SchemaException ex){
 			throw new IllegalArgumentException(ex.getMessage(), ex);
 		}
-		
-		return matching;
-
 	}
 
-	protected void cloneValues(ValueFilter clone) {
-		super.cloneValues(clone);
-		clone.fullPath = this.fullPath;
-		clone.definition = this.definition;
-		clone.matchingRule = this.matchingRule;
-	}
-	
 	public abstract boolean isRaw();
 	
 	@Override
 	public void checkConsistence(boolean requireDefinitions) {
-		if (fullPath == null) {
-			throw new IllegalArgumentException("Null path in "+this);
-		}
 		if (requireDefinitions && definition == null) {
 			throw new IllegalArgumentException("Null definition in "+this);
 		}
@@ -143,7 +122,7 @@ public abstract class ValueFilter<T extends PrismValue> extends ObjectFilter {
 		final int prime = 31;
 		int result = 1;
 		result = prime * result + ((definition == null) ? 0 : definition.hashCode());
-		result = prime * result + ((fullPath == null) ? 0 : fullPath.hashCode());
+		result = prime * result + fullPath.hashCode();
 		result = prime * result + ((matchingRule == null) ? 0 : matchingRule.hashCode());
 		return result;
 	}
@@ -164,10 +143,7 @@ public abstract class ValueFilter<T extends PrismValue> extends ObjectFilter {
 			} else if (!definition.equals(other.definition))
 				return false;
 		}
-		if (fullPath == null) {
-			if (other.fullPath != null)
-				return false;
-		} else if (!fullPath.equals(other.fullPath, exact))
+		if (!fullPath.equals(other.fullPath, exact))
 			return false;
 		if (matchingRule == null) {
 			if (other.matchingRule != null)

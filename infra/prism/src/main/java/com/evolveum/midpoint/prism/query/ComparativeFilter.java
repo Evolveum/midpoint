@@ -18,28 +18,14 @@ package com.evolveum.midpoint.prism.query;
 
 import java.util.List;
 
-import javax.xml.namespace.QName;
-
-import org.w3c.dom.Element;
-
-import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.Objectable;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.util.exception.SchemaException;
 
 public abstract class ComparativeFilter<T extends Object> extends PropertyValueFilter<PrismPropertyValue<T>> {
 
 	private boolean equals;
-	
-	public ComparativeFilter() {
-	}
 	
 	ComparativeFilter(ItemPath path, PrismPropertyDefinition definition, PrismPropertyValue<T> value, boolean equals) {
 		super(path, definition, value);
@@ -60,7 +46,7 @@ public abstract class ComparativeFilter<T extends Object> extends PropertyValueF
 	}
 	
 	static <T> PrismPropertyValue<T> createPropertyValue(PrismPropertyDefinition itemDefinition, T realValue){
-		List<PrismPropertyValue<T>> values = createPropertyList(itemDefinition, realValue);
+		List<PrismPropertyValue<T>> values = realValueToPropertyList(itemDefinition, realValue);
 		if (values == null || values.isEmpty()){
 			return null;
 		}

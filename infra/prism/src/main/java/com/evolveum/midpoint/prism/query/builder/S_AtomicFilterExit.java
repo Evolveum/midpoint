@@ -24,6 +24,6 @@ import javax.xml.namespace.QName;
  * @author mederly
  */
 public interface S_AtomicFilterExit extends S_FilterExit {
-    S_FilterEntry or() throws SchemaException;
-    S_FilterEntry and() throws SchemaException;
+    S_FilterEntry or() ;
+    S_FilterEntry and() ;
 }

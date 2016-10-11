@@ -16,9 +16,7 @@
 
 package com.evolveum.midpoint.prism.query;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 
 import javax.xml.namespace.QName;
 
@@ -37,6 +35,8 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public abstract class PropertyValueFilter<V extends PrismValue> extends ValueFilter implements Itemable {
 
@@ -49,56 +49,58 @@ public abstract class PropertyValueFilter<V extends PrismValue> extends ValueFil
 	 *  TODO clean up the right side path/definition mess
 	 */
 
-	PropertyValueFilter() {
-		super();
-	}
-
-	PropertyValueFilter(ItemPath path, ItemDefinition definition, QName matchingRule, ItemPath rightHandSidePath, ItemDefinition rightHandSideDefinition) {
+	PropertyValueFilter(@NotNull ItemPath path, @Nullable ItemDefinition definition, @Nullable QName matchingRule,
+			@NotNull ItemPath rightHandSidePath, @Nullable ItemDefinition rightHandSideDefinition) {
 		super(path, definition, matchingRule);
-		Validate.notNull(rightHandSidePath, "rightHandSidePath");
 		this.rightHandSidePath = rightHandSidePath;
 		this.rightHandSideDefinition = rightHandSideDefinition;
 	}
-	
-	PropertyValueFilter(ItemPath path, ItemDefinition definition, QName matchingRule, List<V> values) {
+
+	protected PropertyValueFilter(@NotNull ItemPath path, @Nullable ItemDefinition definition, @Nullable QName matchingRule,
+			@Nullable List<V> values, @Nullable ExpressionWrapper expression) {
 		super(path, definition, matchingRule);
-		this.values = values;
-	}
-	
-	PropertyValueFilter(ItemPath path, ItemDefinition definition, V value){
-		super(path, definition);
-		setValue(value);
-	}
-	
-	PropertyValueFilter(ItemPath path, ItemDefinition definition, QName matchingRule) { 
-		super(path, definition, matchingRule);
-		this.values = null;
-	}
-	
-	PropertyValueFilter(ItemPath path, ItemDefinition definition, ExpressionWrapper expression) {
-		super(path, definition);
-		this.expression = expression;
-	}
-	
-	PropertyValueFilter(ItemPath path, ItemDefinition definition, ExpressionWrapper expression, List<V> values) {
-		super(path, definition);
+		if (values != null) {
+			for (V value : values) {
+				value.setParent(this);
+			}
+		}
 		this.values = values;
 		this.expression = expression;
+	}
+	
+	PropertyValueFilter(@NotNull ItemPath path, @Nullable ItemDefinition definition, @Nullable QName matchingRule, @Nullable List<V> values) {
+		this(path, definition, matchingRule, values, null);
+	}
+	
+	PropertyValueFilter(@NotNull ItemPath path, @Nullable ItemDefinition definition, @Nullable V value) {
+		this(path, definition, (QName) null, value != null ? Collections.singletonList(value) : null);
+	}
+	
+	PropertyValueFilter(@NotNull ItemPath path, @Nullable ItemDefinition definition, @Nullable QName matchingRule) {
+		this(path, definition, matchingRule, (List<V>) null);
+	}
+	
+	PropertyValueFilter(@NotNull ItemPath path, @Nullable ItemDefinition definition, @Nullable ExpressionWrapper expression) {
+		this(path, definition, null, null, expression);
+	}
+	
+	PropertyValueFilter(@NotNull ItemPath path, @Nullable ItemDefinition definition, @Nullable ExpressionWrapper expression, @Nullable List<V> values) {
+		this(path, definition, null, values, expression);
 	}
 	
 	PropertyValueFilter(ItemPath path, ItemDefinition definition, QName matchingRule, ExpressionWrapper expression) {
-		super(path, definition, matchingRule);
-		this.expression = expression;
+		this(path, definition, matchingRule, null, expression);
 	}
 	
-	static <T> List<PrismPropertyValue<T>> createPropertyList(PrismPropertyDefinition itemDefinition, PrismPropertyValue<T> values) {
-		Validate.notNull(itemDefinition, "Item definition in substring filter must not be null.");
-		
-		List<PrismPropertyValue<T>> pValues = new ArrayList<PrismPropertyValue<T>>();
-		PrismUtil.recomputePrismPropertyValue(values, itemDefinition.getPrismContext());
-		pValues.add(values);
-		
-		return pValues;
+	static protected <T> List<PrismPropertyValue<T>> createPropertyList(@NotNull PrismPropertyDefinition itemDefinition, @Nullable PrismPropertyValue<T> pValue) {
+		List<PrismPropertyValue<T>> pValues = new ArrayList<>();
+		if (pValue == null) {
+			return pValues;
+		} else {
+			PrismUtil.recomputePrismPropertyValue(pValue, itemDefinition.getPrismContext());
+			pValues.add(pValue);
+			return pValues;
+		}
 	}
 	
 	static <T> List<PrismPropertyValue<T>> createPropertyList(PrismPropertyDefinition itemDefinition, PrismPropertyValue<T>[] values) {
@@ -114,10 +116,14 @@ public abstract class PropertyValueFilter<V extends PrismValue> extends ValueFil
 		return pValues;
 	}
 
+	@SafeVarargs
 	static <T> List<PrismPropertyValue<T>> createPropertyListFromArray(PrismPropertyDefinition itemDefinition, T... realValues) {
 		List<PrismPropertyValue<T>> pVals = new ArrayList<PrismPropertyValue<T>>();
 
 		for (T realValue : realValues) {
+			if (realValue == null) {
+				continue;
+			}
 			if (realValue instanceof PrismPropertyValue) {
 				PrismPropertyValue<T> pVal = (PrismPropertyValue<T>) realValue;
 				PrismUtil.recomputePrismPropertyValue(pVal, itemDefinition.getPrismContext());
@@ -129,7 +135,7 @@ public abstract class PropertyValueFilter<V extends PrismValue> extends ValueFil
 		return pVals;
 	}
 
-	 static <T> List<PrismPropertyValue<T>> createPropertyList(PrismPropertyDefinition itemDefinition, T realValue){
+	 static <T> List<PrismPropertyValue<T>> realValueToPropertyList(PrismPropertyDefinition itemDefinition, T realValue) {
 		List<PrismPropertyValue<T>> pVals = new ArrayList<PrismPropertyValue<T>>();
 
 		if (realValue.getClass() != null && Collection.class.isAssignableFrom(realValue.getClass())) {
@@ -175,7 +181,6 @@ public abstract class PropertyValueFilter<V extends PrismValue> extends ValueFil
 	}
 	
 	protected void cloneValues(PropertyValueFilter<V> clone) {
-		super.cloneValues(clone);
 		clone.values = getCloneValuesList();
 		if (clone.values != null) {
 			for (V clonedValue: clone.values) {

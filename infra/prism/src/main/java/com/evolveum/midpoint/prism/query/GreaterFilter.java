@@ -33,10 +33,6 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 
 public class GreaterFilter<T> extends ComparativeFilter<T> {
 	
-
-	public GreaterFilter() {
-	}
-	
 	GreaterFilter(ItemPath itemPath, PrismPropertyDefinition definition, PrismPropertyValue<T> value, boolean equals) {
 		super(itemPath, definition, value, equals);
 	}
@@ -63,7 +59,7 @@ public class GreaterFilter<T> extends ComparativeFilter<T> {
 		return greaterFilter;
 	}
 
-	public static <T> GreaterFilter<T> createGreater(ItemPath itemPath, PrismPropertyDefinition itemDefinition, T realValue, boolean equals) throws SchemaException{
+	public static <T> GreaterFilter<T> createGreater(ItemPath itemPath, PrismPropertyDefinition itemDefinition, T realValue, boolean equals) {
 		PrismPropertyValue<T> value = createPropertyValue(itemDefinition, realValue);
 		
 		if (value == null){
@@ -141,11 +137,6 @@ public class GreaterFilter<T> extends ComparativeFilter<T> {
 	@Override
 	public PrismPropertyDefinition getDefinition() {
 		return (PrismPropertyDefinition) super.getDefinition();
-	}
-
-	@Override
-	public QName getElementName() {
-		return getDefinition().getName();
 	}
 
 	@Override

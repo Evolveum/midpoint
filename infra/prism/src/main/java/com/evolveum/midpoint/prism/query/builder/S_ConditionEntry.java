@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.prism.query.builder;
 
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
@@ -30,13 +31,13 @@ public interface S_ConditionEntry {
     S_RightHandItemEntry eq();
     S_MatchingRuleEntry eqPoly(String orig, String norm);
     S_MatchingRuleEntry eqPoly(String orig);
-    S_MatchingRuleEntry gt(Object value) throws SchemaException;
+    S_MatchingRuleEntry gt(Object value);
     S_RightHandItemEntry gt();
-    S_MatchingRuleEntry ge(Object value) throws SchemaException;
+    S_MatchingRuleEntry ge(Object value);
     S_RightHandItemEntry ge();
-    S_MatchingRuleEntry lt(Object value) throws SchemaException;
+    S_MatchingRuleEntry lt(Object value);
     S_RightHandItemEntry lt();
-    S_MatchingRuleEntry le(Object value) throws SchemaException;
+    S_MatchingRuleEntry le(Object value);
     S_RightHandItemEntry le();
 	S_MatchingRuleEntry startsWith(Object value);
 	S_MatchingRuleEntry startsWithPoly(String orig, String norm);

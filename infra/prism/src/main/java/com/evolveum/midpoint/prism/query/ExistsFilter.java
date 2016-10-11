@@ -72,7 +72,7 @@ public class ExistsFilter extends ObjectFilter {
     }
 
     public static <C extends Containerable> ExistsFilter createExists(ItemPath itemPath, Class<C> clazz, PrismContext prismContext,
-                                                                      ObjectFilter filter) throws SchemaException {
+                                                                      ObjectFilter filter) {
         ItemDefinition itemDefinition = FilterUtils.findItemDefinition(itemPath, clazz, prismContext);
         return new ExistsFilter(itemPath, itemDefinition, filter);
     }

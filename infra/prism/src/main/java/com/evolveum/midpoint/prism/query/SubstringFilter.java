@@ -25,7 +25,6 @@ import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
-import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -124,7 +123,7 @@ public class SubstringFilter<T> extends PropertyValueFilter<PrismPropertyValue<T
 		if (realValues == null){
 			return createNullSubstring(path, itemDefinition, matchingRule);
 		}
-		List<PrismPropertyValue<T>> pValues = createPropertyList(itemDefinition, realValues);
+		List<PrismPropertyValue<T>> pValues = realValueToPropertyList(itemDefinition, realValues);
 		SubstringFilter<T> substringFilter = new SubstringFilter<T>(path, itemDefinition, matchingRule, pValues, anchorStart, anchorEnd);
 		for (PrismPropertyValue<T> pVal: pValues) {
 			pVal.setParent(substringFilter);
@@ -181,7 +180,7 @@ public class SubstringFilter<T> extends PropertyValueFilter<PrismPropertyValue<T
 			return createNullSubstring(path, (PrismPropertyDefinition<T>) itemDefinition, matchingRule);
 		}
 		
-		List<PrismPropertyValue<T>> pVals = createPropertyList((PrismPropertyDefinition<T>) itemDefinition, realValue);
+		List<PrismPropertyValue<T>> pVals = realValueToPropertyList((PrismPropertyDefinition<T>) itemDefinition, realValue);
 		
 		SubstringFilter<T> substringFilter = new SubstringFilter<>(path, itemDefinition, matchingRule, pVals);
 		for (PrismPropertyValue<T> pVal: pVals) {
@@ -302,11 +301,6 @@ public class SubstringFilter<T> extends PropertyValueFilter<PrismPropertyValue<T
 		 return PrismPropertyValue.getRealValuesOfCollection(getValues());
 	}
 	
-	@Override
-	public QName getElementName() {
-		return getDefinition().getName();
-	}
-
 	@Override
 	public PrismContext getPrismContext() {
 		return getDefinition().getPrismContext();

@@ -35,6 +35,7 @@ import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.prism.query.EqualFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.RefFilter;
+import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.DeltaConvertor;
@@ -554,8 +555,9 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
         		matchingRule = DefaultMatchingRule.NAME;
         	}
         }
-        EqualFilter<T> filter = EqualFilter.createEqual(propertyPath, propertyDefinition, matchingRule, propertyValue);
-        ObjectQuery query = ObjectQuery.createObjectQuery(filter);
+        ObjectQuery query = QueryBuilder.queryFor(objectType.getClass(), prismContext)
+				.item(propertyPath, propertyDefinition).eq(propertyValue).matching(matchingRule)
+				.build();
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace("Determining uniqueness of property {} using query:\n{}", propertyPath, query.debugDump());
         }

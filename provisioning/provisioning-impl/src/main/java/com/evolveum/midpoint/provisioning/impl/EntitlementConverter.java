@@ -21,6 +21,7 @@ import java.util.Map;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -313,15 +314,12 @@ class EntitlementConverter {
 		MatchingRule<TA> matchingRule = matchingRuleRegistry.getMatchingRule(assocDefType.getResourceObjectAssociationType().getMatchingRule(),
 				assocAttrDef.getTypeName());
 		PrismPropertyValue<TA> converted = PrismUtil.convertPropertyValue(valueAttr.getValue(0), valueAttr.getDefinition(), assocAttrDef);
-		PrismPropertyValue<TA> normalized = converted;
-		if (matchingRule != null) {
-			TA normalizedRealValue = matchingRule.normalize(converted.getValue());
-			normalized = new PrismPropertyValue<TA>(normalizedRealValue);
-		}
-		LOGGER.trace("Converted entitlement filter: {} ({}) def={}", 
-				new Object[]{normalized, normalized.getValue().getClass(), assocAttrDef});
-		ObjectFilter filter = EqualFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES, assocAttrDef.getName()), assocAttrDef, normalized);
-		ObjectQuery query = ObjectQuery.createObjectQuery(filter);
+		TA normalizedRealValue = matchingRule.normalize(converted.getValue());
+		PrismPropertyValue<TA> normalized = new PrismPropertyValue<TA>(normalizedRealValue);
+		LOGGER.trace("Converted entitlement filter: {} ({}) def={}", normalized, normalized.getValue().getClass(), assocAttrDef);
+		ObjectQuery query = QueryBuilder.queryFor(ShadowType.class, prismContext)
+				.item(new ItemPath(ShadowType.F_ATTRIBUTES, assocAttrDef.getName()), assocAttrDef).eq(normalized)
+				.build();
 		query.setAllowPartialResults(true);
 		return query;
 	}

@@ -29,6 +29,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.EqualFilter;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
@@ -280,12 +281,16 @@ public class ReportFunctions {
         return ret;
     }
 
-    <C extends Containerable, T> EqualFilter<T> createEqualFilter(QName propertyName, Class<C> type, T realValues) throws SchemaException {
-        return EqualFilter.createEqual(propertyName, type, prismContext, realValues);
+    <C extends Containerable, T> ObjectFilter createEqualFilter(QName propertyName, Class<C> type, T realValue) throws SchemaException {
+        return QueryBuilder.queryFor(type, prismContext)
+                .item(propertyName).eq(realValue)
+                .buildFilter();
     }
 
-    <C extends Containerable, T> EqualFilter<T> createEqualFilter(ItemPath propertyPath, Class<C> type, T realValues) throws SchemaException {
-        return EqualFilter.createEqual(propertyPath, type, prismContext, realValues);
+    <C extends Containerable, T> ObjectFilter createEqualFilter(ItemPath propertyPath, Class<C> type, T realValue) throws SchemaException {
+        return QueryBuilder.queryFor(type, prismContext)
+                .item(propertyPath).eq(realValue)
+                .buildFilter();
     }
 
     <O extends Containerable> RefFilter createReferenceEqualFilter(QName propertyName, Class<O> type, String... oids) {

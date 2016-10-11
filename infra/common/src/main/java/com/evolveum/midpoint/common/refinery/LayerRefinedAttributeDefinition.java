@@ -36,6 +36,7 @@ import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AttributeFetchStrategyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LayerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * @author semancik
@@ -180,7 +181,7 @@ public class LayerRefinedAttributeDefinition<T> extends RefinedAttributeDefiniti
 	}
 
 	@Override
-	public void setName(QName name) {
+	public void setName(@NotNull QName name) {
 		refinedAttributeDefinition.setName(name);
 	}
 
@@ -452,6 +453,7 @@ public class LayerRefinedAttributeDefinition<T> extends RefinedAttributeDefiniti
 		refinedAttributeDefinition.setInboundMappingTypes(inboundAssignmentTypes);
 	}
 
+	@NotNull
 	@Override
 	public QName getName() {
 		return refinedAttributeDefinition.getName();

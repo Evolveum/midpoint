@@ -29,12 +29,10 @@ import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.query.EqualFilter;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.util.JavaTypeConverter;
 import com.evolveum.midpoint.prism.util.PrismUtil;
-import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.provisioning.api.GenericConnectorException;
 import com.evolveum.midpoint.provisioning.ucf.api.*;
 import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
@@ -174,14 +172,13 @@ public class ResourceObjectConverter {
             if (secondaryIdentifierValues.size() > 1) {
                 throw new IllegalStateException("Secondary identifier has more than one value: " + secondaryIdentifier.getValues());
             } else if (secondaryIdentifierValues.size() == 1) {
-                secondaryIdentifierValue = secondaryIdentifierValues.get(0);
+                secondaryIdentifierValue = secondaryIdentifierValues.get(0).clone();
             } else {
                 secondaryIdentifierValue = null;
             }
-			ObjectFilter filter = EqualFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES, secondaryIdentifierDef.getName()), 
-					secondaryIdentifierDef, secondaryIdentifierValue.clone());
-			ObjectQuery query = ObjectQuery.createObjectQuery(filter);
-//			query.setFilter(filter);
+            ObjectQuery query = QueryBuilder.queryFor(ShadowType.class, prismContext)
+					.itemWithDef(secondaryIdentifierDef, ShadowType.F_ATTRIBUTES, secondaryIdentifierDef.getName()).eq(secondaryIdentifierValue)
+					.build();
 			final Holder<PrismObject<ShadowType>> shadowHolder = new Holder<PrismObject<ShadowType>>();
 			ResultHandler<ShadowType> handler = new ResultHandler<ShadowType>() {
 				@Override

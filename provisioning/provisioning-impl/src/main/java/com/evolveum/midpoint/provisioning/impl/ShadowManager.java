@@ -373,14 +373,10 @@ public class ShadowManager {
 		MatchingRule<T> matchingRule = matchingRuleRegistry.getMatchingRule(matchingRuleQName, refinedAttributeDefinition.getTypeName());
 		List<PrismPropertyValue<T>> normalized = new ArrayList<>();
 		for (PrismPropertyValue<T> origPValue : attr.getValues()){
-			if (matchingRule != null) {
-				T normalizedValue = matchingRule.normalize(origPValue.getValue());
-				PrismPropertyValue<T> normalizedPValue = origPValue.clone();
-				normalizedPValue.setValue(normalizedValue);
-				normalized.add(normalizedPValue);
-			} else {
-				normalized.add(origPValue);
-			}
+			T normalizedValue = matchingRule.normalize(origPValue.getValue());
+			PrismPropertyValue<T> normalizedPValue = origPValue.clone();
+			normalizedPValue.setValue(normalizedValue);
+			normalized.add(normalizedPValue);
 		}
 		return normalized;
 		
@@ -625,7 +621,7 @@ public class ShadowManager {
 			//new ItemPath(ShadowType.F_ATTRIBUTES)
 			PrismPropertyDefinition<String> def = (PrismPropertyDefinition<String>) identifier.getDefinition();
 			EqualFilter<String> filter = EqualFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES, def.getName()), 
-					def, new PrismPropertyValue<String>(normalizedIdentifierValue));
+					def, new PrismPropertyValue<>(normalizedIdentifierValue));
 			conditions.add(filter);
 		}
 

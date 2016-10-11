@@ -46,6 +46,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * @author semancik
@@ -243,6 +244,7 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
 		super.setParent(container);
 	}
 	
+	@NotNull
 	public ItemPath getPath() {
 		Itemable parent = getParent();
 		ItemPath parentPath = ItemPath.EMPTY_PATH;

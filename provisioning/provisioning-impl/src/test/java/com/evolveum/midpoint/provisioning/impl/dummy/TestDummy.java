@@ -44,6 +44,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.query.OrFilter;
 
+import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -2868,37 +2869,27 @@ public class TestDummy extends AbstractDummyTest {
 	
 	protected <T> void testSeachIterativeSingleAttrFilter(final String TEST_NAME, QName attrQName, T attrVal, 
 			GetOperationOptions rootOptions, boolean fullShadow, String... expectedAccountNames) throws Exception {
-		PrismPropertyValue<T> attrPVal = null;
-		if (attrVal != null) {
-			attrPVal = new PrismPropertyValue<T>(attrVal);
-		}
 		ResourceSchema resourceSchema = RefinedResourceSchema.getResourceSchema(resource, prismContext);
 		ObjectClassComplexTypeDefinition objectClassDef = resourceSchema.findObjectClassDefinition(SchemaTestConstants.ACCOUNT_OBJECT_CLASS_LOCAL_NAME);
 		ResourceAttributeDefinition<T> attrDef = objectClassDef.findAttributeDefinition(attrQName);
-		ObjectFilter filter = EqualFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES, attrDef.getName()), attrDef, attrPVal);
-		
+		ObjectFilter filter = QueryBuilder.queryFor(ShadowType.class, prismContext)
+				.itemWithDef(attrDef, ShadowType.F_ATTRIBUTES, attrDef.getName()).eq(attrVal)
+				.buildFilter();
 		testSeachIterative(TEST_NAME, filter, rootOptions, fullShadow, true, false, expectedAccountNames);
 	}
 
     protected <T> void testSeachIterativeAlternativeAttrFilter(final String TEST_NAME, QName attr1QName, T attr1Val,
                                                                QName attr2QName, T attr2Val,
                                                           GetOperationOptions rootOptions, boolean fullShadow, String... expectedAccountNames) throws Exception {
-        PrismPropertyValue<T> attr1PVal = null;
-        if (attr1Val != null) {
-            attr1PVal = new PrismPropertyValue<T>(attr1Val);
-        }
-        PrismPropertyValue<T> attr2PVal = null;
-        if (attr2Val != null) {
-            attr2PVal = new PrismPropertyValue<T>(attr2Val);
-        }
         ResourceSchema resourceSchema = RefinedResourceSchema.getResourceSchema(resource, prismContext);
         ObjectClassComplexTypeDefinition objectClassDef = resourceSchema.findObjectClassDefinition(SchemaTestConstants.ACCOUNT_OBJECT_CLASS_LOCAL_NAME);
         ResourceAttributeDefinition<T> attr1Def = objectClassDef.findAttributeDefinition(attr1QName);
-        ObjectFilter filter1 = EqualFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES, attr1Def.getName()), attr1Def, attr1PVal);
         ResourceAttributeDefinition<T> attr2Def = objectClassDef.findAttributeDefinition(attr2QName);
-        ObjectFilter filter2 = EqualFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES, attr2Def.getName()), attr2Def, attr2PVal);
-
-        testSeachIterative(TEST_NAME, OrFilter.createOr(filter1, filter2), rootOptions, fullShadow, false, true, expectedAccountNames);
+		ObjectFilter filter = QueryBuilder.queryFor(ShadowType.class, prismContext)
+				.itemWithDef(attr1Def, ShadowType.F_ATTRIBUTES, attr1Def.getName()).eq(attr1Val)
+				.or().itemWithDef(attr2Def, ShadowType.F_ATTRIBUTES, attr2Def.getName()).eq(attr2Val)
+				.buildFilter();
+        testSeachIterative(TEST_NAME, filter, rootOptions, fullShadow, false, true, expectedAccountNames);
     }
 
 

@@ -39,6 +39,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PropertyAccessType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PropertyLimitationsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceAttributeDefinitionType;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * @author semancik
@@ -228,7 +229,8 @@ public class RefinedAttributeDefinition<T> extends ResourceAttributeDefinition<T
         this.inboundMappingTypes = inboundAssignmentTypes;
     }
 
-    public QName getName() {
+    @NotNull
+	public QName getName() {
         return attributeDefinition.getName();
     }
 

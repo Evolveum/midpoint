@@ -30,6 +30,7 @@ import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 import org.apache.commons.lang.StringUtils;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Abstract item definition in the schema.
@@ -58,7 +59,7 @@ import org.apache.commons.lang.StringUtils;
 public abstract class ItemDefinition<I extends Item> extends Definition implements Serializable {
 
 	private static final long serialVersionUID = -2643332934312107274L;
-	protected QName name;
+	@NotNull protected QName name;
 	private int minOccurs = 1;
     private int maxOccurs = 1;
     private boolean operational = false;
@@ -78,7 +79,7 @@ public abstract class ItemDefinition<I extends Item> extends Definition implemen
 	 * @param defaultName default element name
 	 * @param typeName type name (XSD complex or simple type)
 	 */
-	ItemDefinition(QName elementName, QName typeName, PrismContext prismContext) {
+	ItemDefinition(@NotNull QName elementName, QName typeName, PrismContext prismContext) {
 		super(typeName, prismContext);
 		this.name = elementName;
 	}
@@ -98,11 +99,12 @@ public abstract class ItemDefinition<I extends Item> extends Definition implemen
 	 * 
 	 * @return the name name of the entity or null.
 	 */
+	@NotNull
 	public QName getName() {
 		return name;
 	}
 
-	public void setName(QName name) {
+	public void setName(@NotNull QName name) {
 		this.name = name;
 	}
 	

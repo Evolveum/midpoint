@@ -33,6 +33,7 @@ import com.evolveum.midpoint.prism.query.NotFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.OrFilter;
+import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -538,13 +539,9 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 
 			@Override
 			protected ObjectQuery getChooseQuery() {
-				ObjectQuery query = new ObjectQuery();
-
-				ObjectFilter filter = EqualFilter.createEqual(OrgType.F_TENANT, OrgType.class,
-						getPageBase().getPrismContext(), null, true);
-				query.setFilter(filter);
-
-				return query;
+				return QueryBuilder.queryFor(OrgType.class, getPageBase().getPrismContext())
+						.item(OrgType.F_TENANT).eq(true)
+						.build();
 			}
 
 			@Override
@@ -583,16 +580,10 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 
 			@Override
 			protected ObjectQuery getChooseQuery() {
-				ObjectQuery query = new ObjectQuery();
-
-				ObjectFilter filter = OrFilter.createOr(
-						EqualFilter.createEqual(OrgType.F_TENANT, OrgType.class,
-								getPageBase().getPrismContext(), null, false),
-						EqualFilter.createEqual(OrgType.F_TENANT, OrgType.class,
-								getPageBase().getPrismContext(), null, null));
-				query.setFilter(filter);
-
-				return query;
+				return QueryBuilder.queryFor(OrgType.class, getPageBase().getPrismContext())
+						.item(OrgType.F_TENANT).eq(false)
+						.or().item(OrgType.F_TENANT).eq(null)
+						.build();
 			}
 
 			@Override

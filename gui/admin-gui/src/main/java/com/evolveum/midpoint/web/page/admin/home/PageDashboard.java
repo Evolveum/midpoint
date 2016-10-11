@@ -15,6 +15,7 @@
  */
 package com.evolveum.midpoint.web.page.admin.home;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.wicket.Component;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.component.IRequestablePage;
@@ -44,17 +45,8 @@ import com.evolveum.midpoint.web.page.admin.server.PageTasks;
 import com.evolveum.midpoint.web.page.admin.services.PageServices;
 import com.evolveum.midpoint.web.page.admin.users.PageOrgTree;
 import com.evolveum.midpoint.web.page.admin.users.PageUsers;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AvailabilityStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationalStateType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ServiceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.C_ACTIVATION;
 
 /**
  * @author lazyman
@@ -138,17 +130,19 @@ public class PageDashboard extends PageAdminHome {
 			if (allCount == null) {
 				allCount = 0;
 			}
-			
-			EqualFilter<ActivationStatusType> filterDisabled = EqualFilter.createEqual(SchemaConstants.PATH_ACTIVATION_EFFECTIVE_STATUS, 
-					type, getPrismContext(), ActivationStatusType.DISABLED);
-			Integer disabledCount = getModelService().countObjects(type, ObjectQuery.createObjectQuery(filterDisabled), null, task, result);
+
+			ObjectQuery queryDisabled = QueryBuilder.queryFor(type, getPrismContext())
+					.item(FocusType.F_ACTIVATION, ActivationType.F_EFFECTIVE_STATUS).eq(ActivationStatusType.DISABLED)
+					.build();
+			Integer disabledCount = getModelService().countObjects(type, queryDisabled, null, task, result);
 			if (disabledCount == null) {
 				disabledCount = 0;
 			}
-			
-			EqualFilter<ActivationStatusType> filterArchived = EqualFilter.createEqual(SchemaConstants.PATH_ACTIVATION_EFFECTIVE_STATUS, 
-					type, getPrismContext(), ActivationStatusType.ARCHIVED);
-			Integer archivedCount = getModelService().countObjects(type, ObjectQuery.createObjectQuery(filterArchived), null, task, result);
+
+			ObjectQuery queryArchived = QueryBuilder.queryFor(type, getPrismContext())
+					.item(FocusType.F_ACTIVATION, ActivationType.F_EFFECTIVE_STATUS).eq(ActivationStatusType.ARCHIVED)
+					.build();
+			Integer archivedCount = getModelService().countObjects(type, queryArchived, null, task, result);
 			if (archivedCount == null) {
 				archivedCount = 0;
 			}

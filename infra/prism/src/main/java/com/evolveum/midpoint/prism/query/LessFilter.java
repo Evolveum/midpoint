@@ -41,9 +41,6 @@ public class LessFilter<T> extends ComparativeFilter<T> {
 		super(itemPath, definition, rightSidePath, rightSideDefinition, equals);
 	}
 
-	public LessFilter() {
-	}
-	
 	public static <T> LessFilter<T> createLess(QName itemPath, PrismPropertyDefinition definition, PrismPropertyValue<T> value, boolean equals){
 		LessFilter<T> lessFilter = new LessFilter<>(new ItemPath(itemPath), definition, value, equals);
 		if (value != null) {
@@ -66,11 +63,11 @@ public class LessFilter<T> extends ComparativeFilter<T> {
 		return createLess(itemPath, def, value, equals);
 	}
 
-	public static <T> LessFilter<T> createLess(QName itemPath, PrismPropertyDefinition itemDefinition, T realValue, boolean equals) throws SchemaException{
+	public static <T> LessFilter<T> createLess(QName itemPath, PrismPropertyDefinition itemDefinition, T realValue, boolean equals) {
 		return createLess(new ItemPath(itemPath), itemDefinition, realValue, equals);
 	}
 	
-	public static <T> LessFilter<T> createLess(ItemPath itemPath, PrismPropertyDefinition itemDefinition, T realValue, boolean equals) throws SchemaException{
+	public static <T> LessFilter<T> createLess(ItemPath itemPath, PrismPropertyDefinition itemDefinition, T realValue, boolean equals) {
 		PrismPropertyValue<T> value = createPropertyValue(itemDefinition, realValue);
 		
 		if (value == null){
@@ -150,11 +147,6 @@ public class LessFilter<T> extends ComparativeFilter<T> {
 	@Override
 	public PrismPropertyDefinition getDefinition() {
 		return (PrismPropertyDefinition) super.getDefinition();
-	}
-
-	@Override
-	public QName getElementName() {
-		return getDefinition().getName();
 	}
 
 	@Override

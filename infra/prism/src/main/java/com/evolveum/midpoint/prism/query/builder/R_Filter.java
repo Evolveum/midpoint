@@ -81,7 +81,7 @@ public class R_Filter implements S_FilterEntryOrEmpty, S_AtomicFilterExit {
     }
 
     // subfilter might be null
-    R_Filter addSubfilter(ObjectFilter subfilter) throws SchemaException {
+    R_Filter addSubfilter(ObjectFilter subfilter) {
         if (!currentFilter.isEmpty() && lastLogicalSymbol == null) {
             throw new IllegalStateException("lastLogicalSymbol is empty but there is already some filter present: " + currentFilter);
         }
@@ -152,28 +152,28 @@ public class R_Filter implements S_FilterEntryOrEmpty, S_AtomicFilterExit {
     }
 
     @Override
-    public S_AtomicFilterExit all() throws SchemaException {
+    public S_AtomicFilterExit all() {
         return addSubfilter(AllFilter.createAll());
     }
 
     @Override
-    public S_AtomicFilterExit none() throws SchemaException {
+    public S_AtomicFilterExit none() {
         return addSubfilter(NoneFilter.createNone());
     }
 
     @Override
-    public S_AtomicFilterExit undefined() throws SchemaException {
+    public S_AtomicFilterExit undefined() {
         return addSubfilter(UndefinedFilter.createUndefined());
     }
     // TODO .............................................
 
     @Override
-    public S_AtomicFilterExit id(String... identifiers) throws SchemaException {
+    public S_AtomicFilterExit id(String... identifiers) {
         return addSubfilter(InOidFilter.createInOid(identifiers));
     }
 
     @Override
-    public S_AtomicFilterExit id(long... identifiers) throws SchemaException {
+    public S_AtomicFilterExit id(long... identifiers) {
         List<String> ids = longsToStrings(identifiers);
         return addSubfilter(InOidFilter.createInOid(ids));
     }
@@ -187,53 +187,53 @@ public class R_Filter implements S_FilterEntryOrEmpty, S_AtomicFilterExit {
     }
 
     @Override
-    public S_AtomicFilterExit ownerId(String... identifiers) throws SchemaException {
+    public S_AtomicFilterExit ownerId(String... identifiers) {
         return addSubfilter(InOidFilter.createOwnerHasOidIn(identifiers));
     }
 
     @Override
-    public S_AtomicFilterExit ownerId(long... identifiers) throws SchemaException {
+    public S_AtomicFilterExit ownerId(long... identifiers) {
         return addSubfilter(InOidFilter.createOwnerHasOidIn(longsToStrings(identifiers)));
     }
 
     @Override
-    public S_AtomicFilterExit isDirectChildOf(PrismReferenceValue value) throws SchemaException {
+    public S_AtomicFilterExit isDirectChildOf(PrismReferenceValue value) {
         OrgFilter orgFilter = OrgFilter.createOrg(value, OrgFilter.Scope.ONE_LEVEL);
         return addSubfilter(orgFilter);
     }
 
     @Override
-    public S_AtomicFilterExit isChildOf(PrismReferenceValue value) throws SchemaException {
+    public S_AtomicFilterExit isChildOf(PrismReferenceValue value) {
         OrgFilter orgFilter = OrgFilter.createOrg(value, OrgFilter.Scope.SUBTREE);
         return addSubfilter(orgFilter);
     }
 
     @Override
-    public S_AtomicFilterExit isParentOf(PrismReferenceValue value) throws SchemaException {
+    public S_AtomicFilterExit isParentOf(PrismReferenceValue value) {
         OrgFilter orgFilter = OrgFilter.createOrg(value, OrgFilter.Scope.ANCESTORS);
         return addSubfilter(orgFilter);
     }
 
     @Override
-    public S_AtomicFilterExit isDirectChildOf(String oid) throws SchemaException {
+    public S_AtomicFilterExit isDirectChildOf(String oid) {
         OrgFilter orgFilter = OrgFilter.createOrg(oid, OrgFilter.Scope.ONE_LEVEL);
         return addSubfilter(orgFilter);
     }
 
     @Override
-    public S_AtomicFilterExit isChildOf(String oid) throws SchemaException {
+    public S_AtomicFilterExit isChildOf(String oid) {
         OrgFilter orgFilter = OrgFilter.createOrg(oid, OrgFilter.Scope.SUBTREE);
         return addSubfilter(orgFilter);
     }
 
     @Override
-    public S_AtomicFilterExit isParentOf(String oid) throws SchemaException {
+    public S_AtomicFilterExit isParentOf(String oid) {
         OrgFilter orgFilter = OrgFilter.createOrg(oid, OrgFilter.Scope.ANCESTORS);
         return addSubfilter(orgFilter);
     }
 
     @Override
-    public S_AtomicFilterExit isRoot() throws SchemaException {
+    public S_AtomicFilterExit isRoot() {
         OrgFilter orgFilter = OrgFilter.createRootOrg();
         return addSubfilter(orgFilter);
     }
@@ -244,10 +244,10 @@ public class R_Filter implements S_FilterEntryOrEmpty, S_AtomicFilterExit {
     }
 
     @Override
-    public S_FilterEntry type(Class<? extends Containerable> type) throws SchemaException {
+    public S_FilterEntry type(Class<? extends Containerable> type) {
         ComplexTypeDefinition ctd = queryBuilder.getPrismContext().getSchemaRegistry().findComplexTypeDefinitionByCompileTimeClass(type);
         if (ctd == null) {
-            throw new SchemaException("Unknown type: " + type);
+            throw new IllegalArgumentException("Unknown type: " + type);
         }
         QName typeName = ctd.getTypeName();
         if (typeName == null) {
@@ -257,31 +257,31 @@ public class R_Filter implements S_FilterEntryOrEmpty, S_AtomicFilterExit {
     }
 
     @Override
-    public S_FilterEntry exists(QName... names) throws SchemaException {
+    public S_FilterEntry exists(QName... names) {
         if (existsRestriction != null) {
             throw new IllegalStateException("Exists within exists");
         }
         if (names.length == 0) {
-            throw new SchemaException("Empty path in exists() filter is not allowed.");
+            throw new IllegalArgumentException("Empty path in exists() filter is not allowed.");
         }
         ItemPath existsPath = new ItemPath(names);
         PrismContainerDefinition pcd = resolveItemPath(existsPath, PrismContainerDefinition.class);
         Class<? extends Containerable> clazz = pcd.getCompileTimeClass();
         if (clazz == null) {
-            throw new SchemaException("Item path of '" + existsPath + "' in " + currentClass + " does not point to a valid prism container.");
+            throw new IllegalArgumentException("Item path of '" + existsPath + "' in " + currentClass + " does not point to a valid prism container.");
         }
         return new R_Filter(queryBuilder, clazz, OrFilter.createOr(), null, false, this, null, existsPath, null);
     }
 
-    <ID extends ItemDefinition> ID resolveItemPath(ItemPath itemPath, Class<ID> type) throws SchemaException {
+    <ID extends ItemDefinition> ID resolveItemPath(ItemPath itemPath, Class<ID> type) {
         Validate.notNull(type, "type");
         ComplexTypeDefinition ctd = queryBuilder.getPrismContext().getSchemaRegistry().findComplexTypeDefinitionByCompileTimeClass(currentClass);
         if (ctd == null) {
-            throw new SchemaException("Definition for " + currentClass + " couldn't be found.");
+            throw new IllegalArgumentException("Definition for " + currentClass + " couldn't be found.");
         }
         ID definition = ctd.findItemDefinition(itemPath, type);
         if (definition == null) {
-            throw new SchemaException("Item path of '" + itemPath + "' in " + currentClass + " does not point to a valid " + type.getSimpleName());
+            throw new IllegalArgumentException("Item path of '" + itemPath + "' in " + currentClass + " does not point to a valid " + type.getSimpleName());
         }
         return definition;
     }
@@ -304,35 +304,45 @@ public class R_Filter implements S_FilterEntryOrEmpty, S_AtomicFilterExit {
     }
 
     @Override
-    public S_ConditionEntry item(QName... names) throws SchemaException {
-        ItemPath itemPath = new ItemPath(names);
+    public S_ConditionEntry item(QName... names) {
+        return item(new ItemPath(names));
+    }
+
+    @Override
+    public S_ConditionEntry item(ItemPath itemPath) {
         ItemDefinition itemDefinition = resolveItemPath(itemPath, ItemDefinition.class);
         return item(itemPath, itemDefinition);
     }
 
     @Override
-    public S_ConditionEntry item(ItemPath itemPath, ItemDefinition itemDefinition) throws SchemaException {
+    public S_ConditionEntry itemWithDef(ItemDefinition itemDefinition, QName... names) {
+        ItemPath itemPath = new ItemPath(names);
+        return item(itemPath, itemDefinition);
+    }
+
+    @Override
+    public S_ConditionEntry item(ItemPath itemPath, ItemDefinition itemDefinition) {
         return R_AtomicFilter.create(itemPath, itemDefinition, this);
     }
 
     @Override
-    public S_ConditionEntry item(PrismContainerDefinition containerDefinition, QName... names) throws SchemaException {
+    public S_ConditionEntry item(PrismContainerDefinition containerDefinition, QName... names) {
         return item(containerDefinition, new ItemPath(names));
     }
 
     @Override
-    public S_ConditionEntry item(PrismContainerDefinition containerDefinition, ItemPath itemPath) throws SchemaException {
+    public S_ConditionEntry item(PrismContainerDefinition containerDefinition, ItemPath itemPath) {
         ItemDefinition itemDefinition = containerDefinition.findItemDefinition(itemPath);
         if (itemDefinition == null) {
-            throw new SchemaException("No definition of " + itemPath + " in " + containerDefinition);
+            throw new IllegalArgumentException("No definition of " + itemPath + " in " + containerDefinition);
         }
         return item(itemPath, itemDefinition);
     }
 
     @Override
-    public S_AtomicFilterExit endBlock() throws SchemaException {
+    public S_AtomicFilterExit endBlock() {
         if (parentFilter == null) {
-            throw new SchemaException("endBlock() call without preceding block() one");
+            throw new IllegalArgumentException("endBlock() call without preceding block() one");
         }
         if (currentFilter != null || parentFilter.hasRestriction()) {
             ObjectFilter simplified = simplify(currentFilter);
@@ -348,45 +358,45 @@ public class R_Filter implements S_FilterEntryOrEmpty, S_AtomicFilterExit {
     }
 
     @Override
-    public S_FilterExit asc(QName... names) throws SchemaException {
+    public S_FilterExit asc(QName... names) {
         if (names.length == 0) {
-            throw new SchemaException("There must be at least one name for asc(...) ordering");
+            throw new IllegalArgumentException("There must be at least one name for asc(...) ordering");
         }
         return addOrdering(ObjectOrdering.createOrdering(new ItemPath(names), OrderDirection.ASCENDING));
     }
 
     @Override
-    public S_FilterExit asc(ItemPath path) throws SchemaException {
+    public S_FilterExit asc(ItemPath path) {
         if (ItemPath.isNullOrEmpty(path)) {
-            throw new SchemaException("There must be non-empty path for asc(...) ordering");
+            throw new IllegalArgumentException("There must be non-empty path for asc(...) ordering");
         }
         return addOrdering(ObjectOrdering.createOrdering(path, OrderDirection.ASCENDING));
     }
 
     @Override
-    public S_FilterExit desc(QName... names) throws SchemaException {
+    public S_FilterExit desc(QName... names) {
         if (names.length == 0) {
-            throw new SchemaException("There must be at least one name for asc(...) ordering");
+            throw new IllegalArgumentException("There must be at least one name for asc(...) ordering");
         }
         return addOrdering(ObjectOrdering.createOrdering(new ItemPath(names), OrderDirection.DESCENDING));
     }
 
     @Override
-    public S_FilterExit desc(ItemPath path) throws SchemaException {
+    public S_FilterExit desc(ItemPath path) {
         if (ItemPath.isNullOrEmpty(path)) {
-            throw new SchemaException("There must be non-empty path for desc(...) ordering");
+            throw new IllegalArgumentException("There must be non-empty path for desc(...) ordering");
         }
         return addOrdering(ObjectOrdering.createOrdering(path, OrderDirection.DESCENDING));
     }
 
     @Override
-    public ObjectQuery build() throws SchemaException {
+    public ObjectQuery build() {
         if (typeRestriction != null || existsRestriction != null) {
             // unfinished empty type restriction or exists restriction
             return addSubfilter(null).build();
         }
         if (parentFilter != null) {
-            throw new SchemaException("A block in filter definition was probably not closed.");
+            throw new IllegalStateException("A block in filter definition was probably not closed.");
         }
         ObjectPaging paging;
         if (!orderingList.isEmpty()) {
@@ -399,7 +409,7 @@ public class R_Filter implements S_FilterEntryOrEmpty, S_AtomicFilterExit {
     }
 
     @Override
-    public ObjectFilter buildFilter() throws SchemaException {
+    public ObjectFilter buildFilter() {
         return build().getFilter();
     }
 

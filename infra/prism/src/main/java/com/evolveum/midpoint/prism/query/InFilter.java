@@ -35,7 +35,7 @@ public class InFilter<T> extends PropertyValueFilter<PrismPropertyValue> {
 	
 	public static <V> InFilter createIn(ItemPath path, PrismPropertyDefinition definition, QName matchingRule, V values){
 		
-		List<PrismPropertyValue<V>> pVals = createPropertyList(definition, values);
+		List<PrismPropertyValue<V>> pVals = realValueToPropertyList(definition, values);
 		
 		return new InFilter(path, definition, matchingRule, pVals);
 	}
@@ -59,11 +59,6 @@ public class InFilter<T> extends PropertyValueFilter<PrismPropertyValue> {
 	}
 	
 	
-
-	@Override
-	public QName getElementName() {
-		return getDefinition().getName();
-	}
 
 	@Override
 	public PrismContext getPrismContext() {

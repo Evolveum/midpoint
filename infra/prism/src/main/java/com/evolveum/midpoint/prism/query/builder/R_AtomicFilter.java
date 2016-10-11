@@ -34,7 +34,7 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.PropertyValueFilter;
 import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.prism.query.SubstringFilter;
-import com.evolveum.midpoint.util.exception.SchemaException;
+
 import org.apache.commons.lang.Validate;
 
 import javax.xml.namespace.QName;
@@ -91,12 +91,12 @@ public class R_AtomicFilter implements S_ConditionEntry, S_MatchingRuleEntry, S_
     }
 
     @Override
-    public S_AtomicFilterExit item(QName... names) throws SchemaException {
+    public S_AtomicFilterExit item(QName... names) {
         return item(new ItemPath(names), null);
     }
 
     @Override
-    public S_AtomicFilterExit item(ItemPath itemPath, ItemDefinition itemDefinition) throws SchemaException {
+    public S_AtomicFilterExit item(ItemPath itemPath, ItemDefinition itemDefinition) {
         if (!expectingRightSide) {
             throw new IllegalStateException("Unexpected item() call");
         }
@@ -130,7 +130,7 @@ public class R_AtomicFilter implements S_ConditionEntry, S_MatchingRuleEntry, S_
     }
 
     @Override
-    public S_MatchingRuleEntry gt(Object value) throws SchemaException {
+    public S_MatchingRuleEntry gt(Object value) {
         return new R_AtomicFilter(this, GreaterFilter.createGreater(itemPath, propertyDefinition, value, false));
     }
 
@@ -140,7 +140,7 @@ public class R_AtomicFilter implements S_ConditionEntry, S_MatchingRuleEntry, S_
     }
 
     @Override
-    public S_MatchingRuleEntry ge(Object value) throws SchemaException {
+    public S_MatchingRuleEntry ge(Object value) {
         return new R_AtomicFilter(this, GreaterFilter.createGreater(itemPath, propertyDefinition, value, true));
     }
 
@@ -150,7 +150,7 @@ public class R_AtomicFilter implements S_ConditionEntry, S_MatchingRuleEntry, S_
     }
 
     @Override
-    public S_MatchingRuleEntry lt(Object value) throws SchemaException {
+    public S_MatchingRuleEntry lt(Object value) {
         return new R_AtomicFilter(this, LessFilter.createLess(itemPath, propertyDefinition, value, false));
     }
 
@@ -160,7 +160,7 @@ public class R_AtomicFilter implements S_ConditionEntry, S_MatchingRuleEntry, S_
     }
 
     @Override
-    public S_MatchingRuleEntry le(Object value) throws SchemaException {
+    public S_MatchingRuleEntry le(Object value) {
         return new R_AtomicFilter(this, LessFilter.createLess(itemPath, propertyDefinition, value, true));
     }
 
@@ -262,51 +262,51 @@ public class R_AtomicFilter implements S_ConditionEntry, S_MatchingRuleEntry, S_
     // Methods which implement actions common with R_Filter
 
     @Override
-    public S_FilterEntry or() throws SchemaException {
+    public S_FilterEntry or() {
         return finish().or();
     }
 
     @Override
-    public S_FilterEntry and() throws SchemaException {
+    public S_FilterEntry and() {
         return finish().and();
     }
 
     @Override
-    public ObjectQuery build() throws SchemaException {
+    public ObjectQuery build() {
         return finish().build();
     }
 
     @Override
-    public ObjectFilter buildFilter() throws SchemaException {
+    public ObjectFilter buildFilter() {
         return build().getFilter();
     }
 
     @Override
-    public S_FilterExit asc(QName... names) throws SchemaException {
+    public S_FilterExit asc(QName... names) {
         return finish().asc(names);
     }
 
     @Override
-    public S_FilterExit asc(ItemPath path) throws SchemaException {
+    public S_FilterExit asc(ItemPath path) {
         return finish().asc(path);
     }
 
     @Override
-    public S_FilterExit desc(QName... names) throws SchemaException {
+    public S_FilterExit desc(QName... names) {
         return finish().desc(names);
     }
 
     @Override
-    public S_FilterExit desc(ItemPath path) throws SchemaException {
+    public S_FilterExit desc(ItemPath path) {
         return finish().desc(path);
     }
 
     @Override
-    public S_AtomicFilterExit endBlock() throws SchemaException {
+    public S_AtomicFilterExit endBlock() {
         return finish().endBlock();
     }
 
-    private R_Filter finish() throws SchemaException {
+    private R_Filter finish() {
         if (filter == null) {
             throw new IllegalStateException("Filter is not yet created!");
         }

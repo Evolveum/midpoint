@@ -36,9 +36,6 @@ public abstract class ObjectFilter implements DebugDumpable, Serializable, Reviv
 	
 	public abstract boolean match(PrismContainerValue value, MatchingRuleRegistry matchingRuleRegistry) throws SchemaException;
 	
-	protected void cloneValues(ObjectFilter clone) {
-	}
-	
 	public void accept(Visitor visitor) {
 		visitor.visit(this);
 	}
