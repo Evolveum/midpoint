@@ -156,7 +156,7 @@ public abstract class TestCompare {
 						new NameItemPathSegment(USER_DESCRIPTION_QNAME)), 
 				"Assignment II");
 		
-		ContainerDelta<?> assignment3Delta = PrismAsserts.assertContainerAdd(jackDelta, new ItemPath(USER_ASSIGNMENT_QNAME));
+		ContainerDelta<?> assignment3Delta = PrismAsserts.assertContainerAddGetContainerDelta(jackDelta, new ItemPath(USER_ASSIGNMENT_QNAME));
 		PrismContainerValue<?> assignment3DeltaAddValue = assignment3Delta.getValuesToAdd().iterator().next();
 		assertEquals("Assignment 3 wrong ID", USER_ASSIGNMENT_3_ID, assignment3DeltaAddValue.getId());
 		
