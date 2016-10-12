@@ -41,6 +41,7 @@ import com.evolveum.midpoint.web.page.self.dto.AssignmentViewType;
 import com.evolveum.midpoint.web.security.SecurityUtils;
 import com.evolveum.midpoint.web.session.SessionStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
@@ -148,7 +149,13 @@ public class CatalogItemsPanel extends BasePanel implements IPageableItems {
         initCartButton(headerPanel);
         initSearchPanel(headerPanel);
 
-        MultiButtonTable assignmentsTable = new MultiButtonTable(ID_MULTI_BUTTON_TABLE, itemsPerRow, itemsListModel, pageBase);
+        Component assignmentsTable;
+        if ((catalogOidModel == null || StringUtils.isEmpty(catalogOidModel.getObject())) &&
+                AssignmentViewType.ROLE_CATALOG_VIEW.equals(AssignmentViewType.getViewTypeFromSession(pageBase))) {
+            assignmentsTable = new Label(ID_MULTI_BUTTON_TABLE, createStringResource("PageAssignmentShoppingKart.roleCatalogIsNotConfigured"));
+        } else {
+            assignmentsTable = new MultiButtonTable(ID_MULTI_BUTTON_TABLE, itemsPerRow, itemsListModel, pageBase);
+        }
         assignmentsTable.setOutputMarkupId(true);
         add(assignmentsTable);
 
@@ -157,28 +164,32 @@ public class CatalogItemsPanel extends BasePanel implements IPageableItems {
     }
 
     protected void initProvider() {
+        if ((catalogOidModel == null || StringUtils.isEmpty(catalogOidModel.getObject()))
+                && AssignmentViewType.ROLE_CATALOG_VIEW.equals(AssignmentViewType.getViewTypeFromSession(pageBase))){
+            provider = null;
+        } else {
+            provider = new ObjectDataProvider<AssignmentEditorDto, AbstractRoleType>(pageBase, AbstractRoleType.class) {
+                private static final long serialVersionUID = 1L;
 
-        provider = new ObjectDataProvider<AssignmentEditorDto, AbstractRoleType>(pageBase, AbstractRoleType.class) {
-            private static final long serialVersionUID = 1L;
+                @Override
+                public AssignmentEditorDto createDataObjectWrapper(PrismObject<AbstractRoleType> obj) {
+                    return AssignmentEditorDto.createDtoFromObject(obj.asObjectable(), UserDtoStatus.MODIFY, pageBase);
+                }
 
-            @Override
-            public AssignmentEditorDto createDataObjectWrapper(PrismObject<AbstractRoleType> obj) {
-                return AssignmentEditorDto.createDtoFromObject(obj.asObjectable(), UserDtoStatus.MODIFY, pageBase);
-            }
+                @Override
+                public void setQuery(ObjectQuery query) {
 
-            @Override
-            public void setQuery(ObjectQuery query) {
+                    super.setQuery(query);
+                }
 
-                super.setQuery(query);
-            }
+                @Override
+                public ObjectQuery getQuery() {
 
-            @Override
-            public ObjectQuery getQuery() {
-
-                return createContentQuery(null);
-            }
-        };
-        setCurrentPage(0);
+                    return createContentQuery(null);
+                }
+            };
+            setCurrentPage(0);
+        }
     }
 
     protected void refreshCatalogItemsPanel() {
@@ -235,6 +246,12 @@ public class CatalogItemsPanel extends BasePanel implements IPageableItems {
     private void initSearchPanel(WebMarkupContainer headerPanel) {
         final Form searchForm = new Form(ID_SEARCH_FORM);
         headerPanel.add(searchForm);
+        searchForm.add(new VisibleEnableBehaviour(){
+            public boolean isVisible(){
+                return !(AssignmentViewType.ROLE_CATALOG_VIEW.equals(AssignmentViewType.getViewTypeFromSession(pageBase)) &&
+                        (catalogOidModel != null || StringUtils.isNotEmpty(catalogOidModel.getObject())));
+            }
+        });
         searchForm.setOutputMarkupId(true);
 
         SearchPanel search = new SearchPanel(ID_SEARCH, (IModel) searchModel, false) {
@@ -474,6 +491,12 @@ public class CatalogItemsPanel extends BasePanel implements IPageableItems {
                 setResponsePage(new PageAssignmentsList(loadUser()));
             }
         };
+        cartButton.add(new VisibleEnableBehaviour(){
+            public boolean isVisible(){
+                return !(AssignmentViewType.ROLE_CATALOG_VIEW.equals(AssignmentViewType.getViewTypeFromSession(pageBase)) &&
+                        (catalogOidModel != null || StringUtils.isNotEmpty(catalogOidModel.getObject())));
+            }
+        });
         cartButton.setOutputMarkupId(true);
         headerPanel.add(cartButton);
 

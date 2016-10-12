@@ -29,9 +29,11 @@ import com.evolveum.midpoint.web.page.admin.orgs.OrgTreePanel;
 import com.evolveum.midpoint.web.page.self.dto.AssignmentViewType;
 import com.evolveum.midpoint.web.session.SessionStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
 
 import javax.xml.namespace.QName;
@@ -65,7 +67,6 @@ public class AssignmentCatalogPanel<F extends AbstractRoleType> extends BasePane
         super(id);
         this.pageBase = pageBase;
         this.rootOid = rootOid;
-        AssignmentViewType.saveViewTypeToSession(pageBase, AssignmentViewType.ROLE_CATALOG_VIEW);
         initLayout();
     }
 
@@ -90,7 +91,7 @@ public class AssignmentCatalogPanel<F extends AbstractRoleType> extends BasePane
         WebMarkupContainer treePanelContainer = new WebMarkupContainer(ID_TREE_PANEL_CONTAINER);
         treePanelContainer.setOutputMarkupId(true);
         addOrReplace(treePanelContainer);
-        if (AssignmentViewType.ROLE_CATALOG_VIEW.equals(AssignmentViewType.getViewTypeFromSession(pageBase))) {
+        if (AssignmentViewType.ROLE_CATALOG_VIEW.equals(AssignmentViewType.getViewTypeFromSession(pageBase)) && StringUtils.isNotEmpty(rootOid)) {
             OrgTreePanel treePanel = new OrgTreePanel(ID_TREE_PANEL, new IModel<String>() {
                 @Override
                 public String getObject() {
@@ -177,6 +178,14 @@ public class AssignmentCatalogPanel<F extends AbstractRoleType> extends BasePane
 
             }
         };
+    }
+
+    public String getRootOid() {
+        return rootOid;
+    }
+
+    public void setRootOid(String rootOid) {
+        this.rootOid = rootOid;
     }
 
     private String getRoleCatalogOid() {

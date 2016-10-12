@@ -126,6 +126,7 @@ public class PageAssignmentShoppingKart extends PageSelf {
             }
         } else {
             AssignmentCatalogPanel panel = new AssignmentCatalogPanel(ID_MAIN_PANEL, PageAssignmentShoppingKart.this);
+            panel.setRootOid(catalogOid);
             panel.setOutputMarkupId(true);
             return panel;
         }
