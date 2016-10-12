@@ -18,6 +18,7 @@ package com.evolveum.midpoint.prism.query.builder;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.query.OrgFilter;
 
 import javax.xml.namespace.QName;
 
@@ -35,16 +36,18 @@ public interface S_AtomicFilterEntry {
     S_ConditionEntry item(PrismContainerDefinition containerDefinition, QName... names);
     S_ConditionEntry item(PrismContainerDefinition containerDefinition, ItemPath itemPath);
     S_MatchingRuleEntry itemAs(PrismProperty<?> property);              // experimental; TODO choose better name for this method
-    S_AtomicFilterExit id(String... identifiers) ;
-    S_AtomicFilterExit id(long... identifiers) ;
-    S_AtomicFilterExit ownerId(String... identifiers) ;
-    S_AtomicFilterExit ownerId(long... identifiers) ;
-    S_AtomicFilterExit isDirectChildOf(PrismReferenceValue value) ;
-    S_AtomicFilterExit isChildOf(PrismReferenceValue value) ;
-    S_AtomicFilterExit isDirectChildOf(String oid) ;
-    S_AtomicFilterExit isChildOf(String oid) ;
-    S_AtomicFilterExit isParentOf(PrismReferenceValue value) ;            // reference should point to OrgType
-    S_AtomicFilterExit isParentOf(String oid) ;                           // oid should be of an OrgType
+    S_AtomicFilterExit id(String... identifiers);
+    S_AtomicFilterExit id(long... identifiers);
+    S_AtomicFilterExit ownerId(String... identifiers);
+    S_AtomicFilterExit ownerId(long... identifiers);
+    S_AtomicFilterExit isDirectChildOf(PrismReferenceValue value);
+    S_AtomicFilterExit isChildOf(PrismReferenceValue value);
+    S_AtomicFilterExit isDirectChildOf(String oid);
+    S_AtomicFilterExit isChildOf(String oid);
+    S_AtomicFilterExit isParentOf(PrismReferenceValue value);            // reference should point to OrgType
+    S_AtomicFilterExit isParentOf(String oid);                           // oid should be of an OrgType
+    S_AtomicFilterExit isInScopeOf(String oid, OrgFilter.Scope scope);
+    S_AtomicFilterExit isInScopeOf(PrismReferenceValue value, OrgFilter.Scope scope);
     S_AtomicFilterExit isRoot() ;
     S_FilterEntryOrEmpty block();
     S_FilterEntryOrEmpty type(Class<? extends Containerable> type) ;

@@ -179,7 +179,7 @@ public class R_AtomicFilter implements S_ConditionEntry, S_MatchingRuleEntry, S_
 
     @Override
     public S_MatchingRuleEntry startsWith(Object value) {
-        return new R_AtomicFilter(this, SubstringFilter.createSubstring(itemPath, propertyDefinition, null, value, true, false));
+        return new R_AtomicFilter(this, SubstringFilter.createSubstring(itemPath, propertyDefinition, owner.getPrismContext(), null, value, true, false));
     }
 
 	@Override
@@ -194,7 +194,7 @@ public class R_AtomicFilter implements S_ConditionEntry, S_MatchingRuleEntry, S_
 
 	@Override
     public S_MatchingRuleEntry endsWith(Object value) {
-        return new R_AtomicFilter(this, SubstringFilter.createSubstring(itemPath, propertyDefinition, null, value, false, true));
+        return new R_AtomicFilter(this, SubstringFilter.createSubstring(itemPath, propertyDefinition, owner.getPrismContext(), null, value, false, true));
     }
 
 	@Override
@@ -209,7 +209,7 @@ public class R_AtomicFilter implements S_ConditionEntry, S_MatchingRuleEntry, S_
 
     @Override
     public S_MatchingRuleEntry contains(Object value) {
-        return new R_AtomicFilter(this, SubstringFilter.createSubstring(itemPath, propertyDefinition, null, value, false, false));
+        return new R_AtomicFilter(this, SubstringFilter.createSubstring(itemPath, propertyDefinition, owner.getPrismContext(), null, value, false, false));
     }
 
 	@Override

@@ -29,6 +29,7 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.OrgFilter;
 import com.evolveum.midpoint.prism.query.OrgFilter.Scope;
+import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -425,12 +426,14 @@ public class TreeTablePanel extends BasePanel<String> {
 	}
 
 	private boolean hasChildren(SelectableBean<OrgType> orgToDelete) {
-		OrgFilter childrenFilter = OrgFilter.createOrg(orgToDelete.getValue().getOid(), Scope.SUBTREE);
+		ObjectQuery query = QueryBuilder.queryFor(ObjectType.class, getPageBase().getPrismContext())
+				.isChildOf(orgToDelete.getValue().getOid())
+				.build();
 		Task task = getPageBase().createSimpleTask(OPERATION_COUNT_CHILDREN);
 		OperationResult result = new OperationResult(OPERATION_COUNT_CHILDREN);
 		try {
 			int count = getPageBase().getModelService().countObjects(ObjectType.class,
-					ObjectQuery.createObjectQuery(childrenFilter), null, task, result);
+					query, null, task, result);
 			return (count > 0);
 		} catch (SchemaException | ObjectNotFoundException | SecurityViolationException
 				| ConfigurationException | CommunicationException e) {

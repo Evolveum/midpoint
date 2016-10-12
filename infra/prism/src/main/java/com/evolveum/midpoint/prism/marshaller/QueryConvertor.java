@@ -505,7 +505,17 @@ public class QueryConvertor {
         if (preliminaryParsingOnly) {
             return null;
         } else {
-		    return SubstringFilter.createSubstring(itemPath, (PrismProperty) item, matchingRule, anchorStart, anchorEnd);
+			List values = item.getValues();
+			Object realValue;
+			if (values == null || values.isEmpty()) {
+				realValue = null;		// TODO throw an exception?
+			} else if (values.size() > 1) {
+				throw new IllegalArgumentException("Expected at most 1 value, got " + values);
+			} else {
+				realValue = ((PrismPropertyValue) values.get(0)).getValue();
+			}
+		    return SubstringFilter.createSubstring(itemPath, (PrismPropertyDefinition) itemDefinition,
+					prismContext, matchingRule, realValue, anchorStart, anchorEnd);
         }
 	}
 

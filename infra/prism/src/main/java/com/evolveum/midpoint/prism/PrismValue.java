@@ -260,8 +260,10 @@ public abstract class PrismValue implements IPrismValue {
 	@NotNull
 	public static <T extends PrismValue> Collection<T> cloneCollection(Collection<T> values) {
 		Collection<T> clones = new ArrayList<T>();
-		for (T value: values) {
-			clones.add((T)value.clone());
+		if (values != null) {
+			for (T value : values) {
+				clones.add((T) value.clone());
+			}
 		}
 		return clones;
 	}

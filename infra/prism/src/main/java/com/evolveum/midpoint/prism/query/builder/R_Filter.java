@@ -236,6 +236,16 @@ public class R_Filter implements S_FilterEntryOrEmpty, S_AtomicFilterExit {
     }
 
     @Override
+    public S_AtomicFilterExit isInScopeOf(String oid, OrgFilter.Scope scope) {
+        return addSubfilter(OrgFilter.createOrg(oid, scope));
+    }
+
+    @Override
+    public S_AtomicFilterExit isInScopeOf(PrismReferenceValue value, OrgFilter.Scope scope) {
+        return addSubfilter(OrgFilter.createOrg(value, scope));
+    }
+
+    @Override
     public S_AtomicFilterExit isParentOf(String oid) {
         OrgFilter orgFilter = OrgFilter.createOrg(oid, OrgFilter.Scope.ANCESTORS);
         return addSubfilter(orgFilter);

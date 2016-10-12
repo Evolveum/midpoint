@@ -215,13 +215,15 @@ public class Search implements Serializable, DebugDumpable {
                     .item(path, propDef).eq(value).buildFilter();
         } else if (DOMUtil.XSD_STRING.equals(propDef.getTypeName())) {
             String text = (String) searchValue.getValue();
-            return SubstringFilter.createSubstring(path, propDef, StringIgnoreCaseMatchingRule.NAME, text);
+            return QueryBuilder.queryFor(ObjectType.class, ctx)
+                    .item(path, propDef).contains(text).matchingCaseIgnore().buildFilter();
         } else if (SchemaConstants.T_POLY_STRING_TYPE.equals(propDef.getTypeName())) {
             //we're looking for string value, therefore substring filter should be used
             String text = (String) searchValue.getValue();
             PolyStringNormalizer normalizer = ctx.getDefaultPolyStringNormalizer();
             String value = normalizer.normalize(text);
-            return SubstringFilter.createSubstring(path, propDef, PolyStringNormMatchingRule.NAME, value);
+            return QueryBuilder.queryFor(ObjectType.class, ctx)
+                    .item(path, propDef).contains(text).matchingNorm().buildFilter();
         }
 
         //we don't know how to create filter from search item, should not happen, ha ha ha :)

@@ -543,9 +543,10 @@ public class OrgStructTest extends BaseSQLRepoTest {
             session.getTransaction().commit();
             session.close();
 
-            ObjectQuery objectQuery = ObjectQuery.createObjectQuery(OrgFilter.createOrg(SEARCH_ORG_OID_DEPTH1, OrgFilter.Scope.ONE_LEVEL));
-            objectQuery.setPaging(ObjectPaging.createPaging(null, null, ObjectType.F_NAME, OrderDirection.ASCENDING));
-
+            ObjectQuery objectQuery = QueryBuilder.queryFor(ObjectType.class, prismContext)
+                    .isDirectChildOf(SEARCH_ORG_OID_DEPTH1)
+                    .asc(ObjectType.F_NAME)
+                    .build();
             List<PrismObject<ObjectType>> sOrgClosure = repositoryService.searchObjects(ObjectType.class, objectQuery, null, parentResult);
 
             for (PrismObject<ObjectType> u : sOrgClosure) {
@@ -600,12 +601,10 @@ public class OrgStructTest extends BaseSQLRepoTest {
     	TestUtil.displayTestTile(TEST_NAME);
         OperationResult opResult = new OperationResult(TEST_NAME);
 
-        ObjectQuery query = new ObjectQuery();
-        PrismReferenceValue baseOrgRef = new PrismReferenceValue(ORG_F001_OID);
-        ObjectFilter filter = OrgFilter.createOrg(baseOrgRef, OrgFilter.Scope.ONE_LEVEL);
-        ObjectPaging paging = ObjectPaging.createPaging(null, null, ObjectType.F_NAME, null);
-        query.setFilter(filter);
-        query.setPaging(paging);
+        ObjectQuery query = QueryBuilder.queryFor(ObjectType.class, prismContext)
+                .isDirectChildOf(ORG_F001_OID)
+                .asc(ObjectType.F_NAME)
+                .build();
 
         // WHEN
         List<PrismObject<ObjectType>> orgClosure = repositoryService.searchObjects(ObjectType.class, query, null, opResult);

@@ -1479,10 +1479,9 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	}
 
 	protected List<PrismObject<OrgType>> getSubOrgs(String baseOrgOid, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException {
-		ObjectQuery query = new ObjectQuery();
-		PrismReferenceValue baseOrgRef = new PrismReferenceValue(baseOrgOid);
-		ObjectFilter filter = OrgFilter.createOrg(baseOrgRef, OrgFilter.Scope.ONE_LEVEL);
-		query.setFilter(filter);
+		ObjectQuery query = QueryBuilder.queryFor(OrgType.class, prismContext)
+				.isDirectChildOf(baseOrgOid)
+				.build();
 		return modelService.searchObjects(OrgType.class, query, null, task, result);
 	}
 	
@@ -1908,8 +1907,9 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	}
 	
     protected List<PrismObject<OrgType>> searchOrg(String baseOrgOid, OrgFilter.Scope scope, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException {
-        ObjectFilter filter = OrgFilter.createOrg(baseOrgOid, scope);
-		ObjectQuery query = ObjectQuery.createObjectQuery(filter);
+		ObjectQuery query = QueryBuilder.queryFor(OrgType.class, prismContext)
+				.isInScopeOf(baseOrgOid, scope)
+				.build();
 		return modelService.searchObjects(OrgType.class, query, null, task, result);
 	}
     

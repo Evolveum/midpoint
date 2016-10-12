@@ -26,6 +26,8 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
+import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterEntry;
+import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.Component;
@@ -449,11 +451,10 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 				createComponentPath(ID_FORM, ID_CONTAINER_MEMBER, ID_MEMBER_TABLE));
 	}
 
-	private QName getSearchType() {
+	private ObjectTypes getSearchType() {
 		DropDownChoice<ObjectTypes> searchByTypeChoice = (DropDownChoice<ObjectTypes>) get(
 				createComponentPath(ID_FORM, ID_SEARCH_BY_TYPE));
-		ObjectTypes typeModel = searchByTypeChoice.getModelObject();
-		return typeModel.getTypeQName();
+		return searchByTypeChoice.getModelObject();
 	}
 
 	private ObjectQuery createManagerQuery() {
@@ -561,37 +562,27 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 
 	@Override
 	protected ObjectQuery createMemberQuery() {
-		ObjectQuery query = null;
-
 		String oid = getModelObject().getOid();
-
-		List<ObjectFilter> filters = new ArrayList<>();
 
 		DropDownChoice<String> searchScopeChoice = (DropDownChoice<String>) get(
 				createComponentPath(ID_FORM, ID_SEARCH_SCOPE));
 		String scope = searchScopeChoice.getModelObject();
 
-		QName searchType = getSearchType();
-
-		OrgFilter org;
-		if (SEARCH_SCOPE_ONE.equals(scope)) {
-			filters.add(OrgFilter.createOrg(oid, OrgFilter.Scope.ONE_LEVEL));
-		} else {
-			filters.add(OrgFilter.createOrg(oid, OrgFilter.Scope.SUBTREE));
+		ObjectTypes searchType = getSearchType();
+		S_FilterEntryOrEmpty q = QueryBuilder.queryFor(ObjectType.class, getPageBase().getPrismContext());
+		if (!searchType.equals(ObjectTypes.OBJECT)) {
+			q = q.type(searchType.getClassDefinition());
 		}
-
-		query = ObjectQuery.createObjectQuery(AndFilter.createAnd(filters));
-
+		ObjectQuery query;
+		if (SEARCH_SCOPE_ONE.equals(scope)) {
+			query = q.isDirectChildOf(oid).build();
+		} else {
+			query = q.isChildOf(oid).build();
+		}
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("Searching members of org {} with query:\n{}", oid, query.debugDump());
 		}
-
-		if (searchType.equals(ObjectType.COMPLEX_TYPE)) {
-			return query;
-		}
-
-		return ObjectQuery.createObjectQuery(TypeFilter.createType(searchType, query.getFilter()));
-
+		return query;
 	}
 
 	private ObjectQuery createQueryForMemberAction(QueryScope scope, QName orgRelation, boolean isFocus) {
@@ -634,9 +625,9 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 
 	private ObjectQuery createQueryForAll(QueryScope scope, boolean isFocus, QName relation) {
 		OrgType org = getModelObject();
-		
-			return ObjectQuery.createObjectQuery(OrgFilter.createOrg(org.getOid(), getScope(scope)));
-
+		return QueryBuilder.queryFor(ObjectType.class, getPageBase().getPrismContext())
+				.isInScopeOf(org.getOid(), getScope(scope))
+				.build();
 	}
 	
 	private Scope getScope(QueryScope queryScope) {

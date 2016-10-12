@@ -350,6 +350,7 @@ public class TestQueryBuilder {
                         SubstringFilter.createSubstring(
                                 new ItemPath(AssignmentType.F_DESCRIPTION),
                                 assCtd.findPropertyDefinition(AssignmentType.F_DESCRIPTION),
+                                getPrismContext(),
                                 null, "desc1", true, false)
                 )
                 );
@@ -371,6 +372,7 @@ public class TestQueryBuilder {
                         SubstringFilter.createSubstring(
                                 new ItemPath(AssignmentType.F_NOTE),
                                 assCtd.findPropertyDefinition(AssignmentType.F_NOTE),
+                                getPrismContext(),
                                 null, "DONE.", false, true)
                 )
         );
@@ -394,6 +396,7 @@ public class TestQueryBuilder {
                         SubstringFilter.createSubstring(
                                 new ItemPath(AssignmentType.F_NOTE),
                                 assCtd.findPropertyDefinition(AssignmentType.F_NOTE),
+                                getPrismContext(),
                                 null, "DONE.", false, true)
                 )
         );
@@ -419,6 +422,7 @@ public class TestQueryBuilder {
                                 SubstringFilter.createSubstring(
                                         new ItemPath(AssignmentType.F_NOTE),
                                         assCtd.findPropertyDefinition(AssignmentType.F_NOTE),
+                                        getPrismContext(),
                                         null, "DONE.", false, true
                                 ),
                                 AllFilter.createAll()

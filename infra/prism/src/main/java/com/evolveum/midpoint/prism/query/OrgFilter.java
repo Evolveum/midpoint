@@ -34,12 +34,12 @@ public class OrgFilter extends ObjectFilter {
     private Scope scope;
     private boolean root;
 
-    public OrgFilter(PrismReferenceValue baseOrgRef, Scope scope) {
+    private OrgFilter(PrismReferenceValue baseOrgRef, Scope scope) {
         this.baseOrgRef = baseOrgRef;
         this.scope = scope != null ? scope : Scope.SUBTREE;
     }
 
-    public OrgFilter() {
+    private OrgFilter() {
     }
 
     public static OrgFilter createOrg(PrismReferenceValue baseOrgRef, Scope scope) {

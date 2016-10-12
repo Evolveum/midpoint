@@ -2075,10 +2075,9 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
         Session session = open();
 
         try {
-            SubstringFilter substring = SubstringFilter.createSubstring(F_NAME, ObjectType.class,
-                    prismContext, PolyStringOrigMatchingRule.NAME, "a");
-            substring.setAnchorStart(true);
-            ObjectQuery objectQuery = ObjectQuery.createObjectQuery(substring);
+            ObjectQuery objectQuery = QueryBuilder.queryFor(ObjectType.class, prismContext)
+                    .item(F_NAME).startsWith("a").matchingOrig()
+                    .build();
             objectQuery.setUseNewQueryInterpreter(true);
 
             String real = getInterpretedQuery2(session, ObjectType.class, objectQuery);
@@ -2100,9 +2099,9 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
             int count = repositoryService.countObjects(ObjectType.class, objectQuery, result);
             assertEquals(2, count);
 
-            substring = SubstringFilter.createSubstring(F_NAME, ObjectType.class,
-                    prismContext, PolyStringOrigMatchingRule.NAME, "a");
-            objectQuery = ObjectQuery.createObjectQuery(substring);
+            objectQuery = QueryBuilder.queryFor(ObjectType.class, prismContext)
+                    .item(F_NAME).containsPoly("a").matchingOrig()
+                    .build();
             objectQuery.setUseNewQueryInterpreter(true);
             count = repositoryService.countObjects(ObjectType.class, objectQuery, result);
             assertEquals(20, count);
@@ -2974,10 +2973,9 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
              * ### UserType: linkRef/@/name contains 'test.com'
              */
 
-            ObjectFilter filter = SubstringFilter.createSubstring(
-                    new ItemPath(UserType.F_LINK_REF, PrismConstants.T_OBJECT_REFERENCE, F_NAME),
-                    UserType.class, prismContext, "test.com");
-            ObjectQuery query = ObjectQuery.createObjectQuery(filter);
+            ObjectQuery query = QueryBuilder.queryFor(UserType.class, prismContext)
+                    .item(UserType.F_LINK_REF, PrismConstants.T_OBJECT_REFERENCE, F_NAME).containsPoly("test.com")
+                    .build();
 
             String real = getInterpretedQuery2(session, UserType.class, query);
             String expected = "select\n" +
@@ -3012,12 +3010,11 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
              * ### UserType: linkRef/@/resourceRef/@/name contains 'CSV' (norm)
              */
 
-            ObjectFilter filter = SubstringFilter.createSubstring(
-                    new ItemPath(UserType.F_LINK_REF, PrismConstants.T_OBJECT_REFERENCE,
+            ObjectQuery query = QueryBuilder.queryFor(UserType.class, prismContext)
+                    .item(UserType.F_LINK_REF, PrismConstants.T_OBJECT_REFERENCE,
                             ShadowType.F_RESOURCE_REF, PrismConstants.T_OBJECT_REFERENCE,
-                            F_NAME),
-                    UserType.class, prismContext, PolyStringNormMatchingRule.NAME, "CSV");
-            ObjectQuery query = ObjectQuery.createObjectQuery(filter);
+                            F_NAME).containsPoly("CSV").matchingNorm()
+                    .build();
 
             String real = getInterpretedQuery2(session, UserType.class, query);
             String expected = "select\n" +

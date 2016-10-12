@@ -74,16 +74,8 @@ public abstract class PropertyValueFilter<V extends PrismValue> extends ValueFil
 		this(path, definition, matchingRule, (List<V>) null);
 	}
 	
-	PropertyValueFilter(@NotNull ItemPath path, @Nullable ItemDefinition definition, @Nullable ExpressionWrapper expression) {
-		this(path, definition, null, null, expression);
-	}
-	
 	PropertyValueFilter(@NotNull ItemPath path, @Nullable ItemDefinition definition, @Nullable ExpressionWrapper expression, @Nullable List<V> values) {
 		this(path, definition, null, values, expression);
-	}
-	
-	PropertyValueFilter(ItemPath path, ItemDefinition definition, QName matchingRule, ExpressionWrapper expression) {
-		this(path, definition, matchingRule, null, expression);
 	}
 	
 	static protected <T> List<PrismPropertyValue<T>> createPropertyList(@NotNull PrismPropertyDefinition itemDefinition, @Nullable PrismPropertyValue<T> pValue) {
@@ -116,6 +108,14 @@ public abstract class PropertyValueFilter<V extends PrismValue> extends ValueFil
 			for (Object value : values) {
 				addToPrismValues(pVals, prismContext, value);
 			}
+		}
+		return pVals;
+	}
+
+	static <T> List<PrismPropertyValue<T>> createPropertyListFromValue(PrismContext prismContext, Object value) {
+		List<PrismPropertyValue<T>> pVals = new ArrayList<>();
+		if (value != null) {
+			addToPrismValues((List) pVals, prismContext, value);
 		}
 		return pVals;
 	}

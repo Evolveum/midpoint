@@ -23,6 +23,7 @@ import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import org.apache.wicket.Component;
 import org.apache.wicket.MarkupContainer;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -316,12 +317,10 @@ public class RunReportPopupPanel extends SimplePanel<ReportDto> {
             Task task = createSimpleTask(OPERATION_LOAD_RESOURCES);
 
             Collection<PrismObject<T>> objects;
-            SubstringFilter filter = SubstringFilter.createSubstring(new QName(SchemaConstants.NS_C, pLabel), targetType, getPrismContext(), input);
-            filter.setMatchingRule(new QName(SchemaConstants.NS_MATCHING_RULE, "origIgnoreCase"));
-            filter.setAnchorStart(true); // =startsWith
-            ObjectQuery query = ObjectQuery.createObjectQuery(filter);
-            query.setPaging(ObjectPaging.createPaging(0, AUTO_COMPLETE_BOX_SIZE));
-
+            ObjectQuery query = QueryBuilder.queryFor(targetType, getPrismContext())
+                    .item(new QName(SchemaConstants.NS_C, pLabel)).startsWith(input).matchingCaseIgnore()
+                    .maxSize(AUTO_COMPLETE_BOX_SIZE)
+                    .build();
             try {
                 objects = modelService.searchObjects(targetType, query, SelectorOptions.createCollection(GetOperationOptions.createNoFetch()), task, result);
 

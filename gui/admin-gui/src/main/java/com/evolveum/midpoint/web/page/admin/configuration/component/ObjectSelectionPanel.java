@@ -23,8 +23,10 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.match.PolyStringNormMatchingRule;
 import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
 import com.evolveum.midpoint.prism.query.AndFilter;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.SubstringFilter;
+import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -300,10 +302,11 @@ public class ObjectSelectionPanel extends Panel {
             PolyStringNormalizer normalizer = prismContext.getDefaultPolyStringNormalizer();
             String normalized = normalizer.normalize(dto.getText());
 
-            SubstringFilter filter = SubstringFilter.createSubstring(context.getSearchProperty(), objectType, prismContext,
-                    PolyStringNormMatchingRule.NAME, normalized);
+            ObjectFilter filter = QueryBuilder.queryFor(objectType, prismContext)
+                    .item(context.getSearchProperty()).contains(normalized).matchingNorm()
+                    .buildFilter();
 
-            if(context.getDataProviderQuery() != null){
+            if (context.getDataProviderQuery() != null) {
                 AndFilter and = AndFilter.createAnd(context.getDataProviderQuery().getFilter(), filter);
                 query = ObjectQuery.createObjectQuery(and);
             } else {

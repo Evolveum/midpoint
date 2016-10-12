@@ -32,16 +32,12 @@ public class RefFilter extends PropertyValueFilter<PrismReferenceValue> {
 		super(path, definition, expression, values);
 	}
 		
-	private RefFilter(ItemPath path, PrismReferenceDefinition definition, ExpressionWrapper expression) {
-		super(path, definition, expression, null);
-	}
-
 	public static RefFilter createReferenceEqual(ItemPath path, PrismReferenceDefinition definition, Collection<PrismReferenceValue> values) {
 		return new RefFilter(path, definition, null, values != null ? new ArrayList<>(values) : null);
 	}
 	
 	public static RefFilter createReferenceEqual(ItemPath path, PrismReferenceDefinition definition, ExpressionWrapper expression) {
-		return new RefFilter(path, definition, expression);
+		return new RefFilter(path, definition, expression, null);
 	}
 		
 	@Override
