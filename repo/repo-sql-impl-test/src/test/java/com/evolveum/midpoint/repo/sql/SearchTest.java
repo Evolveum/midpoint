@@ -252,7 +252,7 @@ public class SearchTest extends BaseSQLRepoTest {
     public void assignmentResourceRefSearchTest() throws Exception {
         PrismReferenceValue resourceRef = new PrismReferenceValue("10000000-0000-0000-0000-000000000004", ResourceType.COMPLEX_TYPE);
         ObjectQuery query = QueryBuilder.queryFor(RoleType.class, prismContext)
-                .item(RoleType.F_ASSIGNMENT, AssignmentType.F_CONSTRUCTION, ConstructionType.F_RESOURCE_REF).eq(resourceRef)
+                .item(RoleType.F_ASSIGNMENT, AssignmentType.F_CONSTRUCTION, ConstructionType.F_RESOURCE_REF).ref(resourceRef)
                 .build();
 
         OperationResult result = new OperationResult("search");
@@ -264,7 +264,7 @@ public class SearchTest extends BaseSQLRepoTest {
 
         PrismReferenceValue resourceRef2 = new PrismReferenceValue("FFFFFFFF-0000-0000-0000-000000000004", ResourceType.COMPLEX_TYPE);
         query = QueryBuilder.queryFor(RoleType.class, prismContext)
-                .item(RoleType.F_ASSIGNMENT, AssignmentType.F_CONSTRUCTION, ConstructionType.F_RESOURCE_REF).eq(resourceRef2)
+                .item(RoleType.F_ASSIGNMENT, AssignmentType.F_CONSTRUCTION, ConstructionType.F_RESOURCE_REF).ref(resourceRef2)
                 .build();
         roles = repositoryService.searchObjects(RoleType.class, query, null, result);
         result.recomputeStatus();
@@ -291,7 +291,7 @@ public class SearchTest extends BaseSQLRepoTest {
     public void orgAssignmentSearchTest() throws Exception {
         PrismReferenceValue org = new PrismReferenceValue("00000000-8888-6666-0000-100000000085", OrgType.COMPLEX_TYPE);
         ObjectQuery query = QueryBuilder.queryFor(UserType.class, prismContext)
-                .item(UserType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF).eq(org)
+                .item(UserType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF).ref(org)
                 .build();
         OperationResult result = new OperationResult("search");
         List<PrismObject<UserType>> users = repositoryService.searchObjects(UserType.class, query, null, result);
