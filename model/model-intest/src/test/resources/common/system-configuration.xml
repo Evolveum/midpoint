@@ -184,6 +184,7 @@
     	</objectForms>
     	<defaultTimezone>Jamaica</defaultTimezone>
     </adminGuiConfiguration>
+    
     <mergeConfiguration>
     	<name>default</name>
     	<item>
@@ -231,6 +232,24 @@
     	</item>    	
     	<default>
     		<right>take</right>
+    	</default>
+    </mergeConfiguration>
+    
+    <mergeConfiguration>
+    	<name>empty</name>
+    </mergeConfiguration>
+    
+    <mergeConfiguration>
+    	<name>allRight</name>
+    	<default>
+    		<right>take</right>
+    	</default>
+    </mergeConfiguration>
+    
+    <mergeConfiguration>
+    	<name>allLeft</name>
+    	<default>
+    		<left>take</left>
     	</default>
     </mergeConfiguration>
 </systemConfiguration>

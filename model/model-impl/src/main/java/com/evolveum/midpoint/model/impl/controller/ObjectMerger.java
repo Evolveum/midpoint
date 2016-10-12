@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -31,7 +32,6 @@ import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.Visitable;
 import com.evolveum.midpoint.prism.Visitor;
@@ -88,11 +88,11 @@ public class ObjectMerger {
 	private ModelController modelController;
 	
 	public <O extends ObjectType> Collection<ObjectDeltaOperation<? extends ObjectType>> mergeObjects(Class<O> type, 
-			String leftOid, String rightOid, Task task, OperationResult result) 
+			String leftOid, String rightOid, String mergeConfigurationName, Task task, OperationResult result) 
 					throws ObjectNotFoundException, SchemaException, ConfigurationException, 
 					ObjectAlreadyExistsException, ExpressionEvaluationException, CommunicationException, 
 					PolicyViolationException, SecurityViolationException {
-		ObjectDelta<O> objectDelta = computeMergeDelta(type, leftOid, rightOid, task, result);
+		ObjectDelta<O> objectDelta = computeMergeDelta(type, leftOid, rightOid, mergeConfigurationName, task, result);
 		
 		if (objectDelta != null && !objectDelta.isEmpty()) {
 			Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas = 
@@ -115,14 +115,14 @@ public class ObjectMerger {
 	}
 	
 	public <O extends ObjectType> ObjectDelta<O> computeMergeDelta(Class<O> type, String leftOid, String rightOid, 
-			Task task, OperationResult result) 
+			String mergeConfigurationName, Task task, OperationResult result) 
 					throws ObjectNotFoundException, SchemaException, ConfigurationException {
 		
 		final PrismObject<O> objectLeft = objectResolver.getObjectSimple(type, leftOid, null, task, result).asPrismObject();
 		final PrismObject<O> objectRight = objectResolver.getObjectSimple(type, rightOid, null, task, result).asPrismObject();
 		
 		PrismObject<SystemConfigurationType> systemConfiguration = systemObjectCache.getSystemConfiguration(result);
-		MergeConfigurationType mergeConfiguration = systemConfiguration.asObjectable().getMergeConfiguration();
+		MergeConfigurationType mergeConfiguration = selectConfiguration(systemConfiguration, mergeConfigurationName);
 		if (mergeConfiguration == null) {
 			throw new ConfigurationException("No merge configuration defined");
 		}
@@ -292,6 +292,19 @@ public class ObjectMerger {
 				}
 			}
 		}
+	}
+
+	private MergeConfigurationType selectConfiguration(
+			PrismObject<SystemConfigurationType> systemConfiguration, String mergeConfigurationName) throws ConfigurationException {
+		if (StringUtils.isBlank(mergeConfigurationName)) {
+			throw new IllegalArgumentException("Merge configuration name not specified");
+		}
+		for (MergeConfigurationType mergeConfiguration: systemConfiguration.asObjectable().getMergeConfiguration()) {
+			if (mergeConfigurationName.equals(mergeConfiguration.getName())) {
+				return mergeConfiguration;
+			}
+		}
+		throw new ConfigurationException("Merge configuration with name '"+mergeConfigurationName+"' was not found");
 	}
 
 }

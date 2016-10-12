@@ -29,13 +29,11 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
-import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.FocusTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
@@ -47,6 +45,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 public class TestMerge extends AbstractInitializedModelIntegrationTest {
 	
 	public static final File TEST_DIR = new File("src/test/resources/merge");
+	
+	public static final String MERGE_CONFIG_DEFAULT_NAME = "default";
 
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -88,7 +88,8 @@ public class TestMerge extends AbstractInitializedModelIntegrationTest {
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
         ObjectDelta<UserType> delta = 
-        		modelInteractionService.mergeObjectsPreviewDelta(UserType.class, USER_JACK_OID, USER_GUYBRUSH_OID, task, result);
+        		modelInteractionService.mergeObjectsPreviewDelta(UserType.class, 
+        				USER_JACK_OID, USER_GUYBRUSH_OID, MERGE_CONFIG_DEFAULT_NAME, task, result);
         
         // THEN
         TestUtil.displayThen(TEST_NAME);
@@ -135,7 +136,8 @@ public class TestMerge extends AbstractInitializedModelIntegrationTest {
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
         PrismObject<UserType> object = 
-        		modelInteractionService.mergeObjectsPreviewObject(UserType.class, USER_JACK_OID, USER_GUYBRUSH_OID, task, result);
+        		modelInteractionService.mergeObjectsPreviewObject(UserType.class, 
+        				USER_JACK_OID, USER_GUYBRUSH_OID, MERGE_CONFIG_DEFAULT_NAME, task, result);
         
         // THEN
         TestUtil.displayThen(TEST_NAME);
@@ -185,7 +187,8 @@ public class TestMerge extends AbstractInitializedModelIntegrationTest {
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
         ObjectDelta<UserType> delta = 
-        		modelInteractionService.mergeObjectsPreviewDelta(UserType.class, USER_GUYBRUSH_OID, USER_JACK_OID, task, result);
+        		modelInteractionService.mergeObjectsPreviewDelta(UserType.class, 
+        				USER_GUYBRUSH_OID, USER_JACK_OID, MERGE_CONFIG_DEFAULT_NAME, task, result);
         
         // THEN
         TestUtil.displayThen(TEST_NAME);
@@ -235,7 +238,8 @@ public class TestMerge extends AbstractInitializedModelIntegrationTest {
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
         PrismObject<UserType> object = 
-        		modelInteractionService.mergeObjectsPreviewObject(UserType.class, USER_GUYBRUSH_OID, USER_JACK_OID, task, result);
+        		modelInteractionService.mergeObjectsPreviewObject(UserType.class, 
+        				USER_GUYBRUSH_OID, USER_JACK_OID, MERGE_CONFIG_DEFAULT_NAME, task, result);
         
         // THEN
         TestUtil.displayThen(TEST_NAME);
@@ -280,7 +284,8 @@ public class TestMerge extends AbstractInitializedModelIntegrationTest {
         
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
-        modelService.mergeObjects(UserType.class, USER_JACK_OID, USER_GUYBRUSH_OID, task, result);
+        modelService.mergeObjects(UserType.class, 
+        		USER_JACK_OID, USER_GUYBRUSH_OID, MERGE_CONFIG_DEFAULT_NAME, task, result);
         
         // THEN
         TestUtil.displayThen(TEST_NAME);

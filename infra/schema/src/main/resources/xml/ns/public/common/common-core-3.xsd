@@ -9378,12 +9378,10 @@
                         </xsd:annotation>
                     </xsd:element>
                     
-                    <xsd:element name="mergeConfiguration" type="tns:MergeConfigurationType" minOccurs="0" maxOccurs="1">
+                    <xsd:element name="mergeConfiguration" type="tns:MergeConfigurationType" minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Configuration for object merging. E.g. for merging two users.
-                                Note: this is a single-valued item now. But it will most likely be
-                                switched to multi-valued item in future midPoint versions.
+                                Configurations for object merging. E.g. for merging two users.
                             </xsd:documentation>
                             <xsd:appinfo>
                             	<a:since>3.5</a:since>
@@ -12488,17 +12486,51 @@
 	<xsd:complexType name="MergeConfigurationType">
 		<xsd:annotation>
 			<xsd:documentation>
-				TODO
+				Configuration that specifies automatic merging of two objects.
 			</xsd:documentation>
 			<xsd:appinfo>
 				<a:container/>
 			</xsd:appinfo>
 		</xsd:annotation>
 		<xsd:sequence>
-			<xsd:element name="name" type="xsd:string" minOccurs="0" maxOccurs="1"/>
-			<xsd:element name="description" type="xsd:string" minOccurs="0" maxOccurs="1"/>
-			<xsd:element name="item" type="tns:ItemRefMergeConfigurationType" minOccurs="0" maxOccurs="unbounded"/>
-			<xsd:element name="default" type="tns:ItemMergeConfigurationType" minOccurs="0" maxOccurs="1"/>
+			<xsd:element name="name" type="xsd:string" minOccurs="1" maxOccurs="1">
+				<xsd:annotation>
+					<xsd:documentation>
+						Short name of the merge cofiguration that also works as identifier for this configuration.
+						It has to be unique among all the applicable merge configurations.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="displayName" type="xsd:string" minOccurs="0" maxOccurs="1">
+				<xsd:annotation>
+					<xsd:documentation>
+						Free form-name that can be displayed in user interfaces.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="description" type="xsd:string" minOccurs="0" maxOccurs="1">
+							<xsd:annotation>
+					<xsd:documentation>
+						Free form description that can be displayed in user interfaces. It may be
+						longer text (more than few lines).
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="item" type="tns:ItemRefMergeConfigurationType" minOccurs="0" maxOccurs="unbounded">
+				<xsd:annotation>
+					<xsd:documentation>
+						Item merge configuration. It will be applied to the specified (named) item.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="default" type="tns:ItemMergeConfigurationType" minOccurs="0" maxOccurs="1">
+				<xsd:annotation>
+					<xsd:documentation>
+						Default merge configuration. It will be applied to all the items that are not
+						explicitly specified in the item merge configurations.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
 		</xsd:sequence>
 	</xsd:complexType>
 	
