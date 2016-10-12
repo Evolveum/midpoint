@@ -94,7 +94,7 @@ public class CatalogItemsPanel extends BasePanel implements IPageableItems {
     private IModel<AssignmentViewType> viewModel;
     private AssignmentViewType currentViewType = AssignmentViewType.ROLE_CATALOG_VIEW;
 
-    private long itemsPerRow = 3;
+    private long itemsPerRow = 4;
     private static final long DEFAULT_ROWS_COUNT = 5;
     private PageBase pageBase;
     private IModel<QName> viewTypeClassModel;
