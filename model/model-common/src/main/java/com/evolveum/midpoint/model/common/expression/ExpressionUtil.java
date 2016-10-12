@@ -533,18 +533,18 @@ public class ExpressionUtil {
 			}
 			return evaluatedFilter;
 
-		} else if (filter instanceof PropertyValueFilter) {
-			PropertyValueFilter pvfilter = (PropertyValueFilter) filter;
+		} else if (filter instanceof ValueFilter) {
+			ValueFilter valueFilter = (ValueFilter) filter;
 
-			if (pvfilter.getValues() != null && !pvfilter.getValues().isEmpty()) {
+			if (valueFilter.getValues() != null && !valueFilter.getValues().isEmpty()) {
 				// We have value. Nothing to evaluate.
-				return pvfilter.clone();
+				return valueFilter.clone();
 			}
 
-			ExpressionWrapper expressionWrapper = pvfilter.getExpression();
+			ExpressionWrapper expressionWrapper = valueFilter.getExpression();
 			if (expressionWrapper == null || expressionWrapper.getExpression() == null) {
 				LOGGER.warn("No valueExpression in filter in {}. Returning original filter", shortDesc);
-				return pvfilter.clone();
+				return valueFilter.clone();
 			}
 			if (!(expressionWrapper.getExpression() instanceof ExpressionType)) {
 				throw new SchemaException("Unexpected expression type "
@@ -561,13 +561,13 @@ public class ExpressionUtil {
 					LOGGER.debug("Result of search filter expression was null or empty. Expression: {}",
 							valueExpression);
 
-					return createFilterForNoValue(pvfilter, valueExpression);
+					return createFilterForNoValue(valueFilter, valueExpression);
 				}
 				// TODO: log more context
 				LOGGER.trace("Search filter expression in the rule for {} evaluated to {}.",
 						new Object[] { shortDesc, expressionResult });
 
-				ValueFilter evaluatedFilter = pvfilter.clone();
+				ValueFilter evaluatedFilter = valueFilter.clone();
 				evaluatedFilter.setValue(expressionResult);
 				evaluatedFilter.setExpression(null);
 				// }
