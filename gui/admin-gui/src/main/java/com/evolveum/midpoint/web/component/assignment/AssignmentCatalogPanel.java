@@ -47,6 +47,10 @@ public class AssignmentCatalogPanel<F extends AbstractRoleType> extends BasePane
     private static String ID_CATALOG_ITEMS_PANEL = "catalogItemsPanel";
 
     private PageBase pageBase;
+    private IModel<String> rootOidModel;
+    private String rootOid;
+    private IModel<QName> viewTypeClassModel;
+    private QName viewTypeClass;
 
     public AssignmentCatalogPanel(String id) {
         super(id);
@@ -55,21 +59,29 @@ public class AssignmentCatalogPanel<F extends AbstractRoleType> extends BasePane
     public AssignmentCatalogPanel(String id, String rootOid, PageBase pageBase) {
         super(id);
         this.pageBase = pageBase;
-        initLayout(null, rootOid);
+        this.rootOid = rootOid;
+        this.viewTypeClass = null;
+        initLayout();
     }
 
     public AssignmentCatalogPanel(String id, QName viewTypeClass, PageBase pageBase) {
         super(id);
         this.pageBase = pageBase;
-        initLayout(viewTypeClass, null);
+        this.viewTypeClass = viewTypeClass;
+        this.rootOid = null;
+        initLayout();
     }
 
-    private void initLayout(QName viewTypeClass, final String rootOid) {
+    private void initLayout() {
+        initModels();
         setOutputMarkupId(true);
+        addOrReplaceLayout();
+    }
+    public void addOrReplaceLayout(){
         WebMarkupContainer treePanelContainer = new WebMarkupContainer(ID_TREE_PANEL_CONTAINER);
         treePanelContainer.setOutputMarkupId(true);
-        add(treePanelContainer);
-        if (rootOid != null) {
+        addOrReplace(treePanelContainer);
+        if (viewTypeClass == null) {
             OrgTreePanel treePanel = new OrgTreePanel(ID_TREE_PANEL, new IModel<String>() {
                 @Override
                 public String getObject() {
@@ -106,38 +118,72 @@ public class AssignmentCatalogPanel<F extends AbstractRoleType> extends BasePane
             };
             treePanel.setOutputMarkupId(true);
             treePanelContainer.add(new AttributeAppender("class", "col-md-3"));
-            treePanelContainer.add(treePanel);
+            treePanelContainer.addOrReplace(treePanel);
         } else {
             WebMarkupContainer treePanel = new WebMarkupContainer(ID_TREE_PANEL);
             treePanel.setVisible(false);
             treePanel.setOutputMarkupId(true);
-            treePanelContainer.add(treePanel);
+            treePanelContainer.addOrReplace(treePanel);
         }
 
         WebMarkupContainer catalogItemsPanelContainer = new WebMarkupContainer(ID_CATALOG_ITEMS_PANEL_CONTAINER);
         catalogItemsPanelContainer.setOutputMarkupId(true);
-        add(catalogItemsPanelContainer);
+        addOrReplace(catalogItemsPanelContainer);
 
-        CatalogItemsPanel catalogItemsPanel;
-        if (rootOid != null) {
-            catalogItemsPanel = new CatalogItemsPanel(ID_CATALOG_ITEMS_PANEL, rootOid, pageBase);
+        CatalogItemsPanel catalogItemsPanel = new CatalogItemsPanel(ID_CATALOG_ITEMS_PANEL, rootOidModel, viewTypeClassModel, pageBase);
+        if (viewTypeClass == null) {
             catalogItemsPanelContainer.add(new AttributeAppender("class", "col-md-9"));
         } else {
-            catalogItemsPanel = new CatalogItemsPanel(ID_CATALOG_ITEMS_PANEL, viewTypeClass, pageBase);
             catalogItemsPanelContainer.add(new AttributeAppender("class", "col-md-12"));
         }
         catalogItemsPanel.setOutputMarkupId(true);
-        catalogItemsPanelContainer.add(catalogItemsPanel);
+        catalogItemsPanelContainer.addOrReplace(catalogItemsPanel);
     }
 
     private void selectTreeItemPerformed(SelectableBean<OrgType> selected, AjaxRequestTarget target) {
         final OrgType selectedOgr = selected.getValue();
-        CatalogItemsPanel catalogItemsPanel = new CatalogItemsPanel(ID_CATALOG_ITEMS_PANEL, selectedOgr.getOid(), pageBase);
+        rootOidModel.setObject(selectedOgr.getOid());
+        viewTypeClassModel.setObject(null);
+        CatalogItemsPanel catalogItemsPanel = new CatalogItemsPanel(ID_CATALOG_ITEMS_PANEL, rootOidModel, viewTypeClassModel, pageBase);
         catalogItemsPanel.setOutputMarkupId(true);
         ((WebMarkupContainer) get(ID_CATALOG_ITEMS_PANEL_CONTAINER)).addOrReplace(catalogItemsPanel);
         target.add(catalogItemsPanel);
         target.add(get(ID_CATALOG_ITEMS_PANEL_CONTAINER));
     }
 
+    private void initModels(){
+        rootOidModel = new IModel<String>() {
+            @Override
+            public String getObject() {
+                return rootOid;
+            }
+
+            @Override
+            public void setObject(String s) {
+                rootOid = s;
+            }
+
+            @Override
+            public void detach() {
+
+            }
+        };
+        viewTypeClassModel = new IModel<QName>() {
+            @Override
+            public QName getObject() {
+                return viewTypeClass;
+            }
+
+            @Override
+            public void setObject(QName qName) {
+                viewTypeClass = qName;
+            }
+
+            @Override
+            public void detach() {
+
+            }
+        };
+    }
 }
 

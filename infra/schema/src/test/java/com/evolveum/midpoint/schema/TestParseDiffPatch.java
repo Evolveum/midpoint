@@ -346,7 +346,7 @@ public class TestParseDiffPatch {
         Collection<? extends ItemDelta> modifications = diffDelta.getModifications();
         assertEquals("Unexpected number of modifications", 1, modifications.size());
         // there is only one property in the container. after deleting this property, all container will be deleted, isn't it right?
-        PrismAsserts.assertContainerDelete(diffDelta, new ItemPath(TaskType.F_EXTENSION));
+        PrismAsserts.assertContainerDeleteGetContainerDelta(diffDelta, new ItemPath(TaskType.F_EXTENSION));
 //        PrismAsserts.assertPropertyDelete(diffDelta, new ItemPath(TaskType.F_EXTENSION,
 //        		new QName("http://midpoint.evolveum.com/xml/ns/public/provisioning/liveSync-1.xsd","token")), 480);
 
@@ -430,7 +430,7 @@ public class TestParseDiffPatch {
         assertEquals("Wrong change type", ChangeType.MODIFY, resourceDelta.getChangeType());
         Collection<? extends ItemDelta> modifications = resourceDelta.getModifications();
         assertEquals("Unexpected number of modifications", 7, modifications.size());
-        PrismAsserts.assertContainerDelete(resourceDelta, ResourceType.F_SCHEMA);
+        PrismAsserts.assertContainerDeleteGetContainerDelta(resourceDelta, ResourceType.F_SCHEMA);
         PrismAsserts.assertPropertyReplace(resourceDelta, pathTimeouts("update"), 3);
         PrismAsserts.assertPropertyReplace(resourceDelta, pathTimeouts("scriptOnResource"), 4);
         PrismAsserts.assertPropertyDelete(resourceDelta,

@@ -17,13 +17,16 @@
       xmlns:wicket="http://wicket.apache.org">
 <body>
 <wicket:panel>
-    <div wicket:id="headerPanel" class="box-header">
-        <form class="form-inline search-form pull-left" wicket:id="searchForm">
+    <div wicket:id="headerPanel" class="row box-header">
+        <select class="col-md-3 input-sm" wicket:id="viewTypeSelect"/>
+
+        <form class="col-md-8 search-form" wicket:id="searchForm">
             <div wicket:id="search"/>
         </form>
-        <a wicket:id="cartButton" class="col-md-1 pull-right" style="font-size: 24px">
+        <a wicket:id="cartButton" class="col-md-1" style="font-size: 24px">
             <i class="fa fa-shopping-cart" style="width: 50%;"></i>
-            <span wicket:id="itemsCount" class="badge bg-red" style="font-size: 10px; position: absolute; top: -1px; right: 50%;"></span>
+            <span wicket:id="itemsCount" class="badge bg-red"
+                  style="font-size: 10px; position: absolute; top: -1px; right: 50%;"></span>
         </a>
     </div>
     <div class="row" wicket:id="multiButtonTable" style="min-height: 460px; margin-left: 15px;"/>

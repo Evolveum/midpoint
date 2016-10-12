@@ -19,6 +19,7 @@ import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertTrue;
 import static org.testng.AssertJUnit.assertNotNull;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
@@ -128,6 +129,28 @@ public class MidPointAsserts {
 	
 	public static <F extends FocusType> void assertNotAssignedRole(PrismObject<F> user, String roleOid) {
 		assertNotAssigned(user, roleOid, RoleType.COMPLEX_TYPE);
+	}
+	
+	public static <F extends FocusType> void assertAssignedRoles(PrismObject<F> user, String... roleOids) {
+		assertAssignedTargets(user, "roles", RoleType.COMPLEX_TYPE, roleOids);
+	}
+	
+	public static <F extends FocusType> void assertAssignedOrgs(PrismObject<F> user, String... orgOids) {
+		assertAssignedTargets(user, "orgs", OrgType.COMPLEX_TYPE, orgOids);
+	}
+	
+	public static <F extends FocusType> void assertAssignedTargets(PrismObject<F> user, String typeDesc, QName type, String... expectedTargetOids) {
+		F userType = user.asObjectable();
+		List<String> haveTagetOids = new ArrayList<>();
+		for (AssignmentType assignmentType: userType.getAssignment()) {
+			ObjectReferenceType targetRef = assignmentType.getTargetRef();
+			if (targetRef != null) {
+				if (type.equals(targetRef.getType())) {
+					haveTagetOids.add(targetRef.getOid());
+				}
+			}
+		}
+		PrismAsserts.assertSets("Wrong "+typeDesc+" in "+user, haveTagetOids, expectedTargetOids);
 	}
 
     public static <F extends FocusType> void assertNotAssignedResource(PrismObject<F> user, String resourceOid) {

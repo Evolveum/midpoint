@@ -20,23 +20,26 @@
     <div class="row shopping-cart-row" wicket:id="row">
         <div wicket:id="cell">
         	<div class="col-lg-3 col-xs-6">
-            	<div class="small-box bg-green shopping-cart-item-box">
-            		<div wicket:id="inner" class="inner">
-		                <h4 wicket:id="innerLabel"></h4>
-	                </div>
-	                <div class="icon">
-	                	<i wicket:id="typeIcon"></i>
-	                </div>
-	                <div class="shopping-cart-item-box-footer">
-	                	<span wicket:id="detailsLink" class="shopping-cart-item-button-details">
-	                		<!-- TODO: convert static text to tranlatable message -->
-	                		Details <i class="fa fa-arrow-circle-right"></i>
-	                	</span>
-	                	<span wicket:id="addToCartLink" class="shopping-cart-item-button-add">
-	                		<!-- TODO: convert static text to tranlatable message -->
-	                		Add to cart <i class="fa fa-plus-circle"></i>
-	                	</span>
-	                </div>
+            	<div class="small-box shopping-cart-item-box">
+                    <div wicket:id="itemButtonContainer">
+
+                        <div wicket:id="inner" class="inner">
+                            <div wicket:id="innerLabel" class="inner-label"></div>
+                        </div>
+                        <div class="icon">
+                            <i wicket:id="typeIcon"></i>
+                        </div>
+                        <div class="shopping-cart-item-box-footer">
+                        <span wicket:id="detailsLink" class="shopping-cart-item-button-details">
+                            <span wicket:id="detailsLinkLabel"/>
+                            <i wicket:id="detailsLinkIcon" class="fa fa-arrow-circle-right"/>
+                        </span>
+                        <span wicket:id="addToCartLink" class="shopping-cart-item-button-add">
+                            <wicket:message key="MultiButtonPanel.addToCartLink"/>
+                            <i wicket:id="addToCartLinkIcon" class="fa fa-plus-circle" style="margin-left: 10px;"/>
+                        </span>
+                        </div>
+                    </div>
 	            </div>
             </div>
         </div>

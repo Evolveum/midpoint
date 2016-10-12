@@ -56,6 +56,8 @@ public interface ModelInteractionService {
 	static final String GET_CREDENTIALS_POLICY = CLASS_NAME_WITH_DOT + "getCredentialsPolicy";
 	static final String CHECK_PASSWORD = CLASS_NAME_WITH_DOT + "checkPassword";
 	static final String GET_CONNECTOR_OPERATIONAL_STATUS = CLASS_NAME_WITH_DOT + "getConnectorOperationalStatus";
+	static final String MERGE_OBJECTS_PREVIEW_DELTA = CLASS_NAME_WITH_DOT + "mergeObjectsPreviewDelta";
+	static final String MERGE_OBJECTS_PREVIEW_OBJECT = CLASS_NAME_WITH_DOT + "mergeObjectsPreviewObject";
 	
 	/**
 	 * Computes the most likely changes triggered by the provided delta. The delta may be any change of any object, e.g.
@@ -179,5 +181,13 @@ public interface ModelInteractionService {
 	
 	ConnectorOperationalStatus getConnectorOperationalStatus(String resourceOid, OperationResult parentResult)
 			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException;
+	
+	<O extends ObjectType> ObjectDelta<O> mergeObjectsPreviewDelta(Class<O> type, 
+			String leftOid, String rightOid, Task task, OperationResult result) 
+					throws ObjectNotFoundException, SchemaException, ConfigurationException;
+	
+	<O extends ObjectType> PrismObject<O> mergeObjectsPreviewObject(Class<O> type, 
+			String leftOid, String rightOid, Task task, OperationResult result)
+					throws ObjectNotFoundException, SchemaException, ConfigurationException;
 
 }
