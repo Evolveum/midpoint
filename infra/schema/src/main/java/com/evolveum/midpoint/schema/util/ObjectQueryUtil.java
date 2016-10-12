@@ -175,8 +175,7 @@ public class ObjectQueryUtil {
 	}
 	
 	public static ObjectQuery createRootOrgQuery(PrismContext prismContext) throws SchemaException {
-		ObjectQuery objectQuery = ObjectQuery.createObjectQuery(OrgFilter.createRootOrg());
-		return objectQuery;
+		return QueryBuilder.queryFor(ObjectType.class, prismContext).isRoot().build();
 	}
 	
 	public static boolean hasAllDefinitions(ObjectQuery query) {
@@ -190,7 +189,7 @@ public class ObjectQueryUtil {
 			@Override
 			public void visit(ObjectFilter filter) {
 				if (filter instanceof ValueFilter) {
-					ItemDefinition definition = ((ValueFilter<?>)filter).getDefinition();
+					ItemDefinition definition = ((ValueFilter<?,?>)filter).getDefinition();
 					if (definition == null) {
 						hasAllDefinitions.setValue(false);
 					}

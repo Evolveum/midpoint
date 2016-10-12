@@ -514,8 +514,10 @@ public class OrgStructTest extends BaseSQLRepoTest {
     public void test006searchOrgStructUserUnbounded() throws Exception {
         OperationResult parentResult = new OperationResult("test006searchOrgStructUserUnbounded");
 
-        ObjectQuery objectQuery = ObjectQuery.createObjectQuery(OrgFilter.createOrg(SEARCH_ORG_OID_UNBOUNDED_DEPTH));
-        objectQuery.setPaging(ObjectPaging.createPaging(null, null, ObjectType.F_NAME, OrderDirection.ASCENDING));
+        ObjectQuery objectQuery = QueryBuilder.queryFor(ObjectType.class, prismContext)
+                .isChildOf(SEARCH_ORG_OID_UNBOUNDED_DEPTH)
+                .asc(ObjectType.F_NAME)
+                .build();
 
         List<PrismObject<ObjectType>> orgClosure = repositoryService.searchObjects(ObjectType.class, objectQuery, null, parentResult);
 
@@ -564,9 +566,10 @@ public class OrgStructTest extends BaseSQLRepoTest {
     public void test008searchRootOrg() throws Exception {
         OperationResult parentResult = new OperationResult("test008searchRootOrg");
 
-        ObjectQuery qSearch = ObjectQuery.createObjectQuery(OrgFilter.createRootOrg());
-        qSearch.setPaging(ObjectPaging.createPaging(null, null, ObjectType.F_NAME, OrderDirection.ASCENDING));
-
+        ObjectQuery qSearch = QueryBuilder.queryFor(ObjectType.class, prismContext)
+                .isRoot()
+                .asc(ObjectType.F_NAME)
+                .build();
         List<PrismObject<OrgType>> rootOrgs = repositoryService.searchObjects(OrgType.class, qSearch, null, parentResult);
 
         for (PrismObject<OrgType> ro : rootOrgs) {

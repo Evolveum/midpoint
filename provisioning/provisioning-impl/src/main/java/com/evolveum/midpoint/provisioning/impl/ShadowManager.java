@@ -713,10 +713,6 @@ public class ShadowManager {
 			return;
 		}
 		MatchingRule<T> matchingRule = matchingRuleRegistry.getMatchingRule(matchingRuleQName, rAttrDef.getTypeName());
-		if (matchingRule == null) {
-			// TODO: warning?
-			return;
-		}
 		List<PrismValue> newValues = new ArrayList<PrismValue>();
 		for (PrismPropertyValue<T> ppval: eqFilter.getValues()) {
 			T normalizedRealValue = matchingRule.normalize(ppval.getValue());

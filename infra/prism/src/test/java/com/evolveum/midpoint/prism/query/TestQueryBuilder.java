@@ -511,7 +511,7 @@ public class TestQueryBuilder {
                         .item(new ItemPath(UserType.F_NAME), nameDef)
                 .build();
         ObjectQuery expected = ObjectQuery.createObjectQuery(
-                LessFilter.createLessThanItem(
+                LessFilter.createLess(
                         new ItemPath(UserType.F_LOCALITY),
                         localityDef,
                         new ItemPath(UserType.F_NAME),

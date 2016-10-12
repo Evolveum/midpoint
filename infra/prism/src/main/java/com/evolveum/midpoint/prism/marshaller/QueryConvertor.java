@@ -278,7 +278,7 @@ public class QueryConvertor {
 		ItemPath rightSidePath = getPath(clauseXMap, ELEMENT_RIGHT_HAND_SIDE_PATH);
 
 		ItemDefinition itemDefinition = locateItemDefinition(valueXnode, itemPath, pcd, prismContext);
-		if (itemDefinition != null){
+		if (itemDefinition != null) {
 			itemName = itemDefinition.getName();
 		}
 		
@@ -299,9 +299,10 @@ public class QueryConvertor {
 				PrismPropertyValue<T> propertyValue = (PrismPropertyValue<T>) item.getValue(0);
 				propertyValue.clearParent();
 				if (isGt || isGtEq) {
-					return GreaterFilter.createGreater(itemPath, pcd, propertyValue, isGtEq);
+					return GreaterFilter.createGreater(itemPath, (PrismPropertyDefinition<T>) itemDefinition, isGtEq, prismContext, propertyValue);
 				} else {
-					return LessFilter.createLess(itemPath, pcd, propertyValue, isLtEq);
+					return LessFilter.createLess(itemPath, (PrismPropertyDefinition<T>) itemDefinition, prismContext,
+							propertyValue, isLtEq);
 				}
             }
 		} else if (rightSidePath != null) {
@@ -312,9 +313,11 @@ public class QueryConvertor {
 				if (isEq) {
 					return EqualFilter.createEqual(itemPath, (PrismPropertyDefinition) itemDefinition, matchingRule, rightSidePath, rightSideDefinition);
 				} else if (isGt || isGtEq) {
-					return GreaterFilter.createGreater(itemPath, (PrismPropertyDefinition) itemDefinition, rightSidePath, rightSideDefinition, isGtEq);
+					return GreaterFilter.createGreater(itemPath, (PrismPropertyDefinition) itemDefinition, rightSidePath,
+							rightSideDefinition, isGtEq);
 				} else {
-					return LessFilter.createLess(itemPath, (PrismPropertyDefinition) itemDefinition, rightSidePath, rightSideDefinition, isLtEq);
+					return LessFilter.createLess(itemPath, (PrismPropertyDefinition) itemDefinition, rightSidePath,
+							rightSideDefinition, isLtEq);
 				}
 			}
 		} else {
@@ -331,9 +334,11 @@ public class QueryConvertor {
 					if (isEq) {
 						return EqualFilter.createEqual(itemPath, (PrismPropertyDefinition<T>) itemDefinition, matchingRule, expressionWrapper);
 					} else if (isGt || isGtEq) {
-						return GreaterFilter.createGreater(itemPath, (PrismPropertyDefinition<T>) itemDefinition, expressionWrapper, isGtEq);
+						return GreaterFilter.createGreater(itemPath, (PrismPropertyDefinition<T>) itemDefinition,
+								expressionWrapper, isGtEq);
 					} else {
-						return LessFilter.createLess(itemPath, (PrismPropertyDefinition<T>) itemDefinition, expressionWrapper, isLtEq);
+						return LessFilter.createLess(itemPath, (PrismPropertyDefinition<T>) itemDefinition, expressionWrapper,
+								isLtEq);
 					}
                 }
 			} else {
@@ -343,7 +348,7 @@ public class QueryConvertor {
                 if (preliminaryParsingOnly) {
                     return null;
                 } else {
-					return EqualFilter.createEqual(itemPath, (PrismPropertyDefinition<T>) itemDefinition, matchingRule, prismContext);
+					return EqualFilter.createEqual(itemPath, (PrismPropertyDefinition<T>) itemDefinition, matchingRule);
                 }
             }
 		}
@@ -738,7 +743,7 @@ public class QueryConvertor {
 		return createFilter(CLAUSE_IN_OID, clauseMap);
 	}
 
-	private static <T extends PrismValue> MapXNode serializeComparisonFilter(PropertyValueFilter<T> filter, XNodeSerializer xnodeSerializer) throws SchemaException{
+	private static <T> MapXNode serializeComparisonFilter(PropertyValueFilter<T> filter, XNodeSerializer xnodeSerializer) throws SchemaException{
 		MapXNode map = new MapXNode();
 		QName clause;
 		if (filter instanceof EqualFilter) {
@@ -754,15 +759,15 @@ public class QueryConvertor {
 		return map;
 	}
 	
-	private static <T extends PrismValue> MapXNode serializeValueFilter(PropertyValueFilter<T> filter, XNodeSerializer xnodeSerializer) throws SchemaException {
+	private static <V extends PrismValue, D extends ItemDefinition> MapXNode serializeValueFilter(ValueFilter<V,D> filter, XNodeSerializer xnodeSerializer) throws SchemaException {
 		MapXNode map = new MapXNode();
 		serializeMatchingRule(filter, map);
 		serializePath(map, filter.getFullPath(), filter);
 
-		List<T> values = filter.getValues();
+		List<V> values = filter.getValues();
 		if (values != null) {
 			ListXNode valuesNode = new ListXNode();
-			for (T val : values) {
+			for (V val : values) {
 				if (val.getParent() == null) {
 					val.setParent(filter);
 				}

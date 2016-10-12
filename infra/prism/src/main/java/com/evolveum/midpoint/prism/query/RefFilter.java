@@ -15,55 +15,45 @@
  */
 package com.evolveum.midpoint.prism.query;
 
-import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.Item;
+import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.PrismReferenceDefinition;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-public class RefFilter extends PropertyValueFilter<PrismReferenceValue> {
+public class RefFilter extends ValueFilter<PrismReferenceValue, PrismReferenceDefinition> {
 	private static final long serialVersionUID = 1L;
 
-	private RefFilter(ItemPath path, PrismReferenceDefinition definition, ExpressionWrapper expression, List<PrismReferenceValue> values) {
-		super(path, definition, expression, values);
+	public RefFilter(@NotNull ItemPath fullPath, @Nullable PrismReferenceDefinition definition,
+			@Nullable List<PrismReferenceValue> values, @Nullable ExpressionWrapper expression) {
+		super(fullPath, definition, null, values, expression, null, null);
 	}
-		
+
 	public static RefFilter createReferenceEqual(ItemPath path, PrismReferenceDefinition definition, Collection<PrismReferenceValue> values) {
-		return new RefFilter(path, definition, null, values != null ? new ArrayList<>(values) : null);
+		return new RefFilter(path, definition, values != null ? new ArrayList<>(values) : null, null);
 	}
 	
 	public static RefFilter createReferenceEqual(ItemPath path, PrismReferenceDefinition definition, ExpressionWrapper expression) {
-		return new RefFilter(path, definition, expression, null);
+		return new RefFilter(path, definition, null, expression);
 	}
 		
+	@SuppressWarnings("CloneDoesntCallSuperClone")
 	@Override
 	public RefFilter clone() {
-		return new RefFilter(getFullPath(), getDefinition(), getExpression(), getCloneValuesList());
+		return new RefFilter(getFullPath(), getDefinition(), getClonedValues(), getExpression());
 	}
 
 	@Override
-	public String debugDump() {
-		return debugDump(0);
-	}
-
-	@Override
-	public String debugDump(int indent) {
-		StringBuilder sb = new StringBuilder();
-		DebugUtil.indentDebugDump(sb, indent);
-		sb.append("REF:");
-		
-		return debugDump(indent, sb);
-	}
-	
-	@Override
-	public String toString() {
-		StringBuilder sb = new StringBuilder();
-		sb.append("REF: ");
-		return toString(sb);
+	protected String getFilterName() {
+		return "REF";
 	}
 
 	@Override
@@ -114,24 +104,8 @@ public class RefFilter extends PropertyValueFilter<PrismReferenceValue> {
 	}
 
 	@Override
-	public PrismContext getPrismContext() {
-		return getDefinition().getPrismContext();
-	}
-
-	@Override
-	public ItemPath getPath() {
-		return getFullPath();
-	}
-	
-	@Override
-	public PrismReferenceDefinition getDefinition() {
-		// TODO Auto-generated method stub
-		return (PrismReferenceDefinition) super.getDefinition();
-	}
-
-	@Override
 	public boolean equals(Object obj, boolean exact) {
-		return super.equals(obj, exact) && obj instanceof RefFilter;
+		return obj instanceof RefFilter && super.equals(obj, exact);
 	}
 
 }

@@ -567,7 +567,7 @@ public class ExpressionUtil {
 				LOGGER.trace("Search filter expression in the rule for {} evaluated to {}.",
 						new Object[] { shortDesc, expressionResult });
 
-				PropertyValueFilter evaluatedFilter = (PropertyValueFilter) pvfilter.clone();
+				ValueFilter evaluatedFilter = pvfilter.clone();
 				evaluatedFilter.setValue(expressionResult);
 				evaluatedFilter.setExpression(null);
 				// }

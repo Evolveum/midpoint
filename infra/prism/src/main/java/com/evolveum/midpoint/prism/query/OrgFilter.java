@@ -50,10 +50,6 @@ public class OrgFilter extends ObjectFilter {
         return new OrgFilter(new PrismReferenceValue(baseOrgOid), scope);
     }
 
-    public static OrgFilter createOrg(String baseOrgRef) {
-        return new OrgFilter(new PrismReferenceValue(baseOrgRef), Scope.SUBTREE);
-    }
-
     public static OrgFilter createRootOrg() {
         OrgFilter filter = new OrgFilter();
         filter.setRoot(true);
@@ -64,16 +60,8 @@ public class OrgFilter extends ObjectFilter {
         return baseOrgRef;
     }
 
-    public void setOrgRef(PrismReferenceValue baseOrgRef) {
-        this.baseOrgRef = baseOrgRef;
-    }
-
     public Scope getScope() {
         return scope;
-    }
-
-    public void setScope(Scope scope) {
-        this.scope = scope;
     }
 
     private void setRoot(boolean root) {

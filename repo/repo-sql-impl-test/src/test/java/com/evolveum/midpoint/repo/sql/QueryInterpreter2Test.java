@@ -16,36 +16,10 @@
 
 package com.evolveum.midpoint.repo.sql;
 
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.Objectable;
-import com.evolveum.midpoint.prism.PrismConstants;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
-import com.evolveum.midpoint.prism.match.PolyStringNormMatchingRule;
-import com.evolveum.midpoint.prism.match.PolyStringOrigMatchingRule;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.prism.query.AndFilter;
-import com.evolveum.midpoint.prism.query.EqualFilter;
-import com.evolveum.midpoint.prism.query.ExistsFilter;
-import com.evolveum.midpoint.prism.query.GreaterFilter;
-import com.evolveum.midpoint.prism.query.InOidFilter;
-import com.evolveum.midpoint.prism.query.LessFilter;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.prism.query.ObjectPaging;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.OrFilter;
-import com.evolveum.midpoint.prism.query.OrgFilter;
-import com.evolveum.midpoint.prism.query.QueryJaxbConvertor;
-import com.evolveum.midpoint.prism.query.RefFilter;
-import com.evolveum.midpoint.prism.query.SubstringFilter;
-import com.evolveum.midpoint.prism.query.TypeFilter;
+import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
-import com.evolveum.midpoint.prism.query.builder.S_FilterEntry;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
@@ -69,7 +43,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 import org.apache.commons.lang.StringUtils;
-import org.hibernate.Query;
 import org.hibernate.Session;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -86,7 +59,6 @@ import javax.xml.namespace.QName;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
@@ -97,11 +69,7 @@ import static com.evolveum.midpoint.prism.query.OrderDirection.DESCENDING;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType.IN_REVIEW_STAGE;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType.F_OWNER_REF;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType.F_STATE;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType.F_CURRENT_STAGE_NUMBER;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType.F_DECISION;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType.F_CURRENT_REVIEWER_REF;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType.F_CURRENT_REVIEW_DEADLINE;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType.F_CURRENT_REVIEW_REQUESTED_TIMESTAMP;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType.*;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDecisionType.F_RESPONSE;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDecisionType.F_STAGE_NUMBER;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType.NO_RESPONSE;
@@ -110,15 +78,10 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionT
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType.F_ASSIGNMENT;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType.F_CREATE_APPROVER_REF;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType.F_CREATOR_REF;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType.F_EXTENSION;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType.F_METADATA;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType.F_NAME;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType.F_OBJECT_REF;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType.*;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType.F_WORKFLOW_CONTEXT;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.TriggerType.F_TIMESTAMP;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType.F_PROCESS_INSTANCE_ID;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType.F_REQUESTER_REF;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType.F_START_TIMESTAMP;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType.*;
 import static org.testng.AssertJUnit.assertEquals;
 
 /**
@@ -1119,12 +1082,9 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
         Session session = open();
         try {
             XMLGregorianCalendar thisScanTimestamp = XmlTypeConverter.createXMLGregorianCalendar(NOW.getTime());
-
-            SchemaRegistry registry = prismContext.getSchemaRegistry();
-            PrismObjectDefinition objectDef = registry.findObjectDefinitionByCompileTimeClass(ObjectType.class);
-            ItemPath triggerPath = new ItemPath(ObjectType.F_TRIGGER, F_TIMESTAMP);
-            ObjectFilter filter = LessFilter.createLess(triggerPath, objectDef, thisScanTimestamp, true);
-            ObjectQuery query = ObjectQuery.createObjectQuery(filter);
+            ObjectQuery query = QueryBuilder.queryFor(ObjectType.class, prismContext)
+                    .item(ObjectType.F_TRIGGER, F_TIMESTAMP).le(thisScanTimestamp)
+                    .build();
             String real = getInterpretedQuery2(session, ObjectType.class, query);
 
             String expected = "select\n" +
@@ -1321,15 +1281,11 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
         try {
             XMLGregorianCalendar thisScanTimestamp = XmlTypeConverter.createXMLGregorianCalendar(NOW.getTime());
 
-            SchemaRegistry registry = prismContext.getSchemaRegistry();
-            PrismObjectDefinition objectDef = registry.findObjectDefinitionByCompileTimeClass(ObjectType.class);
-            ItemPath triggerPath = new ItemPath(ObjectType.F_TRIGGER, F_TIMESTAMP);
-            ObjectFilter greater = GreaterFilter.createGreater(triggerPath, objectDef, thisScanTimestamp, false);
-            ObjectFilter lesser = LessFilter.createLess(triggerPath, objectDef, thisScanTimestamp, false);
-            AndFilter and = AndFilter.createAnd(greater, lesser);
-            LOGGER.info(and.debugDump());
-
-            ObjectQuery query = ObjectQuery.createObjectQuery(and);
+            ObjectQuery query = QueryBuilder.queryFor(ObjectType.class, prismContext)
+                    .item(ObjectType.F_TRIGGER, F_TIMESTAMP).gt(thisScanTimestamp)
+                    .and().item(ObjectType.F_TRIGGER, F_TIMESTAMP).lt(thisScanTimestamp)
+                    .build();
+            LOGGER.info(query.debugDump());
             String real = getInterpretedQuery2(session, ObjectType.class, query);
 
             // correct translation but the filter is wrong: we need to point to THE SAME timestamp -> i.e. ForValue should be used here
@@ -1473,11 +1429,6 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
         Session session = open();
 
         try {
-            OrgFilter orgFilter = OrgFilter.createOrg("some oid", OrgFilter.Scope.ONE_LEVEL);
-            ObjectQuery query0 = ObjectQuery.createObjectQuery(orgFilter);
-            query0.setPaging(ObjectPaging.createPaging(null, null, F_NAME, ASCENDING));
-            query0.setUseNewQueryInterpreter(true);
-
             ObjectQuery query = QueryBuilder.queryFor(OrgType.class, prismContext)
                     .isDirectChildOf("some oid")
                     .asc(ObjectType.F_NAME)
@@ -1616,18 +1567,6 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
 
         XMLGregorianCalendar thisScanTimestamp = XMLGregorianCalendarType.asXMLGregorianCalendar(new Date());
 
-        OrFilter filter = OrFilter.createOr(
-                LessFilter.createLess(new ItemPath(FocusType.F_ACTIVATION, ActivationType.F_VALID_FROM), focusObjectDef,
-                        thisScanTimestamp, true),
-                LessFilter.createLess(new ItemPath(FocusType.F_ACTIVATION, ActivationType.F_VALID_TO), focusObjectDef,
-                        thisScanTimestamp, true),
-                LessFilter.createLess(new ItemPath(F_ASSIGNMENT, AssignmentType.F_ACTIVATION, ActivationType.F_VALID_FROM),
-                        focusObjectDef, thisScanTimestamp, true),
-                LessFilter.createLess(new ItemPath(F_ASSIGNMENT, AssignmentType.F_ACTIVATION, ActivationType.F_VALID_TO),
-                        focusObjectDef, thisScanTimestamp, true)
-        );
-        ObjectQuery query0 = ObjectQuery.createObjectQuery(filter);
-
         ObjectQuery query = QueryBuilder.queryFor(FocusType.class, prismContext)
                 .item(FocusType.F_ACTIVATION, ActivationType.F_VALID_FROM).le(thisScanTimestamp)
                 .or().item(FocusType.F_ACTIVATION, ActivationType.F_VALID_TO).le(thisScanTimestamp)
@@ -1676,19 +1615,6 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                 .findContainerDefinitionByCompileTimeClass(AssignmentType.class);
 
         XMLGregorianCalendar thisScanTimestamp = XMLGregorianCalendarType.asXMLGregorianCalendar(new Date());
-
-        OrFilter filter = OrFilter.createOr(
-                LessFilter.createLess(new ItemPath(FocusType.F_ACTIVATION, ActivationType.F_VALID_FROM), focusObjectDef,
-                        thisScanTimestamp, true),
-                LessFilter.createLess(new ItemPath(FocusType.F_ACTIVATION, ActivationType.F_VALID_TO), focusObjectDef,
-                        thisScanTimestamp, true),
-                ExistsFilter.createExists(new ItemPath(F_ASSIGNMENT), focusObjectDef,
-                        OrFilter.createOr(
-                                LessFilter.createLess(new ItemPath(FocusType.F_ACTIVATION, ActivationType.F_VALID_FROM),
-                                        assignmentDef, thisScanTimestamp, true),
-                                LessFilter.createLess(new ItemPath(FocusType.F_ACTIVATION, ActivationType.F_VALID_TO),
-                                        assignmentDef, thisScanTimestamp, true))));
-        ObjectQuery query0 = ObjectQuery.createObjectQuery(filter);
 
         ObjectQuery query = QueryBuilder.queryFor(FocusType.class, prismContext)
                 .item(FocusType.F_ACTIVATION, ActivationType.F_VALID_FROM).le(thisScanTimestamp)
@@ -1739,34 +1665,6 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
         XMLGregorianCalendar lastScanTimestamp = XMLGregorianCalendarType.asXMLGregorianCalendar(new Date());
         XMLGregorianCalendar thisScanTimestamp = XMLGregorianCalendarType.asXMLGregorianCalendar(new Date());
 
-        OrFilter filter = OrFilter.createOr(
-                AndFilter.createAnd(
-                        GreaterFilter.createGreater(new ItemPath(FocusType.F_ACTIVATION, ActivationType.F_VALID_FROM), focusObjectDef,
-                                lastScanTimestamp, false),
-                        LessFilter.createLess(new ItemPath(FocusType.F_ACTIVATION, ActivationType.F_VALID_FROM), focusObjectDef,
-                                thisScanTimestamp, true)
-                ),
-                AndFilter.createAnd(
-                        GreaterFilter.createGreater(new ItemPath(FocusType.F_ACTIVATION, ActivationType.F_VALID_TO), focusObjectDef,
-                                lastScanTimestamp, false),
-                        LessFilter.createLess(new ItemPath(FocusType.F_ACTIVATION, ActivationType.F_VALID_TO), focusObjectDef,
-                                thisScanTimestamp, true)
-                ),
-                AndFilter.createAnd(
-                        GreaterFilter.createGreater(new ItemPath(F_ASSIGNMENT, FocusType.F_ACTIVATION, ActivationType.F_VALID_FROM),
-                                focusObjectDef, lastScanTimestamp, false),
-                        LessFilter.createLess(new ItemPath(F_ASSIGNMENT, FocusType.F_ACTIVATION, ActivationType.F_VALID_FROM),
-                                focusObjectDef, thisScanTimestamp, true)
-                ),
-                AndFilter.createAnd(
-                        GreaterFilter.createGreater(new ItemPath(F_ASSIGNMENT, FocusType.F_ACTIVATION, ActivationType.F_VALID_TO),
-                                focusObjectDef, lastScanTimestamp, false),
-                        LessFilter.createLess(new ItemPath(F_ASSIGNMENT, FocusType.F_ACTIVATION, ActivationType.F_VALID_TO),
-                                focusObjectDef, thisScanTimestamp, true)
-                )
-        );
-        ObjectQuery query0 = ObjectQuery.createObjectQuery(filter);
-
         ObjectQuery query = QueryBuilder.queryFor(FocusType.class, prismContext)
                 .block()
                     .item(FocusType.F_ACTIVATION, ActivationType.F_VALID_FROM).gt(lastScanTimestamp)
@@ -1785,8 +1683,6 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     .and().item(F_ASSIGNMENT, AssignmentType.F_ACTIVATION, ActivationType.F_VALID_TO).le(thisScanTimestamp)
                 .endBlock()
                 .build();
-
-        //QueryBuilder.queryFor(UserType.class, prismContext);
 
         Session session = open();
         try {
@@ -1842,37 +1738,6 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
 
         XMLGregorianCalendar lastScanTimestamp = XMLGregorianCalendarType.asXMLGregorianCalendar(new Date());
         XMLGregorianCalendar thisScanTimestamp = XMLGregorianCalendarType.asXMLGregorianCalendar(new Date());
-
-        OrFilter filter = OrFilter.createOr(
-                AndFilter.createAnd(
-                        GreaterFilter.createGreater(new ItemPath(FocusType.F_ACTIVATION, ActivationType.F_VALID_FROM), focusObjectDef,
-                                lastScanTimestamp, false),
-                        LessFilter.createLess(new ItemPath(FocusType.F_ACTIVATION, ActivationType.F_VALID_FROM), focusObjectDef,
-                                thisScanTimestamp, true)
-                ),
-                AndFilter.createAnd(
-                        GreaterFilter.createGreater(new ItemPath(FocusType.F_ACTIVATION, ActivationType.F_VALID_TO), focusObjectDef,
-                                lastScanTimestamp, false),
-                        LessFilter.createLess(new ItemPath(FocusType.F_ACTIVATION, ActivationType.F_VALID_TO), focusObjectDef,
-                                thisScanTimestamp, true)
-                ),
-                AndFilter.createAnd(
-                        ExistsFilter.createExists(new ItemPath(F_ASSIGNMENT), focusObjectDef,
-                                OrFilter.createOr(
-                                        AndFilter.createAnd(
-                                                GreaterFilter.createGreater(new ItemPath(FocusType.F_ACTIVATION, ActivationType.F_VALID_FROM),
-                                                        assignmentDef, lastScanTimestamp, false),
-                                                LessFilter.createLess(new ItemPath(FocusType.F_ACTIVATION, ActivationType.F_VALID_FROM),
-                                                        assignmentDef, thisScanTimestamp, true)
-                                        ),
-                                        AndFilter.createAnd(
-                                                GreaterFilter.createGreater(new ItemPath(FocusType.F_ACTIVATION, ActivationType.F_VALID_TO),
-                                                        assignmentDef, lastScanTimestamp, false),
-                                                LessFilter.createLess(new ItemPath(FocusType.F_ACTIVATION, ActivationType.F_VALID_TO),
-                                                        assignmentDef, thisScanTimestamp, true))))
-                )
-        );
-        ObjectQuery query0 = ObjectQuery.createObjectQuery(filter);
 
         ObjectQuery query = QueryBuilder.queryFor(FocusType.class, prismContext)
                 .block()
@@ -1979,9 +1844,10 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
             throws Exception {
         LOGGER.info("checkQueryResult");
 
-        OrgFilter orgFilter = OrgFilter.createOrg(oid, scope);
-        ObjectQuery query = ObjectQuery.createObjectQuery(orgFilter);
-        query.setPaging(ObjectPaging.createPaging(null, null, F_NAME, ASCENDING));
+        ObjectQuery query = QueryBuilder.queryFor(type, prismContext)
+                .isInScopeOf(oid, scope)
+                .asc(F_NAME)
+                .build();
         query.setUseNewQueryInterpreter(true);
 
         OperationResult result = new OperationResult("checkQueryResult");
@@ -1990,13 +1856,13 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
             LOGGER.info("{}", object.getOid());
         }
         int realCount = objects.size();
-        assertEquals("Expected count doesn't match for searchObjects " + orgFilter, count, realCount);
+        assertEquals("Expected count doesn't match for searchObjects " + query, count, realCount);
 
         result.computeStatusIfUnknown();
         AssertJUnit.assertTrue(result.isSuccess());
 
         realCount = repositoryService.countObjects(type, query, result);
-        assertEquals("Expected count doesn't match for countObjects " + orgFilter, count, realCount);
+        assertEquals("Expected count doesn't match for countObjects " + query, count, realCount);
 
         result.computeStatusIfUnknown();
         AssertJUnit.assertTrue(result.isSuccess());
@@ -2169,12 +2035,10 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
 
         try {
             XMLGregorianCalendar timeXml = XMLGregorianCalendarType.asXMLGregorianCalendar(new Date());
-
-            LessFilter less = LessFilter.createLess(
-                    new ItemPath(ReportOutputType.F_METADATA, MetadataType.F_CREATE_TIMESTAMP),
-                    ReportOutputType.class, prismContext, timeXml, true);
-
-            String real = getInterpretedQuery2(session, ReportOutputType.class, ObjectQuery.createObjectQuery(less));
+            ObjectQuery query = QueryBuilder.queryFor(ReportOutputType.class, prismContext)
+                    .item(ReportOutputType.F_METADATA, MetadataType.F_CREATE_TIMESTAMP).le(timeXml)
+                    .build();
+            String real = getInterpretedQuery2(session, ReportOutputType.class, query);
             String expected = "select\n" +
                     "  r.fullObject,\n" +
                     "  r.stringsCount,\n" +

@@ -24,6 +24,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterExit;
+import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
 import org.aopalliance.intercept.MethodInvocation;
 import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.mutable.MutableBoolean;
@@ -1022,7 +1023,8 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 							
 							// Org
 							if (specOrgRef != null) {
-								OrgFilter orgFilter = OrgFilter.createOrg(specOrgRef.getOid());
+								ObjectFilter orgFilter = QueryBuilder.queryFor(ObjectType.class, prismContext)
+										.isChildOf(specOrgRef.getOid()).buildFilter();
 								objSpecSecurityFilter = ObjectQueryUtil.filterAnd(objSpecSecurityFilter, orgFilter);
 								LOGGER.trace("  applying org filter {}", orgFilter);
 							} else {
@@ -1035,23 +1037,21 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 								QName subjectRelation = specOrgRelation.getSubjectRelation();
 								for (ObjectReferenceType subjectParentOrgRef: principal.getUser().getParentOrgRef()) {
 									if (MiscSchemaUtil.compareRelation(subjectRelation, subjectParentOrgRef.getRelation())) {
-										OrgFilter orgFilter = null;
+										S_FilterEntryOrEmpty q = QueryBuilder.queryFor(ObjectType.class, prismContext);
+										S_AtomicFilterExit q2;
 										if (specOrgRelation.getScope() == null || specOrgRelation.getScope() == OrgScopeType.ALL_DESCENDANTS) {
-											orgFilter = OrgFilter.createOrg(subjectParentOrgRef.getOid(), OrgFilter.Scope.SUBTREE);
+											q2 = q.isChildOf(subjectParentOrgRef.getOid());
 										} else if (specOrgRelation.getScope() == OrgScopeType.DIRECT_DESCENDANTS) {
-											orgFilter = OrgFilter.createOrg(subjectParentOrgRef.getOid(), OrgFilter.Scope.ONE_LEVEL);
+											q2 = q.isDirectChildOf(subjectParentOrgRef.getOid());
 										} else if (specOrgRelation.getScope() == OrgScopeType.ALL_ANCESTORS) {
-											orgFilter = OrgFilter.createOrg(subjectParentOrgRef.getOid(), OrgFilter.Scope.ANCESTORS);
+											q2 = q.isParentOf(subjectParentOrgRef.getOid());
 										} else {
 											throw new UnsupportedOperationException("Unknown orgRelation scope "+specOrgRelation.getScope());
 										}
 										if (BooleanUtils.isTrue(specOrgRelation.isIncludeReferenceOrg())) {
-											InOidFilter oidFilter = InOidFilter.createInOid(subjectParentOrgRef.getOid());
-											objSpecOrgRelationFilter = ObjectQueryUtil.filterAnd(objSpecOrgRelationFilter, 
-													ObjectQueryUtil.filterOr(orgFilter, oidFilter));
-										} else {
-											objSpecOrgRelationFilter = ObjectQueryUtil.filterAnd(objSpecOrgRelationFilter, orgFilter);
+											q2 = q2.or().id(subjectParentOrgRef.getOid());
 										}
+										objSpecOrgRelationFilter = ObjectQueryUtil.filterAnd(objSpecOrgRelationFilter, q2.buildFilter());
 									}
 								}
 								if (objSpecOrgRelationFilter == null) {

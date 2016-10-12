@@ -27,11 +27,10 @@ import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 public abstract class ObjectFilter implements DebugDumpable, Serializable, Revivable {
-	
-	ObjectFilter() {
-		// Nothing to do
-	}
-		
+
+	/**
+	 * Does a SHALLOW clone.
+	 */
 	public abstract ObjectFilter clone();
 	
 	public abstract boolean match(PrismContainerValue value, MatchingRuleRegistry matchingRuleRegistry) throws SchemaException;
@@ -41,7 +40,7 @@ public abstract class ObjectFilter implements DebugDumpable, Serializable, Reviv
 	}
 
 	@Override
-	public void revive(final PrismContext prismContext) throws SchemaException {
+	public void revive(PrismContext prismContext) throws SchemaException {
 		QueryConvertor.revive(this, prismContext);
 	}
 	

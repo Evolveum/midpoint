@@ -16,17 +16,10 @@
 
 package com.evolveum.midpoint.prism.query;
 
-import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -34,16 +27,20 @@ import org.jetbrains.annotations.Nullable;
 import javax.xml.namespace.QName;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.regex.Pattern;
 
-public class SubstringFilter<T> extends PropertyValueFilter<PrismPropertyValue<T>> {
+public class SubstringFilter<T> extends PropertyValueFilter<T> {
 
 	private boolean anchorStart;
 	private boolean anchorEnd;
 
-	SubstringFilter(ItemPath parentPath, ItemDefinition definition, QName matchingRule, List<PrismPropertyValue<T>> values, boolean anchorStart, boolean anchorEnd) {
-		super(parentPath, definition, matchingRule, values);
+	public SubstringFilter(@NotNull ItemPath path, @Nullable PrismPropertyDefinition<T> definition,
+			@Nullable QName matchingRule,
+			@Nullable List<PrismPropertyValue<T>> prismPropertyValues,
+			@Nullable ExpressionWrapper expression, boolean anchorStart, boolean anchorEnd) {
+		super(path, definition, matchingRule, prismPropertyValues, expression, null, null);
 		this.anchorStart = anchorStart;
 		this.anchorEnd = anchorEnd;
 	}
@@ -52,13 +49,13 @@ public class SubstringFilter<T> extends PropertyValueFilter<PrismPropertyValue<T
 	 * Creates a substring filter.
 	 *
 	 * @param itemDefinition TODO about nullability
-	 * @param value real value or prism property value; TODO about nullability
+	 * @param anyValue real value or prism property value; TODO about nullability
 	 */
 	public static <T> SubstringFilter<T> createSubstring(@NotNull ItemPath path, @Nullable PrismPropertyDefinition<T> itemDefinition,
 														 @NotNull PrismContext prismContext,
-														 @Nullable QName matchingRule, Object value, boolean anchorStart, boolean anchorEnd) {
-		List<PrismPropertyValue<T>> pValues = createPropertyListFromValue(prismContext, value);
-		return new SubstringFilter<T>(path, itemDefinition, matchingRule, pValues, anchorStart, anchorEnd);
+														 @Nullable QName matchingRule, Object anyValue, boolean anchorStart, boolean anchorEnd) {
+		List<PrismPropertyValue<T>> values = anyValueToPropertyValueList(prismContext, anyValue);
+		return new SubstringFilter<>(path, itemDefinition, matchingRule, values, null, anchorStart, anchorEnd);
 	}
 
 	// TODO expression based substring filter
@@ -73,40 +70,17 @@ public class SubstringFilter<T> extends PropertyValueFilter<PrismPropertyValue<T
 
     @Override
 	public SubstringFilter<T> clone() {
-		return new SubstringFilter<>(getFullPath(), getDefinition(), getMatchingRule(), getCloneValuesList(), anchorStart, anchorEnd);
+		return new SubstringFilter<>(getFullPath(), getDefinition(), getMatchingRule(), getClonedValues(),
+				getExpression(), anchorStart, anchorEnd);
 	}
 
 	@Override
-	public String debugDump() {
-		return debugDump(0);
-	}
-
-	@Override
-	public String debugDump(int indent) {
-		StringBuilder sb = new StringBuilder();
-		DebugUtil.indentDebugDump(sb, indent);
-		sb.append("SUBSTRING:");
-		if (anchorStart) {
-			sb.append(" anchorStart");
-		}
-		if (anchorEnd) {
-			sb.append(" anchorEnd");
-		}
-		return debugDump(indent, sb);
-	}
-
-	@Override
-	public String toString() {
-		StringBuilder sb = new StringBuilder();
-		sb.append("SUBSTRING: ");
-		String rv = toString(sb);
-		if (anchorStart) {
-			rv += ",S";
-		}
-		if (anchorEnd) {
-			rv += ",E";
-		}
-		return rv;
+	protected String getFilterName() {
+		return "SUBSTRING("
+				+ (anchorStart ? "S" : "")
+				+ (anchorStart && anchorEnd ? "," : "")
+				+ (anchorEnd ? "E" : "")
+				+ ")";
 	}
 
 	@Override
@@ -145,21 +119,6 @@ public class SubstringFilter<T> extends PropertyValueFilter<PrismPropertyValue<T
 	private Set<T> toRealValues(){
 		 return PrismPropertyValue.getRealValuesOfCollection(getValues());
 	}
-	
-	@Override
-	public PrismContext getPrismContext() {
-		return getDefinition().getPrismContext();
-	}
-
-	@Override
-	public ItemPath getPath() {
-		return getFullPath();
-	}
-	
-	@Override
-	public PrismPropertyDefinition<T> getDefinition() {
-		return (PrismPropertyDefinition<T>) super.getDefinition();
-	}
 
 	@Override
 	public boolean equals(Object o, boolean exact) {
@@ -169,20 +128,13 @@ public class SubstringFilter<T> extends PropertyValueFilter<PrismPropertyValue<T
 			return false;
 		if (!super.equals(o, exact))
 			return false;
-
 		SubstringFilter<?> that = (SubstringFilter<?>) o;
-
-		if (anchorStart != that.anchorStart)
-			return false;
-		return anchorEnd == that.anchorEnd;
-
+		return anchorStart == that.anchorStart &&
+				anchorEnd == that.anchorEnd;
 	}
 
 	@Override
 	public int hashCode() {
-		int result = super.hashCode();
-		result = 31 * result + (anchorStart ? 1 : 0);
-		result = 31 * result + (anchorEnd ? 1 : 0);
-		return result;
+		return Objects.hash(super.hashCode(), anchorStart, anchorEnd);
 	}
 }

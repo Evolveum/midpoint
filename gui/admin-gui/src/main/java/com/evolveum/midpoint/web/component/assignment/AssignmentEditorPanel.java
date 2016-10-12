@@ -582,7 +582,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 			protected ObjectQuery getChooseQuery() {
 				return QueryBuilder.queryFor(OrgType.class, getPageBase().getPrismContext())
 						.item(OrgType.F_TENANT).eq(false)
-						.or().item(OrgType.F_TENANT).eq(null)
+						.or().item(OrgType.F_TENANT).isNull()
 						.build();
 			}
 

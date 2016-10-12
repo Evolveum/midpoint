@@ -517,4 +517,16 @@ public class MiscUtil {
 			receivingList.add(supplyingElement);
 		}
 	}
+
+	public static boolean nullableCollectionsEqual(Collection<?> c1, Collection<?> c2) {
+		boolean empty1 = c1 == null || c1.isEmpty();
+		boolean empty2 = c2 == null || c2.isEmpty();
+		if (empty1) {
+			return empty2;
+		} else if (empty2) {
+			return false;
+		} else {
+			return c1.equals(c2);
+		}
+	}
 }
