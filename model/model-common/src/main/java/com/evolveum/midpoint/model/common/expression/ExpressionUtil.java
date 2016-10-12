@@ -31,6 +31,7 @@ import com.evolveum.midpoint.model.common.expression.functions.BasicExpressionFu
 import com.evolveum.midpoint.model.common.expression.functions.FunctionLibrary;
 import com.evolveum.midpoint.model.common.expression.functions.LogExpressionFunctions;
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.Visitor;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
@@ -40,16 +41,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.prism.query.AllFilter;
-import com.evolveum.midpoint.prism.query.ExpressionWrapper;
-import com.evolveum.midpoint.prism.query.InOidFilter;
-import com.evolveum.midpoint.prism.query.LogicalFilter;
-import com.evolveum.midpoint.prism.query.NoneFilter;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.PropertyValueFilter;
-import com.evolveum.midpoint.prism.query.UndefinedFilter;
-import com.evolveum.midpoint.prism.query.ValueFilter;
+import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.prism.util.JavaTypeConverter;
 import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
@@ -607,10 +599,25 @@ public class ExpressionUtil {
 						"Couldn't evaluate expression" + valueExpression + ": " + ex.getMessage(), ex);
 			}
 
+		} else if (filter instanceof ExistsFilter) {
+			ExistsFilter evaluatedFilter = ((ExistsFilter) filter).cloneEmpty();
+			ObjectFilter evaluatedSubFilter = evaluateFilterExpressionsInternal(((ExistsFilter) filter).getFilter(), variables,
+					expressionFactory, prismContext, shortDesc, task, result);
+			evaluatedFilter.setFilter(evaluatedSubFilter);
+			return evaluatedFilter;
+		} else if (filter instanceof TypeFilter) {
+			TypeFilter evaluatedFilter = ((TypeFilter) filter).cloneEmpty();
+			ObjectFilter evaluatedSubFilter = evaluateFilterExpressionsInternal(((TypeFilter) filter).getFilter(), variables,
+						expressionFactory, prismContext, shortDesc, task, result);
+			evaluatedFilter.setFilter(evaluatedSubFilter);
+			return evaluatedFilter;
+		} else if (filter instanceof OrgFilter) {
+			return filter;
+		} else if (filter instanceof AllFilter || filter instanceof NoneFilter || filter instanceof UndefinedFilter) {
+			return filter;
 		} else {
 			throw new IllegalStateException("Unsupported filter type: " + filter.getClass());
 		}
-
 	}
 
 	private static ObjectFilter createFilterForNoValue(ObjectFilter filter, ExpressionType valueExpression) throws ExpressionEvaluationException {
