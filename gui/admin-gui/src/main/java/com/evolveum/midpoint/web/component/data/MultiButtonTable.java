@@ -15,12 +15,14 @@
  */
 package com.evolveum.midpoint.web.component.data;
 
+import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.assignment.*;
 import com.evolveum.midpoint.web.page.self.PageAssignmentDetails;
+import com.evolveum.midpoint.web.session.RoleCatalogStorage;
 import com.evolveum.midpoint.web.session.UsersStorage;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxEventBehavior;
@@ -155,16 +157,6 @@ public class MultiButtonTable extends BasePanel<List<AssignmentEditorDto>> {
         };
         cellContainer.add(addToCartLink);
 
-//        Label addToCartLinkLabel = new Label(ID_ADD_TO_CART_LINK_LABEL, pageBase.createStringResource("MultiButtonPanel.addToCartLink"));
-//        addToCartLinkLabel.setRenderBodyOnly(true);
-//        addToCartLinkLabel.add(new AjaxEventBehavior("click") {
-//            @Override
-//            protected void onEvent(AjaxRequestTarget ajaxRequestTarget) {
-//                addAssignmentPerformed(assignment, ajaxRequestTarget);
-//            }
-//        });
-//        addToCartLink.add(addToCartLinkLabel);
-
         AjaxLink addToCartLinkIcon = new AjaxLink(ID_ADD_TO_CART_LINK_ICON) {
             private static final long serialVersionUID = 1L;
 
@@ -210,11 +202,11 @@ public class MultiButtonTable extends BasePanel<List<AssignmentEditorDto>> {
     private String getIconClass(AssignmentEditorDtoType type){
     	// TODO: switch to icon constants
         if (AssignmentEditorDtoType.ROLE.equals(type)){
-            return "fa fa-street-view";
+            return GuiStyleConstants.CLASS_OBJECT_ROLE_ICON;
         }else if (AssignmentEditorDtoType.SERVICE.equals(type)){
-            return "fa fa-cloud";
+            return GuiStyleConstants.CLASS_OBJECT_SERVICE_ICON;
         }else if (AssignmentEditorDtoType.ORG_UNIT.equals(type)){
-            return "fa fa-building";
+            return GuiStyleConstants.CLASS_OBJECT_ORG_ICON;
         } else {
             return "";
         }
@@ -222,11 +214,11 @@ public class MultiButtonTable extends BasePanel<List<AssignmentEditorDto>> {
 
     private String getBackgroundClass(AssignmentEditorDtoType type){
         if (AssignmentEditorDtoType.ROLE.equals(type)){
-            return "object-role-bg";
+            return GuiStyleConstants.CLASS_OBJECT_ROLE_BG;
         }else if (AssignmentEditorDtoType.SERVICE.equals(type)){
-            return "object-service-bg";
+            return GuiStyleConstants.CLASS_OBJECT_SERVICE_BG;
         }else if (AssignmentEditorDtoType.ORG_UNIT.equals(type)){
-            return "object-org-bg";
+            return GuiStyleConstants.CLASS_OBJECT_ORG_BG;
         } else {
             return "";
         }
@@ -234,7 +226,7 @@ public class MultiButtonTable extends BasePanel<List<AssignmentEditorDto>> {
 
     private void addAssignmentPerformed(AssignmentEditorDto assignment, AjaxRequestTarget target){
         plusIconClicked = true;
-        UsersStorage storage = getPageBase().getSessionStorage().getUsers();
+        RoleCatalogStorage storage = getPageBase().getSessionStorage().getRoleCatalog();
         if (storage.getAssignmentShoppingCart() == null){
             storage.setAssignmentShoppingCart(new ArrayList<AssignmentEditorDto>());
         }

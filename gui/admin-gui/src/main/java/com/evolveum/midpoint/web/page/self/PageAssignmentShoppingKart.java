@@ -57,8 +57,8 @@ import java.util.List;
                 label = "PageAssignmentShoppingKart.auth.requestAssignment.label",
                 description = "PageAssignmentShoppingKart.auth.requestAssignment.description")})
 public class PageAssignmentShoppingKart extends PageSelf {
-	private static final long serialVersionUID = 1L;
-	
+    private static final long serialVersionUID = 1L;
+
     private static final String ID_MAIN_PANEL = "mainPanel";
     private static final String ID_MAIN_FORM = "mainForm";
     private static final String DOT_CLASS = PageAssignmentShoppingKart.class.getName() + ".";
@@ -67,7 +67,6 @@ public class PageAssignmentShoppingKart extends PageSelf {
 
     private String catalogOid = null;
     private boolean isFirstInit = true;
-    private QName currentViewClass;
 
     public PageAssignmentShoppingKart() {
         initLayout();
@@ -106,21 +105,27 @@ public class PageAssignmentShoppingKart extends PageSelf {
         return "";
     }
 
-    private Component initMainPanel(){
-        if (StringUtils.isEmpty(catalogOid)) {
-            if (isFirstInit){
-                isFirstInit = false;
-                currentViewClass = RoleType.COMPLEX_TYPE;
-                AssignmentCatalogPanel panel = new AssignmentCatalogPanel(ID_MAIN_PANEL, currentViewClass, PageAssignmentShoppingKart.this);
-                panel.setOutputMarkupId(true);
-                return panel;
+    private Component initMainPanel() {
+        AssignmentViewType viewType = AssignmentViewType.getViewTypeFromSession(getPageBase());
+        if (AssignmentViewType.ROLE_CATALOG_VIEW.equals(viewType)) {
+            if (StringUtils.isEmpty(catalogOid)) {
+                if (isFirstInit) {
+                    isFirstInit = false;
+                    AssignmentCatalogPanel panel = new AssignmentCatalogPanel(ID_MAIN_PANEL, AssignmentViewType.ROLE_TYPE, PageAssignmentShoppingKart.this);
+                    panel.setOutputMarkupId(true);
+                    return panel;
+                } else {
+                    Label panel = new Label(ID_MAIN_PANEL, createStringResource("PageAssignmentShoppingKart.roleCatalogIsNotConfigured"));
+                    panel.setOutputMarkupId(true);
+                    return panel;
+                }
             } else {
-                Label panel = new Label(ID_MAIN_PANEL, createStringResource("PageAssignmentShoppingKart.roleCatalogIsNotConfigured"));
+                AssignmentCatalogPanel panel = new AssignmentCatalogPanel(ID_MAIN_PANEL, catalogOid, PageAssignmentShoppingKart.this);
                 panel.setOutputMarkupId(true);
                 return panel;
             }
         } else {
-            AssignmentCatalogPanel panel = new AssignmentCatalogPanel(ID_MAIN_PANEL, catalogOid, PageAssignmentShoppingKart.this);
+            AssignmentCatalogPanel panel = new AssignmentCatalogPanel(ID_MAIN_PANEL, PageAssignmentShoppingKart.this);
             panel.setOutputMarkupId(true);
             return panel;
         }
