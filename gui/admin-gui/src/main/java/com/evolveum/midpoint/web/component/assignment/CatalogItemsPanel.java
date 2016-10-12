@@ -152,7 +152,7 @@ public class CatalogItemsPanel extends BasePanel implements IPageableItems {
         initCartButton(headerPanel);
         initSearchPanel(headerPanel);
 
-        MultiButtonTable assignmentsTable = new MultiButtonTable(ID_MULTI_BUTTON_TABLE, itemsPerRow, itemsListModel);
+        MultiButtonTable assignmentsTable = new MultiButtonTable(ID_MULTI_BUTTON_TABLE, itemsPerRow, itemsListModel, pageBase);
         assignmentsTable.setOutputMarkupId(true);
         add(assignmentsTable);
 
@@ -327,7 +327,7 @@ public class CatalogItemsPanel extends BasePanel implements IPageableItems {
             long from  = currentPage * itemsPerRow * DEFAULT_ROWS_COUNT;
             provider.internalIterator(from, itemsPerRow * DEFAULT_ROWS_COUNT);
         }
-        MultiButtonTable assignmentsTable = new MultiButtonTable(ID_MULTI_BUTTON_TABLE, itemsPerRow, itemsListModel);
+        MultiButtonTable assignmentsTable = new MultiButtonTable(ID_MULTI_BUTTON_TABLE, itemsPerRow, itemsListModel, pageBase);
         assignmentsTable.setOutputMarkupId(true);
         replace(assignmentsTable);
     }
