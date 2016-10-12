@@ -293,13 +293,14 @@ public class ReportFunctions {
                 .buildFilter();
     }
 
-    <O extends Containerable> RefFilter createReferenceEqualFilter(QName propertyName, Class<O> type, String... oids) {
-        return RefFilter.createReferenceEqual(propertyName, type, prismContext, oids);
-    }
+    // TODO implement if needed
+//    <O extends Containerable> RefFilter createReferenceEqualFilter(QName propertyName, Class<O> type, String... oids) {
+//        return RefFilter.createReferenceEqual(propertyName, type, prismContext, oids);
+//    }
     
-    <O extends Containerable> RefFilter createReferenceEqualFilter(ItemPath propertyPath, Class<O> type, String... oids) throws SchemaException {                
-        return RefFilter.createReferenceEqual(propertyPath, type, prismContext, oids);
-    }
+//    <O extends Containerable> RefFilter createReferenceEqualFilter(ItemPath propertyPath, Class<O> type, String... oids) throws SchemaException {
+//        return RefFilter.createReferenceEqual(propertyPath, type, prismContext, oids);
+//    }
     
     Object parseObjectFromXML (String xml) throws SchemaException {
         return prismContext.parserFor(xml).xml().parseAnyData();

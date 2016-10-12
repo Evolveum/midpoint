@@ -25,6 +25,7 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.Component;
@@ -456,25 +457,17 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 	}
 
 	private ObjectQuery createManagerQuery() {
-
 		String oid = getModelObject().getOid();
 		PrismReferenceValue referenceFilter = new PrismReferenceValue();
 		referenceFilter.setOid(oid);
 		referenceFilter.setRelation(SchemaConstants.ORG_MANAGER);
-		RefFilter referenceOidFilter;
-		try {
-			referenceOidFilter = RefFilter.createReferenceEqual(new ItemPath(FocusType.F_PARENT_ORG_REF),
-					UserType.class, getPageBase().getPrismContext(), referenceFilter);
-			ObjectQuery query = ObjectQuery.createObjectQuery(referenceOidFilter);
-			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("Searching members of org {} with query:\n{}", oid, query.debugDump());
-			}
-			return query;
-		} catch (SchemaException e) {
-			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't prepare query for org. managers.", e);
-			return null;
+		ObjectQuery query = QueryBuilder.queryFor(FocusType.class, getPageBase().getPrismContext())
+				.item(FocusType.F_PARENT_ORG_REF).ref(referenceFilter)
+				.build();
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace("Searching members of org {} with query:\n{}", oid, query.debugDump());
 		}
-
+		return query;
 	}
 
 	private ObjectDelta prepareDelta(MemberOperation operaton, QName type, QName relation,

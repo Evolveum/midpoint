@@ -22,6 +22,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.RefFilter;
+import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -275,22 +276,17 @@ public class OrgStructFunctionsImpl implements OrgStructFunctions {
         Set<UserType> retval = new HashSet<UserType>();
         OperationResult result = new OperationResult("getManagerOfOrg");
 
-        PrismObjectDefinition<UserType> userDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
-        PrismReferenceDefinition parentOrgRefDef = userDef.findReferenceDefinition(ObjectType.F_PARENT_ORG_REF);
-        PrismReference parentOrgRef = parentOrgRefDef.instantiate();
         PrismReferenceValue parentOrgRefVal = new PrismReferenceValue(orgOid, OrgType.COMPLEX_TYPE);
         parentOrgRefVal.setRelation(SchemaConstants.ORG_MANAGER);
-        parentOrgRef.add(parentOrgRefVal);
-        ObjectQuery objectQuery = ObjectQuery.createObjectQuery(RefFilter.createReferenceEqual(
-                new ItemPath(ObjectType.F_PARENT_ORG_REF), parentOrgRef));
+        ObjectQuery objectQuery = QueryBuilder.queryFor(ObjectType.class, prismContext)
+                .item(ObjectType.F_PARENT_ORG_REF).ref(parentOrgRefVal)
+                .build();
 
         List<PrismObject<ObjectType>> members = searchObjects(ObjectType.class, objectQuery, result, preAuthorized);
         for (PrismObject<ObjectType> member : members) {
             if (member.asObjectable() instanceof UserType) {
                 UserType user = (UserType) member.asObjectable();
-//                if (isManagerOf(user, orgOid)) {
                 retval.add(user);
-//                }
             }
         }
         return retval;

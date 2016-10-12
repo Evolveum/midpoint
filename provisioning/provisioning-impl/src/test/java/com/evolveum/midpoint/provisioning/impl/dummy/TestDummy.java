@@ -2849,23 +2849,18 @@ public class TestDummy extends AbstractDummyTest {
 	}
 
     private ObjectQuery createOnOffQuery() throws SchemaException {
-		ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(RESOURCE_DUMMY_OID, new QName(ResourceTypeUtil.getResourceNamespace(resourceType),
-                ConnectorFactoryIcfImpl.ACCOUNT_OBJECT_CLASS_LOCAL_NAME), prismContext);
-		
 		ResourceSchema resourceSchema = RefinedResourceSchema.getResourceSchema(resource, prismContext);
 		ObjectClassComplexTypeDefinition objectClassDef = resourceSchema.findObjectClassDefinition(SchemaTestConstants.ACCOUNT_OBJECT_CLASS_LOCAL_NAME);
-		
 		ResourceAttributeDefinition<String> attrDef = objectClassDef.findAttributeDefinition(
 				dummyResourceCtl.getAttributeQName(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME));
-		ObjectFilter attrFilter = QueryBuilder.queryFor(ShadowType.class, prismContext)
-				.itemWithDef(attrDef, ShadowType.F_ATTRIBUTES, attrDef.getName()).eq("Sea Monkey")
-				.buildFilter();
-		ObjectFilter deadFilter = EqualFilter.createEqual(ShadowType.F_DEAD, ShadowType.class, prismContext, Boolean.TRUE);
-		
-		ObjectFilter filter = AndFilter.createAnd(query.getFilter(), attrFilter, deadFilter);
-		query.setFilter(filter);
-		display("Query", query);
 
+		ObjectQuery query = QueryBuilder.queryFor(ShadowType.class, prismContext)
+				.item(ShadowType.F_RESOURCE_REF).ref(RESOURCE_DUMMY_OID)
+				.and().item(ShadowType.F_OBJECT_CLASS).eq(new QName(ResourceTypeUtil.getResourceNamespace(resourceType), ConnectorFactoryIcfImpl.ACCOUNT_OBJECT_CLASS_LOCAL_NAME))
+				.and().itemWithDef(attrDef, ShadowType.F_ATTRIBUTES, attrDef.getName()).eq("Sea Monkey")
+				.and().item(ShadowType.F_DEAD).eq(true)
+				.build();
+		display("Query", query);
 		return query;
 	}
 

@@ -100,9 +100,9 @@ public class SearchTest extends BaseSQLRepoTest {
             }
         };
 
-        EqualFilter filter = EqualFilter.createEqual(UserType.F_NAME, UserType.class, prismContext,
-                PolyStringStrictMatchingRule.NAME, new PolyString("asdf", "asdf"));
-        ObjectQuery query = ObjectQuery.createObjectQuery(filter);
+        ObjectQuery query = QueryBuilder.queryFor(UserType.class, prismContext)
+                .item(UserType.F_NAME).eqPoly("asdf", "asdf").matchingStrict()
+                .build();
 
         repositoryService.searchObjectsIterative(UserType.class, query, handler, null, false, result);
         result.recomputeStatus();
@@ -180,9 +180,9 @@ public class SearchTest extends BaseSQLRepoTest {
         final String nonExistingNameOrig = "test UserX00003";
         final String nameNorm = "test userx00003";
 
-        EqualFilter filter = EqualFilter.createEqual(UserType.F_FULL_NAME, UserType.class, prismContext, 
-        		PolyStringOrigMatchingRule.NAME, new PolyString(existingNameOrig, nameNorm));
-        ObjectQuery query = ObjectQuery.createObjectQuery(filter);
+        ObjectQuery query = QueryBuilder.queryFor(UserType.class, prismContext)
+                .item(UserType.F_FULL_NAME).eqPoly(existingNameOrig, nameNorm).matchingOrig()
+                .build();
 
         OperationResult result = new OperationResult("search");
         List<PrismObject<UserType>> users = repositoryService.searchObjects(UserType.class, query, null, result);
@@ -190,9 +190,9 @@ public class SearchTest extends BaseSQLRepoTest {
         assertTrue(result.isSuccess());
         assertEquals("Should find one user", 1, users.size());
 
-        filter = EqualFilter.createEqual(UserType.F_FULL_NAME, UserType.class, prismContext,
-        		PolyStringOrigMatchingRule.NAME, new PolyString(nonExistingNameOrig, nameNorm));
-        query = ObjectQuery.createObjectQuery(filter);
+        query = QueryBuilder.queryFor(UserType.class, prismContext)
+                .item(UserType.F_FULL_NAME).eqPoly(nonExistingNameOrig, nameNorm).matchingOrig()
+                .build();
 
         users = repositoryService.searchObjects(UserType.class, query, null, result);
         result.recomputeStatus();
@@ -203,9 +203,9 @@ public class SearchTest extends BaseSQLRepoTest {
     @Test
     public void roleMembershipSearchTest() throws Exception {
         PrismReferenceValue r456 = new PrismReferenceValue("r456", RoleType.COMPLEX_TYPE);
-        RefFilter filter = RefFilter.createReferenceEqual(new ItemPath(UserType.F_ROLE_MEMBERSHIP_REF), UserType.class, prismContext, r456);
-        ObjectQuery query = ObjectQuery.createObjectQuery(filter);
-
+        ObjectQuery query = QueryBuilder.queryFor(UserType.class, prismContext)
+                .item(UserType.F_ROLE_MEMBERSHIP_REF).ref(r456)
+                .build();
         OperationResult result = new OperationResult("search");
         List<PrismObject<UserType>> users = repositoryService.searchObjects(UserType.class, query, null, result);
         result.recomputeStatus();
@@ -214,9 +214,9 @@ public class SearchTest extends BaseSQLRepoTest {
         assertEquals("Wrong user name", "atestuserX00003", users.get(0).getName().getOrig());
 
         PrismReferenceValue r123 = new PrismReferenceValue("r123", RoleType.COMPLEX_TYPE);
-        filter = RefFilter.createReferenceEqual(new ItemPath(UserType.F_ROLE_MEMBERSHIP_REF), UserType.class, prismContext, r123);
-        query = ObjectQuery.createObjectQuery(filter);
-
+        query = QueryBuilder.queryFor(UserType.class, prismContext)
+                .item(UserType.F_ROLE_MEMBERSHIP_REF).ref(r123)
+                .build();
         users = repositoryService.searchObjects(UserType.class, query, null, result);
         result.recomputeStatus();
         assertTrue(result.isSuccess());
@@ -226,8 +226,9 @@ public class SearchTest extends BaseSQLRepoTest {
     @Test
     public void assignmentOrgRefSearchTest() throws Exception {
         PrismReferenceValue o123456 = new PrismReferenceValue("o123456", OrgType.COMPLEX_TYPE);
-        RefFilter filter = RefFilter.createReferenceEqual(new ItemPath(UserType.F_ASSIGNMENT, AssignmentType.F_ORG_REF), UserType.class, prismContext, o123456);
-        ObjectQuery query = ObjectQuery.createObjectQuery(filter);
+        ObjectQuery query = QueryBuilder.queryFor(UserType.class, prismContext)
+                .item(UserType.F_ASSIGNMENT, AssignmentType.F_ORG_REF).ref(o123456)
+                .build();
 
         OperationResult result = new OperationResult("search");
         List<PrismObject<UserType>> users = repositoryService.searchObjects(UserType.class, query, null, result);
@@ -237,8 +238,9 @@ public class SearchTest extends BaseSQLRepoTest {
         assertEquals("Wrong user name", "atestuserX00002", users.get(0).getName().getOrig());
 
         PrismReferenceValue o999 = new PrismReferenceValue("o999", RoleType.COMPLEX_TYPE);
-        filter = RefFilter.createReferenceEqual(new ItemPath(UserType.F_ASSIGNMENT, AssignmentType.F_ORG_REF), UserType.class, prismContext, o999);
-        query = ObjectQuery.createObjectQuery(filter);
+        query = QueryBuilder.queryFor(UserType.class, prismContext)
+                .item(UserType.F_ASSIGNMENT, AssignmentType.F_ORG_REF).ref(o999)
+                .build();
 
         users = repositoryService.searchObjects(UserType.class, query, null, result);
         result.recomputeStatus();
@@ -249,8 +251,9 @@ public class SearchTest extends BaseSQLRepoTest {
     @Test
     public void assignmentResourceRefSearchTest() throws Exception {
         PrismReferenceValue resourceRef = new PrismReferenceValue("10000000-0000-0000-0000-000000000004", ResourceType.COMPLEX_TYPE);
-        RefFilter filter = RefFilter.createReferenceEqual(new ItemPath(RoleType.F_ASSIGNMENT, AssignmentType.F_CONSTRUCTION, ConstructionType.F_RESOURCE_REF), UserType.class, prismContext, resourceRef);
-        ObjectQuery query = ObjectQuery.createObjectQuery(filter);
+        ObjectQuery query = QueryBuilder.queryFor(RoleType.class, prismContext)
+                .item(RoleType.F_ASSIGNMENT, AssignmentType.F_CONSTRUCTION, ConstructionType.F_RESOURCE_REF).eq(resourceRef)
+                .build();
 
         OperationResult result = new OperationResult("search");
         List<PrismObject<RoleType>> roles = repositoryService.searchObjects(RoleType.class, query, null, result);
@@ -260,22 +263,21 @@ public class SearchTest extends BaseSQLRepoTest {
         assertEquals("Wrong role name", "Judge", roles.get(0).getName().getOrig());
 
         PrismReferenceValue resourceRef2 = new PrismReferenceValue("FFFFFFFF-0000-0000-0000-000000000004", ResourceType.COMPLEX_TYPE);
-        filter = RefFilter.createReferenceEqual(new ItemPath(RoleType.F_ASSIGNMENT, AssignmentType.F_CONSTRUCTION, ConstructionType.F_RESOURCE_REF), UserType.class, prismContext, resourceRef2);
-        query = ObjectQuery.createObjectQuery(filter);
-
+        query = QueryBuilder.queryFor(RoleType.class, prismContext)
+                .item(RoleType.F_ASSIGNMENT, AssignmentType.F_CONSTRUCTION, ConstructionType.F_RESOURCE_REF).eq(resourceRef2)
+                .build();
         roles = repositoryService.searchObjects(RoleType.class, query, null, result);
         result.recomputeStatus();
         assertTrue(result.isSuccess());
         assertEquals("Should find zero roles", 0, roles.size());
     }
-  @Test
+
+    @Test
     public void roleAssignmentSearchTest() throws Exception {
         PrismReferenceValue r456 = new PrismReferenceValue("r123", RoleType.COMPLEX_TYPE);
-        RefFilter rFilter = RefFilter.createReferenceEqual(new ItemPath(UserType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF), UserType.class, prismContext, r456);
-        
-
-        ObjectQuery query = ObjectQuery.createObjectQuery(rFilter);
-
+        ObjectQuery query = QueryBuilder.queryFor(UserType.class, prismContext)
+                .item(UserType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF).ref(r456)
+                .build();
         OperationResult result = new OperationResult("search");
         List<PrismObject<UserType>> users = repositoryService.searchObjects(UserType.class, query, null, result);
         result.recomputeStatus();
@@ -287,11 +289,10 @@ public class SearchTest extends BaseSQLRepoTest {
     
     @Test
     public void orgAssignmentSearchTest() throws Exception {
-         
         PrismReferenceValue org = new PrismReferenceValue("00000000-8888-6666-0000-100000000085", OrgType.COMPLEX_TYPE);
-        RefFilter oFilter = RefFilter.createReferenceEqual(new ItemPath(UserType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF), UserType.class, prismContext, org);
-        ObjectQuery query = ObjectQuery.createObjectQuery(oFilter);
-
+        ObjectQuery query = QueryBuilder.queryFor(UserType.class, prismContext)
+                .item(UserType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF).eq(org)
+                .build();
         OperationResult result = new OperationResult("search");
         List<PrismObject<UserType>> users = repositoryService.searchObjects(UserType.class, query, null, result);
         result.recomputeStatus();
@@ -304,12 +305,11 @@ public class SearchTest extends BaseSQLRepoTest {
     @Test(enabled = false)
     public void roleAndOrgAssignmentSearchTest() throws Exception {
         PrismReferenceValue r456 = new PrismReferenceValue("r123", RoleType.COMPLEX_TYPE);
-        RefFilter rFilter = RefFilter.createReferenceEqual(new ItemPath(UserType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF), UserType.class, prismContext, r456);
-        
         PrismReferenceValue org = new PrismReferenceValue("00000000-8888-6666-0000-100000000085", OrgType.COMPLEX_TYPE);
-        RefFilter oFilter = RefFilter.createReferenceEqual(new ItemPath(UserType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF), UserType.class, prismContext, org);
-        ObjectQuery query = ObjectQuery.createObjectQuery(AndFilter.createAnd(rFilter, oFilter));
-
+        ObjectQuery query = QueryBuilder.queryFor(UserType.class, prismContext)
+                .item(UserType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF).ref(r456)
+                .and().item(UserType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF).ref(org)
+                .build();
         OperationResult result = new OperationResult("search");
         List<PrismObject<UserType>> users = repositoryService.searchObjects(UserType.class, query, null, result);
         result.recomputeStatus();
@@ -321,11 +321,9 @@ public class SearchTest extends BaseSQLRepoTest {
 
     @Test
     public void notBusinessRoleTypeSearchTest() throws Exception {
-
-        EqualFilter equalFilter = EqualFilter.createEqual(new ItemPath(RoleType.F_ROLE_TYPE), RoleType.class, prismContext, "business");
-        NotFilter notFilter = NotFilter.createNot(equalFilter);
-        ObjectQuery query = ObjectQuery.createObjectQuery(notFilter);
-
+        ObjectQuery query = QueryBuilder.queryFor(RoleType.class, prismContext)
+                .not().item(RoleType.F_ROLE_TYPE).eq("business")
+                .build();
         OperationResult result = new OperationResult("search");
         List<PrismObject<RoleType>> roles = repositoryService.searchObjects(RoleType.class, query, null, result);
         result.recomputeStatus();
@@ -339,10 +337,9 @@ public class SearchTest extends BaseSQLRepoTest {
 
     @Test
     public void businessRoleTypeSearchTest() throws Exception {
-
-        EqualFilter equalFilter = EqualFilter.createEqual(new ItemPath(RoleType.F_ROLE_TYPE), RoleType.class, prismContext, "business");
-        ObjectQuery query = ObjectQuery.createObjectQuery(equalFilter);
-
+        ObjectQuery query = QueryBuilder.queryFor(RoleType.class, prismContext)
+                .item(RoleType.F_ROLE_TYPE).eq("business")
+                .build();
         OperationResult result = new OperationResult("search");
         List<PrismObject<RoleType>> roles = repositoryService.searchObjects(RoleType.class, query, null, result);
         result.recomputeStatus();
@@ -354,10 +351,9 @@ public class SearchTest extends BaseSQLRepoTest {
 
     @Test
     public void emptyRoleTypeSearchTest() throws Exception {
-
-        EqualFilter equalFilter = EqualFilter.createEqual(new ItemPath(RoleType.F_ROLE_TYPE), RoleType.class, prismContext, null);
-        ObjectQuery query = ObjectQuery.createObjectQuery(equalFilter);
-
+        ObjectQuery query = QueryBuilder.queryFor(RoleType.class, prismContext)
+                .item(RoleType.F_ROLE_TYPE).isNull()
+                .build();
         OperationResult result = new OperationResult("search");
         List<PrismObject<RoleType>> roles = repositoryService.searchObjects(RoleType.class, query, null, result);
         result.recomputeStatus();
@@ -371,11 +367,9 @@ public class SearchTest extends BaseSQLRepoTest {
 
     @Test
     public void nonEmptyRoleTypeSearchTest() throws Exception {
-
-        EqualFilter equalFilter = EqualFilter.createEqual(new ItemPath(RoleType.F_ROLE_TYPE), RoleType.class, prismContext, null);
-        NotFilter notFilter = NotFilter.createNot(equalFilter);
-        ObjectQuery query = ObjectQuery.createObjectQuery(notFilter);
-
+        ObjectQuery query = QueryBuilder.queryFor(RoleType.class, prismContext)
+                .not().item(RoleType.F_ROLE_TYPE).isNull()
+                .build();
         OperationResult result = new OperationResult("search");
         List<PrismObject<RoleType>> roles = repositoryService.searchObjects(RoleType.class, query, null, result);
         result.recomputeStatus();

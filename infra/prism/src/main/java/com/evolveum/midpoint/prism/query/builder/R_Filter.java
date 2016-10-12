@@ -16,14 +16,9 @@
 
 package com.evolveum.midpoint.prism.query.builder;
 
-import com.evolveum.midpoint.prism.ComplexTypeDefinition;
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.*;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import org.apache.commons.lang.Validate;
 
 import javax.xml.namespace.QName;
@@ -46,6 +41,8 @@ public class R_Filter implements S_FilterEntryOrEmpty, S_AtomicFilterExit {
     final private QName typeRestriction;
     final private ItemPath existsRestriction;
     final private List<ObjectOrdering> orderingList;
+    final private Integer offset;
+    final private Integer maxSize;
 
     public R_Filter(QueryBuilder queryBuilder) {
         this.queryBuilder = queryBuilder;
@@ -57,10 +54,12 @@ public class R_Filter implements S_FilterEntryOrEmpty, S_AtomicFilterExit {
         this.typeRestriction = null;
         this.existsRestriction = null;
         this.orderingList = new ArrayList<>();
+        this.offset = null;
+        this.maxSize = null;
     }
 
     private R_Filter(QueryBuilder queryBuilder, Class<? extends Containerable> currentClass, OrFilter currentFilter, LogicalSymbol lastLogicalSymbol,
-                     boolean isNegated, R_Filter parentFilter, QName typeRestriction, ItemPath existsRestriction, List<ObjectOrdering> orderingList) {
+                     boolean isNegated, R_Filter parentFilter, QName typeRestriction, ItemPath existsRestriction, List<ObjectOrdering> orderingList, Integer offset, Integer maxSize) {
         this.queryBuilder = queryBuilder;
         this.currentClass = currentClass;
         this.currentFilter = currentFilter;
@@ -74,6 +73,8 @@ public class R_Filter implements S_FilterEntryOrEmpty, S_AtomicFilterExit {
         } else {
             this.orderingList = new ArrayList<>();
         }
+        this.offset = offset;
+        this.maxSize = maxSize;
     }
 
     public static S_FilterEntryOrEmpty create(QueryBuilder builder) {
@@ -111,7 +112,7 @@ public class R_Filter implements S_FilterEntryOrEmpty, S_AtomicFilterExit {
                             subfilter));
         } else {
             OrFilter newFilter = appendAtomicFilter(subfilter, isNegated, lastLogicalSymbol);
-            return new R_Filter(queryBuilder, currentClass, newFilter, null, false, parentFilter, typeRestriction, existsRestriction, orderingList);
+            return new R_Filter(queryBuilder, currentClass, newFilter, null, false, parentFilter, typeRestriction, existsRestriction, orderingList, offset, maxSize);
         }
     }
 
@@ -134,21 +135,29 @@ public class R_Filter implements S_FilterEntryOrEmpty, S_AtomicFilterExit {
         if (this.lastLogicalSymbol != null) {
             throw new IllegalStateException("Two logical symbols in a sequence");
         }
-        return new R_Filter(queryBuilder, currentClass, currentFilter, newLogicalSymbol, isNegated, parentFilter, typeRestriction, existsRestriction, orderingList);
+        return new R_Filter(queryBuilder, currentClass, currentFilter, newLogicalSymbol, isNegated, parentFilter, typeRestriction, existsRestriction, orderingList, offset, maxSize);
     }
 
     private R_Filter setNegated() {
         if (isNegated) {
             throw new IllegalStateException("Double negation");
         }
-        return new R_Filter(queryBuilder, currentClass, currentFilter, lastLogicalSymbol, true, parentFilter, typeRestriction, existsRestriction, orderingList);
+        return new R_Filter(queryBuilder, currentClass, currentFilter, lastLogicalSymbol, true, parentFilter, typeRestriction, existsRestriction, orderingList, offset, maxSize);
     }
 
     private R_Filter addOrdering(ObjectOrdering ordering) {
         Validate.notNull(ordering);
         List<ObjectOrdering> newList = new ArrayList<>(orderingList);
         newList.add(ordering);
-        return new R_Filter(queryBuilder, currentClass, currentFilter, lastLogicalSymbol, isNegated, parentFilter, typeRestriction, existsRestriction, newList);
+        return new R_Filter(queryBuilder, currentClass, currentFilter, lastLogicalSymbol, isNegated, parentFilter, typeRestriction, existsRestriction, newList, offset, maxSize);
+    }
+
+    private R_Filter setOffset(Integer n) {
+        return new R_Filter(queryBuilder, currentClass, currentFilter, lastLogicalSymbol, isNegated, parentFilter, typeRestriction, existsRestriction, orderingList, n, maxSize);
+    }
+
+    private R_Filter setMaxSize(Integer n) {
+        return new R_Filter(queryBuilder, currentClass, currentFilter, lastLogicalSymbol, isNegated, parentFilter, typeRestriction, existsRestriction, orderingList, offset, n);
     }
 
     @Override
@@ -240,11 +249,11 @@ public class R_Filter implements S_FilterEntryOrEmpty, S_AtomicFilterExit {
 
     @Override
     public S_FilterEntryOrEmpty block() {
-        return new R_Filter(queryBuilder, currentClass, OrFilter.createOr(), null, false, this, null, null, null);
+        return new R_Filter(queryBuilder, currentClass, OrFilter.createOr(), null, false, this, null, null, null, null, null);
     }
 
     @Override
-    public S_FilterEntry type(Class<? extends Containerable> type) {
+    public S_FilterEntryOrEmpty type(Class<? extends Containerable> type) {
         ComplexTypeDefinition ctd = queryBuilder.getPrismContext().getSchemaRegistry().findComplexTypeDefinitionByCompileTimeClass(type);
         if (ctd == null) {
             throw new IllegalArgumentException("Unknown type: " + type);
@@ -253,7 +262,7 @@ public class R_Filter implements S_FilterEntryOrEmpty, S_AtomicFilterExit {
         if (typeName == null) {
             throw new IllegalStateException("No type name for " + ctd);
         }
-        return new R_Filter(queryBuilder, type, OrFilter.createOr(), null, false, this, typeName, null, null);
+        return new R_Filter(queryBuilder, type, OrFilter.createOr(), null, false, this, typeName, null, null, null, null);
     }
 
     @Override
@@ -270,7 +279,7 @@ public class R_Filter implements S_FilterEntryOrEmpty, S_AtomicFilterExit {
         if (clazz == null) {
             throw new IllegalArgumentException("Item path of '" + existsPath + "' in " + currentClass + " does not point to a valid prism container.");
         }
-        return new R_Filter(queryBuilder, clazz, OrFilter.createOr(), null, false, this, null, existsPath, null);
+        return new R_Filter(queryBuilder, clazz, OrFilter.createOr(), null, false, this, null, existsPath, null, null, null);
     }
 
     <ID extends ItemDefinition> ID resolveItemPath(ItemPath itemPath, Class<ID> type) {
@@ -340,9 +349,14 @@ public class R_Filter implements S_FilterEntryOrEmpty, S_AtomicFilterExit {
     }
 
     @Override
+    public S_MatchingRuleEntry itemAs(PrismProperty<?> property) {
+        return item(property.getPath(), property.getDefinition()).eq(property);
+    }
+
+    @Override
     public S_AtomicFilterExit endBlock() {
         if (parentFilter == null) {
-            throw new IllegalArgumentException("endBlock() call without preceding block() one");
+            throw new IllegalStateException("endBlock() call without preceding block() one");
         }
         if (currentFilter != null || parentFilter.hasRestriction()) {
             ObjectFilter simplified = simplify(currentFilter);
@@ -390,6 +404,16 @@ public class R_Filter implements S_FilterEntryOrEmpty, S_AtomicFilterExit {
     }
 
     @Override
+    public S_FilterExit offset(Integer n) {
+        return setOffset(n);
+    }
+
+    @Override
+    public S_FilterExit maxSize(Integer n) {
+        return setMaxSize(n);
+    }
+
+    @Override
     public ObjectQuery build() {
         if (typeRestriction != null || existsRestriction != null) {
             // unfinished empty type restriction or exists restriction
@@ -398,14 +422,24 @@ public class R_Filter implements S_FilterEntryOrEmpty, S_AtomicFilterExit {
         if (parentFilter != null) {
             throw new IllegalStateException("A block in filter definition was probably not closed.");
         }
-        ObjectPaging paging;
+        ObjectPaging paging = null;
         if (!orderingList.isEmpty()) {
-            paging = ObjectPaging.createEmptyPaging();
+            paging = createIfNeeded(null);
             paging.setOrdering(orderingList);
-        } else {
-            paging = null;
+        }
+        if (offset != null) {
+            paging = createIfNeeded(paging);
+            paging.setOffset(offset);
+        }
+        if (maxSize != null) {
+            paging = createIfNeeded(paging);
+            paging.setMaxSize(maxSize);
         }
         return ObjectQuery.createObjectQuery(simplify(currentFilter), paging);
+    }
+
+    private ObjectPaging createIfNeeded(ObjectPaging paging) {
+        return paging != null ? paging : ObjectPaging.createEmptyPaging();
     }
 
     @Override
@@ -439,5 +473,9 @@ public class R_Filter implements S_FilterEntryOrEmpty, S_AtomicFilterExit {
         } else {
             return simplified;
         }
+    }
+
+    public PrismContext getPrismContext() {
+        return queryBuilder.getPrismContext();
     }
 }

@@ -186,8 +186,9 @@ public class Search implements Serializable, DebugDumpable {
         ItemPath path = item.getPath();
 
         if (definition instanceof PrismReferenceDefinition) {
-            PrismReferenceValue value = (PrismReferenceValue) searchValue.getValue();
-            return RefFilter.createReferenceEqual(path, (PrismReferenceDefinition) definition, value);
+            return QueryBuilder.queryFor(ObjectType.class, ctx)
+                    .item(path, definition).ref((PrismReferenceValue) searchValue.getValue())
+                    .buildFilter();
         }
 
         PrismPropertyDefinition propDef = (PrismPropertyDefinition) definition;

@@ -16,12 +16,8 @@
 
 package com.evolveum.midpoint.prism.query.builder;
 
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.util.exception.SchemaException;
 
 import javax.xml.namespace.QName;
 
@@ -38,6 +34,7 @@ public interface S_AtomicFilterEntry {
     S_ConditionEntry itemWithDef(ItemDefinition itemDefinition, QName... names);        // experimental
     S_ConditionEntry item(PrismContainerDefinition containerDefinition, QName... names);
     S_ConditionEntry item(PrismContainerDefinition containerDefinition, ItemPath itemPath);
+    S_MatchingRuleEntry itemAs(PrismProperty<?> property);              // experimental; TODO choose better name for this method
     S_AtomicFilterExit id(String... identifiers) ;
     S_AtomicFilterExit id(long... identifiers) ;
     S_AtomicFilterExit ownerId(String... identifiers) ;
@@ -50,6 +47,6 @@ public interface S_AtomicFilterEntry {
     S_AtomicFilterExit isParentOf(String oid) ;                           // oid should be of an OrgType
     S_AtomicFilterExit isRoot() ;
     S_FilterEntryOrEmpty block();
-    S_FilterEntry type(Class<? extends Containerable> type) ;
+    S_FilterEntryOrEmpty type(Class<? extends Containerable> type) ;
     S_FilterEntry exists(QName... names) ;
 }

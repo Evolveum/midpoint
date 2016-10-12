@@ -23,6 +23,7 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
 import com.evolveum.midpoint.web.component.dialog.*;
 import com.evolveum.midpoint.web.component.search.Search;
@@ -535,9 +536,10 @@ public class PageDebugList extends PageAdminConfiguration {
 		List<ObjectFilter> filters = new ArrayList<>();
 		if (ObjectTypes.SHADOW.equals(dto.getType()) && dto.getResource() != null) {
 			String oid = dto.getResource().getOid();
-			RefFilter ref = RefFilter.createReferenceEqual(ShadowType.F_RESOURCE_REF, ShadowType.class,
-					getPrismContext(), oid);
-			filters.add(ref);
+			ObjectFilter objectFilter = QueryBuilder.queryFor(ShadowType.class, getPrismContext())
+					.item(ShadowType.F_RESOURCE_REF).ref(oid)
+					.buildFilter();
+			filters.add(objectFilter);
 		}
 
 		if (searchQuery != null && searchQuery.getFilter() != null) {
@@ -652,17 +654,18 @@ public class PageDebugList extends PageAdminConfiguration {
 	private String deleteAllShadowsConfirmed(OperationResult result, boolean deleteAccountShadows)
 			throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
 
-		ObjectFilter kind = EqualFilter.createEqual(ShadowType.F_KIND, ShadowType.class, getPrismContext(),
-				null, ShadowKindType.ACCOUNT);
+		ObjectFilter kindFilter = QueryBuilder.queryFor(ShadowType.class, getPrismContext())
+				.item(ShadowType.F_KIND).eq(ShadowKindType.ACCOUNT)
+				.buildFilter();
 
 		String taskName;
 		ObjectQuery query;
 		if (deleteAccountShadows) {
 			taskName = "Delete all account shadows";
-			query = ObjectQuery.createObjectQuery(kind);
+			query = ObjectQuery.createObjectQuery(kindFilter);
 		} else {
 			taskName = "Delete all non-account shadows";
-			query = ObjectQuery.createObjectQuery(NotFilter.createNot(kind));
+			query = ObjectQuery.createObjectQuery(NotFilter.createNot(kindFilter));
 		}
 
 		return deleteObjectsAsync(ShadowType.COMPLEX_TYPE, query, true, taskName, result);
@@ -827,11 +830,10 @@ public class PageDebugList extends PageAdminConfiguration {
 			return;
 		}
 
-		RefFilter ref = RefFilter.createReferenceEqual(ShadowType.F_RESOURCE_REF, ShadowType.class,
-				getPrismContext(), dto.getResource().getOid());
-		ObjectQuery objectQuery = ObjectQuery.createObjectQuery(ref);
+		ObjectQuery objectQuery = QueryBuilder.queryFor(ShadowType.class, getPrismContext())
+				.item(ShadowType.F_RESOURCE_REF).ref(dto.getResource().getOid())
+				.build();
 		initDownload(target, dto.getType().getClassDefinition(), objectQuery);
-
 	}
 
 	private Popupable getDeleteConfirmationPanel() {
@@ -874,9 +876,9 @@ public class PageDebugList extends PageAdminConfiguration {
 		OperationResult result = new OperationResult(OPERATION_DELETE_SHADOWS);
 		String taskOid = null;
 		try {
-			RefFilter ref = RefFilter.createReferenceEqual(ShadowType.F_RESOURCE_REF, ShadowType.class,
-					getPrismContext(), dto.getResource().getOid());
-			ObjectQuery objectQuery = ObjectQuery.createObjectQuery(ref);
+			ObjectQuery objectQuery = QueryBuilder.queryFor(ShadowType.class, getPrismContext())
+					.item(ShadowType.F_RESOURCE_REF).ref(dto.getResource().getOid())
+					.build();
 
 			QName type = ShadowType.COMPLEX_TYPE;
 

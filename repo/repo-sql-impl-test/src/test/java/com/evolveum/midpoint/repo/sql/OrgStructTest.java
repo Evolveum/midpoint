@@ -620,11 +620,9 @@ public class OrgStructTest extends BaseSQLRepoTest {
     	TestUtil.displayTestTile(TEST_NAME);
         OperationResult opResult = new OperationResult(TEST_NAME);
 
-        ObjectQuery query = new ObjectQuery();
-        PrismReferenceValue refVal = new PrismReferenceValue(ORG_F001_OID);
-		ObjectFilter filter = RefFilter.createReferenceEqual(new ItemPath(ObjectType.F_PARENT_ORG_REF),
-        		UserType.class, prismContext, refVal);
-        query.setFilter(filter);
+        ObjectQuery query = QueryBuilder.queryFor(ObjectType.class, prismContext)
+                .item(ObjectType.F_PARENT_ORG_REF).ref(new PrismReferenceValue(ORG_F001_OID))
+                .build();
 
         // WHEN
         List<PrismObject<ObjectType>> orgs = repositoryService.searchObjects(ObjectType.class, query, null, opResult);
@@ -639,12 +637,11 @@ public class OrgStructTest extends BaseSQLRepoTest {
     	TestUtil.displayTestTile(TEST_NAME);
         OperationResult opResult = new OperationResult(TEST_NAME);
 
-        ObjectQuery query = new ObjectQuery();
         PrismReferenceValue refVal = new PrismReferenceValue(ORG_F001_OID);
         refVal.setRelation(SchemaConstants.ORG_MANAGER);
-		ObjectFilter filter = RefFilter.createReferenceEqual(new ItemPath(ObjectType.F_PARENT_ORG_REF),
-        		UserType.class, prismContext, refVal);
-        query.setFilter(filter);
+        ObjectQuery query = QueryBuilder.queryFor(ObjectType.class, prismContext)
+                .item(ObjectType.F_PARENT_ORG_REF).ref(refVal)
+                .build();
 
         // WHEN
         List<PrismObject<ObjectType>> orgs = repositoryService.searchObjects(ObjectType.class, query, null, opResult);
@@ -659,12 +656,11 @@ public class OrgStructTest extends BaseSQLRepoTest {
     	TestUtil.displayTestTile(TEST_NAME);
         OperationResult opResult = new OperationResult(TEST_NAME);
 
-        ObjectQuery query = new ObjectQuery();
         PrismReferenceValue refVal = new PrismReferenceValue(ORG_F001_OID);
         refVal.setRelation(PrismConstants.Q_ANY);
-		ObjectFilter filter = RefFilter.createReferenceEqual(new ItemPath(ObjectType.F_PARENT_ORG_REF),
-        		UserType.class, prismContext, refVal);
-        query.setFilter(filter);
+        ObjectQuery query = QueryBuilder.queryFor(ObjectType.class, prismContext)
+                .item(ObjectType.F_PARENT_ORG_REF).ref(refVal)
+                .build();
 
         // WHEN
         List<PrismObject<ObjectType>> orgs = repositoryService.searchObjects(ObjectType.class, query, null, opResult);

@@ -20,6 +20,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.query.EqualFilter;
 import com.evolveum.midpoint.prism.query.NotFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterEntry;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStatusType;
@@ -40,21 +41,15 @@ public enum TaskDtoExecutionStatusFilter {
     CLOSED,
     NOT_CLOSED;
 
-    public ObjectFilter createFilter(Class clazz, PrismContext prismContext) throws SchemaException {
+    public S_AtomicFilterEntry appendFilter(S_AtomicFilterEntry q) {
         switch(this) {
-            case ALL: return null;
-            case RUNNING_OR_RUNNABLE: return createExecutionStatusFilter(clazz, prismContext, TaskExecutionStatusType.RUNNABLE);
-            case WAITING: return createExecutionStatusFilter(clazz, prismContext, TaskExecutionStatusType.WAITING);
-            case SUSPENDED_OR_SUSPENDING: return createExecutionStatusFilter(clazz, prismContext, TaskExecutionStatusType.SUSPENDED);
-            case CLOSED: return createExecutionStatusFilter(clazz, prismContext, TaskExecutionStatusType.CLOSED);
-            case NOT_CLOSED: return NotFilter.createNot(createExecutionStatusFilter(clazz, prismContext, TaskExecutionStatusType.CLOSED));
+            case ALL: return q;
+            case RUNNING_OR_RUNNABLE: return q.item(TaskType.F_EXECUTION_STATUS).eq(TaskExecutionStatusType.RUNNABLE).and();
+            case WAITING: return q.item(TaskType.F_EXECUTION_STATUS).eq(TaskExecutionStatusType.WAITING).and();
+            case SUSPENDED_OR_SUSPENDING: return q.item(TaskType.F_EXECUTION_STATUS).eq(TaskExecutionStatusType.SUSPENDED).and();
+            case CLOSED: return q.item(TaskType.F_EXECUTION_STATUS).eq(TaskExecutionStatusType.CLOSED).and();
+            case NOT_CLOSED: return q.block().not().item(TaskType.F_EXECUTION_STATUS).eq(TaskExecutionStatusType.RUNNABLE).endBlock().and();
             default: throw new SystemException("Unknown value for TaskDtoExecutionStatusFilter: " + this);
         }
     }
-    
-    private EqualFilter createExecutionStatusFilter(Class clazz, PrismContext prismContext, TaskExecutionStatusType value){
-    	return EqualFilter.createEqual(TaskType.F_EXECUTION_STATUS, clazz, prismContext, null, value);
-    }
-
-
 }

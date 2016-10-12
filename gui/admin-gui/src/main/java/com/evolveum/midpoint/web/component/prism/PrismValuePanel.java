@@ -29,6 +29,7 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.*;
+import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -42,7 +43,6 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
-import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.LockoutStatusPanel;
@@ -731,7 +731,7 @@ public class PrismValuePanel extends Panel {
 	            RefinedObjectClassDefinition assocTargetDef = assocDef.getAssociationTarget();
 	            
 	            ObjectQuery query = getAssociationsSearchQuery(prismContext, resource,
-	            		assocTargetDef.getTypeName(), assocTargetDef.getKind(), assocTargetDef.getIntent());
+	            		assocTargetDef.getTypeName(), assocTargetDef.getKind());
 	
 	            List values = item.getValues();
 	            return new AssociationValueChoicePanel(id, valueWrapperModel, values, false, ShadowType.class, 
@@ -890,21 +890,12 @@ public class PrismValuePanel extends Panel {
         target.add(parent.getParent());
     }
 
-    private ObjectQuery getAssociationsSearchQuery(PrismContext prismContext, PrismObject resource, QName objectClass, ShadowKindType kind,
-                                                   String intent) {
-        try {
-            ObjectFilter andFilter = AndFilter.createAnd(
-                    EqualFilter.createEqual(ShadowType.F_OBJECT_CLASS, ShadowType.class, prismContext, objectClass),
-                    EqualFilter.createEqual(ShadowType.F_KIND, ShadowType.class, prismContext, kind),
-//                    EqualFilter.createEqual(ShadowType.F_INTENT, ShadowType.class, prismContext, intent),
-                    RefFilter.createReferenceEqual(new ItemPath(ShadowType.F_RESOURCE_REF), ShadowType.class, prismContext, resource.getOid()));
-            ObjectQuery query = ObjectQuery.createObjectQuery(andFilter);
-            return query;
-        } catch (SchemaException ex) {
-            LoggingUtils.logUnexpectedException(LOGGER, "Unable to create associations search query", ex);
-            return null;
-        }
-
+    private ObjectQuery getAssociationsSearchQuery(PrismContext prismContext, PrismObject resource, QName objectClass, ShadowKindType kind) {
+        return QueryBuilder.queryFor(ShadowType.class, prismContext)
+                .item(ShadowType.F_OBJECT_CLASS).eq(objectClass)
+                .and().item(ShadowType.F_KIND).eq(kind)
+                .and().item(ShadowType.F_RESOURCE_REF).ref(resource.getOid())
+                .build();
     }
 
 }

@@ -29,6 +29,8 @@ import java.util.Set;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
+import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterExit;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -1593,16 +1595,12 @@ public class AssignmentProcessor {
 	}
 
 	private int countAssignees(PrismObject<? extends AbstractRoleType> target, String selfOid, OperationResult result) throws SchemaException {
-		ObjectFilter refFilter = RefFilter.createReferenceEqual(
-				new ItemPath(FocusType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF), UserType.class, prismContext, target.getOid());
-		ObjectFilter filter;
-		if (selfOid == null) {
-			filter = refFilter;
-		} else {
-			InOidFilter oidFilter = InOidFilter.createInOid(selfOid);
-			filter = AndFilter.createAnd(refFilter, NotFilter.createNot(oidFilter));
+		S_AtomicFilterExit q = QueryBuilder.queryFor(FocusType.class, prismContext)
+				.item(FocusType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF).ref(target.getOid());
+		if (selfOid != null) {
+			q = q.and().not().id(selfOid);
 		}
-		ObjectQuery query = ObjectQuery.createObjectQuery(filter);
+		ObjectQuery query = q.build();
 		return repositoryService.countObjects(FocusType.class, query, result);
 	}
 

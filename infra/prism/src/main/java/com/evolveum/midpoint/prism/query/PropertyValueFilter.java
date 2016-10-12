@@ -20,16 +20,10 @@ import java.util.*;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.*;
 
 import org.apache.commons.lang.Validate;
 
-import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.Itemable;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismUtil;
@@ -116,27 +110,56 @@ public abstract class PropertyValueFilter<V extends PrismValue> extends ValueFil
 		return pValues;
 	}
 
-	@SafeVarargs
-	static <T> List<PrismPropertyValue<T>> createPropertyListFromArray(PrismPropertyDefinition itemDefinition, T... realValues) {
-		List<PrismPropertyValue<T>> pVals = new ArrayList<PrismPropertyValue<T>>();
-
-		for (T realValue : realValues) {
-			if (realValue == null) {
-				continue;
-			}
-			if (realValue instanceof PrismPropertyValue) {
-				PrismPropertyValue<T> pVal = (PrismPropertyValue<T>) realValue;
-				PrismUtil.recomputePrismPropertyValue(pVal, itemDefinition.getPrismContext());
-				pVals.add(pVal);
-			} else {
-				pVals.add(new PrismPropertyValue<>(realValue));
+	static List<PrismPropertyValue<?>> createPropertyListFromArray(PrismContext prismContext, Object[] values) {
+		List<PrismPropertyValue<?>> pVals = new ArrayList<>();
+		if (values != null) {
+			for (Object value : values) {
+				addToPrismValues(pVals, prismContext, value);
 			}
 		}
 		return pVals;
 	}
 
-	 static <T> List<PrismPropertyValue<T>> realValueToPropertyList(PrismPropertyDefinition itemDefinition, T realValue) {
-		List<PrismPropertyValue<T>> pVals = new ArrayList<PrismPropertyValue<T>>();
+//	static <T> List<PrismPropertyValue<T>> createPropertyListFromCollection(PrismContext prismContext, Collection<T> realValues) {
+//		List<PrismPropertyValue<T>> pVals = new ArrayList<>();
+//		for (T realValue : realValues) {
+//			addToPrismValues(pVals, realValue, prismContext);
+//		}
+//		return pVals;
+//	}
+
+	private static void addToPrismValues(List<PrismPropertyValue<?>> pVals, PrismContext prismContext, Object value) {
+		if (value == null) {
+			return;
+		}
+		if (value instanceof Collection) {
+			for (Object o : (Collection) value) {
+				addToPrismValues(pVals, prismContext, o);
+			}
+			return;
+		}
+		if (value.getClass().isArray()) {
+			throw new IllegalStateException("Array within array in filter creation: " + value);
+		}
+
+		PrismPropertyValue<?> pVal;
+		if (value instanceof PrismPropertyValue) {
+			pVal = (PrismPropertyValue<?>) value;
+			if (pVal.getParent() != null) {
+				pVal = pVal.clone();
+			}
+		} else {
+			pVal = new PrismPropertyValue<>(value);
+		}
+		PrismUtil.recomputePrismPropertyValue(pVal, prismContext);
+		pVals.add(pVal);
+	}
+
+	static <T> List<PrismPropertyValue<T>> realValueToPropertyList(PrismPropertyDefinition itemDefinition, T realValue) {
+		List<PrismPropertyValue<T>> pVals = new ArrayList<>();
+		if (realValue == null) {
+			return pVals;
+		}
 
 		if (realValue.getClass() != null && Collection.class.isAssignableFrom(realValue.getClass())) {
 			for (Object o : (Iterable)realValue){
@@ -149,7 +172,7 @@ public abstract class PropertyValueFilter<V extends PrismValue> extends ValueFil
 					pVals.addAll(PrismPropertyValue.createCollection((Collection<T>) realValue));
 				}
 			}
-			
+
 		} else {
 			PrismUtil.recomputeRealValue(realValue, itemDefinition.getPrismContext());
 			pVals.add(new PrismPropertyValue<T>(realValue));

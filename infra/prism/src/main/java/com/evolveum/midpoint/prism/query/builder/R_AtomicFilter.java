@@ -16,10 +16,7 @@
 
 package com.evolveum.midpoint.prism.query.builder;
 
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.PrismReferenceDefinition;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.match.PolyStringNormMatchingRule;
 import com.evolveum.midpoint.prism.match.PolyStringOrigMatchingRule;
 import com.evolveum.midpoint.prism.match.PolyStringStrictMatchingRule;
@@ -39,6 +36,8 @@ import org.apache.commons.lang.Validate;
 
 import javax.xml.namespace.QName;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * @author mederly
@@ -110,23 +109,32 @@ public class R_AtomicFilter implements S_ConditionEntry, S_MatchingRuleEntry, S_
     }
 
     @Override
+    public <T> S_MatchingRuleEntry eq(PrismProperty<T> property) {
+        List<PrismPropertyValue<T>> clonedValues = (List<PrismPropertyValue<T>>) PrismPropertyValue.cloneCollection(property.getValues());
+        PrismPropertyDefinition<T> definition =
+                this.propertyDefinition != null ?
+                        this.propertyDefinition : property.getDefinition();
+        return new R_AtomicFilter(this, EqualFilter.createEqual(itemPath, definition, null, owner.getPrismContext(), clonedValues));
+    }
+
+    @Override
     public S_MatchingRuleEntry eq(Object... values) {
-        return new R_AtomicFilter(this, EqualFilter.createEqualMultiple(itemPath, propertyDefinition, null, values));
+        return new R_AtomicFilter(this, EqualFilter.createEqual(itemPath, propertyDefinition, null, owner.getPrismContext(), values));
     }
 
     @Override
     public S_RightHandItemEntry eq() {
-        return new R_AtomicFilter(this, EqualFilter.createEqual(itemPath, propertyDefinition, null, (Object) null), true);
+        return new R_AtomicFilter(this, EqualFilter.createEqual(itemPath, propertyDefinition, null, owner.getPrismContext()), true);
     }
 
     @Override
     public S_MatchingRuleEntry eqPoly(String orig, String norm) {
-        return new R_AtomicFilter(this, EqualFilter.createEqual(itemPath, propertyDefinition, null, new PolyString(orig, norm)));
+        return new R_AtomicFilter(this, EqualFilter.createEqual(itemPath, propertyDefinition, null, owner.getPrismContext(), new PolyString(orig, norm)));
     }
 
     @Override
     public S_MatchingRuleEntry eqPoly(String orig) {
-        return new R_AtomicFilter(this, EqualFilter.createEqual(itemPath, propertyDefinition, null, new PolyString(orig)));
+        return new R_AtomicFilter(this, EqualFilter.createEqual(itemPath, propertyDefinition, null, owner.getPrismContext(), new PolyString(orig)));
     }
 
     @Override
@@ -180,6 +188,11 @@ public class R_AtomicFilter implements S_ConditionEntry, S_MatchingRuleEntry, S_
 	}
 
 	@Override
+	public S_MatchingRuleEntry startsWithPoly(String orig) {
+		return startsWith(new PolyString(orig));
+	}
+
+	@Override
     public S_MatchingRuleEntry endsWith(Object value) {
         return new R_AtomicFilter(this, SubstringFilter.createSubstring(itemPath, propertyDefinition, null, value, false, true));
     }
@@ -187,6 +200,11 @@ public class R_AtomicFilter implements S_ConditionEntry, S_MatchingRuleEntry, S_
 	@Override
 	public S_MatchingRuleEntry endsWithPoly(String orig, String norm) {
 		return endsWith(new PolyString(orig, norm));
+	}
+
+	@Override
+	public S_MatchingRuleEntry endsWithPoly(String orig) {
+		return endsWith(new PolyString(orig));
 	}
 
     @Override
@@ -200,19 +218,23 @@ public class R_AtomicFilter implements S_ConditionEntry, S_MatchingRuleEntry, S_
 	}
 
 	@Override
+	public S_MatchingRuleEntry containsPoly(String orig) {
+		return contains(new PolyString(orig));
+	}
+
+	@Override
     public S_AtomicFilterExit ref(PrismReferenceValue value) {
-        return new R_AtomicFilter(this, RefFilter.createReferenceEqual(itemPath, referenceDefinition, value));
+        return ref(Collections.singleton(value));
     }
 
 	@Override
 	public S_AtomicFilterExit ref(Collection<PrismReferenceValue> values) {
-		return new R_AtomicFilter(this, RefFilter.createReferenceEqual(itemPath, referenceDefinition,
-				values.toArray(new PrismReferenceValue[values.size()])));
+		return new R_AtomicFilter(this, RefFilter.createReferenceEqual(itemPath, referenceDefinition, values));
 	}
 
 	@Override
     public S_AtomicFilterExit ref(String oid) {
-        return new R_AtomicFilter(this, RefFilter.createReferenceEqual(itemPath, referenceDefinition, oid));
+        return ref(new PrismReferenceValue(oid));
     }
 
     @Override
@@ -223,9 +245,9 @@ public class R_AtomicFilter implements S_ConditionEntry, S_MatchingRuleEntry, S_
     @Override
     public S_AtomicFilterExit isNull() {
         if (propertyDefinition != null) {
-            return new R_AtomicFilter(this, EqualFilter.createNullEqual(itemPath, propertyDefinition, null));
+            return new R_AtomicFilter(this, EqualFilter.createEqual(itemPath, propertyDefinition, null, owner.getPrismContext()));
         } else if (referenceDefinition != null) {
-            return new R_AtomicFilter(this, RefFilter.createNullRefFilter(itemPath, referenceDefinition));
+            return new R_AtomicFilter(this, RefFilter.createReferenceEqual(itemPath, referenceDefinition, Collections.<PrismReferenceValue>emptyList()));
         } else {
             throw new IllegalStateException("No definition");
         }
@@ -299,6 +321,16 @@ public class R_AtomicFilter implements S_ConditionEntry, S_MatchingRuleEntry, S_
     @Override
     public S_FilterExit desc(ItemPath path) {
         return finish().desc(path);
+    }
+
+    @Override
+    public S_FilterExit offset(Integer n) {
+        return finish().offset(n);
+    }
+
+    @Override
+    public S_FilterExit maxSize(Integer n) {
+        return finish().maxSize(n);
     }
 
     @Override

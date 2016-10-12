@@ -30,6 +30,7 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import org.apache.commons.lang.mutable.MutableInt;
 import org.opends.messages.TaskMessages;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -2519,15 +2520,13 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         // GIVEN
         Task task = createTask(TestImportRecon.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
-        
-         ObjectFilter ocFilter = ObjectQueryUtil.createResourceAndObjectClassFilter(RESOURCE_DUMMY_OID, 
-        		new QName(RESOURCE_DUMMY_NAMESPACE,"AccountObjectClass"), prismContext);
-         SubstringFilter<String> subStringFilter = SubstringFilter.createSubstring(
-        		 new ItemPath(ShadowType.F_ATTRIBUTES, SchemaConstants.ICFS_NAME), 
-        		 new ResourceAttributeDefinition(SchemaConstants.ICFS_NAME, DOMUtil.XSD_STRING, prismContext), "s");
-         AndFilter andFilter = AndFilter.createAnd(ocFilter, subStringFilter);
-         ObjectQuery query = ObjectQuery.createObjectQuery(andFilter);
-        
+
+		ObjectQuery query =
+				ObjectQueryUtil.createResourceAndObjectClassFilterPrefix(RESOURCE_DUMMY_OID, new QName(RESOURCE_DUMMY_NAMESPACE, "AccountObjectClass"), prismContext)
+						.and().itemWithDef(new ResourceAttributeDefinition(SchemaConstants.ICFS_NAME, DOMUtil.XSD_STRING, prismContext),
+										ShadowType.F_ATTRIBUTES, SchemaConstants.ICFS_NAME).eq("s")
+						.build();
+
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
 		SearchResultList<PrismObject<ShadowType>> objects = modelService.searchObjects(ShadowType.class, query, null, task, result);

@@ -22,6 +22,8 @@ import java.util.Map;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
+import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterExit;
 import org.aopalliance.intercept.MethodInvocation;
 import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.mutable.MutableBoolean;
@@ -963,13 +965,14 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 									}
 									ItemPath ownerRefPath = new ItemPath(AbstractRoleType.F_OWNER_REF);
 									PrismReferenceDefinition ownerRefDef = objectDefinition.findReferenceDefinition(ownerRefPath);
-									ObjectFilter objSpecOwnerFilter = RefFilter.createReferenceEqual(ownerRefPath, ownerRefDef, principal.getUser().getOid());
+									S_AtomicFilterExit builder = QueryBuilder.queryFor(AbstractRoleType.class, prismContext)
+											.item(ownerRefPath, ownerRefDef).ref(principal.getUser().getOid());
 									for (ObjectReferenceType subjectParentOrgRef: principal.getUser().getParentOrgRef()) {
 										if (MiscSchemaUtil.compareRelation(null, subjectParentOrgRef.getRelation())) {
-											objSpecOwnerFilter = ObjectQueryUtil.filterOr(objSpecOwnerFilter,
-													RefFilter.createReferenceEqual(ownerRefPath, ownerRefDef, subjectParentOrgRef.getOid()));
+											builder = builder.or().item(ownerRefPath, ownerRefDef).ref(subjectParentOrgRef.getOid());
 										}
 									}
+									ObjectFilter objSpecOwnerFilter = builder.buildFilter();
 									objSpecSecurityFilter = ObjectQueryUtil.filterAnd(objSpecSecurityFilter, objSpecOwnerFilter);
 									LOGGER.trace("  applying owner filter {}", objSpecOwnerFilter);
 								} else {

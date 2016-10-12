@@ -220,10 +220,9 @@ public class PageDashboard extends PageAdminHome {
 			if (totalCount == null) {
 				totalCount = 0;
 			}
-			
-			EqualFilter<TaskExecutionStatusType> filter = EqualFilter.createEqual(TaskType.F_EXECUTION_STATUS, 
-					TaskType.class, getPrismContext(), TaskExecutionStatusType.RUNNABLE);
-			ObjectQuery query = ObjectQuery.createObjectQuery(filter);
+			ObjectQuery query = QueryBuilder.queryFor(TaskType.class, getPrismContext())
+					.item(TaskType.F_EXECUTION_STATUS).eq(TaskExecutionStatusType.RUNNABLE)
+					.build();
 			Integer activeCount = getModelService().countObjects(TaskType.class, query, null, task, result);
 			if (activeCount == null) {
 				activeCount = 0;

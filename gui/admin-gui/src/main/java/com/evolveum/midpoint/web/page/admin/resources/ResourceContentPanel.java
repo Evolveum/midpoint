@@ -22,6 +22,7 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.web.session.SessionStorage;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -344,9 +345,9 @@ public abstract class ResourceContentPanel extends Panel {
 
 		List<PrismObject<TaskType>> tasks = WebModelServiceUtils
 				.searchObjects(TaskType.class,
-						ObjectQuery.createObjectQuery(RefFilter.createReferenceEqual(TaskType.F_OBJECT_REF,
-								TaskType.class, getPageBase().getPrismContext(),
-								getResourceModel().getObject().getOid())),
+						QueryBuilder.queryFor(TaskType.class, getPageBase().getPrismContext())
+								.item(TaskType.F_OBJECT_REF).ref(getResourceModel().getObject().getOid())
+								.build(),
 						result, getPageBase());
 
 		List<TaskType> tasksForKind = getTasksForKind(tasks);

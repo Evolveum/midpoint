@@ -26,6 +26,9 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
+import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterEntry;
+import com.evolveum.midpoint.prism.query.builder.S_FilterEntry;
+import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
 import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
@@ -321,25 +324,20 @@ public class ShadowManager {
 			LOGGER.trace("Shadow does not contain secondary identifier. Skipping lookup shadows according to name.");
 			return null;
 		}
-		
-		List<ObjectFilter> secondaryEquals = new ArrayList<>();
+
+		S_FilterEntry q = QueryBuilder.queryFor(ShadowType.class, prismContext)
+				.block();
 		for (ResourceAttribute<?> secondaryIdentifier : secondaryIdentifiers) {
 			// There may be identifiers that come from associations and they will have parent set to association/identifiers
 			// For the search to succeed we need all attribute to have "attributes" parent path.
 			secondaryIdentifier = ShadowUtil.fixAttributePath(secondaryIdentifier);
-			secondaryEquals.add(createAttributeEqualFilter(ctx, secondaryIdentifier));
+			q = q.item(secondaryIdentifier.getPath(), secondaryIdentifier.getDefinition())
+					.eq(getNormalizedValue(secondaryIdentifier, ctx.getObjectClassDefinition()))
+					.or();
 		}
-		
-		ObjectFilter secondaryIdentifierFilter = null;
-		if (secondaryEquals.size() > 1){
-			secondaryIdentifierFilter = OrFilter.createOr((List) secondaryEquals);
-		} else {
-			secondaryIdentifierFilter = secondaryEquals.iterator().next();
-		}
-				
-		AndFilter filter = AndFilter.createAnd(
-				RefFilter.createReferenceEqual(ShadowType.F_RESOURCE_REF, ShadowType.class, ctx.getResource()), secondaryIdentifierFilter);
-		ObjectQuery query = ObjectQuery.createObjectQuery(filter);
+		ObjectQuery query = q.none().endBlock()
+				.and().item(ShadowType.F_RESOURCE_REF).ref(ctx.getResourceOid())
+				.build();
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("Searching for shadow using filter on secondary identifier:\n{}",
 					query.debugDump());
@@ -599,7 +597,9 @@ public class ShadowManager {
 	
 	private ObjectQuery createSearchShadowQuery(ProvisioningContext ctx, Collection<ResourceAttribute<?>> identifiers, boolean primaryIdentifiersOnly,
 			PrismContext prismContext, OperationResult parentResult) throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException {
-		List<ObjectFilter> conditions = new ArrayList<ObjectFilter>();
+
+		S_AtomicFilterEntry q = QueryBuilder.queryFor(ShadowType.class, prismContext);
+
 		RefinedObjectClassDefinition objectClassDefinition = ctx.getObjectClassDefinition();
 		for (PrismProperty<?> identifier : identifiers) {
 			RefinedAttributeDefinition rAttrDef;
@@ -622,40 +622,22 @@ public class ShadowManager {
 
 			String normalizedIdentifierValue = (String) getNormalizedAttributeValue(identifierValue, rAttrDef);
 			PrismPropertyDefinition<String> def = (PrismPropertyDefinition<String>) identifier.getDefinition();
-			ObjectFilter filter = QueryBuilder.queryFor(ShadowType.class, prismContext)
-					.itemWithDef(def, ShadowType.F_ATTRIBUTES, def.getName()).eq(normalizedIdentifierValue)
-					.buildFilter();
-			conditions.add(filter);
+			q = q.itemWithDef(def, ShadowType.F_ATTRIBUTES, def.getName()).eq(normalizedIdentifierValue).and();
 		}
 
-		if (conditions.size() < 1) {
+		if (identifiers.size() < 1) {
 			throw new SchemaException("Identifier not specified. Cannot create search query by identifier.");
 		}
-		
-		RefFilter resourceRefFilter = RefFilter.createReferenceEqual(ShadowType.F_RESOURCE_REF, ShadowType.class, ctx.getResource());
-		conditions.add(resourceRefFilter);
-		
+
 		if (objectClassDefinition != null) {
-			EqualFilter<QName> objectClassFilter = EqualFilter.createEqual(ShadowType.F_OBJECT_CLASS, ShadowType.class, 
-					prismContext,  objectClassDefinition.getTypeName());
-			conditions.add(objectClassFilter);
+			q = q.item(ShadowType.F_OBJECT_CLASS).eq(objectClassDefinition.getTypeName()).and();
 		}
-
-		ObjectFilter filter = null;
-		if (conditions.size() > 1) {
-			filter = AndFilter.createAnd(conditions);
-		} else {
-			filter = conditions.get(0);
-		}
-
-		ObjectQuery query = ObjectQuery.createObjectQuery(filter);
-		return query;
+		return q.item(ShadowType.F_RESOURCE_REF).ref(ctx.getResourceOid()).build();
 	}
 
 	private ObjectQuery createSearchShadowQuery(ProvisioningContext ctx, PrismObject<ShadowType> resourceShadow, 
 			PrismContext prismContext, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException {
-		ResourceAttributeContainer attributesContainer = ShadowUtil
-				.getAttributesContainer(resourceShadow);
+		ResourceAttributeContainer attributesContainer = ShadowUtil.getAttributesContainer(resourceShadow);
 		PrismProperty identifier = attributesContainer.getPrimaryIdentifier();
 
 		Collection<PrismPropertyValue<Object>> idValues = identifier.getValues();

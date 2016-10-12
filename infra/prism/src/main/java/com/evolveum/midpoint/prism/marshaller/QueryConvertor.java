@@ -293,8 +293,8 @@ public class QueryConvertor {
 				if (isEq) {
 					List<PrismPropertyValue<T>> values = item.getValues();
 					PrismValue.clearParent(values);
-					return EqualFilter.createEqual(itemPath, 
-							(PrismPropertyDefinition<T>)item.getDefinition(), matchingRule, values);
+					return EqualFilter.createEqual(itemPath,
+							(PrismPropertyDefinition<T>)item.getDefinition(), matchingRule, prismContext, values);
 				}
 				PrismPropertyValue<T> propertyValue = (PrismPropertyValue<T>) item.getValue(0);
 				propertyValue.clearParent();
@@ -343,7 +343,7 @@ public class QueryConvertor {
                 if (preliminaryParsingOnly) {
                     return null;
                 } else {
-					return EqualFilter.createNullEqual(itemPath, (PrismPropertyDefinition<T>) itemDefinition, matchingRule);
+					return EqualFilter.createEqual(itemPath, (PrismPropertyDefinition<T>) itemDefinition, matchingRule, prismContext);
                 }
             }
 		}
@@ -439,7 +439,7 @@ public class QueryConvertor {
 			if (item.getValues().size() < 1) {
 				throw new IllegalStateException("No values to search specified for item " + itemName);
 			}
-			return RefFilter.createReferenceEqual(itemPath, ref, null);
+			return RefFilter.createReferenceEqual(itemPath, (PrismReferenceDefinition) itemDefinition, PrismValue.cloneCollection(ref.getValues()));
 		} else {
 			ExpressionWrapper expressionWrapper = parseExpression(clauseXMap, prismContext);
 			if (expressionWrapper != null) {
@@ -454,7 +454,7 @@ public class QueryConvertor {
 					return null;
 				} else {
 					return RefFilter.createReferenceEqual(itemPath,
-							(PrismReferenceDefinition) itemDefinition, expressionWrapper);
+							(PrismReferenceDefinition) itemDefinition, (ExpressionWrapper) null);
 				}
 			}
 		}
