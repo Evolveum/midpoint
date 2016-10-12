@@ -163,11 +163,6 @@ public class AuditEventRecordProvider extends BaseSortableDataProvider<AuditEven
 		} else {
 			queryParameters.remove("hostIdentifier");
 		}
-		if (queryParameters.get("targetType") != null) {
-			query += "(aer.targetType = :targetType) and ";
-		} else {
-			queryParameters.remove("targetType");
-		}
 		if (queryParameters.get("targetOwnerName") != null) {
 			query += "(aer.targetOwnerName = :targetOwnerName) and ";
 		} else {

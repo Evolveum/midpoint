@@ -1,6 +1,7 @@
 package com.evolveum.midpoint.web.page.admin.reports;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -20,6 +21,7 @@ import org.apache.wicket.model.util.ListModel;
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
@@ -36,6 +38,8 @@ import com.evolveum.midpoint.web.page.admin.reports.dto.AuditEventRecordProvider
 import com.evolveum.midpoint.web.page.admin.reports.dto.AuditSearchDto;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
+import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventStageType;
+import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventTypeType;
 
 /**
  * Created by honchar.
@@ -61,12 +65,11 @@ public class PageAuditLogViewer extends PageBase{
 	private static final String ID_CHANNEL = "channelField";
 	private static final String ID_HOST_IDENTIFIER = "hostIdentifierField";
 	private static final String ID_TARGET_NAME = "targetNameField";
-	private static final String ID_TARGET_TYPE = "targetTypeField";
 	private static final String ID_TARGET_OWNER_NAME = "targetOwnerNameField";
 	private static final String ID_EVENT_TYPE = "eventTypeField";
 	private static final String ID_EVENT_STAGE = "eventStageField";
 	private static final String ID_OUTCOME = "outcomeField";
-	
+
 	private static final String ID_MAIN_FORM = "mainForm";
 	private static final String ID_SEARCH_BUTTON = "searchButton";
 
@@ -148,13 +151,6 @@ public class PageAuditLogViewer extends PageBase{
 		targetName.setOutputMarkupId(true);
 		parametersPanel.add(targetName);
 
-		IModel<String> targetTypeModel = new PropertyModel<>(auditSearchDto, AuditSearchDto.F_TARGET_TYPE);
-		TextPanel targetType = new TextPanel(ID_TARGET_TYPE, targetTypeModel);
-		targetType.getBaseFormComponent().add(new EmptyOnChangeAjaxFormUpdatingBehavior());
-		targetType.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
-		targetType.setOutputMarkupId(true);
-		parametersPanel.add(targetType);
-
 		IModel<String> targetOwnerNameModel = new PropertyModel<>(auditSearchDto, AuditSearchDto.F_TARGET_OWNER_NAME);
 		TextPanel targetOwnerName = new TextPanel(ID_TARGET_OWNER_NAME, targetOwnerNameModel);
 		targetOwnerName.getBaseFormComponent().add(new EmptyOnChangeAjaxFormUpdatingBehavior());
@@ -162,22 +158,28 @@ public class PageAuditLogViewer extends PageBase{
 		targetOwnerName.setOutputMarkupId(true);
 		parametersPanel.add(targetOwnerName);
 
+		IModel<String> eventTypeListModel = new ListModel(Arrays.asList(AuditEventTypeType.values()));
 		IModel<String> eventTypeModel = new PropertyModel<>(auditSearchDto, AuditSearchDto.F_EVENT_TYPE);
-		TextPanel eventType = new TextPanel(ID_EVENT_TYPE, eventTypeModel);
+		DropDownChoicePanel eventType = new DropDownChoicePanel(ID_EVENT_TYPE, eventTypeModel, eventTypeListModel);
+		// TextPanel eventType = new TextPanel(ID_EVENT_TYPE, eventTypeModel);
 		eventType.getBaseFormComponent().add(new EmptyOnChangeAjaxFormUpdatingBehavior());
 		eventType.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
 		eventType.setOutputMarkupId(true);
 		parametersPanel.add(eventType);
 
+		IModel<String> eventStageListModel = new ListModel(Arrays.asList(AuditEventStageType.values()));
 		IModel<String> eventStageModel = new PropertyModel<>(auditSearchDto, AuditSearchDto.F_EVENT_STAGE);
-		TextPanel eventStage = new TextPanel(ID_EVENT_STAGE, eventStageModel);
+		DropDownChoicePanel eventStage = new DropDownChoicePanel(ID_EVENT_STAGE, eventStageModel, eventStageListModel);
+		// TextPanel eventStage = new TextPanel(ID_EVENT_STAGE, eventStageModel);
 		eventStage.getBaseFormComponent().add(new EmptyOnChangeAjaxFormUpdatingBehavior());
 		eventStage.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
 		eventStage.setOutputMarkupId(true);
 		parametersPanel.add(eventStage);
 
+		IModel<String> outcomeListModel = new ListModel(Arrays.asList(OperationResultStatus.values()));
 		IModel<String> outcomeModel = new PropertyModel<>(auditSearchDto, AuditSearchDto.F_OUTCOME);
-		TextPanel outcome = new TextPanel(ID_OUTCOME, outcomeModel);
+		// TextPanel outcome = new TextPanel(ID_OUTCOME, outcomeModel);
+		DropDownChoicePanel outcome = new DropDownChoicePanel(ID_OUTCOME, outcomeModel, outcomeListModel);
 		outcome.getBaseFormComponent().add(new EmptyOnChangeAjaxFormUpdatingBehavior());
 		outcome.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
 		outcome.setOutputMarkupId(true);
@@ -223,7 +225,6 @@ public class PageAuditLogViewer extends PageBase{
 				parameters.put("channel", auditSearchDto.getObject().getChannel());
 				parameters.put("hostIdentifier", auditSearchDto.getObject().getHostIdentifier());
 				parameters.put("targetName", auditSearchDto.getObject().getTargetName());
-				parameters.put("targetType", auditSearchDto.getObject().getTargetType());
 				parameters.put("targetOwnerName", auditSearchDto.getObject().getTargetOwnerName());
 				parameters.put("eventType", auditSearchDto.getObject().getEventType());
 				parameters.put("eventStage", auditSearchDto.getObject().getEventStage());
