@@ -181,10 +181,10 @@ public interface ModelInteractionService {
 	
 	<O extends ObjectType> ObjectDelta<O> mergeObjectsPreviewDelta(Class<O> type, 
 			String leftOid, String rightOid, String mergeConfigurationName, Task task, OperationResult result) 
-					throws ObjectNotFoundException, SchemaException, ConfigurationException;
+					throws ObjectNotFoundException, SchemaException, ConfigurationException, ExpressionEvaluationException;
 	
 	<O extends ObjectType> PrismObject<O> mergeObjectsPreviewObject(Class<O> type, 
 			String leftOid, String rightOid, String mergeConfigurationName, Task task, OperationResult result)
-					throws ObjectNotFoundException, SchemaException, ConfigurationException;
+					throws ObjectNotFoundException, SchemaException, ConfigurationException, ExpressionEvaluationException;
 
 }

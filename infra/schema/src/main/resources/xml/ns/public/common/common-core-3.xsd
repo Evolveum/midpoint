@@ -12392,8 +12392,29 @@
 			</xsd:appinfo>
 		</xsd:annotation>
 		<xsd:sequence>
-			<xsd:element name="left" type="tns:MergeStategyType" minOccurs="0" maxOccurs="1"/>
-			<xsd:element name="right" type="tns:MergeStategyType" minOccurs="0" maxOccurs="1"/>
+			<xsd:element name="left" type="tns:MergeStategyType" minOccurs="0" maxOccurs="1" default="ignore">
+				<xsd:annotation>
+					<xsd:documentation>
+						Strategy to process values from the left-hand-side object. 
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="right" type="tns:MergeStategyType" minOccurs="0" maxOccurs="1" default="ignore">
+				<xsd:annotation>
+					<xsd:documentation>
+						Strategy to process values from the right-hand-side object.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="valueExpression" type="tns:ExpressionType" minOccurs="0" maxOccurs="1">
+				<xsd:annotation>
+					<xsd:documentation>
+						Expression to process every value (if specified by strategy). The value that the
+						expression returns will be taken. If the expression returns null then the value will
+						be skipped.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
 		</xsd:sequence>
 	</xsd:complexType>
 	
@@ -12425,6 +12446,7 @@
 			<xsd:enumeration value="ignore">
 				<xsd:annotation>
 					<xsd:documentation>
+						Ignore all the values.
 					</xsd:documentation>
 					<xsd:appinfo>
 						<jaxb:typesafeEnumMember name="IGNORE"/>
@@ -12434,12 +12456,24 @@
 			<xsd:enumeration value="take">
 				<xsd:annotation>
 					<xsd:documentation>
+						Take all the values.
 					</xsd:documentation>
 					<xsd:appinfo>
 						<jaxb:typesafeEnumMember name="TAKE"/>
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:enumeration>
+			<xsd:enumeration value="expression">
+				<xsd:annotation>
+					<xsd:documentation>
+						Take only values that are selected and processed by the expression.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="EXPRESSION"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+			<!-- TODO: values for manual selection may come here in the future. -->
 		</xsd:restriction>
 	</xsd:simpleType>
 
