@@ -708,13 +708,13 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 
 	@Override
 	public <O extends ObjectType> ObjectDelta<O> mergeObjectsPreviewDelta(Class<O> type, String leftOid,
-			String rightOid, Task task, OperationResult parentResult)
+			String rightOid, String mergeConfigurationName, Task task, OperationResult parentResult)
 					throws ObjectNotFoundException, SchemaException, ConfigurationException {
 		OperationResult result = parentResult.createMinorSubresult(MERGE_OBJECTS_PREVIEW_DELTA);
 		
 		try {
 			
-			ObjectDelta<O> objectDelta = objectMerger.computeMergeDelta(type, leftOid, rightOid, task, result);
+			ObjectDelta<O> objectDelta = objectMerger.computeMergeDelta(type, leftOid, rightOid, mergeConfigurationName, task, result);
 			
 			result.computeStatus();
 			return objectDelta;
@@ -727,13 +727,13 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 
 	@Override
 	public <O extends ObjectType> PrismObject<O> mergeObjectsPreviewObject(Class<O> type, String leftOid,
-			String rightOid, Task task, OperationResult parentResult) 
+			String rightOid, String mergeConfigurationName, Task task, OperationResult parentResult) 
 					throws ObjectNotFoundException, SchemaException, ConfigurationException {
 		OperationResult result = parentResult.createMinorSubresult(MERGE_OBJECTS_PREVIEW_OBJECT);
 		
 		try {
 			
-			ObjectDelta<O> objectDelta = objectMerger.computeMergeDelta(type, leftOid, rightOid, task, result);
+			ObjectDelta<O> objectDelta = objectMerger.computeMergeDelta(type, leftOid, rightOid, mergeConfigurationName, task, result);
 			
 			final PrismObject<O> objectLeft = objectResolver.getObjectSimple(type, leftOid, null, task, result).asPrismObject();
 			
