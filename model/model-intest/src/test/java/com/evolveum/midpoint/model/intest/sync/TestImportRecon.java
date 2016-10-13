@@ -2523,8 +2523,9 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
 		ObjectQuery query =
 				ObjectQueryUtil.createResourceAndObjectClassFilterPrefix(RESOURCE_DUMMY_OID, new QName(RESOURCE_DUMMY_NAMESPACE, "AccountObjectClass"), prismContext)
-						.and().itemWithDef(new ResourceAttributeDefinition(SchemaConstants.ICFS_NAME, DOMUtil.XSD_STRING, prismContext),
-										ShadowType.F_ATTRIBUTES, SchemaConstants.ICFS_NAME).eq("s")
+						.and().item(new ItemPath(ShadowType.F_ATTRIBUTES, SchemaConstants.ICFS_NAME),
+									new ResourceAttributeDefinition(SchemaConstants.ICFS_NAME, DOMUtil.XSD_STRING, prismContext))
+							  .contains("s")
 						.build();
 
         // WHEN
