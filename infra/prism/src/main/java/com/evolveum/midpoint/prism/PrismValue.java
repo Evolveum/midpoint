@@ -385,6 +385,20 @@ public abstract class PrismValue implements IPrismValue {
         return retval;
     }
 
+
+	public static <V extends PrismValue> boolean collectionContainsEquivalentValue(Collection<V> collection, V value) {
+		if (collection == null) {
+			return false;
+		}
+		for (V collectionVal: collection) {
+			if (collectionVal.equals(value, true)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+
 	@Override
 	public boolean isImmutable() {
 		return immutable;

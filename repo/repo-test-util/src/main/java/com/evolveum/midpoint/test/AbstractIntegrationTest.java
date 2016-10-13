@@ -42,6 +42,7 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.prism.query.EqualFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
@@ -86,6 +87,7 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 import org.apache.commons.lang.StringUtils;
@@ -1129,5 +1131,13 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		} else {
 			assertEquals("Wrong lockout status of "+user, expectedStatus, activationType.getLockoutStatus());
 		}
+	}
+	
+	protected PolyString createPolyString(String string) {
+		return PrismTestUtil.createPolyString(string);
+	}
+	
+	protected PolyStringType createPolyStringType(String string) {
+		return PrismTestUtil.createPolyStringType(string);
 	}
 }

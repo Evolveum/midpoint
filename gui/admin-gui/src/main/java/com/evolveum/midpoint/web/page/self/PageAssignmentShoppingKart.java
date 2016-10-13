@@ -1,3 +1,18 @@
+/*
+ * Copyright (c) 2016 Evolveum
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.evolveum.midpoint.web.page.self;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
@@ -42,17 +57,16 @@ import java.util.List;
                 label = "PageAssignmentShoppingKart.auth.requestAssignment.label",
                 description = "PageAssignmentShoppingKart.auth.requestAssignment.description")})
 public class PageAssignmentShoppingKart extends PageSelf {
+    private static final long serialVersionUID = 1L;
+
     private static final String ID_MAIN_PANEL = "mainPanel";
     private static final String ID_MAIN_FORM = "mainForm";
-    private static final String ID_VIEW_TYPE = "type";
-    private static final String ID_BUTTON_PANEL = "buttonPanel";
     private static final String DOT_CLASS = PageAssignmentShoppingKart.class.getName() + ".";
     private static final String OPERATION_LOAD_ROLE_CATALOG_REFERENCE = DOT_CLASS + "loadRoleCatalogReference";
     private static final Trace LOGGER = TraceManager.getTrace(PageAssignmentShoppingKart.class);
 
-    private IModel<AssignmentViewType> viewModel;
-    private AssignmentViewType currentViewType = AssignmentViewType.ROLE_CATALOG_VIEW;
     private String catalogOid = null;
+    private boolean isFirstInit = true;
 
     public PageAssignmentShoppingKart() {
         initLayout();
@@ -63,24 +77,6 @@ public class PageAssignmentShoppingKart extends PageSelf {
         add(mainForm);
 
         catalogOid = getRoleCatalogOid();
-        viewModel = new IModel<AssignmentViewType>() {
-            @Override
-            public AssignmentViewType getObject() {
-                return currentViewType;
-            }
-
-            @Override
-            public void setObject(AssignmentViewType assignmentViewType) {
-                currentViewType = assignmentViewType;
-            }
-
-            @Override
-            public void detach() {
-
-            }
-        };
-        initButtonPanel(mainForm);
-
         mainForm.add(initMainPanel());
 
     }
@@ -109,63 +105,28 @@ public class PageAssignmentShoppingKart extends PageSelf {
         return "";
     }
 
-    private void initButtonPanel(Form mainForm) {
-        WebMarkupContainer buttonPanel = new WebMarkupContainer(ID_BUTTON_PANEL);
-        buttonPanel.setOutputMarkupId(true);
-        mainForm.add(buttonPanel);
-
-        DropDownChoice<AssignmentViewType> viewSelect = new DropDownChoice(ID_VIEW_TYPE, viewModel, new ListModel(createAssignableTypesList()),
-                new EnumChoiceRenderer<AssignmentViewType>(this));
-        viewSelect.add(new OnChangeAjaxBehavior() {
-
-            @Override
-            protected void onUpdate(AjaxRequestTarget target) {
-                QName viewTypeClass = getViewTypeClass();
-                Component panel;
-                if (viewTypeClass != null) {
-                    panel = new AssignmentCatalogPanel(ID_MAIN_PANEL, viewTypeClass, PageAssignmentShoppingKart.this);
+    private Component initMainPanel() {
+        AssignmentViewType viewType = AssignmentViewType.getViewTypeFromSession(getPageBase());
+        if (AssignmentViewType.ROLE_CATALOG_VIEW.equals(viewType)) {
+            if (StringUtils.isEmpty(catalogOid)) {
+                if (isFirstInit) {
+                    isFirstInit = false;
+                    AssignmentCatalogPanel panel = new AssignmentCatalogPanel(ID_MAIN_PANEL, AssignmentViewType.ROLE_TYPE, PageAssignmentShoppingKart.this);
                     panel.setOutputMarkupId(true);
+                    return panel;
                 } else {
-                    panel = initMainPanel();
+                    Label panel = new Label(ID_MAIN_PANEL, createStringResource("PageAssignmentShoppingKart.roleCatalogIsNotConfigured"));
+                    panel.setOutputMarkupId(true);
+                    return panel;
                 }
-                ((Form) PageAssignmentShoppingKart.this.get(ID_MAIN_FORM)).addOrReplace(panel);
-                target.add(get(ID_MAIN_FORM));
+            } else {
+                AssignmentCatalogPanel panel = new AssignmentCatalogPanel(ID_MAIN_PANEL, catalogOid, PageAssignmentShoppingKart.this);
+                panel.setOutputMarkupId(true);
+                return panel;
             }
-        });
-        viewSelect.setOutputMarkupId(true);
-        buttonPanel.add(viewSelect);
-
-    }
-
-    public static List<AssignmentViewType> createAssignableTypesList() {
-        List<AssignmentViewType> focusTypeList = new ArrayList<>();
-
-        focusTypeList.add(AssignmentViewType.ROLE_CATALOG_VIEW);
-        focusTypeList.add(AssignmentViewType.ORG_TYPE);
-        focusTypeList.add(AssignmentViewType.ROLE_TYPE);
-        focusTypeList.add(AssignmentViewType.SERVICE_TYPE);
-
-        return focusTypeList;
-    }
-
-    private QName getViewTypeClass() {
-        if (AssignmentViewType.ORG_TYPE.equals(currentViewType)) {
-            return OrgType.COMPLEX_TYPE;
-        } else if (AssignmentViewType.ROLE_TYPE.equals(currentViewType)) {
-            return RoleType.COMPLEX_TYPE;
-        } else if (AssignmentViewType.SERVICE_TYPE.equals(currentViewType)) {
-            return ServiceType.COMPLEX_TYPE;
-        }
-        return null;
-    }
-
-    private Component initMainPanel(){
-        if (StringUtils.isEmpty(catalogOid)) {
-            Label panel = new Label(ID_MAIN_PANEL, createStringResource("PageAssignmentShoppingKart.roleCatalogIsNotConfigured"));
-            panel.setOutputMarkupId(true);
-            return panel;
         } else {
-            AssignmentCatalogPanel panel = new AssignmentCatalogPanel(ID_MAIN_PANEL, catalogOid, PageAssignmentShoppingKart.this);
+            AssignmentCatalogPanel panel = new AssignmentCatalogPanel(ID_MAIN_PANEL, PageAssignmentShoppingKart.this);
+            panel.setRootOid(catalogOid);
             panel.setOutputMarkupId(true);
             return panel;
         }

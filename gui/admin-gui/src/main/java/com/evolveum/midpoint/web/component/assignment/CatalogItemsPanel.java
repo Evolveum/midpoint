@@ -1,3 +1,18 @@
+/*
+ * Copyright (c) 2016 Evolveum
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.evolveum.midpoint.web.component.assignment;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
@@ -23,14 +38,19 @@ import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
 import com.evolveum.midpoint.web.page.self.PageAssignmentDetails;
 import com.evolveum.midpoint.web.page.self.PageAssignmentsList;
+import com.evolveum.midpoint.web.page.self.dto.AssignmentViewType;
 import com.evolveum.midpoint.web.security.SecurityUtils;
 import com.evolveum.midpoint.web.session.SessionStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.form.DropDownChoice;
+import org.apache.wicket.markup.html.form.EnumChoiceRenderer;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.navigation.paging.IPageable;
 import org.apache.wicket.markup.html.navigation.paging.IPageableItems;
@@ -38,6 +58,7 @@ import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.markup.repeater.data.DataViewBase;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.util.ListModel;
 
 import javax.xml.namespace.QName;
 import java.util.ArrayList;
@@ -47,7 +68,9 @@ import java.util.List;
  * Created by honchar
  */
 public class CatalogItemsPanel extends BasePanel implements IPageableItems {
-    private static String ID_MULTI_BUTTON_TABLE = "multiButtonTable";
+	private static final long serialVersionUID = 1L;
+
+	private static final String ID_MULTI_BUTTON_TABLE = "multiButtonTable";
     private static final String ID_SEARCH_FORM = "searchForm";
     private static final String ID_SEARCH = "search";
     private static final String ID_PAGING_FOOTER = "pagingFooter";
@@ -58,8 +81,9 @@ public class CatalogItemsPanel extends BasePanel implements IPageableItems {
     private static final String ID_BUTTON_TOOLBAR = "buttonToolbar";
     private static final String ID_FOOTER = "footer";
     private static final String ID_CART_BUTTON = "cartButton";
-    private static String ID_CART_ITEMS_COUNT = "itemsCount";
+    private static final String ID_CART_ITEMS_COUNT = "itemsCount";
     private static final String ID_HEADER_PANEL = "headerPanel";
+    private static final String ID_VIEW_TYPE = "viewTypeSelect";
 
     private static final String DOT_CLASS = CatalogItemsPanel.class.getName();
     private static final Trace LOGGER = TraceManager.getTrace(CatalogItemsPanel.class);
@@ -69,40 +93,46 @@ public class CatalogItemsPanel extends BasePanel implements IPageableItems {
     private IModel<Search> searchModel;
     private ObjectDataProvider<AssignmentEditorDto, AbstractRoleType> provider;
     private IModel<List<AssignmentEditorDto>> itemsListModel;
+    private IModel<AssignmentViewType> viewModel;
 
-    private long itemsPerRow = 3;
+    private long itemsPerRow = 4;
     private static final long DEFAULT_ROWS_COUNT = 5;
     private PageBase pageBase;
-    private QName focusTypeClass;
-    private String catalogOid;
+    private IModel<String> catalogOidModel;
     private long currentPage = 0;
 
     public CatalogItemsPanel(String id) {
         super(id);
     }
 
-    public CatalogItemsPanel(String id, QName focusTypeClass, PageBase pageBase) {
-        this (id, focusTypeClass, pageBase, 0);
+    public CatalogItemsPanel(String id, IModel<String> catalogOidModel, PageBase pageBase) {
+        this(id, catalogOidModel, pageBase, 0);
     }
-    public CatalogItemsPanel(String id, QName focusTypeClass, PageBase pageBase, long itemsPerRow) {
+
+    public CatalogItemsPanel(String id, IModel<String> catalogOidModel, final PageBase pageBase, int itemsPerRow) {
         super(id);
         this.pageBase = pageBase;
-        this.focusTypeClass = focusTypeClass;
-        this.catalogOid = null;
+        this.catalogOidModel = catalogOidModel;
+
         if (itemsPerRow > 0){
             this.itemsPerRow = itemsPerRow;
         }
-        initProvider();
-        initSearchModel();
-        initItemListModel();
-        initLayout();
-    }
+        viewModel = new IModel<AssignmentViewType>() {
+            @Override
+            public AssignmentViewType getObject() {
+                return AssignmentViewType.getViewTypeFromSession(pageBase);
+            }
 
-    public CatalogItemsPanel(String id, String catalogOid, PageBase pageBase) {
-        super(id);
-        this.pageBase = pageBase;
-        this.catalogOid = catalogOid;
-        this.focusTypeClass = null;
+            @Override
+            public void setObject(AssignmentViewType assignmentViewType) {
+                AssignmentViewType.saveViewTypeToSession(pageBase, assignmentViewType);
+            }
+
+            @Override
+            public void detach() {
+
+            }
+        };
         initProvider();
         initSearchModel();
         initItemListModel();
@@ -116,10 +146,17 @@ public class CatalogItemsPanel extends BasePanel implements IPageableItems {
         headerPanel.setOutputMarkupId(true);
         add(headerPanel);
 
+        initViewSelector(headerPanel);
         initCartButton(headerPanel);
         initSearchPanel(headerPanel);
 
-        MultiButtonTable assignmentsTable = new MultiButtonTable(ID_MULTI_BUTTON_TABLE, itemsPerRow, itemsListModel);
+        Component assignmentsTable;
+        if ((catalogOidModel == null || StringUtils.isEmpty(catalogOidModel.getObject())) &&
+                AssignmentViewType.ROLE_CATALOG_VIEW.equals(AssignmentViewType.getViewTypeFromSession(pageBase))) {
+            assignmentsTable = new Label(ID_MULTI_BUTTON_TABLE, createStringResource("PageAssignmentShoppingKart.roleCatalogIsNotConfigured"));
+        } else {
+            assignmentsTable = new MultiButtonTable(ID_MULTI_BUTTON_TABLE, itemsPerRow, itemsListModel, pageBase);
+        }
         assignmentsTable.setOutputMarkupId(true);
         add(assignmentsTable);
 
@@ -128,28 +165,32 @@ public class CatalogItemsPanel extends BasePanel implements IPageableItems {
     }
 
     protected void initProvider() {
+        if ((catalogOidModel == null || StringUtils.isEmpty(catalogOidModel.getObject()))
+                && AssignmentViewType.ROLE_CATALOG_VIEW.equals(AssignmentViewType.getViewTypeFromSession(pageBase))){
+            provider = null;
+        } else {
+            provider = new ObjectDataProvider<AssignmentEditorDto, AbstractRoleType>(pageBase, AbstractRoleType.class) {
+                private static final long serialVersionUID = 1L;
 
-        provider = new ObjectDataProvider<AssignmentEditorDto, AbstractRoleType>(pageBase, AbstractRoleType.class) {
-            private static final long serialVersionUID = 1L;
+                @Override
+                public AssignmentEditorDto createDataObjectWrapper(PrismObject<AbstractRoleType> obj) {
+                    return AssignmentEditorDto.createDtoFromObject(obj.asObjectable(), UserDtoStatus.MODIFY, pageBase);
+                }
 
-            @Override
-            public AssignmentEditorDto createDataObjectWrapper(PrismObject<AbstractRoleType> obj) {
-                return AssignmentEditorDto.createDtoFromObject(obj.asObjectable(), UserDtoStatus.MODIFY, pageBase);
-            }
+                @Override
+                public void setQuery(ObjectQuery query) {
 
-            @Override
-            public void setQuery(ObjectQuery query) {
+                    super.setQuery(query);
+                }
 
-                super.setQuery(query);
-            }
+                @Override
+                public ObjectQuery getQuery() {
 
-            @Override
-            public ObjectQuery getQuery() {
-
-                return createContentQuery(null);
-            }
-        };
-        setCurrentPage(0);
+                    return createContentQuery(null);
+                }
+            };
+            setCurrentPage(0);
+        }
     }
 
     protected void refreshCatalogItemsPanel() {
@@ -186,9 +227,32 @@ public class CatalogItemsPanel extends BasePanel implements IPageableItems {
         };
     }
 
+    private void initViewSelector(WebMarkupContainer headerPanel){
+        DropDownChoice<AssignmentViewType> viewSelect = new DropDownChoice(ID_VIEW_TYPE, viewModel, new ListModel(createAssignableTypesList()),
+                new EnumChoiceRenderer<AssignmentViewType>(this));
+        viewSelect.add(new OnChangeAjaxBehavior() {
+
+            @Override
+            protected void onUpdate(AjaxRequestTarget target) {
+                AssignmentCatalogPanel parentPanel = CatalogItemsPanel.this.findParent(AssignmentCatalogPanel.class);
+                parentPanel.addOrReplaceLayout();
+                target.add(parentPanel);
+            }
+        });
+        viewSelect.setOutputMarkupId(true);
+        headerPanel.add(viewSelect);
+
+    }
+
     private void initSearchPanel(WebMarkupContainer headerPanel) {
         final Form searchForm = new Form(ID_SEARCH_FORM);
         headerPanel.add(searchForm);
+        searchForm.add(new VisibleEnableBehaviour(){
+            public boolean isVisible(){
+                return !(AssignmentViewType.ROLE_CATALOG_VIEW.equals(AssignmentViewType.getViewTypeFromSession(pageBase)) &&
+                        (catalogOidModel != null || StringUtils.isNotEmpty(catalogOidModel.getObject())));
+            }
+        });
         searchForm.setOutputMarkupId(true);
 
         SearchPanel search = new SearchPanel(ID_SEARCH, (IModel) searchModel, false) {
@@ -211,10 +275,10 @@ public class CatalogItemsPanel extends BasePanel implements IPageableItems {
 
     protected ObjectQuery createContentQuery(ObjectQuery searchQuery) {
         ObjectQuery memberQuery;
-        if (catalogOid != null){
-            memberQuery = createMemberQuery(catalogOid);
+        if (AssignmentViewType.ROLE_CATALOG_VIEW.equals(AssignmentViewType.getViewTypeFromSession(pageBase))){
+            memberQuery = createMemberQuery(catalogOidModel.getObject());
         } else {
-            memberQuery = createMemberQuery(focusTypeClass);
+            memberQuery = createMemberQuery(getViewTypeClass(AssignmentViewType.getViewTypeFromSession(pageBase)));
         }
         if (memberQuery == null) {
             memberQuery = new ObjectQuery();
@@ -272,7 +336,7 @@ public class CatalogItemsPanel extends BasePanel implements IPageableItems {
             long from  = currentPage * itemsPerRow * DEFAULT_ROWS_COUNT;
             provider.internalIterator(from, itemsPerRow * DEFAULT_ROWS_COUNT);
         }
-        MultiButtonTable assignmentsTable = new MultiButtonTable(ID_MULTI_BUTTON_TABLE, itemsPerRow, itemsListModel);
+        MultiButtonTable assignmentsTable = new MultiButtonTable(ID_MULTI_BUTTON_TABLE, itemsPerRow, itemsListModel, pageBase);
         assignmentsTable.setOutputMarkupId(true);
         replace(assignmentsTable);
     }
@@ -284,16 +348,6 @@ public class CatalogItemsPanel extends BasePanel implements IPageableItems {
     protected WebMarkupContainer createFooter(String footerId) {
         return new PagingFooter(footerId, ID_PAGING_FOOTER, CatalogItemsPanel.this);
     }
-
-//    @Override
-//    public void setCurrentPage(ObjectPaging paging) {
-////        WebComponentUtil.setCurrentPage(this, paging);
-//    }
-//
-//    @Override
-//    public void setCurrentPage(long page) {
-//        getDataTable().setCurrentPage(page);
-//    }
 
     private static class PagingFooter extends Fragment {
 
@@ -434,6 +488,12 @@ public class CatalogItemsPanel extends BasePanel implements IPageableItems {
                 setResponsePage(new PageAssignmentsList(loadUser()));
             }
         };
+        cartButton.add(new VisibleEnableBehaviour(){
+            public boolean isVisible(){
+                return !(AssignmentViewType.ROLE_CATALOG_VIEW.equals(AssignmentViewType.getViewTypeFromSession(pageBase)) &&
+                        (catalogOidModel != null || StringUtils.isNotEmpty(catalogOidModel.getObject())));
+            }
+        });
         cartButton.setOutputMarkupId(true);
         headerPanel.add(cartButton);
 
@@ -441,7 +501,7 @@ public class CatalogItemsPanel extends BasePanel implements IPageableItems {
             @Override
             public String getObject() {
                 SessionStorage storage = pageBase.getSessionStorage();
-                return Integer.toString(storage.getUsers().getAssignmentShoppingCart().size());
+                return Integer.toString(storage.getRoleCatalog().getAssignmentShoppingCart().size());
             }
 
             @Override
@@ -459,7 +519,7 @@ public class CatalogItemsPanel extends BasePanel implements IPageableItems {
             @Override
             public boolean isVisible() {
                 SessionStorage storage = pageBase.getSessionStorage();
-                if (storage.getUsers().getAssignmentShoppingCart().size() == 0) {
+                if (storage.getRoleCatalog().getAssignmentShoppingCart().size() == 0) {
                     return false;
                 } else {
                     return true;
@@ -496,6 +556,40 @@ public class CatalogItemsPanel extends BasePanel implements IPageableItems {
             pageBase.showResult(result);
         }
         return user;
+    }
+
+    private void setCurrentViewType(QName viewTypeClass){
+        if (OrgType.COMPLEX_TYPE.equals(viewTypeClass)) {
+            AssignmentViewType.saveViewTypeToSession(pageBase, AssignmentViewType.ORG_TYPE) ;
+        } else if (RoleType.COMPLEX_TYPE.equals(viewTypeClass)) {
+            AssignmentViewType.saveViewTypeToSession(pageBase, AssignmentViewType.ROLE_TYPE) ;
+        } else if (ServiceType.COMPLEX_TYPE.equals(viewTypeClass)) {
+            AssignmentViewType.saveViewTypeToSession(pageBase, AssignmentViewType.SERVICE_TYPE) ;
+        } else {
+            AssignmentViewType.saveViewTypeToSession(pageBase, AssignmentViewType.ROLE_CATALOG_VIEW) ;
+        }
+    }
+
+    private QName getViewTypeClass(AssignmentViewType viewType) {
+        if (AssignmentViewType.ORG_TYPE.equals(viewType)) {
+            return OrgType.COMPLEX_TYPE;
+        } else if (AssignmentViewType.ROLE_TYPE.equals(viewType)) {
+            return RoleType.COMPLEX_TYPE;
+        } else if (AssignmentViewType.SERVICE_TYPE.equals(viewType)) {
+            return ServiceType.COMPLEX_TYPE;
+        }
+        return null;
+    }
+
+    public static List<AssignmentViewType> createAssignableTypesList() {
+        List<AssignmentViewType> focusTypeList = new ArrayList<>();
+
+        focusTypeList.add(AssignmentViewType.ROLE_CATALOG_VIEW);
+        focusTypeList.add(AssignmentViewType.ORG_TYPE);
+        focusTypeList.add(AssignmentViewType.ROLE_TYPE);
+        focusTypeList.add(AssignmentViewType.SERVICE_TYPE);
+
+        return focusTypeList;
     }
 
 }

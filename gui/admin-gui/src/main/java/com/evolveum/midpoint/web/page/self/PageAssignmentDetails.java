@@ -10,6 +10,7 @@ import com.evolveum.midpoint.web.component.assignment.AssignmentDetailsPanel;
 import com.evolveum.midpoint.web.component.assignment.AssignmentEditorDto;
 import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.page.admin.roles.PageAdminRoles;
+import com.evolveum.midpoint.web.session.RoleCatalogStorage;
 import com.evolveum.midpoint.web.session.UsersStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -69,7 +70,7 @@ public class PageAssignmentDetails extends PageBase{
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                UsersStorage storage = getSessionStorage().getUsers();
+                RoleCatalogStorage storage = getSessionStorage().getRoleCatalog();
                 if (storage.getAssignmentShoppingCart() == null){
                     storage.setAssignmentShoppingCart(new ArrayList<AssignmentEditorDto>());
                 }

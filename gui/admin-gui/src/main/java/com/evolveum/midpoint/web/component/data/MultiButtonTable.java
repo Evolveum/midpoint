@@ -1,8 +1,28 @@
+/*
+ * Copyright (c) 2016 Evolveum
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.evolveum.midpoint.web.component.data;
 
+import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.web.component.AjaxButton;
+import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.assignment.*;
 import com.evolveum.midpoint.web.page.self.PageAssignmentDetails;
+import com.evolveum.midpoint.web.session.RoleCatalogStorage;
 import com.evolveum.midpoint.web.session.UsersStorage;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxEventBehavior;
@@ -14,6 +34,7 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.navigation.paging.IPageableItems;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -22,15 +43,26 @@ import java.util.List;
  * Created honchar.
  */
 public class MultiButtonTable extends BasePanel<List<AssignmentEditorDto>> {
-    private static final String ID_ROW = "row";
-    private static final String ID_CELL = "cell";
-    private static final String ID_BUTTON_TYPE_ICON = "typeIcon";
-    private static final String ID_BUTTON_LABEL = "buttonLabel";
-    private static final String ID_BUTTON_PLUS_ICON = "plusIcon";
-    private static final String ID_BUTTON = "assignmentButton";
+	private static final long serialVersionUID = 1L;
 
+	private static final String ID_ROW = "row";
+    private static final String ID_CELL = "cell";
+    private static final String ID_ITEM_BUTTON_CONTAINER = "itemButtonContainer";
+    private static final String ID_INNER = "inner";
+    private static final String ID_INNER_LABEL = "innerLabel";
+    private static final String ID_TYPE_ICON = "typeIcon";
+    private static final String ID_ADD_TO_CART_LINK = "addToCartLink";
+    private static final String ID_ADD_TO_CART_LINK_LABEL = "addToCartLinkLabel";
+    private static final String ID_ADD_TO_CART_LINK_ICON = "addToCartLinkIcon";
+    private static final String ID_DETAILS_LINK = "detailsLink";
+    private static final String ID_DETAILS_LINK_LABEL = "detailsLinkLabel";
+    private static final String ID_DETAILS_LINK_ICON = "detailsLinkIcon";
+
+    private String addToCartLinkIcon = "fa fa-times-circle fa-lg text-danger";
+    private String detailsLinkIcon = "fa fa-arrow-circle-right";
     private long itemsCount = 0;
     private long itemsPerRow = 0;
+    private PageBase pageBase;
 
     private boolean plusIconClicked = false;
 
@@ -38,9 +70,10 @@ public class MultiButtonTable extends BasePanel<List<AssignmentEditorDto>> {
         super(id);
     }
 
-    public MultiButtonTable (String id, long itemsPerRow, IModel<List<AssignmentEditorDto>> model){
+    public MultiButtonTable (String id, long itemsPerRow, IModel<List<AssignmentEditorDto>> model, PageBase pageBase){
         super(id, model);
         this.itemsPerRow = itemsPerRow;
+        this.pageBase = pageBase;
 
          initLayout();
     }
@@ -64,7 +97,11 @@ public class MultiButtonTable extends BasePanel<List<AssignmentEditorDto>> {
                     WebMarkupContainer colContainer = new WebMarkupContainer(columns.newChildId());
                     columns.add(colContainer);
 
-                    populateCell(colContainer, assignmentsList.get(index));
+                    WebMarkupContainer itemButtonContainer = new WebMarkupContainer(ID_ITEM_BUTTON_CONTAINER);
+                    itemButtonContainer.setOutputMarkupId(true);
+                    itemButtonContainer.add(new AttributeAppender("class", getBackgroundClass(assignmentsList.get(index).getType())));
+                    colContainer.add(itemButtonContainer);
+                    populateCell(itemButtonContainer, assignmentsList.get(index));
                     index++;
                     if (index >= assignmentsList.size()){
                         break;
@@ -77,75 +114,111 @@ public class MultiButtonTable extends BasePanel<List<AssignmentEditorDto>> {
     }
 
     protected void populateCell(WebMarkupContainer cellContainer, final AssignmentEditorDto assignment){
-        AjaxLink assignmentButton = new AjaxLink(ID_BUTTON) {
+        AjaxLink inner = new AjaxLink(ID_INNER) {
             private static final long serialVersionUID = 1L;
 
             @Override
             public void onClick(AjaxRequestTarget ajaxRequestTarget) {
-                if (!plusIconClicked) {
-                    IModel<AssignmentEditorDto> assignmentModel = new IModel<AssignmentEditorDto>() {
-                        @Override
-                        public AssignmentEditorDto getObject() {
-                            assignment.setMinimized(false);
-                            assignment.setSimpleView(true);
-                            return assignment;
-                        }
-
-                        @Override
-                        public void setObject(AssignmentEditorDto assignmentEditorDto) {
-
-                        }
-
-                        @Override
-                        public void detach() {
-
-                        }
-                    };
-                    setResponsePage(new PageAssignmentDetails(assignmentModel));
-                } else {
-                    plusIconClicked = false;
-                }
+                assignmentDetailsPerformed(assignment, ajaxRequestTarget);
             }
         };
-//        assignmentButton.add(new AttributeModifier("class", "col-md-4"));
-        Label plusLabel = new Label(ID_BUTTON_PLUS_ICON, "+");
-//        plusLabel.add(new AttributeAppender("title", getPageBase().createStringResource("MultiButtonPanel.plusIconTitle")));
-        plusLabel.add(new AjaxEventBehavior("click") {
+        cellContainer.add(inner);
+        
+        Label nameLabel = new Label(ID_INNER_LABEL, assignment.getName());
+        inner.add(nameLabel);
+
+        AjaxLink detailsLink = new AjaxLink(ID_DETAILS_LINK) {
+            @Override
+            public void onClick(AjaxRequestTarget ajaxRequestTarget) {
+                assignmentDetailsPerformed(assignment, ajaxRequestTarget);
+            }
+        };
+        cellContainer.add(detailsLink);
+
+        Label detailsLinkLabel = new Label(ID_DETAILS_LINK_LABEL, pageBase.createStringResource("MultiButtonPanel.detailsLink"));
+        detailsLinkLabel.setRenderBodyOnly(true);
+        detailsLink.add(detailsLinkLabel);
+
+        AjaxLink detailsLinkIcon = new AjaxLink(ID_DETAILS_LINK_ICON) {
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public void onClick(AjaxRequestTarget target) {
+			}
+
+        };
+        detailsLink.add(detailsLinkIcon);
+
+        AjaxLink addToCartLink = new AjaxLink(ID_ADD_TO_CART_LINK) {
+            @Override
+            public void onClick(AjaxRequestTarget ajaxRequestTarget) {
+                addAssignmentPerformed(assignment, ajaxRequestTarget);
+            }
+        };
+        cellContainer.add(addToCartLink);
+
+        AjaxLink addToCartLinkIcon = new AjaxLink(ID_ADD_TO_CART_LINK_ICON) {
             private static final long serialVersionUID = 1L;
 
             @Override
-            protected void onEvent(AjaxRequestTarget target) {
-                addAssignmentPerformed(assignment, target);
+            public void onClick(AjaxRequestTarget target) {
             }
-        });
-        assignmentButton.add(plusLabel);
 
-        WebMarkupContainer icon = new WebMarkupContainer(ID_BUTTON_TYPE_ICON);
+        };
+        addToCartLink.add(addToCartLinkIcon);
+
+        WebMarkupContainer icon = new WebMarkupContainer(ID_TYPE_ICON);
         icon.add(new AttributeAppender("class", getIconClass(assignment.getType())));
-        assignmentButton.add(icon);
+        cellContainer.add(icon);
 
-        Label nameLabel = new Label(ID_BUTTON_LABEL, assignment.getName());
-//        nameLabel.add(new AjaxEventBehavior("click") {
-//            private static final long serialVersionUID = 1L;
-//            @Override
-//            protected void onEvent(AjaxRequestTarget ajaxRequestTarget) {
-//
-//            }
-//        });
-        assignmentButton.add(nameLabel);
-        cellContainer.add(assignmentButton);
     }
 
-    protected void assignmentDetailsPerformed(AjaxRequestTarget target){
+    private void assignmentDetailsPerformed(final AssignmentEditorDto assignment, AjaxRequestTarget target){
+        if (!plusIconClicked) {
+            IModel<AssignmentEditorDto> assignmentModel = new IModel<AssignmentEditorDto>() {
+                @Override
+                public AssignmentEditorDto getObject() {
+                    assignment.setMinimized(false);
+                    assignment.setSimpleView(true);
+                    return assignment;
+                }
+
+                @Override
+                public void setObject(AssignmentEditorDto assignmentEditorDto) {
+
+                }
+
+                @Override
+                public void detach() {
+
+                }
+            };
+            setResponsePage(new PageAssignmentDetails(assignmentModel));
+        } else {
+            plusIconClicked = false;
+        }
     }
 
     private String getIconClass(AssignmentEditorDtoType type){
+    	// TODO: switch to icon constants
         if (AssignmentEditorDtoType.ROLE.equals(type)){
-            return "fa fa-street-view object-role-color";
+            return GuiStyleConstants.CLASS_OBJECT_ROLE_ICON;
         }else if (AssignmentEditorDtoType.SERVICE.equals(type)){
-            return "fa fa-cloud object-service-color";
+            return GuiStyleConstants.CLASS_OBJECT_SERVICE_ICON;
         }else if (AssignmentEditorDtoType.ORG_UNIT.equals(type)){
-            return "fa fa-building object-org-color";
+            return GuiStyleConstants.CLASS_OBJECT_ORG_ICON;
+        } else {
+            return "";
+        }
+    }
+
+    private String getBackgroundClass(AssignmentEditorDtoType type){
+        if (AssignmentEditorDtoType.ROLE.equals(type)){
+            return GuiStyleConstants.CLASS_OBJECT_ROLE_BG;
+        }else if (AssignmentEditorDtoType.SERVICE.equals(type)){
+            return GuiStyleConstants.CLASS_OBJECT_SERVICE_BG;
+        }else if (AssignmentEditorDtoType.ORG_UNIT.equals(type)){
+            return GuiStyleConstants.CLASS_OBJECT_ORG_BG;
         } else {
             return "";
         }
@@ -153,7 +226,7 @@ public class MultiButtonTable extends BasePanel<List<AssignmentEditorDto>> {
 
     private void addAssignmentPerformed(AssignmentEditorDto assignment, AjaxRequestTarget target){
         plusIconClicked = true;
-        UsersStorage storage = getPageBase().getSessionStorage().getUsers();
+        RoleCatalogStorage storage = getPageBase().getSessionStorage().getRoleCatalog();
         if (storage.getAssignmentShoppingCart() == null){
             storage.setAssignmentShoppingCart(new ArrayList<AssignmentEditorDto>());
         }

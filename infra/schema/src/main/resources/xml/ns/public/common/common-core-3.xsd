@@ -9378,6 +9378,18 @@
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
+                    
+                    <xsd:element name="mergeConfiguration" type="tns:MergeConfigurationType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Configurations for object merging. E.g. for merging two users.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                            	<a:since>3.5</a:since>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -12469,6 +12481,152 @@
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:enumeration>
+		</xsd:restriction>
+	</xsd:simpleType>
+	
+	<xsd:complexType name="MergeConfigurationType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Configuration that specifies automatic merging of two objects.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:container/>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="name" type="xsd:string" minOccurs="1" maxOccurs="1">
+				<xsd:annotation>
+					<xsd:documentation>
+						Short name of the merge cofiguration that also works as identifier for this configuration.
+						It has to be unique among all the applicable merge configurations.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="displayName" type="xsd:string" minOccurs="0" maxOccurs="1">
+				<xsd:annotation>
+					<xsd:documentation>
+						Free form-name that can be displayed in user interfaces.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="description" type="xsd:string" minOccurs="0" maxOccurs="1">
+							<xsd:annotation>
+					<xsd:documentation>
+						Free form description that can be displayed in user interfaces. It may be
+						longer text (more than few lines).
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="item" type="tns:ItemRefMergeConfigurationType" minOccurs="0" maxOccurs="unbounded">
+				<xsd:annotation>
+					<xsd:documentation>
+						Item merge configuration. It will be applied to the specified (named) item.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="default" type="tns:ItemMergeConfigurationType" minOccurs="0" maxOccurs="1">
+				<xsd:annotation>
+					<xsd:documentation>
+						Default merge configuration. It will be applied to all the items that are not
+						explicitly specified in the item merge configurations.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+	
+	<xsd:complexType name="ItemMergeConfigurationType">
+		<xsd:annotation>
+			<xsd:documentation>
+				TODO
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:container/>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="left" type="tns:MergeStategyType" minOccurs="0" maxOccurs="1" default="ignore">
+				<xsd:annotation>
+					<xsd:documentation>
+						Strategy to process values from the left-hand-side object. 
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="right" type="tns:MergeStategyType" minOccurs="0" maxOccurs="1" default="ignore">
+				<xsd:annotation>
+					<xsd:documentation>
+						Strategy to process values from the right-hand-side object.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="valueExpression" type="tns:ExpressionType" minOccurs="0" maxOccurs="1">
+				<xsd:annotation>
+					<xsd:documentation>
+						Expression to process every value (if specified by strategy). The value that the
+						expression returns will be taken. If the expression returns null then the value will
+						be skipped.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+	
+	<xsd:complexType name="ItemRefMergeConfigurationType">
+		<xsd:annotation>
+			<xsd:documentation>
+				TODO
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:container/>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:complexContent>
+			<xsd:extension base="tns:ItemMergeConfigurationType">
+				<xsd:sequence>
+					<xsd:element name="ref" type="t:ItemPathType" minOccurs="1" maxOccurs="1"/>
+				</xsd:sequence>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+	
+	<xsd:simpleType name="MergeStategyType">
+		<xsd:annotation>
+			<xsd:documentation>
+				TODO
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="ignore">
+				<xsd:annotation>
+					<xsd:documentation>
+						Ignore all the values.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="IGNORE"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+			<xsd:enumeration value="take">
+				<xsd:annotation>
+					<xsd:documentation>
+						Take all the values.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="TAKE"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+			<xsd:enumeration value="expression">
+				<xsd:annotation>
+					<xsd:documentation>
+						Take only values that are selected and processed by the expression.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="EXPRESSION"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+			<!-- TODO: values for manual selection may come here in the future. -->
 		</xsd:restriction>
 	</xsd:simpleType>
 
