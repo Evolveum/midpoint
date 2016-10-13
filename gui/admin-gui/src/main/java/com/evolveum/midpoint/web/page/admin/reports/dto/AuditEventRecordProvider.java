@@ -91,11 +91,11 @@ public class AuditEventRecordProvider extends BaseSortableDataProvider<AuditEven
 	private List<AuditEventRecordType> listRecords(String query, boolean orderBy){
 		// Map<String, Object> queryParameters = getParameters();
 		String parameterQuery = generateFullQuery(query, orderBy);
-		/*System.out.println(parameterQuery);
+		System.out.println(parameterQuery);
 		for (Map.Entry<String, Object> entry : parameters.entrySet())
 		{
 			System.out.println(entry.getKey() + ":" + entry.getValue());
-		}*/
+		}
 		List<AuditEventRecord> auditRecords = getAuditService().listRecords(parameterQuery, parameters);
 		if (auditRecords == null){
 			auditRecords = new ArrayList<>();

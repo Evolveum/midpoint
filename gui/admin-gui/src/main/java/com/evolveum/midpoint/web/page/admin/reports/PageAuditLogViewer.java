@@ -194,8 +194,10 @@ public class PageAuditLogViewer extends PageBase{
 		List<QName> channelQnameList = new ArrayList<QName>();
 		for (int i = 0; i < channelList.size(); i++) {
 			String channel = channelList.get(i);
-			QName channelQName = QNameUtil.uriToQName(channel);
-			channelQnameList.add(channelQName);
+			if (channel != null) {
+				QName channelQName = QNameUtil.uriToQName(channel);
+				channelQnameList.add(channelQName);
+			}
 		}
 		ListModel<QName> channelListModel = new ListModel(channelQnameList);
 		PropertyModel<QName> channelModel = new PropertyModel<>(auditSearchDto, AuditSearchDto.F_CHANNEL);
@@ -293,9 +295,11 @@ public class PageAuditLogViewer extends PageBase{
 			public void populateItem(Item item, String componentId, IModel rowModel) {
 				AuditEventRecordType auditEventRecordType = (AuditEventRecordType)rowModel.getObject();
 				String channel = auditEventRecordType.getChannel();
-				QName channelQName = QNameUtil.uriToQName(channel);
-				String return_ = channelQName.getLocalPart();
-				item.add(new Label(componentId, return_));
+				if (channel != null) {
+					QName channelQName = QNameUtil.uriToQName(channel);
+					String return_ = channelQName.getLocalPart();
+					item.add(new Label(componentId, return_));
+				}
 				// TODO Auto-generated method stub
 				// super.populateItem(item, componentId, rowModel);
 			}
