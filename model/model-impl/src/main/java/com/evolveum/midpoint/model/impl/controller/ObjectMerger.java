@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import com.evolveum.midpoint.model.api.ModelService;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -98,7 +99,7 @@ public class ObjectMerger {
 	// But cannot fix it right now. TODO: later refactor.
 	// MID-3459
 	@Autowired(required = true)
-	private ModelController modelController;
+	private ModelService modelController;
 	
 	public <O extends ObjectType> Collection<ObjectDeltaOperation<? extends ObjectType>> mergeObjects(Class<O> type, 
 			String leftOid, String rightOid, String mergeConfigurationName, Task task, OperationResult result) 
