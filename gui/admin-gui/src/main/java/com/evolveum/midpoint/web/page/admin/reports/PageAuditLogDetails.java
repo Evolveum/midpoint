@@ -7,6 +7,7 @@ import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.AbstractPropertyModel;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
@@ -27,6 +28,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.input.TextPanel;
+import com.evolveum.midpoint.web.component.model.delta.DeltaPanel;
 import com.evolveum.midpoint.web.component.prism.show.SceneDto;
 import com.evolveum.midpoint.web.component.prism.show.ScenePanel;
 import com.evolveum.midpoint.web.component.prism.show.WrapperScene;
@@ -34,6 +36,7 @@ import com.evolveum.midpoint.web.page.admin.configuration.PageAdminConfiguration
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectDeltaOperationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 
@@ -46,12 +49,14 @@ import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 		label = "PageAuditLogViewer.auth.auditLogViewer.label",
 		description = "PageAuditLogViewer.auth.auditLogViewer.description")})
 public class PageAuditLogDetails extends PageBase{
-	
+
 	private static final Trace LOGGER = TraceManager.getTrace(PageNewReport.class);
 
 	private static final long serialVersionUID = 1L;
 	private static final String ID_EVENT_PANEL = "eventPanel";
 	private static final String ID_DELTA_PANEL = "deltaPanel";
+	private static final String ID_DELTA_LIST_PANEL = "deltaListPanel";
+	private static final String ID_OBJECT_DELTA_OP_PANEL ="objectDeltaOpPanel";
 	private static final String ID_EVENT_DETAILS_PANEL = "eventDetailsPanel";
 	private static final String ID_PARAMETERS_TIMESTAMP = "timestamp";
 	private static final String ID_PARAMETERS_EVENT_IDENTIFIER = "eventIdentifier";
@@ -69,14 +74,14 @@ public class PageAuditLogDetails extends PageBase{
 	private static final String ID_PARAMETERS_EVENT_RESULT = "result";
 	private static final String ID_PARAMETERS_PARAMETER = "parameter";
 	private static final String ID_PARAMETERS_MESSAGE = "message";
-  
+
 	private static final String ID_PARAMETERS_DELTA = "delta";
+	private static final String ID_PARAMETERS_DELTA_SCENE = "deltaScene";
 	private static final String ID_PARAMETERS_EXECUTION_RESULT ="executionResult";
 	private static final String ID_PARAMETERS_OBJECT_NAME ="objectName";
-	private static final String ID_PARAMETERS_RESOURCE_OID ="resourceOid";
 	private static final String ID_PARAMETERS_RESOURCE_NAME ="resourceName";
-	private static final String ID_PARAMETERS_DELTA_KEY ="deltaKey";
 	private static final String ID_PARAMETERS_DELTA_PARAMETERS ="deltaParams";
+
 	private List <ObjectDeltaOperationType> deltas = null;
 
 
@@ -87,7 +92,7 @@ public class PageAuditLogDetails extends PageBase{
 
 
 	private IModel<AuditEventRecordType> recordModel;
-//	private IModel<SceneDto> deltaModel;
+	//	private IModel<SceneDto> deltaModel;
 
 	public PageAuditLogDetails(final AuditEventRecordType recordType) {
 
@@ -98,22 +103,25 @@ public class PageAuditLogDetails extends PageBase{
 				return recordType;
 			}
 		};
-		
-		
+
+
 
 		initLayout();
 	}
 
 	private void initLayout(){
-			
-		initEventPanel();
-		initDeltasPanel();
+		WebMarkupContainer eventPanel = new WebMarkupContainer(ID_EVENT_PANEL);
+		initEventPanel(eventPanel);
+		initDeltasPanel(eventPanel);
 	}
 
-	WebMarkupContainer eventPanel = new WebMarkupContainer(ID_EVENT_PANEL);
 	
 	
-	private void initEventPanel(){
+	
+
+
+	private void initEventPanel(WebMarkupContainer eventPanel){
+
 		
 		eventPanel.setOutputMarkupId(true);
 		add(eventPanel);
@@ -191,41 +199,58 @@ public class PageAuditLogDetails extends PageBase{
 		message.setOutputMarkupId(true);
 		eventDetailsPanel.add(message);
 	}
-	private void initDeltasPanel(){
+	private void initDeltasPanel(WebMarkupContainer eventPanel){
 		List <ObjectDeltaOperationType> deltas = recordModel.getObject().getDelta();
 		List<Scene> scenes= new ArrayList<Scene> (deltas.size());
+		RepeatingView deltaScene = new RepeatingView(ID_PARAMETERS_DELTA_SCENE);
+
 		for(ObjectDeltaOperationType deltaOp :deltas){
-		
-		ObjectDeltaType od = deltaOp.getObjectDelta();
-		ObjectDelta<? extends ObjectType> delta;
-		try {
-			delta = DeltaConvertor.createObjectDelta(od, getPrismContext());
-			Scene scene = getModelInteractionService().visualizeDelta( delta, createSimpleTask(ID_PARAMETERS_DELTA), new OperationResult(ID_PARAMETERS_DELTA));
-			scenes.add(scene);
-		} catch (SchemaException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-			LOGGER.error("error when converitng to DeltaObject.");
-			throw new RestartResponseException(this);
-		}
-		}
-		
-		WrapperScene ws = new WrapperScene(scenes, createStringResource("PageAuditLogDetails.deltaKey").getObject(), ID_PARAMETERS_DELTA_PARAMETERS);
-		final SceneDto deltaSceneDto = new SceneDto(ws);
-		deltaSceneDto.setMinimized(true);
-		
-		IModel<SceneDto> deltaModel = new AbstractReadOnlyModel<SceneDto>(){
-			public SceneDto getObject() {
-				return deltaSceneDto;
-			}
-			
-		};
+			WebMarkupContainer objectDeltaOperationPanel = new WebMarkupContainer(deltaScene.newChildId());
+			ObjectDeltaType od = deltaOp.getObjectDelta();
+
+			Label executionResult = new Label(ID_PARAMETERS_EXECUTION_RESULT, new PropertyModel(deltaOp.getExecutionResult(),ID_PARAMETERS_EXECUTION_RESULT));
+			executionResult.setOutputMarkupId(true);
+			objectDeltaOperationPanel.add(executionResult);
+
+			Label resourceName = new Label(ID_PARAMETERS_RESOURCE_NAME, new PropertyModel(deltaOp.getExecutionResult(),ID_PARAMETERS_RESOURCE_NAME));
+			resourceName.setOutputMarkupId(true);
+			objectDeltaOperationPanel.add(resourceName);
+
+			Label objectName = new Label(ID_PARAMETERS_OBJECT_NAME, new PropertyModel(deltaOp.getExecutionResult(),ID_PARAMETERS_OBJECT_NAME));
+			objectName.setOutputMarkupId(true);
+			objectDeltaOperationPanel.add(objectName);
+
+
+			ObjectDelta<? extends ObjectType> delta;
+			try {
+				delta = DeltaConvertor.createObjectDelta(od, getPrismContext());
+				Scene scene = getModelInteractionService().visualizeDelta( delta, createSimpleTask(ID_PARAMETERS_DELTA), new OperationResult(ID_PARAMETERS_DELTA));
+				final SceneDto deltaSceneDto = new SceneDto(scene);
+				deltaSceneDto.setMinimized(true);
+				IModel<SceneDto> deltaModel = new AbstractReadOnlyModel<SceneDto>(){
+					public SceneDto getObject() {
+						return deltaSceneDto;
+					}
+
+				};
+				ScenePanel deltaPanel = new ScenePanel(ID_DELTA_PANEL, deltaModel);
+				deltaPanel.setOutputMarkupId(true);
+				objectDeltaOperationPanel.add(deltaPanel);
 				
-		ScenePanel deltaPanel = new ScenePanel(ID_DELTA_PANEL, deltaModel);
-		deltaPanel.setOutputMarkupId(true);
-		eventPanel.add(deltaPanel);
-		
-		
+				
+			} catch (SchemaException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+				LOGGER.error("error when conveting to DeltaObject.");
+				throw new RestartResponseException(this);
+			}
+			deltaScene.add(objectDeltaOperationPanel);
+		}
+		WebMarkupContainer deltaListPanel = new WebMarkupContainer(ID_DELTA_LIST_PANEL);
+		deltaListPanel.add(deltaScene);
+		eventPanel.add(deltaListPanel);
+
 	}
-	
+
+
 }
