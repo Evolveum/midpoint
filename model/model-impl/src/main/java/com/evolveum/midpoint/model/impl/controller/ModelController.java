@@ -2097,8 +2097,9 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 	//endregion
 
 	@Override
-	public <O extends ObjectType> Collection<ObjectDeltaOperation<? extends ObjectType>> mergeObjects(Class<O> type, String leftOid, String rightOid, Task task,
-			OperationResult parentResult) throws ObjectNotFoundException, SchemaException, ConfigurationException, ObjectAlreadyExistsException, ExpressionEvaluationException, CommunicationException, PolicyViolationException, SecurityViolationException {
+	public <O extends ObjectType> Collection<ObjectDeltaOperation<? extends ObjectType>> mergeObjects(Class<O> type, 
+			String leftOid, String rightOid, String mergeConfigurationName, Task task, OperationResult parentResult) 
+					throws ObjectNotFoundException, SchemaException, ConfigurationException, ObjectAlreadyExistsException, ExpressionEvaluationException, CommunicationException, PolicyViolationException, SecurityViolationException {
 		
 		OperationResult result = parentResult.createSubresult(MERGE_OBJECTS);
         result.addParam("leftOid", leftOid);
@@ -2110,7 +2111,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
         try {
 			
 			Collection<ObjectDeltaOperation<? extends ObjectType>> deltas = 
-					objectMerger.mergeObjects(type, leftOid, rightOid, task, result);
+					objectMerger.mergeObjects(type, leftOid, rightOid, mergeConfigurationName, task, result);
 			
 			result.computeStatus();
 			return deltas;

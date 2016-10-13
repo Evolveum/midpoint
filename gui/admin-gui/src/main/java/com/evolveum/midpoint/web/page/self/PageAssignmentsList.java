@@ -62,7 +62,7 @@ public class PageAssignmentsList extends PageBase{
             @Override
             public List<AssignmentEditorDto> getObject() {
                 SessionStorage storage = getSessionStorage();
-                return storage.getUsers().getAssignmentShoppingCart();
+                return storage.getRoleCatalog().getAssignmentShoppingCart();
 
             }
 
@@ -110,7 +110,7 @@ public class PageAssignmentsList extends PageBase{
             protected void onSubmit(AjaxRequestTarget target, org.apache.wicket.markup.html.form.Form<?> form) {
                 onRequestPerformed(target);
                 SessionStorage storage = getSessionStorage();
-                storage.getUsers().getAssignmentShoppingCart().clear();
+                storage.getRoleCatalog().getAssignmentShoppingCart().clear();
             }
 
         };

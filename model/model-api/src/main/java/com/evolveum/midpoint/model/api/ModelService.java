@@ -664,10 +664,13 @@ public interface ModelService {
 	 * @param type object type
 	 * @param leftOid left-side object OID
 	 * @param rightOid  right-side object OID
+	 * @param mergeConfigurationName name of the merge configuration to use
 	 * @param task
 	 * @param result
 	 * @return 
 	 */
-	<O extends ObjectType> Collection<ObjectDeltaOperation<? extends ObjectType>> mergeObjects(Class<O> type, String leftOid, String rightOid, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, ConfigurationException, ObjectAlreadyExistsException, ExpressionEvaluationException, CommunicationException, PolicyViolationException, SecurityViolationException;
+	<O extends ObjectType> Collection<ObjectDeltaOperation<? extends ObjectType>> mergeObjects(Class<O> type, String leftOid, String rightOid, 
+			String mergeConfigurationName, Task task, OperationResult result) 
+					throws ObjectNotFoundException, SchemaException, ConfigurationException, ObjectAlreadyExistsException, ExpressionEvaluationException, CommunicationException, PolicyViolationException, SecurityViolationException;
 	
 }

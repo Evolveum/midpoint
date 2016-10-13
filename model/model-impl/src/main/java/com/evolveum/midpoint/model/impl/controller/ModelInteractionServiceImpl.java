@@ -708,18 +708,18 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 
 	@Override
 	public <O extends ObjectType> ObjectDelta<O> mergeObjectsPreviewDelta(Class<O> type, String leftOid,
-			String rightOid, Task task, OperationResult parentResult)
-					throws ObjectNotFoundException, SchemaException, ConfigurationException {
+			String rightOid, String mergeConfigurationName, Task task, OperationResult parentResult)
+					throws ObjectNotFoundException, SchemaException, ConfigurationException, ExpressionEvaluationException {
 		OperationResult result = parentResult.createMinorSubresult(MERGE_OBJECTS_PREVIEW_DELTA);
 		
 		try {
 			
-			ObjectDelta<O> objectDelta = objectMerger.computeMergeDelta(type, leftOid, rightOid, task, result);
+			ObjectDelta<O> objectDelta = objectMerger.computeMergeDelta(type, leftOid, rightOid, mergeConfigurationName, task, result);
 			
 			result.computeStatus();
 			return objectDelta;
 			
-		} catch (ObjectNotFoundException | SchemaException | ConfigurationException | RuntimeException | Error e) {
+		} catch (ObjectNotFoundException | SchemaException | ConfigurationException | ExpressionEvaluationException | RuntimeException | Error e) {
 			result.recordFatalError(e);
 			throw e;
 		}
@@ -727,13 +727,13 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 
 	@Override
 	public <O extends ObjectType> PrismObject<O> mergeObjectsPreviewObject(Class<O> type, String leftOid,
-			String rightOid, Task task, OperationResult parentResult) 
-					throws ObjectNotFoundException, SchemaException, ConfigurationException {
+			String rightOid, String mergeConfigurationName, Task task, OperationResult parentResult) 
+					throws ObjectNotFoundException, SchemaException, ConfigurationException, ExpressionEvaluationException {
 		OperationResult result = parentResult.createMinorSubresult(MERGE_OBJECTS_PREVIEW_OBJECT);
 		
 		try {
 			
-			ObjectDelta<O> objectDelta = objectMerger.computeMergeDelta(type, leftOid, rightOid, task, result);
+			ObjectDelta<O> objectDelta = objectMerger.computeMergeDelta(type, leftOid, rightOid, mergeConfigurationName, task, result);
 			
 			final PrismObject<O> objectLeft = objectResolver.getObjectSimple(type, leftOid, null, task, result).asPrismObject();
 			
@@ -747,7 +747,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 			result.computeStatus();
 			return objectLeft;
 			
-		} catch (ObjectNotFoundException | SchemaException | ConfigurationException | RuntimeException | Error e) {
+		} catch (ObjectNotFoundException | SchemaException | ConfigurationException | ExpressionEvaluationException | RuntimeException | Error e) {
 			result.recordFatalError(e);
 			throw e;
 		}

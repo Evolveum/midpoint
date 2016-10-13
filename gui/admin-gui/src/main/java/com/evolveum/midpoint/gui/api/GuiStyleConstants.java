@@ -30,16 +30,19 @@ public class GuiStyleConstants {
 	public static final String CLASS_OBJECT_USER_BOX_THIN_CSS_CLASSES = "object-user-box-thin";
 	
 	public static final String CLASS_OBJECT_ROLE_ICON = "fa fa-street-view";
+	public static final String CLASS_OBJECT_ROLE_BG = "object-role-bg";
 	public static final String CLASS_OBJECT_ROLE_ICON_COLORED = CLASS_OBJECT_ROLE_ICON + " object-role-color";
 	public static final String CLASS_OBJECT_ROLE_BOX_CSS_CLASSES = "object-role-box";
 	public static final String CLASS_OBJECT_ROLE_BOX_THIN_CSS_CLASSES = "object-role-box-thin";
 	
 	public static final String CLASS_OBJECT_ORG_ICON = "fa fa-building";
+    public static final String CLASS_OBJECT_ORG_BG = "object-org-bg";
 	public static final String CLASS_OBJECT_ORG_ICON_COLORED = CLASS_OBJECT_ORG_ICON + " object-org-color";
 	public static final String CLASS_OBJECT_ORG_BOX_CSS_CLASSES = "object-org-box";
 	public static final String CLASS_OBJECT_ORG_BOX_THIN_CSS_CLASSES = "object-org-box-thin";
 	
 	public static final String CLASS_OBJECT_SERVICE_ICON = "fa fa-cloud";
+    public static final String CLASS_OBJECT_SERVICE_BG = "object-service-bg";
 	public static final String CLASS_OBJECT_SERVICE_ICON_COLORED = CLASS_OBJECT_SERVICE_ICON + " object-service-color";
 	public static final String CLASS_OBJECT_SERVICE_BOX_CSS_CLASSES = "object-service-box";
 	public static final String CLASS_OBJECT_SERVICE_BOX_THIN_CSS_CLASSES = "object-service-box-thin";

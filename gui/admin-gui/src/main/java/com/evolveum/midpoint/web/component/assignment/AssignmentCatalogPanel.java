@@ -17,18 +17,23 @@ package com.evolveum.midpoint.web.component.assignment;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.web.component.AjaxButton;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.orgs.OrgTreePanel;
+import com.evolveum.midpoint.web.page.self.dto.AssignmentViewType;
 import com.evolveum.midpoint.web.session.SessionStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 
 import javax.xml.namespace.QName;
@@ -46,11 +51,13 @@ public class AssignmentCatalogPanel<F extends AbstractRoleType> extends BasePane
     private static String ID_CATALOG_ITEMS_PANEL_CONTAINER = "catalogItemsPanelContainer";
     private static String ID_CATALOG_ITEMS_PANEL = "catalogItemsPanel";
 
+    private static final String DOT_CLASS = AssignmentCatalogPanel.class.getName() + ".";
+    private static final String OPERATION_LOAD_ROLE_CATALOG_REFERENCE = DOT_CLASS + "loadRoleCatalogReference";
+    private static final Trace LOGGER = TraceManager.getTrace(AssignmentCatalogPanel.class);
+
     private PageBase pageBase;
     private IModel<String> rootOidModel;
     private String rootOid;
-    private IModel<QName> viewTypeClassModel;
-    private QName viewTypeClass;
 
     public AssignmentCatalogPanel(String id) {
         super(id);
@@ -60,17 +67,20 @@ public class AssignmentCatalogPanel<F extends AbstractRoleType> extends BasePane
         super(id);
         this.pageBase = pageBase;
         this.rootOid = rootOid;
-        this.viewTypeClass = null;
         initLayout();
     }
 
-    public AssignmentCatalogPanel(String id, QName viewTypeClass, PageBase pageBase) {
+    public AssignmentCatalogPanel(String id, PageBase pageBase) {
+        this(id, AssignmentViewType.getViewTypeFromSession(pageBase), pageBase);
+    }
+
+     public AssignmentCatalogPanel(String id, AssignmentViewType viewType, PageBase pageBase) {
         super(id);
         this.pageBase = pageBase;
-        this.viewTypeClass = viewTypeClass;
-        this.rootOid = null;
+        AssignmentViewType.saveViewTypeToSession(pageBase, viewType);
         initLayout();
     }
+
 
     private void initLayout() {
         initModels();
@@ -81,7 +91,7 @@ public class AssignmentCatalogPanel<F extends AbstractRoleType> extends BasePane
         WebMarkupContainer treePanelContainer = new WebMarkupContainer(ID_TREE_PANEL_CONTAINER);
         treePanelContainer.setOutputMarkupId(true);
         addOrReplace(treePanelContainer);
-        if (viewTypeClass == null) {
+        if (AssignmentViewType.ROLE_CATALOG_VIEW.equals(AssignmentViewType.getViewTypeFromSession(pageBase)) && StringUtils.isNotEmpty(rootOid)) {
             OrgTreePanel treePanel = new OrgTreePanel(ID_TREE_PANEL, new IModel<String>() {
                 @Override
                 public String getObject() {
@@ -130,8 +140,8 @@ public class AssignmentCatalogPanel<F extends AbstractRoleType> extends BasePane
         catalogItemsPanelContainer.setOutputMarkupId(true);
         addOrReplace(catalogItemsPanelContainer);
 
-        CatalogItemsPanel catalogItemsPanel = new CatalogItemsPanel(ID_CATALOG_ITEMS_PANEL, rootOidModel, viewTypeClassModel, pageBase);
-        if (viewTypeClass == null) {
+        CatalogItemsPanel catalogItemsPanel = new CatalogItemsPanel(ID_CATALOG_ITEMS_PANEL, rootOidModel, pageBase);
+        if (AssignmentViewType.ROLE_CATALOG_VIEW.equals(AssignmentViewType.getViewTypeFromSession(pageBase))) {
             catalogItemsPanelContainer.add(new AttributeAppender("class", "col-md-9"));
         } else {
             catalogItemsPanelContainer.add(new AttributeAppender("class", "col-md-12"));
@@ -143,8 +153,8 @@ public class AssignmentCatalogPanel<F extends AbstractRoleType> extends BasePane
     private void selectTreeItemPerformed(SelectableBean<OrgType> selected, AjaxRequestTarget target) {
         final OrgType selectedOgr = selected.getValue();
         rootOidModel.setObject(selectedOgr.getOid());
-        viewTypeClassModel.setObject(null);
-        CatalogItemsPanel catalogItemsPanel = new CatalogItemsPanel(ID_CATALOG_ITEMS_PANEL, rootOidModel, viewTypeClassModel, pageBase);
+        AssignmentViewType.saveViewTypeToSession(pageBase, AssignmentViewType.ROLE_CATALOG_VIEW);
+        CatalogItemsPanel catalogItemsPanel = new CatalogItemsPanel(ID_CATALOG_ITEMS_PANEL, rootOidModel, pageBase);
         catalogItemsPanel.setOutputMarkupId(true);
         ((WebMarkupContainer) get(ID_CATALOG_ITEMS_PANEL_CONTAINER)).addOrReplace(catalogItemsPanel);
         target.add(catalogItemsPanel);
@@ -168,22 +178,35 @@ public class AssignmentCatalogPanel<F extends AbstractRoleType> extends BasePane
 
             }
         };
-        viewTypeClassModel = new IModel<QName>() {
-            @Override
-            public QName getObject() {
-                return viewTypeClass;
-            }
-
-            @Override
-            public void setObject(QName qName) {
-                viewTypeClass = qName;
-            }
-
-            @Override
-            public void detach() {
-
-            }
-        };
     }
+
+    public String getRootOid() {
+        return rootOid;
+    }
+
+    public void setRootOid(String rootOid) {
+        this.rootOid = rootOid;
+    }
+
+    private String getRoleCatalogOid() {
+        Task task = getPageBase().createAnonymousTask(OPERATION_LOAD_ROLE_CATALOG_REFERENCE);
+        OperationResult result = task.getResult();
+
+        PrismObject<SystemConfigurationType> config;
+        try {
+            config = getPageBase().getModelService().getObject(SystemConfigurationType.class,
+                    SystemObjectsType.SYSTEM_CONFIGURATION.value(), null, task, result);
+        } catch (ObjectNotFoundException | SchemaException | SecurityViolationException
+                | CommunicationException | ConfigurationException e) {
+            LOGGER.error("Error getting system configuration: {}", e.getMessage(), e);
+            return null;
+        }
+        if (config != null && config.asObjectable().getRoleManagement() != null &&
+                config.asObjectable().getRoleManagement().getRoleCatalogRef() != null) {
+            return config.asObjectable().getRoleManagement().getRoleCatalogRef().getOid();
+        }
+        return "";
+    }
+
 }
 
