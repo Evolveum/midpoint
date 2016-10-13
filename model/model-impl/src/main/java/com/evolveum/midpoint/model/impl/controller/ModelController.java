@@ -194,6 +194,9 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 	private SchemaTransformer schemaTransformer;
 	
 	@Autowired(required = true)
+	private ObjectMerger objectMerger;
+	
+	@Autowired(required = true)
 	private SystemObjectCache systemObjectCache;
 
 	public ModelObjectResolver getObjectResolver() {
@@ -2092,4 +2095,39 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 		return getCertificationManagerChecked().createCampaign(definitionOid, task, parentResult);
 	}
 	//endregion
+
+	@Override
+	public <O extends ObjectType> Collection<ObjectDeltaOperation<? extends ObjectType>> mergeObjects(Class<O> type, 
+			String leftOid, String rightOid, String mergeConfigurationName, Task task, OperationResult parentResult) 
+					throws ObjectNotFoundException, SchemaException, ConfigurationException, ObjectAlreadyExistsException, ExpressionEvaluationException, CommunicationException, PolicyViolationException, SecurityViolationException {
+		
+		OperationResult result = parentResult.createSubresult(MERGE_OBJECTS);
+        result.addParam("leftOid", leftOid);
+        result.addParam("rightOid", rightOid);
+        result.addParam("class", type);
+        
+        RepositoryCache.enter();
+        
+        try {
+			
+			Collection<ObjectDeltaOperation<? extends ObjectType>> deltas = 
+					objectMerger.mergeObjects(type, leftOid, rightOid, mergeConfigurationName, task, result);
+			
+			result.computeStatus();
+			return deltas;
+			
+		} catch (ObjectNotFoundException | SchemaException | ConfigurationException
+				| ObjectAlreadyExistsException | ExpressionEvaluationException | CommunicationException
+				| PolicyViolationException | SecurityViolationException e) {
+			ModelUtils.recordFatalError(result, e);
+			throw e;
+        } catch (RuntimeException | Error e) {
+			ModelUtils.recordFatalError(result, e);
+			throw e;
+		} finally {
+            QNameUtil.setTemporarilyTolerateUndeclaredPrefixes(false);
+			RepositoryCache.exit();
+		}
+			
+	}
 }

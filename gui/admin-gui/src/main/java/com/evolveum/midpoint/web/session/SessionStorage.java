@@ -45,6 +45,7 @@ public class SessionStorage implements Serializable, DebugDumpable {
     public static final String KEY_ROLES = "roles";
     public static final String KEY_SERVICES = "services";
     public static final String KEY_ROLE_MEMBERS = "roleMembers";
+    public static final String KEY_ROLE_CATALOG = "roleMembers";
     public static final String KEY_RESOURCE_ACCOUNT_CONTENT = "resourceAccountContent";
     public static final String KEY_RESOURCE_ENTITLEMENT_CONTENT = "resourceEntitlementContent";
     public static final String KEY_RESOURCE_GENERIC_CONTENT = "resourceGenericContent";
@@ -98,7 +99,14 @@ public class SessionStorage implements Serializable, DebugDumpable {
         return (RolesStorage)pageStorageMap.get(KEY_ROLES);
     }
     
-    
+    public RoleCatalogStorage getRoleCatalog() {
+        if (pageStorageMap.get(KEY_ROLE_CATALOG) == null) {
+            pageStorageMap.put(KEY_ROLE_CATALOG, new RoleCatalogStorage());
+        }
+        return (RoleCatalogStorage)pageStorageMap.get(KEY_ROLE_CATALOG);
+    }
+
+
     public ServicesStorage getServices() {
         if (pageStorageMap.get(KEY_SERVICES) == null) {
             pageStorageMap.put(KEY_SERVICES, new ServicesStorage());

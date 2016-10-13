@@ -114,6 +114,9 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 	
 	@Autowired(required = true)
 	private ModelObjectResolver objectResolver;
+	
+	@Autowired(required = true)
+	private ObjectMerger objectMerger;
 
 	@Autowired(required = true)
 	@Qualifier("cacheRepositoryService")
@@ -701,6 +704,53 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 		}
 		result.computeStatus();
 		return status;
+	}
+
+	@Override
+	public <O extends ObjectType> ObjectDelta<O> mergeObjectsPreviewDelta(Class<O> type, String leftOid,
+			String rightOid, String mergeConfigurationName, Task task, OperationResult parentResult)
+					throws ObjectNotFoundException, SchemaException, ConfigurationException, ExpressionEvaluationException {
+		OperationResult result = parentResult.createMinorSubresult(MERGE_OBJECTS_PREVIEW_DELTA);
+		
+		try {
+			
+			ObjectDelta<O> objectDelta = objectMerger.computeMergeDelta(type, leftOid, rightOid, mergeConfigurationName, task, result);
+			
+			result.computeStatus();
+			return objectDelta;
+			
+		} catch (ObjectNotFoundException | SchemaException | ConfigurationException | ExpressionEvaluationException | RuntimeException | Error e) {
+			result.recordFatalError(e);
+			throw e;
+		}
+	}
+
+	@Override
+	public <O extends ObjectType> PrismObject<O> mergeObjectsPreviewObject(Class<O> type, String leftOid,
+			String rightOid, String mergeConfigurationName, Task task, OperationResult parentResult) 
+					throws ObjectNotFoundException, SchemaException, ConfigurationException, ExpressionEvaluationException {
+		OperationResult result = parentResult.createMinorSubresult(MERGE_OBJECTS_PREVIEW_OBJECT);
+		
+		try {
+			
+			ObjectDelta<O> objectDelta = objectMerger.computeMergeDelta(type, leftOid, rightOid, mergeConfigurationName, task, result);
+			
+			final PrismObject<O> objectLeft = objectResolver.getObjectSimple(type, leftOid, null, task, result).asPrismObject();
+			
+			if (objectDelta == null) {
+				result.computeStatus();
+				return objectLeft;
+			}
+			
+			objectDelta.applyTo(objectLeft);
+			
+			result.computeStatus();
+			return objectLeft;
+			
+		} catch (ObjectNotFoundException | SchemaException | ConfigurationException | ExpressionEvaluationException | RuntimeException | Error e) {
+			result.recordFatalError(e);
+			throw e;
+		}
 	}
 
 }

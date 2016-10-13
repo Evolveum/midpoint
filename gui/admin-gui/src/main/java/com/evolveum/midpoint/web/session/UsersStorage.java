@@ -60,8 +60,6 @@ public class UsersStorage implements PageStorage, DebugDumpable {
      */
     private ObjectPaging usersPaging;
 
-    private List<AssignmentEditorDto> assignmentShoppingCart;
-
     private SelectableBean<OrgType> selectedItem;                //selected tree item on the Org. structure page
     private TreeStateSet<SelectableBean<OrgType>> expandedItems; //expanded tree items on the Org. structure page
     private int selectedTabId = -1;                 //selected tab id on the Org. structure page
@@ -133,14 +131,6 @@ public class UsersStorage implements PageStorage, DebugDumpable {
 
     public void setCollapsedItem(SelectableBean<OrgType> collapsedItem) {
         this.collapsedItem = collapsedItem;
-    }
-
-    public List<AssignmentEditorDto> getAssignmentShoppingCart() {
-        return assignmentShoppingCart == null ? new ArrayList<AssignmentEditorDto>() : assignmentShoppingCart;
-    }
-
-    public void setAssignmentShoppingCart(List<AssignmentEditorDto> assignmentShoppingCart) {
-        this.assignmentShoppingCart = assignmentShoppingCart;
     }
 
     @Override
