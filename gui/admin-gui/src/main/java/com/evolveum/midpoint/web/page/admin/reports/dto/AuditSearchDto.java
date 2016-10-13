@@ -37,8 +37,8 @@ public class AuditSearchDto implements Serializable {
 
 	public static final String F_FROM_GREG = "fromGreg";
 	public static final String F_TO_GREG = "toGreg";
-	public static final String F_FROM = "from";
-	public static final String F_TO = "to";
+	// public static final String F_FROM = "from";
+	// public static final String F_TO = "to";
 	public static final String F_INITIATOR_NAME = "initiatorName";
 	public static final String F_CHANNEL = "channel";
 	public static final String F_HOST_IDENTIFIER = "hostIdentifier";
@@ -50,8 +50,8 @@ public class AuditSearchDto implements Serializable {
 
 	private XMLGregorianCalendar fromGreg;
 	private XMLGregorianCalendar toGreg;
-	private Date from;
-	private Date to;
+	// private Date from;
+	// private Date to;
 	private String initiatorName;
 	// private String channel;
 	private QName channel;
@@ -63,24 +63,26 @@ public class AuditSearchDto implements Serializable {
 	private OperationResultStatusType outcome;
 
 	public XMLGregorianCalendar getFromGreg() {
-		return MiscUtil.asXMLGregorianCalendar(from);
+		// return MiscUtil.asXMLGregorianCalendar(from);
+		return fromGreg;
 	}
 
 	public void setFromGreg(XMLGregorianCalendar fromGreg) {
-		this.from = MiscUtil.asDate(fromGreg);
+		// this.from = MiscUtil.asDate(fromGreg);
 		this.fromGreg = fromGreg;
 	}
 
 	public XMLGregorianCalendar getToGreg() {
-		return MiscUtil.asXMLGregorianCalendar(to);
+		// return MiscUtil.asXMLGregorianCalendar(to);
+		return toGreg;
 	}
 
 	public void setToGreg(XMLGregorianCalendar toGreg) {
-		this.to = MiscUtil.asDate(toGreg);
+		// this.to = MiscUtil.asDate(toGreg);
 		this.toGreg = toGreg;
 	}
 
-	public Date getFrom() {
+	/*public Date getFrom() {
 		if (from == null) {
 			from = new Date();
 		}
@@ -100,15 +102,15 @@ public class AuditSearchDto implements Serializable {
 
 	public void setTo(Date to) {
 		this.to = to;
-	}
+	}*/
 
-	public Timestamp getDateFrom() {
+	/*public Timestamp getDateFrom() {
 		return new Timestamp(getFrom().getTime());
 	}
 
 	public Timestamp getDateTo() {
 		return new Timestamp(getTo().getTime());
-	}
+	}*/
 
 	public String getInitiatorName() {
 		return initiatorName;
