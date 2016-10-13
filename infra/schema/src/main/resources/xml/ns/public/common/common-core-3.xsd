@@ -2451,6 +2451,21 @@
                         </xsd:annotation>
                     </xsd:element>
 
+					<xsd:element name="adminGuiConfiguration" type="tns:AdminGuiConfigurationType" minOccurs="0" maxOccurs="1">
+						<xsd:annotation>
+							<xsd:documentation>
+								<p>
+									Specifies the admin GUI configuration that should be used
+									by this user.
+								</p>
+							</xsd:documentation>
+							<xsd:appinfo>
+								<a:since>3.5</a:since>
+								<a:displayName>AdminGuiConfigurationType.adminGuiConfiguration</a:displayName>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:element>
+
                     <xsd:element name="result" type="tns:OperationResultType" minOccurs="0" maxOccurs="1">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -9472,6 +9487,18 @@
 					</xsd:documentation>
 					<xsd:appinfo>
 						<a:since>3.4</a:since>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="preferredDataLanguage" type="xsd:string" minOccurs="0" maxOccurs="1">
+				<xsd:annotation>
+					<xsd:documentation>
+						<p>
+							Preferred data language (e.g. xml, json, yaml - written in lowercase). Default is xml.
+						</p>
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:since>3.5</a:since>
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>

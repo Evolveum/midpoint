@@ -214,7 +214,7 @@ public class PageResourceEdit extends PageAdminResources {
         OperationResult result = task.getResult();
         try {
             Holder<PrismObject<ResourceType>> objectHolder = new Holder<PrismObject<ResourceType>>(null);
-            validateObject(dto.getXml(), objectHolder, false, result);
+            validateObject(dto.getXml(), objectHolder, PrismContext.LANG_XML, false, result);
 
             if (result.isAcceptable()) {
                 PrismObject<ResourceType> newResource = objectHolder.getValue();

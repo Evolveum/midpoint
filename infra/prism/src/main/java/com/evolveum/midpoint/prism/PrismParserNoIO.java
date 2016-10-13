@@ -19,6 +19,7 @@ package com.evolveum.midpoint.prism;
 import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
@@ -35,7 +36,7 @@ import java.util.List;
  */
 public interface PrismParserNoIO extends PrismParser {
 
-	PrismParserNoIO language(String language);
+	PrismParserNoIO language(@Nullable String language);
 	PrismParserNoIO xml();
 	PrismParserNoIO json();
 	PrismParserNoIO yaml();

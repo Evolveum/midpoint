@@ -20,6 +20,7 @@ import com.evolveum.midpoint.prism.lex.LexicalHelpers;
 import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
@@ -37,7 +38,7 @@ public class PrismParserImplNoIO extends PrismParserImpl implements PrismParserN
 	}
 
 	@Override
-	public PrismParserNoIO language(String language) {
+	public PrismParserNoIO language(@Nullable String language) {
 		return (PrismParserNoIO) super.language(language);
 	}
 

@@ -21,6 +21,7 @@ import com.evolveum.midpoint.prism.lex.LexicalHelpers;
 import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
@@ -46,14 +47,14 @@ public abstract class PrismParserImpl implements PrismParser {
 		this.helpers = helpers;
 	}
 
-	private PrismParser create(ParserSource source, String language, @NotNull ParsingContext context, LexicalHelpers helpers) {
+	private PrismParser create(ParserSource source, @Nullable String language, @NotNull ParsingContext context, LexicalHelpers helpers) {
 		return source.isIO() ?
 				new PrismParserImplIO(source, language, context, helpers) :
 				new PrismParserImplNoIO(source, language, context, helpers);
 	}
 
 	@Override
-	public PrismParser language(String language) {
+	public PrismParser language(@Nullable String language) {
 		return create(this.source, language, this.context, this.helpers);
 	}
 

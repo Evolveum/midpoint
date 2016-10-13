@@ -27,7 +27,6 @@ import com.evolveum.midpoint.schema.RetrieveOption;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ReportTypeUtil;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.Holder;
@@ -38,18 +37,12 @@ import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
-import com.evolveum.midpoint.web.component.assignment.AssignmentEditorDto;
 import com.evolveum.midpoint.web.component.AceEditor;
 import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
 import com.evolveum.midpoint.web.security.MidPointApplication;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.lang.StringUtils;
-import org.apache.wicket.Page;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.form.AjaxCheckBox;
@@ -90,6 +83,7 @@ public class PageDebugView extends PageAdminConfiguration {
     private final IModel<Boolean> switchToPlainText = new Model<>(false);
     private TextArea<String> plainTextarea;
     final Form mainForm = new Form("mainForm");
+    private final String dataLanguage;
 
     public PageDebugView() {
         model = new LoadableModel<ObjectViewDto>(false) {
@@ -99,7 +93,17 @@ public class PageDebugView extends PageAdminConfiguration {
                 return loadObject();
             }
         };
+        dataLanguage = determineDataLanguage();
         initLayout();
+    }
+
+    private String determineDataLanguage() {
+        AdminGuiConfigurationType config = loadAdminGuiConfiguration();
+        if (config != null && config.getPreferredDataLanguage() != null) {
+            return config.getPreferredDataLanguage();
+        } else {
+            return PrismContext.LANG_XML;
+        }
     }
 
     @Override
@@ -159,8 +163,8 @@ public class PageDebugView extends PageAdminConfiguration {
             PrismObject<ObjectType> object = getModelService().getObject(type, objectOid.toString(), options, task, result);
 
             PrismContext context = application.getPrismContext();
-            String xml = context.serializeObjectToString(object, PrismContext.LANG_XML);
-            dto = new ObjectViewDto(object.getOid(), WebComponentUtil.getName(object), object, xml);
+            String lex = context.serializerFor(dataLanguage).serialize(object);
+            dto = new ObjectViewDto(object.getOid(), WebComponentUtil.getName(object), object, lex);
 
             result.recomputeStatus();
         } catch (Exception ex) {
@@ -172,7 +176,7 @@ public class PageDebugView extends PageAdminConfiguration {
             throw new RestartResponseException(PageDebugList.class);
         }
 
-            showResult(result, false);
+        showResult(result, false);
       
         if (!WebComponentUtil.isSuccessOrHandledErrorOrWarning(result)) {
             showResult(result, false);
@@ -184,8 +188,6 @@ public class PageDebugView extends PageAdminConfiguration {
 
     private void initLayout() {
         add(mainForm);
-
-//        final IModel<Boolean> editable = new Model<Boolean>(false);
 
         mainForm.add(new AjaxCheckBox("encrypt", encrypt) {
 
@@ -219,7 +221,7 @@ public class PageDebugView extends PageAdminConfiguration {
 
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
-                if (switchToPlainText.getObject().booleanValue()){
+                if (switchToPlainText.getObject()){
                     editor.setVisible(false);
                     plainTextarea.setVisible(true);
                 } else {
@@ -237,6 +239,7 @@ public class PageDebugView extends PageAdminConfiguration {
         mainForm.add(plainTextarea);
 
         editor = new AceEditor("aceEditor", new PropertyModel<String>(model, ObjectViewDto.F_XML));
+        editor.setModeForDataLanguage(dataLanguage);
         mainForm.add(editor);
 
         initButtons(mainForm);
@@ -296,11 +299,11 @@ public class PageDebugView extends PageAdminConfiguration {
             PrismObject<ObjectType> oldObject = dto.getObject();
             oldObject.revive(getPrismContext());
 
-            Holder<PrismObject<ObjectType>> objectHolder = new Holder<PrismObject<ObjectType>>(null);
+            Holder<PrismObject<ObjectType>> objectHolder = new Holder<>(null);
             if (editor.isVisible()) {
-                validateObject(editor.getModel().getObject(), objectHolder, validateSchema.getObject(), result);
+                validateObject(editor.getModel().getObject(), objectHolder, dataLanguage, validateSchema.getObject(), result);
             } else {
-                validateObject(plainTextarea.getModel().getObject(), objectHolder, validateSchema.getObject(), result);
+                validateObject(plainTextarea.getModel().getObject(), objectHolder, dataLanguage, validateSchema.getObject(), result);
             }
 
             if (result.isAcceptable()) {
