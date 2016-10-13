@@ -20,11 +20,13 @@ import java.io.Serializable;
 import java.sql.Timestamp;
 import java.util.Date;
 
-import com.evolveum.midpoint.audit.api.AuditEventType;
-import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ExportType;
-
 import javax.xml.datatype.XMLGregorianCalendar;
+import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventStageType;
+import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventTypeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
 
 /**
  *  TODO - get rid of XMLGregorianCalendar - Date conversions
@@ -51,13 +53,14 @@ public class AuditSearchDto implements Serializable {
     private Date from;
     private Date to;
     private String initiatorName;
-    private String channel;
+    // private String channel;
+    private QName channel;
     private String hostIdentifier;
     private String targetName;
     private String targetOwnerName;
-    private String eventType;
-    private String eventStage;
-    private String outcome;
+    private AuditEventTypeType eventType;
+    private AuditEventStageType eventStage;
+    private OperationResultStatusType outcome;
     
     public XMLGregorianCalendar getFromGreg() {
         return MiscUtil.asXMLGregorianCalendar(from);
@@ -115,11 +118,11 @@ public class AuditSearchDto implements Serializable {
 		this.initiatorName = initiatorName;
 	}
 
-	public String getChannel() {
+	public QName getChannel() {
 		return channel;
 	}
 
-	public void setChannel(String channel) {
+	public void setChannel(QName channel) {
 		this.channel = channel;
 	}
 
@@ -147,27 +150,27 @@ public class AuditSearchDto implements Serializable {
 		this.targetOwnerName = targetOwnerName;
 	}
 
-	public String getEventType() {
+	public AuditEventTypeType getEventType() {
 		return eventType;
 	}
 
-	public void setEventType(String eventType) {
+	public void setEventType(AuditEventTypeType eventType) {
 		this.eventType = eventType;
 	}
 
-	public String getEventStage() {
+	public AuditEventStageType getEventStage() {
 		return eventStage;
 	}
 
-	public void setEventStage(String eventStage) {
+	public void setEventStage(AuditEventStageType eventStage) {
 		this.eventStage = eventStage;
 	}
 
-	public String getOutcome() {
+	public OperationResultStatusType getOutcome() {
 		return outcome;
 	}
 
-	public void setOutcome(String outcome) {
+	public void setOutcome(OperationResultStatusType outcome) {
 		this.outcome = outcome;
 	}
 	
