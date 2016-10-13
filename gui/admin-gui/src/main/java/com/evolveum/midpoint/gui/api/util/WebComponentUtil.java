@@ -258,10 +258,12 @@ public final class WebComponentUtil {
 		LIVE_SYNC(SchemaConstants.CHANGE_CHANNEL_LIVE_SYNC_URI),
 		RECONCILIATION(SchemaConstants.CHANGE_CHANNEL_RECON_URI),
 		DISCOVERY(SchemaConstants.CHANGE_CHANNEL_DISCOVERY_URI),
+		WEB_SERVICE(SchemaConstants.CHANNEL_WEB_SERVICE_URI),
 		IMPORT(SchemaConstants.CHANNEL_OBJECT_IMPORT_URI),
-		USER(SchemaConstants.CHANNEL_GUI_USER_URI),
-		WEB_SERVICE(SchemaConstants.CHANNEL_WEB_SERVICE_URI);
-
+		REST(SchemaConstants.CHANNEL_REST_URI),
+		INIT(SchemaConstants.CHANNEL_GUI_INIT_URI),
+		USER(SchemaConstants.CHANNEL_GUI_USER_URI);
+		
 		private String channel;
 
 		Channel(String channel) {
