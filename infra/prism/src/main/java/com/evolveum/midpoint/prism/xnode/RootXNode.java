@@ -17,25 +17,20 @@ package com.evolveum.midpoint.prism.xnode;
 
 import com.evolveum.midpoint.prism.Visitor;
 import com.evolveum.midpoint.util.DebugUtil;
+import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
 
 public class RootXNode extends XNode {
 
-	private QName rootElementName;
+	@NotNull private QName rootElementName;
 	private XNode subnode;
 	
-	public RootXNode() {
-		super();
-	}
-
-	public RootXNode(QName rootElementName) {
-		super();
+	public RootXNode(@NotNull QName rootElementName) {
 		this.rootElementName = rootElementName;
 	}
 
-    public RootXNode(QName rootElementName, XNode subnode) {
-        super();
+    public RootXNode(@NotNull QName rootElementName, XNode subnode) {
         this.rootElementName = rootElementName;
         this.subnode = subnode;
     }
@@ -52,11 +47,12 @@ public class RootXNode extends XNode {
 		}
 	}
 
+	@NotNull
 	public QName getRootElementName() {
 		return rootElementName;
 	}
 
-	public void setRootElementName(QName rootElementName) {
+	public void setRootElementName(@NotNull QName rootElementName) {
 		this.rootElementName = rootElementName;
 	}
 

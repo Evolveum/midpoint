@@ -16,6 +16,8 @@
 
 package com.evolveum.midpoint.prism;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.io.InputStream;
 
 /**
@@ -23,23 +25,24 @@ import java.io.InputStream;
  */
 public class ParserInputStreamSource implements ParserSource {
 
-	private final InputStream inputStream;
+	@NotNull private final InputStream inputStream;
 
-	public ParserInputStreamSource(InputStream inputStream) {
+	public ParserInputStreamSource(@NotNull InputStream inputStream) {
 		this.inputStream = inputStream;
 	}
 
+	@NotNull
 	public InputStream getInputStream() {
 		return inputStream;
 	}
 
 	@Override
-	public boolean closeAfterParsing() {
+	public boolean closeStreamAfterParsing() {
 		return false;		// TODO eventually make configurable
 	}
 
 	@Override
-	public boolean isIO() {
+	public boolean throwsIOException() {
 		return true;
 	}
 }

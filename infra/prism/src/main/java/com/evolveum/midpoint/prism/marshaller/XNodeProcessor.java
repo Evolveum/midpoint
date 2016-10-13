@@ -52,6 +52,7 @@ import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 import com.evolveum.prism.xml.ns._public.types_3.SchemaDefinitionType;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class XNodeProcessor {
@@ -149,73 +150,72 @@ public class XNodeProcessor {
     //endregion
 
     //region Parsing prism containers
-    public <C extends Containerable> PrismContainer<C> parseContainer(XNode xnode, ParsingContext pc) throws SchemaException {
-        Validate.notNull(xnode);
+//    public <C extends Containerable> PrismContainer<C> unmarshallContainer(XNode xnode, ParsingContext pc) throws SchemaException {
+//        Validate.notNull(xnode);
+//
+//        if (xnode instanceof RootXNode) {
+//            return unmarshallContainer((RootXNode) xnode, pc);
+//        } else if (xnode.getTypeQName() != null) {
+//            PrismContainerDefinition<C> definition = getSchemaRegistry().findContainerDefinitionByType(xnode.getTypeQName());
+//            if (definition == null) {
+//                throw new SchemaException("No container definition for type " + xnode.getTypeQName());
+//            }
+//            return unmarshallContainer(xnode, definition, pc);
+//        } else {
+//            throw new SchemaException("Couldn't parse container because no element name nor type name is known");
+//        }
+//    }
 
-        if (xnode instanceof RootXNode) {
-            return parseContainer((RootXNode) xnode, pc);
-        } else if (xnode.getTypeQName() != null) {
-            PrismContainerDefinition<C> definition = getSchemaRegistry().findContainerDefinitionByType(xnode.getTypeQName());
-            if (definition == null) {
-                throw new SchemaException("No container definition for type " + xnode.getTypeQName());
-            }
-            return parseContainer(xnode, definition, pc);
-        } else {
-            throw new SchemaException("Couldn't parse container because no element name nor type name is known");
-        }
-    }
+//    public <C extends Containerable> PrismContainer<C> unmarshalContainerValue(RootXNode rootXnode, ParsingContext pc) throws SchemaException {
+//        Validate.notNull(rootXnode);
+//
+//        QName rootElementName = rootXnode.getRootElementName();
+//        PrismContainerDefinition<C> definition;
+//        if (rootXnode.getTypeQName() != null) {
+//            definition = getSchemaRegistry().findContainerDefinitionByType(rootXnode.getTypeQName());
+//            if (definition == null) {
+//                throw new SchemaException("No container definition for type " + rootXnode.getTypeQName());
+//            }
+//        } else {
+//            definition = getSchemaRegistry().findContainerDefinitionByElementName(rootElementName);
+//            if (definition == null) {
+//                throw new SchemaException("No container definition for element name " + rootElementName);
+//            }
+//        }
+//        XNode subnode = rootXnode.getSubnode();
+//        if (!(subnode instanceof MapXNode)) {
+//            throw new IllegalArgumentException("Cannot parse object from " + subnode.getClass().getSimpleName() + ", we need a map");
+//        }
+//        return unmarshalContainerInternal(subnode, rootElementName, definition, pc);
+//    }
 
-    public <C extends Containerable> PrismContainer<C> parseContainer(RootXNode rootXnode, ParsingContext pc) throws SchemaException {
-        Validate.notNull(rootXnode);
-
-        QName rootElementName = rootXnode.getRootElementName();
-        PrismContainerDefinition<C> definition;
-        if (rootXnode.getTypeQName() != null) {
-            definition = getSchemaRegistry().findContainerDefinitionByType(rootXnode.getTypeQName());
-            if (definition == null) {
-                throw new SchemaException("No container definition for type " + rootXnode.getTypeQName());
-            }
-        } else {
-            definition = getSchemaRegistry().findContainerDefinitionByElementName(rootElementName);
-            if (definition == null) {
-                throw new SchemaException("No container definition for element name " + rootElementName);
-            }
-        }
-        XNode subnode = rootXnode.getSubnode();
-        if (!(subnode instanceof MapXNode)) {
-            throw new IllegalArgumentException("Cannot parse object from " + subnode.getClass().getSimpleName() + ", we need a map");
-        }
-        return parseContainerInternal(subnode, rootElementName, definition, pc);
-    }
-
-    public <C extends Containerable> PrismContainer<C> parseContainer(XNode xnode, Class<C> type, ParsingContext pc) throws SchemaException {
-        Validate.notNull(xnode);
-        Validate.notNull(type);
+    @NotNull
+    <C extends Containerable> PrismContainer<C> unmarshalContainerValue(@NotNull XNode xnode, @NotNull Class<C> type, @NotNull ParsingContext pc) throws SchemaException {
         PrismContainerDefinition<C> definition = getSchemaRegistry().findContainerDefinitionByCompileTimeClass(type);
         if (definition == null) {
             throw new SchemaException("No container definition for class " + type);
         }
-        return parseContainer(xnode, definition, pc);
+        return unmarshalContainerValue(xnode, definition, pc);
     }
 
-    public <C extends Containerable> PrismContainer<C> parseContainer(XNode xnode, PrismContainerDefinition<C> definition, ParsingContext pc) throws SchemaException {
-        Validate.notNull(xnode);
-        Validate.notNull(definition);
+    @NotNull
+    <C extends Containerable> PrismContainer<C> unmarshalContainerValue(@NotNull XNode xnode, @NotNull PrismContainerDefinition<C> definition, @NotNull ParsingContext pc) throws SchemaException {
         if (xnode instanceof RootXNode) {
             RootXNode xroot = (RootXNode) xnode;
-            return parseContainerInternal(xroot.getSubnode(), xroot.getRootElementName(), definition, pc);
+            return unmarshalContainerInternal(xroot.getSubnode(), xroot.getRootElementName(), definition, pc);
         } else if (xnode instanceof MapXNode) {
-            return parseContainerInternal(xnode, definition.getName(), definition, pc);
+            return unmarshalContainerInternal(xnode, definition.getName(), definition, pc);
         } else {
             throw new SchemaException("Cannot parse container from " + xnode);
         }
     }
 
-    private <C extends Containerable> PrismContainer<C> parseContainerInternal(XNode xnode, QName elementName,
-            PrismContainerDefinition<C> containerDef, ParsingContext pc) throws SchemaException {
+    @NotNull
+    private <C extends Containerable> PrismContainer<C> unmarshalContainerInternal(@NotNull XNode xnode, @NotNull QName elementName,
+            @NotNull PrismContainerDefinition<C> containerDef, @NotNull ParsingContext pc) throws SchemaException {
         if (xnode instanceof RootXNode) {
             RootXNode rootXnode = (RootXNode) xnode;
-            return parseContainerInternal(rootXnode.getSubnode(), rootXnode.getRootElementName(), containerDef, pc);        // ignoring elementName from parameters (probably set to be root element name)
+            return unmarshalContainerInternal(rootXnode.getSubnode(), rootXnode.getRootElementName(), containerDef, pc);        // ignoring elementName from parameters (probably set to be root element name)
         } else if (xnode instanceof MapXNode) {
             return parseContainerFromMapInternal((MapXNode) xnode, elementName, containerDef, null, pc);
         } else if (xnode instanceof ListXNode) {
@@ -975,7 +975,7 @@ public class XNodeProcessor {
         if (itemDef instanceof PrismObjectDefinition) {
             return parseObject(xnode, itemName, (PrismObjectDefinition) itemDef, pc);
         } else if (itemDef instanceof PrismContainerDefinition) {
-            return (Item<IV, ID>) parseContainerInternal(xnode, itemName, (PrismContainerDefinition<?>) itemDef, pc);
+            return (Item<IV, ID>) unmarshalContainerInternal(xnode, itemName, (PrismContainerDefinition<?>) itemDef, pc);
         } else if (itemDef instanceof PrismPropertyDefinition) {
             return (Item<IV, ID>) parsePrismProperty(xnode, itemName, (PrismPropertyDefinition) itemDef, pc);
         } else if (itemDef instanceof PrismReferenceDefinition) {

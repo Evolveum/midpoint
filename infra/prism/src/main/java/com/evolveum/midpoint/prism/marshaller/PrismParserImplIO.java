@@ -14,11 +14,13 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.prism;
+package com.evolveum.midpoint.prism.marshaller;
 
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.lex.LexicalHelpers;
 import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import org.jetbrains.annotations.NotNull;
 
 import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
@@ -34,23 +36,27 @@ public class PrismParserImplIO extends PrismParserImpl {
 		super(source, language, context, helpers);
 	}
 
+	@NotNull
 	@Override
 	public <O extends Objectable> PrismObject<O> parse() throws SchemaException, IOException {
 		return doParse();
 	}
 
+	@NotNull
 	@Override
 	public List<PrismObject<? extends Objectable>> parseObjects() throws SchemaException, IOException {
 		return doParseObjects();
 	}
 
+	@NotNull
 	@Override
-	public <C extends Containerable> PrismContainer<C> parseContainer(Class<C> clazz) throws SchemaException, IOException {
+	public <C extends Containerable> PrismContainer<C> parseContainer(@NotNull Class<C> clazz) throws SchemaException, IOException {
 		return doParseContainer(clazz);
 	}
 
+	@NotNull
 	@Override
-	public <C extends Containerable> PrismContainer<C> parseContainer(PrismContainerDefinition<C> definition) throws SchemaException, IOException {
+	public <C extends Containerable> PrismContainer<C> parseContainer(@NotNull PrismContainerDefinition<C> definition) throws SchemaException, IOException {
 		return doParseContainer(definition);
 	}
 

@@ -32,6 +32,8 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Attr;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -42,7 +44,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -63,59 +64,62 @@ public class DomLexicalProcessor implements LexicalProcessor {
 	}
 	
 	@Deprecated
-	public XNode parse(File file, ParsingContext parsingContext) throws SchemaException, IOException {
+	public XNode read(File file, ParsingContext parsingContext) throws SchemaException, IOException {
 		return read(new ParserFileSource(file), parsingContext);
 	}
 
+	@NotNull
 	@Override
-	public XNode read(ParserSource source, ParsingContext parsingContext) throws SchemaException, IOException {
+	public XNode read(@NotNull ParserSource source, @NotNull ParsingContext parsingContext) throws SchemaException, IOException {
 		if (source instanceof ParserElementSource) {
-			return parse(((ParserElementSource) source).getElement());
+			return read(((ParserElementSource) source).getElement());
 		}
 
 		InputStream is = source.getInputStream();
 		try {
 			Document document = DOMUtil.parse(is);
-			return parse(document);
+			return read(document);
 		} finally {
-			if (source.closeAfterParsing()) {
+			if (source.closeStreamAfterParsing()) {
 				IOUtils.closeQuietly(is);
 			}
 		}
 	}
 
+	@NotNull
 	@Override
-	public Collection<XNode> readCollection(ParserSource source, ParsingContext parsingContext) throws SchemaException, IOException {
+	public List<XNode> readObjects(ParserSource source, ParsingContext parsingContext) throws SchemaException, IOException {
 		InputStream is = source.getInputStream();
 		try {
 			Document document = DOMUtil.parse(is);
-			return parseCollection(document);
+			return readObjects(document);
 		} finally {
-			if (source.closeAfterParsing()) {
+			if (source.closeStreamAfterParsing()) {
 				IOUtils.closeQuietly(is);
 			}
 		}
 	}
 
-	private Collection<XNode> parseCollection(Document document) throws SchemaException{
+	private List<XNode> readObjects(Document document) throws SchemaException{
 		Element root = DOMUtil.getFirstChildElement(document);
 		// TODO: maybe some check if this is a collection of other objects???
 		List<Element> children = DOMUtil.listChildElements(root);
-		Collection<XNode> nodes = new ArrayList<XNode>();
+		List<XNode> nodes = new ArrayList<XNode>();
 		for (Element child : children){
-			RootXNode xroot = parse(child);
+			RootXNode xroot = read(child);
 			nodes.add(xroot);
 		}
 		return nodes;
 	}
 
-	public RootXNode parse(Document document) throws SchemaException {
+	@NotNull
+	public RootXNode read(Document document) throws SchemaException {
 		Element rootElement = DOMUtil.getFirstChildElement(document);
-		RootXNode xroot = parse(rootElement);
-		return xroot;
+		return read(rootElement);
 	}
-	
-	public RootXNode parse(Element rootElement) throws SchemaException{
+
+	@NotNull
+	public RootXNode read(Element rootElement) throws SchemaException{
 		RootXNode xroot = new RootXNode(DOMUtil.getQName(rootElement));
 		extractCommonMetadata(rootElement, xroot);
 		XNode xnode = parseElementContent(rootElement);
@@ -177,6 +181,7 @@ public class DomLexicalProcessor implements LexicalProcessor {
 	/**
 	 * Parses the content of the element (the name of the provided element is ignored, only the content is parsed).
 	 */
+	@Nullable
 	public XNode parseElementContent(Element element) throws SchemaException {
 		if (DOMUtil.isNil(element)) {
 			return null;
@@ -391,18 +396,12 @@ public class DomLexicalProcessor implements LexicalProcessor {
 	}
 
 	@Override
-	public boolean canRead(File file) throws IOException {
-		if (file == null) {
-			return false;
-		}
+	public boolean canRead(@NotNull File file) throws IOException {
 		return file.getName().endsWith(".xml");
 	}
 
 	@Override
-	public boolean canRead(String dataString) {
-		if (dataString == null) {
-			return false;
-		}
+	public boolean canRead(@NotNull String dataString) {
 		if (dataString.startsWith("<?xml")) {
 			return true;
 		}
@@ -414,16 +413,18 @@ public class DomLexicalProcessor implements LexicalProcessor {
 		return false;
 	}
 
+	@NotNull
 	@Override
-	public String write(XNode xnode, QName rootElementName, SerializationContext serializationContext) throws SchemaException {
+	public String write(@NotNull XNode xnode, @NotNull QName rootElementName, SerializationContext serializationContext) throws SchemaException {
 		DomLexicalWriter serializer = new DomLexicalWriter(this, schemaRegistry);
 		RootXNode xroot = LexicalUtils.createRootXNode(xnode, rootElementName);
 		Element element = serializer.serialize(xroot);
 		return DOMUtil.serializeDOMToString(element);
 	}
 
+	@NotNull
 	@Override
-	public String write(RootXNode xnode, SerializationContext serializationContext) throws SchemaException {
+	public String write(@NotNull RootXNode xnode, SerializationContext serializationContext) throws SchemaException {
 		DomLexicalWriter serializer = new DomLexicalWriter(this, schemaRegistry);
 		Element element = serializer.serialize(xnode);
 		return DOMUtil.serializeDOMToString(element);

@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.prism;
+package com.evolveum.midpoint.prism.marshaller;
 
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.lex.LexicalHelpers;
 import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -37,41 +38,49 @@ public class PrismParserImplNoIO extends PrismParserImpl implements PrismParserN
 		super(source, language, context, helpers);
 	}
 
+	@NotNull
 	@Override
 	public PrismParserNoIO language(@Nullable String language) {
 		return (PrismParserNoIO) super.language(language);
 	}
 
+	@NotNull
 	@Override
 	public PrismParserNoIO xml() {
 		return (PrismParserNoIO) super.xml();
 	}
 
+	@NotNull
 	@Override
 	public PrismParserNoIO json() {
 		return (PrismParserNoIO) super.json();
 	}
 
+	@NotNull
 	@Override
 	public PrismParserNoIO yaml() {
 		return (PrismParserNoIO) super.yaml();
 	}
 
+	@NotNull
 	@Override
 	public PrismParserNoIO context(@NotNull ParsingContext context) {
 		return (PrismParserNoIO) super.context(context);
 	}
 
+	@NotNull
 	@Override
 	public PrismParserNoIO strict() {
 		return (PrismParserNoIO) super.strict();
 	}
 
+	@NotNull
 	@Override
 	public PrismParserNoIO compat() {
 		return (PrismParserNoIO) super.compat();
 	}
 
+	@NotNull
 	@Override
 	public <O extends Objectable> PrismObject<O> parse() throws SchemaException {
 		try {
@@ -81,6 +90,7 @@ public class PrismParserImplNoIO extends PrismParserImpl implements PrismParserN
 		}
 	}
 
+	@NotNull
 	@Override
 	public List<PrismObject<? extends Objectable>> parseObjects() throws SchemaException {
 		try {
@@ -90,8 +100,9 @@ public class PrismParserImplNoIO extends PrismParserImpl implements PrismParserN
 		}
 	}
 
+	@NotNull
 	@Override
-	public <C extends Containerable> PrismContainer<C> parseContainer(Class<C> clazz) throws SchemaException {
+	public <C extends Containerable> PrismContainer<C> parseContainer(@NotNull Class<C> clazz) throws SchemaException {
 		try {
 			return doParseContainer(clazz);
 		} catch (IOException e) {
@@ -99,8 +110,9 @@ public class PrismParserImplNoIO extends PrismParserImpl implements PrismParserN
 		}
 	}
 
+	@NotNull
 	@Override
-	public <C extends Containerable> PrismContainer<C> parseContainer(PrismContainerDefinition<C> definition)
+	public <C extends Containerable> PrismContainer<C> parseContainer(@NotNull PrismContainerDefinition<C> definition)
 			throws SchemaException {
 		try {
 			return doParseContainer(definition);

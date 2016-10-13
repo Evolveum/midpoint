@@ -16,6 +16,8 @@
 
 package com.evolveum.midpoint.prism;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -26,28 +28,30 @@ import java.io.InputStream;
  */
 public class ParserFileSource implements ParserSource {
 
-	private final File file;
+	@NotNull private final File file;
 
-	public ParserFileSource(File file) {
+	public ParserFileSource(@NotNull File file) {
 		this.file = file;
 	}
 
+	@NotNull
 	public File getFile() {
 		return file;
 	}
 
+	@NotNull
 	@Override
 	public InputStream getInputStream() throws FileNotFoundException {
 		return new FileInputStream(file);
 	}
 
 	@Override
-	public boolean closeAfterParsing() {
+	public boolean closeStreamAfterParsing() {
 		return true;
 	}
 
 	@Override
-	public boolean isIO() {
+	public boolean throwsIOException() {
 		return true;
 	}
 }

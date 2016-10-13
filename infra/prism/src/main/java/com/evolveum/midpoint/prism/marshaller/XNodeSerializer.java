@@ -82,11 +82,9 @@ public class XNodeSerializer {
     }
 
     public <O extends Objectable> RootXNode serializeObject(PrismObject<O> object, SerializationContext ctx) throws SchemaException {
-		RootXNode xroot = new RootXNode();
+		RootXNode xroot = new RootXNode(object.getElementName());
 		xroot.setSubnode(serializeObjectContent(object, ctx));
 		xroot.setTypeQName(object.getDefinition().getTypeName());
-		QName elementName = object.getElementName();
-		xroot.setRootElementName(elementName);
 		return xroot;
 	}
 	

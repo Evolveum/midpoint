@@ -17,7 +17,7 @@
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Collection;
+import java.util.List;
 
 import javax.xml.namespace.QName;
 
@@ -27,23 +27,49 @@ import com.evolveum.midpoint.prism.SerializationContext;
 import com.evolveum.midpoint.prism.xnode.RootXNode;
 import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
+ * Takes care of converting between XNode tree and specific lexical representation (XML, JSON, YAML).
+ *
  * @author semancik
  *
  */
 public interface LexicalProcessor {
 
-	XNode read(ParserSource source, ParsingContext parsingContext) throws SchemaException, IOException;
+	@NotNull
+	XNode read(@NotNull ParserSource source, @NotNull ParsingContext parsingContext) throws SchemaException, IOException;
 
-	Collection<XNode> readCollection(ParserSource source, ParsingContext parsingContext) throws SchemaException, IOException;
-	
-	boolean canRead(File file) throws IOException;
-	
-	boolean canRead(String dataString);
+	@NotNull
+	List<XNode> readObjects(ParserSource source, ParsingContext parsingContext) throws SchemaException, IOException;
 
-	String write(XNode xnode, QName rootElementName, SerializationContext serializationContext) throws SchemaException;
-	
-	String write(RootXNode xnode, SerializationContext serializationContext) throws SchemaException;
+	/**
+	 * Checks if the processor can read from a given file. (Guessed by file extension, for now.)
+	 * Used for autodetection of language.
+	 */
+	boolean canRead(@NotNull File file) throws IOException;
+
+	/**
+	 * Checks if the processor can read from a given string. Note this is only an approximative information (for now).
+	 * Used for autodetection of language.
+	 */
+	boolean canRead(@NotNull String dataString);
+
+	/**
+	 * Serializes a root node into XNode tree.
+	 */
+	@NotNull
+	String write(@NotNull RootXNode xnode, @Nullable SerializationContext serializationContext) throws SchemaException;
+
+	/**
+	 * Serializes a non-root node into XNode tree.
+	 * So, xnode SHOULD NOT be a root node (at least for now).
+	 *
+	 * TODO consider removing - replacing by the previous form.
+	 */
+	@NotNull
+	String write(@NotNull XNode xnode, @NotNull QName rootElementName, @Nullable SerializationContext serializationContext) throws SchemaException;
+
 
 }

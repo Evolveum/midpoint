@@ -32,6 +32,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.module.jaxb.JaxbAnnotationIntrospector;
+import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
 import java.io.File;
@@ -42,18 +43,12 @@ import java.io.StringWriter;
 public class JsonLexicalProcessor extends AbstractJsonLexicalProcessor {
 	
 	@Override
-	public boolean canRead(File file) throws IOException {
-		if (file == null) {
-			return false;
-		}
+	public boolean canRead(@NotNull File file) throws IOException {
 		return file.getName().endsWith(".json");
 	}
 
 	@Override
-	public boolean canRead(String dataString) {
-		if (dataString == null) {
-			return false;
-		}
+	public boolean canRead(@NotNull String dataString) {
 		return dataString.startsWith("{");
 	}
 	

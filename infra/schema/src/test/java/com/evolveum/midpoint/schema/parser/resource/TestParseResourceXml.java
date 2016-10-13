@@ -51,7 +51,7 @@ public abstract class TestParseResourceXml extends TestParseResource {
 
 		// WHEN
 		DomLexicalProcessor parserDom = prismContext.getParserDom();
-		XNode xnode = parserDom.parse(getFile(TestConstants.RESOURCE_FILE_BASENAME), null);
+		XNode xnode = parserDom.read(getFile(TestConstants.RESOURCE_FILE_BASENAME), null);
 		PrismObject<ResourceType> resource = prismContext.getXnodeProcessor().parseObject(xnode, ParsingContext.createDefault());
 
 		// THEN

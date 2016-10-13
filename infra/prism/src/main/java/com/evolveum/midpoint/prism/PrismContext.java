@@ -30,7 +30,7 @@ import com.evolveum.midpoint.prism.util.PrismMonitor;
 import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
-import org.w3c.dom.Document;
+import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
 
@@ -73,10 +73,38 @@ public interface PrismContext {
 	void setMonitor(PrismMonitor monitor);
 
 	//region Parsing
-	PrismParser parserFor(File file);
-	PrismParser parserFor(InputStream stream);
-	PrismParserNoIO parserFor(String data);
-	@Deprecated PrismParserNoIO parserFor(Element element);
+	/**
+	 * Creates a parser ready to process the given file.
+	 * @param file File to be parsed.
+	 * @return Parser that can be invoked to retrieve the (parsed) content of the file.
+	 */
+	@NotNull
+	PrismParser parserFor(@NotNull File file);
+
+	/**
+	 * Creates a parser ready to process data from the given input stream.
+	 * @param stream Input stream to be parsed.
+	 * @return Parser that can be invoked to retrieve the (parsed) content of the input stream.
+	 */
+	@NotNull
+	PrismParser parserFor(@NotNull InputStream stream);
+
+	/**
+	 * Creates a parser ready to process data from the given string.
+	 * @param data String with the data to be parsed. It has be in UTF-8 encoding.
+	 *             (For other encodings please use InputStream or File source.)
+	 * @return Parser that can be invoked to retrieve the (parsed) content.
+	 */
+	@NotNull
+	PrismParserNoIO parserFor(@NotNull String data);
+
+	/**
+	 * Creates a parser ready to process data from the given DOM element.
+	 * @param element Element with the data to be parsed.
+	 * @return Parser that can be invoked to retrieve the (parsed) content.
+	 */
+	@NotNull
+	PrismParserNoIO parserFor(@NotNull Element element);
 
 	@Deprecated	// user parserFor + parse instead
 	<T extends Objectable> PrismObject<T> parseObject(File file) throws SchemaException, IOException;
@@ -107,23 +135,85 @@ public interface PrismContext {
 			ItemPath path) throws SchemaException;
 	//endregion
 
-	//region Serializing objects, containers, atomic values (properties)
+	//region Serializing
+	/**
+	 * Creates a serializer for the given language.
+	 * @param language Language (like xml, json, yaml).
+	 * @return The serializer.
+	 */
+	@NotNull
+	PrismSerializer<String> serializerFor(@NotNull String language);
 
-	PrismSerializer<String> serializerFor(String language);
+	/**
+	 * Creates a serializer for XML language.
+	 * @return The serializer.
+	 */
+	@NotNull
 	PrismSerializer<String> xmlSerializer();
+
+	/**
+	 * Creates a serializer for JSON language.
+	 * @return The serializer.
+	 */
+	@NotNull
 	PrismSerializer<String> jsonSerializer();
+
+	/**
+	 * Creates a serializer for YAML language.
+	 * @return The serializer.
+	 */
+	@NotNull
 	PrismSerializer<String> yamlSerializer();
+
+	/**
+	 * Creates a serializer for DOM. The difference from XML serializer is that XML produces String output
+	 * whereas this one produces a DOM Element.
+	 * @return The serializer.
+	 */
+	@NotNull
 	PrismSerializer<Element> domSerializer();
+
+	/**
+	 * Creates a serializer for XNode. The output of this serializer is intermediate XNode representation.
+	 * @return The serializer.
+	 */
+	@NotNull
 	PrismSerializer<XNode> xnodeSerializer();
 
+	@Deprecated // use serializerFor + serialize instead
 	<O extends Objectable> String serializeObjectToString(PrismObject<O> object, String language) throws SchemaException;
 
+	/**
+	 * TODO
+	 * @param value
+	 * @return
+	 */
 	boolean canSerialize(Object value);
+	//endregion
 
+	/**
+	 * TODO
+	 * @param item
+	 * @return
+	 * @throws SchemaException
+	 */
 	RawType toRawType(Item item) throws SchemaException;
 
-	<T extends Objectable> PrismObject<T> createObject(Class<T> clazz) throws SchemaException;
+	/**
+	 * Creates a new PrismObject of a given static type.
+	 * @param clazz Static type of the object to be created.
+	 * @return New PrismObject.
+	 * @throws SchemaException If a definition for the given class couldn't be found.
+	 */
+	@NotNull
+	<O extends Objectable> PrismObject<O> createObject(@NotNull Class<O> clazz) throws SchemaException;
 
-	<T extends Objectable> T createObjectable(Class<T> clazz) throws SchemaException;
-
+	/**
+	 * Creates a new Objectable of a given static type.
+	 * @param clazz Static type of the object to be created.
+	 * @return New PrismObject's objectable content.
+	 * @throws SchemaException If a definition for the given class couldn't be found.
+	 */
+	@NotNull
+	<O extends Objectable> O createObjectable(@NotNull Class<O> clazz) throws SchemaException;
 }

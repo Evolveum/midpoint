@@ -65,21 +65,23 @@ public abstract class AbstractJsonLexicalProcessor implements LexicalProcessor {
 
 	//region Parsing implementation
 
+	@NotNull
 	@Override
-	public RootXNode read(ParserSource source, ParsingContext parsingContext) throws SchemaException, IOException {
+	public RootXNode read(@NotNull ParserSource source, @NotNull ParsingContext parsingContext) throws SchemaException, IOException {
 		InputStream is = source.getInputStream();
 		try {
 			JsonParser parser = createJacksonParser(is);
 			return parseFromStart(parser, parsingContext);
 		} finally {
-			if (source.closeAfterParsing()) {
+			if (source.closeStreamAfterParsing()) {
 				IOUtils.closeQuietly(is);
 			}
 		}
 	}
 
+	@NotNull
 	@Override
-	public Collection<XNode> readCollection(ParserSource source, ParsingContext parsingContext) throws SchemaException, IOException {
+	public List<XNode> readObjects(ParserSource source, ParsingContext parsingContext) throws SchemaException, IOException {
 		throw new UnsupportedOperationException("Parse objects not supported for json and yaml.");			// why?
 	}
 
@@ -430,8 +432,9 @@ public abstract class AbstractJsonLexicalProcessor implements LexicalProcessor {
 					new SerializationContext(null);
 		}
 	}
+	@NotNull
 	@Override
-	public String write(XNode xnode, QName rootElementName, SerializationContext serializationContext) throws SchemaException {
+	public String write(@NotNull XNode xnode, @NotNull QName rootElementName, SerializationContext serializationContext) throws SchemaException {
 		return write(LexicalUtils.createRootXNode(xnode, rootElementName), serializationContext);
 	}
 
@@ -439,8 +442,9 @@ public abstract class AbstractJsonLexicalProcessor implements LexicalProcessor {
 
 	protected abstract void writeExplicitType(QName explicitType, JsonGenerator generator) throws IOException;
 
+	@NotNull
 	@Override
-	public String write(RootXNode root, SerializationContext prismSerializationContext) throws SchemaException {
+	public String write(@NotNull RootXNode root, SerializationContext prismSerializationContext) throws SchemaException {
 		StringWriter out = new StringWriter();
 		try ( JsonGenerator generator = createJacksonGenerator(out) ) {
 			JsonSerializationContext ctx = new JsonSerializationContext(generator, prismSerializationContext);

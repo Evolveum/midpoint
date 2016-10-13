@@ -36,6 +36,7 @@ import com.fasterxml.jackson.databind.ObjectMapper.DefaultTyping;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
+import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Element;
 
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -58,18 +59,12 @@ public class YamlLexicalProcessor extends AbstractJsonLexicalProcessor {
 	//------------------------END OF METHODS FOR SERIALIZATION -------------------------------
 	
 	@Override
-	public boolean canRead(File file) throws IOException {
-		if (file == null) {
-			return false;
-		}
+	public boolean canRead(@NotNull File file) throws IOException {
 		return file.getName().endsWith(".yaml");
 	}
 
 	@Override
-	public boolean canRead(String dataString) {
-		if (dataString == null) {
-			return false;
-		}
+	public boolean canRead(@NotNull String dataString) {
 		return dataString.startsWith("---");
 	}
 	

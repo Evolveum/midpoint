@@ -200,7 +200,7 @@ public class MiscDataUtil {
 
 //    public static PrismContainer deserializeContainerFromXml(String xml, PrismContext prismContext) {
 //        try {
-//            return prismContext.parserFor(xml).xml().parseContainer(null);			// TODO will 'null' work?
+//            return prismContext.parserFor(xml).xml().unmarshallContainer(null);			// TODO will 'null' work?
 //        } catch (SchemaException e) {
 //            throw new SystemException("Couldn't deserialize a Containerable from XML", e);
 //        }

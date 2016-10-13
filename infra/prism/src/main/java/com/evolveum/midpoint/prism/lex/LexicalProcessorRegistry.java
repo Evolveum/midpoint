@@ -52,7 +52,7 @@ public class LexicalProcessorRegistry {
 	}
 
 	@NotNull
-	public LexicalProcessor findParser(File file) throws IOException {
+	private LexicalProcessor findParser(File file) throws IOException {
 		for (Map.Entry<String,LexicalProcessor> entry: parserMap.entrySet()) {
 			LexicalProcessor aLexicalProcessor = entry.getValue();
 			if (aLexicalProcessor.canRead(file)) {
@@ -63,7 +63,7 @@ public class LexicalProcessorRegistry {
 	}
 
 	@NotNull
-	public LexicalProcessor findParser(String data){
+	private LexicalProcessor findParser(@NotNull String data){
         for (Map.Entry<String,LexicalProcessor> entry: parserMap.entrySet()) {
             LexicalProcessor aLexicalProcessor = entry.getValue();
             if (aLexicalProcessor.canRead(data)) {
@@ -78,6 +78,7 @@ public class LexicalProcessorRegistry {
 		return (DomLexicalProcessor) parserFor(PrismContext.LANG_XML);
 	}
 
+	@NotNull
 	public LexicalProcessor parserFor(String language) {
 		LexicalProcessor lexicalProcessor = parserMap.get(language);
 		if (lexicalProcessor == null) {
@@ -86,6 +87,7 @@ public class LexicalProcessorRegistry {
 		return lexicalProcessor;
 	}
 
+	@NotNull
 	public LexicalProcessor findParser(@NotNull ParserSource source) throws IOException {
 		if (source instanceof ParserElementSource) {
 			return parserFor(LANG_XML);

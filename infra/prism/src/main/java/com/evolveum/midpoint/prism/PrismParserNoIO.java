@@ -27,27 +27,38 @@ import java.io.IOException;
 import java.util.List;
 
 /**
- * The same as PrismParser but has no IOException on parseXYZ methods. It is used when parsing from strings
- * where no IOExceptions could occur.
+ * The same as PrismParser but has no IOException on parseXYZ methods. It is used when parsing from strings or DOM structures
+ * where no IOExceptions occur.
  *
- * For methods' descriptions please see PrismParser interface.
+ * For methods' descriptions please see the parent interface (PrismParser).
  *
  * @author mederly
  */
 public interface PrismParserNoIO extends PrismParser {
 
+	@NotNull
 	PrismParserNoIO language(@Nullable String language);
+	@NotNull
 	PrismParserNoIO xml();
+	@NotNull
 	PrismParserNoIO json();
+	@NotNull
 	PrismParserNoIO yaml();
+	@NotNull
 	PrismParserNoIO context(@NotNull ParsingContext context);
+	@NotNull
 	PrismParserNoIO strict();
+	@NotNull
 	PrismParserNoIO compat();
 
+	@NotNull
 	<O extends Objectable> PrismObject<O> parse() throws SchemaException;
+	@NotNull
 	List<PrismObject<? extends Objectable>> parseObjects() throws SchemaException;
-	<C extends Containerable> PrismContainer<C> parseContainer(Class<C> clazz) throws SchemaException;
-	<C extends Containerable> PrismContainer<C> parseContainer(PrismContainerDefinition<C> definition) throws SchemaException;
+	@NotNull
+	<C extends Containerable> PrismContainer<C> parseContainer(@NotNull Class<C> clazz) throws SchemaException;
+	@NotNull
+	<C extends Containerable> PrismContainer<C> parseContainer(@NotNull PrismContainerDefinition<C> definition) throws SchemaException;
 	<T> T parseAtomicValue(QName typeName) throws SchemaException;
 	Object parseAnyData() throws SchemaException;
 	<T> T parseAnyValue() throws SchemaException;

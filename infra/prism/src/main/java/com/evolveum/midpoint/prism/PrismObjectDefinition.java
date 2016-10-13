@@ -19,6 +19,7 @@ package com.evolveum.midpoint.prism;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.util.exception.SchemaException;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * MidPoint Object Definition.
@@ -46,12 +47,12 @@ public class PrismObjectDefinition<O extends Objectable> extends PrismContainerD
 	}
 	
 	@Override
+	@NotNull
 	public PrismObject<O> instantiate() throws SchemaException {
 		if (isAbstract()) {
 			throw new SchemaException("Cannot instantiate abstract definition "+this);
 		}
-		PrismObject<O> midPointObject = new PrismObject<O>(getName(), this, prismContext);
-		return midPointObject;
+		return new PrismObject<O>(getName(), this, prismContext);
 	}
 	
 	@Override

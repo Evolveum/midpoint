@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.prism;
 
+import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Element;
 
 import java.io.IOException;
@@ -24,31 +25,32 @@ import java.io.InputStream;
 /**
  * @author mederly
  */
-@Deprecated
 public class ParserElementSource implements ParserSource {
 
-	private final Element element;
+	@NotNull private final Element element;
 
-	public ParserElementSource(Element element) {
+	public ParserElementSource(@NotNull Element element) {
 		this.element = element;
 	}
 
+	@NotNull
 	public Element getElement() {
 		return element;
 	}
 
+	@NotNull
 	@Override
 	public InputStream getInputStream() throws IOException {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public boolean closeAfterParsing() {
+	public boolean closeStreamAfterParsing() {
 		return true;
 	}
 
 	@Override
-	public boolean isIO() {
+	public boolean throwsIOException() {
 		return false;
 	}
 }

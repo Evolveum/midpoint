@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.prism;
 
 import org.apache.commons.io.IOUtils;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -26,28 +27,30 @@ import java.io.InputStream;
  */
 public class ParserStringSource implements ParserSource {
 
-	private final String data;
+	@NotNull private final String data;
 
-	public ParserStringSource(String data) {
+	public ParserStringSource(@NotNull String data) {
 		this.data = data;
 	}
 
+	@NotNull
 	public String getData() {
 		return data;
 	}
 
+	@NotNull
 	@Override
 	public InputStream getInputStream() throws IOException {
 		return IOUtils.toInputStream(data, "utf-8");
 	}
 
 	@Override
-	public boolean closeAfterParsing() {
+	public boolean closeStreamAfterParsing() {
 		return true;
 	}
 
 	@Override
-	public boolean isIO() {
+	public boolean throwsIOException() {
 		return false;
 	}
 }

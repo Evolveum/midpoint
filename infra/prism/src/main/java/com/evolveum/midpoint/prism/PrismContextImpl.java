@@ -17,10 +17,7 @@ package com.evolveum.midpoint.prism;
 
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.marshaller.JaxbDomHack;
-import com.evolveum.midpoint.prism.marshaller.PrismBeanConverter;
-import com.evolveum.midpoint.prism.marshaller.PrismBeanInspector;
-import com.evolveum.midpoint.prism.marshaller.XNodeProcessor;
+import com.evolveum.midpoint.prism.marshaller.*;
 import com.evolveum.midpoint.prism.lex.LexicalProcessor;
 import com.evolveum.midpoint.prism.lex.LexicalHelpers;
 import com.evolveum.midpoint.prism.lex.LexicalProcessorRegistry;
@@ -38,8 +35,8 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
 
@@ -206,24 +203,28 @@ public class PrismContextImpl implements PrismContext {
     //endregion
 
 	//region Parsing
+	@NotNull
 	@Override
-	public PrismParser parserFor(File file) {
+	public PrismParser parserFor(@NotNull File file) {
 		return new PrismParserImplIO(new ParserFileSource(file), null, ParsingContext.createDefault(), lexicalHelpers);
 	}
 
+	@NotNull
 	@Override
-	public PrismParser parserFor(InputStream stream) {
+	public PrismParser parserFor(@NotNull InputStream stream) {
 		return new PrismParserImplIO(new ParserInputStreamSource(stream), null, ParsingContext.createDefault(), lexicalHelpers);
 	}
 
+	@NotNull
 	@Override
-	public PrismParserNoIO parserFor(String data) {
+	public PrismParserNoIO parserFor(@NotNull String data) {
 		return new PrismParserImplNoIO(new ParserStringSource(data), null, ParsingContext.createDefault(), lexicalHelpers);
 	}
 
+	@NotNull
 	@Deprecated
 	@Override
-	public PrismParserNoIO parserFor(Element data) {
+	public PrismParserNoIO parserFor(@NotNull Element data) {
 		return new PrismParserImplNoIO(new ParserElementSource(data), null, ParsingContext.createDefault(), lexicalHelpers);
 	}
 
@@ -303,31 +304,37 @@ public class PrismContextImpl implements PrismContext {
 		return serializerFor(language).serialize(object);
 	}
 
+	@NotNull
 	@Override
-	public PrismSerializer<String> serializerFor(String language) {
+	public PrismSerializer<String> serializerFor(@NotNull String language) {
 		return new PrismSerializerImpl<>(new SerializerStringTarget(lexicalHelpers, language), null, null);
 	}
 
+	@NotNull
 	@Override
 	public PrismSerializer<String> xmlSerializer() {
 		return serializerFor(LANG_XML);
 	}
 
+	@NotNull
 	@Override
 	public PrismSerializer<String> jsonSerializer() {
 		return serializerFor(LANG_JSON);
 	}
 
+	@NotNull
 	@Override
 	public PrismSerializer<String> yamlSerializer() {
 		return serializerFor(LANG_YAML);
 	}
 
+	@NotNull
 	@Override
 	public PrismSerializer<Element> domSerializer() {
 		return new PrismSerializerImpl<>(new SerializerDomTarget(lexicalHelpers), null, null);
 	}
 
+	@NotNull
 	@Override
 	public PrismSerializer<XNode> xnodeSerializer() {
 		return new PrismSerializerImpl<>(new SerializerXNodeTarget(lexicalHelpers), null, null);
@@ -351,21 +358,19 @@ public class PrismContextImpl implements PrismContext {
         return new RawType(rootXNode, this);
     }
 
-    @Override
-	public <T extends Objectable> PrismObject<T> createObject(Class<T> clazz) throws SchemaException {
-        PrismObjectDefinition definition = schemaRegistry.findObjectDefinitionByCompileTimeClass(clazz);
+    @NotNull
+	@Override
+	public <T extends Objectable> PrismObject<T> createObject(@NotNull Class<T> clazz) throws SchemaException {
+        PrismObjectDefinition<T> definition = schemaRegistry.findObjectDefinitionByCompileTimeClass(clazz);
         if (definition == null) {
             throw new SchemaException("Definition for prism object holding " + clazz + " couldn't be found");
         }
         return definition.instantiate();
     }
 
+	@NotNull
 	@Override
-	public <T extends Objectable> T createObjectable(Class<T> clazz) throws SchemaException {
+	public <T extends Objectable> T createObjectable(@NotNull Class<T> clazz) throws SchemaException {
 		return createObject(clazz).asObjectable();
-	}
-
-	protected ParsingContext newParsingContext() {
-		return ParsingContext.createDefault();
 	}
 }

@@ -1004,7 +1004,7 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Debug
 		return schema.findContainerDefinitionByElementName(elementName);
 	}
 	
-	public <C extends Containerable> PrismContainerDefinition<C> findContainerDefinitionByCompileTimeClass(Class<C> compileTimeClass) {
+	public <C extends Containerable> PrismContainerDefinition<C> findContainerDefinitionByCompileTimeClass(@NotNull Class<C> compileTimeClass) {
 		PrismSchema schema = findSchemaByCompileTimeClass(compileTimeClass);
 		if (schema == null) {
 			return null;

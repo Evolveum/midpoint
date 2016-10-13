@@ -72,7 +72,7 @@ public class TestDomParser extends AbstractLexicalProcessorTest {
 		DomLexicalProcessor parser = createParser();
 		
 		// WHEN
-		XNode xnode = parser.parse(getFile(USER_JACK_FILE_BASENAME), ParsingContext.createDefault());
+		XNode xnode = parser.read(getFile(USER_JACK_FILE_BASENAME), ParsingContext.createDefault());
 		
 		// THEN
 		System.out.println("Parsed XNode:");

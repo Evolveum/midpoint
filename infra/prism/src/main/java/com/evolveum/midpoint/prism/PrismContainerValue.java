@@ -89,15 +89,22 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
 
     transient private PrismContext prismContext;
 
-    public PrismContainerValue() {
-    	super();
-    	// Nothing to do
+	public PrismContainerValue() {
+	}
+
+	public PrismContainerValue(C containerable) {
+		this(containerable, null);
     }
 
-    public PrismContainerValue(PrismContext prismContext) {
-        this();
-        setPrismContext(prismContext);
-    }
+	public PrismContainerValue(PrismContext prismContext) {
+		this(null, prismContext);
+	}
+
+	public PrismContainerValue(C containerable, PrismContext prismContext) {
+		this.containerable = containerable;
+		this.prismContext = prismContext;
+	}
+
 
     private void setPrismContext(PrismContext prismContext) {
         //Validate.notNull(prismContext, "No prismContext in PrismContainerValue");             // not yet
@@ -262,26 +269,30 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
 	public C getValue() {
 		return asContainerable();
 	}
-	
-	private List<Object> createElement() {
-		return new ArrayList<Object>();
-	}
 
+	@SuppressWarnings("unchecked")
 	public C asContainerable() {
-		PrismContainerable parent = getParent();
-		if (parent == null) {
-			throw new IllegalStateException("Cannot represent container value without a parent as containerable; value: "+this);
+		if (containerable != null) {
+			return containerable;
 		}
 
-        Class<C> clazz = null;
-        if (concreteType != null) {
-            clazz = resolveConcreteClass(parent);
+		PrismContainerable parent = getParent();
+		PrismContainerDefinition concreteTypeDefinition = getConcreteTypeDefinition();
+
+		if (parent == null && concreteTypeDefinition == null) {
+			throw new IllegalStateException("Cannot represent container value without a parent and concrete type definition as containerable; value: " + this);
+		}
+
+		Class<C> clazz = null;
+        if (concreteTypeDefinition != null && concreteTypeDefinition.getCompileTimeClass() != null) {
+            clazz = concreteTypeDefinition.getCompileTimeClass();
         }
-        if (clazz == null) {
+        if (clazz == null && parent != null) {
             clazz = parent.getCompileTimeClass();
         }
         if (clazz == null) {
-            throw new SystemException("Unknown compile time class of container '" + parent.getElementName() + "'.");
+			QName elementName = parent != null ? parent.getElementName() : concreteTypeDefinition.getName();
+            throw new SystemException("Unknown compile time class of container '" + elementName + "'.");
         }
         if (Modifier.isAbstract(clazz.getModifiers())) {
             throw new SystemException("Can't create instance of class '" + clazz.getSimpleName() + "', it's abstract.");
@@ -303,7 +314,11 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
     }
 
     public C asContainerable(Class<C> defaultClazz) {
-        Class<C> clazz = defaultClazz;
+		if (containerable != null) {
+			return containerable;
+		}
+
+		Class<C> clazz = defaultClazz;
         if (concreteType != null) {
             PrismContainerable parent = getParent();
             if (parent != null) {
@@ -316,9 +331,6 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
     }
 
     private C asContainerableInternal(Class<C> clazz) {
-	   if (containerable != null) {
-		   return containerable ;
-	   }
 		try {
             containerable = clazz.newInstance();
             containerable.setupContainerValue(this);

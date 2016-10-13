@@ -19,6 +19,7 @@ package com.evolveum.midpoint.prism;
 import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
 
 import javax.xml.bind.JAXBElement;
@@ -33,18 +34,89 @@ import java.util.List;
  */
 public interface PrismParser {
 
-	PrismParser language(String language);
+	/**
+	 * Sets the language of the parser. null means auto-detect.
+	 * @param language The language
+	 * @return Updated parser.
+	 */
+	@NotNull
+	PrismParser language(@Nullable String language);
+
+	/**
+	 * Sets the language of the parser to be XML.
+	 * @return Updated parser.
+	 */
+	@NotNull
 	PrismParser xml();
+
+	/**
+	 * Sets the language of the parser to be JSON.
+	 * @return Updated parser.
+	 */
+	@NotNull
 	PrismParser json();
+
+	/**
+	 * Sets the language of the parser to be YAML.
+	 * @return Updated parser.
+	 */
+	@NotNull
 	PrismParser yaml();
+
+	/**
+	 * Provides a parsing context for the parser. The context contains e.g. mode of operations (set by client)
+	 * or a list of warnings (maintained by the parser).
+	 * @param context The parsing context.
+	 * @return Updated parser.
+	 */
+	@NotNull
 	PrismParser context(@NotNull ParsingContext context);
+
+	/**
+	 * Switches the parser into "strict" parsing mode.
+	 * @return Updated parser.
+	 */
+	@NotNull
 	PrismParser strict();
+
+	/**
+	 * Switches the parser into "compatibility" (or relaxed) parsing mode.
+	 * TODO description here
+	 * @return Updated parser.
+	 */
+	@NotNull
 	PrismParser compat();
 
+	/**
+	 * Parses the input as a prism object.
+	 * @return The object.
+	 */
+	@NotNull
 	<O extends Objectable> PrismObject<O> parse() throws SchemaException, IOException;
+
+	/**
+	 * Parses the input as a collection of prism objects.
+	 * Currently supported only for XML. (For the time being, it is used only in tests.)
+	 * @return A list of objects.
+	 */
+	@NotNull
 	List<PrismObject<? extends Objectable>> parseObjects() throws SchemaException, IOException;
-	<C extends Containerable> PrismContainer<C> parseContainer(Class<C> clazz) throws SchemaException, IOException;
-	<C extends Containerable> PrismContainer<C> parseContainer(PrismContainerDefinition<C> definition) throws SchemaException, IOException;
+
+	/**
+	 * Parses the input as a single value of a prism container.
+	 * @param clazz Type of a container content.
+	 * @return Single-valued container.
+	 */
+	@NotNull
+	<C extends Containerable> PrismContainer<C> parseContainer(@NotNull Class<C> clazz) throws SchemaException, IOException;
+
+	/**
+	 * Parses the input as a single value of a prism container.
+	 * @param definition Container definition.
+	 * @return Single-valued container.
+	 */
+	@NotNull
+	<C extends Containerable> PrismContainer<C> parseContainer(@NotNull PrismContainerDefinition<C> definition) throws SchemaException, IOException;
 
 	/**
 	 * Parses an atomic value - i.e. something that could present a property
