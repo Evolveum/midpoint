@@ -21,15 +21,11 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.prism.query.PropertyValueFilter;
 import com.evolveum.midpoint.prism.query.ValueFilter;
-import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.data.common.any.RAnyConverter;
 import com.evolveum.midpoint.repo.sql.data.common.any.RAnyValue;
-import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
 import com.evolveum.midpoint.repo.sql.data.common.type.RObjectExtensionType;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
-import com.evolveum.midpoint.repo.sql.query.QueryContext;
 import com.evolveum.midpoint.repo.sql.query.definition.AnyDefinition;
 import com.evolveum.midpoint.repo.sql.query.definition.Definition;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
@@ -38,13 +34,11 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-
 import org.hibernate.criterion.Conjunction;
 import org.hibernate.criterion.Criterion;
 import org.hibernate.criterion.Restrictions;
 
 import javax.xml.namespace.QName;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -108,7 +102,7 @@ public class AnyPropertyRestriction extends ItemRestriction<ValueFilter> {
 
         conjunction.add(Restrictions.eq(propertyNamePrefix + RAnyValue.F_NAME, RUtil.qnameToString(name)));
 
-        Object testedValue = getValue(((PropertyValueFilter) filter).getValues());
+        Object testedValue = getValue(filter.getValues());
         Object value = RAnyConverter.getAggregatedRepoObject(testedValue);
         conjunction.add(createCriterion(propertyNamePrefix + RAnyValue.F_VALUE, value, filter));
 

@@ -341,7 +341,7 @@ public class BasicCertificationTest extends AbstractCertificationTest {
                 SelectorOptions.createCollection(GetOperationOptions.createResolveNames());
         ObjectQuery query = QueryBuilder.queryFor(AccessCertificationCaseType.class, prismContext)
                 .item(AccessCertificationCaseType.F_OBJECT_REF).ref(userAdministrator.getOid())
-                .desc(F_TARGET_REF)
+                .desc(getOrderBy(F_TARGET_REF))
                 .offset(2).maxSize(2)
                 .build();
         List<AccessCertificationCaseType> caseList = modelService.searchContainers(

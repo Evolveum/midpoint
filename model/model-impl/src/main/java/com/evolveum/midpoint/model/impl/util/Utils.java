@@ -327,7 +327,7 @@ public final class Utils {
 			return true;
 		}
 		
-		if (filter instanceof PropertyValueFilter && ((PropertyValueFilter) filter).getExpression() != null){
+		if (filter instanceof ValueFilter && ((ValueFilter) filter).getExpression() != null){
 			return true;
 		}
 		

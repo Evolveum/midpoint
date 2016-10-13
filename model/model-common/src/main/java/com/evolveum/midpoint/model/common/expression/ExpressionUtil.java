@@ -638,14 +638,14 @@ public class ExpressionUtil {
 				return AllFilter.createAll();
 			
 			case FILTER_EQUAL_NULL:
-				if (filter instanceof PropertyValueFilter) {
-					PropertyValueFilter evaluatedFilter = (PropertyValueFilter) filter.clone();
+				if (filter instanceof ValueFilter) {
+					ValueFilter evaluatedFilter = (ValueFilter) filter.clone();
 					evaluatedFilter.setExpression(null);
 					return evaluatedFilter;
 				} else if (filter instanceof InOidFilter) {
 					return NoneFilter.createNone();
 				} else {
-					throw new IllegalArgumentException("Unknow filter to evaluate: " + filter);
+					throw new IllegalArgumentException("Unknown filter to evaluate: " + filter);
 				}
 			
 			case ERROR:

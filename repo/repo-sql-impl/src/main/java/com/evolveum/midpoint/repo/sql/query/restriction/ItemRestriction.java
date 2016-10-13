@@ -498,8 +498,8 @@ public abstract class ItemRestriction<T extends ValueFilter> extends Restriction
 
     protected Object getValueFromFilter(ValueFilter filter, PropertyDefinition def) throws QueryException {
         Object value;
-        if (filter instanceof PropertyValueFilter) {
-            value = getValue(((PropertyValueFilter) filter).getValues());
+        if (filter != null) {
+            value = getValue((filter).getValues());
         } else {
             throw new QueryException("Unknown filter '" + filter + "', can't get value from it.");
         }
