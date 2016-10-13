@@ -152,7 +152,7 @@ public class AssignmentCatalogPanel<F extends AbstractRoleType> extends BasePane
 
     private void selectTreeItemPerformed(SelectableBean<OrgType> selected, AjaxRequestTarget target) {
         final OrgType selectedOgr = selected.getValue();
-        rootOidModel.setObject(selectedOgr.getOid());
+//        rootOidModel.setObject(selectedOgr.getOid());
         AssignmentViewType.saveViewTypeToSession(pageBase, AssignmentViewType.ROLE_CATALOG_VIEW);
         CatalogItemsPanel catalogItemsPanel = new CatalogItemsPanel(ID_CATALOG_ITEMS_PANEL, rootOidModel, pageBase);
         catalogItemsPanel.setOutputMarkupId(true);
@@ -186,26 +186,6 @@ public class AssignmentCatalogPanel<F extends AbstractRoleType> extends BasePane
 
     public void setRootOid(String rootOid) {
         this.rootOid = rootOid;
-    }
-
-    private String getRoleCatalogOid() {
-        Task task = getPageBase().createAnonymousTask(OPERATION_LOAD_ROLE_CATALOG_REFERENCE);
-        OperationResult result = task.getResult();
-
-        PrismObject<SystemConfigurationType> config;
-        try {
-            config = getPageBase().getModelService().getObject(SystemConfigurationType.class,
-                    SystemObjectsType.SYSTEM_CONFIGURATION.value(), null, task, result);
-        } catch (ObjectNotFoundException | SchemaException | SecurityViolationException
-                | CommunicationException | ConfigurationException e) {
-            LOGGER.error("Error getting system configuration: {}", e.getMessage(), e);
-            return null;
-        }
-        if (config != null && config.asObjectable().getRoleManagement() != null &&
-                config.asObjectable().getRoleManagement().getRoleCatalogRef() != null) {
-            return config.asObjectable().getRoleManagement().getRoleCatalogRef().getOid();
-        }
-        return "";
     }
 
 }
