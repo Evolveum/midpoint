@@ -9,7 +9,9 @@ import java.util.Map;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -88,24 +90,9 @@ public class PageAuditLogViewer extends PageBase{
 	private static final String ID_MAIN_FORM = "mainForm";
 	private static final String ID_SEARCH_BUTTON = "searchButton";
 
-	/*
-	private IModel<XMLGregorianCalendar> fromModel;
-	private IModel<XMLGregorianCalendar> toModel;
-	private IModel<String> initiatorNameModel;
-	private IModel<String> channelModel;
-	private IModel<String> channelListModel;
-	 */
-
 	private IModel<AuditSearchDto> auditSearchDto;
 
 	public PageAuditLogViewer(){
-		/*
-		fromModel = new Model();
-		toModel = new Model();
-		initiatorNameModel = new Model();
-		channelModel = new Model();
-		channelListModel = new ListModel(new WebComponentUtil().getChannelList());
-		 */
 		auditSearchDto = new Model(new AuditSearchDto());
 		initLayout();
 	}
@@ -191,9 +178,11 @@ public class PageAuditLogViewer extends PageBase{
 
 		List<String> channelList = WebComponentUtil.getChannelList();
 		List<QName> channelQnameList = new ArrayList<QName>();
-		for (int i = 0; i < channelList.size(); i++) {
+		for (int i = 0; i < channelList.size(); i++) 
+		{
 			String channel = channelList.get(i);
-			if (channel != null) {
+			if (channel != null) 
+			{
 				QName channelQName = QNameUtil.uriToQName(channel);
 				channelQnameList.add(channelQName);
 			}
@@ -212,7 +201,6 @@ public class PageAuditLogViewer extends PageBase{
 				Form mainForm = (Form)getParent().getParent();
 				refreshTable(mainForm);
 				arg0.add(mainForm);
-				// TODO Auto-generated method stub
 			}
 		};
 		ajaxButton.setOutputMarkupId(true);
@@ -237,7 +225,8 @@ public class PageAuditLogViewer extends PageBase{
 				parameters.put("from", auditSearchDto.getObject().getFromGreg());
 				parameters.put("to", auditSearchDto.getObject().getToGreg());
 				// parameters.put("initiatorName", auditSearchDto.getObject().getInitiatorName());
-				if (auditSearchDto.getObject().getChannel() != null) {
+				if (auditSearchDto.getObject().getChannel() != null) 
+				{
 					parameters.put("channel", QNameUtil.qNameToUri(auditSearchDto.getObject().getChannel()));
 				}
 				parameters.put("hostIdentifier", auditSearchDto.getObject().getHostIdentifier());
@@ -266,6 +255,12 @@ public class PageAuditLogViewer extends PageBase{
 			public void onClick(AjaxRequestTarget target, IModel<AuditEventRecordType> rowModel) {
 				setResponsePage(new PageAuditLogDetails(rowModel.getObject()));
 			}
+			@Override
+			public void populateItem(Item<ICellPopulator<AuditEventRecordType>> cellItem, String componentId,
+					IModel<AuditEventRecordType> rowModel) {
+				cellItem.add(new AttributeModifier("style", new Model<String>("width: 15%;")));
+				super.populateItem(cellItem, componentId, rowModel);
+			}
 		};
 		columns.add(linkColumn);
 		// IColumn timeColumn = new PropertyColumn(createStringResource("PageAuditLogViewer.column.time"), "timestamp");
@@ -282,25 +277,34 @@ public class PageAuditLogViewer extends PageBase{
 						createSimpleTask(ID_INITIATOR_NAME), 
 						new OperationResult(ID_INITIATOR_NAME));
 				item.add(new Label(componentId, return_));
-				// TODO Auto-generated method stub
-				// super.populateItem(item, componentId, rowModel);
+				item.add(new AttributeModifier("style", new Model<String>("width: 10%;")));
 			}
 		};
 		columns.add(initiatorColumn);
-		IColumn taskIdentifierColumn = new PropertyColumn(createStringResource("PageAuditLogViewer.column.taskIdentifier"), "taskIdentifier");
+		IColumn taskIdentifierColumn = new PropertyColumn(createStringResource("PageAuditLogViewer.column.taskIdentifier"), "taskIdentifier"){
+			@Override
+			public void populateItem(Item item, String componentId, IModel rowModel) {
+				item.add(new AttributeModifier("style", new Model<String>("width: 10%;")));
+				super.populateItem(item, componentId, rowModel);
+			}
+		};
 		columns.add(taskIdentifierColumn);
 		IColumn channelColumn = new PropertyColumn(createStringResource("PageAuditLogViewer.column.channel"), "channel"){
 			@Override
 			public void populateItem(Item item, String componentId, IModel rowModel) {
 				AuditEventRecordType auditEventRecordType = (AuditEventRecordType)rowModel.getObject();
 				String channel = auditEventRecordType.getChannel();
-				if (channel != null) {
+				if (channel != null) 
+				{
 					QName channelQName = QNameUtil.uriToQName(channel);
 					String return_ = channelQName.getLocalPart();
-					item.add(new Label(componentId, return_));
+					item.add(new Label(componentId, return_));					
+				} 
+				else 
+				{
+					item.add(new Label(componentId, ""));
 				}
-				// TODO Auto-generated method stub
-				// super.populateItem(item, componentId, rowModel);
+				item.add(new AttributeModifier("style", new Model<String>("width: 10%;")));
 			}
 		};
 		columns.add(channelColumn);
@@ -310,22 +314,21 @@ public class PageAuditLogViewer extends PageBase{
 				RepeatingView repeatingView = new RepeatingView(componentId);
 				AuditEventRecordType auditEventRecordType = (AuditEventRecordType)rowModel.getObject();
 				List<ObjectDeltaOperationType> deltaList = auditEventRecordType.getDelta();
-				// System.out.println(deltaList.size());
-				for (int i = 0; i < deltaList.size(); i++) {
+				for (int i = 0; i < deltaList.size(); i++) 
+				{
 					ObjectDeltaOperationType objectDeltaOperationType = deltaList.get(i);
 					ObjectDeltaType objectDeltaType = objectDeltaOperationType.getObjectDelta();
-					try {
+					try 
+					{
 						ObjectDelta objectDelta = DeltaConvertor.createObjectDelta(objectDeltaType, getPrismContext());
 						repeatingView.add(new Label(componentId, objectDelta.toString()));
-
-					} catch (SchemaException e) {
-						// TODO Auto-generated catch block
+					} 
+					catch (SchemaException e) 
+					{
 						e.printStackTrace();
 					}
 				}				
 				item.add(repeatingView);
-				// TODO Auto-generated method stub
-				// super.populateItem(item, componentId, rowModel);
 			}
 		};
 		columns.add(deltaColumn);

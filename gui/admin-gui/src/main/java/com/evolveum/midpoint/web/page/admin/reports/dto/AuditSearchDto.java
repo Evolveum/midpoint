@@ -35,80 +35,80 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatu
  */
 public class AuditSearchDto implements Serializable {
 
-    public static final String F_FROM_GREG = "fromGreg";
-    public static final String F_TO_GREG = "toGreg";
-    public static final String F_FROM = "from";
-    public static final String F_TO = "to";
-    public static final String F_INITIATOR_NAME = "initiatorName";
-    public static final String F_CHANNEL = "channel";
-    public static final String F_HOST_IDENTIFIER = "hostIdentifier";
-    public static final String F_TARGET_NAME = "targetName";
-    public static final String F_TARGET_OWNER_NAME = "targetOwnerName";    
-    public static final String F_EVENT_TYPE = "eventType";
-    public static final String F_EVENT_STAGE = "eventStage";
-    public static final String F_OUTCOME = "outcome";
+	public static final String F_FROM_GREG = "fromGreg";
+	public static final String F_TO_GREG = "toGreg";
+	public static final String F_FROM = "from";
+	public static final String F_TO = "to";
+	public static final String F_INITIATOR_NAME = "initiatorName";
+	public static final String F_CHANNEL = "channel";
+	public static final String F_HOST_IDENTIFIER = "hostIdentifier";
+	public static final String F_TARGET_NAME = "targetName";
+	public static final String F_TARGET_OWNER_NAME = "targetOwnerName";    
+	public static final String F_EVENT_TYPE = "eventType";
+	public static final String F_EVENT_STAGE = "eventStage";
+	public static final String F_OUTCOME = "outcome";
 
-    private XMLGregorianCalendar fromGreg;
-    private XMLGregorianCalendar toGreg;
-    private Date from;
-    private Date to;
-    private String initiatorName;
-    // private String channel;
-    private QName channel;
-    private String hostIdentifier;
-    private String targetName;
-    private String targetOwnerName;
-    private AuditEventTypeType eventType;
-    private AuditEventStageType eventStage;
-    private OperationResultStatusType outcome;
-    
-    public XMLGregorianCalendar getFromGreg() {
-        return MiscUtil.asXMLGregorianCalendar(from);
-    }
+	private XMLGregorianCalendar fromGreg;
+	private XMLGregorianCalendar toGreg;
+	private Date from;
+	private Date to;
+	private String initiatorName;
+	// private String channel;
+	private QName channel;
+	private String hostIdentifier;
+	private String targetName;
+	private String targetOwnerName;
+	private AuditEventTypeType eventType;
+	private AuditEventStageType eventStage;
+	private OperationResultStatusType outcome;
 
-    public void setFromGreg(XMLGregorianCalendar fromGreg) {
-        this.from = MiscUtil.asDate(fromGreg);
-        this.fromGreg = fromGreg;
-    }
+	public XMLGregorianCalendar getFromGreg() {
+		return MiscUtil.asXMLGregorianCalendar(from);
+	}
 
-    public XMLGregorianCalendar getToGreg() {
-        return MiscUtil.asXMLGregorianCalendar(to);
-    }
+	public void setFromGreg(XMLGregorianCalendar fromGreg) {
+		this.from = MiscUtil.asDate(fromGreg);
+		this.fromGreg = fromGreg;
+	}
 
-    public void setToGreg(XMLGregorianCalendar toGreg) {
-        this.to = MiscUtil.asDate(toGreg);
-        this.toGreg = toGreg;
-    }
-    
-    public Date getFrom() {
-        if (from == null) {
-            from = new Date();
-        }
-        return from;
-    }
+	public XMLGregorianCalendar getToGreg() {
+		return MiscUtil.asXMLGregorianCalendar(to);
+	}
 
-    public void setFrom(Date from) {
-        this.from = from;
-    }
+	public void setToGreg(XMLGregorianCalendar toGreg) {
+		this.to = MiscUtil.asDate(toGreg);
+		this.toGreg = toGreg;
+	}
 
-    public Date getTo() {
-        if (to == null) {
-            to = new Date();
-        }
-        return to;
-    }
+	public Date getFrom() {
+		if (from == null) {
+			from = new Date();
+		}
+		return from;
+	}
 
-    public void setTo(Date to) {
-        this.to = to;
-    }
+	public void setFrom(Date from) {
+		this.from = from;
+	}
 
-    public Timestamp getDateFrom() {
-        return new Timestamp(getFrom().getTime());
-    }
+	public Date getTo() {
+		if (to == null) {
+			to = new Date();
+		}
+		return to;
+	}
 
-    public Timestamp getDateTo() {
-        return new Timestamp(getTo().getTime());
-    }
+	public void setTo(Date to) {
+		this.to = to;
+	}
+
+	public Timestamp getDateFrom() {
+		return new Timestamp(getFrom().getTime());
+	}
+
+	public Timestamp getDateTo() {
+		return new Timestamp(getTo().getTime());
+	}
 
 	public String getInitiatorName() {
 		return initiatorName;
@@ -173,5 +173,5 @@ public class AuditSearchDto implements Serializable {
 	public void setOutcome(OperationResultStatusType outcome) {
 		this.outcome = outcome;
 	}
-	
+
 }
