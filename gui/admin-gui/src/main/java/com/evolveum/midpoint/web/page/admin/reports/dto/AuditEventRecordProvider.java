@@ -63,11 +63,11 @@ public class AuditEventRecordProvider extends BaseSortableDataProvider<AuditEven
 		if (queryParameters.containsKey(SET_FIRST_RESULT_PARAMETER)){
 			queryParameters.remove(SET_FIRST_RESULT_PARAMETER);
 		}
-		queryParameters.put(SET_FIRST_RESULT_PARAMETER, ((Long) first).intValue());
+		parameters.put(SET_FIRST_RESULT_PARAMETER, ((Long) first).intValue());
 		if (queryParameters.containsKey(SET_MAX_RESULTS_PARAMETER)){
 			queryParameters.remove(SET_MAX_RESULTS_PARAMETER);
 		}
-		queryParameters.put(SET_MAX_RESULTS_PARAMETER, ((Long) count).intValue());
+		parameters.put(SET_MAX_RESULTS_PARAMETER, ((Long) count).intValue());
 
 		List<AuditEventRecordType> recordsList = listRecords(auditEventQuery, true);
 		return recordsList.iterator();
