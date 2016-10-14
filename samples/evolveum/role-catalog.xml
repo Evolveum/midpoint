@@ -27,21 +27,21 @@
 	
 	<org oid="00000000-ee88-6666-0000-c0000000a000">
 		<name>RA000</name>
-		<displayName>Testing Roles</displayName>
 		<parentOrgRef oid="00000000-ee88-6666-0000-c00000000000" type="c:OrgType"/>
 		<assignment>
 			<targetRef oid="00000000-ee88-6666-0000-c00000000000" type="c:OrgType"/>
 		</assignment>
+		<displayName>Testing Roles</displayName>
 		<orgType>roleCategory</orgType>
 	</org>
 	
 	<org oid="00000000-ee88-6666-0000-c00000001000">
 		<name>R1000</name>
-		<displayName>Jira</displayName>
 		<parentOrgRef oid="00000000-ee88-6666-0000-c00000000000" type="c:OrgType"/>
 		<assignment>
 			<targetRef oid="00000000-ee88-6666-0000-c00000000000" type="c:OrgType"/>
 		</assignment>
+		<displayName>Jira</displayName>
 		<orgType>application</orgType>
 	</org>
 
@@ -81,12 +81,12 @@
 	
 	<org oid="00000000-ee88-6666-0000-c00000002000">
 		<name>R2000</name>
-		<displayName>Confluence</displayName>
 		<description>Confluence Wiki</description>
 		<parentOrgRef oid="00000000-ee88-6666-0000-c00000000000" type="c:OrgType"/>
 		<assignment>
 			<targetRef oid="00000000-ee88-6666-0000-c00000000000" type="c:OrgType"/>
 		</assignment>
+		<displayName>Confluence</displayName>
 		<orgType>application</orgType>
 	</org>
 
@@ -136,11 +136,11 @@
 
 	<org oid="00000000-ee88-6666-0000-c00000003000">
 		<name>R3000</name>
-		<displayName>Gizmo</displayName>
 		<parentOrgRef oid="00000000-ee88-6666-0000-c00000000000" type="c:OrgType"/>
 		<assignment>
 			<targetRef oid="00000000-ee88-6666-0000-c00000000000" type="c:OrgType"/>
 		</assignment>
+		<displayName>Gizmo</displayName>
 		<orgType>application</orgType>
 	</org>
 	
