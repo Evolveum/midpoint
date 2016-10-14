@@ -10,6 +10,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
@@ -18,6 +19,7 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.EnumChoiceRenderer;
 import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
@@ -25,7 +27,6 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.util.ListModel;
 
-import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
@@ -34,10 +35,10 @@ import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AjaxButton;
+import com.evolveum.midpoint.web.component.DateInput;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.component.input.DatePanel;
@@ -70,9 +71,7 @@ import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 		description = "PageAuditLogViewer.auth.auditLogViewer.description")})
 public class PageAuditLogViewer extends PageBase{
 
-	private List<AuditEventRecord> auditEventRecordList;
-
-	Map<String, Object> params = new HashMap<>();
+	private static final long serialVersionUID = 1L;
 
 	private static final String ID_PARAMETERS_PANEL = "parametersPanel";
 	private static final String ID_TABLE = "table";
@@ -81,8 +80,8 @@ public class PageAuditLogViewer extends PageBase{
 	private static final String ID_INITIATOR_NAME = "initiatorNameField";
 	private static final String ID_CHANNEL = "channelField";
 	private static final String ID_HOST_IDENTIFIER = "hostIdentifierField";
-	private static final String ID_TARGET_NAME = "targetNameField";
-	private static final String ID_TARGET_OWNER_NAME = "targetOwnerNameField";
+	// private static final String ID_TARGET_NAME = "targetNameField";
+	// private static final String ID_TARGET_OWNER_NAME = "targetOwnerNameField";
 	private static final String ID_EVENT_TYPE = "eventTypeField";
 	private static final String ID_EVENT_STAGE = "eventStageField";
 	private static final String ID_OUTCOME = "outcomeField";
@@ -93,7 +92,7 @@ public class PageAuditLogViewer extends PageBase{
 	private IModel<AuditSearchDto> auditSearchDto;
 
 	public PageAuditLogViewer(){
-		auditSearchDto = new Model(new AuditSearchDto());
+		auditSearchDto = new Model<AuditSearchDto>(new AuditSearchDto());
 		initLayout();
 	}
 
@@ -110,67 +109,75 @@ public class PageAuditLogViewer extends PageBase{
 		parametersPanel.setOutputMarkupId(true);
 		mainForm.add(parametersPanel);
 
-		PropertyModel<XMLGregorianCalendar> fromModel = new PropertyModel<>(auditSearchDto, AuditSearchDto.F_FROM_GREG);
+		PropertyModel<XMLGregorianCalendar> fromModel = new PropertyModel<XMLGregorianCalendar>(auditSearchDto, AuditSearchDto.F_FROM_GREG);
 		DatePanel from = new DatePanel(ID_FROM, fromModel);
 		from.getBaseFormComponent().add(new EmptyOnChangeAjaxFormUpdatingBehavior());
 		from.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
+		// from.get("date").add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
+		// from.get("hours").add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
+		// from.get("minutes").add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
+		// from.get("amOrPmChoice").add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
 		from.setOutputMarkupId(true);
 		parametersPanel.add(from);
 
-		PropertyModel<XMLGregorianCalendar> toModel = new PropertyModel<>(auditSearchDto, AuditSearchDto.F_TO_GREG);
+		PropertyModel<XMLGregorianCalendar> toModel = new PropertyModel<XMLGregorianCalendar>(auditSearchDto, AuditSearchDto.F_TO_GREG);
 		DatePanel to = new DatePanel(ID_TO, toModel);
 		to.getBaseFormComponent().add(new EmptyOnChangeAjaxFormUpdatingBehavior());
 		to.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
+		// to.get("date").add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
+		// to.get("hours").add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
+		// to.get("minutes").add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
+		// to.get("amOrPmChoice").add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
 		to.setOutputMarkupId(true);
 		parametersPanel.add(to);
 
-		// PropertyModel<String> initiatorNameModel = new PropertyModel<>(auditSearchDto, AuditSearchDto.F_INITIATOR_NAME);
-		// TextPanel initiatorName = new TextPanel(ID_INITIATOR_NAME, initiatorNameModel);
+		// PropertyModel<String> initiatorNameModel = new PropertyModel<String>(auditSearchDto, AuditSearchDto.F_INITIATOR_NAME);
+		// TextPanel<String> initiatorName = new TextPanel<String>(ID_INITIATOR_NAME, initiatorNameModel);
 		// initiatorName.getBaseFormComponent().add(new EmptyOnChangeAjaxFormUpdatingBehavior());
 		// initiatorName.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
 		// initiatorName.setOutputMarkupId(true);
 		// parametersPanel.add(initiatorName);
 
-		PropertyModel<String> hostIdentifierModel = new PropertyModel<>(auditSearchDto, AuditSearchDto.F_HOST_IDENTIFIER);
-		TextPanel hostIdentifier = new TextPanel(ID_HOST_IDENTIFIER, hostIdentifierModel);
+		PropertyModel<String> hostIdentifierModel = new PropertyModel<String>(auditSearchDto, AuditSearchDto.F_HOST_IDENTIFIER);
+		TextPanel<String> hostIdentifier = new TextPanel<String>(ID_HOST_IDENTIFIER, hostIdentifierModel);
 		hostIdentifier.getBaseFormComponent().add(new EmptyOnChangeAjaxFormUpdatingBehavior());
 		hostIdentifier.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
 		hostIdentifier.setOutputMarkupId(true);
 		parametersPanel.add(hostIdentifier);
 
-		// PropertyModel<String> targetNameModel = new PropertyModel<>(auditSearchDto, AuditSearchDto.F_TARGET_NAME);
-		// TextPanel targetName = new TextPanel(ID_TARGET_NAME, targetNameModel);
+		// PropertyModel<String> targetNameModel = new PropertyModel<String>(auditSearchDto, AuditSearchDto.F_TARGET_NAME);
+		// TextPanel<String> targetName = new TextPanel<String>(ID_TARGET_NAME, targetNameModel);
 		// targetName.getBaseFormComponent().add(new EmptyOnChangeAjaxFormUpdatingBehavior());
 		// targetName.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
 		// targetName.setOutputMarkupId(true);
 		// parametersPanel.add(targetName);
 
-		// PropertyModel<String> targetOwnerNameModel = new PropertyModel<>(auditSearchDto, AuditSearchDto.F_TARGET_OWNER_NAME);
-		// TextPanel targetOwnerName = new TextPanel(ID_TARGET_OWNER_NAME, targetOwnerNameModel);
+		// PropertyModel<String> targetOwnerNameModel = new PropertyModel<String>(auditSearchDto, AuditSearchDto.F_TARGET_OWNER_NAME);
+		// TextPanel<String> targetOwnerName = new TextPanel<String>(ID_TARGET_OWNER_NAME, targetOwnerNameModel);
 		// targetOwnerName.getBaseFormComponent().add(new EmptyOnChangeAjaxFormUpdatingBehavior());
 		// targetOwnerName.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
 		// targetOwnerName.setOutputMarkupId(true);
 		// parametersPanel.add(targetOwnerName);
 
-		ListModel<AuditEventTypeType> eventTypeListModel = new ListModel(Arrays.asList(AuditEventTypeType.values()));
-		PropertyModel<AuditEventTypeType> eventTypeModel = new PropertyModel<>(auditSearchDto, AuditSearchDto.F_EVENT_TYPE);
-		DropDownChoicePanel eventType = new DropDownChoicePanel(ID_EVENT_TYPE, eventTypeModel, eventTypeListModel, new EnumChoiceRenderer<AuditEventTypeType>(), true);
+		ListModel<AuditEventTypeType> eventTypeListModel = new ListModel<AuditEventTypeType>(Arrays.asList(AuditEventTypeType.values()));
+		PropertyModel<AuditEventTypeType> eventTypeModel = new PropertyModel<AuditEventTypeType>(auditSearchDto, AuditSearchDto.F_EVENT_TYPE);
+		DropDownChoicePanel<AuditEventTypeType> eventType = new DropDownChoicePanel<AuditEventTypeType>(ID_EVENT_TYPE, eventTypeModel, eventTypeListModel, new EnumChoiceRenderer<AuditEventTypeType>(), true);
 		eventType.getBaseFormComponent().add(new EmptyOnChangeAjaxFormUpdatingBehavior());
 		eventType.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
 		eventType.setOutputMarkupId(true);
 		parametersPanel.add(eventType);
 
-		ListModel<AuditEventStageType> eventStageListModel = new ListModel(Arrays.asList(AuditEventStageType.values()));
-		PropertyModel<AuditEventStageType> eventStageModel = new PropertyModel<>(auditSearchDto, AuditSearchDto.F_EVENT_STAGE);
-		DropDownChoicePanel eventStage = new DropDownChoicePanel(ID_EVENT_STAGE, eventStageModel, eventStageListModel, new EnumChoiceRenderer<AuditEventStageType>(), true);
+		ListModel<AuditEventStageType> eventStageListModel = new ListModel<AuditEventStageType>(Arrays.asList(AuditEventStageType.values()));
+		PropertyModel<AuditEventStageType> eventStageModel = new PropertyModel<AuditEventStageType>(auditSearchDto, AuditSearchDto.F_EVENT_STAGE);
+		DropDownChoicePanel<AuditEventStageType> eventStage = new DropDownChoicePanel<AuditEventStageType>(ID_EVENT_STAGE, eventStageModel, eventStageListModel, new EnumChoiceRenderer<AuditEventStageType>(), true);
 		eventStage.getBaseFormComponent().add(new EmptyOnChangeAjaxFormUpdatingBehavior());
 		eventStage.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
 		eventStage.setOutputMarkupId(true);
 		parametersPanel.add(eventStage);
 
-		ListModel<OperationResultStatusType> outcomeListModel = new ListModel(Arrays.asList(OperationResultStatusType.values()));
-		PropertyModel<OperationResultStatusType> outcomeModel = new PropertyModel<>(auditSearchDto, AuditSearchDto.F_OUTCOME);
-		DropDownChoicePanel outcome = new DropDownChoicePanel(ID_OUTCOME, outcomeModel, outcomeListModel, new EnumChoiceRenderer<OperationResultStatusType>(), true);
+		ListModel<OperationResultStatusType> outcomeListModel = new ListModel<OperationResultStatusType>(Arrays.asList(OperationResultStatusType.values()));
+		PropertyModel<OperationResultStatusType> outcomeModel = new PropertyModel<OperationResultStatusType>(auditSearchDto, AuditSearchDto.F_OUTCOME);
+		DropDownChoicePanel<OperationResultStatusType> outcome = new DropDownChoicePanel<OperationResultStatusType>(ID_OUTCOME, outcomeModel, outcomeListModel, new EnumChoiceRenderer<OperationResultStatusType>(), true);
 		outcome.getBaseFormComponent().add(new EmptyOnChangeAjaxFormUpdatingBehavior());
 		outcome.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
 		outcome.setOutputMarkupId(true);
@@ -187,15 +194,16 @@ public class PageAuditLogViewer extends PageBase{
 				channelQnameList.add(channelQName);
 			}
 		}
-		ListModel<QName> channelListModel = new ListModel(channelQnameList);
-		PropertyModel<QName> channelModel = new PropertyModel<>(auditSearchDto, AuditSearchDto.F_CHANNEL);
-		DropDownChoicePanel channel = new DropDownChoicePanel(ID_CHANNEL, channelModel, channelListModel, new QNameChoiceRenderer(), true);
+		ListModel<QName> channelListModel = new ListModel<QName>(channelQnameList);
+		PropertyModel<QName> channelModel = new PropertyModel<QName>(auditSearchDto, AuditSearchDto.F_CHANNEL);
+		DropDownChoicePanel<QName> channel = new DropDownChoicePanel<QName>(ID_CHANNEL, channelModel, channelListModel, new QNameChoiceRenderer(), true);
 		channel.getBaseFormComponent().add(new EmptyOnChangeAjaxFormUpdatingBehavior());
 		channel.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
 		channel.setOutputMarkupId(true);
 		parametersPanel.add(channel);
 
 		AjaxButton ajaxButton = new AjaxButton(ID_SEARCH_BUTTON, createStringResource("BasicSearchPanel.search")) {
+			private static final long serialVersionUID = 1L;
 			@Override
 			public void onClick(AjaxRequestTarget arg0) {
 				Form mainForm = (Form)getParent().getParent();
@@ -219,9 +227,12 @@ public class PageAuditLogViewer extends PageBase{
 	}
 
 	private void refreshTable(Form mainForm){
-		AuditEventRecordProvider provider = new AuditEventRecordProvider(PageAuditLogViewer.this){
+		AuditEventRecordProvider provider = new AuditEventRecordProvider(PageAuditLogViewer.this) {
+			private static final long serialVersionUID = 1L;
 			public Map<String, Object> getParameters() {
 				Map<String, Object> parameters = new HashMap<String, Object>();
+				// System.out.println(auditSearchDto.getObject().getFromGreg());
+				// System.out.println(auditSearchDto.getObject().getToGreg());
 				parameters.put("from", auditSearchDto.getObject().getFromGreg());
 				parameters.put("to", auditSearchDto.getObject().getToGreg());
 				// parameters.put("initiatorName", auditSearchDto.getObject().getInitiatorName());
@@ -237,7 +248,7 @@ public class PageAuditLogViewer extends PageBase{
 				parameters.put("outcome", auditSearchDto.getObject().getOutcome());
 				return parameters;
 			}
-		};		
+		};
 		BoxedTablePanel table = new BoxedTablePanel(ID_TABLE, provider,
 				initColumns(),
 				UserProfileStorage.TableId.PAGE_AUDIT_LOG_VIEWER,
@@ -248,9 +259,10 @@ public class PageAuditLogViewer extends PageBase{
 	}
 
 	private List<IColumn<AuditEventRecordType, String>> initColumns() {
-		List<IColumn<AuditEventRecordType, String>> columns = new ArrayList<>();
+		List<IColumn<AuditEventRecordType, String>> columns = new ArrayList<IColumn<AuditEventRecordType, String>>();
 		IColumn<AuditEventRecordType, String> linkColumn = 
-				new LinkColumn<AuditEventRecordType>(createStringResource("PageAuditLogViewer.column.time"), "timestamp"){
+				new LinkColumn<AuditEventRecordType>(createStringResource("PageAuditLogViewer.column.time"), "timestamp") {
+			private static final long serialVersionUID = 1L;
 			@Override
 			public void onClick(AjaxRequestTarget target, IModel<AuditEventRecordType> rowModel) {
 				setResponsePage(new PageAuditLogDetails(rowModel.getObject()));
@@ -263,10 +275,11 @@ public class PageAuditLogViewer extends PageBase{
 			}
 		};
 		columns.add(linkColumn);
-		// IColumn timeColumn = new PropertyColumn(createStringResource("PageAuditLogViewer.column.time"), "timestamp");
+		// IColumn<AuditEventRecordType, String> timeColumn = new PropertyColumn<AuditEventRecordType, String>(createStringResource("PageAuditLogViewer.column.time"), "timestamp");
 		// columns.add(timeColumn);
 
-		IColumn initiatorColumn = new PropertyColumn(createStringResource("PageAuditLogViewer.column.initiatorRef"), "initiatorRef"){
+		IColumn<AuditEventRecordType, String> initiatorColumn = new PropertyColumn<AuditEventRecordType, String>(createStringResource("PageAuditLogViewer.column.initiatorRef"), "initiatorRef") {
+			private static final long serialVersionUID = 1L;
 			@Override
 			public void populateItem(Item item, String componentId, IModel rowModel) {
 				AuditEventRecordType auditEventRecordType = (AuditEventRecordType)rowModel.getObject();
@@ -281,7 +294,8 @@ public class PageAuditLogViewer extends PageBase{
 			}
 		};
 		columns.add(initiatorColumn);
-		IColumn taskIdentifierColumn = new PropertyColumn(createStringResource("PageAuditLogViewer.column.taskIdentifier"), "taskIdentifier"){
+		IColumn<AuditEventRecordType, String> taskIdentifierColumn = new PropertyColumn<AuditEventRecordType, String>(createStringResource("PageAuditLogViewer.column.taskIdentifier"), "taskIdentifier") {
+			private static final long serialVersionUID = 1L;
 			@Override
 			public void populateItem(Item item, String componentId, IModel rowModel) {
 				item.add(new AttributeModifier("style", new Model<String>("width: 10%;")));
@@ -289,7 +303,8 @@ public class PageAuditLogViewer extends PageBase{
 			}
 		};
 		columns.add(taskIdentifierColumn);
-		IColumn channelColumn = new PropertyColumn(createStringResource("PageAuditLogViewer.column.channel"), "channel"){
+		IColumn<AuditEventRecordType, String> channelColumn = new PropertyColumn<AuditEventRecordType, String>(createStringResource("PageAuditLogViewer.column.channel"), "channel") {
+			private static final long serialVersionUID = 1L;
 			@Override
 			public void populateItem(Item item, String componentId, IModel rowModel) {
 				AuditEventRecordType auditEventRecordType = (AuditEventRecordType)rowModel.getObject();
@@ -298,7 +313,7 @@ public class PageAuditLogViewer extends PageBase{
 				{
 					QName channelQName = QNameUtil.uriToQName(channel);
 					String return_ = channelQName.getLocalPart();
-					item.add(new Label(componentId, return_));					
+					item.add(new Label(componentId, return_));
 				} 
 				else 
 				{
@@ -308,7 +323,8 @@ public class PageAuditLogViewer extends PageBase{
 			}
 		};
 		columns.add(channelColumn);
-		IColumn deltaColumn = new PropertyColumn(createStringResource("PageAuditLogViewer.column.delta"), "delta"){
+		IColumn<AuditEventRecordType, String> deltaColumn = new PropertyColumn<AuditEventRecordType, String>(createStringResource("PageAuditLogViewer.column.delta"), "delta"){
+			private static final long serialVersionUID = 1L;
 			@Override
 			public void populateItem(Item item, String componentId, IModel rowModel) {
 				RepeatingView repeatingView = new RepeatingView(componentId);
@@ -321,13 +337,14 @@ public class PageAuditLogViewer extends PageBase{
 					try 
 					{
 						ObjectDelta objectDelta = DeltaConvertor.createObjectDelta(objectDeltaType, getPrismContext());
-						repeatingView.add(new Label(componentId, objectDelta.toString()));
+						repeatingView.add(new Label(repeatingView.newChildId(), objectDelta.toString()));
 					} 
-					catch (SchemaException e) 
+					catch (Exception e) 
 					{
-						e.printStackTrace();
+						repeatingView.add(new Label(repeatingView.newChildId(), 
+								"[Convertion from objectDeltaType to ObjectDelta fails]: " + objectDeltaType.toString()));
 					}
-				}				
+				}
 				item.add(repeatingView);
 			}
 		};
