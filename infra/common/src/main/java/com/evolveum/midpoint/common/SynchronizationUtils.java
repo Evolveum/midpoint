@@ -23,6 +23,7 @@ import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.util.QNameUtil;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
@@ -69,7 +70,7 @@ public class SynchronizationUtils {
 			String policyIntent = synchronizationPolicy.getIntent();
 			ShadowKindType policyKind = synchronizationPolicy.getKind();
 			ObjectClassComplexTypeDefinition policyObjectClass = null;
-			RefinedResourceSchema schema = RefinedResourceSchema.getRefinedSchema(resource);
+			RefinedResourceSchema schema = RefinedResourceSchemaImpl.getRefinedSchema(resource);
 			if (schema == null) {
 				throw new SchemaException("No schema defined in resource. Possible configuration problem?");
 			}

@@ -34,6 +34,7 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -224,10 +225,10 @@ public class TestDummySchemaless extends AbstractIntegrationTest {
 
 		// THEN
 		// The returned type should have the schema pre-parsed
-		assertNotNull(RefinedResourceSchema.hasParsedSchema(resourceTypeSchemaless));
+		assertNotNull(RefinedResourceSchemaImpl.hasParsedSchema(resourceTypeSchemaless));
 
 		// Also test if the utility method returns the same thing
-		ResourceSchema returnedSchema = RefinedResourceSchema.getResourceSchema(resourceTypeSchemaless, prismContext);
+		ResourceSchema returnedSchema = RefinedResourceSchemaImpl.getResourceSchema(resourceTypeSchemaless, prismContext);
 
 		display("Parsed resource schema", returnedSchema);
 		
@@ -300,10 +301,10 @@ public class TestDummySchemaless extends AbstractIntegrationTest {
 
 		// THEN
 		// The returned type should have the schema pre-parsed
-		assertNotNull(RefinedResourceSchema.hasParsedSchema(resourceTypeStaticSchema));
+		assertNotNull(RefinedResourceSchemaImpl.hasParsedSchema(resourceTypeStaticSchema));
 
 		// Also test if the utility method returns the same thing
-		ResourceSchema returnedSchema = RefinedResourceSchema.getResourceSchema(resourceTypeStaticSchema, prismContext);
+		ResourceSchema returnedSchema = RefinedResourceSchemaImpl.getResourceSchema(resourceTypeStaticSchema, prismContext);
 
 		display("Parsed resource schema", returnedSchema);
 		assertNotNull("Null resource schema", returnedSchema);
@@ -324,7 +325,7 @@ public class TestDummySchemaless extends AbstractIntegrationTest {
 		assertNotNull("No connector ref", resourceType.getConnectorRef());
 		assertNotNull("No connector ref OID", resourceType.getConnectorRef().getOid());
 		
-		ResourceSchema returnedSchema = RefinedResourceSchema.getResourceSchema(resource, prismContext);
+		ResourceSchema returnedSchema = RefinedResourceSchemaImpl.getResourceSchema(resource, prismContext);
 
 		display("Parsed resource schema", returnedSchema);
 		assertNotNull("Null resource schema", returnedSchema);

@@ -37,6 +37,7 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
+import com.evolveum.midpoint.prism.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.NotNull;
@@ -46,16 +47,6 @@ import org.xml.sax.EntityResolver;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
-import com.evolveum.midpoint.prism.ComplexTypeDefinition;
-import com.evolveum.midpoint.prism.Definition;
-import com.evolveum.midpoint.prism.DisplayableValueImpl;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismConstants;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.PrismReferenceDefinition;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -91,7 +82,7 @@ class DomToSchemaProcessor {
 
 	private static final Trace LOGGER = TraceManager.getTrace(DomToSchemaProcessor.class);
 
-	private PrismSchema schema;
+	private PrismSchemaImpl schema;
 	private EntityResolver entityResolver;
 	private PrismContext prismContext;
 	private XSSchemaSet xsSchemaSet;
@@ -156,7 +147,7 @@ class DomToSchemaProcessor {
 	 * @throws SchemaException
 	 *             in case of any error
 	 */
-	PrismSchema parseDom(PrismSchema prismSchema, Element xsdSchema) throws SchemaException {
+	void parseDom(PrismSchemaImpl prismSchema, Element xsdSchema) throws SchemaException {
 		Validate.notNull(xsdSchema, "XSD schema element must not be null.");
 
 		schema = prismSchema;
@@ -165,7 +156,7 @@ class DomToSchemaProcessor {
 
 		xsSchemaSet = parseSchema(xsdSchema);
 		if (xsSchemaSet == null) {
-			return schema;
+			return;
 		}
 
 		// Create ComplexTypeDefinitions from all top-level complexType
@@ -176,8 +167,6 @@ class DomToSchemaProcessor {
 		// the top-level elements in XSD
 		// This also creates ResourceObjectDefinition in some cases
 		createDefinitionsFromElements(xsSchemaSet);
-
-		return schema;
 	}
 
 	private void initSchema(Element xsdSchema) throws SchemaException {
@@ -238,7 +227,7 @@ class DomToSchemaProcessor {
 	private XSOMParser createSchemaParser() {
 		XSOMParser parser = new XSOMParser();
 		if (entityResolver == null) {
-			entityResolver = prismContext.getSchemaRegistry();
+			entityResolver = prismContext.getEntityResolver();
 			if (entityResolver == null) {
 				throw new IllegalStateException(
 						"Entity resolver is not set (even tried to pull it from prism context)");
@@ -295,7 +284,7 @@ class DomToSchemaProcessor {
 			throws SchemaException {
 
 		SchemaDefinitionFactory definitionFactory = getDefinitionFactory();
-		ComplexTypeDefinition ctd = definitionFactory.createComplexTypeDefinition(complexType, prismContext,
+		ComplexTypeDefinitionImpl ctd = (ComplexTypeDefinitionImpl) definitionFactory.createComplexTypeDefinition(complexType, prismContext,
 				complexType.getAnnotation());
 
 		ComplexTypeDefinition existingComplexTypeDefinition = schema
@@ -369,7 +358,7 @@ class DomToSchemaProcessor {
 		extractDocumentation(ctd, complexType.getAnnotation());
 
 		if (getSchemaRegistry() != null) {
-			Class<?> compileTimeClass = getSchemaRegistry().determineCompileTimeClass(ctd);
+			Class<?> compileTimeClass = getSchemaRegistry().determineCompileTimeClass(ctd.getTypeName());
 			ctd.setCompileTimeClass(compileTimeClass);
 		}
 
@@ -402,7 +391,7 @@ class DomToSchemaProcessor {
 			// The documentation may be HTML-formatted. Therefore we want to
 			// keep the formatting and tag names
 			String documentationText = DOMUtil.serializeElementContent(documentationElement);
-			definition.setDocumentation(documentationText);
+			((DefinitionImpl) definition).setDocumentation(documentationText);
 		}
 	}
 
@@ -462,13 +451,13 @@ class DomToSchemaProcessor {
 							XSAnnotation containerAnnotation = xsType.getAnnotation();
 							PrismContainerDefinition<?> containerDefinition = createPropertyContainerDefinition(
 									xsType, p, null, containerAnnotation, false);
-							containerDefinition.setInherited(particleInherited);
-							ctd.addDefinition(containerDefinition);
+							((PrismContainerDefinitionImpl) containerDefinition).setInherited(particleInherited);
+							((ComplexTypeDefinitionImpl) ctd).addDefinition(containerDefinition);
 						} else {
-							PrismPropertyDefinition propDef = createPropertyDefinition(xsType, elementName,
+							PrismPropertyDefinitionImpl propDef = createPropertyDefinition(xsType, elementName,
 									DOMUtil.XSD_ANY, ctd, annotation, p);
 							propDef.setInherited(particleInherited);
-							ctd.addDefinition(propDef);
+							((ComplexTypeDefinitionImpl) ctd).addDefinition(propDef);
 						}
 					}
 
@@ -501,11 +490,11 @@ class DomToSchemaProcessor {
 					PrismContainerDefinition<?> containerDefinition = createPropertyContainerDefinition(
 							xsType, p, complexTypeDefinition, containerAnnotation, false);
 					if (isAny(xsType)) {
-						containerDefinition.setRuntimeSchema(true);
-						containerDefinition.setDynamic(true);
+						((PrismContainerDefinitionImpl) containerDefinition).setRuntimeSchema(true);
+						((PrismContainerDefinitionImpl) containerDefinition).setDynamic(true);
 					}
-					containerDefinition.setInherited(particleInherited);
-					ctd.addDefinition(containerDefinition);
+					((PrismContainerDefinitionImpl) containerDefinition).setInherited(particleInherited);
+					((ComplexTypeDefinitionImpl) ctd).addDefinition(containerDefinition);
 
 				} else {
 
@@ -513,10 +502,10 @@ class DomToSchemaProcessor {
 					// complex type)
 					QName typeName = new QName(xsType.getTargetNamespace(), xsType.getName());
 
-					PrismPropertyDefinition propDef = createPropertyDefinition(xsType, elementName, typeName,
+					PrismPropertyDefinitionImpl propDef = createPropertyDefinition(xsType, elementName, typeName,
 							ctd, annotation, p);
 					propDef.setInherited(particleInherited);
-					ctd.add(propDef);
+					((ComplexTypeDefinitionImpl) ctd).add(propDef);
 				}
 			}
 		}
@@ -534,17 +523,17 @@ class DomToSchemaProcessor {
 		if (hasExplicitPrimaryElementName) {
 			primaryElementName = DOMUtil.getQNameValue(objRefAnnotationElement);
 		}
-		PrismReferenceDefinition definition = null;
+		PrismReferenceDefinitionImpl definition = null;
 		if (containingCtd != null) {
-			definition = containingCtd.findItemDefinition(primaryElementName, PrismReferenceDefinition.class);
+			definition = (PrismReferenceDefinitionImpl) containingCtd.findItemDefinition(primaryElementName, PrismReferenceDefinition.class);
 		}
 		if (definition == null) {
 			SchemaDefinitionFactory definitionFactory = getDefinitionFactory();
-			definition = definitionFactory.createReferenceDefinition(primaryElementName, typeName,
+			definition = (PrismReferenceDefinitionImpl) definitionFactory.createReferenceDefinition(primaryElementName, typeName,
 					containingCtd, prismContext, annotation, elementParticle);
 			definition.setInherited(inherited);
 			if (containingCtd != null) {
-				containingCtd.add(definition);
+				((ComplexTypeDefinitionImpl) containingCtd).add(definition);
 			}
 		}
 		if (hasExplicitPrimaryElementName) {
@@ -585,20 +574,20 @@ class DomToSchemaProcessor {
 	private void setMultiplicity(ItemDefinition itemDef, XSParticle particle, XSAnnotation annotation,
 			boolean topLevel) {
 		if (topLevel || particle == null) {
-			itemDef.setMinOccurs(0);
+			((ItemDefinitionImpl) itemDef).setMinOccurs(0);
 			Element maxOccursAnnotation = SchemaProcessorUtil.getAnnotationElement(annotation, A_MAX_OCCURS);
 			if (maxOccursAnnotation != null) {
 				String maxOccursString = maxOccursAnnotation.getTextContent();
 				int maxOccurs = XsdTypeMapper.multiplicityToInteger(maxOccursString);
-				itemDef.setMaxOccurs(maxOccurs);
+				((ItemDefinitionImpl) itemDef).setMaxOccurs(maxOccurs);
 			} else {
-				itemDef.setMaxOccurs(-1);
+				((ItemDefinitionImpl) itemDef).setMaxOccurs(-1);
 			}
 		} else {
 			// itemDef.setMinOccurs(particle.getMinOccurs());
 			// itemDef.setMaxOccurs(particle.getMaxOccurs());
-			itemDef.setMinOccurs(particle.getMinOccurs().intValue());
-			itemDef.setMaxOccurs(particle.getMaxOccurs().intValue());
+			((ItemDefinitionImpl) itemDef).setMinOccurs(particle.getMinOccurs().intValue());
+			((ItemDefinitionImpl) itemDef).setMaxOccurs(particle.getMaxOccurs().intValue());
 		}
 	}
 
@@ -870,15 +859,14 @@ class DomToSchemaProcessor {
 					throws SchemaException {
 
 		QName elementName = new QName(elementDecl.getTargetNamespace(), elementDecl.getName());
-		PrismContainerDefinition<?> pcd = null;
+		PrismContainerDefinitionImpl<?> pcd = null;
 
 		SchemaDefinitionFactory definitionFactory = getDefinitionFactory();
 
 		if (isObjectDefinition(xsType)) {
 			Class compileTimeClass = null;
 			if (getSchemaRegistry() != null) {
-				compileTimeClass = getSchemaRegistry().determineCompileTimeClass(elementName,
-						complexTypeDefinition);
+				compileTimeClass = getSchemaRegistry().determineCompileTimeClass(complexTypeDefinition.getTypeName());
 			}
 			pcd = definitionFactory.createObjectDefinition(elementName, complexTypeDefinition, prismContext,
 					compileTimeClass, complexTypeAnnotation, elementParticle);
@@ -909,10 +897,10 @@ class DomToSchemaProcessor {
 	 * of the schema. This method is also processing annotations and other fancy
 	 * property-relates stuff.
 	 */
-	private <T> PrismPropertyDefinition<T> createPropertyDefinition(XSType xsType, QName elementName,
+	private <T> PrismPropertyDefinitionImpl<T> createPropertyDefinition(XSType xsType, QName elementName,
 			QName typeName, ComplexTypeDefinition ctd, XSAnnotation annotation, XSParticle elementParticle)
 					throws SchemaException {
-		PrismPropertyDefinition<T> propDef;
+		PrismPropertyDefinitionImpl<T> propDef;
 
 		SchemaDefinitionFactory definitionFactory = getDefinitionFactory();
 
@@ -921,7 +909,7 @@ class DomToSchemaProcessor {
 
 		Object defaultValue = parseDefaultValue(elementParticle, typeName);
 
-		propDef = definitionFactory.createPropertyDefinition(elementName, typeName, ctd, prismContext,
+		propDef = (PrismPropertyDefinitionImpl) definitionFactory.createPropertyDefinition(elementName, typeName, ctd, prismContext,
 				annotation, elementParticle, allowedValues, null);
 		setMultiplicity(propDef, elementParticle, annotation, ctd == null);
 
@@ -1069,7 +1057,7 @@ class DomToSchemaProcessor {
 		return null;
 	}
 
-	private void parseItemDefinitionAnnotations(ItemDefinition itemDef, XSAnnotation annotation)
+	private void parseItemDefinitionAnnotations(ItemDefinitionImpl itemDef, XSAnnotation annotation)
 			throws SchemaException {
 		if (annotation == null || annotation.getAnnotation() == null) {
 			return;
@@ -1178,7 +1166,7 @@ class DomToSchemaProcessor {
 
 	private void markRuntime(Definition def) {
 		if (isRuntime) {
-			def.setRuntimeSchema(true);
+			((DefinitionImpl) def).setRuntimeSchema(true);
 		}
 	}
 

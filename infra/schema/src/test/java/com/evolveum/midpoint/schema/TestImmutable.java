@@ -97,7 +97,7 @@ public class TestImmutable {
 		PrismContext prismContext = PrismTestUtil.getPrismContext();
 
 		// WHEN
-		PrismPropertyDefinition<XMLGregorianCalendar> datePPD = new PrismPropertyDefinition<>(new QName(SchemaConstants.NS_C, "dateTime"), DOMUtil.XSD_DATETIME, prismContext);
+		PrismPropertyDefinition<XMLGregorianCalendar> datePPD = new PrismPropertyDefinitionImpl<>(new QName(SchemaConstants.NS_C, "dateTime"), DOMUtil.XSD_DATETIME, prismContext);
 		PrismProperty<XMLGregorianCalendar> datePP = datePPD.instantiate();
 		Date now = new Date();
 		Date yesterday = new Date(now.getTime()-86400000L);
@@ -134,7 +134,7 @@ public class TestImmutable {
 		PrismContext prismContext = PrismTestUtil.getPrismContext();
 
 		// WHEN
-		PrismReferenceDefinition refPRD = new PrismReferenceDefinition(new QName(SchemaConstants.NS_C, "ref"), ObjectReferenceType.COMPLEX_TYPE, prismContext);
+		PrismReferenceDefinition refPRD = new PrismReferenceDefinitionImpl(new QName(SchemaConstants.NS_C, "ref"), ObjectReferenceType.COMPLEX_TYPE, prismContext);
 		PrismReference refPR = refPRD.instantiate();
 		refPR.add(ObjectTypeUtil.createObjectRef("oid1", ObjectTypes.USER).asReferenceValue());
 		refPR.setImmutable(true);

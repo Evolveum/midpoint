@@ -276,7 +276,7 @@ public abstract class TestCompare {
 		
 		PrismContext prismContext = constructInitializedPrismContext();
 		
-		PrismReferenceDefinition ref1Def = new PrismReferenceDefinition(REF_QNAME, REF_TYPE_QNAME, prismContext);
+		PrismReferenceDefinitionImpl ref1Def = new PrismReferenceDefinitionImpl(REF_QNAME, REF_TYPE_QNAME, prismContext);
 		ref1Def.setTargetTypeName(ACCOUNT_TYPE_QNAME);
 		PrismReference ref1 = new PrismReference(REF_QNAME, ref1Def, prismContext);
 		
@@ -296,7 +296,7 @@ public abstract class TestCompare {
 		// No type
 		ref1.add(val14);
 		
-		PrismReferenceDefinition ref2Def = new PrismReferenceDefinition(REF_QNAME, REF_TYPE_QNAME, prismContext);
+		PrismReferenceDefinition ref2Def = new PrismReferenceDefinitionImpl(REF_QNAME, REF_TYPE_QNAME, prismContext);
 		// no target type def
 		PrismReference ref2 = new PrismReference(REF_QNAME, ref2Def, prismContext);
 		

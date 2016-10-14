@@ -18,6 +18,7 @@ package com.evolveum.midpoint.model.impl.integrity;
 
 import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.model.common.SystemObjectCache;
 import com.evolveum.midpoint.model.impl.sync.SynchronizationService;
 import com.evolveum.midpoint.model.impl.util.AbstractSearchIterativeResultHandler;
@@ -404,7 +405,7 @@ public class ShadowIntegrityCheckResultHandler extends AbstractSearchIterativeRe
             context.setResource(resource);
             RefinedResourceSchema resourceSchema;
             try {
-                resourceSchema = RefinedResourceSchema.getRefinedSchema(context.getResource(), LayerType.MODEL, prismContext);
+                resourceSchema = RefinedResourceSchemaImpl.getRefinedSchema(context.getResource(), LayerType.MODEL, prismContext);
             } catch (SchemaException e) {
                 checkResult.recordError(Statistics.CANNOT_GET_REFINED_SCHEMA, new SchemaException("Couldn't derive resource schema: " + e.getMessage(), e));
                 return;

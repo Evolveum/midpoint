@@ -16,10 +16,7 @@
 
 package com.evolveum.midpoint.web.component.prism;
 
-import com.evolveum.midpoint.common.refinery.CompositeRefinedObjectClassDefinition;
-import com.evolveum.midpoint.common.refinery.RefinedAssociationDefinition;
-import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
+import com.evolveum.midpoint.common.refinery.*;
 import com.evolveum.midpoint.gui.api.component.autocomplete.AutoCompleteTextPanel;
 import com.evolveum.midpoint.gui.api.component.password.PasswordPanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
@@ -722,7 +719,7 @@ public class PrismValuePanel extends Panel {
 	            RefinedResourceSchema refinedSchema;
 	            CompositeRefinedObjectClassDefinition rOcDef;
 	            try {
-					refinedSchema = RefinedResourceSchema.getRefinedSchema(resource);
+					refinedSchema = RefinedResourceSchemaImpl.getRefinedSchema(resource);
 					rOcDef = refinedSchema.determineCompositeObjectClassDefinition(shadowType.asPrismObject());
 				} catch (SchemaException e) {
 					throw new SystemException(e.getMessage(),e);

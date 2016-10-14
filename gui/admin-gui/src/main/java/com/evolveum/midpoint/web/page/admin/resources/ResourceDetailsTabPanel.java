@@ -21,6 +21,7 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
@@ -323,7 +324,7 @@ public class ResourceDetailsTabPanel extends Panel {
 		Integer progress = null;
 		RefinedResourceSchema refinedSchema = null;
 		try {
-			refinedSchema = RefinedResourceSchema.getRefinedSchema(resource);
+			refinedSchema = RefinedResourceSchemaImpl.getRefinedSchema(resource);
 			if (refinedSchema != null) {
 				backgroundColor = "bg-purple";
 				icon = "fa-cubes";
@@ -414,7 +415,7 @@ public class ResourceDetailsTabPanel extends Panel {
 			// is not accessible in admin-gui)
 			if (taskObjectClassValue == null) {
 				ObjectClassComplexTypeDefinition taskObjectClassDef = null;
-				RefinedResourceSchema schema = RefinedResourceSchema.getRefinedSchema(resource);
+				RefinedResourceSchema schema = RefinedResourceSchemaImpl.getRefinedSchema(resource);
 				if (schema == null) {
 					throw new SchemaException(
 							"No schema defined in resource. Possible configuration problem?");

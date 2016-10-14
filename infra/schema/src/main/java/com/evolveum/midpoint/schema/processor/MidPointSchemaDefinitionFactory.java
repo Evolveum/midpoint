@@ -60,7 +60,7 @@ public class MidPointSchemaDefinitionFactory extends SchemaDefinitionFactory {
 			PrismContext prismContext, XSAnnotation annotation) throws SchemaException {
 		QName typeName = new QName(complexType.getTargetNamespace(),complexType.getName());
 		
-		ObjectClassComplexTypeDefinition ocDef = new ObjectClassComplexTypeDefinition(typeName, prismContext);
+		ObjectClassComplexTypeDefinitionImpl ocDef = new ObjectClassComplexTypeDefinitionImpl(typeName, prismContext);
 		
 		// nativeObjectClass
 		Element nativeAttrElement = SchemaProcessorUtil.getAnnotationElement(annotation, MidPointConstants.RA_NATIVE_OBJECT_CLASS);
@@ -139,11 +139,12 @@ public class MidPointSchemaDefinitionFactory extends SchemaDefinitionFactory {
 			PrismContext prismContext, XSAnnotation annotation) throws SchemaException {
 		super.finishComplexTypeDefinition(complexTypeDefinition, complexType, prismContext, annotation);
 		if (complexTypeDefinition instanceof ObjectClassComplexTypeDefinition) {
-			finishObjectClassDefinition((ObjectClassComplexTypeDefinition)complexTypeDefinition, complexType, prismContext, annotation);
+			// TODO is this safe?
+			finishObjectClassDefinition((ObjectClassComplexTypeDefinitionImpl)complexTypeDefinition, complexType, prismContext, annotation);
 		}
 	}
 
-	private void finishObjectClassDefinition(ObjectClassComplexTypeDefinition ocDef,
+	private void finishObjectClassDefinition(ObjectClassComplexTypeDefinitionImpl ocDef,
 			XSComplexType complexType, PrismContext prismContext, XSAnnotation annotation) throws SchemaException {
 		
 		// displayNameAttribute
@@ -235,7 +236,7 @@ public class MidPointSchemaDefinitionFactory extends SchemaDefinitionFactory {
 	private PrismContainerDefinition createResourceAttributeContainerDefinition(XSComplexType complexType,
 			ObjectClassComplexTypeDefinition complexTypeDefinition, PrismContext prismContext, XSAnnotation annotation) {
 		
-		ResourceAttributeContainerDefinition attrContDef = new ResourceAttributeContainerDefinition(null, complexTypeDefinition, prismContext);
+		ResourceAttributeContainerDefinition attrContDef = new ResourceAttributeContainerDefinitionImpl(null, complexTypeDefinition, prismContext);
 		
 		return attrContDef;
 
@@ -265,7 +266,7 @@ public class MidPointSchemaDefinitionFactory extends SchemaDefinitionFactory {
 				
 	private PrismPropertyDefinition createResourceAttributeDefinition(QName elementName, QName typeName,
 			PrismContext prismContext, XSAnnotation annotation) throws SchemaException {
-		ResourceAttributeDefinition attrDef = new ResourceAttributeDefinition(elementName, typeName, prismContext);
+		ResourceAttributeDefinitionImpl attrDef = new ResourceAttributeDefinitionImpl(elementName, typeName, prismContext);
 		
 		// nativeAttributeName
 		Element nativeAttrElement = SchemaProcessorUtil.getAnnotationElement(annotation, MidPointConstants.RA_NATIVE_ATTRIBUTE_NAME);

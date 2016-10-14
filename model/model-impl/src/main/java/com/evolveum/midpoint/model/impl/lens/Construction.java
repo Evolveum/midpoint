@@ -22,10 +22,7 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.common.refinery.RefinedAssociationDefinition;
-import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
-import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
+import com.evolveum.midpoint.common.refinery.*;
 import com.evolveum.midpoint.model.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.model.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.model.common.expression.ObjectDeltaObject;
@@ -451,7 +448,7 @@ public class Construction<F extends FocusType> implements DebugDumpable, Seriali
 					"The specified resource and the resource in construction does not match");
 		}
 
-		RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resource,
+		RefinedResourceSchema refinedSchema = RefinedResourceSchemaImpl.getRefinedSchema(resource,
 				LayerType.MODEL, prismContext);
 		if (refinedSchema == null) {
 			// Refined schema may be null in some error-related border cases

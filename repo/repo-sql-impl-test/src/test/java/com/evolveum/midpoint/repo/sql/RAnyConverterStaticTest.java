@@ -18,12 +18,7 @@ package com.evolveum.midpoint.repo.sql;
 
 import java.util.Set;
 
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismConstants;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
@@ -199,7 +194,7 @@ public class RAnyConverterStaticTest extends BaseSQLRepoTest {
         AssertJUnit.assertNotNull(def);
         PrismProperty item = (PrismProperty) def.instantiate();
         item.setValue(new PrismPropertyValue(BeforeAfterType.AFTER));
-        def.setName(valueName);
+        ((ItemDefinitionImpl) def).setName(valueName);
         
         
         RAnyConverter converter = new RAnyConverter(prismContext);

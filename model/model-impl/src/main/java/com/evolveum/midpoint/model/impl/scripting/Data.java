@@ -17,13 +17,7 @@
 package com.evolveum.midpoint.model.impl.scripting;
 
 import com.evolveum.midpoint.model.api.ScriptExecutionException;
-import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.PrismReference;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
@@ -127,7 +121,7 @@ public class Data implements DebugDumpable {
         } else {
             throw new IllegalStateException("Unsupported data class (to be put into scripting data as property): " + clazz);
         }
-        PrismPropertyDefinition<Object> propertyDefinition = new PrismPropertyDefinition<>(elementName, typeName, prismContext);
+        PrismPropertyDefinition<Object> propertyDefinition = new PrismPropertyDefinitionImpl<>(elementName, typeName, prismContext);
         PrismProperty<Object> property = propertyDefinition.instantiate();
         for (Object object : objects) {
             property.addRealValue(object);
@@ -144,7 +138,7 @@ public class Data implements DebugDumpable {
                 ref.setOid(((PrismObject) item).getOid());                  // todo check if oid is present
                 retval.add(ref);
             } else if (item instanceof PrismProperty) {
-                for (Object value : ((PrismProperty) item).getRealValues()) {
+                for (Object value : item.getRealValues()) {
                     if (value instanceof String) {
                         ObjectReferenceType ref = new ObjectReferenceType();
                         ref.setType(defaultTargetType);

@@ -27,6 +27,7 @@ import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
 import com.evolveum.midpoint.prism.polystring.PrismDefaultPolyStringNormalizer;
 import com.evolveum.midpoint.prism.schema.SchemaDefinitionFactory;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
+import com.evolveum.midpoint.prism.schema.SchemaRegistryImpl;
 import com.evolveum.midpoint.prism.util.PrismMonitor;
 import com.evolveum.midpoint.prism.xnode.RootXNode;
 import com.evolveum.midpoint.prism.xnode.XNode;
@@ -38,6 +39,7 @@ import com.evolveum.prism.xml.ns._public.types_3.RawType;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.w3c.dom.Element;
+import org.xml.sax.EntityResolver;
 import org.xml.sax.SAXException;
 
 import javax.xml.namespace.QName;
@@ -55,7 +57,7 @@ public class PrismContextImpl implements PrismContext {
     
     private static boolean allowSchemalessSerialization = true;
     
-	private SchemaRegistry schemaRegistry;
+	private SchemaRegistryImpl schemaRegistry;
 	private XNodeProcessor xnodeProcessor;
 	private PrismBeanConverter beanConverter;
 	private SchemaDefinitionFactory definitionFactory;
@@ -75,7 +77,7 @@ public class PrismContextImpl implements PrismContext {
 		// empty
 	}
 
-	public static PrismContextImpl create(SchemaRegistry schemaRegistry) {
+	public static PrismContextImpl create(SchemaRegistryImpl schemaRegistry) {
 		PrismContextImpl prismContext = new PrismContextImpl();
 		prismContext.schemaRegistry = schemaRegistry;
 		schemaRegistry.setPrismContext(prismContext);
@@ -92,7 +94,7 @@ public class PrismContextImpl implements PrismContext {
 		return prismContext;
 	}
 	
-	public static PrismContextImpl createEmptyContext(SchemaRegistry schemaRegistry){
+	public static PrismContextImpl createEmptyContext(SchemaRegistryImpl schemaRegistry){
 		PrismContextImpl prismContext = new PrismContextImpl();
 		prismContext.schemaRegistry = schemaRegistry;
 		schemaRegistry.setPrismContext(prismContext);
@@ -117,11 +119,16 @@ public class PrismContextImpl implements PrismContext {
 	}
 
 	@Override
+	public XmlEntityResolver getEntityResolver() {
+		return schemaRegistry.getEntityResolver();
+	}
+
+	@Override
 	public SchemaRegistry getSchemaRegistry() {
 		return schemaRegistry;
 	}
 
-	public void setSchemaRegistry(SchemaRegistry schemaRegistry) {
+	public void setSchemaRegistry(SchemaRegistryImpl schemaRegistry) {
 		this.schemaRegistry = schemaRegistry;
 	}
 

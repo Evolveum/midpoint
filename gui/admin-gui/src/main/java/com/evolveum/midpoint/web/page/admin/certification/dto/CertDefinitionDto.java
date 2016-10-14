@@ -312,8 +312,6 @@ public class CertDefinitionDto implements Serializable {
             scopeTypeObj.setIncludeOrgs(definitionScopeDto.isIncludeOrgs());
             scopeTypeObj.setIncludeServices(definitionScopeDto.isIncludeServices());
             scopeTypeObj.setEnabledItemsOnly(definitionScopeDto.isEnabledItemsOnly());
-            // needed because of prism implementation limitation (because the scopeDefinition is declared as AccessCertificationScopeType)
-            scopeTypeObj.asPrismContainerValue().setConcreteType(AccessCertificationAssignmentReviewScopeType.COMPLEX_TYPE);
         }
         definition.setScopeDefinition(scopeTypeObj);
     }

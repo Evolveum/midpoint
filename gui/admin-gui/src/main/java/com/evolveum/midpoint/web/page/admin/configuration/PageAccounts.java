@@ -31,6 +31,7 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterEntry;
 import com.evolveum.midpoint.util.exception.CommonException;
@@ -804,7 +805,7 @@ public class PageAccounts extends PageAdminConfiguration {
             resourcePrism = getModelService().getObject(ResourceType.class, oid, null,
                     createSimpleTask(OPERATION_GET_INTENTS), result);
 
-            ResourceSchema schema = RefinedResourceSchema.getResourceSchema(resourcePrism, getPrismContext());
+            ResourceSchema schema = RefinedResourceSchemaImpl.getResourceSchema(resourcePrism, getPrismContext());
             schema.getObjectClassDefinitions();
 
             for(Definition def: schema.getDefinitions()){

@@ -2446,11 +2446,11 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
 //
 //            List<EqualFilter> secondaryEquals = new ArrayList<>();
 //            EqualFilter eq = EqualFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES, SchemaConstantsGenerated.ICF_S_UID),
-//                    new PrismPropertyDefinition(SchemaConstantsGenerated.ICF_S_UID, DOMUtil.XSD_STRING, prismContext),
+//                    new PrismPropertyDefinitionImpl(SchemaConstantsGenerated.ICF_S_UID, DOMUtil.XSD_STRING, prismContext),
 //                    "8daaeeae-f0c7-41c9-b258-2a3351aa8876");
 //            secondaryEquals.add(eq);
 //            eq = EqualFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES, SchemaConstantsGenerated.ICF_S_NAME),
-//                    new PrismPropertyDefinition(SchemaConstantsGenerated.ICF_S_NAME, DOMUtil.XSD_STRING, prismContext),
+//                    new PrismPropertyDefinitionImpl(SchemaConstantsGenerated.ICF_S_NAME, DOMUtil.XSD_STRING, prismContext),
 //                    "some-name");
 //            secondaryEquals.add(eq);
 //
@@ -2537,7 +2537,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
             SchemaRegistry registry = prismContext.getSchemaRegistry();
             PrismObjectDefinition userDef = registry.findObjectDefinitionByCompileTimeClass(UserType.class);
             PrismContainerDefinition assignmentDef = userDef.findContainerDefinition(F_ASSIGNMENT);
-            PrismPropertyDefinition propDef = assignmentDef.createPropertyDefinition(SKIP_AUTOGENERATION, DOMUtil.XSD_BOOLEAN);
+            PrismPropertyDefinition propDef = ((PrismContainerDefinitionImpl) assignmentDef).createPropertyDefinition(SKIP_AUTOGENERATION, DOMUtil.XSD_BOOLEAN);
 
             ObjectQuery objectQuery = QueryBuilder.queryFor(UserType.class, prismContext)
                     .itemWithDef(propDef, F_ASSIGNMENT, AssignmentType.F_EXTENSION, SKIP_AUTOGENERATION).eq(true)
@@ -3060,7 +3060,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
             PrismObjectDefinition<UserType> userDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
             PrismPropertyDefinition<String> prefLangDef = userDef.findPropertyDefinition(UserType.F_PREFERRED_LANGUAGE);
 
-            PrismPropertyDefinition<String> multivalDef = new PrismPropertyDefinition<String>(UserType.F_PREFERRED_LANGUAGE,
+            PrismPropertyDefinitionImpl<String> multivalDef = new PrismPropertyDefinitionImpl<String>(UserType.F_PREFERRED_LANGUAGE,
                     DOMUtil.XSD_STRING, prismContext);
             multivalDef.setMaxOccurs(-1);
             PrismProperty<String> multivalProperty = multivalDef.instantiate();

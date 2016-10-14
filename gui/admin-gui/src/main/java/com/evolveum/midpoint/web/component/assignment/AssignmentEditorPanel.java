@@ -18,6 +18,7 @@ package com.evolveum.midpoint.web.component.assignment;
 
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.objecttypeselect.ObjectTypeSelectPanel;
@@ -733,7 +734,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 			}
 
 			PrismContext prismContext = getPageBase().getPrismContext();
-			RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resource,
+			RefinedResourceSchema refinedSchema = RefinedResourceSchemaImpl.getRefinedSchema(resource,
 					LayerType.PRESENTATION, prismContext);
 			RefinedObjectClassDefinition objectClassDefinition = refinedSchema
 					.getRefinedDefinition(ShadowKindType.ACCOUNT, construction.getIntent());

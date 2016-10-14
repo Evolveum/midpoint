@@ -199,6 +199,7 @@ public class ItemPath implements Serializable, Cloneable {
 		return segments.get(0);
 	}
 
+	@NotNull
 	public ItemPath rest() {
 		return tail();
 	}
@@ -230,6 +231,7 @@ public class ItemPath implements Serializable, Cloneable {
 	/**
 	 * Returns path containing all segments except the first N.
 	 */
+	@NotNull
 	public ItemPath tail(int n) {
 		if (segments.size() < n) {
 			return EMPTY_PATH;
@@ -237,6 +239,7 @@ public class ItemPath implements Serializable, Cloneable {
 		return new ItemPath(segments.subList(n, segments.size()));
 	}
 
+	@NotNull
 	public ItemPath tail() {
 		return tail(1);
 	}

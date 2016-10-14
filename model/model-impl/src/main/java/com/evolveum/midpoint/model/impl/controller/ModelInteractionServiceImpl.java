@@ -19,10 +19,12 @@ import java.util.*;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.common.refinery.*;
 import com.evolveum.midpoint.model.api.*;
 import com.evolveum.midpoint.model.api.visualizer.Scene;
 import com.evolveum.midpoint.model.common.SystemObjectCache;
 import com.evolveum.midpoint.model.impl.visualizer.Visualizer;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.NotNull;
@@ -30,20 +32,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.common.refinery.CompositeRefinedObjectClassDefinition;
-import com.evolveum.midpoint.common.refinery.LayerRefinedAttributeDefinition;
-import com.evolveum.midpoint.common.refinery.LayerRefinedObjectClassDefinition;
-import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.impl.ModelObjectResolver;
 import com.evolveum.midpoint.model.impl.lens.ContextFactory;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.projector.Projector;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -273,7 +266,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 				}
 				RefinedObjectClassDefinition refinedObjectClassDefinition = getEditObjectClassDefinition(shadow, resource, phase);
 				if (refinedObjectClassDefinition != null) {
-					objectDefinition.getComplexTypeDefinition().replaceDefinition(ShadowType.F_ATTRIBUTES, 
+					((ComplexTypeDefinitionImpl) objectDefinition.getComplexTypeDefinition()).replaceDefinition(ShadowType.F_ATTRIBUTES,
 						refinedObjectClassDefinition.toResourceAttributeContainerDefinition());
 				}
 			}
@@ -289,7 +282,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 		// Make a dummy shadow instance here and evaluate the schema for that. It is not 100% correct. But good enough for now.
 		// TODO: refactor when we add better support for multi-tenancy
 		
-		PrismObject<ShadowType> shadow = prismContext.getSchemaRegistry().instantiate(ShadowType.class);
+		PrismObject<ShadowType> shadow = prismContext.createObject(ShadowType.class);
 		ShadowType shadowType = shadow.asObjectable();
 		ObjectReferenceType resourceRef = new ObjectReferenceType();
 		if (discr != null) {
@@ -308,7 +301,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 			throws SchemaException {
     	Validate.notNull(resource, "Resource must not be null");
     	
-    	RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resource);
+    	RefinedResourceSchema refinedSchema = RefinedResourceSchemaImpl.getRefinedSchema(resource);
     	CompositeRefinedObjectClassDefinition rocd = refinedSchema.determineCompositeObjectClassDefinition(shadow);
     	if (rocd == null) {
     		LOGGER.debug("No object class definition for shadow {}, returning null");
@@ -346,13 +339,13 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 			AuthorizationDecisionType attributeModifyDecision = schemaTransformer.computeItemDecision(securityConstraints, attributePath, ModelAuthorizationAction.MODIFY.getUrl(), attributesModifyDecision, phase);
 			LOGGER.trace("Attribute {} access read:{}, add:{}, modify:{}", new Object[]{rAttrDef.getName(), attributeReadDecision, attributeAddDecision, attributeModifyDecision});
 			if (attributeReadDecision != AuthorizationDecisionType.ALLOW) {
-				rAttrDef.setOverrideCanRead(false);
+				((LayerRefinedAttributeDefinitionImpl) rAttrDef).setOverrideCanRead(false);
 			}
 			if (attributeAddDecision != AuthorizationDecisionType.ALLOW) {
-				rAttrDef.setOverrideCanAdd(false);
+				((LayerRefinedAttributeDefinitionImpl) rAttrDef).setOverrideCanAdd(false);
 			}
 			if (attributeModifyDecision != AuthorizationDecisionType.ALLOW) {
-				rAttrDef.setOverrideCanModify(false);
+				((LayerRefinedAttributeDefinitionImpl) rAttrDef).setOverrideCanModify(false);
 			}
 		}
 

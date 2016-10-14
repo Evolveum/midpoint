@@ -25,6 +25,7 @@ import java.util.Map.Entry;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.common.refinery.*;
 import com.evolveum.midpoint.model.common.expression.ObjectDeltaObject;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
@@ -40,10 +41,6 @@ import org.apache.commons.lang.StringUtils;
 import org.jvnet.jaxb2_commons.lang.Validate;
 
 import com.evolveum.midpoint.common.crypto.CryptoUtil;
-import com.evolveum.midpoint.common.refinery.CompositeRefinedObjectClassDefinition;
-import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
-import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.model.api.context.ModelProjectionContext;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.prism.delta.ChangeType;
@@ -566,14 +563,14 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
     }
 	
 	private ResourceSchema getResourceSchema() throws SchemaException {
-		return RefinedResourceSchema.getResourceSchema(resource, getNotNullPrismContext());
+		return RefinedResourceSchemaImpl.getResourceSchema(resource, getNotNullPrismContext());
 	}
 	
     public RefinedResourceSchema getRefinedResourceSchema() throws SchemaException {
     	if (resource == null) {
     		return null;
     	}
-    	return RefinedResourceSchema.getRefinedSchema(resource, LayerType.MODEL, getNotNullPrismContext());
+    	return RefinedResourceSchemaImpl.getRefinedSchema(resource, LayerType.MODEL, getNotNullPrismContext());
     }
     
     public RefinedObjectClassDefinition getStructuralObjectClassDefinition() throws SchemaException {

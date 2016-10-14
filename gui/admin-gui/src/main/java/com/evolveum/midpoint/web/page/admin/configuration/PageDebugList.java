@@ -23,6 +23,7 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.PrismPropertyDefinitionImpl;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
 import com.evolveum.midpoint.web.component.dialog.*;
@@ -917,19 +918,19 @@ public class PageDebugList extends PageAdminConfiguration {
 
 		QueryType query = QueryJaxbConvertor.createQueryType(objectQuery, getPrismContext());
 
-		PrismPropertyDefinition queryDef = new PrismPropertyDefinition(
+		PrismPropertyDefinition queryDef = new PrismPropertyDefinitionImpl(
 				SchemaConstants.MODEL_EXTENSION_OBJECT_QUERY, QueryType.COMPLEX_TYPE, getPrismContext());
 		PrismProperty<QueryType> queryProp = queryDef.instantiate();
 		queryProp.setRealValue(query);
 		task.setExtensionProperty(queryProp);
 
-		PrismPropertyDefinition typeDef = new PrismPropertyDefinition(
+		PrismPropertyDefinition typeDef = new PrismPropertyDefinitionImpl(
 				SchemaConstants.MODEL_EXTENSION_OBJECT_TYPE, DOMUtil.XSD_QNAME, getPrismContext());
 		PrismProperty<QName> typeProp = typeDef.instantiate();
 		typeProp.setRealValue(type);
 		task.setExtensionProperty(typeProp);
 
-		PrismPropertyDefinition rawDef = new PrismPropertyDefinition(
+		PrismPropertyDefinition rawDef = new PrismPropertyDefinitionImpl(
 				SchemaConstants.MODEL_EXTENSION_OPTION_RAW, DOMUtil.XSD_BOOLEAN, getPrismContext());
 		PrismProperty<QName> rawProp = rawDef.instantiate();
 		rawProp.setRealValue(raw);

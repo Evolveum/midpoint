@@ -221,7 +221,7 @@ public class TestGeneralChangeProcessor extends AbstractInternalModelIntegration
 //                ObjectDeltaType deltaType = dummyResourceDelta.getRealValue();
 //                display("dummyResourceDelta", DeltaConvertor.createObjectDelta(deltaType, prismContext));
 //
-//                PrismPropertyDefinition ppd = new PrismPropertyDefinition(new QName(SchemaConstants.NS_WFCF, "[Button]rejectAll"),
+//                PrismPropertyDefinition ppd = new PrismPropertyDefinitionImpl(new QName(SchemaConstants.NS_WFCF, "[Button]rejectAll"),
 //                        DOMUtil.XSD_BOOLEAN, prismContext);
 //                PrismProperty<Boolean> rejectAll = ppd.instantiate();
 //                rejectAll.setRealValue(Boolean.TRUE);
@@ -321,7 +321,7 @@ public class TestGeneralChangeProcessor extends AbstractInternalModelIntegration
 //                ObjectDeltaType deltaType = dummyResourceDelta.getRealValue();
 //                display("dummyResourceDelta", DeltaConvertor.createObjectDelta(deltaType, prismContext));
 //
-//                PrismPropertyDefinition ppd = new PrismPropertyDefinition(new QName(SchemaConstants.NS_WFCF, "[Button]approve"),
+//                PrismPropertyDefinition ppd = new PrismPropertyDefinitionImpl(new QName(SchemaConstants.NS_WFCF, "[Button]approve"),
 //                        DOMUtil.XSD_BOOLEAN, prismContext);
 //                PrismProperty<Boolean> approve = ppd.instantiate();
 //                approve.setRealValue(Boolean.TRUE);

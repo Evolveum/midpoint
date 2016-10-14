@@ -31,6 +31,7 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.schema.PrismSchemaImpl;
 import org.apache.commons.lang.StringUtils;
 import org.w3c.dom.Element;
 
@@ -102,7 +103,7 @@ public class ProvisioningTestUtil {
 		// Try to parse the schema
 		PrismSchema schema = null;
 		try {
-			schema = PrismSchema.parse(xsdElement, true, "schema of "+conn, prismContext);
+			schema = PrismSchemaImpl.parse(xsdElement, true, "schema of "+conn, prismContext);
 		} catch (SchemaException e) {
 			throw new SchemaException("Error parsing schema of "+conn+": "+e.getMessage(),e);
 		}

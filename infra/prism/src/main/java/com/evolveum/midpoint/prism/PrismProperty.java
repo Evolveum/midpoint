@@ -573,7 +573,7 @@ public class PrismProperty<T> extends Item<PrismPropertyValue<T>,PrismPropertyDe
         
         if (def != null && DebugUtil.isDetailedDebugDump()) {
             sb.append(" def(");
-            def.debugDumpShortToString(sb);
+			((PrismPropertyDefinitionImpl) def).debugDumpShortToString(sb);
 //            if (def.isIndexed() != null) {
 //                sb.append(def.isIndexed() ? ",i+" : ",i-");
 //            }

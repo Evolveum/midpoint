@@ -24,6 +24,7 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
@@ -255,7 +256,7 @@ public class PageTaskAdd extends PageAdminTasks {
                     		resourcesDto.getOid(), PageTaskAdd.this, task, result);
 
                     try {
-                        ResourceSchema schema = RefinedResourceSchema.getResourceSchema(resource, getPrismContext());
+                        ResourceSchema schema = RefinedResourceSchemaImpl.getResourceSchema(resource, getPrismContext());
                         schema.getObjectClassDefinitions();
 
                         for(Definition def: schema.getDefinitions()){

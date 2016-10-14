@@ -77,19 +77,21 @@ public class TypeFilter extends ObjectFilter {
         if (value == null) {
             return false;           // just for safety
         }
-        PrismContainerDefinition definition = value.getConcreteTypeDefinition();
+        ComplexTypeDefinition definition = value.getComplexTypeDefinition();
         if (definition == null) {
             if (!(value.getParent() instanceof PrismContainer)) {
                 LOGGER.trace("Parent of {} is not a PrismContainer, returning false; it is {}", value, value.getParent());
                 return false;
             }
             PrismContainer container = (PrismContainer) value.getParent();
-            definition = container.getDefinition();
-            if (definition == null) {
+            PrismContainerDefinition pcd = container.getDefinition();
+            if (pcd == null) {
                 LOGGER.trace("Parent of {} has no definition, returning false", value);
                 return false;
             }
+            definition = pcd.getComplexTypeDefinition();
         }
+        // TODO TODO TODO subtypes!!!!!!!!
         if (!QNameUtil.match(definition.getTypeName(), type)) {
             return false;
         }

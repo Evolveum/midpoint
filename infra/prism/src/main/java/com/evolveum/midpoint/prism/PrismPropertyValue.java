@@ -23,6 +23,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
+import com.evolveum.midpoint.prism.schema.SchemaRegistryImpl;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
@@ -111,7 +112,7 @@ public class PrismPropertyValue<T> extends PrismValue implements DebugDumpable, 
         		// the attribute now. But we should rather do this: TODO:
         		// throw new IllegalStateException("Attempt to get value withot a type from raw value of property "+getParent());
     			if (parent != null && parent.getPrismContext() != null) {
-    				def = SchemaRegistry.createDefaultItemDefinition(parent.getElementName(), parent.getPrismContext());
+    				def = SchemaRegistryImpl.createDefaultItemDefinition(parent.getElementName(), parent.getPrismContext());
     			} else if (PrismContextImpl.isAllowSchemalessSerialization()) {
     				if (rawElement instanceof Element) {
         				// Do the most stupid thing possible. Assume string value. And there will be no definition.

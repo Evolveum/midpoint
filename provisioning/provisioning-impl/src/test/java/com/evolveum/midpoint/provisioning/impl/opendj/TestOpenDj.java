@@ -38,8 +38,10 @@ import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.prism.PrismContext;
 
+import com.evolveum.midpoint.schema.processor.*;
 import org.apache.commons.lang.StringUtils;
 import org.identityconnectors.framework.common.objects.Name;
 import org.identityconnectors.framework.common.objects.Uid;
@@ -91,10 +93,6 @@ import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.constants.ConnectorTestOperation;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceAttribute;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
@@ -250,7 +248,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		assertNotNull("No serialNumber",cachingMetadata.getSerialNumber());
 		
 		Element xsdElement = ResourceTypeUtil.getResourceXsdSchema(resourceTypeRepoAfter);
-		ResourceSchema parsedSchema = ResourceSchema.parse(xsdElement, resourceTypeRepoAfter.toString(), prismContext);
+		ResourceSchema parsedSchema = ResourceSchemaImpl.parse(xsdElement, resourceTypeRepoAfter.toString(), prismContext);
 		assertNotNull("No schema after parsing",parsedSchema);
 		
 		ObjectClassComplexTypeDefinition inetOrgPersonDefinition = parsedSchema.findObjectClassDefinition(RESOURCE_OPENDJ_ACCOUNT_OBJECTCLASS);
@@ -272,7 +270,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		ConnectorInstance configuredConnectorInstance = connectorManager.getConfiguredConnectorInstance(
 				resource, false, result);
 		assertNotNull("No configuredConnectorInstance", configuredConnectorInstance);
-		ResourceSchema resourceSchema = RefinedResourceSchema.getResourceSchema(resource, prismContext);
+		ResourceSchema resourceSchema = RefinedResourceSchemaImpl.getResourceSchema(resource, prismContext);
 		assertNotNull("No resource schema", resourceSchema);
 		
 		// WHEN
@@ -288,7 +286,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		assertTrue("Configurations not equivalent", configurationContainer.equivalent(configurationContainerAgain));
 		assertTrue("Configurations not equals", configurationContainer.equals(configurationContainerAgain));
 
-		ResourceSchema resourceSchemaAgain = RefinedResourceSchema.getResourceSchema(resourceAgain, prismContext);
+		ResourceSchema resourceSchemaAgain = RefinedResourceSchemaImpl.getResourceSchema(resourceAgain, prismContext);
 		assertNotNull("No resource schema (again)", resourceSchemaAgain);
 		assertEquals("Schema serial number mismatch", resourceType.getSchema().getCachingMetadata().getSerialNumber(),
 				resourceTypeAgain.getSchema().getCachingMetadata().getSerialNumber());
@@ -375,7 +373,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		// GIVEN
 
 		// WHEN
-		ResourceSchema resourceSchema = RefinedResourceSchema.getResourceSchema(resourceType, prismContext);
+		ResourceSchema resourceSchema = RefinedResourceSchemaImpl.getResourceSchema(resourceType, prismContext);
 		display("Resource schema", resourceSchema);
 
 		ObjectClassComplexTypeDefinition accountDef = resourceSchema.findObjectClassDefinition(RESOURCE_OPENDJ_ACCOUNT_OBJECTCLASS);
@@ -542,7 +540,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		// GIVEN
 
 		// WHEN
-		RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resourceType, prismContext);
+		RefinedResourceSchema refinedSchema = RefinedResourceSchemaImpl.getRefinedSchema(resourceType, prismContext);
 		display("Refined schema", refinedSchema);
 
 		// Check whether it is reusing the existing schema and not parsing it
@@ -550,7 +548,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		// Not equals() but == ... we want to really know if exactly the same
 		// object instance is returned
 		assertTrue("Broken caching",
-				refinedSchema == RefinedResourceSchema.getRefinedSchema(resourceType, prismContext));
+				refinedSchema == RefinedResourceSchemaImpl.getRefinedSchema(resourceType, prismContext));
 
 		RefinedObjectClassDefinition accountDef = refinedSchema.getDefaultRefinedDefinition(ShadowKindType.ACCOUNT);
 		assertNotNull("Account definition is missing", accountDef);

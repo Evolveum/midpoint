@@ -533,7 +533,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         
         PrismContainer<?> extension = getAssignmentExtensionInstance();
         PrismSchema piracySchema = getPiracySchema();
-        PrismPropertyDefinition<String> seaPropDef = piracySchema.findPropertyDefinitionByElementName(PIRACY_SEA_QNAME);
+        PrismPropertyDefinition<String> seaPropDef = (PrismPropertyDefinition) piracySchema.findPropertyDefinition().byElementName(PIRACY_SEA_QNAME);
         PrismProperty<String> seaProp = seaPropDef.instantiate();
         seaProp.setRealValue("Caribbean");
         extension.add(seaProp);
@@ -570,7 +570,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         
         PrismContainer<?> extension = getAssignmentExtensionInstance();
         PrismSchema piracySchema = getPiracySchema();
-        PrismPropertyDefinition<String> seaPropDef = piracySchema.findPropertyDefinitionByElementName(PIRACY_SEA_QNAME);
+        PrismPropertyDefinition<String> seaPropDef = piracySchema.findPropertyDefinition().byElementName(PIRACY_SEA_QNAME);
         PrismProperty<String> seaProp = seaPropDef.instantiate();
         seaProp.setRealValue("Caribbean");
         extension.add(seaProp);
@@ -704,7 +704,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         
         PrismContainer<?> extension = getAssignmentExtensionInstance();
         PrismSchema piracySchema = getPiracySchema();
-        PrismPropertyDefinition<String> seaPropDef = piracySchema.findPropertyDefinitionByElementName(PIRACY_SEA_QNAME);
+        PrismPropertyDefinition<String> seaPropDef = piracySchema.findPropertyDefinition().byElementName(PIRACY_SEA_QNAME);
         PrismProperty<String> seaProp = seaPropDef.instantiate();
         seaProp.setRealValue("Caribbean");
         extension.add(seaProp);
@@ -741,7 +741,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         
         PrismContainer<?> extension = getAssignmentExtensionInstance();
         PrismSchema piracySchema = getPiracySchema();
-        PrismPropertyDefinition<String> seaPropDef = piracySchema.findPropertyDefinitionByElementName(PIRACY_SEA_QNAME);
+        PrismPropertyDefinition<String> seaPropDef = piracySchema.findPropertyDefinition().byElementName(PIRACY_SEA_QNAME);
         PrismProperty<String> seaProp = seaPropDef.instantiate();
         seaProp.setRealValue("Caribbean");
         extension.add(seaProp);
@@ -823,7 +823,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         
         PrismContainer<?> extension = getAssignmentExtensionInstance();
         PrismSchema piracySchema = getPiracySchema();
-        PrismPropertyDefinition<String> seaPropDef = piracySchema.findPropertyDefinitionByElementName(PIRACY_SEA_QNAME);
+        PrismPropertyDefinition<String> seaPropDef = piracySchema.findPropertyDefinition().byElementName(PIRACY_SEA_QNAME);
         PrismProperty<String> seaProp = seaPropDef.instantiate();
         seaProp.setRealValue("Caribbean");
         extension.add(seaProp);
@@ -861,7 +861,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         
         PrismContainer<?> extension = getAssignmentExtensionInstance();
         PrismSchema piracySchema = getPiracySchema();
-        PrismPropertyDefinition<String> seaPropDef = piracySchema.findPropertyDefinitionByElementName(PIRACY_SEA_QNAME);
+        PrismPropertyDefinition<String> seaPropDef = piracySchema.findPropertyDefinition().byElementName(PIRACY_SEA_QNAME);
         PrismProperty<String> seaProp = seaPropDef.instantiate();
         seaProp.setRealValue("Caribbean");
         extension.add(seaProp);

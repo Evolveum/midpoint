@@ -18,6 +18,7 @@ package com.evolveum.midpoint.init;
 
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
+import com.evolveum.midpoint.prism.schema.SchemaRegistryImpl;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -50,7 +51,7 @@ public class ConfigurablePrismContextFactory extends MidPointPrismContextFactory
     }
 
     @Override
-    protected void registerExtensionSchemas(SchemaRegistry schemaRegistry) throws SchemaException {
+    protected void registerExtensionSchemas(SchemaRegistryImpl schemaRegistry) throws SchemaException {
         Configuration config = configuration.getConfiguration(CONFIGURATION_GLOBAL);
         if (config == null) {
             LOGGER.warn("Global part 'midpoint.global' is not defined in configuration file.");

@@ -22,6 +22,7 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.web.session.SessionStorage;
 import org.apache.commons.lang.StringUtils;
@@ -186,7 +187,7 @@ public abstract class ResourceContentPanel extends Panel {
 	}
 
 	public RefinedObjectClassDefinition getDefinitionByKind() throws SchemaException {
-		RefinedResourceSchema refinedSchema = RefinedResourceSchema
+		RefinedResourceSchema refinedSchema = RefinedResourceSchemaImpl
 				.getRefinedSchema(resourceModel.getObject(), getPageBase().getPrismContext());
 		if (refinedSchema == null) {
 			warn("No schema found in resource. Please check your configuration and try to test connection for the resource.");
@@ -197,7 +198,7 @@ public abstract class ResourceContentPanel extends Panel {
 	}
 
 	public RefinedObjectClassDefinition getDefinitionByObjectClass() throws SchemaException {
-		RefinedResourceSchema refinedSchema = RefinedResourceSchema
+		RefinedResourceSchema refinedSchema = RefinedResourceSchemaImpl
 				.getRefinedSchema(resourceModel.getObject(), getPageBase().getPrismContext());
 		if (refinedSchema == null) {
 			warn("No schema found in resource. Please check your configuration and try to test connection for the resource.");

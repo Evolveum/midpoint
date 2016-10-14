@@ -39,6 +39,7 @@ import javax.annotation.PostConstruct;
 import javax.net.ssl.TrustManager;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.schema.PrismSchemaImpl;
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.lang.StringUtils;
 import org.identityconnectors.common.Version;
@@ -282,7 +283,7 @@ public class ConnectorFactoryIcfImpl implements ConnectorFactory {
 		if (xsdElement == null) {
 			return null;
 		}
-		PrismSchema connectorSchema = PrismSchema.parse(xsdElement, true, connectorType.toString(), prismContext);
+		PrismSchema connectorSchema = PrismSchemaImpl.parse(xsdElement, true, connectorType.toString(), prismContext);
 		return connectorSchema;
 	}
 

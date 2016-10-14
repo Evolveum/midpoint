@@ -266,22 +266,22 @@ public class XNodeProcessor {
         }
     }
 
-    private <C extends Containerable> PrismContainerValue<C> parsePrismContainerValueFromMap(MapXNode xmap, PrismContainerDefinition<C> containerDef,
-            Collection<QName> ignoredItems, ParsingContext pc) throws SchemaException {
+    private <C extends Containerable> PrismContainerValue<C> parsePrismContainerValueFromMap(@NotNull MapXNode xmap,
+            @NotNull PrismContainerDefinition<C> containerDef,
+            @Nullable Collection<QName> ignoredItems, @NotNull ParsingContext pc) throws SchemaException {
         Long id = getContainerId(xmap);
 
         // override container definition, if explicit type is specified
-        PrismContainerDefinition valueDefinition = containerDef;
+        ComplexTypeDefinition complexTypeDefinition = containerDef.getComplexTypeDefinition();
         if (xmap.getTypeQName() != null) {
-            PrismContainerDefinition specificDef = getSchemaRegistry().findContainerDefinitionByType(xmap.getTypeQName());
+            ComplexTypeDefinition specificDef = getSchemaRegistry().findComplexTypeDefinition(xmap.getTypeQName());
             if (specificDef != null) {
-                valueDefinition = specificDef;
+                complexTypeDefinition = specificDef;
             } else {
-                // TODO raise exception here?
-                // by silently proceeding we risk losing some subclass-specific items
+                pc.warnOrThrow(LOGGER, "Unknown type " + xmap.getTypeQName() + " in " + xmap);
             }
         }
-        PrismContainerValue<C> cval = new PrismContainerValue<C>(null, null, null, id, xmap.getTypeQName(), prismContext);
+        PrismContainerValue<C> cval = new PrismContainerValue<C>(null, null, null, id, complexTypeDefinition, prismContext);
         for (Entry<QName, XNode> xentry : xmap.entrySet()) {
             QName itemQName = xentry.getKey();
             if (QNameUtil.match(itemQName, XNode.KEY_CONTAINER_ID)) {
@@ -290,29 +290,34 @@ public class XNodeProcessor {
             if (QNameUtil.matchAny(itemQName, ignoredItems)) {
                 continue;
             }
-            ItemDefinition itemDef = locateItemDefinition(valueDefinition, itemQName, xentry.getValue());
+            ItemDefinition itemDef = locateItemDefinition(complexTypeDefinition, itemQName, xentry.getValue());
+//            if (itemDef == null) {
+//                itemDef = locateItemDefinition(containerDef, itemQName, xentry.getValue());
+//            }
             if (itemDef == null) {
-                if (valueDefinition.isRuntimeSchema()) {
-                    PrismSchema itemSchema = getSchemaRegistry().findSchemaByNamespace(itemQName.getNamespaceURI());
-                    if (itemSchema != null) {
-                        // If we already have schema for this namespace then a missing element is
-                        // an error. We positively know that it is not in the schema.
-						String message =
-								"Item " + itemQName + " has no definition (schema present, in container " + containerDef + ")" + "while parsing "
-										+ xmap.debugDump();
-                        if (pc.isStrict()) {
-							throw new SchemaException(message, itemQName);
-                        } else {
-							pc.warn(LOGGER, message);
-                            continue;
-                        }
-                    } else {
-                        // No definition for item, but the schema is runtime. the definition may come later.
-                        // Null is OK here. The item will be parsed as "raw"
-                    }
+                if (complexTypeDefinition == null || complexTypeDefinition.isXsdAnyMarker()) {
+                    // ok
+                } else if (complexTypeDefinition.isRuntimeSchema()) {
+//                    PrismSchema itemSchema = getSchemaRegistry().findSchemaByNamespace(itemQName.getNamespaceURI());
+//                    if (itemSchema != null) {
+//                        // If we already have schema for this namespace then a missing element is
+//                        // an error. We positively know that it is not in the schema.
+//						String message =
+//								"Item " + itemQName + " has no definition (schema present, in container " + containerDef + ")" + "while parsing "
+//										+ xmap.debugDump();
+//                        if (pc.isStrict()) {
+//							throw new SchemaException(message, itemQName);
+//                        } else {
+//							pc.warn(LOGGER, message);
+//                            continue;
+//                        }
+//                    } else {
+//                        // No definition for item, but the schema is runtime. the definition may come later.
+//                        // Null is OK here. The item will be parsed as "raw"
+//                    }
                 } else {
 					String message =
-							"Item " + itemQName + " has no definition (in container value " + valueDefinition + ")" + "while parsing " + xmap
+							"Item " + itemQName + " has no definition (in container value " + complexTypeDefinition + ")" + "while parsing " + xmap
 									.debugDump();
                     if (pc.isStrict()) {
 						throw new SchemaException(message, itemQName);
@@ -877,7 +882,7 @@ public class XNodeProcessor {
 
         PrismReferenceValue refVal = new PrismReferenceValue();
         setReferenceObject(refVal, compositeObject);
-        referenceDefinition.setComposite(true);
+        ((PrismReferenceDefinitionImpl) referenceDefinition).setComposite(true);
         return refVal;
     }
 
@@ -916,12 +921,36 @@ public class XNodeProcessor {
 
         if (containerDefinition.isRuntimeSchema()) {
             // Try to locate global definition in any of the schemas
-            def = resolveGlobalItemDefinition(containerDefinition, elementQName, xnode);
+            def = resolveGlobalItemDefinition(containerDefinition.getComplexTypeDefinition(), elementQName, xnode);
         }
         return def;
     }
 
-    private ItemDefinition resolveDynamicItemDefinition(ItemDefinition parentDefinition, QName elementName, XNode xnode) throws SchemaException {
+    public <T extends Containerable> ItemDefinition locateItemDefinition(
+            ComplexTypeDefinition complexTypeDefinition, QName elementQName, XNode xnode)
+            throws SchemaException {
+        ItemDefinition def = null;
+
+        if (complexTypeDefinition != null) {
+            //def = complexTypeDefinition.findItemDefinition(elementQName, ItemDefinition.class, false);
+            def = complexTypeDefinition.findItemDefinition(new ItemPath(elementQName));
+            if (def != null) {
+                return def;
+            }
+        }
+
+        def = resolveDynamicItemDefinition(complexTypeDefinition, elementQName, xnode);
+        if (def != null) {
+            return def;
+        }
+
+        if (complexTypeDefinition == null || complexTypeDefinition.isXsdAnyMarker()) {
+            // Try to locate global definition in any of the schemas
+            def = resolveGlobalItemDefinition(complexTypeDefinition, elementQName, xnode);
+        }
+        return def;
+    }
+    private ItemDefinition resolveDynamicItemDefinition(Definition parentDefinition, QName elementName, XNode xnode) throws SchemaException {
         if (xnode == null) {
             return null;
         }
@@ -941,7 +970,7 @@ public class XNodeProcessor {
         if (typeName == null) {
             return null;
         }
-        PrismPropertyDefinition propDef = new PrismPropertyDefinition(elementName, typeName, prismContext);
+        PrismPropertyDefinitionImpl propDef = new PrismPropertyDefinitionImpl(elementName, typeName, prismContext);
         Integer maxOccurs = xnode.getMaxOccurs();
         if (maxOccurs != null) {
             propDef.setMaxOccurs(maxOccurs);
@@ -954,9 +983,9 @@ public class XNodeProcessor {
     }
 
     private <T extends Containerable> ItemDefinition resolveGlobalItemDefinition(
-            PrismContainerDefinition<T> containerDefinition, QName elementQName, XNode xnode)
+            ComplexTypeDefinition complexTypeDefinition, QName elementQName, XNode xnode)
             throws SchemaException {
-        return prismContext.getSchemaRegistry().resolveGlobalItemDefinition(elementQName, containerDefinition);
+        return prismContext.getSchemaRegistry().resolveGlobalItemDefinition(elementQName, complexTypeDefinition);
     }
     //endregion
 

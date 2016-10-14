@@ -24,10 +24,13 @@ import java.util.*;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.OrderDirection;
+import com.evolveum.midpoint.prism.schema.PrismSchemaImpl;
 import com.evolveum.midpoint.provisioning.impl.StateReporter;
 import com.evolveum.midpoint.schema.SearchResultMetadata;
+import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.statistics.ConnectorOperationalStatus;
 import com.evolveum.midpoint.schema.statistics.ProvisioningOperation;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -92,17 +95,6 @@ import org.identityconnectors.framework.impl.api.local.operations.ConnectorOpera
 import org.identityconnectors.framework.spi.Connector;
 import org.identityconnectors.framework.spi.PoolableConnector;
 
-import com.evolveum.midpoint.prism.ComplexTypeDefinition;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.ChangeType;
@@ -134,14 +126,6 @@ import com.evolveum.midpoint.schema.CapabilityUtil;
 import com.evolveum.midpoint.schema.constants.ConnectorTestOperation;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
-import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceAttribute;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeContainerDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceObjectIdentification;
-import com.evolveum.midpoint.schema.processor.ResourceSchema;
-import com.evolveum.midpoint.schema.processor.SearchHierarchyConstraints;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.ActivationUtil;
@@ -365,17 +349,17 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			return null;
 		}
 
-		connectorSchema = new PrismSchema(connectorType.getNamespace(), prismContext);
+		connectorSchema = new PrismSchemaImpl(connectorType.getNamespace(), prismContext);
 
 		// Create configuration type - the type used by the "configuration"
 		// element
-		PrismContainerDefinition<?> configurationContainerDef = connectorSchema.createPropertyContainerDefinition(
+		PrismContainerDefinitionImpl<?> configurationContainerDef = ((PrismSchemaImpl) connectorSchema).createPropertyContainerDefinition(
 				ResourceType.F_CONNECTOR_CONFIGURATION.getLocalPart(),
 				ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_CONFIGURATION_TYPE_LOCAL_NAME);
 
 		// element with "ConfigurationPropertiesType" - the dynamic part of
 		// configuration schema
-		ComplexTypeDefinition configPropertiesTypeDef = connectorSchema.createComplexTypeDefinition(new QName(
+		ComplexTypeDefinition configPropertiesTypeDef = ((PrismSchemaImpl) connectorSchema).createComplexTypeDefinition(new QName(
 				connectorType.getNamespace(),
 				ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_TYPE_LOCAL_NAME));
 
@@ -388,7 +372,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			QName propXsdType = icfTypeToXsdType(icfProperty.getType(), icfProperty.isConfidential());
 			LOGGER.trace("{}: Mapping ICF config schema property {} from {} to {}", new Object[] { this,
 					icfPropertyName, icfProperty.getType(), propXsdType });
-			PrismPropertyDefinition<?> propertyDefinifion = configPropertiesTypeDef.createPropertyDefinition(
+			PrismPropertyDefinitionImpl<?> propertyDefinifion = ((ComplexTypeDefinitionImpl) configPropertiesTypeDef).createPropertyDefinition(
 					icfPropertyName, propXsdType);
 			propertyDefinifion.setDisplayName(icfProperty.getDisplayName(null));
 			propertyDefinifion.setHelp(icfProperty.getHelpMessage(null));
@@ -715,7 +699,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		AttributeInfo auxiliaryObjectClasseAttributeInfo = null;
 
 		// New instance of midPoint schema object
-		setResourceSchema(new ResourceSchema(getSchemaNamespace(), prismContext));
+		setResourceSchema(new ResourceSchemaImpl(getSchemaNamespace(), prismContext));
 
 		if (legacySchema == null) {
 			legacySchema = detectLegacySchema(icfSchema);
@@ -740,14 +724,14 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			// object class.
 			// The important thing here is the last "type" parameter
 			// (objectClassXsdName). The rest is more-or-less cosmetics.
-			ObjectClassComplexTypeDefinition ocDef = resourceSchema
+			ObjectClassComplexTypeDefinition ocDef = ((ResourceSchemaImpl) resourceSchema)
 					.createObjectClassDefinition(objectClassXsdName);
 
 			// The __ACCOUNT__ objectclass in ICF is a default account
 			// objectclass. So mark it appropriately.
 			if (ObjectClass.ACCOUNT_NAME.equals(objectClassInfo.getType())) {
-				ocDef.setKind(ShadowKindType.ACCOUNT);
-				ocDef.setDefaultInAKind(true);
+				((ObjectClassComplexTypeDefinitionImpl) ocDef).setKind(ShadowKindType.ACCOUNT);
+				((ObjectClassComplexTypeDefinitionImpl) ocDef).setDefaultInAKind(true);
 			}
 			
 			ResourceAttributeDefinition<String> uidDefinition = null;
@@ -814,7 +798,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 
 				// Create ResourceObjectAttributeDefinition, which is midPoint
 				// way how to express attribute schema.
-				ResourceAttributeDefinition attrDef = new ResourceAttributeDefinition(
+				ResourceAttributeDefinitionImpl attrDef = new ResourceAttributeDefinitionImpl(
 						attrXsdName, attrXsdType, prismContext);
 
 				attrDef.setMatchingRuleQName(icfAttributeInfoToMatchingRule(attributeInfo));
@@ -840,7 +824,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 					ResourceAttributeDefinition existingDefinition = ocDef.findAttributeDefinition(attrXsdName);
 					if (existingDefinition != null) {
 						hasUidDefinition = true;
-						existingDefinition.setDisplayOrder(ConnectorFactoryIcfImpl.ICFS_UID_DISPLAY_ORDER);
+						((ResourceAttributeDefinitionImpl) existingDefinition).setDisplayOrder(ConnectorFactoryIcfImpl.ICFS_UID_DISPLAY_ORDER);
 						uidDefinition = existingDefinition;
 						continue;
 					} else {
@@ -903,26 +887,26 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				attrDef.setCanRead(canRead);
 				
 				if (!Uid.NAME.equals(icfName)) {
-					ocDef.add(attrDef);
+					((ObjectClassComplexTypeDefinitionImpl) ocDef).add(attrDef);
 				}
 			}
 
 			if (uidDefinition == null) {
 				// Every object has UID in ICF, therefore add a default definition if no other was specified
-				uidDefinition = new ResourceAttributeDefinition<String>(
+				uidDefinition = new ResourceAttributeDefinitionImpl<>(
 						ConnectorFactoryIcfImpl.ICFS_UID, DOMUtil.XSD_STRING, prismContext);
 				// DO NOT make it mandatory. It must not be present on create hence it cannot be mandatory.
-				uidDefinition.setMinOccurs(0);
-				uidDefinition.setMaxOccurs(1);
+				((ResourceAttributeDefinitionImpl) uidDefinition).setMinOccurs(0);
+				((ResourceAttributeDefinitionImpl) uidDefinition).setMaxOccurs(1);
 				// Make it read-only
-				uidDefinition.setReadOnly();
+				((ResourceAttributeDefinitionImpl) uidDefinition).setReadOnly();
 				// Set a default display name
-				uidDefinition.setDisplayName(ConnectorFactoryIcfImpl.ICFS_UID_DISPLAY_NAME);
-				uidDefinition.setDisplayOrder(ConnectorFactoryIcfImpl.ICFS_UID_DISPLAY_ORDER);
+				((ResourceAttributeDefinitionImpl) uidDefinition).setDisplayName(ConnectorFactoryIcfImpl.ICFS_UID_DISPLAY_NAME);
+				((ResourceAttributeDefinitionImpl) uidDefinition).setDisplayOrder(ConnectorFactoryIcfImpl.ICFS_UID_DISPLAY_ORDER);
 				// Uid is a primary identifier of every object (this is the ICF way)
 			}
 			if (!hasUidDefinition) {
-				ocDef.add(uidDefinition);
+				((ObjectClassComplexTypeDefinitionImpl) ocDef).add(uidDefinition);
 			}
 			((Collection<ResourceAttributeDefinition>)ocDef.getPrimaryIdentifiers()).add(uidDefinition);
 			if (uidDefinition != nameDefinition) {
@@ -931,10 +915,10 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 
 
 			// Add schema annotations
-			ocDef.setNativeObjectClass(objectClassInfo.getType());
-			ocDef.setDisplayNameAttribute(nameDefinition.getName());
-			ocDef.setNamingAttribute(nameDefinition.getName());
-			ocDef.setAuxiliary(objectClassInfo.isAuxiliary());
+			((ObjectClassComplexTypeDefinitionImpl) ocDef).setNativeObjectClass(objectClassInfo.getType());
+			((ObjectClassComplexTypeDefinitionImpl) ocDef).setDisplayNameAttribute(nameDefinition.getName());
+			((ObjectClassComplexTypeDefinitionImpl) ocDef).setNamingAttribute(nameDefinition.getName());
+			((ObjectClassComplexTypeDefinitionImpl) ocDef).setAuxiliary(objectClassInfo.isAuxiliary());
 
 		}
 
@@ -2925,7 +2909,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 
 		Set<PrismPropertyValue<T>> syncTokenValues = new HashSet<PrismPropertyValue<T>>();
 		syncTokenValues.add(new PrismPropertyValue<T>(object));
-		PrismPropertyDefinition propDef = new PrismPropertyDefinition(SchemaConstants.SYNC_TOKEN,
+		PrismPropertyDefinitionImpl propDef = new PrismPropertyDefinitionImpl(SchemaConstants.SYNC_TOKEN,
 				type, prismContext);
 		propDef.setDynamic(true);
 		PrismProperty<T> property = propDef.instantiate();

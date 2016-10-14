@@ -18,6 +18,7 @@ package com.evolveum.midpoint.prism.lex.dom;
 import com.evolveum.midpoint.prism.marshaller.XPathHolder;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
+import com.evolveum.midpoint.prism.schema.SchemaRegistryImpl;
 import com.evolveum.midpoint.prism.xml.DynamicNamespacePrefixMapper;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.prism.xnode.ListXNode;
@@ -64,7 +65,7 @@ public class DomLexicalWriter {
 		if (schemaRegistry == null) {
 			return null;
 		}
-		return schemaRegistry.getNamespacePrefixMapper();
+		return ((SchemaRegistryImpl) schemaRegistry).getNamespacePrefixMapper();
 	}
 
 	private void initialize() {

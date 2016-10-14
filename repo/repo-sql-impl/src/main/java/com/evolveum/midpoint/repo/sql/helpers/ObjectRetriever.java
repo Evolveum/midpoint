@@ -533,10 +533,10 @@ public class ObjectRetriever {
             if (item.getDefinition() == null) {
                 RValueType rValType = (RValueType) value[2];
                 if (rValType == RValueType.PROPERTY) {
-                    PrismPropertyDefinition<Object> def = new PrismPropertyDefinition<Object>(name, type, object.getPrismContext());
+                    PrismPropertyDefinition<Object> def = new PrismPropertyDefinitionImpl<Object>(name, type, object.getPrismContext());
                     item.applyDefinition(def, true);
                 } else if (rValType == RValueType.REFERENCE) {
-                    PrismReferenceDefinition def = new PrismReferenceDefinition(name, type, object.getPrismContext());
+                    PrismReferenceDefinition def = new PrismReferenceDefinitionImpl(name, type, object.getPrismContext());
                     item.applyDefinition(def, true);
                 } else {
                     throw new UnsupportedOperationException("Unsupported value type " + rValType);

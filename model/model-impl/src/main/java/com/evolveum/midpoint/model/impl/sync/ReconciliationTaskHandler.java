@@ -22,6 +22,7 @@ import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.model.impl.ModelConstants;
 import com.evolveum.midpoint.model.impl.util.Utils;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -174,7 +175,7 @@ public class ReconciliationTaskHandler implements TaskHandler {
 		try {
 			resource = provisioningService.getObject(ResourceType.class, resourceOid, null, coordinatorTask, opResult);
 			
-			RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resource, LayerType.MODEL, prismContext);
+			RefinedResourceSchema refinedSchema = RefinedResourceSchemaImpl.getRefinedSchema(resource, LayerType.MODEL, prismContext);
 			objectclassDef = Utils.determineObjectClass(refinedSchema, coordinatorTask);
 			
 		} catch (ObjectNotFoundException ex) {

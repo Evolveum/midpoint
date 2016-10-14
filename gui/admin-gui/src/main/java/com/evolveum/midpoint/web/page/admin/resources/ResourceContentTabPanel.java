@@ -22,6 +22,7 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.web.session.SessionStorage;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -139,13 +140,13 @@ public class ResourceContentTabPanel extends Panel {
 			public Iterator<String> getIterator(String input) {
 				RefinedResourceSchema refinedSchema = null;
 				try {
-					refinedSchema = RefinedResourceSchema.getRefinedSchema(model.getObject(),
+					refinedSchema = RefinedResourceSchemaImpl.getRefinedSchema(model.getObject(),
 							parentPage.getPrismContext());
 
 				} catch (SchemaException e) {
 					return new ArrayList<String>().iterator();
 				}
-				return RefinedResourceSchema.getIntentsForKind(refinedSchema, getKind()).iterator();
+				return RefinedResourceSchemaImpl.getIntentsForKind(refinedSchema, getKind()).iterator();
 
 			}
 
@@ -180,7 +181,7 @@ public class ResourceContentTabPanel extends Panel {
 			public String getObject() {
 				RefinedObjectClassDefinition ocDef;
 				try {
-					RefinedResourceSchema refinedSchema = RefinedResourceSchema
+					RefinedResourceSchema refinedSchema = RefinedResourceSchemaImpl
 							.getRefinedSchema(model.getObject(), parentPage.getPrismContext());
 					if (refinedSchema == null) {
 						return "NO SCHEMA DEFINED";
@@ -288,7 +289,7 @@ public class ResourceContentTabPanel extends Panel {
 	private List<QName> createObjectClassChoices(IModel<PrismObject<ResourceType>> model) {
 		RefinedResourceSchema refinedSchema;
 		try {
-			refinedSchema = RefinedResourceSchema.getRefinedSchema(model.getObject(),
+			refinedSchema = RefinedResourceSchemaImpl.getRefinedSchema(model.getObject(),
 					parentPage.getPrismContext());
 		} catch (SchemaException e) {
 			warn("Could not determine defined obejct classes for resource");

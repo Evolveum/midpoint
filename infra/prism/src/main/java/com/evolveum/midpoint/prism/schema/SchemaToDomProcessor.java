@@ -28,6 +28,7 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
+import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
@@ -117,6 +118,7 @@ public class SchemaToDomProcessor {
 	 * @return XSD schema in DOM form
 	 * @throws SchemaException error parsing the midPoint schema or converting values
 	 */
+	@NotNull
 	Document parseSchema(PrismSchema schema) throws SchemaException {
 		if (schema == null) {
 			throw new IllegalArgumentException("Schema can't be null.");
@@ -125,7 +127,7 @@ public class SchemaToDomProcessor {
 
 		try {
 			
-			init();
+			init();			// here the document is initialized
 			
 			// Process complex types first. 
 			Collection<ComplexTypeDefinition> complexTypes = schema.getDefinitions(ComplexTypeDefinition.class);
@@ -589,7 +591,7 @@ public class SchemaToDomProcessor {
 
 		if (namespacePrefixMapper == null) {
 			// TODO: clone?
-			namespacePrefixMapper = prismContext.getSchemaRegistry().getNamespacePrefixMapper();
+			namespacePrefixMapper = ((SchemaRegistryImpl) prismContext.getSchemaRegistry()).getNamespacePrefixMapper();
 		}
 		
 		// We don't want the "tns" prefix to be kept in the mapper

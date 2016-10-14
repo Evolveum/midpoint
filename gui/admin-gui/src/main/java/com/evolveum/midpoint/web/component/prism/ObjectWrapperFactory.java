@@ -331,7 +331,7 @@ public class ObjectWrapperFactory {
 		// unbounded. But there can be only one configuration container.
 		// See MID-2317 and related issues
 		PrismContainerDefinition definitionFixed = definition.clone();
-		definitionFixed.setMaxOccurs(1);
+        ((PrismContainerDefinitionImpl) definitionFixed).setMaxOccurs(1);
 
 		if (container == null) {
             container = definitionFixed.instantiate();

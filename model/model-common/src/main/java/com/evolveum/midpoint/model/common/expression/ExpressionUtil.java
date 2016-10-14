@@ -670,7 +670,7 @@ public class ExpressionUtil {
 		}
 
 		if (outputDefinition == null) {
-			outputDefinition = new PrismPropertyDefinition(ExpressionConstants.OUTPUT_ELMENT_NAME,
+			outputDefinition = new PrismPropertyDefinitionImpl(ExpressionConstants.OUTPUT_ELMENT_NAME,
 					DOMUtil.XSD_STRING, prismContext);
 		}
 
@@ -716,7 +716,7 @@ public class ExpressionUtil {
 			String shortDesc, Task task, OperationResult parentResult)
 					throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
 
-		PrismPropertyDefinition<String> outputDefinition = new PrismPropertyDefinition(
+		PrismPropertyDefinitionImpl<String> outputDefinition = new PrismPropertyDefinitionImpl(
 				ExpressionConstants.OUTPUT_ELMENT_NAME, DOMUtil.XSD_STRING, prismContext);
 		outputDefinition.setMaxOccurs(-1);
 		Expression<PrismPropertyValue<String>, PrismPropertyDefinition<String>> expression = expressionFactory
@@ -744,7 +744,7 @@ public class ExpressionUtil {
 			ExpressionType expressionType, ExpressionFactory expressionFactory, String shortDesc, Task task,
 			OperationResult parentResult)
 					throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
-		ItemDefinition outputDefinition = new PrismPropertyDefinition<Boolean>(
+		ItemDefinition outputDefinition = new PrismPropertyDefinitionImpl(
 				ExpressionConstants.OUTPUT_ELMENT_NAME, DOMUtil.XSD_BOOLEAN,
 				expressionFactory.getPrismContext());
 		return (PrismPropertyValue<Boolean>) evaluateExpression(variables, outputDefinition, expressionType,

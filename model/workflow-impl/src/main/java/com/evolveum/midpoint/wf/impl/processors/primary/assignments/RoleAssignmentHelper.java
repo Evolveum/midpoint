@@ -30,7 +30,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PcpAspectConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemDeltaType;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -83,7 +82,7 @@ public class RoleAssignmentHelper {
     // TODO is this ok?
     protected AssignmentType cloneAndCanonicalizeAssignment(AssignmentType assignmentType) {
         AssignmentType assignmentClone = assignmentType.clone();
-        PrismContainerValue.copyDefinition(assignmentClone, assignmentType);
+        PrismContainerValue.copyDefinition(assignmentClone, assignmentType, prismContext);
 
         assignmentClone.setTarget(null);
         return assignmentClone;

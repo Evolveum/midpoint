@@ -32,6 +32,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
 import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Element;
+import org.xml.sax.EntityResolver;
 import org.xml.sax.SAXException;
 
 import javax.xml.namespace.QName;
@@ -51,6 +52,8 @@ public interface PrismContext {
 	String LANG_YAML = "yaml";
 
 	void initialize() throws SchemaException, SAXException, IOException;
+
+	XmlEntityResolver getEntityResolver();
 
 	SchemaRegistry getSchemaRegistry();
 

@@ -21,6 +21,7 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.page.admin.resources.PageResourceWizard;
 import org.apache.commons.lang.StringUtils;
@@ -119,7 +120,7 @@ public class WizardStep extends org.apache.wicket.extensions.wizard.WizardStep {
     protected List<QName> loadResourceObjectClassList(IModel<PrismObject<ResourceType>> model, Trace LOGGER, String message){
         List<QName> list = new ArrayList<>();
         try {
-            ResourceSchema schema = RefinedResourceSchema.getResourceSchema(model.getObject(), getPageBase().getPrismContext());
+            ResourceSchema schema = RefinedResourceSchemaImpl.getResourceSchema(model.getObject(), getPageBase().getPrismContext());
             if (schema != null) {
                 for (Definition def: schema.getDefinitions()) {
                     list.add(def.getTypeName());

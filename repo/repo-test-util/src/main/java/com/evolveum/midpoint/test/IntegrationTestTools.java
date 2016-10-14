@@ -18,6 +18,7 @@ package com.evolveum.midpoint.test;
 import com.evolveum.icf.dummy.resource.DummyGroup;
 import com.evolveum.icf.dummy.resource.ScriptHistoryEntry;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.match.MatchingRule;
@@ -602,7 +603,7 @@ public class IntegrationTestTools {
 		assertNotNull("no attributes",attrs);
 		assertFalse("empty attributes",attrs.isEmpty());
 		
-		RefinedResourceSchema rschema = RefinedResourceSchema.getRefinedSchema(resourceType);
+		RefinedResourceSchema rschema = RefinedResourceSchemaImpl.getRefinedSchema(resourceType);
 		ObjectClassComplexTypeDefinition objectClassDef = rschema.findObjectClassDefinition(shadowType);
 		assertNotNull("cannot determine object class for "+shadowType, objectClassDef);
 		
@@ -695,7 +696,7 @@ public class IntegrationTestTools {
 	}
 	
     public static void applyResourceSchema(ShadowType accountType, ResourceType resourceType, PrismContext prismContext) throws SchemaException {
-    	ResourceSchema resourceSchema = RefinedResourceSchema.getResourceSchema(resourceType, prismContext);
+    	ResourceSchema resourceSchema = RefinedResourceSchemaImpl.getResourceSchema(resourceType, prismContext);
     	ShadowUtil.applyResourceSchema(accountType.asPrismObject(), resourceSchema);
     }
     

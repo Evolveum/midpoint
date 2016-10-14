@@ -438,7 +438,7 @@ public class Mapping<V extends PrismValue,D extends ItemDefinition> implements D
 		}
 		variables.addVariableDefinition(ExpressionConstants.VAR_VALUE, value);
 
-		PrismPropertyDefinition<Boolean> outputDef = new PrismPropertyDefinition<>(SchemaConstantsGenerated.C_VALUE, DOMUtil.XSD_BOOLEAN, getPrismContext(), null, false);
+		PrismPropertyDefinition<Boolean> outputDef = new PrismPropertyDefinitionImpl<Boolean>(SchemaConstantsGenerated.C_VALUE, DOMUtil.XSD_BOOLEAN, getPrismContext(), null, false);
 		PrismPropertyValue<Boolean> rv = ExpressionUtil.evaluateExpression(variables, outputDef, range.getIsInSetExpression(), expressionFactory, "isInSet expression in " + contextDescription, task, result);
 
 		// but now remove the parent!
@@ -866,7 +866,7 @@ public class Mapping<V extends PrismValue,D extends ItemDefinition> implements D
 			conditionOutputTriple.addToZeroSet(new PrismPropertyValue<Boolean>(Boolean.TRUE));
 			return;
 		}
-		PrismPropertyDefinition<Boolean> conditionOutput = new PrismPropertyDefinition<>(CONDITION_OUTPUT_NAME, DOMUtil.XSD_BOOLEAN, expressionFactory.getPrismContext());
+		PrismPropertyDefinition<Boolean> conditionOutput = new PrismPropertyDefinitionImpl<Boolean>(CONDITION_OUTPUT_NAME, DOMUtil.XSD_BOOLEAN, expressionFactory.getPrismContext());
 		Expression<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> expression = expressionFactory.makeExpression(conditionExpressionType, 
 				conditionOutput, "condition in "+getMappingContextDescription(), task, result);
 		ExpressionEvaluationContext params = new ExpressionEvaluationContext(sources, variables, 

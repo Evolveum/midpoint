@@ -28,9 +28,7 @@ import java.util.List;
 import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.ParsingContext;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.xnode.XNode;
@@ -45,7 +43,6 @@ import org.testng.annotations.Test;
 import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
 
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.DiffUtil;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
@@ -731,7 +728,7 @@ public class TestParseDiffPatch {
         for (ItemDeltaType itemDeltaType : objectChange.getItemDelta()) {
             for (RawType rawType : itemDeltaType.getValue()) {
                 rawType.getParsedItem(
-                        new PrismPropertyDefinition(itemDeltaType.getPath().getItemPath().lastNamed().getName(),
+                        new PrismPropertyDefinitionImpl(itemDeltaType.getPath().getItemPath().lastNamed().getName(),
                                 rawType.getXnode().getTypeQName(),
                                 prismContext));
             }

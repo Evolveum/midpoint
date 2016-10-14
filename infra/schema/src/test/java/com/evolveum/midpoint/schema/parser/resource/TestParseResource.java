@@ -32,6 +32,7 @@ import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.TestConstants;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
+import com.evolveum.midpoint.schema.processor.ResourceSchemaImpl;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
@@ -216,7 +217,7 @@ public abstract class TestParseResource {
 		
 		XmlSchemaType defType = (XmlSchemaType) reparsedSchemaContainer.getValue().asContainerable();
 		Element reparsedXsdSchemaElement = defType.getDefinition().getSchema();
-		ResourceSchema reparsedSchema = ResourceSchema.parse(reparsedXsdSchemaElement, "reparsed schema", prismContext);
+		ResourceSchema reparsedSchema = ResourceSchemaImpl.parse(reparsedXsdSchemaElement, "reparsed schema", prismContext);
 		
 	}
 	

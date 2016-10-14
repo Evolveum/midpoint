@@ -27,6 +27,7 @@ import java.util.List;
 import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import org.hibernate.Query;
 import org.hibernate.Session;
 import org.hibernate.stat.Statistics;
@@ -342,7 +343,7 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
 
         // apply appropriate schema
         PrismObject<ResourceType> resource = prismContext.parseObject(new File(FOLDER_BASIC, "resource-opendj.xml"));
-        ResourceSchema resourceSchema = RefinedResourceSchema.getResourceSchema(resource, prismContext);
+        ResourceSchema resourceSchema = RefinedResourceSchemaImpl.getResourceSchema(resource, prismContext);
         ShadowUtil.applyResourceSchema(fileAccount, resourceSchema);
 
         OperationResult result = new OperationResult("ADD");
@@ -553,7 +554,7 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
 
             // apply appropriate schema
             PrismObject<ResourceType> resource = prismContext.parseObject(new File(FOLDER_BASIC, "resource-opendj.xml"));
-            ResourceSchema resourceSchema = RefinedResourceSchema.getResourceSchema(resource, prismContext);
+            ResourceSchema resourceSchema = RefinedResourceSchemaImpl.getResourceSchema(resource, prismContext);
             ShadowUtil.applyResourceSchema(account, resourceSchema);
 
             repositoryService.addObject(account, null, result);

@@ -34,6 +34,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.ConsistencyCheckScope;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 
+import com.evolveum.midpoint.schema.processor.*;
 import org.testng.Assert;
 import org.testng.AssertJUnit;
 import org.testng.annotations.BeforeSuite;
@@ -53,11 +54,6 @@ import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceAttribute;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeContainerDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.SchemaTestConstants;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
@@ -106,7 +102,7 @@ public class TestRefinedSchema {
 
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
-        RefinedResourceSchema rSchema = RefinedResourceSchema.parse(resourceType, prismContext);
+        RefinedResourceSchema rSchema = RefinedResourceSchemaImpl.parse(resourceType, prismContext);
 
         // THEN
         TestUtil.displayThen(TEST_NAME);
@@ -144,7 +140,7 @@ public class TestRefinedSchema {
         ResourceType resourceType = resource.asObjectable();
 
         // WHEN
-        RefinedResourceSchema rSchema = RefinedResourceSchema.parse(resourceType, prismContext);
+        RefinedResourceSchema rSchema = RefinedResourceSchemaImpl.parse(resourceType, prismContext);
 
         // THEN
         assertNotNull("Refined schema is null", rSchema);
@@ -284,7 +280,7 @@ public class TestRefinedSchema {
         PrismObject<ResourceType> resource = prismContext.parseObject(RESOURCE_COMPLEX_FILE);
         ResourceType resourceType = resource.asObjectable();
 
-        RefinedResourceSchema rSchema = RefinedResourceSchema.parse(resourceType, prismContext);
+        RefinedResourceSchema rSchema = RefinedResourceSchemaImpl.parse(resourceType, prismContext);
         RefinedObjectClassDefinition defaultAccountDefinition = rSchema.getDefaultRefinedDefinition(ShadowKindType.ACCOUNT);
         assertNotNull("No refined default account definition in "+rSchema, defaultAccountDefinition);
 
@@ -316,7 +312,7 @@ public class TestRefinedSchema {
 
         PrismObject<ResourceType> resource = prismContext.parseObject(RESOURCE_COMPLEX_FILE);
         
-        RefinedResourceSchema rSchema = RefinedResourceSchema.parse(resource, prismContext);
+        RefinedResourceSchema rSchema = RefinedResourceSchemaImpl.parse(resource, prismContext);
         RefinedObjectClassDefinition defaultAccountDefinition = rSchema.getDefaultRefinedDefinition(ShadowKindType.ACCOUNT);
         assertNotNull("No refined default account definition in "+rSchema, defaultAccountDefinition);
         System.out.println("Refined account definition:");
@@ -391,7 +387,7 @@ public class TestRefinedSchema {
         PrismObject<ResourceType> resource = prismContext.parseObject(RESOURCE_COMPLEX_FILE);
         ResourceType resourceType = resource.asObjectable();
 
-        RefinedResourceSchema rSchema = RefinedResourceSchema.parse(resourceType, prismContext);
+        RefinedResourceSchema rSchema = RefinedResourceSchemaImpl.parse(resourceType, prismContext);
         assertNotNull("Refined schema is null", rSchema);
         assertFalse("No account definitions", rSchema.getRefinedDefinitions(ShadowKindType.ACCOUNT).isEmpty());
         RefinedObjectClassDefinition rAccount = rSchema.getRefinedDefinition(ShadowKindType.ACCOUNT, (String)null);
@@ -418,7 +414,7 @@ public class TestRefinedSchema {
     	PrismContext prismContext = createInitializedPrismContext();
         PrismObject<ResourceType> resource = prismContext.parseObject(RESOURCE_COMPLEX_FILE);
         ResourceType resourceType = resource.asObjectable();
-        RefinedResourceSchema rSchema = RefinedResourceSchema.parse(resourceType, prismContext);
+        RefinedResourceSchema rSchema = RefinedResourceSchemaImpl.parse(resourceType, prismContext);
         assertNotNull("Refined schema is null", rSchema);
         assertFalse("No account definitions", rSchema.getRefinedDefinitions(ShadowKindType.ACCOUNT).isEmpty());
         RefinedObjectClassDefinition rAccount = rSchema.getRefinedDefinition(ShadowKindType.ACCOUNT, (String)null);
@@ -530,7 +526,7 @@ public class TestRefinedSchema {
 	}
 
 	private ResourceAttribute<String> createStringAttribute(QName attrName, String value) {
-		ResourceAttributeDefinition testAttrDef = new ResourceAttributeDefinition(attrName, DOMUtil.XSD_STRING, getPrismContext());
+		ResourceAttributeDefinition testAttrDef = new ResourceAttributeDefinitionImpl(attrName, DOMUtil.XSD_STRING, getPrismContext());
 		ResourceAttribute<String> testAttr = testAttrDef.instantiate();
 		testAttr.setRealValue(value);
 		return testAttr;
@@ -549,7 +545,7 @@ public class TestRefinedSchema {
 
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
-        RefinedResourceSchema rSchema = RefinedResourceSchema.parse(resourceType, prismContext);
+        RefinedResourceSchema rSchema = RefinedResourceSchemaImpl.parse(resourceType, prismContext);
 
         // THEN
         TestUtil.displayThen(TEST_NAME);

@@ -18,6 +18,7 @@ package com.evolveum.midpoint.model.impl.expr;
 import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
@@ -503,7 +504,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     private <T> Integer countAccounts(ResourceType resourceType, QName attributeName, T attributeValue, Task task, OperationResult result)
     		throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, 
     		SecurityViolationException {
-    	RefinedResourceSchema rSchema = RefinedResourceSchema.getRefinedSchema(resourceType);
+    	RefinedResourceSchema rSchema = RefinedResourceSchemaImpl.getRefinedSchema(resourceType);
         RefinedObjectClassDefinition rAccountDef = rSchema.getDefaultRefinedDefinition(ShadowKindType.ACCOUNT);
         RefinedAttributeDefinition attrDef = rAccountDef.findAttributeDefinition(attributeName);
 		ObjectQuery query = QueryBuilder.queryFor(ShadowType.class, prismContext)
@@ -602,7 +603,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     	Validate.notNull(shadowType, "Null shadow");
     	Validate.notNull(attributeName, "Null attribute name");
     	Validate.notNull(attributeValue, "Null attribute value");
-    	RefinedResourceSchema rSchema = RefinedResourceSchema.getRefinedSchema(resourceType);
+    	RefinedResourceSchema rSchema = RefinedResourceSchemaImpl.getRefinedSchema(resourceType);
         RefinedObjectClassDefinition rAccountDef = rSchema.getDefaultRefinedDefinition(ShadowKindType.ACCOUNT);
         RefinedAttributeDefinition attrDef = rAccountDef.findAttributeDefinition(attributeName);
 		ObjectQuery query = QueryBuilder.queryFor(ShadowType.class, prismContext)

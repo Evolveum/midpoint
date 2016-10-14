@@ -21,6 +21,7 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.web.component.prism.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.Validate;
@@ -217,7 +218,7 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
 				ShadowType shadow = new ShadowType();
 				shadow.setResource(resource);
 
-				RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(
+				RefinedResourceSchema refinedSchema = RefinedResourceSchemaImpl.getRefinedSchema(
 						resource.asPrismObject(), LayerType.PRESENTATION, getPrismContext());
 				if (refinedSchema == null) {
 					error(getString("pageAdminFocus.message.couldntCreateAccountNoSchema",

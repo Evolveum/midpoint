@@ -3,6 +3,7 @@ package com.evolveum.midpoint.model.impl.dataModel;
 import com.evolveum.midpoint.common.refinery.RefinedAssociationDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -67,7 +68,7 @@ public class VisualizationContext {
 			return null;
 		}
 		try {
-			return RefinedResourceSchema.getRefinedSchema(resource, prismContext);
+			return RefinedResourceSchemaImpl.getRefinedSchema(resource, prismContext);
 		} catch (SchemaException e) {
 			throw new SystemException("Unexpected exception: " + e.getMessage(), e);
 		}

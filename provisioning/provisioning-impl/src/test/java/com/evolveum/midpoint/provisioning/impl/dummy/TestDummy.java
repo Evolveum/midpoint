@@ -41,10 +41,13 @@ import java.util.Set;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.query.OrFilter;
 
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
+import com.evolveum.midpoint.prism.schema.PrismSchemaImpl;
+import com.evolveum.midpoint.schema.processor.*;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -104,11 +107,6 @@ import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceAttribute;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.statistics.ConnectorOperationalStatus;
@@ -288,7 +286,7 @@ public class TestDummy extends AbstractDummyTest {
 			assertNotNull("No schema", connectorXsdSchemaElement);
 
 			// Try to parse the schema
-			PrismSchema schema = PrismSchema.parse(connectorXsdSchemaElement, true, "connector schema " + conn, prismContext);
+			PrismSchema schema = PrismSchemaImpl.parse(connectorXsdSchemaElement, true, "connector schema " + conn, prismContext);
 			assertNotNull("Cannot parse schema", schema);
 			assertFalse("Empty schema", schema.isEmpty());
 
@@ -429,7 +427,7 @@ public class TestDummy extends AbstractDummyTest {
 		assertNotNull("No serialNumber", cachingMetadata.getSerialNumber());
 
 		Element xsdElement = ObjectTypeUtil.findXsdElement(xmlSchemaTypeAfter);
-		ResourceSchema parsedSchema = ResourceSchema.parse(xsdElement, resourceTypeBefore.toString(), prismContext);
+		ResourceSchema parsedSchema = ResourceSchemaImpl.parse(xsdElement, resourceTypeBefore.toString(), prismContext);
 		assertNotNull("No schema after parsing", parsedSchema);
 
 		// schema will be checked in next test
@@ -502,10 +500,10 @@ public class TestDummy extends AbstractDummyTest {
 
 		// THEN
 		// The returned type should have the schema pre-parsed
-		assertNotNull(RefinedResourceSchema.hasParsedSchema(resourceType));
+		assertNotNull(RefinedResourceSchemaImpl.hasParsedSchema(resourceType));
 
 		// Also test if the utility method returns the same thing
-		ResourceSchema returnedSchema = RefinedResourceSchema.getResourceSchema(resourceType, prismContext);
+		ResourceSchema returnedSchema = RefinedResourceSchemaImpl.getResourceSchema(resourceType, prismContext);
 
 		display("Parsed resource schema", returnedSchema);
 
@@ -514,7 +512,7 @@ public class TestDummy extends AbstractDummyTest {
 		// Not equals() but == ... we want to really know if exactly the same
 		// object instance is returned
 		assertTrue("Broken caching",
-				returnedSchema == RefinedResourceSchema.getResourceSchema(resourceType, prismContext));
+				returnedSchema == RefinedResourceSchemaImpl.getResourceSchema(resourceType, prismContext));
 
 		assertSchemaSanity(returnedSchema, resourceType);
 		
@@ -529,7 +527,7 @@ public class TestDummy extends AbstractDummyTest {
 		// GIVEN
 
 		// WHEN
-		RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resourceType, prismContext);
+		RefinedResourceSchema refinedSchema = RefinedResourceSchemaImpl.getRefinedSchema(resourceType, prismContext);
 		display("Refined schema", refinedSchema);
 
 		// Check whether it is reusing the existing schema and not parsing it
@@ -537,7 +535,7 @@ public class TestDummy extends AbstractDummyTest {
 		// Not equals() but == ... we want to really know if exactly the same
 		// object instance is returned
 		assertTrue("Broken caching",
-				refinedSchema == RefinedResourceSchema.getRefinedSchema(resourceType, prismContext));
+				refinedSchema == RefinedResourceSchemaImpl.getRefinedSchema(resourceType, prismContext));
 
 		RefinedObjectClassDefinition accountDef = refinedSchema.getDefaultRefinedDefinition(ShadowKindType.ACCOUNT);
 		assertNotNull("Account definition is missing", accountDef);
@@ -739,7 +737,7 @@ public class TestDummy extends AbstractDummyTest {
 		ConnectorInstance configuredConnectorInstance = connectorManager.getConfiguredConnectorInstance(
 				resource, false, result);
 		assertNotNull("No configuredConnectorInstance", configuredConnectorInstance);
-		ResourceSchema resourceSchema = RefinedResourceSchema.getResourceSchema(resource, prismContext);
+		ResourceSchema resourceSchema = RefinedResourceSchemaImpl.getResourceSchema(resource, prismContext);
 		assertNotNull("No resource schema", resourceSchema);
 
 		// WHEN
@@ -761,7 +759,7 @@ public class TestDummy extends AbstractDummyTest {
 		assertTrue("Configurations not equivalent", configurationContainer.equivalent(configurationContainerAgain));
 
 		// Check resource schema caching
-		ResourceSchema resourceSchemaAgain = RefinedResourceSchema.getResourceSchema(resourceAgain, prismContext);
+		ResourceSchema resourceSchemaAgain = RefinedResourceSchemaImpl.getResourceSchema(resourceAgain, prismContext);
 		assertNotNull("No resource schema (again)", resourceSchemaAgain);
 		assertTrue("Resource schema was not cached", resourceSchema == resourceSchemaAgain);
 		
@@ -819,7 +817,7 @@ public class TestDummy extends AbstractDummyTest {
 		ConnectorInstance configuredConnectorInstance = connectorManager.getConfiguredConnectorInstance(
 				resource, false, result);
 		assertNotNull("No configuredConnectorInstance", configuredConnectorInstance);
-		ResourceSchema resourceSchema = RefinedResourceSchema.getResourceSchema(resource, prismContext);
+		ResourceSchema resourceSchema = RefinedResourceSchemaImpl.getResourceSchema(resource, prismContext);
 		assertNotNull("No resource schema", resourceSchema);
 
 		// WHEN
@@ -840,7 +838,7 @@ public class TestDummy extends AbstractDummyTest {
 				.findContainer(ResourceType.F_CONNECTOR_CONFIGURATION);
 		assertTrue("Configurations not equivalent", configurationContainer.equivalent(configurationContainerAgain));
 
-		ResourceSchema resourceSchemaAgain = RefinedResourceSchema.getResourceSchema(resourceAgain, prismContext);
+		ResourceSchema resourceSchemaAgain = RefinedResourceSchemaImpl.getResourceSchema(resourceAgain, prismContext);
 		assertNotNull("No resource schema (again)", resourceSchemaAgain);
 		assertTrue("Resource schema was not cached", resourceSchema == resourceSchemaAgain);
 
@@ -2849,7 +2847,7 @@ public class TestDummy extends AbstractDummyTest {
 	}
 
     private ObjectQuery createOnOffQuery() throws SchemaException {
-		ResourceSchema resourceSchema = RefinedResourceSchema.getResourceSchema(resource, prismContext);
+		ResourceSchema resourceSchema = RefinedResourceSchemaImpl.getResourceSchema(resource, prismContext);
 		ObjectClassComplexTypeDefinition objectClassDef = resourceSchema.findObjectClassDefinition(SchemaTestConstants.ACCOUNT_OBJECT_CLASS_LOCAL_NAME);
 		ResourceAttributeDefinition<String> attrDef = objectClassDef.findAttributeDefinition(
 				dummyResourceCtl.getAttributeQName(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME));
@@ -2872,7 +2870,7 @@ public class TestDummy extends AbstractDummyTest {
 	
 	protected <T> void testSeachIterativeSingleAttrFilter(final String TEST_NAME, QName attrQName, T attrVal, 
 			GetOperationOptions rootOptions, boolean fullShadow, String... expectedAccountNames) throws Exception {
-		ResourceSchema resourceSchema = RefinedResourceSchema.getResourceSchema(resource, prismContext);
+		ResourceSchema resourceSchema = RefinedResourceSchemaImpl.getResourceSchema(resource, prismContext);
 		ObjectClassComplexTypeDefinition objectClassDef = resourceSchema.findObjectClassDefinition(SchemaTestConstants.ACCOUNT_OBJECT_CLASS_LOCAL_NAME);
 		ResourceAttributeDefinition<T> attrDef = objectClassDef.findAttributeDefinition(attrQName);
 		ObjectFilter filter = QueryBuilder.queryFor(ShadowType.class, prismContext)
@@ -2884,7 +2882,7 @@ public class TestDummy extends AbstractDummyTest {
     protected <T> void testSeachIterativeAlternativeAttrFilter(final String TEST_NAME, QName attr1QName, T attr1Val,
                                                                QName attr2QName, T attr2Val,
                                                           GetOperationOptions rootOptions, boolean fullShadow, String... expectedAccountNames) throws Exception {
-        ResourceSchema resourceSchema = RefinedResourceSchema.getResourceSchema(resource, prismContext);
+        ResourceSchema resourceSchema = RefinedResourceSchemaImpl.getResourceSchema(resource, prismContext);
         ObjectClassComplexTypeDefinition objectClassDef = resourceSchema.findObjectClassDefinition(SchemaTestConstants.ACCOUNT_OBJECT_CLASS_LOCAL_NAME);
         ResourceAttributeDefinition<T> attr1Def = objectClassDef.findAttributeDefinition(attr1QName);
         ResourceAttributeDefinition<T> attr2Def = objectClassDef.findAttributeDefinition(attr2QName);
@@ -4190,7 +4188,7 @@ public class TestDummy extends AbstractDummyTest {
 		syncServiceMock.reset();
 
 		Collection<? extends ItemDelta> modifications = new ArrayList<ItemDelta>(1);
-		ResourceSchema resourceSchema = RefinedResourceSchema.getResourceSchema(resource, prismContext);
+		ResourceSchema resourceSchema = RefinedResourceSchemaImpl.getResourceSchema(resource, prismContext);
 		ObjectClassComplexTypeDefinition defaultAccountDefinition = resourceSchema.findDefaultObjectClassDefinition(ShadowKindType.ACCOUNT);
 		ResourceAttributeDefinition fullnameAttrDef = defaultAccountDefinition.findAttributeDefinition("fullname");
 		ResourceAttribute fullnameAttr = fullnameAttrDef.instantiate();
@@ -4304,7 +4302,7 @@ public class TestDummy extends AbstractDummyTest {
 	}
 	
 	private PrismObject<ShadowType> createAccountShadow(String username) throws SchemaException {
-		ResourceSchema resourceSchema = RefinedResourceSchema.getResourceSchema(resource, prismContext);
+		ResourceSchema resourceSchema = RefinedResourceSchemaImpl.getResourceSchema(resource, prismContext);
 		ObjectClassComplexTypeDefinition defaultAccountDefinition = resourceSchema.findDefaultObjectClassDefinition(ShadowKindType.ACCOUNT);
 		ShadowType shadowType = new ShadowType();
 		PrismTestUtil.getPrismContext().adopt(shadowType);

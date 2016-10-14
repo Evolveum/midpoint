@@ -19,6 +19,7 @@ package com.evolveum.midpoint.web.component.prism;
 import com.evolveum.midpoint.common.refinery.CompositeRefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedAssociationDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -190,7 +191,7 @@ public class ContainerWrapperFactory {
                 // hack... we want to create a definition for Name
                 // PrismPropertyDefinition def = ((PrismContainerValue)
                 // pcv.getContainer().getParent()).getContainer().findProperty(ObjectType.F_NAME).getDefinition();
-                PrismPropertyDefinition def = new PrismPropertyDefinition(ObjectType.F_NAME,
+                PrismPropertyDefinitionImpl def = new PrismPropertyDefinitionImpl(ObjectType.F_NAME,
                         DOMUtil.XSD_STRING, pcv.getPrismContext());
 
                 if (OrgType.COMPLEX_TYPE.equals(assignmentType.getTargetRef().getType())) {
@@ -260,7 +261,7 @@ public class ContainerWrapperFactory {
             RefinedResourceSchema refinedSchema;
             CompositeRefinedObjectClassDefinition rOcDef;
             try {
-                refinedSchema = RefinedResourceSchema.getRefinedSchema(resource);
+                refinedSchema = RefinedResourceSchemaImpl.getRefinedSchema(resource);
                 rOcDef = refinedSchema.determineCompositeObjectClassDefinition(objectWrapper.getObject());
             } catch (SchemaException e) {
                 throw new SystemException(e.getMessage(), e);

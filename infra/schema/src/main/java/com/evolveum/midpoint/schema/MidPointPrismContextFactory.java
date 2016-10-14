@@ -23,6 +23,7 @@ import java.io.IOException;
 import java.util.Arrays;
 
 import com.evolveum.midpoint.prism.PrismContextImpl;
+import com.evolveum.midpoint.prism.schema.SchemaRegistryImpl;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
@@ -61,7 +62,7 @@ public class MidPointPrismContextFactory implements PrismContextFactory {
 
 	@Override
 	public PrismContext createPrismContext() throws SchemaException, FileNotFoundException {
-		SchemaRegistry schemaRegistry = createSchemaRegistry();
+		SchemaRegistryImpl schemaRegistry = createSchemaRegistry();
 		PrismContextImpl context = PrismContextImpl.create(schemaRegistry);
 		context.setDefinitionFactory(createDefinitionFactory());
 		
@@ -73,7 +74,7 @@ public class MidPointPrismContextFactory implements PrismContextFactory {
 	}
 	
 	public PrismContext createEmptyPrismContext() throws SchemaException, FileNotFoundException {
-		SchemaRegistry schemaRegistry = createSchemaRegistry();
+		SchemaRegistryImpl schemaRegistry = createSchemaRegistry();
 		PrismContextImpl context = PrismContextImpl.createEmptyContext(schemaRegistry);
 		context.setDefinitionFactory(createDefinitionFactory());
 		return context;
@@ -89,8 +90,8 @@ public class MidPointPrismContextFactory implements PrismContextFactory {
 		return context;
 	}
 	
-	private SchemaRegistry createSchemaRegistry() throws SchemaException, FileNotFoundException {
-		SchemaRegistry schemaRegistry = new SchemaRegistry();
+	private SchemaRegistryImpl createSchemaRegistry() throws SchemaException, FileNotFoundException {
+		SchemaRegistryImpl schemaRegistry = new SchemaRegistryImpl();
 		schemaRegistry.setDefaultNamespace(SchemaConstantsGenerated.NS_COMMON);
 		schemaRegistry.setNamespacePrefixMapper(new GlobalDynamicNamespacePrefixMapper());
 		registerBuiltinSchemas(schemaRegistry);
@@ -98,13 +99,13 @@ public class MidPointPrismContextFactory implements PrismContextFactory {
 		return schemaRegistry;
 	}
     
-    protected void registerExtensionSchemas(SchemaRegistry schemaRegistry) throws SchemaException, FileNotFoundException {
+    protected void registerExtensionSchemas(SchemaRegistryImpl schemaRegistry) throws SchemaException, FileNotFoundException {
     	if (extraSchemaDir != null && extraSchemaDir.exists()) {
     		schemaRegistry.registerPrismSchemasFromDirectory(extraSchemaDir);
     	}
     }
 	
-	private void registerBuiltinSchemas(SchemaRegistry schemaRegistry) throws SchemaException {
+	private void registerBuiltinSchemas(SchemaRegistryImpl schemaRegistry) throws SchemaException {
 		// Note: the order of schema registration may affect the way how the schema files are located
 		// (whether are pulled from the registry or by using a catalog file).
 		

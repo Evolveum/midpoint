@@ -119,8 +119,10 @@ public class Visualizer {
 		scene.setName(name);
 		scene.setSourceRelPath(EMPTY_PATH);
 		scene.setSourceAbsPath(EMPTY_PATH);
-		if (containerValue.getConcreteTypeDefinition() != null) {
-			scene.setSourceDefinition(containerValue.getConcreteTypeDefinition());
+		if (containerValue.getComplexTypeDefinition() != null) {
+			// TEMPORARY!!!
+			PrismContainerDefinition<?> pcd = prismContext.getSchemaRegistry().findContainerDefinitionByType(containerValue.getComplexTypeDefinition().getTypeName());
+			scene.setSourceDefinition(pcd);
 		} else if (containerValue.getParent() != null && containerValue.getParent().getDefinition() != null) {
 			scene.setSourceDefinition(containerValue.getParent().getDefinition());
 		}

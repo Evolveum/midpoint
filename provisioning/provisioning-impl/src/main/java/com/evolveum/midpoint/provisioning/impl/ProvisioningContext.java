@@ -17,6 +17,7 @@ package com.evolveum.midpoint.provisioning.impl;
 
 import com.evolveum.midpoint.common.refinery.CompositeRefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
+import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinitionImpl;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
@@ -146,7 +147,7 @@ public class ProvisioningContext extends StateReporter {
 				if (origObjectClassDefinition == null) {
 					throw new SchemaException("No object class definition for "+shadowCoordinates.getObjectClass()+" in original resource schema for "+getResource());
 				} else {
-					objectClassDefinition = RefinedObjectClassDefinition.parseFromSchema(origObjectClassDefinition, getResource(), getRefinedSchema(), getResource().asPrismObject().getPrismContext(),
+					objectClassDefinition = RefinedObjectClassDefinitionImpl.parseFromSchema(origObjectClassDefinition, getResource(), getRefinedSchema(), getResource().asPrismObject().getPrismContext(),
 						"objectclass "+origObjectClassDefinition+" in "+getResource());
 				}
 			}

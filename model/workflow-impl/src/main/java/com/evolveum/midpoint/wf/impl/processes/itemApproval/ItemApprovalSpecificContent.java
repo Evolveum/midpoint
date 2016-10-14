@@ -57,7 +57,6 @@ public class ItemApprovalSpecificContent implements ProcessSpecificContent {
 	@Override
 	public WfProcessSpecificStateType createProcessSpecificState() {
 		ItemApprovalProcessStateType state = new ItemApprovalProcessStateType();
-		state.asPrismContainerValue().setConcreteType(ItemApprovalProcessStateType.COMPLEX_TYPE);
 		state.setApprovalSchema(approvalSchema != null ? approvalSchema.toApprovalSchemaType() : null);
 		return state;
 	}

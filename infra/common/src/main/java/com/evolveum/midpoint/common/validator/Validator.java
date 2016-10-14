@@ -109,7 +109,7 @@ public class Validator {
 		SchemaRegistry schemaRegistry = prismContext.getSchemaRegistry();
 		midPointJavaxSchema = schemaRegistry.getJavaxSchema();
 		xsdValidator = midPointJavaxSchema.newValidator();
-		xsdValidator.setResourceResolver(schemaRegistry);
+		xsdValidator.setResourceResolver(prismContext.getEntityResolver());
 	}
 
 	public EventHandler getHandler() {

@@ -84,6 +84,14 @@ public class QNameUtil {
 		return uriToQName(uri, false);
 	}
 
+	public static boolean noNamespace(@NotNull QName name) {
+		return StringUtils.isEmpty(name.getNamespaceURI());
+	}
+
+	public static boolean hasNamespace(@NotNull QName name) {
+		return !noNamespace(name);
+	}
+
 	public static class QNameInfo {
 		@NotNull public final QName name;
 		public final boolean explicitEmptyNamespace;

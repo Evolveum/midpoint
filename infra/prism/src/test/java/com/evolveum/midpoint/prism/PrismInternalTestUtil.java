@@ -32,6 +32,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.foo.AccountConstructionType;
 
+import com.evolveum.midpoint.prism.schema.SchemaRegistryImpl;
 import org.xml.sax.SAXException;
 
 import com.evolveum.midpoint.prism.foo.ActivationType;
@@ -211,8 +212,8 @@ public class PrismInternalTestUtil implements PrismContextFactory {
 	
 	public static final QName WEAPONS_WEAPON_BRAND_TYPE_QNAME = new QName(NS_WEAPONS, "WeaponBrandType");
 	
-	public static PrismContext constructInitializedPrismContext() throws SchemaException, SAXException, IOException {
-		PrismContext context = constructPrismContext();
+	public static PrismContextImpl constructInitializedPrismContext() throws SchemaException, SAXException, IOException {
+		PrismContextImpl context = constructPrismContext();
 		context.initialize();
 		return context;
 	}
@@ -223,12 +224,12 @@ public class PrismInternalTestUtil implements PrismContextFactory {
 		return context;
 	}
 		
-	public static PrismContext constructPrismContext() throws SchemaException, FileNotFoundException {
+	public static PrismContextImpl constructPrismContext() throws SchemaException, FileNotFoundException {
 		return constructPrismContext(null);
 	}
 	
-	public static PrismContext constructPrismContext(File extraSchema) throws SchemaException, FileNotFoundException {
-		SchemaRegistry schemaRegistry = new SchemaRegistry();
+	public static PrismContextImpl constructPrismContext(File extraSchema) throws SchemaException, FileNotFoundException {
+		SchemaRegistryImpl schemaRegistry = new SchemaRegistryImpl();
 		schemaRegistry.setCatalogResourceName(TEST_CATALOG_RESOURCE_NAME);
 		DynamicNamespacePrefixMapper prefixMapper = new GlobalDynamicNamespacePrefixMapper();
 		// Set default namespace?
@@ -244,8 +245,7 @@ public class PrismInternalTestUtil implements PrismContextFactory {
 		}
 		prefixMapper.registerPrefix(PrismConstants.NS_ANNOTATION, PrismConstants.PREFIX_NS_ANNOTATION, false);
 		prefixMapper.registerPrefix(PrismInternalTestUtil.NS_WEAPONS, PrismInternalTestUtil.NS_WEAPONS_PREFIX, false);
-		PrismContext context = PrismContextImpl.create(schemaRegistry);
-		return context;
+		return PrismContextImpl.create(schemaRegistry);
 	}
 
 	/* (non-Javadoc)
@@ -398,7 +398,7 @@ public class PrismInternalTestUtil implements PrismContextFactory {
         assertNotNull("Value #1 has no XNode present", value1.getXnode());
         RawType value2 = accountConstructionType.getValue().get(1);
         assertNotNull("Value #2 has no XNode present", value2.getXnode());
-        PrismPropertyDefinition value1def = new PrismPropertyDefinition(
+        PrismPropertyDefinition value1def = new PrismPropertyDefinitionImpl(
                 new QName(NS_FOO, "dummy"),           // element name
                 DOMUtil.XSD_STRING,                 // type name
                 user.getPrismContext());

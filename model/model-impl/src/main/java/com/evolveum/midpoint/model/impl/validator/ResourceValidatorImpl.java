@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.model.impl.validator;
 
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.model.api.validator.Issue;
 import com.evolveum.midpoint.model.api.validator.ResourceValidator;
 import com.evolveum.midpoint.model.api.validator.Scope;
@@ -123,7 +124,7 @@ public class ResourceValidatorImpl implements ResourceValidator {
 
 		ResourceSchema resourceSchema = null;
 		try {
-			resourceSchema = RefinedResourceSchema.getResourceSchema(resourceObject, prismContext);
+			resourceSchema = RefinedResourceSchemaImpl.getResourceSchema(resourceObject, prismContext);
 		} catch (Throwable t) {
 			vr.add(Issue.Severity.WARNING, CAT_SCHEMA, C_NO_SCHEMA,
 					getString(bundle, CLASS_DOT + C_NO_SCHEMA, t.getMessage()),

@@ -32,6 +32,7 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.validation.Schema;
 import javax.xml.validation.Validator;
 
+import com.evolveum.midpoint.prism.schema.SchemaRegistryImpl;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 
 import org.testng.annotations.Test;
@@ -133,7 +134,7 @@ public class TestSchemaRegistry {
         SchemaRegistry schemaRegistry = context.getSchemaRegistry();
         
         // Common schema should be parsed during creation of the context
-        schemaRegistry.loadPrismSchemaResource("schema/extension.xsd");
+		((SchemaRegistryImpl) schemaRegistry).loadPrismSchemaResource("schema/extension.xsd");
         
         // Check that the extension schema was loaded
         PrismSchema extensionSchema = schemaRegistry.findSchemaByNamespace(EXTENSION_SCHEMA_NAMESPACE);

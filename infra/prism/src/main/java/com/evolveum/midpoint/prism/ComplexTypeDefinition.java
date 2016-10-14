@@ -16,110 +16,32 @@
 
 package com.evolveum.midpoint.prism;
 
-import com.evolveum.midpoint.prism.path.IdItemPathSegment;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.path.ItemPathSegment;
-import com.evolveum.midpoint.prism.path.NameItemPathSegment;
-import com.evolveum.midpoint.prism.path.ObjectReferencePathSegment;
-import com.evolveum.midpoint.prism.path.ParentPathSegment;
-import com.evolveum.midpoint.prism.path.ReferencePathSegment;
-import com.evolveum.midpoint.util.DebugDumpable;
-import com.evolveum.midpoint.util.PrettyPrinter;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import org.jetbrains.annotations.NotNull;
-import com.evolveum.midpoint.util.QNameUtil;
-import org.apache.commons.lang.StringUtils;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 import javax.xml.namespace.QName;
+import java.util.List;
 
 /**
- * TODO
- * 
- * @author Radovan Semancik
- * 
+ * @author mederly
  */
-public class ComplexTypeDefinition extends Definition {
-	private static final long serialVersionUID = 2655797837209175037L;
-	private List<ItemDefinition> itemDefinitions;
-	private QName superType;
-	private boolean containerMarker;
-	private boolean objectMarker;
-	private boolean xsdAnyMarker;
-	private QName extensionForType;
-	private Class<?> compileTimeClass;
-	private String defaultNamespace;
-	@NotNull private List<String> ignoredNamespaces = new ArrayList<>();
+public interface ComplexTypeDefinition extends Definition, LocalDefinitionStore {
 
-	public ComplexTypeDefinition(QName typeName, PrismContext prismContext) {
-		super(typeName, prismContext);
-		itemDefinitions = new ArrayList<ItemDefinition>();
-	}
-	
-	public ComplexTypeDefinition(QName typeName, PrismContext prismContext, Class<?> compileTimeClass) {
-		super(typeName, prismContext);
-		itemDefinitions = new ArrayList<ItemDefinition>();
-		this.compileTimeClass = compileTimeClass;
-	}
+	List<? extends ItemDefinition> getDefinitions();
 
-	protected String getSchemaNamespace() {
-		return getTypeName().getNamespaceURI();
-	}
-		
-	/**
-	 * Returns set of property definitions.
-	 * 
-	 * The set contains all property definitions of all types that were parsed.
-	 * Order of definitions is insignificant.
-	 * 
-	 * @return set of definitions
-	 */
-	public List<? extends ItemDefinition> getDefinitions() {
-		if (itemDefinitions == null) {
-			itemDefinitions = new ArrayList<ItemDefinition>();
-		}
-		return itemDefinitions;
-	}
-	
-	public void addDefinition(ItemDefinition itemDef) {
-		itemDefinitions.add(itemDef);
-	}
-	
-	public Class<?> getCompileTimeClass() {
-		return compileTimeClass;
-	}
+	Class<?> getCompileTimeClass();
 
-	public void setCompileTimeClass(Class<?> compileTimeClass) {
-		this.compileTimeClass = compileTimeClass;
-	}
+	QName getExtensionForType();
 
-	public QName getExtensionForType() {
-		return extensionForType;
-	}
-
-	public void setExtensionForType(QName extensionForType) {
-		this.extensionForType = extensionForType;
-	}
-	
 	/**
 	 * Flag indicating whether this type was marked as "container"
 	 * in the original schema. Does not provide any information to
-	 * schema processing logic, just conveys the marker from oginal
-	 * schema so we can serialized and deserialize the schema without
+	 * schema processing logic, just conveys the marker from original
+	 * schema so we can serialize and deserialize the schema without
 	 * loss of information.
 	 */
-	public boolean isContainerMarker() {
-		return containerMarker;
-	}
-
-	public void setContainerMarker(boolean containerMarker) {
-		this.containerMarker = containerMarker;
-	}
+	boolean isContainerMarker();
 
 	/**
 	 * Flag indicating whether this type was marked as "object"
@@ -128,383 +50,34 @@ public class ComplexTypeDefinition extends Definition {
 	 * schema so we can serialized and deserialize the schema without
 	 * loss of information.
 	 */
-	public boolean isObjectMarker() {
-		return objectMarker;
-	}
-	
-	public boolean isXsdAnyMarker() {
-		return xsdAnyMarker;
-	}
+	boolean isObjectMarker();
 
-	public void setXsdAnyMarker(boolean xsdAnyMarker) {
-		this.xsdAnyMarker = xsdAnyMarker;
-	}
+	boolean isXsdAnyMarker();
 
-	public String getDefaultNamespace() {
-		return defaultNamespace;
-	}
+	/**
+	 *  When resolving unqualified names for items contained in this CTD, what should be the default namespace to look into at first.
+	 *  Currently does NOT apply recursively (to inner CTDs).
+	 */
+	String getDefaultNamespace();
 
-	public void setDefaultNamespace(String defaultNamespace) {
-		this.defaultNamespace = defaultNamespace;
-	}
-
+	/**
+	 *  When resolving unqualified names for items contained in this CTD, what namespace(s) should be ignored.
+	 *  Names in this list are interpreted as a namespace prefixes.
+	 *  Currently does NOT apply recursively (to inner CTDs).
+	 */
 	@NotNull
-	public List<String> getIgnoredNamespaces() {
-		return ignoredNamespaces;
-	}
+	List<String> getIgnoredNamespaces();
 
-	public void setIgnoredNamespaces(@NotNull List<String> ignoredNamespaces) {
-		this.ignoredNamespaces = ignoredNamespaces;
-	}
+	QName getSuperType();
 
-	public QName getSuperType() {
-		return superType;
-	}
-
-	public void setSuperType(QName superType) {
-		this.superType = superType;
-	}
-
-	public void setObjectMarker(boolean objectMarker) {
-		this.objectMarker = objectMarker;
-	}
-
-	public void add(ItemDefinition definition) {
-		itemDefinitions.add(definition);
-	}
-		
-	public PrismPropertyDefinition createPropertyDefinifion(QName name, QName typeName) {
-		PrismPropertyDefinition propDef = new PrismPropertyDefinition(name, typeName, prismContext);
-		itemDefinitions.add(propDef);
-		return propDef;
-	}
-	
-	// Creates reference to other schema
-	// TODO: maybe check if the name is in different namespace
-	// TODO: maybe create entirely new concept of property reference?
-	public PrismPropertyDefinition createPropertyDefinifion(QName name) {
-		PrismPropertyDefinition propDef = new PrismPropertyDefinition(name, null, prismContext);
-		itemDefinitions.add(propDef);
-		return propDef;
-	}
-
-	public PrismPropertyDefinition createPropertyDefinition(String localName, QName typeName) {
-		QName name = new QName(getSchemaNamespace(),localName);
-		return createPropertyDefinifion(name, typeName);
-	}
-
-	
-	public PrismPropertyDefinition createPropertyDefinifion(String localName, String localTypeName) {
-		QName name = new QName(getSchemaNamespace(),localName);
-		QName typeName = new QName(getSchemaNamespace(),localTypeName);
-		return createPropertyDefinifion(name, typeName);
-	}
-	
-	/**
-     * Finds a PropertyDefinition by looking at the property name.
-     * <p/>
-     * Returns null if nothing is found.
-     *
-     * @param name property definition name
-     * @return found property definition or null
-     */
-    public <T> PrismPropertyDefinition<T> findPropertyDefinition(QName name) {
-        return findItemDefinition(name, PrismPropertyDefinition.class);
-    }
-    
-    public <T> PrismPropertyDefinition<T> findPropertyDefinition(ItemPath path) {
-        return findItemDefinition(path, PrismPropertyDefinition.class);
-    }
-	
-    public <C extends Containerable> PrismContainerDefinition<C> findContainerDefinition(QName name) {
-    	return findItemDefinition(name, PrismContainerDefinition.class);
-    }
-    
-    public <C extends Containerable> PrismContainerDefinition<C> findContainerDefinition(ItemPath path) {
-    	return findItemDefinition(path, PrismContainerDefinition.class);
-    }
-
-	public <T extends ItemDefinition> T findItemDefinition(QName name, Class<T> clazz) {
-		return findItemDefinition(name, clazz, false);
-	}
-
-	public <T extends ItemDefinition> T findItemDefinition(QName name, Class<T> clazz, boolean caseInsensitive) {
-        if (clazz == null) {
-            throw new IllegalArgumentException("type not specified while searching for " + name + " in " + this);
-        }
-        if (name == null) {
-            throw new IllegalArgumentException("name not specified while searching in " + this);
-        }
-
-        for (ItemDefinition def : getDefinitions()) {
-            if (isItemValid(def, name, clazz, caseInsensitive)) {
-                return (T) def;
-            }
-        }
-        return null;
-    }
-
-	public <ID extends ItemDefinition> ID findItemDefinition(ItemPath path) {
-		return (ID)findItemDefinition(path, ItemDefinition.class);
-	}
-
-	public <ID extends ItemDefinition> ID findItemDefinition(ItemPath path, Class<ID> clazz) {
-		for (;;) {
-			if (path.isEmpty()) {
-				throw new IllegalArgumentException("Cannot resolve empty path on complex type definition "+this);
-			}
-			ItemPathSegment first = path.first();
-			if (first instanceof NameItemPathSegment) {
-				QName firstName = ((NameItemPathSegment)first).getName();
-				return findNamedItemDefinition(firstName, path.rest(), clazz);
-			} else if (first instanceof IdItemPathSegment) {
-				path = path.rest();
-			} else if (first instanceof ParentPathSegment) {
-				ItemPath rest = path.rest();
-				ComplexTypeDefinition parent = getSchemaRegistry().determineParentDefinition(this, rest);
-				if (rest.isEmpty()) {
-					// requires that the parent is defined as an item (container, object)
-					return (ID) getSchemaRegistry().findItemDefinitionByType(parent.getTypeName());
-				} else {
-					return parent.findItemDefinition(rest, clazz);
-				}
-			} else if (first instanceof ObjectReferencePathSegment) {
-				throw new IllegalStateException("Couldn't use '@' path segment in this context. CTD=" + getTypeName() + ", path=" + path);
-			} else {
-				throw new IllegalStateException("Unexpected path segment: " + first + " in " + path);
-			}
-		}
-    }
-
-	// path starts with NamedItemPathSegment
-	private <ID extends ItemDefinition> ID findNamedItemDefinition(QName firstName, ItemPath rest, Class<ID> clazz) {
-		ID found = null;
-		for (ItemDefinition def : getDefinitions()) {
-            if (firstName != null && QNameUtil.match(firstName, def.getName())) {
-				if (found != null) {
-					throw new IllegalStateException("More definitions found for " + firstName + "/" + rest + " in " + this);
-				}
-                found = (ID) def.findItemDefinition(rest, clazz);
-				if (StringUtils.isNotEmpty(firstName.getNamespaceURI())) {
-					return found;			// if qualified then there's no risk of matching more entries
-				}
-            }
-        }
-		return found;
-	}
-
-	private <T extends ItemDefinition> boolean isItemValid(ItemDefinition def, QName name, Class<T> clazz, boolean caseInsensitive) {
-		if (def == null) {
-    		return false;
-    	}
-    	return def.isValidFor(name, clazz, caseInsensitive);
-	}
-	
-	/**
-	 * Merge provided definition into this definition.
-	 */
-	public void merge(ComplexTypeDefinition otherComplexTypeDef) {
-		for (ItemDefinition otherItemDef: otherComplexTypeDef.getDefinitions()) {
-			add(otherItemDef.clone());
-		}
-	}
+	void merge(ComplexTypeDefinition otherComplexTypeDef);
 
 	@Override
-	public void revive(PrismContext prismContext) {
-		if (this.prismContext != null) {
-			return;
-		}
-		this.prismContext = prismContext;
-		for (ItemDefinition def: itemDefinitions) {
-			def.revive(prismContext);
-		}
-	}
+	void revive(PrismContext prismContext);
 
-	public boolean isEmpty() {
-		return itemDefinitions.isEmpty();
-	}
-	
-	/**
-	 * Shallow clone.
-	 */
-	public ComplexTypeDefinition clone() {
-		ComplexTypeDefinition clone = new ComplexTypeDefinition(this.typeName, prismContext);
-		copyDefinitionData(clone);
-		return clone;
-	}
-	
-	public ComplexTypeDefinition deepClone() {
-		return deepClone(new HashMap<QName, ComplexTypeDefinition>());
-	}
-	
-	ComplexTypeDefinition deepClone(Map<QName,ComplexTypeDefinition> ctdMap) {
-		ComplexTypeDefinition clone;
-		if (ctdMap != null) {
-			clone = ctdMap.get(this.getTypeName());
-			if (clone != null) {
-				return clone; // already cloned
-			}
-		}
-		clone = clone(); // shallow
-		if (ctdMap != null) {
-			ctdMap.put(this.getTypeName(), clone);
-		}
-		clone.itemDefinitions.clear();
-		for (ItemDefinition itemDef: this.itemDefinitions) {
-			clone.itemDefinitions.add(itemDef.deepClone(ctdMap));
-		}
-		return clone;
-	}
-	
-	protected void copyDefinitionData(ComplexTypeDefinition clone) {
-		super.copyDefinitionData(clone);
-        clone.superType = this.superType;
-        clone.containerMarker = this.containerMarker;
-        clone.objectMarker = this.objectMarker;
-        clone.xsdAnyMarker = this.xsdAnyMarker;
-        clone.extensionForType = this.extensionForType;
-        clone.compileTimeClass = this.compileTimeClass;
-        clone.itemDefinitions.addAll(this.itemDefinitions);
-	}
+	boolean isEmpty();
 
-	public void replaceDefinition(QName propertyName, ItemDefinition newDefinition) {
-		for (int i=0; i<itemDefinitions.size(); i++) {
-			ItemDefinition itemDef = itemDefinitions.get(i);
-			if (itemDef.getName().equals(propertyName)) {
-				if (!itemDef.getClass().isAssignableFrom(newDefinition.getClass())) {
-					throw new IllegalArgumentException("The provided definition of class "+newDefinition.getClass().getName()+" does not match existing definition of class "+itemDef.getClass().getName());
-				}
-				if (!itemDef.getName().equals(newDefinition.getName())) {
-					newDefinition = newDefinition.clone();
-					newDefinition.setName(propertyName);
-				}
-				// Make sure this is set, not add. set will keep correct ordering
-				itemDefinitions.set(i, newDefinition);
-				return;
-			}
-		}
-		throw new IllegalArgumentException("The definition with name "+propertyName+" was not found in complex type "+getTypeName());
-	}
-	
-	
+	ComplexTypeDefinition clone();
 
-	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = super.hashCode();
-		result = prime * result + ((compileTimeClass == null) ? 0 : compileTimeClass.hashCode());
-		result = prime * result + (containerMarker ? 1231 : 1237);
-		result = prime * result + ((extensionForType == null) ? 0 : extensionForType.hashCode());
-		result = prime * result + ((itemDefinitions == null) ? 0 : itemDefinitions.hashCode());
-		result = prime * result + (objectMarker ? 1231 : 1237);
-		result = prime * result + ((superType == null) ? 0 : superType.hashCode());
-		result = prime * result + (xsdAnyMarker ? 1231 : 1237);
-		return result;
-	}
-
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj) {
-			return true;
-		}
-		if (!super.equals(obj)) {
-			return false;
-		}
-		if (getClass() != obj.getClass()) {
-			return false;
-		}
-		ComplexTypeDefinition other = (ComplexTypeDefinition) obj;
-		if (compileTimeClass == null) {
-			if (other.compileTimeClass != null) {
-				return false;
-			}
-		} else if (!compileTimeClass.equals(other.compileTimeClass)) {
-			return false;
-		}
-		if (containerMarker != other.containerMarker) {
-			return false;
-		}
-		if (extensionForType == null) {
-			if (other.extensionForType != null) {
-				return false;
-			}
-		} else if (!extensionForType.equals(other.extensionForType)) {
-			return false;
-		}
-		if (itemDefinitions == null) {
-			if (other.itemDefinitions != null) {
-				return false;
-			}
-		} else if (!itemDefinitions.equals(other.itemDefinitions)) {
-			return false;
-		}
-		if (objectMarker != other.objectMarker) {
-			return false;
-		}
-		if (superType == null) {
-			if (other.superType != null) {
-				return false;
-			}
-		} else if (!superType.equals(other.superType)) {
-			return false;
-		}
-		if (xsdAnyMarker != other.xsdAnyMarker) {
-			return false;
-		}
-		return true;
-	}
-
-	@Override
-	public String debugDump(int indent) {
-		StringBuilder sb = new StringBuilder();
-		for (int i=0; i<indent; i++) {
-			sb.append(DebugDumpable.INDENT_STRING);
-		}
-		sb.append(toString());
-		if (extensionForType != null) {
-			sb.append(",ext:");
-			sb.append(PrettyPrinter.prettyPrint(extensionForType));
-		}
-		if (ignored) {
-			sb.append(",ignored");
-		}
-		if (containerMarker) {
-			sb.append(",Mc");
-		}
-		if (objectMarker) {
-			sb.append(",Mo");
-		}
-		if (xsdAnyMarker) {
-			sb.append(",Ma");
-		}
-		extendDumpHeader(sb);
-		for (ItemDefinition def : getDefinitions()) {
-			sb.append("\n");
-			sb.append(def.debugDump(indent+1));
-			extendDumpDefinition(sb, def);
-		}
-		return sb.toString();
-	}
-
-	protected void extendDumpHeader(StringBuilder sb) {
-		// Do nothing
-	}
-
-	protected void extendDumpDefinition(StringBuilder sb, ItemDefinition def) {
-		// Do nothing		
-	}
-
-	/**
-     * Return a human readable name of this class suitable for logs.
-     */
-    @Override
-    protected String getDebugDumpClassName() {
-        return "CTD";
-    }
-
-    @Override
-    public String getDocClassName() {
-        return "complex type";
-    }
-
+	ComplexTypeDefinition deepClone();
 }
