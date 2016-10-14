@@ -454,7 +454,9 @@ public class PrismValuePanel extends Panel {
               } else if(ActivationType.F_LOCKOUT_STATUS.equals(definition.getName())){
                   return new LockoutStatusPanel(id, valueWrapperModel.getObject(), new PropertyModel<LockoutStatusType>(valueWrapperModel, baseExpression));
               } else {
-              	// nothing to do
+                  if (definition.getTypeName().getLocalPart().equals(ActivationStatusType.class.getSimpleName())) {
+                      return WebComponentUtil.createEnumPanel(ActivationStatusType.class, id, new PropertyModel<ActivationStatusType>(valueWrapperModel, baseExpression), this);
+                  }
               }
               
               if (DOMUtil.XSD_DATETIME.equals(valueType)) {
