@@ -1,10 +1,47 @@
-<!DOCTYPE html>
-<html>
-<head lang="en">
-    <meta charset="UTF-8">
-    <title></title>
-</head>
-<body>
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+  ~ Copyright (c) 2010-2016 Evolveum
+  ~
+  ~    Licensed under the Apache License, Version 2.0 (the "License");
+  ~    you may not use this file except in compliance with the License.
+  ~    You may obtain a copy of the License at
+  ~
+  ~        http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~    Unless required by applicable law or agreed to in writing, software
+  ~    distributed under the License is distributed on an "AS IS" BASIS,
+  ~    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~    See the License for the specific language governing permissions and
+  ~    limitations under the License.
+  -->
 
-</body>
-</html>
+<wicket:panel xmlns:wicket="http://wicket.apache.org">
+    <!--<form wicket:id="mainForm" class="form-horizontal">-->
+        <div class="row">
+            <!--<select wicket:id="mergeType"/>-->
+<!---->
+            <!--<div wicket:id="infoHelperButton"/>-->
+        </div>
+        <div class="row">
+            <div wicket:id="mergeObjectDetailsPanel" class="col-md-3"/>
+            <div class="icon">
+                <i class="fa fa-plus" style="font-size: 30px;"></i>
+            </div>
+            <div class="col-md-1 fa fa-plus"/>
+            <div wicket:id="mergeWithObjectDetailsPanel" class="col-md-3"/>
+            <div class="icon">
+                <i class="fa fa-arrow-right" style="font-size: 30px;"></i>
+            </div>
+            <!--<div wicket:id="mergeResultObjectDetailsPanel" class="col-md-3"/>-->
+        </div>
+        <wicket:child/>
+
+        <!--<div class="main-button-bar">-->
+            <!--<span class="button-group">-->
+                <!--<a class="btn btn-default" wicket:id="back"/>-->
+            <!--</span>-->
+            <!--<a class="btn btn-primary" wicket:id="switchDirection"/>-->
+            <!--<a class="btn btn-primary" wicket:id="merge"/>-->
+        <!--</div>-->
+    <!--</form>-->
+</wicket:panel>

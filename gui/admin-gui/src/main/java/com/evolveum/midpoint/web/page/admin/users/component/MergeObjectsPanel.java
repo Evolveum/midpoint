@@ -22,11 +22,40 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
  * Created by honchar.
  */
 public class MergeObjectsPanel<F extends FocusType> extends BasePanel{
+    private static final String ID_MERGE_OBJECT_DETAILS_PANEL = "mergeObjectDetailsPanel";
+    private static final String ID_MERGE_WITH_OBJECT_DETAILS_PANEL = "mergeWithObjectDetailsPanel";
+    private static final String ID_MERGE_RESULT_OBJECT_DETAILS_PANEL = "mergeResultObjectDetailsPanel";
+    private static final String ID_PLUS_ICON = "mergeObjectDetailsPanel";
+    private static final String ID_EQUAL_ICON = "mergeObjectDetailsPanel";
+
+    private F mergeObject;
+    private F mergeWithObject;
+    private Class<F> type;
+
     public MergeObjectsPanel(String id){
         super(id);
     }
 
-    public MergeObjectsPanel(String id, F mergeObject, F mergeWithObject){
+    public MergeObjectsPanel(String id, F mergeObject, F mergeWithObject, Class<F> type){
         super(id);
+        this.mergeObject = mergeObject;
+        this.mergeWithObject = mergeWithObject;
+        this.type = type;
+        initLayout();
+    }
+
+    private void initLayout(){
+        MergeObjectDetailsPanel mergeObjectPanel = new MergeObjectDetailsPanel(ID_MERGE_OBJECT_DETAILS_PANEL,
+                mergeObject, type);
+        mergeObjectPanel.setOutputMarkupId(true);
+        add(mergeObjectPanel);
+
+        MergeObjectDetailsPanel mergeWithObjectPanel = new MergeObjectDetailsPanel(ID_MERGE_WITH_OBJECT_DETAILS_PANEL,
+                mergeWithObject, type);
+        mergeWithObjectPanel.setOutputMarkupId(true);
+        add(mergeWithObjectPanel);
+
+
+
     }
 }
