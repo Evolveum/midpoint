@@ -16,32 +16,35 @@
   -->
 
 <wicket:panel xmlns:wicket="http://wicket.apache.org">
-    <!--<form wicket:id="mainForm" class="form-horizontal">-->
+    <form wicket:id="mainForm" class="form-horizontal">
         <div class="row">
-            <!--<select wicket:id="mergeType"/>-->
-<!---->
-            <!--<div wicket:id="infoHelperButton"/>-->
+            <div class="col-xs-1" style="padding-bottom: 20px;">
+                <span><wicket:message key="PageMergeObjects.mergeType"/></span>
+            </div>
+            <div class="col-xs-3">
+                <div wicket:id="mergeType"/>
+            </div>
         </div>
         <div class="row">
-            <div wicket:id="mergeObjectDetailsPanel" class="col-md-3"/>
+            <div wicket:id="mergeObjectDetailsPanel" class="col-xs-3"/>
             <div class="icon">
-                <i class="fa fa-plus" style="font-size: 30px;"></i>
+                <i class="fa fa-plus col-xs-1" style="font-size: 30px;"></i>
             </div>
-            <div class="col-md-1 fa fa-plus"/>
-            <div wicket:id="mergeWithObjectDetailsPanel" class="col-md-3"/>
+            <div wicket:id="mergeWithObjectDetailsPanel" class="col-xs-3"/>
             <div class="icon">
-                <i class="fa fa-arrow-right" style="font-size: 30px;"></i>
+                <i class="fa fa-arrow-right col-xs-1" style="font-size: 30px;"></i>
             </div>
-            <!--<div wicket:id="mergeResultObjectDetailsPanel" class="col-md-3"/>-->
+            <div wicket:id="mergeResultObjectDetailsPanel" class="col-xs-3"/>
         </div>
         <wicket:child/>
 
-        <!--<div class="main-button-bar">-->
-            <!--<span class="button-group">-->
-                <!--<a class="btn btn-default" wicket:id="back"/>-->
-            <!--</span>-->
-            <!--<a class="btn btn-primary" wicket:id="switchDirection"/>-->
-            <!--<a class="btn btn-primary" wicket:id="merge"/>-->
-        <!--</div>-->
-    <!--</form>-->
+        <div class="main-button-bar" style="padding-top: 20px;">
+            <span class="button-group">
+                <a class="btn btn-default" wicket:id="back"/>
+            </span>
+            <a class="btn btn-primary" wicket:id="switchDirection"/>
+            <a class="btn btn-primary" wicket:id="mergeDeltaPreview"/>
+            <a class="btn btn-primary" wicket:id="merge"/>
+        </div>
+    </form>
 </wicket:panel>
