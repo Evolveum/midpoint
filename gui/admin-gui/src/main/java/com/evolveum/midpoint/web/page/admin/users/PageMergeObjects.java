@@ -30,13 +30,14 @@ public class PageMergeObjects<F extends FocusType> extends PageBase {
     private static final String ID_MERGE_PANEL = "mergePanel";
     private F mergeObject;
     private F mergeWithObject;
-
+    private Class<F> type;
     public PageMergeObjects(){
     }
 
-    public PageMergeObjects(F mergeObject, F mergeWithObject){
+    public PageMergeObjects(F mergeObject, F mergeWithObject, Class<F> type){
         this.mergeObject = mergeObject;
         this.mergeWithObject = mergeWithObject;
+        this.type = type;
         initLayout();
     }
 
@@ -47,7 +48,7 @@ public class PageMergeObjects<F extends FocusType> extends PageBase {
             warningMessage.setOutputMarkupId(true);
             add(warningMessage);
         } else {
-            MergeObjectsPanel mergePanel = new MergeObjectsPanel(ID_MERGE_PANEL, mergeObject, mergeWithObject);
+            MergeObjectsPanel mergePanel = new MergeObjectsPanel(ID_MERGE_PANEL, mergeObject, mergeWithObject, type);
             mergePanel.setOutputMarkupId(true);
             add(mergePanel);
         }

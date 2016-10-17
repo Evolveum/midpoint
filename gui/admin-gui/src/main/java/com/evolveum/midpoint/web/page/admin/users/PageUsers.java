@@ -431,7 +431,7 @@ public class PageUsers extends PageAdminUsers {
 		getTable().clearCache();
 	}
 
-    private void mergePerformed(AjaxRequestTarget target, UserType selectedUser) {
+    private void mergePerformed(AjaxRequestTarget target, final UserType selectedUser) {
         List<QName> supportedTypes = new ArrayList<>();
         supportedTypes.add(UserType.COMPLEX_TYPE);
         ObjectBrowserPanel panel = new ObjectBrowserPanel(
@@ -440,9 +440,9 @@ public class PageUsers extends PageAdminUsers {
             private static final long serialVersionUID = 1L;
 
             @Override
-            protected void addPerformed(AjaxRequestTarget target, QName type, List selected) {
-                super.addPerformed(target, type, selected);
-//                mergeConfirmedPerformed(selectedUser, );
+            protected void onSelectPerformed(AjaxRequestTarget target, ObjectType user) {
+                hideMainPopup(target);
+                mergeConfirmedPerformed(selectedUser, (UserType) user, target);
             }
 
         };
@@ -451,6 +451,7 @@ public class PageUsers extends PageAdminUsers {
     }
 
     private void mergeConfirmedPerformed(UserType mergeObject, UserType mergeWithObject, AjaxRequestTarget target) {
+        setResponsePage(new PageMergeObjects(mergeObject, mergeWithObject, UserType.class));
     }
 
     private void unlockPerformed(AjaxRequestTarget target, UserType selectedUser) {
