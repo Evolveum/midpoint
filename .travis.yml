@@ -1,4 +1,4 @@
-sudo: false
+sudo: required
 dist: trusty
 language: java
 
@@ -15,20 +15,19 @@ before_install:
   - unzip -qq apache-maven-3.3.9-bin.zip
   - export M2_HOME=$PWD/apache-maven-3.3.9
   - export PATH=$M2_HOME/bin:$PATH
-  - export MAVEN_OPTS='-Xmx2g -XX:MaxPermSize=256m'
+  - export MAVEN_OPTS='-Xmx2g'
 
 # custom script is used so build and tests are done in one mvn command, separating it (as Travis does by default) leads to problem with ConnId (notably DummyResource)
 script: mvn clean install
 
 addons:
   hostname: localhost # workaround for short hostname
-  apt:
-    packages:
-      - oracle-java8-installer # install newest JDK8
-      #- openjdk-8-jdk
+  #apt:
+    #packages:
+      #- oracle-java8-installer # install newest JDK8
 
 jdk:
-  - openjdk7
-  - oraclejdk7
-  #- openjdk8
+  #- openjdk7
+  #- oraclejdk7
   - oraclejdk8
+  - openjdk8
