@@ -34,6 +34,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationT
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
 
@@ -53,6 +55,7 @@ public class MergeObjectsPanel<F extends FocusType> extends BasePanel{
     private static final String ID_MERGE_OBJECT_DETAILS_PANEL = "mergeObjectDetailsPanel";
     private static final String ID_MERGE_WITH_OBJECT_DETAILS_PANEL = "mergeWithObjectDetailsPanel";
     private static final String ID_MERGE_RESULT_OBJECT_DETAILS_PANEL = "mergeResultObjectDetailsPanel";
+    private static final String ID_MERGE_RESULT_PANEL_CONTAINER = "mergeResultPanelContainer";
     private static final String ID_BACK_BUTTON = "back";
     private static final String ID_SWITCH_DIRECTION_BUTTON = "switchDirection";
     private static final String ID_MERGE_DELTA_PREVIEW_BUTTON = "mergeDeltaPreview";
@@ -62,6 +65,7 @@ public class MergeObjectsPanel<F extends FocusType> extends BasePanel{
 
     private F mergeObject;
     private F mergeWithObject;
+    private PrismObject<F> mergeResultObject;
     private Class<F> type;
     private PageBase pageBase;
     private IModel<String> mergeTypeModel;
@@ -129,17 +133,16 @@ public class MergeObjectsPanel<F extends FocusType> extends BasePanel{
         DropDownChoicePanel mergeTypeSelect = new DropDownChoicePanel(ID_MERGE_TYPE_SELECTOR,
                 mergeTypeModel, mergeTypeChoicesModel);
 
-//                WebComponentUtil.createEnumPanel(MergeType.class,
-//                ID_MERGE_TYPE_SELECTOR, mergeTypeModel, this);
-//        mergeTypeSelect.add(new OnChangeAjaxBehavior() {
-//
-//            @Override
-//            protected void onUpdate(AjaxRequestTarget target) {
-////                AssignmentCatalogPanel parentPanel = CatalogItemsPanel.this.findParent(AssignmentCatalogPanel.class);
-////                parentPanel.addOrReplaceLayout();
-////                target.add(parentPanel);
-//            }
-//        });
+        mergeTypeSelect.getBaseFormComponent().add(new OnChangeAjaxBehavior() {
+
+            @Override
+            protected void onUpdate(AjaxRequestTarget target) {
+                mergeResultObject = getMergeObjectsResult();
+                WebMarkupContainer resultObjectPanel = (WebMarkupContainer)get(ID_FORM).get(ID_MERGE_RESULT_PANEL_CONTAINER);
+                resultObjectPanel.addOrReplace(getMergeResultObjectPanel());
+                target.add(resultObjectPanel);
+            }
+        });
         mergeTypeSelect.setOutputMarkupId(true);
         mainForm.add(mergeTypeSelect);
 
@@ -153,7 +156,16 @@ public class MergeObjectsPanel<F extends FocusType> extends BasePanel{
         mergeWithObjectPanel.setOutputMarkupId(true);
         mainForm.add(mergeWithObjectPanel);
 
-        PrismObject<F> mergeResultObject = getMergeObjectsResult();
+        mergeResultObject = getMergeObjectsResult();
+
+        WebMarkupContainer mergeResultPanelContainer = new WebMarkupContainer(ID_MERGE_RESULT_PANEL_CONTAINER);
+        mergeResultPanelContainer.setOutputMarkupId(true);
+        mainForm.add(mergeResultPanelContainer);
+        mergeResultPanelContainer.add(getMergeResultObjectPanel());
+//        initButtonPanel(mainForm);
+    }
+
+    private Component getMergeResultObjectPanel(){
         Component mergeObjectsResultPanel;
         if (mergeResultObject != null) {
             mergeObjectsResultPanel = new MergeObjectDetailsPanel(ID_MERGE_RESULT_OBJECT_DETAILS_PANEL,
@@ -163,9 +175,7 @@ public class MergeObjectsPanel<F extends FocusType> extends BasePanel{
                     pageBase.createStringResource("PageMergeObjects.noMergeResultObjectWarning"));
         }
         mergeObjectsResultPanel.setOutputMarkupId(true);
-        mainForm.add(mergeObjectsResultPanel);
-
-        initButtonPanel(mainForm);
+        return mergeObjectsResultPanel;
     }
 
     private void initButtonPanel(Form mainForm){
