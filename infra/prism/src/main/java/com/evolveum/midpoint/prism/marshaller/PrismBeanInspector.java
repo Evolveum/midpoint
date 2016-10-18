@@ -124,15 +124,10 @@ public class PrismBeanInspector {
         });
     }
 
-    private Map<Class<? extends Object>, QName> _determineTypeForClass = Collections.synchronizedMap(new HashMap());
+    private Map<Class<?>, QName> _determineTypeForClass = Collections.synchronizedMap(new HashMap());
 
-    QName determineTypeForClass(Class<? extends Object> paramType) {
-        return find1(_determineTypeForClass, paramType, new Getter1<QName,Class<? extends Object>>() {
-            @Override
-            public QName get(Class<? extends Object> paramType) {
-                return determineTypeForClassUncached(paramType);
-            }
-        });
+    QName determineTypeForClass(Class<?> paramType) {
+        return find1(_determineTypeForClass, paramType, this::determineTypeForClassUncached);
     }
 
     private Map<Field,Map<Method,Boolean>> _isAttribute = Collections.synchronizedMap(new HashMap());
@@ -305,7 +300,7 @@ public class PrismBeanInspector {
             // nothing found
         }
         Class<? super T> superclass = classType.getSuperclass();
-        if (superclass.equals(Object.class)) {
+        if (superclass == null || Object.class.equals(superclass)) {
             return null;
         }
         return findPropertyField(superclass, propName);
@@ -338,7 +333,7 @@ public class PrismBeanInspector {
             // nothing found
         }
         Class<? super T> superclass = classType.getSuperclass();
-        if (superclass.equals(Object.class)) {
+        if (superclass == null || superclass.equals(Object.class)) {
             return null;
         }
         return findPropertyGetter(superclass, propName);
@@ -385,7 +380,7 @@ public class PrismBeanInspector {
         }
 
         String namespace = xmlType.namespace();
-        if (namespace == null || PrismBeanConverter.DEFAULT_PLACEHOLDER.equals(namespace)) {
+        if (PrismBeanConverter.DEFAULT_PLACEHOLDER.equals(namespace)) {
             XmlSchema xmlSchema = beanClass.getPackage().getAnnotation(XmlSchema.class);
             namespace = xmlSchema.namespace();
         }
@@ -499,7 +494,7 @@ public class PrismBeanInspector {
             }
         }
         Class superclass = classType.getSuperclass();
-        if (superclass.equals(Object.class)) {
+        if (superclass == null || superclass.equals(Object.class)) {
             return null;
         }
         return findField(superclass, selector);
@@ -512,7 +507,7 @@ public class PrismBeanInspector {
             }
         }
         Class superclass = classType.getSuperclass();
-        if (superclass.equals(Object.class)) {
+        if (superclass == null || superclass.equals(Object.class)) {
             return null;
         }
         return findMethod(superclass, selector);
@@ -523,7 +518,7 @@ public class PrismBeanInspector {
 
         // Superclass first!
         Class superclass = beanClass.getSuperclass();
-        if (superclass.equals(Object.class) || superclass.getAnnotation(XmlType.class) == null) {
+        if (superclass == null || superclass.equals(Object.class) || superclass.getAnnotation(XmlType.class) == null) {
             propOrder = new ArrayList<>();
         } else {
             propOrder = new ArrayList<>(getPropOrder(superclass));

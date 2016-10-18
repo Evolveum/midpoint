@@ -17,8 +17,7 @@
 package com.evolveum.midpoint.prism.marshaller;
 
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.lex.LexicalHelpers;
-import com.evolveum.midpoint.prism.xnode.XNode;
+import com.evolveum.midpoint.prism.xnode.RootXNode;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import org.jetbrains.annotations.NotNull;
 
@@ -32,8 +31,9 @@ import java.util.List;
  */
 public class PrismParserImplIO extends PrismParserImpl {
 
-	public PrismParserImplIO(ParserSource source, String language, ParsingContext context, LexicalHelpers helpers) {
-		super(source, language, context, helpers);
+	public PrismParserImplIO(ParserSource source, String language, ParsingContext context, PrismContextImpl prismContext,
+			ItemDefinition<?> itemDefinition, QName itemName, QName typeName, Class<?> typeClass) {
+		super(source, language, context, prismContext, itemDefinition, itemName, typeName, typeClass);
 	}
 
 	@NotNull
@@ -42,46 +42,45 @@ public class PrismParserImplIO extends PrismParserImpl {
 		return doParse();
 	}
 
+	@Override
+	public <IV extends PrismValue, ID extends ItemDefinition> Item<IV, ID> parseItem() throws SchemaException, IOException {
+		return doParseItem();
+	}
+
+	@Override
+	public <IV extends PrismValue> IV parseItemValue() throws SchemaException, IOException {
+		return doParseItemValue();
+	}
+
+	@Override
+	public <T> T parseRealValue(Class<T> clazz) throws IOException, SchemaException {
+		return doParseRealValue(clazz);
+	}
+
+	@Override
+	public <T> T parseRealValue() throws IOException, SchemaException {
+		return doParseRealValue();
+	}
+
+	@Override
+	public <T> JAXBElement<T> parseRealValueToJaxbElement() throws IOException, SchemaException {
+		return doParseAnyValueAsJAXBElement();
+	}
+
+	@Override
+	public RootXNode parseToXNode() throws IOException, SchemaException {
+		return doParseToXNode();
+	}
+
 	@NotNull
 	@Override
 	public List<PrismObject<? extends Objectable>> parseObjects() throws SchemaException, IOException {
 		return doParseObjects();
 	}
 
-	@NotNull
-	@Override
-	public <C extends Containerable> PrismContainer<C> parseContainer(@NotNull Class<C> clazz) throws SchemaException, IOException {
-		return doParseContainer(clazz);
-	}
-
-	@NotNull
-	@Override
-	public <C extends Containerable> PrismContainer<C> parseContainer(@NotNull PrismContainerDefinition<C> definition) throws SchemaException, IOException {
-		return doParseContainer(definition);
-	}
-
-	@Override
-	public <T> T parseAtomicValue(QName typeName) throws IOException, SchemaException {
-		return doParseAtomicValue(typeName);
-	}
-
+	@Deprecated
 	@Override
 	public Object parseAnyData() throws IOException, SchemaException {
 		return doParseAnyData();
-	}
-
-	@Override
-	public <T> T parseAnyValue() throws IOException, SchemaException {
-		return doParseAnyValue();
-	}
-
-	@Override
-	public <T> JAXBElement<T> parseAnyValueAsJAXBElement() throws IOException, SchemaException {
-		return doParseAnyValueAsJAXBElement();
-	}
-
-	@Override
-	public XNode parseToXNode() throws IOException, SchemaException {
-		return doParseToXNode();
 	}
 }

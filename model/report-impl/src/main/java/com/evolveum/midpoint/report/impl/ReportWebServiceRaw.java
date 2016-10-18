@@ -13,6 +13,7 @@ import javax.xml.ws.Holder;
 import javax.xml.ws.Provider;
 import javax.xml.ws.soap.SOAPFaultException;
 
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.w3c.dom.Document;
@@ -99,7 +100,7 @@ public class ReportWebServiceRaw implements Provider<DOMSource> {
 
 	        Object requestObject;
 	        try {
-	            requestObject = prismContext.parserFor(rootElement).parseAnyValue();
+	            requestObject = prismContext.parserFor(rootElement).parseRealValue();
 	        } catch (SchemaException e) {
 	        	throw new FaultMessage("Couldn't parse SOAP request body because of schema exception: " + e.getMessage());
 //	            throw ws.createIllegalArgumentFault("Couldn't parse SOAP request body because of schema exception: " + e.getMessage());
@@ -145,16 +146,7 @@ public class ReportWebServiceRaw implements Provider<DOMSource> {
 	    }
 		
 		private void serializeFaultMessage(Detail detail, FaultMessage faultMessage) {
-			try {
-				XNode faultMessageXnode = prismContext.getBeanConverter().marshall(faultMessage.getFaultInfo());
-				RootXNode xroot = new RootXNode(SchemaConstants.FAULT_MESSAGE_ELEMENT_NAME, faultMessageXnode);
-				xroot.setExplicitTypeDeclaration(true);
-				QName faultType = prismContext.getBeanConverter().determineTypeForClass(faultMessage.getFaultInfo().getClass());
-				xroot.setTypeQName(faultType);
-				prismContext.getParserDom().serializeUnderElement(xroot, SchemaConstants.FAULT_MESSAGE_ELEMENT_NAME, detail);
-			} catch (SchemaException e) {
-				LOGGER.error("Error serializing fault message (SOAP fault detail): {}", e.getMessage(), e);
-			}
+			MiscSchemaUtil.serializeFaultMessage(detail, faultMessage, prismContext, LOGGER);
 		}
 
 //	    private DOMSource serializeFaultMessage(FaultMessage faultMessage) {

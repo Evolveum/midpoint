@@ -17,8 +17,7 @@
 package com.evolveum.midpoint.prism.marshaller;
 
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.lex.LexicalHelpers;
-import com.evolveum.midpoint.prism.xnode.XNode;
+import com.evolveum.midpoint.prism.xnode.RootXNode;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -33,9 +32,9 @@ import java.util.List;
  */
 public class PrismParserImplNoIO extends PrismParserImpl implements PrismParserNoIO {
 
-	public PrismParserImplNoIO(ParserSource source, String language, ParsingContext context,
-			LexicalHelpers helpers) {
-		super(source, language, context, helpers);
+	public PrismParserImplNoIO(ParserSource source, String language, ParsingContext context, PrismContextImpl prismContext,
+			ItemDefinition<?> itemDefinition, QName itemName, QName dataType, Class<?> dataClass) {
+		super(source, language, context, prismContext, itemDefinition, itemName, dataType, dataClass);
 	}
 
 	@NotNull
@@ -82,9 +81,87 @@ public class PrismParserImplNoIO extends PrismParserImpl implements PrismParserN
 
 	@NotNull
 	@Override
+	public PrismParserNoIO definition(ItemDefinition<?> itemDefinition) {
+		return (PrismParserNoIO) super.definition(itemDefinition);
+	}
+
+	@NotNull
+	@Override
+	public PrismParserNoIO name(QName itemName) {
+		return (PrismParserNoIO) super.name(itemName);
+	}
+
+	@NotNull
+	@Override
+	public PrismParserNoIO type(QName typeName) {
+		return (PrismParserNoIO) super.type(typeName);
+	}
+
+	@NotNull
+	@Override
+	public PrismParserNoIO type(Class<?> typeClass) {
+		return (PrismParserNoIO) super.type(typeClass);
+	}
+
+	@NotNull
+	@Override
 	public <O extends Objectable> PrismObject<O> parse() throws SchemaException {
 		try {
 			return doParse();
+		} catch (IOException e) {
+			throw new IllegalStateException(e);
+		}
+	}
+
+	@Override
+	public <IV extends PrismValue, ID extends ItemDefinition> Item<IV, ID> parseItem() throws SchemaException {
+		try {
+			return doParseItem();
+		} catch (IOException e) {
+			throw new IllegalStateException(e);
+		}
+	}
+
+	@Override
+	public <IV extends PrismValue> IV parseItemValue() throws SchemaException {
+		try {
+			return doParseItemValue();
+		} catch (IOException e) {
+			throw new IllegalStateException(e);
+		}
+	}
+
+	@Override
+	public <T> T parseRealValue(Class<T> clazz) throws SchemaException {
+		try {
+			return doParseRealValue(clazz);
+		} catch (IOException e) {
+			throw new IllegalStateException(e);
+		}
+	}
+
+	@Override
+	public <T> T parseRealValue() throws SchemaException {
+		try {
+			return doParseRealValue();
+		} catch (IOException e) {
+			throw new IllegalStateException(e);
+		}
+	}
+
+	@Override
+	public <T> JAXBElement<T> parseRealValueToJaxbElement() throws SchemaException {
+		try {
+			return doParseAnyValueAsJAXBElement();
+		} catch (IOException e) {
+			throw new IllegalStateException(e);
+		}
+	}
+
+	@Override
+	public RootXNode parseToXNode() throws SchemaException {
+		try {
+			return doParseToXNode();
 		} catch (IOException e) {
 			throw new IllegalStateException(e);
 		}
@@ -100,67 +177,11 @@ public class PrismParserImplNoIO extends PrismParserImpl implements PrismParserN
 		}
 	}
 
-	@NotNull
-	@Override
-	public <C extends Containerable> PrismContainer<C> parseContainer(@NotNull Class<C> clazz) throws SchemaException {
-		try {
-			return doParseContainer(clazz);
-		} catch (IOException e) {
-			throw new IllegalStateException(e);
-		}
-	}
-
-	@NotNull
-	@Override
-	public <C extends Containerable> PrismContainer<C> parseContainer(@NotNull PrismContainerDefinition<C> definition)
-			throws SchemaException {
-		try {
-			return doParseContainer(definition);
-		} catch (IOException e) {
-			throw new IllegalStateException(e);
-		}
-	}
-
-	@Override
-	public <T> T parseAtomicValue(QName typeName) throws SchemaException {
-		try {
-			return doParseAtomicValue(typeName);
-		} catch (IOException e) {
-			throw new IllegalStateException(e);
-		}
-	}
-
+	@Deprecated
 	@Override
 	public Object parseAnyData() throws SchemaException {
 		try {
 			return doParseAnyData();
-		} catch (IOException e) {
-			throw new IllegalStateException(e);
-		}
-	}
-
-	@Override
-	public <T> T parseAnyValue() throws SchemaException {
-		try {
-			return doParseAnyValue();
-		} catch (IOException e) {
-			throw new IllegalStateException(e);
-		}
-	}
-
-	@Override
-	public <T> JAXBElement<T> parseAnyValueAsJAXBElement() throws SchemaException {
-		try {
-			return doParseAnyValueAsJAXBElement();
-		} catch (IOException e) {
-			throw new IllegalStateException(e);
-		}
-	}
-
-	@Override
-	public XNode parseToXNode() throws SchemaException {
-		try {
-			return doParseToXNode();
 		} catch (IOException e) {
 			throw new IllegalStateException(e);
 		}

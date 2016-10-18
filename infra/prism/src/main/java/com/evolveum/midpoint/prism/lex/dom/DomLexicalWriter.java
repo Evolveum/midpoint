@@ -30,6 +30,7 @@ import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import org.apache.commons.lang.StringUtils;
+import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.DOMException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -78,7 +79,8 @@ public class DomLexicalWriter {
         topElement = document.getDocumentElement();         // TODO is this ok?
     }
 
-	public Element serialize(RootXNode rootxnode) throws SchemaException {
+    @NotNull
+	public Element serialize(@NotNull RootXNode rootxnode) throws SchemaException {
 		initialize();
         return serializeInternal(rootxnode, null);
     }
@@ -95,7 +97,8 @@ public class DomLexicalWriter {
     	return serializeInternal(rootxnode, parentElement);
     }
 
-    private Element serializeInternal(RootXNode rootxnode, Element parentElement) throws SchemaException {
+    @NotNull
+    private Element serializeInternal(@NotNull RootXNode rootxnode, Element parentElement) throws SchemaException {
 		QName rootElementName = rootxnode.getRootElementName();
 		Element topElement = createElement(rootElementName, parentElement);
 		if (parentElement != null) {
@@ -313,6 +316,7 @@ public class DomLexicalWriter {
 	 * @param qname element QName
 	 * @return created DOM element
 	 */
+	@NotNull
 	private Element createElement(QName qname, Element parentElement) {
 		String namespaceURI = qname.getNamespaceURI();
 		if (!StringUtils.isBlank(namespaceURI)) {

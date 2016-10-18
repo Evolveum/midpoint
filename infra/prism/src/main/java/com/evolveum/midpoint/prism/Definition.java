@@ -106,7 +106,8 @@ public interface Definition extends Serializable, DebugDumpable, Revivable {
 	 * This in fact means that we need to use getAny in a JAXB types. It does not influence the
 	 * processing of DOM that much, as that does not really depend on compile-time/run-time distinction.
 	 *
-	 * TODO clarify (container vs properties)
+	 * For containers, this flag is true if there's no complex type definition or if the definition is
+	 * of type "xsd:any".
 	 */
 	boolean isRuntimeSchema();
 

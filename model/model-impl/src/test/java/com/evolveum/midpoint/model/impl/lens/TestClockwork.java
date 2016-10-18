@@ -134,8 +134,8 @@ public class TestClockwork extends AbstractLensTest {
 
         System.out.println("Serialized form = " + xml);
 
-        PrismContainer<LensContextType> unmarshalledContainer = prismContext.parserFor(xml).xml().parseContainer(LensContextType.class);
-        LensContext context2 = LensContext.fromLensContextType(unmarshalledContainer.getValue().asContainerable(), context.getPrismContext(), provisioningService, result);
+        LensContextType unmarshalledContainer = prismContext.parserFor(xml).xml().parseRealValue(LensContextType.class);
+        LensContext context2 = LensContext.fromLensContextType(unmarshalledContainer, context.getPrismContext(), provisioningService, result);
 
         System.out.println("Context after deserialization = " + context.debugDump());
 
@@ -316,8 +316,8 @@ public class TestClockwork extends AbstractLensTest {
 
                 System.out.println("Serialized form = " + xml);
 
-                PrismContainer<LensContextType> unmarshalledContainer = prismContext.parserFor(xml).xml().parseContainer(LensContextType.class);
-                context = LensContext.fromLensContextType(unmarshalledContainer.getValue().asContainerable(), context.getPrismContext(), provisioningService, result);
+                LensContextType unmarshalledContainer = prismContext.parserFor(xml).xml().parseRealValue(LensContextType.class);
+                context = LensContext.fromLensContextType(unmarshalledContainer, context.getPrismContext(), provisioningService, result);
 
                 System.out.println("Context after deserialization = " + context.debugDump());
 

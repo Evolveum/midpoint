@@ -18,17 +18,19 @@ package com.evolveum.midpoint.prism.schema;
 
 import com.evolveum.midpoint.prism.*;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import javax.xml.namespace.QName;
-import java.util.List;
 
 /**
+ * Used to retrieve definition from 'global definition store' - i.e. store that contains a group of related definition(s),
+ * sharing e.g. a common namespace. Such stores are prism schemas and schema registry itself.
+ *
  * Note: although all of these methods are '@Nullable', we don't mark them as such, to avoid false 'may produce NPE'
  * warnings for cases that will never produce nulls (like searching for known items/CTDs).
  *
  * @author mederly
  */
+@SuppressWarnings("unused")
 public interface GlobalDefinitionsStore extends DefinitionsStore {
 
 	// new API
@@ -53,7 +55,20 @@ public interface GlobalDefinitionsStore extends DefinitionsStore {
 
 	// PrismObject-related
 
-	// non-core methods
+	// core methods
+
+	<CD extends PrismContainerDefinition> CD findContainerDefinitionByCompileTimeClass(
+			@NotNull Class<? extends Containerable> compileTimeClass, @NotNull Class<CD> definitionClass);
+
+	<ID extends ItemDefinition> ID findItemDefinitionByType(@NotNull QName typeName, @NotNull Class<ID> definitionClass);
+
+	<ID extends ItemDefinition> ID findItemDefinitionByElementName(@NotNull QName elementName, @NotNull Class<ID> definitionClass);
+
+	<C extends Containerable> ComplexTypeDefinition findComplexTypeDefinitionByCompileTimeClass(@NotNull Class<C> compileTimeClass);
+
+	ComplexTypeDefinition findComplexTypeDefinitionByType(@NotNull QName typeName);
+
+	// non-core (derived) methods
 
 	@SuppressWarnings("unchecked")
 	default <O extends Objectable> PrismObjectDefinition<O> findObjectDefinitionByCompileTimeClass(@NotNull Class<O> compileTimeClass) {
@@ -119,24 +134,11 @@ public interface GlobalDefinitionsStore extends DefinitionsStore {
 		return findItemDefinitionByElementName(elementName, definitionClass);
 	}
 
-
 	// ComplexTypeDefinition-related
 
 	@Deprecated default ComplexTypeDefinition findComplexTypeDefinition(@NotNull QName typeName) {
 		return findComplexTypeDefinitionByType(typeName);
 	}
 
-	// core methods
-
-	<CD extends PrismContainerDefinition> CD findContainerDefinitionByCompileTimeClass(
-			@NotNull Class<? extends Containerable> compileTimeClass, @NotNull Class<CD> definitionClass);
-
-	<ID extends ItemDefinition> ID findItemDefinitionByType(@NotNull QName typeName, @NotNull Class<ID> definitionClass);
-
-	<ID extends ItemDefinition> ID findItemDefinitionByElementName(@NotNull QName elementName, @NotNull Class<ID> definitionClass);
-
-	<C extends Containerable> ComplexTypeDefinition findComplexTypeDefinitionByCompileTimeClass(@NotNull Class<C> compileTimeClass);
-
-	ComplexTypeDefinition findComplexTypeDefinitionByType(@NotNull QName typeName);
 
 }

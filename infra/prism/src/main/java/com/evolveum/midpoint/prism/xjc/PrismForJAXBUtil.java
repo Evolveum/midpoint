@@ -446,7 +446,7 @@ public final class PrismForJAXBUtil {
     private static DomLexicalProcessor getDomParser(PrismValue pval) {
 		PrismContext prismContext = pval.getPrismContext();
 		if (prismContext != null) {
-			return prismContext.getParserDom();
+			return ((PrismContextImpl) prismContext).getParserDom();
 		} else {
 			DomLexicalProcessor parser = new DomLexicalProcessor(null);
 			return parser;

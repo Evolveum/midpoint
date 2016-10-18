@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.common.refinery;
 
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
@@ -26,6 +27,7 @@ import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LayerType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
@@ -88,4 +90,13 @@ public interface RefinedResourceSchema extends ResourceSchema, DebugDumpable {
 	ObjectClassComplexTypeDefinition findObjectClassDefinition(QName objectClassQName);
 
 	LayerRefinedResourceSchema forLayer(LayerType layer);
+
+	static RefinedResourceSchema getRefinedSchema(PrismObject<ResourceType> resource) throws SchemaException {
+		return RefinedResourceSchemaImpl.getRefinedSchema(resource);
+	}
+
+	static ResourceSchema getResourceSchema(PrismObject<ResourceType> resource, PrismContext prismContext)
+			throws SchemaException {
+		return RefinedResourceSchemaImpl.getRefinedSchema(resource, prismContext);
+	}
 }

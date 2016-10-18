@@ -23,7 +23,6 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
 import org.apache.commons.lang.StringUtils;
@@ -246,7 +245,7 @@ public class ExpressionUtil {
 		if (xml != null && StringUtils.isNotBlank(xml)) {
 			xml = WebXmlUtil.wrapInElement("expression", xml);
 			LOGGER.info("Expression to serialize: {}", xml);
-			JAXBElement<?> newElement = context.parserFor(xml).xml().parseAnyValueAsJAXBElement();
+			JAXBElement<?> newElement = context.parserFor(xml).xml().parseRealValueToJaxbElement();
 			expressionObject.getExpressionEvaluator().addAll(((ExpressionType) (newElement.getValue())).getExpressionEvaluator());
 		}
 	}

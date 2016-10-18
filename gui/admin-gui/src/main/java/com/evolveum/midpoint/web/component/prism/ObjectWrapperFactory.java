@@ -207,7 +207,7 @@ public class ObjectWrapperFactory {
         ContainerStatus status = container == null ? ContainerStatus.ADDING : ContainerStatus.MODIFYING;
         List<ContainerWrapper<? extends Containerable>> list = new ArrayList<>();
         if (container == null) {
-            PrismContainerDefinition definition = getDefinition(object, objectDefinitionForEditing).findContainerDefinition(name);
+            PrismContainerDefinition<?> definition = getDefinition(object, objectDefinitionForEditing).findContainerDefinition(name);
             container = definition.instantiate();
         }
 
@@ -254,7 +254,7 @@ public class ObjectWrapperFactory {
        
             LOGGER.trace("ObjectWrapper.createContainerWrapper processing definition: {}", def);
 
-            PrismContainerDefinition containerDef = (PrismContainerDefinition) def;
+            PrismContainerDefinition<?> containerDef = (PrismContainerDefinition) def;
             //todo this oWrapper.isShowAssignments() value is not set when initialization occurs (only default is there) [lazyman]
             if (!oWrapper.isShowAssignments() && AssignmentType.COMPLEX_TYPE.equals(containerDef.getTypeName())) {
                 continue;
@@ -330,7 +330,7 @@ public class ObjectWrapperFactory {
 		// brutal hack - the definition has (errorneously) set maxOccurs =
 		// unbounded. But there can be only one configuration container.
 		// See MID-2317 and related issues
-		PrismContainerDefinition definitionFixed = definition.clone();
+		PrismContainerDefinition<ConnectorConfigurationType> definitionFixed = definition.clone();
         ((PrismContainerDefinitionImpl) definitionFixed).setMaxOccurs(1);
 
 		if (container == null) {
@@ -351,7 +351,7 @@ public class ObjectWrapperFactory {
     	PrismContainer attributesContainer = object.findContainer(ShadowType.F_ATTRIBUTES);
         ContainerStatus status = attributesContainer != null ? cStatus : ContainerStatus.ADDING;
         if (attributesContainer == null) {
-            PrismContainerDefinition definition = object.getDefinition().findContainerDefinition(
+            PrismContainerDefinition<?> definition = object.getDefinition().findContainerDefinition(
                     ShadowType.F_ATTRIBUTES);
             attributesContainer = definition.instantiate();
         }
@@ -402,7 +402,7 @@ public class ObjectWrapperFactory {
         if (container == null) {
             PrismSchema schema = ReportTypeUtil.parseReportConfigurationSchema(
                     (PrismObject<ReportType>) object, object.getPrismContext());
-            PrismContainerDefinition definition = ReportTypeUtil.findReportConfigurationDefinition(schema);
+            PrismContainerDefinition<?> definition = ReportTypeUtil.findReportConfigurationDefinition(schema);
             if (definition == null) {
                 return;
             }

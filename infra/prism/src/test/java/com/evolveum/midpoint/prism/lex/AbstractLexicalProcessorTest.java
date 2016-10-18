@@ -33,7 +33,6 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.foo.EventHandlerChainType;
 import com.evolveum.midpoint.prism.foo.EventHandlerType;
-import com.evolveum.midpoint.prism.marshaller.XNodeProcessor;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_3.SchemaDefinitionType;
 
@@ -83,7 +82,7 @@ public abstract class AbstractLexicalProcessorTest {
 		return new File(getCommonSubdir(), baseName+"."+getFilenameSuffix());
 	}
 	
-	protected abstract LexicalProcessor createParser();
+	protected abstract LexicalProcessor<String> createParser();
 	
 
 	@Test
@@ -94,15 +93,14 @@ public abstract class AbstractLexicalProcessorTest {
 		// GIVEN
 		LexicalProcessor lexicalProcessor = createParser();
 		PrismContext prismContext = PrismTestUtil.getPrismContext();
-		XNodeProcessor processor = new XNodeProcessor(prismContext);
 
 		// WHEN (parse to xnode)
-		XNode xnode = lexicalProcessor.read(getFileSource(USER_JACK_FILE_BASENAME), ParsingContext.createDefault());
+		RootXNode xnode = lexicalProcessor.read(getFileSource(USER_JACK_FILE_BASENAME), ParsingContext.createDefault());
 		System.out.println("XNode after parsing:");
 		System.out.println(xnode.debugDump());
 		
 		// WHEN (parse to prism)
-		PrismObject<UserType> user = processor.parseObject(xnode, ParsingContext.createDefault());
+		PrismObject<UserType> user = prismContext.parserFor(xnode).parse();
 		
 		// THEN
 		System.out.println("Parsed user:");
@@ -124,15 +122,14 @@ public abstract class AbstractLexicalProcessorTest {
 		displayTestTitle(TEST_NAME);
 		
 		// GIVEN
-		LexicalProcessor lexicalProcessor = createParser();
+		LexicalProcessor<String> lexicalProcessor = createParser();
 		PrismContext prismContext = PrismTestUtil.getPrismContext();
-		XNodeProcessor processor = new XNodeProcessor(prismContext);
 
 		// WHEN (parse)
-		XNode xnode = lexicalProcessor.read(getFileSource(USER_JACK_FILE_BASENAME), ParsingContext.createDefault());
+		RootXNode xnode = lexicalProcessor.read(getFileSource(USER_JACK_FILE_BASENAME), ParsingContext.createDefault());
 		System.out.println("\nParsed xnode:");
 		System.out.println(xnode.debugDump());
-		PrismObject<UserType> user = processor.parseObject(xnode, ParsingContext.createDefault());
+		PrismObject<UserType> user = prismContext.parserFor(xnode).parse();
 		
 		// THEN
 		System.out.println("\nParsed user:");
@@ -141,7 +138,9 @@ public abstract class AbstractLexicalProcessorTest {
 		assertUserJack(user);
 		
 		// WHEN (re-serialize to XNode)
-		XNode serializedXNode = processor.serializeObject(user, true);
+		RootXNode serializedXNode = prismContext.xnodeSerializer()
+				.options(SerializationOptions.createSerializeCompositeObjects())
+				.serialize(user);
 		String serializedString = lexicalProcessor.write(serializedXNode, new QName(NS_FOO, "user"), null);
 		
 		// THEN
@@ -175,8 +174,8 @@ public abstract class AbstractLexicalProcessorTest {
 		validateUserSchema(serializedString, prismContext);
 		
 		// WHEN (re-parse)
-		XNode reparsedXnode = lexicalProcessor.read(new ParserStringSource(serializedString), ParsingContext.createDefault());
-		PrismObject<UserType> reparsedUser = processor.parseObject(reparsedXnode, ParsingContext.createDefault());
+		RootXNode reparsedXnode = lexicalProcessor.read(new ParserStringSource(serializedString), ParsingContext.createDefault());
+		PrismObject<UserType> reparsedUser = prismContext.parserFor(reparsedXnode).parse();
 		
 		// THEN
 		System.out.println("\nXNode after re-parsing:");
@@ -210,15 +209,14 @@ public abstract class AbstractLexicalProcessorTest {
 		// GIVEN
 		LexicalProcessor lexicalProcessor = createParser();
 		PrismContext prismContext = PrismTestUtil.getPrismContext();
-		XNodeProcessor processor = new XNodeProcessor(prismContext);
-		
+
 		// WHEN (parse to xnode)
-		XNode xnode = lexicalProcessor.read(getFileSource(RESOURCE_RUM_FILE_BASENAME), ParsingContext.createDefault());
+		RootXNode xnode = lexicalProcessor.read(getFileSource(RESOURCE_RUM_FILE_BASENAME), ParsingContext.createDefault());
 		System.out.println("XNode after parsing:");
 		System.out.println(xnode.debugDump());
 		
 		// WHEN (parse to prism)
-		PrismObject<ResourceType> resource = processor.parseObject(xnode, ParsingContext.createDefault());
+		PrismObject<ResourceType> resource = prismContext.parserFor(xnode).parse();
 		
 		// THEN
 		System.out.println("Parsed resource:");
@@ -234,13 +232,12 @@ public abstract class AbstractLexicalProcessorTest {
 		displayTestTitle(TEST_NAME);
 		
 		// GIVEN
-		LexicalProcessor lexicalProcessor = createParser();
+		LexicalProcessor<String> lexicalProcessor = createParser();
 		PrismContext prismContext = PrismTestUtil.getPrismContext();
-		XNodeProcessor processor = new XNodeProcessor(prismContext);
-		
+
 		// WHEN (parse)
-		XNode xnode = lexicalProcessor.read(getFileSource(RESOURCE_RUM_FILE_BASENAME), ParsingContext.createDefault());
-		PrismObject<ResourceType> resource = processor.parseObject(xnode, ParsingContext.createDefault());
+		RootXNode xnode = lexicalProcessor.read(getFileSource(RESOURCE_RUM_FILE_BASENAME), ParsingContext.createDefault());
+		PrismObject<ResourceType> resource = prismContext.parserFor(xnode).parse();
 		
 		// THEN
 		System.out.println("\nParsed resource:");
@@ -249,7 +246,9 @@ public abstract class AbstractLexicalProcessorTest {
 		assertResourceRum(resource);
 		
 		// WHEN (re-serialize to XNode)
-		XNode serializedXNode = processor.serializeObject(resource, true);
+		XNode serializedXNode = prismContext.xnodeSerializer()
+				.options(SerializationOptions.createSerializeCompositeObjects())
+				.serialize(resource);
 		String serializedString = lexicalProcessor.write(serializedXNode, new QName(NS_FOO, "resource"), null);
 				
 		// THEN
@@ -258,34 +257,11 @@ public abstract class AbstractLexicalProcessorTest {
 		System.out.println("\nRe-serialized string:");
 		System.out.println(serializedString);
 		
-//		try{
-////			FileOutputStream out = new FileOutputStream(new File("D:/user-jack-prism.json"));
-//			PrismJsonSerializer jsonSer = new PrismJsonSerializer();
-//			String s = jsonSer.serializeToString((RootXNode) serializedXNode);
-//			System.out.println("JSON: \n" + s);
-//			
-////			FileOutputStream out = new FileOutputStream(new File("D:/user-jack-prism.json"));
-//			YamlParser yamlParser = new YamlParser();
-//			s = yamlParser.serializeToString((RootXNode) serializedXNode);
-//			System.out.println("YAML: \n" + s);
-//			
-////			FileInputStream in = new FileInputStream(new File("D:/user-jack-prism.json"));
-////			XNode afterJson = jsonSer.parseObject(in);
-////			
-////			// THEN
-////					System.out.println("AFTER JSON XNode:");
-////					System.out.println(afterJson.debugDump());
-//			
-//			} catch (Exception ex){
-//				System.out.println( ex);
-//				throw ex;
-//			}
-		
 		validateResourceSchema(serializedString, prismContext);
 		
 		// WHEN (re-parse)
-		XNode reparsedXnode = lexicalProcessor.read(new ParserStringSource(serializedString), ParsingContext.createDefault());
-		PrismObject<ResourceType> reparsedResource = processor.parseObject(reparsedXnode, ParsingContext.createDefault());
+		RootXNode reparsedXnode = lexicalProcessor.read(new ParserStringSource(serializedString), ParsingContext.createDefault());
+		PrismObject<ResourceType> reparsedResource = prismContext.parserFor(reparsedXnode).parse();
 		
 		// THEN
 		System.out.println("\nXNode after re-parsing:");
@@ -388,23 +364,23 @@ public abstract class AbstractLexicalProcessorTest {
         // GIVEN
         LexicalProcessor lexicalProcessor = createParser();
 		PrismContext prismContext = PrismTestUtil.getPrismContext();
-		XNodeProcessor processor = new XNodeProcessor(prismContext);
 
         // WHEN (parse to xnode)
-        RootXNode xnode = (RootXNode) lexicalProcessor.read(getFileSource(EVENT_HANDLER_FILE_BASENAME), ParsingContext.createDefault());
+        RootXNode xnode = lexicalProcessor.read(getFileSource(EVENT_HANDLER_FILE_BASENAME), ParsingContext.createDefault());
         System.out.println("XNode after parsing:");
         System.out.println(xnode.debugDump());
 
         // WHEN (parse to prism)
-		EventHandlerType eventHandlerType = prismContext.getBeanConverter().unmarshall((MapXNode) xnode.getSubnode(), EventHandlerChainType.class,
-				ParsingContext.createDefault());
+		EventHandlerType eventHandlerType = prismContext.parserFor(xnode).parseRealValue(EventHandlerChainType.class);
+//		EventHandlerType eventHandlerType = prismContext.getBeanConverter().unmarshall((MapXNode) , EventHandlerChainType.class,
+//				ParsingContext.createDefault());
 
         // THEN
         System.out.println("Parsed object:");
         System.out.println(eventHandlerType);
 
         // WHEN2 (marshalling)
-        MapXNode marshalled = (MapXNode) prismContext.getBeanConverter().marshall(eventHandlerType);
+        MapXNode marshalled = (MapXNode) (prismContext.xnodeSerializer().serializeAtomicValue(eventHandlerType).getSubnode());
 
         System.out.println("XNode after unmarshalling and marshalling back:");
         System.out.println(marshalled.debugDump());

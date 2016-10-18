@@ -19,13 +19,19 @@ package com.evolveum.midpoint.prism;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.xnode.ListXNode;
 import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
+import com.evolveum.midpoint.prism.xnode.RootXNode;
+import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import org.apache.commons.lang.Validate;
+import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
 
@@ -98,17 +104,6 @@ public class PrismProperty<T> extends Item<PrismPropertyValue<T>,PrismPropertyDe
         this.definition = definition;
     }
 
-    /**
-     * Returns property values.
-     * <p/>
-     * The values are returned as set. The order of values is not significant.
-     *
-     * @return property values
-     */
-    public List<PrismPropertyValue<T>> getValues() {
-        return (List<PrismPropertyValue<T>>) super.getValues();
-    }
-    
     public PrismPropertyValue<T> getValue() {
     	if (!isSingleValue()) {
     		throw new IllegalStateException("Attempt to get single value from property " + getElementName()
@@ -621,4 +616,17 @@ public class PrismProperty<T> extends Item<PrismPropertyValue<T>,PrismPropertyDe
         return "PP";
     }
 
+	public static <T> PrismProperty<T> createRaw(@NotNull XNode node, @NotNull QName itemName, @NotNull PrismContext prismContext)
+			throws SchemaException {
+		Validate.isTrue(!(node instanceof RootXNode));
+		PrismProperty<T> property = new PrismProperty<>(itemName, prismContext);
+		if (node instanceof ListXNode) {
+			for (XNode subnode : (ListXNode) node) {
+				property.add(PrismPropertyValue.createRaw(subnode));
+			}
+		} else {
+			property.add(PrismPropertyValue.createRaw(node));
+		}
+		return property;
+	}
 }

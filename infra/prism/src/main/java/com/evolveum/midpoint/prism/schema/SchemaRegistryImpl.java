@@ -29,6 +29,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.function.Function;
 
 import javax.xml.XMLConstants;
 import javax.xml.namespace.QName;
@@ -37,6 +38,9 @@ import javax.xml.validation.SchemaFactory;
 
 import com.evolveum.midpoint.prism.*;
 
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
+import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectType;
 import org.apache.commons.lang.StringUtils;
@@ -96,7 +100,7 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
 	private PrismContext prismContext;
 	
 	private static final Trace LOGGER = TraceManager.getTrace(SchemaRegistry.class);
-	
+
 	@Override
 	public DynamicNamespacePrefixMapper getNamespacePrefixMapper() {
 		return namespacePrefixMapper;
@@ -126,19 +130,19 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
 	public EntityResolver getBuiltinSchemaResolver() {
 		return builtinSchemaResolver;
 	}
-//
-//	public File[] getCatalogFiles() {
-//		return catalogFiles;
-//	}
-//
-//	public void setCatalogFiles(File[] catalogFiles) {
-//		this.catalogFiles = catalogFiles;
-//	}
-//
-//	public String getCatalogResourceName() {
-//		return catalogResourceName;
-//	}
-//
+
+	public File[] getCatalogFiles() {
+		return catalogFiles;
+	}
+
+	public void setCatalogFiles(File[] catalogFiles) {
+		this.catalogFiles = catalogFiles;
+	}
+
+	public String getCatalogResourceName() {
+		return catalogResourceName;
+	}
+
 	public void setCatalogResourceName(String catalogResourceName) {
 		this.catalogResourceName = catalogResourceName;
 	}
@@ -787,6 +791,16 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
 		return JAXBUtil.findClassForType(typeName, pkg);
 	}
 
+	@NotNull
+	public <T> Class<T> determineCompileTimeClassNotNull(QName typeName) {
+		Class<T> clazz = determineCompileTimeClass(typeName);
+		if (clazz != null) {
+			return clazz;
+		} else {
+			throw new IllegalStateException("No class for " + typeName);
+		}
+	}
+
 	@Override
 	public <T> Class<T> getCompileTimeClass(QName xsdType) {
 		return determineCompileTimeClass(xsdType);
@@ -818,12 +832,37 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
 			return def;
 		}
 		Class<?> superclass = compileTimeClass.getSuperclass();
-		if (superclass == Object.class) {
+		if (superclass == null || superclass == Object.class) {
 			return null;
 		}
 		return determineDefinitionFromClass(superclass);
 	}
 
+	@Override
+	public <T extends Containerable> ItemDefinition locateItemDefinition(@NotNull QName itemName,
+			@Nullable ComplexTypeDefinition complexTypeDefinition,
+			@Nullable Function<QName, ItemDefinition> dynamicDefinitionResolver) throws SchemaException {
+		ItemDefinition def;
+		if (complexTypeDefinition != null) {
+			def = complexTypeDefinition.findItemDefinition(itemName);
+			if (def != null) {
+				return def;
+			}
+		}
+		if (complexTypeDefinition == null || complexTypeDefinition.isXsdAnyMarker()) {
+			def = resolveGlobalItemDefinition(itemName, complexTypeDefinition);
+			if (def != null) {
+				return def;
+			}
+		}
+		if (dynamicDefinitionResolver != null) {
+			def = dynamicDefinitionResolver.apply(itemName);
+			if (def != null) {
+				return def;
+			}
+		}
+		return null;
+	}
 	//endregion
 
 	//region Unqualified names resolution
@@ -939,20 +978,19 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
 	}
 
 	@Override
-	public ItemDefinition resolveGlobalItemDefinition(QName elementQName, @Nullable ComplexTypeDefinition containerCTD) throws SchemaException {
-		String elementNamespace = elementQName.getNamespaceURI();
+	public ItemDefinition resolveGlobalItemDefinition(QName itemName, @Nullable ComplexTypeDefinition complexTypeDefinition) throws SchemaException {
+		String elementNamespace = itemName.getNamespaceURI();
 		if (StringUtils.isEmpty(elementNamespace)) {
-			List<String> ignoredNamespaces = containerCTD != null ?
-					containerCTD.getIgnoredNamespaces() :
+			List<String> ignoredNamespaces = complexTypeDefinition != null ?
+					complexTypeDefinition.getIgnoredNamespaces() :
 					null;
-			return resolveGlobalItemDefinitionWithoutNamespace(elementQName.getLocalPart(), ItemDefinition.class, true, ignoredNamespaces);
+			return resolveGlobalItemDefinitionWithoutNamespace(itemName.getLocalPart(), ItemDefinition.class, true, ignoredNamespaces);
 		}
 		PrismSchema schema = findSchemaByNamespace(elementNamespace);
 		if (schema == null) {
 			return null;
 		}
-		ItemDefinition itemDefinition = schema.findItemDefinitionByElementName(elementQName, ItemDefinition.class);
-		return itemDefinition;
+		return schema.findItemDefinitionByElementName(itemName, ItemDefinition.class);
 	}
 
 	private <T extends ItemDefinition> T resolveGlobalItemDefinitionWithoutNamespace(String localPart, Class<T> definitionClass) {
@@ -1117,6 +1155,73 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
 			return false;
 		}
 		return QNameUtil.match(typeName, itemDefinition.getTypeName());
+	}
+
+	@Override
+	public QName determineTypeForClass(Class<?> clazz) {
+		if (XmlTypeConverter.canConvert(clazz)) {
+			return XsdTypeMapper.toXsdType(clazz);
+		} else {
+			return ((PrismContextImpl) prismContext).getBeanConverter().determineTypeForClass(clazz);
+		}
+	}
+
+	@Override
+	public Class<?> determineClassForType(QName type) {
+		if (XmlTypeConverter.canConvert(type)) {
+			return XsdTypeMapper.toJavaType(type);
+		} else {
+			return determineCompileTimeClass(type);
+		}
+	}
+
+	@Override
+	public Class<?> determineClassForItemDefinition(ItemDefinition<?> itemDefinition) {
+		if (itemDefinition instanceof PrismContainerDefinition) {
+			Class<?> cls = ((PrismContainerDefinition) itemDefinition).getCompileTimeClass();
+			if (cls != null) {
+				return cls;
+			}
+		}
+		return determineClassForType(itemDefinition.getTypeName());
+	}
+
+	@Override
+	public <ID extends ItemDefinition> ID selectMoreSpecific(ID def1, ID def2)
+			throws SchemaException {
+		if (def1 == null) {
+			return def2;
+		}
+		if (def2 == null) {
+			return def1;
+		}
+		if (QNameUtil.match(def1.getTypeName(), def2.getTypeName())) {
+			return def1;
+		}
+		Class<?> cls1 = determineClassForItemDefinition(def1);
+		Class<?> cls2 = determineClassForItemDefinition(def2);
+		if (cls1 == null || cls2 == null) {
+			throw new SchemaException("Couldn't find more specific type from " + def1.getTypeName()
+					+ " (" + cls1 + ") and " + def2.getTypeName() + " (" + cls2 + ")");
+		}
+		if (cls1.isAssignableFrom(cls2)) {
+			return def2;
+		}
+		if (cls2.isAssignableFrom(cls1)) {
+			return def1;
+		}
+		throw new SchemaException("Couldn't find more specific type from " + def1.getTypeName()
+				+ " (" + cls1 + ") and " + def2.getTypeName() + " (" + cls2 + ")");
+	}
+
+	@Override
+	public boolean isAssignableFrom(@NotNull QName superType, @NotNull QName subType) {
+		if (QNameUtil.match(superType, subType)) {
+			return true;
+		}
+		Class<?> superClass = determineCompileTimeClassNotNull(superType);
+		Class<?> subClass = determineCompileTimeClassNotNull(subType);
+		return superClass.isAssignableFrom(subClass);
 	}
 	//endregion
 }

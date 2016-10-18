@@ -19,14 +19,12 @@ package com.evolveum.midpoint.prism;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.marshaller.JaxbDomHack;
-import com.evolveum.midpoint.prism.marshaller.PrismBeanConverter;
-import com.evolveum.midpoint.prism.marshaller.XNodeProcessor;
-import com.evolveum.midpoint.prism.lex.dom.DomLexicalProcessor;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
 import com.evolveum.midpoint.prism.schema.SchemaDefinitionFactory;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.util.PrismMonitor;
+import com.evolveum.midpoint.prism.xnode.RootXNode;
 import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
@@ -51,29 +49,27 @@ public interface PrismContext {
 	String LANG_JSON = "json";
 	String LANG_YAML = "yaml";
 
+	/**
+	 * Initializes the prism context, e.g. loads and parses all the schemas.
+	 */
 	void initialize() throws SchemaException, SAXException, IOException;
 
-	XmlEntityResolver getEntityResolver();
-
+	/**
+	 * Returns the schema registry.
+	 */
+	@NotNull
 	SchemaRegistry getSchemaRegistry();
 
-	XNodeProcessor getXnodeProcessor();
-
-	DomLexicalProcessor getParserDom();
-
-	PrismBeanConverter getBeanConverter();
-
-	JaxbDomHack getJaxbDomHack();
-
-	SchemaDefinitionFactory getDefinitionFactory();
-
+	/**
+	 * Returns the default PolyString normalizer.
+	 */
+	@NotNull
 	PolyStringNormalizer getDefaultPolyStringNormalizer();
 
+	/**
+	 * Returns the default protector. (TODO)
+	 */
 	Protector getDefaultProtector();
-
-	PrismMonitor getMonitor();
-
-	void setMonitor(PrismMonitor monitor);
 
 	//region Parsing
 	/**
@@ -102,6 +98,14 @@ public interface PrismContext {
 	PrismParserNoIO parserFor(@NotNull String data);
 
 	/**
+	 * Creates a parser ready to process data from the given XNode tree.
+	 * @param xnode XNode tree with the data to be parsed.
+	 * @return Parser that can be invoked to retrieve the (parsed) content.
+	 */
+	@NotNull
+	PrismParserNoIO parserFor(@NotNull RootXNode xnode);
+
+	/**
 	 * Creates a parser ready to process data from the given DOM element.
 	 * @param element Element with the data to be parsed.
 	 * @return Parser that can be invoked to retrieve the (parsed) content.
@@ -109,10 +113,10 @@ public interface PrismContext {
 	@NotNull
 	PrismParserNoIO parserFor(@NotNull Element element);
 
-	@Deprecated	// user parserFor + parse instead
+	@Deprecated	// user processorFor + parse instead
 	<T extends Objectable> PrismObject<T> parseObject(File file) throws SchemaException, IOException;
 
-	@Deprecated	// user parserFor + parse instead
+	@Deprecated	// user processorFor + parse instead
 	<T extends Objectable> PrismObject<T> parseObject(String dataString) throws SchemaException;
 	//endregion
 
@@ -181,7 +185,7 @@ public interface PrismContext {
 	 * @return The serializer.
 	 */
 	@NotNull
-	PrismSerializer<XNode> xnodeSerializer();
+	PrismSerializer<RootXNode> xnodeSerializer();
 
 	@Deprecated // use serializerFor + serialize instead
 	<O extends Objectable> String serializeObjectToString(PrismObject<O> object, String language) throws SchemaException;
@@ -193,14 +197,6 @@ public interface PrismContext {
 	 */
 	boolean canSerialize(Object value);
 	//endregion
-
-	/**
-	 * TODO
-	 * @param item
-	 * @return
-	 * @throws SchemaException
-	 */
-	RawType toRawType(Item item) throws SchemaException;
 
 	/**
 	 * Creates a new PrismObject of a given static type.
@@ -219,4 +215,22 @@ public interface PrismContext {
 	 */
 	@NotNull
 	<O extends Objectable> O createObjectable(@NotNull Class<O> clazz) throws SchemaException;
+
+	/**
+	 * TODO hide this from PrismContext interface?
+	 */
+	XmlEntityResolver getEntityResolver();
+
+	/**
+	 * TODO eliminate this method
+	 */
+	@NotNull
+	@Deprecated
+	JaxbDomHack getJaxbDomHack();
+
+	PrismMonitor getMonitor();
+
+	void setMonitor(PrismMonitor monitor);
+
+
 }

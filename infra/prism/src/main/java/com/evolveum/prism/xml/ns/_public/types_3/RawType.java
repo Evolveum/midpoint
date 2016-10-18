@@ -1,14 +1,15 @@
 package com.evolveum.prism.xml.ns._public.types_3;
 
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.marshaller.XNodeProcessor;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
+import com.evolveum.midpoint.prism.xnode.RootXNode;
 import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import org.apache.commons.lang.Validate;
+import org.jetbrains.annotations.NotNull;
 import org.jvnet.jaxb2_commons.lang.Equals;
 import org.jvnet.jaxb2_commons.lang.EqualsStrategy;
 import org.jvnet.jaxb2_commons.locator.ObjectLocator;
@@ -68,6 +69,11 @@ public class RawType implements Serializable, Cloneable, Equals, Revivable {
         return xnode;
     }
 
+    @NotNull
+    public RootXNode getRootXNode(@NotNull QName itemName) {
+		return new RootXNode(itemName, xnode);
+	}
+
     public PrismContext getPrismContext() {
         return prismContext;
     }
@@ -86,14 +92,14 @@ public class RawType implements Serializable, Cloneable, Equals, Revivable {
                     itemName = itemDefinition.getName();
                 }
                 checkPrismContext();
-				Item<IV,ID> subItem = PrismUtil.getXnodeProcessor(prismContext).parseItem(xnode, itemName, itemDefinition, ParsingContext.createDefault());
+				Item<IV,ID> subItem = prismContext.parserFor(getRootXNode(itemName)).name(itemName).definition(itemDefinition).parseItem();
 				if (!subItem.isEmpty()){
 					value = subItem.getValue(0);
 				} else {
 					value = null;
 				}
 			} else {
-				PrismProperty subItem = XNodeProcessor.parsePrismPropertyRaw(xnode, itemName, prismContext);
+				PrismProperty subItem = PrismProperty.createRaw(xnode, itemName, prismContext);
 				value = (IV) subItem.getValue();
 			}
             xnode = null;
@@ -105,10 +111,9 @@ public class RawType implements Serializable, Cloneable, Equals, Revivable {
 	}
 	
 	public <V,ID extends ItemDefinition> V getParsedRealValue(ItemDefinition itemDefinition, ItemPath itemPath) throws SchemaException {
-        if (parsed == null && xnode != null){
-        	
-			if (itemDefinition == null){
-        			return PrismUtil.getXnodeProcessor(prismContext).parseAnyValue(xnode, ParsingContext.createDefault());
+        if (parsed == null && xnode != null) {
+			if (itemDefinition == null) {
+				return prismContext.parserFor(xnode.toRootXNode()).parseRealValue();		// TODO what will be the result without definition?
         	} else {
         		QName itemName = ItemPath.getName(itemPath.lastNamed());
 	        	getParsedValue(itemDefinition, itemName);
@@ -148,17 +153,17 @@ public class RawType implements Serializable, Cloneable, Equals, Revivable {
 
     public XNode serializeToXNode() throws SchemaException {
         if (xnode != null) {
-        	QName type = xnode.getTypeQName();
-        	if (xnode instanceof PrimitiveXNode && type != null){
-        		if (!((PrimitiveXNode)xnode).isParsed()){
-        			Object realValue = PrismUtil.getXnodeProcessor(prismContext).parseAnyValue(xnode, ParsingContext.createDefault());
-        			((PrimitiveXNode)xnode).setValue(realValue, type);
-        		}
-        	}
+//        	QName type = xnode.getTypeQName();
+//        	if (xnode instanceof PrimitiveXNode && type != null){
+//        		if (!((PrimitiveXNode)xnode).isParsed()){
+//        			Object realValue = PrismUtil.getXnodeProcessor(prismContext).parseAnyValue(xnode, ParsingContext.createDefault());
+//        			((PrimitiveXNode)xnode).setValue(realValue, type);
+//        		}
+//        	}
             return xnode;
         } else if (parsed != null) {
             checkPrismContext();
-            return PrismUtil.getXnodeProcessor(prismContext).serializeItemValue(parsed);
+            return prismContext.xnodeSerializer().serialize(parsed).getSubnode();
         } else {
             return null;            // or an exception here?
         }

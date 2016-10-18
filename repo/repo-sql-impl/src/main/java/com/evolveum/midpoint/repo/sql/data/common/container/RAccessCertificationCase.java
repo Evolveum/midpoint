@@ -16,7 +16,6 @@
 
 package com.evolveum.midpoint.repo.sql.data.common.container;
 
-import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.data.common.RAccessCertificationCampaign;
@@ -413,9 +412,8 @@ public class RAccessCertificationCase implements Container {
     // TODO find appropriate name
     public static AccessCertificationCaseType createJaxb(byte[] fullObject, PrismContext prismContext, boolean removeCampaignRef) throws SchemaException {
         String xml = RUtil.getXmlFromByteArray(fullObject, false);
-        PrismContainer<AccessCertificationCaseType> caseContainer;
         try {
-            caseContainer = prismContext.parserFor(xml).xml().compat().parseContainer(AccessCertificationCaseType.class);
+            return prismContext.parserFor(xml).xml().compat().parseRealValue(AccessCertificationCaseType.class);
         } catch (SchemaException e) {
             LOGGER.debug("Couldn't parse certification case because of schema exception ({}):\nData: {}", e, xml);
             throw e;
@@ -423,8 +421,6 @@ public class RAccessCertificationCase implements Container {
             LOGGER.debug("Couldn't parse certification case because of unexpected exception ({}):\nData: {}", e, xml);
             throw e;
         }
-        AccessCertificationCaseType aCase = caseContainer.getValue().asContainerable().clone();      // clone in order to make it parent-less
         //aCase.asPrismContainerValue().removeReference(AccessCertificationCaseType.F_CAMPAIGN_REF);
-        return aCase;
     }
 }

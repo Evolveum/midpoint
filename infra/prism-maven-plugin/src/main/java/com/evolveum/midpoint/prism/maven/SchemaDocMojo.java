@@ -23,6 +23,7 @@ import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.prism.schema.SchemaDefinitionFactory;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
+import com.evolveum.midpoint.prism.schema.SchemaRegistryImpl;
 import com.evolveum.midpoint.prism.xml.GlobalDynamicNamespacePrefixMapper;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -36,6 +37,7 @@ import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
 import org.codehaus.plexus.archiver.ArchiverException;
 import org.codehaus.plexus.archiver.zip.ZipArchiver;
+import org.jetbrains.annotations.NotNull;
 import org.xml.sax.SAXException;
 
 import java.io.*;
@@ -242,7 +244,7 @@ public class SchemaDocMojo extends AbstractMojo {
 
     private PrismContext createInitializedPrismContext() throws MojoFailureException {
         try {
-            SchemaRegistry schemaRegistry = createSchemaRegistry();
+            SchemaRegistryImpl schemaRegistry = createSchemaRegistry();
 
             for (File schemaFile: schemaFiles) {
                 getLog().info("SchemaDoc: registering schema file: "+schemaFile);
@@ -292,8 +294,9 @@ public class SchemaDocMojo extends AbstractMojo {
     	throw new MojoFailureException(e.getMessage());
 	}
 
-	private SchemaRegistry createSchemaRegistry() throws SchemaException {
-		SchemaRegistry schemaRegistry = new SchemaRegistry();
+	@NotNull
+	private SchemaRegistryImpl createSchemaRegistry() throws SchemaException {
+		SchemaRegistryImpl schemaRegistry = new SchemaRegistryImpl();
 		schemaRegistry.setNamespacePrefixMapper(new GlobalDynamicNamespacePrefixMapper());
 		return schemaRegistry;
 	}

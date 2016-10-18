@@ -522,19 +522,14 @@ public class RunReportPopupPanel extends SimplePanel<ReportDto> {
                  }
                  }
                  */
-                if (XmlTypeConverter.canConvert(paramClass)) {
-                    typeName = XsdTypeMapper.toXsdType(paramClass);
-                } else {
-
-                    if (AuditEventType.class.isAssignableFrom(paramClass)) {
-                        paramClass = AuditEventTypeType.class;
-                        realValue = AuditEventType.fromAuditEventType((AuditEventType) realValue);
-                    } else if (AuditEventStage.class.isAssignableFrom(paramClass)) {
-                        paramClass = AuditEventStageType.class;
-                        realValue = AuditEventStage.fromAuditEventStage((AuditEventStage) realValue);
-                    }
-                    typeName = getPrismContext().getBeanConverter().determineTypeForClass(paramClass);
+                if (AuditEventType.class.isAssignableFrom(paramClass)) {
+                    paramClass = AuditEventTypeType.class;
+                    realValue = AuditEventType.fromAuditEventType((AuditEventType) realValue);
+                } else if (AuditEventStage.class.isAssignableFrom(paramClass)) {
+                    paramClass = AuditEventStageType.class;
+                    realValue = AuditEventStage.fromAuditEventStage((AuditEventStage) realValue);
                 }
+                typeName = getPrismContext().getSchemaRegistry().determineTypeForClass(paramClass);
                 PrismPropertyDefinitionImpl def = new PrismPropertyDefinitionImpl<>(new QName(ReportConstants.NS_EXTENSION, paramDto.getName()), typeName, getPrismContext());
                 def.setDynamic(true);
                 def.setRuntimeSchema(true);

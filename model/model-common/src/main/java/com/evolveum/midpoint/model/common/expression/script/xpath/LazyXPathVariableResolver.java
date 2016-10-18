@@ -143,7 +143,6 @@ public class LazyXPathVariableResolver implements XPathVariableResolver {
 
 	        } else if (variableValue instanceof PrismProperty<?>) {
 	        	PrismProperty<?> prismProperty = (PrismProperty<?>)variableValue;
-	        	DomLexicalProcessor domProcessor = prismProperty.getPrismContext().getParserDom();
 	        	final List<Element> elementList = new ArrayList<Element>();
 	        	for (PrismPropertyValue<?> value: prismProperty.getValues()) {
 	        		Element valueElement = prismContext.domSerializer().serialize(value, prismProperty.getElementName());
@@ -163,7 +162,6 @@ public class LazyXPathVariableResolver implements XPathVariableResolver {
 				
 	        } else if (variableValue instanceof PrismValue) {
 	        	PrismValue pval = (PrismValue)variableValue;
-	        	DomLexicalProcessor domProcessor = prismContext.getParserDom();
 	        	if (pval.getParent() == null) {
 	        		// Set a fake parent to allow serialization
 	        		pval.setParent(new Itemable() {

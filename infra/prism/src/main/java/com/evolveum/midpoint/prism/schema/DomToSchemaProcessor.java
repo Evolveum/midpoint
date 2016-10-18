@@ -110,7 +110,7 @@ class DomToSchemaProcessor {
 	}
 
 	private SchemaDefinitionFactory getDefinitionFactory() {
-		return prismContext.getDefinitionFactory();
+		return ((PrismContextImpl) prismContext).getDefinitionFactory();
 	}
 
 	private String getNamespace() {

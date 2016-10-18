@@ -49,6 +49,7 @@ import com.evolveum.prism.xml.ns._public.types_3.SchemaDefinitionType;
 import com.evolveum.prism.xml.ns._public.types_3.XmlAsStringType;
 
 import org.apache.commons.lang.StringUtils;
+import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Element;
 
 import javax.xml.bind.JAXBElement;
@@ -77,14 +78,15 @@ public class PrismBeanConverter {
     public static final String DEFAULT_PLACEHOLDER = "##default";
 
     private PrismBeanInspector inspector;
-	
-	private PrismContext prismContext;
 
-	public PrismBeanConverter(PrismContext prismContext, PrismBeanInspector inspector) {
+	@NotNull private final PrismContext prismContext;
+
+	public PrismBeanConverter(@NotNull PrismContext prismContext, PrismBeanInspector inspector) {
 		this.prismContext = prismContext;
 		this.inspector = inspector;
 	}
 
+	@NotNull
 	public PrismContext getPrismContext() {
 		return prismContext;
 	}
@@ -94,9 +96,6 @@ public class PrismBeanConverter {
 //	}
 
 	private SchemaRegistry getSchemaRegistry() {
-		if (prismContext == null) {
-			return null;
-		}
 		return prismContext.getSchemaRegistry();
 	}
 
@@ -146,7 +145,7 @@ public class PrismBeanConverter {
             return (T) schemaDefType;
         } else if (prismContext.getSchemaRegistry().determineDefinitionFromClass(beanClass) != null) {
         	PrismObjectDefinition def = prismContext.getSchemaRegistry().determineDefinitionFromClass(beanClass);
-			return (T) prismContext.getXnodeProcessor().parseObject(xnode, def, pc).asObjectable();
+			return (T) ((PrismContextImpl) prismContext).getPrismUnmarshaller().parseObject(xnode, def, pc).asObjectable();
 		} else if (XmlAsStringType.class.equals(beanClass)) {
             // reading a string represented a XML-style content
             // used e.g. when reading report templates (embedded XML)
@@ -157,7 +156,7 @@ public class PrismBeanConverter {
                 return (T) new XmlAsStringType();
             } else {
                 Map.Entry<QName,XNode> entry = xnode.entrySet().iterator().next();
-                DomLexicalProcessor domParser = prismContext.getParserDom();
+                DomLexicalProcessor domParser = ((PrismContextImpl) prismContext).getParserDom();
                 String value = domParser.write(entry.getValue(), entry.getKey(), null);
                 return (T) new XmlAsStringType(value);
             }
@@ -823,7 +822,8 @@ public class PrismBeanConverter {
         } else if (bean instanceof XmlAsStringType) {
             return marshalXmlAsStringType((XmlAsStringType) bean);
         } else if (prismContext != null && prismContext.getSchemaRegistry().determineDefinitionFromClass(bean.getClass()) != null){
-        	return prismContext.getXnodeProcessor().serializeObject(((Objectable)bean).asPrismObject(), false, ctx).getSubnode();
+        	return ((PrismContextImpl) prismContext).getPrismMarshaller().marshalItem(((Objectable)bean).asPrismObject(),
+					null, null, ctx).getSubnode();
         }
         // Note: SearchFilterType is treated below
 

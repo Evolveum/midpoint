@@ -31,6 +31,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.prism.xnode.RootXNode;
 import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectModificationType;
@@ -758,15 +759,7 @@ public class TestParseDiffPatch {
     private void assertModificationPolyStringValue(RawType value, PolyStringType... expectedValues) throws SchemaException {
     	XNode xnode = value.serializeToXNode();
         assertFalse(xnode.isEmpty());
-//        Object first = elements.get(0);
-//        QName elementQName = JAXBUtil.getElementQName(first);
-//        if (!propertyName.equals(elementQName)) {
-//            continue;
-//        }
-
-       
-        PolyStringType valueAsPoly = value.getPrismContext().getXnodeProcessor().parseAtomicValue(xnode, PolyStringType.COMPLEX_TYPE,
-				ParsingContext.createDefault());
+        PolyStringType valueAsPoly = value.getPrismContext().parserFor(new RootXNode(new QName("dummy"), xnode)).parseRealValue(PolyStringType.class);
         boolean found = false;
         for (PolyStringType expectedValue: expectedValues) {
             if (expectedValue.getOrig().equals(valueAsPoly.getOrig()) && expectedValue.getNorm().equals(valueAsPoly.getNorm())) {

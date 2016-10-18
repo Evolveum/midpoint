@@ -24,6 +24,7 @@ import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
+import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
 
@@ -51,7 +52,7 @@ public abstract class Item<V extends PrismValue, D extends ItemDefinition> imple
     protected QName elementName;
     protected PrismValue parent;
     protected D definition;
-    private List<V> values = new ArrayList<V>();
+    @NotNull private final List<V> values = new ArrayList<>();
     private transient Map<String,Object> userData = new HashMap<>();;
 
 	protected boolean immutable;
@@ -231,6 +232,7 @@ public abstract class Item<V extends PrismValue, D extends ItemDefinition> imple
     	getUserData().put(key, value);
     }
 
+    @NotNull
 	public List<V> getValues() {
 		return values;
 	}
@@ -758,7 +760,7 @@ public abstract class Item<V extends PrismValue, D extends ItemDefinition> imple
 	}
 
 	public boolean isEmpty() {
-        return (getValues() == null || getValues().isEmpty());
+        return getValues().isEmpty();
     }
 
     @Override

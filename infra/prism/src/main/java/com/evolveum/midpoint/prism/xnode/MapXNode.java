@@ -373,6 +373,11 @@ public class MapXNode extends XNode implements Map<QName,XNode>, Serializable {
 		return put(key, value);
 	}
 
+	public RootXNode getEntryAsRoot(@NotNull QName key) {
+		XNode xnode = get(key);
+		return xnode != null ? new RootXNode(key, xnode) : null;
+	}
+
 	private class Entry implements Map.Entry<QName, XNode>, Serializable {
 
 		private QName key;

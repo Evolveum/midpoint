@@ -16,14 +16,13 @@
 
 package com.evolveum.midpoint.prism;
 
-import com.evolveum.midpoint.prism.xnode.XNode;
+import com.evolveum.midpoint.prism.xnode.RootXNode;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
-import java.io.IOException;
 import java.util.List;
 
 /**
@@ -50,19 +49,28 @@ public interface PrismParserNoIO extends PrismParser {
 	PrismParserNoIO strict();
 	@NotNull
 	PrismParserNoIO compat();
+	@NotNull
+	PrismParserNoIO definition(ItemDefinition<?> itemDefinition);
+	@NotNull
+	PrismParserNoIO name(QName itemName);
+	@NotNull
+	PrismParserNoIO type(QName typeName);
+	@NotNull
+	PrismParserNoIO type(Class<?> typeClass);
 
 	@NotNull
 	<O extends Objectable> PrismObject<O> parse() throws SchemaException;
+	<IV extends PrismValue, ID extends ItemDefinition> Item<IV,ID> parseItem() throws SchemaException;
+	<IV extends PrismValue> IV parseItemValue() throws SchemaException;
+	<T> T parseRealValue(Class<T> clazz) throws SchemaException;
+	<T> T parseRealValue() throws SchemaException;
+	<T> JAXBElement<T> parseRealValueToJaxbElement() throws SchemaException;
+	RootXNode parseToXNode() throws SchemaException;
+
+	// auxiliary and deprecated methods
 	@NotNull
 	List<PrismObject<? extends Objectable>> parseObjects() throws SchemaException;
-	@NotNull
-	<C extends Containerable> PrismContainer<C> parseContainer(@NotNull Class<C> clazz) throws SchemaException;
-	@NotNull
-	<C extends Containerable> PrismContainer<C> parseContainer(@NotNull PrismContainerDefinition<C> definition) throws SchemaException;
-	<T> T parseAtomicValue(QName typeName) throws SchemaException;
-	Object parseAnyData() throws SchemaException;
-	<T> T parseAnyValue() throws SchemaException;
-	<T> JAXBElement<T> parseAnyValueAsJAXBElement() throws SchemaException;
 
-	XNode parseToXNode() throws SchemaException;
+	@Deprecated
+	Object parseAnyData() throws SchemaException;
 }

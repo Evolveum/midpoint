@@ -35,7 +35,7 @@ public class RawTypeUtil {
 		List<IV> parsedValues = new ArrayList<IV>();
 		for (RawType rawValue : values){
 			if (itemDefinition == null && containerDef != null){
-				itemDefinition = (ID) ((PrismContextImpl) containerDef.getPrismContext()).getXnodeProcessor().locateItemDefinition(containerDef, elementQName, rawValue.getXnode());
+				itemDefinition = (ID) ((PrismContextImpl) containerDef.getPrismContext()).getPrismUnmarshaller().locateItemDefinition(containerDef, elementQName, rawValue.getXnode());
 			}
 			IV parsed = rawValue.getParsedValue(itemDefinition, elementQName);
 			if (parsed != null){
@@ -89,7 +89,7 @@ public class RawTypeUtil {
 	}
 	
 //	public static Object toAny(PrismValue value, Document document, PrismContext prismContext) throws SchemaException{
-//		DomParser domParser = prismContext.getParserDom();
+//		DomParser domProcessor = prismContext.getParserDom();
 ////		Document document = DOMUtil.getDocument();
 //		if (value == null) {
 //			return value;
@@ -103,7 +103,7 @@ public class RawTypeUtil {
 //				if (rawElement instanceof Element) {
 //					return ((Element)rawElement).cloneNode(true);
 //				} else if (rawElement instanceof MapXNode) {
-//					return domParser.serializeXMapToElement((MapXNode)rawElement, elementName);
+//					return domProcessor.serializeXMapToElement((MapXNode)rawElement, elementName);
 //				} else if (rawElement instanceof PrimitiveXNode<?>) {
 //					PrimitiveXNode<?> xprim = (PrimitiveXNode<?>)rawElement;
 //					String stringValue = xprim.getStringValue();

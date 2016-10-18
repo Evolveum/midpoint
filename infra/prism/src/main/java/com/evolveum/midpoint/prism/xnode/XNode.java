@@ -47,6 +47,8 @@ public abstract class XNode implements DebugDumpable, Visitable, Cloneable, Seri
 	public static final QName KEY_REFERENCE_TARGET_NAME = new QName(null, "targetName");
 	public static final QName KEY_REFERENCE_OBJECT = new QName(null, "object");
 
+	public static final QName DUMMY_NAME = new QName(null, "dummy");
+
 	// Common fields
 	protected XNode parent;
 	
@@ -149,7 +151,9 @@ public abstract class XNode implements DebugDumpable, Visitable, Cloneable, Seri
 
 	private static <X extends XNode> X cloneTransformKeys(Transformer<QName,QName> keyTransformer, X xnode) {
 		XNode xclone;
-		if (xnode instanceof PrimitiveXNode<?>) {
+		if (xnode == null) {
+			return null;
+		} else if (xnode instanceof PrimitiveXNode<?>) {
 			return (X) ((PrimitiveXNode) xnode).cloneInternal();
 		} else if (xnode instanceof MapXNode) {
 			MapXNode xmap = (MapXNode)xnode;
@@ -168,6 +172,9 @@ public abstract class XNode implements DebugDumpable, Visitable, Cloneable, Seri
 			for (XNode xsubnode: ((ListXNode)xnode)) {
 				((ListXNode) xclone).add(cloneTransformKeys(keyTransformer, xsubnode));
 			}
+		} else if (xnode instanceof RootXNode) {
+			xclone = new RootXNode(((RootXNode) xnode).getRootElementName(),
+					cloneTransformKeys(keyTransformer, ((RootXNode) xnode).getSubnode()));
 		} else {
 			throw new IllegalArgumentException("Unknown xnode "+xnode);
 		}
@@ -200,5 +207,9 @@ public abstract class XNode implements DebugDumpable, Visitable, Cloneable, Seri
 		}
 		return sb.toString();
 	}
-	
+
+	// overriden in RootXNode
+	public RootXNode toRootXNode() {
+		return new RootXNode(XNode.DUMMY_NAME, this);
+	}
 }

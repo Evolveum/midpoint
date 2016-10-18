@@ -81,11 +81,15 @@ public class ParsingContext implements Cloneable {
 	}
 
 	public void warnOrThrow(Trace logger, String message) throws SchemaException {
+		warnOrThrow(logger, message, null);
+	}
+
+	public void warnOrThrow(Trace logger, String message, Throwable t) throws SchemaException {
 		if (isCompat()) {
-			logger.warn("{}", message);
+			logger.warn("{}", message, t);
 			warn(message);
 		} else {
-			throw new SchemaException(message);
+			throw new SchemaException(message, t);
 		}
 	}
 

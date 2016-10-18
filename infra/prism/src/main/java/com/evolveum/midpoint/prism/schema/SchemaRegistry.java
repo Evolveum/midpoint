@@ -31,6 +31,7 @@ import javax.xml.namespace.QName;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
+import java.util.function.Function;
 
 /**
  * @author mederly
@@ -55,6 +56,10 @@ public interface SchemaRegistry extends DebugDumpable, GlobalDefinitionsStore {
 
 	Collection<Package> getCompileTimePackages();
 
+	<T extends Containerable> ItemDefinition locateItemDefinition(@NotNull QName itemName,
+			@Nullable ComplexTypeDefinition complexTypeDefinition,
+			@Nullable Function<QName, ItemDefinition> dynamicDefinitionResolver) throws SchemaException;
+
 	// TODO fix this temporary and inefficient implementation
 	QName resolveUnqualifiedTypeName(QName type) throws SchemaException;
 
@@ -76,6 +81,14 @@ public interface SchemaRegistry extends DebugDumpable, GlobalDefinitionsStore {
 	<T> Class<T> getCompileTimeClass(QName xsdType);
 
 	PrismSchema findSchemaByCompileTimeClass(Class<?> compileTimeClass);
+
+	/**
+	 * Tries to determine type name for any class (primitive, complex one).
+	 * Does not use schemas (TODO explanation)
+	 * @param clazz
+	 * @return
+	 */
+	QName determineTypeForClass(Class<?> clazz);
 
 	/**
 	 * This method will try to locate the appropriate object definition and apply it.
@@ -113,8 +126,19 @@ public interface SchemaRegistry extends DebugDumpable, GlobalDefinitionsStore {
 
 	ItemDefinition resolveGlobalItemDefinition(QName elementQName, PrismContainerDefinition<?> containerDefinition) throws SchemaException;
 
-	ItemDefinition resolveGlobalItemDefinition(QName elementQName, @Nullable ComplexTypeDefinition containerCTD) throws SchemaException;
+	ItemDefinition resolveGlobalItemDefinition(QName itemName, @Nullable ComplexTypeDefinition complexTypeDefinition) throws SchemaException;
 
 	@Deprecated // use methods from PrismContext
 	<T extends Objectable> PrismObject<T> instantiate(Class<T> compileTimeClass) throws SchemaException;
+
+	// Takes XSD types into account as well
+	Class<?> determineClassForType(QName type);
+
+	// Takes XSD types into account as well
+	Class<?> determineClassForItemDefinition(ItemDefinition<?> itemDefinition);
+
+	<ID extends ItemDefinition> ID selectMoreSpecific(ID def1, ID def2)
+			throws SchemaException;
+
+	boolean isAssignableFrom(QName superType, QName subType);
 }

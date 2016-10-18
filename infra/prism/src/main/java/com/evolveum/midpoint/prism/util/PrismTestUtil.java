@@ -166,15 +166,15 @@ public class PrismTestUtil {
     // ==========================
 
     public static <T> T parseAtomicValue(File file, QName type) throws SchemaException, IOException {
-        return getPrismContext().parserFor(file).parseAtomicValue(type);
+        return getPrismContext().parserFor(file).type(type).parseRealValue();
     }
 
     public static <T> T parseAtomicValue(String data, QName type) throws SchemaException {
-        return getPrismContext().parserFor(data).parseAtomicValue(type);
+        return getPrismContext().parserFor(data).type(type).parseRealValue();
     }
 
     public static <T> T parseAnyValue(File file) throws SchemaException, IOException {
-        return getPrismContext().parserFor(file).parseAnyValue();
+        return getPrismContext().parserFor(file).parseRealValue();
     }
 
     public static <T extends Objectable> PrismObjectDefinition<T> getObjectDefinition(Class<T> compileTimeClass) {
@@ -205,7 +205,7 @@ public class PrismTestUtil {
 	}
 	
 	public static SearchFilterType unmarshalFilter(File file) throws Exception {
-		return prismContext.parserFor(file).parseAtomicValue(SearchFilterType.COMPLEX_TYPE);
+		return prismContext.parserFor(file).parseRealValue(SearchFilterType.class);
 	}
 	
 	public static ObjectFilter getFilterCondition(ObjectFilter filter, int index) {

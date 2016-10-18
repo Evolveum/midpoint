@@ -43,6 +43,15 @@ public interface PrismSerializer<T> {
 	PrismSerializer<T> root(QName elementName);
 
 	/**
+	 * Sets the item definition to be used during serialization.
+	 * (Not much used.)
+	 * @param itemDefinition
+	 * @return
+	 */
+	@NotNull
+	PrismSerializer<T> definition(ItemDefinition itemDefinition);
+
+	/**
 	 * Sets the context for the serialization operation, containing e.g. serialization options.
 	 *
 	 * @param context Context to be set.
@@ -61,20 +70,20 @@ public interface PrismSerializer<T> {
 	PrismSerializer<T> options(@Nullable SerializationOptions options);
 
 	/**
-	 * Serializes given PrismObject.
+	 * Serializes given prism item.
 	 *
-	 * @param object PrismObject to be serialized.
-	 * @return String representation of the object.
+	 * @param item Item to be serialized.
+	 * @return String/RootXNode representation of the item.
 	 */
 	@NotNull
-	<O extends Objectable> T serialize(@NotNull PrismObject<O> object) throws SchemaException;
+	T serialize(@NotNull Item<?, ?> item) throws SchemaException;
 
 	/**
 	 * Serializes given prism value (property, reference, or container).
 	 * Name of the root element is derived in the following way:
 	 * 1. if explicit name is set (
 	 * @param value Value to be serialized.
-	 * @return String representation of the value.
+	 * @return String/RootXNode representation of the value.
 	 */
 	@NotNull
 	T serialize(@NotNull PrismValue value) throws SchemaException;
@@ -83,13 +92,13 @@ public interface PrismSerializer<T> {
 	 * Serializes given prism value (property, reference, or container).
 	 * @param value Value to be serialized.
 	 * @param rootName Name of the root element. (Overrides other means of deriving the name.)
-	 * @return String representation of the value.
+	 * @return String/RootXNode representation of the value.
 	 */
 	@NotNull
 	T serialize(@NotNull PrismValue value, @NotNull QName rootName) throws SchemaException;
 
-	@Deprecated
-	T serialize(RootXNode xnode) throws SchemaException;
+	@NotNull
+	T serialize(@NotNull RootXNode xnode) throws SchemaException;
 
 	/**
 	 * Serializes an atomic value - i.e. something that fits into a prism property (if such a property would exist).

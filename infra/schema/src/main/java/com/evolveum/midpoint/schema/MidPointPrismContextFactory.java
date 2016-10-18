@@ -28,6 +28,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 
+import org.jetbrains.annotations.NotNull;
 import org.xml.sax.SAXException;
 
 import com.evolveum.midpoint.prism.PrismContext;
@@ -89,7 +90,8 @@ public class MidPointPrismContextFactory implements PrismContextFactory {
 		context.initialize();
 		return context;
 	}
-	
+
+	@NotNull
 	private SchemaRegistryImpl createSchemaRegistry() throws SchemaException, FileNotFoundException {
 		SchemaRegistryImpl schemaRegistry = new SchemaRegistryImpl();
 		schemaRegistry.setDefaultNamespace(SchemaConstantsGenerated.NS_COMMON);

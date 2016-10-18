@@ -21,10 +21,7 @@ package com.evolveum.midpoint.schema;
 
 import static com.evolveum.midpoint.prism.util.PrismAsserts.assertPropertyValue;
 
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
@@ -54,15 +51,12 @@ import org.xml.sax.SAXException;
 
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
 
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
@@ -221,7 +215,7 @@ public class TestJaxbParsing {
         item1.setPath(new ItemPathType(path));
         ProtectedStringType protectedString = new ProtectedStringType();
         protectedString.setEncryptedData(new EncryptedDataType());
-        RawType value = new RawType(PrismTestUtil.getPrismContext().getBeanConverter().marshall(protectedString), PrismTestUtil.getPrismContext());
+        RawType value = new RawType(((PrismContextImpl) PrismTestUtil.getPrismContext()).getBeanConverter().marshall(protectedString), PrismTestUtil.getPrismContext());
         item1.getValue().add(value);
 
         String xml = PrismTestUtil.serializeJaxbElementToString(
@@ -241,11 +235,11 @@ public class TestJaxbParsing {
 
         // THEN
 
-        Object oAsIs = prismContext.parserFor(dataAsIs).xml().parseAnyValueAsJAXBElement();
+        Object oAsIs = prismContext.parserFor(dataAsIs).xml().parseRealValueToJaxbElement();
         System.out.println("Parsed expression evaluator: "  + dataAsIs + " as " + oAsIs);
         AssertJUnit.assertTrue("result is of wrong class (not JAXBElement): " + oAsIs.getClass(), oAsIs instanceof JAXBElement);
 
-        Object oValue = prismContext.parserFor(dataValue).xml().parseAnyValueAsJAXBElement();
+        Object oValue = prismContext.parserFor(dataValue).xml().parseRealValueToJaxbElement();
         System.out.println("Parsed expression evaluator: " + dataValue + " as " + oValue);
         AssertJUnit.assertTrue("result is of wrong class (not JAXBElement): " + oValue.getClass(), oValue instanceof JAXBElement);
     }
@@ -260,7 +254,7 @@ public class TestJaxbParsing {
         
         // WHEN
 
-        Object parsedObject = prismContext.parserFor(rootElement).parseAnyValue();
+        Object parsedObject = prismContext.parserFor(rootElement).parseRealValue();
 
         // THEN
         System.out.println("Parsed object: "  + parsedObject);

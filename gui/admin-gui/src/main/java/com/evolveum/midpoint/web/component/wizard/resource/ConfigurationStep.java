@@ -131,7 +131,7 @@ public class ConfigurationStep extends WizardStep {
 		}
 
 		List<PrismContainerDefinition> containerDefinitions = getSortedConfigContainerDefinitions(configuration);
-		for (PrismContainerDefinition containerDef : containerDefinitions) {
+		for (PrismContainerDefinition<?> containerDef : containerDefinitions) {
 			ItemPath containerPath = new ItemPath(ResourceType.F_CONNECTOR_CONFIGURATION, containerDef.getName());
 			PrismContainer container = configuration.findContainer(containerDef.getName());
 

@@ -129,8 +129,9 @@ public class LayerRefinedObjectClassDefinitionImpl implements LayerRefinedObject
 	}
 
 	@Override
-	public <ID extends ItemDefinition> ID findItemDefinition(@NotNull QName name) {
-		return refinedObjectClassDefinition.findItemDefinition(name);
+	public <ID extends ItemDefinition> ID findNamedItemDefinition(@NotNull QName firstName, @NotNull ItemPath rest,
+			@NotNull Class<ID> clazz) {
+		return refinedObjectClassDefinition.findNamedItemDefinition(firstName, rest, clazz);
 	}
 
 	@Override
@@ -175,12 +176,6 @@ public class LayerRefinedObjectClassDefinitionImpl implements LayerRefinedObject
 	}
 
 	@Override
-	public <C extends Containerable> PrismContainerDefinition<C> findContainerDefinition(
-			@NotNull QName name) {
-		return refinedObjectClassDefinition.findContainerDefinition(name);
-	}
-
-	@Override
 	public LayerRefinedAttributeDefinition<?> getDisplayNameAttribute() {
         return substituteLayerRefinedAttributeDefinition(refinedObjectClassDefinition.getDisplayNameAttribute());
 	}
@@ -203,12 +198,6 @@ public class LayerRefinedObjectClassDefinitionImpl implements LayerRefinedObject
     @Override
 	public Collection<? extends LayerRefinedAttributeDefinition<?>> getAllIdentifiers() {
         return substituteLayerRefinedAttributeDefinitionCollection(refinedObjectClassDefinition.getAllIdentifiers());
-	}
-
-    @Override
-    public <D extends ItemDefinition> D findItemDefinition(QName name, Class<D> clazz) {
-		D findItemDefinition = refinedObjectClassDefinition.findItemDefinition(name, clazz);
-		return (D) LayerRefinedAttributeDefinitionImpl.wrap((RefinedAttributeDefinition) findItemDefinition, layer);
 	}
 
     @Override
@@ -247,7 +236,7 @@ public class LayerRefinedObjectClassDefinitionImpl implements LayerRefinedObject
 	}
 
     @Override
-	public PrismPropertyDefinition findPropertyDefinition(QName name) {
+	public PrismPropertyDefinition findPropertyDefinition(@NotNull QName name) {
         LayerRefinedAttributeDefinition def = findAttributeDefinition(name);
         if (def != null) {
             return def;
@@ -449,18 +438,8 @@ public class LayerRefinedObjectClassDefinitionImpl implements LayerRefinedObject
 	}
 
 	@Override
-	public <ID extends ItemDefinition> ID findItemDefinition(@NotNull ItemPath path) {
-		return refinedObjectClassDefinition.findItemDefinition(path);
-	}
-
-	@Override
 	public Collection<QName> getNamesOfAssociations() {
 		return refinedObjectClassDefinition.getNamesOfAssociations();
-	}
-
-	@Override
-	public <T> PrismPropertyDefinition<T> findPropertyDefinition(@NotNull ItemPath path) {
-		return refinedObjectClassDefinition.findPropertyDefinition(path);
 	}
 
 	@Override
@@ -539,7 +518,8 @@ public class LayerRefinedObjectClassDefinitionImpl implements LayerRefinedObject
 	@Override
 	public <ID extends ItemDefinition> ID findItemDefinition(@NotNull QName name, @NotNull Class<ID> clazz,
 			boolean caseInsensitive) {
-		return refinedObjectClassDefinition.findItemDefinition(name, clazz, caseInsensitive);
+		ID def = refinedObjectClassDefinition.findItemDefinition(name, clazz, caseInsensitive);
+		return (ID) LayerRefinedAttributeDefinitionImpl.wrap((RefinedAttributeDefinition) def, layer);
 	}
 
 	@Override
@@ -651,12 +631,6 @@ public class LayerRefinedObjectClassDefinitionImpl implements LayerRefinedObject
     public ObjectQuery createShadowSearchQuery(String resourceOid) throws SchemaException {
     	return refinedObjectClassDefinition.createShadowSearchQuery(resourceOid);
     }
-
-	@Override
-	public <C extends Containerable> PrismContainerDefinition<C> findContainerDefinition(
-			@NotNull ItemPath path) {
-		return refinedObjectClassDefinition.findContainerDefinition(path);
-	}
 
 	@Override
 	public void revive(PrismContext prismContext) {

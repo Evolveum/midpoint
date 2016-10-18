@@ -106,11 +106,6 @@ public class PrismContainer<C extends Containerable> extends Item<PrismContainer
 	}
 
     @Override
-    public List<PrismContainerValue<C>> getValues() {
-    	return (List<PrismContainerValue<C>>) super.getValues();
-    }
-    
-    @Override
     public Collection<C> getRealValues() {
 		if (getValues() == null) {
 			return null;

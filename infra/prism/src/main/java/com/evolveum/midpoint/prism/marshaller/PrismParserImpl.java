@@ -18,7 +18,7 @@ package com.evolveum.midpoint.prism.marshaller;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.lex.LexicalProcessor;
-import com.evolveum.midpoint.prism.lex.LexicalHelpers;
+import com.evolveum.midpoint.prism.xnode.RootXNode;
 import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import org.jetbrains.annotations.NotNull;
@@ -28,36 +28,48 @@ import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 /**
  * @author mederly
  */
-public abstract class PrismParserImpl implements PrismParser {
+abstract class PrismParserImpl implements PrismParser {
 
 	@NotNull private final ParserSource source;
 	private final String language;
 	@NotNull private final ParsingContext context;
-	@NotNull private final LexicalHelpers helpers;
+	@NotNull private final PrismContextImpl prismContext;
 
-	PrismParserImpl(@NotNull ParserSource source, String language, @NotNull ParsingContext context, @NotNull LexicalHelpers helpers) {
+	private final ItemDefinition<?> itemDefinition;
+	private final QName itemName;
+	private final QName typeName;
+	private final Class<?> typeClass;
+
+	//region Parameters ====================================================================================
+
+	PrismParserImpl(@NotNull ParserSource source, String language, @NotNull ParsingContext context,
+			@NotNull PrismContextImpl prismContext, ItemDefinition<?> itemDefinition, QName itemName, QName typeName, Class<?> typeClass) {
 		this.source = source;
 		this.language = language;
 		this.context = context;
-		this.helpers = helpers;
+		this.prismContext = prismContext;
+		this.itemDefinition = itemDefinition;
+		this.itemName = itemName;
+		this.typeName = typeName;
+		this.typeClass = typeClass;
 	}
 
-	private PrismParser create(ParserSource source, @Nullable String language, @NotNull ParsingContext context, LexicalHelpers helpers) {
+	private PrismParser create(ParserSource source, @Nullable String language, @NotNull ParsingContext context, PrismContextImpl prismContext,
+			ItemDefinition<?> itemDefinition, QName itemName, QName typeName, Class<?> typeClass) {
 		return source.throwsIOException() ?
-				new PrismParserImplIO(source, language, context, helpers) :
-				new PrismParserImplNoIO(source, language, context, helpers);
+				new PrismParserImplIO(source, language, context, prismContext, itemDefinition, itemName, typeName, typeClass) :
+				new PrismParserImplNoIO(source, language, context, prismContext, itemDefinition, itemName, typeName, typeClass);
 	}
 
 	@NotNull
 	@Override
 	public PrismParser language(@Nullable String language) {
-		return create(this.source, language, this.context, this.helpers);
+		return create(source, language, context, prismContext, itemDefinition, itemName, typeName, typeClass);
 	}
 
 	@NotNull
@@ -81,83 +93,167 @@ public abstract class PrismParserImpl implements PrismParser {
 	@NotNull
 	@Override
 	public PrismParser context(@NotNull ParsingContext context) {
-		return create(this.source, this.language, context, this.helpers);
+		return create(source, language, context, prismContext, itemDefinition, itemName, typeName, typeClass);
 	}
 
 	@NotNull
 	@Override
 	public PrismParser strict() {
-		return create(this.source, this.language, context.clone().strict(), this.helpers);
+		return create(source, language, context.clone().strict(), prismContext, itemDefinition, itemName, typeName, typeClass);
 	}
 
 	@NotNull
 	@Override
 	public PrismParser compat() {
-		return create(this.source, this.language, context.clone().compat(), this.helpers);
+		return create(source, language, context.clone().compat(), prismContext, itemDefinition, itemName, typeName, typeClass);
 	}
 
 	@NotNull
-	protected <O extends Objectable> PrismObject<O> doParse() throws SchemaException, IOException {
-		LexicalProcessor lexicalProcessor = getLexicalProcessor();
-		XNode xnode = lexicalProcessor.read(source, context);
-		return helpers.xnodeProcessor.parseObject(xnode, context);
+	@Override
+	public PrismParser definition(ItemDefinition<?> itemDefinition) {
+		return create(source, language, context, prismContext, itemDefinition, itemName, typeName, typeClass);
 	}
 
 	@NotNull
-	private LexicalProcessor getLexicalProcessor() throws IOException {
-		if (language != null) {
-			return helpers.lexicalProcessorRegistry.parserFor(language);
+	@Override
+	public PrismParser name(QName itemName) {
+		return create(source, language, context, prismContext, itemDefinition, itemName, typeName, typeClass);
+	}
+
+	@NotNull
+	@Override
+	public PrismParser type(QName typeName) {
+		return create(source, language, context, prismContext, itemDefinition, itemName, typeName, typeClass);
+	}
+
+	@NotNull
+	@Override
+	public PrismParser type(Class<?> typeClass) {
+		return create(source, language, context, prismContext, itemDefinition, itemName, typeName, typeClass);
+	}
+	//endregion
+
+	//region Parsing methods ====================================================================================
+
+	@NotNull
+	<O extends Objectable> PrismObject<O> doParse() throws SchemaException, IOException {
+		RootXNode xnode = getLexicalProcessor().read(source, context);
+		return prismContext.getPrismUnmarshaller().parseObject(xnode, itemDefinition, itemName, typeName, typeClass, context);
+	}
+
+	<IV extends PrismValue, ID extends ItemDefinition> Item<IV, ID> doParseItem() throws IOException, SchemaException {
+		RootXNode xnode = getLexicalProcessor().read(source, context);
+		return doParseItem(xnode);
+	}
+
+	private <IV extends PrismValue, ID extends ItemDefinition> Item<IV, ID> doParseItem(RootXNode xnode) throws IOException, SchemaException {
+		return (Item) prismContext.getPrismUnmarshaller().parseItem(xnode, itemDefinition, itemName, typeName, typeClass, context);
+	}
+
+	<IV extends PrismValue> IV doParseItemValue() throws IOException, SchemaException {
+		RootXNode root = getLexicalProcessor().read(source, context);
+		return doParseItemValue(root);
+	}
+
+	private <IV extends PrismValue> IV doParseItemValue(RootXNode root) throws IOException, SchemaException {
+		Item<IV,?> item = doParseItem(root);
+		return getSingleValue(item);
+	}
+
+	@Nullable
+	private <IV extends PrismValue> IV getSingleValue(Item<IV, ?> item) {
+		if (item.isEmpty()) {
+			return null;
+		} else if (item.size() == 1) {
+			return item.getValues().get(0);
 		} else {
-			return helpers.lexicalProcessorRegistry.findParser(source);
+			throw new IllegalStateException("Expected one item value, got " + item.getValues().size()
+					+ " while parsing " + item);
 		}
 	}
 
-	protected List<PrismObject<? extends Objectable>> doParseObjects() throws IOException, SchemaException {
-		LexicalProcessor lexicalProcessor = getLexicalProcessor();
-		Collection<XNode> xnodes = lexicalProcessor.readObjects(source, context);
+	<T> T doParseRealValue(Class<T> clazz) throws IOException, SchemaException {
+		RootXNode root = getLexicalProcessor().read(source, context);
+		return doParseRealValue(clazz, root);
+	}
+
+	@SuppressWarnings("unchecked")
+	private <T> T doParseRealValue(Class<T> clazz, RootXNode root) throws IOException, SchemaException {
+		if (clazz == null) {
+			ItemInfo info = ItemInfo.determine(itemDefinition, root.getRootElementName(), itemName, null,
+					root.getTypeQName(), typeName, null, ItemDefinition.class, context, prismContext.getSchemaRegistry());
+			if (info.getItemDefinition() instanceof PrismContainerDefinition) {
+				clazz = ((PrismContainerDefinition) info.getItemDefinition()).getCompileTimeClass();
+			}
+			if (clazz == null && info.getTypeName() != null) {
+				clazz = (Class) prismContext.getSchemaRegistry().determineClassForType(info.getTypeName());
+			}
+			if (clazz == null) {
+				throw new IllegalArgumentException("Couldn't determine type for " + root);
+			}
+		}
+
+		if (Containerable.class.isAssignableFrom(clazz)) {
+			PrismValue prismValue = doParseItemValue(root);
+			if (prismValue == null) {
+				return null;
+			} else if (prismValue instanceof PrismPropertyValue) {
+				return (T) ((PrismPropertyValue) prismValue).getValue();
+			} else if (prismValue instanceof PrismContainerValue) {
+				return (T) ((PrismContainerValue) prismValue).asContainerable();
+			} else if (prismValue instanceof PrismReferenceValue) {
+				return (T) prismValue;			// TODO ok?
+			} else {
+				throw new IllegalStateException("Unsupported value: " + prismValue.getClass());
+			}
+		} else {
+			return prismContext.getBeanConverter().unmarshall(root, clazz, context);
+		}
+	}
+
+	@SuppressWarnings("unchecked")
+	<T> T doParseRealValue() throws IOException, SchemaException {
+		return (T) doParseRealValue(typeClass);
+	}
+
+	@SuppressWarnings("unchecked")
+	<T> JAXBElement<T> doParseAnyValueAsJAXBElement() throws IOException, SchemaException {
+		RootXNode root = getLexicalProcessor().read(source, context);
+		T real = (T) doParseRealValue(Object.class, root);
+		return real != null ?
+				new JAXBElement<>(root.getRootElementName(), (Class<T>) real.getClass(), real) :
+				null;
+	}
+
+	RootXNode doParseToXNode() throws IOException, SchemaException {
+		return getLexicalProcessor().read(source, context);
+	}
+
+	@NotNull
+	List<PrismObject<? extends Objectable>> doParseObjects() throws IOException, SchemaException {
+		List<RootXNode> xnodes = getLexicalProcessor().readObjects(source, context);
 		List<PrismObject<? extends Objectable>> objects = new ArrayList<>();
-		for (XNode xnode : xnodes) {
-			PrismObject<? extends Objectable> object = helpers.xnodeProcessor.parseObject(xnode, context);
+		for (RootXNode xnode : xnodes) {
+			PrismObject<? extends Objectable> object = prismContext.getPrismUnmarshaller()
+					.parseObject(xnode, null, null, null, PrismObjectDefinition.class, context);
 			objects.add(object);
 		}
 		return objects;
 	}
 
-	protected <C extends Containerable> PrismContainer<C> doParseContainer(Class<C> clazz) throws SchemaException, IOException {
-		XNode xnode = getLexicalProcessor().read(source, context);
-		return helpers.xnodeProcessor.unmarshalContainerValue(xnode, clazz, context);
+	@Deprecated
+	Object doParseAnyData() throws IOException, SchemaException {
+		RootXNode xnode = getLexicalProcessor().read(source, context);
+		return prismContext.getPrismUnmarshaller().parseAnyData(xnode, context);
 	}
 
-	protected <C extends Containerable> PrismContainer<C> doParseContainer(PrismContainerDefinition<C> definition) throws SchemaException, IOException {
-		XNode xnode = getLexicalProcessor().read(source, context);
-		return helpers.xnodeProcessor.unmarshalContainerValue(xnode, definition, context);
+	@NotNull
+	private LexicalProcessor<?> getLexicalProcessor() throws IOException {
+		if (language != null) {
+			return prismContext.getLexicalProcessorRegistry().processorFor(language);
+		} else {
+			return prismContext.getLexicalProcessorRegistry().findProcessor(source);
+		}
 	}
-
-	protected <T> T doParseAtomicValue(QName typeName) throws IOException, SchemaException {
-		LexicalProcessor lexicalProcessor = getLexicalProcessor();
-		XNode xnode = lexicalProcessor.read(source, context);
-		return helpers.xnodeProcessor.parseAtomicValue(xnode, typeName, context);
-	}
-
-	protected Object doParseAnyData() throws IOException, SchemaException {
-		LexicalProcessor lexicalProcessor = getLexicalProcessor();
-		XNode xnode = lexicalProcessor.read(source, context);
-		return helpers.xnodeProcessor.parseAnyData(xnode, context);
-	}
-
-	protected <T> T doParseAnyValue() throws IOException, SchemaException {
-		LexicalProcessor lexicalProcessor = getLexicalProcessor();
-		XNode xnode = lexicalProcessor.read(source, context);
-		return helpers.xnodeProcessor.parseAnyValue(xnode, context);
-	}
-
-	protected <T> JAXBElement<T> doParseAnyValueAsJAXBElement() throws IOException, SchemaException {
-		LexicalProcessor lexicalProcessor = getLexicalProcessor();
-		XNode xnode = lexicalProcessor.read(source, context);
-		return helpers.xnodeProcessor.parseAnyValueAsJAXBElement(xnode, context);
-	}
-
-	protected XNode doParseToXNode() throws IOException, SchemaException {
-		return getLexicalProcessor().read(source, context);
-	}
+	//endregion
 }

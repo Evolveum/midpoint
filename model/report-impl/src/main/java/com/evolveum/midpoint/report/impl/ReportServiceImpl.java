@@ -111,7 +111,7 @@ public class ReportServiceImpl implements ReportService {
 			Task task = taskManager.createTaskInstance();
 			ModelExpressionThreadLocalHolder.pushCurrentResult(task.getResult());
 			ModelExpressionThreadLocalHolder.pushCurrentTask(task);
-			SearchFilterType filter = (SearchFilterType) prismContext.parserFor(query).parseAtomicValue(SearchFilterType.COMPLEX_TYPE);
+			SearchFilterType filter = prismContext.parserFor(query).parseRealValue(SearchFilterType.class);
 			LOGGER.trace("filter {}", filter);
 			ObjectFilter f = QueryConvertor.parseFilter(filter, UserType.class, prismContext);
 			LOGGER.trace("f {}", f.debugDump());

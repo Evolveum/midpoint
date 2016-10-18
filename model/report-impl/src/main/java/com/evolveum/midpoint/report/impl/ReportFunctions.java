@@ -302,9 +302,9 @@ public class ReportFunctions {
 //        return RefFilter.createReferenceEqual(propertyPath, type, prismContext, oids);
 //    }
     
-    Object parseObjectFromXML (String xml) throws SchemaException {
-        return prismContext.parserFor(xml).xml().parseAnyData();
-    }
+//    Object parseObjectFromXML (String xml) throws SchemaException {
+//        return prismContext.parserFor(xml).xml().parseAnyData();
+//    }
 
     /**
      * Retrieves all definitions.

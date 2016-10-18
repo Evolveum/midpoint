@@ -499,7 +499,7 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
 //    @Test(enabled = false)
 //    public void deltaOperationSerializationPerformanceTest() throws Exception {
 //        List<PrismObject<? extends Objectable>> elements =
-//                prismContext.parserFor(new File(FOLDER_BASIC, "objects.xml")).parseObjects();
+//                prismContext.processorFor(new File(FOLDER_BASIC, "objects.xml")).parseObjects();
 //
 //        //get user from objects.xml
 //        ObjectDelta delta = ObjectDelta.createAddDelta(elements.get(0));

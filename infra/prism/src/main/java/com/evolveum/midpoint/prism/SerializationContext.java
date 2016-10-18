@@ -42,12 +42,16 @@ public class SerializationContext implements Cloneable {
         return ctx != null && SerializationOptions.isSerializeReferenceNames(ctx.getOptions());
     }
 
+    public static boolean isSerializeCompositeObjects(SerializationContext ctx) {
+        return ctx != null && SerializationOptions.isSerializeCompositeObjects(ctx.getOptions());
+    }
+
     public static SerializationContext forOptions(SerializationOptions options) {
         return new SerializationContext(options);
     }
 
     @Override
-    protected SerializationContext clone() {
+    public SerializationContext clone() {
         SerializationContext clone;
         try {
             clone = (SerializationContext) super.clone();

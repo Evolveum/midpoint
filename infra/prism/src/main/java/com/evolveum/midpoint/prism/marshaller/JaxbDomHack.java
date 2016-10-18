@@ -167,9 +167,7 @@ public class JaxbDomHack {
 		Item<IV,ID> subItem;
 		if (element instanceof Element) {
 			// DOM Element
-			DomLexicalProcessor domParser = prismContext.getParserDom();
-			XNode xnode = domParser.parseElementContent((Element)element);
-			subItem = (Item<IV, ID>) prismContext.getXnodeProcessor().parseItem(xnode, elementName, itemDefinition, ParsingContext.createDefault());
+			subItem = prismContext.parserFor((Element) element).name(elementName).definition(itemDefinition).parseItem();
 		} else if (element instanceof JAXBElement<?>) {
 			// JAXB Element
 			JAXBElement<?> jaxbElement = (JAXBElement<?>)element;

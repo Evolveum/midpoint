@@ -284,7 +284,7 @@ public class CompositeRefinedObjectClassDefinition implements RefinedObjectClass
 	}
 
 	@Override
-	public <T extends ItemDefinition> T findItemDefinition(QName name, Class<T> clazz, boolean caseInsensitive) {
+	public <T extends ItemDefinition> T findItemDefinition(@NotNull QName name, @NotNull Class<T> clazz, boolean caseInsensitive) {
 		T itemDef = structuralObjectClassDefinition.findItemDefinition(name, clazz, caseInsensitive);
 		if (itemDef == null) {
 			for(RefinedObjectClassDefinition auxiliaryObjectClassDefinition: auxiliaryObjectClassDefinitions) {
@@ -296,8 +296,13 @@ public class CompositeRefinedObjectClassDefinition implements RefinedObjectClass
 		}
 		return itemDef;
 	}
-	
-	
+
+	@Override
+	public <ID extends ItemDefinition> ID findNamedItemDefinition(@NotNull QName firstName, @NotNull ItemPath rest,
+			@NotNull Class<ID> clazz) {
+		throw new UnsupportedOperationException();		// implement if needed
+	}
+
 	@Override
 	public Collection<? extends RefinedAttributeDefinition<?>> getAttributeDefinitions() {
 		if (auxiliaryObjectClassDefinitions.isEmpty()) {

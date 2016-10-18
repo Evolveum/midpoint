@@ -257,7 +257,7 @@ public class ScriptingExpressionEvaluator {
     public Data evaluateConstantExpression(RawType constant, ExecutionContext context, OperationResult result) throws ScriptExecutionException {
 
         try {
-            Object value = prismContext.getXnodeProcessor().parseAnyData(constant.getXnode(), ParsingContext.createDefault());
+            Object value = prismContext.parserFor(constant.getXnode().toRootXNode()).parseAnyData();
             if (value instanceof Item) {
                 return Data.create((Item) value);
             } else {

@@ -16,25 +16,19 @@
 
 package com.evolveum.midpoint.prism.marshaller;
 
-import java.lang.reflect.Field;
-import java.security.CryptoPrimitive;
-
-import javax.xml.bind.annotation.XmlEnumValue;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.ParsingContext;
+import com.evolveum.midpoint.prism.xnode.RootXNode;
 import org.apache.commons.lang.StringUtils;
 
-import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.crypto.AESProtector;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.xnode.MapXNode;
 import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
 import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.Transformer;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.prism.xml.ns._public.types_3.EncryptedDataType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedDataType;
@@ -59,41 +53,34 @@ public class XNodeProcessorUtil {
 	}
 
 	public static <T> void parseProtectedType(ProtectedDataType<T> protectedType, MapXNode xmap, PrismContext prismContext, ParsingContext pc) throws SchemaException {
-		XNode xEncryptedData = xmap.get(ProtectedDataType.F_ENCRYPTED_DATA);
+		RootXNode xEncryptedData = xmap.getEntryAsRoot(ProtectedDataType.F_ENCRYPTED_DATA);
         if (xEncryptedData != null) {
-            if (!(xEncryptedData instanceof MapXNode)) {
+            if (!(xEncryptedData.getSubnode() instanceof MapXNode)) {
                 throw new SchemaException("Cannot parse encryptedData from "+xEncryptedData);
             }
-            EncryptedDataType encryptedDataType = prismContext.getBeanConverter().unmarshall((MapXNode)xEncryptedData, EncryptedDataType.class, pc);
+			EncryptedDataType encryptedDataType = prismContext.parserFor(xEncryptedData).context(pc).parseRealValue(EncryptedDataType.class);
             protectedType.setEncryptedData(encryptedDataType);
         } else {
             // Check for legacy EncryptedData
-            XNode xLegacyEncryptedData = xmap.get(ProtectedDataType.F_XML_ENC_ENCRYPTED_DATA);
+            RootXNode xLegacyEncryptedData = xmap.getEntryAsRoot(ProtectedDataType.F_XML_ENC_ENCRYPTED_DATA);
             if (xLegacyEncryptedData != null) {
-                if (!(xLegacyEncryptedData instanceof MapXNode)) {
+                if (!(xLegacyEncryptedData.getSubnode() instanceof MapXNode)) {
                     throw new SchemaException("Cannot parse EncryptedData from "+xEncryptedData);
                 }
+                RootXNode xConvertedEncryptedData = (RootXNode) xLegacyEncryptedData.cloneTransformKeys(in -> {
+					String elementName = StringUtils.uncapitalize(in.getLocalPart());
+					if (elementName.equals("type")) {
+						// this is rubbish, we don't need it, we don't want it
+						return null;
+					}
+					return new QName(null, elementName);
+				});
                 
-                 
-//                xmlCipherData.getSingleSubEntry(ProtectedDataType.F_XML_ENC_CIPHER_VALUE.getLocalPart());
-                
-                MapXNode xConvertedEncryptedData = (MapXNode) xLegacyEncryptedData.cloneTransformKeys(new Transformer<QName,QName>() {
-                    @Override
-                    public QName transform(QName in) {
-                        String elementName = StringUtils.uncapitalize(in.getLocalPart());
-                        if (elementName.equals("type")) {
-                            // this is rubbish, we don't need it, we don't want it
-                            return null;
-                        }
-                        return new QName(null, elementName);
-                    }
-                });
-                
-                EncryptedDataType encryptedDataType = prismContext.getBeanConverter().unmarshall(xConvertedEncryptedData, EncryptedDataType.class, pc);
+                EncryptedDataType encryptedDataType = prismContext.parserFor(xConvertedEncryptedData).context(pc).parseRealValue(EncryptedDataType.class);
                 protectedType.setEncryptedData(encryptedDataType);
        
                 if (protectedType instanceof ProtectedStringType){
-                	transformEncryptedValue((ProtectedStringType) protectedType, prismContext);
+                	transformEncryptedValue(protectedType, prismContext);
                 }
             }
         }
@@ -121,7 +108,7 @@ public class XNodeProcessorUtil {
 	
 	private static void transformEncryptedValue(ProtectedDataType protectedType, PrismContext prismContext) throws SchemaException{
 		Protector protector = prismContext.getDefaultProtector();
-		if (protector == null){
+		if (protector == null) {
 			return;
 		}
 //		AESProtector protector = new AESProtector();

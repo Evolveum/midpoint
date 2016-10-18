@@ -17,8 +17,8 @@
 package com.evolveum.midpoint.prism;
 
 
+import com.evolveum.midpoint.prism.marshaller.PrismBeanConverter;
 import com.evolveum.midpoint.prism.match.MatchingRule;
-import com.evolveum.midpoint.prism.marshaller.XNodeProcessor;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
@@ -27,6 +27,7 @@ import com.evolveum.midpoint.prism.schema.SchemaRegistryImpl;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
+import com.evolveum.midpoint.prism.xnode.RootXNode;
 import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
@@ -117,7 +118,7 @@ public class PrismPropertyValue<T> extends PrismValue implements DebugDumpable, 
     				if (rawElement instanceof Element) {
         				// Do the most stupid thing possible. Assume string value. And there will be no definition.
     					value = (T) ((Element)rawElement).getTextContent();
-    				} else if (rawElement instanceof PrimitiveXNode){
+    				} else if (rawElement instanceof PrimitiveXNode) {
     					try {
                             QName type = rawElement.getTypeQName() != null ? rawElement.getTypeQName() : DOMUtil.XSD_STRING;
     					    value = (T) ((PrimitiveXNode) rawElement).getParsedValueWithoutRecording(type);
@@ -183,8 +184,11 @@ public class PrismPropertyValue<T> extends PrismValue implements DebugDumpable, 
 		if (value != null) {
 			if (value instanceof Revivable) {
 				((Revivable)value).revive(prismContext);
-			} else if (prismContext.getBeanConverter().canProcess(value.getClass())) {
-				prismContext.getBeanConverter().revive(value, prismContext);
+			} else {
+				PrismBeanConverter beanConverter = ((PrismContextImpl) prismContext).getBeanConverter();
+				if (beanConverter.canProcess(value.getClass())) {
+					beanConverter.revive(value, prismContext);
+				}
 			}
 		}
 	}
@@ -373,8 +377,8 @@ public class PrismPropertyValue<T> extends PrismValue implements DebugDumpable, 
 	private T parseRawElementToNewRealValue(PrismPropertyValue<T> prismPropertyValue, PrismPropertyDefinition<T> definition) 
 				throws SchemaException {
 		PrismContext prismContext = definition.getPrismContext();
-		XNodeProcessor xnodeProcessor = prismContext.getXnodeProcessor();
-		T value = xnodeProcessor.parsePrismPropertyRealValue(prismPropertyValue.rawElement, definition, ParsingContext.createDefault());
+		//noinspection UnnecessaryLocalVariable
+		T value = prismContext.parserFor(prismPropertyValue.rawElement.toRootXNode()).definition(definition).parseRealValue();
 		return value;
 	}
 

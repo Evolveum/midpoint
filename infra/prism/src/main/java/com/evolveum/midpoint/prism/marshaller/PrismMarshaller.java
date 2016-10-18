@@ -17,13 +17,11 @@ package com.evolveum.midpoint.prism.marshaller;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.SerializationContext;
-import com.evolveum.midpoint.prism.SerializationOptions;
-import com.evolveum.midpoint.prism.marshaller.PrismBeanConverter;
+import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
 import org.apache.commons.lang.StringUtils;
@@ -53,42 +51,92 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.prism.xml.ns._public.types_3.EvaluationTimeType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedDataType;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * @author semancik
  *
  */
-public class XNodeSerializer {
+public class PrismMarshaller {
 	
-	private PrismBeanConverter beanConverter;
-	private boolean serializeCompositeObjects = false;
+	@NotNull private final PrismBeanConverter beanConverter;
 
-	public XNodeSerializer(PrismBeanConverter beanConverter) {
-		super();
+	public PrismMarshaller(@NotNull PrismBeanConverter beanConverter) {
 		this.beanConverter = beanConverter;
 	}
 
-	public boolean isSerializeCompositeObjects() {
-		return serializeCompositeObjects;
+	//region Public interface ======================================================================================
+
+	/*
+	 *  TODO reconsider what to return for empty items
+	 *   1. null
+	 *   2. Root(name, null)
+	 *   3. Root(name, List())
+	 *
+	 *  TODO reconsider what to do if we have potentially multivalued property - whether to return list or not
+	 */
+
+	@NotNull
+	RootXNode marshalItem(@NotNull Item<?, ?> item, QName itemName,
+			ItemDefinition itemDefinition, SerializationContext context) throws SchemaException {
+
+		QName realName = itemName != null ? itemName : item.getElementName();
+		ItemDefinition realDefinition = itemDefinition != null ? itemDefinition : item.getDefinition();
+
+		XNode content;
+		if (item instanceof PrismObject) {
+			content = marshalObjectContent((PrismObject) item, (PrismObjectDefinition) realDefinition, context);
+		} else if (item.size() == 1) {
+			content = marshalItemValue(item.getValue(0), realDefinition, context);
+		} else {
+			ListXNode xlist = new ListXNode();
+			for (PrismValue val : item.getValues()) {
+				xlist.add(marshalItemValue(val, realDefinition, context));
+			}
+			content = xlist;
+		}
+		return new RootXNode(realName, content);
 	}
 
-	public void setSerializeCompositeObjects(boolean serializeCompositeObjects) {
-		this.serializeCompositeObjects = serializeCompositeObjects;
+	RootXNode marshalItemValueAsRoot(@NotNull PrismValue value, @NotNull QName itemName, ItemDefinition itemDefinition,
+			SerializationContext context) throws SchemaException {
+		if (itemDefinition == null && value.getParent() != null) {
+			itemDefinition = value.getParent().getDefinition();      // the definition may still be null here
+		}
+		XNode valueNode = marshalItemValue(value, itemDefinition, context);
+		return new RootXNode(itemName, valueNode);
 	}
 
-    //region Serializing objects
-    public <O extends Objectable> RootXNode serializeObject(PrismObject<O> object) throws SchemaException {
-        return serializeObject(object, null);
-    }
-
-    public <O extends Objectable> RootXNode serializeObject(PrismObject<O> object, SerializationContext ctx) throws SchemaException {
-		RootXNode xroot = new RootXNode(object.getElementName());
-		xroot.setSubnode(serializeObjectContent(object, ctx));
-		xroot.setTypeQName(object.getDefinition().getTypeName());
-		return xroot;
+	RootXNode marshalAnyData(@NotNull Object object, QName itemName, ItemDefinition itemDefinition, SerializationContext ctx) throws SchemaException {
+		if (object instanceof Item) {
+			return marshalItem((Item) object, itemName, itemDefinition, ctx);
+		} else {
+			Validate.notNull(itemName, "rootElementName must be specified for non-Item objects");
+			XNode valueNode = beanConverter.marshall(object, ctx);		// TODO item definition!
+			QName typeQName = JAXBUtil.getTypeQName(object.getClass());
+			if (valueNode.getTypeQName() == null) {
+				if (typeQName != null) {
+					valueNode.setTypeQName(typeQName);
+				} else {
+					throw new SchemaException("No type QName for class " + object.getClass());
+				}
+			}
+			return new RootXNode(itemName, valueNode);
+		}
 	}
-	
-	private <O extends Objectable> MapXNode serializeObjectContent(PrismObject<O> object, SerializationContext ctx) throws SchemaException {
+
+	public boolean canSerialize(Object object) {
+		if (object instanceof Item) {
+			return true;
+		} else {
+			return beanConverter.canProcess(object.getClass());
+		}
+	}
+    //endregion
+
+	//region Implementation ======================================================================================
+
+	private <O extends Objectable> MapXNode marshalObjectContent(@NotNull PrismObject<O> object, @NotNull PrismObjectDefinition<O> objectDefinition, SerializationContext ctx) throws SchemaException {
 		MapXNode xmap = new MapXNode();
 		if (object.getOid() != null) {
 			xmap.put(XNode.KEY_OID, createPrimitiveXNodeStringAttr(object.getOid()));
@@ -96,104 +144,27 @@ public class XNodeSerializer {
 		if (object.getVersion() != null) {
 			xmap.put(XNode.KEY_VERSION, createPrimitiveXNodeStringAttr(object.getVersion()));
 		}
-		PrismObjectDefinition<O> objectDefinition = object.getDefinition();
-		serializeContainerValue(xmap, object.getValue(), objectDefinition, ctx);
+		marshalContainerValue(xmap, object.getValue(), objectDefinition, ctx);
+		xmap.setTypeQName(objectDefinition.getTypeName());		// object should have the definition (?)
 		return xmap;
 	}
-    //endregion
 
-    //region Serializing (any) items
-    public <IV extends PrismValue,ID extends ItemDefinition> XNode serializeItem(Item<IV, ID> item) throws SchemaException {
-        return serializeItem(item, null);
-    }
-
-    public <IV extends PrismValue,ID extends ItemDefinition> XNode serializeItem(Item<IV, ID> item, SerializationContext ctx) throws SchemaException {
-        ListXNode xlist = new ListXNode();
-        List<IV> values = item.getValues();
-        ItemDefinition definition = item.getDefinition();
-
-        for (IV val: values) {
-            XNode xsubnode = serializeItemValue(val, definition, ctx);
-            xlist.add(xsubnode);
-        }
-
-        boolean asList;
-        if (definition != null) {
-            asList = definition.isMultiValue();
-        } else {
-            asList = values.size() > 1;
-        }
-
-        if (asList) {
-            return xlist;
-        } else {
-            if (xlist.isEmpty()) {
-                return null;
-            } else {
-                return xlist.iterator().next();
-            }
-        }
-    }
-
-    public RootXNode serializeItemValueAsRoot(PrismValue value, QName elementName) throws SchemaException {
-        Validate.notNull(value, "Item value to be serialized cannot be null");
-        //Validate.notNull(value.getParent(), "Item value to be serialized must have a parent");
-        Validate.notNull(elementName, "Element name cannot be null");
-        return serializeItemValueAsRootInternal(value, elementName);
-    }
-
-    // element name may be null (it is then derived from the definition, if the definition exists)
-    private RootXNode serializeItemValueAsRootInternal(PrismValue value, QName elementName) throws SchemaException {
-        ItemDefinition definition;
-        if (value.getParent() != null) {
-            definition = value.getParent().getDefinition();      // the definition may be null here
-        } else {
-            definition = null;
-        }
-        XNode valueNode = serializeItemValue(value, definition);
-        if (elementName == null) {
-            if (definition == null) {
-                throw new IllegalStateException("The name of element to be serialized couldn't be determined, as there's no definition");
-            }
-            elementName = definition.getName();
-        }
-        return new RootXNode(elementName, valueNode);
-    }
-
-    public <IV extends PrismValue,ID extends ItemDefinition> RootXNode serializeItemAsRoot(Item<IV,ID> item) throws SchemaException {
-        Validate.notNull(item.getDefinition(), "Item without a definition");
-        XNode valueNode = serializeItem(item);
-        return new RootXNode(item.getDefinition().getName(), valueNode);
-    }
-
-    public <V extends PrismValue> XNode serializeItemValue(V itemValue, ItemDefinition definition) throws SchemaException {
-        return serializeItemValue(itemValue, definition, (SerializationContext) null);
-    }
-
-    public <V extends PrismValue> XNode serializeItemValue(V itemValue, ItemDefinition definition, SerializationOptions options) throws SchemaException {
-        return serializeItemValue(itemValue, definition, new SerializationContext(options));
-    }
-
-    // definition may be null
-    private <V extends PrismValue> XNode serializeItemValue(PrismValue itemValue, ItemDefinition definition, SerializationContext ctx) throws SchemaException {
+	@NotNull
+    private <V extends PrismValue> XNode marshalItemValue(@NotNull PrismValue itemValue, ItemDefinition definition, SerializationContext ctx) throws SchemaException {
         XNode xnode;
         if (definition == null) {
             if (itemValue.getParent() != null) {
                 definition = itemValue.getParent().getDefinition();
             }
         }
-        if (beanConverter.getPrismContext() == null) {
-            throw new IllegalStateException("No prismContext in beanConverter!");
-        }
-        if (definition == null && itemValue instanceof PrismPropertyValue){
+        if (definition == null && itemValue instanceof PrismPropertyValue) {
             return serializePropertyRawValue((PrismPropertyValue<?>) itemValue);
-        }
-        if (itemValue instanceof PrismReferenceValue) {
+        } else if (itemValue instanceof PrismReferenceValue) {
             xnode = serializeReferenceValue((PrismReferenceValue)itemValue, (PrismReferenceDefinition) definition, ctx);
         } else if (itemValue instanceof PrismPropertyValue<?>) {
             xnode = serializePropertyValue((PrismPropertyValue<?>)itemValue, (PrismPropertyDefinition)definition);
         } else if (itemValue instanceof PrismContainerValue<?>) {
-            xnode = serializeContainerValue((PrismContainerValue<?>)itemValue, (PrismContainerDefinition)definition, ctx);
+            xnode = marshalContainerValue((PrismContainerValue<?>)itemValue, (PrismContainerDefinition)definition, ctx);
         } else {
             throw new IllegalArgumentException("Unsupported value type "+itemValue.getClass());
         }
@@ -202,27 +173,14 @@ public class XNodeSerializer {
         }
         return xnode;
     }
-    //endregion
 
-    //region Serializing containers - specific functionality
-//	public <C extends Containerable> RootXNode serializeContainerValueAsRoot(PrismContainerValue<C> containerVal) throws SchemaException {
-//        Validate.notNull(containerVal);
-//		return serializeItemValueAsRootInternal(containerVal, null);
-//	}
-//
-//    public <C extends Containerable> RootXNode serializeContainerValueAsRoot(PrismContainerValue<C> containerVal, QName elementName) throws SchemaException {
-//        Validate.notNull(containerVal);
-//        Validate.notNull(elementName);
-//        return serializeItemValueAsRootInternal(containerVal, elementName);
-//    }
-
-    private <C extends Containerable> MapXNode serializeContainerValue(PrismContainerValue<C> containerVal, PrismContainerDefinition<C> containerDefinition, SerializationContext ctx) throws SchemaException {
+    private <C extends Containerable> MapXNode marshalContainerValue(PrismContainerValue<C> containerVal, PrismContainerDefinition<C> containerDefinition, SerializationContext ctx) throws SchemaException {
 		MapXNode xmap = new MapXNode();
-		serializeContainerValue(xmap, containerVal, containerDefinition, ctx);
+		marshalContainerValue(xmap, containerVal, containerDefinition, ctx);
 		return xmap;
 	}
 	
-	private <C extends Containerable> void serializeContainerValue(MapXNode xmap, PrismContainerValue<C> containerVal, PrismContainerDefinition<C> containerDefinition, SerializationContext ctx) throws SchemaException {
+	private <C extends Containerable> void marshalContainerValue(MapXNode xmap, PrismContainerValue<C> containerVal, PrismContainerDefinition<C> containerDefinition, SerializationContext ctx) throws SchemaException {
 		Long id = containerVal.getId();
 		if (id != null) {
 			xmap.put(XNode.KEY_CONTAINER_ID, createPrimitiveXNodeAttr(id, DOMUtil.XSD_LONG));
@@ -232,7 +190,7 @@ public class XNodeSerializer {
             xmap.setExplicitTypeDeclaration(true);
         }
 
-		Collection<QName> serializedItems = new ArrayList<>();
+		Collection<QName> marshaledItems = new ArrayList<>();
 		if (containerDefinition != null) {
 			// We have to serialize in the definition order. Some data formats (XML) are
 			// ordering-sensitive. We need to keep that ordering otherwise the resulting
@@ -241,9 +199,9 @@ public class XNodeSerializer {
 				QName elementName = itemDef.getName();
 				Item<?,?> item = containerVal.findItem(elementName);
 				if (item != null) {
-					XNode xsubnode = serializeItem(item, ctx);
+					XNode xsubnode = marshalItem(item, null, null, ctx).getSubnode();
 					xmap.put(elementName, xsubnode);
-					serializedItems.add(elementName);
+					marshaledItems.add(elementName);
 				}
 			}
 		}
@@ -252,17 +210,15 @@ public class XNodeSerializer {
 		if (containerVal.getItems() != null){
 			for (Item<?,?> item : containerVal.getItems()) {
 				QName elementName = item.getElementName();
-				if (serializedItems.contains(elementName)) {
+				if (marshaledItems.contains(elementName)) {
 					continue;
 				}
-				XNode xsubnode = serializeItem(item, ctx);
+				XNode xsubnode = marshalItem(item, null, null, ctx).getSubnode();
 				xmap.put(elementName, xsubnode);
 			}
 		}
 	}
-    //endregion
 
-    //region Serializing references - specific functionality
     private XNode serializeReferenceValue(PrismReferenceValue value, PrismReferenceDefinition definition, SerializationContext ctx) throws SchemaException {
         MapXNode xmap = new MapXNode();
         boolean containsOid = false;
@@ -307,8 +263,8 @@ public class XNodeSerializer {
         if (definition != null) {
             isComposite = definition.isComposite();
         }
-        if ((serializeCompositeObjects || isComposite || !containsOid) && value.getObject() != null) {
-            XNode xobjnode = serializeObjectContent(value.getObject(), ctx);
+        if ((SerializationContext.isSerializeCompositeObjects(ctx) || isComposite || !containsOid) && value.getObject() != null) {
+            XNode xobjnode = marshalObjectContent(value.getObject(), value.getObject().getDefinition(), ctx);
             xmap.put(createReferenceQName(XNode.KEY_REFERENCE_OBJECT, namespace), xobjnode);
         }
 

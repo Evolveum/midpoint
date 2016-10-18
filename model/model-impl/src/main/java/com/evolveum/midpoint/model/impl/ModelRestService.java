@@ -719,7 +719,7 @@ public class ModelRestService {
 		ItemListType itemListType = new ItemListType();
 		if (output != null) {
 			for (Item item : output) {
-				RawType rawType = prismContext.toRawType(item);
+				RawType rawType = new RawType(prismContext.xnodeSerializer().serialize(item), prismContext);
 				itemListType.getItem().add(rawType);
 			}
 		}

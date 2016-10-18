@@ -55,7 +55,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 
-public abstract class AbstractJsonLexicalProcessor implements LexicalProcessor {
+public abstract class AbstractJsonLexicalProcessor implements LexicalProcessor<String> {
 
 	private static final Trace LOGGER = TraceManager.getTrace(AbstractJsonLexicalProcessor.class);
 	
@@ -81,7 +81,7 @@ public abstract class AbstractJsonLexicalProcessor implements LexicalProcessor {
 
 	@NotNull
 	@Override
-	public List<XNode> readObjects(ParserSource source, ParsingContext parsingContext) throws SchemaException, IOException {
+	public List<RootXNode> readObjects(ParserSource source, ParsingContext parsingContext) throws SchemaException, IOException {
 		throw new UnsupportedOperationException("Parse objects not supported for json and yaml.");			// why?
 	}
 
@@ -448,7 +448,7 @@ public abstract class AbstractJsonLexicalProcessor implements LexicalProcessor {
 		StringWriter out = new StringWriter();
 		try ( JsonGenerator generator = createJacksonGenerator(out) ) {
 			JsonSerializationContext ctx = new JsonSerializationContext(generator, prismSerializationContext);
-			serialize(root.asMapXNode(), ctx);				// TODO default namespace
+			serialize(root.toMapXNode(), ctx);				// TODO default namespace
 		} catch (IOException ex) {
 			throw new SchemaException("Error during serializing to JSON/YAML: " + ex.getMessage(), ex);
 		}

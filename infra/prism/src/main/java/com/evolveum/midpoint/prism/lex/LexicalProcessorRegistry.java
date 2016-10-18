@@ -19,6 +19,7 @@ package com.evolveum.midpoint.prism.lex;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.lex.dom.DomLexicalProcessor;
 import com.evolveum.midpoint.prism.lex.json.JsonLexicalProcessor;
+import com.evolveum.midpoint.prism.lex.json.NullLexicalProcessor;
 import com.evolveum.midpoint.prism.lex.json.YamlLexicalProcessor;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -41,62 +42,67 @@ public class LexicalProcessorRegistry {
 
 	private final Map<String, LexicalProcessor> parserMap;
 
+	private final DomLexicalProcessor domLexicalProcessor;
+	private final NullLexicalProcessor nullLexicalProcessor;
+
 	public LexicalProcessorRegistry(SchemaRegistry schemaRegistry) {
+		domLexicalProcessor = new DomLexicalProcessor(schemaRegistry);
+		nullLexicalProcessor = new NullLexicalProcessor();
+
 		parserMap = new HashMap<>();
-		DomLexicalProcessor parserDom = new DomLexicalProcessor(schemaRegistry);
-		parserMap.put(LANG_XML, parserDom);
-		JsonLexicalProcessor parserJson = new JsonLexicalProcessor();
-		parserMap.put(LANG_JSON, parserJson);
-		YamlLexicalProcessor parserYaml = new YamlLexicalProcessor();
-		parserMap.put(LANG_YAML, parserYaml);
+		parserMap.put(LANG_XML, domLexicalProcessor);
+		parserMap.put(LANG_JSON, new JsonLexicalProcessor());
+		parserMap.put(LANG_YAML, new YamlLexicalProcessor());
 	}
 
 	@NotNull
-	private LexicalProcessor findParser(File file) throws IOException {
+	private LexicalProcessor findProcessor(File file) throws IOException {
 		for (Map.Entry<String,LexicalProcessor> entry: parserMap.entrySet()) {
 			LexicalProcessor aLexicalProcessor = entry.getValue();
 			if (aLexicalProcessor.canRead(file)) {
 				return aLexicalProcessor;
 			}
 		}
-		throw new SystemException("No parser for file '"+file+"' (autodetect)");
+		throw new SystemException("No lexical processor for file '"+file+"' (autodetect)");
 	}
 
 	@NotNull
-	private LexicalProcessor findParser(@NotNull String data){
+	private LexicalProcessor findProcessor(@NotNull String data){
         for (Map.Entry<String,LexicalProcessor> entry: parserMap.entrySet()) {
             LexicalProcessor aLexicalProcessor = entry.getValue();
             if (aLexicalProcessor.canRead(data)) {
                 return aLexicalProcessor;
             }
         }
-		throw new SystemException("No parser for data '"+ DebugUtil.excerpt(data,16)+"' (autodetect)");
+		throw new SystemException("No lexical processor for data '"+ DebugUtil.excerpt(data,16)+"' (autodetect)");
     }
 
 	@NotNull
-	public DomLexicalProcessor domParser() {
-		return (DomLexicalProcessor) parserFor(PrismContext.LANG_XML);
+	public DomLexicalProcessor domProcessor() {
+		return domLexicalProcessor;
 	}
 
 	@NotNull
-	public LexicalProcessor parserFor(String language) {
-		LexicalProcessor lexicalProcessor = parserMap.get(language);
+	public <T> LexicalProcessor<T> processorFor(String language) {
+		LexicalProcessor<?> lexicalProcessor = parserMap.get(language);
 		if (lexicalProcessor == null) {
-			throw new SystemException("No parser for language '"+language+"'");
+			throw new SystemException("No lexical processor for language '"+language+"'");
 		}
-		return lexicalProcessor;
+		return (LexicalProcessor<T>) lexicalProcessor;
 	}
 
 	@NotNull
-	public LexicalProcessor findParser(@NotNull ParserSource source) throws IOException {
-		if (source instanceof ParserElementSource) {
-			return parserFor(LANG_XML);
+	public LexicalProcessor<?> findProcessor(@NotNull ParserSource source) throws IOException {
+		if (source instanceof ParserXNodeSource) {
+			return nullLexicalProcessor;
+		} else if (source instanceof ParserElementSource) {
+			return processorFor(LANG_XML);
 		} else if (source instanceof ParserFileSource) {
-			return findParser(((ParserFileSource) source).getFile());
+			return findProcessor(((ParserFileSource) source).getFile());
 		} else if (source instanceof ParserStringSource) {
-			return findParser(((ParserStringSource) source).getData());
+			return findProcessor(((ParserStringSource) source).getData());
 		} else {
-			throw new IllegalArgumentException("Cannot determine source from " + source.getClass());
+			throw new IllegalArgumentException("Cannot determine lexical processor from " + source.getClass());
 		}
 	}
 }

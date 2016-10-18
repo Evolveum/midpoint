@@ -17,11 +17,8 @@ package com.evolveum.midpoint.model.impl;
 
 import com.evolveum.midpoint.model.api.ModelPort;
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.xnode.RootXNode;
-import com.evolveum.midpoint.prism.xnode.XNode;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -63,7 +60,6 @@ import javax.xml.soap.SOAPFault;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.ws.Holder;
 import javax.xml.ws.Provider;
-import javax.xml.ws.WebServiceProvider;
 import javax.xml.ws.soap.SOAPFaultException;
 
 import java.io.PrintWriter;
@@ -132,7 +128,7 @@ public class ModelWebServiceRaw implements Provider<DOMSource> {
 
         Object requestObject;
         try {
-            requestObject = prismContext.parserFor(rootElement).parseAnyValue();
+            requestObject = prismContext.parserFor(rootElement).parseRealValue();
         } catch (SchemaException e) {
             throw ws.createIllegalArgumentFault("Couldn't parse SOAP request body because of schema exception: " + e.getMessage());
         }
@@ -210,38 +206,8 @@ public class ModelWebServiceRaw implements Provider<DOMSource> {
     }
 	
 	private void serializeFaultMessage(Detail detail, FaultMessage faultMessage) {
-		try {
-			XNode faultMessageXnode = prismContext.getBeanConverter().marshall(faultMessage.getFaultInfo());
-			RootXNode xroot = new RootXNode(SchemaConstants.FAULT_MESSAGE_ELEMENT_NAME, faultMessageXnode);
-			xroot.setExplicitTypeDeclaration(true);
-			QName faultType = prismContext.getBeanConverter().determineTypeForClass(faultMessage.getFaultInfo().getClass());
-			xroot.setTypeQName(faultType);
-			prismContext.getParserDom().serializeUnderElement(xroot, SchemaConstants.FAULT_MESSAGE_ELEMENT_NAME, detail);
-		} catch (SchemaException e) {
-			LOGGER.error("Error serializing fault message (SOAP fault detail): {}", e.getMessage(), e);
-		}
+		MiscSchemaUtil.serializeFaultMessage(detail, faultMessage, prismContext, LOGGER);
 	}
-
-//    private DOMSource serializeFaultMessage(FaultMessage faultMessage) {
-//        Element faultElement = DOMUtil.createElement(SOAP11_FAULT);
-//        Element faultCodeElement = DOMUtil.createSubElement(faultElement, SOAP11_FAULTCODE);
-//        faultCodeElement.setTextContent(SOAP11_FAULTCODE_SERVER);           // todo here is a constant until we have a mechanism to determine the correct value (client / server)
-//        Element faultStringElement = DOMUtil.createSubElement(faultElement, SOAP11_FAULTSTRING);
-//        faultStringElement.setTextContent(faultMessage.getMessage());
-//        Element faultActorElement = DOMUtil.createSubElement(faultElement, SOAP11_FAULTACTOR);
-//        faultActorElement.setTextContent("TODO");               // todo
-//        Element faultDetailElement = DOMUtil.createSubElement(faultElement, SOAP11_FAULT_DETAIL);
-//        faultDetailElement.setTextContent(getStackTraceAsString(faultMessage));
-//        return new DOMSource(faultElement.getOwnerDocument());
-//    }
-
-    private String getStackTraceAsString(FaultMessage faultMessage) {
-        StringWriter sw = new StringWriter();
-        PrintWriter pw = new PrintWriter(sw);
-        faultMessage.printStackTrace(pw);
-        pw.close();
-        return sw.toString();
-    }
 
     private void throwFault(Exception ex, OperationResultType resultType) throws FaultMessage {
 		if (resultType != null) {

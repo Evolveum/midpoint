@@ -19,7 +19,6 @@ import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.marshaller.*;
 import com.evolveum.midpoint.prism.lex.LexicalProcessor;
-import com.evolveum.midpoint.prism.lex.LexicalHelpers;
 import com.evolveum.midpoint.prism.lex.LexicalProcessorRegistry;
 import com.evolveum.midpoint.prism.lex.dom.DomLexicalProcessor;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -30,16 +29,13 @@ import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.schema.SchemaRegistryImpl;
 import com.evolveum.midpoint.prism.util.PrismMonitor;
 import com.evolveum.midpoint.prism.xnode.RootXNode;
-import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.prism.xml.ns._public.types_3.RawType;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.w3c.dom.Element;
-import org.xml.sax.EntityResolver;
 import org.xml.sax.SAXException;
 
 import javax.xml.namespace.QName;
@@ -57,57 +53,46 @@ public class PrismContextImpl implements PrismContext {
     
     private static boolean allowSchemalessSerialization = true;
     
-	private SchemaRegistryImpl schemaRegistry;
-	private XNodeProcessor xnodeProcessor;
-	private PrismBeanConverter beanConverter;
-	private SchemaDefinitionFactory definitionFactory;
-	private PolyStringNormalizer defaultPolyStringNormalizer;
-	private LexicalProcessorRegistry lexicalProcessorRegistry;
-	private LexicalHelpers lexicalHelpers;
+	@NotNull private final SchemaRegistryImpl schemaRegistry;
+	@NotNull private final LexicalProcessorRegistry lexicalProcessorRegistry;
+	@NotNull private final PolyStringNormalizer defaultPolyStringNormalizer;			// TODO make non-final when needed
+	@NotNull private final PrismUnmarshaller prismUnmarshaller;
+	@NotNull private final PrismMarshaller prismMarshaller;
+	@NotNull private final PrismBeanConverter beanConverter;
 	private PrismMonitor monitor = null;
-	
-	@Autowired
+
+	private SchemaDefinitionFactory definitionFactory;
+
+	@Autowired		// TODO is this really applied?
 	private Protector defaultProtector;
 	
 	// We need to keep this because of deprecated methods and various hacks
-	private JaxbDomHack jaxbDomHack;
+	@NotNull private final JaxbDomHack jaxbDomHack;
 
-    //region Standard overhead
-	private PrismContextImpl() {
-		// empty
+	//region Standard overhead
+	private PrismContextImpl(@NotNull SchemaRegistryImpl schemaRegistry) {
+		this.schemaRegistry = schemaRegistry;
+		schemaRegistry.setPrismContext(this);
+		this.lexicalProcessorRegistry = new LexicalProcessorRegistry(schemaRegistry);
+		this.prismUnmarshaller = new PrismUnmarshaller(this);
+		this.beanConverter = new PrismBeanConverter(this, new PrismBeanInspector(this));
+		this.prismMarshaller = new PrismMarshaller(beanConverter);
+		this.jaxbDomHack = new JaxbDomHack(lexicalProcessorRegistry.domProcessor(), this);
+
+		defaultPolyStringNormalizer = new PrismDefaultPolyStringNormalizer();
 	}
 
-	public static PrismContextImpl create(SchemaRegistryImpl schemaRegistry) {
-		PrismContextImpl prismContext = new PrismContextImpl();
-		prismContext.schemaRegistry = schemaRegistry;
-		schemaRegistry.setPrismContext(prismContext);
-
-		prismContext.xnodeProcessor = new XNodeProcessor(prismContext);
-		PrismBeanInspector inspector = new PrismBeanInspector(prismContext);
-		prismContext.beanConverter = new PrismBeanConverter(prismContext, inspector);
-
-		prismContext.lexicalProcessorRegistry = new LexicalProcessorRegistry(schemaRegistry);
-		prismContext.jaxbDomHack = new JaxbDomHack((DomLexicalProcessor) prismContext.lexicalProcessorRegistry.parserFor(PrismContext.LANG_XML), prismContext);
-
-		prismContext.lexicalHelpers = new LexicalHelpers(prismContext.lexicalProcessorRegistry, prismContext.xnodeProcessor, prismContext.beanConverter);
-		
-		return prismContext;
+	public static PrismContextImpl create(@NotNull SchemaRegistryImpl schemaRegistry) {
+		return new PrismContextImpl(schemaRegistry);
 	}
 	
-	public static PrismContextImpl createEmptyContext(SchemaRegistryImpl schemaRegistry){
-		PrismContextImpl prismContext = new PrismContextImpl();
-		prismContext.schemaRegistry = schemaRegistry;
-		schemaRegistry.setPrismContext(prismContext);
-
-		return prismContext;
+	public static PrismContextImpl createEmptyContext(@NotNull SchemaRegistryImpl schemaRegistry) {
+		return new PrismContextImpl(schemaRegistry);
 	}
 
 	@Override
 	public void initialize() throws SchemaException, SAXException, IOException {
 		schemaRegistry.initialize();
-		if (defaultPolyStringNormalizer == null) {
-			defaultPolyStringNormalizer = new PrismDefaultPolyStringNormalizer();
-		}
 	}
 
 	public static boolean isAllowSchemalessSerialization() {
@@ -123,39 +108,45 @@ public class PrismContextImpl implements PrismContext {
 		return schemaRegistry.getEntityResolver();
 	}
 
+	@NotNull
 	@Override
 	public SchemaRegistry getSchemaRegistry() {
 		return schemaRegistry;
 	}
 
-	public void setSchemaRegistry(SchemaRegistryImpl schemaRegistry) {
-		this.schemaRegistry = schemaRegistry;
+	/**
+	 * WARNING! This is not really public method. It should NOT not used outside the prism implementation.
+	 */
+	public PrismUnmarshaller getPrismUnmarshaller() {
+		return prismUnmarshaller;
 	}
 
-	@Override
-	public XNodeProcessor getXnodeProcessor() {
-		return xnodeProcessor;
+	@NotNull
+	public PrismMarshaller getPrismMarshaller() {
+		return prismMarshaller;
 	}
 
 	/**
 	 * WARNING! This is not really public method. It should NOT not used outside the prism implementation.
 	 */
-	@Override
 	public DomLexicalProcessor getParserDom() {
-		return (DomLexicalProcessor) lexicalHelpers.lexicalProcessorRegistry.parserFor(LANG_XML);
+		return lexicalProcessorRegistry.domProcessor();
 	}
 
-	@Override
+	/**
+	 * WARNING! This is not really public method. It should NOT not used outside the prism implementation.
+	 */
 	public PrismBeanConverter getBeanConverter() {
 		return beanConverter;
 	}
 
+	@NotNull
 	@Override
 	public JaxbDomHack getJaxbDomHack() {
 		return jaxbDomHack;
 	}
 
-    @Override
+	@NotNull
 	public SchemaDefinitionFactory getDefinitionFactory() {
 		if (definitionFactory == null) {
 			definitionFactory = new SchemaDefinitionFactory();
@@ -167,17 +158,14 @@ public class PrismContextImpl implements PrismContext {
 		this.definitionFactory = definitionFactory;
 	}
 
+	@NotNull
 	@Override
 	public PolyStringNormalizer getDefaultPolyStringNormalizer() {
 		return defaultPolyStringNormalizer;
 	}
 
-	public void setDefaultPolyStringNormalizer(PolyStringNormalizer defaultPolyStringNormalizer) {
-		this.defaultPolyStringNormalizer = defaultPolyStringNormalizer;
-	}
-
 	private LexicalProcessor getParser(String language) {
-		return lexicalProcessorRegistry.parserFor(language);
+		return lexicalProcessorRegistry.processorFor(language);
 	}
 
 	private LexicalProcessor getParserNotNull(String language) {
@@ -213,26 +201,32 @@ public class PrismContextImpl implements PrismContext {
 	@NotNull
 	@Override
 	public PrismParser parserFor(@NotNull File file) {
-		return new PrismParserImplIO(new ParserFileSource(file), null, ParsingContext.createDefault(), lexicalHelpers);
+		return new PrismParserImplIO(new ParserFileSource(file), null, ParsingContext.createDefault(), this, null, null, null, null);
 	}
 
 	@NotNull
 	@Override
 	public PrismParser parserFor(@NotNull InputStream stream) {
-		return new PrismParserImplIO(new ParserInputStreamSource(stream), null, ParsingContext.createDefault(), lexicalHelpers);
+		return new PrismParserImplIO(new ParserInputStreamSource(stream), null, ParsingContext.createDefault(), this, null, null, null, null);
 	}
 
 	@NotNull
 	@Override
 	public PrismParserNoIO parserFor(@NotNull String data) {
-		return new PrismParserImplNoIO(new ParserStringSource(data), null, ParsingContext.createDefault(), lexicalHelpers);
+		return new PrismParserImplNoIO(new ParserStringSource(data), null, ParsingContext.createDefault(), this, null, null, null, null);
+	}
+
+	@NotNull
+	@Override
+	public PrismParserNoIO parserFor(@NotNull RootXNode xnode) {
+		return new PrismParserImplNoIO(new ParserXNodeSource(xnode), null, ParsingContext.createDefault(), this, null, null, null, null);
 	}
 
 	@NotNull
 	@Deprecated
 	@Override
 	public PrismParserNoIO parserFor(@NotNull Element data) {
-		return new PrismParserImplNoIO(new ParserElementSource(data), null, ParsingContext.createDefault(), lexicalHelpers);
+		return new PrismParserImplNoIO(new ParserElementSource(data), null, ParsingContext.createDefault(), this, null, null, null, null);
 	}
 
 	@Deprecated
@@ -314,7 +308,7 @@ public class PrismContextImpl implements PrismContext {
 	@NotNull
 	@Override
 	public PrismSerializer<String> serializerFor(@NotNull String language) {
-		return new PrismSerializerImpl<>(new SerializerStringTarget(lexicalHelpers, language), null, null);
+		return new PrismSerializerImpl<>(new SerializerStringTarget(this, language), null, null, null);
 	}
 
 	@NotNull
@@ -338,32 +332,22 @@ public class PrismContextImpl implements PrismContext {
 	@NotNull
 	@Override
 	public PrismSerializer<Element> domSerializer() {
-		return new PrismSerializerImpl<>(new SerializerDomTarget(lexicalHelpers), null, null);
+		return new PrismSerializerImpl<>(new SerializerDomTarget(this), null, null, null);
 	}
 
 	@NotNull
 	@Override
-	public PrismSerializer<XNode> xnodeSerializer() {
-		return new PrismSerializerImpl<>(new SerializerXNodeTarget(lexicalHelpers), null, null);
+	public PrismSerializer<RootXNode> xnodeSerializer() {
+		return new PrismSerializerImpl<>(new SerializerXNodeTarget(this), null, null, null);
 	}
 
     @Override
 	public boolean canSerialize(Object value) {
-        return xnodeProcessor.canSerialize(value);
+        return prismMarshaller.canSerialize(value);
     }
 
     //endregion
 
-    /**
-     * A bit of hack: serializes any Item into a RawType.
-     * Currently used for serializing script output, until a better method is devised.
-     * @return
-     */
-    @Override
-	public RawType toRawType(Item item) throws SchemaException {
-        RootXNode rootXNode = xnodeProcessor.serializeItemAsRoot(item);
-        return new RawType(rootXNode, this);
-    }
 
     @NotNull
 	@Override
@@ -379,5 +363,10 @@ public class PrismContextImpl implements PrismContext {
 	@Override
 	public <T extends Objectable> T createObjectable(@NotNull Class<T> clazz) throws SchemaException {
 		return createObject(clazz).asObjectable();
+	}
+
+	@NotNull
+	public LexicalProcessorRegistry getLexicalProcessorRegistry() {
+		return lexicalProcessorRegistry;
 	}
 }

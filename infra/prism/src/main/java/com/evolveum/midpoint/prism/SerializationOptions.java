@@ -21,6 +21,7 @@ package com.evolveum.midpoint.prism;
  */
 public class SerializationOptions implements Cloneable {
 
+	private boolean serializeCompositeObjects;
     private boolean serializeReferenceNames;
 	private ItemNameQualificationStrategy itemNameQualificationStrategy;
 //	private NameQualificationStrategy itemTypeQualificationStrategy;
@@ -45,7 +46,25 @@ public class SerializationOptions implements Cloneable {
         return options != null && options.isSerializeReferenceNames();
     }
 
-//	public ItemNameQualificationStrategy getItemNameQualificationStrategy() {
+	public boolean isSerializeCompositeObjects() {
+		return serializeCompositeObjects;
+	}
+
+	public void setSerializeCompositeObjects(boolean serializeCompositeObjects) {
+		this.serializeCompositeObjects = serializeCompositeObjects;
+	}
+
+	public static SerializationOptions createSerializeCompositeObjects(){
+		SerializationOptions serializationOptions = new SerializationOptions();
+		serializationOptions.setSerializeCompositeObjects(true);
+		return serializationOptions;
+	}
+
+	public static boolean isSerializeCompositeObjects(SerializationOptions options) {
+		return options != null && options.isSerializeCompositeObjects();
+	}
+
+	//	public ItemNameQualificationStrategy getItemNameQualificationStrategy() {
 //		return itemNameQualificationStrategy;
 //	}
 //

@@ -31,18 +31,19 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Takes care of converting between XNode tree and specific lexical representation (XML, JSON, YAML).
+ * Takes care of converting between XNode tree and specific lexical representation (XML, JSON, YAML). As a special case,
+ * NullLexicalProcessor uses XNode tree itself as a lexical representation.
  *
  * @author semancik
  *
  */
-public interface LexicalProcessor {
+public interface LexicalProcessor<T> {
 
 	@NotNull
-	XNode read(@NotNull ParserSource source, @NotNull ParsingContext parsingContext) throws SchemaException, IOException;
+	RootXNode read(@NotNull ParserSource source, @NotNull ParsingContext parsingContext) throws SchemaException, IOException;
 
 	@NotNull
-	List<XNode> readObjects(ParserSource source, ParsingContext parsingContext) throws SchemaException, IOException;
+	List<RootXNode> readObjects(ParserSource source, ParsingContext parsingContext) throws SchemaException, IOException;
 
 	/**
 	 * Checks if the processor can read from a given file. (Guessed by file extension, for now.)
@@ -60,7 +61,7 @@ public interface LexicalProcessor {
 	 * Serializes a root node into XNode tree.
 	 */
 	@NotNull
-	String write(@NotNull RootXNode xnode, @Nullable SerializationContext serializationContext) throws SchemaException;
+	T write(@NotNull RootXNode xnode, @Nullable SerializationContext serializationContext) throws SchemaException;
 
 	/**
 	 * Serializes a non-root node into XNode tree.
@@ -69,7 +70,6 @@ public interface LexicalProcessor {
 	 * TODO consider removing - replacing by the previous form.
 	 */
 	@NotNull
-	String write(@NotNull XNode xnode, @NotNull QName rootElementName, @Nullable SerializationContext serializationContext) throws SchemaException;
-
+	T write(@NotNull XNode xnode, @NotNull QName rootElementName, @Nullable SerializationContext serializationContext) throws SchemaException;
 
 }

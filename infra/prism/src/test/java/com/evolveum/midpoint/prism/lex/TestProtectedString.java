@@ -17,6 +17,7 @@ package com.evolveum.midpoint.prism.lex;
 
 import com.evolveum.midpoint.prism.ParsingContext;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismContextImpl;
 import com.evolveum.midpoint.prism.PrismInternalTestUtil;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.crypto.TestProtector;
@@ -63,7 +64,7 @@ public class TestProtectedString {
 
         // WHEN
 
-        MapXNode protectedStringTypeXNode = prismContext.getBeanConverter().marshalProtectedDataType(protectedStringType);
+        MapXNode protectedStringTypeXNode = ((PrismContextImpl) prismContext).getBeanConverter().marshalProtectedDataType(protectedStringType);
         System.out.println("Protected string type XNode: " + protectedStringTypeXNode.debugDump());
 
         // THEN

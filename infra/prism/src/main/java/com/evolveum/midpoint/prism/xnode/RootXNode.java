@@ -17,9 +17,11 @@ package com.evolveum.midpoint.prism.xnode;
 
 import com.evolveum.midpoint.prism.Visitor;
 import com.evolveum.midpoint.util.DebugUtil;
+import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
+import java.util.Map;
 
 public class RootXNode extends XNode {
 
@@ -35,7 +37,13 @@ public class RootXNode extends XNode {
         this.subnode = subnode;
     }
 
-    // TODO consider if this is clean enough... The whole concept of root node (as child of XNode) has to be thought out
+	public RootXNode(@NotNull Map.Entry<QName, XNode> entry) {
+		Validate.notNull(entry.getKey());
+		this.rootElementName = entry.getKey();
+		this.subnode = entry.getValue();
+	}
+
+	// TODO consider if this is clean enough... The whole concept of root node (as child of XNode) has to be thought out
 	@Override
 	public QName getTypeQName() {
 		if (typeQName != null) {
@@ -126,12 +134,17 @@ public class RootXNode extends XNode {
         return result;
     }
 
-	public MapXNode asMapXNode() {
+	public MapXNode toMapXNode() {
 		MapXNode map = new MapXNode();
 		map.put(rootElementName, subnode);
 		if (subnode.getTypeQName() == null) {
 			subnode.setTypeQName(getTypeQName());
 		}
 		return map;
+	}
+
+	@Override
+	public RootXNode toRootXNode() {
+		return this;
 	}
 }

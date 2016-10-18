@@ -52,6 +52,9 @@ public interface ComplexTypeDefinition extends Definition, LocalDefinitionStore 
 	 */
 	boolean isObjectMarker();
 
+	/**
+	 * True if the complex type definition contains xsd:any (directly or indirectly).
+	 */
 	boolean isXsdAnyMarker();
 
 	/**

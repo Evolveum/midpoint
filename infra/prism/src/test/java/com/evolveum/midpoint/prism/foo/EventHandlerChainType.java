@@ -45,6 +45,7 @@ public class EventHandlerChainType
     extends EventHandlerType
     implements Serializable, Cloneable, Equals, HashCode
 {
+    public final static QName COMPLEX_TYPE = new QName("http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd", "EventHandlerChainType");
 
     private final static long serialVersionUID = 201105211233L;
     @XmlElementRef(name = "handler", namespace = "http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd", type = JAXBElement.class, required = false)

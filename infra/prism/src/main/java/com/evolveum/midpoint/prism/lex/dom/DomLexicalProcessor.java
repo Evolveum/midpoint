@@ -50,7 +50,7 @@ import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class DomLexicalProcessor implements LexicalProcessor {
+public class DomLexicalProcessor implements LexicalProcessor<String> {
 
 	public static final Trace LOGGER = TraceManager.getTrace(DomLexicalProcessor.class);
 
@@ -70,7 +70,7 @@ public class DomLexicalProcessor implements LexicalProcessor {
 
 	@NotNull
 	@Override
-	public XNode read(@NotNull ParserSource source, @NotNull ParsingContext parsingContext) throws SchemaException, IOException {
+	public RootXNode read(@NotNull ParserSource source, @NotNull ParsingContext parsingContext) throws SchemaException, IOException {
 		if (source instanceof ParserElementSource) {
 			return read(((ParserElementSource) source).getElement());
 		}
@@ -88,7 +88,7 @@ public class DomLexicalProcessor implements LexicalProcessor {
 
 	@NotNull
 	@Override
-	public List<XNode> readObjects(ParserSource source, ParsingContext parsingContext) throws SchemaException, IOException {
+	public List<RootXNode> readObjects(ParserSource source, ParsingContext parsingContext) throws SchemaException, IOException {
 		InputStream is = source.getInputStream();
 		try {
 			Document document = DOMUtil.parse(is);
@@ -100,11 +100,11 @@ public class DomLexicalProcessor implements LexicalProcessor {
 		}
 	}
 
-	private List<XNode> readObjects(Document document) throws SchemaException{
+	private List<RootXNode> readObjects(Document document) throws SchemaException{
 		Element root = DOMUtil.getFirstChildElement(document);
 		// TODO: maybe some check if this is a collection of other objects???
 		List<Element> children = DOMUtil.listChildElements(root);
-		List<XNode> nodes = new ArrayList<XNode>();
+		List<RootXNode> nodes = new ArrayList<>();
 		for (Element child : children){
 			RootXNode xroot = read(child);
 			nodes.add(xroot);
@@ -445,8 +445,9 @@ public class DomLexicalProcessor implements LexicalProcessor {
 		DomLexicalWriter serializer = new DomLexicalWriter(this, schemaRegistry);
 		return serializer.serializeXPrimitiveToElement(xprim, elementName);
 	}
-	
-	public Element serializeXRootToElement(RootXNode xroot) throws SchemaException {
+
+	@NotNull
+	public Element writeXRootToElement(@NotNull RootXNode xroot) throws SchemaException {
 		DomLexicalWriter serializer = new DomLexicalWriter(this, schemaRegistry);
 		return serializer.serialize(xroot);
 	}
@@ -459,7 +460,7 @@ public class DomLexicalProcessor implements LexicalProcessor {
 		} else if (xnode instanceof PrimitiveXNode<?>) {
 			return serializeXPrimitiveToElement((PrimitiveXNode<?>) xnode, elementName);
 		} else if (xnode instanceof RootXNode) {
-			return serializeXRootToElement((RootXNode)xnode);
+			return writeXRootToElement((RootXNode)xnode);
 		} else if (xnode instanceof ListXNode) {
 			ListXNode xlist = (ListXNode) xnode;
 			if (xlist.size() == 0) {

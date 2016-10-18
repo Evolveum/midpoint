@@ -165,18 +165,11 @@ public class PrismContainerDefinitionImpl<C extends Containerable> extends ItemD
 
     @Override
 	public <D extends ItemDefinition> D findItemDefinition(@NotNull QName name, @NotNull Class<D> clazz, boolean caseInsensitive) {
-        D itemDefinition;
         if (complexTypeDefinition != null) {
-            itemDefinition = complexTypeDefinition.findItemDefinition(name, clazz, caseInsensitive);
+            return complexTypeDefinition.findItemDefinition(name, clazz, caseInsensitive);
         } else {
-        	// xsd:any and similar dynamic definitions
-        	itemDefinition = null;
+        	return null;	// xsd:any and similar dynamic definitions
         }
-
-        if (itemDefinition == null && isRuntimeSchema()) {
-            itemDefinition = findRuntimeItemDefinition(name, null, clazz);        // TODO what about case insensitive?
-        }
-        return itemDefinition;
     }
 
     @Override
@@ -188,32 +181,6 @@ public class PrismContainerDefinitionImpl<C extends Containerable> extends ItemD
 	public List<String> getIgnoredNamespaces() {
 		return complexTypeDefinition != null ? complexTypeDefinition.getIgnoredNamespaces() : null;
 	}
-
-    private <D extends ItemDefinition> D findRuntimeItemDefinition(QName firstName, ItemPath rest, Class<D> clazz) {
-        if (prismContext == null) {
-            return null;            // should not occur
-        }
-		ItemDefinition definition = null;
-		if (StringUtils.isEmpty(firstName.getNamespaceURI()) && StringUtils.isNotEmpty(getDefaultNamespace())) {
-			definition = prismContext.getSchemaRegistry().findItemDefinitionByElementName(
-					new QName(getDefaultNamespace(), firstName.getLocalPart()));
-		}
-		if (definition == null) {
-			definition = prismContext.getSchemaRegistry().findItemDefinitionByElementName(firstName, getIgnoredNamespaces());
-		}
-        if (definition == null) {
-            return null;
-        }
-        if (rest != null && !rest.isEmpty()) {
-            return (D) definition.findItemDefinition(rest, clazz);
-        }
-        // this is the last step of search
-        if (clazz.isAssignableFrom(definition.getClass())) {
-            return (D) definition;
-        } else {
-            return null;
-        }
-    }
 
     public <ID extends ItemDefinition> ID findItemDefinition(@NotNull ItemPath path, @NotNull Class<ID> clazz) {
         for (;;) {
@@ -267,9 +234,9 @@ public class PrismContainerDefinitionImpl<C extends Containerable> extends ItemD
             }
         }
 
-        if (isRuntimeSchema()) {
-            return findRuntimeItemDefinition(firstName, rest, clazz);
-        }
+//        if (isRuntimeSchema()) {
+//            return findRuntimeItemDefinition(firstName, rest, clazz);
+//        }
 
         return null;
     }
@@ -517,7 +484,7 @@ public class PrismContainerDefinitionImpl<C extends Containerable> extends ItemD
     
 	@Override
 	public PrismContainerValue<C> createValue() {
-		return new PrismContainerValue<C>(prismContext);
+		return new PrismContainerValue<>(prismContext);
 	}
 
     @Override

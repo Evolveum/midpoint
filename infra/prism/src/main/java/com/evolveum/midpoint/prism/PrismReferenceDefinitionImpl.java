@@ -169,5 +169,4 @@ public class PrismReferenceDefinitionImpl extends ItemDefinitionImpl<PrismRefere
 			sb.append(",composite");
 		}
 	}
-    
 }
