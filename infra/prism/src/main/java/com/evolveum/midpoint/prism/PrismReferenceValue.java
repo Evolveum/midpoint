@@ -589,5 +589,9 @@ public class PrismReferenceValue extends PrismValue implements DebugDumpable, Se
 		}
 		return sb.toString();
 	}
-    
+
+	@Override
+	public Class<?> getRealClass() {
+		return PrismReferenceValue.class;
+	}
 }

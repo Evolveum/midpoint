@@ -49,7 +49,7 @@ public class DefinitionSearchContextItemImpl<ID extends ItemDefinition> implemen
 //		if (PrismObjectDefinition.class.isAssignableFrom(definitionClass)) {
 //			return (ID) provider.findObjectDefinitionByCompileTimeClass((Class<Objectable>) clazz);
 //		} else if (PrismContainerDefinition.class.isAssignableFrom(definitionClass)) {
-//			return (ID) provider.findContainerDefinitionByCompileTimeClass(clazz);
+//			return (ID) provider.findItemDefinitionByCompileTimeClass(clazz);
 //		} else {
 //			throw new UnsupportedOperationException("Only containers and prism objects can be searched by compile-time class. Not "
 //				+ definitionClass + " by " + clazz);

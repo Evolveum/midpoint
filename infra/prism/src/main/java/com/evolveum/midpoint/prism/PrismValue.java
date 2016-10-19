@@ -23,6 +23,7 @@ import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
 
 import java.io.Serializable;
@@ -413,5 +414,8 @@ public abstract class PrismValue implements IPrismValue {
 			throw new IllegalStateException("An attempt to modify an immutable value of " + toHumanReadableString());
 		}
 	}
+
+	@Nullable
+	abstract public Class<?> getRealClass();
 
 }

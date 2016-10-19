@@ -40,7 +40,6 @@ import com.evolveum.midpoint.prism.*;
 
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
-import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectType;
 import org.apache.commons.lang.StringUtils;
@@ -681,15 +680,17 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
 
 
 	//
-	@Nullable
+	@NotNull
 	@Override
-	public <CD extends PrismContainerDefinition> CD findContainerDefinitionByCompileTimeClass(
-			@NotNull Class<? extends Containerable> compileTimeClass, @NotNull Class<CD> definitionClass) {
+	public <ID extends ItemDefinition> List<ID> findItemDefinitionsByCompileTimeClass(
+			@NotNull Class<?> compileTimeClass, @NotNull Class<ID> definitionClass) {
 		PrismSchema schema = findSchemaByCompileTimeClass(compileTimeClass);
 		if (schema == null) {
-			return null;
+			return Collections.emptyList();
 		}
-		return schema.findContainerDefinitionByCompileTimeClass(compileTimeClass, definitionClass);
+		@SuppressWarnings("unchecked")
+		List<ID> list = schema.findItemDefinitionsByCompileTimeClass(compileTimeClass, definitionClass);
+		return list;
 	}
 
 	@Nullable

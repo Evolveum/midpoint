@@ -100,10 +100,8 @@ public class PrismMarshaller {
 
 	RootXNode marshalItemValueAsRoot(@NotNull PrismValue value, @NotNull QName itemName, ItemDefinition itemDefinition,
 			SerializationContext context) throws SchemaException {
-		if (itemDefinition == null && value.getParent() != null) {
-			itemDefinition = value.getParent().getDefinition();      // the definition may still be null here
-		}
-		XNode valueNode = marshalItemValue(value, itemDefinition, context);
+        ItemInfo itemInfo = ItemInfo.determineFromValue(value, itemName, itemDefinition, beanConverter.getPrismContext().getSchemaRegistry());
+		XNode valueNode = marshalItemValue(value, itemInfo.getItemDefinition(), context);
 		return new RootXNode(itemName, valueNode);
 	}
 
@@ -152,11 +150,6 @@ public class PrismMarshaller {
 	@NotNull
     private <V extends PrismValue> XNode marshalItemValue(@NotNull PrismValue itemValue, ItemDefinition definition, SerializationContext ctx) throws SchemaException {
         XNode xnode;
-        if (definition == null) {
-            if (itemValue.getParent() != null) {
-                definition = itemValue.getParent().getDefinition();
-            }
-        }
         if (definition == null && itemValue instanceof PrismPropertyValue) {
             return serializePropertyRawValue((PrismPropertyValue<?>) itemValue);
         } else if (itemValue instanceof PrismReferenceValue) {
@@ -290,7 +283,7 @@ public class PrismMarshaller {
             return serializePolyString((PolyString) realValue);
         } else if (beanConverter.canProcess(typeQName)) {
             XNode xnode = beanConverter.marshall(realValue);
-            if (realValue instanceof ProtectedDataType<?> && definition.isDynamic()) {          // why is this?
+            if (realValue instanceof ProtectedDataType<?> && (definition == null || definition.isDynamic())) {          // why is this?
                 xnode.setExplicitTypeDeclaration(true);
                 xnode.setTypeQName(definition.getTypeName());
             }
@@ -308,12 +301,15 @@ public class PrismMarshaller {
     }
 
     private <T> XNode serializePropertyRawValue(PrismPropertyValue<T> value) throws SchemaException {
-        Object rawElement = value.getRawElement();
-        if (rawElement instanceof XNode) {
-            return (XNode) rawElement;
-        } else {
-            T realValue = value.getValue();
+        XNode rawElement = value.getRawElement();
+        if (rawElement != null) {
+            return rawElement;
+        }
+        T realValue = value.getValue();
+        if (realValue != null) {
             return createPrimitiveXNode(realValue, DOMUtil.XSD_STRING);
+        } else {
+            return null;
         }
     }
 

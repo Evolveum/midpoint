@@ -1447,4 +1447,12 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
 			}
 		}
 	}
+
+	@Override
+	public Class<?> getRealClass() {
+		if (containerable != null) {
+			return containerable.getClass();
+		}
+		return resolveClass(null);
+	}
 }

@@ -23,6 +23,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.*;
 
+import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -307,20 +308,30 @@ public class PrismSchemaImpl implements PrismSchema {
 
 	// items
 
-	@Nullable
-	@Override
-	public <CD extends PrismContainerDefinition> CD findContainerDefinitionByCompileTimeClass(
-			@NotNull Class<? extends Containerable> compileTimeClass, @NotNull Class<CD> definitionClass) {
+	@NotNull
+	public <ID extends ItemDefinition> List<ID> findItemDefinitionsByCompileTimeClass(
+			@NotNull Class<?> compileTimeClass, @NotNull Class<ID> definitionClass) {
+		List<ID> found = new ArrayList<>();
 		for (Definition def: definitions) {
 			if (definitionClass.isAssignableFrom(def.getClass())) {
-				@SuppressWarnings("unchecked")
-				CD contDef = (CD) def;
-				if (compileTimeClass.equals(contDef.getCompileTimeClass())) {
-					return contDef;
+				if (def instanceof PrismContainerDefinition) {
+					@SuppressWarnings("unchecked")
+					ID contDef = (ID) def;
+					if (compileTimeClass.equals(((PrismContainerDefinition) contDef).getCompileTimeClass())) {
+						found.add(contDef);
+					}
+				} else if (def instanceof PrismPropertyDefinition) {
+					if (compileTimeClass.equals(XsdTypeMapper.toJavaTypeIfKnown(def.getTypeName()))) {
+						@SuppressWarnings("unchecked")
+						ID itemDef = (ID) def;
+						found.add(itemDef);
+					}
+				} else {
+					// skipping the definition (PRD is not supported yet)
 				}
 			}
 		}
-		return null;
+		return found;
 	}
 
 	@Override

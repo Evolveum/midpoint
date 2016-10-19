@@ -174,11 +174,11 @@ public class LayerRefinedResourceSchemaImpl implements LayerRefinedResourceSchem
 		return refinedResourceSchema.forLayer(layer);
 	}
 
+	@NotNull
 	@Override
-	@Nullable
-	public <CD extends PrismContainerDefinition> CD findContainerDefinitionByCompileTimeClass(
-			@NotNull Class<? extends Containerable> compileTimeClass, @NotNull Class<CD> definitionClass) {
-		return refinedResourceSchema.findContainerDefinitionByCompileTimeClass(compileTimeClass, definitionClass);
+	public <ID extends ItemDefinition> List<ID> findItemDefinitionsByCompileTimeClass(
+			@NotNull Class<?> compileTimeClass, @NotNull Class<ID> definitionClass) {
+		return refinedResourceSchema.findItemDefinitionsByCompileTimeClass(compileTimeClass, definitionClass);
 	}
 
 	@Override

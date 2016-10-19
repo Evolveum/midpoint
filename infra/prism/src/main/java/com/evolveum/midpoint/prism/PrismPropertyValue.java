@@ -642,4 +642,9 @@ public class PrismPropertyValue<T> extends PrismValue implements DebugDumpable, 
         Object realValue = getValue();
         return new JAXBElement<T>(parent.getElementName(), (Class) realValue.getClass(), (T) realValue);
     }
+
+	@Override
+	public Class<?> getRealClass() {
+		return value != null ? value.getClass() : null;
+	}
 }

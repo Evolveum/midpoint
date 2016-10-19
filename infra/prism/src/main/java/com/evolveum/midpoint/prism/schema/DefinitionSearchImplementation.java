@@ -40,5 +40,5 @@ public interface DefinitionSearchImplementation {
 //
 //	<O extends Objectable> PrismObjectDefinition<O> findObjectDefinitionByCompileTimeClass(@NotNull Class<O> type);
 //
-//	<C extends Containerable> PrismContainerDefinition<C> findContainerDefinitionByCompileTimeClass(@NotNull Class<C> type);
+//	<C extends Containerable> PrismContainerDefinition<C> findItemDefinitionByCompileTimeClass(@NotNull Class<C> type);
 }

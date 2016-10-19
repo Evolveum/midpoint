@@ -31,6 +31,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import org.apache.commons.lang.StringUtils;
+import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.prism.PrismConstants;
@@ -52,16 +53,15 @@ public class XsdTypeMapper {
     public static final String BOOLEAN_XML_VALUE_TRUE = "true";
     public static final String BOOLEAN_XML_VALUE_FALSE = "false";
 
-    private static Map<Class, QName> javaToXsdTypeMap;
-    private static Map<QName, Class> xsdToJavaTypeMap;
+    private static final Map<Class, QName> javaToXsdTypeMap = new HashMap<>();
+    private static final Map<QName, Class> xsdToJavaTypeMap = new HashMap<>();
+    private static final Map<Class, QName> javaToXsdTypeMapExt = new HashMap<>();
+    private static final Map<QName, Class> xsdToJavaTypeMapExt = new HashMap<>();
 
     private static final Trace LOGGER = TraceManager.getTrace(XsdTypeMapper.class);
 	private static final String MULTIPLICITY_UNBOUNDED = "unbounded";
 
     private static void initTypeMap() throws IOException, ClassNotFoundException {
-
-        javaToXsdTypeMap = new HashMap<Class, QName>();
-        xsdToJavaTypeMap = new HashMap<QName, Class>();
         addMapping(String.class, DOMUtil.XSD_STRING, true);
         addMapping(char.class, DOMUtil.XSD_STRING, false);
         addMapping(File.class, DOMUtil.XSD_STRING, false);
@@ -92,7 +92,7 @@ public class XsdTypeMapper {
         addMapping(QName.class, DOMUtil.XSD_QNAME, true);
         
         addMapping(PolyString.class, PrismConstants.POLYSTRING_TYPE_QNAME, true);
-//        addMapping(ItemPathType.class, ItemPathType.COMPLEX_TYPE, true);
+        addMappingExt(ItemPathType.class, ItemPathType.COMPLEX_TYPE, true);
 
         xsdToJavaTypeMap.put(DOMUtil.XSD_ANYURI, String.class);
     }
@@ -102,6 +102,14 @@ public class XsdTypeMapper {
         javaToXsdTypeMap.put(javaClass, xsdType);
         if (both) {
             xsdToJavaTypeMap.put(xsdType, javaClass);
+        }
+    }
+
+    private static void addMappingExt(Class javaClass, QName xsdType, boolean both) {
+        LOGGER.trace("Adding 'ext' XSD type mapping {} {} {} ", javaClass, both ? "<->" : " ->", xsdType);
+        javaToXsdTypeMapExt.put(javaClass, xsdType);
+        if (both) {
+            xsdToJavaTypeMapExt.put(xsdType, javaClass);
         }
     }
 
@@ -168,17 +176,27 @@ public class XsdTypeMapper {
         return null;
     }
 
-    public static <T> Class<T> toJavaType(QName xsdType) {
-        return toJavaType(xsdType, true);
+    public static <T> Class<T> toJavaType(@NotNull QName xsdType) {
+        return toJavaType(xsdToJavaTypeMap, xsdType, true);
     }
 
-    public static <T> Class<T> toJavaTypeIfKnown(QName xsdType) {
-        return toJavaType(xsdType, false);
+    public static <T> Class<T> toJavaTypeIfKnown(@NotNull QName xsdType) {
+        return toJavaType(xsdToJavaTypeMap, xsdType, false);
     }
 
-    private static <T> Class<T> toJavaType(QName xsdType, boolean errorIfNoMapping) {
-        Class<T> javaType = xsdToJavaTypeMap.get(xsdType);
-		if (javaType == null && xsdType != null && StringUtils.isEmpty(xsdType.getNamespaceURI())) {
+    // experimental feature - covers all the classes
+    public static <T> Class<T> toJavaTypeIfKnownExt(@NotNull QName xsdType) {
+        Class<T> cls = toJavaType(xsdToJavaTypeMap, xsdType, false);
+        if (cls != null) {
+            return cls;
+        } else {
+            return toJavaType(xsdToJavaTypeMapExt, xsdType, false);
+        }
+    }
+
+    private static <T> Class<T> toJavaType(Map<QName, Class> map, @NotNull QName xsdType, boolean errorIfNoMapping) {
+        Class<?> javaType = map.get(xsdType);
+		if (javaType == null && StringUtils.isEmpty(xsdType.getNamespaceURI())) {
 			// TODO check uniqueness w.r.t. other types...
 			for (Map.Entry<QName,Class> entry : xsdToJavaTypeMap.entrySet()) {
 				if (QNameUtil.match(entry.getKey(), xsdType)) {
@@ -194,7 +212,9 @@ public class XsdTypeMapper {
                 return null;
             }
         }
-        return javaType;
+        @SuppressWarnings("unchecked")
+        Class<T> typedClass = (Class<T>) javaType;
+        return typedClass;
     }
     
     public static String multiplicityToString(Integer integer) {

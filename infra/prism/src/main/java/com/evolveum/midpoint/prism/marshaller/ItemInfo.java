@@ -23,6 +23,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
+import java.util.List;
 
 /**
  * @author mederly
@@ -144,8 +145,12 @@ public class ItemInfo<ID extends ItemDefinition> {
 		}
 		// the following may be null
 		@SuppressWarnings("unchecked")
-		ID defFromClass = (ID) schemaRegistry.findContainerDefinitionByCompileTimeClass((Class) clazz, (Class) definitionClass);
-		return schemaRegistry.selectMoreSpecific(definition, defFromClass);
+		List<ID> defFromClass = schemaRegistry.findItemDefinitionsByCompileTimeClass((Class) clazz, (Class) definitionClass);
+		if (defFromClass.size() != 1) {
+			return definition;
+		} else {
+			return schemaRegistry.selectMoreSpecific(definition, defFromClass.get(0));
+		}
 	}
 
 	public QName getItemName() {
@@ -158,5 +163,50 @@ public class ItemInfo<ID extends ItemDefinition> {
 
 	public QName getTypeName() {
 		return typeName;
+	}
+
+	@NotNull
+	public static ItemInfo determineFromValue(@NotNull PrismValue value, QName itemName, ItemDefinition itemDefinition,
+											  @NotNull SchemaRegistry schemaRegistry) {
+		ItemInfo info = new ItemInfo();
+
+		// definition
+		info.itemDefinition = itemDefinition;
+		if (info.itemDefinition == null && value.getParent() != null) {
+			info.itemDefinition = itemDefinition = value.getParent().getDefinition();
+			if (info.itemDefinition == null) {
+				info.itemDefinition = schemaRegistry.findItemDefinitionByElementName(value.getParent().getElementName());
+			}
+		}
+		if (info.itemDefinition == null) {
+			Class<?> realClass = value.getRealClass();
+			if (realClass != null) {
+				List<ItemDefinition> definitions = schemaRegistry.findItemDefinitionsByCompileTimeClass(realClass, ItemDefinition.class);
+				if (definitions.size() == 1) {
+					info.itemDefinition = definitions.get(0);
+				}
+			}
+		}
+
+		// item name
+		info.itemName = itemName;
+		if (info.itemName == null && value.getParent() != null) {
+			info.itemName = value.getParent().getElementName();
+		}
+		if (info.itemName == null && info.itemDefinition != null) {
+			info.itemName = info.itemDefinition.getName();
+		}
+
+		// item type
+		if (itemDefinition != null) {
+			info.typeName = itemDefinition.getTypeName();
+		} else {
+			Class<?> realClass = value.getRealClass();
+			if (realClass != null) {
+				info.typeName = schemaRegistry.determineTypeForClass(realClass);
+			}
+		}
+
+		return info;
 	}
 }

@@ -518,11 +518,11 @@ public class RefinedResourceSchemaImpl implements RefinedResourceSchema {
 		return originalResourceSchema.isEmpty();
 	}
 
+	@NotNull
 	@Override
-	@Nullable
-	public <CD extends PrismContainerDefinition> CD findContainerDefinitionByCompileTimeClass(
-			@NotNull Class<? extends Containerable> compileTimeClass, @NotNull Class<CD> definitionClass) {
-		return originalResourceSchema.findContainerDefinitionByCompileTimeClass(compileTimeClass, definitionClass);
+	public <ID extends ItemDefinition> List<ID> findItemDefinitionsByCompileTimeClass(
+			@NotNull Class<?> compileTimeClass, @NotNull Class<ID> definitionClass) {
+		return originalResourceSchema.findItemDefinitionsByCompileTimeClass(compileTimeClass, definitionClass);
 	}
 
 	@Nullable

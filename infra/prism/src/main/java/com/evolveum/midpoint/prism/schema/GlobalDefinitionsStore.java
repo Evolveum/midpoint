@@ -20,6 +20,7 @@ import com.evolveum.midpoint.prism.*;
 import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
+import java.util.List;
 
 /**
  * Used to retrieve definition from 'global definition store' - i.e. store that contains a group of related definition(s),
@@ -57,8 +58,9 @@ public interface GlobalDefinitionsStore extends DefinitionsStore {
 
 	// core methods
 
-	<CD extends PrismContainerDefinition> CD findContainerDefinitionByCompileTimeClass(
-			@NotNull Class<? extends Containerable> compileTimeClass, @NotNull Class<CD> definitionClass);
+	@NotNull
+	<ID extends ItemDefinition> List<ID> findItemDefinitionsByCompileTimeClass(
+			@NotNull Class<?> compileTimeClass, @NotNull Class<ID> definitionClass);
 
 	<ID extends ItemDefinition> ID findItemDefinitionByType(@NotNull QName typeName, @NotNull Class<ID> definitionClass);
 
@@ -70,9 +72,14 @@ public interface GlobalDefinitionsStore extends DefinitionsStore {
 
 	// non-core (derived) methods
 
+	default <ID extends ItemDefinition> ID findItemDefinitionByCompileTimeClass(
+			@NotNull Class<?> compileTimeClass, @NotNull Class<ID> definitionClass) {
+		return getOne(findItemDefinitionsByCompileTimeClass(compileTimeClass, definitionClass));
+	}
+
 	@SuppressWarnings("unchecked")
 	default <O extends Objectable> PrismObjectDefinition<O> findObjectDefinitionByCompileTimeClass(@NotNull Class<O> compileTimeClass) {
-		return findContainerDefinitionByCompileTimeClass(compileTimeClass, PrismObjectDefinition.class);
+		return findItemDefinitionByCompileTimeClass(compileTimeClass, PrismObjectDefinition.class);
 	}
 
 	@SuppressWarnings("unchecked")
@@ -89,7 +96,17 @@ public interface GlobalDefinitionsStore extends DefinitionsStore {
 
 	@SuppressWarnings("unchecked")
 	default <C extends Containerable> PrismContainerDefinition<C> findContainerDefinitionByCompileTimeClass(@NotNull Class<C> compileTimeClass) {
-		return findContainerDefinitionByCompileTimeClass(compileTimeClass, PrismContainerDefinition.class);
+		return findItemDefinitionByCompileTimeClass(compileTimeClass, PrismContainerDefinition.class);
+	}
+
+	static <ID extends ItemDefinition> ID getOne(List<ID> list) {
+		if (list.isEmpty()) {
+			return null;
+		} else if (list.size() == 1) {
+			return list.get(0);
+		} else {
+			throw new IllegalStateException("More than one definition found: " + list);
+		}
 	}
 
 	@SuppressWarnings("unchecked")
