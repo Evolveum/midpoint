@@ -25,10 +25,12 @@
 	                <div class=".col-ms-3" wicket:id="fromField"/>
 	                <label class=".col-ms-1"><wicket:message key="PageAuditLogViewer.toLabel" /></label>
 	                <div class=".col-ms-3" wicket:id="toField" />
-	                <!-- <label><wicket:message key="PageAuditLogViewer.targetNameLabel" /></label> -->
-	                <!-- <div wicket:id="targetNameField" /> -->
-	                <!-- <label><wicket:message key="PageAuditLogViewer.targetOwnerNameLabel" /></label> -->
-	                <!-- <div wicket:id="targetOwnerNameField" /> -->
+	                <label><wicket:message key="PageAuditLogViewer.targetNameLabel" /></label>
+	                <div wicket:id="targetNameField" />
+	                <label><wicket:message key="PageAuditLogViewer.targetOwnerNameLabel" /></label>
+	                <div wicket:id="targetOwnerNameField" />
+	                 <label><wicket:message key="PageAuditLogViewer.initiatorNameLabel" /></label>
+	                <div wicket:id="initiatorNameField"/>
 				</div>
 				<div class="col-md-4">
 	                <label class=".col-ms-1"><wicket:message key="PageAuditLogViewer.eventTypeLabel" /></label>
@@ -42,8 +44,7 @@
 				<div class="col-md-4">
 	                <label class=".col-ms-1"><wicket:message key="PageAuditLogViewer.channelLabel" /></label>
 	                <div class=".col-ms-3" wicket:id="channelField" />
-	                <!-- <label><wicket:message key="PageAuditLogViewer.initiatorNameLabel" /></label> -->
-	                <!-- <div wicket:id="initiatorNameField"/> -->
+	               
 	                <label class=".col-ms-1"><wicket:message key="PageAuditLogViewer.hostIdentifierLabel" /></label>
 	                <div class=".col-ms-3" wicket:id="hostIdentifierField" />
 	        		<div class=".col-ms-1"><a class="btn btn-primary" wicket:id="searchButton"/></div>				

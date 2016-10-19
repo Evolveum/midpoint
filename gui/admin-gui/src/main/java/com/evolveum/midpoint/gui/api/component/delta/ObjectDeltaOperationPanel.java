@@ -79,12 +79,13 @@ public class ObjectDeltaOperationPanel extends BasePanel<ObjectDeltaOperationTyp
 				new PropertyModel(getModel(), ObjectDeltaOperationType.F_OBJECT_NAME.getLocalPart()));
 		objectName.setOutputMarkupId(true);
 		objectDeltaOperationMarkup.add(objectName);
+		final SceneDto sceneDto = loadSceneForDelta();
 
 		IModel<SceneDto> deltaModel = new AbstractReadOnlyModel<SceneDto>() {
 			private static final long serialVersionUID = 1L;
 
 			public SceneDto getObject() {
-				return loadSceneForDelta();
+				return sceneDto;
 			}
 
 		};
@@ -92,7 +93,7 @@ public class ObjectDeltaOperationPanel extends BasePanel<ObjectDeltaOperationTyp
 			@Override
 			public void headerOnClickPerformed(AjaxRequestTarget target, IModel<SceneDto> model) {
 				super.headerOnClickPerformed(target, model);
-//				model.getObject();
+//				model.getObject().setMinimized(!model.getObject().isMinimized());
 				target.add(ObjectDeltaOperationPanel.this);
 			}
 		};

@@ -371,10 +371,10 @@ public class PrismValuePanel extends Panel {
             //adding valid from/to date range validator, if necessary
             ItemPath activation = new ItemPath(UserType.F_ACTIVATION);
             if (ActivationType.F_VALID_FROM.equals(property.getElementName())) {
-                DateValidator validator = getActivationRangeValidator(form, activation);
+                DateValidator validator = WebComponentUtil.getRangeValidator(form, activation);
                 validator.setDateFrom((DateTimeField) inputPanel.getBaseFormComponent());
             } else if (ActivationType.F_VALID_TO.equals(property.getElementName())) {
-                DateValidator validator = getActivationRangeValidator(form, activation);
+                DateValidator validator = WebComponentUtil.getRangeValidator(form, activation);
                 validator.setDateTo((DateTimeField) inputPanel.getBaseFormComponent());
             }
 
@@ -407,26 +407,7 @@ public class PrismValuePanel extends Panel {
         return component;
     }
 
-    private DateValidator getActivationRangeValidator(Form form, ItemPath path) {
-        DateValidator validator = null;
-        List<DateValidator> validators = form.getBehaviors(DateValidator.class);
-        if (validators != null) {
-            for (DateValidator val : validators) {
-                if (path.equivalent(val.getIdentifier())) {
-                    validator = val;
-                    break;
-                }
-            }
-        }
-
-        if (validator == null) {
-            validator = new DateValidator();
-            validator.setIdentifier(path);
-            form.add(validator);
-        }
-
-        return validator;
-    }
+    
 
     // normally this method returns an InputPanel;
     // however, for some special readonly types (like ObjectDeltaType) it will return a Panel
