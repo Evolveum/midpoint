@@ -18,6 +18,7 @@ package com.evolveum.midpoint.web.page.admin.users.component;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
@@ -66,6 +67,7 @@ public class MergeObjectsPanel<F extends FocusType> extends BasePanel{
     private F mergeObject;
     private F mergeWithObject;
     private PrismObject<F> mergeResultObject;
+    private ObjectDelta<F> mergeDelta;
     private Class<F> type;
     private PageBase pageBase;
     private IModel<String> mergeTypeModel;
@@ -272,6 +274,8 @@ public class MergeObjectsPanel<F extends FocusType> extends BasePanel{
             Task task = pageBase.createSimpleTask(OPERATION_GET_MERGE_OBJECT_PREVIEW);
             mergeResultObject = pageBase.getModelInteractionService().mergeObjectsPreviewObject(type,
                     mergeObject.getOid(), mergeWithObject.getOid(), currentMergeType, task, result);
+            mergeDelta = pageBase.getModelInteractionService().mergeObjectsPreviewDelta(type,
+                    mergeObject.getOid(), mergeWithObject.getOid(), currentMergeType, task, result);
         } catch (Exception ex) {
             result.recomputeStatus();
             result.recordFatalError("Couldn't get merge object for preview.", ex);
@@ -279,5 +283,14 @@ public class MergeObjectsPanel<F extends FocusType> extends BasePanel{
             pageBase.showResult(result);
         }
         return mergeResultObject;
+    }
+
+    public PrismObject<F> getMergeResultObject() {
+        return mergeResultObject;
+    }
+
+    public ObjectDelta<F> getMergeDelta(){
+        return mergeDelta;
+
     }
 }
