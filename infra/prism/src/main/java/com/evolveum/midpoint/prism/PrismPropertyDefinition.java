@@ -18,6 +18,7 @@ package com.evolveum.midpoint.prism;
 
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
@@ -32,9 +33,26 @@ public interface PrismPropertyDefinition<T> extends ItemDefinition<PrismProperty
 
 	T defaultValue();
 
+	/**
+	 * Returns QName of the property value type.
+	 * <p/>
+	 * The returned type is either XSD simple type or complex type. It may not
+	 * be defined in the same schema (especially if it is standard XSD simple
+	 * type).
+	 *
+	 * @return QName of the property value type
+	 *
+	 * NOTE: This is very strange property. Isn't it the same as typeName().
+	 * It is even not used in midPoint. Marking as deprecated.
+	 */
+	@Deprecated
 	QName getValueType();
 
 	Boolean isIndexed();
+
+	default boolean isAnyType() {
+		return DOMUtil.XSD_ANYTYPE.equals(getTypeName());
+	}
 
 	QName getMatchingRuleQName();
 

@@ -177,11 +177,10 @@ public class PrismParserImplNoIO extends PrismParserImpl implements PrismParserN
 		}
 	}
 
-	@Deprecated
 	@Override
-	public Object parseAnyData() throws SchemaException {
+	public Object parseItemOrRealValue() throws SchemaException {
 		try {
-			return doParseAnyData();
+			return doParseItemOrRealValue();
 		} catch (IOException e) {
 			throw new IllegalStateException(e);
 		}

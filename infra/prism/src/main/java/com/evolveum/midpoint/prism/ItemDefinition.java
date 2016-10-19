@@ -95,4 +95,5 @@ public interface ItemDefinition<I extends Item> extends Definition {
 
 	@Override
 	void revive(PrismContext prismContext);
+
 }

@@ -275,7 +275,7 @@ public abstract class TestParseResource {
 						new ItemPath(new QName("extension"), new QName("extConnType")),
 					path);
             PrismPropertyValue filterValue = (PrismPropertyValue) equalFilter.getValues().get(0);
-            assertEquals("Wrong filter value", "org.identityconnectors.ldap.LdapConnector", ((String) filterValue.getValue()).trim());
+            assertEquals("Wrong filter value", "org.identityconnectors.ldap.LdapConnector", ((RawType) filterValue.getValue()).getParsedRealValue(String.class).trim());
         }
         EvaluationTimeType resolutionTime = connectorRefVal.getResolutionTime();
         if (isSimple) {

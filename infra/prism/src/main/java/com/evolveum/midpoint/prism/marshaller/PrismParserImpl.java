@@ -19,7 +19,6 @@ package com.evolveum.midpoint.prism.marshaller;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.lex.LexicalProcessor;
 import com.evolveum.midpoint.prism.xnode.RootXNode;
-import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -146,6 +145,7 @@ abstract class PrismParserImpl implements PrismParser {
 		return doParseItem(xnode);
 	}
 
+	@SuppressWarnings("unchecked")
 	private <IV extends PrismValue, ID extends ItemDefinition> Item<IV, ID> doParseItem(RootXNode xnode) throws IOException, SchemaException {
 		return (Item) prismContext.getPrismUnmarshaller().parseItem(xnode, itemDefinition, itemName, typeName, typeClass, context);
 	}
@@ -188,28 +188,22 @@ abstract class PrismParserImpl implements PrismParser {
 			if (clazz == null && info.getTypeName() != null) {
 				clazz = (Class) prismContext.getSchemaRegistry().determineClassForType(info.getTypeName());
 			}
-//			if (clazz == null) {
-//				throw new IllegalArgumentException("Couldn't determine type for " + root);
-//			}
 		}
 
-		PrismBeanConverter beanConverter = prismContext.getBeanConverter();
-		if (clazz != null && beanConverter.canProcess(clazz)) {
-			return beanConverter.unmarshall(root, clazz, context);
+		if (clazz != null && getBeanConverter().canProcess(clazz)) {
+			return getBeanConverter().unmarshall(root, clazz, context);
 		} else {
 			PrismValue prismValue = doParseItemValue(root);
 			if (prismValue == null) {
 				return null;
-			} else if (prismValue instanceof PrismPropertyValue) {
-				return (T) ((PrismPropertyValue) prismValue).getValue();
-			} else if (prismValue instanceof PrismContainerValue) {
-				return (T) ((PrismContainerValue) prismValue).asContainerable();
-			} else if (prismValue instanceof PrismReferenceValue) {
-				return (T) prismValue;			// TODO ok?
 			} else {
-				throw new IllegalStateException("Unsupported value: " + prismValue.getClass());
+				return prismValue.getRealValue();
 			}
 		}
+	}
+
+	private PrismBeanConverter getBeanConverter() {
+		return prismContext.getBeanConverter();
 	}
 
 	@SuppressWarnings("unchecked")
@@ -242,10 +236,12 @@ abstract class PrismParserImpl implements PrismParser {
 		return objects;
 	}
 
-	@Deprecated
-	Object doParseAnyData() throws IOException, SchemaException {
+	Object doParseItemOrRealValue() throws IOException, SchemaException {
 		RootXNode xnode = getLexicalProcessor().read(source, context);
-		return prismContext.getPrismUnmarshaller().parseAnyData(xnode, context);
+		if (itemDefinition != null || itemName != null || typeName != null || typeClass != null) {
+			throw new IllegalArgumentException("Item definition, item name, type name and type class must be null when calling parseItemOrRealValue.");
+		}
+		return prismContext.getPrismUnmarshaller().parseItemOrRealValue(xnode, context);
 	}
 
 	@NotNull

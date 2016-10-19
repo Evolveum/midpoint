@@ -214,7 +214,7 @@ public class TestQueryConvertor {
 	public void testConnectorQuery() throws Exception {
 		displayTestTitle("testConnectorQuery");
 		SearchFilterType filterType = PrismTestUtil.parseAtomicValue(FILTER_CONNECTOR_BY_TYPE_FILE, SearchFilterType.COMPLEX_TYPE);
-		ObjectQuery query = null;
+		ObjectQuery query;
 		try {
 			query = QueryJaxbConvertor.createObjectQuery(ConnectorType.class, filterType, getPrismContext());
 			displayQuery(query);
@@ -227,12 +227,6 @@ public class TestQueryConvertor {
 
 			QueryType convertedQueryType = toQueryType(query);
 			displayQueryType(convertedQueryType);
-		} catch (SchemaException ex) {
-			LOGGER.error("Error while converting query: {}", ex.getMessage(), ex);
-			throw ex;
-		} catch (RuntimeException ex) {
-			LOGGER.error("Error while converting query: {}", ex.getMessage(), ex);
-			throw ex;
 		} catch (Exception ex) {
 			LOGGER.error("Error while converting query: {}", ex.getMessage(), ex);
 			throw ex;

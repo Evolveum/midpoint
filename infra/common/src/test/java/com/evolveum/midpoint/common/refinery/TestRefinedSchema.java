@@ -158,11 +158,11 @@ public class TestRefinedSchema {
         RefinedObjectClassDefinition rAccountDef = rSchema.getRefinedDefinition(ShadowKindType.ACCOUNT, (String)null);
         
         RefinedObjectClassDefinition accountDefByNullObjectclass = rSchema.findRefinedDefinitionByObjectClassQName(ShadowKindType.ACCOUNT, null);
-        assertTrue("findAccountDefinitionByObjectClass(null) returned wrong value", rAccountDef.equals(accountDefByNullObjectclass));
+        assertEquals("findAccountDefinitionByObjectClass(null) returned wrong value", rAccountDef, accountDefByNullObjectclass);
         
         RefinedObjectClassDefinition accountDefByIcfAccountObjectclass = rSchema.findRefinedDefinitionByObjectClassQName(ShadowKindType.ACCOUNT, 
         		new QName(resourceType.getNamespace(), SchemaTestConstants.ICF_ACCOUNT_OBJECT_CLASS_LOCAL_NAME));
-        assertTrue("findAccountDefinitionByObjectClass(ICF account) returned wrong value", rAccountDef.equals(accountDefByIcfAccountObjectclass));
+        assertEquals("findAccountDefinitionByObjectClass(ICF account) returned wrong value", rAccountDef, accountDefByIcfAccountObjectclass);
 
         assertRObjectClassDef(rAccountDef, resourceType, sourceLayer, validationLayer);
         System.out.println("Refined account definitionn:");
@@ -341,7 +341,7 @@ public class TestRefinedSchema {
         PrismAsserts.assertPropertyValue(accObject, ShadowType.F_INTENT, SchemaConstants.INTENT_DEFAULT);
 
         PrismContainer<?> attributes = accObject.findOrCreateContainer(SchemaConstants.C_ATTRIBUTES);
-        assertEquals("Wrong type of <attributes> definition in account", ResourceAttributeContainerDefinition.class, attributes.getDefinition().getClass());
+        assertEquals("Wrong type of <attributes> definition in account", ResourceAttributeContainerDefinitionImpl.class, attributes.getDefinition().getClass());
         ResourceAttributeContainerDefinition attrDef = (ResourceAttributeContainerDefinition)attributes.getDefinition();
         assertAttributeDefs(attrDef, resourceType, null, LayerType.MODEL);
 
@@ -435,7 +435,7 @@ public class TestRefinedSchema {
         assertNotNull("Null account definition", attrsDef);
         assertEquals(SchemaConstants.INTENT_DEFAULT, attrsDef.getIntent());
         assertEquals("AccountObjectClass", attrsDef.getComplexTypeDefinition().getTypeName().getLocalPart());
-        assertEquals("Wrong objectclass in the definition of <attributes> definition in account", RefinedObjectClassDefinition.class, attrsDef.getComplexTypeDefinition().getClass());
+        assertEquals("Wrong objectclass in the definition of <attributes> definition in account", RefinedObjectClassDefinitionImpl.class, attrsDef.getComplexTypeDefinition().getClass());
         RefinedObjectClassDefinition rAccount = (RefinedObjectClassDefinition) attrsDef.getComplexTypeDefinition();
         assertRObjectClassDef(rAccount, resourceType, sourceLayer, validationLayer);
     }

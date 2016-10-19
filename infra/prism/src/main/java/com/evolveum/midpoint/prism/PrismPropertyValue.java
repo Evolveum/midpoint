@@ -46,6 +46,7 @@ import java.util.Collection;
 import java.util.Comparator;
 
 import org.apache.commons.lang.StringUtils;
+import org.jetbrains.annotations.Nullable;
 import org.jvnet.jaxb2_commons.lang.Equals;
 import org.w3c.dom.Element;
 
@@ -68,8 +69,16 @@ public class PrismPropertyValue<T> extends PrismValue implements DebugDumpable, 
         this(value, null, null);
     }
 
+    public PrismPropertyValue(T value, PrismContext prismContext) {
+        this(value, prismContext, null, null);
+    }
+
     public PrismPropertyValue(T value, OriginType type, Objectable source) {
-    	super(type,source);
+		this(value, null, type, source);
+	}
+
+    public PrismPropertyValue(T value, PrismContext prismContext, OriginType type, Objectable source) {
+    	super(type, source);
         if (value instanceof PrismPropertyValue) {
             throw new IllegalArgumentException("Probably problem somewhere, encapsulating property " +
                     "value object to another property value.");
@@ -112,13 +121,10 @@ public class PrismPropertyValue<T> extends PrismValue implements DebugDumpable, 
         		// We are weak now. If there is no better definition for this we assume a default definition and process
         		// the attribute now. But we should rather do this: TODO:
         		// throw new IllegalStateException("Attempt to get value withot a type from raw value of property "+getParent());
-    			if (parent != null && parent.getPrismContext() != null) {
-    				def = SchemaRegistryImpl.createDefaultItemDefinition(parent.getElementName(), parent.getPrismContext());
+    			if (parent != null && getPrismContext() != null) {
+    				def = SchemaRegistryImpl.createDefaultItemDefinition(parent.getElementName(), getPrismContext());
     			} else if (PrismContextImpl.isAllowSchemalessSerialization()) {
-    				if (rawElement instanceof Element) {
-        				// Do the most stupid thing possible. Assume string value. And there will be no definition.
-    					value = (T) ((Element)rawElement).getTextContent();
-    				} else if (rawElement instanceof PrimitiveXNode) {
+    				if (rawElement instanceof PrimitiveXNode) {
     					try {
                             QName type = rawElement.getTypeQName() != null ? rawElement.getTypeQName() : DOMUtil.XSD_STRING;
     					    value = (T) ((PrimitiveXNode) rawElement).getParsedValueWithoutRecording(type);
@@ -140,6 +146,9 @@ public class PrismPropertyValue<T> extends PrismValue implements DebugDumpable, 
 					throw new IllegalStateException(e.getMessage(),e);
 				}
     		}
+    		if (rawElement != null) {
+				return (T) RawType.create(rawElement, getPrismContext());
+			}
     	}
         return value;
     }
@@ -167,8 +176,9 @@ public class PrismPropertyValue<T> extends PrismValue implements DebugDumpable, 
 
 	@Override
 	public void applyDefinition(ItemDefinition definition) throws SchemaException {
-		if (definition != null && rawElement !=null) {
-			value = (T) parseRawElementToNewRealValue(this, (PrismPropertyDefinition) definition);
+		PrismPropertyDefinition propertyDefinition = (PrismPropertyDefinition) definition;
+		if (propertyDefinition != null && !propertyDefinition.isAnyType() && rawElement != null) {
+			value = (T) parseRawElementToNewRealValue(this, propertyDefinition);
 			rawElement = null;
 		}
 	}
@@ -646,5 +656,11 @@ public class PrismPropertyValue<T> extends PrismValue implements DebugDumpable, 
 	@Override
 	public Class<?> getRealClass() {
 		return value != null ? value.getClass() : null;
+	}
+
+	@Nullable
+	@Override
+	public <T> T getRealValue() {
+		return (T) getValue();
 	}
 }

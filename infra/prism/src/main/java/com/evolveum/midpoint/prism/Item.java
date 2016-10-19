@@ -393,6 +393,9 @@ public abstract class Item<V extends PrismValue, D extends ItemDefinition> imple
     
     public boolean add(V newValue, boolean checkUniqueness) throws SchemaException {
 		checkMutability();
+		if (newValue.getPrismContext() == null) {
+			newValue.setPrismContext(prismContext);
+		}
     	newValue.setParent(this);
     	if (checkUniqueness && containsEquivalentValue(newValue)) {
     		return false;

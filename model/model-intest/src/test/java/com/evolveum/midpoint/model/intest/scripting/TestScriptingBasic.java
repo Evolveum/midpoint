@@ -160,7 +160,7 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
     }
 
     private PrismProperty parseAnyData(File file) throws IOException, SchemaException {
-        return (PrismProperty) prismContext.parserFor(file).parseAnyData();
+        return (PrismProperty) prismContext.parserFor(file).parseItemOrRealValue();
     }
 
     @Test

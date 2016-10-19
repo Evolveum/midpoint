@@ -84,12 +84,12 @@ public class RawType implements Serializable, Cloneable, Equals, Revivable {
     //region Parsing and serialization
     // itemDefinition may be null; in that case we do the best what we can
 	public <IV extends PrismValue,ID extends ItemDefinition> IV getParsedValue(@Nullable ItemDefinition itemDefinition, @Nullable QName itemName) throws SchemaException {
-        Validate.isTrue(itemDefinition != null || itemName != null);
         if (parsed != null) {
 			return (IV) parsed;
 		} else if (xnode != null) {
             IV value;
-			if (itemDefinition != null) {
+			if (itemDefinition != null
+					&& !(itemDefinition instanceof PrismPropertyDefinition && ((PrismPropertyDefinition) itemDefinition).isAnyType())) {
                 if (itemName == null) {
                     itemName = itemDefinition.getName();
                 }
@@ -100,20 +100,19 @@ public class RawType implements Serializable, Cloneable, Equals, Revivable {
 				} else {
 					value = null;
 				}
+				xnode = null;
+				parsed = value;
+				return (IV) parsed;
 			} else {
-                assert itemName != null;
-				PrismProperty subItem = PrismProperty.createRaw(xnode, itemName, prismContext);
-				value = (IV) subItem.getValue();
+				// we don't really want to set 'parsed', as we didn't performed real parsing
+				return (IV) PrismPropertyValue.createRaw(xnode);
 			}
-            xnode = null;
-            parsed = value;
-            return (IV) parsed;
 		} else {
 		    return null;
         }
 	}
 	
-	public <V,ID extends ItemDefinition> V getParsedRealValue(ItemDefinition itemDefinition, ItemPath itemPath) throws SchemaException {
+	public <V,ID extends ItemDefinition> V getParsedRealValue(ID itemDefinition, ItemPath itemPath) throws SchemaException {
         if (parsed == null && xnode != null) {
 			if (itemDefinition == null) {
 				return prismContext.parserFor(xnode.toRootXNode()).parseRealValue();		// TODO what will be the result without definition?
@@ -122,22 +121,26 @@ public class RawType implements Serializable, Cloneable, Equals, Revivable {
 	        	getParsedValue(itemDefinition, itemName);
         	}
         } 
-        if (parsed != null){
-        	if (parsed instanceof PrismPropertyValue){
-        		return (V) ((PrismPropertyValue) parsed).getValue();
-        	} else if (parsed instanceof PrismContainerValue){
-        		return (V) ((PrismContainerValue) parsed).asContainerable();
-        	} else if (parsed instanceof PrismReferenceValue){
-        		return (V) ((PrismReferenceValue) parsed).asReferencable();
-        	}
+        if (parsed != null) {
+			return parsed.getRealValue();
         }
-        
         return null;
-        
+	}
+
+	public <T> T getParsedRealValue(@NotNull Class<T> clazz) throws SchemaException {
+		if (parsed != null) {
+			if (clazz.isAssignableFrom(parsed.getClass())) {
+				return (T) parsed;
+			} else {
+				throw new IllegalArgumentException("Parsed value ("+parsed.getClass()+") is not assignable to "+clazz);
+			}
+		} else if (xnode != null) {
+			return (T) prismContext.parserFor(xnode.toRootXNode()).parseRealValue(clazz);
+		} else {
+			return null;
+		}
 	}
 	
-	
-
     public <IV extends PrismValue,ID extends ItemDefinition> Item<IV,ID> getParsedItem(ID itemDefinition) throws SchemaException {
         Validate.notNull(itemDefinition);
         return getParsedItem(itemDefinition, itemDefinition.getName());
@@ -237,6 +240,10 @@ public class RawType implements Serializable, Cloneable, Equals, Revivable {
         PrimitiveXNode<String> xnode = new PrimitiveXNode<>(value);
         RawType rv = new RawType(xnode, prismContext);
         return rv;
+    }
+
+    public static RawType create(XNode node, PrismContext prismContext) {
+		return new RawType(node, prismContext);
     }
 
 }

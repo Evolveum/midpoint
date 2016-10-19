@@ -241,7 +241,8 @@ public class TestJaxbParsing {
 
         JAXBElement oValue = prismContext.parserFor(dataValue).xml().parseRealValueToJaxbElement();
         System.out.println(dumpResult(dataValue, oValue));
-        assertJaxbElement(oValue, SchemaConstantsGenerated.C_VALUE, String.class);
+        //assertJaxbElement(oValue, SchemaConstantsGenerated.C_VALUE, String.class);
+        assertJaxbElement(oValue, SchemaConstantsGenerated.C_VALUE, RawType.class);
     }
 
     private void assertJaxbElement(JAXBElement jaxbElement, QName name, Class<?> clazz) {

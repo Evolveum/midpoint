@@ -114,7 +114,7 @@ public class JsonLexicalProcessor extends AbstractJsonLexicalProcessor {
 		if (explicitType != null) {
 			ctx.generator.writeStartObject();
 			ctx.generator.writeStringField(PROP_TYPE, QNameUtil.qNameToUri(primitive.getTypeQName()));
-			ctx.generator.writeObjectField(PROP_VALUE, primitive.getValue());
+			ctx.generator.writeObjectField(PROP_VALUE, primitive.getStringValue());
 			ctx.generator.writeEndObject();
 		} else {
 			serializePrimitiveTypeLessValue(primitive, ctx);

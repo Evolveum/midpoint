@@ -66,11 +66,10 @@ public interface PrismParserNoIO extends PrismParser {
 	<T> T parseRealValue() throws SchemaException;
 	<T> JAXBElement<T> parseRealValueToJaxbElement() throws SchemaException;
 	RootXNode parseToXNode() throws SchemaException;
+	Object parseItemOrRealValue() throws SchemaException;
 
-	// auxiliary and deprecated methods
+	// auxiliary methods
 	@NotNull
 	List<PrismObject<? extends Objectable>> parseObjects() throws SchemaException;
 
-	@Deprecated
-	Object parseAnyData() throws SchemaException;
 }

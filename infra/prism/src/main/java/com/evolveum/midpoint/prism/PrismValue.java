@@ -45,25 +45,37 @@ public abstract class PrismValue implements IPrismValue {
 	private OriginType originType;
     private Objectable originObject;
     private Itemable parent;
-    protected Element domElement = null;
     private transient Map<String,Object> userData = new HashMap<>();
 	protected boolean immutable;
 
-    PrismValue() {
-		super();
+	transient protected PrismContext prismContext;
+
+	PrismValue() {
+	}
+
+	PrismValue(PrismContext prismContext) {
+		this.prismContext = prismContext;
 	}
     
     PrismValue(OriginType type, Objectable source) {
-		super();
+		this(null, type, source);
+	}
+
+    PrismValue(PrismContext prismContext, OriginType type, Objectable source) {
+		this.prismContext = prismContext;
 		this.originType = type;
 		this.originObject = source;
 	}
     
-    PrismValue(OriginType type, Objectable source, Itemable parent) {
-		super();
+    PrismValue(PrismContext prismContext, OriginType type, Objectable source, Itemable parent) {
+		this.prismContext = prismContext;
 		this.originType = type;
 		this.originObject = source;
 		this.parent = parent;
+	}
+
+	public void setPrismContext(PrismContext prismContext) {
+		this.prismContext = prismContext;
 	}
 
 	public void setOriginObject(Objectable source) {
@@ -142,8 +154,12 @@ public abstract class PrismValue implements IPrismValue {
 	
 	@Override
 	public PrismContext getPrismContext() {
+		if (prismContext != null) {
+			return prismContext;
+		}
 		if (parent != null) {
-			return parent.getPrismContext();
+			prismContext = parent.getPrismContext();
+			return prismContext;
 		}
 		return null;
 	}
@@ -169,6 +185,9 @@ public abstract class PrismValue implements IPrismValue {
 	}
 	
 	public void revive(PrismContext prismContext) throws SchemaException {
+		if (this.prismContext == null) {
+			this.prismContext = prismContext;
+		}
 		recompute(prismContext);
 	}
 	
@@ -417,5 +436,8 @@ public abstract class PrismValue implements IPrismValue {
 
 	@Nullable
 	abstract public Class<?> getRealClass();
+
+	@Nullable
+	abstract public <T> T getRealValue();
 
 }

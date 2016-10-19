@@ -61,8 +61,6 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
 	// It can be lazily evaluated based on containerable value.
 	private ComplexTypeDefinition complexTypeDefinition = null;
 
-    transient private PrismContext prismContext;
-
 	public PrismContainerValue() {
 	}
 
@@ -79,15 +77,10 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
 		this.prismContext = prismContext;
 	}
 
-    private void setPrismContext(PrismContext prismContext) {
-        this.prismContext = prismContext;
-    }
-
     public PrismContainerValue(OriginType type, Objectable source, PrismContainerable container, Long id, ComplexTypeDefinition complexTypeDefinition, PrismContext prismContext) {
-		super(type, source, container);
+		super(prismContext, type, source, container);
 		this.id = id;
 		this.complexTypeDefinition = complexTypeDefinition;
-		this.prismContext = prismContext;
     }
 
     @Override
@@ -1446,5 +1439,12 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
 			return containerable.getClass();
 		}
 		return resolveClass(null);
+	}
+
+	@SuppressWarnings("unchecked")
+	@Nullable
+	@Override
+	public <T> T getRealValue() {
+		return (T) asContainerable();
 	}
 }

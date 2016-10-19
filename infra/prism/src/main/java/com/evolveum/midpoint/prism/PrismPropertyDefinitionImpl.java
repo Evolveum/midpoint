@@ -86,25 +86,13 @@ public class PrismPropertyDefinitionImpl<T> extends ItemDefinitionImpl<PrismProp
 	public T defaultValue(){
     	return defaultValue;
     }
-    /**
-     * Returns QName of the property value type.
-     * <p/>
-     * The returned type is either XSD simple type or complex type. It may not
-     * be defined in the same schema (especially if it is standard XSD simple
-     * type).
-     *
-     * @return QName of the property value type
-     */
+
     @Override
 	public QName getValueType() {
         return valueType;
     }
 
-    void setValueType(QName valueType) {
-        this.valueType = valueType;
-    }
-
-    /**
+	/**
      * This is XSD annotation that specifies whether a property should 
      * be indexed in the storage. It can only apply to properties. It
      * has following meaning:

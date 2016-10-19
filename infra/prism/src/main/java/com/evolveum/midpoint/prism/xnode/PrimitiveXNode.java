@@ -68,19 +68,9 @@ public class PrimitiveXNode<T> extends XNode implements Serializable {
 	public void parseValue(QName typeName, XNodeProcessorEvaluationMode mode) throws SchemaException {
         Validate.notNull(typeName, "Cannot parse primitive XNode without knowing its type");
 		if (valueParser != null) {
-			typeName = xsdAnyToString(typeName);
 			value = valueParser.parse(typeName, mode);
 			// Necessary. It marks that the value is parsed. It also frees some memory.
 			valueParser = null;
-		}
-	}
-
-	// xsd:any type will be parsed as xsd:string (TODO reconsider!)
-	private QName xsdAnyToString(QName typeName) {
-		if (DOMUtil.XSD_ANYTYPE.equals(typeName)) {
-			return DOMUtil.XSD_STRING;
-		} else {
-			return typeName;
 		}
 	}
 
@@ -161,7 +151,6 @@ public class PrimitiveXNode<T> extends XNode implements Serializable {
         if (isParsed()) {
             return value;
         } else {
-			typeName = xsdAnyToString(typeName);
             return valueParser.parse(typeName, XNodeProcessorEvaluationMode.STRICT);
         }
     }
@@ -342,7 +331,7 @@ public class PrimitiveXNode<T> extends XNode implements Serializable {
             String otherStringValue = String.valueOf(other.value);
 			return otherStringValue.equals(thisStringValue);
 		} else if (!other.isParsed() && isParsed()){
-            String thisStringValue = String.valueOf(value);;
+            String thisStringValue = String.valueOf(value);
             String otherStringValue = other.getStringValue();
 			return thisStringValue.equals(otherStringValue);
 		}

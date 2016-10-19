@@ -35,6 +35,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 import com.evolveum.prism.xml.ns._public.types_3.EvaluationTimeType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * @author Radovan Semancik
@@ -500,21 +501,37 @@ public class PrismReferenceValue extends PrismValue implements DebugDumpable, Se
 	}
 
 	public Referencable asReferencable() {
-		if (referencable == null){
-			Itemable parent = getParent();
+		if (referencable != null) {
+			return referencable;
+		}
+
+		Itemable parent = getParent();
+		if (parent != null) {
 			QName xsdType = parent.getDefinition().getTypeName();
 			Class clazz = getPrismContext().getSchemaRegistry().getCompileTimeClass(xsdType);
-			if (clazz != null){
+			if (clazz != null) {
 				try {
 					referencable = (Referencable) clazz.newInstance();
 				} catch (InstantiationException | IllegalAccessException e) {
-					throw new SystemException("Couldn't create jaxb object instance of '" + clazz + "': "+e.getMessage(), e);
+					throw new SystemException("Couldn't create jaxb object instance of '" + clazz + "': " + e.getMessage(),
+							e);
 				}
 			}
 			referencable.setupReferenceValue(this);
 		}
-		return referencable;
-		
+
+		// A hack, just to avoid crashes.
+		return new Referencable() {
+			PrismReferenceValue referenceValue = PrismReferenceValue.this;
+			@Override
+			public PrismReferenceValue asReferenceValue() {
+				return referenceValue;
+			}
+			@Override
+			public void setupReferenceValue(PrismReferenceValue value) {
+				referenceValue = value;
+			}
+		};
 	}
 	
 	@Override
@@ -592,6 +609,13 @@ public class PrismReferenceValue extends PrismValue implements DebugDumpable, Se
 
 	@Override
 	public Class<?> getRealClass() {
-		return PrismReferenceValue.class;
+		return Referencable.class;
+	}
+
+	@SuppressWarnings("unchecked")
+	@Nullable
+	@Override
+	public Referencable getRealValue() {
+		return asReferencable();
 	}
 }

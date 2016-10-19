@@ -78,9 +78,8 @@ public class PrismParserImplIO extends PrismParserImpl {
 		return doParseObjects();
 	}
 
-	@Deprecated
 	@Override
-	public Object parseAnyData() throws IOException, SchemaException {
-		return doParseAnyData();
+	public Object parseItemOrRealValue() throws IOException, SchemaException {
+		return doParseItemOrRealValue();
 	}
 }

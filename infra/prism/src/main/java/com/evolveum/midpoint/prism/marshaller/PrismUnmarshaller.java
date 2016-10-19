@@ -25,10 +25,12 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
+import com.evolveum.midpoint.prism.util.RawTypeUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
+import com.evolveum.prism.xml.ns._public.types_3.RawType;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang.Validate;
 
@@ -103,8 +105,7 @@ public class PrismUnmarshaller {
         return parseItemInternal(root.getSubnode(), itemInfo.getItemName(), itemInfo.getItemDefinition(), pc);
     }
 
-    @Deprecated
-    public Object parseAnyData(@NotNull RootXNode root, ParsingContext pc) throws SchemaException {
+    Object parseItemOrRealValue(@NotNull RootXNode root, ParsingContext pc) throws SchemaException {
         // is the type name explicitly specified? (if not, guess that we have a string)
         QName typeName = root.getTypeQName();
         if (typeName != null) {
@@ -134,12 +135,10 @@ public class PrismUnmarshaller {
     private Item<?, ?> parseItemInternal(@NotNull XNode node,
             @NotNull QName itemName, ItemDefinition itemDefinition, @NotNull ParsingContext pc) throws SchemaException {
         Validate.isTrue(!(node instanceof RootXNode));
-        if (itemDefinition == null) {      // Assume property in a container with runtime definition
-            return PrismProperty.createRaw(node, itemName, prismContext);
+        if (itemDefinition == null || itemDefinition instanceof PrismPropertyDefinition) {
+            return parseProperty(node, itemName, (PrismPropertyDefinition) itemDefinition, pc);
         } else if (itemDefinition instanceof PrismContainerDefinition) {    // also objects go here
             return parseContainer(node, itemName, (PrismContainerDefinition<?>) itemDefinition, pc);
-        } else if (itemDefinition instanceof PrismPropertyDefinition) {
-            return parseProperty(node, itemName, (PrismPropertyDefinition) itemDefinition, pc);
         } else if (itemDefinition instanceof PrismReferenceDefinition) {
             return parseReference(node, itemName, (PrismReferenceDefinition) itemDefinition, pc);
         } else {
@@ -263,13 +262,16 @@ public class PrismUnmarshaller {
 
     @NotNull
     private <T> PrismProperty<T> parseProperty(@NotNull XNode node, @NotNull QName itemName,
-            @NotNull PrismPropertyDefinition<T> itemDefinition, @NotNull ParsingContext pc) throws SchemaException {
+            @Nullable PrismPropertyDefinition<T> itemDefinition, @NotNull ParsingContext pc) throws SchemaException {
         Validate.isTrue(!(node instanceof RootXNode));
 
-        PrismProperty<T> property = itemDefinition.instantiate();
+        PrismProperty<T> property = itemDefinition != null ?
+                itemDefinition.instantiate() :
+                new PrismProperty<T>(itemName, prismContext);
+
         if (node instanceof ListXNode) {
             ListXNode listNode = (ListXNode) node;
-            if (!itemDefinition.isMultiValue() && listNode.size() > 1) {
+            if (itemDefinition != null && !itemDefinition.isMultiValue() && listNode.size() > 1) {
                 throw new SchemaException("Attempt to store multiple values in single-valued property " + itemName);
             }
             for (XNode subNode : listNode) {
@@ -295,7 +297,11 @@ public class PrismUnmarshaller {
     }
 
     private <T> PrismPropertyValue<T> parsePropertyValue(@NotNull XNode node,
-            @NotNull PrismPropertyDefinition<T> definition, @NotNull ParsingContext pc) throws SchemaException {
+            @Nullable PrismPropertyDefinition<T> definition, @NotNull ParsingContext pc) throws SchemaException {
+
+        if (definition == null || definition.isAnyType()) {
+            return PrismPropertyValue.createRaw(node);
+        }
 
         T realValue;
         if (node instanceof PrimitiveXNode<?>) {
@@ -318,7 +324,7 @@ public class PrismUnmarshaller {
         if (getBeanConverter().canProcess(typeName)) {
             // Primitive elements may also have complex Java representations (e.g. enums)
             realValue = getBeanConverter().unmarshallPrimitive(primitiveNode, typeName, pc);
-        } else {
+        } else if (!DOMUtil.XSD_ANYTYPE.equals(typeName)) {
             try {
                 realValue = primitiveNode.getParsedValue(typeName, pc.getEvaluationMode());
             } catch (SchemaException e) {
@@ -326,9 +332,11 @@ public class PrismUnmarshaller {
                         + ".\nDefinition: " + definition.debugDump(), e);
                 return null;
             }
+        } else {
+            realValue = (T) RawType.create(primitiveNode, prismContext);
         }
 
-        if (!isValueAllowed(realValue, definition.getAllowedValues())) {
+        if (!(realValue instanceof RawType) && !isValueAllowed(realValue, definition.getAllowedValues())) {
             pc.warnOrThrow(LOGGER, "Skipping unknown value of type " + typeName + ". Value: " + primitiveNode.getStringValue());
             return null;
         }

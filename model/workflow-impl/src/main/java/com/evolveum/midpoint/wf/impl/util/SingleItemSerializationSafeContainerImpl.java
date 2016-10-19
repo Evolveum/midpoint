@@ -115,7 +115,7 @@ public class SingleItemSerializationSafeContainerImpl<T> implements Serializatio
 
             if (encodingScheme == EncodingScheme.PRISM) {
                 try {
-                    actualValue = (T) prismContext.parserFor(valueForStorageWhenEncoded).xml().parseAnyData();
+                    actualValue = (T) prismContext.parserFor(valueForStorageWhenEncoded).xml().parseItemOrRealValue();
                     if (actualValue instanceof Item) {
                         Item item = (Item) actualValue;
                         if (item.isEmpty()) {

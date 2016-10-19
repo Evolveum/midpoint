@@ -21,7 +21,6 @@ import com.evolveum.midpoint.model.impl.scripting.expressions.SearchEvaluator;
 import com.evolveum.midpoint.model.impl.scripting.expressions.SelectEvaluator;
 import com.evolveum.midpoint.model.impl.scripting.helpers.JaxbHelper;
 import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.ParsingContext;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.marshaller.QueryConvertor;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
@@ -257,7 +256,7 @@ public class ScriptingExpressionEvaluator {
     public Data evaluateConstantExpression(RawType constant, ExecutionContext context, OperationResult result) throws ScriptExecutionException {
 
         try {
-            Object value = prismContext.parserFor(constant.getXnode().toRootXNode()).parseAnyData();
+            Object value = prismContext.parserFor(constant.getXnode().toRootXNode()).parseItemOrRealValue();
             if (value instanceof Item) {
                 return Data.create((Item) value);
             } else {
