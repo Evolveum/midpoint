@@ -498,7 +498,7 @@ It also contains inbound mappings and definition to enable synchronization.
 	            <correlation>
 	                <q:description>
 	                    Correlation expression is a search query.
-	                    Following search queury will look for users that have "name"
+	                    Following search query will look for users that have "name"
 	                    equal to the "uid" attribute of the account. Simply speaking,
 	                    it will look for match in usernames in the IDM and the resource.
 	                    The correlation rule always looks for users, so it will not match

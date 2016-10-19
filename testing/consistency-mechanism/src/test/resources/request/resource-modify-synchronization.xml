@@ -44,7 +44,7 @@
 	            <correlation>
 	                <q:description>
 	                    Correlation expression is a search query.
-	                    Following search queury will look for users that have "employeeNumber"
+	                    Following search query will look for users that have "employeeNumber"
 	                    equal to the "enumber" attribute of the account.
                             The condition will ensure that "enumber" is not
                             empty, otherwise it would match any midPoint user
