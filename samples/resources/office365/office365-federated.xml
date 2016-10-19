@@ -285,7 +285,7 @@ This contains configuration for a federated Office 365 domain
                 <correlation>
                     <q:description>
                         Correlation expression is a search query.
-                        Following search queury will look for users that have "name"
+                        Following search query will look for users that have "name"
                         equal to the "mailNickname" attribute of the account. Simply speaking,
                         it will look for match in usernames in the IDM and the resource.
                         The correlation rule always looks for users, so it will not match
