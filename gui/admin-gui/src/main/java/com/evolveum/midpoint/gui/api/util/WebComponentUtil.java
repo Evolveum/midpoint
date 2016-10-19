@@ -60,6 +60,7 @@ import org.apache.wicket.feedback.IFeedback;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.CheckBox;
+import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.IChoiceRenderer;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.model.AbstractReadOnlyModel;
@@ -155,6 +156,7 @@ import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.web.security.SecurityUtils;
 import com.evolveum.midpoint.web.session.SessionStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
+import com.evolveum.midpoint.web.util.DateValidator;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
@@ -282,6 +284,27 @@ public final class WebComponentUtil {
 			throw new IllegalStateException("Exception while obtaining Datatype Factory instance", dce);
 		}
 	}
+	
+	public static DateValidator getRangeValidator(Form<?> form, ItemPath path) {
+        DateValidator validator = null;
+        List<DateValidator> validators = form.getBehaviors(DateValidator.class);
+        if (validators != null) {
+            for (DateValidator val : validators) {
+                if (path.equivalent(val.getIdentifier())) {
+                    validator = val;
+                    break;
+                }
+            }
+        }
+
+        if (validator == null) {
+            validator = new DateValidator();
+            validator.setIdentifier(path);
+            form.add(validator);
+        }
+
+        return validator;
+    }
 
 	public static Class<?> qnameToClass(PrismContext prismContext, QName type) {
 		return prismContext.getSchemaRegistry().determineCompileTimeClass(type);

@@ -17,16 +17,17 @@
 package com.evolveum.midpoint.web.page.admin.reports.dto;
 
 import java.io.Serializable;
-import java.sql.Timestamp;
-import java.util.Date;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventStageType;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventTypeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
  *  TODO - get rid of XMLGregorianCalendar - Date conversions
@@ -35,10 +36,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatu
  */
 public class AuditSearchDto implements Serializable {
 
-	public static final String F_FROM_GREG = "fromGreg";
-	public static final String F_TO_GREG = "toGreg";
-	// public static final String F_FROM = "from";
-	// public static final String F_TO = "to";
+	public static final String F_FROM = "from";
+	public static final String F_TO = "to";
 	public static final String F_INITIATOR_NAME = "initiatorName";
 	public static final String F_CHANNEL = "channel";
 	public static final String F_HOST_IDENTIFIER = "hostIdentifier";
@@ -48,75 +47,38 @@ public class AuditSearchDto implements Serializable {
 	public static final String F_EVENT_STAGE = "eventStage";
 	public static final String F_OUTCOME = "outcome";
 
-	private XMLGregorianCalendar fromGreg;
-	private XMLGregorianCalendar toGreg;
-	// private Date from;
-	// private Date to;
-	private String initiatorName;
-	// private String channel;
+	private XMLGregorianCalendar from;
+	private XMLGregorianCalendar to;
+	private ObjectReferenceType initiatorName;
 	private QName channel;
 	private String hostIdentifier;
-	private String targetName;
-	private String targetOwnerName;
+	private ObjectReferenceType targetName;
+	private ObjectReferenceType targetOwnerName;
 	private AuditEventTypeType eventType;
 	private AuditEventStageType eventStage;
 	private OperationResultStatusType outcome;
 
-	public XMLGregorianCalendar getFromGreg() {
-		// return MiscUtil.asXMLGregorianCalendar(from);
-		return fromGreg;
-	}
-
-	public void setFromGreg(XMLGregorianCalendar fromGreg) {
-		// this.from = MiscUtil.asDate(fromGreg);
-		this.fromGreg = fromGreg;
-	}
-
-	public XMLGregorianCalendar getToGreg() {
-		// return MiscUtil.asXMLGregorianCalendar(to);
-		return toGreg;
-	}
-
-	public void setToGreg(XMLGregorianCalendar toGreg) {
-		// this.to = MiscUtil.asDate(toGreg);
-		this.toGreg = toGreg;
-	}
-
-	/*public Date getFrom() {
-		if (from == null) {
-			from = new Date();
-		}
+	public XMLGregorianCalendar getFrom() {
 		return from;
 	}
-
-	public void setFrom(Date from) {
+	
+	public void setFrom(XMLGregorianCalendar from) {
 		this.from = from;
 	}
-
-	public Date getTo() {
-		if (to == null) {
-			to = new Date();
-		}
+	
+	public XMLGregorianCalendar getTo() {
 		return to;
 	}
-
-	public void setTo(Date to) {
+	
+	public void setTo(XMLGregorianCalendar to) {
 		this.to = to;
-	}*/
-
-	/*public Timestamp getDateFrom() {
-		return new Timestamp(getFrom().getTime());
 	}
 
-	public Timestamp getDateTo() {
-		return new Timestamp(getTo().getTime());
-	}*/
-
-	public String getInitiatorName() {
+	public ObjectReferenceType getInitiatorName() {
 		return initiatorName;
 	}
 
-	public void setInitiatorName(String initiatorName) {
+	public void setInitiatorName(ObjectReferenceType initiatorName) {
 		this.initiatorName = initiatorName;
 	}
 
@@ -136,19 +98,19 @@ public class AuditSearchDto implements Serializable {
 		this.hostIdentifier = hostIdentifier;
 	}
 
-	public String getTargetName() {
+	public ObjectReferenceType getTargetName() {
 		return targetName;
 	}
 
-	public void setTargetName(String targetName) {
+	public void setTargetName(ObjectReferenceType targetName) {
 		this.targetName = targetName;
 	}
 
-	public String getTargetOwnerName() {
+	public ObjectReferenceType getTargetOwnerName() {
 		return targetOwnerName;
 	}
 
-	public void setTargetOwnerName(String targetOwnerName) {
+	public void setTargetOwnerName(ObjectReferenceType targetOwnerName) {
 		this.targetOwnerName = targetOwnerName;
 	}
 
