@@ -1058,16 +1058,15 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
 		applyDefinition((PrismContainerDefinition<C>)definition, force);
 	}
 
-	public void applyDefinition(PrismContainerDefinition<C> containerDef, boolean force) throws SchemaException {
+	public void applyDefinition(@NotNull PrismContainerDefinition<C> containerDef, boolean force) throws SchemaException {
 		checkMutability();
-        ComplexTypeDefinition ctd = getComplexTypeDefinition();
-        if (ctd == null) {
-			if (containerDef == null || containerDef.getComplexTypeDefinition() == null) {
-				return;
-			}
-            ctd = containerDef.getComplexTypeDefinition();
-        }
-		if (ctd.isXsdAnyMarker()) {
+		// Although complexTypeDefinition is cached, its presence means that the parent had a definition before
+		// parent.applyDefinition() was called. So if !force, we can safely exit here.
+		if (complexTypeDefinition != null && !force) {
+			return;				// there's a definition already
+		}
+		complexTypeDefinition = containerDef.getComplexTypeDefinition();
+		if (complexTypeDefinition == null || complexTypeDefinition.isXsdAnyMarker()) {
 			// No point in aplying this. Nothing will change and there may be phantom errors.
 			return;
 		}
@@ -1077,7 +1076,7 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
 					// Item has a definition already, no need to apply it
 					continue;
 				}
-				ItemDefinition itemDefinition = determineItemDefinition(item.getElementName(), ctd);
+				ItemDefinition itemDefinition = determineItemDefinition(item.getElementName(), complexTypeDefinition);
 				if (itemDefinition == null && item.getDefinition() != null && item.getDefinition().isDynamic()) {
 					// We will not apply the null definition here. The item has a dynamic definition that we don't
 					// want to destroy as it cannot be reconstructed later.

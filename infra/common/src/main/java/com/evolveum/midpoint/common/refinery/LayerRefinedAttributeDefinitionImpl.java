@@ -171,8 +171,8 @@ public class LayerRefinedAttributeDefinitionImpl<T> implements LayerRefinedAttri
 	public boolean equals(Object obj) {
 		if (this == obj)
 			return true;
-		if (!super.equals(obj))
-			return false;
+//		if (!super.equals(obj))
+//			return false;
 		if (getClass() != obj.getClass())
 			return false;
 		LayerRefinedAttributeDefinitionImpl other = (LayerRefinedAttributeDefinitionImpl) obj;
@@ -449,7 +449,7 @@ public class LayerRefinedAttributeDefinitionImpl<T> implements LayerRefinedAttri
 
 	@Override
 	public int getMinOccurs() {
-		return refinedAttributeDefinition.getMinOccurs();
+		return refinedAttributeDefinition.getMinOccurs(layer);
 	}
 
 	@Override
@@ -459,7 +459,7 @@ public class LayerRefinedAttributeDefinitionImpl<T> implements LayerRefinedAttri
 
 	@Override
 	public int getMaxOccurs() {
-		return refinedAttributeDefinition.getMaxOccurs();
+		return refinedAttributeDefinition.getMaxOccurs(layer);
 	}
 
 	@Override
@@ -479,7 +479,7 @@ public class LayerRefinedAttributeDefinitionImpl<T> implements LayerRefinedAttri
 
 	@Override
 	public boolean isSingleValue() {
-		return refinedAttributeDefinition.isSingleValue();
+		return refinedAttributeDefinition.isSingleValue(layer);
 	}
 
 	@Override
@@ -494,7 +494,7 @@ public class LayerRefinedAttributeDefinitionImpl<T> implements LayerRefinedAttri
 
 	@Override
 	public boolean isMultiValue() {
-		return refinedAttributeDefinition.isMultiValue();
+		return refinedAttributeDefinition.isMultiValue(layer);
 	}
 
 	@Override
@@ -515,12 +515,12 @@ public class LayerRefinedAttributeDefinitionImpl<T> implements LayerRefinedAttri
 
 	@Override
 	public boolean isMandatory() {
-		return refinedAttributeDefinition.isMandatory();
+		return refinedAttributeDefinition.isMandatory(layer);
 	}
 
 	@Override
 	public boolean isIgnored() {
-		return refinedAttributeDefinition.isIgnored();
+		return refinedAttributeDefinition.isIgnored(layer);
 	}
 
 	@Override
@@ -540,7 +540,7 @@ public class LayerRefinedAttributeDefinitionImpl<T> implements LayerRefinedAttri
 
 	@Override
 	public boolean isOptional() {
-		return refinedAttributeDefinition.isOptional();
+		return refinedAttributeDefinition.isOptional(layer);
 	}
 
 	@Override

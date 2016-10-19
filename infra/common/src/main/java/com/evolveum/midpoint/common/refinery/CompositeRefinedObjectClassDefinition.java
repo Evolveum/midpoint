@@ -570,25 +570,17 @@ public class CompositeRefinedObjectClassDefinition implements RefinedObjectClass
 		if (this == obj) {
 			return true;
 		}
-		if (!super.equals(obj)) {
-			return false;
-		}
+//		if (!super.equals(obj)) {
+//			return false;
+//		}
 		if (getClass() != obj.getClass()) {
 			return false;
 		}
 		CompositeRefinedObjectClassDefinition other = (CompositeRefinedObjectClassDefinition) obj;
-		if (auxiliaryObjectClassDefinitions == null) {
-			if (other.auxiliaryObjectClassDefinitions != null) {
-				return false;
-			}
-		} else if (!auxiliaryObjectClassDefinitions.equals(other.auxiliaryObjectClassDefinitions)) {
+		if (!auxiliaryObjectClassDefinitions.equals(other.auxiliaryObjectClassDefinitions)) {
 			return false;
 		}
-		if (structuralObjectClassDefinition == null) {
-			if (other.structuralObjectClassDefinition != null) {
-				return false;
-			}
-		} else if (!structuralObjectClassDefinition.equals(other.structuralObjectClassDefinition)) {
+		if (!structuralObjectClassDefinition.equals(other.structuralObjectClassDefinition)) {
 			return false;
 		}
 		return true;
