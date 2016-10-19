@@ -17,19 +17,31 @@ package com.evolveum.midpoint.web.page.admin.users;
 
 import com.evolveum.midpoint.gui.api.component.tabs.PanelTab;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
+import com.evolveum.midpoint.prism.delta.ChangeType;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.FocusSummaryPanel;
 import com.evolveum.midpoint.web.component.assignment.AssignmentEditorDto;
 import com.evolveum.midpoint.web.component.objectdetails.AbstractObjectMainPanel;
 import com.evolveum.midpoint.web.component.objectdetails.FocusMainPanel;
+import com.evolveum.midpoint.web.component.prism.ContainerStatus;
+import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
+import com.evolveum.midpoint.web.component.prism.ObjectWrapperFactory;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
 import com.evolveum.midpoint.web.page.admin.PageAdminFocus;
 import com.evolveum.midpoint.web.page.admin.PageAdminObjectDetails;
 import com.evolveum.midpoint.web.page.admin.services.PageServices;
+import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptionsDto;
 import com.evolveum.midpoint.web.page.admin.users.component.MergeObjectsPanel;
 import com.evolveum.midpoint.web.page.admin.users.component.UserSummaryPanel;
 import com.evolveum.midpoint.web.page.admin.users.dto.FocusSubwrapperDto;
@@ -38,6 +50,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.Component;
+import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
@@ -61,10 +75,14 @@ import java.util.List;
                 label = "PageMergeObjects.auth.mergeObjects.label",
                 description = "PageMergeObjects.auth.mergeObjects.description") })
 public class PageMergeObjects<F extends FocusType> extends PageAdminFocus {
-    private static final String ID_MERGE_PANEL = "mergePanel";
+    private static final String DOT_CLASS = PageMergeObjects.class.getName() + ".";
+    private static final String OPERATION_DELETE_USER = DOT_CLASS + "deleteUser";
+    private static final Trace LOGGER = TraceManager.getTrace(PageMergeObjects.class);
     private F mergeObject;
     private F mergeWithObject;
     private Class<F> type;
+    private MergeObjectsPanel mergeObjectsPanel;
+
     public PageMergeObjects(){
     }
 
@@ -76,10 +94,7 @@ public class PageMergeObjects<F extends FocusType> extends PageAdminFocus {
         PageParameters parameters = new PageParameters();
         parameters.add(OnePageParameterEncoder.PARAMETER, mergeObject.getOid());
         getPageParameters().overwriteWith(parameters);
-
-
         initialize(this.mergeObject.asPrismObject());
-//        initLayout();
     }
 
     @Override
@@ -116,27 +131,15 @@ public class PageMergeObjects<F extends FocusType> extends PageAdminFocus {
     }
     @Override
     protected FocusSummaryPanel<UserType> createSummaryPanel(){
-        return new UserSummaryPanel(ID_SUMMARY_PANEL, getObjectModel());
+        UserSummaryPanel summaryPanel = new UserSummaryPanel(ID_SUMMARY_PANEL, getObjectModel());
+        summaryPanel.setVisible(false);
+        return summaryPanel;
     }
 
     @Override
     protected Class getRestartResponsePage() {
         return PageUsers.class;
     }
-
-
-//    protected void initLayout(){
-//        if (mergeObject == null || StringUtils.isEmpty(mergeObject.getOid())
-//                || mergeWithObject == null || StringUtils.isEmpty(mergeWithObject.getOid())) {
-//            Label warningMessage = new Label(ID_MERGE_PANEL, createStringResource("PageMergeObjects.warningMessage"));
-//            warningMessage.setOutputMarkupId(true);
-//            add(warningMessage);
-//        } else {
-//            MergeObjectsPanel mergePanel = new MergeObjectsPanel(ID_MERGE_PANEL, mergeObject, mergeWithObject, type, PageMergeObjects.this);
-//            mergePanel.setOutputMarkupId(true);
-//            add(mergePanel);
-//        }
-//    }
 
     protected UserType createNewObject(){
         return new UserType();
@@ -156,4 +159,38 @@ public class PageMergeObjects<F extends FocusType> extends PageAdminFocus {
     public boolean isEditingFocus() {
         return true;
     }
+
+    @Override
+    public void saveOrPreviewPerformed(AjaxRequestTarget target, OperationResult result, boolean previewOnly) {
+        MergeObjectsPanel panel  = (MergeObjectsPanel) get("mainPanel").get("mainForm").get("tabPanel").get("panel");
+        ObjectDelta<F> mergeDelta = panel.getMergeDelta();
+
+        ((ObjectWrapper)getObjectModel().getObject()).setOldDelta(mergeDelta);
+        super.saveOrPreviewPerformed(target, result, previewOnly);
+
+        deleteUser(mergeWithObject.getOid(), target);
+    }
+
+    private void deleteUser(String userOid, AjaxRequestTarget target) {
+        OperationResult result = new OperationResult(OPERATION_DELETE_USER);
+            try {
+                Task task = createSimpleTask(OPERATION_DELETE_USER);
+
+                ObjectDelta delta = new ObjectDelta(type, ChangeType.DELETE, getPrismContext());
+                delta.setOid(userOid);
+                ModelExecuteOptions options = getExecuteChangesOptions();
+                LOGGER.debug("Delete user using options {}.", new Object[] { options });
+                getModelService().executeChanges(WebComponentUtil.createDeltaCollection(delta), options, task,
+                        result);
+                result.computeStatus();
+            } catch (Exception ex) {
+                result.recomputeStatus();
+                result.recordFatalError("Couldn't delete user.", ex);
+                LoggingUtils.logUnexpectedException(LOGGER, "Couldn't delete user", ex);
+            }
+        result.computeStatusComposite();
+        showResult(result);
+        target.add(getFeedbackPanel());
+    }
+
 }
