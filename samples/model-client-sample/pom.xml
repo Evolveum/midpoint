@@ -139,6 +139,11 @@
                     <skipTests>true</skipTests> <!-- there are tests but we don't want them to be executed automatically -->
                 </configuration>
             </plugin>
+            <plugin>
+                <groupId>com.rimerosolutions.maven.plugins</groupId>
+                <artifactId>wrapper-maven-plugin</artifactId>
+                <version>0.0.4</version>
+            </plugin>
         </plugins>
     </build>
     <dependencies>
