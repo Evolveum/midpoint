@@ -533,14 +533,14 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
 
 	//region applyDefinition(..) methods
 	@Override
-	public <O extends Objectable> void applyDefinition(PrismObject<O> prismObject, Class<O> type) throws SchemaException {
-		applyDefinition(prismObject, type, true);
+	public <C extends Containerable> void applyDefinition(PrismContainer<C> container, Class<C> type) throws SchemaException {
+		applyDefinition(container, type, true);
 	}
 	
 	@Override
-	public <O extends Objectable> void applyDefinition(PrismObject<O> prismObject, Class<O> compileTimeClass, boolean force) throws SchemaException {
-		PrismObjectDefinition<O> objectDefinition = determineDefinitionFromClass(compileTimeClass);
-		prismObject.applyDefinition(objectDefinition, force);
+	public <C extends Containerable> void applyDefinition(PrismContainer<C> container, Class<C> compileTimeClass, boolean force) throws SchemaException {
+		PrismContainerDefinition<C> definition = determineDefinitionFromClass(compileTimeClass);
+		container.applyDefinition(definition, force);
 	}
 	
 	@Override
@@ -980,14 +980,18 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
 
 	@Override
 	public ItemDefinition resolveGlobalItemDefinition(QName itemName, @Nullable ComplexTypeDefinition complexTypeDefinition) throws SchemaException {
-		String elementNamespace = itemName.getNamespaceURI();
-		if (StringUtils.isEmpty(elementNamespace)) {
-			List<String> ignoredNamespaces = complexTypeDefinition != null ?
-					complexTypeDefinition.getIgnoredNamespaces() :
-					null;
-			return resolveGlobalItemDefinitionWithoutNamespace(itemName.getLocalPart(), ItemDefinition.class, true, ignoredNamespaces);
+		if (QNameUtil.noNamespace(itemName)) {
+			if (complexTypeDefinition != null && complexTypeDefinition.getDefaultNamespace() != null) {
+				itemName = new QName(complexTypeDefinition.getDefaultNamespace(), itemName.getLocalPart());
+			}
+			else {
+				List<String> ignoredNamespaces = complexTypeDefinition != null ?
+						complexTypeDefinition.getIgnoredNamespaces() :
+						null;
+				return resolveGlobalItemDefinitionWithoutNamespace(itemName.getLocalPart(), ItemDefinition.class, true, ignoredNamespaces);
+			}
 		}
-		PrismSchema schema = findSchemaByNamespace(elementNamespace);
+		PrismSchema schema = findSchemaByNamespace(itemName.getNamespaceURI());
 		if (schema == null) {
 			return null;
 		}
@@ -1011,7 +1015,6 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
 			ItemDefinition def = schema.findItemDefinitionByElementName(new QName(localPart), definitionClass);
 			if (def != null) {
 				if (found != null) {
-					// todo change to SchemaException
 					if (exceptionIfAmbiguous) {
 						throw new IllegalArgumentException("Multiple possible resolutions for unqualified element name " + localPart + " (e.g. in " +
 								def.getNamespace() + " and " + found.getNamespace());

@@ -247,14 +247,14 @@ public class PrismContextImpl implements PrismContext {
 	 * Set up the specified object with prism context instance and schema definition.
 	 */
 	@Override
-	public <T extends Objectable> void adopt(PrismObject<T> object, Class<T> declaredType) throws SchemaException {
-		object.revive(this);
-		getSchemaRegistry().applyDefinition(object, declaredType, false);
+	public <C extends Containerable> void adopt(PrismContainer<C> container, Class<C> declaredType) throws SchemaException {
+		container.revive(this);
+		getSchemaRegistry().applyDefinition(container, declaredType, false);
 	}
 	
 	@Override
-	public <T extends Objectable> void adopt(PrismObject<T> object) throws SchemaException {
-		adopt(object, object.getCompileTimeClass());
+	public <C extends Containerable> void adopt(PrismContainer<C> container) throws SchemaException {
+		adopt(container, container.getCompileTimeClass());
 	}
 
 	@Override

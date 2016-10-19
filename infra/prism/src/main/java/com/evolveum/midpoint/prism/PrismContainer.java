@@ -79,6 +79,13 @@ public class PrismContainer<C extends Containerable> extends Item<PrismContainer
     public PrismContainer(QName name, Class<C> compileTimeClass, PrismContext prismContext) {
         this(name, compileTimeClass);
         this.prismContext = prismContext;
+		if (prismContext != null) {
+			try {
+				prismContext.adopt(this);
+			} catch (SchemaException e) {
+				throw new SystemException("Schema exception when adopting freshly created PrismContainer: " + this);
+			}
+		}
     }
 
 

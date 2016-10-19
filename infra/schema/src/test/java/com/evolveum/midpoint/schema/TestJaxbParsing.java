@@ -235,15 +235,25 @@ public class TestJaxbParsing {
 
         // THEN
 
-        Object oAsIs = prismContext.parserFor(dataAsIs).xml().parseRealValueToJaxbElement();
-        System.out.println("Parsed expression evaluator: "  + dataAsIs + " as " + oAsIs);
-        AssertJUnit.assertTrue("result is of wrong class (not JAXBElement): " + oAsIs.getClass(), oAsIs instanceof JAXBElement);
+        JAXBElement oAsIs = prismContext.parserFor(dataAsIs).xml().parseRealValueToJaxbElement();
+        System.out.println(dumpResult(dataAsIs, oAsIs));
+        assertJaxbElement(oAsIs, new QName("asIs"), AsIsExpressionEvaluatorType.class);
 
-        Object oValue = prismContext.parserFor(dataValue).xml().parseRealValueToJaxbElement();
-        System.out.println("Parsed expression evaluator: " + dataValue + " as " + oValue);
-        AssertJUnit.assertTrue("result is of wrong class (not JAXBElement): " + oValue.getClass(), oValue instanceof JAXBElement);
+        JAXBElement oValue = prismContext.parserFor(dataValue).xml().parseRealValueToJaxbElement();
+        System.out.println(dumpResult(dataValue, oValue));
+        assertJaxbElement(oValue, SchemaConstantsGenerated.C_VALUE, String.class);
     }
-    
+
+    private void assertJaxbElement(JAXBElement jaxbElement, QName name, Class<?> clazz) {
+        assertEquals("Wrong JAXB element name", name, jaxbElement.getName());
+        assertEquals("Wrong JAXB element declared type", clazz, jaxbElement.getDeclaredType());
+        assertEquals("Wrong JAXB element value type", clazz, jaxbElement.getValue().getClass());
+    }
+
+    private String dumpResult(String data, JAXBElement jaxb) {
+        return "Parsed expression evaluator: "  + data + " as " + jaxb + " (name=" + jaxb.getName() + ", declaredType=" + jaxb.getDeclaredType() + ", value=" + jaxb.getValue() + ")";
+    }
+
     @Test
     public void testParseValueFilterWithAny() throws Exception {
 

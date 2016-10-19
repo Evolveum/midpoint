@@ -52,6 +52,7 @@ import com.evolveum.prism.xml.ns._public.types_3.EvaluationTimeType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedDataType;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * @author semancik
@@ -87,11 +88,11 @@ public class PrismMarshaller {
 		if (item instanceof PrismObject) {
 			content = marshalObjectContent((PrismObject) item, (PrismObjectDefinition) realDefinition, context);
 		} else if (item.size() == 1) {
-			content = marshalItemValue(item.getValue(0), realDefinition, context);
+			content = marshalItemValue(item.getValue(0), realDefinition, null, context);
 		} else {
 			ListXNode xlist = new ListXNode();
 			for (PrismValue val : item.getValues()) {
-				xlist.add(marshalItemValue(val, realDefinition, context));
+				xlist.add(marshalItemValue(val, realDefinition, null, context));
 			}
 			content = xlist;
 		}
@@ -101,7 +102,7 @@ public class PrismMarshaller {
 	RootXNode marshalItemValueAsRoot(@NotNull PrismValue value, @NotNull QName itemName, ItemDefinition itemDefinition,
 			SerializationContext context) throws SchemaException {
         ItemInfo itemInfo = ItemInfo.determineFromValue(value, itemName, itemDefinition, beanConverter.getPrismContext().getSchemaRegistry());
-		XNode valueNode = marshalItemValue(value, itemInfo.getItemDefinition(), context);
+		XNode valueNode = marshalItemValue(value, itemInfo.getItemDefinition(), itemInfo.getTypeName(), context);
 		return new RootXNode(itemName, valueNode);
 	}
 
@@ -148,14 +149,15 @@ public class PrismMarshaller {
 	}
 
 	@NotNull
-    private <V extends PrismValue> XNode marshalItemValue(@NotNull PrismValue itemValue, ItemDefinition definition, SerializationContext ctx) throws SchemaException {
+    private <V extends PrismValue> XNode marshalItemValue(@NotNull PrismValue itemValue, @Nullable ItemDefinition definition,
+			@Nullable QName typeName, SerializationContext ctx) throws SchemaException {
         XNode xnode;
-        if (definition == null && itemValue instanceof PrismPropertyValue) {
+        if (definition == null && typeName == null && itemValue instanceof PrismPropertyValue) {
             return serializePropertyRawValue((PrismPropertyValue<?>) itemValue);
         } else if (itemValue instanceof PrismReferenceValue) {
             xnode = serializeReferenceValue((PrismReferenceValue)itemValue, (PrismReferenceDefinition) definition, ctx);
         } else if (itemValue instanceof PrismPropertyValue<?>) {
-            xnode = serializePropertyValue((PrismPropertyValue<?>)itemValue, (PrismPropertyDefinition)definition);
+            xnode = serializePropertyValue((PrismPropertyValue<?>)itemValue, (PrismPropertyDefinition)definition, typeName);
         } else if (itemValue instanceof PrismContainerValue<?>) {
             xnode = marshalContainerValue((PrismContainerValue<?>)itemValue, (PrismContainerDefinition)definition, ctx);
         } else {
@@ -276,21 +278,22 @@ public class PrismMarshaller {
     //endregion
 
     //region Serializing properties - specific functionality
-    private <T> XNode serializePropertyValue(PrismPropertyValue<T> value, PrismPropertyDefinition<T> definition) throws SchemaException {
-        QName typeQName = definition.getTypeName();
+    private <T> XNode serializePropertyValue(@NotNull PrismPropertyValue<T> value, PrismPropertyDefinition<T> definition, QName typeNameIfNoDefinition) throws SchemaException {
+        @Nullable QName typeName = definition != null ? definition.getTypeName() : typeNameIfNoDefinition;
         T realValue = value.getValue();
         if (realValue instanceof PolyString) {
             return serializePolyString((PolyString) realValue);
-        } else if (beanConverter.canProcess(typeQName)) {
+        } else if (beanConverter.canProcess(typeName)) {
             XNode xnode = beanConverter.marshall(realValue);
-            if (realValue instanceof ProtectedDataType<?> && (definition == null || definition.isDynamic())) {          // why is this?
+			// why is this?
+            if (realValue instanceof ProtectedDataType<?> && (definition == null || definition.isDynamic())) {
                 xnode.setExplicitTypeDeclaration(true);
-                xnode.setTypeQName(definition.getTypeName());
+                xnode.setTypeQName(typeName);
             }
             return xnode;
         } else {
             // primitive value
-            return createPrimitiveXNode(realValue, typeQName);
+            return createPrimitiveXNode(realValue, typeName);
         }
     }
 

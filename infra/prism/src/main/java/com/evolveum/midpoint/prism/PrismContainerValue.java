@@ -781,25 +781,17 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
 
     public <X> PrismProperty<X> createProperty(QName propertyName) throws SchemaException {
 		checkMutability();
-        PrismPropertyDefinition propertyDefinition = null;
-		ComplexTypeDefinition complexTypeDefinition = getComplexTypeDefinition();
-        if (complexTypeDefinition != null) {
-        	propertyDefinition = complexTypeDefinition.findPropertyDefinition(propertyName);
-        	if (propertyDefinition == null) {
-        		// container has definition, but there is no property definition. This is either runtime schema
-        		// or an error
-        		if (getParent().getDefinition().isRuntimeSchema()) {
-        			// TODO: create opportunistic runtime definition
-            		//propertyDefinition = new PrismPropertyDefinitionImpl(propertyName, propertyName, typeName, container.prismContext);
-        		} else {
-                    throw new IllegalArgumentException("No definition for property "+propertyName+" in "+complexTypeDefinition);
-        		}
-        	}
-        }
-        PrismProperty<X> property = null;
+        PrismPropertyDefinition propertyDefinition = determineItemDefinition(propertyName, getComplexTypeDefinition());
+		if (propertyDefinition == null) {
+			// container has definition, but there is no property definition. This is either runtime schema
+			// or an error
+			if (getParent() != null && getDefinition() != null && !getDefinition().isRuntimeSchema()) {		// TODO clean this up
+				throw new IllegalArgumentException("No definition for property "+propertyName+" in "+complexTypeDefinition);
+			}
+		}
+        PrismProperty<X> property;
         if (propertyDefinition == null) {
-        	// Definitionless
-        	property = new PrismProperty<X>(propertyName, prismContext);
+        	property = new PrismProperty<X>(propertyName, prismContext);		// Definitionless
         } else {
         	property = propertyDefinition.instantiate();
         }

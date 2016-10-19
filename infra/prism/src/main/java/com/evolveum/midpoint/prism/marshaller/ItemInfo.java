@@ -110,6 +110,9 @@ public class ItemInfo<ID extends ItemDefinition> {
 		}
 		@SuppressWarnings("unchecked")
 		ID defFromType = (ID) rawDefFromType;
+		if (definition instanceof PrismReferenceDefinition && defFromType instanceof PrismObjectDefinition) {
+			return definition;		// nothing to do; this is a reference holding a composite object
+		}
 		return schemaRegistry.selectMoreSpecific(definition, defFromType);
 	}
 

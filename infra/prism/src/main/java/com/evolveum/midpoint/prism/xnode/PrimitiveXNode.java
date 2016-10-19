@@ -24,6 +24,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.marshaller.XNodeProcessorEvaluationMode;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
+import com.evolveum.midpoint.util.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
@@ -32,10 +33,6 @@ import org.apache.commons.lang.StringUtils;
 import com.evolveum.midpoint.prism.Visitor;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.DisplayableValue;
-import com.evolveum.midpoint.util.PrettyPrinter;
-import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 import org.apache.commons.lang.Validate;
@@ -71,12 +68,22 @@ public class PrimitiveXNode<T> extends XNode implements Serializable {
 	public void parseValue(QName typeName, XNodeProcessorEvaluationMode mode) throws SchemaException {
         Validate.notNull(typeName, "Cannot parse primitive XNode without knowing its type");
 		if (valueParser != null) {
+			typeName = xsdAnyToString(typeName);
 			value = valueParser.parse(typeName, mode);
 			// Necessary. It marks that the value is parsed. It also frees some memory.
 			valueParser = null;
 		}
 	}
-	
+
+	// xsd:any type will be parsed as xsd:string (TODO reconsider!)
+	private QName xsdAnyToString(QName typeName) {
+		if (DOMUtil.XSD_ANYTYPE.equals(typeName)) {
+			return DOMUtil.XSD_STRING;
+		} else {
+			return typeName;
+		}
+	}
+
 	public T getValue() {
 		return value;
 	}
@@ -154,6 +161,7 @@ public class PrimitiveXNode<T> extends XNode implements Serializable {
         if (isParsed()) {
             return value;
         } else {
+			typeName = xsdAnyToString(typeName);
             return valueParser.parse(typeName, XNodeProcessorEvaluationMode.STRICT);
         }
     }

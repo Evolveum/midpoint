@@ -176,8 +176,10 @@ public class XsdTypeMapper {
         return null;
     }
 
+    @NotNull
     public static <T> Class<T> toJavaType(@NotNull QName xsdType) {
-        return toJavaType(xsdToJavaTypeMap, xsdType, true);
+		//noinspection ConstantConditions
+		return toJavaType(xsdToJavaTypeMap, xsdType, true);
     }
 
     public static <T> Class<T> toJavaTypeIfKnown(@NotNull QName xsdType) {

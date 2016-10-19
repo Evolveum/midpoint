@@ -92,10 +92,12 @@ public interface SchemaRegistry extends DebugDumpable, GlobalDefinitionsStore {
 
 	/**
 	 * This method will try to locate the appropriate object definition and apply it.
+	 * @param container
+	 * @param type
 	 */
-	<O extends Objectable> void applyDefinition(PrismObject<O> prismObject, Class<O> type) throws SchemaException;
+	<C extends Containerable> void applyDefinition(PrismContainer<C> container, Class<C> type) throws SchemaException;
 
-	<O extends Objectable> void applyDefinition(PrismObject<O> prismObject, Class<O> type, boolean force) throws SchemaException;
+	<C extends Containerable> void applyDefinition(PrismContainer<C> prismObject, Class<C> type, boolean force) throws SchemaException;
 
 	<T extends Objectable> void applyDefinition(ObjectDelta<T> objectDelta, Class<T> type, boolean force) throws SchemaException;
 

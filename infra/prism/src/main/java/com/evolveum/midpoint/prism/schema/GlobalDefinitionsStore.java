@@ -74,7 +74,7 @@ public interface GlobalDefinitionsStore extends DefinitionsStore {
 
 	default <ID extends ItemDefinition> ID findItemDefinitionByCompileTimeClass(
 			@NotNull Class<?> compileTimeClass, @NotNull Class<ID> definitionClass) {
-		return getOne(findItemDefinitionsByCompileTimeClass(compileTimeClass, definitionClass));
+		return DefinitionStoreUtils.getOne(findItemDefinitionsByCompileTimeClass(compileTimeClass, definitionClass));
 	}
 
 	@SuppressWarnings("unchecked")
@@ -97,16 +97,6 @@ public interface GlobalDefinitionsStore extends DefinitionsStore {
 	@SuppressWarnings("unchecked")
 	default <C extends Containerable> PrismContainerDefinition<C> findContainerDefinitionByCompileTimeClass(@NotNull Class<C> compileTimeClass) {
 		return findItemDefinitionByCompileTimeClass(compileTimeClass, PrismContainerDefinition.class);
-	}
-
-	static <ID extends ItemDefinition> ID getOne(List<ID> list) {
-		if (list.isEmpty()) {
-			return null;
-		} else if (list.size() == 1) {
-			return list.get(0);
-		} else {
-			throw new IllegalStateException("More than one definition found: " + list);
-		}
 	}
 
 	@SuppressWarnings("unchecked")

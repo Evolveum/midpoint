@@ -295,9 +295,8 @@ public class TestJaxbConstruction {
 		// GIVEN
 		PrismContext prismContext = PrismTestUtil.getPrismContext();
 		
-		UserType userType = new UserType();
-		prismContext.adopt(userType);
-		
+		UserType userType = new UserType(prismContext);
+
 		PrismObject<UserType> user = userType.asPrismObject();
 		assertNotNull("No object definition after adopt", user.getDefinition());
 		
@@ -311,7 +310,8 @@ public class TestJaxbConstruction {
 		checkExtension(extensionContainer,"user extension after setExtension");
 		checkExtension(extension,"user extension after setExtension");
 		
-		AssignmentType assignmentType = new AssignmentType();
+		AssignmentType assignmentType = new AssignmentType(prismContext);
+
 		ExtensionType assignmentExtension = new ExtensionType();
 		assignmentType.setExtension(assignmentExtension);
 		

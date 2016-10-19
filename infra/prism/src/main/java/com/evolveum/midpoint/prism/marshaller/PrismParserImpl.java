@@ -188,12 +188,15 @@ abstract class PrismParserImpl implements PrismParser {
 			if (clazz == null && info.getTypeName() != null) {
 				clazz = (Class) prismContext.getSchemaRegistry().determineClassForType(info.getTypeName());
 			}
-			if (clazz == null) {
-				throw new IllegalArgumentException("Couldn't determine type for " + root);
-			}
+//			if (clazz == null) {
+//				throw new IllegalArgumentException("Couldn't determine type for " + root);
+//			}
 		}
 
-		if (Containerable.class.isAssignableFrom(clazz)) {
+		PrismBeanConverter beanConverter = prismContext.getBeanConverter();
+		if (clazz != null && beanConverter.canProcess(clazz)) {
+			return beanConverter.unmarshall(root, clazz, context);
+		} else {
 			PrismValue prismValue = doParseItemValue(root);
 			if (prismValue == null) {
 				return null;
@@ -206,8 +209,6 @@ abstract class PrismParserImpl implements PrismParser {
 			} else {
 				throw new IllegalStateException("Unsupported value: " + prismValue.getClass());
 			}
-		} else {
-			return prismContext.getBeanConverter().unmarshall(root, clazz, context);
 		}
 	}
 
@@ -219,7 +220,7 @@ abstract class PrismParserImpl implements PrismParser {
 	@SuppressWarnings("unchecked")
 	<T> JAXBElement<T> doParseAnyValueAsJAXBElement() throws IOException, SchemaException {
 		RootXNode root = getLexicalProcessor().read(source, context);
-		T real = (T) doParseRealValue(Object.class, root);
+		T real = (T) doParseRealValue(null, root);
 		return real != null ?
 				new JAXBElement<>(root.getRootElementName(), (Class<T>) real.getClass(), real) :
 				null;

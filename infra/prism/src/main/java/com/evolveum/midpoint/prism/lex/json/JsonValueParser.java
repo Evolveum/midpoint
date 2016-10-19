@@ -37,10 +37,7 @@ public class JsonValueParser<T> implements ValueParser<T> {
 	public T parse(QName typeName, XNodeProcessorEvaluationMode mode) throws SchemaException {
 		ObjectMapper mapper = (ObjectMapper) parser.getCodec();
 		Class clazz = XsdTypeMapper.toJavaType(typeName);
-		if (clazz == null) {
-			throw new SchemaException("Unsupported type " + typeName);
-		}
-			
+
 		ObjectReader r = mapper.readerFor(clazz);
 	    try {
 			return r.readValue(node);

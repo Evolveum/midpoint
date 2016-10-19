@@ -607,12 +607,10 @@ public abstract class Item<V extends PrismValue, D extends ItemDefinition> imple
                 definition.revive(prismContext);
             }
         }
-    	if (values != null) {
-    		for (V value: values) {
-    			value.revive(prismContext);
-    		}
-    	}
-    }
+		for (V value: values) {
+			value.revive(prismContext);
+		}
+	}
 
     public abstract Item clone();
 

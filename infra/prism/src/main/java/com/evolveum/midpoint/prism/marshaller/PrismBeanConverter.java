@@ -103,7 +103,7 @@ public class PrismBeanConverter {
 		return getSchemaRegistry().determineCompileTimeClass(typeName) != null; 
 	}
 	
-	public boolean canProcess(Class<?> clazz) {
+	public boolean canProcess(@NotNull Class<?> clazz) {
 		return RawType.class.equals(clazz) || clazz.getAnnotation(XmlType.class) != null;
 	}
 	

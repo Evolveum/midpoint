@@ -21,16 +21,12 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.marshaller.JaxbDomHack;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
-import com.evolveum.midpoint.prism.schema.SchemaDefinitionFactory;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.util.PrismMonitor;
 import com.evolveum.midpoint.prism.xnode.RootXNode;
-import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.prism.xml.ns._public.types_3.RawType;
 import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Element;
-import org.xml.sax.EntityResolver;
 import org.xml.sax.SAXException;
 
 import javax.xml.namespace.QName;
@@ -121,9 +117,9 @@ public interface PrismContext {
 	//endregion
 
 	//region Adopt methods
-	<T extends Objectable> void adopt(PrismObject<T> object, Class<T> declaredType) throws SchemaException;
+	<C extends Containerable> void adopt(PrismContainer<C> object, Class<C> declaredType) throws SchemaException;
 
-	<T extends Objectable> void adopt(PrismObject<T> object) throws SchemaException;
+	<T extends Containerable> void adopt(PrismContainer<T> object) throws SchemaException;
 
 	void adopt(Objectable objectable) throws SchemaException;
 
