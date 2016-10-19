@@ -10,6 +10,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jvnet.jaxb2_commons.lang.Equals;
 import org.jvnet.jaxb2_commons.lang.EqualsStrategy;
 import org.jvnet.jaxb2_commons.locator.ObjectLocator;
@@ -82,7 +83,8 @@ public class RawType implements Serializable, Cloneable, Equals, Revivable {
 
     //region Parsing and serialization
     // itemDefinition may be null; in that case we do the best what we can
-	public <IV extends PrismValue,ID extends ItemDefinition> IV getParsedValue(ItemDefinition itemDefinition, QName itemName) throws SchemaException {
+	public <IV extends PrismValue,ID extends ItemDefinition> IV getParsedValue(@Nullable ItemDefinition itemDefinition, @Nullable QName itemName) throws SchemaException {
+        Validate.isTrue(itemDefinition != null || itemName != null);
         if (parsed != null) {
 			return (IV) parsed;
 		} else if (xnode != null) {
@@ -99,6 +101,7 @@ public class RawType implements Serializable, Cloneable, Equals, Revivable {
 					value = null;
 				}
 			} else {
+                assert itemName != null;
 				PrismProperty subItem = PrismProperty.createRaw(xnode, itemName, prismContext);
 				value = (IV) subItem.getValue();
 			}

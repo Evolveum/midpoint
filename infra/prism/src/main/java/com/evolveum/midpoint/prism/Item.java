@@ -528,7 +528,7 @@ public abstract class Item<V extends PrismValue, D extends ItemDefinition> imple
     					// No need to process this value again
     					iterator.remove();
     					break;
-    				}
+					}
     			}
 				if (!found) {
 					// We have the value and the other does not, this is delete of the entire value

@@ -321,11 +321,11 @@ public class QueryConvertor {
 			Entry<QName,XNode> expressionEntry = clauseXMap.getSingleEntryThatDoesNotMatch(
 					ELEMENT_VALUE, ELEMENT_MATCHING, ELEMENT_PATH);
 			if (expressionEntry != null) {
-				RootXNode expressionRoot = clauseXMap.getEntryAsRoot(expressionEntry.getKey());
-				PrismPropertyValue expressionPropertyValue = prismContext.parserFor(expressionRoot).parseItemValue();
                 if (preliminaryParsingOnly) {
                     return null;
                 } else {
+					RootXNode expressionRoot = clauseXMap.getEntryAsRoot(expressionEntry.getKey());
+					PrismPropertyValue expressionPropertyValue = prismContext.parserFor(expressionRoot).parseItemValue();
                     ExpressionWrapper expressionWrapper = new ExpressionWrapper();
                     expressionWrapper.setExpression(expressionPropertyValue.getValue());
 					if (isEq) {
@@ -432,15 +432,15 @@ public class QueryConvertor {
 
 		XNode valueXnode = clauseXMap.get(ELEMENT_VALUE);
 		if (valueXnode != null) {
+			if (preliminaryParsingOnly) {
+				return null;
+			}
 			RootXNode valueRoot = new RootXNode(ELEMENT_VALUE, valueXnode);
 			Item<?,?> item = prismContext.parserFor(valueRoot)
 					.name(itemName)
 					.definition(itemDefinition)
 					.context(ParsingContext.allowMissingRefTypes())
 					.parseItem();
-			if (preliminaryParsingOnly) {
-				return null;
-			}
 			PrismReference ref = (PrismReference)item;
 			if (item.getValues().size() < 1) {
 				throw new IllegalStateException("No values to search specified for item " + itemName);

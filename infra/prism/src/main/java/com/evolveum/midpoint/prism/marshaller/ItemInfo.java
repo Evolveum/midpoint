@@ -103,7 +103,7 @@ public class ItemInfo<ID extends ItemDefinition> {
 		}
 		ItemDefinition rawDefFromType = schemaRegistry.findItemDefinitionByType(typeName);
 		if (rawDefFromType == null) {
-			throw new SchemaException("Unknown type name " + typeName);
+			return definition;          // TODO warning if wrong type?
 		}
 		if (!definitionClass.isAssignableFrom(rawDefFromType.getClass())) {
 			throw new SchemaException("Wrong type name " + typeName + " (not a " + definitionClass.getClass().getSimpleName() + ")");       // TODO context of error
