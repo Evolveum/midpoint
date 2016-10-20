@@ -150,8 +150,7 @@ public class CatalogItemsPanel extends BasePanel implements IPageableItems {
         initSearchPanel(headerPanel);
 
         Component assignmentsTable;
-        if ((catalogOidModel == null || StringUtils.isEmpty(catalogOidModel.getObject())) &&
-                AssignmentViewType.ROLE_CATALOG_VIEW.equals(AssignmentViewType.getViewTypeFromSession(pageBase))) {
+        if (isCatalogOidEmpty()) {
             assignmentsTable = new Label(ID_MULTI_BUTTON_TABLE, createStringResource("PageAssignmentShoppingKart.roleCatalogIsNotConfigured"));
         } else {
             assignmentsTable = new MultiButtonTable(ID_MULTI_BUTTON_TABLE, itemsPerRow, itemsListModel, pageBase);
@@ -164,8 +163,7 @@ public class CatalogItemsPanel extends BasePanel implements IPageableItems {
     }
 
     protected void initProvider() {
-        if ((catalogOidModel == null || StringUtils.isEmpty(catalogOidModel.getObject()))
-                && AssignmentViewType.ROLE_CATALOG_VIEW.equals(AssignmentViewType.getViewTypeFromSession(pageBase))){
+        if (isCatalogOidEmpty()){
             provider = null;
         } else {
             provider = new ObjectDataProvider<AssignmentEditorDto, AbstractRoleType>(pageBase, AbstractRoleType.class) {
@@ -248,8 +246,7 @@ public class CatalogItemsPanel extends BasePanel implements IPageableItems {
         headerPanel.add(searchForm);
         searchForm.add(new VisibleEnableBehaviour(){
             public boolean isVisible(){
-                return !(AssignmentViewType.ROLE_CATALOG_VIEW.equals(AssignmentViewType.getViewTypeFromSession(pageBase)) &&
-                        (catalogOidModel != null || StringUtils.isNotEmpty(catalogOidModel.getObject())));
+                return !isCatalogOidEmpty();
             }
         });
         searchForm.setOutputMarkupId(true);
@@ -493,8 +490,7 @@ public class CatalogItemsPanel extends BasePanel implements IPageableItems {
         };
         cartButton.add(new VisibleEnableBehaviour(){
             public boolean isVisible(){
-                return !(AssignmentViewType.ROLE_CATALOG_VIEW.equals(AssignmentViewType.getViewTypeFromSession(pageBase)) &&
-                        (catalogOidModel != null || StringUtils.isNotEmpty(catalogOidModel.getObject())));
+                return !isCatalogOidEmpty();
             }
         });
         cartButton.setOutputMarkupId(true);
@@ -593,6 +589,11 @@ public class CatalogItemsPanel extends BasePanel implements IPageableItems {
         focusTypeList.add(AssignmentViewType.SERVICE_TYPE);
 
         return focusTypeList;
+    }
+
+    private boolean isCatalogOidEmpty(){
+        return AssignmentViewType.ROLE_CATALOG_VIEW.equals(AssignmentViewType.getViewTypeFromSession(pageBase)) &&
+                (catalogOidModel == null || StringUtils.isEmpty(catalogOidModel.getObject()));
     }
 
 }

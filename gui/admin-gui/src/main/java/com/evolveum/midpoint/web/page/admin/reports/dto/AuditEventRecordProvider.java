@@ -20,7 +20,7 @@ public class AuditEventRecordProvider extends BaseSortableDataProvider<AuditEven
 
 	private static final String AUDIT_RECORDS_QUERY_CORE = "from RAuditEventRecord as aer where 1=1 and ";
 	private static final String AUDIT_RECORDS_QUERY_COUNT = "select count(*) ";
-	private static final String AUDIT_RECORDS_ORDER_BY = " order by aer.timestamp asc";
+	private static final String AUDIT_RECORDS_ORDER_BY = " order by aer.timestamp desc";
 	private static final String SET_FIRST_RESULT_PARAMETER = "setFirstResult";
 	private static final String SET_MAX_RESULTS_PARAMETER = "setMaxResults";
 
@@ -63,11 +63,11 @@ public class AuditEventRecordProvider extends BaseSortableDataProvider<AuditEven
 		if (queryParameters.containsKey(SET_FIRST_RESULT_PARAMETER)){
 			queryParameters.remove(SET_FIRST_RESULT_PARAMETER);
 		}
-		queryParameters.put(SET_FIRST_RESULT_PARAMETER, ((Long) first).intValue());
+		parameters.put(SET_FIRST_RESULT_PARAMETER, ((Long) first).intValue());
 		if (queryParameters.containsKey(SET_MAX_RESULTS_PARAMETER)){
 			queryParameters.remove(SET_MAX_RESULTS_PARAMETER);
 		}
-		queryParameters.put(SET_MAX_RESULTS_PARAMETER, ((Long) count).intValue());
+		parameters.put(SET_MAX_RESULTS_PARAMETER, ((Long) count).intValue());
 
 		List<AuditEventRecordType> recordsList = listRecords(auditEventQuery, true);
 		return recordsList.iterator();
@@ -78,11 +78,13 @@ public class AuditEventRecordProvider extends BaseSortableDataProvider<AuditEven
 	protected int internalSize(){
 		// Map<String, Object> queryParameters = getParameters();
 		String query = generateFullQuery(AUDIT_RECORDS_QUERY_COUNT + auditEventQuery, false);
-		/*System.out.println(query);
+		/*
+		System.out.println(query);
 		for (Map.Entry<String, Object> entry : parameters.entrySet())
 		{
 			System.out.println(entry.getKey() + ":" + entry.getValue());
-		}*/
+		}
+		*/
 		long count = getAuditService().countObjects(query, parameters);
 
 		return ((Long)count).intValue();
@@ -91,11 +93,13 @@ public class AuditEventRecordProvider extends BaseSortableDataProvider<AuditEven
 	private List<AuditEventRecordType> listRecords(String query, boolean orderBy){
 		// Map<String, Object> queryParameters = getParameters();
 		String parameterQuery = generateFullQuery(query, orderBy);
-		/*System.out.println(parameterQuery);
+		/*
+		System.out.println(parameterQuery);
 		for (Map.Entry<String, Object> entry : parameters.entrySet())
 		{
 			System.out.println(entry.getKey() + ":" + entry.getValue());
-		}*/
+		}
+		*/
 		List<AuditEventRecord> auditRecords = getAuditService().listRecords(parameterQuery, parameters);
 		if (auditRecords == null){
 			auditRecords = new ArrayList<>();
@@ -144,15 +148,10 @@ public class AuditEventRecordProvider extends BaseSortableDataProvider<AuditEven
 			queryParameters.remove("outcome");
 		}
 		if (queryParameters.get("initiatorName") != null) {
-			query += "(aer.initiatorName = :initiatorName) and ";
+			query += "(aer.initiatorOid = :initiatorName) and ";
 		} else {
 			queryParameters.remove("initiatorName");
-		}
-		if (queryParameters.get("targetName") != null) {
-			query += "(aer.targetName = :targetName) and ";
-		} else {
-			queryParameters.remove("targetName");
-		}
+		}		
 		if (queryParameters.get("channel") != null) {
 			query += "(aer.channel = :channel) and ";
 		} else {
@@ -164,14 +163,14 @@ public class AuditEventRecordProvider extends BaseSortableDataProvider<AuditEven
 			queryParameters.remove("hostIdentifier");
 		}
 		if (queryParameters.get("targetOwnerName") != null) {
-			query += "(aer.targetOwnerName = :targetOwnerName) and ";
+			query += "(aer.targetOwnerOid = :targetOwnerName) and ";
 		} else {
 			queryParameters.remove("targetOwnerName");
 		}
-		if (queryParameters.get("targetOwnerName") != null) {
-			query += "(aer.targetOwnerName = :targetOwnerName) and ";
+		if (queryParameters.get("targetName") != null) {
+			query += "(aer.targetOid = :targetName) and ";
 		} else {
-			queryParameters.remove("targetOwnerName");
+			queryParameters.remove("targetName");
 		}
 		query = query.substring(0, query.length()-5); // remove trailing " and "
 		if (orderBy){

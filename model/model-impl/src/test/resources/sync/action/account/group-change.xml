@@ -456,7 +456,7 @@
 			<i:correlation> <!-- Correlation rule is a search query -->
 				<!-- The clause <c:type uri="http://midpoint.evolveum.com/xml/ns/public/common/common-3#UserType"/> 
 					is implicit in correlation rules -->
-				<!-- Following search queury will look for users that have "name" equal 
+				<!-- Following search query will look for users that have "name" equal 
 					to the "uid" attribute of the account. Simply speaking, it will look for 
 					match in usernames in the IDM and the resource. -->
 				<c:equal>

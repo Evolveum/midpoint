@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.api.component.ObjectBrowserPanel;
+import com.evolveum.midpoint.gui.api.component.TypedAssignablePanel;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
@@ -74,6 +76,8 @@ import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptions
 import com.evolveum.midpoint.web.page.admin.users.dto.UsersDto;
 import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
+
+import javax.xml.namespace.QName;
 
 /**
  * @author lazyman
@@ -353,6 +357,15 @@ public class PageUsers extends PageAdminUsers {
 						deletePerformed(target, rowDto.getValue());
 					}
 				}));
+		menu.add(new InlineMenuItem(createStringResource("pageUsers.menu.merge"),
+				new ColumnMenuAction<SelectableBean<UserType>>() {
+
+					@Override
+					public void onClick(AjaxRequestTarget target) {
+						SelectableBean<UserType> rowDto = getRowModel().getObject();
+						mergePerformed(target, rowDto.getValue());
+					}
+				}));
 		return menu;
 	}
 
@@ -418,7 +431,30 @@ public class PageUsers extends PageAdminUsers {
 		getTable().clearCache();
 	}
 
-	private void unlockPerformed(AjaxRequestTarget target, UserType selectedUser) {
+    private void mergePerformed(AjaxRequestTarget target, final UserType selectedUser) {
+        List<QName> supportedTypes = new ArrayList<>();
+        supportedTypes.add(UserType.COMPLEX_TYPE);
+        ObjectBrowserPanel panel = new ObjectBrowserPanel(
+                getMainPopupBodyId(), UserType.class,
+                supportedTypes, false, PageUsers.this) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected void onSelectPerformed(AjaxRequestTarget target, ObjectType user) {
+                hideMainPopup(target);
+                mergeConfirmedPerformed(selectedUser, (UserType) user, target);
+            }
+
+        };
+        panel.setOutputMarkupId(true);
+        showMainPopup(panel, target);
+    }
+
+    private void mergeConfirmedPerformed(UserType mergeObject, UserType mergeWithObject, AjaxRequestTarget target) {
+        setResponsePage(new PageMergeObjects(mergeObject, mergeWithObject, UserType.class));
+    }
+
+    private void unlockPerformed(AjaxRequestTarget target, UserType selectedUser) {
 		List<UserType> users = isAnythingSelected(target, selectedUser);
 		if (users.isEmpty()) {
 			return;
