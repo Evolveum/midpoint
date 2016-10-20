@@ -26,6 +26,7 @@ import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeSuite;
+import org.testng.annotations.Optional;
 import org.testng.annotations.Parameters;
 import org.xml.sax.SAXException;
 
@@ -51,10 +52,10 @@ public class AbstractParserTest {
 
 	@BeforeClass
 	@Parameters({ "language", "namespaces" })
-	public void temp(String language, boolean namespaces) {
-		this.language = language;
-		this.namespaces = namespaces;
-		System.out.println("Testing with language = " + language + ", namespaces = " + namespaces);
+	public void temp(@Optional String language, @Optional Boolean namespaces) {
+		this.language = language != null ? language : "xml";
+		this.namespaces = namespaces != null ? namespaces : Boolean.TRUE;
+		System.out.println("Testing with language = " + this.language + ", namespaces = " + this.namespaces);
 	}
 
 	protected File getFile(String baseName) {

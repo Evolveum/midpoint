@@ -20,26 +20,14 @@ import java.util.Collection;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.SerializationContext;
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.Objectable;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.PrismReferenceDefinition;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
-import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.xnode.ListXNode;
 import com.evolveum.midpoint.prism.xnode.MapXNode;
@@ -50,7 +38,6 @@ import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.prism.xml.ns._public.types_3.EvaluationTimeType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
-import com.evolveum.prism.xml.ns._public.types_3.ProtectedDataType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -67,58 +54,79 @@ public class PrismMarshaller {
 	}
 
 	//region Public interface ======================================================================================
-
 	/*
-	 *  TODO reconsider what to return for empty items
-	 *   1. null
-	 *   2. Root(name, null)
-	 *   3. Root(name, List())
-	 *
-	 *  TODO reconsider what to do if we have potentially multivalued property - whether to return list or not
+	 *  These methods should not be called from the inside of marshaller. At entry, they invoke ItemInfo methods
+	 *  to determine item name, definition and type to use. From inside marshalling process, these elements have
+	 *  to be provided more-or-less by the caller.
 	 */
 
+	/**
+	 * Marshals a given prism item (object, container, reference, property).
+	 *
+	 * @param item Item to be marshaled.
+	 * @param itemName Name to give to the item in the marshaled form. Usually null (i.e. taken from the item itself).
+	 * @param itemDefinition Definition to be used when parsing. Usually null (i.e. taken from the item itself).
+	 * @param context Serialization context.
+	 * @return Marshaled item.
+	 */
 	@NotNull
-	RootXNode marshalItem(@NotNull Item<?, ?> item, QName itemName,
+	RootXNode marshalItemAsRoot(@NotNull Item<?, ?> item, QName itemName,
 			ItemDefinition itemDefinition, SerializationContext context) throws SchemaException {
 
-		QName realName = itemName != null ? itemName : item.getElementName();
-		ItemDefinition realDefinition = itemDefinition != null ? itemDefinition : item.getDefinition();
+		@NotNull QName realItemName = itemName != null ? itemName : item.getElementName();
+		ItemDefinition realItemDefinition = itemDefinition != null ? itemDefinition : item.getDefinition();
 
-		XNode content;
-		if (item instanceof PrismObject) {
-			content = marshalObjectContent((PrismObject) item, (PrismObjectDefinition) realDefinition, context);
-		} else if (item.size() == 1) {
-			content = marshalItemValue(item.getValue(0), realDefinition, null, context);
-		} else {
-			ListXNode xlist = new ListXNode();
-			for (PrismValue val : item.getValues()) {
-				xlist.add(marshalItemValue(val, realDefinition, null, context));
-			}
-			content = xlist;
+		XNode content = marshalItemContent(item, realItemDefinition, context);
+		if (realItemDefinition != null) {
+			addTypeDefinitionIfNeeded(realItemName, realItemDefinition.getTypeName(), content);
 		}
-		return new RootXNode(realName, content);
+		return new RootXNode(realItemName, content);
 	}
 
-	RootXNode marshalItemValueAsRoot(@NotNull PrismValue value, @NotNull QName itemName, ItemDefinition itemDefinition,
+	/**
+	 * Marshals a single PrismValue. For simplicity and compatibility with other interfaces, the result is always a RootXNode.
+	 *
+	 * @param value PrismValue to be marshaled.
+	 * @param itemName Item name to be used. Optional. If omitted, it is derived from value and/or definition.
+	 * @param itemDefinition Item definition to be used. Optional.
+	 * @param context Serialization context.
+	 * @return Marshaled prism value.
+	 */
+	RootXNode marshalPrismValueAsRoot(@NotNull PrismValue value, QName itemName, ItemDefinition itemDefinition,
 			SerializationContext context) throws SchemaException {
-        ItemInfo itemInfo = ItemInfo.determineFromValue(value, itemName, itemDefinition, beanConverter.getPrismContext().getSchemaRegistry());
-		XNode valueNode = marshalItemValue(value, itemInfo.getItemDefinition(), itemInfo.getTypeName(), context);
-		return new RootXNode(itemName, valueNode);
+        ItemInfo itemInfo = ItemInfo.determineFromValue(value, itemName, itemDefinition, getSchemaRegistry());
+		QName realItemName = itemInfo.getItemName();
+		ItemDefinition realItemDefinition = itemInfo.getItemDefinition();
+		QName realItemTypeName = itemInfo.getTypeName();
+
+		if (realItemName == null) {
+			throw new IllegalArgumentException("Couldn't determine item name from the prism value; cannot marshal to RootXNode");
+		}
+
+		XNode valueNode = marshalItemValue(value, realItemDefinition, realItemTypeName, context);
+		addTypeDefinitionIfNeeded(realItemName, realItemTypeName, valueNode);
+		return new RootXNode(realItemName, valueNode);
 	}
 
-	RootXNode marshalAnyData(@NotNull Object object, QName itemName, ItemDefinition itemDefinition, SerializationContext ctx) throws SchemaException {
+	/**
+	 * Marshals any data - prism item or real value.
+	 *
+	 * @param object Object to be marshaled.
+	 * @param itemName Item name to be used. Optional. If omitted, it is derived from value and/or definition.
+	 * @param itemDefinition Item definition to be used. Optional.
+	 * @param context Serialization context.
+	 * @return Marshaled object.
+	 */
+	RootXNode marshalAnyData(@NotNull Object object, QName itemName, ItemDefinition itemDefinition, SerializationContext context) throws SchemaException {
 		if (object instanceof Item) {
-			return marshalItem((Item) object, itemName, itemDefinition, ctx);
+			return marshalItemAsRoot((Item) object, itemName, itemDefinition, context);
 		} else {
-			Validate.notNull(itemName, "rootElementName must be specified for non-Item objects");
-			XNode valueNode = beanConverter.marshall(object, ctx);		// TODO item definition!
-			QName typeQName = JAXBUtil.getTypeQName(object.getClass());
-			if (valueNode.getTypeQName() == null) {
-				if (typeQName != null) {
-					valueNode.setTypeQName(typeQName);
-				} else {
-					throw new SchemaException("No type QName for class " + object.getClass());
-				}
+			Validate.notNull(itemName, "itemName must be specified for non-Item objects");
+			XNode valueNode = beanConverter.marshall(object, context);		// TODO item definition!
+			QName typeName = JAXBUtil.getTypeQName(object.getClass());
+			addTypeDefinitionIfNeeded(itemName, typeName, valueNode);
+			if (valueNode.getTypeQName() == null && typeName == null) {
+				throw new SchemaException("No type QName for class " + object.getClass());
 			}
 			return new RootXNode(itemName, valueNode);
 		}
@@ -131,10 +139,41 @@ public class PrismMarshaller {
 			return beanConverter.canProcess(object.getClass());
 		}
 	}
-    //endregion
+
+    /*
+	 *  TODO reconsider what to return for empty items
+	 *   1. null
+	 *   2. Root(name, null)
+	 *   3. Root(name, List())
+	 *
+	 *  TODO reconsider what to do if we have potentially multivalued property - whether to return list or not
+	 */
+
+	//endregion
 
 	//region Implementation ======================================================================================
 
+	/**
+	 * Marshals everything from the item except for the root node.
+	 * Separated from marshalItemAsRoot in order to be reusable.
+	 */
+	@NotNull
+	private XNode marshalItemContent(@NotNull Item<?, ?> item,
+			ItemDefinition itemDefinition, SerializationContext context) throws SchemaException {
+		if (item instanceof PrismObject) {
+			return marshalObjectContent((PrismObject) item, (PrismObjectDefinition) itemDefinition, context);
+		} else if (item.size() == 1) {
+			return marshalItemValue(item.getValue(0), itemDefinition, null, context);
+		} else {
+			ListXNode xlist = new ListXNode();
+			for (PrismValue val : item.getValues()) {
+				xlist.add(marshalItemValue(val, itemDefinition, null, context));
+			}
+			return xlist;
+		}
+	}
+
+	@NotNull
 	private <O extends Objectable> MapXNode marshalObjectContent(@NotNull PrismObject<O> object, @NotNull PrismObjectDefinition<O> objectDefinition, SerializationContext ctx) throws SchemaException {
 		MapXNode xmap = new MapXNode();
 		if (object.getOid() != null) {
@@ -148,8 +187,9 @@ public class PrismMarshaller {
 		return xmap;
 	}
 
+	@SuppressWarnings("unchecked")
 	@NotNull
-    private <V extends PrismValue> XNode marshalItemValue(@NotNull PrismValue itemValue, @Nullable ItemDefinition definition,
+    private XNode marshalItemValue(@NotNull PrismValue itemValue, @Nullable ItemDefinition definition,
 			@Nullable QName typeName, SerializationContext ctx) throws SchemaException {
         XNode xnode;
         if (definition == null && typeName == null && itemValue instanceof PrismPropertyValue) {
@@ -163,13 +203,32 @@ public class PrismMarshaller {
         } else {
             throw new IllegalArgumentException("Unsupported value type "+itemValue.getClass());
         }
-        if (definition != null && definition.isDynamic()) {
+        if (definition != null && definition.isDynamic() && isInstantiable(definition)) {
+			if (xnode.getTypeQName() == null) {
+				xnode.setTypeQName(definition.getTypeName());
+			}
             xnode.setExplicitTypeDeclaration(true);
         }
         return xnode;
     }
 
-    private <C extends Containerable> MapXNode marshalContainerValue(PrismContainerValue<C> containerVal, PrismContainerDefinition<C> containerDefinition, SerializationContext ctx) throws SchemaException {
+    // TODO FIXME first of all, Extension definition should not be marked as dynamic
+	private boolean isInstantiable(ItemDefinition definition) {
+		if (definition.isAbstract()) {
+			return false;
+		}
+		if (definition instanceof PrismContainerDefinition) {
+			PrismContainerDefinition pcd = (PrismContainerDefinition) definition;
+			return pcd.getComplexTypeDefinition() != null && !pcd.getComplexTypeDefinition().isXsdAnyMarker();
+		} else if (definition instanceof PrismPropertyDefinition) {
+			PrismPropertyDefinition ppd = (PrismPropertyDefinition) definition;
+			return !ppd.isAnyType();			// covered by isAbstract?
+		} else {
+			return false;
+		}
+	}
+
+	private <C extends Containerable> MapXNode marshalContainerValue(PrismContainerValue<C> containerVal, PrismContainerDefinition<C> containerDefinition, SerializationContext ctx) throws SchemaException {
 		MapXNode xmap = new MapXNode();
 		marshalContainerValue(xmap, containerVal, containerDefinition, ctx);
 		return xmap;
@@ -180,8 +239,12 @@ public class PrismMarshaller {
 		if (id != null) {
 			xmap.put(XNode.KEY_CONTAINER_ID, createPrimitiveXNodeAttr(id, DOMUtil.XSD_LONG));
 		}
-        if (containerVal.getConcreteType() != null) {
-            xmap.setTypeQName(containerVal.getConcreteType());
+		// We put the explicit type name only if it's different from the parent one
+		// (assuming this value is NOT serialized as a standalone one: in that case its
+		// type must be marshaled in a special way).
+		QName specificTypeName = getSpecificTypeName(containerVal);
+        if (specificTypeName != null) {
+            xmap.setTypeQName(specificTypeName);
             xmap.setExplicitTypeDeclaration(true);
         }
 
@@ -194,7 +257,7 @@ public class PrismMarshaller {
 				QName elementName = itemDef.getName();
 				Item<?,?> item = containerVal.findItem(elementName);
 				if (item != null) {
-					XNode xsubnode = marshalItem(item, null, null, ctx).getSubnode();
+					XNode xsubnode = marshalItemContent(item, getItemDefinition(containerVal, item), ctx);
 					xmap.put(elementName, xsubnode);
 					marshaledItems.add(elementName);
 				}
@@ -208,13 +271,41 @@ public class PrismMarshaller {
 				if (marshaledItems.contains(elementName)) {
 					continue;
 				}
-				XNode xsubnode = marshalItem(item, null, null, ctx).getSubnode();
+				XNode xsubnode = marshalItemContent(item, getItemDefinition(containerVal, item), ctx);
 				xmap.put(elementName, xsubnode);
 			}
 		}
 	}
 
-    private XNode serializeReferenceValue(PrismReferenceValue value, PrismReferenceDefinition definition, SerializationContext ctx) throws SchemaException {
+	private <C extends Containerable> ItemDefinition getItemDefinition(PrismContainerValue<C> cval, Item<?, ?> item) {
+		if (item.getDefinition() != null) {
+			return item.getDefinition();
+		}
+		ComplexTypeDefinition ctd = cval.getComplexTypeDefinition();
+		if (ctd == null) {
+			return null;
+		}
+		return ctd.findItemDefinition(item.getElementName());
+	}
+
+	// Returns type QName if it is different from parent's one and if it's suitable to be put to marshaled form
+	private <C extends Containerable> QName getSpecificTypeName(PrismContainerValue<C> cval) {
+		if (cval.getParent() == null) {
+			return null;
+		}
+		ComplexTypeDefinition ctdValue = cval.getComplexTypeDefinition();
+		ComplexTypeDefinition ctdParent = cval.getParent().getComplexTypeDefinition();
+		QName typeValue = ctdValue != null ? ctdValue.getTypeName() : null;
+		QName typeParent = ctdParent != null ? ctdParent.getTypeName() : null;
+
+		if (typeValue == null || typeValue.equals(typeParent)) {
+			return null;
+		}
+		// TODO check if it's not a local type (e.g. ObjectClass in a specific resource)
+		return typeValue;
+	}
+
+	private XNode serializeReferenceValue(PrismReferenceValue value, PrismReferenceDefinition definition, SerializationContext ctx) throws SchemaException {
         MapXNode xmap = new MapXNode();
         boolean containsOid = false;
         String namespace = definition != null ? definition.getNamespace() : null;           // namespace for filter and description
@@ -285,11 +376,11 @@ public class PrismMarshaller {
             return serializePolyString((PolyString) realValue);
         } else if (beanConverter.canProcess(typeName)) {
             XNode xnode = beanConverter.marshall(realValue);
-			// why is this?
-            if (realValue instanceof ProtectedDataType<?> && (definition == null || definition.isDynamic())) {
-                xnode.setExplicitTypeDeclaration(true);
-                xnode.setTypeQName(typeName);
-            }
+//			// why is this?
+//            if (realValue instanceof ProtectedDataType<?> && (definition == null || definition.isDynamic())) {
+//                xnode.setExplicitTypeDeclaration(true);
+//                xnode.setTypeQName(typeName);
+//            }
             return xnode;
         } else {
             // primitive value
@@ -303,6 +394,7 @@ public class PrismMarshaller {
         return xprim;
     }
 
+    @NotNull
     private <T> XNode serializePropertyRawValue(PrismPropertyValue<T> value) throws SchemaException {
         XNode rawElement = value.getRawElement();
         if (rawElement != null) {
@@ -312,7 +404,7 @@ public class PrismMarshaller {
         if (realValue != null) {
             return createPrimitiveXNode(realValue, DOMUtil.XSD_STRING);
         } else {
-            return null;
+            throw new IllegalStateException("Neither real nor raw value present in " + value);
         }
     }
 
@@ -326,11 +418,31 @@ public class PrismMarshaller {
         return xprim;
     }
 
+    @NotNull
     private <T> PrimitiveXNode<T> createPrimitiveXNode(T val, QName type) {
         PrimitiveXNode<T> xprim = new PrimitiveXNode<T>();
         xprim.setValue(val, type);
         return xprim;
     }
-    //endregion
+
+	@NotNull
+	private SchemaRegistry getSchemaRegistry() {
+		return beanConverter.getPrismContext().getSchemaRegistry();
+	}
+
+	private void addTypeDefinitionIfNeeded(@NotNull QName itemName, QName typeName, XNode valueNode) {
+		if (valueNode.getTypeQName() != null && valueNode.isExplicitTypeDeclaration()) {
+			return; // already set
+		}
+		if (typeName == null) {
+			return;	// nothing to do, anyway
+		}
+		if (!getSchemaRegistry().hasImplicitTypeDefinition(itemName, typeName)) {
+			valueNode.setTypeQName(typeName);
+			valueNode.setExplicitTypeDeclaration(true);
+		}
+	}
+
+	//endregion
 
 }

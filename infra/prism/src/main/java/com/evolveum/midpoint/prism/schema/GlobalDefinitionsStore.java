@@ -21,6 +21,7 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Used to retrieve definition from 'global definition store' - i.e. store that contains a group of related definition(s),
@@ -64,13 +65,27 @@ public interface GlobalDefinitionsStore extends DefinitionsStore {
 
 	<ID extends ItemDefinition> ID findItemDefinitionByType(@NotNull QName typeName, @NotNull Class<ID> definitionClass);
 
-	<ID extends ItemDefinition> ID findItemDefinitionByElementName(@NotNull QName elementName, @NotNull Class<ID> definitionClass);
+	@NotNull
+	<ID extends ItemDefinition> List<ID> findItemDefinitionsByElementName(@NotNull QName elementName, @NotNull Class<ID> definitionClass);
 
 	<C extends Containerable> ComplexTypeDefinition findComplexTypeDefinitionByCompileTimeClass(@NotNull Class<C> compileTimeClass);
 
 	ComplexTypeDefinition findComplexTypeDefinitionByType(@NotNull QName typeName);
 
 	// non-core (derived) methods
+
+	default <ID extends ItemDefinition> ID findItemDefinitionByElementName(@NotNull QName elementName, @NotNull Class<ID> definitionClass) {
+		List<ID> definitions = findItemDefinitionsByElementName(elementName, definitionClass);
+		if (definitions.isEmpty()) {
+			return null;
+		} else if (definitions.size() == 1) {
+			return definitions.get(0);
+		} else {
+			// TODO or filter out deprecated? Quietly return the first one?
+			throw new IllegalArgumentException("Multiple definitions for " + elementName + " found: " +
+					definitions.stream().map(ItemDefinition::getName).collect(Collectors.toList()));
+		}
+	}
 
 	default <ID extends ItemDefinition> ID findItemDefinitionByCompileTimeClass(
 			@NotNull Class<?> compileTimeClass, @NotNull Class<ID> definitionClass) {

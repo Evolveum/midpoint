@@ -231,7 +231,7 @@ public class ExpressionUtil {
 			RootXNode rootNode = new RootXNode(element.getName(), raw.serializeToXNode());
 			xml = prismContext.xmlSerializer().serialize(rootNode);
 		} else {
-			xml = prismContext.xmlSerializer().serializeAtomicValue(element);
+			xml = prismContext.xmlSerializer().serialize(element);
 		}
 		return WebXmlUtil.stripNamespaceDeclarations(xml);
 	}

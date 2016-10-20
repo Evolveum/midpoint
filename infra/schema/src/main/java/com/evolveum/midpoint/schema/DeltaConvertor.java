@@ -29,7 +29,6 @@ import org.apache.commons.lang.Validate;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.marshaller.PrismMarshaller;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.RawTypeUtil;
 import com.evolveum.midpoint.prism.xnode.XNode;
@@ -240,7 +239,7 @@ public class DeltaConvertor {
         ObjectDeltaType objectDeltaType = toObjectDeltaType(delta, options);
         SerializationOptions serializationOptions = new SerializationOptions();
         serializationOptions.setSerializeReferenceNames(DeltaConversionOptions.isSerializeReferenceNames(options));
-        return delta.getPrismContext().xmlSerializer().options(serializationOptions).serializeAtomicValue(objectDeltaType, SchemaConstants.T_OBJECT_DELTA);
+        return delta.getPrismContext().xmlSerializer().options(serializationOptions).serializeRealValue(objectDeltaType, SchemaConstants.T_OBJECT_DELTA);
     }
 
 

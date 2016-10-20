@@ -30,6 +30,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import javax.xml.XMLConstants;
 import javax.xml.namespace.QName;
@@ -710,17 +711,17 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
 		return schema.findItemDefinitionByType(typeName, definitionClass);
 	}
 
-	@Nullable
+	@NotNull
 	@Override
-	public <ID extends ItemDefinition> ID findItemDefinitionByElementName(@NotNull QName elementName, @NotNull Class<ID> definitionClass) {
+	public <ID extends ItemDefinition> List<ID> findItemDefinitionsByElementName(@NotNull QName elementName, @NotNull Class<ID> definitionClass) {
 		if (QNameUtil.noNamespace(elementName)) {
-			return resolveGlobalItemDefinitionWithoutNamespace(elementName.getLocalPart(), definitionClass);
+			return resolveGlobalItemDefinitionsWithoutNamespace(elementName.getLocalPart(), definitionClass);
 		} else {
 			PrismSchema schema = findSchemaByNamespace(elementName.getNamespaceURI());
 			if (schema == null) {
-				return null;
+				return new ArrayList<>();
 			}
-			return schema.findItemDefinitionByElementName(elementName, definitionClass);
+			return schema.findItemDefinitionsByElementName(elementName, definitionClass);
 		}
 	}
 
@@ -1002,8 +1003,30 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
 		return resolveGlobalItemDefinitionWithoutNamespace(localPart, definitionClass, true, null);
 	}
 
-	private <T extends ItemDefinition> T resolveGlobalItemDefinitionWithoutNamespace(String localPart, Class<T> definitionClass, boolean exceptionIfAmbiguous, @Nullable List<String> ignoredNamespaces) {
-		ItemDefinition found = null;
+	private <ID extends ItemDefinition> List<ID> resolveGlobalItemDefinitionsWithoutNamespace(String localPart, Class<ID> definitionClass) {
+		return resolveGlobalItemDefinitionsWithoutNamespace(localPart, definitionClass, null);
+	}
+
+	private <ID extends ItemDefinition> ID resolveGlobalItemDefinitionWithoutNamespace(String localPart, Class<ID> definitionClass, boolean exceptionIfAmbiguous, @Nullable List<String> ignoredNamespaces) {
+		List<ID> found = resolveGlobalItemDefinitionsWithoutNamespace(localPart, definitionClass, ignoredNamespaces);
+		if (found.isEmpty()) {
+			return null;
+		} else if (found.size() == 1) {
+			return found.get(0);
+		} else {
+			if (exceptionIfAmbiguous) {
+				throw new IllegalArgumentException("Multiple possible resolutions for unqualified element name "
+						+ localPart + "; in namespaces " +
+						found.stream().map(ItemDefinition::getName).collect(Collectors.toList()));
+			} else {
+				return null;
+			}
+		}
+	}
+
+	@NotNull
+	private <ID extends ItemDefinition> List<ID> resolveGlobalItemDefinitionsWithoutNamespace(String localPart, Class<ID> definitionClass, @Nullable List<String> ignoredNamespaces) {
+		List<ID> found = new ArrayList<ID>();
 		for (SchemaDescription schemaDescription : parsedSchemas.values()) {
 			PrismSchema schema = schemaDescription.getSchema();
 			if (schema == null) {       // is this possible?
@@ -1014,19 +1037,12 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
 			}
 			ItemDefinition def = schema.findItemDefinitionByElementName(new QName(localPart), definitionClass);
 			if (def != null) {
-				if (found != null) {
-					if (exceptionIfAmbiguous) {
-						throw new IllegalArgumentException("Multiple possible resolutions for unqualified element name " + localPart + " (e.g. in " +
-								def.getNamespace() + " and " + found.getNamespace());
-					} else {
-						return null;
-					}
-				}
-				found = def;
+				found.add((ID) def);
 			}
 		}
-		return (T) found;
+		return found;
 	}
+
 
 	private QName resolveElementNameIfNeeded(QName elementName) {
 		return resolveElementNameIfNeeded(elementName, true);
@@ -1144,22 +1160,42 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
 	 * Returns true if specified element has a definition that matches specified type
 	 * in the known schemas.
 	 */
-	@Override
-	public boolean hasImplicitTypeDefinition(QName elementName, QName typeName) {
-		elementName = resolveElementNameIfNeeded(elementName, false);
-		if (elementName == null) {
+//	@Override
+//	public boolean hasImplicitTypeDefinitionOld(QName elementName, QName typeName) {
+//		elementName = resolveElementNameIfNeeded(elementName, false);
+//		if (elementName == null) {
+//			return false;
+//		}
+//		PrismSchema schema = findSchemaByNamespace(elementName.getNamespaceURI());
+//		if (schema == null) {
+//			return false;
+//		}
+//		ItemDefinition itemDefinition = schema.findItemDefinitionByElementName(elementName, ItemDefinition.class);
+//		if (itemDefinition == null) {
+//			return false;
+//		}
+//		return QNameUtil.match(typeName, itemDefinition.getTypeName());
+//	}
+
+	/**
+	 * Answers the question: "If the receiver would get itemName without any other information, will it be able to
+	 * derive suitable typeName from it?" If not, we have to provide explicit type definition for serialization.
+	 *
+	 * By suitable we mean such that can be used to determine specific object type.
+	 */
+	public boolean hasImplicitTypeDefinition(@NotNull QName itemName, @NotNull QName typeName) {
+		List<ItemDefinition> definitions = findItemDefinitionsByElementName(itemName, ItemDefinition.class);
+		if (definitions.isEmpty() || definitions.size() > 1) {
 			return false;
 		}
-		PrismSchema schema = findSchemaByNamespace(elementName.getNamespaceURI());
-		if (schema == null) {
+		ItemDefinition definition = definitions.get(0);
+		if (definition.isAbstract()) {
 			return false;
 		}
-		ItemDefinition itemDefinition = schema.findItemDefinitionByElementName(elementName, ItemDefinition.class);
-		if (itemDefinition == null) {
-			return false;
-		}
-		return QNameUtil.match(typeName, itemDefinition.getTypeName());
+		// TODO other conditions?
+		return definition.getTypeName().equals(typeName);
 	}
+
 
 	@Override
 	public QName determineTypeForClass(Class<?> clazz) {

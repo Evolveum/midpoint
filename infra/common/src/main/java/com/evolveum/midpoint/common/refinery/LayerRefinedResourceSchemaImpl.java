@@ -189,10 +189,10 @@ public class LayerRefinedResourceSchemaImpl implements LayerRefinedResourceSchem
 	}
 
 	@Override
-	@Nullable
-	public <ID extends ItemDefinition> ID findItemDefinitionByElementName(@NotNull QName elementName,
+	@NotNull
+	public <ID extends ItemDefinition> List<ID> findItemDefinitionsByElementName(@NotNull QName elementName,
 			@NotNull Class<ID> definitionClass) {
-		return refinedResourceSchema.findItemDefinitionByElementName(elementName, definitionClass);
+		return refinedResourceSchema.findItemDefinitionsByElementName(elementName, definitionClass);
 	}
 
 	@Override

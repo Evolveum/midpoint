@@ -28,7 +28,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
 import javax.xml.bind.JAXBElement;
 import java.io.Serializable;
-import java.util.Map;
 
 /**
  *  @author shood
@@ -89,11 +88,11 @@ public class IterationSpecificationTypeDto implements Serializable{
 
         try{
             if(expressionType.getExpressionEvaluator().size() == 1){
-                expression = prismContext.xmlSerializer().serializeAtomicValue(expressionType.getExpressionEvaluator().get(0));
+                expression = prismContext.xmlSerializer().serialize(expressionType.getExpressionEvaluator().get(0));
             } else {
                 StringBuilder sb = new StringBuilder();
                 for(JAXBElement<?> element: expressionType.getExpressionEvaluator()){
-                    String subElement = prismContext.xmlSerializer().serializeAtomicValue(element);
+                    String subElement = prismContext.xmlSerializer().serialize(element);
                     sb.append(subElement).append("\n");
                 }
 

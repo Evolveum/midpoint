@@ -95,7 +95,7 @@ public interface PrismSerializer<T> {
 	 * @return String/RootXNode representation of the value.
 	 */
 	@NotNull
-	T serialize(@NotNull PrismValue value, @NotNull QName rootName) throws SchemaException;
+	T serialize(@NotNull PrismValue value, QName rootName) throws SchemaException;
 
 	@NotNull
 	T serialize(@NotNull RootXNode xnode) throws SchemaException;
@@ -110,9 +110,9 @@ public interface PrismSerializer<T> {
 	 * cases like PolyStringType, ProtectedStringType, etc.
 	 */
 
-	T serializeAtomicValue(JAXBElement<?> value) throws SchemaException;
-	T serializeAtomicValue(Object value) throws SchemaException;
-	T serializeAtomicValue(Object value, QName rootName) throws SchemaException;
+	T serialize(JAXBElement<?> value) throws SchemaException;
+	T serializeRealValue(Object value) throws SchemaException;
+	T serializeRealValue(Object value, QName rootName) throws SchemaException;
 	T serializeAnyData(Object value) throws SchemaException;
 	T serializeAnyData(Object value, QName rootName) throws SchemaException;
 }

@@ -18,7 +18,6 @@ package com.evolveum.midpoint.repo.sql.util;
 
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.Objectable;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.query.LogicalFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
@@ -56,11 +55,9 @@ import org.hibernate.metadata.ClassMetadata;
 import org.hibernate.persister.entity.AbstractEntityPersister;
 import org.hibernate.tuple.IdentifierProperty;
 import org.hibernate.tuple.entity.EntityMetamodel;
-import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Element;
 
 import javax.persistence.Table;
-import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 
 import java.io.ByteArrayInputStream;
@@ -288,7 +285,7 @@ public final class RUtil {
         repo.setStatus(getRepoEnumValue(jaxb.getStatus(), ROperationResultStatus.class));
         if (repo instanceof OperationResultFull) {
             try {
-                String full = prismContext.xmlSerializer().serializeAtomicValue(jaxb, itemName);
+                String full = prismContext.xmlSerializer().serializeRealValue(jaxb, itemName);
                 ((OperationResultFull) repo).setFullResult(full);
             } catch (Exception ex) {
                 throw new DtoTranslationException(ex.getMessage(), ex);

@@ -17,7 +17,6 @@
 package com.evolveum.midpoint.gui.api.component.result;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.Visitable;
 import com.evolveum.midpoint.prism.Visitor;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -142,7 +141,7 @@ public class OpResult implements Serializable, Visitable {
         try {
         	OperationResultType resultType = result.createOperationResultType();
         	ObjectFactory of = new ObjectFactory();
-			opResult.xml = page.getPrismContext().xmlSerializer().serializeAtomicValue(of.createOperationResult(resultType));
+			opResult.xml = page.getPrismContext().xmlSerializer().serialize(of.createOperationResult(resultType));
 		} catch (SchemaException|RuntimeException ex) {
             String m = "Can't create xml: " + ex;
 //			error(m);

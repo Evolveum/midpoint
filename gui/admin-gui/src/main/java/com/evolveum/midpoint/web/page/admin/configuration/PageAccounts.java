@@ -67,7 +67,6 @@ import org.apache.wicket.validation.IValidatable;
 import org.apache.wicket.validation.IValidator;
 
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.Definition;
@@ -76,10 +75,8 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
 import com.evolveum.midpoint.prism.query.AndFilter;
-import com.evolveum.midpoint.prism.query.EqualFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.schema.AbstractSummarizingResultHandler;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ResultHandler;
@@ -700,7 +697,7 @@ public class PageAccounts extends PageAdminConfiguration {
     	
     	
 		try {
-			xml = getPrismContext().xmlSerializer().serializeAtomicValue(result, ShadowType.F_RESULT);
+			xml = getPrismContext().xmlSerializer().serializeRealValue(result, ShadowType.F_RESULT);
 			aceEditor.updateModel(new Model<String>(xml));
 		} catch (SchemaException e) {
 			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't parse result", e);

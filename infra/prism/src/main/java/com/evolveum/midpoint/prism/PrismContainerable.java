@@ -26,4 +26,8 @@ public interface PrismContainerable<T extends Containerable> extends Itemable {
 
 	public Class<T> getCompileTimeClass();
 
+	default ComplexTypeDefinition getComplexTypeDefinition() {
+		PrismContainerDefinition def = getDefinition();
+		return def != null ? def.getComplexTypeDefinition() : null;
+	}
 }

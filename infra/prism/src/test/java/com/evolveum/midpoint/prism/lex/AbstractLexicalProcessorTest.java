@@ -380,7 +380,7 @@ public abstract class AbstractLexicalProcessorTest {
         System.out.println(eventHandlerType);
 
         // WHEN2 (marshalling)
-        MapXNode marshalled = (MapXNode) (prismContext.xnodeSerializer().serializeAtomicValue(eventHandlerType).getSubnode());
+        MapXNode marshalled = (MapXNode) (prismContext.xnodeSerializer().serializeRealValue(eventHandlerType).getSubnode());
 
         System.out.println("XNode after unmarshalling and marshalling back:");
         System.out.println(marshalled.debugDump());

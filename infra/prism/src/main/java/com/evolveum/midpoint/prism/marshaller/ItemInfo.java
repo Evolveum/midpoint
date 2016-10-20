@@ -143,10 +143,6 @@ public class ItemInfo<ID extends ItemDefinition> {
 		if (definition != null && definition.getTypeName().equals(typeNameFromClass)) {
 			return definition;
 		}
-		if (!PrismContainerDefinition.class.isAssignableFrom(definitionClass)) {
-			return definition;
-		}
-		// the following may be null
 		@SuppressWarnings("unchecked")
 		List<ID> defFromClass = schemaRegistry.findItemDefinitionsByCompileTimeClass((Class) clazz, (Class) definitionClass);
 		if (defFromClass.size() != 1) {
@@ -170,7 +166,7 @@ public class ItemInfo<ID extends ItemDefinition> {
 
 	@NotNull
 	public static ItemInfo determineFromValue(@NotNull PrismValue value, QName itemName, ItemDefinition itemDefinition,
-											  @NotNull SchemaRegistry schemaRegistry) {
+			@NotNull SchemaRegistry schemaRegistry) {
 		ItemInfo info = new ItemInfo();
 
 		// definition

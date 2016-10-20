@@ -27,7 +27,6 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.xnode.MapXNode;
 import com.evolveum.midpoint.prism.xnode.RootXNode;
-import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -144,7 +143,7 @@ public class PrismTestUtil {
     }
 
     public static String serializeAtomicValue(Object object, QName elementName) throws SchemaException {
-        return getPrismContext().xmlSerializer().serializeAtomicValue(object, elementName);
+        return getPrismContext().xmlSerializer().serializeRealValue(object, elementName);
     }
 
     public static String serializeAnyData(Object o, QName defaultRootElementName) throws SchemaException {

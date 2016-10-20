@@ -122,7 +122,9 @@ public interface SchemaRegistry extends DebugDumpable, GlobalDefinitionsStore {
 
 	PrismObjectDefinition determineDefinitionFromClass(Class type);
 
-	boolean hasImplicitTypeDefinition(QName elementName, QName typeName);
+//	boolean hasImplicitTypeDefinitionOld(QName elementName, QName typeName);
+
+	boolean hasImplicitTypeDefinition(@NotNull QName itemName, @NotNull QName typeName);
 
 	ItemDefinition resolveGlobalItemDefinition(QName elementQName) throws SchemaException;
 

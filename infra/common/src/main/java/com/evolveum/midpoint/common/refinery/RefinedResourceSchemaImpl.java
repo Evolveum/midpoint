@@ -556,10 +556,10 @@ public class RefinedResourceSchemaImpl implements RefinedResourceSchema {
 	}
 
 	@Override
-	@Nullable
-	public <ID extends ItemDefinition> ID findItemDefinitionByElementName(@NotNull QName elementName,
+	@NotNull
+	public <ID extends ItemDefinition> List<ID> findItemDefinitionsByElementName(@NotNull QName elementName,
 			@NotNull Class<ID> definitionClass) {
-		return originalResourceSchema.findItemDefinitionByElementName(elementName, definitionClass);
+		return originalResourceSchema.findItemDefinitionsByElementName(elementName, definitionClass);
 	}
 
 	//endregion

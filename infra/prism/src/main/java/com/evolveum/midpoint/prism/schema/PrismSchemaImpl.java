@@ -349,20 +349,21 @@ public class PrismSchemaImpl implements PrismSchema {
 		return null;
 	}
 
+	@NotNull
 	@Override
-	public <ID extends ItemDefinition> ID findItemDefinitionByElementName(@NotNull QName elementName,
+	public <ID extends ItemDefinition> List<ID> findItemDefinitionsByElementName(@NotNull QName elementName,
 			@NotNull Class<ID> definitionClass) {
-		// TODO: check for multiple definition with the same name
+		List<ID> rv = new ArrayList<ID>();
 		for (Definition definition : definitions) {
 			if (definitionClass.isAssignableFrom(definition.getClass())) {
 				@SuppressWarnings("unchecked")
 				ID itemDef = (ID) definition;
 				if (QNameUtil.match(elementName, itemDef.getName())) {
-					return itemDef;
+					rv.add(itemDef);
 				}
 			}
 		}
-		return null;
+		return rv;
 	}
 
 

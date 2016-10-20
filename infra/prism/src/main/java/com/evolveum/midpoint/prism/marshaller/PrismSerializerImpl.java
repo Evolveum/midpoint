@@ -80,7 +80,7 @@ public class PrismSerializerImpl<T> implements PrismSerializer<T> {
 	@NotNull
 	@Override
 	public T serialize(@NotNull Item<?, ?> item) throws SchemaException {
-		RootXNode xroot = getMarshaller().marshalItem(item, itemName, itemDefinition, context);
+		RootXNode xroot = getMarshaller().marshalItemAsRoot(item, itemName, itemDefinition, context);
 		return target.write(xroot, context);
 	}
 
@@ -103,8 +103,8 @@ public class PrismSerializerImpl<T> implements PrismSerializer<T> {
 
 	@NotNull
 	@Override
-	public T serialize(@NotNull PrismValue value, @NotNull QName itemName) throws SchemaException {
-		RootXNode xroot = getMarshaller().marshalItemValueAsRoot(value, itemName, itemDefinition, context);
+	public T serialize(@NotNull PrismValue value, QName itemName) throws SchemaException {
+		RootXNode xroot = getMarshaller().marshalPrismValueAsRoot(value, itemName, itemDefinition, context);
 		return target.write(xroot, context);
 	}
 
@@ -115,12 +115,12 @@ public class PrismSerializerImpl<T> implements PrismSerializer<T> {
 	}
 
 	@Override
-	public T serializeAtomicValue(Object value) throws SchemaException {
-		return serializeAtomicValue(value, itemName);
+	public T serializeRealValue(Object value) throws SchemaException {
+		return serializeRealValue(value, itemName);
 	}
 
 	@Override
-	public T serializeAtomicValue(Object realValue, QName itemName) throws SchemaException {
+	public T serializeRealValue(Object realValue, QName itemName) throws SchemaException {
 		PrismValue prismValue;
 		if (realValue instanceof Containerable) {
 			prismValue = ((Containerable) realValue).asPrismContainerValue();
@@ -131,8 +131,8 @@ public class PrismSerializerImpl<T> implements PrismSerializer<T> {
 	}
 
 	@Override
-	public T serializeAtomicValue(JAXBElement<?> value) throws SchemaException {
-		return serializeAtomicValue(value.getValue(), value.getName());		// TODO declared type?
+	public T serialize(JAXBElement<?> value) throws SchemaException {
+		return serializeRealValue(value.getValue(), value.getName());		// TODO declared type?
 	}
 
 	@Override

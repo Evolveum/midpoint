@@ -33,6 +33,7 @@ import com.evolveum.midpoint.repo.sql.query2.definition.IdQueryProperty;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.MidPointSingleTablePersister;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
+import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -395,10 +396,11 @@ public class RAccessCertificationCase implements Container {
         PrismContainerValue<AccessCertificationCaseType> cvalue = case1.asPrismContainerValue();
         String xml;
         try {
-            xml = prismContext.xmlSerializer().serialize(cvalue, new QName("value"));
+            xml = prismContext.xmlSerializer().serialize(cvalue, SchemaConstantsGenerated.C_VALUE);
         } catch (SchemaException e) {
             throw new IllegalStateException("Couldn't serialize certification case to string", e);
         }
+        LOGGER.trace("RAccessCertificationCase full object\n{}", xml);
         byte[] fullObject = RUtil.getByteArrayFromXml(xml, false);
         rCase.setFullObject(fullObject);
 
@@ -412,6 +414,7 @@ public class RAccessCertificationCase implements Container {
     // TODO find appropriate name
     public static AccessCertificationCaseType createJaxb(byte[] fullObject, PrismContext prismContext, boolean removeCampaignRef) throws SchemaException {
         String xml = RUtil.getXmlFromByteArray(fullObject, false);
+        LOGGER.trace("RAccessCertificationCase full object to be parsed\n{}", xml);
         try {
             return prismContext.parserFor(xml).xml().compat().parseRealValue(AccessCertificationCaseType.class);
         } catch (SchemaException e) {

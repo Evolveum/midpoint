@@ -118,7 +118,7 @@ public class ObjectTreeDeltas<F extends FocusType> implements DebugDumpable {
 
     public String toObjectTreeDeltasTypeXml() throws SchemaException {
         ObjectTreeDeltasType jaxb = toObjectTreeDeltasType();
-        return prismContext.xmlSerializer().serializeAtomicValue(jaxb, SchemaConstantsGenerated.C_OBJECT_TREE_DELTAS);
+        return prismContext.xmlSerializer().serializeRealValue(jaxb, SchemaConstantsGenerated.C_OBJECT_TREE_DELTAS);
     }
 
     public ObjectTreeDeltasType toObjectTreeDeltasType() throws SchemaException {
@@ -143,7 +143,7 @@ public class ObjectTreeDeltas<F extends FocusType> implements DebugDumpable {
 
     public static String toObjectTreeDeltasTypeXml(ObjectTreeDeltasType objectTreeDeltasType, PrismContext prismContext) throws SchemaException {
         if (objectTreeDeltasType != null) {
-            return prismContext.xmlSerializer().serializeAtomicValue(objectTreeDeltasType, SchemaConstantsGenerated.C_OBJECT_TREE_DELTAS);
+            return prismContext.xmlSerializer().serializeRealValue(objectTreeDeltasType, SchemaConstantsGenerated.C_OBJECT_TREE_DELTAS);
         } else {
             return null;
         }

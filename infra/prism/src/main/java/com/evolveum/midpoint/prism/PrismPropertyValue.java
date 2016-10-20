@@ -59,8 +59,8 @@ import javax.xml.namespace.QName;
 public class PrismPropertyValue<T> extends PrismValue implements DebugDumpable, Serializable {
 
     private T value;
-    // The rawElement is set during a schema-less parsing, e.g. during a dumb JAXB parsing or XML parsing without a
-    // definition.
+
+    // The rawElement is set during a schema-less parsing, e.g. during parsing without a definition.
     // We can't do anything smarter, as we don't have definition nor prism context. So we store the raw
     // elements here and process them later (e.g. during applyDefinition or getting a value with explicit type).
     private XNode rawElement;

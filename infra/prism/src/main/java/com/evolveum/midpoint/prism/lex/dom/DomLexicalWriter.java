@@ -105,10 +105,7 @@ public class DomLexicalWriter {
 			parentElement.appendChild(topElement);
 		}
 		QName typeQName = rootxnode.getTypeQName();
-        if (typeQName == null && rootxnode.getSubnode().getTypeQName() != null) {
-            typeQName = rootxnode.getSubnode().getTypeQName();
-        }
-		if (typeQName != null && !schemaRegistry.hasImplicitTypeDefinition(rootElementName, typeQName)) {
+		if (typeQName != null && rootxnode.isExplicitTypeDeclaration()) {
             DOMUtil.setXsiType(topElement, setQNamePrefixExplicitIfNeeded(typeQName));
 		}
 		XNode subnode = rootxnode.getSubnode();

@@ -252,7 +252,7 @@ public class ObjectUpdater {
         xml = prismContext.serializeObjectToString(savedObject, PrismContext.LANG_XML);
         byte[] fullObject = RUtil.getByteArrayFromXml(xml, getConfiguration().isUseZip());
 
-        if (LOGGER.isTraceEnabled()) LOGGER.trace("Storing full object\n{}", xml);
+        LOGGER.trace("Storing full object\n{}", xml);
 
         object.setFullObject(fullObject);
 

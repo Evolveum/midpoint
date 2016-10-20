@@ -822,7 +822,8 @@ public class PrismBeanConverter {
         } else if (bean instanceof XmlAsStringType) {
             return marshalXmlAsStringType((XmlAsStringType) bean);
         } else if (prismContext != null && prismContext.getSchemaRegistry().determineDefinitionFromClass(bean.getClass()) != null){
-        	return ((PrismContextImpl) prismContext).getPrismMarshaller().marshalItem(((Objectable)bean).asPrismObject(),
+			// TODO change to marshalItemContent
+        	return ((PrismContextImpl) prismContext).getPrismMarshaller().marshalItemAsRoot(((Objectable)bean).asPrismObject(),
 					null, null, ctx).getSubnode();
         }
         // Note: SearchFilterType is treated below

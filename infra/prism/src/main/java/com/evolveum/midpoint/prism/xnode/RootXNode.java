@@ -55,6 +55,15 @@ public class RootXNode extends XNode {
 		}
 	}
 
+	@Override
+	public boolean isExplicitTypeDeclaration() {
+		if (super.isExplicitTypeDeclaration()) {
+			return true;
+		} else {
+			return subnode != null && subnode.isExplicitTypeDeclaration();
+		}
+	}
+
 	@NotNull
 	public QName getRootElementName() {
 		return rootElementName;
