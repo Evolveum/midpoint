@@ -49,7 +49,7 @@ public class ObjectClassComplexTypeDefinitionImpl extends ComplexTypeDefinitionI
 	public ObjectClassComplexTypeDefinitionImpl(QName typeName, PrismContext prismContext) {
 		super(typeName, prismContext);
 	}
-	
+
 	@Override
 	public Collection<? extends ResourceAttributeDefinition> getAttributeDefinitions() {
 		Collection<ResourceAttributeDefinition> attrs = new ArrayList<ResourceAttributeDefinition>(getDefinitions().size());

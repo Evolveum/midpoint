@@ -228,18 +228,6 @@ public class PrismContextImpl implements PrismContext {
 	public PrismParserNoIO parserFor(@NotNull Element data) {
 		return new PrismParserImplNoIO(new ParserElementSource(data), null, ParsingContext.createDefault(), this, null, null, null, null);
 	}
-
-	@Deprecated
-	@Override
-	public <T extends Objectable> PrismObject<T> parseObject(File file) throws SchemaException, IOException {
-		return parserFor(file).parse();
-	}
-
-	@Deprecated
-	@Override
-	public <T extends Objectable> PrismObject<T> parseObject(String dataString) throws SchemaException {
-		return parserFor(dataString).parse();
-	}
     //endregion
 
     //region adopt(...) methods

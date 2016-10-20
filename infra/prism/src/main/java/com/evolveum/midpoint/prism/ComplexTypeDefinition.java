@@ -81,6 +81,4 @@ public interface ComplexTypeDefinition extends Definition, LocalDefinitionStore 
 	boolean isEmpty();
 
 	ComplexTypeDefinition clone();
-
-	ComplexTypeDefinition deepClone();
 }

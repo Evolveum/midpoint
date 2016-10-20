@@ -55,4 +55,6 @@ public class TestConstants {
 	public static final String RESOURCE_NAMESPACE = "http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff";
 
 	public static final File ROLE_FILE = new File(TestConstants.COMMON_DIR, "role.xml");
+
+	public static final String SHADOW_FILE_BASENAME = "shadow-hbarbossa";
 }

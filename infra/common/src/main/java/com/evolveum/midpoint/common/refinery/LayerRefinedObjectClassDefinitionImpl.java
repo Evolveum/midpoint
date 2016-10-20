@@ -181,11 +181,6 @@ public class LayerRefinedObjectClassDefinitionImpl implements LayerRefinedObject
 	}
 
 	@Override
-	public ComplexTypeDefinition deepClone() {
-		return refinedObjectClassDefinition.deepClone();
-	}
-
-	@Override
 	public String getHelp() {
 		return refinedObjectClassDefinition.getHelp();
 	}

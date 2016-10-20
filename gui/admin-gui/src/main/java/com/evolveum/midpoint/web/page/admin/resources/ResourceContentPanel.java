@@ -438,7 +438,7 @@ public abstract class ResourceContentPanel extends Panel {
 	private void runTask(List<TaskType> tasks, AjaxRequestTarget target) {
 
 		ResourceTasksPanel tasksPanel = new ResourceTasksPanel(getPageBase().getMainPopupBodyId(), false,
-				new ListModel<>(tasks), getPageBase());
+				new ListModel<TaskType>(tasks), getPageBase());
 		getPageBase().showMainPopup(tasksPanel, target);
 
 	}

@@ -16,22 +16,62 @@
   -->
 <!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd">
 <suite name="unit" parallel="false" verbose="1">
+    <test name="Parsing XML with namespaces" preserve-order="false" verbose="1">
+        <parameter name="language" value="xml"/>
+        <parameter name="namespaces" value="true"/>
+        <classes>
+            <class name="com.evolveum.midpoint.schema.parser.TestParseUser"/>
+            <class name="com.evolveum.midpoint.schema.parser.TestParseResource"/>
+            <class name="com.evolveum.midpoint.schema.parser.TestParseShadow"/>
+        </classes>
+    </test>
+    <test name="Parsing XML without namespaces" preserve-order="false" verbose="1">
+        <parameter name="language" value="xml"/>
+        <parameter name="namespaces" value="false"/>
+        <classes>
+            <class name="com.evolveum.midpoint.schema.parser.TestParseUser"/>
+            <class name="com.evolveum.midpoint.schema.parser.TestParseResource"/>
+        </classes>
+    </test>
+    <test name="Parsing JSON with namespaces" preserve-order="false" verbose="1">
+        <parameter name="language" value="json"/>
+        <parameter name="namespaces" value="true"/>
+        <classes>
+            <class name="com.evolveum.midpoint.schema.parser.TestParseUser"/>
+            <class name="com.evolveum.midpoint.schema.parser.TestParseResource"/>
+        </classes>
+    </test>
+    <test name="Parsing JSON without namespaces" preserve-order="false" verbose="1">
+        <parameter name="language" value="json"/>
+        <parameter name="namespaces" value="false"/>
+        <classes>
+            <class name="com.evolveum.midpoint.schema.parser.TestParseUser"/>
+            <class name="com.evolveum.midpoint.schema.parser.TestParseResource"/>
+        </classes>
+    </test>
+    <test name="Parsing YAML with namespaces" preserve-order="false" verbose="1">
+        <parameter name="language" value="yaml"/>
+        <parameter name="namespaces" value="true"/>
+        <classes>
+            <class name="com.evolveum.midpoint.schema.parser.TestParseUser"/>
+            <class name="com.evolveum.midpoint.schema.parser.TestParseResource"/>
+        </classes>
+    </test>
+    <test name="Parsing YAML without namespaces" preserve-order="false" verbose="1">
+        <parameter name="language" value="yaml"/>
+        <parameter name="namespaces" value="false"/>
+        <classes>
+            <class name="com.evolveum.midpoint.schema.parser.TestParseUser"/>
+            <class name="com.evolveum.midpoint.schema.parser.TestParseResource"/>
+        </classes>
+    </test>
+
+
+
     <test name="Schema" preserve-order="false" verbose="1">
         <classes>
             <class name="com.evolveum.midpoint.schema.TestDiffEquals"/>
         	<class name="com.evolveum.midpoint.schema.TestSchemaSanity"/>
-            <class name="com.evolveum.midpoint.schema.parser.user.TestParseUserXml"/>
-            <class name="com.evolveum.midpoint.schema.parser.user.TestParseUserXmlNoNs"/>
-            <class name="com.evolveum.midpoint.schema.parser.user.TestParseUserJson"/>
-            <class name="com.evolveum.midpoint.schema.parser.user.TestParseUserJsonNoNs"/>
-            <class name="com.evolveum.midpoint.schema.parser.user.TestParseUserYaml"/>
-            <class name="com.evolveum.midpoint.schema.parser.user.TestParseUserYamlNoNs"/>
-            <class name="com.evolveum.midpoint.schema.parser.resource.TestParseResourceXmlNs"/>
-            <class name="com.evolveum.midpoint.schema.parser.resource.TestParseResourceXmlNoNs"/>
-            <class name="com.evolveum.midpoint.schema.parser.resource.TestParseResourceJsonNs"/>
-            <class name="com.evolveum.midpoint.schema.parser.resource.TestParseResourceJsonNoNs"/>
-            <class name="com.evolveum.midpoint.schema.parser.resource.TestParseResourceYamlNs"/>
-            <class name="com.evolveum.midpoint.schema.parser.resource.TestParseResourceYamlNoNs"/>
             <class name="com.evolveum.midpoint.schema.TestParseTask"/>
             <class name="com.evolveum.midpoint.schema.TestParseLookupTable"/>
             <class name="com.evolveum.midpoint.schema.TestParseTaskBulkAction"/>

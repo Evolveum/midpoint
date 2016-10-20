@@ -13,25 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.evolveum.midpoint.schema.parser.user;
+package com.evolveum.midpoint.schema.parser;
 
 import static com.evolveum.midpoint.schema.TestConstants.*;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertTrue;
 
-import java.io.File;
-import java.io.IOException;
 import java.util.List;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
-import org.testng.annotations.BeforeSuite;
+import com.evolveum.midpoint.schema.parser.AbstractParserTest;
+import org.testng.annotations.Parameters;
 import org.testng.annotations.Test;
 import org.w3c.dom.Element;
-import org.xml.sax.SAXException;
 
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Item;
@@ -50,11 +47,9 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
-import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
@@ -70,32 +65,12 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
  * @author semancik
  *
  */
-public abstract class TestParseUser {
-	
-	@BeforeSuite
-	public void setup() throws SchemaException, SAXException, IOException {
-		PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
-		PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
-	}
-	
-	protected abstract String getSubdirName();
-	
-	protected abstract String getLanguage();
-	
-	protected abstract String getFilenameSuffix();
-	
-	protected File getCommonSubdir() {
-		return new File(COMMON_DIR_PATH, getSubdirName());
-	}
-	
-	protected File getFile(String baseName) {
-		return new File(getCommonSubdir(), baseName+"."+getFilenameSuffix());
-	}
-	
+public class TestParseUser extends AbstractParserTest {
+
 	@Test
 	public void testParseUserFile() throws Exception {
 		final String TEST_NAME = "testParseUserFile";
-		PrismTestUtil.displayTestTitle(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 
 		// GIVEN
 		PrismContext prismContext = PrismTestUtil.getPrismContext();
@@ -106,7 +81,7 @@ public abstract class TestParseUser {
 		System.out.println("Parsed user:");
 		System.out.println(user.debugDump());
 		
-		String serialized = prismContext.serializeObjectToString(user, getLanguage());
+		String serialized = prismContext.serializerFor(language).serialize(user);
 		System.out.println("Serialized: \n" +serialized);
 		
 		PrismObject<UserType> reparsedUser = prismContext.parseObject(serialized);
@@ -117,7 +92,7 @@ public abstract class TestParseUser {
 	@Test
 	public void testParseUserDom() throws Exception {
 		final String TEST_NAME = "testParseUserDom";
-		PrismTestUtil.displayTestTitle(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 
 		// GIVEN
 		PrismContext prismContext = PrismTestUtil.getPrismContext();
@@ -134,11 +109,11 @@ public abstract class TestParseUser {
 		
 		assertUser(user);
 	}
-	
+
 	@Test
 	public void testParseUserRoundTrip() throws Exception{
 		final String TEST_NAME = "testParseUserRoundTrip";
-		PrismTestUtil.displayTestTitle(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 
 		// GIVEN
 		PrismContext prismContext = PrismTestUtil.getPrismContext();
@@ -156,7 +131,7 @@ public abstract class TestParseUser {
 		assertUser(user);
 		
 		
-		String serializedUser = prismContext.serializeObjectToString(user, getLanguage());
+		String serializedUser = prismContext.serializeObjectToString(user, language);
 		System.out.println("Serialized user:");
 		System.out.println(serializedUser);
 		
@@ -270,13 +245,11 @@ public abstract class TestParseUser {
 		assertNotNull("No "+message+" filter", filterElement);
 		System.out.println("Filter element "+message);
 		System.out.println(DOMUtil.serializeDOMToString(filterElement));
-		if (hasNamespaces()) {
+		if (namespaces) {
 			assertEquals("Wrong " + message + " filter namespace", PrismConstants.NS_QUERY, filterElement.getNamespaceURI());
 		}
 		assertEquals("Wrong "+message+" filter localName", "equal", filterElement.getLocalName());
 	}
-
-	protected abstract boolean hasNamespaces();
 
 	private void assertFilter(String message, SearchFilterType filter) {
 		assertNotNull("No "+message+" filter", filter);
@@ -313,22 +286,6 @@ public abstract class TestParseUser {
 		SearchFilterType ref3Filter = ref3.getFilter();
 		assertNotNull("No ref3 filter (jaxb,class)", ref3Filter);
 		assertFilterElement("ref filter (jaxb)", ref3Filter.getFilterClauseAsElement());
-	}
-
-	private void assertPropertyDefinition(PrismContainer<?> container, String propName, QName xsdType, int minOccurs,
-			int maxOccurs) {
-		QName propQName = new QName(SchemaConstantsGenerated.NS_COMMON, propName);
-		PrismAsserts.assertPropertyDefinition(container, propQName, xsdType, minOccurs, maxOccurs);
-	}
-	
-	public static void assertPropertyValue(PrismContainer<?> container, String propName, Object propValue) {
-		QName propQName = new QName(SchemaConstantsGenerated.NS_COMMON, propName);
-		PrismAsserts.assertPropertyValue(container, propQName, propValue);
-	}
-
-	public static <T> void assertPropertyValues(PrismContainer<?> container, String propName, T... expectedValues) {
-		QName propQName = new QName(SchemaConstantsGenerated.NS_COMMON, propName);
-		PrismAsserts.assertPropertyValue(container, propQName, expectedValues);
 	}
 
     @Test

@@ -226,11 +226,11 @@ abstract class PrismParserImpl implements PrismParser {
 
 	@NotNull
 	List<PrismObject<? extends Objectable>> doParseObjects() throws IOException, SchemaException {
-		List<RootXNode> xnodes = getLexicalProcessor().readObjects(source, context);
+		List<RootXNode> roots = getLexicalProcessor().readObjects(source, context);
 		List<PrismObject<? extends Objectable>> objects = new ArrayList<>();
-		for (RootXNode xnode : xnodes) {
+		for (RootXNode root : roots) {
 			PrismObject<? extends Objectable> object = prismContext.getPrismUnmarshaller()
-					.parseObject(xnode, null, null, null, PrismObjectDefinition.class, context);
+					.parseObject(root, null, null, null, null, context);
 			objects.add(object);
 		}
 		return objects;

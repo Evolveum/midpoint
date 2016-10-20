@@ -13,10 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.evolveum.midpoint.schema.parser.resource;
+package com.evolveum.midpoint.schema.parser;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.lex.dom.DomLexicalProcessor;
 import com.evolveum.midpoint.prism.marshaller.QueryConvertor;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
@@ -27,7 +28,7 @@ import com.evolveum.midpoint.prism.util.ItemPathUtil;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xnode.MapXNode;
-import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
+import com.evolveum.midpoint.prism.xnode.RootXNode;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.TestConstants;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
@@ -35,26 +36,23 @@ import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.processor.ResourceSchemaImpl;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 import com.evolveum.prism.xml.ns._public.types_3.*;
 import org.testng.AssertJUnit;
-import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
+import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import org.xml.sax.SAXException;
 
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
-import java.io.File;
-import java.io.IOException;
 import java.util.List;
 
-import static com.evolveum.midpoint.schema.TestConstants.*;
+import static com.evolveum.midpoint.schema.TestConstants.RESOURCE_FILE_BASENAME;
+import static com.evolveum.midpoint.schema.TestConstants.RESOURCE_FILE_SIMPLE_BASENAME;
 import static com.evolveum.midpoint.schema.util.SchemaTestConstants.ICFC_CONFIGURATION_PROPERTIES;
 import static org.testng.AssertJUnit.*;
 
@@ -62,83 +60,61 @@ import static org.testng.AssertJUnit.*;
  * @author semancik
  *
  */
-public abstract class TestParseResource {
-	
-	@BeforeSuite
-	public void setup() throws SchemaException, SAXException, IOException {
-		PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
-		PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
-	}
-
-	protected abstract String getSubdirName();
-
-	protected abstract String getLanguage();
-
-	protected abstract String getFilenameSuffix();
-
-	protected File getCommonSubdir() {
-		return new File(COMMON_DIR_PATH, getSubdirName());
-	}
-
-	protected abstract boolean hasNamespaces();
-
-	protected File getFile(String baseName) {
-		return new File(getCommonSubdir(), baseName+"."+getFilenameSuffix());
-	}
+public class TestParseResource extends AbstractParserTest {
 
 	@Test
 	public void testParseResourceFile() throws Exception {
-		System.out.println("===[ testParseResourceFile ]===");
+		displayTestTitle("testParseResourceFile");
 
 		// GIVEN
 		PrismContext prismContext = PrismTestUtil.getPrismContext();
-		
+
 		// WHEN
 		PrismObject<ResourceType> resource = prismContext.parseObject(getFile(RESOURCE_FILE_BASENAME));
-		
+
 		// THEN
 		System.out.println("Parsed resource:");
 		System.out.println(resource.debugDump());
-		
+
 		assertResource(resource, true, true, false);
 	}
-	
+
 	@Test
 	public void testParseResourceFileSimple() throws Exception {
-		System.out.println("===[ testParseResourceFileSimple ]===");
+		displayTestTitle("testParseResourceFileSimple");
 
 		// GIVEN
 		PrismContext prismContext = PrismTestUtil.getPrismContext();
-		
+
 		// WHEN
 		PrismObject<ResourceType> resource = prismContext.parseObject(getFile(RESOURCE_FILE_SIMPLE_BASENAME));
-		
+
 		// THEN
 		System.out.println("Parsed resource:");
 		System.out.println(resource.debugDump());
-		
+
 		assertResource(resource, true, true, true);
 	}
 
 
 	@Test
 	public void testParseResourceRoundtrip() throws Exception {
-		System.out.println("===[ testParseResourceRoundtrip ]===");
+		displayTestTitle("testParseResourceRoundtrip");
 
 		// GIVEN
 		PrismContext prismContext = PrismTestUtil.getPrismContext();
-		
+
 		PrismObject<ResourceType> resource = prismContext.parseObject(getFile(RESOURCE_FILE_BASENAME));
-		
+
 		System.out.println("Parsed resource:");
 		System.out.println(resource.debugDump());
-		
+
 		assertResource(resource, true, false, false);
-		
+
 		// SERIALIZE
-		
-		String serializedResource = prismContext.serializeObjectToString(resource, getLanguage());
-		
+
+		String serializedResource = prismContext.serializerFor(language).serialize(resource);
+
 		System.out.println("serialized resource:");
 		System.out.println(serializedResource);
 
@@ -146,29 +122,29 @@ public abstract class TestParseResource {
         assertFalse("<clazz> element is present in the serialized form!", serializedResource.contains("<clazz>"));
 
         // RE-PARSE
-		
+
 		PrismObject<ResourceType> reparsedResource = prismContext.parseObject(serializedResource);
-		
+
 		System.out.println("Re-parsed resource:");
 		System.out.println(reparsedResource.debugDump());
-		
+
 		// Cannot assert here. It will cause parsing of some of the raw values and diff will fail
 		assertResource(reparsedResource, true, false, false);
-		
+
 		PrismProperty<SchemaDefinitionType> definitionProperty = reparsedResource.findContainer(ResourceType.F_SCHEMA).findProperty(XmlSchemaType.F_DEFINITION);
 		SchemaDefinitionType definitionElement = definitionProperty.getValue().getValue();
 		System.out.println("Re-parsed definition element:");
 		System.out.println(DOMUtil.serializeDOMToString(definitionElement.getSchema()));
-		
+
 		ObjectDelta<ResourceType> objectDelta = resource.diff(reparsedResource);
 		System.out.println("Delta:");
 		System.out.println(objectDelta.debugDump());
 		assertTrue("Delta is not empty", objectDelta.isEmpty());
-		
+
 		PrismAsserts.assertEquivalent("Resource re-parsed equivalence", resource, reparsedResource);
 
 //		// Compare schema container
-//		
+//
 //		PrismContainer<?> originalSchemaContainer = resource.findContainer(ResourceType.F_SCHEMA);
 //		PrismContainer<?> reparsedSchemaContainer = reparsedResource.findContainer(ResourceType.F_SCHEMA);
 	}
@@ -179,48 +155,48 @@ public abstract class TestParseResource {
 	 */
 	@Test
 	public void testSchemaRoundtrip() throws Exception {
-		System.out.println("===[ testSchemaRoundtrip ]===");
+		displayTestTitle("testSchemaRoundtrip");
 
 		// GIVEN
 		PrismContext prismContext = PrismTestUtil.getPrismContext();
-		
+
 		PrismObject<ResourceType> resource = prismContext.parseObject(getFile(RESOURCE_FILE_BASENAME));
-				
+
 		assertResource(resource, true, false, false);
-		
+
 		PrismContainer<Containerable> schemaContainer = resource.findContainer(ResourceType.F_SCHEMA);
-		
+
 		System.out.println("Parsed schema:");
 		System.out.println(schemaContainer.debugDump());
 
 		// SERIALIZE
-		
-		String serializesSchema = prismContext.serializerFor(getLanguage()).serialize(schemaContainer.getValue(), new QName("fakeNs", "fake"));
-		
+
+		String serializesSchema = prismContext.serializerFor(language).serialize(schemaContainer.getValue(), new QName("fakeNs", "fake"));
+
 		System.out.println("serialized schema:");
 		System.out.println(serializesSchema);
-		
+
 		// RE-PARSE
-		PrismContainer reparsedSchemaContainer = (PrismContainer) prismContext.parserFor(serializesSchema).language(getLanguage()).definition(schemaContainer.getDefinition()).parseItem();
-		
+		PrismContainer reparsedSchemaContainer = (PrismContainer) prismContext.parserFor(serializesSchema).language(language).definition(schemaContainer.getDefinition()).parseItem();
+
 		System.out.println("Re-parsed schema container:");
 		System.out.println(reparsedSchemaContainer.debugDump());
-		
+
 //		String reserializesSchema = prismContext.serializeContainerValueToString(reparsedSchemaContainer.getValue(), new QName("fakeNs", "fake"), PrismContext.LANG_XML);
-//		
+//
 //		System.out.println("re-serialized schema:");
 //		System.out.println(reserializesSchema);
-		
+
 //		Document reparsedDocument = DOMUtil.parseDocument(serializesSchema);
 //		Element reparsedSchemaElement = DOMUtil.getFirstChildElement(DOMUtil.getFirstChildElement(reparsedDocument));
 //		Element reparsedXsdSchemaElement = DOMUtil.getChildElement(DOMUtil.getFirstChildElement(reparsedSchemaElement), DOMUtil.XSD_SCHEMA_ELEMENT);
-		
+
 		XmlSchemaType defType = (XmlSchemaType) reparsedSchemaContainer.getValue().asContainerable();
 		Element reparsedXsdSchemaElement = defType.getDefinition().getSchema();
 		ResourceSchema reparsedSchema = ResourceSchemaImpl.parse(reparsedXsdSchemaElement, "reparsed schema", prismContext);
-		
+
 	}
-	
+
 	protected void assertResource(PrismObject<ResourceType> resource, boolean checkConsistence, boolean checkJaxb, boolean isSimple)
 			throws SchemaException, JAXBException {
 		if (checkConsistence) {
@@ -228,7 +204,7 @@ public abstract class TestParseResource {
 		}
 		assertResourcePrism(resource, isSimple);
 		assertResourceJaxb(resource.asObjectable(), isSimple);
-		
+
 		if (checkJaxb) {
 //			serializeDom(resource);
 			//serializeJaxb(resource);
@@ -250,13 +226,13 @@ public abstract class TestParseResource {
 		assertNotNull("asObjectable resulted in null", resourceType);
 
 		assertPropertyValue(resource, "name", PrismTestUtil.createPolyString("Embedded Test OpenDJ"));
-		assertPropertyDefinition(resource, "name", PolyStringType.COMPLEX_TYPE, 0, 1);		
-		
+		assertPropertyDefinition(resource, "name", PolyStringType.COMPLEX_TYPE, 0, 1);
+
 		if (!isSimple) {
 			assertPropertyValue(resource, "namespace", TestConstants.RESOURCE_NAMESPACE);
 			assertPropertyDefinition(resource, "namespace", DOMUtil.XSD_ANYURI, 0, 1);
 		}
-		
+
 		PrismReference connectorRef = resource.findReference(ResourceType.F_CONNECTOR_REF);
 		assertNotNull("No connectorRef", connectorRef);
     	PrismReferenceValue connectorRefVal = connectorRef.getValue();
@@ -270,7 +246,7 @@ public abstract class TestParseResource {
             EqualFilter equalFilter = (EqualFilter) objectFilter;
             ItemPath path = equalFilter.getPath();      // should be extension/x:extConnType
             PrismAsserts.assertPathEqualsExceptForPrefixes("Wrong filter path",
-					hasNamespaces() ?
+					namespaces ?
 						new ItemPath(new QName("extension"), new QName("http://x/", "extConnType")) :
 						new ItemPath(new QName("extension"), new QName("extConnType")),
 					path);
@@ -289,7 +265,7 @@ public abstract class TestParseResource {
 		PrismContainerValue<?> configContainerValue = configurationContainer.getValue();
 		List<Item<?,?>> configItems = configContainerValue.getItems();
 		assertEquals("Wrong number of config items", isSimple ? 1 : 4, configItems.size());
-		
+
 		PrismContainer<?> ldapConfigPropertiesContainer = configurationContainer.findContainer(ICFC_CONFIGURATION_PROPERTIES);
 		assertNotNull("No icfcldap:configurationProperties container", ldapConfigPropertiesContainer);
 		PrismContainerDefinition<?> ldapConfigPropertiesContainerDef = ldapConfigPropertiesContainer.getDefinition();
@@ -297,14 +273,14 @@ public abstract class TestParseResource {
 		assertEquals("icfcldap:configurationProperties container definition maxOccurs", 1, ldapConfigPropertiesContainerDef.getMaxOccurs());
 		List<Item<?,?>> ldapConfigPropItems = ldapConfigPropertiesContainer.getValue().getItems();
 		assertEquals("Wrong number of ldapConfigPropItems items", 7, ldapConfigPropItems.size());
-		
+
 		PrismContainer<Containerable> schemaContainer = resource.findContainer(ResourceType.F_SCHEMA);
 		if (isSimple) {
 			assertNull("Schema sneaked in", schemaContainer);
 		} else {
 			assertNotNull("No schema container", schemaContainer);
 		}
-		
+
 		PrismContainer<?> schemaHandlingContainer = resource.findContainer(ResourceType.F_SCHEMA_HANDLING);
 		if (isSimple) {
 			assertNull("SchemaHandling sneaked in", schemaHandlingContainer);
@@ -335,7 +311,7 @@ public abstract class TestParseResource {
             ItemPathType itemPathType = (ItemPathType) expressionType.getExpressionEvaluator().get(0).getValue();
             // $account/c:attributes/my:yyy
             PrismAsserts.assertPathEqualsExceptForPrefixes("path in correlation expression",
-					hasNamespaces() ?
+					namespaces ?
 							new ItemPath(
 									new NameItemPathSegment(new QName("account"), true),
 									new NameItemPathSegment(new QName(SchemaConstantsGenerated.NS_COMMON, "attributes")),
@@ -360,7 +336,7 @@ public abstract class TestParseResource {
 			expectedNamespace = MidPointConstants.NS_RI;
 		}
 		assertEquals("Wrong namespace (JAXB)", expectedNamespace, ResourceTypeUtil.getResourceNamespace(resourceType));
-		
+
 		ObjectReferenceType connectorRef = resourceType.getConnectorRef();
 		assertNotNull("No connectorRef (JAXB)", connectorRef);
 		assertEquals("Wrong type in connectorRef (JAXB)", ConnectorType.COMPLEX_TYPE, connectorRef.getType());
@@ -374,7 +350,7 @@ public abstract class TestParseResource {
     	} else {
     		assertEquals("Wrong resolution time in connectorRef (JAXB)", EvaluationTimeType.IMPORT, resolutionTime);
     	}
-    	
+
     	XmlSchemaType xmlSchemaType = resourceType.getSchema();
     	SchemaHandlingType schemaHandling = resourceType.getSchemaHandling();
     	if (isSimple) {
@@ -387,7 +363,7 @@ public abstract class TestParseResource {
 	    	List<Element> anyElements = definition.getAny();
 	    	assertNotNull("Null element list in definition element in schema (JAXB)", anyElements);
 	    	assertFalse("Empty element list in definition element in schema (JAXB)", anyElements.isEmpty());
-			
+
 			assertNotNull("No schema handling (JAXB)", schemaHandling);
 			for(ResourceObjectTypeDefinitionType accountType: schemaHandling.getObjectType()) {
 				String name = accountType.getIntent();
@@ -414,7 +390,7 @@ public abstract class TestParseResource {
                         ItemPath expected = new ItemPath(
                                 new NameItemPathSegment(new QName("user"), true),
                                 new NameItemPathSegment(new QName("extension")),
-								hasNamespaces() ?
+								namespaces ?
 										new NameItemPathSegment(new QName("http://z/", "dept")) :
 										new NameItemPathSegment(new QName("dept"))
 						);
@@ -436,7 +412,7 @@ public abstract class TestParseResource {
             assertEquals("Wrong value toString value", "my.value", unknownJavaObjectType.getToString());
     	}
 	}
-	
+
 	// Try to serialize it to DOM using just DOM processor. See if it does not fail.
 	private void serializeDom(PrismObject<ResourceType> resource) throws SchemaException {
 //		DomParser domProcessor = PrismTestUtil.getPrismContext().getParserDom();
@@ -446,21 +422,50 @@ public abstract class TestParseResource {
 //		assertNotNull("Null resulting DOM element after DOM serialization", domElement);
 	}
 
-	private void assertPropertyDefinition(PrismContainer<?> container, String propName, QName xsdType, int minOccurs,
-			int maxOccurs) {
-		QName propQName = new QName(SchemaConstantsGenerated.NS_COMMON, propName);
-		PrismAsserts.assertPropertyDefinition(container, propQName, xsdType, minOccurs, maxOccurs);
+	@Test
+	public void testParseResourceDom() throws Exception {
+		if (!"xml".equals(language)) {
+			return;
+		}
+		final String TEST_NAME = "testParseResourceDom";
+		displayTestTitle(TEST_NAME);
+
+		// GIVEN
+		PrismContext prismContext = PrismTestUtil.getPrismContext();
+
+		// WHEN
+		DomLexicalProcessor parserDom = ((PrismContextImpl) prismContext).getParserDom();
+		RootXNode xnode = parserDom.read(new ParserFileSource(getFile(TestConstants.RESOURCE_FILE_BASENAME)), ParsingContext.createDefault());
+		PrismObject<ResourceType> resource = prismContext.parserFor(xnode).parse();
+
+		// THEN
+		System.out.println("Parsed resource:");
+		System.out.println(resource.debugDump());
+
+		assertResource(resource, true, true, false);
 	}
-	
-	public static void assertPropertyValue(PrismContainer<?> container, String propName, Object propValue) {
-		QName propQName = new QName(SchemaConstantsGenerated.NS_COMMON, propName);
-		PrismAsserts.assertPropertyValue(container, propQName, propValue);
-	}
-	
-	private void assertContainerDefinition(PrismContainer container, String contName, QName xsdType, int minOccurs,
-			int maxOccurs) {
-		QName qName = new QName(SchemaConstantsGenerated.NS_COMMON, contName);
-		PrismAsserts.assertDefinition(container.getDefinition(), qName, xsdType, minOccurs, maxOccurs);
+
+	@Test
+	public void testParseResourceDomSimple() throws Exception {
+		if (!"xml".equals(language)) {
+			return;
+		}
+		displayTestTitle("testParseResourceDomSimple");
+
+		// GIVEN
+		PrismContext prismContext = PrismTestUtil.getPrismContext();
+
+		Document document = DOMUtil.parseFile(getFile(TestConstants.RESOURCE_FILE_SIMPLE_BASENAME));
+		Element resourceElement = DOMUtil.getFirstChildElement(document);
+
+		// WHEN
+		PrismObject<ResourceType> resource = prismContext.parserFor(resourceElement).parse();
+
+		// THEN
+		System.out.println("Parsed resource:");
+		System.out.println(resource.debugDump());
+
+		assertResource(resource, true, true, true);
 	}
 
 }

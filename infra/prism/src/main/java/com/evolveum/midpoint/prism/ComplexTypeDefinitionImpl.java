@@ -285,7 +285,6 @@ public class ComplexTypeDefinitionImpl extends DefinitionImpl implements Complex
 		return clone;
 	}
 
-	@Override
 	public ComplexTypeDefinition deepClone() {
 		return deepClone(new HashMap<QName, ComplexTypeDefinition>());
 	}

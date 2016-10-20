@@ -462,11 +462,6 @@ public class CompositeRefinedObjectClassDefinition implements RefinedObjectClass
 	}
 
 	@Override
-	public ComplexTypeDefinition deepClone() {
-		return null;
-	}
-
-	@Override
 	public <X> RefinedAttributeDefinition<X> findAttributeDefinition(QName elementQName) {
 		return null;
 	}
