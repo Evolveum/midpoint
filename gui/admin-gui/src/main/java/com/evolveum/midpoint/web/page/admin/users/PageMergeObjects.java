@@ -79,7 +79,9 @@ public class PageMergeObjects<F extends FocusType> extends PageAdminFocus {
     private static final String OPERATION_DELETE_USER = DOT_CLASS + "deleteUser";
     private static final Trace LOGGER = TraceManager.getTrace(PageMergeObjects.class);
     private F mergeObject;
+    private IModel<F> mergeObjectModel;
     private F mergeWithObject;
+    private IModel<F> mergeWithObjectModel;
     private Class<F> type;
     private MergeObjectsPanel mergeObjectsPanel;
 
@@ -91,10 +93,47 @@ public class PageMergeObjects<F extends FocusType> extends PageAdminFocus {
         this.mergeWithObject = mergeWithObject;
         this.type = type;
 
+        initModels();
+
         PageParameters parameters = new PageParameters();
         parameters.add(OnePageParameterEncoder.PARAMETER, mergeObject.getOid());
         getPageParameters().overwriteWith(parameters);
         initialize(this.mergeObject.asPrismObject());
+    }
+
+    private void initModels(){
+        mergeObjectModel = new IModel<F>() {
+            @Override
+            public F getObject() {
+                return mergeObject;
+            }
+
+            @Override
+            public void setObject(F f) {
+                mergeObject = f;
+            }
+
+            @Override
+            public void detach() {
+
+            }
+        };
+        mergeWithObjectModel = new IModel<F>() {
+            @Override
+            public F getObject() {
+                return mergeWithObject;
+            }
+
+            @Override
+            public void setObject(F f) {
+                mergeWithObject = f;
+            }
+
+            @Override
+            public void detach() {
+
+            }
+        };
     }
 
     @Override
@@ -121,7 +160,7 @@ public class PageMergeObjects<F extends FocusType> extends PageAdminFocus {
 
                             @Override
                             public WebMarkupContainer createPanel(String panelId) {
-                                mergeObjectsPanel =  new MergeObjectsPanel(panelId, mergeObject, mergeWithObject, type, PageMergeObjects.this);
+                                mergeObjectsPanel =  new MergeObjectsPanel(panelId, mergeObjectModel, mergeWithObjectModel, type, PageMergeObjects.this);
                                 return mergeObjectsPanel;
                             }
                         });

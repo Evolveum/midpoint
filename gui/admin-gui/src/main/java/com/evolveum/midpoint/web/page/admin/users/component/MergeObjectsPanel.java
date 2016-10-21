@@ -65,8 +65,8 @@ public class MergeObjectsPanel<F extends FocusType> extends BasePanel{
     private static final String ID_SWITCH_DIRECTION_BUTTON = "switchDirectionButton";
     private static final String ID_OBJECTS_PANEL = "objectsPanel";
 
-    private F mergeObject;
-    private F mergeWithObject;
+    private IModel<F> mergeObjectModel;
+    private IModel<F> mergeWithObjectModel;
     private PrismObject<F> mergeResultObject;
     private ObjectDelta<F> mergeDelta;
     private Class<F> type;
@@ -80,10 +80,10 @@ public class MergeObjectsPanel<F extends FocusType> extends BasePanel{
         super(id);
     }
 
-    public MergeObjectsPanel(String id, F mergeObject, F mergeWithObject, Class<F> type, PageBase pageBase){
+    public MergeObjectsPanel(String id, IModel<F> mergeObjectModel, IModel<F> mergeWithObjectModel, Class<F> type, PageBase pageBase){
         super(id);
-        this.mergeObject = mergeObject;
-        this.mergeWithObject = mergeWithObject;
+        this.mergeObjectModel = mergeObjectModel;
+        this.mergeWithObjectModel = mergeWithObjectModel;
         this.type = type;
         this.pageBase = pageBase;
         mergeTypeChoices = getMergeTypeNames();
@@ -160,9 +160,9 @@ public class MergeObjectsPanel<F extends FocusType> extends BasePanel{
                 pageBase.createStringResource("MergeObjectsPanel.switchDirection")) {
             @Override
             public void onClick(AjaxRequestTarget ajaxRequestTarget) {
-                F temp = mergeObject;
-                mergeObject = mergeWithObject;
-                mergeWithObject = temp;
+                F temp = mergeObjectModel.getObject();
+                mergeObjectModel.setObject(mergeWithObjectModel.getObject());
+                mergeWithObjectModel.setObject(temp);
                 initObjectsPanel(objectsPanel);
 
                 ajaxRequestTarget.add(objectsPanel);
@@ -175,12 +175,12 @@ public class MergeObjectsPanel<F extends FocusType> extends BasePanel{
     private void initObjectsPanel(WebMarkupContainer objectsPanel){
 
         MergeObjectDetailsPanel mergeObjectPanel = new MergeObjectDetailsPanel(ID_MERGE_OBJECT_DETAILS_PANEL,
-                mergeObject, type);
+                mergeObjectModel.getObject(), type);
         mergeObjectPanel.setOutputMarkupId(true);
         objectsPanel.addOrReplace(mergeObjectPanel);
 
         MergeObjectDetailsPanel mergeWithObjectPanel = new MergeObjectDetailsPanel(ID_MERGE_WITH_OBJECT_DETAILS_PANEL,
-                mergeWithObject, type);
+                mergeWithObjectModel.getObject(), type);
         mergeWithObjectPanel.setOutputMarkupId(true);
         objectsPanel.addOrReplace(mergeWithObjectPanel);
 
@@ -298,9 +298,9 @@ public class MergeObjectsPanel<F extends FocusType> extends BasePanel{
         try {
             Task task = pageBase.createSimpleTask(OPERATION_GET_MERGE_OBJECT_PREVIEW);
             mergeResultObject = pageBase.getModelInteractionService().mergeObjectsPreviewObject(type,
-                    mergeObject.getOid(), mergeWithObject.getOid(), currentMergeType, task, result);
+                    mergeObjectModel.getObject().getOid(), mergeWithObjectModel.getObject().getOid(), currentMergeType, task, result);
             mergeDelta = pageBase.getModelInteractionService().mergeObjectsPreviewDelta(type,
-                    mergeObject.getOid(), mergeWithObject.getOid(), currentMergeType, task, result);
+                    mergeObjectModel.getObject().getOid(), mergeWithObjectModel.getObject().getOid(), currentMergeType, task, result);
         } catch (Exception ex) {
             result.recomputeStatus();
             result.recordFatalError("Couldn't get merge object for preview.", ex);
