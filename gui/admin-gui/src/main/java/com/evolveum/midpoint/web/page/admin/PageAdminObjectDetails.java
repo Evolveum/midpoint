@@ -247,17 +247,20 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 		FocusSummaryPanel<O> summaryPanel = createSummaryPanel();
 		summaryPanel.setOutputMarkupId(true);
 
-		summaryPanel.add(new VisibleEnableBehaviour() {
-			private static final long serialVersionUID = 1L;
-			
-			@Override
-			public boolean isVisible() {
-				return isEditingFocus();
-			}
-		});
-
+		setSummaryPanelVisibility(summaryPanel);
 		add(summaryPanel);
 	}
+
+    protected void setSummaryPanelVisibility(FocusSummaryPanel<O> summaryPanel){
+        summaryPanel.add(new VisibleEnableBehaviour() {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public boolean isVisible() {
+                return isEditingFocus();
+            }
+        });
+    }
 
 	protected abstract AbstractObjectMainPanel<O> createMainPanel(String id);
 
