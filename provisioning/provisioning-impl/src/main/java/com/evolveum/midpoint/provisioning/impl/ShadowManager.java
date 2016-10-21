@@ -28,10 +28,15 @@ import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CachingMetadataType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CachingPolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CachingStategyType;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
+import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.common.refinery.RefinedAssociationDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
@@ -112,10 +117,16 @@ public class ShadowManager {
 	@Autowired(required = true)
 	@Qualifier("cacheRepositoryService")
 	private RepositoryService repositoryService;
+	
+	@Autowired(required = true)
+	private Clock clock;
+	
 	@Autowired(required = true)
 	private PrismContext prismContext;
+	
 	@Autowired(required = true)
 	private TaskManager taskManager;
+	
 	@Autowired(required = true)
 	private MatchingRuleRegistry matchingRuleRegistry;
 	
@@ -766,38 +777,51 @@ public class ShadowManager {
 		ResourceAttributeContainer attributesContainer = ShadowUtil.getAttributesContainer(shadow);
 		
 		PrismObject<ShadowType> repoShadow = shadow.clone();
+		ShadowType repoShadowType = repoShadow.asObjectable();
 		ResourceAttributeContainer repoAttributesContainer = ShadowUtil
 				.getAttributesContainer(repoShadow);
 
-		// Clean all repoShadow attributes and add only those that should be
-		// there
-		repoAttributesContainer.clear();
-		Collection<ResourceAttribute<?>> primaryIdentifiers = attributesContainer.getPrimaryIdentifiers();
-		for (PrismProperty<?> p : primaryIdentifiers) {
-			repoAttributesContainer.add(p.clone());
-		}
-
-		Collection<ResourceAttribute<?>> secondaryIdentifiers = attributesContainer.getSecondaryIdentifiers();
-		for (PrismProperty<?> p : secondaryIdentifiers) {
-			repoAttributesContainer.add(p.clone());
-		}
-
-		// Also add all the attributes that act as association identifiers.
-		// We will need them when the shadow is deleted (to remove the shadow from entitlements).
-		RefinedObjectClassDefinition objectClassDefinition = ctx.getObjectClassDefinition();
-		for (RefinedAssociationDefinition associationDef: objectClassDefinition.getAssociations()) {
-			if (associationDef.getResourceObjectAssociationType().getDirection() == ResourceObjectAssociationDirectionType.OBJECT_TO_SUBJECT) {
-				QName valueAttributeName = associationDef.getResourceObjectAssociationType().getValueAttribute();
-				if (repoAttributesContainer.findAttribute(valueAttributeName) == null) {
-					ResourceAttribute<Object> valueAttribute = attributesContainer.findAttribute(valueAttributeName);
-					if (valueAttribute != null) {
-						repoAttributesContainer.add(valueAttribute.clone());
+		CachingStategyType cachingStrategy = getCachingStrategy(ctx);
+		if (cachingStrategy == CachingStategyType.NONE) {
+			// Clean all repoShadow attributes and add only those that should be
+			// there
+			repoAttributesContainer.clear();
+			Collection<ResourceAttribute<?>> primaryIdentifiers = attributesContainer.getPrimaryIdentifiers();
+			for (PrismProperty<?> p : primaryIdentifiers) {
+				repoAttributesContainer.add(p.clone());
+			}
+	
+			Collection<ResourceAttribute<?>> secondaryIdentifiers = attributesContainer.getSecondaryIdentifiers();
+			for (PrismProperty<?> p : secondaryIdentifiers) {
+				repoAttributesContainer.add(p.clone());
+			}
+	
+			// Also add all the attributes that act as association identifiers.
+			// We will need them when the shadow is deleted (to remove the shadow from entitlements).
+			RefinedObjectClassDefinition objectClassDefinition = ctx.getObjectClassDefinition();
+			for (RefinedAssociationDefinition associationDef: objectClassDefinition.getAssociations()) {
+				if (associationDef.getResourceObjectAssociationType().getDirection() == ResourceObjectAssociationDirectionType.OBJECT_TO_SUBJECT) {
+					QName valueAttributeName = associationDef.getResourceObjectAssociationType().getValueAttribute();
+					if (repoAttributesContainer.findAttribute(valueAttributeName) == null) {
+						ResourceAttribute<Object> valueAttribute = attributesContainer.findAttribute(valueAttributeName);
+						if (valueAttribute != null) {
+							repoAttributesContainer.add(valueAttribute.clone());
+						}
 					}
 				}
 			}
+			
+			repoShadowType.setCachingMetadata(null);
+			
+		} else if (cachingStrategy == CachingStategyType.PASSIVE) {
+			// Do not need to clear anything. Just store all attributes and add metadata.
+			CachingMetadataType cachingMetadata = new CachingMetadataType();
+			cachingMetadata.setRetrievalTimestamp(clock.currentTimeXMLGregorianCalendar());
+			repoShadowType.setCachingMetadata(cachingMetadata);
+			
+		} else {
+			throw new ConfigurationException("Unknown caching strategy "+cachingStrategy);
 		}
-		
-		ShadowType repoShadowType = repoShadow.asObjectable();
 
         setKindIfNecessary(repoShadowType, ctx.getObjectClassDefinition());
 //        setIntentIfNecessary(repoShadowType, objectClassDefinition);
@@ -831,8 +855,6 @@ public class ShadowManager {
 		}
 		
 		normalizeAttributes(repoShadow, ctx.getObjectClassDefinition());
-		
-		repoShadowType.setCachingMetadata(null);
 
 		ProvisioningUtil.cleanupShadowActivation(repoShadowType);
 
@@ -1173,4 +1195,14 @@ public class ShadowManager {
 		return MiscUtil.unorderedCollectionEquals(valuesA, valuesB);
 	}
 
+	private CachingStategyType getCachingStrategy(ProvisioningContext ctx) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
+		CachingPolicyType caching = ctx.getResource().getCaching();
+		if (caching == null) {
+			return CachingStategyType.NONE;
+		}
+		if (caching.getCachingStategy() == null) {
+			return CachingStategyType.NONE;
+		}
+		return caching.getCachingStategy();
+	}
 }

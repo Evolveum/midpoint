@@ -424,6 +424,8 @@ public abstract class ShadowCache {
 			applyAttributesDefinition(ctx, shadow);
 			shadowManager.setKindIfNecessary(shadow.asObjectable(), ctx.getObjectClassDefinition());
 			accessChecker.checkAdd(ctx, shadow, parentResult);
+			
+			// RESOURCE OPERATION: add
 			shadow = resouceObjectConverter.addResourceObject(ctx, shadow, scripts, parentResult);
 
 		} catch (Exception ex) {
@@ -432,6 +434,7 @@ public abstract class ShadowCache {
 			return shadow.getOid();
 		}
 
+		// REPO OPERATION: add
 		// This is where the repo shadow is created (if needed)
 		String oid = afterAddOnResource(ctx, shadow, parentResult);
 		shadow.setOid(oid);

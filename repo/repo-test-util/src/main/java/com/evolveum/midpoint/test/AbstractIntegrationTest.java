@@ -1143,4 +1143,13 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 	protected PolyStringType createPolyStringType(String string) {
 		return PrismTestUtil.createPolyStringType(string);
 	}
+	
+	protected void assertNumberOfAttributes(PrismObject<ShadowType> shadow, int expectedNumberOfAttributes) {
+		PrismContainer<Containerable> attributesContainer = shadow.findContainer(ShadowType.F_ATTRIBUTES);
+		assertNotNull("No attributes in repo shadow "+shadow, attributesContainer);
+		List<Item<?,?>> attributes = attributesContainer.getValue().getItems();
+		
+		assertFalse("Empty attributes in repo shadow "+shadow, attributes.isEmpty());
+		assertEquals("Unexpected number of attributes in repo shadow "+shadow, expectedNumberOfAttributes, attributes.size());
+	}
 }

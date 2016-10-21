@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -48,6 +48,7 @@ import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectListType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CachingMetadataType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
@@ -298,29 +299,26 @@ public class SchemaDebugUtil {
 			sb.append("...");
 		}
 		
-//		if (vc.getValueConstructor() != null) {
-//			prettyPringValueConstructor(sb, vc.getValueConstructor());
-//			sb.append(",");
-//		}
-//		
-//		if (vc.getSequence() != null) {
-//			sb.append("[");
-//			for (JAXBElement vconstr: vc.getSequence().getValueConstructor()) {
-//				prettyPringValueConstructor(sb,vconstr);
-//				sb.append(",");
-//			}
-//			sb.append("]");
-//		}
-		
 		// TODO: Other properties
 		sb.append(")");
 		return sb.toString();
 	}
 	
-	private static void prettyPringValueConstructor(StringBuilder sb, JAXBElement vconstr) {
-		sb.append("ValueConstructor(");
-		sb.append(prettyPrint(vconstr));
+	public static String prettyPrint(CachingMetadataType cachingMetadata) {
+		if (cachingMetadata == null) {
+			return "null";
+		}
+		StringBuilder sb = new StringBuilder("CachingMetadataType(");
+		if (cachingMetadata.getSerialNumber() != null) {
+			sb.append("serialNumber:");
+			sb.append(prettyPrint(cachingMetadata.getSerialNumber()));
+		}
+		if (cachingMetadata.getRetrievalTimestamp() != null) {
+			sb.append("retrievalTimestamp:");
+			sb.append(prettyPrint(cachingMetadata.getRetrievalTimestamp()));
+		}
 		sb.append(")");
+		return sb.toString();
 	}
 
 	public static String prettyPrint(ObjectReferenceType ref) {

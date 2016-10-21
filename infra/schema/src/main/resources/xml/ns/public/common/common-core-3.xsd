@@ -3350,6 +3350,7 @@
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="consistency" type="tns:ResourceConsistencyType" minOccurs="0"/>
+                    <xsd:element name="caching" type="tns:CachingPolicyType" minOccurs="0"/>
                     <xsd:element ref="tns:synchronization" minOccurs="0"/>
                     <xsd:element name="business" type="tns:ResourceBusinessConfigurationType" minOccurs="0"/>
                 </xsd:sequence>
@@ -12626,6 +12627,55 @@
 				</xsd:annotation>
 			</xsd:enumeration>
 			<!-- TODO: values for manual selection may come here in the future. -->
+		</xsd:restriction>
+	</xsd:simpleType>
+	
+	<xsd:complexType name="CachingPolicyType">
+		<xsd:annotation>
+			<xsd:documentation>
+				TODO
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:container/>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="cachingStategy" type="tns:CachingStategyType" minOccurs="0" maxOccurs="1" default="none"/>
+		</xsd:sequence>
+	</xsd:complexType>
+
+	<xsd:simpleType name="CachingStategyType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Definition of overall caching strategy.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="none">
+				<xsd:annotation>
+					<xsd:documentation>
+						Do not cache information at all. Caches are not used and not maintained.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="NONE"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+			<xsd:enumeration value="passive">
+				<xsd:annotation>
+					<xsd:documentation>
+						Caches are maintained with minimal impact on normal operations.
+						Generally the data are cached only if they are retrieved for other
+						reasons. There is no read-ahead. The writes are always going to the
+						resource (synchronously): read-through, write-through.
+						There is no cache eviction (but old information is overwritten if
+						newer information is available).
+					</xsd:documentation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="PASSIVE"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
 		</xsd:restriction>
 	</xsd:simpleType>
 

@@ -62,6 +62,7 @@ import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -1080,6 +1081,8 @@ public class TestDummy extends AbstractDummyTest {
 		account.checkConsistence();
 
 		display("Adding shadow", account);
+		
+		XMLGregorianCalendar start = clock.currentTimeXMLGregorianCalendar();
 
 		// WHEN
 		TestUtil.displayWhen(TEST_NAME);
@@ -1087,6 +1090,9 @@ public class TestDummy extends AbstractDummyTest {
 
 		// THEN
 		TestUtil.displayThen(TEST_NAME);
+		
+		XMLGregorianCalendar end = clock.currentTimeXMLGregorianCalendar();
+		
 		result.computeStatus();
 		display("add object result", result);
 		TestUtil.assertSuccess("addObject has failed (result)", result);
@@ -1095,7 +1101,7 @@ public class TestDummy extends AbstractDummyTest {
 		account.checkConsistence();
 
 		PrismObject<ShadowType> accountRepo = repositoryService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, result);
-		checkAccountShadowWill(accountRepo);
+		checkRepoAccountShadowWill(accountRepo, start, end);
 		willIcfUid = getIcfUid(accountRepo);
 		
 		ActivationType activationRepo = accountRepo.asObjectable().getActivation();
@@ -1148,12 +1154,15 @@ public class TestDummy extends AbstractDummyTest {
 		display("Repository shadow", shadowFromRepo.debugDump());
 
 		ProvisioningTestUtil.checkRepoAccountShadow(shadowFromRepo);
+		
+		checkRepoAccountShadowWill(shadowFromRepo, start, end);
 
 		checkConsistency(accountProvisioning);
 		assertSteadyResource();
 	}
 
-	protected void checkAccountShadowWill(PrismObject<ShadowType> accountRepo) {
+	protected void checkRepoAccountShadowWillBasic(PrismObject<ShadowType> accountRepo, 
+			XMLGregorianCalendar start, XMLGregorianCalendar end, int expectedNumberOfAttributes) {
 		display("Will account repo", accountRepo);
 		ShadowType accountTypeRepo = accountRepo.asObjectable();
 		assertShadowName(accountRepo, ACCOUNT_WILL_USERNAME);
@@ -1162,6 +1171,14 @@ public class TestDummy extends AbstractDummyTest {
 		if (isIcfNameUidSame()) {
 			assertAttribute(accountTypeRepo, ConnectorFactoryIcfImpl.ICFS_UID, getWillRepoIcfName());
 		}
+		
+		assertNumberOfAttributes(accountRepo, expectedNumberOfAttributes);
+		
+		assertRepoCachingMetadata(accountRepo, start, end);
+	}
+	
+	protected void checkRepoAccountShadowWill(PrismObject<ShadowType> accountRepo, XMLGregorianCalendar start, XMLGregorianCalendar end) {
+		checkRepoAccountShadowWillBasic(accountRepo, start, end, 2);
 	}
 
 	@Test
@@ -1255,17 +1272,23 @@ public class TestDummy extends AbstractDummyTest {
 
 		checkAccountWill(shadow, result);
 		PrismObject<ShadowType> shadowRepo = repositoryService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, result);
-		checkAccountShadowWill(shadowRepo);
+		checkRepoAccountShadowWill(shadowRepo, startTs, endTs);
 
 		checkConsistency(shadow.asPrismObject());
 		
 		checkCachingMetadata(shadow, startTs, endTs);
-		assertNoCachingMetadata(shadowRepo);
 		
 		assertSteadyResource();
 	}
 
-	private void assertNoCachingMetadata(PrismObject<ShadowType> shadowRepo) {
+	/**
+	 * We do not know what the timestamp should be
+	 */
+	protected void assertRepoCachingMetadata(PrismObject<ShadowType> shadowRepo) {
+		assertNull("Unexpected caching metadata in "+shadowRepo, shadowRepo.asObjectable().getCachingMetadata());
+	}
+	
+	protected void assertRepoCachingMetadata(PrismObject<ShadowType> shadowRepo, XMLGregorianCalendar start, XMLGregorianCalendar end) {
 		assertNull("Unexpected caching metadata in "+shadowRepo, shadowRepo.asObjectable().getCachingMetadata());
 	}
 
@@ -1297,12 +1320,15 @@ public class TestDummy extends AbstractDummyTest {
 		GetOperationOptions rootOptions = new GetOperationOptions();
 		rootOptions.setNoFetch(true);
 		Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(rootOptions);
+		
+		XMLGregorianCalendar startTs = clock.currentTimeXMLGregorianCalendar();
 
 		// WHEN
 		ShadowType shadow = provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, options, null, 
 				result).asObjectable();
 
 		// THEN
+		XMLGregorianCalendar endTs = clock.currentTimeXMLGregorianCalendar();
 		result.computeStatus();
 		display("getObject result", result);
 		TestUtil.assertSuccess(result);
@@ -1313,7 +1339,7 @@ public class TestDummy extends AbstractDummyTest {
 		assertNotNull("No dummy account", shadow);
 
 		checkAccountShadow(shadow, result, false);
-		checkAccountShadowWill(shadow.asPrismObject());
+		checkRepoAccountShadowWill(shadow.asPrismObject(), startTs, endTs);
 
 		checkConsistency(shadow.asPrismObject());
 		
@@ -1403,11 +1429,15 @@ public class TestDummy extends AbstractDummyTest {
 			}
 		};
 		rememberShadowFetchOperationCount();
+		
+		XMLGregorianCalendar startTs = clock.currentTimeXMLGregorianCalendar();
 
 		// WHEN
 		provisioningService.searchObjectsIterative(ShadowType.class, query, null, handler, null, result);
 
 		// THEN
+		
+		XMLGregorianCalendar endTs = clock.currentTimeXMLGregorianCalendar();
 		result.computeStatus();
 		display("searchObjectsIterative result", result);
 		TestUtil.assertSuccess(result);
@@ -1418,18 +1448,21 @@ public class TestDummy extends AbstractDummyTest {
 		assertProtected(foundObjects, 1);
 		
 		PrismObject<ShadowType> shadowWillRepo = repositoryService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, result);
-		checkAccountShadowWill(shadowWillRepo);
+		checkRepoAccountShadowWill(shadowWillRepo, startTs, endTs);
 
 		// And again ...
 
 		foundObjects.clear();
 		rememberShadowFetchOperationCount();
 
+		startTs = clock.currentTimeXMLGregorianCalendar();
+		
 		// WHEN
 		provisioningService.searchObjectsIterative(ShadowType.class, query, null, handler, null, result);
 
 		// THEN
 
+		endTs = clock.currentTimeXMLGregorianCalendar();
 		assertShadowFetchOperationCountIncrement(1);
 		
 		display("Found shadows", foundObjects);
@@ -1439,7 +1472,7 @@ public class TestDummy extends AbstractDummyTest {
 		assertProtected(foundObjects, 1);
 		
 		shadowWillRepo = repositoryService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, result);
-		checkAccountShadowWill(shadowWillRepo);
+		checkRepoAccountShadowWill(shadowWillRepo, startTs, endTs);
 		
 		assertSteadyResource();
 	}
