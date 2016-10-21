@@ -91,10 +91,6 @@ public class PrismBeanConverter {
 		return prismContext;
 	}
 
-//	public void setPrismContext(PrismContext prismContext) {
-//		this.prismContext = prismContext;
-//	}
-
 	private SchemaRegistry getSchemaRegistry() {
 		return prismContext.getSchemaRegistry();
 	}

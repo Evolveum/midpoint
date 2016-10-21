@@ -86,6 +86,7 @@ public abstract class DefinitionImpl implements Definition {
 		this.prismContext = prismContext;
 	}
 
+
 	@Override
 	@NotNull
 	public QName getTypeName() {

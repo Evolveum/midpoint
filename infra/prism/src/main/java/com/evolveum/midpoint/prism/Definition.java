@@ -31,13 +31,66 @@ public interface Definition extends Serializable, DebugDumpable, Revivable {
 	/**
 	 * Returns a name of the type for this definition.
 	 *
-	 * In XML representation that corresponds to the name of the XSD type.
+	 * The type can be part of the compile-time schema or it can be defined at run time.
 	 *
-	 * @return the typeName
+	 * Examples of the former case are types like c:UserType, xsd:string, or even flexible
+	 * ones like c:ExtensionType or c:ShadowAttributesType.
+	 *
+	 * Examples of the latter case are types used in
+	 * - custom extensions, like ext:LocationsType (where ext = e.g. http://example.com/extension),
+	 * - resource schema, like ri:inetOrgPerson (ri = http://.../resource/instance-3),
+	 * - connector schema, like TODO
+	 *
+	 * In XML representation that corresponds to the name of the XSD type. Although beware, the
+	 * run-time types do not have statically defined structure. And the resource and connector-related
+	 * types may even represent different kinds of objects within different contexts (e.g. two
+	 * distinct resources both with ri:AccountObjectClass types).
+	 *
+	 * Also note that for complex type definitions, the type name serves as a unique identifier.
+	 * On the other hand, for item definitions, it is just one of its attributes; primary key
+	 * is item name in that case.
+	 *
+	 * The type name should be fully qualified. (TODO reconsider this)
+	 *
+	 * @return the type name
 	 */
 	@NotNull
 	QName getTypeName();
 
+	/**
+	 * This means that the entities described by this schema (items, complex types) or their content
+	 * is not defined by fixed (compile-time) schema. I.e. it is known only at run time.
+	 *
+	 * Some examples for "false" value:
+	 *  - c:user, c:UserType - statically defined type with statically defined content.
+	 *
+	 * Some examples for "true" value:
+	 *  - c:extension, c:ExtensionType - although the entity itself (item, type) are defined in
+	 *       the static schema, their content is not known at compile time;
+	 *  - c:attributes, c:ShadowAttributeType - the same as extension/ExtensionType;
+	 *  - ext:weapon (of type xsd:string) - even if the content is statically defined,
+	 *       the definition of the item itself is not known at compile time;
+	 *  - ri:inetOrgPerson, ext:LocationsType, ext:locations - both the entity
+	 *       and their content are known at run time only.
+	 *
+	 *  TODO clarify the third point; provide some tests for the 3rd and 4th point
+	 */
+	boolean isRuntimeSchema();
+
+	/**
+	 * Item definition that has this flag set should be ignored by any processing.
+	 * The ignored item is still part of the schema. Item instances may appear in
+	 * the serialized data formats (e.g. XML) or data store and the parser should
+	 * not raise an error if it encounters them. But any high-level processing code
+	 * should ignore presence of this item. E.g. it should not be displayed to the user,
+	 * should not be present in transformed data structures, etc.
+	 *
+	 * Note that the same item can be ignored at higher layer (e.g. presentation)
+	 * but not ignored at lower layer (e.g. model). This works by presenting different
+	 * item definitions for these layers (see LayerRefinedAttributeDefinition).
+	 *
+	 * Semantics of this flag for complex type definitions is to be defined yet.
+	 */
 	boolean isIgnored();
 
 	boolean isAbstract();
@@ -101,15 +154,6 @@ public interface Definition extends Serializable, DebugDumpable, Revivable {
 	 */
 	String getDocumentationPreview();
 
-	/**
-	 * This means that the item container is not defined by fixed (compile-time) schema.
-	 * This in fact means that we need to use getAny in a JAXB types. It does not influence the
-	 * processing of DOM that much, as that does not really depend on compile-time/run-time distinction.
-	 *
-	 * For containers, this flag is true if there's no complex type definition or if the definition is
-	 * of type "xsd:any".
-	 */
-	boolean isRuntimeSchema();
 
 	PrismContext getPrismContext();
 
