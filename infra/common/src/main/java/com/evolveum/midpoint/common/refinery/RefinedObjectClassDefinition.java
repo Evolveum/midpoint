@@ -77,10 +77,15 @@ public interface RefinedObjectClassDefinition extends ObjectClassComplexTypeDefi
 	Collection<? extends RefinedAttributeDefinition<?>> getAllIdentifiers();
 
 	@Override
-	<X> RefinedAttributeDefinition<X> findAttributeDefinition(QName elementQName);
+	default <X> RefinedAttributeDefinition<X> findAttributeDefinition(QName elementQName) {
+		return findItemDefinition(elementQName, RefinedAttributeDefinition.class);
+	}
 
 	@Override
-	<X> RefinedAttributeDefinition<X> findAttributeDefinition(String elementLocalname);
+	default <X> RefinedAttributeDefinition<X> findAttributeDefinition(String elementLocalname) {
+		QName elementQName = new QName(getResourceNamespace(), elementLocalname);
+		return findAttributeDefinition(elementQName);
+	}
 
 	String getResourceNamespace();
 

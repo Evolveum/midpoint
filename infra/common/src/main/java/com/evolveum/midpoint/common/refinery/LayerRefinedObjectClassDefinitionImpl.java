@@ -221,11 +221,6 @@ public class LayerRefinedObjectClassDefinitionImpl implements LayerRefinedObject
 	}
 
 	@Override
-	public SchemaRegistry getSchemaRegistry() {
-		return refinedObjectClassDefinition.getSchemaRegistry();
-	}
-
-	@Override
 	public ResourceAttributeContainer instantiate(QName name) {
 		return refinedObjectClassDefinition.instantiate(name);
 	}
@@ -426,22 +421,8 @@ public class LayerRefinedObjectClassDefinitionImpl implements LayerRefinedObject
 	}
 
 	@Override
-    public ResourceAttributeContainerDefinition toResourceAttributeContainerDefinition() {
-		ResourceAttributeContainerDefinition resourceAttributeContainerDefinition = refinedObjectClassDefinition.toResourceAttributeContainerDefinition();
-		((ResourceAttributeContainerDefinitionImpl) resourceAttributeContainerDefinition).setComplexTypeDefinition(this);
-		return resourceAttributeContainerDefinition;
-	}
-
-	@Override
 	public Collection<QName> getNamesOfAssociations() {
 		return refinedObjectClassDefinition.getNamesOfAssociations();
-	}
-
-	@Override
-    public ResourceAttributeContainerDefinition toResourceAttributeContainerDefinition(QName elementName) {
-		ResourceAttributeContainerDefinition resourceAttributeContainerDefinition = refinedObjectClassDefinition.toResourceAttributeContainerDefinition(elementName);
-		((ResourceAttributeContainerDefinitionImpl) resourceAttributeContainerDefinition).setComplexTypeDefinition(this);
-		return resourceAttributeContainerDefinition;
 	}
 
     @Override

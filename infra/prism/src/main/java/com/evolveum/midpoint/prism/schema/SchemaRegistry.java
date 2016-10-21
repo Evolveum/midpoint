@@ -144,5 +144,18 @@ public interface SchemaRegistry extends DebugDumpable, GlobalDefinitionsStore {
 	<ID extends ItemDefinition> ID selectMoreSpecific(ID def1, ID def2)
 			throws SchemaException;
 
+	enum ComparisonResult {
+		EQUAL,					// types are equal
+		NO_STATIC_CLASS,		// static class cannot be determined
+		FIRST_IS_CHILD,			// first definition is a child (strict subtype) of the second
+		SECOND_IS_CHILD,		// second definition is a child (strict subtype) of the first
+		INCOMPATIBLE			// first and second are incompatible
+	}
+	/**
+	 * @return null means we cannot decide (types are different, and no compile time class for def1 and/or def2)
+	 */
+	<ID extends ItemDefinition> ComparisonResult compareDefinitions(ID def1, ID def2)
+			throws SchemaException;
+
 	boolean isAssignableFrom(QName superType, QName subType);
 }

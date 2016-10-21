@@ -19,17 +19,16 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
+import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationAssignmentCaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import org.testng.annotations.Test;
 
-import java.io.IOException;
+import javax.xml.namespace.QName;
 import java.util.Collection;
-import java.util.function.Function;
 
 import static com.evolveum.midpoint.schema.TestConstants.CERTIFICATION_CASE_FILE_BASENAME;
 import static org.testng.AssertJUnit.*;
@@ -38,90 +37,29 @@ import static org.testng.AssertJUnit.*;
  * @author semancik
  *
  */
+@SuppressWarnings("Convert2MethodRef")
 public class TestParseCertificationCase extends AbstractParserTest {
+
+	@FunctionalInterface
+	interface ParsingFunction {
+		PrismContainerValue<AccessCertificationCaseType> apply(PrismParser prismParser) throws Exception;
+	}
+
+	@FunctionalInterface
+	interface SerializingFunction {
+		String apply(PrismContainerValue<AccessCertificationCaseType> value) throws Exception;
+	}
 
 	@Test
 	public void testParseFile() throws Exception {
 		displayTestTitle("testParseFile");
-
-		process("parseItemValue - no hint", p -> {
-			try {
-				return p.parseItemValue();
-			} catch (Exception e) {
-				throw new SystemException(e);
-			}
-		}, null);
-
-		process("parseItemValue - AccessCertificationCaseType.class", p -> {
-			try {
-				return p.type(AccessCertificationCaseType.class).parseItemValue();
-			} catch (Exception e) {
-				throw new SystemException(e);
-			}
-		}, null);
-
-		process("parseItemValue - AccessCertificationAssignmentCaseType.class", p -> {
-			try {
-				return p.type(AccessCertificationAssignmentCaseType.class).parseItemValue();
-			} catch (Exception e) {
-				throw new SystemException(e);
-			}
-		}, null);
-
-		process("parseItemValue - AccessCertificationCaseType (QName)", p -> {
-			try {
-				return p.type(AccessCertificationCaseType.COMPLEX_TYPE).parseItemValue();
-			} catch (Exception e) {
-				throw new SystemException(e);
-			}
-		}, null);
-
-		process("parseItemValue - AccessCertificationAssignmentCaseType (QName)", p -> {
-			try {
-				return p.type(AccessCertificationAssignmentCaseType.COMPLEX_TYPE).parseItemValue();
-			} catch (Exception e) {
-				throw new SystemException(e);
-			}
-		}, null);
-
-		process("parseRealValue (AccessCertificationCaseType.class)", p -> {
-			try {
-				return p.parseRealValue(AccessCertificationCaseType.class).asPrismContainerValue();
-			} catch (Exception e) {
-				throw new SystemException(e);
-			}
-		}, null);
-
-		process("parseRealValue (AccessCertificationAssignmentCaseType.class)", p -> {
-			try {
-				return p.parseRealValue(AccessCertificationAssignmentCaseType.class).asPrismContainerValue();
-			} catch (Exception e) {
-				throw new SystemException(e);
-			}
-		}, null);
-
-		process("parseRealValue - AccessCertificationCaseType (QName)", p -> {
-			try {
-				return ((AccessCertificationCaseType) p.type(AccessCertificationCaseType.COMPLEX_TYPE).parseRealValue()).asPrismContainerValue();
-			} catch (Exception e) {
-				throw new SystemException(e);
-			}
-		}, null);
-
-		process("parseRealValue - AccessCertificationAssignmentCaseType (QName)", p -> {
-			try {
-				return ((AccessCertificationCaseType) p.type(AccessCertificationAssignmentCaseType.COMPLEX_TYPE).parseRealValue()).asPrismContainerValue();
-			} catch (Exception e) {
-				throw new SystemException(e);
-			}
-		}, null);
-
+		processParsings(null, null);
 	}
 
-	private void process(String desc,
-			Function<PrismParser, PrismContainerValue<AccessCertificationCaseType>> parser,
-			Function<PrismContainerValue<AccessCertificationCaseType>, String> serializer) throws Exception {
-		PrismContext prismContext = PrismTestUtil.getPrismContext();
+	private void process(String desc, ParsingFunction parser, SerializingFunction serializer, String serId) throws Exception {
+		PrismContext prismContext = getPrismContext();
+
+		System.out.println("================== Starting test for '" + desc + "' (serializer: " + serId + ") ==================");
 
 		PrismContainerValue<AccessCertificationCaseType> pcv =
 				parser.apply(prismContext.parserFor(getFile(CERTIFICATION_CASE_FILE_BASENAME)));
@@ -154,27 +92,65 @@ public class TestParseCertificationCase extends AbstractParserTest {
 	public void testParseRoundTrip() throws Exception{
 		displayTestTitle("testParseRoundTrip");
 
-		// GIVEN
-		PrismContext prismContext = PrismTestUtil.getPrismContext();
-
-		// WHEN
-		PrismContainerValue<AccessCertificationCaseType> pcv =
-				prismContext.parserFor(getFile(CERTIFICATION_CASE_FILE_BASENAME))
-						.parseItemValue();
-		// THEN
-		System.out.println("Parsed certification case:");
-		System.out.println(pcv.debugDump());
-
-		String serialized = prismContext.serializerFor(language).serialize(pcv);
-		System.out.println("Serialized:\n" + serialized);
-
-		// REPARSE
-
-		// and some sanity checks
-		
+		//processParsings(v -> getPrismContext().serializerFor(language).serialize(v));													// no item name nor definition => cannot serialize
+		processParsings(v -> getPrismContext().serializerFor(language).root(new QName("dummy")).serialize(v), "s1");
+		processParsings(v -> getPrismContext().serializerFor(language).root(SchemaConstantsGenerated.C_USER).serialize(v), "s2");		// misleading item name
+		processParsings(v -> getPrismContext().serializerFor(language).serializeRealValue(v.asContainerable()), "s3");
+		processParsings(v -> getPrismContext().serializerFor(language).root(new QName("dummy")).serializeAnyData(v.asContainerable()), "s4");
 	}
 
-	
+	private void processParsings(SerializingFunction serializer, String serId) throws Exception {
+		process("parseItemValue - no hint", p -> p.parseItemValue(), serializer, serId);
+
+		process("parseItemValue - AccessCertificationCaseType.class",
+				p -> p.type(AccessCertificationCaseType.class).parseItemValue(),
+				serializer, serId);
+
+		process("parseItemValue - AccessCertificationAssignmentCaseType.class",
+				p -> p.type(AccessCertificationAssignmentCaseType.class).parseItemValue(),
+				serializer, serId);
+
+		process("parseItemValue - AccessCertificationCaseType (QName)",
+				p -> p.type(AccessCertificationCaseType.COMPLEX_TYPE).parseItemValue(),
+				serializer, serId);
+
+		process("parseItemValue - AccessCertificationAssignmentCaseType (QName)",
+				p -> p.type(AccessCertificationAssignmentCaseType.COMPLEX_TYPE).parseItemValue(),
+				serializer, serId);
+
+		process("parseRealValue - no hint",
+				p -> ((AccessCertificationCaseType) p.parseRealValue()).asPrismContainerValue(),
+				serializer, serId);
+
+		process("parseRealValue (AccessCertificationCaseType.class)",
+				p -> p.parseRealValue(AccessCertificationCaseType.class).asPrismContainerValue(),
+				serializer, serId);
+
+		process("parseRealValue (AccessCertificationAssignmentCaseType.class)",
+				p -> p.parseRealValue(AccessCertificationAssignmentCaseType.class).asPrismContainerValue(),
+				serializer, serId);
+
+		process("parseRealValue - AccessCertificationCaseType (QName)",
+				p -> ((AccessCertificationCaseType)
+						p.type(AccessCertificationCaseType.COMPLEX_TYPE).parseRealValue())
+						.asPrismContainerValue(),
+				serializer, serId);
+
+		process("parseRealValue - AccessCertificationAssignmentCaseType (QName)",
+				p -> ((AccessCertificationCaseType)
+						p.type(AccessCertificationAssignmentCaseType.COMPLEX_TYPE).parseRealValue())
+						.asPrismContainerValue(),
+				serializer, serId);
+
+		process("parseAnyData",
+				p -> ((PrismContainer<AccessCertificationCaseType>) p.parseItemOrRealValue()).getValue(0),
+				serializer, serId);
+	}
+
+	private PrismContext getPrismContext() {
+		return PrismTestUtil.getPrismContext();
+	}
+
 	void assertCase(PrismContainerValue<AccessCertificationCaseType> pcv) throws SchemaException {
 
 		//pcv.checkConsistence();

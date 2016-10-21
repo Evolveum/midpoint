@@ -361,11 +361,11 @@ public class RefinedObjectClassDefinitionImpl extends ObjectClassComplexTypeDefi
 	}
 
 	@Override
-    public <X> RefinedAttributeDefinition<X> findAttributeDefinition(QName elementQName) {
-        return findItemDefinition(elementQName, RefinedAttributeDefinition.class);
-    }
+	public <X> RefinedAttributeDefinition<X> findAttributeDefinition(QName name) {
+		return findItemDefinition(name, RefinedAttributeDefinition.class);
+	}
 
-    @Override
+	@Override
     public <X> RefinedAttributeDefinition<X> findAttributeDefinition(String elementLocalname) {
         QName elementQName = new QName(getResourceNamespace(), elementLocalname);
         return findAttributeDefinition(elementQName);
@@ -433,7 +433,7 @@ public class RefinedObjectClassDefinitionImpl extends ObjectClassComplexTypeDefi
     @Override
 	public PrismObjectDefinition<ShadowType> getObjectDefinition() {
         if (objectDefinition == null) {
-            constructObjectDefinition();
+            objectDefinition = constructObjectDefinition(this);
         }
         return objectDefinition;
     }
@@ -447,14 +447,12 @@ public class RefinedObjectClassDefinitionImpl extends ObjectClassComplexTypeDefi
 		this.baseContext = baseContext;
 	}
 
-	private void constructObjectDefinition() {
+	public static PrismObjectDefinition<ShadowType> constructObjectDefinition(RefinedObjectClassDefinition refinedObjectClassDefinition) {
         // Almost-shallow clone of object definition and complex type
-        PrismObjectDefinition<ShadowType> originalObjectDefinition = 
-        	getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ShadowType.class);
-        PrismObjectDefinition<ShadowType> refinedObjectDef = 
-        	originalObjectDefinition.cloneWithReplacedDefinition(ShadowType.F_ATTRIBUTES, 
-        			this.toResourceAttributeContainerDefinition());
-        this.objectDefinition = refinedObjectDef;
+        PrismObjectDefinition<ShadowType> originalObjectDefinition =
+				refinedObjectClassDefinition.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ShadowType.class);
+		return originalObjectDefinition.cloneWithReplacedDefinition(ShadowType.F_ATTRIBUTES,
+				refinedObjectClassDefinition.toResourceAttributeContainerDefinition());
     }
 
 	@Override

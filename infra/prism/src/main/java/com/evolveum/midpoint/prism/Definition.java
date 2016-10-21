@@ -113,8 +113,12 @@ public interface Definition extends Serializable, DebugDumpable, Revivable {
 
 	PrismContext getPrismContext();
 
-	SchemaRegistry getSchemaRegistry();
+	default SchemaRegistry getSchemaRegistry() {
+		PrismContext prismContext = getPrismContext();
+		return prismContext != null ? prismContext.getSchemaRegistry() : null;
+	}
 
+	// TODO fix this!
 	Class getTypeClassIfKnown();
 
 	Class getTypeClass();

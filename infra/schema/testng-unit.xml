@@ -23,6 +23,7 @@
             <class name="com.evolveum.midpoint.schema.parser.TestParseUser"/>
             <class name="com.evolveum.midpoint.schema.parser.TestParseResource"/>
             <class name="com.evolveum.midpoint.schema.parser.TestParseShadow"/>
+            <class name="com.evolveum.midpoint.schema.parser.TestParseCertificationCase"/>
         </classes>
     </test>
     <test name="Parsing XML without namespaces" preserve-order="false" verbose="1">

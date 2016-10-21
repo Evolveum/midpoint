@@ -134,6 +134,8 @@ abstract class PrismParserImpl implements PrismParser {
 
 	//region Parsing methods ====================================================================================
 
+	// interface
+
 	@NotNull
 	<O extends Objectable> PrismObject<O> doParse() throws SchemaException, IOException {
 		RootXNode xnode = getLexicalProcessor().read(source, context);
@@ -142,68 +144,17 @@ abstract class PrismParserImpl implements PrismParser {
 
 	<IV extends PrismValue, ID extends ItemDefinition> Item<IV, ID> doParseItem() throws IOException, SchemaException {
 		RootXNode xnode = getLexicalProcessor().read(source, context);
-		return doParseItem(xnode);
-	}
-
-	@SuppressWarnings("unchecked")
-	private <IV extends PrismValue, ID extends ItemDefinition> Item<IV, ID> doParseItem(RootXNode xnode) throws IOException, SchemaException {
-		return (Item) prismContext.getPrismUnmarshaller().parseItem(xnode, itemDefinition, itemName, typeName, typeClass, context);
+		return doParseItem(xnode, typeClass);
 	}
 
 	<IV extends PrismValue> IV doParseItemValue() throws IOException, SchemaException {
 		RootXNode root = getLexicalProcessor().read(source, context);
-		return doParseItemValue(root);
-	}
-
-	private <IV extends PrismValue> IV doParseItemValue(RootXNode root) throws IOException, SchemaException {
-		Item<IV,?> item = doParseItem(root);
-		return getSingleValue(item);
-	}
-
-	@Nullable
-	private <IV extends PrismValue> IV getSingleValue(Item<IV, ?> item) {
-		if (item.isEmpty()) {
-			return null;
-		} else if (item.size() == 1) {
-			return item.getValues().get(0);
-		} else {
-			throw new IllegalStateException("Expected one item value, got " + item.getValues().size()
-					+ " while parsing " + item);
-		}
+		return doParseItemValue(root, typeClass);
 	}
 
 	<T> T doParseRealValue(Class<T> clazz) throws IOException, SchemaException {
 		RootXNode root = getLexicalProcessor().read(source, context);
 		return doParseRealValue(clazz, root);
-	}
-
-	@SuppressWarnings("unchecked")
-	private <T> T doParseRealValue(Class<T> clazz, RootXNode root) throws IOException, SchemaException {
-		if (clazz == null) {
-			ItemInfo info = ItemInfo.determine(itemDefinition, root.getRootElementName(), itemName, null,
-					root.getTypeQName(), typeName, null, ItemDefinition.class, context, prismContext.getSchemaRegistry());
-			if (info.getItemDefinition() instanceof PrismContainerDefinition) {
-				clazz = ((PrismContainerDefinition) info.getItemDefinition()).getCompileTimeClass();
-			}
-			if (clazz == null && info.getTypeName() != null) {
-				clazz = (Class) prismContext.getSchemaRegistry().determineClassForType(info.getTypeName());
-			}
-		}
-
-		if (clazz != null && getBeanConverter().canProcess(clazz)) {
-			return getBeanConverter().unmarshall(root, clazz, context);
-		} else {
-			PrismValue prismValue = doParseItemValue(root);
-			if (prismValue == null) {
-				return null;
-			} else {
-				return prismValue.getRealValue();
-			}
-		}
-	}
-
-	private PrismBeanConverter getBeanConverter() {
-		return prismContext.getBeanConverter();
 	}
 
 	@SuppressWarnings("unchecked")
@@ -214,7 +165,7 @@ abstract class PrismParserImpl implements PrismParser {
 	@SuppressWarnings("unchecked")
 	<T> JAXBElement<T> doParseAnyValueAsJAXBElement() throws IOException, SchemaException {
 		RootXNode root = getLexicalProcessor().read(source, context);
-		T real = (T) doParseRealValue(null, root);
+		T real = doParseRealValue(null, root);
 		return real != null ?
 				new JAXBElement<>(root.getRootElementName(), (Class<T>) real.getClass(), real) :
 				null;
@@ -243,6 +194,63 @@ abstract class PrismParserImpl implements PrismParser {
 		}
 		return prismContext.getPrismUnmarshaller().parseItemOrRealValue(xnode, context);
 	}
+
+	// implementation
+
+	@SuppressWarnings("unchecked")
+	private <IV extends PrismValue, ID extends ItemDefinition> Item<IV, ID> doParseItem(RootXNode xnode, Class<?> clazz) throws IOException, SchemaException {
+		return (Item) prismContext.getPrismUnmarshaller().parseItem(xnode, itemDefinition, itemName, typeName, clazz, context);
+	}
+
+	private <IV extends PrismValue> IV doParseItemValue(RootXNode root, Class<?> clazz) throws IOException, SchemaException {
+		Item<IV,?> item = doParseItem(root, clazz);
+		return getSingleParentlessValue(item);
+	}
+
+	@Nullable
+	private <IV extends PrismValue> IV getSingleParentlessValue(Item<IV, ?> item) {
+		if (item.isEmpty()) {
+			return null;
+		} else if (item.size() == 1) {
+			IV value = item.getValues().get(0);
+			value.setParent(null);
+			return value;
+		} else {
+			throw new IllegalStateException("Expected one item value, got " + item.getValues().size()
+					+ " while parsing " + item);
+		}
+	}
+
+	@SuppressWarnings("unchecked")
+	private <T> T doParseRealValue(Class<T> clazz, RootXNode root) throws IOException, SchemaException {
+		if (clazz == null) {
+			ItemInfo info = ItemInfo.determine(itemDefinition, root.getRootElementName(), itemName, null,
+					root.getTypeQName(), typeName, null, ItemDefinition.class, context, prismContext.getSchemaRegistry());
+			if (info.getItemDefinition() instanceof PrismContainerDefinition) {
+				clazz = ((PrismContainerDefinition) info.getItemDefinition()).getCompileTimeClass();
+			}
+			if (clazz == null && info.getTypeName() != null) {
+				clazz = (Class) prismContext.getSchemaRegistry().determineClassForType(info.getTypeName());
+			}
+		}
+
+		// although bean unmarshaller can process containerables as well, prism unmarshaller is better at it
+		if (clazz != null && !Containerable.class.isAssignableFrom(clazz) && getBeanConverter().canProcess(clazz)) {
+			return getBeanConverter().unmarshall(root, clazz, context);
+		} else {
+			PrismValue prismValue = doParseItemValue(root, clazz);
+			if (prismValue == null) {
+				return null;
+			} else {
+				return prismValue.getRealValue();
+			}
+		}
+	}
+
+	private PrismBeanConverter getBeanConverter() {
+		return prismContext.getBeanConverter();
+	}
+
 
 	@NotNull
 	private LexicalProcessor<?> getLexicalProcessor() throws IOException {

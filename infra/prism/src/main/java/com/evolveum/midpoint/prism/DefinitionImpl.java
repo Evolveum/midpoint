@@ -204,11 +204,6 @@ public abstract class DefinitionImpl implements Definition {
 		return prismContext;
 	}
 	
-	@Override
-	public SchemaRegistry getSchemaRegistry() {
-		return prismContext.getSchemaRegistry();
-	}
-
     @Override
 	public Class getTypeClassIfKnown() {
         return XsdTypeMapper.toJavaTypeIfKnown(getTypeName());

@@ -17,7 +17,9 @@ package com.evolveum.midpoint.common.refinery;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
+import java.util.stream.Stream;
 
 import javax.xml.namespace.QName;
 
@@ -31,8 +33,10 @@ import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainerDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityType;
@@ -50,6 +54,8 @@ public class CompositeRefinedObjectClassDefinition implements RefinedObjectClass
 
 	@NotNull private final RefinedObjectClassDefinition structuralObjectClassDefinition;
 	@NotNull private final Collection<RefinedObjectClassDefinition> auxiliaryObjectClassDefinitions;
+
+	private PrismObjectDefinition<ShadowType> objectDefinition;
 	
 	public CompositeRefinedObjectClassDefinition(@NotNull RefinedObjectClassDefinition structuralObjectClassDefinition, Collection<RefinedObjectClassDefinition> auxiliaryObjectClassDefinitions) {
 		this.structuralObjectClassDefinition = structuralObjectClassDefinition;
@@ -67,7 +73,15 @@ public class CompositeRefinedObjectClassDefinition implements RefinedObjectClass
 	public Collection<RefinedObjectClassDefinition> getAuxiliaryObjectClassDefinitions() {
 		return auxiliaryObjectClassDefinitions;
 	}
-	
+
+	@Override
+	public PrismObjectDefinition<ShadowType> getObjectDefinition() {
+		if (objectDefinition == null) {
+			objectDefinition = RefinedObjectClassDefinitionImpl.constructObjectDefinition(this);
+		}
+		return objectDefinition;
+	}
+
 	public Class<?> getCompileTimeClass() {
 		return structuralObjectClassDefinition.getCompileTimeClass();
 	}
@@ -224,9 +238,6 @@ public class CompositeRefinedObjectClassDefinition implements RefinedObjectClass
 		return structuralObjectClassDefinition.getResourceType();
 	}
 
-	// Do NOT override getObjectDefinition(). It will work by itself.
-	// overriding it will just complicate things.
-
 	public ObjectClassComplexTypeDefinition getObjectClassDefinition() {
 		return structuralObjectClassDefinition.getObjectClassDefinition();
 	}
@@ -342,7 +353,7 @@ public class CompositeRefinedObjectClassDefinition implements RefinedObjectClass
 
 	@Override
 	public List<? extends ItemDefinition> getDefinitions() {
-		throw new UnsupportedOperationException("TODO implement getDefinitions() maybe as union of definitions from structural and aux OCs?");
+		return (List) getAttributeDefinitions();
 	}
 
 	@Override
@@ -366,109 +377,51 @@ public class CompositeRefinedObjectClassDefinition implements RefinedObjectClass
 		return structuralObjectClassDefinition.getIgnoredNamespaces();
 	}
 
-	@Override
-	public <ID extends ItemDefinition> ID findItemDefinition(@NotNull QName name) {
-		return null;
-	}
-
-	@Override
-	public <T> PrismPropertyDefinition<T> findPropertyDefinition(@NotNull QName name) {
-		return null;
-	}
 
 	@Override
 	public LayerRefinedObjectClassDefinition forLayer(LayerType layerType) {
-		return null;
+		throw new UnsupportedOperationException("TODO implement if needed");
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
-	public <C extends Containerable> PrismContainerDefinition<C> findContainerDefinition(@NotNull QName name) {
-		return null;
-	}
-
-	@Override
-	public <ID extends ItemDefinition> ID findItemDefinition(@NotNull QName name, @NotNull Class<ID> clazz) {
-		return null;
-	}
-
-	@Override
-	public <X> ResourceAttributeDefinition<X> findAttributeDefinition(QName name, boolean caseInsensitive) {
-		return null;
+	public <X> RefinedAttributeDefinition<X> findAttributeDefinition(QName elementQName, boolean caseInsensitive) {
+		return (RefinedAttributeDefinition<X>) findItemDefinition(elementQName, RefinedAttributeDefinition.class, caseInsensitive);
 	}
 
 	@Override
 	public RefinedAssociationDefinition findAssociation(QName name) {
-		return null;
+		throw new UnsupportedOperationException("TODO implement if needed");
 	}
 
 	@Override
 	public RefinedAssociationDefinition findEntitlementAssociation(QName name) {
-		return null;
-	}
-
-	@Override
-	public ResourceAttributeContainerDefinition toResourceAttributeContainerDefinition() {
-		return null;
-	}
-
-	@Override
-	public <ID extends ItemDefinition> ID findItemDefinition(@NotNull ItemPath path) {
-		return null;
-	}
-
-	@Override
-	public ResourceAttributeContainerDefinition toResourceAttributeContainerDefinition(QName elementName) {
-		return null;
-	}
-
-	@Override
-	public <T> PrismPropertyDefinition<T> findPropertyDefinition(@NotNull ItemPath path) {
-		return null;
+		throw new UnsupportedOperationException("TODO implement if needed");
 	}
 
 	@Override
 	public Collection<? extends QName> getNamesOfAssociationsWithOutboundExpressions() {
-		return null;
-	}
-
-	@Override
-	public ObjectQuery createShadowSearchQuery(String resourceOid) throws SchemaException {
-		return null;
-	}
-
-	@Override
-	public <C extends Containerable> PrismContainerDefinition<C> findContainerDefinition(@NotNull ItemPath path) {
-		return null;
+		throw new UnsupportedOperationException("TODO implement if needed");
 	}
 
 	@Override
 	public boolean hasAuxiliaryObjectClass(QName expectedObjectClassName) {
-		return false;
+		throw new UnsupportedOperationException("TODO implement if needed");
 	}
 
 	@Override
 	public ResourceAttributeContainer instantiate(QName elementName) {
-		return null;
+		throw new UnsupportedOperationException("TODO implement if needed");
 	}
 
 	@Override
 	public <ID extends ItemDefinition> ID findItemDefinition(@NotNull ItemPath path, @NotNull Class<ID> clazz) {
-		return null;
+		throw new UnsupportedOperationException("TODO implement if needed");
 	}
 
 	@Override
 	public void merge(ComplexTypeDefinition otherComplexTypeDef) {
-
-	}
-
-	@Override
-	public <X> RefinedAttributeDefinition<X> findAttributeDefinition(QName elementQName) {
-		return null;
-	}
-
-	@Override
-	public <X> RefinedAttributeDefinition<X> findAttributeDefinition(String elementLocalname) {
-		return null;
+		throw new UnsupportedOperationException("TODO implement if needed");
 	}
 
 	@Override
@@ -477,25 +430,28 @@ public class CompositeRefinedObjectClassDefinition implements RefinedObjectClass
 	}
 
 	@Override
-	public PrismObjectDefinition<ShadowType> getObjectDefinition() {
-		return null;
-	}
-
-	@Override
 	public SchemaRegistry getSchemaRegistry() {
-		return null;
+		return getPrismContext().getSchemaRegistry();
 	}
 
+	// TODO solve this code duplication somehow
 	@Override
 	public RefinedAttributeDefinition<?> getAttributeDefinition(QName attributeName) {
+		for (RefinedAttributeDefinition<?> attrDef : getAttributeDefinitions()) {
+			if (QNameUtil.match(attrDef.getName(), attributeName)) {
+				return attrDef;
+			}
+		}
 		return null;
 	}
 
+	// TODO
 	@Override
 	public Class getTypeClassIfKnown() {
 		return null;
 	}
 
+	// TODO
 	@Override
 	public Class getTypeClass() {
 		return null;
@@ -503,37 +459,52 @@ public class CompositeRefinedObjectClassDefinition implements RefinedObjectClass
 
 	@Override
 	public boolean containsAttributeDefinition(ItemPathType pathType) {
-		return false;
+		return getDefinitionsStream()
+				.filter(def -> containsAttributeDefinition(pathType))
+				.findAny()
+				.isPresent();
+	}
+
+	private Stream<RefinedObjectClassDefinition> getDefinitionsStream() {
+		return Stream.concat(Stream.of(structuralObjectClassDefinition), auxiliaryObjectClassDefinitions.stream());
 	}
 
 	@Override
 	public boolean containsAttributeDefinition(QName attributeName) {
-		return false;
+		return getDefinitionsStream()
+				.filter(def -> containsAttributeDefinition(attributeName))
+				.findAny()
+				.isPresent();
+	}
+
+	@Override
+	public ObjectQuery createShadowSearchQuery(String resourceOid) throws SchemaException {
+		return structuralObjectClassDefinition.createShadowSearchQuery(resourceOid);
 	}
 
 	@Override
 	public PrismObject<ShadowType> createBlankShadow() {
-		return null;
+		return structuralObjectClassDefinition.createBlankShadow();
 	}
 
 	@Override
 	public ResourceShadowDiscriminator getShadowDiscriminator() {
-		return null;
+		return structuralObjectClassDefinition.getShadowDiscriminator();
 	}
 
 	@Override
 	public Collection<? extends QName> getNamesOfAttributesWithOutboundExpressions() {
-		return null;
+		throw new UnsupportedOperationException("TODO implement if needed");
 	}
 
 	@Override
 	public Collection<? extends QName> getNamesOfAttributesWithInboundExpressions() {
-		return null;
+		throw new UnsupportedOperationException("TODO implement if needed");
 	}
 
 	@Override
 	public ResourcePasswordDefinitionType getPasswordDefinition() {
-		return null;
+		throw new UnsupportedOperationException("TODO implement if needed");
 	}
 
 	@Override
@@ -623,7 +594,7 @@ public class CompositeRefinedObjectClassDefinition implements RefinedObjectClass
 	
 	@Override
 	public String toString() {
-		if (auxiliaryObjectClassDefinitions == null || auxiliaryObjectClassDefinitions.isEmpty()) {
+		if (auxiliaryObjectClassDefinitions.isEmpty()) {
 			return getDebugDumpClassName() + " ("+getTypeName()+")";
 		} else {
 			StringBuilder sb = new StringBuilder();

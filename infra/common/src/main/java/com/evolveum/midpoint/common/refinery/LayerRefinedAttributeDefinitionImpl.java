@@ -280,11 +280,6 @@ public class LayerRefinedAttributeDefinitionImpl<T> implements LayerRefinedAttri
 	}
 
 	@Override
-	public SchemaRegistry getSchemaRegistry() {
-		return refinedAttributeDefinition.getSchemaRegistry();
-	}
-
-	@Override
 	public Class getTypeClassIfKnown() {
 		return refinedAttributeDefinition.getTypeClassIfKnown();
 	}

@@ -57,7 +57,7 @@ public class ValueOperation extends Operation {
 		OperationResult parentResult = new OperationResult("interpret");
 
 		ValueFilter valueFilter= (ValueFilter) objectFilter;
-		if (valueFilter.getParentPath() == null || valueFilter.getParentPath().isEmpty()) {
+		if (valueFilter.getParentPath().isEmpty()) {
 			throw new UnsupportedOperationException("Empty path is not supported (filter: " + objectFilter+")");
 		}
 		if (valueFilter.getParentPath().equivalent(new ItemPath(ShadowType.F_ATTRIBUTES))) {

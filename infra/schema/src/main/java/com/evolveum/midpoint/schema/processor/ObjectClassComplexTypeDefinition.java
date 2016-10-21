@@ -19,8 +19,10 @@ package com.evolveum.midpoint.schema.processor;
 import com.evolveum.midpoint.prism.ComplexTypeDefinition;
 import com.evolveum.midpoint.prism.Definition;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 import javax.xml.namespace.QName;
 import java.util.Collection;
@@ -63,11 +65,17 @@ public interface ObjectClassComplexTypeDefinition extends ComplexTypeDefinition 
 
 	<X> ResourceAttributeDefinition<X> findAttributeDefinition(String name);
 
-	ResourceAttributeContainerDefinition toResourceAttributeContainerDefinition();
+	default ResourceAttributeContainerDefinition toResourceAttributeContainerDefinition() {
+		return toResourceAttributeContainerDefinition(ShadowType.F_ATTRIBUTES);
+	}
 
-	ResourceAttributeContainerDefinition toResourceAttributeContainerDefinition(QName elementName);
+	default ResourceAttributeContainerDefinition toResourceAttributeContainerDefinition(QName elementName) {
+		return new ResourceAttributeContainerDefinitionImpl(elementName, this, getPrismContext());
+	}
 
-	ObjectQuery createShadowSearchQuery(String resourceOid) throws SchemaException;
+	default ObjectQuery createShadowSearchQuery(String resourceOid) throws SchemaException {
+		return ObjectQueryUtil.createResourceAndObjectClassQuery(resourceOid, getTypeName(), getPrismContext());
+	}
 
 	ResourceAttributeContainer instantiate(QName elementName);
 

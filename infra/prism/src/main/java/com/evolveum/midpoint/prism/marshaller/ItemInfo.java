@@ -25,6 +25,8 @@ import org.jetbrains.annotations.NotNull;
 import javax.xml.namespace.QName;
 import java.util.List;
 
+import static com.evolveum.midpoint.prism.schema.SchemaRegistry.ComparisonResult.EQUAL;
+
 /**
  * @author mederly
  */
@@ -33,6 +35,9 @@ public class ItemInfo<ID extends ItemDefinition> {
 	private ID itemDefinition;
 	private QName typeName;
 
+	/**
+	 * This method is to be called ONLY on the root level, i.e. when unmarshalling starts.
+	 */
 	@NotNull
 	public static <ID extends ItemDefinition> ItemInfo determine(ItemDefinition itemDefinitionExplicit,
 			QName itemNameFromSource, QName itemNameExplicit, QName itemNameDefault,
@@ -81,6 +86,29 @@ public class ItemInfo<ID extends ItemDefinition> {
 		// type name
 		if (definition != null) {
 			info.typeName = definition.getTypeName();
+		} else if (typeNameExplicit == null && typeNameFromSource == null && classExplicit != null) {
+			info.typeName = schemaRegistry.determineTypeForClass(classExplicit);
+			if (info.typeName != null && info.itemName != null) {
+				// Create artificial definition. We do NOT mark it as dynamic, because it might come from client code-supplied
+				// information (i.e. not from the dynamic one). This might cause problems during serialization; but more probably
+				// not - the decision on putting explicit type declaration on the root level is not driven by the 'dynamic' flag.
+				// And this method is called only at the root level.
+				if (Objectable.class.isAssignableFrom(classExplicit)) {
+					throw new IllegalStateException("Prism object type " + info.typeName + " without definition");
+				} else if (Containerable.class.isAssignableFrom(classExplicit)) {
+					@SuppressWarnings("unchecked")
+					Class<Containerable> containerableClass = (Class<Containerable>) classExplicit;
+					ComplexTypeDefinition ctd = schemaRegistry.findComplexTypeDefinitionByCompileTimeClass(containerableClass);
+					@SuppressWarnings("unchecked")
+					ID id = (ID) new PrismContainerDefinitionImpl<>(info.itemName, ctd,
+							schemaRegistry.getPrismContext(), containerableClass);
+					info.itemDefinition = id;
+				} else {
+					@SuppressWarnings("unchecked")
+					ID id = (ID) new PrismPropertyDefinitionImpl<>(info.itemName, info.typeName, schemaRegistry.getPrismContext());
+					info.itemDefinition = id;
+				}
+			}
 		} else if (typeNameExplicit == null) {
 			info.typeName = typeNameFromSource;
 		} else if (typeNameFromSource == null) {
@@ -122,10 +150,21 @@ public class ItemInfo<ID extends ItemDefinition> {
 			return definition;
 		}
 		ID defFromItemName = schemaRegistry.findItemDefinitionByElementName(itemName, definitionClass);
-		if (definition == null && defFromItemName != null) {
+		if (defFromItemName == null) {
+			return definition;
+		}
+		if (definition == null) {
 			return defFromItemName;
 		}
-		return definition;          // we won't try to compare the definitions, as the item name indication is (very) weak in comparison with others
+		SchemaRegistry.ComparisonResult comparisonResult = schemaRegistry.compareDefinitions(definition, defFromItemName);
+		switch (comparisonResult) {
+			case EQUAL: return definition;				// definition is generally considered 'at least as good' as the new one
+			case NO_STATIC_CLASS: return definition;    // play safe, select original definition (item name is not very trustworthy source of information)
+			case INCOMPATIBLE: return definition;		// TODO probably we should signal a problem
+			case FIRST_IS_CHILD: return definition;
+			case SECOND_IS_CHILD: return defFromItemName;
+			default: throw new AssertionError("Invalid result: " + comparisonResult);
+		}
 	}
 
 	private static <ID extends ItemDefinition> ID augmentWithClass(ID definition, Class<ID> definitionClass,

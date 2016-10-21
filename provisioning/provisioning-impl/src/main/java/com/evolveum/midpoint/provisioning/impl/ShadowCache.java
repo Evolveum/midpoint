@@ -626,25 +626,23 @@ public abstract class ShadowCache {
 		}
 		final RefinedObjectClassDefinition objectClassDefinition = ctx.getObjectClassDefinition();
 		final ItemPath attributesPath = new ItemPath(ShadowType.F_ATTRIBUTES);
-		com.evolveum.midpoint.prism.query.Visitor visitor = new com.evolveum.midpoint.prism.query.Visitor() {
-			@Override
-			public void visit(ObjectFilter filter) {
-				if (filter instanceof PropertyValueFilter) {
-					PropertyValueFilter<?> valueFilter = (PropertyValueFilter<?>) filter;
-					ItemDefinition definition = valueFilter.getDefinition();
-					if (definition == null) {
-						if (attributesPath.equivalent(valueFilter.getParentPath())) {
-							QName attributeName = valueFilter.getElementName();
-							ResourceAttributeDefinition attributeDefinition = objectClassDefinition
-									.findAttributeDefinition(attributeName);
-							if (attributeDefinition == null) {
-								throw new TunnelException(new SchemaException("No definition for attribute "
-										+ attributeName + " in query " + query));
-							}
-							valueFilter.setDefinition(attributeDefinition);
-						}
-					}
+		com.evolveum.midpoint.prism.query.Visitor visitor = subfilter -> {
+			if (subfilter instanceof PropertyValueFilter) {
+				PropertyValueFilter<?> valueFilter = (PropertyValueFilter<?>) subfilter;
+				ItemDefinition definition = valueFilter.getDefinition();
+				if (definition instanceof ResourceAttributeDefinition) {
+					return;		// already has a resource-related definition
 				}
+				if (!attributesPath.equivalent(valueFilter.getParentPath())) {
+					return;
+				}
+				QName attributeName = valueFilter.getElementName();
+				ResourceAttributeDefinition attributeDefinition = objectClassDefinition.findAttributeDefinition(attributeName);
+				if (attributeDefinition == null) {
+					throw new TunnelException(new SchemaException("No definition for attribute "
+							+ attributeName + " in query " + query));
+				}
+				valueFilter.setDefinition(attributeDefinition);
 			}
 		};
 		try {
@@ -881,7 +879,7 @@ public abstract class ShadowCache {
 		for (ObjectFilter f : conditions) {
 			if (f instanceof EqualFilter) {
 				ItemPath parentPath = ((EqualFilter) f).getParentPath();
-				if (parentPath == null || parentPath.isEmpty()) {
+				if (parentPath.isEmpty()) {
 					QName elementName = ((EqualFilter) f).getElementName();
 					if (QNameUtil.match(ShadowType.F_OBJECT_CLASS, elementName) ||
 							QNameUtil.match(ShadowType.F_AUXILIARY_OBJECT_CLASS, elementName) ||
@@ -915,7 +913,7 @@ public abstract class ShadowCache {
 				attributeFilter.add(f);
 			} else if (f instanceof RefFilter) {
 				ItemPath parentPath = ((RefFilter)f).getParentPath();
-				if (parentPath == null || parentPath.isEmpty()) {
+				if (parentPath.isEmpty()) {
 					QName elementName = ((RefFilter) f).getElementName();
 					if (QNameUtil.match(ShadowType.F_RESOURCE_REF, elementName)) {
 						continue;

@@ -1255,6 +1255,30 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
 	}
 
 	@Override
+	public <ID extends ItemDefinition> ComparisonResult compareDefinitions(@NotNull ID def1, @NotNull ID def2)
+			throws SchemaException {
+		if (QNameUtil.match(def1.getTypeName(), def2.getTypeName())) {
+			return ComparisonResult.EQUAL;
+		}
+		Class<?> cls1 = determineClassForItemDefinition(def1);
+		Class<?> cls2 = determineClassForItemDefinition(def2);
+		if (cls1 == null || cls2 == null) {
+			return ComparisonResult.NO_STATIC_CLASS;
+		}
+		boolean cls1AboveOrEqualCls2 = cls1.isAssignableFrom(cls2);
+		boolean cls2AboveOrEqualCls1 = cls2.isAssignableFrom(cls1);
+		if (cls1AboveOrEqualCls2 && cls2AboveOrEqualCls1) {
+			return ComparisonResult.EQUAL;
+		} else if (cls1AboveOrEqualCls2) {
+			return ComparisonResult.SECOND_IS_CHILD;
+		} else if (cls2AboveOrEqualCls1) {
+			return ComparisonResult.FIRST_IS_CHILD;
+		} else {
+			return ComparisonResult.INCOMPATIBLE;
+		}
+	}
+
+	@Override
 	public boolean isAssignableFrom(@NotNull QName superType, @NotNull QName subType) {
 		if (QNameUtil.match(superType, subType)) {
 			return true;

@@ -349,21 +349,6 @@ public class ObjectClassComplexTypeDefinitionImpl extends ComplexTypeDefinitionI
 		return createAttributeDefinition(name,typeName);
 	}
 	
-	@Override
-	public ResourceAttributeContainerDefinition toResourceAttributeContainerDefinition() {
-		return toResourceAttributeContainerDefinition(ShadowType.F_ATTRIBUTES);
-	}
-	
-	@Override
-	public ResourceAttributeContainerDefinition toResourceAttributeContainerDefinition(QName elementName) {
-		return new ResourceAttributeContainerDefinitionImpl(elementName, this, getPrismContext());
-	}
-	
-	@Override
-	public ObjectQuery createShadowSearchQuery(String resourceOid) throws SchemaException {
-		return ObjectQueryUtil.createResourceAndObjectClassQuery(resourceOid, getTypeName(), prismContext);
-	}
-	
 	/**
 	 * This may not be really "clean" as it actually does two steps instead of one. But it is useful.
 	 */

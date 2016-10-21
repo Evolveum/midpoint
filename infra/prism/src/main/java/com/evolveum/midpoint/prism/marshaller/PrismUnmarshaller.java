@@ -19,13 +19,11 @@ import java.util.Collection;
 import java.util.Map.Entry;
 
 import javax.xml.XMLConstants;
-import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
-import com.evolveum.midpoint.prism.util.RawTypeUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
@@ -129,12 +127,24 @@ public class PrismUnmarshaller {
 
     //region Private methods ========================================================
 
-
+    // typeName is to be used ONLY if itemDefinition == null.
+    //
+    // The situation of itemDefinition == null && typeName != null is allowed ONLY if the definition simply cannot be derived
+    // from the typeName. E.g. if typeName is like xsd:string, xsd:boolean, etc. This rule is because we don't want to repeatedly
+    // try to look for missing definitions here.
+    //
+    // Moreover, the caller is responsible for extracting information from node.typeQName - providing a definition if necessary.
     @SuppressWarnings("unchecked")
     @NotNull
     private Item<?, ?> parseItemInternal(@NotNull XNode node,
             @NotNull QName itemName, ItemDefinition itemDefinition, @NotNull ParsingContext pc) throws SchemaException {
         Validate.isTrue(!(node instanceof RootXNode));
+
+        if (itemDefinition == null && node.getTypeQName() != null) {
+            throw new IllegalStateException("Node has an explicit type but parseItemInternal was called "
+                    + "without definition or type name: " + node.debugDump());
+        }
+
         if (itemDefinition == null || itemDefinition instanceof PrismPropertyDefinition) {
             return parseProperty(node, itemName, (PrismPropertyDefinition) itemDefinition, pc);
         } else if (itemDefinition instanceof PrismContainerDefinition) {    // also objects go here
