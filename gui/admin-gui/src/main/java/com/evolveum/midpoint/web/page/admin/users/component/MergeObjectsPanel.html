@@ -16,33 +16,32 @@
   -->
 
 <wicket:panel xmlns:wicket="http://wicket.apache.org">
-    <form wicket:id="mainForm" class="form-horizontal">
+    <form wicket:id="mainForm" class="container">
         <div class="row">
-            <div class="col-xs-1" style="padding-bottom: 20px;">
+            <div class="col-xs-1">
                 <span><wicket:message key="PageMergeObjects.mergeType"/></span>
             </div>
-            <div class="col-xs-3">
+            <div class="col-xs-5">
                 <div wicket:id="mergeType"/>
             </div>
         </div>
-        <div wicket:id="objectsPanel" class="row">
-            <div wicket:id="mergeObjectDetailsPanel" class="col-xs-3"/>
-            <div class="icon">
-                <i class="fa fa-plus col-xs-1" style="font-size: 30px;"></i>
+        <div wicket:id="objectsPanel" class="row object-merge-equation-panel">
+            <div wicket:id="mergeObjectDetailsPanel" class="col-xs-2"/>
+            <div class="col-xs-2">
+                <i class="fa fa-plus object-merge-sign text-blue"></i>
             </div>
-            <div wicket:id="mergeWithObjectDetailsPanel" class="col-xs-3"/>
-            <div class="icon">
-                <i class="fa fa-arrow-right col-xs-1" style="font-size: 30px;"></i>
+            <div wicket:id="mergeWithObjectDetailsPanel" class="col-xs-2"/>
+            <div class="col-xs-2">
+                <i class="fa fa-arrow-right object-merge-sign text-blue"></i>
             </div>
-            <div wicket:id="mergeResultPanelContainer">
-                <div wicket:id="mergeResultObjectDetailsPanel" class="col-xs-3"/>
+            <div wicket:id="mergeResultPanelContainer" class="col-xs-2">
+                <div wicket:id="mergeResultObjectDetailsPanel"/>
             </div>
         </div>
         <div class="row">
-            <div class="col-xs-7">
-            <p align="center">
-                <a wicket:id="switchDirectionButton" class="btn btn-default btn-sm"/>
-            </p>
+        	<div class="col-xs-2"></div>
+            <div class="col-xs-2 object-merge-switch-direction-col">
+            	<a wicket:id="switchDirectionButton" class="btn btn-default btn-sm"/>
             </div>
         </div>
         <wicket:child/>
