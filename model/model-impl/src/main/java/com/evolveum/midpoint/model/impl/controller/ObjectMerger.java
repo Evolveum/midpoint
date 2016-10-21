@@ -21,10 +21,10 @@ import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.model.api.PolicyViolationException;
-import com.evolveum.midpoint.model.common.SystemObjectCache;
 import com.evolveum.midpoint.model.common.expression.Expression;
 import com.evolveum.midpoint.model.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.model.common.expression.ExpressionFactory;
@@ -44,6 +44,7 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPath.CompareResult;
+import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -67,6 +68,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.MergeConfigurationTy
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MergeStategyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 
 /**
  * Class responsible for object merging. This acts as a controller
@@ -85,8 +87,9 @@ public class ObjectMerger {
 	@Autowired(required = true)
 	private ModelObjectResolver objectResolver;
 	
-	@Autowired(required = true)
-	private SystemObjectCache systemObjectCache;
+	@Autowired
+	@Qualifier("cacheRepositoryService")
+	private transient RepositoryService cacheRepositoryService;
 	
 	@Autowired(required = true)
 	private ExpressionFactory expressionFactory;
@@ -134,7 +137,8 @@ public class ObjectMerger {
 		final PrismObject<O> objectLeft = objectResolver.getObjectSimple(type, leftOid, null, task, result).asPrismObject();
 		final PrismObject<O> objectRight = objectResolver.getObjectSimple(type, rightOid, null, task, result).asPrismObject();
 		
-		PrismObject<SystemConfigurationType> systemConfiguration = systemObjectCache.getSystemConfiguration(result);
+		PrismObject<SystemConfigurationType> systemConfiguration = cacheRepositoryService.getObject(SystemConfigurationType.class, 
+				SystemObjectsType.SYSTEM_CONFIGURATION.value(), null, result);
 		MergeConfigurationType mergeConfiguration = selectConfiguration(systemConfiguration, mergeConfigurationName);
 		if (mergeConfiguration == null) {
 			throw new ConfigurationException("No merge configuration defined");
