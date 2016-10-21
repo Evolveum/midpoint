@@ -781,7 +781,7 @@ public class ShadowManager {
 		ResourceAttributeContainer repoAttributesContainer = ShadowUtil
 				.getAttributesContainer(repoShadow);
 
-		CachingStategyType cachingStrategy = getCachingStrategy(ctx);
+		CachingStategyType cachingStrategy = ProvisioningUtil.getCachingStrategy(ctx);
 		if (cachingStrategy == CachingStategyType.NONE) {
 			// Clean all repoShadow attributes and add only those that should be
 			// there
@@ -861,13 +861,16 @@ public class ShadowManager {
 		return repoShadow;
 	}
 	
+	@SuppressWarnings("unchecked")
 	public Collection<ItemDelta> updateShadow(ProvisioningContext ctx, PrismObject<ShadowType> resourceShadow, 
 			Collection<? extends ItemDelta> aprioriDeltas, OperationResult result) throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException {
 		PrismObject<ShadowType> repoShadow = repositoryService.getObject(ShadowType.class, resourceShadow.getOid(), null, result);
 		RefinedObjectClassDefinition objectClassDefinition = ctx.getObjectClassDefinition();
 		Collection<ItemDelta> repoShadowChanges = new ArrayList<ItemDelta>();
+		CachingStategyType cachingStrategy = ProvisioningUtil.getCachingStrategy(ctx);
+		
 		for (RefinedAttributeDefinition attrDef: objectClassDefinition.getAttributeDefinitions()) {
-			if (ProvisioningUtil.shouldStoreAtributeInShadow(objectClassDefinition, attrDef.getName())) {
+			if (ProvisioningUtil.shouldStoreAtributeInShadow(objectClassDefinition, attrDef.getName(), cachingStrategy)) {
 				ResourceAttribute<Object> resourceAttr = ShadowUtil.getAttribute(resourceShadow, attrDef.getName());
 				PrismProperty<Object> repoAttr = repoShadow.findProperty(new ItemPath(ShadowType.F_ATTRIBUTES, attrDef.getName()));
 				PropertyDelta attrDelta;
@@ -903,6 +906,7 @@ public class ShadowManager {
 	 * change of auxiliary object classes, etc.
 	 * @returns repository shadow as it should look like after the update
 	 */
+	@SuppressWarnings("unchecked")
 	public PrismObject<ShadowType> updateShadow(ProvisioningContext ctx, PrismObject<ShadowType> currentResourceShadow, 
 			PrismObject<ShadowType> oldRepoShadow, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException, ConfigurationException, CommunicationException {
 		
@@ -910,11 +914,14 @@ public class ShadowManager {
 		ObjectDelta<ShadowType> shadowDelta = oldRepoShadow.createModifyDelta();
 		PrismContainer<Containerable> currentResourceAttributesContainer = currentResourceShadow.findContainer(ShadowType.F_ATTRIBUTES);
 		PrismContainer<Containerable> oldRepoAttributesContainer = oldRepoShadow.findContainer(ShadowType.F_ATTRIBUTES);
+		
+		CachingStategyType cachingStrategy = ProvisioningUtil.getCachingStrategy(ctx);
+		
 		for (Item<?, ?> currentResourceItem: currentResourceAttributesContainer.getValue().getItems()) {
 			if (currentResourceItem instanceof PrismProperty<?>) {
 				PrismProperty<?> currentResourceAttrProperty = (PrismProperty<?>)currentResourceItem;
 				RefinedAttributeDefinition<Object> attrDef = ocDef.findAttributeDefinition(currentResourceAttrProperty.getElementName());
-				if (ProvisioningUtil.shouldStoreAtributeInShadow(ocDef, attrDef.getName())) {
+				if (ProvisioningUtil.shouldStoreAtributeInShadow(ocDef, attrDef.getName(), cachingStrategy)) {
 					MatchingRule matchingRule = matchingRuleRegistry.getMatchingRule(attrDef.getMatchingRuleQName(), attrDef.getTypeName());
 					PrismProperty<Object> oldRepoAttributeProperty = oldRepoAttributesContainer.findProperty(currentResourceAttrProperty.getElementName());
 					if (oldRepoAttributeProperty == null ) {
@@ -963,7 +970,7 @@ public class ShadowManager {
 			if (oldRepoItem instanceof PrismProperty<?>) {
 				PrismProperty<?> oldRepoAttrProperty = (PrismProperty<?>)oldRepoItem;
 				RefinedAttributeDefinition<Object> attrDef = ocDef.findAttributeDefinition(oldRepoAttrProperty.getElementName());
-				if (attrDef == null || !ProvisioningUtil.shouldStoreAtributeInShadow(ocDef, attrDef.getName())) {
+				if (attrDef == null || !ProvisioningUtil.shouldStoreAtributeInShadow(ocDef, attrDef.getName(), cachingStrategy)) {
 					// No definition for this property, it should not be in the shadow
 					PropertyDelta<?> oldRepoAttrPropDelta = oldRepoAttrProperty.createDelta();
 					oldRepoAttrPropDelta.addValuesToDelete((Collection)PrismPropertyValue.cloneCollection(oldRepoAttrProperty.getValues()));
@@ -985,6 +992,20 @@ public class ShadowManager {
 				currentResourceShadow.findProperty(ShadowType.F_AUXILIARY_OBJECT_CLASS));
 		if (auxOcDelta != null) {
 			shadowDelta.addModification(auxOcDelta);
+		}
+		
+		if (cachingStrategy == CachingStategyType.NONE) {
+			if (oldRepoShadow.asObjectable().getCachingMetadata() != null) {
+				shadowDelta.addModificationReplaceProperty(ShadowType.F_CACHING_METADATA);
+			}
+			
+		} else if (cachingStrategy == CachingStategyType.PASSIVE) {
+			CachingMetadataType cachingMetadata = new CachingMetadataType();
+			cachingMetadata.setRetrievalTimestamp(clock.currentTimeXMLGregorianCalendar());
+			shadowDelta.addModificationReplaceProperty(ShadowType.F_CACHING_METADATA, cachingMetadata);
+			
+		} else {
+			throw new ConfigurationException("Unknown caching strategy "+cachingStrategy);
 		}
 		
 		if (!shadowDelta.isEmpty()) {
@@ -1193,16 +1214,5 @@ public class ShadowManager {
 		refinedAttributeDefinition = refinedObjectClassDefinition.findAttributeDefinition(attributeA.getElementName());
 		Collection<T> valuesB = getNormalizedAttributeValues(attributeB, refinedAttributeDefinition);
 		return MiscUtil.unorderedCollectionEquals(valuesA, valuesB);
-	}
-
-	private CachingStategyType getCachingStrategy(ProvisioningContext ctx) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
-		CachingPolicyType caching = ctx.getResource().getCaching();
-		if (caching == null) {
-			return CachingStategyType.NONE;
-		}
-		if (caching.getCachingStategy() == null) {
-			return CachingStategyType.NONE;
-		}
-		return caching.getCachingStategy();
 	}
 }

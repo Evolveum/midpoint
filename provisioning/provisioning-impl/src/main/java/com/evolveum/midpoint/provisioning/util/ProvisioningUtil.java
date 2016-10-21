@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2014 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -56,6 +56,8 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AttributeFetchStrategyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CachingPolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CachingStategyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionReturnMultiplicityType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FailedOperationTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ProvisioningScriptArgumentType;
@@ -310,19 +312,29 @@ public class ProvisioningUtil {
 		opResult.recordWarning(message, ex);
 	}
 
-	public static boolean shouldStoreAtributeInShadow(RefinedObjectClassDefinition objectClassDefinition, QName attributeName) {
-		if (objectClassDefinition.isPrimaryIdentifier(attributeName) || objectClassDefinition.isSecondaryIdentifier(attributeName)) {
-			return true;
-		}
-		for (RefinedAssociationDefinition associationDef: objectClassDefinition.getAssociations()) {
-			if (associationDef.getResourceObjectAssociationType().getDirection() == ResourceObjectAssociationDirectionType.OBJECT_TO_SUBJECT) {
-				QName valueAttributeName = associationDef.getResourceObjectAssociationType().getValueAttribute();
-				if (QNameUtil.match(attributeName, valueAttributeName)) {
-					return true;
+	public static boolean shouldStoreAtributeInShadow(RefinedObjectClassDefinition objectClassDefinition, QName attributeName, 
+			CachingStategyType cachingStrategy) throws ConfigurationException {
+		if (cachingStrategy == CachingStategyType.NONE) {
+			if (objectClassDefinition.isPrimaryIdentifier(attributeName) || objectClassDefinition.isSecondaryIdentifier(attributeName)) {
+				return true;
+			}
+			for (RefinedAssociationDefinition associationDef: objectClassDefinition.getAssociations()) {
+				if (associationDef.getResourceObjectAssociationType().getDirection() == ResourceObjectAssociationDirectionType.OBJECT_TO_SUBJECT) {
+					QName valueAttributeName = associationDef.getResourceObjectAssociationType().getValueAttribute();
+					if (QNameUtil.match(attributeName, valueAttributeName)) {
+						return true;
+					}
 				}
 			}
+			return false;
+			
+		} else if (cachingStrategy == CachingStategyType.PASSIVE) {
+			RefinedAttributeDefinition<Object> attrDef = objectClassDefinition.findAttributeDefinition(attributeName);
+			return attrDef != null;
+			
+		} else {
+			throw new ConfigurationException("Unknown caching strategy "+cachingStrategy);
 		}
-		return false;
 	}
 
 	public static boolean shouldStoreActivationItemInShadow(QName elementName) {	// MID-2585
@@ -375,5 +387,17 @@ public class ProvisioningUtil {
 			LOGGER.warn("{}", m);
 			//throw new IllegalStateException(m);		// use only for testing
 		}
+	}
+	
+	public static CachingStategyType getCachingStrategy(ProvisioningContext ctx) 
+			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
+		CachingPolicyType caching = ctx.getResource().getCaching();
+		if (caching == null) {
+			return CachingStategyType.NONE;
+		}
+		if (caching.getCachingStategy() == null) {
+			return CachingStategyType.NONE;
+		}
+		return caching.getCachingStategy();
 	}
 }

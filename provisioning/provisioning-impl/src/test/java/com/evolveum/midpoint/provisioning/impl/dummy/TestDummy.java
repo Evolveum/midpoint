@@ -1153,7 +1153,7 @@ public class TestDummy extends AbstractDummyTest {
 		assertNotNull("Shadow was not created in the repository", shadowFromRepo);
 		display("Repository shadow", shadowFromRepo.debugDump());
 
-		ProvisioningTestUtil.checkRepoAccountShadow(shadowFromRepo);
+		checkRepoAccountShadow(shadowFromRepo);
 		
 		checkRepoAccountShadowWill(shadowFromRepo, start, end);
 
@@ -1236,7 +1236,7 @@ public class TestDummy extends AbstractDummyTest {
 		assertNotNull("Shadow was not created in the repository", shadowFromRepo);
 		display("Repository shadow", shadowFromRepo.debugDump());
 
-		ProvisioningTestUtil.checkRepoAccountShadow(shadowFromRepo);
+		checkRepoAccountShadow(shadowFromRepo);
 
 		checkConsistency(account.asPrismObject());
 		
@@ -4443,7 +4443,7 @@ public class TestDummy extends AbstractDummyTest {
 		PrismObject<ShadowType> accountRepo = findAccountShadowByUsername(getMurrayRepoIcfName(), resource, result);		
 		assertNotNull("Shadow was not created in the repository", accountRepo);
 		display("Repository shadow", accountRepo);
-		ProvisioningTestUtil.checkRepoAccountShadow(accountRepo);
+		checkRepoAccountShadow(accountRepo);
 		
 		assertEquals("Wrong ICF NAME in murray (repo) shadow", getMurrayRepoIcfName(),  getIcfName(accountRepo));
 
@@ -4549,7 +4549,7 @@ public class TestDummy extends AbstractDummyTest {
 		PrismObject<ShadowType> accountRepo = findAccountShadowByUsername(getBlackbeardRepoIcfName(), resource, result);		
 		assertNotNull("Shadow was not created in the repository", accountRepo);
 		display("Repository shadow", accountRepo);
-		ProvisioningTestUtil.checkRepoAccountShadow(accountRepo);
+		checkRepoAccountShadow(accountRepo);
 
 		checkAllShadows();
 		
@@ -4624,7 +4624,7 @@ public class TestDummy extends AbstractDummyTest {
 		PrismObject<ShadowType> accountRepo = findAccountShadowByUsername(getBlackbeardRepoIcfName(), resource, result);		
 		assertNotNull("Shadow was not created in the repository", accountRepo);
 		display("Repository shadow", accountRepo);
-		ProvisioningTestUtil.checkRepoAccountShadow(accountRepo);
+		checkRepoAccountShadow(accountRepo);
 		
 		checkAllShadows();
 		
@@ -4801,7 +4801,7 @@ public class TestDummy extends AbstractDummyTest {
 		PrismObject<ShadowType> accountRepo = findAccountShadowByUsername(getDrakeRepoIcfName(), resource, result);	
 		assertNotNull("Shadow was not created in the repository", accountRepo);
 		display("Repository shadow", accountRepo);
-		ProvisioningTestUtil.checkRepoAccountShadow(accountRepo);
+		checkRepoAccountShadow(accountRepo);
 
 		checkAllShadows();
 		
@@ -4872,7 +4872,7 @@ public class TestDummy extends AbstractDummyTest {
 		PrismObject<ShadowType> accountRepo = findAccountShadowByUsername(getDrakeRepoIcfName(), resource, result);		
 		assertNotNull("Shadow was not created in the repository", accountRepo);
 		display("Repository shadow", accountRepo);
-		ProvisioningTestUtil.checkRepoAccountShadow(accountRepo);
+		checkRepoAccountShadow(accountRepo);
 		
 		checkAllShadows();
 		
@@ -5238,5 +5238,9 @@ public class TestDummy extends AbstractDummyTest {
 			}
 
 		};
+	}
+	
+	protected void checkRepoAccountShadow(PrismObject<ShadowType> shadowFromRepo) {
+		ProvisioningTestUtil.checkRepoAccountShadow(shadowFromRepo);
 	}
 }

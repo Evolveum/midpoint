@@ -45,6 +45,7 @@ import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.match.StringIgnoreCaseMatchingRule;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
+import com.evolveum.midpoint.provisioning.impl.ProvisioningTestUtil;
 import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorFactoryIcfImpl;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
@@ -107,6 +108,11 @@ public class TestDummyCaching extends TestDummy {
 		
 		TestUtil.assertBetween("Wrong retrieval timestamp in caching metadata in "+shadowFromRepo, 
 				start, end, cachingMetadata.getRetrievalTimestamp());
+	}
+	
+	@Override
+	protected void checkRepoAccountShadow(PrismObject<ShadowType> repoShadow) {
+		ProvisioningTestUtil.checkRepoShadow(repoShadow, ShadowKindType.ACCOUNT, null);
 	}
 	
 }
