@@ -362,6 +362,9 @@ public class ObjectMerger {
 	private <O extends ObjectType, I extends Item> Collection<PrismValue> getValuesToTake(PrismObject<O> objectLeft, PrismObject<O> objectRight, 
 			String side, I origItem, MergeStategyType strategy, Expression<PrismValue, ItemDefinition> valueExpression, Task task, OperationResult result) 
 					throws ConfigurationException, SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
+		if (origItem == null) {
+			return new ArrayList<>(0);
+		}
 		if (strategy == MergeStategyType.TAKE) {
 			return cleanContainerIds(origItem.getClonedValues());
 		} else if (strategy == MergeStategyType.EXPRESSION) {
