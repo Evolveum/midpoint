@@ -58,11 +58,12 @@ public class MergeObjectsPanel<F extends FocusType> extends BasePanel{
     private static final String ID_MERGE_RESULT_OBJECT_DETAILS_PANEL = "mergeResultObjectDetailsPanel";
     private static final String ID_MERGE_RESULT_PANEL_CONTAINER = "mergeResultPanelContainer";
     private static final String ID_BACK_BUTTON = "back";
-    private static final String ID_SWITCH_DIRECTION_BUTTON = "switchDirection";
     private static final String ID_MERGE_DELTA_PREVIEW_BUTTON = "mergeDeltaPreview";
     private static final String ID_MERGE_BUTTON = "merge";
     private static final String ID_FORM = "mainForm";
     private static final String ID_MERGE_TYPE_SELECTOR = "mergeType";
+    private static final String ID_SWITCH_DIRECTION_BUTTON = "switchDirectionButton";
+    private static final String ID_OBJECTS_PANEL = "objectsPanel";
 
     private F mergeObject;
     private F mergeWithObject;
@@ -140,7 +141,8 @@ public class MergeObjectsPanel<F extends FocusType> extends BasePanel{
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
                 mergeResultObject = getMergeObjectsResult();
-                WebMarkupContainer resultObjectPanel = (WebMarkupContainer)get(ID_FORM).get(ID_MERGE_RESULT_PANEL_CONTAINER);
+                WebMarkupContainer resultObjectPanel = (WebMarkupContainer)get(ID_FORM)
+                        .get(ID_OBJECTS_PANEL).get(ID_MERGE_RESULT_PANEL_CONTAINER);
                 resultObjectPanel.addOrReplace(getMergeResultObjectPanel());
                 target.add(resultObjectPanel);
             }
@@ -148,23 +150,46 @@ public class MergeObjectsPanel<F extends FocusType> extends BasePanel{
         mergeTypeSelect.setOutputMarkupId(true);
         mainForm.add(mergeTypeSelect);
 
+        final WebMarkupContainer objectsPanel = new WebMarkupContainer(ID_OBJECTS_PANEL);
+        objectsPanel.setOutputMarkupId(true);
+        mainForm.addOrReplace(objectsPanel);
+
+        initObjectsPanel(objectsPanel);
+
+        AjaxButton switchDirectionButton = new AjaxButton(ID_SWITCH_DIRECTION_BUTTON,
+                pageBase.createStringResource("MergeObjectsPanel.switchDirection")) {
+            @Override
+            public void onClick(AjaxRequestTarget ajaxRequestTarget) {
+                F temp = mergeObject;
+                mergeObject = mergeWithObject;
+                mergeWithObject = temp;
+                initObjectsPanel(objectsPanel);
+
+                ajaxRequestTarget.add(objectsPanel);
+            }
+        };
+        switchDirectionButton.setOutputMarkupId(true);
+        mainForm.add(switchDirectionButton);
+    }
+
+    private void initObjectsPanel(WebMarkupContainer objectsPanel){
+
         MergeObjectDetailsPanel mergeObjectPanel = new MergeObjectDetailsPanel(ID_MERGE_OBJECT_DETAILS_PANEL,
                 mergeObject, type);
         mergeObjectPanel.setOutputMarkupId(true);
-        mainForm.add(mergeObjectPanel);
+        objectsPanel.addOrReplace(mergeObjectPanel);
 
         MergeObjectDetailsPanel mergeWithObjectPanel = new MergeObjectDetailsPanel(ID_MERGE_WITH_OBJECT_DETAILS_PANEL,
                 mergeWithObject, type);
         mergeWithObjectPanel.setOutputMarkupId(true);
-        mainForm.add(mergeWithObjectPanel);
+        objectsPanel.addOrReplace(mergeWithObjectPanel);
 
         mergeResultObject = getMergeObjectsResult();
 
         WebMarkupContainer mergeResultPanelContainer = new WebMarkupContainer(ID_MERGE_RESULT_PANEL_CONTAINER);
         mergeResultPanelContainer.setOutputMarkupId(true);
-        mainForm.add(mergeResultPanelContainer);
-        mergeResultPanelContainer.add(getMergeResultObjectPanel());
-//        initButtonPanel(mainForm);
+        objectsPanel.addOrReplace(mergeResultPanelContainer);
+        mergeResultPanelContainer.addOrReplace(getMergeResultObjectPanel());
     }
 
     private Component getMergeResultObjectPanel(){

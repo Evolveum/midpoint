@@ -25,7 +25,7 @@
                 <div wicket:id="mergeType"/>
             </div>
         </div>
-        <div class="row">
+        <div wicket:id="objectsPanel" class="row">
             <div wicket:id="mergeObjectDetailsPanel" class="col-xs-3"/>
             <div class="icon">
                 <i class="fa fa-plus col-xs-1" style="font-size: 30px;"></i>
@@ -35,7 +35,14 @@
                 <i class="fa fa-arrow-right col-xs-1" style="font-size: 30px;"></i>
             </div>
             <div wicket:id="mergeResultPanelContainer">
-            <div wicket:id="mergeResultObjectDetailsPanel" class="col-xs-3"/>
+                <div wicket:id="mergeResultObjectDetailsPanel" class="col-xs-3"/>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-xs-7">
+            <p align="center">
+                <a wicket:id="switchDirectionButton" class="btn btn-default btn-sm"/>
+            </p>
             </div>
         </div>
         <wicket:child/>

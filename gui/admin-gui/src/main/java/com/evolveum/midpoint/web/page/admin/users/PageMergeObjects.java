@@ -99,7 +99,6 @@ public class PageMergeObjects<F extends FocusType> extends PageAdminFocus {
 
     @Override
     protected AbstractObjectMainPanel<UserType> createMainPanel(String id){
-
         return new FocusMainPanel<UserType>(id, getObjectModel(), new LoadableModel<List<AssignmentEditorDto>>() {
             @Override
             protected List<AssignmentEditorDto> load() {
@@ -122,7 +121,8 @@ public class PageMergeObjects<F extends FocusType> extends PageAdminFocus {
 
                             @Override
                             public WebMarkupContainer createPanel(String panelId) {
-                                return new MergeObjectsPanel(panelId, mergeObject, mergeWithObject, type, PageMergeObjects.this);
+                                mergeObjectsPanel =  new MergeObjectsPanel(panelId, mergeObject, mergeWithObject, type, PageMergeObjects.this);
+                                return mergeObjectsPanel;
                             }
                         });
                 return tabs;
@@ -132,10 +132,14 @@ public class PageMergeObjects<F extends FocusType> extends PageAdminFocus {
     @Override
     protected FocusSummaryPanel<UserType> createSummaryPanel(){
         UserSummaryPanel summaryPanel = new UserSummaryPanel(ID_SUMMARY_PANEL, getObjectModel());
-        summaryPanel.setVisible(false);
+        setSummaryPanelVisibility(summaryPanel);
         return summaryPanel;
     }
 
+    @Override
+    protected void setSummaryPanelVisibility(FocusSummaryPanel summaryPanel){
+        summaryPanel.setVisible(false);
+    }
     @Override
     protected Class getRestartResponsePage() {
         return PageUsers.class;
@@ -162,8 +166,7 @@ public class PageMergeObjects<F extends FocusType> extends PageAdminFocus {
 
     @Override
     public void saveOrPreviewPerformed(AjaxRequestTarget target, OperationResult result, boolean previewOnly) {
-        MergeObjectsPanel panel  = (MergeObjectsPanel) get("mainPanel").get("mainForm").get("tabPanel").get("panel");
-        ObjectDelta<F> mergeDelta = panel.getMergeDelta();
+        ObjectDelta<F> mergeDelta = mergeObjectsPanel.getMergeDelta();
 
         ((ObjectWrapper)getObjectModel().getObject()).setOldDelta(mergeDelta);
         super.saveOrPreviewPerformed(target, result, previewOnly);
