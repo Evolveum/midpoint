@@ -198,16 +198,13 @@ public class CompositeRefinedObjectClassDefinition implements RefinedObjectClass
 		return structuralObjectClassDefinition.isAuxiliary();
 	}
 
+	// TODO - ok???
 	public Collection<RefinedAssociationDefinition> getAssociations() {
 		return structuralObjectClassDefinition.getAssociations();
 	}
 
 	public Collection<RefinedAssociationDefinition> getAssociations(ShadowKindType kind) {
 		return structuralObjectClassDefinition.getAssociations(kind);
-	}
-
-	public Collection<RefinedAssociationDefinition> getEntitlementAssociations() {
-		return structuralObjectClassDefinition.getEntitlementAssociations();
 	}
 
 	public Collection<QName> getNamesOfAssociations() {
@@ -389,14 +386,26 @@ public class CompositeRefinedObjectClassDefinition implements RefinedObjectClass
 		return (RefinedAttributeDefinition<X>) findItemDefinition(elementQName, RefinedAttributeDefinition.class, caseInsensitive);
 	}
 
-	@Override
 	public RefinedAssociationDefinition findAssociation(QName name) {
-		throw new UnsupportedOperationException("TODO implement if needed");
+		for (RefinedAssociationDefinition assocType: getAssociations()) {
+			if (QNameUtil.match(assocType.getName(), name)) {
+				return assocType;
+			}
+		}
+		return null;
 	}
 
-	@Override
+	public Collection<RefinedAssociationDefinition> getEntitlementAssociations() {
+		return getAssociations(ShadowKindType.ENTITLEMENT);
+	}
+
 	public RefinedAssociationDefinition findEntitlementAssociation(QName name) {
-		throw new UnsupportedOperationException("TODO implement if needed");
+		for (RefinedAssociationDefinition assocType: getEntitlementAssociations()) {
+			if (QNameUtil.match(assocType.getName(), name)) {
+				return assocType;
+			}
+		}
+		return null;
 	}
 
 	@Override

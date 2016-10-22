@@ -15,15 +15,12 @@
  */
 package com.evolveum.midpoint.model.common.expression;
 
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import javax.script.Bindings;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.common.expression.functions.BasicExpressionFunctions;
@@ -225,7 +222,12 @@ public class ExpressionUtil {
 	}
 
 	public static Object convertVariableValue(Object originalValue, String variableName, ObjectResolver objectResolver,
-			String contextDescription, Task task, OperationResult result) throws ExpressionSyntaxException, ObjectNotFoundException {
+			String contextDescription, PrismContext prismContext, Task task, OperationResult result) throws ExpressionSyntaxException, ObjectNotFoundException {
+		if (originalValue instanceof PrismValue) {
+			((PrismValue) originalValue).setPrismContext(prismContext);			// TODO - or revive? Or make sure prismContext is set here?
+		} else if (originalValue instanceof Item) {
+			((Item) originalValue).setPrismContext(prismContext);				// TODO - or revive? Or make sure prismContext is set here?
+		}
 		if (originalValue instanceof ObjectReferenceType) {
 			try {
 				originalValue = resolveReference((ObjectReferenceType)originalValue, objectResolver, variableName,
@@ -294,7 +296,7 @@ public class ExpressionUtil {
 
 	public static Map<String,Object> prepareScriptVariables(ExpressionVariables variables, ObjectResolver objectResolver,
 			Collection<FunctionLibrary> functions,
-			String contextDescription, Task task, OperationResult result) throws ExpressionSyntaxException, ObjectNotFoundException {
+			String contextDescription, PrismContext prismContext, Task task, OperationResult result) throws ExpressionSyntaxException, ObjectNotFoundException {
 		Map<String,Object> scriptVariables = new HashMap<>();
 		// Functions
 		if (functions != null) {
@@ -310,7 +312,7 @@ public class ExpressionUtil {
 					continue;
 				}
 				String variableName = variableEntry.getKey().getLocalPart();
-				Object variableValue = ExpressionUtil.convertVariableValue(variableEntry.getValue(), variableName, objectResolver, contextDescription, task, result);
+				Object variableValue = ExpressionUtil.convertVariableValue(variableEntry.getValue(), variableName, objectResolver, contextDescription, prismContext, task, result);
 				scriptVariables.put(variableName, variableValue);
 			}
 		}
@@ -674,7 +676,7 @@ public class ExpressionUtil {
 					DOMUtil.XSD_STRING, prismContext);
 		}
 
-		return evaluateExpression(variables, outputDefinition, expressionType, expressionFactory, shortDesc,
+		return (V) evaluateExpression(variables, outputDefinition, expressionType, expressionFactory, shortDesc,
 				task, parentResult);
 
 		// String expressionResult =

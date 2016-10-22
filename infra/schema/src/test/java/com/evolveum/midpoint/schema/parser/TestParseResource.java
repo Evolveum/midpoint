@@ -61,7 +61,7 @@ import static org.testng.AssertJUnit.*;
  * @author semancik
  *
  */
-public class TestParseResource extends AbstractParserTest<ResourceType> {
+public class TestParseResource extends AbstractContainerValueParserTest<ResourceType> {
 
 	@Override
 	protected File getFile() {
@@ -204,7 +204,7 @@ public class TestParseResource extends AbstractParserTest<ResourceType> {
 	}
 
 	@Override
-	protected void assertPrismContainerValue(PrismContainerValue<ResourceType> value) throws SchemaException {
+	protected void assertPrismContainerValueLocal(PrismContainerValue<ResourceType> value) throws SchemaException {
 		//assertResource(object.asContainerable().asPrismObject(), true, true);
 	}
 
@@ -262,8 +262,8 @@ public class TestParseResource extends AbstractParserTest<ResourceType> {
 						new ItemPath(new QName("extension"), new QName("extConnType")),
 					path);
             PrismPropertyValue filterValue = (PrismPropertyValue) equalFilter.getValues().get(0);
-            //assertEquals("Wrong filter value", "org.identityconnectors.ldap.LdapConnector", ((RawType) filterValue.getValue()).getParsedRealValue(String.class).trim());
-			assertEquals("Wrong filter value", "org.identityconnectors.ldap.LdapConnector", ((String) filterValue.getValue()).trim());
+            assertEquals("Wrong filter value", "org.identityconnectors.ldap.LdapConnector", ((RawType) filterValue.getValue()).getParsedRealValue(String.class).trim());
+			//assertEquals("Wrong filter value", "org.identityconnectors.ldap.LdapConnector", ((String) filterValue.getValue()).trim());
         }
         EvaluationTimeType resolutionTime = connectorRefVal.getResolutionTime();
         if (isSimple) {

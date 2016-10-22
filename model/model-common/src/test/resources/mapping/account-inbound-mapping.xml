@@ -28,6 +28,6 @@
 	<objectClass>ri:AccountObjectClass</objectClass>
 	<attributes>
 		<icfs:name>CN=Pavol Rufus/O=SEPSAS/C=SK</icfs:name>
-	<ri:uid>pavolr</ri:uid>
+		<ri:uid xsi:type="xsd:string">pavolr</ri:uid>
 	</attributes>
 </account>

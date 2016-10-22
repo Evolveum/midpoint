@@ -109,7 +109,12 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
         return null;
     }
 
-    /**
+	// Primarily for testing
+	public PrismContext getPrismContextLocal() {
+		return prismContext;
+	}
+
+	/**
      * Returns a set of items that the property container contains. The items may be properties or inner property containers.
      * <p/>
      * The set may be null. In case there are no properties an empty set is
@@ -251,24 +256,39 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
         return asContainerableInternal(resolveClass(null));
 	}
 
-    public C asContainerable(Class<C> defaultClass) {
+	// returned class must be of type 'requiredClass' (or any of its subtypes)
+    public C asContainerable(Class<C> requiredClass) {
 		if (containerable != null) {
 			return containerable;
 		}
-        return asContainerableInternal(resolveClass(defaultClass));
+        return asContainerableInternal(resolveClass(requiredClass));
     }
 
-	private Class<C> resolveClass(Class<C> defaultClass) {
-		Class<C> clazz = defaultClass;
+	private Class<C> resolveClass(@Nullable Class<C> requiredClass) {
 		if (complexTypeDefinition != null && complexTypeDefinition.getCompileTimeClass() != null) {
-			clazz = (Class<C>) complexTypeDefinition.getCompileTimeClass();
+			Class<?> actualClass = complexTypeDefinition.getCompileTimeClass();
+			if (requiredClass != null && !requiredClass.isAssignableFrom(actualClass)) {
+				throw new IllegalStateException("asContainerable was called to produce " + requiredClass
+						+ ", but the actual class in PCV is " + actualClass);
+			} else {
+				return (Class<C>) actualClass;
+			}
 		} else {
 			PrismContainerable parent = getParent();
-			if (parent != null && parent.getCompileTimeClass() != null) {
-				clazz = parent.getCompileTimeClass();		// TODO is this ok?
+			if (parent != null) {
+				Class<?> parentClass = parent.getCompileTimeClass();
+				if (parentClass != null) {
+					if (requiredClass != null && !requiredClass.isAssignableFrom(parentClass)) {
+						// mismatch; but this can occur (see ShadowAttributesType vs ShadowIdentifiersType in ShadowAssociationType)
+						// but TODO maybe this is only a workaround and the problem is in the schema itself (?)
+						return requiredClass;
+					} else {
+						return (Class<C>) parentClass;
+					}
+				}
 			}
 		}
-		return clazz;
+		return requiredClass;
 	}
 
 	private C asContainerableInternal(Class<C> clazz) {

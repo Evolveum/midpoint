@@ -650,7 +650,15 @@ public class PrismBeanConverter {
 		} else if (paramType.equals(XNode.class)) {
 			propValue = xsubnode;
 		} else if (storeAsRawType || paramType.equals(RawType.class)) {
-            propValue = new RawType(xsubnode, prismContext);
+            RawType raw = new RawType(xsubnode, prismContext);
+			// FIXME UGLY HACK: parse value if possible
+			if (xsubnode.getTypeQName() != null) {
+				PrismValue value = prismContext.parserFor(xsubnode.toRootXNode()).parseItemValue();
+				if (value != null && !value.isRaw()) {
+					raw = new RawType(value, prismContext);
+				}
+			}
+			propValue = raw;
         } else {
             // paramType is what we expect e.g. based on parent definition
             // but actual type (given by xsi:type/@typeDef) may be different, e.g. more specific
@@ -707,14 +715,24 @@ public class PrismBeanConverter {
 		}
 
         if (PolyStringType.class.isAssignableFrom(classType)) {
-            String value = (String) xprim.getParsedValue(DOMUtil.XSD_STRING);
-            PolyString polyString = new PolyString(value);
-            if (value != null) {
-                if (prismContext != null) {         // actually this should be always so [med]
-                    // TODO should we always use default normalizer?
-                    polyString.recompute(prismContext.getDefaultPolyStringNormalizer());
-                }
-            }
+			// TODO fixme this hack
+            Object value = xprim.getParsedValue(DOMUtil.XSD_STRING);
+			PolyString polyString;
+			if (value instanceof String) {
+				polyString = new PolyString((String) value);
+			} else if (value instanceof PolyStringType) {
+				polyString = ((PolyStringType) value).toPolyString();
+			} else if (value instanceof PolyString) {
+				polyString = (PolyString) value;		// TODO clone?
+			} else if (value == null) {
+				polyString = null;
+			} else {
+				throw new IllegalStateException("Couldn't convert " + value + " to a PolyString; while parsing " + xprim.debugDump());
+			}
+            if (polyString != null) {
+				// TODO should we always use default normalizer?
+				polyString.recompute(prismContext.getDefaultPolyStringNormalizer());
+			}
             return (T) new PolyStringType(polyString);
         }
 		

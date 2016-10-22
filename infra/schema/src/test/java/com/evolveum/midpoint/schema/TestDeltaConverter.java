@@ -73,7 +73,7 @@ public class TestDeltaConverter extends AbstractSchemaTest {
 	private static final ItemPath CREDENTIALS_PASSWORD_VALUE_PATH = 
 		new ItemPath(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD, PasswordType.F_VALUE);
 
-    @Test
+    @Test(enabled = false)
     public void testRefWithObject() throws SchemaException, IOException, JAXBException {
     	System.out.println("===[ testRefWithObject ]====");
     	

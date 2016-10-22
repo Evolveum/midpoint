@@ -23,6 +23,7 @@ import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
+import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
@@ -43,13 +44,12 @@ import java.io.IOException;
 import java.util.Collection;
 
 import static com.evolveum.midpoint.schema.TestConstants.COMMON_DIR_PATH;
-import static org.testng.AssertJUnit.assertNotNull;
-import static org.testng.AssertJUnit.assertTrue;
+import static org.testng.AssertJUnit.*;
 
 /**
  * @author mederly
  */
-public abstract class AbstractParserTest<C extends Containerable> {
+public abstract class AbstractParserTest<T extends PrismValue> {
 
 	protected String language;
 	protected boolean namespaces;
@@ -99,18 +99,55 @@ public abstract class AbstractParserTest<C extends Containerable> {
 		PrismAsserts.assertDefinition(container.getDefinition(), qName, xsdType, minOccurs, maxOccurs);
 	}
 
+	// partly covers the same functionality as item.assertDefinitions (TODO clean this)
 	protected void assertDefinitions(Visitable value) {
 		value.accept(v -> {
 			if (v instanceof Item) {
 				Item item = (Item) v;
 				String label = item.getPath() + ": " + v;
 				//System.out.println("Checking " + label);
-				assertTrue("No definition in " + label, item.getDefinition() != null || isDynamic(item.getPath()));
+				if (item.getDefinition() == null) {
+					assertTrue("No definition in " + label, isDynamic(item.getPath()));
+				} else {
+					assertNotNull("No prism context in definition of " + label, item.getDefinition().getPrismContext());
+				}
 			} else if (v instanceof PrismContainerValue) {
 				PrismContainerValue pcv = (PrismContainerValue) v;
 				String label = pcv.getPath() + ": " + v;
 				//System.out.println("Checking " + label);
-				assertNotNull("No complex type definition in " + label, pcv.getComplexTypeDefinition());
+				if (pcv.getComplexTypeDefinition() == null) {
+					fail("No complex type definition in " + label);
+				} else {
+					assertNotNull("No prism context in definition of " + label, pcv.getComplexTypeDefinition().getPrismContext());
+				}
+			}
+		});
+	}
+
+	protected void assertResolvableRawValues(Visitable value) {
+		value.accept(v -> {
+			// TODO in RawTypes in beans?
+			if (v instanceof PrismPropertyValue) {
+				PrismPropertyValue ppv = (PrismPropertyValue) v;
+				XNode raw = ppv.getRawElement();
+				if (raw != null && raw.getTypeQName() != null) {
+					String label = ppv.getPath() + ": " + v;
+					fail("Resolvable raw value of " + raw + " in " + label + " (type: " + raw.getTypeQName() + ")");
+				}
+			}
+		});
+	}
+
+	protected void assertPrismContext(Visitable value) {
+		value.accept(v -> {
+			if (v instanceof Item) {
+				Item item = (Item) v;
+				String label = item.getPath() + ": " + v;
+				assertNotNull("No prism context in " + label, item.getPrismContextLocal());
+			} else if (v instanceof PrismContainerValue) {
+				PrismContainerValue pcv = (PrismContainerValue) v;
+				String label = pcv.getPath() + ": " + v;
+				assertNotNull("No prism context in " + label, pcv.getPrismContextLocal());
 			}
 		});
 	}
@@ -137,31 +174,33 @@ public abstract class AbstractParserTest<C extends Containerable> {
 		String apply(V value) throws Exception;
 	}
 
-	protected void process(String desc, ParsingFunction<PrismContainerValue<C>> parser, SerializingFunction<PrismContainerValue<C>> serializer, String serId) throws Exception {
+	protected void process(String desc, ParsingFunction<T> parser, SerializingFunction<T> serializer, String serId) throws Exception {
 		PrismContext prismContext = getPrismContext();
 
 		System.out.println("================== Starting test for '" + desc + "' (serializer: " + serId + ") ==================");
 
-		PrismContainerValue<C> value = parser.apply(prismContext.parserFor(getFile()));
+		T value = parser.apply(prismContext.parserFor(getFile()));
+		assertResolvableRawValues(value);		// should be right here, before any getValue is called (TODO reconsider)
 
 		System.out.println("Parsed value: " + desc);
 		System.out.println(value.debugDump());
 
-		assertPrismContainerValue(value);
+		assertPrismValue(value);
 
 		if (serializer != null) {
 
 			String serialized = serializer.apply(value);
 			System.out.println("Serialized:\n" + serialized);
 
-			PrismContainerValue<C> reparsed = parser.apply(prismContext.parserFor(serialized));
+			T reparsed = parser.apply(prismContext.parserFor(serialized));
+			assertResolvableRawValues(reparsed);		// should be right here, before any getValue is called (TODO reconsider)
 
 			System.out.println("Reparsed: " + desc);
 			System.out.println(reparsed.debugDump());
 
-			assertPrismContainerValue(reparsed);
+			assertPrismValue(reparsed);
 
-			Collection<? extends ItemDelta> deltas = ((PrismContainerValue) value).diff((PrismContainerValue) reparsed);
+			Collection<? extends ItemDelta> deltas = value.diff(reparsed);
 			assertTrue("Deltas not empty", deltas.isEmpty());
 
 			assertTrue("Values not equal", value.equals(reparsed));
@@ -170,69 +209,11 @@ public abstract class AbstractParserTest<C extends Containerable> {
 
 	protected abstract File getFile();
 
-	@SuppressWarnings("Convert2MethodRef")
-	protected void processParsings(Class<C> clazz, Class<? extends C> specificClass, QName type, QName specificType, SerializingFunction<PrismContainerValue<C>> serializer, String serId) throws Exception {
-		process("parseItemValue - no hint", p -> p.parseItemValue(), serializer, serId);
+	protected abstract void assertPrismValue(T value) throws SchemaException;
 
-		if (clazz != null) {
-			process("parseItemValue - " + clazz.getSimpleName() + ".class",
-					p -> p.type(clazz).parseItemValue(),
-					serializer, serId);
-		}
-
-		if (specificClass != null) {
-			process("parseItemValue - " + specificClass.getSimpleName() + ".class",
-					p -> p.type(specificClass).parseItemValue(),
-					serializer, serId);
-		}
-
-		if (type != null) {
-			process("parseItemValue - " + type.getLocalPart() + " (QName)",
-					p -> p.type(type).parseItemValue(),
-					serializer, serId);
-		}
-
-		if (specificType != null) {
-			process("parseItemValue - " + specificType.getLocalPart() + " (QName)",
-					p -> p.type(specificType).parseItemValue(),
-					serializer, serId);
-		}
-
-		process("parseRealValue - no hint",
-				p -> ((C) p.parseRealValue()).asPrismContainerValue(),
-				serializer, serId);
-
-		if (clazz != null) {
-			process("parseRealValue - " + clazz.getSimpleName() + ".class",
-					p -> p.parseRealValue(clazz).asPrismContainerValue(),
-					serializer, serId);
-		}
-
-		if (specificClass != null) {
-			process("parseRealValue - " + specificClass.getSimpleName() + ".class",
-					p -> p.parseRealValue(specificClass).asPrismContainerValue(),
-					serializer, serId);
-		}
-
-		if (type != null) {
-			process("parseRealValue - " + type.getLocalPart() + " (QName)",
-					p -> ((C) p.type(type).parseRealValue()).asPrismContainerValue(),
-					serializer, serId);
-		}
-
-		if (specificType != null) {
-			process("parseRealValue - " + specificType.getLocalPart() + " (QName)",
-					p -> ((C) p.type(specificType).parseRealValue()).asPrismContainerValue(),
-					serializer, serId);
-		}
-
-		process("parseAnyData",
-				p -> ((PrismContainer<C>) p.parseItemOrRealValue()).getValue(0),
-				serializer, serId);
+	protected boolean isContainer() {
+		return false;
 	}
-
-
-	protected abstract void assertPrismContainerValue(PrismContainerValue<C> value) throws SchemaException;
 
 	protected PrismContext getPrismContext() {
 		return PrismTestUtil.getPrismContext();

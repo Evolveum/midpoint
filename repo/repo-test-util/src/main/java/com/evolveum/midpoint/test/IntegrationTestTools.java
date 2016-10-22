@@ -277,11 +277,14 @@ public class IntegrationTestTools {
 	}
 	
 	public static void assertAttributeDefinition(ResourceAttribute<?> attr, QName expectedType, int minOccurs, int maxOccurs,
-			boolean canRead, boolean canCreate, boolean canUpdate, Class<?> expetcedAttributeDefinitionClass) {
+			boolean canRead, boolean canCreate, boolean canUpdate, Class<?> expectedAttributeDefinitionClass) {
 		ResourceAttributeDefinition definition = attr.getDefinition();
 		QName attrName = attr.getElementName();
 		assertNotNull("No definition for attribute "+attrName, definition);
-		assertEquals("Wrong class of definition for attribute"+attrName, expetcedAttributeDefinitionClass, definition.getClass());
+		//assertEquals("Wrong class of definition for attribute"+attrName, expetcedAttributeDefinitionClass, definition.getClass());
+		assertTrue("Wrong class of definition for attribute"+attrName+" (expected: " + expectedAttributeDefinitionClass
+				+ ", real: " + definition.getClass() + ")",
+				expectedAttributeDefinitionClass.isAssignableFrom(definition.getClass()));
 		assertEquals("Wrong type in definition for attribute"+attrName, expectedType, definition.getTypeName());
 		assertEquals("Wrong minOccurs in definition for attribute"+attrName, minOccurs, definition.getMinOccurs());
 		assertEquals("Wrong maxOccurs in definition for attribute"+attrName, maxOccurs, definition.getMaxOccurs());
@@ -912,7 +915,7 @@ public class IntegrationTestTools {
 			}
 		}
 		AssertJUnit.fail("No association for entitlement "+entitlementOid+" in "+shadow);
-		return null; // notreached
+		throw new IllegalStateException("not reached");
 	}
 	
 	public static void assertNoAssociation(PrismObject<ShadowType> shadow, QName associationName, String entitlementOid) {

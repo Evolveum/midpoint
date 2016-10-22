@@ -32,7 +32,6 @@ import javax.xml.namespace.QName;
 
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
-import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
 
 import com.evolveum.midpoint.prism.delta.DiffUtil;
@@ -85,7 +84,7 @@ public abstract class TestPrismParsing {
 		System.out.println(user.debugDump());
 		assertNotNull(user);
 		
-		assertUserJack(user);
+		assertUserJack(user, true);
 	}
 	
 	@Test
@@ -103,7 +102,7 @@ public abstract class TestPrismParsing {
 		System.out.println(user.debugDump());
 		assertNotNull(user);
 
-		assertUserJack(user);
+		assertUserJack(user, true);
 	}
 
 	@Test
@@ -122,7 +121,7 @@ public abstract class TestPrismParsing {
 		System.out.println(user.debugDump());
 		assertNotNull(user);
 		
-		assertUserJack(user);
+		assertUserJack(user, true);
 	}
 
 	@Test
@@ -141,7 +140,7 @@ public abstract class TestPrismParsing {
 		System.out.println(user.debugDump());
 		assertNotNull(user);
 
-		assertUserAdhoc(user);
+		assertUserAdhoc(user, true);
 	}
 
 	@Test
@@ -180,7 +179,7 @@ public abstract class TestPrismParsing {
 		assertNotNull(originalUser);
 		
 		// precondition
-		assertUserJack(originalUser);
+		assertUserJack(originalUser, true);
 		
 		// WHEN
 		// We need to serialize with composite objects during roundtrip, otherwise the result will not be equal
@@ -199,7 +198,7 @@ public abstract class TestPrismParsing {
 		System.out.println(parsedUser.debugDump());
 		assertNotNull(parsedUser);
 
-		assertUserJack(parsedUser);
+		assertUserJack(parsedUser, true);
 		
 		ObjectDelta<UserType> diff = DiffUtil.diff(originalUser, parsedUser);
 		System.out.println("Diff:");
@@ -229,7 +228,7 @@ public abstract class TestPrismParsing {
 		assertNotNull(originalUser);
 		
 		// precondition
-		assertUserAdhoc(originalUser);
+		assertUserAdhoc(originalUser, true);
 		
 		// WHEN
 		// We need to serialize with composite objects during roundtrip, otherwise the result will not be equal
@@ -248,7 +247,7 @@ public abstract class TestPrismParsing {
 		System.out.println(parsedUser.debugDump());
 		assertNotNull(parsedUser);
 
-		assertUserAdhoc(parsedUser);
+		assertUserAdhoc(parsedUser, true);
 		
 		assertTrue("Users not equal", originalUser.equals(parsedUser));
 	}
@@ -410,9 +409,9 @@ public abstract class TestPrismParsing {
 
 	}
 
-	protected void assertUserAdhoc(PrismObject<UserType> user) throws SchemaException {
+	protected void assertUserAdhoc(PrismObject<UserType> user, boolean expectRawInConstructions) throws SchemaException {
 		user.checkConsistence();
-		assertUserJackContent(user);
+		assertUserJackContent(user, expectRawInConstructions);
 		assertUserExtensionAdhoc(user);
 		assertVisitor(user, 58);
 	}

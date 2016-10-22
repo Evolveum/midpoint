@@ -66,6 +66,11 @@ public class PrismUnmarshaller {
 
     //region Public interface ========================================================
 
+    /*
+     *  Please note: methods in this section should NOT be called from inside of parsing process!
+     *  It is to avoid repeatedly calling ItemInfo.determine, if at all possible.
+     *  (An exception is only if we know we have the definition ... TODO ...)
+     */
     @SuppressWarnings("unchecked")
     <O extends Objectable> PrismObject<O> parseObject(@NotNull RootXNode root, ItemDefinition<?> itemDefinition, QName itemName,
             QName typeName, Class<?> typeClass, @NotNull ParsingContext pc) throws SchemaException {
@@ -81,7 +86,6 @@ public class PrismUnmarshaller {
         return (PrismObject<O>) (Item) parseItemInternal(child, itemInfo.getItemName(), itemInfo.getItemDefinition(), pc);
     }
 
-    // to be used only from parsing routines (XNodeParser, BeanParser)
     @SuppressWarnings("unchecked")
     <O extends Objectable> PrismObject<O> parseObject(MapXNode map, PrismObjectDefinition<O> objectDefinition, ParsingContext pc) throws SchemaException {
         ItemInfo itemInfo = ItemInfo.determine(objectDefinition,
@@ -100,7 +104,17 @@ public class PrismUnmarshaller {
                 root.getRootElementName(), itemName, ARTIFICIAL_OBJECT_NAME,
                 root.getTypeQName(), typeName,
                 typeClass, ItemDefinition.class, pc, getSchemaRegistry());
-        return parseItemInternal(root.getSubnode(), itemInfo.getItemName(), itemInfo.getItemDefinition(), pc);
+        ItemDefinition realDefinition;
+        if (itemInfo.getItemDefinition() == null && itemInfo.getComplexTypeDefinition() != null) {
+            // let's create container definition dynamically
+            PrismContainerDefinitionImpl pcd = new PrismContainerDefinitionImpl(itemInfo.getItemName(), itemInfo.getComplexTypeDefinition(),
+                    prismContext);
+            pcd.setDynamic(true);       // questionable
+            realDefinition = pcd;
+        } else {
+            realDefinition = itemInfo.getItemDefinition();
+        }
+        return parseItemInternal(root.getSubnode(), itemInfo.getItemName(), realDefinition, pc);
     }
 
     Object parseItemOrRealValue(@NotNull RootXNode root, ParsingContext pc) throws SchemaException {
@@ -127,22 +141,24 @@ public class PrismUnmarshaller {
 
     //region Private methods ========================================================
 
-    // typeName is to be used ONLY if itemDefinition == null.
-    //
-    // The situation of itemDefinition == null && typeName != null is allowed ONLY if the definition simply cannot be derived
+    // The situation of itemDefinition == null && node.typeName != null is allowed ONLY if the definition cannot be derived
     // from the typeName. E.g. if typeName is like xsd:string, xsd:boolean, etc. This rule is because we don't want to repeatedly
     // try to look for missing definitions here.
     //
-    // Moreover, the caller is responsible for extracting information from node.typeQName - providing a definition if necessary.
+    // So the caller is responsible for extracting information from node.typeQName - providing a definition if possible.
     @SuppressWarnings("unchecked")
     @NotNull
     private Item<?, ?> parseItemInternal(@NotNull XNode node,
             @NotNull QName itemName, ItemDefinition itemDefinition, @NotNull ParsingContext pc) throws SchemaException {
         Validate.isTrue(!(node instanceof RootXNode));
 
+        // TODO execute this only if in checked mode
         if (itemDefinition == null && node.getTypeQName() != null) {
-            throw new IllegalStateException("Node has an explicit type but parseItemInternal was called "
-                    + "without definition or type name: " + node.debugDump());
+            PrismContainerDefinition<?> pcd = getSchemaRegistry().findContainerDefinitionByType(node.getTypeQName());
+            if (pcd != null) {
+                throw new IllegalStateException("Node has an explicit type corresponding to container (" + pcd
+                        + ") but parseItemInternal was called without definition: " + node.debugDump());
+            }
         }
 
         if (itemDefinition == null || itemDefinition instanceof PrismPropertyDefinition) {
@@ -306,11 +322,38 @@ public class PrismUnmarshaller {
         return property;
     }
 
+    // if definition == null or any AND node has type defined, this type must be non-containerable (fit into PPV)
     private <T> PrismPropertyValue<T> parsePropertyValue(@NotNull XNode node,
             @Nullable PrismPropertyDefinition<T> definition, @NotNull ParsingContext pc) throws SchemaException {
 
         if (definition == null || definition.isAnyType()) {
-            return PrismPropertyValue.createRaw(node);
+            if (node.getTypeQName() == null) {
+                return PrismPropertyValue.createRaw(node);
+            }
+            // TODO FIX/TEST THIS UGLY HACK
+            if (node instanceof PrimitiveXNode) {
+                PrimitiveXNode prim = (PrimitiveXNode) node;
+                prim.parseValue(node.getTypeQName(), pc.getEvaluationMode());
+                if (prim.getValue() != null) {
+                    return new PrismPropertyValue<>((T) prim.getValue());
+                } else {
+                    return null;
+                }
+            } else if (node instanceof MapXNode) {
+                if (getBeanConverter().canProcess(node.getTypeQName())) {
+                    T value = getBeanConverter().unmarshall((MapXNode) node, node.getTypeQName(), pc);
+                    if (value instanceof Containerable) {
+                        throw new IllegalStateException("Cannot store containerable into prism property: " + node.debugDump());
+                    } else {
+                        return new PrismPropertyValue<>(value);
+                    }
+                } else {
+                    // TODO or should treat this elsewhere?
+                    throw new IllegalStateException("Cannot parse as " + node.getTypeQName() + ": " + node.debugDump());
+                }
+            } else {
+                throw new IllegalArgumentException("Unexpected node: " + node.debugDump());
+            }
         }
 
         T realValue;

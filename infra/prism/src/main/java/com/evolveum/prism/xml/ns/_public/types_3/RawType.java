@@ -2,7 +2,6 @@ package com.evolveum.prism.xml.ns._public.types_3;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
 import com.evolveum.midpoint.prism.xnode.RootXNode;
 import com.evolveum.midpoint.prism.xnode.XNode;
@@ -50,12 +49,17 @@ public class RawType implements Serializable, Cloneable, Equals, Revivable {
         this.prismContext = prismContext;
     }
 
-    public RawType(XNode xnode, PrismContext prismContext) {
+    public RawType(XNode xnode, @NotNull PrismContext prismContext) {
         this(prismContext);
         this.xnode = xnode;
     }
 
-    @Override
+	public RawType(PrismValue parsed, @NotNull PrismContext prismContext) {
+		this.prismContext = prismContext;
+		this.parsed = parsed;
+	}
+
+	@Override
     public void revive(PrismContext prismContext) throws SchemaException {
         Validate.notNull(prismContext);
         this.prismContext = prismContext;
@@ -129,8 +133,8 @@ public class RawType implements Serializable, Cloneable, Equals, Revivable {
 
 	public <T> T getParsedRealValue(@NotNull Class<T> clazz) throws SchemaException {
 		if (parsed != null) {
-			if (clazz.isAssignableFrom(parsed.getClass())) {
-				return (T) parsed;
+			if (clazz.isAssignableFrom(parsed.getRealValue().getClass())) {
+				return (T) parsed.getRealValue();
 			} else {
 				throw new IllegalArgumentException("Parsed value ("+parsed.getClass()+") is not assignable to "+clazz);
 			}
@@ -169,7 +173,7 @@ public class RawType implements Serializable, Cloneable, Equals, Revivable {
             return xnode;
         } else if (parsed != null) {
             checkPrismContext();
-            return prismContext.xnodeSerializer().serialize(parsed).getSubnode();
+            return prismContext.xnodeSerializer().root(new QName("dummy")).serialize(parsed).getSubnode();
         } else {
             return null;            // or an exception here?
         }

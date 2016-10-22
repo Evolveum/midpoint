@@ -28,7 +28,7 @@ import static org.testng.AssertJUnit.assertTrue;
 /**
  * @author mederly
  */
-public abstract class AbstractObjectParserTest<O extends Objectable> extends AbstractParserTest<O> {
+public abstract class AbstractObjectParserTest<O extends Objectable> extends AbstractContainerValueParserTest<O> {
 
 	protected void processObject(String desc, ParsingFunction<PrismObject<O>> parser,
 			SerializingFunction<PrismObject<O>> serializer, String serId, boolean checkItemName) throws Exception {
@@ -37,6 +37,7 @@ public abstract class AbstractObjectParserTest<O extends Objectable> extends Abs
 		System.out.println("================== Starting test for '" + desc + "' (serializer: " + serId + ") ==================");
 
 		PrismObject<O> value = parser.apply(prismContext.parserFor(getFile()));
+		assertResolvableRawValues(value);		// should be right here before getValue method is called
 
 		System.out.println("Parsed object: " + desc);
 		System.out.println(value.debugDump());
@@ -49,6 +50,7 @@ public abstract class AbstractObjectParserTest<O extends Objectable> extends Abs
 			System.out.println("Serialized:\n" + serialized);
 
 			PrismObject<O> reparsed = parser.apply(prismContext.parserFor(serialized));
+			assertResolvableRawValues(reparsed);		// should be right here before getValue method is called
 
 			System.out.println("Reparsed: " + desc);
 			System.out.println(reparsed.debugDump());
@@ -103,6 +105,14 @@ public abstract class AbstractObjectParserTest<O extends Objectable> extends Abs
 				serializer, serId, checkItemName);
 	}
 
-	protected abstract void assertPrismObject(PrismObject<O> object) throws SchemaException;
+	protected void assertPrismObject(PrismObject<O> object) throws SchemaException {
+		assertDefinitions(object);
+		object.checkConsistence();
+		object.assertDefinitions(true, "");
+		assertPrismContext(object);
+		assertPrismObjectLocal(object);
+	}
+
+	protected abstract void assertPrismObjectLocal(PrismObject<O> object) throws SchemaException;
 
 }

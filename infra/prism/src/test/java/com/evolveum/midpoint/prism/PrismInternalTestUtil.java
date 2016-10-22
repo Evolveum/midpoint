@@ -44,7 +44,6 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
-import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismContextFactory;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
@@ -290,10 +289,10 @@ public class PrismInternalTestUtil implements PrismContextFactory {
 		PrismTestUtil.displayTestTitle(testName);
 	}
 
-	public static void assertUserJack(PrismObject<UserType> user) throws SchemaException {
+	public static void assertUserJack(PrismObject<UserType> user, boolean expectRawInConstructions) throws SchemaException {
 		user.checkConsistence();
 		user.assertDefinitions("test");
-		assertUserJackContent(user);
+		assertUserJackContent(user, expectRawInConstructions);
 		assertUserJackExtension(user);
 		assertVisitor(user, 71);
 		
@@ -318,7 +317,7 @@ public class PrismInternalTestUtil implements PrismContextFactory {
 				NameItemPathSegment.WILDCARD), false, 5);
 	}
 	
-	public static void assertUserJackContent(PrismObject<UserType> user) throws SchemaException {
+	public static void assertUserJackContent(PrismObject<UserType> user, boolean expectRawInConstructions) throws SchemaException {
 		
 		assertEquals("Wrong oid", USER_JACK_OID, user.getOid());
 		assertEquals("Wrong version", "42", user.getVersion());
@@ -394,16 +393,21 @@ public class PrismInternalTestUtil implements PrismContextFactory {
         assertNotNull("Property "+a2Path+" not found", a2Property);
         AccountConstructionType accountConstructionType = (AccountConstructionType) a2Property.getRealValue();
         assertEquals("Wrong number of values in accountConstruction", 2, accountConstructionType.getValue().size());
-        RawType value1 = accountConstructionType.getValue().get(0);
-        assertNotNull("Value #1 has no XNode present", value1.getXnode());
-        RawType value2 = accountConstructionType.getValue().get(1);
+		RawType value1 = accountConstructionType.getValue().get(0).clone();
+		if (expectRawInConstructions) {
+			assertNotNull("Value #1 has no XNode present", value1.getXnode());
+			PrismPropertyDefinition value1def = new PrismPropertyDefinitionImpl(
+					new QName(NS_FOO, "dummy"),           // element name
+					DOMUtil.XSD_STRING,                 // type name
+					user.getPrismContext());
+			PrismPropertyValue<String> prismValue1 = value1.getParsedValue(value1def, value1def.getName());
+			assertEquals("Wrong value #1", "ABC", prismValue1.getValue());
+		} else {
+			assertNull("Value #1 has XNode present", value1.getXnode());
+			assertEquals("Wrong value #1", "ABC", value1.getParsedRealValue(String.class));
+		}
+        RawType value2 = accountConstructionType.getValue().get(1).clone();
         assertNotNull("Value #2 has no XNode present", value2.getXnode());
-        PrismPropertyDefinition value1def = new PrismPropertyDefinitionImpl(
-                new QName(NS_FOO, "dummy"),           // element name
-                DOMUtil.XSD_STRING,                 // type name
-                user.getPrismContext());
-        PrismPropertyValue<String> prismValue1 = value1.getParsedValue(value1def, value1def.getName());
-        assertEquals("Wrong value #1", "ABC", prismValue1.getValue());
         PrismValue prismValue2 = value2.getParsedValue(user.getDefinition(), user.getDefinition().getName());
         PrismContainerValue<UserType> prismUserValue2 = (PrismContainerValue<UserType>) prismValue2;
         assertEquals("Wrong value #2", "Nobody", prismUserValue2.findProperty(new QName(NS_FOO, "fullName")).getRealValue());

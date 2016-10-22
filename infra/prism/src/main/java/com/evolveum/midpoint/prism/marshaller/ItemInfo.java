@@ -34,6 +34,7 @@ public class ItemInfo<ID extends ItemDefinition> {
 	private QName itemName;
 	private ID itemDefinition;
 	private QName typeName;
+	private ComplexTypeDefinition complexTypeDefinition;
 
 	/**
 	 * This method is to be called ONLY on the root level, i.e. when unmarshalling starts.
@@ -118,6 +119,21 @@ public class ItemInfo<ID extends ItemDefinition> {
 		} else {
 			info.typeName = typeNameExplicit;
 		}
+
+		// complex type definition
+		if (info.itemDefinition != null) {
+			if (info.itemDefinition instanceof PrismContainerDefinition) {
+				info.complexTypeDefinition = ((PrismContainerDefinition) info.itemDefinition).getComplexTypeDefinition();
+			} else {
+				info.complexTypeDefinition = null;
+			}
+		} else if (info.typeName != null) {
+			// TODO probably optimize (e.g. if we already know the class ... )
+			info.complexTypeDefinition = schemaRegistry.findComplexTypeDefinitionByType(info.typeName);
+		} else {
+			info.complexTypeDefinition = null;
+		}
+
 		return info;
 	}
 
@@ -198,6 +214,10 @@ public class ItemInfo<ID extends ItemDefinition> {
 
 	public ID getItemDefinition() {
 		return itemDefinition;
+	}
+
+	public ComplexTypeDefinition getComplexTypeDefinition() {
+		return complexTypeDefinition;
 	}
 
 	public QName getTypeName() {

@@ -460,4 +460,9 @@ public class ComplexTypeDefinitionImpl extends DefinitionImpl implements Complex
         return "complex type";
     }
 
+//	@Override
+//	public void accept(Visitor visitor) {
+//		super.accept(visitor);
+//		itemDefinitions.forEach(def -> def.accept(visitor));
+//	}
 }

@@ -107,8 +107,7 @@ public class TestParseUser extends AbstractObjectParserTest<UserType> {
 	}
 
 	@Override
-	protected void assertPrismContainerValue(PrismContainerValue<UserType> value) throws SchemaException {
-		assertDefinitions(value);
+	protected void assertPrismContainerValueLocal(PrismContainerValue<UserType> value) throws SchemaException {
 		PrismObject user = value.asContainerable().asPrismObject();
 		user.checkConsistence();
 		assertUserPrism(user, false);
@@ -116,12 +115,9 @@ public class TestParseUser extends AbstractObjectParserTest<UserType> {
 	}
 
 	@Override
-	protected void assertPrismObject(PrismObject<UserType> user) throws SchemaException {
-		user.checkConsistence();
-		assertDefinitions(user);
+	protected void assertPrismObjectLocal(PrismObject<UserType> user) throws SchemaException {
 		assertUserPrism(user, true);
 		assertUserJaxb(user.asObjectable(), true);
-		
 		user.checkConsistence(true, true);
 	}
 

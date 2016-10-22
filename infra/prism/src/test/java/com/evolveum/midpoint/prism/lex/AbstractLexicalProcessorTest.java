@@ -108,7 +108,7 @@ public abstract class AbstractLexicalProcessorTest {
 
 		assertUserJackXNodeOrdering("serialized xnode", xnode);
 		
-		assertUserJack(user);		
+		assertUserJack(user, true);
 		
 	}
 
@@ -135,7 +135,7 @@ public abstract class AbstractLexicalProcessorTest {
 		System.out.println("\nParsed user:");
 		System.out.println(user.debugDump());
 		
-		assertUserJack(user);
+		assertUserJack(user, true);
 		
 		// WHEN (re-serialize to XNode)
 		RootXNode serializedXNode = prismContext.xnodeSerializer()

@@ -88,8 +88,7 @@ public class TestParseShadow extends AbstractObjectParserTest<ShadowType> {
 
 
 	@Override
-	protected void assertPrismContainerValue(PrismContainerValue<ShadowType> value) throws SchemaException {
-		assertDefinitions(value);
+	protected void assertPrismContainerValueLocal(PrismContainerValue<ShadowType> value) throws SchemaException {
 		PrismObject object = value.asContainerable().asPrismObject();
 		object.checkConsistence();
 		assertPrism(object, false);
@@ -97,12 +96,9 @@ public class TestParseShadow extends AbstractObjectParserTest<ShadowType> {
 	}
 
 	@Override
-	protected void assertPrismObject(PrismObject<ShadowType> object) throws SchemaException {
-		object.checkConsistence();
-		assertDefinitions(object);
+	protected void assertPrismObjectLocal(PrismObject<ShadowType> object) throws SchemaException {
 		assertPrism(object, true);
 		assertJaxb(object.asObjectable(), true);
-		
 		object.checkConsistence(true, false);
 	}
 

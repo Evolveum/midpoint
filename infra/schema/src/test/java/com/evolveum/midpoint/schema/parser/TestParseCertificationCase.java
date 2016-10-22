@@ -37,7 +37,7 @@ import static org.testng.AssertJUnit.*;
  *
  */
 @SuppressWarnings("Convert2MethodRef")
-public class TestParseCertificationCase extends AbstractParserTest<AccessCertificationCaseType> {
+public class TestParseCertificationCase extends AbstractContainerValueParserTest<AccessCertificationCaseType> {
 
 	@Override
 	protected File getFile() {
@@ -66,16 +66,12 @@ public class TestParseCertificationCase extends AbstractParserTest<AccessCertifi
 				AccessCertificationCaseType.COMPLEX_TYPE, AccessCertificationAssignmentCaseType.COMPLEX_TYPE, serializer, serId);
 	}
 
-	public void assertPrismContainerValue(PrismContainerValue<AccessCertificationCaseType> value) throws SchemaException {
-
-		assertDefinitions(value);
+	public void assertPrismContainerValueLocal(PrismContainerValue<AccessCertificationCaseType> value) throws SchemaException {
 		assertPrismValue(value);
 		assertJaxb(value.asContainerable());
-		
-		//pcv.checkConsistence(true, true);
 	}
 
-	private void assertPrismValue(PrismContainerValue<AccessCertificationCaseType> pcv) {
+	protected void assertPrismValue(PrismContainerValue<AccessCertificationCaseType> pcv) {
 		assertEquals("Wrong id", (Long) 4L, pcv.getId());
 		ComplexTypeDefinition ctd = pcv.getComplexTypeDefinition();
 		assertNotNull("No CTD", ctd);

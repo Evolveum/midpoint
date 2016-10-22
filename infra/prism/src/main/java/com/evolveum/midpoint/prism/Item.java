@@ -186,6 +186,11 @@ public abstract class Item<V extends PrismValue, D extends ItemDefinition> imple
 			return null;
 		}
     }
+
+    // Primarily for testing
+    public PrismContext getPrismContextLocal() {
+		return prismContext;
+	}
     
     public void setPrismContext(PrismContext prismContext) {
 		this.prismContext = prismContext;

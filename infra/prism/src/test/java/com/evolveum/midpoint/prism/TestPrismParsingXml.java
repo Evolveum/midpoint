@@ -5,16 +5,11 @@ import static org.testng.AssertJUnit.assertNotNull;
 
 import java.io.IOException;
 
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.validation.Schema;
-import javax.xml.validation.Validator;
-
 import org.testng.annotations.Test;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
 
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.foo.UserType;
 import com.evolveum.midpoint.util.DOMUtil;
 
@@ -54,7 +49,7 @@ public class TestPrismParsingXml extends TestPrismParsing {
 		System.out.println(user.debugDump());
 		assertNotNull(user);
 		
-		assertUserJack(user);
+		assertUserJack(user, true);
 	}
 	
 	@Test
@@ -76,7 +71,7 @@ public class TestPrismParsingXml extends TestPrismParsing {
 		System.out.println(user.debugDump());
 		assertNotNull(user);
 		
-		assertUserAdhoc(user);
+		assertUserAdhoc(user, true);
 	}
 	
 	@Override

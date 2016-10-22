@@ -293,4 +293,9 @@ public abstract class DefinitionImpl implements Definition {
 
 	@Override
 	public abstract Definition clone();
+
+//	@Override
+//	public void accept(Visitor visitor) {
+//		visitor.visit(this);
+//	}
 }
