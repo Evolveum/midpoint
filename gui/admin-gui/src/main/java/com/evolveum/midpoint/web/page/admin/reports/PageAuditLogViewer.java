@@ -340,30 +340,13 @@ public class PageAuditLogViewer extends PageBase {
 			};
 		columns.add(initiatorRefColumn);
 
-		IColumn<AuditEventRecordType, String> taskIdentifierColumn = new PropertyColumn<AuditEventRecordType, String>(
-				createStringResource("AuditEventRecordType.taskIdentifier"), "taskIdentifier");
-		columns.add(taskIdentifierColumn);
+		IColumn<AuditEventRecordType, String> eventStageColumn = new PropertyColumn<AuditEventRecordType, String>(
+                createStringResource("PageAuditLogViewer.eventStageLabel"), "eventStage");
+                columns.add(eventStageColumn);
 
-		IColumn<AuditEventRecordType, String> channelColumn = new PropertyColumn<AuditEventRecordType, String>(
-				createStringResource("AuditEventRecordType.channel"), "channel") {
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			public void populateItem(Item<ICellPopulator<AuditEventRecordType>> item, String componentId,
-					IModel<AuditEventRecordType> rowModel) {
-				AuditEventRecordType auditEventRecordType = (AuditEventRecordType) rowModel.getObject();
-				String channel = auditEventRecordType.getChannel();
-				if (channel != null) {
-					QName channelQName = QNameUtil.uriToQName(channel);
-					String return_ = channelQName.getLocalPart();
-					item.add(new Label(componentId, return_));
-				} else {
-					item.add(new Label(componentId, ""));
-				}
-				item.add(new AttributeModifier("style", new Model<String>("width: 10%;")));
-			}
-		};
-		columns.add(channelColumn);
+                IColumn<AuditEventRecordType, String> eventTypeColumn = new PropertyColumn<AuditEventRecordType, String>(
+                        createStringResource("PageAuditLogViewer.eventTypeLabel"), "eventType");
+                columns.add(eventTypeColumn);
 
 		 PropertyColumn<AuditEventRecordType, String> targetRefColumn = new PropertyColumn<AuditEventRecordType, String>(createStringResource("AuditEventRecordType.targetRef"),
 				 AuditEventRecordType.F_TARGET_REF.getLocalPart()) {
@@ -391,6 +374,31 @@ public class PageAuditLogViewer extends PageBase {
 			};
 		columns.add(targetOwnerRefColumn);
 
+                IColumn<AuditEventRecordType, String> channelColumn = new PropertyColumn<AuditEventRecordType, String>(
+				createStringResource("AuditEventRecordType.channel"), "channel") {
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public void populateItem(Item<ICellPopulator<AuditEventRecordType>> item, String componentId,
+					IModel<AuditEventRecordType> rowModel) {
+				AuditEventRecordType auditEventRecordType = (AuditEventRecordType) rowModel.getObject();
+				String channel = auditEventRecordType.getChannel();
+				if (channel != null) {
+					QName channelQName = QNameUtil.uriToQName(channel);
+					String return_ = channelQName.getLocalPart();
+					item.add(new Label(componentId, return_));
+				} else {
+					item.add(new Label(componentId, ""));
+				}
+				item.add(new AttributeModifier("style", new Model<String>("width: 10%;")));
+			}
+		};
+		columns.add(channelColumn);
+                
+                IColumn<AuditEventRecordType, String> outcomeColumn = new PropertyColumn<AuditEventRecordType, String>(
+                       createStringResource("PageAuditLogViewer.outcomeLabel"), "outcome");
+                columns.add(outcomeColumn);
+                
 		return columns;
 	}
 
