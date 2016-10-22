@@ -20,13 +20,13 @@ import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertTrue;
 
+import java.io.File;
 import java.util.List;
 
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
-import com.evolveum.midpoint.schema.parser.AbstractParserTest;
-import org.testng.annotations.Parameters;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.testng.annotations.Test;
 import org.w3c.dom.Element;
 
@@ -42,7 +42,6 @@ import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
@@ -51,13 +50,6 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ExtensionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
@@ -65,106 +57,81 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
  * @author semancik
  *
  */
-public class TestParseUser extends AbstractParserTest {
+public class TestParseUser extends AbstractObjectParserTest<UserType> {
 
-	@Test
-	public void testParseUserFile() throws Exception {
-		final String TEST_NAME = "testParseUserFile";
-		displayTestTitle(TEST_NAME);
-
-		// GIVEN
-		PrismContext prismContext = PrismTestUtil.getPrismContext();
-		
-		// WHEN
-		PrismObject<UserType> user = prismContext.parseObject(getFile(USER_FILE_BASENAME));
-		// THEN
-		System.out.println("Parsed user:");
-		System.out.println(user.debugDump());
-		
-		String serialized = prismContext.serializerFor(language).serialize(user);
-		System.out.println("Serialized: \n" +serialized);
-		
-		PrismObject<UserType> reparsedUser = prismContext.parseObject(serialized);
-		
-		assertUser(user);
+	@Override
+	protected File getFile() {
+		return getFile(USER_FILE_BASENAME);
 	}
 
 	@Test
-	public void testParseUserDom() throws Exception {
-		final String TEST_NAME = "testParseUserDom";
-		displayTestTitle(TEST_NAME);
-
-		// GIVEN
-		PrismContext prismContext = PrismTestUtil.getPrismContext();
-		
-//		Document document = DOMUtil.parseFile(USER_FILE);
-//		Element userElement = DOMUtil.getFirstChildElement(document);
-		
-		// WHEN
-		PrismObject<UserType> user = prismContext.parseObject(getFile(USER_FILE_BASENAME));
-		
-		// THEN
-		System.out.println("Parsed user:");
-		System.out.println(user.debugDump());
-		
-		assertUser(user);
+	public void testParseFileAsPCV() throws Exception {
+		displayTestTitle("testParseFileAsPCV");
+		processParsingsPCV(null, null);
 	}
 
 	@Test
-	public void testParseUserRoundTrip() throws Exception{
-		final String TEST_NAME = "testParseUserRoundTrip";
-		displayTestTitle(TEST_NAME);
-
-		// GIVEN
-		PrismContext prismContext = PrismTestUtil.getPrismContext();
-		
-//		Document document = DOMUtil.parseFile(USER_FILE);
-//		Element userElement = DOMUtil.getFirstChildElement(document);
-		
-		// WHEN
-		PrismObject<UserType> user = prismContext.parseObject(getFile(USER_FILE_BASENAME));
-		
-		// THEN
-		System.out.println("Parsed user:");
-		System.out.println(user.debugDump());
-		
-		assertUser(user);
-		
-		
-		String serializedUser = prismContext.serializeObjectToString(user, language);
-		System.out.println("Serialized user:");
-		System.out.println(serializedUser);
-		
-		// REPARSE
-		PrismObject<UserType> reparsedUser = prismContext.parseObject(serializedUser);
-		
-		// THEN
-		System.out.println("Parsed user:");
-		System.out.println(reparsedUser.debugDump());
-		
-		assertUser(reparsedUser);
-		
-		// and some sanity checks
-		
-		assertTrue("User not equals", user.equals(reparsedUser));
-		
-		ObjectDelta<UserType> delta = user.diff(reparsedUser);
-		assertTrue("Delta not empty", delta.isEmpty());
-		
+	public void testParseFileAsPO() throws Exception {
+		displayTestTitle("testParseFileAsPO");
+		processParsingsPO(null, null, true);
 	}
 
-	
-	void assertUser(PrismObject<UserType> user) throws SchemaException {
+	@Test
+	public void testParseRoundTripAsPCV() throws Exception{
+		displayTestTitle("testParseRoundTripAsPCV");
+
+		processParsingsPCV(v -> getPrismContext().serializerFor(language).serialize(v), "s0");
+		processParsingsPCV(v -> getPrismContext().serializerFor(language).root(new QName("dummy")).serialize(v), "s1");
+		processParsingsPCV(v -> getPrismContext().serializerFor(language).root(SchemaConstantsGenerated.C_SYSTEM_CONFIGURATION).serialize(v), "s2");		// misleading item name
+		processParsingsPCV(v -> getPrismContext().serializerFor(language).serializeRealValue(v.asContainerable()), "s3");
+		processParsingsPCV(v -> getPrismContext().serializerFor(language).root(new QName("dummy")).serializeAnyData(v.asContainerable()), "s4");
+	}
+
+	@Test
+	public void testParseRoundTripAsPO() throws Exception{
+		displayTestTitle("testParseRoundTripAsPO");
+
+		processParsingsPO(v -> getPrismContext().serializerFor(language).serialize(v), "s0", true);
+		processParsingsPO(v -> getPrismContext().serializerFor(language).root(new QName("dummy")).serialize(v), "s1", false);
+		processParsingsPO(v -> getPrismContext().serializerFor(language).root(SchemaConstantsGenerated.C_SYSTEM_CONFIGURATION).serialize(v), "s2", false);		// misleading item name
+		processParsingsPO(v -> getPrismContext().serializerFor(language).serializeRealValue(v.asObjectable()), "s3", false);
+		processParsingsPO(v -> getPrismContext().serializerFor(language).root(new QName("dummy")).serializeAnyData(v.asObjectable()), "s4", false);
+	}
+
+	private void processParsingsPCV(SerializingFunction<PrismContainerValue<UserType>> serializer, String serId) throws Exception {
+		processParsings(UserType.class, null, UserType.COMPLEX_TYPE, null, serializer, serId);
+	}
+
+	private void processParsingsPO(SerializingFunction<PrismObject<UserType>> serializer, String serId, boolean checkItemName) throws Exception {
+		processObjectParsings(UserType.class, UserType.COMPLEX_TYPE, serializer, serId, checkItemName);
+	}
+
+	@Override
+	protected void assertPrismContainerValue(PrismContainerValue<UserType> value) throws SchemaException {
+		assertDefinitions(value);
+		PrismObject user = value.asContainerable().asPrismObject();
 		user.checkConsistence();
-		assertUserPrism(user);
-		assertUserJaxb(user.asObjectable());
+		assertUserPrism(user, false);
+		assertUserJaxb(value.asContainerable(), false);
+	}
+
+	@Override
+	protected void assertPrismObject(PrismObject<UserType> user) throws SchemaException {
+		user.checkConsistence();
+		assertDefinitions(user);
+		assertUserPrism(user, true);
+		assertUserJaxb(user.asObjectable(), true);
 		
 		user.checkConsistence(true, true);
 	}
 
-	void assertUserPrism(PrismObject<UserType> user) {
-		
-		assertEquals("Wrong oid", "2f9b9299-6f45-498f-bc8e-8d17c6b93b20", user.getOid());
+
+
+	void assertUserPrism(PrismObject<UserType> user, boolean isObject) {
+
+		if (isObject) {
+			assertEquals("Wrong oid", "2f9b9299-6f45-498f-bc8e-8d17c6b93b20", user.getOid());
+		}
 //		assertEquals("Wrong version", "42", user.getVersion());
 		PrismObjectDefinition<UserType> usedDefinition = user.getDefinition();
 		assertNotNull("No user definition", usedDefinition);
@@ -255,7 +222,7 @@ public class TestParseUser extends AbstractParserTest {
 		assertNotNull("No "+message+" filter", filter);
 	}
 
-	private void assertUserJaxb(UserType userType) throws SchemaException {
+	private void assertUserJaxb(UserType userType, boolean isObject) throws SchemaException {
 		assertEquals("Wrong name", PrismTestUtil.createPolyStringType("jack"), userType.getName());
 		assertEquals("Wrong fullName (orig)", "Jack Sparrow", userType.getFullName().getOrig());
         assertEquals("Wrong fullName (norm)", "jack sparrow", userType.getFullName().getNorm());
@@ -294,7 +261,7 @@ public class TestParseUser extends AbstractParserTest {
         System.out.println("===[ testPrismConsistency ]===");
 
         // GIVEN
-        PrismContext ctx = PrismTestUtil.getPrismContext();
+        PrismContext ctx = getPrismContext();
         PrismObjectDefinition<UserType> userDefinition = ctx.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
 
         // WHEN
@@ -314,6 +281,5 @@ public class TestParseUser extends AbstractParserTest {
 
         System.out.println("OK.");
     }
-
 
 }

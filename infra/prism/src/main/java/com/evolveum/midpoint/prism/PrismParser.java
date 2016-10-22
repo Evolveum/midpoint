@@ -53,6 +53,8 @@ import java.util.List;
  *  4. name from item definition derived from type name
  *  5. name from item definition derived from type class
  *
+ * General post-condition: All recognizable definitions are set. This is true for items as well as item values.
+ *
  * @author mederly
  */
 public interface PrismParser {

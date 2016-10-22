@@ -49,6 +49,7 @@ import org.w3c.dom.Element;
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
+import java.io.File;
 import java.util.List;
 
 import static com.evolveum.midpoint.schema.TestConstants.RESOURCE_FILE_BASENAME;
@@ -60,14 +61,19 @@ import static org.testng.AssertJUnit.*;
  * @author semancik
  *
  */
-public class TestParseResource extends AbstractParserTest {
+public class TestParseResource extends AbstractParserTest<ResourceType> {
+
+	@Override
+	protected File getFile() {
+		return getFile(RESOURCE_FILE_BASENAME);
+	}
 
 	@Test
 	public void testParseResourceFile() throws Exception {
 		displayTestTitle("testParseResourceFile");
 
 		// GIVEN
-		PrismContext prismContext = PrismTestUtil.getPrismContext();
+		PrismContext prismContext = getPrismContext();
 
 		// WHEN
 		PrismObject<ResourceType> resource = prismContext.parseObject(getFile(RESOURCE_FILE_BASENAME));
@@ -84,7 +90,7 @@ public class TestParseResource extends AbstractParserTest {
 		displayTestTitle("testParseResourceFileSimple");
 
 		// GIVEN
-		PrismContext prismContext = PrismTestUtil.getPrismContext();
+		PrismContext prismContext = getPrismContext();
 
 		// WHEN
 		PrismObject<ResourceType> resource = prismContext.parseObject(getFile(RESOURCE_FILE_SIMPLE_BASENAME));
@@ -102,7 +108,7 @@ public class TestParseResource extends AbstractParserTest {
 		displayTestTitle("testParseResourceRoundtrip");
 
 		// GIVEN
-		PrismContext prismContext = PrismTestUtil.getPrismContext();
+		PrismContext prismContext = getPrismContext();
 
 		PrismObject<ResourceType> resource = prismContext.parseObject(getFile(RESOURCE_FILE_BASENAME));
 
@@ -158,7 +164,7 @@ public class TestParseResource extends AbstractParserTest {
 		displayTestTitle("testSchemaRoundtrip");
 
 		// GIVEN
-		PrismContext prismContext = PrismTestUtil.getPrismContext();
+		PrismContext prismContext = getPrismContext();
 
 		PrismObject<ResourceType> resource = prismContext.parseObject(getFile(RESOURCE_FILE_BASENAME));
 
@@ -197,6 +203,11 @@ public class TestParseResource extends AbstractParserTest {
 
 	}
 
+	@Override
+	protected void assertPrismContainerValue(PrismContainerValue<ResourceType> value) throws SchemaException {
+		//assertResource(object.asContainerable().asPrismObject(), true, true);
+	}
+
 	protected void assertResource(PrismObject<ResourceType> resource, boolean checkConsistence, boolean checkJaxb, boolean isSimple)
 			throws SchemaException, JAXBException {
 		if (checkConsistence) {
@@ -213,7 +224,7 @@ public class TestParseResource extends AbstractParserTest {
 
 	private void assertResourcePrism(PrismObject<ResourceType> resource, boolean isSimple) throws SchemaException {
 
-        PrismContext prismContext = PrismTestUtil.getPrismContext();
+        PrismContext prismContext = getPrismContext();
 
 		AssertJUnit.assertEquals("Wrong oid (prism)", TestConstants.RESOURCE_OID, resource.getOid());
 //		assertEquals("Wrong version", "42", resource.getVersion());
@@ -251,7 +262,8 @@ public class TestParseResource extends AbstractParserTest {
 						new ItemPath(new QName("extension"), new QName("extConnType")),
 					path);
             PrismPropertyValue filterValue = (PrismPropertyValue) equalFilter.getValues().get(0);
-            assertEquals("Wrong filter value", "org.identityconnectors.ldap.LdapConnector", ((RawType) filterValue.getValue()).getParsedRealValue(String.class).trim());
+            //assertEquals("Wrong filter value", "org.identityconnectors.ldap.LdapConnector", ((RawType) filterValue.getValue()).getParsedRealValue(String.class).trim());
+			assertEquals("Wrong filter value", "org.identityconnectors.ldap.LdapConnector", ((String) filterValue.getValue()).trim());
         }
         EvaluationTimeType resolutionTime = connectorRefVal.getResolutionTime();
         if (isSimple) {
@@ -431,7 +443,7 @@ public class TestParseResource extends AbstractParserTest {
 		displayTestTitle(TEST_NAME);
 
 		// GIVEN
-		PrismContext prismContext = PrismTestUtil.getPrismContext();
+		PrismContext prismContext = getPrismContext();
 
 		// WHEN
 		DomLexicalProcessor parserDom = ((PrismContextImpl) prismContext).getParserDom();
@@ -453,7 +465,7 @@ public class TestParseResource extends AbstractParserTest {
 		displayTestTitle("testParseResourceDomSimple");
 
 		// GIVEN
-		PrismContext prismContext = PrismTestUtil.getPrismContext();
+		PrismContext prismContext = getPrismContext();
 
 		Document document = DOMUtil.parseFile(getFile(TestConstants.RESOURCE_FILE_SIMPLE_BASENAME));
 		Element resourceElement = DOMUtil.getFirstChildElement(document);

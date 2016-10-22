@@ -78,6 +78,8 @@ public class TestQueryConvertor {
 	private static final File FILTER_ACCOUNT_FILE = new File(TEST_DIR, "filter-account.xml");
 	private static final File FILTER_ACCOUNT_ATTRIBUTES_RESOURCE_REF_FILE = new File(TEST_DIR,
 			"filter-account-by-attributes-and-resource-ref.xml");
+	private static final File FILTER_ACCOUNT_ATTRIBUTES_RESOURCE_REF_NO_NS_FILE = new File(TEST_DIR,
+			"filter-account-by-attributes-and-resource-ref-no-ns.xml");
 	private static final File FILTER_OR_COMPOSITE = new File(TEST_DIR, "filter-or-composite.xml");
 	private static final File FILTER_CONNECTOR_BY_TYPE_FILE = new File(TEST_DIR, "filter-connector-by-type.xml");
 	private static final File FILTER_BY_TYPE_FILE = new File(TEST_DIR, "filter-by-type.xml");
@@ -168,6 +170,34 @@ public class TestQueryConvertor {
 
 		QueryType convertedQueryType = toQueryType(query);
 		LOGGER.info(DOMUtil.serializeDOMToString(convertedQueryType.getFilter().getFilterClauseAsElement()));
+
+		// TODO: add some asserts
+	}
+
+    @Test
+	public void testAccountQueryAttributesAndResourceNoNs() throws Exception {
+		displayTestTitle("testAccountQueryAttributesAndResourceNoNs");
+
+		SearchFilterType filterType = unmarshalFilter(FILTER_ACCOUNT_ATTRIBUTES_RESOURCE_REF_NO_NS_FILE);
+		ObjectQuery query = toObjectQuery(ShadowType.class, filterType);
+		displayQuery(query);
+
+		assertNotNull(query);
+
+		ObjectFilter filter = query.getFilter();
+		PrismAsserts.assertAndFilter(filter, 2);
+
+		ObjectFilter first = getFilterCondition(filter, 0);
+		PrismAsserts.assertRefFilter(first, ShadowType.F_RESOURCE_REF, ObjectReferenceType.COMPLEX_TYPE, new ItemPath(
+				ShadowType.F_RESOURCE_REF));
+		assertRefFilterValue((RefFilter) first, "aae7be60-df56-11df-8608-0002a5d5c51b");
+
+		ObjectFilter second = getFilterCondition(filter, 1);
+		PrismAsserts.assertEqualsFilter(second, ICF_NAME, DOMUtil.XSD_STRING, new ItemPath("attributes", "name"));
+		//PrismAsserts.assertEqualsFilterValue((EqualFilter) second, "uid=jbond,ou=People,dc=example,dc=com");
+
+		QueryType convertedQueryType = toQueryType(query);
+		System.out.println(DOMUtil.serializeDOMToString(convertedQueryType.getFilter().getFilterClauseAsElement()));
 
 		// TODO: add some asserts
 	}

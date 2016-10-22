@@ -24,6 +24,7 @@ import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.NotNull;
@@ -38,7 +39,9 @@ public abstract class ValueFilter<V extends PrismValue, D extends ItemDefinition
 	private static final long serialVersionUID = 1L;
 
 	@NotNull private final ItemPath fullPath;
-	@Nullable private D definition;											// not required, because it can be filled-in after creation of the filter (e.g. in provisioning)
+	// This is a definition of the item pointed to by "fullPath"
+	// (not marked as @NotNull, because it can be filled-in after creation of the filter - e.g. in provisioning)
+	@Nullable private D definition;
 	@Nullable private QName matchingRule;
 	@Nullable private List<V> values;
 	@Nullable private ExpressionWrapper expression;
@@ -108,6 +111,7 @@ public abstract class ValueFilter<V extends PrismValue, D extends ItemDefinition
 
 	public void setDefinition(@Nullable D definition) {
 		this.definition = definition;
+		checkConsistence(false);
 	}
 	
 	@Nullable
@@ -280,46 +284,6 @@ public abstract class ValueFilter<V extends PrismValue, D extends ItemDefinition
 	}
 
 	@Override
-	public void checkConsistence(boolean requireDefinitions) {
-		if (requireDefinitions && definition == null) {
-			throw new IllegalArgumentException("Null definition in "+this);
-		}
-		if (fullPath.isEmpty()) {
-			throw new IllegalArgumentException("Empty path in "+this);
-		}
-		if (rightHandSidePath != null && rightHandSidePath.isEmpty()) {
-			throw new IllegalArgumentException("Not-null but empty right side path in "+this);
-		}
-		int count = 0;
-		if (values != null) {
-			count++;
-		}
-		if (expression != null) {
-			count++;
-		}
-		if (rightHandSidePath != null) {
-			count++;
-		}
-		if (count > 1) {
-			throw new IllegalStateException("Two or more of the following are non-null: values (" + values
-					+ "), expression (" + expression + "), rightHandSidePath (" + rightHandSidePath + ") in " + this);
-		}
-		if (values != null) {
-			for (V value: values) {
-				if (value == null) {
-					throw new IllegalArgumentException("Null value in "+this);
-				}
-				if (value.getParent() != this) {
-					throw new IllegalArgumentException("Value "+value+" in "+this+" has a bad parent "+value.getParent());
-				}
-				if (value.isEmpty() && !value.isRaw()) {
-					throw new IllegalArgumentException("Empty value in "+this);
-				}
-			}
-		}
-	}
-
-	@Override
 	public abstract ValueFilter clone();
 
 	@SuppressWarnings("EqualsWhichDoesntCheckParameterClass")
@@ -453,6 +417,57 @@ public abstract class ValueFilter<V extends PrismValue, D extends ItemDefinition
 			sb.append(getRightHandSidePath());
 		}
 		return sb.toString();
+	}
+
+	@Override
+	public void checkConsistence(boolean requireDefinitions) {
+		if (requireDefinitions && definition == null) {
+			throw new IllegalArgumentException("Null definition in "+this);
+		}
+		if (fullPath.isEmpty()) {
+			throw new IllegalArgumentException("Empty path in "+this);
+		}
+		if (!(fullPath.last() instanceof NameItemPathSegment)) {
+			//noinspection ConstantConditions
+			throw new IllegalArgumentException("Last segment of item path is not a name segment: " + fullPath + " (it is " +
+				fullPath.last().getClass().getName() + ")");
+		}
+		if (rightHandSidePath != null && rightHandSidePath.isEmpty()) {
+			throw new IllegalArgumentException("Not-null but empty right side path in "+this);
+		}
+		int count = 0;
+		if (values != null) {
+			count++;
+		}
+		if (expression != null) {
+			count++;
+		}
+		if (rightHandSidePath != null) {
+			count++;
+		}
+		if (count > 1) {
+			throw new IllegalStateException("Two or more of the following are non-null: values (" + values
+					+ "), expression (" + expression + "), rightHandSidePath (" + rightHandSidePath + ") in " + this);
+		}
+		if (values != null) {
+			for (V value: values) {
+				if (value == null) {
+					throw new IllegalArgumentException("Null value in "+this);
+				}
+				if (value.getParent() != this) {
+					throw new IllegalArgumentException("Value "+value+" in "+this+" has a bad parent "+value.getParent());
+				}
+				if (value.isEmpty() && !value.isRaw()) {
+					throw new IllegalArgumentException("Empty value in "+this);
+				}
+			}
+		}
+		if (definition != null) {
+			if (!QNameUtil.match(definition.getName(), fullPath.lastNamed().getName())) {
+				throw new IllegalArgumentException("Last segment of item path (" + fullPath.lastNamed().getName() + ") "
+						+ "does not match item name from the definition: " + definition);
+			}
+		}
 	}
 
 }

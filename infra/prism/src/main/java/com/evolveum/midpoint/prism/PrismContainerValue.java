@@ -58,23 +58,35 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
 
 	// Definition of this value. Usually it is the same as CTD declared in the parent container.
 	// However, in order to support polymorphism (as well as parent-less values) we distinguish between PC and PCV type definition.
-	// It can be lazily evaluated based on containerable value.
 	private ComplexTypeDefinition complexTypeDefinition = null;
 
 	public PrismContainerValue() {
 	}
 
 	public PrismContainerValue(C containerable) {
-		this(containerable, null);
+		this(containerable, null, null);
     }
 
 	public PrismContainerValue(PrismContext prismContext) {
-		this(null, prismContext);
+		this(null, null, prismContext);
+	}
+
+	public PrismContainerValue(ComplexTypeDefinition complexTypeDefinition, PrismContext prismContext) {
+		this(null, complexTypeDefinition, prismContext);
 	}
 
 	public PrismContainerValue(C containerable, PrismContext prismContext) {
+		this(containerable, null, prismContext);
+	}
+
+	public PrismContainerValue(C containerable, ComplexTypeDefinition complexTypeDefinition, PrismContext prismContext) {
+		super(prismContext);
 		this.containerable = containerable;
-		this.prismContext = prismContext;
+		this.complexTypeDefinition = complexTypeDefinition;
+
+		if (complexTypeDefinition == null && prismContext != null) {
+			getComplexTypeDefinition();        // to determine CTD
+		}
 	}
 
     public PrismContainerValue(OriginType type, Objectable source, PrismContainerable container, Long id, ComplexTypeDefinition complexTypeDefinition, PrismContext prismContext) {
@@ -268,7 +280,11 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
 			throw new SystemException("Can't create instance of class '" + clazz.getSimpleName() + "', it's abstract.");
 		}
 		try {
-            containerable = clazz.newInstance();
+			if (prismContext != null) {
+				containerable = clazz.getConstructor(PrismContext.class).newInstance(prismContext);
+			} else {
+				containerable = clazz.newInstance();
+			}
             containerable.setupContainerValue(this);
             return containerable;
         } catch (SystemException ex) {
@@ -1060,14 +1076,12 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
 
 	public void applyDefinition(@NotNull PrismContainerDefinition<C> containerDef, boolean force) throws SchemaException {
 		checkMutability();
-		// Although complexTypeDefinition is cached, its presence means that the parent had a definition before
-		// parent.applyDefinition() was called. So if !force, we can safely exit here.
 		if (complexTypeDefinition != null && !force) {
 			return;				// there's a definition already
 		}
 		complexTypeDefinition = containerDef.getComplexTypeDefinition();
 		if (complexTypeDefinition == null || complexTypeDefinition.isXsdAnyMarker()) {
-			// No point in aplying this. Nothing will change and there may be phantom errors.
+			// No point in applying this. Nothing will change and there may be phantom errors.
 			return;
 		}
 		if (items != null) {
@@ -1393,9 +1407,13 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
 
     @Nullable
     public ComplexTypeDefinition getComplexTypeDefinition() {
-        if (complexTypeDefinition != null) {
-			return complexTypeDefinition;
+		if (complexTypeDefinition == null) {
+			complexTypeDefinition = determineComplexTypeDefinition();
 		}
+		return complexTypeDefinition;
+	}
+
+	private ComplexTypeDefinition determineComplexTypeDefinition() {
 		PrismContainerable<C> parent = getParent();
 		ComplexTypeDefinition parentCTD = parent != null && parent.getDefinition() != null ?
 				parent.getDefinition().getComplexTypeDefinition() : null;
@@ -1407,7 +1425,8 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
 			if (parentCTD != null && containerable.getClass().equals(parentCTD.getCompileTimeClass())) {
 				return parentCTD;
 			} else {
-				return null;		// TODO or throw an exception?
+				//throw new IllegalStateException("Cannot determine complexTypeDefinition for PrismContainerValue because prismContext is missing; PCV = " + this);
+				return null;
 			}
 		}
 		complexTypeDefinition = prismContext.getSchemaRegistry().findComplexTypeDefinitionByCompileTimeClass(containerable.getClass());

@@ -80,6 +80,11 @@ public class PrismSerializerImpl<T> implements PrismSerializer<T> {
 	@NotNull
 	@Override
 	public T serialize(@NotNull Item<?, ?> item) throws SchemaException {
+		return serialize(item, itemName);
+	}
+
+	@NotNull
+	public T serialize(@NotNull Item<?, ?> item, QName itemName) throws SchemaException {
 		RootXNode xroot = getMarshaller().marshalItemAsRoot(item, itemName, itemDefinition, context);
 		return target.write(xroot, context);
 	}
@@ -122,7 +127,9 @@ public class PrismSerializerImpl<T> implements PrismSerializer<T> {
 	@Override
 	public T serializeRealValue(Object realValue, QName itemName) throws SchemaException {
 		PrismValue prismValue;
-		if (realValue instanceof Containerable) {
+		if (realValue instanceof Objectable) {
+			return serialize(((Objectable) realValue).asPrismObject(), itemName);		// to preserve OID and name
+		} else if (realValue instanceof Containerable) {
 			prismValue = ((Containerable) realValue).asPrismContainerValue();
 		} else {
 			prismValue = new PrismPropertyValue<>(realValue);

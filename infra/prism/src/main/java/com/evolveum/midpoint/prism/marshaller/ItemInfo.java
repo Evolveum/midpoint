@@ -149,10 +149,11 @@ public class ItemInfo<ID extends ItemDefinition> {
 		if (itemName == null || definition != null && QNameUtil.match(definition.getName(), itemName)) {        // just an optimization to avoid needless lookups
 			return definition;
 		}
-		ID defFromItemName = schemaRegistry.findItemDefinitionByElementName(itemName, definitionClass);
-		if (defFromItemName == null) {
+		List<ID> defsFromItemName = schemaRegistry.findItemDefinitionsByElementName(itemName, definitionClass);
+		if (defsFromItemName.size() != 1) {
 			return definition;
 		}
+		ID defFromItemName = defsFromItemName.get(0);
 		if (definition == null) {
 			return defFromItemName;
 		}

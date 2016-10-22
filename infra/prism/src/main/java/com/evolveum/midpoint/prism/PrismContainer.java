@@ -263,7 +263,7 @@ public class PrismContainer<C extends Containerable> extends Item<PrismContainer
     
     public PrismContainerValue<C> createNewValue() {
 		checkMutability();
-    	PrismContainerValue<C> pValue = new PrismContainerValue<C>(prismContext);
+    	PrismContainerValue<C> pValue = new PrismContainerValue<>(prismContext);
     	try {
     		// No need to check uniqueness, we know that this value is new and therefore
     		// it will change anyway and therefore the check is pointless.

@@ -16,7 +16,6 @@
 package com.evolveum.midpoint.schema.parser;
 
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
@@ -29,6 +28,8 @@ import org.testng.annotations.Test;
 
 import javax.xml.namespace.QName;
 
+import java.io.File;
+
 import static com.evolveum.midpoint.schema.TestConstants.SHADOW_FILE_BASENAME;
 import static org.testng.AssertJUnit.*;
 
@@ -36,79 +37,80 @@ import static org.testng.AssertJUnit.*;
  * @author semancik
  *
  */
-public class TestParseShadow extends AbstractParserTest {
+public class TestParseShadow extends AbstractObjectParserTest<ShadowType> {
 
-	@Test
-	public void testParseShadowFile() throws Exception {
-		displayTestTitle("testParseShadowFile");
-
-		// GIVEN
-		PrismContext prismContext = PrismTestUtil.getPrismContext();
-		
-		// WHEN
-		PrismObject<ShadowType> object = prismContext.parseObject(getFile(SHADOW_FILE_BASENAME));
-		// THEN
-		System.out.println("Parsed object:");
-		System.out.println(object.debugDump());
-		
-		String serialized = prismContext.serializerFor(language).serialize(object);
-		System.out.println("Serialized: \n" +serialized);
-		
-		PrismObject<ShadowType> reparsed = prismContext.parseObject(serialized);
-		
-		assertObject(object);
+	@Override
+	protected File getFile() {
+		return getFile(SHADOW_FILE_BASENAME);
 	}
 
 	@Test
-	public void testParseShadowRoundTrip() throws Exception{
-		displayTestTitle("testParseShadowRoundTrip");
-
-		// GIVEN
-		PrismContext prismContext = PrismTestUtil.getPrismContext();
-		
-		// WHEN
-		PrismObject<ShadowType> object = prismContext.parseObject(getFile(SHADOW_FILE_BASENAME));
-		
-		// THEN
-		System.out.println("Parsed object:");
-		System.out.println(object.debugDump());
-		
-		assertObject(object);
-		
-		String serialized = prismContext.serializerFor(language).serialize(object);
-		System.out.println("Serialized:");
-		System.out.println(serialized);
-		
-		// REPARSE
-		PrismObject<ShadowType> reparsed = prismContext.parseObject(serialized);
-		
-		// THEN
-		System.out.println("Reparsed:");
-		System.out.println(reparsed.debugDump());
-		
-		assertObject(reparsed);
-		
-		// and some sanity checks
-		
-		assertTrue("Object not equals", object.equals(reparsed));
-		
-		ObjectDelta<ShadowType> delta = object.diff(reparsed);
-		assertTrue("Delta not empty", delta.isEmpty());
-		
+	public void testParseFileAsPCV() throws Exception {
+		displayTestTitle("testParseFileAsPCV");
+		processParsings(null, null);
 	}
 
-	
-	void assertObject(PrismObject<ShadowType> object) throws SchemaException {
+	@Test
+	public void testParseFileAsPO() throws Exception {
+		displayTestTitle("testParseFileAsPO");
+		processParsingsPO(null, null, true);
+	}
+
+	@Test
+	public void testParseRoundTripAsPCV() throws Exception{
+		displayTestTitle("testParseRoundTripAsPCV");
+
+		processParsings(v -> getPrismContext().serializerFor(language).serialize(v), "s0");
+		processParsings(v -> getPrismContext().serializerFor(language).root(new QName("dummy")).serialize(v), "s1");
+		processParsings(v -> getPrismContext().serializerFor(language).root(SchemaConstantsGenerated.C_USER).serialize(v), "s2");		// misleading item name
+		processParsings(v -> getPrismContext().serializerFor(language).serializeRealValue(v.asContainerable()), "s3");
+		processParsings(v -> getPrismContext().serializerFor(language).root(new QName("dummy")).serializeAnyData(v.asContainerable()), "s4");
+	}
+
+	@Test
+	public void testParseRoundTripAsPO() throws Exception{
+		displayTestTitle("testParseRoundTripAsPO");
+
+		processParsingsPO(v -> getPrismContext().serializerFor(language).serialize(v), "s0", true);
+		processParsingsPO(v -> getPrismContext().serializerFor(language).root(new QName("dummy")).serialize(v), "s1", false);
+		processParsingsPO(v -> getPrismContext().serializerFor(language).root(SchemaConstantsGenerated.C_USER).serialize(v), "s2", false);		// misleading item name
+		processParsingsPO(v -> getPrismContext().serializerFor(language).serializeRealValue(v.asObjectable()), "s3", false);
+		processParsingsPO(v -> getPrismContext().serializerFor(language).root(new QName("dummy")).serializeAnyData(v.asObjectable()), "s4", false);
+	}
+
+	private void processParsings(SerializingFunction<PrismContainerValue<ShadowType>> serializer, String serId) throws Exception {
+		processParsings(ShadowType.class, null, ShadowType.COMPLEX_TYPE, null, serializer, serId);
+	}
+
+	private void processParsingsPO(SerializingFunction<PrismObject<ShadowType>> serializer, String serId, boolean checkItemName) throws Exception {
+		processObjectParsings(ShadowType.class, ShadowType.COMPLEX_TYPE, serializer, serId, checkItemName);
+	}
+
+
+	@Override
+	protected void assertPrismContainerValue(PrismContainerValue<ShadowType> value) throws SchemaException {
+		assertDefinitions(value);
+		PrismObject object = value.asContainerable().asPrismObject();
 		object.checkConsistence();
-		assertPrism(object);
-		assertJaxb(object.asObjectable());
+		assertPrism(object, false);
+		assertJaxb(value.asContainerable(), false);
+	}
+
+	@Override
+	protected void assertPrismObject(PrismObject<ShadowType> object) throws SchemaException {
+		object.checkConsistence();
+		assertDefinitions(object);
+		assertPrism(object, true);
+		assertJaxb(object.asObjectable(), true);
 		
 		object.checkConsistence(true, false);
 	}
 
-	void assertPrism(PrismObject<ShadowType> shadow) {
-		
-		assertEquals("Wrong oid", "88519fca-3f4a-44ca-91c8-dc9be5bf3d03", shadow.getOid());
+	void assertPrism(PrismObject<ShadowType> shadow, boolean isObject) {
+
+		if (isObject) {
+			assertEquals("Wrong oid", "88519fca-3f4a-44ca-91c8-dc9be5bf3d03", shadow.getOid());
+		}
 		PrismObjectDefinition<ShadowType> usedDefinition = shadow.getDefinition();
 		assertNotNull("No object definition", usedDefinition);
 		PrismAsserts.assertObjectDefinition(usedDefinition, new QName(SchemaConstantsGenerated.NS_COMMON, "shadow"),
@@ -137,8 +139,10 @@ public class TestParseShadow extends AbstractParserTest {
 		PrismAsserts.assertReferenceValue(resourceRef, "10000000-0000-0000-0000-000000000003");
 	}
 	
-	private void assertJaxb(ShadowType shadow) throws SchemaException {
-		assertEquals("88519fca-3f4a-44ca-91c8-dc9be5bf3d03", shadow.getOid());
+	private void assertJaxb(ShadowType shadow, boolean isObject) throws SchemaException {
+		if (isObject) {
+			assertEquals("88519fca-3f4a-44ca-91c8-dc9be5bf3d03", shadow.getOid());
+		}
 		assertEquals("Wrong name", PrismTestUtil.createPolyStringType("hbarbossa"), shadow.getName());
 
 		ActivationType activation = shadow.getActivation();

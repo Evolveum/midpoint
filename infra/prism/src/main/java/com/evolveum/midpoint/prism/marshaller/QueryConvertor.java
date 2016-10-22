@@ -291,7 +291,7 @@ public class QueryConvertor {
 					List<PrismPropertyValue<T>> values = item.getValues();
 					PrismValue.clearParent(values);
 					return EqualFilter.createEqual(itemPath,
-							(PrismPropertyDefinition<T>)item.getDefinition(), matchingRule, prismContext, values);
+							(PrismPropertyDefinition<T>)itemDefinition, matchingRule, prismContext, values);
 				}
 				PrismPropertyValue<T> propertyValue = (PrismPropertyValue<T>) item.getValue(0);
 				propertyValue.clearParent();
