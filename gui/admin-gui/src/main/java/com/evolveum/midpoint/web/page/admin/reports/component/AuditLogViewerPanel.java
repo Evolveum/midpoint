@@ -13,6 +13,7 @@ import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.component.form.ValueChoosePanel;
+import com.evolveum.midpoint.web.component.form.ValueChooseWrapperPanel;
 import com.evolveum.midpoint.web.component.input.DatePanel;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 import com.evolveum.midpoint.web.component.input.QNameChoiceRenderer;
@@ -194,7 +195,7 @@ public class AuditLogViewerPanel extends BasePanel{
 
         Collection<Class<? extends UserType>> allowedClasses = new ArrayList<>();
         allowedClasses.add(UserType.class);
-        ValueChoosePanel<ObjectReferenceType, UserType> chooseInitiatorPanel = new ValueChoosePanel<ObjectReferenceType, UserType>(
+        ValueChooseWrapperPanel<ObjectReferenceType, UserType> chooseInitiatorPanel = new ValueChooseWrapperPanel<ObjectReferenceType, UserType>(
                 ID_INITIATOR_NAME,
                 new PropertyModel<ObjectReferenceType>(auditSearchDto, AuditSearchDto.F_INITIATOR_NAME),
                 allowedClasses) {
@@ -208,7 +209,7 @@ public class AuditLogViewerPanel extends BasePanel{
         };
         parametersPanel.add(chooseInitiatorPanel);
 
-        ValueChoosePanel<ObjectReferenceType, UserType> chooseTargerOwnerPanel = new ValueChoosePanel<ObjectReferenceType, UserType>(
+        ValueChooseWrapperPanel<ObjectReferenceType, UserType> chooseTargerOwnerPanel = new ValueChooseWrapperPanel<ObjectReferenceType, UserType>(
                 ID_TARGET_OWNER_NAME,
                 new PropertyModel<ObjectReferenceType>(auditSearchDto, AuditSearchDto.F_TARGET_OWNER_NAME),
                 allowedClasses) {
@@ -223,7 +224,7 @@ public class AuditLogViewerPanel extends BasePanel{
 
         Collection<Class<? extends ObjectType>> allowedClassesAll = new ArrayList<>();
         allowedClassesAll.addAll(ObjectTypes.getAllObjectTypes());
-        ValueChoosePanel<ObjectReferenceType, ObjectType> chooseTargetPanel = new ValueChoosePanel<ObjectReferenceType, ObjectType>(
+        ValueChooseWrapperPanel<ObjectReferenceType, ObjectType> chooseTargetPanel = new ValueChooseWrapperPanel<ObjectReferenceType, ObjectType>(
                 ID_TARGET_NAME,
                 new PropertyModel<ObjectReferenceType>(auditSearchDto, AuditSearchDto.F_TARGET_NAME),
                 allowedClassesAll){
