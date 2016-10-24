@@ -19,7 +19,7 @@
 <body>
 	<wicket:extend>
 
-		<div wicket:id="eventPanel">
+		<div wicket:id="eventPanel" class="row">
 
 			<div wicket:id="eventDetailsPanel" class="col-md-6">
 				<div class="box box-success">
@@ -99,6 +99,13 @@
 					<div  wicket:id="deltaListPanel"></div>
 			</div>
 		</div>
+        <div class="row">
+        <div class="main-button-bar" style="padding-left: 15px;">
+            <span class="button-group">
+                <a class="btn btn-default" wicket:id="back"/>
+            </span>
+        </div>
+            </div>
 	</wicket:extend>
 </body>
 </html>
