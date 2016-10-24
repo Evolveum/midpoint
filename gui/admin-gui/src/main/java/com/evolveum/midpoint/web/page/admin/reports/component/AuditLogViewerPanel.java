@@ -45,6 +45,7 @@ import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.panel.FeedbackPanel;
 import org.apache.wicket.markup.repeater.Item;
+import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
@@ -325,6 +326,17 @@ public class AuditLogViewerPanel extends BasePanel{
                 createStringResource("AuditEventRecordType.timestamp"), "timestamp") {
             private static final long serialVersionUID = 1L;
 
+            @Override
+            protected IModel<String> createLinkModel(final IModel<AuditEventRecordType> rowModel){
+                return new AbstractReadOnlyModel<String>() {
+
+                    @Override
+                    public String getObject() {
+                        XMLGregorianCalendar time = rowModel.getObject().getTimestamp();
+                        return WebComponentUtil.formatDate(time);
+                    }
+                };
+            }
             @Override
             public void onClick(AjaxRequestTarget target, IModel<AuditEventRecordType> rowModel) {
                 setResponsePage(new PageAuditLogDetails(rowModel.getObject()));
