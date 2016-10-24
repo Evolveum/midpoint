@@ -32,6 +32,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.CachingMetadataType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CachingPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CachingStategyType;
 
+import org.jfree.util.Log;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -882,6 +883,7 @@ public class ShadowManager {
 					attrDelta.setValuesToReplace(PrismValue.cloneCollection(resourceAttr.getValues()));
 				} else {
 					attrDelta = repoAttr.diff(resourceAttr);
+//					LOGGER.trace("DIFF:\n{}\n-\n{}\n=:\n{}", repoAttr==null?null:repoAttr.debugDump(1), resourceAttr==null?null:resourceAttr.debugDump(1), attrDelta==null?null:attrDelta.debugDump(1));
 				}
 				if (attrDelta != null && !attrDelta.isEmpty()) {
 					normalizeDelta(attrDelta, attrDef);
@@ -934,6 +936,7 @@ public class ShadowManager {
 								normalizedRealValue = matchingRule.normalize(pval.getValue());
 							}
 							attrAddDelta.addValueToAdd(new PrismPropertyValue(normalizedRealValue));
+							LOGGER.trace("CURRENT ATTR:\n{}\nATTR DELTA:\n{}", currentResourceAttrProperty.debugDump(1), attrAddDelta.debugDump(1));
 						}
 						shadowDelta.addModification(attrAddDelta);
 					} else {
@@ -946,6 +949,7 @@ public class ShadowManager {
 								currentResourceNormalizedRealValue = matchingRule.normalize(currentResourceRealValue);
 							}
 							if (!currentResourceNormalizedRealValue.equals(oldRepoAttributeProperty.getRealValue())) {
+								LOGGER.trace("CURRENT ATTR:\n{}\ncurrentResourceNormalizedRealValue: {}", currentResourceAttrProperty.debugDump(1), currentResourceNormalizedRealValue);
 								shadowDelta.addModificationReplaceProperty(currentResourceAttrProperty.getPath(), currentResourceNormalizedRealValue);
 							}
 						} else {
@@ -956,8 +960,13 @@ public class ShadowManager {
 									pval.setValue(normalizedRealValue);
 								}
 							}
-							PropertyDelta<Object> attrDiff = normalizedCurrentResourceAttrProperty.diff(oldRepoAttributeProperty);
+							PropertyDelta<Object> attrDiff = oldRepoAttributeProperty.diff(normalizedCurrentResourceAttrProperty);
+							LOGGER.trace("DIFF:\n{}\n-\n{}\n=:\n{}", 
+									oldRepoAttributeProperty==null?null:oldRepoAttributeProperty.debugDump(1), 
+									normalizedCurrentResourceAttrProperty==null?null:normalizedCurrentResourceAttrProperty.debugDump(1),
+									attrDiff==null?null:attrDiff.debugDump(1));
 							if (attrDiff != null && !attrDiff.isEmpty()) {
+								attrDiff.setParentPath(new ItemPath(ShadowType.F_ATTRIBUTES));
 								shadowDelta.addModification(attrDiff);
 							}
 							
@@ -970,8 +979,10 @@ public class ShadowManager {
 			if (oldRepoItem instanceof PrismProperty<?>) {
 				PrismProperty<?> oldRepoAttrProperty = (PrismProperty<?>)oldRepoItem;
 				RefinedAttributeDefinition<Object> attrDef = ocDef.findAttributeDefinition(oldRepoAttrProperty.getElementName());
-				if (attrDef == null || !ProvisioningUtil.shouldStoreAtributeInShadow(ocDef, attrDef.getName(), cachingStrategy)) {
-					// No definition for this property, it should not be in the shadow
+				PrismProperty<Object> currentAttribute = currentResourceAttributesContainer.findProperty(oldRepoAttrProperty.getElementName());
+				if (attrDef == null || !ProvisioningUtil.shouldStoreAtributeInShadow(ocDef, attrDef.getName(), cachingStrategy) ||
+						currentAttribute == null) {
+					// No definition for this property it should not be there or no current value: remove it from the shadow
 					PropertyDelta<?> oldRepoAttrPropDelta = oldRepoAttrProperty.createDelta();
 					oldRepoAttrPropDelta.addValuesToDelete((Collection)PrismPropertyValue.cloneCollection(oldRepoAttrProperty.getValues()));
 					shadowDelta.addModification(oldRepoAttrPropDelta);
@@ -1010,7 +1021,7 @@ public class ShadowManager {
 		
 		if (!shadowDelta.isEmpty()) {
 			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("Updating shadow {} with delta:\n{}", oldRepoShadow, shadowDelta.debugDump());
+				LOGGER.trace("Updating repo shadow {} with delta:\n{}", oldRepoShadow, shadowDelta.debugDump(1));
 			}
 			ConstraintsChecker.onShadowModifyOperation(shadowDelta.getModifications());
 			try {
@@ -1019,12 +1030,13 @@ public class ShadowManager {
 				// This should not happen for shadows
 				throw new SystemException(e.getMessage(), e);
 			}
+			
 			PrismObject<ShadowType> newRepoShadow = oldRepoShadow.clone();
 			shadowDelta.applyTo(newRepoShadow);
 			return newRepoShadow;
 			
 		} else {
-			LOGGER.trace("No need to update shadow {} (empty delta)", oldRepoShadow);
+			LOGGER.trace("No need to update repo shadow {} (empty delta)", oldRepoShadow);
 			return oldRepoShadow;
 		}		
 	}

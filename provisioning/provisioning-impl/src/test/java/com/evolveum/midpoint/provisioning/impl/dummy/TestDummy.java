@@ -1101,8 +1101,12 @@ public class TestDummy extends AbstractDummyTest {
 		account.checkConsistence();
 
 		PrismObject<ShadowType> accountRepo = repositoryService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, result);
+		// Added account is slightly different case. Even not-returned-by-default attributes are stored in the cache.
 		checkRepoAccountShadowWill(accountRepo, start, end);
+		
 		willIcfUid = getIcfUid(accountRepo);
+		display("Will ICF UID", willIcfUid);
+		assertNotNull("No will ICF UID", willIcfUid);
 		
 		ActivationType activationRepo = accountRepo.asObjectable().getActivation();
 		if (supportsActivation()) {
@@ -1116,6 +1120,9 @@ public class TestDummy extends AbstractDummyTest {
 
 		PrismObject<ShadowType> accountProvisioning = provisioningService.getObject(ShadowType.class,
 				ACCOUNT_WILL_OID, null, task, result);
+		
+		XMLGregorianCalendar tsAfterRead = clock.currentTimeXMLGregorianCalendar();
+		
 		display("Account provisioning", accountProvisioning);
 		ShadowType accountTypeProvisioning = accountProvisioning.asObjectable();
 		display("account from provisioning", accountTypeProvisioning);
@@ -1155,14 +1162,14 @@ public class TestDummy extends AbstractDummyTest {
 
 		checkRepoAccountShadow(shadowFromRepo);
 		
-		checkRepoAccountShadowWill(shadowFromRepo, start, end);
+		checkRepoAccountShadowWill(shadowFromRepo, end, tsAfterRead);
 
 		checkConsistency(accountProvisioning);
 		assertSteadyResource();
 	}
 
 	protected void checkRepoAccountShadowWillBasic(PrismObject<ShadowType> accountRepo, 
-			XMLGregorianCalendar start, XMLGregorianCalendar end, int expectedNumberOfAttributes) {
+			XMLGregorianCalendar start, XMLGregorianCalendar end, Integer expectedNumberOfAttributes) {
 		display("Will account repo", accountRepo);
 		ShadowType accountTypeRepo = accountRepo.asObjectable();
 		assertShadowName(accountRepo, ACCOUNT_WILL_USERNAME);
@@ -1173,7 +1180,7 @@ public class TestDummy extends AbstractDummyTest {
 		}
 		
 		assertNumberOfAttributes(accountRepo, expectedNumberOfAttributes);
-		
+				
 		assertRepoCachingMetadata(accountRepo, start, end);
 	}
 	
@@ -1339,7 +1346,8 @@ public class TestDummy extends AbstractDummyTest {
 		assertNotNull("No dummy account", shadow);
 
 		checkAccountShadow(shadow, result, false);
-		checkRepoAccountShadowWill(shadow.asPrismObject(), startTs, endTs);
+		// This is noFetch. Therefore the read should NOT update the caching timestamp
+		checkRepoAccountShadowWill(shadow.asPrismObject(), null, startTs);
 
 		checkConsistency(shadow.asPrismObject());
 		
@@ -1369,6 +1377,140 @@ public class TestDummy extends AbstractDummyTest {
 
 		accountDelta.checkConsistence(true, true, true);
 		TestUtil.assertSuccess("applyDefinition(modify delta) result", result);
+		
+		assertSteadyResource();
+	}
+	
+	/**
+	 * Make a native modification to an account and read it again. Make sure that
+	 * fresh data are returned - even though caching may be in effect.
+	 * MID-3481
+	 */
+	@Test
+	public void test106GetModifiedAccount() throws Exception {
+		final String TEST_NAME = "test106GetModifiedAccount";
+		TestUtil.displayTestTile(TEST_NAME);
+		// GIVEN
+		OperationResult result = new OperationResult(TestDummy.class.getName() + "." + TEST_NAME);
+		rememberShadowFetchOperationCount();
+		
+		DummyAccount accountWill = getDummyAccountAssert(transformNameFromResource(ACCOUNT_WILL_USERNAME), willIcfUid);
+		accountWill.replaceAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Pirate");
+		accountWill.replaceAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, "Black Pearl");
+		
+		XMLGregorianCalendar startTs = clock.currentTimeXMLGregorianCalendar();
+
+		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
+		ShadowType shadow = provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, null, 
+				result).asObjectable();
+
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+		result.computeStatus();
+		display("getObject result", result);
+		TestUtil.assertSuccess(result);
+		assertShadowFetchOperationCountIncrement(1);
+		
+		XMLGregorianCalendar endTs = clock.currentTimeXMLGregorianCalendar();
+
+		display("Retrieved account shadow", shadow);
+
+		assertNotNull("No dummy account", shadow);
+
+		checkAccountShadow(shadow, result);
+		assertAttribute(shadow, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Pirate");
+		assertAttribute(shadow, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, "Black Pearl");
+		assertAttribute(shadow, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, "Sword", "LOVE");
+		assertAttribute(shadow, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME, 42);
+		Collection<ResourceAttribute<?>> attributes = ShadowUtil.getAttributes(shadow);
+		assertEquals("Unexpected number of attributes", 7, attributes.size());
+		
+		PrismObject<ShadowType> shadowRepo = repositoryService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, result);
+		checkRepoAccountShadowWillBasic(shadowRepo, startTs, endTs, null);
+		
+		assertRepoShadowCachedAttributeValue(shadowRepo, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Pirate");
+		assertRepoShadowCachedAttributeValue(shadowRepo, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, "Black Pearl");
+		// MID-3484
+//		assertRepoShadowCachedAttributeValue(shadowRepo, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, "Sword", "LOVE");
+		assertRepoShadowCachedAttributeValue(shadowRepo, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME, 42);
+
+		checkConsistency(shadow.asPrismObject());
+		
+		checkCachingMetadata(shadow, startTs, endTs);
+		
+		assertSteadyResource();
+	}
+	
+	/**
+	 * Make a native modification to an account and read it from the cache. Make sure that
+	 * cached data are returned and there is no read from the resource.
+	 * MID-3481
+	 */
+	@Test
+	public void test107GetModifiedAccountFromCache() throws Exception {
+		final String TEST_NAME = "test107GetModifiedAccountFromCache";
+		TestUtil.displayTestTile(TEST_NAME);
+		// GIVEN
+		OperationResult result = new OperationResult(TestDummy.class.getName() + "." + TEST_NAME);
+		rememberShadowFetchOperationCount();
+		
+		DummyAccount accountWill = getDummyAccountAssert(transformNameFromResource(ACCOUNT_WILL_USERNAME), willIcfUid);
+		accountWill.replaceAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Nice Pirate");
+		accountWill.replaceAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, "Interceptor");
+
+		
+		// TODO
+		// TODO
+		// TODO
+		// TODO
+		// TODO
+		// TODO
+	}
+		
+	/**
+	 * Clean up after caching tests so we won't break subsequent tests.
+	 * MID-3481
+	 */
+	@Test
+	public void test109ModifiedAccountCleanup() throws Exception {
+		final String TEST_NAME = "test109ModifiedAccountCleanup";
+		TestUtil.displayTestTile(TEST_NAME);
+		
+		// GIVEN
+		OperationResult result = new OperationResult(TestDummy.class.getName() + "." + TEST_NAME);
+		rememberShadowFetchOperationCount();
+
+		DummyAccount accountWill = getDummyAccountAssert(transformNameFromResource(ACCOUNT_WILL_USERNAME), willIcfUid);
+		// Modify this back so won't break subsequent tests
+		accountWill.replaceAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, "Flying Dutchman");
+		accountWill.replaceAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME);
+		
+		XMLGregorianCalendar startTs = clock.currentTimeXMLGregorianCalendar();
+
+		// WHEN
+		ShadowType shadow = provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, null, 
+				result).asObjectable();
+
+		// THEN
+		result.computeStatus();
+		display("getObject result", result);
+		TestUtil.assertSuccess(result);
+		assertShadowFetchOperationCountIncrement(1);
+		
+		XMLGregorianCalendar endTs = clock.currentTimeXMLGregorianCalendar();
+
+		display("Retrieved account shadow", shadow);
+
+		assertNotNull("No dummy account", shadow);
+
+		checkAccountWill(shadow, result);
+		PrismObject<ShadowType> shadowRepo = repositoryService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, result);
+		checkRepoAccountShadowWill(shadowRepo, startTs, endTs);
+
+		checkConsistency(shadow.asPrismObject());
+		
+		checkCachingMetadata(shadow, startTs, endTs);
 		
 		assertSteadyResource();
 	}
@@ -3073,7 +3215,7 @@ public class TestDummy extends AbstractDummyTest {
 		assertNotNull("Shadow was not created in the repository", shadowFromRepo);
 		display("Repository shadow", shadowFromRepo.debugDump());
 
-		ProvisioningTestUtil.checkRepoEntitlementShadow(shadowFromRepo);
+		checkRepoEntitlementShadow(shadowFromRepo);
 
 		assertDummyResourceGroupMembersReadCountIncrement(null, 0);
 		checkConsistency(group);
@@ -3253,7 +3395,7 @@ public class TestDummy extends AbstractDummyTest {
 		assertNotNull("Shadow was not created in the repository", shadowFromRepo);
 		display("Repository shadow", shadowFromRepo.debugDump());
 
-		ProvisioningTestUtil.checkRepoEntitlementShadow(shadowFromRepo);
+		checkRepoEntitlementShadow(shadowFromRepo);
 
 		checkConsistency(priv);
 		assertSteadyResource();
@@ -3354,7 +3496,7 @@ public class TestDummy extends AbstractDummyTest {
         assertNotNull("Shadow was not created in the repository", shadowFromRepo);
         display("Repository shadow", shadowFromRepo.debugDump());
 
-        ProvisioningTestUtil.checkRepoEntitlementShadow(shadowFromRepo);
+        checkRepoEntitlementShadow(shadowFromRepo);
 
         checkConsistency(priv);
         assertDummyResourceGroupMembersReadCountIncrement(null, 0);
@@ -4589,20 +4731,7 @@ public class TestDummy extends AbstractDummyTest {
 		display("The change", lastChange);
 
 		PrismObject<? extends ShadowType> oldShadow = lastChange.getOldShadow();
-		assertNotNull("Old shadow missing", oldShadow);
-		assertNotNull("Old shadow does not have an OID", oldShadow.getOid());
-		PrismAsserts.assertClass("old shadow", ShadowType.class, oldShadow);
-		ShadowType oldShadowType = oldShadow.asObjectable();
-		ResourceAttributeContainer attributesContainer = ShadowUtil
-				.getAttributesContainer(oldShadowType);
-		assertNotNull("No attributes container in old shadow", attributesContainer);
-		Collection<ResourceAttribute<?>> attributes = attributesContainer.getAttributes();
-		assertFalse("Attributes container is empty", attributes.isEmpty());
-		assertEquals("Unexpected number of attributes", 2, attributes.size());
-		ResourceAttribute<?> icfsNameAttribute = attributesContainer.findAttribute(ConnectorFactoryIcfImpl.ICFS_NAME);
-		assertNotNull("No ICF name attribute in old  shadow", icfsNameAttribute);
-		assertEquals("Wrong value of ICF name attribute in old  shadow", getBlackbeardRepoIcfName(),
-				icfsNameAttribute.getRealValue());
+		assertSyncOldShadow(oldShadow, getBlackbeardRepoIcfName());
 		
 		assertNull("Delta present when not expecting it", lastChange.getObjectDelta());
 		ShadowType currentShadowType = lastChange.getCurrentShadow().asObjectable();
@@ -4610,10 +4739,10 @@ public class TestDummy extends AbstractDummyTest {
 		assertTrue("Wrong type of current shadow: " + currentShadowType.getClass().getName(),
 				currentShadowType instanceof ShadowType);
 
-		attributesContainer = ShadowUtil
+		ResourceAttributeContainer attributesContainer = ShadowUtil
 				.getAttributesContainer(currentShadowType);
 		assertNotNull("No attributes container in current shadow", attributesContainer);
-		attributes = attributesContainer.getAttributes();
+		Collection<ResourceAttribute<?>> attributes = attributesContainer.getAttributes();
 		assertFalse("Attributes container is empty", attributes.isEmpty());
 		assertAttribute(currentShadowType, 
 				DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Captain Blackbeard");
@@ -4630,7 +4759,7 @@ public class TestDummy extends AbstractDummyTest {
 		
 		assertSteadyResource();
 	}
-
+	
 	@Test
 	public void test810LiveSyncAddDrakeDumbObjectClass() throws Exception {
 		testLiveSyncAddDrake("test810LiveSyncAddDrakeDumbObjectClass", DummySyncStyle.DUMB, ProvisioningTestUtil.getDefaultAccountObjectClass(resourceType));
@@ -4839,20 +4968,7 @@ public class TestDummy extends AbstractDummyTest {
 		display("The change", lastChange);
 		
 		PrismObject<? extends ShadowType> oldShadow = lastChange.getOldShadow();
-		assertNotNull("Old shadow missing", oldShadow);
-		assertNotNull("Old shadow does not have an OID", oldShadow.getOid());
-		PrismAsserts.assertClass("old shadow", ShadowType.class, oldShadow);
-		ShadowType oldShadowType = oldShadow.asObjectable();
-		ResourceAttributeContainer attributesContainer = ShadowUtil
-				.getAttributesContainer(oldShadowType);
-		assertNotNull("No attributes container in old shadow", attributesContainer);
-		Collection<ResourceAttribute<?>> attributes = attributesContainer.getAttributes();
-		assertFalse("Attributes container is empty", attributes.isEmpty());
-		assertEquals("Unexpected number of attributes", 2, attributes.size());
-		ResourceAttribute<?> icfsNameAttribute = attributesContainer.findAttribute(ConnectorFactoryIcfImpl.ICFS_NAME);
-		assertNotNull("No ICF name attribute in old  shadow", icfsNameAttribute);
-		assertEquals("Wrong value of ICF name attribute in old  shadow", getDrakeRepoIcfName(),
-				icfsNameAttribute.getRealValue());
+		assertSyncOldShadow(oldShadow, getDrakeRepoIcfName());
 		
 		assertNull("Delta present when not expecting it", lastChange.getObjectDelta());
 		ShadowType currentShadowType = lastChange.getCurrentShadow().asObjectable();
@@ -4860,10 +4976,10 @@ public class TestDummy extends AbstractDummyTest {
 		assertTrue("Wrong type of current shadow: " + currentShadowType.getClass().getName(),
 				currentShadowType instanceof ShadowType);
 
-		attributesContainer = ShadowUtil
+		ResourceAttributeContainer attributesContainer = ShadowUtil
 				.getAttributesContainer(currentShadowType);
 		assertNotNull("No attributes container in current shadow", attributesContainer);
-		attributes = attributesContainer.getAttributes();
+		Collection<ResourceAttribute<?>> attributes = attributesContainer.getAttributes();
 		assertFalse("Attributes container is empty", attributes.isEmpty());
 		assertAttribute(currentShadowType, 
 				DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Captain Drake");
@@ -5069,20 +5185,7 @@ public class TestDummy extends AbstractDummyTest {
 		display("The change", lastChange);
 
 		PrismObject<? extends ShadowType> oldShadow = lastChange.getOldShadow();
-		assertNotNull("Old shadow missing", oldShadow);
-		assertNotNull("Old shadow does not have an OID", oldShadow.getOid());
-		PrismAsserts.assertClass("old shadow", ShadowType.class, oldShadow);
-		ShadowType oldShadowType = oldShadow.asObjectable();
-		ResourceAttributeContainer attributesContainer = ShadowUtil
-				.getAttributesContainer(oldShadowType);
-		assertNotNull("No attributes container in old shadow", attributesContainer);
-		Collection<ResourceAttribute<?>> attributes = attributesContainer.getAttributes();
-		assertFalse("Attributes container is empty", attributes.isEmpty());
-		assertEquals("Unexpected number of attributes", 2, attributes.size());
-		ResourceAttribute<?> icfsNameAttribute = attributesContainer.findAttribute(ConnectorFactoryIcfImpl.ICFS_NAME);
-		assertNotNull("No ICF name attribute in old  shadow", icfsNameAttribute);
-		assertEquals("Wrong value of ICF name attribute in old  shadow", getDrakeRepoIcfName(),
-				icfsNameAttribute.getRealValue());
+		assertSyncOldShadow(oldShadow, getDrakeRepoIcfName());
 		
 		ObjectDelta<? extends ShadowType> objectDelta = lastChange.getObjectDelta();
 		assertNotNull("Delta missing", objectDelta);
@@ -5243,4 +5346,37 @@ public class TestDummy extends AbstractDummyTest {
 	protected void checkRepoAccountShadow(PrismObject<ShadowType> shadowFromRepo) {
 		ProvisioningTestUtil.checkRepoAccountShadow(shadowFromRepo);
 	}
+	
+	protected void checkRepoEntitlementShadow(PrismObject<ShadowType> repoShadow) {
+		ProvisioningTestUtil.checkRepoEntitlementShadow(repoShadow);
+	}
+	
+	protected void assertSyncOldShadow(PrismObject<? extends ShadowType> oldShadow, String repoName) {
+		assertSyncOldShadow(oldShadow, repoName, 2);
+	}
+	
+	protected void assertSyncOldShadow(PrismObject<? extends ShadowType> oldShadow, String repoName, Integer expectedNumberOfAttributes) {
+		assertNotNull("Old shadow missing", oldShadow);
+		assertNotNull("Old shadow does not have an OID", oldShadow.getOid());
+		PrismAsserts.assertClass("old shadow", ShadowType.class, oldShadow);
+		ShadowType oldShadowType = oldShadow.asObjectable();
+		ResourceAttributeContainer attributesContainer = ShadowUtil
+				.getAttributesContainer(oldShadowType);
+		assertNotNull("No attributes container in old shadow", attributesContainer);
+		Collection<ResourceAttribute<?>> attributes = attributesContainer.getAttributes();
+		assertFalse("Attributes container is empty", attributes.isEmpty());
+		if (expectedNumberOfAttributes != null) {
+			assertEquals("Unexpected number of attributes", (int)expectedNumberOfAttributes, attributes.size());
+		}
+		ResourceAttribute<?> icfsNameAttribute = attributesContainer.findAttribute(ConnectorFactoryIcfImpl.ICFS_NAME);
+		assertNotNull("No ICF name attribute in old  shadow", icfsNameAttribute);
+		assertEquals("Wrong value of ICF name attribute in old  shadow", repoName,
+				icfsNameAttribute.getRealValue());
+	}
+	
+	protected <T> void assertRepoShadowCachedAttributeValue(PrismObject<ShadowType> shadowRepo, String attrName, T... attrValues) {
+		PrismAsserts.assertNoItem(shadowRepo, new ItemPath(ShadowType.F_ATTRIBUTES, 
+				new QName(ResourceTypeUtil.getResourceNamespace(resource), attrName)));
+	}
+
 }

@@ -15,6 +15,7 @@
  */
 package com.evolveum.midpoint.provisioning.impl.dummy;
 
+import static org.testng.AssertJUnit.assertTrue;
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertFalse;
@@ -85,8 +86,16 @@ public class TestDummyCaching extends TestDummy {
 	}
 		
 	@Override
-	protected void checkRepoAccountShadowWill(PrismObject<ShadowType> accountRepo, XMLGregorianCalendar start, XMLGregorianCalendar end) {
-		checkRepoAccountShadowWillBasic(accountRepo, start, end, 7);
+	protected void checkRepoAccountShadowWill(PrismObject<ShadowType> shadowRepo, XMLGregorianCalendar start, XMLGregorianCalendar end) {
+		// Sometimes there are 6 and sometimes 7 attributes. Treasure is not returned by default. It is not normally in the cache.
+		// So do not check for number of attributes here. Check for individual values.
+		checkRepoAccountShadowWillBasic(shadowRepo, start, end, null);
+		
+		assertRepoShadowCachedAttributeValue(shadowRepo, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, "Flying Dutchman");
+		// this is shadow, values are normalized
+		// MID-3484
+//		assertRepoShadowCachedAttributeValue(shadowRepo, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, "sword", "love");
+		assertRepoShadowCachedAttributeValue(shadowRepo, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME, 42);
 	}
 	
 	/**
@@ -115,4 +124,26 @@ public class TestDummyCaching extends TestDummy {
 		ProvisioningTestUtil.checkRepoShadow(repoShadow, ShadowKindType.ACCOUNT, null);
 	}
 	
+	@Override
+	protected void checkRepoEntitlementShadow(PrismObject<ShadowType> repoShadow) {
+		ProvisioningTestUtil.checkRepoShadow(repoShadow, ShadowKindType.ENTITLEMENT, null);
+	}
+	
+	@Override
+	protected void assertRepoShadowAttributes(List<Item<?,?>> attributes, int expectedNumberOfIdentifiers) {
+		// We can only assert that there are at least the identifiers. But we do not know how many attributes should be there
+		assertTrue("Unexpected number of attributes in repo shadow, expected at least "+
+		expectedNumberOfIdentifiers+", but was "+attributes.size(), attributes.size() >= expectedNumberOfIdentifiers);
+	}
+	
+	@Override
+	protected void assertSyncOldShadow(PrismObject<? extends ShadowType> oldShadow, String repoName) {
+		assertSyncOldShadow(oldShadow, repoName, null);
+	}
+	
+	@Override
+	protected <T> void assertRepoShadowCachedAttributeValue(PrismObject<ShadowType> shadowRepo, String attrName, T... attrValues) {
+		assertAttribute(shadowRepo.asObjectable(), attrName, attrValues);
+	}
+
 }
