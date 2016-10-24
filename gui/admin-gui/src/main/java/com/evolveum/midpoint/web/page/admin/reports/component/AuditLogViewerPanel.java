@@ -43,6 +43,7 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.EnumChoiceRenderer;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.FormComponent;
+import org.apache.wicket.markup.html.panel.FeedbackPanel;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -76,6 +77,7 @@ public class AuditLogViewerPanel extends BasePanel{
 
     private static final String ID_MAIN_FORM = "mainForm";
     private static final String ID_SEARCH_BUTTON = "searchButton";
+    private static final String ID_FEEDBACK = "feedback";
 
     private static final String OPERATION_RESOLVE_REFENRENCE_NAME = AuditLogViewerPanel.class.getSimpleName()
             + ".resolveReferenceName()";
@@ -94,6 +96,11 @@ public class AuditLogViewerPanel extends BasePanel{
         Form mainForm = new Form(ID_MAIN_FORM);
         mainForm.setOutputMarkupId(true);
         add(mainForm);
+
+        FeedbackPanel feedback = new FeedbackPanel(ID_FEEDBACK);
+        feedback.setOutputMarkupId(true);
+        mainForm.add(feedback);
+
         initParametersPanel(mainForm);
         initTable(mainForm);
     }
@@ -109,6 +116,7 @@ public class AuditLogViewerPanel extends BasePanel{
         DatePanel from = new DatePanel(ID_FROM, fromModel);
         DateValidator dateFromValidator = WebComponentUtil.getRangeValidator(mainForm,
                 new ItemPath(AuditSearchDto.F_FROM));
+        dateFromValidator.setMessageKey("AuditLogViewerPanel.dateValidatorMessage");
         dateFromValidator.setDateFrom((DateTimeField) from.getBaseFormComponent());
         for (FormComponent<?> formComponent : from.getFormComponents()) {
             formComponent.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
@@ -122,6 +130,7 @@ public class AuditLogViewerPanel extends BasePanel{
         DatePanel to = new DatePanel(ID_TO, toModel);
         DateValidator dateToValidator = WebComponentUtil.getRangeValidator(mainForm,
                 new ItemPath(AuditSearchDto.F_FROM));
+        dateToValidator.setMessageKey("AuditLogViewerPanel.dateValidatorMessage");
         dateToValidator.setDateTo((DateTimeField) to.getBaseFormComponent());
         for (FormComponent<?> formComponent : to.getFormComponents()) {
             formComponent.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
@@ -245,7 +254,14 @@ public class AuditLogViewerPanel extends BasePanel{
             protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
                 Form mainForm = (Form) getParent().getParent();
                 refreshTable(mainForm);
+                getFeedbackPanel().getFeedbackMessages().clear();
+                target.add(getFeedbackPanel());
                 target.add(mainForm);
+            }
+
+            @Override
+        protected void onError(AjaxRequestTarget target, Form<?> form){
+                target.add(getFeedbackPanel());
             }
         };
         ajaxButton.setOutputMarkupId(true);
@@ -415,4 +431,7 @@ public class AuditLogViewerPanel extends BasePanel{
         item.add(new AttributeModifier("style", new Model<String>("width: 10%;")));
     }
 
+    public WebMarkupContainer getFeedbackPanel() {
+        return (FeedbackPanel) get(pageBase.createComponentPath(ID_MAIN_FORM, ID_FEEDBACK));
+    }
 }
