@@ -18,14 +18,13 @@ package com.evolveum.midpoint.common.refinery;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainerDefinition;
@@ -121,6 +120,7 @@ public class LayerRefinedAttributeDefinitionImpl<T> implements LayerRefinedAttri
 		return refinedAttributeDefinition.getLimitations(layer);
 	}
 
+	@NotNull
 	@Override
 	public RefinedAttributeDefinition<T> clone() {
 		return refinedAttributeDefinition.clone();
@@ -571,6 +571,11 @@ public class LayerRefinedAttributeDefinitionImpl<T> implements LayerRefinedAttri
 	@Override
 	public String getNativeAttributeName() {
 		return refinedAttributeDefinition.getNativeAttributeName();
+	}
+
+	@Override
+	public RefinedAttributeDefinition<T> deepClone(Map<QName, ComplexTypeDefinition> ctdMap) {
+		return new LayerRefinedAttributeDefinitionImpl<T>(refinedAttributeDefinition.deepClone(ctdMap), layer);
 	}
 
 	//endregion

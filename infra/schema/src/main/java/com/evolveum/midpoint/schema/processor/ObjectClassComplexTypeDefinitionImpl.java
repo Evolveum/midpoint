@@ -15,18 +15,17 @@
  */
 package com.evolveum.midpoint.schema.processor;
 
-import java.util.ArrayList;
-import java.util.Collection;
+import com.evolveum.midpoint.prism.ComplexTypeDefinitionImpl;
+import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
+import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.stream.Collectors;
 
 /**
  * @author semancik
@@ -35,8 +34,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 public class ObjectClassComplexTypeDefinitionImpl extends ComplexTypeDefinitionImpl implements ObjectClassComplexTypeDefinition {
 	private static final long serialVersionUID = 1L;
 
-	private Collection<ResourceAttributeDefinition> identifiers;
-	private Collection<ResourceAttributeDefinition> secondaryIdentifiers;
+	@NotNull private final Collection<ResourceAttributeDefinition<?>> identifiers = new ArrayList<>(1);
+	@NotNull private final Collection<ResourceAttributeDefinition<?>> secondaryIdentifiers = new ArrayList<>(1);
 	private ResourceAttributeDefinition descriptionAttribute;
 	private ResourceAttributeDefinition displayNameAttribute;
 	private ResourceAttributeDefinition namingAttribute;
@@ -50,135 +49,49 @@ public class ObjectClassComplexTypeDefinitionImpl extends ComplexTypeDefinitionI
 		super(typeName, prismContext);
 	}
 
+	@NotNull
 	@Override
-	public Collection<? extends ResourceAttributeDefinition> getAttributeDefinitions() {
-		Collection<ResourceAttributeDefinition> attrs = new ArrayList<ResourceAttributeDefinition>(getDefinitions().size());
-		for (ItemDefinition def: getDefinitions()) {
-			if (def instanceof ResourceAttributeDefinition) {
-				attrs.add((ResourceAttributeDefinition)def);
-			}
-		}
-		return attrs;
+	public Collection<? extends ResourceAttributeDefinition<?>> getAttributeDefinitions() {
+		return Collections.unmodifiableList(
+				getDefinitions().stream()
+				.map(def -> (ResourceAttributeDefinition<?>) def)
+				.collect(Collectors.toList()));
 	}
-	
-	/**
-	 * Returns the definition of primary identifier attributes of a resource object.
-	 * 
-	 * May return empty set if there are no identifier attributes. Must not
-	 * return null.
-	 * 
-	 * The exception should be never thrown unless there is some bug in the
-	 * code. The validation of model consistency should be done at the time of
-	 * schema parsing.
-	 * 
-	 * @return definition of identifier attributes
-	 * @throws IllegalStateException
-	 *             if there is no definition for the referenced attributed
-	 */
+
 	@Override
-	public Collection<? extends ResourceAttributeDefinition> getPrimaryIdentifiers() {
-		if (identifiers == null) {
-			identifiers = new ArrayList<ResourceAttributeDefinition>(1);
+	public void add(ItemDefinition<?> definition) {
+		if (ResourceAttributeDefinition.class.isAssignableFrom(definition.getClass())) {
+			super.add(definition);
+		} else {
+			throw new IllegalArgumentException("Only ResourceAttributeDefinitions should be put into"
+					+ " a ObjectClassComplexTypeDefinition. Item definition = " + definition + ","
+					+ " ObjectClassComplexTypeDefinition = " + this);
 		}
+	}
+
+	@NotNull
+	@Override
+	public Collection<? extends ResourceAttributeDefinition<?>> getPrimaryIdentifiers() {
 		return identifiers;
 	}
 	
+	@NotNull
 	@Override
-	public boolean isPrimaryIdentifier(QName attrName) {
-		for (ResourceAttributeDefinition idDef: getPrimaryIdentifiers()) {
-			if (idDef.getName().equals(attrName)) {
-				return true;
-			}
-		}
-		return false;
-	}
-	
-	/**
-	 * Returns the definition of secondary identifier attributes of a resource
-	 * object.
-	 * 
-	 * May return empty set if there are no secondary identifier attributes.
-	 * Must not return null.
-	 * 
-	 * The exception should be never thrown unless there is some bug in the
-	 * code. The validation of model consistency should be done at the time of
-	 * schema parsing.
-	 * 
-	 * @return definition of secondary identifier attributes
-	 * @throws IllegalStateException
-	 *             if there is no definition for the referenced attributed
-	 */
-	@Override
-	public Collection<? extends ResourceAttributeDefinition> getSecondaryIdentifiers() {
-		if (secondaryIdentifiers == null) {
-			secondaryIdentifiers = new ArrayList<ResourceAttributeDefinition>(1);
-		}
+	public Collection<? extends ResourceAttributeDefinition<?>> getSecondaryIdentifiers() {
 		return secondaryIdentifiers;
 	}
 	
 	@Override
-	public boolean isSecondaryIdentifier(QName attrName) {
-		for (ResourceAttributeDefinition idDef: getSecondaryIdentifiers()) {
-			if (idDef.getName().equals(attrName)) {
-				return true;
-			}
-		}
-		return false;
-	}
-	
-	@Override
-	public Collection<? extends ResourceAttributeDefinition> getAllIdentifiers() {
-		Collection<? extends ResourceAttributeDefinition> allIdentifiers = new ArrayList<>();
-		if (identifiers != null) {
-			allIdentifiers.addAll((Collection)getPrimaryIdentifiers());
-		}
-		if (secondaryIdentifiers != null) {
-			allIdentifiers.addAll((Collection)getSecondaryIdentifiers());
-		}
-		return allIdentifiers;
-	}
-	
-	/**
-	 * Returns the definition of description attribute of a resource object.
-	 * 
-	 * Returns null if there is no description attribute.
-	 * 
-	 * The exception should be never thrown unless there is some bug in the
-	 * code. The validation of model consistency should be done at the time of
-	 * schema parsing.
-	 * 
-	 * @return definition of secondary identifier attributes
-	 * @throws IllegalStateException
-	 *             if there is more than one description attribute. But this
-	 *             should never happen.
-	 * @throws IllegalStateException
-	 *             if there is no definition for the referenced attributed
-	 */
-	@Override
-	public ResourceAttributeDefinition<?> getDescriptionAttribute() {
+	public <X> ResourceAttributeDefinition<X> getDescriptionAttribute() {
 		return descriptionAttribute;
 	}
 
-	public void setDescriptionAttribute(ResourceAttributeDefinition<?> descriptionAttribute) {
+	void setDescriptionAttribute(ResourceAttributeDefinition<?> descriptionAttribute) {
 		this.descriptionAttribute = descriptionAttribute;
 	}
 	
-	/**
-	 * Specifies which resource attribute should be used as a "technical" name
-	 * for the account. This name will appear in log files and other troubleshooting
-	 * tools. The name should be a form of unique identifier that can be used to
-	 * locate the resource object for diagnostics. It should not contain white chars and
-	 * special chars if that can be avoided and it should be reasonable short.
-                
-	 * It is different from a display name attribute. Display name is intended for a 
-	 * common user or non-technical administrator (such as role administrator). The
-	 * naming attribute is intended for technical IDM administrators and developers.
-	 * 
-	 * @return resource attribute definition that should be used as a "technical" name
-	 * 					for the account.
-	 */
 	@Override
-	public ResourceAttributeDefinition<?> getNamingAttribute() {
+	public <X> ResourceAttributeDefinition<X> getNamingAttribute() {
 		return namingAttribute;
 	}
 
@@ -190,25 +103,6 @@ public class ObjectClassComplexTypeDefinitionImpl extends ComplexTypeDefinitionI
 		setNamingAttribute(findAttributeDefinition(namingAttribute));
 	}
 	
-	/**
-	 * Returns the native object class string for the resource object.
-	 * 
-	 * Native object class is the name of the Resource Object Definition (Object
-	 * Class) as it is seen by the resource itself. The name of the Resource
-	 * Object Definition may be constrained by XSD or other syntax and therefore
-	 * may be "mangled" to conform to such syntax. The <i>native object
-	 * class</i> value will contain unmangled name (if available).
-	 * 
-	 * Returns null if there is no native object class.
-	 * 
-	 * The exception should be never thrown unless there is some bug in the
-	 * code. The validation of model consistency should be done at the time of
-	 * schema parsing.
-	 * 
-	 * @return native object class
-	 * @throws IllegalStateException
-	 *             if there is more than one description attribute.
-	 */
 	@Override
 	public String getNativeObjectClass() {
 		return nativeObjectClass;
@@ -236,19 +130,6 @@ public class ObjectClassComplexTypeDefinitionImpl extends ComplexTypeDefinitionI
 		this.kind = kind;
 	}
 
-	/**
-	 * Indicates whether definition is should be used as default definition in ist kind.
-	 * E.g. if used in an "account" kind it indicates default account definition.
-	 * 
-	 * If true value is returned then the definition should be used as a default
-	 * definition for the kind. This is a way how a resource connector may
-	 * suggest applicable object classes (resource object definitions) for
-	 * individual shadow kinds (e.g. accounts).
-	 * 
-	 * @return true if the definition should be used as account type.
-	 * @throws IllegalStateException
-	 *             if more than one default account is suggested in the schema.
-	 */
 	@Override
 	public boolean isDefaultInAKind() {
 		return defaultInAKind;
@@ -267,26 +148,6 @@ public class ObjectClassComplexTypeDefinitionImpl extends ComplexTypeDefinitionI
 		this.intent = intent;
 	}
 	
-	/**
-	 * Returns the definition of display name attribute.
-	 * 
-	 * Display name attribute specifies which resource attribute should be used
-	 * as title when displaying objects of a specific resource object class. It
-	 * must point to an attribute of String type. If not present, primary
-	 * identifier should be used instead (but this method does not handle this
-	 * default behavior).
-	 * 
-	 * Returns null if there is no display name attribute.
-	 * 
-	 * The exception should be never thrown unless there is some bug in the
-	 * code. The validation of model consistency should be done at the time of
-	 * schema parsing.
-	 * 
-	 * @return native object class
-	 * @throws IllegalStateException
-	 *             if there is more than one display name attribute or the
-	 *             definition of the referenced attribute does not exist.
-	 */
 	@Override
 	public ResourceAttributeDefinition<?> getDisplayNameAttribute() {
 		return displayNameAttribute;
@@ -300,40 +161,14 @@ public class ObjectClassComplexTypeDefinitionImpl extends ComplexTypeDefinitionI
 	 * TODO
 	 * 
 	 * Convenience method. It will internally look up the correct definition.
-	 * 
-	 * @param displayName
 	 */
 	public void setDisplayNameAttribute(QName displayName) {
 		setDisplayNameAttribute(findAttributeDefinition(displayName));
 	}
-	
-	/**
-     * Finds a attribute definition by looking at the property name.
-     * <p/>
-     * Returns null if nothing is found.
-     *
-     * @param name property definition name
-     * @return found property definition or null
-     */
-    @Override
-	public <X> ResourceAttributeDefinition<X> findAttributeDefinition(QName name) {
-        return findItemDefinition(name, ResourceAttributeDefinition.class);
-    }
-    
-    @Override
-	public <X> ResourceAttributeDefinition<X> findAttributeDefinition(QName name, boolean caseInsensitive) {
-        return findItemDefinition(name, ResourceAttributeDefinition.class, caseInsensitive);
-    }
-    
-    @Override
-	public <X> ResourceAttributeDefinition<X> findAttributeDefinition(String name) {
-    	QName qname = new QName(getTypeName().getNamespaceURI(), name);
-        return findAttributeDefinition(qname);
-    }
-    
+
 	public <X> ResourceAttributeDefinitionImpl<X> createAttributeDefinition(QName name, QName typeName) {
-		ResourceAttributeDefinitionImpl propDef = new ResourceAttributeDefinitionImpl(name, typeName, prismContext);
-		addDefinition(propDef);
+		ResourceAttributeDefinitionImpl<X> propDef = new ResourceAttributeDefinitionImpl<>(name, typeName, prismContext);
+		add(propDef);
 		return propDef;
 	}
 	
@@ -341,7 +176,6 @@ public class ObjectClassComplexTypeDefinitionImpl extends ComplexTypeDefinitionI
 		QName name = new QName(getSchemaNamespace(),localName);
 		return createAttributeDefinition(name,typeName);
 	}
-
 	
 	public <X> ResourceAttributeDefinition<X> createAttributeDefinition(String localName, String localTypeName) {
 		QName name = new QName(getSchemaNamespace(),localName);
@@ -359,6 +193,7 @@ public class ObjectClassComplexTypeDefinitionImpl extends ComplexTypeDefinitionI
 		return rac;
 	}
 	
+	@NotNull
 	@Override
 	public ObjectClassComplexTypeDefinitionImpl clone() {
 		ObjectClassComplexTypeDefinitionImpl clone = new ObjectClassComplexTypeDefinitionImpl(
@@ -374,10 +209,10 @@ public class ObjectClassComplexTypeDefinitionImpl extends ComplexTypeDefinitionI
 		clone.defaultInAKind = this.defaultInAKind;
 		clone.descriptionAttribute = this.descriptionAttribute;
 		clone.displayNameAttribute = this.displayNameAttribute;
-		clone.identifiers = this.identifiers;
+		clone.identifiers.addAll(this.identifiers);
 		clone.namingAttribute = this.namingAttribute;
 		clone.nativeObjectClass = this.nativeObjectClass;
-		clone.secondaryIdentifiers = this.secondaryIdentifiers;
+		clone.secondaryIdentifiers.addAll(this.secondaryIdentifiers);
 		clone.auxiliary = this.auxiliary;
 	}
 	
@@ -389,12 +224,12 @@ public class ObjectClassComplexTypeDefinitionImpl extends ComplexTypeDefinitionI
 		result = prime * result + (defaultInAKind ? 1231 : 1237);
 		result = prime * result + ((descriptionAttribute == null) ? 0 : descriptionAttribute.hashCode());
 		result = prime * result + ((displayNameAttribute == null) ? 0 : displayNameAttribute.hashCode());
-		result = prime * result + ((identifiers == null) ? 0 : identifiers.hashCode());
+		result = prime * result + identifiers.hashCode();
 		result = prime * result + ((intent == null) ? 0 : intent.hashCode());
 		result = prime * result + ((kind == null) ? 0 : kind.hashCode());
 		result = prime * result + ((namingAttribute == null) ? 0 : namingAttribute.hashCode());
 		result = prime * result + ((nativeObjectClass == null) ? 0 : nativeObjectClass.hashCode());
-		result = prime * result + ((secondaryIdentifiers == null) ? 0 : secondaryIdentifiers.hashCode());
+		result = prime * result + secondaryIdentifiers.hashCode();
 		return result;
 	}
 
@@ -430,11 +265,7 @@ public class ObjectClassComplexTypeDefinitionImpl extends ComplexTypeDefinitionI
 		} else if (!displayNameAttribute.equals(other.displayNameAttribute)) {
 			return false;
 		}
-		if (identifiers == null) {
-			if (other.identifiers != null) {
-				return false;
-			}
-		} else if (!identifiers.equals(other.identifiers)) {
+		if (!identifiers.equals(other.identifiers)) {
 			return false;
 		}
 		if (intent == null) {
@@ -461,11 +292,7 @@ public class ObjectClassComplexTypeDefinitionImpl extends ComplexTypeDefinitionI
 		} else if (!nativeObjectClass.equals(other.nativeObjectClass)) {
 			return false;
 		}
-		if (secondaryIdentifiers == null) {
-			if (other.secondaryIdentifiers != null) {
-				return false;
-			}
-		} else if (!secondaryIdentifiers.equals(other.secondaryIdentifiers)) {
+		if (!secondaryIdentifiers.equals(other.secondaryIdentifiers)) {
 			return false;
 		}
 		return true;
@@ -494,15 +321,14 @@ public class ObjectClassComplexTypeDefinitionImpl extends ComplexTypeDefinitionI
 	}
 
 	@Override
-	protected void extendDumpDefinition(StringBuilder sb, ItemDefinition def) {
+	protected void extendDumpDefinition(StringBuilder sb, ItemDefinition<?> def) {
 		super.extendDumpDefinition(sb, def);
-		if (getPrimaryIdentifiers() != null && getPrimaryIdentifiers().contains(def)) {
+		if (getPrimaryIdentifiers().contains(def)) {
 			sb.append(",primID");
 		}
-		if (getSecondaryIdentifiers() != null && getSecondaryIdentifiers().contains(def)) {
+		if (getSecondaryIdentifiers().contains(def)) {
 			sb.append(",secID");
 		}
 	}
-	
 
 }

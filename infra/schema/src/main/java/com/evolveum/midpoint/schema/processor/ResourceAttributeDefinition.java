@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.schema.processor;
 
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
 
@@ -43,6 +44,7 @@ public interface ResourceAttributeDefinition<T> extends PrismPropertyDefinition<
 
 	String getFrameworkAttributeName();
 
+	@NotNull
 	@Override
 	ResourceAttributeDefinition<T> clone();
 }

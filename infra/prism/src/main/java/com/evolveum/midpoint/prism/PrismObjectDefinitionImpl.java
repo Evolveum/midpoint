@@ -66,6 +66,7 @@ public class PrismObjectDefinitionImpl<O extends Objectable> extends PrismContai
 		return midPointObject;
 	}
 	
+	@NotNull
 	@Override
 	public PrismObjectDefinitionImpl<O> clone() {
 		PrismObjectDefinitionImpl<O> clone = new PrismObjectDefinitionImpl<>(name, complexTypeDefinition, prismContext, compileTimeClass);

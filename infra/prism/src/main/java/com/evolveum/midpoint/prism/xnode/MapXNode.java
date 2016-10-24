@@ -271,8 +271,12 @@ public class MapXNode extends XNode implements Map<QName,XNode>, Serializable {
 	@Override
 	public void accept(Visitor visitor) {
 		visitor.visit(this);
-		for(Entry subentry: subnodes) {
-			subentry.value.accept(visitor);
+		for (Entry subentry: subnodes) {
+			if (subentry.value != null) {
+				subentry.value.accept(visitor);
+			} else {
+				//throw new IllegalStateException("null value of key " + subentry.key + " in map: " + debugDump());
+			}
 		}
 	}
 	

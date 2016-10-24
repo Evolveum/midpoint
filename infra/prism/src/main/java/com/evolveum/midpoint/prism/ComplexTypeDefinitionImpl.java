@@ -28,10 +28,7 @@ import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.util.QNameUtil;
 import org.apache.commons.lang.StringUtils;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import javax.xml.namespace.QName;
 
@@ -73,16 +70,13 @@ public class ComplexTypeDefinitionImpl extends DefinitionImpl implements Complex
 	 * 
 	 * @return set of definitions
 	 */
+	@NotNull
 	@Override
 	public List<? extends ItemDefinition> getDefinitions() {
-		return itemDefinitions;
+		return Collections.unmodifiableList(itemDefinitions);
 	}
 	
-	public void addDefinition(ItemDefinition itemDef) {
-		itemDefinitions.add(itemDef);
-	}
-
-	public void add(ItemDefinition definition) {
+	public void add(ItemDefinition<?> definition) {
 		itemDefinitions.add(definition);
 	}
 
@@ -275,9 +269,7 @@ public class ComplexTypeDefinitionImpl extends DefinitionImpl implements Complex
 		return itemDefinitions.isEmpty();
 	}
 
-	/**
-	 * Shallow clone.
-	 */
+	@NotNull
 	@Override
 	public ComplexTypeDefinitionImpl clone() {
 		ComplexTypeDefinitionImpl clone = new ComplexTypeDefinitionImpl(this.typeName, prismContext);
@@ -286,24 +278,25 @@ public class ComplexTypeDefinitionImpl extends DefinitionImpl implements Complex
 	}
 
 	public ComplexTypeDefinition deepClone() {
-		return deepClone(new HashMap<QName, ComplexTypeDefinition>());
+		return deepClone(new HashMap<>());
 	}
-	
-	ComplexTypeDefinitionImpl deepClone(Map<QName,ComplexTypeDefinition> ctdMap) {
-		ComplexTypeDefinitionImpl clone;
+
+	@NotNull
+	@Override
+	public ComplexTypeDefinition deepClone(Map<QName, ComplexTypeDefinition> ctdMap) {
 		if (ctdMap != null) {
-			clone = (ComplexTypeDefinitionImpl) ctdMap.get(this.getTypeName());
+			ComplexTypeDefinition clone = ctdMap.get(this.getTypeName());
 			if (clone != null) {
 				return clone; // already cloned
 			}
 		}
-		clone = clone(); // shallow
+		ComplexTypeDefinitionImpl clone = clone(); // shallow
 		if (ctdMap != null) {
 			ctdMap.put(this.getTypeName(), clone);
 		}
 		clone.itemDefinitions.clear();
 		for (ItemDefinition itemDef: this.itemDefinitions) {
-			clone.itemDefinitions.add(((ItemDefinitionImpl) itemDef).deepClone(ctdMap));
+			clone.itemDefinitions.add(itemDef.deepClone(ctdMap));
 		}
 		return clone;
 	}
@@ -443,7 +436,7 @@ public class ComplexTypeDefinitionImpl extends DefinitionImpl implements Complex
 		// Do nothing
 	}
 
-	protected void extendDumpDefinition(StringBuilder sb, ItemDefinition def) {
+	protected void extendDumpDefinition(StringBuilder sb, ItemDefinition<?> def) {
 		// Do nothing		
 	}
 

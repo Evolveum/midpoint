@@ -16,22 +16,22 @@
 package com.evolveum.midpoint.common.refinery;
 
 import com.evolveum.midpoint.common.ResourceObjectPattern;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.marshaller.QueryConvertor;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.ItemPathUtil;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.processor.*;
-import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
-import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
+import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceAttribute;
+import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
+import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
+import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.QNameUtil;
@@ -44,60 +44,546 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityTy
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CountObjectsCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.PagedSearchCapabilityType;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
-import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
-
-import javax.xml.namespace.QName;
-
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
+import javax.xml.namespace.QName;
 import java.util.*;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 /**
  * @author semancik
  */
-public class RefinedObjectClassDefinitionImpl extends ObjectClassComplexTypeDefinitionImpl implements
-		RefinedObjectClassDefinition {
+public class RefinedObjectClassDefinitionImpl implements RefinedObjectClassDefinition {
 
     private static final Trace LOGGER = TraceManager.getTrace(RefinedObjectClassDefinition.class);
 
-    private String intent;
+	@NotNull private final List<RefinedAttributeDefinition<?>> attributeDefinitions = new ArrayList<>();
+	@NotNull private final List<RefinedAssociationDefinition> associationDefinitions = new ArrayList<>();
+
+	@NotNull private final ObjectClassComplexTypeDefinition originalObjectClassDefinition;
+	@NotNull private final List<RefinedObjectClassDefinition> auxiliaryObjectClassDefinitions = new ArrayList<>();
+
+	@NotNull private final ResourceType resourceType;
+	private ResourceObjectTypeDefinitionType schemaHandlingObjectTypeDefinitionType;
+	private String intent;
+	private ShadowKindType kind;
     private String displayName;
     private String description;
     private boolean isDefault;
-    private ObjectClassComplexTypeDefinition objectClassDefinition;
-    private ResourceObjectTypeDefinitionType schemaHandlingObjectTypeDefinitionType;
-    private ResourceType resourceType;
-    private Collection<? extends RefinedAttributeDefinition<?>> identifiers;
-	private Collection<? extends RefinedAttributeDefinition<?>> secondaryIdentifiers;
-	private Collection<ResourceObjectPattern> protectedObjectPatterns;
-	private List<RefinedAttributeDefinition<?>> attributeDefinitions;
-	private Collection<RefinedAssociationDefinition> associations = new ArrayList<RefinedAssociationDefinition>();
-	private Collection<RefinedObjectClassDefinition> auxiliaryObjectClassDefinitions;
-	private ResourceObjectReferenceType baseContext; 
+    @NotNull private final List<RefinedAttributeDefinition<?>> identifiers = new ArrayList<>();
+	@NotNull private final List<RefinedAttributeDefinition<?>> secondaryIdentifiers = new ArrayList<>();
+	@NotNull private final List<ResourceObjectPattern> protectedObjectPatterns = new ArrayList<>();
+	private ResourceObjectReferenceType baseContext;
 	private RefinedAttributeDefinition<?> displayNameAttributeDefinition;
-	
+	private RefinedAttributeDefinition<?> namingAttributeDefinition;
+	private RefinedAttributeDefinition<?> descriptionAttributeDefinition;
+
     /**
      * Refined object definition. The "any" parts are replaced with appropriate schema (e.g. resource schema)
      */
-    PrismObjectDefinition<ShadowType> objectDefinition = null;
-	private ShadowKindType kind = null;
-    
-    /**
-     * This is needed by the LayerRefinedObjectClassDefinition class
-     */
-    protected RefinedObjectClassDefinitionImpl(QName typeName, PrismContext prismContext) {
-    	super(typeName, prismContext);
+	private PrismObjectDefinition<ShadowType> objectDefinition = null;
+
+    private RefinedObjectClassDefinitionImpl(@NotNull ResourceType resourceType, @NotNull ObjectClassComplexTypeDefinition objectClassDefinition) {
+        this.resourceType = resourceType;
+        this.originalObjectClassDefinition = objectClassDefinition;
     }
 
-    private RefinedObjectClassDefinitionImpl(PrismContext prismContext, ResourceType resourceType,
-    		ObjectClassComplexTypeDefinition objectClassDefinition) {
-        super(objectClassDefinition.getTypeName(), prismContext);
-        Validate.notNull(objectClassDefinition, "ObjectClass definition must not be null");
-        attributeDefinitions = new ArrayList<>();
-        this.resourceType = resourceType;
-        this.objectClassDefinition = objectClassDefinition;
-    }
+	//region General attribute definitions ========================================================
+	@NotNull
+	@Override
+	public Collection<? extends RefinedAttributeDefinition<?>> getAttributeDefinitions() {
+		return Collections.unmodifiableList(attributeDefinitions);
+	}
+
+	@NotNull
+	@Override
+	public List<? extends ItemDefinition> getDefinitions() {
+		return (List<? extends ItemDefinition>) getAttributeDefinitions();
+	}
+
+	@Override
+	public Collection<? extends QName> getNamesOfAttributesWithOutboundExpressions() {
+		return getAttributeDefinitions().stream()
+				.filter(attrDef -> attrDef.getOutboundMappingType() != null)
+				.map(attrDef -> attrDef.getName())
+				.collect(Collectors.toCollection(HashSet::new));
+	}
+
+	@Override
+	public Collection<? extends QName> getNamesOfAttributesWithInboundExpressions() {
+		return getAttributeDefinitions().stream()
+				.filter(attrDef -> CollectionUtils.isNotEmpty(attrDef.getInboundMappingTypes()))
+				.map(attrDef -> attrDef.getName())
+				.collect(Collectors.toCollection(HashSet::new));
+	}
+
+	@Override
+	public <ID extends ItemDefinition> ID findItemDefinition(@NotNull QName name, @NotNull Class<ID> clazz,
+			boolean caseInsensitive) {
+		for (ItemDefinition def : getDefinitions()) {
+			if (def.isValidFor(name, clazz, caseInsensitive)) {
+				return (ID) def;
+			}
+		}
+		return null;
+	}
+
+	//endregion
+
+	//region Special attribute definitions ========================================================
+	@NotNull
+	@Override
+	public Collection<RefinedAttributeDefinition<?>> getPrimaryIdentifiers() {
+		return identifiers;
+	}
+
+	@NotNull
+	@Override
+	public Collection<RefinedAttributeDefinition<?>> getSecondaryIdentifiers() {
+		return secondaryIdentifiers;
+	}
+
+	@Override
+	public <X> RefinedAttributeDefinition<X> getDescriptionAttribute() {
+		return substituteRefinedAttributeDefinition(
+				() -> (RefinedAttributeDefinition<X>) descriptionAttributeDefinition,
+				rad -> descriptionAttributeDefinition = rad,
+				originalObjectClassDefinition::getDescriptionAttribute
+		);
+	}
+
+	@Override
+	public <X> RefinedAttributeDefinition<X> getNamingAttribute() {
+		return substituteRefinedAttributeDefinition(
+				() -> (RefinedAttributeDefinition<X>) namingAttributeDefinition,
+				rad -> namingAttributeDefinition = rad,
+				originalObjectClassDefinition::getNamingAttribute
+		);
+	}
+
+	@Override
+	public <X> RefinedAttributeDefinition<X> getDisplayNameAttribute() {
+		return substituteRefinedAttributeDefinition(
+				() -> (RefinedAttributeDefinition<X>) displayNameAttributeDefinition,
+				rad -> displayNameAttributeDefinition = rad,
+				originalObjectClassDefinition::getDisplayNameAttribute
+		);
+	}
+
+	private <X> RefinedAttributeDefinition<X> substituteRefinedAttributeDefinition(
+			Supplier<RefinedAttributeDefinition<X>> getter, Consumer<RefinedAttributeDefinition<X>> setter,
+			Supplier<ResourceAttributeDefinition<X>> getterOfOriginal) {
+		RefinedAttributeDefinition<X> value = getter.get();
+		if (value == null) {
+			ResourceAttributeDefinition original = getterOfOriginal.get();
+			if (original == null) {
+				return null;
+			}
+			value = findAttributeDefinition(original.getName());
+			setter.accept(value);
+		}
+		return value;
+	}
+	//endregion
+
+	//region General association definitions ========================================================
+	@NotNull
+	@Override
+	public Collection<RefinedAssociationDefinition> getAssociationDefinitions() {
+		return Collections.unmodifiableList(associationDefinitions);
+	}
+
+	@Override
+	public Collection<RefinedAssociationDefinition> getAssociationDefinitions(ShadowKindType kind) {
+		return Collections.unmodifiableList(
+				associationDefinitions.stream()
+						.filter(association -> kind == association.getKind())
+						.collect(Collectors.toList()));
+	}
+
+	@Override
+	public RefinedAssociationDefinition findAssociationDefinition(QName name) {
+		return associationDefinitions.stream()
+				.filter(a -> QNameUtil.match(a.getName(), name))
+				.findFirst().orElse(null);
+	}
+
+	@Override
+	public RefinedAssociationDefinition findEntitlementAssociationDefinition(QName name) {
+		return getEntitlementAssociationDefinitions().stream()
+				.filter(a -> QNameUtil.match(a.getName(), name))
+				.findFirst().orElse(null);
+	}
+
+	@Override
+	public Collection<QName> getNamesOfAssociations() {
+		return getAssociationDefinitions().stream()
+				.map(a -> a.getName())
+				.collect(Collectors.toCollection(HashSet::new));
+	}
+
+	@Override
+	public Collection<? extends QName> getNamesOfAssociationsWithOutboundExpressions() {
+		return getAssociationDefinitions().stream()
+				.filter(assocDef -> assocDef.getOutboundMappingType() != null)
+				.map(a -> a.getName())
+				.collect(Collectors.toCollection(HashSet::new));
+	}
+	//endregion
+
+	//region General information ========================================================
+	@Override
+	public String getDisplayName() {
+		return displayName;
+	}
+
+	private void setDisplayName(String displayName) {
+		this.displayName = displayName;
+	}
+
+	@Override
+	public String getDescription() {
+		return description;
+	}
+
+	private void setDescription(String description) {
+		this.description = description;
+	}
+
+	@Override
+	public ObjectClassComplexTypeDefinition getObjectClassDefinition() {
+		return originalObjectClassDefinition;
+	}
+
+	@NotNull
+	@Override
+	public ResourceType getResourceType() {
+		return resourceType;
+	}
+
+	@Override
+	public String getResourceNamespace() {
+		return ResourceTypeUtil.getResourceNamespace(getResourceType());
+	}
+
+	@Override
+	public boolean isDefault() {
+		return isDefault;
+	}
+
+	private void setDefault(boolean isDefault) {
+		this.isDefault = isDefault;
+	}
+
+	@Override
+	public boolean isDefaultInAKind() {
+		return isDefault;
+	}
+
+	@Override
+	public ResourceObjectReferenceType getBaseContext() {
+		return baseContext;
+	}
+
+	private void setBaseContext(ResourceObjectReferenceType baseContext) {
+		this.baseContext = baseContext;
+	}
+
+	@Override
+	public String getIntent() {
+		return intent;
+	}
+
+	public void setIntent(String intent) {
+		this.intent = intent;
+	}
+
+	@Override
+	public ShadowKindType getKind() {
+		if (kind != null) {
+			return kind;
+		}
+		return getObjectClassDefinition().getKind();
+	}
+
+	public void setKind(ShadowKindType kind) {
+		this.kind = kind;
+	}
+
+	//endregion
+
+	//region Generating and matching artifacts ========================================================
+
+	@Override
+	public PrismObjectDefinition<ShadowType> getObjectDefinition() {
+		if (objectDefinition == null) {
+			objectDefinition = constructObjectDefinition(this);
+		}
+		return objectDefinition;
+	}
+
+	static PrismObjectDefinition<ShadowType> constructObjectDefinition(RefinedObjectClassDefinition refinedObjectClassDefinition) {
+		// Almost-shallow clone of object definition and complex type
+		PrismObjectDefinition<ShadowType> originalObjectDefinition =
+				refinedObjectClassDefinition.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ShadowType.class);
+		return originalObjectDefinition.cloneWithReplacedDefinition(ShadowType.F_ATTRIBUTES,
+				refinedObjectClassDefinition.toResourceAttributeContainerDefinition());
+	}
+
+	@Override
+	public PrismObject<ShadowType> createBlankShadow() {
+		PrismObject<ShadowType> accountShadow;
+		try {
+			accountShadow = getPrismContext().createObject(ShadowType.class);
+		} catch (SchemaException e) {
+			// This should not happen
+			throw new SystemException("Internal error instantiating account shadow: "+e.getMessage(), e);
+		}
+		ShadowType accountShadowType = accountShadow.asObjectable();
+
+		accountShadowType.setIntent(getIntent());
+		accountShadowType.setKind(getKind());
+		accountShadowType.setObjectClass(getObjectClassDefinition().getTypeName());
+		accountShadowType.setResourceRef(ObjectTypeUtil.createObjectRef(getResourceType()));
+
+		// Setup definition
+		PrismObjectDefinition<ShadowType> newDefinition = accountShadow.getDefinition().cloneWithReplacedDefinition(
+				ShadowType.F_ATTRIBUTES, toResourceAttributeContainerDefinition());
+		accountShadow.setDefinition(newDefinition);
+
+		return accountShadow;
+	}
+
+	@Override
+	public ResourceShadowDiscriminator getShadowDiscriminator() {
+		return new ResourceShadowDiscriminator(getResourceType().getOid(), getKind(), getIntent());
+	}
+
+	@Override
+	public boolean matches(ShadowType shadowType) {
+		if (shadowType == null) {
+			return false;
+		}
+		if (!QNameUtil.match(getObjectClassDefinition().getTypeName(), shadowType.getObjectClass())) {
+			return false;
+		}
+		if (shadowType.getKind() == null) {
+			if (kind != ShadowKindType.ACCOUNT) {
+				return false;
+			}
+		} else {
+			if (!MiscUtil.equals(kind, shadowType.getKind())) {
+				return false;
+			}
+		}
+		if (shadowType.getIntent() != null) {
+			//			if (isDefault) {
+			//				return true;
+			//			} else {
+			//				return false;
+			//			}
+			//		} else {
+			return MiscUtil.equals(intent, shadowType.getIntent());
+		}
+		return true;
+	}
+
+	@Override
+	public ObjectQuery createShadowSearchQuery(String resourceOid) throws SchemaException {
+		if (getKind() == null) {
+			return ObjectQueryUtil.createResourceAndObjectClassQuery(resourceOid, getTypeName(), getPrismContext());
+		} else {
+			return ObjectQueryUtil.createResourceAndKindIntent(resourceOid, getKind(), getIntent(), getPrismContext());
+		}
+	}
+	//endregion
+
+	//region Accessing parts of schema handling ========================================================
+	@NotNull
+	@Override
+	public Collection<RefinedObjectClassDefinition> getAuxiliaryObjectClassDefinitions() {
+		return auxiliaryObjectClassDefinitions;
+	}
+
+	@Override
+	public boolean hasAuxiliaryObjectClass(QName expectedObjectClassName) {
+		return auxiliaryObjectClassDefinitions.stream()
+				.anyMatch(def -> QNameUtil.match(def.getTypeName(), expectedObjectClassName));
+	}
+
+	@Override
+	public Collection<ResourceObjectPattern> getProtectedObjectPatterns() {
+		return protectedObjectPatterns;
+	}
+
+	@Override
+	public ResourcePasswordDefinitionType getPasswordDefinition() {
+		if (schemaHandlingObjectTypeDefinitionType == null) {
+			return null;
+		}
+		ResourceCredentialsDefinitionType credentials = schemaHandlingObjectTypeDefinitionType.getCredentials();
+		if (credentials == null) {
+			return null;
+		}
+		return credentials.getPassword();
+	}
+
+	@Override
+	public List<MappingType> getPasswordInbound() {
+		ResourcePasswordDefinitionType password = getPasswordDefinition();
+		if (password == null || password.getInbound() == null) {
+			return null;
+		}
+		return password.getInbound();
+	}
+
+	@Override
+	public MappingType getPasswordOutbound() {
+		ResourcePasswordDefinitionType password = getPasswordDefinition();
+		if (password == null || password.getOutbound() == null) {
+			return null;
+		}
+		return password.getOutbound();
+	}
+
+	@Override
+	public AttributeFetchStrategyType getPasswordFetchStrategy() {
+		ResourcePasswordDefinitionType password = getPasswordDefinition();
+		if (password == null) {
+			return AttributeFetchStrategyType.IMPLICIT;
+		}
+		if (password.getFetchStrategy() == null) {
+			return AttributeFetchStrategyType.IMPLICIT;
+		}
+		return password.getFetchStrategy();
+	}
+
+	@Override
+	public ObjectReferenceType getPasswordPolicy() {
+		ResourcePasswordDefinitionType password = getPasswordDefinition();
+		if (password == null || password.getPasswordPolicyRef() == null){
+			return null;
+		}
+		return password.getPasswordPolicyRef();
+	}
+
+
+	@Override
+	public ResourceActivationDefinitionType getActivationSchemaHandling(){
+		if (schemaHandlingObjectTypeDefinitionType == null) {
+			return null;
+		}
+		return schemaHandlingObjectTypeDefinitionType.getActivation();
+	}
+
+	@Override
+	public ResourceBidirectionalMappingType getActivationBidirectionalMappingType(QName propertyName) {
+		ResourceActivationDefinitionType activationSchemaHandling = getActivationSchemaHandling();
+		if (activationSchemaHandling == null) {
+			return null;
+		}
+		if (QNameUtil.match(ActivationType.F_ADMINISTRATIVE_STATUS, propertyName)) {
+			return activationSchemaHandling.getAdministrativeStatus();
+		} else if (QNameUtil.match(ActivationType.F_VALID_FROM, propertyName)) {
+			return activationSchemaHandling.getValidFrom();
+		} else if (QNameUtil.match(ActivationType.F_VALID_TO, propertyName)) {
+			return activationSchemaHandling.getValidTo();
+		} else if (QNameUtil.match(ActivationType.F_LOCKOUT_STATUS, propertyName)) {
+			return activationSchemaHandling.getLockoutStatus();
+		} else if (QNameUtil.match(ActivationType.F_LOCKOUT_EXPIRATION_TIMESTAMP, propertyName)) {
+			return null;            // todo implement this
+		} else {
+			throw new IllegalArgumentException("Unknown activation property "+propertyName);
+		}
+	}
+
+	@Override
+	public AttributeFetchStrategyType getActivationFetchStrategy(QName propertyName) {
+		ResourceBidirectionalMappingType biType = getActivationBidirectionalMappingType(propertyName);
+		if (biType == null) {
+			return AttributeFetchStrategyType.IMPLICIT;
+		}
+		if (biType.getFetchStrategy() == null) {
+			return AttributeFetchStrategyType.IMPLICIT;
+		}
+		return biType.getFetchStrategy();
+	}
+	//endregion
+
+	//region Capabilities ========================================================
+	@Override
+	public <T extends CapabilityType> T getEffectiveCapability(Class<T> capabilityClass) {
+		return ResourceTypeUtil.getEffectiveCapability(getResourceType(), schemaHandlingObjectTypeDefinitionType, capabilityClass);
+	}
+
+	@Override
+	public PagedSearchCapabilityType getPagedSearches() {
+		return getEffectiveCapability(PagedSearchCapabilityType.class);
+	}
+
+	@Override
+	public boolean isPagedSearchEnabled() {
+		return getPagedSearches() != null;          // null means nothing or disabled
+	}
+
+	@Override
+	public boolean isObjectCountingEnabled() {
+		return getEffectiveCapability(CountObjectsCapabilityType.class) != null;
+	}
+	//endregion
+
+	//region Cloning ========================================================
+	@NotNull
+	@Override
+	public RefinedObjectClassDefinitionImpl clone() {
+		RefinedObjectClassDefinitionImpl clone = new RefinedObjectClassDefinitionImpl(resourceType, originalObjectClassDefinition);
+		copyDefinitionData(clone);
+		return clone;
+	}
+
+	// assuming we are called on empty object
+	private void copyDefinitionData(RefinedObjectClassDefinitionImpl clone) {
+		clone.attributeDefinitions.addAll(cloneDefinitions(this.attributeDefinitions));
+		clone.associationDefinitions.addAll(cloneAssociations(this.associationDefinitions));
+		clone.auxiliaryObjectClassDefinitions.addAll(auxiliaryObjectClassDefinitions);
+		clone.schemaHandlingObjectTypeDefinitionType = this.schemaHandlingObjectTypeDefinitionType;
+		clone.intent = this.intent;
+		clone.kind = this.kind;
+		clone.displayName = this.displayName;
+		clone.description = this.description;
+		clone.isDefault = this.isDefault;
+		clone.identifiers.addAll(cloneDefinitions(this.identifiers));
+		clone.secondaryIdentifiers.addAll(cloneDefinitions(this.secondaryIdentifiers));
+		clone.protectedObjectPatterns.addAll(this.protectedObjectPatterns);
+		clone.baseContext = this.baseContext;
+	}
+
+	@NotNull
+	@Override
+	public RefinedObjectClassDefinition deepClone(Map<QName, ComplexTypeDefinition> ctdMap) {
+		// TODO TODO TODO (note that in original implementation this was also missing...)
+		return clone();
+	}
+
+	private Collection<RefinedAssociationDefinition> cloneAssociations(Collection<RefinedAssociationDefinition> origAsoc) {
+		return origAsoc.stream()
+				.map(RefinedAssociationDefinition::clone)
+				.collect(Collectors.toList());
+	}
+
+	private List<? extends RefinedAttributeDefinition<?>> cloneDefinitions(Collection<? extends RefinedAttributeDefinition<?>> origDefs) {
+		return origDefs.stream()
+				.map(RefinedAttributeDefinition::clone)
+				.collect(Collectors.toList());
+	}
+
+	//endregion
 
     /**
      * Creates a derived version of this ROCD for a given layer.
@@ -112,22 +598,9 @@ public class RefinedObjectClassDefinitionImpl extends ObjectClassComplexTypeDefi
         return LayerRefinedObjectClassDefinitionImpl.wrap(this, layerType);
     }
 
-    @Override
-    public ResourceAttributeDefinition<?> getDescriptionAttribute() {
-        return getObjectClassDefinition().getDescriptionAttribute();
-    }
 
-    @Override
-    public void setDescriptionAttribute(ResourceAttributeDefinition<?> descriptionAttribute) {
-        throw new UnsupportedOperationException("Parts of refined account are immutable");
-    }
-
-    @Override
-    public RefinedAttributeDefinition<?> getNamingAttribute() {
-        return substituteRefinedAttributeDefinition(getObjectClassDefinition().getNamingAttribute());
-    }
-    
-    @NotNull
+    //region Delegations ========================================================
+	@NotNull
 	@Override
     public QName getTypeName() {
         return getObjectClassDefinition().getTypeName();
@@ -138,354 +611,164 @@ public class RefinedObjectClassDefinitionImpl extends ObjectClassComplexTypeDefi
         return getObjectClassDefinition().getNativeObjectClass();
     }
 
-    @Override
-    public boolean isDefaultInAKind() {
-        return isDefault;
-    }
-
-    @Override
-    public void setDefaultInAKind(boolean defaultAccountType) {
-        this.isDefault = defaultAccountType;
-    }
-
-    @Override
-    public String getIntent() {
-        return intent;
-    }
-
-    @Override
-    public void setIntent(String intent) {
-        this.intent = intent;
-    }
-    
-    @Override
-	public ShadowKindType getKind() {
-    	if (kind != null) {
-    		return kind;
-    	}
-		return getObjectClassDefinition().getKind();
+	public boolean isAuxiliary() {
+		return getObjectClassDefinition().isAuxiliary();
 	}
 
-	@Override
-	public void setKind(ShadowKindType kind) {
-		this.kind = kind;
-	}
-
-	@Override
-    public RefinedAttributeDefinition<?> getDisplayNameAttribute() {
-		if (displayNameAttributeDefinition == null) {
-			ResourceAttributeDefinition<?> displayNameAttribute = getObjectClassDefinition().getDisplayNameAttribute();
-			if (displayNameAttribute == null) {
-				return null;
-			}
-			displayNameAttributeDefinition = substituteRefinedAttributeDefinition(displayNameAttribute);
-		}
-		return displayNameAttributeDefinition;
-    }
-
-    @Override
-    public void setDisplayNameAttribute(QName displayName) {
-        throw new UnsupportedOperationException("Parts of refined account are immutable");
-    }
-    
-    @Override
-	public Collection<? extends RefinedAttributeDefinition<?>> getPrimaryIdentifiers() {
-		if (identifiers == null) {
-			identifiers = createIdentifiersCollection();
-		}
-		return identifiers;
-	}
-
-	@Override
-	public Collection<? extends RefinedAttributeDefinition<?>> getSecondaryIdentifiers() {
-		if (secondaryIdentifiers == null) {
-			secondaryIdentifiers = createIdentifiersCollection();
-		}
-		return secondaryIdentifiers;
-	}
-	
-	public Collection<? extends RefinedAttributeDefinition<?>> getAllIdentifiers() {
-		Collection<? extends RefinedAttributeDefinition<?>> allIdentifiers = new ArrayList<>();
-		if (identifiers != null) {
-			allIdentifiers.addAll((Collection)getPrimaryIdentifiers());
-		}
-		if (secondaryIdentifiers != null) {
-			allIdentifiers.addAll((Collection)getSecondaryIdentifiers());
-		}
-		return allIdentifiers;
-	}
-
-	private Collection<? extends RefinedAttributeDefinition<?>> createIdentifiersCollection() {
-		return new ArrayList<>();
-	}
-	
-	@Override
-	public Collection<RefinedAssociationDefinition> getAssociations() {
-		return associations;
-	}
-	
-	@Override
-	public Collection<RefinedAssociationDefinition> getAssociations(ShadowKindType kind) {
-		Collection<RefinedAssociationDefinition> retAssoc = new ArrayList<RefinedAssociationDefinition>();
-		for (RefinedAssociationDefinition association: associations) {
-			if (kind == association.getKind()) {
-				retAssoc.add(association);
-			}
-		}
-		return retAssoc;
-	}
-
-	@Override
-	public RefinedAssociationDefinition findAssociation(QName name) {
-		for (RefinedAssociationDefinition assocType: getAssociations()) {
-			if (QNameUtil.match(assocType.getName(), name)) {
-				return assocType;
-			}
-		}
-		return null;
-	}
-
-	@Override
-	public Collection<RefinedAssociationDefinition> getEntitlementAssociations() {
-		return getAssociations(ShadowKindType.ENTITLEMENT);
-	}
-	
-	@Override
-	public RefinedAssociationDefinition findEntitlementAssociation(QName name) {
-		for (RefinedAssociationDefinition assocType: getEntitlementAssociations()) {
-			if (QNameUtil.match(assocType.getName(), name)) {
-				return assocType;
-			}
-		}
-		return null;
-	}
-	
-    @Override
-	public Collection<QName> getNamesOfAssociations() {
-        Collection<QName> names = new HashSet<QName>();
-        for (RefinedAssociationDefinition assocDef : getAssociations()) {
-            names.add(assocDef.getName());
-        }
-        return names;
-    }
-
-    @Override
-	public Collection<? extends QName> getNamesOfAssociationsWithOutboundExpressions() {
-        Collection<QName> names = new HashSet<QName>();
-        for (RefinedAssociationDefinition assocDef : getAssociations()) {
-            if (assocDef.getOutboundMappingType() != null) {
-                names.add(assocDef.getName());
-            }
-        }
-        return names;
-    }
-    
-    @Override
-	public Collection<RefinedObjectClassDefinition> getAuxiliaryObjectClassDefinitions() {
-		return auxiliaryObjectClassDefinitions;
-	}
-    
-	@Override
-	public boolean hasAuxiliaryObjectClass(QName expectedObjectClassName) {
-		if (getAuxiliaryObjectClassDefinitions() == null) {
-			return false;
-		}
-		for (RefinedObjectClassDefinition auxiliaryObjectClassDefinition: getAuxiliaryObjectClassDefinitions()) {
-			if (QNameUtil.match(auxiliaryObjectClassDefinition.getTypeName(), expectedObjectClassName)) {
-				return true;
-			}
-		}
-		return false;
-	}
-
-	@Override
-	public Collection<ResourceObjectPattern> getProtectedObjectPatterns() {
-		if (protectedObjectPatterns == null) {
-			protectedObjectPatterns = new ArrayList<ResourceObjectPattern>();
-		}
-		return protectedObjectPatterns;
-	}
-	
 	public PrismContext getPrismContext() {
 		return getResourceType().asPrismObject().getPrismContext();
 	}
 
-    @Override
-    public RefinedObjectClassDefinitionImpl clone() {
-        RefinedObjectClassDefinitionImpl clone = new RefinedObjectClassDefinitionImpl(getPrismContext(), resourceType, objectClassDefinition);
-        copyDefinitionData(clone);
-        return clone;
-    }
-
-    private void copyDefinitionData(RefinedObjectClassDefinitionImpl clone) {
-        super.copyDefinitionData(clone);
-        clone.intent = this.intent;
-        clone.kind = this.kind;
-        clone.attributeDefinitions = cloneDefinitions(this.attributeDefinitions);
-        clone.identifiers = cloneDefinitions(this.identifiers);
-        clone.secondaryIdentifiers = cloneDefinitions(this.secondaryIdentifiers);
-        clone.associations = cloneAssociations(this.associations);
-        clone.baseContext = this.baseContext;
-        clone.description = this.description;
-        clone.displayName = this.displayName;
-        clone.isDefault = this.isDefault;
-        clone.objectClassDefinition = this.objectClassDefinition.clone();
-        clone.objectDefinition = this.objectDefinition;
-        clone.resourceType = this.resourceType;
-        clone.protectedObjectPatterns = this.protectedObjectPatterns;
-        clone.resourceType = this.resourceType;
-        clone.schemaHandlingObjectTypeDefinitionType = this.schemaHandlingObjectTypeDefinitionType;
-    }
-
-    private Collection<RefinedAssociationDefinition> cloneAssociations(
-			Collection<RefinedAssociationDefinition> origAsoc) {
-    	if (origAsoc == null) {
-    		return null;
-    	}
-    	Collection<RefinedAssociationDefinition> cloned = new ArrayList<>();
-    	for (RefinedAssociationDefinition rAsocDef: origAsoc) {
-    		cloned.add(rAsocDef.clone());
-    	}
-		return cloned;
+	@Nullable
+	@Override
+	public Class<?> getCompileTimeClass() {
+		return originalObjectClassDefinition.getCompileTimeClass();		// most probably null
 	}
 
-	private List<RefinedAttributeDefinition<?>> cloneDefinitions(Collection<? extends RefinedAttributeDefinition<?>> origDefs) {
-    	if (origDefs == null) {
-    		return null;
-    	}
-		List<RefinedAttributeDefinition<?>> clonedAttributes = new ArrayList<>();
-		for (RefinedAttributeDefinition<?> attributeDefinition: origDefs) {
-			clonedAttributes.add(attributeDefinition.clone());
+	@Nullable
+	@Override
+	public QName getExtensionForType() {
+		return originalObjectClassDefinition.getExtensionForType();		// most probably null
+	}
+
+	@Override
+	public boolean isContainerMarker() {
+		return originalObjectClassDefinition.isContainerMarker();			// most probably false
+	}
+
+	@Override
+	public boolean isObjectMarker() {
+		return originalObjectClassDefinition.isObjectMarker(); 		// most probably false
+	}
+
+	@Override
+	public boolean isXsdAnyMarker() {
+		return originalObjectClassDefinition.isXsdAnyMarker();
+	}
+
+	// TODO
+	@Override
+	public <ID extends ItemDefinition> ID findItemDefinition(@NotNull ItemPath path, @NotNull Class<ID> clazz) {
+		if (path.size() != 1) {
+			return null;
 		}
-		return clonedAttributes;
+		QName first = ItemPath.getFirstName(path);
+		if (first == null) {
+			return null;
+		}
+		return findItemDefinition(first, clazz);
+	}
+
+	// TODO
+	@Override
+	public <ID extends ItemDefinition> ID findNamedItemDefinition(@NotNull QName firstName, @NotNull ItemPath rest,
+			@NotNull Class<ID> clazz) {
+		return findItemDefinition(firstName);
+	}
+
+	@Nullable
+	@Override
+	public String getDefaultNamespace() {
+		return originalObjectClassDefinition.getDefaultNamespace();
 	}
 
 	@Override
-	public <X> RefinedAttributeDefinition<X> findAttributeDefinition(QName name) {
-		return findItemDefinition(name, RefinedAttributeDefinition.class);
+	public boolean isRuntimeSchema() {
+		return originalObjectClassDefinition.isRuntimeSchema();
 	}
 
 	@Override
-    public <X> RefinedAttributeDefinition<X> findAttributeDefinition(String elementLocalname) {
-        QName elementQName = new QName(getResourceNamespace(), elementLocalname);
-        return findAttributeDefinition(elementQName);
-    }
+	public boolean isSecondaryIdentifier(QName attrName) {
+		return originalObjectClassDefinition.isSecondaryIdentifier(attrName);
+	}
 
+	@NotNull
 	@Override
-	public String getResourceNamespace() {
-		return ResourceTypeUtil.getResourceNamespace(getResourceType());
+	public List<String> getIgnoredNamespaces() {
+		return originalObjectClassDefinition.getIgnoredNamespaces();
+	}
+
+	@Nullable
+	@Override
+	public QName getSuperType() {
+		return originalObjectClassDefinition.getSuperType();
 	}
 
 	@Override
-    public String getDisplayName() {
-        return displayName;
-    }
-
-    @Override
-    public void setDisplayName(String displayName) {
-        this.displayName = displayName;
-    }
-
-    
-    @Override
-	public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-    
-	@Override
-	public boolean isDefault() {
-        return isDefault;
-    }
-
-    public void setDefault(boolean isDefault) {
-        this.isDefault = isDefault;
-    }
-
-    @Override
-	public ObjectClassComplexTypeDefinition getObjectClassDefinition() {
-        return objectClassDefinition;
-    }
-
-    public void setObjectClassDefinition(ObjectClassComplexTypeDefinition objectClassDefinition) {
-    	Validate.notNull(objectClassDefinition, "ObjectClass definition must not be null");
-        this.objectClassDefinition = objectClassDefinition;
-    }
-    
-    @Override
-    public Collection<? extends RefinedAttributeDefinition<?>> getAttributeDefinitions() {
-        return attributeDefinitions;
-    }
-    
-	@Override
-    public List<? extends ItemDefinition> getDefinitions() {
-        return (List) getAttributeDefinitions();
-    }
-
-    @Override
-	public ResourceType getResourceType() {
-        return resourceType;
-    }
-
-    @Override
-	public PrismObjectDefinition<ShadowType> getObjectDefinition() {
-        if (objectDefinition == null) {
-            objectDefinition = constructObjectDefinition(this);
-        }
-        return objectDefinition;
-    }
-
-    @Override
-	public ResourceObjectReferenceType getBaseContext() {
-		return baseContext;
+	public void merge(ComplexTypeDefinition otherComplexTypeDef) {
+		throw new UnsupportedOperationException("TODO implement this");
 	}
 
-	public void setBaseContext(ResourceObjectReferenceType baseContext) {
-		this.baseContext = baseContext;
+	@Override
+	public void revive(PrismContext prismContext) {
+		originalObjectClassDefinition.revive(prismContext);
+		// TODO revive attributes
 	}
 
-	public static PrismObjectDefinition<ShadowType> constructObjectDefinition(RefinedObjectClassDefinition refinedObjectClassDefinition) {
-        // Almost-shallow clone of object definition and complex type
-        PrismObjectDefinition<ShadowType> originalObjectDefinition =
-				refinedObjectClassDefinition.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ShadowType.class);
-		return originalObjectDefinition.cloneWithReplacedDefinition(ShadowType.F_ATTRIBUTES,
-				refinedObjectClassDefinition.toResourceAttributeContainerDefinition());
-    }
+	@Override
+	public boolean isIgnored() {
+		return originalObjectClassDefinition.isIgnored();
+	}
 
 	@Override
-	public RefinedAttributeDefinition<?> getAttributeDefinition(QName attributeName) {
-        for (RefinedAttributeDefinition<?> attrDef : getAttributeDefinitions()) {
-            if (QNameUtil.match(attrDef.getName(), attributeName)) {
-                return attrDef;
-            }
-        }
-        return null;
-    }
+	public boolean isAbstract() {
+		return originalObjectClassDefinition.isAbstract();
+	}
 
+	@Override
+	public boolean isEmpty() {
+		return attributeDefinitions.isEmpty() && associationDefinitions.isEmpty();
+	}
 
-    public void add(RefinedAttributeDefinition<?> refinedAttributeDefinition) {
-    	((Collection)getAttributeDefinitions()).add(refinedAttributeDefinition);
-    }
+	@Override
+	public boolean isDeprecated() {
+		return originalObjectClassDefinition.isDeprecated();
+	}
 
-    @Override
-	public boolean containsAttributeDefinition(ItemPathType pathType) {
-        QName segmentQName = ItemPathUtil.getOnlySegmentQName(pathType);
-        return containsAttributeDefinition(segmentQName);
-    }
-    
-    @Override
-	public boolean containsAttributeDefinition(QName attributeName) {
-        for (RefinedAttributeDefinition<?> rAttributeDef : getAttributeDefinitions()) {
-            if (QNameUtil.match(rAttributeDef.getName(), attributeName)) {
-                return true;
-            }
-        }
-        return false;
-    }
-    
+	@Override
+	public boolean isEmphasized() {
+		return originalObjectClassDefinition.isEmphasized();
+	}
+
+	@Override
+	public Integer getDisplayOrder() {
+		return originalObjectClassDefinition.getDisplayOrder();
+	}
+
+	@Override
+	public String getHelp() {
+		return originalObjectClassDefinition.getHelp();
+	}
+
+	@Override
+	public String getDocumentation() {
+		return originalObjectClassDefinition.getDocumentation();
+	}
+
+	@Override
+	public String getDocumentationPreview() {
+		return originalObjectClassDefinition.getDocumentationPreview();
+	}
+
+	@Override
+	public Class getTypeClassIfKnown() {
+		return originalObjectClassDefinition.getTypeClassIfKnown();
+	}
+
+	@Override
+	public Class getTypeClass() {
+		return originalObjectClassDefinition.getTypeClass();
+	}
+
+	@Override
+	public ResourceAttributeContainer instantiate(QName elementName) {
+		return originalObjectClassDefinition.instantiate(elementName);			// TODO doesn't preserve 'this' in instantiated RAC
+	}
+
+	//endregion
+
+    //region ==== Parsing =================================================================================
+
     static RefinedObjectClassDefinition parse(ResourceObjectTypeDefinitionType entTypeDefType,
 			ResourceType resourceType, RefinedResourceSchema rSchema, ShadowKindType impliedKind, PrismContext prismContext,
 			String contextDescription) throws SchemaException {
@@ -528,7 +811,7 @@ public class RefinedObjectClassDefinitionImpl extends ObjectClassComplexTypeDefi
 		
 		// Deprecated
 		if (patternType.getName() != null) {
-			RefinedAttributeDefinition<String> attributeDefinition = rAccountDef.findAttributeDefinition(new QName(SchemaConstants.NS_ICF_SCHEMA,"name"));
+			RefinedAttributeDefinition attributeDefinition = rAccountDef.findAttributeDefinition(new QName(SchemaConstants.NS_ICF_SCHEMA,"name"));
 			if (attributeDefinition == null) {
 				throw new SchemaException("No ICF NAME attribute in schema as specified in the definition of protected objects (this is deprecated syntax anyway, convert it to filter)");
 			}
@@ -553,7 +836,7 @@ public class RefinedObjectClassDefinitionImpl extends ObjectClassComplexTypeDefi
                                                         RefinedResourceSchema rSchema,
                                                         PrismContext prismContext, String contextDescription) throws SchemaException {
 
-        RefinedObjectClassDefinitionImpl rOcDef = new RefinedObjectClassDefinitionImpl(prismContext, resourceType, objectClassDef);
+        RefinedObjectClassDefinitionImpl rOcDef = new RefinedObjectClassDefinitionImpl(resourceType, objectClassDef);
 
         String intent = objectClassDef.getIntent();
         if (intent == null && objectClassDef.isDefaultInAKind()) {
@@ -600,7 +883,7 @@ public class RefinedObjectClassDefinitionImpl extends ObjectClassComplexTypeDefi
             throw new SchemaException("Definition of "+typeDesc+" type " + schemaHandlingObjDefType.getIntent() + " does not have objectclass, in " + contextDescription);
         }
         
-        RefinedObjectClassDefinitionImpl rOcDef = new RefinedObjectClassDefinitionImpl(prismContext, resourceType, objectClassDef);
+        RefinedObjectClassDefinitionImpl rOcDef = new RefinedObjectClassDefinitionImpl(resourceType, objectClassDef);
         rOcDef.setKind(kind);
         rOcDef.schemaHandlingObjectTypeDefinitionType = schemaHandlingObjDefType;
 		rOcDef.setIntent(intent);
@@ -630,7 +913,7 @@ public class RefinedObjectClassDefinitionImpl extends ObjectClassComplexTypeDefi
         return rOcDef;
 	}
 
-	public void parseAssociations(RefinedResourceSchema rSchema) throws SchemaException {
+	void parseAssociations(RefinedResourceSchema rSchema) throws SchemaException {
 		if (schemaHandlingObjectTypeDefinitionType == null) {
 			return;
 		}
@@ -639,16 +922,15 @@ public class RefinedObjectClassDefinitionImpl extends ObjectClassComplexTypeDefi
 			ShadowKindType assocKind = rAssocDef.getKind();
 			RefinedObjectClassDefinition assocTarget = rSchema.getRefinedDefinition(assocKind, rAssocDef.getIntents());
 			rAssocDef.setAssociationTarget(assocTarget);
-			associations.add(rAssocDef);
+			associationDefinitions.add(rAssocDef);
 		}
 	}
 	
-	public void parseAuxiliaryObjectClasses(RefinedResourceSchema rSchema) throws SchemaException {
+	void parseAuxiliaryObjectClasses(RefinedResourceSchema rSchema) throws SchemaException {
 		if (schemaHandlingObjectTypeDefinitionType == null) {
 			return;
 		}
 		List<QName> auxiliaryObjectClassQNames = schemaHandlingObjectTypeDefinitionType.getAuxiliaryObjectClass();
-		auxiliaryObjectClassDefinitions = new ArrayList<>(auxiliaryObjectClassQNames.size());
 		for (QName auxiliaryObjectClassQName: auxiliaryObjectClassQNames) {
 			RefinedObjectClassDefinition auxiliaryObjectClassDef = rSchema.getRefinedDefinition(auxiliaryObjectClassQName);
 			if (auxiliaryObjectClassDef == null) {
@@ -658,30 +940,30 @@ public class RefinedObjectClassDefinitionImpl extends ObjectClassComplexTypeDefi
 		}
 	}
 
-	public void parseAttributes(RefinedResourceSchema rSchema, String contextDescription) throws SchemaException {
+	void parseAttributes(RefinedResourceSchema rSchema, String contextDescription) throws SchemaException {
 		if (schemaHandlingObjectTypeDefinitionType == null) {
 			// this is definition from schema. We already have all we need.
 			return;
 		}
 		
 		parseAttributesFrom(rSchema, getObjectClassDefinition(), false, contextDescription);
-		if (auxiliaryObjectClassDefinitions != null) {
-			for (RefinedObjectClassDefinition auxiliaryObjectClassDefinition: auxiliaryObjectClassDefinitions) {
-				parseAttributesFrom(rSchema, auxiliaryObjectClassDefinition, true, contextDescription);
-			}
+		for (RefinedObjectClassDefinition auxiliaryObjectClassDefinition: auxiliaryObjectClassDefinitions) {
+			parseAttributesFrom(rSchema, auxiliaryObjectClassDefinition, true, contextDescription);
 		}
 
 		// Check for extra attribute definitions in the account type
         for (ResourceAttributeDefinitionType attrDefType : schemaHandlingObjectTypeDefinitionType.getAttribute()) {
             if (!containsAttributeDefinition(attrDefType.getRef()) && !RefinedAttributeDefinitionImpl.isIgnored(attrDefType)) {
-                throw new SchemaException("Definition of attribute " + attrDefType.getRef() + " not found in object class " + objectClassDefinition.getTypeName() + " as defined in " + contextDescription);
+                throw new SchemaException("Definition of attribute " + attrDefType.getRef() + " not found in object class " + originalObjectClassDefinition
+						.getTypeName() + " as defined in " + contextDescription);
             }
         }
         
         parseProtected(this, schemaHandlingObjectTypeDefinitionType);
 	}
 	
-	public void parseAttributesFrom(RefinedResourceSchema rSchema, ObjectClassComplexTypeDefinition ocDef, boolean auxiliary, String contextDescription) throws SchemaException {
+	private void parseAttributesFrom(RefinedResourceSchema rSchema, ObjectClassComplexTypeDefinition ocDef, boolean auxiliary,
+			String contextDescription) throws SchemaException {
 		if (schemaHandlingObjectTypeDefinitionType == null) {
 			// this is definition from schema. We already have all we need.
 			return;
@@ -694,8 +976,9 @@ public class RefinedObjectClassDefinitionImpl extends ObjectClassComplexTypeDefi
             // the shadows will still have that attributes and we will need their type definition to work
             // well with them. They may also be mandatory. We cannot pretend that they do not exist.
 
-            RefinedAttributeDefinition rAttrDef = RefinedAttributeDefinitionImpl.parse(road, attrDefType, ocDef,
-            		prismContext, "in "+kind+" type " + intent + ", in " + contextDescription);
+			// TODO !!!! fix the cast
+            RefinedAttributeDefinition<?> rAttrDef = (RefinedAttributeDefinition<?>) RefinedAttributeDefinitionImpl.parse(road, attrDefType, ocDef,
+            		rSchema.getPrismContext(), "in "+kind+" type " + intent + ", in " + contextDescription);
             if (!auxiliary) {
             	processIdentifiers(rAttrDef, ocDef);
             }
@@ -729,11 +1012,6 @@ public class RefinedObjectClassDefinitionImpl extends ObjectClassComplexTypeDefi
 		}		
 	}
 	
-	private RefinedAttributeDefinition substituteRefinedAttributeDefinition(ResourceAttributeDefinition attributeDef) {
-		RefinedAttributeDefinition rAttrDef = findAttributeDefinition(attributeDef.getName());
-		return rAttrDef;
-	}
-
 	private ResourceAttributeDefinitionType findAttributeDefinitionType(QName attrName,
 			ResourceObjectTypeDefinitionType rOcDefType, String contextDescription) throws SchemaException {
         ResourceAttributeDefinitionType foundAttrDefType = null;
@@ -755,225 +1033,76 @@ public class RefinedObjectClassDefinitionImpl extends ObjectClassComplexTypeDefi
         return foundAttrDefType;
     }
 
-    
+	private void add(RefinedAttributeDefinition<?> refinedAttributeDefinition) {
+		attributeDefinitions.add(refinedAttributeDefinition);
+	}
+	//endregion
 
-    @Override
-	public PrismObject<ShadowType> createBlankShadow() {
-    	PrismObject<ShadowType> accountShadow;
-		try {
-			accountShadow = prismContext.createObject(ShadowType.class);
-		} catch (SchemaException e) {
-			// This should not happen
-			throw new SystemException("Internal error instantiating account shadow: "+e.getMessage(), e);
-		}
-		ShadowType accountShadowType = accountShadow.asObjectable();
-        
-    	accountShadowType.setIntent(getIntent());
-        accountShadowType.setKind(getKind());
-        accountShadowType.setObjectClass(getObjectClassDefinition().getTypeName());
-        accountShadowType.setResourceRef(ObjectTypeUtil.createObjectRef(getResourceType()));
-        
-        // Setup definition
-        PrismObjectDefinition<ShadowType> newDefinition = accountShadow.getDefinition().cloneWithReplacedDefinition(
-        		ShadowType.F_ATTRIBUTES, toResourceAttributeContainerDefinition());
-        accountShadow.setDefinition(newDefinition);
-        
-        return accountShadow;
-    }
-
-    @Override
-	public ResourceShadowDiscriminator getShadowDiscriminator() {
-        return new ResourceShadowDiscriminator(getResourceType().getOid(), getKind(), getIntent());
-    }
-
-    @Override
-	public Collection<? extends QName> getNamesOfAttributesWithOutboundExpressions() {
-        Collection<QName> attrNames = new HashSet<QName>();
-        for (RefinedAttributeDefinition attrDef : getAttributeDefinitions()) {
-            if (attrDef.getOutboundMappingType() != null) {
-                attrNames.add(attrDef.getName());
-            }
-        }
-        return attrNames;
-    }
-
-    @Override
-	public Collection<? extends QName> getNamesOfAttributesWithInboundExpressions() {
-        Collection<QName> attrNames = new HashSet<QName>();
-        for (RefinedAttributeDefinition attrDef : getAttributeDefinitions()) {
-            List<MappingType> inbounds = attrDef.getInboundMappingTypes();
-            if (inbounds != null && !inbounds.isEmpty()) {
-                attrNames.add(attrDef.getName());
-            }
-        }
-
-        return attrNames;
-    }
-    
-    @Override
-	public List<MappingType> getPasswordInbound() {
-        
-    	ResourcePasswordDefinitionType password = getPasswordDefinition();
-    	
-        if (password == null || password.getInbound() == null) {
-            return null;
-        }
-
-        return password.getInbound();
-    }
-    
+	//region Diagnostic output, hashCode/equals =========================================================
 	@Override
-	public MappingType getPasswordOutbound() {
-
-		ResourcePasswordDefinitionType password = getPasswordDefinition();
-
-		if (password == null || password.getOutbound() == null) {
-			return null;
-		}
-
-		return password.getOutbound();
-	}
+    public String debugDump() {
+        return debugDump(0);
+    }
     
-	@Override
-	public AttributeFetchStrategyType getPasswordFetchStrategy() {
-		ResourcePasswordDefinitionType password = getPasswordDefinition();
-		if (password == null) {
-			return AttributeFetchStrategyType.IMPLICIT;
-		}
-		if (password.getFetchStrategy() == null) {
-			return AttributeFetchStrategyType.IMPLICIT;
-		}
-		return password.getFetchStrategy();
-	}
-	
-	@Override
-	public ObjectReferenceType getPasswordPolicy(){
-		ResourcePasswordDefinitionType password = getPasswordDefinition();
-		
-		if (password == null || password.getPasswordPolicyRef() == null){
-			return null;
-		}
-		
-		return password.getPasswordPolicyRef();
-	}
-	
     @Override
-	public ResourcePasswordDefinitionType getPasswordDefinition(){
-        if (schemaHandlingObjectTypeDefinitionType == null) {
-            return null;
+    public String debugDump(int indent) {
+    	return debugDump(indent, null, getDebugDumpClassName());
+    }
+
+    public String debugDump(int indent, LayerType layer, String debugDumpClassName) {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < indent; i++) {
+            sb.append(INDENT_STRING);
         }
-        ResourceCredentialsDefinitionType credentials = schemaHandlingObjectTypeDefinitionType.getCredentials();
-        if (credentials == null) {
-            return null;
+        sb.append(debugDumpClassName).append("(");
+        sb.append(SchemaDebugUtil.prettyPrint(getTypeName()));
+        if (isDefault()) {
+            sb.append(",default");
         }
-        
-        return credentials.getPassword();
-    }
-    
-    @Override
-	public ResourceActivationDefinitionType getActivationSchemaHandling(){
-        if (schemaHandlingObjectTypeDefinitionType == null) {
-            return null;
+        if (getKind() != null) {
+        	sb.append(" ").append(getKind().value());
         }
-
-        return schemaHandlingObjectTypeDefinitionType.getActivation();
+        sb.append(",");
+        if (getIntent() != null) {
+        	sb.append("intent=").append(getIntent());
+        }
+        if (layer != null) {
+        	sb.append(",layer=").append(layer);
+        }
+        sb.append(")");
+        for (RefinedAttributeDefinition rAttrDef: getAttributeDefinitions()) {
+            sb.append("\n");
+            sb.append(rAttrDef.debugDump(indent + 1, layer));
+        }
+        return sb.toString();
     }
     
-    @Override
-	public ResourceBidirectionalMappingType getActivationBidirectionalMappingType(QName propertyName) {
-    	ResourceActivationDefinitionType activationSchemaHandling = getActivationSchemaHandling();
-    	if (activationSchemaHandling == null) {
-    		return null;
-    	}
-    	
-    	if (QNameUtil.match(ActivationType.F_ADMINISTRATIVE_STATUS, propertyName)) {
-    		return activationSchemaHandling.getAdministrativeStatus();
-    	} else if (QNameUtil.match(ActivationType.F_VALID_FROM, propertyName)) {
-    		return activationSchemaHandling.getValidFrom();
-    	} else if (QNameUtil.match(ActivationType.F_VALID_TO, propertyName)) {
-    		return activationSchemaHandling.getValidTo();
-    	} else if (QNameUtil.match(ActivationType.F_LOCKOUT_STATUS, propertyName)) {
-            return null;            // todo implement this
-        } else if (QNameUtil.match(ActivationType.F_LOCKOUT_EXPIRATION_TIMESTAMP, propertyName)) {
-            return null;            // todo implement this
-        } else {
-    		throw new IllegalArgumentException("Unknown activation property "+propertyName);
-    	}
+    /**
+     * Return a human readable name of this class suitable for logs.
+     */
+    protected String getDebugDumpClassName() {
+        return "rOCD";
     }
-    
-    @Override
-	public AttributeFetchStrategyType getActivationFetchStrategy(QName propertyName) {
-    	ResourceBidirectionalMappingType biType = getActivationBidirectionalMappingType(propertyName);
-		if (biType == null) {
-			return AttributeFetchStrategyType.IMPLICIT;
-		}
-		if (biType.getFetchStrategy() == null) {
-			return AttributeFetchStrategyType.IMPLICIT;
-		}
-		return biType.getFetchStrategy();
-	}
-    
-    @Override
-	public <T extends CapabilityType> T getEffectiveCapability(Class<T> capabilityClass) {
-		return ResourceTypeUtil.getEffectiveCapability(getResourceType(), schemaHandlingObjectTypeDefinitionType, capabilityClass);
-	}
-
-    @Override
-	public PagedSearchCapabilityType getPagedSearches() {
-        return getEffectiveCapability(PagedSearchCapabilityType.class);
-    }
-
-    @Override
-	public boolean isPagedSearchEnabled() {
-        return getPagedSearches() != null;          // null means nothing or disabled
-    }
-
-    @Override
-	public boolean isObjectCountingEnabled() {
-        return getEffectiveCapability(CountObjectsCapabilityType.class) != null;
-    }
-    
-    
-    
-	public boolean isAuxiliary() {
-		return getObjectClassDefinition().isAuxiliary();
-	}
 
 	@Override
-	public boolean matches(ShadowType shadowType) {
-		if (shadowType == null) {
-			return false;
-		}
-		if (!QNameUtil.match(getObjectClassDefinition().getTypeName(), shadowType.getObjectClass())) {
-			return false;
-		}
-		if (shadowType.getKind() == null) {
-			if (kind != ShadowKindType.ACCOUNT) {
-				return false;
-			}
+	public String getHumanReadableName() {
+		if (getDisplayName() != null) {
+			return getDisplayName();
+		} else if (getKind() != null) {
+			return getKind()+":"+getIntent();
+		} else if (getTypeName() != null) {
+			return getTypeName().getLocalPart();
 		} else {
-			if (!MiscUtil.equals(kind, shadowType.getKind())) {
-				return false;
-			}
+			return "null";
 		}
-		if (shadowType.getIntent() != null) {
-//			if (isDefault) {
-//				return true;
-//			} else {
-//				return false;
-//			}
-//		} else {
-			return MiscUtil.equals(intent, shadowType.getIntent());
-		} 
-		return true;
 	}
-
-    @Override
-	public ObjectQuery createShadowSearchQuery(String resourceOid) throws SchemaException {
+	
+	@Override
+	public String toString() {
 		if (getKind() == null) {
-			return super.createShadowSearchQuery(resourceOid);
+			return getDebugDumpClassName() + "("+PrettyPrinter.prettyPrint(getTypeName())+")";
 		} else {
-			return ObjectQueryUtil.createResourceAndKindIntent(resourceOid, getKind(), getIntent(), getPrismContext());
+			return getDebugDumpClassName() + "("+getKind()+":"+getIntent()+"="+PrettyPrinter.prettyPrint(getTypeName())+")";
 		}
 	}
 
@@ -981,10 +1110,9 @@ public class RefinedObjectClassDefinitionImpl extends ObjectClassComplexTypeDefi
 	public int hashCode() {
 		final int prime = 31;
 		int result = super.hashCode();
-		result = prime * result + ((associations == null) ? 0 : associations.hashCode());
-		result = prime * result + ((attributeDefinitions == null) ? 0 : attributeDefinitions.hashCode());
-		result = prime * result
-				+ ((auxiliaryObjectClassDefinitions == null) ? 0 : auxiliaryObjectClassDefinitions.hashCode());
+		result = prime * result + associationDefinitions.hashCode();
+		result = prime * result + attributeDefinitions.hashCode();
+		result = prime * result + auxiliaryObjectClassDefinitions.hashCode();
 		result = prime * result + ((baseContext == null) ? 0 : baseContext.hashCode());
 		result = prime * result + ((description == null) ? 0 : description.hashCode());
 		result = prime * result + ((displayName == null) ? 0 : displayName.hashCode());
@@ -994,10 +1122,10 @@ public class RefinedObjectClassDefinitionImpl extends ObjectClassComplexTypeDefi
 		result = prime * result + ((intent == null) ? 0 : intent.hashCode());
 		result = prime * result + (isDefault ? 1231 : 1237);
 		result = prime * result + ((kind == null) ? 0 : kind.hashCode());
-		result = prime * result + ((objectClassDefinition == null) ? 0 : objectClassDefinition.hashCode());
+		result = prime * result + originalObjectClassDefinition.hashCode();
 		result = prime * result + ((objectDefinition == null) ? 0 : objectDefinition.hashCode());
 		result = prime * result + ((protectedObjectPatterns == null) ? 0 : protectedObjectPatterns.hashCode());
-		result = prime * result + ((resourceType == null) ? 0 : resourceType.hashCode());
+		result = prime * result + resourceType.hashCode();
 		result = prime * result + ((schemaHandlingObjectTypeDefinitionType == null) ? 0
 				: schemaHandlingObjectTypeDefinitionType.hashCode());
 		result = prime * result + ((secondaryIdentifiers == null) ? 0 : secondaryIdentifiers.hashCode());
@@ -1016,25 +1144,13 @@ public class RefinedObjectClassDefinitionImpl extends ObjectClassComplexTypeDefi
 			return false;
 		}
 		RefinedObjectClassDefinitionImpl other = (RefinedObjectClassDefinitionImpl) obj;
-		if (associations == null) {
-			if (other.associations != null) {
-				return false;
-			}
-		} else if (!associations.equals(other.associations)) {
+		if (!associationDefinitions.equals(other.associationDefinitions)) {
 			return false;
 		}
-		if (attributeDefinitions == null) {
-			if (other.attributeDefinitions != null) {
-				return false;
-			}
-		} else if (!attributeDefinitions.equals(other.attributeDefinitions)) {
+		if (!attributeDefinitions.equals(other.attributeDefinitions)) {
 			return false;
 		}
-		if (auxiliaryObjectClassDefinitions == null) {
-			if (other.auxiliaryObjectClassDefinitions != null) {
-				return false;
-			}
-		} else if (!auxiliaryObjectClassDefinitions.equals(other.auxiliaryObjectClassDefinitions)) {
+		if (!auxiliaryObjectClassDefinitions.equals(other.auxiliaryObjectClassDefinitions)) {
 			return false;
 		}
 		if (baseContext == null) {
@@ -1085,11 +1201,7 @@ public class RefinedObjectClassDefinitionImpl extends ObjectClassComplexTypeDefi
 		if (kind != other.kind) {
 			return false;
 		}
-		if (objectClassDefinition == null) {
-			if (other.objectClassDefinition != null) {
-				return false;
-			}
-		} else if (!objectClassDefinition.equals(other.objectClassDefinition)) {
+		if (!originalObjectClassDefinition.equals(other.originalObjectClassDefinition)) {
 			return false;
 		}
 		if (objectDefinition == null) {
@@ -1106,11 +1218,7 @@ public class RefinedObjectClassDefinitionImpl extends ObjectClassComplexTypeDefi
 		} else if (!protectedObjectPatterns.equals(other.protectedObjectPatterns)) {
 			return false;
 		}
-		if (resourceType == null) {
-			if (other.resourceType != null) {
-				return false;
-			}
-		} else if (!resourceType.equals(other.resourceType)) {
+		if (!resourceType.equals(other.resourceType)) {
 			return false;
 		}
 		if (schemaHandlingObjectTypeDefinitionType == null) {
@@ -1129,73 +1237,32 @@ public class RefinedObjectClassDefinitionImpl extends ObjectClassComplexTypeDefi
 		}
 		return true;
 	}
+	//endregion
+
+	//region Typing overhead ==============================================================
+	/*
+	 * There is a natural correspondence between "type definition" classes and items in these classes:
+	 *
+	 *    ComplexTypeDefinition .............................. ItemDefinition
+	 *    ObjectClassComplexTypeDefinition ................... ResourceAttributeDefinition
+	 *    RefinedObjectClassDefinition ....................... RefinedAttributeDefinition
+	 *    LayerRefinedObjectClassDefinition .................. LayerRefinedAttributeDefinition
+	 *
+	 * It would be great if the interface of "type definition" classes, i.e. methods like getDefinitions(),
+	 * findItemDefinition, findAttributeDefinition, and so on would be parametrized on the type of item definitions
+	 * from the list above. Unfortunately, this would make clients very unintuitive, using interfaces like
+	 *
+	 *               RefinedObjectClassDefinition<RefinedAttributeDefinition<?>>
+	 *
+     * Therefore the decision is to keep clients' lives simple; at the cost of "typing overhead" - providing correct
+     * signatures of derived types. In order to keep it manageable we put all such methods in this single section.
+	 */
 
 	@Override
-    public String debugDump() {
-        return debugDump(0);
-    }
-    
-    @Override
-    public String debugDump(int indent) {
-    	return debugDump(indent, null, getDebugDumpClassName());
-    }
-
-    public String debugDump(int indent, LayerType layer, String debugDumpClassName) {
-        StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < indent; i++) {
-            sb.append(INDENT_STRING);
-        }
-        sb.append(debugDumpClassName).append("(");
-        sb.append(SchemaDebugUtil.prettyPrint(getTypeName()));
-        if (isDefault()) {
-            sb.append(",default");
-        }
-        if (getKind() != null) {
-        	sb.append(" ").append(getKind().value());
-        }
-        sb.append(",");
-        if (getIntent() != null) {
-        	sb.append("intent=").append(getIntent());
-        }
-        if (layer != null) {
-        	sb.append(",layer=").append(layer);
-        }
-        sb.append(")");
-        for (RefinedAttributeDefinition rAttrDef: getAttributeDefinitions()) {
-            sb.append("\n");
-            sb.append(rAttrDef.debugDump(indent + 1, layer));
-        }
-        return sb.toString();
-    }
-    
-    /**
-     * Return a human readable name of this class suitable for logs.
-     */
-    @Override
-    protected String getDebugDumpClassName() {
-        return "rOCD";
-    }
-
-	@Override
-	public String getHumanReadableName() {
-		if (getDisplayName() != null) {
-			return getDisplayName();
-		} else if (getKind() != null) {
-			return getKind()+":"+getIntent();
-		} else if (getTypeName() != null) {
-			return getTypeName().getLocalPart();
-		} else {
-			return "null";
-		}
+	public <X> RefinedAttributeDefinition<X> findAttributeDefinition(@NotNull QName name) {
+		return findItemDefinition(name, RefinedAttributeDefinition.class, false);
 	}
-	
-	@Override
-	public String toString() {
-		if (getKind() == null) {
-			return getDebugDumpClassName() + "("+PrettyPrinter.prettyPrint(getTypeName())+")";
-		} else {
-			return getDebugDumpClassName() + "("+getKind()+":"+getIntent()+"="+PrettyPrinter.prettyPrint(getTypeName())+")";
-		}
-	}
+
+	//endregion
 
 }

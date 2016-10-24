@@ -41,7 +41,7 @@ public interface GlobalDefinitionsStore extends DefinitionsStore {
 //	GlobalDefinitionSearchContext<ItemDefinition<?>> findItemDefinition();
 //
 //	@Override
-//	GlobalDefinitionSearchContext<PrismPropertyDefinition> findPropertyDefinition();
+//	<T> GlobalDefinitionSearchContext<PrismPropertyDefinition<T>> findPropertyDefinition();
 //
 //	@Override
 //	GlobalDefinitionSearchContext<PrismReferenceDefinition> findReferenceDefinition();

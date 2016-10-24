@@ -165,12 +165,12 @@ public class MidPointSchemaDefinitionFactory extends SchemaDefinitionFactory {
 		// identifier
 		attrDefinition = getAnnotationReference(annotation, MidPointConstants.RA_IDENTIFIER, ocDef);
 		if (attrDefinition != null) {
-			((Collection<ResourceAttributeDefinition>)ocDef.getPrimaryIdentifiers()).add(attrDefinition);
+			((Collection)ocDef.getPrimaryIdentifiers()).add(attrDefinition);
 		}
 		// secondaryIdentifier
 		attrDefinition = getAnnotationReference(annotation, MidPointConstants.RA_SECONDARY_IDENTIFIER, ocDef);
 		if (attrDefinition != null) {
-			((Collection<ResourceAttributeDefinition>)ocDef.getSecondaryIdentifiers()).add(attrDefinition);
+			((Collection)ocDef.getSecondaryIdentifiers()).add(attrDefinition);
 		}
 	}
 	

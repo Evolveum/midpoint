@@ -948,7 +948,7 @@ public class ResourceObjectConverter {
 					if (associationName == null) {
 						throw new IllegalStateException("No association name in " + associationValue);
 					}
-					RefinedAssociationDefinition associationDefinition = ctx.getObjectClassDefinition().findAssociation(associationName);
+					RefinedAssociationDefinition associationDefinition = ctx.getObjectClassDefinition().findAssociationDefinition(associationName);
 					if (associationDefinition == null) {
 						throw new IllegalStateException("No association definition for " + associationValue);
 					}

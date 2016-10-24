@@ -112,7 +112,7 @@ public class DataModelVisualizerImpl implements DataModelVisualizer {
 					}
 					processInboundMappings(ctx, attrItem, attributeDefinition.getInboundMappingTypes());
 				}
-				Collection<RefinedAssociationDefinition> associationDefinitions = refinedDefinition.getAssociations();
+				Collection<RefinedAssociationDefinition> associationDefinitions = refinedDefinition.getAssociationDefinitions();
 				for (RefinedAssociationDefinition associationDefinition : associationDefinitions) {
 					if (associationDefinition.isIgnored()) {
 						continue;
@@ -207,7 +207,7 @@ public class DataModelVisualizerImpl implements DataModelVisualizer {
 					ctx.registerDataItem(attrItem);
 				}
 				// TODO check attributes not mentioned in schema handling
-				Collection<RefinedAssociationDefinition> associationDefinitions = refinedDefinition.getAssociations();
+				Collection<RefinedAssociationDefinition> associationDefinitions = refinedDefinition.getAssociationDefinitions();
 				for (RefinedAssociationDefinition associationDefinition : associationDefinitions) {
 					if (associationDefinition.isIgnored()) {
 						continue;

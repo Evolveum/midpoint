@@ -22,6 +22,9 @@ import java.util.Map;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.ComplexTypeDefinition;
+import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinitionImpl;
 import org.apache.commons.lang.BooleanUtils;
 
@@ -527,7 +530,8 @@ public class RefinedAttributeDefinitionImpl<T> extends ResourceAttributeDefiniti
         return limitationsType.isIgnore();
     }
     
-    @Override
+    @NotNull
+	@Override
 	public RefinedAttributeDefinition<T> clone() {
     	ResourceAttributeDefinition<T> attrDefClone = this.attributeDefinition.clone();
 		RefinedAttributeDefinitionImpl<T> clone = new RefinedAttributeDefinitionImpl<T>(attrDefClone, prismContext);
@@ -554,8 +558,11 @@ public class RefinedAttributeDefinitionImpl<T> extends ResourceAttributeDefiniti
 		clone.tolerant = this.tolerant;
 		clone.tolerantValuePattern = this.tolerantValuePattern;
 	}
-	
-	
+
+	@Override
+	public RefinedAttributeDefinition<T> deepClone(Map<QName, ComplexTypeDefinition> ctdMap) {
+		return (RefinedAttributeDefinition<T>) super.deepClone(ctdMap);
+	}
 
 	@Override
 	public String toString() {

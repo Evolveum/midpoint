@@ -19,6 +19,7 @@ package com.evolveum.midpoint.prism;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
 import java.util.List;
@@ -48,6 +49,7 @@ public interface PrismContainerDefinition<C extends Containerable> extends ItemD
 	@Override
 	ContainerDelta<C> createEmptyDelta(ItemPath path);
 
+	@NotNull
 	@Override
 	PrismContainerDefinition<C> clone();
 

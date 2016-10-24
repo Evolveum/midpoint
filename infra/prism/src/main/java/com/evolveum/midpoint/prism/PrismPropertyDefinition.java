@@ -21,6 +21,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
 import java.util.Collection;
@@ -65,6 +66,7 @@ public interface PrismPropertyDefinition<T> extends ItemDefinition<PrismProperty
 	@Override
 	PrismProperty<T> instantiate(QName name);
 
+	@NotNull
 	@Override
 	PrismPropertyDefinition<T> clone();
 }

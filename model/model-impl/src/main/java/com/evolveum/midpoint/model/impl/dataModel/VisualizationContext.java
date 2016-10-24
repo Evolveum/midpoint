@@ -165,7 +165,7 @@ public class VisualizationContext {
 					ResourceDataItem item = findResourceItem(resource.getOid(), def.getKind(), def.getIntent(), new ItemPath(attrDef.getName()));
 					previousNodeName = addResourceItem(itemsShown, indent, sb1, previousNodeName, item);
 				}
-				for (RefinedAssociationDefinition assocDef : def.getAssociations()) {
+				for (RefinedAssociationDefinition assocDef : def.getAssociationDefinitions()) {
 					if (assocDef.isIgnored()) {
 						continue;
 					}

@@ -15,10 +15,7 @@
  */
 package com.evolveum.midpoint.prism.util;
 
-import com.evolveum.midpoint.prism.Objectable;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.LogicalFilter;
 import com.evolveum.midpoint.prism.query.NaryLogicalFilter;
@@ -84,6 +81,7 @@ public class PrismTestUtil {
     	if (prismContextFactory == null) {
     		throw new IllegalStateException("Cannot create prism context, no prism factory is set");
     	}
+		PrismContextImpl.setExtraValidation(true);
         return prismContextFactory.createPrismContext();
     }
 

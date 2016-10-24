@@ -15,10 +15,7 @@
  */
 package com.evolveum.midpoint.provisioning.impl;
 
-import com.evolveum.midpoint.common.refinery.CompositeRefinedObjectClassDefinition;
-import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
-import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinitionImpl;
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
+import com.evolveum.midpoint.common.refinery.*;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
 import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
@@ -170,7 +167,7 @@ public class ProvisioningContext extends StateReporter {
 			}
 			auxiliaryObjectClassDefinitions.add(auxObjectClassDef);
 		}
-		return new CompositeRefinedObjectClassDefinition(structuralObjectClassDefinition, auxiliaryObjectClassDefinitions);
+		return new CompositeRefinedObjectClassDefinitionImpl(structuralObjectClassDefinition, auxiliaryObjectClassDefinitions);
 	}
 
 	public RefinedObjectClassDefinition computeCompositeObjectClassDefinition(PrismObject<ShadowType> shadow)

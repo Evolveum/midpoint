@@ -23,6 +23,7 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
 import java.io.Serializable;
+import java.util.Map;
 
 /**
  * @author mederly
@@ -47,6 +48,11 @@ public interface ItemDefinition<I extends Item> extends Definition {
 	boolean isOptional();
 
 	boolean isOperational();
+
+	/**
+	 * Whether an item is inherited from a supertype.
+	 */
+	boolean isInherited();
 
 	/**
 	 * Returns true if definition was created during the runtime based on a dynamic information
@@ -89,9 +95,12 @@ public interface ItemDefinition<I extends Item> extends Definition {
 
 	ItemDelta createEmptyDelta(ItemPath path);
 
+	@NotNull
 	ItemDefinition<I> clone();
 
 	ItemDefinition<I> deepClone(boolean ultraDeep);
+
+	ItemDefinition<I> deepClone(Map<QName, ComplexTypeDefinition> ctdMap);
 
 	@Override
 	void revive(PrismContext prismContext);

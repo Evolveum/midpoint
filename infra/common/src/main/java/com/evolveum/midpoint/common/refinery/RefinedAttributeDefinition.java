@@ -16,12 +16,17 @@
 
 package com.evolveum.midpoint.common.refinery;
 
+import com.evolveum.midpoint.prism.ComplexTypeDefinition;
+import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AttributeFetchStrategyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LayerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
+import org.jetbrains.annotations.NotNull;
 
+import javax.xml.namespace.QName;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author mederly
@@ -73,8 +78,12 @@ public interface RefinedAttributeDefinition<T> extends ResourceAttributeDefiniti
 
 	boolean isVolatilityTrigger();
 
+	@NotNull
 	@Override
 	RefinedAttributeDefinition<T> clone();
+
+	@Override
+	RefinedAttributeDefinition<T> deepClone(Map<QName, ComplexTypeDefinition> ctdMap);
 
 	String debugDump(int indent, LayerType layer);
 

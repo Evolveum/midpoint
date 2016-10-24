@@ -267,7 +267,7 @@ public class ContainerWrapperFactory {
                 throw new SystemException(e.getMessage(), e);
             }
             // Make sure even empty associations have their wrappers so they can be displayed and edited
-            for (RefinedAssociationDefinition assocDef : rOcDef.getAssociations()) {
+            for (RefinedAssociationDefinition assocDef : rOcDef.getAssociationDefinitions()) {
                 QName name = assocDef.getName();
                 if (!assocMap.containsKey(name)) {
                     PrismContainer<ShadowAssociationType> fractionalContainer = new PrismContainer<>(ShadowType.F_ASSOCIATION, ShadowAssociationType.class, prismContext);
@@ -279,7 +279,7 @@ public class ContainerWrapperFactory {
             }
 
             for (Map.Entry<QName, PrismContainer<ShadowAssociationType>> assocEntry : assocMap.entrySet()) {
-            	RefinedAssociationDefinition assocRDef = rOcDef.findAssociation(assocEntry.getKey());
+            	RefinedAssociationDefinition assocRDef = rOcDef.findAssociationDefinition(assocEntry.getKey());
                 AssociationWrapper assocWrapper = new AssociationWrapper(cWrapper, assocEntry.getValue(), 
                 		cWrapper.isReadonly(), ValueStatus.NOT_CHANGED, assocRDef);
                 properties.add(assocWrapper);

@@ -16,22 +16,48 @@
 
 package com.evolveum.midpoint.prism;
 
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.xml.namespace.QName;
 import java.util.List;
+import java.util.Map;
 
 /**
+ * Provides a definition for a complex type, i.e. type that prescribes inner items.
+ * It's instances may be container values or property values, depending on container/object
+ * markers presence.
+ *
+ * @author semancik
  * @author mederly
  */
 public interface ComplexTypeDefinition extends Definition, LocalDefinitionStore {
 
+	/**
+	 * Returns definitions for all inner items.
+	 *
+	 * These are of type ItemDefinition. However, very often subtypes of this type are used,
+	 * e.g. ResourceAttributeDefinition, RefinedAttributeDefinition, LayerRefinedAttributeDefinition, and so on.
+	 *
+	 * Although returned as a list, the order of definitions is insignificant. (TODO change to set?)
+	 *
+	 * The list is unmodifiable.
+	 */
+	@NotNull
 	List<? extends ItemDefinition> getDefinitions();
 
+	/**
+	 * Returns compile-time class, if this type has any. For example, UserType.class, ObjectType.class, ExtensionType.class.
+	 */
+	@Nullable
 	Class<?> getCompileTimeClass();
 
+	/**
+	 * If not null, indicates that this type defines the structure of 'extension' element of a given type.
+	 * E.g. getExtensionForType() == c:UserType means that this complex type defines structure of
+	 * 'extension' elements of UserType objects.
+	 */
+	@Nullable
 	QName getExtensionForType();
 
 	/**
@@ -58,27 +84,53 @@ public interface ComplexTypeDefinition extends Definition, LocalDefinitionStore 
 	boolean isXsdAnyMarker();
 
 	/**
-	 *  When resolving unqualified names for items contained in this CTD, what should be the default namespace to look into at first.
-	 *  Currently does NOT apply recursively (to inner CTDs).
+	 * When resolving unqualified names for items contained in this CTD, what should be the default namespace
+	 * to look into at first. Currently does NOT apply recursively (to inner CTDs).
 	 */
+	@Nullable
 	String getDefaultNamespace();
 
 	/**
-	 *  When resolving unqualified names for items contained in this CTD, what namespace(s) should be ignored.
-	 *  Names in this list are interpreted as a namespace prefixes.
-	 *  Currently does NOT apply recursively (to inner CTDs).
+	 * When resolving unqualified names for items contained in this CTD, what namespace(s) should be ignored.
+	 * Names in this list are interpreted as a namespace prefixes.
+	 * Currently does NOT apply recursively (to inner CTDs).
 	 */
 	@NotNull
 	List<String> getIgnoredNamespaces();
 
+	/**
+	 * Name of super type of this complex type definition. E.g. c:ObjectType is a super type for
+	 * c:FocusType which is a super type for c:UserType. Or (more complex example) ri:ShadowAttributesType
+	 * is a super type of ri:AccountObjectClass. (TODO is this really true?)
+	 */
+	@Nullable
 	QName getSuperType();
 
+	/**
+	 * Copies cloned definitions from the other type definition into this one.
+	 * (TODO remove from the interface?)
+	 */
 	void merge(ComplexTypeDefinition otherComplexTypeDef);
 
 	@Override
 	void revive(PrismContext prismContext);
 
+	/**
+	 * Returns true if there are no item definitions.
+	 */
 	boolean isEmpty();
 
+	/**
+	 * Does a shallow clone of this definition (i.e. item definitions themselves are NOT cloned).
+	 */
+	@NotNull
 	ComplexTypeDefinition clone();
+
+	/**
+	 * Does a deep clone of this definition.
+	 *
+	 * @param ctdMap Keeps already cloned definitions in order to prevent indefinite loops.
+	 */
+	@NotNull
+	ComplexTypeDefinition deepClone(Map<QName, ComplexTypeDefinition> ctdMap);
 }

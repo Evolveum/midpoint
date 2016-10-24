@@ -1807,7 +1807,7 @@ public abstract class ShadowCache {
 					ShadowAssociationType shadowAssociationType = associationCVal.asContainerable();
 					QName associationName = shadowAssociationType.getName();
 					RefinedAssociationDefinition rEntitlementAssociation = ctx.getObjectClassDefinition()
-							.findEntitlementAssociation(associationName);
+							.findEntitlementAssociationDefinition(associationName);
 					if (rEntitlementAssociation == null) {
 						if (LOGGER.isTraceEnabled()) {
 							LOGGER.trace("Entitlement association with name {} couldn't be found in {} {}\nresource shadow:\n{}\nrepo shadow:\n{}",

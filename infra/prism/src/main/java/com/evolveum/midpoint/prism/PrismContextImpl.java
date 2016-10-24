@@ -52,6 +52,7 @@ public class PrismContextImpl implements PrismContext {
 	private static final Trace LOGGER = TraceManager.getTrace(PrismContextImpl.class);
     
     private static boolean allowSchemalessSerialization = true;
+	private static boolean extraValidation = false;										// TODO replace by something serious
     
 	@NotNull private final SchemaRegistryImpl schemaRegistry;
 	@NotNull private final LexicalProcessorRegistry lexicalProcessorRegistry;
@@ -101,6 +102,14 @@ public class PrismContextImpl implements PrismContext {
 
 	public static void setAllowSchemalessSerialization(boolean allowSchemalessSerialization) {
 		PrismContextImpl.allowSchemalessSerialization = allowSchemalessSerialization;
+	}
+
+	public static boolean isExtraValidation() {
+		return extraValidation;
+	}
+
+	public static void setExtraValidation(boolean extraValidation) {
+		PrismContextImpl.extraValidation = extraValidation;
 	}
 
 	@Override
@@ -296,7 +305,7 @@ public class PrismContextImpl implements PrismContext {
 	@NotNull
 	@Override
 	public PrismSerializer<String> serializerFor(@NotNull String language) {
-		return new PrismSerializerImpl<>(new SerializerStringTarget(this, language), null, null, null);
+		return new PrismSerializerImpl<>(new SerializerStringTarget(this, language), null, null, null, this);
 	}
 
 	@NotNull
@@ -320,13 +329,13 @@ public class PrismContextImpl implements PrismContext {
 	@NotNull
 	@Override
 	public PrismSerializer<Element> domSerializer() {
-		return new PrismSerializerImpl<>(new SerializerDomTarget(this), null, null, null);
+		return new PrismSerializerImpl<>(new SerializerDomTarget(this), null, null, null, this);
 	}
 
 	@NotNull
 	@Override
 	public PrismSerializer<RootXNode> xnodeSerializer() {
-		return new PrismSerializerImpl<>(new SerializerXNodeTarget(this), null, null, null);
+		return new PrismSerializerImpl<>(new SerializerXNodeTarget(this), null, null, null, this);
 	}
 
     @Override

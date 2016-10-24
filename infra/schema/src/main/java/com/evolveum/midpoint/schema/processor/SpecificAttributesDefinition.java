@@ -14,27 +14,19 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.common.refinery;
+package com.evolveum.midpoint.schema.processor;
 
-import com.evolveum.midpoint.prism.ComplexTypeDefinition;
-import com.evolveum.midpoint.prism.Definition;
-import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LayerType;
 import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
 import java.util.Collection;
-import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * @author mederly
  */
-public interface LayerRefinedObjectClassDefinition extends RefinedObjectClassDefinition {
+public interface SpecificAttributesDefinition<RAD extends ResourceAttributeDefinition<?>> {
 
-	LayerType getLayer();
-
-	@NotNull
-	@Override
-	LayerRefinedObjectClassDefinition clone();
 
 }

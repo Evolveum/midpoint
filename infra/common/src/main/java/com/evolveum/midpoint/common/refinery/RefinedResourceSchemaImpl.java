@@ -103,7 +103,7 @@ public class RefinedResourceSchemaImpl implements RefinedResourceSchema {
 			return null;
 		}
 		Collection<RefinedObjectClassDefinition> auxiliaryObjectClassDefinitions = structuralObjectClassDefinition.getAuxiliaryObjectClassDefinitions();
-		return new CompositeRefinedObjectClassDefinition(structuralObjectClassDefinition, auxiliaryObjectClassDefinitions);
+		return new CompositeRefinedObjectClassDefinitionImpl(structuralObjectClassDefinition, auxiliaryObjectClassDefinitions);
 	}
 	
 	@Override
@@ -149,7 +149,7 @@ public class RefinedResourceSchemaImpl implements RefinedResourceSchema {
 			auxiliaryObjectClassDefinitions.add(auxiliaryObjectClassDef);
 		}
 				
-		return new CompositeRefinedObjectClassDefinition(structuralObjectClassDefinition, auxiliaryObjectClassDefinitions);
+		return new CompositeRefinedObjectClassDefinitionImpl(structuralObjectClassDefinition, auxiliaryObjectClassDefinitions);
 	}
 	
 	@Override
@@ -174,7 +174,7 @@ public class RefinedResourceSchemaImpl implements RefinedResourceSchema {
 
 		auxiliaryObjectClassDefinitions = structuralObjectClassDefinition.getAuxiliaryObjectClassDefinitions();
 		
-		return new CompositeRefinedObjectClassDefinition(structuralObjectClassDefinition, auxiliaryObjectClassDefinitions);
+		return new CompositeRefinedObjectClassDefinitionImpl(structuralObjectClassDefinition, auxiliaryObjectClassDefinitions);
 	}
 
     @Override

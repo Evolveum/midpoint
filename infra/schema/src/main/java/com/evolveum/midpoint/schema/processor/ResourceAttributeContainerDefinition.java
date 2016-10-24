@@ -22,6 +22,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAttributesType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
 import java.util.Collection;
@@ -59,6 +60,7 @@ public interface ResourceAttributeContainerDefinition extends PrismContainerDefi
 
 	ResourceAttributeContainer instantiate(QName name);
 
+	@NotNull
 	ResourceAttributeContainerDefinition clone();
 
 	ResourceAttributeDefinition findAttributeDefinition(QName elementQName);

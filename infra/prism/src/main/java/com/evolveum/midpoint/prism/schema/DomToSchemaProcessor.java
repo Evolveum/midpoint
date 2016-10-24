@@ -452,12 +452,12 @@ class DomToSchemaProcessor {
 							PrismContainerDefinition<?> containerDefinition = createPropertyContainerDefinition(
 									xsType, p, null, containerAnnotation, false);
 							((PrismContainerDefinitionImpl) containerDefinition).setInherited(particleInherited);
-							((ComplexTypeDefinitionImpl) ctd).addDefinition(containerDefinition);
+							((ComplexTypeDefinitionImpl) ctd).add(containerDefinition);
 						} else {
 							PrismPropertyDefinitionImpl propDef = createPropertyDefinition(xsType, elementName,
 									DOMUtil.XSD_ANY, ctd, annotation, p);
 							propDef.setInherited(particleInherited);
-							((ComplexTypeDefinitionImpl) ctd).addDefinition(propDef);
+							((ComplexTypeDefinitionImpl) ctd).add(propDef);
 						}
 					}
 
@@ -494,7 +494,7 @@ class DomToSchemaProcessor {
 						((PrismContainerDefinitionImpl) containerDefinition).setDynamic(true);
 					}
 					((PrismContainerDefinitionImpl) containerDefinition).setInherited(particleInherited);
-					((ComplexTypeDefinitionImpl) ctd).addDefinition(containerDefinition);
+					((ComplexTypeDefinitionImpl) ctd).add(containerDefinition);
 
 				} else {
 

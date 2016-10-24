@@ -98,11 +98,6 @@ public interface Definition extends Serializable, DebugDumpable, Revivable {
 	boolean isDeprecated();
 
 	/**
-	 * Whether an item is inherited from a supertype.
-	 */
-	boolean isInherited();
-
-	/**
 	 * True for definitions that are more important than others and that should be emphasized
 	 * during presentation. E.g. the emphasized definitions will always be displayed in the user
 	 * interfaces (even if they are empty), they will always be included in the dumps, etc.
@@ -167,5 +162,6 @@ public interface Definition extends Serializable, DebugDumpable, Revivable {
 
 	Class getTypeClass();
 
+	@NotNull
 	Definition clone();
 }

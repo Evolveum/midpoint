@@ -39,8 +39,6 @@ import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.query.EqualFilter;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.provisioning.api.GenericConnectorException;
@@ -104,7 +102,7 @@ class EntitlementConverter {
 		ResourceType resourceType = subjectCtx.getResource();
 		LOGGER.trace("Starting postProcessEntitlementRead");
 		RefinedObjectClassDefinition objectClassDefinition = subjectCtx.getObjectClassDefinition();
-		Collection<RefinedAssociationDefinition> entitlementAssociationDefs = objectClassDefinition.getEntitlementAssociations();
+		Collection<RefinedAssociationDefinition> entitlementAssociationDefs = objectClassDefinition.getEntitlementAssociationDefinitions();
 		if (entitlementAssociationDefs != null) {
 			ResourceAttributeContainer attributesContainer = ShadowUtil.getAttributesContainer(resourceObject);
 			RefinedResourceSchema refinedSchema = RefinedResourceSchemaImpl.getRefinedSchema(resourceType);
@@ -395,14 +393,14 @@ class EntitlementConverter {
 			PrismObject<ShadowType> subjectShadow, OperationResult parentResult) 
 					throws SchemaException, CommunicationException, ObjectNotFoundException, ConfigurationException, SecurityViolationException {
 
-		Collection<RefinedAssociationDefinition> entitlementAssociationDefs = subjectCtx.getObjectClassDefinition().getEntitlementAssociations();
+		Collection<RefinedAssociationDefinition> entitlementAssociationDefs = subjectCtx.getObjectClassDefinition().getEntitlementAssociationDefinitions();
 		if (entitlementAssociationDefs == null || entitlementAssociationDefs.isEmpty()) {
 			// Nothing to do
 			LOGGER.trace("No associations in deleted shadow");
 			return;
 		}
 		ResourceAttributeContainer subjectAttributesContainer = ShadowUtil.getAttributesContainer(subjectShadow);
-		for (final RefinedAssociationDefinition assocDefType: subjectCtx.getObjectClassDefinition().getEntitlementAssociations()) {
+		for (final RefinedAssociationDefinition assocDefType: subjectCtx.getObjectClassDefinition().getEntitlementAssociationDefinitions()) {
 			if (assocDefType.getResourceObjectAssociationType().getDirection() != ResourceObjectAssociationDirectionType.OBJECT_TO_SUBJECT) {
 				// We can ignore these. They will die together with the object. No need to explicitly delete them.
 				LOGGER.trace("Ignoring subject-to-object association in deleted shadow");
@@ -547,7 +545,7 @@ class EntitlementConverter {
 		if (associationName == null) {
 			throw new SchemaException("No name in entitlement association "+associationCVal);
 		}
-		RefinedAssociationDefinition assocDefType = objectClassDefinition.findEntitlementAssociation(associationName);
+		RefinedAssociationDefinition assocDefType = objectClassDefinition.findEntitlementAssociationDefinition(associationName);
 		if (assocDefType == null) {
 			throw new SchemaException("No entitlement association with name "+associationName+" in schema of "+ctx.getResource());
 		}
@@ -621,7 +619,7 @@ class EntitlementConverter {
 		if (associationName == null) {
 			throw new SchemaException("No name in entitlement association "+associationCVal);
 		}
-		RefinedAssociationDefinition assocDefType = subjectCtx.getObjectClassDefinition().findEntitlementAssociation(associationName);
+		RefinedAssociationDefinition assocDefType = subjectCtx.getObjectClassDefinition().findEntitlementAssociationDefinition(associationName);
 		if (assocDefType == null) {
 			throw new SchemaException("No entitlement association with name "+assocDefType+" in schema of "+resource);
 		}

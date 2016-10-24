@@ -324,7 +324,8 @@ public class PrismContainerDefinitionImpl<C extends Containerable> extends ItemD
 	/**
      * Shallow clone
      */
-    @Override
+    @NotNull
+	@Override
     public PrismContainerDefinitionImpl<C> clone() {
         PrismContainerDefinitionImpl<C> clone = new PrismContainerDefinitionImpl<C>(name, complexTypeDefinition, prismContext, compileTimeClass);
         copyDefinitionData(clone);
@@ -338,9 +339,9 @@ public class PrismContainerDefinitionImpl<C extends Containerable> extends ItemD
     }
     
     @Override
-	ItemDefinition deepClone(Map<QName,ComplexTypeDefinition> ctdMap) {
+	public ItemDefinition deepClone(Map<QName,ComplexTypeDefinition> ctdMap) {
 		PrismContainerDefinitionImpl<C> clone = clone();
-		ComplexTypeDefinitionImpl ctd = (ComplexTypeDefinitionImpl) getComplexTypeDefinition();
+		ComplexTypeDefinition ctd = getComplexTypeDefinition();
 		if (ctd != null) {
 			ctd = ctd.deepClone(ctdMap);
 			clone.setComplexTypeDefinition(ctd);
@@ -374,7 +375,13 @@ public class PrismContainerDefinitionImpl<C extends Containerable> extends ItemD
     }
     
     private void addDefinition(ItemDefinition itemDef) {
-    	((Collection)getDefinitions()).add(itemDef);
+		if (complexTypeDefinition == null) {
+			throw new UnsupportedOperationException("Cannot add an item definition because there's no complex type definition");
+		} else if (!(complexTypeDefinition instanceof ComplexTypeDefinitionImpl)) {
+			throw new UnsupportedOperationException("Cannot add an item definition into complex type definition of type " + complexTypeDefinition.getClass().getName());
+		} else {
+			((ComplexTypeDefinitionImpl) complexTypeDefinition).add(itemDef);
+		}
     }
 
     /**

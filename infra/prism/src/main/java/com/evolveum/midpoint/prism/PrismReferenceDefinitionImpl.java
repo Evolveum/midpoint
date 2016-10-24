@@ -135,6 +135,7 @@ public class PrismReferenceDefinitionImpl extends ItemDefinitionImpl<PrismRefere
 		return new ReferenceDelta(path, this, prismContext);
 	}
 
+	@NotNull
 	@Override
 	public PrismReferenceDefinition clone() {
     	PrismReferenceDefinitionImpl clone = new PrismReferenceDefinitionImpl(getName(), getTypeName(), getPrismContext());

@@ -23,7 +23,6 @@ import static com.evolveum.midpoint.prism.util.PrismTestUtil.*;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
@@ -39,7 +38,6 @@ import org.testng.Assert;
 import org.testng.AssertJUnit;
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
-import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
 
 import com.evolveum.midpoint.common.ResourceObjectPattern;
@@ -208,7 +206,7 @@ public class TestRefinedSchema {
 	        assertNotNull("No entitlement displayNameAttribute", entDisplayNameAttributeDef);
 	        assertEquals("Wrong entitlement displayNameAttribute", new QName(resourceType.getNamespace(), "cn"), entDisplayNameAttributeDef.getName());
 	        
-	        assertEquals("Unexpected number of entitlement associations", 1, rAccountDef.getEntitlementAssociations().size());
+	        assertEquals("Unexpected number of entitlement associations", 1, rAccountDef.getEntitlementAssociationDefinitions().size());
         }
         
         assertRefinedToLayer(rAccountDef, sourceLayer);
@@ -643,7 +641,7 @@ public class TestRefinedSchema {
         assertEquals("Wrong entitlement displayNameAttribute", new QName(ResourceTypeUtil.getResourceNamespace(resourceType), "dn"),
         		entDisplayNameAttributeDef.getName());
         
-        assertEquals("Unexpected number of entitlement associations", 1, rAccountDef.getEntitlementAssociations().size());
+        assertEquals("Unexpected number of entitlement associations", 1, rAccountDef.getEntitlementAssociationDefinitions().size());
         
         ResourceAttributeContainerDefinition resAttrContainerDef = rAccountDef.toResourceAttributeContainerDefinition();
         assertNotNull("No ResourceAttributeContainerDefinition", resAttrContainerDef);

@@ -33,6 +33,7 @@ public interface PrismObjectDefinition<O extends Objectable> extends PrismContai
 	@Override
 	PrismObject<O> instantiate(QName name) throws SchemaException;
 
+	@NotNull
 	PrismObjectDefinition<O> clone();
 
 	@Override

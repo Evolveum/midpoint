@@ -68,6 +68,7 @@ public abstract class ItemDefinitionImpl<I extends Item> extends DefinitionImpl 
     private boolean canAdd = true;
     private boolean canRead = true;
     private boolean canModify = true;
+	private boolean inherited;
     private PrismReferenceValue valueEnumerationRef;
 
 	// TODO: annotations
@@ -313,6 +314,7 @@ public abstract class ItemDefinitionImpl<I extends Item> extends DefinitionImpl 
         }
     }
 
+	@NotNull
 	@Override
 	public abstract ItemDefinition clone();
 
@@ -345,7 +347,8 @@ public abstract class ItemDefinitionImpl<I extends Item> extends DefinitionImpl 
 		}
 	}
 	
-	ItemDefinition<I> deepClone(Map<QName,ComplexTypeDefinition> ctdMap) {
+	@Override
+	public ItemDefinition<I> deepClone(Map<QName, ComplexTypeDefinition> ctdMap) {
 		return clone();
 	}
 	
@@ -477,4 +480,13 @@ public abstract class ItemDefinitionImpl<I extends Item> extends DefinitionImpl 
 		}
 	}
 
+	@Override
+	public boolean isInherited() {
+		return inherited;
+	}
+
+	@Override
+	public void setInherited(boolean inherited) {
+		this.inherited = inherited;
+	}
 }

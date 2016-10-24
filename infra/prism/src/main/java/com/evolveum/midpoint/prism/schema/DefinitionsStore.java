@@ -23,13 +23,13 @@ import com.evolveum.midpoint.prism.*;
  */
 public interface DefinitionsStore {
 
-//	DefinitionSearchContext<ItemDefinition<?>> findItemDefinition();
+//	<T extends Item> DefinitionSearchContext<ItemDefinition<T>> findItemDefinition();
 //
-//	DefinitionSearchContext<PrismPropertyDefinition> findPropertyDefinition();
+//	<T> DefinitionSearchContext<PrismPropertyDefinition<T>> findPropertyDefinition();
 //
 //	DefinitionSearchContext<PrismReferenceDefinition> findReferenceDefinition();
 //
-//	DefinitionSearchContext<PrismContainerDefinition<? extends Containerable>> findContainerDefinition();
+//	<C extends Containerable> ContainerDefinitionSearchContext<C> findContainerDefinition();
 
 
 }

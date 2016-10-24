@@ -16,13 +16,12 @@
 
 package com.evolveum.midpoint.schema.processor;
 
-import javax.xml.namespace.QName;
-
 import com.evolveum.midpoint.prism.Definition;
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyDefinitionImpl;
-import com.evolveum.midpoint.prism.path.ItemPath;
+import org.jetbrains.annotations.NotNull;
+
+import javax.xml.namespace.QName;
 
 /**
  * Resource Object Attribute Definition.
@@ -96,7 +95,7 @@ public class ResourceAttributeDefinitionImpl<T> extends PrismPropertyDefinitionI
 		
 	@Override
 	public boolean isIdentifier(ObjectClassComplexTypeDefinition objectDefinition) {
-		for (ResourceAttributeDefinition<T> identifier : objectDefinition.getPrimaryIdentifiers()) {
+		for (ResourceAttributeDefinition<?> identifier : objectDefinition.getPrimaryIdentifiers()) {
 			if (this == identifier) {
 				return true;
 			}
@@ -106,7 +105,7 @@ public class ResourceAttributeDefinitionImpl<T> extends PrismPropertyDefinitionI
 	
 	@Override
 	public boolean isSecondaryIdentifier(ObjectClassComplexTypeDefinition objectDefinition) {
-		for (ResourceAttributeDefinition<T> secondaryIdentifier : objectDefinition.getSecondaryIdentifiers()) {
+		for (ResourceAttributeDefinition<?> secondaryIdentifier : objectDefinition.getSecondaryIdentifiers()) {
 			if (this == secondaryIdentifier) {
 				return true;
 			}
@@ -157,6 +156,7 @@ public class ResourceAttributeDefinitionImpl<T> extends PrismPropertyDefinitionI
 		this.frameworkAttributeName = frameworkAttributeName;
 	}
 
+	@NotNull
 	@Override
 	public ResourceAttributeDefinition<T> clone() {
 		ResourceAttributeDefinitionImpl<T> clone = new ResourceAttributeDefinitionImpl<T>(getName(), getTypeName(), getPrismContext());

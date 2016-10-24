@@ -21,6 +21,7 @@ import java.util.Collection;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.schema.GlobalDefinitionsStore;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
@@ -92,6 +93,7 @@ public class PrismMarshaller {
 	 * @param context Serialization context.
 	 * @return Marshaled prism value.
 	 */
+	@NotNull
 	RootXNode marshalPrismValueAsRoot(@NotNull PrismValue value, QName itemName, ItemDefinition itemDefinition,
 			SerializationContext context) throws SchemaException {
         ItemInfo itemInfo = ItemInfo.determineFromValue(value, itemName, itemDefinition, getSchemaRegistry());
@@ -117,6 +119,7 @@ public class PrismMarshaller {
 	 * @param context Serialization context.
 	 * @return Marshaled object.
 	 */
+	@NotNull
 	RootXNode marshalAnyData(@NotNull Object object, QName itemName, ItemDefinition itemDefinition, SerializationContext context) throws SchemaException {
 		if (object instanceof Item) {
 			return marshalItemAsRoot((Item) object, itemName, itemDefinition, context);
@@ -219,7 +222,8 @@ public class PrismMarshaller {
 		}
 		if (definition instanceof PrismContainerDefinition) {
 			PrismContainerDefinition pcd = (PrismContainerDefinition) definition;
-			return pcd.getComplexTypeDefinition() != null && !pcd.getComplexTypeDefinition().isXsdAnyMarker();
+			ComplexTypeDefinition ctd = pcd.getComplexTypeDefinition();
+			return ctd != null && !ctd.isXsdAnyMarker() && ctd.getCompileTimeClass() != null;
 		} else if (definition instanceof PrismPropertyDefinition) {
 			PrismPropertyDefinition ppd = (PrismPropertyDefinition) definition;
 			return !ppd.isAnyType();			// covered by isAbstract?
@@ -301,7 +305,10 @@ public class PrismMarshaller {
 		if (typeValue == null || typeValue.equals(typeParent)) {
 			return null;
 		}
-		// TODO check if it's not a local type (e.g. ObjectClass in a specific resource)
+		if (ctdValue.getCompileTimeClass() == null) {
+			// TODO.................
+			return null;
+		}
 		return typeValue;
 	}
 
@@ -328,7 +335,9 @@ public class PrismMarshaller {
         SearchFilterType filter = value.getFilter();
         if (filter != null) {
             XNode xsubnode = filter.serializeToXNode();
-            xmap.put(createReferenceQName(XNode.KEY_REFERENCE_FILTER, namespace), xsubnode);
+			if (xsubnode != null) {
+				xmap.put(createReferenceQName(XNode.KEY_REFERENCE_FILTER, namespace), xsubnode);
+			}
         }
         EvaluationTimeType resolutionTime = value.getResolutionTime();
         if (resolutionTime != null) {

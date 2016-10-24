@@ -124,11 +124,6 @@ public abstract class DefinitionImpl implements Definition {
 		this.deprecated = deprecated;
 	}
 
-    @Override
-	public boolean isInherited() {
-        return inherited;
-    }
-
     public void setInherited(boolean inherited) {
         this.inherited = inherited;
     }
@@ -291,6 +286,7 @@ public abstract class DefinitionImpl implements Definition {
      */
     public abstract String getDocClassName();
 
+	@NotNull
 	@Override
 	public abstract Definition clone();
 

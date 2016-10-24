@@ -18,6 +18,7 @@ package com.evolveum.midpoint.common.refinery;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 import javax.xml.namespace.QName;
 
@@ -25,10 +26,8 @@ import com.evolveum.midpoint.common.ResourceObjectPattern;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.processor.*;
-import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -95,7 +94,8 @@ public class LayerRefinedObjectClassDefinitionImpl implements LayerRefinedObject
 	}
 
 	@Override
-    public ResourceAttributeDefinition<?> getDescriptionAttribute() {
+    public LayerRefinedAttributeDefinition<?> getDescriptionAttribute() {
+		// TODO optimize
         return substituteLayerRefinedAttributeDefinition(refinedObjectClassDefinition.getDescriptionAttribute());
     }
 
@@ -185,7 +185,8 @@ public class LayerRefinedObjectClassDefinitionImpl implements LayerRefinedObject
 		return refinedObjectClassDefinition.getHelp();
 	}
 
-    @Override
+    @NotNull
+	@Override
 	public Collection<? extends LayerRefinedAttributeDefinition<?>> getPrimaryIdentifiers() {
         return substituteLayerRefinedAttributeDefinitionCollection(refinedObjectClassDefinition.getPrimaryIdentifiers());
 	}
@@ -195,7 +196,8 @@ public class LayerRefinedObjectClassDefinitionImpl implements LayerRefinedObject
         return substituteLayerRefinedAttributeDefinitionCollection(refinedObjectClassDefinition.getAllIdentifiers());
 	}
 
-    @Override
+    @NotNull
+	@Override
 	public Collection<? extends LayerRefinedAttributeDefinition<?>> getSecondaryIdentifiers() {
 		return LayerRefinedAttributeDefinitionImpl.wrapCollection(refinedObjectClassDefinition.getSecondaryIdentifiers(), layer);
 	}
@@ -237,7 +239,7 @@ public class LayerRefinedObjectClassDefinitionImpl implements LayerRefinedObject
 	}
 
     @Override
-	public <X> LayerRefinedAttributeDefinition<X> findAttributeDefinition(QName elementQName) {
+	public LayerRefinedAttributeDefinition<?> findAttributeDefinition(@NotNull QName elementQName) {
         for (LayerRefinedAttributeDefinition definition : getAttributeDefinitions()) {
             if (QNameUtil.match(definition.getName(), elementQName)) {
                 return definition;
@@ -247,7 +249,7 @@ public class LayerRefinedObjectClassDefinitionImpl implements LayerRefinedObject
 	}
 
     @Override
-	public <X> LayerRefinedAttributeDefinition<X> findAttributeDefinition(String elementLocalname) {
+	public LayerRefinedAttributeDefinition<?> findAttributeDefinition(String elementLocalname) {
 		return findAttributeDefinition(new QName(getResourceNamespace(), elementLocalname));        // todo or should we use ns-less matching?
 	}
 
@@ -256,7 +258,8 @@ public class LayerRefinedObjectClassDefinitionImpl implements LayerRefinedObject
 		return refinedObjectClassDefinition.getDisplayName();
 	}
 
-    @Override
+    @NotNull
+	@Override
 	public List<? extends ItemDefinition> getDefinitions() {
 		return getAttributeDefinitions();
 	}
@@ -276,7 +279,8 @@ public class LayerRefinedObjectClassDefinitionImpl implements LayerRefinedObject
 		return refinedObjectClassDefinition.getObjectClassDefinition();
 	}
 
-    @Override
+    @NotNull
+	@Override
 	public List<? extends LayerRefinedAttributeDefinition<?>> getAttributeDefinitions() {
         if (layerRefinedAttributeDefinitions == null) {
             layerRefinedAttributeDefinitions = LayerRefinedAttributeDefinitionImpl.wrapCollection(refinedObjectClassDefinition.getAttributeDefinitions(), layer);
@@ -297,12 +301,6 @@ public class LayerRefinedObjectClassDefinitionImpl implements LayerRefinedObject
     @Override
 	public PrismObjectDefinition<ShadowType> getObjectDefinition() {
 		return refinedObjectClassDefinition.getObjectDefinition();
-	}
-
-    @Override
-	public LayerRefinedAttributeDefinition<?> getAttributeDefinition(QName attributeName) {
-        // todo should there be any difference between findAttributeDefinition and getAttributeDefinition? [mederly]
-		return findAttributeDefinition(attributeName);
 	}
 
     @Override
@@ -376,11 +374,6 @@ public class LayerRefinedObjectClassDefinitionImpl implements LayerRefinedObject
 	}
 
 	@Override
-	public boolean isInherited() {
-		return refinedObjectClassDefinition.isInherited();
-	}
-
-	@Override
 	public boolean isObjectMarker() {
 		return refinedObjectClassDefinition.isObjectMarker();
 	}
@@ -405,19 +398,15 @@ public class LayerRefinedObjectClassDefinitionImpl implements LayerRefinedObject
 		return refinedObjectClassDefinition.isRuntimeSchema();
 	}
 
-    @Override
-	public Collection<RefinedAssociationDefinition> getAssociations() {
-		return refinedObjectClassDefinition.getAssociations();
-	}
-
-    @Override
-	public Collection<RefinedAssociationDefinition> getAssociations(ShadowKindType kind) {
-		return refinedObjectClassDefinition.getAssociations(kind);
-	}
-
+    @NotNull
 	@Override
-	public <X> ResourceAttributeDefinition<X> findAttributeDefinition(QName name, boolean caseInsensitive) {
-		return refinedObjectClassDefinition.findAttributeDefinition(name, caseInsensitive);
+	public Collection<RefinedAssociationDefinition> getAssociationDefinitions() {
+		return refinedObjectClassDefinition.getAssociationDefinitions();
+	}
+
+    @Override
+	public Collection<RefinedAssociationDefinition> getAssociationDefinitions(ShadowKindType kind) {
+		return refinedObjectClassDefinition.getAssociationDefinitions(kind);
 	}
 
 	@Override
@@ -441,9 +430,8 @@ public class LayerRefinedObjectClassDefinitionImpl implements LayerRefinedObject
 	}
 
 	@Override
-	public <T extends CapabilityType> T getEffectiveCapability(
-			Class<T> capabilityClass) {
-		return refinedObjectClassDefinition.getEffectiveCapability(capabilityClass);
+	public <T extends CapabilityType> T getEffectiveCapability(Class<T> capabilityClass) {
+		return (T) refinedObjectClassDefinition.getEffectiveCapability(capabilityClass);
 	}
 
 	@Override
@@ -462,8 +450,8 @@ public class LayerRefinedObjectClassDefinitionImpl implements LayerRefinedObject
 	}
 
 	@Override
-	public Collection<RefinedAssociationDefinition> getEntitlementAssociations() {
-		return refinedObjectClassDefinition.getEntitlementAssociations();
+	public Collection<RefinedAssociationDefinition> getEntitlementAssociationDefinitions() {
+		return refinedObjectClassDefinition.getEntitlementAssociationDefinitions();
 	}
 
     @Override
@@ -487,8 +475,8 @@ public class LayerRefinedObjectClassDefinitionImpl implements LayerRefinedObject
 	}
 
     @Override
-	public RefinedAssociationDefinition findAssociation(QName name) {
-		return refinedObjectClassDefinition.findAssociation(name);
+	public RefinedAssociationDefinition findAssociationDefinition(QName name) {
+		return refinedObjectClassDefinition.findAssociationDefinition(name);
 	}
 
 	@Override
@@ -499,8 +487,8 @@ public class LayerRefinedObjectClassDefinitionImpl implements LayerRefinedObject
 	}
 
 	@Override
-	public RefinedAssociationDefinition findEntitlementAssociation(QName name) {
-		return refinedObjectClassDefinition.findEntitlementAssociation(name);
+	public RefinedAssociationDefinition findEntitlementAssociationDefinition(QName name) {
+		return refinedObjectClassDefinition.findEntitlementAssociationDefinition(name);
 	}
 
     @Override
@@ -573,12 +561,19 @@ public class LayerRefinedObjectClassDefinitionImpl implements LayerRefinedObject
 		return refinedObjectClassDefinition.getHumanReadableName();
 	}
 
-    @Override
+    @NotNull
+	@Override
     public LayerRefinedObjectClassDefinition clone() {
         return wrap(refinedObjectClassDefinition.clone(), this.layer);
     }
 
-    @Override
+	@NotNull
+	@Override
+	public RefinedObjectClassDefinition deepClone(Map<QName, ComplexTypeDefinition> ctdMap) {
+		return new LayerRefinedObjectClassDefinitionImpl(refinedObjectClassDefinition.deepClone(ctdMap), layer);
+	}
+
+	@Override
 	public String getResourceNamespace() {
         return refinedObjectClassDefinition.getResourceNamespace();
     }
@@ -593,6 +588,7 @@ public class LayerRefinedObjectClassDefinitionImpl implements LayerRefinedObject
 		return refinedObjectClassDefinition.getTypeClassIfKnown();
 	}
 
+	@NotNull
 	@Override
 	public Collection<RefinedObjectClassDefinition> getAuxiliaryObjectClassDefinitions() {
 		return refinedObjectClassDefinition.getAuxiliaryObjectClassDefinitions();
@@ -612,4 +608,5 @@ public class LayerRefinedObjectClassDefinitionImpl implements LayerRefinedObject
 	public void revive(PrismContext prismContext) {
 		refinedObjectClassDefinition.revive(prismContext);
 	}
+
 }

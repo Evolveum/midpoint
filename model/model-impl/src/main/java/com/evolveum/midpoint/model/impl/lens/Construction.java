@@ -624,7 +624,7 @@ public class Construction<F extends FocusType> implements DebugDumpable, Seriali
 						.originType(OriginType.ASSIGNMENTS)
 						.originObject(source);
 
-		RefinedAssociationDefinition rAssocDef = refinedObjectClassDefinition.findAssociation(assocName);
+		RefinedAssociationDefinition rAssocDef = refinedObjectClassDefinition.findAssociationDefinition(assocName);
 		if (rAssocDef == null) {
 			throw new SchemaException("No association " + assocName + " in object class "
 					+ refinedObjectClassDefinition.getHumanReadableName() + " in construction in " + source);
