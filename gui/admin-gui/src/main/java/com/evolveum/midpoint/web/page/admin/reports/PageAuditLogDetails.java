@@ -3,7 +3,10 @@ package com.evolveum.midpoint.web.page.admin.reports;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.web.component.AjaxButton;
+import com.evolveum.midpoint.web.page.admin.PageAdminObjectDetails;
 import org.apache.wicket.RestartResponseException;
+import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
@@ -76,7 +79,7 @@ public class PageAuditLogDetails extends PageBase{
 	private static final String ID_PARAMETERS_PARAMETER = "parameter";
 	private static final String ID_PARAMETERS_MESSAGE = "message";
 
-	
+	private static final String ID_BUTTON_BACK = "back";
 
 	private IModel<AuditEventRecordType> recordModel;
 	
@@ -99,12 +102,8 @@ public class PageAuditLogDetails extends PageBase{
 		add(eventPanel);
 		initEventPanel(eventPanel);
 		initDeltasPanel(eventPanel);
+        initLayoutBackButton();
 	}
-
-	
-	
-	
-
 
 	private void initEventPanel(WebMarkupContainer eventPanel){
 
@@ -197,5 +196,15 @@ public class PageAuditLogDetails extends PageBase{
 
 	}
 
+    protected void initLayoutBackButton() {
+        AjaxButton back = new AjaxButton(ID_BUTTON_BACK, createStringResource("PageBase.button.back")) {
 
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                redirectBack();
+            }
+
+        };
+        add(back);
+    }
 }
