@@ -21,6 +21,7 @@ import java.util.*;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.web.page.login.PageLogin;
+import com.evolveum.midpoint.web.page.login.PageSelfRegistration;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import org.apache.commons.lang.LocaleUtils;
 import org.apache.commons.lang.StringUtils;
@@ -400,15 +401,20 @@ public class WebModelServiceUtils {
     }
 
     public static void save(ObjectDelta delta, OperationResult result, PageBase page) {
-        save(delta, null, result, page);
+        save(delta, result, null, page);
     }
-
-    public static void save(ObjectDelta delta, ModelExecuteOptions options, OperationResult result, PageBase page) {
-        save(WebComponentUtil.createDeltaCollection(delta), options, result, page);
+    
+    public static void save(ObjectDelta delta, OperationResult result, Task task, PageBase page) {
+        save(delta, null, result, task, page);
     }
-
+    
+    public static void save(ObjectDelta delta, ModelExecuteOptions options, OperationResult result, Task task, PageBase page) {
+        save(WebComponentUtil.createDeltaCollection(delta), options, result, task, page);
+    }
+    
+ 
     public static void save(Collection<ObjectDelta<? extends ObjectType>> deltas, ModelExecuteOptions options,
-                            OperationResult result, PageBase page) {
+                            OperationResult result, Task task, PageBase page) {
         LOGGER.debug("Saving deltas {}, options {}", new Object[]{deltas, options});
 
         OperationResult subResult;
@@ -419,7 +425,10 @@ public class WebModelServiceUtils {
         }
 
         try {
-            Task task = page.createSimpleTask(result.getOperation());
+            if (task == null) { 
+            	task = page.createSimpleTask(result.getOperation());
+            }
+            
             page.getModelService().executeChanges(deltas, options, task, result);
         } catch (Exception ex) {
             subResult.recordFatalError("WebModelUtils.couldntSaveObject", ex);
