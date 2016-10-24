@@ -3,6 +3,7 @@ package com.evolveum.midpoint.web.page.admin.reports.dto;
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 import org.apache.wicket.Component;
 import org.apache.wicket.model.IModel;
@@ -59,48 +60,37 @@ public class AuditEventRecordProvider extends BaseSortableDataProvider<AuditEven
 
 	@Override
 	public Iterator<AuditEventRecordType> internalIterator(long first, long count) {
-		Map<String, Object> queryParameters = getParameters();
-		if (queryParameters.containsKey(SET_FIRST_RESULT_PARAMETER)){
-			queryParameters.remove(SET_FIRST_RESULT_PARAMETER);
-		}
-		parameters.put(SET_FIRST_RESULT_PARAMETER, ((Long) first).intValue());
-		if (queryParameters.containsKey(SET_MAX_RESULTS_PARAMETER)){
-			queryParameters.remove(SET_MAX_RESULTS_PARAMETER);
-		}
-		parameters.put(SET_MAX_RESULTS_PARAMETER, ((Long) count).intValue());
-
-		List<AuditEventRecordType> recordsList = listRecords(auditEventQuery, true);
+		List<AuditEventRecordType> recordsList = listRecords(auditEventQuery, true, first, count);
 		return recordsList.iterator();
 	}
 
 
 	@Override
 	protected int internalSize(){
-		// Map<String, Object> queryParameters = getParameters();
 		String query = generateFullQuery(AUDIT_RECORDS_QUERY_COUNT + auditEventQuery, false);
-		/*
-		System.out.println(query);
-		for (Map.Entry<String, Object> entry : parameters.entrySet())
-		{
-			System.out.println(entry.getKey() + ":" + entry.getValue());
-		}
-		*/
 		long count = getAuditService().countObjects(query, parameters);
 
 		return ((Long)count).intValue();
 	}
 
 	private List<AuditEventRecordType> listRecords(String query, boolean orderBy){
-		// Map<String, Object> queryParameters = getParameters();
+        return listRecords(query, orderBy, 0, getPage().getItemsPerPage(UserProfileStorage.TableId.PAGE_AUDIT_LOG_VIEWER));
+    }
+
+	private List<AuditEventRecordType> listRecords(String query, boolean orderBy, long first, long count){
 		String parameterQuery = generateFullQuery(query, orderBy);
-		/*
-		System.out.println(parameterQuery);
-		for (Map.Entry<String, Object> entry : parameters.entrySet())
-		{
-			System.out.println(entry.getKey() + ":" + entry.getValue());
-		}
-		*/
-		List<AuditEventRecord> auditRecords = getAuditService().listRecords(parameterQuery, parameters);
+
+        if (parameters.containsKey(SET_FIRST_RESULT_PARAMETER)){
+            parameters.remove(SET_FIRST_RESULT_PARAMETER);
+        }
+        parameters.put(SET_FIRST_RESULT_PARAMETER, ((Long) first).intValue());
+        if (parameters.containsKey(SET_MAX_RESULTS_PARAMETER)){
+            parameters.remove(SET_MAX_RESULTS_PARAMETER);
+        }
+        parameters.put(SET_MAX_RESULTS_PARAMETER, ((Long) count).intValue());
+
+
+        List<AuditEventRecord> auditRecords = getAuditService().listRecords(parameterQuery, parameters);
 		if (auditRecords == null){
 			auditRecords = new ArrayList<>();
 		}
@@ -121,62 +111,61 @@ public class AuditEventRecordProvider extends BaseSortableDataProvider<AuditEven
 	}
 
 	private String generateFullQuery(String query, boolean orderBy){
-		Map<String, Object> queryParameters = getParameters();
-		if (queryParameters.get("from") != null) {
+		parameters = getParameters();
+		if (parameters.get("from") != null) {
 			query += "(aer.timestamp >= :from) and ";
 		} else {
-			queryParameters.remove("from");
+            parameters.remove("from");
 		}
-		if (queryParameters.get("to") != null) {
+		if (parameters.get("to") != null) {
 			query += "(aer.timestamp <= :to) and ";
 		} else {
-			queryParameters.remove("to");
+            parameters.remove("to");
 		}
-		if (queryParameters.get("eventType") != null) {
+		if (parameters.get("eventType") != null) {
 			query += "(aer.eventType = :eventType) and ";
 		} else {
-			queryParameters.remove("eventType");
+            parameters.remove("eventType");
 		}
-		if (queryParameters.get("eventStage") != null) {
+		if (parameters.get("eventStage") != null) {
 			query += "(aer.eventStage = :eventStage) and ";
 		} else {
-			queryParameters.remove("eventStage");
+            parameters.remove("eventStage");
 		}
-		if (queryParameters.get("outcome") != null) {
+		if (parameters.get("outcome") != null) {
 			query += "(aer.outcome = :outcome) and ";
 		} else {
-			queryParameters.remove("outcome");
+            parameters.remove("outcome");
 		}
-		if (queryParameters.get("initiatorName") != null) {
+		if (parameters.get("initiatorName") != null) {
 			query += "(aer.initiatorOid = :initiatorName) and ";
 		} else {
-			queryParameters.remove("initiatorName");
+            parameters.remove("initiatorName");
 		}		
-		if (queryParameters.get("channel") != null) {
+		if (parameters.get("channel") != null) {
 			query += "(aer.channel = :channel) and ";
 		} else {
-			queryParameters.remove("channel");
+            parameters.remove("channel");
 		}
-		if (queryParameters.get("hostIdentifier") != null) {
+		if (parameters.get("hostIdentifier") != null) {
 			query += "(aer.hostIdentifier = :hostIdentifier) and ";
 		} else {
-			queryParameters.remove("hostIdentifier");
+            parameters.remove("hostIdentifier");
 		}
-		if (queryParameters.get("targetOwnerName") != null) {
+		if (parameters.get("targetOwnerName") != null) {
 			query += "(aer.targetOwnerOid = :targetOwnerName) and ";
 		} else {
-			queryParameters.remove("targetOwnerName");
+            parameters.remove("targetOwnerName");
 		}
-		if (queryParameters.get("targetName") != null) {
+		if (parameters.get("targetName") != null) {
 			query += "(aer.targetOid = :targetName) and ";
 		} else {
-			queryParameters.remove("targetName");
+            parameters.remove("targetName");
 		}
 		query = query.substring(0, query.length()-5); // remove trailing " and "
 		if (orderBy){
 			query +=  AUDIT_RECORDS_ORDER_BY;
 		}
-		parameters = queryParameters;
 		return query;
 	}
 
