@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright (c) 2010-2013 Evolveum
+  ~ Copyright (c) 2010-2016 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -41,17 +41,7 @@
     <credentials>
         <password>
             <value>
-                <enc:EncryptedData Type="http://www.w3.org/2001/04/xmlenc#Element"
-                                   xmlns:enc="http://www.w3.org/2001/04/xmlenc#">
-                    <enc:EncryptionMethod Algorithm="http://www.w3.org/2001/04/xmlenc#aes256-cbc"/>
-                    <ds:KeyInfo>
-                        <ds:KeyName>HF6JRsNMeJt6alihT44CXKgpe0c=</ds:KeyName>
-                    </ds:KeyInfo>
-                    <enc:CipherData>
-                        <enc:CipherValue>eL1PVNFxclMxDulnqX6Ip/mxLbr+vyxCXu9auL3EKWoNawdzlqJDwF7WwuxtRZDS
-                        </enc:CipherValue>
-                    </enc:CipherData>
-                </enc:EncryptedData>
+                <t:clearValue>nbusr123</t:clearValue>
             </value>
         </password>
     </credentials>
@@ -63,8 +53,7 @@
             <description>
                 Account construction.
             </description>
-            <resourceRef oid="c0c010c0-d34d-b33f-f00d-333bbbbbbbb2" type="c:ResourceType"/>
-            <type>default</type>
+            <resourceRef oid="c0c010c0-d34d-b33f-f00d-333bbbbbbbb2" type="ResourceType"/>
         </construction>
     </assignment>
 </user>

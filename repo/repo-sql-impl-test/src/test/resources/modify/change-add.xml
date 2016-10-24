@@ -15,17 +15,19 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<objectModification
+<objectDelta
         xmlns='http://midpoint.evolveum.com/xml/ns/public/common/api-types-3'
         xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
         xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
+    <changeType>modify</changeType>
+    <objectType>UserType</objectType>
     <oid>f65963e3-9d47-4b18-aaf3-bfc98bdfa000</oid>
-    <modification>
+    <itemDelta>
         <t:modificationType>add</t:modificationType>
         <t:path>c:linkRef</t:path>
         <t:value>
             <oid>1234567890</oid>
         </t:value>
-    </modification>
-</objectModification>
+    </itemDelta>
+</objectDelta>
 
