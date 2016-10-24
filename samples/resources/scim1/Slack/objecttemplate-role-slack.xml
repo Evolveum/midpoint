@@ -1,0 +1,40 @@
+<objectTemplate xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+                xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+                xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+                xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+                xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+                xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+                oid="bfeff922-de9c-49e9-afff-93574a7c7a09"
+                version="12">
+   <name>Group role template - Slack </name>
+   <description>
+            Template with the implementation of the automatic creation of roles while importing entitlement and role resource objects.
+        </description>
+   <metadata>
+      <createTimestamp>2016-10-11T11:14:12.940+02:00</createTimestamp>
+      <creatorRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></creatorRef>
+      <createChannel>http://midpoint.evolveum.com/xml/ns/public/model/channels-3#objectImport</createChannel>
+   </metadata>
+   <mapping>
+      <name>Group assignment</name>
+      <authoritative>true</authoritative>
+      <strength>strong</strength>
+      <source>
+         <c:path>roleType</c:path>
+      </source>
+      <expression>
+         <assignmentTargetSearch>
+            <targetType>c:RoleType</targetType>
+            <oid>1a641f93-0e91-4e23-9dc7-21523c7688ba</oid>
+         </assignmentTargetSearch>
+      </expression>
+      <target>
+         <c:path>assignment</c:path>
+      </target>
+      <condition>
+         <script>
+            <code>roleType == 'Slack-Group'</code>
+         </script>
+      </condition>
+   </mapping>
+</objectTemplate>
