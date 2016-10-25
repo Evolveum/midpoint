@@ -1433,6 +1433,12 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
 		return complexTypeDefinition;
 	}
 
+	// will correctly work only if argument is not null (otherwise the CTD will be determined on next call to getCTD)
+	void replaceComplexTypeDefinition(ComplexTypeDefinition complexTypeDefinition) {
+		this.complexTypeDefinition = complexTypeDefinition;
+	}
+
+
 	private ComplexTypeDefinition determineComplexTypeDefinition() {
 		PrismContainerable<C> parent = getParent();
 		ComplexTypeDefinition parentCTD = parent != null && parent.getDefinition() != null ?
@@ -1484,5 +1490,23 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
 	@Override
 	public <T> T getRealValue() {
 		return (T) asContainerable();
+	}
+
+	/**
+	 * Returns a single-valued container (with a single-valued definition) holding just this value.
+	 * @param itemName Item name for newly-created container.
+	 * @return
+	 */
+	public PrismContainer<C> asSingleValuedContainer(@NotNull QName itemName) throws SchemaException {
+		PrismContext prismContext = getPrismContext();
+		Validate.notNull(prismContext, "Prism context is null");
+
+		PrismContainerDefinitionImpl<C> definition = new PrismContainerDefinitionImpl<>(itemName,
+				getComplexTypeDefinition(), prismContext);
+		definition.setMaxOccurs(1);
+
+		PrismContainer<C> pc = definition.instantiate();
+		pc.add(clone());
+		return pc;
 	}
 }

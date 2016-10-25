@@ -32,6 +32,7 @@ import com.evolveum.midpoint.model.common.SystemObjectCache;
 import com.evolveum.midpoint.model.common.expression.*;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.polystring.PrismDefaultPolyStringNormalizer;
+import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.*;
@@ -77,6 +78,7 @@ import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * @author semancik
@@ -1212,21 +1214,16 @@ public class LensUtil {
 		}
 	}
 
-	public static PrismContainer<AssignmentType> createAssignmentSingleValueContainerClone(AssignmentType assignmentType) throws SchemaException {
-		PrismContainerValue<AssignmentType> assignmentCVal = assignmentType.asPrismContainerValue();
-		PrismContainerDefinition<AssignmentType> def = assignmentCVal.getParent().getDefinition().clone();
+	public static PrismContainer<AssignmentType> createAssignmentSingleValueContainerClone(@NotNull AssignmentType assignmentType) throws SchemaException {
 		// Make it appear to be single-value. Therefore paths without segment IDs will work.
-		((PrismContainerDefinitionImpl) def).setMaxOccurs(1);
-		PrismContainer<AssignmentType> assignmentCont = def.instantiate();
-		assignmentCont.add(assignmentCVal.clone());
-		return assignmentCont;
+		return assignmentType.asPrismContainerValue().asSingleValuedContainer(SchemaConstantsGenerated.C_ASSIGNMENT);
 	}
 	
 	public static AssignmentType getAssignmentType(ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi, boolean old) {
 		if (old) {
-			return ((PrismContainer<AssignmentType>)assignmentIdi.getItemOld()).getValue(0).asContainerable();
+			return assignmentIdi.getItemOld().getValue(0).asContainerable();
 		} else {
-			return ((PrismContainer<AssignmentType>)assignmentIdi.getItemNew()).getValue(0).asContainerable();
+			return assignmentIdi.getItemNew().getValue(0).asContainerable();
 		}
 	}
 	

@@ -531,6 +531,9 @@ public class PrismReferenceValue extends PrismValue implements DebugDumpable, Se
 			public void setupReferenceValue(PrismReferenceValue value) {
 				referenceValue = value;
 			}
+			public String getOid() {		// used by some scripts
+				return referenceValue.getOid();
+			}
 		};
 	}
 	

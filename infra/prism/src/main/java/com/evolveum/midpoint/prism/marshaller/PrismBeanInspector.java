@@ -208,12 +208,7 @@ public class PrismBeanInspector {
     private Map<Class,Map<String,String>> _findEnumFieldName = Collections.synchronizedMap(new HashMap());
 
     <T> String findEnumFieldName(Class<T> classType, String primValue) {
-        return find2(_findEnumFieldName, classType, primValue, new Getter2<String,Class,String>() {
-            @Override
-            public String get(Class c, String v) {
-                return findEnumFieldNameUncached(c, v);
-            }
-        });
+        return find2(_findEnumFieldName, classType, primValue, (c, v) -> findEnumFieldNameUncached(c, v));
     }
 
     private Map<Class,Map<String,String>> _findEnumFieldValue = Collections.synchronizedMap(new HashMap());
@@ -567,7 +562,7 @@ public class PrismBeanInspector {
     private <T> String findEnumFieldNameUncached(Class classType, T primValue){
         for (Field field: classType.getDeclaredFields()) {
             XmlEnumValue xmlEnumValue = field.getAnnotation(XmlEnumValue.class);
-            if (xmlEnumValue != null && xmlEnumValue.value() != null && xmlEnumValue.value().equals(primValue)) {
+            if (xmlEnumValue != null && xmlEnumValue.value().equals(primValue)) {
                 return field.getName();
             }
         }

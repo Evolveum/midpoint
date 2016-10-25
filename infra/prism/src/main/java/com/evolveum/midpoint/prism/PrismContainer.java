@@ -342,6 +342,11 @@ public class PrismContainer<C extends Containerable> extends Item<PrismContainer
     public void setDefinition(PrismContainerDefinition<C> definition) {
 		checkMutability();
 		this.definition = definition;
+		if (definition != null) {
+			for (PrismContainerValue<C> value : getValues()) {
+				value.replaceComplexTypeDefinition(definition.getComplexTypeDefinition());
+			}
+		}
     }
     
     @Override

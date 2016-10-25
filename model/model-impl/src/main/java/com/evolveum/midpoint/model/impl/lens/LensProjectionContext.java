@@ -755,9 +755,9 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         }
         
         if (base == null && accDelta.isModify()) {
-        	RefinedObjectClassDefinition rAccountDef = getCompositeObjectClassDefinition();
-        	if (rAccountDef != null) {
-        		base = (PrismObject<ShadowType>) rAccountDef.createBlankShadow();
+        	RefinedObjectClassDefinition rOCD = getCompositeObjectClassDefinition();
+        	if (rOCD != null) {
+        		base = rOCD.createBlankShadow();
         	}
         }
 

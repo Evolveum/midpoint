@@ -337,7 +337,7 @@ public class RefinedObjectClassDefinitionImpl implements RefinedObjectClassDefin
 	}
 
 	@Override
-	public PrismObject<ShadowType> createBlankShadow() {
+	public PrismObject<ShadowType> createBlankShadow(RefinedObjectClassDefinition definition) {
 		PrismObject<ShadowType> accountShadow;
 		try {
 			accountShadow = getPrismContext().createObject(ShadowType.class);
@@ -354,7 +354,7 @@ public class RefinedObjectClassDefinitionImpl implements RefinedObjectClassDefin
 
 		// Setup definition
 		PrismObjectDefinition<ShadowType> newDefinition = accountShadow.getDefinition().cloneWithReplacedDefinition(
-				ShadowType.F_ATTRIBUTES, toResourceAttributeContainerDefinition());
+				ShadowType.F_ATTRIBUTES, definition.toResourceAttributeContainerDefinition());
 		accountShadow.setDefinition(newDefinition);
 
 		return accountShadow;

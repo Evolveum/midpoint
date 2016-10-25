@@ -419,7 +419,6 @@ public class CompositeRefinedObjectClassDefinitionImpl implements CompositeRefin
 		return structuralObjectClassDefinition.getIgnoredNamespaces();
 	}
 
-
 	@Override
 	public LayerRefinedObjectClassDefinition forLayer(LayerType layerType) {
 		throw new UnsupportedOperationException("TODO implement if needed");
@@ -509,19 +508,19 @@ public class CompositeRefinedObjectClassDefinitionImpl implements CompositeRefin
 
 	@Override
 	public boolean containsAttributeDefinition(ItemPathType pathType) {
-		return getDefinitionsStream()
+		return getRefinedObjectClassDefinitionsStream()
 				.filter(def -> containsAttributeDefinition(pathType))
 				.findAny()
 				.isPresent();
 	}
 
-	private Stream<RefinedObjectClassDefinition> getDefinitionsStream() {
+	private Stream<RefinedObjectClassDefinition> getRefinedObjectClassDefinitionsStream() {
 		return Stream.concat(Stream.of(structuralObjectClassDefinition), auxiliaryObjectClassDefinitions.stream());
 	}
 
 	@Override
 	public boolean containsAttributeDefinition(QName attributeName) {
-		return getDefinitionsStream()
+		return getRefinedObjectClassDefinitionsStream()
 				.filter(def -> containsAttributeDefinition(attributeName))
 				.findAny()
 				.isPresent();
@@ -533,8 +532,8 @@ public class CompositeRefinedObjectClassDefinitionImpl implements CompositeRefin
 	}
 
 	@Override
-	public PrismObject<ShadowType> createBlankShadow() {
-		return structuralObjectClassDefinition.createBlankShadow();
+	public PrismObject<ShadowType> createBlankShadow(RefinedObjectClassDefinition definition) {
+		return structuralObjectClassDefinition.createBlankShadow(definition);
 	}
 
 	@Override
@@ -544,17 +543,27 @@ public class CompositeRefinedObjectClassDefinitionImpl implements CompositeRefin
 
 	@Override
 	public Collection<? extends QName> getNamesOfAttributesWithOutboundExpressions() {
-		throw new UnsupportedOperationException("TODO implement if needed");
+		Set<QName> names = new HashSet<>();
+		getRefinedObjectClassDefinitionsStream().forEach(
+				def -> names.addAll(def.getNamesOfAttributesWithOutboundExpressions())
+		);
+		return names;
 	}
 
 	@Override
 	public Collection<? extends QName> getNamesOfAttributesWithInboundExpressions() {
-		throw new UnsupportedOperationException("TODO implement if needed");
+		Set<QName> names = new HashSet<>();
+		getRefinedObjectClassDefinitionsStream().forEach(
+				def -> names.addAll(def.getNamesOfAttributesWithInboundExpressions())
+		);
+		return names;
 	}
 
 	@Override
-	public ResourcePasswordDefinitionType getPasswordDefinition() {
-		throw new UnsupportedOperationException("TODO implement if needed");
+	public ResourcePasswordDefinitionType getPasswordDefinition() {		// TODO what if there is a conflict?
+		return getRefinedObjectClassDefinitionsStream()
+				.map(def -> def.getPasswordDefinition())
+				.findFirst().orElse(null);
 	}
 
 	@NotNull
