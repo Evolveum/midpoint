@@ -64,7 +64,7 @@ public class TestProtectedString {
 
         // WHEN
 
-        MapXNode protectedStringTypeXNode = ((PrismContextImpl) prismContext).getBeanConverter().marshalProtectedDataType(protectedStringType);
+        MapXNode protectedStringTypeXNode = ((PrismContextImpl) prismContext).getBeanMarshaller().marshalProtectedDataType(protectedStringType);
         System.out.println("Protected string type XNode: " + protectedStringTypeXNode.debugDump());
 
         // THEN

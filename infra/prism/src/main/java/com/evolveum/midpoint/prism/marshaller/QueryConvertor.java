@@ -880,7 +880,7 @@ public class QueryConvertor {
 		map.put(ELEMENT_PATH, createPrimitiveXNode(path, ItemPath.XSD_TYPE));
 	}
 	
-	private static <T> XNode serializePropertyValue(PrismPropertyValue<T> value, PrismPropertyDefinition<T> definition, PrismBeanConverter beanConverter) throws SchemaException {
+	private static <T> XNode serializePropertyValue(PrismPropertyValue<T> value, PrismPropertyDefinition<T> definition, BeanMarshaller beanConverter) throws SchemaException {
 			QName typeQName = definition.getTypeName();
 			T realValue = value.getValue();
 			if (beanConverter.canProcess(typeQName)) {

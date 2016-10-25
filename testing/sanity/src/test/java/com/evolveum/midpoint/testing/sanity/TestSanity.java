@@ -1490,7 +1490,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         passwordDelta.setPath(ModelClientUtil.createItemPathType("credentials/password/value"));
         ProtectedStringType pass = new ProtectedStringType();
         pass.setClearValue(NEW_PASSWORD);
-        XNode passValue = ((PrismContextImpl) prismContext).getBeanConverter().marshall(pass);
+        XNode passValue = ((PrismContextImpl) prismContext).getBeanMarshaller().marshall(pass);
         System.out.println("PASSWORD VALUE: " + passValue.debugDump());
         RawType passwordValue = new RawType(passValue, prismContext);
         passwordDelta.getValue().add(passwordValue);
@@ -1879,7 +1879,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         modificationDeleteAccountRef.setModificationType(ModificationTypeType.DELETE);
         ObjectReferenceType accountRefToDelete = new ObjectReferenceType();
         accountRefToDelete.setOid(accountShadowOidDerby);
-        RawType modificationValue = new RawType(((PrismContextImpl) prismContext).getBeanConverter().marshall(accountRefToDelete), prismContext);
+        RawType modificationValue = new RawType(((PrismContextImpl) prismContext).getBeanMarshaller().marshall(accountRefToDelete), prismContext);
         modificationDeleteAccountRef.getValue().add(modificationValue);
         modificationDeleteAccountRef.setPath(new ItemPathType(new ItemPath(UserType.F_LINK_REF)));
         objectChange.getItemDelta().add(modificationDeleteAccountRef);
@@ -3909,7 +3909,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         ItemDeltaType passwordDelta = new ItemDeltaType();
         passwordDelta.setModificationType(ModificationTypeType.REPLACE);
         passwordDelta.setPath(ModelClientUtil.createItemPathType("credentials/password/value"));
-        RawType passwordValue = new RawType(((PrismContextImpl) prismContext).getBeanConverter().marshall(ModelClientUtil.createProtectedString(newPassword)), prismContext);
+        RawType passwordValue = new RawType(((PrismContextImpl) prismContext).getBeanMarshaller().marshall(ModelClientUtil.createProtectedString(newPassword)), prismContext);
         passwordDelta.getValue().add(passwordValue);
     	
         delta.getItemDelta().add(passwordDelta);

@@ -28,7 +28,7 @@ import javax.xml.namespace.QName;
 import javax.xml.soap.Detail;
 
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.marshaller.PrismBeanConverter;
+import com.evolveum.midpoint.prism.marshaller.BeanMarshaller;
 import com.evolveum.midpoint.prism.xnode.RootXNode;
 import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.schema.RetrieveOption;
@@ -387,11 +387,11 @@ public class MiscSchemaUtil {
 	// TODO some better place
 	public static void serializeFaultMessage(Detail detail, FaultMessage faultMessage, PrismContext prismContext, Trace logger) {
         try {
-			PrismBeanConverter beanConverter = ((PrismContextImpl) prismContext).getBeanConverter();
-			XNode faultMessageXnode = beanConverter.marshall(faultMessage.getFaultInfo());			// TODO
+			BeanMarshaller marshaller = ((PrismContextImpl) prismContext).getBeanMarshaller();
+			XNode faultMessageXnode = marshaller.marshall(faultMessage.getFaultInfo());			// TODO
             RootXNode xroot = new RootXNode(SchemaConstants.FAULT_MESSAGE_ELEMENT_NAME, faultMessageXnode);
             xroot.setExplicitTypeDeclaration(true);
-            QName faultType = beanConverter.determineTypeForClass(faultMessage.getFaultInfo().getClass());
+            QName faultType = marshaller.determineTypeForClass(faultMessage.getFaultInfo().getClass());
             xroot.setTypeQName(faultType);
 			((PrismContextImpl) prismContext).getParserDom().serializeUnderElement(xroot, SchemaConstants.FAULT_MESSAGE_ELEMENT_NAME, detail);
         } catch (SchemaException e) {

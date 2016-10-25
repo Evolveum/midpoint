@@ -42,7 +42,6 @@ import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
 
-import org.testng.AssertJUnit;
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 import org.w3c.dom.Document;
@@ -215,7 +214,7 @@ public class TestJaxbParsing {
         item1.setPath(new ItemPathType(path));
         ProtectedStringType protectedString = new ProtectedStringType();
         protectedString.setEncryptedData(new EncryptedDataType());
-        RawType value = new RawType(((PrismContextImpl) PrismTestUtil.getPrismContext()).getBeanConverter().marshall(protectedString), PrismTestUtil.getPrismContext());
+        RawType value = new RawType(((PrismContextImpl) PrismTestUtil.getPrismContext()).getBeanMarshaller().marshall(protectedString), PrismTestUtil.getPrismContext());
         item1.getValue().add(value);
 
         String xml = PrismTestUtil.serializeJaxbElementToString(

@@ -48,7 +48,6 @@ import com.evolveum.prism.xml.ns._public.types_3.RawType;
 import org.testng.annotations.Test;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.HashMap;
@@ -57,7 +56,6 @@ import java.util.Map;
 
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
 import javax.xml.namespace.QName;
 
 import static org.testng.AssertJUnit.assertEquals;
@@ -220,7 +218,7 @@ public class TestDeltaConverter extends AbstractSchemaTest {
         ObjectReferenceType accountRefToDelete = new ObjectReferenceType();
         accountRefToDelete.setOid("54321");
         PrismContext prismContext = PrismTestUtil.getPrismContext();
-        RawType modificationValue = new RawType(((PrismContextImpl) prismContext).getBeanConverter().marshall(accountRefToDelete), prismContext);
+        RawType modificationValue = new RawType(((PrismContextImpl) prismContext).getBeanMarshaller().marshall(accountRefToDelete), prismContext);
         modificationDeleteAccountRef.getValue().add(modificationValue);
         objectChange.getItemDelta().add(modificationDeleteAccountRef);
         ItemPathType itemPathType = new ItemPathType(new ItemPath(UserType.F_LINK_REF));

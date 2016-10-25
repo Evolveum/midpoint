@@ -655,7 +655,7 @@ public class TestParseDiffPatch {
      *
      * MidPoint uses an approximation there - it compares XNode serializations of values. Sometimes they match,
      * sometimes they do not. In this particular case they fail to match on serialization of c:ObjectReferenceType,
-     * because PrismBeanConverter is used, and ObjectReferenceType.getFilter() returns empty filter instead of null.
+     * because BeanMarshaller is used, and ObjectReferenceType.getFilter() returns empty filter instead of null.
      * This could be fixed; however, it would not help much, because it is almost sure that other similar problems
      * would sooner or later emerge.
      */

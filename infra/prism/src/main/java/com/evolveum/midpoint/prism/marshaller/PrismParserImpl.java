@@ -235,8 +235,8 @@ abstract class PrismParserImpl implements PrismParser {
 		}
 
 		// although bean unmarshaller can process containerables as well, prism unmarshaller is better at it
-		if (clazz != null && !Containerable.class.isAssignableFrom(clazz) && getBeanConverter().canProcess(clazz)) {
-			return getBeanConverter().unmarshall(root, clazz, context);
+		if (clazz != null && !Containerable.class.isAssignableFrom(clazz) && getBeanUnmarshaller().canProcess(clazz)) {
+			return getBeanUnmarshaller().unmarshall(root, clazz, context);
 		} else if (clazz != null && Objectable.class.isAssignableFrom(clazz)) {
 			// we need to NOT strip off OID
 			PrismObject object = (PrismObject) doParseItem(root, clazz);
@@ -251,8 +251,8 @@ abstract class PrismParserImpl implements PrismParser {
 		}
 	}
 
-	private PrismBeanConverter getBeanConverter() {
-		return prismContext.getBeanConverter();
+	private BeanUnmarshaller getBeanUnmarshaller() {
+		return prismContext.getBeanUnmarshaller();
 	}
 
 

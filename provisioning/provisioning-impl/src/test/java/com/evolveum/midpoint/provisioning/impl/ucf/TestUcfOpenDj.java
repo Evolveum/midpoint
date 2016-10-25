@@ -67,7 +67,6 @@ import org.xml.sax.SAXException;
 import javax.xml.namespace.QName;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.HashSet;
@@ -744,7 +743,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 		propMod.setPath(path);
 
 		//set the replace value
-        MapXNode passPsXnode = ((PrismContextImpl) prismContext).getBeanConverter().marshalProtectedDataType(passPs);
+        MapXNode passPsXnode = ((PrismContextImpl) prismContext).getBeanMarshaller().marshalProtectedDataType(passPs);
 		RawType value = new RawType(passPsXnode, prismContext);
 		propMod.getValue().add(value);
 		

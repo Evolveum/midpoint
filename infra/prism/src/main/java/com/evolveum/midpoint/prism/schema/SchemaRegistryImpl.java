@@ -1202,7 +1202,7 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
 		if (XmlTypeConverter.canConvert(clazz)) {
 			return XsdTypeMapper.toXsdType(clazz);
 		} else {
-			return ((PrismContextImpl) prismContext).getBeanConverter().determineTypeForClass(clazz);
+			return ((PrismContextImpl) prismContext).getBeanMarshaller().determineTypeForClass(clazz);
 		}
 	}
 

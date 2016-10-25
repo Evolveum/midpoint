@@ -357,11 +357,11 @@ public class PrismBeanInspector {
         }
 
         String namespace = xmlType.namespace();
-        if (namespace == null || PrismBeanConverter.DEFAULT_PLACEHOLDER.equals(namespace)) {
+        if (namespace == null || BeanMarshaller.DEFAULT_PLACEHOLDER.equals(namespace)) {
             XmlSchema xmlSchema = beanClass.getPackage().getAnnotation(XmlSchema.class);
             namespace = xmlSchema.namespace();
         }
-        if (StringUtils.isBlank(namespace) || PrismBeanConverter.DEFAULT_PLACEHOLDER.equals(namespace)) {
+        if (StringUtils.isBlank(namespace) || BeanMarshaller.DEFAULT_PLACEHOLDER.equals(namespace)) {
             return null;
         }
 
@@ -375,11 +375,11 @@ public class PrismBeanInspector {
         }
 
         String namespace = xmlType.namespace();
-        if (PrismBeanConverter.DEFAULT_PLACEHOLDER.equals(namespace)) {
+        if (BeanMarshaller.DEFAULT_PLACEHOLDER.equals(namespace)) {
             XmlSchema xmlSchema = beanClass.getPackage().getAnnotation(XmlSchema.class);
             namespace = xmlSchema.namespace();
         }
-        if (StringUtils.isBlank(namespace) || PrismBeanConverter.DEFAULT_PLACEHOLDER.equals(namespace)) {
+        if (StringUtils.isBlank(namespace) || BeanMarshaller.DEFAULT_PLACEHOLDER.equals(namespace)) {
             return null;
         }
 
@@ -614,7 +614,7 @@ public class PrismBeanInspector {
                 String propTypeLocalPart = xmlType.name();
                 if (propTypeLocalPart != null) {
                     String propTypeNamespace = xmlType.namespace();
-                    if (propTypeNamespace == null || propTypeNamespace.equals(PrismBeanConverter.DEFAULT_PLACEHOLDER)) {
+                    if (propTypeNamespace == null || propTypeNamespace.equals(BeanMarshaller.DEFAULT_PLACEHOLDER)) {
                         if (prismContext != null) {     // hopefully this is always the case!
                             PrismSchema schema = prismContext.getSchemaRegistry().findSchemaByCompileTimeClass(fieldType);
                             if (schema != null && schema.getNamespace() != null) {
@@ -647,11 +647,11 @@ public class PrismBeanInspector {
         XmlElement xmlElement = field.getAnnotation(XmlElement.class);
         if (xmlElement != null) {
             String name = xmlElement.name();
-            if (name != null && !PrismBeanConverter.DEFAULT_PLACEHOLDER.equals(name)) {
+            if (name != null && !BeanMarshaller.DEFAULT_PLACEHOLDER.equals(name)) {
                 realLocalName = name;
             }
             String namespace = xmlElement.namespace();
-            if (namespace != null && !PrismBeanConverter.DEFAULT_PLACEHOLDER.equals(namespace)) {
+            if (namespace != null && !BeanMarshaller.DEFAULT_PLACEHOLDER.equals(namespace)) {
                 realNamespace = namespace;
             }
         }

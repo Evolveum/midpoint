@@ -59,7 +59,8 @@ public class PrismContextImpl implements PrismContext {
 	@NotNull private final PolyStringNormalizer defaultPolyStringNormalizer;			// TODO make non-final when needed
 	@NotNull private final PrismUnmarshaller prismUnmarshaller;
 	@NotNull private final PrismMarshaller prismMarshaller;
-	@NotNull private final PrismBeanConverter beanConverter;
+	@NotNull private final BeanMarshaller beanMarshaller;
+	@NotNull private final BeanUnmarshaller beanUnmarshaller;
 	private PrismMonitor monitor = null;
 
 	private SchemaDefinitionFactory definitionFactory;
@@ -76,8 +77,10 @@ public class PrismContextImpl implements PrismContext {
 		schemaRegistry.setPrismContext(this);
 		this.lexicalProcessorRegistry = new LexicalProcessorRegistry(schemaRegistry);
 		this.prismUnmarshaller = new PrismUnmarshaller(this);
-		this.beanConverter = new PrismBeanConverter(this, new PrismBeanInspector(this));
-		this.prismMarshaller = new PrismMarshaller(beanConverter);
+		PrismBeanInspector inspector = new PrismBeanInspector(this);
+		this.beanMarshaller = new BeanMarshaller(this, inspector);
+		this.beanUnmarshaller = new BeanUnmarshaller(this, inspector);
+		this.prismMarshaller = new PrismMarshaller(beanMarshaller);
 		this.jaxbDomHack = new JaxbDomHack(lexicalProcessorRegistry.domProcessor(), this);
 
 		defaultPolyStringNormalizer = new PrismDefaultPolyStringNormalizer();
@@ -145,8 +148,14 @@ public class PrismContextImpl implements PrismContext {
 	/**
 	 * WARNING! This is not really public method. It should NOT not used outside the prism implementation.
 	 */
-	public PrismBeanConverter getBeanConverter() {
-		return beanConverter;
+	@NotNull
+	public BeanMarshaller getBeanMarshaller() {
+		return beanMarshaller;
+	}
+
+	@NotNull
+	public BeanUnmarshaller getBeanUnmarshaller() {
+		return beanUnmarshaller;
 	}
 
 	@NotNull

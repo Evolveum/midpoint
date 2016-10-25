@@ -21,7 +21,6 @@ import java.util.Collection;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.schema.GlobalDefinitionsStore;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
@@ -48,9 +47,9 @@ import org.jetbrains.annotations.Nullable;
  */
 public class PrismMarshaller {
 	
-	@NotNull private final PrismBeanConverter beanConverter;
+	@NotNull private final BeanMarshaller beanConverter;
 
-	public PrismMarshaller(@NotNull PrismBeanConverter beanConverter) {
+	public PrismMarshaller(@NotNull BeanMarshaller beanConverter) {
 		this.beanConverter = beanConverter;
 	}
 

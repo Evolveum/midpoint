@@ -18,7 +18,6 @@ package com.evolveum.midpoint.prism.util;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.lex.dom.DomLexicalProcessor;
-import com.evolveum.midpoint.prism.marshaller.PrismBeanConverter;
 import com.evolveum.midpoint.prism.marshaller.PrismUnmarshaller;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;

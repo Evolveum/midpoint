@@ -17,17 +17,13 @@
 package com.evolveum.midpoint.prism;
 
 
-import com.evolveum.midpoint.prism.marshaller.PrismBeanConverter;
+import com.evolveum.midpoint.prism.marshaller.BeanMarshaller;
 import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
-import com.evolveum.midpoint.prism.schema.SchemaRegistry;
-import com.evolveum.midpoint.prism.schema.SchemaRegistryImpl;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.prism.util.PrismUtil;
-import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
-import com.evolveum.midpoint.prism.xnode.RootXNode;
 import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
@@ -195,9 +191,9 @@ public class PrismPropertyValue<T> extends PrismValue implements DebugDumpable, 
 			if (value instanceof Revivable) {
 				((Revivable)value).revive(prismContext);
 			} else {
-				PrismBeanConverter beanConverter = ((PrismContextImpl) prismContext).getBeanConverter();
-				if (beanConverter.canProcess(value.getClass())) {
-					beanConverter.revive(value, prismContext);
+				BeanMarshaller marshaller = ((PrismContextImpl) prismContext).getBeanMarshaller();
+				if (marshaller.canProcess(value.getClass())) {
+					marshaller.revive(value, prismContext);
 				}
 			}
 		}
