@@ -12,12 +12,12 @@ import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
-import com.evolveum.midpoint.web.component.form.ValueChoosePanel;
 import com.evolveum.midpoint.web.component.form.ValueChooseWrapperPanel;
 import com.evolveum.midpoint.web.component.input.DatePanel;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 import com.evolveum.midpoint.web.component.input.QNameChoiceRenderer;
 import com.evolveum.midpoint.web.component.input.TextPanel;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnChangeAjaxFormUpdatingBehavior;
 import com.evolveum.midpoint.web.page.admin.reports.PageAuditLogDetails;
@@ -32,6 +32,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
@@ -66,12 +67,10 @@ public class AuditLogViewerPanel extends BasePanel{
     private static final String ID_TO = "toField";
     private static final String ID_INITIATOR_NAME = "initiatorNameField";
     private static final String ID_TARGET_NAME = "targetNameField";
+    private static final String ID_TARGET_NAME_LABEL = "targetNameLabel";
     private static final String ID_TARGET_OWNER_NAME = "targetOwnerNameField";
     private static final String ID_CHANNEL = "channelField";
     private static final String ID_HOST_IDENTIFIER = "hostIdentifierField";
-    // private static final String ID_TARGET_NAME = "targetNameField";
-    // private static final String ID_TARGET_OWNER_NAME =
-    // "targetOwnerNameField";
     private static final String ID_EVENT_TYPE = "eventTypeField";
     private static final String ID_EVENT_STAGE = "eventStageField";
     private static final String ID_OUTCOME = "outcomeField";
@@ -85,12 +84,27 @@ public class AuditLogViewerPanel extends BasePanel{
 
     private IModel<AuditSearchDto> auditSearchDto;
     private PageBase pageBase;
+    private String targetObjectOid;
 
     public AuditLogViewerPanel(String id, PageBase pageBase){
+        this(id, pageBase, null);
+    }
+
+    public AuditLogViewerPanel(String id, PageBase pageBase, String targetObjectOid){
         super(id);
         this.pageBase = pageBase;
-        auditSearchDto = new Model<AuditSearchDto>(new AuditSearchDto());
+        this.targetObjectOid = targetObjectOid;
+        initAuditSearchModel();
         initLayout();
+    }
+
+    private void initAuditSearchModel(){
+        AuditSearchDto searchDto = new AuditSearchDto();
+        ObjectReferenceType ort = new ObjectReferenceType();
+        ort.setOid(targetObjectOid);
+        searchDto.setTargetName(ort);
+        auditSearchDto = new Model<AuditSearchDto>(searchDto);
+
     }
 
     private void initLayout() {
@@ -232,6 +246,14 @@ public class AuditLogViewerPanel extends BasePanel{
         };
         parametersPanel.add(chooseTargerOwnerPanel);
 
+        Label targetNameLabel = new Label(ID_TARGET_NAME_LABEL, pageBase.createStringResource("PageAuditLogViewer.targetNameLabel"));
+        targetNameLabel.add(new VisibleEnableBehaviour(){
+            @Override
+            public boolean isVisible(){
+                return StringUtils.isEmpty(targetObjectOid);
+            }
+        });
+        parametersPanel.add(targetNameLabel);
         Collection<Class<? extends ObjectType>> allowedClassesAll = new ArrayList<>();
         allowedClassesAll.addAll(ObjectTypes.getAllObjectTypes());
         ValueChooseWrapperPanel<ObjectReferenceType, ObjectType> chooseTargetPanel = new ValueChooseWrapperPanel<ObjectReferenceType, ObjectType>(
@@ -245,6 +267,12 @@ public class AuditLogViewerPanel extends BasePanel{
                 getModel().setObject(ort);
             }
         };
+        chooseTargetPanel.add(new VisibleEnableBehaviour(){
+            @Override
+            public boolean isVisible(){
+                return StringUtils.isEmpty(targetObjectOid);
+            }
+        });
         parametersPanel.add(chooseTargetPanel);
 
         AjaxSubmitButton ajaxButton = new AjaxSubmitButton(ID_SEARCH_BUTTON,
