@@ -17,26 +17,19 @@ package com.evolveum.midpoint.web.component.assignment;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.orgs.OrgTreePanel;
 import com.evolveum.midpoint.web.page.self.dto.AssignmentViewType;
-import com.evolveum.midpoint.web.session.SessionStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
 
-import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -51,13 +44,10 @@ public class AssignmentCatalogPanel<F extends AbstractRoleType> extends BasePane
     private static String ID_CATALOG_ITEMS_PANEL_CONTAINER = "catalogItemsPanelContainer";
     private static String ID_CATALOG_ITEMS_PANEL = "catalogItemsPanel";
 
-    private static final String DOT_CLASS = AssignmentCatalogPanel.class.getName() + ".";
-    private static final String OPERATION_LOAD_ROLE_CATALOG_REFERENCE = DOT_CLASS + "loadRoleCatalogReference";
-    private static final Trace LOGGER = TraceManager.getTrace(AssignmentCatalogPanel.class);
-
     private PageBase pageBase;
-    private IModel<String> rootOidModel;
+    private IModel<String> selectedTreeItemOidModel;
     private String rootOid;
+    private String selectedOid;
 
     public AssignmentCatalogPanel(String id) {
         super(id);
@@ -67,6 +57,7 @@ public class AssignmentCatalogPanel<F extends AbstractRoleType> extends BasePane
         super(id);
         this.pageBase = pageBase;
         this.rootOid = rootOid;
+        selectedOid = rootOid;
         initLayout();
     }
 
@@ -140,7 +131,7 @@ public class AssignmentCatalogPanel<F extends AbstractRoleType> extends BasePane
         catalogItemsPanelContainer.setOutputMarkupId(true);
         addOrReplace(catalogItemsPanelContainer);
 
-        CatalogItemsPanel catalogItemsPanel = new CatalogItemsPanel(ID_CATALOG_ITEMS_PANEL, rootOidModel, pageBase);
+        CatalogItemsPanel catalogItemsPanel = new CatalogItemsPanel(ID_CATALOG_ITEMS_PANEL, selectedTreeItemOidModel, pageBase);
         if (AssignmentViewType.ROLE_CATALOG_VIEW.equals(AssignmentViewType.getViewTypeFromSession(pageBase))) {
             catalogItemsPanelContainer.add(new AttributeAppender("class", "col-md-9"));
         } else {
@@ -152,9 +143,9 @@ public class AssignmentCatalogPanel<F extends AbstractRoleType> extends BasePane
 
     private void selectTreeItemPerformed(SelectableBean<OrgType> selected, AjaxRequestTarget target) {
         final OrgType selectedOgr = selected.getValue();
-//        rootOidModel.setObject(selectedOgr.getOid());
+        selectedTreeItemOidModel.setObject(selectedOgr.getOid());
         AssignmentViewType.saveViewTypeToSession(pageBase, AssignmentViewType.ROLE_CATALOG_VIEW);
-        CatalogItemsPanel catalogItemsPanel = new CatalogItemsPanel(ID_CATALOG_ITEMS_PANEL, rootOidModel, pageBase);
+        CatalogItemsPanel catalogItemsPanel = new CatalogItemsPanel(ID_CATALOG_ITEMS_PANEL, selectedTreeItemOidModel, pageBase);
         catalogItemsPanel.setOutputMarkupId(true);
         ((WebMarkupContainer) get(ID_CATALOG_ITEMS_PANEL_CONTAINER)).addOrReplace(catalogItemsPanel);
         target.add(catalogItemsPanel);
@@ -162,15 +153,15 @@ public class AssignmentCatalogPanel<F extends AbstractRoleType> extends BasePane
     }
 
     private void initModels(){
-        rootOidModel = new IModel<String>() {
+        selectedTreeItemOidModel = new IModel<String>() {
             @Override
             public String getObject() {
-                return rootOid;
+                return StringUtils.isEmpty(selectedOid) ? rootOid : selectedOid;
             }
 
             @Override
             public void setObject(String s) {
-                rootOid = s;
+                selectedOid = s;
             }
 
             @Override
