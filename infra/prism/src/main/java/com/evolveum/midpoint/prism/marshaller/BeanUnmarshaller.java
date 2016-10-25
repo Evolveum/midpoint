@@ -28,7 +28,6 @@ import com.evolveum.midpoint.util.Handler;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
-import com.evolveum.midpoint.util.exception.TunnelException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -36,6 +35,7 @@ import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 import com.evolveum.prism.xml.ns._public.types_3.*;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
 
 import javax.xml.bind.JAXBElement;
@@ -45,15 +45,19 @@ import java.lang.reflect.*;
 import java.util.*;
 import java.util.Map.Entry;
 
+/**
+ * Analogous to PrismUnmarshaller, this class unmarshals atomic values from XNode tree structures.
+ * Atomic values are values that can be used as property values (i.e. either simple types, or
+ * beans that are not containerables).
+ */
 public class BeanUnmarshaller {
 
     private static final Trace LOGGER = TraceManager.getTrace(BeanUnmarshaller.class);
 
-    private PrismBeanInspector inspector;
-
+    @NotNull private final PrismBeanInspector inspector;
 	@NotNull private final PrismContext prismContext;
 
-	public BeanUnmarshaller(@NotNull PrismContext prismContext, PrismBeanInspector inspector) {
+	public BeanUnmarshaller(@NotNull PrismContext prismContext, @NotNull PrismBeanInspector inspector) {
 		this.prismContext = prismContext;
 		this.inspector = inspector;
 	}
@@ -63,94 +67,83 @@ public class BeanUnmarshaller {
 		return prismContext;
 	}
 
+	@NotNull
 	private SchemaRegistry getSchemaRegistry() {
 		return prismContext.getSchemaRegistry();
 	}
 
-	public QName determineTypeForClass(Class<?> clazz) {
-		return inspector.determineTypeForClass(clazz);
+
+	<T> T unmarshal(@NotNull XNode xnode, @NotNull QName typeQName, @NotNull ParsingContext pc) throws SchemaException {
+		Class<T> classType = getSchemaRegistry().determineCompileTimeClass(typeQName);		// TODO use correct method!
+		return unmarshal(xnode, classType, pc);
 	}
 
-	public <T> T unmarshall(MapXNode xnode, QName typeQName, ParsingContext pc) throws SchemaException {
-		Class<T> classType = getSchemaRegistry().determineCompileTimeClass(typeQName);
-		return unmarshall(xnode, classType, pc);
+	<T> T unmarshal(@NotNull XNode xnode, @NotNull Class<T> beanClass, @NotNull ParsingContext pc) throws SchemaException {
+
+
+
+		if (xnode instanceof PrimitiveXNode) {
+			return unmarshalFromPrimitive((PrimitiveXNode<T>) xnode, beanClass, pc);
+		} else if (xnode instanceof MapXNode) {
+			return unmarshalFromMap((MapXNode) xnode, beanClass, pc);
+		} else if (xnode instanceof RootXNode) {
+			return unmarshal(((RootXNode) xnode).getSubnode(), beanClass, pc);
+		} else {
+			throw new IllegalStateException("Unexpected xnode " + xnode + ". Could not unmarshal value");
+		}
 	}
 
-	public <T> T unmarshall(XNode xnode, Class<T> beanClass, ParsingContext pc) throws SchemaException{
-		if (xnode instanceof PrimitiveXNode){
-			return unmarshallPrimitive((PrimitiveXNode<T>) xnode, beanClass, pc);
-		} else if (xnode instanceof MapXNode){
-			return unmarshall((MapXNode) xnode, beanClass, pc);
-		} else if (xnode instanceof RootXNode){
-			return unmarshall(((RootXNode) xnode).getSubnode(), beanClass, pc);
-		} else
-			throw new IllegalStateException("Unexpected xnode " + xnode +". Could not unmarshall value");
-	}
-
-	public <T> T unmarshall(MapXNode xnode, Class<T> beanClass, ParsingContext pc) throws SchemaException {
-
-        if (PolyStringType.class.equals(beanClass)) {
-            PolyString polyString = unmarshalPolyString(xnode);
-            return (T) polyString;			// violates the method interface but ... TODO fix it
-        } else if (ProtectedStringType.class.equals(beanClass)) {
-            ProtectedStringType protectedType = new ProtectedStringType();
-            XNodeProcessorUtil.parseProtectedType(protectedType, xnode, prismContext, pc);
-            return (T) protectedType;
-        } else if (ProtectedByteArrayType.class.equals(beanClass)) {
-            ProtectedByteArrayType protectedType = new ProtectedByteArrayType();
-            XNodeProcessorUtil.parseProtectedType(protectedType, xnode, prismContext, pc);
-            return (T) protectedType;
-        } else if (SchemaDefinitionType.class.equals(beanClass)) {
-            SchemaDefinitionType schemaDefType = unmarshalSchemaDefinitionType(xnode);
-            return (T) schemaDefType;
-        } else if (prismContext.getSchemaRegistry().determineDefinitionFromClass(beanClass) != null) {
-        	PrismObjectDefinition def = prismContext.getSchemaRegistry().determineDefinitionFromClass(beanClass);
-			return (T) ((PrismContextImpl) prismContext).getPrismUnmarshaller().parseObject(xnode, def, pc).asObjectable();
+	private <T> T unmarshalFromMap(@NotNull MapXNode xmap, @NotNull Class<T> beanClass, @NotNull ParsingContext pc) throws SchemaException {
+		if (PolyStringType.class.equals(beanClass)) {
+			return (T) PolyStringType.unmarshal(xmap);
+		} else if (ProtectedStringType.class.equals(beanClass)) {
+			return (T) ProtectedStringType.unmarshal(xmap);
+			ProtectedStringType protectedType = new ProtectedStringType();
+			XNodeProcessorUtil.parseProtectedType(protectedType, xmap, prismContext, pc);
+			return (T) protectedType;
+		} else if (ProtectedByteArrayType.class.equals(beanClass)) {
+			ProtectedByteArrayType protectedType = new ProtectedByteArrayType();
+			XNodeProcessorUtil.parseProtectedType(protectedType, xmap, prismContext, pc);
+			return (T) protectedType;
+		} else if (SchemaDefinitionType.class.equals(beanClass)) {
+			SchemaDefinitionType schemaDefType = unmarshalSchemaDefinitionType(xmap);
+			return (T) schemaDefType;
+		} else if (prismContext.getSchemaRegistry().determineDefinitionFromClass(beanClass) != null) {
+			PrismObjectDefinition def = prismContext.getSchemaRegistry().determineDefinitionFromClass(beanClass);
+			return (T) ((PrismContextImpl) prismContext).getPrismUnmarshaller().parseObject(xmap, def, pc).asObjectable();
 		} else if (XmlAsStringType.class.equals(beanClass)) {
-            // reading a string represented a XML-style content
-            // used e.g. when reading report templates (embedded XML)
-            // A necessary condition: there may be only one map entry.
-            if (xnode.size() > 1) {
-                throw new SchemaException("Map with more than one item cannot be parsed as a string: " + xnode);
-            } else if (xnode.isEmpty()) {
-                return (T) new XmlAsStringType();
-            } else {
-                Entry<QName,XNode> entry = xnode.entrySet().iterator().next();
-                DomLexicalProcessor domParser = ((PrismContextImpl) prismContext).getParserDom();
-                String value = domParser.write(entry.getValue(), entry.getKey(), null);
-                return (T) new XmlAsStringType(value);
-            }
-        }
-		T bean;
-        Set<String> keysToParse;          // only these keys will be parsed (null if all)
-		if (SearchFilterType.class.isAssignableFrom(beanClass)) {
-            keysToParse = Collections.singleton("condition");       // TODO fix this BRUTAL HACK - it is here because of c:ConditionalSearchFilterType
-			bean = (T) unmarshalSearchFilterType(xnode, (Class<? extends SearchFilterType>) beanClass, pc);
-        } else {
-            keysToParse = null;
-            try {
-                bean = beanClass.newInstance();
-            } catch (InstantiationException e) {
-                throw new SystemException("Cannot instantiate bean of type "+beanClass+": "+e.getMessage(), e);
-            } catch (IllegalAccessException e) {
-                throw new SystemException("Cannot instantiate bean of type "+beanClass+": "+e.getMessage(), e);
-            }
-        } 
-
-		if (ProtectedDataType.class.isAssignableFrom(beanClass)){
-			ProtectedDataType protectedDataType = null;
-			if (bean instanceof ProtectedStringType){
-				protectedDataType = new ProtectedStringType();
-			} else if (bean instanceof ProtectedByteArrayType){
-				protectedDataType = new ProtectedByteArrayType();
-			} else{
-				throw new SchemaException("Unexpected subtype of protected data type: " + bean.getClass());
+			// reading a string represented a XML-style content
+			// used e.g. when reading report templates (embedded XML)
+			// A necessary condition: there may be only one map entry.
+			if (xmap.size() > 1) {
+				throw new SchemaException("Map with more than one item cannot be parsed as a string: " + xmap);
+			} else if (xmap.isEmpty()) {
+				return (T) new XmlAsStringType();
+			} else {
+				Entry<QName, XNode> entry = xmap.entrySet().iterator().next();
+				DomLexicalProcessor domParser = ((PrismContextImpl) prismContext).getParserDom();
+				String value = domParser.write(entry.getValue(), entry.getKey(), null);
+				return (T) new XmlAsStringType(value);
 			}
-        	XNodeProcessorUtil.parseProtectedType(protectedDataType, xnode, prismContext, pc);
-        	return (T) protectedDataType;
-        }
+		} else if (SearchFilterType.class.isAssignableFrom(beanClass)) {
+			T bean = (T) unmarshalSearchFilterType(xmap, (Class<? extends SearchFilterType>) beanClass, pc);
+			// TODO fix this BRUTAL HACK - it is here because of c:ConditionalSearchFilterType
+			return unmarshalFromMapToBean(bean, xmap, Collections.singleton("condition"), pc);
+		} else {
+			T bean;
+			try {
+				bean = beanClass.newInstance();
+			} catch (InstantiationException | IllegalAccessException e) {
+				throw new SystemException("Cannot instantiate bean of type " + beanClass + ": " + e.getMessage(), e);
+			}
+			return unmarshalFromMapToBean(bean, xmap, null, pc);
+		}
+	}
 
-		for (Entry<QName,XNode> entry: xnode.entrySet()) {
+	private <T> T unmarshalFromMapToBean(@NotNull T bean, @NotNull MapXNode xmap, @Nullable Collection<String> keysToParse, @NotNull ParsingContext pc) throws SchemaException {
+		Class<T> beanClass = (Class<T>) bean.getClass();
+
+		for (Entry<QName,XNode> entry: xmap.entrySet()) {
 			QName key = entry.getKey();
             if (keysToParse != null && !keysToParse.contains(key.getLocalPart())) {
                 continue;
@@ -429,7 +422,7 @@ public class BeanUnmarshaller {
 						col.add(prepareValueToBeStored(propVal, wrapInJaxbElement, objectFactory, elementMethod, propName, beanClass, pc));
 					}
 				} else if (!problem) {
-					throw new IllegalStateException("Strange. Multival property "+propName+" in "+beanClass+" produced null values list, parsed from "+xnode);
+					throw new IllegalStateException("Strange. Multival property "+propName+" in "+beanClass+" produced null values list, parsed from "+xmap);
 				}
 				checkJaxbElementConsistence(col, pc);
 			} else {
@@ -520,11 +513,11 @@ public class BeanUnmarshaller {
 
 		if (xsubnode instanceof ListXNode){
 			for (XNode xsubSubNode : ((ListXNode) xsubnode)){
-				S subBean = unmarshall(xsubSubNode, subBeanClass, pc);
+				S subBean = unmarshal(xsubSubNode, subBeanClass, pc);
 				unmarshallToAnyValue(bean, beanClass, subBean, objectFactoryClass, objectFactory, elementFactoryMethod, getter, pc);
 			}
 		} else{ 
-			S subBean = unmarshall(xsubnode, subBeanClass, pc);
+			S subBean = unmarshal(xsubnode, subBeanClass, pc);
 			unmarshallToAnyValue(bean, beanClass, subBean, objectFactoryClass, objectFactory, elementFactoryMethod, getter, pc);
 		}
 		
@@ -629,9 +622,9 @@ public class BeanUnmarshaller {
                 }
             }
 			if (xsubnode instanceof PrimitiveXNode<?>) {
-				propValue = unmarshallPrimitive(((PrimitiveXNode<?>)xsubnode), paramType, pc);
+				propValue = unmarshalFromPrimitive(((PrimitiveXNode<?>)xsubnode), paramType, pc);
 			} else if (xsubnode instanceof MapXNode) {
-				propValue = unmarshall((MapXNode)xsubnode, paramType, pc);
+				propValue = unmarshalFromMap((MapXNode)xsubnode, paramType, pc);
 			} else if (xsubnode instanceof ListXNode) {
 				ListXNode xlist = (ListXNode)xsubnode;
 				if (xlist.size() > 1) {
@@ -650,12 +643,12 @@ public class BeanUnmarshaller {
 		return propValue;
 	}
 
-	public <T> T unmarshallPrimitive(PrimitiveXNode<?> xprim, QName typeQName, ParsingContext pc) throws SchemaException {
+	public <T> T unmarshalFromPrimitive(PrimitiveXNode<?> xprim, QName typeQName, ParsingContext pc) throws SchemaException {
 		Class<T> classType = getSchemaRegistry().determineCompileTimeClass(typeQName);
-		return unmarshallPrimitive(xprim, classType, pc);
+		return unmarshalFromPrimitive(xprim, classType, pc);
 	}
 	
-	private <T> T unmarshallPrimitive(PrimitiveXNode<?> xprim, Class<T> classType, ParsingContext pc) throws SchemaException {
+	private <T> T unmarshalFromPrimitive(PrimitiveXNode<?> xprim, Class<T> classType, ParsingContext pc) throws SchemaException {
         if (XmlAsStringType.class.equals(classType)) {
             return (T) new XmlAsStringType((String) xprim.getParsedValue(DOMUtil.XSD_STRING));
         }
@@ -824,13 +817,13 @@ public class BeanUnmarshaller {
 		visit(elementToMarshall, handler);
 	}
 
-    private PolyString unmarshalPolyString(MapXNode xmap) throws SchemaException {
+    private PolyStringType unmarshalPolyStringType(MapXNode xmap) throws SchemaException {
         String orig = xmap.getParsedPrimitiveValue(QNameUtil.nullNamespace(PolyString.F_ORIG), DOMUtil.XSD_STRING);
         if (orig == null) {
             throw new SchemaException("Null polystring orig in "+xmap);
         }
         String norm = xmap.getParsedPrimitiveValue(QNameUtil.nullNamespace(PolyString.F_NORM), DOMUtil.XSD_STRING);
-        return new PolyString(orig, norm);
+        return new PolyStringType(new PolyString(orig, norm));
     }
 
     private SchemaDefinitionType unmarshalSchemaDefinitionType(MapXNode xmap) throws SchemaException {
@@ -871,5 +864,9 @@ public class BeanUnmarshaller {
 	public boolean canProcess(Class<?> clazz) {
 		return ((PrismContextImpl) getPrismContext()).getBeanMarshaller().canProcess(clazz);
 	}
+	public QName determineTypeForClass(Class<?> clazz) {
+		return inspector.determineTypeForClass(clazz);
+	}
+
 }
  

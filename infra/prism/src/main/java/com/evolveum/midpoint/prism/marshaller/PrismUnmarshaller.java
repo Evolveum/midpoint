@@ -125,7 +125,7 @@ public class PrismUnmarshaller {
             if (itemDefinition != null) {
                 return parseItem(root, itemDefinition, null, null, null, pc);
             } else {
-                return getBeanUnmarshaller().unmarshall(root, getSchemaRegistry().determineCompileTimeClass(typeName), pc);
+                return getBeanUnmarshaller().unmarshal(root, getSchemaRegistry().determineCompileTimeClass(typeName), pc);
             }
         } else {
             // if type name is not known, we have to derive it from the element name
@@ -341,7 +341,7 @@ public class PrismUnmarshaller {
                 }
             } else if (node instanceof MapXNode) {
                 if (getBeanUnmarshaller().canProcess(node.getTypeQName())) {
-                    T value = getBeanUnmarshaller().unmarshall((MapXNode) node, node.getTypeQName(), pc);
+                    T value = getBeanUnmarshaller().unmarshal((MapXNode) node, node.getTypeQName(), pc);
                     if (value instanceof Containerable) {
                         throw new IllegalStateException("Cannot store containerable into prism property: " + node.debugDump());
                     } else {
@@ -376,7 +376,7 @@ public class PrismUnmarshaller {
         T realValue;
         if (getBeanUnmarshaller().canProcess(typeName)) {
             // Primitive elements may also have complex Java representations (e.g. enums)
-            realValue = getBeanUnmarshaller().unmarshallPrimitive(primitiveNode, typeName, pc);
+            realValue = getBeanUnmarshaller().unmarshalFromPrimitive(primitiveNode, typeName, pc);
         } else if (!DOMUtil.XSD_ANYTYPE.equals(typeName)) {
             try {
                 realValue = primitiveNode.getParsedValue(typeName, pc.getEvaluationMode());
@@ -413,7 +413,7 @@ public class PrismUnmarshaller {
             throws SchemaException {
         QName typeName = propertyDefinition.getTypeName();
         if (getBeanUnmarshaller().canProcess(typeName)) {
-            return getBeanUnmarshaller().unmarshall(xmap, typeName, pc);
+            return getBeanUnmarshaller().unmarshal(xmap, typeName, pc);
         } else {
             if (propertyDefinition.isRuntimeSchema()) {
 				throw new SchemaException("Complex run-time properties are not supported: type " + typeName + " from " + xmap);
@@ -535,7 +535,7 @@ public class PrismUnmarshaller {
 
         XNode xnodeForTargetName = map.get(XNode.KEY_REFERENCE_TARGET_NAME);
         if (xnodeForTargetName != null) {
-            PolyStringType targetName = getBeanUnmarshaller().unmarshall(xnodeForTargetName, PolyStringType.class, pc);
+            PolyStringType targetName = getBeanUnmarshaller().unmarshal(xnodeForTargetName, PolyStringType.class, pc);
             refVal.setTargetName(targetName);
         }
 
