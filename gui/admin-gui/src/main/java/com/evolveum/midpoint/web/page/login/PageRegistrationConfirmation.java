@@ -8,10 +8,13 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.string.StringValue;
+import org.w3c.tools.codec.Base64Decoder;
+import org.w3c.tools.codec.Base64Encoder;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -25,10 +28,10 @@ import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.util.MidPointPageParametersEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 
-//"http://localhost:8080/midpoint/confirm/registrationid=" + newUser.getOid()
-//+ "/token=" + userType.getCostCenter() + "/roleId=00000000-0000-0000-0000-000000000008";
+//CONFIRMATION_LINK = "http://localhost:8080/midpoint/confirm/registration/";
 @PageDescriptor(url = "/confirm", encoder = MidPointPageParametersEncoder.class)
 public class PageRegistrationConfirmation extends PageBase {
 	
@@ -59,6 +62,33 @@ public class PageRegistrationConfirmation extends PageBase {
 OperationResult result = runPrivileged(new Producer<OperationResult>() {
 			
 	
+	/*
+	 * private String createConfirmationLink(UserType userType){
+		StringBuilder confirmLinkBuilder = new StringBuilder(CONFIRMATION_LINK);
+			
+				StringBuilder suffixBuilder = new StringBuilder("registrationId");
+		suffixBuilder.append(userType.getOid()).append("/token/").append(userType.getCostCenter()).append("/roleId/00000000-0000-0000-0000-000000000008");
+		String suffix = suffixBuilder.toString();
+		Base64Encoder base64Encoder = new Base64Encoder(suffix);
+		String encoded = base64Encoder.processString();
+		
+		String urlSuffix;
+		try {
+			ProtectedStringType protectedString = prismContext.getDefaultProtector().encryptString(encoded);
+			 urlSuffix = new String(protectedString.getEncryptedDataType().getCipherData().getCipherValue());
+		} catch (EncryptionException e) {
+			urlSuffix = encoded;
+		}
+		
+		confirmLinkBuilder.append(urlSuffix);
+		return confirmLinkBuilder.toString();
+		
+	}(non-Javadoc)
+	 * @see 
+	 * 
+	  com.evolveum.midpoint.util.Producer#run()
+	 */
+	
 	
 			@Override
 			public OperationResult run() {
@@ -66,7 +96,14 @@ OperationResult result = runPrivileged(new Producer<OperationResult>() {
 				if (params == null) {
 					params = getPageParameters();
 				}
-				StringValue userOidValue = params.get("registrationid");
+//				StringValue registrationLink = params.get("registration");
+//				Validate.notEmpty(registrationLink.toString());
+//				
+//				String encoded = registrationLink.toString();
+//				Base64Decoder decoder = new Base64Decoder(encoded);
+//				String decoded = decoder.processString();
+				
+				StringValue userOidValue = params.get("registrationId");
 				Validate.notEmpty(userOidValue.toString());
 				StringValue tokenValue = params.get("token");
 				Validate.notEmpty(tokenValue.toString());

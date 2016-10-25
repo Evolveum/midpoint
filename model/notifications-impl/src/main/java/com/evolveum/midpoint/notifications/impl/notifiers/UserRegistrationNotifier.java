@@ -16,7 +16,9 @@
 
 package com.evolveum.midpoint.notifications.impl.notifiers;
 
+import com.evolveum.midpoint.common.crypto.CryptoUtil;
 import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
+import com.evolveum.midpoint.model.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.notifications.api.events.Event;
 import com.evolveum.midpoint.notifications.api.events.ModelEvent;
 import com.evolveum.midpoint.notifications.impl.NotificationFuctionsImpl;
@@ -35,9 +37,13 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.GeneralNotifierType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserPasswordNotifierType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserRegistrationNotifierType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
+import org.apache.commons.codec.digest.Crypt;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.w3c.tools.codec.Base64Decoder;
+import org.w3c.tools.codec.Base64Encoder;
 
 import javax.annotation.PostConstruct;
 
@@ -57,6 +63,8 @@ public class UserRegistrationNotifier extends GeneralNotifier {
 	@Autowired
 	private NotificationFuctionsImpl notificationsUtil;
 	
+	
+	private static String CONFIRMATION_LINK = "http://localhost:8080/midpoint/confirm/";
 
 	@PostConstruct
 	public void init() {
@@ -108,13 +116,7 @@ public class UserRegistrationNotifier extends GeneralNotifier {
 	@Override
     protected String getBody(Event event, GeneralNotifierType generalNotifierType, String transport, Task task, OperationResult result) {
 
-        ModelEvent modelEvent = (ModelEvent) event;
-        List<ObjectDelta<FocusType>> deltas = modelEvent.getFocusDeltas();
-        PrismObject<UserType> newUser = modelEvent.getFocusContext().getObjectNew();
-        UserType userType = newUser.asObjectable();
-        
-		String confirmationLink = "http://localhost:8080/midpoint/confirm/registrationid/" + newUser.getOid()
-				+ "/token/" + userType.getCostCenter() + "/roleId/00000000-0000-0000-0000-000000000008";
+      UserType userType = getUser(event);
         
 		String plainTextPassword = "IhopeYouRememberYourPassword";
 		try {
@@ -127,7 +129,7 @@ public class UserRegistrationNotifier extends GeneralNotifier {
         messageBuilder.append(userType.getGivenName()).append(",\n")
         .append("your account was successfully created. To activate your account click on the following confiramtion link. ")
         .append("\n")
-        .append(confirmationLink)
+        .append(createConfirmationLink(userType))
         .append("\n\n")
         .append("After your account is activated, use following credentials to log in: \n")
         .append("username: ")
@@ -138,6 +140,49 @@ public class UserRegistrationNotifier extends GeneralNotifier {
         return messageBuilder.toString();
     }
 
+	private String createConfirmationLink(UserType userType){
+		StringBuilder confirmLinkBuilder = new StringBuilder(CONFIRMATION_LINK);
+			
+				StringBuilder suffixBuilder = new StringBuilder("registrationId/");
+		suffixBuilder.append(userType.getOid()).append("/token/").append(userType.getCostCenter()).append("/roleId/00000000-0000-0000-0000-000000000008");
+		String suffix = suffixBuilder.toString();
+//		Base64Encoder base64Encoder = new Base64Encoder(suffix);
+//		String encoded = base64Encoder.processString();
+		
+//		String urlSuffix;
+//		try {
+//			ProtectedStringType protectedString = prismContext.getDefaultProtector().encryptString(encoded);
+//			 urlSuffix = new String(protectedString.getEncryptedDataType().getCipherData().getCipherValue());
+//		} catch (EncryptionException e) {
+//		String urlSuffix = encoded;
+//		}
+		
+		confirmLinkBuilder.append(suffix);
+		return confirmLinkBuilder.toString();
+		
+	}
+	
+	private UserType getUser(Event event){
+		ModelEvent modelEvent = (ModelEvent) event;
+        List<ObjectDelta<FocusType>> deltas = modelEvent.getFocusDeltas();
+        PrismObject<UserType> newUser = modelEvent.getFocusContext().getObjectNew();
+        UserType userType = newUser.asObjectable();
+        return userType;
+	}
+	
+	@Override
+	protected String getBodyFromExpression(Event event, GeneralNotifierType generalNotifierType,
+			ExpressionVariables variables, Task task, OperationResult result) {
+		UserType userType = getUser(event);
+		
+		String body = super.getBodyFromExpression(event, generalNotifierType, variables, task, result);
+		if (body  != null ) {
+			return body + "\n" + createConfirmationLink(userType);
+		}
+		
+		return body;
+	}
+	
 	@Override
 	protected Trace getLogger() {
 		return LOGGER;
