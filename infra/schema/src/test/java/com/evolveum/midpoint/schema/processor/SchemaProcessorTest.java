@@ -174,14 +174,15 @@ public class SchemaProcessorTest {
 		containerDefinition.setNativeObjectClass("ACCOUNT");
 		// ... in it ordinary attribute - an identifier
 		ResourceAttributeDefinitionImpl xloginDef = containerDefinition.createAttributeDefinition("login", DOMUtil.XSD_STRING);
-		((Collection)containerDefinition.getPrimaryIdentifiers()).add(xloginDef);
+		containerDefinition.addPrimaryIdentifier(xloginDef);
 		xloginDef.setNativeAttributeName("LOGIN");
 		containerDefinition.setDisplayNameAttribute(xloginDef.getName());
 		// ... and local property with a type from another schema
 		ResourceAttributeDefinitionImpl xpasswdDef = containerDefinition.createAttributeDefinition("password", ProtectedStringType.COMPLEX_TYPE);
 		xpasswdDef.setNativeAttributeName("PASSWORD");
 		// ... property reference
-		containerDefinition.createAttributeDefinition(SchemaConstants.C_CREDENTIALS, SchemaConstants.C_CREDENTIALS_TYPE);
+		// TODO this is not a ResourceAttributeDefinition, it cannot be placed here!
+		//containerDefinition.createAttributeDefinition(SchemaConstants.C_CREDENTIALS, SchemaConstants.C_CREDENTIALS_TYPE);
 		// ... ignored attribute
 		ResourceAttributeDefinitionImpl xSepDef = containerDefinition.createAttributeDefinition("sep", DOMUtil.XSD_STRING);
 		xSepDef.setIgnored(true);
@@ -225,10 +226,10 @@ public class SchemaProcessorTest {
 		assertEquals(ProtectedStringType.COMPLEX_TYPE, passwdDef.getTypeName());
 		assertFalse(passwdDef.isIgnored());
 
-		PrismContainerDefinition credDef = newObjectClassDef.findContainerDefinition(new QName(SchemaConstants.NS_C,"credentials"));
-		assertEquals(new QName(SchemaConstants.NS_C,"credentials"), credDef.getName());
-		assertEquals(new QName(SchemaConstants.NS_C,"CredentialsType"), credDef.getTypeName());
-		assertFalse(credDef.isIgnored());
+//		PrismContainerDefinition credDef = newObjectClassDef.findContainerDefinition(new QName(SchemaConstants.NS_C,"credentials"));
+//		assertEquals(new QName(SchemaConstants.NS_C,"credentials"), credDef.getName());
+//		assertEquals(new QName(SchemaConstants.NS_C,"CredentialsType"), credDef.getTypeName());
+//		assertFalse(credDef.isIgnored());
 		
 		PrismPropertyDefinition sepDef = newObjectClassDef.findPropertyDefinition(new QName(SCHEMA_NS,"sep"));
 		assertEquals(new QName(SCHEMA_NS,"sep"), sepDef.getName());

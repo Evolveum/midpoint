@@ -74,13 +74,21 @@ public class ObjectClassComplexTypeDefinitionImpl extends ComplexTypeDefinitionI
 	public Collection<? extends ResourceAttributeDefinition<?>> getPrimaryIdentifiers() {
 		return identifiers;
 	}
-	
+
+	public void addPrimaryIdentifier(ResourceAttributeDefinition<?> identifier) {
+		identifiers.add(identifier);
+	}
+
 	@NotNull
 	@Override
 	public Collection<? extends ResourceAttributeDefinition<?>> getSecondaryIdentifiers() {
 		return secondaryIdentifiers;
 	}
-	
+
+	public void addSecondaryIdentifier(ResourceAttributeDefinition<?> identifier) {
+		secondaryIdentifiers.add(identifier);
+	}
+
 	@Override
 	public <X> ResourceAttributeDefinition<X> getDescriptionAttribute() {
 		return descriptionAttribute;

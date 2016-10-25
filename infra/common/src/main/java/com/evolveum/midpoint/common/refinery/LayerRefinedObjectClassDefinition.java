@@ -35,6 +35,10 @@ public interface LayerRefinedObjectClassDefinition extends RefinedObjectClassDef
 
 	@NotNull
 	@Override
+	Collection<? extends LayerRefinedAttributeDefinition<?>> getAttributeDefinitions();
+
+	@NotNull
+	@Override
 	LayerRefinedObjectClassDefinition clone();
 
 }

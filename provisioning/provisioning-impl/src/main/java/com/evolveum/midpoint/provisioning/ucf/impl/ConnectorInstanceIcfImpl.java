@@ -908,11 +908,10 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			if (!hasUidDefinition) {
 				((ObjectClassComplexTypeDefinitionImpl) ocDef).add(uidDefinition);
 			}
-			((Collection<ResourceAttributeDefinition>)ocDef.getPrimaryIdentifiers()).add(uidDefinition);
+			((ObjectClassComplexTypeDefinitionImpl)ocDef).addPrimaryIdentifier(uidDefinition);
 			if (uidDefinition != nameDefinition) {
-				((Collection<ResourceAttributeDefinition>)ocDef.getSecondaryIdentifiers()).add(nameDefinition);
+				((ObjectClassComplexTypeDefinitionImpl)ocDef).addSecondaryIdentifier(nameDefinition);
 			}
-
 
 			// Add schema annotations
 			((ObjectClassComplexTypeDefinitionImpl) ocDef).setNativeObjectClass(objectClassInfo.getType());

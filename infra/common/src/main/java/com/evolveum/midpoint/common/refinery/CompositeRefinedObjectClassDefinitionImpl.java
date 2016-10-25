@@ -33,10 +33,7 @@ import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -136,18 +133,18 @@ public class CompositeRefinedObjectClassDefinitionImpl implements CompositeRefin
 	}
 
 	@Override
-	public RefinedAttributeDefinition<?> getDescriptionAttribute() {
+	public <X> RefinedAttributeDefinition<X> getDescriptionAttribute() {
 		return structuralObjectClassDefinition.getDescriptionAttribute();
+	}
+
+	@Override
+	public <X> RefinedAttributeDefinition<X> getNamingAttribute() {
+		return structuralObjectClassDefinition.getNamingAttribute();
 	}
 
 	@Override
 	public String getHelp() {
 		return structuralObjectClassDefinition.getHelp();
-	}
-
-	@Override
-	public RefinedAttributeDefinition<?> getNamingAttribute() {
-		return structuralObjectClassDefinition.getNamingAttribute();
 	}
 
 	@NotNull
@@ -192,7 +189,7 @@ public class CompositeRefinedObjectClassDefinitionImpl implements CompositeRefin
 	}
 
 	@Override
-	public RefinedAttributeDefinition<?> getDisplayNameAttribute() {
+	public <X> RefinedAttributeDefinition<X> getDisplayNameAttribute() {
 		return structuralObjectClassDefinition.getDisplayNameAttribute();
 	}
 
@@ -463,12 +460,19 @@ public class CompositeRefinedObjectClassDefinitionImpl implements CompositeRefin
 
 	@Override
 	public Collection<? extends QName> getNamesOfAssociationsWithOutboundExpressions() {
-		throw new UnsupportedOperationException("TODO implement if needed");
+		return getAssociationDefinitions().stream()
+				.filter(assocDef -> assocDef.getOutboundMappingType() != null)
+				.map(a -> a.getName())
+				.collect(Collectors.toCollection(HashSet::new));
 	}
 
 	@Override
 	public boolean hasAuxiliaryObjectClass(QName expectedObjectClassName) {
-		throw new UnsupportedOperationException("TODO implement if needed");
+		if (structuralObjectClassDefinition.hasAuxiliaryObjectClass(expectedObjectClassName)) {
+			return true;
+		}
+		return auxiliaryObjectClassDefinitions.stream().anyMatch(
+				def -> QNameUtil.match(expectedObjectClassName, def.getTypeName()));
 	}
 
 	@Override

@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import javax.xml.namespace.QName;
 
@@ -58,19 +59,17 @@ public class LayerRefinedObjectClassDefinitionImpl implements LayerRefinedObject
 		this.layer = layer;
 	}
 	
-	static LayerRefinedObjectClassDefinition wrap(RefinedObjectClassDefinition rAccountDef, LayerType layer) {
-		if (rAccountDef == null) {
+	static LayerRefinedObjectClassDefinition wrap(RefinedObjectClassDefinition rOCD, LayerType layer) {
+		if (rOCD == null) {
 			return null;
 		}
-		return new LayerRefinedObjectClassDefinitionImpl(rAccountDef, layer);
+		return new LayerRefinedObjectClassDefinitionImpl(rOCD, layer);
 	}
 	
-	static List<? extends LayerRefinedObjectClassDefinition> wrapCollection(Collection<? extends RefinedObjectClassDefinition> rAccountDefs, LayerType layer) {
-		List<LayerRefinedObjectClassDefinition> outs = new ArrayList<LayerRefinedObjectClassDefinition>(rAccountDefs.size());
-		for (RefinedObjectClassDefinition rAccountDef: rAccountDefs) {
-			outs.add(wrap(rAccountDef, layer));
-		}
-		return outs;
+	static List<? extends LayerRefinedObjectClassDefinition> wrapCollection(Collection<? extends RefinedObjectClassDefinition> rOCDs, LayerType layer) {
+		return(rOCDs.stream()
+				.map(rAccountDef -> wrap(rAccountDef, layer))
+				.collect(Collectors.toCollection(() -> new ArrayList<>(rOCDs.size()))));
 	}
 
 	@Override
@@ -94,7 +93,7 @@ public class LayerRefinedObjectClassDefinitionImpl implements LayerRefinedObject
 	}
 
 	@Override
-    public LayerRefinedAttributeDefinition<?> getDescriptionAttribute() {
+    public <X> LayerRefinedAttributeDefinition<X> getDescriptionAttribute() {
 		// TODO optimize
         return substituteLayerRefinedAttributeDefinition(refinedObjectClassDefinition.getDescriptionAttribute());
     }
@@ -105,33 +104,24 @@ public class LayerRefinedObjectClassDefinitionImpl implements LayerRefinedObject
 		return refinedObjectClassDefinition.getIgnoredNamespaces();
 	}
 
-	private LayerRefinedAttributeDefinition<?> substituteLayerRefinedAttributeDefinition(ResourceAttributeDefinition<?> attributeDef) {
-        LayerRefinedAttributeDefinition<?> rAttrDef = findAttributeDefinition(attributeDef.getName());
-        return rAttrDef;
+	private <X> LayerRefinedAttributeDefinition<X> substituteLayerRefinedAttributeDefinition(ResourceAttributeDefinition<?> attributeDef) {
+		return findAttributeDefinition(attributeDef.getName());
     }
 
     private Collection<LayerRefinedAttributeDefinition<?>> substituteLayerRefinedAttributeDefinitionCollection(Collection<? extends RefinedAttributeDefinition<?>> attributes) {
-        Collection<LayerRefinedAttributeDefinition<?>> retval = new ArrayList<>();
-        for (RefinedAttributeDefinition<?> rad : attributes) {
-            retval.add(substituteLayerRefinedAttributeDefinition(rad));
-        }
-        return retval;
+		return attributes.stream()
+				.map(this::substituteLayerRefinedAttributeDefinition)
+				.collect(Collectors.toList());
     }
 
     @Override
-    public LayerRefinedAttributeDefinition<?> getNamingAttribute() {
+    public <X> LayerRefinedAttributeDefinition<X> getNamingAttribute() {
         return substituteLayerRefinedAttributeDefinition(refinedObjectClassDefinition.getNamingAttribute());
 	}
 
     @Override
 	public String getNativeObjectClass() {
 		return refinedObjectClassDefinition.getNativeObjectClass();
-	}
-
-	@Override
-	public <ID extends ItemDefinition> ID findNamedItemDefinition(@NotNull QName firstName, @NotNull ItemPath rest,
-			@NotNull Class<ID> clazz) {
-		return refinedObjectClassDefinition.findNamedItemDefinition(firstName, rest, clazz);
 	}
 
 	@Override
@@ -144,10 +134,18 @@ public class LayerRefinedObjectClassDefinitionImpl implements LayerRefinedObject
 		return refinedObjectClassDefinition.getDisplayOrder();
 	}
 
+	// TODO - doesn't return layered definition (should it?)
 	@Override
 	public <ID extends ItemDefinition> ID findItemDefinition(@NotNull ItemPath path,
 			@NotNull Class<ID> clazz) {
 		return refinedObjectClassDefinition.findItemDefinition(path, clazz);
+	}
+
+	// TODO - doesn't return layered definition (should it?)
+	@Override
+	public <ID extends ItemDefinition> ID findNamedItemDefinition(@NotNull QName firstName, @NotNull ItemPath rest,
+																  @NotNull Class<ID> clazz) {
+		return refinedObjectClassDefinition.findNamedItemDefinition(firstName, rest, clazz);
 	}
 
 	@Override
@@ -176,7 +174,7 @@ public class LayerRefinedObjectClassDefinitionImpl implements LayerRefinedObject
 	}
 
 	@Override
-	public LayerRefinedAttributeDefinition<?> getDisplayNameAttribute() {
+	public <X> LayerRefinedAttributeDefinition<X> getDisplayNameAttribute() {
         return substituteLayerRefinedAttributeDefinition(refinedObjectClassDefinition.getDisplayNameAttribute());
 	}
 
@@ -227,19 +225,18 @@ public class LayerRefinedObjectClassDefinitionImpl implements LayerRefinedObject
 		return refinedObjectClassDefinition.instantiate(name);
 	}
 
-    @Override
-	public PrismPropertyDefinition findPropertyDefinition(@NotNull QName name) {
-        LayerRefinedAttributeDefinition def = findAttributeDefinition(name);
-        if (def != null) {
-            return def;
-        } else {
-            // actually, can there be properties other than attributes? [mederly]
-		    return LayerRefinedAttributeDefinitionImpl.wrap((RefinedAttributeDefinition) refinedObjectClassDefinition.findPropertyDefinition(name), layer);
-        }
-	}
+//    @Override
+//	public <T> PrismPropertyDefinition<T> findPropertyDefinition(@NotNull QName name) {
+//        LayerRefinedAttributeDefinition<T> def = findAttributeDefinition(name);
+//        if (def != null) {
+//            return def;
+//        } else {
+//		    return LayerRefinedAttributeDefinitionImpl.wrap((RefinedAttributeDefinition<T>) refinedObjectClassDefinition.findPropertyDefinition(name), layer);
+//        }
+//	}
 
     @Override
-	public LayerRefinedAttributeDefinition<?> findAttributeDefinition(@NotNull QName elementQName) {
+	public <X> LayerRefinedAttributeDefinition<X> findAttributeDefinition(@NotNull QName elementQName) {
         for (LayerRefinedAttributeDefinition definition : getAttributeDefinitions()) {
             if (QNameUtil.match(definition.getName(), elementQName)) {
                 return definition;

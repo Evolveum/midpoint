@@ -248,9 +248,9 @@ public class TestResourceSchema {
 		assertEquals(new QName(SCHEMA_NAMESPACE,"password"), passwdDef.getName());
 		assertEquals(ProtectedStringType.COMPLEX_TYPE, passwdDef.getTypeName());
 
-		PrismContainerDefinition<CredentialsType> credDef = objectClassDef.findContainerDefinition(new QName(SchemaConstants.NS_C,"credentials"));
-		assertEquals(new QName(SchemaConstants.NS_C,"credentials"), credDef.getName());
-		assertEquals(new QName(SchemaConstants.NS_C,"CredentialsType"), credDef.getTypeName());
+//		PrismContainerDefinition<CredentialsType> credDef = objectClassDef.findContainerDefinition(new QName(SchemaConstants.NS_C,"credentials"));
+//		assertEquals(new QName(SchemaConstants.NS_C,"credentials"), credDef.getName());
+//		assertEquals(new QName(SchemaConstants.NS_C,"CredentialsType"), credDef.getTypeName());
 	}
 	
 	@Test
@@ -349,7 +349,8 @@ public class TestResourceSchema {
 		ResourceAttributeDefinitionImpl<String> xpasswdDef = containerDefinition.createAttributeDefinition("password", ProtectedStringType.COMPLEX_TYPE);
 		xpasswdDef.setNativeAttributeName("PASSWORD");
 		// ... property reference
-		containerDefinition.createAttributeDefinition(SchemaConstants.C_CREDENTIALS, SchemaConstants.C_CREDENTIALS_TYPE);
+		// TODO this should not go here, as it is not a ResourceAttributeDefinition
+		//containerDefinition.createAttributeDefinition(SchemaConstants.C_CREDENTIALS, SchemaConstants.C_CREDENTIALS_TYPE);
 
 		return schema;
 	}

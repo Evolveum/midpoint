@@ -16,11 +16,7 @@
 
 package com.evolveum.midpoint.model.impl.lens.projector;
 
-import com.evolveum.midpoint.common.refinery.CompositeRefinedObjectClassDefinition;
-import com.evolveum.midpoint.common.refinery.RefinedAssociationDefinition;
-import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
-import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
+import com.evolveum.midpoint.common.refinery.*;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.model.common.mapping.Mapping;
@@ -323,7 +319,7 @@ public class ConsolidationProcessor {
             throw new IllegalStateException("Structural object class definition for " + discr + " not found in the context, but it should be there");
         }
 
-        RefinedObjectClassDefinition rOcDef = new CompositeRefinedObjectClassDefinition(
+        RefinedObjectClassDefinition rOcDef = new CompositeRefinedObjectClassDefinitionImpl(
 				structuralObjectClassDefinition, auxOcDefs);
         
         if (LOGGER.isTraceEnabled()) {

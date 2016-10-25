@@ -614,7 +614,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
     	if (compositeObjectClassDefinition == null) {
     		RefinedObjectClassDefinition structuralObjectClassDefinition = getStructuralObjectClassDefinition();
     		if (structuralObjectClassDefinition != null) {
-    			compositeObjectClassDefinition = new CompositeRefinedObjectClassDefinition(
+    			compositeObjectClassDefinition = new CompositeRefinedObjectClassDefinitionImpl(
     					structuralObjectClassDefinition, getAuxiliaryObjectClassDefinitions());
     		}
     	}
