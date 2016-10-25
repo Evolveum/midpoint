@@ -24,6 +24,9 @@ import com.evolveum.midpoint.gui.api.component.ObjectBrowserPanel;
 import com.evolveum.midpoint.gui.api.component.TypedAssignablePanel;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import com.evolveum.midpoint.prism.query.InOidFilter;
+import com.evolveum.midpoint.prism.query.NotFilter;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
@@ -434,9 +437,11 @@ public class PageUsers extends PageAdminUsers {
     private void mergePerformed(AjaxRequestTarget target, final UserType selectedUser) {
         List<QName> supportedTypes = new ArrayList<>();
         supportedTypes.add(UserType.COMPLEX_TYPE);
+        ObjectFilter filter = InOidFilter.createInOid(selectedUser.getOid());
+        ObjectFilter notFilter = NotFilter.createNot(filter);
         ObjectBrowserPanel panel = new ObjectBrowserPanel(
                 getMainPopupBodyId(), UserType.class,
-                supportedTypes, false, PageUsers.this) {
+                supportedTypes, false, PageUsers.this, notFilter) {
             private static final long serialVersionUID = 1L;
 
             @Override
