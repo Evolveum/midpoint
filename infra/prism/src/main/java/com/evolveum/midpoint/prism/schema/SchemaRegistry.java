@@ -147,6 +147,8 @@ public interface SchemaRegistry extends DebugDumpable, GlobalDefinitionsStore {
 	QName selectMoreSpecific(QName type1, QName type2)
 			throws SchemaException;
 
+	boolean isContainer(QName typeName);
+
 	enum ComparisonResult {
 		EQUAL,					// types are equal
 		NO_STATIC_CLASS,		// static class cannot be determined
@@ -157,8 +159,8 @@ public interface SchemaRegistry extends DebugDumpable, GlobalDefinitionsStore {
 	/**
 	 * @return null means we cannot decide (types are different, and no compile time class for def1 and/or def2)
 	 */
-	<ID extends ItemDefinition> ComparisonResult compareDefinitions(ID def1, ID def2)
+	<ID extends ItemDefinition> ComparisonResult compareDefinitions(@NotNull ID def1, @NotNull ID def2)
 			throws SchemaException;
 
-	boolean isAssignableFrom(QName superType, QName subType);
+	boolean isAssignableFrom(@NotNull QName superType, @NotNull QName subType);
 }

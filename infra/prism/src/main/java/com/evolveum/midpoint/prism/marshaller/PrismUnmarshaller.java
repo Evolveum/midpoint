@@ -94,10 +94,17 @@ public class PrismUnmarshaller {
         ItemDefinition realDefinition;
         if (itemInfo.getItemDefinition() == null && itemInfo.getComplexTypeDefinition() != null) {
             // let's create container definition dynamically
-            PrismContainerDefinitionImpl pcd = new PrismContainerDefinitionImpl(itemInfo.getItemName(), itemInfo.getComplexTypeDefinition(),
-                    prismContext);
-            pcd.setDynamic(true);       // questionable
-            realDefinition = pcd;
+            QName actualTypeName = itemInfo.getComplexTypeDefinition().getTypeName();
+            if (getSchemaRegistry().isContainer(actualTypeName)) {
+                PrismContainerDefinitionImpl def = new PrismContainerDefinitionImpl(itemInfo.getItemName(),
+                        itemInfo.getComplexTypeDefinition(), prismContext);
+                def.setDynamic(true);
+                realDefinition = def;
+            } else {
+                PrismPropertyDefinitionImpl def = new PrismPropertyDefinitionImpl(itemInfo.getItemName(), actualTypeName, prismContext);
+                def.setDynamic(true);
+                realDefinition = def;
+            }
         } else {
             realDefinition = itemInfo.getItemDefinition();
         }

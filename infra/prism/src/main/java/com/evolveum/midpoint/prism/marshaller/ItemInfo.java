@@ -63,8 +63,23 @@ public class ItemInfo<ID extends ItemDefinition> {
 		definition = augmentWithType(definition, definitionClass, schemaRegistry, typeNameExplicit);
 		definition = augmentWithType(definition, definitionClass, schemaRegistry, typeNameFromSource);
 		definition = augmentWithClass(definition, definitionClass, schemaRegistry, classExplicit);
-
 		definition = augmentWithItemName(definition, definitionClass, schemaRegistry, itemNameFromSource);
+
+		// Sanity check: if typeNameFromSource or typeNameExplicit are not compatible with the type derived from definition,
+		// we will NOT use the definition. For example, if client is looking for ConditionalSearchFilterType (has no ItemDefinition)
+		// the definition here would be very probably SearchFilterType (based e.g. on the itemNameFromSource). And it has not
+		// to be used, as the client explicitly requested ConditionalSearchFilterType.
+		//
+		// Exception is PrismReferenceDefinition, as there are no subtypes in that case (yet)
+		if (definition != null && !(definition instanceof PrismReferenceDefinition)) {
+			QName typeName = definition.getTypeName();
+			if (typeNameExplicit != null && !schemaRegistry.isAssignableFrom(typeNameExplicit, typeName)
+				|| typeNameFromSource != null && !schemaRegistry.isAssignableFrom(typeNameFromSource, typeName)) {
+				// the result would NOT match typeNameExplicit/typeNameFromSource (very probably)
+				// so we have to abandon this definition
+				definition = null;
+			}
+		}
 
 		ItemInfo<ID> info = new ItemInfo<>();
 		info.itemDefinition = definition;

@@ -60,7 +60,7 @@ public class TestParseMapping extends AbstractPropertyValueParserTest<MappingTyp
 
 	private void processParsings(SerializingFunction<PrismPropertyValue<MappingType>> serializer, String serId) throws Exception {
 		PrismPropertyDefinition definition = getPrismContext().getSchemaRegistry().findPropertyDefinitionByElementName(SchemaConstantsGenerated.C_MAPPING);
-		processParsings(MappingType.class, MappingsType.COMPLEX_TYPE, definition, serializer, serId);
+		processParsings(MappingType.class, MappingType.COMPLEX_TYPE, definition, serializer, serId);
 	}
 
 	// a bit of hack: RawType gets parsed very soon, so we must test for it almost immediately after parsing

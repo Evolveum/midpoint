@@ -425,7 +425,7 @@ public class QueryConvertor {
 
 		ItemDefinition itemDefinition = null;
 		if (pcd != null) {
-			itemDefinition = pcd != null ? pcd.findItemDefinition(itemPath) : null;
+			itemDefinition = pcd.findItemDefinition(itemPath);
 			if (itemDefinition == null && !preliminaryParsingOnly) {
 				throw new SchemaException("No definition for item "+itemPath+" in "+pcd);
 			}
@@ -442,6 +442,9 @@ public class QueryConvertor {
 					.definition(itemDefinition)
 					.context(ParsingContext.allowMissingRefTypes())
 					.parseItem();
+			if (!(item instanceof PrismReference)) {
+				throw new IllegalStateException("Expected PrismReference, got " + item);
+			}
 			PrismReference ref = (PrismReference)item;
 			if (item.getValues().size() < 1) {
 				throw new IllegalStateException("No values to search specified for item " + itemName);

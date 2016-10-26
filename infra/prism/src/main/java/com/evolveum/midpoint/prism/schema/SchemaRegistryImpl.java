@@ -1219,6 +1219,16 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
 		}
 	}
 
+	@NotNull
+	public <T> Class<T> determineClassForTypeNotNull(QName typeName) {
+		Class<T> clazz = determineClassForType(typeName);
+		if (clazz != null) {
+			return clazz;
+		} else {
+			throw new IllegalStateException("No class for " + typeName);
+		}
+	}
+
 	@Override
 	public Class<?> determineClassForItemDefinition(ItemDefinition<?> itemDefinition) {
 		if (itemDefinition instanceof PrismContainerDefinition) {
@@ -1319,12 +1329,22 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
 
 	@Override
 	public boolean isAssignableFrom(@NotNull QName superType, @NotNull QName subType) {
-		if (QNameUtil.match(superType, subType)) {
+		if (QNameUtil.match(superType, subType) || QNameUtil.match(DOMUtil.XSD_ANYTYPE, superType)) {
 			return true;
 		}
-		Class<?> superClass = determineCompileTimeClassNotNull(superType);
-		Class<?> subClass = determineCompileTimeClassNotNull(subType);
+		if (QNameUtil.match(DOMUtil.XSD_ANYTYPE, subType)) {
+			return false;
+		}
+		Class<?> superClass = determineClassForTypeNotNull(superType);
+		Class<?> subClass = determineClassForTypeNotNull(subType);
 		return superClass.isAssignableFrom(subClass);
 	}
+
+	@Override
+	public boolean isContainer(QName typeName) {
+		Class<?> clazz = determineClassForType(typeName);
+		return clazz != null && Containerable.class.isAssignableFrom(clazz);
+	}
+
 	//endregion
 }
