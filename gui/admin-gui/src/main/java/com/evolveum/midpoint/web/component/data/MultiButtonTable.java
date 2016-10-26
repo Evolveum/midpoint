@@ -225,16 +225,16 @@ public class MultiButtonTable extends BasePanel<List<AssignmentEditorDto>> {
     }
 
     private void addAssignmentPerformed(AssignmentEditorDto assignment, AjaxRequestTarget target){
-        plusIconClicked = true;
-        RoleCatalogStorage storage = getPageBase().getSessionStorage().getRoleCatalog();
-        if (storage.getAssignmentShoppingCart() == null){
-            storage.setAssignmentShoppingCart(new ArrayList<AssignmentEditorDto>());
-        }
-        List<AssignmentEditorDto> assignmentsToAdd = storage.getAssignmentShoppingCart();
-        assignmentsToAdd.add(assignment);
-        storage.setAssignmentShoppingCart(assignmentsToAdd);
-        CatalogItemsPanel parent = MultiButtonTable.this.findParent(CatalogItemsPanel.class);
-        parent.reloadCartButton(target);
+//        plusIconClicked = true;
+//        RoleCatalogStorage storage = getPageBase().getSessionStorage().getRoleCatalog();
+//        if (storage.getAssignmentShoppingCart() == null){
+//            storage.setAssignmentShoppingCart(new ArrayList<AssignmentEditorDto>());
+//        }
+//        List<AssignmentEditorDto> assignmentsToAdd = storage.getAssignmentShoppingCart();
+//        assignmentsToAdd.add(assignment);
+//        storage.setAssignmentShoppingCart(assignmentsToAdd);
+//        CatalogItemsPanel parent = MultiButtonTable.this.findParent(CatalogItemsPanel.class);
+//        parent.reloadCartButton(target);
 
     }
 

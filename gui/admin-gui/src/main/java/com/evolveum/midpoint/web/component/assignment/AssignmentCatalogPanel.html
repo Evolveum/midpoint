@@ -19,12 +19,27 @@
       xmlns:wicket="http://wicket.apache.org">
 <body>
 <wicket:panel>
+    <div class="row">
+        <div wicket:id="headerPanel" class="row box-header">
+            <select class="col-md-2 input-sm" style="margin-left: 15px;" wicket:id="viewTypeSelect"/>
 
-    <div wicket:id="treePanelContainer">
-        <div wicket:id="treePanel"/>
+            <form class="col-md-8 search-form" wicket:id="searchForm">
+                <div wicket:id="search"/>
+            </form>
+            <a wicket:id="cartButton" class="col-md-1" style="font-size: 24px">
+                <i class="fa fa-shopping-cart" style="width: 50%;"></i>
+            <span wicket:id="itemsCount" class="badge bg-red"
+                  style="font-size: 10px; position: absolute; top: -1px; right: 50%;"></span>
+            </a>
+        </div>
     </div>
-    <div wicket:id="catalogItemsPanelContainer">
-        <div wicket:id="catalogItemsPanel"/>
+    <div wicket:id="catalogItemsPanelContainer" class="row">
+        <div wicket:id="treePanelContainer">
+            <div wicket:id="treePanel"/>
+        </div>
+        <div wicket:id="catalogItemsPanelContainer">
+            <div wicket:id="catalogItemsPanel"/>
+        </div>
     </div>
 </wicket:panel>
 </body>
