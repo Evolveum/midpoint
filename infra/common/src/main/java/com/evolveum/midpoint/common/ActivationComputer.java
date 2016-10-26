@@ -51,19 +51,23 @@ public class ActivationComputer {
 		this.clock = clock;
 	}
 	
-	public ActivationStatusType getEffectiveStatus(String lifecycleStatus, ActivationType activationType, ActivationStatusType defaultStatus) {
-		return getEffectiveStatus(lifecycleStatus, activationType, getValidityStatus(activationType), defaultStatus);
+	public ActivationStatusType getEffectiveStatus(String lifecycleStatus, ActivationType activationType) {
+		return getEffectiveStatus(lifecycleStatus, activationType, getValidityStatus(activationType));
 	}
 	
-	public ActivationStatusType getEffectiveStatus(String lifecycleStatus, ActivationType activationType, TimeIntervalStatusType validityStatus, ActivationStatusType defaultStatus) {
+	public ActivationStatusType getEffectiveStatus(String lifecycleStatus, ActivationType activationType, TimeIntervalStatusType validityStatus) {
+		
+		if (SchemaConstants.LIFECYCLE_ARCHIVED.equals(lifecycleStatus)) {
+			return ActivationStatusType.ARCHIVED;
+		}
 		
 		if (lifecycleStatus != null && 
 				!lifecycleStatus.equals(SchemaConstants.LIFECYCLE_ACTIVE) && !lifecycleStatus.equals(SchemaConstants.LIFECYCLE_DEPRECATED)) {
 			return ActivationStatusType.DISABLED;
 		}
-		
+				
 		if (activationType == null) {
-			return defaultStatus;
+			return ActivationStatusType.ENABLED;
 		}
 		ActivationStatusType administrativeStatus = activationType.getAdministrativeStatus();
 		if (administrativeStatus != null) {
@@ -72,7 +76,7 @@ public class ActivationComputer {
 		}
 		if (validityStatus == null) {
 			// No administrative status, no validity. Return default.
-			return defaultStatus;
+			return ActivationStatusType.ENABLED;
 		}
 		switch (validityStatus) {
 			case AFTER:
@@ -118,6 +122,10 @@ public class ActivationComputer {
 		if (lifecycleStatus != null && 
 				!lifecycleStatus.equals(SchemaConstants.LIFECYCLE_ACTIVE) && !lifecycleStatus.equals(SchemaConstants.LIFECYCLE_DEPRECATED)) {
 			effectiveStatus = ActivationStatusType.DISABLED;
+		}
+		
+		if (SchemaConstants.LIFECYCLE_ARCHIVED.equals(lifecycleStatus)) {
+			effectiveStatus = ActivationStatusType.ARCHIVED;
 		}
 		
 		ActivationStatusType administrativeStatus = activationType.getAdministrativeStatus();
