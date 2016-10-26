@@ -386,6 +386,7 @@ CREATE TABLE m_object (
   creatorRef_type       INT,
   datesCount            SMALLINT,
   fullObject            VARBINARY(MAX),
+  lifecycleState        NVARCHAR(255) COLLATE database_default,
   longsCount            SMALLINT,
   modifierRef_relation  NVARCHAR(157) COLLATE database_default,
   modifierRef_targetOid NVARCHAR(36) COLLATE database_default,
@@ -800,6 +801,8 @@ CREATE INDEX iObjectNameNorm ON m_object (name_norm);
 CREATE INDEX iObjectTypeClass ON m_object (objectTypeClass);
 
 CREATE INDEX iObjectCreateTimestamp ON m_object (createTimestamp);
+
+CREATE INDEX iObjectLifecycleState ON m_object (lifecycleState);
 
 CREATE INDEX iExtensionBoolean ON m_object_ext_boolean (ownerType, eName, booleanValue);
 
