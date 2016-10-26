@@ -1,15 +1,32 @@
 package com.evolveum.midpoint.web.page.admin.reports;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.web.component.AjaxButton;
+import com.evolveum.midpoint.web.component.DateLabelComponent;
+import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
+import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.PageAdminObjectDetails;
+import com.evolveum.midpoint.web.page.admin.reports.dto.AuditEventRecordProvider;
+import com.evolveum.midpoint.web.page.admin.reports.dto.AuditSearchDto;
+import com.evolveum.midpoint.web.page.admin.workflow.dto.ProcessInstanceDto;
+import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventStageType;
+import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventTypeType;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.AbstractPropertyModel;
 import org.apache.wicket.model.AbstractReadOnlyModel;
@@ -43,6 +60,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
+
+import javax.xml.datatype.XMLGregorianCalendar;
 
 
 @PageDescriptor(url = "/admin/auditLogDetails", action = {
@@ -78,13 +97,15 @@ public class PageAuditLogDetails extends PageBase{
 	private static final String ID_PARAMETERS_EVENT_RESULT = "result";
 	private static final String ID_PARAMETERS_PARAMETER = "parameter";
 	private static final String ID_PARAMETERS_MESSAGE = "message";
+	private static final String ID_HISTORY_PANEL = "historyPanel";
 
 	private static final String ID_BUTTON_BACK = "back";
+	private static final String TASK_IDENTIFIER_PARAMETER = "taskIdentifier";
 
     private static final String OPERATION_RESOLVE_REFENRENCE_NAME = PageAuditLogDetails.class.getSimpleName()
             + ".resolveReferenceName()";
 	private IModel<AuditEventRecordType> recordModel;
-	
+
 	public PageAuditLogDetails(final AuditEventRecordType recordType) {
 
 		recordModel = new LoadableModel<AuditEventRecordType>(false) {
@@ -102,10 +123,105 @@ public class PageAuditLogDetails extends PageBase{
 		WebMarkupContainer eventPanel = new WebMarkupContainer(ID_EVENT_PANEL);
 		eventPanel.setOutputMarkupId(true);
 		add(eventPanel);
+        initAuditLogHistoryPanel(eventPanel);
 		initEventPanel(eventPanel);
 		initDeltasPanel(eventPanel);
         initLayoutBackButton();
 	}
+
+    private void initAuditLogHistoryPanel(WebMarkupContainer eventPanel){
+        AuditEventRecordProvider provider = new AuditEventRecordProvider(PageAuditLogDetails.this){
+        private static final long serialVersionUID = 1L;
+
+        public Map<String, Object> getParameters() {
+            Map<String, Object> parameters = new HashMap<String, Object>();
+            parameters.put(TASK_IDENTIFIER_PARAMETER, recordModel.getObject().getTaskIdentifier());
+            return parameters;
+        }
+        };
+
+
+        BoxedTablePanel<AuditEventRecordType> table = new BoxedTablePanel<AuditEventRecordType>(
+                ID_HISTORY_PANEL, provider, initColumns()) {
+
+            @Override
+            protected Item<AuditEventRecordType> customizeNewRowItem(Item<AuditEventRecordType> item,
+                                                                   final IModel<AuditEventRecordType> rowModel) {
+
+
+                item.add(new AttributeAppender("style", new AbstractReadOnlyModel<String>() {
+
+                    @Override
+                    public String getObject() {
+//                        if (rowModel.getObject().isSelected()){
+//                            return "background-color: #eee; border-color: #d6d6d6; color: #000;";
+//                        } else {
+//                            return "";
+//                        }
+                        return "";
+                    }
+                }));
+                return item;
+            }
+        };
+        table.setOutputMarkupId(true);
+        table.setAdditionalBoxCssClasses("without-box-header-top-border");
+        eventPanel.add(table);
+
+    }
+
+    private List<IColumn<AuditEventRecordType, String>> initColumns() {
+        List<IColumn<AuditEventRecordType, String>> columns = new ArrayList<>();
+        PropertyColumn<AuditEventRecordType, String> timeColumn = new PropertyColumn<AuditEventRecordType, String>
+                (createStringResource("AuditEventRecordType.timestamp"),
+                AuditEventRecordType.F_TIMESTAMP.getLocalPart()) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public void populateItem(Item<ICellPopulator<AuditEventRecordType>> item, String componentId,
+                                     IModel<AuditEventRecordType> rowModel) {
+                XMLGregorianCalendar time = rowModel.getObject().getTimestamp();
+                item.add(new Label(componentId, WebComponentUtil.getLocalizedDate(time, DateLabelComponent.SHORT_SHORT_STYLE)));
+            }
+        };
+        columns.add(timeColumn);
+        PropertyColumn<AuditEventRecordType, String> stageColumn = new PropertyColumn<AuditEventRecordType, String>
+                (createStringResource("PageAuditLogViewer.eventStageShortLabel"),
+                AuditEventRecordType.F_EVENT_STAGE.getLocalPart()) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public void populateItem(Item<ICellPopulator<AuditEventRecordType>> item, String componentId,
+                                     IModel<AuditEventRecordType> rowModel) {
+                AuditEventStageType stage = rowModel.getObject().getEventStage();
+                String shortStage  = "";
+                if (AuditEventStageType.EXECUTION.equals(stage)){
+                    shortStage = AuditEventStageType.EXECUTION.value().substring(0, 4);
+                } else if (AuditEventStageType.REQUEST.equals(stage)){
+                    shortStage = AuditEventStageType.REQUEST.value().substring(0, 3);
+                }
+                item.add(new Label(componentId, shortStage));
+            }
+        };
+        columns.add(stageColumn);
+        PropertyColumn<AuditEventRecordType, String> typeColumn = new PropertyColumn<AuditEventRecordType, String>
+                (createStringResource("PageAuditLogViewer.eventTypeShortLabel"),
+                AuditEventRecordType.F_EVENT_TYPE.getLocalPart()) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public void populateItem(Item<ICellPopulator<AuditEventRecordType>> item, String componentId,
+                                     IModel<AuditEventRecordType> rowModel) {
+                //TODO create some proper short values
+                AuditEventTypeType type = rowModel.getObject().getEventType();
+                String typeVal = type.value().substring(0, 4);
+                item.add(new Label(componentId, typeVal));
+            }
+        };
+        columns.add(typeColumn);
+
+        return columns;
+    }
 
 	private void initEventPanel(WebMarkupContainer eventPanel){
 
