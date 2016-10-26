@@ -630,8 +630,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 		ObjectDelta syncDelta = change.getObjectDelta();
 		if (resourceShadow == null && syncDelta != null && ChangeType.ADD.equals(syncDelta.getChangeType())) {
 			LOGGER.trace("Trying to compute current shadow from change delta add.");
-			PrismObject<? extends ShadowType> shadow = syncDelta
-					.computeChangedObject(syncDelta.getObjectToAdd());
+			PrismObject<ShadowType> shadow = syncDelta.computeChangedObject(syncDelta.getObjectToAdd());
 			resourceShadow = shadow;
 			change.setCurrentShadow(shadow);
 		}

@@ -153,7 +153,7 @@ public class TestDummyUuidNonUniqueName extends TestDummyUuid {
 		ShadowType accountTypeRepo = accountRepo.asObjectable();
 		PrismAsserts.assertEqualsPolyString("Name not equal", ACCOUNT_FETTUCINI_NAME, accountTypeRepo.getName());
 		assertEquals("Wrong kind (repo)", ShadowKindType.ACCOUNT, accountTypeRepo.getKind());
-		assertAttribute(accountTypeRepo, ConnectorFactoryIcfImpl.ICFS_NAME, ACCOUNT_FETTUCINI_NAME);
+		assertAttribute(accountRepo, ConnectorFactoryIcfImpl.ICFS_NAME, ACCOUNT_FETTUCINI_NAME);
 		String icfUid = getIcfUid(accountRepo);
 		
 		syncServiceMock.assertNotifySuccessOnly();
@@ -165,8 +165,8 @@ public class TestDummyUuidNonUniqueName extends TestDummyUuid {
 		display("account from provisioning", accountTypeProvisioning);
 		PrismAsserts.assertEqualsPolyString("Name not equal", ACCOUNT_FETTUCINI_NAME, accountTypeProvisioning.getName());
 		assertEquals("Wrong kind (provisioning)", ShadowKindType.ACCOUNT, accountTypeProvisioning.getKind());
-		assertAttribute(accountTypeProvisioning, ConnectorFactoryIcfImpl.ICFS_NAME, ACCOUNT_FETTUCINI_NAME);
-		assertAttribute(accountTypeProvisioning, ConnectorFactoryIcfImpl.ICFS_UID, icfUid);
+		assertAttribute(accountProvisioning, ConnectorFactoryIcfImpl.ICFS_NAME, ACCOUNT_FETTUCINI_NAME);
+		assertAttribute(accountProvisioning, ConnectorFactoryIcfImpl.ICFS_UID, icfUid);
 
 		// Check if the account was created in the dummy resource
 		DummyAccount dummyAccount = getDummyAccountAssert(ACCOUNT_FETTUCINI_NAME, icfUid);

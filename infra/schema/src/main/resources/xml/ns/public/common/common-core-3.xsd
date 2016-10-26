@@ -294,9 +294,54 @@
                     	<a:displayOrder>250</a:displayOrder>
             		</xsd:appinfo>
                 </xsd:annotation>
-            </xsd:element>            
+            </xsd:element>
+            
+            <xsd:element name="lifecycleState" type="xsd:string" minOccurs="0" maxOccurs="1">
+	        	<xsd:annotation>
+	        		<xsd:documentation>
+                        <p>
+	        				Lifecycle state of the object. This property defines whether the
+	        				object represents a draft, proposed definition, whether it is active,
+	        				deprecated, and so on.
+                        </p>
+                        <p>
+                        	There are few pre-defined lifecycle states. But custom lifecycle states
+                        	may also be defined. Pre-defined lifecycle states are:
+                        </p>
+                        <ul>
+                        	<li>draft: Definition of the new object in progress. The object is 
+										NOT active. The definition may change at any moment. It is
+										not ready yet.</li>
+							<li>proposed: Definition of a new object is ready for use, but there 
+										is still a review process to be applied (e.g. approval).
+										The object is NOT active. However the definition should 
+										not change in this state.</li>
+							<li>active: Active and working definition. Ready to be used without
+										any unusual limitations.</li>
+							<li>deprecated: Active definition which is being phased out. The
+										definition is still fully operational. But it should not
+										be used for new assignments. E.g. it should not be requested,
+										it should not be approved, etc.</li>
+							<li>archived: Inactive historical definition. It is no longer used.
+										It is maintained only for historical, auditing and
+										sentimental reasons.</li>
+							<li>failed: Unexpected error has occured during object lifecycle. Result
+										of that event is that the object is rendered inactive.
+										The situation cannot be automatically remedied. Manual action
+										is needed.</li>
+                        </ul>
+	        		</xsd:documentation>
+	        		<xsd:appinfo>
+	        			<a:displayName>ObjectType.lifecycleState</a:displayName>
+                    	<a:displayOrder>20</a:displayOrder>
+	        			<a:since>3.5</a:since>
+	        			<a:valueEnumerationRef oid="00000000-0000-0000-0000-000000000230" type="tns:LookupTableType"/>
+	        		</xsd:appinfo>
+	        	</xsd:annotation>
+	        </xsd:element>
+                        
         </xsd:sequence>
-       
+               
         <xsd:attribute name="oid" type="xsd:string" use="optional">
             <xsd:annotation>
                 <xsd:documentation>
@@ -3350,6 +3395,7 @@
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="consistency" type="tns:ResourceConsistencyType" minOccurs="0"/>
+                    <xsd:element name="caching" type="tns:CachingPolicyType" minOccurs="0"/>
                     <xsd:element ref="tns:synchronization" minOccurs="0"/>
                     <xsd:element name="business" type="tns:ResourceBusinessConfigurationType" minOccurs="0"/>
                 </xsd:sequence>
@@ -10710,6 +10756,13 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
+            <xsd:enumeration value="00000000-0000-0000-0000-000000000230">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="LOOKUP_LIFECYCLE_STATES"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
         </xsd:restriction>
     </xsd:simpleType>
     
@@ -12626,6 +12679,55 @@
 				</xsd:annotation>
 			</xsd:enumeration>
 			<!-- TODO: values for manual selection may come here in the future. -->
+		</xsd:restriction>
+	</xsd:simpleType>
+	
+	<xsd:complexType name="CachingPolicyType">
+		<xsd:annotation>
+			<xsd:documentation>
+				TODO
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:container/>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="cachingStategy" type="tns:CachingStategyType" minOccurs="0" maxOccurs="1" default="none"/>
+		</xsd:sequence>
+	</xsd:complexType>
+
+	<xsd:simpleType name="CachingStategyType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Definition of overall caching strategy.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="none">
+				<xsd:annotation>
+					<xsd:documentation>
+						Do not cache information at all. Caches are not used and not maintained.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="NONE"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+			<xsd:enumeration value="passive">
+				<xsd:annotation>
+					<xsd:documentation>
+						Caches are maintained with minimal impact on normal operations.
+						Generally the data are cached only if they are retrieved for other
+						reasons. There is no read-ahead. The writes are always going to the
+						resource (synchronously): read-through, write-through.
+						There is no cache eviction (but old information is overwritten if
+						newer information is available).
+					</xsd:documentation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="PASSIVE"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
 		</xsd:restriction>
 	</xsd:simpleType>
 

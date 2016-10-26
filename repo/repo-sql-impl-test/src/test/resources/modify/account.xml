@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 
 <!--
-  ~ Copyright (c) 2010-2013 Evolveum
+  ~ Copyright (c) 2010-2016 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -15,19 +15,21 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<object xsi:type="AccountShadowType" oid="1234567890"
+<object xsi:type="ShadowType" oid="1234567890"
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        xmlns:gen300="http://midpoint.evolveum.com/xml/ns/public/communication/workflow-1.xsd"
-        
-        xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3"
-        xmlns:ds="http://www.w3.org/2000/09/xmldsig#"
+        xmlns:xsd="http://www.w3.org/2001/XMLSchema"
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-        xmlns:enc="http://www.w3.org/2001/04/xmlenc#">
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
     <name>1234</name>
     <resourceRef oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2" type="ResourceType"/>
     <objectClass xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2">ri:AccountObjectClass</objectClass>
     <attributes>
-        <icfs:uid xsi:type="xsd:string" xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:gen664="http://midpoint.evolveum.com/xml/ns/public/communication/workflow-1.xsd">8daaeeae-f0c7-41c9-b258-2a3351aa8876</icfs:uid>
+        <icfs:uid xsi:type="xsd:string">8daaeeae-f0c7-41c9-b258-2a3351aa8876</icfs:uid>
+        <ri:foo xsi:type="xsd:string">FOO</ri:foo>
+        <ri:bar xsi:type="xsd:string">Bar1</ri:bar>
+        <ri:bar xsi:type="xsd:string">Bar2</ri:bar>
     </attributes>
     <activation>
         <administrativeStatus>enabled</administrativeStatus>

@@ -80,11 +80,13 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CachingMetadataType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorHostType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FailedOperationTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationProvisioningScriptsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ProvisioningScriptType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
@@ -1042,7 +1044,8 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 	
 	private <T extends ObjectType> boolean handleRepoObject(final Class<T> type, PrismObject<T> object,
 			  final Collection<SelectorOptions<GetOperationOptions>> options,
-			  final ResultHandler<T> handler, final OperationResult objResult){
+			  final ResultHandler<T> handler, final OperationResult objResult) {
+		
 		PrismObject<T> completeObject;
 		try {
 			completeObject = completeObject(type, object, options, objResult);
@@ -1073,8 +1076,20 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		}
 		validateObject(completeObject);
 		
+		if (ShadowType.class.isAssignableFrom(type) && GetOperationOptions.isMaxStaleness(SelectorOptions.findRootOptions(options))) {
+			CachingMetadataType cachingMetadata = ((ShadowType)completeObject.asObjectable()).getCachingMetadata();
+			if (cachingMetadata == null) {
+				objResult.recordFatalError("Requested cached data but no cached data are available in the shadow");
+			}
+		}
+		
 		objResult.computeStatus();
 		objResult.recordSuccessIfUnknown();
+		
+		if (!objResult.isSuccess()) {
+			OperationResultType resultType = objResult.createOperationResultType();
+			completeObject.asObjectable().setFetchResult(resultType);
+		}
 		
 		return handler.handle(completeObject, objResult);
 
@@ -1160,6 +1175,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			return metadata;
 		} 
 		
+		final boolean shouldDoRepoSearch = ProvisioningUtil.shouldDoRepoSearch(rootOptions);
 
 		final ShadowHandler shadowHandler = new ShadowHandler() {
 
@@ -1168,8 +1184,8 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 				
 				OperationResult handleResult = result.createSubresult(ProvisioningService.class.getName()
 						+ ".searchObjectsIterative.handle");
-				
-				if (GetOperationOptions.isNoFetch(rootOptions)){
+
+				if (shouldDoRepoSearch) {
 					return handleRepoObject(type, shadowType.asPrismObject(), options, handler, handleResult);
 				}
 				
@@ -1263,8 +1279,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		return metadata;
 	}
 
-
-    /*
+	/*
      * (non-Javadoc)
      *
      * @see

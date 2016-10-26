@@ -37,7 +37,7 @@ public class UserComputer {
 		UserType userType = user.asObjectable();
 		ActivationType activationType = userType.getActivation();
 		if (activationType != null) {
-			activationComputer.computeEffective(activationType);
+			activationComputer.computeEffective(userType.getLifecycleState(), activationType);
 		}
 	}
 	

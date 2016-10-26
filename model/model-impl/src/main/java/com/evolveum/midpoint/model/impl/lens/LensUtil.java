@@ -845,20 +845,23 @@ public class LensUtil {
 
 	}
     
+    /**
+     * Used for assignments and similar objects that do not have separate lifecycle.
+     */
     public static boolean isValid(AssignmentType assignmentType, XMLGregorianCalendar now, ActivationComputer activationComputer) {
-		return isValid(assignmentType.getActivation(), now, activationComputer);
+		return isValid(null, assignmentType.getActivation(), now, activationComputer);
 	}
 
 	public static boolean isValid(FocusType focus, XMLGregorianCalendar now, ActivationComputer activationComputer) {
-		return isValid(focus.getActivation(), now, activationComputer);
+		return isValid(focus.getLifecycleState(), focus.getActivation(), now, activationComputer);
 	}
 
-	private static boolean isValid(ActivationType activationType, XMLGregorianCalendar now, ActivationComputer activationComputer) {
+	private static boolean isValid(String lifecycleState, ActivationType activationType, XMLGregorianCalendar now, ActivationComputer activationComputer) {
 		if (activationType == null) {
 			return true;
 		}
 		TimeIntervalStatusType validityStatus = activationComputer.getValidityStatus(activationType, now);
-		ActivationStatusType effectiveStatus = activationComputer.getEffectiveStatus(activationType, validityStatus, ActivationStatusType.ENABLED);
+		ActivationStatusType effectiveStatus = activationComputer.getEffectiveStatus(lifecycleState, activationType, validityStatus);
 		return effectiveStatus == ActivationStatusType.ENABLED;
 	}
 
