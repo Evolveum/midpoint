@@ -20,6 +20,7 @@ import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertNotNull;
+import static org.testng.AssertJUnit.assertNull;
 
 import java.io.File;
 import java.util.Collection;
@@ -45,6 +46,7 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.match.StringIgnoreCaseMatchingRule;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningTestUtil;
 import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorFactoryIcfImpl;
@@ -52,6 +54,7 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.SchemaTestConstants;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
@@ -59,10 +62,13 @@ import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CachingMetadataType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationProvisioningScriptsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
@@ -116,8 +122,7 @@ public class TestDummyCaching extends TestDummy {
 		// WHEN
 		TestUtil.displayWhen(TEST_NAME);
 		
-		ShadowType shadow = provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, options, null, 
-				result).asObjectable();
+		PrismObject<ShadowType> shadow = provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, options, null, result);
 
 		// THEN
 		TestUtil.displayThen(TEST_NAME);
@@ -151,9 +156,9 @@ public class TestDummyCaching extends TestDummy {
 		assertRepoShadowCachedAttributeValue(shadowRepo, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME, 42);
 		assertRepoShadowCacheActivation(shadowRepo, ActivationStatusType.DISABLED);
 
-		checkConsistency(shadow.asPrismObject());
+		checkConsistency(shadow);
 		
-		checkCachingMetadata(shadow, null, startTs);
+		assertCachingMetadata(shadow, true, null, startTs);
 		
 		assertShadowFetchOperationCountIncrement(0);
 		
@@ -186,8 +191,7 @@ public class TestDummyCaching extends TestDummy {
 		// WHEN
 		TestUtil.displayWhen(TEST_NAME);
 		
-		ShadowType shadow = provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, options, null, 
-			result).asObjectable();
+		PrismObject<ShadowType> shadow = provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, options, null, result);
 		
 		// THEN
 		TestUtil.displayThen(TEST_NAME);
@@ -221,11 +225,71 @@ public class TestDummyCaching extends TestDummy {
 		assertRepoShadowCachedAttributeValue(shadowRepo, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME, 42);
 		assertRepoShadowCacheActivation(shadowRepo, ActivationStatusType.DISABLED);
 
-		checkConsistency(shadow.asPrismObject());
+		checkConsistency(shadow);
 		
-		checkCachingMetadata(shadow, null, startTs);
+		assertCachingMetadata(shadow, true, null, startTs);
 		
 		assertShadowFetchOperationCountIncrement(0);
+		
+		assertSteadyResource();
+	}
+	
+	/**
+	 * Search for all accounts with maximum staleness option.
+	 * This is supposed to return only cached data. Therefore
+	 * repo search is performed.
+	 * MID-3481
+	 */
+	@Test
+	@Override
+	public void test119SearchAllAccountsMaxStaleness() throws Exception {
+		final String TEST_NAME = "test119SearchAllAccountsMaxStaleness";
+		TestUtil.displayTestTile(TEST_NAME);
+		// GIVEN
+		OperationResult result = new OperationResult(TestDummy.class.getName()
+				+ "." + TEST_NAME);
+		ObjectQuery query = IntegrationTestTools.createAllShadowsQuery(resourceType,
+				SchemaTestConstants.ICF_ACCOUNT_OBJECT_CLASS_LOCAL_NAME, prismContext);
+		display("All shadows query", query);
+		
+		XMLGregorianCalendar startTs = clock.currentTimeXMLGregorianCalendar();
+		
+		rememberShadowFetchOperationCount();
+
+		Collection<SelectorOptions<GetOperationOptions>> options = 
+				SelectorOptions.createCollection(GetOperationOptions.createMaxStaleness());
+		
+		// WHEN
+		List<PrismObject<ShadowType>> allShadows = provisioningService.searchObjects(ShadowType.class,
+				query, options, null, result);
+		
+		// THEN
+		result.computeStatus();
+		display("searchObjects result", result);
+		TestUtil.assertSuccess(result);
+		
+		display("Found " + allShadows.size() + " shadows");
+
+		assertFalse("No shadows found", allShadows.isEmpty());
+		assertEquals("Wrong number of results", 4, allShadows.size());
+			
+		for (PrismObject<ShadowType> shadow: allShadows) {
+			display("Found shadow", shadow);
+			ShadowType shadowType = shadow.asObjectable();
+			OperationResultType fetchResult = shadowType.getFetchResult();
+			if (fetchResult != null) {
+				assertEquals("Wrong fetch result status in "+shadow, OperationResultStatusType.SUCCESS, fetchResult.getStatus());
+			}
+			assertCachingMetadata(shadow, true, null, startTs);
+			
+			if (shadow.asObjectable().getName().getOrig().equals("meathook")) {
+				assertAttribute(shadow, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, "Sea Monkey");
+			}
+		}
+		
+		assertShadowFetchOperationCountIncrement(0);
+
+		assertProtected(allShadows, 1);
 		
 		assertSteadyResource();
 	}
@@ -275,6 +339,18 @@ public class TestDummyCaching extends TestDummy {
 	}
 	
 	@Override
+	protected void assertCachingMetadata(PrismObject<ShadowType> shadow, boolean expectedCached, XMLGregorianCalendar startTs, XMLGregorianCalendar endTs) {
+		CachingMetadataType cachingMetadata = shadow.asObjectable().getCachingMetadata();
+		if (expectedCached) {
+			assertNotNull("No caching metadata in "+shadow, cachingMetadata);
+			TestUtil.assertBetween("Wrong retrievalTimestamp in caching metadata in "+shadow, startTs, endTs, cachingMetadata.getRetrievalTimestamp());
+		} else {
+			super.assertCachingMetadata(shadow, expectedCached, startTs, endTs);
+		}
+	}
+
+	
+	@Override
 	protected void checkRepoAccountShadow(PrismObject<ShadowType> repoShadow) {
 		ProvisioningTestUtil.checkRepoShadow(repoShadow, ShadowKindType.ACCOUNT, null);
 	}
@@ -298,15 +374,15 @@ public class TestDummyCaching extends TestDummy {
 	
 	@Override
 	protected <T> void assertRepoShadowCachedAttributeValue(PrismObject<ShadowType> shadowRepo, String attrName, T... attrValues) {
-		assertAttribute(shadowRepo.asObjectable(), attrName, attrValues);
+		assertAttribute(shadowRepo, attrName, attrValues);
 	}
 
 	@Override
-	protected void checkAccountShadow(ShadowType shadowType, OperationResult parentResult, boolean fullShadow, XMLGregorianCalendar startTs,
+	protected void checkCachedAccountShadow(PrismObject<ShadowType> shadow, OperationResult parentResult, boolean fullShadow, XMLGregorianCalendar startTs,
 			XMLGregorianCalendar endTs) throws SchemaException {
-		super.checkAccountShadow(shadowType, parentResult, fullShadow, startTs, endTs);
+		super.checkAccountShadow(shadow, parentResult, fullShadow, startTs, endTs);
 		if (fullShadow) {
-			checkCachingMetadata(shadowType, startTs, endTs);	
+			assertCachingMetadata(shadow, true, startTs, endTs);	
 		}
 	}
 }

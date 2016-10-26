@@ -35,6 +35,7 @@ import com.evolveum.midpoint.provisioning.ucf.api.ExecuteProvisioningScriptOpera
 import com.evolveum.midpoint.provisioning.ucf.api.ExecuteScriptArgument;
 import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorFactoryIcfImpl;
 import com.evolveum.midpoint.schema.CapabilityUtil;
+import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
@@ -399,5 +400,9 @@ public class ProvisioningUtil {
 			return CachingStategyType.NONE;
 		}
 		return caching.getCachingStategy();
+	}
+	
+	public static boolean shouldDoRepoSearch(GetOperationOptions rootOptions) {
+		return GetOperationOptions.isNoFetch(rootOptions) || GetOperationOptions.isMaxStaleness(rootOptions);
 	}
 }

@@ -2138,7 +2138,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 	}
 
 	@Override
-	public <T extends ShadowType> List<Change<T>>  fetchChanges(ObjectClassComplexTypeDefinition objectClass, PrismProperty<?> lastToken, AttributesToReturn attrsToReturn, StateReporter reporter,
+	public List<Change>  fetchChanges(ObjectClassComplexTypeDefinition objectClass, PrismProperty<?> lastToken, AttributesToReturn attrsToReturn, StateReporter reporter,
 																OperationResult parentResult) throws CommunicationException, GenericFrameworkException,
 			SchemaException, ConfigurationException {
 
@@ -2216,7 +2216,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			}
 		}
 		// convert changes from icf to midpoint Change
-		List<Change<T>> changeList;
+		List<Change> changeList;
 		try {
 			changeList = getChangesFromSyncDeltas(icfObjectClass, syncDeltas, resourceSchema, result);
 		} catch (SchemaException ex) {
@@ -2225,7 +2225,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		}
 		
 		if (lastReceivedToken != null) {
-			Change<T> lastChange = new Change((ObjectDelta)null, getToken(lastReceivedToken));
+			Change lastChange = new Change((ObjectDelta)null, getToken(lastReceivedToken));
 			LOGGER.trace("Adding last change: {}", lastChange);
 			changeList.add(lastChange);
 		}
@@ -2805,10 +2805,10 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		attributes.add(ab.build());
 	}
 
-	private <T extends ShadowType> List<Change<T>> getChangesFromSyncDeltas(ObjectClass connIdObjClass, Collection<SyncDelta> connIdDeltas, 
+	private List<Change> getChangesFromSyncDeltas(ObjectClass connIdObjClass, Collection<SyncDelta> connIdDeltas, 
 			PrismSchema schema, OperationResult parentResult)
 			throws SchemaException, GenericFrameworkException {
-		List<Change<T>> changeList = new ArrayList<Change<T>>();
+		List<Change> changeList = new ArrayList<Change>();
 
 		QName objectClass = icfNameMapper.objectClassToQname(connIdObjClass, getSchemaNamespace(), legacySchema);
 		ObjectClassComplexTypeDefinition objClassDefinition = null;

@@ -58,9 +58,9 @@ public class TestDummyExtra extends TestDummy {
 	}
 
 	@Override
-	protected void checkAccountWill(ShadowType shadow, OperationResult result, XMLGregorianCalendar startTs, XMLGregorianCalendar endTs) throws SchemaException, EncryptionException {
+	protected void checkAccountWill(PrismObject<ShadowType> shadow, OperationResult result, XMLGregorianCalendar startTs, XMLGregorianCalendar endTs) throws SchemaException, EncryptionException {
 		super.checkAccountWill(shadow, result, startTs, endTs);
-		assertPassword(shadow, "3lizab3th");
+		assertPassword(shadow.asObjectable(), "3lizab3th");
 	}
 	
 	@Test

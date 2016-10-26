@@ -871,7 +871,7 @@ public abstract class ShadowCache {
 		applyDefinition(ctx, query);
 
 		GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
-		if (GetOperationOptions.isNoFetch(rootOptions)) {
+		if (ProvisioningUtil.shouldDoRepoSearch(rootOptions)) {
 			return searchObjectsIterativeRepository(ctx, query, options, handler, parentResult);
 		}
 
@@ -1301,7 +1301,7 @@ public abstract class ShadowCache {
 
 		final ProvisioningContext ctx = ctxFactory.create(shadowCoordinates, task, parentResult);
 
-		List<Change<ShadowType>> changes = null;
+		List<Change> changes = null;
 		try {
 
 			changes = resouceObjectConverter.fetchChanges(ctx, lastToken, parentResult);
@@ -1310,7 +1310,7 @@ public abstract class ShadowCache {
 
 			int processedChanges = 0;
 
-			for (Change<ShadowType> change : changes) {
+			for (Change change : changes) {
 
 				if (change.isTokenOnly()) {
 					LOGGER.trace("Found token-only change: {}", change);
@@ -1414,7 +1414,7 @@ public abstract class ShadowCache {
 	}
 
 	@SuppressWarnings("rawtypes")
-	boolean processSynchronization(ProvisioningContext ctx, Change<ShadowType> change, OperationResult result)
+	boolean processSynchronization(ProvisioningContext ctx, Change change, OperationResult result)
 			throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException,
 			CommunicationException, ConfigurationException {
 
@@ -1476,7 +1476,7 @@ public abstract class ShadowCache {
 
 	@SuppressWarnings("unchecked")
 	private ResourceObjectShadowChangeDescription createResourceShadowChangeDescription(
-			Change<ShadowType> change, ResourceType resourceType, String channel) {
+			Change change, ResourceType resourceType, String channel) {
 		ResourceObjectShadowChangeDescription shadowChangeDescription = new ResourceObjectShadowChangeDescription();
 		shadowChangeDescription.setObjectDelta(change.getObjectDelta());
 		shadowChangeDescription.setResource(resourceType.asPrismObject());
@@ -1580,7 +1580,7 @@ public abstract class ShadowCache {
 		}
 	}
 
-	void processChange(ProvisioningContext ctx, Change<ShadowType> change, PrismObject<ShadowType> oldShadow,
+	void processChange(ProvisioningContext ctx, Change change, PrismObject<ShadowType> oldShadow,
 			OperationResult parentResult) throws SchemaException, CommunicationException,
 					ConfigurationException, SecurityViolationException, ObjectNotFoundException,
 					GenericConnectorException, ObjectAlreadyExistsException {

@@ -434,7 +434,7 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
 		assertTrue("Last sync token definition is NOT dynamic", lastTokenDef.isDynamic());
 		
 		// WHEN
-		List<Change<ShadowType>> changes = cc.fetchChanges(accountDefinition, lastToken, null, null, result);
+		List<Change> changes = cc.fetchChanges(accountDefinition, lastToken, null, null, result);
 		
 		AssertJUnit.assertEquals(0, changes.size());
 	}
@@ -459,12 +459,12 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
 		dummyResource.addAccount(newAccount);
 		
 		// WHEN
-		List<Change<ShadowType>> changes = cc.fetchChanges(accountDefinition, lastToken, null, null, result);
+		List<Change> changes = cc.fetchChanges(accountDefinition, lastToken, null, null, result);
 		
 		AssertJUnit.assertEquals(1, changes.size());
-		Change<ShadowType> change = changes.get(0);
+		Change change = changes.get(0);
 		assertNotNull("null change", change);
-		PrismObject<? extends ShadowType> currentShadow = change.getCurrentShadow();
+		PrismObject<ShadowType> currentShadow = change.getCurrentShadow();
 		assertNotNull("null current shadow", currentShadow);
 		PrismAsserts.assertParentConsistency(currentShadow);
 		Collection<ResourceAttribute<?>> identifiers = change.getIdentifiers();

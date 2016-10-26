@@ -415,7 +415,7 @@ public class ShadowManager {
 	}
 
     // beware, may return null if an shadow that was to be marked as DEAD, was deleted in the meantime
-	public PrismObject<ShadowType> findOrAddShadowFromChange(ProvisioningContext ctx, Change<ShadowType> change,
+	public PrismObject<ShadowType> findOrAddShadowFromChange(ProvisioningContext ctx, Change change,
 			OperationResult parentResult) throws SchemaException, CommunicationException,
 			ConfigurationException, SecurityViolationException, ObjectNotFoundException {
 
@@ -487,7 +487,7 @@ public class ShadowManager {
 		return newShadow;
 	}
 	
-	public PrismObject<ShadowType> findOrAddShadowFromChangeGlobalContext(ProvisioningContext globalCtx, Change<ShadowType> change,
+	public PrismObject<ShadowType> findOrAddShadowFromChangeGlobalContext(ProvisioningContext globalCtx, Change change,
 			OperationResult parentResult) throws SchemaException, CommunicationException,
 			ConfigurationException, SecurityViolationException, ObjectNotFoundException {
 
@@ -559,7 +559,7 @@ public class ShadowManager {
 		return newShadow;
 	}
 	
-	private PrismObject<ShadowType> createNewAccountFromChange(ProvisioningContext ctx, Change<ShadowType> change, 
+	private PrismObject<ShadowType> createNewAccountFromChange(ProvisioningContext ctx, Change change, 
 			OperationResult parentResult) throws SchemaException,
 			CommunicationException, ConfigurationException,
 			SecurityViolationException, ObjectNotFoundException {
@@ -590,7 +590,7 @@ public class ShadowManager {
 		return shadow;
 	}
 	
-	private List<PrismObject<ShadowType>> searchShadowByIdenifiers(ProvisioningContext ctx, Change<ShadowType> change, OperationResult parentResult)
+	private List<PrismObject<ShadowType>> searchShadowByIdenifiers(ProvisioningContext ctx, Change change, OperationResult parentResult)
 			throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException {
 
 		Collection<ResourceAttribute<?>> identifiers = change.getIdentifiers();

@@ -431,6 +431,11 @@ public class GetOperationOptions implements Serializable, Cloneable {
 		}
 		return options.getStaleness();
 	}
+	
+	public static boolean isMaxStaleness(GetOperationOptions options) {
+		return GetOperationOptions.getStaleness(options) == Long.MAX_VALUE;
+	}
+
 
 	public RelationalValueSearchQuery getRelationalValueSearchQuery() {
 		return relationalValueSearchQuery;
