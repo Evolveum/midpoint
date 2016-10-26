@@ -814,6 +814,8 @@ public class ShadowManager {
 			
 			repoShadowType.setCachingMetadata(null);
 			
+			ProvisioningUtil.cleanupShadowActivation(repoShadowType);
+			
 		} else if (cachingStrategy == CachingStategyType.PASSIVE) {
 			// Do not need to clear anything. Just store all attributes and add metadata.
 			CachingMetadataType cachingMetadata = new CachingMetadataType();
@@ -857,8 +859,6 @@ public class ShadowManager {
 		
 		normalizeAttributes(repoShadow, ctx.getObjectClassDefinition());
 
-		ProvisioningUtil.cleanupShadowActivation(repoShadowType);
-
 		return repoShadow;
 	}
 	
@@ -891,6 +891,9 @@ public class ShadowManager {
 				}
 			}
 		}
+		
+		// TODO: reflect activation updates on cached shadow
+		
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("Updating repo shadow {}:\n{}", resourceShadow.getOid(), DebugUtil.debugDump(repoShadowChanges));
 		}
@@ -1011,6 +1014,12 @@ public class ShadowManager {
 			}
 			
 		} else if (cachingStrategy == CachingStategyType.PASSIVE) {
+			
+			compareUpdateProperty(shadowDelta, SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS, currentResourceShadow, oldRepoShadow);
+			compareUpdateProperty(shadowDelta, SchemaConstants.PATH_ACTIVATION_VALID_FROM, currentResourceShadow, oldRepoShadow);
+			compareUpdateProperty(shadowDelta, SchemaConstants.PATH_ACTIVATION_VALID_TO, currentResourceShadow, oldRepoShadow);
+			compareUpdateProperty(shadowDelta, SchemaConstants.PATH_ACTIVATION_LOCKOUT_STATUS, currentResourceShadow, oldRepoShadow);
+			
 			CachingMetadataType cachingMetadata = new CachingMetadataType();
 			cachingMetadata.setRetrievalTimestamp(clock.currentTimeXMLGregorianCalendar());
 			shadowDelta.addModificationReplaceProperty(ShadowType.F_CACHING_METADATA, cachingMetadata);
@@ -1039,6 +1048,16 @@ public class ShadowManager {
 			LOGGER.trace("No need to update repo shadow {} (empty delta)", oldRepoShadow);
 			return oldRepoShadow;
 		}		
+	}
+
+	private <T> void compareUpdateProperty(ObjectDelta<ShadowType> shadowDelta,
+			ItemPath itemPath, PrismObject<ShadowType> currentResourceShadow, PrismObject<ShadowType> oldRepoShadow) {
+		PrismProperty<T> currentProperty = currentResourceShadow.findProperty(itemPath);
+		PrismProperty<T> oldProperty = oldRepoShadow.findProperty(itemPath);
+		PropertyDelta<T> itemDelta = PrismProperty.diff(oldProperty, currentProperty);
+		if (itemDelta != null && !itemDelta.isEmpty()) {
+			shadowDelta.addModification(itemDelta);
+		}
 	}
 
 	/**

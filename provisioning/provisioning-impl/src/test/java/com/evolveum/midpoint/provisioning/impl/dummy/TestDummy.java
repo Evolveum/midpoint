@@ -1186,6 +1186,7 @@ public class TestDummy extends AbstractDummyTest {
 	
 	protected void checkRepoAccountShadowWill(PrismObject<ShadowType> accountRepo, XMLGregorianCalendar start, XMLGregorianCalendar end) {
 		checkRepoAccountShadowWillBasic(accountRepo, start, end, 2);
+		assertRepoShadowCacheActivation(accountRepo, null);
 	}
 
 	@Test
@@ -1299,7 +1300,7 @@ public class TestDummy extends AbstractDummyTest {
 		assertNull("Unexpected caching metadata in "+shadowRepo, shadowRepo.asObjectable().getCachingMetadata());
 	}
 
-	private void checkCachingMetadata(ShadowType shadow, XMLGregorianCalendar startTs,
+	protected void checkCachingMetadata(ShadowType shadow, XMLGregorianCalendar startTs,
 			XMLGregorianCalendar endTs) {
 		CachingMetadataType cachingMetadata = shadow.getCachingMetadata();
 		assertNotNull("No caching metadata in "+shadow, cachingMetadata);
@@ -1397,6 +1398,7 @@ public class TestDummy extends AbstractDummyTest {
 		DummyAccount accountWill = getDummyAccountAssert(transformNameFromResource(ACCOUNT_WILL_USERNAME), willIcfUid);
 		accountWill.replaceAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Pirate");
 		accountWill.replaceAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, "Black Pearl");
+		accountWill.setEnabled(false);
 		
 		XMLGregorianCalendar startTs = clock.currentTimeXMLGregorianCalendar();
 
@@ -1418,7 +1420,6 @@ public class TestDummy extends AbstractDummyTest {
 
 		assertNotNull("No dummy account", shadow);
 
-		checkAccountShadow(shadow, result);
 		assertAttribute(shadow, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Pirate");
 		assertAttribute(shadow, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, "Black Pearl");
 		assertAttribute(shadow, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, "Sword", "LOVE");
@@ -1434,6 +1435,7 @@ public class TestDummy extends AbstractDummyTest {
 		// MID-3484
 //		assertRepoShadowCachedAttributeValue(shadowRepo, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, "Sword", "LOVE");
 		assertRepoShadowCachedAttributeValue(shadowRepo, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME, 42);
+		assertRepoShadowCacheActivation(shadowRepo, ActivationStatusType.DISABLED);
 
 		checkConsistency(shadow.asPrismObject());
 		
@@ -1443,13 +1445,16 @@ public class TestDummy extends AbstractDummyTest {
 	}
 	
 	/**
-	 * Make a native modification to an account and read it from the cache. Make sure that
-	 * cached data are returned and there is no read from the resource.
+	 * Make a native modification to an account and read it with max staleness option.
+	 * As there is no caching enabled this should throw an error.
+	 * 
+	 * Note: This test is overridden in TestDummyCaching
+	 * 
 	 * MID-3481
 	 */
 	@Test
-	public void test107GetModifiedAccountFromCache() throws Exception {
-		final String TEST_NAME = "test107GetModifiedAccountFromCache";
+	public void test107AGetModifiedAccountFromCacheMax() throws Exception {
+		final String TEST_NAME = "test107AGetModifiedAccountFromCacheMax";
 		TestUtil.displayTestTile(TEST_NAME);
 		// GIVEN
 		OperationResult result = new OperationResult(TestDummy.class.getName() + "." + TEST_NAME);
@@ -1458,14 +1463,103 @@ public class TestDummy extends AbstractDummyTest {
 		DummyAccount accountWill = getDummyAccountAssert(transformNameFromResource(ACCOUNT_WILL_USERNAME), willIcfUid);
 		accountWill.replaceAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Nice Pirate");
 		accountWill.replaceAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, "Interceptor");
+		accountWill.setEnabled(true);
 
+		Collection<SelectorOptions<GetOperationOptions>> options = 
+				SelectorOptions.createCollection(GetOperationOptions.createMaxStaleness());
 		
-		// TODO
-		// TODO
-		// TODO
-		// TODO
-		// TODO
-		// TODO
+		XMLGregorianCalendar startTs = clock.currentTimeXMLGregorianCalendar();
+
+		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
+		
+		try {
+			
+			ShadowType shadow = provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, options, null, 
+				result).asObjectable();
+		
+			AssertJUnit.fail("Unexpected success");
+		} catch (ConfigurationException e) {
+			// Caching is disabled, this is expected.
+			TestUtil.displayThen(TEST_NAME);
+			display("Expected exception", e);
+			result.computeStatus();
+			TestUtil.assertFailure(result);
+		}
+		
+		PrismObject<ShadowType> shadowRepo = repositoryService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, result);
+		checkRepoAccountShadowWillBasic(shadowRepo, null, startTs, null);
+		
+		assertRepoShadowCachedAttributeValue(shadowRepo, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Pirate");
+		assertRepoShadowCachedAttributeValue(shadowRepo, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, "Black Pearl");
+		// MID-3484
+//		assertRepoShadowCachedAttributeValue(shadowRepo, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, "Sword", "LOVE");
+		assertRepoShadowCachedAttributeValue(shadowRepo, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME, 42);
+		assertRepoShadowCacheActivation(shadowRepo, ActivationStatusType.DISABLED);
+
+		assertShadowFetchOperationCountIncrement(0);
+		
+		assertSteadyResource();
+	}
+	
+	/**
+	 * Staleness of one millisecond is too small for the cache to work.
+	 * Fresh data should be returned - both in case the cache is enabled and disabled.
+	 * MID-3481
+	 */
+	@Test
+	public void test108GetAccountLowStaleness() throws Exception {
+		final String TEST_NAME = "test106GetModifiedAccount";
+		TestUtil.displayTestTile(TEST_NAME);
+		// GIVEN
+		OperationResult result = new OperationResult(TestDummy.class.getName() + "." + TEST_NAME);
+		rememberShadowFetchOperationCount();
+		
+		Collection<SelectorOptions<GetOperationOptions>> options = 
+				SelectorOptions.createCollection(GetOperationOptions.createStaleness(1L));
+		
+		XMLGregorianCalendar startTs = clock.currentTimeXMLGregorianCalendar();
+
+		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
+		ShadowType shadow = provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, options, null, 
+				result).asObjectable();
+
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+		result.computeStatus();
+		display("getObject result", result);
+		TestUtil.assertSuccess(result);
+		assertShadowFetchOperationCountIncrement(1);
+		
+		XMLGregorianCalendar endTs = clock.currentTimeXMLGregorianCalendar();
+
+		display("Retrieved account shadow", shadow);
+
+		assertNotNull("No dummy account", shadow);
+
+		checkAccountShadow(shadow, result);
+		assertAttribute(shadow, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Nice Pirate");
+		assertAttribute(shadow, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, "Interceptor");
+		assertAttribute(shadow, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, "Sword", "LOVE");
+		assertAttribute(shadow, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME, 42);
+		Collection<ResourceAttribute<?>> attributes = ShadowUtil.getAttributes(shadow);
+		assertEquals("Unexpected number of attributes", 7, attributes.size());
+		
+		PrismObject<ShadowType> shadowRepo = repositoryService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, result);
+		checkRepoAccountShadowWillBasic(shadowRepo, startTs, endTs, null);
+		
+		assertRepoShadowCachedAttributeValue(shadowRepo, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Nice Pirate");
+		assertRepoShadowCachedAttributeValue(shadowRepo, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, "Interceptor");
+		// MID-3484
+//		assertRepoShadowCachedAttributeValue(shadowRepo, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, "Sword", "LOVE");
+		assertRepoShadowCachedAttributeValue(shadowRepo, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME, 42);
+
+		checkConsistency(shadow.asPrismObject());
+		
+		checkCachingMetadata(shadow, startTs, endTs);
+		
+		assertSteadyResource();
 	}
 		
 	/**
@@ -1485,6 +1579,7 @@ public class TestDummy extends AbstractDummyTest {
 		// Modify this back so won't break subsequent tests
 		accountWill.replaceAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, "Flying Dutchman");
 		accountWill.replaceAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME);
+		accountWill.setEnabled(true);
 		
 		XMLGregorianCalendar startTs = clock.currentTimeXMLGregorianCalendar();
 
@@ -5283,7 +5378,7 @@ public class TestDummy extends AbstractDummyTest {
 		dummyResource.assertNoConnections();
 	}
 	
-	private void checkAccountShadow(ShadowType shadow, OperationResult parentResult) throws SchemaException {
+	protected void checkAccountShadow(ShadowType shadow, OperationResult parentResult) throws SchemaException {
 		checkAccountShadow(shadow, parentResult, true);
 	}
 
@@ -5377,6 +5472,15 @@ public class TestDummy extends AbstractDummyTest {
 	protected <T> void assertRepoShadowCachedAttributeValue(PrismObject<ShadowType> shadowRepo, String attrName, T... attrValues) {
 		PrismAsserts.assertNoItem(shadowRepo, new ItemPath(ShadowType.F_ATTRIBUTES, 
 				new QName(ResourceTypeUtil.getResourceNamespace(resource), attrName)));
+	}
+
+	protected void assertRepoShadowCacheActivation(PrismObject<ShadowType> shadowRepo, ActivationStatusType expectedAdministrativeStatus) {
+		ActivationType activationType = shadowRepo.asObjectable().getActivation();
+		if (activationType == null) {
+			return;
+		}
+		ActivationStatusType administrativeStatus = activationType.getAdministrativeStatus();
+		assertNull("Unexpected activation administrativeStatus in repo shadow "+shadowRepo+": "+administrativeStatus, administrativeStatus);
 	}
 
 }

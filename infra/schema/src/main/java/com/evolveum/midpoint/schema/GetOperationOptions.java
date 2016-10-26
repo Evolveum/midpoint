@@ -106,7 +106,7 @@ public class GetOperationOptions implements Serializable, Cloneable {
 	 * don't log it. In other cases, error in logs may lead to misleading
 	 * information..
 	 */
-	Boolean allowNotFound;
+	private Boolean allowNotFound;
 	
 	/**
 	 * Return read-only object. The returned object will be only read by the client. The client will not modify it.
@@ -115,6 +115,14 @@ public class GetOperationOptions implements Serializable, Cloneable {
 	 * at all times when the client do not plan to modify the returned object.
 	 */
 	private Boolean readOnly;
+	
+	/**
+	 * Requirement how stale or fresh the retrieved data should be. It specifies maximum age of the value in millisecods. 
+	 * The default value is zero, which means that a fresh value must always be returned. This means that caches that do
+	 * not guarantee fresh value cannot be used. If non-zero value is specified then such caches may be used. In case that
+	 * Long.MAX_VALUE is specified then the caches are always used and fresh value is never retrieved.
+	 */
+	private Long staleness;
 
 	public RetrieveOption getRetrieve() {
 		return retrieve;
@@ -394,6 +402,36 @@ public class GetOperationOptions implements Serializable, Cloneable {
 		return options.readOnly;
 	}
 	
+	public Long getStaleness() {
+		return staleness;
+	}
+
+	public void setStaleness(Long staleness) {
+		this.staleness = staleness;
+	}
+	
+	public static GetOperationOptions createStaleness(Long staleness) {
+		GetOperationOptions opts = new GetOperationOptions();
+		opts.setStaleness(staleness);
+		return opts;
+	}
+	
+	public static GetOperationOptions createMaxStaleness() {
+		GetOperationOptions opts = new GetOperationOptions();
+		opts.setStaleness(Long.MAX_VALUE);
+		return opts;
+	}
+	
+	public static long getStaleness(GetOperationOptions options) {
+		if (options == null) {
+			return 0L;
+		}
+		if (options.getStaleness() == null) {
+			return 0L;
+		}
+		return options.getStaleness();
+	}
+
 	public RelationalValueSearchQuery getRelationalValueSearchQuery() {
 		return relationalValueSearchQuery;
 	}
@@ -402,7 +440,7 @@ public class GetOperationOptions implements Serializable, Cloneable {
 		this.relationalValueSearchQuery = relationalValueSearchQuery;
 	}
 
-    @Override
+	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
@@ -410,60 +448,102 @@ public class GetOperationOptions implements Serializable, Cloneable {
 		result = prime * result + ((doNotDiscovery == null) ? 0 : doNotDiscovery.hashCode());
 		result = prime * result + ((noFetch == null) ? 0 : noFetch.hashCode());
 		result = prime * result + ((raw == null) ? 0 : raw.hashCode());
+		result = prime * result + ((readOnly == null) ? 0 : readOnly.hashCode());
 		result = prime * result
 				+ ((relationalValueSearchQuery == null) ? 0 : relationalValueSearchQuery.hashCode());
 		result = prime * result + ((resolve == null) ? 0 : resolve.hashCode());
 		result = prime * result + ((resolveNames == null) ? 0 : resolveNames.hashCode());
 		result = prime * result + ((retrieve == null) ? 0 : retrieve.hashCode());
+		result = prime * result + ((staleness == null) ? 0 : staleness.hashCode());
+		result = prime * result + ((tolerateRawData == null) ? 0 : tolerateRawData.hashCode());
 		return result;
 	}
 
 	@Override
 	public boolean equals(Object obj) {
-		if (this == obj)
+		if (this == obj) {
 			return true;
-		if (obj == null)
+		}
+		if (obj == null) {
 			return false;
-		if (getClass() != obj.getClass())
+		}
+		if (getClass() != obj.getClass()) {
 			return false;
+		}
 		GetOperationOptions other = (GetOperationOptions) obj;
 		if (allowNotFound == null) {
-			if (other.allowNotFound != null)
+			if (other.allowNotFound != null) {
 				return false;
-		} else if (!allowNotFound.equals(other.allowNotFound))
+			}
+		} else if (!allowNotFound.equals(other.allowNotFound)) {
 			return false;
+		}
 		if (doNotDiscovery == null) {
-			if (other.doNotDiscovery != null)
+			if (other.doNotDiscovery != null) {
 				return false;
-		} else if (!doNotDiscovery.equals(other.doNotDiscovery))
+			}
+		} else if (!doNotDiscovery.equals(other.doNotDiscovery)) {
 			return false;
+		}
 		if (noFetch == null) {
-			if (other.noFetch != null)
+			if (other.noFetch != null) {
 				return false;
-		} else if (!noFetch.equals(other.noFetch))
+			}
+		} else if (!noFetch.equals(other.noFetch)) {
 			return false;
+		}
 		if (raw == null) {
-			if (other.raw != null)
+			if (other.raw != null) {
 				return false;
-		} else if (!raw.equals(other.raw))
+			}
+		} else if (!raw.equals(other.raw)) {
 			return false;
+		}
+		if (readOnly == null) {
+			if (other.readOnly != null) {
+				return false;
+			}
+		} else if (!readOnly.equals(other.readOnly)) {
+			return false;
+		}
 		if (relationalValueSearchQuery == null) {
-			if (other.relationalValueSearchQuery != null)
+			if (other.relationalValueSearchQuery != null) {
 				return false;
-		} else if (!relationalValueSearchQuery.equals(other.relationalValueSearchQuery))
+			}
+		} else if (!relationalValueSearchQuery.equals(other.relationalValueSearchQuery)) {
 			return false;
+		}
 		if (resolve == null) {
-			if (other.resolve != null)
+			if (other.resolve != null) {
 				return false;
-		} else if (!resolve.equals(other.resolve))
+			}
+		} else if (!resolve.equals(other.resolve)) {
 			return false;
+		}
 		if (resolveNames == null) {
-			if (other.resolveNames != null)
+			if (other.resolveNames != null) {
 				return false;
-		} else if (!resolveNames.equals(other.resolveNames))
+			}
+		} else if (!resolveNames.equals(other.resolveNames)) {
 			return false;
-		if (retrieve != other.retrieve)
+		}
+		if (retrieve != other.retrieve) {
 			return false;
+		}
+		if (staleness == null) {
+			if (other.staleness != null) {
+				return false;
+			}
+		} else if (!staleness.equals(other.staleness)) {
+			return false;
+		}
+		if (tolerateRawData == null) {
+			if (other.tolerateRawData != null) {
+				return false;
+			}
+		} else if (!tolerateRawData.equals(other.tolerateRawData)) {
+			return false;
+		}
 		return true;
 	}
 
@@ -477,6 +557,7 @@ public class GetOperationOptions implements Serializable, Cloneable {
         clone.retrieve = this.retrieve;
         clone.allowNotFound = this.allowNotFound;
         clone.readOnly = this.readOnly;
+        clone.staleness = this.staleness;
         if (this.relationalValueSearchQuery != null) {
         	clone.relationalValueSearchQuery = this.relationalValueSearchQuery.clone();
         }
@@ -494,6 +575,7 @@ public class GetOperationOptions implements Serializable, Cloneable {
 		appendVal(sb, "retrieve", retrieve);
 		appendFlag(sb, "allowNotFound", allowNotFound);
 		appendFlag(sb, "readOnly", readOnly);
+		appendVal(sb, "staleness", staleness);
 		appendVal(sb, "relationalValueSearchQuery", relationalValueSearchQuery);
 		if (sb.charAt(sb.length() - 1) == ',') {
 			sb.deleteCharAt(sb.length() - 1);

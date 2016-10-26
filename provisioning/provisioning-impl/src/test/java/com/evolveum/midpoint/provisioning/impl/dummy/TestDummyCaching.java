@@ -49,6 +49,7 @@ import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningTestUtil;
 import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorFactoryIcfImpl;
 import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
@@ -57,6 +58,8 @@ import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CachingMetadataType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationProvisioningScriptsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
@@ -84,6 +87,77 @@ public class TestDummyCaching extends TestDummy {
 	protected File getResourceDummyFilename() {
 		return RESOURCE_DUMMY_FILE;
 	}
+	
+	/**
+	 * Make a native modification to an account and read it from the cache. Make sure that
+	 * cached data are returned and there is no read from the resource.
+	 * MID-3481
+	 */
+	@Test
+	@Override
+	public void test107AGetModifiedAccountFromCacheMax() throws Exception {
+		final String TEST_NAME = "test107AGetModifiedAccountFromCacheMax";
+		TestUtil.displayTestTile(TEST_NAME);
+		// GIVEN
+		OperationResult result = new OperationResult(TestDummy.class.getName() + "." + TEST_NAME);
+		rememberShadowFetchOperationCount();
+		
+		DummyAccount accountWill = getDummyAccountAssert(transformNameFromResource(ACCOUNT_WILL_USERNAME), willIcfUid);
+		accountWill.replaceAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Nice Pirate");
+		accountWill.replaceAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, "Interceptor");
+		accountWill.setEnabled(true);
+
+		Collection<SelectorOptions<GetOperationOptions>> options = 
+				SelectorOptions.createCollection(GetOperationOptions.createMaxStaleness());
+		
+		XMLGregorianCalendar startTs = clock.currentTimeXMLGregorianCalendar();
+
+		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
+		
+		ShadowType shadow = provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, options, null, 
+				result).asObjectable();
+
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+		result.computeStatus();
+		display("getObject result", result);
+		TestUtil.assertSuccess(result);
+		
+		assertShadowFetchOperationCountIncrement(0);
+		
+		XMLGregorianCalendar endTs = clock.currentTimeXMLGregorianCalendar();
+
+		display("Retrieved account shadow", shadow);
+
+		assertNotNull("No dummy account", shadow);
+		
+		assertAttribute(shadow, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Pirate");
+		assertAttribute(shadow, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, "Black Pearl");
+		// MID-3484
+//		assertAttribute(shadow, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, "Sword", "LOVE");
+		assertAttribute(shadow, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME, 42);
+		Collection<ResourceAttribute<?>> attributes = ShadowUtil.getAttributes(shadow);
+		assertEquals("Unexpected number of attributes", 7, attributes.size());
+		
+		PrismObject<ShadowType> shadowRepo = repositoryService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, result);
+		checkRepoAccountShadowWillBasic(shadowRepo, null, startTs, null);
+		
+		assertRepoShadowCachedAttributeValue(shadowRepo, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Pirate");
+		assertRepoShadowCachedAttributeValue(shadowRepo, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, "Black Pearl");
+		// MID-3484
+//		assertRepoShadowCachedAttributeValue(shadowRepo, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, "Sword", "LOVE");
+		assertRepoShadowCachedAttributeValue(shadowRepo, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME, 42);
+		assertRepoShadowCacheActivation(shadowRepo, ActivationStatusType.DISABLED);
+
+		checkConsistency(shadow.asPrismObject());
+		
+		checkCachingMetadata(shadow, null, startTs);
+		
+		assertShadowFetchOperationCountIncrement(0);
+		
+		assertSteadyResource();
+	}
 		
 	@Override
 	protected void checkRepoAccountShadowWill(PrismObject<ShadowType> shadowRepo, XMLGregorianCalendar start, XMLGregorianCalendar end) {
@@ -96,6 +170,16 @@ public class TestDummyCaching extends TestDummy {
 		// MID-3484
 //		assertRepoShadowCachedAttributeValue(shadowRepo, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, "sword", "love");
 		assertRepoShadowCachedAttributeValue(shadowRepo, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME, 42);
+		
+		assertRepoShadowCacheActivation(shadowRepo, ActivationStatusType.ENABLED);
+	}
+	
+	@Override
+	protected void assertRepoShadowCacheActivation(PrismObject<ShadowType> shadowRepo, ActivationStatusType expectedAdministrativeStatus) {
+		ActivationType activationType = shadowRepo.asObjectable().getActivation();
+		assertNotNull("No activation in repo shadow "+shadowRepo, activationType);
+		ActivationStatusType administrativeStatus = activationType.getAdministrativeStatus();
+		assertEquals("Wrong activation administrativeStatus in repo shadow "+shadowRepo, expectedAdministrativeStatus, administrativeStatus);
 	}
 	
 	/**
