@@ -25,6 +25,7 @@ import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import com.fasterxml.jackson.annotation.JsonTypeInfo.As;
 import com.fasterxml.jackson.core.JsonGenerationException;
 import com.fasterxml.jackson.core.JsonGenerator;
@@ -89,10 +90,13 @@ public class YamlLexicalProcessor extends AbstractJsonLexicalProcessor {
 //		mapper.configure(SerializationFeaCture.);
 //		mapper.setSerializationInclusion(Include.NON_NULL);
 		mapper.registerModule(createSerializerModule());
-		mapper.enableDefaultTyping(DefaultTyping.NON_CONCRETE_AND_ARRAYS);
-		mapper.enableDefaultTyping(DefaultTyping.NON_FINAL, As.EXISTING_PROPERTY);
-		//mapper.enableDefaultTyping(DefaultTyping.NON_FINAL, As.EXTERNAL_PROPERTY);
-		mapper.enableDefaultTyping(DefaultTyping.NON_FINAL, As.PROPERTY);
+
+		mapper.disableDefaultTyping();
+
+//		mapper.enableDefaultTyping(DefaultTyping.NON_CONCRETE_AND_ARRAYS);
+//		mapper.enableDefaultTyping(DefaultTyping.NON_FINAL, As.EXISTING_PROPERTY);
+//		//mapper.enableDefaultTyping(DefaultTyping.NON_FINAL, As.EXTERNAL_PROPERTY);
+//		mapper.enableDefaultTyping(DefaultTyping.NON_FINAL, As.PROPERTY);
 		
 		return mapper;
 	}
@@ -102,8 +106,9 @@ public class YamlLexicalProcessor extends AbstractJsonLexicalProcessor {
 		module.addSerializer(QName.class, new QNameSerializer());
 		module.addSerializer(PolyString.class, new PolyStringSerializer());
 		module.addSerializer(ItemPath.class, new ItemPathSerializer());
+		module.addSerializer(ItemPathType.class, new ItemPathTypeSerializer());
 //		module.addSerializer(JAXBElement.class, new JaxbElementSerializer());
-		module.addSerializer(XMLGregorianCalendar.class, new XmlGregorialCalendarSerializer());
+		module.addSerializer(XMLGregorianCalendar.class, new XmlGregorianCalendarSerializer());
 		module.addSerializer(Element.class, new DomElementSerializer());
 		return module;
 	}

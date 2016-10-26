@@ -80,7 +80,7 @@ public interface SchemaRegistry extends DebugDumpable, GlobalDefinitionsStore {
 
 	<T> Class<T> getCompileTimeClass(QName xsdType);
 
-	PrismSchema findSchemaByCompileTimeClass(Class<?> compileTimeClass);
+	PrismSchema findSchemaByCompileTimeClass(@NotNull Class<?> compileTimeClass);
 
 	/**
 	 * Tries to determine type name for any class (primitive, complex one).
@@ -136,12 +136,15 @@ public interface SchemaRegistry extends DebugDumpable, GlobalDefinitionsStore {
 	<T extends Objectable> PrismObject<T> instantiate(Class<T> compileTimeClass) throws SchemaException;
 
 	// Takes XSD types into account as well
-	Class<?> determineClassForType(QName type);
+	<T> Class<T> determineClassForType(QName type);
 
 	// Takes XSD types into account as well
 	Class<?> determineClassForItemDefinition(ItemDefinition<?> itemDefinition);
 
 	<ID extends ItemDefinition> ID selectMoreSpecific(ID def1, ID def2)
+			throws SchemaException;
+
+	QName selectMoreSpecific(QName type1, QName type2)
 			throws SchemaException;
 
 	enum ComparisonResult {

@@ -43,6 +43,7 @@ import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectType;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.xml.resolver.Catalog;
 import org.apache.xml.resolver.CatalogManager;
@@ -1085,8 +1086,11 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
 
 
 	@Override
-	public PrismSchema findSchemaByCompileTimeClass(Class<?> compileTimeClass) {
+	public PrismSchema findSchemaByCompileTimeClass(@NotNull Class<?> compileTimeClass) {
 		Package compileTimePackage = compileTimeClass.getPackage();
+		if (compileTimePackage == null) {
+			System.out.println("Hi");
+		}
 		for (SchemaDescription desc: schemaDescriptions) {
 			if (compileTimePackage.equals(desc.getCompileTimeClassesPackage())) {
 				PrismSchema schema = desc.getSchema();
@@ -1207,7 +1211,7 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
 	}
 
 	@Override
-	public Class<?> determineClassForType(QName type) {
+	public <T> Class<T> determineClassForType(QName type) {
 		if (XmlTypeConverter.canConvert(type)) {
 			return XsdTypeMapper.toJavaType(type);
 		} else {
@@ -1252,6 +1256,41 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
 		}
 		throw new SchemaException("Couldn't find more specific type from " + def1.getTypeName()
 				+ " (" + cls1 + ") and " + def2.getTypeName() + " (" + cls2 + ")");
+	}
+
+	@Override
+	public QName selectMoreSpecific(QName type1, QName type2)
+			throws SchemaException {
+		if (type1 == null || QNameUtil.match(type1, DOMUtil.XSD_ANYTYPE)) {
+			return type2;
+		}
+		if (type2 == null || QNameUtil.match(type2, DOMUtil.XSD_ANYTYPE)) {
+			return type1;
+		}
+		if (QNameUtil.match(type1, type2)) {
+			return type1;
+		}
+		Class<?> cls1 = determineClassForType(type1);
+		Class<?> cls2 = determineClassForType(type2);
+		if (cls1 == null || cls2 == null) {
+			throw new SchemaException("Couldn't find more specific type from " + type1
+					+ " (" + cls1 + ") and " + type2 + " (" + cls2 + ")");
+		}
+		if (cls1.isAssignableFrom(cls2)) {
+			return type2;
+		}
+		if (cls2.isAssignableFrom(cls1)) {
+			return type1;
+		}
+		// poly string vs string
+		if (PolyStringType.class.equals(cls1) || String.class.equals(cls2)) {
+			return type1;
+		}
+		if (PolyStringType.class.equals(cls2) || String.class.equals(cls1)) {
+			return type2;
+		}
+		throw new SchemaException("Couldn't find more specific type from " + type1
+				+ " (" + cls1 + ") and " + type2 + " (" + cls2 + ")");
 	}
 
 	@Override

@@ -28,6 +28,7 @@ import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.prism.xnode.*;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectReferenceType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
@@ -591,7 +592,8 @@ public class QueryConvertor {
 		if (!(xnode instanceof PrimitiveXNode<?>)) {
 			throw new SchemaException("Expected that field "+key+" will be primitive, but it is "+xnode.getDesc());
 		}
-		return clauseXMap.getParsedPrimitiveValue(key, ItemPath.XSD_TYPE);
+		ItemPathType itemPathType = clauseXMap.getParsedPrimitiveValue(key, ItemPathType.COMPLEX_TYPE);
+		return itemPathType != null ? itemPathType.getItemPath() : null;
 	}
 
 	private static QName getMatchingRule(MapXNode xmap) throws SchemaException{
@@ -788,7 +790,7 @@ public class QueryConvertor {
 			map.put(ELEMENT_VALUE, valuesNode);
 		}
 		if (filter.getRightHandSidePath() != null) {
-			map.put(ELEMENT_RIGHT_HAND_SIDE_PATH, createPrimitiveXNode(filter.getRightHandSidePath(), ItemPath.XSD_TYPE));
+			map.put(ELEMENT_RIGHT_HAND_SIDE_PATH, createPrimitiveXNode(filter.getRightHandSidePath().asItemPathType(), ItemPathType.COMPLEX_TYPE));
 		}
 		
 		ExpressionWrapper xexpression = filter.getExpression();
@@ -877,7 +879,7 @@ public class QueryConvertor {
 		if (path == null) {
 			throw new IllegalStateException("Cannot serialize filter " + filter + " because it does not contain path");
 		}
-		map.put(ELEMENT_PATH, createPrimitiveXNode(path, ItemPath.XSD_TYPE));
+		map.put(ELEMENT_PATH, createPrimitiveXNode(path.asItemPathType(), ItemPathType.COMPLEX_TYPE));
 	}
 	
 	private static <T> XNode serializePropertyValue(PrismPropertyValue<T> value, PrismPropertyDefinition<T> definition, BeanMarshaller beanConverter) throws SchemaException {

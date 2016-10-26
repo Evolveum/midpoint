@@ -391,7 +391,7 @@ public class MiscSchemaUtil {
 			XNode faultMessageXnode = marshaller.marshall(faultMessage.getFaultInfo());			// TODO
             RootXNode xroot = new RootXNode(SchemaConstants.FAULT_MESSAGE_ELEMENT_NAME, faultMessageXnode);
             xroot.setExplicitTypeDeclaration(true);
-            QName faultType = marshaller.determineTypeForClass(faultMessage.getFaultInfo().getClass());
+            QName faultType = prismContext.getSchemaRegistry().determineTypeForClass(faultMessage.getFaultInfo().getClass());
             xroot.setTypeQName(faultType);
 			((PrismContextImpl) prismContext).getParserDom().serializeUnderElement(xroot, SchemaConstants.FAULT_MESSAGE_ELEMENT_NAME, detail);
         } catch (SchemaException e) {

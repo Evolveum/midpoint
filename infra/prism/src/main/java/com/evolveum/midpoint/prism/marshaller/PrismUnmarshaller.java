@@ -15,47 +15,34 @@
  */
 package com.evolveum.midpoint.prism.marshaller;
 
-import java.util.Collection;
-import java.util.Map.Entry;
-
-import javax.xml.XMLConstants;
-import javax.xml.namespace.QName;
-
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
+import com.evolveum.midpoint.prism.util.PrismUtil;
+import com.evolveum.midpoint.prism.xnode.*;
+import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
-
-import com.evolveum.prism.xml.ns._public.types_3.RawType;
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang.Validate;
-
-import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.prism.util.PrismUtil;
-import com.evolveum.midpoint.prism.xnode.ListXNode;
-import com.evolveum.midpoint.prism.xnode.MapXNode;
-import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
-import com.evolveum.midpoint.prism.xnode.RootXNode;
-import com.evolveum.midpoint.prism.xnode.SchemaXNode;
-import com.evolveum.midpoint.prism.xnode.XNode;
-import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.DisplayableValue;
-import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.prism.xml.ns._public.types_3.EvaluationTimeType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_3.SchemaDefinitionType;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import javax.xml.XMLConstants;
+import javax.xml.namespace.QName;
+import java.util.Map.Entry;
 
 public class PrismUnmarshaller {
 
     private static final Trace LOGGER = TraceManager.getTrace(PrismUnmarshaller.class);
 
-    public static final QName ARTIFICIAL_OBJECT_NAME = new QName(XMLConstants.NULL_NS_URI, "anObject");
+    private static final QName ARTIFICIAL_OBJECT_NAME = new QName(XMLConstants.NULL_NS_URI, "anObject");
 
     @NotNull
 	private PrismContext prismContext;
@@ -293,7 +280,7 @@ public class PrismUnmarshaller {
 
         PrismProperty<T> property = itemDefinition != null ?
                 itemDefinition.instantiate() :
-                new PrismProperty<T>(itemName, prismContext);
+                new PrismProperty<>(itemName, prismContext);
 
         if (node instanceof ListXNode) {
             ListXNode listNode = (ListXNode) node;
@@ -325,114 +312,39 @@ public class PrismUnmarshaller {
     // if definition == null or any AND node has type defined, this type must be non-containerable (fit into PPV)
     private <T> PrismPropertyValue<T> parsePropertyValue(@NotNull XNode node,
             @Nullable PrismPropertyDefinition<T> definition, @NotNull ParsingContext pc) throws SchemaException {
-
-        if (definition == null || definition.isAnyType()) {
-            if (node.getTypeQName() == null) {
-                return PrismPropertyValue.createRaw(node);
+        QName typeName =
+                getSchemaRegistry().selectMoreSpecific(
+                        definition != null && !definition.isAnyType() ? definition.getTypeName() : null,
+                        node.getTypeQName()
+                );
+        if (typeName == null) {
+            return PrismPropertyValue.createRaw(node);
+        } else if (getBeanUnmarshaller().canProcess(typeName)) {
+            T realValue = getBeanUnmarshaller().unmarshal(node, typeName, pc);
+            // Postprocessing after returning from unmarshaller. It speaks bean language (e.g. PolyStringType, not PolyString).
+            // It also doesn't know about prism-specific things like allowed values, etc.
+            if (realValue instanceof PolyStringType) {
+                @SuppressWarnings("unchecked")
+                T valueT = (T) ((PolyStringType) realValue).toPolyString();
+                realValue = valueT;
             }
-            // TODO FIX/TEST THIS UGLY HACK
-            if (node instanceof PrimitiveXNode) {
-                PrimitiveXNode prim = (PrimitiveXNode) node;
-                prim.parseValue(node.getTypeQName(), pc.getEvaluationMode());
-                if (prim.getValue() != null) {
-                    return new PrismPropertyValue<>((T) prim.getValue());
-                } else {
-                    return null;
-                }
-            } else if (node instanceof MapXNode) {
-                if (getBeanUnmarshaller().canProcess(node.getTypeQName())) {
-                    T value = getBeanUnmarshaller().unmarshal((MapXNode) node, node.getTypeQName(), pc);
-                    if (value instanceof Containerable) {
-                        throw new IllegalStateException("Cannot store containerable into prism property: " + node.debugDump());
-                    } else {
-                        return new PrismPropertyValue<>(value);
-                    }
-                } else {
-                    // TODO or should treat this elsewhere?
-                    throw new IllegalStateException("Cannot parse as " + node.getTypeQName() + ": " + node.debugDump());
-                }
-            } else {
-                throw new IllegalArgumentException("Unexpected node: " + node.debugDump());
-            }
-        }
-
-        T realValue;
-        if (node instanceof PrimitiveXNode<?>) {
-            @SuppressWarnings("unchecked")
-            PrimitiveXNode<T> primitiveNode = (PrimitiveXNode<T>) node;
-            realValue = parsePropertyRealValueFromPrimitive(primitiveNode, definition, pc);
-        } else if (node instanceof MapXNode) {
-            realValue = parsePropertyRealValueFromMap((MapXNode) node, definition, pc);
-        } else {
-            throw new IllegalArgumentException("Cannot parse property value from " + node.debugDump());
-        }
-        return realValue != null ? new PrismPropertyValue<T>(realValue) : null;
-    }
-
-    private <T> T parsePropertyRealValueFromPrimitive(@NotNull PrimitiveXNode<T> primitiveNode,
-            @NotNull PrismPropertyDefinition<T> definition, @NotNull ParsingContext pc) throws SchemaException {
-
-        QName typeName = definition.getTypeName();
-        T realValue;
-        if (getBeanUnmarshaller().canProcess(typeName)) {
-            // Primitive elements may also have complex Java representations (e.g. enums)
-            realValue = getBeanUnmarshaller().unmarshalFromPrimitive(primitiveNode, typeName, pc);
-        } else if (!DOMUtil.XSD_ANYTYPE.equals(typeName)) {
-            try {
-                realValue = primitiveNode.getParsedValue(typeName, pc.getEvaluationMode());
-            } catch (SchemaException e) {
-                pc.warnOrThrow(LOGGER, "Couldn't parse primitive value of type " + typeName + ". Value: " + primitiveNode.getStringValue()
-                        + ".\nDefinition: " + definition.debugDump(), e);
+            PrismUtil.recomputeRealValue(realValue, prismContext);
+            if (!isValueAllowed(realValue, definition)) {
+                pc.warnOrThrow(LOGGER, "Skipping unknown value of type " + typeName + ". Value: " + realValue);
                 return null;
             }
+            return realValue != null ? new PrismPropertyValue<>(realValue) : null;
         } else {
-            realValue = (T) RawType.create(primitiveNode, prismContext);
-        }
-
-        if (!(realValue instanceof RawType) && !isValueAllowed(realValue, definition.getAllowedValues())) {
-            pc.warnOrThrow(LOGGER, "Skipping unknown value of type " + typeName + ". Value: " + primitiveNode.getStringValue());
-            return null;
-        }
-
-        if (realValue == null) {
-            return null;
-        } else if (realValue instanceof PolyStringType) {
-            PolyStringType polyStringType = (PolyStringType) realValue;
-            realValue = (T) new PolyString(polyStringType.getOrig(), polyStringType.getNorm());
-        } else if (realValue instanceof String && typeName.equals(PolyStringType.COMPLEX_TYPE)) {
-            String val = (String) realValue;
-            realValue = (T) new PolyString(val);
-        }
-
-        PrismUtil.recomputeRealValue(realValue, prismContext);
-        return realValue;
-    }
-
-    private <T> T parsePropertyRealValueFromMap(@NotNull MapXNode xmap, @NotNull PrismPropertyDefinition<T> propertyDefinition,
-            @NotNull ParsingContext pc)
-            throws SchemaException {
-        QName typeName = propertyDefinition.getTypeName();
-        if (getBeanUnmarshaller().canProcess(typeName)) {
-            return getBeanUnmarshaller().unmarshal(xmap, typeName, pc);
-        } else {
-            if (propertyDefinition.isRuntimeSchema()) {
-				throw new SchemaException("Complex run-time properties are not supported: type " + typeName + " from " + xmap);
-			} else {
-				throw new SystemException("Cannot parse compile-time property " + propertyDefinition.getName() + " type " + typeName + " from " + xmap);
-			}
+            throw new IllegalStateException("Cannot parse as " + typeName + ": " + node.debugDump());
         }
     }
 
-    private <T> boolean isValueAllowed(T realValue, Collection<? extends DisplayableValue<T>> collection) {
-        if (CollectionUtils.isEmpty(collection)) {
+    private <T> boolean isValueAllowed(T realValue, PrismPropertyDefinition<T> definition) {
+        if (definition == null || CollectionUtils.isEmpty(definition.getAllowedValues())) {
             return true;
         }
-        for (DisplayableValue<T> o : collection) {
-            if (realValue.equals(o.getValue())) {
-                return true;
-            }
-        }
-        return false;
+        return definition.getAllowedValues().stream()
+                .anyMatch(displayableValue -> realValue.equals(displayableValue.getValue()));
     }
 
     @NotNull
@@ -525,7 +437,7 @@ public class PrismUnmarshaller {
 
         refVal.setDescription(map.getParsedPrimitiveValue(XNode.KEY_REFERENCE_DESCRIPTION, DOMUtil.XSD_STRING));
 
-        refVal.setFilter(parseFilter(map.get(XNode.KEY_REFERENCE_FILTER), pc));
+        refVal.setFilter(parseFilter(map.get(XNode.KEY_REFERENCE_FILTER)));
         
         String resolutionTimeString = map.getParsedPrimitiveValue(XNode.KEY_REFERENCE_RESOLUTION_TIME, DOMUtil.XSD_STRING);
         if (resolutionTimeString != null) {
@@ -608,7 +520,7 @@ public class PrismUnmarshaller {
         return refVal;
     }
 
-    private SearchFilterType parseFilter(XNode xnode, ParsingContext pc) throws SchemaException {
+    private SearchFilterType parseFilter(XNode xnode) throws SchemaException {
         if (xnode == null) {
             return null;
         }
@@ -618,7 +530,7 @@ public class PrismUnmarshaller {
         return SearchFilterType.createFromXNode(xnode, prismContext);
     }
 
-    private <T extends Containerable> ItemDefinition locateItemDefinition(@NotNull QName itemName,
+    private ItemDefinition locateItemDefinition(@NotNull QName itemName,
             @Nullable ComplexTypeDefinition complexTypeDefinition,
             XNode xnode) throws SchemaException {
         return getSchemaRegistry()

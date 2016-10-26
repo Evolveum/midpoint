@@ -31,14 +31,13 @@ import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 import com.evolveum.prism.xml.ns._public.types_3.*;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.annotation.XmlType;
 import javax.xml.namespace.QName;
 import java.lang.reflect.*;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 public class BeanMarshaller {
 
@@ -46,113 +45,64 @@ public class BeanMarshaller {
 
     public static final String DEFAULT_PLACEHOLDER = "##default";
 
-    private PrismBeanInspector inspector;
-
+    @NotNull private final PrismBeanInspector inspector;
 	@NotNull private final PrismContext prismContext;
+	@NotNull private final Map<Class,Marshaller> specialMarshallers = new HashMap<>();
 
-	public BeanMarshaller(@NotNull PrismContext prismContext, PrismBeanInspector inspector) {
+	@FunctionalInterface
+	private interface Marshaller {
+		XNode marshal(Object bean, SerializationContext sc) throws SchemaException;
+	}
+
+	private void createSpecialMarshallerMap() {
+		specialMarshallers.put(XmlAsStringType.class, this::marshalXmlAsStringType);
+		specialMarshallers.put(SchemaDefinitionType.class, this::marshalSchemaDefinition);
+		specialMarshallers.put(ProtectedByteArrayType.class, this::marshalProtectedDataType);
+		specialMarshallers.put(ProtectedStringType.class, this::marshalProtectedDataType);
+		specialMarshallers.put(ItemPathType.class, this::marshalItemPathType);
+		specialMarshallers.put(RawType.class, this::marshalRawType);
+//		add(PolyString.class, this::unmarshalPolyStringFromPrimitive, this::unmarshalPolyStringFromMap);
+//		add(PolyStringType.class, this::unmarshalPolyStringFromPrimitive, this::unmarshalPolyStringFromMap);
+	}
+
+	public BeanMarshaller(@NotNull PrismContext prismContext, @NotNull PrismBeanInspector inspector) {
 		this.prismContext = prismContext;
 		this.inspector = inspector;
+		createSpecialMarshallerMap();
 	}
 
-	@NotNull
-	public PrismContext getPrismContext() {
-		return prismContext;
-	}
-
-	private SchemaRegistry getSchemaRegistry() {
-		return prismContext.getSchemaRegistry();
-	}
-
-	public boolean canProcess(QName typeName) {
-		return getSchemaRegistry().determineCompileTimeClass(typeName) != null; 
-	}
-	
-	public boolean canProcess(@NotNull Class<?> clazz) {
-		return RawType.class.equals(clazz) || clazz.getAnnotation(XmlType.class) != null;
-	}
-	
-	public QName determineTypeForClass(Class<?> clazz) {
-		return inspector.determineTypeForClass(clazz);
-	}
-	
-	private MapXNode marshalSearchFilterType(SearchFilterType value) throws SchemaException {
-		if (value == null) {
-			return null;
-		}
-		return value.serializeToXNode();
-	}
-
-	private Type getTypeArgument(Type origType, String desc) {
-		if (!(origType instanceof ParameterizedType)) {
-			throw new IllegalArgumentException("No a parametrized type "+desc);
-		}
-		ParameterizedType parametrizedType = (ParameterizedType)origType;
-		Type[] actualTypeArguments = parametrizedType.getActualTypeArguments();
-		if (actualTypeArguments == null || actualTypeArguments.length == 0) {
-			throw new IllegalArgumentException("No type arguments for getter "+desc);
-		}
-		if (actualTypeArguments.length > 1) {
-			throw new IllegalArgumentException("Too many type arguments for getter for "+desc);
-		}
-		return actualTypeArguments[0];
-	}
-
-
-    // TODO hacked, for now
-//    private <T> String findEnumFieldValue(Class classType, Object bean){
-//        String name = bean.toString();
-//        for (Field field: classType.getDeclaredFields()) {
-//            XmlEnumValue xmlEnumValue = field.getAnnotation(XmlEnumValue.class);
-//            if (xmlEnumValue != null && field.getName().equals(name)) {
-//                return xmlEnumValue.value();
-//            }
-//        }
-//        return null;
-//    }
-
-
-	public <T> XNode marshall(T bean) throws SchemaException {
+	@Nullable
+	public <T> XNode marshall(@Nullable T bean) throws SchemaException {
 		return marshall(bean, null);
 	}
 
-	public <T> XNode marshall(T bean, SerializationContext ctx) throws SchemaException {
+	@Nullable
+	public <T> XNode marshall(@Nullable T bean, @Nullable SerializationContext ctx) throws SchemaException {
 		if (bean == null) {
 			return null;
 		}
-        if (bean instanceof SchemaDefinitionType) {
-            return marshalSchemaDefinition((SchemaDefinitionType) bean);
-        } else if (bean instanceof ProtectedDataType<?>) {
-            MapXNode xProtected = marshalProtectedDataType((ProtectedDataType<?>) bean);
-            return xProtected;
-        } else if (bean instanceof ItemPathType){
-            return marshalItemPathType((ItemPathType) bean);
-        } else if (bean instanceof RawType) {
-            return marshalRawValue((RawType) bean);
-        } else if (bean instanceof XmlAsStringType) {
-            return marshalXmlAsStringType((XmlAsStringType) bean);
-        } else if (prismContext != null && prismContext.getSchemaRegistry().determineDefinitionFromClass(bean.getClass()) != null){
-			// TODO change to marshalItemContent
-        	return ((PrismContextImpl) prismContext).getPrismMarshaller().marshalItemAsRoot(((Objectable)bean).asPrismObject(),
-					null, null, ctx).getSubnode();
-        }
-        // Note: SearchFilterType is treated below
+		Marshaller marshaller = specialMarshallers.get(bean.getClass());
+		if (marshaller != null) {
+			return marshaller.marshal(bean, ctx);
+		} else if (bean instanceof Containerable) {
+			// we shouldn't get here but ...
+			return prismContext.xnodeSerializer().serializeRealValue(bean, new QName("dummy")).getSubnode();
+		} else if (bean instanceof Enum) {
+			return marshalEnum((Enum) bean, ctx);
+		} else if (bean.getClass().getAnnotation(XmlType.class) != null) {
+			return marshalXmlType(bean, ctx);
+		} else {
+			return marshalToPrimitive(bean, ctx);
+		}
+	}
 
-        Class<? extends Object> beanClass = bean.getClass();
+	private XNode marshalToPrimitive(Object bean, SerializationContext ctx) {
+		return createPrimitiveXNode(bean, null, false);
+	}
 
-        if (beanClass == String.class) {
-        	return createPrimitiveXNode((String)bean, DOMUtil.XSD_STRING, false);
-        }
-        
-        //check for enums
-        if (beanClass.isEnum()){
-			String enumValue = inspector.findEnumFieldValue(beanClass, bean.toString());
-            if (StringUtils.isEmpty(enumValue)){
-                enumValue = bean.toString();
-            }
-            QName fieldTypeName = inspector.findFieldTypeName(null, beanClass, DEFAULT_PLACEHOLDER);
-            return createPrimitiveXNode(enumValue, fieldTypeName, false);
-        }
+	private XNode marshalXmlType(Object bean, SerializationContext ctx) throws SchemaException {
+
+        Class<?> beanClass = bean.getClass();
 
         MapXNode xmap;
         if (bean instanceof SearchFilterType) {
@@ -165,11 +115,6 @@ public class BeanMarshaller {
             xmap = new MapXNode();
         }
 
-		XmlType xmlType = beanClass.getAnnotation(XmlType.class);
-		if (xmlType == null) {
-			throw new IllegalArgumentException("Cannot marshall "+beanClass+" it does not have @XmlType annotation");
-		}
-		
 		String namespace = inspector.determineNamespace(beanClass);
 		if (namespace == null) {
 			throw new IllegalArgumentException("Cannot determine namespace of "+beanClass);
@@ -197,15 +142,15 @@ public class BeanMarshaller {
 			boolean isAttribute = inspector.isAttribute(field, getter);
 			
 			if (getterResult instanceof Collection<?>) {
-				Collection col = (Collection)getterResult;
+				Collection col = (Collection) getterResult;
 				if (col.isEmpty()) {
 					continue;
 				}
 				Iterator i = col.iterator();
-				if (i == null) {
-					// huh?!? .. but it really happens
-					throw new IllegalArgumentException("Iterator of collection returned from "+getter+" is null");
-				}
+//				if (i == null) {
+//					// huh?!? .. but it really happens
+//					throw new IllegalArgumentException("Iterator of collection returned from "+getter+" is null");
+//				}
 				Object getterResultValue = i.next();
 				if (getterResultValue == null) {
 					continue;
@@ -276,9 +221,20 @@ public class BeanMarshaller {
 		return xmap;
 	}
 
-    private XNode marshalXmlAsStringType(XmlAsStringType bean) {
+	private XNode marshalEnum(Enum bean, SerializationContext ctx) {
+		Class<? extends Enum> beanClass = bean.getClass();
+		String enumValue = inspector.findEnumFieldValue(beanClass, bean.toString());
+		if (StringUtils.isEmpty(enumValue)){
+			enumValue = bean.toString();
+		}
+		QName fieldTypeName = inspector.findFieldTypeName(null, beanClass, DEFAULT_PLACEHOLDER);
+		return createPrimitiveXNode(enumValue, fieldTypeName, false);
+
+	}
+
+	private XNode marshalXmlAsStringType(Object bean, SerializationContext sc) {
         PrimitiveXNode xprim = new PrimitiveXNode<>();
-        xprim.setValue(bean.getContentAsString(), DOMUtil.XSD_STRING);
+        xprim.setValue(((XmlAsStringType) bean).getContentAsString(), DOMUtil.XSD_STRING);
         return xprim;
     }
 
@@ -370,7 +326,7 @@ public class BeanMarshaller {
 		if (Collection.class.isAssignableFrom(getterReturnType)){
 			Type genericReturnType = getter.getGenericReturnType();
 			if (genericReturnType instanceof ParameterizedType){
-				Type actualType = getTypeArgument(genericReturnType, "explicit type declaration");
+				Type actualType = inspector.getTypeArgument(genericReturnType, "explicit type declaration");
 
 				if (actualType instanceof Class){
 					getterType = (Class) actualType;
@@ -391,16 +347,15 @@ public class BeanMarshaller {
 		if (value == null) {
 			return null;
 		}
-		if (canProcess(value.getClass())) {
-			// This must be a bean
-			return marshall(value, ctx);
-		} else {
-			// primitive value
+		if (isAttribute) {
+			// hoping the value fits into primitive!
 			return createPrimitiveXNode(value, fieldTypeName, isAttribute);
+		} else {
+			return marshall(value, ctx);
 		}
 	}
 	
-	private <T> PrimitiveXNode<T> createPrimitiveXNode(T value, QName fieldTypeName, boolean isAttribute){
+	private <T> PrimitiveXNode<T> createPrimitiveXNode(T value, QName fieldTypeName, boolean isAttribute) {
 		PrimitiveXNode<T> xprim = new PrimitiveXNode<T>();
 		xprim.setValue(value, fieldTypeName);
 		xprim.setAttribute(isAttribute);
@@ -411,20 +366,21 @@ public class BeanMarshaller {
         return createPrimitiveXNode(val, type, false);
     }
 
-    private XNode marshalRawValue(RawType value) throws SchemaException {
-        return value.serializeToXNode();
+    private XNode marshalRawType(Object value, SerializationContext sc) throws SchemaException {
+        return ((RawType) value).serializeToXNode();
 	}
 
-    private XNode marshalItemPathType(ItemPathType itemPath) {
-        PrimitiveXNode<ItemPath> xprim = new PrimitiveXNode<ItemPath>();
-        if (itemPath != null){
-            ItemPath path = itemPath.getItemPath();
-            xprim.setValue(path, ItemPathType.COMPLEX_TYPE);
+    private XNode marshalItemPathType(Object o, SerializationContext sc) {
+		ItemPathType itemPath = (ItemPathType) o;
+        PrimitiveXNode<ItemPathType> xprim = new PrimitiveXNode<>();
+        if (itemPath != null) {
+            xprim.setValue(itemPath, ItemPathType.COMPLEX_TYPE);
         }
         return xprim;
     }
 
-    private XNode marshalSchemaDefinition(SchemaDefinitionType schemaDefinitionType) {
+    private XNode marshalSchemaDefinition(Object o, SerializationContext ctx) {
+		SchemaDefinitionType schemaDefinitionType = (SchemaDefinitionType) o;
         SchemaXNode xschema = new SchemaXNode();
         xschema.setSchemaElement(schemaDefinitionType.getSchema());
         MapXNode xmap = new MapXNode();
@@ -433,7 +389,8 @@ public class BeanMarshaller {
     }
 
     // TODO create more appropriate interface to be able to simply serialize ProtectedStringType instances
-    public <T> MapXNode marshalProtectedDataType(ProtectedDataType<T> protectedType) throws SchemaException {
+    public <T> MapXNode marshalProtectedDataType(Object o, SerializationContext sc) throws SchemaException {
+		ProtectedDataType<T> protectedType = (ProtectedDataType<T>) o;
         MapXNode xmap = new MapXNode();
         if (protectedType.getEncryptedDataType() != null) {
             EncryptedDataType encryptedDataType = protectedType.getEncryptedDataType();
@@ -447,5 +404,52 @@ public class BeanMarshaller {
         // TODO: clearValue
         return xmap;
     }
+
+
+    //region Specific marshallers ==============================================================
+	private MapXNode marshalSearchFilterType(SearchFilterType value) throws SchemaException {
+		if (value == null) {
+			return null;
+		}
+		return value.serializeToXNode();
+	}
+
+	//endregion
+
+	@NotNull
+	public PrismContext getPrismContext() {
+		return prismContext;
+	}
+
+	private SchemaRegistry getSchemaRegistry() {
+		return prismContext.getSchemaRegistry();
+	}
+
+	public boolean canProcess(QName typeName) {
+		Class<Object> clazz = getSchemaRegistry().determineClassForType(typeName);
+		return clazz != null && canProcess(clazz);
+	}
+
+	public boolean canProcess(@NotNull Class<?> clazz) {
+		return !Containerable.class.isAssignableFrom(clazz) &&
+				(RawType.class.equals(clazz) || clazz.getAnnotation(XmlType.class) != null || XsdTypeMapper.getTypeFromClass(clazz) != null);
+	}
+
+	public QName determineTypeForClass(Class<?> clazz) {
+		return inspector.determineTypeForClass(clazz);
+	}
+
 }
- 
+
+
+// TODO hacked, for now
+//    private <T> String findEnumFieldValue(Class classType, Object bean){
+//        String name = bean.toString();
+//        for (Field field: classType.getDeclaredFields()) {
+//            XmlEnumValue xmlEnumValue = field.getAnnotation(XmlEnumValue.class);
+//            if (xmlEnumValue != null && field.getName().equals(name)) {
+//                return xmlEnumValue.value();
+//            }
+//        }
+//        return null;
+//    }

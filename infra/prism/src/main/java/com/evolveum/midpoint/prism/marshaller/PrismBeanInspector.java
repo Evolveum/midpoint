@@ -40,6 +40,8 @@ import javax.xml.namespace.QName;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -186,23 +188,14 @@ public class PrismBeanInspector {
     private Map<Class,Map<String,Method>> _findElementMethodInObjectFactory = Collections.synchronizedMap(new HashMap());
 
     Method findElementMethodInObjectFactory(Class objectFactoryClass, String propName) {
-        return find2(_findElementMethodInObjectFactory, objectFactoryClass, propName, new Getter2<Method,Class,String>() {
-            @Override
-            public Method get(Class c, String p) {
-                return findElementMethodInObjectFactoryUncached(c, p);
-            }
-        });
+        return find2(_findElementMethodInObjectFactory, objectFactoryClass, propName,
+                (c, p) -> findElementMethodInObjectFactoryUncached(c, p));
     }
 
     private Map<Class,Map<Method,Field>> _lookupSubstitution = Collections.synchronizedMap(new HashMap());
 
     <T> Field lookupSubstitution(Class<T> beanClass, Method elementMethod) {
-        return find2(_lookupSubstitution, beanClass, elementMethod, new Getter2<Field,Class,Method>() {
-            @Override
-            public Field get(Class c, Method m) {
-                return lookupSubstitutionUncached(c, m);
-            }
-        });
+        return find2(_lookupSubstitution, beanClass, elementMethod, (c, m) -> lookupSubstitutionUncached(c, m));
     }
 
     private Map<Class,Map<String,String>> _findEnumFieldName = Collections.synchronizedMap(new HashMap());
@@ -247,23 +240,13 @@ public class PrismBeanInspector {
     private Map<Class,Map<String,Method>> _findPropertyGetter = Collections.synchronizedMap(new HashMap());
 
     public <T> Method findPropertyGetter(Class<T> beanClass, String propName) {
-        return find2(_findPropertyGetter, beanClass, propName, new Getter2<Method,Class,String>() {
-            @Override
-            public Method get(Class param1, String param2) {
-                return findPropertyGetterUncached(param1, param2);
-            }
-        });
+        return find2(_findPropertyGetter, beanClass, propName, (param1, param2) -> findPropertyGetterUncached(param1, param2));
     }
 
     private Map<Class,Map<String,Field>> _findPropertyField = Collections.synchronizedMap(new HashMap());
 
     public <T> Field findPropertyField(Class<T> beanClass, String propName) {
-        return find2(_findPropertyField, beanClass, propName, new Getter2<Field,Class,String>() {
-            @Override
-            public Field get(Class param1, String param2) {
-                return findPropertyFieldUncached(param1, param2);
-            }
-        });
+        return find2(_findPropertyField, beanClass, propName, (param1, param2) -> findPropertyFieldUncached(param1, param2));
     }
     //endregion
 
@@ -307,11 +290,11 @@ public class PrismBeanInspector {
         }
         for (Method method: classType.getDeclaredMethods()) {
             XmlElement xmlElement = method.getAnnotation(XmlElement.class);
-            if (xmlElement != null && xmlElement.name() != null && xmlElement.name().equals(propName)) {
+            if (xmlElement != null && xmlElement.name().equals(propName)) {
                 return method;
             }
             XmlAttribute xmlAttribute = method.getAnnotation(XmlAttribute.class);
-            if (xmlAttribute != null && xmlAttribute.name() != null && xmlAttribute.name().equals(propName)) {
+            if (xmlAttribute != null && xmlAttribute.name().equals(propName)) {
                 return method;
             }
         }
@@ -457,28 +440,15 @@ public class PrismBeanInspector {
         return null;
     }
 
-    private Field lookupSubstitutionUncached(Class beanClass, Method elementMethod) {
-        XmlElementDecl xmlElementDecl = elementMethod.getAnnotation(XmlElementDecl.class);
+    private Field lookupSubstitutionUncached(Class beanClass, Method elementMethodInObjectFactory) {
+        XmlElementDecl xmlElementDecl = elementMethodInObjectFactory.getAnnotation(XmlElementDecl.class);
         if (xmlElementDecl == null) {
             return null;
         }
         final String substitutionHeadName = xmlElementDecl.substitutionHeadName();
-        if (substitutionHeadName == null) {
-            return null;
-        }
-        return findField(beanClass,new Handler<Field>() {
-            @Override
-            public boolean handle(Field field) {
-                XmlElementRef xmlElementRef = field.getAnnotation(XmlElementRef.class);
-                if (xmlElementRef == null) {
-                    return false;
-                }
-                String name = xmlElementRef.name();
-                if (name == null) {
-                    return false;
-                }
-                return name.equals(substitutionHeadName);
-            }
+        return findField(beanClass, field -> {
+            XmlElementRef xmlElementRef = field.getAnnotation(XmlElementRef.class);
+            return xmlElementRef != null && xmlElementRef.name().equals(substitutionHeadName);
         });
     }
 
@@ -669,11 +639,22 @@ public class PrismBeanInspector {
     }
     
     public <T> Method findAnyMethod(Class<T> beanClass) {
-    	return findMethod(beanClass, new Handler<Method>() {
-			@Override
-			public boolean handle(Method method) {
-				return (method.getAnnotation(XmlAnyElement.class) != null);
-			}
-    	});
+    	return findMethod(beanClass, method -> (method.getAnnotation(XmlAnyElement.class) != null));
+    }
+
+    // e.g. Collection<UserType> -> UserType
+    Type getTypeArgument(Type origType, String desc) {
+        if (!(origType instanceof ParameterizedType)) {
+            throw new IllegalArgumentException("Not a parametrized type "+desc);
+        }
+        ParameterizedType parametrizedType = (ParameterizedType)origType;
+        Type[] actualTypeArguments = parametrizedType.getActualTypeArguments();
+        if (actualTypeArguments == null || actualTypeArguments.length == 0) {
+            throw new IllegalArgumentException("No type arguments for getter "+desc);
+        }
+        if (actualTypeArguments.length > 1) {
+            throw new IllegalArgumentException("Too many type arguments for getter for "+desc);
+        }
+        return actualTypeArguments[0];
     }
 }

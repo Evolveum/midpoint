@@ -10,7 +10,7 @@ import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.ext.CoreXMLSerializers.XMLGregorianCalendarSerializer;
 import com.fasterxml.jackson.databind.jsontype.TypeSerializer;
 
-public class XmlGregorialCalendarSerializer extends XMLGregorianCalendarSerializer{
+public class XmlGregorianCalendarSerializer extends XMLGregorianCalendarSerializer{
 
 	@Override
 	public void serializeWithType(XMLGregorianCalendar value, JsonGenerator jgen,

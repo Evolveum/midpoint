@@ -157,4 +157,15 @@ public class ItemPathType implements Serializable, Equals, Cloneable {
     public String toString() {
         return getItemPath().toString();
     }
+
+    // temporary implementation until things settle down
+	public static ItemPathType asItemPathType(Object value) {
+		if (value instanceof ItemPathType) {
+			return (ItemPathType) value;
+		} else if (value instanceof ItemPath) {
+			return ((ItemPath) value).asItemPathType();
+		} else {
+			throw new IllegalArgumentException("Value " + value + " is neither ItemPath nor ItemPathType.");
+		}
+	}
 }

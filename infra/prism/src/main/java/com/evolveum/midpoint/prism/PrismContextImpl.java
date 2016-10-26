@@ -52,7 +52,7 @@ public class PrismContextImpl implements PrismContext {
 	private static final Trace LOGGER = TraceManager.getTrace(PrismContextImpl.class);
     
     private static boolean allowSchemalessSerialization = true;
-	private static boolean extraValidation = false;										// TODO replace by something serious
+	private static boolean extraValidation = true;										// TODO replace by something serious
     
 	@NotNull private final SchemaRegistryImpl schemaRegistry;
 	@NotNull private final LexicalProcessorRegistry lexicalProcessorRegistry;

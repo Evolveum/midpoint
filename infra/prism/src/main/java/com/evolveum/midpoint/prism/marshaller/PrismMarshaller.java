@@ -47,10 +47,10 @@ import org.jetbrains.annotations.Nullable;
  */
 public class PrismMarshaller {
 	
-	@NotNull private final BeanMarshaller beanConverter;
+	@NotNull private final BeanMarshaller beanMarshaller;
 
-	public PrismMarshaller(@NotNull BeanMarshaller beanConverter) {
-		this.beanConverter = beanConverter;
+	public PrismMarshaller(@NotNull BeanMarshaller beanMarshaller) {
+		this.beanMarshaller = beanMarshaller;
 	}
 
 	//region Public interface ======================================================================================
@@ -122,15 +122,24 @@ public class PrismMarshaller {
 	RootXNode marshalAnyData(@NotNull Object object, QName itemName, ItemDefinition itemDefinition, SerializationContext context) throws SchemaException {
 		if (object instanceof Item) {
 			return marshalItemAsRoot((Item) object, itemName, itemDefinition, context);
-		} else {
-			Validate.notNull(itemName, "itemName must be specified for non-Item objects");
-			XNode valueNode = beanConverter.marshall(object, context);		// TODO item definition!
+		}
+		Validate.notNull(itemName, "itemName must be specified for non-Item objects");
+		if (object instanceof Objectable) {
+			return marshalItemAsRoot(((Objectable) object).asPrismObject(), itemName, null, context);
+		} else if (object instanceof Containerable) {
+			return marshalPrismValueAsRoot(((Containerable) object).asPrismContainerValue(), itemName, null, context);
+		} else if (beanMarshaller.canProcess(object.getClass())) {
+			XNode valueNode = beanMarshaller.marshall(object, context);        // TODO item definition!
 			QName typeName = JAXBUtil.getTypeQName(object.getClass());
-			addTypeDefinitionIfNeeded(itemName, typeName, valueNode);
-			if (valueNode.getTypeQName() == null && typeName == null) {
-				throw new SchemaException("No type QName for class " + object.getClass());
-			}
+			if (valueNode != null) {
+				addTypeDefinitionIfNeeded(itemName, typeName, valueNode);
+				if (valueNode.getTypeQName() == null && typeName == null) {
+					throw new SchemaException("No type QName for class " + object.getClass());
+				}
+			} // TODO or else put type name at least to root? (but, can valueNode be null if object is not null?)
 			return new RootXNode(itemName, valueNode);
+		} else {
+			throw new IllegalArgumentException("Couldn't serialize " + object);
 		}
 	}
 
@@ -138,7 +147,7 @@ public class PrismMarshaller {
 		if (object instanceof Item) {
 			return true;
 		} else {
-			return beanConverter.canProcess(object.getClass());
+			return beanMarshaller.canProcess(object.getClass());
 		}
 	}
 
@@ -382,8 +391,8 @@ public class PrismMarshaller {
         T realValue = value.getValue();
         if (realValue instanceof PolyString) {
             return serializePolyString((PolyString) realValue);
-        } else if (beanConverter.canProcess(typeName)) {
-            XNode xnode = beanConverter.marshall(realValue);
+        } else if (beanMarshaller.canProcess(typeName)) {
+            XNode xnode = beanMarshaller.marshall(realValue);
 //			// why is this?
 //            if (realValue instanceof ProtectedDataType<?> && (definition == null || definition.isDynamic())) {
 //                xnode.setExplicitTypeDeclaration(true);
@@ -410,7 +419,7 @@ public class PrismMarshaller {
         }
         T realValue = value.getValue();
         if (realValue != null) {
-            return createPrimitiveXNode(realValue, DOMUtil.XSD_STRING);
+            return createPrimitiveXNode(realValue, null);
         } else {
             throw new IllegalStateException("Neither real nor raw value present in " + value);
         }
@@ -435,10 +444,10 @@ public class PrismMarshaller {
 
 	@NotNull
 	private SchemaRegistry getSchemaRegistry() {
-		return beanConverter.getPrismContext().getSchemaRegistry();
+		return beanMarshaller.getPrismContext().getSchemaRegistry();
 	}
 
-	private void addTypeDefinitionIfNeeded(@NotNull QName itemName, QName typeName, XNode valueNode) {
+	private void addTypeDefinitionIfNeeded(@NotNull QName itemName, QName typeName, @NotNull XNode valueNode) {
 		if (valueNode.getTypeQName() != null && valueNode.isExplicitTypeDeclaration()) {
 			return; // already set
 		}

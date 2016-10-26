@@ -13,6 +13,8 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 
 public class MidpointYAMLFactory extends YAMLFactory {
 
+
+
 	@Override
 	protected MidpointYAMLGenerator _createGenerator(Writer out, IOContext ctxt) throws IOException {
 		int feats = _yamlGeneratorFeatures;

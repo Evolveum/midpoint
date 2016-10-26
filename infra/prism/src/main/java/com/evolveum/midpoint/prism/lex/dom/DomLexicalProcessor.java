@@ -29,6 +29,7 @@ import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
@@ -333,7 +334,7 @@ public class DomLexicalProcessor implements LexicalProcessor<String> {
 		
 	private static <T> T parsePrimitiveElementValue(Element element, QName typeName, XNodeProcessorEvaluationMode mode) throws SchemaException {
 		try {
-			if (ItemPath.XSD_TYPE.equals(typeName)) {
+			if (ItemPathType.COMPLEX_TYPE.equals(typeName)) {
 				return (T) parsePath(element);
 			} else if (DOMUtil.XSD_QNAME.equals(typeName)) {
 				return (T) DOMUtil.getQNameValue(element);
@@ -384,9 +385,10 @@ public class DomLexicalProcessor implements LexicalProcessor<String> {
 		}
 	}
 
-	private static ItemPath parsePath(Element element) {
+	@NotNull
+	private static ItemPathType parsePath(Element element) {
 		XPathHolder holder = new XPathHolder(element);
-		return holder.toItemPath();
+		return new ItemPathType(holder.toItemPath());
 	}
 
 	private SchemaXNode parseSchemaElement(Element schemaElement) {

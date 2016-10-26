@@ -34,6 +34,7 @@ import com.evolveum.midpoint.prism.path.*;
 
 import com.evolveum.midpoint.util.QNameUtil;
 import org.apache.commons.lang.StringUtils;
+import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.DOMException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -447,6 +448,7 @@ public class XPathHolder {
 		return Collections.unmodifiableList(segments);
 	}
 
+	@NotNull
     public ItemPath toItemPath() {
         List<XPathSegment> xsegments = toSegments();
         List<ItemPathSegment> segments = new ArrayList<ItemPathSegment>(xsegments.size());

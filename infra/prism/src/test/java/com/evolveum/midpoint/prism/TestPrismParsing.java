@@ -352,7 +352,7 @@ public abstract class TestPrismParsing {
 		assertUserWill(user);
 		
 		// WHEN
-		String serialized = prismContext.serializeObjectToString(user, getOutputFormat());
+		String serialized = prismContext.serializerFor(getOutputFormat()).serialize(user);
 		
 		// THEN
 		assertNotNull(serialized);

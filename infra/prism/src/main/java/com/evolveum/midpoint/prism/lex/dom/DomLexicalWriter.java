@@ -29,6 +29,7 @@ import com.evolveum.midpoint.prism.xnode.SchemaXNode;
 import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.DOMException;
@@ -238,13 +239,14 @@ public class DomLexicalWriter {
 
         Element element = null;
 
-        if (typeQName.equals(ItemPath.XSD_TYPE)) {
-            ItemPath itemPath = (ItemPath)xprim.getValue();
-            if (itemPath != null) {
+        if (ItemPathType.COMPLEX_TYPE.equals(typeQName)) {
+            //ItemPathType itemPathType = //ItemPathType.asItemPathType(xprim.getValue());			// TODO fix this hack
+            ItemPathType itemPathType = (ItemPathType) xprim.getValue();
+            if (itemPathType != null) {
                 if (asAttribute) {
                     throw new UnsupportedOperationException("Serializing ItemPath as an attribute is not supported yet");
                 }
-                XPathHolder holder = new XPathHolder(itemPath);
+                XPathHolder holder = new XPathHolder(itemPathType.getItemPath());
                 element = holder.toElement(elementOrAttributeName, parentElement.getOwnerDocument());
                 parentElement.appendChild(element);
             }
@@ -262,7 +264,7 @@ public class DomLexicalWriter {
                 parentElement.appendChild(element);
             }
 
-            if (typeQName.equals(DOMUtil.XSD_QNAME)) {
+            if (DOMUtil.XSD_QNAME.equals(typeQName)) {
                 QName value = (QName) xprim.getParsedValueWithoutRecording(DOMUtil.XSD_QNAME);
                 value = setQNamePrefixExplicitIfNeeded(value);
                 if (asAttribute) {

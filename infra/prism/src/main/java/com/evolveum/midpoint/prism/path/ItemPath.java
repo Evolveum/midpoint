@@ -37,8 +37,10 @@ import java.util.Map;
  *
  */
 public class ItemPath implements Serializable, Cloneable {
-	
+
+	@Deprecated	// use ItemPathType.COMPLEX_TYPE
 	public static final QName XSD_TYPE = ItemPathType.COMPLEX_TYPE;
+
 	public static final ItemPath EMPTY_PATH = new ItemPath();
 	
 	private List<ItemPathSegment> segments;
@@ -679,5 +681,10 @@ public class ItemPath implements Serializable, Cloneable {
 			throw new IllegalStateException("Item path shouldn't contain references but it does: " + path);
 		}
 	}
+
+	public ItemPathType asItemPathType() {
+		return new ItemPathType(this);
+	}
+
 
 }

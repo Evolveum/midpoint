@@ -10,14 +10,13 @@ import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.jsontype.TypeSerializer;
 
-public class ItemPathSerializer extends JsonSerializer<ItemPath>{
+public class ItemPathSerializer extends JsonSerializer<ItemPath> {
 
 	@Override
 	public void serialize(ItemPath value, JsonGenerator jgen, SerializerProvider provider)
 			throws IOException, JsonProcessingException {
 		XPathHolder xpath = new XPathHolder(value);
 		String path = xpath.getXPathWithDeclarations(true);
-//		value.
 		jgen.writeObject(path);
 		
 	}
@@ -25,7 +24,6 @@ public class ItemPathSerializer extends JsonSerializer<ItemPath>{
 	@Override
 	public void serializeWithType(ItemPath value, JsonGenerator jgen, SerializerProvider provider,
 			TypeSerializer typeSer) throws IOException, JsonProcessingException {
-		// TODO Auto-generated method stub
 		serialize(value, jgen, provider);
 	}
 

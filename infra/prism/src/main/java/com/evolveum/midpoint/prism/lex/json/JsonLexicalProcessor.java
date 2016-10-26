@@ -21,6 +21,7 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
@@ -103,6 +104,7 @@ public class JsonLexicalProcessor extends AbstractJsonLexicalProcessor {
 		module.addSerializer(QName.class, new QNameSerializer());
 		module.addSerializer(PolyString.class, new PolyStringSerializer());
 		module.addSerializer(ItemPath.class, new ItemPathSerializer());
+		module.addSerializer(ItemPathType.class, new ItemPathTypeSerializer());
 //		module.addSerializer(Element.class, new DomElementJsonSerializer());
 //		module.addSerializer(JAXBElement.class, new JaxbElementSerializer());
 		return module;

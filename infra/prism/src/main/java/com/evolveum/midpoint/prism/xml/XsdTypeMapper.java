@@ -88,11 +88,12 @@ public class XsdTypeMapper {
         addMapping(XMLGregorianCalendar.class, DOMUtil.XSD_DATETIME, true);
         addMapping(Duration.class, DOMUtil.XSD_DURATION, true);
         
-        addMapping(ItemPath.class, ItemPath.XSD_TYPE, true);
+        addMapping(ItemPathType.class, ItemPathType.COMPLEX_TYPE, true);
+        addMapping(ItemPath.class, ItemPathType.COMPLEX_TYPE, false);
         addMapping(QName.class, DOMUtil.XSD_QNAME, true);
         
         addMapping(PolyString.class, PrismConstants.POLYSTRING_TYPE_QNAME, true);
-        addMappingExt(ItemPathType.class, ItemPathType.COMPLEX_TYPE, true);
+        addMappingExt(ItemPathType.class, ItemPathType.COMPLEX_TYPE, true);				// TODO remove
 
         xsdToJavaTypeMap.put(DOMUtil.XSD_ANYURI, String.class);
     }
