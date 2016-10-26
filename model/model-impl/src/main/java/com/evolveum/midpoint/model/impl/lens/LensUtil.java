@@ -861,7 +861,7 @@ public class LensUtil {
 			return true;
 		}
 		TimeIntervalStatusType validityStatus = activationComputer.getValidityStatus(activationType, now);
-		ActivationStatusType effectiveStatus = activationComputer.getEffectiveStatus(lifecycleState, activationType, validityStatus, ActivationStatusType.ENABLED);
+		ActivationStatusType effectiveStatus = activationComputer.getEffectiveStatus(lifecycleState, activationType, validityStatus);
 		return effectiveStatus == ActivationStatusType.ENABLED;
 	}
 
