@@ -15,13 +15,18 @@
  */
 package com.evolveum.midpoint.model.intest;
 
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceSchema;
+import com.evolveum.midpoint.schema.processor.ResourceSchemaImpl;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -66,6 +71,11 @@ public class TestConsistencySimple extends AbstractInitializedModelIntegrationTe
 	private enum FocusOperation { RECONCILE, RECOMPUTE }
 	private enum ShadowOperation { KEEP, DELETE, UNLINK, UNLINK_AND_TOMBSTONE }
 	private enum ResourceObjectOperation { KEEP, DELETE }
+
+	private ObjectClassComplexTypeDefinition getAccountObjectClassDefinition() throws SchemaException {
+		ResourceSchema schema = RefinedResourceSchemaImpl.getResourceSchema(resourceDummyType, prismContext);
+		return schema.findObjectClassDefinition(dummyResourceCtl.getAccountObjectClassQName());
+	}
 
 	@Test
 	public void test100Reconcile_Keep_Keep() throws Exception {
@@ -271,7 +281,8 @@ public class TestConsistencySimple extends AbstractInitializedModelIntegrationTe
 	private List<PrismObject<ShadowType>> getJacksShadows(OperationResult result) throws SchemaException {
 		ObjectQuery shadowQuery = QueryBuilder.queryFor(ShadowType.class, prismContext)
 				.item(ShadowType.F_RESOURCE_REF).ref(RESOURCE_DUMMY_OID)
-				.and().item(ShadowType.F_ATTRIBUTES, SchemaConstants.ICFS_NAME).eq("jack")
+				.and().item(new ItemPath(ShadowType.F_ATTRIBUTES, SchemaConstants.ICFS_NAME),
+						getAccountObjectClassDefinition().findAttributeDefinition(SchemaConstants.ICFS_NAME)).eq("jack")
 				.build();
 		return repositoryService.searchObjects(ShadowType.class, shadowQuery, null, result);
 	}

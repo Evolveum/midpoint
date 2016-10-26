@@ -38,16 +38,14 @@ import javax.xml.namespace.QName;
  * @author Radovan Semancik
  * 
  */
-public class ComplexTypeDefinitionImpl extends DefinitionImpl implements ComplexTypeDefinition {
+public class ComplexTypeDefinitionImpl extends TypeDefinitionImpl implements ComplexTypeDefinition {
 
 	private static final long serialVersionUID = 2655797837209175037L;
 	@NotNull private final List<ItemDefinition> itemDefinitions = new ArrayList<>();
-	private QName superType;
 	private boolean containerMarker;
 	private boolean objectMarker;
 	private boolean xsdAnyMarker;
 	private QName extensionForType;
-	private Class<?> compileTimeClass;
 
 	private String defaultNamespace;
 
@@ -78,15 +76,6 @@ public class ComplexTypeDefinitionImpl extends DefinitionImpl implements Complex
 	
 	public void add(ItemDefinition<?> definition) {
 		itemDefinitions.add(definition);
-	}
-
-	@Override
-	public Class<?> getCompileTimeClass() {
-		return compileTimeClass;
-	}
-
-	public void setCompileTimeClass(Class<?> compileTimeClass) {
-		this.compileTimeClass = compileTimeClass;
 	}
 
 	@Override
@@ -138,15 +127,6 @@ public class ComplexTypeDefinitionImpl extends DefinitionImpl implements Complex
 
 	public void setIgnoredNamespaces(@NotNull List<String> ignoredNamespaces) {
 		this.ignoredNamespaces = ignoredNamespaces;
-	}
-
-	@Override
-	public QName getSuperType() {
-		return superType;
-	}
-
-	public void setSuperType(QName superType) {
-		this.superType = superType;
 	}
 
 	public void setObjectMarker(boolean objectMarker) {
@@ -303,12 +283,10 @@ public class ComplexTypeDefinitionImpl extends DefinitionImpl implements Complex
 	
 	protected void copyDefinitionData(ComplexTypeDefinitionImpl clone) {
 		super.copyDefinitionData(clone);
-        clone.superType = this.superType;
         clone.containerMarker = this.containerMarker;
         clone.objectMarker = this.objectMarker;
         clone.xsdAnyMarker = this.xsdAnyMarker;
         clone.extensionForType = this.extensionForType;
-        clone.compileTimeClass = this.compileTimeClass;
 		clone.defaultNamespace = this.defaultNamespace;
 		clone.ignoredNamespaces = this.ignoredNamespaces;
         clone.itemDefinitions.addAll(this.itemDefinitions);
@@ -337,12 +315,10 @@ public class ComplexTypeDefinitionImpl extends DefinitionImpl implements Complex
 	public int hashCode() {
 		final int prime = 31;
 		int result = super.hashCode();
-		result = prime * result + ((compileTimeClass == null) ? 0 : compileTimeClass.hashCode());
 		result = prime * result + (containerMarker ? 1231 : 1237);
 		result = prime * result + ((extensionForType == null) ? 0 : extensionForType.hashCode());
 		result = prime * result + ((itemDefinitions == null) ? 0 : itemDefinitions.hashCode());
 		result = prime * result + (objectMarker ? 1231 : 1237);
-		result = prime * result + ((superType == null) ? 0 : superType.hashCode());
 		result = prime * result + (xsdAnyMarker ? 1231 : 1237);
 		return result;
 	}
@@ -359,13 +335,6 @@ public class ComplexTypeDefinitionImpl extends DefinitionImpl implements Complex
 			return false;
 		}
 		ComplexTypeDefinitionImpl other = (ComplexTypeDefinitionImpl) obj;
-		if (compileTimeClass == null) {
-			if (other.compileTimeClass != null) {
-				return false;
-			}
-		} else if (!compileTimeClass.equals(other.compileTimeClass)) {
-			return false;
-		}
 		if (containerMarker != other.containerMarker) {
 			return false;
 		}
@@ -376,21 +345,10 @@ public class ComplexTypeDefinitionImpl extends DefinitionImpl implements Complex
 		} else if (!extensionForType.equals(other.extensionForType)) {
 			return false;
 		}
-		if (itemDefinitions == null) {
-			if (other.itemDefinitions != null) {
-				return false;
-			}
-		} else if (!itemDefinitions.equals(other.itemDefinitions)) {
+		if (!itemDefinitions.equals(other.itemDefinitions)) {
 			return false;
 		}
 		if (objectMarker != other.objectMarker) {
-			return false;
-		}
-		if (superType == null) {
-			if (other.superType != null) {
-				return false;
-			}
-		} else if (!superType.equals(other.superType)) {
 			return false;
 		}
 		if (xsdAnyMarker != other.xsdAnyMarker) {

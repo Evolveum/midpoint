@@ -24,10 +24,7 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.ItemPathUtil;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceAttribute;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
@@ -593,7 +590,7 @@ public class RefinedObjectClassDefinitionImpl implements RefinedObjectClassDefin
      * @return
      */
     @Override
-	public LayerRefinedObjectClassDefinition forLayer(LayerType layerType) {
+	public LayerRefinedObjectClassDefinition forLayer(@NotNull LayerType layerType) {
         Validate.notNull(layerType);
         return LayerRefinedObjectClassDefinitionImpl.wrap(this, layerType);
     }
@@ -762,7 +759,7 @@ public class RefinedObjectClassDefinitionImpl implements RefinedObjectClassDefin
 
 	@Override
 	public ResourceAttributeContainer instantiate(QName elementName) {
-		return originalObjectClassDefinition.instantiate(elementName);			// TODO doesn't preserve 'this' in instantiated RAC
+		return ObjectClassComplexTypeDefinitionImpl.instantiate(elementName, this);
 	}
 
 	//endregion
@@ -1046,31 +1043,31 @@ public class RefinedObjectClassDefinitionImpl implements RefinedObjectClassDefin
     
     @Override
     public String debugDump(int indent) {
-    	return debugDump(indent, null, getDebugDumpClassName());
+    	return debugDump(indent, null, this);
     }
 
-    public String debugDump(int indent, LayerType layer, String debugDumpClassName) {
+    public static String debugDump(int indent, LayerType layer, RefinedObjectClassDefinition _this) {
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < indent; i++) {
             sb.append(INDENT_STRING);
         }
-        sb.append(debugDumpClassName).append("(");
-        sb.append(SchemaDebugUtil.prettyPrint(getTypeName()));
-        if (isDefault()) {
+        sb.append(_this.getDebugDumpClassName()).append("(");
+        sb.append(SchemaDebugUtil.prettyPrint(_this.getTypeName()));
+        if (_this.isDefault()) {
             sb.append(",default");
         }
-        if (getKind() != null) {
-        	sb.append(" ").append(getKind().value());
+        if (_this.getKind() != null) {
+        	sb.append(" ").append(_this.getKind().value());
         }
         sb.append(",");
-        if (getIntent() != null) {
-        	sb.append("intent=").append(getIntent());
+        if (_this.getIntent() != null) {
+        	sb.append("intent=").append(_this.getIntent());
         }
         if (layer != null) {
         	sb.append(",layer=").append(layer);
         }
         sb.append(")");
-        for (RefinedAttributeDefinition rAttrDef: getAttributeDefinitions()) {
+        for (RefinedAttributeDefinition rAttrDef: _this.getAttributeDefinitions()) {
             sb.append("\n");
             sb.append(rAttrDef.debugDump(indent + 1, layer));
         }
@@ -1080,7 +1077,7 @@ public class RefinedObjectClassDefinitionImpl implements RefinedObjectClassDefin
     /**
      * Return a human readable name of this class suitable for logs.
      */
-    protected String getDebugDumpClassName() {
+    public String getDebugDumpClassName() {
         return "rOCD";
     }
 
@@ -1090,10 +1087,8 @@ public class RefinedObjectClassDefinitionImpl implements RefinedObjectClassDefin
 			return getDisplayName();
 		} else if (getKind() != null) {
 			return getKind()+":"+getIntent();
-		} else if (getTypeName() != null) {
-			return getTypeName().getLocalPart();
 		} else {
-			return "null";
+			return getTypeName().getLocalPart();
 		}
 	}
 	

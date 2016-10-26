@@ -429,10 +429,10 @@ public class DeltaConvertor {
 				.serialize(value)
 				.getSubnode();
 		// TODO solve this within serializer!
-		if (delta.getDefinition() != null) {
-			node.setTypeQName(delta.getDefinition().getTypeName());
-			node.setExplicitTypeDeclaration(true);
-		}
+//		if (delta.getDefinition() != null) {
+//			node.setTypeQName(delta.getDefinition().getTypeName());
+//			node.setExplicitTypeDeclaration(true);
+//		}
 		return node;
     }
 

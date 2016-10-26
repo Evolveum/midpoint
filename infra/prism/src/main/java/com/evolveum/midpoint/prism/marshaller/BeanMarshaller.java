@@ -179,7 +179,8 @@ public class BeanMarshaller {
                     // Fix it in 3.1. [med]
                     if (fieldTypeName == null && element instanceof JAXBElement && marshalled != null) {
                         QName typeName = inspector.determineTypeForClass(elementToMarshall.getClass());
-                        if (typeName != null && !getSchemaRegistry().hasImplicitTypeDefinition(elementName, typeName)) {
+                        if (typeName != null && !getSchemaRegistry().hasImplicitTypeDefinition(elementName, typeName)
+								&& getSchemaRegistry().findTypeDefinitionByType(typeName, TypeDefinition.class) != null) {
                             marshalled.setExplicitTypeDeclaration(true);
                             marshalled.setTypeQName(typeName);
                         }
@@ -202,14 +203,12 @@ public class BeanMarshaller {
 					valueToMarshall = getterResult;
 				}
 				XNode marshelled = marshallValue(valueToMarshall, fieldTypeName, isAttribute, ctx);
-				if (!getter.getReturnType().equals(valueToMarshall.getClass()) && getter.getReturnType().isAssignableFrom(valueToMarshall.getClass())){
-					if (prismContext != null) {
-                        PrismObjectDefinition def = prismContext.getSchemaRegistry().determineDefinitionFromClass(valueToMarshall.getClass());
-                        if (def != null){
-                            QName type = def.getTypeName();
-                            marshelled.setTypeQName(type);
-                            marshelled.setExplicitTypeDeclaration(true);
-                        }
+				if (!getter.getReturnType().equals(valueToMarshall.getClass()) && getter.getReturnType().isAssignableFrom(valueToMarshall.getClass()) && !(valueToMarshall instanceof Enum)) {
+					PrismObjectDefinition def = prismContext.getSchemaRegistry().determineDefinitionFromClass(valueToMarshall.getClass());
+					if (def != null){
+						QName type = def.getTypeName();
+						marshelled.setTypeQName(type);
+						marshelled.setExplicitTypeDeclaration(true);
 					}
 				}
 				xmap.put(elementName, marshelled);
@@ -337,7 +336,7 @@ public class BeanMarshaller {
 			getterType = getterReturnType;
 		}
 		Class getterResultReturnType = getterResult.getClass();
-		if (getterType != getterResultReturnType && getterType.isAssignableFrom(getterResultReturnType)){
+		if (getterType != getterResultReturnType && getterType.isAssignableFrom(getterResultReturnType)) {
 			xmap.setExplicitTypeDeclaration(true);
 			xmap.setTypeQName(fieldTypeName);
 		}
@@ -427,7 +426,14 @@ public class BeanMarshaller {
 
 	public boolean canProcess(QName typeName) {
 		Class<Object> clazz = getSchemaRegistry().determineClassForType(typeName);
-		return clazz != null && canProcess(clazz);
+		if (clazz != null && canProcess(clazz)) {
+			return true;
+		}
+		TypeDefinition td = getSchemaRegistry().findTypeDefinitionByType(typeName);
+		if (td instanceof SimpleTypeDefinition) {
+			return true;			// most probably dynamic enum, at this point
+		}
+		return false;
 	}
 
 	public boolean canProcess(@NotNull Class<?> clazz) {

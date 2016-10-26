@@ -31,7 +31,7 @@ import java.util.Map;
  * @author semancik
  * @author mederly
  */
-public interface ComplexTypeDefinition extends Definition, LocalDefinitionStore {
+public interface ComplexTypeDefinition extends TypeDefinition, LocalDefinitionStore {
 
 	/**
 	 * Returns definitions for all inner items.
@@ -45,12 +45,6 @@ public interface ComplexTypeDefinition extends Definition, LocalDefinitionStore 
 	 */
 	@NotNull
 	List<? extends ItemDefinition> getDefinitions();
-
-	/**
-	 * Returns compile-time class, if this type has any. For example, UserType.class, ObjectType.class, ExtensionType.class.
-	 */
-	@Nullable
-	Class<?> getCompileTimeClass();
 
 	/**
 	 * If not null, indicates that this type defines the structure of 'extension' element of a given type.
@@ -97,14 +91,6 @@ public interface ComplexTypeDefinition extends Definition, LocalDefinitionStore 
 	 */
 	@NotNull
 	List<String> getIgnoredNamespaces();
-
-	/**
-	 * Name of super type of this complex type definition. E.g. c:ObjectType is a super type for
-	 * c:FocusType which is a super type for c:UserType. Or (more complex example) ri:ShadowAttributesType
-	 * is a super type of ri:AccountObjectClass. (TODO is this really true?)
-	 */
-	@Nullable
-	QName getSuperType();
 
 	/**
 	 * Copies cloned definitions from the other type definition into this one.

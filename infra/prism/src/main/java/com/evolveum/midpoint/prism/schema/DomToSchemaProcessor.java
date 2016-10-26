@@ -38,6 +38,7 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
 import com.evolveum.midpoint.prism.*;
+import com.sun.xml.xsom.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.NotNull;
@@ -54,17 +55,6 @@ import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.sun.xml.xsom.XSAnnotation;
-import com.sun.xml.xsom.XSComplexType;
-import com.sun.xml.xsom.XSContentType;
-import com.sun.xml.xsom.XSElementDecl;
-import com.sun.xml.xsom.XSFacet;
-import com.sun.xml.xsom.XSModelGroup;
-import com.sun.xml.xsom.XSParticle;
-import com.sun.xml.xsom.XSRestrictionSimpleType;
-import com.sun.xml.xsom.XSSchemaSet;
-import com.sun.xml.xsom.XSTerm;
-import com.sun.xml.xsom.XSType;
 import com.sun.xml.xsom.parser.XSOMParser;
 import com.sun.xml.xsom.util.DomAnnotationParserFactory;
 
@@ -162,6 +152,10 @@ class DomToSchemaProcessor {
 		// Create ComplexTypeDefinitions from all top-level complexType
 		// definition in the XSD
 		processComplexTypeDefinitions(xsSchemaSet);
+
+		// Create SimpleTypeDefinitions from all top-level simpleType
+		// definition in the XSD
+		processSimpleTypeDefinitions(xsSchemaSet);
 
 		// Create PropertyContainer (and possibly also Property) definition from
 		// the top-level elements in XSD
@@ -379,6 +373,46 @@ class DomToSchemaProcessor {
 
 		return ctd;
 
+	}
+
+	private void processSimpleTypeDefinitions(XSSchemaSet set) throws SchemaException {
+		Iterator<XSSimpleType> iterator = set.iterateSimpleTypes();
+		while (iterator.hasNext()) {
+			XSSimpleType simpleType = iterator.next();
+			if (simpleType.getTargetNamespace().equals(schema.getNamespace())) {
+				processSimpleTypeDefinition(simpleType);
+			}
+		}
+	}
+
+	private SimpleTypeDefinition processSimpleTypeDefinition(XSSimpleType simpleType)
+			throws SchemaException {
+
+		SchemaDefinitionFactory definitionFactory = getDefinitionFactory();
+		SimpleTypeDefinitionImpl std = (SimpleTypeDefinitionImpl) definitionFactory.createSimpleTypeDefinition(simpleType, prismContext,
+				simpleType.getAnnotation());
+
+		SimpleTypeDefinition existingSimpleTypeDefinition = schema.findSimpleTypeDefinitionByType(std.getTypeName());
+		if (existingSimpleTypeDefinition != null) {
+			// We already have this in schema. So avoid redundant work
+			return existingSimpleTypeDefinition;
+		}
+		markRuntime(std);
+
+		QName superType = determineSupertype(simpleType);
+		if (superType != null) {
+			std.setSuperType(superType);
+		}
+
+		extractDocumentation(std, simpleType.getAnnotation());
+
+		if (getSchemaRegistry() != null) {
+			Class<?> compileTimeClass = getSchemaRegistry().determineCompileTimeClass(std.getTypeName());
+			std.setCompileTimeClass(compileTimeClass);
+		}
+
+		schema.add(std);
+		return std;
 	}
 
 	private void extractDocumentation(Definition definition, XSAnnotation annotation) {
@@ -717,8 +751,8 @@ class DomToSchemaProcessor {
 		return false;
 	}
 
-	private QName determineSupertype(XSComplexType complexType) {
-		XSType baseType = complexType.getBaseType();
+	private QName determineSupertype(XSType type) {
+		XSType baseType = type.getBaseType();
 		if (baseType == null) {
 			return null;
 		}
@@ -917,7 +951,7 @@ class DomToSchemaProcessor {
 		parseItemDefinitionAnnotations(propDef, annotation);
 
 		List<Element> accessElements = SchemaProcessorUtil.getAnnotationElements(annotation, A_ACCESS);
-		if (accessElements == null || accessElements.isEmpty()) {
+		if (accessElements.isEmpty()) {
 			// Default access is read-write-create
 			propDef.setCanAdd(true);
 			propDef.setCanModify(true);

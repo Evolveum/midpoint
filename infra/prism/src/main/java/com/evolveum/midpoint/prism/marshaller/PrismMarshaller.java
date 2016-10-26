@@ -15,31 +15,24 @@
  */
 package com.evolveum.midpoint.prism.marshaller;
 
-import java.util.ArrayList;
-import java.util.Collection;
-
-import javax.xml.namespace.QName;
-
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.schema.SchemaRegistry;
-import com.evolveum.midpoint.util.JAXBUtil;
-import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
-
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.Validate;
-
 import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.prism.xnode.ListXNode;
-import com.evolveum.midpoint.prism.xnode.MapXNode;
-import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
-import com.evolveum.midpoint.prism.xnode.RootXNode;
-import com.evolveum.midpoint.prism.xnode.XNode;
+import com.evolveum.midpoint.prism.schema.SchemaRegistry;
+import com.evolveum.midpoint.prism.xnode.*;
 import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 import com.evolveum.prism.xml.ns._public.types_3.EvaluationTimeType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import javax.xml.namespace.QName;
+import java.util.ArrayList;
+import java.util.Collection;
 
 /**
  * @author semancik
@@ -231,10 +224,15 @@ public class PrismMarshaller {
 		if (definition instanceof PrismContainerDefinition) {
 			PrismContainerDefinition pcd = (PrismContainerDefinition) definition;
 			ComplexTypeDefinition ctd = pcd.getComplexTypeDefinition();
-			return ctd != null && !ctd.isXsdAnyMarker() && ctd.getCompileTimeClass() != null;
+			return ctd != null && ctd.getCompileTimeClass() != null;
 		} else if (definition instanceof PrismPropertyDefinition) {
 			PrismPropertyDefinition ppd = (PrismPropertyDefinition) definition;
-			return !ppd.isAnyType();			// covered by isAbstract?
+			if (ppd.isAnyType()) {
+				return false;
+			}
+			// TODO optimize
+			return getSchemaRegistry().determineClassForType(ppd.getTypeName()) != null
+					|| getSchemaRegistry().findTypeDefinitionByType(ppd.getTypeName(), TypeDefinition.class) != null;
 		} else {
 			return false;
 		}
@@ -454,7 +452,8 @@ public class PrismMarshaller {
 		if (typeName == null) {
 			return;	// nothing to do, anyway
 		}
-		if (!getSchemaRegistry().hasImplicitTypeDefinition(itemName, typeName)) {
+		if (!getSchemaRegistry().hasImplicitTypeDefinition(itemName, typeName)
+				&& getSchemaRegistry().findTypeDefinitionByType(typeName) != null) {
 			valueNode.setTypeQName(typeName);
 			valueNode.setExplicitTypeDeclaration(true);
 		}

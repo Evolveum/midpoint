@@ -118,9 +118,6 @@ public abstract class XNode implements DebugDumpable, Visitable, Cloneable, Seri
 	}
 
 	public void setTypeQName(QName typeQName) {
-		if (typeQName != null && typeQName.getLocalPart().equals("ConfigurationPropertiesType")) {
-			System.out.println("Hi!");
-		}
 		this.typeQName = typeQName;
 	}
 

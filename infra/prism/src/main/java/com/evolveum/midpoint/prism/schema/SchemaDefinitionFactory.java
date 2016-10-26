@@ -20,6 +20,7 @@ import java.util.Collection;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.*;
+import com.sun.xml.xsom.XSSimpleType;
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.util.DisplayableValue;
@@ -40,7 +41,14 @@ public class SchemaDefinitionFactory {
 		QName typeName = new QName(complexType.getTargetNamespace(),complexType.getName());
 		return new ComplexTypeDefinitionImpl(typeName, prismContext);
 	}
-	
+
+	public SimpleTypeDefinition createSimpleTypeDefinition(XSSimpleType simpleType,
+			PrismContext prismContext, XSAnnotation annotation) throws SchemaException {
+
+		QName typeName = new QName(simpleType.getTargetNamespace(), simpleType.getName());
+		return new SimpleTypeDefinitionImpl(typeName, prismContext);
+	}
+
 	public <T> PrismPropertyDefinition<T> createPropertyDefinition(QName elementName, QName typeName, ComplexTypeDefinition complexTypeDefinition,
 			PrismContext prismContext, XSAnnotation annotation, XSParticle elementParticle) throws SchemaException {
 		return new PrismPropertyDefinitionImpl<T>(elementName, typeName, prismContext);

@@ -30,7 +30,9 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
+import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinitionImpl;
 import org.apache.commons.lang.mutable.MutableInt;
 import org.opends.messages.TaskMessages;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -322,7 +324,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         display("Dummy resource azure", dummyResourceAzure);
         
         // WHEN
-        ResourceSchema resourceSchemaAzure = RefinedResourceSchema.getResourceSchema(resourceDummyAzureType, prismContext);
+        ResourceSchema resourceSchemaAzure = RefinedResourceSchemaImpl.getResourceSchema(resourceDummyAzureType, prismContext);
         
         display("Dummy azure resource schema", resourceSchemaAzure);
         
@@ -339,7 +341,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // WHEN
-        RefinedResourceSchema refinedSchemaAzure = RefinedResourceSchema.getRefinedSchema(resourceDummyAzureType, prismContext);
+        RefinedResourceSchema refinedSchemaAzure = RefinedResourceSchemaImpl.getRefinedSchema(resourceDummyAzureType, prismContext);
         
         display("Dummy azure refined schema", refinedSchemaAzure);
         

@@ -196,11 +196,14 @@ public class ObjectClassComplexTypeDefinitionImpl extends ComplexTypeDefinitionI
 	 */
 	@Override
 	public ResourceAttributeContainer instantiate(QName elementName) {
-		ResourceAttributeContainerDefinition racDef = toResourceAttributeContainerDefinition(elementName);
-		ResourceAttributeContainer rac = new ResourceAttributeContainer(elementName, racDef, getPrismContext());
-		return rac;
+		return instantiate(elementName, this);
 	}
 	
+	public static ResourceAttributeContainer instantiate(QName elementName, ObjectClassComplexTypeDefinition ocdef) {
+		ResourceAttributeContainerDefinition racDef = ocdef.toResourceAttributeContainerDefinition(elementName);
+		return new ResourceAttributeContainer(elementName, racDef, ocdef.getPrismContext());
+	}
+
 	@NotNull
 	@Override
 	public ObjectClassComplexTypeDefinitionImpl clone() {

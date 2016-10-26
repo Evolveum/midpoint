@@ -17,7 +17,6 @@
 package com.evolveum.midpoint.prism.marshaller;
 
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.prism.xnode.RootXNode;
 import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -181,9 +180,13 @@ public class PrismSerializerImpl<T> implements PrismSerializer<T> {
 	private void checkTypeResolvable(RootXNode root) {
 		root.accept(n -> {
 			QName type;
-			if (n instanceof XNode && (type = ((XNode) n).getTypeQName()) != null) {
+			if (n instanceof XNode && (type = ((XNode) n).getTypeQName()) != null && ((XNode) n).isExplicitTypeDeclaration()) {
 				if (prismContext.getSchemaRegistry().determineClassForType(type) == null) {
-					throw new IllegalStateException("Postcondition fail: type " + type + " is not resolvable in:\n" + root.debugDump());
+					// it could be sufficient to find a TD
+					if (prismContext.getSchemaRegistry().findTypeDefinitionByType(type) == null) {
+						throw new IllegalStateException(
+								"Postcondition fail: type " + type + " is not resolvable in:\n" + root.debugDump());
+					}
 				}
 			}
 		});

@@ -134,7 +134,7 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
         	Document xmlDocument = DOMUtil.parseDocument(xmlString);
     		Schema javaxSchema = prismContext.getSchemaRegistry().getJavaxSchema();
     		Validator validator = javaxSchema.newValidator();
-    		validator.setResourceResolver(prismContext.getSchemaRegistry());
+    		validator.setResourceResolver(prismContext.getEntityResolver());
     		validator.validate(new DOMSource(xmlDocument));
     		
     		PrismObject<Objectable> parsedUser = prismContext.parseObject(xmlString);

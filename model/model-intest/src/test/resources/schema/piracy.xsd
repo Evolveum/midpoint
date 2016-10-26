@@ -124,6 +124,7 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+			<xsd:element ref="tns:sea"/>
         </xsd:sequence>
     </xsd:complexType>
 

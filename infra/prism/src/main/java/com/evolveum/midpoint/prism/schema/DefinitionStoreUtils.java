@@ -31,7 +31,7 @@ public class DefinitionStoreUtils {
 		} else if (list.size() == 1) {
 			return list.get(0);
 		} else {
-			// remove all deprecated ones
+			// consider not deprecated ones
 			List<ID> notDeprecated = list.stream()
 					.filter(def -> !def.isDeprecated())
 					.collect(Collectors.toList());

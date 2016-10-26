@@ -169,7 +169,7 @@ public class LayerRefinedObjectClassDefinitionImpl implements LayerRefinedObject
 	}
 
 	@Override
-	public LayerRefinedObjectClassDefinition forLayer(LayerType layerType) {
+	public LayerRefinedObjectClassDefinition forLayer(@NotNull LayerType layerType) {
 		return refinedObjectClassDefinition.forLayer(layerType);
 	}
 
@@ -222,7 +222,7 @@ public class LayerRefinedObjectClassDefinitionImpl implements LayerRefinedObject
 
 	@Override
 	public ResourceAttributeContainer instantiate(QName name) {
-		return refinedObjectClassDefinition.instantiate(name);
+		return ObjectClassComplexTypeDefinitionImpl.instantiate(name, this);
 	}
 
 //    @Override
@@ -538,8 +538,7 @@ public class LayerRefinedObjectClassDefinitionImpl implements LayerRefinedObject
 
 	@Override
 	public String debugDump(int indent) {
-		// TODO fix this hack
-		return ((RefinedObjectClassDefinitionImpl) refinedObjectClassDefinition).debugDump(indent, layer, getDebugDumpClassName());
+		return RefinedObjectClassDefinitionImpl.debugDump(indent, layer, this);
 	}
 
     // Do NOT override&delegate debugDump(int indent, LayerType layer) here.
@@ -549,7 +548,7 @@ public class LayerRefinedObjectClassDefinitionImpl implements LayerRefinedObject
 	/**
      * Return a human readable name of this class suitable for logs.
      */
-    protected String getDebugDumpClassName() {
+    public String getDebugDumpClassName() {
         return "LRObjectClassDef";
     }
 

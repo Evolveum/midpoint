@@ -534,8 +534,8 @@ public class RefinedResourceSchemaImpl implements RefinedResourceSchema {
 
 	@Override
 	@Nullable
-	public ComplexTypeDefinition findComplexTypeDefinitionByType(@NotNull QName typeName) {
-		return originalResourceSchema.findComplexTypeDefinitionByType(typeName);
+	public <TD extends TypeDefinition> TD findTypeDefinitionByType(@NotNull QName typeName, @NotNull Class<TD> definitionClass) {
+		return originalResourceSchema.findTypeDefinitionByType(typeName, definitionClass);
 	}
 
 	@Override

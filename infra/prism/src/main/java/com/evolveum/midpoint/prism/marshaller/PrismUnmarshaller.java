@@ -251,6 +251,7 @@ public class PrismUnmarshaller {
                         // an error. We positively know that it is not in the schema.
                         pc.warnOrThrow(LOGGER, "Item " + itemName + " has no definition (schema present, in container "
                                 + containerDef + ")" + "while parsing " + map.debugDump());
+                        continue;
                     } else {
                         // No definition for item, but the schema is runtime. the definition may come later.
                         // Null is OK here. The item will be parsed as "raw"
@@ -337,7 +338,7 @@ public class PrismUnmarshaller {
             }
             PrismUtil.recomputeRealValue(realValue, prismContext);
             if (!isValueAllowed(realValue, definition)) {
-                pc.warnOrThrow(LOGGER, "Skipping unknown value of type " + typeName + ". Value: " + realValue);
+                pc.warnOrThrow(LOGGER, "Unknown (not allowed) value of type " + typeName + ". Value: " + realValue + ". Allowed values: " + definition.getAllowedValues());
                 return null;
             }
             return realValue != null ? new PrismPropertyValue<>(realValue) : null;

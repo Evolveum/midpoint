@@ -101,6 +101,15 @@ public class BeanUnmarshaller {
 	@NotNull
 	<T> T unmarshal(@NotNull XNode xnode, @NotNull QName typeQName, @NotNull ParsingContext pc) throws SchemaException {
 		Class<T> classType = getSchemaRegistry().determineClassForType(typeQName);		// TODO use correct method!
+		if (classType == null) {
+			TypeDefinition td = getSchemaRegistry().findTypeDefinitionByType(typeQName);
+			if (td instanceof SimpleTypeDefinition) {
+				// most probably dynamically defined enum (TODO clarify)
+				classType = (Class<T>) String.class;
+			} else {
+				throw new IllegalArgumentException("Couldn't unmarshal " + typeQName + ". Type definition = " + td);
+			}
+		}
 		return unmarshal(xnode, classType, pc);
 	}
 

@@ -144,30 +144,10 @@ public abstract class AbstractLexicalProcessorTest {
 		String serializedString = lexicalProcessor.write(serializedXNode, new QName(NS_FOO, "user"), null);
 		
 		// THEN
-				System.out.println("\nXNode after re-serialization:");
-				System.out.println(serializedXNode.debugDump());
-				System.out.println("\nRe-serialized string:");
-				System.out.println(serializedString);
-		
-//		try{
-//			FileOutputStream out = new FileOutputStream(new File("D:/user-jack-prism.json"));
-//			PrismJsonSerializer jsonSer = new PrismJsonSerializer();
-//			String s = jsonSer.serializeToString((RootXNode) serializedXNode);
-//			System.out.println("JSON: \n" + s);
-//			
-////			FileInputStream in = new FileInputStream(new File("D:/user-jack-prism.json"));
-////			XNode afterJson = jsonSer.parseObject(in);
-////			
-////			// THEN
-////					System.out.println("AFTER JSON XNode:");
-////					System.out.println(afterJson.debugDump());
-//			
-//			} catch (Exception ex){
-//				System.out.println( ex);
-//				throw ex;
-//			}
-//		
-		
+		System.out.println("\nXNode after re-serialization:");
+		System.out.println(serializedXNode.debugDump());
+		System.out.println("\nRe-serialized string:");
+		System.out.println(serializedString);
 		
 		assertUserJackXNodeOrdering("serialized xnode", serializedXNode);
 		

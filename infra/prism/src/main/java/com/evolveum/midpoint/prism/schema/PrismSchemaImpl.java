@@ -407,11 +407,11 @@ public class PrismSchemaImpl implements PrismSchema {
 
 	@Nullable
 	@Override
-	public ComplexTypeDefinition findComplexTypeDefinitionByType(@NotNull QName typeName) {
+	public <TD extends TypeDefinition> TD findTypeDefinitionByType(@NotNull QName typeName, @NotNull Class<TD> definitionClass) {
 		// TODO: check for multiple definition with the same type
 		for (Definition definition : definitions) {
-			if (definition instanceof ComplexTypeDefinition && QNameUtil.match(typeName, definition.getTypeName())) {
-				return (ComplexTypeDefinition) definition;
+			if (definitionClass.isAssignableFrom(definition.getClass()) && QNameUtil.match(typeName, definition.getTypeName())) {
+				return (TD) definition;
 			}
 		}
 		return null;

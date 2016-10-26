@@ -70,7 +70,7 @@ public interface GlobalDefinitionsStore extends DefinitionsStore {
 
 	<C extends Containerable> ComplexTypeDefinition findComplexTypeDefinitionByCompileTimeClass(@NotNull Class<C> compileTimeClass);
 
-	ComplexTypeDefinition findComplexTypeDefinitionByType(@NotNull QName typeName);
+	<TD extends TypeDefinition> TD findTypeDefinitionByType(@NotNull QName typeName, @NotNull Class<TD> definitionClass);
 
 	// non-core (derived) methods
 
@@ -156,11 +156,21 @@ public interface GlobalDefinitionsStore extends DefinitionsStore {
 		return findItemDefinitionByElementName(elementName, definitionClass);
 	}
 
-	// ComplexTypeDefinition-related
+	// TypeDefinition-related
+
+	default ComplexTypeDefinition findComplexTypeDefinitionByType(@NotNull QName typeName) {
+		return findTypeDefinitionByType(typeName, ComplexTypeDefinition.class);
+	}
+
+	default SimpleTypeDefinition findSimpleTypeDefinitionByType(@NotNull QName typeName) {
+		return findTypeDefinitionByType(typeName, SimpleTypeDefinition.class);
+	}
+
+	default TypeDefinition findTypeDefinitionByType(@NotNull QName typeName) {
+		return findTypeDefinitionByType(typeName, TypeDefinition.class);
+	}
 
 	@Deprecated default ComplexTypeDefinition findComplexTypeDefinition(@NotNull QName typeName) {
 		return findComplexTypeDefinitionByType(typeName);
 	}
-
-
 }

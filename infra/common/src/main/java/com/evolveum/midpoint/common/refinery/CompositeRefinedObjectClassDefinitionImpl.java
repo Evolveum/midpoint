@@ -21,6 +21,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
+import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinitionImpl;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -420,8 +421,8 @@ public class CompositeRefinedObjectClassDefinitionImpl implements CompositeRefin
 	}
 
 	@Override
-	public LayerRefinedObjectClassDefinition forLayer(LayerType layerType) {
-		throw new UnsupportedOperationException("TODO implement if needed");
+	public LayerRefinedObjectClassDefinition forLayer(@NotNull LayerType layerType) {
+		return LayerRefinedObjectClassDefinitionImpl.wrap(this, layerType);
 	}
 
 	@SuppressWarnings("unchecked")
@@ -476,7 +477,7 @@ public class CompositeRefinedObjectClassDefinitionImpl implements CompositeRefin
 
 	@Override
 	public ResourceAttributeContainer instantiate(QName elementName) {
-		throw new UnsupportedOperationException("TODO implement if needed");
+		return ObjectClassComplexTypeDefinitionImpl.instantiate(elementName, this);
 	}
 
 	@Override
@@ -638,7 +639,7 @@ public class CompositeRefinedObjectClassDefinitionImpl implements CompositeRefin
      * Return a human readable name of this class suitable for logs.
      */
 //    @Override
-    protected String getDebugDumpClassName() {
+    public String getDebugDumpClassName() {
         return "crOCD";
     }
 

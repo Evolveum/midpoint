@@ -108,8 +108,8 @@ public class PrimitiveXNode<T> extends XNode implements Serializable {
                     throw new IllegalStateException("Cannot determine type QName for a value of '" + value + "'");            // todo show only class? (security/size reasons)
                 }
             }
+			this.setTypeQName(typeQName);
         }
-        this.setTypeQName(typeQName);
 		this.value = value;
         this.valueParser = null;
 	}

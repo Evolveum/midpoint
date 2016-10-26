@@ -8409,8 +8409,14 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    <xsd:element name="userTemplate" type="tns:ObjectTemplateType" substitutionGroup="c:object"/>
-    <xsd:element name="objectTemplate" type="tns:ObjectTemplateType" substitutionGroup="c:object"/>
+	<xsd:element name="userTemplate" type="tns:ObjectTemplateType" substitutionGroup="c:object">
+		<xsd:annotation>
+			<xsd:appinfo>
+				<a:deprecated>true</a:deprecated>
+			</xsd:appinfo>
+		</xsd:annotation>
+	</xsd:element>
+	<xsd:element name="objectTemplate" type="tns:ObjectTemplateType" substitutionGroup="c:object"/>
     
     <xsd:complexType name="ObjectTemplateItemDefinitionType">
         <xsd:annotation>

@@ -204,8 +204,8 @@ public class LayerRefinedResourceSchemaImpl implements LayerRefinedResourceSchem
 
 	@Override
 	@Nullable
-	public ComplexTypeDefinition findComplexTypeDefinitionByType(@NotNull QName typeName) {
-		return refinedResourceSchema.findComplexTypeDefinitionByType(typeName);
+	public <TD extends TypeDefinition> TD findTypeDefinitionByType(@NotNull QName typeName, @NotNull Class<TD> definitionClass) {
+		return refinedResourceSchema.findTypeDefinitionByType(typeName, definitionClass);
 	}
 
 	@Override

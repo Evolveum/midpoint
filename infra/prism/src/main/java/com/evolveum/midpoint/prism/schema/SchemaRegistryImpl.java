@@ -699,11 +699,11 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
 	@Override
 	public <ID extends ItemDefinition> ID findItemDefinitionByType(@NotNull QName typeName, @NotNull Class<ID> definitionClass) {
 		if (QNameUtil.noNamespace(typeName)) {
-			ComplexTypeDefinition ctd = resolveGlobalTypeDefinitionWithoutNamespace(typeName.getLocalPart());
-			if (ctd == null) {
+			TypeDefinition td = resolveGlobalTypeDefinitionWithoutNamespace(typeName.getLocalPart(), TypeDefinition.class);
+			if (td == null) {
 				return null;
 			}
-			typeName = ctd.getTypeName();
+			typeName = td.getTypeName();
 		}
 		PrismSchema schema = findSchemaByNamespace(typeName.getNamespaceURI());
 		if (schema == null) {
@@ -738,15 +738,15 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
 
 	@Nullable
 	@Override
-	public ComplexTypeDefinition findComplexTypeDefinitionByType(@NotNull QName typeName) {
+	public <TD extends TypeDefinition> TD findTypeDefinitionByType(@NotNull QName typeName, @NotNull Class<TD> definitionClass) {
 		if (QNameUtil.noNamespace(typeName)) {
-			return resolveGlobalTypeDefinitionWithoutNamespace(typeName.getLocalPart());
+			return resolveGlobalTypeDefinitionWithoutNamespace(typeName.getLocalPart(), definitionClass);
 		}
 		PrismSchema schema = findSchemaByNamespace(typeName.getNamespaceURI());
 		if (schema == null) {
 			return null;
 		}
-		return schema.findComplexTypeDefinitionByType(typeName);
+		return schema.findTypeDefinitionByType(typeName, definitionClass);
 	}
 	//endregion
 
@@ -777,11 +777,11 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
 	@Override
 	public <T> Class<T> determineCompileTimeClass(QName typeName) {
 		if (QNameUtil.noNamespace(typeName)) {
-			ComplexTypeDefinition ctd = resolveGlobalTypeDefinitionWithoutNamespace(typeName.getLocalPart());
-			if (ctd == null) {
+			TypeDefinition td = resolveGlobalTypeDefinitionWithoutNamespace(typeName.getLocalPart(), TypeDefinition.class);
+			if (td == null) {
 				return null;
 			}
-			return (Class<T>) ctd.getCompileTimeClass();
+			return (Class<T>) td.getCompileTimeClass();
 		}
 		SchemaDescription desc = findSchemaDescriptionByNamespace(typeName.getNamespaceURI());
 		if (desc == null) {
@@ -947,17 +947,16 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
 		return def;
 	}
 
-	private ComplexTypeDefinition resolveGlobalTypeDefinitionWithoutNamespace(String typeLocalName) {
-		ComplexTypeDefinition found = null;
+	private <TD extends TypeDefinition> TD resolveGlobalTypeDefinitionWithoutNamespace(String typeLocalName, Class<TD> definitionClass) {
+		TD found = null;
 		for (SchemaDescription schemaDescription : parsedSchemas.values()) {
 			PrismSchema schema = schemaDescription.getSchema();
 			if (schema == null) {       // is this possible?
 				continue;
 			}
-			ComplexTypeDefinition def = schema.findComplexTypeDefinition(new QName(schema.getNamespace(), typeLocalName));
+			TD def = schema.findTypeDefinitionByType(new QName(schema.getNamespace(), typeLocalName), definitionClass);
 			if (def != null) {
 				if (found != null) {
-					// TODO change to SchemaException
 					throw new IllegalArgumentException("Multiple possible resolutions for unqualified type name " + typeLocalName + " (e.g. in " +
 							def.getTypeName() + " and " + found.getTypeName());
 				}

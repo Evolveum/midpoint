@@ -17,12 +17,12 @@
 package com.evolveum.midpoint.common.refinery;
 
 import com.evolveum.midpoint.common.ResourceObjectPattern;
-import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.ComplexTypeDefinition;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.util.ItemPathUtil;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
-import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.PagedSearchCapabilityType;
@@ -194,7 +194,7 @@ public interface RefinedObjectClassDefinition extends ObjectClassComplexTypeDefi
 	RefinedObjectClassDefinition deepClone(Map<QName, ComplexTypeDefinition> ctdMap);
 	//endregion
 
-	LayerRefinedObjectClassDefinition forLayer(LayerType layerType);
+	LayerRefinedObjectClassDefinition forLayer(@NotNull LayerType layerType);
 
 	//region Type variance ========================================================
 
@@ -204,6 +204,9 @@ public interface RefinedObjectClassDefinition extends ObjectClassComplexTypeDefi
 		return findAttributeDefinition(new QName(getTypeName().getNamespaceURI(), name));
 	}
 
+
 	//endregion
+
+	String getDebugDumpClassName();
 
 }
