@@ -37,7 +37,6 @@ import com.evolveum.midpoint.repo.sql.data.common.type.RObjectExtensionType;
 import com.evolveum.midpoint.repo.sql.data.factory.MetadataFactory;
 import com.evolveum.midpoint.repo.sql.query.definition.JaxbName;
 import com.evolveum.midpoint.repo.sql.query.definition.JaxbPath;
-import com.evolveum.midpoint.repo.sql.query.definition.VirtualEntity;
 import com.evolveum.midpoint.repo.sql.query2.definition.IdQueryProperty;
 import com.evolveum.midpoint.repo.sql.query2.definition.NotQueryable;
 import com.evolveum.midpoint.repo.sql.query.definition.QueryEntity;
@@ -50,7 +49,6 @@ import com.evolveum.midpoint.repo.sql.util.MidPointJoinedPersister;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TriggerType;
 import org.apache.commons.lang.StringUtils;
@@ -59,8 +57,6 @@ import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.annotations.NamedQueries;
 import org.hibernate.annotations.NamedQuery;
-import org.hibernate.annotations.NotFound;
-import org.hibernate.annotations.NotFoundAction;
 import org.hibernate.annotations.Persister;
 import org.hibernate.annotations.Where;
 
@@ -142,7 +138,8 @@ import java.util.Set;
         @Index(name = "iObjectNameOrig", columnList = "name_orig"),
         @Index(name = "iObjectNameNorm", columnList = "name_norm"),
         @Index(name = "iObjectTypeClass", columnList = "objectTypeClass"),
-        @Index(name = "iObjectCreateTimestamp", columnList = "createTimestamp")})
+        @Index(name = "iObjectCreateTimestamp", columnList = "createTimestamp"),
+        @Index(name = "iObjectLifecycleState", columnList = "lifecycleState")})
 @Inheritance(strategy = InheritanceType.JOINED)
 @Persister(impl = MidPointJoinedPersister.class)
 public abstract class RObject<T extends ObjectType> implements Metadata<RObjectReference<RFocus>>, EntityState, Serializable {
@@ -165,6 +162,7 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
     private Set<RObjectReference<ROrg>> parentOrgRef;
     private Set<RTrigger> trigger;
     private REmbeddedReference tenantRef;
+    private String lifecycleState;
     //Metadata
     private XMLGregorianCalendar createTimestamp;
     private REmbeddedReference creatorRef;
@@ -427,6 +425,14 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
         return trans;
     }
 
+    public String getLifecycleState() {
+        return lifecycleState;
+    }
+
+    public void setLifecycleState(String lifecycleState) {
+        this.lifecycleState = lifecycleState;
+    }
+
     @Override
     public void setTransient(Boolean trans) {
         this.trans = trans;
@@ -575,6 +581,8 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
             return false;
         if (tenantRef != null ? !tenantRef.equals(rObject.tenantRef) : rObject.tenantRef != null)
             return false;
+        if (lifecycleState != null ? !lifecycleState.equals(rObject.lifecycleState) : rObject.lifecycleState != null)
+            return false;
         if (!MetadataFactory.equals(this, rObject)) return false;
 
         if (dates != null ? !dates.equals(rObject.dates) : rObject.dates != null) return false;
@@ -607,6 +615,7 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
         result = 31 * result + (modifyTimestamp != null ? modifyTimestamp.hashCode() : 0);
         result = 31 * result + (modifierRef != null ? modifierRef.hashCode() : 0);
         result = 31 * result + (modifyChannel != null ? modifyChannel.hashCode() : 0);
+        result = 31 * result + (lifecycleState != null ? lifecycleState.hashCode() : 0);
 
         return result;
     }
@@ -621,6 +630,7 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
         jaxb.setName(RPolyString.copyToJAXB(repo.getName()));
         jaxb.setOid(repo.getOid());
         jaxb.setVersion(Integer.toString(repo.getVersion()));
+        jaxb.setLifecycleState(repo.getLifecycleState());
 
         if (SelectorOptions.hasToLoadPath(ObjectType.F_PARENT_ORG_REF, options)) {
             List orgRefs = RUtil.safeSetReferencesToList(repo.getParentOrgRef(), prismContext);
@@ -641,6 +651,7 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
 
         repo.setObjectTypeClass(RObjectType.getType(ClassMapper.getHQLTypeClass(jaxb.getClass())));
         repo.setName(RPolyString.copyFromJAXB(jaxb.getName()));
+        repo.setLifecycleState(jaxb.getLifecycleState());
 
         String strVersion = jaxb.getVersion();
         int version = StringUtils.isNotEmpty(strVersion) && strVersion.matches("[0-9]*") ? Integer.parseInt(jaxb
