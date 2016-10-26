@@ -460,24 +460,30 @@ public class FocusProcessor {
 		TimeIntervalStatusType validityStatusCurrent = null;
 		XMLGregorianCalendar validityChangeTimestamp = null;
 		
+		String lifecycleStateNew = null;
+		String lifecycleStateCurrent = null;
 		ActivationType activationNew = null;
 		ActivationType activationCurrent = null;
 		
 		PrismObject<F> focusNew = focusContext.getObjectNew();
 		if (focusNew != null) {
-			activationNew = focusNew.asObjectable().getActivation();
+			F focusTypeNew = focusNew.asObjectable();
+			activationNew = focusTypeNew.getActivation();
 			if (activationNew != null) {
 				validityStatusNew = activationComputer.getValidityStatus(activationNew, now);
 				validityChangeTimestamp = activationNew.getValidityChangeTimestamp();
 			}
+			lifecycleStateNew = focusTypeNew.getLifecycleState();
 		}
 		
 		PrismObject<F> focusCurrent = focusContext.getObjectCurrent();
 		if (focusCurrent != null) {
-			activationCurrent = focusCurrent.asObjectable().getActivation();
+			F focusCurrentType = focusCurrent.asObjectable();
+			activationCurrent = focusCurrentType.getActivation();
 			if (activationCurrent != null) {
 				validityStatusCurrent = activationComputer.getValidityStatus(activationCurrent, validityChangeTimestamp);
 			}
+			lifecycleStateCurrent = focusCurrentType.getLifecycleState();
 		}
 		
 		if (validityStatusCurrent == validityStatusNew) {
@@ -493,8 +499,8 @@ public class FocusProcessor {
 			recordValidityDelta(focusContext, validityStatusNew, now);
 		}
 		
-		ActivationStatusType effectiveStatusNew = activationComputer.getEffectiveStatus(activationNew, validityStatusNew, ActivationStatusType.ENABLED);
-		ActivationStatusType effectiveStatusCurrent = activationComputer.getEffectiveStatus(activationCurrent, validityStatusCurrent, ActivationStatusType.ENABLED);
+		ActivationStatusType effectiveStatusNew = activationComputer.getEffectiveStatus(lifecycleStateNew, activationNew, validityStatusNew, ActivationStatusType.ENABLED);
+		ActivationStatusType effectiveStatusCurrent = activationComputer.getEffectiveStatus(lifecycleStateCurrent, activationCurrent, validityStatusCurrent, ActivationStatusType.ENABLED);
 		
 		if (effectiveStatusCurrent == effectiveStatusNew) {
 			// No change, (almost) no work
