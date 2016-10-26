@@ -161,7 +161,7 @@ public class UserProfileServiceMock implements UserProfileService, UserDetailsSe
        
         ActivationType activation = principal.getUser().getActivation();
         if (activation != null) {
-        	activationComputer.computeEffective(activation);
+        	activationComputer.computeEffective(principal.getUser().getLifecycleState(), activation);
         }
 	}
 

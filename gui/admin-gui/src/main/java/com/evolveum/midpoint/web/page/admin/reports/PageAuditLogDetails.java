@@ -81,6 +81,8 @@ public class PageAuditLogDetails extends PageBase{
 
 	private static final String ID_BUTTON_BACK = "back";
 
+    private static final String OPERATION_RESOLVE_REFENRENCE_NAME = PageAuditLogDetails.class.getSimpleName()
+            + ".resolveReferenceName()";
 	private IModel<AuditEventRecordType> recordModel;
 	
 	public PageAuditLogDetails(final AuditEventRecordType recordType) {
@@ -149,7 +151,26 @@ public class PageAuditLogDetails extends PageBase{
 		targetRef.setOutputMarkupId(true);
 		eventDetailsPanel.add(targetRef);
 
-		final Label targetOwnerRef = new Label(ID_PARAMETERS_EVENT_TARGET_OWNER , new PropertyModel(recordModel,ID_PARAMETERS_EVENT_TARGET_OWNER));
+        IModel<String> targetOwnerRefModel = new IModel<String>() {
+            @Override
+            public String getObject() {
+                return WebModelServiceUtils.resolveReferenceName(recordModel.getObject().getTargetOwnerRef(),
+                        PageAuditLogDetails.this,
+                        createSimpleTask(OPERATION_RESOLVE_REFENRENCE_NAME),
+                        new OperationResult(OPERATION_RESOLVE_REFENRENCE_NAME));
+            }
+
+            @Override
+            public void setObject(String s) {
+
+            }
+
+            @Override
+            public void detach() {
+
+            }
+        };
+		final Label targetOwnerRef = new Label(ID_PARAMETERS_EVENT_TARGET_OWNER , targetOwnerRefModel);
 		targetOwnerRef.setOutputMarkupId(true);
 		eventDetailsPanel.add(targetOwnerRef);
 

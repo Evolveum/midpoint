@@ -70,6 +70,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 		@AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_AUDIT_LOG_VIEWER_URL, label = "PageAuditLogViewer.auth.auditLogViewer.label", description = "PageAuditLogViewer.auth.auditLogViewer.description") })
 public class PageAuditLogViewer extends PageBase {
 
+	private static final long serialVersionUID = 1L;
     private static final String ID_PANEL = "auditLogViewerPanel";
 	public PageAuditLogViewer() {
         initLayout();

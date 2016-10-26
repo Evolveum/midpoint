@@ -34,6 +34,7 @@ public class DateValidator extends AbstractFormValidator {
    private ItemPath identifier;
     private DateTimeField dateFrom;
     private DateTimeField dateTo;
+    private String messageKey = "DateValidator.message.fromAfterTo";
 
     public DateValidator() {
         this(null, null);
@@ -87,7 +88,11 @@ public class DateValidator extends AbstractFormValidator {
         this.identifier = identifier;
     }
 
-    protected String getMessageKey() {
-        return "DateValidator.message.fromAfterTo";
+    public String getMessageKey() {
+        return messageKey;
+    }
+
+    public void setMessageKey(String messageKey){
+        this.messageKey = messageKey;
     }
 }

@@ -19,29 +19,31 @@
 <wicket:panel>
     <div class="box box-primary">
         <form wicket:id="mainForm">
+            <div class="row">
+                <span wicket:id="feedback" class="text-danger"/>
+            </div>
             <div wicket:id="parametersPanel" class="box-body">
-                <div class="col-md-3">
+                <div class="col-md-4">
                     <label class=".col-ms-1"><wicket:message key="PageAuditLogViewer.fromLabel" /></label>
                     <div class=".col-ms-3" wicket:id="fromField"/>
                     <label class=".col-ms-1"><wicket:message key="PageAuditLogViewer.toLabel" /></label>
                     <div class=".col-ms-3" wicket:id="toField" />
-                    <label><wicket:message key="PageAuditLogViewer.targetNameLabel" /></label>
-                    <div wicket:id="targetNameField" />
+                    <label wicket:id="targetNameLabel"></label>
+                    <div class="col-ms-3" wicket:id="targetNameField" />
                     <label><wicket:message key="PageAuditLogViewer.targetOwnerNameLabel" /></label>
-                    <div wicket:id="targetOwnerNameField" />
+                    <div class="col-ms-3" wicket:id="targetOwnerNameField" />
                     <label><wicket:message key="PageAuditLogViewer.initiatorNameLabel" /></label>
-                    <div wicket:id="initiatorNameField"/>
+                    <div class="col-ms-3" wicket:id="initiatorNameField"/>
                 </div>
-                <div class="col-md-4">
-                    <label class=".col-ms-1"><wicket:message key="PageAuditLogViewer.eventTypeLabel" /></label>
-                    <div class=".col-ms-3" wicket:id="eventTypeField" />
-                    <label class=".col-ms-1"><wicket:message key="PageAuditLogViewer.eventStageLabel" /></label>
-                    <div class=".col-ms-3" wicket:id="eventStageField" />
-                    <label class=".col-ms-1"><wicket:message key="PageAuditLogViewer.outcomeLabel" /></label>
-                    <div class=".col-ms-3" wicket:id="outcomeField" />
+                <div class="col-md-4" style="padding-left: 5px;">
+                    <label class="col-ms-1"><wicket:message key="PageAuditLogViewer.eventTypeLabel" /></label>
+                    <div class="col-ms-3" wicket:id="eventTypeField" />
+                    <label class="col-ms-1"><wicket:message key="PageAuditLogViewer.eventStageLabel" /></label>
+                    <div class="col-ms-3" wicket:id="eventStageField" />
+                    <label class="col-ms-1"><wicket:message key="PageAuditLogViewer.outcomeLabel" /></label>
+                    <div class="col-ms-3" wicket:id="outcomeField" />
                 </div>
-                <div class="col-md-1"/>
-                <div class="col-md-4">
+                <div class="col-md-4" style="padding-left: 5px;">
                     <label class=".col-ms-1"><wicket:message key="PageAuditLogViewer.channelLabel" /></label>
                     <div class=".col-ms-3" wicket:id="channelField" />
 

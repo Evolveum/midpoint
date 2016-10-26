@@ -1,0 +1,131 @@
+<objectTemplate xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+                xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+                xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+                xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+                xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+                xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+                oid="ae2702dc-5fa2-4b0d-a1ed-cd3bf87908fd"
+                version="21">
+   <name>User template - Salesforce</name>
+   <description>
+            User template with the impementation of scripts for automatic assigment of roles to Salesforce users.
+    	</description>
+   <metadata>
+      <createTimestamp>2016-10-11T13:18:27.498+02:00</createTimestamp>
+      <creatorRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></creatorRef>
+      <createChannel>http://midpoint.evolveum.com/xml/ns/public/model/channels-3#objectImport</createChannel>
+   </metadata>
+   <mapping>
+      <name>User - Salesforce Group mapping</name>
+      <authoritative>true</authoritative>
+      <strength>strong</strength>
+      <source>
+         <name>salesForceGroup</name>
+         <c:path>extension/salesForceGroups</c:path>
+      </source>
+      <expression>
+         <script>
+            <code>
+    	   import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+		   import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+		   import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
+		   import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
+		   import com.evolveum.midpoint.util.exception.SystemException;
+		   import java.util.*;
+		   
+		   log.info("The group for which the assigment will be built from the salesForceGroup attribute {}" , salesForceGroup)
+		   if (salesForceGroup != null){
+				roleName = salesForceGroup;
+			   
+                role = midpoint.searchObjectByName(RoleType.class, roleName);
+				if (role==null){
+				throw new SystemException("Exception while assigning the group defined in attribute to a role. Please make sure that all the group objects are already importet to Midpoint.");
+				}
+                log.info("role {}" , role)
+                roleOrt = new ObjectReferenceType();
+			    roleOrt.setOid(role.getOid());
+			    roleOrt.setType(RoleType.COMPLEX_TYPE);
+				
+			    AssignmentType assignment = new AssignmentType();
+			    assignment.asPrismContainerValue()
+			    assignment.setTargetRef(roleOrt);
+
+			    return assignment
+				
+		   }
+		   </code>
+         </script>
+      </expression>
+      <target>
+         <c:path>assignment</c:path>
+      </target>
+   </mapping>
+   <mapping>
+      <name>User - Salesforce Entitlement mapping</name>
+      <authoritative>true</authoritative>
+      <strength>strong</strength>
+      <source>
+         <name>salesForceEntitlement</name>
+         <c:path>extension/salesForceEntitlements</c:path>
+      </source>
+      <expression>
+         <script>
+            <code>
+		   import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+		   import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+		   import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
+		   import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
+		   import com.evolveum.midpoint.util.exception.SystemException;
+		   import java.util.*;
+		   
+		   log.info("The entitlement for which the assigment will be built from the salesForceEntitlement attribute {}" , salesForceEntitlement)
+		   if (salesForceEntitlement != null){
+				roleName = salesForceEntitlement;
+			 
+                role = midpoint.searchObjectByName(RoleType.class, roleName);
+				
+				if (role==null){
+				throw new SystemException("Exception while assigning the entitlement defined in attribute to a role. Please make sure that all the entitlement objects are already importet to Midpoint.");
+				}
+				
+                log.info("role {}" , role)
+                roleOrt = new ObjectReferenceType();
+			    roleOrt.setOid(role.getOid());
+			    roleOrt.setType(RoleType.COMPLEX_TYPE);
+				
+			    AssignmentType assignment = new AssignmentType();
+			    assignment.asPrismContainerValue()
+			    assignment.setTargetRef(roleOrt);
+
+			    return assignment
+				
+		   }
+		   </code>
+         </script>
+      </expression>
+      <target>
+         <c:path>assignment</c:path>
+      </target>
+   </mapping>
+   <mapping>
+      <name>User - Full name mapping</name>
+      <strength>weak</strength>
+      <source>
+         <c:path>$user/givenName</c:path>
+      </source>
+      <source>
+         <c:path>$user/familyName</c:path>
+      </source>
+      <expression>
+         <script>
+            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
+            <code>
+    					givenName + ' ' + familyName
+			</code>
+         </script>
+      </expression>
+      <target>
+         <c:path>fullName</c:path>
+      </target>
+   </mapping>
+</objectTemplate>

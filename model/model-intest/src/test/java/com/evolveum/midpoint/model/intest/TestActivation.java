@@ -262,6 +262,164 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 	}
 	
 	@Test
+    public void test060ModifyUserJackLifecycleActive() throws Exception {
+		final String TEST_NAME = "test060ModifyUserJackLifecycleActive";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestActivation.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+        
+        XMLGregorianCalendar start = clock.currentTimeXMLGregorianCalendar();
+        
+		// WHEN
+        modifyUserReplace(USER_JACK_OID, UserType.F_LIFECYCLE_STATE, task, result, SchemaConstants.LIFECYCLE_ACTIVE);
+		
+		// THEN
+        XMLGregorianCalendar end = clock.currentTimeXMLGregorianCalendar();
+		result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        PrismObject<UserType> userJack = getUser(USER_JACK_OID);
+		display("User after change execution", userJack);
+		assertUserJack(userJack, "Jack Sparrow");
+        
+		assertAdministrativeStatusEnabled(userJack);
+		assertValidity(userJack, null);
+		assertEffectiveStatus(userJack, ActivationStatusType.ENABLED);
+		assertEnableTimestampFocus(userJack, null, start);
+		
+		TestUtil.assertModifyTimestamp(userJack, start, end);
+	}
+	
+	@Test
+    public void test061ModifyUserJackLifecycleDraft() throws Exception {
+		final String TEST_NAME = "test061ModifyUserJackLifecycleDraft";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestActivation.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+        
+        XMLGregorianCalendar start = clock.currentTimeXMLGregorianCalendar();
+        
+		// WHEN
+        modifyUserReplace(USER_JACK_OID, UserType.F_LIFECYCLE_STATE, task, result, SchemaConstants.LIFECYCLE_DRAFT);
+		
+		// THEN
+        XMLGregorianCalendar end = clock.currentTimeXMLGregorianCalendar();
+		result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        PrismObject<UserType> userJack = getUser(USER_JACK_OID);
+		display("User after change execution", userJack);
+		assertUserJack(userJack, "Jack Sparrow");
+        
+		assertAdministrativeStatusEnabled(userJack);
+		assertValidity(userJack, null);
+		assertEffectiveStatus(userJack, ActivationStatusType.DISABLED);
+		assertDisableTimestampFocus(userJack, start, end);
+		
+		TestUtil.assertModifyTimestamp(userJack, start, end);
+	}
+	
+	@Test
+    public void test065ModifyUserJackLifecycleDeprecated() throws Exception {
+		final String TEST_NAME = "test065ModifyUserJackLifecycleDeprecated";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestActivation.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+        
+        XMLGregorianCalendar start = clock.currentTimeXMLGregorianCalendar();
+        
+		// WHEN
+        modifyUserReplace(USER_JACK_OID, UserType.F_LIFECYCLE_STATE, task, result, SchemaConstants.LIFECYCLE_DEPRECATED);
+		
+		// THEN
+        XMLGregorianCalendar end = clock.currentTimeXMLGregorianCalendar();
+		result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        PrismObject<UserType> userJack = getUser(USER_JACK_OID);
+		display("User after change execution", userJack);
+		assertUserJack(userJack, "Jack Sparrow");
+        
+		assertAdministrativeStatusEnabled(userJack);
+		assertValidity(userJack, null);
+		assertEffectiveStatus(userJack, ActivationStatusType.ENABLED);
+		assertEnableTimestampFocus(userJack, start, end);
+		
+		TestUtil.assertModifyTimestamp(userJack, start, end);
+	}
+	
+	@Test
+    public void test068ModifyUserJackLifecycleArchived() throws Exception {
+		final String TEST_NAME = "test068ModifyUserJackLifecycleArchived";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestActivation.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+        
+        XMLGregorianCalendar start = clock.currentTimeXMLGregorianCalendar();
+        
+		// WHEN
+        modifyUserReplace(USER_JACK_OID, UserType.F_LIFECYCLE_STATE, task, result, SchemaConstants.LIFECYCLE_ARCHIVED);
+		
+		// THEN
+        XMLGregorianCalendar end = clock.currentTimeXMLGregorianCalendar();
+		result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        PrismObject<UserType> userJack = getUser(USER_JACK_OID);
+		display("User after change execution", userJack);
+		assertUserJack(userJack, "Jack Sparrow");
+        
+		assertAdministrativeStatusEnabled(userJack);
+		assertValidity(userJack, null);
+		assertEffectiveStatus(userJack, ActivationStatusType.ARCHIVED);
+		
+		TestUtil.assertModifyTimestamp(userJack, start, end);
+	}
+	
+	@Test
+    public void test069ModifyUserJackLifecycleNull() throws Exception {
+		final String TEST_NAME = "test069ModifyUserJackLifecycleNull";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestActivation.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+        
+        XMLGregorianCalendar start = clock.currentTimeXMLGregorianCalendar();
+        
+		// WHEN
+        modifyUserReplace(USER_JACK_OID, UserType.F_LIFECYCLE_STATE, task, result);
+		
+		// THEN
+        XMLGregorianCalendar end = clock.currentTimeXMLGregorianCalendar();
+		result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        PrismObject<UserType> userJack = getUser(USER_JACK_OID);
+		display("User after change execution", userJack);
+		assertUserJack(userJack, "Jack Sparrow");
+        
+		assertAdministrativeStatusEnabled(userJack);
+		assertValidity(userJack, null);
+		assertEffectiveStatus(userJack, ActivationStatusType.ENABLED);
+		
+		TestUtil.assertModifyTimestamp(userJack, start, end);
+	}
+	
+	@Test
     public void test100ModifyUserJackAssignAccount() throws Exception {
 		final String TEST_NAME = "test100ModifyUserJackAssignAccount";
         TestUtil.displayTestTile(this, TEST_NAME);

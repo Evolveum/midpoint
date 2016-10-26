@@ -1,0 +1,31 @@
+<xsd:schema elementFormDefault="qualified"
+  targetNamespace="http://example.com/mycustomer"
+  xmlns:tns="http://example.com/mycustomer"
+  xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
+  xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+  xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+
+  <xsd:complexType name="UserExtensionType">
+    <xsd:annotation>
+      <xsd:appinfo>
+        <a:extension ref="c:UserType"/>
+      </xsd:appinfo>
+    </xsd:annotation>
+    <xsd:sequence>
+	
+      <xsd:element name="slackGroups" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+        <xsd:annotation>
+          <xsd:appinfo>
+            <a:indexed>false</a:indexed>
+              <a:displayName>Slack Groups</a:displayName>
+              <a:displayOrder>100</a:displayOrder>
+            </xsd:appinfo>
+          <xsd:documentation>
+Slack Groups
+          </xsd:documentation>
+        </xsd:annotation>
+      </xsd:element>      
+    </xsd:sequence>
+    </xsd:complexType>
+
+</xsd:schema>

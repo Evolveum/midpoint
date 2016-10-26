@@ -44,6 +44,9 @@ public class ComponentConstants {
     public static final QName UI_FOCUS_TAB_REQUEST_ROLE = new QName(NS_COMPONENTS_PREFIX, "focusTabRequestRole");
     public static final String UI_FOCUS_TAB_REQUEST_ROLE_URL = QNameUtil.qNameToUri(UI_FOCUS_TAB_REQUEST_ROLE);
 
+    public static final QName UI_FOCUS_TAB_OBJECT_HISTORY = new QName(NS_COMPONENTS_PREFIX, "focusTabObjectHistory");
+    public static final String UI_FOCUS_TAB_OBJECT_HISTORY_URL = QNameUtil.qNameToUri(UI_FOCUS_TAB_OBJECT_HISTORY);
+
     public static final QName UI_FOCUS_TAB_INDUCEMENTS = new QName(NS_COMPONENTS_PREFIX, "focusTabInducements");
     public static final String UI_FOCUS_TAB_INDUCEMENTS_URL = QNameUtil.qNameToUri(UI_FOCUS_TAB_INDUCEMENTS);
 

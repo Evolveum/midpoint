@@ -12,11 +12,12 @@ import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
-import com.evolveum.midpoint.web.component.form.ValueChoosePanel;
+import com.evolveum.midpoint.web.component.form.ValueChooseWrapperPanel;
 import com.evolveum.midpoint.web.component.input.DatePanel;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 import com.evolveum.midpoint.web.component.input.QNameChoiceRenderer;
 import com.evolveum.midpoint.web.component.input.TextPanel;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnChangeAjaxFormUpdatingBehavior;
 import com.evolveum.midpoint.web.page.admin.reports.PageAuditLogDetails;
@@ -31,6 +32,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
@@ -42,7 +44,9 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.EnumChoiceRenderer;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.FormComponent;
+import org.apache.wicket.markup.html.panel.FeedbackPanel;
 import org.apache.wicket.markup.repeater.Item;
+import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
@@ -63,36 +67,55 @@ public class AuditLogViewerPanel extends BasePanel{
     private static final String ID_TO = "toField";
     private static final String ID_INITIATOR_NAME = "initiatorNameField";
     private static final String ID_TARGET_NAME = "targetNameField";
+    private static final String ID_TARGET_NAME_LABEL = "targetNameLabel";
     private static final String ID_TARGET_OWNER_NAME = "targetOwnerNameField";
     private static final String ID_CHANNEL = "channelField";
     private static final String ID_HOST_IDENTIFIER = "hostIdentifierField";
-    // private static final String ID_TARGET_NAME = "targetNameField";
-    // private static final String ID_TARGET_OWNER_NAME =
-    // "targetOwnerNameField";
     private static final String ID_EVENT_TYPE = "eventTypeField";
     private static final String ID_EVENT_STAGE = "eventStageField";
     private static final String ID_OUTCOME = "outcomeField";
 
     private static final String ID_MAIN_FORM = "mainForm";
     private static final String ID_SEARCH_BUTTON = "searchButton";
+    private static final String ID_FEEDBACK = "feedback";
 
     private static final String OPERATION_RESOLVE_REFENRENCE_NAME = AuditLogViewerPanel.class.getSimpleName()
             + ".resolveReferenceName()";
 
     private IModel<AuditSearchDto> auditSearchDto;
     private PageBase pageBase;
+    private String targetObjectOid;
 
     public AuditLogViewerPanel(String id, PageBase pageBase){
+        this(id, pageBase, null);
+    }
+
+    public AuditLogViewerPanel(String id, PageBase pageBase, String targetObjectOid){
         super(id);
         this.pageBase = pageBase;
-        auditSearchDto = new Model<AuditSearchDto>(new AuditSearchDto());
+        this.targetObjectOid = targetObjectOid;
+        initAuditSearchModel();
         initLayout();
+    }
+
+    private void initAuditSearchModel(){
+        AuditSearchDto searchDto = new AuditSearchDto();
+        ObjectReferenceType ort = new ObjectReferenceType();
+        ort.setOid(targetObjectOid);
+        searchDto.setTargetName(ort);
+        auditSearchDto = new Model<AuditSearchDto>(searchDto);
+
     }
 
     private void initLayout() {
         Form mainForm = new Form(ID_MAIN_FORM);
         mainForm.setOutputMarkupId(true);
         add(mainForm);
+
+        FeedbackPanel feedback = new FeedbackPanel(ID_FEEDBACK);
+        feedback.setOutputMarkupId(true);
+        mainForm.add(feedback);
+
         initParametersPanel(mainForm);
         initTable(mainForm);
     }
@@ -108,6 +131,7 @@ public class AuditLogViewerPanel extends BasePanel{
         DatePanel from = new DatePanel(ID_FROM, fromModel);
         DateValidator dateFromValidator = WebComponentUtil.getRangeValidator(mainForm,
                 new ItemPath(AuditSearchDto.F_FROM));
+        dateFromValidator.setMessageKey("AuditLogViewerPanel.dateValidatorMessage");
         dateFromValidator.setDateFrom((DateTimeField) from.getBaseFormComponent());
         for (FormComponent<?> formComponent : from.getFormComponents()) {
             formComponent.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
@@ -121,6 +145,7 @@ public class AuditLogViewerPanel extends BasePanel{
         DatePanel to = new DatePanel(ID_TO, toModel);
         DateValidator dateToValidator = WebComponentUtil.getRangeValidator(mainForm,
                 new ItemPath(AuditSearchDto.F_FROM));
+        dateToValidator.setMessageKey("AuditLogViewerPanel.dateValidatorMessage");
         dateToValidator.setDateTo((DateTimeField) to.getBaseFormComponent());
         for (FormComponent<?> formComponent : to.getFormComponents()) {
             formComponent.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
@@ -194,7 +219,7 @@ public class AuditLogViewerPanel extends BasePanel{
 
         Collection<Class<? extends UserType>> allowedClasses = new ArrayList<>();
         allowedClasses.add(UserType.class);
-        ValueChoosePanel<ObjectReferenceType, UserType> chooseInitiatorPanel = new ValueChoosePanel<ObjectReferenceType, UserType>(
+        ValueChooseWrapperPanel<ObjectReferenceType, UserType> chooseInitiatorPanel = new ValueChooseWrapperPanel<ObjectReferenceType, UserType>(
                 ID_INITIATOR_NAME,
                 new PropertyModel<ObjectReferenceType>(auditSearchDto, AuditSearchDto.F_INITIATOR_NAME),
                 allowedClasses) {
@@ -208,7 +233,7 @@ public class AuditLogViewerPanel extends BasePanel{
         };
         parametersPanel.add(chooseInitiatorPanel);
 
-        ValueChoosePanel<ObjectReferenceType, UserType> chooseTargerOwnerPanel = new ValueChoosePanel<ObjectReferenceType, UserType>(
+        ValueChooseWrapperPanel<ObjectReferenceType, UserType> chooseTargerOwnerPanel = new ValueChooseWrapperPanel<ObjectReferenceType, UserType>(
                 ID_TARGET_OWNER_NAME,
                 new PropertyModel<ObjectReferenceType>(auditSearchDto, AuditSearchDto.F_TARGET_OWNER_NAME),
                 allowedClasses) {
@@ -221,9 +246,17 @@ public class AuditLogViewerPanel extends BasePanel{
         };
         parametersPanel.add(chooseTargerOwnerPanel);
 
+        Label targetNameLabel = new Label(ID_TARGET_NAME_LABEL, pageBase.createStringResource("PageAuditLogViewer.targetNameLabel"));
+        targetNameLabel.add(new VisibleEnableBehaviour(){
+            @Override
+            public boolean isVisible(){
+                return StringUtils.isEmpty(targetObjectOid);
+            }
+        });
+        parametersPanel.add(targetNameLabel);
         Collection<Class<? extends ObjectType>> allowedClassesAll = new ArrayList<>();
         allowedClassesAll.addAll(ObjectTypes.getAllObjectTypes());
-        ValueChoosePanel<ObjectReferenceType, ObjectType> chooseTargetPanel = new ValueChoosePanel<ObjectReferenceType, ObjectType>(
+        ValueChooseWrapperPanel<ObjectReferenceType, ObjectType> chooseTargetPanel = new ValueChooseWrapperPanel<ObjectReferenceType, ObjectType>(
                 ID_TARGET_NAME,
                 new PropertyModel<ObjectReferenceType>(auditSearchDto, AuditSearchDto.F_TARGET_NAME),
                 allowedClassesAll){
@@ -234,6 +267,12 @@ public class AuditLogViewerPanel extends BasePanel{
                 getModel().setObject(ort);
             }
         };
+        chooseTargetPanel.add(new VisibleEnableBehaviour(){
+            @Override
+            public boolean isVisible(){
+                return StringUtils.isEmpty(targetObjectOid);
+            }
+        });
         parametersPanel.add(chooseTargetPanel);
 
         AjaxSubmitButton ajaxButton = new AjaxSubmitButton(ID_SEARCH_BUTTON,
@@ -244,7 +283,14 @@ public class AuditLogViewerPanel extends BasePanel{
             protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
                 Form mainForm = (Form) getParent().getParent();
                 refreshTable(mainForm);
+                getFeedbackPanel().getFeedbackMessages().clear();
+                target.add(getFeedbackPanel());
                 target.add(mainForm);
+            }
+
+            @Override
+        protected void onError(AjaxRequestTarget target, Form<?> form){
+                target.add(getFeedbackPanel());
             }
         };
         ajaxButton.setOutputMarkupId(true);
@@ -308,6 +354,17 @@ public class AuditLogViewerPanel extends BasePanel{
                 createStringResource("AuditEventRecordType.timestamp"), "timestamp") {
             private static final long serialVersionUID = 1L;
 
+            @Override
+            protected IModel<String> createLinkModel(final IModel<AuditEventRecordType> rowModel){
+                return new AbstractReadOnlyModel<String>() {
+
+                    @Override
+                    public String getObject() {
+                        XMLGregorianCalendar time = rowModel.getObject().getTimestamp();
+                        return WebComponentUtil.formatDate(time);
+                    }
+                };
+            }
             @Override
             public void onClick(AjaxRequestTarget target, IModel<AuditEventRecordType> rowModel) {
                 setResponsePage(new PageAuditLogDetails(rowModel.getObject()));
@@ -414,4 +471,7 @@ public class AuditLogViewerPanel extends BasePanel{
         item.add(new AttributeModifier("style", new Model<String>("width: 10%;")));
     }
 
+    public WebMarkupContainer getFeedbackPanel() {
+        return (FeedbackPanel) get(pageBase.createComponentPath(ID_MAIN_FORM, ID_FEEDBACK));
+    }
 }
