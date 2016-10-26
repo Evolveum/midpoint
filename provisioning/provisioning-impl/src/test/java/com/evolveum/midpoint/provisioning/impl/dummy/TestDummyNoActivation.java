@@ -330,7 +330,9 @@ public class TestDummyNoActivation extends TestDummy {
 				ACCOUNT_WILL_OID, SchemaConstants.PATH_ACTIVATION_VALID_TO, prismContext,
 				XmlTypeConverter.createXMLGregorianCalendar(VALID_TO_MILLIS));
 		PrismObjectDefinition def = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ShadowType.class);
-		PropertyDelta validFromDelta = PropertyDelta.createModificationDeleteProperty(SchemaConstants.PATH_ACTIVATION_VALID_FROM, def.findPropertyDefinition(SchemaConstants.PATH_ACTIVATION_VALID_FROM), VALID_FROM_MILLIS);
+		PropertyDelta validFromDelta = PropertyDelta.createModificationDeleteProperty(SchemaConstants.PATH_ACTIVATION_VALID_FROM,
+				def.findPropertyDefinition(SchemaConstants.PATH_ACTIVATION_VALID_FROM),
+				XmlTypeConverter.createXMLGregorianCalendar(VALID_FROM_MILLIS));
 		delta.addModification(validFromDelta);
 		delta.checkConsistence();
 		

@@ -743,7 +743,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 		propMod.setPath(path);
 
 		//set the replace value
-        MapXNode passPsXnode = ((PrismContextImpl) prismContext).getBeanMarshaller().marshalProtectedDataType(passPs);
+        MapXNode passPsXnode = ((PrismContextImpl) prismContext).getBeanMarshaller().marshalProtectedDataType(passPs, null);
 		RawType value = new RawType(passPsXnode, prismContext);
 		propMod.getValue().add(value);
 		
