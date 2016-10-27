@@ -18,9 +18,9 @@ package com.evolveum.midpoint.provisioning.consistency.impl;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 
 import com.evolveum.midpoint.provisioning.impl.ConstraintsChecker;
+import com.evolveum.midpoint.provisioning.impl.ResourceManager;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,7 +30,6 @@ import org.springframework.stereotype.Component;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.provisioning.api.ResourceOperationDescription;
 import com.evolveum.midpoint.provisioning.consistency.api.ErrorHandler;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
@@ -48,7 +47,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AvailabilityStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FailedOperationTypeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationalStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
@@ -59,6 +57,9 @@ public class CommunicationExceptionHandler extends ErrorHandler {
 	@Autowired
 	@Qualifier("cacheRepositoryService")
 	private RepositoryService cacheRepositoryService;
+	
+	@Autowired
+	private ResourceManager resourceManager;
 
 	public CommunicationExceptionHandler() {
 		cacheRepositoryService = null;
@@ -110,7 +111,8 @@ public class CommunicationExceptionHandler extends ErrorHandler {
 
 		// first modify last availability status in the resource, so by others
 		// operations, we can know that it is down
-		modifyResourceAvailabilityStatus(shadow.getResource(), AvailabilityStatusType.DOWN, operationResult);
+		resourceManager.modifyResourceAvailabilityStatus(shadow.getResource().asPrismObject(), 
+				AvailabilityStatusType.DOWN, operationResult);
 		
 		if ((!isPostpone(shadow.getResource()) || !compensate) && !FailedOperation.GET.equals(op)){
 			LOGGER.trace("Postponing operation turned off.");
@@ -258,24 +260,6 @@ public class CommunicationExceptionHandler extends ErrorHandler {
 			throw new CommunicationException(ex);
 		}
 
-	}
-
-	private void modifyResourceAvailabilityStatus(ResourceType resource, AvailabilityStatusType status, OperationResult result) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
-				
-		if (resource.getOperationalState() == null || resource.getOperationalState().getLastAvailabilityStatus() == null || resource.getOperationalState().getLastAvailabilityStatus() != status) {
-			List<PropertyDelta> modifications = new ArrayList<PropertyDelta>();
-			PropertyDelta statusDelta = PropertyDelta.createModificationReplaceProperty(OperationalStateType.F_LAST_AVAILABILITY_STATUS, resource.asPrismObject().getDefinition(), status);
-			modifications.add(statusDelta);
-			statusDelta.setParentPath(new ItemPath(ResourceType.F_OPERATIONAL_STATE));
-			cacheRepositoryService.modifyObject(ResourceType.class, resource.getOid(), modifications, result);
-		}
-		if (resource.getOperationalState() == null){
-			OperationalStateType operationalState = new OperationalStateType();
-			operationalState.setLastAvailabilityStatus(status);
-			resource.setOperationalState(operationalState);
-		} else{
-			resource.getOperationalState().setLastAvailabilityStatus(status);
-		}
 	}
 	
 	private <T extends ShadowType> Collection<ItemDelta> createShadowModification(T shadow) throws ObjectNotFoundException, SchemaException {

@@ -16,7 +16,6 @@
 package com.evolveum.midpoint.model.intest;
 
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
-import static org.testng.AssertJUnit.assertNotNull;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -672,7 +671,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestMultiResource.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         dummyAuditService.clear();
         
@@ -716,7 +715,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestMultiResource.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         dummyAuditService.clear();
         dummyResource.resetBreakMode();

@@ -28,6 +28,7 @@ import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationalStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
@@ -161,6 +162,7 @@ public abstract class SchemaConstants {
 	public static final ItemPath PATH_TRIGGER = new ItemPath(ObjectType.F_TRIGGER);
 	public static final ItemPath PATH_CREDENTIALS_PASSWORD_FAILED_LOGINS = new ItemPath(
 			UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD, PasswordType.F_FAILED_LOGINS);
+	public static final ItemPath PATH_LINK_REF = new ItemPath(FocusType.F_LINK_REF);
 
 	public static final String NS_PROVISIONING = NS_MIDPOINT_PUBLIC + "/provisioning";
 	public static final String NS_PROVISIONING_LIVE_SYNC = NS_PROVISIONING + "/liveSync-3";
@@ -246,6 +248,8 @@ public abstract class SchemaConstants {
 	public static final String NS_GUI_CHANNEL = NS_GUI + "/channels-3";
 	public static final QName CHANNEL_GUI_INIT_QNAME = new QName(NS_GUI_CHANNEL, "init");
 	public static final String CHANNEL_GUI_INIT_URI = QNameUtil.qNameToUri(CHANNEL_GUI_INIT_QNAME);
+	public static final QName CHANNEL_GUI_SELF_REGISTRATION_QNAME = new QName(NS_GUI_CHANNEL, "seflRegistration");
+	public static final String CHANNEL_GUI_SELF_REGISTRATION_URI = QNameUtil.qNameToUri(CHANNEL_GUI_SELF_REGISTRATION_QNAME);
 	public static final QName CHANNEL_GUI_USER_QNAME = new QName(NS_GUI_CHANNEL, "user");
 	public static final String CHANNEL_GUI_USER_URI = QNameUtil.qNameToUri(CHANNEL_GUI_USER_QNAME);
 
@@ -298,7 +302,17 @@ public abstract class SchemaConstants {
 	public static final QName C_MODEL_CONTEXT = new QName(NS_C, "modelContext");
 	public static final QName C_ITEM_TO_APPROVE = new QName(NS_C, "itemToApprove");
 	public static final QName C_SHADOW_DISCRIMINATOR = new QName(NS_C, "shadowDiscriminator");
+	
+	// Lifecycle
+	
+	public static final String LIFECYCLE_DRAFT = "draft";
+	public static final String LIFECYCLE_PROPOSED = "proposed";
+	public static final String LIFECYCLE_ACTIVE = "active";
+	public static final String LIFECYCLE_DEPRECATED = "deprecated";
+	public static final String LIFECYCLE_ARCHIVED = "archived";
+	public static final String LIFECYCLE_FAILED = "failed";
 
+	
 	// Samples
 
 	public static final QName SAMPLES_SSN = new QName(SchemaConstants.NS_SAMPLES_EXTENSION, "ssn");
@@ -307,4 +321,8 @@ public abstract class SchemaConstants {
 	// Misc
 	
 	public static String SCHEMA_LOCALIZATION_PROPERTIES_RESOURCE_BASE_PATH = "localization/schema";
+	
+	// registration
+	public static final String REGISTRATION_ID = "registrationId";
+	public static final String REGISTRATION_TOKEN = "token";
 }

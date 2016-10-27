@@ -21,7 +21,6 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.model.api.context.ModelContext;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.Page;
 import org.apache.wicket.RestartResponseException;
@@ -32,7 +31,6 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.string.StringValue;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
@@ -60,8 +58,6 @@ import com.evolveum.midpoint.web.component.prism.ObjectWrapperFactory;
 import com.evolveum.midpoint.web.component.progress.ProgressReporter;
 import com.evolveum.midpoint.web.component.progress.ProgressReportingAwarePage;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.page.admin.home.PageDashboard;
-import com.evolveum.midpoint.web.page.admin.users.PageOrgTree;
 import com.evolveum.midpoint.web.page.admin.users.dto.FocusSubwrapperDto;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.validation.MidpointFormValidator;
@@ -247,17 +243,20 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 		FocusSummaryPanel<O> summaryPanel = createSummaryPanel();
 		summaryPanel.setOutputMarkupId(true);
 
-		summaryPanel.add(new VisibleEnableBehaviour() {
-			private static final long serialVersionUID = 1L;
-			
-			@Override
-			public boolean isVisible() {
-				return isEditingFocus();
-			}
-		});
-
+		setSummaryPanelVisibility(summaryPanel);
 		add(summaryPanel);
 	}
+
+    protected void setSummaryPanelVisibility(FocusSummaryPanel<O> summaryPanel){
+        summaryPanel.add(new VisibleEnableBehaviour() {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public boolean isVisible() {
+                return isEditingFocus();
+            }
+        });
+    }
 
 	protected abstract AbstractObjectMainPanel<O> createMainPanel(String id);
 

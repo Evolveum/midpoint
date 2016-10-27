@@ -46,6 +46,8 @@
             <icfcldap:servers>host=hydra.ad.evolveum.com; baseContext=DC=sub,DC=ad,DC=evolveum,DC=com; bindDn=CN=midpoint,CN=Users,DC=sub,DC=ad,DC=evolveum,DC=com</icfcldap:servers>
             <icfcldap:referralStrategy>ignore</icfcldap:referralStrategy>
             <icfcldap:globalCatalogStrategy>resolve</icfcldap:globalCatalogStrategy>
+            <icfcldap:enableExtraTests>true</icfcldap:enableExtraTests>
+            <icfcldap:forcePasswordChangeAtNextLogon>false</icfcldap:forcePasswordChangeAtNextLogon>
         </icfc:configurationProperties>
         <icfc:resultsHandlerConfiguration>
 			<icfc:enableNormalizingResultsHandler>false</icfc:enableNormalizingResultsHandler>

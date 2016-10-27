@@ -729,28 +729,29 @@ public class ResourceManager {
 	public void modifyResourceAvailabilityStatus(PrismObject<ResourceType> resource, AvailabilityStatusType status, OperationResult result){
 			ResourceType resourceType = resource.asObjectable();
 			
-			if (resourceType.getOperationalState() == null || resourceType.getOperationalState().getLastAvailabilityStatus() == null || resourceType.getOperationalState().getLastAvailabilityStatus() != status) {
-				List<PropertyDelta<?>> modifications = new ArrayList<PropertyDelta<?>>();
-				PropertyDelta<?> statusDelta = createResourceAvailabilityStatusDelta(resource, status);
-				modifications.add(statusDelta);
-				
-				
-				try{
-					repositoryService.modifyObject(ResourceType.class, resourceType.getOid(), modifications, result);
-				} catch(SchemaException ex){
-					throw new SystemException(ex);
-				} catch(ObjectAlreadyExistsException ex){
-					throw new SystemException(ex);
-				} catch(ObjectNotFoundException ex){
-					throw new SystemException(ex);
+			synchronized (resource) {
+				if (resourceType.getOperationalState() == null || resourceType.getOperationalState().getLastAvailabilityStatus() == null || resourceType.getOperationalState().getLastAvailabilityStatus() != status) {
+					List<PropertyDelta<?>> modifications = new ArrayList<PropertyDelta<?>>();
+					PropertyDelta<?> statusDelta = createResourceAvailabilityStatusDelta(resource, status);
+					modifications.add(statusDelta);
+					
+					try{
+						repositoryService.modifyObject(ResourceType.class, resourceType.getOid(), modifications, result);
+					} catch(SchemaException ex){
+						throw new SystemException(ex);
+					} catch(ObjectAlreadyExistsException ex){
+						throw new SystemException(ex);
+					} catch(ObjectNotFoundException ex){
+						throw new SystemException(ex);
+					}
 				}
-			}
-			if (resourceType.getOperationalState() == null){
-				OperationalStateType operationalState = new OperationalStateType();
-				operationalState.setLastAvailabilityStatus(status);
-				resourceType.setOperationalState(operationalState);
-			} else{
-				resourceType.getOperationalState().setLastAvailabilityStatus(status);
+				if (resourceType.getOperationalState() == null){
+					OperationalStateType operationalState = new OperationalStateType();
+					operationalState.setLastAvailabilityStatus(status);
+					resourceType.setOperationalState(operationalState);
+				} else{
+					resourceType.getOperationalState().setLastAvailabilityStatus(status);
+				}
 			}
 		}
 	

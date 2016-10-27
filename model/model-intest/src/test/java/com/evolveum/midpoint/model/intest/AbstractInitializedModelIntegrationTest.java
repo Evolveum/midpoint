@@ -15,15 +15,11 @@
  */
 package com.evolveum.midpoint.model.intest;
 
-import static com.evolveum.midpoint.test.util.TestUtil.assertSuccess;
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertNull;
 
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.net.ConnectException;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -34,19 +30,13 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSitua
 
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.evolveum.icf.dummy.resource.DummyGroup;
 import com.evolveum.icf.dummy.resource.DummyResource;
 import com.evolveum.midpoint.model.api.ProgressListener;
 import com.evolveum.midpoint.model.common.mapping.MappingFactory;
 import com.evolveum.midpoint.model.impl.lens.Clockwork;
-import com.evolveum.midpoint.model.impl.lens.LensDebugListener;
 import com.evolveum.midpoint.model.intest.util.CheckingProgressListener;
 import com.evolveum.midpoint.model.intest.util.ProfilingLensDebugListener;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.ResultHandler;
@@ -71,8 +61,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ServiceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -116,7 +104,12 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
 	protected DummyResourceContoller dummyResourceCtlBlue;
 	protected ResourceType resourceDummyBlueType;
 	protected PrismObject<ResourceType> resourceDummyBlue;
-	
+
+	protected DummyResource dummyResourceCyan;
+	protected DummyResourceContoller dummyResourceCtlCyan;
+	protected ResourceType resourceDummyCyanType;
+	protected PrismObject<ResourceType> resourceDummyCyan;
+
 	protected DummyResource dummyResourceWhite;
 	protected DummyResourceContoller dummyResourceCtlWhite;
 	protected ResourceType resourceDummyWhiteType;
@@ -192,7 +185,14 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
 		dummyResourceBlue = dummyResourceCtlBlue.getDummyResource();
 		resourceDummyBlue = importAndGetObjectFromFile(ResourceType.class, getResourceDummyBlueFile(), RESOURCE_DUMMY_BLUE_OID, initTask, initResult); 
 		resourceDummyBlueType = resourceDummyBlue.asObjectable();
-		dummyResourceCtlBlue.setResource(resourceDummyBlue);		
+		dummyResourceCtlBlue.setResource(resourceDummyBlue);
+		
+		dummyResourceCtlCyan = DummyResourceContoller.create(RESOURCE_DUMMY_CYAN_NAME, resourceDummyBlue);
+		dummyResourceCtlCyan.extendSchemaPirate();
+		dummyResourceCyan = dummyResourceCtlCyan.getDummyResource();
+		resourceDummyCyan = importAndGetObjectFromFile(ResourceType.class, RESOURCE_DUMMY_CYAN_FILE, RESOURCE_DUMMY_CYAN_OID, initTask, initResult); 
+		resourceDummyCyanType = resourceDummyCyan.asObjectable();
+		dummyResourceCtlCyan.setResource(resourceDummyCyan);		
 		
 		dummyResourceCtlWhite = DummyResourceContoller.create(RESOURCE_DUMMY_WHITE_NAME, resourceDummyWhite);
 		dummyResourceCtlWhite.extendSchemaPirate();
@@ -295,6 +295,8 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
 		repoAddObjectFromFile(ROLE_THIEF_FILE, RoleType.class, initResult);
 		repoAddObjectFromFile(ROLE_EMPTY_FILE, RoleType.class, initResult);
 		repoAddObjectFromFile(ROLE_SAILOR_FILE, RoleType.class, initResult);
+		repoAddObjectFromFile(ROLE_RED_SAILOR_FILE, RoleType.class, initResult);
+		repoAddObjectFromFile(ROLE_CYAN_SAILOR_FILE, RoleType.class, initResult);
 		
 		// Orgstruct
 		if (doAddOrgstruct()) {

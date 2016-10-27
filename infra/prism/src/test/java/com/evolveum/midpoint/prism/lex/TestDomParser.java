@@ -18,7 +18,6 @@ package com.evolveum.midpoint.prism.lex;
 import static com.evolveum.midpoint.prism.PrismInternalTestUtil.USER_JACK_FILE_BASENAME;
 import static com.evolveum.midpoint.prism.PrismInternalTestUtil.displayTestTitle;
 import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertTrue;
 
 import java.io.IOException;
 

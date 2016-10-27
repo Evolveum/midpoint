@@ -85,7 +85,25 @@ public class MailTransport implements Transport {
         result.addParam("mailMessage subject", mailMessage.getSubject());
 
         SystemConfigurationType systemConfiguration = NotificationFuctionsImpl.getSystemConfiguration(cacheRepositoryService, new OperationResult("dummy"));
-        if (systemConfiguration == null || systemConfiguration.getNotificationConfiguration() == null
+        
+//        if (systemConfiguration == null) {
+//        	String msg = "No notifications are configured. Mail notification to " + mailMessage.getTo() + " will not be sent.";
+//        	 LOGGER.warn(msg) ;
+//             result.recordWarning(msg);
+//             return;
+//        }
+//        
+//        MailConfigurationType mailConfigurationType = null;
+//        SecurityPolicyType securityPolicyType = NotificationFuctionsImpl.getSecurityPolicyConfiguration(systemConfiguration.getGlobalSecurityPolicyRef(), cacheRepositoryService, result);
+//        if (securityPolicyType != null && securityPolicyType.getAuthentication() != null && securityPolicyType.getAuthentication().getMailAuthentication() != null) {
+//        	for (MailAuthenticationPolicyType mailAuthenticationPolicy : securityPolicyType.getAuthentication().getMailAuthentication()) {
+//        		if (mailAuthenticationPolicy.getNotificationConfiguration() != null ){
+//        			mailConfigurationType = mailAuthenticationPolicy.getNotificationConfiguration().getMail();
+//        		}
+//        	}
+//        }
+        
+        if (systemConfiguration == null  || systemConfiguration.getNotificationConfiguration() == null
                 || systemConfiguration.getNotificationConfiguration().getMail() == null) {
             String msg = "No notifications are configured. Mail notification to " + mailMessage.getTo() + " will not be sent.";
             LOGGER.warn(msg) ;
@@ -93,7 +111,9 @@ public class MailTransport implements Transport {
             return;
         }
 
-        MailConfigurationType mailConfigurationType = systemConfiguration.getNotificationConfiguration().getMail();
+//		if (mailConfigurationType == null) {
+			MailConfigurationType mailConfigurationType = systemConfiguration.getNotificationConfiguration().getMail();
+//		}
         String redirectToFile = mailConfigurationType.getRedirectToFile();
         if (redirectToFile != null) {
             try {

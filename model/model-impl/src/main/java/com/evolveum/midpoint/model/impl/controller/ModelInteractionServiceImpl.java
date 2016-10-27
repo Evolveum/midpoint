@@ -33,6 +33,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.model.api.context.ModelContext;
+import com.evolveum.midpoint.model.api.util.MergeDeltas;
 import com.evolveum.midpoint.model.impl.ModelObjectResolver;
 import com.evolveum.midpoint.model.impl.lens.ContextFactory;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
@@ -586,35 +587,73 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 	}
 
 	@Override
+	public AuthenticationsPolicyType getAuthenticationPolicy(PrismObject<UserType> user, Task task,
+			OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
+		// TODO: check for user membership in an organization (later versions)
+
+				OperationResult result = parentResult.createMinorSubresult(GET_AUTHENTICATIONS_POLICY);
+					return resolvePolicyTypeFromSecurityPolicy(AuthenticationsPolicyType.class, SecurityPolicyType.F_AUTHENTICATION, user, task, result);
+
+	}
+
+	@Override
+	public RegistrationsPolicyType getRegistrationPolicy(PrismObject<UserType> user, Task task,
+			OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
+		// TODO: check for user membership in an organization (later versions)
+
+					OperationResult result = parentResult.createMinorSubresult(GET_REGISTRATIONS_POLICY);
+					return resolvePolicyTypeFromSecurityPolicy(RegistrationsPolicyType.class, SecurityPolicyType.F_REGISTRATION, user, task, result);
+	}
+
+	@Override
 	public CredentialsPolicyType getCredentialsPolicy(PrismObject<UserType> user, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
 		// TODO: check for user membership in an organization (later versions)
 		
-		OperationResult result = parentResult.createMinorSubresult(GET_CREDENTIALS_POLICY);
+			OperationResult result = parentResult.createMinorSubresult(GET_CREDENTIALS_POLICY);
+			return resolvePolicyTypeFromSecurityPolicy(CredentialsPolicyType.class, SecurityPolicyType.F_CREDENTIALS, user, task, result);
+
+
+	}
+
+	private <C extends Containerable> C  resolvePolicyTypeFromSecurityPolicy(Class<C> type, QName path, PrismObject<UserType> user, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
+
+		SecurityPolicyType securityPolicyType = getSecurityPolicy(user, task, parentResult);
+		if (securityPolicyType == null) {
+			return null;
+		}
+		PrismContainer<C> container = securityPolicyType.asPrismObject().findContainer(path);
+		PrismContainerValue<C> containerValue = container.getValue();
+		parentResult.recordSuccess();
+		return containerValue.asContainerable();
+
+
+	}
+
+	@Override
+	public SecurityPolicyType getSecurityPolicy(PrismObject<UserType> user, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
+		OperationResult result = parentResult.createMinorSubresult(GET_SECURITY_POLICY);
 		try {
-			PrismObject<SystemConfigurationType> systemConfiguration = systemObjectCache.getSystemConfiguration(result);
-			if (systemConfiguration == null) {
-				result.recordNotApplicableIfUnknown();
-				return null;
-			}
-			ObjectReferenceType secPolicyRef = systemConfiguration.asObjectable().getGlobalSecurityPolicyRef();
-			if (secPolicyRef == null) {
-				result.recordNotApplicableIfUnknown();
-				return null;			
-			}
-			SecurityPolicyType securityPolicyType;
-			securityPolicyType = objectResolver.resolve(secPolicyRef, SecurityPolicyType.class, null, "security policy referred from system configuration", task, result);
-			if (securityPolicyType == null) {
-				result.recordNotApplicableIfUnknown();
-				return null;			
-			}
-			CredentialsPolicyType credentialsPolicyType = securityPolicyType.getCredentials();
-			result.recordSuccess();
-			return credentialsPolicyType;
-		} catch (ObjectNotFoundException | SchemaException e) {
+		PrismObject<SystemConfigurationType> systemConfiguration = systemObjectCache.getSystemConfiguration(result);
+		if (systemConfiguration == null) {
+			result.recordNotApplicableIfUnknown();
+			return null;
+		}
+		ObjectReferenceType secPolicyRef = systemConfiguration.asObjectable().getGlobalSecurityPolicyRef();
+		if (secPolicyRef == null) {
+			result.recordNotApplicableIfUnknown();
+			return null;
+		}
+
+		 SecurityPolicyType securityPolicyType = objectResolver.resolve(secPolicyRef, SecurityPolicyType.class, null, "security policy referred from system configuration", task, result);
+		if (securityPolicyType == null) {
+			result.recordNotApplicableIfUnknown();
+			return null;
+		}
+		return securityPolicyType;
+		}catch (ObjectNotFoundException | SchemaException e) {
 			result.recordFatalError(e);
 			throw e;
 		}
-
 	}
 
 	@Override
@@ -700,19 +739,20 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 	}
 
 	@Override
-	public <O extends ObjectType> ObjectDelta<O> mergeObjectsPreviewDelta(Class<O> type, String leftOid,
+	public <O extends ObjectType> MergeDeltas<O> mergeObjectsPreviewDeltas(Class<O> type, String leftOid,
 			String rightOid, String mergeConfigurationName, Task task, OperationResult parentResult)
-					throws ObjectNotFoundException, SchemaException, ConfigurationException, ExpressionEvaluationException {
+					throws ObjectNotFoundException, SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException, SecurityViolationException {
 		OperationResult result = parentResult.createMinorSubresult(MERGE_OBJECTS_PREVIEW_DELTA);
 		
 		try {
 			
-			ObjectDelta<O> objectDelta = objectMerger.computeMergeDelta(type, leftOid, rightOid, mergeConfigurationName, task, result);
+			MergeDeltas<O> mergeDeltas = objectMerger.computeMergeDeltas(type, leftOid, rightOid, mergeConfigurationName, task, result);
 			
 			result.computeStatus();
-			return objectDelta;
+			return mergeDeltas;
 			
-		} catch (ObjectNotFoundException | SchemaException | ConfigurationException | ExpressionEvaluationException | RuntimeException | Error e) {
+		} catch (ObjectNotFoundException | SchemaException | ConfigurationException | ExpressionEvaluationException |
+				CommunicationException | SecurityViolationException | RuntimeException | Error e) {
 			result.recordFatalError(e);
 			throw e;
 		}
@@ -721,26 +761,32 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 	@Override
 	public <O extends ObjectType> PrismObject<O> mergeObjectsPreviewObject(Class<O> type, String leftOid,
 			String rightOid, String mergeConfigurationName, Task task, OperationResult parentResult) 
-					throws ObjectNotFoundException, SchemaException, ConfigurationException, ExpressionEvaluationException {
+					throws ObjectNotFoundException, SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException, SecurityViolationException {
 		OperationResult result = parentResult.createMinorSubresult(MERGE_OBJECTS_PREVIEW_OBJECT);
 		
 		try {
 			
-			ObjectDelta<O> objectDelta = objectMerger.computeMergeDelta(type, leftOid, rightOid, mergeConfigurationName, task, result);
+			MergeDeltas<O> mergeDeltas = objectMerger.computeMergeDeltas(type, leftOid, rightOid, mergeConfigurationName, task, result);
+
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("Merge preview {} + {} deltas:\n{}", leftOid, rightOid, mergeDeltas.debugDump(1));
+			}
 			
 			final PrismObject<O> objectLeft = objectResolver.getObjectSimple(type, leftOid, null, task, result).asPrismObject();
 			
-			if (objectDelta == null) {
+			if (mergeDeltas == null) {
 				result.computeStatus();
 				return objectLeft;
 			}
 			
-			objectDelta.applyTo(objectLeft);
+			mergeDeltas.getLeftObjectDelta().applyTo(objectLeft);
+			mergeDeltas.getLeftLinkDelta().applyTo(objectLeft);
 			
 			result.computeStatus();
 			return objectLeft;
 			
-		} catch (ObjectNotFoundException | SchemaException | ConfigurationException | ExpressionEvaluationException | RuntimeException | Error e) {
+		} catch (ObjectNotFoundException | SchemaException | ConfigurationException | ExpressionEvaluationException |
+				CommunicationException | SecurityViolationException | RuntimeException | Error e) {
 			result.recordFatalError(e);
 			throw e;
 		}

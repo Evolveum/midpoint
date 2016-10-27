@@ -14,12 +14,98 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<html xmlns="http://www.w3.org/1999/xhtml" xmlns:wicket="http://wicket.apache.org">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:wicket="http://wicket.apache.org">
 <body>
-<wicket:extend>
+	<wicket:extend>
 
-todo
-    
-</wicket:extend>
+		<div wicket:id="eventPanel" class="row">
+            <div wicket:id="historyPanel" class="col-md-3" />
+			<div wicket:id="eventDetailsPanel" class="col-md-5">
+				<div class="box box-success">
+					<table class="table table-striped">
+						<tr>
+							<td><wicket:message key="PageAuditLogDetails.eventTimestamp" /></td>
+							<td><span wicket:id="timestamp" /></td>
+						</tr>
+						<tr>
+							<td><wicket:message
+									key="PageAuditLogDetails.eventIdentifier" /></td>
+							<td><span wicket:id="eventIdentifier" /></td>
+						</tr>
+						<tr>
+							<td><wicket:message key="PageAuditLogDetails.eventType" /></td>
+							<td><span wicket:id="eventType" /></td>
+						</tr>
+						<tr>
+							<td><wicket:message key="PageAuditLogDetails.eventStage" /></td>
+							<td><span wicket:id="eventStage" /></td>
+						</tr>
+						<tr>
+							<td><wicket:message
+									key="PageAuditLogDetails.eventInitiatorRef" /></td>
+							<td><span wicket:id="initiatorRef" /></td>
+						</tr>
+						<tr>
+							<td><wicket:message key="PageAuditLogDetails.eventTargetRef" /></td>
+							<td><span wicket:id="targetRef" /></td>
+						</tr>
+						<tr>
+							<td><wicket:message
+									key="PageAuditLogDetails.eventTargetOwnerRef" /></td>
+							<td><span wicket:id="targetOwnerRef" /></td>
+						</tr>
+						<tr>
+							<td><wicket:message key="PageAuditLogDetails.eventResult" /></td>
+							<td><span wicket:id="result" /></td>
+						</tr>
+						<tr>
+							<td><wicket:message key="PageAuditLogDetails.eventOutcome" /></td>
+							<td><span wicket:id="outcome" /></td>
+						</tr>
+						<tr>
+							<td><wicket:message
+									key="PageAuditLogDetails.sessionIdentifier" /></td>
+							<td><span wicket:id="sessionIdentifier" /></td>
+						</tr>
+						<tr>
+							<td><wicket:message key="PageAuditLogDetails.taskIdentifier" /></td>
+							<td><span wicket:id="taskIdentifier" /></td>
+						</tr>
+						<tr>
+							<td><wicket:message key="PageAuditLogDetails.taskOID" /></td>
+							<td><span wicket:id="taskOID" /></td>
+						</tr>
+						<tr>
+							<td><wicket:message key="PageAuditLogDetails.hostIdentifier" /></td>
+							<td><span wicket:id="hostIdentifier" /></td>
+						</tr>
+						<tr>
+							<td><wicket:message key="PageAuditLogDetails.channel" /></td>
+							<td><span wicket:id="channel" /></td>
+						</tr>
+						<tr>
+							<td><wicket:message key="PageAuditLogDetails.parameter" /></td>
+							<td><span wicket:id="parameter" /></td>
+						</tr>
+						<tr>
+							<td><wicket:message key="PageAuditLogDetails.message" /></td>
+							<td><span wicket:id="message" /></td>
+						</tr>
+					</table>
+				</div>
+			</div>
+			<div class="col-md-4">
+					<div  wicket:id="deltaListPanel"></div>
+			</div>
+		</div>
+        <div class="row">
+        <div class="main-button-bar" style="padding-left: 15px;">
+            <span class="button-group">
+                <a class="btn btn-default" wicket:id="back"/>
+            </span>
+        </div>
+            </div>
+	</wicket:extend>
 </body>
 </html>

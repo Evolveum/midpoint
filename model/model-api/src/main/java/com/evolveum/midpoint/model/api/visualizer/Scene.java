@@ -16,7 +16,6 @@
 
 package com.evolveum.midpoint.model.api.visualizer;
 
-import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.delta.ChangeType;

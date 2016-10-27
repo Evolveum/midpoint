@@ -35,7 +35,6 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.PagedSearchC
 
 import java.util.Collection;
 import java.util.List;
-import java.util.Set;
 
 import javax.xml.namespace.QName;
 
@@ -300,7 +299,7 @@ public interface ConnectorInstance {
 	 * @param lastToken
 	 * @return
 	 */
-	<T extends ShadowType> List<Change<T>> fetchChanges(ObjectClassComplexTypeDefinition objectClass, PrismProperty<?> lastToken, AttributesToReturn attrsToReturn, StateReporter reporter,
+	List<Change> fetchChanges(ObjectClassComplexTypeDefinition objectClass, PrismProperty<?> lastToken, AttributesToReturn attrsToReturn, StateReporter reporter,
 															   OperationResult parentResult) throws CommunicationException, GenericFrameworkException, SchemaException, ConfigurationException;
 	
 	//public ValidationResult validateConfiguration(ResourceConfiguration newConfiguration);

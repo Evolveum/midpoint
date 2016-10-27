@@ -206,6 +206,10 @@ public class FocusMainPanel<F extends FocusType> extends AbstractObjectMainPanel
 		return new RequestAssignmentTabPanel<F>(panelId, getMainForm(), getObjectModel(), assignmentsModel, parentPage);
 	}
 
+	protected WebMarkupContainer createObjectHistoryTabPanel(String panelId, PageAdminObjectDetails<F> parentPage) {
+		return new ObjectHistoryTabPanel<>(panelId, getMainForm(), getObjectModel(), parentPage);
+	}
+
 	protected IModel<PrismObject<F>> unwrapModel() {
 		return new AbstractReadOnlyModel<PrismObject<F>>() {
 
@@ -295,6 +299,17 @@ public class FocusMainPanel<F extends FocusType> extends AbstractObjectMainPanel
                         }
                     });
         }
+			authorization = new FocusTabVisibleBehavior(unwrapModel(), ComponentConstants.UI_FOCUS_TAB_OBJECT_HISTORY_URL);
+            tabs.add(
+                    new PanelTab(parentPage.createStringResource("pageAdminFocus.objectHistory"), authorization) {
+
+                    	private static final long serialVersionUID = 1L;
+
+                        @Override
+                        public WebMarkupContainer createPanel(String panelId) {
+                            return createObjectHistoryTabPanel(panelId, parentPage);
+                        }
+                    });
 	}
 
 }

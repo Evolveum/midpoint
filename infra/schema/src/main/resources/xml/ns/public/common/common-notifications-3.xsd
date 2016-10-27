@@ -414,6 +414,13 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="userRegistrationNotifier" type="tns:UserRegistrationNotifierType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        TODO
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="accountPasswordNotifier" type="tns:AccountPasswordNotifierType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -769,6 +776,23 @@
         </xsd:complexContent>
     </xsd:complexType>
 
+
+<xsd:complexType name="UserRegistrationNotifierType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:GeneralNotifierType">
+             	<xsd:sequence>
+                    <xsd:element name="confirmationMethod" type="tns:RegistrationConfirmationMethodType" minOccurs="0">
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
     <xsd:complexType name="AccountPasswordNotifierType">
         <xsd:annotation>
             <xsd:documentation>
@@ -840,5 +864,52 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
+    
+    <xsd:simpleType name="RegistrationConfirmationMethodType">
+        <xsd:annotation>
+            <xsd:documentation>
+                How to ensure transport-level security when sending the message.
+                SSL/STARTTLS settings are currently EXPERIMENTAL (e.g. there is no support
+                for setting certificate validation-related properties; default behavior
+                of javax.mail implementation is used).
+            </xsd:documentation>
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="none">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        No validation method
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="NONE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="link">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Append LINK to the confirmation message which will be used to validate users
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="LINK"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="pin">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Append PIN to the confirmation message which will be used to validate users
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="PIN"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+           
+        </xsd:restriction>
+    </xsd:simpleType>
 
 </xsd:schema>

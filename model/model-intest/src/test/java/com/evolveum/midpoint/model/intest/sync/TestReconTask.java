@@ -17,8 +17,6 @@ package com.evolveum.midpoint.model.intest.sync;
 
 import java.io.FileNotFoundException;
 
-import javax.xml.bind.JAXBException;
-
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;

@@ -17,8 +17,6 @@ package com.evolveum.midpoint.model.impl.lens.projector;
 
 import static com.evolveum.midpoint.schema.internals.InternalsConfig.consistencyChecks;
 
-import java.util.Collection;
-
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.evolveum.midpoint.util.exception.NoFocusNameSchemaException;
@@ -38,7 +36,6 @@ import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.model.impl.lens.LensUtil;
 import com.evolveum.midpoint.model.impl.util.Utils;
 import com.evolveum.midpoint.prism.ComplexTypeDefinition;
-import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.OriginType;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -460,24 +457,30 @@ public class FocusProcessor {
 		TimeIntervalStatusType validityStatusCurrent = null;
 		XMLGregorianCalendar validityChangeTimestamp = null;
 		
+		String lifecycleStateNew = null;
+		String lifecycleStateCurrent = null;
 		ActivationType activationNew = null;
 		ActivationType activationCurrent = null;
 		
 		PrismObject<F> focusNew = focusContext.getObjectNew();
 		if (focusNew != null) {
-			activationNew = focusNew.asObjectable().getActivation();
+			F focusTypeNew = focusNew.asObjectable();
+			activationNew = focusTypeNew.getActivation();
 			if (activationNew != null) {
 				validityStatusNew = activationComputer.getValidityStatus(activationNew, now);
 				validityChangeTimestamp = activationNew.getValidityChangeTimestamp();
 			}
+			lifecycleStateNew = focusTypeNew.getLifecycleState();
 		}
 		
 		PrismObject<F> focusCurrent = focusContext.getObjectCurrent();
 		if (focusCurrent != null) {
-			activationCurrent = focusCurrent.asObjectable().getActivation();
+			F focusCurrentType = focusCurrent.asObjectable();
+			activationCurrent = focusCurrentType.getActivation();
 			if (activationCurrent != null) {
 				validityStatusCurrent = activationComputer.getValidityStatus(activationCurrent, validityChangeTimestamp);
 			}
+			lifecycleStateCurrent = focusCurrentType.getLifecycleState();
 		}
 		
 		if (validityStatusCurrent == validityStatusNew) {
@@ -493,8 +496,8 @@ public class FocusProcessor {
 			recordValidityDelta(focusContext, validityStatusNew, now);
 		}
 		
-		ActivationStatusType effectiveStatusNew = activationComputer.getEffectiveStatus(activationNew, validityStatusNew, ActivationStatusType.ENABLED);
-		ActivationStatusType effectiveStatusCurrent = activationComputer.getEffectiveStatus(activationCurrent, validityStatusCurrent, ActivationStatusType.ENABLED);
+		ActivationStatusType effectiveStatusNew = activationComputer.getEffectiveStatus(lifecycleStateNew, activationNew, validityStatusNew);
+		ActivationStatusType effectiveStatusCurrent = activationComputer.getEffectiveStatus(lifecycleStateCurrent, activationCurrent, validityStatusCurrent);
 		
 		if (effectiveStatusCurrent == effectiveStatusNew) {
 			// No change, (almost) no work

@@ -24,6 +24,7 @@ import com.evolveum.midpoint.model.api.hooks.HookOperationMode;
 import com.evolveum.midpoint.model.api.hooks.HookRegistry;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -94,6 +95,12 @@ public class WfHook implements ChangeHook {
         WfConfigurationType wfConfigurationType = baseConfigurationHelper.getWorkflowConfiguration(context, result);
         if (wfConfigurationType != null && Boolean.FALSE.equals(wfConfigurationType.isModelHookEnabled())) {
             LOGGER.info("Workflow model hook is disabled. Proceeding with operation execution as if everything is approved.");
+            result.recordSuccess();
+            return HookOperationMode.FOREGROUND;
+        }
+
+        if (SchemaConstants.CHANNEL_GUI_INIT_URI.equals(context.getChannel())) {
+            LOGGER.debug("Skipping workflow processing because the channel is '" + SchemaConstants.CHANNEL_GUI_INIT_URI + "'.");
             result.recordSuccess();
             return HookOperationMode.FOREGROUND;
         }

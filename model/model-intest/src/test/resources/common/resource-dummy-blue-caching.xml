@@ -1,0 +1,328 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2016 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<!-- Same as resource dummy BLUE, but has caching turned on. -->
+
+<!-- BLUE dummy resource for testing. It is used in multi-resource tests. It also
+     has mostly WEAK mappings, therefore it is used in weak mapping tests. -->
+
+<resource oid="10000000-0000-0000-0000-000000000204"
+		  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+          xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+          xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+          xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+          xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+
+	<name>Dummy Resource Blue</name>
+	<connectorRef type="c:ConnectorType">
+		<filter>
+			<q:and>
+				<q:equal>
+					<q:path>connectorType</q:path>
+					<q:value>com.evolveum.icf.dummy.connector.DummyConnector</q:value>
+				</q:equal>
+				<q:equal>
+					<q:path>connectorVersion</q:path>
+					<q:value>2.0</q:value>
+				</q:equal>
+			</q:and>
+		</filter>
+	</connectorRef>
+	<connectorConfiguration xmlns:icfi="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector"
+	               xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
+					   
+		<icfc:configurationProperties>
+			<icfi:instanceId>blue</icfi:instanceId>
+			<icfi:supportValidity>true</icfi:supportValidity>
+		</icfc:configurationProperties>
+
+	</connectorConfiguration>
+	
+	<schema>
+		<definition>
+			<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+                     xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+                     xmlns:ra="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-3"
+                     xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+                     xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
+                     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                     elementFormDefault="qualified"
+                     targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
+            <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"/>
+            <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-3"/>
+            <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-3"/>
+            <xsd:complexType name="AccountObjectClass">
+               <xsd:annotation>
+                  <xsd:appinfo>
+                     <ra:resourceObject/>
+                     <ra:identifier>icfs:uid</ra:identifier>
+                     <ra:secondaryIdentifier>icfs:name</ra:secondaryIdentifier>
+                     <ra:displayNameAttribute>icfs:name</ra:displayNameAttribute>
+                     <ra:namingAttribute>icfs:name</ra:namingAttribute>
+                     <ra:nativeObjectClass>__ACCOUNT__</ra:nativeObjectClass>
+                     <ra:account/>
+                     <ra:default/>
+                  </xsd:appinfo>
+               </xsd:annotation>
+               <xsd:sequence>
+                  <xsd:element ref="icfs:uid" minOccurs="0">
+                     <xsd:annotation>
+                        <xsd:appinfo>
+                           <a:displayName>ICF UID</a:displayName>
+                           <a:access>read</a:access>
+                        </xsd:appinfo>
+                     </xsd:annotation>
+                  </xsd:element>
+                  <xsd:element name="fullname" type="xsd:string"/>
+                  <xsd:element minOccurs="0" name="description" type="xsd:string"/>
+                  <xsd:element maxOccurs="unbounded" minOccurs="0" name="interests" type="xsd:string"/>
+                  <xsd:element ref="icfs:name">
+                     <xsd:annotation>
+                        <xsd:appinfo>
+                           <a:displayName>ICF NAME</a:displayName>
+                        </xsd:appinfo>
+                     </xsd:annotation>
+                  </xsd:element>
+                  <xsd:element name="title" type="xsd:string" maxOccurs="unbounded"/>
+                  <xsd:element name="ship" type="xsd:string"/>
+                  <xsd:element name="location" type="xsd:string"/>
+                  <xsd:element name="loot" type="xsd:int"/>
+                  <xsd:element name="weapon" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+                  <xsd:element name="drink" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+                  <xsd:element name="quote" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+                  <xsd:element name="gossip" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+                  <xsd:element name="water" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+               </xsd:sequence>
+            </xsd:complexType>
+         </xsd:schema>
+		</definition>
+	</schema>
+
+	<schemaHandling>
+		<objectType>
+			<kind>account</kind>
+			<intent>default</intent>
+			<displayName>Default Account</displayName>
+			<default>true</default>
+			<objectClass>ri:AccountObjectClass</objectClass>
+			<attribute>
+				<ref>icfs:name</ref>
+				<displayName>Username</displayName>
+				<outbound>
+				    <strength>weak</strength>
+				    <source>
+				    	<path>name</path>
+				    </source>
+					<expression>
+						<script>
+							<code>name + iterationToken</code>
+						</script>
+					</expression>
+				</outbound>
+				<inbound>
+					<target>
+						<path>$user/name</path>
+					</target>
+				</inbound>
+			</attribute>
+			<attribute>
+				<ref>icfs:uid</ref>
+				<displayName>UID</displayName>
+			</attribute>
+			<attribute>
+				<ref>ri:fullname</ref>
+				<displayName>Full Name</displayName>
+				<outbound>
+					<strength>weak</strength>
+					<source>
+						<path>$user/fullName</path>
+					</source>
+					<expression>
+						<script>
+							<!-- It is important to have script here, not just asIs.
+							     The script will process the delta differently (ADD/DELETE instead of REPLACE) -->
+							<code>fullName?.toString()</code>
+						</script>
+					</expression>
+				</outbound>
+				<inbound>
+					<strength>weak</strength>
+					<target>
+						<path>$user/fullName</path>
+					</target>
+				</inbound>
+			</attribute>
+			<attribute>
+				<ref>ri:ship</ref>
+				<displayName>Ship</displayName>
+				<outbound>
+					<strength>weak</strength>
+					<source>
+						<path>$user/organizationalUnit</path>
+					</source>
+				</outbound>
+			</attribute>
+			<attribute>
+				<ref>ri:location</ref>
+				<displayName>Location</displayName>
+				<outbound>
+					<strength>weak</strength>
+					<source>
+						<path>
+							$user/locality
+						</path>
+					</source>
+				</outbound>
+			</attribute>
+			<attribute>
+				<ref>ri:drink</ref>
+				<outbound>
+					<strength>weak</strength>
+					<expression>
+						<generate>
+							<mode>uuid</mode>
+						</generate>
+					</expression>
+				</outbound>
+			</attribute>
+			<attribute>
+				<ref>ri:quote</ref>
+				<displayName>Quote</displayName>
+				<tolerant>false</tolerant>
+				<outbound>
+					<strength>weak</strength>
+					<source>
+						<path>$user/description</path>
+					</source>
+					<source>
+						<path>$user/fullName</path>
+					</source>
+					<expression>
+						<script>
+							<!-- It is important to have script here, not just asIs.
+							     The script will process the delta differently (ADD/DELETE instead of REPLACE) -->
+							<code>description + ' -- ' + fullName</code>
+						</script>
+					</expression>
+				</outbound>
+			</attribute>
+			<attribute>
+				<ref>ri:gossip</ref>
+				<tolerant>true</tolerant>
+				<outbound>
+					<strength>weak</strength>
+					<source>
+						<path>$configuration/name</path>
+					</source>
+				</outbound>
+			</attribute>
+			<iteration>
+				<maxIterations>5</maxIterations>
+			</iteration>
+			<activation>
+            	<administrativeStatus>
+            		<outbound>
+            			<strength>weak</strength>
+                    	<expression>
+                        	<asIs/>
+                        </expression>
+            		</outbound>
+            	</administrativeStatus>
+            	<validFrom>
+            		<outbound>
+            			<strength>weak</strength>
+                    	<expression>
+                        	<asIs/>
+                        </expression>
+            		</outbound>
+            	</validFrom>
+            	<validTo>
+            		<outbound>
+            			<strength>weak</strength>
+                    	<expression>
+                        	<asIs/>
+                        </expression>
+            		</outbound>
+            	</validTo>
+            </activation>
+		</objectType>
+	</schemaHandling>
+	
+	<caching>
+		<cachingStategy>passive</cachingStategy>
+	</caching>
+	
+	<synchronization>
+		<objectSynchronization>
+			<enabled>true</enabled>
+			<correlation>
+				<q:equal>
+					<q:path>c:name</q:path>
+					<expression>
+						<script>
+							<code>
+								basic.getAttributeValue(account, 
+									'http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3', 'name')
+							</code>
+						</script>
+					</expression>
+				</q:equal>
+			</correlation>
+			<reaction>
+	            <situation>linked</situation>
+	            <synchronize>true</synchronize>
+	        </reaction>
+	        <reaction>
+	            <situation>deleted</situation>
+	            <synchronize>true</synchronize>
+	            <action>
+	            	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#unlink</handlerUri>
+	            </action>
+	        </reaction>
+	        <reaction>
+	            <situation>unlinked</situation>
+	            <synchronize>true</synchronize>
+	            <action>
+	            	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#link</handlerUri>
+	            </action>
+	        </reaction>
+			<!-- We don't want the this resource to be authoritative w.r.t. creating user objects. This causes
+			     conflicts with green resource, which is also authoritative in this respect. Conflicts appear
+			     when one of the accounts is deleted. Synchronization processes then (sometimes) re-create
+			     the user because of the existence of the other account. -->
+	        <!-- <reaction>
+	            <situation>unmatched</situation>
+	            <synchronize>true</synchronize>
+	            <action>
+	            	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#addFocus</handlerUri>
+	            </action>
+	        </reaction> -->
+	        <reaction>
+	            <situation>unmatched</situation>
+	            <channel>http://midpoint.evolveum.com/xml/ns/public/provisioning/channels-3#NoNsEnSe</channel>
+	            <synchronize>true</synchronize>
+	            <action>
+	            	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#inactivateShadow</handlerUri>
+	            </action>
+	        </reaction>
+        </objectSynchronization>
+	</synchronization>
+	
+</resource>

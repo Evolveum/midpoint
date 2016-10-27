@@ -17,8 +17,6 @@ package com.evolveum.midpoint.model.api;
 
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 
-import javax.xml.namespace.QName;
-
 /**
  * Model constants referenced from the outside.
  * (TODO reconsider with regards to SchemaConstants)

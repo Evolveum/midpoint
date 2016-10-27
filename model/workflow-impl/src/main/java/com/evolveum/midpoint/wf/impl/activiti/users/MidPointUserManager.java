@@ -17,11 +17,8 @@
 package com.evolveum.midpoint.wf.impl.activiti.users;
 
 import org.activiti.engine.identity.User;
-import org.activiti.engine.impl.Page;
 import org.activiti.engine.impl.persistence.entity.UserEntity;
 import org.activiti.engine.impl.persistence.entity.UserEntityManager;
-
-import java.util.List;
 
 public class MidPointUserManager extends UserEntityManager {
 

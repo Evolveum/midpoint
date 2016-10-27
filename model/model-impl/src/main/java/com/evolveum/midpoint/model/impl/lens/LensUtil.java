@@ -52,7 +52,6 @@ import com.evolveum.midpoint.model.common.mapping.MappingFactory;
 import com.evolveum.midpoint.model.common.mapping.PrismValueDeltaSetTripleProducer;
 import com.evolveum.midpoint.model.impl.expr.ModelExpressionThreadLocalHolder;
 import com.evolveum.midpoint.model.impl.lens.projector.ValueMatcher;
-import com.evolveum.midpoint.model.impl.util.Utils;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
@@ -61,9 +60,7 @@ import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
-import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -849,20 +846,23 @@ public class LensUtil {
 
 	}
     
+    /**
+     * Used for assignments and similar objects that do not have separate lifecycle.
+     */
     public static boolean isValid(AssignmentType assignmentType, XMLGregorianCalendar now, ActivationComputer activationComputer) {
-		return isValid(assignmentType.getActivation(), now, activationComputer);
+		return isValid(null, assignmentType.getActivation(), now, activationComputer);
 	}
 
 	public static boolean isValid(FocusType focus, XMLGregorianCalendar now, ActivationComputer activationComputer) {
-		return isValid(focus.getActivation(), now, activationComputer);
+		return isValid(focus.getLifecycleState(), focus.getActivation(), now, activationComputer);
 	}
 
-	private static boolean isValid(ActivationType activationType, XMLGregorianCalendar now, ActivationComputer activationComputer) {
+	private static boolean isValid(String lifecycleState, ActivationType activationType, XMLGregorianCalendar now, ActivationComputer activationComputer) {
 		if (activationType == null) {
 			return true;
 		}
 		TimeIntervalStatusType validityStatus = activationComputer.getValidityStatus(activationType, now);
-		ActivationStatusType effectiveStatus = activationComputer.getEffectiveStatus(activationType, validityStatus, ActivationStatusType.ENABLED);
+		ActivationStatusType effectiveStatus = activationComputer.getEffectiveStatus(lifecycleState, activationType, validityStatus);
 		return effectiveStatus == ActivationStatusType.ENABLED;
 	}
 

@@ -16,7 +16,6 @@
 
 package com.evolveum.midpoint.web.page.admin.configuration.dto;
 
-import javax.xml.namespace.QName;
 import java.io.Serializable;
 
 /**

@@ -16,21 +16,10 @@ public class TestProtector {
 	
 	private PrismContext prismContext;
 	
-	private static transient Trace LOGGER = TraceManager.getTrace(TestProtector.class);
-	
-//	@BeforeSuite
-//	public void setup() throws SchemaException, SAXException, IOException {
-//		PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
-//		PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
-		
-//		prismContext = PrismTestUtil.createInitializedPrismContext();
-
-//	}
-	
+	private static transient Trace LOGGER = TraceManager.getTrace(TestProtector.class);	
 	
 	public static Protector createProtector(String xmlCipher){
 		AESProtector protector = new AESProtector();
-//		protector.setPrismContext(prismContext);
 		protector.setKeyStorePassword(KEYSTORE_PASSWORD);
 		protector.setKeyStorePath(KEYSTORE_PATH);
 		protector.setEncryptionAlgorithm(xmlCipher);
@@ -42,9 +31,11 @@ public class TestProtector {
   @Test
   public void testProtectorKeyStore() throws Exception{
 	  
+	
 	  String value = "someValue";
 	
 	  Protector protector256 = createProtector(XMLCipher.AES_256);
+	  
 	  ProtectedStringType pdt = new ProtectedStringType();
 	  pdt.setClearValue(value);
 	  protector256.encrypt(pdt);

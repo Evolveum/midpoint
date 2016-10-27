@@ -105,7 +105,7 @@ public class AuthenticationEvaluatorImpl implements AuthenticationEvaluator {
 		}
 		
 		// Password age
-		checkPasswordValidityAndAge(connEnv, principal, passwordType, passwordCredentialsPolicy);
+		checkPasswordValidityAndAge(connEnv, principal, passwordType.getValue(), passwordType.getMetadata(), passwordCredentialsPolicy);
 		
 		if (passwordMatches(connEnv, principal, passwordType, enteredPassword)) {
 			
@@ -117,6 +117,42 @@ public class AuthenticationEvaluatorImpl implements AuthenticationEvaluator {
 		} else {
 			recordPasswordAuthenticationFailure(principal, connEnv, passwordType, passwordCredentialsPolicy, "password mismatch");
 			
+			throw new BadCredentialsException("web.security.provider.invalid");
+		}
+	}
+	
+	@Override
+	public UsernamePasswordAuthenticationToken authenticateUserNonce(ConnectionEnvironment connEnv, String enteredUsername, String enteredNonce, NonceCredentialsPolicyType noncePolicy) 
+			throws BadCredentialsException, AuthenticationCredentialsNotFoundException, DisabledException, LockedException, 
+			CredentialsExpiredException, AuthenticationServiceException, AccessDeniedException, UsernameNotFoundException {		
+		if (StringUtils.isBlank(enteredNonce)) {
+			recordAuthenticationFailure(enteredUsername, connEnv, "empty password provided");
+			throw new BadCredentialsException("web.security.provider.password.encoding");
+		}
+		
+		MidPointPrincipal principal = getAndCheckPrincipal(connEnv, enteredUsername);
+		
+		UserType userType = principal.getUser();
+		CredentialsType credentials = userType.getCredentials();
+		if (credentials == null) {
+			recordAuthenticationFailure(principal, connEnv, "no credentials in user");
+			throw new AuthenticationCredentialsNotFoundException("web.security.provider.invalid");
+		}
+		NonceType nonceType = credentials.getNonce();
+		
+		// Password age
+		checkPasswordValidityAndAge(connEnv, principal, nonceType.getValue(), nonceType.getMetadata(), noncePolicy);
+		
+		if (nonceMatches(connEnv, principal, nonceType, enteredNonce)) {
+			
+			recordNonceAuthenticationSuccess(principal, connEnv, nonceType, noncePolicy);
+			UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(principal, 
+					credentials.getPassword() != null ? getPassword(connEnv, principal, credentials.getPassword().getValue()) : enteredNonce, principal.getAuthorities());
+			return token;
+			
+		} else {
+//			recordPasswordAuthenticationFailure(principal, connEnv, nonceType, passwordCredentialsPolicy, "password mismatch");
+			//TODO what to do after expiration?
 			throw new BadCredentialsException("web.security.provider.invalid");
 		}
 	}
@@ -162,9 +198,9 @@ public class AuthenticationEvaluatorImpl implements AuthenticationEvaluator {
 		}
 		
 		// Password age
-		checkPasswordValidityAndAge(connEnv, principal, passwordType, passwordCredentialsPolicy);
+		checkPasswordValidityAndAge(connEnv, principal, passwordType.getValue(), passwordType.getMetadata(), passwordCredentialsPolicy);
 		
-		return getPassword(connEnv, principal, passwordType);
+		return getPassword(connEnv, principal, passwordType.getValue());
 	}
 	
 	@Override
@@ -227,9 +263,8 @@ public class AuthenticationEvaluatorImpl implements AuthenticationEvaluator {
 		return false;
 	}
 
-	private void checkPasswordValidityAndAge(ConnectionEnvironment connEnv, @NotNull MidPointPrincipal principal, PasswordType passwordType,
-			PasswordCredentialsPolicyType passwordCredentialsPolicy) {
-		ProtectedStringType protectedString = passwordType.getValue();
+	private <T extends AbstractCredentialPolicyType> void checkPasswordValidityAndAge(ConnectionEnvironment connEnv, @NotNull MidPointPrincipal principal, ProtectedStringType protectedString, MetadataType passwordMetadata, 
+			T passwordCredentialsPolicy) {
 		if (protectedString == null) {
 			recordAuthenticationFailure(principal, connEnv, "no stored password value");
 			throw new AuthenticationCredentialsNotFoundException("web.security.provider.password.bad");
@@ -239,7 +274,7 @@ public class AuthenticationEvaluatorImpl implements AuthenticationEvaluator {
 		}
 		Duration maxAge = passwordCredentialsPolicy.getMaxAge();
 		if (maxAge != null) {
-			XMLGregorianCalendar changeTimestamp = MiscSchemaUtil.getChangeTimestamp(passwordType.getMetadata());
+			XMLGregorianCalendar changeTimestamp = MiscSchemaUtil.getChangeTimestamp(passwordMetadata);
 			if (changeTimestamp != null) {
 				XMLGregorianCalendar passwordValidUntil = XmlTypeConverter.addDuration(changeTimestamp, maxAge);
 				if (clock.isPast(passwordValidUntil)) {
@@ -249,15 +284,20 @@ public class AuthenticationEvaluatorImpl implements AuthenticationEvaluator {
 			}
 		}
 	}
+	
+	private boolean nonceMatches(ConnectionEnvironment connEnv, @NotNull MidPointPrincipal principal, NonceType nonceType,
+			String enteredNonce) {
+		String decryptedPassword = getPassword(connEnv, principal, nonceType.getValue());
+		return enteredNonce.equals(decryptedPassword);
+	}
 
 	private boolean passwordMatches(ConnectionEnvironment connEnv, @NotNull MidPointPrincipal principal, PasswordType passwordType,
 			String enteredPassword) {
-		String decryptedPassword = getPassword(connEnv, principal, passwordType);
+		String decryptedPassword = getPassword(connEnv, principal, passwordType.getValue());
 		return enteredPassword.equals(decryptedPassword);
 	}
 	
-	private String getPassword(ConnectionEnvironment connEnv, @NotNull MidPointPrincipal principal, PasswordType passwordType) {
-		ProtectedStringType protectedString = passwordType.getValue();
+	private String getPassword(ConnectionEnvironment connEnv, @NotNull MidPointPrincipal principal, ProtectedStringType protectedString) {
 		String decryptedPassword;
 		if (protectedString.getEncryptedDataType() != null) {
 			try {
@@ -287,7 +327,7 @@ public class AuthenticationEvaluatorImpl implements AuthenticationEvaluator {
 		return credentialsPolicy != null && credentialsPolicy.getLockoutMaxFailedAttempts() != null &&
 				credentialsPolicy.getLockoutMaxFailedAttempts() > 0 && failedLogins >= credentialsPolicy.getLockoutMaxFailedAttempts();
 	}
-	
+		
 	private boolean isLockoutExpired(AbstractCredentialType credentialsType, AbstractCredentialPolicyType credentialsPolicy) {
 		Duration lockoutDuration = credentialsPolicy.getLockoutDuration();
 		if (lockoutDuration == null) {
@@ -318,6 +358,24 @@ public class AuthenticationEvaluatorImpl implements AuthenticationEvaluator {
 		passwordType.setPreviousSuccessfulLogin(passwordType.getLastSuccessfulLogin());
 		passwordType.setLastSuccessfulLogin(event);
 		
+		ActivationType activation = principal.getUser().getActivation();
+		if (activation != null) {
+			activation.setLockoutStatus(LockoutStatusType.NORMAL);
+			activation.setLockoutExpirationTimestamp(null);
+		}
+
+		userProfileService.updateUser(principal);
+		
+		recordAuthenticationSuccess(principal, connEnv);
+	}
+	
+	private void recordNonceAuthenticationSuccess(MidPointPrincipal principal, ConnectionEnvironment connEnv,
+			NonceType nonceType, NonceCredentialsPolicyType passwordCredentialsPolicy) {
+		
+		LoginEventType event = new LoginEventType();
+		event.setTimestamp(clock.currentTimeXMLGregorianCalendar());
+		event.setFrom(connEnv.getRemoteHost());
+
 		ActivationType activation = principal.getUser().getActivation();
 		if (activation != null) {
 			activation.setLockoutStatus(LockoutStatusType.NORMAL);

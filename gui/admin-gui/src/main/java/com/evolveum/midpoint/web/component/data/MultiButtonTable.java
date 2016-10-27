@@ -18,25 +18,16 @@ package com.evolveum.midpoint.web.component.data;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.web.component.AjaxButton;
-import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.assignment.*;
 import com.evolveum.midpoint.web.page.self.PageAssignmentDetails;
-import com.evolveum.midpoint.web.session.RoleCatalogStorage;
-import com.evolveum.midpoint.web.session.UsersStorage;
-import org.apache.wicket.AttributeModifier;
-import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.navigation.paging.IPageableItems;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -225,16 +216,16 @@ public class MultiButtonTable extends BasePanel<List<AssignmentEditorDto>> {
     }
 
     private void addAssignmentPerformed(AssignmentEditorDto assignment, AjaxRequestTarget target){
-        plusIconClicked = true;
-        RoleCatalogStorage storage = getPageBase().getSessionStorage().getRoleCatalog();
-        if (storage.getAssignmentShoppingCart() == null){
-            storage.setAssignmentShoppingCart(new ArrayList<AssignmentEditorDto>());
-        }
-        List<AssignmentEditorDto> assignmentsToAdd = storage.getAssignmentShoppingCart();
-        assignmentsToAdd.add(assignment);
-        storage.setAssignmentShoppingCart(assignmentsToAdd);
-        CatalogItemsPanel parent = MultiButtonTable.this.findParent(CatalogItemsPanel.class);
-        parent.reloadCartButton(target);
+//        plusIconClicked = true;
+//        RoleCatalogStorage storage = getPageBase().getSessionStorage().getRoleCatalog();
+//        if (storage.getAssignmentShoppingCart() == null){
+//            storage.setAssignmentShoppingCart(new ArrayList<AssignmentEditorDto>());
+//        }
+//        List<AssignmentEditorDto> assignmentsToAdd = storage.getAssignmentShoppingCart();
+//        assignmentsToAdd.add(assignment);
+//        storage.setAssignmentShoppingCart(assignmentsToAdd);
+//        CatalogItemsPanel parent = MultiButtonTable.this.findParent(CatalogItemsPanel.class);
+//        parent.reloadCartButton(target);
 
     }
 

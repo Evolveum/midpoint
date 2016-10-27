@@ -63,11 +63,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
-import ch.qos.logback.classic.Logger;
-
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.Session;
-import org.apache.wicket.protocol.http.WebSession;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -400,15 +397,20 @@ public class WebModelServiceUtils {
     }
 
     public static void save(ObjectDelta delta, OperationResult result, PageBase page) {
-        save(delta, null, result, page);
+        save(delta, result, null, page);
     }
-
-    public static void save(ObjectDelta delta, ModelExecuteOptions options, OperationResult result, PageBase page) {
-        save(WebComponentUtil.createDeltaCollection(delta), options, result, page);
+    
+    public static void save(ObjectDelta delta, OperationResult result, Task task, PageBase page) {
+        save(delta, null, result, task, page);
     }
-
+    
+    public static void save(ObjectDelta delta, ModelExecuteOptions options, OperationResult result, Task task, PageBase page) {
+        save(WebComponentUtil.createDeltaCollection(delta), options, result, task, page);
+    }
+    
+ 
     public static void save(Collection<ObjectDelta<? extends ObjectType>> deltas, ModelExecuteOptions options,
-                            OperationResult result, PageBase page) {
+                            OperationResult result, Task task, PageBase page) {
         LOGGER.debug("Saving deltas {}, options {}", new Object[]{deltas, options});
 
         OperationResult subResult;
@@ -419,7 +421,10 @@ public class WebModelServiceUtils {
         }
 
         try {
-            Task task = page.createSimpleTask(result.getOperation());
+            if (task == null) { 
+            	task = page.createSimpleTask(result.getOperation());
+            }
+            
             page.getModelService().executeChanges(deltas, options, task, result);
         } catch (Exception ex) {
             subResult.recordFatalError("WebModelUtils.couldntSaveObject", ex);

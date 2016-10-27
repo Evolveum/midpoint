@@ -2,10 +2,13 @@ package com.evolveum.midpoint.prism.lex.json;
 
 import java.io.IOException;
 
+import javax.xml.namespace.QName;
+
 import org.apache.commons.lang.StringUtils;
 
 import com.evolveum.midpoint.prism.marshaller.XPathHolder;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;

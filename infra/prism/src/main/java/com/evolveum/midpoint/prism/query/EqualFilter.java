@@ -160,7 +160,7 @@ public class EqualFilter<T> extends PropertyValueFilter<T> implements Itemable {
 		
 		return false;		
 	}
-	
+
 	@Override
 	public boolean equals(Object obj, boolean exact) {
 		return obj instanceof EqualFilter && super.equals(obj, exact);

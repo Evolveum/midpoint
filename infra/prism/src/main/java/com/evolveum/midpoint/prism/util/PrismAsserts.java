@@ -34,7 +34,6 @@ import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 
 import com.evolveum.midpoint.util.QNameUtil;
 import org.w3c.dom.Element;
-import org.w3c.dom.Node;
 
 import com.evolveum.midpoint.prism.ComplexTypeDefinition;
 import com.evolveum.midpoint.prism.Containerable;
@@ -62,6 +61,7 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
@@ -353,6 +353,14 @@ public class PrismAsserts {
 	public static void assertIsDelete(ObjectDelta<?> objectDelta) {
 		assert objectDelta.isDelete() : "Expected that object delta "+objectDelta+" is DELETE, but it is "+objectDelta.getChangeType();
 	}
+	
+	public static void assertEmpty(ObjectDelta<?> objectDelta) {
+		assert objectDelta.isEmpty() : "Expected that object delta "+objectDelta+" is empty, but it is not";
+	}
+
+	public static void assertEmpty(String message, ObjectDelta<?> objectDelta) {
+		assert objectDelta.isEmpty() : "Expected that object delta "+message+" is empty, but it is: "+objectDelta;
+	}
 
 	public static void assertPropertyReplace(ObjectDelta<?> objectDelta, QName propertyName, Object... expectedValues) {
 		PropertyDelta<Object> propertyDelta = objectDelta.findPropertyDelta(propertyName);
@@ -426,6 +434,24 @@ public class PrismAsserts {
 		assertSet("delta "+propertyDelta+" for "+propertyPath.last(), "delete", propertyDelta.getValuesToDelete(), expectedValues);
 	}
 	
+	public static void assertReferenceAdd(ObjectDelta<?> objectDelta, QName refName, String... expectedOids) {
+		ReferenceDelta refDelta = objectDelta.findReferenceModification(refName);
+		assertNotNull("Reference delta for "+refName+" not found",refDelta);
+		assertOidSet("delta "+refDelta+" for "+refName, "add", refDelta.getValuesToAdd(), expectedOids);
+	}
+	
+	public static void assertReferenceDelete(ObjectDelta<?> objectDelta, QName refName, String... expectedOids) {
+		ReferenceDelta refDelta = objectDelta.findReferenceModification(refName);
+		assertNotNull("Reference delta for "+refName+" not found",refDelta);
+		assertOidSet("delta "+refDelta+" for "+refName, "delete", refDelta.getValuesToDelete(), expectedOids);
+	}
+
+	public static void assertReferenceReplace(ObjectDelta<?> objectDelta, QName refName, String... expectedOids) {
+		ReferenceDelta refDelta = objectDelta.findReferenceModification(refName);
+		assertNotNull("Reference delta for "+refName+" not found",refDelta);
+		assertOidSet("delta "+refDelta+" for "+refName, "replace", refDelta.getValuesToReplace(), expectedOids);
+	}
+
 	public static void assertNoItemDelta(ObjectDelta<?> objectDelta, QName itemName) {
 		assertNoItemDelta(objectDelta, new ItemPath(itemName));
 	}
@@ -814,6 +840,30 @@ public class PrismAsserts {
 			if (!found) {
 				fail("Unexpected value "+actualPValue+" in " + message + "; expected (real values) "
 						+PrettyPrinter.prettyPrint(expectedValues)+"; has (pvalues) "+actualPValues);
+			}
+		}
+	}
+	
+	private static void assertOidSet(String inMessage, String setName, Collection<PrismReferenceValue> actualPValues, String... expectedOids) {
+		assertOidValues(setName + " set in " + inMessage, actualPValues, expectedOids);
+	}
+	
+	public static void assertOidValues(String message, Collection<PrismReferenceValue> actualRValues, String... expectedOids) {
+		assertNotNull("Null set in " + message, actualRValues);
+		if (expectedOids.length != actualRValues.size()) {
+			fail("Wrong number of values in " + message+ "; expected "+expectedOids.length+" (oids) "
+					+PrettyPrinter.prettyPrint(expectedOids)+"; has "+actualRValues.size()+" (rvalues) "+actualRValues);
+		}
+		for (PrismReferenceValue actualRValue: actualRValues) {
+			boolean found = false;
+			for (String oid: expectedOids) {
+				if (oid.equals(actualRValue.getOid())) {
+					found = true;
+				}
+			}
+			if (!found) {
+				fail("Unexpected value "+actualRValue+" in " + message + "; expected (oids) "
+						+PrettyPrinter.prettyPrint(expectedOids)+"; has (rvalues) "+actualRValues);
 			}
 		}
 	}

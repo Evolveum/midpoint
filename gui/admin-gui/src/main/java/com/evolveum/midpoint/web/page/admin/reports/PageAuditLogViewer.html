@@ -17,44 +17,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:wicket="http://wicket.apache.org">
 <body>
 <wicket:extend>
-    <form wicket:id="mainForm" class="form-inline">
-        <div wicket:id="parametersPanel">
-            <div class="row">
-                <label class="col-md-1"><wicket:message key="PageAuditLogViewer.fromLabel" /></label>
-                <span  class="col-md-5" wicket:id="fromField"/>
-                <label class="col-md-1"><wicket:message key="PageAuditLogViewer.toLabel" /></label>
-                <span  class="col-md-5" wicket:id="toField" />
-            </div>
-            <div class="row">
-                <label class="col-md-1"><wicket:message key="PageAuditLogViewer.initiatorNameLabel" /></label>
-                <span  class="col-md-5" wicket:id="initiatorNameField"/>
-                <label class="col-md-1"><wicket:message key="PageAuditLogViewer.hostIdentifierLabel" /></label>
-                <span  class="col-md-5" wicket:id="hostIdentifierField" />
-            </div>
-            <div class="row">
-                <label class="col-md-1"><wicket:message key="PageAuditLogViewer.targetNameLabel" /></label>
-                <span  class="col-md-5" wicket:id="targetNameField" />
-                <label class="col-md-1"><wicket:message key="PageAuditLogViewer.targetOwnerNameLabel" /></label>
-                <span  class="col-md-5" wicket:id="targetOwnerNameField" />
-            </div>
-            <div class="row">
-                <label class="col-md-1"><wicket:message key="PageAuditLogViewer.eventTypeLabel" /></label>
-                <span  class="col-md-5" wicket:id="eventTypeField" />
-                <label class="col-md-1"><wicket:message key="PageAuditLogViewer.eventStageLabel" /></label>
-                <span  class="col-md-5" wicket:id="eventStageField" />
-            </div>
-            <div class="row">
-                <label class="col-md-1"><wicket:message key="PageAuditLogViewer.outcomeLabel" /></label>
-                <span  class="col-md-5" wicket:id="outcomeField" />
-                <label class="col-md-1"><wicket:message key="PageAuditLogViewer.channelLabel" /></label>
-                <span  class="col-md-5" wicket:id="channelField" />
-            </div>
-            <div class="row">
-                <a class="btn btn-primary" wicket:id="searchButton"/>
-			</div>
-        </div>
-        <div wicket:id="table"/>
-    </form>
+	<div wicket:id="auditLogViewerPanel" />
 </wicket:extend>
 </body>
 </html>

@@ -15,8 +15,23 @@
  */
 package com.evolveum.midpoint.model.intest.gensync;
 
+import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertNotNull;
+import static org.testng.AssertJUnit.assertNull;
+import static org.testng.AssertJUnit.assertTrue;
+
+import java.io.File;
+import java.util.Collection;
+
+import javax.xml.namespace.QName;
+
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.annotation.DirtiesContext.ClassMode;
+import org.springframework.test.context.ContextConfiguration;
+import org.testng.AssertJUnit;
+import org.testng.annotations.Test;
+
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
-import com.evolveum.midpoint.model.intest.TestModelServiceContract;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
@@ -39,7 +54,6 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.RelationalValueSearchQuery;
 import com.evolveum.midpoint.schema.RelationalValueSearchType;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
-import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.RetrieveOption;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -55,7 +69,6 @@ import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.util.exception.TunnelException;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ImportOptionsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
@@ -69,22 +82,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
-
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.annotation.DirtiesContext.ClassMode;
-import org.springframework.test.context.ContextConfiguration;
-import org.testng.AssertJUnit;
-import org.testng.annotations.Test;
-
-import java.io.File;
-import java.util.Collection;
-
-import javax.xml.namespace.QName;
-
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertNotNull;
-import static org.testng.AssertJUnit.assertNull;
-import static org.testng.AssertJUnit.assertTrue;
 
 /**
  * @author semancik
@@ -113,7 +110,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestEditSchema.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         
 		// WHEN
@@ -141,7 +138,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestEditSchema.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         
         Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(LookupTableType.F_ROW,
@@ -172,7 +169,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestEditSchema.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
                 
 		// WHEN
@@ -195,7 +192,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestEditSchema.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         // WHEN
@@ -219,7 +216,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestEditSchema.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         // WHEN
@@ -244,7 +241,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestEditSchema.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         // WHEN
@@ -268,7 +265,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestEditSchema.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         // WHEN
@@ -293,7 +290,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestEditSchema.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         // WHEN
@@ -324,7 +321,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestEditSchema.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         // WHEN
@@ -352,7 +349,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestEditSchema.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         // WHEN
@@ -379,7 +376,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestEditSchema.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         // WHEN
@@ -407,7 +404,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestEditSchema.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         // WHEN
@@ -450,7 +447,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestEditSchema.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         
         LookupTableRowType row = new LookupTableRowType();
@@ -498,7 +495,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestEditSchema.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         
         LookupTableRowType row = new LookupTableRowType();
@@ -546,7 +543,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestEditSchema.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         
         LookupTableRowType row = new LookupTableRowType();
@@ -595,7 +592,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestEditSchema.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         
         LookupTableRowType row = new LookupTableRowType();
@@ -620,7 +617,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
 		result.computeStatus();
 		TestUtil.assertSuccess(result);
 
-        task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+        task = taskManager.createTaskInstance(TestEditSchema.class.getName() + "." + TEST_NAME);
         result = task.getResult();
 		PrismObject<LookupTableType> lookup = getLookupTableAll(LOOKUP_LANGUAGES_OID, task, result);
 		
@@ -656,7 +653,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestEditSchema.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         
         LookupTableRowType row = new LookupTableRowType();
@@ -704,7 +701,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestEditSchema.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         
         LookupTableRowType row = new LookupTableRowType();
@@ -752,7 +749,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestEditSchema.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         
         LookupTableRowType row = new LookupTableRowType();
@@ -796,7 +793,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestEditSchema.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         
         LookupTableRowType row = new LookupTableRowType();
@@ -839,7 +836,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestEditSchema.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         
         LookupTableRowType row1 = new LookupTableRowType();
@@ -895,7 +892,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestEditSchema.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         PrismObject<LookupTableType> replacement = PrismTestUtil.parseObject(LOOKUP_LANGUAGES_REPLACEMENT_FILE);
@@ -935,7 +932,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestEditSchema.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         ImportOptionsType options = new ImportOptionsType();
@@ -998,7 +995,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestEditSchema.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         
         PrismObjectDefinition<UserType> userDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
@@ -1066,7 +1063,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestEditSchema.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
                 
 		// WHEN
@@ -1152,7 +1149,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestEditSchema.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         
         modifyObjectReplaceProperty(UserType.class, USER_JACK_OID, UserType.F_PREFERRED_LANGUAGE, task, result, "en_PR");
@@ -1226,7 +1223,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestEditSchema.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         
         PrismObjectDefinition<RoleType> roleDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(RoleType.class);
@@ -1253,7 +1250,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestEditSchema.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         
         ResourceShadowDiscriminator discr = new ResourceShadowDiscriminator(RESOURCE_DUMMY_OID, ShadowKindType.ACCOUNT, null);
@@ -1286,7 +1283,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestEditSchema.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         
         ResourceShadowDiscriminator discr = new ResourceShadowDiscriminator(RESOURCE_DUMMY_OID, dummyResourceCtl.getAccountObjectClassQName());
@@ -1320,7 +1317,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestEditSchema.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         
         ResourceShadowDiscriminator discr = new ResourceShadowDiscriminator(null, null);
@@ -1352,7 +1349,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestEditSchema.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         
 		// WHEN
@@ -1396,7 +1393,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         // GIVEN
         login(USER_OTIS_USERNAME);
         
-        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestEditSchema.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         
         PrismObjectDefinition<UserType> userDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
@@ -1466,7 +1463,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         // GIVEN
         login(USER_OTIS_USERNAME);
         
-        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestEditSchema.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         
 		// WHEN
@@ -1550,7 +1547,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         // GIVEN
         login(USER_OTIS_USERNAME);
         
-        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestEditSchema.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         
 		// WHEN

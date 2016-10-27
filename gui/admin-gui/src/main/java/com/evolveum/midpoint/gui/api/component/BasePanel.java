@@ -24,7 +24,6 @@ import com.evolveum.midpoint.web.security.WebApplicationConfiguration;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.markup.html.panel.Panel;
-import org.apache.wicket.migrate.StringResourceModelMigration;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.StringResourceModel;
 

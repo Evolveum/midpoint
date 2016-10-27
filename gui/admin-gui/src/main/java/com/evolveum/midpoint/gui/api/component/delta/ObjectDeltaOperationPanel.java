@@ -1,0 +1,148 @@
+package com.evolveum.midpoint.gui.api.component.delta;
+
+import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.model.AbstractReadOnlyModel;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.PropertyModel;
+
+import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.model.api.visualizer.Scene;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.schema.DeltaConvertor;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.prism.show.SceneDto;
+import com.evolveum.midpoint.web.component.prism.show.ScenePanel;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectDeltaOperationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
+
+public class ObjectDeltaOperationPanel extends BasePanel<ObjectDeltaOperationType> {
+
+	private static final long serialVersionUID = 1L;
+
+	private static final Trace LOGGER = TraceManager.getTrace(ObjectDeltaOperationPanel.class);
+
+	private static final String ID_PARAMETERS_DELTA = "delta";
+	private static final String ID_PARAMETERS_EXECUTION_RESULT = "executionResult";
+	private static final String ID_PARAMETERS_OBJECT_NAME = "objectName";
+	private static final String ID_PARAMETERS_RESOURCE_NAME = "resourceName";
+
+	private static final String ID_DELTA_PANEL = "deltaPanel";
+	private static final String ID_OBJECT_DELTA_OPERATION_MARKUP = "objectDeltaOperationMarkup";
+	PageBase parentPage;
+
+	public ObjectDeltaOperationPanel(String id, IModel<ObjectDeltaOperationType> model, PageBase parentPage) {
+		super(id, model);
+		this.parentPage = parentPage;
+		initLayout();
+	}
+
+	private void initLayout() {
+		// ObjectDeltaType od = getModel().getObjectDelta();
+		WebMarkupContainer objectDeltaOperationMarkup = new WebMarkupContainer(ID_OBJECT_DELTA_OPERATION_MARKUP);
+		objectDeltaOperationMarkup.setOutputMarkupId(true);
+		
+		objectDeltaOperationMarkup.add(AttributeModifier.append("class", new AbstractReadOnlyModel<String>() {
+			
+			@Override
+			public String getObject() {
+				return getBoxCssClass();
+			}
+			
+		}));
+		add(objectDeltaOperationMarkup);
+
+		Label executionResult = new Label(ID_PARAMETERS_EXECUTION_RESULT,
+				new PropertyModel(getModel(), "executionResult.status"));
+		executionResult.setOutputMarkupId(true);
+		objectDeltaOperationMarkup.add(executionResult);
+
+		Label resourceName = new Label(ID_PARAMETERS_RESOURCE_NAME,
+				new PropertyModel(getModel(), ObjectDeltaOperationType.F_RESOURCE_NAME.getLocalPart()));
+		resourceName.setOutputMarkupId(true);
+		objectDeltaOperationMarkup.add(resourceName);
+
+		Label objectName = new Label(ID_PARAMETERS_OBJECT_NAME,
+				new PropertyModel(getModel(), ObjectDeltaOperationType.F_OBJECT_NAME.getLocalPart()));
+		objectName.setOutputMarkupId(true);
+		objectDeltaOperationMarkup.add(objectName);
+		final SceneDto sceneDto = loadSceneForDelta();
+
+		IModel<SceneDto> deltaModel = new AbstractReadOnlyModel<SceneDto>() {
+			private static final long serialVersionUID = 1L;
+
+			public SceneDto getObject() {
+				return sceneDto;
+			}
+
+		};
+		ScenePanel deltaPanel = new ScenePanel(ID_DELTA_PANEL, deltaModel) {
+			@Override
+			public void headerOnClickPerformed(AjaxRequestTarget target, IModel<SceneDto> model) {
+				super.headerOnClickPerformed(target, model);
+//				model.getObject().setMinimized(!model.getObject().isMinimized());
+				target.add(ObjectDeltaOperationPanel.this);
+			}
+		};
+		deltaPanel.setOutputMarkupId(true);
+		objectDeltaOperationMarkup.add(deltaPanel);
+
+	}
+	
+	private String getBoxCssClass() {
+		if (getModel().getObject() == null) {
+			return " box-primary";
+		}
+		
+		if (getModel().getObject().getExecutionResult() == null) {
+			return " box-primary";
+		}
+		
+		if (getModel().getObject().getExecutionResult().getStatus() == null) {
+			return " box-primary";
+		}
+		
+		OperationResultStatusType status = getModel().getObject().getExecutionResult().getStatus();
+		switch (status) {
+			case PARTIAL_ERROR :
+			case FATAL_ERROR : return " box-danger";
+			case WARNING :
+			case UNKNOWN :
+			case HANDLED_ERROR : return " box-warning";
+			case IN_PROGRESS : return " box-primary";
+			case NOT_APPLICABLE : return " box-primary";
+			case SUCCESS : return " box-success";
+			
+		}
+		return " box-primary";
+		
+	}
+
+	private SceneDto loadSceneForDelta() {
+		Scene scene = null;
+
+		ObjectDelta<? extends ObjectType> delta;
+		try {
+			delta = DeltaConvertor.createObjectDelta(getModel().getObject().getObjectDelta(),
+					parentPage.getPrismContext());
+
+			scene = parentPage.getModelInteractionService().visualizeDelta(delta,
+					parentPage.createSimpleTask(ID_PARAMETERS_DELTA),
+					new OperationResult(ID_PARAMETERS_DELTA));
+		} catch (SchemaException e) {
+			return null;
+		}
+		SceneDto deltaSceneDto = new SceneDto(scene);
+		deltaSceneDto.setMinimized(true);
+		return deltaSceneDto;
+
+	}
+
+}

@@ -16,17 +16,10 @@
 
 package com.evolveum.midpoint.repo.sql.query2.hqm.condition;
 
-import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
-import com.evolveum.midpoint.repo.sql.query2.hqm.HibernateQuery;
 import com.evolveum.midpoint.repo.sql.query2.hqm.RootHibernateQuery;
 import org.apache.commons.lang.Validate;
-import org.hibernate.Query;
-import org.hibernate.criterion.Criterion;
-import org.hibernate.criterion.MatchMode;
 
-import java.io.Serializable;
 import java.util.List;
-import java.util.Set;
 
 /**
  * Condition in HQL.

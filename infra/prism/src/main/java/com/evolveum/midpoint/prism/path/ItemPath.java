@@ -15,7 +15,6 @@
  */
 package com.evolveum.midpoint.prism.path;
 
-import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import org.apache.commons.lang.Validate;

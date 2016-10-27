@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,9 +29,12 @@ import java.util.Date;
  */
 public class DateValidator extends AbstractFormValidator {
 
-    private ItemPath identifier;
+   private static final long serialVersionUID = 1L;
+	
+   private ItemPath identifier;
     private DateTimeField dateFrom;
     private DateTimeField dateTo;
+    private String messageKey = "DateValidator.message.fromAfterTo";
 
     public DateValidator() {
         this(null, null);
@@ -85,7 +88,11 @@ public class DateValidator extends AbstractFormValidator {
         this.identifier = identifier;
     }
 
-    protected String getMessageKey() {
-        return "DateValidator.message.fromAfterTo";
+    public String getMessageKey() {
+        return messageKey;
+    }
+
+    public void setMessageKey(String messageKey){
+        this.messageKey = messageKey;
     }
 }

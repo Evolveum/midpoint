@@ -1559,7 +1559,7 @@ public class ResourceObjectConverter {
 		return new ItemPath(ShadowType.F_ATTRIBUTES).equivalent(itemDelta.getParentPath());
 	}
 
-	public List<Change<ShadowType>> fetchChanges(ProvisioningContext ctx, PrismProperty<?> lastToken,
+	public List<Change> fetchChanges(ProvisioningContext ctx, PrismProperty<?> lastToken,
 			OperationResult parentResult) throws SchemaException,
 			CommunicationException, ConfigurationException, SecurityViolationException, GenericFrameworkException, ObjectNotFoundException {
 		Validate.notNull(parentResult, "Operation result must not be null.");
@@ -1573,11 +1573,11 @@ public class ResourceObjectConverter {
 		ConnectorInstance connector = ctx.getConnector(parentResult);
 		
 		// get changes from the connector
-		List<Change<ShadowType>> changes = connector.fetchChanges(ctx.getObjectClassDefinition(), lastToken, attrsToReturn, ctx, parentResult);
+		List<Change> changes = connector.fetchChanges(ctx.getObjectClassDefinition(), lastToken, attrsToReturn, ctx, parentResult);
 
-		Iterator<Change<ShadowType>> iterator = changes.iterator();
+		Iterator<Change> iterator = changes.iterator();
 		while (iterator.hasNext()) {
-			Change<ShadowType> change = iterator.next();
+			Change change = iterator.next();
 			LOGGER.trace("Original change:\n{}", change.debugDump());
 			if (change.isTokenOnly()) {
 				continue;
@@ -1659,7 +1659,6 @@ public class ResourceObjectConverter {
 		ConnectorInstance connector = ctx.getConnector(parentResult);
 		
 		ShadowType resourceObjectType = resourceObject.asObjectable();
-		setCachingMetadata(ctx, resourceObject);
 		ProvisioningUtil.setProtectedFlag(ctx, resourceObject, matchingRuleRegistry);
 		
 		// Simulated Activation
@@ -1686,12 +1685,6 @@ public class ResourceObjectConverter {
 		return resourceObject;
 	}
 	
-	public void setCachingMetadata(ProvisioningContext ctx, PrismObject<ShadowType> resourceObject) throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException {
-		CachingMetadataType cachingMetadata = new CachingMetadataType();
-		cachingMetadata.setRetrievalTimestamp(clock.currentTimeXMLGregorianCalendar());
-		resourceObject.asObjectable().setCachingMetadata(cachingMetadata);
-	}
-
 	/**
 	 * Completes activation state by determinig simulated activation if
 	 * necessary.

@@ -18,7 +18,6 @@ package com.evolveum.midpoint.model.intest;
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static org.testng.AssertJUnit.assertNotNull;
 
-import com.evolveum.midpoint.model.impl.ModelWebService;
 import com.evolveum.midpoint.model.test.AbstractModelIntegrationTest;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -47,7 +46,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.testng.IHookCallBack;
 import org.testng.ITestResult;
 import org.testng.annotations.AfterClass;
@@ -103,6 +101,7 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 	
 	protected static final File RESOURCE_DUMMY_FILE = new File(COMMON_DIR, "resource-dummy.xml");
 	protected static final File RESOURCE_DUMMY_DEPRECATED_FILE = new File(COMMON_DIR, "resource-dummy-deprecated.xml");
+	protected static final File RESOURCE_DUMMY_CACHING_FILE = new File(COMMON_DIR, "resource-dummy-caching.xml");
 	protected static final String RESOURCE_DUMMY_OID = "10000000-0000-0000-0000-000000000004";
 	protected static final String RESOURCE_DUMMY_NAMESPACE = "http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004";
 	protected static final String RESOURCE_DUMMY_DRINK = "rum";
@@ -113,12 +112,19 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 	protected static final String RESOURCE_DUMMY_RED_NAME = "red";
 	protected static final String RESOURCE_DUMMY_RED_NAMESPACE = MidPointConstants.NS_RI;
 	
-	// BLUE resource has WEAK mappings
+	// BLUE resource has WEAK mappings, outbound/inbound
 	protected static final File RESOURCE_DUMMY_BLUE_FILE = new File(COMMON_DIR, "resource-dummy-blue.xml");
 	protected static final File RESOURCE_DUMMY_BLUE_DEPRECATED_FILE = new File(COMMON_DIR, "resource-dummy-blue-deprecated.xml");
+	protected static final File RESOURCE_DUMMY_BLUE_CACHING_FILE = new File(COMMON_DIR, "resource-dummy-blue-caching.xml");
 	protected static final String RESOURCE_DUMMY_BLUE_OID = "10000000-0000-0000-0000-000000000204";
 	protected static final String RESOURCE_DUMMY_BLUE_NAME = "blue";
 	protected static final String RESOURCE_DUMMY_BLUE_NAMESPACE = MidPointConstants.NS_RI;
+	
+	// CYAN has WEAK mappings, outbound only
+	protected static final File RESOURCE_DUMMY_CYAN_FILE = new File(COMMON_DIR, "resource-dummy-cyan.xml");
+	protected static final String RESOURCE_DUMMY_CYAN_OID = "10000000-0000-0000-0000-00000000c204";
+	protected static final String RESOURCE_DUMMY_CYAN_NAME = "cyan";
+	protected static final String RESOURCE_DUMMY_CYAN_NAMESPACE = MidPointConstants.NS_RI;
 	
 	// WHITE dummy resource has almost no configuration: no schema, no schemahandling, no synchronization, ...
 	protected static final String RESOURCE_DUMMY_WHITE_FILENAME = COMMON_DIR + "/resource-dummy-white.xml";
@@ -135,6 +141,7 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
     // Green dummy resource is authoritative
 	protected static final File RESOURCE_DUMMY_GREEN_FILE = new File(COMMON_DIR, "resource-dummy-green.xml");
 	protected static final File RESOURCE_DUMMY_GREEN_DEPRECATED_FILE = new File(COMMON_DIR, "resource-dummy-green-deprecated.xml");
+	protected static final File RESOURCE_DUMMY_GREEN_CACHING_FILE = new File(COMMON_DIR, "resource-dummy-green-caching.xml");
 	protected static final String RESOURCE_DUMMY_GREEN_OID = "10000000-0000-0000-0000-000000000404";
 	protected static final String RESOURCE_DUMMY_GREEN_NAME = "green";
 	protected static final String RESOURCE_DUMMY_GREEN_NAMESPACE = MidPointConstants.NS_RI;
@@ -216,6 +223,12 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 	protected static final File ROLE_SAILOR_FILE = new File(COMMON_DIR, "role-sailor.xml");
 	protected static final String ROLE_SAILOR_OID = "12345111-1111-2222-1111-121212111113";
 	protected static final String ROLE_SAILOR_DRINK = "grog";
+	
+	protected static final File ROLE_RED_SAILOR_FILE = new File(COMMON_DIR, "role-red-sailor.xml");
+	protected static final String ROLE_RED_SAILOR_OID = "12345111-1111-2222-1111-121212111223";
+
+	protected static final File ROLE_CYAN_SAILOR_FILE = new File(COMMON_DIR, "role-cyan-sailor.xml");
+	protected static final String ROLE_CYAN_SAILOR_OID = "d3abd794-9c30-11e6-bb5a-af14bf2cc29b";
 
 	protected static final File USER_JACK_FILE = new File(COMMON_DIR, "user-jack.xml");
 	protected static final String USER_JACK_OID = "c0c010c0-d34d-b33f-f00d-111111111111";

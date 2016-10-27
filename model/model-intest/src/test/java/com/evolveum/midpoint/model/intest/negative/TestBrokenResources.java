@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2014 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,14 +15,13 @@
  */
 package com.evolveum.midpoint.model.intest.negative;
 
+import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
-import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 
 import java.io.File;
 import java.util.Collection;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -32,15 +31,11 @@ import org.testng.annotations.Test;
 import com.evolveum.icf.dummy.resource.BreakMode;
 import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.icf.dummy.resource.DummyResource;
-import com.evolveum.midpoint.model.api.ModelExecuteOptions;
-import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.intest.AbstractConfiguredModelIntegrationTest;
-import com.evolveum.midpoint.model.intest.TestModelServiceContract;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.ObjectOperationOption;
 import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -48,7 +43,6 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.MiscUtil;
@@ -169,7 +163,7 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
         TestUtil.displayTestTile(this, "test010TestResourceBroken");
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test010TestResourceBroken");
+        Task task = taskManager.createTaskInstance(TestBrokenResources.class.getName() + ".test010TestResourceBroken");
         OperationResult result = task.getResult();
         
 		// WHEN
@@ -185,7 +179,7 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
         TestUtil.displayTestTile(this, "test020GetResourceBroken");
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test020GetResourceBroken");
+        Task task = taskManager.createTaskInstance(TestBrokenResources.class.getName() + ".test020GetResourceBroken");
         OperationResult result = task.getResult();
         
 		// WHEN
@@ -215,7 +209,7 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
         TestUtil.displayTestTile(this, "test100GetAccountMurray");
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test100GetAccountMurray");
+        Task task = taskManager.createTaskInstance(TestBrokenResources.class.getName() + ".test100GetAccountMurray");
         OperationResult result = task.getResult();
         
         try {
@@ -240,7 +234,7 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
         TestUtil.displayTestTile(this, "test101GetAccountMurrayNoFetch");
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test101GetAccountMurrayNoFetch");
+        Task task = taskManager.createTaskInstance(TestBrokenResources.class.getName() + ".test101GetAccountMurrayNoFetch");
         OperationResult result = task.getResult();
         
         Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createNoFetch());
@@ -262,7 +256,7 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
         TestUtil.displayTestTile(this, "test102GetAccountMurrayRaw");
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test102GetAccountMurrayRaw");
+        Task task = taskManager.createTaskInstance(TestBrokenResources.class.getName() + ".test102GetAccountMurrayRaw");
         OperationResult result = task.getResult();
         
         Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createRaw());
@@ -285,7 +279,7 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
         TestUtil.displayTestTile(this, "test120SearchAccountByUsernameJack");
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test120SearchAccountByUsernameJack");
+        Task task = taskManager.createTaskInstance(TestBrokenResources.class.getName() + ".test120SearchAccountByUsernameJack");
         OperationResult result = task.getResult();
         
         PrismObject<ResourceType> resource = modelService.getObject(ResourceType.class, RESOURCE_CSVFILE_BROKEN_OID, null, task, result);
@@ -310,7 +304,7 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
         TestUtil.displayTestTile(this, "test210TestResourceNotFound");
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test210TestResourceNotFound");
+        Task task = taskManager.createTaskInstance(TestBrokenResources.class.getName() + ".test210TestResourceNotFound");
         OperationResult result = task.getResult();
         
         
@@ -328,7 +322,7 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "."+TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestBrokenResources.class.getName() + "."+TEST_NAME);
         OperationResult result = task.getResult();
         
 		// WHEN
@@ -354,7 +348,7 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "."+TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestBrokenResources.class.getName() + "."+TEST_NAME);
         OperationResult result = task.getResult();
         
         Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(
@@ -385,7 +379,7 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
         TestUtil.displayTestTile(this, "test310TestResourceNoJars");
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test310TestResourceNoJars");
+        Task task = taskManager.createTaskInstance(TestBrokenResources.class.getName() + ".test310TestResourceNoJars");
         
 		// WHEN
 		OperationResult testResult = modelService.testResource(RESOURCE_DUMMY_NOJARS_OID, task);
@@ -401,7 +395,7 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestBrokenResources.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         
 		// WHEN
@@ -427,7 +421,7 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestBrokenResources.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         
 		PrismObject<ResourceType> resource = PrismTestUtil.parseObject(RESOURCE_DUMMY_WRONG_CONNECTOR_OID_FILE);
@@ -459,7 +453,7 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestBrokenResources.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         
 		PrismObject<ResourceType> resource = PrismTestUtil.parseObject(RESOURCE_DUMMY_WRONG_CONNECTOR_OID_FILE);
@@ -492,7 +486,7 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestBrokenResources.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         
 		PrismObject<ResourceType> resource = PrismTestUtil.parseObject(RESOURCE_DUMMY_WRONG_CONNECTOR_OID_FILE);
@@ -511,7 +505,7 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestBrokenResources.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         
 		// WHEN
@@ -537,7 +531,7 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestBrokenResources.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         
 		ObjectDelta<ResourceType> delta = ObjectDelta.createDeleteDelta(ResourceType.class, RESOURCE_DUMMY_WRONG_CONNECTOR_OID_OID, prismContext);
@@ -560,7 +554,7 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestBrokenResources.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         
 		PrismObject<ResourceType> resource = PrismTestUtil.parseObject(RESOURCE_DUMMY_NO_CONFIGURATION_FILE);
@@ -584,7 +578,7 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestBrokenResources.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         
 		// WHEN
@@ -616,7 +610,7 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestBrokenResources.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         
 		ObjectDelta<ResourceType> delta = ObjectDelta.createDeleteDelta(ResourceType.class, RESOURCE_DUMMY_NO_CONFIGURATION_OID, prismContext);
@@ -645,7 +639,7 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestBrokenResources.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         
         // WHEN
@@ -668,7 +662,7 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestBrokenResources.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         
 		// WHEN
@@ -718,7 +712,7 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestBrokenResources.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.POSITIVE);
         
@@ -747,7 +741,7 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN (1)
-        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestBrokenResources.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         
 		// WHEN (1)
@@ -762,7 +756,7 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
 		
 		// GIVEN (2)
 		resources.clear();
-		task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+		task = taskManager.createTaskInstance(TestBrokenResources.class.getName() + "." + TEST_NAME);
         result = task.getResult();
         
 		ResultHandler<ResourceType> handler = new ResultHandler<ResourceType>() {

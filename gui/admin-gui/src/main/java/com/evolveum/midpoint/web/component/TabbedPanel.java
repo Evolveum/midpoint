@@ -16,7 +16,6 @@
 
 package com.evolveum.midpoint.web.component;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.WicketRuntimeException;
@@ -36,7 +35,6 @@ import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.model.CountModelProvider;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 
 import java.io.Serializable;
 import java.util.List;

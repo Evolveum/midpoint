@@ -1117,4 +1117,13 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 	public Protector getProtector() {
 		return protector;
 	}
+
+	@Override
+	public String getPlaintext(ProtectedStringType protectedStringType) throws EncryptionException {
+		    if (protectedStringType != null) {
+	            return protector.decryptString(protectedStringType);
+	        } else {
+	            return null;
+	        }
+	}
 }

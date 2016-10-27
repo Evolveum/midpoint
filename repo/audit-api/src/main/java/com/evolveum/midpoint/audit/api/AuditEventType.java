@@ -15,8 +15,6 @@
  */
 package com.evolveum.midpoint.audit.api;
 
-import javax.xml.namespace.QName;
-
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventTypeType;
 
 /**
@@ -24,25 +22,25 @@ import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventTypeType;
  *
  */
 public enum AuditEventType {
-	
+
 	GET_OBJECT,
-	
+
 	ADD_OBJECT,
-	
+
 	MODIFY_OBJECT,
-	
+
 	DELETE_OBJECT,
-	
+
 	EXECUTE_CHANGES_RAW,
-	
+
 	SYNCHRONIZATION,
 	//  ....
-		
+
 	/**
 	 * E.g. login
 	 */
 	CREATE_SESSION,
-	
+
 	/**
 	 * E.g. logout
 	 */
@@ -54,28 +52,28 @@ public enum AuditEventType {
     WORK_ITEM,
 
     WORKFLOW_PROCESS_INSTANCE,
-    
+
     RECONCILIATION;
 
     /**
-     * Queury session, modify session
+     * Query session, modify session
      */
-	
+
 	/**
-	 * Task states??? 
+	 * Task states???
 	 */
 
 	/**
 	 * Startup, shutdown, critical failure (whole system)
 	 */
-	
+
 	// backup, restores
-    
+
     public static AuditEventType toAuditEventType(AuditEventTypeType event){
     	if (event == null){
     		return null;
     	}
-    	
+
     	switch (event){
 			case ADD_OBJECT:
 				return AuditEventType.ADD_OBJECT;
@@ -101,16 +99,16 @@ public enum AuditEventType {
 				return AuditEventType.WORKFLOW_PROCESS_INSTANCE;
 			default:
 				throw new IllegalArgumentException("Unknown audit event type: " + event);
-					
+
     	}
-    	
+
     }
-    
+
     public static AuditEventTypeType fromAuditEventType(AuditEventType event){
     	if (event == null){
     		return null;
     	}
-    	
+
     	switch (event){
 			case ADD_OBJECT:
 				return AuditEventTypeType.ADD_OBJECT;
@@ -136,9 +134,9 @@ public enum AuditEventType {
 				return AuditEventTypeType.WORKFLOW_PROCESS_INSTANCE;
 			default:
 				throw new IllegalArgumentException("Unknown audit event type: " + event);
-					
+
     	}
-    	
+
     }
 
 }

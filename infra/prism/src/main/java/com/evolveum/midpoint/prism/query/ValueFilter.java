@@ -113,12 +113,12 @@ public abstract class ValueFilter<V extends PrismValue, D extends ItemDefinition
 		this.definition = definition;
 		checkConsistence(false);
 	}
-	
+
 	@Nullable
 	public QName getMatchingRule() {
 		return matchingRule;
 	}
-	
+
 	public void setMatchingRule(@Nullable QName matchingRule) {
 		this.matchingRule = matchingRule;
 	}

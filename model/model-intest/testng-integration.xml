@@ -23,6 +23,7 @@
         <classes>
         	<class name="com.evolveum.midpoint.model.intest.TestModelServiceContract"/>
         	<class name="com.evolveum.midpoint.model.intest.TestModelServiceContractDeprecated"/>
+        	<class name="com.evolveum.midpoint.model.intest.TestModelServiceContractCaching"/>
         	<class name="com.evolveum.midpoint.model.intest.TestModelCrudService"/>
         	<class name="com.evolveum.midpoint.model.intest.TestPreviewChanges"/>
         	<class name="com.evolveum.midpoint.model.intest.TestRbac"/>

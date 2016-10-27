@@ -16,11 +16,7 @@
 
 package com.evolveum.midpoint.gui.api.model;
 
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import org.apache.commons.lang3.Validate;
-import org.apache.wicket.model.IModel;
 import org.jetbrains.annotations.NotNull;
 
 /**

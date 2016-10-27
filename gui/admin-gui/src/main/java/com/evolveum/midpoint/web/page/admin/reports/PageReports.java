@@ -35,7 +35,6 @@ import com.evolveum.midpoint.web.component.BasicSearchPanel;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.Table;
-import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.DoubleButtonColumn;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
@@ -53,7 +52,6 @@ import org.apache.wicket.Component;
 import org.apache.wicket.MarkupContainer;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
-import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
@@ -96,8 +94,6 @@ public class PageReports extends PageAdminReports {
     private static final String ID_SUBREPORTS = "subReportCheckbox";
     private static final String ID_TABLE_HEADER = "tableHeader";
 
-    public static final String MODAL_ID_RUN_REPORT = "runReportPopup";
-
     private IModel<ReportSearchDto> searchModel;
 
     public PageReports() {
@@ -139,7 +135,6 @@ public class PageReports extends PageAdminReports {
         table.setOutputMarkupId(true);
         mainForm.add(table);
 
-        initRunReportModal();
     }
 
     private List<IColumn<ReportType, String>> initColumns() {
@@ -192,7 +187,7 @@ public class PageReports extends PageAdminReports {
 
             @Override
             public void firstClicked(AjaxRequestTarget target, IModel<SelectableBean<ReportType>> model) {
-                showRunReportPopup(target, model.getObject().getValue());
+                runReportPerformed(target, model.getObject().getValue());
             }
 
             @Override
@@ -217,26 +212,35 @@ public class PageReports extends PageAdminReports {
     }
 
     //    @Override
-    protected void runReportPerformed(AjaxRequestTarget target, ReportType report, PrismContainer<ReportParameterType> paramContainer) {
+    protected void runReportPerformed(AjaxRequestTarget target, ReportType report) {
 
-        ModalWindow window = (ModalWindow) get(MODAL_ID_RUN_REPORT);
-        window.close(target);
-        LOGGER.debug("Run report performed for {}", new Object[]{report.asPrismObject()});
+//        ModalWindow window = (ModalWindow) get(MODAL_ID_RUN_REPORT);
+//        window.close(target);
+//        LOGGER.debug("Run report performed for {}", new Object[]{report.asPrismObject()});
+    	
+    	RunReportPopupPanel runReportPopupPanel = new RunReportPopupPanel(getMainPopupBodyId(), report) {
+    		
+    		protected void runConfirmPerformed(AjaxRequestTarget target, ReportType reportType, PrismContainer<ReportParameterType> reportParam) {
+    			OperationResult result = new OperationResult(OPERATION_RUN_REPORT);
+    	        try {
 
-        OperationResult result = new OperationResult(OPERATION_RUN_REPORT);
-        try {
+    	            Task task = createSimpleTask(OPERATION_RUN_REPORT);
 
-            Task task = createSimpleTask(OPERATION_RUN_REPORT);
+    	            getReportManager().runReport(reportType.asPrismObject(), reportParam, task, result);
+    	        } catch (Exception ex) {
+    	            result.recordFatalError(ex);
+    	        } finally {
+    	            result.computeStatusIfUnknown();
+    	        }
 
-            getReportManager().runReport(report.asPrismObject(), paramContainer, task, result);
-        } catch (Exception ex) {
-            result.recordFatalError(ex);
-        } finally {
-            result.computeStatusIfUnknown();
-        }
-
-        showResult(result);
-        target.add(getFeedbackPanel(), get(createComponentPath(ID_MAIN_FORM)));
+    	        showResult(result);
+    	        target.add(getFeedbackPanel(), get(createComponentPath(ID_MAIN_FORM)));
+    	        hideMainPopup(target);
+    	        
+    		};
+    	};
+    	showMainPopup(runReportPopupPanel, target);
+        
     }
 
     private void configurePerformed(AjaxRequestTarget target, ReportType report) {
@@ -302,37 +306,37 @@ public class PageReports extends PageAdminReports {
         target.add((Component) panel);
     }
 
-    private void initRunReportModal() {
-        ModalWindow window = createModalWindow(MODAL_ID_RUN_REPORT,
-                createStringResource("Run report"), 1100, 560);
-        window.setContent(new RunReportPopupPanel(window.getContentId()) {
+//    private void initRunReportModal() {
+//        ModalWindow window = createModalWindow(MODAL_ID_RUN_REPORT,
+//                createStringResource("Run report"), 1100, 560);
+//        window.setContent(new RunReportPopupPanel(window.getContentId()) {
+//
+//            @Override
+//            protected void runConfirmPerformed(AjaxRequestTarget target, ReportType reportType, PrismContainer<ReportParameterType> params) {
+//                runReportPerformed(target, reportType, params);
+//            }
+//        });
+//        add(window);
+//        window.setWindowClosedCallback(new ModalWindow.WindowClosedCallback() {
+//
+//            @Override
+//            public void onClose(AjaxRequestTarget target) {
+//                target.appendJavaScript("$('.wicket-aa-container').remove();");
+//            }
+//        });
+//    }
 
-            @Override
-            protected void runConfirmPerformed(AjaxRequestTarget target, ReportType reportType, PrismContainer<ReportParameterType> params) {
-                runReportPerformed(target, reportType, params);
-            }
-        });
-        add(window);
-        window.setWindowClosedCallback(new ModalWindow.WindowClosedCallback() {
-
-            @Override
-            public void onClose(AjaxRequestTarget target) {
-                target.appendJavaScript("$('.wicket-aa-container').remove();");
-            }
-        });
-    }
-
-    private void showRunReportPopup(AjaxRequestTarget target, ReportType reportType) {
-        ModalWindow modal = (ModalWindow) get(MODAL_ID_RUN_REPORT);
-        RunReportPopupPanel content = (RunReportPopupPanel) modal.get(modal.getContentId());
-//        ReportDto reportDto = new ReportDto()
-        content.setReportType(reportType);
-//        ModalWindow window = (ModalWindow) get(MODAL_ID_RUN_REPORT);
-        modal.show(target);
-        target.add(getFeedbackPanel());
-//        showModalWindow(MODAL_ID_RUN_REPORT, target);
+//    private void showRunReportPopup(AjaxRequestTarget target, ReportType reportType) {
+//        ModalWindow modal = (ModalWindow) get(MODAL_ID_RUN_REPORT);
+//        RunReportPopupPanel content = (RunReportPopupPanel) modal.get(modal.getContentId());
+////        ReportDto reportDto = new ReportDto()
+//        content.setReportType(reportType);
+////        ModalWindow window = (ModalWindow) get(MODAL_ID_RUN_REPORT);
+//        modal.show(target);
 //        target.add(getFeedbackPanel());
-    }
+////        showModalWindow(MODAL_ID_RUN_REPORT, target);
+////        target.add(getFeedbackPanel());
+//    }
 
 
     private static class SearchFragment extends Fragment {

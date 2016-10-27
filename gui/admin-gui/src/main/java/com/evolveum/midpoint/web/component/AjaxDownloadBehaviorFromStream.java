@@ -16,7 +16,6 @@
 
 package com.evolveum.midpoint.web.component;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 

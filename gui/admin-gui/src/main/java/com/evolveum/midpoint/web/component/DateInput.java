@@ -18,11 +18,7 @@ package com.evolveum.midpoint.web.component;
 
 import org.apache.wicket.extensions.yui.calendar.DateTimeField;
 import org.apache.wicket.model.IModel;
-import org.joda.time.DateTimeFieldType;
-import org.joda.time.DateTimeZone;
-import org.joda.time.MutableDateTime;
 
-import java.util.Calendar;
 import java.util.Date;
 
 /**
@@ -34,41 +30,41 @@ public class DateInput extends DateTimeField {
         super(id, model);
     }
 
-    public void updateDateTimeModel() {
-        setModelObject(computeDateTime());
-    }
-
-    public Date computeDateTime() {
-        Date dateFieldInput = getDate();
-        if (dateFieldInput == null) {
-            return null;
-        }
-
-        Integer hoursInput = getHours();
-        Integer minutesInput = getMinutes();
-        AM_PM amOrPmInput = getAmOrPm();
-
-        // Get year, month and day ignoring any timezone of the Date object
-        Calendar cal = Calendar.getInstance();
-        cal.setTime(dateFieldInput);
-        int year = cal.get(Calendar.YEAR);
-        int month = cal.get(Calendar.MONTH) + 1;
-        int day = cal.get(Calendar.DAY_OF_MONTH);
-        int hours = (hoursInput == null ? 0 : hoursInput % 24);
-        int minutes = (minutesInput == null ? 0 : minutesInput);
-
-        // Use the input to create a date object with proper timezone
-        MutableDateTime date = new MutableDateTime(year, month, day, hours, minutes, 0, 0,
-                DateTimeZone.forTimeZone(getClientTimeZone()));
-
-        // Adjust for halfday if needed
-        if (use12HourFormat()) {
-            int halfday = (amOrPmInput == AM_PM.PM ? 1 : 0);
-            date.set(DateTimeFieldType.halfdayOfDay(), halfday);
-            date.set(DateTimeFieldType.hourOfHalfday(), hours % 12);
-        }
-
-        // The date will be in the server's timezone
-        return newDateInstance(date.getMillis());
-    }
+//    public void updateDateTimeModel() {
+//        setModelObject(computeDateTime());
+//    }
+//
+//    public Date computeDateTime() {
+//        Date dateFieldInput = getDate();
+//        if (dateFieldInput == null) {
+//            return null;
+//        }
+//
+//        Integer hoursInput = getHours();
+//        Integer minutesInput = getMinutes();
+//        AM_PM amOrPmInput = getAmOrPm();
+//
+//        // Get year, month and day ignoring any timezone of the Date object
+//        Calendar cal = Calendar.getInstance();
+//        cal.setTime(dateFieldInput);
+//        int year = cal.get(Calendar.YEAR);
+//        int month = cal.get(Calendar.MONTH) + 1;
+//        int day = cal.get(Calendar.DAY_OF_MONTH);
+//        int hours = (hoursInput == null ? 0 : hoursInput % 24);
+//        int minutes = (minutesInput == null ? 0 : minutesInput);
+//
+//        // Use the input to create a date object with proper timezone
+//        MutableDateTime date = new MutableDateTime(year, month, day, hours, minutes, 0, 0,
+//                DateTimeZone.forTimeZone(getClientTimeZone()));
+//
+//        // Adjust for halfday if needed
+//        if (use12HourFormat()) {
+//            int halfday = (amOrPmInput == AM_PM.PM ? 1 : 0);
+//            date.set(DateTimeFieldType.halfdayOfDay(), halfday);
+//            date.set(DateTimeFieldType.hourOfHalfday(), hours % 12);
+//        }
+//
+//        // The date will be in the server's timezone
+//        return newDateInstance(date.getMillis());
+//    }
 }

@@ -25,7 +25,6 @@ import org.jvnet.jaxb2_commons.lang.HashCode;
 import org.jvnet.jaxb2_commons.lang.HashCodeStrategy;
 import org.jvnet.jaxb2_commons.locator.ObjectLocator;
 import org.jvnet.jaxb2_commons.locator.util.LocatorUtils;
-import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
 import javax.xml.bind.annotation.XmlAccessType;

@@ -15,10 +15,6 @@
  */
 package com.evolveum.midpoint.model.intest.negative;
 
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertFalse;
-import static org.testng.AssertJUnit.assertNull;
-
 import java.io.File;
 import java.util.Map;
 

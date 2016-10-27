@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,53 +25,52 @@ import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 import java.util.Collection;
-import java.util.Set;
 
 /**
  * @author Radovan Semancik
  *
  */
-public final class Change<T extends ShadowType> implements DebugDumpable {
+public final class Change implements DebugDumpable {
 	
     private Collection<ResourceAttribute<?>> identifiers;
     private ObjectClassComplexTypeDefinition objectClassDefinition;
-    private ObjectDelta<T> objectDelta;
+    private ObjectDelta<ShadowType> objectDelta;
     private PrismProperty<?> token;
     // TODO: maybe call this repoShadow?
-    private PrismObject<T> oldShadow;
-    private PrismObject<T> currentShadow;
+    private PrismObject<ShadowType> oldShadow;
+    private PrismObject<ShadowType> currentShadow;
 
-    public Change(Collection<ResourceAttribute<?>> identifiers, ObjectDelta<T> change, PrismProperty<?> token) {
+    public Change(Collection<ResourceAttribute<?>> identifiers, ObjectDelta<ShadowType> change, PrismProperty<?> token) {
         this.identifiers = identifiers;
         this.objectDelta = change;
         this.currentShadow = null;
         this.token = token;
     }
 
-    public Change(Collection<ResourceAttribute<?>> identifiers, PrismObject<T> currentShadow, PrismProperty<?> token) {
+    public Change(Collection<ResourceAttribute<?>> identifiers, PrismObject<ShadowType> currentShadow, PrismProperty<?> token) {
         this.identifiers = identifiers;
         this.objectDelta = null;
         this.currentShadow = currentShadow;
         this.token = token;
     }
     
-    public Change(Collection<ResourceAttribute<?>> identifiers, PrismObject<T> currentShadow, PrismObject<T> oldStadow, ObjectDelta<T> objectDetla){
+    public Change(Collection<ResourceAttribute<?>> identifiers, PrismObject<ShadowType> currentShadow, PrismObject<ShadowType> oldStadow, ObjectDelta<ShadowType> objectDetla){
     	this.identifiers = identifiers;
     	this.currentShadow = currentShadow;
     	this.oldShadow = oldStadow;
     	this.objectDelta = objectDetla;
     }
 
-    public Change(ObjectDelta<T> change, PrismProperty<?> token) {
+    public Change(ObjectDelta<ShadowType> change, PrismProperty<?> token) {
         this.objectDelta = change;
         this.token = token;
     }
 
-    public ObjectDelta<? extends ShadowType> getObjectDelta() {
+    public ObjectDelta<ShadowType> getObjectDelta() {
         return objectDelta;
     }
 
-    public void setObjectDelta(ObjectDelta<T> change) {
+    public void setObjectDelta(ObjectDelta<ShadowType> change) {
         this.objectDelta = change;
     }
 
@@ -99,19 +98,19 @@ public final class Change<T extends ShadowType> implements DebugDumpable {
 		this.token = token;
 	}
 
-	public PrismObject<T> getOldShadow() {
+	public PrismObject<ShadowType> getOldShadow() {
 		return oldShadow;
 	}
 
-	public void setOldShadow(PrismObject<T> oldShadow) {
+	public void setOldShadow(PrismObject<ShadowType> oldShadow) {
 		this.oldShadow = oldShadow;
 	}
 
-	public PrismObject<T> getCurrentShadow() {
+	public PrismObject<ShadowType> getCurrentShadow() {
 		return currentShadow;
 	}
 
-	public void setCurrentShadow(PrismObject<T> currentShadow) {
+	public void setCurrentShadow(PrismObject<ShadowType> currentShadow) {
 		this.currentShadow = currentShadow;
 	}
 	

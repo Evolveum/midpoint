@@ -28,20 +28,17 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
-import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.impl.trigger.RecomputeTriggerHandler;
 import com.evolveum.midpoint.model.intest.AbstractInitializedModelIntegrationTest;
 import com.evolveum.midpoint.model.intest.TestActivation;
 import com.evolveum.midpoint.model.intest.TestMapping;
 import com.evolveum.midpoint.model.intest.TestTriggerTask;
-import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.IdItemPathSegment;
@@ -53,11 +50,8 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
-import com.evolveum.midpoint.security.api.SecurityEnforcer;
-import com.evolveum.midpoint.security.api.UserProfileService;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
-import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -82,10 +76,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
 
 	protected static final File ROLE_RED_JUDGE_FILE = new File(TEST_DIR, "role-red-judge.xml");
 	protected static final String ROLE_RED_JUDGE_OID = "12345111-1111-2222-1111-121212111222";
-	
-	protected static final File ROLE_RED_SAILOR_FILE = new File(TEST_DIR, "role-red-sailor.xml");
-	protected static final String ROLE_RED_SAILOR_OID = "12345111-1111-2222-1111-121212111223";
-	
+		
 	protected static final File ROLE_BIG_JUDGE_FILE = new File(TEST_DIR, "role-big-judge.xml");
 	protected static final String ROLE_BIG_JUDGE_OID = "12345111-1111-2222-1111-121212111224";
 	
@@ -99,7 +90,6 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
 		super.initSystem(initTask, initResult);
 
 		repoAddObjectFromFile(ROLE_RED_JUDGE_FILE, RoleType.class, initResult);
-		repoAddObjectFromFile(ROLE_RED_SAILOR_FILE, RoleType.class, initResult);
 		repoAddObjectFromFile(ROLE_BIG_JUDGE_FILE, RoleType.class, initResult);
 
 		DebugUtil.setDetailedDebugDump(true);

@@ -252,7 +252,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
 	@SpringBean(name = "accessDecisionManager")
 	private SecurityEnforcer securityEnforcer;
-
+	
 	@SpringBean
 	private MidpointFormValidatorRegistry formValidatorRegistry;
 

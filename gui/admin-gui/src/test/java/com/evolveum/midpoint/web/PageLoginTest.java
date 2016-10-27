@@ -21,7 +21,6 @@ import com.evolveum.midpoint.web.page.login.PageLogin;
 import org.apache.wicket.util.tester.WicketTester;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 import org.testng.annotations.Test;
 
 /**

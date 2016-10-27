@@ -392,6 +392,9 @@ public class PrismProperty<T> extends Item<PrismPropertyValue<T>,PrismPropertyDe
     
     public static <T> PropertyDelta<T> diff(PrismProperty<T> a, PrismProperty<T> b) {
 		if (a == null) {
+			if (b == null) {
+				return null;
+			}
 			PropertyDelta<T> delta = b.createDelta();
 			delta.addValuesToAdd(PrismValue.cloneCollection(b.getValues()));
 			return delta;

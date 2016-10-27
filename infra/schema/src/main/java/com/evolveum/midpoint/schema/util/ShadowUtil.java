@@ -497,10 +497,18 @@ public class ShadowUtil {
 		return MiscUtil.equals(intent, shadowType.getIntent());
 	}
 
+	/**
+	 * Strict mathcing. E.g. null discriminator kind is intepreted as ACCOUNT and it must match the kind
+	 * in the shadow. 
+	 */
 	public static boolean matches(PrismObject<ShadowType> shadow, ResourceShadowDiscriminator discr) {
 		return matches(shadow.asObjectable(), discr);
 	}
 	
+	/**
+	 * Strict mathcing. E.g. null discriminator kind is intepreted as ACCOUNT and it must match the kind
+	 * in the shadow. 
+	 */
 	public static boolean matches(ShadowType shadowType, ResourceShadowDiscriminator discr) {
 		if (shadowType == null) {
 			return false;
@@ -514,7 +522,35 @@ public class ShadowUtil {
 		return ResourceShadowDiscriminator.equalsIntent(shadowType.getIntent(), discr.getIntent());
 	}
 
+	/**
+	 * Interprets ResourceShadowDiscriminator as a pattern. E.g. null discriminator kind is 
+	 * interpreted to match any shadow kind.
+	 */
+	public static boolean matchesPattern(ShadowType shadowType, ShadowDiscriminatorType discr) {
+		if (shadowType == null) {
+			return false;
+		}
+		if (!discr.getResourceRef().getOid().equals(shadowType.getResourceRef().getOid())) {
+			return false;
+		}
+		if (discr.getKind() != null && !MiscUtil.equals(discr.getKind(), shadowType.getKind())) {
+			return false;
+		}
+		if (discr.getIntent() == null) {
+			return true;
+		}
+		return ResourceShadowDiscriminator.equalsIntent(shadowType.getIntent(), discr.getIntent());
+	}
 	
+	public static boolean isConflicting(ShadowType shadow1, ShadowType shadow2) {
+		if (!shadow1.getResourceRef().getOid().equals(shadow2.getResourceRef().getOid())) {
+			return false;
+		}
+		if (!MiscUtil.equals(getKind(shadow1), getKind(shadow2))) {
+			return false;
+		}
+		return ResourceShadowDiscriminator.equalsIntent(shadow1.getIntent(), shadow2.getIntent());
+	}
 	
 	public static String getHumanReadableName(PrismObject<? extends ShadowType> shadow) {
 		if (shadow == null) {
