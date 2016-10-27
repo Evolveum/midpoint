@@ -299,7 +299,7 @@
                 <t:modificationType>replace</t:modificationType>
                 <t:path>c:credentials/c:password</t:path>
                 <t:value>
-                    <c:value xsi:type="c:ProtectedStringType" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+                    <c:value xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3" xsi:type="t:ProtectedStringType" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
                         <enc:EncryptedData Type="http://www.w3.org/2001/04/xmlenc#Element">
                             <enc:EncryptionMethod Algorithm="http://www.w3.org/2001/04/xmlenc#aes128-cbc"/>
                             <ds:KeyInfo>

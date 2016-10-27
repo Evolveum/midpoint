@@ -100,7 +100,7 @@
     </locality>
     <credentials>
         <password>
-            <value xsi:type="c:ProtectedStringType">
+            <value xsi:type="t:ProtectedStringType">
                 <enc:EncryptedData Type="http://www.w3.org/2001/04/xmlenc#Element">
                     <enc:EncryptionMethod Algorithm="http://www.w3.org/2001/04/xmlenc#aes128-cbc"/>
                     <ds:KeyInfo>

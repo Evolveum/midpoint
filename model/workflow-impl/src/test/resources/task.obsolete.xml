@@ -127,7 +127,7 @@
                                      xmlns:wfpis="http://midpoint.evolveum.com/xml/ns/model/workflow/process-instance-state-3"
                                      xmlns:ds="http://www.w3.org/2000/09/xmldsig#"
                                      xmlns:enc="http://www.w3.org/2001/04/xmlenc#"
-                                     xsi:type="c:ProtectedStringType">
+                                     xsi:type="t:ProtectedStringType">
                                 <enc:EncryptedData Type="http://www.w3.org/2001/04/xmlenc#Element">
                                     <enc:EncryptionMethod Algorithm="http://www.w3.org/2001/04/xmlenc#aes128-cbc"/>
                                     <ds:KeyInfo>
@@ -234,7 +234,7 @@
                                      xmlns:wfpis="http://midpoint.evolveum.com/xml/ns/model/workflow/process-instance-state-3"
                                      xmlns:ds="http://www.w3.org/2000/09/xmldsig#"
                                      xmlns:enc="http://www.w3.org/2001/04/xmlenc#"
-                                     xsi:type="c:ProtectedStringType">
+                                     xsi:type="t:ProtectedStringType">
                                 <enc:EncryptedData Type="http://www.w3.org/2001/04/xmlenc#Element">
                                     <enc:EncryptionMethod Algorithm="http://www.w3.org/2001/04/xmlenc#aes128-cbc"/>
                                     <ds:KeyInfo>
@@ -368,7 +368,7 @@
                                      xmlns:wfpis="http://midpoint.evolveum.com/xml/ns/model/workflow/process-instance-state-3"
                                      xmlns:ds="http://www.w3.org/2000/09/xmldsig#"
                                      xmlns:enc="http://www.w3.org/2001/04/xmlenc#"
-                                     xsi:type="c:ProtectedStringType">
+                                     xsi:type="t:ProtectedStringType">
                                 <enc:EncryptedData Type="http://www.w3.org/2001/04/xmlenc#Element">
                                     <enc:EncryptionMethod Algorithm="http://www.w3.org/2001/04/xmlenc#aes128-cbc"/>
                                     <ds:KeyInfo>
@@ -528,7 +528,7 @@
                         <t:path>c:credentials/c:password</t:path>
                         <t:value>
                             <c:value xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-                                     xsi:type="c:ProtectedStringType">
+                                     xsi:type="t:ProtectedStringType">
                                 <enc:EncryptedData Type="http://www.w3.org/2001/04/xmlenc#Element">
                                     <enc:EncryptionMethod Algorithm="http://www.w3.org/2001/04/xmlenc#aes128-cbc"/>
                                     <ds:KeyInfo>
@@ -592,7 +592,7 @@
                                     </activation>
                                     <credentials>
                                         <password>
-                                            <c:value xsi:type="c:ProtectedStringType">
+                                            <c:value xsi:type="t:ProtectedStringType">
                                                 <enc:EncryptedData Type="http://www.w3.org/2001/04/xmlenc#Element">
                                                     <enc:EncryptionMethod Algorithm="http://www.w3.org/2001/04/xmlenc#aes128-cbc"/>
                                                     <ds:KeyInfo>

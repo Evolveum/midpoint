@@ -16,6 +16,7 @@
   -->
 
 <c:connector xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+             xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
              oid="14e63399-8869-4787-9369-93f9d1311671">
    <c:name>ICF org.identityconnectors.ldap.LdapConnector</c:name>
    <c:namespace>http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-ldap/org.identityconnectors.ldap.LdapConnector</c:namespace>
@@ -77,7 +78,7 @@
                         </xsd:appinfo>
                      </xsd:annotation>
                   </xsd:element>
-                  <xsd:element minOccurs="0" name="passwordDecryptionKey" type="c:ProtectedByteArrayType">
+                  <xsd:element minOccurs="0" name="passwordDecryptionKey" type="t:ProtectedByteArrayType">
                      <xsd:annotation>
                         <xsd:appinfo>
                            <a:displayName>Password Decryption Key</a:displayName>
@@ -85,7 +86,7 @@
                         </xsd:appinfo>
                      </xsd:annotation>
                   </xsd:element>
-                  <xsd:element minOccurs="0" name="credentials" type="c:ProtectedStringType">
+                  <xsd:element minOccurs="0" name="credentials" type="t:ProtectedStringType">
                      <xsd:annotation>
                         <xsd:appinfo>
                            <a:displayName>Password</a:displayName>
