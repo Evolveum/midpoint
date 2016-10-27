@@ -143,6 +143,10 @@ public class ProvisioningTestUtil {
 	}
 	
 	public static void checkRepoShadow(PrismObject<ShadowType> repoShadow, ShadowKindType kind) {
+		checkRepoShadow(repoShadow, kind, 2);
+	}
+	
+	public static void checkRepoShadow(PrismObject<ShadowType> repoShadow, ShadowKindType kind, Integer expectedNumberOfAttributes) {
 		ShadowType repoShadowType = repoShadow.asObjectable();
 		assertNotNull("No OID in repo shadow "+repoShadow, repoShadowType.getOid());
 		assertNotNull("No name in repo shadow "+repoShadow, repoShadowType.getName());
@@ -152,7 +156,9 @@ public class ProvisioningTestUtil {
 		assertNotNull("No attributes in repo shadow "+repoShadow, attributesContainer);
 		List<Item<?,?>> attributes = attributesContainer.getValue().getItems();
 		assertFalse("Empty attributes in repo shadow "+repoShadow, attributes.isEmpty());
-		assertEquals("Unexpected number of attributes in repo shadow "+repoShadow, 2, attributes.size());
+		if (expectedNumberOfAttributes != null) {
+			assertEquals("Unexpected number of attributes in repo shadow "+repoShadow, (int)expectedNumberOfAttributes, attributes.size());
+		}
 	}
 	
 	public static QName getDefaultAccountObjectClass(ResourceType resourceType) {

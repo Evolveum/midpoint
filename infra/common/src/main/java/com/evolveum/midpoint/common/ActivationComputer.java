@@ -18,6 +18,7 @@ package com.evolveum.midpoint.common;
 import javax.xml.datatype.DatatypeConstants;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TimeIntervalStatusType;
@@ -50,13 +51,23 @@ public class ActivationComputer {
 		this.clock = clock;
 	}
 	
-	public ActivationStatusType getEffectiveStatus(ActivationType activationType, ActivationStatusType defaultStatus) {
-		return getEffectiveStatus(activationType, getValidityStatus(activationType), defaultStatus);
+	public ActivationStatusType getEffectiveStatus(String lifecycleStatus, ActivationType activationType) {
+		return getEffectiveStatus(lifecycleStatus, activationType, getValidityStatus(activationType));
 	}
 	
-	public ActivationStatusType getEffectiveStatus(ActivationType activationType, TimeIntervalStatusType validityStatus, ActivationStatusType defaultStatus) {
+	public ActivationStatusType getEffectiveStatus(String lifecycleStatus, ActivationType activationType, TimeIntervalStatusType validityStatus) {
+		
+		if (SchemaConstants.LIFECYCLE_ARCHIVED.equals(lifecycleStatus)) {
+			return ActivationStatusType.ARCHIVED;
+		}
+		
+		if (lifecycleStatus != null && 
+				!lifecycleStatus.equals(SchemaConstants.LIFECYCLE_ACTIVE) && !lifecycleStatus.equals(SchemaConstants.LIFECYCLE_DEPRECATED)) {
+			return ActivationStatusType.DISABLED;
+		}
+				
 		if (activationType == null) {
-			return defaultStatus;
+			return ActivationStatusType.ENABLED;
 		}
 		ActivationStatusType administrativeStatus = activationType.getAdministrativeStatus();
 		if (administrativeStatus != null) {
@@ -65,7 +76,7 @@ public class ActivationComputer {
 		}
 		if (validityStatus == null) {
 			// No administrative status, no validity. Return default.
-			return defaultStatus;
+			return ActivationStatusType.ENABLED;
 		}
 		switch (validityStatus) {
 			case AFTER:
@@ -101,17 +112,28 @@ public class ActivationComputer {
 		return status;
 	}
 	
-	public void computeEffective(ActivationType activationType) {
-		computeEffective(activationType, clock.currentTimeXMLGregorianCalendar());
+	public void computeEffective(String lifecycleStatus, ActivationType activationType) {
+		computeEffective(lifecycleStatus, activationType, clock.currentTimeXMLGregorianCalendar());
 	}
 	
-	public void computeEffective(ActivationType activationType, XMLGregorianCalendar referenceTime) {
+	public void computeEffective(String lifecycleStatus, ActivationType activationType, XMLGregorianCalendar referenceTime) {
 		ActivationStatusType effectiveStatus = null;
+		
+		if (lifecycleStatus != null && 
+				!lifecycleStatus.equals(SchemaConstants.LIFECYCLE_ACTIVE) && !lifecycleStatus.equals(SchemaConstants.LIFECYCLE_DEPRECATED)) {
+			effectiveStatus = ActivationStatusType.DISABLED;
+		}
+		
+		if (SchemaConstants.LIFECYCLE_ARCHIVED.equals(lifecycleStatus)) {
+			effectiveStatus = ActivationStatusType.ARCHIVED;
+		}
+		
 		ActivationStatusType administrativeStatus = activationType.getAdministrativeStatus();
-		if (administrativeStatus != null) {
+		if (effectiveStatus == null && administrativeStatus != null) {
 			// Explicit administrative status overrides everything 
 			effectiveStatus = administrativeStatus;
 		}
+		
 		TimeIntervalStatusType validityStatus = getValidityStatus(activationType);
 		if (effectiveStatus == null) {
 			if (validityStatus == null) {
@@ -133,13 +155,13 @@ public class ActivationComputer {
 		activationType.setValidityStatus(validityStatus);
 	}
 
-	public boolean isActive(ActivationType activationType) {
+	public boolean isActive(String lifecycleStatus, ActivationType activationType) {
 		if (activationType == null) {
 			return true;
 		}
 		ActivationStatusType effectiveStatus = activationType.getEffectiveStatus();
 		if (effectiveStatus == null) {
-			computeEffective(activationType);
+			computeEffective(lifecycleStatus, activationType);
 			effectiveStatus = activationType.getEffectiveStatus();
 		}
 		if (effectiveStatus == null) {

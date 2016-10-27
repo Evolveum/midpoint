@@ -30,7 +30,9 @@
 
     <user version="1" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
         <c:name>atestuserX00002</c:name>
-        
+
+        <lifecycleState>testLifecycleStatus</lifecycleState>
+
         <trigger id="2">
             <handlerUri>http://triggerUri</handlerUri>
             <timestamp>2013-05-07T10:38:21.350+02:00</timestamp>

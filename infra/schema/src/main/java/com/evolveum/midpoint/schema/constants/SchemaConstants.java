@@ -300,6 +300,15 @@ public abstract class SchemaConstants {
 	public static final QName C_MODEL_CONTEXT = new QName(NS_C, "modelContext");
 	public static final QName C_ITEM_TO_APPROVE = new QName(NS_C, "itemToApprove");
 	public static final QName C_SHADOW_DISCRIMINATOR = new QName(NS_C, "shadowDiscriminator");
+	
+	// Lifecycle
+	
+	public static final String LIFECYCLE_DRAFT = "draft";
+	public static final String LIFECYCLE_PROPOSED = "proposed";
+	public static final String LIFECYCLE_ACTIVE = "active";
+	public static final String LIFECYCLE_DEPRECATED = "deprecated";
+	public static final String LIFECYCLE_ARCHIVED = "archived";
+	public static final String LIFECYCLE_FAILED = "failed";
 
 	
 	// Samples

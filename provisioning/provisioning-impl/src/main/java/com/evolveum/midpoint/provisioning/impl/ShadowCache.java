@@ -20,6 +20,7 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
+import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.Item;
@@ -30,6 +31,7 @@ import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 
+import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.common.refinery.RefinedAssociationDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
@@ -68,6 +70,7 @@ import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.prism.query.SubstringFilter;
 import com.evolveum.midpoint.prism.query.ValueFilter;
 import com.evolveum.midpoint.prism.util.PrismUtil;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.provisioning.api.ChangeNotificationDispatcher;
 import com.evolveum.midpoint.provisioning.api.GenericConnectorException;
 import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
@@ -119,7 +122,9 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AvailabilityStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CachingMetadataType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FailedOperationTypeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationProvisioningScriptsType;
@@ -158,6 +163,9 @@ public abstract class ShadowCache {
 
 	@Autowired(required = true)
 	private ResourceManager resourceManager;
+	
+	@Autowired(required = true)
+	private Clock clock;
 
 	@Autowired(required = true)
 	private PrismContext prismContext;
@@ -234,6 +242,11 @@ public abstract class ShadowCache {
 		if (!oid.equals(repositoryShadow.getOid())) {
 			parentResult.recordFatalError("Provided OID is not equal to OID of repository shadow");
 			throw new IllegalArgumentException("Provided OID is not equal to OID of repository shadow");
+		}
+		
+		if (canReturnCached(options, repositoryShadow)) {
+			applyDefinition(repositoryShadow, parentResult);
+			return repositoryShadow;
 		}
 
 		ProvisioningContext ctx = ctxFactory.create(repositoryShadow, task, parentResult);
@@ -347,6 +360,31 @@ public abstract class ShadowCache {
 
 	}
 
+	private boolean canReturnCached(Collection<SelectorOptions<GetOperationOptions>> options, PrismObject<ShadowType> repositoryShadow) throws ConfigurationException {
+		long stalenessOption = GetOperationOptions.getStaleness(SelectorOptions.findRootOptions(options));
+		if (stalenessOption == 0L) {
+			return false;
+		}
+		CachingMetadataType cachingMetadata = repositoryShadow.asObjectable().getCachingMetadata();
+		if (cachingMetadata == null) {
+			if (stalenessOption == Long.MAX_VALUE) {
+				// We must return cached version but there is no cached version.
+				throw new ConfigurationException("Cached version of "+repositoryShadow+" requested, but there is no cached value");
+			}
+			return false;
+		}
+		if (stalenessOption == Long.MAX_VALUE) {
+			return true;
+		}
+
+		XMLGregorianCalendar retrievalTimestamp = cachingMetadata.getRetrievalTimestamp();
+		if (retrievalTimestamp == null) {
+			return false;
+		}
+		long retrievalTimestampMillis = XmlTypeConverter.toMillis(retrievalTimestamp);
+		return (clock.currentTimeMillis() - retrievalTimestampMillis < stalenessOption);
+	}
+
 	private boolean isCompensate(GetOperationOptions rootOptions) {
 		return !GetOperationOptions.isDoNotDiscovery(rootOptions);
 	}
@@ -424,6 +462,8 @@ public abstract class ShadowCache {
 			applyAttributesDefinition(ctx, shadow);
 			shadowManager.setKindIfNecessary(shadow.asObjectable(), ctx.getObjectClassDefinition());
 			accessChecker.checkAdd(ctx, shadow, parentResult);
+			
+			// RESOURCE OPERATION: add
 			shadow = resouceObjectConverter.addResourceObject(ctx, shadow, scripts, parentResult);
 
 		} catch (Exception ex) {
@@ -432,6 +472,7 @@ public abstract class ShadowCache {
 			return shadow.getOid();
 		}
 
+		// REPO OPERATION: add
 		// This is where the repo shadow is created (if needed)
 		String oid = afterAddOnResource(ctx, shadow, parentResult);
 		shadow.setOid(oid);
@@ -830,7 +871,7 @@ public abstract class ShadowCache {
 		applyDefinition(ctx, query);
 
 		GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
-		if (GetOperationOptions.isNoFetch(rootOptions)) {
+		if (ProvisioningUtil.shouldDoRepoSearch(rootOptions)) {
 			return searchObjectsIterativeRepository(ctx, query, options, handler, parentResult);
 		}
 
@@ -1260,7 +1301,7 @@ public abstract class ShadowCache {
 
 		final ProvisioningContext ctx = ctxFactory.create(shadowCoordinates, task, parentResult);
 
-		List<Change<ShadowType>> changes = null;
+		List<Change> changes = null;
 		try {
 
 			changes = resouceObjectConverter.fetchChanges(ctx, lastToken, parentResult);
@@ -1269,7 +1310,7 @@ public abstract class ShadowCache {
 
 			int processedChanges = 0;
 
-			for (Change<ShadowType> change : changes) {
+			for (Change change : changes) {
 
 				if (change.isTokenOnly()) {
 					LOGGER.trace("Found token-only change: {}", change);
@@ -1373,7 +1414,7 @@ public abstract class ShadowCache {
 	}
 
 	@SuppressWarnings("rawtypes")
-	boolean processSynchronization(ProvisioningContext ctx, Change<ShadowType> change, OperationResult result)
+	boolean processSynchronization(ProvisioningContext ctx, Change change, OperationResult result)
 			throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException,
 			CommunicationException, ConfigurationException {
 
@@ -1435,7 +1476,7 @@ public abstract class ShadowCache {
 
 	@SuppressWarnings("unchecked")
 	private ResourceObjectShadowChangeDescription createResourceShadowChangeDescription(
-			Change<ShadowType> change, ResourceType resourceType, String channel) {
+			Change change, ResourceType resourceType, String channel) {
 		ResourceObjectShadowChangeDescription shadowChangeDescription = new ResourceObjectShadowChangeDescription();
 		shadowChangeDescription.setObjectDelta(change.getObjectDelta());
 		shadowChangeDescription.setResource(resourceType.asPrismObject());
@@ -1539,7 +1580,7 @@ public abstract class ShadowCache {
 		}
 	}
 
-	void processChange(ProvisioningContext ctx, Change<ShadowType> change, PrismObject<ShadowType> oldShadow,
+	void processChange(ProvisioningContext ctx, Change change, PrismObject<ShadowType> oldShadow,
 			OperationResult parentResult) throws SchemaException, CommunicationException,
 					ConfigurationException, SecurityViolationException, ObjectNotFoundException,
 					GenericConnectorException, ObjectAlreadyExistsException {

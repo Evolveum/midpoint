@@ -71,7 +71,7 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestMisc.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
    
         // WHEN
@@ -93,7 +93,7 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestMisc.class.getName() + "." + TEST_NAME);
    
         // WHEN
         OperationResult testResult = modelDiagnosticService.repositorySelfTest(task);
@@ -111,7 +111,7 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestMisc.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
    
         // WHEN

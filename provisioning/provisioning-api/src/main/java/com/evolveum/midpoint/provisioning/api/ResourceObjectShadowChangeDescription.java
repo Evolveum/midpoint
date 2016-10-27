@@ -39,10 +39,11 @@ import java.io.Serializable;
  * @author Radovan Semancik
  */
 public class ResourceObjectShadowChangeDescription implements DebugDumpable, Serializable {
+	private static final long serialVersionUID = 1L;
 
-    private ObjectDelta<? extends ShadowType> objectDelta;
-    private PrismObject<? extends ShadowType> currentShadow;
-    private PrismObject<? extends ShadowType> oldShadow;
+	private ObjectDelta<ShadowType> objectDelta;
+    private PrismObject<ShadowType> currentShadow;
+    private PrismObject<ShadowType> oldShadow;
     private String sourceChannel;
     private PrismObject<ResourceType> resource;
     
@@ -60,27 +61,27 @@ public class ResourceObjectShadowChangeDescription implements DebugDumpable, Ser
      */
     private boolean unrelatedChange = false;
 
-    public ObjectDelta<? extends ShadowType> getObjectDelta() {
+    public ObjectDelta<ShadowType> getObjectDelta() {
         return objectDelta;
     }
 
-    public void setObjectDelta(ObjectDelta<? extends ShadowType> objectDelta) {
+    public void setObjectDelta(ObjectDelta<ShadowType> objectDelta) {
         this.objectDelta = objectDelta;
     }
 
-    public PrismObject<? extends ShadowType> getCurrentShadow() {
+    public PrismObject<ShadowType> getCurrentShadow() {
         return currentShadow;
     }
 
-    public void setCurrentShadow(PrismObject<? extends ShadowType> currentShadow) {
+    public void setCurrentShadow(PrismObject<ShadowType> currentShadow) {
         this.currentShadow = currentShadow;
     }
 
-    public PrismObject<? extends ShadowType> getOldShadow() {
+    public PrismObject<ShadowType> getOldShadow() {
         return oldShadow;
     }
 
-    public void setOldShadow(PrismObject<? extends ShadowType> oldShadow) {
+    public void setOldShadow(PrismObject<ShadowType> oldShadow) {
         this.oldShadow = oldShadow;
     }
 

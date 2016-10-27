@@ -80,6 +80,7 @@ import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.AccessCertificationService;
+import com.evolveum.midpoint.model.api.AuthenticationEvaluator;
 import com.evolveum.midpoint.model.api.ModelDiagnosticService;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.ModelService;
@@ -255,7 +256,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
 	@SpringBean(name = "accessDecisionManager")
 	private SecurityEnforcer securityEnforcer;
-
+	
 	@SpringBean
 	private MidpointFormValidatorRegistry formValidatorRegistry;
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Evolveum
+ * Copyright (c) 2015-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,8 @@ import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 
 import java.io.File;
+
+import javax.xml.datatype.XMLGregorianCalendar;
 
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -56,9 +58,9 @@ public class TestDummyExtra extends TestDummy {
 	}
 
 	@Override
-	protected void checkAccountWill(ShadowType shadow, OperationResult result) throws SchemaException, EncryptionException {
-		super.checkAccountWill(shadow, result);
-		assertPassword(shadow, "3lizab3th");
+	protected void checkAccountWill(PrismObject<ShadowType> shadow, OperationResult result, XMLGregorianCalendar startTs, XMLGregorianCalendar endTs) throws SchemaException, EncryptionException {
+		super.checkAccountWill(shadow, result, startTs, endTs);
+		assertPassword(shadow.asObjectable(), "3lizab3th");
 	}
 	
 	@Test

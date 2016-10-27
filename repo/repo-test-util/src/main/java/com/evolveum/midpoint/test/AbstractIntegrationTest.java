@@ -708,7 +708,11 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 			AssertJUnit.fail("No secondary identifiers in repo shadow");
 		}
 		// repo shadow should contains all secondary identifiers + ICF_UID
-		assertEquals("Unexpected number of attributes in repo shadow", secIdentifiers.size()+1, attributes.size());
+		assertRepoShadowAttributes(attributes, secIdentifiers.size()+1);
+	}
+	
+	protected void assertRepoShadowAttributes(List<Item<?,?>> attributes, int expectedNumberOfIdentifiers) {
+		assertEquals("Unexpected number of attributes in repo shadow", expectedNumberOfIdentifiers, attributes.size());
 	}
 	
 	protected String getIcfUid(PrismObject<ShadowType> shadow) {
@@ -1142,5 +1146,16 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 	
 	protected PolyStringType createPolyStringType(String string) {
 		return PrismTestUtil.createPolyStringType(string);
+	}
+	
+	protected void assertNumberOfAttributes(PrismObject<ShadowType> shadow, Integer expectedNumberOfAttributes) {
+		PrismContainer<Containerable> attributesContainer = shadow.findContainer(ShadowType.F_ATTRIBUTES);
+		assertNotNull("No attributes in repo shadow "+shadow, attributesContainer);
+		List<Item<?,?>> attributes = attributesContainer.getValue().getItems();
+		
+		assertFalse("Empty attributes in repo shadow "+shadow, attributes.isEmpty());
+		if (expectedNumberOfAttributes != null) {
+			assertEquals("Unexpected number of attributes in repo shadow "+shadow, (int)expectedNumberOfAttributes, attributes.size());
+		}
 	}
 }

@@ -86,7 +86,7 @@ public class ValueChoosePanel<T, O extends ObjectType> extends BasePanel<T> {
 		initLayout(value, values, required, types);
 	}
 
-	private void initLayout(final IModel<T> value, final List<PrismReferenceValue> values,
+    private void initLayout(final IModel<T> value, final List<PrismReferenceValue> values,
 			final boolean required, Collection<Class<? extends O>> types) {
 
 		WebMarkupContainer textWrapper = new WebMarkupContainer(ID_TEXT_WRAPPER);
@@ -119,7 +119,8 @@ public class ValueChoosePanel<T, O extends ObjectType> extends BasePanel<T> {
 		textWrapper.add(edit);
 		add(textWrapper);
 
-	}
+        initButtons();
+    }
 
 	protected void replaceIfEmpty(ObjectType object) {
 		ObjectReferenceType ort = ObjectTypeUtil.createObjectRef(object);
@@ -231,10 +232,17 @@ public class ValueChoosePanel<T, O extends ObjectType> extends BasePanel<T> {
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("New object instance has been added to the model.");
 		}
-		target.add(get(ID_TEXT_WRAPPER));
+		target.add(getTextWrapperComponent());
 	}
 
-	protected boolean isObjectUnique(O object) {
+    public WebMarkupContainer getTextWrapperComponent(){
+        return (WebMarkupContainer)get(ID_TEXT_WRAPPER);
+    }
+
+    protected void initButtons() {
+    }
+
+    protected boolean isObjectUnique(O object) {
 
 		T modelObject = getModelObject();
 		if (modelObject instanceof PrismReferenceValue) {
