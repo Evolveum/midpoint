@@ -674,11 +674,6 @@ public class RefinedObjectClassDefinitionImpl implements RefinedObjectClassDefin
 		return originalObjectClassDefinition.isRuntimeSchema();
 	}
 
-	@Override
-	public boolean isSecondaryIdentifier(QName attrName) {
-		return originalObjectClassDefinition.isSecondaryIdentifier(attrName);
-	}
-
 	@NotNull
 	@Override
 	public List<String> getIgnoredNamespaces() {
