@@ -68,14 +68,14 @@ public class EqualFilter<T> extends PropertyValueFilter<T> implements Itemable {
 
 	// empty (different from values as it generates filter with null 'values' attribute)
 	@NotNull
-	public static <T> EqualFilter<T> createEqual(@NotNull ItemPath path, @NotNull PrismPropertyDefinition<T> definition,
+	public static <T> EqualFilter<T> createEqual(@NotNull ItemPath path, @Nullable PrismPropertyDefinition<T> definition,
 			@Nullable QName matchingRule) {
 		return new EqualFilter<T>(path, definition, matchingRule, null, null, null, null);
 	}
 
 	// values
 	@NotNull
-	public static <T> EqualFilter<T> createEqual(@NotNull ItemPath path, @NotNull PrismPropertyDefinition<T> definition,
+	public static <T> EqualFilter<T> createEqual(@NotNull ItemPath path, @Nullable PrismPropertyDefinition<T> definition,
 			@Nullable QName matchingRule, @NotNull PrismContext prismContext, Object... values) {
 		List<PrismPropertyValue<T>> propertyValues = anyArrayToPropertyValueList(prismContext, values);
 		return new EqualFilter<T>(path, definition, matchingRule, propertyValues, null, null, null);

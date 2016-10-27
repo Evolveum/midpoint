@@ -32,6 +32,7 @@ import javax.xml.namespace.QName;
 
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.prism.PrismConstants;
@@ -177,12 +178,13 @@ public class XsdTypeMapper {
         return null;
     }
 
-    @NotNull
+    @Nullable
     public static <T> Class<T> toJavaType(@NotNull QName xsdType) {
 		//noinspection ConstantConditions
 		return toJavaType(xsdToJavaTypeMap, xsdType, true);
     }
 
+    @Nullable
     public static <T> Class<T> toJavaTypeIfKnown(@NotNull QName xsdType) {
         return toJavaType(xsdToJavaTypeMap, xsdType, false);
     }
@@ -197,6 +199,7 @@ public class XsdTypeMapper {
         }
     }
 
+    @Nullable
     private static <T> Class<T> toJavaType(Map<QName, Class> map, @NotNull QName xsdType, boolean errorIfNoMapping) {
         Class<?> javaType = map.get(xsdType);
 		if (javaType == null && StringUtils.isEmpty(xsdType.getNamespaceURI())) {

@@ -347,12 +347,26 @@ public class PrismUnmarshaller {
         }
     }
 
-    private <T> boolean isValueAllowed(T realValue, PrismPropertyDefinition<T> definition) {
+    private <T> boolean isValueAllowed(T realValue, PrismPropertyDefinition<T> definition) throws SchemaException {
         if (definition == null || CollectionUtils.isEmpty(definition.getAllowedValues())) {
             return true;
         }
+        if (realValue == null) {
+            return true;        // TODO: ok?
+        }
+        String serializedForm;
+        if (realValue instanceof Enum) {
+            PrimitiveXNode<String> prim = (PrimitiveXNode<String>) getBeanMarshaller().marshall(realValue);
+            serializedForm = prim.getValue();
+        } else {
+            serializedForm = null;
+        }
+
         return definition.getAllowedValues().stream()
-                .anyMatch(displayableValue -> realValue.equals(displayableValue.getValue()));
+                .anyMatch(displayableValue ->
+                        realValue.equals(displayableValue.getValue())
+                        || serializedForm != null && serializedForm.equals(displayableValue.getValue())
+                );
     }
 
     @NotNull
@@ -586,7 +600,11 @@ public class PrismUnmarshaller {
         return ((PrismContextImpl) prismContext).getBeanUnmarshaller();
     }
 
-	private SchemaRegistry getSchemaRegistry() {
+    private BeanMarshaller getBeanMarshaller() {
+        return ((PrismContextImpl) prismContext).getBeanMarshaller();
+    }
+
+    private SchemaRegistry getSchemaRegistry() {
 		return prismContext.getSchemaRegistry();
 	}
 
