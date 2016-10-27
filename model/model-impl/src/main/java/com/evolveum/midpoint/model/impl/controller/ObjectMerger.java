@@ -415,25 +415,30 @@ public class ObjectMerger {
 	private void takeProjections(MergeStategyType strategy, List<ShadowType> mergedProjections, 
 			List<ShadowType> matchedProjections, List<ShadowType> candidateProjections,
 			ShadowDiscriminatorType discriminatorType) {
-		if (strategy == MergeStategyType.TAKE) {
-			
-			LOGGER.trace("TAKE: Evaluating discriminator: {}", discriminatorType);
-			
-			for (ShadowType candidateProjection: candidateProjections) {
-				if (ShadowUtil.matchesPattern(candidateProjection, discriminatorType)) {
-					LOGGER.trace("Discriminator matches {}", candidateProjection);
+		
+		LOGGER.trace("TAKE: Evaluating discriminator: {}", discriminatorType);
+
+		for (ShadowType candidateProjection: candidateProjections) {
+			if (ShadowUtil.matchesPattern(candidateProjection, discriminatorType)) {
+				LOGGER.trace("Discriminator matches {}", candidateProjection);
+				matchedProjections.add(candidateProjection);
+				
+				if (strategy == MergeStategyType.TAKE) {
 					mergedProjections.add(candidateProjection);
-					matchedProjections.add(candidateProjection);
+					
+				} else if (strategy == null || strategy == MergeStategyType.IGNORE) {
+					// Nothing to do here
+					
 				} else {
-					LOGGER.trace("Discriminator does NOT match {}", candidateProjection);
+					throw new UnsupportedOperationException("Merge strategy "+strategy+" is not supported");
 				}
+				
+			} else {
+				LOGGER.trace("Discriminator does NOT match {}", candidateProjection);
 			}
-			
-		} else if (strategy == null || strategy == MergeStategyType.IGNORE) {
-			return;
-		} else {
-			throw new UnsupportedOperationException("Merge strategy "+strategy+" is not supported");
 		}
+		
+		
 	}
 	
 	private void takeUnmatchedProjections(MergeStategyType strategy, List<ShadowType> mergedProjections, 
