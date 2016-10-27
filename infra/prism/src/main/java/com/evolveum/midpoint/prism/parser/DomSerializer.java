@@ -27,20 +27,12 @@ import com.evolveum.midpoint.prism.xnode.SchemaXNode;
 import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.ibm.wsdl.extensions.schema.SchemaConstants;
-import com.sun.org.apache.xml.internal.utils.XMLChar;
 import org.apache.commons.lang.StringUtils;
-import org.w3c.dom.Comment;
 import org.w3c.dom.DOMException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import org.w3c.dom.Node;
 
 import javax.xml.namespace.QName;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import java.util.Map.Entry;
 
 /**

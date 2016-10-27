@@ -1,7 +1,6 @@
 package com.evolveum.midpoint.report.impl;
 
 import java.io.OutputStream;
-import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
@@ -16,7 +15,6 @@ import org.apache.cxf.message.Exchange;
 import org.apache.cxf.message.Message;
 import org.apache.cxf.message.MessageContentsList;
 import org.apache.cxf.message.MessageUtils;
-import org.apache.cxf.phase.PhaseInterceptor;
 import org.apache.cxf.service.Service;
 import org.apache.cxf.service.model.BindingOperationInfo;
 import org.apache.cxf.service.model.MessagePartInfo;

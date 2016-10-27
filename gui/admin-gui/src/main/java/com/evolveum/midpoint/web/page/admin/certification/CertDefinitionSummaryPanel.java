@@ -22,8 +22,6 @@ import com.evolveum.midpoint.web.component.ObjectSummaryPanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDefinitionType;
 import org.apache.wicket.model.IModel;
 
-import javax.xml.namespace.QName;
-
 /**
  * @author mederly
  */

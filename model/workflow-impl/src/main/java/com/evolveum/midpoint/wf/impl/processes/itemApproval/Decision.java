@@ -16,7 +16,6 @@
 
 package com.evolveum.midpoint.wf.impl.processes.itemApproval;
 
-import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DecisionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;

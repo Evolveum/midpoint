@@ -16,7 +16,6 @@
 
 package com.evolveum.midpoint.repo.sql.query.definition;
 
-import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
 import com.evolveum.midpoint.repo.sql.data.common.type.RObjectExtensionType;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 

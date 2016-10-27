@@ -24,8 +24,6 @@
 
 package com.evolveum.midpoint.prism.foo;
 
-import com.evolveum.midpoint.prism.PrismObject;
-
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;

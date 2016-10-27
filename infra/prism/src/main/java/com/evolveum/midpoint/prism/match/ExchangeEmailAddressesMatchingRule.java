@@ -20,7 +20,6 @@ import com.evolveum.midpoint.util.DOMUtil;
 import org.apache.commons.lang.StringUtils;
 
 import javax.xml.namespace.QName;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**

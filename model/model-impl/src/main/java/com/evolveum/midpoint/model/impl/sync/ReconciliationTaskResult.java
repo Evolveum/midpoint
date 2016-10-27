@@ -16,7 +16,6 @@
 
 package com.evolveum.midpoint.model.impl.sync;
 
-import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.task.api.TaskRunResult;

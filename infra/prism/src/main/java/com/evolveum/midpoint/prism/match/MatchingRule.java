@@ -15,8 +15,6 @@
  */
 package com.evolveum.midpoint.prism.match;
 
-import java.util.regex.Pattern;
-
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.util.exception.SchemaException;

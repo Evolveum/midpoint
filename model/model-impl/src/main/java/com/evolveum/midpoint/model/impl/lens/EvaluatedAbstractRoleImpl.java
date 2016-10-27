@@ -15,9 +15,6 @@
  */
 package com.evolveum.midpoint.model.impl.lens;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import com.evolveum.midpoint.model.api.context.EvaluatedAbstractRole;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.util.DebugUtil;

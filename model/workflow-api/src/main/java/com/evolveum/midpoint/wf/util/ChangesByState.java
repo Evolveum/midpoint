@@ -21,8 +21,6 @@ import com.evolveum.midpoint.schema.ObjectTreeDeltas;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.Serializable;
-
 /**
  * @author mederly
  */

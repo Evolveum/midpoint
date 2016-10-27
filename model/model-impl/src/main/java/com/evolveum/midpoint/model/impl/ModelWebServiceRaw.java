@@ -21,7 +21,6 @@ import com.evolveum.midpoint.prism.xnode.RootXNode;
 import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -63,7 +62,6 @@ import javax.xml.soap.SOAPFault;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.ws.Holder;
 import javax.xml.ws.Provider;
-import javax.xml.ws.WebServiceProvider;
 import javax.xml.ws.soap.SOAPFaultException;
 
 import java.io.PrintWriter;

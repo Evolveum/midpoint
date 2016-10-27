@@ -21,7 +21,6 @@ import com.evolveum.midpoint.prism.ItemDefinition;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.commons.lang.builder.ToStringBuilder;
-import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.StringResourceModel;
 
 import java.io.Serializable;

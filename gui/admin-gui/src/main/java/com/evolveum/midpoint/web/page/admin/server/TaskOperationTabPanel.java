@@ -24,9 +24,7 @@ import com.evolveum.midpoint.web.component.model.operationStatus.ModelOperationS
 import com.evolveum.midpoint.web.component.model.operationStatus.ModelOperationStatusPanel;
 import com.evolveum.midpoint.web.component.objectdetails.AbstractObjectTabPanel;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
-import com.evolveum.midpoint.web.component.prism.PrismPropertyPanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.model.PropertyWrapperFromObjectWrapperModel;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import org.apache.wicket.Component;

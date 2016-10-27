@@ -23,8 +23,6 @@ import javax.net.ssl.TrustManager;
 
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
-import org.w3c.dom.Element;
-
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 public interface Protector {

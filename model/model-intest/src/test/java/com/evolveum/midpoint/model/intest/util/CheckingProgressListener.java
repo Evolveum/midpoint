@@ -15,8 +15,6 @@
  */
 package com.evolveum.midpoint.model.intest.util;
 
-import java.util.Collection;
-
 import com.evolveum.midpoint.model.api.ProgressInformation;
 import com.evolveum.midpoint.model.api.ProgressListener;
 import com.evolveum.midpoint.model.api.context.ModelContext;

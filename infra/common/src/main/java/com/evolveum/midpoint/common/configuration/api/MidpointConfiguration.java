@@ -19,7 +19,6 @@ package com.evolveum.midpoint.common.configuration.api;
  * @author mamut
  */
 import org.apache.commons.configuration.Configuration;
-import org.apache.commons.configuration.XMLConfiguration;
 import org.w3c.dom.Document;
 
 public interface MidpointConfiguration {

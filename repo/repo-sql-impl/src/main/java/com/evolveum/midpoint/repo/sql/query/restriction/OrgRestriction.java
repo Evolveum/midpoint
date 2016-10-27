@@ -22,7 +22,6 @@ import com.evolveum.midpoint.prism.query.OrgFilter;
 import com.evolveum.midpoint.repo.sql.data.common.RObjectReference;
 import com.evolveum.midpoint.repo.sql.data.common.ROrgClosure;
 import com.evolveum.midpoint.repo.sql.data.common.other.RReferenceOwner;
-import com.evolveum.midpoint.repo.sql.query.QueryContext;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import org.hibernate.criterion.*;

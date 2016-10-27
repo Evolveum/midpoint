@@ -48,7 +48,6 @@ import com.evolveum.prism.xml.ns._public.types_3.RawType;
 import org.testng.annotations.Test;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.HashMap;
@@ -57,7 +56,6 @@ import java.util.Map;
 
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
 import javax.xml.namespace.QName;
 
 import static org.testng.AssertJUnit.assertEquals;

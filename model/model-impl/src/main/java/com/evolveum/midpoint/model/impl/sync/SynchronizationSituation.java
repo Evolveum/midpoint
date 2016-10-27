@@ -19,7 +19,6 @@ import org.apache.commons.lang.Validate;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSituationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
  * 

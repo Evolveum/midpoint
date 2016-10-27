@@ -16,9 +16,6 @@
 
 package com.evolveum.midpoint.repo.sql.query.definition;
 
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
-
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 

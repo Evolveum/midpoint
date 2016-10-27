@@ -17,7 +17,6 @@
 package com.evolveum.midpoint.wf.impl.messages;
 
 import com.evolveum.midpoint.wf.impl.processes.ProcessInterfaceFinder;
-import org.activiti.engine.delegate.DelegateExecution;
 
 import java.util.Map;
 

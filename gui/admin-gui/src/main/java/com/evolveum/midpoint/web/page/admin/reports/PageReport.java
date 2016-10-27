@@ -15,7 +15,6 @@
  */
 package com.evolveum.midpoint.web.page.admin.reports;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 

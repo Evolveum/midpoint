@@ -1,7 +1,6 @@
 package com.evolveum.midpoint.web.page.self.dto;
 
 import java.io.Serializable;
-import java.util.Date;
 
 /**
  * Created by Kate on 23.09.2015.

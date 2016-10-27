@@ -19,7 +19,6 @@ import java.io.Serializable;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;

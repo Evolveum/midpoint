@@ -23,7 +23,6 @@ import com.evolveum.midpoint.repo.api.RepositoryServiceFactoryException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import org.apache.commons.configuration.Configuration;
-import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author lazyman

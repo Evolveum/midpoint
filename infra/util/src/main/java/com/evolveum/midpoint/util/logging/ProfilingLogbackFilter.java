@@ -16,13 +16,9 @@
 
 package com.evolveum.midpoint.util.logging;
 
-import ch.qos.logback.classic.Level;
-import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.spi.ILoggingEvent;
-import ch.qos.logback.classic.turbo.TurboFilter;
 import ch.qos.logback.core.filter.Filter;
 import ch.qos.logback.core.spi.FilterReply;
-import org.slf4j.Marker;
 
 /**
  *

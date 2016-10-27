@@ -19,7 +19,6 @@ package com.evolveum.midpoint.repo.api.query;
 import org.apache.commons.lang.Validate;
 import org.w3c.dom.Element;
 
-import javax.xml.namespace.QName;
 import java.util.Arrays;
 import java.util.List;
 

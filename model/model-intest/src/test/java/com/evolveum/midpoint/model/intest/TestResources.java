@@ -27,7 +27,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Random;
 
-import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 
 import org.springframework.test.annotation.DirtiesContext;
@@ -36,12 +35,10 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 import org.w3c.dom.Element;
 
-import com.evolveum.icf.dummy.connector.DummyConnector;
 import com.evolveum.icf.dummy.resource.DummyResource;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -83,7 +80,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorConfigurati
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.XmlSchemaType;
 
 /**
  * @author semancik

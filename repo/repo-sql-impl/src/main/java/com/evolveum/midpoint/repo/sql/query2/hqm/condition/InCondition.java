@@ -19,10 +19,8 @@ package com.evolveum.midpoint.repo.sql.query2.hqm.condition;
 import com.evolveum.midpoint.repo.sql.query2.hqm.HibernateQuery;
 import com.evolveum.midpoint.repo.sql.query2.hqm.RootHibernateQuery;
 import org.apache.commons.lang.Validate;
-import org.hibernate.Query;
 
 import java.util.Collection;
-import java.util.List;
 
 /**
  * @author mederly

@@ -17,8 +17,6 @@ package com.evolveum.midpoint.model.impl.lens.projector;
 
 import static com.evolveum.midpoint.schema.internals.InternalsConfig.consistencyChecks;
 
-import java.util.Collection;
-
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.evolveum.midpoint.util.exception.NoFocusNameSchemaException;
@@ -38,7 +36,6 @@ import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.model.impl.lens.LensUtil;
 import com.evolveum.midpoint.model.impl.util.Utils;
 import com.evolveum.midpoint.prism.ComplexTypeDefinition;
-import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.OriginType;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;

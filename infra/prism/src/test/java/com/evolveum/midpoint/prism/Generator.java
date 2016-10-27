@@ -2,18 +2,11 @@ package com.evolveum.midpoint.prism;
 
 import static com.evolveum.midpoint.prism.PrismInternalTestUtil.*;
 
-import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.OutputStreamWriter;
-import java.nio.charset.Charset;
 
-import org.apache.commons.lang.CharSet;
 import org.testng.annotations.Test;
-import org.w3c.dom.Document;
-
-import com.evolveum.midpoint.prism.schema.SchemaRegistry;
-import com.evolveum.midpoint.util.DOMUtil;
 
 public class Generator {
   @Test

@@ -38,7 +38,6 @@ import com.evolveum.midpoint.web.page.admin.certification.dto.CertDecisionDto;
 import com.evolveum.midpoint.web.page.admin.certification.dto.CertDecisionDtoProvider;
 import com.evolveum.midpoint.web.page.admin.certification.helpers.AvailableResponses;
 import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
-import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemDto;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.TooltipBehavior;

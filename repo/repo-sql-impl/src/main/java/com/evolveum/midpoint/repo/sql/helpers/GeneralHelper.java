@@ -17,11 +17,9 @@
 package com.evolveum.midpoint.repo.sql.helpers;
 
 import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import org.hibernate.Query;
 import org.hibernate.Session;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**

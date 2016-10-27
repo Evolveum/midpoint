@@ -15,15 +15,12 @@
  */
 package com.evolveum.midpoint.model.common.expression;
 
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import javax.script.Bindings;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.common.expression.functions.BasicExpressionFunctions;

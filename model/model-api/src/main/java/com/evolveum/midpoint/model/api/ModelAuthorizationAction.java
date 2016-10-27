@@ -2,7 +2,6 @@ package com.evolveum.midpoint.model.api;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.util.QNameUtil;
 
