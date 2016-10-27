@@ -193,7 +193,7 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
         IntegrationTestTools.display("output", output.getData());
         result.computeStatus();
         TestUtil.assertSuccess(result);
-        assertEquals(11, output.getData().size());
+        assertEquals(12, output.getData().size());
     }
 
     @Test
