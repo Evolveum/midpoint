@@ -38,7 +38,7 @@ public class RawTypeUtil {
 				itemDefinition = (ID) ((PrismContextImpl) containerDef.getPrismContext()).getPrismUnmarshaller().locateItemDefinition(containerDef, elementQName, rawValue.getXnode());
 			}
 			IV parsed = rawValue.getParsedValue(itemDefinition, elementQName);
-			if (parsed != null){
+			if (parsed != null) {
 				parsedValues.add(parsed);
 			}
 		}
@@ -76,8 +76,25 @@ public class RawTypeUtil {
 			} else if (itemDefinition instanceof PrismReferenceDefinition) {
 				// TODO
 					PrismReference reference = ((PrismReferenceDefinition) itemDefinition).instantiate();
-					for (IV val : parsedValues){
-						reference.merge((PrismReferenceValue) val.clone());
+					for (IV val : parsedValues) {
+						PrismReferenceValue ref;
+						if (val instanceof PrismReferenceValue) {
+							ref = (PrismReferenceValue) val.clone();
+						} else if (val instanceof PrismContainerValue) {
+							// this is embedded (full) object
+							Containerable c = ((PrismContainerValue) val).asContainerable();
+							if (!(c instanceof Objectable)) {
+								throw new IllegalStateException("Content of " + itemDefinition
+									+ " is a Containerable but not Objectable: " + c);
+							}
+							Objectable o = (Objectable) c;
+							ref = new PrismReferenceValue();
+							ref.setObject(o.asPrismObject());
+						} else {
+							throw new IllegalStateException("Content of " + itemDefinition
+									+ " is neither PrismReferenceValue nor PrismContainerValue: " + val);
+						}
+						reference.merge(ref);
 					}
 					subItem = (Item<IV,ID>) reference;
 

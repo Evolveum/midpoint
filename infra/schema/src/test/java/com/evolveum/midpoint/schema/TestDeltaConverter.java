@@ -67,7 +67,7 @@ public class TestDeltaConverter extends AbstractSchemaTest {
 	private static final ItemPath CREDENTIALS_PASSWORD_VALUE_PATH = 
 		new ItemPath(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD, PasswordType.F_VALUE);
 
-    @Test(enabled = false)		// https://jira.evolveum.com/browse/MID-3487
+    @Test
     public void testRefWithObject() throws SchemaException, IOException, JAXBException {
     	System.out.println("===[ testRefWithObject ]====");
     	
