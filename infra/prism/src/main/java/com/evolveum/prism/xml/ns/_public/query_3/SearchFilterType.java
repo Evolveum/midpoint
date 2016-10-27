@@ -189,7 +189,7 @@ public class SearchFilterType implements Serializable, Cloneable, Equals, HashCo
     		XNode xdesc = xmap.get(SearchFilterType.F_DESCRIPTION);
     		if (xdesc != null) {
     			if (xdesc instanceof PrimitiveXNode<?>) {
-    				String desc = ((PrimitiveXNode<String>)xdesc).getParsedValue(DOMUtil.XSD_STRING);
+    				String desc = ((PrimitiveXNode<String>)xdesc).getParsedValue(DOMUtil.XSD_STRING, String.class);
     				setDescription(desc);
     			} else {
                     throw new SchemaException("Description must have a primitive value");

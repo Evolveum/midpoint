@@ -18,6 +18,7 @@ package com.evolveum.midpoint.prism.marshaller;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.prism.xnode.*;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.JAXBUtil;
@@ -453,7 +454,8 @@ public class PrismMarshaller {
 			return;	// nothing to do, anyway
 		}
 		if (!getSchemaRegistry().hasImplicitTypeDefinition(itemName, typeName)
-				&& getSchemaRegistry().findTypeDefinitionByType(typeName) != null) {
+				&& (XmlTypeConverter.canConvert(typeName)
+						|| getSchemaRegistry().findTypeDefinitionByType(typeName) != null)) {
 			valueNode.setTypeQName(typeName);
 			valueNode.setExplicitTypeDeclaration(true);
 		}

@@ -142,7 +142,8 @@ public class TestModelWebServiceNegative extends AbstractInitializedModelIntegra
 		deltaList.getDelta().add(objectChange);
 		
 		// WHEN, THEN
-		assertExecuteChangesFailure(deltaList, null, SchemaViolationFaultType.class, "The value of type", "cannot be applied to attribute");
+		//assertExecuteChangesFailure(deltaList, null, SchemaViolationFaultType.class, "The value of type", "cannot be applied to attribute");
+		assertExecuteChangesFailure(deltaList, null, SchemaViolationFaultType.class, "Expected", "but got class");
 	}
 
 	

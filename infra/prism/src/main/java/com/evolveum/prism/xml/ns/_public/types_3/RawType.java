@@ -161,7 +161,20 @@ public class RawType implements Serializable, Cloneable, Equals, Revivable {
         return item;
     }
 
-    public XNode serializeToXNode() throws SchemaException {
+//    // Returns either an item or a real value.
+//    // VERY EXPERIMENTAL.
+//	public Object getParsedItemOrRealValue() throws SchemaException {
+//		if (parsed != null) {
+//			return
+//		} else if (xnode != null) {
+//			return prismContext.parserFor(xnode.toRootXNode()).parseItemOrRealValue();
+//		} else {
+//			return null;
+//		}
+//	}
+
+
+	public XNode serializeToXNode() throws SchemaException {
         if (xnode != null) {
 //        	QName type = xnode.getTypeQName();
 //        	if (xnode instanceof PrimitiveXNode && type != null){

@@ -527,9 +527,8 @@ public class RefinedResourceSchemaImpl implements RefinedResourceSchema {
 
 	@Nullable
 	@Override
-	public <C extends Containerable> ComplexTypeDefinition findComplexTypeDefinitionByCompileTimeClass(
-			@NotNull Class<C> clazz) {
-		return originalResourceSchema.findComplexTypeDefinitionByCompileTimeClass(clazz);
+	public <TD extends TypeDefinition> TD findTypeDefinitionByCompileTimeClass(@NotNull Class<?> compileTimeClass, @NotNull Class<TD> definitionClass) {
+		return originalResourceSchema.findTypeDefinitionByCompileTimeClass(compileTimeClass, definitionClass);
 	}
 
 	@Override

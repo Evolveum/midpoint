@@ -100,7 +100,7 @@ public class XNodeProcessorUtil {
                 throw new SchemaException("Cannot parse clear value from " + xClearValue);
             }
             // TODO: clearValue
-            T clearValue = (T) ((PrimitiveXNode)xClearValue).getParsedValue(DOMUtil.XSD_STRING);
+            T clearValue = (T) ((PrimitiveXNode)xClearValue).getParsedValue(DOMUtil.XSD_STRING, String.class);
             protectedType.setClearValue(clearValue);
         }
 

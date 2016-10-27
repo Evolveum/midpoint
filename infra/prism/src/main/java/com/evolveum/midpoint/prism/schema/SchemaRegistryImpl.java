@@ -728,12 +728,12 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
 
 	@Nullable
 	@Override
-	public <C extends Containerable> ComplexTypeDefinition findComplexTypeDefinitionByCompileTimeClass(@NotNull Class<C> compileTimeClass) {
+	public <TD extends TypeDefinition> TD findTypeDefinitionByCompileTimeClass(@NotNull Class<?> compileTimeClass, @NotNull Class<TD> definitionClass) {
 		PrismSchema schema = findSchemaByCompileTimeClass(compileTimeClass);
 		if (schema == null) {
 			return null;
 		}
-		return schema.findComplexTypeDefinitionByCompileTimeClass(compileTimeClass);
+		return schema.findTypeDefinitionByCompileTimeClass(compileTimeClass, definitionClass);
 	}
 
 	@Nullable
@@ -1088,7 +1088,7 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
 	public PrismSchema findSchemaByCompileTimeClass(@NotNull Class<?> compileTimeClass) {
 		Package compileTimePackage = compileTimeClass.getPackage();
 		if (compileTimePackage == null) {
-			System.out.println("Hi");
+			throw new IllegalStateException("No Java package for " + compileTimeClass);
 		}
 		for (SchemaDescription desc: schemaDescriptions) {
 			if (compileTimePackage.equals(desc.getCompileTimeClassesPackage())) {

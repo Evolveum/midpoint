@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.common;
 
 import org.apache.commons.lang.StringUtils;
+import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.prism.marshaller.XPathHolder;

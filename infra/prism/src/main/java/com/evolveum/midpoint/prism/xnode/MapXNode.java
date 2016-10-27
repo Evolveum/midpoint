@@ -236,7 +236,7 @@ public class MapXNode extends XNode implements Map<QName,XNode>, Serializable {
 			throw new SchemaException("Expected that field "+key+" will be primitive, but it is "+xnode.getDesc());
 		}
 		PrimitiveXNode<T> xprim = (PrimitiveXNode<T>)xnode;
-		return xprim.getParsedValue(typeName);
+		return xprim.getParsedValue(typeName, null);			// TODO expected class
 	}
 	
 	public void merge(MapXNode other) {

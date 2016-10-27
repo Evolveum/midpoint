@@ -68,7 +68,11 @@ public interface GlobalDefinitionsStore extends DefinitionsStore {
 	@NotNull
 	<ID extends ItemDefinition> List<ID> findItemDefinitionsByElementName(@NotNull QName elementName, @NotNull Class<ID> definitionClass);
 
-	<C extends Containerable> ComplexTypeDefinition findComplexTypeDefinitionByCompileTimeClass(@NotNull Class<C> compileTimeClass);
+	default <C extends Containerable> ComplexTypeDefinition findComplexTypeDefinitionByCompileTimeClass(@NotNull Class<C> compileTimeClass) {
+		return findTypeDefinitionByCompileTimeClass(compileTimeClass, ComplexTypeDefinition.class);
+	}
+
+	<TD extends TypeDefinition> TD findTypeDefinitionByCompileTimeClass(@NotNull Class<?> compileTimeClass, @NotNull Class<TD> definitionClass);
 
 	<TD extends TypeDefinition> TD findTypeDefinitionByType(@NotNull QName typeName, @NotNull Class<TD> definitionClass);
 

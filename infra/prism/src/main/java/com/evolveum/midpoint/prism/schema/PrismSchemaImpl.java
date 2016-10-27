@@ -321,7 +321,7 @@ public class PrismSchemaImpl implements PrismSchema {
 						found.add(contDef);
 					}
 				} else if (def instanceof PrismPropertyDefinition) {
-					if (compileTimeClass.equals(XsdTypeMapper.toJavaTypeIfKnown(def.getTypeName()))) {
+					if (compileTimeClass.equals(prismContext.getSchemaRegistry().determineClassForType(def.getTypeName()))) {
 						@SuppressWarnings("unchecked")
 						ID itemDef = (ID) def;
 						found.add(itemDef);
@@ -411,6 +411,18 @@ public class PrismSchemaImpl implements PrismSchema {
 		// TODO: check for multiple definition with the same type
 		for (Definition definition : definitions) {
 			if (definitionClass.isAssignableFrom(definition.getClass()) && QNameUtil.match(typeName, definition.getTypeName())) {
+				return (TD) definition;
+			}
+		}
+		return null;
+	}
+
+	@Nullable
+	@Override
+	public <TD extends TypeDefinition> TD findTypeDefinitionByCompileTimeClass(@NotNull Class<?> compileTimeClass, @NotNull Class<TD> definitionClass) {
+		// TODO: check for multiple definition with the same type
+		for (Definition definition : definitions) {
+			if (definitionClass.isAssignableFrom(definition.getClass()) && compileTimeClass.equals(((TD) definition).getCompileTimeClass())) {
 				return (TD) definition;
 			}
 		}

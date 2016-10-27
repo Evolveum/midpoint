@@ -197,9 +197,8 @@ public class LayerRefinedResourceSchemaImpl implements LayerRefinedResourceSchem
 
 	@Override
 	@Nullable
-	public <C extends Containerable> ComplexTypeDefinition findComplexTypeDefinitionByCompileTimeClass(
-			@NotNull Class<C> compileTimeClass) {
-		return refinedResourceSchema.findComplexTypeDefinitionByCompileTimeClass(compileTimeClass);
+	public <TD extends TypeDefinition> TD findTypeDefinitionByCompileTimeClass(@NotNull Class<?> compileTimeClass, @NotNull Class<TD> definitionClass) {
+		return refinedResourceSchema.findTypeDefinitionByCompileTimeClass(compileTimeClass, definitionClass);
 	}
 
 	@Override

@@ -362,13 +362,13 @@ public class QueryConvertor {
 			if (valueXnode instanceof ListXNode) {
 				for (XNode subnode : (ListXNode) valueXnode) {
 					if (subnode instanceof PrimitiveXNode) {
-						oids.add(((PrimitiveXNode<String>) subnode).getParsedValue(DOMUtil.XSD_STRING));
+						oids.add(((PrimitiveXNode<String>) subnode).getParsedValue(DOMUtil.XSD_STRING, String.class));
 					} else {
 						throw new SchemaException("The OID was expected to be present as primitive XNode, instead it is: " + subnode);
 					}
 				}
 			} else if (valueXnode instanceof PrimitiveXNode) {
-				oids.add(((PrimitiveXNode<String>) valueXnode).getParsedValue(DOMUtil.XSD_STRING));
+				oids.add(((PrimitiveXNode<String>) valueXnode).getParsedValue(DOMUtil.XSD_STRING, String.class));
 			} else {
 				throw new SchemaException("The OID was expected to be present as primitive or list XNode, instead it is: " + valueXnode);
 			}

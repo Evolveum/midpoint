@@ -142,10 +142,10 @@ public class BeanUnmarshaller {
 		// only maps and primitives after this point
 
 		if (xnode instanceof PrimitiveXNode) {
-			PrimitiveXNode<?> prim = (PrimitiveXNode) xnode;
+			PrimitiveXNode<T> prim = (PrimitiveXNode) xnode;
 			if (XmlTypeConverter.canConvert(beanClass)) {
 				QName xsdType = XsdTypeMapper.toXsdType(beanClass);
-				Object parsedValue = prim.getParsedValue(xsdType);
+				Object parsedValue = prim.getParsedValue(xsdType, beanClass);
 				return postConvertUnmarshal(parsedValue, pc);
 			} else if (beanClass.isEnum()) {
 				return unmarshalEnumFromPrimitive(prim, beanClass, pc);
@@ -817,15 +817,15 @@ public class BeanUnmarshaller {
 		return filterType;
 	}
 
-	private ItemPathType unmarshalItemPath(PrimitiveXNode<String> primitiveXNode, Class beanClass, ParsingContext parsingContext)
+	private ItemPathType unmarshalItemPath(PrimitiveXNode<ItemPathType> primitiveXNode, Class beanClass, ParsingContext parsingContext)
 			throws SchemaException {
-		Object parsedValue = primitiveXNode.getParsedValue(ItemPathType.COMPLEX_TYPE);
+		ItemPathType parsedValue = primitiveXNode.getParsedValue(ItemPathType.COMPLEX_TYPE, ItemPathType.class);
 		return postConvertUnmarshal(parsedValue, parsingContext);
 	}
 
 	private Object unmarshalPolyStringFromPrimitive(PrimitiveXNode<String> node, Class<?> beanClass, ParsingContext parsingContext)
 			throws SchemaException {
-		Object value = node.getParsedValue(DOMUtil.XSD_STRING);
+		String value = node.getParsedValue(DOMUtil.XSD_STRING, String.class);
 		return toCorrectPolyStringClass(value, beanClass, node);
 	}
 
@@ -871,7 +871,7 @@ public class BeanUnmarshaller {
 	}
 
 	private XmlAsStringType unmarshalXmlAsStringFromPrimitive(PrimitiveXNode node, Class<XmlAsStringType> beanClass, ParsingContext parsingContext) throws SchemaException {
-		return new XmlAsStringType(((PrimitiveXNode<String>) node).getParsedValue(DOMUtil.XSD_STRING));
+		return new XmlAsStringType(((PrimitiveXNode<String>) node).getParsedValue(DOMUtil.XSD_STRING, String.class));
 	}
 
 	private XmlAsStringType unmarshalXmlAsStringFromMap(MapXNode map, Class<XmlAsStringType> beanClass, ParsingContext parsingContext) throws SchemaException {
@@ -895,10 +895,10 @@ public class BeanUnmarshaller {
 		return new RawType(node, prismContext);
 	}
 
-	private <T> T unmarshalEnumFromPrimitive(PrimitiveXNode<?> prim, Class<T> beanClass, ParsingContext pc)
+	private <T> T unmarshalEnumFromPrimitive(PrimitiveXNode prim, Class<T> beanClass, ParsingContext pc)
 			throws SchemaException {
 
-		String primValue = (String) prim.getParsedValue(DOMUtil.XSD_STRING);
+		String primValue = (String) prim.getParsedValue(DOMUtil.XSD_STRING, String.class);
 		primValue = StringUtils.trim(primValue);
 		if (StringUtils.isEmpty(primValue)) {
 			return null;
@@ -930,7 +930,7 @@ public class BeanUnmarshaller {
 
 	private ProtectedStringType unmarshalProtectedString(PrimitiveXNode<String> prim, Class beanClass, ParsingContext pc) throws SchemaException {
 		ProtectedStringType protectedType = new ProtectedStringType();
-		protectedType.setClearValue(prim.getParsedValue(DOMUtil.XSD_STRING));
+		protectedType.setClearValue(prim.getParsedValue(DOMUtil.XSD_STRING, String.class));
 		return protectedType;
 	}
 
@@ -942,7 +942,7 @@ public class BeanUnmarshaller {
 
 	private ProtectedByteArrayType unmarshalProtectedByteArray(PrimitiveXNode<String> prim, Class beanClass, ParsingContext pc) throws SchemaException {
 		ProtectedByteArrayType protectedType = new ProtectedByteArrayType();
-		String stringValue = prim.getParsedValue(DOMUtil.XSD_STRING);
+		String stringValue = prim.getParsedValue(DOMUtil.XSD_STRING, String.class);
 		if (stringValue == null) {
 			return null;
 		}

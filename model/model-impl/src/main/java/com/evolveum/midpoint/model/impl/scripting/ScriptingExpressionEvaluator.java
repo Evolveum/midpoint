@@ -20,8 +20,7 @@ import com.evolveum.midpoint.model.api.ScriptExecutionException;
 import com.evolveum.midpoint.model.impl.scripting.expressions.SearchEvaluator;
 import com.evolveum.midpoint.model.impl.scripting.expressions.SelectEvaluator;
 import com.evolveum.midpoint.model.impl.scripting.helpers.JaxbHelper;
-import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.marshaller.QueryConvertor;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -45,6 +44,8 @@ import com.evolveum.prism.xml.ns._public.types_3.RawType;
 
 import org.apache.commons.lang.NotImplementedException;
 import org.apache.commons.lang.Validate;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -253,15 +254,36 @@ public class ScriptingExpressionEvaluator {
         return lastOutput;
     }
 
-    public Data evaluateConstantExpression(RawType constant, ExecutionContext context, OperationResult result) throws ScriptExecutionException {
+    public Data evaluateConstantExpression(@NotNull RawType constant, @Nullable Class<?> expectedClass, ExecutionContext context, String desc, OperationResult result) throws ScriptExecutionException {
 
         try {
-            Object value = prismContext.parserFor(constant.getXnode().toRootXNode()).parseItemOrRealValue();
-            if (value instanceof Item) {
-                return Data.create((Item) value);
+            // TODO fix this brutal hacking
+            PrismValue value;
+            if (expectedClass == null) {
+                value = constant.getParsedValue(null, null);
             } else {
-                return Data.createProperty(value, prismContext);
+                Object object = constant.getParsedRealValue(expectedClass);
+                if (object instanceof Referencable) {
+                    value = ((Referencable) object).asReferenceValue();
+                } else if (object instanceof Containerable) {
+                    value = ((Containerable) object).asPrismContainerValue();
+                } else {
+                    value = new PrismPropertyValue<>(object);
+                }
             }
+            if (value.isRaw()) {
+                throw new IllegalStateException("Raw value while " + desc + ": " + value + ". Please specify type of the value.");
+            }
+            return Data.createItem(value, prismContext);
+        } catch (SchemaException e) {
+            throw new ScriptExecutionException(e.getMessage(), e);
+        }
+    }
+
+    public Data evaluateConstantStringExpression(RawType constant, ExecutionContext context, OperationResult result) throws ScriptExecutionException {
+        try {
+            String value = constant.getParsedRealValue(String.class);
+            return Data.createItem(new PrismPropertyValue<>(value), prismContext);
         } catch (SchemaException e) {
             throw new ScriptExecutionException(e.getMessage(), e);
         }
