@@ -9458,6 +9458,8 @@
                         </xsd:annotation>
                     </xsd:element>
                     
+                    <xsd:element name="defaultHostname" type="xsd:string"></xsd:element>
+                    
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
