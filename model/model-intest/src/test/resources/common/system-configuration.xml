@@ -227,13 +227,14 @@
     		<right>take</right>
     	</item>
     	<projection>
-    		<right>take</right>
+    		<left>take</left>
     		<projectionDiscriminator>
-    			<resourceRef oid="10000000-0000-0000-0000-00000000c204"/> <!-- CYAN -->
+    			<resourceRef oid="10000000-0000-0000-0000-000000000004"/> <!-- dummy -->
     		</projectionDiscriminator>
     	</projection>
     	<projection>
     		<left>take</left>
+    		<right>take</right>
     	</projection>
     	<default>
     		<right>take</right>

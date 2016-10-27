@@ -274,10 +274,10 @@ public class TestMerge extends AbstractInitializedModelIntegrationTest {
         PrismAsserts.assertNoItemDelta(delta, UserType.F_LINK_REF);
 
         ObjectDelta<UserType> leftLinkDelta = deltas.getLeftLinkDelta();
-        PrismAsserts.assertEmpty("leftLinkDelta", leftLinkDelta);
+        PrismAsserts.assertReferenceAdd(leftLinkDelta, UserType.F_LINK_REF, jackDummyAccountRedOid);
         
         ObjectDelta<UserType> rightLinkDelta = deltas.getRightLinkDelta();
-        PrismAsserts.assertEmpty("rightLinkDelta", rightLinkDelta);
+        PrismAsserts.assertReferenceDelete(rightLinkDelta, UserType.F_LINK_REF, jackDummyAccountRedOid);
 	}
 	
 	/**
