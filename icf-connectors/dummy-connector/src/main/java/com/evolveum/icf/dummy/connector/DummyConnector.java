@@ -87,8 +87,6 @@ import com.evolveum.icf.dummy.resource.SchemaViolationException;
  * 
  * @see DummyResource
  *
- * @author $author$
- * @version $Revision$ $Date$
  */
 @ConnectorClass(displayNameKey = "UI_CONNECTOR_NAME",
 configurationClass = DummyConfiguration.class)

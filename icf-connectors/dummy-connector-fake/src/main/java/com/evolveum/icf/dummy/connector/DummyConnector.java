@@ -33,8 +33,6 @@ import org.identityconnectors.framework.spi.ConnectorClass;
  * version. It is used to test that we can have two completely different versions of the same connector both in
  * the system at the same time. I mean really different. Different code, different config schema, different behavior.
  *
- * @author $author$
- * @version $Revision$ $Date$
  */
 @ConnectorClass(displayNameKey = "UI_CONNECTOR_NAME",
 configurationClass = DummyConfiguration.class)

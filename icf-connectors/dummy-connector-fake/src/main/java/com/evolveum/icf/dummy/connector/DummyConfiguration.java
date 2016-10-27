@@ -23,8 +23,6 @@ import org.identityconnectors.framework.spi.ConfigurationProperty;
  * Extends the {@link AbstractConfiguration} class to provide all the necessary
  * parameters to initialize the Test Connector.
  *
- * @author $author$
- * @version $Revision$ $Date$
  */
 public class DummyConfiguration extends AbstractConfiguration {
 
