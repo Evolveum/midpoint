@@ -116,7 +116,12 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
 	protected DummyResourceContoller dummyResourceCtlBlue;
 	protected ResourceType resourceDummyBlueType;
 	protected PrismObject<ResourceType> resourceDummyBlue;
-	
+
+	protected DummyResource dummyResourceCyan;
+	protected DummyResourceContoller dummyResourceCtlCyan;
+	protected ResourceType resourceDummyCyanType;
+	protected PrismObject<ResourceType> resourceDummyCyan;
+
 	protected DummyResource dummyResourceWhite;
 	protected DummyResourceContoller dummyResourceCtlWhite;
 	protected ResourceType resourceDummyWhiteType;
@@ -192,7 +197,14 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
 		dummyResourceBlue = dummyResourceCtlBlue.getDummyResource();
 		resourceDummyBlue = importAndGetObjectFromFile(ResourceType.class, getResourceDummyBlueFile(), RESOURCE_DUMMY_BLUE_OID, initTask, initResult); 
 		resourceDummyBlueType = resourceDummyBlue.asObjectable();
-		dummyResourceCtlBlue.setResource(resourceDummyBlue);		
+		dummyResourceCtlBlue.setResource(resourceDummyBlue);
+		
+		dummyResourceCtlCyan = DummyResourceContoller.create(RESOURCE_DUMMY_CYAN_NAME, resourceDummyBlue);
+		dummyResourceCtlCyan.extendSchemaPirate();
+		dummyResourceCyan = dummyResourceCtlCyan.getDummyResource();
+		resourceDummyCyan = importAndGetObjectFromFile(ResourceType.class, RESOURCE_DUMMY_CYAN_FILE, RESOURCE_DUMMY_CYAN_OID, initTask, initResult); 
+		resourceDummyCyanType = resourceDummyCyan.asObjectable();
+		dummyResourceCtlCyan.setResource(resourceDummyCyan);		
 		
 		dummyResourceCtlWhite = DummyResourceContoller.create(RESOURCE_DUMMY_WHITE_NAME, resourceDummyWhite);
 		dummyResourceCtlWhite.extendSchemaPirate();
@@ -295,6 +307,8 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
 		repoAddObjectFromFile(ROLE_THIEF_FILE, RoleType.class, initResult);
 		repoAddObjectFromFile(ROLE_EMPTY_FILE, RoleType.class, initResult);
 		repoAddObjectFromFile(ROLE_SAILOR_FILE, RoleType.class, initResult);
+		repoAddObjectFromFile(ROLE_RED_SAILOR_FILE, RoleType.class, initResult);
+		repoAddObjectFromFile(ROLE_CYAN_SAILOR_FILE, RoleType.class, initResult);
 		
 		// Orgstruct
 		if (doAddOrgstruct()) {

@@ -226,10 +226,15 @@
     		<left>take</left>
     		<right>take</right>
     	</item>
-    	<item>
-    		<ref>linkRef</ref>
+    	<projection>
+    		<right>take</right>
+    		<projectionDiscriminator>
+    			<resourceRef oid="10000000-0000-0000-0000-00000000c204"/> <!-- CYAN -->
+    		</projectionDiscriminator>
+    	</projection>
+    	<projection>
     		<left>take</left>
-    	</item>    	
+    	</projection>
     	<default>
     		<right>take</right>
     	</default>
@@ -251,6 +256,21 @@
     	<default>
     		<left>take</left>
     	</default>
+    </mergeConfiguration>
+    
+    <mergeConfiguration>
+    	<name>allLeftProjectionsBoth</name>
+    	<description>
+    		Takes all projections. There may be conflicting projections.
+    		Attempt to merge should end with an error.
+    	</description>
+    	<default>
+    		<left>take</left>
+    	</default>
+    	<projection>
+    		<left>take</left>
+    		<right>take</right>
+    	</projection>
     </mergeConfiguration>
     
     <mergeConfiguration>
@@ -316,10 +336,9 @@
     		<left>take</left>
     		<right>take</right>
     	</item>
-    	<item>
-    		<ref>linkRef</ref>
+    	<projection>
     		<left>take</left>
-    	</item>    	
+    	</projection>
     	<default>
     		<left>take</left>
     	</default>

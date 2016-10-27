@@ -31,6 +31,8 @@ import javax.xml.namespace.QName;
 import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemDeltaType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
+import com.evolveum.prism.xml.ns._public.types_3.ObjectReferenceType;
+
 import org.apache.commons.lang.Validate;
 
 import java.io.Serializable;
@@ -931,6 +933,18 @@ public class ObjectDelta<T extends Objectable> implements DebugDumpable, Visitab
     	}
     }
 
+    public void addModificationAddReference(QName propertyQName, PrismReferenceValue... refValues) {
+    	fillInModificationAddReference(this, new ItemPath(propertyQName), refValues);
+    }
+    
+    public void addModificationDeleteReference(QName propertyQName, PrismReferenceValue... refValues) {
+    	fillInModificationDeleteReference(this, new ItemPath(propertyQName), refValues);
+    }
+    
+    public void addModificationReplaceReference(QName propertyQName, PrismReferenceValue... refValues) {
+    	fillInModificationReplaceReference(this, new ItemPath(propertyQName), refValues);
+    }
+    
     protected static <O extends Objectable> void fillInModificationReplaceReference(ObjectDelta<O> objectDelta,
                                                                                        ItemPath refPath, PrismReferenceValue... refValues) {
         ReferenceDelta refDelta = objectDelta.createReferenceModification(refPath);
@@ -939,6 +953,24 @@ public class ObjectDelta<T extends Objectable> implements DebugDumpable, Visitab
             objectDelta.addModification(refDelta);
         }
     }
+    
+    protected static <O extends Objectable> void fillInModificationAddReference(ObjectDelta<O> objectDelta,
+            ItemPath refPath, PrismReferenceValue... refValues) {
+		ReferenceDelta refDelta = objectDelta.createReferenceModification(refPath);
+		if (refValues != null) {
+			refDelta.addValuesToAdd(refValues);
+			objectDelta.addModification(refDelta);
+		}
+	}
+
+    protected static <O extends Objectable> void fillInModificationDeleteReference(ObjectDelta<O> objectDelta,
+            ItemPath refPath, PrismReferenceValue... refValues) {
+		ReferenceDelta refDelta = objectDelta.createReferenceModification(refPath);
+		if (refValues != null) {
+			refDelta.addValuesToDelete(refValues);
+			objectDelta.addModification(refDelta);
+		}
+	}
 
     private ReferenceDelta createReferenceModification(ItemPath refPath) {
         PrismObjectDefinition<T> objDef = getPrismContext().getSchemaRegistry().findObjectDefinitionByCompileTimeClass(getObjectTypeClass());

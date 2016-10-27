@@ -36,6 +36,7 @@ import com.evolveum.midpoint.common.refinery.LayerRefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.model.api.context.ModelContext;
+import com.evolveum.midpoint.model.api.util.MergeDeltas;
 import com.evolveum.midpoint.model.impl.ModelObjectResolver;
 import com.evolveum.midpoint.model.impl.lens.ContextFactory;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
@@ -749,19 +750,20 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 	}
 
 	@Override
-	public <O extends ObjectType> ObjectDelta<O> mergeObjectsPreviewDelta(Class<O> type, String leftOid,
+	public <O extends ObjectType> MergeDeltas<O> mergeObjectsPreviewDeltas(Class<O> type, String leftOid,
 			String rightOid, String mergeConfigurationName, Task task, OperationResult parentResult)
-					throws ObjectNotFoundException, SchemaException, ConfigurationException, ExpressionEvaluationException {
+					throws ObjectNotFoundException, SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException, SecurityViolationException {
 		OperationResult result = parentResult.createMinorSubresult(MERGE_OBJECTS_PREVIEW_DELTA);
 		
 		try {
 			
-			ObjectDelta<O> objectDelta = objectMerger.computeMergeDelta(type, leftOid, rightOid, mergeConfigurationName, task, result);
+			MergeDeltas<O> mergeDeltas = objectMerger.computeMergeDeltas(type, leftOid, rightOid, mergeConfigurationName, task, result);
 			
 			result.computeStatus();
-			return objectDelta;
+			return mergeDeltas;
 			
-		} catch (ObjectNotFoundException | SchemaException | ConfigurationException | ExpressionEvaluationException | RuntimeException | Error e) {
+		} catch (ObjectNotFoundException | SchemaException | ConfigurationException | ExpressionEvaluationException | 
+				CommunicationException | SecurityViolationException | RuntimeException | Error e) {
 			result.recordFatalError(e);
 			throw e;
 		}
@@ -770,26 +772,32 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 	@Override
 	public <O extends ObjectType> PrismObject<O> mergeObjectsPreviewObject(Class<O> type, String leftOid,
 			String rightOid, String mergeConfigurationName, Task task, OperationResult parentResult) 
-					throws ObjectNotFoundException, SchemaException, ConfigurationException, ExpressionEvaluationException {
+					throws ObjectNotFoundException, SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException, SecurityViolationException {
 		OperationResult result = parentResult.createMinorSubresult(MERGE_OBJECTS_PREVIEW_OBJECT);
 		
 		try {
 			
-			ObjectDelta<O> objectDelta = objectMerger.computeMergeDelta(type, leftOid, rightOid, mergeConfigurationName, task, result);
+			MergeDeltas<O> mergeDeltas = objectMerger.computeMergeDeltas(type, leftOid, rightOid, mergeConfigurationName, task, result);
+			
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("Merge preview {} + {} deltas:\n{}", leftOid, rightOid, mergeDeltas.debugDump(1));
+			}
 			
 			final PrismObject<O> objectLeft = objectResolver.getObjectSimple(type, leftOid, null, task, result).asPrismObject();
 			
-			if (objectDelta == null) {
+			if (mergeDeltas == null) {
 				result.computeStatus();
 				return objectLeft;
 			}
 			
-			objectDelta.applyTo(objectLeft);
+			mergeDeltas.getLeftObjectDelta().applyTo(objectLeft);
+			mergeDeltas.getLeftLinkDelta().applyTo(objectLeft);
 			
 			result.computeStatus();
 			return objectLeft;
 			
-		} catch (ObjectNotFoundException | SchemaException | ConfigurationException | ExpressionEvaluationException | RuntimeException | Error e) {
+		} catch (ObjectNotFoundException | SchemaException | ConfigurationException | ExpressionEvaluationException |
+				CommunicationException | SecurityViolationException | RuntimeException | Error e) {
 			result.recordFatalError(e);
 			throw e;
 		}
