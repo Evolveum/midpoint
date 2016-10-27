@@ -408,15 +408,19 @@ public class PrismUnmarshaller {
             isComposite = !QNameUtil.match(itemName, definition.getName());
         }
 
+
         if (isComposite) {
             return parseReferenceValueAsCompositeObject(node, definition, pc);  // This is a composite object (complete object stored inside reference)
         } else {
-            return parseReferenceValueAsReference(node, definition, pc);   // This is "real" reference (oid,  and nothing more)
+            // TODO fix this hack: for delta values of ObjectReferenceType we will not
+            // insist on having reference type (because the target definition could be such that it won't require it)
+            boolean allowMissingRefTypesOverride = node.isExplicitTypeDeclaration();
+            return parseReferenceValueAsReference(node, definition, pc, allowMissingRefTypesOverride);   // This is "real" reference (oid,  and nothing more)
         }
     }
 
     private PrismReferenceValue parseReferenceValueAsReference(@NotNull XNode xnode, @NotNull PrismReferenceDefinition definition,
-            @NotNull ParsingContext pc) throws SchemaException {
+            @NotNull ParsingContext pc, boolean allowMissingRefTypesOverride) throws SchemaException {
         if (!(xnode instanceof MapXNode)) {
             throw new IllegalArgumentException("Cannot parse reference from " + xnode);
         }
@@ -427,7 +431,7 @@ public class PrismUnmarshaller {
 
         QName type = map.getParsedPrimitiveValue(XNode.KEY_REFERENCE_TYPE, DOMUtil.XSD_QNAME);
         if (type == null) {
-			if (!pc.isAllowMissingRefTypes()) {
+			if (!pc.isAllowMissingRefTypes() && !allowMissingRefTypesOverride) {
 				type = definition.getTargetTypeName();
 				if (type == null) {
 					throw new SchemaException("Target type specified neither in reference nor in the schema");

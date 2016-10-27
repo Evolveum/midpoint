@@ -1115,7 +1115,7 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
 					// We will not apply the null definition here. The item has a dynamic definition that we don't
 					// want to destroy as it cannot be reconstructed later.
 				} else {
-					item.applyDefinition(itemDefinition);
+					item.applyDefinition(itemDefinition, force);
 				}
 			}
 		}
