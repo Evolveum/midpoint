@@ -251,7 +251,7 @@ public class SchemaTransformer {
 			AuthorizationDecisionType defaultReadDecision, AuthorizationDecisionType defaultAddDecision, AuthorizationDecisionType defaultModifyDecision, 
 			AuthorizationPhaseType phase) {
 		LOGGER.trace("applySecurityConstraints(items): items={}, phase={}, defaults R={}, A={}, M={}",
-				new Object[]{items, phase, defaultReadDecision, defaultAddDecision, defaultModifyDecision});
+				items, phase, defaultReadDecision, defaultAddDecision, defaultModifyDecision);
 		if (items == null) {
 			return;
 		}
@@ -263,7 +263,7 @@ public class SchemaTransformer {
 			AuthorizationDecisionType itemAddDecision = computeItemDecision(securityConstraints, itemPath, ModelAuthorizationAction.ADD.getUrl(), defaultReadDecision, phase);
 			AuthorizationDecisionType itemModifyDecision = computeItemDecision(securityConstraints, itemPath, ModelAuthorizationAction.MODIFY.getUrl(), defaultReadDecision, phase);
 			LOGGER.trace("applySecurityConstraints(item): {}: decisions R={}, A={}, M={}",
-					new Object[]{itemPath, itemReadDecision, itemAddDecision, itemModifyDecision});
+					itemPath, itemReadDecision, itemAddDecision, itemModifyDecision);
 			ItemDefinition<?> itemDef = item.getDefinition();
 			if (itemDef != null) {
 				if (itemReadDecision != AuthorizationDecisionType.ALLOW) {

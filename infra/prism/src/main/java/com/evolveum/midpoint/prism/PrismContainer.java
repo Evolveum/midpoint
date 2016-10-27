@@ -341,12 +341,20 @@ public class PrismContainer<C extends Containerable> extends Item<PrismContainer
      */
     public void setDefinition(PrismContainerDefinition<C> definition) {
 		checkMutability();
-		this.definition = definition;
 		if (definition != null) {
 			for (PrismContainerValue<C> value : getValues()) {
-				value.replaceComplexTypeDefinition(definition.getComplexTypeDefinition());
+				// TODO reconsider this - sometimes we want to change CTDs, sometimes not
+				boolean safeToOverwrite =
+						value.getComplexTypeDefinition() == null
+						|| this.definition == null								// TODO highly dangerous (the definition might be simply unknown)
+						|| this.definition.getComplexTypeDefinition() == null
+						|| this.definition.getComplexTypeDefinition().getTypeName().equals(value.getComplexTypeDefinition().getTypeName());
+				if (safeToOverwrite) {
+					value.replaceComplexTypeDefinition(definition.getComplexTypeDefinition());
+				}
 			}
 		}
+		this.definition = definition;
     }
     
     @Override
@@ -355,10 +363,7 @@ public class PrismContainer<C extends Containerable> extends Item<PrismContainer
     	if (definition == null) {
     		return;
     	}
-    	if (!(definition instanceof PrismContainerDefinition)) {
-    		throw new IllegalArgumentException("Cannot apply "+definition+" to container " + this);
-    	}
-    	this.compileTimeClass = ((PrismContainerDefinition<C>)definition).getCompileTimeClass();
+		this.compileTimeClass = definition.getCompileTimeClass();
     	super.applyDefinition(definition);
 	}
 

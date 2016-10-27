@@ -343,7 +343,7 @@ public abstract class ItemDefinitionImpl<I extends Item> extends DefinitionImpl 
 		if (ultraDeep) {
 			return deepClone(null);
 		} else {
-			return deepClone(new HashMap<QName,ComplexTypeDefinition>());
+			return deepClone(new HashMap<>());
 		}
 	}
 	

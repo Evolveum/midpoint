@@ -1097,15 +1097,15 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
 	public void applyDefinition(@NotNull PrismContainerDefinition<C> containerDef, boolean force) throws SchemaException {
 		checkMutability();
 		if (complexTypeDefinition != null && !force) {
-			return;				// there's a definition already
+			return;                // there's a definition already
 		}
-		complexTypeDefinition = containerDef.getComplexTypeDefinition();
+		replaceComplexTypeDefinition(containerDef.getComplexTypeDefinition());
 		if (complexTypeDefinition == null || complexTypeDefinition.isXsdAnyMarker()) {
 			// No point in applying this. Nothing will change and there may be phantom errors.
 			return;
 		}
 		if (items != null) {
-			for (Item item: items) {
+			for (Item item : items) {
 				if (item.getDefinition() != null && !force) {
 					// Item has a definition already, no need to apply it
 					continue;
@@ -1261,8 +1261,18 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
 		} else {
 			clonedItemDef = (ID) oldItemDef.deepClone(ultraDeep);
 		}
-		item.propagateDeepCloneDefinition(ultraDeep, clonedItemDef);
-		item.setDefinition(clonedItemDef);
+
+		// special treatment of CTD (we must not simply overwrite it with clonedPCD.CTD!)
+		PrismContainerable parent = getParent();
+		if (parent != null && complexTypeDefinition != null) {
+			if (complexTypeDefinition == parent.getComplexTypeDefinition()) {
+				replaceComplexTypeDefinition(clonedContainerDef.getComplexTypeDefinition());
+			} else {
+				replaceComplexTypeDefinition(complexTypeDefinition.deepClone(ultraDeep ? null : new HashMap<>() ));		// OK?
+			}
+		}
+		item.propagateDeepCloneDefinition(ultraDeep, clonedItemDef);		// propagate to items in values
+		item.setDefinition(clonedItemDef);									// sets CTD in values only if null!
 	}
 	
 	@Override
@@ -1435,6 +1445,9 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
 
 	// will correctly work only if argument is not null (otherwise the CTD will be determined on next call to getCTD)
 	void replaceComplexTypeDefinition(ComplexTypeDefinition complexTypeDefinition) {
+//		if (this.complexTypeDefinition != null && complexTypeDefinition != null && !this.complexTypeDefinition.getTypeName().equals(complexTypeDefinition.getTypeName())) {
+//			System.out.println("Dangerous!");
+//		}
 		this.complexTypeDefinition = complexTypeDefinition;
 	}
 
@@ -1455,8 +1468,8 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
 				return null;
 			}
 		}
-		complexTypeDefinition = prismContext.getSchemaRegistry().findComplexTypeDefinitionByCompileTimeClass(containerable.getClass());
-		return complexTypeDefinition;		// may be null at this place
+		ComplexTypeDefinition def = prismContext.getSchemaRegistry().findComplexTypeDefinitionByCompileTimeClass(containerable.getClass());
+		return def;		// may be null at this place
     }
 
 	public static <T extends Containerable> List<PrismContainerValue<T>> toPcvList(List<T> beans) {

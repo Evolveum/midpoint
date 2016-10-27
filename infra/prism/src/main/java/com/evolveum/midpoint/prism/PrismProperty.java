@@ -97,6 +97,7 @@ public class PrismProperty<T> extends Item<PrismPropertyValue<T>,PrismPropertyDe
     /**
      * Sets applicable property definition.
      *
+	 * TODO remove (method in Item is sufficient)
      * @param definition the definition to set
      */
     public void setDefinition(PrismPropertyDefinition<T> definition) {
@@ -110,7 +111,7 @@ public class PrismProperty<T> extends Item<PrismPropertyValue<T>,PrismPropertyDe
                     + " with multiple values");
     	}
         List<PrismPropertyValue<T>> values = getValues();
-        if (values == null || values.isEmpty()) {
+        if (values.isEmpty()) {
         	return null;
         }
         return values.get(0);
@@ -401,7 +402,7 @@ public class PrismProperty<T> extends Item<PrismPropertyValue<T>,PrismPropertyDe
 
 	@Override
 	protected void checkDefinition(PrismPropertyDefinition<T> def) {
-		if (!(def instanceof PrismPropertyDefinition)) {
+		if (def == null) {
 			throw new IllegalArgumentException("Definition "+def+" cannot be applied to property "+this);
 		}
 	}
