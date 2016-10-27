@@ -407,7 +407,7 @@ public class ModifyTest extends BaseSQLRepoTest {
         QName attrBazQName = new QName(MidPointConstants.NS_RI, "baz");
         PrismContainer<Containerable> attributesContainerBefore = shadowBefore.findContainer(ShadowType.F_ATTRIBUTES);
         PrismProperty<String> attrBazBefore = new PrismProperty<>(new QName(MidPointConstants.NS_RI, "baz"), prismContext);
-        PrismPropertyDefinition<String> attrBazDefBefore = new PrismPropertyDefinition<>(attrBazQName, DOMUtil.XSD_STRING, prismContext);
+        PrismPropertyDefinitionImpl<String> attrBazDefBefore = new PrismPropertyDefinitionImpl<>(attrBazQName, DOMUtil.XSD_STRING, prismContext);
         attrBazDefBefore.setMaxOccurs(-1);
         attrBazBefore.setDefinition(attrBazDefBefore);
         attrBazBefore.addRealValue("BaZ1");
