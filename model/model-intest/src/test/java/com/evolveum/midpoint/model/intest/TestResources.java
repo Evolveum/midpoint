@@ -31,6 +31,7 @@ import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -820,9 +821,9 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
         Task task = taskManager.createTaskInstance(TestResources.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         
-        ItemPath propPath = new ItemPath(ResourceType.F_CONNECTOR_CONFIGURATION, 
+        ItemPath propPath = new ItemPath(ResourceType.F_CONNECTOR_CONFIGURATION, SchemaConstants.ICF_CONFIGURATION_PROPERTIES,
         		IntegrationTestTools.RESOURCE_DUMMY_CONFIGURATION_USELESS_STRING_ELEMENT_NAME);
-		PrismPropertyDefinition<String> propDef = new PrismPropertyDefinitionImpl<String>(IntegrationTestTools.RESOURCE_DUMMY_CONFIGURATION_USELESS_STRING_ELEMENT_NAME,
+		PrismPropertyDefinition<String> propDef = new PrismPropertyDefinitionImpl<>(IntegrationTestTools.RESOURCE_DUMMY_CONFIGURATION_USELESS_STRING_ELEMENT_NAME,
 				DOMUtil.XSD_STRING, prismContext);
 		PropertyDelta<String> propDelta = PropertyDelta.createModificationReplaceProperty(propPath, propDef, "whatever wherever");
     	ObjectDelta<ResourceType> resourceDelta = ObjectDelta.createModifyDelta(RESOURCE_DUMMY_OID, propDelta, ResourceType.class, prismContext);
