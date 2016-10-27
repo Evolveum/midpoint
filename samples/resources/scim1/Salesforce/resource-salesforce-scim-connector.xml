@@ -293,13 +293,13 @@
                         </xsd:appinfo>
                      </xsd:annotation>
                   </xsd:element>
-                  <xsd:element name="urn|salesforce|schemas|extension|external|1.0.accountId"
+                  <xsd:element name="urn-salesforce-schemas-extension-external-1.0.accountId"
                                type="xsd:string">
                      <xsd:annotation>
                         <xsd:appinfo>
                            <a:displayOrder>150</a:displayOrder>
                            <a:access>read</a:access>
-                           <ra:frameworkAttributeName>urn|salesforce|schemas|extension|external|1.0.accountId</ra:frameworkAttributeName>
+                           <ra:frameworkAttributeName>urn-salesforce-schemas-extension-external-1.0.accountId</ra:frameworkAttributeName>
                         </xsd:appinfo>
                      </xsd:annotation>
                   </xsd:element>
@@ -328,12 +328,12 @@
                      </xsd:annotation>
                   </xsd:element>
                   <xsd:element minOccurs="0"
-                               name="urn|scim|schemas|extension|enterprise|1.0.division"
+                               name="urn-scim-schemas-extension-enterprise-1.0.division"
                                type="xsd:string">
                      <xsd:annotation>
                         <xsd:appinfo>
                            <a:displayOrder>190</a:displayOrder>
-                           <ra:frameworkAttributeName>urn|scim|schemas|extension|enterprise|1.0.division</ra:frameworkAttributeName>
+                           <ra:frameworkAttributeName>urn-scim-schemas-extension-enterprise-1.0.division</ra:frameworkAttributeName>
                         </xsd:appinfo>
                      </xsd:annotation>
                   </xsd:element>
@@ -362,12 +362,12 @@
                      </xsd:annotation>
                   </xsd:element>
                   <xsd:element minOccurs="0"
-                               name="urn|scim|schemas|extension|enterprise|1.0.department"
+                               name="urn-scim-schemas-extension-enterprise-1.0.department"
                                type="xsd:string">
                      <xsd:annotation>
                         <xsd:appinfo>
                            <a:displayOrder>230</a:displayOrder>
-                           <ra:frameworkAttributeName>urn|scim|schemas|extension|enterprise|1.0.department</ra:frameworkAttributeName>
+                           <ra:frameworkAttributeName>urn-scim-schemas-extension-enterprise-1.0.department</ra:frameworkAttributeName>
                         </xsd:appinfo>
                      </xsd:annotation>
                   </xsd:element>
@@ -445,12 +445,12 @@
                      </xsd:annotation>
                   </xsd:element>
                   <xsd:element minOccurs="0"
-                               name="urn|scim|schemas|extension|enterprise|1.0.manager"
+                               name="urn-scim-schemas-extension-enterprise-1.0.manager"
                                type="xsd:string">
                      <xsd:annotation>
                         <xsd:appinfo>
                            <a:displayOrder>330</a:displayOrder>
-                           <ra:frameworkAttributeName>urn|scim|schemas|extension|enterprise|1.0.manager</ra:frameworkAttributeName>
+                           <ra:frameworkAttributeName>urn-scim-schemas-extension-enterprise-1.0.manager</ra:frameworkAttributeName>
                         </xsd:appinfo>
                      </xsd:annotation>
                   </xsd:element>
@@ -463,12 +463,12 @@
                      </xsd:annotation>
                   </xsd:element>
                   <xsd:element minOccurs="0"
-                               name="urn|scim|schemas|extension|enterprise|1.0.employeeNumber"
+                               name="urn-scim-schemas-extension-enterprise-1.0.employeeNumber"
                                type="xsd:string">
                      <xsd:annotation>
                         <xsd:appinfo>
                            <a:displayOrder>350</a:displayOrder>
-                           <ra:frameworkAttributeName>urn|scim|schemas|extension|enterprise|1.0.employeeNumber</ra:frameworkAttributeName>
+                           <ra:frameworkAttributeName>urn-scim-schemas-extension-enterprise-1.0.employeeNumber</ra:frameworkAttributeName>
                         </xsd:appinfo>
                      </xsd:annotation>
                   </xsd:element>
@@ -565,12 +565,12 @@
                      </xsd:annotation>
                   </xsd:element>
                   <xsd:element minOccurs="0"
-                               name="urn|salesforce|schemas|extension|00D58000000YfgfEAC"
+                               name="urn-salesforce-schemas-extension-00D58000000YfgfEAC"
                                type="xsd:string">
                      <xsd:annotation>
                         <xsd:appinfo>
                            <a:displayOrder>470</a:displayOrder>
-                           <ra:frameworkAttributeName>urn|salesforce|schemas|extension|00D58000000YfgfEAC</ra:frameworkAttributeName>
+                           <ra:frameworkAttributeName>urn-salesforce-schemas-extension-00D58000000YfgfEAC</ra:frameworkAttributeName>
                         </xsd:appinfo>
                      </xsd:annotation>
                   </xsd:element>
@@ -755,13 +755,13 @@
                         </xsd:appinfo>
                      </xsd:annotation>
                   </xsd:element>
-                  <xsd:element name="urn|scim|schemas|extension|enterprise|1.0.organization"
+                  <xsd:element name="urn-scim-schemas-extension-enterprise-1.0.organization"
                                type="xsd:string">
                      <xsd:annotation>
                         <xsd:appinfo>
                            <a:displayOrder>690</a:displayOrder>
                            <a:access>read</a:access>
-                           <ra:frameworkAttributeName>urn|scim|schemas|extension|enterprise|1.0.organization</ra:frameworkAttributeName>
+                           <ra:frameworkAttributeName>urn-scim-schemas-extension-enterprise-1.0.organization</ra:frameworkAttributeName>
                         </xsd:appinfo>
                      </xsd:annotation>
                   </xsd:element>
@@ -798,12 +798,12 @@
                      </xsd:annotation>
                   </xsd:element>
                   <xsd:element minOccurs="0"
-                               name="urn|scim|schemas|extension|enterprise|1.0.delegatedApprover"
+                               name="urn-scim-schemas-extension-enterprise-1.0.delegatedApprover"
                                type="xsd:string">
                      <xsd:annotation>
                         <xsd:appinfo>
                            <a:displayOrder>740</a:displayOrder>
-                           <ra:frameworkAttributeName>urn|scim|schemas|extension|enterprise|1.0.delegatedApprover</ra:frameworkAttributeName>
+                           <ra:frameworkAttributeName>urn-scim-schemas-extension-enterprise-1.0.delegatedApprover</ra:frameworkAttributeName>
                         </xsd:appinfo>
                      </xsd:annotation>
                   </xsd:element>
@@ -824,12 +824,12 @@
                      </xsd:annotation>
                   </xsd:element>
                   <xsd:element minOccurs="0"
-                               name="urn|salesforce|schemas|extension|external|1.0.contactId"
+                               name="urn-salesforce-schemas-extension-external-1.0.contactId"
                                type="xsd:string">
                      <xsd:annotation>
                         <xsd:appinfo>
                            <a:displayOrder>770</a:displayOrder>
-                           <ra:frameworkAttributeName>urn|salesforce|schemas|extension|external|1.0.contactId</ra:frameworkAttributeName>
+                           <ra:frameworkAttributeName>urn-salesforce-schemas-extension-external-1.0.contactId</ra:frameworkAttributeName>
                         </xsd:appinfo>
                      </xsd:annotation>
                   </xsd:element>
