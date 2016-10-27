@@ -19,7 +19,6 @@ import java.util.List;
 
 import com.evolveum.midpoint.gui.api.ComponentConstants;
 import com.evolveum.midpoint.gui.api.util.FocusTabVisibleBehavior;
-import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 

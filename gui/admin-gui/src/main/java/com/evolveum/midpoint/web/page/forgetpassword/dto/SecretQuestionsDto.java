@@ -1,10 +1,7 @@
 package com.evolveum.midpoint.web.page.forgetpassword.dto;
 
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.List;
-
-import com.evolveum.midpoint.web.page.admin.home.dto.PasswordAccountDto;
 
 public class SecretQuestionsDto implements Serializable {
 	 

@@ -24,8 +24,6 @@ import static org.testng.AssertJUnit.assertEquals;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
 
 import javax.xml.namespace.QName;
 
@@ -35,8 +33,6 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
 
-import com.evolveum.midpoint.prism.foo.ObjectFactory;
-import com.evolveum.midpoint.prism.foo.UserType;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.util.DOMUtil;

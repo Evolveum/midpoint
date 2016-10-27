@@ -18,7 +18,6 @@ package com.evolveum.midpoint.util;
 
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Set;
 
 import javax.xml.namespace.QName;
 

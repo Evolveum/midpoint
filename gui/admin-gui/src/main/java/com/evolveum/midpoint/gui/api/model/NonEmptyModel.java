@@ -19,8 +19,6 @@ package com.evolveum.midpoint.gui.api.model;
 import org.apache.wicket.model.IModel;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.Serializable;
-
 /**
  * @author mederly
  */

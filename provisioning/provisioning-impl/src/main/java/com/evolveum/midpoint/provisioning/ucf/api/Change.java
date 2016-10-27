@@ -25,7 +25,6 @@ import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 import java.util.Collection;
-import java.util.Set;
 
 /**
  * @author Radovan Semancik

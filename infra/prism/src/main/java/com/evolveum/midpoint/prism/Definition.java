@@ -17,21 +17,15 @@
 package com.evolveum.midpoint.prism;
 
 import java.io.Serializable;
-import java.util.List;
-import java.util.Set;
 
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 
-import org.apache.commons.lang.StringUtils;
-import org.w3c.dom.Element;
-
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.util.DebugDumpable;
-import com.evolveum.midpoint.util.exception.SchemaException;
 
 /**
  * Abstract definition in the schema.

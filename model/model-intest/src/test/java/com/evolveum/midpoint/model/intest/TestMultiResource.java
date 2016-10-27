@@ -16,7 +16,6 @@
 package com.evolveum.midpoint.model.intest;
 
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
-import static org.testng.AssertJUnit.assertNotNull;
 
 import java.io.File;
 import java.util.ArrayList;

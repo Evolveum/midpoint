@@ -21,7 +21,6 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.Matchable;
 import com.evolveum.midpoint.prism.PrismConstants;
-import com.evolveum.midpoint.util.MiscUtil;
 
 /**
  * Default matching rule used as a fall-back if no explicit matching rule is specified.

@@ -30,7 +30,6 @@ import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.Persister;
 
 import javax.persistence.*;
-import javax.xml.datatype.XMLGregorianCalendar;
 
 import java.util.Collection;
 

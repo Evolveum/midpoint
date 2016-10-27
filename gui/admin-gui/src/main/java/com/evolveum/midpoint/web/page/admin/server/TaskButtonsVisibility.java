@@ -1,9 +1,6 @@
 package com.evolveum.midpoint.web.page.admin.server;
 
-import com.evolveum.midpoint.schema.statistics.StatisticsUtil;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationStatsType;
-import org.apache.wicket.model.IModel;
 
 import java.io.Serializable;
 

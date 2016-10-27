@@ -1,6 +1,5 @@
 package com.evolveum.midpoint.provisioning.ucf.impl;
 
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 

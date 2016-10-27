@@ -17,13 +17,8 @@ package com.evolveum.midpoint.prism.path;
 
 import javax.xml.namespace.QName;
 
-import org.apache.commons.lang.StringUtils;
-
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.QNameUtil;
-
-import java.io.Serializable;
 
 /**
  * @author semancik

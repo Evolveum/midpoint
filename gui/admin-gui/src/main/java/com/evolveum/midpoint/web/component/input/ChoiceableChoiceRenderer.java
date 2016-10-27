@@ -2,7 +2,6 @@ package com.evolveum.midpoint.web.component.input;
 
 import java.util.List;
 
-import com.ctc.wstx.util.StringUtil;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.markup.html.form.IChoiceRenderer;
 import org.apache.wicket.model.IModel;

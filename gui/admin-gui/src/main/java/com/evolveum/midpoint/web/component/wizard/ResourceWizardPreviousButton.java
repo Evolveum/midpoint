@@ -16,7 +16,6 @@
 
 package com.evolveum.midpoint.web.component.wizard;
 
-import org.apache.wicket.Component;
 import org.apache.wicket.extensions.wizard.IWizard;
 import org.apache.wicket.extensions.wizard.IWizardModel;
 import org.apache.wicket.extensions.wizard.IWizardStep;

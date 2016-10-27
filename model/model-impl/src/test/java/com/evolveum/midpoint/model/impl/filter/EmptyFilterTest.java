@@ -15,18 +15,14 @@
  */
 package com.evolveum.midpoint.model.impl.filter;
 
-import static org.testng.AssertJUnit.assertEquals;
-
 import com.evolveum.midpoint.model.impl.filter.EmptyFilter;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 
 import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 import org.testng.annotations.BeforeMethod;
-import org.w3c.dom.Node;
 
 import com.evolveum.midpoint.common.filter.Filter;
-import com.evolveum.midpoint.util.DOMUtil;
 
 /**
  * @author lazyman

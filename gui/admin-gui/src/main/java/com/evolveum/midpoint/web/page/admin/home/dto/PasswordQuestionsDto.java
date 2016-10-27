@@ -2,10 +2,8 @@ package com.evolveum.midpoint.web.page.admin.home.dto;
 
 import java.io.Serializable;
 import java.util.List;
-import java.util.ArrayList;
 
 import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityQuestionAnswerType;
 
 //import com.evolveum.midpoint.prism.PrismContainer;
 

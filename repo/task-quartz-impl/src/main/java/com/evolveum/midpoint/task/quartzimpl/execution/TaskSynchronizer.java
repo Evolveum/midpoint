@@ -44,7 +44,6 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
-import com.evolveum.prism.xml.ns._public.query_3.PagingType;
 
 /**
  * Synchronizes midPoint repository with Quartz job store.

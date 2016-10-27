@@ -20,10 +20,7 @@ import static org.quartz.CronScheduleBuilder.cronScheduleNonvalidatedExpression;
 import static org.quartz.SimpleScheduleBuilder.simpleSchedule;
 
 import java.text.ParseException;
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Date;
-import java.util.List;
 
 import com.evolveum.midpoint.task.quartzimpl.execution.JobExecutor;
 import com.evolveum.midpoint.util.exception.SystemException;

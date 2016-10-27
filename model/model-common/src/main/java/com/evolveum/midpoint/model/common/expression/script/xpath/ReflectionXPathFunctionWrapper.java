@@ -15,16 +15,12 @@
  */
 package com.evolveum.midpoint.model.common.expression.script.xpath;
 
-import java.lang.reflect.Array;
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.List;
 
 import javax.xml.xpath.XPathFunction;
 import javax.xml.xpath.XPathFunctionException;
 
-import com.evolveum.midpoint.model.common.expression.functions.BasicExpressionFunctions;
-import com.evolveum.midpoint.model.common.expression.functions.BasicExpressionFunctionsXPath;
 import com.evolveum.midpoint.model.common.expression.functions.LogExpressionFunctions;
 import com.evolveum.midpoint.util.ReflectionUtil;
 import com.evolveum.midpoint.util.logging.Trace;

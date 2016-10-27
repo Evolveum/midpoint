@@ -17,11 +17,9 @@
 package com.evolveum.midpoint.prism.query.builder;
 
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 import javax.xml.namespace.QName;
-import java.nio.file.attribute.AclEntry;
 
 /**
  * @author mederly

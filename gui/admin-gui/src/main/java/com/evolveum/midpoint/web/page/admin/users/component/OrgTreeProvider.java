@@ -18,10 +18,8 @@ package com.evolveum.midpoint.web.page.admin.users.component;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Set;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;

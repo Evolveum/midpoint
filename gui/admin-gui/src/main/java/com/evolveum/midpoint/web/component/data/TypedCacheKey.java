@@ -17,7 +17,6 @@
 package com.evolveum.midpoint.web.component.data;
 
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 
 import java.io.Serializable;
 
