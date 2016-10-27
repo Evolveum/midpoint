@@ -19,6 +19,7 @@ import com.evolveum.midpoint.gui.api.component.tabs.PanelTab;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
+import com.evolveum.midpoint.model.api.util.MergeDeltas;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -205,9 +206,9 @@ public class PageMergeObjects<F extends FocusType> extends PageAdminFocus {
 
     @Override
     public void saveOrPreviewPerformed(AjaxRequestTarget target, OperationResult result, boolean previewOnly) {
-        ObjectDelta<F> mergeDelta = mergeObjectsPanel.getMergeDelta();
+        MergeDeltas mergeDeltas = mergeObjectsPanel.getMergeDeltas();
 
-        ((ObjectWrapper)getObjectModel().getObject()).setOldDelta(mergeDelta);
+        ((ObjectWrapper)getObjectModel().getObject()).setOldDelta(mergeDeltas.getLeftObjectDelta());
         super.saveOrPreviewPerformed(target, result, previewOnly);
 
         deleteUser(mergeWithObject.getOid(), target);

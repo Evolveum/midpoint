@@ -17,6 +17,7 @@ package com.evolveum.midpoint.model.api;
 
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.model.api.context.ModelContext;
+import com.evolveum.midpoint.model.api.util.MergeDeltas;
 import com.evolveum.midpoint.model.api.visualizer.Scene;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
@@ -179,12 +180,12 @@ public interface ModelInteractionService {
 	ConnectorOperationalStatus getConnectorOperationalStatus(String resourceOid, OperationResult parentResult)
 			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException;
 	
-	<O extends ObjectType> ObjectDelta<O> mergeObjectsPreviewDelta(Class<O> type, 
+	<O extends ObjectType> MergeDeltas<O> mergeObjectsPreviewDeltas(Class<O> type, 
 			String leftOid, String rightOid, String mergeConfigurationName, Task task, OperationResult result) 
-					throws ObjectNotFoundException, SchemaException, ConfigurationException, ExpressionEvaluationException;
+					throws ObjectNotFoundException, SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException, SecurityViolationException ;
 	
 	<O extends ObjectType> PrismObject<O> mergeObjectsPreviewObject(Class<O> type, 
 			String leftOid, String rightOid, String mergeConfigurationName, Task task, OperationResult result)
-					throws ObjectNotFoundException, SchemaException, ConfigurationException, ExpressionEvaluationException;
+					throws ObjectNotFoundException, SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException, SecurityViolationException ;
 
 }

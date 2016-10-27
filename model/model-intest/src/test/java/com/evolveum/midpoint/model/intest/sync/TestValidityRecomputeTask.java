@@ -82,10 +82,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
 
 	protected static final File ROLE_RED_JUDGE_FILE = new File(TEST_DIR, "role-red-judge.xml");
 	protected static final String ROLE_RED_JUDGE_OID = "12345111-1111-2222-1111-121212111222";
-	
-	protected static final File ROLE_RED_SAILOR_FILE = new File(TEST_DIR, "role-red-sailor.xml");
-	protected static final String ROLE_RED_SAILOR_OID = "12345111-1111-2222-1111-121212111223";
-	
+		
 	protected static final File ROLE_BIG_JUDGE_FILE = new File(TEST_DIR, "role-big-judge.xml");
 	protected static final String ROLE_BIG_JUDGE_OID = "12345111-1111-2222-1111-121212111224";
 	
@@ -99,7 +96,6 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
 		super.initSystem(initTask, initResult);
 
 		repoAddObjectFromFile(ROLE_RED_JUDGE_FILE, RoleType.class, initResult);
-		repoAddObjectFromFile(ROLE_RED_SAILOR_FILE, RoleType.class, initResult);
 		repoAddObjectFromFile(ROLE_BIG_JUDGE_FILE, RoleType.class, initResult);
 
 		DebugUtil.setDetailedDebugDump(true);
