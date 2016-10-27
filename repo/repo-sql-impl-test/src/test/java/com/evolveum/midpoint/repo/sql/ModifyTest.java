@@ -54,6 +54,7 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 import org.xml.sax.SAXException;
@@ -85,8 +86,12 @@ public class ModifyTest extends BaseSQLRepoTest {
     public void setup() throws SchemaException, SAXException, IOException {
         PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
         PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
-        InternalsConfig.encryptionChecks = false;
     }
+	
+	@BeforeClass
+	public void setupClass() {
+		InternalsConfig.encryptionChecks = false;
+	}
 
 	protected RepoModifyOptions getModifyOptions() {
 		return null;
