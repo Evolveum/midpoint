@@ -1,8 +1,10 @@
 package com.evolveum.midpoint.web.page.login;
 
 import org.apache.wicket.RestartResponseException;
+import org.apache.wicket.spring.injection.annot.SpringBean;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.model.api.AuthenticationEvaluator;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -21,6 +23,9 @@ public class PageRegistrationBase extends PageBase {
 
 	private static final Trace LOGGER = TraceManager.getTrace(PageSelfRegistration.class);
 
+	@SpringBean(name = "authenticationEvaluator")
+	private AuthenticationEvaluator authenticationEvaluator;
+	
 	private SelfRegistrationDto selfRegistrationDto;
 
 	public PageRegistrationBase() {
@@ -76,6 +81,10 @@ public class PageRegistrationBase extends PageBase {
 
 		return selfRegistrationDto;
 
+	}
+	
+	public AuthenticationEvaluator getAuthenticationEvaluator() {
+		return authenticationEvaluator;
 	}
 
 }

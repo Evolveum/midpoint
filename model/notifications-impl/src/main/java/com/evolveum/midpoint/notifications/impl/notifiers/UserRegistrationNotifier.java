@@ -151,7 +151,7 @@ public class UserRegistrationNotifier extends GeneralNotifier {
 		if (confirmationMethod == null) {
 			return null;
 		}
-		
+	
 		switch (confirmationMethod) {
 			case LINK:
 				StringBuilder confirmLinkBuilder = new StringBuilder(CONFIRMATION_LINK);

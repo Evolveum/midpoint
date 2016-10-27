@@ -91,6 +91,12 @@ public class AuthenticationEvaluatorImpl implements AuthenticationEvaluator {
 				passwordCredentialsPolicy = credentialsPolicyType.getPassword();
 			}
 		}
+		
+		// Activated - e.g. registration was finished
+		if (!isActivated(credentials, passwordCredentialsPolicy)) {
+			recordAuthenticationFailure(principal, connEnv, "no authorizations");
+			throw new DisabledException("web.security.provider.access.denied");
+		}
 
 		// Lockout
 		if (isLockedOut(passwordType, passwordCredentialsPolicy)) {
@@ -140,13 +146,6 @@ public class AuthenticationEvaluatorImpl implements AuthenticationEvaluator {
 		}
 		NonceType nonceType = credentials.getNonce();
 		
-//		
-//		// Authorizations
-//		if (!hasAnyAuthorization(principal)) {
-//			recordAuthenticationFailure(principal, connEnv, "no authorizations");
-//			throw new DisabledException("web.security.provider.access.denied");
-//		}
-//		
 		// Password age
 		checkPasswordValidityAndAge(connEnv, principal, nonceType.getValue(), nonceType.getMetadata(), noncePolicy);
 		
@@ -321,6 +320,10 @@ public class AuthenticationEvaluatorImpl implements AuthenticationEvaluator {
 		return decryptedPassword;
 	}
 
+	private boolean isActivated(CredentialsType credentialsType, AbstractCredentialPolicyType credentialsPolicy) {
+		return !isOverFailedLockoutAttempts(credentialsType.getPassword(), credentialsPolicy) && isActivated(credentialsType.getNonce());
+	}
+	
 	private boolean isLockedOut(AbstractCredentialType credentialsType, AbstractCredentialPolicyType credentialsPolicy) {
 		return isOverFailedLockoutAttempts(credentialsType, credentialsPolicy) && !isLockoutExpired(credentialsType, credentialsPolicy);
 	}
@@ -334,6 +337,11 @@ public class AuthenticationEvaluatorImpl implements AuthenticationEvaluator {
 		return credentialsPolicy != null && credentialsPolicy.getLockoutMaxFailedAttempts() != null &&
 				credentialsPolicy.getLockoutMaxFailedAttempts() > 0 && failedLogins >= credentialsPolicy.getLockoutMaxFailedAttempts();
 	}
+	
+	private boolean isActivated(NonceType nonce) {
+		return nonce == null;
+	}
+	
 	
 	private boolean isLockoutExpired(AbstractCredentialType credentialsType, AbstractCredentialPolicyType credentialsPolicy) {
 		Duration lockoutDuration = credentialsPolicy.getLockoutDuration();
