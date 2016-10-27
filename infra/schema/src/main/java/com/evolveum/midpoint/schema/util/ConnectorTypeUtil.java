@@ -17,7 +17,6 @@ package com.evolveum.midpoint.schema.util;
 
 import javax.xml.namespace.QName;
 
-import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.prism.PrismContainer;

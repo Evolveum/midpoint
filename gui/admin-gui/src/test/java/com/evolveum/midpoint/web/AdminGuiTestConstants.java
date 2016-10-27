@@ -20,7 +20,6 @@ import java.io.File;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 
 /**

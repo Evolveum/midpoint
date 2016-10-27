@@ -1,7 +1,5 @@
 package com.evolveum.midpoint.schema;
 
-import java.io.File;
-
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.prism.PrismContext;

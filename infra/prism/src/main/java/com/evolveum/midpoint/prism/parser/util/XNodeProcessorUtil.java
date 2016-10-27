@@ -1,17 +1,11 @@
 package com.evolveum.midpoint.prism.parser.util;
 
-import java.lang.reflect.Field;
-import java.security.CryptoPrimitive;
-
-import javax.xml.bind.annotation.XmlEnumValue;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.ParsingContext;
 import org.apache.commons.lang.StringUtils;
 
-import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.crypto.AESProtector;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.xnode.MapXNode;

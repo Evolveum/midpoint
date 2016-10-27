@@ -16,8 +16,6 @@
 
 package com.evolveum.midpoint.provisioning.ucf.api;
 
-import java.util.Collection;
-
 public class ExecuteScriptArgument {
 
 	

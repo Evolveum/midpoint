@@ -17,14 +17,11 @@
 package com.evolveum.midpoint.wf.impl.general;
 
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.impl.processors.general.scenarios.BaseGcpScenarioBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import javax.xml.namespace.QName;
 
 /**
  * This scenario bean simply puts "dummyResourceDelta" process variable into externalized state.

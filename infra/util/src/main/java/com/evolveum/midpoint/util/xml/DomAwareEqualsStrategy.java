@@ -21,7 +21,6 @@ import org.jvnet.jaxb2_commons.locator.ObjectLocator;
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.PrettyPrinter;
 
 /**
  * Strategy for equals() methods used in JAXB generated code. The strategy is using our DOMUtil to

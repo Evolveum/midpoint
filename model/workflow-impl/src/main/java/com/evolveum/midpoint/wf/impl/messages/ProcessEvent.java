@@ -16,7 +16,6 @@
 
 package com.evolveum.midpoint.wf.impl.messages;
 
-import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.wf.impl.processes.ProcessInterfaceFinder;
 import com.evolveum.midpoint.wf.impl.processes.ProcessMidPointInterface;
 import com.evolveum.midpoint.wf.impl.processes.common.CommonProcessVariableNames;

@@ -63,10 +63,10 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
-				<version>2.3.2</version>
+				<version>3.5.1</version>
 				<configuration>
-					<source>1.7</source>
-					<target>1.7</target>
+					<source>${project.source.version}</source>
+					<target>${project.source.version}</target>
 				</configuration>
 			</plugin>
             <plugin>
@@ -145,7 +145,7 @@
 	</repositories>
 	<properties>
 		<!-- Build system options - more options in build-system/pom.xml -->
-		<project.source.version>1.7</project.source.version>
+		<project.source.version>1.8</project.source.version>
 		<clover.version>3.1.11</clover.version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>

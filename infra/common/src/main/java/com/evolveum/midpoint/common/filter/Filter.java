@@ -19,8 +19,6 @@ import java.util.List;
 
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 
-import org.w3c.dom.Node;
-
 /**
  * 
  * @author Igor Farinic

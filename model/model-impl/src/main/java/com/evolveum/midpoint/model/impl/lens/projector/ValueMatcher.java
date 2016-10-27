@@ -15,13 +15,7 @@
  */
 package com.evolveum.midpoint.model.impl.lens.projector;
 
-import java.util.Collection;
-import java.util.regex.Pattern;
-
 import javax.xml.namespace.QName;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;

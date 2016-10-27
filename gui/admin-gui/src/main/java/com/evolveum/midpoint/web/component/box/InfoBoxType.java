@@ -16,7 +16,6 @@
 package com.evolveum.midpoint.web.component.box;
 
 import java.io.Serializable;
-import java.util.List;
 
 /**
  * @author katkav

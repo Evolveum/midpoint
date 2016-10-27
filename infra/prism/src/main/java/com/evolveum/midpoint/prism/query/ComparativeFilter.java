@@ -18,21 +18,10 @@ package com.evolveum.midpoint.prism.query;
 
 import java.util.List;
 
-import javax.xml.namespace.QName;
-
-import org.w3c.dom.Element;
-
-import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.Objectable;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.util.exception.SchemaException;
 
 public abstract class ComparativeFilter<T extends Object> extends PropertyValueFilter<PrismPropertyValue<T>> {
 

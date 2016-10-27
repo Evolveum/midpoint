@@ -16,7 +16,6 @@
 package com.evolveum.midpoint.web;
 
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
-import static org.testng.AssertJUnit.assertEquals;
 
 import java.util.Collection;
 

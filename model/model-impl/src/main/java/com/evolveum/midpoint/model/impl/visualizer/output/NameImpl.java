@@ -17,9 +17,6 @@
 package com.evolveum.midpoint.model.impl.visualizer.output;
 
 import com.evolveum.midpoint.model.api.visualizer.Name;
-import org.apache.commons.lang.Validate;
-
-import java.io.Serializable;
 
 /**
  * @author mederly

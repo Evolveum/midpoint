@@ -29,8 +29,6 @@ import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlType;
 
-import com.evolveum.midpoint.prism.PrismObject;
-
 
 /**
  * <p>Java class for AccountType complex type.

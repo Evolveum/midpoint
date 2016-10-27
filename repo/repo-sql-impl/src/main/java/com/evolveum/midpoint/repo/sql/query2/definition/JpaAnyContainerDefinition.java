@@ -25,8 +25,6 @@ import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.query2.resolution.DataSearchResult;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
-import javax.xml.namespace.QName;
-
 /**
  * @author lazyman
  */

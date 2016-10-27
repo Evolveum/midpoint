@@ -18,7 +18,6 @@ package com.evolveum.midpoint.util.caching;
 
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 
 /**
  * @author mederly

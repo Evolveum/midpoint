@@ -1,9 +1,5 @@
 package com.evolveum.midpoint.prism;
 
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-
-import java.util.Collection;
-
 /**
  * Determines the scope of consistency checks.
  *

@@ -22,7 +22,6 @@ import static org.testng.AssertJUnit.assertNull;
 import java.io.FileNotFoundException;
 import java.util.Date;
 
-import com.evolveum.midpoint.prism.delta.ChangeType;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -36,7 +35,6 @@ import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-import org.testng.annotations.Test;
 
 /**
  * @author semancik

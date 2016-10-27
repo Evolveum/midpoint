@@ -16,8 +16,6 @@
 
 package com.evolveum.midpoint.repo.sql;
 
-import org.hibernate.exception.ConstraintViolationException;
-
 /**
  * @author mederly
  */

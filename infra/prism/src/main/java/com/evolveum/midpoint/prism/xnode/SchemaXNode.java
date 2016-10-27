@@ -15,7 +15,6 @@
  */
 package com.evolveum.midpoint.prism.xnode;
 
-import com.evolveum.midpoint.util.xml.DomAwareEqualsStrategy;
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.prism.Visitor;

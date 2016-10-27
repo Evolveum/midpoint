@@ -16,7 +16,6 @@
 package com.evolveum.midpoint.model.common.expression.evaluator;
 
 import java.util.Collection;
-import java.util.List;
 
 import javax.xml.namespace.QName;
 

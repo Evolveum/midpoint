@@ -18,11 +18,7 @@ package com.evolveum.midpoint.web.component;
 
 import org.apache.wicket.extensions.yui.calendar.DateTimeField;
 import org.apache.wicket.model.IModel;
-import org.joda.time.DateTimeFieldType;
-import org.joda.time.DateTimeZone;
-import org.joda.time.MutableDateTime;
 
-import java.util.Calendar;
 import java.util.Date;
 
 /**
