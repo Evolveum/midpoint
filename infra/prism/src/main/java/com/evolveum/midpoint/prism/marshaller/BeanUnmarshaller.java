@@ -187,9 +187,10 @@ public class BeanUnmarshaller {
 	private <T> T unmarshalFromMap(@NotNull MapXNode xmap, @NotNull Class<T> beanClass, @NotNull ParsingContext pc) throws SchemaException {
 
 		if (Containerable.class.isAssignableFrom(beanClass)) {
-			// This could have come from inside
-			PrismValue value = prismContext.parserFor(xmap.toRootXNode()).type(beanClass).parseItemValue();
-			return (T) value.getRealValue();
+			// This could have come from inside; note we MUST NOT parse this as PrismValue, because for objects we would lose oid/version
+			@SuppressWarnings("unchecked")
+			T value = (T) prismContext.parserFor(xmap.toRootXNode()).type(beanClass).parseRealValue();
+			return value;
 			//throw new IllegalArgumentException("Couldn't process Containerable: " + beanClass + " from " + xmap.debugDump());
 		} else if (SearchFilterType.class.isAssignableFrom(beanClass)) {
 			T bean = (T) unmarshalSearchFilterType(xmap, (Class<? extends SearchFilterType>) beanClass, pc);

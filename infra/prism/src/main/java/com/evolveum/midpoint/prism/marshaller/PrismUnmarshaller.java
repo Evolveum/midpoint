@@ -57,6 +57,8 @@ public class PrismUnmarshaller {
      *  Please note: methods in this section should NOT be called from inside of parsing process!
      *  It is to avoid repeatedly calling ItemInfo.determine, if at all possible.
      *  (An exception is only if we know we have the definition ... TODO ...)
+     *
+     *  TODO migrate to parseItem eventually (now we treat objects in parseItemInternal!)
      */
     @SuppressWarnings("unchecked")
     <O extends Objectable> PrismObject<O> parseObject(@NotNull RootXNode root, ItemDefinition<?> itemDefinition, QName itemName,
@@ -73,8 +75,10 @@ public class PrismUnmarshaller {
         return (PrismObject<O>) (Item) parseItemInternal(child, itemInfo.getItemName(), itemInfo.getItemDefinition(), pc);
     }
 
+    // TODO migrate to parseItem eventually
     @SuppressWarnings("unchecked")
-    <O extends Objectable> PrismObject<O> parseObject(MapXNode map, PrismObjectDefinition<O> objectDefinition, ParsingContext pc) throws SchemaException {
+    private <O extends Objectable> PrismObject<O> parseObject(MapXNode map, PrismObjectDefinition<O> objectDefinition,
+            ParsingContext pc) throws SchemaException {
         ItemInfo itemInfo = ItemInfo.determine(objectDefinition,
                 null, null, ARTIFICIAL_OBJECT_NAME,
                 map.getTypeQName(), null,
@@ -95,7 +99,7 @@ public class PrismUnmarshaller {
         if (itemInfo.getItemDefinition() == null && itemInfo.getComplexTypeDefinition() != null) {
             // let's create container definition dynamically
             QName actualTypeName = itemInfo.getComplexTypeDefinition().getTypeName();
-            if (getSchemaRegistry().isContainer(actualTypeName)) {
+            if (getSchemaRegistry().isContainer(actualTypeName)) {      // TODO what about objects?
                 PrismContainerDefinitionImpl def = new PrismContainerDefinitionImpl(itemInfo.getItemName(),
                         itemInfo.getComplexTypeDefinition(), prismContext);
                 def.setDynamic(true);
@@ -171,19 +175,30 @@ public class PrismUnmarshaller {
             @NotNull PrismContainerDefinition<C> containerDef, @NotNull ParsingContext pc) throws SchemaException {
         PrismContainer<C> container = containerDef.instantiate(itemName);
         if (node instanceof ListXNode) {
-            for (XNode subNode : (ListXNode) node) {
-                container.add(parseContainerValue(subNode, containerDef, pc));
+            ListXNode list = (ListXNode) node;
+            if (containerDef instanceof PrismObject && list.size() > 1) {
+                pc.warnOrThrow(LOGGER, "Multiple values for a PrismObject: " + node.debugDump());
+                parseContainerValueToContainer(container, list.get(0), pc);
+            } else {
+                for (XNode subNode : list) {
+                    parseContainerValueToContainer(container, subNode, pc);
+                }
             }
         } else {
-            container.add(parseContainerValue(node, containerDef, pc));
-            if (node instanceof MapXNode && container instanceof PrismObject) {
-                MapXNode map = (MapXNode) node;
-                PrismObject object = (PrismObject) container;
-                object.setOid(getOid(map));
-                object.setVersion(getVersion(map));
-            }
+            parseContainerValueToContainer(container, node, pc);
         }
         return container;
+    }
+
+    private <C extends Containerable> void parseContainerValueToContainer(PrismContainer<C> container, XNode node,
+            @NotNull ParsingContext pc) throws SchemaException {
+        container.add(parseContainerValue(node, container.getDefinition(), pc));
+        if (node instanceof MapXNode && container instanceof PrismObject) {
+            MapXNode map = (MapXNode) node;
+            PrismObject object = (PrismObject) container;
+            object.setOid(getOid(map));
+            object.setVersion(getVersion(map));
+        }
     }
 
     private String getOid(MapXNode xmap) throws SchemaException {

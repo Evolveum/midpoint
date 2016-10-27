@@ -85,7 +85,6 @@ public class BeanMarshaller {
 		if (marshaller != null) {
 			return marshaller.marshal(bean, ctx);
 		} else if (bean instanceof Containerable) {
-			// we shouldn't get here but ...
 			return prismContext.xnodeSerializer().serializeRealValue(bean, new QName("dummy")).getSubnode();
 		} else if (bean instanceof Enum) {
 			return marshalEnum((Enum) bean, ctx);
