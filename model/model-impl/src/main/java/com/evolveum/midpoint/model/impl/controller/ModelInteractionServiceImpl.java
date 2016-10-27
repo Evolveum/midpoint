@@ -40,6 +40,9 @@ import com.evolveum.midpoint.model.impl.ModelObjectResolver;
 import com.evolveum.midpoint.model.impl.lens.ContextFactory;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.projector.Projector;
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
@@ -74,6 +77,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -591,37 +595,75 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 		}
 		return null;
 	}
+	
+	@Override
+	public AuthenticationsPolicyType getAuthenticationPolicy(PrismObject<UserType> user, Task task,
+			OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
+		// TODO: check for user membership in an organization (later versions)
+		
+				OperationResult result = parentResult.createMinorSubresult(GET_AUTHENTICATIONS_POLICY);
+					return resolvePolicyTypeFromSecurityPolicy(AuthenticationsPolicyType.class, SecurityPolicyType.F_AUTHENTICATION, user, task, result);
+				
+	}
+	
+	@Override
+	public RegistrationsPolicyType getRegistrationPolicy(PrismObject<UserType> user, Task task,
+			OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
+		// TODO: check for user membership in an organization (later versions)
+		
+					OperationResult result = parentResult.createMinorSubresult(GET_REGISTRATIONS_POLICY);
+					return resolvePolicyTypeFromSecurityPolicy(RegistrationsPolicyType.class, SecurityPolicyType.F_REGISTRATION, user, task, result);
+	}
 
 	@Override
 	public CredentialsPolicyType getCredentialsPolicy(PrismObject<UserType> user, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
 		// TODO: check for user membership in an organization (later versions)
 		
-		OperationResult result = parentResult.createMinorSubresult(GET_CREDENTIALS_POLICY);
+			OperationResult result = parentResult.createMinorSubresult(GET_CREDENTIALS_POLICY);
+			return resolvePolicyTypeFromSecurityPolicy(CredentialsPolicyType.class, SecurityPolicyType.F_CREDENTIALS, user, task, result);
+		
+
+	}
+	
+	private <C extends Containerable> C  resolvePolicyTypeFromSecurityPolicy(Class<C> type, QName path, PrismObject<UserType> user, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
+		
+		SecurityPolicyType securityPolicyType = getSecurityPolicy(user, task, parentResult);
+		if (securityPolicyType == null) {
+			return null;
+		}
+		PrismContainer<C> container = securityPolicyType.asPrismObject().findContainer(path);
+		PrismContainerValue<C> containerValue = container.getValue();
+		parentResult.recordSuccess();
+		return containerValue.asContainerable();
+		 
+		
+	}
+
+	@Override
+	public SecurityPolicyType getSecurityPolicy(PrismObject<UserType> user, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
+		OperationResult result = parentResult.createMinorSubresult(GET_SECURITY_POLICY);
 		try {
-			PrismObject<SystemConfigurationType> systemConfiguration = systemObjectCache.getSystemConfiguration(result);
-			if (systemConfiguration == null) {
-				result.recordNotApplicableIfUnknown();
-				return null;
-			}
-			ObjectReferenceType secPolicyRef = systemConfiguration.asObjectable().getGlobalSecurityPolicyRef();
-			if (secPolicyRef == null) {
-				result.recordNotApplicableIfUnknown();
-				return null;			
-			}
-			SecurityPolicyType securityPolicyType;
-			securityPolicyType = objectResolver.resolve(secPolicyRef, SecurityPolicyType.class, null, "security policy referred from system configuration", task, result);
-			if (securityPolicyType == null) {
-				result.recordNotApplicableIfUnknown();
-				return null;			
-			}
-			CredentialsPolicyType credentialsPolicyType = securityPolicyType.getCredentials();
-			result.recordSuccess();
-			return credentialsPolicyType;
-		} catch (ObjectNotFoundException | SchemaException e) {
+		PrismObject<SystemConfigurationType> systemConfiguration = systemObjectCache.getSystemConfiguration(result);
+		if (systemConfiguration == null) {
+			result.recordNotApplicableIfUnknown();
+			return null;
+		}
+		ObjectReferenceType secPolicyRef = systemConfiguration.asObjectable().getGlobalSecurityPolicyRef();
+		if (secPolicyRef == null) {
+			result.recordNotApplicableIfUnknown();
+			return null;			
+		}
+		 
+		 SecurityPolicyType securityPolicyType = objectResolver.resolve(secPolicyRef, SecurityPolicyType.class, null, "security policy referred from system configuration", task, result);
+		if (securityPolicyType == null) {
+			result.recordNotApplicableIfUnknown();
+			return null;			
+		}
+		return securityPolicyType;
+		}catch (ObjectNotFoundException | SchemaException e) {
 			result.recordFatalError(e);
 			throw e;
 		}
-
 	}
 
 	@Override

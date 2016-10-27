@@ -10,15 +10,14 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.extensions.markup.html.captcha.CaptchaImageResource;
 import org.apache.wicket.markup.ComponentTag;
-import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.basic.MultiLineLabel;
 import org.apache.wicket.markup.html.form.RequiredTextField;
 import org.apache.wicket.markup.html.image.Image;
+import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 
-import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.common.policy.StringPolicyUtils;
 import com.evolveum.midpoint.common.policy.ValuePolicyGenerator;
 import com.evolveum.midpoint.gui.api.component.autocomplete.AutoCompleteTextPanel;
@@ -30,6 +29,7 @@ import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
@@ -43,18 +43,25 @@ import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
+import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.input.TextPanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractAuthenticationPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LimitationsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MailAuthenticationPolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.NonceCredentialsPolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.NonceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityPolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SmsAuthenticationPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.StringPolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ValuePolicyType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
@@ -63,7 +70,9 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 //"http://localhost:8080/midpoint/confirm/registrationid=" + newUser.getOid()
 //+ "/token=" + userType.getCostCenter() + "/roleId=00000000-0000-0000-0000-000000000008";
 @PageDescriptor(url = "/registration")
-public class PageSelfRegistration extends PageBase {
+public class PageSelfRegistration extends PageRegistrationBase {
+
+	private static final Trace LOGGER = TraceManager.getTrace(PageSelfRegistration.class);
 
 	private static final String DOT_CLASS = PageSelfRegistration.class.getName() + ".";
 
@@ -89,23 +98,22 @@ public class PageSelfRegistration extends PageBase {
 	private boolean submited = false;
 	String randomString = null;
 	String captchaString = null;
-
+	
 	public PageSelfRegistration() {
+		super();
 
-		final UserType user = createUser();
-
-		userModel = new LoadableModel<UserType>(true) {
+			userModel = new LoadableModel<UserType>(true) {
 			private static final long serialVersionUID = 1L;
 
 			@Override
 			protected UserType load() {
-				return user;
+				return createUser();
 			}
 		};
-
+		
 		initLayout();
 	}
-
+	
 	private UserType createUser() {
 		PrismObjectDefinition<UserType> userDef = getPrismContext().getSchemaRegistry()
 				.findObjectDefinitionByCompileTimeClass(UserType.class);
@@ -142,6 +150,8 @@ public class PageSelfRegistration extends PageBase {
 		TextPanel<String> firstName = new TextPanel<>(ID_FIRST_NAME,
 				new PropertyModel<String>(userModel, UserType.F_GIVEN_NAME.getLocalPart() + ".orig") {
 
+			private static final long serialVersionUID = 1L;
+
 					@Override
 					public void setObject(String object) {
 						userModel.getObject().setGivenName(new PolyStringType(object));
@@ -153,6 +163,7 @@ public class PageSelfRegistration extends PageBase {
 		TextPanel<String> lastName = new TextPanel<>(ID_LAST_NAME,
 				new PropertyModel<String>(userModel, UserType.F_FAMILY_NAME.getLocalPart() + ".orig") {
 
+			private static final long serialVersionUID = 1L;
 					@Override
 					public void setObject(String object) {
 						userModel.getObject().setFamilyName(new PolyStringType(object));
@@ -177,8 +188,6 @@ public class PageSelfRegistration extends PageBase {
 			}
 
 		};
-		// organization.getBaseFormComponent().add(new
-		// EmptyOnBlurAjaxFormUpdatingBehaviour());
 		mainForm.add(organization);
 
 		PasswordPanel password = new PasswordPanel(ID_PASSWORD,
@@ -189,19 +198,18 @@ public class PageSelfRegistration extends PageBase {
 		password.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
 		mainForm.add(password);
 
-		final CaptchaImageResource captcha = new CaptchaImageResource();
-		OperationResult result = new OperationResult("generateRandomString");
-		
-		StringPolicyType sp = StringPolicyUtils.normalize(new StringPolicyType());
-		LimitationsType limits = new LimitationsType();
-		limits.setMinLength(8);
-		limits.setMaxLength(12);
-		limits.setMinUniqueChars(6);
-		sp.setLimitations(limits);
-		
-		randomString = ValuePolicyGenerator.generate(sp, 8, result);
-		captcha.getChallengeIdModel().setObject(randomString);
+		final CaptchaImageResource captcha = new CaptchaImageResource(new AbstractReadOnlyModel<String>() {
 
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public String getObject() {
+					randomString = generateCaptcha();
+				return randomString;
+			}
+		});
+
+	
 		final Image captchaImage = new Image(ID_IMAGE, captcha);
 		captchaImage.setOutputMarkupId(true);
 		mainForm.add(captchaImage);
@@ -216,7 +224,8 @@ public class PageSelfRegistration extends PageBase {
 		};
 		mainForm.add(changeCaptchaLink);
 
-		RequiredTextField<String> userText = new RequiredTextField<String>(ID_USER_TEXT, new PropertyModel<String>(PageSelfRegistration.this, "captchaString"), String.class) {
+		RequiredTextField<String> userText = new RequiredTextField<String>(ID_USER_TEXT,
+				new PropertyModel<String>(PageSelfRegistration.this, "captchaString"), String.class) {
 
 			private static final long serialVersionUID = 1L;
 
@@ -225,19 +234,19 @@ public class PageSelfRegistration extends PageBase {
 				super.onComponentTag(tag);
 				tag.put("value", "");
 			}
-			
+
 		};
-//		userText.add(new EmptyOnBlurAjaxFormUpdatingBehaviour(){
-//			
-//			@Override
-//			protected void onUpdate(AjaxRequestTarget target) {
-//				PageSelfRegistration.this.captchaString = (String) getDefaultModelObject();
-//			}
-//		});
+		// userText.add(new EmptyOnBlurAjaxFormUpdatingBehaviour(){
+		//
+		// @Override
+		// protected void onUpdate(AjaxRequestTarget target) {
+		// PageSelfRegistration.this.captchaString = (String)
+		// getDefaultModelObject();
+		// }
+		// });
 		userText.setOutputMarkupId(true);
-		
+
 		mainForm.add(userText);
-		
 
 		AjaxSubmitButton register = new AjaxSubmitButton(ID_SUBMIT_REGISTRATION) {
 
@@ -245,20 +254,9 @@ public class PageSelfRegistration extends PageBase {
 
 			protected void onSubmit(AjaxRequestTarget target,
 					org.apache.wicket.markup.html.form.Form<?> form) {
-				
-				 if (randomString == null || captchaString == null || !randomString.equals(captchaString))
-	                {
-	                    getSession().error(createStringResource("PageSelfRegistration.captcha.validation.failed").getString());
-	                    new RestartResponseException(PageSelfRegistration.class);
-	                }
-	                else
-	                {
-	                	saveUser(target);
-	                }
-				 captcha.invalidate();
-				 target.add(getFeedbackPanel());
-				 target.add(PageSelfRegistration.this);
-				
+
+				submitRegistration(target, captcha);
+
 			}
 
 		};
@@ -285,6 +283,71 @@ public class PageSelfRegistration extends PageBase {
 		});
 
 	}
+	
+	
+
+	private void submitRegistration(AjaxRequestTarget target, CaptchaImageResource captcha) {
+
+		
+		OperationResult result = runPrivileged(new Producer<OperationResult>() {
+
+			@Override
+			public OperationResult run() {
+
+				Task task = createAnonymousTask(OPERATION_SAVE_USER);
+				task.setChannel(SchemaConstants.CHANNEL_GUI_SELF_REGISTRATION_URI);
+				OperationResult result = new OperationResult(OPERATION_SAVE_USER);
+				saveUser(task, result);
+				result.computeStatus();
+				return result;
+			}
+
+			
+		});
+		
+		if (result.getStatus() == OperationResultStatus.SUCCESS) {
+			submited = true;
+			getSession()
+					.success(createStringResource("PageSelfRegistration.registration.success").getString());
+			
+			switch (getSelfRegistrationConfiguration().getAuthenticationMethod()) {
+				case MAIL :
+					target.add(PageSelfRegistration.this);
+					break;
+				case SMS :
+					throw new UnsupportedOperationException();
+				case NONE :
+					setResponsePage(PageLogin.class);
+			}
+		
+
+		} else {
+			getSession().error(
+					createStringResource("PageSelfRegistration.registration.error", result.getMessage())
+							.getString());
+			throw new RestartResponseException(PageSelfRegistration.class);
+			
+		}
+		
+		updateCaptcha(captcha, target);
+		target.add(getFeedbackPanel());
+		
+
+	}
+	
+	
+	private String generateCaptcha() {
+		OperationResult result = new OperationResult("generateRandomString");
+
+		StringPolicyType sp = StringPolicyUtils.normalize(new StringPolicyType());
+		LimitationsType limits = new LimitationsType();
+		limits.setMinLength(8);
+		limits.setMaxLength(12);
+		limits.setMinUniqueChars(6);
+		sp.setLimitations(limits);
+		return ValuePolicyGenerator.generate(sp, 8, result);
+
+	}
 
 	private List<String> prepareAutocompleteValues(final String input) {
 
@@ -296,7 +359,7 @@ public class PageSelfRegistration extends PageBase {
 				List<String> availableNames = new ArrayList<>();
 				try {
 					ObjectQuery query = QueryBuilder.queryFor(OrgType.class, getPrismContext())
-							.item(OrgType.F_NAME).startsWith(input).build();
+							.item(OrgType.F_DISPLAY_NAME).startsWith(new PolyString(input)).build();
 					query.setPaging(ObjectPaging.createPaging(0, maxValues));
 					Task task = createAnonymousTask(OPERATION_LOAD_ORGANIZATIONS);
 					OperationResult result = new OperationResult(OPERATION_LOAD_ORGANIZATIONS);
@@ -317,76 +380,64 @@ public class PageSelfRegistration extends PageBase {
 		});
 
 	}
-	
+
 	private void updateCaptcha(CaptchaImageResource captcha, AjaxRequestTarget target) {
-		
+
 		captcha.invalidate();
 		Image captchaImage = (Image) get(createComponentPath(ID_MAIN_FORM, ID_IMAGE));
 		target.add(captchaImage);
 	}
 
-	private void saveUser(AjaxRequestTarget target) {
-		OperationResult result = runPrivileged(new Producer<OperationResult>() {
+	
 
-			@Override
-			public OperationResult run() {
-				String organization = getOrganization();
-				UserType userType = userModel.getObject();
-				if (organization != null) {
-					userType.getOrganization().add(new PolyStringType(organization));
-				}
+	private void saveUser(Task task, OperationResult result) {
+			UserType userType = prepareUserToSave(getSelfRegistrationConfiguration().getNoncePolicy(), task, result);
+			ObjectDelta<UserType> userDelta = ObjectDelta.createAddDelta(userType.asPrismObject());
+			userDelta.setPrismContext(getPrismContext());
 
-				Task task = createAnonymousTask(OPERATION_SAVE_USER);
-				task.setChannel(SchemaConstants.CHANNEL_GUI_REGISTRATION_URI);
-				OperationResult result = new OperationResult(OPERATION_SAVE_USER);
-
-				PrismObject<SystemConfigurationType> systemConfig = WebModelServiceUtils.loadObject(
-						SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(),
-						PageSelfRegistration.this, task, result);
-
-				String token = null;
-				ValuePolicyType policy = null;
-				if (systemConfig.asObjectable().getGlobalPasswordPolicyRef() != null) {
-					PrismObject<ValuePolicyType> valuePolicy = WebModelServiceUtils.loadObject(
-							ValuePolicyType.class,
-							systemConfig.asObjectable().getGlobalPasswordPolicyRef().getOid(),
-							PageSelfRegistration.this, task, result);
-					policy = valuePolicy.asObjectable();
-				}
-
-				token = ValuePolicyGenerator.generate(policy != null ? policy.getStringPolicy() : null, 24,
-						result);
-				userType.setCostCenter(token);
-
-				try {
-					getPrismContext().adopt(userType);
-				} catch (SchemaException e) {
-					// nothing to do, try without it
-				}
-
-				ObjectDelta<UserType> userDelta = ObjectDelta.createAddDelta(userType.asPrismObject());
-				userDelta.setPrismContext(getPrismContext());
-
-				WebModelServiceUtils.save(userDelta, result, task, PageSelfRegistration.this);
-				return result;
-			}
-
-		});
-
-		result.computeStatus();
-
-		if (result.getStatus() == OperationResultStatus.SUCCESS) {
-			submited = true;
-			getSession().success(createStringResource("PageSelfRegistration.registration.success").getString());
-			
-		} else {
-			getSession().error(createStringResource("PageSelfRegistration.registration.error", result.getMessage())
-					.getString());
-			new RestartResponseException(PageSelfRegistration.class);
+			WebModelServiceUtils.save(userDelta, result, task, PageSelfRegistration.this);
+			result.computeStatus();
+	
+	}
+	
+	private UserType prepareUserToSave(NonceCredentialsPolicyType noncePolicy, Task task,
+			OperationResult result) {
+		String organization = getOrganization();
+		UserType userType = userModel.getObject();
+		if (organization != null) {
+			userType.getOrganization().add(new PolyStringType(organization));
 		}
-		
+
+		ProtectedStringType nonceCredentials = new ProtectedStringType();
+		nonceCredentials.setClearValue(generateNonce(noncePolicy, task, result));
+
+		NonceType nonceType = new NonceType();
+		nonceType.setValue(nonceCredentials);
+
+		userType.getCredentials().setNonce(nonceType);
+
+		try {
+			getPrismContext().adopt(userType);
+		} catch (SchemaException e) {
+			// nothing to do, try without it
+		}
+
+		return userType;
 
 	}
+
+	private String generateNonce(NonceCredentialsPolicyType noncePolicy, Task task, OperationResult result) {
+		ValuePolicyType policy = null;
+		if (noncePolicy.getValuePolicyRef() != null) {
+			PrismObject<ValuePolicyType> valuePolicy = WebModelServiceUtils.loadObject(ValuePolicyType.class,
+					noncePolicy.getValuePolicyRef().getOid(), PageSelfRegistration.this, task, result);
+			policy = valuePolicy.asObjectable();
+		}
+
+		return ValuePolicyGenerator.generate(policy != null ? policy.getStringPolicy() : null, 24, result);
+	}
+
+	
 
 	private String getOrganization() {
 		AutoCompleteTextPanel<String> org = (AutoCompleteTextPanel<String>) get(

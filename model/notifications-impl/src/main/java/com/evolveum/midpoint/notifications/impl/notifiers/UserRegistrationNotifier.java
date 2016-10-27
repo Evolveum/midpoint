@@ -34,6 +34,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.GeneralNotifierType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RegistrationConfirmationMethodType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserPasswordNotifierType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserRegistrationNotifierType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
@@ -97,7 +98,7 @@ public class UserRegistrationNotifier extends GeneralNotifier {
 			LOGGER.trace("No user deltas in event, exiting.");
 			return false;
 		}
-		if (modelEvent.getChannel().equals(SchemaConstants.CHANNEL_GUI_REGISTRATION_URI)) {
+		if (modelEvent.getChannel().equals(SchemaConstants.CHANNEL_GUI_SELF_REGISTRATION_URI)) {
 			LOGGER.trace("Found cfhange from registration channel.");
 			return true;
 		} else {
@@ -129,7 +130,7 @@ public class UserRegistrationNotifier extends GeneralNotifier {
         messageBuilder.append(userType.getGivenName()).append(",\n")
         .append("your account was successfully created. To activate your account click on the following confiramtion link. ")
         .append("\n")
-        .append(createConfirmationLink(userType))
+        .append(createConfirmationLink(userType, generalNotifierType))
         .append("\n\n")
         .append("After your account is activated, use following credentials to log in: \n")
         .append("username: ")
@@ -140,34 +141,58 @@ public class UserRegistrationNotifier extends GeneralNotifier {
         return messageBuilder.toString();
     }
 
-	private String createConfirmationLink(UserType userType){
-		StringBuilder confirmLinkBuilder = new StringBuilder(CONFIRMATION_LINK);
+	private String createConfirmationLink(UserType userType, GeneralNotifierType generalNotifierType){
+		
 			
-				StringBuilder suffixBuilder = new StringBuilder("registrationId/");
-		suffixBuilder.append(userType.getOid()).append("/token/").append(userType.getCostCenter()).append("/roleId/00000000-0000-0000-0000-000000000008");
-		String suffix = suffixBuilder.toString();
-//		Base64Encoder base64Encoder = new Base64Encoder(suffix);
-//		String encoded = base64Encoder.processString();
+		UserRegistrationNotifierType userRegistrationNotifier = (UserRegistrationNotifierType) generalNotifierType;
 		
-//		String urlSuffix;
-//		try {
-//			ProtectedStringType protectedString = prismContext.getDefaultProtector().encryptString(encoded);
-//			 urlSuffix = new String(protectedString.getEncryptedDataType().getCipherData().getCipherValue());
-//		} catch (EncryptionException e) {
-//		String urlSuffix = encoded;
-//		}
+		RegistrationConfirmationMethodType confirmationMethod = userRegistrationNotifier.getConfirmationMethod();
 		
-		confirmLinkBuilder.append(suffix);
-		return confirmLinkBuilder.toString();
+		if (confirmationMethod == null) {
+			return null;
+		}
+		
+		switch (confirmationMethod) {
+			case LINK:
+				StringBuilder confirmLinkBuilder = new StringBuilder(CONFIRMATION_LINK);
+				confirmLinkBuilder.append(SchemaConstants.REGISTRATION_ID+"/").append(userType.getName().getOrig())
+				.append("/"+SchemaConstants.REGISTRATION_TOKEN+"/").append(getNonce(userType));
+				return confirmLinkBuilder.toString();
+			case PIN:
+				return getNonce(userType);
+			default:
+				break;
+		}
+		
+		return null;
 		
 	}
 	
 	private UserType getUser(Event event){
 		ModelEvent modelEvent = (ModelEvent) event;
-        List<ObjectDelta<FocusType>> deltas = modelEvent.getFocusDeltas();
         PrismObject<UserType> newUser = modelEvent.getFocusContext().getObjectNew();
         UserType userType = newUser.asObjectable();
         return userType;
+	}
+	
+	private String getNonce(UserType user) {
+		if (user.getCredentials() == null) {
+			return null;
+		}
+		
+		if (user.getCredentials().getNonce() == null) {
+			return null;
+		}
+		
+		if (user.getCredentials().getNonce().getValue() == null) {
+			return null;
+		}
+		
+		try {
+			return midpointFunctions.getPlaintext(user.getCredentials().getNonce().getValue());
+		} catch (EncryptionException e) {
+			return null;
+		}
 	}
 	
 	@Override
@@ -177,7 +202,7 @@ public class UserRegistrationNotifier extends GeneralNotifier {
 		
 		String body = super.getBodyFromExpression(event, generalNotifierType, variables, task, result);
 		if (body  != null ) {
-			return body + "\n" + createConfirmationLink(userType);
+			return body + "\n" + createConfirmationLink(userType, generalNotifierType);
 		}
 		
 		return body;

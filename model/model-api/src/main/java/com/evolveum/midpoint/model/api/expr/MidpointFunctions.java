@@ -41,6 +41,7 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 import java.util.Collection;
 import java.util.List;
@@ -971,6 +972,8 @@ public interface MidpointFunctions {
     boolean isMemberOf(UserType user, String orgOid);
 
     String getPlaintextUserPassword(UserType user) throws EncryptionException;
+    
+    String getPlaintext(ProtectedStringType user) throws EncryptionException;
 
     String getPlaintextAccountPassword(ShadowType account) throws EncryptionException;
 

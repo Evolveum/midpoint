@@ -108,6 +108,19 @@ public class NotificationFuctionsImpl implements NotificationFunctions {
             return null;
         }
     }
+    
+    public static SecurityPolicyType getSecurityPolicyConfiguration(ObjectReferenceType securityPolicyRef, RepositoryService repositoryService, OperationResult result) {
+        try {
+        	if (securityPolicyRef == null) {
+        		return null;
+        	}
+            return repositoryService.getObject(SecurityPolicyType.class, securityPolicyRef.getOid(),
+            		null, result).asObjectable();
+        } catch (ObjectNotFoundException|SchemaException e) {
+            LoggingUtils.logException(LOGGER, "Notification(s) couldn't be processed, because the security policy configuration couldn't be retrieved", e);
+            return null;
+        }
+    }
 
     public static String getResourceNameFromRepo(RepositoryService repositoryService, String oid, OperationResult result) {
         try {

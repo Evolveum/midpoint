@@ -43,9 +43,11 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MailAuthenticationPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MailConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MailServerConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MailTransportSecurityType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
@@ -85,7 +87,25 @@ public class MailTransport implements Transport {
         result.addParam("mailMessage subject", mailMessage.getSubject());
 
         SystemConfigurationType systemConfiguration = NotificationFuctionsImpl.getSystemConfiguration(cacheRepositoryService, new OperationResult("dummy"));
-        if (systemConfiguration == null || systemConfiguration.getNotificationConfiguration() == null
+        
+//        if (systemConfiguration == null) {
+//        	String msg = "No notifications are configured. Mail notification to " + mailMessage.getTo() + " will not be sent.";
+//        	 LOGGER.warn(msg) ;
+//             result.recordWarning(msg);
+//             return;
+//        }
+//        
+//        MailConfigurationType mailConfigurationType = null;
+//        SecurityPolicyType securityPolicyType = NotificationFuctionsImpl.getSecurityPolicyConfiguration(systemConfiguration.getGlobalSecurityPolicyRef(), cacheRepositoryService, result);
+//        if (securityPolicyType != null && securityPolicyType.getAuthentication() != null && securityPolicyType.getAuthentication().getMailAuthentication() != null) {
+//        	for (MailAuthenticationPolicyType mailAuthenticationPolicy : securityPolicyType.getAuthentication().getMailAuthentication()) {
+//        		if (mailAuthenticationPolicy.getNotificationConfiguration() != null ){
+//        			mailConfigurationType = mailAuthenticationPolicy.getNotificationConfiguration().getMail();
+//        		}
+//        	}
+//        }
+        
+        if (systemConfiguration == null  || systemConfiguration.getNotificationConfiguration() == null
                 || systemConfiguration.getNotificationConfiguration().getMail() == null) {
             String msg = "No notifications are configured. Mail notification to " + mailMessage.getTo() + " will not be sent.";
             LOGGER.warn(msg) ;
@@ -93,7 +113,9 @@ public class MailTransport implements Transport {
             return;
         }
 
-        MailConfigurationType mailConfigurationType = systemConfiguration.getNotificationConfiguration().getMail();
+//		if (mailConfigurationType == null) {
+			MailConfigurationType mailConfigurationType = systemConfiguration.getNotificationConfiguration().getMail();
+//		}
         String redirectToFile = mailConfigurationType.getRedirectToFile();
         if (redirectToFile != null) {
             try {

@@ -2496,6 +2496,13 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="nonce" type="tns:NonceType" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:displayName>CredentialsType.nonce</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="securityQuestions" type="tns:SecurityQuestionsCredentialsType" minOccurs="0" maxOccurs="1">
                 <xsd:annotation>
                     <xsd:appinfo>
@@ -2582,6 +2589,22 @@
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
+            	</xsd:sequence>
+        	</xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    
+    <xsd:complexType name="NonceType">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <a:container/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+        	<xsd:extension base="tns:AbstractCredentialType">
+        		<xsd:sequence>
+            		<xsd:element name="value" type="t:ProtectedStringType" minOccurs="0"/>
+            		<xsd:element name="resetType" type="xsd:string" minOccurs="0"/>
             	</xsd:sequence>
         	</xsd:extension>
         </xsd:complexContent>
@@ -10176,9 +10199,11 @@
         <xsd:complexContent>
             <xsd:extension base="tns:ObjectType">
                 <xsd:sequence>
-                	<xsd:element name="authentication" type="tns:AuthenticationPolicyType" minOccurs="0">
+                	<xsd:element name="authentication" type="tns:AuthenticationsPolicyType" minOccurs="0">
                 	</xsd:element>
                 	<xsd:element name="credentials" type="tns:CredentialsPolicyType" minOccurs="0">
+                	</xsd:element>
+                	<xsd:element name="registration" type="tns:RegistrationsPolicyType" minOccurs="0">
                 	</xsd:element>
                 </xsd:sequence>
             </xsd:extension>
@@ -10186,7 +10211,7 @@
     </xsd:complexType>
     <xsd:element name="securityPolicy" type="tns:SecurityPolicyType" substitutionGroup="c:object"/>
     
-    <xsd:complexType name="AuthenticationPolicyType">
+    <xsd:complexType name="AuthenticationsPolicyType">
 		<xsd:annotation>
 			<xsd:documentation>
 				Definition of the use of authentication mechanisms. This is in fact practically
@@ -10198,6 +10223,10 @@
 			</xsd:appinfo>
 		</xsd:annotation>
 		<xsd:sequence>
+			<xsd:element name="mailAuthentication" type="tns:MailAuthenticationPolicyType" minOccurs="0" maxOccurs="unbounded">
+			</xsd:element>
+			<xsd:element name="smsAuthentication" type="tns:SmsAuthenticationPolicyType" minOccurs="0" maxOccurs="unbounded">
+             </xsd:element>
 			<!-- TODO: radovan -->
 		</xsd:sequence>
 	</xsd:complexType>
@@ -10219,9 +10248,157 @@
 			</xsd:element>
 			<xsd:element name="securityQuestions" type="tns:SecurityQuestionsCredentialsPolicyType" minOccurs="0">
              </xsd:element>
+             <xsd:element name="nonce" type="tns:NonceCredentialsPolicyType" minOccurs="0" maxOccurs="unbounded">
+             </xsd:element>
              <!-- More credential types may come here in the future. -->
 		</xsd:sequence>
 	</xsd:complexType>
+	
+	<xsd:complexType name="RegistrationsPolicyType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Credentials management policy. It specifies the management details for each supported
+				credentials type. It defines parameters such as credential lifetime. It may define even
+				a very complex schemes for some credential types. E.g. it may define a complete security
+				questions.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:container/>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="selfRegistration" type="tns:SelfRegistrationPolicyType" minOccurs="0">
+			</xsd:element>
+             <!-- More registration types may come here in the future. -->
+		</xsd:sequence>
+	</xsd:complexType>
+	
+	<xsd:complexType name="AbstractAuthenticationPolicyType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Authentication management policy. It specifies configurations for differrent authentication methods
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:container/>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="notificationConfiguration" type="tns:NotificationConfigurationType" minOccurs="0" maxOccurs="1">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                A configuration for user notifications. In future, it might be overriden e.g. at a level
+                                of a user.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+			<xsd:element name="name" type="xsd:string" minOccurs="0">
+			</xsd:element>
+			<xsd:element name="displayName" type="xsd:string" minOccurs="0">
+			</xsd:element>
+			<xsd:element name="nonceName" type="xsd:string" minOccurs="0">
+			</xsd:element>
+             <!-- More registration types may come here in the future. -->
+		</xsd:sequence>
+	</xsd:complexType>
+	
+	 <xsd:complexType name="MailAuthenticationPolicyType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Structure that specifies policy for password management. It is in fact only a simple reference
+				to a password policy.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:container/>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:complexContent>
+			<xsd:extension base="tns:AbstractAuthenticationPolicyType">
+				<xsd:sequence>
+				</xsd:sequence>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+	
+	<xsd:complexType name="SmsAuthenticationPolicyType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Structure that specifies policy for password management. It is in fact only a simple reference
+				to a password policy.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:container/>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:complexContent>
+			<xsd:extension base="tns:AbstractAuthenticationPolicyType">
+				<xsd:sequence>
+				</xsd:sequence>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+	
+	
+	<xsd:complexType name="AbstractRegistrationPolicyType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Credentials management policy. It specifies the management details for each supported
+				credentials type. It defines parameters such as credential lifetime. It may define even
+				a very complex schemes for some credential types. E.g. it may define a complete security
+				questions.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:container/>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="name" type="xsd:string" minOccurs="0">
+			</xsd:element>
+			<xsd:element name="displayName" type="xsd:string" minOccurs="0">
+			</xsd:element>
+			<xsd:element name="additionalAuthenticationName" type="xsd:string" minOccurs="0">
+			</xsd:element>
+			<xsd:element name="defaultRole" type="tns:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
+				<xsd:annotation>
+			        <xsd:documentation>
+			            Reference to the default roles which will be assigned to the user automatically after registration
+			        </xsd:documentation>
+			        <xsd:appinfo>
+						<a:objectReferenceTargetType>tns:AbstractRoleType</a:objectReferenceTargetType>
+					</xsd:appinfo>
+			    </xsd:annotation>
+			</xsd:element>
+             <!-- More registration types may come here in the future. -->
+		</xsd:sequence>
+	</xsd:complexType>
+	
+	 <xsd:complexType name="SelfRegistrationPolicyType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Structure that specifies policy for password management. It is in fact only a simple reference
+				to a password policy.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:container/>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:complexContent>
+			<xsd:extension base="tns:AbstractRegistrationPolicyType">
+				<xsd:sequence>
+					<xsd:element name="formRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="1">
+					    <xsd:annotation>
+					        <xsd:documentation>
+					            Reference to form which is dispalyed for registration
+					        </xsd:documentation>
+					        <xsd:appinfo>
+								<a:objectReferenceTargetType>tns:FormType</a:objectReferenceTargetType>
+							</xsd:appinfo>
+					    </xsd:annotation>
+					</xsd:element>
+				</xsd:sequence>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+	
 	
 	 <xsd:complexType name="AbstractCredentialPolicyType" abstract="true">
 		<xsd:annotation>
@@ -10369,6 +10546,26 @@
                 	</xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="NONE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="mail">
+                <xsd:annotation>
+                	<xsd:documentation>
+                		Use security questions to reset the credential.
+                	</xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="MAIL"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="sms">
+                <xsd:annotation>
+                	<xsd:documentation>
+                		Use security questions to reset the credential.
+                	</xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="SMS"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
@@ -10558,6 +10755,41 @@
 			 employee number in each user therefore there is no need for each user to manually fill-in the expected answer.
 			 We can use expression instead. Something like "$user/employeeNumber" -->
 		</xsd:sequence>
+	</xsd:complexType>
+	
+	 <xsd:complexType name="NonceCredentialsPolicyType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Structure that specifies policy for nonce management. It is in fact only a simple reference
+				to a password policy.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:container/>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:complexContent>
+			<xsd:extension base="tns:AbstractCredentialPolicyType">
+				<xsd:sequence>
+					<xsd:element name="name" type="xsd:string" maxOccurs="1">
+		        	    <xsd:annotation>
+		                    <xsd:documentation>
+		                        The question itself, or the localization identifier to it.
+		                    </xsd:documentation>
+		                </xsd:annotation>
+		        	</xsd:element>
+					<xsd:element name="valuePolicyRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="1">
+					    <xsd:annotation>
+					        <xsd:documentation>
+					            Reference to the nonce policy settings.
+					        </xsd:documentation>
+					        <xsd:appinfo>
+								<a:objectReferenceTargetType>tns:ValuePolicyType</a:objectReferenceTargetType>
+							</xsd:appinfo>
+					    </xsd:annotation>
+					</xsd:element>
+				</xsd:sequence>
+			</xsd:extension>
+		</xsd:complexContent>
 	</xsd:complexType>
 
     <xsd:simpleType name="SystemObjectsType">

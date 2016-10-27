@@ -246,8 +246,8 @@ public abstract class SchemaConstants {
 	public static final String NS_GUI_CHANNEL = NS_GUI + "/channels-3";
 	public static final QName CHANNEL_GUI_INIT_QNAME = new QName(NS_GUI_CHANNEL, "init");
 	public static final String CHANNEL_GUI_INIT_URI = QNameUtil.qNameToUri(CHANNEL_GUI_INIT_QNAME);
-	public static final QName CHANNEL_GUI_REGISTRATION_QNAME = new QName(NS_GUI_CHANNEL, "registration");
-	public static final String CHANNEL_GUI_REGISTRATION_URI = QNameUtil.qNameToUri(CHANNEL_GUI_REGISTRATION_QNAME);
+	public static final QName CHANNEL_GUI_SELF_REGISTRATION_QNAME = new QName(NS_GUI_CHANNEL, "seflRegistration");
+	public static final String CHANNEL_GUI_SELF_REGISTRATION_URI = QNameUtil.qNameToUri(CHANNEL_GUI_SELF_REGISTRATION_QNAME);
 	public static final QName CHANNEL_GUI_USER_QNAME = new QName(NS_GUI_CHANNEL, "user");
 	public static final String CHANNEL_GUI_USER_URI = QNameUtil.qNameToUri(CHANNEL_GUI_USER_QNAME);
 
@@ -301,6 +301,7 @@ public abstract class SchemaConstants {
 	public static final QName C_ITEM_TO_APPROVE = new QName(NS_C, "itemToApprove");
 	public static final QName C_SHADOW_DISCRIMINATOR = new QName(NS_C, "shadowDiscriminator");
 
+	
 	// Samples
 
 	public static final QName SAMPLES_SSN = new QName(SchemaConstants.NS_SAMPLES_EXTENSION, "ssn");
@@ -309,4 +310,8 @@ public abstract class SchemaConstants {
 	// Misc
 	
 	public static String SCHEMA_LOCALIZATION_PROPERTIES_RESOURCE_BASE_PATH = "localization/schema";
+	
+	// registration
+	public static final String REGISTRATION_ID = "registrationId";
+	public static final String REGISTRATION_TOKEN = "token";
 }

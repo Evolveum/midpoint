@@ -33,7 +33,10 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.EventHandlerType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MailAuthenticationPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NotificationConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityPolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SmsAuthenticationPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -132,18 +135,55 @@ public class NotificationManagerImpl implements NotificationManager {
         if (systemConfigurationType == null) {      // something really wrong happened (or we are doing initial import of objects)
             return;
         }
+        
+//        boolean specificSecurityPoliciesDefined = false;
+//        if (systemConfigurationType.getGlobalSecurityPolicyRef() != null) {
+//        
+//        	SecurityPolicyType securityPolicyType = NotificationFuctionsImpl.getSecurityPolicyConfiguration(systemConfigurationType.getGlobalSecurityPolicyRef(), cacheRepositoryService, result);
+//        	if (securityPolicyType != null && securityPolicyType.getAuthentication() != null) {
+//        		
+//        		for (MailAuthenticationPolicyType mailPolicy : securityPolicyType.getAuthentication().getMailAuthentication()) {
+//        			NotificationConfigurationType notificationConfigurationType = mailPolicy.getNotificationConfiguration();
+//        			if (notificationConfigurationType != null) {
+//        				specificSecurityPoliciesDefined = true;
+//        				processNotifications(notificationConfigurationType, event, task, result);
+//        			}
+//        		}
+//        		
+//        		for (SmsAuthenticationPolicyType mailPolicy : securityPolicyType.getAuthentication().getSmsAuthentication()) {
+//        			NotificationConfigurationType notificationConfigurationType = mailPolicy.getNotificationConfiguration();
+//        			if (notificationConfigurationType != null) {
+//        				specificSecurityPoliciesDefined = true;
+//        				processNotifications(notificationConfigurationType, event, task, result);
+//        			}
+//        		}
+//        		
+//        		return;
+//        	}
+//        }
+//        
+//        if (specificSecurityPoliciesDefined) {
+//        	LOGGER.trace("Specific policy for notifier set in security configuration, skupping notifiers defined in system configuration.");
+//            return;
+//        }
+        
         if (systemConfigurationType.getNotificationConfiguration() == null) {
 			LOGGER.trace("No notification configuration in repository, finished event processing.");
             return;
         }
+        
+        NotificationConfigurationType notificationConfigurationType = systemConfigurationType.getNotificationConfiguration(); 
+        processNotifications(notificationConfigurationType, event, task, result);
 
-        NotificationConfigurationType notificationConfigurationType = systemConfigurationType.getNotificationConfiguration();
+		LOGGER.trace("NotificationManager successfully processed event {} ({} top level handler(s))", event, notificationConfigurationType.getHandler().size());
+    }
+    
+    private void processNotifications(NotificationConfigurationType notificationConfigurationType, Event event, Task task, OperationResult result){
+    	
 
         for (EventHandlerType eventHandlerType : notificationConfigurationType.getHandler()) {
             processEvent(event, eventHandlerType, task, result);
         }
-
-		LOGGER.trace("NotificationManager successfully processed event {} ({} top level handler(s))", event, notificationConfigurationType.getHandler().size());
     }
 
     public boolean processEvent(Event event, EventHandlerType eventHandlerType, Task task, OperationResult result) {
