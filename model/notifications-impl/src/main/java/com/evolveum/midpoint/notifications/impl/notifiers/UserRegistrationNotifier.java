@@ -16,7 +16,11 @@
 
 package com.evolveum.midpoint.notifications.impl.notifiers;
 
-import com.evolveum.midpoint.common.crypto.CryptoUtil;
+import javax.annotation.PostConstruct;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
 import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
 import com.evolveum.midpoint.model.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.notifications.api.events.Event;
@@ -24,31 +28,16 @@ import com.evolveum.midpoint.notifications.api.events.ModelEvent;
 import com.evolveum.midpoint.notifications.impl.NotificationFuctionsImpl;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.GeneralNotifierType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RegistrationConfirmationMethodType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserPasswordNotifierType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserRegistrationNotifierType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
-
-import org.apache.commons.codec.digest.Crypt;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-import org.w3c.tools.codec.Base64Decoder;
-import org.w3c.tools.codec.Base64Encoder;
-
-import javax.annotation.PostConstruct;
-
-import java.util.List;
 
 /**
  * @author mederly
@@ -65,7 +54,7 @@ public class UserRegistrationNotifier extends GeneralNotifier {
 	private NotificationFuctionsImpl notificationsUtil;
 	
 	
-	private static String CONFIRMATION_LINK = "http://localhost:8080/midpoint/confirm/";
+	private static String CONFIRMATION_LINK = "/confirm/";
 
 	@PostConstruct
 	public void init() {
@@ -130,7 +119,7 @@ public class UserRegistrationNotifier extends GeneralNotifier {
         messageBuilder.append(userType.getGivenName()).append(",\n")
         .append("your account was successfully created. To activate your account click on the following confiramtion link. ")
         .append("\n")
-        .append(createConfirmationLink(userType, generalNotifierType))
+        .append(createConfirmationLink(userType, generalNotifierType, result))
         .append("\n\n")
         .append("After your account is activated, use following credentials to log in: \n")
         .append("username: ")
@@ -141,7 +130,7 @@ public class UserRegistrationNotifier extends GeneralNotifier {
         return messageBuilder.toString();
     }
 
-	private String createConfirmationLink(UserType userType, GeneralNotifierType generalNotifierType){
+	private String createConfirmationLink(UserType userType, GeneralNotifierType generalNotifierType, OperationResult result){
 		
 			
 		UserRegistrationNotifierType userRegistrationNotifier = (UserRegistrationNotifierType) generalNotifierType;
@@ -154,7 +143,13 @@ public class UserRegistrationNotifier extends GeneralNotifier {
 	
 		switch (confirmationMethod) {
 			case LINK:
-				StringBuilder confirmLinkBuilder = new StringBuilder(CONFIRMATION_LINK);
+				SystemConfigurationType systemConfiguration = notificationsUtil.getSystemConfiguration(result);
+				if (systemConfiguration == null) {
+					LOGGER.trace("No system configuration defined. Skipping link generation.");
+					return null;
+				}
+				String defaultHostname = systemConfiguration.getDefaultHostname();
+				StringBuilder confirmLinkBuilder = new StringBuilder(defaultHostname + CONFIRMATION_LINK);
 				confirmLinkBuilder.append(SchemaConstants.REGISTRATION_ID+"/").append(userType.getName().getOrig())
 				.append("/"+SchemaConstants.REGISTRATION_TOKEN+"/").append(getNonce(userType));
 				return confirmLinkBuilder.toString();
@@ -202,7 +197,7 @@ public class UserRegistrationNotifier extends GeneralNotifier {
 		
 		String body = super.getBodyFromExpression(event, generalNotifierType, variables, task, result);
 		if (body  != null ) {
-			return body + "\n" + createConfirmationLink(userType, generalNotifierType);
+			return body + "\n" + createConfirmationLink(userType, generalNotifierType, result);
 		}
 		
 		return body;

@@ -109,6 +109,16 @@ public class NotificationFuctionsImpl implements NotificationFunctions {
         }
     }
     
+    public SystemConfigurationType getSystemConfiguration(OperationResult result) {
+        try {
+            return cacheRepositoryService.getObject(SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(),
+            		null, result).asObjectable();
+        } catch (ObjectNotFoundException|SchemaException e) {
+            LoggingUtils.logException(LOGGER, "Notification(s) couldn't be processed, because the system configuration couldn't be retrieved", e);
+            return null;
+        }
+    }
+    
     public static SecurityPolicyType getSecurityPolicyConfiguration(ObjectReferenceType securityPolicyRef, RepositoryService repositoryService, OperationResult result) {
         try {
         	if (securityPolicyRef == null) {
