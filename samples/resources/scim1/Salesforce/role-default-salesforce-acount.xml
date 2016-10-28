@@ -5,7 +5,7 @@
       xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
       xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
       oid="056f714a-efac-476f-b38e-9588b4907e5b"
-      version="6">
+      version="7">
    <name>Default salesforce account</name>
    <metadata>
       <createTimestamp>2016-07-01T14:32:58.978+02:00</createTimestamp>
@@ -17,7 +17,7 @@
    <inducement id="1">
       <construction>
          <resourceRef xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-                      oid="2273edee-da5b-42ca-98e3-5563a7e5323a"
+                      oid="714a197f-fa15-4eac-8f90-f1f2dfdcafc4"
                       type="tns:ResourceType"><!-- salesforce-scim-connector --></resourceRef>
          <kind>account</kind>
       </construction>

@@ -5,7 +5,7 @@
       xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
       xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
       oid="5ae47cad-f67d-4b34-a97b-03315666db68"
-      version="5">
+      version="6">
    <name>Default slack account</name>
    <metadata>
       <createTimestamp>2016-09-05T13:20:30.302+02:00</createTimestamp>
@@ -17,7 +17,7 @@
    <inducement id="1">
       <construction>
          <resourceRef xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-                      oid="5d2b9b68-3bba-43b0-8089-b608f77f1c38"
+                      oid="2556e12c-d5ef-42bb-8079-abea9526face"
                       type="tns:ResourceType"><!-- slack-scim-connector --></resourceRef>
          <kind>account</kind>
       </construction>
