@@ -17,6 +17,10 @@ package com.evolveum.midpoint.model.api;
 
 import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 /**
@@ -25,6 +29,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
  */
 public interface ModelAuditService extends AuditService {
 	
-	<O extends ObjectType> PrismObject<O> reconstructObject(String oid, String eventIdentifier);
+	<O extends ObjectType> PrismObject<O> reconstructObject(Class<O> type, String oid, String eventIdentifier, 
+			Task task, OperationResult result) throws ObjectNotFoundException, SchemaException;
 
 }

@@ -1746,5 +1746,24 @@ public abstract class ItemDelta<V extends PrismValue,D extends ItemDefinition> i
 		}
 		valuesToAdd = null;
 	}
+
+	public ItemDelta<V,D> createReverseDelta() {
+		ItemDelta<V,D> reverseDelta = clone();
+		Collection<V> cloneValuesToAdd = reverseDelta.valuesToAdd;
+		Collection<V> cloneValuesToDelete = reverseDelta.valuesToDelete;
+		Collection<V> cloneValuesToReplace = reverseDelta.valuesToReplace;
+		Collection<V> cloneEstimatedOldValues = reverseDelta.estimatedOldValues;
+		
+		reverseDelta.valuesToAdd = cloneValuesToDelete;
+		reverseDelta.valuesToDelete = cloneValuesToAdd;
+		if (cloneValuesToReplace != null) {
+			reverseDelta.valuesToReplace = cloneEstimatedOldValues;
+			reverseDelta.estimatedOldValues = cloneValuesToReplace;
+		} else {
+			// TODO: what about estimatedOldValues here?
+		}
+		
+		return reverseDelta;
+	}
 	
 }

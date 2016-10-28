@@ -1269,6 +1269,20 @@ public class ObjectDelta<T extends Objectable> implements DebugDumpable, Visitab
     	objectDelta.setOid(oid);
     	return objectDelta;
     }
+    
+	public ObjectDelta<T> createReverseDelta() throws SchemaException {
+		if (isAdd()) {
+			return createDeleteDelta(getObjectTypeClass(), getOid(), getPrismContext());
+		}
+		if (isDelete()) {
+			throw new SchemaException("Cannot reverse delete delta");
+		}
+		ObjectDelta<T> reverseDelta = createEmptyModifyDelta(getObjectTypeClass(), getOid(), getPrismContext());
+		for (ItemDelta<?,?> modification: getModifications()) {
+			reverseDelta.addModification(modification.createReverseDelta());
+		}
+		return reverseDelta;
+	}
         
     public void checkConsistence() {
     	checkConsistence(ConsistencyCheckScope.THOROUGH);
@@ -1542,4 +1556,5 @@ public class ObjectDelta<T extends Objectable> implements DebugDumpable, Visitab
     public static boolean isNullOrEmpty(ObjectDelta delta) {
         return delta == null || delta.isEmpty();
     }
+
 }
