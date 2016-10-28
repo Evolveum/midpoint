@@ -65,6 +65,7 @@ import org.springframework.stereotype.Component;
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.model.api.ModelAuditService;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.TaskService;
@@ -184,7 +185,7 @@ public class MidPointApplication extends AuthenticatedWebApplication {
     @Autowired
     transient TaskManager taskManager;
     @Autowired
-    transient AuditService auditService;
+    transient ModelAuditService auditService;
 	@Autowired
 	transient private RepositoryService repositoryService;			// temporary
     @Autowired
@@ -317,7 +318,7 @@ public class MidPointApplication extends AuthenticatedWebApplication {
         return taskManager;
     }
 
-    public AuditService getAuditService() {
+    public ModelAuditService getAuditService() {
         return auditService;
     }
 
