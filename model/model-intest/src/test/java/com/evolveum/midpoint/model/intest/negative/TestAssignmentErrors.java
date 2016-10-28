@@ -19,7 +19,6 @@ import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertNull;
 import static org.testng.AssertJUnit.assertTrue;
-import static com.evolveum.midpoint.test.util.TestUtil.assertFailure;
 import static com.evolveum.midpoint.test.IntegrationTestTools.assertNoRepoCache;
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static org.testng.AssertJUnit.assertNotNull;
@@ -30,6 +29,7 @@ import java.util.Iterator;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -113,7 +113,7 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
 
 		// WHEN
 		PrismObject<ResourceType> resourceWhite = getObject(ResourceType.class, RESOURCE_DUMMY_WHITE_OID);
-		RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resourceWhite, prismContext);
+		RefinedResourceSchema refinedSchema = RefinedResourceSchemaImpl.getRefinedSchema(resourceWhite, prismContext);
 		display("Refined schema", refinedSchema);
 		
 		RefinedObjectClassDefinition accountDef = refinedSchema.getDefaultRefinedDefinition(ShadowKindType.ACCOUNT);

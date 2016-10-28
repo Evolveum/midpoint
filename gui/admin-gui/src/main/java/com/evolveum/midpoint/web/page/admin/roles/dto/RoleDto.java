@@ -18,15 +18,11 @@ package com.evolveum.midpoint.web.page.admin.roles.dto;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.web.component.assignment.AssignmentEditorDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-
-import org.apache.wicket.model.IModel;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import java.io.Serializable;
-import java.util.Date;
 import java.util.List;
 
 /**

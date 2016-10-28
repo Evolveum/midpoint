@@ -38,7 +38,6 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlType;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.util.exception.SystemException;
 
@@ -99,7 +98,7 @@ public class ObjectDeltaType implements Serializable {
     protected ObjectType objectToAdd;
     @XmlElement(required = true)
     protected String oid;
-    protected List<ItemDeltaType> itemDelta;
+    protected final List<ItemDeltaType> itemDelta = new ArrayList<>();
 
     public final static QName COMPLEX_TYPE = new QName(PrismConstants.NS_TYPES, "ObjectDeltaType");
     public final static QName F_CHANGE_TYPE = new QName(PrismConstants.NS_TYPES, "changeType");
@@ -230,9 +229,6 @@ public class ObjectDeltaType implements Serializable {
      * 
      */
     public List<ItemDeltaType> getItemDelta() {
-        if (itemDelta == null) {
-            itemDelta = new ArrayList<ItemDeltaType>();
-        }
         return this.itemDelta;
     }
 

@@ -21,7 +21,6 @@ import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertTrue;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -29,23 +28,21 @@ import java.util.Set;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.schema.PrismSchemaImpl;
+import com.evolveum.midpoint.schema.processor.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 import org.testng.AssertJUnit;
-import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 import org.w3c.dom.Document;
 
 import com.evolveum.icf.dummy.connector.DummyConnector;
 import com.evolveum.icf.dummy.resource.DummyAccount;
-import com.evolveum.icf.dummy.resource.DummyResource;
 import com.evolveum.icf.dummy.resource.DummySyncStyle;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
@@ -57,32 +54,20 @@ import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningTestUtil;
 import com.evolveum.midpoint.provisioning.ucf.api.Change;
-import com.evolveum.midpoint.provisioning.ucf.api.ConnectorFactory;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
-import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
 import com.evolveum.midpoint.provisioning.ucf.api.ResultHandler;
 import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorFactoryIcfImpl;
-import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
-import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceAttribute;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
-import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.statistics.ConnectorOperationalStatus;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
-import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorConfigurationType;
@@ -174,7 +159,7 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
 		display("Serialized XSD connector schema", DOMUtil.serializeDOMToString(xsdSchemaDom));
 		
 		// Try to re-parse
-		PrismSchema reparsedConnectorSchema = PrismSchema.parse(DOMUtil.getFirstChildElement(xsdSchemaDom), true, "schema fetched from "+cc, PrismTestUtil.getPrismContext());
+		PrismSchema reparsedConnectorSchema = PrismSchemaImpl.parse(DOMUtil.getFirstChildElement(xsdSchemaDom), true, "schema fetched from "+cc, PrismTestUtil.getPrismContext());
 		ProvisioningTestUtil.assertConnectorSchemaSanity(reparsedConnectorSchema, "re-parsed");
 		// TODO: 3 definitions would be cleaner. But we can live with this
 		assertEquals("Unexpected number of definitions in re-parsed schema", 6, reparsedConnectorSchema.getDefinitions().size());		
@@ -283,7 +268,7 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
 		display("Serialized XSD resource schema", DOMUtil.serializeDOMToString(xsdSchemaDom));
 		
 		// Try to re-parse
-		ResourceSchema reparsedResourceSchema = ResourceSchema.parse(DOMUtil.getFirstChildElement(xsdSchemaDom),
+		ResourceSchema reparsedResourceSchema = ResourceSchemaImpl.parse(DOMUtil.getFirstChildElement(xsdSchemaDom),
 				"serialized schema", PrismTestUtil.getPrismContext());
 		display("Re-parsed resource schema", reparsedResourceSchema);
 		assertEquals("Unexpected number of definitions in re-parsed schema", 4, reparsedResourceSchema.getDefinitions().size());

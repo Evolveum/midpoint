@@ -16,12 +16,9 @@
 
 package com.evolveum.midpoint.prism.query.builder;
 
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.prism.query.OrgFilter;
 
 import javax.xml.namespace.QName;
 
@@ -29,25 +26,30 @@ import javax.xml.namespace.QName;
  * @author mederly
  */
 public interface S_AtomicFilterEntry {
-    S_AtomicFilterExit all() throws SchemaException;
-    S_AtomicFilterExit none() throws SchemaException;
-    S_AtomicFilterExit undefined() throws SchemaException;
-    S_ConditionEntry item(QName... names) throws SchemaException;
-    S_ConditionEntry item(ItemPath itemPath, ItemDefinition itemDefinition) throws SchemaException;
-    S_ConditionEntry item(PrismContainerDefinition containerDefinition, QName... names) throws SchemaException;
-    S_ConditionEntry item(PrismContainerDefinition containerDefinition, ItemPath itemPath) throws SchemaException;
-    S_AtomicFilterExit id(String... identifiers) throws SchemaException;
-    S_AtomicFilterExit id(long... identifiers) throws SchemaException;
-    S_AtomicFilterExit ownerId(String... identifiers) throws SchemaException;
-    S_AtomicFilterExit ownerId(long... identifiers) throws SchemaException;
-    S_AtomicFilterExit isDirectChildOf(PrismReferenceValue value) throws SchemaException;
-    S_AtomicFilterExit isChildOf(PrismReferenceValue value) throws SchemaException;
-    S_AtomicFilterExit isDirectChildOf(String oid) throws SchemaException;
-    S_AtomicFilterExit isChildOf(String oid) throws SchemaException;
-    S_AtomicFilterExit isParentOf(PrismReferenceValue value) throws SchemaException;            // reference should point to OrgType
-    S_AtomicFilterExit isParentOf(String oid) throws SchemaException;                           // oid should be of an OrgType
-    S_AtomicFilterExit isRoot() throws SchemaException;
+    S_AtomicFilterExit all() ;
+    S_AtomicFilterExit none() ;
+    S_AtomicFilterExit undefined() ;
+    S_ConditionEntry item(QName... names) ;
+    S_ConditionEntry item(ItemPath path) ;
+    S_ConditionEntry item(ItemPath itemPath, ItemDefinition itemDefinition);
+    S_ConditionEntry itemWithDef(ItemDefinition itemDefinition, QName... names);        // experimental
+    S_ConditionEntry item(PrismContainerDefinition containerDefinition, QName... names);
+    S_ConditionEntry item(PrismContainerDefinition containerDefinition, ItemPath itemPath);
+    S_MatchingRuleEntry itemAs(PrismProperty<?> property);              // experimental; TODO choose better name for this method
+    S_AtomicFilterExit id(String... identifiers);
+    S_AtomicFilterExit id(long... identifiers);
+    S_AtomicFilterExit ownerId(String... identifiers);
+    S_AtomicFilterExit ownerId(long... identifiers);
+    S_AtomicFilterExit isDirectChildOf(PrismReferenceValue value);
+    S_AtomicFilterExit isChildOf(PrismReferenceValue value);
+    S_AtomicFilterExit isDirectChildOf(String oid);
+    S_AtomicFilterExit isChildOf(String oid);
+    S_AtomicFilterExit isParentOf(PrismReferenceValue value);            // reference should point to OrgType
+    S_AtomicFilterExit isParentOf(String oid);                           // oid should be of an OrgType
+    S_AtomicFilterExit isInScopeOf(String oid, OrgFilter.Scope scope);
+    S_AtomicFilterExit isInScopeOf(PrismReferenceValue value, OrgFilter.Scope scope);
+    S_AtomicFilterExit isRoot() ;
     S_FilterEntryOrEmpty block();
-    S_FilterEntry type(Class<? extends Containerable> type) throws SchemaException;
-    S_FilterEntry exists(QName... names) throws SchemaException;
+    S_FilterEntryOrEmpty type(Class<? extends Containerable> type) ;
+    S_FilterEntry exists(QName... names) ;
 }

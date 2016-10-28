@@ -31,7 +31,6 @@ import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationType;
@@ -39,13 +38,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationTyp
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.common.refinery.CompositeRefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.PropertyLimitations;
 import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
-import com.evolveum.midpoint.model.common.mapping.Mapping;
 import com.evolveum.midpoint.model.common.mapping.PrismValueDeltaSetTripleProducer;
 import com.evolveum.midpoint.model.impl.lens.ItemValueWithOrigin;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
@@ -59,7 +56,6 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
@@ -522,7 +518,7 @@ public class ReconciliationProcessor {
 
         for (QName assocName : associationNames) {
             LOGGER.trace("Association reconciliation processing association {}", assocName);
-            RefinedAssociationDefinition associationDefinition = accountDefinition.findAssociation(assocName);
+            RefinedAssociationDefinition associationDefinition = accountDefinition.findAssociationDefinition(assocName);
             if (associationDefinition == null) {
                 throw new SchemaException("No definition for association " + assocName + " in "
                         + projCtx.getResourceShadowDiscriminator());

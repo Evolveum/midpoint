@@ -27,6 +27,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.PrismContext;
 
+import com.evolveum.midpoint.schema.processor.ResourceSchemaImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -175,7 +176,7 @@ public class TestDummyHacks extends AbstractIntegrationTest {
 		assertNotNull("No serialNumber", cachingMetadata.getSerialNumber());
 
 		Element xsdElement = ObjectTypeUtil.findXsdElement(xmlSchemaTypeAfter);
-		ResourceSchema parsedSchema = ResourceSchema.parse(xsdElement, resourceBefore.toString(), prismContext);
+		ResourceSchema parsedSchema = ResourceSchemaImpl.parse(xsdElement, resourceBefore.toString(), prismContext);
 		assertNotNull("No schema after parsing", parsedSchema);
 		display("Parsed schema", parsedSchema);
 		

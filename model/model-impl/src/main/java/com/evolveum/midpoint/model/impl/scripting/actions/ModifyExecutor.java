@@ -61,7 +61,7 @@ public class ModifyExecutor extends BaseActionExecutor {
         boolean dryRun = getParamDryRun(expression, input, context, result);
 
         ActionParameterValueType deltaParameterValue = expressionHelper.getArgument(expression.getParameter(), PARAM_DELTA, true, true, NAME);
-        Data deltaData = expressionHelper.evaluateParameter(deltaParameterValue, input, context, result);
+        Data deltaData = expressionHelper.evaluateParameter(deltaParameterValue, ObjectDeltaType.class, input, context, result);
 
         for (Item item : input.getData()) {
             if (item instanceof PrismObject) {

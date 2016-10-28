@@ -22,14 +22,11 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.objectdetails.AbstractObjectTabPanel;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
-import com.evolveum.midpoint.web.component.prism.PrismPropertyPanel;
 import com.evolveum.midpoint.web.component.progress.StatisticsDtoModel;
 import com.evolveum.midpoint.web.component.progress.StatisticsPanel;
-import com.evolveum.midpoint.web.model.PropertyWrapperFromObjectWrapperModel;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import org.apache.wicket.Component;
-import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 
 import java.util.Collection;

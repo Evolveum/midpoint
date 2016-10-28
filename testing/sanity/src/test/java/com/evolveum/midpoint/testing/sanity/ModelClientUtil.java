@@ -20,7 +20,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectDeltaOperationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
-import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;

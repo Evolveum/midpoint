@@ -20,6 +20,9 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
+import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
+import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterExit;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.tree.ITreeProvider;
@@ -158,42 +161,38 @@ public abstract class AbstractTreeTablePanel extends BasePanel<String> {
         if (StringUtils.isBlank(object)) {
         	object = null;
         }
-        
-        OrgFilter org;
+
+        PageBase page = getPageBase();
+        PrismContext context = page.getPrismContext();
+
+        S_AtomicFilterExit q;
         if (object == null || SEARCH_SCOPE_ONE.equals(scope)) {
-        	org = OrgFilter.createOrg(oid, OrgFilter.Scope.ONE_LEVEL);
+            q = QueryBuilder.queryFor(OrgType.class, context)
+                    .isDirectChildOf(oid);
         } else {
-        	org = OrgFilter.createOrg(oid, OrgFilter.Scope.SUBTREE);
+            q = QueryBuilder.queryFor(OrgType.class, context)
+                    .isChildOf(oid);
         }
 
         if (object == null) {
-            return ObjectQuery.createObjectQuery(org);
+            return q.build();
         }
-        
-        PageBase page = getPageBase();
-        PrismContext context = page.getPrismContext();
 
         PolyStringNormalizer normalizer = context.getDefaultPolyStringNormalizer();
         String normalizedString = normalizer.normalize(object);
         if (StringUtils.isEmpty(normalizedString)) {
-            return ObjectQuery.createObjectQuery(org);
+            return q.build();
         }
 
-        SubstringFilter substringName =  SubstringFilter.createSubstring(OrgType.F_NAME, OrgType.class, context,
-                PolyStringNormMatchingRule.NAME, normalizedString);
-        
-        SubstringFilter substringDisplayName =  SubstringFilter.createSubstring(OrgType.F_DISPLAY_NAME, OrgType.class, context,
-                PolyStringNormMatchingRule.NAME, normalizedString);
-        OrFilter orName = OrFilter.createOr(substringName, substringDisplayName);
-        AndFilter and = AndFilter.createAnd(org, orName);
-        ObjectQuery query = ObjectQuery.createObjectQuery(and);
-        
-        if(LOGGER.isTraceEnabled()){
+        ObjectQuery query = q.and().block()
+                .item(OrgType.F_NAME).containsPoly(normalizedString).matchingNorm()
+                .or().item(OrgType.F_DISPLAY_NAME).containsPoly(normalizedString).matchingNorm()
+                .build();
+
+        if (LOGGER.isTraceEnabled()) {
             LOGGER.trace("Searching child orgs of org {} with query:\n{}", oid, query.debugDump());
         }
-
         return query;
     }
-
 
 }

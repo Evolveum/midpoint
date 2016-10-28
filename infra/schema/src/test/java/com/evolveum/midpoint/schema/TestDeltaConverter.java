@@ -16,6 +16,8 @@
 
 package com.evolveum.midpoint.schema;
 
+import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
+import static com.evolveum.midpoint.schema.DeltaConvertor.toObjectDeltaType;
 import static org.testng.AssertJUnit.assertNull;
 import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertTrue;
@@ -26,9 +28,11 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
+import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.prism.path.IdItemPathSegment;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xnode.MapXNode;
@@ -37,27 +41,17 @@ import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
-import com.evolveum.prism.xml.ns._public.types_3.ItemDeltaType;
-import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
-import com.evolveum.prism.xml.ns._public.types_3.ModificationTypeType;
-import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
-import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
-import com.evolveum.prism.xml.ns._public.types_3.RawType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.prism.xml.ns._public.types_3.*;
 
 import org.testng.annotations.Test;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
 import javax.xml.namespace.QName;
 
 import static org.testng.AssertJUnit.assertEquals;
@@ -81,7 +75,7 @@ public class TestDeltaConverter extends AbstractSchemaTest {
                 ObjectModificationType.COMPLEX_TYPE);
     	
     	ObjectDelta<UserType> objectDelta = DeltaConvertor.createObjectDelta(objectChange, UserType.class, 
-    			PrismTestUtil.getPrismContext());
+    			getPrismContext());
     	
     	System.out.println("delta: " + objectDelta.debugDump());
   
@@ -107,7 +101,7 @@ public class TestDeltaConverter extends AbstractSchemaTest {
     	
     	// WHEN
     	ObjectDelta<UserType> objectDelta = DeltaConvertor.createObjectDelta(objectChange, UserType.class, 
-    			PrismTestUtil.getPrismContext());
+    			getPrismContext());
     	
     	// THEN
     	assertNotNull("No object delta", objectDelta);
@@ -140,7 +134,7 @@ public class TestDeltaConverter extends AbstractSchemaTest {
     	
     	// WHEN
     	ObjectDelta<UserType> objectDelta = DeltaConvertor.createObjectDelta(objectChange, UserType.class, 
-    			PrismTestUtil.getPrismContext());
+    			getPrismContext());
     	
     	// THEN
     	assertNotNull("No object delta", objectDelta);
@@ -171,7 +165,7 @@ public class TestDeltaConverter extends AbstractSchemaTest {
     	
     	// WHEN
     	ObjectDelta<UserType> objectDelta = DeltaConvertor.createObjectDelta(objectChange, UserType.class, 
-    			PrismTestUtil.getPrismContext());
+    			getPrismContext());
     	
     	System.out.println("Delta:");
     	System.out.println(objectDelta.debugDump());
@@ -219,8 +213,8 @@ public class TestDeltaConverter extends AbstractSchemaTest {
         modificationDeleteAccountRef.setModificationType(ModificationTypeType.DELETE);
         ObjectReferenceType accountRefToDelete = new ObjectReferenceType();
         accountRefToDelete.setOid("54321");
-        PrismContext prismContext = PrismTestUtil.getPrismContext();
-        RawType modificationValue = new RawType(prismContext.getBeanConverter().marshall(accountRefToDelete), prismContext);
+        PrismContext prismContext = getPrismContext();
+        RawType modificationValue = new RawType(((PrismContextImpl) prismContext).getBeanMarshaller().marshall(accountRefToDelete), prismContext);
         modificationDeleteAccountRef.getValue().add(modificationValue);
         objectChange.getItemDelta().add(modificationDeleteAccountRef);
         ItemPathType itemPathType = new ItemPathType(new ItemPath(UserType.F_LINK_REF));
@@ -246,13 +240,13 @@ public class TestDeltaConverter extends AbstractSchemaTest {
     	ProtectedStringType protectedString = new ProtectedStringType();
     	protectedString.setClearValue("abrakadabra");
     	ObjectDelta<UserType> objectDelta = ObjectDelta.createModificationReplaceProperty(UserType.class, "12345",
-    			path, PrismTestUtil.getPrismContext(), protectedString);
+    			path, getPrismContext(), protectedString);
 
     	System.out.println("ObjectDelta");
     	System.out.println(objectDelta.debugDump());
 
     	// WHEN
-    	ObjectDeltaType objectDeltaType = DeltaConvertor.toObjectDeltaType(objectDelta);
+    	ObjectDeltaType objectDeltaType = toObjectDeltaType(objectDelta);
 
     	// THEN
     	System.out.println("ObjectDeltaType (XML)");
@@ -276,7 +270,7 @@ public class TestDeltaConverter extends AbstractSchemaTest {
         PrimitiveXNode clearValueNode = (PrimitiveXNode) valXNode.get(ProtectedStringType.F_CLEAR_VALUE);
         val.getParsedValue(null, null);
 //        System.out.println("clear value " + clearValueNode);
-        assertEquals("Wrong element value", protectedString.getClearValue(), clearValueNode.getParsedValue(DOMUtil.XSD_STRING));
+        assertEquals("Wrong element value", protectedString.getClearValue(), clearValueNode.getParsedValue(DOMUtil.XSD_STRING, String.class));
 //    	List<Object> values = val.getContent();
 //    	assertEquals("Wrong number of values", 1, values.size());
 //    	JAXBElement<ProtectedStringType> valueElement = (JAXBElement<ProtectedStringType>)values.iterator().next();
@@ -292,13 +286,13 @@ public class TestDeltaConverter extends AbstractSchemaTest {
     	final String OID = "13235545";
     	final String VALUE = "Very Costly Center";
     	ObjectDelta<UserType> objectDelta = ObjectDelta.createModificationReplaceProperty(UserType.class, OID,
-    			UserType.F_COST_CENTER, PrismTestUtil.getPrismContext(), VALUE);
+    			UserType.F_COST_CENTER, getPrismContext(), VALUE);
 
     	System.out.println("ObjectDelta");
     	System.out.println(objectDelta.debugDump());
 
     	// WHEN
-    	ObjectDeltaType objectDeltaType = DeltaConvertor.toObjectDeltaType(objectDelta);
+    	ObjectDeltaType objectDeltaType = toObjectDeltaType(objectDelta);
 
     	// THEN
     	System.out.println("ObjectDeltaType (XML)");
@@ -328,7 +322,7 @@ public class TestDeltaConverter extends AbstractSchemaTest {
 //    	assertEquals("Wrong element value", VALUE, valueElement);
     	
     	// WHEN
-    	ObjectDelta<Objectable> objectDeltaRoundtrip = DeltaConvertor.createObjectDelta(objectDeltaType, PrismTestUtil.getPrismContext());
+    	ObjectDelta<Objectable> objectDeltaRoundtrip = DeltaConvertor.createObjectDelta(objectDeltaType, getPrismContext());
     	
     	// THEN
     	System.out.println("ObjectDelta (roundtrip)");
@@ -355,10 +349,10 @@ public class TestDeltaConverter extends AbstractSchemaTest {
 
         final QName CUSTOM_OBJECT = new QName("http://delta.example.com", "object");
 
-        PrismContext context = PrismTestUtil.getPrismContext();
+        PrismContext context = getPrismContext();
 
         // WHEN
-        ObjectDeltaType xmlDelta = DeltaConvertor.toObjectDeltaType(delta);
+        ObjectDeltaType xmlDelta = toObjectDeltaType(delta);
 
         // THEN
         Map<String, Object> properties = new HashMap<String, Object>();
@@ -489,7 +483,7 @@ public class TestDeltaConverter extends AbstractSchemaTest {
 
         // WHEN
         ObjectDelta<RoleType> objectDelta = DeltaConvertor.createObjectDelta(objectChange, RoleType.class,
-                PrismTestUtil.getPrismContext());
+                getPrismContext());
 
         System.out.println("Delta:");
         System.out.println(objectDelta.debugDump());
@@ -512,4 +506,60 @@ public class TestDeltaConverter extends AbstractSchemaTest {
         assertEquals("wrong target type in targetRef", RoleType.COMPLEX_TYPE, targetRefVal.getTargetType());
     }
 
+	@Test
+	public void test100ObjectAdd() throws Exception {
+		System.out.println("===[ test100ObjectAdd ]====");
+
+		UserType user = new UserType(getPrismContext());
+		user.setName(PolyStringType.fromOrig("john"));
+		user.setOid("1234567890");
+
+		ObjectDelta delta = ObjectDelta.createAddDelta(user.asPrismObject());
+		roundTrip(delta);
+	}
+
+	@Test
+	public void test110ObjectModifyNone() throws Exception {
+		System.out.println("===[ test110ObjectModifyNone ]====");
+
+		ObjectDelta delta = DeltaBuilder.deltaFor(UserType.class, getPrismContext())
+				.asObjectDelta("123456");
+		roundTrip(delta);
+	}
+
+	@Test
+	public void test120ObjectModifyName() throws Exception {
+		System.out.println("===[ test120ObjectModifyName ]====");
+
+		ObjectDelta<?> delta = DeltaBuilder.deltaFor(UserType.class, getPrismContext())
+				.item(UserType.F_NAME).replace(PolyString.fromOrig("jack"))
+				.asObjectDelta("123456");
+		roundTrip(delta);
+	}
+
+	private void roundTrip(ObjectDelta delta) throws Exception {
+
+		ObjectDeltaType deltaType = DeltaConvertor.toObjectDeltaType(delta);
+
+		System.out.println("Serialized to bean");
+		System.out.println(deltaType);
+
+		String xml = getPrismContext().xmlSerializer().serializeRealValue(deltaType, new QName("aDelta"));
+
+		System.out.println("Serialized to XML");
+		System.out.println(xml);
+
+		ObjectDeltaType deltaTypeParsed = getPrismContext().parserFor(xml).parseRealValue();
+
+		System.out.println("Parsed from XML to bean");
+		System.out.println(deltaTypeParsed);
+
+		ObjectDelta deltaParsed = DeltaConvertor.createObjectDelta(deltaTypeParsed, getPrismContext());
+
+		System.out.println("Parsed from XML to bean to delta");
+		System.out.println(deltaParsed);
+
+		assertTrue("Deltas (native) do not match", delta.equivalent(deltaParsed));
+		// note: comparing beans is problematic because e.g. item paths are not equal ({common-3}name vs {c=common-3}c:name)
+	}
 }

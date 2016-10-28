@@ -15,14 +15,10 @@
  */
 package com.evolveum.midpoint.model.impl.lens;
 
-import java.util.Collection;
-
 import com.evolveum.midpoint.model.common.expression.ItemDeltaItem;
-import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;

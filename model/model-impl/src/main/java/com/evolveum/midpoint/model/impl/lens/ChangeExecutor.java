@@ -35,16 +35,7 @@ import com.evolveum.midpoint.model.impl.ModelObjectResolver;
 import com.evolveum.midpoint.model.impl.expr.ModelExpressionThreadLocalHolder;
 import com.evolveum.midpoint.model.impl.lens.projector.FocusConstraintsChecker;
 import com.evolveum.midpoint.model.impl.util.Utils;
-import com.evolveum.midpoint.prism.ConsistencyCheckScope;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.PrismReference;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -1522,7 +1513,7 @@ public class ChangeExecutor {
 
 		QName FAKE_SCRIPT_ARGUMENT_NAME = new QName(SchemaConstants.NS_C, "arg");
 
-		PrismPropertyDefinition<String> scriptArgumentDefinition = new PrismPropertyDefinition<>(
+		PrismPropertyDefinition<String> scriptArgumentDefinition = new PrismPropertyDefinitionImpl<>(
 				FAKE_SCRIPT_ARGUMENT_NAME, DOMUtil.XSD_STRING, prismContext);
 
 		String shortDesc = "Provisioning script argument expression";

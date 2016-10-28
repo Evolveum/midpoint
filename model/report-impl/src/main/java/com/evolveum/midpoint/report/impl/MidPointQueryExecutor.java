@@ -17,7 +17,6 @@ import net.sf.jasperreports.engine.JRValueParameter;
 import net.sf.jasperreports.engine.JasperReportsContext;
 import net.sf.jasperreports.engine.base.JRBaseParameter;
 import net.sf.jasperreports.engine.data.JRBeanCollectionDataSource;
-import net.sf.jasperreports.engine.fill.JRFillParameter;
 import net.sf.jasperreports.engine.query.JRAbstractQueryExecuter;
 
 import org.apache.commons.lang.StringUtils;
@@ -25,7 +24,6 @@ import org.apache.commons.lang.StringUtils;
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.report.api.ReportService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;

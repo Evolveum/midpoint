@@ -17,12 +17,10 @@
 package com.evolveum.midpoint.web.model;
 
 import com.evolveum.midpoint.util.MiscUtil;
-import org.apache.commons.lang.time.DateUtils;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
 import javax.xml.datatype.XMLGregorianCalendar;
-import java.util.Calendar;
 import java.util.Date;
 
 /**

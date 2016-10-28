@@ -15,8 +15,6 @@
  */
 package com.evolveum.midpoint.audit.api;
 
-import javax.xml.namespace.QName;
-
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventTypeType;
 
 /**

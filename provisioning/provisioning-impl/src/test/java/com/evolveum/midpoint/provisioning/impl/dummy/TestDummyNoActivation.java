@@ -16,15 +16,10 @@
 package com.evolveum.midpoint.provisioning.impl.dummy;
 
 import static org.testng.AssertJUnit.assertNull;
-import static com.evolveum.midpoint.test.util.TestUtil.assertSuccess;
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertFalse;
-import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertTrue;
 
 import java.io.File;
-import java.util.Date;
 
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -330,7 +325,9 @@ public class TestDummyNoActivation extends TestDummy {
 				ACCOUNT_WILL_OID, SchemaConstants.PATH_ACTIVATION_VALID_TO, prismContext,
 				XmlTypeConverter.createXMLGregorianCalendar(VALID_TO_MILLIS));
 		PrismObjectDefinition def = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ShadowType.class);
-		PropertyDelta validFromDelta = PropertyDelta.createModificationDeleteProperty(SchemaConstants.PATH_ACTIVATION_VALID_FROM, def.findPropertyDefinition(SchemaConstants.PATH_ACTIVATION_VALID_FROM), VALID_FROM_MILLIS);
+		PropertyDelta validFromDelta = PropertyDelta.createModificationDeleteProperty(SchemaConstants.PATH_ACTIVATION_VALID_FROM,
+				def.findPropertyDefinition(SchemaConstants.PATH_ACTIVATION_VALID_FROM),
+				XmlTypeConverter.createXMLGregorianCalendar(VALID_FROM_MILLIS));
 		delta.addModification(validFromDelta);
 		delta.checkConsistence();
 		

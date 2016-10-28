@@ -21,6 +21,7 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.page.admin.resources.PageResourceWizard;
 import org.apache.commons.lang.StringUtils;
@@ -28,7 +29,6 @@ import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.wizard.IWizard;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.validation.IValidatable;
@@ -44,7 +44,6 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * @author lazyman
@@ -119,7 +118,7 @@ public class WizardStep extends org.apache.wicket.extensions.wizard.WizardStep {
     protected List<QName> loadResourceObjectClassList(IModel<PrismObject<ResourceType>> model, Trace LOGGER, String message){
         List<QName> list = new ArrayList<>();
         try {
-            ResourceSchema schema = RefinedResourceSchema.getResourceSchema(model.getObject(), getPageBase().getPrismContext());
+            ResourceSchema schema = RefinedResourceSchemaImpl.getResourceSchema(model.getObject(), getPageBase().getPrismContext());
             if (schema != null) {
                 for (Definition def: schema.getDefinitions()) {
                     list.add(def.getTypeName());

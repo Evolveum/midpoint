@@ -15,14 +15,15 @@
  */
 package com.evolveum.midpoint.schema.util;
 
-import java.util.Collection;
-import java.util.Iterator;
-
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AdminGuiConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectFormType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectFormsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
+import org.jetbrains.annotations.NotNull;
+
+import java.util.Iterator;
+import java.util.List;
 
 /**
  * @author semancik
@@ -30,8 +31,15 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationT
  */
 public class AdminGuiConfigTypeUtil {
 
-	public static AdminGuiConfigurationType compileAdminGuiConfiguration(Collection<AdminGuiConfigurationType> adminGuiConfigurations,
+	public static AdminGuiConfigurationType compileAdminGuiConfiguration(@NotNull List<AdminGuiConfigurationType> adminGuiConfigurations,
 			PrismObject<SystemConfigurationType> systemConfiguration) {
+
+		// if there's no admin config at all, return null (to preserve original behavior)
+		if (adminGuiConfigurations.isEmpty() &&
+				(systemConfiguration == null || systemConfiguration.asObjectable().getAdminGuiConfiguration() == null)) {
+			return null;
+		}
+
 		AdminGuiConfigurationType composite = new AdminGuiConfigurationType();
 		if (systemConfiguration != null) {
 			applyAdminGuiConfiguration(composite, systemConfiguration.asObjectable().getAdminGuiConfiguration());
@@ -50,6 +58,9 @@ public class AdminGuiConfigTypeUtil {
 		composite.getUserDashboardLink().addAll(adminGuiConfiguration.getUserDashboardLink());
 		if (adminGuiConfiguration.getDefaultTimezone() != null) {
 			composite.setDefaultTimezone(adminGuiConfiguration.getDefaultTimezone());
+		}
+		if (adminGuiConfiguration.getPreferredDataLanguage() != null) {
+			composite.setPreferredDataLanguage(adminGuiConfiguration.getPreferredDataLanguage());
 		}
 		if (adminGuiConfiguration.getObjectForms() != null) {
 			if (composite.getObjectForms() == null) {

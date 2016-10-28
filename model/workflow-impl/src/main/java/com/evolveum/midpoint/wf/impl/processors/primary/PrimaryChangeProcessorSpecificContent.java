@@ -33,7 +33,6 @@ public class PrimaryChangeProcessorSpecificContent implements ProcessorSpecificC
 
 	public PrimaryChangeProcessorSpecificContent(PrismContext prismContext) {
 		processorState = new WfPrimaryChangeProcessorStateType(prismContext);
-		processorState.asPrismContainerValue().setConcreteType(WfPrimaryChangeProcessorStateType.COMPLEX_TYPE);
 	}
 
 	public WfPrimaryChangeProcessorStateType createProcessorSpecificState() {

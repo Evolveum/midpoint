@@ -16,9 +16,7 @@
 package com.evolveum.midpoint.schema.util;
 
 import java.util.Collection;
-import java.util.List;
 
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ResultHandler;

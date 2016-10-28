@@ -26,6 +26,7 @@ import com.evolveum.midpoint.model.api.RoleSelectionSpecification;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.*;
+import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -242,10 +243,10 @@ public class MultipleAssignmentSelectorPanel<F extends FocusType, H extends Focu
         return new IModel<ObjectFilter>() {
             @Override
             public ObjectFilter getObject() {
-                ItemPath path = new ItemPath(FocusType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS);
-                ObjectFilter archivedRolesFilter = EqualFilter.createEqual(path, RoleType.class,
-                        getPageBase().getPrismContext(), null, ActivationStatusType.ARCHIVED);
-                ObjectFilter filter = null;
+                ObjectFilter archivedRolesFilter = QueryBuilder.queryFor(RoleType.class, getPageBase().getPrismContext())
+                        .item(RoleType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS).eq(ActivationStatusType.ARCHIVED)
+                        .buildFilter();
+                ObjectFilter filter;
                 if (isRequestableFilter) {
                     ObjectFilter assignableRolesFilter = getAssignableRolesFilter();
                     if (assignableRolesFilter instanceof NotFilter) {
@@ -336,8 +337,9 @@ public class MultipleAssignmentSelectorPanel<F extends FocusType, H extends Focu
                 supportedTypes.add(getPageBase().getPrismContext().getSchemaRegistry()
                         .findObjectDefinitionByCompileTimeClass(OrgType.class).getTypeName());
 
-                    ObjectFilter filter = EqualFilter.createEqual(OrgType.F_TENANT, OrgType.class,
-                            getPageBase().getPrismContext(), null, true);
+                    ObjectFilter filter = QueryBuilder.queryFor(OrgType.class, getPageBase().getPrismContext())
+                            .item(OrgType.F_TENANT).eq(true)
+                            .buildFilter();
 
                 ObjectBrowserPanel<OrgType> tenantPanel = new ObjectBrowserPanel<OrgType>(getPageBase().getMainPopupBodyId(),
                         OrgType.class, supportedTypes, false, getPageBase(), filter) {

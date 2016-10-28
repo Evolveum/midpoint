@@ -3,28 +3,22 @@ package com.evolveum.midpoint.tools.ninja;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.parser.DomSerializer;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 import org.apache.commons.io.IOUtils;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.w3c.dom.Element;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * @author lazyman

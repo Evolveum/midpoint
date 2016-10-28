@@ -50,7 +50,7 @@ public class PcpChildWfTaskCreationInstruction<PI extends ProcessSpecificContent
 	// useful shortcut
 	public static PcpChildWfTaskCreationInstruction<ItemApprovalSpecificContent> createItemApprovalInstruction(ChangeProcessor changeProcessor, String approvalTaskName,
 			ApprovalRequest<?> approvalRequest) {
-		ItemApprovalSpecificContent itemApprovalInstruction = new ItemApprovalSpecificContent();
+		ItemApprovalSpecificContent itemApprovalInstruction = new ItemApprovalSpecificContent(changeProcessor.getPrismContext());
 		itemApprovalInstruction.setTaskName(approvalTaskName);
 		itemApprovalInstruction.setApprovalSchema(approvalRequest.getApprovalSchema());
 		return new PcpChildWfTaskCreationInstruction<>(changeProcessor, itemApprovalInstruction);

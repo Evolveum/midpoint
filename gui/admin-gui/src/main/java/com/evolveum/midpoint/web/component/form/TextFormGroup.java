@@ -22,7 +22,6 @@ import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.feedback.ComponentFeedbackMessageFilter;
 import org.apache.wicket.feedback.ContainerFeedbackMessageFilter;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;

@@ -17,8 +17,6 @@
 package com.evolveum.midpoint.model.api.visualizer;
 
 import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 
 import java.io.Serializable;

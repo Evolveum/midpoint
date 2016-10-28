@@ -20,7 +20,6 @@ import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.assignment.AssignmentEditorDto;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
@@ -31,8 +30,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-
-import org.apache.wicket.ajax.AjaxRequestTarget;
 
 public abstract class PageAdminAbstractRole<T extends AbstractRoleType> extends PageAdminFocus<T> {
 

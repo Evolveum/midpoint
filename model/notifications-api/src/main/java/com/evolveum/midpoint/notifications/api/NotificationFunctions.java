@@ -17,7 +17,6 @@
 package com.evolveum.midpoint.notifications.api;
 
 import com.evolveum.midpoint.notifications.api.events.Event;
-import com.evolveum.midpoint.notifications.api.events.ResourceObjectEvent;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;

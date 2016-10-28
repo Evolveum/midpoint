@@ -17,23 +17,15 @@
 package com.evolveum.midpoint.schema;
 
 import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
-import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordCredentialsPolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ValuePolicyType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.testng.annotations.BeforeSuite;
@@ -46,7 +38,6 @@ import java.io.IOException;
 
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
-import static org.testng.AssertJUnit.assertNull;
 import static org.testng.AssertJUnit.assertTrue;
 
 /**
@@ -73,7 +64,7 @@ public class TestParsePasswordPolicy {
 		PrismContext prismContext = PrismTestUtil.getPrismContext();
 		
 		// WHEN
-		PrismObject<ValuePolicyType> policy = prismContext.parseObject(FILE, PrismContext.LANG_XML);
+		PrismObject<ValuePolicyType> policy = prismContext.parserFor(FILE).xml().parse();
 		
 		// THEN
 		System.out.println("Parsed policy:");

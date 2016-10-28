@@ -22,7 +22,7 @@ package com.evolveum.midpoint.prism;
  *
  * @author Pavol Mederly
  */
-public class SerializationContext {
+public class SerializationContext implements Cloneable {
 
     private SerializationOptions options;
 
@@ -40,5 +40,27 @@ public class SerializationContext {
 
     public static boolean isSerializeReferenceNames(SerializationContext ctx) {
         return ctx != null && SerializationOptions.isSerializeReferenceNames(ctx.getOptions());
+    }
+
+    public static boolean isSerializeCompositeObjects(SerializationContext ctx) {
+        return ctx != null && SerializationOptions.isSerializeCompositeObjects(ctx.getOptions());
+    }
+
+    public static SerializationContext forOptions(SerializationOptions options) {
+        return new SerializationContext(options);
+    }
+
+    @Override
+    public SerializationContext clone() {
+        SerializationContext clone;
+        try {
+            clone = (SerializationContext) super.clone();
+        } catch (CloneNotSupportedException e) {
+            throw new IllegalStateException(e);
+        }
+        if (options != null) {
+            clone.options = options.clone();
+        }
+        return clone;
     }
 }

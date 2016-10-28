@@ -18,6 +18,7 @@ package com.evolveum.midpoint.web.page.forgetpassword;
 import java.util.Collection;
 import java.util.List;
 
+import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.RequiredTextField;
@@ -151,12 +152,12 @@ public class PageForgetPassword extends PageBase {
 
 			Task task = createAnonymousTask(OPERATION_LOAD_USER);
 			OperationResult result = task.getResult();
-	
-			ObjectQuery query = ObjectQuery.createObjectQuery(AndFilter.createAnd(
-					EqualFilter.createEqual(UserType.F_NAME, UserType.class,getPrismContext(), PolyStringOrigMatchingRule.NAME, username),
-					EqualFilter.createEqual(UserType.F_EMAIL_ADDRESS, UserType.class,getPrismContext(), PolyStringOrigMatchingRule.NAME, email)));
-					
-			
+
+			ObjectQuery query = QueryBuilder.queryFor(UserType.class, getPrismContext())
+					.item(UserType.F_NAME).eqPoly(username).matchingNorm()
+					.and().item(UserType.F_EMAIL_ADDRESS).eq(email).matchingCaseIgnore()
+					.build();
+
 			if (LOGGER.isTraceEnabled()) {
 				LOGGER.trace("Searching for user with query:\n{}", query.debugDump(1));
 			}

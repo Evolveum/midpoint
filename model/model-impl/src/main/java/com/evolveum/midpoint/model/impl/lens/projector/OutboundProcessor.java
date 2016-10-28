@@ -123,7 +123,7 @@ public class OutboundProcessor {
         String operation = projCtx.getOperation().getValue();
 
         for (QName attributeName : rOcDef.getNamesOfAttributesWithOutboundExpressions()) {
-			RefinedAttributeDefinition<?> refinedAttributeDefinition = rOcDef.getAttributeDefinition(attributeName);
+			RefinedAttributeDefinition<?> refinedAttributeDefinition = rOcDef.findAttributeDefinition(attributeName);
 						
 			final MappingType outboundMappingType = refinedAttributeDefinition.getOutboundMappingType();
 			if (outboundMappingType == null) {
@@ -149,7 +149,7 @@ public class OutboundProcessor {
         }
         
         for (QName assocName : rOcDef.getNamesOfAssociationsWithOutboundExpressions()) {
-			RefinedAssociationDefinition associationDefinition = rOcDef.findAssociation(assocName);
+			RefinedAssociationDefinition associationDefinition = rOcDef.findAssociationDefinition(assocName);
 						
 			final MappingType outboundMappingType = associationDefinition.getOutboundMappingType();
 			if (outboundMappingType == null) {

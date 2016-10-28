@@ -17,11 +17,8 @@ package com.evolveum.midpoint.model.common.mapping;
 
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;

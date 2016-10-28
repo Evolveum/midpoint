@@ -15,14 +15,9 @@
  */
 package com.evolveum.midpoint.prism.query;
 
-import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 
-import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
@@ -30,141 +25,62 @@ import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class GreaterFilter<T> extends ComparativeFilter<T> {
-	
 
-	public GreaterFilter() {
-	}
-	
-	GreaterFilter(ItemPath itemPath, PrismPropertyDefinition definition, PrismPropertyValue<T> value, boolean equals) {
-		super(itemPath, definition, value, equals);
-	}
-
-	GreaterFilter(ItemPath itemPath, PrismPropertyDefinition<T> definition, ItemPath rightSidePath, ItemDefinition rightSideDefinition, boolean equals) {
-		super(itemPath, definition, rightSidePath, rightSideDefinition, equals);
-	}
-	
-	public static <T, O extends Objectable> GreaterFilter<T> createGreater(ItemPath itemPath, PrismPropertyDefinition definition, PrismPropertyValue<T> value, boolean equals){
-		GreaterFilter<T> greaterFilter = new GreaterFilter<>(itemPath, definition, value, equals);
-		if (value != null) {
-			value.setParent(greaterFilter);
-		}
-		return greaterFilter;
-	}
-	
-	public static <T, C extends Containerable> GreaterFilter<T> createGreater(ItemPath itemPath, PrismContainerDefinition<C> containerDef,
-			PrismPropertyValue<T> value, boolean equals) throws SchemaException {
-		PrismPropertyDefinition def = (PrismPropertyDefinition) FilterUtils.findItemDefinition(itemPath, containerDef);
-		GreaterFilter<T> greaterFilter = createGreater(itemPath, def, value, equals);
-		if (value != null) {
-			value.setParent(greaterFilter);
-		}
-		return greaterFilter;
+	public GreaterFilter(@NotNull ItemPath path, @Nullable PrismPropertyDefinition<T> definition,
+			@Nullable PrismPropertyValue<T> prismPropertyValue,
+			@Nullable ExpressionWrapper expression, @Nullable ItemPath rightHandSidePath,
+			@Nullable ItemDefinition rightHandSideDefinition, boolean equals) {
+		super(path, definition, prismPropertyValue, expression, rightHandSidePath, rightHandSideDefinition, equals);
 	}
 
-	public static <T> GreaterFilter<T> createGreater(ItemPath itemPath, PrismPropertyDefinition itemDefinition, T realValue, boolean equals) throws SchemaException{
-		PrismPropertyValue<T> value = createPropertyValue(itemDefinition, realValue);
-		
-		if (value == null){
-			//TODO: create null
-		}
-		
-		GreaterFilter<T> greaterFilter =  createGreater(itemPath, itemDefinition, value, equals);
-		value.setParent(greaterFilter);
-		return greaterFilter;
+	// factory methods
+
+	// empty (can be filled-in later)
+	@NotNull
+	public static <T> GreaterFilter<T> createGreater(@NotNull ItemPath itemPath, PrismPropertyDefinition<T> definition, boolean equals) {
+		return new GreaterFilter<T>(itemPath, definition, null, null, null, null, equals);
 	}
 
-	public static <T, C extends Containerable> GreaterFilter<T> createGreater(ItemPath itemPath, PrismContainerDefinition<C> containerDef,
-			T realValue, boolean equals) throws SchemaException {
-		PrismPropertyDefinition def = (PrismPropertyDefinition) FilterUtils.findItemDefinition(itemPath, containerDef);
-		return createGreater(itemPath, def, realValue, equals);
+	// value
+	@NotNull
+	public static <T> GreaterFilter<T> createGreater(@NotNull ItemPath itemPath, PrismPropertyDefinition<T> definition,
+			boolean equals, @NotNull PrismContext prismContext, Object anyValue) {
+		PrismPropertyValue<T> propertyValue = anyValueToPropertyValue(prismContext, anyValue);
+		return new GreaterFilter<T>(itemPath, definition, propertyValue, null, null, null, equals);
 	}
 
-	public static <T, O extends Objectable> GreaterFilter createGreater(QName propertyName, Class<O> type, PrismContext prismContext, T realValue, boolean equals)
-			throws SchemaException {
-		return createGreater(new ItemPath(propertyName), type, prismContext, realValue, equals);
-	}
-	
-	public static <T, O extends Objectable> GreaterFilter createGreater(ItemPath path, Class<O> type, PrismContext prismContext, T realValue, boolean equals)
-			throws SchemaException {
-	
-		PrismPropertyDefinition def = (PrismPropertyDefinition) FilterUtils.findItemDefinition(path, type, prismContext);
-		
-		return createGreater(path, def, realValue, equals);
+	// expression-related
+	@NotNull
+	public static <T> GreaterFilter<T> createGreater(@NotNull ItemPath itemPath, PrismPropertyDefinition<T> definition,
+			@NotNull ExpressionWrapper wrapper, boolean equals) {
+		return new GreaterFilter<>(itemPath, definition, null, wrapper, null, null, equals);
 	}
 
-	public static <C extends Containerable, T> GreaterFilter<T> createGreater(ItemPath propertyPath, PrismPropertyDefinition propertyDefinition, ItemPath rightSidePath, ItemDefinition rightSideDefinition, boolean equals) {
-		return new GreaterFilter(propertyPath, propertyDefinition, rightSidePath, rightSideDefinition, equals);
+	// right-side-related
+	@NotNull
+	public static <T> GreaterFilter<T> createGreater(@NotNull ItemPath propertyPath, PrismPropertyDefinition<T> definition,
+			@NotNull ItemPath rightSidePath, ItemDefinition rightSideDefinition, boolean equals) {
+		return new GreaterFilter<>(propertyPath, definition, null, null, rightSidePath, rightSideDefinition, equals);
 	}
-	
+
+	@SuppressWarnings("CloneDoesntCallSuperClone")
 	@Override
 	public GreaterFilter<T> clone() {
-		PrismPropertyValue<T> clonedValue = null;
-		PrismPropertyValue<T> value = getSingleValue();
-		if (value != null) {
-			clonedValue = value.clone();
-		}
-		GreaterFilter<T> clone = new GreaterFilter<>(getFullPath(), getDefinition(), clonedValue, isEquals());
-		if (clonedValue != null) {
-			clonedValue.setParent(clone);
-		}
-		clone.copyRightSideThingsFrom(this);
-		return clone;
+		return new GreaterFilter<T>(getFullPath(), getDefinition(), getClonedValue(), getExpression(),
+				getRightHandSidePath(), getRightHandSideDefinition(), isEquals());
 	}
 
 	@Override
-	public String debugDump() {
-		return debugDump(0);
-	}
-
-	@Override
-	public String debugDump(int indent) {
-		StringBuilder sb = new StringBuilder();
-		DebugUtil.indentDebugDump(sb, indent);
-		sb.append("GREATER:");
-		return debugDump(indent, sb);
-	}
-	
-	@Override
-	public String toString() {
-		StringBuilder sb = new StringBuilder();
-		sb.append("GREATER: ");
-		return toString(sb);
-	}
-
-	@Override
-	public boolean match(PrismContainerValue value, MatchingRuleRegistry matchingRuleRegistry) throws SchemaException {
-		throw new UnsupportedOperationException("Matching object and greater filter not supported yet");
-	}
-	
-	@Override
-	public PrismPropertyDefinition getDefinition() {
-		return (PrismPropertyDefinition) super.getDefinition();
-	}
-
-	@Override
-	public QName getElementName() {
-		return getDefinition().getName();
-	}
-
-	@Override
-	public PrismContext getPrismContext() {
-		return getDefinition().getPrismContext();
-	}
-
-	@Override
-	public ItemPath getPath() {
-		return getFullPath();
-	}
-
-	public static <T> GreaterFilter<T> createGreaterThanItem(ItemPath itemPath, PrismPropertyDefinition propertyDefinition, ItemPath rightSidePath, ItemDefinition rightSideDefinition, boolean equals) {
-		return new GreaterFilter<>(itemPath, propertyDefinition, rightSidePath, rightSideDefinition, equals);
+	protected String getFilterName() {
+		return "GREATER";
 	}
 
 	@Override
 	public boolean equals(Object obj, boolean exact) {
-		return super.equals(obj, exact) && obj instanceof GreaterFilter;
+		return obj instanceof GreaterFilter && super.equals(obj, exact);
 	}
-
 }

@@ -2496,6 +2496,21 @@
                         </xsd:annotation>
                     </xsd:element>
 
+					<xsd:element name="adminGuiConfiguration" type="tns:AdminGuiConfigurationType" minOccurs="0" maxOccurs="1">
+						<xsd:annotation>
+							<xsd:documentation>
+								<p>
+									Specifies the admin GUI configuration that should be used
+									by this user.
+								</p>
+							</xsd:documentation>
+							<xsd:appinfo>
+								<a:since>3.5</a:since>
+								<a:displayName>AdminGuiConfigurationType.adminGuiConfiguration</a:displayName>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:element>
+
                     <xsd:element name="result" type="tns:OperationResultType" minOccurs="0" maxOccurs="1">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -4967,6 +4982,7 @@
             </xsd:documentation>
             <xsd:appinfo>
             	<a:container/>
+				<a:defaultNamespace>http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3</a:defaultNamespace>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -8462,8 +8478,14 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    <xsd:element name="userTemplate" type="tns:ObjectTemplateType" substitutionGroup="c:object"/>
-    <xsd:element name="objectTemplate" type="tns:ObjectTemplateType" substitutionGroup="c:object"/>
+	<xsd:element name="userTemplate" type="tns:ObjectTemplateType" substitutionGroup="c:object">
+		<xsd:annotation>
+			<xsd:appinfo>
+				<a:deprecated>true</a:deprecated>
+			</xsd:appinfo>
+		</xsd:annotation>
+	</xsd:element>
+	<xsd:element name="objectTemplate" type="tns:ObjectTemplateType" substitutionGroup="c:object"/>
     
     <xsd:complexType name="ObjectTemplateItemDefinitionType">
         <xsd:annotation>
@@ -9458,7 +9480,17 @@
                         </xsd:annotation>
                     </xsd:element>
                     
-                    <xsd:element name="defaultHostname" type="xsd:string"></xsd:element>
+                    <xsd:element name="defaultHostname" type="xsd:string" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Hostname that will be used as a public hostname for the midPoint deployment.
+                                E.g. it will be used in URLs that point to the midPoint in notification mails.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                            	<a:since>3.5</a:since>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
                     
                 </xsd:sequence>
             </xsd:extension>
@@ -9542,6 +9574,18 @@
 					</xsd:documentation>
 					<xsd:appinfo>
 						<a:since>3.4</a:since>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="preferredDataLanguage" type="xsd:string" minOccurs="0" maxOccurs="1">
+				<xsd:annotation>
+					<xsd:documentation>
+						<p>
+							Preferred data language (e.g. xml, json, yaml - written in lowercase). Default is xml.
+						</p>
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:since>3.5</a:since>
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
@@ -12810,6 +12854,14 @@
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
+			<xsd:element name="projection" type="tns:ProjectionMergeConfigurationType" minOccurs="0" maxOccurs="unbounded">
+				<xsd:annotation>
+					<xsd:documentation>
+						Projection merge configuration. It will be applied to merge projections (linkRefs)
+						of the objects.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
 			<xsd:element name="default" type="tns:ItemMergeConfigurationType" minOccurs="0" maxOccurs="1">
 				<xsd:annotation>
 					<xsd:documentation>
@@ -12875,6 +12927,25 @@
 		</xsd:complexContent>
 	</xsd:complexType>
 	
+	<xsd:complexType name="ProjectionMergeConfigurationType">
+		<xsd:annotation>
+			<xsd:documentation>
+				TODO
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:container/>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:complexContent>
+			<xsd:extension base="tns:ItemMergeConfigurationType">
+				<xsd:sequence>
+					<xsd:element name="situation" type="tns:ProjectionMergeSituationType" minOccurs="0" maxOccurs="1"/>
+					<xsd:element name="projectionDiscriminator" type="tns:ShadowDiscriminatorType" minOccurs="0" maxOccurs="1"/>
+				</xsd:sequence>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+	
 	<xsd:simpleType name="MergeStategyType">
 		<xsd:annotation>
 			<xsd:documentation>
@@ -12915,7 +12986,50 @@
 			<!-- TODO: values for manual selection may come here in the future. -->
 		</xsd:restriction>
 	</xsd:simpleType>
-	
+
+	<xsd:simpleType name="ProjectionMergeSituationType">
+		<xsd:annotation>
+			<xsd:documentation>
+				TODO
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="existing">
+				<xsd:annotation>
+					<xsd:documentation>
+						Projection exists on the left side. There is no conflicting
+						projection on the right side.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="EXISTING"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+			<xsd:enumeration value="mergeable">
+				<xsd:annotation>
+					<xsd:documentation>
+						Projection exists on the right side. There is no conflicting
+						projection on the left side. The projection can be merged.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="MERGEABLE"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+			<xsd:enumeration value="conflict">
+				<xsd:annotation>
+					<xsd:documentation>
+						There are two conflicting projections, one on the left side
+						other on the right side.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="CONFLICT"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+		</xsd:restriction>
+	</xsd:simpleType>
+
 	<xsd:complexType name="CachingPolicyType">
 		<xsd:annotation>
 			<xsd:documentation>

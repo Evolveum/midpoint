@@ -16,31 +16,16 @@
 
 package com.evolveum.midpoint.testing.model.client.sample;
 
-import com.evolveum.midpoint.model.client.ModelClientUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectDeltaOperationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAttributesType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.prism.xml.ns._public.types_3.ModificationTypeType;
 import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
-import org.w3c.dom.Document;
 
-import javax.naming.InvalidNameException;
-import javax.naming.ldap.LdapName;
-import javax.naming.ldap.Rdn;
-import javax.xml.namespace.QName;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 
 import static org.testng.AssertJUnit.assertTrue;
-import static org.testng.AssertJUnit.fail;
 
 /**
  * See documentation for TestExchangeConnectorLow.

@@ -25,16 +25,13 @@ import java.util.Collection;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.common.refinery.*;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
-import com.evolveum.midpoint.common.refinery.LayerRefinedObjectClassDefinition;
-import com.evolveum.midpoint.common.refinery.LayerRefinedResourceSchema;
-import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.model.impl.util.Utils;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
@@ -84,7 +81,7 @@ public class TestRefinedSchema extends AbstractInternalModelIntegrationTest {
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // WHEN
-        refinedSchema = RefinedResourceSchema.getRefinedSchema(resourceDummyType, prismContext);
+        refinedSchema = RefinedResourceSchemaImpl.getRefinedSchema(resourceDummyType, prismContext);
         
         display("Dummy refined schema", refinedSchema);
         
@@ -98,7 +95,7 @@ public class TestRefinedSchema extends AbstractInternalModelIntegrationTest {
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // WHEN
-        refinedSchemaModel = RefinedResourceSchema.getRefinedSchema(resourceDummyType, LayerType.MODEL, prismContext);
+        refinedSchemaModel = RefinedResourceSchemaImpl.getRefinedSchema(resourceDummyType, LayerType.MODEL, prismContext);
         
         display("Dummy refined schema (MODEL)", refinedSchemaModel);
         

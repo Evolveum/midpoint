@@ -19,7 +19,6 @@ package com.evolveum.midpoint.prism;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 
 import javax.xml.namespace.QName;
 
@@ -84,6 +83,7 @@ public class PrismObject<O extends Objectable> extends PrismContainer<O> {
 	}
 
 	public void setOid(String oid) {
+		checkMutability();
 		this.oid = oid;
 	}
 
@@ -92,6 +92,7 @@ public class PrismObject<O extends Objectable> extends PrismContainer<O> {
 	}
 
 	public void setVersion(String version) {
+		checkMutability();
 		this.version = version;
 	}
 

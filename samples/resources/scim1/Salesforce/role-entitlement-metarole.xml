@@ -5,7 +5,7 @@
       xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
       xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
       oid="bf4e629b-de8c-4af2-b58d-99e18e270ebb"
-      version="9">
+      version="11">
    <name>entitlement metarole</name>
    <metadata>
       <createTimestamp>2016-07-19T17:47:56.771+02:00</createTimestamp>
@@ -17,7 +17,7 @@
    <inducement id="1">
       <construction>
          <resourceRef xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-                      oid="ef179fcf-6fa7-42ff-b3a4-78d698661e32"
+                      oid="714a197f-fa15-4eac-8f90-f1f2dfdcafc4"
                       type="tns:ResourceType"><!-- salesforce-scim-connector --></resourceRef>
          <kind>account</kind>
          <intent>default</intent>

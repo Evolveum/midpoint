@@ -4,14 +4,12 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.TaskHandler;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
-import java.text.ParseException;
 import java.util.Collection;
 import java.util.List;
 

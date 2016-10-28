@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.web.component.data.column.InlineMenuable;
@@ -98,7 +99,7 @@ public class ResourceDto extends Selectable implements InlineMenuable {
         this.capabilities = capabilities;
         
         try {
-	        ResourceSchema resourceSchema = RefinedResourceSchema.getResourceSchema(resource, prismContext);
+	        ResourceSchema resourceSchema = RefinedResourceSchemaImpl.getResourceSchema(resource, prismContext);
 	        Collection<ObjectClassComplexTypeDefinition> definitions = resourceSchema.getObjectClassDefinitions();
 	        for (ObjectClassComplexTypeDefinition definition : definitions) {
     			if (!(definition instanceof ObjectClassComplexTypeDefinition)) {

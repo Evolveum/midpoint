@@ -13,6 +13,7 @@ import javax.xml.ws.Holder;
 import javax.xml.ws.Provider;
 import javax.xml.ws.soap.SOAPFaultException;
 
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.w3c.dom.Document;
@@ -99,7 +100,7 @@ public class ReportWebServiceRaw implements Provider<DOMSource> {
 
 	        Object requestObject;
 	        try {
-	            requestObject = prismContext.parseAnyValue(rootElement);
+	            requestObject = prismContext.parserFor(rootElement).parseRealValue();
 	        } catch (SchemaException e) {
 	        	throw new FaultMessage("Couldn't parse SOAP request body because of schema exception: " + e.getMessage());
 //	            throw ws.createIllegalArgumentFault("Couldn't parse SOAP request body because of schema exception: " + e.getMessage());
@@ -114,19 +115,19 @@ public class ReportWebServiceRaw implements Provider<DOMSource> {
 	        		ObjectListType olt = reportService.evaluateScript(s.getScript(), s.getParameters());
 	        		EvaluateScriptResponseType sr = new EvaluateScriptResponseType();
 	        		sr.setObjectList(olt);
-	        		response = prismContext.serializeAnyDataToElement(sr, ReportPort.EVALUATE_SCRIPT_RESPONSE, ctx);
+	        		response = prismContext.domSerializer().context(ctx).serializeAnyData(sr, ReportPort.EVALUATE_SCRIPT_RESPONSE);
 	        	} else if (requestObject instanceof EvaluateAuditScriptType){
 	        		EvaluateAuditScriptType s = (EvaluateAuditScriptType) requestObject;
 	        		AuditEventRecordListType olt = reportService.evaluateAuditScript(s.getScript(), s.getParameters());
 	        		EvaluateAuditScriptResponseType sr = new EvaluateAuditScriptResponseType();
 	        		sr.setObjectList(olt);
-	        		response = prismContext.serializeAnyDataToElement(sr, ReportPort.EVALUATE_AUDIT_SCRIPT_RESPONSE, ctx);
+	        		response = prismContext.domSerializer().context(ctx).serializeAnyData(sr, ReportPort.EVALUATE_AUDIT_SCRIPT_RESPONSE);
 	            } else if (requestObject instanceof ProcessReportType){
 	            	ProcessReportType p = (ProcessReportType) requestObject;
 	            	ObjectListType olt = reportService.processReport(p.getQuery(), p.getParameters(), p.getOptions());
 	            	ProcessReportResponseType pr = new ProcessReportResponseType();
 	            	pr.setObjectList(olt);
-	            	response = prismContext.serializeAnyDataToElement(pr, ReportPort.PROCESS_REPORT_RESPONSE, ctx);
+	            	response = prismContext.domSerializer().context(ctx).serializeAnyData(pr, ReportPort.PROCESS_REPORT_RESPONSE);
 	            } else {
 	            	throw new FaultMessage("Unsupported request type: " + requestObject);
 	            }
@@ -145,16 +146,7 @@ public class ReportWebServiceRaw implements Provider<DOMSource> {
 	    }
 		
 		private void serializeFaultMessage(Detail detail, FaultMessage faultMessage) {
-			try {
-				XNode faultMessageXnode = prismContext.getBeanConverter().marshall(faultMessage.getFaultInfo());
-				RootXNode xroot = new RootXNode(SchemaConstants.FAULT_MESSAGE_ELEMENT_NAME, faultMessageXnode);
-				xroot.setExplicitTypeDeclaration(true);
-				QName faultType = prismContext.getBeanConverter().determineTypeForClass(faultMessage.getFaultInfo().getClass());
-				xroot.setTypeQName(faultType);
-				prismContext.getParserDom().serializeUnderElement(xroot, SchemaConstants.FAULT_MESSAGE_ELEMENT_NAME, detail);
-			} catch (SchemaException e) {
-				LOGGER.error("Error serializing fault message (SOAP fault detail): {}", e.getMessage(), e);
-			}
+			MiscSchemaUtil.serializeFaultMessage(detail, faultMessage, prismContext, LOGGER);
 		}
 
 //	    private DOMSource serializeFaultMessage(FaultMessage faultMessage) {

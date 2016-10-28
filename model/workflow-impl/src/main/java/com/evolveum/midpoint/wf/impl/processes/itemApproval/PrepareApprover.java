@@ -18,12 +18,8 @@ package com.evolveum.midpoint.wf.impl.processes.itemApproval;
 
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.wf.impl.processes.BaseProcessMidPointInterface;
 import com.evolveum.midpoint.wf.impl.processes.common.LightweightObjectRef;
-import com.evolveum.midpoint.wf.impl.processes.common.SpringApplicationContextHolder;
 import com.evolveum.midpoint.wf.impl.util.MiscDataUtil;
-import com.evolveum.midpoint.wf.util.ApprovalUtils;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;

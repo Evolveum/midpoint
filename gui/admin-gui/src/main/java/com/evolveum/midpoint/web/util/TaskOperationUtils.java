@@ -2,7 +2,6 @@ package com.evolveum.midpoint.web.util;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.Set;
 
 import com.evolveum.midpoint.model.api.TaskService;
 import com.evolveum.midpoint.schema.result.OperationResult;

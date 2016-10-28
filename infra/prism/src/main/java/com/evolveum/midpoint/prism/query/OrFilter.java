@@ -17,12 +17,10 @@
 package com.evolveum.midpoint.prism.query;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -33,13 +31,9 @@ public class OrFilter extends NaryLogicalFilter {
 		super(condition);
 	}
 
-	
 	public static OrFilter createOr(ObjectFilter... conditions){
 		List<ObjectFilter> filters = new ArrayList<ObjectFilter>();
-		for (ObjectFilter condition : conditions){
-			filters.add(condition);
-		}
-		
+		Collections.addAll(filters, conditions);
 		return new OrFilter(filters);
 	}
 	
@@ -47,6 +41,7 @@ public class OrFilter extends NaryLogicalFilter {
 		return new OrFilter(conditions);
 	}
 	
+	@SuppressWarnings("CloneDoesntCallSuperClone")
 	@Override
 	public OrFilter clone() {
 		return new OrFilter(getClonedConditions());

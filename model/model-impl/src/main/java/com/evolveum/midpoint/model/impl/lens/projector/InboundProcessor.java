@@ -204,7 +204,7 @@ public class InboundProcessor {
             	attributeAPrioriDelta = null;
 			}
 
-            RefinedAttributeDefinition attrDef = accountDefinition.getAttributeDefinition(accountAttributeName);
+            RefinedAttributeDefinition attrDef = accountDefinition.findAttributeDefinition(accountAttributeName);
             
             if (attrDef.isIgnored(LayerType.MODEL)) {
             	LOGGER.trace("Skipping inbound for attribute {} in {} because the attribute is ignored",
@@ -345,7 +345,7 @@ public class InboundProcessor {
 	private boolean hasAnyStrongMapping(RefinedObjectClassDefinition objectDefinition) {
     	
     	for (QName attributeName : objectDefinition.getNamesOfAttributesWithInboundExpressions()) {
-    		RefinedAttributeDefinition<?> attributeDefinition = objectDefinition.getAttributeDefinition(attributeName);
+    		RefinedAttributeDefinition<?> attributeDefinition = objectDefinition.findAttributeDefinition(attributeName);
     		for (MappingType inboundMapping : attributeDefinition.getInboundMappingTypes()){
     			if (inboundMapping.getStrength() == MappingStrengthType.STRONG) {
     				return true;

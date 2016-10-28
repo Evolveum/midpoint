@@ -16,13 +16,10 @@
 
 package com.evolveum.midpoint.web.page.admin.configuration.dto;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Map.Entry;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ClassLoggerConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LoggingComponentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SubSystemLoggerConfigurationType;
 
 import org.apache.commons.lang.Validate;
 

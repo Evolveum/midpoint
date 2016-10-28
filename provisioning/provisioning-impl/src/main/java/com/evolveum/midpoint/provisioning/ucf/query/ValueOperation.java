@@ -33,7 +33,6 @@ import org.identityconnectors.framework.common.objects.filter.FilterBuilder;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.EqualFilter;
-import com.evolveum.midpoint.prism.query.InFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.SubstringFilter;
 import com.evolveum.midpoint.prism.query.ValueFilter;
@@ -58,7 +57,7 @@ public class ValueOperation extends Operation {
 		OperationResult parentResult = new OperationResult("interpret");
 
 		ValueFilter valueFilter= (ValueFilter) objectFilter;
-		if (valueFilter.getParentPath() == null || valueFilter.getParentPath().isEmpty()) {
+		if (valueFilter.getParentPath().isEmpty()) {
 			throw new UnsupportedOperationException("Empty path is not supported (filter: " + objectFilter+")");
 		}
 		if (valueFilter.getParentPath().equivalent(new ItemPath(ShadowType.F_ATTRIBUTES))) {
@@ -83,17 +82,6 @@ public class ValueOperation extends Operation {
 						}
 					}
 					
-				} else if (objectFilter instanceof InFilter) {
-					InFilter<T> in = (InFilter<T>) objectFilter;
-					
-					Collection convertedValues = convertValues(propName, (List) in.getValues());
-					if (convertedValues.isEmpty()) {
-						throw new IllegalArgumentException("In filter with a null value makes no sense");
-					} else {
-						Attribute attr = AttributeBuilder.build(icfName, convertedValues);
-						return FilterBuilder.equalTo(attr);
-					}
-				
 				} else if (objectFilter instanceof SubstringFilter) {
 					SubstringFilter substring = (SubstringFilter) objectFilter;
                     Collection<Object> convertedValues = convertValues(propName, substring.getValues());

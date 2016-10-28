@@ -31,6 +31,8 @@ import java.util.List;
 
 import javax.xml.bind.JAXBElement;
 
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
+import com.evolveum.midpoint.schema.processor.ResourceSchemaImpl;
 import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
@@ -199,7 +201,7 @@ public class TestCsvFile extends AbstractIntegrationTest {
 		assertNotNull("No serialNumber", cachingMetadata.getSerialNumber());
 
 		Element xsdElement = ObjectTypeUtil.findXsdElement(xmlSchemaTypeAfter);
-		ResourceSchema parsedSchema = ResourceSchema.parse(xsdElement, resourceBefore.toString(), prismContext);
+		ResourceSchema parsedSchema = ResourceSchemaImpl.parse(xsdElement, resourceBefore.toString(), prismContext);
 		assertNotNull("No schema after parsing", parsedSchema);
 
 		// schema will be checked in next test
@@ -237,17 +239,17 @@ public class TestCsvFile extends AbstractIntegrationTest {
 
 		// THEN
 		// The returned type should have the schema pre-parsed
-		assertNotNull(RefinedResourceSchema.hasParsedSchema(resourceType));
+		assertNotNull(RefinedResourceSchemaImpl.hasParsedSchema(resourceType));
 
 		// Also test if the utility method returns the same thing
-		ResourceSchema returnedSchema = RefinedResourceSchema.getResourceSchema(resourceType, prismContext);
+		ResourceSchema returnedSchema = RefinedResourceSchemaImpl.getResourceSchema(resourceType, prismContext);
 		
 		display("Parsed resource schema", returnedSchema);
 
 		// Check whether it is reusing the existing schema and not parsing it all over again
 		// Not equals() but == ... we want to really know if exactly the same
 		// object instance is returned
-		assertTrue("Broken caching", returnedSchema == RefinedResourceSchema.getResourceSchema(resourceType, prismContext));
+		assertTrue("Broken caching", returnedSchema == RefinedResourceSchemaImpl.getResourceSchema(resourceType, prismContext));
 		
 		IntegrationTestTools.assertIcfResourceSchemaSanity(returnedSchema, resourceType);
 

@@ -16,12 +16,10 @@
 
 package com.evolveum.midpoint.notifications.api.events;
 
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.EventCategoryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.EventOperationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.EventStatusType;
 
 /**
  * Event related to certification campaign.

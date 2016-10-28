@@ -40,6 +40,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.model.impl.sync.ReconciliationTaskHandler;
+import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.aspect.ProfilingDataManager;
@@ -446,9 +447,10 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
 	}
 	
 	protected <T> ObjectFilter createAttributeFilter(String attrName, T attrVal) throws SchemaException {
-		ResourceAttributeDefinition ldapUidAttrDef = accountObjectClassDefinition.findAttributeDefinition(attrName);
-        return EqualFilter.createEqual(
-        		new ItemPath(ShadowType.F_ATTRIBUTES, ldapUidAttrDef.getName()), ldapUidAttrDef, attrVal);
+		ResourceAttributeDefinition ldapAttrDef = accountObjectClassDefinition.findAttributeDefinition(attrName);
+        return QueryBuilder.queryFor(ShadowType.class, prismContext)
+				.itemWithDef(ldapAttrDef, ShadowType.F_ATTRIBUTES, ldapAttrDef.getName()).eq(attrVal)
+				.buildFilter();
 	}
 	
 	protected ObjectQuery createUidQuery(String uid) throws SchemaException {

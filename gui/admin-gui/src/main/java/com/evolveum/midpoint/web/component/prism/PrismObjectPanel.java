@@ -18,11 +18,8 @@ package com.evolveum.midpoint.web.component.prism;
 
 import java.util.List;
 
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;

@@ -18,7 +18,6 @@ package com.evolveum.midpoint.schema.util;
 
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
 import com.evolveum.midpoint.prism.xnode.XNode;
@@ -29,18 +28,15 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ApprovalSchemaType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LoginEventType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectFactory;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceAttributeDefinitionType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
-import org.apache.commons.lang.StringUtils;
 
 import javax.xml.bind.JAXBElement;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import java.math.BigInteger;
 import java.util.Date;
 
 /**

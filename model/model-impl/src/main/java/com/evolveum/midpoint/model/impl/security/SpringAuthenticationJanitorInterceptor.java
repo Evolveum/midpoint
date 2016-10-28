@@ -15,23 +15,12 @@
  */
 package com.evolveum.midpoint.model.impl.security;
 
-import com.evolveum.midpoint.security.api.UserProfileService;
-
 import org.apache.cxf.binding.soap.SoapMessage;
-import org.apache.cxf.binding.soap.saaj.SAAJInInterceptor;
 import org.apache.cxf.interceptor.Fault;
 import org.apache.cxf.message.Message;
 import org.apache.cxf.phase.Phase;
 import org.apache.cxf.phase.PhaseInterceptor;
-import org.apache.cxf.ws.security.wss4j.WSS4JInInterceptor;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-
-import javax.xml.soap.SOAPMessage;
 
 import java.util.Collection;
 import java.util.HashSet;

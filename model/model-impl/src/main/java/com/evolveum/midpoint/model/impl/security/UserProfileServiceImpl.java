@@ -36,7 +36,6 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.prism.query.EqualFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
@@ -45,7 +44,6 @@ import com.evolveum.midpoint.schema.util.AdminGuiConfigTypeUtil;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
 import com.evolveum.midpoint.security.api.Authorization;
-import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.UserProfileService;
 import com.evolveum.midpoint.task.api.Task;
@@ -60,9 +58,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.ldap.userdetails.UserDetailsContextMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.ldap.core.DirContextAdapter;
@@ -189,66 +184,65 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
 		UserType userType = principal.getUser();
 
 		Collection<Authorization> authorizations = principal.getAuthorities();
-		Collection<AdminGuiConfigurationType> adminGuiConfigurations = new ArrayList<>();
+		List<AdminGuiConfigurationType> adminGuiConfigurations = new ArrayList<>();
 
 		Task task = taskManager.createTaskInstance(UserProfileServiceImpl.class.getName() + ".addAuthorizations");
         OperationResult result = task.getResult();
 
         principal.setApplicableSecurityPolicy(locateSecurityPolicy(principal, systemConfiguration, task, result));
-        
-        if (userType.getAssignment().isEmpty()) {
-        	if (systemConfiguration != null) {
-        		principal.setAdminGuiConfiguration(systemConfiguration.asObjectable().getAdminGuiConfiguration());
-        	}
-            return;
-        }
-		
-		AssignmentEvaluator<UserType> assignmentEvaluator = new AssignmentEvaluator<>();
-        assignmentEvaluator.setRepository(repositoryService);
-        assignmentEvaluator.setFocusOdo(new ObjectDeltaObject<UserType>(userType.asPrismObject(), null, userType.asPrismObject()));
-        assignmentEvaluator.setChannel(null);
-        assignmentEvaluator.setObjectResolver(objectResolver);
-        assignmentEvaluator.setSystemObjectCache(systemObjectCache);
-        assignmentEvaluator.setPrismContext(prismContext);
-        assignmentEvaluator.setMappingFactory(mappingFactory);
-        assignmentEvaluator.setMappingEvaluator(mappingEvaluator);
-        assignmentEvaluator.setActivationComputer(activationComputer);
-        assignmentEvaluator.setNow(clock.currentTimeXMLGregorianCalendar());
-        
-        // We do need only authorizations. Therefore we not need to evaluate constructions,
-        // so switching it off is faster. It also avoids nasty problems with resources being down,
-        // resource schema not available, etc.
-        assignmentEvaluator.setEvaluateConstructions(false);
-        
-        // We do not have real lens context here. But the push methods in ModelExpressionThreadLocalHolder
-        // will need something to push on the stack. So give them context placeholder.
-        LensContext<UserType> lensContext = new LensContextPlaceholder<>(prismContext);
-		assignmentEvaluator.setLensContext(lensContext);
-		
-        for(AssignmentType assignmentType: userType.getAssignment()) {
-        	try {
-        		ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi = new ItemDeltaItem<>();
-        		assignmentIdi.setItemOld(LensUtil.createAssignmentSingleValueContainerClone(assignmentType));
-        		assignmentIdi.recompute();
-				EvaluatedAssignment<UserType> assignment = assignmentEvaluator.evaluate(assignmentIdi, false, userType, userType.toString(), task, result);
-				if (assignment.isValid()) {
-					authorizations.addAll(assignment.getAuthorizations());
-					adminGuiConfigurations.addAll(assignment.getAdminGuiConfigurations());
+
+		if (!userType.getAssignment().isEmpty()) {
+			AssignmentEvaluator<UserType> assignmentEvaluator = new AssignmentEvaluator<>();
+			assignmentEvaluator.setRepository(repositoryService);
+			assignmentEvaluator.setFocusOdo(new ObjectDeltaObject<>(userType.asPrismObject(), null, userType.asPrismObject()));
+			assignmentEvaluator.setChannel(null);
+			assignmentEvaluator.setObjectResolver(objectResolver);
+			assignmentEvaluator.setSystemObjectCache(systemObjectCache);
+			assignmentEvaluator.setPrismContext(prismContext);
+			assignmentEvaluator.setMappingFactory(mappingFactory);
+			assignmentEvaluator.setMappingEvaluator(mappingEvaluator);
+			assignmentEvaluator.setActivationComputer(activationComputer);
+			assignmentEvaluator.setNow(clock.currentTimeXMLGregorianCalendar());
+
+			// We do need only authorizations. Therefore we not need to evaluate constructions,
+			// so switching it off is faster. It also avoids nasty problems with resources being down,
+			// resource schema not available, etc.
+			assignmentEvaluator.setEvaluateConstructions(false);
+
+			// We do not have real lens context here. But the push methods in ModelExpressionThreadLocalHolder
+			// will need something to push on the stack. So give them context placeholder.
+			LensContext<UserType> lensContext = new LensContextPlaceholder<>(prismContext);
+			assignmentEvaluator.setLensContext(lensContext);
+
+			for (AssignmentType assignmentType: userType.getAssignment()) {
+				try {
+					ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi = new ItemDeltaItem<>();
+					assignmentIdi.setItemOld(LensUtil.createAssignmentSingleValueContainerClone(assignmentType));
+					assignmentIdi.recompute();
+					EvaluatedAssignment<UserType> assignment = assignmentEvaluator.evaluate(assignmentIdi, false, userType, userType.toString(), task, result);
+					if (assignment.isValid()) {
+						authorizations.addAll(assignment.getAuthorizations());
+						adminGuiConfigurations.addAll(assignment.getAdminGuiConfigurations());
+					}
+				} catch (SchemaException e) {
+					LOGGER.error("Schema violation while processing assignment of {}: {}; assignment: {}",
+							userType, e.getMessage(), assignmentType, e);
+				} catch (ObjectNotFoundException e) {
+					LOGGER.error("Object not found while processing assignment of {}: {}; assignment: {}",
+							userType, e.getMessage(), assignmentType, e);
+				} catch (ExpressionEvaluationException e) {
+					LOGGER.error("Evaluation error while processing assignment of {}: {}; assignment: {}",
+							userType, e.getMessage(), assignmentType, e);
+				} catch (PolicyViolationException e) {
+					LOGGER.error("Policy violation while processing assignment of {}: {}; assignment: {}",
+							userType, e.getMessage(), assignmentType, e);
 				}
-			} catch (SchemaException e) {
-				LOGGER.error("Schema violation while processing assignment of {}: {}; assignment: {}", 
-						new Object[]{userType, e.getMessage(), assignmentType, e});
-			} catch (ObjectNotFoundException e) {
-				LOGGER.error("Object not found while processing assignment of {}: {}; assignment: {}", 
-						new Object[]{userType, e.getMessage(), assignmentType, e});
-			} catch (ExpressionEvaluationException e) {
-				LOGGER.error("Evaluation error while processing assignment of {}: {}; assignment: {}", 
-						new Object[]{userType, e.getMessage(), assignmentType, e});
-			} catch (PolicyViolationException e) {
-				LOGGER.error("Policy violation while processing assignment of {}: {}; assignment: {}", 
-						new Object[]{userType, e.getMessage(), assignmentType, e});
 			}
-        }
+		}
+		if (userType.getAdminGuiConfiguration() != null) {
+			// config from the user object should go last (to be applied as the last one)
+			adminGuiConfigurations.add(userType.getAdminGuiConfiguration());
+		}
         principal.setAdminGuiConfiguration(AdminGuiConfigTypeUtil.compileAdminGuiConfiguration(adminGuiConfigurations, systemConfiguration));
 	}
 

@@ -22,8 +22,6 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 import java.io.Serializable;
 
-import org.apache.commons.codec.binary.Base64;
-
 /**
  * @author lazyman
  */

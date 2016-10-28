@@ -15,8 +15,6 @@
  */
 package com.evolveum.midpoint.infra.wsutil;
 
-import java.io.OutputStream;
-import java.io.PrintWriter;
 import java.util.HashMap;
 import java.util.Map;
 

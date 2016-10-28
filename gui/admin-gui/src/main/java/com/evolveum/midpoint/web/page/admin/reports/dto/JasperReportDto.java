@@ -8,7 +8,6 @@ import java.util.List;
 import net.sf.jasperreports.engine.JRException;
 import net.sf.jasperreports.engine.JRField;
 import net.sf.jasperreports.engine.JRParameter;
-import net.sf.jasperreports.engine.base.JRBaseParameter;
 import net.sf.jasperreports.engine.design.JRDesignField;
 import net.sf.jasperreports.engine.design.JRDesignParameter;
 import net.sf.jasperreports.engine.design.JRDesignQuery;
@@ -17,7 +16,6 @@ import net.sf.jasperreports.engine.xml.JRXmlWriter;
 
 import org.apache.commons.codec.binary.Base64;
 
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.util.ReportTypeUtil;
 //import com.evolveum.midpoint.report.impl.ReportUtils;
 import com.evolveum.midpoint.util.exception.SchemaException;

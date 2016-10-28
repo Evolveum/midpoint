@@ -25,6 +25,9 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
+import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterEntry;
+import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.Component;
@@ -45,13 +48,11 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.prism.query.InOidFilter;
-import com.evolveum.midpoint.prism.query.NotFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.OrgFilter;
@@ -448,33 +449,24 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 				createComponentPath(ID_FORM, ID_CONTAINER_MEMBER, ID_MEMBER_TABLE));
 	}
 
-	private QName getSearchType() {
+	private ObjectTypes getSearchType() {
 		DropDownChoice<ObjectTypes> searchByTypeChoice = (DropDownChoice<ObjectTypes>) get(
 				createComponentPath(ID_FORM, ID_SEARCH_BY_TYPE));
-		ObjectTypes typeModel = searchByTypeChoice.getModelObject();
-		return typeModel.getTypeQName();
+		return searchByTypeChoice.getModelObject();
 	}
 
 	private ObjectQuery createManagerQuery() {
-
 		String oid = getModelObject().getOid();
 		PrismReferenceValue referenceFilter = new PrismReferenceValue();
 		referenceFilter.setOid(oid);
 		referenceFilter.setRelation(SchemaConstants.ORG_MANAGER);
-		RefFilter referenceOidFilter;
-		try {
-			referenceOidFilter = RefFilter.createReferenceEqual(new ItemPath(FocusType.F_PARENT_ORG_REF),
-					UserType.class, getPageBase().getPrismContext(), referenceFilter);
-			ObjectQuery query = ObjectQuery.createObjectQuery(referenceOidFilter);
-			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("Searching members of org {} with query:\n{}", oid, query.debugDump());
-			}
-			return query;
-		} catch (SchemaException e) {
-			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't prepare query for org. managers.", e);
-			return null;
+		ObjectQuery query = QueryBuilder.queryFor(FocusType.class, getPageBase().getPrismContext())
+				.item(FocusType.F_PARENT_ORG_REF).ref(referenceFilter)
+				.build();
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace("Searching members of org {} with query:\n{}", oid, query.debugDump());
 		}
-
+		return query;
 	}
 
 	private ObjectDelta prepareDelta(MemberOperation operaton, QName type, QName relation,
@@ -568,37 +560,27 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 
 	@Override
 	protected ObjectQuery createMemberQuery() {
-		ObjectQuery query = null;
-
 		String oid = getModelObject().getOid();
-
-		List<ObjectFilter> filters = new ArrayList<>();
 
 		DropDownChoice<String> searchScopeChoice = (DropDownChoice<String>) get(
 				createComponentPath(ID_FORM, ID_SEARCH_SCOPE));
 		String scope = searchScopeChoice.getModelObject();
 
-		QName searchType = getSearchType();
-
-		OrgFilter org;
-		if (SEARCH_SCOPE_ONE.equals(scope)) {
-			filters.add(OrgFilter.createOrg(oid, OrgFilter.Scope.ONE_LEVEL));
-		} else {
-			filters.add(OrgFilter.createOrg(oid, OrgFilter.Scope.SUBTREE));
+		ObjectTypes searchType = getSearchType();
+		S_FilterEntryOrEmpty q = QueryBuilder.queryFor(ObjectType.class, getPageBase().getPrismContext());
+		if (!searchType.equals(ObjectTypes.OBJECT)) {
+			q = q.type(searchType.getClassDefinition());
 		}
-
-		query = ObjectQuery.createObjectQuery(AndFilter.createAnd(filters));
-
+		ObjectQuery query;
+		if (SEARCH_SCOPE_ONE.equals(scope)) {
+			query = q.isDirectChildOf(oid).build();
+		} else {
+			query = q.isChildOf(oid).build();
+		}
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("Searching members of org {} with query:\n{}", oid, query.debugDump());
 		}
-
-		if (searchType.equals(ObjectType.COMPLEX_TYPE)) {
-			return query;
-		}
-
-		return ObjectQuery.createObjectQuery(TypeFilter.createType(searchType, query.getFilter()));
-
+		return query;
 	}
 
 	private ObjectQuery createQueryForMemberAction(QueryScope scope, QName orgRelation, boolean isFocus) {
@@ -641,9 +623,9 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 
 	private ObjectQuery createQueryForAll(QueryScope scope, boolean isFocus, QName relation) {
 		OrgType org = getModelObject();
-		
-			return ObjectQuery.createObjectQuery(OrgFilter.createOrg(org.getOid(), getScope(scope)));
-
+		return QueryBuilder.queryFor(ObjectType.class, getPageBase().getPrismContext())
+				.isInScopeOf(org.getOid(), getScope(scope))
+				.build();
 	}
 	
 	private Scope getScope(QueryScope queryScope) {

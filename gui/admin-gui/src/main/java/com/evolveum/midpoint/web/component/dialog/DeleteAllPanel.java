@@ -7,6 +7,7 @@ import com.evolveum.midpoint.prism.query.EqualFilter;
 import com.evolveum.midpoint.prism.query.NotFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -283,8 +284,10 @@ public class DeleteAllPanel extends Panel  implements Popupable{
         options.add(SelectorOptions.create(ItemPath.EMPTY_PATH, opt));
 
         try {
-            ObjectFilter filter = EqualFilter.createEqual(ShadowType.F_KIND, ShadowType.class, getPagebase().getPrismContext(), null, ShadowKindType.ACCOUNT);
-            if(isAccountShadow){
+            ObjectFilter filter = QueryBuilder.queryFor(ShadowType.class, getPagebase().getPrismContext())
+                    .item(ShadowType.F_KIND).eq(ShadowKindType.ACCOUNT)
+                    .buildFilter();
+            if (isAccountShadow) {
                 ObjectQuery query = ObjectQuery.createObjectQuery(filter);
                 dto.setAccountShadowCount(getPagebase().getModelService().countObjects(ShadowType.class, query, options, task, result));
                 dto.setObjectsToDelete(dto.getObjectsToDelete() + dto.getAccountShadowCount());

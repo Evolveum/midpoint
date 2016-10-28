@@ -19,12 +19,8 @@ package com.evolveum.midpoint.prism.query;
 import javax.xml.namespace.QName;
 
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
-import org.w3c.dom.Element;
 
-import com.evolveum.midpoint.prism.PrismConstants;
-import com.evolveum.midpoint.prism.parser.XPathHolder;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.prism.xml.ns._public.query_3.OrderDirectionType;
 import com.evolveum.prism.xml.ns._public.query_3.PagingType;
 

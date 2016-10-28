@@ -19,7 +19,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 import com.evolveum.midpoint.prism.DisplayableValueImpl;
-import com.evolveum.midpoint.util.DisplayableValue;
 
 /**
  * @author semancik

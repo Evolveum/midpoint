@@ -24,7 +24,6 @@ import com.evolveum.midpoint.util.ClassPathUtil;
 import org.hibernate.cfg.Configuration;
 import org.hibernate.dialect.H2Dialect;
 import org.hibernate.dialect.Oracle10gDialect;
-import org.hibernate.dialect.PostgresPlusDialect;
 import org.hibernate.tool.hbm2ddl.SchemaExport;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.orm.hibernate4.LocalSessionFactoryBean;
@@ -32,7 +31,6 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
-import java.io.File;
 import java.util.Set;
 
 import static org.testng.AssertJUnit.assertNotNull;

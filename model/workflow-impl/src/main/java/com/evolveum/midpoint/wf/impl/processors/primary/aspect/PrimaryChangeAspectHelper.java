@@ -22,10 +22,7 @@ import com.evolveum.midpoint.model.common.expression.ExpressionEvaluationContext
 import com.evolveum.midpoint.model.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.model.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.model.impl.expr.ModelExpressionThreadLocalHolder;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -319,7 +316,7 @@ public class PrimaryChangeAspectHelper {
         ExpressionType expressionType = config.getApplicabilityCondition();
 
         QName resultName = new QName(SchemaConstants.NS_C, "result");
-        PrismPropertyDefinition<Boolean> resultDef = new PrismPropertyDefinition(resultName, DOMUtil.XSD_BOOLEAN, prismContext);
+        PrismPropertyDefinition<Boolean> resultDef = new PrismPropertyDefinitionImpl(resultName, DOMUtil.XSD_BOOLEAN, prismContext);
 
         ExpressionVariables expressionVariables = new ExpressionVariables();
         expressionVariables.addVariableDefinition(SchemaConstants.C_MODEL_CONTEXT, modelContext);

@@ -22,7 +22,7 @@
      discovered during system initialization.  -->
 
 <connector xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-           
+           xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
            xmlns:ds="http://www.w3.org/2000/09/xmldsig#"
            xmlns:enc="http://www.w3.org/2001/04/xmlenc#">
            
@@ -158,7 +158,7 @@
                      </xsd:appinfo>
                   </xsd:annotation>
                </xsd:element>
-               <xsd:element minOccurs="0" name="password" type="c:ProtectedStringType">
+               <xsd:element minOccurs="0" name="password" type="t:ProtectedStringType">
                   <xsd:annotation>
                      <xsd:appinfo>
                         <a:displayName>User Password</a:displayName>

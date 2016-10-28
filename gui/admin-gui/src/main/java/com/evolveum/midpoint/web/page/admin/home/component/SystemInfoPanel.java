@@ -21,11 +21,8 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.DateLabelComponent;
-import com.evolveum.midpoint.web.component.util.FutureUpdateBehavior;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
 
-import com.evolveum.midpoint.web.page.admin.home.dto.PersonalInfoDto;
-import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.AjaxSelfUpdatingTimerBehavior;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
@@ -43,10 +40,7 @@ import javax.management.openmbean.CompositeData;
 
 import java.io.Serializable;
 import java.lang.management.ManagementFactory;
-import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.concurrent.Callable;
-import java.util.concurrent.FutureTask;
 
 /**
  * @author Viliam Repan (lazyman)

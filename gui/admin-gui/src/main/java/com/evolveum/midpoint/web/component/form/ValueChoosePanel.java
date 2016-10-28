@@ -40,10 +40,10 @@ import com.evolveum.midpoint.prism.query.NotFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
@@ -258,7 +258,7 @@ public class ValueChoosePanel<T, O extends ObjectType> extends BasePanel<T> {
 			if (old == null) {
 				return true;
 			}
-			return !old.getOid().equals(object.getOid());
+			return !MiscUtil.equals(old.getOid(),object.getOid());
 		}
 
 		return true;

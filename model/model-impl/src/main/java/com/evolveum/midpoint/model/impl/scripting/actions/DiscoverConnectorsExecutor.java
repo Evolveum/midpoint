@@ -21,12 +21,12 @@ import com.evolveum.midpoint.model.impl.scripting.ExecutionContext;
 import com.evolveum.midpoint.model.api.ScriptExecutionException;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.prism.query.EqualFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -40,7 +40,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorHostType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ActionExpressionType;
 
@@ -140,12 +139,10 @@ public class DiscoverConnectorsExecutor extends BaseActionExecutor {
             LOGGER.trace("Finding obsolete versions for connector: {}", connectorType.asPrismObject().debugDump());
         }
 
-        AndFilter filter = AndFilter.createAnd(
-                EqualFilter.createEqual(SchemaConstants.C_CONNECTOR_FRAMEWORK, ConnectorType.class, prismContext, null, connectorType.getFramework()),
-                EqualFilter.createEqual(SchemaConstants.C_CONNECTOR_CONNECTOR_TYPE, ConnectorType.class, prismContext, null, connectorType.getConnectorType()));
-
-        ObjectQuery query = ObjectQuery.createObjectQuery(filter);
-
+        ObjectQuery query = QueryBuilder.queryFor(ConnectorType.class, prismContext)
+                .item(SchemaConstants.C_CONNECTOR_FRAMEWORK).eq(connectorType.getFramework())
+                .and().item(SchemaConstants.C_CONNECTOR_CONNECTOR_TYPE).eq(connectorType.getConnectorType())
+                .build();
         List<PrismObject<ConnectorType>> foundConnectors;
         try {
             foundConnectors = modelService.searchObjects(ConnectorType.class, query, null, null, result);

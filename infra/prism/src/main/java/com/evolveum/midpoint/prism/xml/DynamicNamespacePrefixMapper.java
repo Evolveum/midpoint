@@ -20,7 +20,6 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.util.DebugDumpable;
 
 import java.util.Map;
-import java.util.Set;
 
 /**
  * Maps namespaces to preferred prefixes. Should be used through the code to

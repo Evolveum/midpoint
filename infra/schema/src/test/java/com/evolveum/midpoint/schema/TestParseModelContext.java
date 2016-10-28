@@ -17,39 +17,18 @@ package com.evolveum.midpoint.schema;
 
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
-import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LensContextType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
 
-import javax.xml.bind.JAXBElement;
-import javax.xml.bind.JAXBException;
-import javax.xml.namespace.QName;
-
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
-
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertNotNull;
 
 /**
  * @author semancik
@@ -75,11 +54,10 @@ public class TestParseModelContext {
 		PrismContext prismContext = PrismTestUtil.getPrismContext();
 		
 		// WHEN
-        PrismContainer<LensContextType> lensContextType = prismContext.parseContainer(MODEL_CONTEXT_FILE,
-        		LensContextType.class, PrismContext.LANG_XML);
+        LensContextType lensContextType = prismContext.parserFor(MODEL_CONTEXT_FILE).xml().parseRealValue(LensContextType.class);
 
         // THEN
-        System.out.println("Parsed LensContextType: " + lensContextType.getValue().asContainerable());
+        System.out.println("Parsed LensContextType: " + lensContextType);
 	}
 
 //	@Test

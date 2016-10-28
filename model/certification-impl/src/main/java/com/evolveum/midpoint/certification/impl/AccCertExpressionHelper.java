@@ -23,6 +23,7 @@ import com.evolveum.midpoint.model.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.model.impl.expr.ModelExpressionThreadLocalHolder;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import com.evolveum.midpoint.prism.PrismPropertyDefinitionImpl;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
@@ -76,7 +77,7 @@ public class AccCertExpressionHelper {
         QName xsdType = XsdTypeMapper.toXsdType(resultClass);
 
         QName resultName = new QName(SchemaConstants.NS_C, "result");
-        PrismPropertyDefinition<T> resultDef = new PrismPropertyDefinition(resultName, xsdType, prismContext);
+        PrismPropertyDefinition<T> resultDef = new PrismPropertyDefinitionImpl(resultName, xsdType, prismContext);
 
         Expression<PrismPropertyValue<T>,PrismPropertyDefinition<T>> expression = expressionFactory.makeExpression(expressionType, resultDef, shortDesc, task, result);
         ExpressionEvaluationContext params = new ExpressionEvaluationContext(null, expressionVariables, shortDesc, task, result);

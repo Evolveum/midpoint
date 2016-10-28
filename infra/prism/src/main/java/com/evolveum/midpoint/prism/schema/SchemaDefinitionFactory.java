@@ -19,16 +19,10 @@ import java.util.Collection;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.*;
+import com.sun.xml.xsom.XSSimpleType;
 import org.w3c.dom.Element;
 
-import com.evolveum.midpoint.prism.ComplexTypeDefinition;
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.Objectable;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.sun.xml.xsom.XSAnnotation;
@@ -45,33 +39,40 @@ public class SchemaDefinitionFactory {
 			PrismContext prismContext, XSAnnotation annotation) throws SchemaException {
 		
 		QName typeName = new QName(complexType.getTargetNamespace(),complexType.getName());
-		return new ComplexTypeDefinition(typeName, prismContext);
+		return new ComplexTypeDefinitionImpl(typeName, prismContext);
 	}
-	
+
+	public SimpleTypeDefinition createSimpleTypeDefinition(XSSimpleType simpleType,
+			PrismContext prismContext, XSAnnotation annotation) throws SchemaException {
+
+		QName typeName = new QName(simpleType.getTargetNamespace(), simpleType.getName());
+		return new SimpleTypeDefinitionImpl(typeName, prismContext);
+	}
+
 	public <T> PrismPropertyDefinition<T> createPropertyDefinition(QName elementName, QName typeName, ComplexTypeDefinition complexTypeDefinition,
 			PrismContext prismContext, XSAnnotation annotation, XSParticle elementParticle) throws SchemaException {
-		return new PrismPropertyDefinition<T>(elementName, typeName, prismContext);
+		return new PrismPropertyDefinitionImpl<T>(elementName, typeName, prismContext);
 	}
 	
 	public <T> PrismPropertyDefinition<T> createPropertyDefinition(QName elementName, QName typeName, ComplexTypeDefinition complexTypeDefinition,
 			PrismContext prismContext, XSAnnotation annotation, XSParticle elementParticle, Collection<? extends DisplayableValue<T>> allowedValues, T defaultValue) throws SchemaException {
-		return new PrismPropertyDefinition<T>(elementName, typeName, prismContext, allowedValues, defaultValue);
+		return new PrismPropertyDefinitionImpl<T>(elementName, typeName, prismContext, allowedValues, defaultValue);
 	}
 	
 	public PrismReferenceDefinition createReferenceDefinition(QName primaryElementName, QName typeName, ComplexTypeDefinition complexTypeDefinition,
 			PrismContext prismContext, XSAnnotation annotation, XSParticle elementParticle) throws SchemaException {
-		return new PrismReferenceDefinition(primaryElementName, typeName, prismContext);
+		return new PrismReferenceDefinitionImpl(primaryElementName, typeName, prismContext);
 	}
 	
-	public <C extends Containerable> PrismContainerDefinition<C> createContainerDefinition(QName elementName, ComplexTypeDefinition complexTypeDefinition,
+	public <C extends Containerable> PrismContainerDefinitionImpl<C> createContainerDefinition(QName elementName, ComplexTypeDefinition complexTypeDefinition,
 			PrismContext prismContext, XSAnnotation annotation, XSParticle elementParticle) throws SchemaException {
-		return new PrismContainerDefinition<C>(elementName, complexTypeDefinition, prismContext);
+		return new PrismContainerDefinitionImpl<C>(elementName, complexTypeDefinition, prismContext);
 	}
 
-	public <T extends Objectable> PrismObjectDefinition<T> createObjectDefinition(QName elementName,
+	public <T extends Objectable> PrismObjectDefinitionImpl<T> createObjectDefinition(QName elementName,
 			ComplexTypeDefinition complexTypeDefinition, PrismContext prismContext, Class<T> compileTimeClass,
 			XSAnnotation annotation, XSParticle elementParticle) throws SchemaException {
-		return new PrismObjectDefinition<T>(elementName, complexTypeDefinition, prismContext, compileTimeClass );
+		return new PrismObjectDefinitionImpl<T>(elementName, complexTypeDefinition, prismContext, compileTimeClass );
 	}
 
 	/**

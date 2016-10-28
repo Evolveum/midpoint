@@ -17,11 +17,9 @@ package com.evolveum.midpoint.model.impl.controller;
 
 import java.util.*;
 
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
-import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,16 +30,6 @@ import com.evolveum.midpoint.common.crypto.CryptoUtil;
 import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.model.common.SystemObjectCache;
 import com.evolveum.midpoint.model.impl.util.Utils;
-import com.evolveum.midpoint.prism.ConsistencyCheckScope;
-import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
-import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -57,7 +45,6 @@ import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationDecisionType;
@@ -262,7 +249,7 @@ public class SchemaTransformer {
 			AuthorizationDecisionType defaultReadDecision, AuthorizationDecisionType defaultAddDecision, AuthorizationDecisionType defaultModifyDecision, 
 			AuthorizationPhaseType phase) {
 		LOGGER.trace("applySecurityConstraints(items): items={}, phase={}, defaults R={}, A={}, M={}",
-				new Object[]{items, phase, defaultReadDecision, defaultAddDecision, defaultModifyDecision});
+				items, phase, defaultReadDecision, defaultAddDecision, defaultModifyDecision);
 		if (items == null) {
 			return;
 		}
@@ -274,17 +261,17 @@ public class SchemaTransformer {
 			AuthorizationDecisionType itemAddDecision = computeItemDecision(securityConstraints, itemPath, ModelAuthorizationAction.ADD.getUrl(), defaultReadDecision, phase);
 			AuthorizationDecisionType itemModifyDecision = computeItemDecision(securityConstraints, itemPath, ModelAuthorizationAction.MODIFY.getUrl(), defaultReadDecision, phase);
 			LOGGER.trace("applySecurityConstraints(item): {}: decisions R={}, A={}, M={}",
-					new Object[]{itemPath, itemReadDecision, itemAddDecision, itemModifyDecision});
+					itemPath, itemReadDecision, itemAddDecision, itemModifyDecision);
 			ItemDefinition<?> itemDef = item.getDefinition();
 			if (itemDef != null) {
 				if (itemReadDecision != AuthorizationDecisionType.ALLOW) {
-					itemDef.setCanRead(false);
+					((ItemDefinitionImpl) itemDef).setCanRead(false);
 				}
 				if (itemAddDecision != AuthorizationDecisionType.ALLOW) {
-					itemDef.setCanAdd(false);
+					((ItemDefinitionImpl) itemDef).setCanAdd(false);
 				}
 				if (itemModifyDecision != AuthorizationDecisionType.ALLOW) {
-					itemDef.setCanModify(false);
+					((ItemDefinitionImpl) itemDef).setCanModify(false);
 				}
 			}
 			if (item instanceof PrismContainer<?>) {
@@ -354,13 +341,13 @@ public class SchemaTransformer {
 		LOGGER.trace("applySecurityConstraints(itemDef): {}: decisions R={}, A={}, M={}",
 				new Object[]{itemPath, readDecision, addDecision, modifyDecision});
 		if (readDecision != AuthorizationDecisionType.ALLOW) {
-			itemDefinition.setCanRead(false);
+			((ItemDefinitionImpl) itemDefinition).setCanRead(false);
 		}
 		if (addDecision != AuthorizationDecisionType.ALLOW) {
-			itemDefinition.setCanAdd(false);
+			((ItemDefinitionImpl) itemDefinition).setCanAdd(false);
 		}
 		if (modifyDecision != AuthorizationDecisionType.ALLOW) {
-			itemDefinition.setCanModify(false);
+			((ItemDefinitionImpl) itemDefinition).setCanModify(false);
 		}
 		
 		if (itemDefinition instanceof PrismContainerDefinition<?>) {
@@ -489,17 +476,17 @@ public class SchemaTransformer {
 		
 		String displayName = templateItemDefType.getDisplayName();
 		if (displayName != null) {
-			itemDef.setDisplayName(displayName);
+			((ItemDefinitionImpl) itemDef).setDisplayName(displayName);
 		}
 		
 		Integer displayOrder = templateItemDefType.getDisplayOrder();
 		if (displayOrder != null) {
-			itemDef.setDisplayOrder(displayOrder);
+			((ItemDefinitionImpl) itemDef).setDisplayOrder(displayOrder);
 		}
 		
 		Boolean emphasized = templateItemDefType.isEmphasized();
 		if (emphasized != null) {
-			itemDef.setEmphasized(emphasized);
+			((ItemDefinitionImpl) itemDef).setEmphasized(emphasized);
 		}
 		
 		List<PropertyLimitationsType> limitations = templateItemDefType.getLimitations();
@@ -507,24 +494,24 @@ public class SchemaTransformer {
 			PropertyLimitationsType limitationsType = MiscSchemaUtil.getLimitationsType(limitations, LayerType.PRESENTATION);
 			if (limitationsType != null) {
 				if (limitationsType.getMinOccurs() != null) {
-					itemDef.setMinOccurs(XsdTypeMapper.multiplicityToInteger(limitationsType.getMinOccurs()));
+					((ItemDefinitionImpl) itemDef).setMinOccurs(XsdTypeMapper.multiplicityToInteger(limitationsType.getMinOccurs()));
 				}
 				if (limitationsType.getMaxOccurs() != null) {
-					itemDef.setMaxOccurs(XsdTypeMapper.multiplicityToInteger(limitationsType.getMaxOccurs()));
+					((ItemDefinitionImpl) itemDef).setMaxOccurs(XsdTypeMapper.multiplicityToInteger(limitationsType.getMaxOccurs()));
 				}
 				if (limitationsType.isIgnore() != null) {
-					itemDef.setIgnored(limitationsType.isIgnore());
+					((ItemDefinitionImpl) itemDef).setIgnored(limitationsType.isIgnore());
 				}
 				PropertyAccessType accessType = limitationsType.getAccess();
 				if (accessType != null) {
 					if (accessType.isAdd() != null) {
-						itemDef.setCanAdd(accessType.isAdd());
+						((ItemDefinitionImpl) itemDef).setCanAdd(accessType.isAdd());
 					}
 					if (accessType.isModify() != null) {
-						itemDef.setCanModify(accessType.isModify());
+						((ItemDefinitionImpl) itemDef).setCanModify(accessType.isModify());
 					}
 					if (accessType.isRead() != null) {
-						itemDef.setCanRead(accessType.isRead());
+						((ItemDefinitionImpl) itemDef).setCanRead(accessType.isRead());
 					}
 				}
 			}
@@ -533,7 +520,7 @@ public class SchemaTransformer {
 		ObjectReferenceType valueEnumerationRef = templateItemDefType.getValueEnumerationRef();
 		if (valueEnumerationRef != null) {
 			PrismReferenceValue valueEnumerationRVal = MiscSchemaUtil.objectReferenceTypeToReferenceValue(valueEnumerationRef);
-			itemDef.setValueEnumerationRef(valueEnumerationRVal);
+			((ItemDefinitionImpl) itemDef).setValueEnumerationRef(valueEnumerationRVal);
 		}			
 	}
 	

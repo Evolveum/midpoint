@@ -35,7 +35,6 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.PagedSearchC
 
 import java.util.Collection;
 import java.util.List;
-import java.util.Set;
 
 import javax.xml.namespace.QName;
 

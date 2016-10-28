@@ -2,7 +2,6 @@ package com.evolveum.midpoint.web.page.admin.reports.dto;
 
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
-import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 import org.apache.wicket.Component;

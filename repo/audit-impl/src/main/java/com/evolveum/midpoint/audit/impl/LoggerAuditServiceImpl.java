@@ -38,7 +38,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CleanupPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
  * @author semancik
@@ -160,8 +159,17 @@ public class LoggerAuditServiceImpl implements AuditService {
 
 	@Override
 	public List<AuditEventRecord> listRecords(String query, Map<String, Object> params) {
-		// TODO Auto-generated method stub
-		return null;
+		throw new UnsupportedOperationException("Object retrieval not supported");
+	}
+
+    @Override
+    public long countObjects(String query, Map<String, Object> params){
+    	throw new UnsupportedOperationException("Object retrieval not supported");
+    }
+
+	@Override
+	public boolean supportsRetrieval() {
+		return false;
 	}
 	
 	// This method is never used. It is here only for maven dependency plugin to properly detect common component usage.
@@ -169,9 +177,4 @@ public class LoggerAuditServiceImpl implements AuditService {
 	private void fakeMethod() {
 		LoggingConfigurationManager.getCurrentlyUsedVersion();
 	}
-
-    @Override
-    public long countObjects(String query, Map<String, Object> params){
-        return 0;
-    }
 }

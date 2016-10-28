@@ -34,7 +34,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
-import org.testng.AssertJUnit;
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 import org.xml.sax.SAXException;
@@ -42,7 +41,6 @@ import org.xml.sax.SAXException;
 import javax.xml.bind.JAXBException;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;

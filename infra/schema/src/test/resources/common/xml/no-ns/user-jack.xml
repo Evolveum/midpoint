@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2016 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+ 
+<object xsiType="UserType"
+        oid="2f9b9299-6f45-498f-bc8e-8d17c6b93b20">
+    <name>jack</name>
+    
+    <extension>
+		<bar xsiType="string">BAR</bar>
+		<num xsiType="int">42</num>
+		<multi xsiType="string">raz</multi>
+		<multi xsiType="string">dva</multi>
+		<multi xsiType="string">tri</multi>
+		<password xsiType="ProtectedStringType">
+			<clearValue>openS3zam3</clearValue>
+		</password>
+	</extension>
+
+    <!-- Account as composite object, resource as reference -->
+    <link oid="2f9b9299-6f45-498f-aaaa-000000001111">
+    	<name>jsparrow</name>
+    	<resourceRef oid="2f9b9299-5555-5555-5555-000000001111"/>
+    	<objectClass>AccountObjectClass</objectClass>
+    </link>
+    
+    <!-- Account as composite object, resource as composite object -->
+    <link oid="2f9b9299-6f45-498f-aaaa-000000002222">
+    	<name>captain</name>
+    	<resource oid="2f9b9299-5555-5555-5555-000000002222">
+    		<name>Rum Supply System</name>
+    		<connectorRef oid="2f9b9299-cccc-cccc-cccc-000000002222"/>
+    		<connectorConfiguration></connectorConfiguration>
+    		<namespace>http://midpoint.evolveum.com/xml/ns/public/resource/instance/2f9b9299-5555-5555-5555-000000002222</namespace>
+    	</resource>
+    	<objectClass>AccountObjectClass</objectClass>
+    </link>
+    
+    <!-- Account as reference -->
+    <linkRef oid="2f9b9299-6f45-498f-aaaa-000000003333" type="ShadowType">
+    	<description>This is third accountRef</description>
+    	<filter>
+    		<!-- Following filter is a logical nonsense. It is there just to test parsing of filters. -->
+            <equal>
+            	<path>connectorType</path>
+                <value>org.identityconnectors.ldap.LdapConnector</value>
+            </equal>
+    	</filter>
+    </linkRef>
+
+   <assignment id="111">
+    	<extension>
+    		<intType>42</intType>
+    	</extension>
+    	<construction>
+			<resourceRef oid="2f9b9299-5555-5555-5555-000000001111" type="ResourceType"/>
+    	</construction>
+    </assignment>
+    
+    <activation>
+        <administrativeStatus>enabled</administrativeStatus>
+    </activation>
+
+    <fullName>Jack Sparrow</fullName>
+    <givenName>Jack</givenName>
+    <familyName>Sparrow</familyName>
+    <honorificPrefix>Cpt.</honorificPrefix>
+    <emailAddress></emailAddress>
+    <organizationalUnit>Brethren of the Coast</organizationalUnit>
+    <organizationalUnit>Davie Jones' Locker</organizationalUnit>
+    <locality></locality>
+    
+    <credentials>
+        <password>
+			<value>
+				<encryptedData>
+					<encryptionMethod>
+						<algorithm>http://www.w3.org/2001/04/xmlenc#aes256-cbc</algorithm>
+					</encryptionMethod>
+					<keyInfo>
+						<keyName>HF6JRsNMeJt6alihT44CXKgpe0c=</keyName>
+					</keyInfo>
+					<cipherData>
+						<cipherValue>blc5OXO2Z4vJW7o/XXhqZzg/rkwsIOwRBK7KLgMqwcrVcYpeZZOjxzgRgFiNw4IB</cipherValue>
+					</cipherData>
+				</encryptedData>
+			</value>
+        </password>
+    </credentials>
+    
+</object>

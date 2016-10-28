@@ -40,6 +40,7 @@ import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 import javax.xml.ws.Holder;
 
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import org.apache.commons.lang.StringUtils;
 import org.opends.server.types.Entry;
 import org.opends.server.util.EmbeddedUtils;
@@ -76,7 +77,6 @@ import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
@@ -85,7 +85,6 @@ import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
 import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorFactoryIcfImpl;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
@@ -2325,7 +2324,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 	}
 
 	private void checkOpenDjSchema(ResourceType resource, String source) throws SchemaException {
-		ResourceSchema schema = RefinedResourceSchema.getResourceSchema(resource, prismContext);
+		ResourceSchema schema = RefinedResourceSchemaImpl.getResourceSchema(resource, prismContext);
 		ObjectClassComplexTypeDefinition accountDefinition = schema.findObjectClassDefinition(RESOURCE_OPENDJ_ACCOUNT_OBJECTCLASS);
 		assertNotNull("Schema does not define any account (resource from " + source + ")", accountDefinition);
 		Collection<? extends ResourceAttributeDefinition> identifiers = accountDefinition.getPrimaryIdentifiers();

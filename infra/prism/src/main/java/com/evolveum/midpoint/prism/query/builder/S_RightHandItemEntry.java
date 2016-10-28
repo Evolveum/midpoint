@@ -27,6 +27,6 @@ import javax.xml.namespace.QName;
  */
 public interface S_RightHandItemEntry {
     // TODO add support for matching rules
-    S_AtomicFilterExit item(QName... names) throws SchemaException;
-    S_AtomicFilterExit item(ItemPath itemPath, ItemDefinition itemDefinition) throws SchemaException;
+    S_AtomicFilterExit item(QName... names);
+    S_AtomicFilterExit item(ItemPath itemPath, ItemDefinition itemDefinition);
 }

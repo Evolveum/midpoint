@@ -19,19 +19,16 @@ package com.evolveum.midpoint.repo.sql;
 import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertNull;
 
-import com.evolveum.midpoint.prism.Objectable;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
-import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.EqualFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
-import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.repo.api.RepoAddOptions;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
@@ -46,10 +43,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.CapabilitiesType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityType;
 
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -62,7 +57,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -88,7 +82,7 @@ public class AddOverwriteTest extends BaseSQLRepoTest {
 
     @Test
     public void addWithOverwrite() throws Exception {
-        List<PrismObject<?>> objects = prismContext.parseObjects(new File(ORG_STRUCT_OBJECTS));
+        List<PrismObject<?>> objects = prismContext.parserFor(new File(ORG_STRUCT_OBJECTS)).parseObjects();
         
     
         OperationResult opResult = new OperationResult("Import file");
@@ -109,7 +103,7 @@ public class AddOverwriteTest extends BaseSQLRepoTest {
         AssertJUnit.assertNotNull(oid);
 
         //reimport carla, oid should stay the same, version must be incremented
-        objects = prismContext.parseObjects(new File(IMPORT_OVERWRITE));
+        objects = prismContext.parserFor(new File(IMPORT_OVERWRITE)).parseObjects();
         PrismObject newCarla = objects.get(0);
         newCarla.setOid(oid);
 
@@ -126,9 +120,10 @@ public class AddOverwriteTest extends BaseSQLRepoTest {
 
     private PrismObject getCarla(OperationResult opResult) throws Exception {
         final String CARLA_NAME = "carla";
-        final ObjectQuery query = new ObjectQuery();
         PrismObjectDefinition userObjectDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
-        query.setFilter(EqualFilter.createEqual(ObjectType.F_NAME, userObjectDef.findPropertyDefinition(ObjectType.F_NAME), null, CARLA_NAME));
+        ObjectQuery query = QueryBuilder.queryFor(UserType.class, prismContext)
+                .item(UserType.F_NAME).eq(CARLA_NAME)
+                .build();
         List<PrismObject<UserType>> users = repositoryService.searchObjects(UserType.class, query, null, opResult);
         AssertJUnit.assertEquals(1, users.size());
         return users.get(0);

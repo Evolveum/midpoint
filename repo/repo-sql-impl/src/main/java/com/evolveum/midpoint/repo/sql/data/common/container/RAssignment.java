@@ -16,7 +16,6 @@
 
 package com.evolveum.midpoint.repo.sql.data.common.container;
 
-import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.data.common.Metadata;
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
@@ -32,7 +31,6 @@ import com.evolveum.midpoint.repo.sql.query.definition.JaxbPath;
 import com.evolveum.midpoint.repo.sql.query.definition.JaxbType;
 import com.evolveum.midpoint.repo.sql.query.definition.OwnerIdGetter;
 import com.evolveum.midpoint.repo.sql.query.definition.QueryEntity;
-import com.evolveum.midpoint.repo.sql.query.definition.VirtualEntity;
 import com.evolveum.midpoint.repo.sql.query2.definition.IdQueryProperty;
 import com.evolveum.midpoint.repo.sql.query2.definition.NotQueryable;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
@@ -42,8 +40,6 @@ import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import org.apache.commons.lang.Validate;
 import org.hibernate.annotations.Cascade;
@@ -53,7 +49,6 @@ import org.hibernate.annotations.Where;
 
 import javax.persistence.*;
 import javax.xml.datatype.XMLGregorianCalendar;
-import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Set;
 

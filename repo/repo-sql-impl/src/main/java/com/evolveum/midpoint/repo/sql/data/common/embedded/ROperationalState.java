@@ -29,7 +29,6 @@ import org.apache.commons.lang.builder.ReflectionToStringBuilder;
 import org.apache.commons.lang.builder.ToStringStyle;
 
 import javax.persistence.Embeddable;
-import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 
 @Embeddable

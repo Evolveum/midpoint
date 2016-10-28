@@ -15,16 +15,12 @@
  */
 package com.evolveum.midpoint.model.intest.negative;
 
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertFalse;
-import static org.testng.AssertJUnit.assertNull;
-
 import java.io.File;
 import java.util.Map;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.parser.XNodeProcessorEvaluationMode;
+import com.evolveum.midpoint.prism.marshaller.XNodeProcessorEvaluationMode;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -142,7 +138,8 @@ public class TestModelWebServiceNegative extends AbstractInitializedModelIntegra
 		deltaList.getDelta().add(objectChange);
 		
 		// WHEN, THEN
-		assertExecuteChangesFailure(deltaList, null, SchemaViolationFaultType.class, "The value of type", "cannot be applied to attribute");
+		//assertExecuteChangesFailure(deltaList, null, SchemaViolationFaultType.class, "The value of type", "cannot be applied to attribute");
+		assertExecuteChangesFailure(deltaList, null, SchemaViolationFaultType.class, "Expected", "but got class");
 	}
 
 	

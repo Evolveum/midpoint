@@ -24,6 +24,8 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.match.PolyStringNormMatchingRule;
 import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
 import com.evolveum.midpoint.prism.query.*;
+import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
+import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterEntry;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.report.api.ReportManager;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -466,40 +468,20 @@ public class PageCreatedReports extends PageAdminReports {
 
     private ObjectQuery createQuery() {
         ReportOutputSearchDto dto = searchModel.getObject();
+        S_AtomicFilterEntry q = QueryBuilder.queryFor(ReportOutputType.class, getPrismContext());
 
-        try {
-            List<ObjectFilter> ands = new ArrayList<>();
-
-            if (StringUtils.isNotEmpty(dto.getText())) {
-                PolyStringNormalizer normalizer = getPrismContext().getDefaultPolyStringNormalizer();
-                String normalizedString = normalizer.normalize(dto.getText());
-
-                SubstringFilter substring = SubstringFilter.createSubstring(ReportOutputType.F_NAME,
-                        ReportOutputType.class, getPrismContext(), PolyStringNormMatchingRule.NAME, normalizedString);
-                ands.add(substring);
-            }
-
-            String oid = dto.getReportTypeMap().get(dto.getReportType());
-            if (StringUtils.isNotEmpty(oid)) {
-                RefFilter ref = RefFilter.createReferenceEqual(ReportOutputType.F_REPORT_REF, ReportOutputType.class,
-                        getPrismContext(), oid);
-                ands.add(ref);
-            }
-
-            switch (ands.size()) {
-                case 0:
-                    return null;
-                case 1:
-                    return ObjectQuery.createObjectQuery(ands.get(0));
-                default:
-                    AndFilter and = AndFilter.createAnd(ands);
-                    return ObjectQuery.createObjectQuery(and);
-            }
-        } catch (Exception e) {
-            error(getString("pageCreatedReports.message.queryError") + " " + e.getMessage());
-            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't create query filter.", e);
-            return null;
+        if (StringUtils.isNotEmpty(dto.getText())) {
+            PolyStringNormalizer normalizer = getPrismContext().getDefaultPolyStringNormalizer();
+            String normalizedString = normalizer.normalize(dto.getText());
+            q = q.item(ReportOutputType.F_NAME).containsPoly(normalizedString).matchingNorm().and();
         }
+
+        String oid = dto.getReportTypeMap().get(dto.getReportType());
+        if (StringUtils.isNotEmpty(oid)) {
+            q = q.item(ReportOutputType.F_REPORT_REF).ref(oid).and();
+        }
+
+        return q.all().build();
     }
 
     private InputStream createReport(AjaxDownloadBehaviorFromStream ajaxDownloadBehaviorFromStream) {

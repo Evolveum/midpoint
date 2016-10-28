@@ -29,11 +29,9 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.query.EqualFilter;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.QueryJaxbConvertor;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
+import com.evolveum.midpoint.prism.schema.PrismSchemaImpl;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.api.RepoAddOptions;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -49,8 +47,6 @@ import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -58,12 +54,10 @@ import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ImportOptionsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 import com.evolveum.prism.xml.ns._public.types_3.EvaluationTimeType;
 
 import org.apache.commons.lang.BooleanUtils;
@@ -73,7 +67,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
 
 import javax.xml.namespace.QName;
 
@@ -449,7 +442,7 @@ public class ObjectImporter {
             	return;
             }
 			try {
-				connectorSchema = PrismSchema.parse(connectorSchemaElement, true, "schema for " + connector, prismContext);
+				connectorSchema = PrismSchemaImpl.parse(connectorSchemaElement, true, "schema for " + connector, prismContext);
 			} catch (SchemaException e) {
 				result.recordFatalError("Error parsing connector schema for " + connector + ": "+e.getMessage(), e);
 				return;
@@ -511,7 +504,7 @@ public class ObjectImporter {
         }
 
         try {
-            PrismSchema.parse(xsdElement, true, schemaName, prismContext);
+            PrismSchemaImpl.parse(xsdElement, true, schemaName, prismContext);
         } catch (SchemaException e) {
             result.recordFatalError("Error during " + schemaName + " schema integrity check: " + e.getMessage(), e);
             return;
@@ -540,7 +533,7 @@ public class ObjectImporter {
 
         com.evolveum.midpoint.prism.schema.PrismSchema schema = null;
         try {
-            schema = com.evolveum.midpoint.prism.schema.PrismSchema.parse(xsdElement, true, schemaName, prismContext);
+            schema = com.evolveum.midpoint.prism.schema.PrismSchemaImpl.parse(xsdElement, true, schemaName, prismContext);
         } catch (SchemaException e) {
             result.recordFatalError("Error during " + schemaName + " schema parsing: " + e.getMessage(), e);
             LOGGER.trace("Validation error: {}" + e.getMessage());
@@ -567,4 +560,4 @@ public class ObjectImporter {
 	}
     
 }
- 
+

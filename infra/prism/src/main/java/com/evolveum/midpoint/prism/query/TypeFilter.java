@@ -24,6 +24,7 @@ import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
 
@@ -34,14 +35,15 @@ public class TypeFilter extends ObjectFilter {
 
     private static final Trace LOGGER = TraceManager.getTrace(TypeFilter.class);
 
-    private QName type;
+    @NotNull private final QName type;
     private ObjectFilter filter;
 
-    public TypeFilter(QName type, ObjectFilter filter) {
+    public TypeFilter(@NotNull QName type, ObjectFilter filter) {
         this.type = type;
         this.filter = filter;
     }
 
+    @NotNull
     public QName getType() {
         return type;
     }
@@ -58,6 +60,7 @@ public class TypeFilter extends ObjectFilter {
         return new TypeFilter(type, filter);
     }
 
+    @SuppressWarnings("CloneDoesntCallSuperClone")
     @Override
     public ObjectFilter clone() {
         ObjectFilter f = filter != null ? filter.clone() : null;
@@ -74,19 +77,21 @@ public class TypeFilter extends ObjectFilter {
         if (value == null) {
             return false;           // just for safety
         }
-        PrismContainerDefinition definition = value.getConcreteTypeDefinition();
+        ComplexTypeDefinition definition = value.getComplexTypeDefinition();
         if (definition == null) {
             if (!(value.getParent() instanceof PrismContainer)) {
                 LOGGER.trace("Parent of {} is not a PrismContainer, returning false; it is {}", value, value.getParent());
                 return false;
             }
             PrismContainer container = (PrismContainer) value.getParent();
-            definition = container.getDefinition();
-            if (definition == null) {
+            PrismContainerDefinition pcd = container.getDefinition();
+            if (pcd == null) {
                 LOGGER.trace("Parent of {} has no definition, returning false", value);
                 return false;
             }
+            definition = pcd.getComplexTypeDefinition();
         }
+        // TODO TODO TODO subtypes!!!!!!!!
         if (!QNameUtil.match(definition.getTypeName(), type)) {
             return false;
         }
@@ -134,7 +139,7 @@ public class TypeFilter extends ObjectFilter {
 
         TypeFilter that = (TypeFilter) o;
 
-        if (type != null ? !type.equals(that.type) : that.type != null) return false;
+        if (!type.equals(that.type)) return false;
         if (filter != null ? !filter.equals(that.filter, exact) : that.filter != null) return false;
 
         return true;
@@ -142,7 +147,7 @@ public class TypeFilter extends ObjectFilter {
 
     @Override
     public int hashCode() {
-        return type != null ? type.hashCode() : 0;
+        return type.hashCode();
     }
 
     @Override

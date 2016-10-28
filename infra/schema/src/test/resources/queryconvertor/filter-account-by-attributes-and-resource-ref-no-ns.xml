@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2016 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<filter xsi:type="SearchFilterType"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+
+	<and>
+		<ref>
+			<path>resourceRef</path>
+			<value>
+				<oid>aae7be60-df56-11df-8608-0002a5d5c51b</oid>
+			</value>
+		</ref>
+		<equal>
+			<path>attributes/name</path>
+			<value>uid=jbond,ou=People,dc=example,dc=com</value>
+		</equal>
+	</and>
+</filter>

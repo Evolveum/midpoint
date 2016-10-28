@@ -24,6 +24,8 @@ import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
+import com.evolveum.midpoint.model.api.ModelAuditService;
 import com.evolveum.midpoint.model.api.ModelDiagnosticService;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
@@ -64,6 +66,7 @@ import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.OrgFilter;
 import com.evolveum.midpoint.prism.query.RefFilter;
+import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
@@ -108,7 +111,6 @@ import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AdminGuiConfigurationType;
@@ -143,7 +145,6 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 import org.apache.commons.lang.StringUtils;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
-import org.opends.server.types.SearchResultEntry;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.ConfigAttribute;
 import org.springframework.security.access.SecurityConfig;
@@ -216,6 +217,9 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	
 	@Autowired(required = true)
 	protected ModelDiagnosticService modelDiagnosticService;
+	
+	@Autowired(required = true)
+	protected ModelAuditService modelAuditService;
 	
 	@Autowired(required = true)
 	protected ModelPortType modelWeb;
@@ -430,9 +434,10 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 			+ accountRef.getValues();
 	}
 	
-	protected void assertAccount(PrismObject<UserType> user, String resourceOid) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException {
+	protected String assertAccount(PrismObject<UserType> user, String resourceOid) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException {
 		String accountOid = getLinkRefOid(user, resourceOid);
 		assertNotNull("User " + user + " has no account on resource " + resourceOid, accountOid);
+		return accountOid;
 	}
 	
 	protected void assertAccounts(String userOid, int numAccounts) throws ObjectNotFoundException, SchemaException {
@@ -493,7 +498,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		ObjectReferenceType resourceRef = new ObjectReferenceType();
 		resourceRef.setOid(resource.getOid());
 		account.asObjectable().setResourceRef(resourceRef);
-		RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resource);
+		RefinedResourceSchema refinedSchema = RefinedResourceSchemaImpl.getRefinedSchema(resource);
 		account.asObjectable().setObjectClass(refinedSchema.getDefaultRefinedDefinition(ShadowKindType.ACCOUNT).getObjectClassDefinition().getTypeName());
 		
 		ObjectDelta<UserType> userDelta = ObjectDelta.createEmptyModifyDelta(UserType.class, userOid, prismContext);
@@ -596,7 +601,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	}
 	
 	protected ResourceAttributeDefinition getAttributeDefinition(PrismObject<ResourceType> resource, QName attributeName) throws SchemaException {
-		RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resource);
+		RefinedResourceSchema refinedSchema = RefinedResourceSchemaImpl.getRefinedSchema(resource);
 		if (refinedSchema == null) {
 			throw new SchemaException("No refined schema for "+resource);
 		}
@@ -1015,16 +1020,16 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	}
 	
 	protected int countAssignees(String targetOid, OperationResult result) throws SchemaException {
-		ObjectFilter filter = RefFilter.createReferenceEqual(
-				new ItemPath(FocusType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF), UserType.class, prismContext, targetOid);
-		ObjectQuery query = ObjectQuery.createObjectQuery(filter);
+		ObjectQuery query = QueryBuilder.queryFor(FocusType.class, prismContext)
+				.item(FocusType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF).ref(targetOid)
+				.build();
 		return repositoryService.countObjects(FocusType.class, query, result);
 	}
 	
 	protected SearchResultList<PrismObject<FocusType>> listAssignees(String targetOid, OperationResult result) throws SchemaException {
-		ObjectFilter filter = RefFilter.createReferenceEqual(
-				new ItemPath(FocusType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF), UserType.class, prismContext, targetOid);
-		ObjectQuery query = ObjectQuery.createObjectQuery(filter);
+		ObjectQuery query = QueryBuilder.queryFor(FocusType.class, prismContext)
+				.item(FocusType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF).ref(targetOid)
+				.build();
 		return repositoryService.searchObjects(FocusType.class, query, null, result);
 	}
 
@@ -1151,19 +1156,16 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	protected Collection<PrismObject<ShadowType>> listAccounts(PrismObject<ResourceType> resource, 
 			Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException {
         
-        RefinedResourceSchema rSchema = RefinedResourceSchema.getRefinedSchema(resource);
+        RefinedResourceSchema rSchema = RefinedResourceSchemaImpl.getRefinedSchema(resource);
         RefinedObjectClassDefinition rAccount = rSchema.getDefaultRefinedDefinition(ShadowKindType.ACCOUNT);
         Collection<? extends ResourceAttributeDefinition> identifierDefs = rAccount.getPrimaryIdentifiers();
         assert identifierDefs.size() == 1 : "Unexpected identifier set in "+resource+" refined schema: "+identifierDefs;
         ResourceAttributeDefinition identifierDef = identifierDefs.iterator().next();
-        EqualFilter ocFilter = EqualFilter.createEqual(ShadowType.F_OBJECT_CLASS, ShadowType.class, prismContext, null, 
-        		rAccount.getObjectClassDefinition().getTypeName());
-        RefFilter resourceRefFilter = RefFilter.createReferenceEqual(ShadowType.F_RESOURCE_REF, ShadowType.class, resource);
-        AndFilter filter = AndFilter.createAnd(ocFilter, resourceRefFilter);
-        ObjectQuery query = ObjectQuery.createObjectQuery(filter);
-        
+		ObjectQuery query = QueryBuilder.queryFor(ShadowType.class, prismContext)
+				.item(ShadowType.F_OBJECT_CLASS).eq(rAccount.getObjectClassDefinition().getTypeName())
+				.and().item(ShadowType.F_RESOURCE_REF).ref(resource.getOid())
+				.build();
 		List<PrismObject<ShadowType>> accounts = modelService.searchObjects(ShadowType.class, query, null, task, result);
-		
 		return accounts;
 	}
 	
@@ -1231,19 +1233,17 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	}
 
 	protected ObjectQuery createAccountShadowQuery(String username, PrismObject<ResourceType> resource) throws SchemaException {
-		RefinedResourceSchema rSchema = RefinedResourceSchema.getRefinedSchema(resource);
+		RefinedResourceSchema rSchema = RefinedResourceSchemaImpl.getRefinedSchema(resource);
         RefinedObjectClassDefinition rAccount = rSchema.getDefaultRefinedDefinition(ShadowKindType.ACCOUNT);
         Collection<? extends ResourceAttributeDefinition> identifierDefs = rAccount.getPrimaryIdentifiers();
         assert identifierDefs.size() == 1 : "Unexpected identifier set in "+resource+" refined schema: "+identifierDefs;
         ResourceAttributeDefinition identifierDef = identifierDefs.iterator().next();
         //TODO: set matching rule instead of null
-        EqualFilter idFilter = EqualFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES, identifierDef.getName()), identifierDef, username);
-        EqualFilter ocFilter = EqualFilter.createEqual(ShadowType.F_OBJECT_CLASS, ShadowType.class, prismContext, 
-        		rAccount.getObjectClassDefinition().getTypeName());
-        RefFilter resourceRefFilter = RefFilter.createReferenceEqual(ShadowType.F_RESOURCE_REF, ShadowType.class, 
-        		resource);
-        AndFilter filter = AndFilter.createAnd(idFilter, ocFilter, resourceRefFilter);
-        return ObjectQuery.createObjectQuery(filter);
+		return QueryBuilder.queryFor(ShadowType.class, prismContext)
+				.itemWithDef(identifierDef, ShadowType.F_ATTRIBUTES, identifierDef.getName()).eq(username)
+				.and().item(ShadowType.F_OBJECT_CLASS).eq(rAccount.getObjectClassDefinition().getTypeName())
+				.and().item(ShadowType.F_RESOURCE_REF).ref(resource.getOid())
+				.build();
 	}
 
 	protected <F extends FocusType> String getSingleLinkOid(PrismObject<F> focus) {
@@ -1485,10 +1485,9 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	}
 
 	protected List<PrismObject<OrgType>> getSubOrgs(String baseOrgOid, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException {
-		ObjectQuery query = new ObjectQuery();
-		PrismReferenceValue baseOrgRef = new PrismReferenceValue(baseOrgOid);
-		ObjectFilter filter = OrgFilter.createOrg(baseOrgRef, OrgFilter.Scope.ONE_LEVEL);
-		query.setFilter(filter);
+		ObjectQuery query = QueryBuilder.queryFor(OrgType.class, prismContext)
+				.isDirectChildOf(baseOrgOid)
+				.build();
 		return modelService.searchObjects(OrgType.class, query, null, task, result);
 	}
 	
@@ -1716,7 +1715,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		ObjectReferenceType resourceRef = new ObjectReferenceType();
 		resourceRef.setOid(resource.getOid());
 		shadowType.setResourceRef(resourceRef);
-		RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resource);
+		RefinedResourceSchema refinedSchema = RefinedResourceSchemaImpl.getRefinedSchema(resource);
 		RefinedObjectClassDefinition objectClassDefinition = refinedSchema.getDefaultRefinedDefinition(ShadowKindType.ACCOUNT);
 		shadowType.setObjectClass(objectClassDefinition.getTypeName());
 		shadowType.setKind(ShadowKindType.ACCOUNT);
@@ -1914,8 +1913,9 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	}
 	
     protected List<PrismObject<OrgType>> searchOrg(String baseOrgOid, OrgFilter.Scope scope, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException {
-        ObjectFilter filter = OrgFilter.createOrg(baseOrgOid, scope);
-		ObjectQuery query = ObjectQuery.createObjectQuery(filter);
+		ObjectQuery query = QueryBuilder.queryFor(OrgType.class, prismContext)
+				.isInScopeOf(baseOrgOid, scope)
+				.build();
 		return modelService.searchObjects(OrgType.class, query, null, task, result);
 	}
     

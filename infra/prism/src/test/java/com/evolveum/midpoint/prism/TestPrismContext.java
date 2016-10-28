@@ -36,7 +36,6 @@ import com.evolveum.midpoint.prism.foo.AccountConstructionType;
 import com.evolveum.midpoint.prism.foo.AccountType;
 import com.evolveum.midpoint.prism.foo.ActivationType;
 import com.evolveum.midpoint.prism.foo.AssignmentType;
-import com.evolveum.midpoint.prism.foo.ObjectFactory;
 import com.evolveum.midpoint.prism.foo.UserType;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.prism.schema.SchemaDescription;
@@ -67,7 +66,7 @@ public class TestPrismContext {
 		System.out.println("===[ testPrefixMapper ]===");
 		
 		// WHEN
-		PrismContext prismContext = constructInitializedPrismContext();
+		PrismContextImpl prismContext = constructInitializedPrismContext();
 		
 		// THEN
 		assertNotNull("No prism context", prismContext);

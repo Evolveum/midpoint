@@ -39,6 +39,7 @@ import javax.annotation.PostConstruct;
 import javax.net.ssl.TrustManager;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.schema.PrismSchemaImpl;
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.lang.StringUtils;
 import org.identityconnectors.common.Version;
@@ -65,8 +66,6 @@ import org.identityconnectors.framework.api.operations.TestApiOp;
 import org.identityconnectors.framework.api.operations.UpdateApiOp;
 import org.identityconnectors.framework.api.operations.ValidateApiOp;
 import org.identityconnectors.framework.common.FrameworkUtil;
-import org.identityconnectors.framework.impl.api.local.LocalConnectorInfoImpl;
-import org.identityconnectors.framework.impl.api.local.operations.ConnectorOperationalContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.w3c.dom.Element;
@@ -75,7 +74,6 @@ import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
-import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorFactory;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
@@ -282,7 +280,7 @@ public class ConnectorFactoryIcfImpl implements ConnectorFactory {
 		if (xsdElement == null) {
 			return null;
 		}
-		PrismSchema connectorSchema = PrismSchema.parse(xsdElement, true, connectorType.toString(), prismContext);
+		PrismSchema connectorSchema = PrismSchemaImpl.parse(xsdElement, true, connectorType.toString(), prismContext);
 		return connectorSchema;
 	}
 

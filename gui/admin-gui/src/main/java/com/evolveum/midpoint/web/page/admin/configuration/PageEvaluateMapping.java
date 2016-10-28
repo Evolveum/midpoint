@@ -183,14 +183,13 @@ public class PageEvaluateMapping extends PageAdminConfiguration {
         try {
 			MappingEvaluationRequestType request;
 			if (StringUtils.isNotBlank(dto.getRequest())) {
-				request = getPrismContext().parseAtomicValue(dto.getRequest(), MappingEvaluationRequestType.COMPLEX_TYPE, PrismContext.LANG_XML);
+				request = getPrismContext().parserFor(dto.getRequest()).xml().parseRealValue(MappingEvaluationRequestType.class);
 			} else {
 				request = new MappingEvaluationRequestType();
 			}
 
 			if (StringUtils.isNotBlank(dto.getMapping())) {
-				request.setMapping((MappingType) getPrismContext()
-						.parseAtomicValue(dto.getMapping(), MappingType.COMPLEX_TYPE, PrismContext.LANG_XML));
+				request.setMapping(getPrismContext().parserFor(dto.getMapping()).xml().parseRealValue(MappingType.class));
 			}
 
 			MappingEvaluationResponseType response = getModelDiagnosticService().evaluateMapping(request, task, result);

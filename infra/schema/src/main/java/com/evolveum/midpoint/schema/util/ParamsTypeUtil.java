@@ -7,12 +7,12 @@ import java.util.Set;
 import java.util.Map.Entry;
 
 import javax.xml.bind.JAXBElement;
-import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.xnode.RootXNode;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
-import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.SerializationContext;
 import com.evolveum.midpoint.prism.SerializationOptions;
@@ -65,13 +65,11 @@ public class ParamsTypeUtil {
 		if (XmlTypeConverter.canConvert(entry.getValue().getClass())){
 			return createEntryElement(entry.getKey(), entry.getValue());
 		} else {
-			SerializationContext ctx = new SerializationContext(SerializationOptions.createSerializeReferenceNames());
-			XNode xnode = prismContext.getXnodeProcessor().serializeAnyData(entry.getValue(), SchemaConstants.C_PARAM_VALUE, ctx);
+			RootXNode xnode = prismContext.xnodeSerializer()
+					.options(SerializationOptions.createSerializeReferenceNames())
+					.serializeAnyData(entry.getValue(), SchemaConstants.C_PARAM_VALUE);
 			return createEntryElement(entry.getKey(), new RawType(xnode, prismContext));
 		}
-//		result.setEntryValue(new JAXBElement(SchemaConstants.C_PARAM_VALUE, entry.getValue().getClass(),
-//				prismContext.serializeAnyData(entry.getValue(), new QName("any"), prismContext.LANG_XML)));
-//		return result;
 	}
 
 	public static Map<String, Serializable> fromParamsType(ParamsType paramsType, PrismContext prismContext) throws SchemaException{

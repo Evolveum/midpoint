@@ -18,28 +18,19 @@ package com.evolveum.midpoint.model.impl.lens;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Iterator;
 import java.util.List;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.common.refinery.RefinedAssociationDefinition;
-import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
-import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
+import com.evolveum.midpoint.common.refinery.*;
 import com.evolveum.midpoint.model.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.model.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.model.common.expression.ObjectDeltaObject;
 import com.evolveum.midpoint.model.common.mapping.Mapping;
 import com.evolveum.midpoint.model.common.mapping.MappingFactory;
-import com.evolveum.midpoint.model.common.mapping.PrismValueDeltaSetTripleProducer;
 import com.evolveum.midpoint.model.impl.lens.projector.MappingEvaluator;
 import com.evolveum.midpoint.model.impl.util.Utils;
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.Definition;
-import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -50,12 +41,11 @@ import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.OriginType;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
-import com.evolveum.midpoint.prism.parser.QueryConvertor;
+import com.evolveum.midpoint.prism.marshaller.QueryConvertor;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.ItemPathUtil;
 import com.evolveum.midpoint.schema.ResultHandler;
-import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -74,8 +64,6 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionStrengthType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
@@ -89,7 +77,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationTyp
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
-import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
 /**
  * Live class that contains "construction" - a definition how to construct a
@@ -461,7 +448,7 @@ public class Construction<F extends FocusType> implements DebugDumpable, Seriali
 					"The specified resource and the resource in construction does not match");
 		}
 
-		RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resource,
+		RefinedResourceSchema refinedSchema = RefinedResourceSchemaImpl.getRefinedSchema(resource,
 				LayerType.MODEL, prismContext);
 		if (refinedSchema == null) {
 			// Refined schema may be null in some error-related border cases
@@ -637,7 +624,7 @@ public class Construction<F extends FocusType> implements DebugDumpable, Seriali
 						.originType(OriginType.ASSIGNMENTS)
 						.originObject(source);
 
-		RefinedAssociationDefinition rAssocDef = refinedObjectClassDefinition.findAssociation(assocName);
+		RefinedAssociationDefinition rAssocDef = refinedObjectClassDefinition.findAssociationDefinition(assocName);
 		if (rAssocDef == null) {
 			throw new SchemaException("No association " + assocName + " in object class "
 					+ refinedObjectClassDefinition.getHumanReadableName() + " in construction in " + source);

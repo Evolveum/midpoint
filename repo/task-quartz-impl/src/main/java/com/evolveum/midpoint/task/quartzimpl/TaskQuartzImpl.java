@@ -41,6 +41,7 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.EqualFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.DeltaConvertor;
@@ -2559,13 +2560,9 @@ public class TaskQuartzImpl implements Task {
         result.addContext(OperationResult.CONTEXT_OID, getOid());
         result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, TaskQuartzImpl.class);
 
-        ObjectFilter filter = null;
-//        try {
-            filter = EqualFilter.createEqual(TaskType.F_DEPENDENT, TaskType.class, taskManager.getPrismContext(), null, getTaskIdentifier());
-//        } catch (SchemaException e) {
-//            throw new SystemException("Cannot create filter for 'dependent contains task identifier' due to schema exception", e);
-//        }
-        ObjectQuery query = ObjectQuery.createObjectQuery(filter);
+        ObjectQuery query = QueryBuilder.queryFor(TaskType.class, getPrismContext())
+				.item(TaskType.F_DEPENDENT).eq(getTaskIdentifier())
+				.build();
 
         List<PrismObject<TaskType>> list = taskManager.getRepositoryService().searchObjects(TaskType.class, query, null, result);
         result.recordSuccessIfUnknown();

@@ -209,6 +209,7 @@ public class ObjectQuery implements DebugDumpable, Serializable {
 		return paging.getMaxSize();
 	}
 
+	@SuppressWarnings("EqualsWhichDoesntCheckParameterClass")
 	public boolean equals(Object o) {
 		return equals(o, true);
 	}

@@ -147,7 +147,11 @@ public class ListXNode extends XNode implements List<XNode> {
 	public void accept(Visitor visitor) {
 		visitor.visit(this);
 		for (XNode subnode: subnodes) {
-			subnode.accept(visitor);
+			if (subnode != null) {
+				subnode.accept(visitor);
+			} else {
+				// !!!!! TODO
+			}
 		}
 	}
 

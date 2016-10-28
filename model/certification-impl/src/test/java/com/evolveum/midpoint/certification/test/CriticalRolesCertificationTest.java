@@ -20,8 +20,8 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.RefFilter;
+import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
@@ -29,7 +29,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationC
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCasesStatisticsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationStageType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import org.springframework.test.annotation.DirtiesContext;
@@ -45,8 +44,6 @@ import java.util.List;
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType.CLOSED;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType.IN_REMEDIATION;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType.IN_REVIEW_STAGE;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType.REVIEW_STAGE_DONE;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType.ACCEPT;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType.NOT_DECIDED;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType.NO_RESPONSE;
@@ -947,8 +944,10 @@ jack->CTO                   none (A) -> A       none (A) -> A             | A   
         display("campaign after remediation start", campaign);
         assertTrue("wrong campaign state: " + campaign.getState(), campaign.getState() == CLOSED || campaign.getState() == IN_REMEDIATION);
 
-        RefFilter taskFilter = RefFilter.createReferenceEqual(new ItemPath(TaskType.F_OBJECT_REF), TaskType.class, prismContext, ObjectTypeUtil.createObjectRef(campaign).asReferenceValue());
-        List<PrismObject<TaskType>> tasks = taskManager.searchObjects(TaskType.class, ObjectQuery.createObjectQuery(taskFilter), null, result);
+        ObjectQuery query = QueryBuilder.queryFor(TaskType.class, prismContext)
+                .item(TaskType.F_OBJECT_REF).ref(campaign.getOid())
+                .build();
+        List<PrismObject<TaskType>> tasks = taskManager.searchObjects(TaskType.class, query, null, result);
         assertEquals("unexpected number of related tasks", 1, tasks.size());
         waitForTaskFinish(tasks.get(0).getOid(), true);
 

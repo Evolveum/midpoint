@@ -32,7 +32,6 @@ import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
 import java.io.File;
-import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -54,7 +53,7 @@ public class DeleteTest extends BaseSQLRepoTest {
             return;
         }
 
-        List<PrismObject<? extends Objectable>> elements = prismContext.parseObjects(file);
+        List<PrismObject<? extends Objectable>> elements = prismContext.parserFor(file).parseObjects();
         List<String> oids = new ArrayList<String>();
 
         OperationResult result = new OperationResult("Delete Test");
@@ -115,8 +114,7 @@ public class DeleteTest extends BaseSQLRepoTest {
     @Test
     public void test100DeleteObjects() throws Exception {
 //        PrismDomProcessor domProcessor = prismContext.getPrismDomProcessor();
-        List<PrismObject<? extends Objectable>> objects = prismContext.parseObjects(
-                new File(FOLDER_BASIC, "objects.xml"));
+        List<PrismObject<? extends Objectable>> objects = prismContext.parserFor(new File(FOLDER_BASIC, "objects.xml")).parseObjects();
         OperationResult result = new OperationResult("add objects");
 
         List<String> oids = new ArrayList<>();

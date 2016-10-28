@@ -25,9 +25,9 @@ import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 import org.testng.AssertJUnit;
 
-import com.evolveum.midpoint.prism.parser.TrivialXPathParser;
-import com.evolveum.midpoint.prism.parser.XPathHolder;
-import com.evolveum.midpoint.prism.parser.XPathSegment;
+import com.evolveum.midpoint.prism.marshaller.TrivialXPathParser;
+import com.evolveum.midpoint.prism.marshaller.XPathHolder;
+import com.evolveum.midpoint.prism.marshaller.XPathSegment;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;

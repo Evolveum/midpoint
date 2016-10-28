@@ -16,18 +16,11 @@
 package com.evolveum.midpoint.model.impl.lens;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
-
-import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.ConsistencyCheckScope;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.schema.DeltaConvertor;
-import com.evolveum.midpoint.schema.constants.MidPointConstants;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.processor.ResourceAttribute;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -40,7 +33,6 @@ import org.apache.commons.lang.Validate;
 
 import com.evolveum.midpoint.common.crypto.CryptoUtil;
 import com.evolveum.midpoint.model.api.context.ModelElementContext;
-import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.model.common.expression.ObjectDeltaObject;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -48,7 +40,6 @@ import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 

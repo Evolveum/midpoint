@@ -16,7 +16,6 @@
 
 package com.evolveum.midpoint.wf.impl.util;
 
-import com.evolveum.midpoint.common.SystemConfigurationHolder;
 import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.context.ModelContext;
@@ -34,7 +33,6 @@ import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.OidUtil;
-import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.Task;
@@ -184,7 +182,7 @@ public class MiscDataUtil {
     public static String serializeContainerableToXml(Containerable containerable, PrismContext prismContext) {
         try {
             PrismContainerValue value = containerable.asPrismContainerValue();
-            return prismContext.serializeContainerValueToString(value, value.getContainer().getElementName(), PrismContext.LANG_XML);
+            return prismContext.xmlSerializer().serialize(value, value.getContainer().getElementName());
         } catch (SchemaException e) {
             throw new SystemException("Couldn't serialize a Containerable " + containerable + " into XML", e);
         }
@@ -192,19 +190,19 @@ public class MiscDataUtil {
 
     public static ObjectType deserializeObjectFromXml(String xml, PrismContext prismContext) {
         try {
-            return (ObjectType) prismContext.parseObject(xml, PrismContext.LANG_XML).asObjectable();
+            return (ObjectType) prismContext.parserFor(xml).xml().parse().asObjectable();
         } catch (SchemaException e) {
             throw new SystemException("Couldn't deserialize a PrismObject from XML", e);
         }
     }
 
-    public static PrismContainer deserializeContainerFromXml(String xml, PrismContext prismContext) {
-        try {
-            return prismContext.parseContainer(xml, (Class) null, PrismContext.LANG_XML);
-        } catch (SchemaException e) {
-            throw new SystemException("Couldn't deserialize a Containerable from XML", e);
-        }
-    }
+//    public static PrismContainer deserializeContainerFromXml(String xml, PrismContext prismContext) {
+//        try {
+//            return prismContext.processorFor(xml).xml().unmarshallContainer(null);			// TODO will 'null' work?
+//        } catch (SchemaException e) {
+//            throw new SystemException("Couldn't deserialize a Containerable from XML", e);
+//        }
+//    }
 
     public void resolveAssignmentTargetReferences(PrismObject<? extends UserType> object, OperationResult result) {
         for (AssignmentType assignmentType : object.asObjectable().getAssignment()) {

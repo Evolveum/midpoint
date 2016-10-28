@@ -18,7 +18,6 @@ package com.evolveum.midpoint.provisioning.consistency.impl;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 
 import com.evolveum.midpoint.provisioning.impl.ConstraintsChecker;
 import com.evolveum.midpoint.provisioning.impl.ResourceManager;
@@ -31,7 +30,6 @@ import org.springframework.stereotype.Component;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.provisioning.api.ResourceOperationDescription;
 import com.evolveum.midpoint.provisioning.consistency.api.ErrorHandler;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
@@ -49,7 +47,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AvailabilityStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FailedOperationTypeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationalStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;

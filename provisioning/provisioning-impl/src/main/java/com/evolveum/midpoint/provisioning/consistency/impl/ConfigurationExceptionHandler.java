@@ -18,7 +18,6 @@ package com.evolveum.midpoint.provisioning.consistency.impl;
 
 import java.util.Collection;
 
-import org.jfree.util.Log;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;

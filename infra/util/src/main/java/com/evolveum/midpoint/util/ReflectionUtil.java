@@ -20,8 +20,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.List;
 
-import javax.xml.xpath.XPathFunctionException;
-
 import org.apache.commons.lang.StringUtils;
 
 /**

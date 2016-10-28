@@ -20,14 +20,12 @@ import java.util.List;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 import org.springframework.security.core.GrantedAuthority;
-import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationDecisionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSpecificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OwnedObjectSpecificationType;
 
 /**

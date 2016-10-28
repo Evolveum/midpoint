@@ -20,7 +20,6 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ValidationIssueSeverityType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ValidationIssueType;
-import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

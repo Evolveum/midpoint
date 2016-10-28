@@ -15,8 +15,6 @@
  */
 package com.evolveum.midpoint.security.api;
 
-import java.util.Map;
-
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationDecisionType;

@@ -19,17 +19,13 @@ import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertNotNull;
-import static org.testng.AssertJUnit.assertNull;
 
-import java.io.File;
-import java.util.ArrayList;
 import java.util.Collection;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.evolveum.icf.dummy.resource.DummyGroup;
 import com.evolveum.midpoint.audit.api.AuditEventStage;
-import com.evolveum.midpoint.model.intest.AbstractInitializedModelIntegrationTest;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.path.ItemPath;

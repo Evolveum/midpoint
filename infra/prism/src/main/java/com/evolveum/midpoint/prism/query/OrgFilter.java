@@ -34,12 +34,12 @@ public class OrgFilter extends ObjectFilter {
     private Scope scope;
     private boolean root;
 
-    public OrgFilter(PrismReferenceValue baseOrgRef, Scope scope) {
+    private OrgFilter(PrismReferenceValue baseOrgRef, Scope scope) {
         this.baseOrgRef = baseOrgRef;
         this.scope = scope != null ? scope : Scope.SUBTREE;
     }
 
-    public OrgFilter() {
+    private OrgFilter() {
     }
 
     public static OrgFilter createOrg(PrismReferenceValue baseOrgRef, Scope scope) {
@@ -48,10 +48,6 @@ public class OrgFilter extends ObjectFilter {
 
     public static OrgFilter createOrg(String baseOrgOid, Scope scope) {
         return new OrgFilter(new PrismReferenceValue(baseOrgOid), scope);
-    }
-
-    public static OrgFilter createOrg(String baseOrgRef) {
-        return new OrgFilter(new PrismReferenceValue(baseOrgRef), Scope.SUBTREE);
     }
 
     public static OrgFilter createRootOrg() {
@@ -64,16 +60,8 @@ public class OrgFilter extends ObjectFilter {
         return baseOrgRef;
     }
 
-    public void setOrgRef(PrismReferenceValue baseOrgRef) {
-        this.baseOrgRef = baseOrgRef;
-    }
-
     public Scope getScope() {
         return scope;
-    }
-
-    public void setScope(Scope scope) {
-        this.scope = scope;
     }
 
     private void setRoot(boolean root) {

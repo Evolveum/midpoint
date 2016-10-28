@@ -25,6 +25,9 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.match.PolyStringNormMatchingRule;
 import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
 import com.evolveum.midpoint.prism.query.*;
+import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
+import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterEntry;
+import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -1198,38 +1201,23 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
         String category = dto.getCategory();
         boolean showSubtasks = dto.isShowSubtasks();
 
-        ObjectQuery query = null;
-        try {
-            List<ObjectFilter> filters = new ArrayList<>();
-            if (status != null) {
-                ObjectFilter filter = status.createFilter(TaskType.class, getPrismContext());
-                if (filter != null) {
-                    filters.add(filter);
-                }
-            }
-            if (category != null && !ALL_CATEGORIES.equals(category)) {
-                filters.add(EqualFilter.createEqual(TaskType.F_CATEGORY, TaskType.class, getPrismContext(), null, category));
-            }
-            if (searchText != null && !searchText.trim().equals("")) {
-                PolyStringNormalizer normalizer = getPrismContext().getDefaultPolyStringNormalizer();
-                String normalizedString = normalizer.normalize(searchText);
-
-                ObjectFilter substring = SubstringFilter.createSubstring(TaskType.F_NAME, TaskType.class,
-                        getPrismContext(), PolyStringNormMatchingRule.NAME, normalizedString);
-                filters.add(substring);
-                searchText = "";
-            }
-            if (!Boolean.TRUE.equals(showSubtasks)) {
-                filters.add(EqualFilter.createEqual(TaskType.F_PARENT, TaskType.class, getPrismContext(), null));
-            }
-            if (!filters.isEmpty()) {
-                query = new ObjectQuery().createObjectQuery(AndFilter.createAnd(filters));
-            }
-        } catch (Exception ex) {
-            error(getString("pageTasks.message.couldntCreateQuery") + " " + ex.getMessage());
-            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't create task filter", ex);
+        S_AtomicFilterEntry q = QueryBuilder.queryFor(TaskType.class, getPrismContext());
+        if (status != null) {
+            q = status.appendFilter(q);
         }
-        return query;
+        if (category != null && !ALL_CATEGORIES.equals(category)) {
+            q = q.item(TaskType.F_CATEGORY).eq(category).and();
+        }
+        if (StringUtils.isNotBlank(searchText)) {
+            PolyStringNormalizer normalizer = getPrismContext().getDefaultPolyStringNormalizer();
+            String normalizedString = normalizer.normalize(searchText);
+            q = q.item(TaskType.F_NAME).containsPoly(normalizedString, normalizedString).matchingNorm().and();
+            searchText = "";        // ???
+        }
+        if (!Boolean.TRUE.equals(showSubtasks)) {
+            q = q.item(TaskType.F_PARENT).isNull().and();
+        }
+        return q.all().build();
     }
 
     private void clearSearchPerformed(AjaxRequestTarget target) {

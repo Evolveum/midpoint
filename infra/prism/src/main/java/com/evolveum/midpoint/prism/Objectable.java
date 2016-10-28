@@ -23,21 +23,21 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
  */
 public interface Objectable extends Containerable {
 	
-	public String getOid();
+	String getOid();
 	
-	public void setOid(String oid);
+	void setOid(String oid);
 	
-	public String getVersion();
+	String getVersion();
 	
-	public void setVersion(String version);
+	void setVersion(String version);
 	
-	public PolyStringType getName();
+	PolyStringType getName();
 	
-	public void setName(PolyStringType name);
+	void setName(PolyStringType name);
 	
-	public String getDescription();
+	String getDescription();
 	
-	public void setDescription(String description);
+	void setDescription(String description);
 	
 	/**
 	 * Returns short string representing identity of this object.
@@ -45,7 +45,7 @@ public interface Objectable extends Containerable {
 	 * in a form suitable for log and diagnostic messages (understandable for
 	 * system administrator).
 	 */
-	public String toDebugName();
+	String toDebugName();
 	
 	/**
 	 * Returns short string identification of object type. It should be in a form
@@ -54,11 +54,11 @@ public interface Objectable extends Containerable {
 	 * QNames or URIs.
 	 * @return
 	 */
-	public String toDebugType();
+	String toDebugType();
 
-    public PrismObject asPrismObject();
+    PrismObject asPrismObject();
     
-    public void setupContainer(PrismObject object);
+    void setupContainer(PrismObject object);
 
 //	public <O extends Objectable> PrismObject<O> asPrismObject();
 //    

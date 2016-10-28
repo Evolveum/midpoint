@@ -20,7 +20,6 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.web.component.form.DropDownFormGroup;
 import com.evolveum.midpoint.web.component.form.TextAreaFormGroup;
 import com.evolveum.midpoint.web.component.form.TextFormGroup;
-import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.page.admin.reports.dto.ReportDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExportType;
 import org.apache.wicket.markup.html.form.ChoiceRenderer;

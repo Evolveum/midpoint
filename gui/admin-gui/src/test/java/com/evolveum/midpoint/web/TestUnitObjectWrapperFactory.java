@@ -15,42 +15,23 @@
  */
 package com.evolveum.midpoint.web;
 
-import static org.testng.AssertJUnit.assertNotNull;
-import static org.testng.AssertJUnit.assertNull;
 import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertFalse;
 import static com.evolveum.midpoint.web.AdminGuiTestConstants.*;
 
-import java.util.Arrays;
-import java.util.List;
-
-import javax.xml.namespace.QName;
-
-import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
-import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.web.component.prism.ContainerStatus;
 import com.evolveum.midpoint.web.component.prism.ContainerWrapper;
-import com.evolveum.midpoint.web.component.prism.ItemWrapper;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapperFactory;
-import com.evolveum.midpoint.web.component.prism.ValueWrapper;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
@@ -80,7 +61,7 @@ public class TestUnitObjectWrapperFactory extends AbstractGuiUnitTest {
 		IntegrationTestTools.display("Wrapper after", objectWrapper);
 		
 		WrapperTestUtil.assertWrapper(objectWrapper, "user display name", "user description", user, ContainerStatus.MODIFYING);
-		assertEquals("wrong number of containers in "+objectWrapper, 10, objectWrapper.getContainers().size());
+		assertEquals("wrong number of containers in "+objectWrapper, 12, objectWrapper.getContainers().size());
 		
 		ContainerWrapper mainContainerWrapper = objectWrapper.findContainerWrapper(null);
 		WrapperTestUtil.assertWrapper(mainContainerWrapper, "prismContainer.mainPanelDisplayName", (ItemPath)null, user, ContainerStatus.MODIFYING);

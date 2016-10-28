@@ -17,13 +17,9 @@ package com.evolveum.midpoint.prism.path;
 
 import javax.xml.namespace.QName;
 
-import org.apache.commons.lang.StringUtils;
-
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.QNameUtil;
-
-import java.io.Serializable;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * @author semancik
@@ -33,24 +29,25 @@ public class NameItemPathSegment extends ItemPathSegment {
 	
 	public static final NameItemPathSegment WILDCARD = NameItemPathSegment.createWildcard();
 	
-	private QName name;
+	@NotNull private final QName name;
 	private boolean isVariable = false;
 	
-	public NameItemPathSegment(QName name) {
+	public NameItemPathSegment(@NotNull QName name) {
 		this.name = name;
 	}
 
 	private static NameItemPathSegment createWildcard() {
-		NameItemPathSegment segment = new NameItemPathSegment(null);
+		NameItemPathSegment segment = new NameItemPathSegment(new QName("*"));		// TODO
 		segment.setWildcard(true);
 		return segment;
 	}
 
-	public NameItemPathSegment(QName name, boolean isVariable) {
+	public NameItemPathSegment(@NotNull QName name, boolean isVariable) {
 		this.name = name;
 		this.isVariable = isVariable;
 	}
 
+	@NotNull
 	public QName getName() {
 		return name;
 	}

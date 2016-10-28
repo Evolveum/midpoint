@@ -25,18 +25,17 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.*;
+import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
-import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceDto;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
@@ -45,7 +44,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.model.IModel;
 import org.apache.wicket.util.string.StringValue;
 
 import java.util.Collection;
@@ -121,21 +119,14 @@ public class PageAdminResources extends PageAdmin {
         PrismObject<TaskType> oldTask;
 
         OperationResult result = new OperationResult(OPERATION_DELETE_SYNC_TOKEN);
-        ObjectQuery query;
+        ObjectQuery query = QueryBuilder.queryFor(TaskType.class, getPrismContext())
+                .item(TaskType.F_OBJECT_REF).ref(resourceOid)
+                .and().item(TaskType.F_HANDLER_URI).eq(handlerUri)
+                .build();
 
-        ObjectFilter refFilter = RefFilter.createReferenceEqual(TaskType.F_OBJECT_REF, TaskType.class,
-                getPrismContext(), resourceOid);
+        List<PrismObject<TaskType>> taskList = WebModelServiceUtils.searchObjects(TaskType.class, query, result, this);
 
-        ObjectFilter filterHandleUri = EqualFilter.createEqual(TaskType.F_HANDLER_URI, TaskType.class,
-                getPrismContext(), null, handlerUri);
-
-        query = new ObjectQuery();
-        query.setFilter(AndFilter.createAnd(refFilter, filterHandleUri));
-
-        List<PrismObject<TaskType>> taskList = WebModelServiceUtils.searchObjects(TaskType.class, query,
-                result, this);
-
-        if(taskList.size() != 1){
+        if (taskList.size() != 1) {
             error(getString("pageResource.message.invalidTaskSearch"));
         } else {
             oldTask = taskList.get(0);

@@ -15,16 +15,6 @@
  */
 package com.evolveum.midpoint.model.impl.sync;
 
-import java.util.Collection;
-import java.util.List;
-
-import javax.annotation.PostConstruct;
-import javax.xml.namespace.QName;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.stereotype.Component;
-
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.audit.api.AuditEventType;
@@ -32,24 +22,17 @@ import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.model.impl.ModelConstants;
 import com.evolveum.midpoint.model.impl.util.Utils;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.query.AndFilter;
-import com.evolveum.midpoint.prism.query.EqualFilter;
-import com.evolveum.midpoint.prism.query.LessFilter;
-import com.evolveum.midpoint.prism.query.NotFilter;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.OrFilter;
-import com.evolveum.midpoint.prism.query.RefFilter;
+import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.provisioning.api.ChangeNotificationDispatcher;
 import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
@@ -67,29 +50,26 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskCategory;
-import com.evolveum.midpoint.task.api.TaskHandler;
-import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.task.api.TaskRunResult;
+import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus;
 import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FailedOperationTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LayerType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Component;
+
+import javax.annotation.PostConstruct;
+import javax.xml.namespace.QName;
+import java.util.Collection;
+import java.util.List;
 
 /**
  * The task hander for reconciliation.
@@ -195,7 +175,7 @@ public class ReconciliationTaskHandler implements TaskHandler {
 		try {
 			resource = provisioningService.getObject(ResourceType.class, resourceOid, null, coordinatorTask, opResult);
 			
-			RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resource, LayerType.MODEL, prismContext);
+			RefinedResourceSchema refinedSchema = RefinedResourceSchemaImpl.getRefinedSchema(resource, LayerType.MODEL, prismContext);
 			objectclassDef = Utils.determineObjectClass(refinedSchema, coordinatorTask);
 			
 		} catch (ObjectNotFoundException ex) {
@@ -539,17 +519,14 @@ public class ReconciliationTaskHandler implements TaskHandler {
 		LOGGER.trace("Shadow reconciliation starting for {}, {} -> {}", new Object[]{resource, startTimestamp, endTimestamp});
 		OperationResult opResult = result.createSubresult(OperationConstants.RECONCILIATION+".shadowReconciliation");
 		
-		LessFilter timestampFilter = LessFilter.createLess(ShadowType.F_FULL_SYNCHRONIZATION_TIMESTAMP, ShadowType.class, prismContext, 
-				XmlTypeConverter.createXMLGregorianCalendar(startTimestamp) , true);
-		PrismObjectDefinition<ShadowType> shadowDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ShadowType.class);
-		EqualFilter nullTimestamptFilter = EqualFilter.createNullEqual(new ItemPath(ShadowType.F_FULL_SYNCHRONIZATION_TIMESTAMP), shadowDef.findPropertyDefinition(ShadowType.F_FULL_SYNCHRONIZATION_TIMESTAMP), null);
-		OrFilter fullTimestampFilter = OrFilter.createOr(timestampFilter, nullTimestamptFilter);
-		ObjectReferenceType ref = ObjectTypeUtil.createObjectRef(resource);
-		ObjectFilter filter = AndFilter.createAnd(fullTimestampFilter, 
-				RefFilter.createReferenceEqual(new ItemPath(ShadowType.F_RESOURCE_REF), ShadowType.class, prismContext, ref.asReferenceValue()),
-				EqualFilter.createEqual(ShadowType.F_OBJECT_CLASS, ShadowType.class, prismContext, objectclassDef.getTypeName()));
-		
-		ObjectQuery query = ObjectQuery.createObjectQuery(filter);
+		ObjectQuery query = QueryBuilder.queryFor(ShadowType.class, prismContext)
+				.block()
+					.item(ShadowType.F_FULL_SYNCHRONIZATION_TIMESTAMP).le(XmlTypeConverter.createXMLGregorianCalendar(startTimestamp))
+					.or().item(ShadowType.F_FULL_SYNCHRONIZATION_TIMESTAMP).isNull()
+				.endBlock()
+				.and().item(ShadowType.F_RESOURCE_REF).ref(ObjectTypeUtil.createObjectRef(resource).asReferenceValue())
+				.and().item(ShadowType.F_OBJECT_CLASS).eq(objectclassDef.getTypeName())
+				.build();
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("Shadow recon query:\n{}", query.debugDump());
 		}
@@ -682,13 +659,11 @@ public class ReconciliationTaskHandler implements TaskHandler {
 		OperationResult opResult = result.createSubresult(OperationConstants.RECONCILIATION+".repoReconciliation");
 		opResult.addParam("reconciled", true);
 
-		NotFilter notNull = NotFilter.createNot(createFailedOpFilter(null));
-		AndFilter andFilter = AndFilter.createAnd(notNull, RefFilter.createReferenceEqual(ShadowType.F_RESOURCE_REF, ShadowType.class,
-				prismContext, resourceOid));
-		ObjectQuery query = ObjectQuery.createObjectQuery(andFilter);
-
-		List<PrismObject<ShadowType>> shadows = repositoryService.searchObjects(
-				ShadowType.class, query, null, opResult);
+		ObjectQuery query = QueryBuilder.queryFor(ShadowType.class, prismContext)
+				.block().not().item(ShadowType.F_FAILED_OPERATION_TYPE).isNull().endBlock()
+				.and().item(ShadowType.F_RESOURCE_REF).ref(resourceOid)
+				.build();
+		List<PrismObject<ShadowType>> shadows = repositoryService.searchObjects(ShadowType.class, query, null, opResult);
 
 		task.setExpectedTotal((long) shadows.size());		// for this phase, obviously
 
@@ -758,10 +733,6 @@ public class ReconciliationTaskHandler implements TaskHandler {
         return task.canRun();
 	}
 
-	private ObjectFilter createFailedOpFilter(FailedOperationTypeType failedOp) throws SchemaException{
-		return EqualFilter.createEqual(ShadowType.F_FAILED_OPERATION_TYPE, ShadowType.class, prismContext, null, failedOp);
-	}
-	
 	@Override
 	public Long heartbeat(Task task) {
 		// TODO Auto-generated method stub

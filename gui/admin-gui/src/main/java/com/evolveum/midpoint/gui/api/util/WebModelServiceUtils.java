@@ -21,7 +21,6 @@ import java.util.*;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.web.page.login.PageLogin;
-import com.evolveum.midpoint.web.page.login.PageSelfRegistration;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import org.apache.commons.lang.LocaleUtils;
 import org.apache.commons.lang.StringUtils;
@@ -64,11 +63,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
-import ch.qos.logback.classic.Logger;
-
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.Session;
-import org.apache.wicket.protocol.http.WebSession;
 import org.jetbrains.annotations.Nullable;
 
 /**

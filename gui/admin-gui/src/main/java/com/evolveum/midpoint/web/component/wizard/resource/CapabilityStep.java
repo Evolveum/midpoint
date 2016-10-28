@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.web.component.wizard.resource;
 
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.model.NonEmptyLoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
@@ -307,7 +308,7 @@ public class CapabilityStep extends WizardStep {
 							PrismObject<ResourceType> resourcePrism = resourceModel.getObject();
 
 							try {
-								ResourceSchema schema = RefinedResourceSchema.getResourceSchema(resourcePrism, getPageBase().getPrismContext());
+								ResourceSchema schema = RefinedResourceSchemaImpl.getResourceSchema(resourcePrism, getPageBase().getPrismContext());
 								if (schema != null) {
 									ObjectClassComplexTypeDefinition def = schema.findDefaultObjectClassDefinition(ShadowKindType.ACCOUNT);
 									for (ResourceAttributeDefinition attribute : def.getAttributeDefinitions()) {

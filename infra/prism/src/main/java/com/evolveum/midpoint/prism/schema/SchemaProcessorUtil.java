@@ -20,6 +20,7 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
@@ -63,7 +64,8 @@ public class SchemaProcessorUtil {
 		}
 		return elements.get(0);
 	}
-	
+
+	@NotNull
 	public static List<Element> getAnnotationElements(XSAnnotation annotation, QName qname) {
 		List<Element> elements = new ArrayList<Element>();
 		if (annotation == null) {

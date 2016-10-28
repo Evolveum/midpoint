@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2016 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<user oid="c0c010c0-d34d-b33f-f00d-111111111111" version="42"
+		xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+		xmlns:xsd='http://www.w3.org/2001/XMLSchema'>
+    <name>jack</name>
+    <description>This must be the best pirate the world has ever seen</description>
+    <extension>
+    
+    	<!-- String type from extra schema -->
+		<singleStringType>foobar</singleStringType>
+		
+		<!-- Indexed (and multivalued) string from  extra schema -->
+		<indexedString>alpha</indexedString>
+		<indexedString>bravo</indexedString>
+    
+    	<!-- Dynamic string type -->
+		<bar xsi:type="string">BAR</bar>
+		
+		<!-- Dynamic int type -->
+		<num xsiType="int">42</num>
+		
+		<!-- Dynamic multivalued string type -->
+		<multi xsiType="string">raz</multi>
+		<multi xsi:type="string">dva</multi>
+		<multi xsi:type="string">tri</multi>
+		
+	<!--	<foo:password xsi:type="ProtectedStringType">
+			<clearValue>openS3zam3</clearValue>
+		</foo:password>  -->
+	</extension>
+    <fullName>cpt. Jack Sparrow</fullName>
+    <givenName>Jack</givenName>
+    <familyName>Sparrow</familyName>
+    <additionalNames>Captain</additionalNames>
+    <additionalNames>Jackie</additionalNames>
+    <polyName>
+    	<orig>Džek Sperou</orig>
+    	<norm>dzek sperou</norm>
+    </polyName>
+
+	<assignment id="1111">
+		<description>Assignment 1</description>
+	</assignment>
+
+	<assignment id="1112">
+		<description>Assignment 2</description>
+		<accountConstruction>
+			<howto>Just do it</howto>
+			<when>2012-02-24T10:48:52.000Z</when>
+            <value>ABC</value>              <!-- simple RawType content -->
+            <value>
+                <fullName>Nobody</fullName> <!-- complex RawType content (interpreted as UserType in tests) -->
+            </value>
+		</accountConstruction>
+	</assignment>
+
+	<activation>
+		<enabled>true</enabled>
+		<validFrom>1975-05-30T21:30:00.000Z</validFrom>
+	</activation>
+	
+	<password>
+	    <encryptedData>
+	        <encryptionMethod>
+	        	 <algorithm>http://www.w3.org/2001/04/xmlenc#aes256-cbc</algorithm>
+	        </encryptionMethod>
+	        <keyInfo>
+	            <keyName>HF6JRsNMeJt6alihT44CXKgpe0c=</keyName>
+			</keyInfo>
+	        <cipherData>
+	            <cipherValue>blc5OXO2Z4vJW7o/XXhqZzg/rkwsIOwRBK7KLgMqwcrVcYpeZZOjxzgRgFiNw4IB</cipherValue>
+	        </cipherData>
+	    </encryptedData>
+    </password>
+
+    <!-- Composite object -->
+    <account oid="c0c010c0-d34d-b33f-f00d-aaaaaaaa1113">
+    	<name>jsparrow</name>
+    </account>
+        
+    <!-- Plain reference -->
+    <accountRef oid="c0c010c0-d34d-b33f-f00d-aaaaaaaa1111" />       <!-- deliberately without specifying the type, as it should be taken from the definition -->
+    
+    <!-- Reference with description and filter -->
+    <accountRef oid="c0c010c0-d34d-b33f-f00d-aaaaaaaa1112" type="AccountType">
+    	<description>This is a reference with a filter</description>
+    	<filter>
+    		<equal>
+    			<path>name</path>
+    			<value>captain</value>
+    		</equal>
+    	</filter>
+    </accountRef>
+
+    <special>got it!</special>
+
+	<singleActivation/>			<!-- empty container value for single-valued child container -->
+	<multiActivation/>
+	<multiActivationCopy/>
+	<multiActivationCopy>
+		<enabled>true</enabled>
+	</multiActivationCopy>
+
+	<singleConstruction/>
+	<multiConstruction/>
+	<multiConstructionCopy/>
+	<multiConstructionCopy>
+		<howto>abc</howto>
+	</multiConstructionCopy>
+
+</user>

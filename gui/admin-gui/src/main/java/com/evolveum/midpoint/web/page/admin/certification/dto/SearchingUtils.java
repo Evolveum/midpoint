@@ -8,9 +8,6 @@ import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.OrderDirection;
 import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
-import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 import javax.xml.namespace.QName;
 

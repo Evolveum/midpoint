@@ -4,7 +4,6 @@ import java.io.Serializable;
 
 import org.apache.commons.lang3.StringUtils;
 
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.web.component.util.Editable;
 import com.evolveum.midpoint.web.component.util.Selectable;
 import com.evolveum.midpoint.web.component.util.Validatable;

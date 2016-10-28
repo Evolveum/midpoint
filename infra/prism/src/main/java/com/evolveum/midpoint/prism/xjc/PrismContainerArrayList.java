@@ -16,10 +16,7 @@
 
 package com.evolveum.midpoint.prism.xjc;
 
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 
@@ -54,10 +51,10 @@ public abstract class PrismContainerArrayList<T extends Containerable> extends A
     protected abstract PrismContainerValue getValueFrom(T t);
 
     protected T createItemInternal(PrismContainerValue value) {
-        PrismContainerDefinition concreteDef = value.getConcreteTypeDefinition();
+        ComplexTypeDefinition concreteDef = value.getComplexTypeDefinition();
         if (concreteDef != null &&
-                !(container.getCompileTimeClass() != null &&
-                        container.getCompileTimeClass().equals(concreteDef.getCompileTimeClass()))) {
+                (container.getCompileTimeClass() == null ||
+                        !container.getCompileTimeClass().equals(concreteDef.getCompileTimeClass()))) {
             // the dynamic definition exists and the compile time class is different from the one at the container level
             // ("different" here means it is a subclass)
             // so we have to instantiate dynamically

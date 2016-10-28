@@ -1,9 +1,6 @@
 package com.evolveum.midpoint.model.impl.dataModel;
 
-import com.evolveum.midpoint.common.refinery.RefinedAssociationDefinition;
-import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
-import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
+import com.evolveum.midpoint.common.refinery.*;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -93,7 +90,7 @@ public class DataModelVisualizerImpl implements DataModelVisualizer {
 	private void processResourceMappings(VisualizationContext ctx, List<PrismObject<ResourceType>> resources) throws SchemaException {
 		for (PrismObject<ResourceType> resource : resources) {
 			LOGGER.debug("Processing {}", ObjectTypeUtil.toShortString(resource));
-			RefinedResourceSchema refinedResourceSchema = RefinedResourceSchema.getRefinedSchema(resource);
+			RefinedResourceSchema refinedResourceSchema = RefinedResourceSchemaImpl.getRefinedSchema(resource);
 			if (refinedResourceSchema == null) {
 				LOGGER.debug("Refined resource schema is null, skipping the resource.");
 				continue;
@@ -115,7 +112,7 @@ public class DataModelVisualizerImpl implements DataModelVisualizer {
 					}
 					processInboundMappings(ctx, attrItem, attributeDefinition.getInboundMappingTypes());
 				}
-				Collection<RefinedAssociationDefinition> associationDefinitions = refinedDefinition.getAssociations();
+				Collection<RefinedAssociationDefinition> associationDefinitions = refinedDefinition.getAssociationDefinitions();
 				for (RefinedAssociationDefinition associationDefinition : associationDefinitions) {
 					if (associationDefinition.isIgnored()) {
 						continue;
@@ -177,12 +174,12 @@ public class DataModelVisualizerImpl implements DataModelVisualizer {
 	private void createDataItems(VisualizationContext ctx, List<PrismObject<ResourceType>> resources) throws SchemaException {
 		LOGGER.debug("createDataItems starting");
 		for (PrismObject<ResourceType> resource : resources) {
-			final ResourceSchema resourceSchema = RefinedResourceSchema.getResourceSchema(resource, prismContext);
+			final ResourceSchema resourceSchema = RefinedResourceSchemaImpl.getResourceSchema(resource, prismContext);
 			if (resourceSchema == null) {
 				LOGGER.debug("Resource schema is null, skipping the resource.");
 				continue;
 			}
-			RefinedResourceSchema refinedResourceSchema = RefinedResourceSchema.getRefinedSchema(resource);
+			RefinedResourceSchema refinedResourceSchema = RefinedResourceSchemaImpl.getRefinedSchema(resource);
 			if (refinedResourceSchema == null) {
 				LOGGER.debug("Refined resource schema is null, skipping the resource.");		// actually shouldn't be null if resource schema exists
 				continue;
@@ -210,7 +207,7 @@ public class DataModelVisualizerImpl implements DataModelVisualizer {
 					ctx.registerDataItem(attrItem);
 				}
 				// TODO check attributes not mentioned in schema handling
-				Collection<RefinedAssociationDefinition> associationDefinitions = refinedDefinition.getAssociations();
+				Collection<RefinedAssociationDefinition> associationDefinitions = refinedDefinition.getAssociationDefinitions();
 				for (RefinedAssociationDefinition associationDefinition : associationDefinitions) {
 					if (associationDefinition.isIgnored()) {
 						continue;

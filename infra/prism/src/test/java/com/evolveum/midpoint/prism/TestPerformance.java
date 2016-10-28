@@ -16,30 +16,15 @@
 package com.evolveum.midpoint.prism;
 
 import static com.evolveum.midpoint.prism.PrismInternalTestUtil.*;
-import static org.testng.AssertJUnit.assertNotNull;
-import static org.testng.AssertJUnit.assertTrue;
-import static org.testng.AssertJUnit.assertEquals;
-
-import java.io.IOException;
-import java.util.List;
 
 import javax.xml.namespace.QName;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.validation.Schema;
-import javax.xml.validation.Validator;
 
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
-import org.w3c.dom.Document;
-import org.xml.sax.SAXException;
 
-import com.evolveum.midpoint.prism.foo.ActivationType;
 import com.evolveum.midpoint.prism.foo.AssignmentType;
 import com.evolveum.midpoint.prism.foo.UserType;
-import com.evolveum.midpoint.prism.util.PrismAsserts;
-import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
-import com.evolveum.midpoint.util.exception.SchemaException;
 
 /**
  * @author semancik

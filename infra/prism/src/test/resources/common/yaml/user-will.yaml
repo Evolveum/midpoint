@@ -21,7 +21,7 @@ user:
     dateType:
     - 170721000000
     durationType:
-    - !<com.sun.org.apache.xerces.internal.jaxp.datatype.DurationImpl> "P17Y3M2D"
+    - "P17Y3M2D"
     locations:
     - location:
       - key: "sk"

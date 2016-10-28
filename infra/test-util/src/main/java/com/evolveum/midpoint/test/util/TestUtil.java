@@ -24,6 +24,7 @@ import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinitionImpl;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.util.JAXBUtil;
@@ -139,7 +140,7 @@ public class TestUtil {
     public static void setAttribute(PrismObject<ShadowType> account, QName attrName, QName typeName, 
 			PrismContext prismContext, String value) throws SchemaException {
 		PrismContainer<Containerable> attributesContainer = account.findContainer(ShadowType.F_ATTRIBUTES);
-		ResourceAttributeDefinition attrDef = new ResourceAttributeDefinition(attrName, typeName, prismContext);
+		ResourceAttributeDefinition attrDef = new ResourceAttributeDefinitionImpl(attrName, typeName, prismContext);
 		ResourceAttribute attribute = attrDef.instantiate();
 		attribute.setRealValue(value);
 		attributesContainer.add(attribute);

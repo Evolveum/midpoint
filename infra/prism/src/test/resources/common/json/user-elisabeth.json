@@ -1,0 +1,14 @@
+{
+  "user" : {
+    "oid": "c0c010c0-d34d-b33f-f00d-111111114444",
+    "name": "elisabeth",
+    "extension": {
+      "http://midpoint.evolveum.com/xml/ns/test/extension#stringType": "string",
+      "secondaryStringType": "string1",
+      "intType": 142
+    },
+    "fullName": "Elisabeth Turner",
+    "givenName": "Elisabeth",
+    "familyName": "Turner"
+  }
+}

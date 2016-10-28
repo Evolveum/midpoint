@@ -78,6 +78,11 @@
 			<version>3.5-SNAPSHOT</version>
 		</dependency>
 		<dependency>
+			<groupId>com.evolveum.midpoint.repo</groupId>
+			<artifactId>audit-api</artifactId>
+			<version>3.5-SNAPSHOT</version>
+		</dependency>
+		<dependency>
 			<groupId>com.evolveum.midpoint.tools</groupId>
 			<artifactId>test-ng</artifactId>
 			<version>3.5-SNAPSHOT</version>

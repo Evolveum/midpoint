@@ -21,6 +21,9 @@ import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.match.PolyStringNormMatchingRule;
 import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
 import com.evolveum.midpoint.prism.query.*;
+import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
+import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterEntry;
+import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
@@ -32,7 +35,6 @@ import com.evolveum.midpoint.web.component.BasicSearchPanel;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.Table;
-import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.DoubleButtonColumn;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
@@ -50,7 +52,6 @@ import org.apache.wicket.Component;
 import org.apache.wicket.MarkupContainer;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
-import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
@@ -276,32 +277,17 @@ public class PageReports extends PageAdminReports {
         ReportSearchDto dto = searchModel.getObject();
         String text = dto.getText();
         Boolean parent = !dto.isParent();
-        ObjectQuery query = new ObjectQuery();
-        List<ObjectFilter> filters = new ArrayList<>();
 
+        S_AtomicFilterEntry q = QueryBuilder.queryFor(ReportType.class, getPrismContext());
         if (StringUtils.isNotEmpty(text)) {
             PolyStringNormalizer normalizer = getPrismContext().getDefaultPolyStringNormalizer();
             String normalizedText = normalizer.normalize(text);
-
-            ObjectFilter substring = SubstringFilter.createSubstring(ReportType.F_NAME, ReportType.class,
-                    getPrismContext(), PolyStringNormMatchingRule.NAME, normalizedText);
-
-            filters.add(substring);
+            q = q.item(ReportType.F_NAME).eqPoly(normalizedText).matchingNorm().and();
         }
-
-        if (parent == true) {
-            EqualFilter parentFilter = EqualFilter.createEqual(ReportType.F_PARENT, ReportType.class,
-                    getPrismContext(), null, parent);
-            filters.add(parentFilter);
+        if (parent) {
+            q = q.item(ReportType.F_PARENT).eq(true).and();
         }
-
-        if (!filters.isEmpty()) {
-            query.setFilter(AndFilter.createAnd(filters));
-        } else {
-            query = null;
-        }
-
-        return query;
+        return q.all().build();
     }
 
     private void clearSearchPerformed(AjaxRequestTarget target) {

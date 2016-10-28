@@ -478,7 +478,10 @@ public class SchemaProcessor implements Processor {
         constructor.param(PrismContext.class, "prismContext");
 
         JBlock body = constructor.body();
-        body.invoke(setupContainerMethod).arg(JExpr._new(CLASS_MAP.get(PrismContainerValue.class)).arg(constructor.params().get(0)));
+        body.invoke(setupContainerMethod)                                                        // setupContainerValue(
+                .arg(JExpr._new(CLASS_MAP.get(PrismContainerValue.class).narrow(new JClass[0]))  //    new PrismContainerValue<>(
+                        .arg(JExpr._this())                                                      //       this,
+                        .arg(constructor.params().get(0)));                                      //       prismContext);
         return constructor;
     }
 
@@ -528,9 +531,12 @@ public class SchemaProcessor implements Processor {
 
         //create method body
         JBlock body = getContainer.body();
-        JBlock then = body._if(containerValueVar.eq(JExpr._null()))._then();
-        then.assign(containerValueVar, JExpr._new(CLASS_MAP.get(PrismContainerValue.class)));
-
+        body._if(containerValueVar.eq(JExpr._null())).                                              // if (_containerValue == null) {
+            _then()                                                                                 //
+                .assign(containerValueVar,                                                          //    _containerValue =
+                        JExpr._new(CLASS_MAP.get(PrismContainerValue.class).narrow(new JClass[0]))  //       new PrismContainerValue<>(
+                                .arg(JExpr._this())                                                 //          this)
+                );
         body._return(containerValueVar);
     }
 

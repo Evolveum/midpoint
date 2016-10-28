@@ -16,7 +16,6 @@
 package com.evolveum.midpoint.certification.impl;
 
 import com.evolveum.midpoint.certification.api.CertificationManager;
-import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.impl.trigger.TriggerHandler;
 import com.evolveum.midpoint.model.impl.trigger.TriggerHandlerRegistry;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -24,9 +23,6 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;

@@ -56,8 +56,8 @@ public abstract class LogicalFilter extends ObjectFilter {
 			return null;
 		}
 		List<ObjectFilter> clonedConditions = new ArrayList<ObjectFilter>(conditions.size());
-		for (ObjectFilter connditio: conditions) {
-			clonedConditions.add(connditio.clone());
+		for (ObjectFilter condition: conditions) {
+			clonedConditions.add(condition.clone());
 		}
 		return clonedConditions;
 	}

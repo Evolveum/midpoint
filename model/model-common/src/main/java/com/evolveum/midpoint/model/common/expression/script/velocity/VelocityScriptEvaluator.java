@@ -125,7 +125,8 @@ public class VelocityScriptEvaluator implements ScriptEvaluator {
 									   Collection<FunctionLibrary> functions,
 									   String contextDescription, Task task, OperationResult result) throws ExpressionSyntaxException, ObjectNotFoundException {
 		VelocityContext context = new VelocityContext();
-		Map<String,Object> scriptVariables = ExpressionUtil.prepareScriptVariables(variables, objectResolver, functions, contextDescription, task, result);
+		Map<String,Object> scriptVariables = ExpressionUtil.prepareScriptVariables(variables, objectResolver, functions, contextDescription,
+				prismContext, task, result);
 		for (Map.Entry<String,Object> scriptVariable : scriptVariables.entrySet()) {
 			context.put(scriptVariable.getKey(), scriptVariable.getValue());
 		}
