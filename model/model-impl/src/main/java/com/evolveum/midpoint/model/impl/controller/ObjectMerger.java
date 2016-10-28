@@ -78,6 +78,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.MergeStategyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ProjectionMergeConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ProjectionMergeSituationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowDiscriminatorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
@@ -308,12 +309,13 @@ public class ObjectMerger {
 		
 		ProjectionMergeConfigurationType defaultProjectionMergeConfig = null;
 		for (ProjectionMergeConfigurationType projectionMergeConfig: mergeConfiguration.getProjection()) {
-			ShadowDiscriminatorType discriminatorType = projectionMergeConfig.getProjectionDiscriminator();
-			if (discriminatorType == null) {
+			if (projectionMergeConfig.getProjectionDiscriminator() == null && projectionMergeConfig.getSituation() == null) {
 				defaultProjectionMergeConfig = projectionMergeConfig;
 			} else {
-				takeProjections(projectionMergeConfig.getLeft(), mergedProjections, matchedProjections, projectionsLeft, discriminatorType);
-				takeProjections(projectionMergeConfig.getRight(), mergedProjections, matchedProjections, projectionsRight, discriminatorType);
+				takeProjections(projectionMergeConfig.getLeft(), mergedProjections, matchedProjections, 
+						projectionsLeft, projectionsLeft, projectionsRight, projectionMergeConfig);
+				takeProjections(projectionMergeConfig.getRight(), mergedProjections, matchedProjections, 
+						projectionsRight, projectionsLeft, projectionsRight, projectionMergeConfig);
 			}
 		}
 		
@@ -410,13 +412,19 @@ public class ObjectMerger {
 
 	private void takeProjections(MergeStategyType strategy, List<ShadowType> mergedProjections, 
 			List<ShadowType> matchedProjections, List<ShadowType> candidateProjections,
-			ShadowDiscriminatorType discriminatorType) {
+			List<ShadowType> projectionsLeft, List<ShadowType> projectionsRight,  
+			ProjectionMergeConfigurationType projectionMergeConfig) {
 		
-		LOGGER.trace("TAKE: Evaluating discriminator: {}", discriminatorType);
+		if (LOGGER.isTraceEnabled()) {
+			
+			LOGGER.trace("TAKE: Evaluating situation {}, discriminator: {}", 
+					projectionMergeConfig.getSituation(), projectionMergeConfig.getProjectionDiscriminator());
+		}
 
 		for (ShadowType candidateProjection: candidateProjections) {
-			if (ShadowUtil.matchesPattern(candidateProjection, discriminatorType)) {
-				LOGGER.trace("Discriminator matches {}", candidateProjection);
+			
+			if (projectionMatches(candidateProjection, projectionsLeft, projectionsRight, projectionMergeConfig)) { 
+				LOGGER.trace("Projection matches {}", candidateProjection);
 				matchedProjections.add(candidateProjection);
 				
 				if (strategy == MergeStategyType.TAKE) {
@@ -437,6 +445,23 @@ public class ObjectMerger {
 		
 	}
 	
+	private boolean projectionMatches(ShadowType candidateProjection,
+			List<ShadowType> projectionsLeft, List<ShadowType> projectionsRight,
+			ProjectionMergeConfigurationType projectionMergeConfig) {
+		ShadowDiscriminatorType discriminatorType = projectionMergeConfig.getProjectionDiscriminator();
+		if (discriminatorType != null && !ShadowUtil.matchesPattern(candidateProjection, discriminatorType)) {
+			return false;
+		}
+		ProjectionMergeSituationType situationPattern = projectionMergeConfig.getSituation();
+		if (situationPattern != null) {
+			ProjectionMergeSituationType projectionSituation = determineSituation(candidateProjection, projectionsLeft, projectionsRight);
+			if (situationPattern != projectionSituation) {
+				return false;
+			}
+		}
+		return true;
+	}
+
 	private void takeUnmatchedProjections(MergeStategyType strategy, List<ShadowType> mergedProjections, 
 			List<ShadowType> matchedProjections, List<ShadowType> candidateProjections) {
 		if (strategy == MergeStategyType.TAKE) {
@@ -453,6 +478,31 @@ public class ObjectMerger {
 			throw new UnsupportedOperationException("Merge strategy "+strategy+" is not supported");
 		}
 	}
+	
+	private ProjectionMergeSituationType determineSituation(ShadowType candidateProjection, List<ShadowType> projectionsLeft,
+			List<ShadowType> projectionsRight) {
+		boolean matchLeft = hasMatchingProjection(candidateProjection, projectionsLeft);
+		boolean matchRight = hasMatchingProjection(candidateProjection, projectionsRight);
+		if (matchLeft && matchRight) {
+			return ProjectionMergeSituationType.CONFLICT;
+		} else if (matchLeft) {
+			return ProjectionMergeSituationType.EXISTING;
+		} else if (matchRight) {
+			return ProjectionMergeSituationType.MERGEABLE;
+		} else {
+			throw new IllegalStateException("Booom! The universe has imploded.");
+		}
+	}
+		
+	private boolean hasMatchingProjection(ShadowType cprojection, List<ShadowType> projections) {
+		for (ShadowType projection: projections) {
+			if (ShadowUtil.isConflicting(projection, cprojection)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
 
 	private void checkConflict(List<ShadowType> projections) throws SchemaException {
 		for (ShadowType projection: projections) {
@@ -464,9 +514,8 @@ public class ObjectMerger {
 					throw new SchemaException("Merge would result in projection conflict between "+projection+" and "+cprojection);
 				}
 			}
-		}	
+		}
 	}
-
 	
 	private ShadowType getProjection(ObjectReferenceType linkRef, Task task, OperationResult result) throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, SecurityViolationException {
 		Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createNoFetch());

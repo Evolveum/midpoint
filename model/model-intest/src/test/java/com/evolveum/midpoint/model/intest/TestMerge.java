@@ -48,6 +48,7 @@ public class TestMerge extends AbstractInitializedModelIntegrationTest {
 	public static final File TEST_DIR = new File("src/test/resources/merge");
 	
 	public static final String MERGE_CONFIG_DEFAULT_NAME = "default";
+	public static final String MERGE_CONFIG_DEFAULT_SPECIFIC_NAME = "default-specific";
 	public static final String MERGE_CONFIG_EXPRESSION_NAME = "expression";
 	
 	private String jackDummyAccountOid;
@@ -430,6 +431,70 @@ public class TestMerge extends AbstractInitializedModelIntegrationTest {
 	}
 
 
+	/**
+	 * The default-specific config is almost the same as default (test1XX),
+	 * just the projections are selected by specific resource.
+	 * MID-3460
+	 */
+	@Test
+    public void test300MergeJackGuybrushPreviewDeltaDefaultSpecific() throws Exception {
+		final String TEST_NAME = "test300MergeJackGuybrushPreviewDeltaDefaultSpecific";
+		TestUtil.displayTestTile(this, TEST_NAME);
+		
+		Task task = taskManager.createTaskInstance(TestMerge.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+       
+        PrismObject<UserType> userJackBefore = getUser(USER_JACK_OID);
+        display("Jack before", userJackBefore);
+        
+        PrismObject<UserType> userGuybrushBefore = getUser(USER_GUYBRUSH_OID);
+        display("Guybrush before", userGuybrushBefore);
+               
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        MergeDeltas<UserType> deltas = 
+        		modelInteractionService.mergeObjectsPreviewDeltas(UserType.class, 
+        				USER_JACK_OID, USER_GUYBRUSH_OID, MERGE_CONFIG_DEFAULT_SPECIFIC_NAME, task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        display("Deltas", deltas);
+        
+        ObjectDelta<UserType> leftObjectdelta = deltas.getLeftObjectDelta();
+        PrismAsserts.assertIsModify(leftObjectdelta);
+        assertEquals("Wrong delta OID", USER_JACK_OID, leftObjectdelta.getOid());
+        PrismAsserts.assertNoItemDelta(leftObjectdelta, UserType.F_NAME);
+        PrismAsserts.assertNoItemDelta(leftObjectdelta, UserType.F_GIVEN_NAME);
+        PrismAsserts.assertPropertyReplace(leftObjectdelta, UserType.F_FAMILY_NAME);
+        PrismAsserts.assertPropertyReplace(leftObjectdelta, UserType.F_FULL_NAME, 
+        		createPolyString(USER_GUYBRUSH_FULL_NAME));
+        PrismAsserts.assertPropertyReplace(leftObjectdelta, UserType.F_ADDITIONAL_NAME);
+        PrismAsserts.assertPropertyReplace(leftObjectdelta, UserType.F_LOCALITY, 
+        		createPolyString(USER_GUYBRUSH_LOCALITY));
+        PrismAsserts.assertPropertyAdd(leftObjectdelta, UserType.F_EMPLOYEE_TYPE, 
+        		"SAILOR", "PIRATE WANNABE");
+        PrismAsserts.assertPropertyAdd(leftObjectdelta, UserType.F_ORGANIZATION, 
+        		createPolyString("Pirate Wannabes"), createPolyString("Lovers"));
+        PrismAsserts.assertNoItemDelta(leftObjectdelta, UserType.F_ACTIVATION);
+        PrismAsserts.assertNoItemDelta(leftObjectdelta, 
+        		new ItemPath(UserType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS));
+        PrismAsserts.assertNoItemDelta(leftObjectdelta, UserType.F_ROLE_MEMBERSHIP_REF);
+        
+        PrismAsserts.assertContainerAdd(leftObjectdelta, UserType.F_ASSIGNMENT, 
+        		FocusTypeUtil.createRoleAssignment(ROLE_THIEF_OID));
+        
+        PrismAsserts.assertNoItemDelta(leftObjectdelta, UserType.F_LINK_REF);
+        
+        ObjectDelta<UserType> leftLinkDelta = deltas.getLeftLinkDelta();
+        PrismAsserts.assertReferenceAdd(leftLinkDelta, UserType.F_LINK_REF, guybrushDummyAccountCyanOid);
+        
+        ObjectDelta<UserType> rightLinkDelta = deltas.getRightLinkDelta();
+        PrismAsserts.assertReferenceDelete(rightLinkDelta, UserType.F_LINK_REF, guybrushDummyAccountCyanOid);
+        
+	}
 	
 	/**
 	 * MID-3460

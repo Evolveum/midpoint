@@ -12905,6 +12905,7 @@
 		<xsd:complexContent>
 			<xsd:extension base="tns:ItemMergeConfigurationType">
 				<xsd:sequence>
+					<xsd:element name="situation" type="tns:ProjectionMergeSituationType" minOccurs="0" maxOccurs="1"/>
 					<xsd:element name="projectionDiscriminator" type="tns:ShadowDiscriminatorType" minOccurs="0" maxOccurs="1"/>
 				</xsd:sequence>
 			</xsd:extension>
@@ -12949,6 +12950,49 @@
 				</xsd:annotation>
 			</xsd:enumeration>
 			<!-- TODO: values for manual selection may come here in the future. -->
+		</xsd:restriction>
+	</xsd:simpleType>
+	
+	<xsd:simpleType name="ProjectionMergeSituationType">
+		<xsd:annotation>
+			<xsd:documentation>
+				TODO
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="existing">
+				<xsd:annotation>
+					<xsd:documentation>
+						Projection exists on the left side. There is no conflicting
+						projection on the right side.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="EXISTING"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+			<xsd:enumeration value="mergeable">
+				<xsd:annotation>
+					<xsd:documentation>
+						Projection exists on the right side. There is no conflicting
+						projection on the left side. The projection can be merged.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="MERGEABLE"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+			<xsd:enumeration value="conflict">
+				<xsd:annotation>
+					<xsd:documentation>
+						There are two conflicting projections, one on the left side
+						other on the right side.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="CONFLICT"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
 		</xsd:restriction>
 	</xsd:simpleType>
 	
