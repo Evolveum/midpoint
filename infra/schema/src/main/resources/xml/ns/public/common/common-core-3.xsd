@@ -9480,7 +9480,7 @@
                         </xsd:annotation>
                     </xsd:element>
                     
-                    <xsd:element name="defaultHostname" type="xsd:string"></xsd:element>
+                    <xsd:element name="defaultHostname" type="xsd:string" minOccurs="0"></xsd:element>
                     
                 </xsd:sequence>
             </xsd:extension>
