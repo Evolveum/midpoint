@@ -9458,7 +9458,17 @@
                         </xsd:annotation>
                     </xsd:element>
                     
-                    <xsd:element name="defaultHostname" type="xsd:string"></xsd:element>
+                    <xsd:element name="defaultHostname" type="xsd:string" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Hostname that will be used as a public hostname for the midPoint deployment.
+                                E.g. it will be used in URLs that point to the midPoint in notification mails.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                            	<a:since>3.5</a:since>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
                     
                 </xsd:sequence>
             </xsd:extension>
