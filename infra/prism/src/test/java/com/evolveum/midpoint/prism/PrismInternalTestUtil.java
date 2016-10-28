@@ -32,6 +32,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.foo.AccountConstructionType;
 
+import com.evolveum.midpoint.prism.schema.SchemaRegistryImpl;
 import org.xml.sax.SAXException;
 
 import com.evolveum.midpoint.prism.foo.ActivationType;
@@ -43,7 +44,6 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
-import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismContextFactory;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
@@ -74,7 +74,9 @@ public class PrismInternalTestUtil implements PrismContextFactory {
 	// User: jack
 	public static final String USER_JACK_FILE_BASENAME = "user-jack";
 	public static final File USER_JACK_FILE_XML = new File(COMMON_DIR_XML, USER_JACK_FILE_BASENAME+".xml");
-	
+
+	public static final String USER_JACK_NO_NS_BASENAME = "user-jack-no-ns";
+
 	public static final String USER_JACK_OBJECT_BASENAME = "user-jack-object";
 	public static final File USER_JACK_OBJECT_FILE = new File(COMMON_DIR_XML, "user-jack-object.xml");
 	
@@ -98,6 +100,8 @@ public class PrismInternalTestUtil implements PrismContextFactory {
 	public static final String USER_WILL_FILE_BASENAME = "user-will";
 	public static final File USER_WILL_FILE = new File(COMMON_DIR_XML, "user-will.xml");
 
+	public static final String USER_ELISABETH_FILE_BASENAME = "user-elisabeth";
+
 	public static final String RESOURCE_RUM_FILE_BASENAME = "resource-rum";
 	public static final String RESOURCE_RUM_OID = "c0c010c0-d34d-b33f-f00d-222222220001";
 	
@@ -108,6 +112,7 @@ public class PrismInternalTestUtil implements PrismContextFactory {
 	public static final String NS_USER_EXT = "http://example.com/xml/ns/user-extension";
 	public static final String NS_ROOT = "http://example.com/xml/ns/test/root.xsd";
 	public static final String NS_EXTENSION = "http://midpoint.evolveum.com/xml/ns/test/extension";
+	public static final String NS_EXTENSION_SECONDARY = "http://midpoint.evolveum.com/xml/ns/test/extension/secondary";
 	public static final String NS_ADHOC = "http://midpoint.evolveum.com/xml/ns/test/adhoc-1.xsd";
 	public static final String NS_WEAPONS = "http://midpoint.evolveum.com/xml/ns/test/weapons";
 	public static final String NS_WEAPONS_PREFIX = "w";
@@ -183,7 +188,11 @@ public class PrismInternalTestUtil implements PrismContextFactory {
 	public static final QName EXTENSION_MELEE_CONTEXT_TYPE_QNAME = new QName(NS_EXTENSION, "MeleeContextType");
 	public static final QName EXTENSION_MELEE_CONTEXT_OPPONENT_REF_ELEMENT = new QName(NS_EXTENSION, "opponentRef");
 	public static final QName EXTENSION_MELEE_CONTEXT_OPPONENT_ELEMENT = new QName(NS_EXTENSION, "opponent");
-	
+
+	// extension-secondary.xsd
+	public static final QName EXTENSION_SECONDARY_STRING_TYPE_ELEMENT = new QName(NS_EXTENSION_SECONDARY, "stringType");
+	public static final QName EXTENSION_SECONDARY_SECONDARY_STRING_TYPE_ELEMENT = new QName(NS_EXTENSION_SECONDARY, "secondaryStringType");
+
 	// These are NOT in the extension.xsd but are used as dynamic elements
 	public static final QName EXTENSION_BAR_ELEMENT = new QName(NS_EXTENSION, "bar");
 	public static final QName EXTENSION_FOOBAR_ELEMENT = new QName(NS_EXTENSION, "foobar");
@@ -202,8 +211,8 @@ public class PrismInternalTestUtil implements PrismContextFactory {
 	
 	public static final QName WEAPONS_WEAPON_BRAND_TYPE_QNAME = new QName(NS_WEAPONS, "WeaponBrandType");
 	
-	public static PrismContext constructInitializedPrismContext() throws SchemaException, SAXException, IOException {
-		PrismContext context = constructPrismContext();
+	public static PrismContextImpl constructInitializedPrismContext() throws SchemaException, SAXException, IOException {
+		PrismContextImpl context = constructPrismContext();
 		context.initialize();
 		return context;
 	}
@@ -214,12 +223,12 @@ public class PrismInternalTestUtil implements PrismContextFactory {
 		return context;
 	}
 		
-	public static PrismContext constructPrismContext() throws SchemaException, FileNotFoundException {
+	public static PrismContextImpl constructPrismContext() throws SchemaException, FileNotFoundException {
 		return constructPrismContext(null);
 	}
 	
-	public static PrismContext constructPrismContext(File extraSchema) throws SchemaException, FileNotFoundException {
-		SchemaRegistry schemaRegistry = new SchemaRegistry();
+	public static PrismContextImpl constructPrismContext(File extraSchema) throws SchemaException, FileNotFoundException {
+		SchemaRegistryImpl schemaRegistry = new SchemaRegistryImpl();
 		schemaRegistry.setCatalogResourceName(TEST_CATALOG_RESOURCE_NAME);
 		DynamicNamespacePrefixMapper prefixMapper = new GlobalDynamicNamespacePrefixMapper();
 		// Set default namespace?
@@ -235,8 +244,7 @@ public class PrismInternalTestUtil implements PrismContextFactory {
 		}
 		prefixMapper.registerPrefix(PrismConstants.NS_ANNOTATION, PrismConstants.PREFIX_NS_ANNOTATION, false);
 		prefixMapper.registerPrefix(PrismInternalTestUtil.NS_WEAPONS, PrismInternalTestUtil.NS_WEAPONS_PREFIX, false);
-		PrismContext context = PrismContext.create(schemaRegistry);
-		return context;
+		return PrismContextImpl.create(schemaRegistry);
 	}
 
 	/* (non-Javadoc)
@@ -281,10 +289,10 @@ public class PrismInternalTestUtil implements PrismContextFactory {
 		PrismTestUtil.displayTestTitle(testName);
 	}
 
-	public static void assertUserJack(PrismObject<UserType> user) throws SchemaException {
+	public static void assertUserJack(PrismObject<UserType> user, boolean expectRawInConstructions) throws SchemaException {
 		user.checkConsistence();
 		user.assertDefinitions("test");
-		assertUserJackContent(user);
+		assertUserJackContent(user, expectRawInConstructions);
 		assertUserJackExtension(user);
 		assertVisitor(user, 71);
 		
@@ -309,7 +317,7 @@ public class PrismInternalTestUtil implements PrismContextFactory {
 				NameItemPathSegment.WILDCARD), false, 5);
 	}
 	
-	public static void assertUserJackContent(PrismObject<UserType> user) throws SchemaException {
+	public static void assertUserJackContent(PrismObject<UserType> user, boolean expectRawInConstructions) throws SchemaException {
 		
 		assertEquals("Wrong oid", USER_JACK_OID, user.getOid());
 		assertEquals("Wrong version", "42", user.getVersion());
@@ -385,16 +393,21 @@ public class PrismInternalTestUtil implements PrismContextFactory {
         assertNotNull("Property "+a2Path+" not found", a2Property);
         AccountConstructionType accountConstructionType = (AccountConstructionType) a2Property.getRealValue();
         assertEquals("Wrong number of values in accountConstruction", 2, accountConstructionType.getValue().size());
-        RawType value1 = accountConstructionType.getValue().get(0);
-        assertNotNull("Value #1 has no XNode present", value1.getXnode());
-        RawType value2 = accountConstructionType.getValue().get(1);
+		RawType value1 = accountConstructionType.getValue().get(0).clone();
+		if (expectRawInConstructions) {
+			assertNotNull("Value #1 has no XNode present", value1.getXnode());
+			PrismPropertyDefinition value1def = new PrismPropertyDefinitionImpl(
+					new QName(NS_FOO, "dummy"),           // element name
+					DOMUtil.XSD_STRING,                 // type name
+					user.getPrismContext());
+			PrismPropertyValue<String> prismValue1 = value1.getParsedValue(value1def, value1def.getName());
+			assertEquals("Wrong value #1", "ABC", prismValue1.getValue());
+		} else {
+			assertNull("Value #1 has XNode present", value1.getXnode());
+			assertEquals("Wrong value #1", "ABC", value1.getParsedRealValue(String.class));
+		}
+        RawType value2 = accountConstructionType.getValue().get(1).clone();
         assertNotNull("Value #2 has no XNode present", value2.getXnode());
-        PrismPropertyDefinition value1def = new PrismPropertyDefinition(
-                new QName(NS_FOO, "dummy"),           // element name
-                DOMUtil.XSD_STRING,                 // type name
-                user.getPrismContext());
-        PrismPropertyValue<String> prismValue1 = value1.getParsedValue(value1def, value1def.getName());
-        assertEquals("Wrong value #1", "ABC", prismValue1.getValue());
         PrismValue prismValue2 = value2.getParsedValue(user.getDefinition(), user.getDefinition().getName());
         PrismContainerValue<UserType> prismUserValue2 = (PrismContainerValue<UserType>) prismValue2;
         assertEquals("Wrong value #2", "Nobody", prismUserValue2.findProperty(new QName(NS_FOO, "fullName")).getRealValue());
@@ -440,12 +453,12 @@ public class PrismInternalTestUtil implements PrismContextFactory {
 		PrismAsserts.assertPropertyValue(barProperty, "BAR");
 		PrismPropertyDefinition barPropertyDef = barProperty.getDefinition();
 		assertNotNull("No definition for bar", barPropertyDef);
-		PrismAsserts.assertDefinition(barPropertyDef, EXTENSION_BAR_ELEMENT, DOMUtil.XSD_STRING, 1, -1);
+		PrismAsserts.assertDefinitionTypeLoose(barPropertyDef, EXTENSION_BAR_ELEMENT, DOMUtil.XSD_STRING, 1, -1);
 		assertNull("'Indexed' attribute on 'bar' property is not null", barPropertyDef.isIndexed());
 
         PrismProperty<?> multi = extension.findProperty(EXTENSION_MULTI_ELEMENT);
         PrismPropertyDefinition multiPropertyDef = multi.getDefinition();
-        PrismAsserts.assertDefinition(multiPropertyDef, EXTENSION_MULTI_ELEMENT, DOMUtil.XSD_STRING, 1, -1);
+        PrismAsserts.assertDefinitionTypeLoose(multiPropertyDef, EXTENSION_MULTI_ELEMENT, DOMUtil.XSD_STRING, 1, -1);
         assertNull("'Indexed' attribute on 'multi' property is not null", multiPropertyDef.isIndexed());
 
     }

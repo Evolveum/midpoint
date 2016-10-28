@@ -16,7 +16,9 @@
   -->
 
 <s:search xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3"
-          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xmlns:xsd="http://www.w3.org/2001/XMLSchema">
     <s:type>c:UserType</s:type>
     <s:searchFilter>
         <equal xmlns="http://prism.evolveum.com/xml/ns/public/query-3">
@@ -28,11 +30,11 @@
         <s:type>assign</s:type>
         <s:parameter>
             <s:name>role</s:name>
-            <c:value>12345678-d34d-b33f-f00d-55555555cccc</c:value>
+            <c:value xsi:type="xsd:string">12345678-d34d-b33f-f00d-55555555cccc</c:value>
         </s:parameter>
         <s:parameter>
             <s:name>resource</s:name>
-            <c:value>10000000-0000-0000-0000-000000000104</c:value>
+            <c:value xsi:type="xsd:string">10000000-0000-0000-0000-000000000104</c:value>
         </s:parameter>
     </s:action>
 </s:search>

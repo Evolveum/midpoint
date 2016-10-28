@@ -72,17 +72,17 @@ public class GenericHandlerDto extends HandlerDto {
 
 		final PrismContext prismContext = pageBase.getPrismContext();
 		PrismContainer container = new PrismContainer(new QName("test"), prismContext);
-		ComplexTypeDefinition ctd = new ComplexTypeDefinition(new QName("Test"), prismContext);
+		ComplexTypeDefinitionImpl ctd = new ComplexTypeDefinitionImpl(new QName("Test"), prismContext);
 		int displayOrder = 1;
 		for (Item item : items) {
 			PrismProperty<?> property = taskDto.getExtensionProperty(item.name);
-			PrismPropertyDefinition<?> clonedDefinition = null;
+			PrismPropertyDefinitionImpl<?> clonedDefinition = null;
 			if (property != null) {
 				try {
 					PrismProperty<?> clonedProperty = property.clone();
 					container.add(clonedProperty);
 					if (clonedProperty.getDefinition() != null) {
-						clonedDefinition = clonedProperty.getDefinition().clone();
+						clonedDefinition = (PrismPropertyDefinitionImpl) clonedProperty.getDefinition().clone();
 						clonedProperty.setDefinition((PrismPropertyDefinition) clonedDefinition);
 					}
 				} catch (SchemaException e) {
@@ -90,7 +90,7 @@ public class GenericHandlerDto extends HandlerDto {
 				}
 			}
 			if (clonedDefinition == null) {
-				clonedDefinition = CloneUtil.clone(prismContext.getSchemaRegistry().findPropertyDefinitionByElementName(item.name));
+				clonedDefinition = CloneUtil.clone((PrismPropertyDefinitionImpl) prismContext.getSchemaRegistry().findPropertyDefinitionByElementName(item.name));
 			}
 			if (clonedDefinition == null) {
 				System.out.println("Definition-less property " + item.name);
@@ -102,7 +102,7 @@ public class GenericHandlerDto extends HandlerDto {
 			}
 			displayOrder++;
 		}
-		PrismContainerDefinition<?> containerDefinition = new PrismContainerDefinition<>(new QName("test"), ctd, prismContext);
+		PrismContainerDefinition<?> containerDefinition = new PrismContainerDefinitionImpl<>(new QName("test"), ctd, prismContext);
 		container.setDefinition(containerDefinition);
 		containerWrapper = cwf.createContainerWrapper(container, ContainerStatus.MODIFYING, ItemPath.EMPTY_PATH, true);
 	}

@@ -54,7 +54,9 @@ public class PrismConstants {
 	public static final QName A_PROPERTY_CONTAINER = new QName(NS_ANNOTATION, "container");
 	public static final QName A_OBJECT = new QName(NS_ANNOTATION, "object");
 
-	
+	public static final QName A_DEFAULT_NAMESPACE = new QName(NS_ANNOTATION, "defaultNamespace");
+	public static final QName A_IGNORED_NAMESPACE = new QName(NS_ANNOTATION, "ignoredNamespace");
+
 	public static final QName A_TYPE = new QName(NS_ANNOTATION, "type");
 	public static final QName A_DISPLAY_NAME = new QName(NS_ANNOTATION, "displayName");
 	public static final QName A_DISPLAY_ORDER = new QName(NS_ANNOTATION, "displayOrder");

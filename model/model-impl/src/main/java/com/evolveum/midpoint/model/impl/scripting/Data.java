@@ -17,17 +17,12 @@
 package com.evolveum.midpoint.model.impl.scripting;
 
 import com.evolveum.midpoint.model.api.ScriptExecutionException;
-import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.PrismReference;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.EventHandlerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
@@ -107,32 +102,50 @@ public class Data implements DebugDumpable {
         }
     }
 
-    public static Data createProperty(Object object, PrismContext prismContext) {
-        return createProperty(Collections.singletonList(object), object.getClass(), prismContext);
-    }
-
-    public static Data createProperty(List<Object> objects, Class<?> clazz, PrismContext prismContext) {
+    public static Data createItem(PrismValue value, PrismContext prismContext) throws SchemaException {
         // TODO fix this temporary solution (haven't we somewhere universal method to do this?)
-        QName elementName;
-        QName typeName;
-        if (String.class.isAssignableFrom(clazz)) {
-            elementName = PLAIN_STRING_ELEMENT_NAME;
-            typeName = DOMUtil.XSD_STRING;
-        } else if (ObjectDeltaType.class.isAssignableFrom(clazz)) {
-            elementName = SchemaConstants.T_OBJECT_DELTA;
-            typeName = SchemaConstants.T_OBJECT_DELTA_TYPE;
-        } else if (EventHandlerType.class.isAssignableFrom(clazz)) {
-            elementName = SchemaConstants.C_EVENT_HANDLER;
-            typeName = EventHandlerType.COMPLEX_TYPE;
+        if (value instanceof PrismReferenceValue) {
+            PrismReference ref = new PrismReference(new QName("reference"));
+            ref.add((PrismReferenceValue) value);
+            return create(ref);
+        } else if (value instanceof PrismContainerValue) {
+            PrismContainerValue pcv = (PrismContainerValue) value;
+            return create(pcv.asSingleValuedContainer(new QName("container")));
+        } else if (value instanceof PrismPropertyValue) {
+            if (value.isRaw()) {
+                throw new IllegalArgumentException("Value cannot be raw at this point: " + value);
+            }
+            Class<?> clazz = value.getRealClass();
+            assert clazz != null;
+            PrismPropertyDefinition<?> propertyDefinition;
+            List<PrismPropertyDefinition> defs = prismContext.getSchemaRegistry()
+                    .findItemDefinitionsByCompileTimeClass(clazz, PrismPropertyDefinition.class);
+            if (defs.size() == 1) {
+                propertyDefinition = defs.get(0);
+            } else if (String.class.isAssignableFrom(clazz)) {
+                propertyDefinition = new PrismPropertyDefinitionImpl<>(PLAIN_STRING_ELEMENT_NAME, DOMUtil.XSD_STRING, prismContext);
+            } else if (ObjectDeltaType.class.isAssignableFrom(clazz)) {
+                propertyDefinition = new PrismPropertyDefinitionImpl<>(SchemaConstants.T_OBJECT_DELTA, SchemaConstants.T_OBJECT_DELTA_TYPE, prismContext);
+            } else if (EventHandlerType.class.isAssignableFrom(clazz)) {
+                propertyDefinition = new PrismPropertyDefinitionImpl<>(SchemaConstants.C_EVENT_HANDLER, EventHandlerType.COMPLEX_TYPE, prismContext);
+            } else {
+                // maybe determine type from class would be sufficient
+                TypeDefinition td = prismContext.getSchemaRegistry().findTypeDefinitionByCompileTimeClass(clazz, TypeDefinition.class);
+                if (td != null) {
+                    propertyDefinition = new PrismPropertyDefinitionImpl<>(SchemaConstants.C_VALUE, td.getTypeName(), prismContext);
+                } else {
+                    throw new IllegalStateException(
+                            "Unsupported data class (to be put into scripting data as property): " + clazz);
+                }
+            }
+            PrismProperty<?> property = propertyDefinition.instantiate();
+            property.add((PrismPropertyValue) value);
+            return create(property);
+        } else if (value == null) {
+            return createEmpty();
         } else {
-            throw new IllegalStateException("Unsupported data class (to be put into scripting data as property): " + clazz);
+            throw new IllegalArgumentException("Unsupported prism value: " + value);
         }
-        PrismPropertyDefinition<Object> propertyDefinition = new PrismPropertyDefinition<>(elementName, typeName, prismContext);
-        PrismProperty<Object> property = propertyDefinition.instantiate();
-        for (Object object : objects) {
-            property.addRealValue(object);
-        }
-        return create(property);
     }
 
     public Collection<ObjectReferenceType> getDataAsReferences(QName defaultTargetType) throws ScriptExecutionException {
@@ -144,7 +157,7 @@ public class Data implements DebugDumpable {
                 ref.setOid(((PrismObject) item).getOid());                  // todo check if oid is present
                 retval.add(ref);
             } else if (item instanceof PrismProperty) {
-                for (Object value : ((PrismProperty) item).getRealValues()) {
+                for (Object value : item.getRealValues()) {
                     if (value instanceof String) {
                         ObjectReferenceType ref = new ObjectReferenceType();
                         ref.setType(defaultTargetType);

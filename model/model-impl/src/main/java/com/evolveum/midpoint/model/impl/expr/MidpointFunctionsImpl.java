@@ -18,6 +18,7 @@ package com.evolveum.midpoint.model.impl.expr;
 import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
@@ -28,13 +29,14 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.match.DefaultMatchingRule;
 import com.evolveum.midpoint.prism.match.PolyStringOrigMatchingRule;
-import com.evolveum.midpoint.prism.parser.XPathHolder;
+import com.evolveum.midpoint.prism.marshaller.XPathHolder;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.prism.query.EqualFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.RefFilter;
+import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.DeltaConvertor;
@@ -502,15 +504,14 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     private <T> Integer countAccounts(ResourceType resourceType, QName attributeName, T attributeValue, Task task, OperationResult result)
     		throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, 
     		SecurityViolationException {
-    	RefinedResourceSchema rSchema = RefinedResourceSchema.getRefinedSchema(resourceType);
+    	RefinedResourceSchema rSchema = RefinedResourceSchemaImpl.getRefinedSchema(resourceType);
         RefinedObjectClassDefinition rAccountDef = rSchema.getDefaultRefinedDefinition(ShadowKindType.ACCOUNT);
         RefinedAttributeDefinition attrDef = rAccountDef.findAttributeDefinition(attributeName);
-        EqualFilter idFilter = EqualFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES, attrDef.getName()), attrDef, attributeValue);
-        EqualFilter ocFilter = EqualFilter.createEqual(ShadowType.F_OBJECT_CLASS, ShadowType.class, prismContext, null,
-        		rAccountDef.getObjectClassDefinition().getTypeName());
-        RefFilter resourceRefFilter = RefFilter.createReferenceEqual(ShadowType.F_RESOURCE_REF, ShadowType.class, resourceType);
-        AndFilter filter = AndFilter.createAnd(idFilter, ocFilter, resourceRefFilter);
-        ObjectQuery query = ObjectQuery.createObjectQuery(filter);
+		ObjectQuery query = QueryBuilder.queryFor(ShadowType.class, prismContext)
+				.itemWithDef(attrDef, ShadowType.F_ATTRIBUTES, attrDef.getName()).eq(attributeValue)
+				.and().item(ShadowType.F_OBJECT_CLASS).eq(rAccountDef.getObjectClassDefinition().getTypeName())
+				.and().item(ShadowType.F_RESOURCE_REF).ref(resourceType.getOid())
+				.build();
 		return modelObjectResolver.countObjects(ShadowType.class, query, null, task, result);
     }
 
@@ -554,8 +555,9 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
         		matchingRule = DefaultMatchingRule.NAME;
         	}
         }
-        EqualFilter<T> filter = EqualFilter.createEqual(propertyPath, propertyDefinition, matchingRule, propertyValue);
-        ObjectQuery query = ObjectQuery.createObjectQuery(filter);
+        ObjectQuery query = QueryBuilder.queryFor(objectType.getClass(), prismContext)
+				.item(propertyPath, propertyDefinition).eq(propertyValue).matching(matchingRule)
+				.build();
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace("Determining uniqueness of property {} using query:\n{}", propertyPath, query.debugDump());
         }
@@ -601,16 +603,17 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     	Validate.notNull(shadowType, "Null shadow");
     	Validate.notNull(attributeName, "Null attribute name");
     	Validate.notNull(attributeValue, "Null attribute value");
-    	RefinedResourceSchema rSchema = RefinedResourceSchema.getRefinedSchema(resourceType);
+    	RefinedResourceSchema rSchema = RefinedResourceSchemaImpl.getRefinedSchema(resourceType);
         RefinedObjectClassDefinition rAccountDef = rSchema.getDefaultRefinedDefinition(ShadowKindType.ACCOUNT);
         RefinedAttributeDefinition attrDef = rAccountDef.findAttributeDefinition(attributeName);
-        EqualFilter idFilter = EqualFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES, attrDef.getName()), attrDef, attributeValue);
-        EqualFilter ocFilter = EqualFilter.createEqual(ShadowType.F_OBJECT_CLASS, ShadowType.class, prismContext, 
-        		null, rAccountDef.getObjectClassDefinition().getTypeName());
-        RefFilter resourceRefFilter = RefFilter.createReferenceEqual(ShadowType.F_RESOURCE_REF, ShadowType.class, resourceType);
-        AndFilter filter = AndFilter.createAnd(idFilter, ocFilter, resourceRefFilter);
-        ObjectQuery query = ObjectQuery.createObjectQuery(filter);
-        LOGGER.trace("Determining uniqueness of attribute {} using query:\n{}", attributeName, query.debugDump());
+		ObjectQuery query = QueryBuilder.queryFor(ShadowType.class, prismContext)
+				.itemWithDef(attrDef, ShadowType.F_ATTRIBUTES, attrDef.getName()).eq(attributeValue)
+				.and().item(ShadowType.F_OBJECT_CLASS).eq(rAccountDef.getObjectClassDefinition().getTypeName())
+				.and().item(ShadowType.F_RESOURCE_REF).ref(resourceType.getOid())
+				.build();
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace("Determining uniqueness of attribute {} using query:\n{}", attributeName, query.debugDump());
+		}
         
         final Holder<Boolean> isUniqueHolder = new Holder<Boolean>(true);
         ResultHandler<ShadowType> handler = new ResultHandler<ShadowType>() {

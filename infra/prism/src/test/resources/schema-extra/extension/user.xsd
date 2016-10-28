@@ -48,6 +48,14 @@
 					</appinfo>
 				</annotation>			
 			</element>
+			<!--<element name="singleStringType" type="string">-->
+				<!--<annotation>-->
+					<!--<appinfo>-->
+						<!--<a:maxOccurs>1</a:maxOccurs>-->
+					<!--</appinfo>-->
+				<!--</annotation>-->
+			<!--</element>-->
+
 		</sequence>
 	</complexType>
 </schema>

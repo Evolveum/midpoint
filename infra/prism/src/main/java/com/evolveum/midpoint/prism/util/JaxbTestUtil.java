@@ -39,6 +39,7 @@ import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 
+import com.evolveum.midpoint.prism.schema.SchemaRegistryImpl;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.Validate;
 import org.w3c.dom.Document;
@@ -216,7 +217,7 @@ public class JaxbTestUtil {
 		// set default properties
 		marshaller.setProperty(Marshaller.JAXB_ENCODING, "UTF-8");
 		marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
-		DynamicNamespacePrefixMapper namespacePrefixMapper = getSchemaRegistry().getNamespacePrefixMapper().clone();
+		DynamicNamespacePrefixMapper namespacePrefixMapper = ((SchemaRegistryImpl) getSchemaRegistry()).getNamespacePrefixMapper().clone();
 		namespacePrefixMapper.setAlwaysExplicit(true);
 		marshaller.setProperty("com.sun.xml.bind.namespacePrefixMapper", namespacePrefixMapper);
 		// set custom properties
@@ -517,7 +518,7 @@ public class JaxbTestUtil {
         // this is a bit tricky - we have to create a container and put the newly obtained value into it
         PrismContainerValue<T> containerValue = value.asPrismContainerValue();
         containerValue.revive(prismContext);
-        PrismContainerDefinition definition = prismContext.getSchemaRegistry().findContainerDefinitionByElementName(element.getName());
+        PrismContainerDefinition<T> definition = prismContext.getSchemaRegistry().findContainerDefinitionByElementName(element.getName());
         if (definition == null) {
             throw new IllegalStateException("There's no container definition for element name " + element.getName());
         }

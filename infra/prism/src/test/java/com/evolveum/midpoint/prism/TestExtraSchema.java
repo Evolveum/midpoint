@@ -34,6 +34,7 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.validation.Schema;
 import javax.xml.validation.Validator;
 
+import com.evolveum.midpoint.prism.schema.SchemaRegistryImpl;
 import org.testng.annotations.Test;
 import org.w3c.dom.Document;
 import org.xml.sax.SAXException;
@@ -66,7 +67,7 @@ public class TestExtraSchema {
 		Document dataDoc = DOMUtil.parseFile(new File(COMMON_DIR_PATH, "root-foo.xml"));
 
 		PrismContext context = constructPrismContext();
-		SchemaRegistry reg = context.getSchemaRegistry();
+		SchemaRegistryImpl reg = (SchemaRegistryImpl) context.getSchemaRegistry();
 		Document extraSchemaDoc = DOMUtil.parseFile(new File(EXTRA_SCHEMA_DIR, "root.xsd"));
 		reg.registerSchema(extraSchemaDoc, "file root.xsd");
 		reg.initialize();
@@ -89,7 +90,7 @@ public class TestExtraSchema {
 		System.out.println("===[ testUserExtensionSchemaLoad ]===");
 		
 		PrismContext context = constructPrismContext();
-		SchemaRegistry reg = context.getSchemaRegistry();
+		SchemaRegistryImpl reg = (SchemaRegistryImpl) context.getSchemaRegistry();
 		reg.registerPrismSchemasFromDirectory(EXTRA_SCHEMA_DIR);
 		context.initialize();
 		System.out.println("Initialized registry");
@@ -117,12 +118,12 @@ public class TestExtraSchema {
 		Document dataDoc = DOMUtil.parseFile(USER_JACK_FILE_XML);
 		
 		PrismContext context = constructPrismContext();
-		SchemaRegistry reg = context.getSchemaRegistry();
+		SchemaRegistryImpl reg = (SchemaRegistryImpl) context.getSchemaRegistry();
 		reg.registerPrismSchemasFromDirectory(EXTRA_SCHEMA_DIR);
 		context.initialize();
 		
 		// Parsing user
-		PrismObject<UserType> user = context.parseObject(DOMUtil.getFirstChildElement(dataDoc));
+		PrismObject<UserType> user = context.parserFor(DOMUtil.getFirstChildElement(dataDoc)).compat().parse();		// items from user extension are not correctly defined in the schema
 		assertNotNull("No definition for user", user.getDefinition());
 	
 		System.out.println("Parsed root object:");
@@ -146,7 +147,7 @@ public class TestExtraSchema {
 		System.out.println("===[ testUserExtensionSchemaAsObjectSchema ]===");
 
 		PrismContext context = constructPrismContext();
-		SchemaRegistry reg = context.getSchemaRegistry();
+		SchemaRegistryImpl reg = (SchemaRegistryImpl) context.getSchemaRegistry();
 		reg.registerPrismSchemasFromDirectory(EXTRA_SCHEMA_DIR);
 		context.initialize();
 		
@@ -218,7 +219,7 @@ public class TestExtraSchema {
 		System.out.println("===[ testTypeOverride ]===");
 		
 		PrismContext context = constructPrismContext();
-		SchemaRegistry reg = context.getSchemaRegistry();
+		SchemaRegistryImpl reg = (SchemaRegistryImpl) context.getSchemaRegistry();
 		reg.registerPrismSchemasFromDirectory(EXTRA_SCHEMA_DIR);
 		context.initialize();
 		

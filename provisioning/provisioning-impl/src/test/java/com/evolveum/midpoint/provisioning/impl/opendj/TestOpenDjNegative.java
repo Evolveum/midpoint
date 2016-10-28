@@ -25,6 +25,7 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.prism.PrismContext;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -163,7 +164,7 @@ public class TestOpenDjNegative extends AbstractOpenDjTest {
 		TestUtil.assertFailure(result);
 		TestUtil.assertFailure(resource.asObjectable().getFetchResult());
 		
-		ResourceSchema resourceSchema = RefinedResourceSchema.getResourceSchema(resource, prismContext);
+		ResourceSchema resourceSchema = RefinedResourceSchemaImpl.getResourceSchema(resource, prismContext);
 		assertNull("Resource schema found", resourceSchema);
 		
 		// WHEN
@@ -184,7 +185,7 @@ public class TestOpenDjNegative extends AbstractOpenDjTest {
 		assertTrue("Configurations not equivalent", configurationContainer.equivalent(configurationContainerAgain));
 		assertTrue("Configurations not equals", configurationContainer.equals(configurationContainerAgain));
 
-		ResourceSchema resourceSchemaAgain = RefinedResourceSchema.getResourceSchema(resourceAgain, prismContext);
+		ResourceSchema resourceSchemaAgain = RefinedResourceSchemaImpl.getResourceSchema(resourceAgain, prismContext);
 		assertNull("Resource schema (again)", resourceSchemaAgain);
 	}
 	

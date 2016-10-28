@@ -22,29 +22,25 @@ import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.Revivable;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
-import com.evolveum.midpoint.prism.parser.QueryConvertor;
+import com.evolveum.midpoint.prism.marshaller.QueryConvertor;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 public abstract class ObjectFilter implements DebugDumpable, Serializable, Revivable {
-	
-	ObjectFilter() {
-		// Nothing to do
-	}
-		
+
+	/**
+	 * Does a SHALLOW clone.
+	 */
 	public abstract ObjectFilter clone();
 	
 	public abstract boolean match(PrismContainerValue value, MatchingRuleRegistry matchingRuleRegistry) throws SchemaException;
-	
-	protected void cloneValues(ObjectFilter clone) {
-	}
 	
 	public void accept(Visitor visitor) {
 		visitor.visit(this);
 	}
 
 	@Override
-	public void revive(final PrismContext prismContext) throws SchemaException {
+	public void revive(PrismContext prismContext) throws SchemaException {
 		QueryConvertor.revive(this, prismContext);
 	}
 	

@@ -19,10 +19,7 @@ import com.evolveum.midpoint.model.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.model.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.model.common.expression.functions.FunctionLibrary;
 import com.evolveum.midpoint.model.common.expression.script.jsr223.Jsr223ScriptEvaluator;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.crypto.AESProtector;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
@@ -138,7 +135,7 @@ public class TestScriptCaching {
         // GIVEN
     	OperationResult result = new OperationResult(desc);
     	ScriptExpressionEvaluatorType scriptType = parseScriptType(filname);
-    	ItemDefinition outputDefinition = new PrismPropertyDefinition(PROPERTY_NAME, DOMUtil.XSD_STRING, PrismTestUtil.getPrismContext());
+    	ItemDefinition outputDefinition = new PrismPropertyDefinitionImpl(PROPERTY_NAME, DOMUtil.XSD_STRING, PrismTestUtil.getPrismContext());
     	
     	ScriptExpression scriptExpression = scriptExpressionfactory.createScriptExpression(scriptType, outputDefinition, desc);
 

@@ -82,7 +82,7 @@ public class RoleAssignmentHelper {
     // TODO is this ok?
     protected AssignmentType cloneAndCanonicalizeAssignment(AssignmentType assignmentType) {
         AssignmentType assignmentClone = assignmentType.clone();
-        PrismContainerValue.copyDefinition(assignmentClone, assignmentType);
+        PrismContainerValue.copyDefinition(assignmentClone, assignmentType, prismContext);
 
         assignmentClone.setTarget(null);
         return assignmentClone;

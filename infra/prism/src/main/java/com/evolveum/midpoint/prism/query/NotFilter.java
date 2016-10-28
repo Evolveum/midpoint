@@ -24,10 +24,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 
 public class NotFilter extends UnaryLogicalFilter {
 
-//	private ObjectFilter filter;
-
 	public NotFilter() {
-
 	}
 
 	public NotFilter(ObjectFilter filter) {
@@ -38,6 +35,7 @@ public class NotFilter extends UnaryLogicalFilter {
 		return new NotFilter(filter);
 	}
 	
+	@SuppressWarnings("CloneDoesntCallSuperClone")
 	@Override
 	public NotFilter clone() {
 		return new NotFilter(getFilter().clone());
@@ -62,9 +60,7 @@ public class NotFilter extends UnaryLogicalFilter {
 			sb.append("\n");
 			sb.append(getFilter().debugDump(indent + 1));
 		}
-
 		return sb.toString();
-
 	}
 	
 	@Override

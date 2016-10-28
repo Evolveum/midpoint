@@ -788,7 +788,7 @@ public class TaskDto extends Selectable implements InlineMenuable {
 		QueryType queryType = getExtensionPropertyRealValue(SchemaConstants.MODEL_EXTENSION_OBJECT_QUERY, QueryType.class);
 		PrismContext prismContext = ((MidPointApplication) Application.get()).getPrismContext();
 		try {
-			return prismContext.serializeAnyData(queryType, SchemaConstants.MODEL_EXTENSION_OBJECT_QUERY, PrismContext.LANG_XML);
+			return prismContext.xmlSerializer().serializeAnyData(queryType, SchemaConstants.MODEL_EXTENSION_OBJECT_QUERY);
 		} catch (SchemaException e) {
 			throw new SystemException("Couldn't serialize query: " + e.getMessage(), e);
 		}
@@ -798,7 +798,7 @@ public class TaskDto extends Selectable implements InlineMenuable {
 		ObjectDeltaType objectDeltaType = getExtensionPropertyRealValue(SchemaConstants.MODEL_EXTENSION_OBJECT_DELTA, ObjectDeltaType.class);
 		PrismContext prismContext = ((MidPointApplication) Application.get()).getPrismContext();
 		try {
-			return prismContext.serializeAnyData(objectDeltaType, SchemaConstants.MODEL_EXTENSION_OBJECT_DELTA, PrismContext.LANG_XML);
+			return prismContext.xmlSerializer().serializeAnyData(objectDeltaType, SchemaConstants.MODEL_EXTENSION_OBJECT_DELTA);
 		} catch (SchemaException e) {
 			throw new SystemException("Couldn't serialize delta: " + e.getMessage(), e);
 		}

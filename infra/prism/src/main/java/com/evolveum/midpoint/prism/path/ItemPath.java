@@ -19,6 +19,7 @@ import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.xml.namespace.QName;
 import java.io.Serializable;
@@ -35,8 +36,10 @@ import java.util.Map;
  *
  */
 public class ItemPath implements Serializable, Cloneable {
-	
+
+	@Deprecated	// use ItemPathType.COMPLEX_TYPE
 	public static final QName XSD_TYPE = ItemPathType.COMPLEX_TYPE;
+
 	public static final ItemPath EMPTY_PATH = new ItemPath();
 	
 	private List<ItemPathSegment> segments;
@@ -197,6 +200,7 @@ public class ItemPath implements Serializable, Cloneable {
 		return segments.get(0);
 	}
 
+	@NotNull
 	public ItemPath rest() {
 		return tail();
 	}
@@ -209,7 +213,8 @@ public class ItemPath implements Serializable, Cloneable {
         }
         return null;
     }
-	
+
+    @Nullable
 	public ItemPathSegment last() {
 		if (segments.size() == 0) {
 			return null;
@@ -227,6 +232,7 @@ public class ItemPath implements Serializable, Cloneable {
 	/**
 	 * Returns path containing all segments except the first N.
 	 */
+	@NotNull
 	public ItemPath tail(int n) {
 		if (segments.size() < n) {
 			return EMPTY_PATH;
@@ -234,6 +240,7 @@ public class ItemPath implements Serializable, Cloneable {
 		return new ItemPath(segments.subList(n, segments.size()));
 	}
 
+	@NotNull
 	public ItemPath tail() {
 		return tail(1);
 	}
@@ -241,6 +248,7 @@ public class ItemPath implements Serializable, Cloneable {
 	/**
 	 * Returns a path containing all segments except the last one.
 	 */
+	@NotNull
 	public ItemPath allExceptLast() {
 		if (segments.size() == 0) {
 			return EMPTY_PATH;
@@ -672,5 +680,10 @@ public class ItemPath implements Serializable, Cloneable {
 			throw new IllegalStateException("Item path shouldn't contain references but it does: " + path);
 		}
 	}
+
+	public ItemPathType asItemPathType() {
+		return new ItemPathType(this);
+	}
+
 
 }

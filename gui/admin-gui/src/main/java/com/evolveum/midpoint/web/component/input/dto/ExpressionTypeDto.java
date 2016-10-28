@@ -63,12 +63,12 @@ public class ExpressionTypeDto implements Serializable{
     private void loadExpression(PrismContext context) {
         try {
             if (expressionObject.getExpressionEvaluator().size() == 1) {
-                expression = context.serializeAtomicValue(expressionObject.getExpressionEvaluator().get(0), PrismContext.LANG_XML);
+                expression = context.xmlSerializer().serialize(expressionObject.getExpressionEvaluator().get(0));
             } else {
                 StringBuilder sb = new StringBuilder();
 
                 for (JAXBElement<?> element: expressionObject.getExpressionEvaluator()) {
-                    String subElement = context.serializeAtomicValue(element, PrismContext.LANG_XML);
+                    String subElement = context.xmlSerializer().serialize(element);
                     sb.append(subElement).append("\n");
                 }
                 expression = sb.toString();

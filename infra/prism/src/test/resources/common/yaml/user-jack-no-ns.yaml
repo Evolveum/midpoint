@@ -1,0 +1,75 @@
+---
+user:
+  oid: "c0c010c0-d34d-b33f-f00d-111111111111"
+  version: "42"
+  name: "jack"
+  description: "This must be the best pirate the world has ever seen"
+  extension:
+    singleStringType: "foobar"
+    indexedString:
+    - "alpha"
+    - "bravo"
+    bar:
+    - !http://www.w3.org/2001/XMLSchema/string "BAR"
+    num:
+    - !http://www.w3.org/2001/XMLSchema/int 42
+    multi:
+    - !http://www.w3.org/2001/XMLSchema/string "raz"
+    - !http://www.w3.org/2001/XMLSchema/string "dva"
+    - !http://www.w3.org/2001/XMLSchema/string "tri"
+  fullName: "cpt. Jack Sparrow"
+  givenName: "Jack"
+  familyName: "Sparrow"
+  additionalNames:
+  - "Captain"
+  - "Jackie"
+  polyName: "Džek Sperou"
+  assignment:
+  - id: 1111
+    description: "Assignment 1"
+  - id: 1112
+    description: "Assignment 2"
+    accountConstruction:
+      howto: "Just do it"
+      when: 1330080532000
+      value:
+      - ABC
+      - fullName : Nobody
+  activation:
+    enabled: true
+    validFrom: 170717400000
+  password:
+    encryptedData:
+      encryptionMethod:
+        algorithm: "http://www.w3.org/2001/04/xmlenc#aes256-cbc"
+      keyInfo:
+        keyName: "HF6JRsNMeJt6alihT44CXKgpe0c="
+      cipherData:
+        cipherValue: "blc5OXO2Z4vJW7o/XXhqZzg/rkwsIOwRBK7KLgMqwcrVcYpeZZOjxzgRgFiNw4IB"
+  accountRef:
+  - oid: "c0c010c0-d34d-b33f-f00d-aaaaaaaa1113"
+    type: "AccountType"
+    object:
+      oid: "c0c010c0-d34d-b33f-f00d-aaaaaaaa1113"
+      name: "jsparrow"
+  - oid: "c0c010c0-d34d-b33f-f00d-aaaaaaaa1111"       # deliberately without specifying the type, as it should be taken from the definition
+  - oid: "c0c010c0-d34d-b33f-f00d-aaaaaaaa1112"
+    type: "AccountType"
+    description: "This is a reference with a filter"
+    filter:
+      equal:
+        path: name
+        value:
+        - "captain"
+  special: "got it!"
+  # TODO fix this test
+  singleActivation: { }
+  multiActivation: { }
+  multiActivationCopy:
+  - { }
+  - enabled: true
+  singleConstruction: { }
+  multiConstruction: [ { } ]
+  multiConstructionCopy:
+  - { }
+  - howto: abc

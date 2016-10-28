@@ -25,6 +25,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.model.impl.dataModel.DataModelVisualizer;
+import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.api.SecurityEnforcer;
@@ -267,10 +268,9 @@ public class ModelDiagController implements ModelDiagnosticService {
 				OperationResult subresult = result.createSubresult(result.getOperation()+".searchObjects.fullName");
 				try {
 					
-					ObjectQuery query = new ObjectQuery();
-					ObjectFilter filter = EqualFilter.createEqual(UserType.F_FULL_NAME, UserType.class, prismContext, null,
-							toPolyString(USER_FULL_NAME));
-					query.setFilter(filter);
+					ObjectQuery query = QueryBuilder.queryFor(UserType.class, prismContext)
+							.item(UserType.F_FULL_NAME).eq(toPolyString(USER_FULL_NAME))
+							.build();
 					subresult.addParam("query", query);
 					List<PrismObject<UserType>> foundObjects = repositoryService.searchObjects(UserType.class, query , null, subresult);
 					if (LOGGER.isTraceEnabled()) {
@@ -292,11 +292,9 @@ public class ModelDiagController implements ModelDiagnosticService {
 			{
 				OperationResult subresult = result.createSubresult(result.getOperation()+".searchObjects.employeeType");
 				try {
-					
-					ObjectQuery query = new ObjectQuery();
-					ObjectFilter filter = EqualFilter.createEqual(UserType.F_EMPLOYEE_TYPE, UserType.class, prismContext, null,
-							USER_EMPLOYEE_TYPE[0]);
-					query.setFilter(filter);
+					ObjectQuery query = QueryBuilder.queryFor(UserType.class, prismContext)
+							.item(UserType.F_EMPLOYEE_TYPE).eq(USER_EMPLOYEE_TYPE[0])
+							.build();
 					subresult.addParam("query", query);
 					List<PrismObject<UserType>> foundObjects = repositoryService.searchObjects(UserType.class, query , null, subresult);
 					if (LOGGER.isTraceEnabled()) {
@@ -318,11 +316,9 @@ public class ModelDiagController implements ModelDiagnosticService {
 			{
 				OperationResult subresult = result.createSubresult(result.getOperation()+".searchObjects.organization");
 				try {
-					
-					ObjectQuery query = new ObjectQuery();
-					ObjectFilter filter = EqualFilter.createEqual(UserType.F_ORGANIZATION, UserType.class, prismContext, null,
-							toPolyString(USER_ORGANIZATION[1]));
-					query.setFilter(filter);
+					ObjectQuery query = QueryBuilder.queryFor(UserType.class, prismContext)
+							.item(UserType.F_ORGANIZATION).eq(toPolyString(USER_ORGANIZATION[1]))
+							.build();
 					subresult.addParam("query", query);
 					List<PrismObject<UserType>> foundObjects = repositoryService.searchObjects(UserType.class, query, null, subresult);
 					if (LOGGER.isTraceEnabled()) {

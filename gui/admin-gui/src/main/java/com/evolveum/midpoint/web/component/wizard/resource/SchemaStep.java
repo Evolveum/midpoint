@@ -21,7 +21,6 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.model.api.util.ResourceUtils;
 import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -114,7 +113,7 @@ public class SchemaStep extends WizardStep {
                 PageBase page = (PageBase) SchemaStep.this.getPage();
 
                 try {
-                    return page.getPrismContext().serializeContainerValueToString(xmlSchema.getValue(), SchemaConstantsGenerated.C_SCHEMA, PrismContext.LANG_XML);
+                    return page.getPrismContext().xmlSerializer().serialize(xmlSchema.getValue(), SchemaConstantsGenerated.C_SCHEMA);
                 } catch (SchemaException|RuntimeException ex) {
 					LoggingUtils.logUnexpectedException(LOGGER, "Couldn't serialize resource schema", ex);
 					return WebComponentUtil.exceptionToString("Couldn't serialize resource schema", ex);

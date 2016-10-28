@@ -209,7 +209,7 @@ public class Jsr223ScriptEvaluator implements ScriptEvaluator {
 									   Collection<FunctionLibrary> functions,
 									   String contextDescription, Task task, OperationResult result) throws ExpressionSyntaxException, ObjectNotFoundException {
 		Bindings bindings = scriptEngine.createBindings();
-		bindings.putAll(ExpressionUtil.prepareScriptVariables(variables, objectResolver, functions, contextDescription, task, result));
+		bindings.putAll(ExpressionUtil.prepareScriptVariables(variables, objectResolver, functions, contextDescription, prismContext, task, result));
 		return bindings;
 	}
 

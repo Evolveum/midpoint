@@ -231,9 +231,6 @@ public final class JAXBUtil {
             packageNamespaces.put(pkg, namespace);
         }
 
-		if (namespace == null) {
-			throw new IllegalArgumentException("No namespace annotation in "+pkg);
-		}
 		if (!namespace.equals(typeName.getNamespaceURI())) {
 			throw new IllegalArgumentException("Looking for type in namespace " + typeName.getNamespaceURI() +
 					", but the package annotation indicates namespace " + namespace);

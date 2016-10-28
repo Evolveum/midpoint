@@ -44,7 +44,7 @@ public class ApprovingDummyResourceChangesScenarioBean extends BaseGcpScenarioBe
 //        PrismContainer<ProcessSpecificState> extStateContainer = extDefinition.instantiate();
 //        ProcessSpecificState extState = extStateContainer.createNewValue().asContainerable();
 //
-//        PrismPropertyDefinition deltaDefinition = new PrismPropertyDefinition(
+//        PrismPropertyDefinition deltaDefinition = new PrismPropertyDefinitionImpl(
 //                DUMMY_RESOURCE_DELTA_QNAME,
 //                new QName(SchemaConstantsGenerated.NS_TYPES, "ObjectDeltaType"),
 //                prismContext);

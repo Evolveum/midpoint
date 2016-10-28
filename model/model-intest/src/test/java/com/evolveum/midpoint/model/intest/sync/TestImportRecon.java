@@ -29,6 +29,9 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
+import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
+import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinitionImpl;
 import org.apache.commons.lang.mutable.MutableInt;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
@@ -312,7 +315,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         display("Dummy resource azure", dummyResourceAzure);
         
         // WHEN
-        ResourceSchema resourceSchemaAzure = RefinedResourceSchema.getResourceSchema(resourceDummyAzureType, prismContext);
+        ResourceSchema resourceSchemaAzure = RefinedResourceSchemaImpl.getResourceSchema(resourceDummyAzureType, prismContext);
         
         display("Dummy azure resource schema", resourceSchemaAzure);
         
@@ -329,7 +332,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // WHEN
-        RefinedResourceSchema refinedSchemaAzure = RefinedResourceSchema.getRefinedSchema(resourceDummyAzureType, prismContext);
+        RefinedResourceSchema refinedSchemaAzure = RefinedResourceSchemaImpl.getRefinedSchema(resourceDummyAzureType, prismContext);
         
         display("Dummy azure refined schema", refinedSchemaAzure);
         
@@ -2510,15 +2513,14 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         // GIVEN
         Task task = createTask(TestImportRecon.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
-        
-         ObjectFilter ocFilter = ObjectQueryUtil.createResourceAndObjectClassFilter(RESOURCE_DUMMY_OID, 
-        		new QName(RESOURCE_DUMMY_NAMESPACE,"AccountObjectClass"), prismContext);
-         SubstringFilter<String> subStringFilter = SubstringFilter.createSubstring(
-        		 new ItemPath(ShadowType.F_ATTRIBUTES, SchemaConstants.ICFS_NAME), 
-        		 new ResourceAttributeDefinition(SchemaConstants.ICFS_NAME, DOMUtil.XSD_STRING, prismContext), "s");
-         AndFilter andFilter = AndFilter.createAnd(ocFilter, subStringFilter);
-         ObjectQuery query = ObjectQuery.createObjectQuery(andFilter);
-        
+
+		ObjectQuery query =
+				ObjectQueryUtil.createResourceAndObjectClassFilterPrefix(RESOURCE_DUMMY_OID, new QName(RESOURCE_DUMMY_NAMESPACE, "AccountObjectClass"), prismContext)
+						.and().item(new ItemPath(ShadowType.F_ATTRIBUTES, SchemaConstants.ICFS_NAME),
+									new ResourceAttributeDefinitionImpl(SchemaConstants.ICFS_NAME, DOMUtil.XSD_STRING, prismContext))
+							  .contains("s")
+						.build();
+
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
 		SearchResultList<PrismObject<ShadowType>> objects = modelService.searchObjects(ShadowType.class, query, null, task, result);

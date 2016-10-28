@@ -5,6 +5,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
+import java.util.Collection;
 import java.util.List;
 
 import javax.ws.rs.Consumes;
@@ -15,18 +16,25 @@ import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.ext.MessageBodyReader;
 import javax.ws.rs.ext.MessageBodyWriter;
 import javax.ws.rs.ext.Provider;
+import javax.xml.bind.JAXBException;
+import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 import org.apache.cxf.jaxrs.model.ClassResourceInfo;
 import org.apache.cxf.jaxrs.provider.AbstractConfigurableProvider;
+import org.apache.cxf.jaxrs.provider.JAXBElementProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 
 @Produces({"application/xml", "application/*+xml", "text/xml" })
@@ -66,21 +74,23 @@ public class MidpointXmlProvider<T> extends AbstractConfigurableProvider impleme
 			MultivaluedMap<String, Object> httpHeaders,
 			OutputStream entityStream) throws IOException,
 			WebApplicationException {
-		
-		String marhaledObj = null;
-		
-		if (object instanceof PrismObject){
-			marhaledObj = prismContext.getJaxbDomHack().silentMarshalObject(((PrismObject) object).asObjectable(), LOGGER);
-		} else if (object instanceof OperationResult){
-			OperationResultType operationResultType = ((OperationResult) object).createOperationResultType();
-			marhaledObj = prismContext.getJaxbDomHack().silentMarshalObject(operationResultType, LOGGER);
-		} else{
-			marhaledObj = prismContext.getJaxbDomHack().silentMarshalObject(object, LOGGER);
+
+		// TODO implement in the standard serializer; also change root name
+		QName fakeQName = new QName(PrismConstants.NS_PREFIX + "debug", "debugPrintObject");
+		String xml;
+		try {
+			if (object instanceof PrismObject) {
+				xml = prismContext.xmlSerializer().serialize((PrismObject) object);
+			} else if (object instanceof OperationResult) {
+				OperationResultType operationResultType = ((OperationResult) object).createOperationResultType();
+				xml = prismContext.xmlSerializer().serializeAnyData(operationResultType, fakeQName);
+			} else {
+				xml = prismContext.xmlSerializer().serializeAnyData(object, fakeQName);
+			}
+			entityStream.write(xml.getBytes("utf-8"));
+		} catch (SchemaException | RuntimeException e) {
+			LoggingUtils.logException(LOGGER, "Couldn't marshal element to string: {}", e, object);
 		}
-		
-		entityStream.write(marhaledObj.getBytes("utf-8"));
-		
-		
 	}
 
 	@Override
@@ -108,9 +118,9 @@ public class MidpointXmlProvider<T> extends AbstractConfigurableProvider impleme
 		try {
 			
 			if (type.isAssignableFrom(PrismObject.class)){
-				object = (T) prismContext.parseObject(entityStream, PrismContext.LANG_XML);
+				object = (T) prismContext.parserFor(entityStream).xml().parse();
 			} else {
-                object = prismContext.parseAnyValue(entityStream, PrismContext.LANG_XML);
+                object = prismContext.parserFor(entityStream).xml().parseRealValue();
 				//object = (T) prismContext.getJaxbDomHack().unmarshalObject(entityStream);
 			}
 			

@@ -31,7 +31,7 @@ import org.jetbrains.annotations.NotNull;
  */
 public class MatchingRuleRegistry {
 	
-	public MatchingRule <? extends Object> defaultMatchingRule;
+	@NotNull public final MatchingRule <? extends Object> defaultMatchingRule;
 	public Map<QName, ? extends MatchingRule<?>> matchingRules = new HashMap<QName, MatchingRule<?>>();
 	
 	public MatchingRuleRegistry() {

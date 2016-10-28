@@ -24,7 +24,6 @@ import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.query.LessFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
@@ -129,8 +128,9 @@ public class TriggerScannerTaskHandler extends AbstractScannerTaskHandler<Object
 		PrismContainerDefinition<TriggerType> triggerContainerDef = focusObjectDef.findContainerDefinition(F_TRIGGER);
 		
 		if (handler.getLastScanTimestamp() == null) {
-			filter = LessFilter.createLess(new ItemPath(F_TRIGGER, F_TIMESTAMP), focusObjectDef,
-								handler.getThisScanTimestamp(), true);
+			filter = QueryBuilder.queryFor(ObjectType.class, prismContext)
+					.item(F_TRIGGER, F_TIMESTAMP).le(handler.getThisScanTimestamp())
+					.buildFilter();
 		} else {
 			filter = QueryBuilder.queryFor(ObjectType.class, prismContext)
 					.exists(F_TRIGGER)

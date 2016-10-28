@@ -18,6 +18,7 @@ package com.evolveum.midpoint.web.component.assignment;
 
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.objecttypeselect.ObjectTypeSelectPanel;
@@ -32,6 +33,7 @@ import com.evolveum.midpoint.prism.query.EqualFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.OrFilter;
+import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -536,13 +538,9 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 
 			@Override
 			protected ObjectQuery getChooseQuery() {
-				ObjectQuery query = new ObjectQuery();
-
-				ObjectFilter filter = EqualFilter.createEqual(OrgType.F_TENANT, OrgType.class,
-						getPageBase().getPrismContext(), null, true);
-				query.setFilter(filter);
-
-				return query;
+				return QueryBuilder.queryFor(OrgType.class, getPageBase().getPrismContext())
+						.item(OrgType.F_TENANT).eq(true)
+						.build();
 			}
 
 			@Override
@@ -581,16 +579,10 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 
 			@Override
 			protected ObjectQuery getChooseQuery() {
-				ObjectQuery query = new ObjectQuery();
-
-				ObjectFilter filter = OrFilter.createOr(
-						EqualFilter.createEqual(OrgType.F_TENANT, OrgType.class,
-								getPageBase().getPrismContext(), null, false),
-						EqualFilter.createEqual(OrgType.F_TENANT, OrgType.class,
-								getPageBase().getPrismContext(), null, null));
-				query.setFilter(filter);
-
-				return query;
+				return QueryBuilder.queryFor(OrgType.class, getPageBase().getPrismContext())
+						.item(OrgType.F_TENANT).eq(false)
+						.or().item(OrgType.F_TENANT).isNull()
+						.build();
 			}
 
 			@Override
@@ -740,7 +732,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 			}
 
 			PrismContext prismContext = getPageBase().getPrismContext();
-			RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resource,
+			RefinedResourceSchema refinedSchema = RefinedResourceSchemaImpl.getRefinedSchema(resource,
 					LayerType.PRESENTATION, prismContext);
 			RefinedObjectClassDefinition objectClassDefinition = refinedSchema
 					.getRefinedDefinition(ShadowKindType.ACCOUNT, construction.getIntent());

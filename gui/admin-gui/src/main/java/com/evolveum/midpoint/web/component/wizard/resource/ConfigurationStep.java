@@ -22,10 +22,7 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.ModelService;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
@@ -129,12 +126,12 @@ public class ConfigurationStep extends WizardStep {
 			PrismContainerDefinition<ConnectorConfigurationType> definition = ConnectorTypeUtil.findConfigurationContainerDefinition(connectorType, schema);
 			// Fixing (errorneously) set maxOccurs = unbounded. See MID-2317 and related issues.
 			PrismContainerDefinition<ConnectorConfigurationType> definitionFixed = definition.clone();
-			definitionFixed.setMaxOccurs(1);
+			((PrismContainerDefinitionImpl) definitionFixed).setMaxOccurs(1);
 			configuration = definitionFixed.instantiate();
 		}
 
 		List<PrismContainerDefinition> containerDefinitions = getSortedConfigContainerDefinitions(configuration);
-		for (PrismContainerDefinition containerDef : containerDefinitions) {
+		for (PrismContainerDefinition<?> containerDef : containerDefinitions) {
 			ItemPath containerPath = new ItemPath(ResourceType.F_CONNECTOR_CONFIGURATION, containerDef.getName());
 			PrismContainer container = configuration.findContainer(containerDef.getName());
 

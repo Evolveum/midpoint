@@ -68,7 +68,7 @@ public class TestParseTask {
 		PrismContext prismContext = PrismTestUtil.getPrismContext();
 		
 		// WHEN
-		PrismObject<TaskType> task = prismContext.parseObject(TASK_FILE, PrismContext.LANG_XML);
+		PrismObject<TaskType> task = prismContext.parserFor(TASK_FILE).xml().parse();
 		
 		// THEN
 		System.out.println("Parsed task:");
@@ -88,7 +88,7 @@ public class TestParseTask {
 		Element taskElement = DOMUtil.getFirstChildElement(document);
 		
 		// WHEN
-		PrismObject<TaskType> task = prismContext.parseObject(taskElement);
+		PrismObject<TaskType> task = prismContext.parserFor(taskElement).parse();
 		
 		// THEN
 		System.out.println("Parsed task:");

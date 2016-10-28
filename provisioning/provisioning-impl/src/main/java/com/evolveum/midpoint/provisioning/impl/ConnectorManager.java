@@ -23,6 +23,8 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
+import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -165,7 +167,7 @@ public class ConnectorManager {
 		try {
 			connector.configure(connectorConfigurationType.asPrismContainerValue(), result);
 			
-			ResourceSchema resourceSchema = RefinedResourceSchema.getResourceSchema(resourceType, prismContext);
+			ResourceSchema resourceSchema = RefinedResourceSchemaImpl.getResourceSchema(resourceType, prismContext);
 			Collection<Object> capabilities = ResourceTypeUtil.getNativeCapabilitiesCollection(resourceType);
 			
 			connector.initialize(resourceSchema, capabilities, ResourceTypeUtil.isCaseIgnoreAttributeNames(resourceType), result);
@@ -416,12 +418,10 @@ public class ConnectorManager {
 	}
 
 	private boolean isInRepo(ConnectorType connectorType, OperationResult result) throws SchemaException {
-		AndFilter filter = AndFilter.createAnd(
-				EqualFilter.createEqual(SchemaConstants.C_CONNECTOR_FRAMEWORK, ConnectorType.class, prismContext, null, connectorType.getFramework()),
-				EqualFilter.createEqual(SchemaConstants.C_CONNECTOR_CONNECTOR_TYPE, ConnectorType.class, prismContext, null, connectorType.getConnectorType()));
-	
-		ObjectQuery query = ObjectQuery.createObjectQuery(filter);
-		
+		ObjectQuery query = QueryBuilder.queryFor(ConnectorType.class, prismContext)
+				.item(SchemaConstants.C_CONNECTOR_FRAMEWORK).eq(connectorType.getFramework())
+				.and().item(SchemaConstants.C_CONNECTOR_CONNECTOR_TYPE).eq(connectorType.getConnectorType())
+				.build();
 
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("Looking for connector in repository:\n{}", query.debugDump());

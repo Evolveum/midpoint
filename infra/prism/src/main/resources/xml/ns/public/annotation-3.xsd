@@ -29,7 +29,7 @@
             Default prefix: a
         </xsd:documentation>
     </xsd:annotation>
- 
+
     <xsd:element name="container">
         <xsd:annotation>
             <xsd:documentation>
@@ -330,6 +330,25 @@
             </xsd:annotation>
         </xsd:attribute>
     </xsd:complexType>
+
+    <xsd:element name="defaultNamespace" type="xsd:string">
+        <xsd:annotation>
+            <xsd:documentation>
+                When resolving unqualified elements, what should be the default namespace to look into at first.
+                Applies to a container, currently at the topmost level.
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="ignoredNamespace" type="xsd:string">
+        <xsd:annotation>
+            <xsd:documentation>
+                When resolving unqualified elements, what namespace(s) should be ignored.
+                String entered here is interpreted as a namespace prefix.
+                Applies to a container, currently at the topmost level.
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
 
 </xsd:schema>
 

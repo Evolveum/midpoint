@@ -18,6 +18,7 @@ package com.evolveum.midpoint.web.component.input;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.markup.html.form.IChoiceRenderer;
 import org.apache.wicket.model.IModel;
@@ -48,7 +49,7 @@ public class RefinedObjectTypeChoicePanel extends DropDownChoicePanel<RefinedObj
 			public List<? extends RefinedObjectClassDefinition> getObject() {
 				RefinedResourceSchema refinedSchema;
 				try {
-					refinedSchema = RefinedResourceSchema.getRefinedSchema(resourceModel.getObject());
+					refinedSchema = RefinedResourceSchemaImpl.getRefinedSchema(resourceModel.getObject());
 				} catch (SchemaException e) {
 					throw new IllegalArgumentException(e.getMessage(),e);
 				}

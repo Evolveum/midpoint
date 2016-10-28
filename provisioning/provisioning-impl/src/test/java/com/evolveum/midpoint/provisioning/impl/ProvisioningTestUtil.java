@@ -26,6 +26,8 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.schema.PrismSchemaImpl;
+import org.apache.commons.lang.StringUtils;
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.prism.Containerable;
@@ -83,7 +85,7 @@ public class ProvisioningTestUtil {
 		// Try to parse the schema
 		PrismSchema schema = null;
 		try {
-			schema = PrismSchema.parse(xsdElement, true, "schema of "+conn, prismContext);
+			schema = PrismSchemaImpl.parse(xsdElement, true, "schema of "+conn, prismContext);
 		} catch (SchemaException e) {
 			throw new SchemaException("Error parsing schema of "+conn+": "+e.getMessage(),e);
 		}
@@ -126,7 +128,7 @@ public class ProvisioningTestUtil {
 	public static void checkRepoShadow(PrismObject<ShadowType> repoShadow, ShadowKindType kind) {
 		checkRepoShadow(repoShadow, kind, 2);
 	}
-	
+
 	public static void checkRepoShadow(PrismObject<ShadowType> repoShadow, ShadowKindType kind, Integer expectedNumberOfAttributes) {
 		ShadowType repoShadowType = repoShadow.asObjectable();
 		assertNotNull("No OID in repo shadow "+repoShadow, repoShadowType.getOid());

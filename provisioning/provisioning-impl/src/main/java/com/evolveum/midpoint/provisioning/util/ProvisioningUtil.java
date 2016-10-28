@@ -18,10 +18,7 @@ package com.evolveum.midpoint.provisioning.util;
 
 import com.evolveum.midpoint.common.ResourceObjectPattern;
 import com.evolveum.midpoint.common.StaticExpressionUtil;
-import com.evolveum.midpoint.common.refinery.RefinedAssociationDefinition;
-import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
-import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
+import com.evolveum.midpoint.common.refinery.*;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.match.MatchingRule;
@@ -123,7 +120,7 @@ public class ProvisioningUtil {
 			ProvisioningScriptType scriptType, String desc, PrismContext prismContext) throws SchemaException {
 		ExecuteProvisioningScriptOperation scriptOperation = new ExecuteProvisioningScriptOperation();
 
-		PrismPropertyDefinition scriptArgumentDefinition = new PrismPropertyDefinition(
+		PrismPropertyDefinition scriptArgumentDefinition = new PrismPropertyDefinitionImpl(
 				FAKE_SCRIPT_ARGUMENT_NAME, DOMUtil.XSD_STRING, prismContext);
 
 		for (ProvisioningScriptArgumentType argument : scriptType.getArgument()) {
@@ -252,7 +249,7 @@ public class ProvisioningUtil {
 	}
 	
 	public static RefinedResourceSchema getRefinedSchema(ResourceType resourceType) throws SchemaException, ConfigurationException {
-		RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resourceType);
+		RefinedResourceSchema refinedSchema = RefinedResourceSchemaImpl.getRefinedSchema(resourceType);
 		if (refinedSchema == null) {
 			throw new ConfigurationException("No schema for "+resourceType);
 		}
@@ -283,7 +280,7 @@ public class ProvisioningUtil {
 	}
 	
 	public static RefinedResourceSchema getRefinedSchema(PrismObject<ResourceType> resource) throws SchemaException, ConfigurationException {
-		RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resource);
+		RefinedResourceSchema refinedSchema = RefinedResourceSchemaImpl.getRefinedSchema(resource);
 		if (refinedSchema == null) {
 			throw new ConfigurationException("No schema for "+resource);
 		}
@@ -304,13 +301,13 @@ public class ProvisioningUtil {
 		opResult.recordWarning(message, ex);
 	}
 
-	public static boolean shouldStoreAtributeInShadow(RefinedObjectClassDefinition objectClassDefinition, QName attributeName, 
+	public static boolean shouldStoreAtributeInShadow(RefinedObjectClassDefinition objectClassDefinition, QName attributeName,
 			CachingStategyType cachingStrategy) throws ConfigurationException {
 		if (cachingStrategy == CachingStategyType.NONE) {
 			if (objectClassDefinition.isPrimaryIdentifier(attributeName) || objectClassDefinition.isSecondaryIdentifier(attributeName)) {
 				return true;
 			}
-			for (RefinedAssociationDefinition associationDef: objectClassDefinition.getAssociations()) {
+			for (RefinedAssociationDefinition associationDef: objectClassDefinition.getAssociationDefinitions()) {
 				if (associationDef.getResourceObjectAssociationType().getDirection() == ResourceObjectAssociationDirectionType.OBJECT_TO_SUBJECT) {
 					QName valueAttributeName = associationDef.getResourceObjectAssociationType().getValueAttribute();
 					if (QNameUtil.match(attributeName, valueAttributeName)) {
@@ -319,11 +316,11 @@ public class ProvisioningUtil {
 				}
 			}
 			return false;
-			
+
 		} else if (cachingStrategy == CachingStategyType.PASSIVE) {
 			RefinedAttributeDefinition<Object> attrDef = objectClassDefinition.findAttributeDefinition(attributeName);
 			return attrDef != null;
-			
+
 		} else {
 			throw new ConfigurationException("Unknown caching strategy "+cachingStrategy);
 		}
@@ -380,8 +377,8 @@ public class ProvisioningUtil {
 			//throw new IllegalStateException(m);		// use only for testing
 		}
 	}
-	
-	public static CachingStategyType getCachingStrategy(ProvisioningContext ctx) 
+
+	public static CachingStategyType getCachingStrategy(ProvisioningContext ctx)
 			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
 		CachingPolicyType caching = ctx.getResource().getCaching();
 		if (caching == null) {
@@ -392,7 +389,7 @@ public class ProvisioningUtil {
 		}
 		return caching.getCachingStategy();
 	}
-	
+
 	public static boolean shouldDoRepoSearch(GetOperationOptions rootOptions) {
 		return GetOperationOptions.isNoFetch(rootOptions) || GetOperationOptions.isMaxStaleness(rootOptions);
 	}

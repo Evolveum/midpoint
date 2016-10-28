@@ -22,6 +22,9 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
+import com.evolveum.midpoint.prism.schema.PrismSchemaImpl;
+import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.prism.xml.ns._public.types_3.SchemaDefinitionType;
 
 import org.apache.commons.lang.StringUtils;
@@ -67,10 +70,6 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ConnectorTestOperation;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
-import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeContainerDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ConnectorTypeUtil;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
@@ -342,8 +341,8 @@ public class ResourceManager {
 		try {
 			// make sure it has parsed resource and refined schema. We are going to cache
 			// it, so we want to cache it with the parsed schemas
-			RefinedResourceSchema.getResourceSchema(newResource, prismContext);
-			RefinedResourceSchema.getRefinedSchema(newResource);
+			RefinedResourceSchemaImpl.getResourceSchema(newResource, prismContext);
+			RefinedResourceSchemaImpl.getRefinedSchema(newResource);
 			
 		} catch (SchemaException e) {
 			String message = "Schema error while processing schemaHandling section of "+newResource+": "+e.getMessage();
@@ -387,7 +386,7 @@ public class ResourceManager {
 		if (resourceSchema == null) { 
 			// Try to get existing schema from resource. We do not want to override this if it exists
 			// (but we still want to refresh the capabilities, that happens below)
-			resourceSchema = RefinedResourceSchema.getResourceSchema(resource, prismContext);
+			resourceSchema = RefinedResourceSchemaImpl.getResourceSchema(resource, prismContext);
 		}
 			
 		if (resourceSchema == null || resourceSchema.isEmpty()) {
@@ -678,7 +677,7 @@ public class ResourceManager {
 			// Resource does not support schema
 			// If there is a static schema in resource definition this may still be OK
 			try {
-				schema = RefinedResourceSchema.getResourceSchema(resource, prismContext);
+				schema = RefinedResourceSchemaImpl.getResourceSchema(resource, prismContext);
 			} catch (SchemaException e) {
 				modifyResourceAvailabilityStatus(resource, AvailabilityStatusType.BROKEN, parentResult);
 				schemaResult.recordFatalError(e);
@@ -788,9 +787,9 @@ public class ResourceManager {
 							.findAttributeDefinition(attributeName);
 					if (attributeDefinition != null) {
 						if (ignore != null && !ignore.booleanValue()) {
-							attributeDefinition.setIgnored(false);
+							((ResourceAttributeDefinitionImpl) attributeDefinition).setIgnored(false);
 						} else {
-							attributeDefinition.setIgnored(true);
+							((ResourceAttributeDefinitionImpl) attributeDefinition).setIgnored(true);
 						}
 					} else {
 						// simulated activation attribute points to something that is not in the schema
@@ -925,13 +924,14 @@ public class ResourceManager {
         	return;
         }
 		try {
-			connectorSchema = PrismSchema.parse(connectorSchemaElement, true, "schema for " + connector, prismContext);
+			connectorSchema = PrismSchemaImpl.parse(connectorSchemaElement, true, "schema for " + connector, prismContext);
 		} catch (SchemaException e) {
 			objectResult.recordFatalError("Error parsing connector schema for " + connector + ": "+e.getMessage(), e);
 			return;
 		}
         QName configContainerQName = new QName(connectorType.getNamespace(), ResourceType.F_CONNECTOR_CONFIGURATION.getLocalPart());
-		PrismContainerDefinition<ConnectorConfigurationType> configContainerDef = connectorSchema.findContainerDefinitionByElementName(configContainerQName);
+		PrismContainerDefinition<ConnectorConfigurationType> configContainerDef =
+				connectorSchema.findContainerDefinitionByElementName(configContainerQName);
 		if (configContainerDef == null) {
 			objectResult.recordFatalError("Definition of configuration container " + configContainerQName + " not found in the schema of of " + connector);
             return;

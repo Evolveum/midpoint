@@ -25,6 +25,9 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.PrismPropertyDefinitionImpl;
+import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
@@ -188,22 +191,19 @@ public class TestDummyUuidNonUniqueName extends TestDummyUuid {
 	private void searchFettucini(int expectedNumberOfFettucinis) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 		OperationResult result = new OperationResult(TestDummy.class.getName()
 				+ ".searchFettucini");
-		
-		ObjectFilter filter = AndFilter.createAnd(
-					RefFilter.createReferenceEqual(ShadowType.F_RESOURCE_REF, ShadowType.class, resource), 
-					EqualFilter.createEqual(ShadowType.F_OBJECT_CLASS, ShadowType.class, prismContext, null,
-							new QName(dummyResourceCtl.getNamespace(), "AccountObjectClass")),
-					EqualFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES, getIcfNameDefinition().getName()), 
-							getIcfNameDefinition(), new PrismPropertyValue(ACCOUNT_FETTUCINI_NAME)));
-		ObjectQuery query = new ObjectQuery();
-		query.setFilter(filter);
+		ObjectQuery query = QueryBuilder.queryFor(ShadowType.class, prismContext)
+				.item(ShadowType.F_RESOURCE_REF).ref(resource.getOid())
+				.and().item(ShadowType.F_OBJECT_CLASS).eq(new QName(dummyResourceCtl.getNamespace(), "AccountObjectClass"))
+				.and().itemWithDef(getIcfNameDefinition(), ShadowType.F_ATTRIBUTES, getIcfNameDefinition().getName()).eq(ACCOUNT_FETTUCINI_NAME)
+				.build();
+
 		// WHEN
 		List<PrismObject<ShadowType>> shadows = provisioningService.searchObjects(ShadowType.class, query, null, null, result);
 		assertEquals("Wrong number of Fettucinis found", expectedNumberOfFettucinis, shadows.size());
 	}
 
 	private PrismPropertyDefinition<String> getIcfNameDefinition() {
-		return new PrismPropertyDefinition<String>(ConnectorFactoryIcfImpl.ICFS_NAME, 
+		return new PrismPropertyDefinitionImpl<>(ConnectorFactoryIcfImpl.ICFS_NAME,
 				DOMUtil.XSD_STRING, prismContext);
 	}
 		

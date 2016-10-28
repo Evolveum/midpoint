@@ -18,6 +18,7 @@ package com.evolveum.midpoint.web.page.admin.resources;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
@@ -94,9 +95,9 @@ public class ResourceTasksPanel extends Panel implements Popupable{
 		OperationResult result = new OperationResult(OPERATION_LOAD_TASKS);
 		List<PrismObject<TaskType>> tasks = WebModelServiceUtils
 				.searchObjects(TaskType.class,
-						ObjectQuery.createObjectQuery(RefFilter.createReferenceEqual(TaskType.F_OBJECT_REF,
-								TaskType.class, pageBase.getPrismContext(),
-								object.getOid())),
+						QueryBuilder.queryFor(TaskType.class, pageBase.getPrismContext())
+								.item(TaskType.F_OBJECT_REF).ref(object.getOid())
+								.build(),
 						result, pageBase);
 		List<TaskType> tasksType = new ArrayList<TaskType>();
 		for (PrismObject<TaskType> task : tasks) {

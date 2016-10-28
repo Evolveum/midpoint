@@ -30,6 +30,7 @@ import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
@@ -2354,8 +2355,9 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 	private String lookupIterationTokenByAdditionalName(String additionalName) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException {
 		Task task = taskManager.createTaskInstance(TestIteration.class.getName() + ".lookupIterationTokenByAdditionalName");
         OperationResult result = task.getResult();
-        EqualFilter filter = EqualFilter.createEqual(UserType.F_ADDITIONAL_NAME, UserType.class, prismContext, null, PrismTestUtil.createPolyString(additionalName));
-        ObjectQuery query = ObjectQuery.createObjectQuery(filter);
+		ObjectQuery query = QueryBuilder.queryFor(UserType.class, prismContext)
+				.item(UserType.F_ADDITIONAL_NAME).eq(PrismTestUtil.createPolyString(additionalName))
+				.build();
 		List<PrismObject<UserType>> objects = modelService.searchObjects(UserType.class, query, null, task, result);
 		if (objects.isEmpty()) {
 			return null;

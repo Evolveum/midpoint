@@ -34,6 +34,8 @@ import javax.xml.bind.JAXBException;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.test.annotation.DirtiesContext;
@@ -45,15 +47,8 @@ import org.testng.annotations.Test;
 import com.evolveum.icf.dummy.resource.BreakMode;
 import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.model.api.ProgressListener;
+import com.evolveum.midpoint.notifications.api.transports.Message;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -701,19 +696,17 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
                      
         // Simple query
-        ObjectFilter filter = EqualFilter.createEqual(new ItemPath(UserType.F_EXTENSION, propName), UserType.class, prismContext, 
-        		propValue);
-        ObjectQuery query = new ObjectQuery();
-		query.setFilter(filter);
+        ObjectQuery query = QueryBuilder.queryFor(UserType.class, prismContext)
+                .item(UserType.F_EXTENSION, propName).eq(propValue)
+                .build();
 		// WHEN, THEN
 		searchDeGhoulash(testName, query, task, result);
 		
 		// Complex query, combine with a name. This results in join down in the database
-		filter = AndFilter.createAnd(
-				EqualFilter.createEqual(UserType.F_NAME, UserType.class, prismContext, null, USER_DEGHOULASH_NAME),
-				EqualFilter.createEqual(new ItemPath(UserType.F_EXTENSION, propName), UserType.class, prismContext, propValue)
-			);
-		query.setFilter(filter);
+        query = QueryBuilder.queryFor(UserType.class, prismContext)
+                .item(UserType.F_NAME).eq(USER_DEGHOULASH_NAME)
+                .and().item(UserType.F_EXTENSION, propName).eq(propValue)
+                .build();
 		// WHEN, THEN
 		searchDeGhoulash(testName, query, task, result);
 	}
@@ -1178,16 +1171,15 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         PrismObjectDefinition<UserType> userDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
         PrismContainerDefinition<?> extensionDefinition = userDef.getExtensionDefinition();
         List<? extends ItemDefinition> extensionDefs = extensionDefinition.getComplexTypeDefinition().getDefinitions();
-        Iterator<? extends ItemDefinition> iterator = extensionDefs.iterator();
-        while (iterator.hasNext()) {
-        	ItemDefinition itemDefinition = iterator.next();
-        	if (itemDefinition.getName().equals(PIRACY_SHIP)) {
-        		iterator.remove();
-        	}
-        }
+		for (ItemDefinition itemDefinition : extensionDefs) {
+			if (itemDefinition.getName().equals(PIRACY_SHIP)) {
+				//iterator.remove();	// not possible as the collection is unmodifiable
+				((ItemDefinitionImpl) itemDefinition).setName(new QName(NS_PIRACY, "ship-broken"));
+			}
+		}
         
         // WHEN
-        PrismObject<UserType> user = modelService.getObject(UserType.class, USER_GUYBRUSH_OID, null, task, result);
+        modelService.getObject(UserType.class, USER_GUYBRUSH_OID, null, task, result);
         
         // THEN
         TestUtil.displayThen(TEST_NAME);

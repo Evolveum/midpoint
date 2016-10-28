@@ -40,6 +40,7 @@ import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 import javax.xml.ws.Holder;
 
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import org.apache.commons.lang.StringUtils;
 import org.opends.server.types.Entry;
 import org.opends.server.util.EmbeddedUtils;
@@ -2323,7 +2324,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 	}
 
 	private void checkOpenDjSchema(ResourceType resource, String source) throws SchemaException {
-		ResourceSchema schema = RefinedResourceSchema.getResourceSchema(resource, prismContext);
+		ResourceSchema schema = RefinedResourceSchemaImpl.getResourceSchema(resource, prismContext);
 		ObjectClassComplexTypeDefinition accountDefinition = schema.findObjectClassDefinition(RESOURCE_OPENDJ_ACCOUNT_OBJECTCLASS);
 		assertNotNull("Schema does not define any account (resource from " + source + ")", accountDefinition);
 		Collection<? extends ResourceAttributeDefinition> identifiers = accountDefinition.getPrimaryIdentifiers();

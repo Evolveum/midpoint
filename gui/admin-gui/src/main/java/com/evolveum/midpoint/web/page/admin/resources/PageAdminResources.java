@@ -25,6 +25,7 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.*;
+import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -118,21 +119,14 @@ public class PageAdminResources extends PageAdmin {
         PrismObject<TaskType> oldTask;
 
         OperationResult result = new OperationResult(OPERATION_DELETE_SYNC_TOKEN);
-        ObjectQuery query;
+        ObjectQuery query = QueryBuilder.queryFor(TaskType.class, getPrismContext())
+                .item(TaskType.F_OBJECT_REF).ref(resourceOid)
+                .and().item(TaskType.F_HANDLER_URI).eq(handlerUri)
+                .build();
 
-        ObjectFilter refFilter = RefFilter.createReferenceEqual(TaskType.F_OBJECT_REF, TaskType.class,
-                getPrismContext(), resourceOid);
+        List<PrismObject<TaskType>> taskList = WebModelServiceUtils.searchObjects(TaskType.class, query, result, this);
 
-        ObjectFilter filterHandleUri = EqualFilter.createEqual(TaskType.F_HANDLER_URI, TaskType.class,
-                getPrismContext(), null, handlerUri);
-
-        query = new ObjectQuery();
-        query.setFilter(AndFilter.createAnd(refFilter, filterHandleUri));
-
-        List<PrismObject<TaskType>> taskList = WebModelServiceUtils.searchObjects(TaskType.class, query,
-                result, this);
-
-        if(taskList.size() != 1){
+        if (taskList.size() != 1) {
             error(getString("pageResource.message.invalidTaskSearch"));
         } else {
             oldTask = taskList.get(0);

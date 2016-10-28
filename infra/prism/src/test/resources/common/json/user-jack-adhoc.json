@@ -8,7 +8,7 @@
     "extension" : {
       "@ns" : "http://midpoint.evolveum.com/xml/ns/test/adhoc-1.xsd",
       "bottles" : [ {
-        "@typeDef" : "http://www.w3.org/2001/XMLSchema#int",
+        "@type" : "http://www.w3.org/2001/XMLSchema#int",
         "@value" : 20
       } ]
     },

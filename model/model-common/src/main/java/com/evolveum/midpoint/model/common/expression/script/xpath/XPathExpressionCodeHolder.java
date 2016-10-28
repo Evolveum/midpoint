@@ -17,7 +17,7 @@ package com.evolveum.midpoint.model.common.expression.script.xpath;
 
 import java.util.Map;
 
-import com.evolveum.midpoint.prism.parser.TrivialXPathParser;
+import com.evolveum.midpoint.prism.marshaller.TrivialXPathParser;
 
 /**
  * @author Radovan Semancik

@@ -3,7 +3,7 @@
 user: 
   oid: "c0c010c0-d34d-b33f-f00d-111111111111"
   version: "42"
-  name: "jack"
+  name: !!str "jack"
   description: "This must be the best pirate the world has ever seen"
   extension:
     '@ns': "http://midpoint.evolveum.com/xml/ns/test/extension"
@@ -12,13 +12,13 @@ user:
     - "alpha"
     - "bravo"
     bar:
-    - !http://www.w3.org/2001/XMLSchema/string "BAR"
+    - !string "BAR"               # unqualified type name (string -> xsd:string)
     num:
-    - !http://www.w3.org/2001/XMLSchema/int 42
+    - !int 42                     # unqualified type name (int -> xsd:int)
     multi:
-    - !http://www.w3.org/2001/XMLSchema/string "raz"
-    - !http://www.w3.org/2001/XMLSchema/string "dva"
-    - !http://www.w3.org/2001/XMLSchema/string "tri"
+    - !http://www.w3.org/2001/XMLSchema/string "raz"      # qualified type name
+    - !!str "dva"                                         # yaml-specific type (yaml:string -> xsd:string)
+    - !!str "tri"                                         # dtto
   fullName: "cpt. Jack Sparrow"
   givenName: "Jack"
   familyName: "Sparrow"
@@ -27,13 +27,13 @@ user:
   - "Jackie"
   polyName: "Džek Sperou"
   assignment:
-  - id: 1111
+  - id: !int 1111
     description: "Assignment 1"
   - id: 1112
     description: "Assignment 2"
     accountConstruction:
       howto: "Just do it"
-      when: 1330080532000
+      when: "1330080532000"
       value:
       - ABC
       - fullName : Nobody
@@ -67,13 +67,14 @@ user:
         value:
         - "captain"
   special: "got it!"
-  singleActivation:
-  multiActivation:
+  # TODO fix this test
+  singleActivation: { }
+  multiActivation: { }
   multiActivationCopy:
-  -
+  - { }
   - enabled: true
-  singleConstruction:
-  multiConstruction:
+  singleConstruction: { }
+  multiConstruction: [ { } ]
   multiConstructionCopy:
-  -
+  - { }
   - howto: abc

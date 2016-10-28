@@ -31,6 +31,7 @@ import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElementRef;
 import javax.xml.bind.annotation.XmlType;
+import javax.xml.namespace.QName;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -44,6 +45,7 @@ public class EventHandlerChainType
     extends EventHandlerType
     implements Serializable, Cloneable, Equals, HashCode
 {
+    public final static QName COMPLEX_TYPE = new QName("http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd", "EventHandlerChainType");
 
     private final static long serialVersionUID = 201105211233L;
     @XmlElementRef(name = "handler", namespace = "http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd", type = JAXBElement.class, required = false)

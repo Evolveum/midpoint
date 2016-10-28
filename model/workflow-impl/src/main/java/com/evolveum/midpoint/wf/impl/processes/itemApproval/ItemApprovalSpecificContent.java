@@ -20,6 +20,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.wf.impl.tasks.ProcessSpecificContent;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ItemApprovalProcessStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WfProcessSpecificStateType;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Map;
 
@@ -28,8 +29,13 @@ import java.util.Map;
  */
 public class ItemApprovalSpecificContent implements ProcessSpecificContent {
 
+	@NotNull private final PrismContext prismContext;
 	private String taskName;
 	private ApprovalSchema approvalSchema;
+
+	public ItemApprovalSpecificContent(@NotNull PrismContext prismContext) {
+		this.prismContext = prismContext;
+	}
 
 	public void setTaskName(String taskName) {
 		this.taskName = taskName;
@@ -56,8 +62,7 @@ public class ItemApprovalSpecificContent implements ProcessSpecificContent {
 
 	@Override
 	public WfProcessSpecificStateType createProcessSpecificState() {
-		ItemApprovalProcessStateType state = new ItemApprovalProcessStateType();
-		state.asPrismContainerValue().setConcreteType(ItemApprovalProcessStateType.COMPLEX_TYPE);
+		ItemApprovalProcessStateType state = new ItemApprovalProcessStateType(prismContext);
 		state.setApprovalSchema(approvalSchema != null ? approvalSchema.toApprovalSchemaType() : null);
 		return state;
 	}

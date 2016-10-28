@@ -943,11 +943,12 @@ public class TestVillage extends AbstractStoryTest {
 		
         display("LDAP entries", openDJController.dumpEntries());
         
-        ObjectFilter baseFilter = ObjectQueryUtil.createResourceAndObjectClassFilter(RESOURCE_OPENDJ_OID, GROUP_OF_UNIQUE_NAMES_OBJECTCLASS_QNAME, prismContext);
-        ObjectFilter filter = ObjectQueryUtil.filterAnd(baseFilter, EqualFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES, new QName(RESOURCE_OPENDJ_NAMESPACE, "cn")),
-        		new PrismPropertyDefinition<>(new QName(RESOURCE_OPENDJ_NAMESPACE, "cn"), DOMUtil.XSD_STRING, prismContext), "admins"));
-		ObjectQuery query = ObjectQuery.createObjectQuery(filter);
-        
+        ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassFilterPrefix(RESOURCE_OPENDJ_OID, GROUP_OF_UNIQUE_NAMES_OBJECTCLASS_QNAME, prismContext)
+				.and().itemWithDef(
+						new PrismPropertyDefinition<>(new QName(RESOURCE_OPENDJ_NAMESPACE, "cn"), DOMUtil.XSD_STRING, prismContext),
+						ShadowType.F_ATTRIBUTES, new QName(RESOURCE_OPENDJ_NAMESPACE, "cn")).eq("admins")
+				.build();
+
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
 		// TODO: search for cn=admins,ou=Jolly Roger,dc=example,dc=com

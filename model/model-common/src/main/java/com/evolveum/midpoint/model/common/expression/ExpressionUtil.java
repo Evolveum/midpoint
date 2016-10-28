@@ -222,7 +222,12 @@ public class ExpressionUtil {
 	}
 
 	public static Object convertVariableValue(Object originalValue, String variableName, ObjectResolver objectResolver,
-			String contextDescription, Task task, OperationResult result) throws ExpressionSyntaxException, ObjectNotFoundException {
+			String contextDescription, PrismContext prismContext, Task task, OperationResult result) throws ExpressionSyntaxException, ObjectNotFoundException {
+		if (originalValue instanceof PrismValue) {
+			((PrismValue) originalValue).setPrismContext(prismContext);			// TODO - or revive? Or make sure prismContext is set here?
+		} else if (originalValue instanceof Item) {
+			((Item) originalValue).setPrismContext(prismContext);				// TODO - or revive? Or make sure prismContext is set here?
+		}
 		if (originalValue instanceof ObjectReferenceType) {
 			try {
 				originalValue = resolveReference((ObjectReferenceType)originalValue, objectResolver, variableName,
@@ -291,7 +296,7 @@ public class ExpressionUtil {
 
 	public static Map<String,Object> prepareScriptVariables(ExpressionVariables variables, ObjectResolver objectResolver,
 			Collection<FunctionLibrary> functions,
-			String contextDescription, Task task, OperationResult result) throws ExpressionSyntaxException, ObjectNotFoundException {
+			String contextDescription, PrismContext prismContext, Task task, OperationResult result) throws ExpressionSyntaxException, ObjectNotFoundException {
 		Map<String,Object> scriptVariables = new HashMap<>();
 		// Functions
 		if (functions != null) {
@@ -307,7 +312,7 @@ public class ExpressionUtil {
 					continue;
 				}
 				String variableName = variableEntry.getKey().getLocalPart();
-				Object variableValue = ExpressionUtil.convertVariableValue(variableEntry.getValue(), variableName, objectResolver, contextDescription, task, result);
+				Object variableValue = ExpressionUtil.convertVariableValue(variableEntry.getValue(), variableName, objectResolver, contextDescription, prismContext, task, result);
 				scriptVariables.put(variableName, variableValue);
 			}
 		}
@@ -530,18 +535,18 @@ public class ExpressionUtil {
 			}
 			return evaluatedFilter;
 
-		} else if (filter instanceof PropertyValueFilter) {
-			PropertyValueFilter pvfilter = (PropertyValueFilter) filter;
+		} else if (filter instanceof ValueFilter) {
+			ValueFilter valueFilter = (ValueFilter) filter;
 
-			if (pvfilter.getValues() != null && !pvfilter.getValues().isEmpty()) {
+			if (valueFilter.getValues() != null && !valueFilter.getValues().isEmpty()) {
 				// We have value. Nothing to evaluate.
-				return pvfilter.clone();
+				return valueFilter.clone();
 			}
 
-			ExpressionWrapper expressionWrapper = pvfilter.getExpression();
+			ExpressionWrapper expressionWrapper = valueFilter.getExpression();
 			if (expressionWrapper == null || expressionWrapper.getExpression() == null) {
 				LOGGER.warn("No valueExpression in filter in {}. Returning original filter", shortDesc);
-				return pvfilter.clone();
+				return valueFilter.clone();
 			}
 			if (!(expressionWrapper.getExpression() instanceof ExpressionType)) {
 				throw new SchemaException("Unexpected expression type "
@@ -558,13 +563,13 @@ public class ExpressionUtil {
 					LOGGER.debug("Result of search filter expression was null or empty. Expression: {}",
 							valueExpression);
 
-					return createFilterForNoValue(pvfilter, valueExpression);
+					return createFilterForNoValue(valueFilter, valueExpression);
 				}
 				// TODO: log more context
 				LOGGER.trace("Search filter expression in the rule for {} evaluated to {}.",
 						new Object[] { shortDesc, expressionResult });
 
-				PropertyValueFilter evaluatedFilter = (PropertyValueFilter) pvfilter.clone();
+				ValueFilter evaluatedFilter = valueFilter.clone();
 				evaluatedFilter.setValue(expressionResult);
 				evaluatedFilter.setExpression(null);
 				// }
@@ -635,14 +640,14 @@ public class ExpressionUtil {
 				return AllFilter.createAll();
 			
 			case FILTER_EQUAL_NULL:
-				if (filter instanceof PropertyValueFilter) {
-					PropertyValueFilter evaluatedFilter = (PropertyValueFilter) filter.clone();
+				if (filter instanceof ValueFilter) {
+					ValueFilter evaluatedFilter = (ValueFilter) filter.clone();
 					evaluatedFilter.setExpression(null);
 					return evaluatedFilter;
 				} else if (filter instanceof InOidFilter) {
 					return NoneFilter.createNone();
 				} else {
-					throw new IllegalArgumentException("Unknow filter to evaluate: " + filter);
+					throw new IllegalArgumentException("Unknown filter to evaluate: " + filter);
 				}
 			
 			case ERROR:
@@ -667,11 +672,11 @@ public class ExpressionUtil {
 		}
 
 		if (outputDefinition == null) {
-			outputDefinition = new PrismPropertyDefinition(ExpressionConstants.OUTPUT_ELMENT_NAME,
+			outputDefinition = new PrismPropertyDefinitionImpl(ExpressionConstants.OUTPUT_ELMENT_NAME,
 					DOMUtil.XSD_STRING, prismContext);
 		}
 
-		return evaluateExpression(variables, outputDefinition, expressionType, expressionFactory, shortDesc,
+		return (V) evaluateExpression(variables, outputDefinition, expressionType, expressionFactory, shortDesc,
 				task, parentResult);
 
 		// String expressionResult =
@@ -713,7 +718,7 @@ public class ExpressionUtil {
 			String shortDesc, Task task, OperationResult parentResult)
 					throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
 
-		PrismPropertyDefinition<String> outputDefinition = new PrismPropertyDefinition(
+		PrismPropertyDefinitionImpl<String> outputDefinition = new PrismPropertyDefinitionImpl(
 				ExpressionConstants.OUTPUT_ELMENT_NAME, DOMUtil.XSD_STRING, prismContext);
 		outputDefinition.setMaxOccurs(-1);
 		Expression<PrismPropertyValue<String>, PrismPropertyDefinition<String>> expression = expressionFactory
@@ -741,7 +746,7 @@ public class ExpressionUtil {
 			ExpressionType expressionType, ExpressionFactory expressionFactory, String shortDesc, Task task,
 			OperationResult parentResult)
 					throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
-		ItemDefinition outputDefinition = new PrismPropertyDefinition<Boolean>(
+		ItemDefinition outputDefinition = new PrismPropertyDefinitionImpl(
 				ExpressionConstants.OUTPUT_ELMENT_NAME, DOMUtil.XSD_BOOLEAN,
 				expressionFactory.getPrismContext());
 		return (PrismPropertyValue<Boolean>) evaluateExpression(variables, outputDefinition, expressionType,

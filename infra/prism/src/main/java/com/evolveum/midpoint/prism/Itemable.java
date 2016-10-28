@@ -24,18 +24,20 @@ import com.evolveum.midpoint.prism.path.ItemPath;
  * 
  * Currently provides common abstraction on top of Item and ItemDelta, as both can hold values and
  * construct them in a similar way.
+ *
+ * Also used for ValueFilter, although semantics of e.g. getPath() is quite different in this case.
  * 
  * @author Radovan Semancik
  *
  */
 public interface Itemable {
 	
-	public QName getElementName();
+	QName getElementName();
 	
-	public ItemDefinition getDefinition();
+	ItemDefinition getDefinition();
 	
-	public PrismContext getPrismContext();
+	PrismContext getPrismContext();
 	
-	public ItemPath getPath();
+	ItemPath getPath();
 
 }

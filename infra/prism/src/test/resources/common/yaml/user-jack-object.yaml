@@ -1,7 +1,7 @@
 ---
 '@ns': "http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd"
-object:
-  '@type': "http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd#UserType"
+object: !http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd/UserType
+  #'@type': "http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd#UserType"
   oid: "c0c010c0-d34d-b33f-f00d-111111111111"
   version: "42"
   '@ns': "http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd"
@@ -66,13 +66,14 @@ object:
   - oid: "c0c010c0-d34d-b33f-f00d-aaaaaaaa1113"
     type: "http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd#AccountType"
   special: "got it!"
-  singleActivation:
-  multiActivation:
+  # TODO fix this test
+  singleActivation: { }
+  multiActivation: { }
   multiActivationCopy:
-  -
+  - { }
   - enabled: true
-  singleConstruction:
-  multiConstruction:
+  singleConstruction: { }
+  multiConstruction: [ { } ]
   multiConstructionCopy:
-  -
+  - { }
   - howto: abc

@@ -17,7 +17,6 @@
 package com.evolveum.midpoint.prism.query.builder;
 
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.util.exception.SchemaException;
 
 import javax.xml.namespace.QName;
 
@@ -26,9 +25,11 @@ import javax.xml.namespace.QName;
  */
 public interface S_FilterExit extends S_QueryExit {
 
-    S_AtomicFilterExit endBlock() throws SchemaException;
-    S_FilterExit asc(QName... names) throws SchemaException;
-    S_FilterExit asc(ItemPath path) throws SchemaException;
-    S_FilterExit desc(QName... names) throws SchemaException;
-    S_FilterExit desc(ItemPath path) throws SchemaException;
+    S_AtomicFilterExit endBlock();
+    S_FilterExit asc(QName... names);
+    S_FilterExit asc(ItemPath path);
+    S_FilterExit desc(QName... names);
+    S_FilterExit desc(ItemPath path);
+    S_FilterExit offset(Integer n);
+    S_FilterExit maxSize(Integer n);
 }

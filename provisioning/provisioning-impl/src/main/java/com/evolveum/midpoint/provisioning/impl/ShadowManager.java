@@ -24,10 +24,11 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
+import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
+import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterEntry;
+import com.evolveum.midpoint.prism.query.builder.S_FilterEntry;
 import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CachingMetadataType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CachingStategyType;
-
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -53,12 +54,9 @@ import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.prism.query.EqualFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.OrFilter;
-import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.prism.query.Visitor;
 import com.evolveum.midpoint.provisioning.api.ResourceOperationDescription;
 import com.evolveum.midpoint.provisioning.ucf.api.Change;
@@ -86,10 +84,6 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FailedOperationTypeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectAssociationDirectionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 /**
@@ -112,16 +106,16 @@ public class ShadowManager {
 	@Autowired(required = true)
 	@Qualifier("cacheRepositoryService")
 	private RepositoryService repositoryService;
-	
+
 	@Autowired(required = true)
 	private Clock clock;
-	
+
 	@Autowired(required = true)
 	private PrismContext prismContext;
-	
+
 	@Autowired(required = true)
 	private TaskManager taskManager;
-	
+
 	@Autowired(required = true)
 	private MatchingRuleRegistry matchingRuleRegistry;
 	
@@ -326,25 +320,20 @@ public class ShadowManager {
 			LOGGER.trace("Shadow does not contain secondary identifier. Skipping lookup shadows according to name.");
 			return null;
 		}
-		
-		List<EqualFilter> secondaryEquals = new ArrayList<>();
+
+		S_FilterEntry q = QueryBuilder.queryFor(ShadowType.class, prismContext)
+				.block();
 		for (ResourceAttribute<?> secondaryIdentifier : secondaryIdentifiers) {
 			// There may be identifiers that come from associations and they will have parent set to association/identifiers
 			// For the search to succeed we need all attribute to have "attributes" parent path.
 			secondaryIdentifier = ShadowUtil.fixAttributePath(secondaryIdentifier);
-			secondaryEquals.add(createAttributeEqualFilter(ctx, secondaryIdentifier));
+			q = q.item(secondaryIdentifier.getPath(), secondaryIdentifier.getDefinition())
+					.eq(getNormalizedValue(secondaryIdentifier, ctx.getObjectClassDefinition()))
+					.or();
 		}
-		
-		ObjectFilter secondaryIdentifierFilter = null;
-		if (secondaryEquals.size() > 1){
-			secondaryIdentifierFilter = OrFilter.createOr((List) secondaryEquals);
-		} else {
-			secondaryIdentifierFilter = secondaryEquals.iterator().next();
-		}
-				
-		AndFilter filter = AndFilter.createAnd(
-				RefFilter.createReferenceEqual(ShadowType.F_RESOURCE_REF, ShadowType.class, ctx.getResource()), secondaryIdentifierFilter);
-		ObjectQuery query = ObjectQuery.createObjectQuery(filter);
+		ObjectQuery query = q.none().endBlock()
+				.and().item(ShadowType.F_RESOURCE_REF).ref(ctx.getResourceOid())
+				.build();
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("Searching for shadow using filter on secondary identifier:\n{}",
 					query.debugDump());
@@ -367,10 +356,12 @@ public class ShadowManager {
 		ProvisioningUtil.checkShadowActivationConsistency(shadow);
 	}
 	
-	private <T> EqualFilter<T> createAttributeEqualFilter(ProvisioningContext ctx,
+	private <T> ObjectFilter createAttributeEqualFilter(ProvisioningContext ctx,
 			ResourceAttribute<T> secondaryIdentifier) throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException {
-		return EqualFilter.createEqual(secondaryIdentifier.getPath(), secondaryIdentifier.getDefinition(),
-				null, getNormalizedValue(secondaryIdentifier, ctx.getObjectClassDefinition()));
+		return QueryBuilder.queryFor(ShadowType.class, prismContext)
+				.item(secondaryIdentifier.getPath(), secondaryIdentifier.getDefinition())
+				.eq(getNormalizedValue(secondaryIdentifier, ctx.getObjectClassDefinition()))
+				.buildFilter();
 	}
 	
 	private <T> List<PrismPropertyValue<T>> getNormalizedValue(PrismProperty<T> attr, RefinedObjectClassDefinition rObjClassDef) throws SchemaException {
@@ -379,14 +370,10 @@ public class ShadowManager {
 		MatchingRule<T> matchingRule = matchingRuleRegistry.getMatchingRule(matchingRuleQName, refinedAttributeDefinition.getTypeName());
 		List<PrismPropertyValue<T>> normalized = new ArrayList<>();
 		for (PrismPropertyValue<T> origPValue : attr.getValues()){
-			if (matchingRule != null) {
-				T normalizedValue = matchingRule.normalize(origPValue.getValue());
-				PrismPropertyValue<T> normalizedPValue = origPValue.clone();
-				normalizedPValue.setValue(normalizedValue);
-				normalized.add(normalizedPValue);
-			} else {
-				normalized.add(origPValue);
-			}
+			T normalizedValue = matchingRule.normalize(origPValue.getValue());
+			PrismPropertyValue<T> normalizedPValue = origPValue.clone();
+			normalizedPValue.setValue(normalizedValue);
+			normalized.add(normalizedPValue);
 		}
 		return normalized;
 		
@@ -553,7 +540,7 @@ public class ShadowManager {
 		return newShadow;
 	}
 	
-	private PrismObject<ShadowType> createNewAccountFromChange(ProvisioningContext ctx, Change change, 
+	private PrismObject<ShadowType> createNewAccountFromChange(ProvisioningContext ctx, Change change,
 			OperationResult parentResult) throws SchemaException,
 			CommunicationException, ConfigurationException,
 			SecurityViolationException, ObjectNotFoundException {
@@ -606,7 +593,9 @@ public class ShadowManager {
 	
 	private ObjectQuery createSearchShadowQuery(ProvisioningContext ctx, Collection<ResourceAttribute<?>> identifiers, boolean primaryIdentifiersOnly,
 			PrismContext prismContext, OperationResult parentResult) throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException {
-		List<ObjectFilter> conditions = new ArrayList<ObjectFilter>();
+
+		S_AtomicFilterEntry q = QueryBuilder.queryFor(ShadowType.class, prismContext);
+
 		RefinedObjectClassDefinition objectClassDefinition = ctx.getObjectClassDefinition();
 		for (PrismProperty<?> identifier : identifiers) {
 			RefinedAttributeDefinition rAttrDef;
@@ -628,41 +617,23 @@ public class ShadowManager {
 			}
 
 			String normalizedIdentifierValue = (String) getNormalizedAttributeValue(identifierValue, rAttrDef);
-			//new ItemPath(ShadowType.F_ATTRIBUTES)
 			PrismPropertyDefinition<String> def = (PrismPropertyDefinition<String>) identifier.getDefinition();
-			EqualFilter<String> filter = EqualFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES, def.getName()), 
-					def, new PrismPropertyValue<String>(normalizedIdentifierValue));
-			conditions.add(filter);
+			q = q.itemWithDef(def, ShadowType.F_ATTRIBUTES, def.getName()).eq(normalizedIdentifierValue).and();
 		}
 
-		if (conditions.size() < 1) {
+		if (identifiers.size() < 1) {
 			throw new SchemaException("Identifier not specified. Cannot create search query by identifier.");
 		}
-		
-		RefFilter resourceRefFilter = RefFilter.createReferenceEqual(ShadowType.F_RESOURCE_REF, ShadowType.class, ctx.getResource());
-		conditions.add(resourceRefFilter);
-		
+
 		if (objectClassDefinition != null) {
-			EqualFilter<QName> objectClassFilter = EqualFilter.createEqual(ShadowType.F_OBJECT_CLASS, ShadowType.class, 
-					prismContext,  objectClassDefinition.getTypeName());
-			conditions.add(objectClassFilter);
+			q = q.item(ShadowType.F_OBJECT_CLASS).eq(objectClassDefinition.getTypeName()).and();
 		}
-
-		ObjectFilter filter = null;
-		if (conditions.size() > 1) {
-			filter = AndFilter.createAnd(conditions);
-		} else {
-			filter = conditions.get(0);
-		}
-
-		ObjectQuery query = ObjectQuery.createObjectQuery(filter);
-		return query;
+		return q.item(ShadowType.F_RESOURCE_REF).ref(ctx.getResourceOid()).build();
 	}
 
 	private ObjectQuery createSearchShadowQuery(ProvisioningContext ctx, PrismObject<ShadowType> resourceShadow, 
 			PrismContext prismContext, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException {
-		ResourceAttributeContainer attributesContainer = ShadowUtil
-				.getAttributesContainer(resourceShadow);
+		ResourceAttributeContainer attributesContainer = ShadowUtil.getAttributesContainer(resourceShadow);
 		PrismProperty identifier = attributesContainer.getPrimaryIdentifier();
 
 		Collection<PrismPropertyValue<Object>> idValues = identifier.getValues();
@@ -677,21 +648,17 @@ public class ShadowManager {
 		}
 
 		// We have all the data, we can construct the filter now
-		ObjectFilter filter = null;
 		try {
 			// TODO TODO TODO TODO: set matching rule instead of null
 			PrismPropertyDefinition def = identifier.getDefinition();
-			filter = AndFilter.createAnd(
-					EqualFilter.createEqual(new ItemPath(ShadowType.F_OBJECT_CLASS), resourceShadow.findProperty(ShadowType.F_OBJECT_CLASS)),
-					RefFilter.createReferenceEqual(ShadowType.F_RESOURCE_REF, ShadowType.class, ctx.getResource()), 
-					EqualFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES, def.getName()), def, getNormalizedValue(identifier, ctx.getObjectClassDefinition())));
+			return QueryBuilder.queryFor(ShadowType.class, prismContext)
+					.itemWithDef(def, ShadowType.F_ATTRIBUTES, def.getName()).eq(getNormalizedValue(identifier, ctx.getObjectClassDefinition()))
+					.and().item(ShadowType.F_OBJECT_CLASS).eq(resourceShadow.getPropertyRealValue(ShadowType.F_OBJECT_CLASS, QName.class))
+					.and().item(ShadowType.F_RESOURCE_REF).ref(ctx.getResourceOid())
+					.build();
 		} catch (SchemaException e) {
 			throw new SchemaException("Schema error while creating search filter: " + e.getMessage(), e);
 		}
-
-		ObjectQuery query = ObjectQuery.createObjectQuery(filter);
-
-		return query;
 	}
 	
 	public SearchResultMetadata searchObjectsIterativeRepository(
@@ -742,10 +709,6 @@ public class ShadowManager {
 			return;
 		}
 		MatchingRule<T> matchingRule = matchingRuleRegistry.getMatchingRule(matchingRuleQName, rAttrDef.getTypeName());
-		if (matchingRule == null) {
-			// TODO: warning?
-			return;
-		}
 		List<PrismValue> newValues = new ArrayList<PrismValue>();
 		for (PrismPropertyValue<T> ppval: eqFilter.getValues()) {
 			T normalizedRealValue = matchingRule.normalize(ppval.getValue());
@@ -785,16 +748,16 @@ public class ShadowManager {
 			for (PrismProperty<?> p : primaryIdentifiers) {
 				repoAttributesContainer.add(p.clone());
 			}
-	
+
 			Collection<ResourceAttribute<?>> secondaryIdentifiers = attributesContainer.getSecondaryIdentifiers();
 			for (PrismProperty<?> p : secondaryIdentifiers) {
 				repoAttributesContainer.add(p.clone());
 			}
-	
+
 			// Also add all the attributes that act as association identifiers.
 			// We will need them when the shadow is deleted (to remove the shadow from entitlements).
 			RefinedObjectClassDefinition objectClassDefinition = ctx.getObjectClassDefinition();
-			for (RefinedAssociationDefinition associationDef: objectClassDefinition.getAssociations()) {
+			for (RefinedAssociationDefinition associationDef: objectClassDefinition.getAssociationDefinitions()) {
 				if (associationDef.getResourceObjectAssociationType().getDirection() == ResourceObjectAssociationDirectionType.OBJECT_TO_SUBJECT) {
 					QName valueAttributeName = associationDef.getResourceObjectAssociationType().getValueAttribute();
 					if (repoAttributesContainer.findAttribute(valueAttributeName) == null) {
@@ -805,17 +768,17 @@ public class ShadowManager {
 					}
 				}
 			}
-			
+
 			repoShadowType.setCachingMetadata(null);
-			
+
 			ProvisioningUtil.cleanupShadowActivation(repoShadowType);
-			
+
 		} else if (cachingStrategy == CachingStategyType.PASSIVE) {
 			// Do not need to clear anything. Just store all attributes and add metadata.
 			CachingMetadataType cachingMetadata = new CachingMetadataType();
 			cachingMetadata.setRetrievalTimestamp(clock.currentTimeXMLGregorianCalendar());
 			repoShadowType.setCachingMetadata(cachingMetadata);
-			
+
 		} else {
 			throw new ConfigurationException("Unknown caching strategy "+cachingStrategy);
 		}
@@ -857,13 +820,13 @@ public class ShadowManager {
 	}
 	
 	@SuppressWarnings("unchecked")
-	public Collection<ItemDelta> updateShadow(ProvisioningContext ctx, PrismObject<ShadowType> resourceShadow, 
+	public Collection<ItemDelta> updateShadow(ProvisioningContext ctx, PrismObject<ShadowType> resourceShadow,
 			Collection<? extends ItemDelta> aprioriDeltas, OperationResult result) throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException {
 		PrismObject<ShadowType> repoShadow = repositoryService.getObject(ShadowType.class, resourceShadow.getOid(), null, result);
 		RefinedObjectClassDefinition objectClassDefinition = ctx.getObjectClassDefinition();
 		Collection<ItemDelta> repoShadowChanges = new ArrayList<ItemDelta>();
 		CachingStategyType cachingStrategy = ProvisioningUtil.getCachingStrategy(ctx);
-		
+
 		for (RefinedAttributeDefinition attrDef: objectClassDefinition.getAttributeDefinitions()) {
 			if (ProvisioningUtil.shouldStoreAtributeInShadow(objectClassDefinition, attrDef.getName(), cachingStrategy)) {
 				ResourceAttribute<Object> resourceAttr = ShadowUtil.getAttribute(resourceShadow, attrDef.getName());
@@ -885,9 +848,9 @@ public class ShadowManager {
 				}
 			}
 		}
-		
+
 		// TODO: reflect activation updates on cached shadow
-		
+
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("Updating repo shadow {}:\n{}", resourceShadow.getOid(), DebugUtil.debugDump(repoShadowChanges));
 		}
@@ -906,16 +869,16 @@ public class ShadowManager {
 	 * @returns repository shadow as it should look like after the update
 	 */
 	@SuppressWarnings("unchecked")
-	public PrismObject<ShadowType> updateShadow(ProvisioningContext ctx, PrismObject<ShadowType> currentResourceShadow, 
+	public PrismObject<ShadowType> updateShadow(ProvisioningContext ctx, PrismObject<ShadowType> currentResourceShadow,
 			PrismObject<ShadowType> oldRepoShadow, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException, ConfigurationException, CommunicationException {
 		
 		RefinedObjectClassDefinition ocDef = ctx.computeCompositeObjectClassDefinition(currentResourceShadow);
 		ObjectDelta<ShadowType> shadowDelta = oldRepoShadow.createModifyDelta();
 		PrismContainer<Containerable> currentResourceAttributesContainer = currentResourceShadow.findContainer(ShadowType.F_ATTRIBUTES);
 		PrismContainer<Containerable> oldRepoAttributesContainer = oldRepoShadow.findContainer(ShadowType.F_ATTRIBUTES);
-		
+
 		CachingStategyType cachingStrategy = ProvisioningUtil.getCachingStrategy(ctx);
-		
+
 		for (Item<?, ?> currentResourceItem: currentResourceAttributesContainer.getValue().getItems()) {
 			if (currentResourceItem instanceof PrismProperty<?>) {
 				PrismProperty<?> currentResourceAttrProperty = (PrismProperty<?>)currentResourceItem;
@@ -958,8 +921,8 @@ public class ShadowManager {
 								}
 							}
 							PropertyDelta<Object> attrDiff = oldRepoAttributeProperty.diff(normalizedCurrentResourceAttrProperty);
-							LOGGER.trace("DIFF:\n{}\n-\n{}\n=:\n{}", 
-									oldRepoAttributeProperty==null?null:oldRepoAttributeProperty.debugDump(1), 
+							LOGGER.trace("DIFF:\n{}\n-\n{}\n=:\n{}",
+									oldRepoAttributeProperty==null?null:oldRepoAttributeProperty.debugDump(1),
 									normalizedCurrentResourceAttrProperty==null?null:normalizedCurrentResourceAttrProperty.debugDump(1),
 									attrDiff==null?null:attrDiff.debugDump(1));
 							if (attrDiff != null && !attrDiff.isEmpty()) {
@@ -1006,22 +969,22 @@ public class ShadowManager {
 			if (oldRepoShadow.asObjectable().getCachingMetadata() != null) {
 				shadowDelta.addModificationReplaceProperty(ShadowType.F_CACHING_METADATA);
 			}
-			
+
 		} else if (cachingStrategy == CachingStategyType.PASSIVE) {
-			
+
 			compareUpdateProperty(shadowDelta, SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS, currentResourceShadow, oldRepoShadow);
 			compareUpdateProperty(shadowDelta, SchemaConstants.PATH_ACTIVATION_VALID_FROM, currentResourceShadow, oldRepoShadow);
 			compareUpdateProperty(shadowDelta, SchemaConstants.PATH_ACTIVATION_VALID_TO, currentResourceShadow, oldRepoShadow);
 			compareUpdateProperty(shadowDelta, SchemaConstants.PATH_ACTIVATION_LOCKOUT_STATUS, currentResourceShadow, oldRepoShadow);
-			
+
 			CachingMetadataType cachingMetadata = new CachingMetadataType();
 			cachingMetadata.setRetrievalTimestamp(clock.currentTimeXMLGregorianCalendar());
 			shadowDelta.addModificationReplaceProperty(ShadowType.F_CACHING_METADATA, cachingMetadata);
-			
+
 		} else {
 			throw new ConfigurationException("Unknown caching strategy "+cachingStrategy);
 		}
-		
+
 		if (!shadowDelta.isEmpty()) {
 			if (LOGGER.isTraceEnabled()) {
 				LOGGER.trace("Updating repo shadow {} with delta:\n{}", oldRepoShadow, shadowDelta.debugDump(1));
@@ -1033,7 +996,7 @@ public class ShadowManager {
 				// This should not happen for shadows
 				throw new SystemException(e.getMessage(), e);
 			}
-			
+
 			PrismObject<ShadowType> newRepoShadow = oldRepoShadow.clone();
 			shadowDelta.applyTo(newRepoShadow);
 			return newRepoShadow;

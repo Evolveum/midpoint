@@ -32,6 +32,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 
+import com.evolveum.midpoint.util.QNameUtil;
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.prism.ComplexTypeDefinition;
@@ -266,6 +267,14 @@ public class PrismAsserts {
 	public static void assertDefinition(ItemDefinition definition, QName itemName, QName type, int minOccurs, int maxOccurs) {
 		assertNotNull("No definition for "+itemName, definition);
 		assertEquals("Wrong definition type for "+itemName, type, definition.getTypeName());
+		assertEquals("Wrong definition minOccurs for "+itemName, minOccurs, definition.getMinOccurs());
+		assertEquals("Wrong definition maxOccurs for "+itemName, maxOccurs, definition.getMaxOccurs());
+	}
+
+	public static void assertDefinitionTypeLoose(ItemDefinition definition, QName itemName, QName type, int minOccurs, int maxOccurs) {
+		assertNotNull("No definition for "+itemName, definition);
+		assertTrue("Wrong definition type for "+itemName+": expected: " + type + ", real: " + definition.getTypeName(),
+				QNameUtil.match(type, definition.getTypeName()));
 		assertEquals("Wrong definition minOccurs for "+itemName, minOccurs, definition.getMinOccurs());
 		assertEquals("Wrong definition maxOccurs for "+itemName, maxOccurs, definition.getMaxOccurs());
 	}
@@ -1116,8 +1125,10 @@ public class PrismAsserts {
             ItemPathSegment expectedSegment = expected.getSegments().get(i);
             ItemPathSegment actualSegment = actual.getSegments().get(i);
             if (expectedSegment instanceof NameItemPathSegment) {
-                assertEquals(message + ": wrong path segment #" + (i+1), ((NameItemPathSegment) expectedSegment).getName(),
-                        ((NameItemPathSegment) actualSegment).getName());
+				QName qnameExpected = ((NameItemPathSegment) expectedSegment).getName();
+				QName qnameActual = ((NameItemPathSegment) actualSegment).getName();
+				assertEquals(message + ": wrong NS in path segment #" + (i+1), qnameExpected.getNamespaceURI(), qnameActual.getNamespaceURI());
+				assertEquals(message + ": wrong local part in path segment #" + (i+1), qnameExpected.getLocalPart(), qnameActual.getLocalPart());
             } else {
                 assertEquals(message + ": wrong path segment #" + (i+1), expectedSegment, actualSegment);
             }

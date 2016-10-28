@@ -334,6 +334,7 @@
 		<ri:cn>jan prvy</ri:cn>
 		<icfs:name>uid=janko nemenny,ou=people,dc=example,dc=com</icfs:name>
 		<ri:sn>prvy</ri:sn>
+		<!--<icfs:password><clearValue>janco</clearValue></icfs:password>-->
 		<icfs:password>janco</icfs:password>
 		<ri:givenName>James Jr. unchanged</ri:givenName>
 		<dj:givenName xmlns:dj="http://midpoint.evolveum.com/xml/ns/samples/localhostOpenDJ">James Jr.</dj:givenName>

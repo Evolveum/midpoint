@@ -1,0 +1,30 @@
+---
+'@ns': "http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+resource:
+  oid: "ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"
+  name:
+    '@ns': "http://prism.evolveum.com/xml/ns/public/types-3"
+    orig: "Embedded Test OpenDJ"
+    norm: "embedded test opendj"
+  connectorRef:
+    type: "ConnectorType"
+    filter:
+      '@ns': "http://prism.evolveum.com/xml/ns/public/query-3"
+      description: "...a filter description..."
+      equal:
+        path: "connectorType"
+        value: "org.identityconnectors.ldap.LdapConnector"
+    resolutionTime: run
+  connectorConfiguration:
+    '@ns': "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"
+    configurationProperties:
+      '@ns': "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.forgerock.openicf.connectors.ldap.ldap/org.identityconnectors.ldap.LdapConnector"
+      port: "10389"
+      host: "localhost"
+      baseContexts: "dc=example,dc=com"
+      principal: "cn=directory manager"
+      credentials:
+        '@ns': "http://prism.evolveum.com/xml/ns/public/types-3"
+        clearValue: "secret"
+      vlvSortAttribute: "uid"
+      accountOperationalAttributes: "ds-pwp-account-disabled"

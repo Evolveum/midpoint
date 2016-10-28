@@ -22,6 +22,7 @@ import java.util.Collection;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.schema.PrismSchemaImpl;
 import net.sf.jasperreports.engine.JRException;
 import net.sf.jasperreports.engine.JRTemplate;
 import net.sf.jasperreports.engine.JasperCompileManager;
@@ -118,7 +119,7 @@ public class ReportTypeUtil {
             return null;
         }
 
-        return PrismSchema.parse(xmlSchemaElement, true, "schema for " + report, context);
+        return PrismSchemaImpl.parse(xmlSchemaElement, true, "schema for " + report, context);
     }
 
     public static PrismContainerDefinition<ReportConfigurationType> findReportConfigurationDefinition(PrismSchema schema) {

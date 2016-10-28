@@ -31,6 +31,10 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
+import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
+import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterEntry;
+import com.evolveum.midpoint.util.exception.CommonException;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.AttributeModifier;
@@ -63,21 +67,16 @@ import org.apache.wicket.validation.IValidatable;
 import org.apache.wicket.validation.IValidator;
 
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.Definition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.match.PolyStringNormMatchingRule;
 import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
 import com.evolveum.midpoint.prism.query.AndFilter;
-import com.evolveum.midpoint.prism.query.EqualFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.RefFilter;
-import com.evolveum.midpoint.prism.query.SubstringFilter;
 import com.evolveum.midpoint.schema.AbstractSummarizingResultHandler;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ResultHandler;
@@ -535,14 +534,12 @@ public class PageAccounts extends PageAdminConfiguration {
                 Task task = createSimpleTask(OPERATION_GET_TOTALS);
                 OperationResult result = new OperationResult(OPERATION_GET_TOTALS);
                 try {
-                    EqualFilter situationFilter = EqualFilter.createEqual(ShadowType.F_SYNCHRONIZATION_SITUATION, ShadowType.class,
-                            getPrismContext(), null, situation);
-
-                    AndFilter andFilter = AndFilter.createAnd(filter, situationFilter);
-                    ObjectQuery query = ObjectQuery.createObjectQuery(andFilter);
-
+                    ObjectFilter situationFilter = QueryBuilder.queryFor(ShadowType.class, getPrismContext())
+                            .item(ShadowType.F_SYNCHRONIZATION_SITUATION).eq(situation)
+                            .buildFilter();
+                    ObjectQuery query = ObjectQuery.createObjectQuery(AndFilter.createAnd(filter, situationFilter));
                     return getModelService().countObjects(ShadowType.class, query, options, task, result);
-                } catch (Exception ex) {
+                } catch (CommonException|RuntimeException ex) {
                     LoggingUtils.logUnexpectedException(LOGGER, "Couldn't count shadows", ex);
                 }
 
@@ -700,7 +697,7 @@ public class PageAccounts extends PageAdminConfiguration {
     	
     	
 		try {
-			xml = getPrismContext().serializeAtomicValue(result, ShadowType.F_RESULT, PrismContext.LANG_XML);
+			xml = getPrismContext().xmlSerializer().serializeRealValue(result, ShadowType.F_RESULT);
 			aceEditor.updateModel(new Model<String>(xml));
 		} catch (SchemaException e) {
 			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't parse result", e);
@@ -721,23 +718,19 @@ public class PageAccounts extends PageAdminConfiguration {
         if (dto == null) {
             return null;
         }
-        OperationResult result = new OperationResult(OPERATION_LOAD_ACCOUNTS);
         String oid = dto.getOid();
-        try {
-            return RefFilter.createReferenceEqual(ShadowType.F_RESOURCE_REF, ShadowType.class,
-                    getPrismContext(), oid);
-        } catch (Exception ex) {
-            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't create query", ex);
-            error("Couldn't create query, reason: " + ex.getMessage());
-        } finally {
-            result.recomputeStatus();
-        }
+        return QueryBuilder.queryFor(ShadowType.class, getPrismContext())
+                .item(ShadowType.F_RESOURCE_REF).ref(oid)
+                .buildFilter();
+    }
 
-        if (!WebComponentUtil.isSuccessOrHandledError(result)) {
-            showResult(result);
+    private ObjectQuery appendResourceQueryFilter(S_AtomicFilterEntry q) {
+        ResourceItemDto dto = resourceModel.getObject();
+        if (dto == null) {
+            return q.all().build();         // TODO ok?
+        } else {
+            return q.item(ShadowType.F_RESOURCE_REF).ref(dto.getOid()).build();
         }
-
-        return null;
     }
 
     private List<ResourceItemDto> loadResources() {
@@ -809,7 +802,7 @@ public class PageAccounts extends PageAdminConfiguration {
             resourcePrism = getModelService().getObject(ResourceType.class, oid, null,
                     createSimpleTask(OPERATION_GET_INTENTS), result);
 
-            ResourceSchema schema = RefinedResourceSchema.getResourceSchema(resourcePrism, getPrismContext());
+            ResourceSchema schema = RefinedResourceSchemaImpl.getResourceSchema(resourcePrism, getPrismContext());
             schema.getObjectClassDefinitions();
 
             for(Definition def: schema.getDefinitions()){
@@ -997,69 +990,41 @@ public class PageAccounts extends PageAdminConfiguration {
         target.add(getAccountsContainer());
     }
 
-    private ObjectQuery createObjectQuery(){
+    private ObjectQuery createObjectQuery() {
         AccountDetailsSearchDto dto = searchModel.getObject();
-        ObjectQuery query = new ObjectQuery();
 
-        List<ObjectFilter> filters = new ArrayList<>();
         String searchText = dto.getText();
         ShadowKindType kind = dto.getKind();
         String intent = dto.getIntent();
         String objectClass = dto.getObjectClass();
         FailedOperationTypeType failedOperatonType = dto.getFailedOperationType();
 
-        if(StringUtils.isNotEmpty(searchText)){
+        S_AtomicFilterEntry q = QueryBuilder.queryFor(ShadowType.class, getPrismContext());
+
+        if (StringUtils.isNotEmpty(searchText)) {
             PolyStringNormalizer normalizer = getPrismContext().getDefaultPolyStringNormalizer();
             String normalized = normalizer.normalize(searchText);
-
-            ObjectFilter substring = SubstringFilter.createSubstring(ShadowType.F_NAME, ShadowType.class, getPrismContext(),
-                    PolyStringNormMatchingRule.NAME, normalized);
-            filters.add(substring);
+            q = q.item(ShadowType.F_NAME).contains(normalized).matchingNorm().and();
         }
-
-        if(kind != null){
-            ObjectFilter kindFilter = EqualFilter.createEqual(ShadowType.F_KIND, ShadowType.class, getPrismContext(),
-                    null, kind);
-            filters.add(kindFilter);
+        if (kind != null) {
+            q = q.item(ShadowType.F_KIND).eq(kind).and();
         }
-
-        if(StringUtils.isNotEmpty(intent)){
-            ObjectFilter intentFilter = EqualFilter.createEqual(ShadowType.F_INTENT, ShadowType.class, getPrismContext(),
-                    null, intent);
-            filters.add(intentFilter);
+        if (StringUtils.isNotEmpty(intent)) {
+            q = q.item(ShadowType.F_INTENT).eq(kind).and();
         }
-        
         if (failedOperatonType != null){
-        	ObjectFilter failedOperationFilter = EqualFilter.createEqual(ShadowType.F_FAILED_OPERATION_TYPE, ShadowType.class, getPrismContext(),
-                    null, failedOperatonType);
-            filters.add(failedOperationFilter);
+            q = q.item(ShadowType.F_FAILED_OPERATION_TYPE).eq(failedOperatonType).and();
         }
-
-        if(StringUtils.isNotEmpty(objectClass)){
+        if (StringUtils.isNotEmpty(objectClass)) {
             QName objClass = new QName(objectClass);
-
-            for(QName q: dto.getObjectClassList()){
-                if(objectClass.equals(q.getLocalPart())){
-                    objClass = q;
+            for (QName qn: dto.getObjectClassList()) {
+                if (objectClass.equals(qn.getLocalPart())){
+                    objClass = qn;
                 }
             }
-
-            ObjectFilter objectClassFilter = EqualFilter.createEqual(ShadowType.F_OBJECT_CLASS, ShadowType.class, getPrismContext(),
-                    null, objClass);
-            filters.add(objectClassFilter);
+            q = q.item(ShadowType.F_OBJECT_CLASS).eq(objClass).and();
         }
-
-        AndFilter searchFilter;
-        if(!filters.isEmpty()){
-            searchFilter = AndFilter.createAnd(filters);
-
-            ObjectFilter resourceFilter = createResourceQueryFilter();
-            query.setFilter(resourceFilter != null ? AndFilter.createAnd(searchFilter, resourceFilter) : searchFilter);
-        } else {
-            query.setFilter(createResourceQueryFilter());
-        }
-
-        return query;
+        return appendResourceQueryFilter(q);
     }
 
     private void clearSearchPerformed(AjaxRequestTarget target){

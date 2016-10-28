@@ -29,6 +29,7 @@ import java.util.Iterator;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -112,7 +113,7 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
 
 		// WHEN
 		PrismObject<ResourceType> resourceWhite = getObject(ResourceType.class, RESOURCE_DUMMY_WHITE_OID);
-		RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resourceWhite, prismContext);
+		RefinedResourceSchema refinedSchema = RefinedResourceSchemaImpl.getRefinedSchema(resourceWhite, prismContext);
 		display("Refined schema", refinedSchema);
 		
 		RefinedObjectClassDefinition accountDef = refinedSchema.getDefaultRefinedDefinition(ShadowKindType.ACCOUNT);

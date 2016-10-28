@@ -26,6 +26,11 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 
+import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
+import com.evolveum.midpoint.prism.*;
+import org.apache.commons.lang.StringUtils;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
@@ -33,8 +38,7 @@ import org.testng.annotations.Test;
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import com.evolveum.midpoint.prism.delta.DiffUtil;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
@@ -130,8 +134,8 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
 		assertResourceCacheHitsIncrement(0);
 		assertResourceCacheMissesIncrement(1);
 		
-		rememberResourceSchema(RefinedResourceSchema.getResourceSchema(resourceProvisioning, prismContext));
-		rememberRefinedResourceSchema(RefinedResourceSchema.getRefinedSchema(resourceProvisioning));
+		rememberResourceSchema(RefinedResourceSchemaImpl.getResourceSchema(resourceProvisioning, prismContext));
+		rememberRefinedResourceSchema(RefinedResourceSchemaImpl.getRefinedSchema(resourceProvisioning));
 		assertResourceSchemaParseCountIncrement(0);
 		
 		// Just refresh the resource used by other tests. This one has a complete schema.
@@ -170,8 +174,8 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
 		assertResourceCacheHitsIncrement(1);
 		assertResourceCacheMissesIncrement(0);
 		
-		assertResourceSchemaUnchanged(RefinedResourceSchema.getResourceSchema(resourceProvisioning, prismContext));
-		assertRefinedResourceSchemaUnchanged(RefinedResourceSchema.getRefinedSchema(resourceProvisioning));
+		assertResourceSchemaUnchanged(RefinedResourceSchemaImpl.getResourceSchema(resourceProvisioning, prismContext));
+		assertRefinedResourceSchemaUnchanged(RefinedResourceSchemaImpl.getRefinedSchema(resourceProvisioning));
 		assertResourceSchemaParseCountIncrement(0);
 		
 		assertConnectorInstanceUnchanged(resourceProvisioning);
@@ -198,8 +202,8 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
 		assertResourceCacheHitsIncrement(1);
 		assertResourceCacheMissesIncrement(0);
 		
-		assertResourceSchemaUnchanged(RefinedResourceSchema.getResourceSchema(resourceProvisioning, prismContext));
-		assertRefinedResourceSchemaUnchanged(RefinedResourceSchema.getRefinedSchema(resourceProvisioning));
+		assertResourceSchemaUnchanged(RefinedResourceSchemaImpl.getResourceSchema(resourceProvisioning, prismContext));
+		assertRefinedResourceSchemaUnchanged(RefinedResourceSchemaImpl.getRefinedSchema(resourceProvisioning));
 		assertResourceSchemaParseCountIncrement(0);
 		
 		assertConnectorInstanceUnchanged(resourceProvisioning);
@@ -245,8 +249,8 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
 		assertResourceCacheHitsIncrement(1);
 		assertResourceCacheMissesIncrement(0);
 		
-		assertResourceSchemaUnchanged(RefinedResourceSchema.getResourceSchema(resourceProvisioning, prismContext));
-		assertRefinedResourceSchemaUnchanged(RefinedResourceSchema.getRefinedSchema(resourceProvisioning));
+		assertResourceSchemaUnchanged(RefinedResourceSchemaImpl.getResourceSchema(resourceProvisioning, prismContext));
+		assertRefinedResourceSchemaUnchanged(RefinedResourceSchemaImpl.getRefinedSchema(resourceProvisioning));
 		assertResourceSchemaParseCountIncrement(0);
 		
 		assertConnectorInstanceUnchanged(resourceProvisioning);
@@ -307,8 +311,8 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
 		assertResourceCacheMissesIncrement(1);
 		
 		// There are expected to be re-parsed
-		rememberResourceSchema(RefinedResourceSchema.getResourceSchema(resourceProvisioning, prismContext));
-		rememberRefinedResourceSchema(RefinedResourceSchema.getRefinedSchema(resourceProvisioning));
+		rememberResourceSchema(RefinedResourceSchemaImpl.getResourceSchema(resourceProvisioning, prismContext));
+		rememberRefinedResourceSchema(RefinedResourceSchemaImpl.getRefinedSchema(resourceProvisioning));
 		assertResourceSchemaParseCountIncrement(0);
 		
 		assertConnectorInstanceUnchanged(resourceProvisioning);
@@ -354,8 +358,8 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
 		assertResourceCacheHitsIncrement(1);
 		assertResourceCacheMissesIncrement(0);
 		
-		assertResourceSchemaUnchanged(RefinedResourceSchema.getResourceSchema(resourceProvisioning, prismContext));
-		assertRefinedResourceSchemaUnchanged(RefinedResourceSchema.getRefinedSchema(resourceProvisioning));
+		assertResourceSchemaUnchanged(RefinedResourceSchemaImpl.getResourceSchema(resourceProvisioning, prismContext));
+		assertRefinedResourceSchemaUnchanged(RefinedResourceSchemaImpl.getRefinedSchema(resourceProvisioning));
 		assertResourceSchemaParseCountIncrement(0);
 		
 		assertConnectorInstanceUnchanged(resourceProvisioning);
@@ -418,8 +422,8 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
 		assertResourceCacheMissesIncrement(1);
 		
 		// There are expected to be re-parsed
-		rememberResourceSchema(RefinedResourceSchema.getResourceSchema(resourceProvisioning, prismContext));
-		rememberRefinedResourceSchema(RefinedResourceSchema.getRefinedSchema(resourceProvisioning));
+		rememberResourceSchema(RefinedResourceSchemaImpl.getResourceSchema(resourceProvisioning, prismContext));
+		rememberRefinedResourceSchema(RefinedResourceSchemaImpl.getRefinedSchema(resourceProvisioning));
 		assertResourceSchemaParseCountIncrement(0);
 		
 		assertConnectorInstanceUnchanged(resourceProvisioning);
@@ -523,7 +527,7 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
 				new ItemPath(ResourceType.F_CONNECTOR_CONFIGURATION, 
 							 ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_ELEMENT_QNAME,
 							 DummyResourceContoller.CONNECTOR_DUMMY_USELESS_STRING_QNAME),
-							 new PrismPropertyDefinition(DummyResourceContoller.CONNECTOR_DUMMY_USELESS_STRING_QNAME, DOMUtil.XSD_STRING, prismContext),
+							 new PrismPropertyDefinitionImpl(DummyResourceContoller.CONNECTOR_DUMMY_USELESS_STRING_QNAME, DOMUtil.XSD_STRING, prismContext),
 							 newVal);
 		return uselessStringDelta;
 	}
@@ -560,8 +564,8 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
 		assertResourceCacheMissesIncrement(1);
 		
 		// There are expected to be re-parsed
-		rememberResourceSchema(RefinedResourceSchema.getResourceSchema(resourceProvisioning, prismContext));
-		rememberRefinedResourceSchema(RefinedResourceSchema.getRefinedSchema(resourceProvisioning));
+		rememberResourceSchema(RefinedResourceSchemaImpl.getResourceSchema(resourceProvisioning, prismContext));
+		rememberRefinedResourceSchema(RefinedResourceSchemaImpl.getRefinedSchema(resourceProvisioning));
 		assertResourceSchemaParseCountIncrement(0);
 		
 		// WHEN

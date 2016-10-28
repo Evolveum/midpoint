@@ -29,6 +29,8 @@ import java.util.Random;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -38,13 +40,6 @@ import org.w3c.dom.Element;
 import com.evolveum.icf.dummy.resource.DummyResource;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
@@ -823,9 +818,9 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
         Task task = taskManager.createTaskInstance(TestResources.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         
-        ItemPath propPath = new ItemPath(ResourceType.F_CONNECTOR_CONFIGURATION, 
+        ItemPath propPath = new ItemPath(ResourceType.F_CONNECTOR_CONFIGURATION, SchemaConstants.ICF_CONFIGURATION_PROPERTIES,
         		IntegrationTestTools.RESOURCE_DUMMY_CONFIGURATION_USELESS_STRING_ELEMENT_NAME);
-		PrismPropertyDefinition<String> propDef = new PrismPropertyDefinition<String>(IntegrationTestTools.RESOURCE_DUMMY_CONFIGURATION_USELESS_STRING_ELEMENT_NAME,
+		PrismPropertyDefinition<String> propDef = new PrismPropertyDefinitionImpl<>(IntegrationTestTools.RESOURCE_DUMMY_CONFIGURATION_USELESS_STRING_ELEMENT_NAME,
 				DOMUtil.XSD_STRING, prismContext);
 		PropertyDelta<String> propDelta = PropertyDelta.createModificationReplaceProperty(propPath, propDef, "whatever wherever");
     	ObjectDelta<ResourceType> resourceDelta = ObjectDelta.createModifyDelta(RESOURCE_DUMMY_OID, propDelta, ResourceType.class, prismContext);

@@ -83,6 +83,7 @@ public class PrismObject<O extends Objectable> extends PrismContainer<O> {
 	}
 
 	public void setOid(String oid) {
+		checkMutability();
 		this.oid = oid;
 	}
 
@@ -91,6 +92,7 @@ public class PrismObject<O extends Objectable> extends PrismContainer<O> {
 	}
 
 	public void setVersion(String version) {
+		checkMutability();
 		this.version = version;
 	}
 

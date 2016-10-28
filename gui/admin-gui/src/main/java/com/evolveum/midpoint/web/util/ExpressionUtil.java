@@ -229,9 +229,9 @@ public class ExpressionUtil {
 		if (element.getValue() instanceof RawType) {
 			RawType raw = (RawType) element.getValue();
 			RootXNode rootNode = new RootXNode(element.getName(), raw.serializeToXNode());
-			xml = prismContext.serializeXNodeToString(rootNode, PrismContext.LANG_XML);
+			xml = prismContext.xmlSerializer().serialize(rootNode);
 		} else {
-			xml = prismContext.serializeAtomicValue(element, PrismContext.LANG_XML);
+			xml = prismContext.xmlSerializer().serialize(element);
 		}
 		return WebXmlUtil.stripNamespaceDeclarations(xml);
 	}
@@ -245,7 +245,7 @@ public class ExpressionUtil {
 		if (xml != null && StringUtils.isNotBlank(xml)) {
 			xml = WebXmlUtil.wrapInElement("expression", xml);
 			LOGGER.info("Expression to serialize: {}", xml);
-			JAXBElement<?> newElement = context.parseAnyValueAsJAXBElement(xml, PrismContext.LANG_XML);
+			JAXBElement<?> newElement = context.parserFor(xml).xml().parseRealValueToJaxbElement();
 			expressionObject.getExpressionEvaluator().addAll(((ExpressionType) (newElement.getValue())).getExpressionEvaluator());
 		}
 	}

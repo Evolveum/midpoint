@@ -29,6 +29,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.EqualFilter;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
@@ -280,25 +281,30 @@ public class ReportFunctions {
         return ret;
     }
 
-    <C extends Containerable, T> EqualFilter<T> createEqualFilter(QName propertyName, Class<C> type, T realValues) throws SchemaException {
-        return EqualFilter.createEqual(propertyName, type, prismContext, realValues);
+    <C extends Containerable, T> ObjectFilter createEqualFilter(QName propertyName, Class<C> type, T realValue) throws SchemaException {
+        return QueryBuilder.queryFor(type, prismContext)
+                .item(propertyName).eq(realValue)
+                .buildFilter();
     }
 
-    <C extends Containerable, T> EqualFilter<T> createEqualFilter(ItemPath propertyPath, Class<C> type, T realValues) throws SchemaException {
-        return EqualFilter.createEqual(propertyPath, type, prismContext, realValues);
+    <C extends Containerable, T> ObjectFilter createEqualFilter(ItemPath propertyPath, Class<C> type, T realValue) throws SchemaException {
+        return QueryBuilder.queryFor(type, prismContext)
+                .item(propertyPath).eq(realValue)
+                .buildFilter();
     }
 
-    <O extends Containerable> RefFilter createReferenceEqualFilter(QName propertyName, Class<O> type, String... oids) {
-        return RefFilter.createReferenceEqual(propertyName, type, prismContext, oids);
-    }
+    // TODO implement if needed
+//    <O extends Containerable> RefFilter createReferenceEqualFilter(QName propertyName, Class<O> type, String... oids) {
+//        return RefFilter.createReferenceEqual(propertyName, type, prismContext, oids);
+//    }
     
-    <O extends Containerable> RefFilter createReferenceEqualFilter(ItemPath propertyPath, Class<O> type, String... oids) throws SchemaException {                
-        return RefFilter.createReferenceEqual(propertyPath, type, prismContext, oids);
-    }
+//    <O extends Containerable> RefFilter createReferenceEqualFilter(ItemPath propertyPath, Class<O> type, String... oids) throws SchemaException {
+//        return RefFilter.createReferenceEqual(propertyPath, type, prismContext, oids);
+//    }
     
-    Object parseObjectFromXML (String xml) throws SchemaException {
-        return prismContext.parseAnyData(xml, PrismContext.LANG_XML);
-    }
+//    Object parseObjectFromXML (String xml) throws SchemaException {
+//        return prismContext.parserFor(xml).xml().parseAnyData();
+//    }
 
     /**
      * Retrieves all definitions.

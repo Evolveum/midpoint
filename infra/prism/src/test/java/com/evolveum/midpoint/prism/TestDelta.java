@@ -64,13 +64,13 @@ public class TestDelta {
     public void testDeltaPaths() throws Exception {
 		System.out.println("\n\n===[ testDeltaPaths ]===\n");
 		
-		PrismPropertyDefinition<String> descDefinition = new PrismPropertyDefinition<>(UserType.F_DESCRIPTION, 
+		PrismPropertyDefinition<String> descDefinition = new PrismPropertyDefinitionImpl<>(UserType.F_DESCRIPTION, 
 				DOMUtil.XSD_STRING, PrismTestUtil.getPrismContext());
 		PropertyDelta<String> delta1 = new PropertyDelta<String>(descDefinition, PrismTestUtil.getPrismContext());
 		delta1.addValueToAdd(new PrismPropertyValue<String>("add1"));
 		assertPath(delta1, new ItemPath(UserType.F_DESCRIPTION));
 		
-		PrismReferenceDefinition referenceDefinition = new PrismReferenceDefinition(UserType.F_PARENT_ORG_REF,
+		PrismReferenceDefinitionImpl referenceDefinition = new PrismReferenceDefinitionImpl(UserType.F_PARENT_ORG_REF,
                 OBJECT_REFERENCE_TYPE_QNAME, PrismTestUtil.getPrismContext());
         ReferenceDelta delta2 = new ReferenceDelta(referenceDefinition, PrismTestUtil.getPrismContext());
         delta2.addValueToAdd(new PrismReferenceValue("oid1"));
@@ -92,7 +92,7 @@ public class TestDelta {
 		ItemDelta<?,?> assDelta2 = assObjDelta2.getModifications().iterator().next();
 		assertPath(assDelta2, new ItemPath(UserType.F_ASSIGNMENT));
 		
-		PrismPropertyDefinition<String> assDescDefinition = new PrismPropertyDefinition<>(AssignmentType.F_DESCRIPTION, 
+		PrismPropertyDefinition<String> assDescDefinition = new PrismPropertyDefinitionImpl<>(AssignmentType.F_DESCRIPTION, 
 				DOMUtil.XSD_STRING, PrismTestUtil.getPrismContext());
 		ItemPath itemPathAssDescNoId = new ItemPath(UserType.F_ASSIGNMENT, AssignmentType.F_DESCRIPTION);
 		PropertyDelta<String> propDelta2 = new PropertyDelta<String>(itemPathAssDescNoId, descDefinition, PrismTestUtil.getPrismContext());
@@ -116,7 +116,7 @@ public class TestDelta {
 		System.out.println("\n\n===[ testPropertyDeltaMerge01 ]===\n");
 		
 		// GIVEN
-		PrismPropertyDefinition propertyDefinition = new PrismPropertyDefinition(UserType.F_DESCRIPTION, 
+		PrismPropertyDefinition propertyDefinition = new PrismPropertyDefinitionImpl(UserType.F_DESCRIPTION, 
 				DOMUtil.XSD_STRING, PrismTestUtil.getPrismContext());
 
 		PropertyDelta<String> delta1 = new PropertyDelta<String>(propertyDefinition, PrismTestUtil.getPrismContext());
@@ -142,7 +142,7 @@ public class TestDelta {
 		System.out.println("\n\n===[ testPropertyDeltaMerge02 ]===\n");
 		
 		// GIVEN
-		PrismPropertyDefinition propertyDefinition = new PrismPropertyDefinition(UserType.F_DESCRIPTION, 
+		PrismPropertyDefinition propertyDefinition = new PrismPropertyDefinitionImpl(UserType.F_DESCRIPTION, 
 				DOMUtil.XSD_STRING, PrismTestUtil.getPrismContext());
 
 		PropertyDelta<String> delta1 = new PropertyDelta<String>(propertyDefinition, PrismTestUtil.getPrismContext());
@@ -168,7 +168,7 @@ public class TestDelta {
 		System.out.println("\n\n===[ testPropertyDeltaMerge03 ]===\n");
 		
 		// GIVEN
-		PrismPropertyDefinition propertyDefinition = new PrismPropertyDefinition(UserType.F_DESCRIPTION, 
+		PrismPropertyDefinition propertyDefinition = new PrismPropertyDefinitionImpl(UserType.F_DESCRIPTION, 
 				DOMUtil.XSD_STRING, PrismTestUtil.getPrismContext());
 
 		PropertyDelta<String> delta1 = new PropertyDelta<String>(propertyDefinition, PrismTestUtil.getPrismContext());
@@ -196,7 +196,7 @@ public class TestDelta {
 		System.out.println("\n\n===[ testPropertyDeltaMerge04 ]===\n");
 		
 		// GIVEN
-		PrismPropertyDefinition propertyDefinition = new PrismPropertyDefinition(UserType.F_DESCRIPTION, 
+		PrismPropertyDefinition propertyDefinition = new PrismPropertyDefinitionImpl(UserType.F_DESCRIPTION, 
 				DOMUtil.XSD_STRING, PrismTestUtil.getPrismContext());
 
 		PropertyDelta<String> delta1 = new PropertyDelta<String>(propertyDefinition, PrismTestUtil.getPrismContext());
@@ -224,7 +224,7 @@ public class TestDelta {
 		System.out.println("\n\n===[ testPropertyDeltaMerge05 ]===\n");
 		
 		// GIVEN
-		PrismPropertyDefinition propertyDefinition = new PrismPropertyDefinition(UserType.F_DESCRIPTION, 
+		PrismPropertyDefinition propertyDefinition = new PrismPropertyDefinitionImpl(UserType.F_DESCRIPTION, 
 				DOMUtil.XSD_STRING, PrismTestUtil.getPrismContext());
 
 		PropertyDelta<String> delta1 = new PropertyDelta<String>(propertyDefinition, PrismTestUtil.getPrismContext());
@@ -251,7 +251,7 @@ public class TestDelta {
 		System.out.println("\n\n===[ testPropertyDeltaMerge06 ]===\n");
 		
 		// GIVEN
-		PrismPropertyDefinition propertyDefinition = new PrismPropertyDefinition(UserType.F_DESCRIPTION, 
+		PrismPropertyDefinition propertyDefinition = new PrismPropertyDefinitionImpl(UserType.F_DESCRIPTION, 
 				DOMUtil.XSD_STRING, PrismTestUtil.getPrismContext());
 
 		PropertyDelta<String> delta1 = new PropertyDelta<String>(propertyDefinition, PrismTestUtil.getPrismContext());
@@ -278,7 +278,7 @@ public class TestDelta {
 		System.out.println("\n\n===[ testPropertyDeltaMerge10 ]===\n");
 		
 		// GIVEN
-		PrismPropertyDefinition propertyDefinition = new PrismPropertyDefinition(UserType.F_DESCRIPTION, 
+		PrismPropertyDefinition propertyDefinition = new PrismPropertyDefinitionImpl(UserType.F_DESCRIPTION, 
 				DOMUtil.XSD_STRING, PrismTestUtil.getPrismContext());
 
 		PropertyDelta<String> delta1 = new PropertyDelta<String>(propertyDefinition, PrismTestUtil.getPrismContext());
@@ -304,7 +304,7 @@ public class TestDelta {
 		System.out.println("\n\n===[ testPropertyDeltaMerge11 ]===\n");
 		
 		// GIVEN
-		PrismPropertyDefinition propertyDefinition = new PrismPropertyDefinition(UserType.F_DESCRIPTION, 
+		PrismPropertyDefinition propertyDefinition = new PrismPropertyDefinitionImpl(UserType.F_DESCRIPTION, 
 				DOMUtil.XSD_STRING, PrismTestUtil.getPrismContext());
 
 		PropertyDelta<String> delta1 = new PropertyDelta<String>(propertyDefinition, PrismTestUtil.getPrismContext());
@@ -331,7 +331,7 @@ public class TestDelta {
 		System.out.println("\n\n===[ testPropertyDeltaMerge12 ]===\n");
 		
 		// GIVEN
-		PrismPropertyDefinition propertyDefinition = new PrismPropertyDefinition(UserType.F_DESCRIPTION, 
+		PrismPropertyDefinition propertyDefinition = new PrismPropertyDefinitionImpl(UserType.F_DESCRIPTION, 
 				DOMUtil.XSD_STRING, PrismTestUtil.getPrismContext());
 
 		PropertyDelta<String> delta1 = new PropertyDelta<String>(propertyDefinition, PrismTestUtil.getPrismContext());
@@ -358,7 +358,7 @@ public class TestDelta {
 		System.out.println("\n\n===[ testPropertyDeltaMerge13 ]===\n");
 		
 		// GIVEN
-		PrismPropertyDefinition propertyDefinition = new PrismPropertyDefinition(UserType.F_DESCRIPTION, 
+		PrismPropertyDefinition propertyDefinition = new PrismPropertyDefinitionImpl(UserType.F_DESCRIPTION, 
 				DOMUtil.XSD_STRING, PrismTestUtil.getPrismContext());
 
 		PropertyDelta<String> delta1 = new PropertyDelta<String>(propertyDefinition, PrismTestUtil.getPrismContext());
@@ -384,7 +384,7 @@ public class TestDelta {
 		System.out.println("\n\n===[ testPropertyDeltaMerge20 ]===\n");
 		
 		// GIVEN
-		PrismPropertyDefinition propertyDefinition = new PrismPropertyDefinition(UserType.F_DESCRIPTION, 
+		PrismPropertyDefinition propertyDefinition = new PrismPropertyDefinitionImpl(UserType.F_DESCRIPTION, 
 				DOMUtil.XSD_STRING, PrismTestUtil.getPrismContext());
 
 		PropertyDelta<String> delta1 = new PropertyDelta<String>(propertyDefinition, PrismTestUtil.getPrismContext());
@@ -411,7 +411,7 @@ public class TestDelta {
 		System.out.println("\n\n===[ testPropertyDeltaSwallow01 ]===\n");
 		
 		// GIVEN
-		PrismPropertyDefinition propertyDefinition = new PrismPropertyDefinition(UserType.F_DESCRIPTION, 
+		PrismPropertyDefinition propertyDefinition = new PrismPropertyDefinitionImpl(UserType.F_DESCRIPTION, 
 				DOMUtil.XSD_STRING, PrismTestUtil.getPrismContext());
 
 		PropertyDelta<String> delta1 = new PropertyDelta<String>(propertyDefinition, PrismTestUtil.getPrismContext());
@@ -442,7 +442,7 @@ public class TestDelta {
 		System.out.println("\n\n===[ testSummarize01 ]===\n");
 		
 		// GIVEN
-		PrismPropertyDefinition propertyDefinition = new PrismPropertyDefinition(UserType.F_DESCRIPTION, 
+		PrismPropertyDefinition propertyDefinition = new PrismPropertyDefinitionImpl(UserType.F_DESCRIPTION, 
 				DOMUtil.XSD_STRING, PrismTestUtil.getPrismContext());
 
 		PropertyDelta<String> delta1 = new PropertyDelta<String>(propertyDefinition, PrismTestUtil.getPrismContext());
@@ -476,7 +476,7 @@ public class TestDelta {
 		System.out.println("\n\n===[ testSummarize02 ]===\n");
 		
 		// GIVEN
-		PrismPropertyDefinition propertyDefinition = new PrismPropertyDefinition(UserType.F_DESCRIPTION, 
+		PrismPropertyDefinition propertyDefinition = new PrismPropertyDefinitionImpl(UserType.F_DESCRIPTION, 
 				DOMUtil.XSD_STRING, PrismTestUtil.getPrismContext());
 
 		PropertyDelta<String> delta1 = new PropertyDelta<String>(propertyDefinition, PrismTestUtil.getPrismContext());
@@ -510,7 +510,7 @@ public class TestDelta {
 		System.out.println("\n\n===[ testSummarize05 ]===\n");
 		
 		// GIVEN
-		PrismPropertyDefinition propertyDefinition = new PrismPropertyDefinition(UserType.F_DESCRIPTION, 
+		PrismPropertyDefinition propertyDefinition = new PrismPropertyDefinitionImpl(UserType.F_DESCRIPTION, 
 				DOMUtil.XSD_STRING, PrismTestUtil.getPrismContext());
 
 		PropertyDelta<String> delta1 = new PropertyDelta<String>(propertyDefinition, PrismTestUtil.getPrismContext());
@@ -546,7 +546,7 @@ public class TestDelta {
         System.out.println("\n\n===[ testSummarize06 ]===\n");
 
         // GIVEN
-        PrismReferenceDefinition referenceDefinition = new PrismReferenceDefinition(UserType.F_PARENT_ORG_REF,
+        PrismReferenceDefinition referenceDefinition = new PrismReferenceDefinitionImpl(UserType.F_PARENT_ORG_REF,
                 OBJECT_REFERENCE_TYPE_QNAME, PrismTestUtil.getPrismContext());
 
         ReferenceDelta delta1 = new ReferenceDelta(referenceDefinition, PrismTestUtil.getPrismContext());
@@ -1454,7 +1454,7 @@ public class TestDelta {
 		System.out.println("\n\n===[ testPropertyDeltaNarrow01 ]===\n");
 		
 		// GIVEN
-		PrismPropertyDefinition propertyDefinition = new PrismPropertyDefinition(UserType.F_DESCRIPTION, 
+		PrismPropertyDefinition propertyDefinition = new PrismPropertyDefinitionImpl(UserType.F_DESCRIPTION, 
 				DOMUtil.XSD_STRING, PrismTestUtil.getPrismContext());
 
 		PropertyDelta<String> delta = new PropertyDelta<String>(propertyDefinition, PrismTestUtil.getPrismContext());
@@ -1480,7 +1480,7 @@ public class TestDelta {
 		System.out.println("\n\n===[ testPropertyDeltaNarrow02 ]===\n");
 		
 		// GIVEN
-		PrismPropertyDefinition propertyDefinition = new PrismPropertyDefinition(UserType.F_DESCRIPTION, 
+		PrismPropertyDefinition propertyDefinition = new PrismPropertyDefinitionImpl(UserType.F_DESCRIPTION, 
 				DOMUtil.XSD_STRING, PrismTestUtil.getPrismContext());
 
 		PropertyDelta<String> delta = new PropertyDelta<String>(propertyDefinition, PrismTestUtil.getPrismContext());
@@ -1507,7 +1507,7 @@ public class TestDelta {
 		System.out.println("\n\n===[ testPropertyDeltaNarrow03 ]===\n");
 		
 		// GIVEN
-		PrismPropertyDefinition propertyDefinition = new PrismPropertyDefinition(UserType.F_DESCRIPTION, 
+		PrismPropertyDefinition propertyDefinition = new PrismPropertyDefinitionImpl(UserType.F_DESCRIPTION, 
 				DOMUtil.XSD_STRING, PrismTestUtil.getPrismContext());
 
 		PropertyDelta<String> delta = new PropertyDelta<String>(propertyDefinition, PrismTestUtil.getPrismContext());

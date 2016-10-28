@@ -21,11 +21,19 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
+
+import javax.xml.namespace.QName;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 public class AndFilter extends NaryLogicalFilter {
 	
@@ -36,11 +44,8 @@ public class AndFilter extends NaryLogicalFilter {
 	}
 	
 	public static AndFilter createAnd(ObjectFilter... conditions){
-		List<ObjectFilter> filters = new ArrayList<ObjectFilter>();
-		for (ObjectFilter condition : conditions){
-			filters.add(condition);
-		}
-		
+		List<ObjectFilter> filters = new ArrayList<>(conditions.length);
+		Collections.addAll(filters, conditions);
 		return new AndFilter(filters);
 	}
 	
@@ -48,6 +53,7 @@ public class AndFilter extends NaryLogicalFilter {
 		return new AndFilter(conditions);
 	}
 	
+	@SuppressWarnings("CloneDoesntCallSuperClone")
 	@Override
 	public AndFilter clone() {
 		return new AndFilter(getClonedConditions());
@@ -72,9 +78,7 @@ public class AndFilter extends NaryLogicalFilter {
 			sb.append("\n");
 			sb.append(filter.debugDump(indent + 1));
 		}
-
 		return sb.toString();
-
 	}
 	
 	@Override
@@ -84,7 +88,7 @@ public class AndFilter extends NaryLogicalFilter {
 		sb.append("(");
 		for (int i = 0; i < getConditions().size(); i++){
 			sb.append(getConditions().get(i));
-			if (i != getConditions().size() -1){
+			if (i != getConditions().size() - 1) {
 				sb.append(",");
 			}
 		}

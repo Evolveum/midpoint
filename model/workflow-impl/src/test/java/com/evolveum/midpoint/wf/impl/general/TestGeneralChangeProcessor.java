@@ -219,7 +219,7 @@ public class TestGeneralChangeProcessor extends AbstractInternalModelIntegration
 //                ObjectDeltaType deltaType = dummyResourceDelta.getRealValue();
 //                display("dummyResourceDelta", DeltaConvertor.createObjectDelta(deltaType, prismContext));
 //
-//                PrismPropertyDefinition ppd = new PrismPropertyDefinition(new QName(SchemaConstants.NS_WFCF, "[Button]rejectAll"),
+//                PrismPropertyDefinition ppd = new PrismPropertyDefinitionImpl(new QName(SchemaConstants.NS_WFCF, "[Button]rejectAll"),
 //                        DOMUtil.XSD_BOOLEAN, prismContext);
 //                PrismProperty<Boolean> rejectAll = ppd.instantiate();
 //                rejectAll.setRealValue(Boolean.TRUE);
@@ -319,7 +319,7 @@ public class TestGeneralChangeProcessor extends AbstractInternalModelIntegration
 //                ObjectDeltaType deltaType = dummyResourceDelta.getRealValue();
 //                display("dummyResourceDelta", DeltaConvertor.createObjectDelta(deltaType, prismContext));
 //
-//                PrismPropertyDefinition ppd = new PrismPropertyDefinition(new QName(SchemaConstants.NS_WFCF, "[Button]approve"),
+//                PrismPropertyDefinition ppd = new PrismPropertyDefinitionImpl(new QName(SchemaConstants.NS_WFCF, "[Button]approve"),
 //                        DOMUtil.XSD_BOOLEAN, prismContext);
 //                PrismProperty<Boolean> approve = ppd.instantiate();
 //                approve.setRealValue(Boolean.TRUE);
@@ -350,7 +350,7 @@ public class TestGeneralChangeProcessor extends AbstractInternalModelIntegration
 
         OperationResult result = new OperationResult("test000LoadContext");
 
-        LensContextType lensContextType = prismContext.parseContainer(new File("src/test/resources/model-contexts/context-dummy-resource.xml"), LensContextType.class, PrismContext.LANG_XML).getValues().get(0).asContainerable();
+        LensContextType lensContextType = prismContext.parserFor(new File("src/test/resources/model-contexts/context-dummy-resource.xml")).xml().parseRealValue(LensContextType.class);
         display("LensContextType", lensContextType);
         LensContext<?> lensContext = LensContext.fromLensContextType(lensContextType, prismContext, provisioningService, result);
         display("LensContext", lensContext);

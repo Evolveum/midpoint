@@ -21,7 +21,7 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
-import com.evolveum.midpoint.prism.parser.QueryConvertor;
+import com.evolveum.midpoint.prism.marshaller.QueryConvertor;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
@@ -312,8 +312,6 @@ public class CertDefinitionDto implements Serializable {
             scopeTypeObj.setIncludeOrgs(definitionScopeDto.isIncludeOrgs());
             scopeTypeObj.setIncludeServices(definitionScopeDto.isIncludeServices());
             scopeTypeObj.setEnabledItemsOnly(definitionScopeDto.isEnabledItemsOnly());
-            // needed because of prism implementation limitation (because the scopeDefinition is declared as AccessCertificationScopeType)
-            scopeTypeObj.asPrismContainerValue().setConcreteType(AccessCertificationAssignmentReviewScopeType.COMPLEX_TYPE);
         }
         definition.setScopeDefinition(scopeTypeObj);
     }

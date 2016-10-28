@@ -28,6 +28,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ActionParameterValueType;
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
 import org.apache.commons.lang.Validate;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -78,7 +79,7 @@ public class ExpressionHelper {
 					return data.getDataAsSingleString();
 				}
 			} else if (parameterValue.getValue() != null) {
-				Data data = scriptingExpressionEvaluator.evaluateConstantExpression((RawType) parameterValue.getValue(), context, parentResult);
+				Data data = scriptingExpressionEvaluator.evaluateConstantStringExpression((RawType) parameterValue.getValue(), context, parentResult);
 				if (data != null) {
 					return data.getDataAsSingleString();
 				}
@@ -103,13 +104,13 @@ public class ExpressionHelper {
 		}
 	}
 
-	public Data evaluateParameter(ActionParameterValueType parameter, Data input, ExecutionContext context, OperationResult result)
+	public Data evaluateParameter(ActionParameterValueType parameter, @Nullable Class<?> expectedClass, Data input, ExecutionContext context, OperationResult result)
 			throws ScriptExecutionException {
 		Validate.notNull(parameter, "parameter");
 		if (parameter.getExpression() != null) {
 			return scriptingExpressionEvaluator.evaluateExpression(parameter.getExpression(), input, context, result);
 		} else if (parameter.getValue() != null) {
-			return scriptingExpressionEvaluator.evaluateConstantExpression((RawType) parameter.getValue(), context, result);
+			return scriptingExpressionEvaluator.evaluateConstantExpression((RawType) parameter.getValue(), expectedClass, context, "evaluating parameter " + parameter.getName(), result);
 		} else {
 			throw new IllegalStateException("No expression nor value specified");
 		}
@@ -121,7 +122,7 @@ public class ExpressionHelper {
 		if (paramValue == null) {
 			return null;
 		}
-		Data paramData = evaluateParameter(paramValue, input, executionContext, result);
+		Data paramData = evaluateParameter(paramValue, clazz, input, executionContext, result);
 		if (paramData.getData().size() != 1) {
 			throw new ScriptExecutionException("Exactly one item was expected in '" + parameterName + "' parameter. Got " + paramData.getData().size());
 		}

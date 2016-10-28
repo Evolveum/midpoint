@@ -23,6 +23,8 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.FocusTabVisibleBehavior;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.*;
+import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
+import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -92,24 +94,18 @@ public class FocusMainPanel<F extends FocusType> extends AbstractObjectMainPanel
 	}
 
 	private ObjectQuery createTaskQuery(String oid, PageBase page) {
-		List<ObjectFilter> filters = new ArrayList<ObjectFilter>();
-
 		if (oid == null) {
 			oid = "non-existent"; // TODO !!!!!!!!!!!!!!!!!!!!
 		}
-		try {
-			filters.add(RefFilter.createReferenceEqual(TaskType.F_OBJECT_REF, TaskType.class,
-					page.getPrismContext(), oid));
-			filters.add(NotFilter.createNot(EqualFilter.createEqual(TaskType.F_EXECUTION_STATUS,
-					TaskType.class, page.getPrismContext(), null, TaskExecutionStatusType.CLOSED)));
-			filters.add(EqualFilter.createEqual(TaskType.F_PARENT, TaskType.class, page.getPrismContext(), null));
-		} catch (SchemaException e) {
-			throw new SystemException("Unexpected SchemaException when creating task filter", e);
-		}
-
-		return new ObjectQuery().createObjectQuery(AndFilter.createAnd(filters));
+		return QueryBuilder.queryFor(TaskType.class, page.getPrismContext())
+				.item(TaskType.F_OBJECT_REF).ref(oid)
+				.and()
+					.block()
+						.not().item(TaskType.F_EXECUTION_STATUS).eq(TaskExecutionStatusType.CLOSED)
+					.endBlock()
+				.and().item(TaskType.F_PARENT).isNull()
+				.build();
 	}
-
 
 	@Override
 	protected List<ITab> createTabs(final PageAdminObjectDetails<F> parentPage) {

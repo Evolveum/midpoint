@@ -27,9 +27,12 @@ import javax.xml.bind.JAXBElement;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
+import com.evolveum.midpoint.model.common.SystemObjectCache;
 import com.evolveum.midpoint.model.common.expression.*;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.polystring.PrismDefaultPolyStringNormalizer;
+import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.*;
@@ -72,6 +75,7 @@ import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * @author semancik
@@ -122,7 +126,7 @@ public class LensUtil {
 	}
 	
 	public static String refineProjectionIntent(ShadowKindType kind, String intent, ResourceType resource, PrismContext prismContext) throws SchemaException {
-		RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resource, LayerType.MODEL, prismContext);
+		RefinedResourceSchema refinedSchema = RefinedResourceSchemaImpl.getRefinedSchema(resource, LayerType.MODEL, prismContext);
 		RefinedObjectClassDefinition rObjClassDef = refinedSchema.getRefinedDefinition(kind, intent);
 		if (rObjClassDef == null) {
 			throw new SchemaException("No projection definition for kind="+kind+" intent="+intent+" in "+resource);
@@ -558,7 +562,7 @@ public class LensUtil {
 		if (iterationOld == null) {
 			return accCtx.getIteration();
 		}
-		PrismPropertyDefinition<Integer> propDef = new PrismPropertyDefinition<Integer>(ExpressionConstants.VAR_ITERATION,
+		PrismPropertyDefinition<Integer> propDef = new PrismPropertyDefinitionImpl<>(ExpressionConstants.VAR_ITERATION,
 				DOMUtil.XSD_INT, accCtx.getPrismContext());
 		PrismProperty<Integer> propOld = propDef.instantiate();
 		propOld.setRealValue(iterationOld);
@@ -579,7 +583,7 @@ public class LensUtil {
 		if (iterationTokenOld == null) {
 			return accCtx.getIterationToken();
 		}
-		PrismPropertyDefinition<String> propDef = new PrismPropertyDefinition<String>(
+		PrismPropertyDefinition<String> propDef = new PrismPropertyDefinitionImpl<>(
 				ExpressionConstants.VAR_ITERATION_TOKEN, DOMUtil.XSD_STRING, accCtx.getPrismContext());
 		PrismProperty<String> propOld = propDef.instantiate();
 		propOld.setRealValue(iterationTokenOld);
@@ -759,12 +763,12 @@ public class LensUtil {
 		if (tokenExpressionType == null) {
 			return formatIterationTokenDefault(iteration);
 		}
-		PrismPropertyDefinition<String> outputDefinition = new PrismPropertyDefinition<String>(ExpressionConstants.VAR_ITERATION_TOKEN,
+		PrismPropertyDefinition<String> outputDefinition = new PrismPropertyDefinitionImpl<>(ExpressionConstants.VAR_ITERATION_TOKEN,
 				DOMUtil.XSD_STRING, context.getPrismContext());
 		Expression<PrismPropertyValue<String>,PrismPropertyDefinition<String>> expression = expressionFactory.makeExpression(tokenExpressionType, outputDefinition , "iteration token expression in "+accountContext.getHumanReadableName(), task, result);
 		
 		Collection<Source<?,?>> sources = new ArrayList<>();
-		PrismPropertyDefinition<Integer> inputDefinition = new PrismPropertyDefinition<Integer>(ExpressionConstants.VAR_ITERATION,
+		PrismPropertyDefinitionImpl<Integer> inputDefinition = new PrismPropertyDefinitionImpl<>(ExpressionConstants.VAR_ITERATION,
 				DOMUtil.XSD_INT, context.getPrismContext());
 		inputDefinition.setMaxOccurs(1);
 		PrismProperty<Integer> input = inputDefinition.instantiate();
@@ -817,7 +821,8 @@ public class LensUtil {
 		if (expressionType == null) {
 			return true;
 		}
-		PrismPropertyDefinition<Boolean> outputDefinition = new PrismPropertyDefinition<Boolean>(ExpressionConstants.OUTPUT_ELMENT_NAME,
+		PrismPropertyDefinition<Boolean> outputDefinition = new PrismPropertyDefinitionImpl<>(
+				ExpressionConstants.OUTPUT_ELMENT_NAME,
 				DOMUtil.XSD_BOOLEAN, context.getPrismContext());
 		Expression<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> expression = expressionFactory.makeExpression(expressionType, outputDefinition , desc, task, result);
 		
@@ -1209,21 +1214,16 @@ public class LensUtil {
 		}
 	}
 
-	public static PrismContainer<AssignmentType> createAssignmentSingleValueContainerClone(AssignmentType assignmentType) throws SchemaException {
-		PrismContainerValue<AssignmentType> assignmentCVal = assignmentType.asPrismContainerValue();
-		PrismContainerDefinition<AssignmentType> def = assignmentCVal.getParent().getDefinition().clone();
+	public static PrismContainer<AssignmentType> createAssignmentSingleValueContainerClone(@NotNull AssignmentType assignmentType) throws SchemaException {
 		// Make it appear to be single-value. Therefore paths without segment IDs will work.
-		def.setMaxOccurs(1);
-		PrismContainer<AssignmentType> assignmentCont = def.instantiate();
-		assignmentCont.add(assignmentCVal.clone());
-		return assignmentCont;
+		return assignmentType.asPrismContainerValue().asSingleValuedContainer(SchemaConstantsGenerated.C_ASSIGNMENT);
 	}
 	
 	public static AssignmentType getAssignmentType(ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi, boolean old) {
 		if (old) {
-			return ((PrismContainer<AssignmentType>)assignmentIdi.getItemOld()).getValue(0).asContainerable();
+			return assignmentIdi.getItemOld().getValue(0).asContainerable();
 		} else {
-			return ((PrismContainer<AssignmentType>)assignmentIdi.getItemNew()).getValue(0).asContainerable();
+			return assignmentIdi.getItemNew().getValue(0).asContainerable();
 		}
 	}
 	

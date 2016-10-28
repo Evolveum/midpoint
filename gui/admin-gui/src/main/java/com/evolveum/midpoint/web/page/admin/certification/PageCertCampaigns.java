@@ -25,6 +25,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.RefFilter;
+import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
@@ -135,21 +136,13 @@ public class PageCertCampaigns extends PageAdminCertification {
 	private ObjectQuery createQuery() {
 		// TODO filtering based on e.g. campaign state/stage (not started,
 		// active, finished)
-		ObjectQuery query = new ObjectQuery();
-		if (definitionOid != null) {
-			ObjectReferenceType ref = ObjectTypeUtil.createObjectRef(definitionOid,
-					ObjectTypes.ACCESS_CERTIFICATION_DEFINITION);
-			ObjectFilter filter;
-			try {
-				filter = RefFilter.createReferenceEqual(
-						new ItemPath(AccessCertificationCampaignType.F_DEFINITION_REF),
-						AccessCertificationCampaignType.class, getPrismContext(), ref.asReferenceValue());
-			} catch (SchemaException e) {
-				throw new SystemException("Unexpected schema exception: " + e.getMessage(), e);
-			}
-			query = ObjectQuery.createObjectQuery(filter);
+		if (definitionOid == null) {
+			return new ObjectQuery();
+		} else {
+			return QueryBuilder.queryFor(AccessCertificationCampaignType.class, getPrismContext())
+					.item(AccessCertificationCampaignType.F_DEFINITION_REF).ref(definitionOid)
+					.build();
 		}
-		return query;
 	}
 
 	// endregion

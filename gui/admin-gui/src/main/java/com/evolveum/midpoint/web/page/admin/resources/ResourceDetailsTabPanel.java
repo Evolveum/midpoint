@@ -21,6 +21,8 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
+import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -181,8 +183,9 @@ public class ResourceDetailsTabPanel extends Panel {
 		OperationResult result = new OperationResult(OPERATION_SEARCH_TASKS_FOR_RESOURCE);
 
 		List<PrismObject<TaskType>> tasks = WebModelServiceUtils.searchObjects(TaskType.class,
-				ObjectQuery.createObjectQuery(RefFilter.createReferenceEqual(TaskType.F_OBJECT_REF,
-						TaskType.class, parentPage.getPrismContext(), resource.getOid())),
+				QueryBuilder.queryFor(TaskType.class, parentPage.getPrismContext())
+						.item(TaskType.F_OBJECT_REF).ref(resource.getOid())
+						.build(),
 				result, parentPage);
 
 		List<ResourceConfigurationDto> configs = new ArrayList<>();
@@ -321,7 +324,7 @@ public class ResourceDetailsTabPanel extends Panel {
 		Integer progress = null;
 		RefinedResourceSchema refinedSchema = null;
 		try {
-			refinedSchema = RefinedResourceSchema.getRefinedSchema(resource);
+			refinedSchema = RefinedResourceSchemaImpl.getRefinedSchema(resource);
 			if (refinedSchema != null) {
 				backgroundColor = "bg-purple";
 				icon = "fa-cubes";
@@ -412,7 +415,7 @@ public class ResourceDetailsTabPanel extends Panel {
 			// is not accessible in admin-gui)
 			if (taskObjectClassValue == null) {
 				ObjectClassComplexTypeDefinition taskObjectClassDef = null;
-				RefinedResourceSchema schema = RefinedResourceSchema.getRefinedSchema(resource);
+				RefinedResourceSchema schema = RefinedResourceSchemaImpl.getRefinedSchema(resource);
 				if (schema == null) {
 					throw new SchemaException(
 							"No schema defined in resource. Possible configuration problem?");

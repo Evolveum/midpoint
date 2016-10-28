@@ -56,7 +56,7 @@ public class TestParseFilter {
 		PrismContext prismContext = PrismTestUtil.getPrismContext();
 		
 		// WHEN
-		SearchFilterType filter = prismContext.parseAtomicValue(FILTER_FILE, SearchFilterType.COMPLEX_TYPE);
+		SearchFilterType filter = prismContext.parserFor(FILTER_FILE).parseRealValue(SearchFilterType.class);
 
 		// THEN
 		System.out.println("Parsed filter:");
@@ -68,7 +68,7 @@ public class TestParseFilter {
 
         // WHEN2
 
-        SearchFilterType filter2 = prismContext.parseAtomicValue(serialized, SearchFilterType.COMPLEX_TYPE);
+        SearchFilterType filter2 = prismContext.parserFor(serialized).parseRealValue(SearchFilterType.class);
 
         System.out.println("Reparsed filter:");
         System.out.println(filter2.debugDump());

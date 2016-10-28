@@ -22,6 +22,8 @@ import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
 
 import java.io.Serializable;
@@ -38,29 +40,42 @@ import java.util.Set;
  * @author semancik
  *
  */
-public abstract class PrismValue implements Visitable, PathVisitable, Serializable, DebugDumpable, Revivable {
+public abstract class PrismValue implements IPrismValue {
 	
 	private OriginType originType;
     private Objectable originObject;
     private Itemable parent;
-    protected Element domElement = null;
-    private transient Map<String,Object> userData = new HashMap<>();;
+    private transient Map<String,Object> userData = new HashMap<>();
+	protected boolean immutable;
 
-    PrismValue() {
-		super();
+	transient protected PrismContext prismContext;
+
+	PrismValue() {
+	}
+
+	PrismValue(PrismContext prismContext) {
+		this.prismContext = prismContext;
 	}
     
     PrismValue(OriginType type, Objectable source) {
-		super();
+		this(null, type, source);
+	}
+
+    PrismValue(PrismContext prismContext, OriginType type, Objectable source) {
+		this.prismContext = prismContext;
 		this.originType = type;
 		this.originObject = source;
 	}
     
-    PrismValue(OriginType type, Objectable source, Itemable parent) {
-		super();
+    PrismValue(PrismContext prismContext, OriginType type, Objectable source, Itemable parent) {
+		this.prismContext = prismContext;
 		this.originType = type;
 		this.originObject = source;
 		this.parent = parent;
+	}
+
+	public void setPrismContext(PrismContext prismContext) {
+		this.prismContext = prismContext;
 	}
 
 	public void setOriginObject(Objectable source) {
@@ -71,11 +86,13 @@ public abstract class PrismValue implements Visitable, PathVisitable, Serializab
         this.originType = type;
     }
     
-    public OriginType getOriginType() {
+    @Override
+	public OriginType getOriginType() {
         return originType;
     }
 
-    public Objectable getOriginObject() {
+    @Override
+	public Objectable getOriginObject() {
         return originObject;
     }
 
@@ -83,18 +100,22 @@ public abstract class PrismValue implements Visitable, PathVisitable, Serializab
         return userData;
     }
 
-    public Object getUserData(String key) {
+    @Override
+	public Object getUserData(@NotNull String key) {
         return userData.get(key);
     }
 
-    public void setUserData(String key, Object value) {
+    @Override
+	public void setUserData(@NotNull String key, Object value) {
         userData.put(key, value);
     }
 
-    public Itemable getParent() {
+    @Override
+	public Itemable getParent() {
 		return parent;
 	}
 
+	@Override
 	public void setParent(Itemable parent) {
 		if (this.parent != null && parent != null && this.parent != parent) {
 			throw new IllegalStateException("Attempt to reset value parent from "+this.parent+" to "+parent);
@@ -102,6 +123,8 @@ public abstract class PrismValue implements Visitable, PathVisitable, Serializab
 		this.parent = parent;
 	}
 	
+	@NotNull
+	@Override
 	public ItemPath getPath() {
 		Itemable parent = getParent();
 		if (parent == null) {
@@ -115,6 +138,7 @@ public abstract class PrismValue implements Visitable, PathVisitable, Serializab
 	 * Or when we know that the previous parent will be discarded and we
 	 * want to avoid unnecessary cloning.
 	 */
+	@Override
 	public void clearParent() {
 		parent = null;
 	}
@@ -128,9 +152,14 @@ public abstract class PrismValue implements Visitable, PathVisitable, Serializab
 		}
 	}
 	
+	@Override
 	public PrismContext getPrismContext() {
+		if (prismContext != null) {
+			return prismContext;
+		}
 		if (parent != null) {
-			return parent.getPrismContext();
+			prismContext = parent.getPrismContext();
+			return prismContext;
 		}
 		return null;
 	}
@@ -143,15 +172,22 @@ public abstract class PrismValue implements Visitable, PathVisitable, Serializab
     	return parent.getDefinition();
     }
 	
+	@Override
 	public void applyDefinition(ItemDefinition definition) throws SchemaException {
+		checkMutability();		// TODO reconsider
 		applyDefinition(definition, true);
 	}
 	
+	@Override
 	public void applyDefinition(ItemDefinition definition, boolean force) throws SchemaException {
+		checkMutability();		// TODO reconsider
 		// Do nothing by default
 	}
 	
 	public void revive(PrismContext prismContext) throws SchemaException {
+		if (this.prismContext == null) {
+			this.prismContext = prismContext;
+		}
 		recompute(prismContext);
 	}
 	
@@ -159,12 +195,11 @@ public abstract class PrismValue implements Visitable, PathVisitable, Serializab
 	 * Recompute the value or otherwise "initialize" it before adding it to a prism tree.
 	 * This may as well do nothing if no recomputing or initialization is needed.
 	 */
+	@Override
 	public void recompute() {
 		recompute(getPrismContext());
 	}
-	
-	public abstract void recompute(PrismContext prismContext);
-	
+
 	@Override
 	public void accept(Visitor visitor) {
 		visitor.visit(this);
@@ -217,19 +252,11 @@ public abstract class PrismValue implements Visitable, PathVisitable, Serializab
 		};
 		return MiscUtil.unorderedCollectionEquals(collection1, collection2, comparator);
 	}
-	
-	public abstract boolean isEmpty();
-	
+
+	@Override
 	public void normalize() {
 		// do nothing by default
 	}
-	
-	/**
-	 * Returns true if the value is raw. Raw value is a semi-parsed value.
-	 * A value for which we don't have a full definition yet and therefore
-	 * the parsing could not be finished until the defintion is supplied.
-	 */
-	public abstract boolean isRaw();
 
 	public static <X extends PrismValue> Collection<X> cloneValues(Collection<X> values) {
 		Collection<X> clonedCollection = new ArrayList<X>(values.size());
@@ -238,7 +265,7 @@ public abstract class PrismValue implements Visitable, PathVisitable, Serializab
 		}
 		return clonedCollection;
 	}
-	
+
 	public abstract PrismValue clone();
 	
 	protected void copyValues(PrismValue clone) {
@@ -247,12 +274,16 @@ public abstract class PrismValue implements Visitable, PathVisitable, Serializab
 		// Do not clone parent. The clone will most likely go to a different prism
 		// and setting the parent will make it difficult to add it there.
 		clone.parent = null;
+		// Do not clone immutable flag.
 	}
-	
+
+	@NotNull
 	public static <T extends PrismValue> Collection<T> cloneCollection(Collection<T> values) {
 		Collection<T> clones = new ArrayList<T>();
-		for (T value: values) {
-			clones.add((T)value.clone());
+		if (values != null) {
+			for (T value : values) {
+				clones.add((T) value.clone());
+			}
 		}
 		return clones;
 	}
@@ -267,11 +298,7 @@ public abstract class PrismValue implements Visitable, PathVisitable, Serializab
     	}
     	return values;
 	}
-	
-	public abstract Object find(ItemPath path);
-	
-	public abstract <X extends PrismValue,Y extends ItemDefinition> PartiallyResolvedItem<X,Y> findPartial(ItemPath path);
-	
+
 	@Override
 	public int hashCode() {
 		int result = 1;
@@ -280,6 +307,7 @@ public abstract class PrismValue implements Visitable, PathVisitable, Serializab
 	
 	public boolean equalsComplex(PrismValue other, boolean ignoreMetadata, boolean isLiteral) {
 		// parent is not considered at all. it is not relevant.
+		// neither the immutable flag
 		if (!ignoreMetadata) {
 			if (originObject == null) {
 				if (other.originObject != null)
@@ -292,6 +320,7 @@ public abstract class PrismValue implements Visitable, PathVisitable, Serializab
 		return true;
 	}
 	
+	@Override
 	public boolean equals(PrismValue otherValue, boolean ignoreMetadata) {
 		return equalsComplex(otherValue, ignoreMetadata, false);
 	}
@@ -336,6 +365,7 @@ public abstract class PrismValue implements Visitable, PathVisitable, Serializab
 	 * Assumes matching representations. I.e. it assumes that both this and otherValue represent the same instance of item.
 	 * E.g. the container with the same ID. 
 	 */
+	@Override
 	public Collection<? extends ItemDelta> diff(PrismValue otherValue) {
 		return diff(otherValue, true, false);
 	}
@@ -344,6 +374,7 @@ public abstract class PrismValue implements Visitable, PathVisitable, Serializab
 	 * Assumes matching representations. I.e. it assumes that both this and otherValue represent the same instance of item.
 	 * E.g. the container with the same ID. 
 	 */
+	@Override
 	public Collection<? extends ItemDelta> diff(PrismValue otherValue, boolean ignoreMetadata, boolean isLiteral) {
 		Collection<? extends ItemDelta> itemDeltas = new ArrayList<ItemDelta>();
 		diffMatchingRepresentation(otherValue, itemDeltas, ignoreMetadata, isLiteral);
@@ -355,14 +386,6 @@ public abstract class PrismValue implements Visitable, PathVisitable, Serializab
 		// Nothing to do by default
 	}
 
-	public abstract boolean match(PrismValue otherValue);
-	
-	/**
-	 * Returns a short (one-line) representation of the real value stored in this object.
-	 * The value is returned without any decorations or type demarcations (such as PPV, PRV, etc.)
-	 */
-	public abstract String toHumanReadableString();
-	
 	protected void appendOriginDump(StringBuilder builder) {
 		if (DebugUtil.isDetailedDebugDump()) {
 	        if (getOriginType() != null || getOriginObject() != null) {
@@ -382,6 +405,7 @@ public abstract class PrismValue implements Visitable, PathVisitable, Serializab
         return retval;
     }
 
+
 	public static <V extends PrismValue> boolean collectionContainsEquivalentValue(Collection<V> collection, V value) {
 		if (collection == null) {
 			return false;
@@ -393,4 +417,27 @@ public abstract class PrismValue implements Visitable, PathVisitable, Serializab
 		}
 		return false;
 	}
+
+
+	@Override
+	public boolean isImmutable() {
+		return immutable;
+	}
+
+	public void setImmutable(boolean immutable) {
+		this.immutable = immutable;
+	}
+
+	protected void checkMutability() {
+		if (immutable) {
+			throw new IllegalStateException("An attempt to modify an immutable value of " + toHumanReadableString());
+		}
+	}
+
+	@Nullable
+	abstract public Class<?> getRealClass();
+
+	@Nullable
+	abstract public <T> T getRealValue();
+
 }

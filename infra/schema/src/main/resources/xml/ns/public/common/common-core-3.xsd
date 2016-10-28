@@ -2496,6 +2496,21 @@
                         </xsd:annotation>
                     </xsd:element>
 
+					<xsd:element name="adminGuiConfiguration" type="tns:AdminGuiConfigurationType" minOccurs="0" maxOccurs="1">
+						<xsd:annotation>
+							<xsd:documentation>
+								<p>
+									Specifies the admin GUI configuration that should be used
+									by this user.
+								</p>
+							</xsd:documentation>
+							<xsd:appinfo>
+								<a:since>3.5</a:since>
+								<a:displayName>AdminGuiConfigurationType.adminGuiConfiguration</a:displayName>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:element>
+
                     <xsd:element name="result" type="tns:OperationResultType" minOccurs="0" maxOccurs="1">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -4967,6 +4982,7 @@
             </xsd:documentation>
             <xsd:appinfo>
             	<a:container/>
+				<a:defaultNamespace>http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3</a:defaultNamespace>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -8462,8 +8478,14 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    <xsd:element name="userTemplate" type="tns:ObjectTemplateType" substitutionGroup="c:object"/>
-    <xsd:element name="objectTemplate" type="tns:ObjectTemplateType" substitutionGroup="c:object"/>
+	<xsd:element name="userTemplate" type="tns:ObjectTemplateType" substitutionGroup="c:object">
+		<xsd:annotation>
+			<xsd:appinfo>
+				<a:deprecated>true</a:deprecated>
+			</xsd:appinfo>
+		</xsd:annotation>
+	</xsd:element>
+	<xsd:element name="objectTemplate" type="tns:ObjectTemplateType" substitutionGroup="c:object"/>
     
     <xsd:complexType name="ObjectTemplateItemDefinitionType">
         <xsd:annotation>
@@ -9552,6 +9574,18 @@
 					</xsd:documentation>
 					<xsd:appinfo>
 						<a:since>3.4</a:since>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="preferredDataLanguage" type="xsd:string" minOccurs="0" maxOccurs="1">
+				<xsd:annotation>
+					<xsd:documentation>
+						<p>
+							Preferred data language (e.g. xml, json, yaml - written in lowercase). Default is xml.
+						</p>
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:since>3.5</a:since>
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
@@ -12952,7 +12986,7 @@
 			<!-- TODO: values for manual selection may come here in the future. -->
 		</xsd:restriction>
 	</xsd:simpleType>
-	
+
 	<xsd:simpleType name="ProjectionMergeSituationType">
 		<xsd:annotation>
 			<xsd:documentation>
@@ -12995,7 +13029,7 @@
 			</xsd:enumeration>
 		</xsd:restriction>
 	</xsd:simpleType>
-	
+
 	<xsd:complexType name="CachingPolicyType">
 		<xsd:annotation>
 			<xsd:documentation>

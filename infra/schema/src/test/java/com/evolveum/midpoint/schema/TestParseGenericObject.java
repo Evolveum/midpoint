@@ -76,7 +76,7 @@ public class TestParseGenericObject {
 		PrismContext prismContext = PrismTestUtil.getPrismContext();
 		
 		// WHEN
-		PrismObject<GenericObjectType> generic = prismContext.parseObject(GENERIC_FILE, PrismContext.LANG_XML);
+		PrismObject<GenericObjectType> generic = prismContext.parserFor(GENERIC_FILE).xml().parse();
 		
 		// THEN
 		System.out.println("Parsed generic object:");
@@ -96,7 +96,7 @@ public class TestParseGenericObject {
 		Element resourceElement = DOMUtil.getFirstChildElement(document);
 		
 		// WHEN
-		PrismObject<GenericObjectType> generic = prismContext.parseObject(resourceElement);
+		PrismObject<GenericObjectType> generic = prismContext.parserFor(resourceElement).parse();
 		
 		// THEN
 		System.out.println("Parsed generic object:");

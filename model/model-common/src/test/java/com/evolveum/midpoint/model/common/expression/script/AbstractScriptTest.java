@@ -20,6 +20,7 @@ import static org.testng.AssertJUnit.assertNotNull;
 import com.evolveum.midpoint.model.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.model.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.model.common.expression.functions.FunctionLibrary;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
@@ -265,9 +266,9 @@ public abstract class AbstractScriptTest {
 	
 	private <T> List<PrismPropertyValue<T>> evaluateExpression(ScriptExpressionEvaluatorType scriptType, QName typeName, boolean scalar, 
 			ExpressionVariables variables, String shortDesc, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
-		ItemDefinition outputDefinition = new PrismPropertyDefinition(PROPERTY_NAME, typeName, PrismTestUtil.getPrismContext());
+		ItemDefinition outputDefinition = new PrismPropertyDefinitionImpl(PROPERTY_NAME, typeName, PrismTestUtil.getPrismContext());
 		if (!scalar) {
-			outputDefinition.setMaxOccurs(-1);
+			((ItemDefinitionImpl) outputDefinition).setMaxOccurs(-1);
 		}
 		return evaluateExpression(scriptType, outputDefinition, variables, shortDesc, result);
 	}

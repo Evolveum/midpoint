@@ -518,7 +518,7 @@ public class ReconciliationProcessor {
 
         for (QName assocName : associationNames) {
             LOGGER.trace("Association reconciliation processing association {}", assocName);
-            RefinedAssociationDefinition associationDefinition = accountDefinition.findAssociation(assocName);
+            RefinedAssociationDefinition associationDefinition = accountDefinition.findAssociationDefinition(assocName);
             if (associationDefinition == null) {
                 throw new SchemaException("No definition for association " + assocName + " in "
                         + projCtx.getResourceShadowDiscriminator());

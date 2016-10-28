@@ -58,7 +58,7 @@ public class QueryBasedHandlerDto extends HandlerDto {
 		PrismContext prismContext = ((MidPointApplication) Application.get()).getPrismContext();
 		try {
 			return WebXmlUtil.stripNamespaceDeclarations(
-					prismContext.serializeAnyData(query, SchemaConstants.MODEL_EXTENSION_OBJECT_QUERY, PrismContext.LANG_XML));
+					prismContext.xmlSerializer().serializeAnyData(query, SchemaConstants.MODEL_EXTENSION_OBJECT_QUERY));
 		} catch (SchemaException e) {
 			throw new SystemException("Couldn't serialize query: " + e.getMessage(), e);
 		}

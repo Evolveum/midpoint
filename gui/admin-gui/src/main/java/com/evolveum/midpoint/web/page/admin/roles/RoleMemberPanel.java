@@ -22,6 +22,9 @@ import java.util.Set;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
+import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterEntry;
+import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterExit;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
 import org.apache.wicket.markup.html.form.DropDownChoice;
@@ -118,46 +121,32 @@ public class RoleMemberPanel extends AbstractRoleMemberPanel<RoleType> {
 		getMemberTable().refreshTable((Class<FocusType>) WebComponentUtil.qnameToClass(getPrismContext(), type), target);
 	}
 
-
 	private List<OrgType> createTenantList() {
-		ObjectQuery query;
-		try {
-			query = ObjectQuery.createObjectQuery(
-					EqualFilter.createEqual(OrgType.F_TENANT, OrgType.class, getPrismContext(), true));
-			List<PrismObject<OrgType>> orgs = WebModelServiceUtils.searchObjects(OrgType.class, query,
-					new OperationResult("Tenant search"), getPageBase());
-			List<OrgType> orgTypes = new ArrayList<>();
-			for (PrismObject<OrgType> org : orgs) {
-				orgTypes.add(org.asObjectable());
-			}
-
-			return orgTypes;
-		} catch (SchemaException e) {
-			error(getString("pageUsers.message.queryError") + " " + e.getMessage());
-			return null;
+		ObjectQuery query = QueryBuilder.queryFor(OrgType.class, getPrismContext())
+				.item(OrgType.F_TENANT).eq(true)
+				.build();
+		List<PrismObject<OrgType>> orgs = WebModelServiceUtils.searchObjects(OrgType.class, query,
+				new OperationResult("Tenant search"), getPageBase());
+		List<OrgType> orgTypes = new ArrayList<>();
+		for (PrismObject<OrgType> org : orgs) {
+			orgTypes.add(org.asObjectable());
 		}
 
+		return orgTypes;
 	}
 
 	private List<OrgType> createProjectList() {
-		ObjectQuery query;
-		try {
-			query = ObjectQuery.createObjectQuery(OrFilter.createOr(
-					EqualFilter.createEqual(OrgType.F_TENANT, OrgType.class, getPrismContext(), true),
-					EqualFilter.createEqual(OrgType.F_TENANT, OrgType.class, getPrismContext(), null)));
-			List<PrismObject<OrgType>> orgs = WebModelServiceUtils.searchObjects(OrgType.class, query,
-					new OperationResult("Tenant search"), getPageBase());
-			List<OrgType> orgTypes = new ArrayList<>();
-			for (PrismObject<OrgType> org : orgs) {
-				orgTypes.add(org.asObjectable());
-			}
-
-			return orgTypes;
-		} catch (SchemaException e) {
-			error(getString("pageUsers.message.queryError") + " " + e.getMessage());
-			return null;
+		ObjectQuery query = QueryBuilder.queryFor(OrgType.class, getPrismContext())
+				.item(OrgType.F_TENANT).eq(true)
+				.or().item(OrgType.F_TENANT).isNull()
+				.build();
+		List<PrismObject<OrgType>> orgs = WebModelServiceUtils.searchObjects(OrgType.class, query,
+				new OperationResult("Tenant search"), getPageBase());
+		List<OrgType> orgTypes = new ArrayList<>();
+		for (PrismObject<OrgType> org : orgs) {
+			orgTypes.add(org.asObjectable());
 		}
-
+		return orgTypes;
 	}
 
 	private MainObjectListPanel<FocusType> getMemberTable() {
@@ -196,7 +185,9 @@ public class RoleMemberPanel extends AbstractRoleMemberPanel<RoleType> {
 	}
 
 	private ObjectQuery createAllMemberQuery() {
-		return ObjectQuery.createObjectQuery(RefFilter.createReferenceEqual(FocusType.F_ROLE_MEMBERSHIP_REF, FocusType.class, getModelObject()));
+		return QueryBuilder.queryFor(FocusType.class, getPrismContext())
+				.item(FocusType.F_ROLE_MEMBERSHIP_REF).ref(getModelObject().getOid())
+				.build();
 	}
 
 	private ObjectQuery createRecomputeQuery() {
@@ -311,46 +302,31 @@ public class RoleMemberPanel extends AbstractRoleMemberPanel<RoleType> {
 
 		String oid = getModelObject().getOid();
 
-		List<ObjectFilter> filters = new ArrayList<>();
-		try {
-			filters.add(RefFilter.createReferenceEqual(
-					new ItemPath(FocusType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF), UserType.class,
-					getPrismContext(), createReference().asReferenceValue()));
+		S_AtomicFilterExit q = QueryBuilder.queryFor(FocusType.class, getPrismContext())
+				.item(FocusType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF).ref(createReference().asReferenceValue());
+		DropDownChoice<OrgType> tenantChoice = (DropDownChoice) get(createComponentPath(ID_TENANT));
+		OrgType tenant = tenantChoice.getModelObject();
+		if (tenant != null) {
+			q = q.and().item(FocusType.F_ASSIGNMENT, AssignmentType.F_TENANT_REF).ref(createReference(tenant).asReferenceValue());
+		}
 
-			DropDownChoice<OrgType> tenantChoice = (DropDownChoice) get(createComponentPath(ID_TENANT));
-			OrgType tenant = tenantChoice.getModelObject();
+		DropDownChoice<OrgType> projectChoice = (DropDownChoice) get(createComponentPath(ID_PROJECT));
+		OrgType project = projectChoice.getModelObject();
+		if (project != null) {
+			q = q.and().item(FocusType.F_ASSIGNMENT, AssignmentType.F_ORG_REF).ref(createReference(project).asReferenceValue());
+		}
 
-			if (tenant != null) {
-				filters.add(RefFilter.createReferenceEqual(
-						new ItemPath(FocusType.F_ASSIGNMENT, AssignmentType.F_TENANT_REF), UserType.class,
-						getPrismContext(), createReference(tenant).asReferenceValue()));
-			}
-
-			DropDownChoice<OrgType> projectChoice = (DropDownChoice) get(createComponentPath(ID_PROJECT));
-			OrgType project = projectChoice.getModelObject();
-
-			if (project != null) {
-				filters.add(RefFilter.createReferenceEqual(
-						new ItemPath(FocusType.F_ASSIGNMENT, AssignmentType.F_ORG_REF), UserType.class,
-						getPrismContext(), createReference(project).asReferenceValue()));
-			}
-
-			query = ObjectQuery.createObjectQuery(AndFilter.createAnd(filters));
-
-			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("Searching members of role {} with query:\n{}", oid, query.debugDump());
-			}
-
-		} catch (SchemaException e) {
-			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't prepare query for org. members.", e);
+		query = q.build();
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace("Searching members of role {} with query:\n{}", oid, query.debugDump());
 		}
 
 		DropDownChoice<QName> objectTypeChoice = (DropDownChoice) get(createComponentPath(ID_OBJECT_TYPE));
 		QName objectType = objectTypeChoice.getModelObject();
 		if (objectType == null || FocusType.COMPLEX_TYPE.equals(objectType)) {
 			return query;
+		} else {
+			return ObjectQuery.createObjectQuery(TypeFilter.createType(objectType, query.getFilter()));
 		}
-
-		return ObjectQuery.createObjectQuery(TypeFilter.createType(objectType, query.getFilter()));
 	}
 }

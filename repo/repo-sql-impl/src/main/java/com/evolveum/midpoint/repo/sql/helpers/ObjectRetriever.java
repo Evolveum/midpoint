@@ -18,7 +18,7 @@ package com.evolveum.midpoint.repo.sql.helpers;
 
 import com.evolveum.midpoint.common.crypto.CryptoUtil;
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.parser.XNodeProcessorEvaluationMode;
+import com.evolveum.midpoint.prism.marshaller.XNodeProcessorEvaluationMode;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ExistsFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
@@ -452,7 +452,7 @@ public class ObjectRetriever {
         try {
             // "Postel mode": be tolerant what you read. We need this to tolerate (custom) schema changes
 			ParsingContext parsingContext = ParsingContext.forMode(XNodeProcessorEvaluationMode.COMPAT);
-            prismObject = prismContext.parseObject(xml, parsingContext);
+            prismObject = prismContext.parserFor(xml).context(parsingContext).parse();
 			// TODO enable if needed
 //			if (parsingContext.hasWarnings()) {
 //				for (String warning : parsingContext.getWarnings()) {
@@ -533,10 +533,10 @@ public class ObjectRetriever {
             if (item.getDefinition() == null) {
                 RValueType rValType = (RValueType) value[2];
                 if (rValType == RValueType.PROPERTY) {
-                    PrismPropertyDefinition<Object> def = new PrismPropertyDefinition<Object>(name, type, object.getPrismContext());
+                    PrismPropertyDefinition<Object> def = new PrismPropertyDefinitionImpl<Object>(name, type, object.getPrismContext());
                     item.applyDefinition(def, true);
                 } else if (rValType == RValueType.REFERENCE) {
-                    PrismReferenceDefinition def = new PrismReferenceDefinition(name, type, object.getPrismContext());
+                    PrismReferenceDefinition def = new PrismReferenceDefinitionImpl(name, type, object.getPrismContext());
                     item.applyDefinition(def, true);
                 } else {
                     throw new UnsupportedOperationException("Unsupported value type " + rValType);

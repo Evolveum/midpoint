@@ -22,6 +22,7 @@ import java.io.IOException;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.prism.PrismPropertyDefinitionImpl;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 import org.xml.sax.SAXException;
@@ -162,7 +163,7 @@ public class TestMappingTime {
 		
 		builder.setNow(TIME_PAST);
 		
-		PrismPropertyDefinition<Boolean> existenceDef = new PrismPropertyDefinition<Boolean>(
+		PrismPropertyDefinition<Boolean> existenceDef = new PrismPropertyDefinitionImpl<Boolean>(
 				ExpressionConstants.OUTPUT_ELMENT_NAME, 
 				DOMUtil.XSD_BOOLEAN, evaluator.getPrismContext());
 		builder.setDefaultTargetDefinition(existenceDef);
@@ -193,7 +194,7 @@ public class TestMappingTime {
 
 		builder.setNow(TIME_FUTURE);
 		
-		PrismPropertyDefinition<Boolean> existenceDef = new PrismPropertyDefinition<Boolean>(
+		PrismPropertyDefinition<Boolean> existenceDef = new PrismPropertyDefinitionImpl<Boolean>(
 				ExpressionConstants.OUTPUT_ELMENT_NAME, 
 				DOMUtil.XSD_BOOLEAN, evaluator.getPrismContext());
 		builder.setDefaultTargetDefinition(existenceDef);
@@ -230,7 +231,7 @@ public class TestMappingTime {
 		
 		builder.setNow(TIME_PAST);
 		
-		PrismPropertyDefinition<Boolean> existenceDef = new PrismPropertyDefinition<Boolean>(
+		PrismPropertyDefinition<Boolean> existenceDef = new PrismPropertyDefinitionImpl<Boolean>(
 				ExpressionConstants.OUTPUT_ELMENT_NAME, 
 				DOMUtil.XSD_BOOLEAN, evaluator.getPrismContext());
 		builder.setDefaultTargetDefinition(existenceDef);
@@ -270,7 +271,7 @@ public class TestMappingTime {
 		
 		builder.setNow(TIME_PAST);
 		
-		PrismPropertyDefinition<Boolean> existenceDef = new PrismPropertyDefinition<Boolean>(
+		PrismPropertyDefinition<Boolean> existenceDef = new PrismPropertyDefinitionImpl<Boolean>(
 				ExpressionConstants.OUTPUT_ELMENT_NAME, 
 				DOMUtil.XSD_BOOLEAN, evaluator.getPrismContext());
 		builder.setDefaultTargetDefinition(existenceDef);
@@ -309,7 +310,7 @@ public class TestMappingTime {
 		
 		builder.setNow(TIME_FUTURE);
 		
-		PrismPropertyDefinition<Boolean> existenceDef = new PrismPropertyDefinition<Boolean>(
+		PrismPropertyDefinition<Boolean> existenceDef = new PrismPropertyDefinitionImpl<Boolean>(
 				ExpressionConstants.OUTPUT_ELMENT_NAME, 
 				DOMUtil.XSD_BOOLEAN, evaluator.getPrismContext());
 		builder.setDefaultTargetDefinition(existenceDef);

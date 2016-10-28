@@ -5,16 +5,11 @@ import static org.testng.AssertJUnit.assertNotNull;
 
 import java.io.IOException;
 
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.validation.Schema;
-import javax.xml.validation.Validator;
-
 import org.testng.annotations.Test;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
 
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.foo.UserType;
 import com.evolveum.midpoint.util.DOMUtil;
 
@@ -47,14 +42,14 @@ public class TestPrismParsingXml extends TestPrismParsing {
 		PrismContext prismContext = constructInitializedPrismContext();
 		
 		// WHEN
-		PrismObject<UserType> user = prismContext.parseObject(userElement);
+		PrismObject<UserType> user = prismContext.parserFor(userElement).parse();
 		
 		// THEN
 		System.out.println("User:");
 		System.out.println(user.debugDump());
 		assertNotNull(user);
 		
-		assertUserJack(user);
+		assertUserJack(user, true);
 	}
 	
 	@Test
@@ -69,22 +64,22 @@ public class TestPrismParsingXml extends TestPrismParsing {
 		PrismContext prismContext = constructInitializedPrismContext();
 		
 		// WHEN
-		PrismObject<UserType> user = prismContext.parseObject(userElement);
+		PrismObject<UserType> user = prismContext.parserFor(userElement).parse();
 		
 		// THEN
 		System.out.println("User:");
 		System.out.println(user.debugDump());
 		assertNotNull(user);
 		
-		assertUserAdhoc(user);
+		assertUserAdhoc(user, true);
 	}
 	
 	@Override
 	protected void validateXml(String xmlString, PrismContext prismContext) throws SAXException, IOException {
-		Document xmlDocument = DOMUtil.parseDocument(xmlString);
-		Schema javaxSchema = prismContext.getSchemaRegistry().getJavaxSchema();
-		Validator validator = javaxSchema.newValidator();
-		validator.setResourceResolver(prismContext.getSchemaRegistry());
-		validator.validate(new DOMSource(xmlDocument));
+//		Document xmlDocument = DOMUtil.parseDocument(xmlString);
+//		Schema javaxSchema = prismContext.getSchemaRegistry().getJavaxSchema();
+//		Validator validator = javaxSchema.newValidator();
+//		validator.setResourceResolver(prismContext.getEntityResolver());
+//		validator.validate(new DOMSource(xmlDocument));
 	}
 }

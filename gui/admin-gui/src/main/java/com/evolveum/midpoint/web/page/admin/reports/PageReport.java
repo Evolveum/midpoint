@@ -216,7 +216,7 @@ public class PageReport extends PageAdminReports {
 
                 OpResult opResult = null;
                 try {
-                    validateObject(value, reportHolder, true, result);
+                    validateObject(value, reportHolder, PrismContext.LANG_XML, true, result);
 
                     if(!result.isAcceptable()){
                         result.recordFatalError("Could not validate object", result.getCause());
@@ -261,7 +261,7 @@ public class PageReport extends PageAdminReports {
                 Holder<PrismObject<ReportType>> reportHolder = new Holder<>(null);
 
                 try {
-                    validateObject(object, reportHolder, true, result);
+                    validateObject(object, reportHolder, PrismContext.LANG_XML, true, result);
                     model.getObject().setObject(reportHolder.getValue());
                 } catch (Exception e){
                     LOGGER.error("Could not set object. Validation problem occured." + result.getMessage());

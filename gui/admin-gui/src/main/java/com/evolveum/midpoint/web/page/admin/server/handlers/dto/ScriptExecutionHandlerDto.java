@@ -45,7 +45,7 @@ public class ScriptExecutionHandlerDto extends HandlerDto {
 		PrismContext prismContext = ((MidPointApplication) Application.get()).getPrismContext();
 		try {
 			return WebXmlUtil.stripNamespaceDeclarations(
-					prismContext.serializeAnyData(script, SchemaConstants.SE_EXECUTE_SCRIPT, PrismContext.LANG_XML));
+					prismContext.xmlSerializer().serializeAnyData(script, SchemaConstants.SE_EXECUTE_SCRIPT));
 		} catch (SchemaException e) {
 			throw new SystemException("Couldn't serialize script: " + e.getMessage(), e);
 		}

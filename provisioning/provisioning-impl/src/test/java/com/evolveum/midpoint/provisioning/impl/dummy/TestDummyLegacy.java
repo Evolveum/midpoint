@@ -24,6 +24,7 @@ import static org.testng.AssertJUnit.assertNull;
 
 import java.io.File;
 
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -179,7 +180,7 @@ public class TestDummyLegacy extends AbstractIntegrationTest {
 		assertSuccess(result);
 		resourceTypeNative = resourceNative.asObjectable();
 
-		ResourceSchema returnedSchema = RefinedResourceSchema.getResourceSchema(resourceTypeNative, prismContext);
+		ResourceSchema returnedSchema = RefinedResourceSchemaImpl.getResourceSchema(resourceTypeNative, prismContext);
 		display("Parsed resource schema", returnedSchema);
 		assertNotNull("No parsed schema", returnedSchema);
 		
@@ -262,7 +263,7 @@ public class TestDummyLegacy extends AbstractIntegrationTest {
 		assertSuccess(result);
 		resourceTypeLegacy = resourceLegacy.asObjectable();
 
-		ResourceSchema returnedSchema = RefinedResourceSchema.getResourceSchema(resourceTypeLegacy, prismContext);
+		ResourceSchema returnedSchema = RefinedResourceSchemaImpl.getResourceSchema(resourceTypeLegacy, prismContext);
 		display("Parsed resource schema", returnedSchema);
 		assertNotNull("No parsed schema", returnedSchema);
 		

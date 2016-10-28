@@ -19,6 +19,7 @@ import java.util.List;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.prism.PrismPropertyDefinitionImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -82,7 +83,7 @@ public abstract class AbstractScannerTaskHandler<O extends ObjectType, H extends
 	protected void finish(H handler, TaskRunResult runResult, Task task, OperationResult opResult) throws SchemaException {
 		super.finish(handler, runResult, task, opResult);
 		
-		PrismPropertyDefinition<XMLGregorianCalendar> lastScanTimestampDef = new PrismPropertyDefinition<XMLGregorianCalendar>(
+		PrismPropertyDefinition<XMLGregorianCalendar> lastScanTimestampDef = new PrismPropertyDefinitionImpl<>(
 				SchemaConstants.MODEL_EXTENSION_LAST_SCAN_TIMESTAMP_PROPERTY_NAME,
 				DOMUtil.XSD_DATETIME, prismContext);
 		PropertyDelta<XMLGregorianCalendar> lastScanTimestampDelta = new PropertyDelta<XMLGregorianCalendar>(

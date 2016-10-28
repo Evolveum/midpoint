@@ -16,16 +16,13 @@
 
 package com.evolveum.midpoint.prism.query;
 
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * TODO think about creating abstract ItemFilter (ItemRelatedFilter) for this filter and ValueFilter.
@@ -35,18 +32,19 @@ import com.evolveum.midpoint.util.exception.SchemaException;
  */
 public class ExistsFilter extends ObjectFilter {
 
-    private ItemPath fullPath;
+	@NotNull private final ItemPath fullPath;
     private ItemDefinition definition;
     private ObjectFilter filter;
 
-    public ExistsFilter(ItemPath fullPath, ItemDefinition definition, ObjectFilter filter) {
+    public ExistsFilter(@NotNull ItemPath fullPath, ItemDefinition definition, ObjectFilter filter) {
         this.fullPath = fullPath;
         this.definition = definition;
         this.filter = filter;
         checkConsistence(true);
     }
 
-    public ItemPath getFullPath() {
+    @NotNull
+	public ItemPath getFullPath() {
         return fullPath;
     }
 
@@ -69,12 +67,13 @@ public class ExistsFilter extends ObjectFilter {
     }
 
     public static <C extends Containerable> ExistsFilter createExists(ItemPath itemPath, Class<C> clazz, PrismContext prismContext,
-                                                                      ObjectFilter filter) throws SchemaException {
+                                                                      ObjectFilter filter) {
         ItemDefinition itemDefinition = FilterUtils.findItemDefinition(itemPath, clazz, prismContext);
         return new ExistsFilter(itemPath, itemDefinition, filter);
     }
 
-    @Override
+    @SuppressWarnings("CloneDoesntCallSuperClone")
+	@Override
     public ObjectFilter clone() {
         ObjectFilter f = filter != null ? filter.clone() : null;
         return new ExistsFilter(fullPath, definition, f);
@@ -91,7 +90,7 @@ public class ExistsFilter extends ObjectFilter {
     
     @Override
 	public void checkConsistence(boolean requireDefinitions) {
-		if (fullPath == null || fullPath.isEmpty()) {
+		if (fullPath.isEmpty()) {
 			throw new IllegalArgumentException("Null or empty path in "+this);
 		}
         if (requireDefinitions && definition == null) {
@@ -157,7 +156,7 @@ public class ExistsFilter extends ObjectFilter {
 
 		ExistsFilter that = (ExistsFilter) o;
 
-		if (fullPath != null ? !fullPath.equals(that.fullPath, exact) : that.fullPath != null)
+		if (!fullPath.equals(that.fullPath, exact))
 			return false;
 		if (exact) {
 			if (definition != null ? !definition.equals(that.definition) : that.definition != null)

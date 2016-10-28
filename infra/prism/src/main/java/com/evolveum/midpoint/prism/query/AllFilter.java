@@ -37,6 +37,7 @@ public class AllFilter extends ObjectFilter {
 		return new AllFilter();
 	}
 	
+	@SuppressWarnings("CloneDoesntCallSuperClone")
 	@Override
 	public AllFilter clone() {
 		return new AllFilter();
@@ -58,7 +59,6 @@ public class AllFilter extends ObjectFilter {
 		DebugUtil.indentDebugDump(sb, indent);
 		sb.append("ALL");
 		return sb.toString();
-
 	}
 	
 	@Override

@@ -72,7 +72,7 @@ public class AssignExecutor extends BaseActionExecutor {
 
         Collection<ObjectReferenceType> resources;
         if (resourceParameterValue != null) {
-            Data data = expressionHelper.evaluateParameter(resourceParameterValue, input, context, result);
+            Data data = expressionHelper.evaluateParameter(resourceParameterValue, null, input, context, result);
             resources = data.getDataAsReferences(ResourceType.COMPLEX_TYPE);
         } else {
             resources = null;
@@ -80,7 +80,7 @@ public class AssignExecutor extends BaseActionExecutor {
 
         Collection<ObjectReferenceType> roles;
         if (roleParameterValue != null) {
-            Data data = expressionHelper.evaluateParameter(roleParameterValue, input, context, result);
+            Data data = expressionHelper.evaluateParameter(roleParameterValue, null, input, context, result);
             roles = data.getDataAsReferences(RoleType.COMPLEX_TYPE);
         } else {
             roles = null;

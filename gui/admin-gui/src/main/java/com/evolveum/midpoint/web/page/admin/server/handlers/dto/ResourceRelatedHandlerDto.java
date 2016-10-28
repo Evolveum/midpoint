@@ -1,6 +1,7 @@
 package com.evolveum.midpoint.web.page.admin.server.handlers.dto;
 
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.*;
@@ -155,7 +156,7 @@ public class ResourceRelatedHandlerDto extends HandlerDto implements HandlerDtoE
 					pageBase, task, result);
 
 			try {
-				ResourceSchema schema = RefinedResourceSchema.getResourceSchema(resource, pageBase.getPrismContext());
+				ResourceSchema schema = RefinedResourceSchemaImpl.getResourceSchema(resource, pageBase.getPrismContext());
 				schema.getObjectClassDefinitions();
 
 				for(Definition def: schema.getDefinitions()){

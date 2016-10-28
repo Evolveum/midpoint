@@ -66,7 +66,7 @@ public class TestPrismContext {
 		System.out.println("===[ testPrefixMapper ]===");
 		
 		// WHEN
-		PrismContext prismContext = constructInitializedPrismContext();
+		PrismContextImpl prismContext = constructInitializedPrismContext();
 		
 		// THEN
 		assertNotNull("No prism context", prismContext);

@@ -5,7 +5,7 @@
       xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
       xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
       oid="a5bcd1cc-eb8a-469e-8ff2-3f5c6f97c463"
-      version="11">
+      version="12">
    <name>group metarole</name>
    <metadata>
       <createTimestamp>2016-07-14T13:31:38.481+02:00</createTimestamp>
@@ -17,7 +17,7 @@
    <inducement id="1">
       <construction>
          <resourceRef xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-                      oid="2273edee-da5b-42ca-98e3-5563a7e5323a"
+                      oid="714a197f-fa15-4eac-8f90-f1f2dfdcafc4"
                       type="tns:ResourceType"><!-- salesforce-scim-connector --></resourceRef>
          <kind>account</kind>
          <intent>default</intent>

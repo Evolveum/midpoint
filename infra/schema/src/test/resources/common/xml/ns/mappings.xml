@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2016 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<mappings xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+         xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+		 xmlns:x="http://example.com/xxx"
+		 xmlns:y="http://example.com/yyy"
+		xsi:type="c:MappingsType">
+	<mapping>
+	<source>
+    	<path>$user/name</path>
+    </source>
+	<expression>
+		<variable>
+			<name>x:foo</name>
+	    	<value xsi:type="xsd:string">Captain</value>
+	    </variable>
+	    <variable>
+	    	<name>y:sailor</name>
+	    	<objectRef oid="c0c010c0-d34d-b33f-f00d-111111111112" type="UserType"/>
+	    </variable>
+		<script>
+			<language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
+			<code>
+				foo + ' ' + sailor.getName()
+			</code>
+		</script>
+	</expression>
+	</mapping>
+</mappings>
