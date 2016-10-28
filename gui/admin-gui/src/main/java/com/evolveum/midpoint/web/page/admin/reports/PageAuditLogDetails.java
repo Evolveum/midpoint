@@ -15,9 +15,11 @@ import com.evolveum.midpoint.web.page.admin.PageAdminObjectDetails;
 import com.evolveum.midpoint.web.page.admin.reports.dto.AuditEventRecordProvider;
 import com.evolveum.midpoint.web.page.admin.reports.dto.AuditSearchDto;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.ProcessInstanceDto;
+import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventStageType;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventTypeType;
 import org.apache.wicket.RestartResponseException;
+import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
@@ -101,6 +103,7 @@ public class PageAuditLogDetails extends PageBase{
 
 	private static final String ID_BUTTON_BACK = "back";
 	private static final String TASK_IDENTIFIER_PARAMETER = "taskIdentifier";
+	private static final int TASK_EVENTS_TABLE_SIZE = 10;
 
     private static final String OPERATION_RESOLVE_REFENRENCE_NAME = PageAuditLogDetails.class.getSimpleName()
             + ".resolveReferenceName()";
@@ -142,31 +145,44 @@ public class PageAuditLogDetails extends PageBase{
 
 
         BoxedTablePanel<AuditEventRecordType> table = new BoxedTablePanel<AuditEventRecordType>(
-                ID_HISTORY_PANEL, provider, initColumns()) {
+                ID_HISTORY_PANEL, provider, initColumns(), UserProfileStorage.TableId.TASK_EVENTS_TABLE, TASK_EVENTS_TABLE_SIZE) {
 
             @Override
-            protected Item<AuditEventRecordType> customizeNewRowItem(Item<AuditEventRecordType> item,
+            protected Item<AuditEventRecordType> customizeNewRowItem(final Item<AuditEventRecordType> item,
                                                                    final IModel<AuditEventRecordType> rowModel) {
 
+                if (rowModel.getObject().getTimestamp().equals(recordModel.getObject().getTimestamp())){
+                    item.add(new AttributeAppender("style", "background-color: #eee; border-color: #d6d6d6; color: #000"));
+                }
 
-                item.add(new AttributeAppender("style", new AbstractReadOnlyModel<String>() {
+                item.add(new AjaxEventBehavior("click") {
+                    private static final long serialVersionUID = 1L;
 
                     @Override
-                    public String getObject() {
-//                        if (rowModel.getObject().isSelected()){
-//                            return "background-color: #eee; border-color: #d6d6d6; color: #000;";
-//                        } else {
-//                            return "";
-//                        }
-                        return "";
+                    protected void onEvent(AjaxRequestTarget target) {
+                        PageAuditLogDetails.this.rowItemClickPerformed(target, item, rowModel);
                     }
-                }));
+                });
                 return item;
             }
         };
+        table.getFooterMenu().setVisible(false);
+        table.getFooterCountLabel().setVisible(false);
+
         table.setOutputMarkupId(true);
         table.setAdditionalBoxCssClasses("without-box-header-top-border");
-        eventPanel.add(table);
+        eventPanel.addOrReplace(table);
+
+    }
+
+    protected void rowItemClickPerformed(AjaxRequestTarget target,
+                                         Item<AuditEventRecordType> item, final IModel<AuditEventRecordType> rowModel){
+        recordModel.setObject(rowModel.getObject());
+        WebMarkupContainer eventPanel = (WebMarkupContainer)PageAuditLogDetails.this.get(ID_EVENT_PANEL);
+        initAuditLogHistoryPanel(eventPanel);
+        initEventPanel(eventPanel);
+        initDeltasPanel(eventPanel);
+        target.add(eventPanel);
 
     }
 
@@ -227,7 +243,7 @@ public class PageAuditLogDetails extends PageBase{
 
 		WebMarkupContainer eventDetailsPanel = new WebMarkupContainer(ID_EVENT_DETAILS_PANEL);
 		eventDetailsPanel.setOutputMarkupId(true);
-		eventPanel.add(eventDetailsPanel);
+		eventPanel.addOrReplace(eventDetailsPanel);
 
 		final Label identifier = new Label(ID_PARAMETERS_EVENT_IDENTIFIER , new PropertyModel(recordModel,ID_PARAMETERS_EVENT_IDENTIFIER));
 		identifier.setOutputMarkupId(true);
@@ -329,7 +345,7 @@ public class PageAuditLogDetails extends PageBase{
 			
 			
 		}
-		eventPanel.add(deltaScene);
+		eventPanel.addOrReplace(deltaScene);
 
 	}
 

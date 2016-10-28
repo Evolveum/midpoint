@@ -20,7 +20,10 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.page.admin.reports.component.AuditLogViewerPanel;
+import com.evolveum.midpoint.web.page.admin.reports.dto.AuditSearchDto;
+import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventStageType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
 /**
  * Created by honchar.
@@ -35,7 +38,14 @@ public class ObjectHistoryTabPanel<F extends FocusType> extends AbstractObjectTa
     }
 
     private void initLayout(LoadableModel<ObjectWrapper<F>> focusWrapperModel, PageBase page) {
-        AuditLogViewerPanel panel = new AuditLogViewerPanel(ID_MAIN_PANEL, page, focusWrapperModel.getObject().getOid());
+        AuditSearchDto searchDto = new AuditSearchDto();
+        ObjectReferenceType ort = new ObjectReferenceType();
+        ort.setOid(focusWrapperModel.getObject().getOid());
+        searchDto.setTargetName(ort);
+
+        searchDto.setEventStage(AuditEventStageType.EXECUTION);
+
+        AuditLogViewerPanel panel = new AuditLogViewerPanel(ID_MAIN_PANEL, page, searchDto);
         panel.setOutputMarkupId(true);
         add(panel);
     }
