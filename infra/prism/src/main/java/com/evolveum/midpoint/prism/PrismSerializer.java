@@ -105,16 +105,6 @@ public interface PrismSerializer<T> {
 	@NotNull
 	T serialize(@NotNull RootXNode xnode) throws SchemaException;
 
-	/**
-	 * Serializes an atomic value - i.e. something that fits into a prism property (if such a property would exist).
-	 *
-	 * value Value to be serialized.
-	 * elementName Element name to be used.
-	 *
-	 * BEWARE, currently works only for values that can be processed via PrismBeanConvertor - i.e. not for special
-	 * cases like PolyStringType, ProtectedStringType, etc.
-	 */
-
 	T serialize(JAXBElement<?> value) throws SchemaException;
 	T serializeRealValue(Object value) throws SchemaException;
 	T serializeRealValue(Object value, QName rootName) throws SchemaException;
