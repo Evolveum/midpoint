@@ -27,6 +27,8 @@ import java.io.Serializable;
 import java.util.Collection;
 
 /**
+ * TODO rename to PrismValue and rename existing PrismValue to PrismValueImpl
+ *
  * @author semancik
  * @author mederly
  */

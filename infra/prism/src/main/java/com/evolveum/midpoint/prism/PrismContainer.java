@@ -665,8 +665,8 @@ public class PrismContainer<C extends Containerable> extends Item<PrismContainer
     
 	@Override
 	protected void checkDefinition(PrismContainerDefinition<C> def) {
-		if (!(def instanceof PrismContainerDefinition<?>)) {
-			throw new IllegalArgumentException("Definition "+def+" cannot be applied to container "+this);
+		if (def == null) {
+			throw new IllegalArgumentException("Null definition cannot be applied to container "+this);
 		}
 	}
 		
