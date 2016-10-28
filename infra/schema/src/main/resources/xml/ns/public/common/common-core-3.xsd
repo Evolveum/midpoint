@@ -9480,7 +9480,17 @@
                         </xsd:annotation>
                     </xsd:element>
                     
-                    <xsd:element name="defaultHostname" type="xsd:string" minOccurs="0"></xsd:element>
+                    <xsd:element name="defaultHostname" type="xsd:string" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Hostname that will be used as a public hostname for the midPoint deployment.
+                                E.g. it will be used in URLs that point to the midPoint in notification mails.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                            	<a:since>3.5</a:since>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
                     
                 </xsd:sequence>
             </xsd:extension>
@@ -12929,6 +12939,7 @@
 		<xsd:complexContent>
 			<xsd:extension base="tns:ItemMergeConfigurationType">
 				<xsd:sequence>
+					<xsd:element name="situation" type="tns:ProjectionMergeSituationType" minOccurs="0" maxOccurs="1"/>
 					<xsd:element name="projectionDiscriminator" type="tns:ShadowDiscriminatorType" minOccurs="0" maxOccurs="1"/>
 				</xsd:sequence>
 			</xsd:extension>
@@ -12975,7 +12986,50 @@
 			<!-- TODO: values for manual selection may come here in the future. -->
 		</xsd:restriction>
 	</xsd:simpleType>
-	
+
+	<xsd:simpleType name="ProjectionMergeSituationType">
+		<xsd:annotation>
+			<xsd:documentation>
+				TODO
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="existing">
+				<xsd:annotation>
+					<xsd:documentation>
+						Projection exists on the left side. There is no conflicting
+						projection on the right side.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="EXISTING"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+			<xsd:enumeration value="mergeable">
+				<xsd:annotation>
+					<xsd:documentation>
+						Projection exists on the right side. There is no conflicting
+						projection on the left side. The projection can be merged.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="MERGEABLE"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+			<xsd:enumeration value="conflict">
+				<xsd:annotation>
+					<xsd:documentation>
+						There are two conflicting projections, one on the left side
+						other on the right side.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="CONFLICT"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+		</xsd:restriction>
+	</xsd:simpleType>
+
 	<xsd:complexType name="CachingPolicyType">
 		<xsd:annotation>
 			<xsd:documentation>
