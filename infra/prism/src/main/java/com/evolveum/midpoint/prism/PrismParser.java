@@ -208,6 +208,7 @@ public interface PrismParser {
 	 *
 	 * @return either prism item (Item) or a real value (Object)
 	 */
+	@Deprecated
 	Object parseItemOrRealValue() throws IOException, SchemaException;
 
 
