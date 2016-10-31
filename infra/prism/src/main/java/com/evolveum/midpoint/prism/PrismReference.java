@@ -28,6 +28,7 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Object Reference is a property that describes reference to an object. It is
@@ -112,7 +113,7 @@ public class PrismReference extends Item<PrismReferenceValue,PrismReferenceDefin
 	}
 
     
-    public boolean add(PrismReferenceValue value) {
+    public boolean add(@NotNull PrismReferenceValue value) {
     	value.setParent(this);
     	return getValues().add(value);
     }

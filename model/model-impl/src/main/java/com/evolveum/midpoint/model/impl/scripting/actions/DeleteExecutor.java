@@ -22,6 +22,8 @@ import com.evolveum.midpoint.model.api.ScriptExecutionException;
 import com.evolveum.midpoint.model.impl.scripting.helpers.OperationsHelper;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismObjectValue;
+import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -58,9 +60,9 @@ public class DeleteExecutor extends BaseActionExecutor {
         boolean raw = getParamRaw(expression, input, context, result);
         boolean dryRun = getParamDryRun(expression, input, context, result);
 
-        for (Item item : input.getData()) {
-            if (item instanceof PrismObject) {
-                PrismObject<? extends ObjectType> prismObject = (PrismObject) item;
+        for (PrismValue item : input.getData()) {
+            if (item instanceof PrismObjectValue) {
+                PrismObject<? extends ObjectType> prismObject = ((PrismObjectValue) item).asPrismObject();
                 ObjectType objectType = prismObject.asObjectable();
                 long started = operationsHelper.recordStart(context, objectType);
                 try {
@@ -70,7 +72,7 @@ public class DeleteExecutor extends BaseActionExecutor {
                     operationsHelper.recordEnd(context, objectType, started, ex);
                     throw ex;   // TODO think about this
                 }
-                context.println("Deleted " + item.toString() + rawDrySuffix(raw, dryRun));
+                context.println("Deleted " + prismObject.toString() + rawDrySuffix(raw, dryRun));
             } else {
                 throw new ScriptExecutionException("Item couldn't be deleted, because it is not a PrismObject: " + item.toString());
             }

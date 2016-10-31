@@ -19,8 +19,7 @@ package com.evolveum.midpoint.model.impl.scripting.actions;
 import com.evolveum.midpoint.model.impl.scripting.Data;
 import com.evolveum.midpoint.model.impl.scripting.ExecutionContext;
 import com.evolveum.midpoint.model.api.ScriptExecutionException;
-import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.query.AndFilter;
@@ -75,9 +74,9 @@ public class DiscoverConnectorsExecutor extends BaseActionExecutor {
 
         Data output = Data.createEmpty();
 
-        for (Item item : input.getData()) {
-            if (item instanceof PrismObject && ((PrismObject) item).asObjectable() instanceof ConnectorHostType) {
-                PrismObject<ConnectorHostType> connectorHostTypePrismObject = (PrismObject) item;
+        for (PrismValue value: input.getData()) {
+            if (value instanceof PrismObjectValue && ((PrismObjectValue) value).asObjectable() instanceof ConnectorHostType) {
+                PrismObject<ConnectorHostType> connectorHostTypePrismObject = ((PrismObjectValue) value).asPrismObject();
                 Set<ConnectorType> newConnectors;
                 long started = operationsHelper.recordStart(context, connectorHostTypePrismObject.asObjectable());
                 try {
@@ -95,7 +94,7 @@ public class DiscoverConnectorsExecutor extends BaseActionExecutor {
                     rebindConnectors(newConnectors, context, result);
                 }
             } else {
-                throw new ScriptExecutionException("Input is not a PrismObject<ConnectorHost>: " + item.toString());
+                throw new ScriptExecutionException("Input is not a PrismObject<ConnectorHost>: " + value.toString());
             }
         }
         return output;

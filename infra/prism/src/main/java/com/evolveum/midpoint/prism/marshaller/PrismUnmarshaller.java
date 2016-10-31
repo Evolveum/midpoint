@@ -233,17 +233,23 @@ public class PrismUnmarshaller {
             @NotNull PrismContainerDefinition<C> containerDef, @NotNull ParsingContext pc) throws SchemaException {
         Long id = getContainerId(map);
 
-        // override container definition, if explicit type is specified
         ComplexTypeDefinition complexTypeDefinition = containerDef.getComplexTypeDefinition();
-        if (map.getTypeQName() != null) {
-            ComplexTypeDefinition specificDef = getSchemaRegistry().findComplexTypeDefinitionByType(map.getTypeQName());
-            if (specificDef != null) {
-                complexTypeDefinition = specificDef;
-            } else {
-                pc.warnOrThrow(LOGGER, "Unknown type " + map.getTypeQName() + " in " + map);
+
+        PrismContainerValue<C> cval;
+        if (containerDef instanceof PrismObjectDefinition) {
+            cval = ((PrismObjectDefinition) containerDef).createValue();
+        } else {
+            // override container definition, if explicit type is specified
+            if (map.getTypeQName() != null) {
+                ComplexTypeDefinition specificDef = getSchemaRegistry().findComplexTypeDefinitionByType(map.getTypeQName());
+                if (specificDef != null) {
+                    complexTypeDefinition = specificDef;
+                } else {
+                    pc.warnOrThrow(LOGGER, "Unknown type " + map.getTypeQName() + " in " + map);
+                }
             }
+            cval = new PrismContainerValue<>(null, null, null, id, complexTypeDefinition, prismContext);
         }
-        PrismContainerValue<C> cval = new PrismContainerValue<>(null, null, null, id, complexTypeDefinition, prismContext);
         for (Entry<QName, XNode> entry : map.entrySet()) {
             QName itemName = entry.getKey();
             if (itemName == null) {

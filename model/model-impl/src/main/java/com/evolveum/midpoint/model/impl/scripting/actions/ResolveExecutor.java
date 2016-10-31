@@ -19,10 +19,7 @@ package com.evolveum.midpoint.model.impl.scripting.actions;
 import com.evolveum.midpoint.model.impl.scripting.Data;
 import com.evolveum.midpoint.model.impl.scripting.ExecutionContext;
 import com.evolveum.midpoint.model.api.ScriptExecutionException;
-import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismReference;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -59,24 +56,22 @@ public class ResolveExecutor extends BaseActionExecutor {
 
         Data output = Data.createEmpty();
 
-        for (Item item : input.getData()) {
-            if (item instanceof PrismReference) {
-                PrismReference prismReference = (PrismReference) item;
-                for (PrismReferenceValue prismReferenceValue : prismReference.getValues()) {
-                    String oid = prismReferenceValue.getOid();
-                    QName targetTypeQName = prismReferenceValue.getTargetType();
-                    if (targetTypeQName == null) {
-                        throw new ScriptExecutionException("Couldn't resolve reference, because target type is unknown: " + prismReferenceValue);
-                    }
-                    Class<? extends ObjectType> typeClass = (Class) prismContext.getSchemaRegistry().determineCompileTimeClass(targetTypeQName);
-                    if (typeClass == null) {
-                        throw new ScriptExecutionException("Couldn't resolve reference, because target type class is unknown for target type " + targetTypeQName);
-                    }
-                    PrismObject<? extends ObjectType> prismObject = operationsHelper.getObject(typeClass, oid, noFetch, context, result);
-                    output.addItem(prismObject);
+        for (PrismValue value : input.getData()) {
+            if (value instanceof PrismReferenceValue) {
+                PrismReferenceValue prismReferenceValue = (PrismReferenceValue) value;
+                String oid = prismReferenceValue.getOid();
+                QName targetTypeQName = prismReferenceValue.getTargetType();
+                if (targetTypeQName == null) {
+                    throw new ScriptExecutionException("Couldn't resolve reference, because target type is unknown: " + prismReferenceValue);
                 }
+                Class<? extends ObjectType> typeClass = (Class) prismContext.getSchemaRegistry().determineCompileTimeClass(targetTypeQName);
+                if (typeClass == null) {
+                    throw new ScriptExecutionException("Couldn't resolve reference, because target type class is unknown for target type " + targetTypeQName);
+                }
+                PrismObject<? extends ObjectType> prismObject = operationsHelper.getObject(typeClass, oid, noFetch, context, result);
+                output.addValue(prismObject.getValue());
             } else {
-                throw new ScriptExecutionException("Item could not be resolved, because it is not a PrismReference: " + item.toString());
+                throw new ScriptExecutionException("Item could not be resolved, because it is not a PrismReference: " + value.toString());
             }
 		}
         return output;

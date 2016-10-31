@@ -19,9 +19,7 @@ package com.evolveum.midpoint.model.impl.scripting.actions;
 import com.evolveum.midpoint.model.impl.scripting.Data;
 import com.evolveum.midpoint.model.impl.scripting.ExecutionContext;
 import com.evolveum.midpoint.model.api.ScriptExecutionException;
-import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -63,9 +61,9 @@ public class ModifyExecutor extends BaseActionExecutor {
         ActionParameterValueType deltaParameterValue = expressionHelper.getArgument(expression.getParameter(), PARAM_DELTA, true, true, NAME);
         Data deltaData = expressionHelper.evaluateParameter(deltaParameterValue, ObjectDeltaType.class, input, context, result);
 
-        for (Item item : input.getData()) {
-            if (item instanceof PrismObject) {
-                PrismObject<? extends ObjectType> prismObject = (PrismObject) item;
+        for (PrismValue value : input.getData()) {
+            if (value instanceof PrismObjectValue) {
+                PrismObject<? extends ObjectType> prismObject = ((PrismObjectValue) value).asPrismObject();
                 ObjectType objectType = prismObject.asObjectable();
                 long started = operationsHelper.recordStart(context, objectType);
                 try {
@@ -75,9 +73,9 @@ public class ModifyExecutor extends BaseActionExecutor {
                     operationsHelper.recordEnd(context, objectType, started, ex);
                     throw ex;
                 }
-                context.println("Modified " + item.toString() + rawDrySuffix(raw, dryRun));
+                context.println("Modified " + prismObject.toString() + rawDrySuffix(raw, dryRun));
             } else {
-                throw new ScriptExecutionException("Item could not be modified, because it is not a PrismObject: " + item.toString());
+                throw new ScriptExecutionException("Item could not be modified, because it is not a PrismObject: " + value.toString());
             }
         }
         return Data.createEmpty();
@@ -87,7 +85,7 @@ public class ModifyExecutor extends BaseActionExecutor {
         if (deltaData.getData().size() != 1) {
             throw new ScriptExecutionException("Expected exactly one delta to apply, found "  + deltaData.getData().size() + " instead.");
         }
-        ObjectDeltaType deltaType = ((PrismProperty<ObjectDeltaType>) deltaData.getData().get(0)).getAnyRealValue().clone();
+        ObjectDeltaType deltaType = ((PrismPropertyValue<ObjectDeltaType>) deltaData.getData().get(0)).clone().getRealValue();
         if (deltaType.getChangeType() == null) {
             deltaType.setChangeType(ChangeTypeType.MODIFY);
         }
