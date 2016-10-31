@@ -17,14 +17,25 @@ package com.evolveum.midpoint.web.component.objectdetails;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.DateLabelComponent;
 import com.evolveum.midpoint.web.component.data.column.DoubleButtonColumn;
 import com.evolveum.midpoint.web.component.data.column.MultiButtonColumn;
 import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.page.admin.PageAdminObjectDetails;
 import com.evolveum.midpoint.web.page.admin.reports.component.AuditLogViewerPanel;
 import com.evolveum.midpoint.web.page.admin.reports.dto.AuditSearchDto;
 import com.evolveum.midpoint.web.page.admin.users.PageUser;
+import com.evolveum.midpoint.web.page.admin.users.PageUserHistory;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventStageType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDefinitionType;
@@ -36,7 +47,6 @@ import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -44,14 +54,17 @@ import java.util.List;
  */
 public class ObjectHistoryTabPanel<F extends FocusType> extends AbstractObjectTabPanel<F> {
     private static final String ID_MAIN_PANEL = "mainPanel";
+    private static final Trace LOGGER = TraceManager.getTrace(ObjectHistoryTabPanel.class);
+    private static final String DOT_CLASS = ObjectHistoryTabPanel.class.getName() + ".";
+    private static final String OPERATION_RESTRUCT_OBJECT = DOT_CLASS + "restructObject";
 
     public ObjectHistoryTabPanel(String id, Form mainForm, LoadableModel<ObjectWrapper<F>> focusWrapperModel,
-                                     PageBase page) {
-        super(id, mainForm, focusWrapperModel, page);
-        initLayout(focusWrapperModel, page);
+                                 PageAdminObjectDetails<F> parentPage) {
+        super(id, mainForm, focusWrapperModel, parentPage);
+        initLayout(focusWrapperModel, parentPage);
     }
 
-    private void initLayout(final LoadableModel<ObjectWrapper<F>> focusWrapperModel, PageBase page) {
+    private void initLayout(final LoadableModel<ObjectWrapper<F>> focusWrapperModel, final PageAdminObjectDetails<F> page) {
         AuditSearchDto searchDto = new AuditSearchDto();
         ObjectReferenceType ort = new ObjectReferenceType();
         ort.setOid(focusWrapperModel.getObject().getOid());
@@ -59,14 +72,14 @@ public class ObjectHistoryTabPanel<F extends FocusType> extends AbstractObjectTa
 
         searchDto.setEventStage(AuditEventStageType.EXECUTION);
 
-        AuditLogViewerPanel panel = new AuditLogViewerPanel(ID_MAIN_PANEL, page, searchDto){
+        AuditLogViewerPanel panel = new AuditLogViewerPanel(ID_MAIN_PANEL, page, searchDto) {
             @Override
-            protected boolean isTargetNameVisible(){
+            protected boolean isTargetNameVisible() {
                 return false;
             }
 
             @Override
-            protected boolean isEventStageVisible(){
+            protected boolean isEventStageVisible() {
                 return false;
             }
 
@@ -91,23 +104,33 @@ public class ObjectHistoryTabPanel<F extends FocusType> extends AbstractObjectTa
                         return colors[id].toString();
                     }
 
-                   @Override
+                    @Override
                     protected String getButtonCssClass(int id) {
-                       StringBuilder sb = new StringBuilder();
-                       sb.append(DoubleButtonColumn.BUTTON_BASE_CLASS).append(" ");
-                       sb.append(getButtonColorCssClass(id)).append(" ");
-                       switch (id) {
-                           case 0:  sb.append("fa fa-circle-o"); break;
-                           case 1:  sb.append("fa fa-exchange"); break;
-                       }
-                       return sb.toString();
+                        StringBuilder sb = new StringBuilder();
+                        sb.append(DoubleButtonColumn.BUTTON_BASE_CLASS).append(" ");
+                        sb.append(getButtonColorCssClass(id)).append(" ");
+                        switch (id) {
+                            case 0:
+                                sb.append("fa fa-circle-o");
+                                break;
+                            case 1:
+                                sb.append("fa fa-exchange");
+                                break;
+                        }
+                        return sb.toString();
                     }
 
                     @Override
                     public void clickPerformed(int id, AjaxRequestTarget target, IModel<AuditEventRecordType> model) {
                         switch (id) {
-                            case 0:  currentStateButtonClicked(target, focusWrapperModel);break;
-                            case 1:  break;
+                            case 0:
+                                currentStateButtonClicked(target, focusWrapperModel.getObject().getOid(),
+                                        model.getObject().getEventIdentifier(),
+                                        WebComponentUtil.getLocalizedDate(model.getObject().getTimestamp(), DateLabelComponent.SHORT_NOTIME_STYLE),
+                                        page.getCompileTimeClass());
+                                break;
+                            case 1:
+                                break;
                         }
                     }
 
@@ -117,13 +140,24 @@ public class ObjectHistoryTabPanel<F extends FocusType> extends AbstractObjectTa
                 return columns;
             }
 
-            };
+        };
         panel.setOutputMarkupId(true);
         add(panel);
     }
 
-    private void currentStateButtonClicked(AjaxRequestTarget target, LoadableModel<ObjectWrapper<F>> focusWrapperModel){
-        setResponsePage(new PageUser(((ObjectWrapper<UserType>)focusWrapperModel.getObject()).getObject()));
+    private void currentStateButtonClicked(AjaxRequestTarget target, String oid, String eventIdentifier,
+                                           String date, Class type) {
+        OperationResult result = new OperationResult(OPERATION_RESTRUCT_OBJECT);
+        try {
+            Task task = getPageBase().createSimpleTask(OPERATION_RESTRUCT_OBJECT);
+
+            PrismObject<F> object = WebModelServiceUtils.reconstructObject(type, oid, eventIdentifier, task, result);
+            //TODO cases for PageRoleHistory, PageOrgHistory if needed...
+            setResponsePage(new PageUserHistory((PrismObject<UserType>) object, date));
+        } catch (Exception ex) {
+            result.recordFatalError("Couldn't restruct object.", ex);
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't restruct object", ex);
+        }
     }
 
 

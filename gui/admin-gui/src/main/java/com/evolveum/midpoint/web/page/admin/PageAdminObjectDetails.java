@@ -186,7 +186,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 		WebComponentUtil.revive(parentOrgModel, getPrismContext());
 	}
 
-	protected abstract Class<O> getCompileTimeClass();
+	public abstract Class<O> getCompileTimeClass();
 
 
 	public void initialize(final PrismObject<O> objectToEdit) {

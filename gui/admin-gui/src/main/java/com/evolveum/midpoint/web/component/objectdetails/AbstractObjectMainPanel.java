@@ -117,6 +117,7 @@ public abstract class AbstractObjectMainPanel<O extends ObjectType> extends Pane
 	protected void initLayoutOptions(PageAdminObjectDetails<O> parentPage) {
 		ExecuteChangeOptionsPanel optionsPanel = new ExecuteChangeOptionsPanel(ID_EXECUTE_OPTIONS,
 				executeOptionsModel, true, false);
+        optionsPanel.setVisible(getOptionsPanelVisibility());
 		mainForm.add(optionsPanel);
 	}
 	
@@ -167,6 +168,12 @@ public abstract class AbstractObjectMainPanel<O extends ObjectType> extends Pane
 				target.add(parentPage.getFeedbackPanel());
 			}
 		};
+        previewButton.add(new VisibleEnableBehaviour(){
+            @Override
+            public boolean isVisible(){
+                return !getObjectWrapper().isReadonly();
+            }
+        });
 		mainForm.add(previewButton);
 	}
 
@@ -193,4 +200,8 @@ public abstract class AbstractObjectMainPanel<O extends ObjectType> extends Pane
 	protected PageAdminObjectDetails<O> getDetailsPage() {
 		return (PageAdminObjectDetails<O>)getPage();
 	}
+
+    protected boolean getOptionsPanelVisibility(){
+        return true;
+    }
 }

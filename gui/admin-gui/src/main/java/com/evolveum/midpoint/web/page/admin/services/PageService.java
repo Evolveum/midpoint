@@ -43,7 +43,7 @@ private static final Trace LOGGER = TraceManager.getTrace(PageService.class);
 	}	
 
 	@Override
-	protected Class<ServiceType> getCompileTimeClass() {
+    public Class<ServiceType> getCompileTimeClass() {
 		return ServiceType.class;
 	}
 

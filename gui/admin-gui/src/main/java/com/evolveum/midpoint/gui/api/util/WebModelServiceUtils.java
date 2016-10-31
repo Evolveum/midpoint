@@ -547,4 +547,16 @@ public class WebModelServiceUtils {
 
         return task;
     }
+
+    public static <O extends ObjectType> PrismObject<O> reconstructObject(Class<O> type,
+                                 String oid, String eventIdentifier, Task task, OperationResult result){
+        try {
+            MidPointApplication application = (MidPointApplication) MidPointApplication.get();
+            return application.getAuditService().reconstructObject(type, oid, eventIdentifier, task, result);
+        } catch (Exception ex){
+            LOGGER.debug("Error occurred while reconsructing the object, " + ex.getMessage());
+        }
+        return null;
+    }
+
 }

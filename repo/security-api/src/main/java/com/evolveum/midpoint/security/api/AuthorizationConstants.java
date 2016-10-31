@@ -78,7 +78,10 @@ public class AuthorizationConstants {
 	
 	public static final QName AUTZ_UI_USER_QNAME = new QName(NS_AUTHORIZATION_UI, "user");
 	public static final String AUTZ_UI_USER_URL = NS_AUTHORIZATION_UI + "#user";
-	
+
+	public static final QName AUTZ_UI_USER_HISTORY_QNAME = new QName(NS_AUTHORIZATION_UI, "userHistory");
+	public static final String AUTZ_UI_USER_HISTORY_URL = NS_AUTHORIZATION_UI + "#userHistory";
+
 	public static final QName AUTZ_UI_USER_DETAILS_QNAME = new QName(NS_AUTHORIZATION_UI, "userDetails");
 	public static final String AUTZ_UI_USER_DETAILS_URL = NS_AUTHORIZATION_UI + "#userDetails";
 	
