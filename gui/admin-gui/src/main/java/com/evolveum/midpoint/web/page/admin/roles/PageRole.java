@@ -148,7 +148,7 @@ public class PageRole extends PageAdminAbstractRole<RoleType> implements Progres
 	}
 
 	@Override
-	protected Class<RoleType> getCompileTimeClass() {
+    public Class<RoleType> getCompileTimeClass() {
 		return RoleType.class;
 	}
 

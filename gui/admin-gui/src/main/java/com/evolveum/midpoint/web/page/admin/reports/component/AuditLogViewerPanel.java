@@ -178,8 +178,7 @@ public class AuditLogViewerPanel extends BasePanel{
         eventStageLabel.add(new VisibleEnableBehaviour(){
             @Override
         public boolean isVisible(){
-                return searchDto.getEventStage() == null ||
-                        StringUtils.isEmpty(searchDto.getEventStage().value());
+                return isTargetNameVisible();
             }
         });
         eventStageLabel.setOutputMarkupId(true);
@@ -195,8 +194,7 @@ public class AuditLogViewerPanel extends BasePanel{
         eventStage.add(new VisibleEnableBehaviour() {
             @Override
             public boolean isVisible() {
-                return searchDto.getEventStage() == null ||
-                        StringUtils.isEmpty(searchDto.getEventStage().value());
+                return isEventStageVisible();
             }
         });
         eventStage.getBaseFormComponent().add(new EmptyOnChangeAjaxFormUpdatingBehavior());
@@ -356,7 +354,7 @@ public class AuditLogViewerPanel extends BasePanel{
         mainForm.addOrReplace(table);
     }
 
-    private List<IColumn<AuditEventRecordType, String>> initColumns() {
+    protected List<IColumn<AuditEventRecordType, String>> initColumns() {
         List<IColumn<AuditEventRecordType, String>> columns = new ArrayList<IColumn<AuditEventRecordType, String>>();
         IColumn<AuditEventRecordType, String> linkColumn = new LinkColumn<AuditEventRecordType>(
                 createStringResource("AuditEventRecordType.timestamp"), "timestamp") {
@@ -394,10 +392,11 @@ public class AuditLogViewerPanel extends BasePanel{
         };
         columns.add(initiatorRefColumn);
 
-        IColumn<AuditEventRecordType, String> eventStageColumn = new PropertyColumn<AuditEventRecordType, String>(
-                createStringResource("PageAuditLogViewer.eventStageLabel"), "eventStage");
-        columns.add(eventStageColumn);
-
+        if (isEventStageVisible()) {
+            IColumn<AuditEventRecordType, String> eventStageColumn = new PropertyColumn<AuditEventRecordType, String>(
+                    createStringResource("PageAuditLogViewer.eventStageLabel"), "eventStage");
+            columns.add(eventStageColumn);
+        }
         IColumn<AuditEventRecordType, String> eventTypeColumn = new PropertyColumn<AuditEventRecordType, String>(
                 createStringResource("PageAuditLogViewer.eventTypeLabel"), "eventType");
         columns.add(eventTypeColumn);
@@ -481,5 +480,13 @@ public class AuditLogViewerPanel extends BasePanel{
 
     public WebMarkupContainer getFeedbackPanel() {
         return (FeedbackPanel) get(pageBase.createComponentPath(ID_MAIN_FORM, ID_FEEDBACK));
+    }
+
+    protected boolean isTargetNameVisible(){
+        return true;
+    }
+
+    protected boolean isEventStageVisible(){
+        return true;
     }
 }

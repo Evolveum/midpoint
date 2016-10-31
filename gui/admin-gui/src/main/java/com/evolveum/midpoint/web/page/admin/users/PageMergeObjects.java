@@ -182,7 +182,7 @@ public class PageMergeObjects<F extends FocusType> extends PageAdminFocus {
     }
 
     @Override
-    protected Class getCompileTimeClass() {
+    public Class getCompileTimeClass() {
         return UserType.class;
     }
 

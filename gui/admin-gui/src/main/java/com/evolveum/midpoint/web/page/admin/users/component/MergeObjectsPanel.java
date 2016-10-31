@@ -206,66 +206,6 @@ public class MergeObjectsPanel<F extends FocusType> extends BasePanel{
         return mergeObjectsResultPanel;
     }
 
-    private void initButtonPanel(Form mainForm){
-        AjaxSubmitButton switchDirectionButton = new AjaxSubmitButton(ID_SWITCH_DIRECTION_BUTTON, pageBase.createStringResource("PageMergeObjects.switchDirectionButton")) {
-
-            @Override
-            protected void onSubmit(AjaxRequestTarget target,
-                                    org.apache.wicket.markup.html.form.Form<?> form) {
-            }
-
-            @Override
-            protected void onError(AjaxRequestTarget target,
-                                   org.apache.wicket.markup.html.form.Form<?> form) {
-                target.add(pageBase.getFeedbackPanel());
-            }
-        };
-        mainForm.add(switchDirectionButton);
-
-        AjaxSubmitButton mergeDeltaPreviewButton = new AjaxSubmitButton(ID_MERGE_DELTA_PREVIEW_BUTTON,
-                pageBase.createStringResource("PageMergeObjects.mergeDeltaPreviewButton")) {
-
-            @Override
-            protected void onSubmit(AjaxRequestTarget target,
-                                    org.apache.wicket.markup.html.form.Form<?> form) {
-            }
-
-            @Override
-            protected void onError(AjaxRequestTarget target,
-                                   org.apache.wicket.markup.html.form.Form<?> form) {
-                target.add(pageBase.getFeedbackPanel());
-            }
-        };
-        mainForm.add(mergeDeltaPreviewButton);
-
-        AjaxSubmitButton mergeButton = new AjaxSubmitButton(ID_MERGE_BUTTON,
-                pageBase.createStringResource("PageMergeObjects.mergeButton")) {
-
-            @Override
-            protected void onSubmit(AjaxRequestTarget target,
-                                    org.apache.wicket.markup.html.form.Form<?> form) {
-            }
-
-            @Override
-            protected void onError(AjaxRequestTarget target,
-                                   org.apache.wicket.markup.html.form.Form<?> form) {
-                target.add(pageBase.getFeedbackPanel());
-            }
-        };
-        mainForm.add(mergeButton);
-
-        AjaxButton back = new AjaxButton(ID_BACK_BUTTON, pageBase.createStringResource("PageMergeObjects.backButton")) {
-
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                pageBase.redirectBack();
-            }
-
-        };
-        mainForm.add(back);
-
-    }
-
     private List<String> getMergeTypeNames(){
         List<String> mergeTypeNamesList = new ArrayList<>();
         Task task = pageBase.createAnonymousTask(OPERATION_LOAD_MERGE_TYPE_NAMES);

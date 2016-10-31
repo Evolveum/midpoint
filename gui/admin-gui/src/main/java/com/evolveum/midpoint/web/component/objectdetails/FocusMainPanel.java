@@ -115,7 +115,7 @@ public class FocusMainPanel<F extends FocusType> extends AbstractObjectMainPanel
 		// default tabs are always added to component structure, visibility is decided later in
 		// visible behavior based on adminGuiConfiguration
 		addDefaultTabs(parentPage, tabs);
-
+        addSpecificTabs(parentPage, tabs);
 		if (objectFormTypes == null) {
 			return tabs;
 		}
@@ -220,7 +220,10 @@ public class FocusMainPanel<F extends FocusType> extends AbstractObjectMainPanel
 		};
 	}
 
-	protected void addDefaultTabs(final PageAdminObjectDetails<F> parentPage, List<ITab> tabs) {
+	protected void addSpecificTabs(final PageAdminObjectDetails<F> parentPage, List<ITab> tabs) {
+    }
+
+    protected void addDefaultTabs(final PageAdminObjectDetails<F> parentPage, List<ITab> tabs) {
 		FocusTabVisibleBehavior authorization = new FocusTabVisibleBehavior(unwrapModel(),
 				ComponentConstants.UI_FOCUS_TAB_BASIC_URL);
 
@@ -299,17 +302,6 @@ public class FocusMainPanel<F extends FocusType> extends AbstractObjectMainPanel
                         }
                     });
         }
-			authorization = new FocusTabVisibleBehavior(unwrapModel(), ComponentConstants.UI_FOCUS_TAB_OBJECT_HISTORY_URL);
-            tabs.add(
-                    new PanelTab(parentPage.createStringResource("pageAdminFocus.objectHistory"), authorization) {
-
-                    	private static final long serialVersionUID = 1L;
-
-                        @Override
-                        public WebMarkupContainer createPanel(String panelId) {
-                            return createObjectHistoryTabPanel(panelId, parentPage);
-                        }
-                    });
 	}
 
 }

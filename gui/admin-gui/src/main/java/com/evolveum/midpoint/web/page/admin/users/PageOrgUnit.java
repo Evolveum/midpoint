@@ -61,7 +61,7 @@ public class PageOrgUnit extends PageAdminAbstractRole<OrgType> implements Progr
 	}	
 
 	@Override
-	protected Class<OrgType> getCompileTimeClass() {
+	public Class<OrgType> getCompileTimeClass() {
 		return OrgType.class;
 	}
 

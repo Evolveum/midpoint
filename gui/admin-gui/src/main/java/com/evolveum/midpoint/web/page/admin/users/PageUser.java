@@ -15,7 +15,13 @@
  */
 package com.evolveum.midpoint.web.page.admin.users;
 
+import com.evolveum.midpoint.gui.api.ComponentConstants;
+import com.evolveum.midpoint.gui.api.component.tabs.PanelTab;
+import com.evolveum.midpoint.gui.api.util.FocusTabVisibleBehavior;
+import com.evolveum.midpoint.web.page.admin.PageAdminObjectDetails;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.extensions.markup.html.tabs.ITab;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import com.evolveum.midpoint.prism.PrismObject;
@@ -31,6 +37,8 @@ import com.evolveum.midpoint.web.page.admin.PageAdminFocus;
 import com.evolveum.midpoint.web.page.admin.users.component.UserSummaryPanel;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+
+import java.util.List;
 
 /**
  * @author lazyman
@@ -101,12 +109,28 @@ public class PageUser extends PageAdminFocus<UserType> {
 	}
 	
 	@Override
-	protected Class getCompileTimeClass() {
+    public Class getCompileTimeClass() {
 		return UserType.class;
 	}
 
 	@Override
 	protected AbstractObjectMainPanel<UserType> createMainPanel(String id) {
-		return new FocusMainPanel<UserType>(id, getObjectModel(), getAssignmentsModel(), getProjectionModel(), this);
-	}
+        return new FocusMainPanel<UserType>(id, getObjectModel(), getAssignmentsModel(), getProjectionModel(), this) {
+            @Override
+            protected void addSpecificTabs(final PageAdminObjectDetails<UserType> parentPage, List<ITab> tabs) {
+                FocusTabVisibleBehavior authorization = new FocusTabVisibleBehavior(unwrapModel(), ComponentConstants.UI_FOCUS_TAB_OBJECT_HISTORY_URL);
+                tabs.add(
+                        new PanelTab(parentPage.createStringResource("pageAdminFocus.objectHistory"), authorization) {
+
+                            private static final long serialVersionUID = 1L;
+
+                            @Override
+                            public WebMarkupContainer createPanel(String panelId) {
+                                return createObjectHistoryTabPanel(panelId, parentPage);
+                            }
+                        });
+
+            }
+        };
+    }
 }
