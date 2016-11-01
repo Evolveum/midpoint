@@ -19,6 +19,7 @@ import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -36,12 +37,10 @@ import com.evolveum.midpoint.web.page.admin.reports.component.AuditLogViewerPane
 import com.evolveum.midpoint.web.page.admin.reports.dto.AuditSearchDto;
 import com.evolveum.midpoint.web.page.admin.users.PageUser;
 import com.evolveum.midpoint.web.page.admin.users.PageUserHistory;
+import com.evolveum.midpoint.web.page.admin.users.PageXmlDataReview;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventStageType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.model.IModel;
@@ -114,7 +113,7 @@ public class ObjectHistoryTabPanel<F extends FocusType> extends AbstractObjectTa
                                 sb.append("fa fa-circle-o");
                                 break;
                             case 1:
-                                sb.append("fa fa-exchange");
+                                sb.append("fa fa-file-text-o");
                                 break;
                         }
                         return sb.toString();
@@ -130,6 +129,10 @@ public class ObjectHistoryTabPanel<F extends FocusType> extends AbstractObjectTa
                                         page.getCompileTimeClass());
                                 break;
                             case 1:
+                                viewObjectXmlButtonClicked(focusWrapperModel.getObject().getOid(),
+                                        model.getObject().getEventIdentifier(),
+                                        page.getCompileTimeClass(),
+                                        WebComponentUtil.getLocalizedDate(model.getObject().getTimestamp(), DateLabelComponent.SHORT_NOTIME_STYLE));
                                 break;
                         }
                     }
@@ -147,18 +150,51 @@ public class ObjectHistoryTabPanel<F extends FocusType> extends AbstractObjectTa
 
     private void currentStateButtonClicked(AjaxRequestTarget target, String oid, String eventIdentifier,
                                            String date, Class type) {
+        //TODO cases for PageRoleHistory, PageOrgHistory if needed...
+        setResponsePage(new PageUserHistory((PrismObject<UserType>) getReconstructedObject(oid, eventIdentifier, type), date));
+    }
+
+    private PrismObject<F> getReconstructedObject(String oid, String eventIdentifier,
+                                                  Class type){
         OperationResult result = new OperationResult(OPERATION_RESTRUCT_OBJECT);
         try {
             Task task = getPageBase().createSimpleTask(OPERATION_RESTRUCT_OBJECT);
-
             PrismObject<F> object = WebModelServiceUtils.reconstructObject(type, oid, eventIdentifier, task, result);
-            //TODO cases for PageRoleHistory, PageOrgHistory if needed...
-            setResponsePage(new PageUserHistory((PrismObject<UserType>) object, date));
+            return object;
         } catch (Exception ex) {
             result.recordFatalError("Couldn't restruct object.", ex);
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't restruct object", ex);
         }
+        return null;
     }
+    private void viewObjectXmlButtonClicked(String oid, String eventIdentifier, Class type, String date){
+        PrismObject<F> object = getReconstructedObject(oid, eventIdentifier, type);
+        String name = WebComponentUtil.getName(object);
 
+        setResponsePage(new PageXmlDataReview(getPageBase().createStringResource("PageXmlDataReview.aceEditorPanelTitle", name, date),
+                new IModel<String>() {
+                    @Override
+                    public String getObject() {
+                        PrismContext context = getPageBase().getPrismContext();
+                        String xml = "";
+                        try{
+                            xml = context.serializerFor(PrismContext.LANG_XML).serialize(object);
+                        } catch (Exception ex){
+                            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't serialize object", ex);
+                        }
+                        return xml;
+                    }
+
+                    @Override
+                    public void setObject(String s) {
+
+                    }
+
+                    @Override
+                    public void detach() {
+
+                    }
+                }));
+    }
 
 }

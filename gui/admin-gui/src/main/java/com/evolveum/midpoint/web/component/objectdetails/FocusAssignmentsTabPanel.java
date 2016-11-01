@@ -63,7 +63,12 @@ public class FocusAssignmentsTabPanel<F extends FocusType> extends AbstractObjec
 		AssignmentTablePanel panel = new AssignmentTablePanel(ID_ASSIGNMENTS_PANEL,
 				createStringResource("FocusType.assignment"), assignmentsModel) {
 
-			@Override
+            @Override
+            protected boolean getAssignmentMenuVisibility() {
+                return  !getObjectWrapper().isReadonly();
+            }
+
+            @Override
 			protected void showAllAssignments(AjaxRequestTarget target) {
                 List<AssignmentsPreviewDto> assignmentsPreviewDtos = ((PageAdminFocus) getPageBase()).recomputeAssignmentsPerformed(target);
 				AssignmentPreviewDialog dialog = new AssignmentPreviewDialog(getPageBase().getMainPopupBodyId(),
