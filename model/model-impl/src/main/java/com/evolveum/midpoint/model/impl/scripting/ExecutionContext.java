@@ -18,6 +18,7 @@ package com.evolveum.midpoint.model.impl.scripting;
 
 import com.evolveum.midpoint.model.api.ScriptExecutionResult;
 import com.evolveum.midpoint.prism.Item;
+import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -79,7 +80,7 @@ public class ExecutionContext {
     }
 
     public ScriptExecutionResult toExecutionResult() {
-        List<Item> items = null;
+        List<PrismValue> items = null;
         if (getFinalOutput() != null) {
             items = getFinalOutput().getData();
         }

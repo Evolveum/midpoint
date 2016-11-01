@@ -52,7 +52,7 @@ public abstract class Item<V extends PrismValue, D extends ItemDefinition> imple
     protected QName elementName;
     protected PrismValue parent;
     protected D definition;
-    @NotNull private final List<V> values = new ArrayList<>();
+    @NotNull protected final List<V> values = new ArrayList<>();
     private transient Map<String,Object> userData = new HashMap<>();;
 
 	protected boolean immutable;
@@ -392,11 +392,11 @@ public abstract class Item<V extends PrismValue, D extends ItemDefinition> imple
     	return changed;
     }
     
-    public boolean add(V newValue) throws SchemaException {
+    public boolean add(@NotNull V newValue) throws SchemaException {
     	return add(newValue, true);
     }
     
-    public boolean add(V newValue, boolean checkUniqueness) throws SchemaException {
+    public boolean add(@NotNull V newValue, boolean checkUniqueness) throws SchemaException {
 		checkMutability();
 		if (newValue.getPrismContext() == null) {
 			newValue.setPrismContext(prismContext);

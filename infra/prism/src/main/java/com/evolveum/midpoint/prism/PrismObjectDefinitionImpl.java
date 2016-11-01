@@ -123,7 +123,13 @@ public class PrismObjectDefinitionImpl<O extends Objectable> extends PrismContai
 
 		this.complexTypeDefinition = newCtd;
 	}
-	
+
+	@Override
+	public PrismObjectValue<O> createValue() {
+		return new PrismObjectValue<>(prismContext);
+	}
+
+
 	private QName getExtensionQName() {
 		String namespace = getName().getNamespaceURI();
 		return new QName(namespace, PrismConstants.EXTENSION_LOCAL_NAME);

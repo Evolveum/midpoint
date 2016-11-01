@@ -118,9 +118,7 @@ public class PrismMarshaller {
 			return marshalItemAsRoot((Item) object, itemName, itemDefinition, context);
 		}
 		Validate.notNull(itemName, "itemName must be specified for non-Item objects");
-		if (object instanceof Objectable) {
-			return marshalItemAsRoot(((Objectable) object).asPrismObject(), itemName, null, context);
-		} else if (object instanceof Containerable) {
+		if (object instanceof Containerable) {
 			return marshalPrismValueAsRoot(((Containerable) object).asPrismContainerValue(), itemName, null, context);
 		} else if (beanMarshaller.canProcess(object.getClass())) {
 			XNode valueNode = beanMarshaller.marshall(object, context);        // TODO item definition!
@@ -165,9 +163,7 @@ public class PrismMarshaller {
 	@NotNull
 	private XNode marshalItemContent(@NotNull Item<?, ?> item,
 			ItemDefinition itemDefinition, SerializationContext context) throws SchemaException {
-		if (item instanceof PrismObject) {
-			return marshalObjectContent((PrismObject) item, (PrismObjectDefinition) itemDefinition, context);
-		} else if (item.size() == 1) {
+		if (item.size() == 1) {
 			return marshalItemValue(item.getValue(0), itemDefinition, null, context);
 		} else {
 			ListXNode xlist = new ListXNode();
@@ -181,12 +177,6 @@ public class PrismMarshaller {
 	@NotNull
 	private <O extends Objectable> MapXNode marshalObjectContent(@NotNull PrismObject<O> object, @NotNull PrismObjectDefinition<O> objectDefinition, SerializationContext ctx) throws SchemaException {
 		MapXNode xmap = new MapXNode();
-		if (object.getOid() != null) {
-			xmap.put(XNode.KEY_OID, createPrimitiveXNodeStringAttr(object.getOid()));
-		}
-		if (object.getVersion() != null) {
-			xmap.put(XNode.KEY_VERSION, createPrimitiveXNodeStringAttr(object.getVersion()));
-		}
 		marshalContainerValue(xmap, object.getValue(), objectDefinition, ctx);
 		xmap.setTypeQName(objectDefinition.getTypeName());		// object should have the definition (?)
 		return xmap;
@@ -250,6 +240,16 @@ public class PrismMarshaller {
 		if (id != null) {
 			xmap.put(XNode.KEY_CONTAINER_ID, createPrimitiveXNodeAttr(id, DOMUtil.XSD_LONG));
 		}
+		if (containerVal instanceof PrismObjectValue) {
+			PrismObjectValue<?> objectVal = (PrismObjectValue<?>) containerVal;
+			if (objectVal.getOid() != null) {
+				xmap.put(XNode.KEY_OID, createPrimitiveXNodeStringAttr(objectVal.getOid()));
+			}
+			if (objectVal.getVersion() != null) {
+				xmap.put(XNode.KEY_VERSION, createPrimitiveXNodeStringAttr(objectVal.getVersion()));
+			}
+		}
+
 		// We put the explicit type name only if it's different from the parent one
 		// (assuming this value is NOT serialized as a standalone one: in that case its
 		// type must be marshaled in a special way).

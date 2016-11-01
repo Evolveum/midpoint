@@ -51,41 +51,32 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
 
 	// This is list. We need to maintain the order internally to provide consistent
     // output in DOM and other ordering-sensitive representations
-    private List<Item<?,?>> items = null;
+	protected List<Item<?,?>> items = null;
     private Long id;
     
 	private C containerable = null;
 
 	// Definition of this value. Usually it is the same as CTD declared in the parent container.
 	// However, in order to support polymorphism (as well as parent-less values) we distinguish between PC and PCV type definition.
-	private ComplexTypeDefinition complexTypeDefinition = null;
+	protected ComplexTypeDefinition complexTypeDefinition = null;
 
 	public PrismContainerValue() {
 	}
 
 	public PrismContainerValue(C containerable) {
-		this(containerable, null, null);
+		this(containerable, null);
     }
 
 	public PrismContainerValue(PrismContext prismContext) {
-		this(null, null, prismContext);
-	}
-
-	public PrismContainerValue(ComplexTypeDefinition complexTypeDefinition, PrismContext prismContext) {
-		this(null, complexTypeDefinition, prismContext);
+		this(null, prismContext);
 	}
 
 	public PrismContainerValue(C containerable, PrismContext prismContext) {
-		this(containerable, null, prismContext);
-	}
-
-	public PrismContainerValue(C containerable, ComplexTypeDefinition complexTypeDefinition, PrismContext prismContext) {
 		super(prismContext);
 		this.containerable = containerable;
-		this.complexTypeDefinition = complexTypeDefinition;
 
-		if (complexTypeDefinition == null && prismContext != null) {
-			getComplexTypeDefinition();        // to determine CTD
+		if (prismContext != null) {
+			getComplexTypeDefinition();        // to determine CTD (could be also called with null prismContext, but non-null prismContext provides additional information in some cases)
 		}
 	}
 
@@ -1363,8 +1354,8 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
         if (DebugUtil.isDetailedDebugDump()) {
         	DebugUtil.indentDebugDump(sb, indent);
             wasIndent = true;
-        	sb.append("PCV").append(": ");
-        }
+			detailedDebugDumpStart(sb);
+		}
         boolean multivalue = true;
         PrismContainerable<C> parent = getParent();
         if (parent != null && parent.getDefinition() != null) {
@@ -1376,8 +1367,8 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
             	DebugUtil.indentDebugDump(sb, indent);
                 wasIndent = true;
         	}
-        	sb.append("id=").append(PrettyPrinter.prettyPrint(getId()));
-        }
+			debugDumpIdentifiers(sb);
+		}
         appendOriginDump(sb);
 		List<Item<?,?>> items = getItems();
         if (items != null) {
@@ -1395,6 +1386,14 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
         }
         return sb.toString();
     }
+
+	protected void debugDumpIdentifiers(StringBuilder sb) {
+		sb.append("id=").append(PrettyPrinter.prettyPrint(getId()));
+	}
+
+	protected void detailedDebugDumpStart(StringBuilder sb) {
+		sb.append("PCV").append(": ");
+	}
 
 	@Override
 	public boolean match(PrismValue otherValue) {

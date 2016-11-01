@@ -42,4 +42,7 @@ public interface PrismObjectDefinition<O extends Objectable> extends PrismContai
 	PrismObjectDefinition<O> cloneWithReplacedDefinition(QName itemName, ItemDefinition newDefinition);
 
 	PrismContainerDefinition<?> getExtensionDefinition();
+
+	@Override
+	PrismObjectValue<O> createValue();
 }

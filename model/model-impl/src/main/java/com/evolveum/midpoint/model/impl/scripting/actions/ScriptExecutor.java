@@ -25,10 +25,7 @@ import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionFact
 import com.evolveum.midpoint.model.impl.scripting.Data;
 import com.evolveum.midpoint.model.impl.scripting.ExecutionContext;
 import com.evolveum.midpoint.model.impl.util.Utils;
-import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.QNameUtil;
@@ -85,57 +82,54 @@ public class ScriptExecutor extends BaseActionExecutor {
 		}
 
 		Data output = Data.createEmpty();
-        for (Item item : input.getData()) {
+        for (PrismValue value: input.getData()) {
+			String valueDescription;
         	long started;
-			if (item instanceof PrismObject) {
-				started = operationsHelper.recordStart(context, asObjectType(item));
+			if (value instanceof PrismObjectValue) {
+				started = operationsHelper.recordStart(context, asObjectType(value));
+				valueDescription = asObjectType(value).asPrismObject().toString();
 			} else {
 				started = 0;
+				valueDescription = value.toHumanReadableString();
 			}
 			try {
-				Object outObject = executeScript(scriptExpression, item, context, result);
-				if (outObject != null && outputDefinition != null) {
-					output.addItem(createItem(outObject, outputDefinition));
+				Object outObject = executeScript(scriptExpression, value, context, result);
+				if (outObject != null) {
+					addToData(outObject, output);
 				}
-				if (item instanceof PrismObject) {
-					operationsHelper.recordEnd(context, asObjectType(item), started, null);
+				if (value instanceof PrismObjectValue) {
+					operationsHelper.recordEnd(context, asObjectType(value), started, null);
 				}
 			} catch (Throwable ex) {
-				if (item instanceof PrismObject) {
-					operationsHelper.recordEnd(context, asObjectType(item), started, ex);
+				if (value instanceof PrismObjectValue) {
+					operationsHelper.recordEnd(context, asObjectType(value), started, ex);
 				}
 				throw new ScriptExecutionException("Couldn't execute script action: " + ex.getMessage(), ex);
 			}
-			context.println("Executed script on " + item);
+			context.println("Executed script on " + valueDescription);
         }
         return output;
     }
 
-    // UGLY HACKING
-	private Item createItem(Object outObject, ItemDefinition<?> itemDefinition) throws SchemaException {
-		if (outObject instanceof Item) {
-			return (Item) outObject;			// probably won't occur
-		}
-		Item item = itemDefinition.instantiate();
-		if (outObject instanceof Collection) {
+	private void addToData(Object outObject, Data output) throws SchemaException {
+		if (outObject == null) {
+			return;
+		} else if (outObject instanceof Collection) {
 			for (Object o : (Collection) outObject) {
-				addToItem(item, o);
+				addToData(o, output);
 			}
 		} else {
-			addToItem(item, outObject);
-		}
-		return item;
-	}
-
-	private void addToItem(Item item, Object value) throws SchemaException {
-		if (value instanceof PrismValue) {
-			PrismValue pv = (PrismValue) value;
-			if (pv.getParent() instanceof PrismObject && item instanceof PrismObject) {
-				((PrismObject) item).setOid(((PrismObject) (pv.getParent())).getOid());
+			PrismValue value;
+			if (outObject instanceof PrismValue) {
+				value = (PrismValue) outObject;
+			} else if (outObject instanceof Objectable) {
+				value = new PrismObjectValue<>((Objectable) outObject, prismContext);
+			} else if (outObject instanceof Containerable) {
+				value = new PrismContainerValue<>((Containerable) outObject, prismContext);
+			} else {
+				value = new PrismPropertyValue<>(outObject, prismContext);
 			}
-			item.add(((PrismValue) value).clone());
-		} else {
-			throw new UnsupportedOperationException("Adding " + value + " to " + item + " is not supported yet.");
+			output.addValue(value);
 		}
 	}
 
@@ -156,10 +150,10 @@ public class ScriptExecutor extends BaseActionExecutor {
 		throw new ScriptExecutionException("Supplied item identification " + itemUri + " corresponds neither to item name nor type name");
 	}
 
-	private Object executeScript(ScriptExpression scriptExpression, Item inputItem, ExecutionContext context, OperationResult result)
+	private Object executeScript(ScriptExpression scriptExpression, PrismValue prismValue, ExecutionContext context, OperationResult result)
 			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
 		ExpressionVariables variables = new ExpressionVariables();
-		variables.addVariableDefinition(ExpressionConstants.VAR_INPUT, inputItem);
+		variables.addVariableDefinition(ExpressionConstants.VAR_INPUT, prismValue);
 		variables.addVariableDefinition(ExpressionConstants.VAR_PRISM_CONTEXT, prismContext);
 		ExpressionUtil.addActorVariable(variables, securityEnforcer);
 		
@@ -174,8 +168,8 @@ public class ScriptExecutor extends BaseActionExecutor {
 		}
 	}
 
-	private ObjectType asObjectType(Item item) {
-		return (ObjectType) ((PrismObject) item).asObjectable();
+	private ObjectType asObjectType(PrismValue value) {
+		return (ObjectType) ((PrismObjectValue) value).asObjectable();
 	}
 
 }

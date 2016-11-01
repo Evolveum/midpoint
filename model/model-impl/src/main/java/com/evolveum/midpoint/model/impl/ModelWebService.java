@@ -17,10 +17,7 @@ package com.evolveum.midpoint.model.impl;
 
 import com.evolveum.midpoint.model.api.*;
 import com.evolveum.midpoint.model.common.util.AbstractModelWebService;
-import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.QueryJaxbConvertor;
@@ -281,11 +278,11 @@ public class ModelWebService extends AbstractModelWebService implements ModelPor
         return response;
     }
 
-    private ItemListType prepareXmlData(List<Item> output) throws JAXBException, SchemaException {
+    private ItemListType prepareXmlData(List<PrismValue> output) throws JAXBException, SchemaException {
         ItemListType itemListType = new ItemListType();
         if (output != null) {
-            for (Item item : output) {
-				RawType rawType = new RawType(prismContext.xnodeSerializer().serialize(item), prismContext);
+            for (PrismValue value: output) {
+				RawType rawType = new RawType(prismContext.xnodeSerializer().root(SchemaConstants.C_VALUE).serialize(value), prismContext);
                 itemListType.getItem().add(rawType);
             }
         }

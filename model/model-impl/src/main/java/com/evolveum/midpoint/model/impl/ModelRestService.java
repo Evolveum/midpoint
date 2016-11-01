@@ -43,10 +43,12 @@ import com.evolveum.midpoint.model.api.validator.Scope;
 import com.evolveum.midpoint.model.api.validator.ValidationResult;
 import com.evolveum.midpoint.model.impl.util.RestServiceUtil;
 import com.evolveum.midpoint.prism.Item;
+import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -715,11 +717,11 @@ public class ModelRestService {
 		return response;
 	}
 
-	private ItemListType prepareXmlData(List<Item> output) throws JAXBException, SchemaException {
+	private ItemListType prepareXmlData(List<PrismValue> output) throws JAXBException, SchemaException {
 		ItemListType itemListType = new ItemListType();
 		if (output != null) {
-			for (Item item : output) {
-				RawType rawType = new RawType(prismContext.xnodeSerializer().serialize(item), prismContext);
+			for (PrismValue value : output) {
+				RawType rawType = new RawType(prismContext.xnodeSerializer().root(SchemaConstants.C_VALUE).serialize(value), prismContext);
 				itemListType.getItem().add(rawType);
 			}
 		}

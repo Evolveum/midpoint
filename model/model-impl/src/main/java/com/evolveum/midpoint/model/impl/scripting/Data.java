@@ -35,26 +35,20 @@ import java.util.*;
 /**
  * Data that are passed between individual scripting actions.
  *
- * The content passed between actions (expressions) is a list of prism items
- * (object, container, reference, property) - possibly multivalued. They are
- * expected to be of the same type.
- *
- * We insist on the data being prism Items in order to have its
- * definition (including data type and name) in place.
+ * The content passed between actions (expressions) is a list of prism values
+ * (object, container, reference, property).
  *
  * @author mederly
  */
 public class Data implements DebugDumpable {
 
-    private static final QName PLAIN_STRING_ELEMENT_NAME = new QName(SchemaConstants.NS_C, "string");
-
-    private final List<Item> data = new ArrayList<>();			// all items are not null
+    private final List<PrismValue> data = new ArrayList<>();			// all items are not null
 
     // we want clients to use explicit constructors
     private Data() {
     }
 
-    public List<Item> getData() {
+    public List<PrismValue> getData() {
         return data;
     }
 
@@ -78,22 +72,29 @@ public class Data implements DebugDumpable {
         return new Data();
     }
 
-    public void addAllFrom(Data data) {
-        if (data != null) {
-        	for (Item item : data.getData()) {
-        		addItem(item);
-			}
+    public void addAllFrom(Data otherData) {
+        if (otherData != null) {
+            data.addAll(otherData.getData());
         }
     }
 
-    public void addItem(@NotNull Item item) {
-        data.add(item);
+    @Deprecated
+    public void addItem(@NotNull Item<?,?> item) {
+        data.addAll(item.getValues());
+    }
+
+    public void addValue(PrismValue value) {
+        data.add(value);
+    }
+
+    public void addValues(List<PrismValue> values) {
+        data.addAll(values);
     }
 
     public String getDataAsSingleString() throws ScriptExecutionException {
         if (!data.isEmpty()) {
             if (data.size() == 1) {
-                return (String) ((PrismProperty) data.get(0)).getRealValue();       // todo implement some diagnostics when this would fail
+                return (String) ((PrismPropertyValue) data.get(0)).getRealValue();       // todo implement some diagnostics when this would fail
             } else {
                 throw new ScriptExecutionException("Multiple values where just one is expected");
             }
@@ -103,79 +104,82 @@ public class Data implements DebugDumpable {
     }
 
     public static Data createItem(PrismValue value, PrismContext prismContext) throws SchemaException {
-        // TODO fix this temporary solution (haven't we somewhere universal method to do this?)
-        if (value instanceof PrismReferenceValue) {
-            PrismReference ref = new PrismReference(new QName("reference"));
-            ref.add((PrismReferenceValue) value);
-            return create(ref);
-        } else if (value instanceof PrismContainerValue) {
-            PrismContainerValue pcv = (PrismContainerValue) value;
-            return create(pcv.asSingleValuedContainer(new QName("container")));
-        } else if (value instanceof PrismPropertyValue) {
-            if (value.isRaw()) {
-                throw new IllegalArgumentException("Value cannot be raw at this point: " + value);
-            }
-            Class<?> clazz = value.getRealClass();
-            assert clazz != null;
-            PrismPropertyDefinition<?> propertyDefinition;
-            List<PrismPropertyDefinition> defs = prismContext.getSchemaRegistry()
-                    .findItemDefinitionsByCompileTimeClass(clazz, PrismPropertyDefinition.class);
-            if (defs.size() == 1) {
-                propertyDefinition = defs.get(0);
-            } else if (String.class.isAssignableFrom(clazz)) {
-                propertyDefinition = new PrismPropertyDefinitionImpl<>(PLAIN_STRING_ELEMENT_NAME, DOMUtil.XSD_STRING, prismContext);
-            } else if (ObjectDeltaType.class.isAssignableFrom(clazz)) {
-                propertyDefinition = new PrismPropertyDefinitionImpl<>(SchemaConstants.T_OBJECT_DELTA, SchemaConstants.T_OBJECT_DELTA_TYPE, prismContext);
-            } else if (EventHandlerType.class.isAssignableFrom(clazz)) {
-                propertyDefinition = new PrismPropertyDefinitionImpl<>(SchemaConstants.C_EVENT_HANDLER, EventHandlerType.COMPLEX_TYPE, prismContext);
-            } else {
-                // maybe determine type from class would be sufficient
-                TypeDefinition td = prismContext.getSchemaRegistry().findTypeDefinitionByCompileTimeClass(clazz, TypeDefinition.class);
-                if (td != null) {
-                    propertyDefinition = new PrismPropertyDefinitionImpl<>(SchemaConstants.C_VALUE, td.getTypeName(), prismContext);
-                } else {
-                    throw new IllegalStateException(
-                            "Unsupported data class (to be put into scripting data as property): " + clazz);
-                }
-            }
-            PrismProperty<?> property = propertyDefinition.instantiate();
-            property.add((PrismPropertyValue) value);
-            return create(property);
-        } else if (value == null) {
-            return createEmpty();
-        } else {
-            throw new IllegalArgumentException("Unsupported prism value: " + value);
+        Data data = createEmpty();
+        if (value != null) {
+            data.addValue(value);
         }
+        return data;
+//        // TODO fix this temporary solution (haven't we somewhere universal method to do this?)
+//        if (value instanceof PrismReferenceValue) {
+//            PrismReference ref = new PrismReference(new QName("reference"));
+//            ref.add((PrismReferenceValue) value);
+//            return create(ref);
+//        } else if (value instanceof PrismContainerValue) {
+//            PrismContainerValue pcv = (PrismContainerValue) value;
+//            return create(pcv.asSingleValuedContainer(new QName("container")));
+//        } else if (value instanceof PrismPropertyValue) {
+//            if (value.isRaw()) {
+//                throw new IllegalArgumentException("Value cannot be raw at this point: " + value);
+//            }
+//            Class<?> clazz = value.getRealClass();
+//            assert clazz != null;
+//            PrismPropertyDefinition<?> propertyDefinition;
+//            List<PrismPropertyDefinition> defs = prismContext.getSchemaRegistry()
+//                    .findItemDefinitionsByCompileTimeClass(clazz, PrismPropertyDefinition.class);
+//            if (defs.size() == 1) {
+//                propertyDefinition = defs.get(0);
+//            } else if (String.class.isAssignableFrom(clazz)) {
+//                propertyDefinition = new PrismPropertyDefinitionImpl<>(PLAIN_STRING_ELEMENT_NAME, DOMUtil.XSD_STRING, prismContext);
+//            } else if (ObjectDeltaType.class.isAssignableFrom(clazz)) {
+//                propertyDefinition = new PrismPropertyDefinitionImpl<>(SchemaConstants.T_OBJECT_DELTA, SchemaConstants.T_OBJECT_DELTA_TYPE, prismContext);
+//            } else if (EventHandlerType.class.isAssignableFrom(clazz)) {
+//                propertyDefinition = new PrismPropertyDefinitionImpl<>(SchemaConstants.C_EVENT_HANDLER, EventHandlerType.COMPLEX_TYPE, prismContext);
+//            } else {
+//                // maybe determine type from class would be sufficient
+//                TypeDefinition td = prismContext.getSchemaRegistry().findTypeDefinitionByCompileTimeClass(clazz, TypeDefinition.class);
+//                if (td != null) {
+//                    propertyDefinition = new PrismPropertyDefinitionImpl<>(SchemaConstants.C_VALUE, td.getTypeName(), prismContext);
+//                } else {
+//                    throw new IllegalStateException(
+//                            "Unsupported data class (to be put into scripting data as property): " + clazz);
+//                }
+//            }
+//            PrismProperty<?> property = propertyDefinition.instantiate();
+//            property.add((PrismPropertyValue) value);
+//            return create(property);
+//        } else if (value == null) {
+//            return createEmpty();
+//        } else {
+//            throw new IllegalArgumentException("Unsupported prism value: " + value);
+//        }
     }
 
     public Collection<ObjectReferenceType> getDataAsReferences(QName defaultTargetType) throws ScriptExecutionException {
         Collection<ObjectReferenceType> retval = new ArrayList<>(data.size());
-        for (Item item : data) {
-            if (item instanceof PrismObject) {
+        for (PrismValue value : data) {
+            if (value instanceof PrismObjectValue) {
+                PrismObjectValue objectValue = (PrismObjectValue) value;
                 ObjectReferenceType ref = new ObjectReferenceType();
-                ref.setType(item.getDefinition().getTypeName());            // todo check the definition is present
-                ref.setOid(((PrismObject) item).getOid());                  // todo check if oid is present
+                ref.setType(objectValue.asPrismObject().getDefinition().getTypeName()); // todo check the definition is present
+                ref.setOid(objectValue.getOid());                  // todo check if oid is present
                 retval.add(ref);
-            } else if (item instanceof PrismProperty) {
-                for (Object value : item.getRealValues()) {
-                    if (value instanceof String) {
-                        ObjectReferenceType ref = new ObjectReferenceType();
-                        ref.setType(defaultTargetType);
-                        ref.setOid((String) value);                         // todo implement search by name
-                        retval.add(ref);
-                    } else if (value instanceof ObjectReferenceType) {
-                        retval.add((ObjectReferenceType) value);
-                    } else {
-                        throw new ScriptExecutionException("Unsupported reference type: " + value.getClass());
-                    }
-                }
-            } else if (item instanceof PrismReference) {
-                PrismReference reference = (PrismReference) item;
-                for (PrismReferenceValue value : reference.getValues()) {
+            } else if (value instanceof PrismPropertyValue) {
+                Object realValue = ((PrismPropertyValue) value).getRealValue();
+                if (realValue instanceof String) {
                     ObjectReferenceType ref = new ObjectReferenceType();
-                    ref.setupReferenceValue(value);
+                    ref.setType(defaultTargetType);
+                    ref.setOid((String) realValue);                         // todo implement search by name
                     retval.add(ref);
+                } else if (realValue instanceof ObjectReferenceType) {
+                    retval.add((ObjectReferenceType) realValue);
+                } else {
+                    throw new ScriptExecutionException("Unsupported reference type: " + value.getClass());
                 }
+            } else if (value instanceof PrismReferenceValue) {
+                PrismReferenceValue referenceValue = (PrismReferenceValue) value;
+                ObjectReferenceType ref = new ObjectReferenceType();
+                ref.setupReferenceValue(referenceValue);
+                retval.add(ref);
             }
         }
         return retval;

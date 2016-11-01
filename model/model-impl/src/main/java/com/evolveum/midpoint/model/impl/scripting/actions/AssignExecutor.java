@@ -19,8 +19,7 @@ package com.evolveum.midpoint.model.impl.scripting.actions;
 import com.evolveum.midpoint.model.impl.scripting.Data;
 import com.evolveum.midpoint.model.impl.scripting.ExecutionContext;
 import com.evolveum.midpoint.model.api.ScriptExecutionException;
-import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -90,9 +89,9 @@ public class AssignExecutor extends BaseActionExecutor {
             throw new ScriptExecutionException("Nothing to assign: neither resource nor role specified");
         }
 
-        for (Item item : input.getData()) {
-            if (item instanceof PrismObject && ((PrismObject) item).asObjectable() instanceof FocusType) {
-                PrismObject<? extends ObjectType> prismObject = (PrismObject) item;
+        for (PrismValue value : input.getData()) {
+            if (value instanceof PrismObjectValue && ((PrismObjectValue) value).asObjectable() instanceof FocusType) {
+                PrismObject<? extends ObjectType> prismObject = ((PrismObjectValue) value).asPrismObject();
                 ObjectType objectType = prismObject.asObjectable();
                 long started = operationsHelper.recordStart(context, objectType);
                 try {
@@ -102,9 +101,9 @@ public class AssignExecutor extends BaseActionExecutor {
                     operationsHelper.recordEnd(context, objectType, started, ex);
                     throw ex;       // TODO reconsider this
                 }
-                context.println("Modified " + item.toString() + rawDrySuffix(raw, dryRun));
+                context.println("Modified " + prismObject.toString() + rawDrySuffix(raw, dryRun));
             } else {
-                throw new ScriptExecutionException("Item could not be modified, because it is not a PrismObject of FocusType: " + item.toString());
+                throw new ScriptExecutionException("Item could not be modified, because it is not a PrismObject of FocusType: " + value.toString());
             }
         }
         return Data.createEmpty();

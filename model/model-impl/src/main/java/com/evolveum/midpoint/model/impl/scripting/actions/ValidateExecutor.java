@@ -22,9 +22,7 @@ import com.evolveum.midpoint.model.api.validator.Scope;
 import com.evolveum.midpoint.model.api.validator.ValidationResult;
 import com.evolveum.midpoint.model.impl.scripting.Data;
 import com.evolveum.midpoint.model.impl.scripting.ExecutionContext;
-import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.*;
@@ -60,9 +58,9 @@ public class ValidateExecutor extends BaseActionExecutor {
 
         Data output = Data.createEmpty();
 
-        for (Item item : input.getData()) {
-            if (item instanceof PrismObject && ((PrismObject) item).asObjectable() instanceof ResourceType) {
-                PrismObject<ResourceType> resourceTypePrismObject = (PrismObject) item;
+        for (PrismValue value : input.getData()) {
+            if (value instanceof PrismObjectValue && ((PrismObjectValue) value).asObjectable() instanceof ResourceType) {
+                PrismObject<ResourceType> resourceTypePrismObject = ((PrismObjectValue) value).asPrismObject();
                 ResourceType resourceType = resourceTypePrismObject.asObjectable();
                 long started = operationsHelper.recordStart(context, resourceType);
 
@@ -83,7 +81,7 @@ public class ValidateExecutor extends BaseActionExecutor {
                 }
 
             } else {
-                throw new ScriptExecutionException("Couldn't test a resource, because input is not a PrismObject<ResourceType>: " + item.toString());
+                throw new ScriptExecutionException("Couldn't test a resource, because input is not a PrismObject<ResourceType>: " + value.toString());
             }
         }
         return output;

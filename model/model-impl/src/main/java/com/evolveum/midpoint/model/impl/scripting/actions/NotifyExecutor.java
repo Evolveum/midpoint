@@ -23,6 +23,7 @@ import com.evolveum.midpoint.notifications.api.NotificationManager;
 import com.evolveum.midpoint.notifications.api.events.CustomEvent;
 import com.evolveum.midpoint.notifications.api.events.Event;
 import com.evolveum.midpoint.prism.Item;
+import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -91,8 +92,8 @@ public class NotifyExecutor extends BaseActionExecutor {
             notificationManager.processEvent(event, context.getTask(), result);
             eventCount++;
         } else {
-            for (Item item : input.getData()) {
-                Event event = new CustomEvent(lightweightIdentifierGenerator, subtype, handler, item, operation, status, context.getChannel());
+            for (PrismValue value : input.getData()) {
+                Event event = new CustomEvent(lightweightIdentifierGenerator, subtype, handler, value, operation, status, context.getChannel());
                 notificationManager.processEvent(event, context.getTask(), result);
                 eventCount++;
             }

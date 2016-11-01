@@ -26,6 +26,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
 
@@ -171,7 +172,7 @@ public class PrismContainer<C extends Containerable> extends Item<PrismContainer
 		}
     }
     
-    public void setValue(PrismContainerValue<C> value) throws SchemaException {
+    public void setValue(@NotNull PrismContainerValue<C> value) throws SchemaException {
 		checkMutability();
     	if (getDefinition() != null) {
 			if (getDefinition().isSingleValue()) {
@@ -187,7 +188,7 @@ public class PrismContainer<C extends Containerable> extends Item<PrismContainer
     }
 
     @Override
-    public boolean add(PrismContainerValue newValue, boolean checkUniqueness) throws SchemaException {
+    public boolean add(@NotNull PrismContainerValue newValue, boolean checkUniqueness) throws SchemaException {
 		checkMutability();
         // when a context-less item is added to a contextful container, it is automatically adopted
         if (newValue.getPrismContext() == null && this.prismContext != null) {
@@ -437,21 +438,21 @@ public class PrismContainer<C extends Containerable> extends Item<PrismContainer
         return getValue().findCreateItem(itemQName, type, null, create);
     }
         
-    public <IV extends PrismValue,ID extends ItemDefinition,I extends Item<IV,ID>> I findItem(ItemPath propPath, Class<I> type) {
+    public <IV extends PrismValue,ID extends ItemDefinition,I extends Item<IV,ID>> I findItem(ItemPath path, Class<I> type) {
     	try {
-			return findCreateItem(propPath, type, null, false);
+			return findCreateItem(path, type, null, false);
 		} catch (SchemaException e) {
 			// This should not happen
-			throw new SystemException("Internal Error: "+e.getMessage(),e);
+			throw new SystemException("Internal Error:(path="+path+",type="+type+"): "+e.getMessage(),e);
 		}
     }
     
-    public <IV extends PrismValue,ID extends ItemDefinition> Item<IV,ID> findItem(ItemPath propPath) {
+    public <IV extends PrismValue,ID extends ItemDefinition> Item<IV,ID> findItem(ItemPath path) {
     	try {
-			return findCreateItem(propPath, Item.class, null, false);
+			return findCreateItem(path, Item.class, null, false);
 		} catch (SchemaException e) {
 			// This should not happen
-			throw new SystemException("Internal Error: "+e.getMessage(),e);
+			throw new SystemException("Internal Error:(path="+path+"): "+e.getMessage(),e);
 		}
     }
     
@@ -794,12 +795,22 @@ public class PrismContainer<C extends Containerable> extends Item<PrismContainer
 		}
 	}
 
+	/**
+	 * Note: hashcode and equals compare the objects in the "java way". That means the objects must be
+	 * almost precisely equal to match (e.g. including source demarcation in values and other "annotations").
+	 * For a method that compares the "meaningful" parts of the objects see equivalent().
+	 */
 	@Override
 	public int hashCode() {
 		int result = super.hashCode();
 		return result;
 	}
 
+	/**
+	 * Note: hashcode and equals compare the objects in the "java way". That means the objects must be
+	 * almost precisely equal to match (e.g. including source demarcation in values and other "annotations").
+	 * For a method that compares the "meaningful" parts of the objects see equivalent().
+	 */
 	@Override
 	public boolean equals(Object obj) {
 		if (this == obj)

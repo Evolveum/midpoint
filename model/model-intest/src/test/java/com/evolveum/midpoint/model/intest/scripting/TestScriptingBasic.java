@@ -21,9 +21,7 @@ import com.evolveum.midpoint.model.impl.scripting.ExecutionContext;
 import com.evolveum.midpoint.model.impl.scripting.ScriptingExpressionEvaluator;
 import com.evolveum.midpoint.model.intest.AbstractInitializedModelIntegrationTest;
 import com.evolveum.midpoint.notifications.api.transports.Message;
-import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
@@ -160,7 +158,7 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
     }
 
     private PrismProperty parseAnyData(File file) throws IOException, SchemaException {
-        return (PrismProperty) prismContext.parserFor(file).parseItemOrRealValue();
+        return (PrismProperty) prismContext.parserFor(file).parseItem();
     }
 
     @Test
@@ -622,7 +620,7 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
 
         checkDummyTransportMessages("CustomType2", 1);
         m = dummyTransport.getMessages("dummy:CustomType2").get(0);
-        assertEquals("Wrong message body", "[user:c0c010c0-d34d-b33f-f00d-111111111111(jack)]", m.getBody());
+        assertEquals("Wrong message body", "[POV:user:c0c010c0-d34d-b33f-f00d-111111111111(jack)]", m.getBody());
         assertEquals("Wrong message subject", "Failure notification of type 2", m.getSubject());
     }
 
@@ -643,8 +641,8 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
 		Data data = output.getFinalOutput();
 		assertEquals("Unexpected # of items in output", 5, data.getData().size());
 		Set<String> realOids = new HashSet<>();
-		for (Item item : data.getData()) {
-			PrismObject<UserType> user = (PrismObject<UserType>) item;
+		for (PrismValue value : data.getData()) {
+			PrismObject<UserType> user = ((PrismObjectValue<UserType>) value).asPrismObject();
 			assertEquals("Description not set", "Test", user.asObjectable().getDescription());
 			realOids.add(user.getOid());
 		}
@@ -663,18 +661,18 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
 
     // the following tests are a bit crude but for now it should be OK
 
-    private void assertAttributesNotFetched(List<Item> data) {
-        for (Item item : data) {
-            if (((PrismObject<ShadowType>) item).asObjectable().getAttributes().getAny().size() > 2) {
-                throw new AssertionError("There are some unexpected attributes present in " + item.debugDump());
+    private void assertAttributesNotFetched(List<PrismValue> data) {
+        for (PrismValue value : data) {
+            if (((PrismObjectValue<ShadowType>) value).asObjectable().getAttributes().getAny().size() > 2) {
+                throw new AssertionError("There are some unexpected attributes present in " + value.debugDump());
             }
         }
     }
 
-    private void assertAttributesFetched(List<Item> data) {
-        for (Item item : data) {
-            if (((PrismObject<ShadowType>) item).asObjectable().getAttributes().getAny().size() <= 2) {
-                throw new AssertionError("There are no attributes present in " + item.debugDump());
+    private void assertAttributesFetched(List<PrismValue> data) {
+        for (PrismValue value : data) {
+            if (((PrismObjectValue<ShadowType>) value).asObjectable().getAttributes().getAny().size() <= 2) {
+                throw new AssertionError("There are no attributes present in " + value.debugDump());
             }
         }
     }

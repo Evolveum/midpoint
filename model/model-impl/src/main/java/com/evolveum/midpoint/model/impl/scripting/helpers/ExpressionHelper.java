@@ -126,17 +126,13 @@ public class ExpressionHelper {
 		if (paramData.getData().size() != 1) {
 			throw new ScriptExecutionException("Exactly one item was expected in '" + parameterName + "' parameter. Got " + paramData.getData().size());
 		}
-		Item<? extends PrismValue,?> paramItem = paramData.getData().get(0);
-		if (paramItem == null || paramItem.getValues().size() == 0 || (paramItem.getValues().size() == 1 && paramItem.getValues().get(0) == null)) {
+		PrismValue prismValue = paramData.getData().get(0);
+		if (prismValue == null) {
 			if (requiredNonNull) {
 				throw new ScriptExecutionException("A non-null value was expected in '" + parameterName + "' parameter");
 			}
 			return null;
 		}
-		if (paramItem.getValues().size() > 1) {
-			throw new ScriptExecutionException("Exactly one value was expected in '" + parameterName + "' parameter. Got " + paramItem.getValues().size() + ".");
-		}
-		PrismValue prismValue = paramItem.getValues().get(0);
 		if (!(prismValue instanceof PrismPropertyValue)) {
 			throw new ScriptExecutionException("A prism property value was expected in '" + parameterName + "' parameter. Got " + prismValue.getClass().getName() + " instead.");
 		}

@@ -20,9 +20,7 @@ import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.impl.scripting.Data;
 import com.evolveum.midpoint.model.impl.scripting.ExecutionContext;
 import com.evolveum.midpoint.model.api.ScriptExecutionException;
-import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -55,19 +53,19 @@ public class PurgeSchemaExecutor extends BaseActionExecutor {
 
         Data output = Data.createEmpty();
 
-        for (Item item : input.getData()) {
-            if (item instanceof PrismObject  && ((PrismObject) item).asObjectable() instanceof ResourceType) {
-                PrismObject<ResourceType> resourceTypePrismObject = (PrismObject) item;
+        for (PrismValue value : input.getData()) {
+            if (value instanceof PrismObjectValue && ((PrismObjectValue<Objectable>) value).asObjectable() instanceof ResourceType) {
+                PrismObject<ResourceType> resourceTypePrismObject = ((PrismObjectValue) value).asPrismObject();
                 ResourceType resourceType = resourceTypePrismObject.asObjectable();
                 long started = operationsHelper.recordStart(context, resourceType);
                 ObjectDelta delta = createDelta(resourceTypePrismObject.asObjectable());
                 try {
                     if (delta != null) {
                         operationsHelper.applyDelta(delta, ModelExecuteOptions.createRaw(), context, result);
-                        context.println("Purged schema information from " + item);
+                        context.println("Purged schema information from " + resourceTypePrismObject);
                         output.addItem(operationsHelper.getObject(ResourceType.class, resourceTypePrismObject.getOid(), true, context, result));
                     } else {
-                        context.println("There's no schema information to be purged in " + item);
+                        context.println("There's no schema information to be purged in " + value);
                         output.addItem(resourceTypePrismObject);
                     }
                     operationsHelper.recordEnd(context, resourceType, started, null);
@@ -76,7 +74,7 @@ public class PurgeSchemaExecutor extends BaseActionExecutor {
                     throw ex;
                 }
             } else {
-                throw new ScriptExecutionException("Couldn't purge resource schema, because input is not a PrismObject<ResourceType>: " + item.toString());
+                throw new ScriptExecutionException("Couldn't purge resource schema, because input is not a PrismObject<ResourceType>: " + value.toString());
             }
         }
         return output;
