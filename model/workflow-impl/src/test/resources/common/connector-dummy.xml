@@ -19,7 +19,7 @@
 	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
 	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
 	xmlns:ns2="http://www.w3.org/2001/04/xmlenc#"
-	
+           xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
 	xmlns:ns3="http://www.w3.org/2000/09/xmldsig#">
 	
    <c:name>ICF com.evolveum.icf.dummy.connector.DummyConnector</c:name>
@@ -66,7 +66,7 @@
                         </xsd:appinfo>
                      </xsd:annotation>
                   </xsd:element>
-                  <xsd:element minOccurs="0" name="uselessGuardedString" type="c:ProtectedStringType">
+                  <xsd:element minOccurs="0" name="uselessGuardedString" type="t:ProtectedStringType">
                      <xsd:annotation>
                         <xsd:appinfo>
                            <a:displayName>UI_INSTANCE_USELESS_GUARDED_STRING</a:displayName>

@@ -17,10 +17,7 @@ package com.evolveum.midpoint.model.impl;
 
 import com.evolveum.midpoint.model.api.*;
 import com.evolveum.midpoint.model.common.util.AbstractModelWebService;
-import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.QueryJaxbConvertor;
@@ -234,7 +231,7 @@ public class ModelWebService extends AbstractModelWebService implements ModelPor
             // here comes MSL script decoding (however with a quick hack to allow passing XML as text here)
             String scriptsAsString = parameters.getMslScripts();
             if (scriptsAsString.startsWith("<?xml")) {
-                PrismProperty expressionType = (PrismProperty) prismContext.parseAnyData(scriptsAsString, PrismContext.LANG_XML);
+                PrismProperty expressionType = (PrismProperty) prismContext.parserFor(scriptsAsString).xml().parseItem();
                 if (expressionType.size() != 1) {
                     throw new IllegalArgumentException("Unexpected number of scripting expressions at input: " + expressionType.size() + " (expected 1)");
                 }
@@ -268,7 +265,7 @@ public class ModelWebService extends AbstractModelWebService implements ModelPor
                 } else {
                     // temporarily we send serialized XML in the case of MSL output
                     ItemListType jaxbOutput = prepareXmlData(executionResult.getDataOutput());
-                    output.setMslData(prismContext.serializeAnyData(jaxbOutput, SchemaConstants.C_VALUE, PrismContext.LANG_XML));
+                    output.setMslData(prismContext.xmlSerializer().serializeAnyData(jaxbOutput, SchemaConstants.C_VALUE));
                 }
             }
             result.computeStatusIfUnknown();
@@ -281,11 +278,11 @@ public class ModelWebService extends AbstractModelWebService implements ModelPor
         return response;
     }
 
-    private ItemListType prepareXmlData(List<Item> output) throws JAXBException, SchemaException {
+    private ItemListType prepareXmlData(List<PrismValue> output) throws JAXBException, SchemaException {
         ItemListType itemListType = new ItemListType();
         if (output != null) {
-            for (Item item : output) {
-                RawType rawType = prismContext.toRawType(item);
+            for (PrismValue value: output) {
+				RawType rawType = new RawType(prismContext.xnodeSerializer().root(SchemaConstants.C_VALUE).serialize(value), prismContext);
                 itemListType.getItem().add(rawType);
             }
         }

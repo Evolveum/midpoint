@@ -16,7 +16,6 @@
 package com.evolveum.icf.dummy.connector;
 
 import org.identityconnectors.common.logging.Log;
-import org.identityconnectors.common.security.GuardedString;
 import org.identityconnectors.framework.spi.AbstractConfiguration;
 import org.identityconnectors.framework.spi.ConfigurationProperty;
 
@@ -24,8 +23,6 @@ import org.identityconnectors.framework.spi.ConfigurationProperty;
  * Extends the {@link AbstractConfiguration} class to provide all the necessary
  * parameters to initialize the Test Connector.
  *
- * @author $author$
- * @version $Revision$ $Date$
  */
 public class DummyConfiguration extends AbstractConfiguration {
 

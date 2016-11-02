@@ -17,6 +17,7 @@ package com.evolveum.midpoint.web.page.admin.users.component;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.model.api.util.MergeDeltas;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -68,7 +69,7 @@ public class MergeObjectsPanel<F extends FocusType> extends BasePanel{
     private IModel<F> mergeObjectModel;
     private IModel<F> mergeWithObjectModel;
     private PrismObject<F> mergeResultObject;
-    private ObjectDelta<F> mergeDelta;
+    private MergeDeltas<F> mergeDeltas;
     private Class<F> type;
     private PageBase pageBase;
     private IModel<String> mergeTypeModel;
@@ -205,66 +206,6 @@ public class MergeObjectsPanel<F extends FocusType> extends BasePanel{
         return mergeObjectsResultPanel;
     }
 
-    private void initButtonPanel(Form mainForm){
-        AjaxSubmitButton switchDirectionButton = new AjaxSubmitButton(ID_SWITCH_DIRECTION_BUTTON, pageBase.createStringResource("PageMergeObjects.switchDirectionButton")) {
-
-            @Override
-            protected void onSubmit(AjaxRequestTarget target,
-                                    org.apache.wicket.markup.html.form.Form<?> form) {
-            }
-
-            @Override
-            protected void onError(AjaxRequestTarget target,
-                                   org.apache.wicket.markup.html.form.Form<?> form) {
-                target.add(pageBase.getFeedbackPanel());
-            }
-        };
-        mainForm.add(switchDirectionButton);
-
-        AjaxSubmitButton mergeDeltaPreviewButton = new AjaxSubmitButton(ID_MERGE_DELTA_PREVIEW_BUTTON,
-                pageBase.createStringResource("PageMergeObjects.mergeDeltaPreviewButton")) {
-
-            @Override
-            protected void onSubmit(AjaxRequestTarget target,
-                                    org.apache.wicket.markup.html.form.Form<?> form) {
-            }
-
-            @Override
-            protected void onError(AjaxRequestTarget target,
-                                   org.apache.wicket.markup.html.form.Form<?> form) {
-                target.add(pageBase.getFeedbackPanel());
-            }
-        };
-        mainForm.add(mergeDeltaPreviewButton);
-
-        AjaxSubmitButton mergeButton = new AjaxSubmitButton(ID_MERGE_BUTTON,
-                pageBase.createStringResource("PageMergeObjects.mergeButton")) {
-
-            @Override
-            protected void onSubmit(AjaxRequestTarget target,
-                                    org.apache.wicket.markup.html.form.Form<?> form) {
-            }
-
-            @Override
-            protected void onError(AjaxRequestTarget target,
-                                   org.apache.wicket.markup.html.form.Form<?> form) {
-                target.add(pageBase.getFeedbackPanel());
-            }
-        };
-        mainForm.add(mergeButton);
-
-        AjaxButton back = new AjaxButton(ID_BACK_BUTTON, pageBase.createStringResource("PageMergeObjects.backButton")) {
-
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                pageBase.redirectBack();
-            }
-
-        };
-        mainForm.add(back);
-
-    }
-
     private List<String> getMergeTypeNames(){
         List<String> mergeTypeNamesList = new ArrayList<>();
         Task task = pageBase.createAnonymousTask(OPERATION_LOAD_MERGE_TYPE_NAMES);
@@ -292,14 +233,15 @@ public class MergeObjectsPanel<F extends FocusType> extends BasePanel{
         }
         return mergeTypeNamesList;
     }
-    private PrismObject<F> getMergeObjectsResult(){
+    
+    private PrismObject<F> getMergeObjectsResult() {
         OperationResult result = new OperationResult(OPERATION_GET_MERGE_OBJECT_PREVIEW);
         PrismObject<F> mergeResultObject = null;
         try {
             Task task = pageBase.createSimpleTask(OPERATION_GET_MERGE_OBJECT_PREVIEW);
             mergeResultObject = pageBase.getModelInteractionService().mergeObjectsPreviewObject(type,
                     mergeObjectModel.getObject().getOid(), mergeWithObjectModel.getObject().getOid(), currentMergeType, task, result);
-            mergeDelta = pageBase.getModelInteractionService().mergeObjectsPreviewDelta(type,
+            mergeDeltas = pageBase.getModelInteractionService().mergeObjectsPreviewDeltas(type,
                     mergeObjectModel.getObject().getOid(), mergeWithObjectModel.getObject().getOid(), currentMergeType, task, result);
         } catch (Exception ex) {
             result.recomputeStatus();
@@ -314,8 +256,8 @@ public class MergeObjectsPanel<F extends FocusType> extends BasePanel{
         return mergeResultObject;
     }
 
-    public ObjectDelta<F> getMergeDelta(){
-        return mergeDelta;
+    public MergeDeltas<F> getMergeDeltas() {
+        return mergeDeltas;
 
     }
 }

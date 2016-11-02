@@ -388,7 +388,7 @@ public final class ResourceAttributeContainer extends PrismContainer {
 	}
 	
 	public static ResourceAttributeContainer createEmptyContainer(QName elementName, ObjectClassComplexTypeDefinition objectClassDefinition) {
-		ResourceAttributeContainerDefinition attributesContainerDefinition = new ResourceAttributeContainerDefinition(elementName,
+		ResourceAttributeContainerDefinition attributesContainerDefinition = new ResourceAttributeContainerDefinitionImpl(elementName,
 				objectClassDefinition, objectClassDefinition.getPrismContext()); 
 		return new ResourceAttributeContainer(elementName, attributesContainerDefinition , objectClassDefinition.getPrismContext());
 	}

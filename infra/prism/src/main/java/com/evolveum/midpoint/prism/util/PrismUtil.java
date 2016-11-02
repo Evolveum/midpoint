@@ -15,22 +15,10 @@
  */
 package com.evolveum.midpoint.prism.util;
 
-import com.evolveum.midpoint.prism.ComplexTypeDefinition;
-import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.Objectable;
-import com.evolveum.midpoint.prism.PrismConstants;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.parser.DomParser;
-import com.evolveum.midpoint.prism.parser.PrismBeanConverter;
-import com.evolveum.midpoint.prism.parser.XNodeProcessor;
+import com.evolveum.midpoint.prism.lex.dom.DomLexicalProcessor;
+import com.evolveum.midpoint.prism.marshaller.PrismUnmarshaller;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
@@ -39,6 +27,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 import org.apache.commons.lang.StringUtils;
+import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Attr;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -46,7 +35,6 @@ import org.w3c.dom.NamedNodeMap;
 
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -150,27 +138,15 @@ public class PrismUtil {
 		return true;
 	}
 
-	public static XNodeProcessor getXnodeProcessor(PrismContext prismContext) {
-		if (prismContext == null) {
-			return new XNodeProcessor();
-		} else {
-			return prismContext.getXnodeProcessor();
-		}
+	public static PrismUnmarshaller getXnodeProcessor(@NotNull PrismContext prismContext) {
+		return ((PrismContextImpl) prismContext).getPrismUnmarshaller();
 	}
 
-	public static PrismBeanConverter getBeanConverter(PrismContext prismContext) {
+	public static DomLexicalProcessor getDomParser(PrismContext prismContext) {
 		if (prismContext == null) {
-			return new PrismBeanConverter(null, null);
+			return new DomLexicalProcessor(null);
 		} else {
-			return prismContext.getBeanConverter();
-		}
-	}
-	
-	public static DomParser getDomParser(PrismContext prismContext) {
-		if (prismContext == null) {
-			return new DomParser(null);
-		} else {
-			return prismContext.getParserDom();
+			return ((PrismContextImpl) prismContext).getParserDom();
 		}
 	}
 

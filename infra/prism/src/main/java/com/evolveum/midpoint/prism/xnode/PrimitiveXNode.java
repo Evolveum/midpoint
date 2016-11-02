@@ -21,9 +21,11 @@ import java.util.Map;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.parser.XNodeProcessorEvaluationMode;
+import com.evolveum.midpoint.prism.marshaller.XNodeProcessorEvaluationMode;
 import com.evolveum.midpoint.prism.util.CloneUtil;
+import com.evolveum.midpoint.prism.util.JavaTypeConverter;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
+import com.evolveum.midpoint.util.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
@@ -32,13 +34,11 @@ import org.apache.commons.lang.StringUtils;
 import com.evolveum.midpoint.prism.Visitor;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.DisplayableValue;
-import com.evolveum.midpoint.util.PrettyPrinter;
-import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 import org.apache.commons.lang.Validate;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class PrimitiveXNode<T> extends XNode implements Serializable {
 
@@ -68,7 +68,7 @@ public class PrimitiveXNode<T> extends XNode implements Serializable {
 		this.value = value;
 	}
 
-	public void parseValue(QName typeName, XNodeProcessorEvaluationMode mode) throws SchemaException {
+	private void parseValue(@NotNull QName typeName, XNodeProcessorEvaluationMode mode) throws SchemaException {
         Validate.notNull(typeName, "Cannot parse primitive XNode without knowing its type");
 		if (valueParser != null) {
 			value = valueParser.parse(typeName, mode);
@@ -76,20 +76,29 @@ public class PrimitiveXNode<T> extends XNode implements Serializable {
 			valueParser = null;
 		}
 	}
-	
+
 	public T getValue() {
 		return value;
 	}
 
-	public T getParsedValue(QName typeName) throws SchemaException {
-		return getParsedValue(typeName, XNodeProcessorEvaluationMode.STRICT);
+	@Deprecated
+	public T getParsedValue(@NotNull QName typeName) throws SchemaException {
+		return getParsedValue(typeName, null, XNodeProcessorEvaluationMode.STRICT);
 	}
 
-	public T getParsedValue(QName typeName, XNodeProcessorEvaluationMode mode) throws SchemaException {
+	public T getParsedValue(@NotNull QName typeName, @Nullable Class<T> expectedClass) throws SchemaException {
+		return getParsedValue(typeName, expectedClass, XNodeProcessorEvaluationMode.STRICT);
+	}
+
+	public T getParsedValue(@NotNull QName typeName, @Nullable Class<T> expectedClass, XNodeProcessorEvaluationMode mode) throws SchemaException {
 		if (!isParsed()) {
 			parseValue(typeName, mode);
 		}
-		return value;
+		if (JavaTypeConverter.isTypeCompliant(value, expectedClass)) {
+			return value;
+		} else {
+			throw new SchemaException("Expected " + expectedClass + " but got " + value.getClass() + " instead. Value is " + value);
+		}
 	}
 	
 	public ValueParser<T> getValueParser() {
@@ -111,8 +120,8 @@ public class PrimitiveXNode<T> extends XNode implements Serializable {
                     throw new IllegalStateException("Cannot determine type QName for a value of '" + value + "'");            // todo show only class? (security/size reasons)
                 }
             }
+			this.setTypeQName(typeQName);
         }
-        this.setTypeQName(typeQName);
 		this.value = value;
         this.valueParser = null;
 	}
@@ -334,7 +343,7 @@ public class PrimitiveXNode<T> extends XNode implements Serializable {
             String otherStringValue = String.valueOf(other.value);
 			return otherStringValue.equals(thisStringValue);
 		} else if (!other.isParsed() && isParsed()){
-            String thisStringValue = String.valueOf(value);;
+            String thisStringValue = String.valueOf(value);
             String otherStringValue = other.getStringValue();
 			return thisStringValue.equals(otherStringValue);
 		}

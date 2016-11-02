@@ -4,9 +4,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.xnode.RootXNode;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
-import org.apache.commons.lang.StringUtils;
 
 import java.io.Serializable;
 
@@ -46,7 +44,7 @@ public class DefinitionScopeDto implements Serializable {
 
         try {
             RootXNode clause = searchFilterType.getFilterClauseAsRootXNode();
-            searchFilterText = prismContext.serializeXNodeToString(clause, PrismContext.LANG_XML);
+            searchFilterText = prismContext.xmlSerializer().serialize(clause);
         } catch (SchemaException e) {
             throw new SystemException("Cannot serialize search filter " + searchFilterType + ": " + e.getMessage(), e);
         }
@@ -60,7 +58,7 @@ public class DefinitionScopeDto implements Serializable {
         SearchFilterType rv = new SearchFilterType();
         RootXNode filterClauseNode;
         try {
-            filterClauseNode = (RootXNode) context.parseToXNode(searchFilterText, PrismContext.LANG_XML);
+            filterClauseNode = (RootXNode) context.parserFor(searchFilterText).xml().parseToXNode();
         } catch (SchemaException e) {
             throw new SystemException("Cannot parse search filter " + searchFilterText + ": " + e.getMessage(), e);
         }

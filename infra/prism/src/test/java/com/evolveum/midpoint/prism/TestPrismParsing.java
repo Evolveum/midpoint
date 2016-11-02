@@ -15,38 +15,7 @@
  */
 package com.evolveum.midpoint.prism;
 
-import static com.evolveum.midpoint.prism.PrismInternalTestUtil.COMMON_DIR_PATH;
-import static com.evolveum.midpoint.prism.PrismInternalTestUtil.DEFAULT_NAMESPACE_PREFIX;
-import static com.evolveum.midpoint.prism.PrismInternalTestUtil.EXTENSION_BAR_ELEMENT;
-import static com.evolveum.midpoint.prism.PrismInternalTestUtil.EXTENSION_DATE_TYPE_ELEMENT;
-import static com.evolveum.midpoint.prism.PrismInternalTestUtil.EXTENSION_DOUBLE_TYPE_ELEMENT;
-import static com.evolveum.midpoint.prism.PrismInternalTestUtil.EXTENSION_DURATION_TYPE_ELEMENT;
-import static com.evolveum.midpoint.prism.PrismInternalTestUtil.EXTENSION_IGNORED_TYPE_ELEMENT;
-import static com.evolveum.midpoint.prism.PrismInternalTestUtil.EXTENSION_INDEXED_STRING_TYPE_ELEMENT;
-import static com.evolveum.midpoint.prism.PrismInternalTestUtil.EXTENSION_INTEGER_TYPE_ELEMENT;
-import static com.evolveum.midpoint.prism.PrismInternalTestUtil.EXTENSION_INT_TYPE_ELEMENT;
-import static com.evolveum.midpoint.prism.PrismInternalTestUtil.EXTENSION_LOCATIONS_ELEMENT;
-import static com.evolveum.midpoint.prism.PrismInternalTestUtil.EXTENSION_LOCATIONS_TYPE_QNAME;
-import static com.evolveum.midpoint.prism.PrismInternalTestUtil.EXTENSION_LONG_TYPE_ELEMENT;
-import static com.evolveum.midpoint.prism.PrismInternalTestUtil.EXTENSION_MELEE_CONTEXT_ELEMENT;
-import static com.evolveum.midpoint.prism.PrismInternalTestUtil.EXTENSION_MELEE_CONTEXT_OPPONENT_ELEMENT;
-import static com.evolveum.midpoint.prism.PrismInternalTestUtil.EXTENSION_MELEE_CONTEXT_OPPONENT_REF_ELEMENT;
-import static com.evolveum.midpoint.prism.PrismInternalTestUtil.EXTENSION_MULTI_ELEMENT;
-import static com.evolveum.midpoint.prism.PrismInternalTestUtil.EXTENSION_NUM_ELEMENT;
-import static com.evolveum.midpoint.prism.PrismInternalTestUtil.EXTENSION_SINGLE_STRING_TYPE_ELEMENT;
-import static com.evolveum.midpoint.prism.PrismInternalTestUtil.EXTENSION_STRING_TYPE_ELEMENT;
-import static com.evolveum.midpoint.prism.PrismInternalTestUtil.NS_FOO;
-import static com.evolveum.midpoint.prism.PrismInternalTestUtil.USER_ADHOC_BOTTLES_ELEMENT;
-import static com.evolveum.midpoint.prism.PrismInternalTestUtil.USER_BARBOSSA_FILE_BASENAME;
-import static com.evolveum.midpoint.prism.PrismInternalTestUtil.USER_JACK_ADHOC_BASENAME;
-import static com.evolveum.midpoint.prism.PrismInternalTestUtil.USER_JACK_FILE_BASENAME;
-import static com.evolveum.midpoint.prism.PrismInternalTestUtil.USER_JACK_OBJECT_BASENAME;
-import static com.evolveum.midpoint.prism.PrismInternalTestUtil.USER_WILL_FILE_BASENAME;
-import static com.evolveum.midpoint.prism.PrismInternalTestUtil.assertContainerDefinition;
-import static com.evolveum.midpoint.prism.PrismInternalTestUtil.assertUserJack;
-import static com.evolveum.midpoint.prism.PrismInternalTestUtil.assertUserJackContent;
-import static com.evolveum.midpoint.prism.PrismInternalTestUtil.assertVisitor;
-import static com.evolveum.midpoint.prism.PrismInternalTestUtil.constructInitializedPrismContext;
+import static com.evolveum.midpoint.prism.PrismInternalTestUtil.*;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertNull;
@@ -63,7 +32,6 @@ import javax.xml.namespace.QName;
 
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
-import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
 
 import com.evolveum.midpoint.prism.delta.DiffUtil;
@@ -81,8 +49,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
  *
  */
 public abstract class TestPrismParsing {
-		
-	
+
 	protected abstract String getSubdirName();
 	
 	protected abstract String getFilenameSuffix();
@@ -103,8 +70,8 @@ public abstract class TestPrismParsing {
 	protected abstract String getOutputFormat();
 	
 	@Test
-	public void testPrismParseFile() throws Exception {
-		final String TEST_NAME = "testPrismParseFile";
+	public void test100PrismParseFile() throws Exception {
+		final String TEST_NAME = "test100PrismParseFile";
 		PrismInternalTestUtil.displayTestTitle(TEST_NAME);
 		// GIVEN
 		PrismContext prismContext = constructInitializedPrismContext();
@@ -117,12 +84,30 @@ public abstract class TestPrismParsing {
 		System.out.println(user.debugDump());
 		assertNotNull(user);
 		
-		assertUserJack(user);
+		assertUserJack(user, true);
 	}
 	
 	@Test
-	public void testPrismParseFileObject() throws Exception {
-		final String TEST_NAME = "testPrismParseFileObject";
+	public void test110PrismParseFileNoNs() throws Exception {
+		final String TEST_NAME = "test110PrismParseFileNoNs";
+		PrismInternalTestUtil.displayTestTitle(TEST_NAME);
+		// GIVEN
+		PrismContext prismContext = constructInitializedPrismContext();
+
+		// WHEN
+		PrismObject<UserType> user = prismContext.parseObject(getFile(USER_JACK_NO_NS_BASENAME));
+
+		// THEN
+		System.out.println("User:");
+		System.out.println(user.debugDump());
+		assertNotNull(user);
+
+		assertUserJack(user, true);
+	}
+
+	@Test
+	public void test120PrismParseFileObject() throws Exception {
+		final String TEST_NAME = "test120PrismParseFileObject";
 		PrismInternalTestUtil.displayTestTitle(TEST_NAME);
 		
 		// GIVEN
@@ -136,25 +121,52 @@ public abstract class TestPrismParsing {
 		System.out.println(user.debugDump());
 		assertNotNull(user);
 		
-		assertUserJack(user);
+		assertUserJack(user, true);
 	}
-	
-		
+
 	@Test
-	public void testRoundTrip() throws Exception {
-		final String TEST_NAME = "testRoundTrip";
+	public void test130PrismParseFileAdhoc() throws Exception {
+		final String TEST_NAME = "test130PrismParseFileAdhoc";
+		PrismInternalTestUtil.displayTestTitle(TEST_NAME);
+
+		// GIVEN
+		PrismContext prismContext = constructInitializedPrismContext();
+
+		// WHEN
+		PrismObject<UserType> user = prismContext.parseObject(getFile(USER_JACK_ADHOC_BASENAME));
+
+		// THEN
+		System.out.println("User:");
+		System.out.println(user.debugDump());
+		assertNotNull(user);
+
+		assertUserAdhoc(user, true);
+	}
+
+	@Test
+	public void test200RoundTrip() throws Exception {
+		final String TEST_NAME = "test200RoundTrip";
 		PrismInternalTestUtil.displayTestTitle(TEST_NAME);
 		
 		roundTrip(getFile(USER_JACK_FILE_BASENAME));
 	}
 
 	@Test
-	public void testRoundTripObject() throws Exception {
-		final String TEST_NAME = "testRoundTripObject";
+	public void test210RoundTripNoNs() throws Exception {
+		final String TEST_NAME = "test210RoundTripNoNs";
+		PrismInternalTestUtil.displayTestTitle(TEST_NAME);
+
+		roundTrip(getFile(USER_JACK_NO_NS_BASENAME));
+	}
+
+	@Test
+	public void test220RoundTripObject() throws Exception {
+		final String TEST_NAME = "test220RoundTripObject";
 		PrismInternalTestUtil.displayTestTitle(TEST_NAME);
 		
 		roundTrip(getFile(USER_JACK_OBJECT_BASENAME));
 	}
+
 
 	private void roundTrip(File file) throws SchemaException, SAXException, IOException {
 		
@@ -167,11 +179,11 @@ public abstract class TestPrismParsing {
 		assertNotNull(originalUser);
 		
 		// precondition
-		assertUserJack(originalUser);
+		assertUserJack(originalUser, true);
 		
 		// WHEN
 		// We need to serialize with composite objects during roundtrip, otherwise the result will not be equal
-		String userXml = prismContext.serializeObjectToString(originalUser, getOutputFormat());
+		String userXml = prismContext.serializerFor(getOutputFormat()).serialize(originalUser);
 	
 		// THEN
 		System.out.println("Serialized user:");
@@ -186,7 +198,7 @@ public abstract class TestPrismParsing {
 		System.out.println(parsedUser.debugDump());
 		assertNotNull(parsedUser);
 
-		assertUserJack(parsedUser);
+		assertUserJack(parsedUser, true);
 		
 		ObjectDelta<UserType> diff = DiffUtil.diff(originalUser, parsedUser);
 		System.out.println("Diff:");
@@ -197,29 +209,10 @@ public abstract class TestPrismParsing {
 		assertTrue("Users not equal", originalUser.equals(parsedUser));
 	}
 	
+
 	@Test
-	public void testPrismParseFileAdhoc() throws Exception {
-		final String TEST_NAME = "testPrismParseFileAdhoc";
-		PrismInternalTestUtil.displayTestTitle(TEST_NAME);
-		
-		// GIVEN
-		PrismContext prismContext = constructInitializedPrismContext();
-		
-		// WHEN
-		PrismObject<UserType> user = prismContext.parseObject(getFile(USER_JACK_ADHOC_BASENAME));
-		
-		// THEN
-		System.out.println("User:");
-		System.out.println(user.debugDump());
-		assertNotNull(user);
-		
-		assertUserAdhoc(user);
-	}
-	
-	
-	@Test
-	public void testRoundTripAdhoc() throws Exception {
-		final String TEST_NAME = "testRoundTripAdhoc";
+	public void test230RoundTripAdhoc() throws Exception {
+		final String TEST_NAME = "test230RoundTripAdhoc";
 		PrismInternalTestUtil.displayTestTitle(TEST_NAME);
 		
 		roundTripAdhoc(getFile(USER_JACK_ADHOC_BASENAME));
@@ -235,7 +228,7 @@ public abstract class TestPrismParsing {
 		assertNotNull(originalUser);
 		
 		// precondition
-		assertUserAdhoc(originalUser);
+		assertUserAdhoc(originalUser, true);
 		
 		// WHEN
 		// We need to serialize with composite objects during roundtrip, otherwise the result will not be equal
@@ -254,15 +247,15 @@ public abstract class TestPrismParsing {
 		System.out.println(parsedUser.debugDump());
 		assertNotNull(parsedUser);
 
-		assertUserAdhoc(parsedUser);
+		assertUserAdhoc(parsedUser, true);
 		
 		assertTrue("Users not equal", originalUser.equals(parsedUser));
 	}
 	
 
 	@Test
-	public void testMeleeContext() throws Exception {
-		final String TEST_NAME = "testMeleeContext";
+	public void test300MeleeContext() throws Exception {
+		final String TEST_NAME = "test300MeleeContext";
 		PrismInternalTestUtil.displayTestTitle(TEST_NAME);
 		
 		// GIVEN
@@ -322,8 +315,8 @@ public abstract class TestPrismParsing {
 	}
 	
 	@Test
-	public void testUserWill() throws Exception {
-		final String TEST_NAME = "testUserWill";
+	public void test400UserWill() throws Exception {
+		final String TEST_NAME = "test400UserWill";
 		PrismInternalTestUtil.displayTestTitle(TEST_NAME);
 		
 		// GIVEN
@@ -341,8 +334,8 @@ public abstract class TestPrismParsing {
 	}
 	
 	@Test
-	public void testUserWillRoundTrip() throws Exception {
-		final String TEST_NAME = "testUserWillRoundTrip";
+	public void test410UserWillRoundTrip() throws Exception {
+		final String TEST_NAME = "test410UserWillRoundTrip";
 		PrismInternalTestUtil.displayTestTitle(TEST_NAME);
 		
 		// GIVEN
@@ -359,7 +352,7 @@ public abstract class TestPrismParsing {
 		assertUserWill(user);
 		
 		// WHEN
-		String serialized = prismContext.serializeObjectToString(user, getOutputFormat());
+		String serialized = prismContext.serializerFor(getOutputFormat()).serialize(user);
 		
 		// THEN
 		assertNotNull(serialized);
@@ -378,9 +371,47 @@ public abstract class TestPrismParsing {
 		
 	}
 	
-	protected void assertUserAdhoc(PrismObject<UserType> user) throws SchemaException {
+	@Test
+	public void test500UserElisabethRoundTrip() throws Exception {
+		final String TEST_NAME = "test500UserElisabethRoundTrip";
+		PrismInternalTestUtil.displayTestTitle(TEST_NAME);
+
+		// GIVEN
+		PrismContext prismContext = constructInitializedPrismContext();
+
+		// WHEN
+		PrismObject<UserType> user = prismContext.parseObject(getFile(USER_ELISABETH_FILE_BASENAME));
+
+		// THEN
+		System.out.println("User:");
+		System.out.println(user.debugDump());
+		assertNotNull(user);
+
+		assertUserElisabeth(user);
+
+		// WHEN
+		String serialized = prismContext.serializeObjectToString(user, getOutputFormat());
+
+		// THEN
+		assertNotNull(serialized);
+		System.out.println("Serialized user:");
+		System.out.println(serialized);
+
+		// WHEN
+		PrismObject<UserType> reparsedUser = prismContext.parseObject(serialized);
+
+		// THEN
+		System.out.println("Re-parsed user:");
+		System.out.println(reparsedUser.debugDump());
+		assertNotNull(reparsedUser);
+
+		assertUserElisabeth(reparsedUser);
+
+	}
+
+	protected void assertUserAdhoc(PrismObject<UserType> user, boolean expectRawInConstructions) throws SchemaException {
 		user.checkConsistence();
-		assertUserJackContent(user);
+		assertUserJackContent(user, expectRawInConstructions);
 		assertUserExtensionAdhoc(user);
 		assertVisitor(user, 58);
 	}
@@ -506,7 +537,35 @@ public abstract class TestPrismParsing {
 		assertEquals("Multi",3,multiPVals.size());
 
     }
-	
+
+	private void assertUserElisabeth(PrismObject<UserType> user) throws SchemaException {
+		user.checkConsistence();
+		user.assertDefinitions("test");
+		assertUserElisabethExtension(user);
+		//assertVisitor(user,55);
+	}
+
+	private void assertUserElisabethExtension(PrismObject<UserType> user) {
+
+		PrismContainer<?> extension = user.getExtension();
+		assertContainerDefinition(extension, "extension", DOMUtil.XSD_ANY, 0, 1);
+		PrismContainerValue<?> extensionValue = extension.getValue();
+		assertTrue("Extension parent", extensionValue.getParent() == extension);
+		assertNull("Extension ID", extensionValue.getId());
+
+//		PrismProperty<String> stringType = extension.findProperty(EXTENSION_STRING_TYPE_ELEMENT);
+//		PrismAsserts.assertPropertyValue(stringType, "BARbar", "FOObar");
+//		PrismPropertyDefinition stringTypePropertyDef = stringType.getDefinition();
+//		PrismAsserts.assertDefinition(stringTypePropertyDef, EXTENSION_STRING_TYPE_ELEMENT, DOMUtil.XSD_STRING, 0, -1);
+//		assertNull("'Indexed' attribute on 'stringType' property is not null", stringTypePropertyDef.isIndexed());
+
+		PrismProperty<String> secondaryStringType = extension.findProperty(EXTENSION_SECONDARY_SECONDARY_STRING_TYPE_ELEMENT);
+		PrismAsserts.assertPropertyValue(secondaryStringType, "string1");
+		PrismPropertyDefinition secondaryStringTypePropertyDef = secondaryStringType.getDefinition();
+		PrismAsserts.assertDefinition(secondaryStringTypePropertyDef, EXTENSION_SINGLE_STRING_TYPE_ELEMENT, DOMUtil.XSD_STRING, 0, -1);
+		assertNull("'Indexed' attribute on 'secondaryStringType' property is not null", secondaryStringTypePropertyDef.isIndexed());
+	}
+
 	protected void validateXml(String xmlString, PrismContext prismContext) throws SAXException, IOException {
 	}
 	

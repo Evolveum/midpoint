@@ -22,12 +22,7 @@ import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceAttribute;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeContainerDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceObjectIdentification;
-import com.evolveum.midpoint.schema.processor.ResourceSchema;
+import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -352,7 +347,7 @@ public class ShadowUtil {
 	private static void applyObjectClass(PrismObject<? extends ShadowType> shadow, 
 			ObjectClassComplexTypeDefinition objectClassDefinition) throws SchemaException {
 		PrismContainer<?> attributesContainer = shadow.findContainer(ShadowType.F_ATTRIBUTES);
-		ResourceAttributeContainerDefinition racDef = new ResourceAttributeContainerDefinition(ShadowType.F_ATTRIBUTES,
+		ResourceAttributeContainerDefinition racDef = new ResourceAttributeContainerDefinitionImpl(ShadowType.F_ATTRIBUTES,
 				objectClassDefinition, objectClassDefinition.getPrismContext());
 		attributesContainer.applyDefinition((PrismContainerDefinition) racDef, true);
 	}
@@ -502,10 +497,18 @@ public class ShadowUtil {
 		return MiscUtil.equals(intent, shadowType.getIntent());
 	}
 
+	/**
+	 * Strict mathcing. E.g. null discriminator kind is intepreted as ACCOUNT and it must match the kind
+	 * in the shadow. 
+	 */
 	public static boolean matches(PrismObject<ShadowType> shadow, ResourceShadowDiscriminator discr) {
 		return matches(shadow.asObjectable(), discr);
 	}
 	
+	/**
+	 * Strict mathcing. E.g. null discriminator kind is intepreted as ACCOUNT and it must match the kind
+	 * in the shadow. 
+	 */
 	public static boolean matches(ShadowType shadowType, ResourceShadowDiscriminator discr) {
 		if (shadowType == null) {
 			return false;
@@ -519,7 +522,35 @@ public class ShadowUtil {
 		return ResourceShadowDiscriminator.equalsIntent(shadowType.getIntent(), discr.getIntent());
 	}
 
+	/**
+	 * Interprets ResourceShadowDiscriminator as a pattern. E.g. null discriminator kind is 
+	 * interpreted to match any shadow kind.
+	 */
+	public static boolean matchesPattern(ShadowType shadowType, ShadowDiscriminatorType discr) {
+		if (shadowType == null) {
+			return false;
+		}
+		if (!discr.getResourceRef().getOid().equals(shadowType.getResourceRef().getOid())) {
+			return false;
+		}
+		if (discr.getKind() != null && !MiscUtil.equals(discr.getKind(), shadowType.getKind())) {
+			return false;
+		}
+		if (discr.getIntent() == null) {
+			return true;
+		}
+		return ResourceShadowDiscriminator.equalsIntent(shadowType.getIntent(), discr.getIntent());
+	}
 	
+	public static boolean isConflicting(ShadowType shadow1, ShadowType shadow2) {
+		if (!shadow1.getResourceRef().getOid().equals(shadow2.getResourceRef().getOid())) {
+			return false;
+		}
+		if (!MiscUtil.equals(getKind(shadow1), getKind(shadow2))) {
+			return false;
+		}
+		return ResourceShadowDiscriminator.equalsIntent(shadow1.getIntent(), shadow2.getIntent());
+	}
 	
 	public static String getHumanReadableName(PrismObject<? extends ShadowType> shadow) {
 		if (shadow == null) {

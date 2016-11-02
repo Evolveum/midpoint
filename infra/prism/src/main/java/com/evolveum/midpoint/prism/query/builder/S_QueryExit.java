@@ -25,7 +25,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
  */
 public interface S_QueryExit {
 
-    ObjectQuery build() throws SchemaException;
-    ObjectFilter buildFilter() throws SchemaException;
+    ObjectQuery build();
+    ObjectFilter buildFilter();
 
 }

@@ -27,6 +27,7 @@ import java.util.Collection;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterExit;
 import org.apache.directory.api.ldap.model.cursor.CursorException;
 import org.apache.directory.api.ldap.model.entry.Entry;
 import org.apache.directory.api.ldap.model.exception.LdapException;
@@ -416,11 +417,11 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
         // GIVEN
         Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
-        
-        ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(getResourceOid(), getAccountObjectClass(), prismContext);
-        ObjectQueryUtil.filterAnd(query.getFilter(), 
-        		EqualFilter.createEqual(new ItemPath(ShadowType.F_ACTIVATION, ActivationType.F_LOCKOUT_STATUS), getShadowDefinition(), LockoutStatusType.LOCKED));
-        
+
+		ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassFilterPrefix(getResourceOid(), getAccountObjectClass(), prismContext)
+				.and().item(ShadowType.F_ACTIVATION, ActivationType.F_LOCKOUT_STATUS).eq(LockoutStatusType.LOCKED)
+				.build();
+
         SearchResultList<PrismObject<ShadowType>> searchResultList = doSearch(TEST_NAME, query, 1, task, result);
         
         assertConnectorOperationIncrement(1);
@@ -916,10 +917,9 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
         Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         
-        ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(getResourceOid(), getAccountObjectClass(), prismContext);
-        ObjectQueryUtil.filterAnd(query.getFilter(), 
-        		EqualFilter.createEqual(new ItemPath(ShadowType.F_ACTIVATION, ActivationType.F_LOCKOUT_STATUS), getShadowDefinition(), LockoutStatusType.LOCKED));
-        
+        ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassFilterPrefix(getResourceOid(), getAccountObjectClass(), prismContext)
+				.and().item(ShadowType.F_ACTIVATION, ActivationType.F_LOCKOUT_STATUS).eq(LockoutStatusType.LOCKED)
+				.build();
         SearchResultList<PrismObject<ShadowType>> searchResultList = doSearch(TEST_NAME, query, 0, task, result);
         
         assertConnectorOperationIncrement(1);

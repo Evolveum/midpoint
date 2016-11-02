@@ -18,7 +18,6 @@ package com.evolveum.midpoint.util;
 
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Set;
 
 import javax.xml.namespace.QName;
 
@@ -26,6 +25,8 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.Validate;
+import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Node;
 
 /**
@@ -55,15 +56,24 @@ public class QNameUtil {
     private static ThreadLocal<Boolean> temporarilyTolerateUndeclaredPrefixes = new ThreadLocal<>();
 
     public static String qNameToUri(QName qname) {
+		return qNameToUri(qname, true);
+	}
+
+    public static String qNameToUri(QName qname, boolean unqualifiedStartsWithHash) {
+		return qNameToUri(qname, unqualifiedStartsWithHash, '#');
+	}
+
+    public static String qNameToUri(QName qname, boolean unqualifiedStartsWithHash, char separatorChar) {
         String qUri = qname.getNamespaceURI();
         StringBuilder sb = new StringBuilder(qUri);
 
         // TODO: Check if there's already a fragment
         // e.g. http://foo/bar#baz
 
-
         if (!qUri.endsWith("#") && !qUri.endsWith("/")) {
-            sb.append("#");
+			if (unqualifiedStartsWithHash || !qUri.isEmpty()) {
+				sb.append(separatorChar);
+			}
         }
         sb.append(qname.getLocalPart());
 
@@ -74,28 +84,47 @@ public class QNameUtil {
 		return uriToQName(uri, false);
 	}
 
-    public static QName uriToQName(String uri, boolean allowUnqualified) {
+	public static boolean noNamespace(@NotNull QName name) {
+		return StringUtils.isEmpty(name.getNamespaceURI());
+	}
 
-        if (uri == null) {
-            throw new IllegalArgumentException("URI is null");
-        }
+	public static boolean hasNamespace(@NotNull QName name) {
+		return !noNamespace(name);
+	}
+
+	public static class QNameInfo {
+		@NotNull public final QName name;
+		public final boolean explicitEmptyNamespace;
+		public QNameInfo(@NotNull QName name, boolean explicitEmptyNamespace) {
+			this.name = name;
+			this.explicitEmptyNamespace = explicitEmptyNamespace;
+		}
+	}
+
+    public static QName uriToQName(String uri, boolean allowUnqualified) {
+		return uriToQNameInfo(uri, allowUnqualified).name;
+	}
+
+	@NotNull
+    public static QNameInfo uriToQNameInfo(@NotNull String uri, boolean allowUnqualified) {
+		Validate.notNull(uri);
         int index = uri.lastIndexOf("#");
         if (index != -1) {
             String ns = uri.substring(0, index);
             String name = uri.substring(index+1);
-            return new QName(ns,name);
+            return new QNameInfo(new QName(ns, name), "".equals(ns));
         }
         index = uri.lastIndexOf("/");
         // TODO check if this is still in the path section, e.g.
         // if the matched slash is not a beginning of authority
         // section
         if (index != -1) {
-            String ns = uri.substring(0, index+1);
+            String ns = uri.substring(0, index);
             String name = uri.substring(index+1);
-            return new QName(ns,name);
+			return new QNameInfo(new QName(ns, name), "".equals(ns));
         }
         if (allowUnqualified) {
-        	return new QName(uri);
+        	return new QNameInfo(new QName(uri), false);
 		} else {
 			throw new IllegalArgumentException("The URI (" + uri + ") does not contain slash character");
 		}

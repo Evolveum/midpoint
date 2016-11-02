@@ -20,6 +20,7 @@ import com.evolveum.midpoint.model.impl.scripting.Data;
 import com.evolveum.midpoint.model.impl.scripting.ExecutionContext;
 import com.evolveum.midpoint.model.api.ScriptExecutionException;
 import com.evolveum.midpoint.prism.Item;
+import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.SelectExpressionType;
@@ -42,8 +43,8 @@ public class SelectEvaluator extends BaseExpressionEvaluator {
         }
         ItemPath path = itemPathType.getItemPath();
 
-        for (Item item : input.getData()) {
-            Object o = item.find(path);
+        for (PrismValue value : input.getData()) {
+            Object o = value.find(path);
             if (o != null) {
                 if (o instanceof Item) {
                     output.addItem((Item) o);

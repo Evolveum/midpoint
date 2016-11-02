@@ -20,6 +20,9 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
+import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterEntry;
+import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -129,22 +132,16 @@ public class ObjectAlreadyExistHandler extends ErrorHandler {
 		// TODO: error handling TODO TODO TODO set matching rule instead of null in equlas filter
 		Collection<ResourceAttribute<?>> secondaryIdentifiers = ShadowUtil.getSecondaryIdentifiers(shadow);
 		
-		List<EqualFilter> secondaryIdentifierFilters = new ArrayList<EqualFilter>();
-		
-		for (ResourceAttribute<?> secondaryIdentifier : secondaryIdentifiers){
-			EqualFilter equal = EqualFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES, secondaryIdentifier.getElementName()), secondaryIdentifier);
-			secondaryIdentifierFilters.add(equal);
+		S_AtomicFilterEntry q = QueryBuilder.queryFor(ShadowType.class, prismContext);
+		// secondary identifiers connected by 'or' clause
+		q = q.block();
+		for (ResourceAttribute<?> secondaryIdentifier : secondaryIdentifiers) {
+			q = q.itemAs(secondaryIdentifier).or();
 		}
-		OrFilter orSecondary = OrFilter.createOr((List)secondaryIdentifierFilters);
-		RefFilter resourceRefFilter = RefFilter.createReferenceEqual(ShadowType.F_RESOURCE_REF, ShadowType.class,
-				prismContext, shadow.getResourceRef().getOid());
-		EqualFilter objectClassFilter = EqualFilter.createEqual(ShadowType.F_OBJECT_CLASS, ShadowType.class, prismContext,
-				null, shadow.getObjectClass());
-
-		ObjectQuery query = ObjectQuery.createObjectQuery(AndFilter.createAnd(orSecondary, resourceRefFilter,
-				objectClassFilter));
-
-		return query;
+		q = q.none().endBlock().and();
+		// resource + object class
+		q = q.item(ShadowType.F_RESOURCE_REF).ref(shadow.getResourceRef().getOid()).and();
+		return q.item(ShadowType.F_OBJECT_CLASS).eq(shadow.getObjectClass()).build();
 	}
 
 	private List<PrismObject<ShadowType>> getExistingAccount(ObjectQuery query, Task task, OperationResult parentResult)

@@ -68,11 +68,8 @@ import org.xml.sax.SAXException;
 import com.evolveum.midpoint.util.exception.SystemException;
 
 /**
- *
- *
  * @author Igor Farinic
  * @author Radovan Semancik
- * @version $Revision$ $Date$
  * @since 0.1
  */
 public class DOMUtil {

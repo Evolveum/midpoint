@@ -17,7 +17,6 @@
 package com.evolveum.midpoint.web.page.admin.certification.dto;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.prism.parser.XNodeSerializer;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
 import com.evolveum.midpoint.web.component.util.Selectable;
@@ -27,8 +26,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationS
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import org.apache.commons.lang.time.DurationFormatUtils;
 import org.apache.commons.lang3.Validate;
-import org.apache.wicket.migrate.StringResourceModelMigration;
-import org.apache.wicket.model.StringResourceModel;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;

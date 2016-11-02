@@ -26,9 +26,9 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -40,10 +40,8 @@ import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.api.context.EvaluatedAbstractRole;
 import com.evolveum.midpoint.model.api.context.EvaluatedAssignment;
 import com.evolveum.midpoint.model.api.context.ModelContext;
-import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
@@ -207,10 +205,10 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         
-        ObjectFilter filter = EqualFilter.createEqual(RoleType.F_REQUESTABLE, RoleType.class, prismContext, null, true);
-        ObjectQuery query = new ObjectQuery();
-		query.setFilter(filter);
-        
+        ObjectQuery query = QueryBuilder.queryFor(RoleType.class, prismContext)
+				.item(RoleType.F_REQUESTABLE).eq(true)
+				.build();
+
 		// WHEN
         List<PrismObject<RoleType>> requestableRoles = modelService.searchObjects(RoleType.class, query, null, task, result);
         

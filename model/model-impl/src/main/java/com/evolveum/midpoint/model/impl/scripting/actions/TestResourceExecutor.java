@@ -19,13 +19,11 @@ package com.evolveum.midpoint.model.impl.scripting.actions;
 import com.evolveum.midpoint.model.impl.scripting.Data;
 import com.evolveum.midpoint.model.impl.scripting.ExecutionContext;
 import com.evolveum.midpoint.model.api.ScriptExecutionException;
-import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
-import com.evolveum.midpoint.prism.query.AndFilter;
-import com.evolveum.midpoint.prism.query.EqualFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -68,9 +66,9 @@ public class TestResourceExecutor extends BaseActionExecutor {
 
         Data output = Data.createEmpty();
 
-        for (Item item : input.getData()) {
-            if (item instanceof PrismObject && ((PrismObject) item).asObjectable() instanceof ResourceType) {
-                PrismObject<ResourceType> resourceTypePrismObject = (PrismObject) item;
+        for (PrismValue value: input.getData()) {
+            if (value instanceof PrismObjectValue && ((PrismObjectValue) value).asObjectable() instanceof ResourceType) {
+                PrismObject<ResourceType> resourceTypePrismObject = ((PrismObjectValue) value).asPrismObject();
                 ResourceType resourceType = resourceTypePrismObject.asObjectable();
                 long started = operationsHelper.recordStart(context, resourceType);
                 OperationResult testResult;
@@ -85,7 +83,7 @@ public class TestResourceExecutor extends BaseActionExecutor {
                 context.println("Tested " + resourceTypePrismObject + ": " + testResult.getStatus());
                 output.addItem(operationsHelper.getObject(ResourceType.class, resourceTypePrismObject.getOid(), false, context, result));
             } else {
-                throw new ScriptExecutionException("Couldn't test a resource, because input is not a PrismObject<ResourceType>: " + item.toString());
+                throw new ScriptExecutionException("Couldn't test a resource, because input is not a PrismObject<ResourceType>: " + value.toString());
             }
         }
         return output;
@@ -128,13 +126,10 @@ public class TestResourceExecutor extends BaseActionExecutor {
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace("Finding obsolete versions for connector: {}", connectorType.asPrismObject().debugDump());
         }
-
-        AndFilter filter = AndFilter.createAnd(
-                EqualFilter.createEqual(SchemaConstants.C_CONNECTOR_FRAMEWORK, ConnectorType.class, prismContext, null, connectorType.getFramework()),
-                EqualFilter.createEqual(SchemaConstants.C_CONNECTOR_CONNECTOR_TYPE, ConnectorType.class, prismContext, null, connectorType.getConnectorType()));
-
-        ObjectQuery query = ObjectQuery.createObjectQuery(filter);
-
+        ObjectQuery query = QueryBuilder.queryFor(ConnectorType.class, prismContext)
+                .item(SchemaConstants.C_CONNECTOR_FRAMEWORK).eq(connectorType.getFramework())
+                .and().item(SchemaConstants.C_CONNECTOR_CONNECTOR_TYPE).eq(connectorType.getConnectorType())
+                .build();
         List<PrismObject<ConnectorType>> foundConnectors;
         try {
             foundConnectors = modelService.searchObjects(ConnectorType.class, query, null, null, result);

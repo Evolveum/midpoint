@@ -18,6 +18,7 @@ package com.evolveum.midpoint.web.component.assignment;
 
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.objecttypeselect.ObjectTypeSelectPanel;
@@ -29,10 +30,10 @@ import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.EqualFilter;
-import com.evolveum.midpoint.prism.query.NotFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.OrFilter;
+import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -49,7 +50,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.DateInput;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 import com.evolveum.midpoint.web.component.input.TwoStateBooleanPanel;
-import com.evolveum.midpoint.web.component.prism.CheckTableHeader;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.component.ChooseTypePanel;
@@ -538,13 +538,9 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 
 			@Override
 			protected ObjectQuery getChooseQuery() {
-				ObjectQuery query = new ObjectQuery();
-
-				ObjectFilter filter = EqualFilter.createEqual(OrgType.F_TENANT, OrgType.class,
-						getPageBase().getPrismContext(), null, true);
-				query.setFilter(filter);
-
-				return query;
+				return QueryBuilder.queryFor(OrgType.class, getPageBase().getPrismContext())
+						.item(OrgType.F_TENANT).eq(true)
+						.build();
 			}
 
 			@Override
@@ -583,16 +579,10 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 
 			@Override
 			protected ObjectQuery getChooseQuery() {
-				ObjectQuery query = new ObjectQuery();
-
-				ObjectFilter filter = OrFilter.createOr(
-						EqualFilter.createEqual(OrgType.F_TENANT, OrgType.class,
-								getPageBase().getPrismContext(), null, false),
-						EqualFilter.createEqual(OrgType.F_TENANT, OrgType.class,
-								getPageBase().getPrismContext(), null, null));
-				query.setFilter(filter);
-
-				return query;
+				return QueryBuilder.queryFor(OrgType.class, getPageBase().getPrismContext())
+						.item(OrgType.F_TENANT).eq(false)
+						.or().item(OrgType.F_TENANT).isNull()
+						.build();
 			}
 
 			@Override
@@ -742,7 +732,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 			}
 
 			PrismContext prismContext = getPageBase().getPrismContext();
-			RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resource,
+			RefinedResourceSchema refinedSchema = RefinedResourceSchemaImpl.getRefinedSchema(resource,
 					LayerType.PRESENTATION, prismContext);
 			RefinedObjectClassDefinition objectClassDefinition = refinedSchema
 					.getRefinedDefinition(ShadowKindType.ACCOUNT, construction.getIntent());

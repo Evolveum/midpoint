@@ -15,12 +15,6 @@
  */
 package com.evolveum.midpoint.prism.path;
 
-import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.util.PrettyPrinter;
-
-import java.io.Serializable;
-
 /**
  * @author semancik
  *

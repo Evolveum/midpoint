@@ -18,11 +18,10 @@ package com.evolveum.midpoint.web.page.admin.users.component;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Set;
 
+import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.extensions.markup.html.repeater.util.SortableTreeProvider;
@@ -99,10 +98,10 @@ public class OrgTreeProvider extends SortableTreeProvider<SelectableBean<OrgType
         LOGGER.debug("Loading children for {}", new Object[]{node});
         Iterator<SelectableBean<OrgType>> iterator = null;
 
-        OrgFilter orgFilter = OrgFilter.createOrg(node.getValue().getOid(), OrgFilter.Scope.ONE_LEVEL);
-        ObjectQuery query = ObjectQuery.createObjectQuery(orgFilter);
-        query.setPaging(ObjectPaging.createPaging(null, null, ObjectType.F_NAME, OrderDirection.ASCENDING));
-
+        ObjectQuery query = QueryBuilder.queryFor(ObjectType.class, getPageBase().getPrismContext())
+                .isDirectChildOf(node.getValue().getOid())
+                .asc(ObjectType.F_NAME)
+                .build();
         OperationResult result = new OperationResult(LOAD_ORG_UNITS);
         try {
 //            Collection<SelectorOptions<GetOperationOptions>> options = WebModelServiceUtils.createOptionsForParentOrgRefs();

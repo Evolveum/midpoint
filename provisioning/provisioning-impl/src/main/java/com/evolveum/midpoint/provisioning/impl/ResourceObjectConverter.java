@@ -17,10 +17,7 @@
 package com.evolveum.midpoint.provisioning.impl;
 
 import com.evolveum.midpoint.common.Clock;
-import com.evolveum.midpoint.common.refinery.RefinedAssociationDefinition;
-import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
-import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
+import com.evolveum.midpoint.common.refinery.*;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
@@ -29,12 +26,10 @@ import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.query.EqualFilter;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.util.JavaTypeConverter;
 import com.evolveum.midpoint.prism.util.PrismUtil;
-import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.provisioning.api.GenericConnectorException;
 import com.evolveum.midpoint.provisioning.ucf.api.*;
 import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
@@ -174,14 +169,13 @@ public class ResourceObjectConverter {
             if (secondaryIdentifierValues.size() > 1) {
                 throw new IllegalStateException("Secondary identifier has more than one value: " + secondaryIdentifier.getValues());
             } else if (secondaryIdentifierValues.size() == 1) {
-                secondaryIdentifierValue = secondaryIdentifierValues.get(0);
+                secondaryIdentifierValue = secondaryIdentifierValues.get(0).clone();
             } else {
                 secondaryIdentifierValue = null;
             }
-			ObjectFilter filter = EqualFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES, secondaryIdentifierDef.getName()), 
-					secondaryIdentifierDef, secondaryIdentifierValue.clone());
-			ObjectQuery query = ObjectQuery.createObjectQuery(filter);
-//			query.setFilter(filter);
+            ObjectQuery query = QueryBuilder.queryFor(ShadowType.class, prismContext)
+					.itemWithDef(secondaryIdentifierDef, ShadowType.F_ATTRIBUTES, secondaryIdentifierDef.getName()).eq(secondaryIdentifierValue)
+					.build();
 			final Holder<PrismObject<ShadowType>> shadowHolder = new Holder<PrismObject<ShadowType>>();
 			ResultHandler<ShadowType> handler = new ResultHandler<ShadowType>() {
 				@Override
@@ -954,7 +948,7 @@ public class ResourceObjectConverter {
 					if (associationName == null) {
 						throw new IllegalStateException("No association name in " + associationValue);
 					}
-					RefinedAssociationDefinition associationDefinition = ctx.getObjectClassDefinition().findAssociation(associationName);
+					RefinedAssociationDefinition associationDefinition = ctx.getObjectClassDefinition().findAssociationDefinition(associationName);
 					if (associationDefinition == null) {
 						throw new IllegalStateException("No association definition for " + associationValue);
 					}
@@ -2128,7 +2122,7 @@ public class ResourceObjectConverter {
 
 	private RefinedObjectClassDefinition determineObjectClassDefinition(PrismObject<ShadowType> shadow, ResourceType resource) throws SchemaException, ConfigurationException {
 		ShadowType shadowType = shadow.asObjectable();
-		RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resource, prismContext);
+		RefinedResourceSchema refinedSchema = RefinedResourceSchemaImpl.getRefinedSchema(resource, prismContext);
 		if (refinedSchema == null) {
 			throw new ConfigurationException("No schema definied for "+resource);
 		}
@@ -2158,7 +2152,7 @@ public class ResourceObjectConverter {
 	
 	private ObjectClassComplexTypeDefinition determineObjectClassDefinition(
 			ResourceShadowDiscriminator discriminator, ResourceType resource) throws SchemaException {
-		ResourceSchema schema = RefinedResourceSchema.getResourceSchema(resource, prismContext);
+		ResourceSchema schema = RefinedResourceSchemaImpl.getResourceSchema(resource, prismContext);
 		// HACK FIXME
 		ObjectClassComplexTypeDefinition objectClassDefinition = schema.findObjectClassDefinition(ShadowKindType.ACCOUNT, discriminator.getIntent());
 

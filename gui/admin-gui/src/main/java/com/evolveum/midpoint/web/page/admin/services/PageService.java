@@ -2,7 +2,6 @@ package com.evolveum.midpoint.web.page.admin.services;
 
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
-import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -44,7 +43,7 @@ private static final Trace LOGGER = TraceManager.getTrace(PageService.class);
 	}	
 
 	@Override
-	protected Class<ServiceType> getCompileTimeClass() {
+    public Class<ServiceType> getCompileTimeClass() {
 		return ServiceType.class;
 	}
 

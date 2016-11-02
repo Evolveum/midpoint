@@ -18,15 +18,9 @@ package com.evolveum.midpoint.notifications.impl.helpers;
 
 import com.evolveum.midpoint.certification.api.CertificationManager;
 import com.evolveum.midpoint.notifications.api.events.AccessCertificationEvent;
-import com.evolveum.midpoint.notifications.api.events.CertCampaignEvent;
-import com.evolveum.midpoint.notifications.api.events.CertCampaignStageEvent;
-import com.evolveum.midpoint.notifications.impl.notifiers.SimpleCampaignNotifier;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;

@@ -92,7 +92,7 @@ public class TestResourceSchema {
 
         // WHEN
 
-        ResourceSchema schema = ResourceSchema.parse(DOMUtil.getFirstChildElement(schemaDom), 
+        ResourceSchema schema = ResourceSchemaImpl.parse(DOMUtil.getFirstChildElement(schemaDom),
         		RESOURCE_SCHEMA_SIMPLE_FILENAME, PrismTestUtil.getPrismContext());
 
         // THEN
@@ -108,7 +108,7 @@ public class TestResourceSchema {
 
         // WHEN
 
-        ResourceSchema schema = ResourceSchema.parse(DOMUtil.getFirstChildElement(schemaDom), 
+        ResourceSchema schema = ResourceSchemaImpl.parse(DOMUtil.getFirstChildElement(schemaDom),
         		RESOURCE_SCHEMA_SIMPLE_DEPRECATED_FILENAME, PrismTestUtil.getPrismContext());
 
         // THEN
@@ -179,7 +179,7 @@ public class TestResourceSchema {
 		System.out.println(ObjectTypeUtil.dump(unmarshalledResource));
 		XmlSchemaType unXmlSchemaType = unmarshalledResource.getSchema();
 		Element unXsd = unXmlSchemaType.getDefinition().getAny().get(0);
-		ResourceSchema unSchema = ResourceSchema.parse(unXsd, "unmarshalled resource", PrismTestUtil.getPrismContext());
+		ResourceSchema unSchema = ResourceSchemaImpl.parse(unXsd, "unmarshalled resource", PrismTestUtil.getPrismContext());
 		
 		System.out.println("unmarshalled schema");
 		System.out.println(unSchema.debugDump());
@@ -225,7 +225,7 @@ public class TestResourceSchema {
 		System.out.println("unmarshalled resource schema");
 		System.out.println(DOMUtil.serializeDOMToString(unXsd));
 		
-		ResourceSchema unSchema = ResourceSchema.parse(unXsd, "unmarshalled resource schema", PrismTestUtil.getPrismContext());
+		ResourceSchema unSchema = ResourceSchemaImpl.parse(unXsd, "unmarshalled resource schema", PrismTestUtil.getPrismContext());
 		
 		System.out.println("unmarshalled parsed schema");
 		System.out.println(unSchema.debugDump());
@@ -248,9 +248,9 @@ public class TestResourceSchema {
 		assertEquals(new QName(SCHEMA_NAMESPACE,"password"), passwdDef.getName());
 		assertEquals(ProtectedStringType.COMPLEX_TYPE, passwdDef.getTypeName());
 
-		PrismContainerDefinition<CredentialsType> credDef = objectClassDef.findContainerDefinition(new QName(SchemaConstants.NS_C,"credentials"));
-		assertEquals(new QName(SchemaConstants.NS_C,"credentials"), credDef.getName());
-		assertEquals(new QName(SchemaConstants.NS_C,"CredentialsType"), credDef.getTypeName());
+//		PrismContainerDefinition<CredentialsType> credDef = objectClassDef.findContainerDefinition(new QName(SchemaConstants.NS_C,"credentials"));
+//		assertEquals(new QName(SchemaConstants.NS_C,"credentials"), credDef.getName());
+//		assertEquals(new QName(SchemaConstants.NS_C,"CredentialsType"), credDef.getTypeName());
 	}
 	
 	@Test
@@ -330,10 +330,10 @@ public class TestResourceSchema {
 	}
 
 	private ResourceSchema createResourceSchema() {
-		ResourceSchema schema = new ResourceSchema(SCHEMA_NAMESPACE, PrismTestUtil.getPrismContext());
+		ResourceSchemaImpl schema = new ResourceSchemaImpl(SCHEMA_NAMESPACE, PrismTestUtil.getPrismContext());
 		
 		// Property container
-		ObjectClassComplexTypeDefinition containerDefinition = schema.createObjectClassDefinition("AccountObjectClass");
+		ObjectClassComplexTypeDefinitionImpl containerDefinition = (ObjectClassComplexTypeDefinitionImpl) schema.createObjectClassDefinition("AccountObjectClass");
 		containerDefinition.setKind(ShadowKindType.ACCOUNT);
 		containerDefinition.setDefaultInAKind(true);
 		containerDefinition.setDisplayName("The Account");
@@ -342,14 +342,15 @@ public class TestResourceSchema {
 		ResourceAttributeDefinition<String> icfUidDef = containerDefinition.createAttributeDefinition(
 				SchemaTestConstants.ICFS_UID, DOMUtil.XSD_STRING);
 		((Collection)containerDefinition.getPrimaryIdentifiers()).add(icfUidDef);
-		ResourceAttributeDefinition<String> xloginDef = containerDefinition.createAttributeDefinition("login", DOMUtil.XSD_STRING);
+		ResourceAttributeDefinitionImpl<String> xloginDef = containerDefinition.createAttributeDefinition("login", DOMUtil.XSD_STRING);
 		xloginDef.setNativeAttributeName("LOGIN");
 		containerDefinition.setDisplayNameAttribute(xloginDef.getName());
 		// ... and local property with a type from another schema
-		ResourceAttributeDefinition<String> xpasswdDef = containerDefinition.createAttributeDefinition("password", ProtectedStringType.COMPLEX_TYPE);
+		ResourceAttributeDefinitionImpl<String> xpasswdDef = containerDefinition.createAttributeDefinition("password", ProtectedStringType.COMPLEX_TYPE);
 		xpasswdDef.setNativeAttributeName("PASSWORD");
 		// ... property reference
-		containerDefinition.createAttributeDefinition(SchemaConstants.C_CREDENTIALS, SchemaConstants.C_CREDENTIALS_TYPE);
+		// TODO this should not go here, as it is not a ResourceAttributeDefinition
+		//containerDefinition.createAttributeDefinition(SchemaConstants.C_CREDENTIALS, SchemaConstants.C_CREDENTIALS_TYPE);
 
 		return schema;
 	}
@@ -362,7 +363,7 @@ public class TestResourceSchema {
 	public void testParseResource() throws Exception {
 		System.out.println("===[ testParseResource ]===");
 		// WHEN
-		PrismObject<ResourceType> resource = PrismTestUtil.parseObject(new File("src/test/resources/common/resource-opendj.xml"));
+		PrismObject<ResourceType> resource = PrismTestUtil.parseObject(new File("src/test/resources/common/xml/ns/resource-opendj.xml"));
 		
 		// THEN
 		assertCapabilities(resource.asObjectable());
@@ -372,7 +373,7 @@ public class TestResourceSchema {
 	public void testUnmarshallResource() throws Exception {
 		System.out.println("===[ testUnmarshallResource ]===");
 		// WHEN
-		ResourceType resourceType = (ResourceType) PrismTestUtil.parseObject(new File("src/test/resources/common/resource-opendj.xml")).asObjectable();
+		ResourceType resourceType = (ResourceType) PrismTestUtil.parseObject(new File("src/test/resources/common/xml/ns/resource-opendj.xml")).asObjectable();
 		
 		// THEN
 		assertCapabilities(resourceType);

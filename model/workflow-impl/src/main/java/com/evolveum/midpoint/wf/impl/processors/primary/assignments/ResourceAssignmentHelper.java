@@ -79,7 +79,7 @@ public class ResourceAssignmentHelper {
 
     protected AssignmentType cloneAndCanonicalizeAssignment(AssignmentType assignmentType) {
         AssignmentType assignmentClone = assignmentType.clone();
-        PrismContainerValue.copyDefinition(assignmentClone, assignmentType);
+        PrismContainerValue.copyDefinition(assignmentClone, assignmentType, prismContext);
         ConstructionType constructionType = assignmentClone.getConstruction();
         if (constructionType != null) {     // it should always be non-null
             constructionType.setResource(null);

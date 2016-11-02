@@ -22,24 +22,13 @@ import java.util.List;
 import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.SerializationContext;
-import com.evolveum.midpoint.prism.SerializationOptions;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.apache.commons.lang.Validate;
 
-import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.Objectable;
-import com.evolveum.midpoint.prism.PrismConstants;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.parser.XNodeSerializer;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.RawTypeUtil;
 import com.evolveum.midpoint.prism.xnode.XNode;
@@ -57,6 +46,7 @@ import com.evolveum.prism.xml.ns._public.types_3.ModificationTypeType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectType;
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * @author semancik
@@ -249,7 +239,7 @@ public class DeltaConvertor {
         ObjectDeltaType objectDeltaType = toObjectDeltaType(delta, options);
         SerializationOptions serializationOptions = new SerializationOptions();
         serializationOptions.setSerializeReferenceNames(DeltaConversionOptions.isSerializeReferenceNames(options));
-        return delta.getPrismContext().serializeAtomicValue(objectDeltaType, SchemaConstants.T_OBJECT_DELTA, PrismContext.LANG_XML, serializationOptions);
+        return delta.getPrismContext().xmlSerializer().options(serializationOptions).serializeRealValue(objectDeltaType, SchemaConstants.T_OBJECT_DELTA);
     }
 
 
@@ -431,15 +421,18 @@ public class DeltaConvertor {
         }
     }
     
-    private static XNode toXNode(ItemDelta delta, PrismValue value, DeltaConversionOptions options) throws SchemaException{
-		XNodeSerializer serializer = delta.getPrismContext().getXnodeProcessor().createSerializer();
-        SerializationOptions opts = new SerializationOptions();
-        opts.setSerializeReferenceNames(DeltaConversionOptions.isSerializeReferenceNames(options));
-		XNode node = serializer.serializeItemValue(value, delta.getDefinition(), opts);
-		if (delta.getDefinition() != null){
-			node.setTypeQName(delta.getDefinition().getTypeName());
-			node.setExplicitTypeDeclaration(true);
-		}
+    private static XNode toXNode(ItemDelta delta, @NotNull PrismValue value, DeltaConversionOptions options) throws SchemaException{
+		XNode node = delta.getPrismContext().xnodeSerializer()
+				.definition(delta.getDefinition())
+				.options(DeltaConversionOptions.isSerializeReferenceNames(options) ?
+						SerializationOptions.createSerializeReferenceNames() : null)
+				.serialize(value)
+				.getSubnode();
+		// TODO solve this within serializer!
+//		if (delta.getDefinition() != null) {
+//			node.setTypeQName(delta.getDefinition().getTypeName());
+//			node.setExplicitTypeDeclaration(true);
+//		}
 		return node;
     }
 

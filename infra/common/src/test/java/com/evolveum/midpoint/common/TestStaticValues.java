@@ -15,19 +15,12 @@
  */
 package com.evolveum.midpoint.common;
 
-import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.JAXBUtil;
-import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
@@ -35,11 +28,9 @@ import com.evolveum.prism.xml.ns._public.types_3.RawType;
 import org.testng.AssertJUnit;
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
-import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
 
 import java.io.IOException;
-import java.util.Collection;
 import java.util.List;
 
 import javax.xml.bind.JAXBElement;
@@ -68,7 +59,7 @@ public class TestStaticValues {
     	
     	// GIVEN
     	PrismContext prismContext = PrismTestUtil.getPrismContext();
-    	PrismPropertyDefinition propDef = new PrismPropertyDefinition(PROP_NAME, DOMUtil.XSD_STRING, prismContext);
+    	PrismPropertyDefinitionImpl propDef = new PrismPropertyDefinitionImpl(PROP_NAME, DOMUtil.XSD_STRING, prismContext);
     	propDef.setMaxOccurs(-1);
     	PrismProperty<String> origProperty = propDef.instantiate();
     	origProperty.addRealValue("FOO");
@@ -84,7 +75,7 @@ public class TestStaticValues {
     	
     	// GIVEN
     	PrismContext prismContext = PrismTestUtil.getPrismContext();
-    	PrismPropertyDefinition propDef = new PrismPropertyDefinition(PROP_NAME, DOMUtil.XSD_INT, prismContext);
+    	PrismPropertyDefinitionImpl propDef = new PrismPropertyDefinitionImpl(PROP_NAME, DOMUtil.XSD_INT, prismContext);
     	propDef.setMaxOccurs(-1);
     	PrismProperty<Integer> origProperty = propDef.instantiate();
     	origProperty.addRealValue(42);

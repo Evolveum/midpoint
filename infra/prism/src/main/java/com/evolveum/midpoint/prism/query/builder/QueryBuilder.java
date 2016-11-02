@@ -58,12 +58,12 @@ public class QueryBuilder {
     final private ComplexTypeDefinition containerCTD;
     final private PrismContext prismContext;
 
-    private QueryBuilder(Class<? extends Containerable> queryClass, PrismContext prismContext) throws SchemaException {
+    private QueryBuilder(Class<? extends Containerable> queryClass, PrismContext prismContext) {
         this.queryClass = queryClass;
         this.prismContext = prismContext;
         containerCTD = prismContext.getSchemaRegistry().findComplexTypeDefinitionByCompileTimeClass(queryClass);
         if (containerCTD == null) {
-            throw new SchemaException("Couldn't find definition for complex type " + queryClass);
+            throw new IllegalArgumentException("Couldn't find definition for complex type " + queryClass);
         }
     }
 
@@ -75,7 +75,7 @@ public class QueryBuilder {
         return prismContext;
     }
 
-    public static S_FilterEntryOrEmpty queryFor(Class<? extends Containerable> queryClass, PrismContext prismContext) throws SchemaException {
+    public static S_FilterEntryOrEmpty queryFor(Class<? extends Containerable> queryClass, PrismContext prismContext) {
         QueryBuilder builder = new QueryBuilder(queryClass, prismContext);
         return R_Filter.create(builder);
     }

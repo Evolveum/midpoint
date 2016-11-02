@@ -23,10 +23,8 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
-import com.evolveum.midpoint.task.api.Task;
 
 import org.apache.wicket.AttributeModifier;
-import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.form.AjaxCheckBox;
 import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
@@ -120,7 +118,8 @@ public class AssignmentTablePanel<T extends ObjectType> extends BasePanel<List<A
 		assignments.add(label);
 
 		InlineMenu assignmentMenu = new InlineMenu(ID_MENU, new Model((Serializable) createAssignmentMenu()));
-		assignments.add(assignmentMenu);
+        assignmentMenu.setVisible(getAssignmentMenuVisibility());
+        assignments.add(assignmentMenu);
 
 		ListView<AssignmentEditorDto> list = new ListView<AssignmentEditorDto>(ID_LIST, getModel()) {
 			private static final long serialVersionUID = 1L;
@@ -505,4 +504,8 @@ public class AssignmentTablePanel<T extends ObjectType> extends BasePanel<List<A
 	 */
 	protected void handlePartialError(OperationResult result) {
 	}
+
+    protected boolean getAssignmentMenuVisibility(){
+        return true;
+    }
 }

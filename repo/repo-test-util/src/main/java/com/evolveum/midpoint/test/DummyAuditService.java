@@ -411,12 +411,16 @@ public class DummyAuditService implements AuditService, DebugDumpable {
 
 	@Override
 	public List<AuditEventRecord> listRecords(String query, Map<String, Object> params) {
-		// TODO Auto-generated method stub
-		return null;
+		throw new UnsupportedOperationException("Object retrieval not supported");
 	}
 
     @Override
     public long countObjects(String query, Map<String, Object> params){
-        return 0;
+    	throw new UnsupportedOperationException("Object retrieval not supported");
     }
+
+	@Override
+	public boolean supportsRetrieval() {
+		return false;
+	}
 }

@@ -26,9 +26,8 @@ import java.util.Map;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.parser.XPathHolder;
+import com.evolveum.midpoint.prism.marshaller.XPathHolder;
 import com.evolveum.midpoint.prism.path.IdItemPathSegment;
-import com.evolveum.midpoint.prism.path.IdentifierPathSegment;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPath.CompareResult;
 import com.evolveum.midpoint.prism.path.ItemPathSegment;
@@ -1746,6 +1745,25 @@ public abstract class ItemDelta<V extends PrismValue,D extends ItemDefinition> i
 			valuesToReplace = new ArrayList<>(0);
 		}
 		valuesToAdd = null;
+	}
+
+	public ItemDelta<V,D> createReverseDelta() {
+		ItemDelta<V,D> reverseDelta = clone();
+		Collection<V> cloneValuesToAdd = reverseDelta.valuesToAdd;
+		Collection<V> cloneValuesToDelete = reverseDelta.valuesToDelete;
+		Collection<V> cloneValuesToReplace = reverseDelta.valuesToReplace;
+		Collection<V> cloneEstimatedOldValues = reverseDelta.estimatedOldValues;
+		
+		reverseDelta.valuesToAdd = cloneValuesToDelete;
+		reverseDelta.valuesToDelete = cloneValuesToAdd;
+		if (cloneValuesToReplace != null) {
+			reverseDelta.valuesToReplace = cloneEstimatedOldValues;
+			reverseDelta.estimatedOldValues = cloneValuesToReplace;
+		} else {
+			// TODO: what about estimatedOldValues here?
+		}
+		
+		return reverseDelta;
 	}
 	
 }

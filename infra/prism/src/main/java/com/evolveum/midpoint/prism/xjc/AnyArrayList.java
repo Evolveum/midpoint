@@ -28,7 +28,6 @@ import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismContainerable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.util.JAXBUtil;
@@ -56,10 +55,7 @@ public class AnyArrayList<C extends Containerable> extends AbstractList<Object> 
     @Override
     public int size() {
     	if (isSchemaless()) {
-    		if (containerValue.getRawElements() == null) {
-    			return 0;
-    		}
-    		return containerValue.getRawElements().size();
+			throw new UnsupportedOperationException("Definition-less containers are not supported any more.");
     	} else {
 	    	// Each item and each value are presented as one list entry
     		// (multi-valued items are represented as multiple occurrences of the same element)
@@ -77,7 +73,7 @@ public class AnyArrayList<C extends Containerable> extends AbstractList<Object> 
     @Override
     public Object get(int index) {
     	if (isSchemaless()) {
-    		return containerValue.getRawElements().get(index);
+			throw new UnsupportedOperationException("Definition-less containers are not supported any more.");
     	} else {
 			if (containerValue != null) {
 				for (Item<?,?> item : containerValue.getItems()) {
@@ -131,7 +127,7 @@ public class AnyArrayList<C extends Containerable> extends AbstractList<Object> 
     @Override
     public Object remove(int index) {
     	if (isSchemaless()) {
-    		return containerValue.getRawElements().remove(index);
+			throw new UnsupportedOperationException("Definition-less containers are not supported any more.");
     	} else {
     		for (Item<?,?> item: containerValue.getItems()) {
 	    		if (index < item.getValues().size()) {
@@ -171,16 +167,8 @@ public class AnyArrayList<C extends Containerable> extends AbstractList<Object> 
         return changed;
     }
     
-    private PrismContainerDefinition getDefinition() {
-    	PrismContainerable<C> parent = containerValue.getParent();
-    	if (parent == null) {
-    		return null;
-    	}
-    	return parent.getDefinition();
-    }
-    
     private boolean isSchemaless() {
-    	return getDefinition() == null;
+    	return containerValue.getComplexTypeDefinition() == null;
     }
         
     private PrismContainer<C> getContainer() {
@@ -201,7 +189,6 @@ public class AnyArrayList<C extends Containerable> extends AbstractList<Object> 
 		} catch (SchemaException e) {
 			throw new SystemException("Unexpected schema problem: "+e.getMessage(),e);
 		}
-		// return itemValue.asDomElement();
 	}
 	
 

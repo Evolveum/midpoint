@@ -21,11 +21,11 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.web.component.prism.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.AttributeModifier;
-import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.form.AjaxCheckBox;
 import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
@@ -103,6 +103,7 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
 		add(shadows);
 
 		InlineMenu accountMenu = new InlineMenu(ID_SHADOW_MENU, new Model((Serializable) createShadowMenu()));
+        accountMenu.setVisible(!getObjectWrapper().isReadonly());
 		shadows.add(accountMenu);
 
 		final ListView<FocusSubwrapperDto<ShadowType>> projectionList = new ListView<FocusSubwrapperDto<ShadowType>>(
@@ -217,7 +218,7 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
 				ShadowType shadow = new ShadowType();
 				shadow.setResource(resource);
 
-				RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(
+				RefinedResourceSchema refinedSchema = RefinedResourceSchemaImpl.getRefinedSchema(
 						resource.asPrismObject(), LayerType.PRESENTATION, getPrismContext());
 				if (refinedSchema == null) {
 					error(getString("pageAdminFocus.message.couldntCreateAccountNoSchema",

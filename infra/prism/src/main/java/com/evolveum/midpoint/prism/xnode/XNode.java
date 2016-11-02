@@ -21,9 +21,6 @@ import java.util.Map.Entry;
 
 import javax.xml.namespace.QName;
 
-import org.apache.commons.lang.StringUtils;
-
-import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.Visitable;
 import com.evolveum.midpoint.prism.Visitor;
 import com.evolveum.midpoint.util.DebugDumpable;
@@ -47,8 +44,10 @@ public abstract class XNode implements DebugDumpable, Visitable, Cloneable, Seri
 	public static final QName KEY_REFERENCE_TARGET_NAME = new QName(null, "targetName");
 	public static final QName KEY_REFERENCE_OBJECT = new QName(null, "object");
 
+	public static final QName DUMMY_NAME = new QName(null, "dummy");
+
 	// Common fields
-	private XNode parent;
+	protected XNode parent;
 	
 	/**
 	 * If set to true that the element came from the explicit type definition
@@ -65,8 +64,8 @@ public abstract class XNode implements DebugDumpable, Visitable, Cloneable, Seri
 	
 	// These may be detected in parsed file and
 	// are also used for serialization
-	private QName typeQName;
-	private Integer maxOccurs;
+	protected QName typeQName;
+	protected Integer maxOccurs;
 
     // a comment that could be stored into formats that support these (e.g. XML or YAML)
     private String comment;
@@ -149,7 +148,9 @@ public abstract class XNode implements DebugDumpable, Visitable, Cloneable, Seri
 
 	private static <X extends XNode> X cloneTransformKeys(Transformer<QName,QName> keyTransformer, X xnode) {
 		XNode xclone;
-		if (xnode instanceof PrimitiveXNode<?>) {
+		if (xnode == null) {
+			return null;
+		} else if (xnode instanceof PrimitiveXNode<?>) {
 			return (X) ((PrimitiveXNode) xnode).cloneInternal();
 		} else if (xnode instanceof MapXNode) {
 			MapXNode xmap = (MapXNode)xnode;
@@ -168,6 +169,9 @@ public abstract class XNode implements DebugDumpable, Visitable, Cloneable, Seri
 			for (XNode xsubnode: ((ListXNode)xnode)) {
 				((ListXNode) xclone).add(cloneTransformKeys(keyTransformer, xsubnode));
 			}
+		} else if (xnode instanceof RootXNode) {
+			xclone = new RootXNode(((RootXNode) xnode).getRootElementName(),
+					cloneTransformKeys(keyTransformer, ((RootXNode) xnode).getSubnode()));
 		} else {
 			throw new IllegalArgumentException("Unknown xnode "+xnode);
 		}
@@ -200,5 +204,9 @@ public abstract class XNode implements DebugDumpable, Visitable, Cloneable, Seri
 		}
 		return sb.toString();
 	}
-	
+
+	// overriden in RootXNode
+	public RootXNode toRootXNode() {
+		return new RootXNode(XNode.DUMMY_NAME, this);
+	}
 }

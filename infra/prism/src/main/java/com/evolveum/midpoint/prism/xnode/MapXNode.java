@@ -18,13 +18,11 @@ package com.evolveum.midpoint.prism.xnode;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.Map.Entry;
 
 import javax.xml.namespace.QName;
 
@@ -34,6 +32,9 @@ import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Validate;
+import org.jetbrains.annotations.NotNull;
 
 public class MapXNode extends XNode implements Map<QName,XNode>, Serializable {
 	
@@ -78,9 +79,16 @@ public class MapXNode extends XNode implements Map<QName,XNode>, Serializable {
     }
 
 	public XNode put(QName key, XNode value) {
-		removeEntry(key);
+		XNode previous = removeEntry(key);
 		subnodes.add(new Entry(key, value));
-		return value;
+		return previous;
+	}
+
+	public Entry putReturningEntry(QName key, XNode value) {
+		removeEntry(key);
+		Entry e = new Entry(key, value);
+		subnodes.add(e);
+		return e;
 	}
 
 	public XNode remove(Object key) {
@@ -145,6 +153,7 @@ public class MapXNode extends XNode implements Map<QName,XNode>, Serializable {
 		return found;
 	}
 
+	@NotNull
 	public Set<java.util.Map.Entry<QName, XNode>> entrySet() {
 		Set<java.util.Map.Entry<QName, XNode>> entries = new Set<Map.Entry<QName,XNode>>() {
 
@@ -225,7 +234,7 @@ public class MapXNode extends XNode implements Map<QName,XNode>, Serializable {
 			throw new SchemaException("Expected that field "+key+" will be primitive, but it is "+xnode.getDesc());
 		}
 		PrimitiveXNode<T> xprim = (PrimitiveXNode<T>)xnode;
-		return xprim.getParsedValue(typeName);
+		return xprim.getParsedValue(typeName, null);			// TODO expected class
 	}
 	
 	public void merge(MapXNode other) {
@@ -260,8 +269,12 @@ public class MapXNode extends XNode implements Map<QName,XNode>, Serializable {
 	@Override
 	public void accept(Visitor visitor) {
 		visitor.visit(this);
-		for(Entry subentry: subnodes) {
-			subentry.value.accept(visitor);
+		for (Entry subentry: subnodes) {
+			if (subentry.value != null) {
+				subentry.value.accept(visitor);
+			} else {
+				//throw new IllegalStateException("null value of key " + subentry.key + " in map: " + debugDump());
+			}
 		}
 	}
 	
@@ -342,7 +355,31 @@ public class MapXNode extends XNode implements Map<QName,XNode>, Serializable {
 		}
 		return sb.toString();
 	}
-	
+
+	public void qualifyKey(QName key, String newNamespace) {
+		for (Entry entry : subnodes) {
+			if (key.equals(entry.getKey())) {
+				entry.qualifyKey(newNamespace);
+			}
+		}
+	}
+
+	public XNode replace(QName key, XNode value) {
+		for (Entry entry : subnodes) {
+			if (entry.getKey().equals(key)) {
+				XNode previous = entry.getValue();
+				entry.setValue(value);
+				return previous;
+			}
+		}
+		return put(key, value);
+	}
+
+	public RootXNode getEntryAsRoot(@NotNull QName key) {
+		XNode xnode = get(key);
+		return xnode != null ? new RootXNode(key, xnode) : null;
+	}
+
 	private class Entry implements Map.Entry<QName, XNode>, Serializable {
 
 		private QName key;
@@ -357,6 +394,14 @@ public class MapXNode extends XNode implements Map<QName,XNode>, Serializable {
 			super();
 			this.key = key;
 			this.value = value;
+		}
+
+		public void qualifyKey(String newNamespace) {
+			Validate.notNull(key, "Key is null");
+			if (StringUtils.isNotEmpty(key.getNamespaceURI())) {
+				throw new IllegalStateException("Cannot qualify already qualified key: " + key);
+			}
+			key = new QName(newNamespace, key.getLocalPart());
 		}
 
 		@Override
@@ -408,7 +453,7 @@ public class MapXNode extends XNode implements Map<QName,XNode>, Serializable {
 
         @Override
         public int hashCode() {
-            int result = key != null ? key.hashCode() : 0;
+            int result = key != null && key.getLocalPart() != null ? key.getLocalPart().hashCode() : 0;
             result = 31 * result + (value != null ? value.hashCode() : 0);
             return result;
         }

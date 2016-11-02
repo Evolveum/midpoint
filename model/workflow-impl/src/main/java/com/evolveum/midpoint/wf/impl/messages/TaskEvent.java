@@ -16,10 +16,6 @@
 
 package com.evolveum.midpoint.wf.impl.messages;
 
-import com.evolveum.midpoint.wf.impl.processes.common.CommonProcessVariableNames;
-
-import org.activiti.engine.delegate.DelegateTask;
-
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;

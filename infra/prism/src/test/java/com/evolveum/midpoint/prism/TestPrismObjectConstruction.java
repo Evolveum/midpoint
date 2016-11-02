@@ -17,7 +17,6 @@ package com.evolveum.midpoint.prism;
 
 import static com.evolveum.midpoint.prism.PrismInternalTestUtil.*;
 
-import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertTrue;
 import static org.testng.AssertJUnit.assertEquals;
 import java.io.IOException;
@@ -86,7 +85,7 @@ public class TestPrismObjectConstruction {
 	 * Construct object without schema. Starts by creating object "out of the blue" and
 	 * the working downwards. 
 	 */
-	@Test
+	@Test(enabled = false)			// definition-less containers are no longer supported
 	public void testDefinitionlessConstruction() throws Exception {
 		final String TEST_NAME = "testDefinitionlessConstruction";
 		PrismInternalTestUtil.displayTestTitle(TEST_NAME);
@@ -344,7 +343,7 @@ public class TestPrismObjectConstruction {
 		Document xmlDocument = DOMUtil.parseDocument(xmlString);
 		Schema javaxSchema = prismContext.getSchemaRegistry().getJavaxSchema();
 		Validator validator = javaxSchema.newValidator();
-		validator.setResourceResolver(prismContext.getSchemaRegistry());
+		validator.setResourceResolver(prismContext.getEntityResolver());
 		validator.validate(new DOMSource(xmlDocument));
 	}
 

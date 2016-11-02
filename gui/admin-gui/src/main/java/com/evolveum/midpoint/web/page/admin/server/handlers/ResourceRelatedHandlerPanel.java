@@ -16,6 +16,7 @@
 package com.evolveum.midpoint.web.page.admin.server.handlers;
 
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
@@ -149,7 +150,7 @@ public class ResourceRelatedHandlerPanel<D extends ResourceRelatedHandlerDto> ex
 							resourcesDto.getOid(), parentPage, task, result);
 
 					try {
-						ResourceSchema schema = RefinedResourceSchema.getResourceSchema(resource, parentPage.getPrismContext());
+						ResourceSchema schema = RefinedResourceSchemaImpl.getResourceSchema(resource, parentPage.getPrismContext());
 						schema.getObjectClassDefinitions();
 
 						for(Definition def: schema.getDefinitions()){

@@ -22,7 +22,7 @@ import java.util.List;
 import javax.xml.namespace.QName;
 import javax.xml.xpath.XPathVariableResolver;
 
-import com.evolveum.midpoint.prism.parser.DomParser;
+import com.evolveum.midpoint.prism.lex.dom.DomLexicalProcessor;
 
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -139,14 +139,13 @@ public class LazyXPathVariableResolver implements XPathVariableResolver {
 	        
 	        if (variableValue instanceof PrismObject) {
 	        	PrismObject<?> prismObject = (PrismObject<?>)variableValue;
-	        	variableValue = prismObject.getPrismContext().serializeToDom(prismObject);
+	        	variableValue = prismObject.getPrismContext().domSerializer().serialize(prismObject);
 
 	        } else if (variableValue instanceof PrismProperty<?>) {
 	        	PrismProperty<?> prismProperty = (PrismProperty<?>)variableValue;
-	        	DomParser domProcessor = prismProperty.getPrismContext().getParserDom();
 	        	final List<Element> elementList = new ArrayList<Element>();
 	        	for (PrismPropertyValue<?> value: prismProperty.getValues()) {
-	        		Element valueElement = prismContext.serializeValueToDom(value, prismProperty.getElementName());
+	        		Element valueElement = prismContext.domSerializer().serialize(value, prismProperty.getElementName());
 	        		elementList.add(valueElement);
 	        	}
 	        	NodeList nodeList = new NodeList() {
@@ -163,7 +162,6 @@ public class LazyXPathVariableResolver implements XPathVariableResolver {
 				
 	        } else if (variableValue instanceof PrismValue) {
 	        	PrismValue pval = (PrismValue)variableValue;
-	        	DomParser domProcessor = prismContext.getParserDom();
 	        	if (pval.getParent() == null) {
 	        		// Set a fake parent to allow serialization
 	        		pval.setParent(new Itemable() {
@@ -188,7 +186,7 @@ public class LazyXPathVariableResolver implements XPathVariableResolver {
 						}
 					});
 	        	}
-	        	variableValue = prismContext.serializeValueToDom(pval, variableName);
+	        	variableValue = prismContext.domSerializer().serialize(pval, variableName);
 	        }
 	        
 	        if (!((variableValue instanceof Node)||variableValue instanceof NodeList) 

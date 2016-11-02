@@ -17,29 +17,21 @@
 package com.evolveum.midpoint.model.impl.scripting.actions;
 
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
-import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.impl.lens.Clockwork;
 import com.evolveum.midpoint.model.impl.lens.ContextFactory;
-import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.scripting.Data;
 import com.evolveum.midpoint.model.impl.scripting.ExecutionContext;
 import com.evolveum.midpoint.model.api.ScriptExecutionException;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismObjectValue;
+import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ActionExpressionType;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -73,9 +65,9 @@ public class RecomputeExecutor extends BaseActionExecutor {
 
         boolean dryRun = getParamDryRun(expression, input, context, result);
 
-        for (Item item : input.getData()) {
-            if (item instanceof PrismObject && FocusType.class.isAssignableFrom(((PrismObject) item).getCompileTimeClass())) {
-                PrismObject<FocusType> focalPrismObject = (PrismObject) item;
+        for (PrismValue value : input.getData()) {
+            if (value instanceof PrismObjectValue && FocusType.class.isAssignableFrom(((PrismObjectValue) value).asPrismObject().getCompileTimeClass())) {
+                PrismObject<FocusType> focalPrismObject = ((PrismObjectValue) value).asPrismObject();
                 FocusType focusType = focalPrismObject.asObjectable();
                 long started = operationsHelper.recordStart(context, focusType);
                 try {
@@ -90,9 +82,9 @@ public class RecomputeExecutor extends BaseActionExecutor {
                     operationsHelper.recordEnd(context, focusType, started, e);
                     throw e;
                 }
-                context.println("Recomputed " + item.toString() + drySuffix(dryRun));
+                context.println("Recomputed " + focalPrismObject.toString() + drySuffix(dryRun));
             } else {
-                throw new ScriptExecutionException("Item could not be recomputed, because it is not a focal PrismObject: " + item.toString());
+                throw new ScriptExecutionException("Item could not be recomputed, because it is not a focal PrismObject: " + value.toString());
             }
         }
         return Data.createEmpty();

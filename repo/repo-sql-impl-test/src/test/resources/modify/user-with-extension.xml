@@ -57,7 +57,7 @@
 <!--                      xmlns:ds="http://www.w3.org/2000/09/xmldsig#" -->
 <!--                      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" -->
 <!--                      xmlns:enc="http://www.w3.org/2001/04/xmlenc#" -->
-<!--                      xsi:type="c:ProtectedStringType"> -->
+<!--                      xsi:type="t:ProtectedStringType"> -->
 <!--                 <enc:EncryptedData Type="http://www.w3.org/2001/04/xmlenc#Element"> -->
 <!--                     <enc:EncryptionMethod Algorithm="http://www.w3.org/2001/04/xmlenc#aes128-cbc"/> -->
 <!--                     <ds:KeyInfo> -->

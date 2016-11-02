@@ -15,7 +15,6 @@
  */
 package com.evolveum.midpoint.model.impl.util;
 
-import com.evolveum.midpoint.model.impl.sync.TaskHandlerUtil;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.repo.cache.RepositoryCache;

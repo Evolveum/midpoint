@@ -25,7 +25,7 @@ import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.parser.QueryConvertor;
+import com.evolveum.midpoint.prism.marshaller.QueryConvertor;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
@@ -214,7 +214,7 @@ public class PageResourceEdit extends PageAdminResources {
         OperationResult result = task.getResult();
         try {
             Holder<PrismObject<ResourceType>> objectHolder = new Holder<PrismObject<ResourceType>>(null);
-            validateObject(dto.getXml(), objectHolder, false, result);
+            validateObject(dto.getXml(), objectHolder, PrismContext.LANG_XML, false, result);
 
             if (result.isAcceptable()) {
                 PrismObject<ResourceType> newResource = objectHolder.getValue();

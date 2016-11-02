@@ -17,7 +17,6 @@
 package com.evolveum.midpoint.certification.impl.handlers;
 
 import com.evolveum.midpoint.certification.api.AccessCertificationApiConstants;
-import com.evolveum.midpoint.certification.impl.AccessCertificationConstants;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.prism.PrismContainerValue;
@@ -102,7 +101,6 @@ public class DirectAssignmentCertificationHandler extends BaseCertificationHandl
     private void processAssignment(AssignmentType assignment, boolean isInducement, AccessCertificationAssignmentReviewScopeType scope,
                                    AccessCertificationCampaignType campaign, ObjectType object, List<AccessCertificationCaseType> caseList, Task task, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
         AccessCertificationAssignmentCaseType assignmentCase = new AccessCertificationAssignmentCaseType(prismContext);
-        assignmentCase.asPrismContainerValue().setConcreteType(AccessCertificationAssignmentCaseType.COMPLEX_TYPE);
         assignmentCase.setAssignment(assignment.clone());
         assignmentCase.setIsInducement(isInducement);
         assignmentCase.setObjectRef(ObjectTypeUtil.createObjectRef(object));

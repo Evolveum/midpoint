@@ -10,27 +10,27 @@
       "indexedString" : [ "alpha", "bravo" ],
       "num" : [ 
       	{ 
-      		"@typeDef" : "http://www.w3.org/2001/XMLSchema#int",
+      		"@type" : "http://www.w3.org/2001/XMLSchema#int",
       		"@value" : 42
       	}  ],
       "singleStringType" : "foobar",
       "multi" : [ 
       	{ 
-      		"@typeDef" : "http://www.w3.org/2001/XMLSchema#string",
+      		"@type" : "http://www.w3.org/2001/XMLSchema#string",
       		"@value" : "raz"
       	}, 
       		{ 
-      		"@typeDef" : "http://www.w3.org/2001/XMLSchema#string",
+      		"@type" : "http://www.w3.org/2001/XMLSchema#string",
       		"@value" : "dva"
       	},
       		{ 
-      		"@typeDef" : "http://www.w3.org/2001/XMLSchema#string",
+      		"@type" : "http://www.w3.org/2001/XMLSchema#string",
       		"@value" : "tri"
       	}
       ],
       "bar" : [ 
       	{
-      		"@typeDef" : "http://www.w3.org/2001/XMLSchema#string",
+      		"@type" : "http://www.w3.org/2001/XMLSchema#string",
       		"@value" : "BAR" 
       	}
       ]

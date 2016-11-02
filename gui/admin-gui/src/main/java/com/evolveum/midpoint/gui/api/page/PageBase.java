@@ -29,10 +29,12 @@ import javax.management.ObjectName;
 
 import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.common.SystemConfigurationHolder;
+import com.evolveum.midpoint.model.api.*;
 import com.evolveum.midpoint.web.component.menu.*;
 import com.evolveum.midpoint.web.page.admin.configuration.*;
 import com.evolveum.midpoint.web.page.admin.reports.*;
 import com.evolveum.midpoint.web.page.self.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.AttributeModifier;
@@ -79,14 +81,6 @@ import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.model.api.AccessCertificationService;
-import com.evolveum.midpoint.model.api.AuthenticationEvaluator;
-import com.evolveum.midpoint.model.api.ModelDiagnosticService;
-import com.evolveum.midpoint.model.api.ModelInteractionService;
-import com.evolveum.midpoint.model.api.ModelService;
-import com.evolveum.midpoint.model.api.ScriptingService;
-import com.evolveum.midpoint.model.api.TaskService;
-import com.evolveum.midpoint.model.api.WorkflowService;
 import com.evolveum.midpoint.model.api.validator.ResourceValidator;
 import com.evolveum.midpoint.model.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.prism.Objectable;
@@ -160,10 +154,6 @@ import com.evolveum.midpoint.web.session.SessionStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.validation.MidpointFormValidatorRegistry;
 import com.evolveum.midpoint.wf.api.WorkflowManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AdminGuiConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RichHyperlinkType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType;
 
 /**
  * @author lazyman
@@ -871,8 +861,20 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 		return new RestartResponseException(defaultBackPageClass);
 	}
 
-	protected <P extends Object> void validateObject(String xmlObject, final Holder<P> objectHolder,
-			boolean validateSchema, OperationResult result) {
+	protected <O extends ObjectType> void validateObject(String lexicalRepresentation, final Holder<PrismObject<O>> objectHolder,
+			String language, boolean validateSchema, OperationResult result) {
+
+		if (language == null || PrismContext.LANG_JSON.equals(language) || PrismContext.LANG_YAML.equals(language)) {
+			PrismObject<O> object;
+			try {
+				object = getPrismContext().parserFor(lexicalRepresentation).language(language).parse();
+				objectHolder.setValue(object);
+			} catch (RuntimeException | SchemaException e) {
+				result.recordFatalError("Couldn't parse object: " + e.getMessage(), e);
+			}
+			return;
+		}
+
 		EventHandler handler = new EventHandler() {
 
 			@Override
@@ -884,7 +886,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 			@Override
 			public <T extends Objectable> EventResult postMarshall(PrismObject<T> object, Element objectElement,
 					OperationResult objectResult) {
-				objectHolder.setValue((P) object);
+				objectHolder.setValue((PrismObject<O>) object);
 				return EventResult.cont();
 			}
 
@@ -895,7 +897,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 		Validator validator = new Validator(getPrismContext(), handler);
 		validator.setVerbose(true);
 		validator.setValidateSchema(validateSchema);
-		validator.validateObject(xmlObject, result);
+		validator.validateObject(lexicalRepresentation, result);
 
 		result.computeStatus();
 	}

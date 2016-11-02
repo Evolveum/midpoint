@@ -44,7 +44,7 @@ import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.parser.QueryConvertor;
+import com.evolveum.midpoint.prism.marshaller.QueryConvertor;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.TypeFilter;
@@ -111,8 +111,7 @@ public class ReportServiceImpl implements ReportService {
 			Task task = taskManager.createTaskInstance();
 			ModelExpressionThreadLocalHolder.pushCurrentResult(task.getResult());
 			ModelExpressionThreadLocalHolder.pushCurrentTask(task);
-			SearchFilterType filter = (SearchFilterType) prismContext.parseAtomicValue(query,
-					SearchFilterType.COMPLEX_TYPE);
+			SearchFilterType filter = prismContext.parserFor(query).parseRealValue(SearchFilterType.class);
 			LOGGER.trace("filter {}", filter);
 			ObjectFilter f = QueryConvertor.parseFilter(filter, UserType.class, prismContext);
 			LOGGER.trace("f {}", f.debugDump());

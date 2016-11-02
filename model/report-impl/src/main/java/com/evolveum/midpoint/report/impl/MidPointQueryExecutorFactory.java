@@ -2,21 +2,14 @@ package com.evolveum.midpoint.report.impl;
 
 import java.util.Map;
 
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.report.api.ReportService;
-import com.evolveum.midpoint.task.api.TaskManager;
 
 import net.sf.jasperreports.engine.JRDataset;
 import net.sf.jasperreports.engine.JRException;
-import net.sf.jasperreports.engine.JRParameter;
-import net.sf.jasperreports.engine.JRReport;
 import net.sf.jasperreports.engine.JRValueParameter;
 import net.sf.jasperreports.engine.JasperReportsContext;
-import net.sf.jasperreports.engine.fill.JRFillParameter;
 import net.sf.jasperreports.engine.query.AbstractQueryExecuterFactory;
 import net.sf.jasperreports.engine.query.JRQueryExecuter;
-import net.sf.jasperreports.engine.query.QueryExecuterFactory;
-
 
 
 public class MidPointQueryExecutorFactory extends AbstractQueryExecuterFactory{

@@ -1,0 +1,349 @@
+---
+resource:
+  oid: "ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"
+  name: "Embedded Test OpenDJ"
+  fetchResult:
+    operation: "com.evolveum.midpoint.provisioning.api.ProvisioningService.getObject"
+    status: "success"
+    params:
+      entry:
+      - unknownJavaObject:
+          class: "my.class"
+          toString: "my.value"
+        key: "a-key"
+  connectorRef:
+    type: "ConnectorType"
+    description: "Reference to the ICF LDAP connector."
+    filter:
+      description: "...a filter description..."
+      equal:
+        path: "extension/extConnType"
+        value: "org.identityconnectors.ldap.LdapConnector"
+    resolutionTime: "import"
+  connectorConfiguration:
+    configurationProperties:
+      port: "10389"
+      host: "localhost"
+      baseContexts: "dc=example,dc=com"
+      principal: "cn=directory manager"
+      credentials:
+        clearValue: "secret"
+      vlvSortAttribute: "uid"
+      accountOperationalAttributes: "ds-pwp-account-disabled"
+    connectorPoolConfiguration:
+      minEvictableIdleTimeMillis: 120000
+      minIdle: 1
+      maxIdle: 10
+      maxObjects: 10
+      maxWait: 150000
+    producerBufferSize: 100
+    timeouts:
+      create: -1
+      get: -1
+      update: -1
+      delete: -1
+      test: -1
+      scriptOnConnector: -1
+      scriptOnResource: -1
+      authentication: -1
+      search: -1
+      validate: -1
+      sync: -1
+      schema: -1
+  namespace: "http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"
+  schema:
+    definition:
+      '@ns': "http://www.w3.org/2001/XMLSchema"
+      schema: "<?xml version=\"1.0\" encoding=\"UTF-16\"?>\n<xsd:schema elementFormDefault=\"\
+        qualified\" targetNamespace=\"http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff\"\
+        \ xmlns:c=\"http://midpoint.evolveum.com/xml/ns/public/common/common-3\" xmlns:icfs=\"\
+        http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3\"\
+        \ xmlns:t=\"http://prism.evolveum.com/xml/ns/public/types-3\" xmlns:xsd=\"\
+        http://www.w3.org/2001/XMLSchema\">\n\t\t\t\t\t<xsd:import namespace=\"http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3\"\
+        />\n\t\t\t\t\t\n\t\t\t\t\t<xsd:import namespace=\"http://prism.evolveum.com/xml/ns/public/annotation-3\"\
+        />\n\t\t\t\t\t<xsd:complexType name=\"GroupObjectClass\">\n\t\t\t\t\t\t<xsd:annotation>\n\
+        \t\t\t\t\t\t\t<xsd:appinfo>\n\t\t\t\t\t\t\t\t<ra:resourceObject xmlns:ra=\"\
+        http://midpoint.evolveum.com/xml/ns/public/resource/annotation-3\"/>\n\t\t\
+        \t                     <ra:identifier xmlns:ra=\"http://midpoint.evolveum.com/xml/ns/public/resource/annotation-3\"\
+        >icfs:uid</ra:identifier>\n\t\t\t                     <ra:displayNameAttribute\
+        \ xmlns:ra=\"http://midpoint.evolveum.com/xml/ns/public/resource/annotation-3\"\
+        >icfs:name</ra:displayNameAttribute>\n\t\t\t                     <ra:namingAttribute\
+        \ xmlns:ra=\"http://midpoint.evolveum.com/xml/ns/public/resource/annotation-3\"\
+        >icfs:name</ra:namingAttribute>\n\t\t\t                     <ra:nativeObjectClass\
+        \ xmlns:ra=\"http://midpoint.evolveum.com/xml/ns/public/resource/annotation-3\"\
+        >__GROUP__</ra:nativeObjectClass>\n\t\t\t\t\t\t\t</xsd:appinfo>\n\t\t\t\t\t\
+        \t</xsd:annotation>\n\t\t\t\t\t\t<xsd:sequence>\n\t\t\t\t\t\t\t<xsd:element\
+        \ maxOccurs=\"unbounded\" minOccurs=\"0\" name=\"seeAlso\" type=\"xsd:string\"\
+        />\n\t\t\t\t\t\t\t<xsd:element maxOccurs=\"unbounded\" minOccurs=\"0\" name=\"\
+        owner\" type=\"xsd:string\"/>\n\t\t\t\t\t\t\t<xsd:element maxOccurs=\"unbounded\"\
+        \ minOccurs=\"0\" name=\"o\" type=\"xsd:string\"/>\n\t\t\t\t\t\t\t<xsd:element\
+        \ maxOccurs=\"unbounded\" minOccurs=\"0\" name=\"description\" type=\"xsd:string\"\
+        />\n\t\t\t\t\t\t\t<xsd:element maxOccurs=\"unbounded\" minOccurs=\"0\" name=\"\
+        objectClass\" type=\"xsd:string\"/>\n\t\t\t\t\t\t\t<xsd:element maxOccurs=\"\
+        unbounded\" minOccurs=\"0\" name=\"uniqueMember\" type=\"xsd:string\"/>\n\t\
+        \t\t\t\t\t\t<xsd:element maxOccurs=\"unbounded\" name=\"cn\" type=\"xsd:string\"\
+        />\n\t\t\t\t\t\t\t<xsd:element ref=\"icfs:name\"/>\n\t\t\t\t\t\t\t<xsd:element\
+        \ ref=\"icfs:uid\"/>\n\t\t\t\t\t\t\t<xsd:element maxOccurs=\"unbounded\" minOccurs=\"\
+        0\" name=\"businessCategory\" type=\"xsd:string\"/>\n\t\t\t\t\t\t\t<xsd:element\
+        \ maxOccurs=\"unbounded\" minOccurs=\"0\" name=\"ou\" type=\"xsd:string\"\
+        />\n\t\t\t\t\t\t</xsd:sequence>\n\t\t\t\t\t</xsd:complexType>\n\t\t\t\t\t\
+        <xsd:complexType name=\"AccountObjectClass\">\n\t\t\t\t\t\t<xsd:annotation>\n\
+        \t\t\t\t\t\t\t<xsd:appinfo>\n\t\t\t\t\t\t\t\t <ra:resourceObject xmlns:ra=\"\
+        http://midpoint.evolveum.com/xml/ns/public/resource/annotation-3\"/>\n\t\t\
+        \t                     <ra:identifier xmlns:ra=\"http://midpoint.evolveum.com/xml/ns/public/resource/annotation-3\"\
+        >icfs:uid</ra:identifier>\n\t\t\t                     <ra:displayNameAttribute\
+        \ xmlns:ra=\"http://midpoint.evolveum.com/xml/ns/public/resource/annotation-3\"\
+        >icfs:name</ra:displayNameAttribute>\n\t\t\t                     <ra:namingAttribute\
+        \ xmlns:ra=\"http://midpoint.evolveum.com/xml/ns/public/resource/annotation-3\"\
+        >icfs:name</ra:namingAttribute>\n\t\t\t                     <ra:nativeObjectClass\
+        \ xmlns:ra=\"http://midpoint.evolveum.com/xml/ns/public/resource/annotation-3\"\
+        >__ACCOUNT__</ra:nativeObjectClass>\n\t\t\t                     <ra:account\
+        \ xmlns:ra=\"http://midpoint.evolveum.com/xml/ns/public/resource/annotation-3\"\
+        />\n\t\t\t                     <ra:default xmlns:ra=\"http://midpoint.evolveum.com/xml/ns/public/resource/annotation-3\"\
+        />\n\t\t\t\t\t\t\t</xsd:appinfo>\n\t\t\t\t\t\t</xsd:annotation>\n\t\t\t\t\t\
+        \t<xsd:sequence>\n\t\t\t\t\t\t\t<xsd:element maxOccurs=\"unbounded\" minOccurs=\"\
+        0\" name=\"internationaliSDNNumber\" type=\"xsd:string\"/>\n\t\t\t\t\t\t\t\
+        <xsd:element maxOccurs=\"unbounded\" minOccurs=\"0\" name=\"x121Address\"\
+        \ type=\"xsd:string\"/>\n\t\t\t\t\t\t\t<xsd:element maxOccurs=\"unbounded\"\
+        \ minOccurs=\"0\" name=\"employeeType\" type=\"xsd:string\"/>\n\t\t\t\t\t\t\
+        \t<xsd:element maxOccurs=\"unbounded\" minOccurs=\"0\" name=\"pager\" type=\"\
+        xsd:string\"/>\n\t\t\t\t\t\t\t<xsd:element maxOccurs=\"unbounded\" minOccurs=\"\
+        0\" name=\"audio\" type=\"xsd:base64Binary\"/>\n\t\t\t\t\t\t\t<xsd:element\
+        \ maxOccurs=\"unbounded\" minOccurs=\"0\" name=\"departmentNumber\" type=\"\
+        xsd:string\"/>\n\t\t\t\t\t\t\t<xsd:element maxOccurs=\"unbounded\" minOccurs=\"\
+        0\" name=\"x500UniqueIdentifier\" type=\"xsd:base64Binary\"/>\n\t\t\t\t\t\t\
+        \t<xsd:element maxOccurs=\"unbounded\" minOccurs=\"0\" name=\"postalAddress\"\
+        \ type=\"xsd:string\"/>\n\t\t\t\t\t\t\t<xsd:element maxOccurs=\"unbounded\"\
+        \ minOccurs=\"0\" name=\"objectClass\" type=\"xsd:string\"/>\n\t\t\t\t\t\t\
+        \t<xsd:element maxOccurs=\"unbounded\" minOccurs=\"0\" name=\"givenName\"\
+        \ type=\"xsd:string\"/>\n\t\t\t\t\t\t\t<xsd:element maxOccurs=\"unbounded\"\
+        \ minOccurs=\"0\" name=\"mail\" type=\"xsd:string\"/>\n\t\t\t\t\t\t\t<xsd:element\
+        \ maxOccurs=\"unbounded\" minOccurs=\"0\" name=\"photo\" type=\"xsd:base64Binary\"\
+        />\n\t\t\t\t\t\t\t<xsd:element minOccurs=\"0\" name=\"displayName\" type=\"\
+        xsd:string\"/>\n\t\t\t\t\t\t\t<xsd:element maxOccurs=\"unbounded\" name=\"\
+        cn\" type=\"xsd:string\"/>\n\t\t\t\t\t\t\t<xsd:element maxOccurs=\"unbounded\"\
+        \ minOccurs=\"0\" name=\"userPassword\" type=\"xsd:base64Binary\"/>\n\t\t\t\
+        \t\t\t\t<xsd:element maxOccurs=\"unbounded\" minOccurs=\"0\" name=\"physicalDeliveryOfficeName\"\
+        \ type=\"xsd:string\"/>\n\t\t\t\t\t\t\t<xsd:element maxOccurs=\"unbounded\"\
+        \ minOccurs=\"0\" name=\"manager\" type=\"xsd:string\"/>\n\t\t\t\t\t\t\t<xsd:element\
+        \ maxOccurs=\"unbounded\" minOccurs=\"0\" name=\"homePhone\" type=\"xsd:string\"\
+        />\n\t\t\t\t\t\t\t<xsd:element maxOccurs=\"unbounded\" minOccurs=\"0\" name=\"\
+        description\" type=\"xsd:string\"/>\n\t\t\t\t\t\t\t<xsd:element maxOccurs=\"\
+        unbounded\" minOccurs=\"0\" name=\"postOfficeBox\" type=\"xsd:string\"/>\n\
+        \t\t\t\t\t\t\t<xsd:element maxOccurs=\"unbounded\" minOccurs=\"0\" name=\"\
+        homePostalAddress\" type=\"xsd:string\"/>\n\t\t\t\t\t\t\t<xsd:element maxOccurs=\"\
+        unbounded\" minOccurs=\"0\" name=\"roomNumber\" type=\"xsd:string\"/>\n\t\t\
+        \t\t\t\t\t<xsd:element minOccurs=\"0\" name=\"employeeNumber\" type=\"xsd:string\"\
+        />\n\t\t\t\t\t\t\t<xsd:element maxOccurs=\"unbounded\" minOccurs=\"0\" name=\"\
+        facsimileTelephoneNumber\" type=\"xsd:string\"/>\n\t\t\t\t\t\t\t<xsd:element\
+        \ maxOccurs=\"unbounded\" minOccurs=\"0\" name=\"userSMIMECertificate\" type=\"\
+        xsd:string\"/>\n\t\t\t\t\t\t\t<xsd:element maxOccurs=\"unbounded\" minOccurs=\"\
+        0\" name=\"l\" type=\"xsd:string\"/>\n\t\t\t\t\t\t\t<xsd:element maxOccurs=\"\
+        unbounded\" minOccurs=\"0\" name=\"userCertificate\" type=\"xsd:base64Binary\"\
+        />\n\t\t\t\t\t\t\t<xsd:element maxOccurs=\"unbounded\" minOccurs=\"0\" name=\"\
+        teletexTerminalIdentifier\" type=\"xsd:string\"/>\n\t\t\t\t\t\t\t<xsd:element\
+        \ maxOccurs=\"unbounded\" minOccurs=\"0\" name=\"jpegPhoto\" type=\"xsd:base64Binary\"\
+        />\n\t\t\t\t\t\t\t<xsd:element ref=\"icfs:name\"/>\n\t\t\t\t\t\t\t<xsd:element\
+        \ minOccurs=\"0\" name=\"preferredDeliveryMethod\" type=\"xsd:string\"/>\n\
+        \t\t\t\t\t\t\t<!-- Following definition has a fake type. But it is used to\
+        \ make sure that the namespace\n\t\t\t\t\t\t\t     declarations are correctly\
+        \ preserved. -->\n\t\t\t\t\t\t\t<xsd:element maxOccurs=\"unbounded\" minOccurs=\"\
+        0\" name=\"userPKCS12\" type=\"t:ProtectedByteArrayType\"/>\n\t\t\t\t\t\t\t\
+        <xsd:element maxOccurs=\"unbounded\" minOccurs=\"0\" name=\"postalCode\" type=\"\
+        xsd:string\"/>\n\t\t\t\t\t\t\t<xsd:element maxOccurs=\"unbounded\" minOccurs=\"\
+        0\" name=\"labeledURI\" type=\"xsd:string\"/>\n\t\t\t\t\t\t\t<xsd:element\
+        \ maxOccurs=\"unbounded\" minOccurs=\"0\" name=\"telexNumber\" type=\"xsd:string\"\
+        />\n\t\t\t\t\t\t\t<xsd:element maxOccurs=\"unbounded\" minOccurs=\"0\" name=\"\
+        carLicense\" type=\"xsd:string\"/>\n\t\t\t\t\t\t\t<xsd:element maxOccurs=\"\
+        unbounded\" minOccurs=\"0\" name=\"street\" type=\"xsd:string\"/>\n\t\t\t\t\
+        \t\t\t<xsd:element maxOccurs=\"unbounded\" minOccurs=\"0\" name=\"registeredAddress\"\
+        \ type=\"xsd:string\"/>\n\t\t\t\t\t\t\t<xsd:element maxOccurs=\"unbounded\"\
+        \ name=\"sn\" type=\"xsd:string\"/>\n\t\t\t\t\t\t\t<xsd:element maxOccurs=\"\
+        unbounded\" minOccurs=\"0\" name=\"seeAlso\" type=\"xsd:string\"/>\n\t\t\t\
+        \t\t\t\t<xsd:element maxOccurs=\"unbounded\" minOccurs=\"0\" name=\"secretary\"\
+        \ type=\"xsd:string\"/>\n\t\t\t\t\t\t\t<xsd:element maxOccurs=\"unbounded\"\
+        \ minOccurs=\"0\" name=\"mobile\" type=\"xsd:string\"/>\n\t\t\t\t\t\t\t<xsd:element\
+        \ maxOccurs=\"unbounded\" minOccurs=\"0\" name=\"uid\" type=\"xsd:string\"\
+        />\n\t\t\t\t\t\t\t<xsd:element maxOccurs=\"unbounded\" minOccurs=\"0\" name=\"\
+        initials\" type=\"xsd:string\"/>\n\t\t\t\t\t\t\t<xsd:element maxOccurs=\"\
+        unbounded\" minOccurs=\"0\" name=\"businessCategory\" type=\"xsd:string\"\
+        />\n\t\t\t\t\t\t\t<xsd:element maxOccurs=\"unbounded\" minOccurs=\"0\" name=\"\
+        telephoneNumber\" type=\"xsd:string\"/>\n\t\t\t\t\t\t\t<xsd:element ref=\"\
+        icfs:uid\"/>\n\t\t\t\t\t\t\t<xsd:element maxOccurs=\"unbounded\" minOccurs=\"\
+        0\" name=\"o\" type=\"xsd:string\"/>\n\t\t\t\t\t\t\t<xsd:element maxOccurs=\"\
+        unbounded\" minOccurs=\"0\" name=\"title\" type=\"xsd:string\"/>\n\t\t\t\t\
+        \t\t\t<xsd:element maxOccurs=\"unbounded\" minOccurs=\"0\" name=\"destinationIndicator\"\
+        \ type=\"xsd:string\"/>\n\t\t\t\t\t\t\t<xsd:element maxOccurs=\"unbounded\"\
+        \ minOccurs=\"0\" name=\"st\" type=\"xsd:string\"/>\n\t\t\t\t\t\t\t<xsd:element\
+        \ minOccurs=\"0\" ref=\"icfs:password\"/>\n\t\t\t\t\t\t\t<xsd:element maxOccurs=\"\
+        unbounded\" minOccurs=\"0\" name=\"ou\" type=\"xsd:string\"/>\n\t\t\t\t\t\t\
+        \t<xsd:element minOccurs=\"0\" name=\"preferredLanguage\" type=\"xsd:string\"\
+        />\n\t\t\t\t\t\t</xsd:sequence>\n\t\t\t\t\t</xsd:complexType>\n\t\t\t\t</xsd:schema>"
+  schemaHandling:
+    objectType:
+    - intent: "default"
+      displayName: "Default Account"
+      default: true
+      objectClass: "AccountObjectClass"
+      attribute:
+      - ref: "name"
+        displayName: "Distinguished Name"
+        limitations:
+        - access:
+            read: true
+            add: true
+        outbound:
+          strength: "weak"
+          source:
+          - path: "$user/name"
+          expression:
+            script:
+            - code: "'uid=' +name+ ',ou=people,dc=example,dc=com'"
+      - ref: "declare namespace icfs='http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3'; icfs:uid"
+        displayName: "Entry UUID"
+        limitations:
+        - access:
+            read: true
+      - ref: "cn"
+        displayName: "Common Name"
+        limitations:
+        - access:
+            read: true
+            add: true
+            modify: true
+        outbound:
+          source:
+          - path: "$user/fullName"
+        inbound:
+        - target:
+            path: "$user/fullName"
+      - ref: "sn"
+        displayName: "Surname"
+        limitations:
+        - access:
+            read: true
+            add: true
+            modify: true
+        outbound:
+          source:
+          - path: "familyName"
+        inbound:
+        - target:
+            path: "familyName"
+      - ref: "givenName"
+        displayName: "Given Name"
+        limitations:
+        - access:
+            read: true
+            add: true
+            modify: true
+        outbound:
+          source:
+          - path: "$user/givenName"
+        inbound:
+        - target:
+            path: "$user/givenName"
+      - ref: "declare namespace ri='http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff'; ri:uid"
+        displayName: "Login Name"
+        matchingRule: "stringIgnoreCase"
+        outbound:
+          strength: "weak"
+          source:
+          - description: "Source may have description"
+            path: "$user/name"
+        inbound:
+        - target:
+            description: "Targets may have description"
+            path: "$user/name"
+      - ref: "description"
+        outbound:
+          strength: "weak"
+          expression:
+            description: "Expression that assigns a fixed value"
+            value:
+            - "Created by IDM"
+      - ref: "employeeType"
+        displayName: "Employee Type"
+        tolerant: false
+        outbound:
+          source:
+          - path: "$user/employeeType"
+      - ref: "departmentNumber"
+        displayName: "Department Number"
+        tolerant: true
+        outbound:
+          source:
+          - path: "$user/extension/dept"
+      - ref: "l"
+        tolerant: false
+        outbound:
+          expression:
+            variable:
+            - name: "defaultLocation"
+              value: !string "middle of nowhere"
+            script:
+            - description: "XPath expression that is using a variable declared above"
+              language: "http://www.w3.org/TR/xpath/"
+              returnType: "scalar"
+              code: "$defaultLocation"
+      protected:
+        name: "uid=idm,ou=Administrators,dc=example,dc=com"
+      activation:
+        administrativeStatus:
+          outbound:
+          inbound:
+          - strength: "weak"
+            expression:
+              asIs:
+      credentials:
+        password:
+          outbound:
+            expression:
+              asIs:
+          inbound:
+          - strength: "weak"
+            expression:
+              generate:
+  capabilities:
+    native:
+      credentials:
+        password:
+      liveSync:
+      testConnection:
+    configured:
+      activation:
+      - status:
+          attribute: "ds-pwp-account-disabled"
+          enableValue:
+          - ""
+          disableValue:
+          - "true"
+      liveSync:
+      - enabled: false
+  synchronization:
+    objectSynchronization:
+    - enabled: true
+      correlation:
+      - http://prism.evolveum.com/xml/ns/public/query-3#description: "\n         \
+          \           ...\n                "
+        http://prism.evolveum.com/xml/ns/public/query-3#equal:
+          http://prism.evolveum.com/xml/ns/public/query-3#path: "name"
+          expression:
+            path: |
+              $account/attributes/yyy
+        condition:
+          value: true
+      reaction:
+      - situation: "linked"
+        synchronize: true
+      - situation: "deleted"
+        action:
+        - handlerUri: "unlinkAccount"
+      - situation: "unlinked"
+        action:
+        - ref: "linkAccount"
+      - situation: "unmatched"
+        action:
+        - userTemplateRef:
+            oid: "c0c010c0-d34d-b33f-f00d-777111111111"
+          ref: "addUser"

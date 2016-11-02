@@ -24,15 +24,15 @@ import javax.xml.bind.annotation.XmlEnum;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import org.apache.commons.lang.ClassUtils;
 import org.apache.commons.lang.time.DateUtils;
 
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Generic universal type converter. It is supposed to covert anything to anything as long
@@ -262,6 +262,17 @@ public class JavaTypeConverter {
 			throw new IllegalArgumentException(e.getMessage(), e);
 		}
 		return XmlTypeConverter.createXMLGregorianCalendar(date);
+	}
+
+	public static <T> boolean isTypeCompliant(@Nullable T value, @Nullable Class<?> expectedClass) {
+		if (value == null || expectedClass == null) {
+			return true;
+		}
+		Class<?> wrapped = ClassUtils.primitiveToWrapper(expectedClass);
+		return wrapped.isAssignableFrom(((Object) value).getClass());		// auto-boxing of primitive types
+
+		// TODO PolyString vs String - should be treated here?
+		// TODO int vs long vs ...
 	}
 
 }

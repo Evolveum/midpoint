@@ -1,26 +1,13 @@
 package com.evolveum.midpoint.prism.crypto;
 
-import java.io.IOException;
-
 import org.apache.xml.security.encryption.XMLCipher;
-import org.apache.xml.security.utils.Base64;
 import org.testng.AssertJUnit;
-import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
-import org.xml.sax.SAXException;
 
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.util.PrismTestUtil;
-import com.evolveum.midpoint.util.PrettyPrinter;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.prism.xml.ns._public.types_3.CipherDataType;
-import com.evolveum.prism.xml.ns._public.types_3.EncryptedDataType;
-import com.evolveum.prism.xml.ns._public.types_3.EncryptionMethodType;
-import com.evolveum.prism.xml.ns._public.types_3.KeyInfoType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
-import com.ibm.wsdl.extensions.schema.SchemaConstants;
 
 public class TestProtector {
 	

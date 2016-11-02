@@ -28,7 +28,6 @@ import com.evolveum.midpoint.repo.sql.util.ClassMapper;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
-import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
@@ -37,7 +36,6 @@ import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.ForeignKey;
 
 import javax.persistence.*;
-import javax.xml.namespace.QName;
 
 import java.io.Serializable;
 import java.sql.Timestamp;

@@ -23,7 +23,7 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.model.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.model.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.parser.QueryConvertor;
+import com.evolveum.midpoint.prism.marshaller.QueryConvertor;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.QueryJaxbConvertor;
@@ -370,7 +370,7 @@ public class PageRepositoryQuery extends PageAdminConfiguration {
 			String filterAsString;
 			if (parsedFilter != null) {
 				SearchFilterType filterType = QueryConvertor.createSearchFilterType(parsedFilter, getPrismContext());
-				filterAsString = getPrismContext().serializeAtomicValue(filterType, SchemaConstantsGenerated.Q_FILTER, PrismContext.LANG_XML);
+				filterAsString = getPrismContext().xmlSerializer().serializeRealValue(filterType, SchemaConstantsGenerated.Q_FILTER);
 				// TODO remove extra xmlns from serialized value
 			} else {
 				filterAsString = "";
@@ -507,7 +507,7 @@ public class PageRepositoryQuery extends PageAdminConfiguration {
 		if (clazz == null) {
 			throw new SchemaException("Couldn't find compile-time class for object type of " + objectType);
 		}
-		QueryType queryType = prismContext.parseAtomicValue(queryText, QueryType.COMPLEX_TYPE, PrismContext.LANG_XML);
+		QueryType queryType = prismContext.parserFor(queryText).xml().parseRealValue(QueryType.class);
 		request.setType(clazz);
 		ObjectQuery objectQuery = QueryJaxbConvertor.createObjectQuery(clazz, queryType, prismContext);
 		ObjectQuery queryWithExprEvaluated = ExpressionUtil.evaluateQueryExpressions(objectQuery, new ExpressionVariables(),

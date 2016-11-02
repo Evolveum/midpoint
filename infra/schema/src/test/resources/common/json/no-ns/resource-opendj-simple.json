@@ -1,0 +1,34 @@
+{
+  "resource": {
+    "oid": "ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff",
+    "name": {
+      "orig": "Embedded Test OpenDJ",
+      "norm": "embedded test opendj"
+    },
+    "connectorRef": {
+      "type": "ConnectorType",
+      "filter": {
+        "description": "...a filter description...",
+        "equal": {
+          "path": "extension/extConnType",
+          "value": "org.identityconnectors.ldap.LdapConnector"
+        }
+      },
+      "resolutionTime": "run"
+    },
+    "connectorConfiguration": {
+      "configurationProperties": {
+        "port": "10389",
+        "host": "localhost",
+        "baseContexts": "dc=example,dc=com",
+        "principal": "cn=directory manager",
+        "credentials": {
+          "@ns": "http://prism.evolveum.com/xml/ns/public/types-3",
+          "clearValue": "secret"
+        },
+        "vlvSortAttribute": "uid",
+        "accountOperationalAttributes": "ds-pwp-account-disabled"
+      }
+    }
+  }
+}

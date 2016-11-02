@@ -25,9 +25,9 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.query.LessFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
+import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.api.RepoModifyOptions;
@@ -38,7 +38,6 @@ import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
@@ -54,6 +53,7 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 import org.xml.sax.SAXException;
@@ -78,25 +78,29 @@ public class ModifyTest extends BaseSQLRepoTest {
     private static final File TEST_DIR = new File("src/test/resources/modify");
     private static final File ACCOUNT_FILE = new File(TEST_DIR, "account.xml");
     private static final File MODIFY_USER_ADD_LINK = new File(TEST_DIR, "change-add.xml");
-	
+
 	private static final Trace LOGGER = TraceManager.getTrace(ModifyTest.class);
 
 	@BeforeSuite
     public void setup() throws SchemaException, SAXException, IOException {
         PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
         PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
-        InternalsConfig.encryptionChecks = false;
     }
+
+	@BeforeClass
+	public void setupClass() {
+		InternalsConfig.encryptionChecks = false;
+	}
 
 	protected RepoModifyOptions getModifyOptions() {
 		return null;
 	}
-	
+
     @Test(expectedExceptions = SystemException.class, enabled = false)
     public void test010ModifyWithExistingName() throws Exception {
     	final String TEST_NAME = "test010ModifyWithExistingName";
     	TestUtil.displayTestTile(TEST_NAME);
-    	
+
         OperationResult result = new OperationResult("MODIFY");
 
         File userFile = new File(TEST_DIR, "modify-user.xml");
@@ -127,7 +131,7 @@ public class ModifyTest extends BaseSQLRepoTest {
     public void test020ModifyNotExistingUser() throws Exception {
     	final String TEST_NAME = "test020ModifyNotExistingUser";
     	TestUtil.displayTestTile(TEST_NAME);
-    	
+
         ObjectModificationType modification = PrismTestUtil.parseAtomicValue(
                 new File(TEST_DIR, "change-add.xml"),
                 ObjectModificationType.COMPLEX_TYPE);
@@ -143,7 +147,7 @@ public class ModifyTest extends BaseSQLRepoTest {
     public void test030ModifyUserOnNonExistingAccountTest() throws Exception {
     	final String TEST_NAME = "test030ModifyUserOnNonExistingAccountTest";
     	TestUtil.displayTestTile(TEST_NAME);
-    	
+
         OperationResult result = new OperationResult("MODIFY");
 
         //add user
@@ -179,7 +183,7 @@ public class ModifyTest extends BaseSQLRepoTest {
     public void test031ModifyUserOnExistingAccountTest() throws Exception {
     	final String TEST_NAME = "test031ModifyUserOnExistingAccountTest";
     	TestUtil.displayTestTile(TEST_NAME);
-    	
+
     	// GIVEN
         OperationResult result = new OperationResult(TEST_NAME);
 
@@ -199,7 +203,7 @@ public class ModifyTest extends BaseSQLRepoTest {
 
         ObjectDeltaType objectDeltaType = PrismTestUtil.parseAnyValue(MODIFY_USER_ADD_LINK);
         ObjectDelta<Objectable> objectDelta = DeltaConvertor.createObjectDelta(objectDeltaType, prismContext);
-        Collection<? extends ItemDelta<?, ?>> deltas = objectDelta.getModifications();        
+        Collection<? extends ItemDelta<?, ?>> deltas = objectDelta.getModifications();
 
         // WHEN
         repositoryService.modifyObject(UserType.class, oid, deltas, getModifyOptions(), result);
@@ -218,7 +222,7 @@ public class ModifyTest extends BaseSQLRepoTest {
     public void test032ModifyTaskObjectRef() throws Exception {
     	final String TEST_NAME = "test032ModifyTaskObjectRef";
     	TestUtil.displayTestTile(TEST_NAME);
-    	
+
         OperationResult result = new OperationResult(TEST_NAME);
         File taskFile = new File(TEST_DIR, "task.xml");
         System.out.println("ADD");
@@ -311,7 +315,7 @@ public class ModifyTest extends BaseSQLRepoTest {
     public void test100ModifyUserAddRole() throws Exception {
     	final String TEST_NAME = "test100ModifyUserAddRole";
     	TestUtil.displayTestTile(TEST_NAME);
-    	
+
         OperationResult parentResult = new OperationResult("Modify user -> add roles");
         String userToModifyOid = "f65963e3-9d47-4b18-aaf3-bfc98bdfa000";
 
@@ -353,7 +357,7 @@ public class ModifyTest extends BaseSQLRepoTest {
     public void test110ModifyDeleteObjectChangeFromAccount() throws Exception {
     	final String TEST_NAME = "test110ModifyDeleteObjectChangeFromAccount";
     	TestUtil.displayTestTile(TEST_NAME);
-    	
+
         OperationResult parentResult = new OperationResult("testModifyDeleteObjectChnageFromAccount");
         PrismObject<ShadowType> accShadow = prismContext.parseObject(new File(TEST_DIR + "/account-delete-object-change.xml"));
         String oid = repositoryService.addObject(accShadow, null, parentResult);
@@ -386,7 +390,7 @@ public class ModifyTest extends BaseSQLRepoTest {
     public void test120ModifyAccountMetadata() throws Exception {
     	final String TEST_NAME = "test120ModifyAccountMetadata";
     	TestUtil.displayTestTile(TEST_NAME);
-    	
+
     	// GIVEN
         OperationResult parentResult = new OperationResult(TEST_NAME);
 
@@ -399,18 +403,18 @@ public class ModifyTest extends BaseSQLRepoTest {
 
         // The parsed shadow has attributes that have xsi:type specification. Add another one that has
         // fully dynamic definition
-        
+
         QName attrBazQName = new QName(MidPointConstants.NS_RI, "baz");
         PrismContainer<Containerable> attributesContainerBefore = shadowBefore.findContainer(ShadowType.F_ATTRIBUTES);
         PrismProperty<String> attrBazBefore = new PrismProperty<>(new QName(MidPointConstants.NS_RI, "baz"), prismContext);
-        PrismPropertyDefinition<String> attrBazDefBefore = new PrismPropertyDefinition<>(attrBazQName, DOMUtil.XSD_STRING, prismContext);
+        PrismPropertyDefinitionImpl<String> attrBazDefBefore = new PrismPropertyDefinitionImpl<>(attrBazQName, DOMUtil.XSD_STRING, prismContext);
         attrBazDefBefore.setMaxOccurs(-1);
         attrBazBefore.setDefinition(attrBazDefBefore);
         attrBazBefore.addRealValue("BaZ1");
         attrBazBefore.addRealValue("BaZ2");
         attrBazBefore.addRealValue("BaZ3");
         attributesContainerBefore.add(attrBazBefore);
-        
+
         System.out.println("\nAcc shadow");
         System.out.println(shadowBefore.debugDump());
 
@@ -419,7 +423,7 @@ public class ModifyTest extends BaseSQLRepoTest {
 
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
-        
+
         PrismObject<ShadowType> repoShadow = repositoryService.getObject(ShadowType.class, oid, null, parentResult);
 
         // THEN
@@ -455,10 +459,10 @@ public class ModifyTest extends BaseSQLRepoTest {
                 oid, null, parentResult);
         System.out.println("\nAfter modify 1");
         System.out.println(afterModify.debugDump());
-        
+
         MetadataType metadataAfter = afterModify.asObjectable().getMetadata();
         assertEquals("Wrong modifyTimestamp", modifyTimestampBefore, metadataAfter.getModifyTimestamp());
-        
+
         PrismAsserts.assertEqualsPolyString("Wrong shadow name", "1234", afterModify.asObjectable().getName());
         assertAttribute(afterModify, new QName(SchemaConstants.NS_ICF_SCHEMA, "uid"), "8daaeeae-f0c7-41c9-b258-2a3351aa8876");
         assertAttribute(afterModify, "foo", "FOO");
@@ -477,7 +481,7 @@ public class ModifyTest extends BaseSQLRepoTest {
         TestUtil.displayWhen(TEST_NAME);
         repositoryService.modifyObject(ShadowType.class, oid, syncSituationDeltas, getModifyOptions(), parentResult);
 //        AssertJUnit.assertNull(afterModify.asObjectable().getObjectChange());
-        
+
         // THEN
         TestUtil.displayThen(TEST_NAME);
         afterModify = repositoryService.getObject(ShadowType.class,
@@ -490,7 +494,7 @@ public class ModifyTest extends BaseSQLRepoTest {
     public void test130ExtensionModify() throws Exception {
     	final String TEST_NAME = "test130ExtensionModify";
     	TestUtil.displayTestTile(TEST_NAME);
-    	
+
         final QName QNAME_LOOT = new QName("http://example.com/p", "loot");
 
         File userFile = new File(TEST_DIR, "user-with-extension.xml");
@@ -529,7 +533,7 @@ public class ModifyTest extends BaseSQLRepoTest {
     public void test140ModifyAccountSynchronizationSituation() throws Exception {
     	final String TEST_NAME = "test140ModifyAccountSynchronizationSituation";
     	TestUtil.displayTestTile(TEST_NAME);
-    	
+
         OperationResult result = new OperationResult("testModifyAccountSynchronizationSituation");
 
         //add account
@@ -577,10 +581,9 @@ public class ModifyTest extends BaseSQLRepoTest {
         AssertJUnit.assertNotNull(afterModifytimestamp);
         assertEquals(afterSecondModifyType.getSynchronizationTimestamp(), description.getTimestamp());
 
-        LessFilter filter = LessFilter.createLess(ShadowType.F_SYNCHRONIZATION_TIMESTAMP, afterSecondModify.findProperty(
-                ShadowType.F_SYNCHRONIZATION_TIMESTAMP).getDefinition(), afterModifytimestamp, true);
-        ObjectQuery query = ObjectQuery.createObjectQuery(filter);
-
+        ObjectQuery query = QueryBuilder.queryFor(ShadowType.class, prismContext)
+                .item(ShadowType.F_SYNCHRONIZATION_TIMESTAMP).le(afterModifytimestamp)
+                .build();
         List<PrismObject<ShadowType>> shadows = repositoryService.searchObjects(ShadowType.class, query, null, result);
         AssertJUnit.assertNotNull(shadows);
         assertEquals(1, shadows.size());
@@ -592,7 +595,7 @@ public class ModifyTest extends BaseSQLRepoTest {
     public void test150ModifyRoleAddInducements() throws Exception {
     	final String TEST_NAME = "test150ModifyRoleAddInducements";
     	TestUtil.displayTestTile(TEST_NAME);
-    	
+
         OperationResult result = new OperationResult(TEST_NAME);
 
         File roleFile = new File(TEST_DIR, "role-modify.xml");
@@ -637,11 +640,11 @@ public class ModifyTest extends BaseSQLRepoTest {
 			assertEquals("Version has changed", version, role.getVersion());
 		}
 	}
-    
+
     private <T> void assertAttribute(PrismObject<ShadowType> shadow, String attrName, T... expectedValues) {
     	assertAttribute(shadow, new QName(MidPointConstants.NS_RI, attrName), expectedValues);
     }
-    
+
     private <T> void assertAttribute(PrismObject<ShadowType> shadow, QName attrQName, T... expectedValues) {
     	PrismProperty<T> attr = shadow.findProperty(new ItemPath(ShadowType.F_ATTRIBUTES, attrQName));
     	if (expectedValues.length == 0) {

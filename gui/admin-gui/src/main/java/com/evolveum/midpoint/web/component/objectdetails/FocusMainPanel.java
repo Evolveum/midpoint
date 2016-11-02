@@ -23,6 +23,7 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.FocusTabVisibleBehavior;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.*;
+import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
@@ -33,7 +34,6 @@ import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.page.admin.PageAdminFocus;
 import com.evolveum.midpoint.web.page.admin.PageAdminObjectDetails;
-import com.evolveum.midpoint.web.page.admin.reports.component.AuditLogViewerPanel;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoProvider;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoProviderOptions;
 import com.evolveum.midpoint.web.page.admin.users.dto.FocusSubwrapperDto;
@@ -94,24 +94,18 @@ public class FocusMainPanel<F extends FocusType> extends AbstractObjectMainPanel
 	}
 
 	private ObjectQuery createTaskQuery(String oid, PageBase page) {
-		List<ObjectFilter> filters = new ArrayList<ObjectFilter>();
-
 		if (oid == null) {
 			oid = "non-existent"; // TODO !!!!!!!!!!!!!!!!!!!!
 		}
-		try {
-			filters.add(RefFilter.createReferenceEqual(TaskType.F_OBJECT_REF, TaskType.class,
-					page.getPrismContext(), oid));
-			filters.add(NotFilter.createNot(EqualFilter.createEqual(TaskType.F_EXECUTION_STATUS,
-					TaskType.class, page.getPrismContext(), null, TaskExecutionStatusType.CLOSED)));
-			filters.add(EqualFilter.createEqual(TaskType.F_PARENT, TaskType.class, page.getPrismContext(), null));
-		} catch (SchemaException e) {
-			throw new SystemException("Unexpected SchemaException when creating task filter", e);
-		}
-
-		return new ObjectQuery().createObjectQuery(AndFilter.createAnd(filters));
+		return QueryBuilder.queryFor(TaskType.class, page.getPrismContext())
+				.item(TaskType.F_OBJECT_REF).ref(oid)
+				.and()
+					.block()
+						.not().item(TaskType.F_EXECUTION_STATUS).eq(TaskExecutionStatusType.CLOSED)
+					.endBlock()
+				.and().item(TaskType.F_PARENT).isNull()
+				.build();
 	}
-
 
 	@Override
 	protected List<ITab> createTabs(final PageAdminObjectDetails<F> parentPage) {
@@ -121,7 +115,7 @@ public class FocusMainPanel<F extends FocusType> extends AbstractObjectMainPanel
 		// default tabs are always added to component structure, visibility is decided later in
 		// visible behavior based on adminGuiConfiguration
 		addDefaultTabs(parentPage, tabs);
-
+        addSpecificTabs(parentPage, tabs);
 		if (objectFormTypes == null) {
 			return tabs;
 		}
@@ -226,7 +220,10 @@ public class FocusMainPanel<F extends FocusType> extends AbstractObjectMainPanel
 		};
 	}
 
-	protected void addDefaultTabs(final PageAdminObjectDetails<F> parentPage, List<ITab> tabs) {
+	protected void addSpecificTabs(final PageAdminObjectDetails<F> parentPage, List<ITab> tabs) {
+    }
+
+    protected void addDefaultTabs(final PageAdminObjectDetails<F> parentPage, List<ITab> tabs) {
 		FocusTabVisibleBehavior authorization = new FocusTabVisibleBehavior(unwrapModel(),
 				ComponentConstants.UI_FOCUS_TAB_BASIC_URL);
 
@@ -305,17 +302,6 @@ public class FocusMainPanel<F extends FocusType> extends AbstractObjectMainPanel
                         }
                     });
         }
-			authorization = new FocusTabVisibleBehavior(unwrapModel(), ComponentConstants.UI_FOCUS_TAB_OBJECT_HISTORY_URL);
-            tabs.add(
-                    new PanelTab(parentPage.createStringResource("pageAdminFocus.objectHistory"), authorization) {
-
-                    	private static final long serialVersionUID = 1L;
-
-                        @Override
-                        public WebMarkupContainer createPanel(String panelId) {
-                            return createObjectHistoryTabPanel(panelId, parentPage);
-                        }
-                    });
 	}
 
 }

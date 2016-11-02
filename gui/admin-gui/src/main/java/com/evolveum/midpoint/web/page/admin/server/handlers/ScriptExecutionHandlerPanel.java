@@ -16,10 +16,8 @@
 package com.evolveum.midpoint.web.page.admin.server.handlers;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.web.page.admin.server.handlers.dto.ScannerHandlerDto;
 import com.evolveum.midpoint.web.page.admin.server.handlers.dto.ScriptExecutionHandlerDto;
 import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.TextArea;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;

@@ -19,16 +19,10 @@ package com.evolveum.midpoint.prism.util;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-
-import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
@@ -40,16 +34,8 @@ import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.prism.Referencable;
-import com.evolveum.midpoint.prism.parser.DomParser;
-import com.evolveum.midpoint.prism.parser.util.XNodeProcessorUtil;
-import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.prism.xnode.MapXNode;
-import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
-import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
 
 public class RawTypeUtil {
@@ -62,10 +48,10 @@ public class RawTypeUtil {
 		List<IV> parsedValues = new ArrayList<IV>();
 		for (RawType rawValue : values){
 			if (itemDefinition == null && containerDef != null){
-				itemDefinition = (ID) containerDef.getPrismContext().getXnodeProcessor().locateItemDefinition(containerDef, elementQName, rawValue.getXnode());
+				itemDefinition = (ID) ((PrismContextImpl) containerDef.getPrismContext()).getPrismUnmarshaller().locateItemDefinition(containerDef, elementQName, rawValue.getXnode());
 			}
 			IV parsed = rawValue.getParsedValue(itemDefinition, elementQName);
-			if (parsed != null){
+			if (parsed != null) {
 				parsedValues.add(parsed);
 			}
 		}
@@ -103,8 +89,25 @@ public class RawTypeUtil {
 			} else if (itemDefinition instanceof PrismReferenceDefinition) {
 				// TODO
 					PrismReference reference = ((PrismReferenceDefinition) itemDefinition).instantiate();
-					for (IV val : parsedValues){
-						reference.merge((PrismReferenceValue) val.clone());
+					for (IV val : parsedValues) {
+						PrismReferenceValue ref;
+						if (val instanceof PrismReferenceValue) {
+							ref = (PrismReferenceValue) val.clone();
+						} else if (val instanceof PrismContainerValue) {
+							// this is embedded (full) object
+							Containerable c = ((PrismContainerValue) val).asContainerable();
+							if (!(c instanceof Objectable)) {
+								throw new IllegalStateException("Content of " + itemDefinition
+									+ " is a Containerable but not Objectable: " + c);
+							}
+							Objectable o = (Objectable) c;
+							ref = new PrismReferenceValue();
+							ref.setObject(o.asPrismObject());
+						} else {
+							throw new IllegalStateException("Content of " + itemDefinition
+									+ " is neither PrismReferenceValue nor PrismContainerValue: " + val);
+						}
+						reference.merge(ref);
 					}
 					subItem = (Item<IV,ID>) reference;
 
@@ -116,7 +119,7 @@ public class RawTypeUtil {
 	}
 	
 //	public static Object toAny(PrismValue value, Document document, PrismContext prismContext) throws SchemaException{
-//		DomParser domParser = prismContext.getParserDom();
+//		DomParser domProcessor = prismContext.getParserDom();
 ////		Document document = DOMUtil.getDocument();
 //		if (value == null) {
 //			return value;
@@ -130,7 +133,7 @@ public class RawTypeUtil {
 //				if (rawElement instanceof Element) {
 //					return ((Element)rawElement).cloneNode(true);
 //				} else if (rawElement instanceof MapXNode) {
-//					return domParser.serializeXMapToElement((MapXNode)rawElement, elementName);
+//					return domProcessor.serializeXMapToElement((MapXNode)rawElement, elementName);
 //				} else if (rawElement instanceof PrimitiveXNode<?>) {
 //					PrimitiveXNode<?> xprim = (PrimitiveXNode<?>)rawElement;
 //					String stringValue = xprim.getStringValue();

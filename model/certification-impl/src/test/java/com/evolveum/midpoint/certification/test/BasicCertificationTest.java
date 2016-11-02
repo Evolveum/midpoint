@@ -59,7 +59,6 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationSta
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType.F_ADMINISTRATIVE_STATUS;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
-import static org.testng.AssertJUnit.assertNull;
 import static org.testng.AssertJUnit.assertTrue;
 import static org.testng.AssertJUnit.fail;
 
@@ -339,10 +338,11 @@ public class BasicCertificationTest extends AbstractCertificationTest {
         TestUtil.displayWhen(TEST_NAME);
         Collection<SelectorOptions<GetOperationOptions>> resolveNames =
                 SelectorOptions.createCollection(GetOperationOptions.createResolveNames());
-        ObjectFilter filter = RefFilter.createReferenceEqual(new ItemPath(AccessCertificationCaseType.F_OBJECT_REF),
-                AccessCertificationCaseType.class, prismContext, ObjectTypeUtil.createObjectRef(userAdministrator).asReferenceValue());
-        ObjectPaging paging = ObjectPaging.createPaging(2, 2, getOrderBy(F_TARGET_REF), OrderDirection.DESCENDING);
-        ObjectQuery query = ObjectQuery.createObjectQuery(filter, paging);
+        ObjectQuery query = QueryBuilder.queryFor(AccessCertificationCaseType.class, prismContext)
+                .item(AccessCertificationCaseType.F_OBJECT_REF).ref(userAdministrator.getOid())
+                .desc(getOrderBy(F_TARGET_REF))
+                .offset(2).maxSize(2)
+                .build();
         List<AccessCertificationCaseType> caseList = modelService.searchContainers(
                 AccessCertificationCaseType.class, query, resolveNames, task, result);
 
@@ -728,8 +728,10 @@ public class BasicCertificationTest extends AbstractCertificationTest {
         display("campaign after remediation start", campaign);
         assertTrue("wrong campaign state: " + campaign.getState(), campaign.getState() == CLOSED || campaign.getState() == IN_REMEDIATION);
 
-        RefFilter taskFilter = RefFilter.createReferenceEqual(new ItemPath(TaskType.F_OBJECT_REF), TaskType.class, prismContext, ObjectTypeUtil.createObjectRef(campaign).asReferenceValue());
-        List<PrismObject<TaskType>> tasks = taskManager.searchObjects(TaskType.class, ObjectQuery.createObjectQuery(taskFilter), null, result);
+        ObjectQuery query = QueryBuilder.queryFor(TaskType.class, prismContext)
+                .item(TaskType.F_OBJECT_REF).ref(campaign.getOid())
+                .build();
+        List<PrismObject<TaskType>> tasks = taskManager.searchObjects(TaskType.class, query, null, result);
         assertEquals("unexpected number of related tasks", 1, tasks.size());
         waitForTaskFinish(tasks.get(0).getOid(), true);
 

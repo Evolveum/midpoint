@@ -26,6 +26,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
 
@@ -79,6 +80,13 @@ public class PrismContainer<C extends Containerable> extends Item<PrismContainer
     public PrismContainer(QName name, Class<C> compileTimeClass, PrismContext prismContext) {
         this(name, compileTimeClass);
         this.prismContext = prismContext;
+		if (prismContext != null) {
+			try {
+				prismContext.adopt(this);
+			} catch (SchemaException e) {
+				throw new SystemException("Schema exception when adopting freshly created PrismContainer: " + this);
+			}
+		}
     }
 
 
@@ -105,11 +113,6 @@ public class PrismContainer<C extends Containerable> extends Item<PrismContainer
 		return (compileTimeClass.isAssignableFrom(getCompileTimeClass()));
 	}
 
-    @Override
-    public List<PrismContainerValue<C>> getValues() {
-    	return (List<PrismContainerValue<C>>) super.getValues();
-    }
-    
     @Override
     public Collection<C> getRealValues() {
 		if (getValues() == null) {
@@ -169,7 +172,8 @@ public class PrismContainer<C extends Containerable> extends Item<PrismContainer
 		}
     }
     
-    public void setValue(PrismContainerValue<C> value) throws SchemaException {
+    public void setValue(@NotNull PrismContainerValue<C> value) throws SchemaException {
+		checkMutability();
     	if (getDefinition() != null) {
 			if (getDefinition().isSingleValue()) {
 				clear();
@@ -184,7 +188,8 @@ public class PrismContainer<C extends Containerable> extends Item<PrismContainer
     }
 
     @Override
-    public boolean add(PrismContainerValue newValue, boolean checkUniqueness) throws SchemaException {
+    public boolean add(@NotNull PrismContainerValue newValue, boolean checkUniqueness) throws SchemaException {
+		checkMutability();
         // when a context-less item is added to a contextful container, it is automatically adopted
         if (newValue.getPrismContext() == null && this.prismContext != null) {
             prismContext.adopt(newValue);
@@ -232,6 +237,7 @@ public class PrismContainer<C extends Containerable> extends Item<PrismContainer
     }
     
     public void setPropertyRealValue(QName propertyName, Object realValue) throws SchemaException {
+		checkMutability();
     	PrismProperty<?> property = findOrCreateProperty(propertyName);
     	property.setRealValue(realValue);
     }
@@ -252,11 +258,13 @@ public class PrismContainer<C extends Containerable> extends Item<PrismContainer
      * Convenience method. Works only on single-valued containers.
      */
     public void add(Item<?,?> item) throws SchemaException {
+		checkMutability();
     	getValue().add(item);
     }
     
     public PrismContainerValue<C> createNewValue() {
-    	PrismContainerValue<C> pValue = new PrismContainerValue<C>(prismContext);
+		checkMutability();
+    	PrismContainerValue<C> pValue = new PrismContainerValue<>(prismContext);
     	try {
     		// No need to check uniqueness, we know that this value is new and therefore
     		// it will change anyway and therefore the check is pointless.
@@ -281,6 +289,7 @@ public class PrismContainer<C extends Containerable> extends Item<PrismContainer
     }
     
 	public void mergeValue(PrismContainerValue<C> otherValue) throws SchemaException {
+		checkMutability();
 		Iterator<PrismContainerValue<C>> iterator = getValues().iterator();
 		while (iterator.hasNext()) {
 			PrismContainerValue<C> thisValue = iterator.next();
@@ -304,10 +313,11 @@ public class PrismContainer<C extends Containerable> extends Item<PrismContainer
      * Remove all empty values
      */
     public void trim() {
-    	Iterator<PrismContainerValue<C>> iterator = getValues().iterator();
+		Iterator<PrismContainerValue<C>> iterator = getValues().iterator();
     	while (iterator.hasNext()) {
     		PrismContainerValue<C> pval = iterator.next();
     		if (pval.isEmpty()) {
+				checkMutability();
     			iterator.remove();
     		}
     	}
@@ -331,18 +341,30 @@ public class PrismContainer<C extends Containerable> extends Item<PrismContainer
      * @param definition the definition to set
      */
     public void setDefinition(PrismContainerDefinition<C> definition) {
-        this.definition = definition;
+		checkMutability();
+		if (definition != null) {
+			for (PrismContainerValue<C> value : getValues()) {
+				// TODO reconsider this - sometimes we want to change CTDs, sometimes not
+				boolean safeToOverwrite =
+						value.getComplexTypeDefinition() == null
+						|| this.definition == null								// TODO highly dangerous (the definition might be simply unknown)
+						|| this.definition.getComplexTypeDefinition() == null
+						|| this.definition.getComplexTypeDefinition().getTypeName().equals(value.getComplexTypeDefinition().getTypeName());
+				if (safeToOverwrite) {
+					value.replaceComplexTypeDefinition(definition.getComplexTypeDefinition());
+				}
+			}
+		}
+		this.definition = definition;
     }
     
     @Override
 	public void applyDefinition(PrismContainerDefinition<C> definition) throws SchemaException {
+		checkMutability();
     	if (definition == null) {
     		return;
     	}
-    	if (!(definition instanceof PrismContainerDefinition)) {
-    		throw new IllegalArgumentException("Cannot apply "+definition+" to container " + this);
-    	}
-    	this.compileTimeClass = ((PrismContainerDefinition<C>)definition).getCompileTimeClass();
+		this.compileTimeClass = definition.getCompileTimeClass();
     	super.applyDefinition(definition);
 	}
 
@@ -416,21 +438,21 @@ public class PrismContainer<C extends Containerable> extends Item<PrismContainer
         return getValue().findCreateItem(itemQName, type, null, create);
     }
         
-    public <IV extends PrismValue,ID extends ItemDefinition,I extends Item<IV,ID>> I findItem(ItemPath propPath, Class<I> type) {
+    public <IV extends PrismValue,ID extends ItemDefinition,I extends Item<IV,ID>> I findItem(ItemPath path, Class<I> type) {
     	try {
-			return findCreateItem(propPath, type, null, false);
+			return findCreateItem(path, type, null, false);
 		} catch (SchemaException e) {
 			// This should not happen
-			throw new SystemException("Internal Error: "+e.getMessage(),e);
+			throw new SystemException("Internal Error:(path="+path+",type="+type+"): "+e.getMessage(),e);
 		}
     }
     
-    public <IV extends PrismValue,ID extends ItemDefinition> Item<IV,ID> findItem(ItemPath propPath) {
+    public <IV extends PrismValue,ID extends ItemDefinition> Item<IV,ID> findItem(ItemPath path) {
     	try {
-			return findCreateItem(propPath, Item.class, null, false);
+			return findCreateItem(path, Item.class, null, false);
 		} catch (SchemaException e) {
 			// This should not happen
-			throw new SystemException("Internal Error: "+e.getMessage(),e);
+			throw new SystemException("Internal Error:(path="+path+"): "+e.getMessage(),e);
 		}
     }
     
@@ -644,8 +666,8 @@ public class PrismContainer<C extends Containerable> extends Item<PrismContainer
     
 	@Override
 	protected void checkDefinition(PrismContainerDefinition<C> def) {
-		if (!(def instanceof PrismContainerDefinition<?>)) {
-			throw new IllegalArgumentException("Definition "+def+" cannot be applied to container "+this);
+		if (def == null) {
+			throw new IllegalArgumentException("Null definition cannot be applied to container "+this);
 		}
 	}
 		
@@ -773,12 +795,22 @@ public class PrismContainer<C extends Containerable> extends Item<PrismContainer
 		}
 	}
 
+	/**
+	 * Note: hashcode and equals compare the objects in the "java way". That means the objects must be
+	 * almost precisely equal to match (e.g. including source demarcation in values and other "annotations").
+	 * For a method that compares the "meaningful" parts of the objects see equivalent().
+	 */
 	@Override
 	public int hashCode() {
 		int result = super.hashCode();
 		return result;
 	}
 
+	/**
+	 * Note: hashcode and equals compare the objects in the "java way". That means the objects must be
+	 * almost precisely equal to match (e.g. including source demarcation in values and other "annotations").
+	 * For a method that compares the "meaningful" parts of the objects see equivalent().
+	 */
 	@Override
 	public boolean equals(Object obj) {
 		if (this == obj)
@@ -840,7 +872,7 @@ public class PrismContainer<C extends Containerable> extends Item<PrismContainer
 	            sb.append(")");
 	        }
         }
-        Iterator<PrismContainerValue<C>> i = getValues().iterator();
+		Iterator<PrismContainerValue<C>> i = getValues().iterator();
         if (i.hasNext()) {
             sb.append("\n");
         }

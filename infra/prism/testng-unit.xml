@@ -44,9 +44,9 @@
 			<class name="com.evolveum.midpoint.prism.TestPerformance"/>
 			<class name="com.evolveum.midpoint.prism.crypto.TestProtector"/>
 			<class name="com.evolveum.midpoint.prism.match.TestMatchingRule"/>
-			<class name="com.evolveum.midpoint.prism.parser.TestDomParser"/>
-			<class name="com.evolveum.midpoint.prism.parser.TestJsonParser"/>
-            <class name="com.evolveum.midpoint.prism.parser.TestProtectedString"/>
+			<class name="com.evolveum.midpoint.prism.lex.TestDomParser"/>
+			<class name="com.evolveum.midpoint.prism.lex.TestJsonParser"/>
+            <class name="com.evolveum.midpoint.prism.lex.TestProtectedString"/>
 			<class name="com.evolveum.midpoint.prism.query.TestObjectQuery"/>
 			<class name="com.evolveum.midpoint.prism.query.TestQueryConvertors"/>
 			<class name="com.evolveum.midpoint.prism.query.TestQueryBuilder"/>

@@ -17,7 +17,7 @@ package com.evolveum.midpoint.prism.xnode;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.parser.XNodeProcessorEvaluationMode;
+import com.evolveum.midpoint.prism.marshaller.XNodeProcessorEvaluationMode;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 import java.util.Map;

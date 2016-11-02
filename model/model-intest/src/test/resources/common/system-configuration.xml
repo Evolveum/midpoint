@@ -226,10 +226,74 @@
     		<left>take</left>
     		<right>take</right>
     	</item>
-    	<item>
-    		<ref>linkRef</ref>
+    	<projection>
     		<left>take</left>
-    	</item>    	
+    		<situation>conflict</situation>
+    	</projection>
+    	<projection>
+    		<left>take</left>
+    		<right>take</right>
+    	</projection>
+    	<default>
+    		<right>take</right>
+    	</default>
+    </mergeConfiguration>
+    
+    <mergeConfiguration>
+    	<name>default-specific</name>
+    	<description>
+    		The default-specific config is almost the same as default, just the projections are selected
+    		by specific resource.
+    	</description>
+    	<item>
+    		<ref>name</ref>
+    		<left>take</left>
+    	</item>
+    	<item>
+    		<ref>givenName</ref>
+    		<left>take</left>
+    		<right>ignore</right>
+    	</item>
+    	<item>
+    		<ref>familyName</ref>
+    	</item>
+    	<item>
+    		<ref>fullName</ref>
+    		<right>take</right>
+    	</item>
+    	<item>
+    		<ref>employeeType</ref>
+    		<left>take</left>
+    		<right>take</right>
+    	</item>
+    	<item>
+    		<ref>organization</ref>
+    		<left>take</left>
+    		<right>take</right>
+    	</item>
+    	<item>
+    		<ref>organizationalUnit</ref>
+    		<left>take</left>
+    	</item>
+    	<item>
+    		<ref>activation</ref>
+    		<left>take</left>
+    	</item>
+    	<item>
+    		<ref>assignment</ref>
+    		<left>take</left>
+    		<right>take</right>
+    	</item>
+    	<projection>
+    		<left>take</left>
+    		<projectionDiscriminator>
+    			<resourceRef oid="10000000-0000-0000-0000-000000000004"/> <!-- dummy -->
+    		</projectionDiscriminator>
+    	</projection>
+    	<projection>
+    		<left>take</left>
+    		<right>take</right>
+    	</projection>
     	<default>
     		<right>take</right>
     	</default>
@@ -251,6 +315,21 @@
     	<default>
     		<left>take</left>
     	</default>
+    </mergeConfiguration>
+    
+    <mergeConfiguration>
+    	<name>allLeftProjectionsBoth</name>
+    	<description>
+    		Takes all projections. There may be conflicting projections.
+    		Attempt to merge should end with an error.
+    	</description>
+    	<default>
+    		<left>take</left>
+    	</default>
+    	<projection>
+    		<left>take</left>
+    		<right>take</right>
+    	</projection>
     </mergeConfiguration>
     
     <mergeConfiguration>
@@ -316,10 +395,9 @@
     		<left>take</left>
     		<right>take</right>
     	</item>
-    	<item>
-    		<ref>linkRef</ref>
+    	<projection>
     		<left>take</left>
-    	</item>    	
+    	</projection>
     	<default>
     		<left>take</left>
     	</default>

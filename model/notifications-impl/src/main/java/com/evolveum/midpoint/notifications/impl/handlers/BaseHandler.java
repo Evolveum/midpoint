@@ -27,6 +27,7 @@ import com.evolveum.midpoint.notifications.impl.NotificationManagerImpl;
 import com.evolveum.midpoint.notifications.impl.NotificationFuctionsImpl;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import com.evolveum.midpoint.prism.PrismPropertyDefinitionImpl;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -128,7 +129,7 @@ public abstract class BaseHandler implements EventHandler {
     		Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException {
 
         QName resultName = new QName(SchemaConstants.NS_C, "result");
-        PrismPropertyDefinition<Boolean> resultDef = new PrismPropertyDefinition<>(resultName, DOMUtil.XSD_BOOLEAN, prismContext);
+        PrismPropertyDefinition<Boolean> resultDef = new PrismPropertyDefinitionImpl<>(resultName, DOMUtil.XSD_BOOLEAN, prismContext);
         Expression<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> expression = expressionFactory.makeExpression(expressionType, resultDef, shortDesc, task, result);
         ExpressionEvaluationContext params = new ExpressionEvaluationContext(null, expressionVariables, shortDesc, task, result);
         PrismValueDeltaSetTriple<PrismPropertyValue<Boolean>> exprResultTriple = ModelExpressionThreadLocalHolder.evaluateExpressionInContext(expression, params, task, result);
@@ -166,14 +167,14 @@ public abstract class BaseHandler implements EventHandler {
     		String shortDesc, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException {
 
         QName resultName = new QName(SchemaConstants.NS_C, "result");
-        PrismPropertyDefinition<String> resultDef = new PrismPropertyDefinition<>(resultName, DOMUtil.XSD_STRING, prismContext);
+        PrismPropertyDefinition<String> resultDef = new PrismPropertyDefinitionImpl<>(resultName, DOMUtil.XSD_STRING, prismContext);
 
         Expression<PrismPropertyValue<String>,PrismPropertyDefinition<String>> expression = expressionFactory.makeExpression(expressionType, resultDef, shortDesc, task, result);
         ExpressionEvaluationContext params = new ExpressionEvaluationContext(null, expressionVariables, shortDesc, task, result);
         PrismValueDeltaSetTriple<PrismPropertyValue<String>> exprResult = ModelExpressionThreadLocalHolder
 				.evaluateExpressionInContext(expression, params, task, result);
 
-        List<String> retval = new ArrayList<String>();
+        List<String> retval = new ArrayList<>();
         for (PrismPropertyValue<String> item : exprResult.getZeroSet()) {
             retval.add(item.getValue());
         }

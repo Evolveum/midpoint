@@ -22,8 +22,6 @@ import static org.testng.AssertJUnit.assertTrue;
 
 import java.io.IOException;
 
-import javax.xml.namespace.QName;
-
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 import org.xml.sax.SAXException;

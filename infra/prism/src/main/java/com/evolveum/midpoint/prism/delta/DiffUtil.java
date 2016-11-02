@@ -18,13 +18,9 @@ package com.evolveum.midpoint.prism.delta;
 import java.io.File;
 import java.io.IOException;
 
-import javax.xml.bind.JAXBElement;
-
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 /**

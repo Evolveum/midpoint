@@ -18,6 +18,7 @@ package com.evolveum.midpoint.model.impl.integrity;
 
 import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.model.common.SystemObjectCache;
 import com.evolveum.midpoint.model.impl.sync.SynchronizationService;
 import com.evolveum.midpoint.model.impl.util.AbstractSearchIterativeResultHandler;
@@ -39,6 +40,7 @@ import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.RefFilter;
+import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -371,7 +373,7 @@ public class ShadowIntegrityCheckResultHandler extends AbstractSearchIterativeRe
         }
 
         if (checkOwners) {
-            List<PrismObject> owners = searchOwners(shadow, result);
+            List<PrismObject<FocusType>> owners = searchOwners(shadow, result);
             if (owners != null) {
                 shadow.setUserData(KEY_OWNERS, owners);
                 if (owners.size() > 1) {
@@ -403,7 +405,7 @@ public class ShadowIntegrityCheckResultHandler extends AbstractSearchIterativeRe
             context.setResource(resource);
             RefinedResourceSchema resourceSchema;
             try {
-                resourceSchema = RefinedResourceSchema.getRefinedSchema(context.getResource(), LayerType.MODEL, prismContext);
+                resourceSchema = RefinedResourceSchemaImpl.getRefinedSchema(context.getResource(), LayerType.MODEL, prismContext);
             } catch (SchemaException e) {
                 checkResult.recordError(Statistics.CANNOT_GET_REFINED_SCHEMA, new SchemaException("Couldn't derive resource schema: " + e.getMessage(), e));
                 return;
@@ -478,18 +480,18 @@ public class ShadowIntegrityCheckResultHandler extends AbstractSearchIterativeRe
         }
     }
 
-    private List<PrismObject> searchOwners(PrismObject<ShadowType> shadow, OperationResult result) {
+    private List<PrismObject<FocusType>> searchOwners(PrismObject<ShadowType> shadow, OperationResult result) {
         try {
-            PrismReferenceValue refValue = new PrismReferenceValue(shadow.getOid(), ShadowType.COMPLEX_TYPE);
-            RefFilter ownerFilter = RefFilter.createReferenceEqual(new ItemPath(FocusType.F_LINK_REF), FocusType.class, prismContext, refValue);
-            ObjectQuery ownerQuery = ObjectQuery.createObjectQuery(ownerFilter);
-            List owners = repositoryService.searchObjects(FocusType.class, ownerQuery, null, result);
+            ObjectQuery ownerQuery = QueryBuilder.queryFor(FocusType.class, prismContext)
+                    .item(FocusType.F_LINK_REF).ref(shadow.getOid())
+                    .build();
+            List<PrismObject<FocusType>> owners = repositoryService.searchObjects(FocusType.class, ownerQuery, null, result);
             if (LOGGER.isTraceEnabled()) {
                 LOGGER.trace("Owners for {}: {}", ObjectTypeUtil.toShortString(shadow), owners);
             }
             return owners;
-        } catch (SchemaException e) {
-            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't create owners query for shadow {}", e, ObjectTypeUtil.toShortString(shadow));
+        } catch (SchemaException|RuntimeException e) {
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't create/execute owners query for shadow {}", e, ObjectTypeUtil.toShortString(shadow));
             return null;
         }
     }
@@ -721,7 +723,7 @@ public class ShadowIntegrityCheckResultHandler extends AbstractSearchIterativeRe
             sb.append("   --> deleted redundant shadow").append(skippedForDryRun()).append(" ").append(ObjectTypeUtil.toShortString(shadowToDelete)).append("\n");
             String oid = shadowToDelete.getOid();
 
-            List<PrismObject> owners;
+            List<PrismObject<FocusType>> owners;
             if (checkOwners) {
                 owners = (List) shadowToDelete.getUserData(KEY_OWNERS);
             } else {

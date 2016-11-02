@@ -18,6 +18,7 @@ package com.evolveum.midpoint.test;
 import com.evolveum.icf.dummy.resource.DummyGroup;
 import com.evolveum.icf.dummy.resource.ScriptHistoryEntry;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.match.MatchingRule;
@@ -28,6 +29,7 @@ import com.evolveum.midpoint.prism.query.EqualFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.RefFilter;
+import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.util.PrismUtil;
@@ -275,11 +277,14 @@ public class IntegrationTestTools {
 	}
 	
 	public static void assertAttributeDefinition(ResourceAttribute<?> attr, QName expectedType, int minOccurs, int maxOccurs,
-			boolean canRead, boolean canCreate, boolean canUpdate, Class<?> expetcedAttributeDefinitionClass) {
+			boolean canRead, boolean canCreate, boolean canUpdate, Class<?> expectedAttributeDefinitionClass) {
 		ResourceAttributeDefinition definition = attr.getDefinition();
 		QName attrName = attr.getElementName();
 		assertNotNull("No definition for attribute "+attrName, definition);
-		assertEquals("Wrong class of definition for attribute"+attrName, expetcedAttributeDefinitionClass, definition.getClass());
+		//assertEquals("Wrong class of definition for attribute"+attrName, expetcedAttributeDefinitionClass, definition.getClass());
+		assertTrue("Wrong class of definition for attribute"+attrName+" (expected: " + expectedAttributeDefinitionClass
+				+ ", real: " + definition.getClass() + ")",
+				expectedAttributeDefinitionClass.isAssignableFrom(definition.getClass()));
 		assertEquals("Wrong type in definition for attribute"+attrName, expectedType, definition.getTypeName());
 		assertEquals("Wrong minOccurs in definition for attribute"+attrName, minOccurs, definition.getMinOccurs());
 		assertEquals("Wrong maxOccurs in definition for attribute"+attrName, maxOccurs, definition.getMaxOccurs());
@@ -544,17 +549,16 @@ public class IntegrationTestTools {
 	}
 	
 	public static ObjectQuery createAllShadowsQuery(ResourceType resourceType, PrismContext prismContext) throws SchemaException {
-		RefFilter equal = RefFilter.createReferenceEqual(ShadowType.F_RESOURCE_REF, ShadowType.class, prismContext, resourceType.getOid());
-		ObjectQuery query = ObjectQuery.createObjectQuery(equal);
-		return query;
+		return QueryBuilder.queryFor(ShadowType.class, prismContext)
+				.item(ShadowType.F_RESOURCE_REF).ref(resourceType.getOid())
+				.build();
 	}
 	
 	public static ObjectQuery createAllShadowsQuery(ResourceType resourceType, QName objectClass, PrismContext prismContext) throws SchemaException {
-		AndFilter and = AndFilter.createAnd(
-				RefFilter.createReferenceEqual(ShadowType.F_RESOURCE_REF, ShadowType.class, prismContext, resourceType.getOid()),
-				EqualFilter.createEqual(ShadowType.F_OBJECT_CLASS, ShadowType.class, prismContext, null, objectClass));
-		ObjectQuery query = ObjectQuery.createObjectQuery(and);
-		return query;
+		return QueryBuilder.queryFor(ShadowType.class, prismContext)
+				.item(ShadowType.F_RESOURCE_REF).ref(resourceType.getOid())
+				.and().item(ShadowType.F_OBJECT_CLASS).eq(objectClass)
+				.build();
 	}
 
 	public static ObjectQuery createAllShadowsQuery(ResourceType resourceType, String objectClassLocalName, PrismContext prismContext) throws SchemaException {
@@ -602,7 +606,7 @@ public class IntegrationTestTools {
 		assertNotNull("no attributes",attrs);
 		assertFalse("empty attributes",attrs.isEmpty());
 		
-		RefinedResourceSchema rschema = RefinedResourceSchema.getRefinedSchema(resourceType);
+		RefinedResourceSchema rschema = RefinedResourceSchemaImpl.getRefinedSchema(resourceType);
 		ObjectClassComplexTypeDefinition objectClassDef = rschema.findObjectClassDefinition(shadowType);
 		assertNotNull("cannot determine object class for "+shadowType, objectClassDef);
 		
@@ -687,20 +691,15 @@ public class IntegrationTestTools {
 			identifierValue = uidMatchingRule.normalize(identifierValue);
 		}
 
-		ObjectFilter filter;
 		PrismPropertyDefinition<String> identifierDef = identifier.getDefinition();
-		filter = AndFilter.createAnd(
-					RefFilter.createReferenceEqual(ShadowType.F_RESOURCE_REF, ShadowType.class, prismContext, ShadowUtil.getResourceOid(resourceShadow)),
-					EqualFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES, identifierDef.getName()), identifierDef, new PrismPropertyValue<String>(identifierValue)));
-			
-		ObjectQuery query = ObjectQuery.createObjectQuery(filter);
-
-		return query;
-		
+		return QueryBuilder.queryFor(ShadowType.class, prismContext)
+				.item(ShadowType.F_RESOURCE_REF).ref(ShadowUtil.getResourceOid(resourceShadow))
+				.and().item(new ItemPath(ShadowType.F_ATTRIBUTES, identifierDef.getName()), identifierDef).eq(identifierValue)
+				.build();
 	}
 	
     public static void applyResourceSchema(ShadowType accountType, ResourceType resourceType, PrismContext prismContext) throws SchemaException {
-    	ResourceSchema resourceSchema = RefinedResourceSchema.getResourceSchema(resourceType, prismContext);
+    	ResourceSchema resourceSchema = RefinedResourceSchemaImpl.getResourceSchema(resourceType, prismContext);
     	ShadowUtil.applyResourceSchema(accountType.asPrismObject(), resourceSchema);
     }
     
@@ -916,7 +915,7 @@ public class IntegrationTestTools {
 			}
 		}
 		AssertJUnit.fail("No association for entitlement "+entitlementOid+" in "+shadow);
-		return null; // notreached
+		throw new IllegalStateException("not reached");
 	}
 	
 	public static void assertNoAssociation(PrismObject<ShadowType> shadow, QName associationName, String entitlementOid) {

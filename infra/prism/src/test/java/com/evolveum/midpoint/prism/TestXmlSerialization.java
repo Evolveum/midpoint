@@ -16,18 +16,11 @@
 
 package com.evolveum.midpoint.prism;
 
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismInternalTestUtil;
-import com.evolveum.midpoint.prism.crypto.Protector;
-import com.evolveum.midpoint.prism.crypto.TestProtector;
-import com.evolveum.midpoint.prism.parser.util.XNodeProcessorUtil;
+import com.evolveum.midpoint.prism.lex.dom.DomLexicalProcessor;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
-import com.evolveum.midpoint.prism.xnode.MapXNode;
 import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
-import org.apache.xml.security.encryption.XMLCipher;
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 import org.xml.sax.SAXException;
@@ -68,12 +61,13 @@ public class TestXmlSerialization {
 
         // THEN
 
-        String ok = prismContext.getParserDom().serializeToString(valOkNode, new QName("ok"));
+		final DomLexicalProcessor domLexicalProcessor = ((PrismContextImpl) prismContext).getParserDom();
+		String ok = domLexicalProcessor.write(valOkNode, new QName("ok"), null);
         System.out.println("correct value serialized to: " + ok);
         assertEquals("Wrong serialization", "<ok>abcdef</ok>", ok.trim());         // todo make this less brittle with regards to serialization style
 
         try {
-            String wrong = prismContext.getParserDom().serializeToString(valWrongNode, new QName("wrong"));
+            String wrong = domLexicalProcessor.write(valWrongNode, new QName("wrong"), null);
             System.out.println("wrong value serialized to: " + wrong);
             assert false : "Wrong value serialization had to fail but it didn't!";
         } catch (RuntimeException e) {

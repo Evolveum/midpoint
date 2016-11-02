@@ -17,6 +17,7 @@
 
 <resource xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
           xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+		  xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
           xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
           oid="ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"
@@ -99,7 +100,7 @@
 							<xsd:element ref="icfs:uid" />
 							<xsd:element maxOccurs="unbounded" minOccurs="0" name="businessCategory" type="xsd:string" />
 							<xsd:element maxOccurs="unbounded" minOccurs="0" name="ou" type="xsd:string" />
-							<xsd:element name="fakePassword" type="c:ProtectedStringType" minOccurs="0" maxOccurs="unbounded">
+							<xsd:element name="fakePassword" type="t:ProtectedStringType" minOccurs="0" maxOccurs="unbounded">
 								<xsd:annotation>
 									<xsd:documentation>
 										This is fake. It is only for namespace testing and similar wild things.

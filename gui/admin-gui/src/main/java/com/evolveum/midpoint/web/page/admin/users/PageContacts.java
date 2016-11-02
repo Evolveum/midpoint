@@ -15,23 +15,9 @@
  */
 package com.evolveum.midpoint.web.page.admin.users;
 
-import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
-import com.evolveum.midpoint.web.component.form.Form;
-import com.evolveum.midpoint.web.page.admin.users.component.ContactDataProvider;
-import com.evolveum.midpoint.web.page.admin.users.component.ContactOrgUnitPanel;
-import com.evolveum.midpoint.web.page.admin.users.component.ContactUserPanel;
-import com.evolveum.midpoint.web.page.admin.users.dto.ContactTreeDto;
-import com.evolveum.midpoint.web.page.admin.users.dto.ContactUserDto;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-
-import org.apache.wicket.Component;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.extensions.markup.html.repeater.tree.ITreeProvider;
-import org.apache.wicket.extensions.markup.html.repeater.tree.NestedTree;
-import org.apache.wicket.model.IModel;
 
 /**
  * @author lazyman

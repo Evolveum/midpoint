@@ -16,13 +16,65 @@
   -->
 <!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd">
 <suite name="unit" parallel="false" verbose="1">
+    <test name="Parsing XML with namespaces" preserve-order="false" verbose="1">
+        <parameter name="language" value="xml"/>
+        <parameter name="namespaces" value="true"/>
+        <classes>
+            <class name="com.evolveum.midpoint.schema.parser.TestParseUser"/>
+            <class name="com.evolveum.midpoint.schema.parser.TestParseResource"/>
+            <class name="com.evolveum.midpoint.schema.parser.TestParseShadow"/>
+            <class name="com.evolveum.midpoint.schema.parser.TestParseCertificationCase"/>
+            <class name="com.evolveum.midpoint.schema.parser.TestParseMappings"/>
+            <class name="com.evolveum.midpoint.schema.parser.TestParseMapping"/>
+        </classes>
+    </test>
+    <test name="Parsing XML without namespaces" preserve-order="false" verbose="1">
+        <parameter name="language" value="xml"/>
+        <parameter name="namespaces" value="false"/>
+        <classes>
+            <class name="com.evolveum.midpoint.schema.parser.TestParseUser"/>
+            <class name="com.evolveum.midpoint.schema.parser.TestParseResource"/>
+        </classes>
+    </test>
+    <test name="Parsing JSON with namespaces" preserve-order="false" verbose="1">
+        <parameter name="language" value="json"/>
+        <parameter name="namespaces" value="true"/>
+        <classes>
+            <class name="com.evolveum.midpoint.schema.parser.TestParseUser"/>
+            <class name="com.evolveum.midpoint.schema.parser.TestParseResource"/>
+        </classes>
+    </test>
+    <test name="Parsing JSON without namespaces" preserve-order="false" verbose="1">
+        <parameter name="language" value="json"/>
+        <parameter name="namespaces" value="false"/>
+        <classes>
+            <class name="com.evolveum.midpoint.schema.parser.TestParseUser"/>
+            <class name="com.evolveum.midpoint.schema.parser.TestParseResource"/>
+        </classes>
+    </test>
+    <test name="Parsing YAML with namespaces" preserve-order="false" verbose="1">
+        <parameter name="language" value="yaml"/>
+        <parameter name="namespaces" value="true"/>
+        <classes>
+            <class name="com.evolveum.midpoint.schema.parser.TestParseUser"/>
+            <class name="com.evolveum.midpoint.schema.parser.TestParseResource"/>
+        </classes>
+    </test>
+    <test name="Parsing YAML without namespaces" preserve-order="false" verbose="1">
+        <parameter name="language" value="yaml"/>
+        <parameter name="namespaces" value="false"/>
+        <classes>
+            <class name="com.evolveum.midpoint.schema.parser.TestParseUser"/>
+            <class name="com.evolveum.midpoint.schema.parser.TestParseResource"/>
+        </classes>
+    </test>
+
+
+
     <test name="Schema" preserve-order="false" verbose="1">
         <classes>
             <class name="com.evolveum.midpoint.schema.TestDiffEquals"/>
         	<class name="com.evolveum.midpoint.schema.TestSchemaSanity"/>
-            <class name="com.evolveum.midpoint.schema.TestParseUser"/>
-            <class name="com.evolveum.midpoint.schema.TestParseUserXml"/>
-            <class name="com.evolveum.midpoint.schema.TestParseResource"/>
             <class name="com.evolveum.midpoint.schema.TestParseTask"/>
             <class name="com.evolveum.midpoint.schema.TestParseLookupTable"/>
             <class name="com.evolveum.midpoint.schema.TestParseTaskBulkAction"/>
@@ -33,9 +85,7 @@
             <class name="com.evolveum.midpoint.schema.processor.TestResourceSchema"/>
             <class name="com.evolveum.midpoint.schema.processor.SchemaProcessorTest"/>
             <class name="com.evolveum.midpoint.schema.util.XsdTypeConverterTest"/>
-            <!--<class name="com.evolveum.midpoint.schema.util.JAXBUtilTest"/>-->           <!-- deprecated because of no JAXB support -->
             <class name="com.evolveum.midpoint.schema.TestSchemaRegistry"/>
-            <!--<class name="com.evolveum.midpoint.schema.TestJaxbSanity"/>-->              <!-- deprecated because of no JAXB support -->
             <class name="com.evolveum.midpoint.schema.TestJaxbParsing"/>
             <class name="com.evolveum.midpoint.schema.TestObjectConstruction"/>
             <class name="com.evolveum.midpoint.schema.TestJaxbConstruction"/>
@@ -43,7 +93,6 @@
             <class name="com.evolveum.midpoint.schema.TestDeltaConverter"/>
             <class name="com.evolveum.midpoint.schema.TestQueryConvertor"/>
             <class name="com.evolveum.midpoint.schema.TestDynamicSchema"/>
-            <class name="com.evolveum.midpoint.schema.TestJsonParsing"/>
             <class name="com.evolveum.midpoint.schema.TestSchemaDelta"/>
             <class name="com.evolveum.midpoint.schema.TestSerialization"/>
             <class name="com.evolveum.midpoint.schema.TestOperationResult"/>

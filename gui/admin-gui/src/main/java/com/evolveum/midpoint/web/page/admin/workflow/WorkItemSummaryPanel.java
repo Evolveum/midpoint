@@ -21,12 +21,9 @@ import com.evolveum.midpoint.web.component.AbstractSummaryPanel;
 import com.evolveum.midpoint.web.component.DateLabelComponent;
 import com.evolveum.midpoint.web.component.util.SummaryTagSimple;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemDto;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
-
-import javax.xml.namespace.QName;
 
 /**
  * @author mederly

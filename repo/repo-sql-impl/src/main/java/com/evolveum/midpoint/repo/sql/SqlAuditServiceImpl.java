@@ -20,7 +20,7 @@ import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.audit.api.AuditEventType;
 import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.parser.XNodeProcessorEvaluationMode;
+import com.evolveum.midpoint.prism.marshaller.XNodeProcessorEvaluationMode;
 import com.evolveum.midpoint.prism.query.NoneFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -33,8 +33,8 @@ import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.GetObjectResult;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -42,8 +42,8 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CleanupPolicyType;
-
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+
 import org.apache.commons.lang.Validate;
 import org.hibernate.Query;
 import org.hibernate.SQLQuery;
@@ -116,12 +116,22 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
     private List<AuditEventRecord> listRecordsAttempt(String query, Map<String, Object> params) {
         Session session = null;
         List<AuditEventRecord> auditRecords = null;
+        
+        if (LOGGER.isTraceEnabled()) {
+        	LOGGER.trace("List records attempt\n  query: {}\n{}  params:\n{}", query, DebugUtil.debugDump(params, 2));
+        }
+        
         try {
             session = baseHelper.beginTransaction();
             session.setFlushMode(FlushMode.MANUAL);
             Query q = session.createQuery(query);
             setParametersToQuery(q, params);
 //            q.setResultTransformer(Transformers.aliasToBean(RAuditEventRecord.class));
+            
+            if (LOGGER.isTraceEnabled()) {
+            	LOGGER.trace("List records attempt\n  processed query: {}", q);
+            }
+            
             List resultList = q.list();
 
             auditRecords = new ArrayList<>();
@@ -150,6 +160,11 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
         } finally {
 			baseHelper.cleanupSessionAndResult(session, null);
         }
+        
+        if (LOGGER.isTraceEnabled()) {
+        	LOGGER.trace("List records attempt returned {} records", auditRecords.size());
+        }
+        
         return auditRecords;
 
     }
@@ -193,7 +208,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
         PrismObject result = null;
         if (object != null) {
             String xml = RUtil.getXmlFromByteArray(object.getFullObject(), getConfiguration().isUseZip());
-            result = getPrismContext().parseObject(xml, XNodeProcessorEvaluationMode.COMPAT);
+            result = getPrismContext().parserFor(xml).compat().parse();
         }
 
         return result;
@@ -411,5 +426,10 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
         }
         return count;
     }
+
+	@Override
+	public boolean supportsRetrieval() {
+		return true;
+	}
 
 }

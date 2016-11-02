@@ -15,14 +15,7 @@
  */
 package com.evolveum.midpoint.provisioning.impl.ucf;
 
-import com.evolveum.midpoint.prism.Definition;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -74,7 +67,6 @@ import org.xml.sax.SAXException;
 import javax.xml.namespace.QName;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.HashSet;
@@ -751,7 +743,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 		propMod.setPath(path);
 
 		//set the replace value
-        MapXNode passPsXnode = prismContext.getBeanConverter().marshalProtectedDataType(passPs);
+        MapXNode passPsXnode = ((PrismContextImpl) prismContext).getBeanMarshaller().marshalProtectedDataType(passPs, null);
 		RawType value = new RawType(passPsXnode, prismContext);
 		propMod.getValue().add(value);
 		

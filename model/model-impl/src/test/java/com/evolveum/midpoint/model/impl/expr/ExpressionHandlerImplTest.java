@@ -23,6 +23,7 @@ import java.io.IOException;
 
 import com.evolveum.midpoint.prism.ParsingContext;
 import com.evolveum.midpoint.prism.xnode.MapXNode;
+import com.evolveum.midpoint.prism.xnode.RootXNode;
 import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -128,10 +129,9 @@ public class ExpressionHandlerImplTest extends AbstractTestNGSpringContextTests 
 		for (ConditionalSearchFilterType filter : synchronization.getCorrelation()){
             MapXNode clauseXNode = filter.getFilterClauseXNode();
             // key = q:equal, value = map (path + expression)
-            XNode expressionNode = ((MapXNode) clauseXNode.getSingleSubEntry("filter value").getValue()).get(new QName(SchemaConstants.NS_C, "expression"));
+            RootXNode expressionNode = ((MapXNode) clauseXNode.getSingleSubEntry("filter value").getValue()).getEntryAsRoot(new QName(SchemaConstants.NS_C, "expression"));
 
-            ExpressionType expression = PrismTestUtil.getPrismContext().getXnodeProcessor().parseAtomicValue(expressionNode, ExpressionType.COMPLEX_TYPE,
-					ParsingContext.createDefault());
+            ExpressionType expression = PrismTestUtil.getPrismContext().parserFor(expressionNode).parseRealValue(ExpressionType.class);
             LOGGER.debug("Expression: {}",SchemaDebugUtil.prettyPrint(expression));
 
             OperationResult result = new OperationResult("testCorrelationRule");

@@ -35,7 +35,7 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.w3c.dom.Text;
 
-import com.evolveum.midpoint.prism.parser.XPathHolder;
+import com.evolveum.midpoint.prism.marshaller.XPathHolder;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -57,8 +57,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceAttributeDef
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSituationDescriptionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UnknownJavaObjectType;
 import com.evolveum.prism.xml.ns._public.query_3.PagingType;
-import com.evolveum.prism.xml.ns._public.query_3.QueryType;
-import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemDeltaType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;

@@ -45,6 +45,7 @@
 			</xsd:documentation>
 			<xsd:appinfo>
 				<a:container/>
+				<a:ignoredNamespace>http://midpoint.evolveum.com/</a:ignoredNamespace>
 			</xsd:appinfo>
 		</xsd:annotation>
 		<xsd:sequence>

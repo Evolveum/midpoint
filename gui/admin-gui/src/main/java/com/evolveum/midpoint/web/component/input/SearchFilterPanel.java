@@ -71,7 +71,7 @@ public class SearchFilterPanel<T extends SearchFilterType> extends BasePanel<T> 
 			T filter = getModelObject();
 			if (filter.containsFilterClause()) {
 				RootXNode clause = filter.getFilterClauseAsRootXNode();
-				String xml = prismContext.serializeXNodeToString(clause, PrismContext.LANG_XML);
+				String xml = prismContext.xmlSerializer().serialize(clause);
 				return WebXmlUtil.stripNamespaceDeclarations(xml);
 			} else {
 				return null;
@@ -127,7 +127,7 @@ public class SearchFilterPanel<T extends SearchFilterType> extends BasePanel<T> 
 		final String clauseString = clauseStringModel.getObject();
 		if (StringUtils.isNotEmpty(clauseString)) {
 			LOGGER.trace("Filter Clause to serialize: {}", clauseString);
-			RootXNode filterClauseNode = (RootXNode) context.parseToXNode(clauseString, PrismContext.LANG_XML);
+			RootXNode filterClauseNode = (RootXNode) context.parserFor(clauseString).xml().parseToXNode();
 			getModelObject().setFilterClauseXNode(filterClauseNode);
 		} else {
 			if (getModelObject() != null) {

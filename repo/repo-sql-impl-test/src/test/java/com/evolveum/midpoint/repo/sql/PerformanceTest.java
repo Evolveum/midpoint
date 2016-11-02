@@ -51,7 +51,7 @@ public class PerformanceTest extends BaseSQLRepoTest {
 
         int COUNT = 1000;
         for (int i = 0; i < COUNT; i++) {
-            List<PrismObject<? extends Objectable>> elements = prismContext.parseObjects(new File(FOLDER_BASIC, "objects.xml"));
+            List<PrismObject<? extends Objectable>> elements = prismContext.parserFor(new File(FOLDER_BASIC, "objects.xml")).parseObjects();
             for (PrismObject obj : elements) {
                 prismContext.serializeObjectToString(obj, PrismContext.LANG_XML);
             }

@@ -17,17 +17,11 @@
 package com.evolveum.midpoint.prism.query;
 
 import java.util.ArrayList;
-import java.util.List;
 
 public abstract class UnaryLogicalFilter extends LogicalFilter {
 
-	public UnaryLogicalFilter() {
+	UnaryLogicalFilter() {
 		super();
-	}
-
-	public UnaryLogicalFilter(ObjectFilter condition) {
-		super();
-		setFilter(condition);
 	}
 
 	public ObjectFilter getFilter() {
@@ -45,7 +39,7 @@ public abstract class UnaryLogicalFilter extends LogicalFilter {
 	}
 	
 	public void setFilter(ObjectFilter filter){
-		conditions = new ArrayList<ObjectFilter>();
+		conditions = new ArrayList<>();
 		conditions.add(filter);
 	}
 

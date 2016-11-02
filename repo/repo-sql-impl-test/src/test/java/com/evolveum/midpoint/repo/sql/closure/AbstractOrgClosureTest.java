@@ -30,6 +30,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.OrgFilter;
+import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.repo.sql.BaseSQLRepoTest;
 import com.evolveum.midpoint.repo.sql.data.common.ROrgClosure;
 import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
@@ -647,9 +648,9 @@ public abstract class AbstractOrgClosureTest extends BaseSQLRepoTest {
 
     protected void removeOrgStructure(String nodeOid, OperationResult result) throws Exception {
         removeUsersFromOrg(nodeOid, result);
-        ObjectQuery query = new ObjectQuery();
-        ObjectFilter filter = OrgFilter.createOrg(nodeOid, OrgFilter.Scope.ONE_LEVEL);
-        query.setFilter(filter);
+        ObjectQuery query = QueryBuilder.queryFor(OrgType.class, prismContext)
+                .isDirectChildOf(nodeOid)
+                .build();
         List<PrismObject<OrgType>> subOrgs = repositoryService.searchObjects(OrgType.class, query, null, result);
         for (PrismObject<OrgType> subOrg : subOrgs) {
             removeOrgStructure(subOrg.getOid(), result);
@@ -663,9 +664,9 @@ public abstract class AbstractOrgClosureTest extends BaseSQLRepoTest {
     }
 
     protected void removeUsersFromOrg(String nodeOid, OperationResult result) throws Exception {
-        ObjectQuery query = new ObjectQuery();
-        ObjectFilter filter = OrgFilter.createOrg(nodeOid, OrgFilter.Scope.ONE_LEVEL);
-        query.setFilter(filter);
+        ObjectQuery query = QueryBuilder.queryFor(UserType.class, prismContext)
+                .isDirectChildOf(nodeOid)
+                .build();
         List<PrismObject<UserType>> users = repositoryService.searchObjects(UserType.class, query, null, result);
         for (PrismObject<UserType> user : users) {
             try {

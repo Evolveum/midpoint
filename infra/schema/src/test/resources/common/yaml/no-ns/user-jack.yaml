@@ -1,0 +1,65 @@
+---
+object: !UserType
+  oid: 2f9b9299-6f45-498f-bc8e-8d17c6b93b20
+  name: jack
+  extension:
+    bar : !string BAR
+    num : !int 42
+    multi:
+      - !string raz
+      - !string dva
+      - !string tri
+    password: !ProtectedStringType
+      clearValue: "openS3zam3"
+  link:
+    -
+      oid: 2f9b9299-6f45-498f-aaaa-000000001111
+      name: jsparrow
+      resourceRef:
+        oid: 2f9b9299-5555-5555-5555-000000001111
+      objectClass: AccountObjectClass
+    -
+      oid: 2f9b9299-6f45-498f-aaaa-000000002222
+      name: captain
+      resource:
+        oid: 2f9b9299-5555-5555-5555-000000001111
+        name: Rum Supply System
+        connectorRef:
+          oid: 2f9b9299-cccc-cccc-cccc-000000002222
+        connectorConfiguration: { }
+        namespace: "http://midpoint.evolveum.com/xml/ns/public/resource/instance/2f9b9299-5555-5555-5555-000000002222"
+      objectClass: AccountObjectClass
+  linkRef:
+    oid: 2f9b9299-6f45-498f-aaaa-000000003333
+    type: "ShadowType"
+    description: This is third accountRef
+    filter:
+      equal:
+        path: connectorType
+        value: org.identityconnectors.ldap.LdapConnector
+  assignment:
+    id: 111
+    extension:
+      intType: 42
+    construction:
+      resourceRef:
+        oid: 2f9b9299-5555-5555-5555-000000001111
+  activation:
+    administrativeStatus: enabled
+  fullName: Jack Sparrow
+  givenName: Jack
+  familyName: Sparrow
+  honorificPrefix: Cpt.
+  emailAddress:
+  organizationalUnit: [ "Brethren of the Coast", "Davie Jones' Locker" ]
+  locality: ""
+  credentials:
+    password:
+      value:
+        encryptedData:
+          encryptionMethod:
+            algorithm: "http://www.w3.org/2001/04/xmlenc#aes256-cbc"
+          keyInfo:
+            keyName: "HF6JRsNMeJt6alihT44CXKgpe0c="
+          cipherData:
+            cipherValue: "blc5OXO2Z4vJW7o/XXhqZzg/rkwsIOwRBK7KLgMqwcrVcYpeZZOjxzgRgFiNw4IB"

@@ -74,7 +74,7 @@ public class SingleItemSerializationSafeContainerImpl<T> implements Serializatio
         checkPrismContext();
         if (value != null && prismContext.canSerialize(value)) {
             try {
-                this.valueForStorageWhenEncoded = prismContext.serializeAnyData(value, new QName("value"), PrismContext.LANG_XML);
+                this.valueForStorageWhenEncoded = prismContext.xmlSerializer().serializeAnyData(value, new QName("value"));
             } catch (SchemaException e) {
                 throw new SystemException("Couldn't serialize value of type " + value.getClass() + ": " + e.getMessage(), e);
             }
@@ -115,26 +115,8 @@ public class SingleItemSerializationSafeContainerImpl<T> implements Serializatio
 
             if (encodingScheme == EncodingScheme.PRISM) {
                 try {
-                    actualValue = (T) prismContext.parseAnyData(valueForStorageWhenEncoded, PrismContext.LANG_XML);
-                    if (actualValue instanceof Item) {
-                        Item item = (Item) actualValue;
-                        if (item.isEmpty()) {
-                            actualValue = null;
-                        } else if (item.size() == 1) {
-                            PrismValue itemValue = (PrismValue) item.getValues().get(0);
-                            if (itemValue instanceof PrismContainerValue) {
-                                actualValue = (T) ((PrismContainerValue) itemValue).asContainerable();
-                            } else if (itemValue instanceof PrismPropertyValue) {
-                                actualValue = (T) ((PrismPropertyValue) itemValue).getValue();
-                            } else if (itemValue instanceof PrismReferenceValue) {
-                                actualValue = (T) itemValue;   // TODO: ok???
-                            } else {
-                                throw new SchemaException("Unknown itemValue: " + itemValue);
-                            }
-                        } else {
-                            throw new SchemaException("More than one value after deserialization of " + StringUtils.abbreviate(valueForStorageWhenEncoded, MAX_WIDTH) + ": " + item.getValues().size() + " values");
-                        }
-                    }
+                    PrismValue prismValue = prismContext.parserFor(valueForStorageWhenEncoded).xml().parseItemValue();
+                    actualValue = prismValue != null ? prismValue.getRealValue() : null;
                 } catch (SchemaException e) {
                     throw new SystemException("Couldn't deserialize value from JAXB: " + StringUtils.abbreviate(valueForStorageWhenEncoded, MAX_WIDTH), e);
                 }

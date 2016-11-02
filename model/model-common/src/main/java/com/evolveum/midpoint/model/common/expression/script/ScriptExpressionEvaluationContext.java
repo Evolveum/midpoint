@@ -15,7 +15,6 @@
  */
 package com.evolveum.midpoint.model.common.expression.script;
 
-import com.evolveum.midpoint.model.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.model.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.schema.result.OperationResult;
 

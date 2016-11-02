@@ -18,8 +18,6 @@ package com.evolveum.midpoint.repo.sql.query2.definition;
 
 import com.evolveum.midpoint.prism.path.IdentifierPathSegment;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.path.ItemPathSegment;
-import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.path.ParentPathSegment;
 import com.evolveum.midpoint.repo.sql.data.Marker;
 import com.evolveum.midpoint.repo.sql.data.common.ObjectReference;

@@ -18,13 +18,9 @@ package com.evolveum.midpoint.web.page.admin.resources.dto;
 
 import java.io.Serializable;
 
-import javax.xml.namespace.QName;
-
-import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeContainerDefinition;
 
 /**
  * @author lazyman

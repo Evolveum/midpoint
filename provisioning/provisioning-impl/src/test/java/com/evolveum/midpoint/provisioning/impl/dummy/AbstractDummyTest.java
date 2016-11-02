@@ -33,6 +33,8 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.PrismContext;
 
+import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
+import com.evolveum.midpoint.schema.processor.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.testng.AssertJUnit;
 import org.w3c.dom.Element;
@@ -70,9 +72,6 @@ import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorFactoryIcfImpl;
 import com.evolveum.midpoint.schema.internals.CachingStatistics;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
-import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceAttribute;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -285,8 +284,9 @@ public abstract class AbstractDummyTest extends AbstractIntegrationTest {
 		
 		LOGGER.info("item definition: {}", itemDef.debugDump());
 		//TODO: matching rule
-		EqualFilter equal = EqualFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES, itemDef.getName()), itemDef, getWillRepoIcfName());
-		ObjectQuery query = ObjectQuery.createObjectQuery(equal);
+		ObjectQuery query = QueryBuilder.queryFor(ShadowType.class, prismContext)
+				.itemWithDef(itemDef, ShadowType.F_ATTRIBUTES, itemDef.getName()).eq(getWillRepoIcfName())
+				.build();
 		
 		System.out.println("Looking for shadows of \"" + getWillRepoIcfName() + "\" with filter "
 				+ query.debugDump());
@@ -312,7 +312,7 @@ public abstract class AbstractDummyTest extends AbstractIntegrationTest {
 	protected <T> void assertAttribute(PrismObject<ShadowType> shadow, MatchingRule<T> matchingRule, QName attrName, T... expectedValues) throws SchemaException {
 		ProvisioningTestUtil.assertAttribute(resource, shadow.asObjectable(), matchingRule, attrName, expectedValues);
 	}
-		
+
 	protected <T> void assertNoAttribute(PrismObject<ShadowType> shadow, String attrName) {
 		ProvisioningTestUtil.assertNoAttribute(resource, shadow.asObjectable(), attrName);
 	}
@@ -509,7 +509,7 @@ public abstract class AbstractDummyTest extends AbstractIntegrationTest {
 		assertNotNull("No serialNumber in "+desc, cachingMetadata.getSerialNumber());
 
 		Element xsdElement = ObjectTypeUtil.findXsdElement(xmlSchemaTypeAfter);
-		ResourceSchema parsedSchema = ResourceSchema.parse(xsdElement, resource.toString(), prismContext);
+		ResourceSchema parsedSchema = ResourceSchemaImpl.parse(xsdElement, resource.toString(), prismContext);
 		assertNotNull("No schema after parsing in "+desc, parsedSchema);
 	}
 

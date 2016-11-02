@@ -17,7 +17,7 @@
 package com.evolveum.midpoint.repo.sql.data.common.any;
 
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.parser.PrismBeanInspector;
+import com.evolveum.midpoint.prism.marshaller.PrismBeanInspector;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.sql.query.QueryException;

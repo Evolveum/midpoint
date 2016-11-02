@@ -23,10 +23,6 @@ import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBElement;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.UnmarshalException;
 import javax.xml.bind.Unmarshaller;
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamConstants;
@@ -42,7 +38,6 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.xml.sax.SAXException;
-import org.xml.sax.SAXParseException;
 
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -52,12 +47,10 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
@@ -109,7 +102,7 @@ public class Validator {
 		SchemaRegistry schemaRegistry = prismContext.getSchemaRegistry();
 		midPointJavaxSchema = schemaRegistry.getJavaxSchema();
 		xsdValidator = midPointJavaxSchema.newValidator();
-		xsdValidator.setResourceResolver(schemaRegistry);
+		xsdValidator.setResourceResolver(prismContext.getEntityResolver());
 	}
 
 	public EventHandler getHandler() {
@@ -359,7 +352,7 @@ public class Validator {
 				return EventResult.skipObject();
 			}
 
-			PrismObject<? extends Objectable> object = prismContext.parseObject(objectElement);
+			PrismObject<? extends Objectable> object = prismContext.parserFor(objectElement).parse();
 			
 			try {
 				object.checkConsistence();

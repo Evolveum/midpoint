@@ -21,7 +21,6 @@ import org.apache.commons.lang.Validate;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 
 import java.io.Serializable;
 import java.util.HashMap;
@@ -77,7 +76,8 @@ public class UserProfileStorage implements Serializable, DebugDumpable {
 		PAGE_WORK_ITEM_HISTORY_PANEL,
 		PAGE_TASK_HISTORY_PANEL,
 		PAGE_TASK_CURRENT_WORK_ITEMS_PANEL,
-        PAGE_AUDIT_LOG_VIEWER
+        PAGE_AUDIT_LOG_VIEWER,
+        TASK_EVENTS_TABLE
 		
     }
 

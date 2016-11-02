@@ -73,6 +73,7 @@ public class AuditLogViewerPanel extends BasePanel{
     private static final String ID_HOST_IDENTIFIER = "hostIdentifierField";
     private static final String ID_EVENT_TYPE = "eventTypeField";
     private static final String ID_EVENT_STAGE = "eventStageField";
+    private static final String ID_EVENT_STAGE_LABEL = "eventStageLabel";
     private static final String ID_OUTCOME = "outcomeField";
 
     private static final String ID_MAIN_FORM = "mainForm";
@@ -83,26 +84,25 @@ public class AuditLogViewerPanel extends BasePanel{
             + ".resolveReferenceName()";
 
     private IModel<AuditSearchDto> auditSearchDto;
+    private AuditSearchDto searchDto;
     private PageBase pageBase;
-    private String targetObjectOid;
 
     public AuditLogViewerPanel(String id, PageBase pageBase){
         this(id, pageBase, null);
     }
 
-    public AuditLogViewerPanel(String id, PageBase pageBase, String targetObjectOid){
+    public AuditLogViewerPanel(String id, PageBase pageBase, AuditSearchDto searchDto){
         super(id);
         this.pageBase = pageBase;
-        this.targetObjectOid = targetObjectOid;
+        this.searchDto = searchDto;
         initAuditSearchModel();
         initLayout();
     }
 
     private void initAuditSearchModel(){
-        AuditSearchDto searchDto = new AuditSearchDto();
-        ObjectReferenceType ort = new ObjectReferenceType();
-        ort.setOid(targetObjectOid);
-        searchDto.setTargetName(ort);
+        if (searchDto == null){
+            searchDto = new AuditSearchDto();
+        }
         auditSearchDto = new Model<AuditSearchDto>(searchDto);
 
     }
@@ -117,7 +117,7 @@ public class AuditLogViewerPanel extends BasePanel{
         mainForm.add(feedback);
 
         initParametersPanel(mainForm);
-        initTable(mainForm);
+        addOrReplaceTable(mainForm);
     }
 
     private void initParametersPanel(Form mainForm) {
@@ -174,6 +174,16 @@ public class AuditLogViewerPanel extends BasePanel{
         eventType.setOutputMarkupId(true);
         parametersPanel.add(eventType);
 
+        Label eventStageLabel = new Label(ID_EVENT_STAGE_LABEL, pageBase.createStringResource("PageAuditLogViewer.eventStageLabel"));
+        eventStageLabel.add(new VisibleEnableBehaviour(){
+            @Override
+        public boolean isVisible(){
+                return isTargetNameVisible();
+            }
+        });
+        eventStageLabel.setOutputMarkupId(true);
+        parametersPanel.add(eventStageLabel);
+
         ListModel<AuditEventStageType> eventStageListModel = new ListModel<AuditEventStageType>(
                 Arrays.asList(AuditEventStageType.values()));
         PropertyModel<AuditEventStageType> eventStageModel = new PropertyModel<AuditEventStageType>(
@@ -181,6 +191,12 @@ public class AuditLogViewerPanel extends BasePanel{
         DropDownChoicePanel<AuditEventStageType> eventStage = new DropDownChoicePanel<AuditEventStageType>(
                 ID_EVENT_STAGE, eventStageModel, eventStageListModel,
                 new EnumChoiceRenderer<AuditEventStageType>(), true);
+        eventStage.add(new VisibleEnableBehaviour() {
+            @Override
+            public boolean isVisible() {
+                return isEventStageVisible();
+            }
+        });
         eventStage.getBaseFormComponent().add(new EmptyOnChangeAjaxFormUpdatingBehavior());
         eventStage.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
         eventStage.setOutputMarkupId(true);
@@ -250,7 +266,7 @@ public class AuditLogViewerPanel extends BasePanel{
         targetNameLabel.add(new VisibleEnableBehaviour(){
             @Override
             public boolean isVisible(){
-                return StringUtils.isEmpty(targetObjectOid);
+                return searchDto.getTargetName() == null || StringUtils.isEmpty(searchDto.getTargetName().getOid());
             }
         });
         parametersPanel.add(targetNameLabel);
@@ -270,7 +286,7 @@ public class AuditLogViewerPanel extends BasePanel{
         chooseTargetPanel.add(new VisibleEnableBehaviour(){
             @Override
             public boolean isVisible(){
-                return StringUtils.isEmpty(targetObjectOid);
+                return searchDto.getTargetName() == null || StringUtils.isEmpty(searchDto.getTargetName().getOid());
             }
         });
         parametersPanel.add(chooseTargetPanel);
@@ -282,7 +298,7 @@ public class AuditLogViewerPanel extends BasePanel{
             @Override
             protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
                 Form mainForm = (Form) getParent().getParent();
-                refreshTable(mainForm);
+                addOrReplaceTable(mainForm);
                 getFeedbackPanel().getFeedbackMessages().clear();
                 target.add(getFeedbackPanel());
                 target.add(mainForm);
@@ -297,17 +313,7 @@ public class AuditLogViewerPanel extends BasePanel{
         parametersPanel.add(ajaxButton);
     }
 
-    private void initTable(Form mainForm) {
-        AuditEventRecordProvider provider = new AuditEventRecordProvider(AuditLogViewerPanel.this);
-        BoxedTablePanel table = new BoxedTablePanel(ID_TABLE, provider, initColumns(),
-                UserProfileStorage.TableId.PAGE_AUDIT_LOG_VIEWER,
-                (int) pageBase.getItemsPerPage(UserProfileStorage.TableId.PAGE_AUDIT_LOG_VIEWER));
-        table.setShowPaging(true);
-        table.setOutputMarkupId(true);
-        mainForm.addOrReplace(table);
-    }
-
-    private void refreshTable(Form mainForm) {
+    private void addOrReplaceTable(Form mainForm) {
         AuditEventRecordProvider provider = new AuditEventRecordProvider(AuditLogViewerPanel.this) {
             private static final long serialVersionUID = 1L;
 
@@ -348,7 +354,7 @@ public class AuditLogViewerPanel extends BasePanel{
         mainForm.addOrReplace(table);
     }
 
-    private List<IColumn<AuditEventRecordType, String>> initColumns() {
+    protected List<IColumn<AuditEventRecordType, String>> initColumns() {
         List<IColumn<AuditEventRecordType, String>> columns = new ArrayList<IColumn<AuditEventRecordType, String>>();
         IColumn<AuditEventRecordType, String> linkColumn = new LinkColumn<AuditEventRecordType>(
                 createStringResource("AuditEventRecordType.timestamp"), "timestamp") {
@@ -386,10 +392,11 @@ public class AuditLogViewerPanel extends BasePanel{
         };
         columns.add(initiatorRefColumn);
 
-        IColumn<AuditEventRecordType, String> eventStageColumn = new PropertyColumn<AuditEventRecordType, String>(
-                createStringResource("PageAuditLogViewer.eventStageLabel"), "eventStage");
-        columns.add(eventStageColumn);
-
+        if (isEventStageVisible()) {
+            IColumn<AuditEventRecordType, String> eventStageColumn = new PropertyColumn<AuditEventRecordType, String>(
+                    createStringResource("PageAuditLogViewer.eventStageLabel"), "eventStage");
+            columns.add(eventStageColumn);
+        }
         IColumn<AuditEventRecordType, String> eventTypeColumn = new PropertyColumn<AuditEventRecordType, String>(
                 createStringResource("PageAuditLogViewer.eventTypeLabel"), "eventType");
         columns.add(eventTypeColumn);
@@ -473,5 +480,13 @@ public class AuditLogViewerPanel extends BasePanel{
 
     public WebMarkupContainer getFeedbackPanel() {
         return (FeedbackPanel) get(pageBase.createComponentPath(ID_MAIN_FORM, ID_FEEDBACK));
+    }
+
+    protected boolean isTargetNameVisible(){
+        return true;
+    }
+
+    protected boolean isEventStageVisible(){
+        return true;
     }
 }

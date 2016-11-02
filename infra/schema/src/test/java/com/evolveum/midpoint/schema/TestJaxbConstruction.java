@@ -36,23 +36,16 @@ import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import org.testng.AssertJUnit;
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
-import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
 
-import com.evolveum.midpoint.prism.parser.QueryConvertor;
 import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.prism.query.EqualFilter;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
-import com.evolveum.midpoint.schema.util.JAXBUtilTest;
 import com.evolveum.midpoint.schema.util.SchemaTestConstants;
 import com.evolveum.midpoint.schema.util.SchemaTestUtil;
 import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
@@ -302,9 +295,8 @@ public class TestJaxbConstruction {
 		// GIVEN
 		PrismContext prismContext = PrismTestUtil.getPrismContext();
 		
-		UserType userType = new UserType();
-		prismContext.adopt(userType);
-		
+		UserType userType = new UserType(prismContext);
+
 		PrismObject<UserType> user = userType.asPrismObject();
 		assertNotNull("No object definition after adopt", user.getDefinition());
 		
@@ -318,7 +310,8 @@ public class TestJaxbConstruction {
 		checkExtension(extensionContainer,"user extension after setExtension");
 		checkExtension(extension,"user extension after setExtension");
 		
-		AssignmentType assignmentType = new AssignmentType();
+		AssignmentType assignmentType = new AssignmentType(prismContext);
+
 		ExtensionType assignmentExtension = new ExtensionType();
 		assignmentType.setExtension(assignmentExtension);
 		
@@ -537,7 +530,8 @@ public class TestJaxbConstruction {
 	private MapXNode createFilter(){
 
         MapXNode filter = new MapXNode();
-        MapXNode equalsElement = (MapXNode) filter.put(new QName(SchemaConstantsGenerated.NS_QUERY, "equal"), new MapXNode());
+        MapXNode equalsElement = new MapXNode();
+		filter.put(new QName(SchemaConstantsGenerated.NS_QUERY, "equal"), equalsElement);
 
         PrimitiveXNode<ItemPathType> pathElement = new PrimitiveXNode<>(new ItemPathType(new ItemPath(new QName("name"))));
         equalsElement.put(new QName(SchemaConstantsGenerated.NS_QUERY, "path"), pathElement);

@@ -26,14 +26,7 @@ import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.impl.lens.LensUtil;
 import com.evolveum.midpoint.model.impl.lens.SynchronizationIntent;
-import com.evolveum.midpoint.prism.OriginType;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
@@ -530,7 +523,7 @@ public class ActivationProcessor {
         params.setFixTarget(true);
         params.setContext(context);
         
-        PrismPropertyDefinition<Boolean> shadowExistsDef = new PrismPropertyDefinition<>(
+        PrismPropertyDefinitionImpl<Boolean> shadowExistsDef = new PrismPropertyDefinitionImpl<>(
 				SHADOW_EXISTS_PROPERTY_NAME,
 				DOMUtil.XSD_BOOLEAN, prismContext);
         shadowExistsDef.setMinOccurs(1);
@@ -657,7 +650,7 @@ public class ActivationProcessor {
 	@NotNull
 	private ItemDeltaItem<PrismPropertyValue<Boolean>, PrismPropertyDefinition<Boolean>> createBooleanIdi(
 			QName propertyName, Boolean old, Boolean current) throws SchemaException {
-		PrismPropertyDefinition<Boolean> definition = new PrismPropertyDefinition<>(propertyName, DOMUtil.XSD_BOOLEAN, prismContext);
+		PrismPropertyDefinitionImpl<Boolean> definition = new PrismPropertyDefinitionImpl<>(propertyName, DOMUtil.XSD_BOOLEAN, prismContext);
 		definition.setMinOccurs(1);
 		definition.setMaxOccurs(1);
 		PrismProperty<Boolean> property = definition.instantiate();
@@ -698,7 +691,7 @@ public class ActivationProcessor {
 			}
 		}
 		
-		PrismPropertyDefinition<Boolean> existsDef = new PrismPropertyDefinition<Boolean>(FOCUS_EXISTS_PROPERTY_NAME,
+		PrismPropertyDefinitionImpl<Boolean> existsDef = new PrismPropertyDefinitionImpl<>(FOCUS_EXISTS_PROPERTY_NAME,
 				DOMUtil.XSD_BOOLEAN, prismContext);
 		existsDef.setMinOccurs(1);
 		existsDef.setMaxOccurs(1);

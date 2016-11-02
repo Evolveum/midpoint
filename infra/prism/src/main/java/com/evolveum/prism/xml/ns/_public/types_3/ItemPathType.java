@@ -39,11 +39,9 @@ import org.jvnet.jaxb2_commons.lang.HashCode;
 import org.jvnet.jaxb2_commons.lang.HashCodeStrategy;
 import org.jvnet.jaxb2_commons.locator.ObjectLocator;
 
-import com.evolveum.midpoint.prism.parser.XPathHolder;
+import com.evolveum.midpoint.prism.marshaller.XPathHolder;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.xml.DomAwareEqualsStrategy;
-import org.w3c.dom.Element;
-
 
 /**
  * 
@@ -170,4 +168,15 @@ public class ItemPathType implements Serializable, Equals, Cloneable {
     public String toString() {
         return getItemPath().toString();
     }
+
+    // temporary implementation until things settle down
+	public static ItemPathType asItemPathType(Object value) {
+		if (value instanceof ItemPathType) {
+			return (ItemPathType) value;
+		} else if (value instanceof ItemPath) {
+			return ((ItemPath) value).asItemPathType();
+		} else {
+			throw new IllegalArgumentException("Value " + value + " is neither ItemPath nor ItemPathType.");
+		}
+	}
 }

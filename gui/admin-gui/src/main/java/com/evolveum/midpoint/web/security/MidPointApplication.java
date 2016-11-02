@@ -46,22 +46,14 @@ import org.apache.commons.io.IOUtils;
 import org.apache.wicket.RuntimeConfigurationType;
 import org.apache.wicket.authroles.authentication.AbstractAuthenticatedWebSession;
 import org.apache.wicket.authroles.authentication.AuthenticatedWebApplication;
-import org.apache.wicket.core.request.handler.PageProvider;
-import org.apache.wicket.core.request.handler.RenderPageRequestHandler;
 import org.apache.wicket.core.request.mapper.MountedMapper;
 import org.apache.wicket.markup.head.PriorityFirstComparator;
 import org.apache.wicket.markup.html.SecurePackageResourceGuard;
 import org.apache.wicket.markup.html.WebPage;
-import org.apache.wicket.request.IRequestHandler;
-import org.apache.wicket.request.Url;
-import org.apache.wicket.request.component.IRequestablePage;
-import org.apache.wicket.request.cycle.AbstractRequestCycleListener;
-import org.apache.wicket.request.cycle.RequestCycle;
 import org.apache.wicket.request.resource.PackageResourceReference;
 import org.apache.wicket.request.resource.SharedResourceReference;
 import org.apache.wicket.resource.loader.IStringResourceLoader;
 import org.apache.wicket.settings.ApplicationSettings;
-import org.apache.wicket.settings.RequestLoggerSettings;
 import org.apache.wicket.settings.ResourceSettings;
 import org.apache.wicket.spring.injection.annot.SpringComponentInjector;
 import org.apache.wicket.util.lang.Bytes;
@@ -73,6 +65,7 @@ import org.springframework.stereotype.Component;
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.model.api.ModelAuditService;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.TaskService;
@@ -192,7 +185,7 @@ public class MidPointApplication extends AuthenticatedWebApplication {
     @Autowired
     transient TaskManager taskManager;
     @Autowired
-    transient AuditService auditService;
+    transient ModelAuditService auditService;
 	@Autowired
 	transient private RepositoryService repositoryService;			// temporary
     @Autowired
@@ -325,7 +318,7 @@ public class MidPointApplication extends AuthenticatedWebApplication {
         return taskManager;
     }
 
-    public AuditService getAuditService() {
+    public ModelAuditService getAuditService() {
         return auditService;
     }
 

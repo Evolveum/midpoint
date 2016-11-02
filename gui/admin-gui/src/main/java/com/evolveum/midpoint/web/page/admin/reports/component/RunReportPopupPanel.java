@@ -23,6 +23,8 @@ import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
@@ -45,15 +47,7 @@ import com.evolveum.midpoint.gui.api.component.autocomplete.AutoCompleteTextPane
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
@@ -129,7 +123,7 @@ public class RunReportPopupPanel extends BasePanel<ReportDto> implements Popupab
 
 //    public void setReportType(ReportType reportType) {
 //        this.reportType = reportType;
-//        
+//
 //        if (getParametersTable() != null) {
 //            replace(createTablePanel());
 //        }
@@ -137,7 +131,7 @@ public class RunReportPopupPanel extends BasePanel<ReportDto> implements Popupab
 
     public RunReportPopupPanel(String id, final ReportType reportType) {
         super(id);
-       
+
         reportModel = new LoadableModel<ReportDto>(false) {
 
             @Override
@@ -145,7 +139,7 @@ public class RunReportPopupPanel extends BasePanel<ReportDto> implements Popupab
                 return new ReportDto(reportType, true);
             }
         };
-        
+
         initLayout();
     }
 
@@ -154,7 +148,7 @@ public class RunReportPopupPanel extends BasePanel<ReportDto> implements Popupab
 
     	Form<?> mainForm = new Form(ID_MAIN_FORM);
     	add(mainForm);
-        
+
     	BoxedTablePanel<JasperReportParameterDto> table = createTablePanel();
         mainForm.add(table);
 
@@ -175,7 +169,7 @@ public class RunReportPopupPanel extends BasePanel<ReportDto> implements Popupab
     }
 
     private BoxedTablePanel<JasperReportParameterDto> createTablePanel() {
-        
+
 
         ISortableDataProvider<JasperReportParameterDto, String> provider = new ListDataProvider<>(this,
                 new PropertyModel<List<JasperReportParameterDto>>(reportModel, "jasperReportDto.parameters"));
@@ -324,12 +318,10 @@ public class RunReportPopupPanel extends BasePanel<ReportDto> implements Popupab
             Task task = createSimpleTask(OPERATION_LOAD_RESOURCES);
 
             Collection<PrismObject<T>> objects;
-            SubstringFilter filter = SubstringFilter.createSubstring(new QName(SchemaConstants.NS_C, pLabel), targetType, getPrismContext(), input);
-            filter.setMatchingRule(new QName(SchemaConstants.NS_MATCHING_RULE, "origIgnoreCase"));
-            filter.setAnchorStart(true); // =startsWith
-            ObjectQuery query = ObjectQuery.createObjectQuery(filter);
-            query.setPaging(ObjectPaging.createPaging(0, AUTO_COMPLETE_BOX_SIZE));
-
+            ObjectQuery query = QueryBuilder.queryFor(targetType, getPrismContext())
+                    .item(new QName(SchemaConstants.NS_C, pLabel)).startsWith(input).matchingCaseIgnore()
+                    .maxSize(AUTO_COMPLETE_BOX_SIZE)
+                    .build();
             try {
                 objects = getPageBase().getModelService().searchObjects(targetType, query, SelectorOptions.createCollection(GetOperationOptions.createNoFetch()), task, result);
 
@@ -539,20 +531,15 @@ public class RunReportPopupPanel extends BasePanel<ReportDto> implements Popupab
                  }
                  }
                  */
-                if (XmlTypeConverter.canConvert(paramClass)) {
-                    typeName = XsdTypeMapper.toXsdType(paramClass);
-                } else {
-
-                    if (AuditEventType.class.isAssignableFrom(paramClass)) {
-                        paramClass = AuditEventTypeType.class;
-                        realValue = AuditEventType.fromAuditEventType((AuditEventType) realValue);
-                    } else if (AuditEventStage.class.isAssignableFrom(paramClass)) {
-                        paramClass = AuditEventStageType.class;
-                        realValue = AuditEventStage.fromAuditEventStage((AuditEventStage) realValue);
-                    }
-                    typeName = getPrismContext().getBeanConverter().determineTypeForClass(paramClass);
+                if (AuditEventType.class.isAssignableFrom(paramClass)) {
+                    paramClass = AuditEventTypeType.class;
+                    realValue = AuditEventType.fromAuditEventType((AuditEventType) realValue);
+                } else if (AuditEventStage.class.isAssignableFrom(paramClass)) {
+                    paramClass = AuditEventStageType.class;
+                    realValue = AuditEventStage.fromAuditEventStage((AuditEventStage) realValue);
                 }
-                PrismPropertyDefinition def = new PrismPropertyDefinition<>(new QName(ReportConstants.NS_EXTENSION, paramDto.getName()), typeName, getPrismContext());
+                typeName = getPrismContext().getSchemaRegistry().determineTypeForClass(paramClass);
+                PrismPropertyDefinitionImpl def = new PrismPropertyDefinitionImpl<>(new QName(ReportConstants.NS_EXTENSION, paramDto.getName()), typeName, getPrismContext());
                 def.setDynamic(true);
                 def.setRuntimeSchema(true);
                 PrismProperty prop = def.instantiate();

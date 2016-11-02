@@ -29,7 +29,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationStageType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.GeneralNotifierType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SimpleCampaignNotifierType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SimpleCampaignStageNotifierType;
 import org.apache.commons.lang.time.DurationFormatUtils;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -23,6 +23,9 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.prism.query.Visitor;
+import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
+import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterEntry;
+import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterExit;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.commons.lang.mutable.MutableBoolean;
@@ -68,21 +71,23 @@ public class ObjectQueryUtil {
     }
 
     public static ObjectQuery createNameQuery(PolyString name, PrismContext prismContext) throws SchemaException {
-        EqualFilter filter = EqualFilter.createEqual(ObjectType.F_NAME, ObjectType.class, prismContext, null, name);
-        return ObjectQuery.createObjectQuery(filter);
+		return QueryBuilder.queryFor(ObjectType.class, prismContext)
+				.item(ObjectType.F_NAME).eq(name)
+				.build();
 	}
 
     public static ObjectQuery createOrigNameQuery(PolyString name, PrismContext prismContext) throws SchemaException {
-        EqualFilter filter = EqualFilter.createEqual(ObjectType.F_NAME, ObjectType.class, prismContext, PolyStringOrigMatchingRule.NAME, name);
-        return ObjectQuery.createObjectQuery(filter);
+		return QueryBuilder.queryFor(ObjectType.class, prismContext)
+				.item(ObjectType.F_NAME).eq(name).matchingOrig()
+				.build();
     }
 
     public static ObjectQuery createNormNameQuery(PolyString name, PrismContext prismContext) throws SchemaException {
         PolyStringNormalizer normalizer = new PrismDefaultPolyStringNormalizer();
         name.recompute(normalizer);
-
-        EqualFilter filter = EqualFilter.createEqual(ObjectType.F_NAME, ObjectType.class, prismContext, PolyStringNormMatchingRule.NAME, name);
-        return ObjectQuery.createObjectQuery(filter);
+		return QueryBuilder.queryFor(ObjectType.class, prismContext)
+				.item(ObjectType.F_NAME).eq(name).matchingNorm()
+				.build();
     }
 
     public static ObjectQuery createNameQuery(ObjectType object) throws SchemaException {
@@ -96,7 +101,7 @@ public class ObjectQueryUtil {
 	public static ObjectQuery createResourceAndObjectClassQuery(String resourceOid, QName objectClass, PrismContext prismContext) throws SchemaException {
 		return ObjectQuery.createObjectQuery(createResourceAndObjectClassFilter(resourceOid, objectClass, prismContext));
 	}
-	
+
 	public static ObjectFilter createResourceAndObjectClassFilter(String resourceOid, QName objectClass, PrismContext prismContext) throws SchemaException {
 		Validate.notNull(resourceOid, "Resource where to search must not be null.");
 		Validate.notNull(objectClass, "Object class to search must not be null.");
@@ -106,7 +111,16 @@ public class ObjectQueryUtil {
 				createObjectClassFilter(objectClass, prismContext));
 		return and;
 	}
-	
+
+	public static S_AtomicFilterExit createResourceAndObjectClassFilterPrefix(String resourceOid, QName objectClass, PrismContext prismContext) throws SchemaException {
+		Validate.notNull(resourceOid, "Resource where to search must not be null.");
+		Validate.notNull(objectClass, "Object class to search must not be null.");
+		Validate.notNull(prismContext, "Prism context must not be null.");
+		return QueryBuilder.queryFor(ShadowType.class, prismContext)
+				.item(ShadowType.F_RESOURCE_REF).ref(resourceOid)
+				.and().item(ShadowType.F_OBJECT_CLASS).eq(objectClass);
+	}
+
 	public static ObjectQuery createResourceAndKindIntent(String resourceOid, ShadowKindType kind, String intent, PrismContext prismContext) throws SchemaException {
 		return ObjectQuery.createObjectQuery(createResourceAndKindIntentFilter(resourceOid, kind, intent, prismContext));
 	}
@@ -119,21 +133,21 @@ public class ObjectQueryUtil {
 		Validate.notNull(resourceOid, "Resource where to search must not be null.");
 		Validate.notNull(kind, "Kind to search must not be null.");
 		Validate.notNull(prismContext, "Prism context must not be null.");
-		AndFilter and = AndFilter.createAnd(
-				createResourceFilter(resourceOid, prismContext),
-				EqualFilter.createEqual(ShadowType.F_KIND, ShadowType.class, prismContext, null, kind),
-				EqualFilter.createEqual(ShadowType.F_INTENT, ShadowType.class, prismContext, null, intent));
-		return and;
+		return QueryBuilder.queryFor(ShadowType.class, prismContext)
+				.item(ShadowType.F_RESOURCE_REF).ref(resourceOid)
+				.and().item(ShadowType.F_KIND).eq(kind)
+				.and().item(ShadowType.F_INTENT).eq(intent)
+				.buildFilter();
 	}
 	
 	private static ObjectFilter createResourceAndKindFilter(String resourceOid, ShadowKindType kind, PrismContext prismContext) throws SchemaException {
 		Validate.notNull(resourceOid, "Resource where to search must not be null.");
 		Validate.notNull(kind, "Kind to search must not be null.");
 		Validate.notNull(prismContext, "Prism context must not be null.");
-		AndFilter and = AndFilter.createAnd(
-				createResourceFilter(resourceOid, prismContext),
-				EqualFilter.createEqual(ShadowType.F_KIND, ShadowType.class, prismContext, null, kind));
-		return and;
+		return QueryBuilder.queryFor(ShadowType.class, prismContext)
+				.item(ShadowType.F_RESOURCE_REF).ref(resourceOid)
+				.and().item(ShadowType.F_KIND).eq(kind)
+				.buildFilter();
 	}
 
     public static ObjectQuery createResourceQuery(String resourceOid, PrismContext prismContext) throws SchemaException {
@@ -143,22 +157,25 @@ public class ObjectQueryUtil {
     } 
 
     public static ObjectFilter createResourceFilter(String resourceOid, PrismContext prismContext) throws SchemaException {
-		return RefFilter.createReferenceEqual(ShadowType.F_RESOURCE_REF, ShadowType.class, prismContext, resourceOid);
+		return QueryBuilder.queryFor(ShadowType.class, prismContext)
+				.item(ShadowType.F_RESOURCE_REF).ref(resourceOid)
+				.buildFilter();
 	}
 	
 	public static ObjectFilter createObjectClassFilter(QName objectClass, PrismContext prismContext) {
-		return EqualFilter.createEqual(ShadowType.F_OBJECT_CLASS, ShadowType.class, prismContext, null, objectClass);
+		return QueryBuilder.queryFor(ShadowType.class, prismContext)
+				.item(ShadowType.F_OBJECT_CLASS).eq(objectClass)
+				.buildFilter();
 	}
 	
-	public static <T extends ObjectType> ObjectQuery createNameQuery(Class<T> clazz, PrismContext prismContext, String name) throws SchemaException{
-		PolyString namePolyString = new PolyString(name);
-		EqualFilter equal = EqualFilter.createEqual(ObjectType.F_NAME, clazz, prismContext, null, namePolyString);
-		return ObjectQuery.createObjectQuery(equal);
+	public static <T extends ObjectType> ObjectQuery createNameQuery(Class<T> clazz, PrismContext prismContext, String name) throws SchemaException {
+		return QueryBuilder.queryFor(clazz, prismContext)
+				.item(ObjectType.F_NAME).eqPoly(name)
+				.build();
 	}
 	
 	public static ObjectQuery createRootOrgQuery(PrismContext prismContext) throws SchemaException {
-		ObjectQuery objectQuery = ObjectQuery.createObjectQuery(OrgFilter.createRootOrg());
-		return objectQuery;
+		return QueryBuilder.queryFor(ObjectType.class, prismContext).isRoot().build();
 	}
 	
 	public static boolean hasAllDefinitions(ObjectQuery query) {
@@ -172,7 +189,7 @@ public class ObjectQueryUtil {
 			@Override
 			public void visit(ObjectFilter filter) {
 				if (filter instanceof ValueFilter) {
-					ItemDefinition definition = ((ValueFilter<?>)filter).getDefinition();
+					ItemDefinition definition = ((ValueFilter<?,?>)filter).getDefinition();
 					if (definition == null) {
 						hasAllDefinitions.setValue(false);
 					}

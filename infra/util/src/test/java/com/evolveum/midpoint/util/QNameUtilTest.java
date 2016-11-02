@@ -57,7 +57,7 @@ public class QNameUtilTest {
 
         // Then
 
-        AssertJUnit.assertEquals(new QName("http://foo.com/bar/","baz"), qname);
+        AssertJUnit.assertEquals(new QName("http://foo.com/bar","baz"), qname);
     }
 
     @Test

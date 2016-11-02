@@ -18,7 +18,6 @@ package com.evolveum.midpoint.notifications.impl.helpers;
 
 import com.evolveum.midpoint.notifications.api.NotificationManager;
 import com.evolveum.midpoint.notifications.api.events.Event;
-import com.evolveum.midpoint.notifications.impl.handlers.BaseHandler;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;

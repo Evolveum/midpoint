@@ -16,8 +16,6 @@
 
 package com.evolveum.midpoint.web.component.progress;
 
-import com.evolveum.midpoint.schema.statistics.StatusMessage;
-
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;

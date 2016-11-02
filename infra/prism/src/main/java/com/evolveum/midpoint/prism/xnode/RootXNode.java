@@ -17,35 +17,59 @@ package com.evolveum.midpoint.prism.xnode;
 
 import com.evolveum.midpoint.prism.Visitor;
 import com.evolveum.midpoint.util.DebugUtil;
+import org.apache.commons.lang.Validate;
+import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
+import java.util.Map;
 
 public class RootXNode extends XNode {
 
-	private QName rootElementName;
+	@NotNull private QName rootElementName;
 	private XNode subnode;
 	
-	public RootXNode() {
-		super();
-	}
-
-	public RootXNode(QName rootElementName) {
-		super();
+	public RootXNode(@NotNull QName rootElementName) {
 		this.rootElementName = rootElementName;
 	}
 
-    public RootXNode(QName rootElementName, XNode subnode) {
-        super();
+    public RootXNode(@NotNull QName rootElementName, XNode subnode) {
         this.rootElementName = rootElementName;
         this.subnode = subnode;
     }
 
+	public RootXNode(@NotNull Map.Entry<QName, XNode> entry) {
+		Validate.notNull(entry.getKey());
+		this.rootElementName = entry.getKey();
+		this.subnode = entry.getValue();
+	}
 
-    public QName getRootElementName() {
+	// TODO consider if this is clean enough... The whole concept of root node (as child of XNode) has to be thought out
+	@Override
+	public QName getTypeQName() {
+		if (typeQName != null) {
+			return typeQName;
+		} else if (subnode != null) {
+			return subnode.getTypeQName();
+		} else {
+			return null;
+		}
+	}
+
+	@Override
+	public boolean isExplicitTypeDeclaration() {
+		if (super.isExplicitTypeDeclaration()) {
+			return true;
+		} else {
+			return subnode != null && subnode.isExplicitTypeDeclaration();
+		}
+	}
+
+	@NotNull
+	public QName getRootElementName() {
 		return rootElementName;
 	}
 
-	public void setRootElementName(QName rootElementName) {
+	public void setRootElementName(@NotNull QName rootElementName) {
 		this.rootElementName = rootElementName;
 	}
 
@@ -118,4 +142,18 @@ public class RootXNode extends XNode {
         result = 31 * result + (subnode != null ? subnode.hashCode() : 0);
         return result;
     }
+
+	public MapXNode toMapXNode() {
+		MapXNode map = new MapXNode();
+		map.put(rootElementName, subnode);
+		if (subnode.getTypeQName() == null) {
+			subnode.setTypeQName(getTypeQName());
+		}
+		return map;
+	}
+
+	@Override
+	public RootXNode toRootXNode() {
+		return this;
+	}
 }

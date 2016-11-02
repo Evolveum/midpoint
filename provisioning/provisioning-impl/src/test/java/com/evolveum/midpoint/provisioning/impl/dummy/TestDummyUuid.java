@@ -19,11 +19,6 @@ import java.io.File;
 
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
-import org.testng.annotations.Test;
-
-import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorFactoryIcfImpl;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.test.util.TestUtil;
 
 /**
  * Almost the same as TestDummy but this is using a UUID as ICF UID.

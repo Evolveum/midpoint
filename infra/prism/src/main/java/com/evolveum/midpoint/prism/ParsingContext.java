@@ -16,7 +16,8 @@
 
 package com.evolveum.midpoint.prism;
 
-import com.evolveum.midpoint.prism.parser.XNodeProcessorEvaluationMode;
+import com.evolveum.midpoint.prism.marshaller.XNodeProcessorEvaluationMode;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 
 import java.util.ArrayList;
@@ -25,7 +26,7 @@ import java.util.List;
 /**
  * @author mederly
  */
-public class ParsingContext {
+public class ParsingContext implements Cloneable {
 
 	private XNodeProcessorEvaluationMode evaluationMode = XNodeProcessorEvaluationMode.STRICT;
 	private boolean allowMissingRefTypes;
@@ -79,6 +80,19 @@ public class ParsingContext {
 		warn(message);
 	}
 
+	public void warnOrThrow(Trace logger, String message) throws SchemaException {
+		warnOrThrow(logger, message, null);
+	}
+
+	public void warnOrThrow(Trace logger, String message, Throwable t) throws SchemaException {
+		if (isCompat()) {
+			logger.warn("{}", message, t);
+			warn(message);
+		} else {
+			throw new SchemaException(message, t);
+		}
+	}
+
 	public void warn(String message) {
 		warnings.add(message);
 	}
@@ -89,5 +103,28 @@ public class ParsingContext {
 
 	public boolean hasWarnings() {
 		return !warnings.isEmpty();
+	}
+
+	public ParsingContext clone() {
+		ParsingContext clone;
+		try {
+			clone = (ParsingContext) super.clone();
+		} catch (CloneNotSupportedException e) {
+			throw new IllegalStateException(e);
+		}
+		clone.evaluationMode = evaluationMode;
+		clone.allowMissingRefTypes = allowMissingRefTypes;
+		clone.warnings.addAll(warnings);
+		return clone;
+	}
+
+	public ParsingContext strict() {
+		this.setEvaluationMode(XNodeProcessorEvaluationMode.STRICT);
+		return this;
+	}
+
+	public ParsingContext compat() {
+		this.setEvaluationMode(XNodeProcessorEvaluationMode.COMPAT);
+		return this;
 	}
 }

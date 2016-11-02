@@ -23,20 +23,20 @@ import static org.testng.AssertJUnit.assertNull;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
+import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
+import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinitionImpl;
 import org.apache.commons.lang.mutable.MutableInt;
-import org.opends.messages.TaskMessages;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
-import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
 import com.evolveum.icf.dummy.resource.BreakMode;
@@ -45,19 +45,14 @@ import com.evolveum.icf.dummy.resource.DummyResource;
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.audit.api.AuditEventType;
-import com.evolveum.midpoint.common.crypto.CryptoUtil;
 import com.evolveum.midpoint.common.policy.PasswordPolicyUtils;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.impl.sync.ReconciliationTaskHandler;
-import com.evolveum.midpoint.model.impl.sync.ReconciliationTaskResultListener;
 import com.evolveum.midpoint.model.impl.util.DebugReconciliationTaskResultListener;
 import com.evolveum.midpoint.model.intest.AbstractInitializedModelIntegrationTest;
-import com.evolveum.midpoint.prism.ComplexTypeDefinition;
-import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ChangeType;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.AndFilter;
@@ -86,7 +81,6 @@ import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.ProvisioningScriptSpec;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -321,7 +315,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         display("Dummy resource azure", dummyResourceAzure);
         
         // WHEN
-        ResourceSchema resourceSchemaAzure = RefinedResourceSchema.getResourceSchema(resourceDummyAzureType, prismContext);
+        ResourceSchema resourceSchemaAzure = RefinedResourceSchemaImpl.getResourceSchema(resourceDummyAzureType, prismContext);
         
         display("Dummy azure resource schema", resourceSchemaAzure);
         
@@ -338,7 +332,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // WHEN
-        RefinedResourceSchema refinedSchemaAzure = RefinedResourceSchema.getRefinedSchema(resourceDummyAzureType, prismContext);
+        RefinedResourceSchema refinedSchemaAzure = RefinedResourceSchemaImpl.getRefinedSchema(resourceDummyAzureType, prismContext);
         
         display("Dummy azure refined schema", refinedSchemaAzure);
         
@@ -2519,15 +2513,14 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         // GIVEN
         Task task = createTask(TestImportRecon.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
-        
-         ObjectFilter ocFilter = ObjectQueryUtil.createResourceAndObjectClassFilter(RESOURCE_DUMMY_OID, 
-        		new QName(RESOURCE_DUMMY_NAMESPACE,"AccountObjectClass"), prismContext);
-         SubstringFilter<String> subStringFilter = SubstringFilter.createSubstring(
-        		 new ItemPath(ShadowType.F_ATTRIBUTES, SchemaConstants.ICFS_NAME), 
-        		 new ResourceAttributeDefinition(SchemaConstants.ICFS_NAME, DOMUtil.XSD_STRING, prismContext), "s");
-         AndFilter andFilter = AndFilter.createAnd(ocFilter, subStringFilter);
-         ObjectQuery query = ObjectQuery.createObjectQuery(andFilter);
-        
+
+		ObjectQuery query =
+				ObjectQueryUtil.createResourceAndObjectClassFilterPrefix(RESOURCE_DUMMY_OID, new QName(RESOURCE_DUMMY_NAMESPACE, "AccountObjectClass"), prismContext)
+						.and().item(new ItemPath(ShadowType.F_ATTRIBUTES, SchemaConstants.ICFS_NAME),
+									new ResourceAttributeDefinitionImpl(SchemaConstants.ICFS_NAME, DOMUtil.XSD_STRING, prismContext))
+							  .contains("s")
+						.build();
+
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
 		SearchResultList<PrismObject<ShadowType>> objects = modelService.searchObjects(ShadowType.class, query, null, task, result);

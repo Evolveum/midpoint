@@ -54,8 +54,11 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.MidPointAsserts;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.test.util.TestUtil;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
@@ -718,31 +721,7 @@ public class TestAuthenticationEvaluator extends AbstractInternalModelIntegratio
 		OperationResult result = task.getResult();
 		modifyUserReplace(USER_JACK_OID, ACTIVATION_ADMINISTRATIVE_STATUS_PATH, task, result, ActivationStatusType.DISABLED);
 		
-		ConnectionEnvironment connEnv = createConnectionEnvironment();
-		XMLGregorianCalendar startTs = clock.currentTimeXMLGregorianCalendar();
-		
-		// WHEN
-		TestUtil.displayWhen(TEST_NAME);
-		try {
-			
-			authenticationEvaluator.authenticateUserPassword(connEnv, USER_JACK_USERNAME, USER_JACK_PASSWORD);
-			
-			AssertJUnit.fail("Unexpected success");
-		} catch (DisabledException e) {
-			// This is expected
-			
-			// THEN
-			TestUtil.displayThen(TEST_NAME);
-			display("expected exception", e);
-			
-			// this is important. The exception should give no indication whether the password is
-			// good or bad
-			assertDisabledException(e, USER_JACK_USERNAME);
-		}
-				
-		PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
-		display("user after", userAfter);
-		assertFailedLogins(userAfter, 0);
+		loginJackGoodPasswordExpectDenied(TEST_NAME, task, result);
 	}
 	
 	@Test
@@ -755,22 +734,7 @@ public class TestAuthenticationEvaluator extends AbstractInternalModelIntegratio
 		OperationResult result = task.getResult();
 		modifyUserReplace(USER_JACK_OID, ACTIVATION_ADMINISTRATIVE_STATUS_PATH, task, result, ActivationStatusType.ENABLED);
 		
-		ConnectionEnvironment connEnv = createConnectionEnvironment();
-		XMLGregorianCalendar startTs = clock.currentTimeXMLGregorianCalendar();
-
-		// WHEN
-		TestUtil.displayWhen(TEST_NAME);
-		Authentication authentication = authenticationEvaluator.authenticateUserPassword(connEnv, USER_JACK_USERNAME, USER_JACK_PASSWORD);
-		
-		// THEN
-		TestUtil.displayThen(TEST_NAME);
-		XMLGregorianCalendar endTs = clock.currentTimeXMLGregorianCalendar();
-		assertGoodPasswordAuthentication(authentication, USER_JACK_USERNAME);
-		
-		PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
-		display("user after", userAfter);
-		assertFailedLogins(userAfter, 0);
-		assertLastSuccessfulLogin(userAfter, startTs, endTs);
+		loginJackGoodPasswordExpectSuccess(TEST_NAME, task, result);
 	}
 	
 	@Test
@@ -789,31 +753,7 @@ public class TestAuthenticationEvaluator extends AbstractInternalModelIntegratio
 		modifyUserReplace(USER_JACK_OID, ACTIVATION_VALID_FROM_PATH, task, result, validFrom);
 		modifyUserReplace(USER_JACK_OID, ACTIVATION_VALID_TO_PATH, task, result, validTo);
 		
-		ConnectionEnvironment connEnv = createConnectionEnvironment();
-		XMLGregorianCalendar startTs = clock.currentTimeXMLGregorianCalendar();
-
-		// WHEN
-		TestUtil.displayWhen(TEST_NAME);
-		try {
-			
-			authenticationEvaluator.authenticateUserPassword(connEnv, USER_JACK_USERNAME, USER_JACK_PASSWORD);
-			
-			AssertJUnit.fail("Unexpected success");
-		} catch (DisabledException e) {
-			// This is expected
-			
-			// THEN
-			TestUtil.displayThen(TEST_NAME);
-			display("expected exception", e);
-			
-			// this is important. The exception should give no indication whether the password is
-			// good or bad
-			assertDisabledException(e, USER_JACK_USERNAME);
-		}
-		
-		PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
-		display("user after", userAfter);
-		assertFailedLogins(userAfter, 0);
+		loginJackGoodPasswordExpectDenied(TEST_NAME, task, result);
 	}
 	
 	@Test
@@ -827,23 +767,7 @@ public class TestAuthenticationEvaluator extends AbstractInternalModelIntegratio
 		Task task = createTask(TestAuthenticationEvaluator.class.getName() + "." + TEST_NAME);
 		OperationResult result = task.getResult();
 				
-		display("now", clock.currentTimeXMLGregorianCalendar());
-		ConnectionEnvironment connEnv = createConnectionEnvironment();
-		XMLGregorianCalendar startTs = clock.currentTimeXMLGregorianCalendar();
-
-		// WHEN
-		TestUtil.displayWhen(TEST_NAME);
-		Authentication authentication = authenticationEvaluator.authenticateUserPassword(connEnv, USER_JACK_USERNAME, USER_JACK_PASSWORD);
-		
-		// THEN
-		TestUtil.displayThen(TEST_NAME);
-		XMLGregorianCalendar endTs = clock.currentTimeXMLGregorianCalendar();
-		assertGoodPasswordAuthentication(authentication, USER_JACK_USERNAME);
-		
-		PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
-		display("user after", userAfter);
-		assertFailedLogins(userAfter, 0);
-		assertLastSuccessfulLogin(userAfter, startTs, endTs);
+		loginJackGoodPasswordExpectSuccess(TEST_NAME, task, result);
 	}
 	
 	@Test
@@ -856,33 +780,96 @@ public class TestAuthenticationEvaluator extends AbstractInternalModelIntegratio
 		
 		Task task = createTask(TestAuthenticationEvaluator.class.getName() + "." + TEST_NAME);
 		OperationResult result = task.getResult();
-				
-		display("now", clock.currentTimeXMLGregorianCalendar());
-		ConnectionEnvironment connEnv = createConnectionEnvironment();
-		XMLGregorianCalendar startTs = clock.currentTimeXMLGregorianCalendar();
-
-		// WHEN
-		TestUtil.displayWhen(TEST_NAME);
-		try {
-			
-			authenticationEvaluator.authenticateUserPassword(connEnv, USER_JACK_USERNAME, USER_JACK_PASSWORD);
-			
-			AssertJUnit.fail("Unexpected success");
-		} catch (DisabledException e) {
-			// This is expected
-			
-			// THEN
-			TestUtil.displayThen(TEST_NAME);
-			display("expected exception", e);
-			
-			// this is important. The exception should give no indication whether the password is
-			// good or bad
-			assertDisabledException(e, USER_JACK_USERNAME);
-		}
 		
-		PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
-		display("user after", userAfter);
-		assertFailedLogins(userAfter, 0);
+		loginJackGoodPasswordExpectDenied(TEST_NAME, task, result);
+	}
+	
+	@Test
+	public void test159PasswordLoginNoLongerValidEnabledGoodPassword() throws Exception {
+		final String TEST_NAME = "test159PasswordLoginNoLongerValidEnabledGoodPassword";
+		TestUtil.displayTestTile(TEST_NAME);
+		
+		// GIVEN
+		Task task = createTask(TestAuthenticationEvaluator.class.getName() + "." + TEST_NAME);
+		OperationResult result = task.getResult();
+		modifyUserReplace(USER_JACK_OID, ACTIVATION_ADMINISTRATIVE_STATUS_PATH, task, result, ActivationStatusType.ENABLED);
+		
+		loginJackGoodPasswordExpectSuccess(TEST_NAME, task, result);
+	}
+	
+	@Test
+	public void test160PasswordLoginLifecycleActiveGoodPassword() throws Exception {
+		final String TEST_NAME = "test160PasswordLoginLifecycleActiveGoodPassword";
+		TestUtil.displayTestTile(TEST_NAME);
+		
+		// GIVEN
+		Task task = createTask(TestAuthenticationEvaluator.class.getName() + "." + TEST_NAME);
+		OperationResult result = task.getResult();
+		
+		modifyUserReplace(USER_JACK_OID, UserType.F_LIFECYCLE_STATE, task, result, 
+				SchemaConstants.LIFECYCLE_ACTIVE);
+		
+		loginJackGoodPasswordExpectSuccess(TEST_NAME, task, result);
+	}
+	
+	@Test
+	public void test162PasswordLoginLifecycleDraftGoodPassword() throws Exception {
+		final String TEST_NAME = "test162PasswordLoginLifecycleDraftGoodPassword";
+		TestUtil.displayTestTile(TEST_NAME);
+		
+		// GIVEN
+		Task task = createTask(TestAuthenticationEvaluator.class.getName() + "." + TEST_NAME);
+		OperationResult result = task.getResult();
+		
+		modifyUserReplace(USER_JACK_OID, UserType.F_LIFECYCLE_STATE, task, result, 
+				SchemaConstants.LIFECYCLE_DRAFT);
+		
+		loginJackGoodPasswordExpectDenied(TEST_NAME, task, result);
+	}
+	
+	@Test
+	public void test164PasswordLoginLifecycleDeprecatedGoodPassword() throws Exception {
+		final String TEST_NAME = "test164PasswordLoginLifecycleDeprecatedGoodPassword";
+		TestUtil.displayTestTile(TEST_NAME);
+		
+		// GIVEN
+		Task task = createTask(TestAuthenticationEvaluator.class.getName() + "." + TEST_NAME);
+		OperationResult result = task.getResult();
+		
+		modifyUserReplace(USER_JACK_OID, UserType.F_LIFECYCLE_STATE, task, result, 
+				SchemaConstants.LIFECYCLE_DEPRECATED);
+		
+		loginJackGoodPasswordExpectSuccess(TEST_NAME, task, result);
+	}
+	
+	@Test
+	public void test166PasswordLoginLifecycleProposedGoodPassword() throws Exception {
+		final String TEST_NAME = "test166PasswordLoginLifecycleProposedGoodPassword";
+		TestUtil.displayTestTile(TEST_NAME);
+		
+		// GIVEN
+		Task task = createTask(TestAuthenticationEvaluator.class.getName() + "." + TEST_NAME);
+		OperationResult result = task.getResult();
+		
+		modifyUserReplace(USER_JACK_OID, UserType.F_LIFECYCLE_STATE, task, result, 
+				SchemaConstants.LIFECYCLE_PROPOSED);
+				
+		loginJackGoodPasswordExpectDenied(TEST_NAME, task, result);
+	}
+	
+	@Test
+	public void test168PasswordLoginLifecycleArchivedGoodPassword() throws Exception {
+		final String TEST_NAME = "test168PasswordLoginLifecycleArchivedGoodPassword";
+		TestUtil.displayTestTile(TEST_NAME);
+		
+		// GIVEN
+		Task task = createTask(TestAuthenticationEvaluator.class.getName() + "." + TEST_NAME);
+		OperationResult result = task.getResult();
+		
+		modifyUserReplace(USER_JACK_OID, UserType.F_LIFECYCLE_STATE, task, result, 
+				SchemaConstants.LIFECYCLE_ARCHIVED);
+		
+		loginJackGoodPasswordExpectDenied(TEST_NAME, task, result);
 	}
 		
 	@Test
@@ -1119,5 +1106,53 @@ public class TestAuthenticationEvaluator extends AbstractInternalModelIntegratio
 		assertNotNull("No user in principal",user);
 		assertEquals("Bad name in user in principal", USER_JACK_USERNAME, user.getName().getOrig());
 	}
+	
+	private void loginJackGoodPasswordExpectSuccess(final String TEST_NAME, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException {
+		display("now", clock.currentTimeXMLGregorianCalendar());
+		ConnectionEnvironment connEnv = createConnectionEnvironment();
+		XMLGregorianCalendar startTs = clock.currentTimeXMLGregorianCalendar();
 
+		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
+		Authentication authentication = authenticationEvaluator.authenticateUserPassword(connEnv, USER_JACK_USERNAME, USER_JACK_PASSWORD);
+		
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+		XMLGregorianCalendar endTs = clock.currentTimeXMLGregorianCalendar();
+		assertGoodPasswordAuthentication(authentication, USER_JACK_USERNAME);
+		
+		PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+		display("user after", userAfter);
+		assertFailedLogins(userAfter, 0);
+		assertLastSuccessfulLogin(userAfter, startTs, endTs);
+	}
+	
+	private void loginJackGoodPasswordExpectDenied(final String TEST_NAME, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException {
+		display("now", clock.currentTimeXMLGregorianCalendar());
+		ConnectionEnvironment connEnv = createConnectionEnvironment();
+		XMLGregorianCalendar startTs = clock.currentTimeXMLGregorianCalendar();
+
+		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
+		try {
+			
+			authenticationEvaluator.authenticateUserPassword(connEnv, USER_JACK_USERNAME, USER_JACK_PASSWORD);
+			
+			AssertJUnit.fail("Unexpected success");
+		} catch (DisabledException e) {
+			// This is expected
+			
+			// THEN
+			TestUtil.displayThen(TEST_NAME);
+			display("expected exception", e);
+			
+			// this is important. The exception should give no indication whether the password is
+			// good or bad
+			assertDisabledException(e, USER_JACK_USERNAME);
+		}
+		
+		PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+		display("user after", userAfter);
+		assertFailedLogins(userAfter, 0);
+	}
 }

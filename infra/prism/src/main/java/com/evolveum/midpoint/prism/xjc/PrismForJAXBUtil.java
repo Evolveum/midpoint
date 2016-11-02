@@ -17,14 +17,9 @@
 package com.evolveum.midpoint.prism.xjc;
 
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.parser.DomParser;
-import com.evolveum.midpoint.prism.parser.QueryConvertor;
+import com.evolveum.midpoint.prism.lex.dom.DomLexicalProcessor;
 import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.xnode.MapXNode;
-import com.evolveum.midpoint.prism.xnode.XNode;
-import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
@@ -38,10 +33,8 @@ import javax.xml.bind.annotation.XmlAnyElement;
 import javax.xml.namespace.QName;
 
 import java.lang.reflect.Field;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map.Entry;
 
 /**
  * @author lazyman
@@ -450,12 +443,12 @@ public final class PrismForJAXBUtil {
         }
     }
 
-    private static DomParser getDomParser(PrismValue pval) {
+    private static DomLexicalProcessor getDomParser(PrismValue pval) {
 		PrismContext prismContext = pval.getPrismContext();
 		if (prismContext != null) {
-			return prismContext.getParserDom();
+			return ((PrismContextImpl) prismContext).getParserDom();
 		} else {
-			DomParser parser = new DomParser(null);
+			DomLexicalProcessor parser = new DomLexicalProcessor(null);
 			return parser;
 		}
 	}

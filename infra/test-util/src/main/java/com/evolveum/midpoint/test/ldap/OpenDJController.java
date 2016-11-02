@@ -19,7 +19,6 @@ package com.evolveum.midpoint.test.ldap;
 import static org.testng.AssertJUnit.assertEquals;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -27,7 +26,6 @@ import java.io.OutputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Enumeration;
@@ -41,7 +39,6 @@ import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.opends.messages.Message;
 import org.opends.messages.MessageBuilder;

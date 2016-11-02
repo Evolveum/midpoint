@@ -22,6 +22,7 @@ import static org.testng.AssertJUnit.assertNotNull;
 
 import java.util.List;
 
+import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -133,13 +134,12 @@ public class TestConnectorDiscovery extends AbstractIntegrationTest {
 		TestUtil.displayTestTile("testSearchConnectorAnd");
 		OperationResult result = new OperationResult(TestConnectorDiscovery.class.getName()
 				+ ".testSearchConnector");
-		
-		Document doc = DOMUtil.getDocument();
-		AndFilter filter = AndFilter.createAnd(
-				EqualFilter.createEqual(SchemaConstants.C_CONNECTOR_FRAMEWORK, ConnectorType.class, prismContext, null, ConnectorFactoryIcfImpl.ICF_FRAMEWORK_URI),
-				EqualFilter.createEqual(SchemaConstants.C_CONNECTOR_CONNECTOR_TYPE, ConnectorType.class, prismContext, null, LDAP_CONNECTOR_TYPE));
-		ObjectQuery query = ObjectQuery.createObjectQuery(filter);
-		
+
+		ObjectQuery query = QueryBuilder.queryFor(ConnectorType.class, prismContext)
+				.item(SchemaConstants.C_CONNECTOR_FRAMEWORK).eq(ConnectorFactoryIcfImpl.ICF_FRAMEWORK_URI)
+				.and().item(SchemaConstants.C_CONNECTOR_CONNECTOR_TYPE).eq(LDAP_CONNECTOR_TYPE)
+				.build();
+
 		System.out.println("Query:\n"+query.debugDump());
 
 		List<PrismObject<ConnectorType>> connectors = repositoryService.searchObjects(ConnectorType.class, query, null, result);
