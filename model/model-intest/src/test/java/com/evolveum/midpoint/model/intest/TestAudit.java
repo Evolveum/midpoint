@@ -130,7 +130,7 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
 		final String TEST_NAME = "test100ModifyUserJackKid";
         TestUtil.displayTestTile(this, TEST_NAME);
         
-        Task task = taskManager.createTaskInstance(TestEntitlements.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestAudit.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         
         initialTs = clock.currentTimeXMLGregorianCalendar();
@@ -159,7 +159,7 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
 		final String TEST_NAME = "test105CreateUserHerman";
         TestUtil.displayTestTile(this, TEST_NAME);
         
-        Task task = taskManager.createTaskInstance(TestEntitlements.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestAudit.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         
         PrismObject<UserType> userHermanBefore = PrismTestUtil.parseObject(USER_HERMAN_FILE);
@@ -191,7 +191,7 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
 		final String TEST_NAME = "test110ModifyUserJackSailor";
         TestUtil.displayTestTile(this, TEST_NAME);
         
-        Task task = taskManager.createTaskInstance(TestEntitlements.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestAudit.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         
         
@@ -224,7 +224,7 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
 		final String TEST_NAME = "test115ModifyUserHermanMarooned";
         TestUtil.displayTestTile(this, TEST_NAME);
         
-        Task task = taskManager.createTaskInstance(TestEntitlements.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestAudit.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         
         ObjectDelta<UserType> objectDelta = createModifyUserReplaceDelta(USER_HERMAN_OID, UserType.F_TITLE, 
@@ -256,7 +256,7 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
 		final String TEST_NAME = "test120ModifyUserJackCaptain";
         TestUtil.displayTestTile(this, TEST_NAME);
         
-        Task task = taskManager.createTaskInstance(TestEntitlements.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestAudit.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         
         ObjectDelta<UserType> objectDelta = createModifyUserReplaceDelta(USER_JACK_OID, UserType.F_TITLE, 
@@ -288,7 +288,7 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
 		final String TEST_NAME = "test125ModifyUserHermanHermit";
         TestUtil.displayTestTile(this, TEST_NAME);
         
-        Task task = taskManager.createTaskInstance(TestEntitlements.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestAudit.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         
         ObjectDelta<UserType> objectDelta = createModifyUserReplaceDelta(USER_HERMAN_OID, UserType.F_TITLE, 
@@ -326,7 +326,7 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
 		final String TEST_NAME = "test135ModifyUserHermanCivilisedHermit";
         TestUtil.displayTestTile(this, TEST_NAME);
         
-        Task task = taskManager.createTaskInstance(TestEntitlements.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestAudit.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         
         ObjectDelta<UserType> objectDelta = createModifyUserReplaceDelta(USER_HERMAN_OID, UserType.F_TITLE, 
@@ -359,7 +359,7 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
 		final String TEST_NAME = "test200ReconstructJackSailor";
         TestUtil.displayTestTile(this, TEST_NAME);
         
-        Task task = taskManager.createTaskInstance(TestEntitlements.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestAudit.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
@@ -391,7 +391,7 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
 		final String TEST_NAME = "test210ReconstructJackKid";
         TestUtil.displayTestTile(this, TEST_NAME);
         
-        Task task = taskManager.createTaskInstance(TestEntitlements.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestAudit.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
@@ -425,7 +425,7 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
 		final String TEST_NAME = "test250ReconstructHermanCreated";
         TestUtil.displayTestTile(this, TEST_NAME);
         
-        Task task = taskManager.createTaskInstance(TestEntitlements.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestAudit.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         
         PrismObject<UserType> userBefore = getUser(USER_HERMAN_OID);
@@ -466,7 +466,7 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
 		final String TEST_NAME = "test252ReconstructHermanMarooned";
         TestUtil.displayTestTile(this, TEST_NAME);
         
-        Task task = taskManager.createTaskInstance(TestEntitlements.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestAudit.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
                 
         // WHEN
@@ -500,7 +500,7 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
 		final String TEST_NAME = "test254ReconstructHermanHermit";
         TestUtil.displayTestTile(this, TEST_NAME);
         
-        Task task = taskManager.createTaskInstance(TestEntitlements.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestAudit.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         
         // WHEN

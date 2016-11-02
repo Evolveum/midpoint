@@ -59,6 +59,7 @@
             <class name="com.evolveum.midpoint.model.intest.TestConnectorMultiInstance"/>
             <class name="com.evolveum.midpoint.model.intest.TestMerge"/>
             <class name="com.evolveum.midpoint.model.intest.TestAudit"/>
+            <class name="com.evolveum.midpoint.model.intest.TestDeputy"/>
         </classes>
     </test>
     <test name="Synchronization" preserve-order="true" parallel="false" verbose="10">

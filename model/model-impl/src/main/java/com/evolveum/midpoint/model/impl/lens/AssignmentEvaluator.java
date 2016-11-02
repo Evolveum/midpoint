@@ -51,6 +51,7 @@ import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.security.api.Authorization;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -67,6 +68,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
 /**
@@ -509,8 +511,16 @@ public class AssignmentEvaluator<F extends FocusType> {
 					assignment.addOrgRefVal(refVal);
 				}
 			}
+		} else if (targetType instanceof UserType) {
+			if (QNameUtil.match(relation, SchemaConstants.ORG_DEPUTY)) {
+				
+				// TODO MID-3472
+				
+			} else {
+				throw new SchemaException("Unsuppoted relation " + relation + " for assignment of target type " + targetType + " in " + sourceDescription);
+			}
 		} else {
-			throw new SchemaException("Unknown assignment target type "+ObjectTypeUtil.toShortString(targetType)+" in "+sourceDescription);
+			throw new SchemaException("Unknown assignment target type " + targetType + " in " + sourceDescription);
 		}
 	}
 
