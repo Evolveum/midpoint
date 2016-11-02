@@ -86,21 +86,10 @@
 		                            </div>
     			  				</td>
     			  			</tr>
-    			  			<tr>
-    			  				<td>
-    			  					<p>
-                						<img wicket:id="image" />
-                					</p>
-                					<p>
-                						<input wicket:id="text" type="text" size="40" />
-                					</p>
-            
-    			  				</td>
-    			  				<td>
-    			  					<a wicket:id="changeLink"><wicket:message key="PageSelfRegistration.reload"/></a>
-    			  				</td>
-    			  			</tr>
+    			  			
     			  		</table>
+    			        
+    			        <div wicket:id="captcha" />
     			        
 						<div class="btn btn-primary">
                         	<a wicket:id="submitRegistration">
@@ -110,6 +99,8 @@
                         	</a>
                         </div>
                     </form>
+                    
+                    
 
 	<div style="text-align: center">
 		<h2 wicket:id="registrationInfo"></h2>
