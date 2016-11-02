@@ -118,7 +118,8 @@ public class AssignmentTablePanel<T extends ObjectType> extends BasePanel<List<A
 		assignments.add(label);
 
 		InlineMenu assignmentMenu = new InlineMenu(ID_MENU, new Model((Serializable) createAssignmentMenu()));
-		assignments.add(assignmentMenu);
+        assignmentMenu.setVisible(getAssignmentMenuVisibility());
+        assignments.add(assignmentMenu);
 
 		ListView<AssignmentEditorDto> list = new ListView<AssignmentEditorDto>(ID_LIST, getModel()) {
 			private static final long serialVersionUID = 1L;
@@ -503,4 +504,8 @@ public class AssignmentTablePanel<T extends ObjectType> extends BasePanel<List<A
 	 */
 	protected void handlePartialError(OperationResult result) {
 	}
+
+    protected boolean getAssignmentMenuVisibility(){
+        return true;
+    }
 }

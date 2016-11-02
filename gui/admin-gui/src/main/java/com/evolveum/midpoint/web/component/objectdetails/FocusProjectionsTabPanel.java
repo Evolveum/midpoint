@@ -103,6 +103,7 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
 		add(shadows);
 
 		InlineMenu accountMenu = new InlineMenu(ID_SHADOW_MENU, new Model((Serializable) createShadowMenu()));
+        accountMenu.setVisible(!getObjectWrapper().isReadonly());
 		shadows.add(accountMenu);
 
 		final ListView<FocusSubwrapperDto<ShadowType>> projectionList = new ListView<FocusSubwrapperDto<ShadowType>>(
