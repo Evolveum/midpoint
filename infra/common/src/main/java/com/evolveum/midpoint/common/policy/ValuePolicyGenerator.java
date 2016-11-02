@@ -51,16 +51,13 @@ public class ValuePolicyGenerator {
 	public static String generate(StringPolicyType policy, int defaultLength, boolean generateMinimalSize,
 			OperationResult inputResult) {
 
-		if (null == policy) {
-			throw new IllegalArgumentException("Provided password policy can not be null.");
-		}
-
 		if (null == inputResult) {
 			throw new IllegalArgumentException("Provided operation result cannot be null");
 		}
 		// Define result from generator
-		OperationResult generatorResult = new OperationResult("Password generator running policy :"
-				+ policy.getDescription());
+		OperationResult generatorResult = new OperationResult(
+				"Password generator running policy :" + policy != null ? policy.getDescription()
+						: "No policy defined, usinf default config");
 		inputResult.addSubresult(generatorResult);
 
 		// if (policy.getLimitations() != null &&
@@ -73,34 +70,37 @@ public class ValuePolicyGenerator {
 		// Optimize usage of limits ass hashmap of limitas and key is set of
 		// valid chars for each limitation
 		Map<StringLimitType, List<String>> lims = new HashMap<StringLimitType, List<String>>();
-		for (StringLimitType l : policy.getLimitations().getLimit()) {
-			if (null != l.getCharacterClass().getValue()) {
-				lims.put(l, StringPolicyUtils.stringTokenizer(l.getCharacterClass().getValue()));
-			} else {
-				lims.put(
-						l,
-						StringPolicyUtils.stringTokenizer(StringPolicyUtils.collectCharacterClass(
-								policy.getCharacterClass(), l.getCharacterClass().getRef())));
+		int minLen = defaultLength;
+		int maxLen = defaultLength;
+		int unique = defaultLength / 2;
+		if (policy != null) {
+			for (StringLimitType l : policy.getLimitations().getLimit()) {
+				if (null != l.getCharacterClass().getValue()) {
+					lims.put(l, StringPolicyUtils.stringTokenizer(l.getCharacterClass().getValue()));
+				} else {
+					lims.put(l, StringPolicyUtils.stringTokenizer(StringPolicyUtils.collectCharacterClass(
+							policy.getCharacterClass(), l.getCharacterClass().getRef())));
+				}
 			}
-		}
 
-		// Get global limitations
-		int minLen = policy.getLimitations().getMinLength() == null ? 0 : policy.getLimitations().getMinLength()
-				.intValue();
-		if (minLen != 0 && minLen > defaultLength) {
-			defaultLength = minLen;
-		}
-		int maxLen = (policy.getLimitations().getMaxLength() == null ? 0 : policy.getLimitations()
-				.getMaxLength().intValue());
-		int unique = policy.getLimitations().getMinUniqueChars() == null ? minLen : policy.getLimitations()
-				.getMinUniqueChars().intValue();
+			// Get global limitations
+			minLen = policy.getLimitations().getMinLength() == null ? 0
+					: policy.getLimitations().getMinLength().intValue();
+			if (minLen != 0 && minLen > defaultLength) {
+				defaultLength = minLen;
+			}
+			maxLen = (policy.getLimitations().getMaxLength() == null ? 0
+					: policy.getLimitations().getMaxLength().intValue());
+			unique = policy.getLimitations().getMinUniqueChars() == null ? minLen
+					: policy.getLimitations().getMinUniqueChars().intValue();
 
+		} 
 		// test correctness of definition
 		if (unique > minLen) {
 			minLen = unique;
 			OperationResult reportBug = new OperationResult("Global limitation check");
-			reportBug
-					.recordWarning("There is more required uniq characters then definied minimum. Raise minimum to number of required uniq chars.");
+			reportBug.recordWarning(
+					"There is more required uniq characters then definied minimum. Raise minimum to number of required uniq chars.");
 		}
 
 		if (minLen == 0 && maxLen == 0) {
@@ -108,11 +108,11 @@ public class ValuePolicyGenerator {
 			maxLen = defaultLength;
 			generateMinimalSize = true;
 		}
-		
-		if (maxLen == 0){
-			if (minLen > defaultLength){
+
+		if (maxLen == 0) {
+			if (minLen > defaultLength) {
 				maxLen = minLen;
-			} else { 
+			} else {
 				maxLen = defaultLength;
 			}
 		}
@@ -120,8 +120,9 @@ public class ValuePolicyGenerator {
 		// Initialize generator
 		StringBuilder password = new StringBuilder();
 
-		/* **********************************
-		 * Try to find best characters to be first in password
+		/*
+		 * ********************************** Try to find best characters to be
+		 * first in password
 		 */
 		Map<StringLimitType, List<String>> mustBeFirst = new HashMap<StringLimitType, List<String>>();
 		for (StringLimitType l : lims.keySet()) {
@@ -138,13 +139,15 @@ public class ValuePolicyGenerator {
 			List<String> intersectionCharacters = posibleFirstChars.get(intersectionCardinality);
 			// If no intersection was found then raise error
 			if (null == intersectionCharacters || intersectionCharacters.size() == 0) {
-				generatorResult
-						.recordFatalError("No intersection for required first character sets in password policy:"
+				generatorResult.recordFatalError(
+						"No intersection for required first character sets in password policy:"
 								+ policy.getDescription());
 				// Log error
 				if (LOGGER.isErrorEnabled()) {
-					LOGGER.error("Unable to generate password: No intersection for required first character sets in password policy: ["
-							+ policy.getDescription() + "] following character limitation and sets are used:");
+					LOGGER.error(
+							"Unable to generate password: No intersection for required first character sets in password policy: ["
+									+ policy.getDescription()
+									+ "] following character limitation and sets are used:");
 					for (StringLimitType l : mustBeFirst.keySet()) {
 						StrBuilder tmp = new StrBuilder();
 						tmp.appendSeparator(", ");
@@ -166,8 +169,9 @@ public class ValuePolicyGenerator {
 			}
 		}
 
-		/* **************************************
-		 * Generate rest to fulfill minimal criteria
+		/*
+		 * ************************************** Generate rest to fulfill
+		 * minimal criteria
 		 */
 
 		boolean uniquenessReached = false;
@@ -204,13 +208,14 @@ public class ValuePolicyGenerator {
 
 		// test if maximum is not exceeded
 		if (password.length() > maxLen) {
-			generatorResult
-					.recordFatalError("Unable to meet minimal criteria and not exceed maximxal size of password.");
+			generatorResult.recordFatalError(
+					"Unable to meet minimal criteria and not exceed maximxal size of password.");
 			return null;
 		}
 
-		/* ***************************************
-		 * Generate chars to not exceed maximal
+		/*
+		 * *************************************** Generate chars to not exceed
+		 * maximal
 		 */
 
 		for (int i = 0; i < minLen; i++) {
@@ -236,7 +241,8 @@ public class ValuePolicyGenerator {
 			// If something goes badly then go out
 			if (null == chars) {
 				// we hope this never happend.
-				generatorResult.recordFatalError("No valid characters to generate, but no all limitation are reached");
+				generatorResult.recordFatalError(
+						"No valid characters to generate, but no all limitation are reached");
 				return null;
 			}
 
@@ -245,15 +251,16 @@ public class ValuePolicyGenerator {
 			if (chars.isEmpty()) {
 				if (i == 0) {
 					password.append(RandomStringUtils.randomAlphanumeric(minLen));
-					
+
 				}
 				break;
-//				if (!StringUtils.isBlank(password.toString()) && password.length() >= minLen) {
-//					break;
-//				}
+				// if (!StringUtils.isBlank(password.toString()) &&
+				// password.length() >= minLen) {
+				// break;
+				// }
 				// check uf this is a firs cycle and if we need to user some
 				// default (alphanum) character class.
-				
+
 			}
 
 			// Find lowest possible cardinality and then generate char
@@ -267,11 +274,13 @@ public class ValuePolicyGenerator {
 		}
 
 		if (password.length() < minLen) {
-			generatorResult.recordFatalError("Unable to generate password and meet minimal size of password. Password lenght: " 
-					+ password.length() + ", required: " + minLen);
-			LOGGER.trace("Unable to generate password and meet minimal size of password. Password lenght: {}, required: {}",
+			generatorResult.recordFatalError(
+					"Unable to generate password and meet minimal size of password. Password lenght: "
+							+ password.length() + ", required: " + minLen);
+			LOGGER.trace(
+					"Unable to generate password and meet minimal size of password. Password lenght: {}, required: {}",
 					password.length(), minLen);
-			return null; 
+			return null;
 		}
 
 		generatorResult.recordSuccess();
@@ -292,9 +301,8 @@ public class ValuePolicyGenerator {
 	/**
 	 * Count cardinality
 	 */
-	private static Map<Integer, List<String>> cardinalityCounter(
-			Map<StringLimitType, List<String>> lims, List<String> password, Boolean skipMatchedLims,
-			boolean uniquenessReached, OperationResult op) {
+	private static Map<Integer, List<String>> cardinalityCounter(Map<StringLimitType, List<String>> lims,
+			List<String> password, Boolean skipMatchedLims, boolean uniquenessReached, OperationResult op) {
 		HashMap<String, Integer> counter = new HashMap<String, Integer>();
 
 		for (StringLimitType l : lims.keySet()) {
@@ -307,7 +315,8 @@ public class ValuePolicyGenerator {
 			// If max is exceed then error unable to continue
 			if (l.getMaxOccurs() != null && i > l.getMaxOccurs()) {
 				OperationResult o = new OperationResult("Limitation check :" + l.getDescription());
-				o.recordFatalError("Exceeded maximal value for this limitation. " + i + ">" + l.getMaxOccurs());
+				o.recordFatalError(
+						"Exceeded maximal value for this limitation. " + i + ">" + l.getMaxOccurs());
 				op.addSubresult(o);
 				return null;
 				// if max is all ready reached or skip enabled for minimal skip
@@ -320,11 +329,11 @@ public class ValuePolicyGenerator {
 			}
 			for (String s : chars) {
 				if (null == password || !password.contains(s) || uniquenessReached) {
-//					if (null == counter.get(s)) {
-						counter.put(s, counterKey);
-//					} else {
-//						counter.put(s, counter.get(s) + 1);
-//					}
+					// if (null == counter.get(s)) {
+					counter.put(s, counterKey);
+					// } else {
+					// counter.put(s, counter.get(s) + 1);
+					// }
 				}
 			}
 			counterKey++;
@@ -337,7 +346,8 @@ public class ValuePolicyGenerator {
 				int i = charIntersectionCounter(lims.get(l), password);
 				if (l.getMaxOccurs() != null && i > l.getMaxOccurs()) {
 					OperationResult o = new OperationResult("Limitation check :" + l.getDescription());
-					o.recordFatalError("Exceeded maximal value for this limitation. " + i + ">" + l.getMaxOccurs());
+					o.recordFatalError(
+							"Exceeded maximal value for this limitation. " + i + ">" + l.getMaxOccurs());
 					op.addSubresult(o);
 					return null;
 				} else if (l.getMaxOccurs() != null && i == l.getMaxOccurs()) {
