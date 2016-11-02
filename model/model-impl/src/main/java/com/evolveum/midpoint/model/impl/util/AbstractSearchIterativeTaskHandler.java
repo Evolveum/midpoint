@@ -15,12 +15,15 @@
  */
 package com.evolveum.midpoint.model.impl.util;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-
+import com.evolveum.midpoint.model.common.SystemObjectCache;
+import com.evolveum.midpoint.model.common.expression.ExpressionFactory;
+import com.evolveum.midpoint.model.common.expression.ExpressionUtil;
+import com.evolveum.midpoint.model.common.expression.ExpressionVariables;
+import com.evolveum.midpoint.model.impl.ModelObjectResolver;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.QueryJaxbConvertor;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -28,33 +31,29 @@ import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.security.api.SecurityEnforcer;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.prism.xml.ns._public.query_3.QueryType;
-
-import org.springframework.beans.factory.annotation.Autowired;
-
-import com.evolveum.midpoint.model.impl.ModelObjectResolver;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.security.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskHandler;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.task.api.TaskRunResult;
 import com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
+import com.evolveum.prism.xml.ns._public.query_3.QueryType;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 
 import javax.xml.namespace.QName;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @author semancik
@@ -95,6 +94,12 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
 
 	@Autowired
 	protected SecurityEnforcer securityEnforcer;
+
+	@Autowired
+	protected ExpressionFactory expressionFactory;
+
+	@Autowired
+	protected SystemObjectCache systemObjectCache;
 
 	private static final transient Trace LOGGER = TraceManager.getTrace(AbstractSearchIterativeTaskHandler.class);
 	
@@ -167,7 +172,7 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
 		TaskRunResult runResult = new TaskRunResult();
 		runResult.setOperationResult(opResult);
 
-		H resultHandler = null;
+		H resultHandler;
 		try {
 			resultHandler = createHandler(runResult, coordinatorTask, opResult);
 		} catch (SecurityViolationException|SchemaException|RuntimeException e) {
@@ -198,19 +203,36 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
         try {
         	query = createQuery(resultHandler, runResult, coordinatorTask, opResult);
         } catch (SchemaException ex) {
-        	LOGGER.error("{}: Schema error while creating a search filter: {}", new Object[]{taskName, ex.getMessage(), ex});
-            opResult.recordFatalError("Schema error while creating a search filter: " + ex.getMessage(), ex);
-            runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
-            runResult.setProgress(resultHandler.getProgress());
-            return runResult;
+			logErrorAndSetResult(runResult, resultHandler, "Schema error while creating a search filter", ex,
+					OperationResultStatus.FATAL_ERROR, TaskRunResultStatus.PERMANENT_ERROR);
+			return runResult;
         }
-        
+
+        if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace("{}: using a query (before evaluating expressions):\n{}", taskName, DebugUtil.debugDump(query));
+		}
+
 		if (query == null) {
 			// the error should already be in the runResult
 			return runResult;
 		}
-		
-        Class<? extends ObjectType> type = getType(coordinatorTask);
+
+		try {
+			// TODO consider which variables should go here (there's no focus, shadow, resource - only configuration)
+			if (ExpressionUtil.hasExpressions(query.getFilter())) {
+				PrismObject<SystemConfigurationType> configuration = systemObjectCache.getSystemConfiguration(opResult);
+				ExpressionVariables variables = Utils.getDefaultExpressionVariables(null, null, null,
+						configuration != null ? configuration.asObjectable() : null);
+				query = ExpressionUtil.evaluateQueryExpressions(query, variables,
+						expressionFactory, prismContext, "evaluate query expressions", coordinatorTask, opResult);
+			}
+		} catch (SchemaException|ObjectNotFoundException|ExpressionEvaluationException e) {
+			logErrorAndSetResult(runResult, resultHandler, "Error while evaluating expressions in a search filter", e,
+					OperationResultStatus.FATAL_ERROR, TaskRunResultStatus.PERMANENT_ERROR);
+			return runResult;
+		}
+
+		Class<? extends ObjectType> type = getType(coordinatorTask);
 
         Collection<SelectorOptions<GetOperationOptions>> queryOptions = createQueryOptions(resultHandler, runResult, coordinatorTask, opResult);
         boolean useRepository = useRepositoryDirectly(resultHandler, runResult, coordinatorTask, opResult);
@@ -230,7 +252,7 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
                         expectedTotal = (long) expectedTotalInt;        // conversion would fail on null
                     }
                 } else {
-                    expectedTotal = Long.valueOf(repositoryService.countObjects(type, query, opResult));
+                    expectedTotal = (long) repositoryService.countObjects(type, query, opResult);
                 }
                 LOGGER.trace("{}: expecting {} objects to be processed", taskName, expectedTotal);
             }
@@ -254,49 +276,37 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
             }
             resultHandler.completeProcessing(coordinatorTask, opResult);
 
-        } catch (ObjectNotFoundException ex) {
-            LOGGER.error("{}: Object not found: {}", new Object[]{taskName, ex.getMessage(), ex});
+        } catch (ObjectNotFoundException e) {
             // This is bad. The resource does not exist. Permanent problem.
-            opResult.recordFatalError("Object not found " + ex.getMessage(), ex);
-            runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
-            runResult.setProgress(resultHandler.getProgress());
+			logErrorAndSetResult(runResult, resultHandler, "Object not found", e,
+					OperationResultStatus.FATAL_ERROR, TaskRunResultStatus.PERMANENT_ERROR);
             return runResult;
-        } catch (CommunicationException ex) {
-            LOGGER.error("{}: Communication error: {}", new Object[]{taskName, ex.getMessage(), ex});
-            // Error, but not critical. Just try later.
-            opResult.recordPartialError("Communication error: " + ex.getMessage(), ex);
-            runResult.setRunResultStatus(TaskRunResultStatus.TEMPORARY_ERROR);
-            runResult.setProgress(resultHandler.getProgress());
+        } catch (CommunicationException e) {
+			// Error, but not critical. Just try later.
+			logErrorAndSetResult(runResult, resultHandler, "Communication error", e,
+					OperationResultStatus.PARTIAL_ERROR, TaskRunResultStatus.TEMPORARY_ERROR);
             return runResult;
-        } catch (SchemaException ex) {
-            LOGGER.error("{}: Error dealing with schema: {}", new Object[]{taskName, ex.getMessage(), ex});
+        } catch (SchemaException e) {
             // Not sure about this. But most likely it is a misconfigured resource or connector
             // It may be worth to retry. Error is fatal, but may not be permanent.
-            opResult.recordFatalError("Error dealing with schema: " + ex.getMessage(), ex);
-            runResult.setRunResultStatus(TaskRunResultStatus.TEMPORARY_ERROR);
-            runResult.setProgress(resultHandler.getProgress());
+			logErrorAndSetResult(runResult, resultHandler, "Error dealing with schema", e,
+					OperationResultStatus.FATAL_ERROR, TaskRunResultStatus.TEMPORARY_ERROR);
             return runResult;
-        } catch (RuntimeException ex) {
-            LOGGER.error("{}: Internal Error: {}", new Object[]{taskName, ex.getMessage(), ex});
+        } catch (RuntimeException e) {
             // Can be anything ... but we can't recover from that.
             // It is most likely a programming error. Does not make much sense to retry.
-            opResult.recordFatalError("Internal Error: " + ex.getMessage(), ex);
-            runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
-            runResult.setProgress(resultHandler.getProgress());
+			logErrorAndSetResult(runResult, resultHandler, "Internal error", e,
+					OperationResultStatus.FATAL_ERROR, TaskRunResultStatus.PERMANENT_ERROR);
             return runResult;
-        } catch (ConfigurationException ex) {
-        	LOGGER.error("{}: Configuration error: {}", new Object[]{taskName, ex.getMessage(), ex});
+        } catch (ConfigurationException e) {
             // Not sure about this. But most likely it is a misconfigured resource or connector
             // It may be worth to retry. Error is fatal, but may not be permanent.
-            opResult.recordFatalError("Configuration error: " + ex.getMessage(), ex);
-            runResult.setRunResultStatus(TaskRunResultStatus.TEMPORARY_ERROR);
-            runResult.setProgress(resultHandler.getProgress());
+			logErrorAndSetResult(runResult, resultHandler, "Configuration error", e,
+					OperationResultStatus.FATAL_ERROR, TaskRunResultStatus.TEMPORARY_ERROR);
             return runResult;
-		} catch (SecurityViolationException ex) {
-			LOGGER.error("{}: Security violation: {}", new Object[]{taskName, ex.getMessage(), ex});
-            opResult.recordFatalError("Security violation: " + ex.getMessage(), ex);
-            runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
-            runResult.setProgress(resultHandler.getProgress());
+		} catch (SecurityViolationException e) {
+			logErrorAndSetResult(runResult, resultHandler, "Security violation", e,
+					OperationResultStatus.FATAL_ERROR, TaskRunResultStatus.PERMANENT_ERROR);
             return runResult;
 		}
 
@@ -322,21 +332,29 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
         
         try {
         	finish(resultHandler, runResult, coordinatorTask, opResult);
-        } catch (SchemaException ex) {
-        	LOGGER.error("{}: Schema error while finishing the run: {}", new Object[]{taskName, ex.getMessage(), ex});
-            opResult.recordFatalError("Schema error while finishing the run: " + ex.getMessage(), ex);
-            runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
-            runResult.setProgress(resultHandler.getProgress());
+        } catch (SchemaException e) {
+			logErrorAndSetResult(runResult, resultHandler, "Schema error while finishing the run", e,
+					OperationResultStatus.FATAL_ERROR, TaskRunResultStatus.PERMANENT_ERROR);
             return runResult;
         }
         
-        LOGGER.trace("{} run finished (task {}, run result {})", new Object[]{taskName, coordinatorTask, runResult});
+        LOGGER.trace("{} run finished (task {}, run result {})", taskName, coordinatorTask, runResult);
 
         return runResult;
 		
 	}
 
-    protected void finish(H handler, TaskRunResult runResult, Task task, OperationResult opResult) throws SchemaException {
+	private TaskRunResult logErrorAndSetResult(TaskRunResult runResult, H resultHandler, String message, Throwable e,
+			OperationResultStatus opStatus, TaskRunResultStatus status) {
+		LOGGER.error("{}: {}: {}", taskName, message, e.getMessage(), e);
+		runResult.getOperationResult().recordStatus(opStatus, message + ": " + e.getMessage(), e);
+		runResult.setRunResultStatus(status);
+		runResult.setProgress(resultHandler.getProgress());
+		return runResult;
+
+	}
+
+	protected void finish(H handler, TaskRunResult runResult, Task task, OperationResult opResult) throws SchemaException {
 	}
 
 	private H getHandler(Task task) {
@@ -370,7 +388,7 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
         	objectType = modelObjectResolver.getObject(type, objectOid, null, task, opResult);
 
         } catch (ObjectNotFoundException ex) {
-            LOGGER.error("Import: {} {} not found: {}", new Object[]{typeName, objectOid, ex.getMessage(), ex});
+            LOGGER.error("Import: {} {} not found: {}", typeName, objectOid, ex.getMessage(), ex);
             // This is bad. The resource does not exist. Permanent problem.
             opResult.recordFatalError(typeName+" not found " + objectOid, ex);
             runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
@@ -390,17 +408,17 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
             runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
             return null;
         } catch (CommunicationException ex) {
-        	LOGGER.error("Import: Error getting {} {}: {}", new Object[]{typeName, objectOid, ex.getMessage(), ex});
+        	LOGGER.error("Import: Error getting {} {}: {}", typeName, objectOid, ex.getMessage(), ex);
             opResult.recordFatalError("Error getting "+typeName+" " + objectOid+": "+ex.getMessage(), ex);
             runResult.setRunResultStatus(TaskRunResultStatus.TEMPORARY_ERROR);
             return null;
 		} catch (ConfigurationException ex) {
-			LOGGER.error("Import: Error getting {} {}: {}", new Object[]{typeName, objectOid, ex.getMessage(), ex});
+			LOGGER.error("Import: Error getting {} {}: {}", typeName, objectOid, ex.getMessage(), ex);
             opResult.recordFatalError("Error getting "+typeName+" " + objectOid+": "+ex.getMessage(), ex);
             runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
             return null;
 		} catch (SecurityViolationException ex) {
-			LOGGER.error("Import: Error getting {} {}: {}", new Object[]{typeName, objectOid, ex.getMessage(), ex});
+			LOGGER.error("Import: Error getting {} {}: {}", typeName, objectOid, ex.getMessage(), ex);
             opResult.recordFatalError("Error getting "+typeName+" " + objectOid+": "+ex.getMessage(), ex);
             runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
             return null;
@@ -427,7 +445,7 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
 	protected abstract ObjectQuery createQuery(H handler, TaskRunResult runResult, Task task, OperationResult opResult) throws SchemaException;
 
     // useful e.g. to specify noFetch options for shadow-related queries
-    private Collection<SelectorOptions<GetOperationOptions>> createQueryOptions(H resultHandler, TaskRunResult runResult, Task coordinatorTask, OperationResult opResult) {
+    protected Collection<SelectorOptions<GetOperationOptions>> createQueryOptions(H resultHandler, TaskRunResult runResult, Task coordinatorTask, OperationResult opResult) {
         return null;
     }
 

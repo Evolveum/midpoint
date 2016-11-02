@@ -1091,10 +1091,7 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
 			return;                // there's a definition already
 		}
 		replaceComplexTypeDefinition(containerDef.getComplexTypeDefinition());
-		if (complexTypeDefinition == null || complexTypeDefinition.isXsdAnyMarker()) {
-			// No point in applying this. Nothing will change and there may be phantom errors.
-			return;
-		}
+		// we need to continue even if CTD is null or 'any' - e.g. to resolve definitions within object extension
 		if (items != null) {
 			for (Item item : items) {
 				if (item.getDefinition() != null && !force) {

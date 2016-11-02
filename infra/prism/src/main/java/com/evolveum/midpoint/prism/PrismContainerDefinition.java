@@ -33,8 +33,6 @@ public interface PrismContainerDefinition<C extends Containerable> extends ItemD
 
 	ComplexTypeDefinition getComplexTypeDefinition();
 
-	boolean isWildcard();
-
 	@Override
 	void revive(PrismContext prismContext);
 
