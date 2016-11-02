@@ -115,11 +115,16 @@ public class AuditController implements ModelAuditService {
 		
 		LOGGER.info("TRAIL:\n{}", DebugUtil.debugDump(changeTrail, 1));
 		
+		PrismObject<O> objectFromLastEvent = getObjectFromLastEvent(currentObject, changeTrail, eventIdentifier);
+		if (objectFromLastEvent != null) {
+			return objectFromLastEvent;
+		}
+		
 		PrismObject<O> reconstructedObject = rollBackTime(currentObject.clone(), changeTrail);
 		
 		return reconstructedObject;
 	}
-	
+
 	private List<AuditEventRecord> getChangeTrail(String targetOid, String finalEventIdentifier) throws ObjectNotFoundException {
 		AuditEventRecord finalEvent = findEvent(finalEventIdentifier);
 		if (finalEvent == null) {
@@ -140,7 +145,6 @@ public class AuditController implements ModelAuditService {
 				iterator.remove();
 			} else if (finalEventIdentifier.equals(event.getEventIdentifier())) {
 				foundFinalEvent = true;
-				iterator.remove();
 			}
 		}
 		
@@ -170,7 +174,35 @@ public class AuditController implements ModelAuditService {
 		return listRecords.get(0);
 	}
 	
-	private <O extends ObjectType> PrismObject<O> rollBackTime(PrismObject<O> object, List<AuditEventRecord> changeTrail) throws SchemaException {
+	
+	private <O extends ObjectType> PrismObject<O> getObjectFromLastEvent(PrismObject<O> object, List<AuditEventRecord> changeTrail, String eventIdentifier) {
+		if (changeTrail.isEmpty()) {
+			return object;
+		}
+		AuditEventRecord lastEvent = changeTrail.remove(changeTrail.size() - 1);
+		if (!eventIdentifier.equals(lastEvent.getEventIdentifier())) {
+			throw new IllegalStateException("Wrong last event identifier, expected " + eventIdentifier+" but was " + lastEvent.getEventIdentifier());
+		}
+		Collection<ObjectDeltaOperation<? extends ObjectType>> lastEventDeltasOperations = lastEvent.getDeltas();
+		for (ObjectDeltaOperation<? extends ObjectType> lastEventDeltasOperation: lastEventDeltasOperations) {
+			ObjectDelta<O> objectDelta = (ObjectDelta<O>) lastEventDeltasOperation.getObjectDelta();
+			if (!isApplicable(lastEventDeltasOperation, object, lastEvent)) {
+				continue;
+			}
+			if (objectDelta.isAdd()) {
+				// We are lucky. This is object add, so we have complete object there. No need to roll back
+				// the operations.
+				PrismObject<O> objectToAdd = objectDelta.getObjectToAdd();
+				if (LOGGER.isTraceEnabled()) {
+					LOGGER.trace("Taking object from add delta in last event {}:\n{}", lastEvent.getEventIdentifier(), objectToAdd.debugDump(1));
+				}
+				return objectToAdd;
+			}
+		}
+		return null;
+	}
+	
+	private <O extends ObjectType> PrismObject<O> rollBackTime(PrismObject<O> object, List<AuditEventRecord> changeTrail) throws SchemaException {		
 		for (AuditEventRecord event: changeTrail) {
 			if (LOGGER.isTraceEnabled()) {
 				LOGGER.trace("Applying event {} ({})", event.getEventIdentifier(), XmlTypeConverter.createXMLGregorianCalendar(event.getTimestamp()));
@@ -178,18 +210,8 @@ public class AuditController implements ModelAuditService {
 			Collection<ObjectDeltaOperation<? extends ObjectType>> deltaOperations = event.getDeltas();
 			if (deltaOperations != null) {
 				for (ObjectDeltaOperation<? extends ObjectType> deltaOperation: deltaOperations) {
-					OperationResult executionResult = deltaOperation.getExecutionResult();
 					ObjectDelta<O> objectDelta = (ObjectDelta<O>) deltaOperation.getObjectDelta();
-					if (executionResult.getStatus() == OperationResultStatus.FATAL_ERROR) {
-						LOGGER.trace("Skipping delta {} in event {} because it is {}", objectDelta, event.getEventIdentifier(), 
-								executionResult.getStatus());
-						continue;
-					}
-					if (!object.getOid().equals(objectDelta.getOid())) {
-						if (LOGGER.isTraceEnabled()) {
-							LOGGER.trace("Skipping delta {} in event {} because OID does not match ({} vs {})", objectDelta, event.getEventIdentifier(), 
-								object.getOid(), objectDelta.getOid());
-						}
+					if (!isApplicable(deltaOperation, object, event)) {
 						continue;
 					}
 					if (objectDelta.isDelete()) {
@@ -211,6 +233,25 @@ public class AuditController implements ModelAuditService {
 			}
 		}
 		return object;
+	}
+
+	private <O extends ObjectType> boolean isApplicable(ObjectDeltaOperation<? extends ObjectType> lastEventDeltasOperation,
+			PrismObject<O> object, AuditEventRecord lastEvent) {
+		OperationResult executionResult = lastEventDeltasOperation.getExecutionResult();
+		ObjectDelta<O> objectDelta = (ObjectDelta<O>) lastEventDeltasOperation.getObjectDelta();
+		if (executionResult.getStatus() == OperationResultStatus.FATAL_ERROR) {
+			LOGGER.trace("Skipping delta {} in event {} because it is {}", objectDelta, lastEvent.getEventIdentifier(), 
+					executionResult.getStatus());
+			return false;
+		}
+		if (!object.getOid().equals(objectDelta.getOid())) {
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("Skipping delta {} in event {} because OID does not match ({} vs {})", objectDelta, lastEvent.getEventIdentifier(), 
+					object.getOid(), objectDelta.getOid());
+			}
+			return false;
+		}
+		return true;
 	}
 
 }
