@@ -9,10 +9,13 @@ import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.extensions.markup.html.captcha.CaptchaImageResource;
+import org.apache.wicket.feedback.ComponentFeedbackMessageFilter;
+import org.apache.wicket.feedback.ContainerFeedbackMessageFilter;
 import org.apache.wicket.markup.ComponentTag;
 import org.apache.wicket.markup.html.basic.MultiLineLabel;
 import org.apache.wicket.markup.html.form.RequiredTextField;
 import org.apache.wicket.markup.html.image.Image;
+import org.apache.wicket.markup.html.panel.FeedbackPanel;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -89,6 +92,7 @@ public class PageSelfRegistration extends PageRegistrationBase {
 	private static final String ID_IMAGE = "image";
 	private static final String ID_CHANGE_LINK = "changeLink";
 	private static final String ID_USER_TEXT = "text";
+	private static final String ID_FEEDBACK = "feedback";
 
 	private static final String ID_CAPTCHA = "captcha";
 	
@@ -139,6 +143,7 @@ public class PageSelfRegistration extends PageRegistrationBase {
 	}
 
 	private void initLayout() {
+		
 		Form<?> mainForm = new Form<>(ID_MAIN_FORM);
 		mainForm.add(new VisibleEnableBehaviour() {
 
@@ -155,6 +160,11 @@ public class PageSelfRegistration extends PageRegistrationBase {
 			}
 		});
 		add(mainForm);
+		
+		//feedback
+	    FeedbackPanel feedback = new FeedbackPanel(ID_FEEDBACK, new ContainerFeedbackMessageFilter(PageSelfRegistration.this));
+        feedback.setOutputMarkupId(true);
+        mainForm.add(feedback);
 
 		TextPanel<String> firstName = new TextPanel<>(ID_FIRST_NAME,
 				new PropertyModel<String>(userModel, UserType.F_GIVEN_NAME.getLocalPart() + ".orig") {
@@ -166,8 +176,7 @@ public class PageSelfRegistration extends PageRegistrationBase {
 						userModel.getObject().setGivenName(new PolyStringType(object));
 					}
 				});
-		firstName.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
-		firstName.getBaseFormComponent().setRequired(true);
+		initInputProperties(feedback, firstName);
 		mainForm.add(firstName);
 
 		TextPanel<String> lastName = new TextPanel<>(ID_LAST_NAME,
@@ -181,14 +190,12 @@ public class PageSelfRegistration extends PageRegistrationBase {
 					}
 
 				});
-		lastName.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
-		lastName.getBaseFormComponent().setRequired(true);
+		initInputProperties(feedback, lastName);
 		mainForm.add(lastName);
 
 		TextPanel<String> email = new TextPanel<>(ID_EMAIL,
 				new PropertyModel<String>(userModel, UserType.F_EMAIL_ADDRESS.getLocalPart()));
-		email.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
-		email.getBaseFormComponent().setRequired(true);
+		initInputProperties(feedback, email);
 		mainForm.add(email);
 
 		AutoCompleteTextPanel<String> organization = new AutoCompleteTextPanel<String>(ID_ORGANIZATION,
@@ -220,6 +227,12 @@ public class PageSelfRegistration extends PageRegistrationBase {
 
 			private static final long serialVersionUID = 1L;
 
+			@Override
+			protected void onError(AjaxRequestTarget target,
+					org.apache.wicket.markup.html.form.Form<?> form) {
+				showErrors(target);
+			}
+			
 			protected void onSubmit(AjaxRequestTarget target,
 					org.apache.wicket.markup.html.form.Form<?> form) {
 
@@ -252,6 +265,18 @@ public class PageSelfRegistration extends PageRegistrationBase {
 
 	}
 	
+	private void showErrors(AjaxRequestTarget target) {
+		target.add(get(createComponentPath(ID_MAIN_FORM, ID_FEEDBACK)));
+		target.add(getFeedbackPanel());
+	}
+	
+	private void initInputProperties(FeedbackPanel feedback, TextPanel<String> firstName) {
+		firstName.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
+		firstName.getBaseFormComponent().setRequired(true);
+		feedback.setFilter(new ContainerFeedbackMessageFilter(firstName.getBaseFormComponent()));
+		
+	}
+
 	private CaptchaPanel getCaptcha() {
 		return (CaptchaPanel) get(createComponentPath(ID_MAIN_FORM, ID_CAPTCHA));
 	}
@@ -301,25 +326,13 @@ public class PageSelfRegistration extends PageRegistrationBase {
 			getSession().error(
 					createStringResource("PageSelfRegistration.registration.error", result.getMessage())
 							.getString());
-			throw new RestartResponseException(PageSelfRegistration.class);
+			throw new RestartResponseException(this);
 
 		}
 
 		updateCaptcha(target);
 		target.add(getFeedbackPanel());
-
-	}
-
-	private String generateCaptcha() {
-		OperationResult result = new OperationResult("generateRandomString");
-
-		StringPolicyType sp = StringPolicyUtils.normalize(new StringPolicyType());
-		LimitationsType limits = new LimitationsType();
-		limits.setMinLength(8);
-		limits.setMaxLength(12);
-		limits.setMinUniqueChars(6);
-		sp.setLimitations(limits);
-		return ValuePolicyGenerator.generate(sp, 8, result);
+		target.add(this);
 
 	}
 

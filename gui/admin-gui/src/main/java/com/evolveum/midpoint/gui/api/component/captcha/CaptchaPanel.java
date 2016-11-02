@@ -37,7 +37,7 @@ public class CaptchaPanel extends BasePanel<Void> {
 	public CaptchaPanel(String id) {
 		super(id);
 
-		final FeedbackPanel feedback = new FeedbackPanel("feedback",
+		FeedbackPanel feedback = new FeedbackPanel("feedback",
 				new ContainerFeedbackMessageFilter(CaptchaPanel.this));
 		add(feedback);
 
