@@ -20,6 +20,7 @@ import com.evolveum.midpoint.model.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.model.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.model.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.model.impl.ModelObjectResolver;
+import com.evolveum.midpoint.model.impl.expr.ModelExpressionThreadLocalHolder;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
@@ -223,8 +224,15 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
 				PrismObject<SystemConfigurationType> configuration = systemObjectCache.getSystemConfiguration(opResult);
 				ExpressionVariables variables = Utils.getDefaultExpressionVariables(null, null, null,
 						configuration != null ? configuration.asObjectable() : null);
-				query = ExpressionUtil.evaluateQueryExpressions(query, variables,
-						expressionFactory, prismContext, "evaluate query expressions", coordinatorTask, opResult);
+				try {
+					ModelExpressionThreadLocalHolder.pushCurrentTask(coordinatorTask);
+					ModelExpressionThreadLocalHolder.pushCurrentResult(opResult);
+					query = ExpressionUtil.evaluateQueryExpressions(query, variables, expressionFactory,
+							prismContext, "evaluate query expressions", coordinatorTask, opResult);
+				} finally {
+					ModelExpressionThreadLocalHolder.popCurrentResult();
+					ModelExpressionThreadLocalHolder.popCurrentTask();
+				}
 			}
 		} catch (SchemaException|ObjectNotFoundException|ExpressionEvaluationException e) {
 			logErrorAndSetResult(runResult, resultHandler, "Error while evaluating expressions in a search filter", e,
