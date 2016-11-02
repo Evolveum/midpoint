@@ -420,7 +420,7 @@ public class PageSelfRegistration extends PageRegistrationBase {
 			if (namedParameters != null && !namedParameters.isEmpty()) {
 				NamedPair firstParam = namedParameters.iterator().next();
 				if (firstParam != null) {
-					nonceType.setResetType(firstParam.getValue());
+					nonceType.setName(firstParam.getValue());
 				}
 			}
 		}

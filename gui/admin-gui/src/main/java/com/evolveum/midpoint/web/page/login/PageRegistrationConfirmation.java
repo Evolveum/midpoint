@@ -171,7 +171,7 @@ public class PageRegistrationConfirmation extends PageRegistrationBase {
 	private void assignAdditionalRoleIfPresent(String userOid, UsernamePasswordAuthenticationToken token, NonceType nonceType, OperationResult result){
 		SecurityContextHolder.getContext().setAuthentication(token);
 		List<ItemDelta> userDeltas = new ArrayList<>();
-		if (nonceType.getResetType() != null) {
+		if (nonceType.getName() != null) {
 
 			Task task = createSimpleTask(OPERATION_FINISH_REGISTRATION);
 
@@ -180,7 +180,7 @@ public class PageRegistrationConfirmation extends PageRegistrationBase {
 			try {
 				AssignmentType assignment = new AssignmentType();
 				assignment.setTargetRef(
-						ObjectTypeUtil.createObjectRef(nonceType.getResetType(), ObjectTypes.ABSTRACT_ROLE));
+						ObjectTypeUtil.createObjectRef(nonceType.getName(), ObjectTypes.ABSTRACT_ROLE));
 				getPrismContext().adopt(assignment);
 				userDeltas.add((ItemDelta) ContainerDelta.createModificationAdd(UserType.F_ASSIGNMENT,
 						UserType.class, getPrismContext(), assignment));
