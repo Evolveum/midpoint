@@ -51,6 +51,7 @@ import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -67,6 +68,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.QueryInterpretationOfNoValueType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * @author semancik
@@ -468,6 +470,22 @@ public class ExpressionUtil {
 
 		return evaluateFilterExpressionsInternal(origFilter, variables, expressionFactory, prismContext,
 				shortDesc, task, result);
+	}
+
+	public static boolean hasExpressions(@Nullable ObjectFilter filter) {
+		if (filter == null) {
+			return false;
+		}
+		Holder<Boolean> result = new Holder<>(false);
+		filter.accept(f -> {
+			if (f instanceof ValueFilter) {
+				ValueFilter<?, ?> vf = (ValueFilter<?, ?>) f;
+				if (vf.getExpression() != null) {
+					result.setValue(true);
+				}
+			}
+		});
+		return result.getValue();
 	}
 
 	private static ObjectFilter evaluateFilterExpressionsInternal(ObjectFilter filter,

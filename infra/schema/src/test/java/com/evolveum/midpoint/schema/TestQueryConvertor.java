@@ -272,7 +272,7 @@ public class TestQueryConvertor {
 	public void testTypeFilterQuery() throws Exception {
 		displayTestTitle("testConnectorQuery");
 		SearchFilterType filterType = PrismTestUtil.parseAtomicValue(FILTER_BY_TYPE_FILE, SearchFilterType.COMPLEX_TYPE);
-		ObjectQuery query = null;
+		ObjectQuery query;
 		try {
 			query = QueryJaxbConvertor.createObjectQuery(ConnectorType.class, filterType, getPrismContext());
 			displayQuery(query);
@@ -294,12 +294,6 @@ public class TestQueryConvertor {
 
 			QueryType convertedQueryType = toQueryType(query);
 			displayQueryType(convertedQueryType);
-		} catch (SchemaException ex) {
-			LOGGER.error("Error while converting query: {}", ex.getMessage(), ex);
-			throw ex;
-		} catch (RuntimeException ex) {
-			LOGGER.error("Error while converting query: {}", ex.getMessage(), ex);
-			throw ex;
 		} catch (Exception ex) {
 			LOGGER.error("Error while converting query: {}", ex.getMessage(), ex);
 			throw ex;
@@ -319,15 +313,13 @@ public class TestQueryConvertor {
 	}
 
 	private ObjectQuery toObjectQuery(Class type, QueryType queryType) throws Exception {
-		ObjectQuery query = QueryJaxbConvertor.createObjectQuery(type, queryType,
+		return QueryJaxbConvertor.createObjectQuery(type, queryType,
 				getPrismContext());
-		return query;
 	}
 	
 	private ObjectQuery toObjectQuery(Class type, SearchFilterType filterType) throws Exception {
-		ObjectQuery query = QueryJaxbConvertor.createObjectQuery(type, filterType,
+		return QueryJaxbConvertor.createObjectQuery(type, filterType,
 				getPrismContext());
-		return query;
 	}
 
 	private QueryType toQueryType(ObjectQuery query) throws Exception {
@@ -386,7 +378,7 @@ public class TestQueryConvertor {
 		for (File file : userQueriesToTest) {
 			SearchFilterType filterType = PrismTestUtil.parseAtomicValue(file, SearchFilterType.COMPLEX_TYPE);
 			LOGGER.info("===[ query type parsed ]===");
-			ObjectQuery query = null;
+			ObjectQuery query;
 			try {
 				query = QueryJaxbConvertor.createObjectQuery(UserType.class, filterType, getPrismContext());
 				LOGGER.info("query converted: ");
@@ -397,12 +389,6 @@ public class TestQueryConvertor {
 
 				QueryType convertedQueryType = QueryJaxbConvertor.createQueryType(query, getPrismContext());
 				LOGGER.info(DOMUtil.serializeDOMToString(convertedQueryType.getFilter().getFilterClauseAsElement()));
-			} catch (SchemaException ex) {
-				LOGGER.error("Error while converting query: {}", ex.getMessage(), ex);
-				throw ex;
-			} catch (RuntimeException ex) {
-				LOGGER.error("Error while converting query: {}", ex.getMessage(), ex);
-				throw ex;
 			} catch (Exception ex) {
 				LOGGER.error("Error while converting query: {}", ex.getMessage(), ex);
 				throw ex;
@@ -504,7 +490,6 @@ public class TestQueryConvertor {
 	public void test220EqualRightHandItem() throws Exception {
 		final String TEST_NAME = "test220EqualRightHandItem";
 		displayTestTitle(TEST_NAME);
-		PrismObjectDefinition<UserType> userDef = getPrismContext().getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
 		ObjectQuery q = QueryBuilder.queryFor(UserType.class, getPrismContext())
 				.item(UserType.F_EMPLOYEE_NUMBER).eq().item(UserType.F_COST_CENTER)
 				.build();
