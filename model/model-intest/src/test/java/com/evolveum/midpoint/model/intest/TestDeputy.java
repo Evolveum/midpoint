@@ -16,46 +16,18 @@
 package com.evolveum.midpoint.model.intest;
 
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertTrue;
 
 import java.io.File;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import javax.xml.datatype.XMLGregorianCalendar;
 
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
-import com.evolveum.midpoint.audit.api.AuditEventRecord;
-import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.util.PrismAsserts;
-import com.evolveum.midpoint.prism.util.PrismTestUtil;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.util.MidPointAsserts;
 import com.evolveum.midpoint.test.util.TestUtil;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
@@ -86,11 +58,13 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
         display("User Jack", userJack);
         assertNoAssignments(userJack);
         assertLinks(userJack, 0);
+        assertNoAuthorizations(userJack);
         
         PrismObject<UserType> userBarbossa = getUser(USER_BARBOSSA_OID);
         display("User Barbossa", userBarbossa);
         assertNoAssignments(userBarbossa);
         assertLinks(userBarbossa, 0);
+        assertNoAuthorizations(userBarbossa);
 	}
 
 	/**
@@ -120,11 +94,13 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
         assertAssignedDeputy(userBarbossaAfter, USER_JACK_OID);
         assertAssignments(userBarbossaAfter, 1);
         assertLinks(userBarbossaAfter, 0);
+        assertNoAuthorizations(userBarbossaAfter);
         
         PrismObject<UserType> userJackAfter = getUser(USER_JACK_OID);
         display("User Jack after", userJackAfter);
         assertNoAssignments(userJackAfter);
         assertLinks(userBarbossaAfter, 0);
+        assertNoAuthorizations(userJackAfter);
         
     }
     
@@ -154,24 +130,14 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
         display("User Barbossa after", userBarbossaAfter);        
         assertAssignments(userBarbossaAfter, 0);
         assertLinks(userBarbossaAfter, 0);
+        assertNoAuthorizations(userBarbossaAfter);
         
         PrismObject<UserType> userJackAfter = getUser(USER_JACK_OID);
         display("User Jack after", userJackAfter);
         assertNoAssignments(userJackAfter);
         assertLinks(userBarbossaAfter, 0);
+        assertNoAuthorizations(userJackAfter);
         
     }
-
-	private void assignDeputy(String userDeputyOid, String userTargetOid, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
-		modifyUserAssignment(userDeputyOid, userTargetOid, UserType.COMPLEX_TYPE, SchemaConstants.ORG_DEPUTY, task, null, null, true, result);
-	}
-
-	private void unassignDeputy(String userDeputyOid, String userTargetOid, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
-		modifyUserAssignment(userDeputyOid, userTargetOid, UserType.COMPLEX_TYPE, SchemaConstants.ORG_DEPUTY, task, null, null, false, result);
-	}
-
-	private <F extends FocusType> void assertAssignedDeputy(PrismObject<F> focus, String targetUserOid) {
-		MidPointAsserts.assertAssigned(focus, targetUserOid, UserType.COMPLEX_TYPE, SchemaConstants.ORG_DEPUTY);
-	}
-    
+	
 }
