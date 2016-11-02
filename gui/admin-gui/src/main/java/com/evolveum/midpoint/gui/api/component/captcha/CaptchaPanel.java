@@ -105,4 +105,8 @@ public class CaptchaPanel extends BasePanel<Void> {
 		return captchaText;
 	}
     
+    public String getRandomText() {
+		return randomText;
+	}
+    
 }

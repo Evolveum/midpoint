@@ -28,6 +28,7 @@ import com.evolveum.midpoint.gui.api.component.password.PasswordPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -35,6 +36,7 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
+import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
@@ -165,6 +167,7 @@ public class PageSelfRegistration extends PageRegistrationBase {
 					}
 				});
 		firstName.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
+		firstName.getBaseFormComponent().setRequired(true);
 		mainForm.add(firstName);
 
 		TextPanel<String> lastName = new TextPanel<>(ID_LAST_NAME,
@@ -179,11 +182,13 @@ public class PageSelfRegistration extends PageRegistrationBase {
 
 				});
 		lastName.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
+		lastName.getBaseFormComponent().setRequired(true);
 		mainForm.add(lastName);
 
 		TextPanel<String> email = new TextPanel<>(ID_EMAIL,
 				new PropertyModel<String>(userModel, UserType.F_EMAIL_ADDRESS.getLocalPart()));
 		email.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
+		email.getBaseFormComponent().setRequired(true);
 		mainForm.add(email);
 
 		AutoCompleteTextPanel<String> organization = new AutoCompleteTextPanel<String>(ID_ORGANIZATION,
@@ -204,46 +209,12 @@ public class PageSelfRegistration extends PageRegistrationBase {
 								+ CredentialsType.F_PASSWORD.getLocalPart() + "."
 								+ PasswordType.F_VALUE.getLocalPart()));
 		password.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
+		password.getBaseFormComponent().setRequired(true);
 		mainForm.add(password);
 
 		CaptchaPanel captcha = new CaptchaPanel(ID_CAPTCHA);
 		captcha.setOutputMarkupId(true);
-//		final CaptchaImageResource captcha = new CaptchaImageResource(new AbstractReadOnlyModel<String>() {
-//
-//			private static final long serialVersionUID = 1L;
-//
-//			@Override
-//			public String getObject() {
-//				randomString = generateCaptcha();
-//				return randomString;
-//			}
-//
-//		});
-//
-//		final Image captchaImage = new Image(ID_IMAGE, captcha);
-//		captchaImage.setOutputMarkupId(true);
 		mainForm.add(captcha);
-
-//		AjaxLink<Void> changeCaptchaLink = new AjaxLink<Void>(ID_CHANGE_LINK) {
-//			private static final long serialVersionUID = 1L;
-//
-//			@Override
-//			public void onClick(AjaxRequestTarget target) {
-//				updateCaptcha(captcha, target);
-//			}
-//		};
-//		mainForm.add(changeCaptchaLink);
-
-		
-		// userText.add(new EmptyOnBlurAjaxFormUpdatingBehaviour(){
-		//
-		// @Override
-		// protected void onUpdate(AjaxRequestTarget target) {
-		// PageSelfRegistration.this.captchaString = (String)
-		// getDefaultModelObject();
-		// }
-		// });
-		
 
 		AjaxSubmitButton register = new AjaxSubmitButton(ID_SUBMIT_REGISTRATION) {
 
@@ -280,9 +251,22 @@ public class PageSelfRegistration extends PageRegistrationBase {
 		});
 
 	}
+	
+	private CaptchaPanel getCaptcha() {
+		return (CaptchaPanel) get(createComponentPath(ID_MAIN_FORM, ID_CAPTCHA));
+	}
 
 	private void submitRegistration(AjaxRequestTarget target) {
 
+		CaptchaPanel captcha = getCaptcha();
+		if (captcha.getCaptchaText() != null && captcha.getRandomText() != null) {
+			if (!captcha.getCaptchaText().equals(captcha.getRandomText())) {
+				getSession().error(createStringResource("PageSelfRegistration.captcha.validation.failed").getString());
+				captcha.invalidateCaptcha();
+				throw new RestartResponseException(this);
+			}
+		}
+		
 		OperationResult result = runPrivileged(new Producer<OperationResult>() {
 
 			@Override
@@ -384,21 +368,48 @@ public class PageSelfRegistration extends PageRegistrationBase {
 		ObjectDelta<UserType> userDelta = ObjectDelta.createAddDelta(userType.asPrismObject());
 		userDelta.setPrismContext(getPrismContext());
 
-		WebModelServiceUtils.save(userDelta, result, task, PageSelfRegistration.this);
+		WebModelServiceUtils.save(userDelta, ModelExecuteOptions.createOverwrite(), result, task, PageSelfRegistration.this);
 		result.computeStatus();
 
 	}
 
 	private UserType prepareUserToSave(Task task,
 			OperationResult result) {
-		String organization = getOrganization();
+		
+		SelfRegistrationDto selfRegistrationConfiguration = getSelfRegistrationConfiguration();
 		UserType userType = userModel.getObject();
+		if (selfRegistrationConfiguration.getRequiredLifecycleState() != null) {
+			ObjectQuery query = QueryBuilder.queryFor(UserType.class, getPrismContext())
+									.item(UserType.F_EMAIL_ADDRESS).eq(userType.getEmailAddress())
+								.build();
+			SearchResultList<PrismObject<UserType>> users = null;
+			try {
+				users = getModelService().searchObjects(UserType.class, query, null, task, result);
+			} catch (SchemaException | ObjectNotFoundException | SecurityViolationException
+					| CommunicationException | ConfigurationException e) {
+				// TODO Auto-generated catch block
+			}
+			
+			if (users == null || users.size() == 0 || users.size() > 1) {
+				getSession().error(createStringResource("PageSelfRegistration.registration.failed.unsatisfied.registration.configuration").getString());
+				throw new RestartResponseException(this);
+				
+			}
+			
+			PrismObject<UserType> preregisteredUser = users.iterator().next();
+			
+			userType.setOid(preregisteredUser.getOid());
+			
+		}
+		
+		String organization = getOrganization();
+		
 		if (organization != null) {
 			userType.getOrganization().add(new PolyStringType(organization));
 		}
 
 		ProtectedStringType nonceCredentials = new ProtectedStringType();
-		nonceCredentials.setClearValue(generateNonce(getSelfRegistrationConfiguration().getNoncePolicy(), task, result));
+		nonceCredentials.setClearValue(generateNonce(selfRegistrationConfiguration.getNoncePolicy(), task, result));
 
 		NonceType nonceType = new NonceType();
 		nonceType.setValue(nonceCredentials);
