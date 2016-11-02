@@ -1758,6 +1758,13 @@ public abstract class ItemDelta<V extends PrismValue,D extends ItemDefinition> i
 		reverseDelta.valuesToDelete = cloneValuesToAdd;
 		if (cloneValuesToReplace != null) {
 			reverseDelta.valuesToReplace = cloneEstimatedOldValues;
+			if (reverseDelta.valuesToReplace == null) {
+				// We want to force replace delta here. Otherwise the reverse delta
+				// may look like empty. We do not explicitly have old values here,
+				// so this is a bit tricky and not entirely correct. But we can live
+				// with that for now.
+				reverseDelta.valuesToReplace = new ArrayList<>(0);
+			}
 			reverseDelta.estimatedOldValues = cloneValuesToReplace;
 		} else {
 			// TODO: what about estimatedOldValues here?
