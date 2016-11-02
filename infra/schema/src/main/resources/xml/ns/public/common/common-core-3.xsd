@@ -10387,8 +10387,6 @@
 			</xsd:element>
 			<xsd:element name="displayName" type="xsd:string" minOccurs="0">
 			</xsd:element>
-			<xsd:element name="nonceName" type="xsd:string" minOccurs="0">
-			</xsd:element>
              <!-- More registration types may come here in the future. -->
 		</xsd:sequence>
 	</xsd:complexType>
@@ -10406,6 +10404,8 @@
 		<xsd:complexContent>
 			<xsd:extension base="tns:AbstractAuthenticationPolicyType">
 				<xsd:sequence>
+					<xsd:element name="mailNonce" type="xsd:string" minOccurs="0">
+			</xsd:element>
 				</xsd:sequence>
 			</xsd:extension>
 		</xsd:complexContent>
@@ -10424,6 +10424,8 @@
 		<xsd:complexContent>
 			<xsd:extension base="tns:AbstractAuthenticationPolicyType">
 				<xsd:sequence>
+					<xsd:element name="smsNonce" type="xsd:string" minOccurs="0">
+			</xsd:element>
 				</xsd:sequence>
 			</xsd:extension>
 		</xsd:complexContent>
@@ -10444,6 +10446,10 @@
 		</xsd:annotation>
 		<xsd:sequence>
 			<xsd:element name="name" type="xsd:string" minOccurs="0">
+			</xsd:element>
+			<xsd:element name="initialLifecycleState" type="xsd:string" minOccurs="0">
+			</xsd:element>
+			<xsd:element name="requiredLifecycleState" type="xsd:string" minOccurs="0">
 			</xsd:element>
 			<xsd:element name="displayName" type="xsd:string" minOccurs="0">
 			</xsd:element>

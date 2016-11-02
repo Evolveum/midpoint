@@ -74,7 +74,7 @@ public class AuthenticationEvaluatorImpl implements AuthenticationEvaluator {
 			throw new BadCredentialsException("web.security.provider.password.encoding");
 		}
 		
-		MidPointPrincipal principal = getAndCheckPrincipal(connEnv, enteredUsername);
+		MidPointPrincipal principal = getAndCheckPrincipal(connEnv, enteredUsername, true);
 		
 		UserType userType = principal.getUser();
 		CredentialsType credentials = userType.getCredentials();
@@ -130,7 +130,7 @@ public class AuthenticationEvaluatorImpl implements AuthenticationEvaluator {
 			throw new BadCredentialsException("web.security.provider.password.encoding");
 		}
 		
-		MidPointPrincipal principal = getAndCheckPrincipal(connEnv, enteredUsername);
+		MidPointPrincipal principal = getAndCheckPrincipal(connEnv, enteredUsername, false);
 		
 		UserType userType = principal.getUser();
 		CredentialsType credentials = userType.getCredentials();
@@ -167,7 +167,7 @@ public class AuthenticationEvaluatorImpl implements AuthenticationEvaluator {
 			throws AuthenticationCredentialsNotFoundException, DisabledException, LockedException, 
 			CredentialsExpiredException, AuthenticationServiceException, AccessDeniedException, UsernameNotFoundException {		
 
-		MidPointPrincipal principal = getAndCheckPrincipal(connEnv, enteredUsername);
+		MidPointPrincipal principal = getAndCheckPrincipal(connEnv, enteredUsername, true);
 		
 		UserType userType = principal.getUser();
 		CredentialsType credentials = userType.getCredentials();
@@ -207,7 +207,7 @@ public class AuthenticationEvaluatorImpl implements AuthenticationEvaluator {
 	public PreAuthenticatedAuthenticationToken authenticateUserPreAuthenticated(ConnectionEnvironment connEnv,
 			String enteredUsername) {
 		
-		MidPointPrincipal principal = getAndCheckPrincipal(connEnv, enteredUsername);
+		MidPointPrincipal principal = getAndCheckPrincipal(connEnv, enteredUsername, true);
 		
 		// Authorizations
 		if (!hasAnyAuthorization(principal)) {
@@ -223,7 +223,7 @@ public class AuthenticationEvaluatorImpl implements AuthenticationEvaluator {
 	}
 
 	@NotNull
-	private MidPointPrincipal getAndCheckPrincipal(ConnectionEnvironment connEnv, String enteredUsername) {
+	private MidPointPrincipal getAndCheckPrincipal(ConnectionEnvironment connEnv, String enteredUsername, boolean checkActivation) {
 		
 		if (StringUtils.isBlank(enteredUsername)) {
 			recordAuthenticationFailure(enteredUsername, connEnv, "no username");
@@ -243,7 +243,7 @@ public class AuthenticationEvaluatorImpl implements AuthenticationEvaluator {
 			throw new UsernameNotFoundException("web.security.provider.invalid");
 		}
 
-		if (!principal.isEnabled()) {
+		if (checkActivation && !principal.isEnabled()) {
 			recordAuthenticationFailure(principal, connEnv, "user disabled");
 			throw new DisabledException("web.security.provider.disabled");
 		}

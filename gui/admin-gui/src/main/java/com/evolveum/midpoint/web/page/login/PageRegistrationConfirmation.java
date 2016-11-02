@@ -35,6 +35,7 @@ import com.evolveum.midpoint.web.util.MidPointPageParametersEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NonceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 //CONFIRMATION_LINK = "http://localhost:8080/midpoint/confirm/registration/";
@@ -48,7 +49,8 @@ public class PageRegistrationConfirmation extends PageRegistrationBase {
 	private static final String ID_LINK_LOGIN = "linkToLogin";
 	private static final String ID_SUCCESS_PANEL = "successPanel";
 	private static final String ID_ERROR_PANEL = "errorPanel";
-
+	
+	private static final String OPERATION_ASSIGN_DEFAULT_ROLES = DOT_CLASS + ".assignDefaultRoles";
 	private static final String OPERATION_FINISH_REGISTRATION = DOT_CLASS + "finishRegistration";
 
 	private static final long serialVersionUID = 1L;
@@ -84,6 +86,12 @@ public class PageRegistrationConfirmation extends PageRegistrationBase {
 		}
 		
 		final MidPointPrincipal principal = (MidPointPrincipal) token.getPrincipal();
+		result = assignDefaultRoles(principal.getOid());
+		if (result.getStatus() == OperationResultStatus.FATAL_ERROR) {
+			initLayout(result);
+			return;
+		}
+		
 		final NonceType nonceClone = principal.getUser().getCredentials().getNonce().clone();
 		
 		result = removeNonce(principal.getOid(), nonceClone);
@@ -106,6 +114,37 @@ public class PageRegistrationConfirmation extends PageRegistrationBase {
 		}
 	}
 	
+	private OperationResult assignDefaultRoles(final String userOid){
+		List<ContainerDelta<AssignmentType>> assignments = new ArrayList<>();
+		for (ObjectReferenceType defaultRole : getSelfRegistrationConfiguration().getDefaultRoles()) {
+			AssignmentType assignment = new AssignmentType();
+			assignment.setTargetRef(defaultRole);
+			try {
+				getPrismContext().adopt(assignment);
+				assignments.add(ContainerDelta.createModificationAdd(UserType.F_ASSIGNMENT, UserType.class, getPrismContext(), assignment));
+			} catch (SchemaException e) {
+				//nothing to do
+			}
+		}
+		
+		final ObjectDelta<UserType> delta = ObjectDelta.createModifyDelta(userOid, assignments, UserType.class, getPrismContext());
+		
+		return runPrivileged(new Producer<OperationResult>() {
+		
+			@Override
+			public OperationResult run() {
+				OperationResult result = new OperationResult(OPERATION_ASSIGN_DEFAULT_ROLES);
+				Task task = createAnonymousTask(OPERATION_ASSIGN_DEFAULT_ROLES);
+				WebModelServiceUtils.save(delta, result, task, PageRegistrationConfirmation.this);
+				result.computeStatusIfUnknown();
+				
+				return result;
+			}
+		});
+		
+		
+	}
+	
 	private OperationResult removeNonce(final String userOid, final NonceType nonce){
 		return runPrivileged(new Producer<OperationResult>() {
 			
@@ -117,6 +156,7 @@ public class PageRegistrationConfirmation extends PageRegistrationBase {
 				ObjectDelta<UserType> userAssignmentsDelta;
 				try {
 					userAssignmentsDelta = ObjectDelta.createModificationDeleteContainer(UserType.class, userOid, new ItemPath(UserType.F_CREDENTIALS, CredentialsType.F_NONCE),  getPrismContext(), nonce);
+					userAssignmentsDelta.addModificationReplaceProperty(UserType.F_LIFECYCLE_STATE, SchemaConstants.LIFECYCLE_ACTIVE);
 				} catch (SchemaException e) {
 					result.recordFatalError("Could not create delta");
 					return result;
