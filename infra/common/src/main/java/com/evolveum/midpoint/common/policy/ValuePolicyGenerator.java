@@ -56,8 +56,8 @@ public class ValuePolicyGenerator {
 		}
 		// Define result from generator
 		OperationResult generatorResult = new OperationResult(
-				"Password generator running policy :" + policy != null ? policy.getDescription()
-						: "No policy defined, usinf default config");
+				"Password generator running policy :" + (policy != null ? policy.getDescription()
+						: "No policy defined, using default config"));
 		inputResult.addSubresult(generatorResult);
 
 		// if (policy.getLimitations() != null &&
