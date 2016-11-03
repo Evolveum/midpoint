@@ -18,6 +18,7 @@ package com.evolveum.midpoint.web.page.login;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -28,6 +29,10 @@ import com.evolveum.midpoint.web.page.forgetpassword.PageForgetPassword;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.web.security.SecurityUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsPolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RegistrationsPolicyType;
+
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;
 import org.apache.wicket.protocol.http.servlet.ServletWebRequest;
 import org.apache.wicket.request.cycle.RequestCycle;
@@ -46,10 +51,12 @@ public class PageLogin extends PageBase {
 	private static final Trace LOGGER = TraceManager.getTrace(PageLogin.class);
 
     private static final String ID_FORGET_PASSWORD = "forgetpassword";
+    private static final String ID_SELF_REGISTRATION = "selfRegistration";
 
     private static final String DOT_CLASS = PageLogin.class.getName() + ".";
     protected static final String OPERATION_LOAD_RESET_PASSWORD_POLICY = DOT_CLASS + "loadPasswordResetPolicy";
-
+    private static final String OPERATION_LOAD_REGISTRATION_POLICY = DOT_CLASS + "loadRegistrationPolicy";
+    
     public PageLogin() {
         if (SecurityUtils.getPrincipalUser() != null) {
             MidPointApplication app = getMidpointApplication();
@@ -82,6 +89,39 @@ public class PageLogin extends PageBase {
             }
         });
         add(link);
+        
+        AjaxLink<String> registration = new AjaxLink<String>(ID_SELF_REGISTRATION) {
+        	
+        	@Override
+        	public void onClick(AjaxRequestTarget target) {
+        		setResponsePage(PageSelfRegistration.class);
+        	}
+        };
+        registration.add(new VisibleEnableBehaviour() {
+        	private static final long serialVersionUID = 1L;
+
+            @Override
+            public boolean isVisible() {
+                OperationResult parentResult = new OperationResult(OPERATION_LOAD_REGISTRATION_POLICY);
+
+                RegistrationsPolicyType registrationPolicies = null;
+                try {
+                	Task task = createAnonymousTask(OPERATION_LOAD_REGISTRATION_POLICY);
+                	registrationPolicies = getModelInteractionService().getRegistrationPolicy(null, task, parentResult);
+                } catch (ObjectNotFoundException | SchemaException e) {
+                    LOGGER.warn("Cannot read credentials policy: " + e.getMessage(), e);
+                }
+
+                boolean linkIsVisible = false;
+                if (registrationPolicies != null
+                        && registrationPolicies.getSelfRegistration() != null) {
+                    linkIsVisible = true;
+                }
+
+                return linkIsVisible;
+            }
+        });
+        add(registration);
     }
 
     @Override

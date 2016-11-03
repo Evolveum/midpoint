@@ -81,6 +81,9 @@ public class TestRecomputeTask extends AbstractInitializedModelIntegrationTest {
 	private static final File TASK_USER_RECOMPUTE_CAPTAIN_FILE = new File(TEST_DIR, "task-user-recompute-captain.xml");
 	private static final String TASK_USER_RECOMPUTE_CAPTAIN_OID = "91919191-76e0-59e2-86d6-3d4f02d3aaac";
 		
+	private static final File TASK_USER_RECOMPUTE_HERMAN_BY_EXPRESSION_FILE = new File(TEST_DIR, "task-user-recompute-herman-by-expression.xml");
+	private static final String TASK_USER_RECOMPUTE_HERMAN_BY_EXPRESSION_OID = "91919191-76e0-59e2-86d6-3d4f02d3aadd";
+
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		super.initSystem(initTask, initResult);
@@ -303,5 +306,65 @@ public class TestRecomputeTask extends AbstractInitializedModelIntegrationTest {
         assertUsers(6);
         
 	}
-	
+
+	/**
+	 * Here we recompute herman as well.
+	 *
+	 * @throws Exception
+	 */
+	@Test
+	public void test120RecomputeByExpression() throws Exception {
+		final String TEST_NAME = "test120RecomputeByExpression";
+		TestUtil.displayTestTile(this, TEST_NAME);
+
+		// GIVEN
+		Task task = createTask(TestRecomputeTask.class.getName() + "." + TEST_NAME);
+		OperationResult result = task.getResult();
+
+		// Preconditions
+		assertUsers(6);
+		assertDummyAccount(RESOURCE_DUMMY_RED_NAME, ACCOUNT_JACK_DUMMY_USERNAME, "Jack Sparrow", false);
+		assertDummyAccount(RESOURCE_DUMMY_RED_NAME, USER_HERMAN_USERNAME, "Herman Toothrot", true);
+
+		result.computeStatus();
+		TestUtil.assertSuccess(result);
+
+		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
+		addObject(TASK_USER_RECOMPUTE_HERMAN_BY_EXPRESSION_FILE);
+
+		dummyAuditService.clear();
+
+		waitForTaskStart(TASK_USER_RECOMPUTE_HERMAN_BY_EXPRESSION_OID, false);
+
+		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
+
+		waitForTaskFinish(TASK_USER_RECOMPUTE_HERMAN_BY_EXPRESSION_OID, true, 40000);
+
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+
+		List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, null, null, task, result);
+		display("Users after recompute", users);
+
+		assertDummyAccount(null, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, "Guybrush Threepwood", true);
+		assertDummyAccountAttribute(null, ACCOUNT_GUYBRUSH_DUMMY_USERNAME,
+				DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, "cutlass", "dagger");
+		assertNoDummyAccount(RESOURCE_DUMMY_RED_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
+
+		// Red resource does not delete accounts on deprovision, it disables them
+		assertDummyAccount(RESOURCE_DUMMY_RED_NAME, ACCOUNT_JACK_DUMMY_USERNAME, "Jack Sparrow", false);
+
+		// Herman should be recomputed now
+		assertDummyAccount(RESOURCE_DUMMY_RED_NAME, USER_HERMAN_USERNAME, "Herman Toothrot", false);
+
+		TaskType recomputeTask = getTask(TASK_USER_RECOMPUTE_HERMAN_BY_EXPRESSION_OID).asObjectable();
+		assertEquals("Wrong success count", 1, recomputeTask.getOperationStats().getIterativeTaskInformation().getTotalSuccessCount());
+		assertEquals("Wrong failure count", 0, recomputeTask.getOperationStats().getIterativeTaskInformation().getTotalFailureCount());
+
+		assertUsers(6);
+
+	}
+
 }

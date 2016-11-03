@@ -622,6 +622,9 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 			return null;
 		}
 		PrismContainer<C> container = securityPolicyType.asPrismObject().findContainer(path);
+		if (container == null) {
+			return null;
+		}
 		PrismContainerValue<C> containerValue = container.getValue();
 		parentResult.recordSuccess();
 		return containerValue.asContainerable();

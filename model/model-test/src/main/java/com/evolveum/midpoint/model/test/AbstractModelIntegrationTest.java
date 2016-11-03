@@ -1371,6 +1371,18 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		MidPointAsserts.assertAssignedRoles(user, roleOids);
 	}
 	
+	protected void assignDeputy(String userDeputyOid, String userTargetOid, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
+		modifyUserAssignment(userDeputyOid, userTargetOid, UserType.COMPLEX_TYPE, SchemaConstants.ORG_DEPUTY, task, null, null, true, result);
+	}
+
+	protected void unassignDeputy(String userDeputyOid, String userTargetOid, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
+		modifyUserAssignment(userDeputyOid, userTargetOid, UserType.COMPLEX_TYPE, SchemaConstants.ORG_DEPUTY, task, null, null, false, result);
+	}
+
+	protected <F extends FocusType> void assertAssignedDeputy(PrismObject<F> focus, String targetUserOid) {
+		MidPointAsserts.assertAssigned(focus, targetUserOid, UserType.COMPLEX_TYPE, SchemaConstants.ORG_DEPUTY);
+	}
+	
 	protected static <F extends FocusType> void assertAssignedOrgs(PrismObject<F> user, String... orgOids) {
 		MidPointAsserts.assertAssignedOrgs(user, orgOids);
 	}
@@ -3170,6 +3182,33 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		boolean isAuthorized = securityEnforcer.isAuthorized(action, phase, null, null, null, null);
 		SecurityContextHolder.setContext(origContext);
 		assertFalse("AuthorizationEvaluator.isAuthorized: Principal " + principal + " IS authorized for action " + action + " (" + phase + ") but he should not be", isAuthorized);
+	}
+	
+	protected void assertAuthorizations(PrismObject<UserType> user, String... expectedAuthorizations) throws ObjectNotFoundException {
+		MidPointPrincipal principal = userProfileService.getPrincipal(user);
+		assertNotNull("No principal for "+user, principal);
+		assertAuthorizations(principal, expectedAuthorizations);
+	}
+	
+	protected void assertAuthorizations(MidPointPrincipal principal, String... expectedAuthorizations) {
+		List<String> actualAuthorizations = new ArrayList<>();
+		for (Authorization authorization: principal.getAuthorities()) {
+			actualAuthorizations.addAll(authorization.getAction());
+		}
+		PrismAsserts.assertSets("Wrong authorizations in "+principal, actualAuthorizations, expectedAuthorizations);
+	}
+
+	
+	protected void assertNoAuthorizations(PrismObject<UserType> user) throws ObjectNotFoundException {
+		MidPointPrincipal principal = userProfileService.getPrincipal(user);
+		assertNotNull("No principal for "+user, principal);
+		assertNoAuthorizations(principal);
+	}
+    
+	protected void assertNoAuthorizations(MidPointPrincipal principal) {
+		if (principal.getAuthorities() != null && !principal.getAuthorities().isEmpty()) {
+			AssertJUnit.fail("Unexpected authorizations in "+principal+": "+principal.getAuthorities());
+		}
 	}
 	
 	protected void assertAdminGuiConfigurations(MidPointPrincipal principal, int expectedMenuLinks, 

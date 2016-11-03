@@ -32,6 +32,9 @@ public class SelfRegistrationDto implements Serializable {
 	private MailAuthenticationPolicyType mailAuthenticationPolicy;
 	private SmsAuthenticationPolicyType smsAuthenticationPolicy;
 	private NonceCredentialsPolicyType noncePolicy;
+	
+	private String requiredLifecycleState;
+	private String initialLifecycleState;
 
 	public void initSelfRegistrationDto(SecurityPolicyType securityPolicy) throws SchemaException {
 		if (securityPolicy == null) {
@@ -44,17 +47,21 @@ public class SelfRegistrationDto implements Serializable {
 
 		this.name = selfRegistration.getName();
 		this.defaultRoles = selfRegistration.getDefaultRole();
-
+		this.initialLifecycleState = selfRegistration.getInitialLifecycleState();
+		this.requiredLifecycleState = selfRegistration.getRequiredLifecycleState();
+		
 		AbstractAuthenticationPolicyType authPolicy = getAuthenticationPolicy(
 				selfRegistration.getAdditionalAuthenticationName(), securityPolicy);
 
 		if (authPolicy instanceof MailAuthenticationPolicyType) {
 			this.mailAuthenticationPolicy = (MailAuthenticationPolicyType) authPolicy;
+			noncePolicy = getCredentialPolicy(((MailAuthenticationPolicyType) authPolicy).getMailNonce(), securityPolicy);
 		} else if (authPolicy instanceof SmsAuthenticationPolicyType) {
 			this.smsAuthenticationPolicy = (SmsAuthenticationPolicyType) authPolicy;
+			noncePolicy = getCredentialPolicy(((SmsAuthenticationPolicyType) authPolicy).getSmsNonce(), securityPolicy);
 		}
 
-		noncePolicy = getCredentialPolicy(authPolicy, securityPolicy);
+		
 
 	}
 
@@ -166,7 +173,7 @@ public class SelfRegistrationDto implements Serializable {
 
 	}
 
-	private NonceCredentialsPolicyType getCredentialPolicy(AbstractAuthenticationPolicyType authPolicy,
+	private NonceCredentialsPolicyType getCredentialPolicy(String policyName,
 			SecurityPolicyType securityPolicy) throws SchemaException {
 		CredentialsPolicyType credentialsPolicy = securityPolicy.getCredentials();
 		if (credentialsPolicy == null) {
@@ -174,12 +181,6 @@ public class SelfRegistrationDto implements Serializable {
 		}
 
 		List<NonceCredentialsPolicyType> noncePolicies = credentialsPolicy.getNonce();
-
-		String policyName = null;
-		if (authPolicy != null) {
-			policyName = authPolicy.getNonceName();
-
-		}
 
 		List<NonceCredentialsPolicyType> availableNoncePolicies = new ArrayList<>();
 		for (NonceCredentialsPolicyType noncePolicy : noncePolicies) {
@@ -254,6 +255,22 @@ public class SelfRegistrationDto implements Serializable {
 
 	public void setNoncePolicy(NonceCredentialsPolicyType noncePolicy) {
 		this.noncePolicy = noncePolicy;
+	}
+	
+	public String getInitialLifecycleState() {
+		return initialLifecycleState;
+	}
+	
+	public void setInitialLifecycleState(String initialLifecycleState) {
+		this.initialLifecycleState = initialLifecycleState;
+	}
+	
+	public String getRequiredLifecycleState() {
+		return requiredLifecycleState;
+	}
+	
+	public void setRequiredLifecycleState(String requiredLifecycleState) {
+		this.requiredLifecycleState = requiredLifecycleState;
 	}
 
 }

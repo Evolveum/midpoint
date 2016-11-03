@@ -2584,6 +2584,18 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
+        	<xsd:element name="name" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Name of the credential. It is used as an identifier that
+                        specifies credential purpose. E.g. it may specify whether
+                        this is default user password or administration password,
+                        whether this is a nonce for registration or password reset
+                        and so on. Simply speaking the name is used to distinguish
+                        credetials that have the same type but different purpose.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="failedLogins" type="xsd:int" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -2664,7 +2676,6 @@
         	<xsd:extension base="tns:AbstractCredentialType">
         		<xsd:sequence>
             		<xsd:element name="value" type="t:ProtectedStringType" minOccurs="0"/>
-            		<xsd:element name="resetType" type="xsd:string" minOccurs="0"/>
             	</xsd:sequence>
         	</xsd:extension>
         </xsd:complexContent>
@@ -10387,8 +10398,6 @@
 			</xsd:element>
 			<xsd:element name="displayName" type="xsd:string" minOccurs="0">
 			</xsd:element>
-			<xsd:element name="nonceName" type="xsd:string" minOccurs="0">
-			</xsd:element>
              <!-- More registration types may come here in the future. -->
 		</xsd:sequence>
 	</xsd:complexType>
@@ -10406,6 +10415,8 @@
 		<xsd:complexContent>
 			<xsd:extension base="tns:AbstractAuthenticationPolicyType">
 				<xsd:sequence>
+					<xsd:element name="mailNonce" type="xsd:string" minOccurs="0">
+			</xsd:element>
 				</xsd:sequence>
 			</xsd:extension>
 		</xsd:complexContent>
@@ -10424,6 +10435,8 @@
 		<xsd:complexContent>
 			<xsd:extension base="tns:AbstractAuthenticationPolicyType">
 				<xsd:sequence>
+					<xsd:element name="smsNonce" type="xsd:string" minOccurs="0">
+			</xsd:element>
 				</xsd:sequence>
 			</xsd:extension>
 		</xsd:complexContent>
@@ -10444,6 +10457,10 @@
 		</xsd:annotation>
 		<xsd:sequence>
 			<xsd:element name="name" type="xsd:string" minOccurs="0">
+			</xsd:element>
+			<xsd:element name="initialLifecycleState" type="xsd:string" minOccurs="0">
+			</xsd:element>
+			<xsd:element name="requiredLifecycleState" type="xsd:string" minOccurs="0">
 			</xsd:element>
 			<xsd:element name="displayName" type="xsd:string" minOccurs="0">
 			</xsd:element>
