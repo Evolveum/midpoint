@@ -59,7 +59,7 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 
 	private ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi;
 	private DeltaSetTriple<Construction<F>> constructions;
-	private DeltaSetTriple<EvaluatedAbstractRoleImpl> roles;
+	private DeltaSetTriple<EvaluatedAssignmentTargetImpl> roles;
 	private Collection<PrismReferenceValue> orgRefVals;
 	private Collection<PrismReferenceValue> membershipRefVals;
 	private Collection<Authorization> authorizations;
@@ -144,11 +144,11 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 	}
 	
 	@Override
-	public DeltaSetTriple<EvaluatedAbstractRoleImpl> getRoles() {
+	public DeltaSetTriple<EvaluatedAssignmentTargetImpl> getRoles() {
 		return roles;
 	}
 	
-	public void addRole(EvaluatedAbstractRoleImpl role, PlusMinusZero mode) {
+	public void addRole(EvaluatedAssignmentTargetImpl role, PlusMinusZero mode) {
 		roles.addToSet(mode, role);
 	}
 

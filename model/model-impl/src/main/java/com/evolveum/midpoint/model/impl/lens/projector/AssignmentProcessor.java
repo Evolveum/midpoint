@@ -51,7 +51,7 @@ import com.evolveum.midpoint.model.impl.controller.ModelUtils;
 import com.evolveum.midpoint.model.impl.lens.AssignmentEvaluator;
 import com.evolveum.midpoint.model.impl.lens.Construction;
 import com.evolveum.midpoint.model.impl.lens.ConstructionPack;
-import com.evolveum.midpoint.model.impl.lens.EvaluatedAbstractRoleImpl;
+import com.evolveum.midpoint.model.impl.lens.EvaluatedAssignmentTargetImpl;
 import com.evolveum.midpoint.model.impl.lens.EvaluatedAssignmentImpl;
 import com.evolveum.midpoint.model.impl.lens.ItemValueWithOrigin;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
@@ -1507,26 +1507,26 @@ public class AssignmentProcessor {
 			// Same thing, this cannot exclude itself
 			return;
 		}
-		for (EvaluatedAbstractRoleImpl eRoleA: assignmentA.getRoles().getAllValues()) {
-			for (EvaluatedAbstractRoleImpl eRoleB: assignmentB.getRoles().getAllValues()) {
+		for (EvaluatedAssignmentTargetImpl eRoleA: assignmentA.getRoles().getAllValues()) {
+			for (EvaluatedAssignmentTargetImpl eRoleB: assignmentB.getRoles().getAllValues()) {
 				checkExclusion(eRoleA, eRoleB);
 			}
 		}
 	}
 
-	private void checkExclusion(EvaluatedAbstractRoleImpl roleA, EvaluatedAbstractRoleImpl roleB) throws PolicyViolationException {
+	private void checkExclusion(EvaluatedAssignmentTargetImpl roleA, EvaluatedAssignmentTargetImpl roleB) throws PolicyViolationException {
 		checkExclusionOneWay(roleA, roleB);
 		checkExclusionOneWay(roleB, roleA);
 	}
 
-	private void checkExclusionOneWay(EvaluatedAbstractRoleImpl roleA, EvaluatedAbstractRoleImpl roleB) throws PolicyViolationException {
+	private void checkExclusionOneWay(EvaluatedAssignmentTargetImpl roleA, EvaluatedAssignmentTargetImpl roleB) throws PolicyViolationException {
 		PolicyConstraintsType policyConstraints = roleA.getPolicyConstraints();
 		if (policyConstraints != null) {
 			for (ExclusionPolicyConstraintType exclusionA : policyConstraints.getExclusion()) {
 				ObjectReferenceType targetRef = exclusionA.getTargetRef();
 				if (roleB.getOid().equals(targetRef.getOid())) {
 					if (exclusionA.getEnforcement() == null || exclusionA.getEnforcement() == PolicyConstraintEnforcementType.ENFORCE) {
-						throw new PolicyViolationException("Violation of SoD policy: "+roleA.getRole()+" excludes "+roleB.getRole()+
+						throw new PolicyViolationException("Violation of SoD policy: "+roleA.getTarget()+" excludes "+roleB.getTarget()+
 								", they cannot be assigned at the same time");
 					} else {
 						// TODO: other enforcement modes

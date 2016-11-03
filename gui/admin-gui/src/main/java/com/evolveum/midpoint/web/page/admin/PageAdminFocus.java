@@ -33,7 +33,7 @@ import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
-import com.evolveum.midpoint.model.api.context.EvaluatedAbstractRole;
+import com.evolveum.midpoint.model.api.context.EvaluatedAssignmentTarget;
 import com.evolveum.midpoint.model.api.context.EvaluatedAssignment;
 import com.evolveum.midpoint.model.api.context.EvaluatedConstruction;
 import com.evolveum.midpoint.model.api.context.ModelContext;
@@ -854,11 +854,11 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 					continue;
 				}
 				// roles and orgs
-				DeltaSetTriple<? extends EvaluatedAbstractRole> evaluatedRolesTriple = evaluatedAssignment
+				DeltaSetTriple<? extends EvaluatedAssignmentTarget> evaluatedRolesTriple = evaluatedAssignment
 						.getRoles();
-				Collection<? extends EvaluatedAbstractRole> evaluatedRoles = evaluatedRolesTriple
+				Collection<? extends EvaluatedAssignmentTarget> evaluatedRoles = evaluatedRolesTriple
 						.getNonNegativeValues();
-				for (EvaluatedAbstractRole role : evaluatedRoles) {
+				for (EvaluatedAssignmentTarget role : evaluatedRoles) {
 					if (role.isEvaluateConstructions()) {
 						assignmentDtoSet.add(createAssignmentsPreviewDto(role, task, result));
 					}
@@ -884,14 +884,14 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
         return null;
 	}
 
-	private AssignmentsPreviewDto createAssignmentsPreviewDto(EvaluatedAbstractRole evaluatedAbstractRole,
+	private AssignmentsPreviewDto createAssignmentsPreviewDto(EvaluatedAssignmentTarget evaluatedAbstractRole,
 			Task task, OperationResult result) {
 		AssignmentsPreviewDto dto = new AssignmentsPreviewDto();
-		PrismObject<? extends AbstractRoleType> role = evaluatedAbstractRole.getRole();
-		dto.setTargetOid(role.getOid());
-		dto.setTargetName(getNameToDisplay(role));
-		dto.setTargetDescription(role.asObjectable().getDescription());
-		dto.setTargetClass(role.getCompileTimeClass());
+		PrismObject<? extends FocusType> target = evaluatedAbstractRole.getTarget();
+		dto.setTargetOid(target.getOid());
+		dto.setTargetName(getNameToDisplay(target));
+		dto.setTargetDescription(target.asObjectable().getDescription());
+		dto.setTargetClass(target.getCompileTimeClass());
 		dto.setDirect(evaluatedAbstractRole.isDirectlyAssigned());
 		if (evaluatedAbstractRole.getAssignment() != null) {
 			if (evaluatedAbstractRole.getAssignment().getTenantRef() != null) {
@@ -906,12 +906,14 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 		return dto;
 	}
 
-	private String getNameToDisplay(PrismObject<? extends AbstractRoleType> role) {
-		String n = PolyString.getOrig(role.asObjectable().getDisplayName());
-		if (StringUtils.isNotBlank(n)) {
-			return n;
+	private String getNameToDisplay(PrismObject<? extends FocusType> target) {
+		if (target.canRepresent(AbstractRoleType.class)) {
+			String n = PolyString.getOrig(((AbstractRoleType)target.asObjectable()).getDisplayName());
+			if (StringUtils.isNotBlank(n)) {
+				return n;
+			}
 		}
-		return PolyString.getOrig(role.asObjectable().getName());
+		return PolyString.getOrig(target.asObjectable().getName());
 	}
 
 	private String nameFromReference(ObjectReferenceType reference, Task task, OperationResult result) {
