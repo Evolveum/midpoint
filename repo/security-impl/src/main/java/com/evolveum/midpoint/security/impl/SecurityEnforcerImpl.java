@@ -90,11 +90,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseTy
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSpecificationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SubjectedObjectSelectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgRelationObjectSpecificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgScopeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OwnedObjectSpecificationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OwnedObjectSelectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SpecialObjectSpecificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
@@ -367,14 +367,14 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 		}
 	}
 	
-	private <O extends ObjectType> boolean isApplicable(List<OwnedObjectSpecificationType> objectSpecTypes, PrismObject<O> object, 
+	private <O extends ObjectType> boolean isApplicable(List<OwnedObjectSelectorType> objectSpecTypes, PrismObject<O> object, 
 			MidPointPrincipal midPointPrincipal, OwnerResolver ownerResolver, String desc, String autzHumanReadableDesc) throws SchemaException {
 		if (objectSpecTypes != null && !objectSpecTypes.isEmpty()) {
 			if (object == null) {
 				LOGGER.trace("  {} not applicable for null {}", autzHumanReadableDesc, desc);
 				return false;
 			}
-			for (OwnedObjectSpecificationType autzObject: objectSpecTypes) {
+			for (OwnedObjectSelectorType autzObject: objectSpecTypes) {
 				if (isApplicable(autzObject, object, midPointPrincipal, ownerResolver, desc, autzHumanReadableDesc)) {
 					return true;
 				}
@@ -386,7 +386,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 		}
 	}
 	
-	private <O extends ObjectType> boolean isApplicable(ObjectSpecificationType objectSpecType, PrismObject<O> object, 
+	private <O extends ObjectType> boolean isApplicable(SubjectedObjectSelectorType objectSpecType, PrismObject<O> object, 
 			MidPointPrincipal principal, OwnerResolver ownerResolver, String desc, String autzHumanReadableDesc) throws SchemaException {
 		if (objectSpecType == null) {
 			LOGGER.trace("  {} not applicable for {} because of null object specification", autzHumanReadableDesc, desc);
@@ -480,9 +480,9 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 			}			
 		}
 		
-		if (objectSpecType instanceof OwnedObjectSpecificationType) {
+		if (objectSpecType instanceof OwnedObjectSelectorType) {
 			// Owner
-			ObjectSpecificationType ownerSpec = ((OwnedObjectSpecificationType)objectSpecType).getOwner();
+			SubjectedObjectSelectorType ownerSpec = ((OwnedObjectSelectorType)objectSpecType).getOwner();
 			if (ownerSpec != null) {
 				if (ownerResolver == null) {
 					ownerResolver = userProfileService;
@@ -909,7 +909,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 	
 					// object or target
 					ObjectFilter autzObjSecurityFilter = null;
-					List<OwnedObjectSpecificationType> objectSpecTypes;
+					List<OwnedObjectSelectorType> objectSpecTypes;
 					if (object == null) {
 						// object not present. Therefore we are looking for object here
 						objectSpecTypes = autz.getObject();
@@ -926,7 +926,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 					boolean applicable = true;
 					if (objectSpecTypes != null && !objectSpecTypes.isEmpty()) {
 						applicable = false;
-						for (OwnedObjectSpecificationType objectSpecType: objectSpecTypes) {
+						for (OwnedObjectSelectorType objectSpecType: objectSpecTypes) {
 							ObjectFilter objSpecSecurityFilter = null;
 							TypeFilter objSpecTypeFilter = null;
 							SearchFilterType specFilterType = objectSpecType.getFilter();
