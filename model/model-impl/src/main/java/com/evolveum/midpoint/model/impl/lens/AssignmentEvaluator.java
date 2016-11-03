@@ -208,7 +208,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 		AssignmentPath assignmentPath = new AssignmentPath();
 		AssignmentPathSegment assignmentPathSegment = new AssignmentPathSegment(assignmentIdi, null);
 		assignmentPathSegment.setSource(source);
-		assignmentPathSegment.setEvaluationOrder(1);
+		assignmentPathSegment.setEvaluationOrder(getInitialEvaluationOrder(assignmentIdi, evaluateOld));
 		assignmentPathSegment.setEvaluateConstructions(true);
 		assignmentPathSegment.setValidityOverride(true);
 		
@@ -221,6 +221,16 @@ public class AssignmentEvaluator<F extends FocusType> {
 		return evalAssignment;
 	}
 	
+	private EvaluationOrder getInitialEvaluationOrder(
+			ItemDeltaItem<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> assignmentIdi, boolean evaluateOld) {
+		AssignmentType assignmentType = LensUtil.getAssignmentType(assignmentIdi, evaluateOld);
+		QName relation = null;
+		if (assignmentType.getTargetRef() != null) {
+			relation = assignmentType.getTargetRef().getRelation();
+		}
+		return EvaluationOrder.ZERO.advance(relation);
+	}
+
 	private <O extends ObjectType> void evaluateAssignment(EvaluatedAssignmentImpl<F> evalAssignment, AssignmentPathSegment assignmentPathSegment, 
 			boolean evaluateOld, PlusMinusZero mode, boolean isParentValid, ObjectType source, String sourceDescription,
 			AssignmentPath assignmentPath, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, PolicyViolationException {
@@ -562,10 +572,10 @@ public class AssignmentEvaluator<F extends FocusType> {
 		evalRole.setDirectlyAssigned(assignmentPath.size() == 1);
 		assignment.addRole(evalRole, mode);
 		
-		int evaluationOrder = assignmentPath.getEvaluationOrder();
+		EvaluationOrder evaluationOrder = assignmentPath.getEvaluationOrder();
 		ObjectType orderOneObject;
 		
-		if (evaluationOrder == 1) {
+		if (evaluationOrder.getOrder() == 1) {
 			orderOneObject = targetType;
 		} else {
 			AssignmentPathSegment last = assignmentPath.last();
@@ -595,9 +605,9 @@ public class AssignmentEvaluator<F extends FocusType> {
 				if (inducementOrder == null) {
 					inducementOrder = 1;
 				}
-				if (inducementOrder == evaluationOrder) {
+				if (inducementOrder == evaluationOrder.getOrder()) {
 					if (LOGGER.isTraceEnabled()) {
-						LOGGER.trace("E{}: evaluate inducement({}) {} in {}",
+						LOGGER.trace("{}: evaluate inducement({}) {} in {}",
 								evaluationOrder, inducementOrder, dumpAssignment(roleInducement), targetType);
 					}
 					roleAssignmentPathSegment.setEvaluateConstructions(true);
@@ -612,7 +622,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 	//				evaluateAssignment(assignment, roleAssignmentPathSegment, role, subSourceDescription, assignmentPath, task, result);
 				} else {
 					if (LOGGER.isTraceEnabled()) {
-						LOGGER.trace("E{}: NOT evaluate inducement({}) {} in {}",
+						LOGGER.trace("{}: NOT evaluate inducement({}) {} in {}",
 								evaluationOrder, inducementOrder, dumpAssignment(roleInducement), targetType);
 					}
 				}
@@ -621,7 +631,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 		
 		for (AssignmentType roleAssignment : targetType.getAssignment()) {
 			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("E{}: follow assignment {} in {}",
+				LOGGER.trace("{}: follow assignment {} in {}",
 						evaluationOrder, dumpAssignment(roleAssignment), targetType);
 			}
 			ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> roleAssignmentIdi = new ItemDeltaItem<>();
@@ -631,12 +641,18 @@ public class AssignmentEvaluator<F extends FocusType> {
 			roleAssignmentPathSegment.setSource(targetType);
 			String subSourceDescription = targetType+" in "+sourceDescription;
 			roleAssignmentPathSegment.setEvaluateConstructions(false);
-			roleAssignmentPathSegment.setEvaluationOrder(evaluationOrder+1);
+			QName relation = null;
+			if (roleAssignment.getTargetRef() != null) {
+				relation = roleAssignment.getTargetRef().getRelation();
+			}
+			LOGGER.info("RRRRRRRRR: {}", relation);
+			roleAssignmentPathSegment.setEvaluationOrder(evaluationOrder.advance(relation));
 			roleAssignmentPathSegment.setOrderOneObject(orderOneObject);
+			LOGGER.info("EEEEEEEEEEEEE:\n{}", roleAssignmentPathSegment.debugDump(1));
 			evaluateAssignment(assignment, roleAssignmentPathSegment, evaluateOld, mode, isValid, targetType, subSourceDescription, assignmentPath, task, result);
 		}
 		
-		if (evaluationOrder == 1 && targetType instanceof AbstractRoleType) {
+		if (evaluationOrder.getOrder() == 1 && targetType instanceof AbstractRoleType) {
 			for(AuthorizationType authorizationType: ((AbstractRoleType)targetType).getAuthorization()) {
 				Authorization authorization = createAuthorization(authorizationType, targetType.toString());
 				assignment.addAuthorization(authorization);
@@ -683,7 +699,11 @@ public class AssignmentEvaluator<F extends FocusType> {
 			sb.append("Constr '").append(assignmentType.getConstruction().getDescription()).append("' ");
 		}
 		if (assignmentType.getTargetRef() != null) {
-			sb.append("-> ").append(assignmentType.getTargetRef().getOid());
+			sb.append("-[");
+			if (assignmentType.getTargetRef().getRelation() != null) {
+				sb.append(assignmentType.getTargetRef().getRelation().getLocalPart());
+			}
+			sb.append("]-> ").append(assignmentType.getTargetRef().getOid());
 		}
 		return sb.toString();
 	}
