@@ -68,6 +68,7 @@ public class AuditLogViewerPanel extends BasePanel{
     private static final String ID_INITIATOR_NAME = "initiatorNameField";
     private static final String ID_TARGET_NAME = "targetNameField";
     private static final String ID_TARGET_NAME_LABEL = "targetNameLabel";
+    private static final String ID_TARGET_OWNER_NAME_LABEL = "targetOwnerNameLabel";
     private static final String ID_TARGET_OWNER_NAME = "targetOwnerNameField";
     private static final String ID_CHANNEL = "channelField";
     private static final String ID_HOST_IDENTIFIER = "hostIdentifierField";
@@ -80,21 +81,37 @@ public class AuditLogViewerPanel extends BasePanel{
     private static final String ID_SEARCH_BUTTON = "searchButton";
     private static final String ID_FEEDBACK = "feedback";
 
+    public static final String TARGET_NAME_LABEL_VISIBILITY = "targetNameLabel";
+    public static final String TARGET_NAME_FIELD_VISIBILITY = "targetFieldField";
+    public static final String TARGET_OWNER_LABEL_VISIBILITY = "targetOwnerLabel";
+    public static final String TARGET_OWNER_FIELD_VISIBILITY = "targetOwnerField";
+    public static final String TARGET_COLUMN_VISIBILITY = "targetColumn";
+    public static final String TARGET_OWNER_COLUMN_VISIBILITY = "targetOwnerColumn";
+    public static final String EVENT_STAGE_COLUMN_VISIBILITY = "eventStageColumn";
+    public static final String EVENT_STAGE_LABEL_VISIBILITY = "eventStageLabel";
+    public static final String EVENT_STAGE_FIELD_VISIBILITY = "eventStageField";
+
     private static final String OPERATION_RESOLVE_REFENRENCE_NAME = AuditLogViewerPanel.class.getSimpleName()
             + ".resolveReferenceName()";
 
     private IModel<AuditSearchDto> auditSearchDto;
     private AuditSearchDto searchDto;
     private PageBase pageBase;
+    private Map<String, Boolean> visibilityMap;
 
     public AuditLogViewerPanel(String id, PageBase pageBase){
         this(id, pageBase, null);
     }
 
-    public AuditLogViewerPanel(String id, PageBase pageBase, AuditSearchDto searchDto){
+    public AuditLogViewerPanel(String id, PageBase pageBase, AuditSearchDto searchDto) {
+        this(id, pageBase, searchDto, new HashMap<String, Boolean>());
+    }
+
+    public AuditLogViewerPanel(String id, PageBase pageBase, AuditSearchDto searchDto, Map<String, Boolean> visibilityMap){
         super(id);
         this.pageBase = pageBase;
         this.searchDto = searchDto;
+        this.visibilityMap = visibilityMap;
         initAuditSearchModel();
         initLayout();
     }
@@ -178,7 +195,8 @@ public class AuditLogViewerPanel extends BasePanel{
         eventStageLabel.add(new VisibleEnableBehaviour(){
             @Override
         public boolean isVisible(){
-                return isTargetNameVisible();
+                return visibilityMap == null || visibilityMap.get(EVENT_STAGE_LABEL_VISIBILITY) == null ?
+                        true : visibilityMap.get(EVENT_STAGE_LABEL_VISIBILITY);
             }
         });
         eventStageLabel.setOutputMarkupId(true);
@@ -194,7 +212,8 @@ public class AuditLogViewerPanel extends BasePanel{
         eventStage.add(new VisibleEnableBehaviour() {
             @Override
             public boolean isVisible() {
-                return isEventStageVisible();
+                return visibilityMap == null || visibilityMap.get(EVENT_STAGE_FIELD_VISIBILITY) == null ?
+                        true : visibilityMap.get(EVENT_STAGE_FIELD_VISIBILITY);
             }
         });
         eventStage.getBaseFormComponent().add(new EmptyOnChangeAjaxFormUpdatingBehavior());
@@ -249,6 +268,16 @@ public class AuditLogViewerPanel extends BasePanel{
         };
         parametersPanel.add(chooseInitiatorPanel);
 
+        Label targetOwnerNameLabel = new Label(ID_TARGET_OWNER_NAME_LABEL, pageBase.createStringResource("PageAuditLogViewer.targetOwnerNameLabel"));
+        targetOwnerNameLabel.add(new VisibleEnableBehaviour(){
+            @Override
+            public boolean isVisible(){
+                return visibilityMap == null || visibilityMap.get(TARGET_OWNER_LABEL_VISIBILITY) == null ?
+                        true : visibilityMap.get(TARGET_OWNER_LABEL_VISIBILITY);
+            }
+        });
+        parametersPanel.add(targetOwnerNameLabel);
+
         ValueChooseWrapperPanel<ObjectReferenceType, UserType> chooseTargerOwnerPanel = new ValueChooseWrapperPanel<ObjectReferenceType, UserType>(
                 ID_TARGET_OWNER_NAME,
                 new PropertyModel<ObjectReferenceType>(auditSearchDto, AuditSearchDto.F_TARGET_OWNER_NAME),
@@ -260,13 +289,21 @@ public class AuditLogViewerPanel extends BasePanel{
                 getModel().setObject(ort);
             }
         };
+        chooseTargerOwnerPanel.add(new VisibleEnableBehaviour(){
+            @Override
+            public boolean isVisible(){
+                return visibilityMap == null || visibilityMap.get(TARGET_OWNER_FIELD_VISIBILITY) == null ?
+                        true : visibilityMap.get(TARGET_OWNER_FIELD_VISIBILITY);
+            }
+        });
         parametersPanel.add(chooseTargerOwnerPanel);
 
         Label targetNameLabel = new Label(ID_TARGET_NAME_LABEL, pageBase.createStringResource("PageAuditLogViewer.targetNameLabel"));
         targetNameLabel.add(new VisibleEnableBehaviour(){
             @Override
             public boolean isVisible(){
-                return searchDto.getTargetName() == null || StringUtils.isEmpty(searchDto.getTargetName().getOid());
+                return visibilityMap == null || visibilityMap.get(TARGET_NAME_LABEL_VISIBILITY) == null ?
+                        true : visibilityMap.get(TARGET_NAME_LABEL_VISIBILITY);
             }
         });
         parametersPanel.add(targetNameLabel);
@@ -286,7 +323,8 @@ public class AuditLogViewerPanel extends BasePanel{
         chooseTargetPanel.add(new VisibleEnableBehaviour(){
             @Override
             public boolean isVisible(){
-                return searchDto.getTargetName() == null || StringUtils.isEmpty(searchDto.getTargetName().getOid());
+                return visibilityMap == null || visibilityMap.get(TARGET_NAME_FIELD_VISIBILITY) == null ?
+                        true : visibilityMap.get(TARGET_NAME_FIELD_VISIBILITY);
             }
         });
         parametersPanel.add(chooseTargetPanel);
@@ -392,7 +430,8 @@ public class AuditLogViewerPanel extends BasePanel{
         };
         columns.add(initiatorRefColumn);
 
-        if (isEventStageVisible()) {
+        if (visibilityMap == null || visibilityMap.get(EVENT_STAGE_COLUMN_VISIBILITY) == null ||
+                visibilityMap.get(EVENT_STAGE_COLUMN_VISIBILITY)) {
             IColumn<AuditEventRecordType, String> eventStageColumn = new PropertyColumn<AuditEventRecordType, String>(
                     createStringResource("PageAuditLogViewer.eventStageLabel"), "eventStage");
             columns.add(eventStageColumn);
@@ -401,32 +440,37 @@ public class AuditLogViewerPanel extends BasePanel{
                 createStringResource("PageAuditLogViewer.eventTypeLabel"), "eventType");
         columns.add(eventTypeColumn);
 
-        PropertyColumn<AuditEventRecordType, String> targetRefColumn = new PropertyColumn<AuditEventRecordType, String>(createStringResource("AuditEventRecordType.targetRef"),
-                AuditEventRecordType.F_TARGET_REF.getLocalPart()) {
-            private static final long serialVersionUID = 1L;
+        if (visibilityMap == null || visibilityMap.get(TARGET_COLUMN_VISIBILITY) == null ||
+                visibilityMap.get(TARGET_COLUMN_VISIBILITY)) {
+            PropertyColumn<AuditEventRecordType, String> targetRefColumn = new PropertyColumn<AuditEventRecordType, String>(createStringResource("AuditEventRecordType.targetRef"),
+                    AuditEventRecordType.F_TARGET_REF.getLocalPart()) {
+                private static final long serialVersionUID = 1L;
 
-            @Override
-            public void populateItem(Item<ICellPopulator<AuditEventRecordType>> item, String componentId,
-                                     IModel<AuditEventRecordType> rowModel) {
-                AuditEventRecordType auditEventRecordType = (AuditEventRecordType) rowModel.getObject();
-                createReferenceColumn(auditEventRecordType.getTargetRef(), item, componentId);
-            }
-        };
-        columns.add(targetRefColumn);
+                @Override
+                public void populateItem(Item<ICellPopulator<AuditEventRecordType>> item, String componentId,
+                                         IModel<AuditEventRecordType> rowModel) {
+                    AuditEventRecordType auditEventRecordType = (AuditEventRecordType) rowModel.getObject();
+                    createReferenceColumn(auditEventRecordType.getTargetRef(), item, componentId);
+                }
+            };
+            columns.add(targetRefColumn);
+        }
 
-        PropertyColumn<AuditEventRecordType, String> targetOwnerRefColumn = new PropertyColumn<AuditEventRecordType, String>(createStringResource("AuditEventRecordType.targetOwnerRef"),
-                AuditEventRecordType.F_TARGET_OWNER_REF.getLocalPart()) {
-            private static final long serialVersionUID = 1L;
+        if (visibilityMap == null || visibilityMap.get(TARGET_OWNER_COLUMN_VISIBILITY) == null ||
+                visibilityMap.get(TARGET_OWNER_COLUMN_VISIBILITY)) {
+            PropertyColumn<AuditEventRecordType, String> targetOwnerRefColumn = new PropertyColumn<AuditEventRecordType, String>(createStringResource("AuditEventRecordType.targetOwnerRef"),
+                    AuditEventRecordType.F_TARGET_OWNER_REF.getLocalPart()) {
+                private static final long serialVersionUID = 1L;
 
-            @Override
-            public void populateItem(Item<ICellPopulator<AuditEventRecordType>> item, String componentId,
-                                     IModel<AuditEventRecordType> rowModel) {
-                AuditEventRecordType auditEventRecordType = (AuditEventRecordType) rowModel.getObject();
-                createReferenceColumn(auditEventRecordType.getTargetOwnerRef(), item, componentId);
-            }
-        };
-        columns.add(targetOwnerRefColumn);
-
+                @Override
+                public void populateItem(Item<ICellPopulator<AuditEventRecordType>> item, String componentId,
+                                         IModel<AuditEventRecordType> rowModel) {
+                    AuditEventRecordType auditEventRecordType = (AuditEventRecordType) rowModel.getObject();
+                    createReferenceColumn(auditEventRecordType.getTargetOwnerRef(), item, componentId);
+                }
+            };
+            columns.add(targetOwnerRefColumn);
+        }
         IColumn<AuditEventRecordType, String> channelColumn = new PropertyColumn<AuditEventRecordType, String>(
                 createStringResource("AuditEventRecordType.channel"), "channel") {
             private static final long serialVersionUID = 1L;
@@ -480,13 +524,5 @@ public class AuditLogViewerPanel extends BasePanel{
 
     public WebMarkupContainer getFeedbackPanel() {
         return (FeedbackPanel) get(pageBase.createComponentPath(ID_MAIN_FORM, ID_FEEDBACK));
-    }
-
-    protected boolean isTargetNameVisible(){
-        return true;
-    }
-
-    protected boolean isEventStageVisible(){
-        return true;
     }
 }

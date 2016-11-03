@@ -46,7 +46,9 @@ import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Created by honchar.
@@ -71,17 +73,17 @@ public class ObjectHistoryTabPanel<F extends FocusType> extends AbstractObjectTa
 
         searchDto.setEventStage(AuditEventStageType.EXECUTION);
 
-        AuditLogViewerPanel panel = new AuditLogViewerPanel(ID_MAIN_PANEL, page, searchDto) {
-            @Override
-            protected boolean isTargetNameVisible() {
-                return false;
-            }
-
-            @Override
-            protected boolean isEventStageVisible() {
-                return false;
-            }
-
+        Map<String, Boolean> visibilityMap = new HashMap<>();
+        visibilityMap.put(AuditLogViewerPanel.TARGET_NAME_LABEL_VISIBILITY, false);
+        visibilityMap.put(AuditLogViewerPanel.TARGET_NAME_FIELD_VISIBILITY, false);
+        visibilityMap.put(AuditLogViewerPanel.TARGET_OWNER_LABEL_VISIBILITY, false);
+        visibilityMap.put(AuditLogViewerPanel.TARGET_OWNER_FIELD_VISIBILITY, false);
+        visibilityMap.put(AuditLogViewerPanel.EVENT_STAGE_LABEL_VISIBILITY, false);
+        visibilityMap.put(AuditLogViewerPanel.EVENT_STAGE_FIELD_VISIBILITY, false);
+        visibilityMap.put(AuditLogViewerPanel.EVENT_STAGE_COLUMN_VISIBILITY, false);
+        visibilityMap.put(AuditLogViewerPanel.TARGET_COLUMN_VISIBILITY, false);
+        visibilityMap.put(AuditLogViewerPanel.TARGET_OWNER_COLUMN_VISIBILITY, false);
+        AuditLogViewerPanel panel = new AuditLogViewerPanel(ID_MAIN_PANEL, page, searchDto, visibilityMap) {
             @Override
             protected List<IColumn<AuditEventRecordType, String>> initColumns() {
                 List<IColumn<AuditEventRecordType, String>> columns = super.initColumns();
@@ -95,6 +97,17 @@ public class ObjectHistoryTabPanel<F extends FocusType> extends AbstractObjectTa
 
                     @Override
                     public String getCaption(int id) {
+                        return "";
+                    }
+
+                    @Override
+                    public String getButtonTitle(int id) {
+                        switch (id) {
+                            case 0:
+                                return page.createStringResource("ObjectHistoryTabPanel.viewHistoricalObjectDataTitle").getString();
+                            case 1:
+                                return page.createStringResource("ObjectHistoryTabPanel.viewHistoricalObjectXmlTitle").getString();
+                        }
                         return "";
                     }
 
