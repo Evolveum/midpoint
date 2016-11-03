@@ -238,7 +238,7 @@ public class ObjectWrapperFactory {
             if (!(def instanceof PrismContainerDefinition)) {
                 continue;
             }
-            if (ObjectSpecificationType.COMPLEX_TYPE.equals(def.getTypeName())) {
+            if (SubjectedObjectSelectorType.COMPLEX_TYPE.equals(def.getTypeName())) {
                 continue; // TEMPORARY FIX
             }
             if (TriggerType.COMPLEX_TYPE.equals(def.getTypeName())) {

@@ -1773,13 +1773,13 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         
         // Check audit
         display("Audit", dummyAuditService);
-        dummyAuditService.assertRecords(5);			// last one is duplicate
+        dummyAuditService.assertRecords(3);			// last one is duplicate
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
         dummyAuditService.assertExecutionDeltas(0,2);
         dummyAuditService.assertHasDelta(0,ChangeType.MODIFY, UserType.class);
         dummyAuditService.assertHasDelta(0,ChangeType.MODIFY, ShadowType.class);
-		dummyAuditService.assertExecutionDeltas(1,2);			// user is again disabled here
+		dummyAuditService.assertExecutionDeltas(1,1);			// user is again disabled here
         dummyAuditService.assertHasDelta(1,ChangeType.MODIFY, ShadowType.class);
         dummyAuditService.assertExecutionSuccess();
 	}
@@ -1811,13 +1811,13 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         
         // Check audit
         display("Audit", dummyAuditService);
-        dummyAuditService.assertRecords(5);						// last one is duplicate
+        dummyAuditService.assertRecords(3);						// last one is duplicate
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
         dummyAuditService.assertExecutionDeltas(0,2);
         dummyAuditService.assertHasDelta(0,ChangeType.MODIFY, UserType.class);
         dummyAuditService.assertHasDelta(0,ChangeType.MODIFY, ShadowType.class);
-        dummyAuditService.assertExecutionDeltas(1,2);			// user is again disabled here
+        dummyAuditService.assertExecutionDeltas(1,1);			// user is again disabled here
         dummyAuditService.assertHasDelta(1,ChangeType.MODIFY, ShadowType.class);
         dummyAuditService.assertExecutionSuccess();
 	}

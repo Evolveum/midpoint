@@ -256,7 +256,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 		assertAdministrativeStatusEnabled(userJack);
 		assertValidity(userJack, null);
 		assertEffectiveStatus(userJack, ActivationStatusType.ENABLED);
-		assertEnableTimestampFocus(userJack, start, end);
+		assertEnableTimestampFocus(userJack, null, start);
 		
 		TestUtil.assertModifyTimestamp(userJack, start, end);
 	}
@@ -658,7 +658,8 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         
 		assertAdministrativeStatusEnabled(userJack);
 		assertDummyEnabled(ACCOUNT_JACK_DUMMY_USERNAME);
-		assertEnableTimestampFocus(userJack, startTime, endTime);
+		// No real change in effective status, therefore the enableTimestamp should be unchanged
+		assertEnableTimestampFocus(userJack, null, startTime);
 		
 		assertAccounts(USER_JACK_OID, 1);
         PrismObject<ShadowType> account = getShadowModel(accountOid);
@@ -708,7 +709,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 	}
 	
 	/**
-	 * Modify both user and account activation. As password outbound mapping is weak the user should have its own state
+	 * Modify both user and account activation. As outbound mapping is weak the user should have its own state
 	 * and account should have its own state.
 	 */
 	@Test
@@ -740,7 +741,8 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
 		assertUserJack(userJack, "Jack Sparrow");
-		assertEnableTimestampFocus(userJack, startTime, endTime);
+		// No real change in effective status, therefore the enableTimestamp should be unchanged
+		assertEnableTimestampFocus(userJack, null, startTime);
 		assertAdministrativeStatusEnabled(userJack);
 		
 		assertDummyDisabled("jack");
@@ -753,7 +755,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 	}
 	
 	/**
-	 * Add red dummy resource to the mix. This would be fun.
+	 * Add red dummy resource to the mix. This will be fun.
 	 */
 	@Test
     public void test120ModifyUserJackAssignAccountDummyRed() throws Exception {

@@ -55,6 +55,11 @@ public class MultiButtonColumn<T extends Serializable> extends AbstractColumn<T,
             }
 
             @Override
+            public String getButtonTitle(int id) {
+                return MultiButtonColumn.this.getButtonTitle(id);
+            }
+
+            @Override
             public boolean isButtonEnabled(int id, IModel<T> model) {
                 return MultiButtonColumn.this.isButtonEnabled(id, model);
             }
@@ -126,4 +131,9 @@ public class MultiButtonColumn<T extends Serializable> extends AbstractColumn<T,
     public IModel<T> getRowModel(){
         return rowModel;
     }
+
+    public String getButtonTitle(int id) {
+        return "";
+    }
+
 }

@@ -469,7 +469,7 @@ public class TestLoggingConfiguration extends AbstractConfiguredModelIntegration
 		// THEN
 		
 		tailer.tail();
-		tailer.assertAudit(3);
+		tailer.assertAudit(2);
 		tailer.assertAuditRequest();
 		tailer.assertAuditExecution();
 		
