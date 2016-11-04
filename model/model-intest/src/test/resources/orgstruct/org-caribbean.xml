@@ -21,7 +21,7 @@
 	<org oid="00000000-8888-6666-0000-c00000000001">
 		<name>C0001</name>
 		<assignment>
-			<targetRef oid="d534f1b2-a26c-11e6-abf5-e71dff038896" type="RoleType"/> <!-- Piracy org metarole -->
+			<targetRef oid="d534f1b2-a26c-11e6-abf5-e71dff038896" type="RoleType" relation="org:meta"/> <!-- Piracy org metarole -->
 		</assignment>
 		<displayName>The Golden Age of Piracy</displayName>
 		<identifier>C001</identifier>
@@ -32,7 +32,7 @@
 		<name>C0002</name>
 		<parentOrgRef oid="00000000-8888-6666-0000-c00000000001"/>
 		<assignment>
-			<targetRef oid="d534f1b2-a26c-11e6-abf5-e71dff038896" type="RoleType"/> <!-- Piracy org metarole -->
+			<targetRef oid="d534f1b2-a26c-11e6-abf5-e71dff038896" type="RoleType" relation="org:meta"/> <!-- Piracy org metarole -->
 		</assignment>
 		<assignment>
 			<targetRef oid="00000000-8888-6666-0000-c00000000001" type="OrgType"/>
@@ -46,7 +46,7 @@
 		<name>C0003</name>
 		<parentOrgRef oid="00000000-8888-6666-0000-c00000000002"/>
 		<assignment>
-			<targetRef oid="d534f1b2-a26c-11e6-abf5-e71dff038896" type="RoleType"/> <!-- Piracy org metarole -->
+			<targetRef oid="d534f1b2-a26c-11e6-abf5-e71dff038896" type="RoleType" relation="org:meta"/> <!-- Piracy org metarole -->
 		</assignment>
 		<assignment>
 			<targetRef oid="00000000-8888-6666-0000-c00000000002" type="OrgType"/>
@@ -64,7 +64,7 @@
 		<name>C0004</name>
 		<parentOrgRef oid="00000000-8888-6666-0000-c00000000003"/>
 		<assignment>
-			<targetRef oid="d534f1b2-a26c-11e6-abf5-e71dff038896" type="RoleType"/> <!-- Piracy org metarole -->
+			<targetRef oid="d534f1b2-a26c-11e6-abf5-e71dff038896" type="RoleType" relation="org:meta"/> <!-- Piracy org metarole -->
 		</assignment>
 		<assignment>
 			<targetRef oid="00000000-8888-6666-0000-c00000000003" type="OrgType"/>
@@ -78,7 +78,7 @@
 		<name>C0005</name>
 		<parentOrgRef oid="00000000-8888-6666-0000-c00000000003"/>
 		<assignment>
-			<targetRef oid="d534f1b2-a26c-11e6-abf5-e71dff038896" type="RoleType"/> <!-- Piracy org metarole -->
+			<targetRef oid="d534f1b2-a26c-11e6-abf5-e71dff038896" type="RoleType" relation="org:meta"/> <!-- Piracy org metarole -->
 		</assignment>
 		<assignment>
 			<targetRef oid="00000000-8888-6666-0000-c00000000003" type="OrgType"/>
@@ -97,7 +97,7 @@
 		<name>C0006</name>
 		<parentOrgRef oid="00000000-8888-6666-0000-c00000000005"/>
 		<assignment>
-			<targetRef oid="d534f1b2-a26c-11e6-abf5-e71dff038896" type="RoleType"/> <!-- Piracy org metarole -->
+			<targetRef oid="d534f1b2-a26c-11e6-abf5-e71dff038896" type="RoleType" relation="org:meta"/> <!-- Piracy org metarole -->
 		</assignment>
 		<assignment>
 			<targetRef oid="00000000-8888-6666-0000-c00000000005" type="OrgType"/>

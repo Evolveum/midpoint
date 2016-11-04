@@ -23,6 +23,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OrderConstraintsType;
 
 /**
  * @author semancik
@@ -70,13 +71,22 @@ public class EvaluationOrder implements DebugDumpable {
 		}
 		return adeo;
 	}
+	
+	public int getMatchingRelationOrder(QName relation) {
+		for (Entry<QName,Integer> entry: orderMap.entrySet()) {
+			if (QNameUtil.match(entry.getKey(), relation)) {
+				return entry.getValue();
+			}
+		}
+		return 0;
+	}
 
 	@Override
 	public String debugDump(int indent) {
 		StringBuilder sb = new StringBuilder();
 		DebugUtil.debugDumpLabel(sb, "EvaluationOrder", indent);
 		sb.append("\n");
-		DebugUtil.debugDumpMapMultiLine(orderMap);
+		DebugUtil.debugDumpMapMultiLine(sb, orderMap, indent + 2);
 		return sb.toString();
 	}
 
@@ -112,7 +122,22 @@ public class EvaluationOrder implements DebugDumpable {
 
 	@Override
 	public String toString() {
-		return "EvaluationOrder(" + orderMap + ")";
+		return "EvaluationOrder(" + shortDump() + ")";
 	}
 	
+	public String shortDump() {
+		StringBuilder sb = new StringBuilder();
+		for (Entry<QName,Integer> entry: orderMap.entrySet()) {
+			if (entry.getKey() != null) {
+				sb.append(entry.getKey().getLocalPart());
+			} else {
+				sb.append("null");
+			}
+			sb.append(":");
+			sb.append(entry.getValue());
+			sb.append(",");
+		}
+		sb.setLength(sb.length() - 1);
+		return sb.toString();
+	}
 }

@@ -455,7 +455,8 @@ public class PrismUnmarshaller {
 			if (!pc.isAllowMissingRefTypes() && !allowMissingRefTypesOverride) {
 				type = definition.getTargetTypeName();
 				if (type == null) {
-					throw new SchemaException("Target type specified neither in reference nor in the schema");
+					throw new SchemaException("Target type in reference " + definition.getName() + 
+							" not specified in reference nor in the schema");
 				}
 			}
         } else {
@@ -465,8 +466,8 @@ public class PrismUnmarshaller {
             QName defTargetType = definition.getTargetTypeName();
             if (defTargetType != null) {
                 if (!(prismContext.getSchemaRegistry().isAssignableFrom(defTargetType, type))) {
-                    throw new SchemaException("Target type specified in reference (" + type
-                            + ") does not match target type in schema (" + defTargetType + ")");
+                    throw new SchemaException("Target type specified in reference " + definition.getName() + 
+                    		" (" + type + ") does not match target type in schema (" + defTargetType + ")");
                 }
             }
         }

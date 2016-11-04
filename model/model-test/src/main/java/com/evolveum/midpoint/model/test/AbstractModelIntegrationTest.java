@@ -140,6 +140,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TriggerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.midpoint.xml.ns._public.model.model_3.ModelPortType;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 import org.apache.commons.lang.StringUtils;
@@ -1550,6 +1551,58 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		modelService.searchObjectsIterative(UserType.class, null, handler, null, task, result);
 		result.computeStatus();
 		TestUtil.assertSuccess(result);
+	}
+	
+	protected <F extends FocusType> void dumpFocus(String message, PrismObject<F> focus) throws ObjectNotFoundException, SchemaException {
+		OperationResult result = new OperationResult(AbstractIntegrationTest.class.getName() + ".dumpFocus");
+		StringBuilder sb = new StringBuilder();
+		sb.append(focus.debugDump(0));
+		sb.append("\nOrgs:");
+		for (ObjectReferenceType parentOrgRef: focus.asObjectable().getParentOrgRef()) {
+			sb.append("\n");
+			DebugUtil.indentDebugDump(sb, 1);
+			PrismObject<OrgType> org = repositoryService.getObject(OrgType.class, parentOrgRef.getOid(), null, result);
+			sb.append(org);
+			PolyStringType displayName = org.asObjectable().getDisplayName();
+			if (displayName != null) {
+				sb.append(": ").append(displayName);
+			}
+		}
+		sb.append("\nProjections:");
+		for (ObjectReferenceType linkRef: focus.asObjectable().getLinkRef()) {
+			PrismObject<ShadowType> shadow = repositoryService.getObject(ShadowType.class, linkRef.getOid(), null, result);
+			ObjectReferenceType resourceRef = shadow.asObjectable().getResourceRef();
+			PrismObject<ResourceType> resource = repositoryService.getObject(ResourceType.class, resourceRef.getOid(), null, result);
+			sb.append("\n");
+			DebugUtil.indentDebugDump(sb, 1);
+			sb.append(resource);
+			sb.append("/");
+			sb.append(shadow.asObjectable().getKind());
+			sb.append("/");
+			sb.append(shadow.asObjectable().getIntent());
+			sb.append(": ");
+			sb.append(shadow.asObjectable().getName());
+		}
+		sb.append("\nAssignments:");
+		for (AssignmentType assignmentType: focus.asObjectable().getAssignment()) {
+			sb.append("\n");
+			DebugUtil.indentDebugDump(sb, 1);
+			if (assignmentType.getConstruction() != null) {
+				sb.append("Constr(").append(assignmentType.getConstruction().getDescription()).append(") ");
+			}
+			if (assignmentType.getTargetRef() != null) {
+				sb.append("-[");
+				if (assignmentType.getTargetRef().getRelation() != null) {
+					sb.append(assignmentType.getTargetRef().getRelation().getLocalPart());
+				}
+				sb.append("]-> ");
+				Class<? extends ObjectType> targetClass = ObjectTypes.getObjectTypeFromTypeQName(assignmentType.getTargetRef().getType()).getClassDefinition();
+				;
+				PrismObject<? extends ObjectType> target = repositoryService.getObject(targetClass, assignmentType.getTargetRef().getOid(), null, result);
+				sb.append(target);
+			}
+		}
+		display(message, sb.toString());
 	}
 
 	protected <F extends FocusType> void assertAssignments(PrismObject<F> user, int expectedNumber) {

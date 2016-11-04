@@ -19,6 +19,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OrderConstraintsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 
@@ -43,5 +44,48 @@ public class FocusTypeUtil {
 		targetRef.setType(type);
 		assignmentType.setTargetRef(targetRef);
 		return assignmentType;
+	}
+	
+	public static String dumpAssignment(AssignmentType assignmentType) { 
+		StringBuilder sb = new StringBuilder();
+		if (assignmentType.getConstruction() != null) {
+			sb.append("Constr(").append(assignmentType.getConstruction().getDescription()).append(") ");
+		}
+		if (assignmentType.getTargetRef() != null) {
+			sb.append("-[");
+			if (assignmentType.getTargetRef().getRelation() != null) {
+				sb.append(assignmentType.getTargetRef().getRelation().getLocalPart());
+			}
+			sb.append("]-> ").append(assignmentType.getTargetRef().getOid());
+		}
+		return sb.toString();
+	}
+	
+	public static String dumpInducementConstraints(AssignmentType assignmentType) {
+		if (assignmentType.getOrder() != null) {
+			return assignmentType.getOrder().toString();
+		}
+		if (assignmentType.getOrderConstraint().isEmpty()) {
+			return "1";
+		}
+		StringBuilder sb = new StringBuilder();
+		for (OrderConstraintsType orderConstraint: assignmentType.getOrderConstraint()) {
+			if (orderConstraint.getRelation() != null) {
+				sb.append(orderConstraint.getRelation().getLocalPart());
+			} else {
+				sb.append("null");
+			}
+			sb.append(":");
+			if (orderConstraint.getOrder() != null) {
+				sb.append(orderConstraint.getOrder());
+			} else {
+				sb.append(orderConstraint.getOrderMin());
+				sb.append("-");
+				sb.append(orderConstraint.getOrderMax());
+			}
+			sb.append(",");
+		}
+		sb.setLength(sb.length() - 1);
+		return sb.toString();
 	}
 }

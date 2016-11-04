@@ -14,13 +14,13 @@
   ~ limitations under the License.
   -->
 <role oid="d534f1b2-a26c-11e6-abf5-e71dff038896"
-        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000704">
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
     <name>Piracy Org Metarole</name>
     <description>Metarole for all piracy orgs (org-caribbean.xml)</description>
-    <inducement>
+    <inducement xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000704">
     	<description>Yellow account for ordinary org members</description>
         <construction>
+        	<description>yellow</description>
         	<resourceRef oid="10000000-0000-0000-0000-000000000704" type="ResourceType"/> <!-- YELLOW -->
     		<kind>account</kind>
     		<attribute>
@@ -33,6 +33,42 @@
             </attribute>
         </construction>
         <focusType>UserType</focusType>
-        <order>2</order>
+        <orderConstraint>
+        	<order>1</order>
+        	<relation>meta</relation>
+        </orderConstraint>
+        <orderConstraint>
+        	<order>1</order>
+        	<!-- member -->
+        </orderConstraint>
+        <orderConstraint>
+        	<order>0</order>
+        	<relation>manager</relation>
+        </orderConstraint>
+    </inducement>
+    <inducement xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
+    	<description>Red account for org managers</description>
+        <construction>
+        	<description>red</description>
+        	<resourceRef oid="10000000-0000-0000-0000-000000000104" type="ResourceType"/> <!-- RED -->
+    		<kind>account</kind>
+    		<attribute>
+                <ref>ri:title</ref>
+                <outbound>
+                	<expression>
+						<value>Captain</value>
+					</expression>
+				</outbound>
+            </attribute>
+        </construction>
+        <focusType>UserType</focusType>
+        <orderConstraint>
+        	<order>1</order>
+        	<relation>meta</relation>
+        </orderConstraint>
+        <orderConstraint>
+        	<order>1</order>
+        	<relation>manager</relation>
+        </orderConstraint>
     </inducement>
 </role>
