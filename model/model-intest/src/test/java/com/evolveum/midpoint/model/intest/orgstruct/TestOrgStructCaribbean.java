@@ -52,10 +52,16 @@ public class TestOrgStructCaribbean extends AbstractInitializedModelIntegrationT
 	protected static final String ORG_CARIBBEAN_DEPARTMENT_OF_THINGS_OID = "00000000-8888-6666-0000-c00000000004";
 	protected static final String ORG_CARIBBEAN_DEPARTMENT_OF_PEOPLE_OID = "00000000-8888-6666-0000-c00000000005";
 	protected static final String ORG_CARIBBEAN_ENTERTAINMENT_SECTION_OID = "00000000-8888-6666-0000-c00000000006";
+	
+	public static final File ROLE_META_PIRACY_ORG_FILE = new File(TEST_DIR, "role-meta-piracy-org.xml");
+    public static final String ROLE_META_PIRACY_ORG_OID = "d534f1b2-a26c-11e6-abf5-e71dff038896";
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
+        
+        addObject(ROLE_META_PIRACY_ORG_FILE);
+        
         //DebugUtil.setDetailedDebugDump(true);
     }
 
