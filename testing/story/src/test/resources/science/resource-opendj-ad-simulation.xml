@@ -92,6 +92,10 @@
             <displayName>Login name</displayName>
             <secondaryIdentifier>true</secondaryIdentifier>
             <matchingRule xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-3">mr:stringIgnoreCase</matchingRule>
+            <limitations>
+               <minOccurs>0</minOccurs>
+               <maxOccurs>1</maxOccurs>
+            </limitations>
             <outbound>
                <strength>weak</strength>
                <source>

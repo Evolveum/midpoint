@@ -9697,6 +9697,18 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
+                    
+                    <xsd:element name="globalPolicyRule" type="tns:PolicyRuleType" minOccurs="0" maxOccurs="unbounded">
+					    <xsd:annotation>
+					        <xsd:documentation>
+					            Global policy rules that are applied to all (selected) objects in the system.
+					            These rules specify compliance and governance constraints.
+					        </xsd:documentation>
+					        <xsd:appinfo>
+								<a:since>3.5</a:since>
+							</xsd:appinfo>
+					    </xsd:annotation>
+					</xsd:element>
 
                     <xsd:element name="profilingConfiguration" type="tns:ProfilingConfigurationType" minOccurs="0" maxOccurs="1">
                         <xsd:annotation>
@@ -10539,23 +10551,15 @@
 			    </xsd:annotation>
 			</xsd:element>
 			<!-- TODO: role assignment mode: multiple, single, parametric-multiple -->
-			<xsd:element name="globalPolicyRule" type="tns:PolicyRuleType" minOccurs="0" maxOccurs="unbounded">
-			    <xsd:annotation>
-			        <xsd:documentation>
-			            Reference to the root object of the role catalog.
-			        </xsd:documentation>
-			        <xsd:appinfo>
-						<a:since>3.5</a:since>
-					</xsd:appinfo>
-			    </xsd:annotation>
-			</xsd:element>
         </xsd:sequence>
     </xsd:complexType>
     
     <xsd:complexType name="PolicyRuleType">
         <xsd:annotation>
             <xsd:documentation>
-                TODO
+                These rules specify compliance and governance constraints.
+                E.g. role exclusion (SoD), number of assignees, 
+                approvals, remediation, etc.
             </xsd:documentation>
             <xsd:appinfo>
 				<a:since>3.5</a:since>
