@@ -288,7 +288,7 @@ public class PageSelfRegistration extends PageRegistrationBase {
 			if (!captcha.getCaptchaText().equals(captcha.getRandomText())) {
 				getSession().error(createStringResource("PageSelfRegistration.captcha.validation.failed").getString());
 				captcha.invalidateCaptcha();
-				throw new RestartResponseException(this);
+				throw new RestartResponseException(PageSelfRegistration.class);
 			}
 		}
 		
@@ -468,5 +468,11 @@ public class PageSelfRegistration extends PageRegistrationBase {
 				createComponentPath(ID_MAIN_FORM, ID_ORGANIZATION));
 		return org.getBaseFormComponent().getModel().getObject();
 	}
+	
+	@Override
+    protected void createBreadcrumb() {
+        //don't create breadcrumb for registration page
+    }
+
 
 }
