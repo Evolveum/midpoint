@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2015 Evolveum
+ * Copyright (c) 2015-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,14 +19,15 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 
 /**
  * @author semancik
  *
  */
-public interface EvaluatedAbstractRole extends DebugDumpable {
+public interface EvaluatedAssignmentTarget extends DebugDumpable {
 	
-	PrismObject<? extends AbstractRoleType> getRole();
+	PrismObject<? extends FocusType> getTarget();
 
 	boolean isDirectlyAssigned();
 

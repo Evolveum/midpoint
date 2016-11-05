@@ -62,6 +62,7 @@ public class MultiButtonPanel<T> extends BasePanel<T> {
                 }
             };
             button.add(new AttributeAppender("class", getButtonCssClass(finalId)));
+            button.add(new AttributeAppender("title", getButtonTitle(finalId)));
             buttons.add(button);
             buttons.add(new Label("label"+finalId, " "));
         }
@@ -89,6 +90,10 @@ public class MultiButtonPanel<T> extends BasePanel<T> {
 
     public String getButtonSizeCssClass(int id) {
         return DoubleButtonColumn.BUTTON_SIZE_CLASS.DEFAULT.toString();
+    }
+
+    public String getButtonTitle(int id) {
+        return "";
     }
 
     public String getButtonColorCssClass(int id) {

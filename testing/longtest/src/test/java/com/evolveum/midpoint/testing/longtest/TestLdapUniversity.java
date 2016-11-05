@@ -22,9 +22,7 @@ import com.evolveum.midpoint.common.ProfilingConfigurationManager;
 import com.evolveum.midpoint.model.impl.sync.ReconciliationTaskHandler;
 import com.evolveum.midpoint.model.test.AbstractModelIntegrationTest;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -33,7 +31,6 @@ import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
@@ -55,7 +52,6 @@ import org.testng.annotations.Test;
 import javax.xml.namespace.QName;
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
@@ -192,9 +188,9 @@ public class TestLdapUniversity extends AbstractModelIntegrationTest {
         for(int i=0; i < NUM_LDAP_ENTRIES; i++) {
             UserType userType = (UserType) prismContext.getSchemaRegistry().findObjectDefinitionByType(UserType.COMPLEX_TYPE).instantiate().asObjectable();
             if (i%2 == 0) {
-                userType.setName(createPolyString("e" + i));
+                userType.setName(createPolyStringType("e" + i));
             } else {
-                userType.setName(createPolyString("e" + i + "(u" + i + ")"));
+                userType.setName(createPolyStringType("e" + i + "(u" + i + ")"));
             }
             userType.setEmployeeNumber("e"+i);
             repositoryService.addObject(userType.asPrismObject(), null, result);
@@ -315,11 +311,4 @@ public class TestLdapUniversity extends AbstractModelIntegrationTest {
     private String groupCn(int groupIndex) {
         return String.format("g%02d", groupIndex);
     }
-
-    private PolyStringType createPolyString(String orig) {
-        PolyStringType poly = new PolyStringType();
-        poly.setOrig(orig);
-        return poly;
-    }
-
 }

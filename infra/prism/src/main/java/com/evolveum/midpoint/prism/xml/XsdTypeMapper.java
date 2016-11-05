@@ -243,6 +243,16 @@ public class XsdTypeMapper {
 		return Integer.valueOf(string);
 	}
 
+	public static boolean isMatchingMultiplicity(int number, int min, int max) {
+		if (min >= 0 && number < min) {
+			return false;
+		}
+		if (max >= 0 && number > max) {
+			return false;
+		}
+		return true;
+	}
+	
     static {
         try {
             initTypeMap();

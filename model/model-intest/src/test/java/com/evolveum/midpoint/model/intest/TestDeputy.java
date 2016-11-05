@@ -99,7 +99,7 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
         PrismObject<UserType> userJackAfter = getUser(USER_JACK_OID);
         display("User Jack after", userJackAfter);
         assertNoAssignments(userJackAfter);
-        assertLinks(userBarbossaAfter, 0);
+        assertLinks(userJackAfter, 0);
         assertNoAuthorizations(userJackAfter);
         
     }
@@ -128,16 +128,137 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
         
         PrismObject<UserType> userBarbossaAfter = getUser(USER_BARBOSSA_OID);
         display("User Barbossa after", userBarbossaAfter);        
-        assertAssignments(userBarbossaAfter, 0);
+        assertNoAssignments(userBarbossaAfter);
         assertLinks(userBarbossaAfter, 0);
         assertNoAuthorizations(userBarbossaAfter);
         
         PrismObject<UserType> userJackAfter = getUser(USER_JACK_OID);
         display("User Jack after", userJackAfter);
         assertNoAssignments(userJackAfter);
-        assertLinks(userBarbossaAfter, 0);
+        assertLinks(userJackAfter, 0);
         assertNoAuthorizations(userJackAfter);
         
     }
+    
+    /**
+	 * Still not much here. Just preparing Jack.
+	 * Make sure that Barbossa is not affected though.
+	 */
+    @Test
+    public void test110AssignJackPirate() throws Exception {
+		final String TEST_NAME = "test110AssignJackPirate";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        
+        Task task = taskManager.createTaskInstance(TestDeputy.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        
+        assignRole(USER_JACK_OID, ROLE_PIRATE_OID, task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        PrismObject<UserType> userJackAfter = getUser(USER_JACK_OID);
+        display("User Jack after", userJackAfter);
+        assertAssignedRole(userJackAfter, ROLE_PIRATE_OID);
+        assertAssignments(userJackAfter, 1);
+        assertAccount(userJackAfter, RESOURCE_DUMMY_OID);
+        assertLinks(userJackAfter, 1);
+        assertAuthorizations(userJackAfter, AUTZ_LOOT_URL);
+        
+        PrismObject<UserType> userBarbossaAfter = getUser(USER_BARBOSSA_OID);
+        display("User Barbossa after", userBarbossaAfter);
+        assertNoAssignments(userBarbossaAfter);
+        assertLinks(userBarbossaAfter, 0);
+        assertNoAuthorizations(userBarbossaAfter);        
+        
+    }
+    
+    /**
+	 * Assign Barbossa as Jack's deputy. Barbossa should get equivalent
+	 * accounts and authorizations as Jack.
+	 */
+    @Test
+    public void test112AssignDeputyPirate() throws Exception {
+		final String TEST_NAME = "test112AssignDeputyPirate";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        
+        Task task = taskManager.createTaskInstance(TestDeputy.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        
+        assignDeputy(USER_BARBOSSA_OID, USER_JACK_OID, task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        PrismObject<UserType> userBarbossaAfter = getUser(USER_BARBOSSA_OID);
+        display("User Barbossa after", userBarbossaAfter);
+        assertAssignedDeputy(userBarbossaAfter, USER_JACK_OID);
+        assertAssignedNoRole(userBarbossaAfter);
+        assertAssignments(userBarbossaAfter, 1);
+        assertAccount(userBarbossaAfter, RESOURCE_DUMMY_OID);
+        assertLinks(userBarbossaAfter, 1);
+        assertAuthorizations(userBarbossaAfter, AUTZ_LOOT_URL);
+        
+        PrismObject<UserType> userJackAfter = getUser(USER_JACK_OID);
+        display("User Jack after", userJackAfter);
+        assertAssignedRole(userJackAfter, ROLE_PIRATE_OID);
+        assertAssignments(userJackAfter, 1);
+        assertAccount(userJackAfter, RESOURCE_DUMMY_OID);
+        assertLinks(userJackAfter, 1);
+        assertAuthorizations(userJackAfter, AUTZ_LOOT_URL);
+        
+    }
+    
+    // TODO: recompute barbossa, recompute jack
+    
+    /**
+	 * Unassign Barbossa as Jack's deputy. Barbossa should get 
+	 * back to emptiness.
+	 */
+    @Test
+    public void test119UnassignDeputyPirate() throws Exception {
+		final String TEST_NAME = "test119UnassignDeputyPirate";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        
+        Task task = taskManager.createTaskInstance(TestDeputy.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        
+        unassignDeputy(USER_BARBOSSA_OID, USER_JACK_OID, task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        PrismObject<UserType> userBarbossaAfter = getUser(USER_BARBOSSA_OID);
+        display("User Barbossa after", userBarbossaAfter);        
+        assertNoAssignments(userBarbossaAfter);
+        assertLinks(userBarbossaAfter, 0);
+        assertNoAuthorizations(userBarbossaAfter);
+        
+        PrismObject<UserType> userJackAfter = getUser(USER_JACK_OID);
+        display("User Jack after", userJackAfter);
+        assertAssignedRole(userJackAfter, ROLE_PIRATE_OID);
+        assertAssignments(userJackAfter, 1);
+        assertAccount(userJackAfter, RESOURCE_DUMMY_OID);
+        assertLinks(userJackAfter, 1);
+        assertAuthorizations(userJackAfter, AUTZ_LOOT_URL);
+        
+    }
+    
+    // TODO: assign deputy to empty jack, assign role to jack, recompute barbossa
 	
 }

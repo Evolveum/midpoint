@@ -630,19 +630,11 @@ public class FocusProcessor {
 			throws SchemaException {
 		PrismContainerDefinition<ActivationType> activationDefinition = getActivationDefinition();
 		
-		// It is not enough to check alreadyHasDelta(). The change may happen in previous waves
-		// and the secondary delta may no longer be here. When it comes to disableTimestamp we even
-		// cannot rely on natural filtering of already executed deltas as the timestamp here may
-		// be off by several milliseconds. So explicitly check for the change here. 
-		PrismObject<F> objectCurrent = focusContext.getObjectCurrent();
-		if (objectCurrent != null) {
-			PrismProperty<ActivationStatusType> effectiveStatusPropCurrent = objectCurrent.findProperty(SchemaConstants.PATH_ACTIVATION_EFFECTIVE_STATUS);
-			if (effectiveStatusPropCurrent != null && effectiveStatusNew.equals(effectiveStatusPropCurrent.getRealValue())) {
-				LOGGER.trace("Skipping setting of effective status and disableTimestamp because there was no change");
-				return;
-			}
-		}
-		
+		// We always want explicit delta for effective status even if there is no real change
+		// we want to propagate enable/disable events to all the resources, even if we are enabling
+		// already enabled user (some resources may be disabled)
+		// This may produce duplicate delta, but that does not matter too much. The duplicate delta
+		// will be filtered out later.
 		PrismPropertyDefinition<ActivationStatusType> effectiveStatusDef = activationDefinition.findPropertyDefinition(ActivationType.F_EFFECTIVE_STATUS);
 		PropertyDelta<ActivationStatusType> effectiveStatusDelta 
 				= effectiveStatusDef.createEmptyDelta(new ItemPath(UserType.F_ACTIVATION, ActivationType.F_EFFECTIVE_STATUS));
@@ -651,6 +643,19 @@ public class FocusProcessor {
 			focusContext.swallowToProjectionWaveSecondaryDelta(effectiveStatusDelta);
 		}
 		
+		// It is not enough to check alreadyHasDelta(). The change may happen in previous waves
+		// and the secondary delta may no longer be here. When it comes to disableTimestamp we even
+		// cannot rely on natural filtering of already executed deltas as the timestamp here may
+		// be off by several milliseconds. So explicitly check for the change here. 
+		PrismObject<F> objectCurrent = focusContext.getObjectCurrent();
+		if (objectCurrent != null) {
+			PrismProperty<ActivationStatusType> effectiveStatusPropCurrent = objectCurrent.findProperty(SchemaConstants.PATH_ACTIVATION_EFFECTIVE_STATUS);
+			if (effectiveStatusPropCurrent != null && effectiveStatusNew.equals(effectiveStatusPropCurrent.getRealValue())) {
+				LOGGER.trace("Skipping setting disableTimestamp because there was no change");
+				return;
+			}
+		}
+				
 		PropertyDelta<XMLGregorianCalendar> timestampDelta = LensUtil.createActivationTimestampDelta(effectiveStatusNew, now, activationDefinition, OriginType.USER_POLICY);
 		if (!focusContext.alreadyHasDelta(timestampDelta)) {
 			focusContext.swallowToProjectionWaveSecondaryDelta(timestampDelta);

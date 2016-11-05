@@ -28,8 +28,10 @@ import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
@@ -52,10 +54,27 @@ public class TestOrgStructCaribbean extends AbstractInitializedModelIntegrationT
 	protected static final String ORG_CARIBBEAN_DEPARTMENT_OF_THINGS_OID = "00000000-8888-6666-0000-c00000000004";
 	protected static final String ORG_CARIBBEAN_DEPARTMENT_OF_PEOPLE_OID = "00000000-8888-6666-0000-c00000000005";
 	protected static final String ORG_CARIBBEAN_ENTERTAINMENT_SECTION_OID = "00000000-8888-6666-0000-c00000000006";
+	
+	public static final File USER_GIBBS_FILE = new File(TEST_DIR, "user-gibbs.xml");
+    public static final String USER_GIBBS_OID = "aca242ae-a29e-11e6-8bb4-1f8a1be2bd79";
+    public static final String USER_GIBBS_USERNAME = "gibbs";
+    
+    public static final File USER_PINTEL_FILE = new File(TEST_DIR, "user-pintel.xml");
+    public static final String USER_PINTEL_OID = "16522760-a2a3-11e6-bf77-8baa83388f4b";
+    public static final String USER_PINTEL_USERNAME = "pintel";
+	
+	public static final File ROLE_META_PIRACY_ORG_FILE = new File(TEST_DIR, "role-meta-piracy-org.xml");
+    public static final String ROLE_META_PIRACY_ORG_OID = "d534f1b2-a26c-11e6-abf5-e71dff038896";
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
+        
+        addObject(USER_GIBBS_FILE);
+        addObject(USER_PINTEL_FILE);
+        
+        addObject(ROLE_META_PIRACY_ORG_FILE);
+        
         //DebugUtil.setDetailedDebugDump(true);
     }
 
@@ -344,6 +363,12 @@ public class TestOrgStructCaribbean extends AbstractInitializedModelIntegrationT
         
         Task task = taskManager.createTaskInstance(TestOrgStructCaribbean.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
+        
+        assertNoDummyAccount(RESOURCE_DUMMY_YELLOW_NAME, USER_JACK_USERNAME);
+        assertNoDummyAccount(RESOURCE_DUMMY_RED_NAME, USER_JACK_USERNAME);
+        
+        PrismObject<UserType> userJackBefore = getUser(USER_JACK_OID);
+        dumpFocus("User Jack before", userJackBefore);
 
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
@@ -363,10 +388,137 @@ public class TestOrgStructCaribbean extends AbstractInitializedModelIntegrationT
         assertHasNoOrg(orgScummBar, ORG_CARIBBEAN_ENTERTAINMENT_SECTION_OID);
         
         PrismObject<UserType> userJackAfter = getUser(USER_JACK_OID);
-        display("User Jack after", userJackAfter);
+        dumpFocus("User Jack after", userJackAfter);
         assertHasOrgs(userJackAfter, ORG_CARIBBEAN_DEPARTMENT_OF_PEOPLE_OID, ORG_SCUMM_BAR_OID);
+        assertRoleMembershipRef(userJackAfter, ORG_CARIBBEAN_DEPARTMENT_OF_PEOPLE_OID, ORG_SCUMM_BAR_OID);
+        assertAccount(userJackAfter, RESOURCE_DUMMY_OID); // From Scumm Bar
+        assertAccount(userJackAfter, RESOURCE_DUMMY_YELLOW_OID);
+        assertLinks(userJackAfter, 2);
+        
+        assertDummyAccount(RESOURCE_DUMMY_YELLOW_NAME, USER_JACK_USERNAME);
+        assertDummyAccountAttribute(RESOURCE_DUMMY_YELLOW_NAME, USER_JACK_USERNAME, 
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Pirate");
+        
+        assertNoDummyAccount(RESOURCE_DUMMY_RED_NAME, USER_JACK_USERNAME);
         
     }
-   
+    
+    /**
+     * Barbossa is a manager. He should get the red account from the piracy metarole.
+     * But he should NOT get the yellow account.
+     */
+    @Test
+    public void test120AssignBarbossaDoTManager() throws Exception {
+        final String TEST_NAME = "test120AssignBarbossaDoTManager";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        
+        Task task = taskManager.createTaskInstance(TestOrgStructCaribbean.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        assertNoDummyAccount(RESOURCE_DUMMY_YELLOW_NAME, USER_BARBOSSA_USERNAME);
+        assertNoDummyAccount(RESOURCE_DUMMY_RED_NAME, USER_BARBOSSA_USERNAME);
+
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        assignOrg(USER_BARBOSSA_OID, ORG_CARIBBEAN_DEPARTMENT_OF_THINGS_OID, SchemaConstants.ORG_MANAGER);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+                
+        PrismObject<UserType> userBarbossaAfter = getUser(USER_BARBOSSA_OID);
+        dumpFocus("User barbossa after", userBarbossaAfter);
+        assertHasOrgs(userBarbossaAfter, ORG_CARIBBEAN_DEPARTMENT_OF_THINGS_OID, ORG_GOVERNOR_OFFICE_OID);
+        assertRoleMembershipRef(userBarbossaAfter, ORG_CARIBBEAN_DEPARTMENT_OF_THINGS_OID, ORG_GOVERNOR_OFFICE_OID);
+        assertAccount(userBarbossaAfter, RESOURCE_DUMMY_RED_OID);
+        assertLinks(userBarbossaAfter, 1);
+        
+        assertDummyAccount(RESOURCE_DUMMY_RED_NAME, USER_BARBOSSA_USERNAME);
+        assertDummyAccountAttribute(RESOURCE_DUMMY_RED_NAME, USER_BARBOSSA_USERNAME, 
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Captain");
+        
+        assertNoDummyAccount(RESOURCE_DUMMY_YELLOW_NAME, USER_BARBOSSA_USERNAME);
+        
+    }
+ 
+    /**
+     * MID-3472
+     */
+    @Test
+    public void test130AssignGibbsAsJacksDeputy() throws Exception {
+        final String TEST_NAME = "test130AssignGibbsAsJacksDeputy";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        
+        Task task = taskManager.createTaskInstance(TestOrgStructCaribbean.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        assertNoDummyAccount(RESOURCE_DUMMY_YELLOW_NAME, USER_GIBBS_USERNAME);
+        assertNoDummyAccount(RESOURCE_DUMMY_RED_NAME, USER_GIBBS_USERNAME);
+
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        assignDeputy(USER_GIBBS_OID, USER_JACK_OID, task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+                
+        PrismObject<UserType> userGibbsAfter = getUser(USER_GIBBS_OID);
+        dumpFocus("User Gibbs after", userGibbsAfter);
+        assertHasOrgs(userGibbsAfter, ORG_CARIBBEAN_DEPARTMENT_OF_PEOPLE_OID, ORG_SCUMM_BAR_OID);
+        // WORK IN PROGRESS MID-3472
+//        assertRoleMembershipRef(userGibbsAfter, ORG_CARIBBEAN_DEPARTMENT_OF_PEOPLE_OID, ORG_SCUMM_BAR_OID);
+        assertAccount(userGibbsAfter, RESOURCE_DUMMY_OID); // From Scumm Bar
+        assertAccount(userGibbsAfter, RESOURCE_DUMMY_YELLOW_OID);
+        assertLinks(userGibbsAfter, 2);
+        
+        assertDummyAccount(RESOURCE_DUMMY_YELLOW_NAME, USER_GIBBS_USERNAME);
+        assertDummyAccountAttribute(RESOURCE_DUMMY_YELLOW_NAME, USER_GIBBS_USERNAME, 
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Pirate");
+        
+        assertNoDummyAccount(RESOURCE_DUMMY_RED_NAME, USER_GIBBS_USERNAME);
+        
+    }
+    
+    /**
+     * MID-3472
+     */
+    @Test
+    public void test140AssignPintelAsBarbossasDeputy() throws Exception {
+        final String TEST_NAME = "test140AssignPintelAsBarbossasDeputy";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        
+        Task task = taskManager.createTaskInstance(TestOrgStructCaribbean.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        assertNoDummyAccount(RESOURCE_DUMMY_YELLOW_NAME, USER_PINTEL_USERNAME);
+        assertNoDummyAccount(RESOURCE_DUMMY_RED_NAME, USER_PINTEL_USERNAME);
+
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        assignDeputy(USER_PINTEL_OID, USER_BARBOSSA_OID, task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+                
+        PrismObject<UserType> userPintelAfter = getUser(USER_PINTEL_OID);
+        dumpFocus("User pintel after", userPintelAfter);
+        assertHasOrgs(userPintelAfter, ORG_CARIBBEAN_DEPARTMENT_OF_THINGS_OID, ORG_GOVERNOR_OFFICE_OID);
+        // WORK IN PROGRESS MID-3472
+//        assertRoleMembershipRef(userPintelAfter, ORG_CARIBBEAN_DEPARTMENT_OF_THINGS_OID, ORG_GOVERNOR_OFFICE_OID);
+        assertAccount(userPintelAfter, RESOURCE_DUMMY_RED_OID);
+        assertLinks(userPintelAfter, 1);
+        
+        assertDummyAccount(RESOURCE_DUMMY_RED_NAME, USER_PINTEL_USERNAME);
+        assertDummyAccountAttribute(RESOURCE_DUMMY_RED_NAME, USER_PINTEL_USERNAME, 
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Captain");
+        
+        assertNoDummyAccount(RESOURCE_DUMMY_YELLOW_NAME, USER_PINTEL_USERNAME);
+        
+    }
 
 }

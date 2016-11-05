@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2015 Evolveum
+ * Copyright (c) 2015-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,32 +15,33 @@
  */
 package com.evolveum.midpoint.model.impl.lens;
 
-import com.evolveum.midpoint.model.api.context.EvaluatedAbstractRole;
+import com.evolveum.midpoint.model.api.context.EvaluatedAssignmentTarget;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExclusionPolicyConstraintType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintsType;
 
 /**
  * @author semancik
  *
  */
-public class EvaluatedAbstractRoleImpl implements EvaluatedAbstractRole {
+public class EvaluatedAssignmentTargetImpl implements EvaluatedAssignmentTarget {
 	
-	PrismObject<? extends AbstractRoleType> role;
+	PrismObject<? extends FocusType> target;
 	private boolean directlyAssigned;
 	private boolean evaluateConstructions;
 	private AssignmentType assignment;
 
 	@Override
-	public PrismObject<? extends AbstractRoleType> getRole() {
-		return role;
+	public PrismObject<? extends FocusType> getTarget() {
+		return target;
 	}
 
-	public void setRole(PrismObject<? extends AbstractRoleType> role) {
-		this.role = role;
+	public void setTarget(PrismObject<? extends FocusType> target) {
+		this.target = target;
 	}
 
 	@Override
@@ -71,24 +72,29 @@ public class EvaluatedAbstractRoleImpl implements EvaluatedAbstractRole {
 	}
 	
 	public String getOid() {
-		return role.getOid();
+		return target.getOid();
 	}
 
 	public PolicyConstraintsType getPolicyConstraints() {
-		AbstractRoleType roleType = role.asObjectable();
-		PolicyConstraintsType constraints = roleType.getPolicyConstraints();
-		if (roleType.getExclusion().isEmpty()) {
+		FocusType focusType = target.asObjectable();
+		if (focusType instanceof AbstractRoleType) {
+			AbstractRoleType roleType = (AbstractRoleType)focusType;
+			PolicyConstraintsType constraints = roleType.getPolicyConstraints();
+			if (roleType.getExclusion().isEmpty()) {
+				return constraints;
+			}
+			if (constraints == null) {
+				constraints = new PolicyConstraintsType();
+				roleType.setPolicyConstraints(constraints);
+			}
+			for (ExclusionPolicyConstraintType exclusion: roleType.getExclusion()) {
+				constraints.getExclusion().add(exclusion.clone());
+			}
+			roleType.getExclusion().clear();
 			return constraints;
+		} else {
+			return null;
 		}
-		if (constraints == null) {
-			constraints = new PolicyConstraintsType();
-			roleType.setPolicyConstraints(constraints);
-		}
-		for (ExclusionPolicyConstraintType exclusion: roleType.getExclusion()) {
-			constraints.getExclusion().add(exclusion.clone());
-		}
-		roleType.getExclusion().clear();
-		return constraints;
 	}
 
 	@Override
@@ -99,9 +105,9 @@ public class EvaluatedAbstractRoleImpl implements EvaluatedAbstractRole {
 	@Override
 	public String debugDump(int indent) {
 		StringBuilder sb = new StringBuilder();
-		DebugUtil.debugDumpLabel(sb, "EvaluatedAbstractRole", indent);
+		DebugUtil.debugDumpLabel(sb, "EvaluatedAssignmentTarget", indent);
 		sb.append("\n");
-		DebugUtil.debugDumpWithLabel(sb, "Role", role, indent + 1);
+		DebugUtil.debugDumpWithLabel(sb, "Target", target, indent + 1);
 		sb.append("\n");
 		DebugUtil.debugDumpWithLabel(sb, "Assignment", String.valueOf(assignment), indent + 1);
 		return sb.toString();

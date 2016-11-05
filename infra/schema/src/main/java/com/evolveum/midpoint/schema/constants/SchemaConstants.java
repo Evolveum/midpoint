@@ -142,6 +142,13 @@ public abstract class SchemaConstants {
 	 * Specifies that the subject is a manager of organizational unit.
 	 */
 	public static final QName ORG_MANAGER = new QName(NS_ORG, "manager");
+	
+	/**
+	 * Relation used for metarole assignments. Sometimes it is important to
+	 * distinguish metarole and member assignments. This relation is used
+	 * for that purpose.
+	 */
+	public static final QName ORG_META = new QName(NS_ORG, "meta");
 
 	/**
 	 * Relation "is deputy of". Used as a relation value in object references.

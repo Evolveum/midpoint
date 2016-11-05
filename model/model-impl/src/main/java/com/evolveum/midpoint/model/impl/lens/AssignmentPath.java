@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 
 /**
  * @author semancik
@@ -70,9 +71,9 @@ public class AssignmentPath implements DebugDumpable {
 
 	public int size() { return segments.size(); }
 
-	public int getEvaluationOrder() {
+	public EvaluationOrder getEvaluationOrder() {
 		if (isEmpty()) {
-			return 0;
+			return EvaluationOrder.ZERO;
 		} else {
 			return segments.get(segments.size()-1).getEvaluationOrder();
 		}
@@ -105,6 +106,7 @@ public class AssignmentPath implements DebugDumpable {
 		}
 		return false;
 	}
+
 	
 	/**
 	 * Shallow clone.
@@ -145,6 +147,6 @@ public class AssignmentPath implements DebugDumpable {
 			}
 		}
 		return sb.toString();
-	}	
+	}
 
 }

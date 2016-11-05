@@ -37,7 +37,7 @@ import org.testng.annotations.Test;
 
 import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
-import com.evolveum.midpoint.model.api.context.EvaluatedAbstractRole;
+import com.evolveum.midpoint.model.api.context.EvaluatedAssignmentTarget;
 import com.evolveum.midpoint.model.api.context.EvaluatedAssignment;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.prism.PrismContainer;
@@ -645,20 +645,20 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         Collection<? extends EvaluatedAssignment> evaluatedAssignments = evaluatedAssignmentTriple.getZeroSet();
         assertEquals("Wrong number of evaluated assignments", 1, evaluatedAssignments.size());
         EvaluatedAssignment<UserType> evaluatedAssignment = evaluatedAssignments.iterator().next();
-        DeltaSetTriple<? extends EvaluatedAbstractRole> rolesTriple = evaluatedAssignment.getRoles();
+        DeltaSetTriple<? extends EvaluatedAssignmentTarget> rolesTriple = evaluatedAssignment.getRoles();
         PrismAsserts.assertTripleNoPlus(rolesTriple);
         PrismAsserts.assertTripleNoMinus(rolesTriple);
-        Collection<? extends EvaluatedAbstractRole> evaluatedRoles = rolesTriple.getZeroSet();
+        Collection<? extends EvaluatedAssignmentTarget> evaluatedRoles = rolesTriple.getZeroSet();
         assertEquals("Wrong number of evaluated role", 2, evaluatedRoles.size());
         assertEvaluatedRole(evaluatedRoles, ROLE_ADRIATIC_PIRATE_OID);
         assertEvaluatedRole(evaluatedRoles, ROLE_PIRATE_OID);
         
 	}
 	
-	private void assertEvaluatedRole(Collection<? extends EvaluatedAbstractRole> evaluatedRoles,
+	private void assertEvaluatedRole(Collection<? extends EvaluatedAssignmentTarget> evaluatedRoles,
 			String expectedRoleOid) {
-		for (EvaluatedAbstractRole evalRole: evaluatedRoles) {
-			if (expectedRoleOid.equals(evalRole.getRole().getOid())) {
+		for (EvaluatedAssignmentTarget evalRole: evaluatedRoles) {
+			if (expectedRoleOid.equals(evalRole.getTarget().getOid())) {
 				return;
 			}
 		}
