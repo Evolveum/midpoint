@@ -85,6 +85,7 @@ public class CredentialsProcessor {
 			XMLGregorianCalendar now, Task task, OperationResult result) throws ExpressionEvaluationException,
 					ObjectNotFoundException, SchemaException, PolicyViolationException {
 		processFocusPassword(context, now, task, result);
+		processFocusNonce(context, now, task, result);
 	}
 
 	private <F extends FocusType> void processFocusPassword(LensContext<F> context, XMLGregorianCalendar now,
@@ -111,6 +112,27 @@ public class CredentialsProcessor {
 		}
 
 		passwordPolicyProcessor.processPasswordPolicy(projectionContext, context, task, result);
+	}
+	
+	//for now just saving metadata
+	private <F extends FocusType> void processFocusNonce(LensContext<F> context, XMLGregorianCalendar now,
+			Task task, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException,
+					SchemaException, PolicyViolationException {
+		
+		processFocusCredentialsCommon(context, SchemaConstants.PATH_NONCE, now, task, result);
+//		
+//
+//		ObjectDelta<F> focusDelta = focusContext.getDelta();
+//		
+//		if (hasValueDelta(focusDelta, SchemaConstants.PATH_NONCE)) {
+//			Collection<? extends ItemDelta<?, ?>> metaDeltas = LensUtil.createModifyMetadataDeltas(
+//					context, SchemaConstants.PATH_NONCE.subPath(AbstractCredentialType.F_METADATA),
+//					focusContext.getObjectDefinition(), now, task);
+//			for (ItemDelta<?, ?> metaDelta : metaDeltas) {
+//				context.getFocusContext().swallowToSecondaryDelta(metaDelta);
+//			}
+//		}
+
 	}
 
 	private <F extends FocusType> void processProjectionPassword(LensContext<F> context,
