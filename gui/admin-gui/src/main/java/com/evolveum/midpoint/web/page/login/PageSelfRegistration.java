@@ -114,7 +114,7 @@ public class PageSelfRegistration extends PageRegistrationBase {
 	public PageSelfRegistration(PageParameters pageParameters) {
 		super();
 
-		userModel = new LoadableModel<UserType>(true) {
+		userModel = new LoadableModel<UserType>(false) {
 			private static final long serialVersionUID = 1L;
 
 			@Override
@@ -283,13 +283,8 @@ public class PageSelfRegistration extends PageRegistrationBase {
 
 	private void submitRegistration(AjaxRequestTarget target) {
 
-		CaptchaPanel captcha = getCaptcha();
-		if (captcha.getCaptchaText() != null && captcha.getRandomText() != null) {
-			if (!captcha.getCaptchaText().equals(captcha.getRandomText())) {
-				getSession().error(createStringResource("PageSelfRegistration.captcha.validation.failed").getString());
-				captcha.invalidateCaptcha();
-				throw new RestartResponseException(PageSelfRegistration.class);
-			}
+		if (!validateCaptcha(target)) {
+			return;
 		}
 		
 		OperationResult result = runPrivileged(new Producer<OperationResult>() {
@@ -326,7 +321,7 @@ public class PageSelfRegistration extends PageRegistrationBase {
 			getSession().error(
 					createStringResource("PageSelfRegistration.registration.error", result.getMessage())
 							.getString());
-			throw new RestartResponseException(this);
+			userModel.getObject().setCredentials(null);
 
 		}
 
@@ -334,6 +329,22 @@ public class PageSelfRegistration extends PageRegistrationBase {
 		target.add(getFeedbackPanel());
 		target.add(this);
 
+	}
+	
+	private boolean validateCaptcha(AjaxRequestTarget target) {
+		CaptchaPanel captcha = getCaptcha();
+		if (captcha.getCaptchaText() != null && captcha.getRandomText() != null) {
+			if (!captcha.getCaptchaText().equals(captcha.getRandomText())) {
+				getSession().error(createStringResource("PageSelfRegistration.captcha.validation.failed").getString());
+				captcha.invalidateCaptcha();
+				userModel.getObject().setCredentials(null);
+				updateCaptcha(target);
+				target.add(getFeedbackPanel());
+				target.add(this);
+				return false;
+			}
+		}
+		return true;
 	}
 
 	private List<String> prepareAutocompleteValues(final String input) {
