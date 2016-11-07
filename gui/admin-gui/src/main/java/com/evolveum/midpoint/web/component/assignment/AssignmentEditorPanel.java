@@ -131,6 +131,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 	private static final String ID_ERROR_ICON = "errorIcon";
 
 	private IModel<List<ACAttributeDto>> attributesModel;
+	protected WebMarkupContainer headerRow;
 
 	public AssignmentEditorPanel(String id, IModel<AssignmentEditorDto> model) {
 		super(id, model);
@@ -155,7 +156,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 
 	private void initLayout() {
 		setOutputMarkupId(true);
-		WebMarkupContainer headerRow = new WebMarkupContainer(ID_HEADER_ROW);
+		headerRow = new WebMarkupContainer(ID_HEADER_ROW);
 		headerRow.add(AttributeModifier.append("class", createHeaderClassModel(getModel())));
 		headerRow.setOutputMarkupId(true);
 		add(headerRow);
@@ -348,7 +349,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 		};
 	}
 
-	private IModel<Date> createDateModel(final IModel<XMLGregorianCalendar> model) {
+	protected IModel<Date> createDateModel(final IModel<XMLGregorianCalendar> model) {
 		return new Model<Date>() {
 
 			@Override

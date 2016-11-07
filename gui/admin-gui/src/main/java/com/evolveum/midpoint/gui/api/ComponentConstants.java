@@ -50,6 +50,9 @@ public class ComponentConstants {
     public static final QName UI_FOCUS_TAB_INDUCEMENTS = new QName(NS_COMPONENTS_PREFIX, "focusTabInducements");
     public static final String UI_FOCUS_TAB_INDUCEMENTS_URL = QNameUtil.qNameToUri(UI_FOCUS_TAB_INDUCEMENTS);
 
+    public static final QName UI_FOCUS_TAB_DELEGATIONS = new QName(NS_COMPONENTS_PREFIX, "focusTabDelegations");
+    public static final String UI_FOCUS_TAB_DELEGATIONS_URL = QNameUtil.qNameToUri(UI_FOCUS_TAB_DELEGATIONS);
+
     public static final QName UI_FOCUS_TAB_POLICY_CONSTRAINTS = new QName(NS_COMPONENTS_PREFIX, "focusTabPolicyConstraints");
     public static final String UI_FOCUS_TAB_POLICY_CONSTRAINTS_URL = QNameUtil.qNameToUri(UI_FOCUS_TAB_POLICY_CONSTRAINTS);
 
