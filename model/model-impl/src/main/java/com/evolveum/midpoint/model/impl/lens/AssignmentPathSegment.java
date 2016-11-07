@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,7 +35,7 @@ public class AssignmentPathSegment implements DebugDumpable {
 	private ObjectType source;
 	private boolean evaluateConstructions = true;
 	private boolean validityOverride = false;
-	private int evaluationOrder;
+	private EvaluationOrder evaluationOrder;
 	private ObjectType varThisObject;
 	
 	AssignmentPathSegment(ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi, ObjectType target) {
@@ -91,11 +91,11 @@ public class AssignmentPathSegment implements DebugDumpable {
 		this.validityOverride = validityOverride;
 	}
 
-	public int getEvaluationOrder() {
+	public EvaluationOrder getEvaluationOrder() {
 		return evaluationOrder;
 	}
 
-	public void setEvaluationOrder(int evaluationOrder) {
+	public void setEvaluationOrder(EvaluationOrder evaluationOrder) {
 		this.evaluationOrder = evaluationOrder;
 	}
 
@@ -181,7 +181,7 @@ public class AssignmentPathSegment implements DebugDumpable {
 		sb.append("\n");
 		DebugUtil.debugDumpWithLabel(sb, "validityOverride", validityOverride, indent + 1);
 		sb.append("\n");
-		DebugUtil.debugDumpWithLabel(sb, "evaluationOrder", evaluationOrder, indent + 1);
+		DebugUtil.debugDumpWithLabel(sb, "evaluationOrder", (DebugDumpable)evaluationOrder, indent + 1);
 		sb.append("\n");
 		DebugUtil.debugDumpWithLabel(sb, "assignment", assignmentIdi.toString(), indent + 1);
 		sb.append("\n");

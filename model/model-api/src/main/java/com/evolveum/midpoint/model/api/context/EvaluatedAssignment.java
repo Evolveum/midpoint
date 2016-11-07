@@ -22,7 +22,7 @@ public interface EvaluatedAssignment<F extends FocusType> extends DebugDumpable 
 	
 	Collection<AdminGuiConfigurationType> getAdminGuiConfigurations();
 	
-	DeltaSetTriple<? extends EvaluatedAbstractRole> getRoles();
+	DeltaSetTriple<? extends EvaluatedAssignmentTarget> getRoles();
 
 	DeltaSetTriple<EvaluatedConstruction> getEvaluatedConstructions(Task task, OperationResult result) throws SchemaException, ObjectNotFoundException;
 

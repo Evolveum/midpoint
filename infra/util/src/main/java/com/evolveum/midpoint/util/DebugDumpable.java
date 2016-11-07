@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,8 +33,10 @@ public interface DebugDumpable {
 	 * 
 	 * @return content of the object intended for diagnostics by system administrator.
 	 */
-	public String debugDump();
+	default String debugDump() {
+		return debugDump(0);
+	}
 	
-	public String debugDump(int indent);
-
+	String debugDump(int indent);
+	
 }

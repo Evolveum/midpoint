@@ -256,5 +256,10 @@ public class PageRegistrationConfirmation extends PageRegistrationBase {
 		errorPanel.add(errorMessage);
 
 	}
+	
+	@Override
+	protected void createBreadcrumb() {
+		// don't create breadcrumb for registration confirmation page
+	}
 
 }

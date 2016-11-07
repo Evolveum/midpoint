@@ -40,12 +40,14 @@ import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.marshaller.QueryConvertor;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.FocusTypeUtil;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.security.api.Authorization;
@@ -66,6 +68,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OrderConstraintsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
@@ -208,7 +211,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 		AssignmentPath assignmentPath = new AssignmentPath();
 		AssignmentPathSegment assignmentPathSegment = new AssignmentPathSegment(assignmentIdi, null);
 		assignmentPathSegment.setSource(source);
-		assignmentPathSegment.setEvaluationOrder(1);
+		assignmentPathSegment.setEvaluationOrder(getInitialEvaluationOrder(assignmentIdi, evaluateOld));
 		assignmentPathSegment.setEvaluateConstructions(true);
 		assignmentPathSegment.setValidityOverride(true);
 		
@@ -221,6 +224,16 @@ public class AssignmentEvaluator<F extends FocusType> {
 		return evalAssignment;
 	}
 	
+	private EvaluationOrder getInitialEvaluationOrder(
+			ItemDeltaItem<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> assignmentIdi, boolean evaluateOld) {
+		AssignmentType assignmentType = LensUtil.getAssignmentType(assignmentIdi, evaluateOld);
+		QName relation = null;
+		if (assignmentType.getTargetRef() != null) {
+			relation = assignmentType.getTargetRef().getRelation();
+		}
+		return EvaluationOrder.ZERO.advance(relation);
+	}
+
 	private <O extends ObjectType> void evaluateAssignment(EvaluatedAssignmentImpl<F> evalAssignment, AssignmentPathSegment assignmentPathSegment, 
 			boolean evaluateOld, PlusMinusZero mode, boolean isParentValid, ObjectType source, String sourceDescription,
 			AssignmentPath assignmentPath, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, PolicyViolationException {
@@ -279,9 +292,8 @@ public class AssignmentEvaluator<F extends FocusType> {
 				throw new PolicyViolationException("The "+source+" refers to itself in assignment/inducement");
 			}
 
-			LOGGER.trace("Checking for role cycle, comparing actual order {} with evaluation order {}", assignmentPathSegment.getEvaluationOrder(), assignmentPath.getEvaluationOrder());
-			if (assignmentPath.containsTarget((ObjectType) target.asObjectable()) && assignmentPathSegment.getEvaluationOrder() == assignmentPath.getEvaluationOrder()) {
-
+			LOGGER.trace("Checking for role cycle, comparing segment order {} with path order {}", assignmentPathSegment.getEvaluationOrder(), assignmentPath.getEvaluationOrder());
+			if (assignmentPath.containsTarget((ObjectType) target.asObjectable()) && assignmentPathSegment.getEvaluationOrder().equals(assignmentPath.getEvaluationOrder())) {
 				throw new PolicyViolationException("Attempt to assign "+target+" creates a role cycle");
 			}
 		}
@@ -328,8 +340,9 @@ public class AssignmentEvaluator<F extends FocusType> {
 				
 			} else if (target != null) {
 				
-				evaluateTarget(evalAssignment, assignmentPathSegment, evaluateOld, mode, isParentValid && isValid, target, source, assignmentType.getTargetRef().getRelation(), sourceDescription,
-						assignmentPath, task, result);
+				evaluateAssignmentTarget(evalAssignment, assignmentPathSegment, evaluateOld, mode,
+						isParentValid && isValid, (FocusType)target.asObjectable(), source, assignmentType.getTargetRef().getRelation(), 
+						sourceDescription, assignmentPath, task, result);
 				
 			} else {
 				// Do not throw an exception. We don't have referential integrity. Therefore if a role is deleted then throwing
@@ -433,7 +446,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 			return targets;
 			
 		} else {
-			LOGGER.trace("Resolving target from repository");
+			LOGGER.trace("Resolving target {}:{} from repository", clazz.getSimpleName(), oid);
 			PrismObject<O> target = null;
 			try {
 				target = repository.getObject(clazz, oid, null, result);
@@ -487,157 +500,165 @@ public class AssignmentEvaluator<F extends FocusType> {
 			ModelExpressionThreadLocalHolder.popCurrentTask();
 		}
         
-        
 	}
-
-
-	private void evaluateTarget(EvaluatedAssignmentImpl<F> assignment, AssignmentPathSegment assignmentPathSegment, 
-			boolean evaluateOld, PlusMinusZero mode, boolean isValid, PrismObject<?> target, ObjectType source, QName relation, String sourceDescription,
+		
+	private boolean evaluateAssignmentTarget(EvaluatedAssignmentImpl<F> assignment, AssignmentPathSegment assignmentPathSegment, 
+			boolean evaluateOld, PlusMinusZero mode, boolean isValid, FocusType targetType, ObjectType source, QName relation, String sourceDescription,
 			AssignmentPath assignmentPath, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, PolicyViolationException {
 		assertSource(source, assignment);
-		ObjectType targetType = (ObjectType) target.asObjectable();
+		
 		assignmentPathSegment.setTarget(targetType);
+		
 		if (targetType instanceof AbstractRoleType) {
-			boolean roleConditionTrue = evaluateAbstractRole(assignment, assignmentPathSegment, evaluateOld, mode, isValid, (AbstractRoleType)targetType, source, sourceDescription, 
-					assignmentPath, task, result);
-			if (roleConditionTrue && mode != PlusMinusZero.MINUS && assignmentPathSegment.isEvaluateConstructions()) {
-				PrismReferenceValue refVal = new PrismReferenceValue();
-				refVal.setObject(targetType.asPrismObject());
-				refVal.setTargetType(ObjectTypes.getObjectType(targetType.getClass()).getTypeQName());
-				refVal.setRelation(relation);
-				refVal.setTargetName(targetType.getName().toPolyString());
-				assignment.addMembershipRefVal(refVal);
-				if (targetType instanceof OrgType) {
-					assignment.addOrgRefVal(refVal);
-				}
-			}
+			// OK, just go on
+			
 		} else if (targetType instanceof UserType) {
-			if (QNameUtil.match(relation, SchemaConstants.ORG_DEPUTY)) {
-				
-				// TODO MID-3472
-				
-			} else {
+			if (!QNameUtil.match(relation, SchemaConstants.ORG_DEPUTY)) {
 				throw new SchemaException("Unsuppoted relation " + relation + " for assignment of target type " + targetType + " in " + sourceDescription);
 			}
 		} else {
 			throw new SchemaException("Unknown assignment target type " + targetType + " in " + sourceDescription);
 		}
-	}
 
-	private boolean evaluateAbstractRole(EvaluatedAssignmentImpl<F> assignment, AssignmentPathSegment assignmentPathSegment, 
-			boolean evaluateOld, PlusMinusZero mode, boolean isValid, AbstractRoleType roleType, ObjectType source, String sourceDescription,
-			AssignmentPath assignmentPath, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, PolicyViolationException {
-		assertSource(source, assignment);
-
-		if (!LensUtil.isValid(roleType, now, activationComputer)) {
-			LOGGER.trace("Skipping evaluation of " + roleType + " because it is not valid");
+		if (!LensUtil.isValid(targetType, now, activationComputer)) {
+			LOGGER.trace("Skipping evaluation of " + targetType + " because it is not valid");
 			return false;
 		}
 		
-		MappingType conditionType = roleType.getCondition();
-		if (conditionType != null) {
-            AssignmentPathVariables assignmentPathVariables = LensUtil.computeAssignmentPathVariables(assignmentPath);
-			PrismValueDeltaSetTriple<PrismPropertyValue<Boolean>> conditionTriple = evaluateMappingAsCondition(conditionType,
-					null, source, assignmentPathVariables, task, result);
-			boolean condOld = ExpressionUtil.computeConditionResult(conditionTriple.getNonPositiveValues());
-			boolean condNew = ExpressionUtil.computeConditionResult(conditionTriple.getNonNegativeValues());
-			PlusMinusZero condMode = ExpressionUtil.computeConditionResultMode(condOld, condNew);
-			if (condMode == null || (condMode == PlusMinusZero.ZERO && !condNew)) {
-				LOGGER.trace("Skipping evaluation of "+roleType+" because of condition result ({} -> {}: {})",
-						condOld, condNew, condMode);
-				return false;
+		if (targetType instanceof AbstractRoleType) {
+			MappingType conditionType = ((AbstractRoleType)targetType).getCondition();
+			if (conditionType != null) {
+	            AssignmentPathVariables assignmentPathVariables = LensUtil.computeAssignmentPathVariables(assignmentPath);
+				PrismValueDeltaSetTriple<PrismPropertyValue<Boolean>> conditionTriple = evaluateMappingAsCondition(conditionType,
+						null, source, assignmentPathVariables, task, result);
+				boolean condOld = ExpressionUtil.computeConditionResult(conditionTriple.getNonPositiveValues());
+				boolean condNew = ExpressionUtil.computeConditionResult(conditionTriple.getNonNegativeValues());
+				PlusMinusZero condMode = ExpressionUtil.computeConditionResultMode(condOld, condNew);
+				if (condMode == null || (condMode == PlusMinusZero.ZERO && !condNew)) {
+					LOGGER.trace("Skipping evaluation of "+targetType+" because of condition result ({} -> {}: {})",
+							condOld, condNew, condMode);
+					return false;
+				}
+				PlusMinusZero origMode = mode;
+				mode = PlusMinusZero.compute(mode, condMode);
+				LOGGER.trace("Evaluated condition in {}: {} -> {}: {} + {} = {}", targetType, condOld, condNew,
+						origMode, condMode, mode);
 			}
-			PlusMinusZero origMode = mode;
-			mode = PlusMinusZero.compute(mode, condMode);
-			LOGGER.trace("Evaluated condition in {}: {} -> {}: {} + {} = {}", roleType, condOld, condNew,
-					origMode, condMode, mode);
 		}
 		
-		EvaluatedAbstractRoleImpl evalRole = new EvaluatedAbstractRoleImpl();
-		evalRole.setRole(roleType.asPrismObject());
+		EvaluatedAssignmentTargetImpl evalRole = new EvaluatedAssignmentTargetImpl();
+		evalRole.setTarget(targetType.asPrismObject());
 		evalRole.setEvaluateConstructions(assignmentPathSegment.isEvaluateConstructions());
 		evalRole.setAssignment(assignmentPath.last().getAssignment());
 		evalRole.setDirectlyAssigned(assignmentPath.size() == 1);
 		assignment.addRole(evalRole, mode);
 		
-		int evaluationOrder = assignmentPath.getEvaluationOrder();
+		
+		
+		// WARNING -- THIS IS MOST LIKELY NOT CORRECT. WORK IN PROGRESS MID-3472
+		if (mode != PlusMinusZero.MINUS) {
+			PrismReferenceValue refVal = new PrismReferenceValue();
+			refVal.setObject(targetType.asPrismObject());
+			refVal.setTargetType(ObjectTypes.getObjectType(targetType.getClass()).getTypeQName());
+			refVal.setRelation(relation);
+			refVal.setTargetName(targetType.getName().toPolyString());
+			
+			if (targetType instanceof AbstractRoleType && assignmentPathSegment.isEvaluateConstructions()) {
+				LOGGER.trace("Adding target {} to membershipRef", targetType);
+				assignment.addMembershipRefVal(refVal);
+			}
+			
+			if (targetType instanceof OrgType && 
+					(assignmentPathSegment.isEvaluateConstructions() || !containsOtherOrgs(assignmentPath, targetType))) {
+				LOGGER.trace("Adding target {} to orgRef", targetType);
+				assignment.addOrgRefVal(refVal);
+			} else {
+				LOGGER.info("NNNNNNNNNNNNNNNNNOTNOTNOTNOTNOTNTONOTNOT {} : {}", targetType, assignmentPath);
+			}	
+		}
+		
+		
+		
+		
+		EvaluationOrder evaluationOrder = assignmentPath.getEvaluationOrder();
 		ObjectType orderOneObject;
 		
-		if (evaluationOrder == 1) {
-			orderOneObject = roleType;
+		if (evaluationOrder.getOrder() == 1) {
+			orderOneObject = targetType;
 		} else {
 			AssignmentPathSegment last = assignmentPath.last();
 			if (last != null && last.getSource() != null) {
 				orderOneObject = last.getSource();
 			} else {
-				orderOneObject = roleType;
+				orderOneObject = targetType;
 			}
 		}
 	
-		for (AssignmentType roleInducement : roleType.getInducement()) {
-			if (!isApplicable(roleInducement.getFocusType(), roleType)) {
-				if (LOGGER.isTraceEnabled()) {
-					LOGGER.trace("Skipping application of inducement {} because the focusType does not match (specified: {}, actual: {})",
-						dumpAssignment(roleInducement), roleInducement.getFocusType(), roleType.getClass().getSimpleName());
+		if (targetType instanceof AbstractRoleType) {
+			for (AssignmentType roleInducement : ((AbstractRoleType)targetType).getInducement()) {
+				if (!isApplicable(roleInducement.getFocusType(), (AbstractRoleType)targetType)) {
+					if (LOGGER.isTraceEnabled()) {
+						LOGGER.trace("Skipping application of inducement {} because the focusType does not match (specified: {}, actual: {})",
+								FocusTypeUtil.dumpAssignment(roleInducement), roleInducement.getFocusType(), targetType.getClass().getSimpleName());
+					}
+					continue;
 				}
-				continue;
-			}
-			ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> roleInducementIdi = new ItemDeltaItem<>();
-			roleInducementIdi.setItemOld(LensUtil.createAssignmentSingleValueContainerClone(roleInducement));
-			roleInducementIdi.recompute();
-			AssignmentPathSegment roleAssignmentPathSegment = new AssignmentPathSegment(roleInducementIdi, null);
-			roleAssignmentPathSegment.setSource(roleType);
-			String subSourceDescription = roleType+" in "+sourceDescription;
-			Integer inducementOrder = roleInducement.getOrder();
-			if (inducementOrder == null) {
-				inducementOrder = 1;
-			}
-			if (inducementOrder == evaluationOrder) {
-				if (LOGGER.isTraceEnabled()) {
-					LOGGER.trace("E{}: evaluate inducement({}) {} in {}",
-							evaluationOrder, inducementOrder, dumpAssignment(roleInducement), roleType);
-				}
-				roleAssignmentPathSegment.setEvaluateConstructions(true);
-				roleAssignmentPathSegment.setEvaluationOrder(evaluationOrder);
-				roleAssignmentPathSegment.setOrderOneObject(orderOneObject);
-				evaluateAssignment(assignment, roleAssignmentPathSegment, evaluateOld, mode, isValid, roleType, subSourceDescription, assignmentPath, task, result);
-//			} else if (inducementOrder < assignmentPath.getEvaluationOrder()) {
-//				LOGGER.trace("Follow({}) inducement({}) in role {}",
-//						new Object[]{evaluationOrder, inducementOrder, source});
-//				roleAssignmentPathSegment.setEvaluateConstructions(false);
-//				roleAssignmentPathSegment.setEvaluationOrder(evaluationOrder+1);
-//				evaluateAssignment(assignment, roleAssignmentPathSegment, role, subSourceDescription, assignmentPath, task, result);
-			} else {
-				if (LOGGER.isTraceEnabled()) {
-					LOGGER.trace("E{}: NOT evaluate inducement({}) {} in {}",
-							evaluationOrder, inducementOrder, dumpAssignment(roleInducement), roleType);
+				ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> roleInducementIdi = new ItemDeltaItem<>();
+				roleInducementIdi.setItemOld(LensUtil.createAssignmentSingleValueContainerClone(roleInducement));
+				roleInducementIdi.recompute();
+				AssignmentPathSegment roleAssignmentPathSegment = new AssignmentPathSegment(roleInducementIdi, null);
+				roleAssignmentPathSegment.setSource(targetType);
+				String subSourceDescription = targetType+" in "+sourceDescription;
+
+				if (isMatchingOrder(evaluationOrder, roleInducement)) {
+					if (LOGGER.isTraceEnabled()) {
+						LOGGER.trace("E({}): evaluate inducement({}) {} in {}",
+								evaluationOrder.shortDump(), FocusTypeUtil.dumpInducementConstraints(roleInducement), 
+								FocusTypeUtil.dumpAssignment(roleInducement), targetType);
+					}
+					roleAssignmentPathSegment.setEvaluateConstructions(true);
+					roleAssignmentPathSegment.setEvaluationOrder(evaluationOrder);
+					roleAssignmentPathSegment.setOrderOneObject(orderOneObject);
+					evaluateAssignment(assignment, roleAssignmentPathSegment, evaluateOld, mode, isValid, targetType, subSourceDescription, assignmentPath, task, result);
+
+				} else {
+					if (LOGGER.isTraceEnabled()) {
+						LOGGER.trace("E({}): NOT evaluate inducement({}) {} in {}",
+								evaluationOrder.shortDump(), FocusTypeUtil.dumpInducementConstraints(roleInducement), 
+								FocusTypeUtil.dumpAssignment(roleInducement), targetType);
+					}
 				}
 			}
 		}
-		for (AssignmentType roleAssignment : roleType.getAssignment()) {
+		
+		for (AssignmentType roleAssignment : targetType.getAssignment()) {
 			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("E{}: follow assignment {} in {}",
-						evaluationOrder, dumpAssignment(roleAssignment), roleType);
+				LOGGER.trace("E({}): follow assignment {} in {}",
+						evaluationOrder.shortDump(), FocusTypeUtil.dumpAssignment(roleAssignment), targetType);
 			}
 			ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> roleAssignmentIdi = new ItemDeltaItem<>();
 			roleAssignmentIdi.setItemOld(LensUtil.createAssignmentSingleValueContainerClone(roleAssignment));
 			roleAssignmentIdi.recompute();
 			AssignmentPathSegment roleAssignmentPathSegment = new AssignmentPathSegment(roleAssignmentIdi, null);
-			roleAssignmentPathSegment.setSource(roleType);
-			String subSourceDescription = roleType+" in "+sourceDescription;
+			roleAssignmentPathSegment.setSource(targetType);
+			String subSourceDescription = targetType+" in "+sourceDescription;
 			roleAssignmentPathSegment.setEvaluateConstructions(false);
-			roleAssignmentPathSegment.setEvaluationOrder(evaluationOrder+1);
+			QName subrelation = null;
+			if (roleAssignment.getTargetRef() != null) {
+				subrelation = roleAssignment.getTargetRef().getRelation();
+			}
+			roleAssignmentPathSegment.setEvaluationOrder(evaluationOrder.advance(subrelation));
 			roleAssignmentPathSegment.setOrderOneObject(orderOneObject);
-			evaluateAssignment(assignment, roleAssignmentPathSegment, evaluateOld, mode, isValid, roleType, subSourceDescription, assignmentPath, task, result);
+			evaluateAssignment(assignment, roleAssignmentPathSegment, evaluateOld, mode, isValid, targetType, subSourceDescription, assignmentPath, task, result);
 		}
 		
-		if (evaluationOrder == 1) {
-			for(AuthorizationType authorizationType: roleType.getAuthorization()) {
-				Authorization authorization = createAuthorization(authorizationType, roleType.toString());
+		if (evaluationOrder.getOrder() == 1 && targetType instanceof AbstractRoleType) {
+			for(AuthorizationType authorizationType: ((AbstractRoleType)targetType).getAuthorization()) {
+				Authorization authorization = createAuthorization(authorizationType, targetType.toString());
 				assignment.addAuthorization(authorization);
 			}
-			if (roleType.getAdminGuiConfiguration() != null) {
-				assignment.addAdminGuiConfiguration(roleType.getAdminGuiConfiguration());
+			if (((AbstractRoleType)targetType).getAdminGuiConfiguration() != null) {
+				assignment.addAdminGuiConfiguration(((AbstractRoleType)targetType).getAdminGuiConfiguration());
 			}
 		}
 		
@@ -645,6 +666,51 @@ public class AssignmentEvaluator<F extends FocusType> {
 		
 	}
 
+	public <O extends ObjectType> boolean containsOtherOrgs(AssignmentPath assignmentPath, FocusType thisOrg) {
+		for (AssignmentPathSegment segment: assignmentPath.getSegments()) {
+			ObjectType segmentTarget = segment.getTarget();
+			if (segmentTarget != null) {
+				if (segmentTarget instanceof OrgType && !segmentTarget.getOid().equals(thisOrg.getOid())) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
+	private boolean isMatchingOrder(EvaluationOrder evaluationOrder, AssignmentType roleInducement) {
+		if (roleInducement.getOrderConstraint().isEmpty()) {
+			if (roleInducement.getOrder() == null) {
+				return evaluationOrder.getOrder() == 1;
+			} else {
+				return evaluationOrder.getOrder() == roleInducement.getOrder();
+			}
+		} else {
+			for (OrderConstraintsType orderConstraint: roleInducement.getOrderConstraint()) {
+				if (!isMatchingConstraint(evaluationOrder, orderConstraint)) {
+					return false;
+				}
+			}
+			return true;
+		}
+	}
+
+	private boolean isMatchingConstraint(EvaluationOrder evaluationOrder, OrderConstraintsType orderConstraint) {
+		int evaluationOrderInt = evaluationOrder.getMatchingRelationOrder(orderConstraint.getRelation());
+		if (orderConstraint.getOrder() != null) {
+			return orderConstraint.getOrder() == evaluationOrderInt;
+		} else {
+			int orderMin = 1;
+			int orderMax = 1;
+			if (orderConstraint.getOrderMin() != null) {
+				orderMin = XsdTypeMapper.multiplicityToInteger(orderConstraint.getOrderMin());
+			}
+			if (orderConstraint.getOrderMax() != null) {
+				orderMax = XsdTypeMapper.multiplicityToInteger(orderConstraint.getOrderMax());
+			}
+			return XsdTypeMapper.isMatchingMultiplicity(evaluationOrderInt, orderMin, orderMax);
+		}
+	}
 
 	private boolean isApplicable(QName focusType, AbstractRoleType roleType) throws SchemaException {
 		if (focusType == null) {
@@ -671,18 +737,6 @@ public class AssignmentEvaluator<F extends FocusType> {
 	private QName getTargetType(AssignmentPathSegment assignmentPathSegment){
 		return assignmentPathSegment.getTarget().asPrismObject().getDefinition().getName();
 	}
-	
-	public static String dumpAssignment(AssignmentType assignmentType) { 
-		StringBuilder sb = new StringBuilder();
-		if (assignmentType.getConstruction() != null) {
-			sb.append("Constr '").append(assignmentType.getConstruction().getDescription()).append("' ");
-		}
-		if (assignmentType.getTargetRef() != null) {
-			sb.append("-> ").append(assignmentType.getTargetRef().getOid());
-		}
-		return sb.toString();
-	}
-
 
 	private Authorization createAuthorization(AuthorizationType authorizationType, String sourceDesc) {
 		Authorization authorization = new Authorization(authorizationType);

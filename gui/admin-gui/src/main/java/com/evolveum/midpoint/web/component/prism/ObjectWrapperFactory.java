@@ -59,6 +59,13 @@ public class ObjectWrapperFactory {
     private static final List<QName> INHERITED_OBJECT_SUBCONTAINERS = Arrays.asList(
             ObjectType.F_METADATA,
             ObjectType.F_EXTENSION);
+    
+    private static final List<QName> CONTAINERS_TO_IGNORE = Arrays.asList(
+    		 SubjectedObjectSelectorType.COMPLEX_TYPE,
+    		    TriggerType.COMPLEX_TYPE,
+    		    ApprovalSchemaType.COMPLEX_TYPE,
+    		    PasswordHistoryEntryType.COMPLEX_TYPE,
+    		    NonceType.COMPLEX_TYPE);
 
     private ModelServiceLocator modelServiceLocator;
 
@@ -238,17 +245,7 @@ public class ObjectWrapperFactory {
             if (!(def instanceof PrismContainerDefinition)) {
                 continue;
             }
-            if (SubjectedObjectSelectorType.COMPLEX_TYPE.equals(def.getTypeName())) {
-                continue; // TEMPORARY FIX
-            }
-            if (TriggerType.COMPLEX_TYPE.equals(def.getTypeName())) {
-                continue; // TEMPORARY FIX TODO: remove after getEditSchema
-                // (authorization) will be fixed.
-            }
-            if (ApprovalSchemaType.COMPLEX_TYPE.equals(def.getTypeName())) {
-                continue;
-            }
-            if (PasswordHistoryEntryType.COMPLEX_TYPE.equals(def.getTypeName())) {
+            if (isIgnoreContainer(def.getTypeName())) {
             	continue;
             }
        
@@ -303,6 +300,17 @@ public class ObjectWrapperFactory {
                 }
             }
         }
+    }
+   
+    
+    private boolean isIgnoreContainer(QName containerDefinitionName) {
+    	 for (QName container : CONTAINERS_TO_IGNORE) {
+    		 if (container.equals(containerDefinitionName)){
+    			 return true;
+    		 }
+    	 }
+    	 
+    	 return false;
     }
 
     private boolean hasResourceCapability(ResourceType resource,

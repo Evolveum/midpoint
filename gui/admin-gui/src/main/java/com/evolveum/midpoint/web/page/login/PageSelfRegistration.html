@@ -21,8 +21,8 @@
 <body>
 <wicket:extend>
 
- <div class="col-md-8">
-    	<div class="box">
+ <div class="col-md-offset-2 col-md-8 col-lg-offset-2  col-lg-4">
+    	<div class="panel panel-default">
     		<div class="box-body">
     			  <form wicket:id="mainForm">
     			  		<table class="table table-striped">
@@ -30,19 +30,22 @@
     			  				<td>
     			  					
                                			<wicket:message key="UserType.givenName"/>
+                               			<span style="color: #f00; font-weight: bold;"
+                								wicket:message="title:prismPropertyPanel.required">*</span>
                             		
     			  				</td>
     			  				<td>
     			  			
 		                                <div wicket:id="firstName" />
-		                           
+		                           		
     			  				</td>
     			  			</tr>
     			  			<tr>
     			  				<td>
     			  					
 		                                <wicket:message key="UserType.familyName"/>
-		                         
+		                         		<span style="color: #f00; font-weight: bold;"
+                								wicket:message="title:prismPropertyPanel.required">*</span>
     			  				</td>
     			  				<td>
     			  					
@@ -54,7 +57,8 @@
     			  				<td>
     			  					
 		                                <wicket:message key="UserType.emailAddress"/>
-		                          
+		                          		<span style="color: #f00; font-weight: bold;"
+                								wicket:message="title:prismPropertyPanel.required">*</span>
     			  				</td>
     			  				<td>
     			  				
@@ -78,7 +82,8 @@
     			  				<td>
     			  					
 		                                <wicket:message key="PageLogin.password"/>
-		                           
+		                           		<span style="color: #f00; font-weight: bold;"
+                								wicket:message="title:prismPropertyPanel.required">*</span>
     			  				</td>
     			  				<td>
     			  					 <div>
@@ -89,10 +94,10 @@
     			  			
     			  		</table>
     			        
-    			        <div wicket:id="captcha" />
+    			        <div class="col-md-offset-4 col-offset-4" wicket:id="captcha" />
     			        
-						<div class="btn btn-primary">
-                        	<a wicket:id="submitRegistration">
+						<div class="col-md-offset-5 col-offset-4">
+                        	<a class="btn btn-primary" wicket:id="submitRegistration">
                         		 <label class="col-md-4 col-lg-4 control-label">
 		                             <wicket:message key="PageSelfRegistration.register"/>
 		                         </label>

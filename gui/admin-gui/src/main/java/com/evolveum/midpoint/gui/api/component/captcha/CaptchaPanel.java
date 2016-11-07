@@ -17,11 +17,6 @@ public class CaptchaPanel extends BasePanel<Void> {
 	private static final long serialVersionUID = 1L;
 
 	/**
-	 * The generated random text;
-	 */
-	protected String randomText;
-
-	/**
 	 * The text provided by the user
 	 */
 	private String captchaText;
@@ -76,10 +71,11 @@ public class CaptchaPanel extends BasePanel<Void> {
 
 			@Override
 			protected byte[] render() {
-				randomText = randomString(6, 8);
+				String randomText = randomString(6, 8);
 				getChallengeIdModel().setObject(randomText);
 				return super.render();
 			}
+			
 		};
 	}
 	
@@ -106,7 +102,7 @@ public class CaptchaPanel extends BasePanel<Void> {
 	}
     
     public String getRandomText() {
-		return randomText;
+		return captchaImageResource.getChallengeId();
 	}
     
 }

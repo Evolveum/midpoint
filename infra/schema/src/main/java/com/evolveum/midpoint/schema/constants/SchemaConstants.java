@@ -29,6 +29,7 @@ import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.NonceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationalStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
@@ -142,6 +143,13 @@ public abstract class SchemaConstants {
 	 * Specifies that the subject is a manager of organizational unit.
 	 */
 	public static final QName ORG_MANAGER = new QName(NS_ORG, "manager");
+	
+	/**
+	 * Relation used for metarole assignments. Sometimes it is important to
+	 * distinguish metarole and member assignments. This relation is used
+	 * for that purpose.
+	 */
+	public static final QName ORG_META = new QName(NS_ORG, "meta");
 
 	/**
 	 * Relation "is deputy of". Used as a relation value in object references.
@@ -180,6 +188,9 @@ public abstract class SchemaConstants {
 	public static final ItemPath PATH_PASSWORD = new ItemPath(C_CREDENTIALS, CredentialsType.F_PASSWORD);
 	public static final ItemPath PATH_PASSWORD_VALUE = new ItemPath(C_CREDENTIALS, CredentialsType.F_PASSWORD,
 			PasswordType.F_VALUE);
+	public static final ItemPath PATH_NONCE = new ItemPath(C_CREDENTIALS, CredentialsType.F_NONCE);
+	public static final ItemPath PATH_NONCE_VALUE = new ItemPath(C_CREDENTIALS, CredentialsType.F_NONCE,
+			NonceType.F_VALUE);
 	public static final ItemPath PATH_ACTIVATION = new ItemPath(C_ACTIVATION);
 	public static final ItemPath PATH_ACTIVATION_ADMINISTRATIVE_STATUS = new ItemPath(C_ACTIVATION,
 			ActivationType.F_ADMINISTRATIVE_STATUS);
