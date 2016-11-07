@@ -2893,13 +2893,17 @@
 			<xsd:element name="order" type="xsd:int" minOccurs="0">
 		        <xsd:annotation>
 		            <xsd:documentation>
-		                DEPRECATED
-		                Use orderConstraint instead.
+		                Order of the inducement. Simply speaking order specifies the number
+		                of assignments that the evaluation must traverse to apply the inducement.
+		                The high-order inducements are used in meta-roles. These high-order inducements
+		                apply to the object that is assigned to the role instead of meta-role.
+		                
+		                This property specifies the summary order. This is a sum of all the (non-delegation)
+		                assignments along the assignment path. More precise control over the order can
+		                be achieved by using the orderConstraints.
+		                
+		                If not specified and no orderConstraints are specified then the values of 1 is assumed.
 		            </xsd:documentation>
-		            <xsd:appinfo>
-		            	<a:deprecated>true</a:deprecated>
-		                <a:deprecatedSince>3.5</a:deprecatedSince>
-		            </xsd:appinfo>
 		        </xsd:annotation>
 			</xsd:element>
 			<xsd:element name="orderConstraint" type="tns:OrderConstraintsType" minOccurs="0" maxOccurs="unbounded">
