@@ -103,6 +103,7 @@
 			<attribute>
 					<ref>ri:sAMAccountName</ref>
 					<displayName>Login name</displayName>
+					<secondaryIdentifier>true</secondaryIdentifier>
 					<outbound>
 						<source>
 							<path>$user/name</path>
