@@ -40,7 +40,11 @@ import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.delta.ContainerDelta;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -79,6 +83,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ValuePolicyType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
+
+import net.sf.jasperreports.components.map.ItemData;
 
 //"http://localhost:8080/midpoint/confirm/registrationid=" + newUser.getOid()
 //+ "/token=" + userType.getCostCenter() + "/roleId=00000000-0000-0000-0000-000000000008";
@@ -178,8 +184,7 @@ public class PageSelfRegistration extends PageRegistrationBase {
 	}
 	
 	private UserType instantiateUser(){
-		PrismObjectDefinition<UserType> userDef = getPrismContext().getSchemaRegistry()
-				.findObjectDefinitionByCompileTimeClass(UserType.class);
+		PrismObjectDefinition<UserType> userDef = getUserDefinition();
 		PrismObject<UserType> user;
 		try {
 			user = userDef.instantiate();
@@ -189,6 +194,11 @@ public class PageSelfRegistration extends PageRegistrationBase {
 
 		}
 		return user.asObjectable();
+	}
+	
+	private PrismObjectDefinition<UserType> getUserDefinition(){
+		return getPrismContext().getSchemaRegistry()
+				.findObjectDefinitionByCompileTimeClass(UserType.class);
 	}
 
 	private void initLayout() {
@@ -425,14 +435,29 @@ public class PageSelfRegistration extends PageRegistrationBase {
 	}
 
 	private void saveUser(Task task, OperationResult result) {
-		UserType userType = prepareUserToSave(task,
-				result);
-		ObjectDelta<UserType> userDelta = ObjectDelta.createAddDelta(userType.asPrismObject());
+		
+		ObjectDelta<UserType> userDelta = prepareUserDelta(task, result);
 		userDelta.setPrismContext(getPrismContext());
 
 		WebModelServiceUtils.save(userDelta, ModelExecuteOptions.createOverwrite(), result, task, PageSelfRegistration.this);
 		result.computeStatus();
 
+	}
+	
+	private ObjectDelta<UserType> prepareUserDelta(Task task, OperationResult result) {
+		if (getOidFromParams(getPageParameters()) == null) {
+			UserType userType = prepareUserToSave(task, result);
+			return ObjectDelta.createAddDelta(userType.asPrismObject());
+		} else {
+			ObjectDelta<UserType> delta = ObjectDelta.createEmptyModifyDelta(UserType.class, getOidFromParams(getPageParameters()), getPrismContext());
+			if (getSelfRegistrationConfiguration().getInitialLifecycleState() != null) {
+				delta.addModificationReplaceProperty(UserType.F_LIFECYCLE_STATE, getSelfRegistrationConfiguration().getInitialLifecycleState());
+			}
+			delta.addModificationReplaceProperty(SchemaConstants.PATH_PASSWORD_VALUE, createPassword().getValue());
+			delta.addModificationReplaceContainer(SchemaConstants.PATH_NONCE, createNonce(getSelfRegistrationConfiguration().getNoncePolicy(), task, result).asPrismContainerValue());
+			return delta;
+			
+		} 
 	}
 
 	private UserType prepareUserToSave(Task task,
@@ -440,70 +465,58 @@ public class PageSelfRegistration extends PageRegistrationBase {
 		
 		SelfRegistrationDto selfRegistrationConfiguration = getSelfRegistrationConfiguration();
 		UserType userType = userModel.getObject();
+		UserType userToSave = userType.clone(); 
 		if (selfRegistrationConfiguration.getRequiredLifecycleState() != null) {
-			String userLifecycle = userType.getLifecycleState();
+			String userLifecycle = userToSave.getLifecycleState();
 			if (!selfRegistrationConfiguration.getRequiredLifecycleState().equals(userLifecycle)){
 				getSession().error(createStringResource("PageSelfRegistration.registration.failed.unsatisfied.registration.configuration").getString());
 				throw new RestartResponseException(this);
 			}
 			
-//			if (getOidFromParams(getPageParameters()) == null) {
-//				getSession().error(createStringResource("PageSelfRegistration.registration.failed.unsatisfied.registration.configuration").getString());
-//				throw new RestartResponseException(this);
-//			}
-//			
-//			
-////			ObjectQuery query = QueryBuilder.queryFor(UserType.class, getPrismContext())
-////									.item(UserType.F_EMAIL_ADDRESS).eq(userType.getEmailAddress())
-////								.build();
-////			SearchResultList<PrismObject<UserType>> users = null;
-////			try {
-////				users = getModelService().searchObjects(UserType.class, query, null, task, result);
-////			} catch (SchemaException | ObjectNotFoundException | SecurityViolationException
-////					| CommunicationException | ConfigurationException e) {
-////				// TODO Auto-generated catch block
-////			}
-//			
-//			WebModelServiceUtils.loadObject(type, oid, page, task, result)
-//			
-//			if (users == null || users.size() == 0 || users.size() > 1) {
-//				getSession().error(createStringResource("PageSelfRegistration.registration.failed.unsatisfied.registration.configuration").getString());
-//				throw new RestartResponseException(this);
-//				
-//			}
-//			
-//			PrismObject<UserType> preregisteredUser = users.iterator().next();
-//			
-//			userType.setOid(preregisteredUser.getOid());
-			
 		}
-
-		ProtectedStringType nonceCredentials = new ProtectedStringType();
-		nonceCredentials.setClearValue(generateNonce(selfRegistrationConfiguration.getNoncePolicy(), task, result));
-
-		NonceType nonceType = new NonceType();
-		nonceType.setValue(nonceCredentials);
 		
-		PasswordType password = new PasswordType();
-		ProtectedStringType protectedString = new ProtectedStringType();
-		protectedString.setClearValue(getPassword());
-		password.setValue(protectedString);
-		
-		CredentialsType credentials = new CredentialsType();
-		credentials.setNonce(nonceType);
-		credentials.setPassword(password);
-
-		userType.setCredentials(credentials);
-		userType.setLifecycleState(getSelfRegistrationConfiguration().getInitialLifecycleState());
+		CredentialsType credentials = createCredentials(selfRegistrationConfiguration.getNoncePolicy(), task, result);
+		userToSave.setCredentials(credentials);
+		if (selfRegistrationConfiguration.getInitialLifecycleState() != null) {
+			userToSave.setLifecycleState(selfRegistrationConfiguration.getInitialLifecycleState());
+		}
 		
 		try {
-			getPrismContext().adopt(userType);
+			getPrismContext().adopt(userToSave);
 		} catch (SchemaException e) {
 			// nothing to do, try without it
 		}
 
-		return userType;
+		return userToSave;
 
+	}
+	
+	private CredentialsType createCredentials(NonceCredentialsPolicyType noncePolicy, Task task, OperationResult result) {
+		NonceType nonceType = createNonce(noncePolicy, task, result);
+		
+		PasswordType password = createPassword();
+		CredentialsType credentials = new CredentialsType();
+		credentials.setNonce(nonceType);
+		credentials.setPassword(password);
+		return credentials;
+
+	}
+	
+	private NonceType createNonce(NonceCredentialsPolicyType noncePolicy, Task task, OperationResult result) {
+		ProtectedStringType nonceCredentials = new ProtectedStringType();
+		nonceCredentials.setClearValue(generateNonce(noncePolicy, task, result));
+
+		NonceType nonceType = new NonceType();
+		nonceType.setValue(nonceCredentials);
+		return nonceType;
+	}
+	
+	private PasswordType createPassword() {
+		PasswordType password = new PasswordType();
+		ProtectedStringType protectedString = new ProtectedStringType();
+		protectedString.setClearValue(getPassword());
+		password.setValue(protectedString);
+		return password;
 	}
 
 	private String generateNonce(NonceCredentialsPolicyType noncePolicy, Task task, OperationResult result) {
