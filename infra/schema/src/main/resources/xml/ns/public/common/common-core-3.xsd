@@ -7570,6 +7570,21 @@
                             </xsd:appinfo>
                     	</xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="delegable" type="xsd:boolean" minOccurs="0" default="false">
+                    	<xsd:annotation>
+                    		<xsd:documentation>
+                    			<p>
+	                    			If set to true then this role may be delegated to a deputy.
+	                    			The value of this property is only meant as a hint for role presentation.
+	                    			It does NOT define any access control mechanisms. For access control please
+	                    			use the authorization element.
+                    			</p>
+                    		</xsd:documentation>
+                    		 <xsd:appinfo>
+                                <a:displayName>AbstractRoleType.delegable</a:displayName>
+                            </xsd:appinfo>
+                    	</xsd:annotation>
+                    </xsd:element>
 					<xsd:element name="exclusion" type="tns:ExclusionPolicyConstraintType" minOccurs="0" maxOccurs="unbounded">
 						<xsd:annotation>
 							<xsd:documentation>
