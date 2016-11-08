@@ -500,6 +500,10 @@ public class ActivationProcessor {
 				}
 				        
 				Collection<PrismPropertyValue<Boolean>> nonNegativeValues = outputTriple.getNonNegativeValues();
+				
+				// MID-3507: this is probably the bug. The processor is executed after every mapping. 
+				// The processing will die on the error if one mapping returns a value and the other mapping returns null 
+				// (e.g. because the condition is false). This should be fixed.
 		        if (nonNegativeValues == null || nonNegativeValues.isEmpty()) {
 		        	throw new ExpressionEvaluationException("Activation existence expression resulted in null or empty value for projection " + accCtxDesc);
 		        }
