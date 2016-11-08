@@ -29,6 +29,9 @@ import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.Producer;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.util.MidPointPageParametersEncoder;
@@ -42,6 +45,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 @PageDescriptor(url = "/confirm", encoder = MidPointPageParametersEncoder.class)
 public class PageRegistrationConfirmation extends PageRegistrationBase {
 
+	private static final Trace LOGGER = TraceManager.getTrace(PageRegistrationConfirmation.class);
+	
 	private static final String DOT_CLASS = PageRegistrationConfirmation.class.getName() + ".";
 
 	private static final String ID_LABEL_SUCCESS = "successLabel";
@@ -108,9 +113,15 @@ public class PageRegistrationConfirmation extends PageRegistrationBase {
 					nonce, getSelfRegistrationConfiguration().getNoncePolicy());
 		} catch (AuthenticationException ex) {
 			getSession()
-					.error(createStringResource("PageRegistrationConfirmation.bad.credentials").getString());
+					.error(getString(ex.getMessage()));
 			result.recordFatalError("Failed to validate user");
+			LoggingUtils.logException(LOGGER, ex.getMessage(), ex);
 			 return null;
+		} catch (Exception ex) {
+			getSession()
+			.error(createStringResource("PageRegistrationConfirmation.authnetication.failed").getString());
+			LoggingUtils.logException(LOGGER, "Failed to confirm registration", ex);
+			return null;
 		}
 	}
 	
