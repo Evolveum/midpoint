@@ -15,6 +15,8 @@
  */
 package com.evolveum.midpoint.model.api.util;
 
+import java.io.Serializable;
+
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -24,8 +26,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
  * @author semancik
  *
  */
-public class MergeDeltas<O extends ObjectType> implements DebugDumpable {
-	
+public class MergeDeltas<O extends ObjectType> implements DebugDumpable, Serializable {
+	private static final long serialVersionUID = 1L;
+
 	private ObjectDelta<O> leftObjectDelta;
 	private ObjectDelta<O> leftLinkDelta;
 	private ObjectDelta<O> rightLinkDelta;
