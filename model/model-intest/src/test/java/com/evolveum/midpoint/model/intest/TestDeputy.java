@@ -28,6 +28,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
@@ -259,6 +260,235 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
         
     }
     
-    // TODO: assign deputy to empty jack, assign role to jack, recompute barbossa
-	
+    /**
+	 * Guybrush and Barbossa does not have any accounts or roles. Yet.
+	 * Assign Barbossa as Guybrush's deputy. Not much should happen.
+	 */
+    @Test
+    public void test120AssignbarbossaDeputyOfGuybrush() throws Exception {
+		final String TEST_NAME = "test120AssignbarbossaDeputyOfGuybrush";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        
+        Task task = taskManager.createTaskInstance(TestDeputy.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        PrismObject<UserType> userGuybrushBefore = getUser(USER_GUYBRUSH_OID);
+        display("User Guybrush before", userGuybrushBefore);
+        assertLinks(userGuybrushBefore, 1);
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        
+        assignDeputy(USER_BARBOSSA_OID, USER_GUYBRUSH_OID, task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        PrismObject<UserType> userBarbossaAfter = getUser(USER_BARBOSSA_OID);
+        display("User Barbossa after", userBarbossaAfter);
+        assertAssignedDeputy(userBarbossaAfter, USER_GUYBRUSH_OID);
+        assertAssignments(userBarbossaAfter, 1);
+        assertLinks(userBarbossaAfter, 0);
+        assertNoAuthorizations(userBarbossaAfter);
+        
+        PrismObject<UserType> userGuybrushAfter = getUser(USER_GUYBRUSH_OID);
+        display("User Guybrush after", userGuybrushAfter);
+        assertNoAssignments(userGuybrushAfter);
+        assertLinks(userGuybrushAfter, 1);
+        assertNoAuthorizations(userGuybrushAfter);
+        
+    }
+    
+    /**
+	 * Assign Guybrush pirate role. Barbossa is Guybrushe's deputy,
+	 * but Barbossa should be only partially affected yet. 
+	 * Barbossa should not have the accounts, but he should have the
+	 * authorization. Barbossa will be completely affected after recompute.
+	 */
+    @Test
+    public void test122AssignGuybrushPirate() throws Exception {
+		final String TEST_NAME = "test122AssignGuybrushPirate";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        
+        Task task = taskManager.createTaskInstance(TestDeputy.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        
+        assignRole(USER_GUYBRUSH_OID, ROLE_PIRATE_OID, task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        PrismObject<UserType> userGuybrushAfter = getUser(USER_GUYBRUSH_OID);
+        display("User Guybrush after", userGuybrushAfter);
+        assertAssignedRole(userGuybrushAfter, ROLE_PIRATE_OID);
+        assertAssignments(userGuybrushAfter, 1);
+        assertAccount(userGuybrushAfter, RESOURCE_DUMMY_OID);
+        assertLinks(userGuybrushAfter, 1);
+        assertAuthorizations(userGuybrushAfter, AUTZ_LOOT_URL);
+        
+        PrismObject<UserType> userBarbossaAfter = getUser(USER_BARBOSSA_OID);
+        display("User Barbossa after", userBarbossaAfter);
+        assertAssignedDeputy(userBarbossaAfter, USER_GUYBRUSH_OID);
+        assertAssignments(userBarbossaAfter, 1);
+        assertLinks(userBarbossaAfter, 0);
+        assertAuthorizations(userBarbossaAfter, AUTZ_LOOT_URL);
+        
+    }
+    
+    /**
+	 * Recompute Barbossa. Barbossa should get the deputy rights
+	 * from Guybrush after recompute.
+	 */
+    @Test
+    public void test124RecomputeBarbossa() throws Exception {
+		final String TEST_NAME = "test124RecomputeBarbossa";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        
+        Task task = taskManager.createTaskInstance(TestDeputy.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        
+        recomputeUser(USER_BARBOSSA_OID, task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        PrismObject<UserType> userBarbossaAfter = getUser(USER_BARBOSSA_OID);
+        display("User Barbossa after", userBarbossaAfter);
+        assertAssignedDeputy(userBarbossaAfter, USER_GUYBRUSH_OID);
+        assertAssignedNoRole(userBarbossaAfter);
+        assertAssignments(userBarbossaAfter, 1);
+        assertAccount(userBarbossaAfter, RESOURCE_DUMMY_OID);
+        assertLinks(userBarbossaAfter, 1);
+        assertAuthorizations(userBarbossaAfter, AUTZ_LOOT_URL);
+        
+        PrismObject<UserType> userGuybrushAfter = getUser(USER_GUYBRUSH_OID);
+        display("User Guybrush after", userGuybrushAfter);
+        assertAssignedRole(userGuybrushAfter, ROLE_PIRATE_OID);
+        assertAssignments(userGuybrushAfter, 1);
+        assertAccount(userGuybrushAfter, RESOURCE_DUMMY_OID);
+        assertLinks(userGuybrushAfter, 1);
+        assertAuthorizations(userGuybrushAfter, AUTZ_LOOT_URL);
+        
+    }
+    
+    /**
+	 * Unassign Guybrush pirate role. Barbossa is Guybrushe's deputy,
+	 * but Barbossa should be only partially affected yet. 
+	 */
+    @Test
+    public void test126UnassignGuybrushPirate() throws Exception {
+		final String TEST_NAME = "test126UnassignGuybrushPirate";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        
+        Task task = taskManager.createTaskInstance(TestDeputy.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        
+        unassignRole(USER_GUYBRUSH_OID, ROLE_PIRATE_OID, task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        PrismObject<UserType> userGuybrushAfter = getUser(USER_GUYBRUSH_OID);
+        display("User Guybrush after", userGuybrushAfter);
+        assertNoAssignments(userGuybrushAfter);
+        assertLinks(userGuybrushAfter, 0);
+        assertNoAuthorizations(userGuybrushAfter);
+        
+        PrismObject<UserType> userBarbossaAfter = getUser(USER_BARBOSSA_OID);
+        display("User Barbossa after", userBarbossaAfter);
+        assertAssignedDeputy(userBarbossaAfter, USER_GUYBRUSH_OID);
+        assertAssignments(userBarbossaAfter, 1);
+        assertAccount(userBarbossaAfter, RESOURCE_DUMMY_OID);
+        assertLinks(userBarbossaAfter, 1);
+        assertNoAuthorizations(userBarbossaAfter);
+        
+    }
+    
+    /**
+	 * Recompute Barbossa. Barbossa should get the deputy rights
+	 * from Guybrush after recompute.
+	 */
+    @Test
+    public void test128RecomputeBarbossa() throws Exception {
+		final String TEST_NAME = "test128RecomputeBarbossa";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        
+        Task task = taskManager.createTaskInstance(TestDeputy.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        
+        recomputeUser(USER_BARBOSSA_OID, task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        PrismObject<UserType> userBarbossaAfter = getUser(USER_BARBOSSA_OID);
+        display("User Barbossa after", userBarbossaAfter);
+        assertAssignedDeputy(userBarbossaAfter, USER_GUYBRUSH_OID);
+        assertAssignments(userBarbossaAfter, 1);
+        assertLinks(userBarbossaAfter, 0);
+        assertNoAuthorizations(userBarbossaAfter);
+        
+        PrismObject<UserType> userGuybrushAfter = getUser(USER_GUYBRUSH_OID);
+        display("User Guybrush after", userGuybrushAfter);
+        assertNoAssignments(userGuybrushAfter);
+        assertLinks(userGuybrushAfter, 0);
+        assertNoAuthorizations(userGuybrushAfter);
+        
+    }
+    
+    @Test
+    public void test129UnassignbarbossaDeputyOfGuybrush() throws Exception {
+		final String TEST_NAME = "test120AssignbarbossaDeputyOfGuybrush";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        
+        Task task = taskManager.createTaskInstance(TestDeputy.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        
+        unassignDeputy(USER_BARBOSSA_OID, USER_GUYBRUSH_OID, task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        PrismObject<UserType> userBarbossaAfter = getUser(USER_BARBOSSA_OID);
+        display("User Barbossa after", userBarbossaAfter);
+        assertNoAssignments(userBarbossaAfter);
+        assertLinks(userBarbossaAfter, 0);
+        assertNoAuthorizations(userBarbossaAfter);
+        
+        PrismObject<UserType> userGuybrushAfter = getUser(USER_GUYBRUSH_OID);
+        display("User Guybrush after", userGuybrushAfter);
+        assertNoAssignments(userGuybrushAfter);
+        assertLinks(userGuybrushAfter, 0);
+        assertNoAuthorizations(userGuybrushAfter);
+        
+    }
+   
 }
