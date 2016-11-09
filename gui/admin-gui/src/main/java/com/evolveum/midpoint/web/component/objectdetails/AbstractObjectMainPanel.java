@@ -168,7 +168,17 @@ public abstract class AbstractObjectMainPanel<O extends ObjectType> extends Pane
 				target.add(parentPage.getFeedbackPanel());
 			}
 		};
+        previewButton.add(new VisibleEnableBehaviour(){
+            @Override
+            public boolean isVisible(){
+                return AbstractObjectMainPanel.this.isPreviewButtonVisible();
+            }
+        });
 		mainForm.add(previewButton);
+	}
+
+	protected boolean isPreviewButtonVisible(){
+		return !getObjectWrapper().isReadonly();
 	}
 
 	protected void initLayoutBackButton(PageAdminObjectDetails<O> parentPage) {
