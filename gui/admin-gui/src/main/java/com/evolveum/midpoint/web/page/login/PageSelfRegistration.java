@@ -4,6 +4,7 @@ import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.feedback.ContainerFeedbackMessageFilter;
 import org.apache.wicket.markup.html.basic.MultiLineLabel;
+import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.image.Image;
 import org.apache.wicket.markup.html.panel.FeedbackPanel;
 import org.apache.wicket.model.IModel;
@@ -356,12 +357,15 @@ public class PageSelfRegistration extends PageRegistrationBase {
 			getSession().error(
 					createStringResource("PageSelfRegistration.registration.error", result.getMessage())
 							.getString());
-			removePassword();
+			removePassword(target);
+			updateCaptcha(target);
+			target.add(getFeedbackPanel());
 			LOGGER.error("Failed to register user {}. Reason {}", userModel.getObject(), result.getMessage());
+			return;
 
 		}
 
-		updateCaptcha(target);
+		
 		target.add(getFeedbackPanel());
 		target.add(this);
 
@@ -376,9 +380,9 @@ public class PageSelfRegistration extends PageRegistrationBase {
 			LOGGER.error(message);
 			getSession().error(message);
 			target.add(getFeedbackPanel());
-			removePassword();
+			removePassword(target);
 			updateCaptcha(target);
-			target.add(this);
+//			target.add(this);
 			return false;
 		}
 
@@ -388,10 +392,10 @@ public class PageSelfRegistration extends PageRegistrationBase {
 						.getString();
 				LOGGER.error(message);
 				getSession().error(message);
-				removePassword();
+				removePassword(target);
 				updateCaptcha(target);
 				target.add(getFeedbackPanel());
-				target.add(this);
+//				target.add(this);
 				return false;
 			}
 		}
@@ -401,10 +405,14 @@ public class PageSelfRegistration extends PageRegistrationBase {
 
 	private void updateCaptcha(AjaxRequestTarget target) {
 
-		CaptchaPanel captcha = (CaptchaPanel) get(createComponentPath(ID_MAIN_FORM, ID_CAPTCHA));
-		captcha.invalidateCaptcha();
-		Image image = (Image) get(createComponentPath(ID_MAIN_FORM, ID_CAPTCHA, "image"));
-		target.add(image);
+		CaptchaPanel captcha = new CaptchaPanel(ID_CAPTCHA);
+		captcha.setOutputMarkupId(true);
+		
+		Form form = (Form) get(ID_MAIN_FORM);
+		form.addOrReplace(captcha);
+//		captcha.invalidateCaptcha();
+//		Image image = (Image) get(createComponentPath(ID_MAIN_FORM, ID_CAPTCHA, "image"));
+		target.add(form);
 	}
 
 	private void saveUser(Task task, OperationResult result) {
@@ -531,9 +539,12 @@ public class PageSelfRegistration extends PageRegistrationBase {
 		return (String) password.getBaseFormComponent().getModel().getObject();
 	}
 
-	private void removePassword() {
+	private void removePassword(AjaxRequestTarget target) {
 		PasswordPanel password = (PasswordPanel) get(createComponentPath(ID_MAIN_FORM, ID_PASSWORD));
-		password.getBaseFormComponent().getModel().setObject(null);
+		for (FormComponent comp : password.getFormComponents()) {
+			comp.getModel().setObject(null);
+		}
+		target.add(password);
 	}
 
 	@Override
