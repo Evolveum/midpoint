@@ -60,6 +60,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentSelectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
@@ -599,6 +600,13 @@ public class AssignmentEvaluator<F extends FocusType> {
 					}
 					continue;
 				}
+				if (!isAllowedByLimitations(assignmentPathSegment, roleInducement)) {
+					if (LOGGER.isTraceEnabled()) {
+						LOGGER.trace("Skipping application of inducement {} because it is limited",
+								FocusTypeUtil.dumpAssignment(roleInducement));
+					}
+					continue;
+				}
 				ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> roleInducementIdi = new ItemDeltaItem<>();
 				roleInducementIdi.setItemOld(LensUtil.createAssignmentSingleValueContainerClone(roleInducement));
 				roleInducementIdi.recompute();
@@ -628,6 +636,16 @@ public class AssignmentEvaluator<F extends FocusType> {
 		}
 		
 		for (AssignmentType roleAssignment : targetType.getAssignment()) {
+			if (LensUtil.isDelegationRelation(relation)) {
+				// We have to handle assignments as though they were inducements here.
+				if (!isAllowedByLimitations(assignmentPathSegment, roleAssignment)) {
+					if (LOGGER.isTraceEnabled()) {
+						LOGGER.trace("Skipping application of delegated assignment {} because it is limited in the delegation",
+								FocusTypeUtil.dumpAssignment(roleAssignment));
+					}
+					continue;
+				}
+			}
 			if (LOGGER.isTraceEnabled()) {
 				LOGGER.trace("E({}): follow assignment {} in {}",
 						evaluationOrder.shortDump(), FocusTypeUtil.dumpAssignment(roleAssignment), targetType);
@@ -667,7 +685,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 		
 	}
 
-	public <O extends ObjectType> boolean containsOtherOrgs(AssignmentPath assignmentPath, FocusType thisOrg) {
+	private <O extends ObjectType> boolean containsOtherOrgs(AssignmentPath assignmentPath, FocusType thisOrg) {
 		for (AssignmentPathSegment segment: assignmentPath.getSegments()) {
 			ObjectType segmentTarget = segment.getTarget();
 			if (segmentTarget != null) {
@@ -701,6 +719,19 @@ public class AssignmentEvaluator<F extends FocusType> {
 		return true;
 	}
 	
+	private boolean isAllowedByLimitations(AssignmentPathSegment assignmentPathSegment, AssignmentType roleInducement) {
+		List<AssignmentSelectorType> limitations = assignmentPathSegment.getAssignment().getLimitTargerContent();
+		if (limitations == null || limitations.isEmpty()) {
+			return true;
+		}
+		for (AssignmentSelectorType limitation: limitations) {
+			if (FocusTypeUtil.selectorMatches(limitation, roleInducement)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
 	private QName getTargetType(AssignmentPathSegment assignmentPathSegment){
 		return assignmentPathSegment.getTarget().asPrismObject().getDefinition().getName();
 	}

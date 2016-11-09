@@ -114,6 +114,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AdminGuiConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentSelectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationType;
@@ -169,6 +170,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.ConnectException;
 import java.util.*;
+import java.util.function.Consumer;
 
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static org.testng.AssertJUnit.assertEquals;
@@ -778,7 +780,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	protected void unassignRole(String userOid, String roleOid, Task task, OperationResult result) throws ObjectNotFoundException,
 			SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException,
 	PolicyViolationException, SecurityViolationException {
-		modifyUserAssignment(userOid, roleOid, RoleType.COMPLEX_TYPE, null, task, null, false, result);
+		modifyUserAssignment(userOid, roleOid, RoleType.COMPLEX_TYPE, null, task, (Consumer<AssignmentType>)null, false, result);
 	}
 
 	protected void assignRole(String userOid, String roleOid, PrismContainer<?> extension, Task task, OperationResult result) throws ObjectNotFoundException,
@@ -844,7 +846,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 			throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException,
 			CommunicationException, ConfigurationException, ObjectAlreadyExistsException,
 			PolicyViolationException, SecurityViolationException {
-		modifyUserAssignment(userOid, orgOid, OrgType.COMPLEX_TYPE, relation, task, null, true, result);
+		modifyUserAssignment(userOid, orgOid, OrgType.COMPLEX_TYPE, relation, task, (Consumer<AssignmentType>)null, true, result);
 	}
 
 	protected void unassignOrg(String userOid, String orgOid, Task task, OperationResult result)
@@ -858,7 +860,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 			throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException,
 			CommunicationException, ConfigurationException, ObjectAlreadyExistsException,
 			PolicyViolationException, SecurityViolationException {
-		modifyUserAssignment(userOid, orgOid, OrgType.COMPLEX_TYPE, relation, task, null, false, result);
+		modifyUserAssignment(userOid, orgOid, OrgType.COMPLEX_TYPE, relation, task, (Consumer<AssignmentType>)null, false, result);
 	}
 	
 	protected void modifyUserAssignment(String userOid, String roleOid, QName refType, QName relation, Task task, 
@@ -878,6 +880,16 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		modelService.executeChanges(deltas, null, task, result);		
 	}
 	
+	protected void modifyUserAssignment(String userOid, String roleOid, QName refType, QName relation, Task task, 
+			Consumer<AssignmentType> modificationBlock, boolean add, OperationResult result) 
+			throws ObjectNotFoundException,
+			SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException,
+			PolicyViolationException, SecurityViolationException {
+		ObjectDelta<UserType> userDelta = createAssignmentUserDelta(userOid, roleOid, refType, relation, modificationBlock, add);
+		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
+		modelService.executeChanges(deltas, null, task, result);		
+	}
+	
 	/**
 	 * Executes assignment replace delta with empty values.
 	 */
@@ -893,6 +905,26 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	
 	protected ContainerDelta<AssignmentType> createAssignmentModification(String roleOid, QName refType, QName relation, 
 			PrismContainer<?> extension, ActivationType activationType, boolean add) throws SchemaException {
+		try {
+			return createAssignmentModification(roleOid, refType, relation, 
+					assignment -> {
+						if (extension != null) {
+							try {
+								assignment.asPrismContainerValue().add(extension.clone());
+							} catch (SchemaException e) {
+								throw new TunnelException(e);
+							}
+						}
+						assignment.setActivation(activationType);
+					}, add);
+		} catch (TunnelException te) {
+			throw (SchemaException)te.getCause();
+		}
+	}
+		
+		
+	protected ContainerDelta<AssignmentType> createAssignmentModification(String roleOid, QName refType, QName relation, 
+			Consumer<AssignmentType> modificationBlock, boolean add) throws SchemaException {
 		ContainerDelta<AssignmentType> assignmentDelta = ContainerDelta.createDelta(UserType.F_ASSIGNMENT, getUserDefinition());
 		PrismContainerValue<AssignmentType> cval = new PrismContainerValue<AssignmentType>(prismContext);
 		if (add) {
@@ -904,21 +936,24 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		targetRef.getValue().setOid(roleOid);
 		targetRef.getValue().setTargetType(refType);
 		targetRef.getValue().setRelation(relation);
-		if (extension != null) {
-			cval.add(extension.clone());
+		if (modificationBlock != null) {
+			modificationBlock.accept(cval.asContainerable());
 		}
-		cval.asContainerable().setActivation(activationType);
 		return assignmentDelta;
 	}
-	
-	protected ObjectDelta<UserType> createAssignmentUserDelta(String userOid, String roleOid, QName refType, QName relation, PrismContainer<?> extension, boolean add) throws SchemaException {
-		return createAssignmentUserDelta(userOid, roleOid, refType, relation, extension, null, add);
-	}
-	
+		
 	protected ObjectDelta<UserType> createAssignmentUserDelta(String userOid, String roleOid, QName refType, QName relation, 
 			PrismContainer<?> extension, ActivationType activationType, boolean add) throws SchemaException {
 		Collection<ItemDelta<?,?>> modifications = new ArrayList<>();
 		modifications.add((createAssignmentModification(roleOid, refType, relation, extension, activationType, add)));
+		ObjectDelta<UserType> userDelta = ObjectDelta.createModifyDelta(userOid, modifications, UserType.class, prismContext);
+		return userDelta;
+	}
+	
+	protected ObjectDelta<UserType> createAssignmentUserDelta(String userOid, String roleOid, QName refType, QName relation, 
+			Consumer<AssignmentType> modificationBlock, boolean add) throws SchemaException {
+		Collection<ItemDelta<?,?>> modifications = new ArrayList<>();
+		modifications.add((createAssignmentModification(roleOid, refType, relation, modificationBlock, add)));
 		ObjectDelta<UserType> userDelta = ObjectDelta.createModifyDelta(userOid, modifications, UserType.class, prismContext);
 		return userDelta;
 	}
@@ -1378,6 +1413,17 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 
 	protected void unassignDeputy(String userDeputyOid, String userTargetOid, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
 		modifyUserAssignment(userDeputyOid, userTargetOid, UserType.COMPLEX_TYPE, SchemaConstants.ORG_DEPUTY, task, null, null, false, result);
+	}
+	
+	protected void assignDeputyLimits(String userDeputyOid, String userTargetOid, Task task, OperationResult result, ObjectReferenceType... limitTargets) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
+		modifyUserAssignment(userDeputyOid, userTargetOid, UserType.COMPLEX_TYPE, SchemaConstants.ORG_DEPUTY, task, 
+				assignment -> {
+					AssignmentSelectorType limitTargetContent = new AssignmentSelectorType();
+					assignment.getLimitTargerContent().add(limitTargetContent);
+					for (ObjectReferenceType limitTarget: limitTargets) {
+						limitTargetContent.getTargetRef().add(limitTarget);
+					}
+				}, true, result);
 	}
 
 	protected <F extends FocusType> void assertAssignedDeputy(PrismObject<F> focus, String targetUserOid) {

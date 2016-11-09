@@ -18,6 +18,7 @@ package com.evolveum.midpoint.model.intest;
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 
 import java.io.File;
+import java.util.Collection;
 
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -25,10 +26,17 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
@@ -460,8 +468,8 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
     }
     
     @Test
-    public void test129UnassignbarbossaDeputyOfGuybrush() throws Exception {
-		final String TEST_NAME = "test120AssignbarbossaDeputyOfGuybrush";
+    public void test129UnassignBarbossaDeputyOfGuybrush() throws Exception {
+		final String TEST_NAME = "test129UnassignBarbossaDeputyOfGuybrush";
         TestUtil.displayTestTile(this, TEST_NAME);
         
         Task task = taskManager.createTaskInstance(TestDeputy.class.getName() + "." + TEST_NAME);
@@ -488,6 +496,94 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
         assertNoAssignments(userGuybrushAfter);
         assertLinks(userGuybrushAfter, 0);
         assertNoAuthorizations(userGuybrushAfter);
+        
+    }
+    
+    /**
+	 * Assign more roles and orgs to Jack. We will use these for
+	 * selective delegation in subsequent tests.
+	 */
+    @Test
+    public void test150AssignJackMoreRoles() throws Exception {
+		final String TEST_NAME = "test150AssignJackMoreRoles";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        
+        Task task = taskManager.createTaskInstance(TestDeputy.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+
+        ObjectDelta<UserType> userDelta = createAssignmentUserDelta(USER_JACK_OID, ROLE_PIRATE_OID, RoleType.COMPLEX_TYPE, 
+        		null, null, (ActivationType) null, true);
+        userDelta.addModification((createAssignmentModification(ROLE_RED_SAILOR_OID, RoleType.COMPLEX_TYPE, 
+        		null, null, (ActivationType) null, true)));
+        userDelta.addModification((createAssignmentModification(ROLE_CYAN_SAILOR_OID, RoleType.COMPLEX_TYPE, 
+        		null, null, (ActivationType) null, true)));
+        userDelta.addModification((createAssignmentModification(ORG_SWASHBUCKLER_SECTION_OID, OrgType.COMPLEX_TYPE, 
+        		null, null, (ActivationType) null, true)));
+        userDelta.addModification((createAssignmentModification(ORG_MINISTRY_OF_RUM_OID, OrgType.COMPLEX_TYPE, 
+        		SchemaConstants.ORG_MANAGER, null, (ActivationType) null, true)));
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        
+		modelService.executeChanges(MiscSchemaUtil.createCollection(userDelta), null, task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        PrismObject<UserType> userJackAfter = getUser(USER_JACK_OID);
+        display("User Jack after", userJackAfter);
+        assertAssignedRole(userJackAfter, ROLE_PIRATE_OID);
+        assertAssignments(userJackAfter, 5);
+        assertAccount(userJackAfter, RESOURCE_DUMMY_OID);
+        assertAccount(userJackAfter, RESOURCE_DUMMY_RED_OID);
+        assertAccount(userJackAfter, RESOURCE_DUMMY_CYAN_OID);
+        assertLinks(userJackAfter, 3);
+        assertAuthorizations(userJackAfter, AUTZ_LOOT_URL, AUTZ_SAIL_URL, AUTZ_SAIL_URL);
+        
+        PrismObject<UserType> userBarbossaAfter = getUser(USER_BARBOSSA_OID);
+        display("User Barbossa after", userBarbossaAfter);
+        assertNoAssignments(userBarbossaAfter);
+        assertLinks(userBarbossaAfter, 0);
+        assertNoAuthorizations(userBarbossaAfter);        
+        
+    }
+    
+    @Test
+    public void test152AssignbarbossaDeputyLimitedDeputy() throws Exception {
+		final String TEST_NAME = "test152AssignbarbossaDeputyLimitedDeputy";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        
+        Task task = taskManager.createTaskInstance(TestDeputy.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        
+        assignDeputyLimits(USER_BARBOSSA_OID, USER_JACK_OID, task, result,
+        		createRoleReference(ROLE_PIRATE_OID),
+        		createOrgReference(ORG_MINISTRY_OF_RUM_OID, SchemaConstants.ORG_MANAGER));
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        PrismObject<UserType> userBarbossaAfter = getUser(USER_BARBOSSA_OID);
+        display("User Barbossa after", userBarbossaAfter);
+        assertAssignedDeputy(userBarbossaAfter, USER_JACK_OID);
+        assertAssignedNoRole(userBarbossaAfter);
+        assertAssignments(userBarbossaAfter, 1);
+        assertAccount(userBarbossaAfter, RESOURCE_DUMMY_OID);
+        assertLinks(userBarbossaAfter, 1);
+        assertAuthorizations(userBarbossaAfter, AUTZ_LOOT_URL);
+        
+        PrismObject<UserType> userJackAfter = getUser(USER_JACK_OID);
+        display("User Jack after", userJackAfter);
+        assertAssignments(userJackAfter, 5);
+        assertLinks(userJackAfter, 3);
+        assertAuthorizations(userJackAfter, AUTZ_LOOT_URL, AUTZ_SAIL_URL, AUTZ_SAIL_URL);
         
     }
    
