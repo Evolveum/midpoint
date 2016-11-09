@@ -174,10 +174,6 @@ public class PageMergeObjects<F extends FocusType> extends PageAdminFocus {
                 return false;
             }
 
-            @Override
-            protected boolean getOptionsPanelVisibility() {
-                return false;
-            }
         };
     }
     @Override
