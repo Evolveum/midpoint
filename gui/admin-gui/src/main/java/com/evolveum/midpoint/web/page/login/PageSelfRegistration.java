@@ -1,15 +1,18 @@
 package com.evolveum.midpoint.web.page.login;
 
+import org.apache.commons.lang.StringUtils;
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.feedback.ContainerFeedbackMessageFilter;
+import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.basic.MultiLineLabel;
 import org.apache.wicket.markup.html.form.FormComponent;
-import org.apache.wicket.markup.html.image.Image;
 import org.apache.wicket.markup.html.panel.FeedbackPanel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
+import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.string.StringValue;
 
@@ -37,6 +40,7 @@ import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.input.TextPanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
+import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NonceCredentialsPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NonceType;
@@ -65,6 +69,8 @@ public class PageSelfRegistration extends PageRegistrationBase {
 	private static final String ID_FEEDBACK = "feedback";
 	private static final String ID_BACK = "back";
 	private static final String ID_WELCOME = "welcome";
+	private static final String ID_ADDITIONAL_TEXT = "additionalText";
+	private static final String ID_TOOLTIP = "tooltip";
 
 	private static final String ID_CAPTCHA = "captcha";
 
@@ -168,9 +174,8 @@ public class PageSelfRegistration extends PageRegistrationBase {
 		initAccessBehaviour(mainForm);
 		add(mainForm);
 		
-		MultiLineLabel welcome = new MultiLineLabel(ID_WELCOME, createStringResource("PageSelfRegistration.welcome.message"));
-		welcome.setOutputMarkupId(true);
-		mainForm.add(welcome);
+		addMultilineLable(ID_WELCOME, "PageSelfRegistration.welcome.message", mainForm);
+		addMultilineLable(ID_ADDITIONAL_TEXT, "PageSelfRegistration.additional.message", mainForm);
 
 		// feedback
 		FeedbackPanel feedback = new FeedbackPanel(ID_FEEDBACK,
@@ -210,6 +215,22 @@ public class PageSelfRegistration extends PageRegistrationBase {
 		initInputProperties(feedback, email);
 		mainForm.add(email);
 
+		
+		Label help = new Label(ID_TOOLTIP);
+		final StringResourceModel tooltipText = createStringResource("PageSelfRegistration.password.policy");
+        help.add(AttributeModifier.replace("title", tooltipText));
+        help.add(new InfoTooltipBehavior());
+        help.add(new VisibleEnableBehaviour() {
+        	private static final long serialVersionUID = 1L;
+
+            @Override
+            public boolean isVisible() {
+            	
+                return StringUtils.isNotEmpty(tooltipText.getObject());
+            }
+        });
+        mainForm.add(help);
+		
 		ProtectedStringType initialPassword = null;
 		PasswordPanel password = new PasswordPanel(ID_PASSWORD, Model.of(initialPassword));
 		password.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
@@ -270,6 +291,20 @@ public class PageSelfRegistration extends PageRegistrationBase {
 		};
 		mainForm.add(back);
 
+	}
+	
+	private void addMultilineLable(String id, String messageKey, Form mainForm) {
+		MultiLineLabel welcome = new MultiLineLabel(id, createStringResource(messageKey));
+		welcome.setOutputMarkupId(true);
+		welcome.add(new VisibleEnableBehaviour() {
+			
+			@Override
+			public boolean isVisible() {
+				return !submited;
+			}
+		});
+		mainForm.add(welcome);
+		
 	}
 
 	private void initAccessBehaviour(Form mainForm) {

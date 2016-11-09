@@ -28,6 +28,9 @@
     			  		<div style="text-align: center">
     			  			<h3  wicket:id="welcome" />
     			  		</div>
+    			  		<div>
+    			  			<label wicket:id="additionalText"></label>
+    			  		</div>
     			  		<table class="table table-striped">
     			  			<tr>
     			  				<td>
@@ -75,6 +78,7 @@
 		                                <wicket:message key="PageLogin.password"/>
 		                           		<span style="color: #f00; font-weight: bold;"
                 								wicket:message="title:prismPropertyPanel.required">*</span>
+                						<i wicket:id="tooltip" />
     			  				</td>
     			  				<td>
     			  					 <div>
