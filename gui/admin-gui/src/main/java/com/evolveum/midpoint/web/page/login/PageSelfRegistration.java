@@ -380,9 +380,7 @@ public class PageSelfRegistration extends PageRegistrationBase {
 			LOGGER.error(message);
 			getSession().error(message);
 			target.add(getFeedbackPanel());
-			removePassword(target);
 			updateCaptcha(target);
-//			target.add(this);
 			return false;
 		}
 
@@ -392,10 +390,8 @@ public class PageSelfRegistration extends PageRegistrationBase {
 						.getString();
 				LOGGER.error(message);
 				getSession().error(message);
-				removePassword(target);
 				updateCaptcha(target);
 				target.add(getFeedbackPanel());
-//				target.add(this);
 				return false;
 			}
 		}
@@ -410,8 +406,6 @@ public class PageSelfRegistration extends PageRegistrationBase {
 		
 		Form form = (Form) get(ID_MAIN_FORM);
 		form.addOrReplace(captcha);
-//		captcha.invalidateCaptcha();
-//		Image image = (Image) get(createComponentPath(ID_MAIN_FORM, ID_CAPTCHA, "image"));
 		target.add(form);
 	}
 
