@@ -38,7 +38,7 @@ public class CertDecisionDto extends CertCaseOrDecisionDto {
     public CertDecisionDto(AccessCertificationCaseType _case, PageBase page) {
         super(_case, page);
         if (_case.getDecision().isEmpty()) {
-            decision = new AccessCertificationDecisionType();
+            decision = new AccessCertificationDecisionType(page.getPrismContext());
         } else if (_case.getDecision().size() == 1) {
             decision = _case.getDecision().get(0);
         } else {

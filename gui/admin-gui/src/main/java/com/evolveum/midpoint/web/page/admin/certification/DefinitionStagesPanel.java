@@ -211,7 +211,7 @@ public class DefinitionStagesPanel extends BasePanel<List<StageDefinitionDto>> {
 
 	private StageDefinitionDto createNewStageDefinitionDto(){
 		try {
-			AccessCertificationStageDefinitionType def = new AccessCertificationStageDefinitionType();
+			AccessCertificationStageDefinitionType def = new AccessCertificationStageDefinitionType(parentPage.getPrismContext());
 			def.setNumber(getModel().getObject().size() + 1);
 			def.setName(DEFAULT_STAGE_NAME_PREFIX + def.getNumber());
 			return new StageDefinitionDto(def, parentPage.getPrismContext());

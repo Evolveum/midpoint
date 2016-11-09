@@ -271,19 +271,6 @@ public class CertDefinitionDto implements Serializable {
         return list;
     }
 
-    private List<ObjectReferenceType> cloneListObjectsForSave(List<ObjectReferenceType> listToClone){
-        if (listToClone != null){
-            if (listToClone.size() > 0) {
-                List<ObjectReferenceType> list = new ArrayList<>();
-                for (ObjectReferenceType objectReferenceType : listToClone) {
-                    list.add(objectReferenceType.clone());
-                }
-                return list;
-            }
-        }
-        return new ArrayList<ObjectReferenceType>();
-    }
-
     public DefinitionScopeDto getScopeDefinition() {
         return definitionScopeDto;
     }
@@ -291,7 +278,7 @@ public class CertDefinitionDto implements Serializable {
     public void updateScopeDefinition(PrismContext prismContext) {
         AccessCertificationAssignmentReviewScopeType scopeTypeObj = null;
         if (definitionScopeDto != null) {
-            scopeTypeObj = new AccessCertificationAssignmentReviewScopeType();
+            scopeTypeObj = new AccessCertificationAssignmentReviewScopeType(prismContext);
             scopeTypeObj.setName(definitionScopeDto.getName());
             scopeTypeObj.setDescription(definitionScopeDto.getDescription());
             scopeTypeObj.setObjectType(definitionScopeDto.getObjectType() != null ? new QName(definitionScopeDto.getObjectType().name()) : null);
@@ -327,7 +314,7 @@ public class CertDefinitionDto implements Serializable {
 
     private AccessCertificationStageDefinitionType createStageDefinitionType(StageDefinitionDto stageDefDto, PrismContext prismContext)
             throws SchemaException {
-        AccessCertificationStageDefinitionType stageDefType = new AccessCertificationStageDefinitionType();
+        AccessCertificationStageDefinitionType stageDefType = new AccessCertificationStageDefinitionType(prismContext);
         if (stageDefDto != null) {
             stageDefType.setNumber(stageDefDto.getNumber());
             stageDefType.setName(stageDefDto.getName());
@@ -347,7 +334,7 @@ public class CertDefinitionDto implements Serializable {
 
     private AccessCertificationReviewerSpecificationType createAccessCertificationReviewerType(
             AccessCertificationReviewerDto reviewerDto, PrismContext prismContext) throws SchemaException {
-        AccessCertificationReviewerSpecificationType reviewerObject = new AccessCertificationReviewerSpecificationType();
+        AccessCertificationReviewerSpecificationType reviewerObject = new AccessCertificationReviewerSpecificationType(prismContext);
         if (reviewerDto != null) {
             reviewerObject.setName(reviewerDto.getName());
             reviewerObject.setDescription(reviewerDto.getDescription());

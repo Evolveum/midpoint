@@ -67,9 +67,9 @@ public class StageEditorPanel extends BasePanel<StageDefinitionDto> {
         List<ITab> tabsList = tabsModel.getObject();
         PropertyModel<String> tabNameModel;
         if (getModel().getObject().getName() == null || getModel().getObject().getName().trim().equals("")){
-            tabNameModel = new PropertyModel<String>(getModel(), StageDefinitionDto.F_NUMBER);
+            tabNameModel = new PropertyModel<>(getModel(), StageDefinitionDto.F_NUMBER);
         } else {
-            tabNameModel = new PropertyModel<String>(getModel(), StageDefinitionDto.F_NAME);
+            tabNameModel = new PropertyModel<>(getModel(), StageDefinitionDto.F_NAME);
         }
 
         for (ITab tab : tabsList){

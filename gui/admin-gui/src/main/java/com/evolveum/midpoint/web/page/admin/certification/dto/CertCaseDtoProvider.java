@@ -62,7 +62,7 @@ public class CertCaseDtoProvider extends BaseSortableDataProvider<CertCaseOrDeci
 
     @Override
     public Iterator<CertCaseOrDecisionDto> internalIterator(long first, long count) {
-        LOGGER.trace("begin::iterator() from {} count {}.", new Object[]{first, count});
+        LOGGER.trace("begin::iterator() from {} count {}.", first, count);
         getAvailableData().clear();
 
         Task task = getPage().createSimpleTask(OPERATION_SEARCH_OBJECTS);

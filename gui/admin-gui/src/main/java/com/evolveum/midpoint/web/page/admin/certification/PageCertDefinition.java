@@ -159,7 +159,7 @@ public class PageCertDefinition extends PageAdminCertification {
 	//region Layout
 	private void initLayout() {
 		CertDefinitionSummaryPanel summaryPanel = new CertDefinitionSummaryPanel(ID_SUMMARY_PANEL,
-				new PropertyModel<PrismObject<AccessCertificationDefinitionType>>(definitionModel, CertDefinitionDto.F_PRISM_OBJECT));
+				new PropertyModel<>(definitionModel, CertDefinitionDto.F_PRISM_OBJECT));
 		add(summaryPanel);
 
 		Form mainForm = new Form(ID_MAIN_FORM);
@@ -181,13 +181,15 @@ public class PageCertDefinition extends PageAdminCertification {
 		tabs.add(new AbstractTab(createStringResource("PageCertDefinition.scopeDefinition")) {
             @Override
             public WebMarkupContainer getPanel(String panelId) {
-                return new DefinitionScopePanel(panelId, new PropertyModel<DefinitionScopeDto>(definitionModel, CertDefinitionDto.F_SCOPE_DEFINITION));
+                return new DefinitionScopePanel(panelId,
+						new PropertyModel<>(definitionModel, CertDefinitionDto.F_SCOPE_DEFINITION));
             }
         });
 		tabs.add(new CountablePanelTab(createStringResource("PageCertDefinition.stagesDefinition")) {
 			@Override
 			public WebMarkupContainer createPanel(String panelId) {
-				return new DefinitionStagesPanel(panelId, new PropertyModel<List<StageDefinitionDto>>(definitionModel, CertDefinitionDto.F_STAGE_DEFINITION), PageCertDefinition.this);
+				return new DefinitionStagesPanel(panelId,
+						new PropertyModel<>(definitionModel, CertDefinitionDto.F_STAGE_DEFINITION), PageCertDefinition.this);
 			}
 			@Override
 			public String getCount() {
