@@ -370,8 +370,10 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 		PrismObject<F> focus = focusWrapper.getObject();
 		List<AssignmentType> assignments = focus.asObjectable().getAssignment();
 		for (AssignmentType assignment : assignments) {
-
-			list.add(new AssignmentEditorDto(UserDtoStatus.MODIFY, assignment, this));
+			if (assignment.getTargetRef() == null ||
+					!UserType.COMPLEX_TYPE.equals(assignment.getTargetRef().getType())) {
+				list.add(new AssignmentEditorDto(UserDtoStatus.MODIFY, assignment, this));
+			}
 		}
 
 		Collections.sort(list);

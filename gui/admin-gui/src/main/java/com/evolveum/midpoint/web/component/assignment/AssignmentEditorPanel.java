@@ -858,7 +858,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 		target.add(this);
 	}
 
-	private IModel<String> createTargetModel() {
+	protected IModel<String> createTargetModel() {
 		return new LoadableModel<String>(false) {
 			private static final long serialVersionUID = 1L;
 

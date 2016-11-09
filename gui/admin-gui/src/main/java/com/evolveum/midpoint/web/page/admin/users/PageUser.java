@@ -18,12 +18,15 @@ package com.evolveum.midpoint.web.page.admin.users;
 import com.evolveum.midpoint.gui.api.ComponentConstants;
 import com.evolveum.midpoint.gui.api.component.tabs.CountablePanelTab;
 import com.evolveum.midpoint.gui.api.component.tabs.PanelTab;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.FocusTabVisibleBehavior;
 import com.evolveum.midpoint.web.component.assignment.AssignmentEditorDto;
 import com.evolveum.midpoint.web.component.assignment.AssignmentEditorPanel;
 import com.evolveum.midpoint.web.component.assignment.AssignmentTablePanel;
 import com.evolveum.midpoint.web.component.assignment.DelegationEditorPanel;
+import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.page.admin.PageAdminObjectDetails;
+import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
@@ -45,6 +48,8 @@ import com.evolveum.midpoint.web.page.admin.users.component.UserSummaryPanel;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -64,6 +69,7 @@ public class PageUser extends PageAdminFocus<UserType> {
 
     private static final String ID_TASK_TABLE = "taskTable";
     private static final String ID_TASKS = "tasks";
+    private LoadableModel<List<AssignmentEditorDto>> delegationsModel;
 
     private static final Trace LOGGER = TraceManager.getTrace(PageUser.class);
 
@@ -78,6 +84,17 @@ public class PageUser extends PageAdminFocus<UserType> {
 
     public PageUser(final PrismObject<UserType> userToEdit) {
         initialize(userToEdit);
+    }
+
+    @Override
+    protected void initializeModel(final PrismObject<UserType> objectToEdit) {
+        super.initializeModel(objectToEdit);
+        delegationsModel = new LoadableModel<List<AssignmentEditorDto>>(false) {
+            @Override
+            protected List<AssignmentEditorDto> load() {
+                return loadDelegations();
+            }
+        };
     }
 
     @Override
@@ -144,13 +161,8 @@ public class PageUser extends PageAdminFocus<UserType> {
 
                     @Override
                     public WebMarkupContainer createPanel(String panelId) {
-                        return new AssignmentTablePanel<UserType>(panelId, parentPage.createStringResource("FocusType.delegations"), getAssignmentsModel()) {
+                        return new AssignmentTablePanel<UserType>(panelId, parentPage.createStringResource("FocusType.delegations"), delegationsModel) {
                             private static final long serialVersionUID = 1L;
-
-                            @Override
-                            public List<AssignmentType> getAssignmentTypeList() {
-                                return getAssignmentTypeList();
-                            }
 
                             @Override
                             public void populateItem(ListItem<AssignmentEditorDto> item) {
@@ -167,7 +179,7 @@ public class PageUser extends PageAdminFocus<UserType> {
 
                     @Override
                     public String getCount() {
-                        return Integer.toString(getAssignmentsModel().getObject() == null ? 0 : getAssignmentsModel().getObject().size());
+                        return Integer.toString(delegationsModel.getObject() == null ? 0 : delegationsModel.getObject().size());
                     }
                 });
 
@@ -175,4 +187,23 @@ public class PageUser extends PageAdminFocus<UserType> {
             }
         };
     }
+
+    private List<AssignmentEditorDto> loadDelegations() {
+        List<AssignmentEditorDto> list = new ArrayList<AssignmentEditorDto>();
+
+        ObjectWrapper<UserType> focusWrapper = getObjectModel().getObject();
+        PrismObject<UserType> focus = focusWrapper.getObject();
+        List<AssignmentType> assignments = focus.asObjectable().getAssignment();
+        for (AssignmentType assignment : assignments) {
+            if (assignment.getTargetRef() != null &&
+                    UserType.COMPLEX_TYPE.equals(assignment.getTargetRef().getType())) {
+                list.add(new AssignmentEditorDto(UserDtoStatus.MODIFY, assignment, this));
+            }
+        }
+
+        Collections.sort(list);
+
+        return list;
+    }
+
 }

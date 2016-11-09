@@ -18,6 +18,9 @@ package com.evolveum.midpoint.web.component.assignment;
 
 import com.evolveum.midpoint.web.component.DateInput;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
@@ -66,7 +69,7 @@ public class DelegationEditorPanel extends AssignmentEditorPanel {
         };
         headerRow.add(delegatedToName);
 
-        Label delegatedToNameLabel = new Label(ID_DELEGATED_TO_LABEL, new Model("delegated"));
+        Label delegatedToNameLabel = new Label(ID_DELEGATED_TO_LABEL, createTargetModel());
         delegatedToNameLabel.setOutputMarkupId(true);
         delegatedToName.add(delegatedToNameLabel);
 
@@ -80,4 +83,5 @@ public class DelegationEditorPanel extends AssignmentEditorPanel {
                         AssignmentEditorDto.F_ACTIVATION + ".validTo")));
         headerRow.add(validTo);
     }
+
 }
