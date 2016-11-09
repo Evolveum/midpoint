@@ -20,6 +20,7 @@ import java.util.Map.Entry;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.QNameUtil;
@@ -34,6 +35,7 @@ public class EvaluationOrder implements DebugDumpable {
 	public static final EvaluationOrder ZERO = EvaluationOrder.createZero();
 	public static final EvaluationOrder ONE = ZERO.advance();
 	
+	private int summaryOrder = 0;
 	private HashMap<QName,Integer> orderMap  = new HashMap<>();
 
 	public static EvaluationOrder createZero() {
@@ -42,13 +44,8 @@ public class EvaluationOrder implements DebugDumpable {
 		return eo;
 	}
 	
-	public int getOrder() {
-		Integer order = orderMap.get(null);
-		if (order == null) {
-			return 0;
-		} else {
-			return order;
-		}
+	public int getSummaryOrder() {
+		return summaryOrder;
 	}
 	
 	public EvaluationOrder advance() {
@@ -69,6 +66,11 @@ public class EvaluationOrder implements DebugDumpable {
 		if (!found) {
 			adeo.orderMap.put(relation, 1);
 		}
+		if (QNameUtil.match(relation, SchemaConstants.ORG_DEPUTY)) {
+			adeo.summaryOrder = this.summaryOrder;
+		} else {
+			adeo.summaryOrder = this.summaryOrder + 1;
+		}
 		return adeo;
 	}
 	
@@ -84,9 +86,9 @@ public class EvaluationOrder implements DebugDumpable {
 	@Override
 	public String debugDump(int indent) {
 		StringBuilder sb = new StringBuilder();
-		DebugUtil.debugDumpLabel(sb, "EvaluationOrder", indent);
-		sb.append("\n");
-		DebugUtil.debugDumpMapMultiLine(sb, orderMap, indent + 2);
+		DebugUtil.debugDumpLabelLn(sb, "EvaluationOrder", indent);
+		DebugUtil.debugDumpWithLabelLn(sb, "summaryOrder", summaryOrder, indent + 1);
+		DebugUtil.debugDumpWithLabel(sb, "orderMap", orderMap, indent + 1);
 		return sb.toString();
 	}
 
@@ -95,6 +97,7 @@ public class EvaluationOrder implements DebugDumpable {
 		final int prime = 31;
 		int result = 1;
 		result = prime * result + ((orderMap == null) ? 0 : orderMap.hashCode());
+		result = prime * result + summaryOrder;
 		return result;
 	}
 
@@ -115,6 +118,9 @@ public class EvaluationOrder implements DebugDumpable {
 				return false;
 			}
 		} else if (!orderMap.equals(other.orderMap)) {
+			return false;
+		}
+		if (summaryOrder != other.summaryOrder) {
 			return false;
 		}
 		return true;
@@ -138,6 +144,7 @@ public class EvaluationOrder implements DebugDumpable {
 			sb.append(",");
 		}
 		sb.setLength(sb.length() - 1);
+		sb.append("=").append(summaryOrder);
 		return sb.toString();
 	}
 }

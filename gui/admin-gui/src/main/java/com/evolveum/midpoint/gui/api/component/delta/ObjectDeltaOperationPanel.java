@@ -1,5 +1,8 @@
 package com.evolveum.midpoint.gui.api.component.delta;
 
+import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -73,8 +76,15 @@ public class ObjectDeltaOperationPanel extends BasePanel<ObjectDeltaOperationTyp
 				new PropertyModel(getModel(), ObjectDeltaOperationType.F_OBJECT_NAME.getLocalPart()));
 		objectName.setOutputMarkupId(true);
 		objectDeltaOperationMarkup.add(objectName);
-		final SceneDto sceneDto = loadSceneForDelta();
-
+		final SceneDto sceneDto;
+		try {
+			sceneDto = loadSceneForDelta();
+		} catch (SchemaException e) {
+			OperationResult result = new OperationResult(ObjectDeltaOperationPanel.class.getName() + ".loadSceneForDelta");
+			result.recordFatalError("Couldn't fetch or visualize the delta: " + e.getMessage(), e);
+			parentPage.showResult(result);
+			throw parentPage.redirectBackViaRestartResponseException();
+		}
 		IModel<SceneDto> deltaModel = new AbstractReadOnlyModel<SceneDto>() {
 			private static final long serialVersionUID = 1L;
 
@@ -125,19 +135,26 @@ public class ObjectDeltaOperationPanel extends BasePanel<ObjectDeltaOperationTyp
 		
 	}
 
-	private SceneDto loadSceneForDelta() {
-		Scene scene = null;
+	private SceneDto loadSceneForDelta() throws SchemaException {
+		Scene scene;
 
 		ObjectDelta<? extends ObjectType> delta;
+		ObjectDeltaType deltaType = getModel().getObject().getObjectDelta();
 		try {
-			delta = DeltaConvertor.createObjectDelta(getModel().getObject().getObjectDelta(),
+			delta = DeltaConvertor.createObjectDelta(deltaType,
 					parentPage.getPrismContext());
-
+		} catch (SchemaException e) {
+			LoggingUtils.logException(LOGGER, "SchemaException while converting delta:\n{}", e, deltaType);
+			throw e;
+		}
+		try {
 			scene = parentPage.getModelInteractionService().visualizeDelta(delta,
 					parentPage.createSimpleTask(ID_PARAMETERS_DELTA),
 					new OperationResult(ID_PARAMETERS_DELTA));
 		} catch (SchemaException e) {
-			return null;
+			LoggingUtils.logException(LOGGER, "SchemaException while visualizing delta:\n{}",
+					e, DebugUtil.debugDump(delta));
+			throw e;
 		}
 		SceneDto deltaSceneDto = new SceneDto(scene);
 		deltaSceneDto.setMinimized(true);

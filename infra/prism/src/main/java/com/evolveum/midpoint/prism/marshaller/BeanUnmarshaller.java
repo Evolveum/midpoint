@@ -824,9 +824,14 @@ public class BeanUnmarshaller {
 		return postConvertUnmarshal(parsedValue, parsingContext);
 	}
 
-	private Object unmarshalPolyStringFromPrimitive(PrimitiveXNode<String> node, Class<?> beanClass, ParsingContext parsingContext)
+	private Object unmarshalPolyStringFromPrimitive(PrimitiveXNode<?> node, Class<?> beanClass, ParsingContext parsingContext)
 			throws SchemaException {
-		String value = node.getParsedValue(DOMUtil.XSD_STRING, String.class);
+		Object value;
+		if (node.isParsed()) {
+			value = node.getValue();			// there can be e.g. PolyString there
+		} else {
+			value = ((PrimitiveXNode<String>) node).getParsedValue(DOMUtil.XSD_STRING, String.class);
+		}
 		return toCorrectPolyStringClass(value, beanClass, node);
 	}
 

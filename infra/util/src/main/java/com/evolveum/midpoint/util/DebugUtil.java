@@ -186,6 +186,11 @@ public class DebugUtil {
 		sb.append(label).append(":");
 	}
 	
+	public static void debugDumpLabelLn(StringBuilder sb, String label, int indent) {
+		debugDumpLabel(sb, label, indent);
+		sb.append("\n");
+	}
+	
 	public static void debugDumpWithLabelLn(StringBuilder sb, String label, DebugDumpable dd, int indent) {
 		debugDumpWithLabel(sb,label,dd,indent);
 		sb.append("\n");

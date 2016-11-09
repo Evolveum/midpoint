@@ -19,10 +19,12 @@ import com.evolveum.midpoint.model.common.expression.ItemDeltaItem;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OrderConstraintsType;
 
 /**
  * @author semancik
@@ -33,10 +35,11 @@ public class AssignmentPathSegment implements DebugDumpable {
 	private ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi;
 	private ObjectType target;
 	private ObjectType source;
-	private boolean evaluateConstructions = true;
 	private boolean validityOverride = false;
 	private EvaluationOrder evaluationOrder;
 	private ObjectType varThisObject;
+	private Boolean isMatchingOrder = null;
+	private boolean processMembership = false;
 	
 	AssignmentPathSegment(ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi, ObjectType target) {
 		super();
@@ -74,14 +77,6 @@ public class AssignmentPathSegment implements DebugDumpable {
 	public void setSource(ObjectType source) {
 		this.source = source;
 	}
-
-	public boolean isEvaluateConstructions() {
-		return evaluateConstructions;
-	}
-
-	public void setEvaluateConstructions(boolean evaluateConstructions) {
-		this.evaluateConstructions = evaluateConstructions;
-	}
 	
 	public boolean isValidityOverride() {
 		return validityOverride;
@@ -105,6 +100,57 @@ public class AssignmentPathSegment implements DebugDumpable {
 
 	public void setOrderOneObject(ObjectType varThisObject) {
 		this.varThisObject = varThisObject;
+	}
+	
+	public boolean isProcessMembership() {
+		return processMembership;
+	}
+
+	public void setProcessMembership(boolean processMembership) {
+		this.processMembership = processMembership;
+	}
+
+	public boolean isMatchingOrder() {
+		if (isMatchingOrder == null) {
+			isMatchingOrder = computeMatchingOrder();
+		}
+		return isMatchingOrder;
+	}
+	
+	private boolean computeMatchingOrder() {
+		AssignmentType assignmentType = getAssignment();
+		if (assignmentType.getOrder() == null && assignmentType.getOrderConstraint().isEmpty()) {
+			// compatibility
+			return evaluationOrder.getSummaryOrder() == 1;
+		}
+		if (assignmentType.getOrder() != null) {
+			if (evaluationOrder.getSummaryOrder() != assignmentType.getOrder()) {
+				return false;
+			}
+		}
+		for (OrderConstraintsType orderConstraint: assignmentType.getOrderConstraint()) {
+			if (!isMatchingConstraint(orderConstraint)) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	private boolean isMatchingConstraint(OrderConstraintsType orderConstraint) {
+		int evaluationOrderInt = evaluationOrder.getMatchingRelationOrder(orderConstraint.getRelation());
+		if (orderConstraint.getOrder() != null) {
+			return orderConstraint.getOrder() == evaluationOrderInt;
+		} else {
+			int orderMin = 1;
+			int orderMax = 1;
+			if (orderConstraint.getOrderMin() != null) {
+				orderMin = XsdTypeMapper.multiplicityToInteger(orderConstraint.getOrderMin());
+			}
+			if (orderConstraint.getOrderMax() != null) {
+				orderMax = XsdTypeMapper.multiplicityToInteger(orderConstraint.getOrderMax());
+			}
+			return XsdTypeMapper.isMatchingMultiplicity(evaluationOrderInt, orderMin, orderMax);
+		}
 	}
 
 	@Override
@@ -147,11 +193,11 @@ public class AssignmentPathSegment implements DebugDumpable {
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder("AssignmentPathSegment(");
-		sb.append(evaluationOrder).append(":");
-		if (evaluateConstructions) {
-			sb.append("C:");
+		sb.append(evaluationOrder);
+		if (isMatchingOrder == Boolean.TRUE) {
+			sb.append("(match)");
 		};
-		sb.append(" ");
+		sb.append(": ");
 		sb.append(source).append(" ");
 		PrismContainer<AssignmentType> assignment = (PrismContainer<AssignmentType>) assignmentIdi.getAnyItem();
 		if (assignment != null) {
@@ -177,18 +223,13 @@ public class AssignmentPathSegment implements DebugDumpable {
 		StringBuilder sb = new StringBuilder();
 		DebugUtil.debugDumpLabel(sb, "AssignmentPathSegment", indent);
 		sb.append("\n");
-		DebugUtil.debugDumpWithLabel(sb, "evaluateConstructions", evaluateConstructions, indent + 1);
-		sb.append("\n");
-		DebugUtil.debugDumpWithLabel(sb, "validityOverride", validityOverride, indent + 1);
-		sb.append("\n");
-		DebugUtil.debugDumpWithLabel(sb, "evaluationOrder", (DebugDumpable)evaluationOrder, indent + 1);
-		sb.append("\n");
-		DebugUtil.debugDumpWithLabel(sb, "assignment", assignmentIdi.toString(), indent + 1);
-		sb.append("\n");
-		DebugUtil.debugDumpWithLabel(sb, "target", target==null?"null":target.toString(), indent + 1);
-		sb.append("\n");
-		DebugUtil.debugDumpWithLabel(sb, "source", source==null?"null":source.toString(), indent + 1);
-		sb.append("\n");
+		DebugUtil.debugDumpWithLabelLn(sb, "isMatchingOrder", isMatchingOrder, indent + 1);
+		DebugUtil.debugDumpWithLabelLn(sb, "processMembership", processMembership, indent + 1);
+		DebugUtil.debugDumpWithLabelLn(sb, "validityOverride", validityOverride, indent + 1);
+		DebugUtil.debugDumpWithLabelLn(sb, "evaluationOrder", (DebugDumpable)evaluationOrder, indent + 1);
+		DebugUtil.debugDumpWithLabelLn(sb, "assignment", assignmentIdi.toString(), indent + 1);
+		DebugUtil.debugDumpWithLabelLn(sb, "target", target==null?"null":target.toString(), indent + 1);
+		DebugUtil.debugDumpWithLabelLn(sb, "source", source==null?"null":source.toString(), indent + 1);
 		DebugUtil.debugDumpWithLabel(sb, "varThisObject", varThisObject==null?"null":varThisObject.toString(), indent + 1);
 		return sb.toString();
 	}
