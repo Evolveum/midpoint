@@ -76,14 +76,22 @@ public class PageRegistrationConfirmation extends PageRegistrationBase {
 		if (params == null) {
 			params = getPageParameters();
 		}
+		
+		OperationResult result = new OperationResult(OPERATION_FINISH_REGISTRATION);
+		if (params == null) {
+			LOGGER.error("Confirmation link is not valid. No credentials provided in it");
+			String msg = createStringResource("PageSelfRegistration.invalid.registration.link").getString();
+			getSession().error(createStringResource(msg));
+			result.recordFatalError(msg);
+			initLayout(result);
+			return;
+		}
 
 		StringValue userNameValue = params.get(SchemaConstants.REGISTRATION_ID);
 		Validate.notEmpty(userNameValue.toString());
 		StringValue tokenValue = params.get(SchemaConstants.REGISTRATION_TOKEN);
 		Validate.notEmpty(tokenValue.toString());
-		
-
-		OperationResult result = new OperationResult(OPERATION_FINISH_REGISTRATION);
+			
 		UsernamePasswordAuthenticationToken token = authenticateUser(userNameValue.toString(), tokenValue.toString(), result);
 		if (token == null) {
 			initLayout(result);
@@ -93,6 +101,7 @@ public class PageRegistrationConfirmation extends PageRegistrationBase {
 		final MidPointPrincipal principal = (MidPointPrincipal) token.getPrincipal();
 		result = assignDefaultRoles(principal.getOid());
 		if (result.getStatus() == OperationResultStatus.FATAL_ERROR) {
+			LOGGER.error("Failed to assign default roles, {}", result.getMessage());
 			initLayout(result);
 			return;
 		}
@@ -170,6 +179,7 @@ public class PageRegistrationConfirmation extends PageRegistrationBase {
 					userAssignmentsDelta.addModificationReplaceProperty(UserType.F_LIFECYCLE_STATE, SchemaConstants.LIFECYCLE_ACTIVE);
 				} catch (SchemaException e) {
 					result.recordFatalError("Could not create delta");
+					LOGGER.error("Could not prepare delta for removing nonce and lyfecycle state {}", e.getMessage());
 					return result;
 				}
 				WebModelServiceUtils.save(userAssignmentsDelta, result, task, PageRegistrationConfirmation.this);
