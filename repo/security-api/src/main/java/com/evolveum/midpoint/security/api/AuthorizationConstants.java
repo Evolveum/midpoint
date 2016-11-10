@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -315,11 +315,15 @@ public class AuthorizationConstants {
     // Does not really belong here. But there is no better place now.
     public static final String ANONYMOUS_USER_PRINCIPAL = "anonymousUser";
 
-    //authorization for assign and unassign actions
+    // GUI authorization for assign and unassign actions
+    // TODO: wrong namespace!!! This should be NS_AUTHORIZATION_UI, not NS_AUTHORIZATION_MODEL
     public static final QName AUTZ_UI_ASSIGN_ACTION_QNAME = new QName(NS_AUTHORIZATION_MODEL, "assign");
     public static final String AUTZ_UI_ASSIGN_ACTION_URL = NS_AUTHORIZATION_MODEL + "#assign";
 
     public static final QName AUTZ_UI_UNASSIGN_ACTION_QNAME = new QName(NS_AUTHORIZATION_MODEL, "unassign");
     public static final String AUTZ_UI_UNASSIGN_ACTION_URL = NS_AUTHORIZATION_MODEL + "#unassign";
+    
+    public static final QName AUTZ_UI_DELEGATE_ACTION_QNAME = new QName(NS_AUTHORIZATION_UI, "delegate");
+    public static final String AUTZ_UI_DELEGATE_ACTION_URL = QNameUtil.qNameToUri(AUTZ_UI_DELEGATE_ACTION_QNAME);
 
 }

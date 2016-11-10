@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -182,6 +182,9 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 	protected static final File ROLE_ASSIGN_REQUESTABLE_ROLES_FILE = new File(TEST_DIR, "role-assign-requestable-roles.xml");
 	protected static final String ROLE_ASSIGN_REQUESTABLE_ROLES_OID = "00000000-0000-0000-0000-00000000ad0c";
 	
+	protected static final File ROLE_DELEGATOR_FILE = new File(TEST_DIR, "role-delegator.xml");
+	protected static final String ROLE_DELEGATOR_OID = "00000000-0000-0000-0000-00000000d001";
+	
 	protected static final File ROLE_ORG_READ_ORGS_MINISTRY_OF_RUM_FILE = new File(TEST_DIR, "role-org-read-orgs-ministry-of-rum.xml");
 	protected static final String ROLE_ORG_READ_ORGS_MINISTRY_OF_RUM_OID = "00000000-0000-0000-0000-00000000aa0d";
 
@@ -269,6 +272,7 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 		repoAddObjectFromFile(ROLE_ASSIGN_NON_APPLICATION_ROLES_FILE, RoleType.class, initResult);
 		repoAddObjectFromFile(ROLE_ASSIGN_ANY_ROLES_FILE, RoleType.class, initResult);
 		repoAddObjectFromFile(ROLE_ASSIGN_REQUESTABLE_ROLES_FILE, RoleType.class, initResult);
+		repoAddObjectFromFile(ROLE_DELEGATOR_FILE, RoleType.class, initResult);
 		repoAddObjectFromFile(ROLE_ORG_READ_ORGS_MINISTRY_OF_RUM_FILE, RoleType.class, initResult);
 		repoAddObjectFromFile(ROLE_FILTER_OBJECT_USER_LOCATION_SHADOWS_FILE, RoleType.class, initResult);
  		repoAddObjectFromFile(ROLE_FILTER_OBJECT_USER_TYPE_SHADOWS_FILE, RoleType.class, initResult);
@@ -2819,6 +2823,112 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         
         // WHEN (security context back to normal)
         assertNoAccess(userJack);
+        
+        assertGlobalStateUntouched();
+	}
+
+	@Test
+    public void test350AutzJackDelagator() throws Exception {
+		final String TEST_NAME = "test350AutzJackDelagator";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        // GIVEN
+        cleanupAutzTest(USER_JACK_OID);        
+        assignRole(USER_JACK_OID, ROLE_DELEGATOR_OID);
+        
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
+        
+        login(USER_JACK_USERNAME);
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+
+        assertReadAllow(10);
+        assertAddDeny();
+        assertModifyDeny();
+        assertDeleteDeny();
+
+        PrismObject<UserType> userJack = getUser(USER_JACK_OID);
+        assertAssignments(userJack, 2);
+        assertAssignedRole(userJack, ROLE_DELEGATOR_OID);
+        
+        PrismObject<UserType> userBarbossa = getUser(USER_BARBOSSA_OID);
+        assertNoAssignments(userBarbossa);
+        
+        assertDeny("assign business role to jack",
+        	(task, result) -> {
+				assignRole(USER_JACK_OID, ROLE_BUSINESS_1_OID, task, result);
+			});
+        
+        userJack = getUser(USER_JACK_OID);
+        assertAssignments(userJack, 2);
+        
+        // Wrong direction. It should NOT work.
+        assertDeny("delegate from Barbossa to Jack", 
+            	(task, result) -> {
+            		assignDeputy(USER_JACK_OID, USER_BARBOSSA_OID, task, result);
+    			});
+        
+
+        // Good direction
+        assertAllow("delegate to Barbossa", 
+        	(task, result) -> {
+        		assignDeputy(USER_BARBOSSA_OID, USER_JACK_OID, task, result);
+			});
+        
+        userJack = getUser(USER_JACK_OID);
+        assertAssignments(userJack, 2);
+        
+        userBarbossa = getUser(USER_BARBOSSA_OID);
+        assertAssignments(userBarbossa, 1);
+        assertAssignedDeputy(userBarbossa, USER_JACK_OID);
+        
+        login(USER_BARBOSSA_USERNAME);
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        display("Logged in as Barbossa");
+        
+        assertReadAllow(10);
+        assertAddDeny();
+        assertModifyDeny();
+        assertDeleteDeny();
+        
+        login(USER_JACK_USERNAME);
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        display("Logged in as Jack");
+
+        assertAllow("undelegate from Barbossa", 
+        	(task, result) -> {
+        		unassignDeputy(USER_BARBOSSA_OID, USER_JACK_OID, task, result);
+        	});
+
+        userJack = getUser(USER_JACK_OID);
+        assertAssignments(userJack, 2);
+        
+        userBarbossa = getUser(USER_BARBOSSA_OID);
+        assertNoAssignments(userBarbossa);
+                
+        assertGlobalStateUntouched();
+        
+        login(USER_BARBOSSA_USERNAME);
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        display("Logged in as Barbossa");
+        
+        assertReadDeny();
+        assertAddDeny();
+        assertModifyDeny();
+        assertDeleteDeny();
+
+        assertDeny("delegate to Jack", 
+        	(task, result) -> {
+        		assignDeputy(USER_JACK_OID, USER_BARBOSSA_OID, task, result);
+			});
+        
+        assertDeny("delegate from Jack to Barbossa", 
+        	(task, result) -> {
+        		assignDeputy(USER_BARBOSSA_OID, USER_JACK_OID, task, result);
+			});
         
         assertGlobalStateUntouched();
 	}

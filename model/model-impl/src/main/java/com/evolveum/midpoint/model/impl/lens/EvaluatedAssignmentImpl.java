@@ -18,6 +18,8 @@ package com.evolveum.midpoint.model.impl.lens;
 import java.util.ArrayList;
 import java.util.Collection;
 
+import javax.xml.namespace.QName;
+
 import com.evolveum.midpoint.model.api.context.EvaluatedAssignment;
 import com.evolveum.midpoint.model.api.context.EvaluatedConstruction;
 import com.evolveum.midpoint.model.common.expression.ItemDeltaItem;
@@ -44,6 +46,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AdminGuiConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 
@@ -95,6 +98,19 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 	@Override
 	public AssignmentType getAssignmentType() {
 		return assignmentIdi.getItemNew().getValue(0).asContainerable();
+	}
+
+	@Override
+	public QName getRelation() {
+		AssignmentType assignmentType = getAssignmentType();
+		if (assignmentType == null) {
+			return null;
+		}
+		ObjectReferenceType targetRef = assignmentType.getTargetRef();
+		if (targetRef == null) {
+			return null;
+		}
+		return targetRef.getRelation();
 	}
 
 	public DeltaSetTriple<Construction<F>> getConstructions() {
