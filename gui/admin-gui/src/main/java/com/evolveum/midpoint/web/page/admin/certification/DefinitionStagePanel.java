@@ -134,17 +134,17 @@ public class DefinitionStagePanel extends BasePanel<StageDefinitionDto> {
 
         DropDownChoice outcomeStrategy1 =
                 new DropDownChoice<>(ID_OUTCOME_STRATEGY,
-                        new PropertyModel<AccessCertificationCaseOutcomeStrategyType>(getModel(), StageDefinitionDto.F_OUTCOME_STRATEGY),
+						new PropertyModel<>(getModel(), StageDefinitionDto.F_OUTCOME_STRATEGY),
                         WebComponentUtil.createReadonlyModelFromEnum(AccessCertificationCaseOutcomeStrategyType.class),
-                new EnumChoiceRenderer<AccessCertificationCaseOutcomeStrategyType>(this));
+						new EnumChoiceRenderer<>(this));
         add(outcomeStrategy1);
 		add(WebComponentUtil.createHelp(ID_OUTCOME_STRATEGY_HELP));
 
         DropDownChoice<AccessCertificationResponseType> outcomeIfNoReviewers =
                 new DropDownChoice<>(ID_OUTCOME_IF_NO_REVIEWERS,
-                        new PropertyModel<AccessCertificationResponseType>(getModel(), StageDefinitionDto.F_OUTCOME_IF_NO_REVIEWERS),
+						new PropertyModel<>(getModel(), StageDefinitionDto.F_OUTCOME_IF_NO_REVIEWERS),
                         WebComponentUtil.createReadonlyModelFromEnum(AccessCertificationResponseType.class),
-                new EnumChoiceRenderer<AccessCertificationResponseType>(this));
+						new EnumChoiceRenderer<>(this));
         add(outcomeIfNoReviewers);
 		add(WebComponentUtil.createHelp(ID_OUTCOME_IF_NO_REVIEWERS_HELP));
 

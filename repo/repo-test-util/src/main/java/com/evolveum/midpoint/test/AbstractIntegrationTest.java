@@ -1156,4 +1156,24 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 			assertEquals("Unexpected number of attributes in repo shadow "+shadow, (int)expectedNumberOfAttributes, attributes.size());
 		}
 	}
+	
+	protected ObjectReferenceType createRoleReference(String oid) {
+		return createObjectReference(oid, RoleType.COMPLEX_TYPE, null);
+	}
+	
+	protected ObjectReferenceType createOrgReference(String oid) {
+		return createObjectReference(oid, OrgType.COMPLEX_TYPE, null);
+	}
+	
+	protected ObjectReferenceType createOrgReference(String oid, QName relation) {
+		return createObjectReference(oid, OrgType.COMPLEX_TYPE, relation);
+	}
+	
+	protected ObjectReferenceType createObjectReference(String oid, QName type, QName relation) {
+		ObjectReferenceType ref = new ObjectReferenceType();
+		ref.setOid(oid);
+		ref.setType(type);
+		ref.setRelation(relation);
+		return ref;
+	}
 }

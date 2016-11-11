@@ -52,6 +52,13 @@ public interface SecurityEnforcer extends AccessDecisionManager {
 	MidPointPrincipal getPrincipal() throws SecurityViolationException;
 
 	/**
+	 * Produces authorization error with proper message and logs it using proper logger.
+	 */
+	<O extends ObjectType, T extends ObjectType> void failAuthorization(String operationUrl, AuthorizationPhaseType phase, PrismObject<O> object,
+			ObjectDelta<O> delta, PrismObject<T> target, OperationResult result)
+			throws SecurityViolationException;
+	
+	/**
 	 * Returns true if the currently logged-in user is authorized for specified action, returns false otherwise.
 	 * Does not throw SecurityViolationException.
 	 * @param phase check authorization for a specific phase. If null then all phases are checked.
@@ -87,4 +94,5 @@ public interface SecurityEnforcer extends AccessDecisionManager {
 	<T> T runAs(Producer<T> producer, PrismObject<UserType> user);
 	
 	<T> T runPrivileged(Producer<T> producer);
+
 }

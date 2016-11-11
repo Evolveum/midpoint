@@ -66,7 +66,7 @@ public class EvaluationOrder implements DebugDumpable {
 		if (!found) {
 			adeo.orderMap.put(relation, 1);
 		}
-		if (QNameUtil.match(relation, SchemaConstants.ORG_DEPUTY)) {
+		if (LensUtil.isDelegationRelation(relation)) {
 			adeo.summaryOrder = this.summaryOrder;
 		} else {
 			adeo.summaryOrder = this.summaryOrder + 1;

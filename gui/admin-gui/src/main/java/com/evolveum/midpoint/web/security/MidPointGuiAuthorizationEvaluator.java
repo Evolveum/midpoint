@@ -90,8 +90,15 @@ public class MidPointGuiAuthorizationEvaluator implements SecurityEnforcer {
 	public MidPointPrincipal getPrincipal() throws SecurityViolationException {
 		return securityEnforcer.getPrincipal();
 	}
-
+    
     @Override
+	public <O extends ObjectType, T extends ObjectType> void failAuthorization(String operationUrl,
+			AuthorizationPhaseType phase, PrismObject<O> object, ObjectDelta<O> delta, PrismObject<T> target,
+			OperationResult result) throws SecurityViolationException {
+    	securityEnforcer.failAuthorization(operationUrl, phase, object, delta, target, result);
+	}
+
+	@Override
 	public <O extends ObjectType, T extends ObjectType> boolean isAuthorized(String operationUrl, AuthorizationPhaseType phase,
 			PrismObject<O> object, ObjectDelta<O> delta, PrismObject<T> target, OwnerResolver ownerResolver) throws SchemaException {
 		return securityEnforcer.isAuthorized(operationUrl, phase, object, delta, target, ownerResolver);

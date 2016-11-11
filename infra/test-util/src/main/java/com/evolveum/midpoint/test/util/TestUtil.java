@@ -559,9 +559,17 @@ public class TestUtil {
 
 	public static void assertModifyTimestamp(PrismObject<? extends ObjectType> object, XMLGregorianCalendar start,
 			XMLGregorianCalendar end) {
+	    assertModifyTimestamp(object, start, end, null);
+	}
+	
+	public static void assertModifyTimestamp(PrismObject<? extends ObjectType> object, XMLGregorianCalendar start,
+			XMLGregorianCalendar end, String channel) {
 		MetadataType metadata = object.asObjectable().getMetadata();
 		assertNotNull("No metadata in "+object, metadata);
 		assertBetween("modifyTimestamp in "+object, start, end, metadata.getModifyTimestamp());
+        if (channel != null) {
+            assertEquals("Wrong channel", channel, metadata.getModifyChannel());
+        }
 	}
 
 	public static XMLGregorianCalendar currentTime() {

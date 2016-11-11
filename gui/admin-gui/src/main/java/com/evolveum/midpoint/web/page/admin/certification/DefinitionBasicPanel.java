@@ -105,14 +105,14 @@ public class DefinitionBasicPanel extends BasePanel<CertDefinitionDto> {
 				getModel().getObject().setRemediationStyle(object);
 			}
 		}, WebComponentUtil.createReadonlyModelFromEnum(AccessCertificationRemediationStyleType.class),
-				new EnumChoiceRenderer<AccessCertificationRemediationStyleType>(this));
+				new EnumChoiceRenderer<>(this));
 		add(remediation);
 
 		DropDownChoice outcomeStrategy =
 				new DropDownChoice<>(ID_OUTCOME_STRATEGY,
-						new PropertyModel<AccessCertificationCaseOutcomeStrategyType>(getModel(), CertDefinitionDto.F_OUTCOME_STRATEGY),
+						new PropertyModel<>(getModel(), CertDefinitionDto.F_OUTCOME_STRATEGY),
 						WebComponentUtil.createReadonlyModelFromEnum(AccessCertificationCaseOutcomeStrategyType.class),
-						new EnumChoiceRenderer<AccessCertificationCaseOutcomeStrategyType>(this));
+						new EnumChoiceRenderer<>(this));
 		add(outcomeStrategy);
 
 		add(WebComponentUtil.createHelp(ID_OUTCOME_STRATEGY_HELP));

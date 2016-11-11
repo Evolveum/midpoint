@@ -2981,6 +2981,19 @@
 		        </xsd:annotation>			
 			</xsd:element>
 			
+			<xsd:element name="limitTargerContent" type="tns:AssignmentSelectorType" minOccurs="0" maxOccurs="unbounded">
+		        <xsd:annotation>
+		            <xsd:documentation>
+		                Limitations that selects only some assignments/inducements from the target. It may be used to
+		                incorporate only a part of the subrole in the role hierarchy. But it is most frequently used
+		                to limit the scope of a delegation to the deputy.
+		            </xsd:documentation>
+		            <xsd:appinfo>
+		                <a:since>3.5</a:since>
+		            </xsd:appinfo>
+		        </xsd:annotation>			
+			</xsd:element>
+			
 			<xsd:element name="focusType" type="xsd:QName" minOccurs="0"/>
 			
 			<xsd:element name="tenantRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="1">
@@ -7977,6 +7990,31 @@
         </xsd:complexContent>
 	</xsd:complexType>
 	
+	<xsd:complexType name="AssignmentSelectorType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Selects some assignments from all the assignments in the object.
+                E.g. may be used to select only some assignments/inducments for a role.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+        	<xsd:element ref="tns:description" minOccurs="0"/>
+        	<xsd:element name="targetRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
+               <xsd:annotation>
+                   <xsd:documentation>
+                       Selects assignments that have this target reference.
+                       (Target OID, type and relation is matched.)
+                       Note: Filter in the reference is not yet supported.
+                   </xsd:documentation>
+               </xsd:annotation>
+           </xsd:element>
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long" use="optional"/>
+	</xsd:complexType>
+	
 	<xsd:complexType name="OrgRelationObjectSpecificationType">
         <xsd:annotation>
             <xsd:documentation>
@@ -11679,6 +11717,20 @@
                 <xsd:annotation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="ROLE_APPROVER"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="00000000-0000-0000-0000-00000000000b">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ROLE_REVIEWER"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="00000000-0000-0000-0000-00000000000c">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ROLE_DELEGATOR"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
