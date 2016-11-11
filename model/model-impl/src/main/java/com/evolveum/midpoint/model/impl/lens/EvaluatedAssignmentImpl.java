@@ -274,10 +274,48 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 	public void evaluateConstructions(ObjectDeltaObject<F> focusOdo, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
 		evaluateConstructions(focusOdo, null, task, result);
 	}
+	
+	public void setPresentInCurrentObject(boolean presentInCurrentObject) {
+		this.presentInCurrentObject = presentInCurrentObject;
+	}
+
+	public void setPresentInOldObject(boolean presentInOldObject) {
+		this.presentInOldObject = presentInOldObject;
+	}
 
 	@Override
-	public String debugDump() {
-		return debugDump(0);
+	public boolean isPresentInCurrentObject() {
+		return presentInCurrentObject;
+	}
+
+	@Override
+	public boolean isPresentInOldObject() {
+		return presentInOldObject;
+	}
+
+	@Override
+	public Collection<EvaluatedPolicyRule> getPolicyRules() {
+		return policyRules;
+	}
+	
+	public void addPolicyRule(EvaluatedPolicyRule policyRule) {
+		policyRules.add(policyRule);
+	}
+	
+	public void addLegacyPolicyConstraints(PolicyConstraintsType constraints) {
+		PolicyRuleType policyRuleType = new PolicyRuleType();
+		policyRuleType.setPolicyConstraints(constraints);
+		EvaluatedPolicyRule policyRule = new EvaluatedPolicyRuleImpl(policyRuleType);
+		policyRules.add(policyRule);
+	}
+
+	@Override
+	public void triggerConstraint(EvaluatedPolicyRule rule, AbstractPolicyConstraintType constraint,
+			PolicyConstraintKind constraintKind, String message) throws PolicyViolationException {
+		// legacy functionality
+		if (constraint.getEnforcement() == null || constraint.getEnforcement() == PolicyConstraintEnforcementType.ENFORCE) {
+			throw new PolicyViolationException(message);
+		}
 	}
 
 	@Override
@@ -329,6 +367,7 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 			DebugUtil.debugDumpWithLabel(sb, "Target", target.toString(), indent+1);
 		}
 		sb.append("\n");
+		DebugUtil.debugDumpWithLabelLn(sb, "policyRules", policyRules, indent+1);
 		DebugUtil.debugDumpWithLabelLn(sb, "Present in old object", isPresentInOldObject(), indent+1);
 		DebugUtil.debugDumpWithLabel(sb, "Present in current object", isPresentInCurrentObject(), indent+1);
 		return sb.toString();
@@ -336,45 +375,6 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 
 	@Override
 	public String toString() {
-		return "EvaluatedAssignment(acc=" + constructions + "; org="+orgRefVals+"; autz="+authorizations+"; "+focusMappings.size()+" focus mappings)";
-	}
-
-	public void setPresentInCurrentObject(boolean presentInCurrentObject) {
-		this.presentInCurrentObject = presentInCurrentObject;
-	}
-
-	public void setPresentInOldObject(boolean presentInOldObject) {
-		this.presentInOldObject = presentInOldObject;
-	}
-
-	@Override
-	public boolean isPresentInCurrentObject() {
-		return presentInCurrentObject;
-	}
-
-	@Override
-	public boolean isPresentInOldObject() {
-		return presentInOldObject;
-	}
-
-	@Override
-	public Collection<EvaluatedPolicyRule> getPolicyRules() {
-		return policyRules;
-	}
-	
-	public void addLegacyPolicyConstraints(PolicyConstraintsType constraints) {
-		PolicyRuleType policyRuleType = new PolicyRuleType();
-		policyRuleType.setPolicyConstraints(constraints);
-		EvaluatedPolicyRule policyRule = new EvaluatedPolicyRuleImpl(policyRuleType);
-		policyRules.add(policyRule);
-	}
-
-	@Override
-	public void triggerConstraint(EvaluatedPolicyRule rule, AbstractPolicyConstraintType constraint,
-			PolicyConstraintKind constraintKind, String message) throws PolicyViolationException {
-		// legacy functionality
-		if (constraint.getEnforcement() == null || constraint.getEnforcement() == PolicyConstraintEnforcementType.ENFORCE) {
-			throw new PolicyViolationException(message);
-		}
+		return "EvaluatedAssignment(constr=" + constructions + "; org="+orgRefVals+"; autz="+authorizations+"; "+focusMappings.size()+" focus mappings; "+policyRules.size()+" rules)";
 	}
 }

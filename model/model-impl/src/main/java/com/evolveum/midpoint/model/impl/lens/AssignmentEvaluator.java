@@ -72,6 +72,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrderConstraintsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyRuleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
@@ -346,6 +347,12 @@ public class AssignmentEvaluator<F extends FocusType> {
 						isParentValid && isValid, (FocusType)target.asObjectable(), source, assignmentType.getTargetRef().getRelation(), 
 						sourceDescription, assignmentPath, task, result);
 				
+			} else if (assignmentType.getPolicyRule() != null) {
+				
+				evaluatePolicyRule(evalAssignment, assignmentPathSegment, evaluateOld, mode,
+						isParentValid && isValid, source, sourceDescription, 
+						assignmentPath, assignmentPathSegment.getOrderOneObject(), task, result);
+				
 			} else {
 				// Do not throw an exception. We don't have referential integrity. Therefore if a role is deleted then throwing
 				// an exception would prohibit any operations with the users that have the role, including removal of the reference.
@@ -421,6 +428,21 @@ public class AssignmentEvaluator<F extends FocusType> {
 			mappingEvaluator.evaluateMapping(mapping, lensContext, task, result);
 			evaluatedAssignment.addFocusMapping(mapping);
 		}
+	}
+	
+	private void evaluatePolicyRule(EvaluatedAssignmentImpl<F> evaluatedAssignment, AssignmentPathSegment assignmentPathSegment, 
+			boolean evaluateOld, PlusMinusZero mode, boolean isValid, ObjectType source, String sourceDescription,
+			AssignmentPath assignmentPath, ObjectType orderOneObject, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
+		assertSource(source, evaluatedAssignment);
+		
+		AssignmentType assignmentTypeNew = LensUtil.getAssignmentType(assignmentPathSegment.getAssignmentIdi(), evaluateOld);
+		PolicyRuleType policyRuleType = assignmentTypeNew.getPolicyRule();
+		
+		LOGGER.trace("Evaluating policy rule '{}' in {}", policyRuleType.getName(), source);
+		
+		EvaluatedPolicyRuleImpl policyRule = new EvaluatedPolicyRuleImpl(policyRuleType);
+
+		evaluatedAssignment.addPolicyRule(policyRule);
 	}
 
 	private <O extends ObjectType> List<PrismObject<O>> resolveTargets(AssignmentType assignmentType, AssignmentPathSegment assignmentPathSegment, ObjectType source, String sourceDescription, AssignmentPath assignmentPath, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
