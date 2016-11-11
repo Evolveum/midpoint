@@ -26,6 +26,7 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.Behavior;
 import org.apache.wicket.event.Broadcast;
 import org.apache.wicket.event.IEventSink;
+import org.apache.wicket.extensions.validation.validator.RfcCompliantEmailAddressValidator;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.MultiLineLabel;
 import org.apache.wicket.markup.html.form.Form;
@@ -33,6 +34,7 @@ import org.apache.wicket.markup.html.form.RequiredTextField;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.component.IRequestablePage;
+import org.apache.wicket.validation.validator.EmailAddressValidator;
 
 import com.evolveum.midpoint.common.policy.ValuePolicyGenerator;
 import com.evolveum.midpoint.gui.api.page.PageBase;
@@ -146,7 +148,7 @@ public class PageForgotPassword extends PageRegistrationBase {
 		emailContainer.setOutputMarkupId(true);
 		form.add(emailContainer);
 		RequiredTextField<String> email = new RequiredTextField<String>(ID_EMAIL, new Model<String>());
-		
+		email.add(RfcCompliantEmailAddressValidator.getInstance());
 		email.setOutputMarkupId(true);
 		emailContainer.add(email);
 		emailContainer.add(new VisibleEnableBehaviour() {
@@ -214,7 +216,7 @@ public class PageForgotPassword extends PageRegistrationBase {
 	}
 	
 	private void processResetPassword(AjaxRequestTarget target, Form<?> form) {
-		try {
+		
 			RequiredTextField<String> username = (RequiredTextField) form.get(createComponentPath(ID_USERNAME_CONTAINER, ID_USERNAME));
 			RequiredTextField<String> email = (RequiredTextField) form.get(createComponentPath(ID_EMAIL_CONTAINER, ID_EMAIL));
 			String usernameValue = username != null ? username.getModelObject() : null;
@@ -230,6 +232,13 @@ public class PageForgotPassword extends PageRegistrationBase {
 				LOGGER.debug("User for username={}, email={} not found", usernameValue,
 						emailValue);
 				getSession().error(getString("pageForgetPassword.message.usernotfound"));
+				throw new RestartResponseException(PageForgotPassword.class);
+			}
+//			try {
+			
+			if (getResetPasswordPolicy() == null) {
+				LOGGER.debug("No policies for reset password defined");
+				getSession().error(getString("pageForgetPassword.message.policy.not.found"));
 				throw new RestartResponseException(PageForgotPassword.class);
 			}
 		
@@ -259,14 +268,14 @@ public class PageForgotPassword extends PageRegistrationBase {
 
 
 	
-		} catch (Throwable e) {
-			LOGGER.error("Error during processing of security questions: {}", e.getMessage(), e);
-			// Just log the error, but do not display it. We are still
-			// in unprivileged part of the web
-			// we do not want to provide any information to the
-			// attacker.
-			throw new RestartResponseException(PageError.class);
-		}
+//		} catch (Throwable e) {
+//			LOGGER.error("Error during processing of security questions: {}", e.getMessage(), e);
+//			// Just log the error, but do not display it. We are still
+//			// in unprivileged part of the web
+//			// we do not want to provide any information to the
+//			// attacker.
+//			throw new RestartResponseException(PageError.class);
+//		}
 
 	}
 

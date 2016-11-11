@@ -362,7 +362,7 @@ public abstract class PageAbstractSelfCredentials extends PageSelf {
             }
             getModelService().executeChanges(deltas, null, createSimpleTask(OPERATION_SAVE_PASSWORD), result);
 
-            result.recordSuccess();
+            result.computeStatus();
         } catch (Exception ex) {
             MyPasswordsDto dto = model.getObject();
             ProtectedStringType password = dto.getPassword();
@@ -370,9 +370,9 @@ public abstract class PageAbstractSelfCredentials extends PageSelf {
                 password.setEncryptedData(null);
             }
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't save password changes", ex);
-            result.recordFatalError("Couldn't save password changes.", ex);
+            result.recordFatalError(getString("PageAbstractSelfCredentials.save.password.failed", ex.getMessage()), ex);
         } finally {
-            result.recomputeStatus();
+            result.computeStatusIfUnknown();;
         }
 
         finishChangePassword(result, target);
