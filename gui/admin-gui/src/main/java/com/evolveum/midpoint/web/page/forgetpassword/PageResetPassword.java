@@ -1,17 +1,29 @@
 package com.evolveum.midpoint.web.page.forgetpassword;
 
+import org.apache.commons.lang.Validate;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.apache.wicket.util.string.StringValue;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
+import com.evolveum.midpoint.security.api.MidPointPrincipal;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.page.login.PageLogin;
 import com.evolveum.midpoint.web.page.self.PageAbstractSelfCredentials;
 import com.evolveum.midpoint.web.page.self.PageSelf;
+import com.evolveum.midpoint.web.security.SecurityUtils;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 @PageDescriptor(url = "/resetPassword", action = {
         @AuthorizationAction(actionUri = PageSelf.AUTH_SELF_ALL_URI,
@@ -22,12 +34,11 @@ import com.evolveum.midpoint.web.page.self.PageSelf;
                 description = "PageSelfCredentials.auth.credentials.description")})
 public class PageResetPassword extends PageAbstractSelfCredentials{
 	
-
 	private static final long serialVersionUID = 1L;
 
 	
 	public PageResetPassword() {
-		super();
+		// TODO Auto-generated constructor stub
 	}
 	
 	@Override
@@ -48,6 +59,25 @@ public class PageResetPassword extends PageAbstractSelfCredentials{
 		if (result.getStatus() == OperationResultStatus.SUCCESS) {
 			result.setMessage(getString("PageResetPassword.reset.successful"));
 			setResponsePage(PageLogin.class);
+			
+			PrismObject<UserType> user = getUser();
+			if (user == null) {
+				SecurityContextHolder.getContext().setAuthentication(null);
+				return;
+			}
+			
+			UserType userType = user.asObjectable();
+			
+			if (userType.getCredentials() != null && userType.getCredentials().getNonce() != null) {
+			
+				try {
+					ObjectDelta<UserType> deleteNonceDelta = ObjectDelta.createModificationDeleteContainer(UserType.class, userType.getOid(), SchemaConstants.PATH_NONCE, getPrismContext(), userType.getCredentials().getNonce().clone());
+					WebModelServiceUtils.save(deleteNonceDelta, result, this);
+				} catch (SchemaException e) {
+					//nothing to do, just let the nonce here.. it will be invalid 
+				}
+			}
+			
 			SecurityContextHolder.getContext().setAuthentication(null);
 		}
 		
@@ -57,8 +87,6 @@ public class PageResetPassword extends PageAbstractSelfCredentials{
 		
 		
 	}
-	
-	
 	
 
 }

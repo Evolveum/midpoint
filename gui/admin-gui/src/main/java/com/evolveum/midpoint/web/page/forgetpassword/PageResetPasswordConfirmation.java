@@ -1,50 +1,32 @@
 package com.evolveum.midpoint.web.page.forgetpassword;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Collection;
+import java.util.Iterator;
 
 import org.apache.commons.lang.Validate;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.apache.wicket.util.string.StringValue;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
 
-import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.model.api.AuthenticationEvaluator;
-import com.evolveum.midpoint.prism.delta.ContainerDelta;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.security.api.Authorization;
+import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.api.ConnectionEnvironment;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.Producer;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.page.login.PageLogin;
 import com.evolveum.midpoint.web.page.login.PageRegistrationBase;
 import com.evolveum.midpoint.web.page.login.PageRegistrationConfirmation;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.NonceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationType;
 
 @PageDescriptor(url = "/resetPasswordConfrimation")
 public class PageResetPasswordConfirmation extends PageRegistrationBase{
@@ -100,6 +82,30 @@ private static final Trace LOGGER = TraceManager.getTrace(PageRegistrationConfir
 			initLayout(result);
 			return;
 		} else {
+//			SecurityContextHolder.getContext().setAuthentication(token);
+			MidPointPrincipal principal = (MidPointPrincipal) token.getPrincipal();
+			Collection<Authorization> authz = principal.getAuthorities();
+			
+			if (authz != null) {
+				Iterator<Authorization> authzIterator = authz.iterator();
+				while (authzIterator.hasNext()) {
+					Authorization authzI= authzIterator.next();
+					Iterator<String> actionIterator = authzI.getAction().iterator();
+					while (actionIterator.hasNext()) {
+						String action = actionIterator.next();
+						if (action.contains(AuthorizationConstants.NS_AUTHORIZATION_UI)) {
+							actionIterator.remove();
+						}
+					}
+					
+				}
+				
+			}
+			
+			AuthorizationType authorizationType = new AuthorizationType();
+			authorizationType.getAction().add(AuthorizationConstants.AUTZ_UI_SELF_CREDENTIALS_URL);
+			Authorization selfServiceCredentialsAuthz = new Authorization(authorizationType);
+			authz.add(selfServiceCredentialsAuthz);
 			SecurityContextHolder.getContext().setAuthentication(token);
 			setResponsePage(PageResetPassword.class);
 		}
