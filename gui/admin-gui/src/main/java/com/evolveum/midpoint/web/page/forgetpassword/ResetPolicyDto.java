@@ -72,7 +72,7 @@ public class ResetPolicyDto implements Serializable {
 	}
 	
 	private void initResetPolicy(AbstractCredentialsResetPolicyType resetPolicy, SecurityPolicyType securityPolicyType) throws SchemaException{
-		AbstractAuthenticationPolicyType authPolicy = SecurityPolicyUtil.getAuthenticationPolicy(resetPolicy.getAdditionalAuthneticationName(), securityPolicyType);
+		AbstractAuthenticationPolicyType authPolicy = SecurityPolicyUtil.getAuthenticationPolicy(resetPolicy.getAdditionalAuthenticationName(), securityPolicyType);
 		if (authPolicy instanceof MailAuthenticationPolicyType) {
 			this.mailAuthentication = (MailAuthenticationPolicyType) authPolicy;
 			noncePolicy = SecurityPolicyUtil.getCredentialPolicy(mailAuthentication.getMailNonce(), securityPolicyType);
