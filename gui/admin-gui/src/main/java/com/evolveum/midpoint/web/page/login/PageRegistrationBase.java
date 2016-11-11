@@ -13,6 +13,7 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.page.forgetpassword.ResetPolicyDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityPolicyType;
 
 public class PageRegistrationBase extends PageBase {
@@ -25,11 +26,13 @@ public class PageRegistrationBase extends PageBase {
 
 	@SpringBean(name = "authenticationEvaluator")
 	private AuthenticationEvaluator authenticationEvaluator;
-	
+
+	private ResetPolicyDto resetPasswordPolicy;
 	private SelfRegistrationDto selfRegistrationDto;
 
 	public PageRegistrationBase() {
-		initSelfRegistrationConfiguration();
+//		initSelfRegistrationConfiguration();
+//		initResetCredentialsConfiguration();
 	}
 
 	private void initSelfRegistrationConfiguration() {
@@ -73,6 +76,49 @@ public class PageRegistrationBase extends PageBase {
 
 	}
 
+	private void initResetCredentialsConfiguration() {
+
+		// TODO: cleanup, the same as in the PageRegistrationBase
+		SecurityPolicyType securityPolicy = runPrivileged(new Producer<SecurityPolicyType>() {
+
+			@Override
+			public SecurityPolicyType run() {
+
+				Task task = createAnonymousTask(OPERATION_GET_SECURITY_POLICY);
+				task.setChannel(SchemaConstants.CHANNEL_GUI_RESET_PASSWORD_URI);
+				OperationResult result = new OperationResult(OPERATION_GET_SECURITY_POLICY);
+
+				try {
+					return getModelInteractionService().getSecurityPolicy(null, task, result);
+				} catch (ObjectNotFoundException | SchemaException e) {
+					LOGGER.error("Could not retrieve security policy");
+
+				}
+				return null;
+			}
+
+		});
+
+		if (securityPolicy == null) {
+			LOGGER.error("No security policy defined.");
+			getSession()
+					.error(createStringResource("PageSelfRegistration.securityPolicy.notFound").getString());
+			throw new RestartResponseException(PageLogin.class);
+		}
+
+		this.resetPasswordPolicy = new ResetPolicyDto();
+		try {
+			this.resetPasswordPolicy.initResetPolicyDto(securityPolicy);
+		} catch (SchemaException e) {
+			LOGGER.error("Failed to initialize self registration configuration.", e);
+			getSession().error(
+					createStringResource("PageSelfRegistration.selfRegistration.configuration.init.failed")
+							.getString());
+			throw new RestartResponseException(PageLogin.class);
+		}
+
+	}
+
 	public SelfRegistrationDto getSelfRegistrationConfiguration() {
 
 		if (selfRegistrationDto == null) {
@@ -83,6 +129,13 @@ public class PageRegistrationBase extends PageBase {
 
 	}
 	
+	public ResetPolicyDto getResetPasswordPolicy() {
+		if (resetPasswordPolicy == null) {
+			initResetCredentialsConfiguration();
+		}
+		return resetPasswordPolicy;
+	}
+
 	public AuthenticationEvaluator getAuthenticationEvaluator() {
 		return authenticationEvaluator;
 	}

@@ -10764,7 +10764,7 @@
 			</xsd:element>
 			<xsd:element name="displayName" type="xsd:string" minOccurs="0">
 			</xsd:element>
-			<xsd:element name="additionalAuthneticationName" type="xsd:string" minOccurs="0">
+			<xsd:element name="additionalAuthenticationName" type="xsd:string" minOccurs="0">
 			</xsd:element>
              <!-- More registration types may come here in the future. -->
 		</xsd:sequence>

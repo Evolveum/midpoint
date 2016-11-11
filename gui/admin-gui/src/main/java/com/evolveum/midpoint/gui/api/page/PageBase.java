@@ -648,13 +648,18 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
     private VisibleEnableBehaviour createUserStatusBehaviour(final boolean visibleIfLoggedIn) {
 		return new VisibleEnableBehaviour() {
+			private static final long serialVersionUID = 1L;
 
 			@Override
 			public boolean isVisible() {
-				return SecurityUtils.getPrincipalUser() != null ? visibleIfLoggedIn : !visibleIfLoggedIn;
+				return isSideMenuVisible(visibleIfLoggedIn);
 			}
 		};
 	}
+    
+    protected boolean isSideMenuVisible(boolean visibleIfLoggedIn) {
+    	return SecurityUtils.getPrincipalUser() != null ? visibleIfLoggedIn : !visibleIfLoggedIn;
+    }
 
 	private void initDebugBarLayout() {
 		DebugBar debugPanel = new DebugBar(ID_DEBUG_PANEL);
