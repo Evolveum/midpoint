@@ -41,6 +41,8 @@ import com.evolveum.midpoint.common.ActivationComputer;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.api.context.EvaluatedAssignment;
+import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
+import com.evolveum.midpoint.model.api.context.PolicyConstraintKind;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.model.common.SystemObjectCache;
 import com.evolveum.midpoint.model.common.expression.ItemDeltaItem;
@@ -1509,28 +1511,25 @@ public class AssignmentProcessor {
 		}
 		for (EvaluatedAssignmentTargetImpl eRoleA: assignmentA.getRoles().getAllValues()) {
 			for (EvaluatedAssignmentTargetImpl eRoleB: assignmentB.getRoles().getAllValues()) {
-				checkExclusion(eRoleA, eRoleB);
+				checkExclusion(assignmentA, eRoleA, eRoleB);
 			}
 		}
 	}
 
-	private void checkExclusion(EvaluatedAssignmentTargetImpl roleA, EvaluatedAssignmentTargetImpl roleB) throws PolicyViolationException {
-		checkExclusionOneWay(roleA, roleB);
-		checkExclusionOneWay(roleB, roleA);
+	private <F extends FocusType> void checkExclusion(EvaluatedAssignmentImpl<F> assignmentA, EvaluatedAssignmentTargetImpl roleA, EvaluatedAssignmentTargetImpl roleB) throws PolicyViolationException {
+		checkExclusionOneWay(assignmentA, roleA, roleB);
+		checkExclusionOneWay(assignmentA, roleB, roleA);
 	}
 
-	private void checkExclusionOneWay(EvaluatedAssignmentTargetImpl roleA, EvaluatedAssignmentTargetImpl roleB) throws PolicyViolationException {
+	private <F extends FocusType> void checkExclusionOneWay(EvaluatedAssignmentImpl<F> assignmentA, EvaluatedAssignmentTargetImpl roleA, EvaluatedAssignmentTargetImpl roleB) throws PolicyViolationException {
 		PolicyConstraintsType policyConstraints = roleA.getPolicyConstraints();
 		if (policyConstraints != null) {
 			for (ExclusionPolicyConstraintType exclusionA : policyConstraints.getExclusion()) {
 				ObjectReferenceType targetRef = exclusionA.getTargetRef();
 				if (roleB.getOid().equals(targetRef.getOid())) {
-					if (exclusionA.getEnforcement() == null || exclusionA.getEnforcement() == PolicyConstraintEnforcementType.ENFORCE) {
-						throw new PolicyViolationException("Violation of SoD policy: "+roleA.getTarget()+" excludes "+roleB.getTarget()+
-								", they cannot be assigned at the same time");
-					} else {
-						// TODO: other enforcement modes
-					}
+					assignmentA.triggerConstraint(null, exclusionA, PolicyConstraintKind.EXCLUSION, 
+							"Violation of SoD policy: "+roleA.getTarget()+" excludes "+roleB.getTarget()+
+							", they cannot be assigned at the same time");
 				}
 			}
 		}		
@@ -1559,32 +1558,33 @@ public class AssignmentProcessor {
 		if (target != null) {
 			Objectable targetType = target.asObjectable();
 			if (targetType instanceof AbstractRoleType) {
-				PolicyConstraintsType policyConstraints = ((AbstractRoleType)targetType).getPolicyConstraints();
-				if (policyConstraints != null && (!policyConstraints.getMinAssignees().isEmpty() || !policyConstraints.getMaxAssignees().isEmpty())) {
-					String focusOid = null;
-					if (context.getFocusContext() != null) {
-						focusOid = context.getFocusContext().getOid();
-					}
-					int numberOfAssigneesExceptMyself = countAssignees((PrismObject<? extends AbstractRoleType>)target, focusOid, result);
-					if (plusMinus == PlusMinusZero.PLUS) {
-						numberOfAssigneesExceptMyself++;
-					}
-					for (MultiplicityPolicyConstraintType constraint: policyConstraints.getMinAssignees()) {
-						Integer multiplicity = XsdTypeMapper.multiplicityToInteger(constraint.getMultiplicity());
-						// Complain only if the situation is getting worse
-						if (multiplicity >= 0 && numberOfAssigneesExceptMyself < multiplicity && plusMinus == PlusMinusZero.MINUS) {
-							if (constraint.getEnforcement() == null || constraint.getEnforcement() == PolicyConstraintEnforcementType.ENFORCE) {
-								throw new PolicyViolationException("Policy violation: "+target+" requires at least "+multiplicity+
+				Collection<EvaluatedPolicyRule> policyRules = assignment.getPolicyRules();
+				for (EvaluatedPolicyRule policyRule: policyRules) {
+					PolicyConstraintsType policyConstraints = policyRule.getPolicyConstraints();
+					if (policyConstraints != null && (!policyConstraints.getMinAssignees().isEmpty() || !policyConstraints.getMaxAssignees().isEmpty())) {
+						String focusOid = null;
+						if (context.getFocusContext() != null) {
+							focusOid = context.getFocusContext().getOid();
+						}
+						int numberOfAssigneesExceptMyself = countAssignees((PrismObject<? extends AbstractRoleType>)target, focusOid, result);
+						if (plusMinus == PlusMinusZero.PLUS) {
+							numberOfAssigneesExceptMyself++;
+						}
+						for (MultiplicityPolicyConstraintType constraint: policyConstraints.getMinAssignees()) {
+							Integer multiplicity = XsdTypeMapper.multiplicityToInteger(constraint.getMultiplicity());
+							// Complain only if the situation is getting worse
+							if (multiplicity >= 0 && numberOfAssigneesExceptMyself < multiplicity && plusMinus == PlusMinusZero.MINUS) {
+								assignment.triggerConstraint(policyRule, constraint, PolicyConstraintKind.MIN_ASSIGNEES, 
+										""+target+" requires at least "+multiplicity+
 										" assignees. The operation would result in "+numberOfAssigneesExceptMyself+" assignees.");
 							}
 						}
-					}
-					for (MultiplicityPolicyConstraintType constraint: policyConstraints.getMaxAssignees()) {
-						Integer multiplicity = XsdTypeMapper.multiplicityToInteger(constraint.getMultiplicity());
-						// Complain only if the situation is getting worse
-						if (multiplicity >= 0 && numberOfAssigneesExceptMyself > multiplicity && plusMinus == PlusMinusZero.PLUS) {
-							if (constraint.getEnforcement() == null || constraint.getEnforcement() == PolicyConstraintEnforcementType.ENFORCE) {
-								throw new PolicyViolationException("Policy violation: "+target+" requires at most "+multiplicity+
+						for (MultiplicityPolicyConstraintType constraint: policyConstraints.getMaxAssignees()) {
+							Integer multiplicity = XsdTypeMapper.multiplicityToInteger(constraint.getMultiplicity());
+							// Complain only if the situation is getting worse
+							if (multiplicity >= 0 && numberOfAssigneesExceptMyself > multiplicity && plusMinus == PlusMinusZero.PLUS) {
+								assignment.triggerConstraint(policyRule, constraint, PolicyConstraintKind.MAX_ASSIGNEES,
+										""+target+" requires at most "+multiplicity+
 										" assignees. The operation would result in "+numberOfAssigneesExceptMyself+" assignees.");
 							}
 						}

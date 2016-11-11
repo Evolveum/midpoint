@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,8 +20,11 @@ import java.util.Collection;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.api.context.EvaluatedAssignment;
 import com.evolveum.midpoint.model.api.context.EvaluatedConstruction;
+import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
+import com.evolveum.midpoint.model.api.context.PolicyConstraintKind;
 import com.evolveum.midpoint.model.common.expression.ItemDeltaItem;
 import com.evolveum.midpoint.model.common.expression.ObjectDeltaObject;
 import com.evolveum.midpoint.model.common.mapping.Mapping;
@@ -43,10 +46,14 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractPolicyConstraintType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AdminGuiConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintEnforcementType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyRuleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 
@@ -68,6 +75,7 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 	private Collection<Authorization> authorizations;
 	private Collection<Mapping<? extends PrismPropertyValue<?>,? extends PrismPropertyDefinition<?>>> focusMappings;
 	private Collection<AdminGuiConfigurationType> adminGuiConfigurations;
+	private Collection<EvaluatedPolicyRule> policyRules;
 	private PrismObject<?> target;
 	private boolean isValid;
 	private boolean forceRecon;         // used also to force recomputation of parentOrgRefs
@@ -82,6 +90,7 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 		authorizations = new ArrayList<>();
 		focusMappings = new ArrayList<>();
 		adminGuiConfigurations = new ArrayList<>(); 
+		policyRules = new ArrayList<>();
 	}
 
 	public ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> getAssignmentIdi() {
@@ -274,8 +283,7 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 	@Override
 	public String debugDump(int indent) {
 		StringBuilder sb = new StringBuilder();
-		DebugUtil.debugDumpLabel(sb, "EvaluatedAssignment", indent);
-		sb.append("\n");
+		DebugUtil.debugDumpLabelLn(sb, "EvaluatedAssignment", indent);
 		DebugUtil.debugDumpWithLabel(sb, "isValid", isValid, indent + 1);
         if (forceRecon) {
             sb.append("\n");
@@ -321,8 +329,7 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 			DebugUtil.debugDumpWithLabel(sb, "Target", target.toString(), indent+1);
 		}
 		sb.append("\n");
-		DebugUtil.debugDumpWithLabel(sb, "Present in old object", isPresentInOldObject(), indent+1);
-		sb.append("\n");
+		DebugUtil.debugDumpWithLabelLn(sb, "Present in old object", isPresentInOldObject(), indent+1);
 		DebugUtil.debugDumpWithLabel(sb, "Present in current object", isPresentInCurrentObject(), indent+1);
 		return sb.toString();
 	}
@@ -348,5 +355,26 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 	@Override
 	public boolean isPresentInOldObject() {
 		return presentInOldObject;
+	}
+
+	@Override
+	public Collection<EvaluatedPolicyRule> getPolicyRules() {
+		return policyRules;
+	}
+	
+	public void addLegacyPolicyConstraints(PolicyConstraintsType constraints) {
+		PolicyRuleType policyRuleType = new PolicyRuleType();
+		policyRuleType.setPolicyConstraints(constraints);
+		EvaluatedPolicyRule policyRule = new EvaluatedPolicyRuleImpl(policyRuleType);
+		policyRules.add(policyRule);
+	}
+
+	@Override
+	public void triggerConstraint(EvaluatedPolicyRule rule, AbstractPolicyConstraintType constraint,
+			PolicyConstraintKind constraintKind, String message) throws PolicyViolationException {
+		// legacy functionality
+		if (constraint.getEnforcement() == null || constraint.getEnforcement() == PolicyConstraintEnforcementType.ENFORCE) {
+			throw new PolicyViolationException(message);
+		}
 	}
 }

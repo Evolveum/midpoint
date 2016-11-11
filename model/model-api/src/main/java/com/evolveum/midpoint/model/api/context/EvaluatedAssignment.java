@@ -19,6 +19,7 @@ import java.util.Collection;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -27,6 +28,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractPolicyConstraintType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AdminGuiConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
@@ -52,4 +54,13 @@ public interface EvaluatedAssignment<F extends FocusType> extends DebugDumpable 
 	boolean isPresentInCurrentObject();
 
 	boolean isPresentInOldObject();
+	
+	/**
+	 * Return all policy rules that apply to this assignment - even those that were not triggered.
+	 * The policy rules are compiled from all the applicable sources (target, meta-roles, etc.)
+	 */
+	Collection<EvaluatedPolicyRule> getPolicyRules();
+	
+	void triggerConstraint(EvaluatedPolicyRule rule, AbstractPolicyConstraintType constraint, 
+			PolicyConstraintKind constraintKind, String message) throws PolicyViolationException;
 }
