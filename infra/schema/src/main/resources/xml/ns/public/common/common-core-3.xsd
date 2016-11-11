@@ -10631,6 +10631,8 @@
                 	</xsd:element>
                 	<xsd:element name="registration" type="tns:RegistrationsPolicyType" minOccurs="0">
                 	</xsd:element>
+                	<xsd:element name="credentialsReset" type="tns:CredentialsResetPolicyType" minOccurs="0">
+                	</xsd:element>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -10699,6 +10701,29 @@
 		</xsd:sequence>
 	</xsd:complexType>
 	
+	<xsd:complexType name="CredentialsResetPolicyType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Credentials reset management policy. It specifies the management details for each supported
+				credentials reset type. It defines parameters such as reset method. 
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:container/>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:sequence>
+		<xsd:element name="name" type="xsd:string" minOccurs="0">
+			</xsd:element>
+			<xsd:element name="securityQuestionReset" type="tns:SecurityQuestionsResetPolicyType" minOccurs="0">
+			</xsd:element>
+			<xsd:element name="mailReset" type="tns:MailResetPolicyType" minOccurs="0">
+			</xsd:element>
+			<xsd:element name="smsReset" type="tns:SmsResetPolicyType" minOccurs="0">
+			</xsd:element>
+			
+		</xsd:sequence>
+	</xsd:complexType>
+	
 	<xsd:complexType name="AbstractAuthenticationPolicyType">
 		<xsd:annotation>
 			<xsd:documentation>
@@ -10723,6 +10748,83 @@
 			</xsd:element>
              <!-- More registration types may come here in the future. -->
 		</xsd:sequence>
+	</xsd:complexType>
+	
+	<xsd:complexType name="AbstractCredentialsResetPolicyType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Authentication management policy. It specifies configurations for differrent authentication methods
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:container/>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="name" type="xsd:string" minOccurs="0">
+			</xsd:element>
+			<xsd:element name="displayName" type="xsd:string" minOccurs="0">
+			</xsd:element>
+			<xsd:element name="additionalAuthneticationName" type="xsd:string" minOccurs="0">
+			</xsd:element>
+             <!-- More registration types may come here in the future. -->
+		</xsd:sequence>
+	</xsd:complexType>
+	
+	 <xsd:complexType name="SecurityQuestionsResetPolicyType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Structure that specifies policy for password management. It is in fact only a simple reference
+				to a password policy.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:container/>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:complexContent>
+			<xsd:extension base="tns:AbstractCredentialsResetPolicyType">
+				<xsd:sequence>
+					
+				</xsd:sequence>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+	
+	<xsd:complexType name="MailResetPolicyType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Structure that specifies policy for password management. It is in fact only a simple reference
+				to a password policy.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:container/>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:complexContent>
+			<xsd:extension base="tns:AbstractCredentialsResetPolicyType">
+				<xsd:sequence>
+			
+				</xsd:sequence>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+	
+	<xsd:complexType name="SmsResetPolicyType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Structure that specifies policy for password management. It is in fact only a simple reference
+				to a password policy.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:container/>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:complexContent>
+			<xsd:extension base="tns:AbstractCredentialsResetPolicyType">
+				<xsd:sequence>
+				
+				</xsd:sequence>
+			</xsd:extension>
+		</xsd:complexContent>
 	</xsd:complexType>
 	
 	 <xsd:complexType name="MailAuthenticationPolicyType">
