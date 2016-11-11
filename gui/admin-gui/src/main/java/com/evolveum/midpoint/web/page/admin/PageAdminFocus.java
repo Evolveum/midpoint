@@ -888,21 +888,38 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 
 	private AssignmentsPreviewDto createAssignmentsPreviewDto(EvaluatedAssignmentTarget evaluatedAbstractRole,
 			Task task, OperationResult result) {
+		return createAssignmentsPreviewDto(evaluatedAbstractRole.getTarget(), evaluatedAbstractRole.isDirectlyAssigned(),
+				evaluatedAbstractRole.getAssignment(), task, result);
+	}
+
+	protected AssignmentsPreviewDto createAssignmentsPreviewDto(AssignmentType assignment,
+			Task task, OperationResult result) {
+		PrismObject<? extends FocusType> targetObject = WebModelServiceUtils.resolveReferenceRaw(assignment.getTargetRef(),
+				PageAdminFocus.this, task, result);
+
+		return createAssignmentsPreviewDto(targetObject, true,
+				assignment, task, result);
+	}
+
+	private AssignmentsPreviewDto createAssignmentsPreviewDto(PrismObject<? extends FocusType> targetObject,
+															  boolean isDirectlyAssigned, AssignmentType assignment,
+															  Task task, OperationResult result) {
 		AssignmentsPreviewDto dto = new AssignmentsPreviewDto();
-		PrismObject<? extends FocusType> target = evaluatedAbstractRole.getTarget();
-		dto.setTargetOid(target.getOid());
-		dto.setTargetName(getNameToDisplay(target));
-		dto.setTargetDescription(target.asObjectable().getDescription());
-		dto.setTargetClass(target.getCompileTimeClass());
-		dto.setDirect(evaluatedAbstractRole.isDirectlyAssigned());
-		if (evaluatedAbstractRole.getAssignment() != null) {
-			if (evaluatedAbstractRole.getAssignment().getTenantRef() != null) {
-				dto.setTenantName(nameFromReference(evaluatedAbstractRole.getAssignment().getTenantRef(),
+		dto.setTargetOid(targetObject.getOid());
+		dto.setTargetName(getNameToDisplay(targetObject));
+		dto.setTargetDescription(targetObject.asObjectable().getDescription());
+		dto.setTargetClass(targetObject.getCompileTimeClass());
+		dto.setDirect(isDirectlyAssigned);
+		if (assignment != null) {
+			if (assignment.getTenantRef() != null) {
+				dto.setTenantName(nameFromReference(assignment.getTenantRef(),
 						task, result));
+				dto.setTenantRef(assignment.getTenantRef());
 			}
-			if (evaluatedAbstractRole.getAssignment().getOrgRef() != null) {
+			if (assignment.getOrgRef() != null) {
 				dto.setOrgRefName(
-						nameFromReference(evaluatedAbstractRole.getAssignment().getOrgRef(), task, result));
+						nameFromReference(assignment.getOrgRef(), task, result));
+				dto.setOrgRef(assignment.getOrgRef());
 			}
 		}
 		return dto;

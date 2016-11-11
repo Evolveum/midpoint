@@ -15,16 +15,21 @@
  */
 package com.evolveum.midpoint.web.page.admin.users.component;
 
+import com.evolveum.midpoint.gui.api.component.ObjectBrowserPanel;
+import com.evolveum.midpoint.gui.api.component.PopupObjectListPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.data.TablePanel;
+import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.IconColumn;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
+import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.resources.PageResourceWizard;
 import com.evolveum.midpoint.web.page.admin.roles.PageRole;
 import com.evolveum.midpoint.web.page.admin.users.PageOrgUnit;
@@ -38,6 +43,7 @@ import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -50,6 +56,7 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
+import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -61,18 +68,25 @@ public class AssignmentPreviewDialog extends Panel implements Popupable {
     private static final String ID_CONTENT = "panel";
     private static final String ID_TABLE = "table";
     private static final String ID_BUTTON_CANCEL = "cancelButton";
+    private static final String ID_BUTTON_ADD = "addButton";
 
     private boolean initialized;
     private List<String> directAssignments;
     private IModel<List<AssignmentsPreviewDto>> data;
     private PageBase pageBase;
+    private boolean multiselect;
 
     public AssignmentPreviewDialog(String id, final List<AssignmentsPreviewDto> data, List<String> directAssignments,
-                                   PageBase pageBase){
+                                   PageBase pageBase) {
+        this(id, data, directAssignments, pageBase, false);
+    }
+    public AssignmentPreviewDialog(String id, final List<AssignmentsPreviewDto> data, List<String> directAssignments,
+                                   PageBase pageBase, boolean multiselect){
         super(id);
 
         this.directAssignments = directAssignments;
         this.pageBase = pageBase;
+        this.multiselect = multiselect;
         this.data = new LoadableModel<List<AssignmentsPreviewDto>>(false) {
 
             @Override
@@ -98,6 +112,27 @@ public class AssignmentPreviewDialog extends Panel implements Popupable {
         table.setOutputMarkupId(true);
         content.add(table);
 
+        AjaxButton addButton = new AjaxButton(ID_BUTTON_ADD,
+                createStringResource("userBrowserDialog.button.addButton")) {
+
+            private static final long serialVersionUID = 1L;
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                AssignmentPreviewDialog.this.addButtonClicked(target);
+            }
+        };
+
+        addButton.add(new VisibleEnableBehaviour() {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public boolean isVisible() {
+                return multiselect;
+            }
+        });
+
+        content.add(addButton);
+
         AjaxButton cancelButton = new AjaxButton(ID_BUTTON_CANCEL,
                 createStringResource("AssignmentPreviewDialog.button.cancel")) {
 
@@ -111,7 +146,24 @@ public class AssignmentPreviewDialog extends Panel implements Popupable {
 
     private List<IColumn<AssignmentsPreviewDto, String>> initColumns() {
         List<IColumn<AssignmentsPreviewDto, String>> columns = new ArrayList<>();
+        if (multiselect) {
+            columns.add(new CheckBoxHeaderColumn<AssignmentsPreviewDto>() {
+                private static final long serialVersionUID = 1L;
 
+                @Override
+                protected void onUpdateRow(AjaxRequestTarget target, DataTable table, IModel<AssignmentsPreviewDto> rowModel) {
+                    super.onUpdateRow(target, table, rowModel);
+//                    onUpdateCheckbox(target);
+                };
+
+                @Override
+                protected void onUpdateHeader(AjaxRequestTarget target, boolean selected, DataTable table) {
+                    super.onUpdateHeader(target, selected, table);
+//                    onUpdateCheckbox(target);
+                }
+            });
+
+        }
         columns.add(new LinkColumn<AssignmentsPreviewDto>(createStringResource("AssignmentPreviewDialog.column.name"), AssignmentsPreviewDto.F_TARGET_NAME){
 
             @Override
@@ -122,6 +174,9 @@ public class AssignmentPreviewDialog extends Panel implements Popupable {
 
             @Override
             public boolean isEnabled(IModel<AssignmentsPreviewDto> rowModel) {
+                if (multiselect){
+                    return false;
+                }
                 Class targetClass = rowModel.getObject().getTargetClass();
                 String authorizationAction = "";
                 if (targetClass.getSimpleName().equals("OrgType")){
@@ -218,4 +273,6 @@ public class AssignmentPreviewDialog extends Panel implements Popupable {
         return this;
     }
 
+    protected void addButtonClicked(AjaxRequestTarget target){
+    }
 }

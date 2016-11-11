@@ -169,7 +169,7 @@ public class AssignmentTablePanel<T extends ObjectType> extends BasePanel<List<A
 		}));
 	}
 
-	private List<InlineMenuItem> createAssignmentMenu() {
+	protected List<InlineMenuItem> createAssignmentMenu() {
 		List<InlineMenuItem> items = new ArrayList<>();
 
 		InlineMenuItem item;
@@ -324,10 +324,12 @@ public class AssignmentTablePanel<T extends ObjectType> extends BasePanel<List<A
 			}
 		}
 
+
+
 		target.add(getPageBase().getFeedbackPanel(), get(ID_ASSIGNMENTS));
 	}
 
-	private void addSelectedAssignablePerformed(AjaxRequestTarget target, List<ObjectType> newAssignments,
+	protected void addSelectedAssignablePerformed(AjaxRequestTarget target, List<ObjectType> newAssignments,
 			String popupId) {
 		ModalWindow window = (ModalWindow) get(popupId);
 		if (window != null) {

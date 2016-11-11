@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.web.component.assignment;
 
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.web.component.DateInput;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
@@ -24,11 +25,13 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
+import org.apache.wicket.ajax.markup.html.form.AjaxCheckBox;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
+import org.apache.wicket.model.StringResourceModel;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
@@ -42,22 +45,94 @@ public class DelegationEditorPanel extends AssignmentEditorPanel {
     private static final String ID_DELEGATED_TO_IMAGE = "delegatedToImage";
     private static final String ID_DELEGATED_TO = "delegatedTo";
     private static final String ID_DELEGATED_TO_LABEL = "delegatedToLabel";
+    private static final String ID_SELECTED = "selected";
+    private static final String ID_TYPE_IMAGE = "typeImage";
+    private static final String ID_NAME_LABEL = "nameLabel";
+    private static final String ID_NAME = "name";
+    private static final String ID_HEADER_ROW = "headerRow";
 
-    public DelegationEditorPanel(String id, IModel<AssignmentEditorDto> model) {
-        super(id, model);
-        initLayout();
+    private boolean delegatedToMe;
+
+    public DelegationEditorPanel(String id, IModel<AssignmentEditorDto> delegationTargetObjectModel,
+                                 boolean delegatedToMe, PageBase pageBase) {
+        super(id, delegationTargetObjectModel, pageBase);
+//        this.delegatedToMe = delegatedToMe;
+//        this.pageBase = pageBase;
+//        super.initLayout();
     }
 
-    private void initLayout() {
+//    @Override
+//    protected void initLayout() {
+
+//        DateInput validFrom = new DateInput(ID_DELEGATION_VALID_FROM,
+//                createDateModel(new PropertyModel<XMLGregorianCalendar>(getModel(),
+//                        AssignmentEditorDto.F_ACTIVATION + ".validFrom")));
+//        headerRow.add(validFrom);
+//
+//        DateInput validTo = new DateInput(ID_DELEGATION_VALID_TO,
+//                createDateModel(new PropertyModel<XMLGregorianCalendar>(getModel(),
+//                        AssignmentEditorDto.F_ACTIVATION + ".validTo")));
+//        headerRow.add(validTo);
+//    }
+
+    @Override
+    protected void initHeaderRow(){
+        AjaxCheckBox selected = new AjaxCheckBox(ID_SELECTED,
+                new PropertyModel<Boolean>(getModel(), AssignmentEditorDto.F_SELECTED)) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected void onUpdate(AjaxRequestTarget target) {
+                // do we want to update something?
+            }
+        };
+        selected.add(new VisibleEnableBehaviour(){
+            @Override
+            public boolean isVisible(){
+                return !getModel().getObject().isSimpleView();
+            }
+        });
+        headerRow.add(selected);
         Label arrowIcon = new Label(ID_ARROW_ICON);
         headerRow.add(arrowIcon);
 
+        WebMarkupContainer typeImage = new WebMarkupContainer(ID_TYPE_IMAGE);
+        if (delegatedToMe){
+            typeImage.add(AttributeModifier.append("class", createImageTypeModel(getModel())));
+        } else {
+            typeImage.add(AttributeModifier.append("class", AssignmentEditorDtoType.USER.getIconCssClass()));
+        }
+        headerRow.add(typeImage);
+
+        AjaxLink name = new AjaxLink(ID_NAME) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+//                nameClickPerformed(target);
+            }
+        };
+        headerRow.add(name);
+
+        Label nameLabel;
+        if (delegatedToMe) {
+            nameLabel = new Label(ID_NAME_LABEL, createAssignmentNameLabelModel(false));
+        } else {
+            nameLabel = new Label(ID_NAME_LABEL, pageBase.createStringResource("DelegationEditorPanel.meLabel"));
+        }
+        nameLabel.setOutputMarkupId(true);
+        name.add(nameLabel);
 
         AssignmentEditorDto dto = getModelObject();
         dto.getTargetRef();
-        WebMarkupContainer typeImage = new WebMarkupContainer(ID_DELEGATED_TO_IMAGE);
-//        typeImage.add(AttributeModifier.append("class", createImageTypeModel(getModel())));
-        headerRow.add(typeImage);
+
+        WebMarkupContainer delegatedToTypeImage = new WebMarkupContainer(ID_DELEGATED_TO_IMAGE);
+        if (delegatedToMe){
+            delegatedToTypeImage.add(AttributeModifier.append("class", AssignmentEditorDtoType.USER.getIconCssClass()));
+        } else {
+            delegatedToTypeImage.add(AttributeModifier.append("class", createImageTypeModel(getModel())));
+        }
+        headerRow.add(delegatedToTypeImage);
 
         AjaxLink delegatedToName = new AjaxLink(ID_DELEGATED_TO) {
             private static final long serialVersionUID = 1L;
@@ -69,19 +144,13 @@ public class DelegationEditorPanel extends AssignmentEditorPanel {
         };
         headerRow.add(delegatedToName);
 
-        Label delegatedToNameLabel = new Label(ID_DELEGATED_TO_LABEL, createTargetModel());
+        Label delegatedToNameLabel;
+        if (delegatedToMe) {
+            delegatedToNameLabel = new Label(ID_NAME_LABEL, pageBase.createStringResource("DelegationEditorPanel.meLabel"));
+        } else {
+            delegatedToNameLabel = new Label(ID_DELEGATED_TO_LABEL, createTargetModel());
+        }
         delegatedToNameLabel.setOutputMarkupId(true);
         delegatedToName.add(delegatedToNameLabel);
-
-        DateInput validFrom = new DateInput(ID_DELEGATION_VALID_FROM,
-                createDateModel(new PropertyModel<XMLGregorianCalendar>(getModel(),
-                        AssignmentEditorDto.F_ACTIVATION + ".validFrom")));
-        headerRow.add(validFrom);
-
-        DateInput validTo = new DateInput(ID_DELEGATION_VALID_TO,
-                createDateModel(new PropertyModel<XMLGregorianCalendar>(getModel(),
-                        AssignmentEditorDto.F_ACTIVATION + ".validTo")));
-        headerRow.add(validTo);
     }
-
 }

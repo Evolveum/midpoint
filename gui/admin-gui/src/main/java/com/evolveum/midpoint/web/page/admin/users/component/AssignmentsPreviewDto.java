@@ -16,17 +16,16 @@
 
 package com.evolveum.midpoint.web.page.admin.users.component;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
+import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import java.io.Serializable;
 
 /**
  * @author mederly
  */
-public class AssignmentsPreviewDto implements Serializable, Comparable {
+public class AssignmentsPreviewDto extends SelectableBean implements Serializable, Comparable {
 
     public static final String F_TARGET_OID = "targetOid";
     public static final String F_TARGET_NAME = "targetName";
@@ -51,6 +50,8 @@ public class AssignmentsPreviewDto implements Serializable, Comparable {
     // for role/org assignments
     private String tenantName;
     private String orgRefName;
+    private ObjectReferenceType tenantRef;
+    private ObjectReferenceType orgRef;
     // generic
     private String remark;
 
@@ -132,6 +133,22 @@ public class AssignmentsPreviewDto implements Serializable, Comparable {
 
     public void setRemark(String remark) {
         this.remark = remark;
+    }
+
+    public ObjectReferenceType getTenantRef() {
+        return tenantRef;
+    }
+
+    public void setTenantRef(ObjectReferenceType tenantRef) {
+        this.tenantRef = tenantRef;
+    }
+
+    public ObjectReferenceType getOrgRef() {
+        return orgRef;
+    }
+
+    public void setOrgRef(ObjectReferenceType orgRef) {
+        this.orgRef = orgRef;
     }
 
     @Override

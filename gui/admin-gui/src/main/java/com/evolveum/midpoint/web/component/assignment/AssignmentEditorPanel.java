@@ -132,6 +132,20 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 
 	private IModel<List<ACAttributeDto>> attributesModel;
 	protected WebMarkupContainer headerRow;
+	protected PageBase pageBase;
+
+	public AssignmentEditorPanel(String id, IModel<AssignmentEditorDto> model, PageBase pageBase) {
+		super(id, model);
+		this.pageBase = pageBase;
+		attributesModel = new LoadableModel<List<ACAttributeDto>>(false) {
+			@Override
+			protected List<ACAttributeDto> load() {
+				return loadAttributes();
+			}
+		};
+
+		initLayout();
+	}
 
 	public AssignmentEditorPanel(String id, IModel<AssignmentEditorDto> model) {
 		super(id, model);
@@ -154,13 +168,31 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 				new PackageResourceReference(AssignmentEditorPanel.class, "AssignmentEditorPanel.css")));
 	}
 
-	private void initLayout() {
+	protected void initLayout() {
 		setOutputMarkupId(true);
 		headerRow = new WebMarkupContainer(ID_HEADER_ROW);
 		headerRow.add(AttributeModifier.append("class", createHeaderClassModel(getModel())));
 		headerRow.setOutputMarkupId(true);
 		add(headerRow);
 
+		initHeaderRow();
+
+		WebMarkupContainer body = new WebMarkupContainer(ID_BODY);
+		body.setOutputMarkupId(true);
+		body.add(new VisibleEnableBehaviour() {
+
+			@Override
+			public boolean isVisible() {
+				AssignmentEditorDto editorDto = AssignmentEditorPanel.this.getModel().getObject();
+				return !editorDto.isMinimized();
+			}
+		});
+		add(body);
+
+		initBodyLayout(body);
+	}
+
+	protected void initHeaderRow(){
 		AjaxCheckBox selected = new AjaxCheckBox(ID_SELECTED,
 				new PropertyModel<Boolean>(getModel(), AssignmentEditorDto.F_SELECTED)) {
 			private static final long serialVersionUID = 1L;
@@ -170,12 +202,12 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 				// do we want to update something?
 			}
 		};
-        selected.add(new VisibleEnableBehaviour(){
-            @Override
-        public boolean isVisible(){
-                return !getModel().getObject().isSimpleView();
-            }
-        });
+		selected.add(new VisibleEnableBehaviour(){
+			@Override
+			public boolean isVisible(){
+				return !getModel().getObject().isSimpleView();
+			}
+		});
 		headerRow.add(selected);
 
 		WebMarkupContainer typeImage = new WebMarkupContainer(ID_TYPE_IMAGE);
@@ -242,30 +274,16 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 				return !AssignmentEditorPanel.this.getModelObject().isMinimized();
 			}
 		};
-        expandButton.add(new VisibleEnableBehaviour(){
-            @Override
-            public boolean isVisible(){
-                return !getModel().getObject().isSimpleView();
-            }
-        });
-		headerRow.add(expandButton);
-
-		WebMarkupContainer body = new WebMarkupContainer(ID_BODY);
-		body.setOutputMarkupId(true);
-		body.add(new VisibleEnableBehaviour() {
-
+		expandButton.add(new VisibleEnableBehaviour(){
 			@Override
-			public boolean isVisible() {
-				AssignmentEditorDto editorDto = AssignmentEditorPanel.this.getModel().getObject();
-				return !editorDto.isMinimized();
+			public boolean isVisible(){
+				return !getModel().getObject().isSimpleView();
 			}
 		});
-		add(body);
-
-		initBodyLayout(body);
+		headerRow.add(expandButton);
 	}
 
-	private IModel<String> createAssignmentNameLabelModel(final boolean isManager) {
+	protected IModel<String> createAssignmentNameLabelModel(final boolean isManager) {
 		return new AbstractReadOnlyModel<String>() {
 
 			@Override
@@ -304,7 +322,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 		return true;
 	}
 
-	private IModel<String> createHeaderClassModel(final IModel<AssignmentEditorDto> model) {
+	protected IModel<String> createHeaderClassModel(final IModel<AssignmentEditorDto> model) {
 		return new AbstractReadOnlyModel<String>() {
 			private static final long serialVersionUID = 1L;
 
@@ -823,7 +841,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 		return construction;
 	}
 
-	private IModel<String> createImageTypeModel(final IModel<AssignmentEditorDto> model) {
+	protected IModel<String> createImageTypeModel(final IModel<AssignmentEditorDto> model) {
 		return new AbstractReadOnlyModel<String>() {
 			private static final long serialVersionUID = 1L;
 
