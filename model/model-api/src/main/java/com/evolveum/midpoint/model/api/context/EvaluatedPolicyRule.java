@@ -28,12 +28,12 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintsTyp
  *
  */
 public interface EvaluatedPolicyRule extends DebugDumpable, Serializable {
+	
+	Collection<EvaluatedPolicyRuleTrigger> getTriggers();
 
 	String getName();
 	
 	PolicyConstraintsType getPolicyConstraints();
-	
-	Collection<PolicyConstraintKind> getTriggeredConstraintKinds();
 	
 	String getPolicySituation();
 	

@@ -389,7 +389,7 @@ public class Clockwork {
      *  - BACKGROUND, if any hook reported switching to background; otherwise
      *  - FOREGROUND (if all hooks reported finishing on foreground) 
      */
-    private HookOperationMode invokeHooks(LensContext context, Task task, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+    private HookOperationMode invokeHooks(LensContext context, Task task, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, PolicyViolationException {
     	// TODO: following two parts should be merged together in later versions
     	
     	// Execute configured scripting hooks

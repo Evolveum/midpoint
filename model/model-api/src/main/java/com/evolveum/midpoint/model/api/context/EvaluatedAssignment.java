@@ -61,6 +61,5 @@ public interface EvaluatedAssignment<F extends FocusType> extends DebugDumpable 
 	 */
 	Collection<EvaluatedPolicyRule> getPolicyRules();
 	
-	void triggerConstraint(EvaluatedPolicyRule rule, AbstractPolicyConstraintType constraint, 
-			PolicyConstraintKind constraintKind, String message) throws PolicyViolationException;
+	void triggerConstraint(EvaluatedPolicyRule rule, EvaluatedPolicyRuleTrigger trigger) throws PolicyViolationException;
 }

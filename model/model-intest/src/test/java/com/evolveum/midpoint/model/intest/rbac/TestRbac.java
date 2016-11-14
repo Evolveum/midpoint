@@ -108,7 +108,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
 	protected static final File ROLE_GOVERNOR_FILE = new File(TEST_DIR, "role-governor.xml");
 	protected static final String ROLE_GOVERNOR_OID = "12345678-d34d-b33f-f00d-555555557705";
 	
-	protected static final File ROLE_CANIBAL_FILE = new File(TEST_DIR, "role-cannibal.xml");
+	protected static final File ROLE_CANNIBAL_FILE = new File(TEST_DIR, "role-cannibal.xml");
 	protected static final String ROLE_CANNIBAL_OID = "12345678-d34d-b33f-f00d-555555557706";
 	
 	protected static final File ROLE_PROJECT_OMNINAMAGER_FILE = new File(TEST_DIR, "role-project-omnimanager.xml");
@@ -143,6 +143,10 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
 		return ROLE_GOVERNOR_FILE;
 	}
 	
+	protected File getRoleCannibalFile() {
+		return ROLE_CANNIBAL_FILE;
+	}
+	
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult)
 			throws Exception {
@@ -157,7 +161,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
 		repoAddObjectFromFile(ROLE_WANNABE_FILE, RoleType.class, initResult);
 		repoAddObjectFromFile(ROLE_HONORABLE_WANNABE_FILE, RoleType.class, initResult);
 		repoAddObjectFromFile(getRoleGovernorFile(), RoleType.class, initResult);
-		repoAddObjectFromFile(ROLE_CANIBAL_FILE, RoleType.class, initResult);
+		repoAddObjectFromFile(getRoleCannibalFile(), RoleType.class, initResult);
 		repoAddObjectFromFile(ROLE_PROJECT_OMNINAMAGER_FILE, RoleType.class, initResult);
 		repoAddObjectFromFile(ROLE_WEAK_GOSSIPER_FILE, RoleType.class, initResult);
 	}

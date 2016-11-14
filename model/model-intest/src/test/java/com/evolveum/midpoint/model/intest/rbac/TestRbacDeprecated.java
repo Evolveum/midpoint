@@ -83,9 +83,14 @@ import com.evolveum.prism.xml.ns._public.types_3.EvaluationTimeType;
 public class TestRbacDeprecated extends TestRbac {
 	
 	protected static final File ROLE_GOVERNOR_DEPRECATED_FILE = new File(TEST_DIR, "role-governor-deprecated.xml");
+	protected static final File ROLE_CANNIBAL_DEPRECATED_FILE = new File(TEST_DIR, "role-cannibal-deprecated.xml");
 		
 	@Override
 	protected File getRoleGovernorFile() {
 		return ROLE_GOVERNOR_DEPRECATED_FILE;
+	}
+	
+	protected File getRoleCannibalFile() {
+		return ROLE_CANNIBAL_DEPRECATED_FILE;
 	}
 }
