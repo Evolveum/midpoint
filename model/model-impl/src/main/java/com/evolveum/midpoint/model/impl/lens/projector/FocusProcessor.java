@@ -17,6 +17,9 @@ package com.evolveum.midpoint.model.impl.lens.projector;
 
 import static com.evolveum.midpoint.schema.internals.InternalsConfig.consistencyChecks;
 
+import java.util.Collection;
+import java.util.List;
+
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.evolveum.midpoint.util.exception.NoFocusNameSchemaException;
@@ -27,10 +30,13 @@ import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.common.ActivationComputer;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
+import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
+import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRuleTrigger;
 import com.evolveum.midpoint.model.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.model.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.model.common.mapping.MappingFactory;
 import com.evolveum.midpoint.model.impl.ModelObjectResolver;
+import com.evolveum.midpoint.model.impl.lens.EvaluatedAssignmentImpl;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.model.impl.lens.LensUtil;
@@ -44,6 +50,7 @@ import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -68,11 +75,14 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.IterationSpecificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LockoutStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ModificationPolicyConstraintType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectPolicyConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateMappingEvaluationPhaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintKindType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PropertyConstraintType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TimeIntervalStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
@@ -234,7 +244,6 @@ public class FocusProcessor {
 		        
 		        assignmentProcessor.checkForAssignmentConflicts(context, result);
 		        
-		        
 		        // OBJECT TEMPLATE (after assignments)
 		        
 		        objectTemplateProcessor.processTemplate(context, ObjectTemplateMappingEvaluationPhaseType.AFTER_ASSIGNMENTS,
@@ -245,6 +254,9 @@ public class FocusProcessor {
 				
 		        credentialsProcessor.processFocusCredentials(context, now, task, result);
 		        
+		        // We need to evaluate this as a last step. We need to make sure we have all the
+		        // focus deltas so we can properly trigger the rules.
+		        evaluateFocusPolicyRules(context, activityDescription, now, task, result);
 		        
 		        // Processing done, check for success
 
@@ -342,6 +354,36 @@ public class FocusProcessor {
 		
 	}
 	
+	private <F extends FocusType> void evaluateFocusPolicyRules(LensContext<F> context, String activityDescription,
+			XMLGregorianCalendar now, Task task, OperationResult result) throws PolicyViolationException {
+		LensFocusContext<F> focusContext = context.getFocusContext();
+		DeltaSetTriple<EvaluatedAssignmentImpl> evaluatedAssignmentTriple = context.getEvaluatedAssignmentTriple();
+		if (evaluatedAssignmentTriple == null) {
+			return;
+		}
+		for (EvaluatedAssignmentImpl<F> evaluatedAssignment: evaluatedAssignmentTriple.getNonNegativeValues()) {
+			Collection<EvaluatedPolicyRule> policyRules = evaluatedAssignment.getPolicyRules();
+			for (EvaluatedPolicyRule policyRule: policyRules) {
+				PolicyConstraintsType policyConstraints = policyRule.getPolicyConstraints();
+				if (policyConstraints == null) {
+					continue;
+				}
+				for (ModificationPolicyConstraintType modificationConstraintType: policyConstraints.getModification()) {
+					if (modificationConstraintMatches(focusContext, modificationConstraintType)) {
+						EvaluatedPolicyRuleTrigger trigger = new EvaluatedPolicyRuleTrigger(PolicyConstraintKindType.MODIFICATION,
+								modificationConstraintType, "Focus "+focusContext.getHumanReadableName()+" was modified");
+						evaluatedAssignment.triggerConstraint(policyRule, trigger);
+					}
+				}
+			}
+		}
+	}
+
+	private <F extends FocusType> boolean modificationConstraintMatches(LensFocusContext<F> focusContext, ModificationPolicyConstraintType modificationConstraintType) {
+		// TODO: later: check for modification od individual items
+		return focusContext.hasAnyDelta();
+	}
+
 	private <F extends FocusType> void applyObjectPolicyConstraints(LensFocusContext<F> focusContext, ObjectPolicyConfigurationType objectPolicyConfigurationType) throws SchemaException {
 		if (objectPolicyConfigurationType == null) {
 			return;

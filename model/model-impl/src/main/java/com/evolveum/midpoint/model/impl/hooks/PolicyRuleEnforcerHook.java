@@ -78,24 +78,51 @@ public class PolicyRuleEnforcerHook implements ChangeHook {
 		if (context.getState() != ModelState.PRIMARY) {
             return HookOperationMode.FOREGROUND;
         }
-		
-		DeltaSetTriple<? extends EvaluatedAssignment> evaluatedAssignmentTriple = context.getEvaluatedAssignmentTriple();
-		if (evaluatedAssignmentTriple == null) {
+	
+		ModelElementContext<O> focusContext = context.getFocusContext();
+		if (focusContext == null) {
 			return HookOperationMode.FOREGROUND;
 		}
 		
+		if (!FocusType.class.isAssignableFrom(focusContext.getObjectTypeClass())) {
+			return HookOperationMode.FOREGROUND;
+    	}
+		
+		evaluateFocusRules((ModelContext<FocusType>) context, task, result);
+		evaluateAssignmentRules((ModelContext<FocusType>) context, task, result);
+		
+		return HookOperationMode.FOREGROUND;
+	}
+	
+	private <F extends FocusType> void evaluateFocusRules(ModelContext<F> context, Task task,
+			OperationResult result) throws PolicyViolationException {
+		ModelElementContext<F> focusContext = context.getFocusContext();
+		
 		StringBuilder compositeMessageSb = new StringBuilder();
-		evaluatedAssignmentTriple.accept(assignment -> enforceAssignmentRules(compositeMessageSb, assignment));
+		enforceRules(compositeMessageSb, focusContext.getPolicyRules());
+		if (compositeMessageSb.length() != 0) {
+			throw new PolicyViolationException(compositeMessageSb.toString());
+		}
+	}
+	
+	private <F extends FocusType> void evaluateAssignmentRules(ModelContext<F> context, Task task,
+			OperationResult result) throws PolicyViolationException {
+	
+		DeltaSetTriple<? extends EvaluatedAssignment> evaluatedAssignmentTriple = context.getEvaluatedAssignmentTriple();
+		if (evaluatedAssignmentTriple == null) {
+			return;
+		}
+		
+		StringBuilder compositeMessageSb = new StringBuilder();
+		evaluatedAssignmentTriple.accept(assignment -> enforceRules(compositeMessageSb, assignment.getPolicyRules()));
 		
 		if (compositeMessageSb.length() != 0) {
 			throw new PolicyViolationException(compositeMessageSb.toString());
 		}
-		
-		return HookOperationMode.FOREGROUND;
 	}
 
-	private <F extends FocusType> void enforceAssignmentRules(StringBuilder compositeMessageSb, EvaluatedAssignment<F> assignment) {
-		for (EvaluatedPolicyRule policyRule: assignment.getPolicyRules()) {
+	private <F extends FocusType> void enforceRules(StringBuilder compositeMessageSb, Collection<EvaluatedPolicyRule> policyRules) {
+		for (EvaluatedPolicyRule policyRule: policyRules) {
 
 			Collection<EvaluatedPolicyRuleTrigger> triggers = policyRule.getTriggers();
 			if (triggers.isEmpty()) {
