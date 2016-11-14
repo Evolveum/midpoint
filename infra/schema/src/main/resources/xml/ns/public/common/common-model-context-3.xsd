@@ -233,13 +233,6 @@
                    </xsd:documentation>
                </xsd:annotation>
            </xsd:element>
-           <xsd:element name="policyRule" type="c:EvaluatedPolicyRuleType" minOccurs="0" maxOccurs="unbounded">
-               <xsd:annotation>
-                   <xsd:documentation>
-                       TODO
-                   </xsd:documentation>
-               </xsd:annotation>
-           </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
 
@@ -438,72 +431,6 @@
         <xsd:sequence>
             <xsd:element name="objectDeltaOperation" type="c:ObjectDeltaOperationType" />
             <xsd:element name="audited" type="xsd:boolean" />
-        </xsd:sequence>
-    </xsd:complexType>
-    
-    <xsd:complexType name="EvaluatedPolicyRuleType">
-        <xsd:annotation>
-            <xsd:documentation>
-                Policy rules as they were evaluated by the projector.
-            </xsd:documentation>
-            <xsd:appinfo>
-				<a:since>3.5</a:since>
-				<a:experimental>true</a:experimental>
-			</xsd:appinfo>
-        </xsd:annotation>
-        <xsd:sequence>
-        	<xsd:element name="policyRule" type="tns:PolicyRuleType" minOccurs="0">
-    			<xsd:annotation>
-    				<xsd:documentation>
-    					Original policy rule.
-    				</xsd:documentation>
-    			</xsd:annotation>
-    		</xsd:element>
-    		<xsd:element name="trigger" type="tns:EvaluatedPolicyRuleTriggerType" minOccurs="0" maxOccurs="unbounded">
-    			<xsd:annotation>
-    				<xsd:documentation>
-    					Description of a situation that caused a trigger of the policy rule.
-    				</xsd:documentation>
-    			</xsd:annotation>
-    		</xsd:element>
-        </xsd:sequence>
-    </xsd:complexType>
-    
-    <xsd:complexType name="EvaluatedPolicyRuleTriggerType">
-        <xsd:annotation>
-            <xsd:documentation>
-                Description of a situation that caused a trigger of the policy rule.
-            </xsd:documentation>
-            <xsd:appinfo>
-				<a:since>3.5</a:since>
-				<a:experimental>true</a:experimental>
-			</xsd:appinfo>
-        </xsd:annotation>
-        <xsd:sequence>
-        	<xsd:element name="constraintKind" type="tns:PolicyConstraintKindType" minOccurs="0">
-    			<xsd:annotation>
-    				<xsd:documentation>
-    					The kind of constraint that caused the trigger.
-    				</xsd:documentation>
-    			</xsd:annotation>
-    		</xsd:element>
-    		<xsd:element name="constraint" type="tns:AbstractPolicyConstraintType" minOccurs="0">
-    			<xsd:annotation>
-    				<xsd:documentation>
-    					TODO
-    				</xsd:documentation>
-    			</xsd:annotation>
-    		</xsd:element>
-    		<xsd:element name="message" type="xsd:string" minOccurs="0">
-    			<xsd:annotation>
-    				<xsd:documentation>
-    					Human-readable message associated with this trigger. The message
-						explain why the rule was triggered. It can be used
-						in the logs, as an error message, in the audit trail
-						and so on.
-    				</xsd:documentation>
-    			</xsd:annotation>
-    		</xsd:element>
         </xsd:sequence>
     </xsd:complexType>
 

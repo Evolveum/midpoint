@@ -539,29 +539,7 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
         lensElementContextType.setIteration(iteration);
         lensElementContextType.setIterationToken(iterationToken);
         lensElementContextType.setSynchronizationIntent(synchronizationIntent != null ? synchronizationIntent.toSynchronizationIntentType() : null);
-        for (EvaluatedPolicyRule policyRule: policyRules) {
-        	lensElementContextType.getPolicyRule().add(toEvaluatedPolicyRuleType(policyRule));
-        }
     }
-
-    private EvaluatedPolicyRuleType toEvaluatedPolicyRuleType(EvaluatedPolicyRule policyRule) {
-    	EvaluatedPolicyRuleType evaluatedPolicyRuleType = new EvaluatedPolicyRuleType();
-    	PolicyRuleType policyRuleType = policyRule.getPolicyRule();
-    	if (policyRuleType != null) {
-    		evaluatedPolicyRuleType.setPolicyRule(policyRuleType.clone());
-    	}
-    	for (EvaluatedPolicyRuleTrigger trigger: policyRule.getTriggers()) {
-    		EvaluatedPolicyRuleTriggerType triggerType = new EvaluatedPolicyRuleTriggerType();
-    		AbstractPolicyConstraintType constraint = trigger.getConstraint();
-    		if (constraint != null) {
-    			triggerType.setConstraint(constraint.clone());
-    		}
-    		triggerType.setConstraintKind(trigger.getConstraintKind());
-    		triggerType.setMessage(trigger.getMessage());
-			evaluatedPolicyRuleType.getTrigger().add(triggerType);
-    	}
-    	return evaluatedPolicyRuleType;
-	}
 
 	public void retrieveFromLensElementContextType(LensElementContextType lensElementContextType, OperationResult result) throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException {
 
@@ -593,23 +571,8 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
         this.iterationToken = lensElementContextType.getIterationToken();
         this.synchronizationIntent = SynchronizationIntent.fromSynchronizationIntentType(lensElementContextType.getSynchronizationIntent());
         
-        parseEvaluatedPolicyRuleType(lensElementContextType.getPolicyRule());
-
         // note: objectTypeClass is already converted (used in the constructor)
     }
-
-    private void parseEvaluatedPolicyRuleType(List<EvaluatedPolicyRuleType> policyRuleTypes) {
-    	this.policyRules = new ArrayList<>(policyRuleTypes.size());
-    	for (EvaluatedPolicyRuleType policyRuleType: policyRuleTypes) {
-    		EvaluatedPolicyRuleImpl policyRule = new EvaluatedPolicyRuleImpl(policyRuleType.getPolicyRule());
-    		for (EvaluatedPolicyRuleTriggerType triggerType: policyRuleType.getTrigger()) {
-    			EvaluatedPolicyRuleTrigger trigger = new EvaluatedPolicyRuleTrigger(triggerType.getConstraintKind(), 
-    					triggerType.getConstraint(), triggerType.getMessage());
-				policyRule.addTrigger(trigger);
-    		}
-    		policyRules.add(policyRule);
-    	}
-	}
 
 	protected void fixProvisioningTypeInDelta(ObjectDelta<O> delta, Objectable object, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException {
         if (delta != null && delta.getObjectTypeClass() != null && (ShadowType.class.isAssignableFrom(delta.getObjectTypeClass()) || ResourceType.class.isAssignableFrom(delta.getObjectTypeClass()))) {
