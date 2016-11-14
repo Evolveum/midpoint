@@ -71,6 +71,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrderConstraintsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyRuleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
@@ -345,6 +347,12 @@ public class AssignmentEvaluator<F extends FocusType> {
 						isParentValid && isValid, (FocusType)target.asObjectable(), source, assignmentType.getTargetRef().getRelation(), 
 						sourceDescription, assignmentPath, task, result);
 				
+			} else if (assignmentType.getPolicyRule() != null) {
+				
+				evaluatePolicyRule(evalAssignment, assignmentPathSegment, evaluateOld, mode,
+						isParentValid && isValid, source, sourceDescription, 
+						assignmentPath, assignmentPathSegment.getOrderOneObject(), task, result);
+				
 			} else {
 				// Do not throw an exception. We don't have referential integrity. Therefore if a role is deleted then throwing
 				// an exception would prohibit any operations with the users that have the role, including removal of the reference.
@@ -420,6 +428,21 @@ public class AssignmentEvaluator<F extends FocusType> {
 			mappingEvaluator.evaluateMapping(mapping, lensContext, task, result);
 			evaluatedAssignment.addFocusMapping(mapping);
 		}
+	}
+	
+	private void evaluatePolicyRule(EvaluatedAssignmentImpl<F> evaluatedAssignment, AssignmentPathSegment assignmentPathSegment, 
+			boolean evaluateOld, PlusMinusZero mode, boolean isValid, ObjectType source, String sourceDescription,
+			AssignmentPath assignmentPath, ObjectType orderOneObject, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
+		assertSource(source, evaluatedAssignment);
+		
+		AssignmentType assignmentTypeNew = LensUtil.getAssignmentType(assignmentPathSegment.getAssignmentIdi(), evaluateOld);
+		PolicyRuleType policyRuleType = assignmentTypeNew.getPolicyRule();
+		
+		LOGGER.trace("Evaluating policy rule '{}' in {}", policyRuleType.getName(), source);
+		
+		EvaluatedPolicyRuleImpl policyRule = new EvaluatedPolicyRuleImpl(policyRuleType);
+
+		evaluatedAssignment.addPolicyRule(policyRule);
 	}
 
 	private <O extends ObjectType> List<PrismObject<O>> resolveTargets(AssignmentType assignmentType, AssignmentPathSegment assignmentPathSegment, ObjectType source, String sourceDescription, AssignmentPath assignmentPath, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
@@ -550,12 +573,12 @@ public class AssignmentEvaluator<F extends FocusType> {
 			}
 		}
 		
-		EvaluatedAssignmentTargetImpl evalRole = new EvaluatedAssignmentTargetImpl();
-		evalRole.setTarget(targetType.asPrismObject());
-		evalRole.setEvaluateConstructions(assignmentPathSegment.isMatchingOrder());
-		evalRole.setAssignment(assignmentPath.last().getAssignment());
-		evalRole.setDirectlyAssigned(assignmentPath.size() == 1);
-		assignment.addRole(evalRole, mode);
+		EvaluatedAssignmentTargetImpl evalAssignmentTarget = new EvaluatedAssignmentTargetImpl();
+		evalAssignmentTarget.setTarget(targetType.asPrismObject());
+		evalAssignmentTarget.setEvaluateConstructions(assignmentPathSegment.isMatchingOrder());
+		evalAssignmentTarget.setAssignment(assignmentPath.last().getAssignment());
+		evalAssignmentTarget.setDirectlyAssigned(assignmentPath.size() == 1);
+		assignment.addRole(evalAssignmentTarget, mode);
 		
 		if (mode != PlusMinusZero.MINUS && assignmentPathSegment.isProcessMembership()) {
 			PrismReferenceValue refVal = new PrismReferenceValue();
@@ -672,12 +695,18 @@ public class AssignmentEvaluator<F extends FocusType> {
 		}
 		
 		if (evaluationOrder.getSummaryOrder() == 1 && targetType instanceof AbstractRoleType) {
+			
 			for(AuthorizationType authorizationType: ((AbstractRoleType)targetType).getAuthorization()) {
 				Authorization authorization = createAuthorization(authorizationType, targetType.toString());
 				assignment.addAuthorization(authorization);
 			}
 			if (((AbstractRoleType)targetType).getAdminGuiConfiguration() != null) {
 				assignment.addAdminGuiConfiguration(((AbstractRoleType)targetType).getAdminGuiConfiguration());
+			}
+			
+			PolicyConstraintsType policyConstraints = ((AbstractRoleType)targetType).getPolicyConstraints();
+			if (policyConstraints != null) {
+				assignment.addLegacyPolicyConstraints(policyConstraints);
 			}
 		}
 		
@@ -720,16 +749,11 @@ public class AssignmentEvaluator<F extends FocusType> {
 	}
 	
 	private boolean isAllowedByLimitations(AssignmentPathSegment assignmentPathSegment, AssignmentType roleInducement) {
-		List<AssignmentSelectorType> limitations = assignmentPathSegment.getAssignment().getLimitTargerContent();
-		if (limitations == null || limitations.isEmpty()) {
+		AssignmentSelectorType limitation = assignmentPathSegment.getAssignment().getLimitTargetContent();
+		if (limitation == null) {
 			return true;
 		}
-		for (AssignmentSelectorType limitation: limitations) {
-			if (FocusTypeUtil.selectorMatches(limitation, roleInducement)) {
-				return true;
-			}
-		}
-		return false;
+		return FocusTypeUtil.selectorMatches(limitation, roleInducement);
 	}
 
 	private QName getTargetType(AssignmentPathSegment assignmentPathSegment){

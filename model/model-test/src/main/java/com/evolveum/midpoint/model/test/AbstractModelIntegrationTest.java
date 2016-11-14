@@ -1435,7 +1435,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		modifyUserAssignment(userDeputyOid, userTargetOid, UserType.COMPLEX_TYPE, SchemaConstants.ORG_DEPUTY, task, 
 				assignment -> {
 					AssignmentSelectorType limitTargetContent = new AssignmentSelectorType();
-					assignment.getLimitTargerContent().add(limitTargetContent);
+					assignment.setLimitTargetContent(limitTargetContent);
 					for (ObjectReferenceType limitTarget: limitTargets) {
 						limitTargetContent.getTargetRef().add(limitTarget);
 					}

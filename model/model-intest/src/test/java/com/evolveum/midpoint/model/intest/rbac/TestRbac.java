@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.evolveum.midpoint.model.intest;
+package com.evolveum.midpoint.model.intest.rbac;
 
 import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertNull;
@@ -40,6 +40,7 @@ import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.api.context.EvaluatedAssignmentTarget;
 import com.evolveum.midpoint.model.api.context.EvaluatedAssignment;
 import com.evolveum.midpoint.model.api.context.ModelContext;
+import com.evolveum.midpoint.model.intest.AbstractInitializedModelIntegrationTest;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
@@ -138,6 +139,10 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
 	
 	private final String EXISTING_GOSSIP = "Black spot!"; 
 	
+	protected File getRoleGovernorFile() {
+		return ROLE_GOVERNOR_FILE;
+	}
+	
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult)
 			throws Exception {
@@ -151,7 +156,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
 		repoAddObjectFromFile(ROLE_CLERIC_FILE, RoleType.class, initResult);
 		repoAddObjectFromFile(ROLE_WANNABE_FILE, RoleType.class, initResult);
 		repoAddObjectFromFile(ROLE_HONORABLE_WANNABE_FILE, RoleType.class, initResult);
-		repoAddObjectFromFile(ROLE_GOVERNOR_FILE, RoleType.class, initResult);
+		repoAddObjectFromFile(getRoleGovernorFile(), RoleType.class, initResult);
 		repoAddObjectFromFile(ROLE_CANIBAL_FILE, RoleType.class, initResult);
 		repoAddObjectFromFile(ROLE_PROJECT_OMNINAMAGER_FILE, RoleType.class, initResult);
 		repoAddObjectFromFile(ROLE_WEAK_GOSSIPER_FILE, RoleType.class, initResult);
